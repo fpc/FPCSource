@@ -30,7 +30,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Drag;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -215,7 +217,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.AEDataModel,MacOsApi.CGImage,MacOsApi.CGGeometry,MacOsApi.Events,MacOsApi.Files,MacOsApi.AppleEvents,MacOsApi.QuickdrawTypes,MacOsApi.Pasteboard,MacOsApi.HIGeometry;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,AEDataModel,CGImage,CGGeometry,Events,Files,AppleEvents,QuickdrawTypes,Pasteboard,HIGeometry;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

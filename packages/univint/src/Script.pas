@@ -20,7 +20,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Script;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -205,7 +207,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.IntlResources;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,IntlResources;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -696,18 +702,18 @@ const
 	smKanaHardOK = $0200; {can have dakuten}
 	smKanaSoftOK = $0300; {can have dakuten or han-dakuten}
                                         { CharType Ideographic classes for two-byte systems }
-	smIdeographicLevel1 = $0000; {level 1 char}
-	smIdeographicLevel2 = $0100; {level 2 char}
-	smIdeographicUser = $0200; {user char}
+	smIdeographicLevel1 = $0000; {level 1 AnsiChar}
+	smIdeographicLevel2 = $0100; {level 2 AnsiChar}
+	smIdeographicUser = $0200; {user AnsiChar}
                                         { old names for above, for backward compatibility }
-	smFISClassLvl1 = $0000; {level 1 char}
-	smFISClassLvl2 = $0100; {level 2 char}
-	smFISClassUser = $0200; {user char}
+	smFISClassLvl1 = $0000; {level 1 AnsiChar}
+	smFISClassLvl2 = $0100; {level 2 AnsiChar}
+	smFISClassUser = $0200; {user AnsiChar}
                                         { CharType Jamo classes for Korean systems }
-	smJamoJaeum = $0000; {simple consonant char}
-	smJamoBogJaeum = $0100; {complex consonant char}
-	smJamoMoeum = $0200; {simple vowel char}
-	smJamoBogMoeum = $0300; {complex vowel char}
+	smJamoJaeum = $0000; {simple consonant AnsiChar}
+	smJamoBogJaeum = $0100; {complex consonant AnsiChar}
+	smJamoMoeum = $0200; {simple vowel AnsiChar}
+	smJamoBogMoeum = $0300; {complex vowel AnsiChar}
 
 const
 { CharType glyph orientation for two-byte systems }
@@ -804,7 +810,7 @@ const
 	smFondStart = $4000; {start from 16K}
 	smFondEnd = $C000; {past end of range at 48K}
                                         { Miscellaneous font equates. }
-	smUprHalfCharSet = $80;  {first char code in top half of std char set}
+	smUprHalfCharSet = $80;  {first AnsiChar code in top half of std AnsiChar set}
 
 const
 { Character Set Extensions }
@@ -970,7 +976,7 @@ const
 
 type
 	TokenResults = SInt8;
-	CharByteTable = packed array [0..255] of char;
+	CharByteTable = packed array [0..255] of AnsiChar;
 { "TokenType" was renamed to "ScriptTokenType" because of a name collisions}
 type
 	ScriptTokenType = SInt16;

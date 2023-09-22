@@ -48,10 +48,10 @@ function PANGO_RBEARING(rect : TPangoRectangle) : longint;
 }
 function PANGO_TYPE_LANGUAGE : GType;
 function pango_language_get_type:GType; cdecl; external pangolib;
-function pango_language_from_string(language:Pchar):PPangoLanguage; cdecl; external pangolib;
-function pango_language_to_string(language : PPangoLanguage) : Pchar;
+function pango_language_from_string(language:PAnsiChar):PPangoLanguage; cdecl; external pangolib;
+function pango_language_to_string(language : PPangoLanguage) : PAnsiChar;
 
-function pango_language_matches(language:PPangoLanguage; range_list:Pchar):gboolean; cdecl; external pangolib;
+function pango_language_matches(language:PPangoLanguage; range_list:PAnsiChar):gboolean; cdecl; external pangolib;
 {$endif read_interface_funtions}
 
 //------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ begin
   PANGO_TYPE_LANGUAGE:=pango_language_get_type;
 end;
 
-function pango_language_to_string(language : PPangoLanguage) : Pchar;
+function pango_language_to_string(language : PPangoLanguage) : PAnsiChar;
 begin
-  pango_language_to_string:=Pchar(language);
+  pango_language_to_string:=PAnsiChar(language);
 end;
 
 function PANGO_PIXELS(d: integer): integer;

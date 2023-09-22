@@ -23,7 +23,7 @@ begin
 end;
 
 
-Function _IO_putc_unlocked(_ch: Char; _fp: P_IO_FILE): longint;
+Function _IO_putc_unlocked(_ch: AnsiChar; _fp: P_IO_FILE): longint;
 begin
   if _fp^._IO_write_ptr>=_fp^._IO_write_end then
     Result:=__overflow(_fp, Byte(_ch))

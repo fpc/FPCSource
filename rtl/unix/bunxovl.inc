@@ -19,7 +19,7 @@ var
 Begin
   SystemExistingFileName:=ToSingleByteFileSystemEncodedFileName(existing);
   SystemNewOneFileName:=ToSingleByteFileSystemEncodedFileName(newone);
-  FpLink:=FpLink(pchar(SystemExistingFileName),pchar(SystemNewOneFileName));
+  FpLink:=FpLink(PAnsiChar(SystemExistingFileName),PAnsiChar(SystemNewOneFileName));
 End;
 
 Function  FpMkfifo (const path : RawByteString; Mode : TMode): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -27,7 +27,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpMkfifo:=FpMkfifo(pchar(SystemPath),mode);
+  FpMkfifo:=FpMkfifo(PAnsiChar(SystemPath),mode);
 End;
 
 Function  FpChmod (const path : RawByteString; Mode : TMode): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -35,7 +35,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpChmod:=FpChmod(pchar(SystemPath),mode);
+  FpChmod:=FpChmod(PAnsiChar(SystemPath),mode);
 End;
 
 Function  FpChown (const path : RawByteString; owner : TUid; group : TGid): cInt;{$ifdef VER2_0}inline;{$endif}
@@ -43,7 +43,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpChown:=FpChown(pchar(SystemPath),owner,group);
+  FpChown:=FpChown(PAnsiChar(SystemPath),owner,group);
 End;
 
 Function  FpUtime (const path : RawByteString; times : putimbuf): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -51,7 +51,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpUtime:=FpUtime(pchar(SystemPath),times);
+  FpUtime:=FpUtime(PAnsiChar(SystemPath),times);
 End;
 
 {
@@ -60,14 +60,14 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpGetcwd:=RawByteString(pchar(FpGetcwd(pchar(SystemPath),siz)));
+  FpGetcwd:=RawByteString(PAnsiChar(FpGetcwd(PAnsiChar(SystemPath),siz)));
   SetCodePage(FpGetcwd,DefaultFileSystemCodePage,false);
 End;
 }
 Function  FpGetcwd: RawByteString;
 
 Var
-  Buf : Array[0..PATH_MAX+1]  of char;
+  Buf : Array[0..PATH_MAX+1]  of AnsiChar;
 Begin
   Buf[PATH_MAX+1]:=#0;
   If FpGetcwd(@Buf[0],PATH_MAX)=Nil then
@@ -79,20 +79,20 @@ Begin
     end;
 End;
 
-Function  FpExecve (const path : RawByteString; argv : ppchar; envp: ppchar): cInt; {$ifdef VER2_0}inline;{$endif}
+Function  FpExecve (const path : RawByteString; argv : PPAnsiChar; envp: PPAnsiChar): cInt; {$ifdef VER2_0}inline;{$endif}
 var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpExecve:=FpExecve (pchar(SystemPath),argv,envp);
+  FpExecve:=FpExecve (PAnsiChar(SystemPath),argv,envp);
 End;
 
-Function  FpExecv (const path : RawByteString; argv : ppchar): cInt; {$ifdef VER2_0}inline;{$endif}
+Function  FpExecv (const path : RawByteString; argv : PPAnsiChar): cInt; {$ifdef VER2_0}inline;{$endif}
 var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpExecv:=FpExecve (pchar(SystemPath),argv,envp);
+  FpExecv:=FpExecve (PAnsiChar(SystemPath),argv,envp);
 End;
 
 
@@ -101,7 +101,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpChDir:=FpChdir(pchar(SystemPath));
+  FpChDir:=FpChdir(PAnsiChar(SystemPath));
 End;
 
 Function  FpOpen (const path : RawByteString; flags : cInt; Mode: TMode):cInt; {$ifdef VER2_0}inline;{$endif}
@@ -109,7 +109,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpOpen:=FpOpen(pchar(SystemPath),flags,mode);
+  FpOpen:=FpOpen(PAnsiChar(SystemPath),flags,mode);
 End;
 
 
@@ -118,7 +118,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpMkdir:=FpMkdir(pchar(SystemPath),mode);
+  FpMkdir:=FpMkdir(PAnsiChar(SystemPath),mode);
 End;
 
 Function  FpUnlink (const path : RawByteString): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -126,7 +126,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpUnlink:=FpUnlink(pchar(SystemPath));
+  FpUnlink:=FpUnlink(PAnsiChar(SystemPath));
 End;
 
 Function  FpRmdir (const path : RawByteString): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -134,7 +134,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpRmdir:=FpRmdir(pchar(SystemPath));
+  FpRmdir:=FpRmdir(PAnsiChar(SystemPath));
 End;
 
 Function  FpRename (const old  : RawByteString; const newpath: RawByteString): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -143,7 +143,7 @@ var
 Begin
   OldSystemPath:=ToSingleByteFileSystemEncodedFileName(old);
   NewSystemPath:=ToSingleByteFileSystemEncodedFileName(newpath);
-  FpRename:=FpRename(pchar(OldSystemPath),pchar(NewSystemPath));
+  FpRename:=FpRename(PAnsiChar(OldSystemPath),PAnsiChar(NewSystemPath));
 End;
 
 Function  FpStat (const path: RawByteString; var buf : stat): cInt; {$ifdef VER2_0}inline;{$endif}
@@ -151,7 +151,7 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpStat:=FpStat(pchar(SystemPath),buf);
+  FpStat:=FpStat(PAnsiChar(SystemPath),buf);
 End;
 
 Function  fpLstat   (const path: RawByteString; Info: pstat):cint; inline;
@@ -159,10 +159,10 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  fplstat:=fplstat(pchar(SystemPath), info);
+  fplstat:=fplstat(PAnsiChar(SystemPath), info);
 end;
 
-Function  fpLstat   (path:pchar;var Info:stat):cint; inline;
+Function  fpLstat   (path:PAnsiChar;var Info:stat):cint; inline;
 
 begin
   fpLstat:=fplstat(path,@info);
@@ -178,7 +178,7 @@ var
   SystemPathName: RawByteString;
 Begin
   SystemPathName:=ToSingleByteFileSystemEncodedFileName(pathname);
-  FpAccess:=FpAccess(pchar(SystemPathName),amode);
+  FpAccess:=FpAccess(PAnsiChar(SystemPathName),amode);
 End;
 
 Function  FPFStat(var F:Text;Var Info:stat):Boolean; {$ifdef VER2_0}inline;{$endif}
@@ -218,33 +218,33 @@ begin
 end;
 
 {$ifdef FPC_USE_LIBC} // can't remember why this is the case. Might be legacy.
-function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external clib name 'read';
+function xFpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; cdecl; external clib name 'read';
 {$else}
-function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
+function xFpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
 {$endif}
 
 Function  FpRead           (fd : cInt;var buf; nbytes : TSize): TSsize; {$ifdef VER2_0}inline;{$endif}
 
 begin
-  FPRead:=xFpRead(fd,pchar(@buf),nbytes);
+  FPRead:=xFpRead(fd,PAnsiChar(@buf),nbytes);
 end;
 
 Function  FpWrite          (fd : cInt;const buf; nbytes : TSize): TSsize; {$ifdef VER2_0}inline;{$endif}
 begin
- FpWrite:=FpWrite(fd,pchar(@buf),nbytes);
+ FpWrite:=FpWrite(fd,PAnsiChar(@buf),nbytes);
 end;
 
 {$ifdef linux}
 function  FppRead           (fd : cInt;var buf; nbytes : TSize; offset:Toff): TSsize; {$ifdef VER2_0}inline;{$endif}
 
 begin
-  FppRead:=FppRead(fd,pchar(@buf),nbytes,offset);
+  FppRead:=FppRead(fd,PAnsiChar(@buf),nbytes,offset);
 end;
 
 function  FppWrite          (fd : cInt;const buf; nbytes : TSize; offset:Toff): TSsize; {$ifdef VER2_0}inline;{$endif}
 
 begin
-  FppWrite:=FppWrite(fd,pchar(@buf),nbytes,offset);
+  FppWrite:=FppWrite(fd,PAnsiChar(@buf),nbytes,offset);
 end;
 {$endif}
 
@@ -254,7 +254,7 @@ const
                 S_IWGRP OR S_IRGRP OR
                 S_IWOTH OR S_IROTH;
 
-Function  FpOpen    (path : pChar; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
+Function  FpOpen    (path : PAnsiChar; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
 
 begin
  FpOpen:=FpOpen(path,flags,MODE_FPOPEN);
@@ -265,17 +265,17 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpOpen:=FpOpen(pchar(SystemPath),flags,MODE_FPOPEN);
+  FpOpen:=FpOpen(PAnsiChar(SystemPath),flags,MODE_FPOPEN);
 end;
 
-Function  FpOpen    (path : String; flags : cInt):cInt;
+Function  FpOpen    (path : ShortString; flags : cInt):cInt;
 
 begin
  path:=path+#0;
  FpOpen:=FpOpen(@path[1],flags,MODE_FPOPEN);
 end;
 
-Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt;
+Function  FpOpen    (path : ShortString; flags : cInt; Mode: TMode):cInt;
 
 begin
  path:=path+#0;
@@ -287,22 +287,22 @@ var
   SystemDirName: RawByteString;
 Begin
   SystemDirName:=ToSingleByteFileSystemEncodedFileName(dirname);
-  FpOpenDir:=FpOpenDir(pchar(SystemDirName));
+  FpOpenDir:=FpOpenDir(PAnsiChar(SystemDirName));
 End;
 
 
 Function  FpOpendir (dirname : shortString): pDir; {$ifdef VER2_0}inline;{$endif}
 Begin
   dirname:=dirname+#0;
-  FpOpenDir:=FpOpenDir(pchar(@dirname[1]));
+  FpOpenDir:=FpOpenDir(PAnsiChar(@dirname[1]));
 End;
 
 
-Function  FpStat (path: String; var buf : stat): cInt;
+Function  FpStat (path: ShortString; var buf : stat): cInt;
 
 begin
  path:=path+#0;
- FpStat:=FpStat(pchar(@path[1]),buf);
+ FpStat:=FpStat(PAnsiChar(@path[1]),buf);
 end;
 
 Function fpDup(var oldfile,newfile:text):cint;
@@ -447,7 +447,7 @@ var
 begin
   SetLength(fpReadLink,PATH_MAX);
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Name);
-  i:=fpReadLink(pchar(SystemFileName),pchar(fpReadLink),PATH_MAX);
+  i:=fpReadLink(PAnsiChar(SystemFileName),PAnsiChar(fpReadLink),PATH_MAX);
   if i>0 then
    begin
      SetLength(fpReadLink,i);

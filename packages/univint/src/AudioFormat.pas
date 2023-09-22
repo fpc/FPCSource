@@ -18,7 +18,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioFormat;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -205,7 +207,11 @@ interface
 {$setc TYPE_LONGLONG := TRUE}
 {$endc} {not MACOSALLINCLUDE}
 {  Pascal Translation: Jonas Maebe <jonas@freepascal.org>, July 2019 }
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CoreAudioTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CoreAudioTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ALIGN POWER}
 
 
@@ -224,7 +230,7 @@ uses MacTypes,CoreAudioTypes;
 
 {!
     @typedef	AudioFormatPropertyID
-    @abstract   A type for four char codes for property IDs
+    @abstract   A type for four AnsiChar codes for property IDs
 }
 type
 	AudioFormatPropertyID = UInt32;

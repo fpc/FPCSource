@@ -1,5 +1,5 @@
 { **********************************************************************
-  This file is part of the Free Component Library (FCL)
+  This file is part of the Free Component Library (Fcl)
   Copyright (c) 2015 by the Free Pascal development team
         
   JSON Web Token implementation
@@ -11,15 +11,22 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjwt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FpJson.Data, Fcl.BaseNEnc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, fpjson, basenenc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EJWT = Class(EJSON);
@@ -199,7 +206,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrMissingAlgorithmName = 'Missing JWA algorithm name';
@@ -609,7 +620,7 @@ Var
   PL : PPropList;
   I,VI,Count : Integer;
   VF : Double;
-  C : Char;
+  C : AnsiChar;
   CW : WideChar;
   I64 : Int64;
   W : UnicodeString;
@@ -631,7 +642,7 @@ begin
             end;
           tkChar :
             begin
-            C:=Char(GetOrdProp(Self,P));
+            C:=AnsiChar(GetOrdProp(Self,P));
             if All or (C<>#0) then
               if C=#0 then
                 JSON.Add(p^.Name,'')

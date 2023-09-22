@@ -13,14 +13,21 @@
 (* section after imm unit.                                             *)
 (*                                                                     *)
 (********************************************************************* *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit imm_dyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, WinApi.Imm;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, imm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   ImmInstallIMEA : function (lpszIMEFileName, lpszLayoutText: LPCSTR): HKL; stdcall = nil;

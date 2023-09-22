@@ -166,9 +166,9 @@ type
           ftype : cuint32;
           fflags : cuint32;
           fssubtype : cuint32;
-          fstypename : array[0..(MFSTYPENAMELEN)-1] of char;
-          mountpoint : array[0..(PATH_MAX)-1] of char;
-          mntfromname : array[0..(PATH_MAX)-1] of char;
+          fstypename : array[0..(MFSTYPENAMELEN)-1] of AnsiChar;
+          mountpoint : array[0..(PATH_MAX)-1] of AnsiChar;
+          mntfromname : array[0..(PATH_MAX)-1] of AnsiChar;
           reserved: array[0..7] of cuint32;
      end;
 {$else}
@@ -188,10 +188,10 @@ type
           ftype : cint16;
           fflags : clong;
           reserved2 : array[0..1] of clong;
-          fstypename : array[0..(MFSNAMELEN)-1] of char;
-          mountpoint : array[0..(MNAMELEN)-1] of char;
-          mntfromname : array[0..(MNAMELEN)-1] of char;
-          f_reserved3: char;
+          fstypename : array[0..(MFSNAMELEN)-1] of AnsiChar;
+          mountpoint : array[0..(MNAMELEN)-1] of AnsiChar;
+          mntfromname : array[0..(MNAMELEN)-1] of AnsiChar;
+          f_reserved3: AnsiChar;
           reserved4: array[0..3] of clong;
        end;
 {$endif}
@@ -199,7 +199,7 @@ type
 
     mbstate_t = record
       case byte of
-        0: (__mbstate8: array[0..127] of char);
+        0: (__mbstate8: array[0..127] of AnsiChar);
         1: (_mbstateL: clonglong); { for alignment }
     end;
     pmbstate_t = ^mbstate_t;

@@ -17,11 +17,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XPath;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   { XPath variables type names }
@@ -504,7 +510,11 @@ function EvaluateXPathExpression(const AExpressionString: DOMString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Math, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i xpathkw.inc}
 
@@ -593,7 +603,7 @@ begin
     end;
     SetLength(S, P-Start);
   end
-  else  // no char removal possible
+  else  // no AnsiChar removal possible
     for I := 1 to Length(S) do
     begin
       J := Pos(S[I], SrcPat);
@@ -1625,7 +1635,7 @@ begin
       Inc(p)
     else
     begin
-      // either the first char of name is bad (it may be a colon),
+      // either the first AnsiChar of name is bad (it may be a colon),
       // or a colon is not followed by a valid NameStartChar
       Result := False;
       Break;
@@ -1664,7 +1674,7 @@ var
   Delim: WideChar;
 begin
   // Skip whitespace
-  while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
+  while (FCurData[0] < #255) and (AnsiChar(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
     Inc(FCurData);
 
   FTokenStart := FCurData;

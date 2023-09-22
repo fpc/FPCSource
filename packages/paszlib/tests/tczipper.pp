@@ -28,16 +28,16 @@ type
   TCallBackHandler = class(TObject) //Callbacks used in zip/unzip processing
   private
     FPerformChecks: boolean;
-    FOriginalContent: string;
+    FOriginalContent: ansistring;
     FShowContent: boolean;
     FStreamResult: boolean;
   public
     property PerformChecks: boolean read FPerformChecks write FPerformChecks; //If false, do not perform any consistency checks
-    property OriginalContent: string read FOriginalContent write FOriginalContent; //Zip entry uncompressed content used in TestZipEntries
+    property OriginalContent: ansistring read FOriginalContent write FOriginalContent; //Zip entry uncompressed content used in TestZipEntries
     property ShowContent: boolean read FShowContent write FShowContent; //Show contents of zip when extracting?
     property StreamResult: boolean read FStreamResult; //For handler to report success/failure
     procedure EndOfFile(Sender:TObject; const Ratio:double);
-    procedure StartOfFile(Sender:TObject; const AFileName:string);
+    procedure StartOfFile(Sender:TObject; const AFileName:ansistring);
     procedure DoCreateZipOutputStream(Sender: TObject; var AStream: TStream;
       AItem: TFullZipFileEntry);
     procedure DoDoneOutZipStream(Sender: TObject; var AStream: TStream;
@@ -55,7 +55,7 @@ begin
   end;
 end;
 
-procedure TCallBackHandler.StartOfFile(Sender: TObject; const AFileName: string);
+procedure TCallBackHandler.StartOfFile(Sender: TObject; const AFileName: ansistring);
 begin
   writeln('Start of file handler hit; filename: '+AFileName);
   if (FPerformChecks) and (AFileName='') then
@@ -74,7 +74,7 @@ end;
 procedure TCallBackHandler.DoDoneOutZipStream(Sender: TObject; var AStream: TStream;
   AItem: TFullZipFileEntry);
 var
-  DecompressedContent: string;
+  DecompressedContent: ansistring;
 begin
   //writeln('At end of '+AItem.ArchiveFileName);
   AStream.Position:=0;
@@ -112,12 +112,12 @@ end;
 function CompareCompressDecompress: boolean;
 var
   CallBackHandler: TCallBackHandler;
-  CompressedFile: string;
+  CompressedFile: ansistring;
   FileContents: TStringList;
-  UncompressedFile1: string;
-  UncompressedFile1Hash: string;
-  UncompressedFile2: string;
-  UncompressedFile2Hash: string;
+  UncompressedFile1: ansistring;
+  UncompressedFile1Hash: ansistring;
+  UncompressedFile2: ansistring;
+  UncompressedFile2Hash: ansistring;
   OurZipper: TZipper;
   UnZipper: TUnZipper;
 begin
@@ -218,10 +218,10 @@ function CompressSmallStreams: boolean;
 // Test verifies that the entries in the zip are not bigger than
 // the originals.
 var
-  DestFile: string;
+  DestFile: ansistring;
   z: TZipper;
   zfe: TZipFileEntry;
-  s: string = 'abcd';
+  s: ansistring = 'abcd';
   DefaultStream, StoreStream: TStringStream;
 begin
   result:=true;
@@ -257,7 +257,6 @@ begin
     // ignore mess
   end;
   {$ENDIF}
-
   DestFile:=SysUtils.GetTempFileName('', 'CS2');
   z:=TZipper.Create;
   z.FileName:=DestFile;
@@ -296,7 +295,7 @@ begin
   //The column Size Shows that compressed files are bigger than source files
 end;
 
-function ShowZipFile(ZipFile: string): boolean;
+function ShowZipFile(ZipFile: ansistring): boolean;
 // Reads zip file and lists entries
 var
   CallBackHandler: TCallBackHandler;
@@ -344,9 +343,9 @@ function TestZipEntries(Entries: qword): boolean;
 // Starting from 65535 entries, the zip needs to be in zip64 format
 var
   CallBackHandler: TCallBackHandler;
-  DestFile: string;
+  DestFile: ansistring;
   i: qword;
-  OriginalContent: string = 'A'; //Uncompressed content for zip file entry
+  OriginalContent: ansistring = 'A'; //Uncompressed content for zip file entry
   ContentStreams: TFPList;
   ContentStream: TStringStream;
   UnZipper: TUnZipper;
@@ -433,7 +432,7 @@ function TestEmptyZipEntries(Entries: qword): boolean;
 // useful for testing large number of files
 var
   CallBackHandler: TCallBackHandler;
-  DestFile: string;
+  DestFile: ansistring;
   i: qword;
   ContentStreams: TFPList;
   ContentStream: TNullStream;
@@ -454,8 +453,11 @@ begin
       ContentStreams.Add(ContentStream);
       // Start filenames at 1
       Zipper.Entries.AddFileEntry(TStringStream(ContentStreams.Items[i]), format('%U',[i+1]));
+      if (i mod 100)=0 then
+        write(i,' ');
       inc(i);
     end;
+    Writeln;
     Zipper.ZipAllFiles;
     {
     i:=0;
@@ -493,8 +495,11 @@ begin
       UnzipArchiveFiles.Clear;
       UnzipArchiveFiles.Add(Unzipper.Entries[i].ArchiveFileName);
       Unzipper.UnZipFiles(UnzipArchiveFiles);
+      if (i mod 100)=0 then
+        write(i,' ');
       inc(i);
     end;
+    writeln();
   finally
     CallBackHandler.Free;
     Unzipper.Free;
@@ -512,11 +517,11 @@ end;
 
 function SaveToFileTest: boolean;
 var
-  NewFileName: string;
-  OldFileName: string;
+  NewFileName: ansistring;
+  OldFileName: ansistring;
   z: TZipper;
   zfe: TZipFileEntry;
-  s: string = 'abcd';
+  s: ansistring = 'abcd';
   DefaultStream: TStringStream;
 begin
   result:=true;
@@ -558,9 +563,9 @@ end;
 function TestLargeFileName: boolean;
 // Zips/unzips 259-character filename
 var
-  ArchiveFile: string;
-  DestFile: string;
-  s: string = 'a';
+  ArchiveFile: ansistring;
+  DestFile: ansistring;
+  s: ansistring = 'a';
   DefaultStream: TStringStream;
   UnZipper: TUnZipper;
   Zipper: TZipper;
@@ -611,9 +616,9 @@ function TestWindowsPath: boolean;
 // Zip standard requires using /
 // On Linux, \ should be seen as a regular part of the filename
 var
-  FileWithBackslash: string;
-  DestFile: string;
-  s: string = 'a';
+  FileWithBackslash: ansistring;
+  DestFile: ansistring;
+  s: ansistring = 'a';
   DefaultStream: TStringStream;
   UnZipper: TUnZipper;
   Zipper: TZipper;
@@ -672,8 +677,8 @@ function TestLargeZip64: boolean;
 // Tests single zip file with large uncompressed content
 // which forces it to zip64 format
 var
-  ArchiveFile: string;
-  DestFile: string;
+  ArchiveFile: ansistring;
+  DestFile: ansistring;
   ContentStream: TNullStream; //empty contents
   UnZipper: TUnZipper;
   Zipper: TZipper;

@@ -43,7 +43,9 @@
 // $Id: JwaSubAuth.pas,v 1.8 2007/09/05 11:58:52 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaSubAuth;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaSubAuth;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -245,7 +252,7 @@ type
   PCLEAR_BLOCK = ^CLEAR_BLOCK;
   {$EXTERNALSYM PCLEAR_BLOCK}
   _CLEAR_BLOCK = record
-    data: array [0..CLEAR_BLOCK_LENGTH - 1] of CHAR;
+    data: array [0..CLEAR_BLOCK_LENGTH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _CLEAR_BLOCK}
   CLEAR_BLOCK = _CLEAR_BLOCK;
@@ -261,7 +268,7 @@ type
   PCYPHER_BLOCK = ^CYPHER_BLOCK;
   {$EXTERNALSYM PCYPHER_BLOCK}
   _CYPHER_BLOCK = record
-    data: array [0..CYPHER_BLOCK_LENGTH - 1] of CHAR;
+    data: array [0..CYPHER_BLOCK_LENGTH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _CYPHER_BLOCK}
   CYPHER_BLOCK = _CYPHER_BLOCK;
@@ -368,8 +375,8 @@ type
   _NETLOGON_NETWORK_INFO = record
     Identity: NETLOGON_LOGON_IDENTITY_INFO;
     LmChallenge: LM_CHALLENGE;
-    NtChallengeResponse: STRING;
-    LmChallengeResponse: STRING;
+    NtChallengeResponse: _STRING;
+    LmChallengeResponse: _STRING;
   end;
   {$EXTERNALSYM _NETLOGON_NETWORK_INFO}
   NETLOGON_NETWORK_INFO = _NETLOGON_NETWORK_INFO;

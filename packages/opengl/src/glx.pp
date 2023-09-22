@@ -30,15 +30,22 @@
  This is necessary for supporting different platforms with different calling
  conventions via a single unit.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GLX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MACRO ON}
 
 {$IFDEF Unix}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xutil;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     ctypes, X, XLib, XUtil;
+{$ENDIF FPC_DOTTEDUNITS}
   {$DEFINE HasGLX}  // Activate GLX stuff
 {$ELSE}
   {$MESSAGE Unsupported platform.}
@@ -257,9 +264,9 @@ var
   glXUseXFont: procedure(font: XFont; first, count, list: cint); cdecl;
 
   // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: cint): PChar; cdecl;
-  glXQueryServerString: function(dpy: PDisplay; screen, name: cint): PChar; cdecl;
-  glXGetClientString: function(dpy: PDisplay; name: cint): PChar; cdecl;
+  glXQueryExtensionsString: function(dpy: PDisplay; screen: cint): PAnsiChar; cdecl;
+  glXQueryServerString: function(dpy: PDisplay; screen, name: cint): PAnsiChar; cdecl;
+  glXGetClientString: function(dpy: PDisplay; name: cint): PAnsiChar; cdecl;
 
   // GLX 1.2 and later
   glXGetCurrentDisplay: function: PDisplay; cdecl;
@@ -269,7 +276,7 @@ var
   glXGetFBConfigAttrib: function(dpy: PDisplay; config: TGLXFBConfig; attribute: cint; var value: cint): cint; cdecl;
   glXGetFBConfigs: function(dpy: PDisplay; screen: cint; var nelements: cint): PGLXFBConfig; cdecl;
   glXGetVisualFromFBConfig: function(dpy: PDisplay; config: TGLXFBConfig): PXVisualInfo; cdecl;
-  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: X.TWindow; attribList: Pcint): TGLXWindow; cdecl;
+  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: {$IFDEF FPC_DOTTEDUNITS}Api.X11.{$ENDIF}X.TWindow; attribList: Pcint): TGLXWindow; cdecl;
   glXDestroyWindow: procedure (dpy: PDisplay; window: TGLXWindow); cdecl;
   glXCreatePixmap: function(dpy: PDisplay; config: TGLXFBConfig; pixmap: TXPixmap; attribList: Pcint): TGLXPixmap; cdecl;
   glXDestroyPixmap: procedure (dpy: PDisplay; pixmap: TGLXPixmap); cdecl;
@@ -284,12 +291,12 @@ var
   glXGetSelectedEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: Pculong); cdecl;
 
   // GLX 1.4 and later
-  glXGetProcAddress: function(procname: PChar): Pointer; cdecl;
+  glXGetProcAddress: function(procname: PAnsiChar): Pointer; cdecl;
 
   // Extensions:
 
   // GLX_ARB_get_proc_address
-  glXGetProcAddressARB: function(procname: PChar): Pointer; cdecl;
+  glXGetProcAddressARB: function(procname: PAnsiChar): Pointer; cdecl;
 
   // GLX_ARB_create_context
   //glXCreateContextAttribsARB -> internal_glXCreateContextAttribsARB in implementation
@@ -370,7 +377,11 @@ function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.OpenGL.Gl, System.DynLibs, Api.OpenGL.Glext { for glext_ExtensionSupported Amiga.Core.Utility };
+{$ELSE FPC_DOTTEDUNITS}
 uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility };
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$LINKLIB m}
 
@@ -502,7 +513,7 @@ end;
 
 function GLX_ARB_get_proc_address(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -515,7 +526,7 @@ end;
 
 function GLX_ARB_create_context(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -528,7 +539,7 @@ end;
 
 function GLX_ARB_create_context_profile(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -540,7 +551,7 @@ end;
 
 function GLX_ARB_create_context_robustness(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -552,7 +563,7 @@ end;
 
 function GLX_ARB_multisample(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -564,7 +575,7 @@ end;
 
 function GLX_EXT_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -577,7 +588,7 @@ end;
 
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -589,7 +600,7 @@ end;
 
 function GLX_MESA_pixmap_colormap(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -602,7 +613,7 @@ end;
 
 function GLX_MESA_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -616,7 +627,7 @@ end;
 
 function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -629,7 +640,7 @@ end;
 
 function GLX_SGI_video_sync(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -643,7 +654,7 @@ end;
 
 function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -653,7 +664,7 @@ begin
   end;
 end;
 
-function GetProc(handle: PtrInt; name: PChar): Pointer;
+function GetProc(handle: PtrInt; name: PAnsiChar): Pointer;
 begin
   if Assigned(glXGetProcAddress) then
     Result := glXGetProcAddress(name)

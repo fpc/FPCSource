@@ -18,7 +18,9 @@
 {$DEFINE GLUT_UNIT}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Glut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Copyright (c) Mark J. Kilgard, 1994, 1995, 1996. */
 
@@ -34,6 +36,20 @@ unit Glut;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows, System.DynLibs,
+  {$ELSE}
+  {$IFDEF MORPHOS}
+  MorphApi.Tinygl,
+  {$ELSE}
+  System.DynLibs,
+  {$ENDIF}
+  {$ENDIF}
+  Api.OpenGL.Gl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   {$IFDEF Windows}
@@ -46,6 +62,7 @@ uses
   {$ENDIF}
   {$ENDIF}
   GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGlutVoidCallback = procedure; cdecl;
@@ -311,15 +328,15 @@ const
 
 var
 // GLUT initialization sub-API.
-  glutInit: procedure(argcp: PInteger; argv: PPChar); extdecl;
+  glutInit: procedure(argcp: PInteger; argv: PPAnsiChar); extdecl;
   glutInitDisplayMode: procedure(mode: Cardinal); extdecl;
-  glutInitDisplayString: procedure(const str: PChar); extdecl;
+  glutInitDisplayString: procedure(const str: PAnsiChar); extdecl;
   glutInitWindowPosition: procedure(x, y: Integer); extdecl;
   glutInitWindowSize: procedure(width, height: Integer); extdecl;
   glutMainLoop: procedure; extdecl;
 
 // GLUT window sub-API.
-  glutCreateWindow: function(const title: PChar): Integer; extdecl;
+  glutCreateWindow: function(const title: PAnsiChar): Integer; extdecl;
   glutCreateSubWindow: function(win, x, y, width, height: Integer): Integer; extdecl;
   glutDestroyWindow: procedure(win: Integer); extdecl;
   glutPostRedisplay: procedure; extdecl;
@@ -327,8 +344,8 @@ var
   glutSwapBuffers: procedure; extdecl;
   glutGetWindow: function: Integer; extdecl;
   glutSetWindow: procedure(win: Integer); extdecl;
-  glutSetWindowTitle: procedure(const title: PChar); extdecl;
-  glutSetIconTitle: procedure(const title: PChar); extdecl;
+  glutSetWindowTitle: procedure(const title: PAnsiChar); extdecl;
+  glutSetIconTitle: procedure(const title: PAnsiChar); extdecl;
   glutPositionWindow: procedure(x, y: Integer); extdecl;
   glutReshapeWindow: procedure(width, height: Integer); extdecl;
   glutPopWindow: procedure; extdecl;
@@ -354,10 +371,10 @@ var
   glutDestroyMenu: procedure(menu: Integer); extdecl;
   glutGetMenu: function: Integer; extdecl;
   glutSetMenu: procedure(menu: Integer); extdecl;
-  glutAddMenuEntry: procedure(const caption: PChar; value: Integer); extdecl;
-  glutAddSubMenu: procedure(const caption: PChar; submenu: Integer); extdecl;
-  glutChangeToMenuEntry: procedure(item: Integer; const caption: PChar; value: Integer); extdecl;
-  glutChangeToSubMenu: procedure(item: Integer; const caption: PChar; submenu: Integer); extdecl;
+  glutAddMenuEntry: procedure(const caption: PAnsiChar; value: Integer); extdecl;
+  glutAddSubMenu: procedure(const caption: PAnsiChar; submenu: Integer); extdecl;
+  glutChangeToMenuEntry: procedure(item: Integer; const caption: PAnsiChar; value: Integer); extdecl;
+  glutChangeToSubMenu: procedure(item: Integer; const caption: PAnsiChar; submenu: Integer); extdecl;
   glutRemoveMenuItem: procedure(item: Integer); extdecl;
   glutAttachMenu: procedure(button: Integer); extdecl;
   glutDetachMenu: procedure(button: Integer); extdecl;
@@ -399,7 +416,7 @@ var
   glutDeviceGet: function(t: GLenum): Integer; extdecl;
 
 // GLUT extension support sub-API
-  glutExtensionSupported: function(const name: PChar): Integer; extdecl;
+  glutExtensionSupported: function(const name: PAnsiChar): Integer; extdecl;
   glutGetModifiers: function: Integer; extdecl;
   glutLayerGet: function(t: GLenum): Integer; extdecl;
 
@@ -408,8 +425,8 @@ var
   glutBitmapWidth: function(font : pointer; character: Integer): Integer; extdecl;
   glutStrokeCharacter: procedure(font : pointer; character: Integer); extdecl;
   glutStrokeWidth: function(font : pointer; character: Integer): Integer; extdecl;
-  glutBitmapLength: function(font: pointer; const str: PChar): Integer; extdecl;
-  glutStrokeLength: function(font: pointer; const str: PChar): Integer; extdecl;
+  glutBitmapLength: function(font: pointer; const str: PAnsiChar): Integer; extdecl;
+  glutStrokeLength: function(font: pointer; const str: PAnsiChar): Integer; extdecl;
 
 // GLUT pre-built models sub-API
   glutWireSphere: procedure(radius: GLdouble; slices, stacks: GLint); extdecl;
@@ -450,7 +467,7 @@ var
 // GLUT game mode sub-API.
 
   //example glutGameModeString('1280x1024:32@75');
-  glutGameModeString : procedure (const AString : PChar); extdecl;
+  glutGameModeString : procedure (const AString : PAnsiChar); extdecl;
   glutEnterGameMode : function : integer; extdecl;
   glutLeaveGameMode : procedure; extdecl;
   glutGameModeGet : function (mode : GLenum) : integer; extdecl;
@@ -468,7 +485,11 @@ implementation
 {$INCLUDE tinygl.inc}
 
 {$ELSE MORPHOS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.OpenGL.Freeglut;
+{$ELSE FPC_DOTTEDUNITS}
 uses FreeGlut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   hDLL: TLibHandle;
@@ -611,7 +632,7 @@ end;
 var
   MethodName: string = '';
 
-  function GetGLutProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
+  function GetGLutProcAddress(Lib: PtrInt; ProcName: PAnsiChar): Pointer;
   begin
     MethodName:=ProcName;
     Result:=GetProcAddress(Lib, ProcName);
@@ -621,7 +642,7 @@ begin
 
   UnloadGlut;
 
-  hDLL := LoadLibrary(PChar(dll));
+  hDLL := LoadLibrary(PAnsiChar(dll));
   if hDLL = 0 then raise Exception.Create('Could not load Glut from ' + dll);
   try
     @glutInit := GetGLutProcAddress(hDLL, 'glutInit');

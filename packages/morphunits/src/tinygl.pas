@@ -18,15 +18,22 @@
 
 {$MODE FPC} { fsck Delphi mode }
 {$INLINE ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tinygl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
-  TINYGLNAME : PChar = 'tinygl.library';
+  TINYGLNAME : PAnsiChar = 'tinygl.library';
 
 var
   TinyGLBase: Pointer = nil;

@@ -1,4 +1,19 @@
+{
+  This file is part of the Free Component Library.
+  Copyright (c) 2023 by the Free Pascal team.
+
+  RSA routines.
+
+  See the file COPYING.FPC, included in this distribution,
+  for details about the copyright.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprsa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}
 {$H+}
@@ -8,8 +23,13 @@ interface
 
 {off $DEFINE CRYPTO_DEBUG}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Hash.Sha1, System.Hash.Sha512, System.Hash.Sha256, System.Hash.Tlsbigint, System.Hash.Utils, System.Hash.Asn, Fcl.BaseNEnc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, Classes, sha1, fpsha512, fpsha256, fpTLSBigInt, fphashutils, fpasn, basenenc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
@@ -52,8 +72,8 @@ type
     Exponent1,           // dp
     Exponent2,           // dq
     Coefficient: TBytes; // qi
-    procedure InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: string);
-    procedure InitWithBase64UrlEncoded(const n, e, d, p, q, dp, dq, qi: string);
+    procedure InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: ansistring);
+    procedure InitWithBase64UrlEncoded(const n, e, d, p, q, dp, dq, qi: ansistring);
     procedure WriteASN(ms: TMemoryStream);
     function AsDER: TBytes;
   end;
@@ -63,8 +83,8 @@ type
   TX509RSAPublicKey = record
     Modulus: TBytes; // m or n
     Exponent: TBytes; // e
-    procedure InitWithHexStrings(const n, e: string);
-    procedure InitWithBase64UrlEncoded(const n, e: string);
+    procedure InitWithHexStrings(const n, e: AnsiString);
+    procedure InitWithBase64UrlEncoded(const n, e: ansistring);
     procedure WriteASN(ms: TMemoryStream);
     function AsDER: TBytes;
   end;
@@ -72,9 +92,9 @@ type
 procedure RSACreate(out RSA: TRSA);
 procedure RSAFree(var RSA: TRSA);
 
-procedure RsaPublicKeyToHexa(const Modulus, Exponent: String; var PublicKeyHexa: String);
-procedure RsaPublicKeyFromHexa(const PublicKeyHexa: String; out Modulus, Exponent: String);
-procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: String); overload;
+procedure RsaPublicKeyToHexa(const Modulus, Exponent: AnsiString; var PublicKeyHexa: AnsiString);
+procedure RsaPublicKeyFromHexa(const PublicKeyHexa: AnsiString; out Modulus, Exponent: AnsiString);
+procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: AnsiString); overload;
 procedure RSAInitFromPublicKey(var RSA: TRSA; const RSAPublicKey: TX509RSAPublicKey); overload;
 procedure RSAInitFromPublicKeyDER(var RSA: TRSA; const PublicKeyDER: TBytes);
 procedure X509RsaPublicKeyInitFromDER(out RSA: TX509RSAPublicKey; const PublicKeyDER: TBytes);
@@ -195,14 +215,13 @@ begin
   BITerminate(RSA.Context);
 end;
 
-procedure RsaPublicKeyToHexa(const Modulus, Exponent: String;
-  var PublicKeyHexa: String);
+procedure RsaPublicKeyToHexa(const Modulus, Exponent: AnsiString;
+  var PublicKeyHexa: AnsiString);
 begin
   PublicKeyHexa:=PublicKeyHexa+BytesToHexStr(Exponent)+BytesToHexStr(Modulus);
 end;
 
-procedure RsaPublicKeyFromHexa(const PublicKeyHexa: String; out Modulus,
-  Exponent: String);
+procedure RsaPublicKeyFromHexa(const PublicKeyHexa: AnsiString; out Modulus, Exponent: AnsiString);
 var
   aBytes: TBytes;
 begin
@@ -215,7 +234,7 @@ begin
   Move(aBytes[3],Modulus[1],length(Modulus));
 end;
 
-procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: String);
+procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: AnsiString);
 begin
   RSA.ModulusLen := length(Modulus);
   RSA.M := BIImport(RSA.Context, Modulus);
@@ -635,13 +654,13 @@ begin
   end;
 end;
 
-function RsaVerify(const Modulus, Exponent, Hash, Signature: String): Boolean;
+function RsaVerify(const Modulus, Exponent, Hash, Signature: AnsiString): Boolean;
 var
   ASNType, ASNSize: Int32;
   Data: array[0..4095] of byte;
-  Digest: String;
+  Digest: AnsiString;
   DataP, DataEnd: PByte;
-  OID: String;
+  OID: AnsiString;
   RSA: TRSA;
   Size: Integer;
 begin
@@ -718,7 +737,7 @@ end;
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash,
   Signature: String): Boolean;
 var
-  Modulus, Exponent: String;
+  Modulus, Exponent: AnsiString;
 begin
   RsaPublicKeyFromHexa(PublicKeyHexa, Modulus, Exponent);
   Result := RsaVerify(Modulus, Exponent, SignatureBaseHash, Signature);
@@ -737,7 +756,8 @@ const
                +'18BFB311B8377C0FACDED4CD2B1E2692E480BE260BE355F050EBABF89E24F2833F56F0A74C185225DB3B47B63612FB9BDEE1E1B8707807093E1551F24527A763'
                +'1947D033ED7052C439E50B8A46E4D0C06DBC38AF1D64B49766A5CF9A82644650FFD733B61942DB0BD8D47C8EF24A02DC9FD2EF557B12DED804519F2B2B6C284D';
 var
-  Exponent, Modulus, Hash, Signature: string;
+  Exponent, Modulus, Hash, Signature: Ansistring;
+
 begin
   Exponent:=HexStrToString(_Exponent);
   Modulus:=HexStrToString(_Modulus);
@@ -1060,7 +1080,7 @@ function MGF1(const InputStr: string; HashFunc: PRSAHashFuncInfo; Len: integer):
 begin
   SetLength(Result{%H-},Len);
   if Len=0 then exit;
-  MGF1(PByte(PChar(InputStr)){InputStr might be empty!},length(InputStr), HashFunc, @Result[1], Len);
+  MGF1(PByte(PAnsiChar(InputStr)){InputStr might be empty!},length(InputStr), HashFunc, @Result[1], Len);
 end;
 
 procedure MGF1(Input: PByte; InLen: Integer; HashFunc: PRSAHashFuncInfo;
@@ -1182,7 +1202,7 @@ end;
 
 { TX509RSAPrivateKey }
 
-procedure TX509RSAPrivateKey.InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: string
+procedure TX509RSAPrivateKey.InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: Ansistring
   );
 begin
   Version:=0;
@@ -1197,7 +1217,7 @@ begin
 end;
 
 procedure TX509RSAPrivateKey.InitWithBase64UrlEncoded(const n, e, d, p, q, dp,
-  dq, qi: string);
+  dq, qi: Ansistring);
 begin
   Version:=0;
   Modulus:=Base64URL.Decode(n,false);
@@ -1244,13 +1264,13 @@ end;
 
 { TX509RSAPublicKey }
 
-procedure TX509RSAPublicKey.InitWithHexStrings(const n, e: string);
+procedure TX509RSAPublicKey.InitWithHexStrings(const n, e: ansistring);
 begin
   Modulus:=HexStrToBytes(n);
   Exponent:=HexStrToBytes(e);
 end;
 
-procedure TX509RSAPublicKey.InitWithBase64UrlEncoded(const n, e: string);
+procedure TX509RSAPublicKey.InitWithBase64UrlEncoded(const n, e: ansistring);
 begin
   Modulus:=Base64URL.Decode(n,false);
   Exponent:=Base64URL.Decode(e,false);

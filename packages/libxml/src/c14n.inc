@@ -59,7 +59,7 @@ function xmlC14NDocDumpMemory(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: c
   with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; EXTDECL; external xml2lib;
 
 function xmlC14NDocSave(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
-  with_comments: cint; filename: pchar; compression: cint): cint; EXTDECL; external xml2lib;
+  with_comments: cint; filename: PAnsiChar; compression: cint): cint; EXTDECL; external xml2lib;
 
 function xmlC14NExecute(doc: xmlDocPtr; is_visible_callback: xmlC14NIsVisibleCallback; user_data: pointer;
   exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;

@@ -1,7 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xshm;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,Api.X11.X,Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,x,xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef os2}
   {$LinkLib c}
@@ -61,7 +68,7 @@ type
    TXShmSegmentInfo = record
         shmseg : TShmSeg;
         shmid : cint;
-        shmaddr : Pchar;
+        shmaddr : PAnsiChar;
         readOnly : TBool;
      end;
 
@@ -76,9 +83,9 @@ function XShmPutImage(dpy:PDisplay;d:TDrawable;gc:TGC;image:PXImage;
            send_event:TBool):TStatus;cdecl;external libX11;
 function XShmGetImage(dpy:PDisplay;d:TDrawable;image:PXImage;x,y:cint;
            plane_mask:culong):TStatus;cdecl;external libX11;
-function XShmCreateImage(dpy:PDisplay;visual:PVisual;depth:cuint;format:cint;data:Pchar;
+function XShmCreateImage(dpy:PDisplay;visual:PVisual;depth:cuint;format:cint;data:PAnsiChar;
            shminfo:PXShmSegmentInfo;width,height:cuint):PXImage;cdecl;external libX11;
-function XShmCreatePixmap(dpy:PDisplay;d:TDrawable;data:Pchar;shminfo:PXShmSegmentInfo;
+function XShmCreatePixmap(dpy:PDisplay;d:TDrawable;data:PAnsiChar;shminfo:PXShmSegmentInfo;
            width,height,depth:cuint):TPixmap;cdecl;external libX11;
 
 { overloaded functions to handle TBool parameters as actual booleans }

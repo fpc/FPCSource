@@ -192,7 +192,7 @@ begin
   fpuname:=Do_Syscall(syscall_nr_uname,TSysParam(@name));
 end;
 
-Function fpGetDomainName(Name:PChar; NameLen:size_t):cint;
+Function fpGetDomainName(Name:PAnsiChar; NameLen:size_t):cint;
 
 Var
         srec  : utsname;
@@ -208,7 +208,7 @@ Begin
         fpgetDomainName:=0;
 End;
 
-function fpGetHostName(Name:PChar; NameLen:size_t):cint;
+function fpGetHostName(Name:PAnsiChar; NameLen:size_t):cint;
 
 Var
         srec  : utsname;
@@ -325,7 +325,7 @@ begin
  fpumask:=Do_syscall(syscall_nr_umask,cmask);
 end;
 
-Function fplink(existing:pchar;newone:pchar):cint;
+Function fplink(existing:PAnsiChar;newone:PAnsiChar):cint;
 {
   Proceduces a hard link from new to old.
   In effect, new will be the same file as old.
@@ -338,7 +338,7 @@ begin
 {$endif}
 end;
 
-Function fpmkfifo(path:pchar;mode:mode_t):cint;
+Function fpmkfifo(path:PAnsiChar;mode:mode_t):cint;
 
 begin
 
@@ -349,7 +349,7 @@ fpmkfifo:=do_syscall(syscall_nr_mknod,TSysParam(path),TSysParam(mode or S_IFIFO)
 {$endif}
 end;
 
-Function fpchmod(path:pchar;mode:mode_t):cint;
+Function fpchmod(path:PAnsiChar;mode:mode_t):cint;
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -359,7 +359,7 @@ begin
 {$endif}
 end;
 
-Function fpchown(path:pchar;owner:uid_t;group:gid_t):cint;
+Function fpchown(path:PAnsiChar;owner:uid_t;group:gid_t):cint;
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -371,7 +371,7 @@ end;
 
 {$if defined(generic_linux_syscalls)}
 
-Function fpUtime(path:pchar;times:putimbuf):cint;
+Function fpUtime(path:PAnsiChar;times:putimbuf):cint;
 var
   tsa: Array[0..1] of timespec;
 begin
@@ -385,7 +385,7 @@ end;
 
 {$elseif not defined(NO_SYSCALL_UTIME)}
 
-Function fpUtime(path:pchar;times:putimbuf):cint;
+Function fpUtime(path:PAnsiChar;times:putimbuf):cint;
 
 begin
   fputime:=do_syscall(syscall_nr_utime,TSysParam(path),TSysParam(times));
@@ -393,7 +393,7 @@ end;
 
 {$else}
 
-Function fpUtime(path:pchar;times:putimbuf):cint;
+Function fpUtime(path:PAnsiChar;times:putimbuf):cint;
 var
   tva: Array[0..1] of timeval;
 begin
@@ -438,13 +438,13 @@ begin
  fpfcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd);
 end;
 
-function fpexecve(path:pchar;argv:ppchar;envp:ppchar):cint;
+function fpexecve(path:PAnsiChar;argv:PPAnsiChar;envp:PPAnsiChar):cint;
 
 Begin
   fpexecve:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
 End;
 
-function fpexecv(path:pchar;argv:ppchar):cint;
+function fpexecv(path:PAnsiChar;argv:PPAnsiChar):cint;
 
 Begin
   fpexecv:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
@@ -514,7 +514,7 @@ begin
 end;
 {$endif}
 
-Function fpLstat(path:pchar;Info:pstat):cint;
+Function fpLstat(path:PAnsiChar;Info:pstat):cint;
 {
   Get all information on a link (the link itself), and return it in info.
 }
@@ -607,7 +607,7 @@ begin
 end;
 
 
-Function fpSymlink(oldname,newname:pchar):cint;
+Function fpSymlink(oldname,newname:PAnsiChar):cint;
 {
   We need this for erase
 }
@@ -626,7 +626,7 @@ end;
 {$define FPC_ALIGN_DUMMY}
 {$endif}
 
-function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
+function Fppread(fd: cint; buf: PAnsiChar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
 
 begin
 {$ifdef CPU64}
@@ -640,7 +640,7 @@ begin
 {$endif}
 end;
 
-function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
+function Fppwrite(fd: cint;buf:PAnsiChar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
 
 begin
 {$ifdef CPU64}

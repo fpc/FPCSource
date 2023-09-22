@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vartags;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {
@@ -59,7 +61,11 @@ unit vartags;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type long = longint;
 
@@ -74,7 +80,7 @@ const
 var
    argbuff : array[0..30] of tTagItem;
 
-function LongStr(const s : string) : Longint;
+function LongStr(const s : ShortString) : Longint;
 
 procedure SetTags(ti : pTagItem; item, data : Longint);
 function TagItem(item, data : Longint): tTagItem;
@@ -115,7 +121,11 @@ function TAGS(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,v,w,x,z,aa,bb,cc,
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
 uses pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure SetTags(ti : pTagItem; item, data : Longint);
 begin
@@ -136,7 +146,7 @@ begin
    TagItem := temp;
 end;
 
-function LongStr(const s : string) : Longint;
+function LongStr(const s : ShortString) : Longint;
 begin
    LongStr := Longint(Pas2C(s));
 end;

@@ -20,11 +20,17 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit layers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LAYERSIMPLE          = 1;
@@ -86,7 +92,7 @@ const
   LR_RenderList           = LR_Dummy + 6; // PPLayer. a nil terminated list of PLayer pointers to render if they are within given bounds
   LR_IgnoreList           = LR_Dummy + 7; // PPLayer. a nil terminated list of PLayer pointers to ommit when rendering the layerinfo. mutually exclusive with LR_RenderList!
 
-  LAYERSNAME: PChar = 'layers.library';
+  LAYERSNAME: PAnsiChar = 'layers.library';
 
 var
   LayersBase: PLibrary = nil;

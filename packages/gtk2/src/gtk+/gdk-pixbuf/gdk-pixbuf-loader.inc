@@ -29,7 +29,7 @@ function GDK_PIXBUF_LOADER_GET_CLASS(obj : pointer) : PGdkPixbufLoaderClass;
 
 function gdk_pixbuf_loader_get_type:GType; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_loader_new:PGdkPixbufLoader; cdecl; external gdkpixbuflib;
-function gdk_pixbuf_loader_new_with_type(image_type:Pchar; error:PPGError):PGdkPixbufLoader; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_loader_new_with_type(image_type:PAnsiChar; error:PPGError):PGdkPixbufLoader; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_loader_write(loader:PGdkPixbufLoader; buf:Pguchar; count:gsize; error:PPGError):gboolean; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_loader_get_pixbuf(loader:PGdkPixbufLoader):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_loader_get_animation(loader:PGdkPixbufLoader):PGdkPixbufAnimation; cdecl; external gdkpixbuflib;

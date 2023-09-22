@@ -14,7 +14,11 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses OS2Api.doscalls, OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses DosCalls, OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
@@ -33,7 +37,7 @@ const
 Type
   TPipeClientComm = Class(TIPCClientComm)
   Private
-    FFileName: String;
+    FFileName: AnsiString;
     FStream: TFileStream;
   Public
     Constructor Create(AOWner : TSimpleIPCClient); override;
@@ -97,10 +101,10 @@ end;
 type
   TPipeServerComm = class (TIPCServerComm)
   private
-    FFileName: string;
+    FFileName: ansistring;
     FStream: THandleStream;
     EventSem: THandle;
-    SemName: string;
+    SemName: ansistring;
   public
     constructor Create (AOWner: TSimpleIPCServer); override;
     procedure StartServer; override;
@@ -108,7 +112,7 @@ type
     function  PeekMessage (TimeOut: integer): boolean; override;
     procedure ReadMessage; override;
     function GetInstanceID: string; override;
-    property FileName: string read FFileName;
+    property FileName: Ansistring read FFileName;
     property Stream: THandleStream read FStream;
   end;
 
@@ -128,10 +132,10 @@ var
   H: THandle;
 begin
   if not (Assigned (FStream)) then
-    if (DosCreateNPipe (PChar (FFileName), H, np_Access_Inbound,
+    if (DosCreateNPipe (PAnsiChar (FFileName), H, np_Access_Inbound,
         np_ReadMode_Message or np_WriteMode_Message or 1, PipeBufSize,
                                                PipeBufSize, 0) <> 0) or
-           (DosCreateEventSem (PChar (SemName), EventSem, 0, 0) <> 0) or
+           (DosCreateEventSem (PAnsiChar (SemName), EventSem, 0, 0) <> 0) or
                           (DosSetNPipeSem (H, EventSem, PipeKey) <> 0) or
                                             (DosConnectNPipe (H) <> 0) then
                            Owner.DoError (SErrFailedToCreatePipe, [FFileName]);

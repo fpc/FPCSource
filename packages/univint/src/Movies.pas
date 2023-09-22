@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Movies;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Aliases,MacOsApi.Components,MacOsApi.Dialogs,MacOsApi.Events,MacOsApi.Files,MacOsApi.Menus,MacOsApi.ImageCompression,MacOsApi.QDOffscreen,MacOsApi.QuickdrawTypes,MacOsApi.TextEdit,MacOsApi.HIObject,MacOsApi.CFBase,MacOsApi.CFDictionary,MacOsApi.CFString,MacOsApi.CoreAudioTypes,MacOsApi.AUComponent;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Aliases,Components,Dialogs,Events,Files,Menus,ImageCompression,QDOffscreen,QuickdrawTypes,TextEdit,HIObject,CFBase,CFDictionary,CFString,CoreAudioTypes,AUComponent;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -858,8 +864,8 @@ type
 		dataRefIndex: SInt16;
 
 		displayFlags: UInt32;
-		horizontalJustification: char;
-		verticalJustification: char;
+		horizontalJustification: AnsiChar;
+		verticalJustification: AnsiChar;
 		backgroundColor: Tx3gRGBAColor;
 		defaultTextBox: Rect;
 		defaultStyle: Tx3gStyleRecord;
@@ -1342,7 +1348,7 @@ const
 	kOperandQTVRViewState = 4104; { long viewStateType }
 	kOperandMouseLocalHLoc = 5120; { [TargetAtoms aTrack] }
 	kOperandMouseLocalVLoc = 5121; { [TargetAtoms aTrack] }
-	kOperandKeyIsDown = 5122; { [short modKeys, char asciiValue] }
+	kOperandKeyIsDown = 5122; { [short modKeys, AnsiChar asciiValue] }
 	kOperandRandom = 5123; { [short min, short max] }
 	kOperandCanHaveFocus = 5124; { [(TargetAtoms theObject)] }
 	kOperandHasFocus = 5125; { [(TargetAtoms theObject)] }
@@ -15759,7 +15765,7 @@ function QTSampleTableSetProperty( sampleTable: QTSampleTableRef; inPropClass: Q
 * enumerate all items or only items with a particular key.                  *
 *                                                                           *
 * Because a QTMetaDataRef may provide access to different native metadata   *
-* containers with differing key structures (a four-char-code for one, a     *
+* containers with differing key structures (a four-AnsiChar-code for one, a     *
 * string for another, etc.), the key structure is also specified. A         *
 * QTMetaDataKeyFormat indicates the key structure in APIs accepting keys.   *
 * This is also done because some container formats allow multiple key       *

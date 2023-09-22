@@ -15,7 +15,9 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -71,12 +73,17 @@ procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings, WinApi.WinProcs, WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings, winprocs, wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PFarByte = ^Byte;far;
-  PFarChar = ^Char;far;
+  PFarChar = ^AnsiChar;far;
   PFarWord = ^Word;far;
 
 {$DEFINE HAS_GETMSCOUNT}
@@ -217,7 +224,7 @@ end;
 procedure exec_ansistring(path : string;comline : ansistring);
 var
   c: ansistring;
-  pc: PChar;
+  pc: PAnsiChar;
   p: string;
   winexec_result: Word;
   m: MSG;
@@ -230,7 +237,7 @@ begin
     c:='"'+p+'" '+comline
   else
     c:=p+' '+comline;
-  pc:=PChar(c);
+  pc:=PAnsiChar(c);
   winexec_result:=WinExec(FarAddr(pc^),SW_SHOW);
   if winexec_result<32 then
   begin
@@ -559,7 +566,7 @@ var
   lfnfile : text;
 {$endif DEBUG_LFN}
 
-procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+procedure LFNFindFirst(path:PAnsiChar;attr:longint;var s:searchrec);
 var
   w : LFNSearchRec;
 begin
@@ -660,7 +667,7 @@ begin
 end;
 
 
-procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
+procedure DosFindfirst(path : PAnsiChar;attr : word;var f : searchrec);
 begin
   { allow slash as backslash }
   DoDirSeparators(path);
@@ -701,7 +708,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..255] of char;
+  path0 : array[0..255] of AnsiChar;
 begin
   doserror:=0;
   strpcopy(path0,path);
@@ -801,7 +808,7 @@ end;
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
 var
-  c : array[0..255] of char;
+  c : array[0..255] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -817,7 +824,7 @@ begin
   if DosError=0 then
    begin
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetShortName:=true;
    end
   else
@@ -828,7 +835,7 @@ end;
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
 var
-  c : array[0..260] of char;
+  c : array[0..260] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -845,7 +852,7 @@ begin
    begin
      c[255]:=#0;
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetLongName:=true;
    end
   else
@@ -882,7 +889,7 @@ end;
 
 procedure getfattr(var f;var attr : word);
 var
-  path: pchar;
+  path: PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -891,7 +898,7 @@ begin
   path:=@filerec(f).Name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
-  path:=pchar(r);
+  path:=PAnsiChar(r);
 {$endif}
   dosregs.dx:=Ofs(path^);
   dosregs.ds:=Seg(path^);
@@ -911,7 +918,7 @@ end;
 
 procedure setfattr(var f;attr : word);
 var
-  path: pchar;
+  path: PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -926,7 +933,7 @@ begin
   path:=@filerec(f).Name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
-  path:=pchar(r);
+  path:=PAnsiChar(r);
 {$endif}
   dosregs.dx:=Ofs(path);
   dosregs.ds:=Seg(path);
@@ -951,7 +958,7 @@ end;
 function GetEnvStr(EnvNo: Integer; var OutEnvStr: string): integer;
 var
   dos_env_ptr: LPSTR;
-  Ch: Char;
+  Ch: AnsiChar;
 begin
   dos_env_ptr := GetDOSEnvironment;
   GetEnvStr := 1;

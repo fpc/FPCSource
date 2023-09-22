@@ -15,14 +15,21 @@
 
   ToDo: read further images
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadGif;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGifRGB = packed record
@@ -30,8 +37,8 @@ type
   end;
 
   TGIFHeader = packed record
-    Signature:array[0..2] of Char;    //* Header Signature (always "GIF") */
-    Version:array[0..2] of Char;      //* GIF format version("87a" or "89a") */
+    Signature:array[0..2] of AnsiChar;    //* Header Signature (always "GIF") */
+    Version:array[0..2] of AnsiChar;      //* GIF format version("87a" or "89a") */
     // Logical Screen Descriptor
     ScreenWidth:word;                 //* Width of Display Screen in Pixels */
     ScreenHeight:word;                //* Height of Display Screen in Pixels */

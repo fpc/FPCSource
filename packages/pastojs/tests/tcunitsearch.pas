@@ -373,6 +373,8 @@ end;
 procedure TCustomTestCLI.OnWriteFile(aFilename: string; Source: string);
 var
   aFile: TCLIFile;
+  s: String;
+  i: Integer;
   {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
   //i: Integer;
   {$ENDIF}
@@ -406,7 +408,14 @@ begin
   aFile.Source:=Source;
   aFile.Attr:=faNormal;
   aFile.Age:=DateTimeToFileDate(CurDate);
-  writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' Found=',FindFile(aFilename)<>nil,' "',LeftStr(aFile.Source,50),'" ');
+  s:=LeftStr(aFile.Source,50);
+  for i:=1 to length(s) do
+    if not (s[i] in [#9..#10,#13,' '..#126]) then
+    begin
+      s:='<BINARY>';
+      break;
+    end;
+  writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' Found=',FindFile(aFilename)<>nil,' "',s,'" ');
   //writeln('TCustomTestCLI.OnWriteFile ',aFile.Source);
 end;
 
@@ -877,7 +886,7 @@ begin
   AddUnit('unit1.pas',
   ['var a: longint;'],
   ['']);
-  AddUnit('sub/unit1.pas',
+  AddUnit('sub'+PathDelim+'unit1.pas',
   ['var b: longint;'],
   ['']);
   AddFile('test1.pas',[
@@ -887,7 +896,7 @@ begin
     '  a:=b;',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'sub/unit1.pas" and "'+WorkDir+'unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'sub'+PathDelim+'unit1.pas" and "'+WorkDir+'unit1.pas"',ErrorMsg);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_IndirectDuplicate;
@@ -897,7 +906,7 @@ begin
   AddUnit('unit1.pas',
   ['var a: longint;'],
   ['']);
-  AddUnit('sub/unit1.pas',
+  AddUnit('sub'+PathDelim+'unit1.pas',
   ['var b: longint;'],
   ['']);
   AddUnit('unit2.pas',
@@ -908,7 +917,7 @@ begin
     'begin',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'unit1.pas" and "'+WorkDir+'sub/unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'unit1.pas" and "'+WorkDir+'sub'+PathDelim+'unit1.pas"',ErrorMsg);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_WorkNotEqProgDir;

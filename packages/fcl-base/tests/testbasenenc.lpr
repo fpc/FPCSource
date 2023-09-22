@@ -15,12 +15,15 @@
  **********************************************************************}
 program testbasenenc;
 
+{$mode objfpc}
+{$h+}
+
 uses sysutils, basenenc;
 
 
 Procedure AssertEquals(Const aActual,aExpected : TBytes; aMsg : String);
 
-  function ToStr(aBytes : TBytes) : string;
+  function ToStr(aBytes : TBytes) : String;
 
   Var
     I : Integer;
@@ -161,5 +164,6 @@ begin
   DoTest16('foob','666F6F62');
   DoTest16('fooba','666F6F6261');
   DoTest16('foobar','666F6F626172');
+  Writeln('All OK');
 end.
 

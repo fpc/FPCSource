@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebsocket;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -23,8 +25,13 @@ unit fpwebsocket;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sockets, ssockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SSecWebSocketGUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -491,7 +498,11 @@ function EncodeBytesBase64(const aBytes : TBytes) : String;
 
 implementation
 
-uses strutils, sha1,base64;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.Hash.Sha1, System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
+uses strutils, sha1, base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFrameTypeHelper }
 
@@ -538,13 +549,13 @@ procedure TWSHandShakeResponse.ToStrings(aHandShake: TWSHandshakeRequest; aRespo
 
   Var
     B : TBytes;
-    hash : TSHA1Digest;
+    {%H-}hash : TSHA1Digest;
     K : string;
   begin
     // respond key
     b:=[];
     k:= Trim(aHandshake.Key) + SSecWebSocketGUID;
-    hash:=sha1.SHA1String(k);
+    hash:=SHA1String(k);
     SetLength(B,SizeOf(hash));
     Move(Hash,B[0],Length(B));
     Result:=EncodeBytesBase64(B);
@@ -588,7 +599,7 @@ end;
 
 procedure TWSTransport.CloseSocket;
 begin
-  sockets.CloseSocket(FStream.Handle);
+  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.CloseSocket(FStream.Handle);
 end;
 
 { TWSTransport }
@@ -881,21 +892,33 @@ Const
 Var
   Buf : TBytes;
   aPos,toRead : QWord;
-  aCount : Longint;
+  aCount, FailCnt : Longint;
 
 begin
   Buf:=[];
   ToRead:=DataLength;
   aPos:=0;
+  FailCnt:=0;
   Repeat
     aCount:=ToRead;
     if aCount>MaxBufSize then
       aCount:=MaxBufSize;
     SetLength(Buf,aCount);
     aCount := aTransport.ReadBytes(Buf,aCount);
-    Move(Buf[0],Content[aPos],aCount);
-    Inc(aPos,aCount);
-    ToRead:=DataLength-aPos;
+    if aCount>0 then
+      begin
+      Move(Buf[0],Content[aPos],aCount);
+      Inc(aPos,aCount);
+      ToRead:=DataLength-aPos;
+      FailCnt:=0;
+      end
+    else
+      begin
+      sleep(1);
+      inc(FailCnt);
+      if FailCnt>100 then
+        raise Exception.Create('20230316102741 TWSFramePayload.ReadData');
+      end;
   Until (ToRead<=0);
 end;
 
@@ -912,7 +935,7 @@ begin
   LenFlag := buffer[1] and FlagLengthMask;
 
   Case LenFlag of
-   FlagTwoBytes:
+  FlagTwoBytes:
     begin
     aTransport.ReadBytes(Buffer,2);
     Paylen16:=Buffer.ToWord(0);
@@ -1398,7 +1421,7 @@ begin
 
          if not (woCloseExplicit in Options) then
          begin
-          if (aFrame.Reason<CLOSE_NORMAL_CLOSURE) or
+           if (aFrame.Reason<CLOSE_NORMAL_CLOSURE) or
              (aFrame.Reason=CLOSE_RESERVER) or
              (aFrame.Reason=CLOSE_NO_STATUS_RCVD) or
              (aFrame.Reason=CLOSE_ABNORMAL_CLOSURE) or

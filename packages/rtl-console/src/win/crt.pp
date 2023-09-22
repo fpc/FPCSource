@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -30,8 +32,13 @@ implementation
 {$DEFINE FPC_CRT_CTRLC_TREATED_AS_KEY}
 (* Treatment of Ctrl-C as a regular key ensured during initialization (SetupConsoleInput). *)
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
     SaveCursorSize: Longint;
@@ -235,7 +242,7 @@ procedure ClrEol;
 }
 var
   Temp: DWord;
-  CharInfo: Char;
+  CharInfo: AnsiChar;
   Coord: TCoord;
   X,Y: DWord;
 begin
@@ -292,7 +299,7 @@ End;
 *************************************************************************}
 
 var
-   ScanCode : char;
+   ScanCode : AnsiChar;
    SpecialKey : boolean;
    DoingNumChars: Boolean;
    DoingNumCode: Byte;
@@ -496,7 +503,7 @@ begin
 end;
 
 
-function ReadKey: char;
+function ReadKey: AnsiChar;
 begin
   while (not KeyPressed) do
     Sleep(1);
@@ -559,14 +566,14 @@ begin
       if defineDosDevice = nil then begin
         defineDosDevice:=TDefineDosDeviceFunction(GetProcAddress(GetModuleHandle('kernel32.dll'),'DefineDosDeviceA'));
         if defineDosDevice=nil then begin
-          windows.Beep(hz,1000); //fallback
+          {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Beep(hz,1000); //fallback
           exit;
         end;
         DefineDosDevice(DDD_RAW_TARGET_PATH,'DosBeep','\Device\Beep');
       end;
       beeperDevice:=CreateFile('\\.\DosBeep',0,0,nil,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
       if beeperDevice = INVALID_HANDLE_VALUE then begin
-        windows.Beep(hz,1000); //fallback
+        {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Beep(hz,1000); //fallback
         exit;
       end;
     end;
@@ -707,7 +714,7 @@ end;
 var
   CurrX, CurrY : DWord;
 
-procedure WriteChar(c : char);
+procedure WriteChar(c : AnsiChar);
 var
     WritePos: Coord;                       { Upper-left cell to write from }
     numWritten : DWord;
@@ -751,7 +758,7 @@ begin
 end;
 
 
-procedure WriteStr(const s: string);
+procedure WriteStr(const s: shortstring);
 var
   WritePos: Coord; { Upper-left cell to write from }
   numWritten : DWord;
@@ -787,7 +794,7 @@ end;
 Procedure CrtWrite(var f : textrec);
 var
   i : longint;
-  s : string;
+  s : shortstring;
   OldConsoleOutputCP : Word;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
@@ -841,7 +848,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
   OldConsoleOutputCP : Word;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Read

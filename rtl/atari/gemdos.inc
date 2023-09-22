@@ -79,7 +79,7 @@ type
         d_time: word;                         {* Time                *}
         d_date: word;                         {* Date                *}
         d_length: dword;                      {* File length         *}
-        d_fname: array[0..13] of char;        {* Filename            *}
+        d_fname: array[0..13] of AnsiChar;        {* Filename            *}
     end;
 
 type
@@ -115,15 +115,15 @@ type
       p_parent: PPD;          {* Pointer to the basepage of the      *}
                               {* calling processes                   *}
       p_resrvd0: longint;     {* Reserved                            *}
-      p_env: pchar;           {* Address of the environment string   *}
-      p_resrvd1: array[0..79] of char;   {* Reserved                            *}
-      p_cmdlin: array[0..127] of char;   {* Command line                        *}
+      p_env: PAnsiChar;           {* Address of the environment string   *}
+      p_resrvd1: array[0..79] of AnsiChar;   {* Reserved                            *}
+      p_cmdlin: array[0..127] of AnsiChar;   {* Command line                        *}
   end;
   TBASEPAGE = TPD; {* alias types... *}
   PBASEPAGE = ^TBASEPAGE;
 
 
-procedure gemdos_cconws(p: pchar); syscall 1 9;
+procedure gemdos_cconws(p: PAnsiChar); syscall 1 9;
 
 function gemdos_dsetdrv(drv: smallint): longint; syscall 1 14;
 
@@ -140,27 +140,27 @@ function gemdos_sversion: smallint; syscall 1 48;
 
 function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54;
 
-function gemdos_dcreate(const path: pchar): longint; syscall 1 57;
-function gemdos_ddelete(const path: pchar): longint; syscall 1 58;
-function gemdos_dsetpath(path: pchar): smallint; syscall 1 59;
-function gemdos_fcreate(fname: pchar; attr: smallint): smallint; syscall 1 60;
-function gemdos_fopen(fname: pchar; mode: smallint): longint; syscall 1 61;
+function gemdos_dcreate(const path: PAnsiChar): longint; syscall 1 57;
+function gemdos_ddelete(const path: PAnsiChar): longint; syscall 1 58;
+function gemdos_dsetpath(path: PAnsiChar): smallint; syscall 1 59;
+function gemdos_fcreate(fname: PAnsiChar; attr: smallint): smallint; syscall 1 60;
+function gemdos_fopen(fname: PAnsiChar; mode: smallint): longint; syscall 1 61;
 function gemdos_fclose(handle: smallint): smallint; syscall 1 62;
 function gemdos_fread(handle: smallint; count: longint; buf: pointer): longint; syscall 1 63;
 function gemdos_fwrite(handle: smallint; count: longint; buf: pointer): longint; syscall 1 64;
-function gemdos_fdelete(fname: pchar): smallint; syscall 1 65;
+function gemdos_fdelete(fname: PAnsiChar): smallint; syscall 1 65;
 function gemdos_fseek(offset: longint; handle: smallint; seekmode: smallint): longint; syscall 1 66;
-function gemdos_fattrib(filename: pchar; wflag: smallint; attrib: smallint): smallint; syscall 1 67;
+function gemdos_fattrib(filename: PAnsiChar; wflag: smallint; attrib: smallint): smallint; syscall 1 67;
 
-function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71;
+function gemdos_dgetpath(path: PAnsiChar; driveno: smallint): smallint; syscall 1 71;
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_mfree(block: pointer): dword; syscall 1 73;
 function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
-function gemdos_pexec(mode: word; name: pchar; cmdline: pchar; env: pchar): longint; syscall 1 75;
+function gemdos_pexec(mode: word; name: PAnsiChar; cmdline: PAnsiChar; env: PAnsiChar): longint; syscall 1 75;
 procedure gemdos_pterm(returncode: smallint); syscall 1 76;
 
-function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
+function gemdos_fsfirst(filename: PAnsiChar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
 
-function gemdos_frename(zero: word; oldname: pchar; newname: pchar): longint; syscall 1 86;
+function gemdos_frename(zero: word; oldname: PAnsiChar; newname: PAnsiChar): longint; syscall 1 86;
 procedure gemdos_fdatime(timeptr: PDOSTIME; handle: smallint; wflag: smallint); syscall 1 87;

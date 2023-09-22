@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpttfencodings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TTTFEncoding =
@@ -28,7 +35,7 @@ Type
      teiso_8859_1,teiso_8859_2,teiso_8859_4,teiso_8859_5,teiso_8859_7,
      teiso_8859_9, teiso_8859_11, teiso_8859_15, teiso_8859_16,
      tekoi8_r,tekoi8_u);
-  TTTFEncodingNames = array[0..255] of string;
+  TTTFEncodingNames = array[0..255] of Ansistring;
   PTTFEncodingNames = ^TTTFEncodingNames;
   TTTFEncodingValues = array[0..255] of Integer;
   PTTFEncodingValues = ^TTTFEncodingValues;
@@ -41,7 +48,7 @@ Implementation
 Function GetEncoding(const AName : String) : TTTFEncoding;
 
 Var
-  Names : Array[TTTFEncoding] of string =
+  Names : Array[TTTFEncoding] of String =
   ('','cp874','cp1250','cp1251','cp1252','cp1253','cp1254','cp1255','cp1257','cp1258',
    'iso_8859_1','iso_8859_2','iso_8859_4','iso_8859_5','iso_8859_7',
    'iso_8859_9', 'iso_8859_11', 'iso_8859_15', 'iso_8859_16',

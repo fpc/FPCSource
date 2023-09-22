@@ -608,11 +608,14 @@
           ClassName := PVmt(Self)^.vClassName^;
         end;
 
-      class function TObject.ClassNameIs(const name : string) : boolean;
+      class function TObject.ClassNameIs(const name : RTLString) : boolean;
 
+        var
+          SS : ShortString;
+          
         begin
-        // call to ClassName inlined here, this eliminates stack and string copying.
-           ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, name) = 0;
+           SS:=ShortString(Name);
+           ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, SS) = 0;
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
@@ -985,8 +988,9 @@
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
 
-      class function TObject.UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+      class function TObject.UnitName : RTLString;
 {$ifdef FPC_HAS_FEATURE_RTTI}
+
         type
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
             Attributes: Pointer;
@@ -1025,9 +1029,9 @@
         end;
 {$endif ndef FPC_HAS_FEATURE_RTTI}
 
-      class function TObject.QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+      class function TObject.QualifiedClassName: RTLString;
         var
-          uname: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+          uname: RTLString;
         begin
           uname := UnitName; //TODO: change 'UnitName' to 'UnitScope' as soon as RTL implement it
           if uname='' then
@@ -1046,7 +1050,7 @@
           result:=PtrInt(Self);
         end;
 
-      function TObject.ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+      function TObject.ToString: RTLString;
         begin
           result:=ClassName;
         end;
@@ -1166,6 +1170,33 @@
     end;
 
 {****************************************************************************
+                               TNoRefCountObject
+****************************************************************************}
+
+    function TNoRefCountObject.QueryInterface( {$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         if getinterface(iid,obj) then
+           result:=S_OK
+         else
+           result:=longint(E_NOINTERFACE);
+      end;
+
+    function TNoRefCountObject._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         Result:=-1;
+      end;
+
+    function TNoRefCountObject._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         Result:=-1;
+      end;
+
+
+
+{****************************************************************************
                                TCustomAttribute
 ****************************************************************************}
 
@@ -1192,11 +1223,46 @@
 
 
 
-    constructor StoredAttribute.Create(Const aName : string);
+    constructor StoredAttribute.Create(Const aName : shortstring);
     begin
       FName:=aName;
     end;
 
+{****************************************************************************
+                             TInterfaceThunk
+****************************************************************************}
+
+Constructor TInterfaceThunk.Create(aCallback : TThunkCallback);
+
+begin
+  FCallBack:=aCallBack;
+end;
+
+Procedure TInterfaceThunk.Thunk(aMethod: Longint; aCount : Longint; aData : PArgData);
+
+begin
+  if Assigned(FCallBack) then
+    FCallBack(Self,aMethod,aCount,aData); 
+end;
+
+function TInterfaceThunk.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+begin
+  result:=longint(E_NOINTERFACE);
+  if (TMethod(FCallBack).Data<>Nil) then
+    // Query the object that created us, this is normally TVirtualInterface
+    // Take care: do not call QueryInterface, that would create a never-ending loop !!
+    if TObject(TMethod(FCallBack).Data).GetInterface(iid,obj) then
+      result:=S_OK;
+  if (Result<>S_OK) then
+    Result:=Inherited QueryInterface(iid,obj);
+end;
+
+function TInterfaceThunk.InterfaceVMTOffset : word;
+
+begin
+  Result:=0;
+end;
 
 {****************************************************************************
                              Exception Support
@@ -1211,3 +1277,475 @@
     {$i except.inc}
   {$endif}
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
+
+{****************************************************************************
+                             Various Delphi constructs
+****************************************************************************}
+
+
+function TPtrWrapper.ToPointer: Pointer;
+begin
+  Result:=FValue;
+end;
+
+class function TPtrWrapper.GetNilValue: TPtrWrapper;
+
+begin
+  Result.FValue:=Nil;
+end;
+
+constructor TPtrWrapper.Create(AValue: PtrInt);
+
+begin
+  FValue:=Pointer(aValue);
+end;
+
+constructor TPtrWrapper.Create(AValue: Pointer);
+
+begin
+  FValue:=aValue;
+end;
+
+
+function TPtrWrapper.ToInteger: PtrInt;
+begin
+  Result:=PtrInt(FValue);
+end;
+
+class operator TPtrWrapper.=(Left, Right: TPtrWrapper): Boolean;
+
+begin
+  Result:=Left.FValue=Right.FValue;
+end;
+
+constructor TMarshal.Create;
+begin
+  System.Error(reInvalidPtr);
+end;
+
+class function TMarshal.AllocMem(Size: SizeInt): TPtrWrapper;
+begin
+  Result.Value := System.AllocMem(Size);
+end;
+
+class function TMarshal.ReallocMem(OldPtr: TPtrWrapper; NewSize: SizeInt): TPtrWrapper;
+var
+  P: Pointer;
+begin
+  P := OldPtr.Value;
+  Result.Value := System.ReallocMem(P, NewSize);
+end;
+
+class procedure TMarshal.FreeMem(Ptr: TPtrWrapper);
+begin
+  System.FreeMem(Ptr.Value);
+end;
+
+class procedure TMarshal.Move(Src, Dest: TPtrWrapper; Count: SizeInt); static;
+begin
+  System.Move(Src.Value^, Dest.Value^, Count);
+end;
+
+
+class function TMarshal.UnsafeAddrOf(var Value): TPtrWrapper;
+begin
+  Result.Value := @Value;
+end;
+
+
+class procedure TMarshal.Copy(const Src: TUint8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PUInt8(Src)[StartIndex], Dest.Value^, Count * SizeOf(UInt8));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUint8Array; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PUInt8(Dest)[StartIndex], Count * SizeOf(UInt8));
+end;
+
+class procedure TMarshal.Copy(const Src: TInt8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PInt8(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int8));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt8Array ; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PInt8(Dest)[StartIndex], Count * SizeOf(Int8));
+end;
+
+class procedure TMarshal.Copy(const Src: TUInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PUInt16(Src)[StartIndex], Dest.Value^, Count * SizeOf(UInt16));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUint16Array; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PUInt16(Dest)[StartIndex], Count * SizeOf(UInt16));
+end;
+
+class procedure TMarshal.Copy(const Src: TInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PInt16(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int16));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt16Array; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PInt16(Dest)[StartIndex], Count * SizeOf(Int16));
+end;
+
+class procedure TMarshal.Copy(const Src: TInt32Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PInt32(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int32));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt32Array; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PInt32(Dest)[StartIndex], Count * SizeOf(Int32));
+end;
+
+class procedure TMarshal.Copy(const Src: TInt64Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PInt64(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int64));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt64Array; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PInt64(Dest)[StartIndex], Count * SizeOf(Int64));
+end;
+
+class procedure TMarshal.Copy(const Src: TPtrWrapperArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PPointer(Src)[StartIndex], Dest.Value^, Count * SizeOf(TPtrWrapper));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TPtrWrapperArray; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PPointer(Dest)[StartIndex], Count * SizeOf(TPtrWrapper));
+end;
+
+generic class function TMarshal.FixArray<T>(const Arr: specialize TArray<T>): TPtrWrapper;
+begin
+  Result.Value := nil;
+  specialize TArray<T>(Result) := Arr;
+end;
+
+generic class procedure TMarshal.UnfixArray<T>(ArrPtr: TPtrWrapper);
+begin
+  Finalize(specialize TArray<T>(ArrPtr));
+end;
+
+
+class function TMarshal.ReadByte(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Byte;
+begin
+  Result := PByte(Ptr.Value + Ofs)^;
+end;
+
+class procedure TMarshal.WriteByte(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Byte);
+begin
+  PByte(Ptr.Value + Ofs)^ := Value;
+end;
+
+class procedure TMarshal.WriteByte(Ptr: TPtrWrapper; Value: Byte);
+begin
+  PByte(Ptr.Value)^ := Value;
+end;
+
+class function TMarshal.ReadInt16(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int16;
+begin
+  Result := PInt16(Ptr.Value + Ofs)^;
+end;
+
+class procedure TMarshal.WriteInt16(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int16);
+begin
+  PInt16(Ptr.Value + Ofs)^ := Value;
+end;
+
+class procedure TMarshal.WriteInt16(Ptr: TPtrWrapper; Value: Int16);
+begin
+  PInt16(Ptr.Value)^ := Value;
+end;
+
+class function TMarshal.ReadInt32(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int32;
+begin
+  Result := PInt32(Ptr.Value + Ofs)^;
+end;
+
+class procedure TMarshal.WriteInt32(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int32);
+begin
+  PInt32(Ptr.Value + Ofs)^ := Value;
+end;
+
+class procedure TMarshal.WriteInt32(Ptr: TPtrWrapper; Value: Int32);
+begin
+  PInt32(Ptr.Value)^ := Value;
+end;
+
+class function TMarshal.ReadInt64(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int64;
+begin
+  Result := PInt64(Ptr.Value + Ofs)^;
+end;
+
+class procedure TMarshal.WriteInt64(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int64);
+begin
+  PInt64(Ptr.Value + Ofs)^ := Value;
+end;
+
+class procedure TMarshal.WriteInt64(Ptr: TPtrWrapper; Value: Int64);
+begin
+  PInt64(Ptr.Value)^ := Value;
+end;
+
+class function TMarshal.ReadPtr(Ptr: TPtrWrapper; Ofs: SizeInt = 0): TPtrWrapper;
+begin
+  Result.Value := PPointer(Ptr.Value + Ofs)^;
+end;
+
+class procedure TMarshal.WritePtr(Ptr: TPtrWrapper; Ofs: SizeInt; Value: TPtrWrapper);
+begin
+  PPointer(Ptr.Value + Ofs)^ := Value.Value;
+end;
+
+class procedure TMarshal.WritePtr(Ptr, Value: TPtrWrapper);
+begin
+  PPointer(Ptr.Value)^ := Value.Value;
+end;
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
+
+class function TMarshal.AsAnsi(const S: UnicodeString): AnsiString;
+begin
+  Result := AnsiString(S);
+end;
+
+class function TMarshal.AsAnsi(S: PUnicodeChar): AnsiString;
+begin
+  result := AnsiString(S);
+end;
+
+class function TMarshal.InOutString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.InString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.OutString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.FixString(var Str: UnicodeString): TPtrWrapper;
+begin
+  UniqueString(Str);
+  Result := UnsafeFixString(Str);
+end;
+
+class procedure TMarshal.UnfixString(Ptr: TPtrWrapper);
+begin
+  if Ptr.Value <> PUnicodeChar('') then
+    Finalize(UnicodeString(Ptr));
+end;
+
+class function TMarshal.UnsafeFixString(const Str: UnicodeString): TPtrWrapper;
+begin
+  if Length(Str) = 0 then
+  begin
+    Result.Value := PUnicodeChar('');
+    Exit;
+  end;
+  Result.Value := nil;
+  UnicodeString(Result) := Str;
+end;
+
+class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), DefaultSystemCodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString; CodePage: Word): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), DefaultSystemCodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; CodePage: Word): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), CodePage);
+end;
+
+class function TMarshal.AllocStringAsUnicode(const Str: UnicodeString): TPtrWrapper;
+var
+  NBytes: SizeUint;
+begin
+  NBytes := (Length(Str) + 1) * SizeOf(UnicodeChar);
+  Result.Value := System.GetMem(NBytes);
+  System.Move(PUnicodeChar(Str)^, Result.Value^, NBytes);
+end;
+
+class function TMarshal.AllocStringAsUtf8(const Str: UnicodeString): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CP_UTF8);
+end;
+
+class function TMarshal.AllocStringAsUtf8(S: PUnicodeChar): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), CP_UTF8);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; Len: SizeInt; CodePage: Word): TPtrWrapper;
+var
+  U2ARes: AnsiString;
+  NBytes: SizeInt;
+begin
+  U2ARes := ''; { Suppress warning. }
+  WideStringManager.Unicode2AnsiMoveProc(S, U2ARes, CodePage, Len);
+  if Length(U2ARes) = 0 then
+  begin
+    Result.Value := nil;
+    Exit;
+  end;
+  { Could instead avoid the second allocation, assuming U2ARes.RefCount = 1:
+    System.Move(Pointer(U2ARes)^, (Pointer(U2ARes) - AnsiStringHeaderSize)^, (Length(U2ARes) + 1) * SizeOf(AnsiChar));
+    Result.FValue := Pointer(U2ARes) - AnsiStringHeaderSize;
+    Pointer(U2ARes) := nil; }
+  NBytes := (Length(U2ARes) + 1) * SizeOf(AnsiChar);
+  Result.Value := System.GetMem(NBytes);
+  System.Move(PAnsiChar(U2ARes)^, Result.Value^, NBytes);
+end;
+
+class procedure TMarshal.Copy(const Src: TUnicodeCharArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PUnicodeChar(Src)[StartIndex], Dest.Value^, Count * SizeOf(UnicodeChar));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUnicodeCharArray; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PUnicodeChar(Dest)[StartIndex], Count * SizeOf(UnicodeChar));
+end;
+
+class function TMarshal.ReadStringAsAnsi(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString;
+begin
+  Result := ReadStringAsAnsi(DefaultSystemCodePage, Ptr, Len);
+end;
+
+class function TMarshal.ReadStringAsAnsi(CodePage: Word; Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString;
+begin
+  { Here and below, IndexByte/Word assume that, when Len >= 0, either:
+    - Up to Len characters are accessible in Ptr;
+    - IndexByte/Word cannot access invalid memory past the searched character
+      (e.g. i386.inc and x86_64.inc IndexByte/Word versions are specifically designed not to). }
+  if Len < 0 then
+    Len := IndexByte(Ptr.Value^, Len, 0);
+  Result := ''; { Suppress warning. }
+  WideStringManager.Ansi2UnicodeMoveProc(Ptr.Value, CodePage, Result, Len);
+end;
+
+class function TMarshal.ReadStringAsAnsiUpTo(CodePage: Word; Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString;
+var
+  Len: SizeInt;
+begin
+  Len := IndexByte(Ptr.Value^, MaxLen, 0);
+  if Len < 0 then
+    Len := MaxLen;
+  Result := ReadStringAsAnsi(CodePage, Ptr, Len);
+end;
+
+class procedure TMarshal.WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+begin
+  WriteStringAsAnsi(Ptr, 0, Value, MaxCharsIncNull, DefaultSystemCodePage);
+end;
+
+class procedure TMarshal.WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word);
+begin
+  WriteStringAsAnsi(Ptr, 0, Value, MaxCharsIncNull, CodePage);
+end;
+
+class procedure TMarshal.WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+begin
+  WriteStringAsAnsi(Ptr, Ofs, Value, MaxCharsIncNull, DefaultSystemCodePage);
+end;
+
+class procedure TMarshal.WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word);
+var
+  U2ARes: AnsiString;
+  ValueLen, U2AResLen: SizeInt;
+begin
+  U2ARes := ''; { Suppress warning. }
+  ValueLen := Length(Value);
+  { Delphi null-terminates iff MaxCharsIncNull < 0, so MaxCharsIncNull is actually just MaxChars. }
+  if (MaxCharsIncNull > 0) and (MaxCharsIncNull < ValueLen) then
+    ValueLen := MaxCharsIncNull; { UTF-16 → ANSI should never shrink element count, so limit the number of characters analyzed. }
+  WideStringManager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(Value)), U2ARes, CodePage, ValueLen);
+  U2AResLen := Length(U2ARes);
+  if (MaxCharsIncNull >= 0) and (MaxCharsIncNull < U2AResLen) then
+    U2AResLen := MaxCharsIncNull;
+  System.Move(PAnsiChar(Pointer(U2ARes))^, (Ptr.Value + Ofs)^, U2AResLen * SizeOf(AnsiChar));
+  if MaxCharsIncNull < 0 then
+    PAnsiChar(Ptr.Value + Ofs)[U2AResLen] := #0;
+end;
+
+class function TMarshal.ReadStringAsUnicode(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString;
+begin
+  if Len < 0 then
+    Len := Length(PUnicodeChar(Ptr.Value));
+  Result := ''; { Suppress warning. }
+  SetLength(Result, Len);
+  System.Move(Ptr.Value^, Pointer(Result)^, Len * SizeOf(UnicodeChar));
+end;
+
+class function TMarshal.ReadStringAsUnicodeUpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString;
+var
+  Len: SizeInt;
+begin
+  Len := IndexWord(Ptr.Value^, MaxLen, 0);
+  if Len < 0 then
+    Len := MaxLen;
+  Result := ReadStringAsUnicode(Ptr, Len);
+end;
+
+class procedure TMarshal.WriteStringAsUnicode(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+begin
+  WriteStringAsUnicode(Ptr, 0, Value, MaxCharsIncNull);
+end;
+
+class procedure TMarshal.WriteStringAsUnicode(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+var
+  Len: SizeInt;
+begin
+  { Again, Delphi null-terminates iff MaxCharsIncNull < 0, so MaxCharsIncNull is actually just MaxChars. }
+  Len := Length(Value);
+  if (MaxCharsIncNull >= 0) and (MaxCharsIncNull < Len) then
+    Len := MaxCharsIncNull;
+  System.Move(Pointer(Value)^, (Ptr.Value + Ofs)^, Len * SizeOf(UnicodeChar));
+  if MaxCharsIncNull < 0 then
+    PUnicodeChar(Ptr.Value + Ofs)[Len] := #0;
+end;
+
+class function TMarshal.ReadStringAsUtf8(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString;
+begin
+  Result := ReadStringAsAnsi(CP_UTF8, Ptr, Len);
+end;
+
+class function TMarshal.ReadStringAsUtf8UpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString;
+begin
+  Result := ReadStringAsAnsiUpTo(CP_UTF8, Ptr, MaxLen);
+end;
+
+class procedure TMarshal.WriteStringAsUtf8(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+begin
+  WriteStringAsAnsi(Ptr, Value, MaxCharsIncNull, CP_UTF8);
+end;
+
+class procedure TMarshal.WriteStringAsUtf8(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt);
+begin
+  WriteStringAsAnsi(Ptr, Ofs, Value, MaxCharsIncNull, CP_UTF8);
+end;
+
+{$ENDIF}

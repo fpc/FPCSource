@@ -441,6 +441,9 @@ implementation
         tarraydef(x86_m256dtype).elementdef:=s64floattype;
         tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
+{$ifdef wasm}
+        wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype);
+{$endif wasm}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray;
         tarraydef(openchararraytype).elementdef:=cansichartype;
@@ -541,7 +544,7 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
-        addtype('Char',cansichartype);
+        addtype('AnsiChar',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext);
         addtype('TypedFile',cfiledef.createtyped(voidtype));
@@ -574,7 +577,7 @@ implementation
         addtype('$int64',s64inttype);
         addtype('$uint128',u128inttype);
         addtype('$int128',s128inttype);
-        addtype('$char',cansichartype);
+        addtype('$ansichar',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
@@ -627,6 +630,10 @@ implementation
         addtype('$__m256d',x86_m256dtype);
         addtype('$__m256i',x86_m256itype);
 {$endif x86}
+{$ifdef wasm}
+        addtype('$wasm_void_externref',wasmvoidexternreftype);
+        addtype('WasmExternRef',wasmvoidexternreftype);
+{$endif wasm}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         if f_variants in features then
@@ -732,7 +739,7 @@ implementation
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
         loadtype('void_pointer',voidpointertype);
-        loadtype('char',cansichartype);
+        loadtype('ansichar',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);
@@ -791,6 +798,9 @@ implementation
         loadtype('llvmbool1',llvmbool1type);
         loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
+{$ifdef wasm}
+        loadtype('wasm_void_externref',wasmvoidexternreftype);
+{$endif wasm}
         loadtype('file',cfiletype);
         if target_info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'

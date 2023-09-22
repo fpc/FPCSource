@@ -89,7 +89,7 @@ begin
 end;
 
 procedure SemaphorePost(const FSem: Pointer);
-var c : char;
+var c : AnsiChar;
 begin
   c := #0;
   fpwrite(PFilDes(FSem)^[1], c, 1);
@@ -206,7 +206,7 @@ end;
 function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
-  c: char;
+  c: AnsiChar;
 begin
   WRITE_DEBUG('ThreadFunc is here...'#13#10);
   LThread := TThread(parameter);
@@ -237,7 +237,7 @@ begin
     end;
   except
     on e: exception do begin
-      WRITE_DEBUG('got exception: %s'#13#10,pchar(e.message));
+      WRITE_DEBUG('got exception: %s'#13#10,PAnsiChar(e.message));
       LThread.FFatalException :=  TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?

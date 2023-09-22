@@ -19,14 +19,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
@@ -57,8 +62,13 @@ function DiskFree(Drive: AnsiString): Int64;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS, System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dos, sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
@@ -105,21 +115,21 @@ begin
   {$endif}
 end;
 
-function BSTR2STRING(s : Pointer): PChar; Inline;
+function BSTR2STRING(s : Pointer): PAnsiChar; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
-  BSTR2STRING:=PChar(s);
+  BSTR2STRING:=PAnsiChar(s);
   {$else}
-  BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
+  BSTR2STRING:=PAnsiChar(BADDR(PtrInt(s)))+1;
   {$endif}
 end;
 
-function BSTR2STRING(s : BPTR): PChar; Inline;
+function BSTR2STRING(s : BPTR): PAnsiChar; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
-  BSTR2STRING:=PChar(s);
+  BSTR2STRING:=PAnsiChar(s);
   {$else}
-  BSTR2STRING:=PChar(BADDR(s))+1;
+  BSTR2STRING:=PAnsiChar(BADDR(s))+1;
   {$endif}
 end;
 
@@ -180,7 +190,7 @@ var
 begin
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   {$WARNING FIX ME! To do: FileOpen Access Modes}
-  dosResult:=Open(PChar(SystemFileName),MODE_OLDFILE);
+  dosResult:=Open(PAnsiChar(SystemFileName),MODE_OLDFILE);
   if dosResult=0 then
     dosResult:=-1
   else
@@ -216,7 +226,7 @@ end;
 function FileSetDate(Handle: THandle; Age: Int64) : LongInt;
 var
   tmpDateStamp: TDateStamp;
-  tmpName: array[0..255] of char;
+  tmpName: array[0..255] of AnsiChar;
 begin
   result:=0;
   if (Handle <> 0) then begin
@@ -239,7 +249,7 @@ begin
   result:=0;
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
-  if not SetFileDate(PChar(SystemFileName),@tmpDateStamp) then begin
+  if not SetFileDate(PAnsiChar(SystemFileName),@tmpDateStamp) then begin
     IoErr(); // dump the error code for now (TODO)
     result:=-1;
   end;
@@ -257,7 +267,7 @@ begin
     opening it in MODE_NEWFILE, because that returns an exclusive lock
     so some operations might fail with it (KB) }
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  dosResult:=Open(PChar(SystemFileName),MODE_READWRITE);
+  dosResult:=Open(PAnsiChar(SystemFileName),MODE_READWRITE);
   if dosResult = 0 then exit;
 
   if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then
@@ -359,7 +369,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  DeleteFile:=dosDeleteFile(PChar(SystemFileName));
+  DeleteFile:=dosDeleteFile(PAnsiChar(SystemFileName));
 end;
 
 
@@ -369,7 +379,7 @@ var
 begin
   OldSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(OldName));
   NewSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(NewName));
-  RenameFile:=dosRename(PChar(OldSystemFileName), PChar(NewSystemFileName)) <> 0;
+  RenameFile:=dosRename(PAnsiChar(OldSystemFileName), PAnsiChar(NewSystemFileName)) <> 0;
 end;
 
 
@@ -386,7 +396,7 @@ var
 begin
   validFile:=false;
   SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
+  tmpLock := Lock(PAnsiChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -418,7 +428,7 @@ var
 begin
   result:=false;
   SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
+  tmpLock := Lock(PAnsiChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -449,7 +459,7 @@ begin
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
   Rslt.FindHandle := Anchor;
 
-  if MatchFirst(pchar(tmpStr),Anchor)<>0 then
+  if MatchFirst(PAnsiChar(tmpStr),Anchor)<>0 then
     begin
       InternalFindClose(Rslt.FindHandle);
       exit;
@@ -461,7 +471,7 @@ begin
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
-    if not validDate then 
+    if not validDate then
       begin
         InternalFindClose(Rslt.FindHandle);
         exit;
@@ -528,7 +538,7 @@ var
  attr: word;
 begin
  Assign(F,FileName);
- dos.GetFAttr(F,attr);
+ {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetFAttr(F,attr);
  if DosError <> 0 then
     FileGetAttr := -1
  else
@@ -541,7 +551,7 @@ var
  F: file;
 begin
  Assign(F, FileName);
- Dos.SetFAttr(F, Attr and $ffff);
+ {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.SetFAttr(F, Attr and $ffff);
  FileSetAttr := DosError;
 end;
 
@@ -623,7 +633,7 @@ end;
 function RefreshDeviceList: Integer;
 var
   List: PDosList;
-  Temp: PChar;
+  Temp: PAnsiChar;
   Str: string;
 begin
   NumDevices := 0;
@@ -663,7 +673,7 @@ begin
   OldWinPtr := MyProc^.pr_WindowPtr;
   MyProc^.pr_WindowPtr := Pointer(-1);
   //
-  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  DirLock := Lock(PAnsiChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
   begin
     if Info(DirLock, @Inf) <> 0 then
@@ -697,7 +707,7 @@ begin
   OldWinPtr := MyProc^.pr_WindowPtr;
   MyProc^.pr_WindowPtr := Pointer(-1);
   //
-  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  DirLock := Lock(PAnsiChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
   begin
     if Info(DirLock, @Inf) <> 0 then
@@ -726,7 +736,7 @@ begin
   if (Directory='') or (InOutRes<>0) then exit;
 
   SystemDirName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
-  tmpLock:=Lock(PChar(SystemDirName),SHARED_LOCK);
+  tmpLock:=Lock(PAnsiChar(SystemDirName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
@@ -749,9 +759,9 @@ var
  dayOfWeek: word;
  Sec100: Word;
 begin
-  dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, Sec100);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, Sec100);
   SystemTime.Millisecond := Sec100 * 10;
-  dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
 end;
 
 
@@ -802,7 +812,7 @@ end;
 var
   StrOfPaths: String;
 
-function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
+function SystemTags(const command: PAnsiChar; const tags: array of PtrUInt): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
@@ -846,21 +856,21 @@ begin
     if StrOfpaths = '' then StrOfPaths := GetPathString;
     Result:=StrOfPaths;
   end else
-    Result:=Dos.Getenv(shortstring(EnvVar));
+    Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.Getenv(shortstring(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
 
 begin
   // Result:=FPCCountEnvVar(EnvP);
-  Result:=Dos.envCount;
+  Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.envCount;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
-  Result:=Dos.EnvStr(Index);
+  Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.EnvStr(Index);
 end;
 
 function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
@@ -883,12 +893,12 @@ begin
   { _SystemTagList call (program will abort!!)                 }
 
   { Try to open with shared lock }
-  tmpLock:=Lock(PChar(convPath),SHARED_LOCK);
+  tmpLock:=Lock(PAnsiChar(convPath),SHARED_LOCK);
   if tmpLock<>0 then
     begin
       { File exists - therefore unlock it }
       Unlock(tmpLock);
-      result:=SystemTagList(PChar(tmpPath),nil);
+      result:=SystemTagList(PAnsiChar(tmpPath),nil);
       { on return of -1 the shell could not be executed }
       { probably because there was not enough memory    }
       if result = -1 then

@@ -99,11 +99,11 @@ type
     Procedure SetHTMLDocument(aDoc : THTMLDocument);
     procedure PushOutputNode(ANode: TDOMNode);
     procedure PopOutputNode;
-    procedure AppendText(Parent: TDOMNode; const AText: String);
+    procedure AppendText(Parent: TDOMNode; const AText: AnsiString);
     procedure AppendText(Parent: TDOMNode; const AText: DOMString);
     procedure AppendNbSp(Parent: TDOMNode; ACount: Integer);
     procedure AppendSym(Parent: TDOMNode; const AText: DOMString);
-    procedure AppendKw(Parent: TDOMNode; const AText: String);
+    procedure AppendKw(Parent: TDOMNode; const AText: AnsiString);
     procedure AppendKw(Parent: TDOMNode; const AText: DOMString);
     function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte;
     procedure AppendFragment(aParentNode: TDOMElement; aStream: TStream);
@@ -116,7 +116,7 @@ type
     procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement);
     procedure AppendDescr(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; AutoInsertBlock: Boolean);
     procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString);
-    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: String);
+    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: AnsiString);
     function AppendHyperlink(Parent: TDOMNode; Element: TPasElement): TDOMElement;
 
     // Helper functions for creating DOM elements
@@ -131,7 +131,7 @@ type
     function CreateTR(Parent: TDOMNode): THTMLElement;
     function CreateTD(Parent: TDOMNode): THTMLElement;
     function CreateTD_vtop(Parent: TDOMNode): THTMLElement;
-    function CreateLink(Parent: TDOMNode; const AHRef: String): THTMLElement;
+    function CreateLink(Parent: TDOMNode; const AHRef: AnsiString): THTMLElement;
     function CreateLink(Parent: TDOMNode; const AHRef: DOMString): THTMLElement;
     function CreateAnchor(Parent: TDOMNode; const AName: DOMString): THTMLElement;
     function CreateCode(Parent: TDOMNode): THTMLElement;
@@ -244,7 +244,7 @@ begin
   Result['valign'] := 'top';
 end;
 
-function TBaseHTMLWriter.CreateLink(Parent: TDOMNode; const AHRef: String): THTMLElement;
+function TBaseHTMLWriter.CreateLink(Parent: TDOMNode; const AHRef: AnsiString): THTMLElement;
 begin
   Result := CreateEl(Parent, 'a');
   Result['href'] := UTF8Decode(FixHtmlPath(AHRef));
@@ -648,7 +648,7 @@ begin
   FCurOutputNode:=Nil;
 end;
 
-procedure TBaseHTMLWriter.AppendText(Parent: TDOMNode; const AText: String);
+procedure TBaseHTMLWriter.AppendText(Parent: TDOMNode; const AText: AnsiString);
 begin
   AppendText(Parent,UTF8Decode(aText));
 end;
@@ -677,7 +677,7 @@ begin
   AppendText(El, AText);
 end;
 
-procedure TBaseHTMLWriter.AppendKw(Parent: TDOMNode; const AText: String);
+procedure TBaseHTMLWriter.AppendKw(Parent: TDOMNode; const AText: AnsiString);
 begin
   AppendKW(Parent,UTF8Decode(aText));
 end;
@@ -970,7 +970,7 @@ begin
   end;
 end;
 
-procedure TBaseHTMLWriter.AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: String);
+procedure TBaseHTMLWriter.AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: AnsiString);
 begin
   AppendDescrSection(aContext,Parent,DescrNode,UTF8Decode(aTitle));
 end;

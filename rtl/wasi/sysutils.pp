@@ -15,18 +15,28 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
-{$MODESWITCH out}
-{ force ansistrings }
+{$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WASIApi.WASIApi, WASIApi.WASIUtil;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   wasiapi, wasiutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
@@ -46,8 +56,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -57,22 +72,22 @@ implementation
 
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
 begin
-  Result:=WasiUtil.UniversalToEpoch(year,month,day,hour,minute,second);
+  Result:={$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.UniversalToEpoch(year,month,day,hour,minute,second);
 end;
 
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64;
 begin
-  Result:=WasiUtil.LocalToEpoch(year,month,day,hour,minute,second);
+  Result:={$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.LocalToEpoch(year,month,day,hour,minute,second);
 end;
 
 Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word);
 begin
-  WasiUtil.EpochToUniversal(epoch,year,month,day,hour,minute,second);
+  {$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.EpochToUniversal(epoch,year,month,day,hour,minute,second);
 end;
 
 Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word);
 begin
-  WasiUtil.EpochToLocal(epoch,year,month,day,hour,minute,second);
+  {$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.EpochToLocal(epoch,year,month,day,hour,minute,second);
 end;
 
 { Include platform independent implementation part }
@@ -94,7 +109,7 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function WasiToWinAttr (const FN : RawByteString; fd: __wasi_fd_t; pr: PChar; pr_len: size_t; Const Info : __wasi_filestat_t) : Longint;
+Function WasiToWinAttr (const FN : RawByteString; fd: __wasi_fd_t; pr: PAnsiChar; pr_len: size_t; Const Info : __wasi_filestat_t) : Longint;
 Var
   LinkInfo : __wasi_filestat_t;
   nm : RawByteString;
@@ -176,7 +191,7 @@ Begin
   repeat
     res:=__wasi_path_open(fd,
                           0,
-                          PChar(pr),
+                          PAnsiChar(pr),
                           length(pr),
                           0,
                           fs_rights_base,
@@ -221,7 +236,7 @@ Begin
   repeat
     res:=__wasi_path_open(fd,
                           0,
-                          PChar(pr),
+                          PAnsiChar(pr),
                           length(pr),
                           __WASI_OFLAGS_CREAT or __WASI_OFLAGS_TRUNC,
                           fs_rights_base,
@@ -347,7 +362,7 @@ begin
       result:=-1;
       exit;
     end;
-  res:=__wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info);
+  res:=__wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info);
   if res=__WASI_ERRNO_SUCCESS then
     result:=Info.mtim div 1000000000
   else
@@ -367,18 +382,18 @@ begin
   result:=false;
   if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     exit;
-  if __wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
     exit;
   if Info.filetype<>__WASI_FILETYPE_SYMBOLIC_LINK then
     exit;
-  if fpc_wasi_path_readlink_ansistring(fd,PChar(pr),Length(pr),symlink)<>__WASI_ERRNO_SUCCESS then
+  if fpc_wasi_path_readlink_ansistring(fd,PAnsiChar(pr),Length(pr),symlink)<>__WASI_ERRNO_SUCCESS then
     exit;
   SymLinkRec.TargetName:=symlink;
 
-  res:=__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info);
+  res:=__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info);
   if res<>__WASI_ERRNO_SUCCESS then
     raise EDirectoryNotFoundException.Create('Error ' + IntToStr(res){todo: SysErrorMessage SysErrorMessage(GetLastOSError)});
-  SymLinkRec.Attr := WasiToWinAttr(FileName,fd,PChar(pr),length(pr),Info);
+  SymLinkRec.Attr := WasiToWinAttr(FileName,fd,PAnsiChar(pr),length(pr),Info);
   SymLinkRec.Size := Info.size;
   result:=true;
 end;
@@ -399,7 +414,7 @@ begin
     flags:=__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW
   else
     flags:=0;
-  if __wasi_path_filestat_get(fd,flags,PChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,flags,PAnsiChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
     result:=Info.filetype<>__WASI_FILETYPE_DIRECTORY
   else
     result:=false;
@@ -421,7 +436,7 @@ begin
     flags:=__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW
   else
     flags:=0;
-  if __wasi_path_filestat_get(fd,flags,PChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,flags,PAnsiChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
     result:=Info.filetype=__WASI_FILETYPE_DIRECTORY
   else
     result:=false;
@@ -508,7 +523,7 @@ begin
       result:=-1;
       exit;
     end;
-  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),Age*1000000000,Age*1000000000,
+  if __wasi_path_filestat_set_times(fd,0,PAnsiChar(pr),length(pr),Age*1000000000,Age*1000000000,
      __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
     result:=0
   else
@@ -527,8 +542,8 @@ begin
       result:=-1;
       exit;
     end;
-  if __wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
-    result:=WasiToWinAttr(FileName,fd,PChar(pr),length(pr),Info)
+  if __wasi_path_filestat_get(fd,0,PAnsiChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+    result:=WasiToWinAttr(FileName,fd,PAnsiChar(pr),length(pr),Info)
   else
     result:=-1;
 end;
@@ -551,7 +566,7 @@ begin
       result:=false;
       exit;
     end;
-  result:=__wasi_path_unlink_file(fd,PChar(pr),Length(pr))=__WASI_ERRNO_SUCCESS;
+  result:=__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr))=__WASI_ERRNO_SUCCESS;
 end;
 
 
@@ -566,7 +581,7 @@ begin
     exit;
   if ConvertToFdRelativePath(NewName,fd2,pr2)<>0 then
     exit;
-  result:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2))=__WASI_ERRNO_SUCCESS;
+  result:=__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2))=__WASI_ERRNO_SUCCESS;
 end;
 
 
@@ -661,9 +676,9 @@ end;
                               Os utils
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 var
-  hp : ppchar;
+  hp : PPAnsiChar;
   hs : string;
   eqpos : longint;
 begin
@@ -685,7 +700,7 @@ end;
 
 Function GetEnvironmentVariableCount : Integer;
 var
-  p: ppchar;
+  p: PPAnsiChar;
 begin
   result:=0;
   p:=envp;      {defined in system}
@@ -697,10 +712,10 @@ begin
       end;
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 begin
   if (Index <= 0) or (envp=nil) then
     result:=''

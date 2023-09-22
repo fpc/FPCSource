@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JDCoefCt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains the coefficient buffer controller for decompression.
   This controller is the top level of the JPEG decompressor proper.
@@ -13,6 +15,15 @@ Unit JDCoefCt;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -20,6 +31,7 @@ uses
   jerror,
   jutils,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {GLOBAL}

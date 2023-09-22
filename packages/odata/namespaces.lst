@@ -1,0 +1,7 @@
+src/msgraph.pp=namespaced/Web.OData.MsGraph.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/sharepoint.pp=namespaced/Web.OData.Sharepoint.pp
+src/odataservice.pp=namespaced/Web.OData.Service.pp
+src/odatabase.pp=namespaced/Web.OData.Types.pp
+src/office365client.pp=namespaced/Web.OData.Office365Client.pp

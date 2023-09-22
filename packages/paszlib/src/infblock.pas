@@ -1,6 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit infblock;
-
-{$goto on}
+{$ENDIF FPC_DOTTEDUNITS}
 
 { infblock.h and
   infblock.c -- interpret and process block types to last block
@@ -15,8 +15,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function inflate_blocks_new(var z : z_stream;
                             c : check_func;  { check function }
@@ -44,8 +49,13 @@ function inflate_blocks_sync_point(var s : inflate_blocks_state) : integer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Infcodes, System.ZLib.Inftrees, System.ZLib.Infutil{$IFDEF ZLIB_DEBUG}, System.SysUtils{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   infcodes, inftrees, infutil{$IFDEF ZLIB_DEBUG}, SysUtils{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Tables for deflate from PKZIP's appnote.txt. }
 Const
@@ -172,10 +182,9 @@ end;
 function inflate_blocks (var s : inflate_blocks_state;
                          var z : z_stream;
                          r : integer) : integer;           { initial return code }
-label
-  start_btree, start_dtree,
-  start_blkdone, start_dry,
-  start_codes;
+
+Type
+  tblockaction = (baFallThrough,baContinue,baExit);
 
 var
   t : cardinal;               { temporary storage }
@@ -194,6 +203,354 @@ var
   i, j, c : cardinal;
 var
   cs : pInflate_codes_state;
+  
+  function do_btree : TBlockAction;
+  
+  begin
+    while (s.sub.trees.index < 4 + (s.sub.trees.table shr 10)) do
+    begin
+      {NEEDBITS(3);}
+      while (k < 3) do
+      begin
+        {NEEDBYTE;}
+        if (n <> 0) then
+          r :=Z_OK
+        else
+        begin
+          {UPDATE}
+          s.bitb := b;
+          s.bitk := k;
+          z.avail_in := n;
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
+          z.next_in := p;
+          s.write := q;
+          inflate_blocks := inflate_flush(s,z,r);
+          exit(baExit);
+        end;
+        dec(n);
+        b := b or (cardinal(p^) shl k);
+        Inc(p);
+        Inc(k, 8);
+      end;
+
+      s.sub.trees.blens^[border[s.sub.trees.index]] := cardinal(b) and 7;
+      Inc(s.sub.trees.index);
+      {DUMPBITS(3);}
+      b := b shr 3;
+      dec(k, 3);
+    end;
+    while (s.sub.trees.index < 19) do
+    begin
+      s.sub.trees.blens^[border[s.sub.trees.index]] := 0;
+      Inc(s.sub.trees.index);
+    end;
+    s.sub.trees.bb := 7;
+    t := inflate_trees_bits(s.sub.trees.blens^, s.sub.trees.bb,
+                            s.sub.trees.tb, s.hufts^, z);
+    if (t <> Z_OK) then
+    begin
+      freemem(s.sub.trees.blens);
+      s.sub.trees.blens := nil;
+      r := t;
+      if (r = Z_DATA_ERROR) then
+        s.mode := BLKBAD;
+      { update pointers and return }
+      s.bitb := b;
+      s.bitk := k;
+      z.avail_in := n;
+      Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+      z.next_in := p;
+      s.write := q;
+      inflate_blocks := inflate_flush(s,z,r);
+      exit(baExit);
+    end;
+    s.sub.trees.index := 0;
+    {$IFDEF ZLIB_DEBUG}
+    Tracev('inflate:       bits tree ok');
+    {$ENDIF}
+    s.mode := DTREE;
+    { fall through again }
+    do_btree:=baFallThrough;
+  end;
+  
+  function do_dtree : TBlockaction;
+  
+  begin
+    while TRUE do
+    begin
+      t := s.sub.trees.table;
+      if not (s.sub.trees.index < 258 +
+                                 (t and $1f) + ((t shr 5) and $1f)) then
+        break;
+      t := s.sub.trees.bb;
+      {NEEDBITS(t);}
+      while (k < t) do
+      begin
+        {NEEDBYTE;}
+        if (n <> 0) then
+          r :=Z_OK
+        else
+        begin
+          {UPDATE}
+          s.bitb := b;
+          s.bitk := k;
+          z.avail_in := n;
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
+          z.next_in := p;
+          s.write := q;
+          inflate_blocks := inflate_flush(s,z,r);
+          exit(baExit);
+        end;
+        dec(n);
+        b := b or (cardinal(p^) shl k);
+        Inc(p);
+        Inc(k, 8);
+      end;
+
+      h := s.sub.trees.tb;
+      Inc(h, cardinal(b) and inflate_mask[t]);
+      t := h^.Bits;
+      c := h^.Base;
+
+      if (c < 16) then
+      begin
+        {DUMPBITS(t);}
+        b := b shr t;
+        dec(k, t);
+
+        s.sub.trees.blens^[s.sub.trees.index] := c;
+        Inc(s.sub.trees.index);
+      end
+      else { c = 16..18 }
+      begin
+        if c = 18 then
+        begin
+          i := 7;
+          j := 11;
+        end
+        else
+        begin
+          i := c - 14;
+          j := 3;
+        end;
+        {NEEDBITS(t + i);}
+        while (k < t + i) do
+        begin
+          {NEEDBYTE;}
+          if (n <> 0) then
+            r :=Z_OK
+          else
+          begin
+            {UPDATE}
+            s.bitb := b;
+            s.bitk := k;
+            z.avail_in := n;
+            Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
+            z.next_in := p;
+            s.write := q;
+            inflate_blocks := inflate_flush(s,z,r);
+            exit(baExit);
+          end;
+          dec(n);
+          b := b or (cardinal(p^) shl k);
+          Inc(p);
+          Inc(k, 8);
+        end;
+
+        {DUMPBITS(t);}
+        b := b shr t;
+        dec(k, t);
+
+        Inc(j, cardinal(b) and inflate_mask[i]);
+        {DUMPBITS(i);}
+        b := b shr i;
+        dec(k, i);
+
+        i := s.sub.trees.index;
+        t := s.sub.trees.table;
+        if (i + j > 258 + (t and $1f) + ((t shr 5) and $1f)) or
+           ((c = 16) and (i < 1)) then
+        begin
+          freemem(s.sub.trees.blens);
+          s.sub.trees.blens := nil;
+          s.mode := BLKBAD;
+          z.msg := 'invalid bit length repeat';
+          r := Z_DATA_ERROR;
+          { update pointers and return }
+          s.bitb := b;
+          s.bitk := k;
+          z.avail_in := n;
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+          z.next_in := p;
+          s.write := q;
+          inflate_blocks := inflate_flush(s,z,r);
+          exit(baExit);
+        end;
+        if c = 16 then
+          c := s.sub.trees.blens^[i - 1]
+        else
+          c := 0;
+        repeat
+          s.sub.trees.blens^[i] := c;
+          Inc(i);
+          dec(j);
+        until (j=0);
+        s.sub.trees.index := i;
+      end;
+    end; { while }
+    s.sub.trees.tb := nil;
+    begin
+      bl := 9;         { must be <= 9 for lookahead assumptions }
+      bd := 6;         { must be <= 9 for lookahead assumptions }
+      t := s.sub.trees.table;
+      t := inflate_trees_dynamic(257 + (t and $1f),
+              1 + ((t shr 5) and $1f),
+              s.sub.trees.blens^, bl, bd, tl, td, s.hufts^, z);
+      freemem(s.sub.trees.blens);
+      s.sub.trees.blens := nil;
+      if (t <> Z_OK) then
+      begin
+        if (t = cardinal(Z_DATA_ERROR)) then
+          s.mode := BLKBAD;
+        r := t;
+        { update pointers and return }
+        s.bitb := b;
+        s.bitk := k;
+        z.avail_in := n;
+        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+        z.next_in := p;
+        s.write := q;
+        inflate_blocks := inflate_flush(s,z,r);
+        exit(baExit);
+      end;
+      {$IFDEF ZLIB_DEBUG}
+      Tracev('inflate:       trees ok');
+      {$ENDIF}          
+      { c renamed to cs }
+      cs := inflate_codes_new(bl, bd, tl, td, z);
+      if (cs = nil) then
+      begin
+        r := Z_MEM_ERROR;
+        { update pointers and return }
+        s.bitb := b;
+        s.bitk := k;
+        z.avail_in := n;
+        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+        z.next_in := p;
+        s.write := q;
+        inflate_blocks := inflate_flush(s,z,r);
+        exit(baExit);
+      end;
+      s.sub.decode.codes := cs;
+    end;
+    s.mode := CODES;
+    do_dtree:=baFallThrough;
+  end;
+
+
+  function do_codes: tblockaction;
+  
+  begin
+    { update pointers }
+    s.bitb := b;
+    s.bitk := k;
+    z.avail_in := n;
+    Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+    z.next_in := p;
+    s.write := q;
+
+    r := inflate_codes(s, z, r);
+    if (r <> Z_STREAM_END) then
+    begin
+      inflate_blocks := inflate_flush(s, z, r);
+      exit(baExit);
+    end;
+    r := Z_OK;
+    inflate_codes_free(s.sub.decode.codes, z);
+    { load local pointers }
+    p := z.next_in;
+    n := z.avail_in;
+    b := s.bitb;
+    k := s.bitk;
+    q := s.write;
+    if ptruint(q) < ptruint(s.read) then
+      m := cardinal(ptruint(s.read)-ptruint(q)-1)
+    else
+      m := cardinal(ptruint(s.zend)-ptruint(q));
+    {$IFDEF ZLIB_DEBUG}
+    if (ptruint(q) >= ptruint(s.read)) then
+      Tracev('inflate:       codes end '+
+          IntToStr(z.total_out + ptruint(q) - ptruint(s.read)) + ' total out')
+    else
+      Tracev('inflate:       codes end '+
+              IntToStr(z.total_out + ptruint(s.zend) - ptruint(s.read) +
+              ptruint(q) - ptruint(s.window)) +  ' total out');
+    {$ENDIF}
+    if (not s.last) then
+    begin
+      s.mode := ZTYPE;
+      exit(baContinue); { break for switch statement in C-code }
+    end;
+    {$ifndef patch112}
+    if (k > 7) then           { return unused byte, if any }
+    begin
+      {$IFDEF ZLIB_DEBUG}
+      Assert(k < 16, 'inflate_codes grabbed too many bytes');
+      {$ENDIF}
+      dec(k, 8);
+      inc(n);
+      dec(p);                    { can always return one }
+    end;
+    {$endif}
+    s.mode := DRY;
+    do_codes:=baFallThrough;
+  end;
+
+  function do_dry : tblockaction;
+  
+  begin
+    {FLUSH}
+    s.write := q;
+    r := inflate_flush(s,z,r);
+    q := s.write;
+
+    { not needed anymore, we are done:
+    if ptruint(q) < ptruint(s.read) then
+      m := cardinal(ptruint(s.read)-ptruint(q)-1)
+    else
+      m := cardinal(ptruint(s.zend)-ptruint(q));
+    }
+
+    if (s.read <> s.write) then
+    begin
+      { update pointers and return }
+      s.bitb := b;
+      s.bitk := k;
+      z.avail_in := n;
+      Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+      z.next_in := p;
+      s.write := q;
+      inflate_blocks := inflate_flush(s,z,r);
+      exit(baExit);
+    end;
+    s.mode := BLKDONE;
+    do_dry:=baFallThrough;
+  end;
+
+  procedure do_blkdone;
+    
+  begin
+    r := Z_STREAM_END;
+    { update pointers and return }
+    s.bitb := b;
+    s.bitk := k;
+    z.avail_in := n;
+    Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
+    z.next_in := p;
+    s.write := q;
+    inflate_blocks := inflate_flush(s,z,r);
+  end;
+  
 begin
   { copy input/output information to locals }
   p := z.next_in;
@@ -542,350 +899,68 @@ begin
         s.mode := BTREE;
         { fall trough case is handled by the while }
         { try GOTO for speed - Nomssi }
-        goto start_btree;
+        if do_btree=baExit then
+          Exit;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
+          exit;
+        do_blkdone;
+        exit;
       end;
     BTREE:
       begin
-        start_btree:
-        while (s.sub.trees.index < 4 + (s.sub.trees.table shr 10)) do
-        begin
-          {NEEDBITS(3);}
-          while (k < 3) do
-          begin
-            {NEEDBYTE;}
-            if (n <> 0) then
-              r :=Z_OK
-            else
-            begin
-              {UPDATE}
-              s.bitb := b;
-              s.bitk := k;
-              z.avail_in := n;
-              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
-              z.next_in := p;
-              s.write := q;
-              inflate_blocks := inflate_flush(s,z,r);
-              exit;
-            end;
-            dec(n);
-            b := b or (cardinal(p^) shl k);
-            Inc(p);
-            Inc(k, 8);
-          end;
-
-          s.sub.trees.blens^[border[s.sub.trees.index]] := cardinal(b) and 7;
-          Inc(s.sub.trees.index);
-          {DUMPBITS(3);}
-          b := b shr 3;
-          dec(k, 3);
+        if do_btree=baExit then
+          Exit;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
         end;
-        while (s.sub.trees.index < 19) do
-        begin
-          s.sub.trees.blens^[border[s.sub.trees.index]] := 0;
-          Inc(s.sub.trees.index);
-        end;
-        s.sub.trees.bb := 7;
-        t := inflate_trees_bits(s.sub.trees.blens^, s.sub.trees.bb,
-                                s.sub.trees.tb, s.hufts^, z);
-        if (t <> Z_OK) then
-        begin
-          freemem(s.sub.trees.blens);
-          s.sub.trees.blens := nil;
-          r := t;
-          if (r = Z_DATA_ERROR) then
-            s.mode := BLKBAD;
-          { update pointers and return }
-          s.bitb := b;
-          s.bitk := k;
-          z.avail_in := n;
-          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-          z.next_in := p;
-          s.write := q;
-          inflate_blocks := inflate_flush(s,z,r);
+        if do_dry=baExit then
           exit;
-        end;
-        s.sub.trees.index := 0;
-        {$IFDEF ZLIB_DEBUG}
-        Tracev('inflate:       bits tree ok');
-        {$ENDIF}
-        s.mode := DTREE;
-        { fall through again }
-        goto start_dtree;
+        do_blkdone;
+        exit;
       end;
     DTREE:
       begin
-        start_dtree:
-        while TRUE do
-        begin
-          t := s.sub.trees.table;
-          if not (s.sub.trees.index < 258 +
-                                     (t and $1f) + ((t shr 5) and $1f)) then
-            break;
-          t := s.sub.trees.bb;
-          {NEEDBITS(t);}
-          while (k < t) do
-          begin
-            {NEEDBYTE;}
-            if (n <> 0) then
-              r :=Z_OK
-            else
-            begin
-              {UPDATE}
-              s.bitb := b;
-              s.bitk := k;
-              z.avail_in := n;
-              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
-              z.next_in := p;
-              s.write := q;
-              inflate_blocks := inflate_flush(s,z,r);
-              exit;
-            end;
-            dec(n);
-            b := b or (cardinal(p^) shl k);
-            Inc(p);
-            Inc(k, 8);
-          end;
-
-          h := s.sub.trees.tb;
-          Inc(h, cardinal(b) and inflate_mask[t]);
-          t := h^.Bits;
-          c := h^.Base;
-
-          if (c < 16) then
-          begin
-            {DUMPBITS(t);}
-            b := b shr t;
-            dec(k, t);
-
-            s.sub.trees.blens^[s.sub.trees.index] := c;
-            Inc(s.sub.trees.index);
-          end
-          else { c = 16..18 }
-          begin
-            if c = 18 then
-            begin
-              i := 7;
-              j := 11;
-            end
-            else
-            begin
-              i := c - 14;
-              j := 3;
-            end;
-            {NEEDBITS(t + i);}
-            while (k < t + i) do
-            begin
-              {NEEDBYTE;}
-              if (n <> 0) then
-                r :=Z_OK
-              else
-              begin
-                {UPDATE}
-                s.bitb := b;
-                s.bitk := k;
-                z.avail_in := n;
-                Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
-                z.next_in := p;
-                s.write := q;
-                inflate_blocks := inflate_flush(s,z,r);
-                exit;
-              end;
-              dec(n);
-              b := b or (cardinal(p^) shl k);
-              Inc(p);
-              Inc(k, 8);
-            end;
-
-            {DUMPBITS(t);}
-            b := b shr t;
-            dec(k, t);
-
-            Inc(j, cardinal(b) and inflate_mask[i]);
-            {DUMPBITS(i);}
-            b := b shr i;
-            dec(k, i);
-
-            i := s.sub.trees.index;
-            t := s.sub.trees.table;
-            if (i + j > 258 + (t and $1f) + ((t shr 5) and $1f)) or
-               ((c = 16) and (i < 1)) then
-            begin
-              freemem(s.sub.trees.blens);
-              s.sub.trees.blens := nil;
-              s.mode := BLKBAD;
-              z.msg := 'invalid bit length repeat';
-              r := Z_DATA_ERROR;
-              { update pointers and return }
-              s.bitb := b;
-              s.bitk := k;
-              z.avail_in := n;
-              Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-              z.next_in := p;
-              s.write := q;
-              inflate_blocks := inflate_flush(s,z,r);
-              exit;
-            end;
-            if c = 16 then
-              c := s.sub.trees.blens^[i - 1]
-            else
-              c := 0;
-            repeat
-              s.sub.trees.blens^[i] := c;
-              Inc(i);
-              dec(j);
-            until (j=0);
-            s.sub.trees.index := i;
-          end;
-        end; { while }
-        s.sub.trees.tb := nil;
-        begin
-          bl := 9;         { must be <= 9 for lookahead assumptions }
-          bd := 6;         { must be <= 9 for lookahead assumptions }
-          t := s.sub.trees.table;
-          t := inflate_trees_dynamic(257 + (t and $1f),
-                  1 + ((t shr 5) and $1f),
-                  s.sub.trees.blens^, bl, bd, tl, td, s.hufts^, z);
-          freemem(s.sub.trees.blens);
-          s.sub.trees.blens := nil;
-          if (t <> Z_OK) then
-          begin
-            if (t = cardinal(Z_DATA_ERROR)) then
-              s.mode := BLKBAD;
-            r := t;
-            { update pointers and return }
-            s.bitb := b;
-            s.bitk := k;
-            z.avail_in := n;
-            Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-            z.next_in := p;
-            s.write := q;
-            inflate_blocks := inflate_flush(s,z,r);
-            exit;
-          end;
-          {$IFDEF ZLIB_DEBUG}
-          Tracev('inflate:       trees ok');
-          {$ENDIF}          
-          { c renamed to cs }
-          cs := inflate_codes_new(bl, bd, tl, td, z);
-          if (cs = nil) then
-          begin
-            r := Z_MEM_ERROR;
-            { update pointers and return }
-            s.bitb := b;
-            s.bitk := k;
-            z.avail_in := n;
-            Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-            z.next_in := p;
-            s.write := q;
-            inflate_blocks := inflate_flush(s,z,r);
-            exit;
-          end;
-          s.sub.decode.codes := cs;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
         end;
-        s.mode := CODES;
-        { yet another falltrough }
-        goto start_codes;
+        if do_dry=baExit then
+          exit;
+        do_blkdone;
+        exit;
       end;
     CODES:
       begin
-        start_codes:
-        { update pointers }
-        s.bitb := b;
-        s.bitk := k;
-        z.avail_in := n;
-        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-        z.next_in := p;
-        s.write := q;
-
-        r := inflate_codes(s, z, r);
-        if (r <> Z_STREAM_END) then
-        begin
-          inflate_blocks := inflate_flush(s, z, r);
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
           exit;
-        end;
-        r := Z_OK;
-        inflate_codes_free(s.sub.decode.codes, z);
-        { load local pointers }
-        p := z.next_in;
-        n := z.avail_in;
-        b := s.bitb;
-        k := s.bitk;
-        q := s.write;
-        if ptruint(q) < ptruint(s.read) then
-          m := cardinal(ptruint(s.read)-ptruint(q)-1)
-        else
-          m := cardinal(ptruint(s.zend)-ptruint(q));
-        {$IFDEF ZLIB_DEBUG}
-        if (ptruint(q) >= ptruint(s.read)) then
-          Tracev('inflate:       codes end '+
-              IntToStr(z.total_out + ptruint(q) - ptruint(s.read)) + ' total out')
-        else
-          Tracev('inflate:       codes end '+
-                  IntToStr(z.total_out + ptruint(s.zend) - ptruint(s.read) +
-                  ptruint(q) - ptruint(s.window)) +  ' total out');
-        {$ENDIF}
-        if (not s.last) then
-        begin
-          s.mode := ZTYPE;
-          continue; { break for switch statement in C-code }
-        end;
-        {$ifndef patch112}
-        if (k > 7) then           { return unused byte, if any }
-        begin
-          {$IFDEF ZLIB_DEBUG}
-          Assert(k < 16, 'inflate_codes grabbed too many bytes');
-          {$ENDIF}
-          dec(k, 8);
-          inc(n);
-          dec(p);                    { can always return one }
-        end;
-        {$endif}
-        s.mode := DRY;
-        { another falltrough }
-        goto start_dry;
+        do_blkdone;
+        exit;
       end;
     DRY:
       begin
-        start_dry:
-        {FLUSH}
-        s.write := q;
-        r := inflate_flush(s,z,r);
-        q := s.write;
-
-        { not needed anymore, we are done:
-        if ptruint(q) < ptruint(s.read) then
-          m := cardinal(ptruint(s.read)-ptruint(q)-1)
-        else
-          m := cardinal(ptruint(s.zend)-ptruint(q));
-        }
-
-        if (s.read <> s.write) then
-        begin
-          { update pointers and return }
-          s.bitb := b;
-          s.bitk := k;
-          z.avail_in := n;
-          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-          z.next_in := p;
-          s.write := q;
-          inflate_blocks := inflate_flush(s,z,r);
+        if do_dry=baExit then
           exit;
-        end;
-        s.mode := BLKDONE;
-        goto start_blkdone;
+        do_blkdone;
+        exit;
       end;
     BLKDONE:
       begin
-        start_blkdone:
-        r := Z_STREAM_END;
-        { update pointers and return }
-        s.bitb := b;
-        s.bitk := k;
-        z.avail_in := n;
-        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
-        z.next_in := p;
-        s.write := q;
-        inflate_blocks := inflate_flush(s,z,r);
+        do_blkdone;
         exit;
       end;
     BLKBAD:

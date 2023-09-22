@@ -93,10 +93,10 @@
   function gst_registry_find_feature(registry:PGstRegistry; name:Pgchar; _type:TGType):PGstPluginFeature;cdecl;external gstreamerlib name 'gst_registry_find_feature';
 
 (* Const before type ignored *)
-  function gst_registry_lookup(registry:PGstRegistry; filename:Pchar):PGstPlugin;cdecl;external gstreamerlib name 'gst_registry_lookup';
+  function gst_registry_lookup(registry:PGstRegistry; filename:PAnsiChar):PGstPlugin;cdecl;external gstreamerlib name 'gst_registry_lookup';
 
 (* Const before type ignored *)
-  function gst_registry_lookup_feature(registry:PGstRegistry; name:Pchar):PGstPluginFeature;cdecl;external gstreamerlib name 'gst_registry_lookup_feature';
+  function gst_registry_lookup_feature(registry:PGstRegistry; name:PAnsiChar):PGstPluginFeature;cdecl;external gstreamerlib name 'gst_registry_lookup_feature';
 
 (* Const before type ignored *)
   function gst_registry_check_feature_version(registry:PGstRegistry; feature_name:Pgchar; min_major:Tguint; min_minor:Tguint; min_micro:Tguint):Tgboolean;cdecl;external gstreamerlib name 'gst_registry_check_feature_version';

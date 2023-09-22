@@ -23,14 +23,21 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';
@@ -40,8 +47,8 @@ const
 type
   XextErrorHandler = function(
     dpy: PDisplay;
-    {_Xconst} ext_name: Pchar;
-    {_Xconst} reason: PChar
+    {_Xconst} ext_name: PAnsiChar;
+    {_Xconst} reason: PAnsiChar
   ): cint; cdecl;
 
 function XSetExtensionErrorHandler(
@@ -50,7 +57,7 @@ function XSetExtensionErrorHandler(
 
 function XMissingExtension(
     dpy: PDisplay;
-    {_Xconst} ext_name: PChar
+    {_Xconst} ext_name: PAnsiChar
 ): cint; cdecl; external libXext;
 
 implementation

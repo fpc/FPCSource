@@ -41,7 +41,9 @@
 // $Id: JwaBluetoothAPIs.pas,v 1.15 2007/09/06 14:57:11 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaBluetoothAPIs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -57,8 +59,13 @@ unit JwaBluetoothAPIs;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Bthsdpdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinBase, JwaBthSdpDef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
@@ -1263,7 +1270,7 @@ type
         1: (int64: LONGLONG);                     // specificType == SDP_ST_INT64
         2: (int32: Integer);                         // specificType == SDP_ST_INT32
         3: (int16: SHORT);                        // specificType == SDP_ST_INT16
-        4: (int8: CHAR);                          // specificType == SDP_ST_INT8
+        4: (int8: AnsiChar);                          // specificType == SDP_ST_INT8
 
         // type == SDP_TYPE_UINT
         5: (uint128: SDP_ULARGE_INTEGER_16);      // specificType == SDP_ST_UINT128

@@ -20,8 +20,13 @@
 
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.Video;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SystemEventActive : Boolean = false;

@@ -19,12 +19,19 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit streamex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, RtlConsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MIN_BUFFER_SIZE = 128;
@@ -62,7 +69,7 @@ type
       function CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader; override;
    public
       function GetDriver: TBidirBinaryObjectReader;
-      function ReadStr: string;
+      function ReadStr: AnsiString;
       procedure Read(var Buf; Count: LongInt); override;
       property Position: LongInt read GetPosition write SetPosition;
    end;
@@ -78,7 +85,7 @@ type
       function GetDriver: TBidirBinaryObjectWriter;
       procedure FlushBuffer;
       procedure Write(const Buf; Count: LongInt); override;
-      procedure WriteStr(const Value: string);
+      procedure WriteStr(const Value: Ansistring);
       procedure WriteValue(Value: TValueType);
       property Position: LongInt read GetPosition write SetPosition;
    end;
@@ -92,8 +99,8 @@ type
      constructor Create; virtual;
      procedure Reset; virtual; abstract;
      procedure Close; virtual; abstract;
-     procedure ReadLine(out AString: string); virtual; abstract; overload;
-     function ReadLine: string; overload;
+     procedure ReadLine(out AString: AnsiString); virtual; abstract; overload;
+     function ReadLine: AnsiString; overload;
      property Eof: Boolean read IsEof;
    end;
 
@@ -117,7 +124,7 @@ type
      destructor Destroy; override;
      procedure Reset; override;
      procedure Close; override;
-     procedure ReadLine(out AString: string); override; overload;
+     procedure ReadLine(out AString:Ansistring ); override; overload;
      property BaseStream: TStream read FStream;
      property OwnsStream: Boolean read FOwnsStream write FOwnsStream;
    end;
@@ -130,12 +137,12 @@ type
    Protected  
      function IsEof: Boolean; override;
    public
-     constructor Create(const AString: string; ABufferSize: Integer); virtual;
-     constructor Create(const AString: string); virtual;
+     constructor Create(const AString: AnsiString; ABufferSize: Integer); virtual;
+     constructor Create(const AString: AnsiString); virtual;
      destructor Destroy; override;
      procedure Reset; override;
      procedure Close; override;
-     procedure ReadLine(out AString: string); override; overload;
+     procedure ReadLine(out AString: AnsiString); override; overload;
    end;
 
    { TFileReader }
@@ -155,7 +162,7 @@ type
      destructor Destroy; override;
      procedure Reset; override;
      procedure Close; override;
-     procedure ReadLine(out AString: string); override; overload;
+     procedure ReadLine(out AString: AnsiString); override; overload;
    end;
 
    { TTextWriter }
@@ -855,7 +862,7 @@ begin
 end;
 
 
-function TDelphiReader.ReadStr: string;
+function TDelphiReader.ReadStr: AnsiString ;
 begin
    Result := GetDriver.ReadStr;
 end;
@@ -897,7 +904,7 @@ begin
    GetDriver.Write(Buf, Count);
 end;
 
-procedure TDelphiWriter.WriteStr(const Value: string);
+procedure TDelphiWriter.WriteStr(const Value: AnsiString );
 begin
    GetDriver.WriteStr(Value);
 end;
@@ -914,7 +921,7 @@ begin
   inherited Create;
 end;
 
-function TTextReader.ReadLine: string;
+function TTextReader.ReadLine: AnsiString;
 
 begin
   ReadLine(Result);
@@ -990,7 +997,7 @@ begin
   end;
 end;
 
-procedure TStreamReader.ReadLine(out AString: string);
+procedure TStreamReader.ReadLine(out AString: AnsiString );
 var
   VPByte: PByte;
   VPosition, VStrLength, VLength: Integer;
@@ -1042,13 +1049,13 @@ end;
 
 { TStringReader }
 
-constructor TStringReader.Create(const AString: string; ABufferSize: Integer);
+constructor TStringReader.Create(const AString: AnsiString; ABufferSize: Integer);
 begin
   inherited Create;
   FReader := TStreamReader.Create(TStringStream.Create(AString), ABufferSize, True);
 end;
 
-constructor TStringReader.Create(const AString: string);
+constructor TStringReader.Create(const AString: AnsiString);
 begin
   Create(AString, BUFFER_SIZE);
 end;
@@ -1074,7 +1081,7 @@ begin
   Result := FReader.IsEof;
 end;
 
-procedure TStringReader.ReadLine(out AString: string);
+procedure TStringReader.ReadLine(out AString: AnsiString );
 begin
   FReader.ReadLine(AString);
 end;
@@ -1126,7 +1133,7 @@ begin
   Result := FReader.IsEof;
 end;
 
-procedure TFileReader.ReadLine(out AString: string);
+procedure TFileReader.ReadLine(out AString: AnsiString);
 begin
   FReader.ReadLine(AString);
 end;

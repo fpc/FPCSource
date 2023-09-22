@@ -14,11 +14,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinCRT;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
-    function readkey : char;
+    function readkey : AnsiChar;
     function keypressed : boolean;
     procedure delay(ms : word);
 
@@ -41,15 +43,20 @@ unit WinCRT;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows, TP.Graph;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        windows,graph;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
        keybuffersize = 32;
 
     var
        keyboardhandling : TCriticalSection;
-       keybuffer : array[1..keybuffersize] of char;
+       keybuffer : array[1..keybuffersize] of AnsiChar;
        nextfree,nexttoread : longint;
 
     procedure inccyclic(var i : longint);
@@ -60,7 +67,7 @@ unit WinCRT;
            i:=1;
       end;
 
-    procedure addchar(c : char);
+    procedure addchar(c : AnsiChar);
 
       begin
          EnterCriticalSection(keyboardhandling);
@@ -78,7 +85,7 @@ unit WinCRT;
          LeaveCriticalSection(keyboardhandling);
       end;
 
-    function readkey : char;
+    function readkey : AnsiChar;
 
       begin
          while true do
@@ -93,7 +100,7 @@ unit WinCRT;
                 end;
               LeaveCriticalSection(keyboardhandling);
               { give other threads a chance }
-              Windows.Sleep(10);
+              {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Sleep(10);
            end;
       end;
 
@@ -119,7 +126,7 @@ unit WinCRT;
     procedure sound(hz : word);
 
       begin
-         Windows.Beep(hz,500);
+         {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Beep(hz,500);
       end;
 
     procedure nosound;
@@ -127,7 +134,7 @@ unit WinCRT;
       begin
       end;
 
-    procedure addextchar(c : char);
+    procedure addextchar(c : AnsiChar);
 
       begin
          addchar(#0);

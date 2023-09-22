@@ -12,21 +12,32 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjsonvalue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpJson.Data, System.Rtti;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpjson, rtti;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ValueToJSON(const aValue: TValue; aType: TRttiType): TJSONData;
 function JSONToValue(aData: TJSONData; aType: TRttiType): TValue;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ValueToJSON(const aValue: TValue; aType: TRttiType): TJSONData;
 var

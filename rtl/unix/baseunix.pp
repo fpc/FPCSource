@@ -12,13 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 {$modeswitch defaultparameters} // on freebsd to make one (libc) and two parameter pipe transparent.
 
 Interface
 {$modeswitch out}
 {$inline on}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses UnixType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i osdefs.inc}       { Compile time defines }
 
@@ -71,7 +77,7 @@ Const
 implementation
 
 {$ifdef hassysctl}
-Uses Sysctl;
+Uses {$IFDEF FPC_DOTTEDUNITS}BsdApi.{$ENDIF}SysCtl;
 {$endif}
 
 {$i genfuncs.inc}       // generic calls. (like getenv)

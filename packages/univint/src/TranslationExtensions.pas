@@ -30,7 +30,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TranslationExtensions;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -215,7 +217,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Files,MacOsApi.QuickdrawTypes,MacOsApi.Components;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Files,QuickdrawTypes,Components;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -234,7 +240,7 @@ const
 	kTranslatorCanGenerateFilename = 4;
 
 {****************************************************************************************}
-{ better names for 4-char codes}
+{ better names for 4-AnsiChar codes}
 type
 	FileType = OSType;
 	FileTypePtr = ^FileType;

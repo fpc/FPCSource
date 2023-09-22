@@ -48,8 +48,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = $ffff;
  MaxPathLen = 256;
@@ -76,7 +76,7 @@ type
 
 VAR
    ArgC                : INTEGER;
-   ArgV                : ppchar;
+   ArgV                : PPAnsiChar;
    NetwareCheckFunction: TNWCheckFunction;
    NWLoggerScreen      : pointer = nil;
 
@@ -86,7 +86,7 @@ const
   Dll_Thread_Attach_Hook  : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook  : TDLL_Entry_Hook = nil;
   NetwareUnloadProc       : pointer = nil;  {like exitProc but for nlm unload only}
-  envp : ppchar = nil;
+  envp : PPAnsiChar = nil;
 
 
 
@@ -101,11 +101,11 @@ procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
 
 
 procedure _ConsolePrintf (s :shortstring);
-procedure _ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
-procedure _ConsolePrintf (FormatStr : PCHAR; Param : pchar);
-procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
-procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
-procedure _ConsolePrintf (FormatStr : PCHAR);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; Param : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; Param : PAnsiChar);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; P1,P2 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; P1,P2,P3 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar);
 procedure __EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
 
 function NWGetCodeStart : pointer;  // needed for Lineinfo
@@ -198,7 +198,7 @@ begin
 end;
 
 { argument number l }
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l+1<=argc) then
   begin
@@ -255,7 +255,7 @@ begin
   _ConsolePrintf (@s[1]);
 end;
 
-procedure _ConsolePrintf (FormatStr : PCHAR);
+procedure _ConsolePrintf (FormatStr : PAnsiChar);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -263,7 +263,7 @@ begin
     screenprintf (NWLoggerScreen,FormatStr);
 end;
 
-procedure _ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; Param : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -271,12 +271,12 @@ begin
     screenprintf (NWLoggerScreen,FormatStr,Param);
 end;
 
-procedure _ConsolePrintf (FormatStr : PCHAR; Param : pchar);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; Param : PAnsiChar);
 begin
   _ConsolePrintf (FormatStr,longint(Param));
 end;
 
-procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; P1,P2 : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -284,7 +284,7 @@ begin
     screenprintf (NWLoggerScreen,FormatStr,P1,P2);
 end;
 
-procedure _ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
+procedure _ConsolePrintf (FormatStr : PAnsiChar; P1,P2,P3 : LONGINT);
 begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
@@ -326,7 +326,7 @@ end;
 
 
 {$ifdef StdErrToConsole}
-var ConsoleBuff : array [0..512] of char;
+var ConsoleBuff : array [0..512] of AnsiChar;
 
 Function ConsoleWrite(Var F: TextRec): Integer;
 var
@@ -447,7 +447,7 @@ begin
 end;
 
 // this is called by main.as, setup args and call PASCALMAIN
-procedure nlm_main (_ArgC : LONGINT; _ArgV : ppchar); cdecl; [public,alias: '_FPC_NLM_Entry'];
+procedure nlm_main (_ArgC : LONGINT; _ArgV : PPAnsiChar); cdecl; [public,alias: '_FPC_NLM_Entry'];
 BEGIN
   ArgC := _ArgC;
   ArgV := _ArgV;

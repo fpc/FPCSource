@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -23,6 +23,9 @@ begin
     P.Dependencies.add('libc');
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('unixutils.pp');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

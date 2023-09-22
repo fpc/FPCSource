@@ -23,14 +23,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DosCall2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 interface
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.doscalls, System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DosCalls, Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 (* Status in DosGet/SetProcessorStatus *)
@@ -108,7 +115,7 @@ type
   PCPUUtil = ^TCPUUtil;
 
 
-function DosOpenL (FileName: PChar; var Handle: THandle;
+function DosOpenL (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                                  EA: pointer): cardinal; cdecl;
@@ -118,7 +125,7 @@ function DosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
 
 function DosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
 
-function DosProtectOpen (FileName: PChar; var Handle: longint;
+function DosProtectOpen (FileName: PAnsiChar; var Handle: longint;
                          var Action: longint; InitSize, Attrib,
                          OpenFlags, OpenMode: longint; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -163,7 +170,7 @@ function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
                                   var Count: cardinal; InfoLevel: cardinal;
                                          FileHandleLockID: cardinal): cardinal;
 
-function DosProtectOpen (FileName: PChar; var Handle: THandle;
+function DosProtectOpen (FileName: PAnsiChar; var Handle: THandle;
                               var Action: cardinal; InitSize, Attrib,
                               OpenFlags, OpenMode: cardinal; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -758,7 +765,7 @@ results in an ERROR_ACCESS_DENIED return code.
 The DosProtectxxx functions can be used with a NULL filehandle LockID, if the
 subject filehandle was obtained from DosOpen.
 *)
-function DosProtectOpenL (FileName: PChar; var Handle: THandle;
+function DosProtectOpenL (FileName: PAnsiChar; var Handle: THandle;
                          var Action: cardinal; InitSize: int64; Attrib,
                          OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -913,7 +920,7 @@ Possible return codes:
  87 ERROR_INVALID_PARAMETER 
 122 ERROR_INSUFFICIENT_BUFER
 *)
-function DosQueryExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+function DosQueryExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 
 (*
@@ -983,7 +990,7 @@ Possible return codes:
 87 ERROR_INVALID_PARAMETER 
 161 ERROR_BAD_PATHNAME 
 *)
-function DosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+function DosSetExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 
 (*
@@ -1007,7 +1014,7 @@ Possible return codes:
 487 ERROR_INVALID_ADDRESS
 *)
 function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
-                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                         BuffLen: cardinal; Buff: PAnsiChar; var Offset: cardinal;
                                             Address: PtrUInt): cardinal; cdecl;
 
 
@@ -1048,7 +1055,7 @@ PDUMPSYS, AND PROCDUMP commands. For further information, see PROCDUMP.DOC
 in the OS2\SYSTEM\RAS directory. DDP_ENABLEPROCDUMP and DDP_DISABLEPROCDUMP
 are provided for backwards compatibility only.
 *)
-function DosDumpProcess (Flag: cardinal; Drive: char;
+function DosDumpProcess (Flag: cardinal; Drive: AnsiChar;
                                                PID: cardinal): cardinal; cdecl;
 
 
@@ -1092,7 +1099,7 @@ Possible error codes:
  0 NO_ERROR
 87 ERROR_INVALID_PARAMETER
 *)
-function DosSuppressPopups (Flag: cardinal; Drive: char): cardinal; cdecl;
+function DosSuppressPopups (Flag: cardinal; Drive: AnsiChar): cardinal; cdecl;
 
 
 (*
@@ -1135,7 +1142,7 @@ is not running on a processor with the required features, a return code will
 indicate an attempt to use an unsupported function.
 
 Example code (C):
-  int main (int argc, char *argv[])
+  int main (int argc, AnsiChar *argv[])
   {
      APIRET     rc;
      BYTE       HookBuffer [256];
@@ -1211,8 +1218,13 @@ function DosQueryABIOSSupport (Reserved: cardinal): cardinal; cdecl;
 implementation
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function DummyDosCancelLockRequestL (Handle: THandle; var Lock: TFileLockL): cardinal; cdecl;
@@ -1276,7 +1288,7 @@ begin
 end;
 
 
-function DummyDosProtectOpenL (FileName: PChar; var Handle: THandle;
+function DummyDosProtectOpenL (FileName: PAnsiChar; var Handle: THandle;
                          var Action: cardinal; InitSize: int64; Attrib,
                          OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -1330,7 +1342,7 @@ begin
 end;
 
 
-function DummyDosProtectOpen (FileName: PChar; var Handle: THandle;
+function DummyDosProtectOpen (FileName: PAnsiChar; var Handle: THandle;
                               var Action: cardinal; InitSize, Attrib,
                               OpenFlags, OpenMode: cardinal; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -1454,7 +1466,7 @@ begin
 end;
 
 
-function DummyDosQueryExtLibPath (ExtLibPath: PChar;
+function DummyDosQueryExtLibPath (ExtLibPath: PAnsiChar;
                                              Flags: cardinal): cardinal; cdecl;
 begin
   if ExtLibPath <> nil then
@@ -1467,7 +1479,7 @@ begin
 end;
 
 
-function DummyDosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+function DummyDosSetExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 begin
   DummyDosSetExtLibPath := Error_Not_Enough_Memory;
@@ -1475,7 +1487,7 @@ end;
 
 
 function DummyDosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
-                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                         BuffLen: cardinal; Buff: PAnsiChar; var Offset: cardinal;
                                             Address: PtrUInt): cardinal; cdecl;
 begin
   DummyDosQueryModFromEIP := Error_Invalid_Parameter;
@@ -1494,7 +1506,7 @@ begin
 end;
 
 
-function DummyDosSuppressPopups (Flag: cardinal; Drive: char): cardinal; cdecl;
+function DummyDosSuppressPopups (Flag: cardinal; Drive: AnsiChar): cardinal; cdecl;
 begin
   DummyDosSuppressPopups := Error_Invalid_Function;
 end;
@@ -1522,7 +1534,7 @@ end;
 
 
 type
-  TDosProtectOpen = function (FileName: PChar; var Handle: THandle;
+  TDosProtectOpen = function (FileName: PAnsiChar; var Handle: THandle;
                               var Action: cardinal; InitSize, Attrib,
                               OpenFlags, OpenMode: cardinal; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -1578,7 +1590,7 @@ type
   TDosSetFileLocksL = function (Handle: THandle; var Unlock: TFileLockL;
     var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal): cardinal; cdecl;
 
-  TDosProtectOpenL = function (FileName: PChar; var Handle: THandle;
+  TDosProtectOpenL = function (FileName: PAnsiChar; var Handle: THandle;
                          var Action: cardinal; InitSize: int64; Attrib,
                          OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -1602,20 +1614,20 @@ type
   TDosSetThreadAffinity = function (var AffinityMask: TMPAffinity): cardinal;
                                                                          cdecl;
 
-  TDosQueryExtLibPath = function (ExtLibPath: PChar;
+  TDosQueryExtLibPath = function (ExtLibPath: PAnsiChar;
                                              Flags: cardinal): cardinal; cdecl;
 
-  TDosSetExtLibPath = function (ExtLibPath: PChar; Flags: cardinal): cardinal;
+  TDosSetExtLibPath = function (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 
   TDosQueryModFromEIP = function (var HMod: THandle; var ObjNum: cardinal;
-                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                         BuffLen: cardinal; Buff: PAnsiChar; var Offset: cardinal;
                                             Address: PtrUInt): cardinal; cdecl;
 
   TDosDumpProcess = function (Flag: cardinal; Drive: cardinal;
                                                PID: cardinal): cardinal; cdecl;
 
-  TDosSuppressPopups = function (Flag: cardinal; Drive: char): cardinal; cdecl;
+  TDosSuppressPopups = function (Flag: cardinal; Drive: AnsiChar): cardinal; cdecl;
 
   TDosPerfSysCall = function (Command, Parm1, Parm2,
                                              Parm3: cardinal): cardinal; cdecl;
@@ -1675,7 +1687,7 @@ const
 
 
 
-function DosOpenL (FileName: PChar; var Handle: THandle;
+function DosOpenL (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                          EA: pointer): cardinal; cdecl; inline;
@@ -1699,7 +1711,7 @@ begin
 end;
 
 
-function DosProtectOpen (FileName: PChar; var Handle: THandle;
+function DosProtectOpen (FileName: PAnsiChar; var Handle: THandle;
                               var Action: cardinal; InitSize, Attrib,
                               OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                       var FileHandleLockID: cardinal): cardinal; cdecl; inline;
@@ -1804,7 +1816,7 @@ begin
 end;
 
 
-function DosProtectOpen (FileName: PChar; var Handle: longint;
+function DosProtectOpen (FileName: PAnsiChar; var Handle: longint;
                          var Action: longint; InitSize, Attrib,
                          OpenFlags, OpenMode: longint; ea: PEAOp2;
                       var FileHandleLockID: cardinal): cardinal; cdecl; inline;
@@ -1820,7 +1832,7 @@ function DosProtectOpen (const FileName: string; var Handle: longint;
                          OpenFlags, OpenMode: longint; ea: PEAOp2;
                                      var FileHandleLockID: cardinal): cardinal;
 var
-  T: array [0..255] of char;
+  T: array [0..255] of AnsiChar;
 begin
   StrPCopy (@T, FileName);
   DosProtectOpen := Sys_DosProtectOpen (@T, THandle (Handle),
@@ -1834,7 +1846,7 @@ function DosProtectOpen (const FileName: string; var Handle: THandle;
                          OpenFlags, OpenMode: cardinal; ea: PEAOp2;
                                var FileHandleLockID: cardinal): cardinal;
 var
-  T: array [0..255] of char;
+  T: array [0..255] of AnsiChar;
 begin
   StrPCopy (@T, FileName);
   DosProtectOpen := Sys_DosProtectOpen (@T, Handle, Action, InitSize, Attrib,
@@ -1909,7 +1921,7 @@ function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
                                   var Count: cardinal; InfoLevel: cardinal;
                                          FileHandleLockID: cardinal): cardinal;
 var
-  T: array [0..255] of char;
+  T: array [0..255] of AnsiChar;
 begin
   StrPCopy (@T, FileName);
   DosProtectEnumAttribute := DosProtectEnumAttribute (1, @T, Entry, Buf,
@@ -1942,7 +1954,7 @@ begin
 end;
 
 
-function DosProtectOpenL (FileName: PChar; var Handle: THandle;
+function DosProtectOpenL (FileName: PAnsiChar; var Handle: THandle;
                          var Action: cardinal; InitSize: int64; Attrib,
                          OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                       var FileHandleLockID: cardinal): cardinal; cdecl; inline;
@@ -1997,14 +2009,14 @@ begin
 end;
 
 
-function DosQueryExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+function DosQueryExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                  cdecl; inline;
 begin
   DosQueryExtLibPath := Sys_DosQueryExtLibPath (ExtLibPath, Flags);
 end;
 
 
-function DosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+function DosSetExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                  cdecl; inline;
 begin
   DosSetExtLibPath := Sys_DosSetExtLibPath (ExtLibPath, Flags);
@@ -2012,7 +2024,7 @@ end;
 
 
 function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
-                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                         BuffLen: cardinal; Buff: PAnsiChar; var Offset: cardinal;
                                     Address: PtrUInt): cardinal; cdecl; inline;
 begin
   DosQueryModFromEIP := Sys_DosQueryModFromEIP (HMod, ObjNum, BuffLen, Buff,
@@ -2020,7 +2032,7 @@ begin
 end;
 
 
-function DosDumpProcess (Flag: cardinal; Drive: char;
+function DosDumpProcess (Flag: cardinal; Drive: AnsiChar;
                                        PID: cardinal): cardinal; cdecl; inline;
 begin
   DosDumpProcess := Sys_DosDumpProcess (Flag, cardinal (Drive), PID);
@@ -2028,7 +2040,7 @@ end;
 
 
 function DosSuppressPopups (Flag: cardinal;
-                                         Drive: char): cardinal; cdecl; inline;
+                                         Drive: AnsiChar): cardinal; cdecl; inline;
 begin
   DosSuppressPopups := Sys_DosSuppressPopups (Flag, Drive);
 end;

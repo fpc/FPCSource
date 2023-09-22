@@ -42,6 +42,7 @@ type
     procedure CreateFConnection;
     Function CreateQuery : TSQLQuery;
   protected
+    procedure ClearDatasets; override;
     procedure SetTestUniDirectional(const AValue: boolean); override;
     function GetTestUniDirectional: boolean; override;
     procedure CreateNDatasets; override;
@@ -408,7 +409,7 @@ begin
     for i := 0 to testValuesCount-1 do
       testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
 
-  // SQLite does not support fixed length CHAR datatype
+  // SQLite does not support fixed length Char datatype
   if SQLServerType in [ssSQLite] then
     for i := 0 to testValuesCount-1 do
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
@@ -724,11 +725,7 @@ end;
 
 procedure TSQLDBConnector.TryCreateSequence(ASequenceName: String);
 
-var
-  NoSeq : Boolean;
-
 begin
-  NoSeq:=False;
   case SQLServerType of
     ssInterbase,
     ssFirebird: FConnection.ExecuteDirect('CREATE GENERATOR '+ASequenceName);
@@ -761,9 +758,10 @@ begin
   FreeAndNil(FTransaction);
 end;
 
-destructor TSQLDBConnector.Destroy;
+Procedure TSQLDBConnector.ClearDatasets;
+
 begin
-  FreeAndNil(FQuery);
+  Inherited;
   if assigned(FTransaction) then
     begin
     try
@@ -781,6 +779,12 @@ begin
         Ftransaction.Rollback;
     end; // try
     end;
+end;
+
+destructor TSQLDBConnector.Destroy;
+begin
+  ClearDatasets;
+  FreeAndNil(FQuery);
   FreeTransaction;
   FreeAndNil(FConnection);
   inherited Destroy;

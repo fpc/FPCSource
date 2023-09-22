@@ -12,26 +12,33 @@
 
  **********************************************************************}
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 {$modeswitch advancedrecords}
 {$modeswitch class}
 {$if defined(win32) or defined(win64) or defined(wince)}
     uses
-       Windows;
+       {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows;
 {$elseif defined(win16)}
     uses
-       WinTypes;
+        {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes;
 {$endif}
 
 {$if defined(win32) or defined(win64)}
 const
-  RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
+  RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
 {$elseif defined(win16)}
 const
-  RT_RCDATA = WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
+  RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
 {$endif}
+
+Const
+  Epsilon: Single = 1E-40;
+  Epsilon2: Single = 1E-30;
+
 
 type
   TEndian =  Objpas.TEndian;
@@ -63,9 +70,18 @@ type
   TQWordDynArray = array of QWord;
   TShortIntDynArray = array of ShortInt;
   TSmallIntDynArray = array of SmallInt;
-  TStringDynArray = array of AnsiString;
-  TObjectDynArray = array of TObject;
+
+  TRTLStringDynArray = array of RTLString;
+  TAnsiStringDynArray = Array of AnsiString;
   TWideStringDynArray   = array of WideString;
+  TUnicodeStringDynArray = array of UnicodeString;
+{$if SIZEOF(CHAR)=2}  
+  TStringDynArray = Array of UnicodeString;
+{$ELSE}
+  TStringDynArray = Array of AnsiString;
+{$ENDIF}
+
+  TObjectDynArray = array of TObject;
   TWordDynArray = array of Word;
   TCurrencyArray = Array of currency;
 {$ifndef FPUNONE}
@@ -76,21 +92,21 @@ type
 {$endif}
 
 {$if defined(win32) or defined(win64) or defined(wince)}
-  TArray4IntegerType = Windows.TArray4IntegerType;
-  TSmallPoint = Windows.TSmallPoint;
-  PSmallPoint = Windows.PSmallPoint;
+  TArray4IntegerType = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TArray4IntegerType;
+  TSmallPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSmallPoint;
+  PSmallPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PSmallPoint;
 
-  TSize  = Windows.TSize;
-  TagSize  = Windows.tagSize deprecated;
-  PSize  = Windows.PSize;
+  TSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSize;
+  TagSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.tagSize deprecated;
+  PSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PSize;
 
-  TPoint = Windows.TPoint;
-  TagPoint = Windows.TagPoint deprecated;
-  PPoint = Windows.PPoint;
+  TPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TPoint;
+  TagPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TagPoint deprecated;
+  PPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PPoint;
 
-  TRect  = Windows.TRect;
-  PRect  = Windows.PRect;
-  TSplitRectType = Windows.TSplitRectType;
+  TRect  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TRect;
+  PRect  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PRect;
+  TSplitRectType = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSplitRectType;
 const
   srLeft = TSplitRectType.srLeft;
   srRight = TSplitRectType.srRight;
@@ -241,7 +257,8 @@ type
     procedure Inflate(DX, DY: Single);
     procedure Inflate(DL, DT, DR, DB: Single);
     function CenterPoint: TPointF;
-
+    function FitInto(const Dest: TRectF; out Ratio: Single): TRectF; overload;
+    function FitInto(const Dest: TRectF): TRectF; overload;
     procedure Union  (const r: TRectF); inline;
     procedure Offset (const dx,dy : Single); inline;
     procedure Offset (DP: TPointF); inline;
@@ -386,11 +403,11 @@ type
   PFileTime = ^TFileTime;
 {$else}
 type
-  PCLSID    = Windows.PCLSID;
-  TCLSID    = Windows.CLSID;
-  TFiletime = Windows.TFileTime;
-  Filetime  = Windows.FileTime;
-  PFiletime = Windows.PFileTime;
+  PCLSID    = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PCLSID;
+  TCLSID    = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.CLSID;
+  TFiletime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TFileTime;
+  Filetime  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FileTime;
+  PFiletime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PFileTime;
 {$endif Windows}
 
 type
@@ -463,7 +480,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$if (not defined(win32)) and (not defined(win64)) and (not defined(wince))}
   {$i typshrd.inc}
@@ -542,16 +563,11 @@ begin
   // The var parameter is only assigned in the end to avoid problems
   // when passing the same rectangle in the var and const parameters.
   // See http://bugs.freepascal.org/view.php?id=17722
-  if IsRectEmpty(lRect) then
-  begin
-    FillChar(Rect,SizeOf(Rect),0);
-    IntersectRect:=false;
-  end
+  Result:=not IsRectEmpty(lRect);
+  if Result then
+    Rect := lRect
   else
-  begin
-    IntersectRect:=true;
-    Rect := lRect;
-  end;	
+    FillChar(Rect,SizeOf(Rect),0);
 end;
 
 function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
@@ -568,16 +584,11 @@ begin
   if R2.Bottom>R1.Bottom then
     lRect.Bottom:=R2.Bottom;
 
-  if IsRectEmpty(lRect) then
-  begin
-    FillChar(Rect,SizeOf(Rect),0);
-    UnionRect:=false;
-  end
+  Result:=not IsRectEmpty(lRect);
+  if Result then
+    Rect := lRect
   else
-  begin
-    Rect:=lRect;
-    UnionRect:=true;
-  end;
+    FillChar(Rect,SizeOf(Rect),0);
 end;
 
 function IsRectEmpty(const Rect : TRect) : Boolean;
@@ -587,19 +598,15 @@ end;
 
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 begin
-  if assigned(@Rect) then
-    begin
+  Result:=assigned(@Rect);
+  if Result then
     with Rect do
       begin
-      inc(Left,dx);
-      inc(Top,dy);
-      inc(Right,dx);
-      inc(Bottom,dy);
+        inc(Left,dx);
+        inc(Top,dy);
+        inc(Right,dx);
+        inc(Bottom,dy);
       end;
-    OffsetRect:=true;
-    end
-  else
-    OffsetRect:=false;
 end;
 
 function Avg(a, b: Longint): Longint;
@@ -621,19 +628,15 @@ end;
 
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 begin
-  if Assigned(@Rect) then
-  begin
+  Result:=assigned(@Rect);
+  if Result then
     with Rect do
-    begin
-      dec(Left, dx);
-      dec(Top, dy);
-      inc(Right, dx);
-      inc(Bottom, dy);
-    end;
-    Result := True;
-  end
-  else
-    Result := False;
+      begin
+        dec(Left, dx);
+        dec(Top, dy);
+        inc(Right, dx);
+        inc(Bottom, dy);
+      end;
 end;
 
 function Size(AWidth, AHeight: Integer): TSize; inline;
@@ -728,8 +731,8 @@ end;
 
 function TPointF.Floor: TPoint;
 begin
-  result.x:=Math.floor(x);
-  result.y:=Math.floor(y);
+  result.x:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(x);
+  result.y:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(y);
 end;
 
 function TPointF.Round: TPoint;
@@ -932,8 +935,8 @@ end;
 
 function TSizeF.Floor: TSize;
 begin
-  result.cx:=Math.floor(cx);
-  result.cy:=Math.floor(cy);
+  result.cx:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(cx);
+  result.cy:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(cy);
 end;
 
 function TSizeF.Round: TSize;
@@ -1094,6 +1097,29 @@ function TRectF.CenterPoint: TPointF;
 begin
   Result.X := (Right-Left) / 2 + Left;
   Result.Y := (Bottom-Top) / 2 + Top;
+end;
+
+function TRectF.FitInto(const Dest: TRectF; out Ratio: Single): TRectF;
+begin
+  if (Dest.Width<=0) or (Dest.Height<=0) then
+  begin
+    Ratio:=1.0;
+    exit(Self);
+  end;
+  Ratio:=Max(Self.Width / Dest.Width, Self.Height / Dest.Height);
+  if Ratio=0 then
+    exit(Self);
+  Result.Width:=Self.Width / Ratio;
+  Result.Height:=Self.Height / Ratio;
+  Result.Left:=Self.Left + (Self.Width - Result.Width) / 2;
+  Result.Top:=Self.Top + (Self.Height - Result.Height) / 2;
+end;
+
+function TRectF.FitInto(const Dest: TRectF): TRectF;
+var
+  Ratio: Single;
+begin
+  Result:=FitInto(Dest,Ratio);
 end;
 
 function TRectF.Contains(Pt: TPointF): Boolean;

@@ -44,11 +44,13 @@
 {  1.51     03 Nov 99   FPC windows support added          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UHistList;
 {$else FV_UNICODE}
 UNIT HistList;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -79,6 +81,15 @@ UNIT HistList;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,
+{$else FV_UNICODE}
+  FreeVision.Fvcommon,
+{$endif FV_UNICODE}
+  System.Objects;                                 { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES
 {$ifdef FV_UNICODE}
   UFVCommon,
@@ -86,6 +97,7 @@ USES
   FVCommon,
 {$endif FV_UNICODE}
   Objects;                                 { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -302,10 +314,10 @@ BEGIN
 END;
 {$else FV_UNICODE}
 PROCEDURE DeleteString;
-VAR Len: Sw_Integer; P, P2: PChar;
+VAR Len: Sw_Integer; P, P2: PAnsiChar;
 BEGIN
-   P := PChar(CurString);                             { Current string }
-   P2 := PChar(CurString);                            { Current string }
+   P := PAnsiChar(CurString);                             { Current string }
+   P2 := PAnsiChar(CurString);                            { Current string }
    Len := PByte(P2)^+3;                               { Length of data }
    Dec(P, 2);                                         { Correct position }
    Inc(P2, PByte(P2)^+1);                             { Next hist record }
@@ -319,7 +331,7 @@ END;
 {  AdvanceStringPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB  }
 {---------------------------------------------------------------------------}
 PROCEDURE AdvanceStringPtr;
-VAR P: PChar;
+VAR P: PAnsiChar;
 {$ifdef FV_UNICODE}
     Len: SizeUInt;
 {$endif FV_UNICODE}
@@ -333,14 +345,14 @@ BEGIN
      Len := DecodeSizeUInt(CurString);
      Inc(CurString, Len);                             { Move to next string }
 {$else FV_UNICODE}
-     Inc(PChar(CurString), PByte(CurString)^+1);      { Move to next string }
+     Inc(PAnsiChar(CurString), PByte(CurString)^+1);      { Move to next string }
 {$endif FV_UNICODE}
      If (Pointer(CurString) >= Pointer(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
      End;
-     P := PChar(CurString);                        { Transfer record ptr }
-     Inc(PChar(CurString), 2);                        { Move to string }
+     P := PAnsiChar(CurString);                        { Transfer record ptr }
+     Inc(PAnsiChar(CurString), 2);                        { Move to string }
      if (P^<>#0) then
        RunError(215);
      Inc(P);
@@ -387,11 +399,11 @@ BEGIN
 END;
 {$else FV_UNICODE}
 PROCEDURE InsertString (Id: Byte; Const Str: String);
-VAR P, P1, P2: PChar;
+VAR P, P1, P2: PAnsiChar;
 BEGIN
   while (HistoryUsed+Length(Str)+3>HistorySize) do
    begin
-       P:=PChar(HistoryBlock);
+       P:=PAnsiChar(HistoryBlock);
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
            if Pointer(P)+Length(PShortString(P+2)^)+6+Length(Str) >
@@ -404,7 +416,7 @@ BEGIN
            Inc(P,Length(PShortString(P+2)^)+3);
          end;
    end;
-   P1 := PChar(HistoryBlock)+1;                     { First history record }
+   P1 := PAnsiChar(HistoryBlock)+1;                     { First history record }
    P2 := P1+Length(Str)+3;                          { History record after }
    Move(P1^, P2^, HistoryUsed - 1);                 { Shuffle history data }
    P1^:=#0;                         { Set marker byte }
@@ -501,7 +513,7 @@ END;
 PROCEDURE ClearHistory;
 BEGIN
    If (HistoryBlock <> Nil) Then Begin                { History initiated }
-     PChar(HistoryBlock)^ := #0;                      { Clear first byte }
+     PAnsiChar(HistoryBlock)^ := #0;                      { Clear first byte }
      HistoryUsed := 1;        { Set position }
    End;
 END;

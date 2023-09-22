@@ -18,18 +18,24 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ITOLITLSTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses ChmBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
-  TSig = array[0..3] of char;
+  TSig = array[0..3] of AnsiChar;
   TITOLITLSHeader = record
    Sig: Array [0..1] of TSig; //  ITLO/ITLS
    Version: DWord; // = 1
@@ -58,7 +64,7 @@ type
   end;
 
   TITSFHeaderV4= record
-    ITSFsig: array [0..3] of char;
+    ITSFsig: array [0..3] of AnsiChar;
     Version: LongWord;
     HeaderLength: LongWord;
     Unknown_1: LongWord;
@@ -71,7 +77,7 @@ type
     Sig: TSig; // CAOL
     Version: DWord; // 2
     CAOLSize: DWord; // includes ITSF section = $50
-    CompilerID: array [0..1] of char; // = "HH"
+    CompilerID: array [0..1] of AnsiChar; // = "HH"
     Unknown: Word; // 0
     Unknown1: DWord; // $43ED or 0
     DirChunkSize: DWord; // $2000

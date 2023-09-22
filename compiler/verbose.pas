@@ -41,30 +41,6 @@ interface
 
 {$i msgidx.inc}
 
-    Const
-      { Levels }
-      V_None         = $0;
-      V_Fatal        = $1;
-      V_Error        = $2;
-      V_Normal       = $4; { doesn't show a text like Error: }
-      V_Warning      = $8;
-      V_Note         = $10;
-      V_Hint         = $20;
-      V_LineInfoMask = $fff;
-      { From here by default no line info }
-      V_Info         = $1000;
-      V_Status       = $2000;
-      V_Used         = $4000;
-      V_Tried        = $8000;
-      V_Conditional  = $10000;
-      V_Debug        = $20000;
-      V_Executable   = $40000;
-      V_LevelMask    = $fffffff;
-      V_All          = V_LevelMask;
-      V_Default      = V_Fatal + V_Error + V_Normal;
-      { Flags }
-      V_LineInfo     = $10000000;
-
     var
       msg : pmessage;
 
@@ -351,6 +327,10 @@ implementation
                          status.verbosity:=status.verbosity and (not V_Info)
                        else
                          status.verbosity:=status.verbosity or V_Info;
+                 'J' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Parallel)
+                       else
+                         status.verbosity:=status.verbosity or V_Parallel;
                  'L' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Status)
                        else
@@ -622,7 +602,7 @@ implementation
       { Create status info }
         UpdateStatus;
       { Fix replacements }
-        DefaultReplacements(s);
+        DefaultReplacements(s,false);
       { show comment }
         if do_comment(l,s) or dostop then
           raise ECompilerAbort.Create;
@@ -754,7 +734,7 @@ implementation
       { fix status }
         UpdateStatus;
       { Fix replacements }
-        DefaultReplacements(s);
+        DefaultReplacements(s,false);
         if status.showmsgnrs and ((v and V_Normal)=0) then
           s:='('+tostr(w)+') '+s;
         if doqueue then

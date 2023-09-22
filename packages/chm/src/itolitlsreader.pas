@@ -18,7 +18,9 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ITOLITLSReader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -26,8 +28,13 @@ unit ITOLITLSReader;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, Chm.Reader, Chm.ItolItls.Types, System.SysUtils, Chm.Base, Chm.ItsFTransform;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, chmreader, itolitlstypes, Sysutils, chmbase, itsftransform;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

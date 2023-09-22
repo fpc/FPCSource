@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysevtmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Errorbase, PalmApi.Sysevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, errorbase, sysevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * System Event Manager Errors

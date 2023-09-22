@@ -7,23 +7,18 @@ main=rtl
 
 [target]
 loaders=nwplibc nwl_main nwl_dlle
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
-      lineinfo lnfodwrf  heaptrc \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+      $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos sysconst \
-      initc sysutils types typinfo sortbase fgl classes \
-      cpu mmx getopts \
-      charset cpall \
-      rtlconsts math \
-      dynlibs cmem ctypes \
-      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+      initc sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
+      cpu $(MMXUNIT) $(GETOPTSUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) \
+      rtlconsts $(MATHUNIT) \
+      $(DYNLIBSUNIT) $(CMEMUNIT) ctypes \
+      $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
-rsts=math typinfo classes sysconst rtlconsts system
-implicitunits=exeinfo \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+rsts=$(MATHUNIT) typinfo classes sysconst rtlconsts system
+implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 
 [require]
 nortl=y
@@ -32,7 +27,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=netwlibc
 
 [compiler]
@@ -128,15 +122,6 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMUNIT)$(PPUEXT)
-
 #
 # System Dependent Units
 #
@@ -145,8 +130,6 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) netware.pp
 
 nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -162,39 +145,26 @@ dos$(PPUEXT) : dos.pp libc.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPU
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) libc.pp sysconst$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) libc.pp sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
                    sysconst$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
-                   tthread.inc fgl$(PPUEXT)
+                   tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-#
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units
@@ -202,48 +172,11 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
-
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
-
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 #
 # Other system-dependent RTL Units
 #
-
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 

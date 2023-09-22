@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit QTStreamingComponents;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Components,MacOsApi.Dialogs,MacOsApi.Movies,MacOsApi.QuickTimeStreaming;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Components,Dialogs,Movies,QuickTimeStreaming;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -1539,7 +1545,7 @@ const
 	kRTPMPMaxPartialSampleSizeInfo = FourCharCode('mpss'); { UInt32* in bytes }
 	kRTPMPPreferredBufferDelayInfo = FourCharCode('prbd'); { UInt32* in milliseconds }
 	kRTPMPPayloadNameInfo = FourCharCode('name'); { StringPtr }
-	kRTPInfo_FormatString = FourCharCode('fmtp'); { char **, caller allocates ptr, callee disposes }
+	kRTPInfo_FormatString = FourCharCode('fmtp'); { AnsiChar **, caller allocates ptr, callee disposes }
 
 {-----------------------------------------
     RTP Media Packetizer Characteristics

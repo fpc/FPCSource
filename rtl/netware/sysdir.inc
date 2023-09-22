@@ -22,7 +22,7 @@ var
     Rc : longint;
 begin
   DoDirSeparators(s);
-  Rc := _mkdir(pchar(s));
+  Rc := _mkdir(PAnsiChar(s));
   if Rc <> 0 then
     SetFileError (Rc);
 end;
@@ -37,7 +37,7 @@ begin
       exit;
     end;
   DoDirSeparators(s);
-  Rc := _rmdir(pchar(s));
+  Rc := _rmdir(PAnsiChar(s));
   if Rc <> 0 then
     SetFileError(Rc);
 end;
@@ -47,14 +47,14 @@ procedure do_ChDir(s: rawbytestring);
 var RC: longint;
 begin
   DoDirSeparators(s);
-  RC := _chdir (pchar(s));
+  RC := _chdir (PAnsiChar(s));
   if Rc <> 0 then
     SetFileError(Rc);
 end;
 
 
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);
-VAR P : ARRAY [0..255] OF CHAR;
+VAR P : ARRAY [0..255] OF AnsiChar;
     i : LONGINT;
 begin
   P[0] := #0;

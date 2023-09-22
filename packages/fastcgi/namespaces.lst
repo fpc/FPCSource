@@ -1,0 +1,3 @@
+src/fastcgi.pp=namespaced/Api.Fastcgi.pp
+{s*:src/}=namespaced/
+{i+:src/}

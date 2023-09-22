@@ -25,11 +25,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit floatmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************************
  * Differences between FloatMgr (PalmOS v1.0) and (this) NewFloatMgr
@@ -292,9 +298,9 @@ const
                 //          A workaround is to check (*signP && *mantissaP) instead of just *signP.
 function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err; syscall sysTrapFlpDispatch, sysFloatBase10Info;
 
-function FlpFToA(a: FlpDouble; s: PChar): Err; syscall sysTrapFlpDispatch, sysFloatFToA;
+function FlpFToA(a: FlpDouble; s: PAnsiChar): Err; syscall sysTrapFlpDispatch, sysFloatFToA;
 
-function FlpAToF(const s: PChar): FlpDouble; syscall sysTrapFlpDispatch, sysFloatAToF;
+function FlpAToF(const s: PAnsiChar): FlpDouble; syscall sysTrapFlpDispatch, sysFloatAToF;
 
 function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble; syscall sysTrapFlpDispatch, sysFloatCorrectedAdd;
 
@@ -323,7 +329,7 @@ function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: I
 //
 // See the SDK's SampleCalc example for further discussion.
 
-procedure FlpBufferAToF(var result: FlpDouble; const s: PChar); syscall sysTrapFlpDispatch, sysFloatAToF;
+procedure FlpBufferAToF(var result: FlpDouble; const s: PAnsiChar); syscall sysTrapFlpDispatch, sysFloatAToF;
 
 procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); syscall sysTrapFlpDispatch, sysFloatCorrectedAdd;
 

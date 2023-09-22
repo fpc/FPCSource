@@ -48,9 +48,9 @@ type
  * @param buf A buffer to hold the error string.
  * @param bufsize Size of the buffer to hold the string.
  *}
-//APR_DECLARE(char *) apr_strerror(apr_status_t statcode, char *buf,
+//APR_DECLARE(AnsiChar *) apr_strerror(apr_status_t statcode, AnsiChar *buf,
 //                                 apr_size_t bufsize);
-function apr_strerror(statcode: apr_status_t; buf: PChar; bufsize: apr_size_t): PChar;
+function apr_strerror(statcode: apr_status_t; buf: PAnsiChar; bufsize: apr_size_t): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibAPR name LibNamePrefix + 'apr_strerror' + LibSuff12;
 

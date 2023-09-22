@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sslbase;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -19,8 +21,13 @@ unit sslbase;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TSSLType = (stAny,stSSLv2,stSSLv3,stTLSv1,stTLSv1_1,stTLSv1_2);

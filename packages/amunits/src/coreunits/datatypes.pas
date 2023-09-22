@@ -47,13 +47,21 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit datatypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Utility,
+  Amiga.Core.Agraphics, Amiga.Core.Iffparse, Amiga.Core.Amigaprinter, Amiga.Core.Prtbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, intuition, utility,
   agraphics, iffparse, amigaprinter, prtbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // datatypes
 const
@@ -859,7 +867,7 @@ var
   DataTypesBase: PLibrary = nil;
 
 const
-  DATATYPESNAME: PChar = 'datatypes.library';
+  DATATYPESNAME: PAnsiChar = 'datatypes.library';
 
 function AddDTObject(Win: PWindow location 'a0'; Req: PRequester location 'a1'; o: PObject_ location 'a2'; Pos: LongInt location 'd0'): LongInt; syscall DataTypesBase 072;
 procedure DisposeDTObject(o: PObject_ location 'a0'); syscall DataTypesBase 054;

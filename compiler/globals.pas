@@ -124,6 +124,33 @@ interface
        nroftrashvalues = 4;
        trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
 
+{ Verbosity constants }
+Const
+  { Levels }
+  V_None         = $0;
+  V_Fatal        = $1;
+  V_Error        = $2;
+  V_Normal       = $4; { doesn't show a text like Error: }
+  V_Warning      = $8;
+  V_Note         = $10;
+  V_Hint         = $20;
+  V_LineInfoMask = $fff;
+  { From here by default no line info }
+  V_Info         = $1000;
+  V_Status       = $2000;
+  V_Used         = $4000;
+  V_Tried        = $8000;
+  V_Conditional  = $10000;
+  V_Debug        = $20000;
+  V_Executable   = $40000;
+  V_TimeStamps   = $80000;
+  V_LevelMask    = $ffffff;
+  V_All          = V_LevelMask;
+  V_Default      = V_Fatal + V_Error + V_Normal;
+  { Flags }
+  V_LineInfo     = $10000000;
+  V_Parallel     = $20000000;
+
 
     type
        { this is written to ppus during token recording for generics,
@@ -256,6 +283,9 @@ interface
        outputfilename    : string;
        outputprefix      : pshortstring;
        outputsuffix      : pshortstring;
+       { selected subtarget }
+       subtarget         : string;
+
        { specified with -FE or -FU }
        outputexedir      : TPathStr;
        outputunitdir     : TPathStr;
@@ -313,8 +343,13 @@ interface
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
+
        { list of default namespaces }
        namespacelist : TCmdStrList;
+       // During scanning/parsing, a module may not yet be available.
+       // Scanner checks first current_namespacelist, then local_namespacelist
+       premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
+       current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
        { contains tpackageentry entries }
        packagelist : TFPHashList;
        autoloadunits      : string;
@@ -374,6 +409,7 @@ interface
        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
+
 
        init_settings,
        current_settings   : tsettings;
@@ -653,7 +689,7 @@ interface
     function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
-    procedure DefaultReplacements(var s:ansistring);
+    procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
     function  GetEnvPChar(const envname:ansistring):pchar;
     procedure FreeEnvPChar(p:pchar);
@@ -952,7 +988,7 @@ implementation
 ****************************************************************************}
 
 
-     procedure DefaultReplacements(var s:ansistring);
+     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 {$ifdef mswindows}
        procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
          begin
@@ -1002,6 +1038,8 @@ implementation
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in Target_Info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
+         else if subtarget<>'' then
+           Replace(s,'$FPCTARGET',target_full_string+'-'+lower(subtarget))
          else
            Replace(s,'$FPCTARGET',target_full_string);
          Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
@@ -1024,6 +1062,8 @@ implementation
          Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
          Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
 {$endif openbsd}
+         if not substitute_env_variables then
+           exit;
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -1646,6 +1686,8 @@ implementation
        LinkLibraryOrder.Free;
        packagesearchpath.Free;
        namespacelist.Free;
+       premodule_namespacelist.Free;
+       current_namespacelist:=Nil;
      end;
 
    procedure InitGlobals;
@@ -1687,7 +1729,8 @@ implementation
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;
-
+        premodule_namespacelist:=TCmdStrList.Create;
+        current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;

@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 Type
@@ -33,8 +35,13 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings, NetWareApi.nwserv;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings, nwserv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_GETCBREAK}
@@ -117,7 +124,7 @@ const maxargs=256;
 procedure exec(const path : pathstr;const comline : comstr);
 var c : comstr;
     i : integer;
-    args : array[0..maxargs] of pchar;
+    args : array[0..maxargs] of PAnsiChar;
     arg0 : pathstr;
     numargs : integer;
 begin
@@ -200,7 +207,7 @@ end;
 
 
 function diskfree(drive : byte) : int64;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
+VAR Buf                 : ARRAY [0..255] OF AnsiChar;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
@@ -230,7 +237,7 @@ end;
 
 
 function disksize(drive : byte) : int64;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
+VAR Buf                 : ARRAY [0..255] OF AnsiChar;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
@@ -287,7 +294,7 @@ END;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..256] of char;
+  path0 : array[0..256] of AnsiChar;
 begin
   IF path = '' then
   begin
@@ -461,8 +468,8 @@ end;
 
 { works fine (at least with netware 6.5) }
 Function  GetEnv(envvar: string): string;
-var envvar0 : array[0..512] of char;
-    p       : pchar;
+var envvar0 : array[0..512] of AnsiChar;
+    p       : PAnsiChar;
     i,isDosPath,res : longint;
 begin
   if upcase(envvar) = 'PATH' then

@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpdatadict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Fcl.IniCollection, System.IniFiles, System.Contnrs, Data.Db, Data.Sql.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,inicol, inifiles, contnrs, db, sqltypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // Supported objects in this data dictionary
@@ -547,7 +554,8 @@ Type
   
   { TFPDDEngine }
   TFPDDEngineCapability =(ecImport,ecCreateTable,ecViewTable, ecTableIndexes,
-                          ecRunQuery, ecRowsAffected, ecSequences, ecDomains);
+                          ecRunQuery, ecRowsAffected, ecSequences, ecDomains,
+                          ecParams);
   TFPDDEngineCapabilities = set of TFPDDEngineCapability;
   {
     to avoid dependencies on GUI elements in the data dictionary engines,
@@ -591,7 +599,11 @@ Type
     // Should not open the dataset.
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; virtual;
     // Run a non-select query. If possible, returns the number of modified records.
-    Function RunQuery(SQL : String) : Integer; Virtual;
+    Function RunQuery(SQL : String) : Integer; Virtual; overload;
+    // Run a non-select query. If possible, apply parameters and returns the number of modified records.
+    Function RunQuery(SQL : String; Params : TParams) : Integer; virtual; overload;
+    // Apply parameters to a dataset, if possible
+    Procedure ApplyParams(DS : TDataset; Params : TParams); virtual;
     // Create a select query TDataset. Do not open the resulting dataset.
     Function CreateQuery(SQL : String; DatasetOwner : TComponent) : TDataset; Virtual;
     // Assign a select query and open the resulting dataset.
@@ -634,7 +646,11 @@ Var
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   Constants, not to be localized
@@ -750,16 +766,11 @@ Resourcestring
   SErrViewTableNotSupported   = 'Viewing tables is not supported by the "%s" engine.';
   SErrRunQueryNotSupported    = 'Running queries is not supported by the "%s" engine.';
   SErrOpenQueryNotSupported   = 'Running and opening SELECT queries is not supported by the "%s" engine.';
+  SErrApplyParamsNotSupported = 'Cannot apply parameters to a dataset in engine "%s".';
   SErrSetQueryStatementNotSupported = 'Setting the SQL statement is not supported by the "%s" engine.';
   SErrGetTableIndexDefsNotSupported = 'Getting index definitions of a table is not supported by the "%s" engine.';
   SSavingFieldsFrom           = 'Saving fields from %s';
   SLoadingFieldsFrom          = 'Loading fields from %s';
-  SIndexOptionPrimary         = 'Primary key';
-  SIndexOptionUnique          = 'Unique';
-  SIndexOptionDescending      = 'Descending';
-  SIndexOptionCaseInsensitive = 'Case insensitive';
-  SIndexOptionExpression      = 'Expression';
-  SIndexOptionNonMaintained   = 'Not maintained';
   SWarnFieldNotFound          = 'Could not find field "%s".';
   SLogFieldFoundIn            = 'Field "%s" found in table "%s".';
   SErrSequenceNotFound        = 'Sequence "%s" not found.';
@@ -768,6 +779,14 @@ Resourcestring
   SErrDomainNotFound          = 'Domain "%s" not found.';
   SErrNoDataDict              = '%s : No data dictionary available';
   SErrResolveDomain           = 'Cannot resolve domain';
+  
+Const
+  SIndexOptionPrimary         = 'Primary key';
+  SIndexOptionUnique          = 'Unique';
+  SIndexOptionDescending      = 'Descending';
+  SIndexOptionCaseInsensitive = 'Case insensitive';
+  SIndexOptionExpression      = 'Expression';
+  SIndexOptionNonMaintained   = 'Not maintained';
 
 Const
   IndexOptionNames : Array [TIndexOption] of String
@@ -2004,6 +2023,18 @@ function TFPDDEngine.RunQuery(SQL: String): Integer;
 
 begin
   Raise EDataDict.CreateFmt(SErrRunQueryNotSupported,[DBType]);
+end;
+
+function TFPDDEngine.RunQuery(SQL: String; Params: TParams): Integer;
+begin
+  if Assigned(Params) then
+    Raise EDataDict.CreateFmt(SErrApplyParamsNotSupported,[DBType]);
+  Result:=RunQuery(SQL);
+end;
+
+procedure TFPDDEngine.ApplyParams(DS: TDataset; Params: TParams);
+begin
+  Raise EDataDict.CreateFmt(SErrApplyParamsNotSupported,[DBType]);
 end;
 
 function TFPDDEngine.CreateQuery(SQL: String; DatasetOwner : TComponent): TDataset;

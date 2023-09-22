@@ -1,17 +1,27 @@
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit macuuid;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function CreateMacGUID(Out GUID : TGUID) : Integer;
 
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types, System.Net.Sockets, UnixApi.Base, UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype, sockets, baseunix, unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const 
   MAX_ADJUSTMENT = 10;
@@ -26,7 +36,7 @@ Type
   {$packrecords c}
   tifr_ifrn = record
     case integer of
-      0 : (ifrn_name: array [0..IF_NAMESIZE-1] of char);
+      0 : (ifrn_name: array [0..IF_NAMESIZE-1] of AnsiChar);
   end;
   tifmap = record
     mem_start : culong;
@@ -49,8 +59,8 @@ Type
       6 : (ifru_ivalue    : cint);
       7 : (ifru_mtu       : cint);
       8 : (ifru_map       : tifmap);
-      9 : (ifru_slave     : Array[0..IF_NAMESIZE-1] of char);
-      10 : (ifru_newname  : Array[0..IF_NAMESIZE-1] of char);
+      9 : (ifru_slave     : Array[0..IF_NAMESIZE-1] of AnsiChar);
+      10 : (ifru_newname  : Array[0..IF_NAMESIZE-1] of AnsiChar);
       11 : (ifru_data     : pointer);
   end; 
   TIFConf = record
@@ -96,7 +106,7 @@ var
   ifc : TIfConf;
   ifr : TIFRec;
   ifp : PIFRec;
-  p   : PChar;
+  p   : PAnsiChar;
 begin
   Result:=MacAddrTried>0;
   If Result then
@@ -120,7 +130,7 @@ begin
         move(ifp^.ifr_ifrn.ifrn_name,ifr.ifr_ifrn.ifrn_name,IF_NAMESIZE);
         if (fpioctl(sd, SIOCGIFHWADDR, @ifr) >= 0) then
           begin
-          P:=Pchar(@ifr.ifru_hwaddr.sa_data);
+          P:=PAnsiChar(@ifr.ifru_hwaddr.sa_data);
           Result:=(p[0]<>#0) or (p[1]<>#0) or (p[2]<>#0) 
                   or (p[3]<>#0) or (p[4]<>#0) or (p[5]<>#0);
           If Result Then

@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDSQLDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Sql.Types, Data.Sqldb, Data.Dict.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, sqltypes, sqldb, fpdatadict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -43,7 +50,9 @@ Type
     Function ImportFields(Table : TDDTableDef) : Integer; override;
     Function ImportIndexes(Table : TDDTableDef) : Integer; override;
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; override;
-    Function RunQuery(SQL : String) : Integer; override;
+    Function RunQuery(SQL : String) : Integer; override; overload;
+    Function RunQuery(SQL : String; Params : TParams) : Integer; override; overload;
+    Procedure ApplyParams(DS : TDataset; Params : TParams); virtual;
     Function CreateQuery(SQL : String; DatasetOwner : TComponent) : TDataset; override;
     Procedure SetQueryStatement(SQL : String; AQuery : TDataset); override;
     Function GetTableIndexDefs(ATableName : String; Defs : TDDIndexDefs) : integer ; override;
@@ -64,7 +73,11 @@ Const
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrQueryNotSQLQuery = 'Query object "%s" is not a SQL Query';
@@ -191,6 +204,12 @@ end;
 
 function TSQLDBDDEngine.RunQuery(SQL: String): Integer;
 
+begin
+  Result:=RunQuery(SQL,Nil)
+end;
+
+function TSQLDBDDEngine.RunQuery(SQL: String; Params: TParams): Integer;
+
 Var
   Q : TSQLQuery;
 
@@ -198,11 +217,19 @@ begin
   Q:=CreateSQLQuery(Nil);
   Try
     Q.SQL.Text:=SQL;
+    ApplyParams(Q,Params);
     Q.ExecSQL;
     Result:=0;
   Finally
     Q.Free;
   end;
+
+end;
+
+procedure TSQLDBDDEngine.ApplyParams(DS: TDataset; Params: TParams);
+begin
+  if DS is TSQLQuery then
+    TSQLQuery(DS).Params.Assign(Params);
 end;
 
 function TSQLDBDDEngine.CreateQuery(SQL: String; DatasetOwner: TComponent
@@ -249,7 +276,7 @@ end;
 
 class function TSQLDBDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
-  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes];
+  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes, ecRowsAffected];
 end;
 
 end.

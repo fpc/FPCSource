@@ -68,7 +68,7 @@ type
     _containerClassDescription: NSScriptClassDescription;
     _containerIsObjectBeingTested: ObjCBOOL;
     _containerIsRangeContainerObject: ObjCBOOL;
-    _padding:array[0..1] of char;
+    _padding:array[0..1] of AnsiChar;
     _descriptor: NSAppleEventDescriptor;
     _error: NSInteger;
   public

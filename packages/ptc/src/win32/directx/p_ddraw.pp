@@ -7,7 +7,9 @@
  *
  ***************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit p_ddraw;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 {$MACRO on}
@@ -19,8 +21,13 @@ unit p_ddraw;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {#ifndef __DDRAW_INCLUDED__
 #define __DDRAW_INCLUDED__
@@ -912,8 +919,8 @@ type
      * drivers, since this is unreliable and many different strings may be associated with the same
      * device, and the same driver from different vendors.
      *)
-    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of char;
-    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of char;
+    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
+    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
 
     (*
      * This element is the version of the DirectDraw/3D driver. It is legal to do <, > comparisons
@@ -962,8 +969,8 @@ type
      * drivers, since this is unreliable and many different strings may be associated with the same
      * device, and the same driver from different vendors.
      *)
-    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of char;
-    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of char;
+    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
+    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
 
     (*
      * This element is the version of the DirectDraw/3D driver. It is legal to do <, > comparisons

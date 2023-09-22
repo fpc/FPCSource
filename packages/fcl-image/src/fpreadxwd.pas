@@ -23,11 +23,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadXWD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, xwdfile;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, Api.Xwdfile;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, xwdfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TXWDColors = array of TXWDColor;
@@ -46,7 +52,7 @@ type
       procedure WriteScanLine(Row: Integer; Img: TFPCustomImage);
     protected
       XWDFileHeader: TXWDFileHeader;  // The header, as read from the file
-      WindowName: array of Char;
+      WindowName: array of AnsiChar;
       XWDColors: TXWDColors;
       LineBuf: PByte;                 // Buffer for 1 line
 

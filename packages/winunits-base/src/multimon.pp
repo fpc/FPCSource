@@ -26,7 +26,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //
 //=============================================================================
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MultiMon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -36,8 +38,13 @@ unit MultiMon;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //
 // If we are building with Win95/NT4 headers, we need to declare
@@ -54,7 +61,7 @@ const
 // HMONITOR is already declared if WINVER >= 0x0500 in windef.h
 // This is for components built with an older version number.
 type
-  HMONITOR = Windows.HMonitor;
+  HMONITOR = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HMonitor;
 
 const
   MONITOR_DEFAULTTONULL    = $00000000;
@@ -84,7 +91,7 @@ type
     rcMonitor: TRect;
     rcWork: TRect;
     dwFlags: DWORD;
-    szDevice: array[0..CCHDEVICENAME - 1] of Char;
+    szDevice: array[0..CCHDEVICENAME - 1] of AnsiChar;
   end;
   MONITORINFOEXA = tagMONITORINFOEXA;
   LPMONITORINFOEXA = ^tagMONITORINFOEXA;
@@ -123,11 +130,11 @@ type
 type
   _DISPLAY_DEVICEA = record
     cb: DWORD;
-    DeviceName: array[0..31] of Char;
-    DeviceString: array[0..127] of Char;
+    DeviceName: array[0..31] of AnsiChar;
+    DeviceString: array[0..127] of AnsiChar;
     StateFlags: DWORD;
-    DeviceID: array[0..127] of Char;
-    DeviceKey: array[0..127] of Char;
+    DeviceID: array[0..127] of AnsiChar;
+    DeviceKey: array[0..127] of AnsiChar;
   end;
   DISPLAY_DEVICEA = _DISPLAY_DEVICEA;
   PDISPLAY_DEVICEA = ^_DISPLAY_DEVICEA;

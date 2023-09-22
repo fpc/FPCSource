@@ -15,10 +15,12 @@
 
 unit gdbmiwrap;
 
-{$MODE objfpc}{$H+}
+{$MODE objfpc}
 {$ASSERTIONS on}
 
 {$I globdir.inc}
+// Needs to be on
+{$H+}
 
 interface
 
@@ -368,7 +370,7 @@ var
   CStr: string;
   ////  Tuple: TGDBMI_TupleValue;
   List: TGDBMI_TupleOrListValue;
-  end_c : char;
+  end_c : AnsiChar;
   Name: string;
   Value: TGDBMI_Value;
 begin

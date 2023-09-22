@@ -43,11 +43,13 @@
 }
 
 unit PasToC
+{$IFNDEF FPC_DOTTEDUNITS}
   deprecated 'Pas2C function is leaking memory, don''t use it. StrPCopy in strings unit provides equivalent functionality.';
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-function Pas2C( s : String): PChar;
+function Pas2C( s : ShortString): PAnsiChar;
 
 implementation
 
@@ -75,7 +77,7 @@ var
 FUNCTION fpcAllocRemember(VAR rememberKey : pRemember location 'a0'; size : ULONG location 'd0'; flags : ULONG location 'd1') : POINTER; syscall _IntuitionBase 396;
 PROCEDURE fpcFreeRemember(VAR rememberKey : pRemember location 'a0'; reallyForget : LONGINT location 'd0'); syscall _IntuitionBase 408;
 
-Function StringPcharCopy(Dest: PChar; Source: String):PChar;
+Function StringPcharCopy(Dest: PAnsiChar; Source: ShortString):PAnsiChar;
 var
    counter : byte;
 Begin
@@ -97,7 +99,7 @@ Begin
   StringPcharCopy:=Dest;
 end;
 
-function Pas2C(s : string): PChar;
+function Pas2C(s : ShortString): PAnsiChar;
 var
     themem : Pointer;
 begin

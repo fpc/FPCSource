@@ -45,7 +45,9 @@
 
 // $Id: JwaIpExport.pas,v 1.11 2007/09/14 06:48:46 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaIpExport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -59,8 +61,13 @@ unit JwaIpExport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Ws2tcpip;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWS2tcpip;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

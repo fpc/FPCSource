@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_date_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Sdo.BaseTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
 
@@ -144,16 +151,20 @@ resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  Result := DateOf(AValue) + DateUtils.IncHour(TimeOf(AValue),ANumberOfHours);
+  Result := DateOf(AValue) +{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IncHour(TimeOf(AValue),ANumberOfHours);
 end;
 
 function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result := DateOf(AValue) + DateUtils.IncMinute(TimeOf(AValue),ANumberOfMinutes);
+  Result := DateOf(AValue) + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IncMinute(TimeOf(AValue),ANumberOfMinutes);
 end;
 
 function NormalizeToUTC(const ADate : TDateTimeRec) : TDateTime;
@@ -244,7 +255,7 @@ var
   buffer : string;
   bufferPos, bufferLen : Integer;
 
-  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : Char) : Boolean;
+  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : AnsiChar) : Boolean;
   var
     locStartPos : Integer;
   begin
@@ -482,7 +493,7 @@ var
   buffer : string;
   bufferPos, bufferLen : Integer;
 
-  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : Char) : Boolean;
+  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : AnsiChar) : Boolean;
   var
     locStartPos : Integer;
   begin
@@ -650,7 +661,7 @@ function xsd_TryStrToDuration(
   out   AResult : TDurationRec
 ) : Boolean;
 var
-  pc : PChar;
+  pc : PAnsiChar;
   locIntBuffer : array[dpYear..dpFractionalSecond] of PtrUInt;
   i, bufferLength, lastPos : PtrInt;
   localBuffer : string;
@@ -662,7 +673,7 @@ begin
   bufferLength := Length(ABuffer);
   if ( bufferLength < 3 ) then
     Exit;
-  pc := PChar(ABuffer);
+  pc := PAnsiChar(ABuffer);
   i := 1;
   isNeg := False;
   if ( pc^ = '-' ) then begin

@@ -14,14 +14,20 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLStreaming;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -55,7 +61,7 @@ type
     procedure Write(const Buffer; Count: LongInt); override;
     procedure WriteBinary(const Buffer; Count: Longint); override;
     procedure WriteBoolean(Value: Boolean); override;
-    // procedure WriteChar(Value: Char);
+    // procedure WriteChar(Value: AnsiChar);
     procedure WriteFloat(const Value: Extended); override;
     procedure WriteSingle(const Value: Single); override;
     procedure WriteCurrency(const Value: Currency); override;
@@ -64,8 +70,9 @@ type
     procedure WriteInteger(Value: Int64); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
-    procedure WriteString(const Value: String); override;
+    procedure WriteString(const Value: RawByteString); override;
     procedure WriteWideString(const Value: WideString); override;
+    procedure WriteUnicodeString(const Value: UnicodeString); override;
   end;
 
 
@@ -239,7 +246,7 @@ begin
   WriteLn('WriteSet: ', Value);
 end;
 
-procedure TXMLObjectWriter.WriteString(const Value: String);
+procedure TXMLObjectWriter.WriteString(const Value: RawByteString);
 begin
   GetPropertyElement('string')['value'] := Value;
 end;
@@ -247,6 +254,11 @@ end;
 procedure TXMLObjectWriter.WriteWideString(const Value: WideString);
 begin
   GetPropertyElement('widestring')['value'] := Value;
+end;
+
+procedure TXMLObjectWriter.WriteUnicodeString(const Value: UnicodeString);
+begin
+  GetPropertyElement('unicodestring')['value'] := Value;
 end;
 
 

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -47,6 +47,9 @@ begin
     P.Targets.AddExampleProgram('easyevalexample.pp');
     P.Sources.AddDoc('doc/optimization.txt');
     P.Sources.AddDoc('doc/symbolic.txt');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

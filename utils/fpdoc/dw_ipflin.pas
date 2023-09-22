@@ -79,7 +79,7 @@ type
     function  GetLabel(AElement: TPasElement): String; override;
     procedure StartListing(Frames: Boolean; const name: String); override;
     procedure EndListing; override;
-    Function  EscapeText(S : String) : String; override;
+    Function  EscapeText(S : AnsiString) : AnsiString; override;
     Function  StripText(S : String) : String; override;
     procedure WriteCommentLine; override;
     procedure WriteComment(Comment : String);override;
@@ -641,7 +641,7 @@ begin
   Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
 end;
 
-function TIPFNewWriter.EscapeText(S: String): String;
+function TIPFNewWriter.EscapeText(S: AnsiString): AnsiString;
 var
   i: Integer;
 begin

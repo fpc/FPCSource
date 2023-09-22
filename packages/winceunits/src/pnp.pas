@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PnP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
@@ -22,8 +24,13 @@ unit PnP;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // Maximum size of a device interface name. The choice of value is arbitrary

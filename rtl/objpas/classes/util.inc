@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
@@ -11,7 +12,7 @@
 
  **********************************************************************}
 
-procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
+procedure BinToHex(BinValue, HexValue: PAnsiChar; BinBufSize: Integer);
 Const
   HexDigits='0123456789ABCDEF';
 var
@@ -27,7 +28,7 @@ begin
 end;
 
 
-function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
+function HexToBin(HexValue, BinValue: PAnsiChar; BinBufSize: Integer): Integer;
 // more complex, have to accept more than bintohex
 // A..F    1000001
 // a..f    1100001

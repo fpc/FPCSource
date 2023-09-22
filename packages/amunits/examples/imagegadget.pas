@@ -6,7 +6,7 @@ PROGRAM ImageGadget;
    20 Sep 1998.
 
    Changed the code to use TAGS, now also use
-   pas2c for strings-pchar.
+   pas2c for strings-PAnsiChar.
    1 Nov 1998.
 
    Removed opening of gadtools.library.
@@ -25,13 +25,13 @@ USES Intuition, Exec, AGraphics, GadTools, Utility;
 
 
 CONST
-  MSG_NO_PS            : PChar = 'Can''t lock Public Screen';
-  MSG_NO_VI            : PChar = 'Can''t get Visual Info';
-  MSG_NO_MEM           : PChar = 'Not enough memory free';
-  MSG_NO_WP            : PChar = 'Can''t open window';
+  MSG_NO_PS            : PAnsiChar = 'Can''t lock Public Screen';
+  MSG_NO_VI            : PAnsiChar = 'Can''t get Visual Info';
+  MSG_NO_MEM           : PAnsiChar = 'Not enough memory free';
+  MSG_NO_WP            : PAnsiChar = 'Can''t open window';
 
-  WIN_TITLE            : PChar = 'Images-Example';
-  OK_TEXT              : PChar = 'OK';
+  WIN_TITLE            : PAnsiChar = 'Images-Example';
+  OK_TEXT              : PAnsiChar = 'OK';
 
   type
       data = array[1..176] of word;
@@ -242,7 +242,7 @@ VAR
   wp                : pWindow;
 
 
-function NewGadget(left,top,width,height : Integer; txt : PChar; txtattr: pTextAttr;
+function NewGadget(left,top,width,height : Integer; txt : PAnsiChar; txtattr: pTextAttr;
                    id : word; flags: Longint; visinfo, userdata : Pointer):
 tNewGadget;
 var
@@ -286,7 +286,7 @@ end;
 
 
 
-FUNCTION EasyReq(wp : pWindow; title,body,gad : PChar) : Longint;
+FUNCTION EasyReq(wp : pWindow; title,body,gad : PAnsiChar) : Longint;
 VAR
   es : tEasyStruct;
   Res: LongWord;
@@ -300,7 +300,7 @@ BEGIN
   EasyReq := EasyRequestArgs(wp,@es,@Res,NIL);
 END;
 
-PROCEDURE CleanUp(why : PChar; rc : BYTE);
+PROCEDURE CleanUp(why : PAnsiChar; rc : BYTE);
 BEGIN
   IF assigned(wp) THEN CloseWindow(wp);
   IF assigned(gl) THEN FreeGadgets(gl);

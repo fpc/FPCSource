@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -241,6 +241,9 @@ begin
     P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
     P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

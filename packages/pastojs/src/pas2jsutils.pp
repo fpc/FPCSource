@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
@@ -22,11 +24,16 @@ unit Pas2JSUtils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ChompPathDelim(const Path: string): string;
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
                               var Position: integer): string;
 type
    TChangeStamp = SizeInt;
@@ -44,10 +51,10 @@ function IsASCII(const s: string): boolean; inline;
 {$IFDEF FPC_HAS_CPSTRING}
 const
   UTF8BOM = #$EF#$BB#$BF;
-function UTF8CharacterStrictLength(P: PChar): integer;
+function UTF8CharacterStrictLength(P: PAnsiChar): integer;
 
-function UTF8ToUTF16(const s: string): UnicodeString;
-function UTF16ToUTF8(const s: UnicodeString): string;
+function UTF8ToUTF16(const s: AnsiString): UnicodeString;
+function UTF16ToUTF8(const s: UnicodeString): AnsiString;
 
 {$ENDIF FPC_HAS_CPSTRING}
 
@@ -70,7 +77,11 @@ procedure SplitCmdLineParams(const Params: string; ParamList: TStrings;
 implementation
 
 {$IFDEF Windows}
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 Var
@@ -89,7 +100,7 @@ begin
   Result:=gNonUTF8System;
 end;
 
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
   var Position: integer): string;
 var
   StartPos: Integer;
@@ -192,13 +203,13 @@ begin
 end;
 {$ELSE}
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   if s='' then exit(true);
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   repeat
     case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
+    #0: if p-PAnsiChar(s)=length(s) then exit(true);
     #128..#255: exit(false);
     end;
     inc(p);
@@ -207,7 +218,7 @@ end;
 {$ENDIF}
 
 {$IFDEF FPC_HAS_CPSTRING}
-function UTF8CharacterStrictLength(P: PChar): integer;
+function UTF8CharacterStrictLength(P: PAnsiChar): integer;
 begin
   if p=nil then exit(0);
   if ord(p^)<%10000000 then
@@ -250,12 +261,12 @@ begin
     exit(0);
 end;
 
-function UTF8ToUTF16(const s: string): UnicodeString;
+function UTF8ToUTF16(const s: AnsiString): UnicodeString;
 begin
   Result:=UTF8Decode(s);
 end;
 
-function UTF16ToUTF8(const s: UnicodeString): string;
+function UTF16ToUTF8(const s: UnicodeString): ansistring;
 begin
   if s='' then exit('');
   Result:=UTF8Encode(s);
@@ -332,7 +343,7 @@ begin
   {$IFDEF Windows}
   gNonUTF8System:=true;
   {$ELSE}
-  gNonUTF8System:=SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
+  gNonUTF8System:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
   {$ENDIF}
   {$ENDIF}
 end;

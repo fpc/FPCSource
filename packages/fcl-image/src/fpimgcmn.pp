@@ -12,8 +12,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}{$h+}
+{$mode objfpc}
+{$h+}
+
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPImgCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -27,7 +31,11 @@ function CalculateCRC (CRC:longword; var data; alength:integer) : longword;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function Swap(This : Word): Word;
 var

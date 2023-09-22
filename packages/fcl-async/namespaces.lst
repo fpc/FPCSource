@@ -1,0 +1,4 @@
+src/fpasync.pp=namespaced/System.Async.Fpasync.pp
+src/unix/libasync.pp=namespaced/Api.Async.pp
+{s*:src/}=namespaced/
+{i+:src/}

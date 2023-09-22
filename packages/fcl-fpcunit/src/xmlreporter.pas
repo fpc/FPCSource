@@ -27,11 +27,23 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmlreporter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes
+  ,System.SysUtils
+  ,FpcUnit.Test
+  ,FpcUnit.Utils
+  ,Xml.Dom
+  ,Xml.Writer
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes
   ,SysUtils
@@ -40,6 +52,7 @@ uses
   ,dom
   ,XMLWrite
   ;
+{$ENDIF FPC_DOTTEDUNITS}
   
 
 type
@@ -127,7 +140,7 @@ end;
 procedure TXMLResultsWriter.WriteHeader;
 begin
   FResults := FDoc.CreateElement('TestResults');
-  FResults.AppendChild(FDoc.CreateComment(' Generated using FPCUnit on '
+  FResults.AppendChild(FDoc.CreateComment(' Generated using FpcUnit on '
       + FormatDateTime('yyyy-mm-dd hh:mm:ss', Now) ));
   FDoc.AppendChild(FResults);
   FListing := FDoc.CreateElement('TestListing');

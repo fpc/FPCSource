@@ -89,6 +89,7 @@ const
   INT_STR    = 'longint';
   UINT_STR   = 'dword';
   CHAR_STR   = 'char';
+  ANSICHAR_STR   = 'ansichar';
   UCHAR_STR  = USHORT_STR; { should we use byte or char for 'unsigned char' ?? }
 
   INT64_STR  = 'int64';
@@ -135,7 +136,7 @@ const
   cdouble_STR     = 'cdouble';
   clongdouble_STR = 'clongdouble';
 
-  const
+const
   MAX_CTYPESARRAY = 25;
   CTypesArray : array [0..MAX_CTYPESARRAY] of string =
   (cint8_STR,     cuint8_STR,

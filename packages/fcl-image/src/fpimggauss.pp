@@ -15,14 +15,21 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPImgGauss;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, System.Classes, FpImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math, Classes, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Fast Gaussian blur to Area (excluding Area.Right and Area.Bottom)
   Pixels outside the image are treated as having the same color as the edge.

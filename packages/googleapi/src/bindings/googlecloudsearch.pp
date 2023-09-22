@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googlecloudsearch;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
   (RTL) and packages (packages) distributed by members of the Free Pascal 
@@ -31,7 +33,11 @@ unit googlecloudsearch;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, GoogleApi.Service, FpWeb.Rest.Base, GoogleApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, googleservice, restbase, googlebase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   //

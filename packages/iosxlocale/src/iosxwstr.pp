@@ -16,7 +16,9 @@
 {$mode objfpc}
 {$implicitexceptions off}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iosxwstr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -26,12 +28,21 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    UnixApi.CP,
+    { for access to libiconv-based routines }
+    UnixApi.CWString,
+    MacOsApi.MacTypes,
+    MacOsApi.CFBase,MacOsApi.CFString,MacOsApi.CFStringEncodingExt,MacOsApi.CFLocale;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     unixcp,
     { for access to libiconv-based routines }
     cwstring,
     MacTypes,
     CFBase,CFString,CFStringEncodingExt,CFLocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
   procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
@@ -103,7 +114,7 @@ implementation
     end;
 
 
-  function CFStringCreateFromAnsiData(data: pchar; len: SizeInt; cp: TSystemCodePage): CFStringRef;
+  function CFStringCreateFromAnsiData(data: PAnsiChar; len: SizeInt; cp: TSystemCodePage): CFStringRef;
     var
       strlen,encodedlen: CFIndex;
       range: CFRange;
@@ -120,7 +131,7 @@ implementation
     end;
 
 
-  function CFStringCreateFromAnsiDataOptionallyViaUnicodeString(data: pchar; len: SizeInt; cp: TSystemCodePage; out wtemp: UnicodeString): CFStringRef;
+  function CFStringCreateFromAnsiDataOptionallyViaUnicodeString(data: PAnsiChar; len: SizeInt; cp: TSystemCodePage; out wtemp: UnicodeString): CFStringRef;
     begin
       result:=CFStringCreateFromAnsiData(data,len,cp);
       { failed -> translate via libiconv and then create using the unicodestring
@@ -188,7 +199,7 @@ implementation
     end;
 
 
-  procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
+  procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
     var
       str: CFStringRef;
       strlen,encodedlen: CFIndex;
@@ -296,7 +307,7 @@ implementation
           result:='';
           exit
         end;
-      str:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(pchar(s),length(s),StringCodePage(s),wtemp);
+      str:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(PAnsiChar(s),length(s),StringCodePage(s),wtemp);
       { unsupported encoding for either CF or iconv -> return original string }
       if not assigned(str) then
         begin
@@ -369,7 +380,7 @@ implementation
       CFRelease(cfstr2);
     end;
 
-  function InternalCodePointLength(const Str: PChar; cfcp: CFStringEncoding; maxlookahead: ptrint): PtrInt;
+  function InternalCodePointLength(const Str: PAnsiChar; cfcp: CFStringEncoding; maxlookahead: ptrint): PtrInt;
     var
       cfstr: CFStringRef;
     begin
@@ -391,11 +402,11 @@ implementation
     end;
 
 
-  function CharLengthPChar(const Str: PChar): PtrInt;
+  function CharLengthPChar(const Str: PAnsiChar): PtrInt;
     var
       cfstr: CFStringRef;
       cfcp: CFStringEncoding;
-      s: PChar;
+      s: PAnsiChar;
       tmplen: PtrInt;
     begin
       result:=0;
@@ -420,7 +431,7 @@ implementation
     end;
 
 
-  function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
+  function CodePointLength(const Str: PAnsiChar; maxlookahead: ptrint): PtrInt;
     var
       cfstr: CFStringRef;
       cfcp: CFStringEncoding;
@@ -445,15 +456,15 @@ implementation
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
     begin
-      cfstr1:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(pchar(s1),length(s1),StringCodePage(s1),wtemp1);
-      cfstr2:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(pchar(s2),length(s2),StringCodePage(s2),wtemp2);
+      cfstr1:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(PAnsiChar(s1),length(s1),StringCodePage(s1),wtemp1);
+      cfstr2:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(PAnsiChar(s2),length(s2),StringCodePage(s2),wtemp2);
       result:=CompareCFStrings(cfstr1,cfstr2,false);
       CFRelease(cfstr1);
       CFRelease(cfstr2);
     end;
 
 
-  function StrCompAnsi(s1,s2 : PChar): PtrInt;
+  function StrCompAnsi(s1,s2 : PAnsiChar): PtrInt;
     var
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
@@ -471,15 +482,15 @@ implementation
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
     begin
-      cfstr1:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(pchar(s1),length(s1),DefaultSystemCodePage,wtemp1);
-      cfstr2:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(pchar(s2),length(s2),DefaultSystemCodePage,wtemp2);
+      cfstr1:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(PAnsiChar(s1),length(s1),DefaultSystemCodePage,wtemp1);
+      cfstr2:=CFStringCreateFromAnsiDataOptionallyViaUnicodeString(PAnsiChar(s2),length(s2),DefaultSystemCodePage,wtemp2);
       result:=CompareCFStrings(cfstr1,cfstr2,true);
       CFRelease(cfstr1);
       CFRelease(cfstr2);
     end;
 
 
-  function AnsiStrIComp(S1, S2: PChar): PtrInt;
+  function AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
     var
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
@@ -492,7 +503,7 @@ implementation
     end;
 
 
-  function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  function AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
     var
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
@@ -505,7 +516,7 @@ implementation
     end;
 
 
-  function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  function AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
     var
       cfstr1, cfstr2: CFStringRef;
       wtemp1, wtemp2: UnicodeString;
@@ -518,7 +529,7 @@ implementation
     end;
 
 
-  procedure ansi2pchar(const s: ansistring; const orgp: pchar; out p: pchar);
+  procedure ansi2pchar(const s: ansistring; const orgp: PAnsiChar; out p: PAnsiChar);
     var
       newlen: sizeint;
     begin
@@ -532,7 +543,7 @@ implementation
     end;
 
 
-  function AnsiStrLower(Str: PChar): PChar;
+  function AnsiStrLower(Str: PAnsiChar): PAnsiChar;
     var
       temp: ansistring;
     begin
@@ -541,7 +552,7 @@ implementation
     end;
 
 
-  function AnsiStrUpper(Str: PChar): PChar;
+  function AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
     var
       temp: ansistring;
     begin
@@ -552,7 +563,7 @@ implementation
 
   function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
     var
-      langinfo: pchar;
+      langinfo: PAnsiChar;
     begin
       { don't use CFStringGetSystemEncoding, that one returns MacRoman on e.g.
         an English system, which is definitely not what we want. Since there are

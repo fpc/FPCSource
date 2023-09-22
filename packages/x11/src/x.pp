@@ -1,7 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit x;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef os2}
   {$LinkLib c}

@@ -19,13 +19,18 @@ program pdfdump;
 {$h+}
 
 uses
-  cwString, sysutils, classes, contnrs, fppdfobjects, fppdfparser, fppdfpredict,
-  custapp, fppdfconsts;
+{$ifdef unix}
+  cwString, 
+{$endif}  
+  sysutils, classes, contnrs, fppdfobjects, fppdfparser, fppdfpredict,
+  custapp, fppdfconsts, fppdfcommands;
 
 type
 
   { TPDFDumpApplication }
-  TInfoSection = (isInfo,isCatalog,isTrailer,isObjects, isFonts, isPages,isPageContents,isPageText, isDictionaries);
+
+  TInfoSection = (isInfo, isCatalog, isTrailer, isObjects, isFonts,
+                  isPages, isPageContents, isPageText, isDictionaries);
   TInfoSections = Set of TInfoSection;
 
   TPDFDumpApplication = class(TCustomApplication)
@@ -36,21 +41,21 @@ type
     FVerbose : Boolean;
   Public
     constructor Create(aOwner: TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
   Protected
     procedure DisplayPageText(Doc: TPDFDocument; aIndex: Integer;  aPage: TPDFPageObject);
-    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string);
-    Procedure DoProgress(Sender : TObject;aKind : TPDFProgressKind; aCurrent,aCount : Integer);
+    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string); reintroduce;
+    Procedure DoProgress(Sender: TObject; aKind: TPDFProgressKind; aCurrent, aCount : Integer);
     procedure DisplayCatalog(Doc: TPDFDocument);
     procedure DisplayInfo(Doc: TPDFDocument);
     procedure DisplayObjects(Doc: TPDFDocument);
     procedure DisplayFonts(Doc: TPDFDocument);
-    procedure DisplayPageContents(Doc: TPDFDocument; aIndex: Integer;   aPage: TPDFPageObject);
+    procedure DisplayPageContents(Doc: TPDFDocument; aIndex: Integer; aPage: TPDFPageObject);
     procedure DisplayPages(Doc: TPDFDocument);
     procedure DisplayTrailer(Doc: TPDFDocument);
   Public
     function ProcessOptions : Boolean;
-    procedure Usage(Msg : String);
+    procedure Usage(Msg: String);
     procedure DumpFile(FN: String);
     procedure DoRun; override;
   end;
@@ -149,6 +154,7 @@ begin
   if (FSections=[]) then
     for S in TInfoSection do
       Include(FSections,S);
+  Result:=true;
 end;
 
 procedure TPDFDumpApplication.Usage(Msg: String);
@@ -158,7 +164,7 @@ begin
   Writeln('-h --help                This help text');
   Writeln('-c --pagecontent         Show page content stream (commands). Needs -p');
   Writeln('-d --dictionaries        Show object dictionaries. Needs -o');
-  Writeln('-p --fonts               Show font info');
+  Writeln('-f --fonts               Show font info');
   Writeln('-i --info                Show document info');
   Writeln('-l --catalog             Show document catalog');
   Writeln('-n --pageno=N            Show only page N');
@@ -209,7 +215,7 @@ begin
   Writeln('Font definitions:');
   Writeln;
   For Obj in Doc do
-    if Obj is TPDFFontObject then
+    if (Obj is TPDFFontObject) or (Obj is TPDFFontDescriptor) then
       begin
       Writeln(Obj.GetDescription);
       Writeln;
@@ -302,9 +308,9 @@ begin
   For I:=0 to aPage.CommandList.Count-1 do
     begin
     Cmd:=aPage.CommandList[I];
-    if Cmd is TPDFTfCommand then
+    if Cmd is TPDFTf_Command then
       begin
-      FontName:=TPDFTfCommand(Cmd).FontName;
+      FontName:=TPDFTf_Command(Cmd).FontName;
       if (FontName<>'') and (FontName[1]='/') then
         Delete(FontName,1,1);
       aFontRef:=aPage.FindFontRef(FontName);
@@ -315,13 +321,13 @@ begin
         UnicodeMap:=nil;
       end
     else If cmd is TPDFTextCommand then
-     begin
-     rawText:=TPDFTextCommand(Cmd).GetFullText(UnicodeMap);
-     // Writeln('GetCodePage : ',CodePageToCodePageName(StringCodePage(Rawtext)));
-     SetCodePage(RawText,CP_UTF8);
-     Writeln(RawText);
-     end;
-   end;
+      begin
+      rawText:=TPDFTextCommand(Cmd).GetFullText(UnicodeMap);
+      //Writeln('GetCodePage : ',CodePageToCodePageName(StringCodePage(Rawtext)));
+      SetCodePage(RawText,CP_UTF8);
+      Writeln(RawText);
+      end;
+    end;
 end;
 
 procedure TPDFDumpApplication.DisplayPages(Doc : TPDFDocument);
@@ -382,7 +388,7 @@ begin
     // P.ResolveObjects:=False;
     P.ParseDocument(Doc);
     if isPageText in FSections then
-      P.ResolveToUnicodeCMaps(Doc);
+      P.DoResolveToUnicodeCMaps(Doc);
     For S in FSections do
       begin
       Case s of

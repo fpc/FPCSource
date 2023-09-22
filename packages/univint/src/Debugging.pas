@@ -20,7 +20,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Debugging;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -205,7 +207,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -820,7 +826,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *  GetMacOSStatusErrorString()
  *  
  *  Summary:
- *    Returns a const char* string which corresponds to the textual
+ *    Returns a const AnsiChar* string which corresponds to the textual
  *    constant for the given OSStatus code.
  *  
  *  Discussion:
@@ -844,7 +850,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *      The OSStatus to return a text string for.
  *  
  *  Result:
- *    A const char* string corresponding to the given OSStatus
+ *    A const AnsiChar* string corresponding to the given OSStatus
  *  
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
@@ -859,7 +865,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *  GetMacOSStatusCommentString()
  *  
  *  Summary:
- *    Returns a const char* string which corresponds to the descriptive
+ *    Returns a const AnsiChar* string which corresponds to the descriptive
  *    string for the given OSStatus code.
  *  
  *  Discussion:
@@ -885,7 +891,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *      The OSStatus to return a text string for.
  *  
  *  Result:
- *    A const char* string corresponding to the given OSStatus
+ *    A const AnsiChar* string corresponding to the given OSStatus
  *  
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework

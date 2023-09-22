@@ -33,11 +33,17 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bullet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -247,7 +253,7 @@ const
 { .otag tags }
 
 { suffix for files in FONTS: that contain these tags }
-     OTSUFFIX     : PChar =  '.otag';
+     OTSUFFIX     : PAnsiChar =  '.otag';
 
 { OT_FileIdent both identifies this file and verifies its size.
  * It is required to be the first tag in the file. }
@@ -371,7 +377,7 @@ const
 VAR BulletBase : pLibrary;
 
 const
-    BULLETNAME : PChar = 'bullet.library';
+    BULLETNAME : PAnsiChar = 'bullet.library';
 
 
 PROCEDURE CloseEngine(glyphEngine : pGlyphEngine location 'a0'); syscall BulletBase 036;

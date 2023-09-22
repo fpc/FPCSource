@@ -3,6 +3,9 @@ program testcss;
 {$mode objfpc}{$H+}
 
 uses
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
   Classes, sysutils, consoletestrunner, tcCSSScanner, tcCSSParser, tcCSSTree,
   tcCSSResolver;
 

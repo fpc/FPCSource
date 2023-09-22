@@ -29,11 +29,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit textservicesmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Systemresources;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, systemresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Public constants

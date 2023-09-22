@@ -25,7 +25,9 @@
                     7.4 - MS SQL Server 2012/2014
       tds version can be set using env.var. TDSVER or in freetds.conf or .freetds.conf
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DBLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}{$mode objfpc}{$ENDIF}{$H+}
 
@@ -197,7 +199,7 @@ type
   ULONG=longword;
 
   // DB-Library datatypes
-  DBBOOL=byte;           // unsigned char
+  DBBOOL=byte;           // unsigned AnsiChar
   DBCHAR=shortint;
   DBBIT=byte;
   DBTINYINT=byte;
@@ -460,7 +462,11 @@ procedure ReleaseDBLib;
 implementation
 
 {$IFDEF LOAD_DYNAMICALLY}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var DBLibLibraryHandle: TLibHandle;
     RefCount: integer;

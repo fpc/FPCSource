@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphtml; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.HtmlElements, Html.Writer, FpWeb.Http.Defs, FpWeb.Http.Base, Data.Db, Xml.Dom, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, htmlelements, htmlwriter, httpdefs, fphttp, DB, DOM, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THtmlEntities = (heHtml,heBody,heHead,heDiv,heParagraph);
@@ -534,11 +541,19 @@ const jseButtonClick = 1000;
       jseFormSubmit  = 1003;
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+{$ifdef cgidebug}
+  dbugintf
+{$endif cgidebug}
+  FpWeb.WebPage, Xml.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
 {$ifdef cgidebug}
   dbugintf
 {$endif cgidebug}
   webpage, XMLWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';

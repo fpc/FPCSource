@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdTrans;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains library routines for transcoding decompression,
   that is, reading raw DCT coefficient arrays from an input JPEG file.
@@ -10,6 +12,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdhuff, System.Jpeg.Jdphuff, System.Jpeg.Jdcoefct;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -17,6 +28,7 @@ uses
   jerror,
   jpeglib,
   jdhuff, jdphuff, jdcoefct;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Read the coefficient arrays from a JPEG file.
   jpeg_read_header must be completed before calling this.

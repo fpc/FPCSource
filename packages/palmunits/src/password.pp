@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit password;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   pwdLength = 32;
@@ -29,9 +35,9 @@ const
 
 function PwdExists: Boolean; syscall sysTrapPwdExists;
 
-function PwdVerify(Astring: PChar): Boolean; syscall sysTrapPwdVerify;
+function PwdVerify(Astring: PAnsiChar): Boolean; syscall sysTrapPwdVerify;
 
-procedure PwdSet(oldPassword, newPassword: PChar); syscall sysTrapPwdSet;
+procedure PwdSet(oldPassword, newPassword: PAnsiChar); syscall sysTrapPwdSet;
 
 procedure PwdRemove; syscall sysTrapPwdRemove;
 

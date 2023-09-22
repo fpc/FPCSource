@@ -14,13 +14,20 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tagsarray;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, Utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TTagsList = array of ttagitem;
@@ -50,7 +57,7 @@ begin
         vtboolean : TagList[ii].ti_data := PtrInt(byte(Args[i].vboolean));
         vtpchar   : TagList[ii].ti_data := PtrInt(Args[i].vpchar);
         vtchar    : TagList[ii].ti_data := PtrInt(Args[i].vchar);
-        vtstring  : TagList[ii].ti_data := PtrInt(PChar(string(Args[i].vstring^)));
+        vtstring  : TagList[ii].ti_data := PtrInt(PAnsiChar(AnsiString(Args[i].vstring^)));
         vtpointer : TagList[ii].ti_data := PtrInt(Args[i].vpointer);
       end;
       inc(ii);

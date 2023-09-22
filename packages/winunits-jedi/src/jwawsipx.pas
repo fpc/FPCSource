@@ -42,7 +42,9 @@
 
 // $Id: JwaWSipx.pas,v 1.5 2007/09/05 11:58:53 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWSipx;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -94,8 +96,8 @@ interface
 type
   SOCKADDR_IPX = record
     sa_family: Smallint;
-    sa_netnum: array [0..3] of Char;
-    sa_nodenum: array [0..5] of Char;
+    sa_netnum: array [0..3] of AnsiChar;
+    sa_nodenum: array [0..5] of AnsiChar;
     sa_socket: Word;
   end;
   {$EXTERNALSYM SOCKADDR_IPX}

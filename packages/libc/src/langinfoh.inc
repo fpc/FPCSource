@@ -364,8 +364,8 @@ const
    NOSTR = __NOSTR;
 
 
-function nl_langinfo(__item:nl_item):Pchar;cdecl;external clib name 'nl_langinfo';
-function __nl_langinfo_l(__item:nl_item; l:__locale_t):Pchar;cdecl;external clib name '__nl_langinfo_l';
+function nl_langinfo(__item:nl_item):PAnsiChar;cdecl;external clib name 'nl_langinfo';
+function __nl_langinfo_l(__item:nl_item; l:__locale_t):PAnsiChar;cdecl;external clib name '__nl_langinfo_l';
 
 
 { ---------------------------------------------------------------------

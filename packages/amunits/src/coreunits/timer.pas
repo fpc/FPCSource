@@ -27,11 +27,17 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 
@@ -42,7 +48,7 @@ Const
     UNIT_WAITUNTIL      = 3;
     UNIT_WAITECLOCK     = 4;
 
-    TIMERNAME : PChar   = 'timer.device';
+    TIMERNAME : PAnsiChar   = 'timer.device';
 
 Type
 

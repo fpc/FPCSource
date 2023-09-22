@@ -21,11 +21,11 @@ Function  FpChmod   (const path : RawByteString; Mode : TMode): cInt; inline;
 Function  FpChown   (const path : RawByteString; owner : TUid; group : TGid): cInt; inline;
 Function  FpUtime   (const path : RawByteString; times : putimbuf): cInt; inline;
 Function  FpGetcwd : RawByteString;
-Function  FpExecve  (const path : RawByteString; argv : ppchar; envp: ppchar): cInt; inline;
-Function  FpExecv   (const path : RawByteString; argv : ppchar): cInt; inline;
+Function  FpExecve  (const path : RawByteString; argv : ppansichar; envp: ppansichar): cInt; inline;
+Function  FpExecv   (const path : RawByteString; argv : ppansichar): cInt; inline;
 Function  FpOpendir (const dirname : RawByteString): pDir; inline;
 Function  FpOpendir (dirname : ShortString): pDir; inline;
-Function  FpOpen    (path : pChar; flags : cInt):cInt; inline;
+Function  FpOpen    (path : PAnsiChar; flags : cInt):cInt; inline;
 Function  FpOpen    (const path : RawByteString; flags : cInt):cInt; inline;
 Function  FpOpen    (const path : RawByteString; flags : cInt; Mode: TMode):cInt; inline;
 Function  FpOpen    (path : ShortString; flags : cInt):cInt;
@@ -38,7 +38,7 @@ Function  FpRename  (const old  : RawByteString; const newpath: RawByteString): 
 Function  FpStat    (const path: RawByteString; var buf : stat): cInt; inline;
 Function  FpStat    (path: ShortString; var buf : stat): cInt;
 Function  fpLstat   (const path: RawByteString; Info: pstat):cint; inline;
-Function  fpLstat   (path:pchar;var Info:stat):cint; inline;
+Function  fpLstat   (path: PAnsiChar;var Info:stat):cint; inline;
 Function  fpLstat   (const Filename: RawByteString;var Info:stat):cint; inline;
 Function  FpAccess  (const pathname : RawByteString; aMode : cInt): cInt; inline;
 function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
@@ -65,7 +65,7 @@ function  fptime    :time_t; inline;
 Function fpSelect   (N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
 Function fpSelect   (var T:Text;TimeOut :PTimeval):cint;
 Function fpSelect   (var T:Text;TimeOut :time_t):cint;
-Function FpGetEnv   (name : String): pChar; deprecated; // because shortstring
+Function FpGetEnv   (name : ShortString): PAnsiChar; deprecated; // because shortstring
 
 // macro's
 

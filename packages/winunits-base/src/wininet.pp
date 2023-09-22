@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinINet;
+{$ENDIF FPC_DOTTEDUNITS}
 //+-------------------------------------------------------------------------
 //
 //  Microsoft Windows
@@ -22,7 +24,11 @@ unit WinINet;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win64}
   {$packrecords 8}
@@ -1681,7 +1687,7 @@ Type
           cLeashed : longint;
           cDowngraded : longint;
           cBlocked : longint;
-          pszLocation : ^char;
+          pszLocation : ^AnsiChar;
        end;
      TIncomingCookieState = IncomingCookieState;
 	 PIncomingCookieState = ^IncomingCookieState;
@@ -1690,7 +1696,7 @@ Type
      OutgoingCookieState = record
           cSent : longint;
           cSuppressed : longint;
-          pszLocation : ^char;
+          pszLocation : ^AnsiChar;
        end;
      ToutgoingCookieState = outgoingCookieState;
 	 PoutgoingCookieState = ^outgoingCookieState;
@@ -1714,12 +1720,12 @@ Type
 	 PCookieDecision = ^CookieDecision;
 	 LPCookieDecision = PCookieDecision;
      GOPHER_FIND_DATAA = record
-          DisplayString : array[0..(MAX_GOPHER_DISPLAY_TEXT+1)-1] of CHAR;
+          DisplayString : array[0..(MAX_GOPHER_DISPLAY_TEXT+1)-1] of AnsiChar;
           GopherType : DWORD;
           SizeLow : DWORD;
           SizeHigh : DWORD;
           LastModificationTime : FILETIME;
-          Locator : array[0..(MAX_GOPHER_LOCATOR_LENGTH+1)-1] of CHAR;
+          Locator : array[0..(MAX_GOPHER_LOCATOR_LENGTH+1)-1] of AnsiChar;
        end;
      LPGOPHER_FIND_DATAA = ^GOPHER_FIND_DATAA;
 	 TGOPHER_FIND_DATAA = GOPHER_FIND_DATAA;
@@ -2005,7 +2011,7 @@ Type
             dwDiskUsage : DWORD;
             dwDiskQuota : DWORD;
             dwOwnerStorage : array[0..(GROUP_OWNER_STORAGE_SIZE)-1] of DWORD;
-            szGroupName : array[0..(GROUPNAME_MAX_LENGTH)-1] of CHAR;
+            szGroupName : array[0..(GROUPNAME_MAX_LENGTH)-1] of AnsiChar;
          end;
        INTERNET_CACHE_GROUP_INFOA = _INTERNET_CACHE_GROUP_INFOA;
        LPINTERNET_CACHE_GROUP_INFOA = ^_INTERNET_CACHE_GROUP_INFOA;

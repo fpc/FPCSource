@@ -2339,10 +2339,15 @@ const
         'Link using native linker', {cs_link_native}
         'Link for GNU linker version <=2.19', {cs_link_pre_binutils_2_19}
         'Link using vlink', {cs_link_vlink}
+        'Discard _START code', {cs_link_discard_start}
+        'Discard code initializing the zero register and stack pointer', {cs_link_discard_zeroreg_sp}
+        'Discard initializing data', {cs_link_discard_copydata}
+        'Discard jump to PASCALMAIN', {cs_link_discard_jmp_main}
         'Link-Time Optimization disabled for system unit', {cs_lto_nosystem}
         'Assemble on target OS', {cs_asemble_on_target}
         'Use a memory model to support >2GB static data on 64 Bit target', {cs_large}
-        'Generate UF2 binary' {cs_generate_uf2}
+        'Generate UF2 binary', {cs_generate_uf2}
+	'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }
@@ -2872,6 +2877,12 @@ begin
     end;
   writeln;
 
+  if df_unique in defoptions then
+    begin
+      write  ([space,'      OriginalDef : ']);
+      readderef(space);
+    end;
+
   if df_genconstraint in defoptions then
     begin
       ppufile.getset(tppuset1(genconstr));
@@ -3041,7 +3052,9 @@ const
      (mask:po_noinline;        str: 'Never inline'),
      (mask:po_variadic;        str: 'C VarArgs with array-of-const para'),
      (mask:po_objc_related_result_type; str: 'Objective-C related result type'),
-     (mask:po_anonymous;       str: 'Anonymous')
+     (mask:po_anonymous;       str: 'Anonymous'),
+     (mask:po_wasm_funcref;    str: 'WebAssembly funcref'),
+     (mask:po_wasm_suspending; str: 'WebAssembly suspending')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -4080,6 +4093,8 @@ begin
                      WriteWarning('Invalid x86 pointer type: ' + IntToStr(b));
                  end;
                end;
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_wasm32 then
+               writeln([space,'   WASM externref : ',(getbyte<>0)]);
            end;
 
          iborddef :

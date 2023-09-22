@@ -3,11 +3,12 @@ Free Pascal makefiles, depending on the rules
 specified in the Makefile.fpc files.
 
 Some tips:
-- To regenerate the makefiles for all supported
-  targets, simply do : fpcmake -Tall
-- To regenerate the complete makefile tree
-  for all targets (under UNIX): 
-    fpcmake -Tall -w `find . -name Makefile.fpc`
+- The rtl and packages contain a script that regenerates the makefiles. 
+  targets, simply do (in a unix-like environment) 
+  cd rtl
+  ./regenmakefiles.sh
+  cd ../packages
+  ./regenmakefiles.sh
 
   To avoid svn conflicts for each locally changed Makefile
 instead of using the current date for fpcmake executable,

@@ -42,7 +42,9 @@
 
 // $Id: JwaDSGetDc.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaDSGetDc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaDSGetDc;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Ntsecapi, WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaNtSecApi, JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -272,7 +279,7 @@ function DsValidateSubnetName(SubnetName: LPCTSTR): DWORD; stdcall;
 type
   sockaddr = record
     sa_family: Word;                  // address family
-    sa_data: array [0..13] of Char;   // up to 14 bytes of direct address
+    sa_data: array [0..13] of AnsiChar;   // up to 14 bytes of direct address
   end;
   {$EXTERNALSYM sockaddr}
 
@@ -303,7 +310,7 @@ type
 {$ENDIF JWA_WINSOCK_2}
 
 function DsAddressToSiteNamesA(ComputerName: LPCSTR; EntryCount: DWORD;
-  SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPChar): DWORD; stdcall;
+  SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsAddressToSiteNamesA}
 function DsAddressToSiteNamesW(ComputerName: LPCWSTR; EntryCount: DWORD;
   SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPWideChar): DWORD; stdcall;
@@ -313,7 +320,7 @@ function DsAddressToSiteNames(ComputerName: LPCTSTR; EntryCount: DWORD;
 {$EXTERNALSYM DsAddressToSiteNames}
 
 function DsAddressToSiteNamesExA(ComputerName: LPCSTR; EntryCount: DWORD;
-  SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPChar): DWORD; stdcall;
+  SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsAddressToSiteNamesExA}
 function DsAddressToSiteNamesExW(ComputerName: LPCWSTR; EntryCount: DWORD;
   SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPWideChar): DWORD; stdcall;
@@ -458,7 +465,7 @@ function DsMergeForestTrustInformationW(DomainName: LPCWSTR; NewForestTrustInfo,
 {$EXTERNALSYM DsMergeForestTrustInformationW}
 
 function DsGetDcSiteCoverageA(ServerName: LPCSTR; var EntryCount: ULONG;
-  var SiteNames: PPChar): DWORD; stdcall;
+  var SiteNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsGetDcSiteCoverageA}
 function DsGetDcSiteCoverageW(ServerName: LPCWSTR; var EntryCount: ULONG;
   var SiteNames: PPWideChar): DWORD; stdcall;

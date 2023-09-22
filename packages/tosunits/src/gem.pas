@@ -21,11 +21,17 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses AtariApi.Aes, AtariApi.Vdi, AtariApi.Gemcmmn;
+{$ELSE FPC_DOTTEDUNITS}
 uses aes, vdi, gemcmmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
         LWhite          = DWHITE;
@@ -320,7 +326,7 @@ procedure WindSetNewDesk(tree: PAESTree; firstObj: smallint);
 implementation
 
 type
-  aesstr = array[0..255] of char;
+  aesstr = array[0..255] of AnsiChar;
 
 
 function string_to_vdi(const src: String; dst: psmallint): smallint;
@@ -534,7 +540,7 @@ end;
 
 procedure SetFreeString(tree: PAESTree; obj: smallint; const str: String);
 var len: SizeInt;
-    p: pchar;
+    p: PAnsiChar;
 begin
   len:=length(str);
   p:=tree^[obj].ob_spec.free_string;
@@ -549,7 +555,7 @@ end;
 
 procedure SetPtext(tree: PAESTree; obj: smallint; const str: String);
 var len: SizeInt;
-    p: pchar;
+    p: PAnsiChar;
 begin
   len:=length(str);
   p:=tree^[obj].ob_spec.ted_info^.te_ptext;
@@ -566,7 +572,7 @@ end;
 
 procedure SetPtmplt(tree: PAESTree; obj: smallint; const str: String);
 var len: SizeInt;
-    p: pchar;
+    p: PAnsiChar;
 begin
   len:=length(str);
   p:=tree^[obj].ob_spec.ted_info^.te_ptmplt;
@@ -583,7 +589,7 @@ end;
 
 procedure SetPvalid(tree: PAESTree; obj: smallint; const str: String);
 var len: SizeInt;
-    p: pchar;
+    p: PAnsiChar;
 begin
   len:=length(str);
   p:=tree^[obj].ob_spec.ted_info^.te_pvalid;
@@ -598,7 +604,7 @@ end;
 
 procedure SetIcontext(tree: PAESTree; obj: smallint; const str: String);
 var len: SizeInt;
-    p: pchar;
+    p: PAnsiChar;
 begin
   len:=length(str);
   p:=tree^[obj].ob_spec.icon_blk^.ib_ptext;
@@ -613,7 +619,7 @@ end;
 
 procedure WindSetTitle(handle: smallint; const str: String; var buf: String);
 var len: SizeInt;
-    pstr: Pchar;
+    pstr: PAnsiChar;
 begin
   pstr := @buf[0];
   len:=length(str);
@@ -624,7 +630,7 @@ end;
 
 procedure WindSetInfo(handle: smallint; const str: String; var buf: String);
 var len: SizeInt;
-    pstr: Pchar;
+    pstr: PAnsiChar;
 begin
   pstr := @buf[0];
   len:=length(str);

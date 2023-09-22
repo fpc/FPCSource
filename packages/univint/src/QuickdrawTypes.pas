@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit QuickdrawTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.QuickdrawText;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,QuickdrawText;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -360,7 +366,7 @@ type
 {**************   IMPORTANT NOTE REGARDING Pattern  **************************************
    Patterns were originally defined as:
    
-        C:          typedef unsigned char Pattern[8];
+        C:          typedef unsigned AnsiChar Pattern[8];
         Pascal:     Pattern = PACKED ARRAY [0..7] OF 0..255;
         
    The old array definition of Pattern would cause 68000 based CPU's to crash in certain circum-
@@ -1628,7 +1634,7 @@ procedure InvokeDeviceLoopDrawingUPP( depth: SInt16; deviceFlags: SInt16; target
 {$ifc NOT OPAQUE_TOOLBOX_STRUCTS OR NOT TARGET_API_MAC_CARBON}
 type
 	QDGlobals = record
-		privates: packed array [0..75] of char;
+		privates: packed array [0..75] of AnsiChar;
 		randSeed: SInt32;               { in Carbon use GetQDGlobalsRandomSeed}
 		screenBits: BitMap;             { in Carbon use GetQDGlobalsScreenBits}
 		arrow: Cursor;                  { in Carbon use GetQDGlobalsArrow}

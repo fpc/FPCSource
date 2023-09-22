@@ -15,12 +15,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ubmockobject;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

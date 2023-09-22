@@ -39,11 +39,17 @@
  * A label is created from the first 11 valid non-space characters.
  ********************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fslib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Vfsmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, vfsmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // When building the PalmOS 3.5 version of ExpansionMgr,
 // since this constant was not in the 3.5 SystemResources.h...
@@ -132,9 +138,9 @@ function FSFilesystemType(fsLibRefNum: UInt16; var filesystemTypeP: UInt32): Err
  * File Stream APIs:
  ********************************************************************)
 
-function FSFileCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar): Err; syscall FSTrapFileCreate;
+function FSFileCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PAnsiChar): Err; syscall FSTrapFileCreate;
 
-function FSFileOpen(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar;
+function FSFileOpen(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PAnsiChar;
                     openMode: UInt16; var fileRefP: FileRef): Err; syscall FSTrapFileOpen;
 
 function FSFileClose(fsLibRefNum: UInt16; fileRef: FileRef): Err; syscall FSTrapFileClose;
@@ -146,9 +152,9 @@ function FSFileRead(fsLibRefNumUInt16: UInt16; fileRef: FileRef; numBytes: UInt3
 function FSFileWrite(fsLibRefNum: UInt16; fileRef: FileRef; numBytes: UInt32;
                      const dataP: Pointer; var numBytesWrittenP: UInt32): Err; syscall FSTrapFileWrite;
 
-function FSFileDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar): Err; syscall FSTrapFileDelete;
+function FSFileDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PAnsiChar): Err; syscall FSTrapFileDelete;
 
-function FSFileRename(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar; const newNameP: PChar): Err; syscall FSTrapFileRename;
+function FSFileRename(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PAnsiChar; const newNameP: PAnsiChar): Err; syscall FSTrapFileRename;
 
 function FSFileSeek(fsLibRefNum: UInt16; fileRef: FileRef; origin: FileOrigin; offset: Int32): Err; syscall FSTrapFileSeek;
 
@@ -172,7 +178,7 @@ function FSFileSize(fsLibRefNum: UInt16; fileRef: FileRef; var fileSizeP: UInt32
  * Directory APIs:
  ********************************************************************)
 
-function FSDirCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PChar): Err; syscall FSTrapDirCreate;
+function FSDirCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PAnsiChar): Err; syscall FSTrapDirCreate;
 
 (************************************************************
  *
@@ -192,7 +198,7 @@ function FSDirCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PCh
  *
  *************************************************************)
 
-function FSDirDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PChar): Err;
+function FSDirDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PAnsiChar): Err;
 
 function FSDirEntryEnumerate(fsLibRefNum: UInt16; dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err; syscall FSTrapDirEntryEnumerate;
 
@@ -208,15 +214,15 @@ function FSVolumeUnmount(fsLibRefNum: UInt16; volRefNum: UInt16): Err; syscall F
 
 function FSVolumeInfo(fsLibRefNum: UInt16; volRefNum: UInt16; var volInfoP: VolumeInfoType): Err; syscall FSTrapVolumeInfo;
 
-function FSVolumeGetLabel(fsLibRefNum: UInt16; volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err; syscall FSTrapVolumeGetLabel;
+function FSVolumeGetLabel(fsLibRefNum: UInt16; volRefNum: UInt16; labelP: PAnsiChar; bufLen: UInt16): Err; syscall FSTrapVolumeGetLabel;
 
-function FSVolumeSetLabel(fsLibRefNum: UInt16; volRefNum: UInt16; const labelP: PChar): Err; syscall FSTrapVolumeSetLabel;
+function FSVolumeSetLabel(fsLibRefNum: UInt16; volRefNum: UInt16; const labelP: PAnsiChar): Err; syscall FSTrapVolumeSetLabel;
 
 function FSVolumeSize(fsLibRefNum: UInt16; volRefNum: UInt16; var volumeUsedP: UInt32; var volumeTotalP: UInt32): Err; syscall FSTrapVolumeSize;
 
 implementation
 
-function FSDirDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PChar): Err;
+function FSDirDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PAnsiChar): Err;
 begin
   FSDirDelete := FSFileDelete(fsLibRefNum, volRefNum, dirNameP);
 end;

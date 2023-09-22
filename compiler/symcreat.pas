@@ -126,6 +126,10 @@ interface
   function generate_pkg_stub(pd:tprocdef):tnode;
   procedure generate_attr_constrs(attrs:tfpobjectlist);
 
+  { Generate the hidden thunk class for interfaces,
+    so we can use them in TVirtualInterface on platforms that do not allow
+    generating executable code in memory at runtime.}
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
 
 
 implementation
@@ -133,10 +137,11 @@ implementation
   uses
     cutils,globals,verbose,systems,comphook,fmodule,constexp,
     symtable,defutil,symutil,procinfo,
-    pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
+    pbase,pdecl, pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
+    aasmcpu,symcpu,
     nbas,nld,nmem,ncon,
     defcmp,
     paramgr;
@@ -229,7 +234,7 @@ implementation
     end;
 
 
-  function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean):boolean;
+  function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean; out result_procdef: tprocdef):boolean;
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -260,7 +265,7 @@ implementation
       flags:=[];
       if is_classdef then
         include(flags,rpf_classmethod);
-      read_proc(flags,usefwpd);
+      result_procdef:=read_proc(flags,usefwpd);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -271,8 +276,16 @@ implementation
 
 
   function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
+    var
+      tmpproc: tprocdef;
     begin
-      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef);
+      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef, tmpproc);
+    end;
+
+
+  function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean; out result_procdef: tprocdef):boolean;
+    begin
+      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef, result_procdef);
     end;
 
 
@@ -299,6 +312,34 @@ implementation
       current_scanner.nextfile;
       current_scanner.tempopeninputfile;
     end;
+
+    function str_parse_objecttypedef(typename : shortstring;str: ansistring): tobjectdef;
+     var
+       b,oldparse_only: boolean;
+       tmpstr: ansistring;
+       flags : tread_proc_flags;
+
+     begin
+      result:=nil;
+      Message1(parser_d_internal_parser_string,str);
+      oldparse_only:=parse_only;
+      parse_only:=true;
+      { "const" starts a new kind of block and hence makes the scanner return }
+      str:=str+'const;';
+      block_type:=bt_type;
+      { inject the string in the scanner }
+      current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
+      current_scanner.readtoken(false);
+      type_dec(b);
+      if (current_module.DefList.Last is tobjectdef) and
+         (tobjectdef(current_module.DefList.Last).GetTypeName=typename) then
+           result:=tobjectdef(current_module.DefList.Last);
+      parse_only:=oldparse_only;
+      { remove the temporary macro input file again }
+      current_scanner.closeinputfile;
+      current_scanner.nextfile;
+      current_scanner.tempopeninputfile;
+     end;
 
 
   function def_unit_name_prefix_if_toplevel(def: tdef): TSymStr;
@@ -869,6 +910,151 @@ implementation
     end;
 {$endif jvm}
 
+
+{$ifdef wasm}
+  procedure addvisibleparameterdeclarations(var str: ansistring; pd: tprocdef);
+    var
+      currpara: tparavarsym;
+      i: longint;
+      firstpara: boolean;
+    begin
+      firstpara:=true;
+      for i:=0 to pd.paras.count-1 do
+        begin
+          currpara:=tparavarsym(pd.paras[i]);
+          if not(vo_is_hidden_para in currpara.varoptions) then
+            begin
+              if not firstpara then
+                str:=str+';';
+              firstpara:=false;
+              case currpara.varspez of
+                vs_constref:
+                  str:=str+'constref ';
+                vs_out:
+                  str:=str+'out ';
+                vs_var:
+                  str:=str+'var ';
+                vs_const:
+                  str:=str+'const ';
+                vs_value:
+                  ;
+                else
+                  internalerror(2023061108);
+              end;
+
+              str:=str+currpara.realname;
+              if currpara.vardef.typ<>formaldef then
+                str:=str+':'+currpara.vardef.fulltypename;
+            end;
+        end;
+    end;
+
+  procedure implement_wasm_suspending(pd: tcpuprocdef; last: Boolean);
+    var
+      str: ansistring;
+      wrapper_name: ansistring;
+    begin
+      wrapper_name:=pd.suspending_wrapper_name;
+
+      if is_void(pd.returndef) then
+        str:='procedure '
+      else
+        str:='function ';
+      str:=str+wrapper_name+'(';
+      if last then
+        begin
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]<>'(' then
+            str:=str+';';
+          str:=str+'__fpc_wasm_susp: WasmExternRef';
+        end
+      else
+        begin
+          str:=str+'__fpc_wasm_susp: WasmExternRef;';
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]=';' then
+            delete(str,Length(str),1);
+        end;
+      str:=str+')';
+      if not is_void(pd.returndef) then
+        str:=str+': '+pd.returndef.fulltypename;
+      str:=str+'; external '''+pd.import_dll^+ ''' name '''+pd.import_name^+''';';
+      str_parse_method_impl(str,nil,false);
+
+      str:='var __fpc_wasm_suspender_copy:WasmExternRef; begin __fpc_wasm_suspender_copy:=__fpc_wasm_suspender; ';
+
+      if not is_void(pd.returndef) then
+        str:=str+' result:=';
+
+      str:=str+wrapper_name+'(__fpc_wasm_suspender_copy,';
+      addvisibleparameters(str,pd);
+      if str[Length(str)]=',' then
+        delete(str,Length(str),1);
+      str:=str+');';
+      str:=str+' __fpc_wasm_suspender:=__fpc_wasm_suspender_copy;';
+      str:=str+' end;';
+      str_parse_method_impl(str,pd,false);
+      exclude(pd.procoptions,po_external);
+    end;
+
+  function implement_wasm_promising_wrapper(pd: tcpuprocdef;last:boolean):tprocdef;
+    var
+      str: ansistring;
+      wrapper_name: ansistring;
+    begin
+      wrapper_name:=pd.promising_wrapper_name(last);
+
+      if is_void(pd.returndef) then
+        str:='procedure '
+      else
+        str:='function ';
+      str:=str+wrapper_name+'(';
+      if last then
+        begin
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]<>'(' then
+            str:=str+';';
+          str:=str+'__fpc_wasm_susp: WasmExternRef';
+        end
+      else
+        begin
+          str:=str+'__fpc_wasm_susp: WasmExternRef;';
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]=';' then
+            delete(str,Length(str),1);
+        end;
+      str:=str+')';
+      if not is_void(pd.returndef) then
+        str:=str+': '+pd.returndef.fulltypename;
+      str:=str+'; begin __fpc_wasm_suspender:=__fpc_wasm_susp;';
+      if not is_void(pd.returndef) then
+        str:=str+' result:=';
+      str:=str+pd.procsym.RealName+'(';
+      addvisibleparameters(str,pd);
+      if str[Length(str)]=',' then
+        delete(str,Length(str),1);
+      str:=str+'); end;';
+      str_parse_method_impl(str,nil,false,result);
+    end;
+
+  procedure implement_wasm_promising(pd: tcpuprocdef);
+    var
+      new_wrapper_pd: tprocdef;
+    begin
+      if pd.promising_first_export_name<>'' then
+        begin
+          new_wrapper_pd:=implement_wasm_promising_wrapper(pd,false);
+          current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_first_export_name,new_wrapper_pd.mangledname,ie_Func));
+        end;
+      if pd.promising_last_export_name<>'' then
+        begin
+          new_wrapper_pd:=implement_wasm_promising_wrapper(pd,true);
+          current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_last_export_name,new_wrapper_pd.mangledname,ie_Func));
+        end;
+    end;
+{$endif wasm}
+
+
   procedure implement_field_getter(pd: tprocdef);
     var
       i: longint;
@@ -974,7 +1160,7 @@ implementation
   procedure implement_interface_wrapper(pd: tprocdef);
     var
       wrapperinfo: pskpara_interface_wrapper;
-      callthroughpd: tprocdef;
+      callthroughpd, tmpproc: tprocdef;
       str: ansistring;
       fileinfo: tfileposinfo;
     begin
@@ -1002,7 +1188,7 @@ implementation
           fileinfo.line:=1;
           fileinfo.column:=1;
         end;
-      str_parse_method_impl_with_fileinfo(str,pd,fileinfo.fileindex,fileinfo.line,false);
+      str_parse_method_impl_with_fileinfo(str,pd,fileinfo.fileindex,fileinfo.line,false,tmpproc);
       dispose(wrapperinfo);
       pd.skpara:=nil;
     end;
@@ -1029,11 +1215,86 @@ implementation
         setverbosity('W+');
     end;
 
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring; forward;
+  function str_parse_method(str: ansistring): tprocdef; forward;
+
+
+  procedure implement_invoke_helper(cn : string;pd: tprocdef);
+
+    var
+      sarg,str : ansistring;
+      pt, pn,d : shortstring;
+      sym : tsym;
+      aArg,argcount,i : integer;
+      isarray,haveresult : boolean;
+      para : tparavarsym;
+      hasopenarray, washigh: Boolean;
+
+    begin
+      str:='procedure __invoke_helper__';
+      pn:=pd.procsym.realname;
+      str:=str+cn+'__'+pn;
+      for I:=1 to length(str) do
+        if str[i]='.' then
+          str[i]:='_';
+      str:=str+'(Instance : Pointer; Args : PPointer);'#10;
+      argCount:=0;
+      for i:=0 to pd.paras.Count-1 do
+        begin
+          para:=tparavarsym(pd.paras[i]);
+          if vo_is_hidden_para in para.varoptions then
+            continue;
+          inc(argCount);
+          if argCount=1 then
+            str:=str+'Type'#10;
+          pt:=get_method_paramtype(para.vardef,true,isArray);
+          if isArray then
+            begin
+            str:=str+'  tpa'+tostr(argcount)+' = '+pt+';'#10;
+            pt:='^tpa'+tostr(argcount);
+            end;
+          str:=str+'  tp'+tostr(argcount)+' = '+pt+';'#10;
+        end;
+      haveresult:=pd.returndef<>voidtype;
+      if haveresult then
+        begin
+        if argCount=0 then
+          str:=str+'Type'#10;
+        pt:=get_method_paramtype(pd.returndef ,true,isArray);
+        if isArray then
+          begin
+          str:=str+'  tra'+tostr(argcount)+' = '+pt+';'#10;
+          pt:='^tra';
+          end;
+        str:=str+'  tr = '+pt+';'#10;
+        end;
+      str:=str+'begin'#10'  ';
+      if haveResult then
+        str:=str+'TR(args[0])^:=';
+      str:=str+cn+'(Instance).'+pn+'(';
+      argCount:=0;
+      for i:=0 to pd.paras.Count-1 do
+        begin
+          para:=tparavarsym(pd.paras[i]);
+          if vo_is_hidden_para in para.varoptions then
+            continue;
+          inc(argCount);
+          sarg:=tostr(argcount);
+          if argCount>1 then
+            str:=str+',';
+          str:=str+'tp'+sarg+'(Args['+sarg+'])^';
+        end;
+      str:=str+');'#10;
+      str:=str+'end;'#10;
+      pd.invoke_helper:=str_parse_method(str);
+  end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
       def : tdef;
       pd  : tprocdef;
+      cn  : shortstring;
     begin
       for i:=0 to st.deflist.count-1 do
         begin
@@ -1109,6 +1370,19 @@ implementation
             tsk_jvm_virtual_clmethod:
               internalerror(2011032801);
 {$endif jvm}
+{$ifdef wasm}
+            tsk_wasm_suspending_first:
+              implement_wasm_suspending(tcpuprocdef(pd),false);
+            tsk_wasm_suspending_last:
+              implement_wasm_suspending(tcpuprocdef(pd),true);
+            tsk_wasm_promising:
+              implement_wasm_promising(tcpuprocdef(pd));
+{$else wasm}
+            tsk_wasm_suspending_first,
+            tsk_wasm_suspending_last,
+            tsk_wasm_promising:
+              internalerror(2023061107);
+{$endif wasm}
             tsk_field_getter:
               implement_field_getter(pd);
             tsk_field_setter:
@@ -1119,10 +1393,390 @@ implementation
               implement_interface_wrapper(pd);
             tsk_call_no_parameters:
               implement_call_no_parameters(pd);
+            tsk_invoke_helper:
+              begin
+                if (pd.owner.defowner) is tobjectdef  then
+                  cn:=tobjectdef(def.owner.defowner).GetTypeName
+                else
+                  internalerror(2023061107);
+                implement_invoke_helper(cn,pd);
+              end;
           end;
         end;
     end;
 
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring;
+
+  var
+    p : integer;
+    arrdef : tarraydef absolute vardef;
+
+  begin
+    {
+      None of the existing routines fulltypename,OwnerHierarchyName,FullOwnerHierarchyName,typename
+      results in a workable definition for open array parameters.
+    }
+    isAnonymousArrayDef:=false;
+    if asPointer and (vardef.typ=formaldef) then
+      exit('pointer');
+    if not (vardef is tarraydef) then
+      result:=vardef.fulltypename
+    else
+      begin
+      if (ado_isarrayofconst in arrdef.arrayoptions) then
+        begin
+          if asPointer then
+            Result:='Array of TVarRec'
+          else
+            result:='Array Of Const';
+          asPointer:=False;
+          isAnonymousArrayDef:=true;
+        end
+      else if (ado_OpenArray in arrdef.arrayoptions) then
+        begin
+        result:='Array of '+arrdef.elementdef.fulltypename;
+        asPointer:=False;
+        isAnonymousArrayDef:=true;
+        end
+      else
+        begin
+        result:=vardef.fulltypename;
+        end;
+      end;
+    // ansistring(0) -> ansistring
+    p:=pos('(',result);
+    if p=0 then
+      p:=pos('[',result);
+    if p>0 then
+      result:=copy(result,1,p-1);
+    if asPointer then
+      Result:='^'+Result;
+  end;
+
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean) : ansistring;
+
+  var
+    ad : boolean;
+
+  begin
+    result:=get_method_paramtype(vardef,aspointer,ad);
+  end;
+
+  function create_intf_method_args(p : tprocdef; out argcount: integer) : ansistring;
+
+  const
+    varspezprefixes : array[tvarspez] of shortstring =
+      ('','const','var','out','constref','final');
+  var
+    i : integer;
+    s : string;
+    para : tparavarsym;
+
+
+  begin
+    result:='';
+    argCount:=0;
+    for i:=0 to p.paras.Count-1 do
+      begin
+      para:=tparavarsym(p.paras[i]);
+      if vo_is_hidden_para in para.varoptions then
+        continue;
+      if Result<>'' then
+        Result:=Result+';';
+      inc(argCount);
+      result:=result+varspezprefixes[para.varspez]+' p'+tostr(argcount);
+      if Assigned(para.vardef) and not (para.vardef is tformaldef) then
+        result:=Result+' : '+get_method_paramtype(para.vardef,false);
+      end;
+    if Result<>'' then
+      Result:='('+Result+')';
+  end;
+
+  function generate_thunkclass_name(acount: Integer; objdef : tobjectdef) : shortstring;
+
+  var
+    cn : shortstring;
+    i : integer;
+
+  begin
+    cn:=ObjDef.GetTypeName;
+    for i:=0 to Length(cn) do
+      if cn[i]='.' then
+        cn[i]:='_';
+    result:='_t_hidden'+tostr(acount)+cn;
+  end;
+
+  function get_thunkclass_interface_vmtoffset(objdef : tobjectdef) : integer;
+
+  var
+    i,j,offs : integer;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+
+  begin
+    offs:=maxint;
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        if pd.extnumber<offs then
+          offs:=pd.extnumber;
+        end;
+      end;
+      if offs=maxint then
+        offs:=0;
+      result:=offs;
+    end;
+
+  procedure implement_interface_thunkclass_decl(cn : shortstring; objdef : tobjectdef);
+
+  var
+    str : ansistring;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+    def : tobjectdef;
+    offs,argcount,i,j : integer;
+
+  begin
+    str:='type '#10;
+    str:=str+cn+' = class(TInterfaceThunk,'+objdef.GetTypeName+')'#10;
+    str:=str+' protected '#10;
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        if pd.returndef<>voidtype then
+          str:=str+'function '
+        else
+          str:=str+'procedure ';
+        str:=str+proc.RealName;
+        str:=str+create_intf_method_args(pd,argcount);
+        if pd.returndef<>voidtype then
+          str:=str+' : '+get_method_paramtype(pd.returndef,false);
+        str:=str+';'#10;
+        end;
+      end;
+    offs:=get_thunkclass_interface_vmtoffset(objdef);
+    if offs>0 then
+      begin
+      str:=str+'public '#10;
+      str:=str+'  function InterfaceVMTOffset : word; override;'#10;
+      end;
+    str:=str+' end;'#10;
+    def:=str_parse_objecttypedef(cn,str);
+    if assigned(def) then
+      begin
+      def.created_in_current_module:=true;
+      include(def.objectoptions,oo_can_have_published);
+      end;
+    objdef.hiddenclassdef:=def;
+  end;
+
+  function str_parse_method(str: ansistring): tprocdef;
+   var
+     oldparse_only: boolean;
+     tmpstr: ansistring;
+     flags : tread_proc_flags;
+
+   begin
+    Message1(parser_d_internal_parser_string,str);
+    oldparse_only:=parse_only;
+    parse_only:=false;
+    { "const" starts a new kind of block and hence makes the scanner return }
+    str:=str+'const;';
+    block_type:=bt_none;
+    { inject the string in the scanner }
+    current_scanner.substitutemacro('hidden_interface_method',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
+    current_scanner.readtoken(false);
+    Result:=read_proc([],Nil);
+    parse_only:=oldparse_only;
+    { remove the temporary macro input file again }
+    current_scanner.closeinputfile;
+    current_scanner.nextfile;
+    current_scanner.tempopeninputfile;
+   end;
+
+
+  procedure implement_interface_thunkclass_impl_method(cn : shortstring; objdef : tobjectdef; proc : tprocsym; pd : tprocdef);
+
+  var
+    rest,str : ansistring;
+    pn,d : shortstring;
+    sym : tsym;
+    aArg,argcount,i : integer;
+    haveresult : boolean;
+    para : tparavarsym;
+    hasopenarray, washigh: Boolean;
+
+  begin
+    rest:='';
+    str:='';
+    if pd.returndef<>voidtype then
+      str:=str+'function '
+    else
+      str:=str+'procedure ';
+    pn:=proc.RealName;
+    str:=str+cn+'.'+pn;
+    str:=str+create_intf_method_args(pd,argcount);
+    haveresult:=pd.returndef<>voidtype;
+    if haveresult then
+      begin
+      rest:=get_method_paramtype(pd.returndef,false);
+      str:=str+' : '+rest;
+      end;
+    str:=str+';'#10;
+    str:=str+'var '#10;
+    str:=str+'  data : array[0..'+tostr(argcount)+'] of System.TInterfaceThunk.TArgData;'#10;
+    if haveresult then
+      str:=str+'  res : '+rest+';'#10;
+    str:=str+'begin'#10;
+    // initialize result.
+    if HaveResult then
+      begin
+      str:=Str+'  data[0].addr:=@Res;'#10;
+      str:=Str+'  data[0].info:=TypeInfo(Res);'#10;
+      end
+    else
+      begin
+      str:=Str+'  data[0].addr:=nil;'#10;
+      str:=Str+'  data[0].idx:=-1;'#10;
+      end;
+    str:=Str+'  data[0].idx:=-1;'#10;
+    str:=Str+'  data[0].ahigh:=-1;'#10;
+    // Fill rest of data
+    aArg:=0;
+    washigh:=false;
+    d:='0';
+    for i:=0 to pd.paras.Count-1 do
+      begin
+      para:=tparavarsym(pd.paras[i]);
+      // previous was open array. Record high
+      if (i>1) then
+        begin
+        WasHigh:=(vo_is_high_para in para.varoptions);
+        if Washigh then
+          // D is still value of previous (real) parameter
+          str:=str+'  data['+d+'].ahigh:=High(p'+d+');'#10
+        else
+          str:=str+'  data['+d+'].ahigh:=-1;'#10;
+        end;
+      if vo_is_hidden_para in para.varoptions then
+        continue;
+      inc(aArg);
+      d:=tostr(aArg);
+      Str:=Str+'  data['+d+'].addr:=@p'+d+';'#10;
+      Str:=Str+'  data['+d+'].idx:='+tostr(i)+';'#10;
+      if Assigned(para.vardef) and not (para.vardef is tformaldef) then
+        Str:=Str+'  data['+d+'].info:=TypeInfo(p'+d+');'#10
+      else
+        Str:=Str+'  data['+d+'].info:=Nil;'#10
+      end;
+    // if last was not high, set to sentinel.
+    if not WasHigh then
+      str:=str+'  data['+d+'].ahigh:=-1;'#10;
+    str:=str+'  Thunk('+tostr(pd.extnumber)+','+tostr(argcount)+',@Data);'#10;
+    if HaveResult then
+      str:=str+'  Result:=res;'#10;
+    str:=str+'end;'#10;
+    pd:=str_parse_method(str);
+  end;
+
+  procedure implement_thunkclass_interfacevmtoffset(cn : shortstring; objdef : tobjectdef; offs : integer);
+
+  var
+    str : ansistring;
+  begin
+    str:='function '+cn+'.InterfaceVMTOffset : word;'#10;
+    str:=str+'begin'#10;
+    str:=str+'  result:='+toStr(offs)+';'#10;
+    str:=str+'end;'#10;
+    str_parse_method(str);
+  end;
+
+
+  procedure implement_interface_thunkclass_impl(cn: shortstring; objdef : tobjectdef);
+
+  var
+    str : ansistring;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+    offs,i,j : integer;
+
+  begin
+    offs:=get_thunkclass_interface_vmtoffset(objdef);
+    if offs>0 then
+      implement_thunkclass_interfacevmtoffset(cn,objdef,offs);
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        implement_interface_thunkclass_impl_method(cn,objdef,proc,pd);
+        end;
+      end;
+  end;
+
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
+
+  var
+    i   : longint;
+    def : tdef;
+    objdef : tobjectdef absolute def;
+    recdef : trecorddef absolute def;
+    sstate: tscannerstate;
+    cn : shortstring;
+
+  begin
+    { skip if any errors have occurred, since then this can only cause more
+      errors }
+    if ErrorCount<>0 then
+      exit;
+    replace_scanner('hiddenclass_impl',sstate);
+    for i:=0 to st.deflist.count-1 do
+      begin
+      def:=tdef(st.deflist[i]);
+      if (def.typ<>objectdef) then
+        continue;
+      if not (objdef.objecttype in [odt_interfacecorba,odt_interfacecom]) then
+        continue;
+      if not (oo_can_have_published in objdef.objectoptions) then
+        continue;
+      // need to add here extended rtti check when it is available
+      cn:=generate_thunkclass_name(i,objdef);
+      implement_interface_thunkclass_decl(cn,objdef);
+      implement_interface_thunkclass_impl(cn,objdef);
+      end;
+    restore_scanner(sstate);
+    // Recurse for interfaces defined in a type section of a class/record.
+    for i:=0 to st.deflist.count-1 do
+      begin
+      def:=tdef(st.deflist[i]);
+      if (def.typ=objectdef) and (objdef.objecttype=odt_class) then
+        add_synthetic_interface_classes_for_st(objdef.symtable)
+      else if (def.typ=recorddef) and (m_advanced_records in current_settings.modeswitches) then
+        add_synthetic_interface_classes_for_st(recdef.symtable);
+      end;
+  end;
 
   procedure add_synthetic_method_implementations(st: tsymtable);
     var

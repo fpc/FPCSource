@@ -131,7 +131,7 @@ type
   
   destroy_t = procedure (data: Pointer);
 
-  read_t = function (b: Papr_bucket; const str: PPChar; len: Papr_size_t;
+  read_t = function (b: Papr_bucket; const str: PPAnsiChar; len: Papr_size_t;
    block: apr_read_type_e): apr_status_t;
                          
   setaside_t = function (e: Papr_bucket; pool: Papr_pool_t): apr_status_t;
@@ -146,7 +146,7 @@ type
     {
      * The name of the bucket type
      }
-    name: PChar;
+    name: PAnsiChar;
     {
      * The number of functions this bucket understands.  Can not be less than
      * five.
@@ -571,7 +571,7 @@ type
     { The start of the data actually allocated.  This should never be
      * modified, it is only used to free the bucket.
      }
-    base: PChar;
+    base: PAnsiChar;
     { how much memory was allocated }
     alloc_len: apr_size_t;
     { function to use to delete the data }
@@ -601,7 +601,7 @@ type
      * the start and length of the apr_bucket accordingly.
      * This will be NULL after the pool gets cleaned up.
      }
-    base: PChar;
+    base: PAnsiChar;
     { The pool the data was allocated from.  When the pool
      * is cleaned up, this gets set to NULL as an indicator
      * to pool_read() that the data is now on the heap and
@@ -744,25 +744,25 @@ type
                                              apr_off_t *length);
 }
 {
- * Take a bucket brigade and store the data in a flat char*
- * @param bb The bucket brigade to create the char* from
- * @param c The char* to write into
- * @param len The maximum length of the char array. On return, it is the
- *            actual length of the char array.
+ * Take a bucket brigade and store the data in a flat AnsiChar*
+ * @param bb The bucket brigade to create the AnsiChar* from
+ * @param c The AnsiChar* to write into
+ * @param len The maximum length of the AnsiChar array. On return, it is the
+ *            actual length of the AnsiChar array.
  }
 {APU_DECLARE(apr_status_t) apr_brigade_flatten(apr_bucket_brigade *bb,
-                                              char *c,
+                                              AnsiChar *c,
                                               apr_size_t *len);
 }
 {
  * Creates a pool-allocated string representing a flat bucket brigade
- * @param bb The bucket brigade to create the char array from
- * @param c On return, the allocated char array
- * @param len On return, the length of the char array.
+ * @param bb The bucket brigade to create the AnsiChar array from
+ * @param c On return, the allocated AnsiChar array
+ * @param len On return, the length of the AnsiChar array.
  * @param pool The pool to allocate the string from.
  }
 {APU_DECLARE(apr_status_t) apr_brigade_pflatten(apr_bucket_brigade *bb,
-                                               char **c,
+                                               AnsiChar **c,
                                                apr_size_t *len,
                                                apr_pool_t *pool);
 }
@@ -815,7 +815,7 @@ type
  }
 {APU_DECLARE(apr_status_t) apr_brigade_write(apr_bucket_brigade *b,
                                             apr_brigade_flush flush, void *ctx,
-                                            const char *str, apr_size_t nbyte);
+                                            const AnsiChar *str, apr_size_t nbyte);
 }
 {
  * This function writes multiple strings into a bucket brigade.
@@ -842,7 +842,7 @@ type
  }
 {APU_DECLARE(apr_status_t) apr_brigade_puts(apr_bucket_brigade *bb,
                                            apr_brigade_flush flush, void *ctx,
-                                           const char *str);
+                                           const AnsiChar *str);
 }
 {
  * This function writes a character into a bucket brigade.
@@ -854,7 +854,7 @@ type
  }
 {APU_DECLARE(apr_status_t) apr_brigade_putc(apr_bucket_brigade *b,
                                            apr_brigade_flush flush, void *ctx,
-                                           const char c);
+                                           const AnsiChar c);
 }
 {
  * This function writes an unspecified number of strings into a bucket brigade.
@@ -881,7 +881,7 @@ type
 {APU_DECLARE_NONSTD(apr_status_t) apr_brigade_printf(apr_bucket_brigade *b,
                                                     apr_brigade_flush flush,
                                                     void *ctx,
-                                                    const char *fmt, ...)
+                                                    const AnsiChar *fmt, ...)
         __attribute__((format(printf,4,5)));
 }
 {
@@ -897,7 +897,7 @@ type
 {APU_DECLARE(apr_status_t) apr_brigade_vprintf(apr_bucket_brigade *b,
                                               apr_brigade_flush flush,
                                               void *ctx,
-                                              const char *fmt, va_list va);
+                                              const AnsiChar *fmt, va_list va);
 }
 
 {
@@ -1284,7 +1284,7 @@ type
  * @param list The freelist from which this bucket should be allocated
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_immortal_create(const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_immortal_create(const AnsiChar *buf,
                                                      apr_size_t nbyte,
                                                      apr_bucket_alloc_t *list);
 }
@@ -1296,7 +1296,7 @@ type
  * @return The new bucket, or NULL if allocation failed
  }
 {APU_DECLARE(apr_bucket *) apr_bucket_immortal_make(apr_bucket *b,
-                                                   const char *buf, 
+                                                   const AnsiChar *buf, 
                                                    apr_size_t nbyte);
 }
 {
@@ -1306,7 +1306,7 @@ type
  * @param list The freelist from which this bucket should be allocated
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_transient_create(const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_transient_create(const AnsiChar *buf,
                                                       apr_size_t nbyte,
                                                       apr_bucket_alloc_t *list);
 }
@@ -1318,7 +1318,7 @@ type
  * @return The new bucket, or NULL if allocation failed
  }
 {APU_DECLARE(apr_bucket *) apr_bucket_transient_make(apr_bucket *b,
-                                                    const char *buf,
+                                                    const AnsiChar *buf,
                                                     apr_size_t nbyte);
 }
 {
@@ -1335,7 +1335,7 @@ type
  * @param list The freelist from which this bucket should be allocated
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_heap_create(const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_heap_create(const AnsiChar *buf,
                                                  apr_size_t nbyte,
                                                  void ( *free_func)(void *data),
                                                  apr_bucket_alloc_t *list);}
@@ -1348,7 +1348,7 @@ type
  *                  bucket should make a copy of the data
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_heap_make(apr_bucket *b, const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_heap_make(apr_bucket *b, const AnsiChar *buf,
                                                apr_size_t nbyte,
                                                void ( *free_func)(void *data));}
 
@@ -1361,7 +1361,7 @@ type
  * @param list The freelist from which this bucket should be allocated
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_pool_create(const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_pool_create(const AnsiChar *buf,
                                                  apr_size_t length,
                                                  apr_pool_t *pool,
                                                  apr_bucket_alloc_t *list);}
@@ -1374,7 +1374,7 @@ type
  * @param pool The pool the memory was allocated from
  * @return The new bucket, or NULL if allocation failed
  }
-{APU_DECLARE(apr_bucket *) apr_bucket_pool_make(apr_bucket *b, const char *buf,
+{APU_DECLARE(apr_bucket *) apr_bucket_pool_make(apr_bucket *b, const AnsiChar *buf,
                                                apr_size_t length, 
                                                apr_pool_t *pool);}
 

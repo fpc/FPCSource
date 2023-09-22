@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -31,6 +31,9 @@ begin
         end;
     T:=P.Targets.AddUnit('ziptypes.pp');
     T:=P.Targets.AddUnit('unzipdll.pp',[emx,os2]);
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

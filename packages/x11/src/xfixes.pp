@@ -43,14 +43,21 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xfixes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXfixes = 'Xfixes';
@@ -105,7 +112,7 @@ type
     pixels: Pculong;
 //#if XFIXES_MAJOR >= 2
     atom: TAtom;                    { Version >= 2 only }
-    name: PChar;                    { Version >= 2 only }
+    name: PAnsiChar;                    { Version >= 2 only }
 //#endif
   end;
 
@@ -123,7 +130,7 @@ type
     cursor_serial: culong;
     pixels: Pculong;
     atom: TAtom;
-    name: PChar;
+    name: PAnsiChar;
   end;
 
 //#endif
@@ -233,16 +240,16 @@ XFixesSetPictureClipRegion(dpy: PDisplay; picture: TXID;
                            region: TXserverRegion); cdecl; external libXfixes;
 
 procedure
-XFixesSetCursorName(dpy: PDisplay; cursor: TCursor; name: PChar); cdecl; external libXfixes;
+XFixesSetCursorName(dpy: PDisplay; cursor: TCursor; name: PAnsiChar); cdecl; external libXfixes;
 
 function XFixesGetCursorName(dpy: PDisplay; cursor: TCursor; atom: PAtom)
-: PChar; cdecl; external libXfixes;
+: PAnsiChar; cdecl; external libXfixes;
 
 procedure
 XFixesChangeCursor(dpy: PDisplay; source: TCursor; destination: TCursor); cdecl; external libXfixes;
 
 procedure
-XFixesChangeCursorByName(dpy: PDisplay; source: TCursor; name: PChar); cdecl; external libXfixes;
+XFixesChangeCursorByName(dpy: PDisplay; source: TCursor; name: PAnsiChar); cdecl; external libXfixes;
 
 //#endif	/* XFIXES_MAJOR >= 2 */
 

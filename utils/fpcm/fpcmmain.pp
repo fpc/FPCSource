@@ -209,6 +209,8 @@ interface
 
       TFPCMakeVerbose = (FPCMakeError, FPCMakeInfo, FPCMakeDebug);
 
+      { TFPCMake }
+
       TFPCMake = class
       private
         FStream         : TStream;
@@ -225,6 +227,7 @@ interface
         FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
         FIncludeTargets : TTargetSet;
+        FExtraTargetsFile : String;
         procedure Init;
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
@@ -242,6 +245,7 @@ interface
         destructor  Destroy;override;
         procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
         procedure SetTargets(const s:string);
+        procedure AddExtraTargets(const aFileName : String; aList : TStrings);
         procedure LoadSections;
         procedure LoadMakefileFPC;
         procedure LoadPackageSection;
@@ -270,6 +274,7 @@ interface
         property CommentChars:TSysCharSet read FCommentChars write FCommentChars;
         property EmptyLines:Boolean read FEmptyLines write FEmptyLines;
         property IncludeTargets:TTargetSet read FIncludeTargets write FIncludeTargets;
+        Property ExtraTargetsFile : String Read FExtraTargetsFile Write FExtraTargetsFile;
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
@@ -676,21 +681,50 @@ implementation
       end;
 
 
+    procedure TFPCMake.AddExtraTargets(const aFileName : string; aList : TStrings);
+
+    var
+      Xtra : TStringList;
+
+    begin
+      Xtra:=TstringList.Create;
+      try
+        Xtra.LoadFromFile(aFileName);
+        aList.AddStrings(Xtra);
+      finally
+        Xtra.Free;
+      end;
+    end;
+
     procedure TFPCMake.LoadSections;
       var
-        SLInput : TStringList;
+        SLInput, slExtra : TStringList;
         i,j,n : integer;
         s,
         SecName : string;
         CurrSec : TFPCMakeSection;
       begin
+        CurrSec:=nil;
+        slExtra:=Nil;
+        SLInput:=TStringList.Create;
         try
-          CurrSec:=nil;
-          SLInput:=TStringList.Create;
+          // We do this first
+          if ExtraTargetsFile<>'' then
+            begin
+            slExtra:=TStringList.Create;
+            AddExtraTargets(ExtraTargetsFile,slExtra);
+            end;
           if assigned(FStream) then
            SLInput.LoadFromStream(FStream)
           else
            SLInput.LoadFromFile(FFileName);
+          if Assigned(SLExtra) then
+            begin
+            slExtra.AddStrings(slInput);
+            slInput.Free;
+            slInput:=slExtra;
+            slExtra:=nil;
+            end;
           { Load Input into sections list }
           n:=SLInput.Count;
           i:=0;
@@ -709,13 +743,14 @@ implementation
                    SecName:=Copy(s,2,j-2);
                    CurrSec:=TFPCMakeSection(FSections[SecName]);
                    if CurrSec=nil then
-                    CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
+                    CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)))
                  end
                 else
                  begin
                    if CurrSec=nil then
                     raise Exception.Create(Format(s_err_no_section,[FFileName,i+1]));
                    { Insert string without spaces stripped }
+                   // Writeln('Appending: ',SLInput[i]);
                    CurrSec.AddLine(SLInput[i]);
                  end;
               end;
@@ -723,6 +758,7 @@ implementation
            end;
         finally
           SLInput.Free;
+          slExtra.Free;
         end;
       end;
 
@@ -983,6 +1019,12 @@ implementation
         s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
+        { Check for Makefile }
+        s:=SubstVariables('$(addsuffix /'+ReqName+'/Makefile,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile,$(REQUIRE_PACKAGESDIR))');
+        Verbose(FPCMakeDebug,'Package "'+ReqName+'": Looking for Makefile+fpmake: "'+s+'"');
+        s:=SubstVariables('$(firstword $(wildcard '+s+'))');
+        if FileExists(s) then
+         exit;
         Raise Exception.Create(Format(s_package_not_found,[OSStr[t],Reqname]));
       end;
 
@@ -1000,8 +1042,12 @@ implementation
              { give better error what is wrong }
              if not PathExists(s) then
               Raise Exception.Create(Format(s_directory_not_found,[s]))
+             // packages may no longer have 'Makefile.fpc', but they will have a Makefile.
+             // for such cases, the top Makefile.fpc must simply specify all dependencies recursively.
+             else if not FileExists(s+'/Makefile') then
+               Raise Exception.Create(Format(s_makefilefpc_not_found,[s]))
              else
-              Raise Exception.Create(Format(s_makefilefpc_not_found,[s]));
+              exit;
            end;
           { Process Makefile.fpc }
           ReqFPCMake:=TFPCMake.Create(currdir+subdir+'/Makefile.fpc');
@@ -1104,7 +1150,7 @@ implementation
       end;
 
 
-    function TFPCMake.GetTargetRequires(c:TCpu;t:Tos):TStringList;
+        function TFPCMake.GetTargetRequires(c: TCpu; t: TOS): TStringList;
       var
         ReqSec  : TFPCMakeSection;
         ReqList : TStringList;
@@ -1538,6 +1584,7 @@ implementation
 
     function TFPCMake.GetTargetVariable(c:TCPU;t:TOS;const inivar:string;dosubst:boolean):string;
       begin
+
         result:=Trim(GetVariable(inivar,dosubst)+' '+
                      GetVariable(inivar+cpusuffix[c],dosubst)+' '+
                      GetVariable(inivar+OSSuffix[t],dosubst)+' '+

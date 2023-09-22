@@ -123,9 +123,9 @@ Const
 Type
   String15 = String[15];
 
-Procedure ParserInternalError(const Msg:String;A,B:ArbInt);
+Procedure ParserInternalError(const Msg:ShortString;A,B:ArbInt);
 
-VAR S,S2 : String;
+VAR S,S2 : ShortString;
 
 begin
  Str(A,S);      {Usually a identification number for the occurance}
@@ -133,7 +133,7 @@ begin
  Raise EParserIE.Create(SParsIE+Msg+S+' '+S2);
 end;
 
-function TBaseExprParser.InFixToParseTree(Expr : String;VAR RPNexpr: String):pnode;
+function TBaseExprParser.InFixToParseTree(Expr : ShortString;VAR RPNexpr: ShortString):pnode;
 
 Var
   RPNStack   : Array[1..RPNMax] of PNode;        { Stack For RPN calculator }
@@ -256,7 +256,7 @@ parctan2 : begin
    end;
 end;
 
-Function IsFunction(S:String):ParseOperation;
+Function IsFunction(S:ShortString):ParseOperation;
 
 var Count:ParseOperation;
 
@@ -395,9 +395,9 @@ begin
  InFixToParseTree:=RpnPop;
 end;
 
-function TBaseExprParser.ParseTreeToInfix(expr:pnode):string;
+function TBaseExprParser.ParseTreeToInfix(expr:pnode):ShortString;
 
-var S,right,left : string;
+var S,right,left : ShortString;
     IsSimpleExpr : boolean;
 
 begin
@@ -444,13 +444,13 @@ begin
   ParseTreeToInfix:=S;
 end;
 
-function TBaseExprParser.ParseTreeToRPN(expr:pnode):string;
+function TBaseExprParser.ParseTreeToRPN(expr:pnode):ShortString;
 {not fast because of the prepending. Creating an array of pnode would maybe
 be faster}
 
-procedure SearchTree(Tree:pnode;var s:string);
+procedure SearchTree(Tree:pnode;var s:ShortString);
 
-var temp:string;
+var temp:ShortString;
 
 begin
  if tree<>nil then
@@ -481,7 +481,7 @@ begin
     end;
 end;
 
-var s : String;
+var s : ShortString;
 
 begin
  s:='';

@@ -34,12 +34,19 @@
 ** types.
 }
 {$PACKRECORDS C}{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sndfile; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   sndfilelib = 'sndfile';
@@ -410,7 +417,7 @@ type
 ** to sf_perror () or sf_error_str ().
 ** All calls to sf_open() should be matched with a call to sf_close().
 }
-function sf_open (path : pChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
+function sf_open (path : PAnsiChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
   external sndfilelib  name 'sf_open';
 
 {

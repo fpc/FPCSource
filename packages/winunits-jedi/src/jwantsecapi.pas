@@ -43,7 +43,9 @@
 // $Id: JwaNtSecApi.pas,v 1.15 2007/09/05 11:58:51 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaNtSecApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaNtSecApi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Ntstatus, WinApi.Jedi.Winnt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaNtStatus, JwaWinNT;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -227,7 +234,7 @@ type
   _LSA_STRING = record
     Length: USHORT;
     MaximumLength: USHORT;
-    Buffer: PCHAR;
+    Buffer: PAnsiChar;
   end;
   {$EXTERNALSYM _LSA_STRING}
   LSA_STRING = _LSA_STRING;
@@ -2159,8 +2166,8 @@ type
     UserName: UNICODE_STRING;
     Workstation: UNICODE_STRING;
     ChallengeToClient: array [0..MSV1_0_CHALLENGE_LENGTH - 1] of UCHAR;
-    CaseSensitiveChallengeResponse: STRING;
-    CaseInsensitiveChallengeResponse: STRING;
+    CaseSensitiveChallengeResponse: _STRING;
+    CaseInsensitiveChallengeResponse: _STRING;
     ParameterControl: ULONG;
   end;
   {$EXTERNALSYM _MSV1_0_LM20_LOGON}
@@ -2181,8 +2188,8 @@ type
     UserName: UNICODE_STRING;
     Workstation: UNICODE_STRING;
     ChallengeToClient: array [0..MSV1_0_CHALLENGE_LENGTH - 1] of UCHAR;
-    AuthenticationInfo1: STRING;
-    AuthenticationInfo2: STRING;
+    AuthenticationInfo1: _STRING;
+    AuthenticationInfo2: _STRING;
     ParameterControl: ULONG;
     SubAuthPackageId: ULONG;
   end;
@@ -3205,7 +3212,7 @@ type
   _KERB_NET_ADDRESS = record
     Family: ULONG;
     Length: ULONG;
-    Address: PCHAR;
+    Address: PAnsiChar;
   end;
   {$EXTERNALSYM _KERB_NET_ADDRESS}
   KERB_NET_ADDRESS = _KERB_NET_ADDRESS;

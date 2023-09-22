@@ -2,7 +2,12 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses
+  {$ifdef unix}
+  cwstring,
+  cthreads,
+  {$endif}
+  fpmkunit;
 
 Var
   P : TPackage;
@@ -39,6 +44,9 @@ begin
 
     with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

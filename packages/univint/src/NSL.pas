@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NSL;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Events,MacOsApi.NSLCore;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Events,NSLCore;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -345,7 +351,7 @@ procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; us
    parameter.  (If left alone, NSLStandardGetURL dialog will strip the service type
    portion off the url).
 }
-{ char* serviceTypeList }
+{ AnsiChar* serviceTypeList }
 {
    the serviceTypeList parameter is a null terminated string that will 
    directly affect the contents of the services popup in the dialog.
@@ -379,9 +385,9 @@ procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; us
    servers would be shown with your icon at resource id 129.
 }
 
-{ char** url }
+{ AnsiChar** url }
 {
-   pass in the address of a char* and it will point to the resulting url.  If the user
+   pass in the address of a AnsiChar* and it will point to the resulting url.  If the user
    cancels (the function returns false), the pointer will be set to nil.  If the function
    returns true (user selected a url), then you must call NSLFreeURL on the pointer when
    you are done with it.

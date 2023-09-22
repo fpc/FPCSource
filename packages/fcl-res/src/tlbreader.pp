@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tlbreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -43,11 +50,16 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Resources.DataStream, System.Resources.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   resdatastream, resfactory;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TSignature = array[0..3] of char;
+  TSignature = array[0..3] of AnsiChar;
 
 const
   TypeLibSig1 = 'MSFT';

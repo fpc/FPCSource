@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dfmreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -30,7 +37,7 @@ type
   private
     fExtensions : string;
     fDescription : string;
-    fLine : string;
+    fLine : ansistring;
     fLinePos : integer;
     fObjectName : string;
     dummyType : TResourceDesc;
@@ -41,7 +48,7 @@ type
     function IsAlphaNum : boolean;
     function IsSpace : boolean;
     procedure SkipSpaces;
-    function GetIdent : string;
+    function GetIdent : ansistring;
     procedure ReadLine(aStream : TStream);
     
     function CheckTextDfm(aStream : TStream) : boolean;
@@ -59,25 +66,30 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Resources.DataStream, System.Resources.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   resdatastream, resfactory;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TSignature = array[0..3] of char;
+  TSignature = array[0..3] of AnsiChar;
 
 const
-  FilerSignature = 'TPF0';
+  FilerSignature : AnsiString = 'TPF0';
 
 { TDfmResourceReader }
 
 function TDfmResourceReader.IsAlpha: boolean;
 begin
-  Result:=pchar(fLine)[fLinePos] in ['_','A'..'Z','a'..'z'];
+  Result:=PAnsiChar(fLine)[fLinePos] in ['_','A'..'Z','a'..'z'];
 end;
 
 function TDfmResourceReader.IsNum: boolean;
 begin
-  Result:=pchar(fLine)[fLinePos] in ['0'..'9'];
+  Result:=PAnsiChar(fLine)[fLinePos] in ['0'..'9'];
 end;
 
 function TDfmResourceReader.IsAlphaNum: boolean;
@@ -88,7 +100,7 @@ end;
 function TDfmResourceReader.IsSpace: boolean;
 const TAB = #9;
 begin
-  Result:=pchar(fLine)[fLinePos] in [' ',TAB];
+  Result:=PAnsiChar(fLine)[fLinePos] in [' ',TAB];
 end;
 
 procedure TDfmResourceReader.SkipSpaces;
@@ -96,14 +108,14 @@ begin
   while IsSpace do inc(fLinePos);
 end;
 
-function TDfmResourceReader.GetIdent: string;
+function TDfmResourceReader.GetIdent: ansistring;
 begin
   Result:='';
   SkipSpaces;
   if not IsAlpha then exit;
   while IsAlphaNum do
   begin
-    Result:=Result+pchar(fLine)[fLinePos];
+    Result:=Result+PAnsiChar(fLine)[fLinePos];
     inc(fLinePos);
   end;
 end;
@@ -111,7 +123,7 @@ end;
 procedure TDfmResourceReader.ReadLine(aStream : TStream);
 const CR = #13;
       LF = #10;
-var c : char;
+var c : AnsiChar;
 begin
   fLine:='';
   
@@ -125,7 +137,7 @@ end;
 
 (*should be:  object Name: Type  or inherited Name: Type*)
 function TDfmResourceReader.CheckTextDfm(aStream: TStream): boolean;
-var tmp : string;
+var tmp : ansistring;
 begin
   Result:=false;
   fLine:='';
@@ -138,7 +150,7 @@ begin
   if (tmp <> 'object') and (tmp<>'inherited') then exit;
   if GetIdent='' then exit;
   SkipSpaces;
-  if pchar(fLine)[fLinePos]<>':' then exit;
+  if PAnsiChar(fLine)[fLinePos]<>':' then exit;
   inc(fLinePos);
   SkipSpaces;
   fObjectName:=UpperCase(GetIdent);

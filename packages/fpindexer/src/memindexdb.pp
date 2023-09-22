@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2012 by the Free Pascal development team
 
     Memory database
@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit memindexdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpIndexer.Indexer, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpindexer, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TMatch = Class;
@@ -197,7 +204,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.Streams.Buffer;
+{$ELSE FPC_DOTTEDUNITS}
 uses bufstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TMemIndexDB }
 
@@ -259,7 +270,7 @@ end;
 
 function TDescrItem.BlockSize: Integer;
 begin
-  Result:=Sizeof(Integer)+Length(FDescription)*SizeOf(Char);
+  Result:=Sizeof(Integer)+Length(FDescription)*SizeOf(AnsiChar);
 end;
 
 procedure TDescrItem.WriteStringToStream(Astream: TStream; S: UTF8string);
@@ -269,7 +280,7 @@ begin
   L:=Length(S);
   AStream.WriteBuffer(L,SizeOf(L));
   if (L>0) then
-    AStream.WriteBuffer(S[1],L*SizeOf(Char));
+    AStream.WriteBuffer(S[1],L*SizeOf(AnsiChar));
 end;
 
 procedure TDescrItem.WriteToStream(S: TStream);
@@ -300,7 +311,7 @@ begin
   AStream.ReadBuffer(L,SizeOf(L));
   SetLength(Result,L);
   if (L>0) then
-    AStream.ReadBuffer(Pointer(Result)^,L*SizeOf(Char));
+    AStream.ReadBuffer(Pointer(Result)^,L*SizeOf(AnsiChar));
 end;
 
 function TDescrItem.ReadFromStream(S: TStream) : Integer;

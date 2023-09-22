@@ -24,15 +24,23 @@
 { This unit is deprecated because it doesn't work well with non-ascii data.
   Attempts to change its behavior will likely cause problems with existing
   config files, so it is superseded altogether by xmlconf unit. }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLCfg deprecated;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {off $DEFINE MEM_CHECK}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
+  System.SysUtils, System.Classes, Xml.Dom, Xml.Read, Xml.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
   SysUtils, Classes, DOM, XMLRead, XMLWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SMissingPathName = 'A part of the pathname is invalid (missing)';

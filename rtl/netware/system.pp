@@ -43,8 +43,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
@@ -70,22 +70,22 @@ TYPE
 
 VAR
    ArgC   : INTEGER;
-   ArgV   : ppchar;
+   ArgV   : PPAnsiChar;
    NetwareCheckFunction    : TNWCheckFunction;
    NetwareMainThreadGroupID: longint;
    NetwareUnloadProc       : pointer = nil;  {like exitProc but for nlm unload only}
 
 CONST
-   envp   : ppchar = nil;   {dummy to make heaptrc happy}
+   envp   : PPAnsiChar = nil;   {dummy to make heaptrc happy}
 
 
-procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; external 'clib' name 'printf';
-procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; external 'clib' name 'printf';
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);  CDecl; external 'clib' name 'printf';
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl; external 'clib' name 'printf';
-procedure ConsolePrintf (FormatStr : PCHAR);  CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PAnsiChar; Param : LONGINT); CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PAnsiChar; Param : PAnsiChar); CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PAnsiChar; P1,P2 : LONGINT);  CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PAnsiChar; P1,P2,P3 : LONGINT);  CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PAnsiChar);  CDecl; external 'clib' name 'printf';
 // this gives internal compiler error 200404181
-// procedure ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL 'clib' name 'ConsolePrintf';
+// procedure ConsolePrintf (FormatStr : PAnsiChar; Param : array of const); CDecl; EXTERNAL 'clib' name 'ConsolePrintf';
 
 procedure __EnterDebugger; cdecl; external 'clib' name 'EnterDebugger';
 
@@ -120,7 +120,7 @@ procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 *****************************************************************************}
 
 
-PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nlm_main'];
+PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : PPAnsiChar); CDECL; [public,alias: '_nlm_main'];
 BEGIN
   // Initialize of BSS now done in nwpre
   ArgC := _ArgC;
@@ -211,7 +211,7 @@ begin
 end;
 
 { argument number l }
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l+1<=argc) then
   begin
@@ -267,7 +267,7 @@ end;
 
 
 {$ifdef StdErrToConsole}
-var ConsoleBuff : array [0..512] of char;
+var ConsoleBuff : array [0..512] of AnsiChar;
 
 Function ConsoleWrite(Var F: TextRec): Integer;
 var
@@ -320,7 +320,7 @@ var oldTG : longint;
     oldPtr: pointer;
     err   : longint;
     current_exit : procedure;
-    ThreadName   : array [0..20] of char;
+    ThreadName   : array [0..20] of AnsiChar;
     HadExitProc  : boolean;
     Count        : longint;
 begin

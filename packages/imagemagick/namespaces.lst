@@ -1,0 +1,5 @@
+src/imagemagick.pas=namespaced/Api.Imagemagick.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/buildim.pp=namespaced/Api.Buildim.pp
+src/magick_wand.pas=namespaced/Api.Magick_wand.pas

@@ -405,7 +405,7 @@ function eh_return_data_regno(nr: longint): longint;
 implementation
 
 uses
-  rgBase, verbose, itcpugas;
+  rgBase, globals, verbose, itcpugas;
 
 const
   std_regname_table: TRegNameTable = (

@@ -55,7 +55,7 @@ type
 
 var
   sector1: SECTOR;        // Our Model Goes Here:
-  Myfile: pchar;
+  Myfile: PAnsiChar;
   cuberot: TCubeRot;
 
 procedure ShadowDemo(); forward;
@@ -135,7 +135,7 @@ begin
   tcos := f32tofloat(c);
 end;
 
-procedure myGetStr(buff: pchar; size: integer);
+procedure myGetStr(buff: PAnsiChar; size: integer);
 begin
   buff^ := Myfile^;
   inc(MyFile);
@@ -151,7 +151,7 @@ begin
   buff[1] := #0;
 end;
 
-procedure readstr(str: pchar);
+procedure readstr(str: PAnsiChar);
 begin
   repeat
     myGetStr(str, 255);
@@ -164,7 +164,7 @@ var
   x, y, z: cfloat;
   u, v: cfloat;
   numtriangles: integer;
-  oneline: array [0..254] of char;
+  oneline: array [0..254] of AnsiChar;
   loop, vert: integer;
 begin
   readstr(oneline);
@@ -315,7 +315,7 @@ var
   i: integer;
   held: integer;
 begin
-  MyFile := pchar(@World_txt);
+  MyFile := PAnsiChar(@World_txt);
   // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
   vramSetBankA(VRAM_A_TEXTURE);                        //NEW  must set up some memory for textures

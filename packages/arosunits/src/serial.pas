@@ -14,16 +14,23 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit serial;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
-  // array of termination char's to use,see serial.doc setparams
+  // array of termination AnsiChar's to use,see serial.doc setparams
   PIOTArray = ^TIOTArray;
   TIOTArray = record
     TermArray0: LongWord;
@@ -155,7 +162,7 @@ const
   IOSERB_ACTIVE   = 4;                     // rqst-qued-OR-current
   IOSERF_ACTIVE   = 1 shl IOSERB_ACTIVE;
 
-  SERIALNAME: PChar = 'serial.device';
+  SERIALNAME: PAnsiChar = 'serial.device';
 
 implementation
 

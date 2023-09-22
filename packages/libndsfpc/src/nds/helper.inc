@@ -18,17 +18,17 @@ type
 
 
 (* Some libc functions *)
-//function printf(format: Pchar; args: array of const): longint; cdecl; external;
-function printf(format: Pchar): longint; cdecl; varargs; external;
-//function sprintf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sprintf(s: Pchar; format: Pchar): longint; varargs; cdecl; external;
-//function iprintf(format: Pchar; args: array of const): longint; cdecl; external;
-function iprintf(format: Pchar): longint; varargs; cdecl; external;
-//function scanf(format: Pchar; args: array of const): longint; cdecl; external;
-function scanf(format: Pchar): longint; cdecl; varargs; external;
-//function sscanf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sscanf(s: Pchar; format: Pchar): longint; cdecl; varargs; external;
-function strcmp(s1: Pchar; s2: Pchar): longint; cdecl; external;
+//function printf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function printf(format: PAnsiChar): longint; cdecl; varargs; external;
+//function sprintf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sprintf(s: PAnsiChar; format: PAnsiChar): longint; varargs; cdecl; external;
+//function iprintf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function iprintf(format: PAnsiChar): longint; varargs; cdecl; external;
+//function scanf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function scanf(format: PAnsiChar): longint; cdecl; varargs; external;
+//function sscanf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sscanf(s: PAnsiChar; format: PAnsiChar): longint; cdecl; varargs; external;
+function strcmp(s1: PAnsiChar; s2: PAnsiChar): longint; cdecl; external;
 
 function malloc(size: integer): pointer; cdecl; external;
 function realloc(ptr: pointer; size: integer): pointer; cdecl; external;

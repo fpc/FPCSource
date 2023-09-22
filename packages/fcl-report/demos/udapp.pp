@@ -463,7 +463,7 @@ begin
     begin
     J:=GetOptionValue('j','json');
     if J='' then
-      J:=ChangeFileExt(Paramstr(0),'.json');
+      J:=ChangeFileExt(Paramstr(0),rtlstring('.json'));
     end;
   F:=GetOptionValue('f','format');
   Fmt:=High(TRenderFormat);

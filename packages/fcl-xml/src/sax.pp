@@ -15,7 +15,9 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SAX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
@@ -23,7 +25,11 @@ unit SAX;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SSAXAttributeIndexError = 'Invalid attribute index %d';

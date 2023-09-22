@@ -12,10 +12,21 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgglobals;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Unix}
+  UnixApi.Base,
+{$endif}
+  System.SysUtils,
+  System.Classes,
+  Fpmkunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef unix}
   baseunix,
@@ -23,6 +34,7 @@ uses
   SysUtils,
   Classes,
   fpmkunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$ifdef unix}
@@ -121,6 +133,16 @@ Implementation
 {$ENDIF GO32v2 or WATCOM or OS2}
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+{$IFNDEF USE_SHELL}
+  System.Process,
+{$ENDIF USE_SHELL}
+  System.Contnrs,
+  Fcl.UriParser,
+  FpPkg.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
 {$IFNDEF USE_SHELL}
@@ -129,6 +151,7 @@ uses
   contnrs,
   uriparser,
   pkgmessages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function FPPkgGetVendorName:string;
@@ -269,7 +292,7 @@ end;
 
 Function DirectoryExistsLog(const ADir:string):Boolean;
 begin
-  result:=SysUtils.DirectoryExists(ADir);
+  result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DirectoryExists(ADir);
   if result then
     log(llDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
@@ -279,7 +302,7 @@ end;
 
 Function FileExistsLog(const AFileName:string):Boolean;
 begin
-  result:=SysUtils.FileExists(AFileName);
+  result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FileExists(AFileName);
   if result then
     log(llDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
@@ -359,7 +382,7 @@ var
 {$ELSE USE_SHELL}
   S: TProcess;
 {$ENDIF USE_SHELL}
-  Buf: array [0..BufSize - 1] of char;
+  Buf: array [0..BufSize - 1] of AnsiChar;
   Count: longint;
 begin
 {$IFDEF USE_SHELL}
@@ -370,19 +393,22 @@ begin
   else
    TmpfileName := 'fppkgout.' + ProcIDStr;
   CmdLine2 := '/C ' + ACompiler + ' ' + AOptions + ' > ' + TmpFileName;
-  SysUtils.ExecuteProcess (GetEnvironmentVariable ('COMSPEC'), CmdLine2);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.ExecuteProcess (GetEnvironmentVariable ('COMSPEC'), CmdLine2);
   Assign (TmpFile, TmpFileName);
   Reset (TmpFile, 1);
   BlockRead (TmpFile, Buf, BufSize, Count);
   Close (TmpFile);
 {$ELSE USE_SHELL}
   S:=TProcess.Create(Nil);
-  S.Commandline:=ACompiler+' '+AOptions;
-  S.ShowWindow:=swoHIDE;
-  S.Options:=[poUsePipes];
-  S.execute;
-  Count:=s.output.read(buf,BufSize);
-  S.Free;
+  try
+    S.Commandline:=ACompiler+' '+AOptions;
+    S.ShowWindow:=swoHIDE;
+    S.Options:=[poUsePipes];
+    S.execute;
+    Count:=s.output.read(buf,BufSize);
+  finally
+    S.Free;
+  end;
 {$ENDIF USE_SHELL}
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);

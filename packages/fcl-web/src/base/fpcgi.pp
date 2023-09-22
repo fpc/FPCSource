@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,11 +13,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpWeb.HostApp.Custom.Cgi;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,Classes,CustCgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -32,7 +38,11 @@ Var
   
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.CustApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses CustApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure InitCGI;
 

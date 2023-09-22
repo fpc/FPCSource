@@ -56,6 +56,7 @@ Type
     paratarget        : tsystem;
     paratargetasm     : tasm;
     paratargetdbg     : tdbg;
+    parasubtarget    : string;
     LinkTypeSetExplicitly : boolean;
     LinkerSetExplicitly : boolean;
     Constructor Create;
@@ -76,6 +77,47 @@ Type
     procedure TargetOptions(def:boolean);
     procedure CheckOptionsCompatibility;
     procedure ForceStaticLinking;
+  private
+    // Format is Interpret_[A..Z]_(l|U)
+    // with l for lowercase, U for uppercase
+    procedure Interpret_A_l(opt, more: TCmdStr);
+    procedure Interpret_A_U(opt, more: TCmdStr);
+    procedure Interpret_B_l(opt, more: TCmdStr);
+    procedure Interpret_B_U(opt, more: TCmdStr);
+    procedure Interpret_C_U(opt, more: TCmdStr);
+    procedure Interpret_D_l(opt, more: TCmdStr);
+    procedure Interpret_D_U(opt, more: TCmdStr);
+    procedure Interpret_E_l(opt, more: TCmdStr);
+    procedure Interpret_E_U(opt, more: TCmdStr);
+    procedure Interpret_F_l(opt, more: TCmdStr);
+    procedure Interpret_F_U(opt, more: TCmdStr; ispara: boolean);
+    procedure Interpret_G_l(opt, more: TCmdStr);
+    procedure Interpret_Help(more: TCmdStr);
+    procedure Interpret_H_l(more: TCmdStr);
+    procedure Interpret_I_l(more: TCmdStr);
+    procedure Interpret_I_U(more: TCmdStr; ispara: boolean);
+    procedure Interpret_K_l(opt, more: TCmdStr);
+    procedure Interpret_L_l(opt, more: TCmdStr);
+    procedure Interpret_M_l(opt, more: TCmdStr);
+    procedure Interpret_M_U(opt, more: TCmdStr);
+    procedure Interpret_N_l(opt, more: TCmdStr);
+    procedure Interpret_O_l(opt, more: TCmdStr);
+    procedure Interpret_O_U(opt, more: TCmdStr);
+    procedure Interpret_P_l(opt, more: TCmdStr);
+    procedure Interpret_P_U(opt, more: TCmdStr);
+    procedure Interpret_R_U(opt, more: TCmdStr);
+    procedure Interpret_S_l(opt, more: TCmdStr);
+    procedure Interpret_S_U(opt, more: TCmdStr);
+    procedure Interpret_T_l(opt, more: TCmdStr);
+    procedure Interpret_T_U(opt, more: TCmdStr);
+    procedure Interpret_U_l(opt, more: TCmdStr);
+    procedure Interpret_U_U(opt, more: TCmdStr);
+    procedure Interpret_V_l(opt, more: TCmdStr);
+    procedure Interpret_V_U(opt, more: TCmdStr);
+    procedure Interpret_W_U(opt, more: TCmdStr);
+    procedure Interpret_X_l(opt, more: TCmdStr);
+    procedure Interpret_X_U(opt, more: TCmdStr);
+
    protected
     MacVersionSet: boolean;
     IdfVersionSet: boolean;
@@ -89,6 +131,9 @@ Type
 {$ifdef llvm}
     procedure LLVMEnableSanitizers(sanitizers: TCmdStr);
 {$endif llvm}
+{$ifdef AVR}
+    function ParseLinkerDiscardOptions(const s:TCmdStr):boolean;
+{$endif AVR}
     procedure VerifyTargetProcessor;
   end;
 
@@ -123,8 +168,10 @@ const
 
 var
   option     : toption;
+  read_subfile,         { read subtarget config file, set when a cfgfile is found }
   read_configfile,        { read config file, set when a cfgfile is found }
   disable_configfile : boolean;
+  subcfg,
   fpcdir,
   ppccfg,
   param_file    : string;   { file to compile specified on the commandline }
@@ -220,7 +267,7 @@ begin
 end;
 
 
-procedure Toption.WriteLogo;
+procedure TOption.WriteLogo;
 var
   msg : TMsgStr;
   p : pchar;
@@ -236,7 +283,7 @@ begin
 end;
 
 
-procedure Toption.WriteInfo (More: string);
+procedure TOption.WriteInfo(More: string);
 var
   msg_str: TMsgStr;
   p : pchar;
@@ -839,7 +886,7 @@ begin
    end
   else if Copy(More,1,1) = 'x' then
     begin
-      Assign(xmloutput,Copy(More,2,length(More)-1));
+      Assign(xmloutput,Copy(More,2));
       Rewrite(xmloutput);
       WriteLn(xmloutput,'<?xml version="1.0" encoding="utf-8"?>');
       WriteLn(xmloutput,'<fpcoutput>');
@@ -892,7 +939,7 @@ begin
 end;
 
 
-procedure Toption.WriteHelpPages;
+procedure TOption.WriteHelpPages;
 
   function PadEnd(s:string;i:longint):string;
   begin
@@ -1086,7 +1133,7 @@ begin
 end;
 
 
-procedure Toption.IllegalPara(const opt:TCmdStr);
+procedure TOption.IllegalPara(const opt: TCmdStr);
 begin
   Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
@@ -1094,20 +1141,20 @@ begin
 end;
 
 
-procedure toption.UnsupportedPara(const opt: TCmdStr);
+procedure TOption.UnsupportedPara(const opt: TCmdStr);
 begin
   Message1(option_unsupported_target,opt);
   StopOptions(1);
 end;
 
 
-procedure toption.IgnoredPara(const opt: TCmdStr);
+procedure TOption.IgnoredPara(const opt: TCmdStr);
 begin
   Message1(option_ignored_target,opt);
 end;
 
 
-procedure toption.ForceStaticLinking;
+procedure TOption.ForceStaticLinking;
 begin
   def_system_macro('FPC_LINK_STATIC');
   undef_system_macro('FPC_LINK_SMART');
@@ -1119,7 +1166,9 @@ begin
 end;
 
 
-function toption.ParseMacVersionMin(out minversion, invalidateversion: tversion; const compvarname, value: string; ios: boolean): boolean;
+function TOption.ParseMacVersionMin(out minversion,
+  invalidateversion: tversion; const compvarname, value: string; ios: boolean
+  ): boolean;
 
   function subval(start,maxlen: longint; out stop: longint): string;
     var
@@ -1421,6 +1470,30 @@ procedure TOption.LLVMEnableSanitizers(sanitizers: TCmdStr);
   end;
 {$endif}
 
+{$ifdef AVR}
+function TOption.ParseLinkerDiscardOptions(const s: TCmdStr): boolean;
+var
+  i: Integer;
+  c: char;
+begin
+  i:=2;
+  while i<=length(s) do
+   begin
+     c:=upcase(s[i]);
+     case c of
+      'C' : include(init_settings.globalswitches,cs_link_discard_copydata);
+      'J' : include(init_settings.globalswitches,cs_link_discard_jmp_main);
+      'S' : include(init_settings.globalswitches,cs_link_discard_start);
+      'Z' : include(init_settings.globalswitches,cs_link_discard_zeroreg_sp);
+     else
+      exit(false);
+     end;
+     inc(i);
+   end;
+  result:=true;
+end;
+{$endif AVR}
+
 {$ifdef XTENSA}
 procedure TOption.MaybeSetIdfVersionMacro;
 begin
@@ -1460,7 +1533,8 @@ procedure TOption.VerifyTargetProcessor;
   end;
 
 
-function Toption.Unsetbool(var Opts:TCmdStr; Pos: Longint; const FullPara: TCmdStr; RequireBoolPara: boolean):boolean;
+function TOption.Unsetbool(var Opts: TCmdStr; Pos: Longint;
+  const FullPara: TCmdStr; RequireBoolPara: Boolean): boolean;
 { checks if the character after pos in Opts is a + or a - and returns resp.
   false or true. If it is another character (or none), it also returns false }
 begin
@@ -1478,24 +1552,8 @@ end;
 
 procedure TOption.interpret_option(const opt:TCmdStr;ispara:boolean);
 var
-  code : integer;
-  c    : char;
-{$ifdef cpucapabilities}
-  cf   : tcpuflags;
-  cpuflagsstr,
-  extrasettings,
-{$endif cpucapabilities}
   more : TCmdStr;
-  major,minor : longint;
-  error : integer;
-  j,l   , deletepos: longint;
-  d,s   : TCmdStr;
-  hs    : TCmdStr;
-  unicodemapping : punicodemap;
-  includecapability: Boolean;
-{$ifdef llvm}
-  disable: boolean;
-{$endif}
+
 begin
   if opt='' then
    exit;
@@ -1507,7 +1565,7 @@ begin
      not(
          (opt[1]='-') and
          (
-          ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l','U'])) or
+          ((length(opt)>1) and (opt[2] in ['i','d','v','T','t','u','n','x','X','l','U'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>2) and (opt[2]='C') and (opt[3] in ['a','b','f','p'])) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
@@ -1525,1873 +1583,45 @@ begin
          else
            Message1(option_interpreting_option,opt);
          case opt[2] of
-           '?' :
-             begin
-               if (More <> '') and (More [1] = 'F') then
-                 begin
-                   FPCHelpLines := true;
-                   Delete (More, 1, 1);
-                   FPCBinaryPath := More;
-                 end;
-               WriteHelpPages;
-             end;
-
-           'a' :
-             begin
-               include(init_settings.globalswitches,cs_asm_leave);
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-                    '5' :
-                      if (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16])
-                         or (target_info.cpu in [cpu_mipseb, cpu_mipsel]) then
-                        begin
-                          if UnsetBool(More, j, opt, false) then
-                            exclude(init_settings.globalswitches,cs_asm_pre_binutils_2_25)
-                          else
-                            include(init_settings.globalswitches,cs_asm_pre_binutils_2_25);
-                        end
-                      else
-                        IllegalPara(opt);
-                    'l' :
-                      include(init_settings.globalswitches,cs_asm_source);
-                    'r' :
-                      include(init_settings.globalswitches,cs_asm_regalloc);
-                    'R' :
-                      include(init_settings.globalswitches,cs_asm_rtti_source);
-                    't' :
-                      include(init_settings.globalswitches,cs_asm_tempalloc);
-                    'n' :
-                      include(init_settings.globalswitches,cs_asm_nodes);
-                    { -ao option must be the last, everything behind it is passed directly to
-                      external assembler, it is ignored if internal assembler is used. }
-                    'o' :
-                      begin
-                        asmextraopt:=copy(more,j+1,length(more)-j);
-                        break;
-                      end;
-                    'p' :
-                      begin
-                        exclude(init_settings.globalswitches,cs_asm_leave);
-                        if UnsetBool(More, 0, opt, false) then
-                          exclude(init_settings.globalswitches,cs_asm_pipe)
-                        else
-                          include(init_settings.globalswitches,cs_asm_pipe);
-                      end;
-                    '-' :
-                      init_settings.globalswitches:=init_settings.globalswitches -
-                          [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc,
-                           cs_asm_nodes, cs_asm_pipe];
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'A' :
-             begin
-               if CompareText(More,'DEFAULT') = 0 then
-                 paratargetasm:=as_default
-               else
-                 paratargetasm:=find_asm_by_string(More);
-               if paratargetasm=as_none then
-                 IllegalPara(opt);
-             end;
-
-           'b' :
-             begin
-               // Message1(option_obsolete_switch,'-b');
-               if UnsetBool(More,0,opt,false) then
-                 begin
-                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
-                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser];
-                 end
-               else
-                 begin
-                   init_settings.moduleswitches:=init_settings.moduleswitches+[cs_browser];
-                 end;
-               if More<>'' then
-                 if (More='l') or (More='l+') then
-                   init_settings.moduleswitches:=init_settings.moduleswitches+[cs_local_browser]
-                 else if More='l-' then
-                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser]
-                 else
-                   IllegalPara(opt);
-             end;
-
-           'B' :
-             do_build:=not UnSetBool(more,0,opt,true);
-
-           'C' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-                    '3' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_ieee_errors)
-                      Else
-                        include(init_settings.localswitches,cs_ieee_errors);
-                    'a' :
-                      begin
-                        s:=upper(copy(more,j+1,length(more)-j));
-                        if not(SetAbiType(s,target_info.abi)) then
-                          IllegalPara(opt);
-                        ABISetExplicitly:=true;
-                        break;
-                      end;
-
-                    'b' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           target_info.endian:=endian_little
-                         else
-                           target_info.endian:=endian_big;
-                         set_endianess_macros;
-                       end;
-
-                    'c' :
-                       begin
-                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),init_settings.defproccall) then
-                          IllegalPara(opt);
-                         break;
-                       end;
-{$ifdef cpufpemu}
-                    'e' :
-                       begin
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.moduleswitches,cs_fp_emulation)
-                         Else
-                           include(init_settings.moduleswitches,cs_fp_emulation);
-                       end;
-{$endif cpufpemu}
-                    'E' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_fpu_exceptions)
-                      Else
-                        include(init_settings.localswitches,cs_check_fpu_exceptions);
-                    'f' :
-                      begin
-                        s:=upper(copy(more,j+1,length(more)-j));
-                        if not(SetFpuType(s,init_settings.fputype)) then
-                          IllegalPara(opt);
-                        FPUSetExplicitly:=True;
-                        break;
-                      end;
-                    'F' :
-                       begin
-                         if not SetMinFPConstPrec(copy(more,j+1,length(more)-j),init_settings.minfpconstprec) then
-                           IllegalPara(opt);
-                         break;
-                       end;
-                    'g' :
-                       begin
-                         if tf_no_pic_supported in target_info.flags then
-                           begin
-                             { consume a possible '-' coming after it }
-                             UnsetBool(More, j, opt, false);
-                             message(scan_w_pic_ignored);
-                           end
-                         else if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.moduleswitches,cs_create_pic)
-                         else
-                           include(init_settings.moduleswitches,cs_create_pic);
-                      end;
-                    'h' :
-                      begin
-                         l:=pos(',',copy(more,j+1,length(more)-j));
-                         if l=0 then
-                           l:=length(more)-j+1;
-                         val(copy(more,j+1,l-1),heapsize,code);
-                         if (code<>0)
-{$ifdef AVR}
-                         or (heapsize<32)
-{$else AVR}
-                         or (heapsize<1024)
-{$endif AVR}
-                         then
-                           IllegalPara(opt)
-                         else if l<=length(more)-j then
-                           begin
-                             val(copy(more,j+l+1,length(more)),maxheapsize,code);
-                             if code<>0 then
-                               IllegalPara(opt)
-                             else if (maxheapsize<heapsize) then
-                               begin
-                                 message(scan_w_heapmax_lessthan_heapmin);
-                                 maxheapsize:=heapsize;
-                               end;
-                           end;
-                         break;
-                      end;
-                    'i' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_io)
-                      else
-                        include(init_settings.localswitches,cs_check_io);
-{$ifdef arm}
-                    'I' :
-                      begin
-                        if (upper(copy(more,j+1,length(more)-j))='THUMB') and
-                          { does selected CPU really understand thumb? }
-                          (init_settings.cputype in cpu_has_thumb) then
-                          init_settings.instructionset:=is_thumb
-                        else if upper(copy(more,j+1,length(more)-j))='ARM' then
-                          init_settings.instructionset:=is_arm
-                        else
-                          IllegalPara(opt);
-                        break;
-                      end;
-{$endif arm}
-{$ifdef llvm}
-                    'l':
-                      begin
-                        l:=j+1;
-                        while l<=length(More) do
-                          begin
-                            case More[l] of
-                              'f':
-                                begin
-                                  delete(More,1,l);
-                                  disable:=Unsetbool(More,length(More)-1,opt,false);
-                                  case More of
-                                    'lto':
-                                       begin
-                                         if not disable then
-                                           begin
-                                             include(init_settings.moduleswitches,cs_lto);
-                                             LTOExt:='.bc';
-                                           end
-                                         else
-                                           exclude(init_settings.moduleswitches,cs_lto);
-                                       end;
-                                     'ltonosystem':
-                                       begin
-                                         if not disable then
-                                           begin
-                                             include(init_settings.globalswitches,cs_lto_nosystem);
-                                           end
-                                         else
-                                           exclude(init_settings.globalswitches,cs_lto_nosystem);
-                                       end;
-                                    else if More.StartsWith('sanitize=') then
-                                      begin
-                                        delete(More,1,length('sanitize='));
-                                        LLVMEnableSanitizers(more);
-                                      end
-                                    else
-                                      begin
-                                        IllegalPara(opt);
-                                      end;
-                                  end;
-                                  l:=length(more)+1;
-                                end;
-                              'v':
-                                begin
-                                  init_settings.llvmversion:=llvmversion2enum(copy(More,l+1,length(More)));
-                                  if init_settings.llvmversion=llvmver_invalid then
-                                    begin
-                                      IllegalPara(opt);
-                                    end;
-                                  l:=length(More)+1;
-                                end
-                              else
-                                begin
-                                  IllegalPara(opt);
-                                end;
-                            end;
-                          end;
-                        j:=l;
-                      end;
-{$endif llvm}
-                    'n' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.globalswitches,cs_link_nolink)
-                      Else
-                        include(init_settings.globalswitches,cs_link_nolink);
-                    'N' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_low_addr_load)
-                      Else
-                        include(init_settings.localswitches,cs_check_low_addr_load);
-                    'o' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_overflow)
-                      Else
-                        include(init_settings.localswitches,cs_check_overflow);
-                    'O' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_ordinal_size)
-                      Else
-                        include(init_settings.localswitches,cs_check_ordinal_size);
-                    'p' :
-                      begin
-                        s:=upper(copy(more,j+1,length(more)-j));
-{$ifdef cpucapabilities}
-                        { find first occurrence of + or - }
-                        deletepos:=PosCharset(['+','-'],s);
-                        if deletepos<>0 then
-                          begin
-                            extrasettings:=Copy(s,deletepos,Length(s));
-                            Delete(s,deletepos,Length(s));
-                           end
-                        else
-                          extrasettings:='';
-{$endif cpucapabilities}
-                        if not(Setcputype(s,init_settings)) then
-                          IllegalPara(opt);
-{$ifdef cpucapabilities}
-                        while extrasettings<>'' do
-                          begin
-                            Delete(extrasettings,1,1);
-                            includecapability:=true;
-                            deletepos:=PosCharset(['+','-'],extrasettings);
-                            if deletepos<>0 then
-                              begin
-                                includecapability:=extrasettings[deletepos]='+';
-                                s:=Copy(extrasettings,1,deletepos-1);
-                                Delete(extrasettings,1,deletepos-1);
-                              end
-                            else
-                              begin
-                                s:=extrasettings;
-                                extrasettings:='';
-                              end;
-                            for cf in tcpuflags do
-                              begin
-                                Str(cf,cpuflagsstr);
-                                { expect that the cpuflagsstr i.e. the enum as well contains _HAS_ }
-                                if Pos('_HAS_',cpuflagsstr)<>0 then
-                                { get rid of prefix including _HAS_ }
-                                  Delete(cpuflagsstr,1,Pos('_HAS_',cpuflagsstr)+4)
-                                else
-                                  Internalerror(2021110601);
-                                if s=cpuflagsstr then
-                                  begin
-                                    if includecapability then
-                                      Include(cpu_capabilities[init_settings.cputype],cf)
-                                    else
-                                      Exclude(cpu_capabilities[init_settings.cputype],cf);
-                                    s:='';
-                                    break;
-                                  end;
-                              end;
-                            if s<>'' then
-                              IllegalPara(opt);
-                          end;
-{$endif cpucapabilities}
-                        CPUSetExplicitly:=true;
-                        break;
-                      end;
-                    'P':
-                      begin
-                        delete(more,1,1);
-                        case upper(copy(more,1,pos('=',more)-1)) of
-                          'PACKSET':
-                            begin
-                              delete(more,1,pos('=',more));
-                              case more of
-                                '0','DEFAULT','NORMAL':
-                                  init_settings.setalloc:=0;
-                                '1','2','4','8':
-                                  init_settings.setalloc:=StrToInt(more);
-                                else
-                                  IllegalPara(opt);
-                              end
-                            end;
-                          'PACKENUM':
-                            begin
-                              delete(more,1,pos('=',more));
-                              case more of
-                                '0','DEFAULT','NORMAL':
-                                  init_settings.packenum:=4;
-                                '1','2','4':
-                                  init_settings.packenum:=StrToInt(more);
-                                else
-                                  IllegalPara(opt);
-                              end;
-                            end;
-                          'PACKRECORD':
-                            begin
-                              delete(more,1,pos('=',more));
-                              case more of
-                                '0','DEFAULT','NORMAL':
-                                  init_settings.packrecords:=default_settings.packrecords;
-                                '1','2','4','8','16','32':
-                                  init_settings.packrecords:=StrToInt(more);
-                                else
-                                  IllegalPara(opt);
-                              end;
-                            end
-                          else
-                            IllegalPara(opt);
-                        end;
-                      end;
-                    'r' :
-                      If UnsetBool(More, j, opt, false) then
-                        exclude(init_settings.localswitches,cs_check_range)
-                      Else
-                        include(init_settings.localswitches,cs_check_range);
-                    'R' :
-                      If UnsetBool(More, j, opt, false) then
-                        begin
-                          exclude(init_settings.localswitches,cs_check_range);
-                          exclude(init_settings.localswitches,cs_check_object);
-                        end
-                      Else
-                        begin
-                          include(init_settings.localswitches,cs_check_range);
-                          include(init_settings.localswitches,cs_check_object);
-                        end;
-                    's' :
-                      begin
-                         val(copy(more,j+1,length(more)-j),stacksize,code);
-                         if (code<>0)
-{$ifdef cpu16bitaddr}
-                            or (stacksize>=65521)
-{$else cpu16bitaddr}
-                            or (stacksize>=67107840)
-{$endif cpu16bitaddr}
-                            or (stacksize<1024) then
-                          IllegalPara(opt);
-                         break;
-                      end;
-                    't' :
-                       If UnsetBool(More, j, opt, false) then
-                         exclude(init_settings.localswitches,cs_check_stack)
-                       Else
-                         include(init_settings.localswitches,cs_check_stack);
-                    'D' :
-                       If UnsetBool(More, j, opt, false) then
-                         exclude(init_settings.moduleswitches,cs_create_dynamic)
-                       Else
-                         include(init_settings.moduleswitches,cs_create_dynamic);
-                    'X' :
-                       If UnsetBool(More, j, opt, false) then
-                         exclude(init_settings.moduleswitches,cs_create_smart)
-                       Else
-                         include(init_settings.moduleswitches,cs_create_smart);
-                    'T' :
-                      begin
-                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
-                          IllegalPara(opt);
-                        break;
-                      end;
-                    'v' :
-                       If target_info.system in systems_jvm then
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_check_var_copyout)
-                         Else
-                           include(init_settings.localswitches,cs_check_var_copyout)
-                       else
-                         IllegalPara(opt);
-                    'V':
-                      begin
-                        s:=upper(copy(more,j+1,length(more)-j));
-                        if s='GLOBAL-DYNAMIC' then
-                          init_settings.tlsmodel:=tlsm_global_dynamic
-                        else if s='LOCAL-EXEC' then
-                          init_settings.tlsmodel:=tlsm_local_exec
-                        else
-                          IllegalPara(opt);
-                        break;
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'd' :
-             begin
-               l:=Pos(':=',more);
-               DefaultReplacements(more);
-               if l>0 then
-                 hs:=copy(more,1,l-1)
-               else
-                 hs:=more;
-               if (not is_identifier(hs)) then
-                 begin
-                   if hs='' then
-                     Message1(option_missing_arg,'-d')
-                   else
-                     Message1(option_malformed_para,opt);
-                   StopOptions(1);
-                 end;
-               if l>0 then
-                 begin
-                   if cs_support_macro in init_settings.moduleswitches then
-                     set_system_macro(hs,Copy(more,l+2,255))
-                   else
-                     set_system_compvar(hs,Copy(more,l+2,255));
-                 end
-               else
-                 def_system_macro(hs);
-             end;
-           'D' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-                    'd' :
-                      begin
-                        include(init_settings.globalswitches,cs_link_deffile);
-                        description:=Copy(more,j+1,255);
-                        break;
-                      end;
-                    'D' :
-                      begin
-                        datestr:=Copy(more,j+1,255);
-                        break;
-                      end;
-                    'T' :
-                      begin
-                        timestr:=Copy(more,j+1,255);
-                        break;
-                      end;
-                    'v' :
-                      begin
-                        include(init_settings.globalswitches,cs_link_deffile);
-                        dllversion:=Copy(more,j+1,255);
-                        l:=pos('.',dllversion);
-                        dllminor:=0;
-                        error:=0;
-                        if l>0 then
-                         begin
-                           val(copy(dllversion,l+1,255),minor,error);
-                           if (error=0) and
-                              (minor>=0) and (minor<=$ffff) then
-                             dllminor:=minor
-                           else
-                             if error=0 then
-                               error:=1;
-                         end;
-                        if l=0 then
-                          l:=256;
-                        dllmajor:=1;
-                        major:=0;
-                        if error=0 then
-                          val(copy(dllversion,1,l-1),major,error);
-                        if (error=0) and (major>=0) and (major<=$ffff) then
-                          dllmajor:=major
-                        else
-                          if error=0 then
-                            error:=1;
-                        if error<>0 then
-                          Message1(scan_w_wrong_version_ignored,dllversion);
-                        break;
-                      end;
-                    'w' :
-                      begin
-                        include(init_settings.globalswitches,cs_link_deffile);
-                        usewindowapi:=true;
-                       end;
-                    '-' :
-                      begin
-                        exclude(init_settings.globalswitches,cs_link_deffile);
-                        usewindowapi:=false;
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'e' :
-             exepath:=FixPath(More,true);
-
-           'E' :
-             begin
-               if UnsetBool(More, 0, opt, true) then
-                 exclude(init_settings.globalswitches,cs_link_nolink)
-               else
-                 include(init_settings.globalswitches,cs_link_nolink);
-             end;
-
-           'f' :
-             begin
-               if more='PIC' then
-                 begin
-                   if tf_no_pic_supported in target_info.flags then
-                     message(scan_w_pic_ignored)
-                   else
-                     include(init_settings.moduleswitches,cs_create_pic)
-                 end
-               else
-                 IllegalPara(opt);
-             end;
-
-           'F' :
-             begin
-               if more='' then
-                 IllegalPara(opt);
-               c:=more[1];
-               Delete(more,1,1);
-               DefaultReplacements(More);
-               case c of
-                 'a' :
-                   autoloadunits:=more;
-                 'c' :
-                   begin
-                     { if we first specify that the system code page should be
-                       used and then explicitly specify a code page, unset the
-                       flag that we're using the system code page again }
-                     SetCompileModeSwitch('SYSTEMCODEPAGE-',true);
-                     if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-                       init_settings.sourcecodepage:=CP_UTF8
-                     else if not(cpavailable(more)) then
-                       Message1(option_code_page_not_available,more)
-                     else
-                       init_settings.sourcecodepage:=codepagebyname(more);
-                     include(init_settings.moduleswitches,cs_explicit_codepage);
-                   end;
-                 'C' :
-                   RCCompiler:=More;
-                 'd' :
-                   if UnsetBool(more, 0, opt, true) then
-                     init_settings.disabledircache:=false
-                   else
-                     init_settings.disabledircache:=true;
-                 'D' :
-                   utilsdirectory:=FixPath(More,true);
-                 'e' :
-                   SetRedirectFile(More);
-                 'E' :
-                   OutputExeDir:=FixPath(More,true);
-                 'f' :
-                     if (target_info.system in systems_darwin) then
-                       if ispara then
-                         ParaFrameworkPath.AddPath(More,false)
-                       else
-                         frameworksearchpath.AddPath(More,true)
-{$if defined(XTENSA) or defined(RISCV32)}
-                     else if (target_info.system=system_xtensa_freertos) then
-                       idfpath:=FixPath(More,true)
-{$endif defined(XTENSA) or defined(RISCV32)}
-                     else
-                       IllegalPara(opt);
-                 'F' :
-                   RCForceFPCRes:=true;
-                 'i' :
-                   begin
-                     if ispara then
-                       ParaIncludePath.AddPath(More,false)
-                     else
-                       includesearchpath.AddPath(More,true);
-                   end;
-                 'm' :
-                   begin
-                     s:=ExtractFileDir(more);
-                     if TryStrToInt(ExtractFileName(more),j) then
-                       begin
-                         unicodemapping:=loadunicodemapping(More,More+'.txt',j);
-                         if assigned(unicodemapping) then
-                           registermapping(unicodemapping)
-                         else
-                           IllegalPara(opt);
-                       end
-                     else
-                       IllegalPara(opt);
-                   end;
-                 'M' :
-                   unicodepath:=FixPath(More,true);
-                 'g' :
-                   Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
-                 'l' :
-                   begin
-                     if ispara then
-                       ParaLibraryPath.AddLibraryPath(sysrootpath,More,false)
-                     else
-                       LibrarySearchPath.AddLibraryPath(sysrootpath,More,true)
-                   end;
-                 'L' :
-                   begin
-                     if More<>'' then
-                       ParaDynamicLinker:=More
-                     else
-                       IllegalPara(opt);
-                   end;
-                 'N' :
-                   begin
-                     if more<>'' then
-                       paranamespaces.insert(more)
-                     else
-                       illegalpara(opt);
-                   end;
-                 'o' :
-                   begin
-                     if ispara then
-                       ParaObjectPath.AddPath(More,false)
-                     else
-                       ObjectSearchPath.AddPath(More,true);
-                   end;
-                 'P' :
-                   begin
-                     if ispara then
-                       parapackages.add(more,nil)
-                     else
-                       add_package(more,true,true);
-                   end;
-                 'p' :
-                   begin
-                     if ispara then
-                       parapackagepath.AddPath(More,false)
-                     else
-                       packagesearchpath.AddPath(More,true);
-                   end;
-                 'r' :
-                   Msgfilename:=More;
-                 'R' :
-                   ResCompiler:=More;
-                 'u' :
-                   begin
-                     if ispara then
-                       ParaUnitPath.AddPath(More,false)
-                     else
-                       unitsearchpath.AddPath(More,true);
-                   end;
-                 'U' :
-                   OutputUnitDir:=FixPath(More,true);
-                 'W',
-                 'w':
-                   begin
-                     if More<>'' then
-                       begin
-                         DefaultReplacements(More);
-                         D:=ExtractFilePath(More);
-                         if (D<>'') then
-                           D:=FixPath(D,True);
-                         D:=D+ExtractFileName(More);
-                         if (c='W') then
-                           WpoFeedbackOutput:=D
-                         else
-                           WpoFeedbackInput:=D;
-                       end
-                     else
-                       IllegalPara(opt);
-                   end;
-                 else
-                   IllegalPara(opt);
-               end;
-             end;
-
-           'g' :
-             begin
-               if UnsetBool(More, 0, opt, false) then
-                begin
-                  exclude(init_settings.moduleswitches,cs_debuginfo);
-                  exclude(init_settings.globalswitches,cs_use_heaptrc);
-                  exclude(init_settings.globalswitches,cs_use_lineinfo);
-                  exclude(init_settings.localswitches,cs_checkpointer);
-                  paratargetdbg:=dbg_none;
-                  localvartrashing := -1;
-                end
-               else
-                begin
-                  include(init_settings.moduleswitches,cs_debuginfo);
-                  if paratargetdbg=dbg_none then
-                    paratargetdbg:=target_info.dbg;
-                end;
-               if not RelocSectionSetExplicitly then
-                 RelocSection:=false;
-               j:=1;
-               while j<=length(more) do
-                 begin
-                   case more[j] of
-                     'c' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_checkpointer)
-                         else if (target_info.system in systems_support_checkpointer) then
-                           begin
-                             if do_release then
-                               Message(option_gc_incompatible_with_release_flag)
-                             else
-                               include(init_settings.localswitches,cs_checkpointer);
-                           end
-                         else
-                           UnsupportedPara('-gc');
-                       end;
-                     'h' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_use_heaptrc)
-                         else
-                           begin
-                             if cs_gdb_valgrind in init_settings.globalswitches then
-                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                             include(init_settings.globalswitches,cs_use_heaptrc);
-                           end;
-                       end;
-                     'l' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_use_lineinfo)
-                         else
-                           include(init_settings.globalswitches,cs_use_lineinfo);
-                       end;
-                     'm' :
-                       begin
-                         paratargetdbg:=dbg_codeview;
-                       end;
-                     'o' :
-                       begin
-                         if not UpdateDebugStr(copy(more,j+1,length(more)),init_settings.debugswitches) then
-                           IllegalPara(opt);
-                         break;
-                       end;
-                     'p' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_stabs_preservecase)
-                         else
-                           include(init_settings.globalswitches,cs_stabs_preservecase);
-                       end;
-                     's' :
-                       begin
-                         paratargetdbg:=dbg_stabs;
-                       end;
-                     't' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                            localvartrashing := -1
-                         else
-                           localvartrashing := (localvartrashing + 1) mod nroftrashvalues;
-                       end;
-                     'v' :
-                       begin
-                         if UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_gdb_valgrind)
-                         else
-                           begin
-                             if cs_use_heaptrc in init_settings.globalswitches then
-                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                             include(init_settings.globalswitches,cs_gdb_valgrind);
-                           end;
-                       end;
-                     'w' :
-                       begin
-                         if (j<length(more)) and (more[j+1] in ['2','3','4']) then
-                           begin
-                             case more[j+1] of
-                               '2': paratargetdbg:=dbg_dwarf2;
-                               '3': paratargetdbg:=dbg_dwarf3;
-                               '4': paratargetdbg:=dbg_dwarf4;
-                             end;
-                             inc(j);
-                           end
-                         else
-                           paratargetdbg:=dbg_dwarf2;
-                       end;
-                     else
-                       IllegalPara(opt);
-                   end;
-                   inc(j);
-                 end;
-             end;
-
-           'h' :
-             begin
-               NoPressEnter:=true;
-               if (More <> '') and (More [1] = 'F') then
-                 begin
-                   FPCHelpLines := true;
-                   Delete (More, 1, 1);
-                   FPCBinaryPath := More;
-                 end;
-               WriteHelpPages;
-             end;
-
-           'i' :
-             begin
-               if (More='') or
-                    (More [1] in ['a', 'b', 'c', 'f', 'i', {$ifdef LLVM}'l',{$endif} 'm', 'o', 'r', 't', 'u', 'w', 'x']) then
-                 WriteInfo (More)
-               else
-                 QuickInfo:=QuickInfo+More;
-             end;
-
-           'I' :
-             begin
-               if ispara then
-                 ParaIncludePath.AddPath(More,false)
-               else
-                includesearchpath.AddPath(More,false);
-             end;
-
-           'k' :
-             begin
-               if more<>'' then
-                 ParaLinkOptions:=ParaLinkOptions+' '+More
-               else
-                 IllegalPara(opt);
-             end;
-
-           'l' :
-             ParaLogo:=not UnSetBool(more,0,opt,true);
-
-{$ifdef PREPROCWRITE}
-           'm' :
-             parapreprocess:=not UnSetBool(more,0,opt,true);
-{$endif PREPROCWRITE}
-
-           'M' :
-             begin
-               more:=Upper(more);
-               if not SetCompileMode(more, true) then
-                 if not SetCompileModeSwitch(more, true) then
-                   IllegalPara(opt);
-             end;
-
-           'n' :
-             begin
-               if More='' then
-                 disable_configfile:=true
-               else
-                 IllegalPara(opt);
-             end;
-
-           'o' :
-             begin
-               if More<>'' then
-                 begin
-                   DefaultReplacements(More);
-                   D:=ExtractFilePath(More);
-                   if (D<>'') then
-                     OutputExeDir:=FixPath(D,True);
-                   OutputFileName:=ExtractFileName(More);
-                 end
-               else
-                 IllegalPara(opt);
-             end;
-
-           'O' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-                    '1' :
-                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level1optimizerswitches;
-                    '2' :
-                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
-                    '3' :
-                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
-                    '4' :
-                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
-                    'a' :
-                      begin
-                        if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
-                          IllegalPara(opt);
-                        break;
-                      end;
-                    's' :
-                      include(init_settings.optimizerswitches,cs_opt_size);
-                    'p' :
-                      begin
-                        if not Setoptimizecputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
-                          begin
-                            OptCPUSetExplicitly:=true;
-                            { Give warning for old i386 switches }
-                            if (Length(More)-j=1) and
-                               (More[j+1]>='1') and (More[j+1]<='5')then
-                              Message2(option_obsolete_switch_use_new,'-Op<nr>','-Op<name>')
-                            else
-                              IllegalPara(opt);
-                          end;
-                        break;
-                      end;
-                    'o' :
-                      begin
-                        if not UpdateOptimizerStr(copy(more,j+1,length(more)),init_settings.optimizerswitches) then
-                         IllegalPara(opt);
-                        break;
-                      end;
-                    '-' :
-                      begin
-                        init_settings.optimizerswitches:=[];
-                        FillChar(ParaAlignment,sizeof(ParaAlignment),0);
-                      end;
-                    { Obsolete switches }
-                    'g' :
-                      Message2(option_obsolete_switch_use_new,'-Og','-Os');
-                    'G' :
-                      Message1(option_obsolete_switch,'-OG');
-                    'r' :
-                      Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
-                    'u' :
-                      Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
-                    'w' :
-                      begin
-                        if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.dowpoptimizerswitches) then
-                          IllegalPara(opt);
-                        break;
-                      end;
-                    'W' :
-                      begin
-                        if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.genwpoptimizerswitches) then
-                          IllegalPara(opt);
-                        break;
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'p' :
-             begin
-               if UnsetBool(More, 0, opt, false) then
-                 begin
-                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_profile];
-                   undef_system_macro('FPC_PROFILE');
-                 end
-               else
-                 if Length(More)=0 then
-                   IllegalPara(opt)
-                 else
-                 case more[1] of
-                  'g' : if UnsetBool(more, 1, opt, false) then
-                         begin
-                           exclude(init_settings.moduleswitches,cs_profile);
-                           undef_system_macro('FPC_PROFILE');
-                         end
-                        else if (target_info.system in supported_targets_pg) then
-                         begin
-                           include(init_settings.moduleswitches,cs_profile);
-                           def_system_macro('FPC_PROFILE');
-                         end
-                        else
-                          UnsupportedPara('-pg');
-                 else
-                   IllegalPara(opt);
-                 end;
-             end;
-
-           'P' :
-             begin
-               { used to select the target processor with the "fpc" binary;
-                 give an error if it's not the target architecture supported by
-                 this compiler binary (will be verified after the target_info
-                 is set) }
-               processorstr:=More;
-             end;
-
-           'R' :
-             begin
-               if not SetAsmReadMode(More,init_settings.asmmode) then
-                 IllegalPara(opt);
-             end;
-
-           's' :
-             begin
-               if UnsetBool(More, 0, opt, false) then
-                 begin
-                   init_settings.globalswitches:=init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
-                   if more<>'' then
-                     IllegalPara(opt);
-                 end
-               else
-                 begin
-                   init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
-                   if more='h' then
-                     init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target,cs_assemble_on_target]
-                   else if more='t' then
-                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target,cs_assemble_on_target]
-                   else if more='T' then
-                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]-[cs_asm_extern]
-                   else if more='r' then
-                     init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
-                   else if more<>'' then
-                     IllegalPara(opt);
-                 end;
-             end;
-
-           'S' :
-             begin
-               if more='' then
-                 IllegalPara(opt);
-               if more[1]='I' then
-                 begin
-{$ifdef jvm}
-                   UnsupportedPara('-SI');
-{$endif}
-                   if upper(more)='ICOM' then
-                     init_settings.interfacetype:=it_interfacecom
-                   else if upper(more)='ICORBA' then
-                     init_settings.interfacetype:=it_interfacecorba
-                   else
-                     IllegalPara(opt);
-                 end
-               else
-                begin
-                  j:=1;
-                  while j<=length(more) do
-                   begin
-                     case more[j] of
-                       '2' : //an alternative to -Mobjfpc
-                         SetCompileMode('OBJFPC',true);
-                       'a' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_do_assertion)
-                         else
-                           include(init_settings.localswitches,cs_do_assertion);
-                       'c' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.moduleswitches,cs_support_c_operators)
-                         else
-                           include(init_settings.moduleswitches,cs_support_c_operators);
-                       'C':
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_check_all_case_coverage)
-                         else
-                           include(init_settings.localswitches,cs_check_all_case_coverage);
-                       'd' : //an alternative to -Mdelphi
-                         SetCompileMode('DELPHI',true);
-                       'e' :
-                         begin
-                           SetErrorFlags(copy(more,j+1,length(more)));
-                           break;
-                         end;
-                       'f' :
-                         begin
-                           if not(cs_compilesystem in init_settings.moduleswitches) then
-                             Message(option_features_only_for_system_unit);
-                           inc(j);
-                           if more[j]='-' then
-                             begin
-                               if length(more)>j then
-                                 IllegalPara(opt)
-                               else
-                                 features:=[];
-                             end
-                           else
-                             begin
-                               if (HandleFeature(upper(copy(more,j,length(more)-j+1)))) then
-                                 j:=length(more)
-                               else
-                                 IllegalPara(opt);
-                             end;
-                         end;
-                       'g' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.moduleswitches,cs_support_goto)
-                         else
-                           include(init_settings.moduleswitches,cs_support_goto);
-                       'h' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_refcountedstrings)
-                         else
-                           include(init_settings.localswitches,cs_refcountedstrings);
-                       'i' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_do_inline)
-                         else
-                           include(init_settings.localswitches,cs_do_inline);
-                       'j' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_typed_const_writable)
-                         else
-                           include(init_settings.localswitches,cs_typed_const_writable);
-                       'k' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
-                         else
-                           include(init_settings.globalswitches,cs_load_fpcylix_unit);
-                       'm' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.moduleswitches,cs_support_macro)
-                         else
-                           include(init_settings.moduleswitches,cs_support_macro);
-                       'o' : //an alternative to -Mtp
-                         SetCompileMode('TP',true);
-                       'r' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_transparent_file_names)
-                         else
-                           include(init_settings.globalswitches,cs_transparent_file_names);
-{$ifdef gpc_mode}
-                       'p' : //an alternative to -Mgpc
-                         SetCompileMode('GPC',true);
-{$endif}
-                       's' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_constructor_name)
-                         else
-                           include(init_settings.globalswitches,cs_constructor_name);
-                       't' :
-                         Message1(option_obsolete_switch,'-St');
-                       'v' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_support_vectors)
-                         else
-                           include(init_settings.globalswitches,cs_support_vectors);
-                       'x' :
-                         If UnsetBool(More, j, opt, false) then
-                           SetCompileModeSwitch('EXCEPTIONS-',true)
-                         else
-                           SetCompileModeSwitch('EXCEPTIONS',true);
-                       'y' :
-                         If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.localswitches,cs_typed_addresses)
-                         else
-                           include(init_settings.localswitches,cs_typed_addresses);
-                       '-' :
-                         begin
-                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
-                                                                                         cs_support_vectors,cs_load_fpcylix_unit];
-
-                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
-                                                                                       cs_typed_addresses];
-
-                           init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                                         cs_support_macro];
-                         end;
-                       else
-                         IllegalPara(opt);
-                     end;
-                     inc(j);
-                   end;
-                end;
-             end;
-
-           'T' :
-             begin
-               more:=Upper(More);
-               if paratarget=system_none then
-                begin
-                  { remove old target define }
-                  TargetOptions(false);
-                  { load new target }
-                  paratarget:=find_system_by_string(More);
-                  if paratarget<>system_none then
-                    set_target(paratarget)
-                  else
-                    IllegalPara(opt);
-                  { set new define }
-                  TargetOptions(true);
-                end
-               else
-                if More<>upper(target_info.shortname) then
-                 Message1(option_target_is_already_set,target_info.shortname);
-             end;
-
-           'u' :
-             if is_identifier(more) then
-               undef_system_macro(more)
-             else
-               begin
-                 if (more='') then
-                   Message1(option_missing_arg,'-u')
-                 else
-                   Message1(option_malformed_para,opt);
-                 StopOptions(1);
-               end;
-           'U' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-{$ifdef UNITALIASES}
-                    'a' :
-                       begin
-                         AddUnitAlias(Copy(More,j+1,255));
-                         break;
-                       end;
-{$endif UNITALIASES}
-                    'n' :
-                      exclude(init_settings.globalswitches,cs_check_unit_name);
-                    'p' :
-                       begin
-                         Message2(option_obsolete_switch_use_new,'-Up','-Fu');
-                         break;
-                       end;
-                    'r' :
-                      begin
-                        do_release:=true;
-                        if (cs_checkpointer in init_settings.localswitches) then
-                          begin
-                            Message(option_gc_incompatible_with_release_flag);
-                            exclude(init_settings.localswitches,cs_checkpointer);
-                          end;
-                      end;
-                    's' :
-                      include(init_settings.moduleswitches,cs_compilesystem);
-                    '-' :
-                      begin
-                        exclude(init_settings.moduleswitches,cs_compilesystem);
-                        exclude(init_settings.globalswitches,cs_check_unit_name);
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'v' :
-             begin
-               if not setverbosity(More) then
-                 IllegalPara(opt);
-             end;
-
-           'V' : ; { Ignore used by fpc }
-
-           'W' :
-             begin
-               j:=1;
-               while j<=length(More) do
-                begin
-                  case More[j] of
-                    'A':
-                      begin
-                        if target_info.system in systems_all_windows then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_cui)
-                            else
-                              SetApptype(app_native);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'b':
-                      begin
-                        if target_info.system in systems_darwin then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_cui)
-                            else
-                              SetApptype(app_bundle)
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'B':
-                      begin
-                        if target_info.system in systems_all_windows+systems_symbian+[system_z80_zxspectrum] then
-                          begin
-                            {  -WB200000 means set trefered base address
-                              to $200000, but does not change relocsection boolean
-                              this way we can create both relocatble and
-                              non relocatable DLL at a specific base address PM }
-                            if (length(More)>j) then
-                              begin
-                                val('$'+Copy(More,j+1,255),imagebase,code);
-                                if code<>0 then
-                                  IllegalPara(opt);
-                                ImageBaseSetExplicity:=true;
-                              end
-                            else
-                              begin
-                                RelocSection:=true;
-                                RelocSectionSetExplicitly:=true;
-                              end;
-                            break;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'C':
-                      begin
-                        if target_info.system in systems_all_windows+systems_os2+systems_macos then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_gui)
-                            else
-                              SetApptype(app_cui);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'D':
-                      begin
-                        if target_info.system in systems_all_windows then
-                          begin
-                            UseDeffileForExports:=not UnsetBool(More, j, opt, false);
-                            UseDeffileForExportsSetExplicitly:=true;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'e':
-                      begin
-                        if (target_info.system in systems_darwin) then
-                          begin
-                            set_target_res(res_ext);
-                            target_info.resobjext:='.fpcres';
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'F':
-                      begin
-{$if defined(m68k)}
-                        if target_info.system in [system_m68k_atari] then
-                          begin
-                            if (length(More)>j) then
-                              begin
-                                val(Copy(More,j+1,255),ataritos_exe_flags,code);
-                                if code<>0 then
-                                  IllegalPara(opt);
-                              end
-                            else
-                              IllegalPara(opt);
-                            break;
-                          end;
-{$endif defined(m68k)}
-                        if target_info.system in systems_os2 then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_cui)
-                            else
-                              SetApptype(app_fs);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'G':
-                      begin
-                        if target_info.system in systems_all_windows+systems_os2+systems_macos then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_cui)
-                            else
-                              SetApptype(app_gui);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-{$if defined(i8086)}
-                    'h':
-                      begin
-                        if UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.moduleswitches,cs_huge_code)
-                         else
-                          include(init_settings.moduleswitches,cs_huge_code);
-                      end;
-{$endif defined(i8086)}
-                    'I':
-                      begin
-                        if target_info.system in systems_all_windows then
-                          begin
-                            GenerateImportSection:=not UnsetBool(More,j,opt,false);
-                            GenerateImportSectionSetExplicitly:=true;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'i':
-                      begin
-                        if (target_info.system in systems_darwin) then
-                          begin
-                            set_target_res(res_macho);
-                            target_info.resobjext:=
-                              targetinfos[target_info.system]^.resobjext;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'm':
-                      begin
-{$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) then
-                          begin
-                            case Upper(Copy(More,j+1,255)) of
-                              'TINY':    init_settings.x86memorymodel:=mm_tiny;
-                              'SMALL':   init_settings.x86memorymodel:=mm_small;
-                              'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
-                              'COMPACT': init_settings.x86memorymodel:=mm_compact;
-                              'LARGE':   init_settings.x86memorymodel:=mm_large;
-                              'HUGE':    init_settings.x86memorymodel:=mm_huge;
-                              else
-                                IllegalPara(opt);
-                            end;
-                            break;
-                          end
-                        else
-{$endif defined(i8086)}
-                          IllegalPara(opt);
-                      end;
-                    'M':
-                      begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim])) and
-                           ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
-                          begin
-                            break;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'N':
-                      begin
-                        if target_info.system in systems_all_windows then
-                          begin
-                            RelocSection:=UnsetBool(More,j,opt,false);
-                            RelocSectionSetExplicitly:=true;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'p':
-                      begin
-{$push}
-{$warn 6018 off} { Unreachable code due to compile time evaluation }
-                        if ((target_info.system in systems_embedded) or (target_info.system in systems_freertos)) and
-                          ControllerSupport then
-                          begin
-                            s:=upper(copy(more,j+1,length(more)-j));
-                            if not(SetControllerType(s,init_settings.controllertype)) then
-                              IllegalPara(opt)
-                            else
-                              begin
-                                if init_settings.cputype<>embedded_controllers[init_settings.controllertype].cputype then
-                                begin
-                                  Message(scan_n_changecputype);
-                                  init_settings.cputype:=embedded_controllers[init_settings.controllertype].cputype;
-                                end;
-                              end;
-                            break;
-                          end
-                        else
-                          IllegalPara(opt);
-{$pop}
-                      end;
-                    'P':
-                      begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) and
-                           ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
-                          begin
-                            break;
-                          end
-{$ifdef XTENSA}
-                        else if (target_info.system in [system_xtensa_freertos]) and
-                           ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2,255)) then
-                          begin
-                            break;
-                          end
-{$endif XTENSA}
-                        else
-                          IllegalPara(opt);
-                      end;
-{$if defined(m68k)}
-                    'L':
-                      begin
-                        if (target_info.system in [system_m68k_sinclairql]) then
-                          sinclairql_vlink_experimental:=false
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'Q':
-                      begin
-                        if (target_info.system in [system_m68k_sinclairql]) then
-                          begin
-                            sinclairql_metadata_format:=Upper(Copy(More,j+1,255));
-                            case sinclairql_metadata_format of
-                              'QHDR', 'XTCC': ; { allowed formats }
-                              else
-                                IllegalPara(opt);
-                            end;
-                            break;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-{$endif defined(m68k)}
-                    'R':
-                      begin
-                        if target_info.system in systems_all_windows then
-                          begin
-                            { support -WR+ / -WR- as synonyms to -WR / -WN }
-                            RelocSection:=not UnsetBool(More,j,opt,false);
-                            RelocSectionSetExplicitly:=true;
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    't':
-                      begin
-{$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
-                          begin
-                            case Upper(Copy(More,j+1,255)) of
-                              'EXE': SetAppType(app_cui);
-                              'COM': SetAppType(app_com);
-                              else
-                                IllegalPara(opt);
-                            end;
-                            break;
-                          end
-                        else
-{$endif defined(i8086)}
-{$if defined(m68k)}
-                        if (target_info.system in [system_m68k_atari]) then
-                          begin
-                            case Upper(Copy(More,j+1,255)) of
-                              'TOS': ataritos_exe_format := 'ataritos';
-                              'MINT': ataritos_exe_format := 'aoutmint';
-                              else
-                                IllegalPara(opt);
-                            end;
-                            break;
-                          end
-                        else
-{$endif defined(m68k)}
-                          IllegalPara(opt);
-                      end;
-                    'T':
-                      begin
-                        if target_info.system in systems_macos then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              SetApptype(app_cui)
-                            else
-                              SetApptype(app_tool);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'X':
-                      begin
-                        if (target_info.system in systems_linux) then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              exclude(init_settings.moduleswitches,cs_executable_stack)
-                            else
-                              include(init_settings.moduleswitches,cs_executable_stack)
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
-           'X' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case More[j] of
-                    '9' :
-                      begin
-                        if target_info.system in systems_linux then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              exclude(init_settings.globalswitches,cs_link_pre_binutils_2_19)
-                            else
-                              include(init_settings.globalswitches,cs_link_pre_binutils_2_19);
-                          end
-                        else
-                          IllegalPara(opt);
-                      end;
-                    'a' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_large)
-                        else
-                          include(init_settings.globalswitches,cs_large);
-                      end;
-                    'c' : Cshared:=TRUE;
-                    'd' : Dontlinkstdlibpath:=TRUE;
-                    'e' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_extern)
-                        else
-                          include(init_settings.globalswitches,cs_link_extern);
-                      end;
-                    'f' :
-                      include(init_settings.globalswitches,cs_link_pthread);
-                    'g' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_separate_dbg_file)
-                        else
-                          include(init_settings.globalswitches,cs_link_separate_dbg_file);
-                      end;
-                    'i' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          include(init_settings.globalswitches,cs_link_extern)
-                        else
-                          exclude(init_settings.globalswitches,cs_link_extern);
-                      end;
-                    'n' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_native)
-                        else
-                          include(init_settings.globalswitches,cs_link_native);
-                      end;
-{$ifdef llvm}
-                    'l' :
-                      begin
-                        if j=length(more) then
-                          IllegalPara(opt)
-                        else
-                          begin
-                             case more[j+1] of
-                               'S':
-                                 begin
-                                   llvmutilssuffix:=copy(more,j+2,length(more));
-                                   j:=length(more);
-                                 end
-                               else
-                                 IllegalPara(opt);
-                             end;
-                          end;
-                      end;
-{$endif}
-                    'm' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_map)
-                        else
-                          include(init_settings.globalswitches,cs_link_map);
-                      end;
-                    'p' : ; { Ignore used by fpc.pp }
-                    'r' :
-                      begin
-                        if (target_info.system in suppported_targets_x_smallr) then
-                          begin
-                            rlinkpath:=Copy(more,2,length(More)-1);
-                            DefaultReplacements(rlinkpath);
-                          end
-                        else
-                          IgnoredPara('-Xr');
-                        more:='';
-                      end;
-                    'R' :
-                      begin
-                        sysrootpath:=copy(more,2,length(more)-1);
-                        defaultreplacements(sysrootpath);
-                        more:='';
-                      end;
-                    's' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_strip)
-                        else
-                          include(init_settings.globalswitches,cs_link_strip);
-                      end;
-                    't' :
-                      include(init_settings.globalswitches,cs_link_staticflag);
-                    'u' :
-                      begin
-                        if target_info.system in systems_support_uf2 then
-                          begin
-                            if UnsetBool(More, j, opt, false) then
-                              exclude(init_settings.globalswitches,cs_generate_uf2)
-                            else
-                              include(init_settings.globalswitches,cs_generate_uf2);
-                          end
-                        else
-                          IgnoredPara('-Xu');
-                      end;
-                    'v' :
-                      begin
-                        If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_opt_vtable)
-                        else
-                          include(init_settings.globalswitches,cs_link_opt_vtable);
-                      end;
-                    'D' :
-                      begin
-                        def_system_macro('FPC_LINK_DYNAMIC');
-                        undef_system_macro('FPC_LINK_SMART');
-                        undef_system_macro('FPC_LINK_STATIC');
-                        exclude(init_settings.globalswitches,cs_link_static);
-                        exclude(init_settings.globalswitches,cs_link_smart);
-                        include(init_settings.globalswitches,cs_link_shared);
-                        LinkTypeSetExplicitly:=true;
-                      end;
-                    'M' :
-                      begin
-                        mainaliasname:=Copy(more,2,length(More)-1);
-                        More:='';
-                      end;
-                    'P' :
-                      begin
-                        utilsprefix:=Copy(more,2,length(More)-1);
-                        DefaultReplacements(utilsprefix);
-                        More:='';
-                      end;
-                    'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
-                                 // these are not aggregable.
-                            if (j=length(more)) or not (more[j+1] in ['O','A','D']) then
-                              IllegalPara(opt)
-                            else
-                              begin
-                                case more[j+1] of
-                                 'A' : begin
-                                        s:=Copy(more,3,length(More)-2);
-                                        if not LinkLibraryAliases.AddDep(s) Then
-                                           IllegalPara(opt);
-                                       end;
-                                 'O' : begin
-                                        s:=Copy(more,3,length(More)-2);
-                                        if not LinkLibraryOrder.AddWeight(s) Then
-                                           IllegalPara(opt);
-                                       end;
-                                 'D' : include(init_settings.globalswitches,cs_link_no_default_lib_order)
-                                else
-                                  IllegalPara(opt);
-                                 end; {case}
-                                j:=length(more);
-                              end; {else begin}
-                          end;
-                    'S' :
-                      begin
-                        ForceStaticLinking;
-                      end;
-                    'V' :
-                      begin
-                        if UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_vlink)
-                        else
-                          begin
-                            include(init_settings.globalswitches,cs_link_vlink);
-                            include(init_settings.globalswitches,cs_link_extern);
-                          end;
-                        LinkerSetExplicitly:=true;
-                      end;
-                    'X' :
-                      begin
-                        def_system_macro('FPC_LINK_SMART');
-                        undef_system_macro('FPC_LINK_STATIC');
-                        undef_system_macro('FPC_LINK_DYNAMIC');
-                        exclude(init_settings.globalswitches,cs_link_static);
-                        include(init_settings.globalswitches,cs_link_smart);
-                        exclude(init_settings.globalswitches,cs_link_shared);
-                        LinkTypeSetExplicitly:=true;
-                      end;
-                    '-' :
-                      begin
-                        exclude(init_settings.globalswitches,cs_link_staticflag);
-                        exclude(init_settings.globalswitches,cs_link_strip);
-                        exclude(init_settings.globalswitches,cs_link_map);
-                        set_default_link_type;
-                      end;
-                    else
-                      IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-           else
-             IllegalPara(opt);
+           '?' : Interpret_Help(more);
+           'a' : Interpret_A_l(opt,more);
+           'A' : Interpret_A_U(opt,more);
+           'b' : Interpret_B_l(opt,more);
+           'B' : Interpret_B_U(opt,more);
+           'C' : Interpret_C_U(opt,more);
+           'd' : Interpret_D_l(opt,more);
+           'D' : Interpret_D_U(opt,more);
+           'e' : Interpret_E_l(opt,more);
+           'E' : Interpret_E_U(opt,more);
+           'f' : Interpret_F_l(opt,more);
+           'F' : Interpret_F_U(opt,more,ispara);
+           'g' : Interpret_G_l(opt,more);
+           'h' : Interpret_H_l(more);
+           'i' : Interpret_I_l(more);
+           'I' : Interpret_I_U(more,ispara);
+           'k' : Interpret_K_l(opt,more);
+           'l' : Interpret_L_l(opt,more);
+           'm' : Interpret_M_l(opt,more);
+           'M' : Interpret_M_U(opt,more);
+           'n' : Interpret_N_l(opt,more);
+           'o' : Interpret_O_l(opt,more);
+           'O' : Interpret_O_U(opt,more);
+           'p' : Interpret_P_l(opt,more);
+           'P' : Interpret_P_U(opt,more);
+           'R' : Interpret_R_U(opt,more);
+           's' : Interpret_S_l(opt,more);
+           'S' : Interpret_S_U(opt,more);
+           'T' : Interpret_T_U(opt,more);
+           't' : Interpret_T_l(opt,more);
+           'u' : Interpret_U_l(opt,more);
+           'U' : Interpret_U_U(opt,more);
+           'v' : Interpret_V_l(opt,more);
+           'V' : Interpret_V_U(opt,more);
+           'W' : Interpret_W_U(opt,more);
+           'x' : Interpret_X_l(opt,more);
+           'X' : Interpret_X_U(opt,more);
+         else
+           IllegalPara(opt);
          end;
        end;
 
@@ -3412,7 +1642,7 @@ begin
 end;
 
 
-procedure Toption.Interpret_file(const filename : TPathStr);
+procedure TOption.Interpret_file(const filename: TPathStr);
 
   procedure RemoveSep(var fn:TPathStr);
   var
@@ -3626,7 +1856,7 @@ begin
 end;
 
 
-procedure Toption.Interpret_envvar(const envname : TCmdStr);
+procedure TOption.Interpret_envvar(const envname: TCmdStr);
 var
   argstart,
   env,
@@ -3684,7 +1914,7 @@ begin
 end;
 
 
-procedure toption.read_parameters;
+procedure TOption.Read_Parameters;
 var
   opts       : TCmdStr;
   paramindex : longint;
@@ -3717,7 +1947,7 @@ begin
 end;
 
 
-procedure toption.parsecmd(cmd:TCmdStr);
+procedure TOption.parsecmd(cmd: TCmdStr);
 var
   i,ps  : longint;
   opts  : TCmdStr;
@@ -3764,10 +1994,11 @@ begin
 end;
 
 
-procedure toption.writequickinfo;
+procedure TOption.WriteQuickInfo;
 var
   s : string;
   i : longint;
+  emptyOK : Boolean;
 
   procedure addinfo(const hs:string);
   begin
@@ -3778,6 +2009,7 @@ var
   end;
 
 begin
+  emptyOK:=False;
   s:='';
   i:=0;
   while (i<length(quickinfo)) do
@@ -3804,6 +2036,11 @@ begin
              addinfo(lower(target_info.shortname));
            'P' :
              AddInfo(target_cpu_string);
+           'T' :
+             begin
+             addinfo(lower(self.parasubtarget));
+             emptyOK:=True;
+             end
            else
              IllegalPara('-i'+QuickInfo);
           end;
@@ -3820,7 +2057,7 @@ begin
         IllegalPara('-i'+QuickInfo);
     end;
   end;
-  if s<>'' then
+  if (s<>'') or EmptyOK then
    begin
      writeln(s);
      stopoptions(0);
@@ -3970,7 +2207,7 @@ begin
 {$endif m68k}
 end;
 
-procedure TOption.checkoptionscompatibility;
+procedure TOption.CheckOptionsCompatibility;
 begin
 {$ifdef wasm}
   if (Ord(ts_wasm_no_exceptions in init_settings.targetswitches)+
@@ -4046,7 +2283,7 @@ begin
 end;
 
 
-constructor TOption.create;
+constructor TOption.Create;
 begin
   LogoWritten:=false;
   NoPressEnter:=false;
@@ -4076,7 +2313,7 @@ begin
 end;
 
 
-destructor TOption.destroy;
+destructor TOption.Destroy;
 begin
   ParaIncludeCfgPath.Free;
   ParaIncludePath.Free;
@@ -4089,6 +2326,2048 @@ begin
   paranamespaces.free;
 end;
 
+procedure TOption.Interpret_A_l(opt, more: TCmdStr);
+
+var
+  j : integer;
+
+begin
+  include(init_settings.globalswitches,cs_asm_leave);
+  j:=1;
+  while j<=length(more) do
+   begin
+     case more[j] of
+       '5' :
+         if (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16])
+            or (target_info.cpu in [cpu_mipseb, cpu_mipsel]) then
+           begin
+             if UnsetBool(More, j, opt, false) then
+               exclude(init_settings.globalswitches,cs_asm_pre_binutils_2_25)
+             else
+               include(init_settings.globalswitches,cs_asm_pre_binutils_2_25);
+           end
+         else
+           IllegalPara(opt);
+       'l' :
+         include(init_settings.globalswitches,cs_asm_source);
+       'r' :
+         include(init_settings.globalswitches,cs_asm_regalloc);
+       'R' :
+         include(init_settings.globalswitches,cs_asm_rtti_source);
+       't' :
+         include(init_settings.globalswitches,cs_asm_tempalloc);
+       'n' :
+         include(init_settings.globalswitches,cs_asm_nodes);
+       { -ao option must be the last, everything behind it is passed directly to
+         external assembler, it is ignored if internal assembler is used. }
+       'o' :
+         begin
+           asmextraopt:=copy(more,j+1);
+           break;
+         end;
+       'p' :
+         begin
+           exclude(init_settings.globalswitches,cs_asm_leave);
+           if UnsetBool(More, 0, opt, false) then
+             exclude(init_settings.globalswitches,cs_asm_pipe)
+           else
+             include(init_settings.globalswitches,cs_asm_pipe);
+         end;
+       '-' :
+         init_settings.globalswitches:=init_settings.globalswitches -
+             [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc,
+              cs_asm_nodes, cs_asm_pipe];
+       else
+         IllegalPara(opt);
+     end;
+     inc(j);
+   end;
+end;
+
+
+procedure TOption.Interpret_A_U(opt, more: TCmdStr);
+
+begin
+  if CompareText(More,'DEFAULT') = 0 then
+    paratargetasm:=as_default
+  else
+    paratargetasm:=find_asm_by_string(More);
+  if paratargetasm=as_none then
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_B_l(opt, more: TCmdStr);
+
+begin
+  // Message1(option_obsolete_switch,'-b');
+  if UnsetBool(More,0,opt,false) then
+    begin
+      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
+      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser];
+    end
+  else
+    begin
+      init_settings.moduleswitches:=init_settings.moduleswitches+[cs_browser];
+    end;
+  if More<>'' then
+    if (More='l') or (More='l+') then
+      init_settings.moduleswitches:=init_settings.moduleswitches+[cs_local_browser]
+    else if More='l-' then
+      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser]
+    else
+      IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_B_U(opt, more: TCmdStr);
+
+begin
+  do_build:=not UnSetBool(more,0,opt,true);
+end;
+
+
+procedure TOption.Interpret_C_U(opt, more: TCmdStr);
+
+var
+  j,l,code,deletepos : integer;
+  s : string;
+  includecapability : Boolean;
+  {$ifdef llvm}
+  disable: boolean;
+  {$endif}
+  {$ifdef cpucapabilities}
+  cf   : tcpuflags;
+  cpuflagsstr,
+  extrasettings : string;
+  {$endif cpucapabilities}
+
+begin
+  j:=1;
+  while j<=length(more) do
+   begin
+     case more[j] of
+       '3' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_ieee_errors)
+         Else
+           include(init_settings.localswitches,cs_ieee_errors);
+       'a' :
+         begin
+           s:=upper(copy(more,j+1));
+           if not(SetAbiType(s,target_info.abi)) then
+             IllegalPara(opt);
+           ABISetExplicitly:=true;
+           break;
+         end;
+
+       'b' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              target_info.endian:=endian_little
+            else
+              target_info.endian:=endian_big;
+            set_endianess_macros;
+          end;
+
+       'c' :
+          begin
+            if not SetAktProcCall(upper(copy(more,j+1)),init_settings.defproccall) then
+             IllegalPara(opt);
+            break;
+          end;
+{$ifdef AVR}
+       'd' :
+          begin
+            if not ParseLinkerDiscardOptions(more) then
+              IllegalPara(opt);
+            break;
+          end;
+{$endif AVR}
+{$ifdef cpufpemu}
+       'e' :
+          begin
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.moduleswitches,cs_fp_emulation)
+            Else
+              include(init_settings.moduleswitches,cs_fp_emulation);
+          end;
+{$endif cpufpemu}
+       'E' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_fpu_exceptions)
+         Else
+           include(init_settings.localswitches,cs_check_fpu_exceptions);
+       'f' :
+         begin
+           s:=upper(copy(more,j+1));
+           if not(SetFpuType(s,init_settings.fputype)) then
+             IllegalPara(opt);
+           FPUSetExplicitly:=True;
+           break;
+         end;
+       'F' :
+          begin
+            if not SetMinFPConstPrec(copy(more,j+1),init_settings.minfpconstprec) then
+              IllegalPara(opt);
+            break;
+          end;
+       'g' :
+          begin
+            if tf_no_pic_supported in target_info.flags then
+              begin
+                { consume a possible '-' coming after it }
+                UnsetBool(More, j, opt, false);
+                message(scan_w_pic_ignored);
+              end
+            else if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.moduleswitches,cs_create_pic)
+            else
+              include(init_settings.moduleswitches,cs_create_pic);
+         end;
+       'h' :
+         begin
+            l:=pos(',',copy(more,j+1));
+            if l=0 then
+              l:=length(more)-j+1;
+            val(copy(more,j+1,l-1),heapsize,code);
+            if (code<>0)
+{$ifdef AVR}
+            or (heapsize<32)
+{$else AVR}
+            or (heapsize<1024)
+{$endif AVR}
+            then
+              IllegalPara(opt)
+            else if l<=length(more)-j then
+              begin
+                val(copy(more,j+l+1),maxheapsize,code);
+                if code<>0 then
+                  IllegalPara(opt)
+                else if (maxheapsize<heapsize) then
+                  begin
+                    message(scan_w_heapmax_lessthan_heapmin);
+                    maxheapsize:=heapsize;
+                  end;
+              end;
+            break;
+         end;
+       'i' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_io)
+         else
+           include(init_settings.localswitches,cs_check_io);
+{$ifdef arm}
+       'I' :
+         begin
+           if (upper(copy(more,j+1))='THUMB') and
+             { does selected CPU really understand thumb? }
+             (init_settings.cputype in cpu_has_thumb) then
+             init_settings.instructionset:=is_thumb
+           else if upper(copy(more,j+1))='ARM' then
+             init_settings.instructionset:=is_arm
+           else
+             IllegalPara(opt);
+           break;
+         end;
+{$endif arm}
+{$ifdef llvm}
+       'l':
+         begin
+           l:=j+1;
+           while l<=length(More) do
+             begin
+               case More[l] of
+                 'f':
+                   begin
+                     delete(More,1,l);
+                     disable:=Unsetbool(More,length(More)-1,opt,false);
+                     case More of
+                       'lto':
+                          begin
+                            if not disable then
+                              begin
+                                include(init_settings.moduleswitches,cs_lto);
+                                LTOExt:='.bc';
+                              end
+                            else
+                              exclude(init_settings.moduleswitches,cs_lto);
+                          end;
+                        'ltonosystem':
+                          begin
+                            if not disable then
+                              begin
+                                include(init_settings.globalswitches,cs_lto_nosystem);
+                              end
+                            else
+                              exclude(init_settings.globalswitches,cs_lto_nosystem);
+                          end;
+                       else if More.StartsWith('sanitize=') then
+                         begin
+                           delete(More,1,length('sanitize='));
+                           LLVMEnableSanitizers(more);
+                         end
+                       else
+                         begin
+                           IllegalPara(opt);
+                         end;
+                     end;
+                     l:=length(more)+1;
+                   end;
+                 'v':
+                   begin
+                     init_settings.llvmversion:=llvmversion2enum(copy(More,l+1));
+                     if init_settings.llvmversion=llvmver_invalid then
+                       begin
+                         IllegalPara(opt);
+                       end;
+                     l:=length(More)+1;
+                   end
+                 else
+                   begin
+                     IllegalPara(opt);
+                   end;
+               end;
+             end;
+           j:=l;
+         end;
+{$endif llvm}
+       'n' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.globalswitches,cs_link_nolink)
+         Else
+           include(init_settings.globalswitches,cs_link_nolink);
+       'N' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_low_addr_load)
+         Else
+           include(init_settings.localswitches,cs_check_low_addr_load);
+       'o' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_overflow)
+         Else
+           include(init_settings.localswitches,cs_check_overflow);
+       'O' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_ordinal_size)
+         Else
+           include(init_settings.localswitches,cs_check_ordinal_size);
+       'p' :
+         begin
+           s:=upper(copy(more,j+1));
+{$ifdef cpucapabilities}
+           { find first occurrence of + or - }
+           deletepos:=PosCharset(['+','-'],s);
+           if deletepos<>0 then
+             begin
+               extrasettings:=Copy(s,deletepos,Length(s));
+               Delete(s,deletepos,Length(s));
+              end
+           else
+             extrasettings:='';
+{$endif cpucapabilities}
+           if not(Setcputype(s,init_settings)) then
+             IllegalPara(opt);
+{$ifdef cpucapabilities}
+           while extrasettings<>'' do
+             begin
+               Delete(extrasettings,1,1);
+               includecapability:=true;
+               deletepos:=PosCharset(['+','-'],extrasettings);
+               if deletepos<>0 then
+                 begin
+                   includecapability:=extrasettings[deletepos]='+';
+                   s:=Copy(extrasettings,1,deletepos-1);
+                   Delete(extrasettings,1,deletepos-1);
+                 end
+               else
+                 begin
+                   s:=extrasettings;
+                   extrasettings:='';
+                 end;
+               for cf in tcpuflags do
+                 begin
+                   Str(cf,cpuflagsstr);
+                   { expect that the cpuflagsstr i.e. the enum as well contains _HAS_ }
+                   if Pos('_HAS_',cpuflagsstr)<>0 then
+                   { get rid of prefix including _HAS_ }
+                     Delete(cpuflagsstr,1,Pos('_HAS_',cpuflagsstr)+4)
+                   else
+                     Internalerror(2021110601);
+                   if s=cpuflagsstr then
+                     begin
+                       if includecapability then
+                         Include(cpu_capabilities[init_settings.cputype],cf)
+                       else
+                         Exclude(cpu_capabilities[init_settings.cputype],cf);
+                       s:='';
+                       break;
+                     end;
+                 end;
+               if s<>'' then
+                 IllegalPara(opt);
+             end;
+{$endif cpucapabilities}
+           CPUSetExplicitly:=true;
+           break;
+         end;
+       'P':
+         begin
+           delete(more,1,1);
+           case upper(copy(more,1,pos('=',more)-1)) of
+             'PACKSET':
+               begin
+                 delete(more,1,pos('=',more));
+                 case more of
+                   '0','DEFAULT','NORMAL':
+                     init_settings.setalloc:=0;
+                   '1','2','4','8':
+                     init_settings.setalloc:=StrToInt(more);
+                   else
+                     IllegalPara(opt);
+                 end
+               end;
+             'PACKENUM':
+               begin
+                 delete(more,1,pos('=',more));
+                 case more of
+                   '0','DEFAULT','NORMAL':
+                     init_settings.packenum:=4;
+                   '1','2','4':
+                     init_settings.packenum:=StrToInt(more);
+                   else
+                     IllegalPara(opt);
+                 end;
+               end;
+             'PACKRECORD':
+               begin
+                 delete(more,1,pos('=',more));
+                 case more of
+                   '0','DEFAULT','NORMAL':
+                     init_settings.packrecords:=default_settings.packrecords;
+                   '1','2','4','8','16','32':
+                     init_settings.packrecords:=StrToInt(more);
+                   else
+                     IllegalPara(opt);
+                 end;
+               end
+             else
+               IllegalPara(opt);
+           end;
+         end;
+       'r' :
+         If UnsetBool(More, j, opt, false) then
+           exclude(init_settings.localswitches,cs_check_range)
+         Else
+           include(init_settings.localswitches,cs_check_range);
+       'R' :
+         If UnsetBool(More, j, opt, false) then
+           begin
+             exclude(init_settings.localswitches,cs_check_range);
+             exclude(init_settings.localswitches,cs_check_object);
+           end
+         Else
+           begin
+             include(init_settings.localswitches,cs_check_range);
+             include(init_settings.localswitches,cs_check_object);
+           end;
+       's' :
+         begin
+            val(copy(more,j+1),stacksize,code);
+            if (code<>0)
+{$ifdef cpu16bitaddr}
+               or (stacksize>=65521)
+{$else cpu16bitaddr}
+               or (stacksize>=67107840)
+{$endif cpu16bitaddr}
+               or (stacksize<1024) then
+             IllegalPara(opt);
+            break;
+         end;
+       't' :
+          If UnsetBool(More, j, opt, false) then
+            exclude(init_settings.localswitches,cs_check_stack)
+          Else
+            include(init_settings.localswitches,cs_check_stack);
+       'D' :
+          If UnsetBool(More, j, opt, false) then
+            exclude(init_settings.moduleswitches,cs_create_dynamic)
+          Else
+            include(init_settings.moduleswitches,cs_create_dynamic);
+       'X' :
+          If UnsetBool(More, j, opt, false) then
+            exclude(init_settings.moduleswitches,cs_create_smart)
+          Else
+            include(init_settings.moduleswitches,cs_create_smart);
+       'T' :
+         begin
+           if not UpdateTargetSwitchStr(copy(more,j+1),init_settings.targetswitches,true) then
+             IllegalPara(opt);
+           break;
+         end;
+       'v' :
+          If target_info.system in systems_jvm then
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_check_var_copyout)
+            Else
+              include(init_settings.localswitches,cs_check_var_copyout)
+          else
+            IllegalPara(opt);
+       'V':
+         begin
+           s:=upper(copy(more,j+1));
+           if s='GLOBAL-DYNAMIC' then
+             init_settings.tlsmodel:=tlsm_global_dynamic
+           else if s='LOCAL-EXEC' then
+             init_settings.tlsmodel:=tlsm_local_exec
+           else
+             IllegalPara(opt);
+           break;
+         end;
+       else
+         IllegalPara(opt);
+     end;
+     inc(j);
+   end;
+end;
+
+
+procedure TOption.Interpret_D_l(opt, more: TCmdStr);
+
+Var
+  l : Integer;
+  hs : string;
+
+begin
+    l:=Pos(':=',more);
+    DefaultReplacements(more);
+    if l>0 then
+      hs:=copy(more,1,l-1)
+    else
+      hs:=more;
+    if (not is_identifier(hs)) then
+      begin
+        if hs='' then
+          Message1(option_missing_arg,'-d')
+        else
+          Message1(option_malformed_para,opt);
+        StopOptions(1);
+      end;
+    if l>0 then
+      begin
+        if cs_support_macro in init_settings.moduleswitches then
+          set_system_macro(hs,Copy(more,l+2))
+        else
+          set_system_compvar(hs,Copy(more,l+2));
+      end
+    else
+      def_system_macro(hs);
+end;
+
+
+procedure TOption.Interpret_D_U(opt, more: TCmdStr);
+var
+  major,minor : longint;
+  l,j,error : integer;
+
+begin
+  j:=1;
+  while j<=length(more) do
+    begin
+      case more[j] of
+       'd' :
+         begin
+           include(init_settings.globalswitches,cs_link_deffile);
+           description:=Copy(more,j+1);
+           break;
+         end;
+       'D' :
+         begin
+           datestr:=Copy(more,j+1);
+           break;
+         end;
+       'T' :
+         begin
+           timestr:=Copy(more,j+1);
+           break;
+         end;
+       'v' :
+         begin
+           include(init_settings.globalswitches,cs_link_deffile);
+           dllversion:=Copy(more,j+1);
+           l:=pos('.',dllversion);
+           dllminor:=0;
+           error:=0;
+           if l>0 then
+            begin
+              val(copy(dllversion,l+1,255),minor,error);
+              if (error=0) and
+                 (minor>=0) and (minor<=$ffff) then
+                dllminor:=minor
+              else
+                if error=0 then
+                  error:=1;
+            end;
+           if l=0 then
+             l:=256;
+           dllmajor:=1;
+           major:=0;
+           if error=0 then
+             val(copy(dllversion,1,l-1),major,error);
+           if (error=0) and (major>=0) and (major<=$ffff) then
+             dllmajor:=major
+           else
+             if error=0 then
+               error:=1;
+           if error<>0 then
+             Message1(scan_w_wrong_version_ignored,dllversion);
+           break;
+         end;
+       'w' :
+         begin
+           include(init_settings.globalswitches,cs_link_deffile);
+           usewindowapi:=true;
+          end;
+       '-' :
+         begin
+           exclude(init_settings.globalswitches,cs_link_deffile);
+           usewindowapi:=false;
+         end;
+       else
+         IllegalPara(opt);
+      end;
+    inc(j);
+    end;
+end;
+
+
+procedure TOption.Interpret_E_l(opt, more: TCmdStr);
+
+begin
+  exepath:=FixPath(More,true);
+end;
+
+
+procedure TOption.Interpret_E_U(opt, more: TCmdStr);
+
+begin
+  if UnsetBool(More, 0, opt, true) then
+    exclude(init_settings.globalswitches,cs_link_nolink)
+  else
+    include(init_settings.globalswitches,cs_link_nolink);
+end;
+
+
+procedure TOption.Interpret_F_l(opt, more: TCmdStr);
+
+begin
+  if more='PIC' then
+    begin
+      if tf_no_pic_supported in target_info.flags then
+        message(scan_w_pic_ignored)
+      else
+        include(init_settings.moduleswitches,cs_create_pic)
+    end
+  else
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_F_U(opt, more: TCmdStr; ispara: boolean);
+
+var
+  c : char;
+  d : string;
+  j : integer;
+  unicodemapping : punicodemap;
+
+begin
+  if more='' then
+    IllegalPara(opt);
+  c:=more[1];
+  Delete(more,1,1);
+  DefaultReplacements(More);
+  case c of
+    'a' :
+      autoloadunits:=more;
+    'c' :
+      begin
+        { if we first specify that the system code page should be
+          used and then explicitly specify a code page, unset the
+          flag that we're using the system code page again }
+        SetCompileModeSwitch('SYSTEMCODEPAGE-',true);
+        if (upper(more)='UTF8') or (upper(more)='UTF-8') then
+          init_settings.sourcecodepage:=CP_UTF8
+        else if not(cpavailable(more)) then
+          Message1(option_code_page_not_available,more)
+        else
+          init_settings.sourcecodepage:=codepagebyname(more);
+        include(init_settings.moduleswitches,cs_explicit_codepage);
+      end;
+    'C' :
+      RCCompiler:=More;
+    'd' :
+      if UnsetBool(more, 0, opt, true) then
+        init_settings.disabledircache:=false
+      else
+        init_settings.disabledircache:=true;
+    'D' :
+      utilsdirectory:=FixPath(More,true);
+    'e' :
+      SetRedirectFile(More);
+    'E' :
+      OutputExeDir:=FixPath(More,true);
+    'f' :
+        if (target_info.system in systems_darwin) then
+          if ispara then
+            ParaFrameworkPath.AddPath(More,false)
+          else
+            frameworksearchpath.AddPath(More,true)
+{$if defined(XTENSA) or defined(RISCV32)}
+        else if (target_info.system=system_xtensa_freertos) then
+          idfpath:=FixPath(More,true)
+{$endif defined(XTENSA) or defined(RISCV32)}
+        else
+          IllegalPara(opt);
+    'F' :
+      RCForceFPCRes:=true;
+    'i' :
+      begin
+        if ispara then
+          ParaIncludePath.AddPath(More,false)
+        else
+          includesearchpath.AddPath(More,true);
+      end;
+    'm' :
+      begin
+        if TryStrToInt(ExtractFileName(more),j) then
+          begin
+            unicodemapping:=loadunicodemapping(More,More+'.txt',j);
+            if assigned(unicodemapping) then
+              registermapping(unicodemapping)
+            else
+              IllegalPara(opt);
+          end
+        else
+          IllegalPara(opt);
+      end;
+    'M' :
+      unicodepath:=FixPath(More,true);
+    'g' :
+      Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
+    'l' :
+      begin
+        if ispara then
+          ParaLibraryPath.AddLibraryPath(sysrootpath,More,false)
+        else
+          LibrarySearchPath.AddLibraryPath(sysrootpath,More,true)
+      end;
+    'L' :
+      begin
+        if More<>'' then
+          ParaDynamicLinker:=More
+        else
+          IllegalPara(opt);
+      end;
+    'N' :
+      begin
+        if more<>'' then
+          paranamespaces.insert(more)
+        else
+          illegalpara(opt);
+      end;
+    'o' :
+      begin
+        if ispara then
+          ParaObjectPath.AddPath(More,false)
+        else
+          ObjectSearchPath.AddPath(More,true);
+      end;
+    'P' :
+      begin
+        if ispara then
+          parapackages.add(more,nil)
+        else
+          add_package(more,true,true);
+      end;
+    'p' :
+      begin
+        if ispara then
+          parapackagepath.AddPath(More,false)
+        else
+          packagesearchpath.AddPath(More,true);
+      end;
+    'r' :
+      Msgfilename:=More;
+    'R' :
+      ResCompiler:=More;
+    'u' :
+      begin
+        if ispara then
+          ParaUnitPath.AddPath(More,false)
+        else
+          unitsearchpath.AddPath(More,true);
+      end;
+    'U' :
+      OutputUnitDir:=FixPath(More,true);
+    'W',
+    'w':
+      begin
+        if More<>'' then
+          begin
+            DefaultReplacements(More);
+            D:=ExtractFilePath(More);
+            if (D<>'') then
+              D:=FixPath(D,True);
+            D:=D+ExtractFileName(More);
+            if (c='W') then
+              WpoFeedbackOutput:=D
+            else
+              WpoFeedbackInput:=D;
+          end
+        else
+          IllegalPara(opt);
+      end;
+    else
+      IllegalPara(opt);
+  end;
+end;
+
+
+procedure TOption.Interpret_G_l(opt, more: TCmdStr);
+
+var
+  j : integer;
+
+begin
+  if UnsetBool(More, 0, opt, false) then
+   begin
+     exclude(init_settings.moduleswitches,cs_debuginfo);
+     exclude(init_settings.globalswitches,cs_use_heaptrc);
+     exclude(init_settings.globalswitches,cs_use_lineinfo);
+     exclude(init_settings.localswitches,cs_checkpointer);
+     paratargetdbg:=dbg_none;
+     localvartrashing := -1;
+   end
+  else
+   begin
+     include(init_settings.moduleswitches,cs_debuginfo);
+     if paratargetdbg=dbg_none then
+       paratargetdbg:=target_info.dbg;
+   end;
+  if not RelocSectionSetExplicitly then
+    RelocSection:=false;
+  j:=1;
+  while j<=length(more) do
+    begin
+      case more[j] of
+        'c' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_checkpointer)
+            else if (target_info.system in systems_support_checkpointer) then
+              begin
+                if do_release then
+                  Message(option_gc_incompatible_with_release_flag)
+                else
+                  include(init_settings.localswitches,cs_checkpointer);
+              end
+            else
+              UnsupportedPara('-gc');
+          end;
+        'h' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_use_heaptrc)
+            else
+              begin
+                if cs_gdb_valgrind in init_settings.globalswitches then
+                  Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                include(init_settings.globalswitches,cs_use_heaptrc);
+              end;
+          end;
+        'l' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_use_lineinfo)
+            else
+              include(init_settings.globalswitches,cs_use_lineinfo);
+          end;
+        'm' :
+          begin
+            paratargetdbg:=dbg_codeview;
+          end;
+        'o' :
+          begin
+            if not UpdateDebugStr(copy(more,j+1),init_settings.debugswitches) then
+              IllegalPara(opt);
+            break;
+          end;
+        'p' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_stabs_preservecase)
+            else
+              include(init_settings.globalswitches,cs_stabs_preservecase);
+          end;
+        's' :
+          begin
+            paratargetdbg:=dbg_stabs;
+          end;
+        't' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+               localvartrashing := -1
+            else
+              localvartrashing := (localvartrashing + 1) mod nroftrashvalues;
+          end;
+        'v' :
+          begin
+            if UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_gdb_valgrind)
+            else
+              begin
+                if cs_use_heaptrc in init_settings.globalswitches then
+                  Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                include(init_settings.globalswitches,cs_gdb_valgrind);
+              end;
+          end;
+        'w' :
+          begin
+            if (j<length(more)) and (more[j+1] in ['2','3','4']) then
+              begin
+                case more[j+1] of
+                  '2': paratargetdbg:=dbg_dwarf2;
+                  '3': paratargetdbg:=dbg_dwarf3;
+                  '4': paratargetdbg:=dbg_dwarf4;
+                end;
+                inc(j);
+              end
+            else
+              paratargetdbg:=dbg_dwarf2;
+          end;
+        else
+          IllegalPara(opt);
+      end;
+      inc(j);
+    end;
+end;
+
+
+procedure TOption.Interpret_Help(more: TCmdStr);
+
+begin
+  if (More <> '') and (More [1] = 'F') then
+    begin
+      FPCHelpLines := true;
+      Delete (More, 1, 1);
+      FPCBinaryPath := More;
+    end;
+  WriteHelpPages;
+end;
+
+
+procedure TOption.Interpret_H_l(more: TCmdStr);
+
+begin
+  NoPressEnter:=true;
+  if (More <> '') and (More [1] = 'F') then
+    begin
+      FPCHelpLines := true;
+      Delete (More, 1, 1);
+      FPCBinaryPath := More;
+    end;
+  WriteHelpPages;
+end;
+
+
+procedure TOption.Interpret_I_l(more: TCmdStr);
+
+begin
+  if (More='') or
+     (More [1] in ['a', 'b', 'c', 'f', 'i', {$ifdef LLVM}'l',{$endif} 'm', 'o', 'r', 't', 'u', 'w', 'x']) then
+    WriteInfo (More)
+  else
+    QuickInfo:=QuickInfo+More;
+end;
+
+
+procedure TOption.Interpret_I_U(more: TCmdStr; ispara: boolean);
+
+begin
+  if ispara then
+    ParaIncludePath.AddPath(More,false)
+  else
+   includesearchpath.AddPath(More,false);
+end;
+
+
+procedure TOption.Interpret_K_l(opt, more: TCmdStr);
+
+begin
+  if more<>'' then
+    ParaLinkOptions:=ParaLinkOptions+' '+More
+  else
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_L_l(opt, more: TCmdStr);
+
+begin
+  ParaLogo:=not UnSetBool(more,0,opt,true);
+end;
+
+
+procedure TOption.Interpret_M_l(opt, more: TCmdStr);
+
+begin
+{$ifdef PREPROCWRITE}
+  parapreprocess:=not UnSetBool(more,0,opt,true);
+{$endif PREPROCWRITE}
+end;
+
+
+procedure TOption.Interpret_M_U(opt, more: TCmdStr);
+
+begin
+  more:=Upper(more);
+  if not SetCompileMode(more, true) then
+    if not SetCompileModeSwitch(more, true) then
+      IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_N_l(opt, more: TCmdStr);
+
+begin
+  if More='' then
+    disable_configfile:=true
+  else
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_O_l(opt, more: TCmdStr);
+
+var
+  D : String;
+
+begin
+  if More<>'' then
+    begin
+      DefaultReplacements(More);
+      D:=ExtractFilePath(More);
+      if (D<>'') then
+        OutputExeDir:=FixPath(D,True);
+      OutputFileName:=ExtractFileName(More);
+    end
+  else
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_O_U(opt, more: TCmdStr);
+
+var
+  j : integer;
+
+begin
+  j:=1;
+  while j<=length(more) do
+   begin
+     case more[j] of
+       '1' :
+         init_settings.optimizerswitches:=init_settings.optimizerswitches+level1optimizerswitches;
+       '2' :
+         init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
+       '3' :
+         init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
+       '4' :
+         init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
+       'a' :
+         begin
+           if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
+             IllegalPara(opt);
+           break;
+         end;
+       's' :
+         include(init_settings.optimizerswitches,cs_opt_size);
+       'p' :
+         begin
+           if not Setoptimizecputype(copy(more,j+1),init_settings.optimizecputype) then
+             begin
+               OptCPUSetExplicitly:=true;
+               { Give warning for old i386 switches }
+               if (Length(More)-j=1) and
+                  (More[j+1]>='1') and (More[j+1]<='5')then
+                 Message2(option_obsolete_switch_use_new,'-Op<nr>','-Op<name>')
+               else
+                 IllegalPara(opt);
+             end;
+           break;
+         end;
+       'o' :
+         begin
+           if not UpdateOptimizerStr(copy(more,j+1),init_settings.optimizerswitches) then
+            IllegalPara(opt);
+           break;
+         end;
+       '-' :
+         begin
+           init_settings.optimizerswitches:=[];
+           FillChar(ParaAlignment,sizeof(ParaAlignment),0);
+         end;
+       { Obsolete switches }
+       'g' :
+         Message2(option_obsolete_switch_use_new,'-Og','-Os');
+       'G' :
+         Message1(option_obsolete_switch,'-OG');
+       'r' :
+         Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
+       'u' :
+         Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
+       'w' :
+         begin
+           if not UpdateWpoStr(copy(more,j+1),init_settings.dowpoptimizerswitches) then
+             IllegalPara(opt);
+           break;
+         end;
+       'W' :
+         begin
+           if not UpdateWpoStr(copy(more,j+1),init_settings.genwpoptimizerswitches) then
+             IllegalPara(opt);
+           break;
+         end;
+       else
+         IllegalPara(opt);
+     end;
+     inc(j);
+   end;
+end;
+
+
+procedure TOption.Interpret_P_l(opt, more: TCmdStr);
+
+begin
+  if UnsetBool(More, 0, opt, false) then
+    begin
+      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_profile];
+      undef_system_macro('FPC_PROFILE');
+    end
+  else
+    if Length(More)=0 then
+      IllegalPara(opt)
+    else
+    case more[1] of
+     'g' : if UnsetBool(more, 1, opt, false) then
+            begin
+              exclude(init_settings.moduleswitches,cs_profile);
+              undef_system_macro('FPC_PROFILE');
+            end
+           else if (target_info.system in supported_targets_pg) then
+            begin
+              include(init_settings.moduleswitches,cs_profile);
+              def_system_macro('FPC_PROFILE');
+            end
+           else
+             UnsupportedPara('-pg');
+    else
+      IllegalPara(opt);
+    end;
+end;
+
+
+procedure TOption.Interpret_P_U(opt, more: TCmdStr);
+
+begin
+  { used to select the target processor with the "fpc" binary;
+    give an error if it's not the target architecture supported by
+    this compiler binary (will be verified after the target_info
+    is set) }
+  processorstr:=More;
+end;
+
+
+procedure TOption.Interpret_R_U(opt, more: TCmdStr);
+
+begin
+  if not SetAsmReadMode(More,init_settings.asmmode) then
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_S_l(opt, more: TCmdStr);
+
+begin
+  if UnsetBool(More, 0, opt, false) then
+    begin
+      init_settings.globalswitches:=init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
+      if more<>'' then
+        IllegalPara(opt);
+    end
+  else
+    begin
+      init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
+      if more='h' then
+        init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target,cs_assemble_on_target]
+      else if more='t' then
+        init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target,cs_assemble_on_target]
+      else if more='T' then
+        init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]-[cs_asm_extern]
+      else if more='r' then
+        init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
+      else if more<>'' then
+        IllegalPara(opt);
+    end;
+end;
+
+
+procedure TOption.Interpret_S_U(opt, more: TCmdStr);
+
+var
+  j : integer;
+
+begin
+  if more='' then
+    IllegalPara(opt);
+  if more[1]='I' then
+    begin
+{$ifdef jvm}
+      UnsupportedPara('-SI');
+{$endif}
+      if upper(more)='ICOM' then
+        init_settings.interfacetype:=it_interfacecom
+      else if upper(more)='ICORBA' then
+        init_settings.interfacetype:=it_interfacecorba
+      else
+        IllegalPara(opt);
+    end
+  else
+    begin
+      j:=1;
+      while j<=length(more) do
+        begin
+          case more[j] of
+          '2' : //an alternative to -Mobjfpc
+            SetCompileMode('OBJFPC',true);
+          'a' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_do_assertion)
+            else
+              include(init_settings.localswitches,cs_do_assertion);
+          'c' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.moduleswitches,cs_support_c_operators)
+            else
+              include(init_settings.moduleswitches,cs_support_c_operators);
+          'C':
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_check_all_case_coverage)
+            else
+              include(init_settings.localswitches,cs_check_all_case_coverage);
+          'd' : //an alternative to -Mdelphi
+            SetCompileMode('DELPHI',true);
+          'e' :
+            begin
+              SetErrorFlags(copy(more,j+1));
+              break;
+            end;
+          'f' :
+            begin
+              if not(cs_compilesystem in init_settings.moduleswitches) then
+                Message(option_features_only_for_system_unit);
+              inc(j);
+              if more[j]='-' then
+                begin
+                  if length(more)>j then
+                    IllegalPara(opt)
+                  else
+                    features:=[];
+                end
+              else
+                begin
+                  if (HandleFeature(upper(copy(more,j)))) then
+                    j:=length(more)
+                  else
+                    IllegalPara(opt);
+                end;
+            end;
+          'g' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.moduleswitches,cs_support_goto)
+            else
+              include(init_settings.moduleswitches,cs_support_goto);
+          'h' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_refcountedstrings)
+            else
+              include(init_settings.localswitches,cs_refcountedstrings);
+          'i' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_do_inline)
+            else
+              include(init_settings.localswitches,cs_do_inline);
+          'j' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_typed_const_writable)
+            else
+              include(init_settings.localswitches,cs_typed_const_writable);
+          'k' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
+            else
+              include(init_settings.globalswitches,cs_load_fpcylix_unit);
+          'm' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.moduleswitches,cs_support_macro)
+            else
+              include(init_settings.moduleswitches,cs_support_macro);
+          'o' : //an alternative to -Mtp
+            SetCompileMode('TP',true);
+          'r' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_transparent_file_names)
+            else
+              include(init_settings.globalswitches,cs_transparent_file_names);
+          {$ifdef gpc_mode}
+          'p' : //an alternative to -Mgpc
+            SetCompileMode('GPC',true);
+          {$endif}
+          's' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_constructor_name)
+            else
+              include(init_settings.globalswitches,cs_constructor_name);
+          't' :
+            Message1(option_obsolete_switch,'-St');
+          'v' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.globalswitches,cs_support_vectors)
+            else
+              include(init_settings.globalswitches,cs_support_vectors);
+          'x' :
+            If UnsetBool(More, j, opt, false) then
+              SetCompileModeSwitch('EXCEPTIONS-',true)
+            else
+              SetCompileModeSwitch('EXCEPTIONS',true);
+          'y' :
+            If UnsetBool(More, j, opt, false) then
+              exclude(init_settings.localswitches,cs_typed_addresses)
+            else
+              include(init_settings.localswitches,cs_typed_addresses);
+          '-' :
+            begin
+              init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
+                                                                            cs_support_vectors,cs_load_fpcylix_unit];
+
+              init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
+                                                                          cs_typed_addresses];
+
+              init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
+                                                                            cs_support_macro];
+            end;
+          else
+            IllegalPara(opt);
+          end;
+          inc(j);
+        end;
+   end;
+end;
+
+
+procedure TOption.Interpret_T_l(opt, more: TCmdStr);
+
+begin
+  more:=Upper(More);
+  if (more='') then
+    Message1(option_missing_arg,'-t')
+  else
+    begin
+    if (self.parasubtarget<>'') and (More<>upper(self.parasubtarget)) then
+      Message1(option_subtarget_is_already_set,self.parasubtarget)
+    else
+      self.parasubtarget:=more;
+    end;
+end;
+
+
+procedure TOption.Interpret_T_U(opt, more: TCmdStr);
+
+begin
+  more:=Upper(More);
+  if paratarget=system_none then
+   begin
+     { remove old target define }
+     TargetOptions(false);
+     { load new target }
+     paratarget:=find_system_by_string(More);
+     if paratarget<>system_none then
+       set_target(paratarget)
+     else
+       IllegalPara(opt);
+     { set new define }
+     TargetOptions(true);
+   end
+  else
+   if More<>upper(target_info.shortname) then
+    Message1(option_target_is_already_set,target_info.shortname);
+end;
+
+
+procedure TOption.Interpret_U_l(opt, more: TCmdStr);
+
+begin
+  if is_identifier(more) then
+    undef_system_macro(more)
+  else
+    begin
+      if (more='') then
+        Message1(option_missing_arg,'-u')
+      else
+        Message1(option_malformed_para,opt);
+      StopOptions(1);
+    end;
+end;
+
+
+procedure TOption.Interpret_U_U(opt, more: TCmdStr);
+
+var
+  j : integer;
+
+begin
+  j:=1;
+  while j<=length(more) do
+    begin
+      case more[j] of
+{$ifdef UNITALIASES}
+       'a' :
+          begin
+            AddUnitAlias(Copy(More,j+1));
+            break;
+          end;
+{$endif UNITALIASES}
+       'n' :
+         exclude(init_settings.globalswitches,cs_check_unit_name);
+       'p' :
+          begin
+            Message2(option_obsolete_switch_use_new,'-Up','-Fu');
+            break;
+          end;
+       'r' :
+         begin
+           do_release:=true;
+           if (cs_checkpointer in init_settings.localswitches) then
+             begin
+               Message(option_gc_incompatible_with_release_flag);
+               exclude(init_settings.localswitches,cs_checkpointer);
+             end;
+         end;
+       's' :
+         include(init_settings.moduleswitches,cs_compilesystem);
+       '-' :
+         begin
+           exclude(init_settings.moduleswitches,cs_compilesystem);
+           exclude(init_settings.globalswitches,cs_check_unit_name);
+         end;
+       else
+         IllegalPara(opt);
+      end;
+      inc(j);
+    end;
+end;
+
+
+procedure TOption.Interpret_V_l(opt, more: TCmdStr);
+
+begin
+  if not setverbosity(More) then
+    IllegalPara(opt);
+end;
+
+
+procedure TOption.Interpret_V_U(opt, more: TCmdStr);
+
+begin
+  ; { Ignore used by fpc }
+end;
+
+
+procedure TOption.Interpret_W_U(opt, more: TCmdStr);
+
+var
+  j,code : integer;
+  s : string;
+
+begin
+  j:=1;
+  while j<=length(More) do
+   begin
+     case More[j] of
+       'A':
+         begin
+           if target_info.system in systems_all_windows then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_cui)
+               else
+                 SetApptype(app_native);
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'b':
+         begin
+           if target_info.system in systems_darwin then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_cui)
+               else
+                 SetApptype(app_bundle)
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'B':
+         begin
+           if target_info.system in systems_all_windows+systems_symbian+[system_z80_zxspectrum] then
+             begin
+               {  -WB200000 means set trefered base address
+                 to $200000, but does not change relocsection boolean
+                 this way we can create both relocatble and
+                 non relocatable DLL at a specific base address PM }
+               if (length(More)>j) then
+                 begin
+                   val('$'+Copy(More,j+1),imagebase,code);
+                   if code<>0 then
+                     IllegalPara(opt);
+                   ImageBaseSetExplicity:=true;
+                 end
+               else
+                 begin
+                   RelocSection:=true;
+                   RelocSectionSetExplicitly:=true;
+                 end;
+               break;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'C':
+         begin
+           if target_info.system in systems_all_windows+systems_os2+systems_macos then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_gui)
+               else
+                 SetApptype(app_cui);
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'D':
+         begin
+           if target_info.system in systems_all_windows then
+             begin
+               UseDeffileForExports:=not UnsetBool(More, j, opt, false);
+               UseDeffileForExportsSetExplicitly:=true;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'e':
+         begin
+           if (target_info.system in systems_darwin) then
+             begin
+               set_target_res(res_ext);
+               target_info.resobjext:='.fpcres';
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'F':
+         begin
+{$if defined(m68k)}
+           if target_info.system in [system_m68k_atari] then
+             begin
+               if (length(More)>j) then
+                 begin
+                   val(Copy(More,j+1),ataritos_exe_flags,code);
+                   if code<>0 then
+                     IllegalPara(opt);
+                 end
+               else
+                 IllegalPara(opt);
+               break;
+             end;
+{$endif defined(m68k)}
+           if target_info.system in systems_os2 then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_cui)
+               else
+                 SetApptype(app_fs);
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'G':
+         begin
+           if target_info.system in systems_all_windows+systems_os2+systems_macos then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_cui)
+               else
+                 SetApptype(app_gui);
+             end
+           else
+             IllegalPara(opt);
+         end;
+{$if defined(i8086)}
+       'h':
+         begin
+           if UnsetBool(More, j, opt, false) then
+             exclude(init_settings.moduleswitches,cs_huge_code)
+            else
+             include(init_settings.moduleswitches,cs_huge_code);
+         end;
+{$endif defined(i8086)}
+       'I':
+         begin
+           if target_info.system in systems_all_windows then
+             begin
+               GenerateImportSection:=not UnsetBool(More,j,opt,false);
+               GenerateImportSectionSetExplicitly:=true;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'i':
+         begin
+           if (target_info.system in systems_darwin) then
+             begin
+               set_target_res(res_macho);
+               target_info.resobjext:=
+                 targetinfos[target_info.system]^.resobjext;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'm':
+         begin
+{$if defined(i8086)}
+           if (target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) then
+             begin
+               case Upper(Copy(More,j+1)) of
+                 'TINY':    init_settings.x86memorymodel:=mm_tiny;
+                 'SMALL':   init_settings.x86memorymodel:=mm_small;
+                 'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
+                 'COMPACT': init_settings.x86memorymodel:=mm_compact;
+                 'LARGE':   init_settings.x86memorymodel:=mm_large;
+                 'HUGE':    init_settings.x86memorymodel:=mm_huge;
+                 else
+                   IllegalPara(opt);
+               end;
+               break;
+             end
+           else
+{$endif defined(i8086)}
+             IllegalPara(opt);
+         end;
+       'M':
+         begin
+           if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim])) and
+              ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2),false) then
+             begin
+               break;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'N':
+         begin
+           if target_info.system in systems_all_windows then
+             begin
+               RelocSection:=UnsetBool(More,j,opt,false);
+               RelocSectionSetExplicitly:=true;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'p':
+         begin
+{$push}
+{$warn 6018 off} { Unreachable code due to compile time evaluation }
+           if ((target_info.system in systems_embedded) or (target_info.system in systems_freertos)) and
+             ControllerSupport then
+             begin
+               s:=upper(copy(more,j+1));
+               if not(SetControllerType(s,init_settings.controllertype)) then
+                 IllegalPara(opt)
+               else
+                 begin
+                   if init_settings.cputype<>embedded_controllers[init_settings.controllertype].cputype then
+                   begin
+                     Message(scan_n_changecputype);
+                     init_settings.cputype:=embedded_controllers[init_settings.controllertype].cputype;
+                   end;
+                 end;
+               break;
+             end
+           else
+             IllegalPara(opt);
+{$pop}
+         end;
+       'P':
+         begin
+           if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) and
+              ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2),true) then
+             begin
+               break;
+             end
+{$ifdef XTENSA}
+           else if (target_info.system in [system_xtensa_freertos]) and
+              ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2)) then
+             begin
+               break;
+             end
+{$endif XTENSA}
+           else
+             IllegalPara(opt);
+         end;
+{$if defined(m68k)}
+       'L':
+         begin
+           if (target_info.system in [system_m68k_sinclairql]) then
+             sinclairql_vlink_experimental:=false
+           else
+             IllegalPara(opt);
+         end;
+       'Q':
+         begin
+           if (target_info.system in [system_m68k_sinclairql]) then
+             begin
+               sinclairql_metadata_format:=Upper(Copy(More,j+1));
+               case sinclairql_metadata_format of
+                 'QHDR', 'XTCC': ; { allowed formats }
+                 else
+                   IllegalPara(opt);
+               end;
+               break;
+             end
+           else
+             IllegalPara(opt);
+         end;
+{$endif defined(m68k)}
+       'R':
+         begin
+           if target_info.system in systems_all_windows then
+             begin
+               { support -WR+ / -WR- as synonyms to -WR / -WN }
+               RelocSection:=not UnsetBool(More,j,opt,false);
+               RelocSectionSetExplicitly:=true;
+             end
+           else
+             IllegalPara(opt);
+         end;
+       't':
+         begin
+{$if defined(i8086)}
+           if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+             begin
+               case Upper(Copy(More,j+1)) of
+                 'EXE': SetAppType(app_cui);
+                 'COM': SetAppType(app_com);
+                 else
+                   IllegalPara(opt);
+               end;
+               break;
+             end
+           else
+{$endif defined(i8086)}
+{$if defined(m68k)}
+           if (target_info.system in [system_m68k_atari]) then
+             begin
+               case Upper(Copy(More,j+1)) of
+                 'TOS': ataritos_exe_format := 'ataritos';
+                 'MINT': ataritos_exe_format := 'aoutmint';
+                 else
+                   IllegalPara(opt);
+               end;
+               break;
+             end
+           else
+{$endif defined(m68k)}
+             IllegalPara(opt);
+         end;
+       'T':
+         begin
+           if target_info.system in systems_macos then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 SetApptype(app_cui)
+               else
+                 SetApptype(app_tool);
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'X':
+         begin
+           if (target_info.system in systems_linux) then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 exclude(init_settings.moduleswitches,cs_executable_stack)
+               else
+                 include(init_settings.moduleswitches,cs_executable_stack)
+             end
+           else
+             IllegalPara(opt);
+         end;
+       else
+         IllegalPara(opt);
+     end;
+     inc(j);
+   end;
+end;
+
+procedure TOption.Interpret_X_l(opt, more: TCmdStr);
+
+begin
+  message1(option_x_ignored,more);
+end;
+
+
+procedure TOption.Interpret_X_U(opt, more: TCmdStr);
+
+var
+  j : integer;
+  s : string;
+
+begin
+  j:=1;
+  while j<=length(more) do
+   begin
+     case More[j] of
+       '9' :
+         begin
+           if target_info.system in systems_linux then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 exclude(init_settings.globalswitches,cs_link_pre_binutils_2_19)
+               else
+                 include(init_settings.globalswitches,cs_link_pre_binutils_2_19);
+             end
+           else
+             IllegalPara(opt);
+         end;
+       'a' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_large)
+           else
+             include(init_settings.globalswitches,cs_large);
+         end;
+       'c' : Cshared:=TRUE;
+       'd' : Dontlinkstdlibpath:=TRUE;
+       'e' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_extern)
+           else
+             include(init_settings.globalswitches,cs_link_extern);
+         end;
+       'f' :
+         include(init_settings.globalswitches,cs_link_pthread);
+       'g' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_separate_dbg_file)
+           else
+             include(init_settings.globalswitches,cs_link_separate_dbg_file);
+         end;
+       'i' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             include(init_settings.globalswitches,cs_link_extern)
+           else
+             exclude(init_settings.globalswitches,cs_link_extern);
+         end;
+       'n' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_native)
+           else
+             include(init_settings.globalswitches,cs_link_native);
+         end;
+{$ifdef llvm}
+       'l' :
+         begin
+           if j=length(more) then
+             IllegalPara(opt)
+           else
+             begin
+                case more[j+1] of
+                  'S':
+                    begin
+                      llvmutilssuffix:=copy(more,j+2);
+                      j:=length(more);
+                    end
+                  else
+                    IllegalPara(opt);
+                end;
+             end;
+         end;
+{$endif}
+       'm' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_map)
+           else
+             include(init_settings.globalswitches,cs_link_map);
+         end;
+       'p' : ; { Ignore used by fpc.pp }
+       'r' :
+         begin
+           if (target_info.system in suppported_targets_x_smallr) then
+             begin
+               rlinkpath:=Copy(more,2);
+               DefaultReplacements(rlinkpath);
+             end
+           else
+             IgnoredPara('-Xr');
+           more:='';
+         end;
+       'R' :
+         begin
+           sysrootpath:=copy(more,2);
+           defaultreplacements(sysrootpath);
+           more:='';
+         end;
+       's' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_strip)
+           else
+             include(init_settings.globalswitches,cs_link_strip);
+         end;
+       't' :
+         include(init_settings.globalswitches,cs_link_staticflag);
+       'u' :
+         begin
+           if target_info.system in systems_support_uf2 then
+             begin
+               if UnsetBool(More, j, opt, false) then
+                 exclude(init_settings.globalswitches,cs_generate_uf2)
+               else
+                 include(init_settings.globalswitches,cs_generate_uf2);
+             end
+           else
+             IgnoredPara('-Xu');
+         end;
+       'v' :
+         begin
+           If UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_opt_vtable)
+           else
+             include(init_settings.globalswitches,cs_link_opt_vtable);
+         end;
+       'D' :
+         begin
+           def_system_macro('FPC_LINK_DYNAMIC');
+           undef_system_macro('FPC_LINK_SMART');
+           undef_system_macro('FPC_LINK_STATIC');
+           exclude(init_settings.globalswitches,cs_link_static);
+           exclude(init_settings.globalswitches,cs_link_smart);
+           include(init_settings.globalswitches,cs_link_shared);
+           LinkTypeSetExplicitly:=true;
+         end;
+       'M' :
+         begin
+           mainaliasname:=Copy(more,2);
+           More:='';
+         end;
+       'P' :
+         begin
+           utilsprefix:=Copy(more,2);
+           DefaultReplacements(utilsprefix);
+           More:='';
+         end;
+       'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
+                    // these are not aggregable.
+               if (j=length(more)) or not (more[j+1] in ['O','A','D','L']) then
+                 IllegalPara(opt)
+               else
+                 begin
+                   case more[j+1] of
+                    'A' : begin
+                           s:=Copy(more,3);
+                           if not LinkLibraryAliases.AddDep(s) Then
+                              IllegalPara(opt);
+                          end;
+                    'O' : begin
+                           s:=Copy(more,3);
+                           if not LinkLibraryOrder.AddWeight(s) Then
+                              IllegalPara(opt);
+                          end;
+                    'D' : include(init_settings.globalswitches,cs_link_no_default_lib_order);
+                    'L' :
+                      begin
+                        if UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.globalswitches,cs_link_lld)
+                        else
+                          begin
+                            include(init_settings.globalswitches,cs_link_lld);
+                            include(init_settings.globalswitches,cs_link_extern);
+                          end;
+                       LinkerSetExplicitly:=true;
+                     end
+                   else
+                     IllegalPara(opt);
+                    end; {case}
+                   j:=length(more);
+                 end; {else begin}
+             end;
+       'S' :
+         begin
+           ForceStaticLinking;
+         end;
+       'V' :
+         begin
+           if UnsetBool(More, j, opt, false) then
+             exclude(init_settings.globalswitches,cs_link_vlink)
+           else
+             begin
+               include(init_settings.globalswitches,cs_link_vlink);
+               include(init_settings.globalswitches,cs_link_extern);
+             end;
+           LinkerSetExplicitly:=true;
+         end;
+       'X' :
+         begin
+           def_system_macro('FPC_LINK_SMART');
+           undef_system_macro('FPC_LINK_STATIC');
+           undef_system_macro('FPC_LINK_DYNAMIC');
+           exclude(init_settings.globalswitches,cs_link_static);
+           include(init_settings.globalswitches,cs_link_smart);
+           exclude(init_settings.globalswitches,cs_link_shared);
+           LinkTypeSetExplicitly:=true;
+         end;
+       '-' :
+         begin
+           exclude(init_settings.globalswitches,cs_link_staticflag);
+           exclude(init_settings.globalswitches,cs_link_strip);
+           exclude(init_settings.globalswitches,cs_link_map);
+           set_default_link_type;
+         end;
+       else
+         IllegalPara(opt);
+     end;
+     inc(j);
+   end;
+
+end;
 
 {****************************************************************************
                               Callable Routines
@@ -4154,6 +4433,8 @@ begin
       check_configfile:=false;
    end;
 end;
+
+
 
 procedure read_arguments(cmd:TCmdStr);
 
@@ -4490,6 +4771,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_LWSYNC');
       {$endif}
 
+      def_system_macro('FPC_HAS_ANSICHAR_CHAR');
       { currently, all supported CPUs have an internal sar implementation }
         def_system_macro('FPC_HAS_INTERNAL_SAR');
       {$ifdef SUPPORT_GET_FRAME}
@@ -4580,6 +4862,16 @@ begin
 
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
+  if (Option.parasubtarget<>'') then
+    begin
+    def_system_macro('FPC_SUBTARGET_'+Option.parasubtarget);
+    if cs_support_macro in init_settings.moduleswitches then
+      set_system_macro('FPC_SUBTARGET',Option.parasubtarget)
+    else
+      set_system_compvar('FPC_SUBTARGET',Option.parasubtarget);
+    // So it can be used in macro substitution.
+    globals.subtarget:=Option.parasubtarget;
+    end;
 
   { make cpu makros available when reading the config files the second time }
   def_cpu_macros;
@@ -4649,6 +4941,14 @@ begin
     read_configfile:=check_configfile(ppccfg,ppccfg)
   else
     read_configfile := false;
+  if (option.parasubtarget<>'') then
+    begin
+    subcfg:='fpc-'+lower(option.parasubtarget)+'.cfg';
+    read_subfile:=check_configfile(subcfg,subcfg);
+    // Warn if we didn't find an architecture-specific file
+    if not read_subfile then
+      message2(option_subtarget_config_not_found,option.parasubtarget,subcfg);
+    end;
 
 { Read commandline and configfile }
   param_file:='';
@@ -4656,6 +4956,8 @@ begin
   { read configfile }
   if read_configfile then
     option.interpret_file(ppccfg);
+  if read_subfile then
+    option.interpret_file(subcfg);
 
   { read parameters again to override config file }
   if cmd<>'' then

@@ -62,7 +62,7 @@
       va_list is just a dummy record
       MvdV: Nevertheless it should be a pointer type, not a record}
 
-     va_list = pchar;
+     va_list = PAnsiChar;
 
      ABC = record
           abcA : longint;
@@ -602,7 +602,7 @@
               case longint of
                  0 : ( UnicodeChar : WCHAR;
                        Attributes  : Word);
-                 1 : ( AsciiChar : CHAR );
+                 1 : ( AsciiChar : AnsiChar );
               end;
      _CHAR_INFO = CHAR_INFO;
      TCHAR_INFO = CHAR_INFO;
@@ -860,11 +860,11 @@
           ByteSize : BYTE;
           Parity : BYTE;
           StopBits : BYTE;
-          XonChar : char;
-          XoffChar : char;
-          ErrorChar : char;
-          EofChar : char;
-          EvtChar : char;
+          XonChar : AnsiChar;
+          XoffChar : AnsiChar;
+          ErrorChar : AnsiChar;
+          EofChar : AnsiChar;
+          EvtChar : AnsiChar;
           wReserved1 : WORD;
        end;
      LPDCB = ^DCB;
@@ -2329,7 +2329,7 @@
      // routine when a floating point exception is detected
      _EXCEPTION = record  //+stdlib
        type_  : Integer;  //identifier type replaced by Type_ for compilation
-       Name   : PChar;    // name of function where error occurred
+       Name   : PAnsiChar;    // name of function where error occurred
        arg1   : double;   // first argument to function
        arg2   : double;   // second argument (if any) to function
        retval : double;   // value to be returned by function
@@ -2478,7 +2478,7 @@
           dbcp_size : ULONG;
           dbcp_devicetype : ULONG;
           dbcp_reserved : ULONG;
-          dbcp_name : array[0..0] of char;
+          dbcp_name : array[0..0] of AnsiChar;
        end;
      PDEV_BROADCAST_PORT = ^DEV_BROADCAST_PORT;
      _DEV_BROADCAST_PORT = DEV_BROADCAST_PORT;
@@ -2487,7 +2487,7 @@
 
      _DEV_BROADCAST_USERDEFINED = record
           dbud_dbh : _DEV_BROADCAST_HDR;
-          dbud_szName : array[0..0] of char;
+          dbud_szName : array[0..0] of AnsiChar;
           dbud_rgbUserDefined : array[0..0] of BYTE;
        end;
      TDEVBROADCASTUSERDEFINED = _DEV_BROADCAST_USERDEFINED;
@@ -3936,7 +3936,7 @@
     SID   UserSid
     TCHAR Strings[]
     BYTE  Data[]
-    CHAR  Pad[]
+    AnsiChar  Pad[]
     DWORD Length;
    }
 
@@ -4350,7 +4350,7 @@
           case longint of
              0 : ( UnicodeChar : WCHAR;
                    dwControlKeyState : DWORD; );
-             1 : ( AsciiChar : CHAR );
+             1 : ( AsciiChar : AnsiChar );
        end;
      _KEY_EVENT_RECORD = KEY_EVENT_RECORD;
      TKEYEVENTRECORD = KEY_EVENT_RECORD;
@@ -5382,7 +5382,7 @@
           nErrCode : WORD;
           Reserved1 : WORD;
           Reserved2 : WORD;
-          szPathName : array[0..(OFS_MAXPATHNAME)-1] of CHAR;
+          szPathName : array[0..(OFS_MAXPATHNAME)-1] of AnsiChar;
        end;
      LPOFSTRUCT = ^OFSTRUCT;
      _OFSTRUCT = OFSTRUCT;
@@ -6184,8 +6184,8 @@
           dwSize : DWORD;
           hrasconn : HRASCONN;
           szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of TCHAR;
-          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of CHAR;
-          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of CHAR;
+          szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of AnsiChar;
+          szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of AnsiChar;
        end;
      _RASCONN = RASCONN;
      TRASCONN = RASCONN;
@@ -6336,7 +6336,7 @@
 
      RGNDATA = record
           rdh : RGNDATAHEADER;
-          Buffer : array[0..0] of char;
+          Buffer : array[0..0] of AnsiChar;
        end;
      LPRGNDATA = ^RGNDATA;
      _RGNDATA = RGNDATA;
@@ -6593,7 +6593,7 @@
               case longint of
                  0 : ( pOleStr : LPWSTR );
                  1 : ( uOffset : UINT );
-                 2 : ( cStr : array[0..(MAX_PATH)-1] of char );
+                 2 : ( cStr : array[0..(MAX_PATH)-1] of AnsiChar );
               end;
        end;
      LPSTRRET = ^STRRET;
@@ -6603,7 +6603,7 @@
 
      STYLEBUF = record
           dwStyle : DWORD;
-          szDescription : array[0..31] of CHAR;
+          szDescription : array[0..31] of AnsiChar;
        end;
      LPSTYLEBUF = ^STYLEBUF;
      _tagSTYLEBUF = STYLEBUF;
@@ -6868,7 +6868,7 @@
      PTOGGLEKEYS = ^TOGGLEKEYS;
 
      TOKEN_SOURCE = record
-          SourceName : array[0..7] of CHAR;
+          SourceName : array[0..7] of AnsiChar;
           SourceIdentifier : LUID;
        end;
      _TOKEN_SOURCE = TOKEN_SOURCE;
@@ -7134,8 +7134,8 @@
        nFileSizeLow:DWORD;
        dwReserved0:DWORD;
        dwReserved1:DWORD;
-       cFileName:array[0..MAX_PATH-1] of char;
-       cAlternateFileName:array[0..13] of char;
+       cFileName:array[0..MAX_PATH-1] of AnsiChar;
+       cAlternateFileName:array[0..13] of AnsiChar;
      end;
      WIN32_FIND_DATAA = _WIN32_FIND_DATAA;
      PWIN32_FIND_DATAA = ^_WIN32_FIND_DATAA;
@@ -7583,7 +7583,7 @@
           uFlags: UINT;
           uCallbackMessage: UINT;
           hIcon: HICON;
-          szTip: array [0..63] of Char;
+          szTip: array [0..63] of AnsiChar;
      end;
      _NOTIFYICONDATA = _NOTIFYICONDATAA;
 

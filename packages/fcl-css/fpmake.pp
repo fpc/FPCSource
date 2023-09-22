@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T : TTarget;
@@ -37,6 +37,7 @@ begin
 
     T:=P.Targets.AddUnit('fpcsstree.pp');
     T:=P.Targets.AddUnit('fpcssscanner.pp');
+    T.Dependencies.AddUnit('fpcsstree');
     T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('fpcssparser.pp');
     T.ResourceStrings:=True;
@@ -58,6 +59,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/cssmin.lpr');
     P.Targets.AddExampleProgram('examples/extractcssclasses.lpr');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

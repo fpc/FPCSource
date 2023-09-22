@@ -39,7 +39,9 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit CommCtrl;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 {$Mode ObjFPC}
@@ -47,7 +49,11 @@ Interface
 {$ifdef FPC_OS_UNICODE}
   {$define UNICODE}
 {$endif}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows,System.CTypes,WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows,CTypes,ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // --------------------
 
@@ -2989,7 +2995,7 @@ CONST
 {$ifdef ie5plus}
          TTM_GETBUBBLESIZE              = (WM_USER + 30);
          TTM_ADJUSTRECT                 = (WM_USER + 31);
-         TTM_SETTITLEA                  = (WM_USER + 32);     // wParam = TTI_*, lParam = char* szTitle
+         TTM_SETTITLEA                  = (WM_USER + 32);     // wParam = TTI_*, lParam = AnsiChar* szTitle
          TTM_SETTITLEW                  = (WM_USER + 33);     // wParam = TTI_*, lParam = wchar* szTitle
 {$ENDIF}
 
@@ -3124,7 +3130,7 @@ TYPE
          tagNMTTDISPINFOA     = Record
                                  hdr          : NMHDR;
                                  lpszText     : LPSTR;
-                                 szText       : Array[0..79] of char;
+                                 szText       : Array[0..79] of AnsiChar;
                                  hinst        : HINST;
                                  uFlags       : UINT;
 {$ifdef ie3plus}
@@ -5905,14 +5911,6 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
-{$ifdef ie6plus}
-                                 uStateEx     : cUINT;
-                                 hwnd         : HWND;
-                                 iExpandedImage  : cint;
-{$endif}
-{$ifdef NTDDI_WIN7}
-				 iPadding        : cint;
-{$endif}
                                  END;
          TVITEMA              = tagTVITEMA;
          LPTVITEMA            = ^tagTVITEMA;
@@ -5931,14 +5929,6 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
-{$ifdef ie6plus}
-                                 uStateEx     : cUINT;
-                                 hwnd         : HWND;
-                                 iExpandedImage  : cint;
-{$endif}
-{$ifdef NTDDI_WIN7}
-				 iPadding        : cint;
-{$endif}
                                  END;
          TVITEMW              = tagTVITEMW;
          LPTVITEMW            = ^tagTVITEMW;
@@ -5960,6 +5950,14 @@ Type
                                  cChildren    : cint;
                                  lParam       : LPARAM;
                                  iIntegral    : cint;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+                                 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMEXA            = tagTVITEMEXA;
          LPTVITEMEXA          = ^tagTVITEMEXA;
@@ -5979,6 +5977,14 @@ Type
                                  cChildren    : cint;
                                  lParam       : LPARAM;
                                  iIntegral    : cint;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+                                 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMEXW            = tagTVITEMEXW;
          LPTVITEMEXW          = ^tagTVITEMEXW;
@@ -7269,7 +7275,7 @@ TYPE
          DummyStruct13        = Record
                                  hdr          : NMHDR;
                                  iItemid      : cint;
-                                 szText       : Array[0..CBEMAXSTRLEN-1] OF char;
+                                 szText       : Array[0..CBEMAXSTRLEN-1] OF AnsiChar;
                                  END;
          NMCBEDRAGBEGINA      = DummyStruct13;
          LPNMCBEDRAGBEGINA    = ^DummyStruct13;
@@ -7311,7 +7317,7 @@ TYPE
                                  hdr          : NMHDR;
                                  fChanged     : BOOL;
                                  iNewSelection : cint;
-                                 szText       : Array[0..CBEMAXSTRLEN-1] OF char;
+                                 szText       : Array[0..CBEMAXSTRLEN-1] OF AnsiChar;
                                  iWhy         : cint;
                                  END;
          NMCBEENDEDITA        = DummyStruct15;
@@ -8769,7 +8775,7 @@ TYPE
                                  pszFormat    : LPCSTR;          // format substring
                                  st           : SYSTEMTIME;      // current systemtime
                                  pszDisplay   : LPCSTR;          // string to display
-                                 szDisplay    : Array [0..63] OF CHAR;          // buffer pszDisplay originally points at
+                                 szDisplay    : Array [0..63] OF AnsiChar;          // buffer pszDisplay originally points at
                                  END;
          NMDATETIMEFORMATA    = tagNMDATETIMEFORMATA;
          LPNMDATETIMEFORMATA  = ^tagNMDATETIMEFORMATA;
@@ -9930,6 +9936,9 @@ const
   TDF_RTL_LAYOUT                      = $2000;
   TDF_NO_DEFAULT_RADIO_BUTTON         = $4000;
   TDF_CAN_BE_MINIMIZED                = $8000;
+  TDF_NO_SET_FOREGROUND               = $00010000;
+  TDF_SIZE_TO_CONTENT                 = $01000000;
+
 
 type
   TASKDIALOG_FLAGS = Integer;                         // Note: _TASKDIALOG_FLAGS is an int
@@ -9995,6 +10004,7 @@ const
   TD_SHIELD_ERROR_ICON    = MAKEINTRESOURCEW(Word(-7));
   TD_SHIELD_OK_ICON       = MAKEINTRESOURCEW(Word(-8));
   TD_SHIELD_GRAY_ICON     = MAKEINTRESOURCEW(Word(-9));
+  TD_QUESTION_ICON        = MAKEINTRESOURCEW(Word(32514)); 
 
   // _TASKDIALOG_COMMON_BUTTON_FLAGS enum
   TDCBF_OK_BUTTON            = $0001; // selected control return value IDOK
@@ -10776,7 +10786,7 @@ end;
 Function ListView_GetHeader( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
 end;
 
 
@@ -12066,7 +12076,7 @@ end;
 Function TreeView_EditLabel( hwnd : hwnd; hitem : HTREEITEM):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_EDITLABEL, 0, LParam(hitem)))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_EDITLABEL, 0, LParam(hitem)))
 end;
 
 
@@ -12078,7 +12088,7 @@ end;
 Function TreeView_GetEditControl( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_GETEDITCONTROL, 0, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_GETEDITCONTROL, 0, 0))
 end;
 
 
@@ -12194,7 +12204,7 @@ end;
 Function TreeView_SetToolTips( hwnd : hwnd; hwndTT : WPARAM):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_SETTOOLTIPS, hwndTT, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_SETTOOLTIPS, hwndTT, 0))
 end;
 
 
@@ -12206,7 +12216,7 @@ end;
 Function TreeView_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_GETTOOLTIPS, 0, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_GETTOOLTIPS, 0, 0))
 end;
 
 
@@ -12743,7 +12753,7 @@ end;
 Function TabCtrl_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
 end;
 
 

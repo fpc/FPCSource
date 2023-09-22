@@ -730,11 +730,22 @@ implementation
         end;
 
       procedure check_inheritance_record_type_helper(var def:tdef);
+        var
+          tmp : tstoreddef;
         begin
           if (def.typ<>errordef) and assigned(current_objectdef.childof) then
             begin
               if def<>current_objectdef.childof.extendeddef then
                 begin
+                  { a type helper may extend a type alias of the type its
+                    parent type helper extends }
+                  tmp:=tstoreddef(def);
+                  while (df_unique in tmp.defoptions) and assigned(tstoreddef(tmp).orgdef) do
+                    begin
+                      if tmp.orgdef=current_objectdef.childof.extendeddef then
+                        exit;
+                      tmp:=tstoreddef(tmp.orgdef);
+                    end;
                   Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
                   def:=generrordef;
                 end;
@@ -1558,7 +1569,7 @@ implementation
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in current_settings.localswitches) and
-           (current_objectdef.objecttype in [odt_interfacecom,odt_class,odt_helper]) then
+           (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_class,odt_helper]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
         { Objective-C/Java objectdefs can be "formal definitions", in which case

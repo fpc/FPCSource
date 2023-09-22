@@ -41,6 +41,8 @@ interface
         function  getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function  getaddressregister(list:TAsmList):Tregister;override;
+        function  getfuncrefregister(list:TAsmList):Tregister;
+        function  getexternrefregister(list:TAsmList):Tregister;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
         procedure a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);override;
       end;
@@ -74,6 +76,10 @@ implementation
           [RS_R0],first_fpu_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
           [RS_R0],first_mm_imreg,[]);
+        rg[R_FUNCREFREGISTER]:=Trgcpu.create(R_FUNCREFREGISTER,R_SUBNONE,
+          [RS_R0],first_funcref_imreg,[]);
+        rg[R_EXTERNREFREGISTER]:=Trgcpu.create(R_EXTERNREFREGISTER,R_SUBNONE,
+          [RS_R0],first_externref_imreg,[]);
       end;
 
 
@@ -82,6 +88,8 @@ implementation
         rg[R_INTREGISTER].free;
         rg[R_FPUREGISTER].free;
         rg[R_MMREGISTER].free;
+        rg[R_FUNCREFREGISTER].free;
+        rg[R_EXTERNREFREGISTER].free;
         inherited done_register_allocators;
       end;
 
@@ -110,6 +118,18 @@ implementation
           mixed for now; we currently don't have to differentiate between the
           two as far as the jvm backend is concerned }
         result:=rg[R_INTREGISTER].getregister(list,R_SUBD)
+      end;
+
+
+    function  tcgwasm.getfuncrefregister(list:TAsmList):Tregister;
+      begin
+        result:=rg[R_FUNCREFREGISTER].getregister(list,R_SUBNONE);
+      end;
+
+
+    function  tcgwasm.getexternrefregister(list:TAsmList):Tregister;
+      begin
+        result:=rg[R_EXTERNREFREGISTER].getregister(list,R_SUBNONE);
       end;
 
 

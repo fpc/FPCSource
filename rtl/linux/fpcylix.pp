@@ -20,8 +20,13 @@ unit fpcylix;
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      UnixApi.CThreads,UnixApi.CWString,System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       cthreads,cwstring,dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
       
     const
       MAX_PATH = 4095;
@@ -30,8 +35,8 @@ unit fpcylix;
       MainInstance: PtrUInt;
 
     function GetModuleName(Module: HMODULE): string;
-    function GetModuleHandle(ModuleName: PChar): HMODULE;
-    function GetModuleFileName(Module: HMODULE; Buffer: PChar; BufLen: Integer): Integer;
+    function GetModuleHandle(ModuleName: PAnsiChar): HMODULE;
+    function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
 
   implementation
 
@@ -41,13 +46,13 @@ unit fpcylix;
       end;
 
 
-    function GetModuleHandle(ModuleName: PChar): HMODULE;
+    function GetModuleHandle(ModuleName: PAnsiChar): HMODULE;
       begin
         result:=NilHandle;
       end;
 
 
-    function GetModuleFileName(Module: HMODULE; Buffer: PChar; BufLen: Integer): Integer;
+    function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
       begin
         result:=0;
       end;

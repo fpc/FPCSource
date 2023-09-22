@@ -1,9 +1,15 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nb30;
+{$ENDIF FPC_DOTTEDUNITS}
 //  This module contains the definitions for portable NetBIOS 3.0
 //  support.
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {***************************************************************
  *                                                              *
  *              Data structure templates                        *

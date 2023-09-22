@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit filestream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * File Stream error codes
@@ -208,13 +214,13 @@ const
 
 // Open/create a file stream (name must all be valid -- non-null, non-empty)
 // (errP is optional - set to NULL to ignore)
-function FileOpen(cardNo: UInt16; const nameP: PChar; type_, creator, openMode: UInt32; var errP: Err): FileHand; syscall sysTrapFileOpen;
+function FileOpen(cardNo: UInt16; const nameP: PAnsiChar; type_, creator, openMode: UInt32; var errP: Err): FileHand; syscall sysTrapFileOpen;
 
 // Close the file stream
 function FileClose(stream: FileHand): Err; syscall sysTrapFileClose;
 
 // Delete a file
-function FileDelete(cardNo: UInt16; const nameP: PChar): Err; syscall sysTrapFileDelete;
+function FileDelete(cardNo: UInt16; const nameP: PAnsiChar): Err; syscall sysTrapFileDelete;
 
 (***********************************************************************
  *

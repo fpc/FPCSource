@@ -101,7 +101,7 @@ implementation
          end;
 
         { write to disk }
-        FInput.Verbose(FPCMakeInfo,'Writing Package.fpc');
+        FInput.Verbose(FPCMakeInfo,'Writing '+FFileName);
         FOutput.SaveToFile(FFileName);
       end;
 

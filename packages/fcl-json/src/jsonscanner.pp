@@ -16,11 +16,17 @@
 {$h+}
 { $INLINE ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
@@ -67,13 +73,13 @@ Type
     FCurPos : PAnsiChar; // Position inside total string
     FCurRow: Integer;
     FCurToken: TJSONToken;
-    FCurTokenString: string;
-    FCurLine: PChar;
+    FCurTokenString: AnsiString;
+    FCurLine: PAnsiChar;
     FTokenStr:  PAnsiChar; // position inside FCurLine
     FEOL : PAnsiChar; // EOL
     FOptions : TJSONOptions;
     function GetCurColumn: Integer; inline;
-    function GetCurLine: string;
+    function GetCurLine: AnsiString;
     function GetO(AIndex: TJSONOption): Boolean;
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
   protected
@@ -88,12 +94,12 @@ Type
 
     function FetchToken: TJSONToken;
 
-    property CurLine: string read GetCurLine;
+    property CurLine: Ansistring read GetCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
 
     property CurToken: TJSONToken read FCurToken;
-    property CurTokenString: string read FCurTokenString;
+    property CurTokenString: Ansistring read FCurTokenString;
     // Use strict JSON: " for strings, object members are strings, not identifiers
     Property Strict : Boolean Index joStrict Read GetO Write SetO ; deprecated 'use options instead';
     // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
@@ -249,11 +255,11 @@ function TJSONScanner.FetchToken: TJSONToken;
   end;
 
 var
-  TokenStart: PChar;
+  TokenStart: PAnsiChar;
   it : TJSONToken;
   I : Integer;
   OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
-  C , c2: char;
+  C , c2: AnsiChar;
   S : String[8];
   Line : String;
   IsStar,EOC: Boolean;
@@ -402,7 +408,7 @@ begin
                 Move(S[1],FCurTokenString[OldLength + SectionLength+1],i);
               Inc(OldLength, SectionLength+I);
               end;
-            // Next char
+            // Next AnsiChar
             TokenStart := FTokenStr+1;
             end
           else if u1<>0 then
@@ -522,7 +528,7 @@ begin
               FCurTokenString:='';
               Inc(FTokenStr);
               TokenStart:=FTokenStr;
-              SectionLength := PChar(FEOL)-TokenStart;
+              SectionLength := PAnsiChar(FEOL)-TokenStart;
               SetString(FCurTokenString, TokenStart, SectionLength);
               FetchLine;
               end;
@@ -605,7 +611,7 @@ begin
   Result:=DoFetchToken;
 end;}
 
-function TJSONScanner.GetCurLine: string;
+function TJSONScanner.GetCurLine: Ansistring;
 begin
   Result:='';
   if FCurLine<>Nil then

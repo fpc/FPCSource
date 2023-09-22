@@ -42,7 +42,9 @@
 
 // $Id: JwaNtQuery.pas,v 1.14 2007/09/14 06:48:46 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaNtQuery;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,9 +59,15 @@ unit JwaNtQuery;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Activex, WinApi.Comobj, {TODO}
+  WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaActiveX, ComObj, {TODO}
   JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -126,8 +134,8 @@ function LocateCatalogsW(pwszScope: PWCHAR; iBmk: ULONG; pwszMachine: PWCHAR;
 // For calling from VB
 //
 
-function LocateCatalogsA(pwszScope: PCHAR; iBmk: ULONG; pwszMachine: PCHAR;
-  var pccMachine: ULONG; pwszCat: PCHAR; var pccCat: ULONG): HRESULT; stdcall;
+function LocateCatalogsA(pwszScope: PAnsiChar; iBmk: ULONG; pwszMachine: PAnsiChar;
+  var pccMachine: ULONG; pwszCat: PAnsiChar; var pccCat: ULONG): HRESULT; stdcall;
 {$EXTERNALSYM LocateCatalogsA}
 
 function LocateCatalogs(pwszScope: PTCHAR; iBmk: ULONG; pwszMachine: PTCHAR;

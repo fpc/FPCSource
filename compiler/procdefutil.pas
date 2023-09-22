@@ -1138,6 +1138,7 @@ implementation
       invokename : tsymstr;
       i : longint;
       outerself,
+      fpsym,
       selfsym,
       sym : tsym;
       info : pcapturedsyminfo;
@@ -1146,7 +1147,6 @@ implementation
       invokedef,
       parentdef,
       curpd : tprocdef;
-      syms : tfpobjectlist;
     begin
       capturer:=nil;
       result:=funcref_intf_for_proc(pd,fileinfo_to_suffix(pd.fileinfo));
@@ -1203,24 +1203,24 @@ implementation
           pd.procsym.realname:=invokename;
           pd.parast.symtablelevel:=normal_function_level;
           pd.localst.symtablelevel:=normal_function_level;
-          { collect all hidden parameters and especially the self parameter (if any) }
+          { retrieve framepointer and self parameters if any }
+          fpsym:=nil;
           selfsym:=nil;
-          syms:=tfpobjectlist.create(false);
           for i:=0 to pd.parast.symlist.count-1 do
             begin
               sym:=tsym(pd.parast.symlist[i]);
               if sym.typ<>paravarsym then
                 continue;
-              if vo_is_self in tparavarsym(sym).varoptions then
-                selfsym:=sym
-              else if vo_is_hidden_para in tparavarsym(sym).varoptions then
-                syms.add(sym);
+              if vo_is_parentfp in tparavarsym(sym).varoptions then
+                fpsym:=sym
+              else if vo_is_self in tparavarsym(sym).varoptions then
+                selfsym:=sym;
+              if assigned(fpsym) and assigned(selfsym) then
+                break;
             end;
-          { get rid of the hidden parameters; they will be added again during
-            buildvmt of the capturer }
-          for i:=0 to syms.count-1 do
-            pd.parast.deletesym(tsym(syms[i]));
-          syms.free;
+          { get rid of the framepointer parameter }
+          if assigned(fpsym) then
+            pd.parast.deletesym(fpsym);
           outerself:=nil;
           { complain about all symbols that can't be captured and add the symbols
             to this procdefs capturedsyms if it isn't a top level function }

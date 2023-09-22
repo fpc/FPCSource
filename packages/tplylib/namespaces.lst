@@ -1,0 +1,4 @@
+src/yacclib.pas=namespaced/Pascal.Yacclib.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/lexlib.pas=namespaced/Pascal.Lexlib.pas

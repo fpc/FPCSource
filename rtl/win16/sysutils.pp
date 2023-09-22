@@ -16,18 +16,28 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
-{$MODESWITCH out}
-{ force ansistrings }
+{$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 
@@ -42,8 +52,13 @@ uses
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst,TP.DOS,WinApi.WinProcs;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst,dos,winprocs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -54,14 +69,14 @@ implementation
 function ExtractShortPathName(Const FileName : RawByteString) : RawByteString;
 var
   Regs: registers;
-  c: array [0..255] of Char;
+  c: array [0..255] of AnsiChar;
 begin
   if LFNSupport then
     begin
       Regs.ax:=$7160;
       Regs.cx:=1;
-      Regs.ds:=Seg(PChar(FileName)^);
-      Regs.si:=Ofs(PChar(FileName)^);
+      Regs.ds:=Seg(PAnsiChar(FileName)^);
+      Regs.si:=Ofs(PAnsiChar(FileName)^);
       Regs.es:=Seg(c);
       Regs.di:=Ofs(c);
       MsDos(Regs);
@@ -84,7 +99,7 @@ end;
 {$i sysutils.inc}
 
 type
-  PFarChar=^Char;far;
+  PFarChar=^AnsiChar;far;
   PPFarChar=^PFarChar;
 var
   dos_env_count:smallint;external name '__dos_env_count';
@@ -130,7 +145,7 @@ begin
     begin
       Regs.ax := $716c;                    { Use LFN Open/Create API }
       Regs.dx := Action;                   { Action if file does/doesn't exist }
-      Regs.si := Ofs(PChar(FileName)^);
+      Regs.si := Ofs(PAnsiChar(FileName)^);
       Regs.bx := $2000 + (Mode and $ff);   { File open mode }
     end
   else
@@ -139,9 +154,9 @@ begin
         Regs.ax := $3c00                   { Map to Create/Replace API }
       else
         Regs.ax := $3d00 + (Mode and $ff); { Map to Open_Existing API }
-      Regs.dx := Ofs(PChar(FileName)^);
+      Regs.dx := Ofs(PAnsiChar(FileName)^);
     end;
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   Regs.cx := $20;                          { Attributes }
   Regs.Es := 0;  { because protected mode }
   MsDos(Regs);
@@ -486,8 +501,8 @@ Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   Regs.Es := 0;  { because protected mode }
   if LFNSupport then
    begin
@@ -508,8 +523,8 @@ Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   Regs.Es := 0;  { because protected mode }
   if LFNSupport then
     begin
@@ -531,8 +546,8 @@ Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   Regs.Es := 0;  { because protected mode }
   if LFNSupport then
     Regs.ax := $7141
@@ -549,10 +564,10 @@ Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(OldName)^);
-  Regs.Ds := Seg(PChar(OldName)^);
-  Regs.di := Ofs(PChar(NewName)^);
-  Regs.Es := Seg(PChar(NewName)^);
+  Regs.dx := Ofs(PAnsiChar(OldName)^);
+  Regs.Ds := Seg(PAnsiChar(OldName)^);
+  Regs.di := Ofs(PAnsiChar(NewName)^);
+  Regs.Es := Seg(PAnsiChar(NewName)^);
   if LFNSupport then
     Regs.ax := $7156
   else
@@ -738,7 +753,7 @@ end;
 
 procedure InitAnsi;
 type
-  PFarChar = ^char; far;
+  PFarChar = ^AnsiChar; far;
 var
   CountryInfo: TCountryInfo; i: integer;
 begin

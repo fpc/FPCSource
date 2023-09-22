@@ -2,6 +2,8 @@ unit tcbaseparser;
 
 {$mode objfpc}{$H+}
 
+{$define NOCONSOLE}
+
 interface
 
 uses
@@ -198,6 +200,7 @@ begin
   Inc(FErrorCount);
   if aContext.Error is EParserError then
     FLastErrorNumber:=EParserError(aContext.Error).ErrNo;
+  if Allow then ;
 end;
 
 procedure TTestParser.SetupParser;
@@ -415,11 +418,11 @@ begin
     FFileName:=MainFilename;
   FResolver.AddStream(FFileName,TStringStream.Create(FSource.Text));
   FScanner.OpenFile(FFileName);
-  {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
+  { $ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// Test : ',Self.TestName);
   for i:=0 to FSource.Count-1 do
     Writeln(Format('%:4d: ',[i+1]),FSource[i]);
-  {$EndIf}
+  { $EndIf}
 end;
 
 procedure TTestParser.ParseDeclarations;

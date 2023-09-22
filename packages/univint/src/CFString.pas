@@ -15,7 +15,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CFString;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -200,7 +202,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.CFData,MacOsApi.CFDictionary,MacOsApi.CFCharacterSet,MacOsApi.CFLocale;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFArray,CFData,CFDictionary,CFCharacterSet,CFLocale;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -384,16 +390,16 @@ since it is the default choice with Mac OS X developer tools.
 {
 	CFSTR Must only be called with a constant CString
 }
-function CFSTR( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTR( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 {
 	CFSTRP Must only be called with a constant Pascal String
 }
-function CFSTRP( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTRP( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 
 {
 	CFSTRP0 Must only be called with a constant Pascal String terminated with a chr(0)
 }
-function CFSTRP0( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTRP0( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 
 {** Immutable string creation functions **}
 

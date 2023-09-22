@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpCSSTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$codepage utf8}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Contnrs, System.RtlConsts, System.SysUtils, System.Classes, System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses Contnrs, RtlConsts, SysUtils, Classes, Math;
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 Type
   ECSSException = class(Exception);
@@ -427,7 +434,7 @@ implementation
 Const
   sIndent = '  ';
 
-Function u8length(s : char) : Byte;
+Function  u8length(s : AnsiChar) : Byte;
 
 const u8_length : Array[0..15] of byte = (
 // 0 1 2 3 4 5 6 7 8 9 A B C D E F
@@ -445,7 +452,7 @@ Var
   O : TCSSString;
   u : TCSSString;
   W : Unicodestring;
-  C : Char;
+  C : AnsiChar;
 
   Procedure AddO;
   var
@@ -504,7 +511,7 @@ function StringToIdentifier(const S: TCSSString): TCSSString;
 
 Var
   iIn,iOut,L : Integer;
-  C : Char;
+  C : AnsiChar;
 
 begin
   Result:='';

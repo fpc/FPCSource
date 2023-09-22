@@ -480,9 +480,9 @@ type
 
 type 
   ProfileInfo = record
-   name: PChar;
+   name: PAnsiChar;
    length: cint;
-   info: PChar;
+   info: PAnsiChar;
    signature: culong;
   end;
   
@@ -526,7 +526,7 @@ type
    //error_number: Shortint;
    severity: culong;
    error_number: culong;
-   reason, description: PChar;
+   reason, description: PAnsiChar;
 	 exceptions: Pointer;
 	 relinquish: MagickBooleanType;
    semaphore: Pointer; //PSemaphoreInfo;
@@ -540,7 +540,7 @@ type
 //typedef struct _BlobInfo _BlobInfo_;
 
 type
-  MagickProgressMonitor = function (const str: PChar; const para: MagickOffsetType;
+  MagickProgressMonitor = function (const str: PAnsiChar; const para: MagickOffsetType;
    const sizetype: MagickSizeType; param: Pointer): PMagickBooleanType;
 
 type
@@ -559,7 +559,7 @@ type
    rendering_intent: RenderingIntent;
    profiles: Pointer;
    units: ResolutionType;
-   montage, directory, geometry: PChar;
+   montage, directory, geometry: PAnsiChar;
    offset: cint;
    x_resolution, y_resolution: double;
    page, extract_info, tile_info: RectangleInfo;  // deprecated
@@ -581,7 +581,7 @@ type
    attributes: Pointer;
    ascii85: Pointer; //_Ascii85Info_
    blob: Pointer; // _BlobInfo_
-   filename, magick_filename, magick: array[1..MaxTextExtent] of char;
+   filename, magick_filename, magick: array[1..MaxTextExtent] of AnsiChar;
    magick_columns, magick_rows: culong;
    exception: ExceptionInfo;
    debug: MagickBooleanType;
@@ -609,13 +609,13 @@ type
    compression: CompressionType;
    orientation: OrientationType;
    temporary, adjoin, affirm, antialias: MagickBooleanType;
-   size, extract, page, scenes: PChar;
+   size, extract, page, scenes: PAnsiChar;
    scene, number_scenes, depth: culong;
    interlace: InterlaceType;
    endian: EndianType;
    units: ResolutionType;
    quality: culong;
-   sampling_factor, server_name, font, texture, density: PChar;
+   sampling_factor, server_name, font, texture, density: PAnsiChar;
    pointsize, fuzz: double;
    background_color, border_color, matte_color: PixelPacket;
    dither, monochrome: MagickBooleanType;
@@ -625,7 +625,7 @@ type
    preview_type: PreviewType;
    group: Longint;
    ping, verbose: MagickBooleanType;
-   view, authenticate: PChar;
+   view, authenticate: PAnsiChar;
    channel: ChannelType;
    attributes: PImage;
    options: Pointer;
@@ -635,13 +635,13 @@ type
    file_: Pointer; // *file
    blob: Pointer;
    length: cint;
-   magick, unique, zero, filename: array[1..MaxTextExtent] of char;
+   magick, unique, zero, filename: array[1..MaxTextExtent] of AnsiChar;
    debug: MagickBooleanType;
 
   {
     Deprecated.
   }
-   tile: PChar;
+   tile: PAnsiChar;
    subimage, subrange: culong;
    pen: PixelPacket;
    signature: culong;

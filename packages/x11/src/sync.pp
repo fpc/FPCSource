@@ -48,14 +48,21 @@ PERFORMANCE OF THIS SOFTWARE.
 
 ******************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';
@@ -65,7 +72,7 @@ const
 type
   PXSyncSystemCounter = ^TXSyncSystemCounter;
   TXSyncSystemCounter = record
-    name: Pchar;              { null-terminated name of system counter }
+    name: PAnsiChar;              { null-terminated name of system counter }
     counter: TXSyncCounter;   { counter id of this system counter }
     resolution: TXSyncValue;  { resolution of this system counter }
   end;

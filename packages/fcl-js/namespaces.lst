@@ -1,0 +1,14 @@
+tests/tcsrcmap.pas=tests/Javascript.TcSrcMap.pas
+src/jsbase.pp=namespaced/Js.Base.pp
+src/jsminifier.pp=namespaced/Js.Minifier.pp
+src/jsparser.pp=namespaced/Js.Parser.pp
+src/jsscanner.pp=namespaced/Js.Scanner.pp
+src/jssrcmap.pas=namespaced/Js.SrcMap.pas
+src/jstoken.pp=namespaced/Js.Token.pp
+src/jstree.pp=namespaced/Js.Tree.pp
+src/jswriter.pp=namespaced/Js.Writer.pp
+src/tstopas.pp=namespaced/Js.TsToPas.pp
+{s*:src/}=namespaced/
+{i+:src/}
+{s*:tests/}=tests/
+{i+:tests/}

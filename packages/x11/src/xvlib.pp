@@ -51,12 +51,19 @@ SOFTWARE.
 **
 *}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xvlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xshm, Api.X11.Xv;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xshm, xv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 
@@ -75,14 +82,14 @@ type
     flags : cint; { XvGettable, XvSettable }
     min_value : cint;
     max_value : cint;
-    name : pchar;
+    name : PAnsiChar;
   end;
 
   PPXvEncodingInfo = ^PXvEncodingInfo;
   PXvEncodingInfo = ^TXvEncodingInfo;
   TXvEncodingInfo = record
     encoding_id : TXvEncodingID;
-    name : pchar;
+    name : PAnsiChar;
     width : culong;
     height : culong;
     rate : TXvRational;
@@ -101,7 +108,7 @@ type
     base_id : TXvPortID;
     num_ports : culong;
     _type : cchar;
-    name : pchar;
+    name : PAnsiChar;
     num_formats : culong;
     formats : PXvFormat;
     num_adaptors : culong;
@@ -174,7 +181,7 @@ type
     vert_y_period : cuint;
     vert_u_period : cuint;
     vert_v_period : cuint;
-    component_order : array[0..31] of char; { eg. UYVY }
+    component_order : array[0..31] of AnsiChar; { eg. UYVY }
     scanline_order : cint;                  { XvTopToBottom, XvBottomToTop }
   end;
 

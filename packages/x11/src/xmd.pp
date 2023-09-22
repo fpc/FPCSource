@@ -45,7 +45,9 @@ SOFTWARE.
 
 ******************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

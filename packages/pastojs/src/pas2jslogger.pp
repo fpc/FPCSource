@@ -18,14 +18,32 @@
     Filtering messages by number and type.
     Registering messages with number, pattern and type (error, warning, note, etc).
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsLogger;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
-
+{$WARN 6018 off : Unreachable code}
 {$i pas2js_defines.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF Pas2JS}
+  JS,
+  {$IFDEF NodeJS}
+  Node.FS,
+  {$ENDIF}
+  {$ENDIF}
+  Pas2Js.Utils,
+  {$IFDEF HASFILESYSTEM}
+  Pas2Js.Files.Utils,
+  {$ENDIF}
+  System.Types, System.Classes, System.SysUtils,
+  Pascal.Tree, Pascal.Scanner,
+  Js.Tree, Js.Base, Js.Writer, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF Pas2JS}
   JS,
@@ -40,6 +58,7 @@ uses
   Types, Classes, SysUtils,
   PasTree, PScanner,
   jstree, jsbase, jswriter, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ExitCodeErrorInternal = 1; // internal error
@@ -220,8 +239,8 @@ type
 
 function CompareP2JMessage(Item1, Item2: {$IFDEF Pas2JS}JSValue{$ELSE}Pointer{$ENDIF}): Integer;
 
-function QuoteStr(const s: string; Quote: char = '"'): string;
-function DeQuoteStr(const s: string; Quote: char = '"'): string;
+function QuoteStr(const s: string; Quote: AnsiChar = '"'): string;
+function DeQuoteStr(const s: string; Quote: AnsiChar = '"'): string;
 function AsString(Element: TPasElement; Full: boolean = true): string; overload;
 function AsString(Element: TJSElement): string; overload;
 function DbgString(Element: TJSElement; Indent: integer): string; overload;
@@ -244,12 +263,12 @@ begin
   Result:=Msg1.Number-Msg2.Number;
 end;
 
-function QuoteStr(const s: string; Quote: char): string;
+function QuoteStr(const s: string; Quote: AnsiChar): string;
 begin
   Result:={$IFDEF Pas2JS}SysUtils.QuotedStr{$ELSE}AnsiQuotedStr{$ENDIF}(S,Quote);
 end;
 
-function DeQuoteStr(const s: string; Quote: char): string;
+function DeQuoteStr(const s: string; Quote: AnsiChar): string;
 begin
   Result:={$IFDEF Pas2JS}SysUtils.DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(S,Quote);
 end;
@@ -453,7 +472,7 @@ begin
     jstObject: Result:='{:OBJECT:}';
     jstReference: Result:='{:REFERENCE:}';
     JSTCompletion: Result:='{:COMPLETION:}';
-    else Result:='{:Unknown ValueType '+IntToStr(ord(Element.ValueType))+':}';
+    else Result:='{:Unknown ValueType '+IntToStr(ord(Element.ValueType))+':}'{%H-};
     end;
   end;
   Result:=StringOfChar(' ',Indent)+Result;
@@ -494,14 +513,14 @@ var
 begin
   Result:='';
   for i:=0 to Count-1 do
-    Result:=Result+HexStr(ord(PChar(p)[i]),2);
+    Result:=Result+HexStr(ord(PAnsiChar(p)[i]),2);
 end;
 {$ENDIF}
 
 function DbgStr(const s: string): string;
 var
   i: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   Result:='';
   for i:=1 to length(s) do begin
@@ -679,7 +698,7 @@ end;
 
 procedure TPas2jsLogger.DoLogRaw(const Msg: string; SkipEncoding : Boolean);
 var
-  S: String;
+  S: ansiString;
 begin
   if SkipEncoding then
     S:=Msg
@@ -1019,7 +1038,7 @@ begin
   mtHint: Result:='Hint';
   mtInfo: Result:='Info';
   mtDebug: Result:='Debug';
-  else Result:='Verbose';
+  else Result:='Verbose'{%H-};
   end;
 end;
 

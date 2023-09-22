@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -60,6 +60,9 @@ begin
     P.Targets.AddExampleProgram('testpg2.pp');
     P.Targets.AddExampleProgram('testpg1.pp');
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

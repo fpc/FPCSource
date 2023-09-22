@@ -39,9 +39,9 @@ Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fs
 Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 
 {$if defined(beos) or defined(solaris) }
-Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
+Function fpStatFS  (Path:PAnsiChar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
 {$else beos or solaris }
-Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs'{$ifdef darin_new_iostructs_suffix}+'$INODE64'{$endif};
+Function fpStatFS  (Path:PAnsiChar; Info:pstatfs):cint; cdecl; external clib name 'statfs'{$ifdef darin_new_iostructs_suffix}+'$INODE64'{$endif};
 {$endif beos or solaris }
 
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';

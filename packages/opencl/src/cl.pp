@@ -33,12 +33,19 @@
 // CL_MEM_FLAGS              CL_MEM_FLAGS_INFO
 // CL_IMAGE_FORMAT           CL_IMAGE_FORMAT_INFO
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MACRO ON}
 
@@ -644,7 +651,7 @@ function clGetDeviceInfo(
 
   //  Context APIs
 type
-  TContextNotify = procedure (name: Pchar; data: Pointer; size: csize_t; data2: Pointer); extdecl;
+  TContextNotify = procedure (name: PAnsiChar; data: Pointer; size: csize_t; data2: Pointer); extdecl;
 
 
 function clCreateContext(
@@ -812,7 +819,7 @@ function clGetSamplerInfo(
 function clCreateProgramWithSource(
   context         : cl_context;
   count           : cl_uint;
-  strings         : PPChar;
+  strings         : PPAnsiChar;
   lengths         : Pcsize_t;
   var errcode_ret : cl_int
   ): cl_program; extdecl;
@@ -847,7 +854,7 @@ function clBuildProgram(
   _program     : cl_program;
   num_devices  : cl_uint;
   device_list  : Pcl_device_id;
-  options      : PChar;
+  options      : PAnsiChar;
   notify       : TProgramNotify;
   user_data    : Pointer
   ): cl_int; extdecl;
@@ -878,7 +885,7 @@ function clGetProgramBuildInfo(
   //  Kernel Object APIs
 function clCreateKernel(
   _program        : cl_program;
-  kernel_name     : PChar;
+  kernel_name     : PAnsiChar;
   var errcode_ret : cl_int
   ): cl_kernel; extdecl;
   external {$ifdef DYNLINK}opencllib{$endif} name 'clCreateKernel';

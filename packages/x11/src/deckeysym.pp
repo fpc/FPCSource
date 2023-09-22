@@ -45,7 +45,9 @@ SOFTWARE.
 
 ******************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit deckeysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

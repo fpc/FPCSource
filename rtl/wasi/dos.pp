@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 Const
@@ -54,13 +56,18 @@ Function DTToWasiDate(DT: DateTime): UInt64; platform;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WASIApi.WASIApi, WASIApi.WASIUtil;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   WasiAPI, WasiUtil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PAnsiChar }
 
 {$I dos.inc}
 
@@ -171,7 +178,7 @@ Function DTToWasiDate(DT: DateTime): UInt64;
 var
   res: Int64;
 begin
-  res:=WasiUtil.LocalToEpoch(DT.year,DT.month,DT.day,DT.hour,DT.min,DT.sec);
+  res:={$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.LocalToEpoch(DT.year,DT.month,DT.day,DT.hour,DT.min,DT.sec);
   if res<0 then
     DTToWasiDate:=0
   else
@@ -181,7 +188,7 @@ end;
 
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime);
 Begin
-  WasiUtil.EpochToLocal(NanoSecsPast div 1000000000,Dt.Year,Dt.Month,Dt.Day,Dt.Hour,Dt.Min,Dt.Sec);
+  {$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.EpochToLocal(NanoSecsPast div 1000000000,Dt.Year,Dt.Month,Dt.Day,Dt.Hour,Dt.Min,Dt.Sec);
 End;
 
 
@@ -222,7 +229,7 @@ End;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -231,7 +238,7 @@ Const
 const
   Drives   : byte = 4;
 var
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Function AddDisk(const path:string) : byte;
 begin
@@ -364,7 +371,7 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path: pathstr; dirlist: string): pathstr;
+Function FSearch(path: pathstr; dirlist: shortstring): pathstr;
 var
   p1     : longint;
   s      : searchrec;
@@ -424,7 +431,7 @@ Begin
       DosError:=3;
       exit;
     end;
-  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
     begin
       DosError:=3;
       exit;
@@ -475,7 +482,7 @@ Begin
       doserror:=3;
       exit;
     end;
-  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),0,modtime,
+  if __wasi_path_filestat_set_times(fd,0,PAnsiChar(pr),length(pr),0,modtime,
      __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM_NOW)<>__WASI_ERRNO_SUCCESS then
     doserror:=3;
 End;
@@ -487,7 +494,7 @@ End;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
   p:=envp;      {defined in system}
@@ -501,10 +508,10 @@ Begin
 End;
 
 
-Function EnvStr (Index: longint): String;
+Function EnvStr (Index: longint): ShortString;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if (Index <= 0) or (envp=nil) then
     envstr:=''
@@ -525,9 +532,9 @@ Begin
 end;
 
 
-Function GetEnv(EnvVar: String): String;
+Function GetEnv(EnvVar: ShortString): ShortString;
 var
-  hp : ppchar;
+  hp : PPAnsiChar;
   hs : string;
   eqpos : longint;
 Begin

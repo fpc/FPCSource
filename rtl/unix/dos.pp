@@ -11,10 +11,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE SUT:=sysutils}
+{$DEFINE BU:=baseunix}
+{$DEFINE UA:=unix}
+{$ELSE}
+{$DEFINE SUT:=System.SysUtils}
+{$DEFINE BU:=UnixApi.Base}
+{$DEFINE UA:=UnixApi.Unix}
+{$ENDIF}
+
 
 Const
   FileNameLen = 255;
@@ -56,16 +74,24 @@ Function AddDisk(const path:string) : byte; platform;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Utils,
+  System.Strings,
+  UnixApi.Unix,
+  {$ifdef FPC_USE_LIBC}System.InitC{$ELSE}UnixApi.SysCall{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   UnixUtil,
   Strings,
   Unix,
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PAnsiChar }
 
 {$I dos.inc}
 
@@ -91,7 +117,7 @@ type
 
 Function DosVersion:Word;
 Var
-  Buffer : Array[0..255] of Char;
+  Buffer : Array[0..255] of AnsiChar;
   Tmp2,
   TmpStr : String[40];
   TmpPos,
@@ -227,7 +253,7 @@ end;
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
-  cmdline2 : ppchar;
+  cmdline2 : PPAnsiChar;
   commandline : RawByteString;
   realpath : ansistring;
 
@@ -248,16 +274,16 @@ Begin
        begin
          CommandLine:=ToSingleByteFileSystemEncodedFileName(ComLine);  // conversion must live till after fpexec!
          cmdline2:=StringtoPPChar(CommandLine,1);
-         cmdline2^:=pchar(realPath);
+         cmdline2^:=PAnsiChar(realPath);
        end
      else
        begin
-         getmem(cmdline2,2*sizeof(pchar));
-         cmdline2^:=pchar(realPath);
+         getmem(cmdline2,2*sizeof(PAnsiChar));
+         cmdline2^:=PAnsiChar(realPath);
          cmdline2[1]:=nil;
        end;
      {The child does the actual exec, and then exits}
-     fpExecv(pchar(realPath),cmdline2);
+     fpExecv(PAnsiChar(realPath),cmdline2);
      {If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -293,7 +319,7 @@ End;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -302,7 +328,7 @@ Const
 const
   Drives   : byte = 4;
 var
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Function AddDisk(const path:string) : byte;
 begin
@@ -486,7 +512,7 @@ Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
   DT   : DateTime;
   Info : RtlInfoType;
-  st   : baseunix.stat;
+  st   : BU.stat;
 begin
   FindGetFileInfo:=false;
   if not fpstat(s,st)>=0 then
@@ -551,7 +577,7 @@ Procedure FindNext(Var f: SearchRec);
 }
 Var
 
-  DirName  : Array[0..256] of Char;
+  DirName  : Array[0..256] of AnsiChar;
   i,
   ArrayPos : Longint;
   FName,
@@ -685,21 +711,21 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path : pathstr;dirlist : string) : pathstr;
+Function FSearch(path : pathstr;dirlist : shortstring) : pathstr;
 Var
-  info : BaseUnix.stat;
+  info : BU.stat;
 Begin
   if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
     FSearch:=path
   else
-    FSearch:=Unix.FSearch(path,dirlist);
+    FSearch:=UA.FSearch(path,dirlist);
 End;
 
 Procedure GetFAttr(var f; var attr : word);
 Var
-  info    : baseunix.stat;
+  info    : BU.stat;
   LinAttr : longint;
-  p       : pchar;
+  p       : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r       : RawByteString;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -710,9 +736,9 @@ Begin
   p:=@textrec(f).name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
+  p:=PAnsiChar(r);
 {$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
+  { use the PAnsiChar rather than the rawbytestring version so that we don't check
     a second time whether the string needs to be converted to the right code
     page
   }
@@ -736,7 +762,7 @@ end;
 
 Procedure getftime (var f; var time : longint);
 Var
-  Info: baseunix.stat;
+  Info: BU.stat;
   DT: DateTime;
 Begin
   doserror:=0;
@@ -756,7 +782,7 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-  p : pchar;
+  p : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r : Rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -773,9 +799,9 @@ Begin
   p:=@textrec(f).name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
+  p:=PAnsiChar(r);
 {$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
+  { use the PAnsiChar rather than the rawbytestring version so that we don't check
     a second time whether the string needs to be converted to the right code
     page
   }
@@ -793,10 +819,10 @@ End;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
-  p:=envp;      {defined in syslinux}
+  p:=envp;      {defined in system unit}
   while (p^<>nil) do
    begin
      inc(envcnt);
@@ -806,16 +832,16 @@ Begin
 End;
 
 
-Function EnvStr (Index: longint): String;
+Function EnvStr (Index: longint): ShortString;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if Index <= 0 then
     envstr:=''
   else
     begin
-      p:=envp;      {defined in syslinux}
+      p:=envp;      {defined in system unit}
       i:=1;
       while (i<Index) and (p^<>nil) do
         begin
@@ -830,11 +856,11 @@ Begin
 end;
 
 
-Function GetEnv(EnvVar: String): String;
+Function GetEnv(EnvVar: ShortString): ShortString;
 var
-  p     : pchar;
+  p     : PAnsiChar;
 Begin
-  p:=BaseUnix.fpGetEnv(EnvVar);
+  p:=BU.fpGetEnv(EnvVar);
   if p=nil then
    GetEnv:=''
   else

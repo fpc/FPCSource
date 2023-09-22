@@ -16,11 +16,18 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libvlc;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
@@ -627,12 +634,21 @@ function GetVLCLibPath: String;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, 
+ {$IFDEF Windows}
+  WinApi.Windows,
+ {$ENDIF}
+  System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, 
  {$IFDEF WINDOWS}
   windows,
  {$ENDIF}
   dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   hlib : tlibhandle;
@@ -929,7 +945,7 @@ Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
   Function GetProcAddress(h : TLibHandle; Name : AnsiString) : Pointer;
   
   begin
-    Result:=dynlibs.GetProcAddress(h,Name);
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DynLibs.GetProcAddress(h,Name);
     If (Result=Nil) and CheckProcNames then
       raise Exception.CreateFmt('Could not find procedure address: %s ',[Name]);
   end;

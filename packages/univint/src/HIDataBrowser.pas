@@ -30,7 +30,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HIDataBrowser;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -215,7 +217,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.TextEdit,MacOsApi.AXUIElement,MacOsApi.AEDataModel,MacOsApi.CFBase,MacOsApi.Events,MacOsApi.QuickdrawTypes,MacOsApi.IconsCore,MacOsApi.Icons,MacOsApi.CFData,MacOsApi.CFDictionary,MacOsApi.DateTimeUtils,MacOsApi.Drag,MacOsApi.TextCommon,MacOsApi.Appearance,MacOsApi.CarbonEvents,MacOsApi.Controls,MacOsApi.Lists,MacOsApi.MacHelp,MacOsApi.Menus,MacOsApi.CFString,MacOsApi.CGBase,MacOsApi.HIObject;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,TextEdit,AXUIElement,AEDataModel,CFBase,Events,QuickdrawTypes,IconsCore,Icons,CFData,CFDictionary,DateTimeUtils,Drag,TextCommon,Appearance,CarbonEvents,Controls,Lists,MacHelp,Menus,CFString,CGBase,HIObject;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

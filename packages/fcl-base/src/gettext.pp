@@ -16,11 +16,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gettext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MOFileHeaderMagic = $950412DE;
@@ -48,7 +54,7 @@ type
   TLongWordArray = array[0..(1 shl 30) div SizeOf(LongWord)] of LongWord;
   PLongWordArray = ^TLongWordArray;
 
-  TPCharArray = array[0..(1 shl 30) div SizeOf(PChar)] of PChar;
+  TPCharArray = array[0..(1 shl 30) div SizeOf(PAnsiChar)] of PAnsiChar;
   PPCharArray = ^TPCharArray;
 
   TMOFile = class
@@ -61,26 +67,33 @@ type
     constructor Create(const AFilename: String);
     constructor Create(AStream: TStream);
     destructor Destroy; override;
-    function Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String;
-    function Translate(const AOrig: String; AHash: LongWord): String;
-    function Translate(const AOrig: String): String;
+    function Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord): RTLString;
+    function Translate(const AOrig: RTLString; AHash: LongWord): RTLString;
+    function Translate(const AOrig: RTLString): RTLString;
   end;
 
   EMOFileError = class(Exception);
 
 
-  procedure GetLanguageIDs(var Lang, FallbackLang: string);
+  procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
   procedure TranslateResourceStrings(AFile: TMOFile);
-  procedure TranslateUnitResourceStrings(const AUnitName:string; AFile: TMOFile);
-  procedure TranslateResourceStrings(const AFilename: String);
-  procedure TranslateUnitResourceStrings(const AUnitName:string; const AFilename: String);
+  procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; AFile: TMOFile);
+  procedure TranslateResourceStrings(const AFilename: AnsiString);
+  procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
 
 
 implementation
 
 {$ifdef Windows}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    windows;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$endif}
 
 
@@ -135,8 +148,8 @@ begin
 
   GetMem(OrigTable, header.nstrings * SizeOf(TMOStringInfo));
   GetMem(TranslTable, header.nstrings * SizeOf(TMOStringInfo));
-  GetMem(OrigStrings, header.nstrings * SizeOf(PChar));
-  GetMem(TranslStrings, header.nstrings * SizeOf(PChar));
+  GetMem(OrigStrings, header.nstrings * SizeOf(PAnsiChar));
+  GetMem(TranslStrings, header.nstrings * SizeOf(PAnsiChar));
 
 
   AStream.Position := header.OrigTabOffset;
@@ -157,7 +170,7 @@ begin
     AStream.Position := OrigTable^[i].offset;
 {    SetLength(s, OrigTable^[i].length);
     AStream.Read(s[1], OrigTable^[i].length);
-    OrigStrings^[i] := StrNew(PChar(s));}
+    OrigStrings^[i] := StrNew(PAnsiChar(s));}
     GetMem(OrigStrings^[i], OrigTable^[i].length + 1);
     AStream.Read(OrigStrings^[i]^, OrigTable^[i].length);
     OrigStrings^[i][OrigTable^[i].length] := #0;
@@ -168,7 +181,7 @@ begin
     AStream.Position := TranslTable^[i].offset;
 {    SetLength(s, TranslTable^[i].length);
     AStream.Read(s[1], TranslTable^[i].length);
-    TranslStrings^[i] := StrNew(PChar(s));}
+    TranslStrings^[i] := StrNew(PAnsiChar(s));}
     GetMem(TranslStrings^[i], TranslTable^[i].length+1);
     AStream.Read(TranslStrings^[i]^, TranslTable^[i].length);
     TranslStrings^[i][TranslTable^[i].length] := #0;
@@ -212,44 +225,47 @@ begin
   inherited Destroy;
 end;
 
-function TMOFile.Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String;
+function TMOFile.Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord):RTLString;
 var
   idx, incr, nstr: LongWord;
 begin
+  Result := '';
   if AHash = $FFFFFFFF then
-  begin
-    Result := '';
     exit;
-  end;
   idx := AHash mod HashTableSize;
   incr := 1 + (AHash mod (HashTableSize - 2));
   while True do
   begin
     nstr := HashTable^[idx];
     if (nstr = 0) or (nstr > StringCount) then
-    begin
-      Result := '';
-      exit;
-    end;
+      Break;
     if (OrigTable^[nstr - 1].length = LongWord(ALen)) and
        (StrComp(OrigStrings^[nstr - 1], AOrig) = 0) then
     begin
       Result := TranslStrings^[nstr - 1];
-      exit;
+      Break;
     end;
     if idx >= HashTableSize - incr then
       Dec(idx, HashTableSize - incr)
     else
       Inc(idx, incr);
   end;
+  if Result<>'' then
+    exit;
 end;
 
-function TMOFile.Translate(const AOrig: String; AHash: LongWord): String;
+function TMOFile.Translate(const AOrig:RTLString ; AHash: LongWord): RTLString;
+
+Var
+  SOrig : UTF8String;
+
 begin
-  Result := Translate(PChar(AOrig), Length(AOrig), AHash);
+  SOrig:=UTF8Encode(aOrig);
+  Result := Translate(PAnsiChar(SOrig), Length(AOrig), AHash);
 end;
 
-function TMOFile.Translate(Const AOrig: String): String;
+function TMOFile.Translate(const AOrig:RTLString ):RTLString;
+
 begin
   Result := Translate(AOrig, Hash(AOrig));
 end;
@@ -260,7 +276,7 @@ end;
 // -------------------------------------------------------
 
 
-function Translate (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
+function Translate (Name : AnsiString; Value : RTLString; Hash : Longint; arg:pointer) : RTLString;
 var contextempty : boolean;
 begin
   contextempty:=name='';
@@ -278,17 +294,17 @@ begin
 end;
 
 
-procedure TranslateUnitResourceStrings(const AUnitName:string; AFile: TMOFile);
+procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; AFile: TMOFile);
 begin
   SetUnitResourceStrings(AUnitName,@Translate,AFile);
 end;
 
 
 {$ifdef windows}
-procedure GetLanguageIDs(var Lang, FallbackLang: string);
+procedure GetLanguageIDs(var Lang, FallbackLang:AnsiString );
 var
-  Buffer: array[1..4] of {$ifdef Wince}WideChar{$else}char{$endif};
-  Country: string;
+  Buffer: array[1..4] of {$ifdef Wince}WideChar{$else}AnsiChar{$endif};
+  Country: AnsiString;
   UserLCID: LCID;
 begin
   //defaults
@@ -316,7 +332,7 @@ end;
 
 {$else}
 
-procedure GetLanguageIDs(var Lang, FallbackLang: string);
+procedure GetLanguageIDs(var Lang, FallbackLang: AnsiString);
 begin
   FallbackLang:='';
   lang := GetEnvironmentVariable('LC_ALL');
@@ -334,11 +350,11 @@ begin
 end;
 {$endif}
 
-procedure TranslateResourceStrings(const AFilename: String);
+procedure TranslateResourceStrings(const AFilename: AnsiString);
 var
   mo: TMOFile;
-  lang, FallbackLang: String;
-  fn: String;
+  lang, FallbackLang: AnsiString;
+  fn: AnsiString;
 begin
   GetLanguageIDs(Lang, FallbackLang);
   fn:=Format(AFilename, [FallbackLang]);
@@ -374,10 +390,10 @@ begin
 end;
 
 
-procedure TranslateUnitResourceStrings(const AUnitName:string; const AFilename: String);
+procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
 var
   mo: TMOFile;
-  lang, FallbackLang: String;
+  lang, FallbackLang: AnsiString;
 begin
   GetLanguageIDs(Lang, FallbackLang);
   try

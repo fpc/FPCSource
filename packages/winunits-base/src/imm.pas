@@ -7,15 +7,21 @@
 (*                                                                     *)
 (********************************************************************* *)
 
-unit
-  imm;
+{$IFNDEF FPC_DOTTEDUNITS}
+unit imm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 

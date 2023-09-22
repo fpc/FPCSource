@@ -25,8 +25,8 @@ type
         tm_yday : longint;
         tm_isdst : longint;
         case boolean of 
-         false : (tm_gmtoff : longint;tm_zone : Pchar);
-         true  : (__tm_gmtoff : longint;__tm_zone : Pchar);
+         false : (tm_gmtoff : longint;tm_zone : PAnsiChar);
+         true  : (__tm_gmtoff : longint;__tm_zone : PAnsiChar);
 	end;
 
    Pitimerspec = ^itimerspec;
@@ -44,16 +44,16 @@ function clock:clock_t;cdecl;external clib name 'clock';
 function __time(__timer:Ptime_t):time_t;cdecl;external clib name 'time';
 function difftime(__time1:time_t; __time0:time_t):double;cdecl;external clib name 'difftime';
 function mktime(__tp:Ptm):time_t;cdecl;external clib name 'mktime';
-function strftime(__s:Pchar; __maxsize:size_t; __format:Pchar; __tp:Ptm):size_t;cdecl;external clib name 'strftime';
-function strptime(__s:Pchar; __fmt:Pchar; __tp:Ptm):Pchar;cdecl;external clib name 'strptime';
+function strftime(__s:PAnsiChar; __maxsize:size_t; __format:PAnsiChar; __tp:Ptm):size_t;cdecl;external clib name 'strftime';
+function strptime(__s:PAnsiChar; __fmt:PAnsiChar; __tp:Ptm):PAnsiChar;cdecl;external clib name 'strptime';
 function gmtime(__timer:Ptime_t):Ptm;cdecl;external clib name 'gmtime';
 function localtime(__timer:Ptime_t):Ptm;cdecl;external clib name 'localtime';
 function gmtime_r(__timer:Ptime_t; __tp:Ptm):Ptm;cdecl;external clib name 'gmtime_r';
 function localtime_r(__timer:Ptime_t; __tp:Ptm):Ptm;cdecl;external clib name 'localtime_r';
-function asctime(__tp:Ptm):Pchar;cdecl;external clib name 'asctime';
-function ctime(__timer:Ptime_t):Pchar;cdecl;external clib name 'ctime';
-function asctime_r(__tp:Ptm; __buf:Pchar):Pchar;cdecl;external clib name 'asctime_r';
-function ctime_r(__timer:Ptime_t; __buf:Pchar):Pchar;cdecl;external clib name 'ctime_r';
+function asctime(__tp:Ptm):PAnsiChar;cdecl;external clib name 'asctime';
+function ctime(__timer:Ptime_t):PAnsiChar;cdecl;external clib name 'ctime';
+function asctime_r(__tp:Ptm; __buf:PAnsiChar):PAnsiChar;cdecl;external clib name 'asctime_r';
+function ctime_r(__timer:Ptime_t; __buf:PAnsiChar):PAnsiChar;cdecl;external clib name 'ctime_r';
 procedure tzset;cdecl;external clib name 'tzset';
 function stime(__when:Ptime_t):longint;cdecl;external clib name 'stime';
 function timelocal(__tp:Ptm):time_t;cdecl;external clib name 'timelocal';
@@ -69,8 +69,8 @@ function timer_delete(__timerid:timer_t):longint;cdecl;external clib name 'timer
 function timer_settime(__timerid:timer_t; __flags:longint; __value:Pitimerspec; __ovalue:Pitimerspec):longint;cdecl;external clib name 'timer_settime';
 function timer_gettime(__timerid:timer_t; __value:Pitimerspec):longint;cdecl;external clib name 'timer_gettime';
 function timer_getoverrun(__timerid:timer_t):longint;cdecl;external clib name 'timer_getoverrun';
-function getdate(__string:Pchar):Ptm;cdecl;external clib name 'getdate';
-function getdate_r(__string:Pchar; __resbufp:Ptm):longint;cdecl;external clib name 'getdate_r';
+function getdate(__string:PAnsiChar):Ptm;cdecl;external clib name 'getdate';
+function getdate_r(__string:PAnsiChar; __resbufp:Ptm):longint;cdecl;external clib name 'getdate_r';
 
 { ---------------------------------------------------------------------
     Borland compatibility types
@@ -86,16 +86,16 @@ Type
 
 function __time(var __timer : ttime_t):time_t;cdecl;external clib name 'time';
 function mktime(var __tp:tm):time_t;cdecl;external clib name 'mktime';
-function strftime(__s:Pchar; __maxsize:size_t; __format:Pchar; var __tp:tm):size_t;cdecl;external clib name 'strftime';
-function strptime(__s:Pchar; __fmt:Pchar; var __tp: tm):Pchar;cdecl;external clib name 'strptime';
+function strftime(__s:PAnsiChar; __maxsize:size_t; __format:PAnsiChar; var __tp:tm):size_t;cdecl;external clib name 'strftime';
+function strptime(__s:PAnsiChar; __fmt:PAnsiChar; var __tp: tm):PAnsiChar;cdecl;external clib name 'strptime';
 function gmtime(var __timer : ttime_t):Ptm;cdecl;external clib name 'gmtime';
 function localtime(var __timer : ttime_t):Ptm;cdecl;external clib name 'localtime';
 function gmtime_r(var __timer : ttime_t; var __tp:tm):Ptm;cdecl;external clib name 'gmtime_r';
 function localtime_r(var __timer : ttime_t; var __tp: tm):Ptm;cdecl;external clib name 'localtime_r';
-function asctime(var __tp: tm):Pchar;cdecl;external clib name 'asctime';
-function ctime(var __timer : ttime_t):Pchar;cdecl;external clib name 'ctime';
-function asctime_r(var __tp:tm; __buf:Pchar):Pchar;cdecl;external clib name 'asctime_r';
-function ctime_r(var __timer : ttime_t; __buf:Pchar):Pchar;cdecl;external clib name 'ctime_r';
+function asctime(var __tp: tm):PAnsiChar;cdecl;external clib name 'asctime';
+function ctime(var __timer : ttime_t):PAnsiChar;cdecl;external clib name 'ctime';
+function asctime_r(var __tp:tm; __buf:PAnsiChar):PAnsiChar;cdecl;external clib name 'asctime_r';
+function ctime_r(var __timer : ttime_t; __buf:PAnsiChar):PAnsiChar;cdecl;external clib name 'ctime_r';
 
 function stime(var __when : ttime_t):longint;cdecl;external clib name 'stime';
 function timegm(var __tp:tm):time_t;cdecl;external clib name 'timegm';

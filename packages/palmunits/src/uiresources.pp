@@ -39,11 +39,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uiresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // System Default app icon (for apps missing a tAIB)
 const
@@ -301,7 +307,7 @@ function ResLoadForm(rscID: UInt16): Pointer; syscall sysTrapResLoadForm;
 
 function ResLoadMenu(rscID: UInt16): Pointer; syscall sysTrapResLoadMenu;
 
-//!!!function ResLoadString(rscID: UInt16): PChar;
+//!!!function ResLoadString(rscID: UInt16): PAnsiChar;
 
 function ResLoadConstant(rscID: UInt16): UInt32; syscall sysTrapResLoadConstant;
 

@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -20,14 +22,18 @@ unit SQLDB;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Data.Db, Data.BufDataset, Data.Sql.Script, Data.Sql.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DB, bufdataset, sqlscript, sqltypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TSchemaType = sqltypes.TSchemaType;
-  TStatementType = sqltypes.TStatementType; 
-  TDBEventType = sqltypes.TDBEventType; 
-  TDBEventTypes = sqltypes.TDBEventTypes;
-  TQuoteChars = sqltypes.TQuoteChars;
+  TSchemaType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TSchemaType;
+  TStatementType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TStatementType; 
+  TDBEventType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventType; 
+  TDBEventTypes = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventTypes;
+  TQuoteChars = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TQuoteChars;
 
 const
   StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
@@ -45,39 +51,39 @@ const
 
   // Backwards compatibility alias constants.
   
-  stNoSchema         = sqltypes.stNoSchema;
-  stTables           = sqltypes.stTables;
-  stSysTables        = sqltypes.stSysTables;
-  stProcedures       = sqltypes.stProcedures;
-  stColumns          = sqltypes.stColumns;
-  stProcedureParams  = sqltypes.stProcedureParams;
-  stIndexes          = sqltypes.stIndexes;
-  stPackages         = sqltypes.stPackages;
-  stSchemata         = sqltypes.stSchemata;
-  stSequences        = sqltypes.stSequences;
+  stNoSchema         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stNoSchema;
+  stTables           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stTables;
+  stSysTables        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSysTables;
+  stProcedures       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stProcedures;
+  stColumns          = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stColumns;
+  stProcedureParams  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stProcedureParams;
+  stIndexes          = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stIndexes;
+  stPackages         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPackages;
+  stSchemata         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSchemata;
+  stSequences        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSequences;
 
-  stUnknown       = sqltypes.stUnknown; 
-  stSelect        = sqltypes.stSelect; 
-  stInsert        = sqltypes.stInsert; 
-  stUpdate        = sqltypes.stUpdate; 
-  stDelete        = sqltypes.stDelete;
-  stDDL           = sqltypes.stDDL; 
-  stGetSegment    = sqltypes.stGetSegment; 
-  stPutSegment    = sqltypes.stPutSegment; 
-  stExecProcedure = sqltypes.stExecProcedure;
-  stStartTrans    = sqltypes.stStartTrans; 
-  stCommit        = sqltypes.stCommit; 
-  stRollback      = sqltypes.stRollback;  
-  stSelectForUpd  = sqltypes.stSelectForUpd;
+  stUnknown       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUnknown; 
+  stSelect        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelect; 
+  stInsert        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stInsert; 
+  stUpdate        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUpdate; 
+  stDelete        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDelete;
+  stDDL           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDDL; 
+  stGetSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stGetSegment; 
+  stPutSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPutSegment; 
+  stExecProcedure = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stExecProcedure;
+  stStartTrans    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stStartTrans; 
+  stCommit        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stCommit; 
+  stRollback      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stRollback;  
+  stSelectForUpd  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelectForUpd;
 
-  detCustom      = sqltypes.detCustom; 
-  detPrepare     = sqltypes.detPrepare; 
-  detExecute     = sqltypes.detExecute; 
-  detFetch       = sqltypes.detFetch; 
-  detCommit      = sqltypes.detCommit; 
-  detRollBack    = sqltypes.detRollBack; 
-  detParamValue  = sqltypes.detParamValue; 
-  detActualSQL   = sqltypes.detActualSQL;
+  detCustom      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCustom; 
+  detPrepare     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detPrepare; 
+  detExecute     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detExecute; 
+  detFetch       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detFetch; 
+  detCommit      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCommit; 
+  detRollBack    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detRollBack; 
+  detParamValue  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detParamValue; 
+  detActualSQL   = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detActualSQL;
   DefaultMacroChar     = '%';
 Type
   TRowsCount = LargeInt;
@@ -365,7 +371,7 @@ type
     FParamCheck: Boolean;
     FParams: TParams;
     FMacroCheck: Boolean;
-    FMacroChar: Char;
+    FMacroChar: AnsiChar;
     FMacros: TParams;
     FSQL: TStrings;
     FOrigSQL : String;
@@ -375,9 +381,10 @@ type
     FDoUnPrepare : Boolean;
     FDataLink : TDataLink;
     FRowsAffected : TRowsCount;
+    FInfoquery : Boolean;
     function ExpandMacros(const OrigSQL: String): String;
     procedure SetDatabase(AValue: TSQLConnection);
-    procedure SetMacroChar(AValue: Char);
+    procedure SetMacroChar(AValue: AnsiChar);
     procedure SetMacroCheck(AValue: Boolean);
     procedure SetParams(AValue: TParams);
     procedure SetMacros(AValue: TParams);
@@ -415,11 +422,12 @@ type
     Property SQL : TStrings Read FSQL Write SetSQL;
     Property Params : TParams Read FParams Write SetParams stored HasParams;
     Property Macros : TParams Read FMacros Write SetMacros stored HasMacros;
-    property MacroChar: Char read FMacroChar write SetMacroChar default DefaultMacroChar;
+    property MacroChar: AnsiChar read FMacroChar write SetMacroChar default DefaultMacroChar;
     Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
     Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
     Property MacroCheck : Boolean Read FMacroCheck Write SetMacroCheck default false;
+    Property InfoQuery : Boolean Read FInfoQuery Write FInfoQuery;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -504,10 +512,10 @@ type
     FUpdateQry,
     FDeleteQry           : TCustomSQLQuery;
     FSequence            : TSQLSequence;
-    procedure CheckPrepare;
+    procedure CheckPrepare(InfoQuery : Boolean);
     procedure CheckUnPrepare;
     procedure FreeFldBuffers;
-    function GetMacroChar: Char;
+    function GetMacroChar: AnsiChar;
     function GetParamCheck: Boolean;
     function GetParams: TParams;
     function GetMacroCheck: Boolean;
@@ -521,7 +529,7 @@ type
     function HasMacros: Boolean;
     Function HasParams : Boolean;
     Function NeedLastInsertID: TField;
-    procedure SetMacroChar(AValue: Char);
+    procedure SetMacroChar(AValue: AnsiChar);
     procedure SetOptions(AValue: TSQLQueryOptions);
     procedure SetParamCheck(AValue: Boolean);
     procedure SetMacroCheck(AValue: Boolean);
@@ -645,7 +653,7 @@ type
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     property Macros : TParams read GetMacros Write SetMacros stored HasMacros;
     Property MacroCheck : Boolean Read GetMacroCheck Write SetMacroCheck default false;
-    Property MacroChar : Char Read GetMacroChar Write SetMacroChar default DefaultMacroChar;
+    Property MacroChar : AnsiChar Read GetMacroChar Write SetMacroChar default DefaultMacroChar;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode default upWhereKeyOnly;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
@@ -860,7 +868,11 @@ const DefaultSQLFormatSettings : TFormatSettings = (
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Flags to check which fields must be refreshed.
@@ -967,7 +979,7 @@ begin
     end;
 end;
 
-procedure TCustomSQLStatement.SetMacroChar(AValue: Char);
+procedure TCustomSQLStatement.SetMacroChar(AValue: AnsiChar);
 begin
   if FMacroChar=AValue then Exit;
   FMacroChar:=AValue;
@@ -1228,8 +1240,8 @@ Const
 
 var
   I: Integer;
-  Ch : Char;
-  TermArr : Set of Char;
+  Ch : AnsiChar;
+  TermArr : Set of AnsiChar;
   TempStr, TempMacroName : String;
   MacroFlag : Boolean;
 
@@ -1293,13 +1305,17 @@ begin
   FServerSQL:=ExpandMacros( FOrigSQL );
   GetStatementInfo(FServerSQL,StmInfo);
   AllocateCursor;
+  if FInfoquery then
+    // We signal that we want to have field definitions.
+    // This is needed for e.g. postgres, where the result of the prepare statement is not enough to get field defs.
+    FCursor.FInitFieldDef:=True;
   FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
   FCursor.FStatementType:=StmInfo.StatementType;
   FCursor.FSchemaType:=GetSchemaType;
   If LogEvent(detPrepare) then
     Log(detPrepare,FServerSQL);
   Database.PrepareStatement(FCursor,Transaction,FServerSQL,FParams);
-  // Update
+  // Update FInitFieldDef with whatever we got from the server.
   FCursor.FInitFieldDef:=FCursor.FSelectable;
 end;
 
@@ -1738,7 +1754,7 @@ const
 
 var
   PSQL, CurrentP, SavedP,
-  PhraseP, PStatementPart : pchar;
+  PhraseP, PStatementPart : PChar;
   S                       : string;
   ParsePart               : TParsePart;
   BracketCount            : Integer;
@@ -2840,7 +2856,7 @@ end;
 procedure TCustomSQLQuery.OpenCursor(InfoQuery: Boolean);
 begin
   if InfoQuery then
-    CheckPrepare;
+    CheckPrepare(InfoQuery);
   try
     inherited OpenCursor(InfoQuery);
   finally
@@ -2993,7 +3009,7 @@ begin
      SQLConnection.FreeFldBuffers(Cursor);
 end;
 
-function TCustomSQLQuery.GetMacroChar: Char;
+function TCustomSQLQuery.GetMacroChar: AnsiChar;
 begin
   Result := FStatement.MacroChar;
 end;
@@ -3147,7 +3163,7 @@ begin
     end
   else
     begin
-    CheckPrepare;
+    CheckPrepare(False);
     if not Cursor.FSelectable then
       DatabaseError(SErrNoSelectStatement,Self);
 
@@ -3174,7 +3190,7 @@ begin
           if ixPrimary in ServerIndexDefs[counter].Options then
             begin
             IndexFields := TStringList.Create;
-            ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].Fields),IndexFields);
+            ExtractStrings([';'],[' '],PAnsiChar(ServerIndexDefs[counter].Fields),IndexFields);
             for fieldc := 0 to IndexFields.Count-1 do
               begin
               F := FindField(IndexFields[fieldc]);
@@ -3205,13 +3221,18 @@ end;
 
 // public part
 
-procedure TCustomSQLQuery.CheckPrepare;
+procedure TCustomSQLQuery.CheckPrepare(InfoQuery : Boolean);
 
 begin
   if Not IsPrepared then
     begin
-    Prepare;
-    FDoUnPrepare:=True;
+    FStatement.FInfoquery:=InfoQuery;
+    try
+      Prepare;
+      FDoUnPrepare:=True;
+    finally
+      FStatement.FInfoquery:=False;
+    end;
     end;
 end;
 
@@ -3229,7 +3250,7 @@ end;
 procedure TCustomSQLQuery.ExecSQL;
 
 begin
-  CheckPrepare;
+  CheckPrepare(False);
   try
     Execute;
     // Always retrieve rows affected
@@ -3327,7 +3348,7 @@ begin
     end
 end;
 
-procedure TCustomSQLQuery.SetMacroChar(AValue: Char);
+procedure TCustomSQLQuery.SetMacroChar(AValue: AnsiChar);
 begin
   FStatement.MacroChar:=AValue;
 end;

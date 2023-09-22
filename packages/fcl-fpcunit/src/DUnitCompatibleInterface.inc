@@ -21,18 +21,18 @@
     class procedure Check(pValue: boolean; const pMessage: string = '');
     class procedure CheckEquals(expected, actual: extended; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: extended; delta: extended; const msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: string; const msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: unicodestring; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: AnsiString; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: unicodestring;const  msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: integer; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: boolean; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: TClass; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: int64; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: QWord; const msg: string = ''); overload;
-    class procedure CheckNotEquals(expected, actual: string; const msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: Ansistring; const msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: unicodestring; const msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: integer; const msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected, actual: boolean; const msg: string = ''); overload; virtual;
-    class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; const msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0;    const msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected, actual: int64; const msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected, actual: QWord; const msg: string = ''); overload; virtual;
     class procedure CheckNull(obj: IUnknown; const msg: string = ''); overload;
@@ -83,7 +83,8 @@ begin
   AssertEquals(msg, expected, actual, delta);
 end;
 
-class procedure TAssert.CheckEquals(expected, actual: string; const msg: string);
+class procedure TAssert.CheckEquals(expected, actual: Ansistring; const msg: string);
+
 begin
   AssertEquals(msg, expected, actual);
 end;
@@ -119,7 +120,7 @@ begin
   AssertEquals(msg, expected, actual);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: string; const msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: Ansistring; const msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
     Fail(ComparisonMsg(msg, Expected, Actual, false))
@@ -127,7 +128,8 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; const msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; const msg: string ='');
+
 begin
   if (Expected=Actual) then
     Fail(ComparisonMsg(msg, Expected, Actual, false))

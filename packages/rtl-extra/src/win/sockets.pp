@@ -12,15 +12,22 @@
  **********************************************************************}
 {$mode objfpc}
 {$ModeSwitch out}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
 {$macro on}
 {$define maybelibc:=}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  Uses
+     WinApi.Winsock2,System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
   Uses
      winsock2,ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // the common socket functions are defined as size_t.
@@ -77,40 +84,40 @@ end;
 
 function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
-  fpSocket:=WinSock2.Socket(Domain,xtype,ProtoCol);
+  fpSocket:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Socket(Domain,xtype,ProtoCol);
 end;
 
 function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
-  fpSend:=WinSock2.Send(S,msg,len,flags);
+  fpSend:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Send(S,msg,len,flags);
 end;
 
 function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   // Dubious construct, this should be checked. (IPV6 fails ?)
-  fpSendTo:=WinSock2.SendTo(S,msg,Len,Flags,Winsock2.PSockAddr(tox),toLen);
+  fpSendTo:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SendTo(S,msg,Len,Flags,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.PSockAddr(tox),toLen);
 end;
 
 function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
-  fpRecv:=WinSock2.Recv(S,Buf,Len,Flags);
+  fpRecv:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Recv(S,Buf,Len,Flags);
 end;
 
 function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
-  fpRecvFrom:=WinSock2.RecvFrom(S,Buf,Len,Flags,WinSock2.PSockAddr(From),FromLen);
+  fpRecvFrom:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.RecvFrom(S,Buf,Len,Flags,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.PSockAddr(From),FromLen);
 end;
 
 function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 
 begin
-  fpConnect:=Winsock2.Connect(S,WinSock2.PSockAddr(name),nameLen);
+  fpConnect:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Connect(S,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.PSockAddr(name),nameLen);
 end;
 
 function fpshutdown     (s:cint; how:cint):cint;
 begin
-  fpShutDown:=Winsock2.ShutDown(S,How);
+  fpShutDown:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.ShutDown(S,How);
 end;
 
 Function socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -142,37 +149,37 @@ end;
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
-  fpbind:=Winsock2.Bind(S,Winsock2.PSockAddr(Addrx),AddrLen);
+  fpbind:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Bind(S,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.PSockAddr(Addrx),AddrLen);
 end;
 
 function fplisten      (s:cint; backlog : cint):cint;
 begin
-  fplisten:=Winsock2.Listen(S,backlog);
+  fplisten:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Listen(S,backlog);
 end;
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
-  fpAccept:=Winsock2.Accept(S,Winsock2.PSockAddr(Addrx), AddrLen);
+  fpAccept:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Accept(S,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.PSockAddr(Addrx), AddrLen);
 end;
 
 function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  fpGetSockName:=Winsock2.GetSockName(S,Winsock2.TSockAddr(name^),nameLen^);
+  fpGetSockName:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.GetSockName(S,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.TSockAddr(name^),nameLen^);
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  fpGetPeerName:=Winsock2.GetPeerName(S,Winsock2.TSockAddr(name^),NameLen^);
+  fpGetPeerName:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.GetPeerName(S,{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.TSockAddr(name^),NameLen^);
 end;
 
 function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
-  fpGetSockOpt:=Winsock2.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
+  fpGetSockOpt:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
 end;
 
 function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 begin
-  fpSetSockOpt:=Winsock2.SetSockOpt(S,Level,OptName,OptVal,OptLen);
+  fpSetSockOpt:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SetSockOpt(S,Level,OptName,OptVal,OptLen);
 end;
 
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
@@ -183,7 +190,7 @@ end;
 
 Function CloseSocket(Sock:Longint):Longint;
 begin
-  result := Winsock2.CloseSocket (Sock);
+  result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.CloseSocket (Sock);
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
@@ -244,8 +251,8 @@ end;
 
 function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fpWrite := dword(Winsock2.send(handle, bufptr, size, 0));
-  if fpWrite = dword(winsock2.SOCKET_ERROR) then
+  fpWrite := dword({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.send(handle, bufptr, size, 0));
+  if fpWrite = dword({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SOCKET_ERROR) then
     fpWrite := 0;
 end;
 
@@ -254,7 +261,7 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
      d : dword;
 
   begin
-     if ioctlsocket(handle,FIONREAD,@d) = winsock2.SOCKET_ERROR then
+     if ioctlsocket(handle,FIONREAD,@d) = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SOCKET_ERROR then
        begin
          fpRead:=0;
          exit;
@@ -263,8 +270,8 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
        begin
          if size>d then
            size:=d;
-         fpRead := dword(Winsock2.recv(handle, bufptr, size, 0));
-         if fpRead = dword(winsock2.SOCKET_ERROR) then
+         fpRead := dword({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.recv(handle, bufptr, size, 0));
+         if fpRead = dword({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SOCKET_ERROR) then
            fpRead := 0;
        end;
   end;

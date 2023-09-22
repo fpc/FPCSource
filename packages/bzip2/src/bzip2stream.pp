@@ -1,6 +1,8 @@
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bzip2stream;
+{$ENDIF FPC_DOTTEDUNITS}
 {****************************************************************************
 
                              BZIP2 decompression unit
@@ -30,7 +32,11 @@ interface
 
 {$goto on}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils, System.Bzip2comn;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,SysUtils, bzip2comn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TDecompressBzip2Stream=Class(TOwnerStream)
@@ -111,8 +117,8 @@ Resourcestring
   
 Constructor TDecompressBzip2Stream.Create(ASource: TStream);
 
-var magic:array[1..3] of char;
-    c:char;
+var magic:array[1..3] of AnsiChar;
+    c:AnsiChar;
 
 begin
   Inherited Create(ASource);
@@ -522,13 +528,13 @@ function TDecompressBzip2Stream.decode_block:boolean;
 
 {Decode a new compressed block.}
 
-var magic:array[1..6] of char;
+var magic:array[1..6] of AnsiChar;
     stored_blockcrc:cardinal;
     i:byte;
 
 begin
   for i:=1 to 6 do
-    magic[i]:=char(get_byte);
+    magic[i]:=AnsiChar(get_byte);
   if magic='1AY&SY' then
     begin
       inc(current_block);

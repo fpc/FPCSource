@@ -7,7 +7,7 @@ uses
 var
   x, y: ArbFloat;
   t:    ArbInt;
-  s, h: string;
+  s, h: ShortString;
 
 begin
   s := 'spepow';

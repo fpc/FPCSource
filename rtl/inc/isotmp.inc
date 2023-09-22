@@ -24,7 +24,7 @@
         unique : Boolean;
       begin
         InternalChangeCase := S;
-        if InternalChangeCase = '' then
+        if Length(InternalChangeCase)=0 then
           exit;
         unique := false;
         p := PWideChar(InternalChangeCase);
@@ -74,12 +74,12 @@
       FreeEnvironmentStringsW(p);
     end;
 
-    function getTempDir: String;
+    function getTempDir: ShortString;
     var
       astringLength : Integer;
     begin
       getTempDir := GetEnvironmentVariable('TMP');
-      if getTempDir = '' then
+      if Length(getTempDir)=0 then
         getTempDir := GetEnvironmentVariable('TEMP');
       astringlength := Length(getTempDir);
       if (astringlength > 0) and (getTempDir[astringlength] <> DirectorySeparator) then
@@ -90,10 +90,10 @@
 
 {$ELSEIF defined(UNIX) and not defined(android)}
 
-  function getTempDir: string;
+  function getTempDir: shortstring;
     var
-      key: string;
-      value: string;
+      key: shortstring;
+      value: shortstring;
       i_env, i_key, i_value: integer;
     begin
       value := '/tmp/';  (** default for UNIX **)
@@ -130,7 +130,7 @@
 
 {$ELSE}  // neither unix nor windows
 
-  function getTempDir: string;
+  function getTempDir: shortstring;
   begin
     getTempDir:='';
   end;

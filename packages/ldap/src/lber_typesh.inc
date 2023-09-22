@@ -18,8 +18,13 @@
  * LBER types
  *)
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ppcchar                           = ^pcchar;

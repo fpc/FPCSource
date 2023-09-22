@@ -3,17 +3,17 @@
  {$define noerrnoiconv}
 {$endif}
 
-function Iconvert(S: string; var Res: string; const FromEncoding, ToEncoding: string): cint;
+function Iconvert(S: AnsiString; var Res: AnsiString; const FromEncoding, ToEncoding: AnsiString): cint;
 var
   InLen, OutLen, Offset: size_t;
-  Src, Dst: pchar;
+  Src, Dst: PAnsiChar;
   H: iconv_t;
   {$ifndef noerrnoiconv}
   lerr: cint;
   {$endif}
   iconvres: size_t;
 begin
-  H := iconv_open(PChar(ToEncoding), PChar(FromEncoding));
+  H := iconv_open(PAnsiChar(ToEncoding), PAnsiChar(FromEncoding));
   if h=Iconv_t(-1) then
   begin
     Res := S;
@@ -30,8 +30,8 @@ begin
     {$endif}
     setlength(res,outlen);
 
-    Src := PChar(S);
-    Dst := PChar(Res);
+    Src := PAnsiChar(S);
+    Dst := PAnsiChar(Res);
 
 
     {$ifdef noerrnoiconv}
@@ -43,9 +43,9 @@ begin
         end;
        if outlen<8 then    // From PHP, URL above, see also  PHP bug 55042 (they didn't recalc their "dest")
         begin
-          Offset:=Dst-PChar(Res);
-          SetLength(Res, Length(Res)+8); // 5 is minimally one utf-8 char
-          Dst:=PChar(Res)+Offset;
+          Offset:=Dst-PAnsiChar(Res);
+          SetLength(Res, Length(Res)+8); // 5 is minimally one utf-8 AnsiChar
+          Dst:=PAnsiChar(Res)+Offset;
           OutLen:=Length(Res)-Offset;
         end;
        InLen=0;
@@ -62,7 +62,7 @@ begin
       if iconvres = size_t(-1) then
       begin
         lerr := cerrno;
-        if lerr = ESysEILSEQ then // unknown char, skip
+        if lerr = ESysEILSEQ then // unknown AnsiChar, skip
           begin
             Dst^ := Src^;
             Inc(Src);
@@ -73,9 +73,9 @@ begin
         else
           if lerr = ESysE2BIG then
             begin
-              Offset := Dst - PChar(Res);
-              SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 char
-              Dst := PChar(Res) + Offset;
+              Offset := Dst - PAnsiChar(Res);
+              SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 AnsiChar
+              Dst := PAnsiChar(Res) + Offset;
               OutLen := Length(Res) - Offset;
             end
           else
@@ -83,14 +83,14 @@ begin
       end;
     end;
    
-    // iconv has a buffer that needs flushing, specially if the last char is not #0
+    // iconv has a buffer that needs flushing, specially if the last AnsiChar is not #0
     iconvres:=iconv(H, nil, nil, @Dst, @Outlen);
     lerr:=cerrno;
     if (iconvres=size_t(-1)) and (lerr=ESysE2BIG) then
       begin
-        Offset:=Dst-PChar(Res);
-        SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 char
-        Dst:=PChar(Res)+Offset;
+        Offset:=Dst-PAnsiChar(Res);
+        SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 AnsiChar
+        Dst:=PAnsiChar(Res)+Offset;
         OutLen:=Length(Res)-Offset;
         InLen:=0;
         iconv(H, nil, @InLen, @Dst, @Outlen);
@@ -99,9 +99,9 @@ begin
     // trim output buffer
     SetLength(Res, Length(Res) - Outlen);
   finally 
-        Offset:=Dst-PChar(Res);
-        SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 char
-        Dst:=PChar(Res)+Offset;
+        Offset:=Dst-PAnsiChar(Res);
+        SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 AnsiChar
+        Dst:=PAnsiChar(Res)+Offset;
         OutLen:=Length(Res)-Offset;
         InLen:=0;
         iconvres:=iconv(H, nil, @InLen, @Dst, @Outlen);

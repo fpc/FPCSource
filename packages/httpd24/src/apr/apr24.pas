@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit apr24;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ifdef fpc}
-  {$mode delphi}{$H+}
+  {$mode delphi}
+  {$H-}
+  
 {$endif}
 {$ifdef Unix}
   {$PACKRECORDS C}
@@ -26,6 +30,15 @@ unit apr24;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows,
+{$ELSE}
+  UnixApi.Types,
+{$ENDIF}
+  System.SysUtils, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows,
@@ -33,6 +46,7 @@ uses
   UnixType,
 {$ENDIF}
   SysUtils, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
 {$IFDEF WINDOWS}

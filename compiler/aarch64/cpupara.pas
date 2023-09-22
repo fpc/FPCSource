@@ -309,10 +309,9 @@ unit cpupara;
            Therefore at caller side force the ordinal result to be always 64-bit, so it
            will be stripped to the required size and uneeded bits are discarded.
 
-           This is not required for iOS, where the result is zero/sign extended.
+           According to Jonas iOS doesn't zero extend results in the callee either
          }
-         if (target_info.abi<>abi_aarch64_darwin) and
-            (side=callerside) and (result.location^.loc = LOC_REGISTER) and
+         if (side=callerside) and (result.location^.loc = LOC_REGISTER) and
             (result.def.size<8) and is_ordinal(result.def) then
            begin
              result.location^.size:=OS_64;

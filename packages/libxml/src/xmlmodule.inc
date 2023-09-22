@@ -34,8 +34,8 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlModuleOpen(filename: char; options: cint): xmlModulePtr; EXTDECL; external xml2lib;
-function xmlModuleSymbol(module: xmlModulePtr; name: pchar; var result: pointer): cint; EXTDECL; external xml2lib;
+function xmlModuleOpen(filename: AnsiChar; options: cint): xmlModulePtr; EXTDECL; external xml2lib;
+function xmlModuleSymbol(module: xmlModulePtr; name: PAnsiChar; var result: pointer): cint; EXTDECL; external xml2lib;
 function xmlModuleClose(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
 function xmlModuleFree(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}

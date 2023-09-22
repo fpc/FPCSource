@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rtl_objpas(const ADirectory: string);
@@ -135,6 +135,9 @@ begin
          AddInclude('invoke.inc',[x86_64],RttiOSes);
        end;
     T.ResourceStrings:=true;
+
+    P.NamespaceMap:='namespaces.lst';
+    
   end
 end;
  

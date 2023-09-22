@@ -202,7 +202,7 @@ type
 type
   PCOLOR_TAB = ^TCOLOR_TAB;
   TCOLOR_TAB = record             {* Colour table                    *}
-      magic: array[0..3] of char; {* 'ctab'                          *}
+      magic: array[0..3] of AnsiChar; {* 'ctab'                          *}
       length: longint;
       format: longint;            {* Format (0)                      *}
       reserved: longint;          {* Reserved, set to 0              *}
@@ -302,7 +302,7 @@ type
     TFONT_HDR = record
         font_id         : smallint;
         point           : smallint;
-        name            : Array[0..31] of Char;
+        name            : Array[0..31] of AnsiChar;
         first_ade       : Word;
         last_ade        : Word;
         top             : Word;

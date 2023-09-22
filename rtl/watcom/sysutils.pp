@@ -16,18 +16,28 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
-{$modeswitch out}
-{ force ansistrings }
+{$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WatcomApi.WatCom,TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   watcom,dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 
@@ -44,8 +54,13 @@ uses
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -73,11 +88,11 @@ const
 Type
   PSearchrec = ^Searchrec;
 
-{  converts S to a pchar and copies it to the transfer-buffer.   }
+{  converts S to a PAnsiChar and copies it to the transfer-buffer.   }
 
 procedure StringToTB(const S: RawByteString);
 begin
-  { include terminating null char }
+  { include terminating null AnsiChar }
   SysCopyToDos(longint(pointer(s)), Length(S) + 1);
 end ;
 
@@ -662,7 +677,7 @@ end ;
 ****************************************************************************}
 
 const
-  BeepChars: array [1..2] of char = #7'$';
+  BeepChars: array [1..2] of AnsiChar = #7'$';
 
 procedure sysBeep;
 var

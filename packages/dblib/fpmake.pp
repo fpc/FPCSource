@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 {$endif not ALLPACKAGES}
 
@@ -13,7 +13,8 @@ Const
 
 Var
   P : TPackage;
-
+  T : TTarget;
+  
 begin
   With Installer do
     begin
@@ -36,6 +37,9 @@ begin
         P.OSes := P.OSes - [android];
 
       T:=P.Targets.AddUnit('dblib.pp',DBLibOSes);
+
+    P.NamespaceMap:='namespaces.lst';
+    
     end;
 end;
 

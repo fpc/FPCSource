@@ -15,7 +15,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CFStringEncodingExt;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -200,7 +202,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -355,7 +361,7 @@ const
     kCFStringEncodingBig5 = $0A03;		{ Big-5 (has variants) }
     kCFStringEncodingMacRomanLatin1 = $0A04;	{ Mac OS Roman permuted to align with ISO Latin-1 }
     kCFStringEncodingHZ_GB_2312 = $0A05;	{ HZ (RFC 1842, for Chinese mail & news) }
-    kCFStringEncodingBig5_HKSCS_1999 = $0A06; { Big-5 with Hong Kong special char set supplement}
+    kCFStringEncodingBig5_HKSCS_1999 = $0A06; { Big-5 with Hong Kong special AnsiChar set supplement}
     kCFStringEncodingVISCII = $0A07;	{ RFC 1456, Vietnamese }
     kCFStringEncodingKOI8_U = $0A08;	{ RFC 2319, Ukrainian }
     kCFStringEncodingBig5_E = $0A09;	{ Taiwan Big-5E standard }

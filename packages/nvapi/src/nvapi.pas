@@ -57,7 +57,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nvapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef FPC}
 {$A8,B-,C+,D+,E-,F-,G+,H+,I+,J-,K-,L+,M-,N-,O+,P+,Q-,R-,S-,T-,U-,V+,W-,X+,Y+,Z1}
@@ -72,8 +74,13 @@ unit nvapi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // ====================================================
 // Universal NvAPI Definitions
@@ -1784,8 +1791,8 @@ const
 //
 ///////////////////////////////////////////////////////////////////////////////
 type
-//typedef void (* NVAPI_OGLEXPERT_CALLBACK) (unsigned int categoryId, unsigned int messageId, unsigned int detailLevel, int objectId, const char *messageStr): NvAPI_Status; cdecl;
-  NVAPI_OGLEXPERT_CALLBACK = procedure (categoryId, messageId, detailLevel: Cardinal; objectId: Integer; const messageStr: PChar); cdecl;
+//typedef void (* NVAPI_OGLEXPERT_CALLBACK) (unsigned int categoryId, unsigned int messageId, unsigned int detailLevel, int objectId, const AnsiChar *messageStr): NvAPI_Status; cdecl;
+  NVAPI_OGLEXPERT_CALLBACK = procedure (categoryId, messageId, detailLevel: Cardinal; objectId: Integer; const messageStr: PAnsiChar); cdecl;
 
 //  SUPPORTED OS: Windows XP and higher
 var

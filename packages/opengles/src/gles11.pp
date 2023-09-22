@@ -1,10 +1,17 @@
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gles11;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from gles.h
@@ -834,8 +841,13 @@ uses
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysUtils, System.DynLibs, System.Math;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysutils, dynlibs, math;
+{$ENDIF FPC_DOTTEDUNITS}
 
   var
     hlib : tlibhandle;
@@ -1004,7 +1016,7 @@ implementation
     end;
 
 
-  procedure Loadgles(lib : pchar);
+  procedure Loadgles(lib : PAnsiChar);
     begin
       Freegles;
       hlib:=LoadLibrary(lib);

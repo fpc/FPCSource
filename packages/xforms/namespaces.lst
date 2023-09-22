@@ -1,0 +1,4 @@
+src/xforms.pp=namespaced/Api.Xforms.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/fd2pascal.pp=namespaced/Api.Fd2pascal.pp

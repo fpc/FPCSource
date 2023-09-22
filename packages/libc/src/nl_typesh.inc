@@ -11,8 +11,8 @@ type
    Pnl_item = ^nl_item;
    nl_item = longint;
 
-function catopen(__cat_name:Pchar; __flag:longint):nl_catd;cdecl;external clib name 'catopen';
-function catgets(__catalog:nl_catd; __set:longint; __number:longint; __string:Pchar):Pchar;cdecl;external clib name 'catgets';
+function catopen(__cat_name:PAnsiChar; __flag:longint):nl_catd;cdecl;external clib name 'catopen';
+function catgets(__catalog:nl_catd; __set:longint; __number:longint; __string:PAnsiChar):PAnsiChar;cdecl;external clib name 'catgets';
 function catclose(__catalog:nl_catd):longint;cdecl;external clib name 'catclose';
 
 { ---------------------------------------------------------------------

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -16,10 +18,23 @@ unit dbf;
  **********************************************************************}
 { design info in dbf_reg.pas }
 
-interface
-
 {$I dbf_common.inc}
 
+interface
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Common,
+  Data.Dbf.Dbffile,
+  Data.Dbf.Parser,
+  Data.Dbf.Prsdef,
+  Data.Dbf.Cursor,
+  Data.Dbf.Fields,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Idxfile;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   Db,
@@ -31,6 +46,7 @@ uses
   dbf_fields,
   dbf_pgfile,
   dbf_idxfile;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ifndef fpc}
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
@@ -50,7 +66,7 @@ type
     BookmarkData: TBookmarkData;
     BookmarkFlag: TBookmarkFlag;
     SequentialRecNo: Integer;
-    DeletedFlag: Char;
+    DeletedFlag: AnsiChar;
   end;
 //====================================================================
   TDbf = class;
@@ -64,7 +80,7 @@ type
   TDbfFileNames = set of TDbfFileName;
 //====================================================================
   TCompareRecordEvent = procedure(Dbf: TDbf; var Accept: Boolean) of object;
-  TTranslateEvent = function(Dbf: TDbf; Src, Dest: PChar; ToOem: Boolean): Integer of object;
+  TTranslateEvent = function(Dbf: TDbf; Src, Dest: PAnsiChar; ToOem: Boolean): Integer of object;
   TLanguageWarningEvent = procedure(Dbf: TDbf; var Action: TDbfLanguageAction) of object;
   TConvertFieldEvent = procedure(Dbf: TDbf; DstField, SrcField: TField) of object;
   TBeforeAutoCreateEvent = procedure(Dbf: TDbf; var DoCreate: Boolean) of object;
@@ -246,8 +262,8 @@ type
     procedure ParseFilter(const AFilter: string);
     function  GetDbfFieldDefs: TDbfFieldDefs;
     function  ReadCurrentRecord(Buffer: TRecordBuffer; var Acceptable: Boolean): TGetResult;
-    function  SearchKeyBuffer(Buffer: PChar; SearchType: TSearchKeyType): Boolean;
-    procedure SetRangeBuffer(LowRange: PChar; HighRange: PChar);
+    function  SearchKeyBuffer(Buffer: PAnsiChar; SearchType: TSearchKeyType): Boolean;
+    procedure SetRangeBuffer(LowRange: PAnsiChar; HighRange: PAnsiChar);
 
   protected
     function GetDefaultBufferCount : Cardinal; override;
@@ -320,9 +336,9 @@ type
     procedure Resync(Mode: TResyncMode); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override; {virtual}
 {$ifdef SUPPORT_NEW_TRANSLATE}
-    function Translate(Src, Dest: PChar; ToOem: Boolean): Integer; override; {virtual}
+    function Translate(Src, Dest: PAnsiChar; ToOem: Boolean): Integer; override; {virtual}
 {$else}
-    procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
+    procedure Translate(Src, Dest: PAnsiChar; ToOem: Boolean); override; {virtual}
 {$endif}
 
 {$ifdef SUPPORT_OVERLOAD}
@@ -364,13 +380,13 @@ type
     procedure SetRange(LowRange: Variant; HighRange: Variant; KeyIsANSI: boolean
       {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif});
 {$endif}
-    function  PrepareKey(Buffer: Pointer; BufferType: TExpressionType): PChar;
-    function  SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType; KeyIsANSI: boolean
+    function  PrepareKey(Buffer: Pointer; BufferType: TExpressionType): PAnsiChar;
+    function  SearchKeyPChar(Key: PAnsiChar; SearchType: TSearchKeyType; KeyIsANSI: boolean
       {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif}): Boolean;
-    procedure SetRangePChar(LowRange: PChar; HighRange: PChar; KeyIsANSI: boolean
+    procedure SetRangePChar(LowRange: PAnsiChar; HighRange: PAnsiChar; KeyIsANSI: boolean
       {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif});
     function  GetCurrentBuffer: TRecordBuffer;
-    procedure ExtractKey(KeyBuffer: PChar);
+    procedure ExtractKey(KeyBuffer: PAnsiChar);
     procedure UpdateIndexDefs; override;
     procedure GetFileNames(Strings: TStrings; Files: TDbfFileNames); {$ifdef SUPPORT_DEFAULT_PARAMS} overload; {$endif}
 {$ifdef SUPPORT_DEFAULT_PARAMS}
@@ -507,6 +523,28 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+{$ifndef FPC}
+  DBConsts,
+{$endif}
+{$ifdef Windows}
+  WinApi.Windows,
+{$else}
+{$ifdef KYLIX}
+  Api.Libc,
+{$endif}  
+  System.Types,
+  Data.Dbf.Wtil,
+{$endif}
+{$ifdef SUPPORT_SEPARATE_VARIANTS_UNIT}
+  System.Variants,
+{$endif}
+  Data.Dbf.Idxcur,
+  Data.Dbf.Memo,
+  Data.Dbf.Str;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
 {$ifndef FPC}
@@ -527,6 +565,7 @@ uses
   dbf_idxcur,
   dbf_memo,
   dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef FPC}
 const
@@ -630,8 +669,8 @@ end;
 procedure TDbfBlobStream.Translate(ToOem: Boolean);
 var
   bytesToDo, numBytes: Integer;
-  bufPos: PChar;
-  saveChar: Char;
+  bufPos: PAnsiChar;
+  saveChar: AnsiChar;
 begin
   if (Transliterate) and (Size > 0) then
   begin
@@ -650,7 +689,7 @@ begin
       bufPos[numBytes] := #0;
       // translate memory
       TDbf(FBlobField.DataSet).Translate(bufPos, bufPos, ToOem);
-      // restore char
+      // restore AnsiChar
       bufPos[numBytes] := saveChar;
       // numBytes bytes translated
       Dec(bytesToDo, numBytes);
@@ -802,7 +841,7 @@ begin
   begin
     Result := FDbfFile.GetFieldData(Field.FieldNo-1, Field.DataType, Src, Buffer, NativeFormat);
   end else begin { weird calculated fields voodoo (from dbtables).... }
-    Inc(PChar(Src), Field.Offset + GetRecordSize);
+    Inc(PAnsiChar(Src), Field.Offset + GetRecordSize);
     Result := Boolean(Src[0]);
     if Result and (Buffer <> nil) then
       Move(Src[1], Buffer^, Field.DataSize);
@@ -847,7 +886,7 @@ const
   NativeFormat = true;
 {$endif}
 var
-  Dst: PChar;
+  Dst: PAnsiChar;
 begin
   if (Field.FieldNo >= 0) then
   begin
@@ -857,7 +896,7 @@ begin
     FDbfFile.SetFieldData(Field.FieldNo - 1, Field.DataType, Buffer, Dst, NativeFormat);
   end else begin    { ***** fkCalculated, fkLookup ***** }
     Dst := @PDbfRecord(CalcBuffer)^.DeletedFlag;
-    Inc(PChar(Dst), RecordSize + Field.Offset);
+    Inc(PAnsiChar(Dst), RecordSize + Field.Offset);
     Boolean(Dst[0]) := Buffer <> nil;
     if Buffer <> nil then
       Move(Buffer^, Dst[1], Field.DataSize)
@@ -876,7 +915,7 @@ begin
     Acceptable := Boolean((FParser.ExtractFromBuffer(GetCurrentBuffer))^);
 {$else}
     // strange problem
-    // dbf.pas(716,19) Error: Incompatible types: got "CHAR" expected "BOOLEAN"
+    // dbf.pas(716,19) Error: Incompatible types: got "AnsiChar" expected "BOOLEAN"
     Acceptable := not ((FParser.ExtractFromBuffer(GetCurrentBuffer))^ = #0);
 {$endif}
   end;
@@ -1098,7 +1137,7 @@ end;
 
 procedure TDbf.InternalHandleException; {override virtual abstract from TDataset}
 begin
-  SysUtils.ShowException(ExceptObject, ExceptAddr);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.ShowException(ExceptObject, ExceptAddr);
 end;
 
 procedure TDbf.GetFieldDefsFromDbfFieldDefs;
@@ -1532,7 +1571,7 @@ var
   I: Integer;
   TempDef: TDbfFieldDef;
 
-    function FieldTypeStr(const FieldType: char): string;
+    function FieldTypeStr(const FieldType: AnsiChar): string;
     begin
       if FieldType = #0 then
         Result := 'NULL'
@@ -1629,7 +1668,7 @@ begin
       if (FDbfFile <> nil) and (FStorage = stoFile) then
       begin
         FreeAndNil(FDbfFile);
-        SysUtils.DeleteFile(FAbsolutePath+FTableName);
+        {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(FAbsolutePath+FTableName);
       end;
       raise;
     end;
@@ -1979,7 +2018,7 @@ function TDbf.LocateRecordIndex(const KeyFields: String; const KeyValues: Varian
 var
   searchFlag: TSearchKeyType;
   matchRes: Integer;
-  lTempBuffer: array [0..100] of Char;
+  lTempBuffer: array [0..100] of AnsiChar;
   acceptable, checkmatch: boolean;
 begin
   // Only honor loPartialKey for string types; for others, search for equal
@@ -2158,7 +2197,7 @@ end;
 
 {$ifdef SUPPORT_NEW_TRANSLATE}
 
-function TDbf.Translate(Src, Dest: PChar; ToOem: Boolean): Integer; {override virtual}
+function TDbf.Translate(Src, Dest: PAnsiChar; ToOem: Boolean): Integer; {override virtual}
 var
   FromCP, ToCP: Cardinal;
 begin
@@ -2192,7 +2231,7 @@ end;
 
 {$else}
 
-procedure TDbf.Translate(Src, Dest: PChar; ToOem: Boolean); {override virtual}
+procedure TDbf.Translate(Src, Dest: PAnsiChar; ToOem: Boolean); {override virtual}
 var
   FromCP, ToCP: Cardinal;
 begin
@@ -2222,7 +2261,7 @@ end;
 
 procedure TDbf.ClearCalcFields(Buffer: TRecordBuffer);
 var
-  lRealBuffer, lCalcBuffer: PChar;
+  lRealBuffer, lCalcBuffer: PAnsiChar;
 begin
   lRealBuffer := @pDbfRecord(Buffer)^.DeletedFlag;
   lCalcBuffer := lRealBuffer + FDbfFile.RecordSize;
@@ -2708,13 +2747,13 @@ var
 begin
   CheckActive;
   Strings.Clear;
-  if SysUtils.FindFirst(IncludeTrailingPathDelimiter(ExtractFilePath(FDbfFile.FileName))
+  if {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindFirst(IncludeTrailingPathDelimiter(ExtractFilePath(FDbfFile.FileName))
         + '*.NDX', faAnyFile, SR) = 0 then
   begin
     repeat
       Strings.Add(SR.Name);
-    until SysUtils.FindNext(SR)<>0;
-    SysUtils.FindClose(SR);
+    until {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(SR)<>0;
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SR);
   end;
 end;
 
@@ -2816,7 +2855,7 @@ begin
   Refresh;
 end;
 
-procedure TDbf.SetRangeBuffer(LowRange: PChar; HighRange: PChar);
+procedure TDbf.SetRangeBuffer(LowRange: PAnsiChar; HighRange: PAnsiChar);
 begin
   if FIndexFile = nil then
     exit;
@@ -2831,7 +2870,7 @@ end;
 
 procedure TDbf.SetRange(LowRange: Variant; HighRange: Variant; KeyIsANSI: boolean);
 var
-  LowBuf, HighBuf: array[0..100] of Char;
+  LowBuf, HighBuf: array[0..100] of AnsiChar;
 begin
   if (FIndexFile = nil) or VarIsNull(LowRange) or VarIsNull(HighRange) then
     exit;
@@ -2846,10 +2885,10 @@ end;
 
 {$endif}
 
-procedure TDbf.SetRangePChar(LowRange: PChar; HighRange: PChar; KeyIsANSI: boolean);
+procedure TDbf.SetRangePChar(LowRange: PAnsiChar; HighRange: PAnsiChar; KeyIsANSI: boolean);
 var
-  LowBuf, HighBuf: array [0..100] of Char;
-  LowPtr, HighPtr: PChar;
+  LowBuf, HighBuf: array [0..100] of AnsiChar;
+  LowPtr, HighPtr: PAnsiChar;
 begin
   if FIndexFile = nil then
     exit;
@@ -2867,7 +2906,7 @@ begin
   SetRangeBuffer(LowPtr, HighPtr);
 end;
 
-procedure TDbf.ExtractKey(KeyBuffer: PChar);
+procedure TDbf.ExtractKey(KeyBuffer: PAnsiChar);
 begin
   if FIndexFile <> nil then
     StrCopy(FIndexFile.ExtractKeyFromBuffer(GetCurrentBuffer), KeyBuffer)
@@ -2887,7 +2926,7 @@ end;
 
 function TDbf.SearchKey(Key: Variant; SearchType: TSearchKeyType; KeyIsANSI: boolean): Boolean;
 var
-  TempBuffer: array [0..100] of Char;
+  TempBuffer: array [0..100] of AnsiChar;
 begin
   if (FIndexFile = nil) or VarIsNull(Key) then
   begin
@@ -2903,7 +2942,7 @@ end;
 
 {$endif}
 
-function  TDbf.PrepareKey(Buffer: Pointer; BufferType: TExpressionType): PChar;
+function  TDbf.PrepareKey(Buffer: Pointer; BufferType: TExpressionType): PAnsiChar;
 begin
   if FIndexFile = nil then
   begin
@@ -2914,9 +2953,9 @@ begin
   Result := TIndexCursor(FCursor).IndexFile.PrepareKey(Buffer, BufferType);
 end;
 
-function TDbf.SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType; KeyIsANSI: boolean): Boolean;
+function TDbf.SearchKeyPChar(Key: PAnsiChar; SearchType: TSearchKeyType; KeyIsANSI: boolean): Boolean;
 var
-  StringBuf: array [0..100] of Char;
+  StringBuf: array [0..100] of AnsiChar;
 begin
   if FCursor = nil then
   begin
@@ -2932,7 +2971,7 @@ begin
   Result := SearchKeyBuffer(TIndexCursor(FCursor).CheckUserKey(Key, @StringBuf[0]), SearchType);
 end;
 
-function TDbf.SearchKeyBuffer(Buffer: PChar; SearchType: TSearchKeyType): Boolean;
+function TDbf.SearchKeyBuffer(Buffer: PAnsiChar; SearchType: TSearchKeyType): Boolean;
 var
   matchRes: Integer;
 begin
@@ -2987,7 +3026,7 @@ end;
 procedure TDbf.UpdateRange;
 var
   fieldsVal: TRecordBuffer;
-  tempBuffer: array[0..300] of char;
+  tempBuffer: array[0..300] of AnsiChar;
 begin
   fieldsVal := FMasterLink.FieldsVal;
   if (TDbf(FMasterLink.DataSet).DbfFile.UseCodePage <> FDbfFile.UseCodePage)
@@ -2998,7 +3037,7 @@ begin
     Translate(pansichar(fieldsVal), pansichar(fieldsVal), true);
   end;
   // preparekey, setrangebuffer and updatekeyfrom* are functions which arguments
-  // are not entirely classified in pchar<>trecordbuffer terms.
+  // are not entirely classified in PAnsiChar<>trecordbuffer terms.
   // so we typecast for now.
   fieldsVal := TRecordBuffer(TIndexCursor(FCursor).IndexFile.PrepareKey((fieldsVal), FMasterLink.Parser.ResultType));
   SetRangeBuffer(pansichar(fieldsVal), pansichar(fieldsVal)); 

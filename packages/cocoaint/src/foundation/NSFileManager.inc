@@ -120,8 +120,8 @@ type
     function subpathsAtPath (path: NSString): NSArray; message 'subpathsAtPath:';
     function contentsAtPath (path: NSString): NSData; message 'contentsAtPath:';
     function createFileAtPath_contents_attributes (path: NSString; data: NSData; attr: NSDictionary): ObjCBOOL; message 'createFileAtPath:contents:attributes:';
-    function fileSystemRepresentationWithPath (path: NSString): PChar; message 'fileSystemRepresentationWithPath:';
-    function stringWithFileSystemRepresentation_length (str: PChar; len: NSUInteger): NSString; message 'stringWithFileSystemRepresentation:length:';
+    function fileSystemRepresentationWithPath (path: NSString): PAnsiChar; message 'fileSystemRepresentationWithPath:';
+    function stringWithFileSystemRepresentation_length (str: PAnsiChar; len: NSUInteger): NSString; message 'stringWithFileSystemRepresentation:length:';
     function replaceItemAtURL_withItemAtURL_backupItemName_options_resultingItemURL_error (originalItemURL: NSURL; newItemURL: NSURL; backupItemName: NSString; options: NSFileManagerItemReplacementOptions; resultingURL: NSURLPtr; error: NSErrorPtr): ObjCBOOL; message 'replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error:'; { available in 10_6, 4_0 }
     function setUbiquitous_itemAtURL_destinationURL_error (flag: ObjCBOOL; url: NSURL; destinationURL: NSURL; error: NSErrorPtr): ObjCBOOL; message 'setUbiquitous:itemAtURL:destinationURL:error:'; { available in 10_7, 5_0 }
     function isUbiquitousItemAtURL (url: NSURL): ObjCBOOL; message 'isUbiquitousItemAtURL:'; { available in 10_7, 5_0 }

@@ -10,10 +10,10 @@ procedure draw;
 
 function randomchar: chtype;
 var
-  ch: Char = #0;
+  ch: AnsiChar = #0;
 begin
   while not (ch in ['0'..'9','A'..'Z','a'..'z']) do
-    ch := Char(Random(123));
+    ch := AnsiChar(Random(123));
   randomchar := chtype(ch);
 end;
 
@@ -56,7 +56,7 @@ begin
   begin
     mvwaddstr(win, 1, 1, '                  ');
     str := Format('y := %D, x := %D', [event.y, event.x]);
-    mvwaddstr(win, 1, 2, PChar(str));
+    mvwaddstr(win, 1, 2, PAnsiChar(str));
     wattron(win,A_BOLD);
     mvwaddch(win, 3, 9, mvinch(event.y,event.x ));
     wattroff(win,A_BOLD);

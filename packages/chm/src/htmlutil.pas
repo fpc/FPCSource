@@ -29,12 +29,24 @@
 
  Note: this isn't perfect, it needs to be improved.. see comments  }
   
-unit HTMLUtil; {$ifdef fpc} {$MODE Delphi} {$H+}{$endif}
+{$IFNDEF FPC_DOTTEDUNITS}
+unit HTMLUtil; 
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$ifdef fpc} 
+{$MODE Delphi} 
+{$H+}
+{$endif}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+  System.SysUtils, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
   SysUtils, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { most commonly used }
 function GetVal(const tag, attribname_ci: string): string;
@@ -55,7 +67,7 @@ function GetNameValPair_cs(tag, attribname: string): string;
 
 implementation
 
-function CopyBuffer(StartIndex: PChar; Len: integer): string;
+function CopyBuffer(StartIndex: PAnsiChar; Len: integer): string;
 var s : String;
 begin
   SetLength(s, Len);
@@ -66,10 +78,10 @@ end;
 { Return tag name, case preserved }
 function GetTagName(const Tag: string): string;
 var
-  P : Pchar;
-  S : Pchar;
+  P : PAnsiChar;
+  S : PAnsiChar;
 begin
-  P := Pchar(Tag);
+  P := PAnsiChar(Tag);
   while P^ in ['<',' ',#9] do 
     inc(P);
   S := P;
@@ -84,10 +96,10 @@ end;
 { Return tag name in uppercase }
 function GetUpTagName(const tag: string): string;
 var
-  P : Pchar;
-  S : Pchar;
+  P : PAnsiChar;
+  S : PAnsiChar;
 begin
-  P := Pchar(uppercase(Tag));
+  P := PAnsiChar(uppercase(Tag));
   while P^ in ['<',' ',#9] do 
     inc(P);
   S := P;
@@ -104,19 +116,19 @@ end;
   Lars' fixed version }
 function GetNameValPair(const tag, attribname_ci: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
+  P    : PAnsiChar;
+  S    : PAnsiChar;
   UpperTag,
   UpperAttrib   : string;
   Start: integer;
   L    : integer;
-  C    : char;
+  C    : AnsiChar;
 begin
   // must be space before case insensitive NAME, i.e. <a HREF="" STYLE=""
   UpperAttrib:= ' ' + Uppercase(attribname_ci);
   UpperTag:= Uppercase(Tag);
-  P:= Pchar(UpperTag);
-  S:= StrPos(P, Pchar(UpperAttrib));
+  P:= PAnsiChar(UpperTag);
+  S:= StrPos(P, PAnsiChar(UpperAttrib));
 
   if S <> nil then
   begin
@@ -150,8 +162,8 @@ begin
     end;
 
     L:= P - S;
-    Start:= S - Pchar(UpperTag);
-    P:= Pchar(Tag);
+    Start:= S - PAnsiChar(UpperTag);
+    P:= PAnsiChar(Tag);
     S:= P;
     inc(S, Start);
  
@@ -163,13 +175,13 @@ end;
 { Get value of attribute, e.g WIDTH=36 -return-> 36, preserves case sensitive }
 function GetValFromNameVal(const namevalpair: string): string;
 var
-  P: Pchar;
-  S: Pchar;
-  C: Char;
+  P: PAnsiChar;
+  S: PAnsiChar;
+  C: AnsiChar;
 begin
   Result := '';
 
-  P:= Pchar(namevalpair);
+  P:= PAnsiChar(namevalpair);
   S:= StrPos(P, '=');
 
   if S <> nil then     
@@ -214,18 +226,18 @@ end;
   Bug: when finding 'ID', function finds "width", even though width <> "id" }
 function GetNameValPair_JAMES(tag, attribname_ci: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
+  P    : PAnsiChar;
+  S    : PAnsiChar;
   UT,
   UA   : string;
   Start: integer;
   L    : integer;
-  C    : char;
+  C    : AnsiChar;
 begin
   UA:= Uppercase(attribname_ci);
   UT:= Uppercase(Tag);
-  P:= Pchar(UT);
-  S:= StrPos(P, Pchar(UA));
+  P:= PAnsiChar(UT);
+  S:= StrPos(P, PAnsiChar(UA));
   if S <> nil then
   begin
 
@@ -257,8 +269,8 @@ begin
     end;
 
     L:= P - S;
-    Start:= S - Pchar(UT);
-    P:= Pchar(Tag);
+    Start:= S - PAnsiChar(UT);
+    P:= PAnsiChar(Tag);
     S:= P;
     inc(S, Start);
     result:= CopyBuffer(S, L);
@@ -277,12 +289,12 @@ end;
 { return name=value portion, case sensitive, case preserved }
 function GetNameValPair_cs(Tag, attribname: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
-  C    : Char;
+  P    : PAnsiChar;
+  S    : PAnsiChar;
+  C    : AnsiChar;
 begin
-  P := Pchar(Tag);
-  S := StrPos(P, Pchar(attribname));
+  P := PAnsiChar(Tag);
+  S := StrPos(P, PAnsiChar(attribname));
   if S<>nil then
   begin
     P := S;
@@ -342,13 +354,13 @@ function GetValFromNameVal(namevalpair: string): string;
     substring in name=value pair}
   function ReturnPos(attribute: string): TAttribPos;
   var
-    P    : Pchar;
-    S    : Pchar;
-    C    : Char;
+    P    : PAnsiChar;
+    S    : PAnsiChar;
+    C    : AnsiChar;
   begin
     result.startpos:= 0;
     result.len:= 0;
-    P:= Pchar(uppercase(Attribute));
+    P:= PAnsiChar(uppercase(Attribute));
     // get substring including and everything after equal
     S:= StrPos(P, '=');
     result.startpos:= pos('=', P); 

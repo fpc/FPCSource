@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dllist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

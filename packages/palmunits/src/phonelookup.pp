@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit phonelookup;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Coretraps, PalmApi.Field, PalmApi.Applaunchcmd;
+{$ELSE FPC_DOTTEDUNITS}
 uses coretraps, field, applaunchcmd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure PhoneNumberLookup(var fldP: FieldType); syscall sysTrapPhoneNumberLookup;
 

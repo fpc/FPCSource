@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit machoconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Resources.Macho.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   machotypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DataSegName     : TSegSectName = '__DATA'+#0+#0+#0+#0+#0+#0+#0+#0+#0+#0;

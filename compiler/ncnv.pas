@@ -557,8 +557,10 @@ implementation
                       { widechars are not yet supported }
                       if is_widechar(p2.resultdef) then
                         begin
-                          inserttypeconv(p2,cansichartype);
-                          if (p2.nodetype<>ordconstn) then
+
+                          if block_type<>bt_const then
+                            inserttypeconv(p2,cansichartype);
+                          if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                             incompatibletypes(cwidechartype,cansichartype);
                         end;
 
@@ -567,8 +569,9 @@ implementation
                        begin
                          if is_widechar(p3.resultdef) then
                            begin
-                             inserttypeconv(p3,cansichartype);
-                             if (p3.nodetype<>ordconstn) then
+                             if block_type<>bt_const then
+                               inserttypeconv(p3,cansichartype);
+                             if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                                begin
                                  current_filepos:=p3.fileinfo;
                                  incompatibletypes(cwidechartype,cansichartype);
@@ -741,7 +744,7 @@ implementation
                         begin
                           if p1.nodetype<>ordconstn then
                             exit
-                          else if tordconstnode(p1).value.uvalue>high(byte) then
+                          else if (tordconstnode(p1).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
                             exit;
                         end;
 
@@ -751,7 +754,7 @@ implementation
                             begin
                               if p2.nodetype<>ordconstn then
                                 exit
-                              else if tordconstnode(p2).value.uvalue>high(byte) then
+                              else if (tordconstnode(p2).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
                                 exit;
                             end;
 
@@ -2508,7 +2511,10 @@ implementation
                             not is_self_sym(tsym(pcapturedsyminfo(tprocdef(pd).capturedsyms[0])^.sym))
                           )
                         ) then
-                      internalerror(2021060801);
+                      begin
+                        result:=cerrornode.create;
+                        exit;
+                      end;
 
                     { so that insert_self_and_vmt_para correctly inserts the
                       Self, cause it otherwise skips that for anonymous functions }
@@ -2619,7 +2625,10 @@ implementation
                 else if tprocvardef(totypedef).is_addressonly then
                   begin
                     if assigned(tprocdef(pd).capturedsyms) and (tprocdef(pd).capturedsyms.count>0) then
-                      internalerror(2021060802);
+                      begin
+                        result:=cerrornode.create;
+                        exit;
+                      end;
 
                     { remove framepointer and Self parameters }
                     for i:=tprocdef(pd).parast.symlist.count-1 downto 0 do
@@ -3172,6 +3181,14 @@ implementation
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
+                                 { if the from type is an anonymous function then
+                                   don't blindly convert it if the size is the same
+                                   as compare_defs_ext already determined that the
+                                   anonymous function is not compatible }
+                                 not(
+                                   (left.resultdef.typ=procdef) and
+                                   (po_anonymous in tprocdef(left.resultdef).procoptions)
+                                 ) and
                                  (left.resultdef.size=resultdef.size) and
                                  { disallow casts of const nodes }
                                  (not is_constnode(left) or

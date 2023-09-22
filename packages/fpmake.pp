@@ -4,7 +4,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses {$ifdef unix}cthreads,{$endif} sysutils, Classes, fpmkunit;
+uses {$ifdef unix}cwstring,cthreads,{$endif} sysutils, Classes, fpmkunit;
 
 Var
   TBuild,T : TTarget;
@@ -53,7 +53,11 @@ end;
 {$ifdef no_parent}
 begin
   add_packages_comandlineoptions();
-  add_packages('');
-  Installer.Run;
+
+  if Assigned(Installer) then
+    begin
+    add_packages('');
+    Installer.Run;
+    end;
 end.
 {$endif no_parent}

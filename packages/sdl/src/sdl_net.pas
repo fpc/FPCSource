@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_net;
+{$ENDIF FPC_DOTTEDUNITS}
 {******************************************************************************}
 {
   $Id: sdl_net.pas,v 1.7 2005/01/01 02:14:21 savage Exp $
@@ -115,6 +117,23 @@ unit sdl_net;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+
+{$IFDEF Windows}
+{$IFNDEF __GPC__}
+  WinApi.Windows,
+{$ENDIF}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -130,6 +149,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF windows}
@@ -299,7 +319,7 @@ cdecl; external{$IFDEF __GPC__}name 'SDLNet_Quit'{$ELSE}SDLNetLibName{$ENDIF __G
    address will be INADDR_NONE, and the function will return -1.
    If 'host' is NULL, the resolved host will be set to INADDR_ANY.
  *}
-function SDLNet_ResolveHost( var address : TIPaddress; host : PCHar; port : Uint16 ) : integer;
+function SDLNet_ResolveHost( var address : TIPaddress; host : PAnsiChar; port : Uint16 ) : integer;
 cdecl; external{$IFDEF __GPC__}name 'SDLNet_ResolveHost'{$ELSE}SDLNetLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_ResolveHost}
 
@@ -308,7 +328,7 @@ cdecl; external{$IFDEF __GPC__}name 'SDLNet_ResolveHost'{$ELSE}SDLNetLibName{$EN
    otherwise a pointer to a static buffer containing the hostname
    is returned.  Note that this function is not thread-safe.
 *}
-function SDLNet_ResolveIP( var ip : TIPaddress ) : PChar;
+function SDLNet_ResolveIP( var ip : TIPaddress ) : PAnsiChar;
 cdecl; external{$IFDEF __GPC__}name 'SDLNet_ResolveIP'{$ELSE}SDLNetLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_ResolveIP}
 
@@ -576,17 +596,17 @@ cdecl; external{$IFDEF __GPC__}name 'SDLNet_Read32'{$ELSE}SDLNetLibName{$ENDIF _
 {$ENDIF MORPHOS}
 
 {* We'll use SDL's functions for error reporting *}
-procedure SDLNet_SetError( fmt : PChar );
-function SDLNet_GetError : PChar;
+procedure SDLNet_SetError( fmt : PAnsiChar );
+function SDLNet_GetError : PAnsiChar;
 
 (* I'm eventually going to try to disentangle SDL_net from SDL, thus making
    SDL_net an independent X-platform networking toolkit.  Not today though....
 
-proceudre SDLNet_SetError(const char *fmt, ...);
+proceudre SDLNet_SetError(const AnsiChar *fmt, ...);
 cdecl; external {$IFDEF __GPC__}name 'SDLNet_SetError'{$ELSE} SDLNetLibName {$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_SetError}
 
-function SDLNet_GetError : PChar;
+function SDLNet_GetError : PAnsiChar;
 cdecl; external {$IFDEF __GPC__}name 'SDLNet_GetError'{$ELSE} SDLNetLibName {$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_GetError}
 *)
@@ -634,12 +654,12 @@ begin
   result := ( ( sock <> nil ) and ( sock^.ready = 1 ) );
 end;
 
-procedure SDLNet_SetError( fmt : PChar );
+procedure SDLNet_SetError( fmt : PAnsiChar );
 begin
   SDL_SetError( fmt );
 end;
 
-function SDLNet_GetError : PChar;
+function SDLNet_GetError : PAnsiChar;
 begin
   result := SDL_GetError;
 end;

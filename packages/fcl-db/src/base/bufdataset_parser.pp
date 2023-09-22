@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bufdataset_parser;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Joost van der Sluis and other members of the
@@ -15,18 +17,27 @@ unit bufdataset_parser;
 
  **********************************************************************}
 
-{$h+}
 {$mode delphi}
+{$h+}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Prscore,
+  Data.Dbf.Prsdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
   db,
   dbf_prscore,
   dbf_prsdef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -41,12 +52,12 @@ type
     FPartialMatch: boolean;
 
   protected
-    FCurrentExpression: string;
+    FCurrentExpression: AnsiString;
 
     procedure FillExpressList; override;
-    procedure HandleUnknownVariable(VarName: string); override;
-    function  GetVariableInfo(const VarName: string): TField;
-    function  CurrentExpression: string; override;
+    procedure HandleUnknownVariable(VarName: AnsiString); override;
+    function  GetVariableInfo(const VarName: AnsiString): TField;
+    function  CurrentExpression: AnsiString; override;
     function  GetResultType: TExpressionType; override;
 
     procedure SetCaseInsensitive(NewInsensitive: Boolean);
@@ -57,11 +68,11 @@ type
 
     procedure ClearExpressions; override;
 
-    procedure ParseExpression(const AExpression: string); virtual;
-    function ExtractFromBuffer(Buffer: TRecordBuffer): PChar; virtual;
+    procedure ParseExpression(const AExpression: AnsiString); virtual;
+    function ExtractFromBuffer(Buffer: TRecordBuffer): PAnsiChar; virtual;
 
     property Dataset: TDataSet read FDataset; // write FDataset;
-    property Expression: string read FCurrentExpression;
+    property Expression: AnsiString read FCurrentExpression;
     property ResultLen: Integer read FResultLen;
 
     property CaseInsensitive: Boolean read FCaseInsensitive write SetCaseInsensitive;
@@ -70,7 +81,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 // TFieldVar aids in retrieving field values from records
@@ -79,7 +94,7 @@ type
   TFieldVar = class(TObject)
   private
     FField: TField;
-    FFieldName: string;
+    FFieldName: AnsiString;
     FFieldIsNull: boolean;
     FExprWord: TExprWord;
   protected
@@ -94,13 +109,13 @@ type
     property FieldVal: Pointer read GetFieldVal;
     property FieldDef: TField read FField;
     property FieldType: TExpressionType read GetFieldType;
-    property FieldName: string read FFieldName;
+    property FieldName: AnsiString read FFieldName;
     property FieldIsNull: PBoolean read GetFieldIsNull;
   end;
 
   TStringFieldVar = class(TFieldVar)
   protected
-    FFieldVal: PChar;
+    FFieldVal: PAnsiChar;
 
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
@@ -366,7 +381,7 @@ end;
 
 procedure TBufDatasetParser.FillExpressList;
 var
-  lExpression: string;
+  lExpression: AnsiString;
 begin
   lExpression := FCurrentExpression;
   ClearExpressions;
@@ -394,17 +409,18 @@ begin
     ParseExpression(lExpression);
 end;
 
-function TBufDatasetParser.GetVariableInfo(const VarName: string): TField;
+function TBufDatasetParser.GetVariableInfo(const VarName: AnsiString): TField;
+
 begin
   Result := FDataset.FindField(VarName);
 end;
 
-function TBufDatasetParser.CurrentExpression: string;
+function TBufDatasetParser.CurrentExpression: AnsiString;
 begin
   Result := FCurrentExpression;
 end;
 
-procedure TBufDatasetParser.HandleUnknownVariable(VarName: string);
+procedure TBufDatasetParser.HandleUnknownVariable(VarName: AnsiString);
 var
   FieldInfo: TField;
   TempFieldVar: TFieldVar;
@@ -483,7 +499,8 @@ begin
   FCurrentExpression := EmptyStr;
 end;
 
-procedure TBufDatasetParser.ParseExpression(const AExpression: string);
+procedure TBufDatasetParser.ParseExpression(const AExpression: AnsiString);
+
 var
   TempBuffer: TRecordBuffer;
 begin
@@ -497,7 +514,7 @@ begin
     // parse requested
     CompileExpression(AExpression);
 
-    // determine length of string length expressions
+    // determine length of AnsiString length expressions
     if ResultType = etString then
     begin
       // make empty record
@@ -534,7 +551,7 @@ begin
   FCurrentExpression := AExpression;
 end;
 
-function TBufDatasetParser.ExtractFromBuffer(Buffer: TRecordBuffer): PChar;
+function TBufDatasetParser.ExtractFromBuffer(Buffer: TRecordBuffer): PAnsiChar;
 var
   I: Integer;
 begin
@@ -551,9 +568,9 @@ begin
   end else begin
     // simple field, get field result
     Result := TFieldVar(FFieldVarList.Objects[0]).FieldVal;
-    // if string then dereference
+    // if AnsiString then dereference
     if FFieldType = etString then
-      Result := PPChar(Result)^;
+      Result := PPAnsiChar(Result)^;
   end;
 end;
 

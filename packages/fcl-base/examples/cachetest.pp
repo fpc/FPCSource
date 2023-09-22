@@ -25,7 +25,7 @@ type
     function TestCacheIsDataEqual(ACache: TCache; AData1, AData2: Pointer): Boolean;
     procedure TestCacheFreeSlot(ACache: TCache; SlotIndex: Integer);
   protected
-    procedure AddString(const s: PChar);
+    procedure AddString(const s: PAnsiChar);
     procedure DumpCache;
   public
     constructor Create;
@@ -41,22 +41,22 @@ begin
   if (not Assigned(AData1)) or (not Assigned(AData2)) then
     Result := (not Assigned(AData1)) and (not Assigned(AData2))
   else
-    Result := StrComp(PChar(AData1), PChar(AData2)) = 0;
+    Result := StrComp(PAnsiChar(AData1), PAnsiChar(AData2)) = 0;
 end;
 
 procedure TCacheTester.TestCacheFreeSlot(ACache: TCache; SlotIndex: Integer);
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   Write('  Cache slot #', SlotIndex, ' has been freed (content: ');
-  p := PChar(ACache.Slots[SlotIndex]^.Data);
+  p := PAnsiChar(ACache.Slots[SlotIndex]^.Data);
   if Assigned(p) then
     WriteLn('"', p, '")')
   else
     WriteLn('nil)');
 end;
 
-procedure TCacheTester.AddString(const s: PChar);
+procedure TCacheTester.AddString(const s: PAnsiChar);
 var
   i: Integer;
 begin
@@ -78,7 +78,7 @@ begin
   begin
     Write('  Slot #', Slot^.Index, '  ');
     if Assigned(Slot^.Data) then
-      Write('"', PChar(Slot^.Data), '"')
+      Write('"', PAnsiChar(Slot^.Data), '"')
     else
       Write('nil');
     if Slot^.Prev <> PrevSlot then

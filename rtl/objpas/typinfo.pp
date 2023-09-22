@@ -16,7 +16,9 @@
 { This unit provides the same Functionality as the TypInfo Unit }
 { of Delphi                                                     }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TypInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -26,7 +28,11 @@ unit TypInfo;
 {$macro on}
 {$h+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
   uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 // temporary types:
@@ -131,6 +137,11 @@ unit TypInfo;
        );
 {$pop}
 
+{$IF FPC_FULLVERSION>=30301}
+{$DEFINE HAVE_INVOKEHELPER}
+{$DEFINE HAVE_HIDDENTHUNKCLASS}
+{$ENDIF}
+
 {$MINENUMSIZE DEFAULT}
 
    const
@@ -142,6 +153,10 @@ unit TypInfo;
    type
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
+
+      {$IFDEF HAVE_INVOKEHELPER}
+      TInvokeHelper = procedure(Instance : Pointer; Args : PPointer);
+      {$ENDIF}
 
       PParameterLocation = ^TParameterLocation;
       TParameterLocation =
@@ -339,6 +354,7 @@ unit TypInfo;
         Name: ShortString;
       end;
 
+      PProcedureSignature = ^TProcedureSignature;
       TProcedureSignature =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -377,6 +393,7 @@ unit TypInfo;
         property Next: PVmtMethodParam read GetNext;
       end;
 
+
       PIntfMethodEntry = ^TIntfMethodEntry;
       TIntfMethodEntry =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -395,6 +412,9 @@ unit TypInfo;
         Kind: TMethodKind;
         ParamCount: Word;
         StackSize: SizeInt;
+        {$IFDEF HAVE_INVOKEHELPER}
+        InvokeHelper : TInvokeHelper;
+        {$ENDIF}
         NamePtr: PShortString;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
@@ -514,6 +534,9 @@ unit TypInfo;
           Parent: PPTypeInfo;
           Flags: TIntfFlagsBase;
           GUID: TGUID;
+          {$IFDEF HAVE_HIDDENTHUNKCLASS}
+          ThunkClass : PPTypeInfo;
+          {$ENDIF}
           UnitNameField: ShortString;
           { PropertyTable: TPropData }
           { MethodTable: TIntfMethodTable }
@@ -554,6 +577,9 @@ unit TypInfo;
             Parent: PPTypeInfo;
             Flags : TIntfFlagsBase;
             IID: TGUID;
+            {$IFDEF HAVE_HIDDENTHUNKCLASS}
+            ThunkClass : PPTypeInfo;
+            {$ENDIF}
             UnitNameField: ShortString;
             { IIDStr: ShortString; }
             { PropertyTable: TPropData }
@@ -727,7 +753,7 @@ unit TypInfo;
               (MethodKind : TMethodKind;
                ParamCount : Byte;
                case Boolean of
-                 False: (ParamList : array[0..1023] of Char);
+                 False: (ParamList : array[0..1023] of AnsiChar);
                  { dummy for proper alignment }
                  True: (ParamListDummy : Word);
              {in reality ParamList is a array[1..ParamCount] of:
@@ -755,6 +781,7 @@ unit TypInfo;
                IntfParentRef: TypeInfoPtr;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
+               ThunkClass : PPTypeInfo;
                IntfUnit: ShortString;
                { PropertyTable: TPropData }
                { MethodTable: TIntfMethodTable }
@@ -764,6 +791,7 @@ unit TypInfo;
                RawIntfParentRef: TypeInfoPtr;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
+               RawThunkClass : PPTypeInfo;
                RawIntfUnit: ShortString;
                { IIDStr: ShortString; }
                { PropertyTable: TPropData }
@@ -976,12 +1004,17 @@ function GetDynArrayProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 procedure SetDynArrayProp(Instance: TObject; const PropName: string; const Value: Pointer);
 procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
+
 // Extended RTTI
 function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
 
 function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute; inline;
 
 function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
+
+{$IFDEF HAVE_INVOKEHELPER}
+procedure CallInvokeHelper(aTypeInfo : PTypeInfo; Instance: Pointer; const aMethod : String; aArgs : PPointer);
+{$ENDIF}
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -1033,7 +1066,11 @@ function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PMethod = ^TMethod;
@@ -1175,29 +1212,22 @@ begin
    end;
 end;
 
-
 function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
 var
   PS: PShortString;
-  PT: PTypeData;
-  Count: SizeInt;
 begin
-  PT:=GetTypeData(enum1);
   if enum1^.Kind=tkBool then
     Result:=2
   else
     begin
-      Count:=0;
-      Result:=0;
-
-      PS:=@PT^.NameList;
+      { the last string is the unit name, so start at -1 }
+      PS:=@GetTypeData(enum1)^.NameList;
+      Result:=-1;
       While (PByte(PS)^<>0) do
         begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-          Inc(Count);
+          Inc(Result);
         end;
-      { the last string is the unit name }
-      Result := Count - 1;
     end;
 end;
 
@@ -3784,5 +3814,56 @@ begin
     end;
 end;
 
+{$IFDEF HAVE_INVOKEHELPER}
+procedure CallInvokeHelper(Instance: Pointer; aMethod : PIntfMethodEntry; aArgs : PPointer);
+
+begin
+  if (aMethod=Nil) then
+    Raise EArgumentNilException.Create('Cannot call invoke helper on nil method info');
+  if (aMethod^.InvokeHelper=Nil) then
+    Raise EArgumentException.CreateFmt('Method %s has no invoke helper.',[aMethod^.Name]);
+  aMethod^.InvokeHelper(Instance,aArgs);
+end;
+
+procedure CallInvokeHelper(aTypeInfo : PTypeInfo; Instance: Pointer; const aMethod : String; aArgs : PPointer);
+
+Var
+  Data : PInterfaceData;
+  DataR : PInterfaceRawData;
+  MethodTable : PIntfMethodTable;
+  MethodEntry : PIntfMethodEntry;
+  I : Integer;
+
+begin
+  If Instance=Nil then
+    Raise EArgumentNilException.Create('Cannot call invoke helper on nil instance');
+  if not (aTypeInfo^.Kind in [tkInterface,tkInterfaceRaw]) then
+    Raise EArgumentException.Create('Cannot call invoke helper non non-interfaces');
+  // Get method table
+  if (aTypeInfo^.Kind=tkInterface) then
+    begin
+    Data:=PInterfaceData(GetTypeData(aTypeInfo));
+    MethodTable:=Data^.MethodTable;
+    end
+  else
+    begin
+    DataR:=PInterfaceRawData(GetTypeData(aTypeInfo));
+    MethodTable:=DataR^.MethodTable;
+    end;
+  // Search method in method table
+  MethodEntry:=nil;
+  I:=MethodTable^.Count-1;
+  While (MethodEntry=Nil) and (I>=0) do
+    begin
+    MethodEntry:=MethodTable^.Method[i];
+    if not SameText(MethodEntry^.Name,aMethod) then
+      MethodEntry:=Nil;
+    Dec(I);
+    end;
+  if MethodEntry=Nil then
+    Raise EArgumentException.CreateFmt('Interface %s has no method %s.',[aTypeInfo^.Name,aMethod]);
+  CallInvokeHelper(Instance,MethodEntry,aArgs);
+end;
+{$ENDIF HAVE_INVOKEHELPER}
 
 end.

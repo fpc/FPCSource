@@ -37,7 +37,9 @@ type
      eo_resident,
      eo_index,
      eo_name,
-     eo_no_sym_name { don't try to use another mangled name if symbol is known }
+     eo_no_sym_name, { don't try to use another mangled name if symbol is known }
+     eo_promising_first,
+     eo_promising_last
    );
    texportoptions=set of texportoption;
 

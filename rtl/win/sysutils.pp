@@ -14,18 +14,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -53,7 +63,7 @@ uses
 {$i sysutilh.inc}
 
 type
-  TSystemTime = Windows.TSystemTime;
+  TSystemTime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSystemTime;
 
   EWin32Error = class(Exception)
   public
@@ -82,7 +92,7 @@ function CheckWin32Version(Major,Minor : Integer ): Boolean;
 function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
-function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: Ansistring): Cardinal;
 function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
@@ -90,9 +100,16 @@ procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSett
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst,
+    WinApi.WinDirs;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst,
     windirs;
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 var 
   FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
@@ -131,7 +148,7 @@ function CheckWin32Version(Major,Minor: Integer): Boolean;
   end;
 
 
-function GetFileVersion(const AFileName:string):Cardinal;
+function GetFileVersion(const AFileName:Ansistring):Cardinal;
   var
     { useful only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
@@ -145,12 +162,12 @@ function GetFileVersion(const AFileName:string):Cardinal;
     result:=$fffffff;
     fn:=AFileName;
     UniqueString(fn);
-    size:=GetFileVersionInfoSizeA(pchar(fn),@h);
+    size:=GetFileVersionInfoSizeA(PAnsiChar(fn),@h);
     if size>sizeof(buf) then
       begin
         getmem(bufp,size);
         try
-          if GetFileVersionInfoA(pchar(fn),h,size,bufp) then
+          if GetFileVersionInfoA(PAnsiChar(fn),h,size,bufp) then
             if VerQueryValue(bufp,'\',valrec,valsize) then
               result:=valrec^.dwFileVersionMS;
         finally
@@ -159,7 +176,7 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end
     else
       begin
-        if GetFileVersionInfoA(pchar(fn),h,size,@buf) then
+        if GetFileVersionInfoA(PAnsiChar(fn),h,size,@buf) then
           if VerQueryValue(@buf,'\',valrec,valsize) then
             result:=valrec^.dwFileVersionMS;
       end;
@@ -212,10 +229,10 @@ function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+function GetTempFileName(Dir,Prefix: PAnsiChar; uUnique: DWORD; TempFileName: PAnsiChar):DWORD;
 
 begin
-  Result:= Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
+  Result:= {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
 end;
 
 
@@ -405,7 +422,7 @@ begin
   Handle := FindFirstFileW(Pwidechar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
-      Windows.FindClose(Handle);
+      {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
       if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
         If WinToDosTime(FindData.ftLastWriteTime,tmpdtime) then
           begin
@@ -541,7 +558,7 @@ const
                 FindExSearchNameMatch, Nil, 0);
     Result := Handle <> INVALID_HANDLE_VALUE;
     if Result then begin
-      Windows.FindClose(Handle);
+      {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
       Result := (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
     end;
   end;
@@ -620,7 +637,7 @@ Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
    if Handle <> INVALID_HANDLE_VALUE then
     begin
-    Windows.FindClose(Handle);
+    {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
     Handle:=INVALID_HANDLE_VALUE;
     end;
 end;
@@ -645,21 +662,21 @@ begin
     exit;
   if not CheckWin32Version(6, 0) then 
     exit;
-  Attrs:=GetFileAttributes(PChar(aLink));
+  Attrs:=GetFileAttributes(PAnsiChar(aLink));
   if (Attrs=INVALID_FILE_ATTRIBUTES) or ((Attrs and faSymLink)=0) then
     exit;
   oFLags:=0;
   // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
   if (Attrs and faDirectory)=faDirectory then
     oFlags:=FILE_FLAG_BACKUP_SEMANTICS;
-  aHandle:=CreateFile(PChar(aLink),GENERIC_READ,FILE_SHARE_READ,nil,OPEN_EXISTING,oFlags,0);
+  aHandle:=CreateFile(PAnsiChar(aLink),GENERIC_READ,FILE_SHARE_READ,nil,OPEN_EXISTING,oFlags,0);
   if aHandle=INVALID_HANDLE_VALUE then
     exit;
   try
     Len:=GetFinalPathNameByHandle(aHandle,@Buf,MAX_PATH,VOLUME_NAME_NT);
     If Len<=0 then 
       exit; 
-    Result:=StrPas(PChar(@Buf));
+    Result:=StrPas(PAnsiChar(@Buf));
   finally
     CloseHandle(aHandle);
   end;
@@ -861,7 +878,7 @@ end;
 
 Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  Result:=Windows.DeleteFileW(PWidechar(FileName));
+  Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.DeleteFileW(PWidechar(FileName));
 end;
 
 
@@ -876,14 +893,14 @@ end;
 ****************************************************************************}
 
 type
-   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
+   TGetDiskFreeSpaceEx = function(drive:PAnsiChar;var availableforcaller,total,free):longbool;stdcall;
 
 var
  GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
 
 function diskfree(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
@@ -919,7 +936,7 @@ end;
 
 function disksize(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
@@ -960,12 +977,12 @@ end;
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 begin
-  windows.Getlocaltime(SystemTime);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}windows.Getlocaltime(SystemTime);
 end;
 
 function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 begin
-  windows.GetSystemTime(SystemTime);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}windows.GetSystemTime(SystemTime);
   Result:=True;
 end;
 
@@ -1067,7 +1084,7 @@ end;
 
 function GetTickCount: LongWord;
 begin
-  Result := Windows.GetTickCount;
+  Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTickCount;
 end;
 
 
@@ -1090,7 +1107,7 @@ begin
     Result := WinGetTickCount64();
   end else
 {$ENDIF}
-    Result := Windows.GetTickCount;
+    Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTickCount;
 end;
 
 
@@ -1126,9 +1143,9 @@ begin
 end;
 
 
-function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
+function GetLocaleChar(LID, LT: Longint; Def: AnsiChar): AnsiChar;
 var
-  Buf: array[0..3] of Char; // sdate allows 4 chars.
+  Buf: array[0..3] of AnsiChar; // sdate allows 4 chars.
 begin
   if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
@@ -1162,7 +1179,7 @@ function ConvertEraYearString(Count ,Year,Month,Day : integer) : string;
     ALCID : LCID;
     ASystemTime : TSystemTime;
     AFormatText : string;
-    buf : array[0..100] of Char;
+    buf : array[0..100] of AnsiChar;
 begin
   Result := '';
   DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
@@ -1176,7 +1193,7 @@ begin
 //  ALCID := SysLocale.DefaultLCID;
 
   if GetDateFormatA(ALCID, DATE_USE_ALT_CALENDAR
-      , @ASystemTime, PChar(AFormatText)
+      , @ASystemTime, PAnsiChar(AFormatText)
       , @buf, SizeOf(buf)) > 0 then
   begin
     Result := buf;
@@ -1197,7 +1214,7 @@ Begin
     Result:=Def;
 End;
 
-function EnumEraNames(Names: PChar): WINBOOL; stdcall;
+function EnumEraNames(Names: PAnsiChar): WINBOOL; stdcall;
 var
   i : integer;
 begin
@@ -1211,7 +1228,7 @@ begin
    end;
 end;
 
-function EnumEraYearOffsets(YearOffsets: PChar): WINBOOL; stdcall;
+function EnumEraYearOffsets(YearOffsets: PAnsiChar): WINBOOL; stdcall;
 var
   i : integer;
 begin
@@ -1229,7 +1246,7 @@ procedure GetEraNamesAndYearOffsets;
   var
     ACALID : CALID;
     ALCID : LCID;
-    buf : array[0..10] of char;
+    buf : array[0..10] of AnsiChar;
     i : integer;
 begin
   for i:= 1 to MaxEraCount do
@@ -1263,14 +1280,14 @@ begin
 end;
 
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
-  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: Char): string;
+  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: AnsiChar): string;
   var
-    R: PChar;
+    R: PAnsiChar;
   begin
     if (Format='') or (FromSeparator=ToSeparator) then
       Exit(Format);
     Result := Copy(Format, 1);
-    R := PChar(Result);
+    R := PAnsiChar(Result);
     while R^<>#0 do
       begin
       if R^=FromSeparator then
@@ -1280,7 +1297,7 @@ procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSett
   end;
 var
   HF  : Shortstring;
-  LID : Windows.LCID;
+  LID : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LCID;
   I,Day : longint;
 begin
   LID := LCID;
@@ -1451,12 +1468,12 @@ end;
 { GetEnvironmentStrings cannot be checked by CheckPointer function }
 {$checkpointer off}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 
 var
    oemenvvar, oemstr : RawByteString;
    i, hplen : longint;
-   hp,p : pchar;
+   hp,p : PAnsiChar;
 begin
    oemenvvar:=uppercase(envvar);
    SetCodePage(oemenvvar,CP_OEMCP);
@@ -1511,7 +1528,7 @@ end;
 Function GetEnvironmentVariableCount : Integer;
 
 var
-  hp,p : pchar;
+  hp,p : PAnsiChar;
 begin
   Result:=0;
   p:=GetEnvironmentStringsA;
@@ -1525,11 +1542,11 @@ begin
   FreeEnvironmentStringsA(p);
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 
 var
-  hp,p : pchar;
-{$ifdef FPC_RTL_UNICODE}
+  hp,p : PAnsiChar;
+{$if SIZEOF(CHAR)=2}
   tmpstr : RawByteString;
 {$endif}
 begin
@@ -1545,7 +1562,7 @@ begin
         end;
     If (hp^<>#0) then
       begin
-{$ifdef FPC_RTL_UNICODE}
+{$if SIZEOF(CHAR)=2}
         tmpstr:=hp;
         SetCodePage(tmpstr,CP_OEMCP,false);
         Result:=tmpstr;
@@ -1657,7 +1674,7 @@ end;
 Procedure Sleep(Milliseconds : Cardinal);
 
 begin
-  Windows.Sleep(MilliSeconds)
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Sleep(MilliSeconds)
 end;
 
 Function GetLastOSError : Integer;
@@ -1686,7 +1703,7 @@ begin
   Win32MinorVersion:=versionInfo.dwMinorVersion;
   Win32BuildNumber:=versionInfo.dwBuildNumber;
   Move (versioninfo.szCSDVersion ,Win32CSDVersion[1],128);
-  win32CSDVersion[0]:=chr(strlen(pchar(@versioninfo.szCSDVersion)));
+  win32CSDVersion[0]:=chr(strlen(PAnsiChar(@versioninfo.szCSDVersion)));
   kernel32dll:=GetModuleHandle('kernel32');
   if kernel32dll<>0 then
     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
@@ -1731,7 +1748,7 @@ Procedure InitSysConfigDir;
 
 begin
   SetLength(SysConfigDir, MAX_PATH);
-  SetLength(SysConfigDir, GetWindowsDirectoryA(PChar(SysConfigDir), MAX_PATH));
+  SetLength(SysConfigDir, GetWindowsDirectoryA(PAnsiChar(SysConfigDir), MAX_PATH));
 end;
 
 {****************************************************************************
@@ -1749,8 +1766,8 @@ function DoCompareStringA(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
     if L2>0 then
       widestringmanager.Wide2AnsiMoveProc(P2,a2,DefaultSystemCodePage,L2);
     SetLastError(0);
-    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
-      length(a1),pchar(a2),length(a2))-2;
+    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,PAnsiChar(a1),
+      length(a1),PAnsiChar(a2),length(a2))-2;
   end;
 
 function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
@@ -1792,78 +1809,78 @@ function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   end;
 
 
-function Win32AnsiUpperCase(const s: string): string;
+function Win32AnsiUpperCase(const s: AnsiString): AnsiString;
   begin
     if length(s)>0 then
       begin
         result:=s;
         UniqueString(result);
-        CharUpperBuffA(pchar(result),length(result));
+        CharUpperBuffA(PAnsiChar(result),length(result));
       end
     else
       result:='';
   end;
 
 
-function Win32AnsiLowerCase(const s: string): string;
+function Win32AnsiLowerCase(const s: AnsiString): AnsiString;
   begin
     if length(s)>0 then
       begin
         result:=s;
         UniqueString(result);
-        CharLowerBuffA(pchar(result),length(result));
+        CharLowerBuffA(PAnsiChar(result),length(result));
       end
     else
       result:='';
   end;
 
 
-function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
+function Win32AnsiCompareStr(const S1, S2: AnsiString): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
-      pchar(s2),length(s2))-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,PAnsiChar(s1),length(s1),
+      PAnsiChar(s2),length(s2))-2;
   end;
 
 
-function Win32AnsiCompareText(const S1, S2: string): PtrInt;
+function Win32AnsiCompareText(const S1, S2: AnsiString): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
-      pchar(s2),length(s2))-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,PAnsiChar(s1),length(s1),
+      PAnsiChar(s2),length(s2))-2;
   end;
 
 
-function Win32AnsiStrComp(S1, S2: PChar): PtrInt;
+function Win32AnsiStrComp(S1, S2: PAnsiChar): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
   end;
 
 
-function Win32AnsiStrIComp(S1, S2: PChar): PtrInt;
+function Win32AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
   end;
 
 
-function Win32AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function Win32AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
   end;
 
 
-function Win32AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function Win32AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
   end;
 
 
-function Win32AnsiStrLower(Str: PChar): PChar;
+function Win32AnsiStrLower(Str: PAnsiChar): PAnsiChar;
   begin
     CharLowerA(str);
     result:=str;
   end;
 
 
-function Win32AnsiStrUpper(Str: PChar): PChar;
+function Win32AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
   begin
     CharUpperA(str);
     result:=str;
@@ -1898,12 +1915,12 @@ procedure InitWin32Widestrings;
       code point is encountered, all characters part of this invalid code point
       are considered to form one "character" and the next character is
       considered to be the start of a new (possibly also invalid) code point }
-//!!!    CharLengthPCharProc : function(const Str: PChar): PtrInt;
+//!!!    CharLengthPCharProc : function(const Str: PAnsiChar): PtrInt;
     { return value:
       -1 if incomplete or invalid code point
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
-//!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+//!!!!    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;

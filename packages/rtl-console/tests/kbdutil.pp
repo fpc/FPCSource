@@ -8,23 +8,23 @@ type
   TKey = record
     X, Y: Integer;
     YTop, YBottom: Integer;
-    KeyLabel: string;
+    KeyLabel: ansistring;
   end;
   TKeys = array of TKey;
   TKeyboard = record
     Keys: TKeys;
   end;
 
-function ReadKeyboardFromFile(const FileName: string): TKeyboard;
+function ReadKeyboardFromFile(const FileName: ansistring): TKeyboard;
 
 implementation
 
-function ReadKeyboardFromFile(const FileName: string): TKeyboard;
+function ReadKeyboardFromFile(const FileName: ansistring): TKeyboard;
 var
   SaveCtrlZMarksEOF: Boolean;
   InF: TextFile;
   KeyX, KeyY, KeyY1, KeyY2: Integer;
-  KeyStr: string;
+  KeyStr: ansistring;
 begin
   SaveCtrlZMarksEOF := CtrlZMarksEOF;
   try

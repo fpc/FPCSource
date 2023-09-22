@@ -3,14 +3,24 @@
 {$h+}
 {$PACKRECORDS C}
 {$ENDIF}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pxlib;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Unix}
+  UnixApi.Types,
+{$endif}  
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef unix}
   unixtype,
 {$endif}  
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Automatically converted by H2Pas 1.0.0 from pxlib.h
   The following command line parameters were used:
@@ -84,7 +94,7 @@ Type
   PWord     = ^Word;
   PDWord    = ^DWord;
   PDouble   = ^Double;
-  Pcchar    = pchar;
+  Pcchar    = PAnsiChar;
 
 {$ifndef unix}
   size_t    = Integer;
@@ -387,8 +397,13 @@ Procedure Loadpxlib(lib : String);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
   
 var
   hlib : tlibhandle;
@@ -491,7 +506,7 @@ Procedure Loadpxlib(lib : String);
 
 begin
   Freepxlib;
-  hlib:=LoadLibrary(Pchar(lib));
+  hlib:=LoadLibrary(PAnsiChar(lib));
   if hlib=0 then
     raise Exception.Create(format('Could not load library: %s',[lib]));
   pointer(PX_get_majorversion):=GetProcAddress(hlib,'PX_get_majorversion');

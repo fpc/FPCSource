@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  NTApi.NDK;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   NDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // we distinguish the user- AND kernel-mode imports (NDK.ntdll) from the pure
@@ -31,7 +38,7 @@ const
 function RegistryPath: PNtUnicodeString; inline;
 function DriverObject: PDriverObject; inline;
 
-function DbgPrint(aFormat: PChar): LongWord; cdecl; varargs; external ntkrnl name 'DbgPrint';
+function DbgPrint(aFormat: PAnsiChar): LongWord; cdecl; varargs; external ntkrnl name 'DbgPrint';
 
 function PoolTag(aTag: TTagString): LongWord;
 

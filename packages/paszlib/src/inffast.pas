@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit InfFast;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   inffast.h and
@@ -15,8 +17,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function inflate_fast( bl : cardinal;
                        bd : cardinal;
@@ -28,8 +35,13 @@ function inflate_fast( bl : cardinal;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Infutil{$IFDEF ZLIB_DEBUG}, System.SysUtils{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   infutil{$IFDEF ZLIB_DEBUG}, SysUtils{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Called with number of bytes left to write in window at least 258
@@ -96,7 +108,7 @@ begin
       dec(k, t^.bits);
      {$IFDEF ZLIB_DEBUG}
       if (t^.base >= $20) and (t^.base < $7f) then
-        Tracevv('inflate:         * literal '+char(t^.base))
+        Tracevv('inflate:         * literal '+AnsiChar(t^.base))
       else
         Tracevv('inflate:         * literal '+ IntToStr(t^.base));
       {$ENDIF}
@@ -238,7 +250,7 @@ begin
 
          {$IFDEF ZLIB_DEBUG}
           if (t^.base >= $20) and (t^.base < $7f) then
-            Tracevv('inflate:         * literal '+char(t^.base))
+            Tracevv('inflate:         * literal '+AnsiChar(t^.base))
           else
             Tracevv('inflate:         * literal '+IntToStr(t^.base));
           {$ENDIF}            

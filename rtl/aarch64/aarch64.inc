@@ -480,3 +480,46 @@ asm
 end;
 
 {$endif}
+
+
+{****************************************************************************
+                          Math Routines
+****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+function SwapEndian(const AValue: SmallInt): SmallInt; assembler; nostackframe;
+asm
+  rev16 w0, w0
+end;
+
+
+function SwapEndian(const AValue: Word): Word; assembler; nostackframe;
+asm
+  rev16 w0, w0
+end;
+
+
+function SwapEndian(const AValue: LongInt): LongInt; assembler; nostackframe;
+asm
+  rev32 x0, x0
+end;
+
+
+function SwapEndian(const AValue: DWord): DWord; assembler; nostackframe;
+asm
+  rev32 x0, x0
+end;
+
+
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
+asm
+  rev x0, x0
+end;
+
+
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
+asm
+  rev x0, x0
+end;
+

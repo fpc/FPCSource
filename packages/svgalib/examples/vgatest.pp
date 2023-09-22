@@ -155,9 +155,9 @@ Var
 
     i,highest,mode : longint;
     info : pvga_modeinfo;
-    expl : pchar;
+    expl : PAnsiChar;
 
-Const  cols : pchar = NiL;
+Const  cols : PAnsiChar = NiL;
 
 begin
     getmem (expl,100);
@@ -186,7 +186,7 @@ begin
                 end;
             256: begin
                 if i=G320x200x256 then
-                    strcopy(pchar(@expl[0]), 'packed-pixel')
+                    strcopy(PAnsiChar(@expl[0]), 'packed-pixel')
                 else if (i=G320x240x256) or
                         ((i=G320x400x256) or
                          (i=G360x480x256)) then

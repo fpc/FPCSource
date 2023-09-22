@@ -16,7 +16,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Generics.Helpers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE DELPHI}{$H+}
 {$MODESWITCH TYPEHELPERS}
@@ -25,8 +27,13 @@ unit Generics.Helpers;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TValueAnsiStringHelper }

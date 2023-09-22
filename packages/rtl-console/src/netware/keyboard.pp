@@ -14,7 +14,9 @@
  **********************************************************************}
 { 2001/04/16 armin: first version for netware
   2002/03/03 armin: changes for fpc 1.1 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i keybrdh.inc}

@@ -26,7 +26,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cblas;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -211,7 +213,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -290,9 +296,9 @@ const
 type
   CBLAS_INDEX = SInt32;
 
-function cblas_errprn( ierr: SInt32; info: SInt32; var form: char; ... ): SInt32; external name '_cblas_errprn';
+function cblas_errprn( ierr: SInt32; info: SInt32; var form: AnsiChar; ... ): SInt32; external name '_cblas_errprn';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
-procedure cblas_xerbla( p: SInt32; var rout: char; var form: char; ... ); external name '_cblas_xerbla';
+procedure cblas_xerbla( p: SInt32; var rout: AnsiChar; var form: AnsiChar; ... ); external name '_cblas_xerbla';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0) *)
 
 {

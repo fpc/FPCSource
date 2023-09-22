@@ -13,12 +13,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ServiceManager;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, System.SysUtils, System.Classes, WinApi.Jedi.Winnt, WinApi.Jedi.Winsvc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, SysUtils, Classes, jwawinnt, jwawinsvc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -203,7 +210,7 @@ ResourceString
 {$ifdef ver130}
 
 Type
-  PCharArray = Array[Word] of PChar;
+  PCharArray = Array[Word] of PAnsiChar;
   PPCharArray = ^PCharArray;
 
 Procedure RaiseLastOSError;
@@ -308,7 +315,7 @@ begin
         FDisplayName:=StrPas(lpDisplayName);
         SetStatusFields(ServiceStatus);
         end;
-      PChar(P):=Pchar(P)+SizeOf(TEnumServiceStatus);
+      PByte(P):=PByte(P)+SizeOf(TEnumServiceStatus);
       end;
     Finally
     FreeMem(Info);
@@ -436,7 +443,7 @@ begin
     // Double Null terminated list of null-terminated strings.
     L:=Length(S);
     GetMem(Result,L+3);
-    Move(S[1],Result^,L+1); // Move terminating null as well.
+    Move(S[1],Result^,(L+1)*SizeOf(Char)); // Move terminating null as well.
     Result[L+1]:=#0;
     Result[L+2]:=#0;
     For I:=0 to L-1 do
@@ -520,7 +527,7 @@ begin
       For I:=0 to Count-1 do
         begin
         List.Add(StrPas(E^.lpServiceName));
-        Pchar(E):=PChar(E)+SizeOf(TEnumServiceStatus);
+        PByte(E):=PByte(E)+SizeOf(TEnumServiceStatus);
         end;
     Finally
       FreeMem(P);
@@ -649,7 +656,7 @@ begin
   end;
 end;
 
-Function StringsToPCharList(List : TStrings) : PPChar;
+Function StringsToPCharList(List : TStrings) : PPAnsiChar;
 
 Var
   I : Integer;
@@ -657,25 +664,25 @@ Var
 
 begin
   I:=(List.Count)+1;
-  GetMem(Result,I*sizeOf(PChar));
+  GetMem(Result,I*sizeOf(PAnsiChar));
   PPCharArray(Result)^[List.Count]:=Nil;
   For I:=0 to List.Count-1 do
     begin
     S:=List[i];
-    PPCharArray(Result)^[i]:=StrNew(PChar(S));
+    PPCharArray(Result)^[i]:=StrNew(PAnsiChar(S));
     end;
 end;
 
-Procedure FreePCharList(List : PPChar);
+Procedure FreePCharList(List : PPAnsiChar);
 
 Var
   I : integer;
 
 begin
   I:=0;
-  While PPChar(List)[i]<>Nil do
+  While PPAnsiChar(List)[i]<>Nil do
     begin
-    StrDispose(PPChar(List)[i]);
+    StrDispose(PPAnsiChar(List)[i]);
     Inc(I);
     end;
   FreeMem(List);
@@ -685,7 +692,7 @@ Procedure TServiceManager.StartService(SHandle : THandle; Args : TStrings);
 
 Var
   Argc : DWord;
-  PArgs : PPchar;
+  PArgs : PPAnsiChar;
 
 begin
   If (Args=Nil) or (Args.Count>0) then
@@ -699,7 +706,7 @@ begin
     Pargs:=StringsToPcharList(Args);
     end;
   Try
-    If not jwawinsvc.StartService(SHandle,Argc,Pchar(PArgs)) then
+    If not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.StartService(SHandle,Argc,PChar(PArgs)) then
       RaiseLastOSError;
   Finally
     If (PArgs<>Nil) then
@@ -725,7 +732,7 @@ end;
 Procedure TServiceManager.LockServiceDatabase;
 
 begin
-  FDBLock:=jwawinsvc.LockServiceDatabase(Handle);
+  FDBLock:={$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.LockServiceDatabase(Handle);
   If FDBLock=Nil then
     RaiseLastOSError;
 end;
@@ -735,7 +742,7 @@ begin
   If (FDBLock<>Nil) then
     begin
     Try
-      If Not jwawinsvc.UnLockServiceDatabase(FDBLock) then
+      If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.UnLockServiceDatabase(FDBLock) then
         RaiseLastOSError;
     Finally
       FDBLock:=Nil;
@@ -750,12 +757,12 @@ Var
   BytesNeeded : DWord;
 
 begin
-  jwawinsvc.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
   If (GetLastError<>ERROR_INSUFFICIENT_BUFFER) then
     RaiseLastOSError;
   GetMem(SvcCfg,BytesNeeded);
   Try
-    If Not jwawinsvc.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
+    If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
       RaiseLastOSError;
     With config,SvcCfg^ do
       begin
@@ -976,3 +983,4 @@ begin
 end;
 
 end.
+ 

@@ -334,7 +334,7 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+function fpc_pchar_length(p:PAnsiChar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   if assigned(p) then
     Result:=IndexByte(TAnsiCharArray(p),high(Result),0)
@@ -344,7 +344,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar); compilerproc;
 var
   i, len: longint;
   arr: TAnsiCharArray;

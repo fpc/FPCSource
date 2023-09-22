@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit elfreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Elf.Consts, System.Resources.Elf.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, elfconsts, elftypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EElfResourceReaderException = class(EResourceReaderException);
@@ -57,7 +64,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.DataStream, System.Resources.Factory, System.Resources.Tree, System.Resources.StringTable.Types, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses resdatastream, resfactory, resourcetree, strtable, fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -78,7 +89,7 @@ type
 
     function FindSection(const aName : string) : integer; virtual; abstract;
     function FindResSection : boolean;
-    function ReadString(aStream : TStream; aPos : longword) : string;
+    function ReadString(aStream : TStream; aPos : longword) : AnsiString;
     procedure ReadNode(aStream : TStream; aParent : TResourceTreeNode;
       aResources : TResources; named : boolean); virtual; abstract;
     procedure ReadResData(aStream : TStream; aNode : TResourceTreeNode;
@@ -155,9 +166,9 @@ begin
 end;
 
 function TAbstractElfSubReader.ReadString(aStream: TStream; aPos: longword
-  ): string;
+  ): AnsiString;
 var oldpos : int64;
-    c : char;
+    c : AnsiChar;
     maxleft : int64;
 begin
   Result:='';

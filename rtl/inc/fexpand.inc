@@ -201,7 +201,7 @@ begin
             S := GetEnv ('HOME');
   {$ENDIF FPC_FEXPAND_GETENV_PCHAR}
  {$ENDIF FPC_FEXPAND_SYSUTILS}
-            if (S = '') or (Length (S) = 1) and (Length (Pa) > 1)
+            if (Length(S)=0) or (Length (S) = 1) and (Length (Pa) > 1)
                                           and (S [1] = DirectorySeparator) then
                 Delete (Pa, 1, 1)
             else
@@ -651,7 +651,7 @@ end;
    environments - DOS, OS/2, Win32). Example is 'C:\TEST'.
 
    FPC_FEXPAND_GETENV_PCHAR - an implementation of GetEnv returning
-   PChar instead of a shortstring is available (Unix) to support
+   PAnsiChar instead of a shortstring is available (Unix) to support
    long values of environment variables.
 
    FPC_FEXPAND_TILDE - expansion of '~/' to GetEnv('HOME') - Unix.

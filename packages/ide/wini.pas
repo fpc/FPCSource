@@ -17,6 +17,7 @@ unit WINI;
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 
@@ -88,8 +89,8 @@ type
     end;
 
 const MainSectionName : string[40] = 'MainSection';
-      CommentChar     : char = ';';
-      ValidStrDelimiters: set of char = ['''','"'];
+      CommentChar     : AnsiChar = ';';
+      ValidStrDelimiters: set of AnsiChar = ['''','"'];
 
 function EscapeIniText(S : string) : String;
 
@@ -100,7 +101,7 @@ uses
 
 function EscapeIniText(S : string) : String;
 var
-  delimiter : char;
+  delimiter : AnsiChar;
   i: integer;
 begin
   delimiter:=#0;
@@ -231,9 +232,9 @@ procedure TINIEntry.Split;
 var S,ValueS: string;
     P,P2,StartP: longint;
     { using byte for P2 lead to infinite loops PM }
-    C: char;
+    C: AnsiChar;
     InString: boolean;
-    Delimiter: char;
+    Delimiter: AnsiChar;
 begin
   S:=GetText;
   Delimiter:=#0;

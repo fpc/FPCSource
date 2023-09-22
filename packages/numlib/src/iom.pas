@@ -18,12 +18,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$I direct.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     npos  : ArbInt = 78;
@@ -176,7 +182,7 @@ procedure iomwrms(var out: ArbString; var a: ArbFloat; m, n, form, c: ArbInt);
 var
   pa: ^arfloat1;
   i, l, kk: ArbInt;
-  s: string;
+  s: ShortString;
 BEGIN
   if (n<1) or (m<1) then
     exit;

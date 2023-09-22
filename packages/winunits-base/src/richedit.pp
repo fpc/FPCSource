@@ -1,5 +1,7 @@
 { Converted by H2Pas from richedit.h }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RichEdit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$calling stdcall}
@@ -10,10 +12,14 @@ unit RichEdit;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Messages, WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Messages, Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
-{$PACKRECORDS C}
+{$PACKRECORDS 4} // MS header contains pshpack4 under ifdef win32
 {$ENDIF}
 
 Const
@@ -610,7 +616,7 @@ Const
           crTextColor : COLORREF;
           bCharSet : BYTE;
           bPitchAndFamily : BYTE;
-          szFaceName : array[0..(LF_FACESIZE)-1] of char;
+          szFaceName : array[0..(LF_FACESIZE)-1] of AnsiChar;
        end;
      CHARFORMATA = _charformat;
      TCHARFORMATA = _charformat;
@@ -638,7 +644,7 @@ Const
           crTextColor : COLORREF;
           bCharSet : BYTE;
           bPitchAndFamily : BYTE;
-          szFaceName : array[0..(LF_FACESIZE)-1] of char;
+          szFaceName : array[0..(LF_FACESIZE)-1] of AnsiChar;
           wWeight : WORD;
           sSpacing : SHORT;
           crBackColor : COLORREF;
@@ -694,7 +700,7 @@ Const
 
      EDITSTREAMCALLBACK = function (dwCookie:DWORD_PTR; pbBuff:LPBYTE; cb:LONG; var pcb:LONG):DWORD;
 
-     _editstream = record
+     _editstream = packed record
           dwCookie : DWORD_PTR;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
@@ -907,7 +913,7 @@ Const
      GETTEXTEX = _gettextex;
      TGETTEXTEX = _gettextex;
 
-     EDITWORDBREAKPROCEX = function (pchText:pchar; cchText:LONG; bCharSet:BYTE; action:LONG):LONG;
+     EDITWORDBREAKPROCEX = function (pchText:PAnsiChar; cchText:LONG; bCharSet:BYTE; action:LONG):LONG;
   { Defines for EM_SETTYPOGRAPHYOPTIONS  }
 
   const

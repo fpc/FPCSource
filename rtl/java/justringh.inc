@@ -47,7 +47,7 @@ Type
     class constructor ClassCreate;
 
     procedure Wide2AnsiMoveProc(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt); virtual;
-    procedure Ansi2WideMoveProc(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt); virtual;
+    procedure Ansi2WideMoveProc(source:PAnsiChar;cp : TSystemCodePage;var dest:widestring;len:SizeInt); virtual;
 
     function UpperWideStringProc(const S: WideString): WideString; virtual;
     function LowerWideStringProc(const S: WideString): WideString; virtual;
@@ -61,7 +61,7 @@ Type
       Note: different signature compared to version in native targets: extra
         "Index" parameter, since you cannot increment pchars to point to the
         next character here }
-    function CharLengthPCharProc(const Str: PChar; Index: PtrInt): PtrInt; virtual;
+    function CharLengthPCharProc(const Str: PAnsiChar; Index: PtrInt): PtrInt; virtual;
     { return value:
       -1 if incomplete or invalid code point
       0 if NULL character,
@@ -70,18 +70,18 @@ Type
       Note: different signature compared to version in native targets: extra
         "Index" parameter, since you cannot increment pchars to point to the
         next character here }
-    function CodePointLengthProc(const Str: PChar; Index, MaxLookAhead: PtrInt): Ptrint; virtual;
+    function CodePointLengthProc(const Str: PAnsiChar; Index, MaxLookAhead: PtrInt): Ptrint; virtual;
 
     function UpperAnsiStringProc(const s : ansistring) : ansistring; virtual;
     function LowerAnsiStringProc(const s : ansistring) : ansistring; virtual;
     function CompareStrAnsiStringProc(const S1, S2: ansistring): PtrInt; virtual;
     function CompareTextAnsiStringProc(const S1, S2: ansistring): PtrInt; virtual;
-    function StrCompAnsiStringProc(S1, S2: PChar): PtrInt; virtual;
-    function StrICompAnsiStringProc(S1, S2: PChar): PtrInt; virtual;
-    function StrLCompAnsiStringProc(S1, S2: PChar; MaxLen: PtrUInt): PtrInt; virtual;
-    function StrLICompAnsiStringProc(S1, S2: PChar; MaxLen: PtrUInt): PtrInt; virtual;
-    function StrLowerAnsiStringProc(Str: PChar): PChar; virtual;
-    function StrUpperAnsiStringProc(Str: PChar): PChar; virtual;
+    function StrCompAnsiStringProc(S1, S2: PAnsiChar): PtrInt; virtual;
+    function StrICompAnsiStringProc(S1, S2: PAnsiChar): PtrInt; virtual;
+    function StrLCompAnsiStringProc(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt; virtual;
+    function StrLICompAnsiStringProc(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt; virtual;
+    function StrLowerAnsiStringProc(Str: PAnsiChar): PAnsiChar; virtual;
+    function StrUpperAnsiStringProc(Str: PAnsiChar): PAnsiChar; virtual;
 
     // not possible to automatically run code when new thread is started in the
     // JVM -- and not needed either, because threadvars can do so when first
@@ -91,7 +91,7 @@ Type
 
     { this is only different on windows }
     procedure Unicode2AnsiMoveProc(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt); virtual;
-    procedure Ansi2UnicodeMoveProc(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt); virtual;
+    procedure Ansi2UnicodeMoveProc(source:PAnsiChar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt); virtual;
     function UpperUnicodeStringProc(const S: UnicodeString): UnicodeString; virtual;
     function LowerUnicodeStringProc(const S: UnicodeString): UnicodeString; virtual;
     function CompareUnicodeStringProc(const s1, s2 : UnicodeString) : PtrInt; virtual;

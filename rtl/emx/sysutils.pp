@@ -14,18 +14,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 
@@ -42,8 +52,13 @@ uses
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -209,14 +224,14 @@ type
                case byte of
                 0:
                  (DateFormat: cardinal;     {1=ddmmyy 2=yymmdd 3=mmddyy}
-                  CurrencyUnit: array [0..4] of char;
-                  ThousandSeparator: char;  {Thousands separator.}
+                  CurrencyUnit: array [0..4] of AnsiChar;
+                  ThousandSeparator: AnsiChar;  {Thousands separator.}
                   Zero1: byte;              {Always zero.}
-                  DecimalSeparator: char;   {Decimals separator,}
+                  DecimalSeparator: AnsiChar;   {Decimals separator,}
                   Zero2: byte;
-                  DateSeparator: char;      {Date separator.}
+                  DateSeparator: AnsiChar;      {Date separator.}
                   Zero3: byte;
-                  TimeSeparator: char;      {Time separator.}
+                  TimeSeparator: AnsiChar;      {Time separator.}
                   Zero4: byte;
                   CurrencyFormat,           {Bit field:
                                              Bit 0: 0=indicator before value
@@ -230,20 +245,20 @@ type
                                              currency indication.}
                   TimeFormat: TTimeFmt;     {12/24 hour.}
                   Reserve1: array [0..1] of word;
-                  DataSeparator: char;      {Data list separator}
+                  DataSeparator: AnsiChar;      {Data list separator}
                   Zero5: byte;
                   Reserve2: array [0..4] of word);
                 1:
                  (fsDateFmt: cardinal;      {1=ddmmyy 2=yymmdd 3=mmddyy}
-                  szCurrency: array [0..4] of char;
+                  szCurrency: array [0..4] of AnsiChar;
                                             {null terminated currency symbol}
-                  szThousandsSeparator: array [0..1] of char;
+                  szThousandsSeparator: array [0..1] of AnsiChar;
                                             {Thousands separator + #0}
-                  szDecimal: array [0..1] of char;
+                  szDecimal: array [0..1] of AnsiChar;
                                             {Decimals separator + #0}
-                  szDateSeparator: array [0..1] of char;
+                  szDateSeparator: array [0..1] of AnsiChar;
                                             {Date separator + #0}
-                  szTimeSeparator: array [0..1] of char;
+                  szTimeSeparator: array [0..1] of AnsiChar;
                                             {Time separator + #0}
                   fsCurrencyFmt,            {Bit field:
                                              Bit 0: 0=indicator before value
@@ -257,7 +272,7 @@ type
                                              currency indication}
                   fsTimeFmt: byte;          {0=12,1=24 hours}
                   abReserved1: array [0..1] of word;
-                  szDataSeparator: array [0..1] of char;
+                  szDataSeparator: array [0..1] of AnsiChar;
                                             {Data list separator + #0}
                   abReserved2: array [0..4] of word);
               end;
@@ -288,24 +303,24 @@ type
   Related:word;               {Independent/child session (0/1).}
   FgBg:word;                  {Foreground/background (0/1).}
   TraceOpt:word;              {No trace/trace this/trace all (0/1/2).}
-  PgmTitle:PChar;             {Program title.}
-  PgmName:PChar;              {Filename to program.}
-  PgmInputs:PChar;            {Command parameters (nil allowed).}
-  TermQ:PChar;                {System queue. (nil allowed).}
-  Environment:PChar;          {Environment to pass (nil allowed).}
+  PgmTitle:PAnsiChar;             {Program title.}
+  PgmName:PAnsiChar;              {Filename to program.}
+  PgmInputs:PAnsiChar;            {Command parameters (nil allowed).}
+  TermQ:PAnsiChar;                {System queue. (nil allowed).}
+  Environment:PAnsiChar;          {Environment to pass (nil allowed).}
   InheritOpt:word;            {Inherit environment from shell/
                                inherit environment from parent (0/1).}
   SessionType:word;           {Auto/full screen/window/presentation
                                manager/full screen Dos/windowed Dos
                                (0/1/2/3/4/5/6/7).}
-  Iconfile:PChar;             {Icon file to use (nil allowed).}
+  Iconfile:PAnsiChar;             {Icon file to use (nil allowed).}
   PgmHandle:cardinal;         {0 or the program handle.}
   PgmControl:word;            {Bitfield describing initial state
                                of windowed sessions.}
   InitXPos,InitYPos:word;     {Initial top coordinates.}
   InitXSize,InitYSize:word;   {Initial size.}
   Reserved:word;
-  ObjectBuffer:PChar;         {If a module cannot be loaded, its
+  ObjectBuffer:PAnsiChar;         {If a module cannot be loaded, its
                                name will be returned here.}
   ObjectBuffLen:cardinal;     {Size of your buffer.}
  end;
@@ -401,10 +416,10 @@ function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 279;
 
-function DosScanEnv (Name: PChar; var Value: PChar): cardinal; cdecl;
+function DosScanEnv (Name: PAnsiChar; var Value: PAnsiChar): cardinal; cdecl;
                                                  external 'DOSCALLS' index 227;
 
-function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
+function DosFindFirst (FileMask: PAnsiChar; var Handle: THandle; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
                     var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 264;
@@ -421,12 +436,12 @@ function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
                                                         external 'NLS' index 5;
 
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
-                      AString: PChar): cardinal; cdecl; external 'NLS' index 7;
+                      AString: PAnsiChar): cardinal; cdecl; external 'NLS' index 7;
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
 function DosCreateQueue (var Handle: THandle; Priority:longint;
-                        Name: PChar): cardinal; cdecl;
+                        Name: PAnsiChar): cardinal; cdecl;
                                                   external 'QUECALLS' index 16;
 
 function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
@@ -703,10 +718,10 @@ begin
     Rslt.FindHandle := THandle ($FFFFFFFF);
     Count := 1;
     if FSApi64 then
-     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
+     Err := DosFindFirst (PAnsiChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
     else
-     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
+     Err := DosFindFirst (PAnsiChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
     if (Err = 0) and (Count = 0) then
      Err := 18;
@@ -736,11 +751,11 @@ begin
    end
   else
    begin
-    Err := DOS.DosError;
+    Err := {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.DosError;
     GetMem (SR, SizeOf (SearchRec));
     Rslt.FindHandle := longint(SR);
-    DOS.FindFirst (Path, Attr, SR^);
-    InternalFindFirst := -DOS.DosError;
+    {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.FindFirst (Path, Attr, SR^);
+    InternalFindFirst := -{$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.DosError;
     if DosError = 0 then
      begin
       Rslt.Time := SR^.Time;
@@ -751,7 +766,7 @@ begin
       Name := SR^.Name;
       SetCodePage(Name, DefaultFileSystemCodePage, false);
      end;
-    DOS.DosError := Err;
+    {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.DosError := Err;
    end;
 end;
 
@@ -799,7 +814,7 @@ begin
     SR := PSearchRec (Rslt.FindHandle);
     if SR <> nil then
      begin
-      DOS.FindNext (SR^);
+      {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.FindNext (SR^);
       InternalFindNext := -DosError;
       if DosError = 0 then
        begin
@@ -828,7 +843,7 @@ begin
     else
         begin
             SR := PSearchRec (Handle);
-            DOS.FindClose (SR^);
+            {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}DOS.FindClose (SR^);
             FreeMem (SR, SizeOf (SearchRec));
         end;
     Handle := 0;
@@ -1193,7 +1208,7 @@ begin
           DecimalSeparator := CtryInfo.DecimalSeparator;
           ThousandSeparator := CtryInfo.ThousandSeparator;
           CurrencyFormat := CtryInfo.CurrencyFormat;
-          CurrencyString := PChar (CtryInfo.CurrencyUnit);
+          CurrencyString := PAnsiChar (CtryInfo.CurrencyUnit);
       end;
   InitAnsi;
   InitInternationalGeneric;
@@ -1266,8 +1281,8 @@ begin
    FillChar (SD, SizeOf (SD), 0);
    SD.Length := 24;
    SD.Related := ssf_Related_Child;
-   SD.PgmName := PChar (Path);
-   SD.PgmInputs := PChar (ComLine);
+   SD.PgmName := PAnsiChar (Path);
+   SD.PgmInputs := PAnsiChar (ComLine);
    Str (GetProcessID, SPID);
    Str (ThreadID, STID);
    QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
@@ -1298,7 +1313,7 @@ begin
     raise E;
   end else
   begin
-   Dos.Exec (Path, ComLine);
+   {$IFDEF FPC_DOTTEDUNITS}TP.{$endif}Dos.Exec (Path, ComLine);
    if DosError <> 0 then
     begin
     if ComLine = '' then

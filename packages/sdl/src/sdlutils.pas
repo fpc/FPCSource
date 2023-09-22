@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdlutils.pas,v 1.5 2006/11/19 18:56:44 savage Exp $
 
@@ -129,6 +131,17 @@ interface
 
 {$I jedi-sdl.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF Unix}
+  System.Types,
+{$IFNDEF DARWIN}
+  Api.X11.Xlib,
+{$ENDIF}
+{$ENDIF}
+  System.SysUtils,
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF UNIX}
   Types,
@@ -138,6 +151,7 @@ uses
 {$ENDIF}
   SysUtils,
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGradientStyle = ( gsHorizontal, gsVertical );
@@ -251,8 +265,13 @@ function SDL_ClipLine( var x1, y1, x2, y2 : Integer; ClipRect : PSDL_Rect ) : bo
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function SDL_PixelTest( SrcSurface1 : PSDL_Surface; SrcRect1 : PSDL_Rect; SrcSurface2 :
   PSDL_Surface; SrcRect2 : PSDL_Rect; Left1, Top1, Left2, Top2 : integer ) : boolean;

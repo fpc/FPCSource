@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit trackdisk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
  *--------------------------------------------------------------------
@@ -60,11 +66,11 @@ Const
  *--
  *-- Normal usage would be:
  *--
- *-- char internalName[] = TD_NAME;
+ *-- AnsiChar internalName[] = TD_NAME;
  *--
  }
 
-    TD_NAME     : PChar = 'trackdisk.device';
+    TD_NAME     : PAnsiChar = 'trackdisk.device';
 
     TDF_EXTCOM  = $00010000;            { for internal use only! }
 

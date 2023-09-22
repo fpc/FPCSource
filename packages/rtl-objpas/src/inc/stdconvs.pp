@@ -15,7 +15,9 @@
 
 **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StdConvs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -23,7 +25,11 @@ interface
 {$H+}
 
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.ConvUtils;
+{$ELSE FPC_DOTTEDUNITS}
 Uses convutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // Powers of 10

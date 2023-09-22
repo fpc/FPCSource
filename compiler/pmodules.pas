@@ -36,7 +36,7 @@ implementation
        globtype,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,globstat,fpcp,fpkg,
-       symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
+       symconst,symbase,symtype,symdef,symsym,symtable,defutil,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmbase,aasmcpu,
        cgbase,ngenutil,
@@ -211,23 +211,30 @@ implementation
     procedure maybeloadvariantsunit;
       var
         hp : tmodule;
+        addsystemnamespace : Boolean;
       begin
         { Do we need the variants unit? Skip this
           for VarUtils unit for bootstrapping }
         if not(mf_uses_variants in current_module.moduleflags) or
-           (current_module.modulename^='VARUTILS') then
+           (current_module.modulename^='VARUTILS') or
+           (current_module.modulename^='SYSTEM.VARUTILS') then
           exit;
         { Variants unit already loaded? }
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            if hp.modulename^='VARIANTS' then
+            if (hp.modulename^='VARIANTS') or (hp.modulename^='SYSTEM.VARIANTS') then
               exit;
             hp:=tmodule(hp.next);
           end;
         { Variants unit is not loaded yet, load it now }
         Message(parser_w_implicit_uses_of_variants_unit);
+        addsystemnamespace:=namespacelist.Find('System')=Nil;
+        if addsystemnamespace then
+          namespacelist.concat('System');
         AddUnit('variants');
+        if addsystemnamespace then
+          namespacelist.Remove('System');
       end;
 
 
@@ -316,6 +323,12 @@ implementation
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
         generrordef.owner:=systemunit;
+        // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
+        { TODO: Check if we should also do this for mode macpas }
+        if not (cs_compilesystem in current_settings.moduleswitches) then
+          if ([m_objfpc,m_delphi] * current_settings.modeswitches)<>[] then
+            if is_systemunit_unicode then
+              Include(current_settings.modeswitches,m_default_unicodestring)
       end;
 
 
@@ -382,9 +395,21 @@ implementation
         if m_blocks in current_settings.modeswitches then
           AddUnit('blockrtl');
 
-        { default char=widechar? }
-        if m_default_unicodestring in current_settings.modeswitches then
-          AddUnit('uuchar');
+        { Determine char size. }
+
+        // Ansi RTL ?
+        if not is_systemunit_unicode then
+          begin
+          if m_default_unicodestring in current_settings.modeswitches then
+            AddUnit('uuchar'); // redefines char as widechar
+          end
+        else
+          begin
+          // Unicode RTL
+          if not (m_default_ansistring in current_settings.modeswitches) then
+            if not (current_module.modulename^<>'UACHAR') then
+              AddUnit('uachar'); // redefines char as ansichar
+          end;
 
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
@@ -1000,6 +1025,11 @@ type
          if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
            begin
+             // We do this as late as possible.
+             if Assigned(current_module) then
+               current_module.Loadlocalnamespacelist
+             else
+               current_namespacelist:=Nil;
              loadunits(nil);
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
@@ -1232,6 +1262,13 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         // This needs to be done before we generate the VMTs
+         if (target_cpu=tsystemcpu.cpu_wasm32) then
+           begin
+           add_synthetic_interface_classes_for_st(current_module.globalsymtable);
+           add_synthetic_interface_classes_for_st(current_module.localsymtable);
+           end;
 
          { Generate VMTs }
          if Errorcount=0 then
@@ -1614,6 +1651,12 @@ type
 
          { ensure that no packages are picked up from the options }
          packagelist.clear;
+
+         // There should always be a requires, except for the system package. So we load here
+         if Assigned(current_module) then
+           current_module.Loadlocalnamespacelist
+         else
+           current_namespacelist:=Nil;
 
          {Read the packages used by the package we compile.}
          if (token=_ID) and (idtoken=_REQUIRES) then
@@ -2163,6 +2206,11 @@ type
          { Load the units used by the program we compile. }
          if token=_USES then
            begin
+             // We can do this here: if there is no uses then the namespace directive makes no sense.
+             if Assigned(current_module) then
+               current_module.Loadlocalnamespacelist
+             else
+               current_namespacelist:=Nil;
              loadunits(nil);
              consume_semicolon_after_uses:=true;
            end
@@ -2259,6 +2307,10 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         // This needs to be done before we generate the VMTs
+         if (target_cpu=tsystemcpu.cpu_wasm32) then
+           add_synthetic_interface_classes_for_st(current_module.localsymtable);
 
          { Generate VMTs }
          if Errorcount=0 then

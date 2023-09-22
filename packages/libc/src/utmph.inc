@@ -8,10 +8,10 @@ const
 
 function login_tty(__fd:longint):longint;cdecl;external clib name 'login_tty';
 procedure login(__entry:Putmp);cdecl;external clib name 'login';
-function logout(__ut_line:Pchar):longint;cdecl;external clib name 'logout';
-procedure logwtmp(__ut_line:Pchar; __ut_name:Pchar; __ut_host:Pchar);cdecl;external clib name 'logwtmp';
-procedure updwtmp(__wtmp_file:Pchar; __utmp:Putmp);cdecl;external clib name 'updwtmp';
-function utmpname(__file:Pchar):longint;cdecl;external clib name 'utmpname';
+function logout(__ut_line:PAnsiChar):longint;cdecl;external clib name 'logout';
+procedure logwtmp(__ut_line:PAnsiChar; __ut_name:PAnsiChar; __ut_host:PAnsiChar);cdecl;external clib name 'logwtmp';
+procedure updwtmp(__wtmp_file:PAnsiChar; __utmp:Putmp);cdecl;external clib name 'updwtmp';
+function utmpname(__file:PAnsiChar):longint;cdecl;external clib name 'utmpname';
 function getutent:Putmp;cdecl;external clib name 'getutent';
 procedure setutent;cdecl;external clib name 'setutent';
 procedure endutent;cdecl;external clib name 'endutent';
@@ -28,7 +28,7 @@ function getutline_r(__line:Putmp; __buffer:Putmp; __result:PPutmp):longint;cdec
 
 // Type
 procedure login(const __entry: utmp);cdecl;external clib name 'login';
-procedure updwtmp(__wtmp_file:Pchar; const __utmp:utmp);cdecl;external clib name 'updwtmp';
+procedure updwtmp(__wtmp_file:PAnsiChar; const __utmp:utmp);cdecl;external clib name 'updwtmp';
 function getutid(const __id: utmp):Putmp;cdecl;external clib name 'getutid';
 function getutline(const __line:utmp):Putmp;cdecl;external clib name 'getutline';
 function pututline(const __utmp_ptr: utmp):Putmp;cdecl;external clib name 'pututline';

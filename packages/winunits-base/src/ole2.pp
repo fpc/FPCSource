@@ -13,12 +13,19 @@
 
  **********************************************************************}
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Ole2;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
       GUID_NULL: TGUID = (D1:$00000000;D2:$0000;D3:$0000;D4:($00,$00,$00,$00,$00,$00,$00,$00));

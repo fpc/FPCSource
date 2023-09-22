@@ -436,10 +436,11 @@ begin
   Opsize:=S_NO;
 end;
 
-procedure Tx86Instruction.AddReferenceSizes;
 { this will add the sizes for references like [esi] which do not
   have the size set yet, it will take only the size if the other
   operand is a register }
+procedure Tx86Instruction.AddReferenceSizes;
+
 var
   operand2,i,j,k : longint;
   s : tasmsymbol;
@@ -1400,6 +1401,16 @@ begin
                    begin
                      if opsize<>S_NO then
                        tx86operand(operands[i]).opsize:=opsize
+                     else if not(NoMemorySizeRequired(opcode) or
+                       (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) or (opcode=A_LCALL) or (opcode=A_LJMP)) then
+                       begin
+                         if (m_delphi in current_settings.modeswitches) then
+                           Message(asmr_w_unable_to_determine_reference_size_using_dword)
+                         else
+                           Message(asmr_e_unable_to_determine_reference_size);
+                         { recovery }
+                         tx86operand(operands[i]).opsize:=S_L;
+                       end;
                    end;
                 end;
               OPR_SYMBOL :

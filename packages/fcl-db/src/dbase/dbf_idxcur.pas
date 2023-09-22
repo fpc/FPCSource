@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_idxcur;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,19 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Cursor,
+  Data.Dbf.Idxfile,
+  Data.Dbf.Prsdef,
+{$ifndef Windows}
+  Data.Dbf.Wtil,
+{$endif}
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
@@ -29,6 +44,7 @@ uses
   dbf_wtil,
 {$endif}
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -61,7 +77,7 @@ type
 {$ifdef SUPPORT_VARIANTS}
     function  VariantToBuffer(Key: Variant; ABuffer: TRecordBuffer): TExpressionType;
 {$endif}
-    function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
+    function  CheckUserKey(Key: PAnsiChar; StringBuf: PAnsiChar): PAnsiChar;
 
     property IndexFile: TIndexFile read FIndexFile;
   end;
@@ -75,8 +91,13 @@ type
 implementation
 
 {$ifdef WINDOWS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 //==========================================================
@@ -183,7 +204,7 @@ end;
 
 {$endif}
 
-function TIndexCursor.CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
+function TIndexCursor.CheckUserKey(Key: PAnsiChar; StringBuf: PAnsiChar): PAnsiChar;
 var
   keyLen, userLen: Integer;
 begin

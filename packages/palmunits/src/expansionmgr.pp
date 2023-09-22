@@ -17,9 +17,15 @@
  *    02/25/00 jed   Created by Jesse Donaldson.
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit expansionmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 const
   sysTrapExpansionMgr = sysTrapExpansionDispatch;
   expFtrIDVersion = 0; // ID of feature containing version of ExpansionMgr.
@@ -39,10 +45,10 @@ const
 type
   ExpCardInfoTag = record
     capabilityFlags: UInt32;                                       // bits for different stuff the card supports
-    manufacturerStr: array [0..expCardInfoStringMaxLen] of Char;   // Manufacturer, e.g., "Palm", "Motorola", etc...
-    productStr: array [0..expCardInfoStringMaxLen] of Char;        // Name of product, e.g., "SafeBackup 32MB"
-    deviceClassStr: array [0..expCardInfoStringMaxLen] of Char;    // Type of product, e.g., "Backup", "Ethernet", etc.
-    deviceUniqueIDStr: array [0..expCardInfoStringMaxLen] of Char; // Unique identifier for product, e.g., a serial number.  Set to "" if no such identifier exists.
+    manufacturerStr: array [0..expCardInfoStringMaxLen] of AnsiChar;   // Manufacturer, e.g., "Palm", "Motorola", etc...
+    productStr: array [0..expCardInfoStringMaxLen] of AnsiChar;        // Name of product, e.g., "SafeBackup 32MB"
+    deviceClassStr: array [0..expCardInfoStringMaxLen] of AnsiChar;    // Type of product, e.g., "Backup", "Ethernet", etc.
+    deviceUniqueIDStr: array [0..expCardInfoStringMaxLen] of AnsiChar; // Unique identifier for product, e.g., a serial number.  Set to "" if no such identifier exists.
   end;
   ExpCardInfoType = ExpCardInfoTag;
   ExpCardInfoPtr = ^ExpCardInfoType;

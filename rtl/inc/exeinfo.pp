@@ -23,7 +23,9 @@
 
 {$checkpointer off}
 {$modeswitch out}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit exeinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$S-}
@@ -50,35 +52,62 @@ type
     FunctionRelative: boolean;
     // Offset of the binary image forming permanent offset to all retrieved values
     ImgOffset: TExeOffset;
-    filename  : string;
+    filename  : shortstring;
     // Allocate static buffer for reading data
     buf       : array[0..4095] of byte;
     bufsize,
     bufcnt    : longint;
   end;
 
-function OpenExeFile(var e:TExeFile;const fn:string):boolean;
-function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:longint):boolean;
+function OpenExeFile(var e:TExeFile;const fn:shortstring):boolean;
+function FindExeSection(var e:TExeFile;const secname:shortstring;var secofs,seclen:longint):boolean;
 function CloseExeFile(var e:TExeFile):boolean;
-function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean; overload;
+function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; overload;
 
 {$ifdef CPUI8086}
-procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
 {$else CPUI8086}
-procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
 {$endif CPUI8086}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef darwin}
+  System.CTypes, UnixApi.Base, UnixApi.Dl,
+{$endif}
+{$ifdef Windows}
+  WinApi.Windows,
+{$endif Windows}
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef darwin}
   ctypes, baseunix, dl,
 {$endif}
   strings{$ifdef windows},windows{$endif windows};
+{$ENDIF FPC_DOTTEDUNITS}
+
+function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; 
+
+var
+  fn : ansistring;
+
+begin
+  ReadDebugLink:=ReadDebugLink(e,fn);
+  if ReadDebugLink then
+    if (length(fn)<256) then
+      dbgfn:=fn
+    else
+      ReadDebugLink:=False;
+end;
+
 
 {$if defined(unix) and not defined(beos) and not defined(haiku)}
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       if assigned(UnixGetModuleByAddrHook) then
         UnixGetModuleByAddrHook(addr,baseaddr,filename)
@@ -96,9 +125,9 @@ uses
 {$ifdef FPC_OS_UNICODE}
     TST: array[0..Max_Path] of WideChar;
 {$else}
-    TST: array[0..Max_Path] of Char;
+    TST: array[0..Max_Path] of AnsiChar;
 {$endif FPC_OS_UNICODE}
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       baseaddr:=nil;
       if VirtualQuery(addr, @Tmm, SizeOf(Tmm))<>sizeof(Tmm) then
@@ -113,7 +142,7 @@ uses
 {$ifdef FPC_OS_UNICODE}
               filename:= String(PWideChar(@TST));
 {$else}
-              filename:= String(PChar(@TST));
+              filename:= String(PAnsiChar(@TST));
 {$endif FPC_OS_UNICODE}
             end;
         end;
@@ -123,7 +152,7 @@ uses
 
   procedure startsymbol; external name '_start';
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       baseaddr:= @startsymbol;
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -135,7 +164,7 @@ uses
 
 {$elseif defined(msdos)}
 
-  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
     begin
       baseaddr:=Ptr(PrefixSeg+16,0);
       filename:=ParamStr(0);
@@ -148,7 +177,7 @@ uses
 
   function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     const
       B_OK = 0;
     var
@@ -167,7 +196,7 @@ uses
              (addr >= info.text) and (addr <= (info.text + info.text_size)) then
             begin
               baseaddr:=info.text;
-              filename:=PChar(@info.name);
+              filename:=PAnsiChar(@info.name);
             end;
         end;
     end;
@@ -175,9 +204,9 @@ uses
 {$else}
 
 {$ifdef CPUI8086}
-  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
 {$else CPUI8086}
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
 {$endif CPUI8086}
     begin
       baseaddr:= nil;
@@ -288,15 +317,15 @@ function getByte(var f:file):byte;
     for i := 1 to bytes do getbyte(f);
   end;
 
-  function get0String (var f:file) : string;
-  var c : char;
+  function get0String (var f:file) : shortstring;
+  var c : AnsiChar;
   begin
     get0String := '';
-    c := char (getbyte(f));
+    c := AnsiChar (getbyte(f));
     while (c <> #0) do
     begin
       get0String := get0String + c;
-      c := char (getbyte(f));
+      c := AnsiChar (getbyte(f));
     end;
   end;
 
@@ -312,14 +341,14 @@ const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
 
 function openNetwareNLM(var e:TExeFile):boolean;
 var valid : boolean;
-    name  : string;
+    name  : shortstring;
     hdrLength,
     dataOffset,
     dataLength : longint;
 
 
-  function getLString : String;
-  var Res:string;
+  function getLString : ShortString;
+  var Res:Shortstring;
   begin
     blockread (e.F, res, 1);
     if length (res) > 0 THEN
@@ -328,12 +357,12 @@ var valid : boolean;
     getLString := res;
   end;
 
-  function getFixString (Len : byte) : string;
+  function getFixString (Len : byte) : shortstring;
   var i : byte;
   begin
     getFixString := '';
     for I := 1 to Len do
-      getFixString := getFixString + char (getbyte(e.f));
+      getFixString := getFixString + AnsiChar (getbyte(e.f));
   end;
 
 
@@ -393,8 +422,8 @@ begin
   openNetwareNLM := (e.sechdrofs > 0);
 end;
 
-function FindSectionNetwareNLM(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
-var name : string;
+function FindSectionNetwareNLM(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
+var name : shortstring;
     alignAmount : longint;
 begin
   seek(e.f,e.sechdrofs);
@@ -427,7 +456,7 @@ end;
 {$if defined(PE32) or defined(PE32PLUS) or defined(GO32V2)}
 type
   tcoffsechdr=packed record
-    name     : array[0..7] of char;
+    name     : array[0..7] of ansichar;
     vsize    : longint;
     rvaofs   : longint;
     datalen  : longint;
@@ -439,7 +468,7 @@ type
     flags    : longint;
   end;
   coffsymbol=packed record
-    name    : array[0..3] of char; { real is [0..7], which overlaps the strofs ! }
+    name    : array[0..3] of ansichar; { real is [0..7], which overlaps the strofs ! }
     strofs  : longint;
     value   : longint;
     section : smallint;
@@ -448,12 +477,12 @@ type
     aux     : byte;
   end;
 
-function FindSectionCoff(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+function FindSectionCoff(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 var
   i : longint;
   sechdr     : tcoffsechdr;
-  secname    : string;
-  secnamebuf : array[0..255] of char;
+  secname    : shortstring;
+  secnamebuf : array[0..255] of ansichar;
   code,
   oldofs,
   bufsize    : longint;
@@ -696,10 +725,10 @@ end;
 {$IFDEF EMX}
 type
   TEmxHeader = packed record
-     Version: array [1..16] of char;
+     Version: array [1..16] of AnsiChar;
      Bound: word;
      AoutOfs: longint;
-     Options: array [1..42] of char;
+     Options: array [1..42] of AnsiChar;
   end;
 
   TAoutHeader = packed record
@@ -777,7 +806,7 @@ begin
 end;
 
 
-function FindSectionEMXaout (var E: TExeFile; const ASecName: string;
+function FindSectionEMXaout (var E: TExeFile; const ASecName: shortstring;
                                          var SecOfs, SecLen: longint): boolean;
 begin
  FindSectionEMXaout := false;
@@ -906,7 +935,7 @@ begin
 end;
 
 procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
-                                 var filename : openstring);
+                                 var filename : ansistring);
 type
   AT_HDR = record
     typ : ptruint;
@@ -922,7 +951,7 @@ const
   AT_EXE_FN = 31;  {AT_EXECFN }
 
 var
-  pc : ppchar;
+  pc : PPAnsiChar;
   pat_hdr : P_AT_HDR;
   i, phdr_count : ptrint;
   phdr_size : ptruint;
@@ -956,7 +985,7 @@ begin
         if pat_hdr^.typ = AT_HDR_Addr then
           phdr := pointer(pat_hdr^.value);
         if pat_hdr^.typ = AT_EXE_FN then
-          filename:=strpas(pchar(pat_hdr^.value));
+          filename:=strpas(pansichar(pat_hdr^.value));
         inc (pointer(pat_hdr),sizeof(AT_HDR));
       end;
     if (phdr_count>0) and (phdr_size = sizeof (telfproghdr))
@@ -1071,11 +1100,11 @@ begin
 end;
 
 
-function FindSectionElf(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+function FindSectionElf(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 var
   elfsec     : telfsechdr;
   secname    : string;
-  secnamebuf : array[0..255] of char;
+  secnamebuf : array[0..255] of ansichar;
   oldofs,
   bufsize,i  : longint;
 begin
@@ -1186,7 +1215,7 @@ type
   tmach_segment_command = record
     cmd     : cuint32;
     cmdsize : cuint32;
-    segname : array [0..15] of Char;
+    segname : array [0..15] of AnsiChar;
     vmaddr  : {$IFDEF CPU64}cuint64{$ELSE}cuint32{$ENDIF};
     vmsize  : {$IFDEF CPU64}cuint64{$ELSE}cuint32{$ENDIF};
     fileoff : {$IFDEF CPU64}cuint64{$ELSE}cuint32{$ENDIF};
@@ -1206,8 +1235,8 @@ type
   pmach_uuid_command = ^tmach_uuid_command;
 
   tmach_section = record
-    sectname : array [0..15] of Char;
-    segname  : array [0..15] of Char;
+    sectname : array [0..15] of AnsiChar;
+    segname  : array [0..15] of AnsiChar;
     addr     : {$IFDEF CPU64}cuint64{$ELSE}cuint32{$ENDIF};
     size     : {$IFDEF CPU64}cuint64{$ELSE}cuint32{$ENDIF};
     offset   : cuint32;
@@ -1348,7 +1377,7 @@ begin
 end;
 
 
-function FindSectionMachO(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+function FindSectionMachO(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 var
    i, j: cuint32;
    cmd: pmach_load_command;
@@ -1357,7 +1386,7 @@ var
    section: pmach_section;
    mappedexe: pointer;
    mappedoffset, mappedsize: SizeUInt;
-   dwarfsecname: string;
+   dwarfsecname: shortstring;
 begin
   FindSectionMachO:=false;
   { make sure to unmap again on all exit paths }
@@ -1449,7 +1478,7 @@ end;
 Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:LongInt):cardinal;
 var
   i : LongInt;
-  p : pchar;
+  p : pansichar;
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
@@ -1470,7 +1499,7 @@ end;
 
 type
   TOpenProc=function(var e:TExeFile):boolean;
-  TFindSectionProc=function(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+  TFindSectionProc=function(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 
   TExeProcRec=record
     openproc : TOpenProc;
@@ -1509,7 +1538,7 @@ const
 {$endif}
    );
 
-function OpenExeFile(var e:TExeFile;const fn:string):boolean;
+function OpenExeFile(var e:TExeFile;const fn:shortstring):boolean;
 var
   ofm : word;
 begin
@@ -1550,7 +1579,7 @@ begin
 end;
 
 
-function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:longint):boolean;
+function FindExeSection(var e:TExeFile;const secname:shortstring;var secofs,seclen:longint):boolean;
 begin
   FindExeSection:=false;
   if not e.isopen then
@@ -1561,7 +1590,7 @@ end;
 
 
 
-function CheckDbgFile(var e:TExeFile;const fn:string;dbgcrc:cardinal):boolean;
+function CheckDbgFile(var e:TExeFile;const fn:shortstring;dbgcrc:cardinal):boolean;
 var
   c      : cardinal;
   ofm    : word;
@@ -1588,9 +1617,9 @@ begin
 end;
 
 {$ifndef darwin}
-function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 var
-  dbglink : array[0..255] of char;
+  dbglink : array[0..255] of AnsiChar;
   i,
   dbglinklen,
   dbglinkofs : longint;
@@ -1632,7 +1661,7 @@ begin
     end;
 end;
 {$else}
-function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 var
    dsymexefile: TExeFile;
    execmd, dsymcmd: pmach_load_command;

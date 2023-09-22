@@ -38,7 +38,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ScalerStreamTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -223,7 +225,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.SFNTTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,SFNTTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -273,14 +279,14 @@ type
 	scalerPrerequisiteItem = record
 		enumeration: SInt32;            { Shorthand tag identifying the item }
 		size: SInt32;                   { Worst case vm in printer item requires. Never > than 16-bit quantity }
-		name: packed array[0..0] of char;          { Name to be used by the client when emitting the item (Pascal string) }
+		name: packed array[0..0] of AnsiChar;          { Name to be used by the client when emitting the item (Pascal string) }
 	end;
 
 
 	scalerStremFontRec = record
 		encoding: { const } UInt16Ptr;        { <- Intention is * unsigned short[256] }
 		glyphBits: SInt32Ptr;          { <->    Bitvector: a bit for each glyph, 1 = desired/supplied }
-		name: PChar               { <->    The printer font name to use/used (C string) }
+		name: PAnsiChar               { <->    The printer font name to use/used (C string) }
 	end;
 
 	scalerStreamPrerequisiteQueryRec = record
@@ -307,7 +313,7 @@ type
 	scalerStreamPtr = ^scalerStream;
 	scalerStream = record
 		streamRefCon: { const } UnivPtr;           { <- private reference for client }
-		targetVersion: { const } PChar;          { <- e.g. Postscript printer name (C string) }
+		targetVersion: { const } PAnsiChar;          { <- e.g. Postscript printer name (C string) }
 		types: scalerStreamTypeFlag;                { <->    Data stream formats desired/supplied }
 		action: scalerStreamAction;                 { <-     What action to take }
 		memorySize: UInt32;             { -> Worst case memory use (vm) in printer or as sfnt }

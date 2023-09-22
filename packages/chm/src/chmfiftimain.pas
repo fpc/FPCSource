@@ -18,11 +18,17 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmFiftiMain;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Chm.HtmlIndexer;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes, HTMLIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFiftiMainHeader = record
@@ -143,7 +149,11 @@ const
   FIFTI_NODE_SIZE = 4096;
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Math, Chm.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Math, ChmBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -278,7 +288,7 @@ begin
   begin
     FStream.Size := $400; // the header size. we will fill this after the nodes have been determined
     FStream.Position := $400;
-    FillChar(PChar(TMemoryStream(FStream).Memory)^, $400, 0);
+    FillChar(PAnsiChar(TMemoryStream(FStream).Memory)^, $400, 0);
     FHeaderRec.DocIndexRootSize := 1;
     FHeaderRec.CodeCountRootSize := 1;
     FHeaderRec.LocationCodeRootSize := 4;

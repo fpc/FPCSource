@@ -1,8 +1,8 @@
 function SysEnumResourceTypes(hModule : TFPResourceHMODULE; lpEnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool; stdcall; external 'kernel32' name 'EnumResourceTypesA';
-function SysEnumResourceNames(hModule : TFPResourceHMODULE; lpszType : PChar; lpEnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool; stdcall; external 'kernel32' name 'EnumResourceNamesA';
-function SysEnumResourceLanguages(hModule : TFPResourceHMODULE; lpType : PChar; lpName : PChar; lpEnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool; stdcall; external 'kernel32' name 'EnumResourceLanguagesA';
-function SysFindResource(hModule:TFPResourceHMODULE; lpName:Pchar; lpType:Pchar):TFPResourceHandle; stdcall; external 'kernel32' name 'FindResourceA';
-function SysFindResourceEx(hModule:TFPResourceHMODULE; lpType:Pchar; lpName:Pchar; Language : WORD):TFPResourceHandle; stdcall; external 'kernel32' name 'FindResourceExA';
+function SysEnumResourceNames(hModule : TFPResourceHMODULE; lpszType : PAnsiChar; lpEnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool; stdcall; external 'kernel32' name 'EnumResourceNamesA';
+function SysEnumResourceLanguages(hModule : TFPResourceHMODULE; lpType : PAnsiChar; lpName : PAnsiChar; lpEnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool; stdcall; external 'kernel32' name 'EnumResourceLanguagesA';
+function SysFindResource(hModule:TFPResourceHMODULE; lpName:PAnsiChar; lpType:PAnsiChar):TFPResourceHandle; stdcall; external 'kernel32' name 'FindResourceA';
+function SysFindResourceEx(hModule:TFPResourceHMODULE; lpType:PAnsiChar; lpName:PAnsiChar; Language : WORD):TFPResourceHandle; stdcall; external 'kernel32' name 'FindResourceExA';
 function SysLoadResource(hModule:TFPResourceHMODULE; hResInfo:TFPResourceHandle):TFPResourceHGLOBAL; stdcall; external 'kernel32' name 'LoadResource';
 function SysSizeofResource(hModule:TFPResourceHMODULE; hResInfo:TFPResourceHandle):DWORD; stdcall; external 'kernel32' name 'SizeofResource';
 function SysLockResource(hResData:TFPResourceHGLOBAL):Pointer; stdcall; external 'kernel32' name 'LockResource';
@@ -21,22 +21,22 @@ begin
   IntEnumResourceTypes:=SysEnumResourceTypes(ModuleHandle,EnumFunc,lParam);
 end;
 
-Function IntEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+Function IntEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 begin
   IntEnumResourceNames:=SysEnumResourceNames(ModuleHandle,ResourceType,EnumFunc,lParam);
 end;
 
-Function IntEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+Function IntEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 begin
   IntEnumResourceLanguages:=SysEnumResourceLanguages(ModuleHandle,ResourceType,ResourceName,EnumFunc,lParam);
 end;
 
-Function IntFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
+Function IntFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
 begin
   IntFindResource:=SysFindResource(ModuleHandle,ResourceName,ResourceType);
 end;
 
-Function IntFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+Function IntFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 begin
   IntFindResourceEx:=SysFindResourceEx(ModuleHandle,ResourceType,ResourceName,Language);
 end;

@@ -13,14 +13,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xcoffwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,  
+  System.Resources.Coff.Types, System.Resources.Coff.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, strtable, resource, resourcetree, cofftypes, coffwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TXCoffResourceWriter }
@@ -41,7 +49,7 @@ type
     procedure WriteNodeInfo(aStream: TStream; aNode: TResourceTreeNode);
     procedure WriteSubNodes(aStream : TStream; aNode : TResourceTreeNode);
     procedure WriteResStringTable(aStream: TStream); override;
-    procedure WriteDataSymbol(aStream: TStream; const name: String; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
+    procedure WriteDataSymbol(aStream: TStream; const name: AnsiString; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
     procedure WriteSymbolTable(aStream : TStream; aResources : TResources); override;
     procedure WriteResHeader(aStream : TStream; aResources : TResources);
     procedure Write(aResources : TResources; aStream : TStream); override;
@@ -52,7 +60,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Coff.Consts, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses coffconsts,fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Todo: 64 bit
@@ -275,7 +287,7 @@ begin
   Align(fDataAlignment,aStream);
 end;
 
-procedure TXCoffResourceWriter.WriteDataSymbol(aStream: TStream; const name: String; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
+procedure TXCoffResourceWriter.WriteDataSymbol(aStream: TStream; const name: AnsiString; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
 var
   st : TCoffSymtableEntry;
   aux : TXCoffAuxSymbol32;

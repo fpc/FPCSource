@@ -14,13 +14,13 @@
 
  **********************************************************************}
 
-function InternalCreateShellArgV(cmd:pChar; len:longint):ppchar;
+function InternalCreateShellArgV(cmd:PAnsiChar; len:longint):PPAnsiChar;
 {
   Create an argv which executes a command in a shell using /bin/sh -c
 }
 const   Shell   = '/bin/sh'#0'-c'#0;
 var
-  pp,p : ppchar;
+  pp,p : PPAnsiChar;
 //  temp : string; !! Never pass a local var back!!
 begin
   getmem(pp,4*sizeof(pointer));
@@ -31,18 +31,18 @@ begin
   inc(p);
   getmem(p^,len+1);
   move(cmd^,p^^,len);
-  pchar(p^)[len]:=#0;
+  PAnsiChar(p^)[len]:=#0;
   inc(p);
   p^:=Nil;
   InternalCreateShellArgV:=pp;
 end;
 
-function CreateShellArgV(const prog:string):ppchar;
+function CreateShellArgV(const prog:Shortstring):PPAnsiChar;
 begin
   CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
 end;
 
-function CreateShellArgV(const prog:RawByteString):ppchar;
+function CreateShellArgV(const prog:RawByteString):PPAnsiChar;
 {
   Create an argv which executes a command in a shell using /bin/sh -c
   using a AnsiString;
@@ -52,7 +52,7 @@ begin
 end;
 
 
-procedure FreeShellArgV(p:ppchar);
+procedure FreeShellArgV(p:PPAnsiChar);
 begin
   if (p<>nil) then begin
     freemem(p[2]);
@@ -60,11 +60,11 @@ begin
    end;
 end;
 
-Function fpgetenv(name:string):Pchar; [public, alias : 'FPC_SYSC_FPGETENV'];
+Function fpgetenv(name:Shortstring):PAnsiChar; [public, alias : 'FPC_SYSC_FPGETENV'];
 {
   Searches the environment for a string with name p and
-  returns a pchar to it's value.
-  A pchar is used to accomodate for strings of length > 255
+  returns a PAnsiChar to it's value.
+  A PAnsiChar is used to accomodate for strings of length > 255
 }
 
 Begin

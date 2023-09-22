@@ -63,7 +63,7 @@ type
     type_: NSInteger deprecated 'in 10_0, 10_5, 2_0, 2_0';
     value: record
       case longint of
-        0: (charValue: char);
+        0: (charValue: AnsiChar);
         1: (shortValue: cshort);
         2: (longValue: clong);
         3: (longlongValue: clonglong);
@@ -74,7 +74,7 @@ type
         8: (objectValue: id);
         9: (pointerValue: pointer);
         10: (structLocation: pointer);
-        11: (cStringLocation: PChar);
+        11: (cStringLocation: PAnsiChar);
     end;
   end;
 type

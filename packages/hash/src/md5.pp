@@ -49,7 +49,9 @@ documentation and/or software.
 {$DEFINE MD5PASCAL}
 {$endif darwin}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit md5;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$inline on}
@@ -122,7 +124,7 @@ procedure MDFinal(var Context: TMDContext; out Digest: TMDDigest);
  * Auxilary functions
  ******************************************************************************)
 
-function MDString(const S: String; const Version: TMDVersion): TMDDigest;
+function MDString(const S: RawByteString; const Version: TMDVersion): TMDDigest;
 function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: TMDVersion): TMDDigest;
 function MDFile(const Filename: RawByteString; const Version: TMDVersion; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest;
 function MDFile(const Filename: UnicodeString; const Version: TMDVersion; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest;
@@ -156,17 +158,17 @@ procedure MD5Final(var Context: TMD5Context; out Digest: TMD5Digest); external n
  * Dedicated auxilary functions
  ******************************************************************************)
 
-function MD2String(const S: String): TMD2Digest; inline;
+function MD2String(const S: RawByteString): TMD2Digest; inline;
 function MD2Buffer(var Buf; const BufLen: PtrUInt): TMD2Digest;
 function MD2File(const Filename: RawByteString; const Bufsize: PtrUInt = MDDefBufSize): TMD2Digest; overload; inline;
 function MD2File(const Filename: UnicodeString; const Bufsize: PtrUInt = MDDefBufSize): TMD2Digest; overload; inline;
 
-function MD4String(const S: String): TMD4Digest; inline;
+function MD4String(const S: RawByteString): TMD4Digest; inline;
 function MD4Buffer(var Buf; const BufLen: PtrUInt): TMD4Digest;
 function MD4File(const Filename: RawByteString; const Bufsize: PtrUInt = MDDefBufSize): TMD4Digest; inline;
 function MD4File(const Filename: UnicodeString; const Bufsize: PtrUInt = MDDefBufSize): TMD4Digest; inline;
 
-function MD5String(const S: String): TMD5Digest; inline;
+function MD5String(const S: RawByteString): TMD5Digest; inline;
 function MD5Buffer(var Buf; const BufLen: PtrUInt): TMD5Digest;
 function MD5File(const Filename: RawByteString; const Bufsize: PtrUInt = MDDefBufSize): TMD5Digest; inline;
 function MD5File(const Filename: UnicodeString; const Bufsize: PtrUInt = MDDefBufSize): TMD5Digest; inline;
@@ -189,7 +191,11 @@ function MD5Match(const Digest1, Digest2: TMD5Digest): Boolean; inline;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
@@ -650,12 +656,12 @@ begin
   FillChar(Context, SizeOf(TMDContext), 0);
 end;
 
-function MDString(const S: String; const Version: TMDVersion): TMDDigest;
+function MDString(const S: RawByteString; const Version: TMDVersion): TMDDigest;
 var
   Context: TMDContext;
 begin
   MDInit(Context, Version);
-  MDUpdate(Context, PChar(S)^, length(S));
+  MDUpdate(Context, PAnsiChar(S)^, length(S));
   MDFinal(Context, Result);
 end;
 
@@ -671,7 +677,7 @@ end;
 function MDFile(const Filename: RawByteString; const Version: TMDVersion; const BufSize: PtrUInt): TMDDigest;
 var
   F: File;
-  Buf: Pchar;
+  Buf: PAnsiChar;
   Context: TMDContext;
   Count: Cardinal;
   ofm: Longint;
@@ -704,7 +710,7 @@ end;
 function MDFile(const Filename: UnicodeString; const Version: TMDVersion; const BufSize: PtrUInt): TMDDigest;
 var
   F: File;
-  Buf: Pchar;
+  Buf: PAnsiChar;
   Context: TMDContext;
   Count: Cardinal;
   ofm: Longint;
@@ -770,7 +776,7 @@ begin
   MDInit(Context, MD_VERSION_5);
 end;
 
-function MD2String(const S: String): TMD2Digest;
+function MD2String(const S: RawByteString): TMD2Digest;
 begin
   Result := MDString(S, MD_VERSION_2);
 end;
@@ -790,7 +796,7 @@ begin
   Result := MDFile(Filename, MD_VERSION_2, Bufsize);
 end;
 
-function MD4String(const S: String): TMD4Digest;
+function MD4String(const S: RawByteString): TMD4Digest;
 begin
   Result := MDString(S, MD_VERSION_4);
 end;
@@ -810,7 +816,7 @@ begin
   Result := MDFile(Filename, MD_VERSION_4, Bufsize);
 end;
 
-function MD5String(const S: String): TMD5Digest;
+function MD5String(const S: RawByteString): TMD5Digest;
 begin
   Result := MDString(S, MD_VERSION_5);
 end;

@@ -21,7 +21,9 @@
 
 {$RANGECHECKS OFF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custfcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
@@ -29,6 +31,16 @@ Interface
 {$define windowspipe}
 {$ifend}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils, FpWeb.Http.Defs, 
+{$ifdef Unix}
+  UnixApi.Base,
+{$else}
+  WinApi.Winsock2, WinApi.Windows,
+{$endif}
+  System.Net.Sockets, FpWeb.Handler, FpWeb.Cgi.Protocol, FpWeb.Http.Protocol, FpWeb.HostApp.Custom.Cgi, Api.Fastcgi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,SysUtils, httpdefs, 
 {$ifdef unix}
@@ -37,6 +49,7 @@ uses
   winsock2, windows,
 {$endif}
   Sockets, custweb, cgiprotocol, httpprotocol, custcgi, fastcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TFCGIRequest }
@@ -47,6 +60,7 @@ Type
   TProtocolOption = (poNoPadding,poStripContentLength, poFailonUnknownRecord,
                      poReuseAddress, poUseSelect );
   TProtocolOptions = Set of TProtocolOption;
+  TPathInfoHandling = (pihNone,pohAll,pihLastScriptComponent,pihFirstScriptComponent,pihSkipFirstScriptComponent);
 
   TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
   TFastCGIReadEvent = Function (AHandle : THandle; Var ABuf; ACount : Integer) : Integer of Object;
@@ -56,14 +70,12 @@ Type
   Private
     FHandle: THandle;
     FKeepConnectionAfterRequest: boolean;
+    FPathInfoHandling: TPathInfoHandling;
     FPO: TProtoColOptions;
     FRequestID : Word;
     FCGIParams : TSTrings;
     FUR: TUnknownRecordEvent;
     FLog : TLogEvent;
-    FSTDin : String;
-    FSTDinRead: Integer;
-
     FRequestHeadersInitialized: Boolean;
     FStreamingContentReceived: Boolean;
   Protected
@@ -77,6 +89,7 @@ Type
     property Handle : THandle read FHandle write FHandle;
     property KeepConnectionAfterRequest : boolean read FKeepConnectionAfterRequest;
     Property ProtocolOptions : TProtoColOptions read FPO Write FPO;
+    Property PathInfoHandling : TPathInfoHandling Read FPathInfoHandling Write FPathInfoHandling;
     Property OnUnknownRecord : TUnknownRecordEvent Read FUR Write FUR;
   end;
   TFCGIRequestClass = Class of TFCGIRequest;
@@ -106,6 +119,7 @@ Type
   Private
     FLingerTimeOut: integer;
     FOnUnknownRecord: TUnknownRecordEvent;
+    FPathInfoHandling: TPathInfoHandling;
     FPO: TProtoColOptions;
     FRequestsArray : Array of TReqResp;
     FRequestsAvail : integer;
@@ -146,6 +160,7 @@ Type
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
     Property TimeOut : Integer Read FTimeOut Write FTimeOut;
+    Property PathInfoHandling : TPathInfoHandling Read FPathInfoHandling Write FPathInfoHandling;
   end;
   TFCgiHandlerClass = Class of TFCgiHandler;
 
@@ -154,22 +169,27 @@ Type
   TCustomFCgiApplication = Class(TCustomWebApplication)
   private
     function GetAddress: string;
+    function GetCH: TFCgiHandler;
     function GetFPO: TProtoColOptions;
     function GetLingerTimeOut: integer;
     function GetOnUnknownRecord: TUnknownRecordEvent;
+    function GetPIH: TPathInfoHandling;
     function GetPort: integer;
     procedure SetAddress(const AValue: string);
     procedure SetLingerTimeOut(const AValue: integer);
     procedure SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
+    procedure SetPIH(AValue: TPathInfoHandling);
     procedure SetPort(const AValue: integer);
     procedure SetPO(const AValue: TProtoColOptions);
   protected
     function InitializeWebHandler: TWebHandler; override;
+    Property FCGIHandler : TFCgiHandler Read GetCH;
   Public
     property Port: integer read GetPort write SetPort;
     property LingerTimeOut : integer read GetLingerTimeOut write SetLingerTimeOut;
     property Address: string read GetAddress write SetAddress;
     Property ProtocolOptions : TProtoColOptions Read GetFPO Write SetPO;
+    Property PathInfoHandling : TPathInfoHandling Read GetPIH Write SetPIH;
     Property OnUnknownRecord : TUnknownRecordEvent Read GetOnUnknownRecord Write SetOnUnknownRecord;
   end;
 
@@ -190,10 +210,20 @@ ResourceString
   
 Implementation
 
-{$ifdef CGIDEBUG}
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  dbugintf;
+{$ifdef CGIDEBUG}
+  dbugintf,
 {$endif}
+  System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+{$ifdef CGIDEBUG}
+  dbugintf,
+{$endif}
+  strutils;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$undef nosignal}
 
 {$if defined(FreeBSD) or defined(Linux)}
@@ -336,20 +366,32 @@ var
     inc(i);
   end;
 
-  function GetString(ALength : integer) : string;
+  function GetBytes(ALength : integer) : TBytes;
   begin
     if (ALength<0) then
       ALength:=0;
     SetLength(Result,ALength);
     if (ALength>0) then
-      move(ARecord^.ContentData[i],Result[1],ALength);
+      move(ARecord^.ContentData[i],Result[0],ALength);
     inc(i,ALength);
   end;
 
+  function MakeString(B : TBytes) : string;
+
+
+  begin
+    {$IF SIZEOF(CHAR)=2}
+      Result:=TEncoding.UTF8.GetString(B);
+    {$else}
+      Result:=TEncoding.UTF8.GetAnsiString(B);
+    {$ENDIF}
+  end;
+
 var
-  VarNo,NameLength, ValueLength : Integer;
+  NameLength, ValueLength : Integer;
   RecordLength : Integer;
-  Name,Value : String;
+  Name,Tmp : String;
+  Value : TBytes;
   h : THeader;
   v : THTTPVariableType;
 
@@ -360,23 +402,44 @@ begin
     begin
     NameLength:=GetVarLength;
     ValueLength:=GetVarLength;
-    Name:=GetString(NameLength);
-    Value:=GetString(ValueLength);
-    VarNo:=IndexOfCGIVar(Name);
+    Name:=MakeString(GetBytes(NameLength));
+    Value:=GetBytes(ValueLength);
     if Not DoMapCgiToHTTP(Name,H,V) then
-      NameValueList.Add(Name+'='+Value)
+      NameValueList.Add(Name+'='+MakeString(Value))
     else if (H<>hhUnknown) then
-      SetHeader(H,Value)
+      SetHeader(H,MakeString(Value))
+    else if (v=hvContent) then
+      ContentBytes:=Value
     else if (v<>hvUnknown) then
       begin
-      if (V=hvPathInfo) and (Copy(Value,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
-          Delete(Value,1,3);
+      Tmp:=MakeString(Value);
+      if (V=hvPathInfo) and (Copy(Tmp,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Tmp,1,3);
       if (V<>hvQuery) then
-        Value:=HTTPDecode(Value);
-      SetHTTPVariable(v,Value);
+        Tmp:=HTTPDecode(Tmp);
+      SetHTTPVariable(v,Tmp);
       end
     else
-      NameValueList.Add(Name+'='+Value)
+      NameValueList.Add(Name+'='+MakeString(Value));
+    end;
+  if (PathInfo='') then
+    // Apache does not send PathInfo if configured via proxy
+    begin
+    Tmp:=ScriptName;
+    ValueLength:=Length(Tmp);
+    Case PathInfoHandling of
+      pihNone : ;
+      pohAll : PathInfo:=Tmp;
+      pihLastScriptComponent :
+         PathInfo:=Copy(Tmp,RPos('/',Tmp)+1,ValueLength);
+      pihFirstScriptComponent :
+         PathInfo:=Copy(Tmp,RPos('/',Tmp)-1,ValueLength);
+      pihSkipFirstScriptComponent:
+        begin
+        Delete(Value,1,RPos('/',ScriptName));
+        PathInfo:=Tmp;
+        end;
+    end;
     end;
   // Microsoft-IIS hack. IIS includes the script name in the PATH_INFO
   if Pos('IIS', ServerSoftware) > 0 then
@@ -429,7 +492,7 @@ procedure TFCGIResponse.DoSendHeaders(Headers : TStrings);
 var
   cl : word;
   pl : byte;
-  str : String;
+  str : AnsiString;
   ARespRecord : PFCGI_ContentRecord;
   I : Integer;
 
@@ -442,7 +505,11 @@ begin
     For I:=Headers.Count-1 downto 0 do
       If (Pos('Content-Length',Headers[i])<>0)  then
         Headers.Delete(i);
+  {$if SIZEOF(CHAR)=2}
+  str := UTF8Encode(Headers.Text+sLineBreak);
+  {$ELSE}
   str := Headers.Text+sLineBreak;
+  {$ENDIF}
   cl := length(str);
   if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
     pl:=0
@@ -473,19 +540,26 @@ var
   bs,l : Integer;
   cl : word;
   pl : byte;
-  str : String;
+  str : TBytes;
   ARespRecord : PFCGI_ContentRecord;
   EndRequest : FCGI_EndRequestRecord;
 
 begin
+  Str:=[];
   If Assigned(ContentStream) then
     begin
     setlength(str,ContentStream.Size);
     ContentStream.Position:=0;
-    ContentStream.Read(str[1],ContentStream.Size);
+    ContentStream.Read(str[0],ContentStream.Size);
     end
   else
-    str := Contents.Text;
+    begin
+    {$IF SIZEOF(CHAR)=2}
+    str := TENcoding.UTF8.GetBytes(Contents.Text);
+    {$ELSE}
+    str := TENcoding.UTF8.GetAnsiBytes(Contents.Text);
+    {$ENDIF}
+    end;
   L:=Length(Str);
   BS:=0;
   Repeat
@@ -505,7 +579,7 @@ begin
       ARespRecord^.header.paddingLength:=pl;
       ARespRecord^.header.contentLength:=NtoBE(cl);
       ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-      move(Str[BS+1],ARespRecord^.ContentData,cl);
+      move(Str[BS],ARespRecord^.ContentData,cl);
       Write_FCGIRecord(PFCGI_Header(ARespRecord));
     finally
       Freemem(ARespRecord);
@@ -565,7 +639,7 @@ Var
 begin
   // This is normally only used in mod_fastcgi.
   // mod_fcgid just kills off the process...
-  H:=THandle(StrToIntDef(sysutils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
+  H:=THandle(StrToIntDef({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
   If (H<>0) then
     FShutDownThread:=TShutdownThread.CreateWithEvent(H,@HandleShutDownEvent);
 end;
@@ -643,7 +717,7 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
         if s2[1] = ' ' then s2[1] := '0';
         s1 := s1 + s2;
         If PByte(ResRecord)[i]>32 then
-          S:=S+char(PByte(ResRecord)[i])
+          S:=S+AnsiChar(PByte(ResRecord)[i])
         else
           S:=S+' ';
         if (I>0) and (((I+1) mod 16) = 0) then
@@ -728,7 +802,8 @@ begin
   end;
 end;
 
-procedure TFCgiHandler.SetupSocket(var IAddress : TInetSockAddr; Var AddressLength : tsocklen);
+procedure TFCgiHandler.SetupSocket(var IAddress: TInetSockAddr;
+  var AddressLength: tsocklen);
 
 Var
   L : Linger;
@@ -824,6 +899,8 @@ begin
   if (C=Nil) then
     C:=TFCGIRequest;
   Result:=C.Create;
+  if Result is TFCGIRequest then
+    TFCGIRequest(Result).PathInfoHandling:=PathInfoHandling;
 end;
 
 function TFCgiHandler.CreateResponse(ARequest: TFCGIRequest): TFCGIResponse;
@@ -844,11 +921,11 @@ begin
     Result:=FileRead(AHandle,ABuf,ACount)
   else
 {$endif}
-    Result:=sockets.fpRecv(AHandle, @Abuf, ACount, NoSignalAttr);
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpRecv(AHandle, @Abuf, ACount, NoSignalAttr);
 end;
 
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
-  ACount: Integer; Out ExtendedErrorCode : Integer): Integer;
+  ACount: Integer; out ExtendedErrorCode: Integer): Integer;
 begin
   {$ifdef windowspipe}
   if FIsWinPipe then
@@ -863,9 +940,9 @@ begin
     begin
     Repeat
       ExtendedErrorCode:=0;
-      Result:=sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+      Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
       if (Result<0) then
-        ExtendedErrorCode:=sockets.socketerror;
+        ExtendedErrorCode:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.socketerror;
     until (Result>=0) {$ifdef unix} or (ExtendedErrorCode<>ESysEINTR);{$endif}
     end;
 end;
@@ -1005,52 +1082,67 @@ end;
 
 function TCustomFCgiApplication.GetAddress: string;
 begin
-  result := TFCgiHandler(WebHandler).Address;
+  result := FCGIHandler.Address;
+end;
+
+function TCustomFCgiApplication.GetCH: TFCgiHandler;
+begin
+  Result:=WebHandler as TFCgiHandler;
 end;
 
 function TCustomFCgiApplication.GetFPO: TProtoColOptions;
 begin
-  result := TFCgiHandler(WebHandler).ProtocolOptions;
+  result := FCGIHandler.ProtocolOptions;
 end;
 
 function TCustomFCgiApplication.GetLingerTimeOut: integer;
 begin
-  Result:=TFCgiHandler(WebHandler).LingerTimeOut;
+  Result:=FCGIHandler.LingerTimeOut;
 end;
 
 function TCustomFCgiApplication.GetOnUnknownRecord: TUnknownRecordEvent;
 begin
-  result := TFCgiHandler(WebHandler).OnUnknownRecord;
+  result := FCGIHandler.OnUnknownRecord;
+end;
+
+function TCustomFCgiApplication.GetPIH: TPathInfoHandling;
+begin
+  Result:=FCGIHandler.PathInfoHandling;
 end;
 
 function TCustomFCgiApplication.GetPort: integer;
 begin
-  result := TFCgiHandler(WebHandler).Port;
+  result := FCGIHandler.Port;
 end;
 
 procedure TCustomFCgiApplication.SetAddress(const AValue: string);
 begin
-  TFCgiHandler(WebHandler).Address := AValue;
+  FCGIHandler.Address := AValue;
 end;
 
 procedure TCustomFCgiApplication.SetLingerTimeOut(const AValue: integer);
 begin
-  TFCgiHandler(WebHandler).LingerTimeOut:=AValue;
+  FCGIHandler.LingerTimeOut:=AValue;
 end;
 
 procedure TCustomFCgiApplication.SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
 begin
-  TFCgiHandler(WebHandler).OnUnknownRecord := AValue;
+  FCGIHandler.OnUnknownRecord := AValue;
+end;
+
+procedure TCustomFCgiApplication.SetPIH(AValue: TPathInfoHandling);
+begin
+  FCGIHandler.PathInfoHandling:=aValue;
 end;
 
 procedure TCustomFCgiApplication.SetPort(const AValue: integer);
 begin
-  TFCgiHandler(WebHandler).Port := AValue;
+  FCGIHandler.Port := AValue;
 end;
 
 procedure TCustomFCgiApplication.SetPO(const AValue: TProtoColOptions);
 begin
-  TFCgiHandler(WebHandler).ProtocolOptions := AValue;
+  FCGIHandler.ProtocolOptions := AValue;
 end;
 
 function TCustomFCgiApplication.InitializeWebHandler: TWebHandler;

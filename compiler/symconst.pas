@@ -446,7 +446,15 @@ type
     { implicitly return same type as the class instance to which the message is sent }
     po_objc_related_result_type,
     { Delphi-style anonymous function }
-    po_anonymous
+    po_anonymous,
+    { WebAssembly funcref reference type (an opaque reference to a function, that
+      is managed by the host. It doesn't have an in-memory representation, which
+      means it cannot be stored in linear memory or have its address taken. It can
+      however be stored in WebAssembly globals, locals, used in function parameters
+      and returns and it can be called.) }
+    po_wasm_funcref,
+    { WebAssembly suspending external }
+    po_wasm_suspending
   );
   tprocoptions=set of tprocoption;
 
@@ -497,7 +505,11 @@ type
     tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
     tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
     tsk_interface_wrapper,     // Call through to a method from an interface wrapper
-    tsk_call_no_parameters     // Call skpara procedure without passing any parameters nor returning a result
+    tsk_call_no_parameters,    // Call skpara procedure without passing any parameters nor returning a result
+    tsk_wasm_suspending_first, // WebAssembly suspending external wrapper, suspender object is first argument
+    tsk_wasm_suspending_last,  // WebAssembly suspending external wrapper, suspender object is last argument
+    tsk_wasm_promising,        // WebAssembly promising export wrapper
+    tsk_invoke_helper          // Method invoke helper, primarily used in WebAssembly.
   );
 
   { synthetic procdef supplementary information (tprocdef.skpara) }
@@ -1113,7 +1125,9 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'po_noinline',{po_noinline}
       'C-style array-of-const', {po_variadic}
       'objc-related-result-type', {po_objc_related_result_type}
-      'po_anonymous' {po_anonymous}
+      'po_anonymous', {po_anonymous}
+      '"WASMFUNCREF"', {po_wasm_funcref}
+      '"SUSPENDING"' {po_wasm_suspending}
     );
 
 implementation

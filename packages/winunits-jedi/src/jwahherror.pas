@@ -44,7 +44,9 @@
 
 // $Id: JwaHhError.pas,v 1.11 2007/09/14 06:48:45 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaHhError;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -52,8 +54,13 @@ interface
 
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinError;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 // Published: http://support.microsoft.com/default.aspx?scid=kb;en-us;297768
 

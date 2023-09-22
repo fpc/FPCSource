@@ -16,9 +16,15 @@
  *    1/14/98     SerialMgr.h created by Ben Manuto
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit serialmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Systemresources, PalmApi.Systemmgr, PalmApi.Netmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, systemresources, systemmgr, netmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 // New Serial manager feature numbers
 const
   sysFtrNewSerialPresent = 1;
@@ -76,11 +82,11 @@ const
   srmSettingsFlagRTSAutoM      = $00000010; // mask to prevent UART input overflow using RTS (NOTE: this flag
                                             // alone does not prevent software overruns from the serial input buffer)
   srmSettingsFlagCTSAutoM      = $00000020; // mask for CTS xmit flow control (see srmSettingsFlagFlowControlIn below)
-  srmSettingsFlagBitsPerCharM  = $000000C0; // mask for bits/char
-  srmSettingsFlagBitsPerChar5  = $00000000; //  5 bits/char
-  srmSettingsFlagBitsPerChar6  = $00000040; //  6 bits/char
-  srmSettingsFlagBitsPerChar7  = $00000080; //  7 bits/char
-  srmSettingsFlagBitsPerChar8  = $000000C0; //  8 bits/char
+  srmSettingsFlagBitsPerCharM  = $000000C0; // mask for bits/AnsiChar
+  srmSettingsFlagBitsPerChar5  = $00000000; //  5 bits/AnsiChar
+  srmSettingsFlagBitsPerChar6  = $00000040; //  6 bits/AnsiChar
+  srmSettingsFlagBitsPerChar7  = $00000080; //  7 bits/AnsiChar
+  srmSettingsFlagBitsPerChar8  = $000000C0; //  8 bits/AnsiChar
   srmSettingsFlagFlowControlIn = $00000100; // mask to prevent the serial input buffer overflow, using RTS. Use in
                                             // conjunction with srmSettingsFlagRTSAutoM for a fully flow controlled input.
   srmSettingsFlagRTSInactive   = $00000200; // if set and srmSettingsFlagRTSAutoM==0, RTS is held in the inactive (flow off) state forever.
@@ -108,7 +114,7 @@ type
     serDevFtrInfo: UInt32;             // Flags defining features of this serial hardware.
     serDevMaxBaudRate: UInt32;         // Maximum baud rate for this device.
     serDevHandshakeBaud: UInt32;       // HW Handshaking is reccomended for baud rates over this
-    serDevPortInfoStr: PChar;          // Description of serial HW device or virtual device.
+    serDevPortInfoStr: PAnsiChar;          // Description of serial HW device or virtual device.
     reserved: array [0..8-1] of UInt8; // Reserved.
   end;
  DeviceInfoPtr = ^DeviceInfoType;

@@ -14,12 +14,19 @@
 {$mode objfpc}
 {$H+}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FlatSB;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      System.CTypes,WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       ctypes,Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
     function InitializeFlatSB(hWnd: HWND): Bool; stdcall;
     procedure UninitializeFlatSB(hWnd: HWND); stdcall;

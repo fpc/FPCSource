@@ -26,13 +26,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NLed;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Winioctl;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, WinIOCtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // @CESYSGEN IF COREDLL_NLED
 

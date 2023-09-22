@@ -15,12 +15,11 @@
 
 // Normally, if an optimized version is available for OS/CPU, that will be used
 // Define to use existing unoptimized implementation
-{ the i386 assembler implementation does not work on platforms with a fixed stack }
-{$if DEFINED(CPU386) and (defined(darwin) or defined(linux))}
-{$DEFINE SHA1PASCAL}
-{$endif}
+{ $DEFINE SHA1PASCAL}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sha1;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$h+}
 
 interface
@@ -41,7 +40,7 @@ procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
 procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
 
 { auxiliary }
-function SHA1String(const S: String): TSHA1Digest;
+function SHA1String(const S: RawByteString): TSHA1Digest;
 function SHA1Buffer(const Buf; BufLen: PtrUInt): TSHA1Digest;
 function SHA1File(const Filename: String; const Bufsize: PtrUInt = 1024): TSHA1Digest;
 
@@ -51,7 +50,11 @@ function SHA1Match(const Digest1, Digest2: TSHA1Digest): Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
@@ -86,7 +89,7 @@ const
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
 
-{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) }
+{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) and DEFINED(CPUX86_HAS_BSWAP) }
 // Use assembler version if we have a suitable CPU as well
 // Define SHA1PASCAL to force use of original reference code
 {$i sha1i386.inc}
@@ -241,12 +244,12 @@ begin
   FillChar(ctx, sizeof(TSHA1Context), 0);
 end;
 
-function SHA1String(const S: String): TSHA1Digest;
+function SHA1String(const S: RawByteString): TSHA1Digest;
 var
   Context: TSHA1Context;
 begin
   SHA1Init(Context);
-  SHA1Update(Context, PChar(S)^, length(S));
+  SHA1Update(Context, PAnsiChar(S)^, length(S));
   SHA1Final(Context, Result);
 end;
 
@@ -267,7 +270,7 @@ end;
 function SHA1File(const Filename: String; const Bufsize: PtrUInt): TSHA1Digest;
 var
   F: File;
-  Buf: Pchar;
+  Buf: PAnsiChar;
   Context: TSHA1Context;
   Count: Cardinal;
   ofm: Longint;
@@ -300,7 +303,7 @@ begin
 end;
 
 const
-  HexTbl: array[0..15] of char='0123456789abcdef';     // lowercase
+  HexTbl: array[0..15] of AnsiChar='0123456789abcdef';     // lowercase
 
 function SHA1Print(const Digest: TSHA1Digest): String;
 var

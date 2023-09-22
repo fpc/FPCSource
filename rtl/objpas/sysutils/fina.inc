@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -17,7 +18,7 @@
 function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean;
   
 begin
@@ -39,7 +40,7 @@ end;
 function ExtractFilePath(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -54,7 +55,7 @@ end;
 function ExtractFileDir(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -100,7 +101,7 @@ end;
 function ExtractFileName(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -112,7 +113,7 @@ end;
 function ExtractFileExt(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean; // Dot at Start of filename ?
   
 begin
@@ -123,10 +124,10 @@ begin
     Dec(I);
   if (I > 0) and (FileName[I] = ExtensionSeparator) then
     begin
-	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-	if (Not SOF) or FirstDotAtFileNameStartIsExtension then
-	  Result := Copy(FileName, I, MaxInt);
-	end  
+	  SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+	  if (Not SOF) or FirstDotAtFileNameStartIsExtension then
+	    Result := Copy(FileName, I, MaxInt);
+	  end
   else
     Result := '';
 end;
@@ -418,7 +419,7 @@ begin
       or (DirName[i] = DriveSeparator)
     {$endif}
       ) and
-       { avoid error in case last char=pathdelim }
+       { avoid error in case last AnsiChar=pathdelim }
        (length(dirname)>i) then
       begin
         DirName[i]:=#0;
@@ -498,13 +499,9 @@ end;
 
 function ExcludeLeadingPathDelimiter(Const Path: PathStr): PathStr;
 
-Var
-  L : Integer;
-
 begin
   Result:=Path;
-  L:=Length(Result);
-  If (L>0) and CharInSet(Result[1],AllowDirectorySeparators) then
+  If (Length(Result)>0) and CharInSet(Result[1],AllowDirectorySeparators) then
     Delete(Result,1,1);
 end;
 

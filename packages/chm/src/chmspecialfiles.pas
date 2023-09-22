@@ -18,14 +18,21 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmspecialfiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Chm.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, chmtypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 
   
@@ -83,7 +90,7 @@ end;
 function WriteControlDataToStream(const AStream: TStream; const LZXResetInterval,
   WindowSize, CacheSize: DWord): Integer;
 var
-  LZXC: array [0..3] of char = 'LZXC';
+  LZXC: array [0..3] of AnsiChar = 'LZXC';
 begin
   //  ::DataSpace/Storage/MSCompressed/ControlData
   Result := AStream.Position;

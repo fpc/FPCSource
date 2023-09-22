@@ -87,7 +87,7 @@ uses
       // bulk memory operations
       a_memory_copy, a_memory_fill, a_memory_init, a_data_drop,
       // reference instructions
-      a_ref_null, a_ref_is_null, a_ref_func,
+      a_ref_null_funcref, a_ref_null_externref, a_ref_is_null, a_ref_func,
       // table instructions
       a_table_get, a_table_set, a_table_size, a_table_grow, a_table_fill, a_table_copy, a_table_init, a_elem_drop,
       // saturating truncation instructions
@@ -229,6 +229,12 @@ uses
 
       { MM Super register first and last }
       first_mm_imreg     = 4;
+
+      { funcref Super register first and last }
+      first_funcref_imreg     = 4;
+
+      { externref Super register first and last }
+      first_externref_imreg     = 4;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rwasmnum.inc}

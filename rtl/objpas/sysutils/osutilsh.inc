@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
@@ -25,7 +26,7 @@ procedure CheckOSError(LastError: Integer);platform;{$ifdef SYSTEMINLINE}inline;
 
 Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString; overload;
 Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString; overload;
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 Function GetEnvironmentVariableCount : Integer;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
@@ -40,7 +41,7 @@ Function GetTempDir : String;
 Function GetTempFileName(Const Dir,Prefix : String) : String;
 Function GetTempFileName : String;
 { For windows compatibility }
-function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+function GetTempFileName(Dir,Prefix: PAnsiChar; uUnique: DWORD; TempFileName: PAnsiChar):DWORD;
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;

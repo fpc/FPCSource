@@ -34,7 +34,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ConditionalMacros;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -280,7 +282,7 @@ interface
     This conditional is deprecated.  It was used to work around a bug in one obscure compiler that did not pack multiple characters in single quotes rationally.
     It was never intended for endian swapping.
 
-        FourCharCode('abcd')  - Convert a four-char-code to the correct 32-bit value
+        FourCharCode('abcd')  - Convert a four-AnsiChar-code to the correct 32-bit value
 
 
     TYPE_*

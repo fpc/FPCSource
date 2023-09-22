@@ -30,7 +30,7 @@ type
 {$ifndef FPUNONE}
   LongDouble = ValReal;
 {$endif}
-  FourCharArray = packed array[1..4] of char;
+  FourCharArray = packed array[1..4] of AnsiChar;
 
   UnsignedByte = Byte;
   UnsignedWord = Word;
@@ -109,8 +109,13 @@ function BNot(i: qword): qword; {$ifdef systeminline}inline;{$endif}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE}  
 uses
   math;
+{$ENDIF}  
 
 {$r-}
 {$q-}

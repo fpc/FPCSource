@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T : TTarget;
@@ -47,6 +47,8 @@ begin
     T:=P.Targets.AddUnit('fpobserver.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('blowfish.pp');
+      T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('blowfish2.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('bufstream.pp');
       T.ResourceStrings:=true;
@@ -213,6 +215,9 @@ begin
       // simple.xml
       // parser.dat
       // testcgi.html
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

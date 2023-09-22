@@ -25,7 +25,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CSIdentityBase;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -210,7 +212,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.SecBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,SecBase;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -270,7 +276,7 @@ const
 	kCSIdentityDuplicateFullNameErr = -6;
 	
 	{
-	 * The Posix name is not valid (char set: [a-zA-Z0-9_-] length:
+	 * The Posix name is not valid (AnsiChar set: [a-zA-Z0-9_-] length:
 	 * [1-255])
 	 }
 	kCSIdentityInvalidPosixNameErr = -7;

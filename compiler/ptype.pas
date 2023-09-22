@@ -495,7 +495,6 @@ implementation
              case token of
                _STRING:
                  string_dec(def,stoAllowTypeDef in options);
-
                _FILE:
                  begin
                     consume(_FILE);
@@ -1320,8 +1319,17 @@ implementation
                   Message(sym_e_ill_type_decl_set);
                orddef :
                  begin
-                   if (torddef(tt2).ordtype<>uvoid) and
-                      (torddef(tt2).ordtype<>uwidechar) and
+                   if (torddef(tt2).ordtype=uwidechar) then
+                     begin
+                     if (m_default_unicodestring in current_settings.modeswitches) then
+                       begin
+                         Message(parser_w_widechar_set_reduced);
+                         def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true);
+                       end
+                     else
+                       Message(sym_e_ill_type_decl_set);  
+                     end
+                   else if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then
                      // !! def:=csetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high),true)
                      if Torddef(tt2).high>int64(high(byte)) then

@@ -15,11 +15,18 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WatcomApi.WatCom;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Watcom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -39,8 +46,13 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}
@@ -185,7 +197,7 @@ var
 
   function paste_to_dos(src : string) : boolean;
   var
-    c : array[0..255] of char;
+    c : array[0..255] of AnsiChar;
   begin
      paste_to_dos:=false;
      if current_dos_buffer_pos+length(src)+1>tb+tb_size then
@@ -201,7 +213,7 @@ begin
 { create command line }
   move(comline[0],c[1],length(comline)+1);
   c[length(comline)+2]:=#13;
-  c[0]:=char(length(comline)+2);
+  c[0]:=AnsiChar(length(comline)+2);
 { create path }
   p:=path;
   DoDirSeparators(p);
@@ -452,7 +464,7 @@ begin
 end;
 
 
-procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+procedure LFNFindFirst(path:PAnsiChar;attr:longint;var s:searchrec);
 var
   i : longint;
   w : LFNSearchRec;
@@ -532,7 +544,7 @@ begin
 end;
 
 
-procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
+procedure DosFindfirst(path : PAnsiChar;attr : word;var f : searchrec);
 var
    i : longint;
 begin
@@ -576,7 +588,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..256] of char;
+  path0 : array[0..256] of AnsiChar;
 begin
   doserror:=0;
   strpcopy(path0,path);
@@ -680,7 +692,7 @@ end;
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
 var
-  c : array[0..255] of char;
+  c : array[0..255] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -697,7 +709,7 @@ begin
    begin
      copyfromdos(c,255);
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetShortName:=true;
    end
   else
@@ -708,7 +720,7 @@ end;
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
 var
-  c : array[0..255] of char;
+  c : array[0..255] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -725,7 +737,7 @@ begin
    begin
      copyfromdos(c,255);
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetLongName:=true;
    end
   else
@@ -800,7 +812,7 @@ end;
 
 function envcount : longint;
 var
-  hp : ppchar;
+  hp : PPAnsiChar;
 begin
   hp:=envp;
   envcount:=0;
@@ -819,13 +831,13 @@ begin
      envstr:='';
      exit;
    end;
-  envstr:=strpas(ppchar(pointer(envp)+4*(index-1))^);
+  envstr:=strpas(PPAnsiChar(pointer(envp)+4*(index-1))^);
 end;
 
 
 Function  GetEnv(envvar: string): string;
 var
-  hp      : ppchar;
+  hp      : PPAnsiChar;
   hs    : string;
   eqpos : longint;
 begin

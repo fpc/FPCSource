@@ -1,0 +1,15 @@
+src/garrayutils.pp=namespaced/System.Stl.ArrayUtils.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gdeque.pp=namespaced/System.Stl.Deque.pp
+src/gstack.pp=namespaced/System.Stl.Stack.pp
+src/ghashmap.pp=namespaced/System.Stl.HashMap.pp
+src/gset.pp=namespaced/System.Stl.Sets.pp
+src/gtree.pp=namespaced/System.Stl.Tree.pp
+src/ghashset.pp=namespaced/System.Stl.HashSet.pp
+src/gmap.pp=namespaced/System.Stl.Map.pp
+src/gpriorityqueue.pp=namespaced/System.Stl.PriorityQueue.pp
+src/gqueue.pp=namespaced/System.Stl.Queue.pp
+src/gutil.pp=namespaced/System.Stl.Util.pp
+src/gvector.pp=namespaced/System.Stl.Vector.pp
+src/glinkedlist.pp=namespaced/System.Stl.LinkedList.pp

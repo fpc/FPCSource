@@ -16,12 +16,25 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cgiapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
+  {$ifdef Unix}
+  UnixApi.CWString,
+  {$endif}
+  Fcl.CustApp,System.Classes, System.SysUtils, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  {$ifdef unix}
+  cwstring,
+  {$endif}
   CustApp,Classes, SysUtils, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   CGIVarCount = 23 deprecated;
@@ -143,8 +156,13 @@ ResourceString
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.Streams.IO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   iostream;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TFormFile = Class(TObject)
@@ -353,7 +371,7 @@ begin
     S:=ContentType;
     If (S='') then
       S:='text/html';
-    AddResponseLn('Content-Type: '+ContentType);
+    AddResponseLn('Content-Type: '+S);
     AddResponseLn('');
     FContentTypeEmitted:=True;
     end;
@@ -512,10 +530,8 @@ Procedure TFormItem.Process;
 Var
   Line : String;
   Words : TStringList;
-  i,len : integer;
-  c : char;
+  len : integer;
   S : string;
-  quoted : boolean;
 
 begin
   Line:=GetLine(Data);
@@ -545,12 +561,12 @@ begin
     Data:=Copy(Data,1,Len-2);
 end;
 
-Function MakeString(PStart,PEnd : Pchar) : String;
+Function MakeString(PStart,PEnd : PChar) : String;
 
 begin
   SetLength(Result,PEnd-PStart);
   If Length(Result)>0 then
-    Move(PStart^,Result[1],Length(Result));
+    Move(PStart^,Result[1],Length(Result)*sizeof(Char));
 end;
 
 procedure FormSplit(var Cnt : String; const boundary: String; List : TList);
@@ -725,7 +741,7 @@ var
   aLenStr : Integer;
   aLenSep : Integer;
 
-  function hexConverter(h1, h2 : Char) : Char;
+  function hexConverter(h1, h2 : AnsiChar) : AnsiChar;
 
   var
     B : Byte;
@@ -740,20 +756,31 @@ var
 
   var
     index : Integer;
+    S : AnsiString;
 
   begin
-    Index:=Length(QueryItem);
+    {$IF SIZEOF(CHAR)=2}
+    S:=UTF8Encode(QueryItem);
+    {$ELSE}
+    S:=QueryItem;
+    {$ENDIF}
+    Index:=Length(S);
     While (Index>0) do
       begin
-      If QueryItem[Index]='+' then
-        QueryItem[Index]:=' '
-      else If (QueryItem[Index]='%') and (Index<Length(QueryItem)-1) then
+      If S[Index]='+' then
+        S[Index]:=' '
+      else If (S[Index]='%') and (Index<Length(S)-1) then
         begin
-        QueryItem[Index]:=hexConverter(QueryItem[Index+1],QueryItem[index+2]);
-        System.Delete(QueryItem,Index+1,2);
+        S[Index]:=hexConverter(S[Index+1],S[index+2]);
+        System.Delete(S,Index+1,2);
         end;
-      dec(Index);
+      Dec(Index);
       end;
+    {$IF SIZEOF(CHAR)=2}
+    QueryItem:=UTF8Decode(S);
+    {$ELSE}
+    QueryItem:=S;
+    {$ENDIF}
   end;
 
   procedure InitToken(aStr, aSep : String);
@@ -859,11 +886,17 @@ Procedure TCGIApplication.AddResponse(Const S : String);
 
 Var
   L : Integer;
+  aLine : AnsiString {$IF SIZEOF(CHAR)=1} absolute S{$endif};
+
 
 begin
-  L:=Length(S);
+  {$IF SIZEOF(CHAR)=2}
+  aLine:=UTF8Encode(S);
+  {$ENDIF}
+  L:=Length(aLine);
+//  Writeln(S,'- >',aLine,' (',L,')');
   If L>0 then
-    FResponse.Write(S[1],L);
+    FResponse.Write(aLine[1],Length(aLine));
 end;
 
 Procedure TCGIApplication.AddResponse(Const Fmt : String; Args : Array of const);

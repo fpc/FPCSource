@@ -65,6 +65,8 @@ uses
       procedure decstack(list : TAsmList;slots: longint);
 
       class function def2regtyp(def: tdef): tregistertype; override;
+      function getintregister(list:TAsmList;size:tdef):Tregister;override;
+      function getregisterfordef(list: TAsmList;size:tdef):Tregister;override;
 
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
@@ -256,7 +258,7 @@ implementation
     defutil,cpupi,
     aasmtai,aasmcpu,
     symtable,symcpu,
-    procinfo,cpuinfo,cgcpu,tgobj,tgcpu,paramgr;
+    procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
@@ -364,10 +366,36 @@ implementation
 
   class function thlcgwasm.def2regtyp(def: tdef): tregistertype;
     begin
-      if (def.typ=recorddef) and (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
+      if is_wasm_externref(def) then
+        result:=R_EXTERNREFREGISTER
+      else if is_wasm_funcref(def) then
+        result:=R_FUNCREFREGISTER
+      else if (def.typ=recorddef) and (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
         result:=R_FPUREGISTER
       else
         result:=inherited;
+    end;
+
+
+  function thlcgwasm.getintregister(list:TAsmList;size:tdef):Tregister;
+    begin
+      if is_wasm_reference_type(size) then
+        internalerror(2023060702)
+      else
+        result:=inherited;
+    end;
+
+
+  function thlcgwasm.getregisterfordef(list: TAsmList;size:tdef):Tregister;
+    begin
+      case def2regtyp(size) of
+        R_EXTERNREFREGISTER:
+          result:=TCgWasm(cg).getexternrefregister(list);
+        R_FUNCREFREGISTER:
+          result:=TCgWasm(cg).getfuncrefregister(list);
+        else
+          result:=inherited;
+      end;
     end;
 
 
@@ -420,6 +448,18 @@ implementation
               else
                 internalerror(2010110702);
             end;
+          end;
+        R_EXTERNREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061101);
+            list.Concat(taicpu.op_none(a_ref_null_externref));
+          end;
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061102);
+            list.Concat(taicpu.op_none(a_ref_null_funcref));
           end;
         else
           internalerror(2010110703);
@@ -714,19 +754,62 @@ implementation
   procedure thlcgwasm.a_cmp_const_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference);
     var
       tmpref: treference;
+      regtyp: TRegisterType;
     begin
       tmpref:=ref;
       if tmpref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
-      a_load_const_stack(list,size,a,def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op);
+      regtyp:=def2regtyp(size);
+      case regtyp of
+        R_EXTERNREFREGISTER,
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061103);
+            if not (cmp_op in [OC_EQ,OC_NE]) then
+              internalerror(2023061104);
+            list.Concat(taicpu.op_none(a_ref_is_null));
+            if cmp_op=OC_NE then
+              begin
+                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+              end;
+          end;
+        else
+          begin
+            a_load_const_stack(list,size,a,regtyp);
+            a_cmp_stack_stack(list,size,cmp_op);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister);
+    var
+      regtyp: TRegisterType;
     begin
       a_load_reg_stack(list,size,reg);
-      a_load_const_stack(list,size,a,def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op);
+      regtyp:=def2regtyp(size);
+      case regtyp of
+        R_EXTERNREFREGISTER,
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061105);
+            if not (cmp_op in [OC_EQ,OC_NE]) then
+              internalerror(2023061106);
+            list.Concat(taicpu.op_none(a_ref_is_null));
+            if cmp_op=OC_NE then
+              begin
+                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+              end;
+          end;
+        else
+          begin
+            a_load_const_stack(list,size,a,regtyp);
+            a_cmp_stack_stack(list,size,cmp_op);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister);
@@ -1024,7 +1107,17 @@ implementation
               end;
             else
               internalerror(2011010302);
-          end
+          end;
+        R_FUNCREFREGISTER:
+          begin
+            list.concat(taicpu.op_none(a_ref_null_funcref));
+            incstack(list,1);
+          end;
+        R_EXTERNREFREGISTER:
+          begin
+            list.concat(taicpu.op_none(a_ref_null_externref));
+            incstack(list,1);
+          end;
         else
           internalerror(2011010301);
       end;

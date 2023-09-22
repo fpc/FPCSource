@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit machotypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$packrecords c}
 
@@ -32,7 +39,7 @@ type
   TMachOSubMachineTypex64 = (msmx64_all, msmx64_haswell);
   TMachOSubMachineTypeArm = (msmarm_all,msmarm_v4t,msmarm_v6,msmarm_v5tej,msmarm_xscale,msmarm_v7);
   TMachOSubMachineTypeAarch64 = (msmaarch64_all, msmaarch64_v8, msmaarch64_e);
-  TSegSectName = array[0..15] of char;
+  TSegSectName = array[0..15] of AnsiChar;
 
   TMachOSubMachineType = record
     case TMachOMachineType of
@@ -196,8 +203,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.Resources.Macho.Consts;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     machoconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
   function MachOMachineTypesToPas(mach: tmach_cpu_type; sub: tmach_cpu_subtype; out machPas: TMachOMachineType; out subPas: TMachOSubMachineType): boolean;
     begin

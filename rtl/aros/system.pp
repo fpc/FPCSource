@@ -35,8 +35,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
   AllFilesMask = '#?';
@@ -68,19 +68,19 @@ var
   ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : PtrInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
-  AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  AOS_ConName  : PAnsiChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
 
   SysDebugBase: Pointer = nil;
 
   argc: LongInt;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
   killed : Boolean = False;
 
 function GetLibAdress(Base: Pointer; Offset: LongInt): Pointer;
-procedure Debug(s: string);
-procedure Debugln(s: string);
+procedure Debug(s: shortstring);
+procedure Debugln(s: shortstring);
 procedure EnableBackTraceStr;
 
 implementation
@@ -91,7 +91,7 @@ type
     PWBArg = ^TWBArg;
     TWBArg = record
         wa_Lock         : BPTR;      { a lock descriptor }
-        wa_Name         : PChar;       { a string relative to that lock }
+        wa_Name         : PAnsiChar;       { a string relative to that lock }
     end;
 
     WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }
@@ -237,7 +237,7 @@ const
   DL_ModuleName = DL_Dummy + 1;
   DL_SymbolName = DL_Dummy + 7;
 var
-  SymName, ModName: PChar;
+  SymName, ModName: PAnsiChar;
   Tags: array[0..5] of PtrUInt;
   s: AnsiString;
   Res: AnsiString;

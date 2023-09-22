@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -37,6 +37,9 @@ begin
 //    P.Targets.AddExampleProgram('testcups.pp');
 //    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

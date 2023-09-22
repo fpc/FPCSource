@@ -11,6 +11,19 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+{$ifdef LOAD_DYNAMICALLY}
+  System.SysUtils, System.DynLibs;
+{$else}
+  System.DynLibs;
+
+  {$ifdef darwin}
+    {$linklib sqlite3}
+  {$endif}
+{$endif}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
 {$ifdef LOAD_DYNAMICALLY}
@@ -22,6 +35,7 @@ uses
     {$linklib sqlite3}
   {$endif}
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
@@ -40,7 +54,7 @@ const
   Header converted from Sqlite version 3.14.2
 }
 
-//SQLITE_EXTERN const char sqlite3_version[];
+//SQLITE_EXTERN const AnsiChar sqlite3_version[];
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pansichar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion_number{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 function sqlite3_version(): pansichar;
@@ -435,9 +449,9 @@ type
 ): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_free_table{$IFDEF D}: procedure{$ENDIF}(result: ppansichar); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-//char *sqlite3_mprintf(const char*,...);
-//char *sqlite3_vmprintf(const char*, va_list);
-//char *sqlite3_snprintf(int,char*,const char*, ...);
+//AnsiChar *sqlite3_mprintf(const AnsiChar*,...);
+//AnsiChar *sqlite3_vmprintf(const AnsiChar*, va_list);
+//AnsiChar *sqlite3_snprintf(int,AnsiChar*,const AnsiChar*, ...);
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_malloc{$IFDEF D}: function{$ENDIF}(size: cint): pointer;cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_malloc64{$IFDEF D}: function{$ENDIF}(size: sqlite3_uint64): pointer;cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -891,17 +905,17 @@ type
     iVersion     : cint;
    // xCreate      : function(db: psqlite3; pAux: pointer; argc: cint; ): cint; cdecl;
   cint (*xCreate)(db: psqlite3; void *pAux;
-               cint argc; const char *const*argv;
-               sqlite3_vtab **ppVTab; char**);
+               cint argc; const AnsiChar *const*argv;
+               sqlite3_vtab **ppVTab; AnsiChar**);
   cint (*xConnect)(db: psqlite3; void *pAux;
-               cint argc; const char *const*argv;
-               sqlite3_vtab **ppVTab; char**);
+               cint argc; const AnsiChar *const*argv;
+               sqlite3_vtab **ppVTab; AnsiChar**);
   cint (*xBestIndex)(sqlite3_vtab *pVTab; sqlite3_index_info*);
   cint (*xDisconnect)(sqlite3_vtab *pVTab);
   cint (*xDestroy)(sqlite3_vtab *pVTab);
   cint (*xOpen)(sqlite3_vtab *pVTab; sqlite3_vtab_cursor **ppCursor);
   cint (*xClose)(sqlite3_vtab_cursor*);
-  cint (*xFilter)(sqlite3_vtab_cursor*; cint idxNum; const char *idxStr;
+  cint (*xFilter)(sqlite3_vtab_cursor*; cint idxNum; const AnsiChar *idxStr;
                 cint argc; sqlite3_value **argv);
     xNext         : function(pVCurs: sqlite3_vtab_cursor): cint; cdecl;
     xEof          : function(pVCurs: sqlite3_vtab_cursor): cint; cdecl;
@@ -922,21 +936,21 @@ type
   psqlite3_index_constracint = ^sqlite3_index_constracint;
   sqlite3_index_constracint = record
      iColumn: cint;              (* Column constrained.  -1 for ROWID *)
-     op: char;                   (* Constracint operator *)
-     usable: char;               (* True if this constracint is usable *)
+     op: AnsiChar;                   (* Constracint operator *)
+     usable: AnsiChar;               (* True if this constracint is usable *)
      iTermOffset: cint;          (* Used cinternally - xBestIndex should ignore *)
   end;
 
   psqlite3_index_orderby = ^sqlite3_index_orderby;
   sqlite3_index_orderby = record
      iColumn: cint;              (* Column number *)
-     desc: char;                 (* True for DESC.  False for ASC. *)
+     desc: AnsiChar;                 (* True for DESC.  False for ASC. *)
   end;
 
   psqlite3_index_constracint_usage = ^sqlite3_index_constracint_usage;
   sqlite3_index_constracint_usage = record
     argvIndex: cint;             (* if >0; constracint is part of argv to xFilter *)
-    omit: char;                  (* Do not code a test for this constracint *)
+    omit: AnsiChar;                  (* Do not code a test for this constracint *)
   end;
 
   psqlite3_index_info = ^sqlite3_index_info;

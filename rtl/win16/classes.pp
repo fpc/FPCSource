@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$H+}
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
@@ -31,10 +32,24 @@
   {$fatal Unknown i8086 memory model.}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  System.RtlConsts,
+  System.Types,
+  System.SortBase,
+{$if defined(FPC_TESTGENERICS) or defined(FPC_CODEPOINTER_DIFFERENT_THAN_POINTER)}
+  System.FGL,
+{$endif}
+  System.SysUtils,
+  WinApi.WinProcs,WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
   rtlconsts,
@@ -45,6 +60,7 @@ uses
 {$endif}
   sysutils,
   winprocs,wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i classesh.inc}
 
@@ -58,7 +74,7 @@ type
 {$endif FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
 
 {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
-function FindResource(hInstance: HINST; lpName, lpType: PChar): HRSRC; inline;
+function FindResource(hInstance: HINST; lpName, lpType: PAnsiChar): HRSRC; inline;
 begin
   Result:=WinProcs.FindResource(hInstance,FarAddr(lpName^),FarAddr(lpType^));
 end;

@@ -43,7 +43,9 @@
 // $Id: JwaWinNLS.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinNLS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -58,8 +60,13 @@ unit JwaWinNLS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinBase;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -101,7 +108,7 @@ const
   {$EXTERNALSYM WC_DISCARDNS}
   WC_SEPCHARS       = $00000020; // generate separate chars
   {$EXTERNALSYM WC_SEPCHARS}
-  WC_DEFAULTCHAR    = $00000040; // replace w/ default char
+  WC_DEFAULTCHAR    = $00000040; // replace w/ default AnsiChar
   {$EXTERNALSYM WC_DEFAULTCHAR}
 
   WC_NO_BEST_FIT_CHARS = $00000400; // do not use best fit chars
@@ -203,7 +210,7 @@ const
   C3_LEXICAL   = $0400; // lexical character
   {$EXTERNALSYM C3_LEXICAL}
 
-  C3_ALPHA = $8000; // any linguistic char (C1_ALPHA)
+  C3_ALPHA = $8000; // any linguistic AnsiChar (C1_ALPHA)
   {$EXTERNALSYM C3_ALPHA}
 
   C3_NOTAPPLICABLE = $0000; // ctype 3 is not applicable
@@ -1149,7 +1156,7 @@ type
   LPCPINFO = ^CPINFO;
   {$EXTERNALSYM LPCPINFO}
   _cpinfo = record
-    MaxCharSize: UINT; // max length (in bytes) of a char
+    MaxCharSize: UINT; // max length (in bytes) of a AnsiChar
     DefaultChar: array [0..MAX_DEFAULTCHAR - 1] of BYTE; // default character
     LeadByte: array [0..MAX_LEADBYTES - 1] of BYTE; // lead byte ranges
   end;
@@ -1162,12 +1169,12 @@ type
   {$EXTERNALSYM CPINFOEXA}
   LPCPINFOEXA = ^CPINFOEXA;
   _cpinfoexA = record
-    MaxCharSize: UINT; // max length (in bytes) of a char
+    MaxCharSize: UINT; // max length (in bytes) of a AnsiChar
     DefaultChar: array [0..MAX_DEFAULTCHAR - 1] of BYTE; // default character (MB)
     LeadByte: array [0..MAX_LEADBYTES - 1] of BYTE; // lead byte ranges
     UnicodeDefaultChar: WCHAR; // default character (Unicode)
     CodePage: UINT; // code page id
-    CodePageName: array [0..MAX_PATH - 1] of CHAR; // code page name (Unicode)
+    CodePageName: array [0..MAX_PATH - 1] of AnsiChar; // code page name (Unicode)
   end;
   {$EXTERNALSYM _cpinfoexA}
   CPINFOEXA = _cpinfoexA;
@@ -1178,7 +1185,7 @@ type
   LPCPINFOEXW = ^CPINFOEXW;
   {$EXTERNALSYM LPCPINFOEXW}
   _cpinfoexW = record
-    MaxCharSize: UINT; // max length (in bytes) of a char
+    MaxCharSize: UINT; // max length (in bytes) of a AnsiChar
     DefaultChar: array [0..MAX_DEFAULTCHAR - 1] of BYTE; // default character (MB)
     LeadByte: array [0..MAX_LEADBYTES - 1] of BYTE; // lead byte ranges
     UnicodeDefaultChar: WCHAR; // default character (Unicode)

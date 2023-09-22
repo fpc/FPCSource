@@ -1,0 +1,3 @@
+src/zlib.pp=namespaced/Api.Z.pp
+{s*:src/}=namespaced/
+{i+:src/}

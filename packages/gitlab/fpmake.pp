@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 {$endif ALLPACKAGES}
 
@@ -13,6 +13,8 @@ Const
 
 Var
   P : TPackage;
+  T : TTarget;
+  
 begin
   With Installer do
     begin
@@ -38,6 +40,8 @@ begin
 
     P.SourcePath.Add('src');
     T:=P.Targets.addUnit('gitlabclient.pas');
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
     

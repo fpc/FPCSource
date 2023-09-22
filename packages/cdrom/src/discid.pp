@@ -12,16 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit discid;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CdRom,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses cdrom,sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function CDDBDiscID(Const CDTOC : Array of TTocEntry; Count : Integer) : integer ;
-Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : String;
+Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : AnsiString;
 
 Implementation
 
@@ -52,7 +58,7 @@ begin
   Result:=(((n mod $ff) shl 24) or (t shl 8 or count));
 end;
 
-Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : String;
+Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : AnsiString;
 
 
 Var

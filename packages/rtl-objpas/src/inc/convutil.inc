@@ -17,8 +17,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ConvUtils;
+{$ENDIF}
 
 interface
 
@@ -26,8 +27,14 @@ interface
 {$H+}
 
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Math;
+{$ELSE FPC_DOTTEDUNITS}  
 uses
   sysutils, math;
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 Type TConvType        = type Word;
      TConvFamily      = type Word;
@@ -137,8 +144,13 @@ Type
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.RtlConsts;
+{$ELSE}
 uses
   RtlConsts;
+{$ENDIF}
 
 const
   macheps=1E-9;

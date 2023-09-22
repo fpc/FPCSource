@@ -36,9 +36,9 @@ VAR
     dummy       : longint;
     Triton_App  : pTR_App;
 
-Function longToStr (I : Longint) : String;
+Function longToStr (I : Longint) : ShortString;
 
-     Var S : String;
+     Var S : ShortString;
 
      begin
       Str (I,S);
@@ -46,7 +46,7 @@ Function longToStr (I : Longint) : String;
      end;
 
 
-PROCEDURE CleanExit(errstring : STRING; rc : Integer);
+PROCEDURE CleanExit(errstring : ShortString; rc : Integer);
 BEGIN
     IF Project <> NIL THEN TR_CloseProject(Project);
     if Triton_App <> nil then TR_DeleteApp(Triton_App);
@@ -88,7 +88,7 @@ begin
                         Space;
                         SliderGadget(SLIDER_MIN,SLIDER_MAX,5,MYGAD_SLIDER);
                         Space;
-                        TextID(string('5'),MYGAD_SLIDERTEXT); SetTRTag(TRAT_MinWidth, 2);
+                        TextID(ShortString('5'),MYGAD_SLIDERTEXT); SetTRTag(TRAT_MinWidth, 2);
                         Space;
                     EndLine;
                     SpaceS;

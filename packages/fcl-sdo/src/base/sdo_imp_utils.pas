@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_imp_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes,
+  Sdo.Types, Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes,
   sdo_types, sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -159,7 +167,7 @@ function StringToVarBytes(const AValue : string) : TSDOBytes;
 var
   c : Integer;
 begin
-  c := Length(AValue) * SizeOf(Char);
+  c := Length(AValue) * SizeOf(AnsiChar);
   SetLength(Result,c);
   if ( c > 0 ) then
     Move(AValue[1],Result[Low(Result)],c);

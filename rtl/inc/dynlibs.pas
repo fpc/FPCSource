@@ -16,7 +16,9 @@
 {$MODE OBJFPC}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dynlibs;
+{$ENDIF}
 
 interface
 
@@ -35,7 +37,7 @@ Function LoadLibrary(const Name : UnicodeString) : TLibHandle; inline;
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; inline;
 Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; inline;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean; inline;
-Function GetLoadErrorStr: string; inline;
+Function GetLoadErrorStr: ansistring; inline;
 
 // Kylix/Delphi compability
 
@@ -88,7 +90,7 @@ begin
   Result:=System.UnloadLibrary(Lib);
 end;
 
-Function GetLoadErrorStr: String;
+Function GetLoadErrorStr: AnsiString;
 begin
   Result:=System.GetLoadErrorStr;
 end;

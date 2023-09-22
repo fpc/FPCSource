@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcMaster;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains master control logic for the JPEG compressor.
   These routines are concerned with parameter validation, initial setup,
@@ -11,6 +13,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -18,6 +29,7 @@ uses
   jerror,
   jutils,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Initialize master compression control. }

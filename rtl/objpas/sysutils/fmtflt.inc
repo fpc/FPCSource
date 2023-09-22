@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 function IntFloatToTextFmt(Buf: FPChar; const Value; ValueType: TFloatValue; Format: FPChar; const AFormatSettings: TFormatSettings): Integer;
 
 Type
@@ -10,7 +11,7 @@ var
   // Input in usable format
   E : Extended;              // Value as extended.
   FV: TFloatRec;             // Value as floatrec.
-  Section : String;          // Format can contain 3 sections, semicolon separated: Pos;Neg;Zero. This is the one to use.
+  Section : FString;         // Format can contain 3 sections, semicolon separated: Pos;Neg;Zero. This is the one to use.
   SectionLength : Integer;   // Length of section.
   // Calculated based on section. Static during output
   ThousandSep: Boolean;      // Thousands separator detected in format ?

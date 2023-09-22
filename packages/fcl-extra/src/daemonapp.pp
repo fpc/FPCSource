@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit daemonapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp, System.Classes, System.SysUtils, Fcl.EventLog, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Custapp, Classes, SysUtils, eventlog, rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCustomDaemon = Class;
@@ -367,7 +374,7 @@ Type
     procedure SysUnInstallDaemon(Daemon: TCustomDaemon);
     function  UnInstallRun: Boolean;
     function  RunDaemonsRun: Boolean;
-    Procedure Main(Argc : DWord; Args : PPchar);
+    Procedure Main(Argc : DWord; Args : PPChar);
     Function  RunGUIloop(P : Pointer) : integer;
   Protected
     // OS (System) dependent calls
@@ -772,7 +779,7 @@ begin
   // No Borland compatibility needed, as the install will take care of the -r
 end;
 
-procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPchar);
+procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPChar);
 
 Var
   SN : String;

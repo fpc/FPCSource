@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsimplejsonexport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fpsimplejsonexport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, fpDBExport;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TJSONRowFormat = (rfArray,rfObject);
@@ -149,14 +156,14 @@ function TCustomSimpleJSONExporter.TextString(const S: String): String;
 
 Var
   I,J,L : Integer;
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PChar(S);
+  P:=PAnsiChar(S);
   While I<=L do
     begin
     if (P^ in ['"','/','\',#8,#9,#10,#12,#13]) then

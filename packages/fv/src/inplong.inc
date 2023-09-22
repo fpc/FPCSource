@@ -14,11 +14,13 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 Unit UInpLong;
 {$else FV_UNICODE}
 Unit InpLong;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*--
 TInputLong is a derivitave of TInputline designed to accept LongInt
@@ -96,6 +98,16 @@ Valid returns False.
 {$endif}
 
 Interface
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Objects,
+{$ifdef FV_UNICODE}
+  FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Udialogs, FreeVision.Umsgbox, FreeVision.Ufvcommon,
+{$else FV_UNICODE}
+  FreeVision.Drivers, FreeVision.Views, FreeVision.Dialogs, FreeVision.Msgbox, FreeVision.Fvcommon,
+{$endif FV_UNICODE}
+  FreeVision.Fvconsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses objects,
 {$ifdef FV_UNICODE}
   udrivers, uviews, udialogs, umsgbox, ufvcommon,
@@ -103,6 +115,7 @@ uses objects,
   drivers, views, dialogs, msgbox, fvcommon,
 {$endif FV_UNICODE}
   fvconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {flags for TInputLong constructor}
 const
@@ -181,7 +194,7 @@ end;
 
 FUNCTION Hex2(B : Byte) : Sw_String;
 Const
-  HexArray : array[0..15] of char = '0123456789ABCDEF';
+  HexArray : array[0..15] of AnsiChar = '0123456789ABCDEF';
 begin
 SetLength(Hex2, 2);
 Hex2[1] := HexArray[B shr 4];

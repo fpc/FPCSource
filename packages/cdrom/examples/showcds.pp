@@ -6,7 +6,7 @@ program showcds;
 uses cdrom,sysutils;
 
 Var
-  Drives : Array[1..10] of String;
+  Drives : Array[1..10] of AnsiString;
   I,Count : Integer;
 
 begin

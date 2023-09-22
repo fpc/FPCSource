@@ -20,11 +20,17 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit keybd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Winioctl;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows, WinIOCtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // EXTERNAL DRIVERS
 // KEY_STATE_FLAGS | Flags for keyboard events and shift state.
@@ -85,8 +91,8 @@ const
       KeyShiftRightAltFlag		= $00100000;  //  R alt is down.
       KeyShiftRightWinFlag		= $00080000;  //  R Win key is down.
       KeyShiftReserved40000		= $00040000;  //  Reserved.
-      KeyShiftDeadFlag			  = $00020000;  //  Corresponding char is dead char.
-      KeyShiftNoCharacterFlag	= $00010000;  //  No corresponding char.
+      KeyShiftDeadFlag			  = $00020000;  //  Corresponding AnsiChar is dead AnsiChar.
+      KeyShiftNoCharacterFlag	= $00010000;  //  No corresponding AnsiChar.
 
 			KeyShiftLanguageFlag1		= $00008000;  //  Use for language specific shifts.
       KeyShiftKeybdEventFlag	= $00004000;	//	Not for external use.

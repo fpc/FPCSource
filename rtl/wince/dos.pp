@@ -12,10 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$mode fpc}
+
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   Max_Path = MaxPathLen;
@@ -265,7 +274,7 @@ begin
           Inc(i);
         end;
       until (i > 24) or not FindNextFile(h, fd);
-      Windows.FindClose(h);
+      {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.FindClose(h);
     end;
   end;
   GetDriveName:=DriveNames[drive - 2];
@@ -301,7 +310,7 @@ end;
                          --- Findfirst FindNext ---
 ******************************************************************************}
 
-Procedure StringToPchar (Var S : String);
+Procedure StringToPchar (Var S : ShortString);
 Var L : Longint;
 begin
   L:=ord(S[0]);
@@ -309,18 +318,18 @@ begin
   S[L]:=#0;
 end;
 
-Procedure PCharToString (Var S : String);
+Procedure PCharToString (Var S : ShortString);
 Var L : Longint;
 begin
-  L:=strlen(pchar(@S[0]));
+  L:=strlen(PAnsiChar(@S[0]));
   Move (S[0],S[1],L);
-  S[0]:=char(l);
+  S[0]:=AnsiChar(l);
 end;
 
 
 procedure FindMatch(var f:searchrec);
 var
-  buf: array[0..MaxPathLen] of char;
+  buf: array[0..MaxPathLen] of AnsiChar;
 begin
   { Find file with correct attribute }
   While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -396,7 +405,7 @@ end;
 Procedure FindClose(Var f: SearchRec);
 begin
   If F.FindHandle <> Invalid_Handle_value then
-    Windows.FindClose(F.FindHandle);
+    {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.FindClose(F.FindHandle);
 end;
 
 
@@ -404,7 +413,7 @@ end;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path: pathstr; dirlist: string): pathstr;
+Function FSearch(path: pathstr; dirlist: shortstring): pathstr;
 var
   p1     : longint;
   s      : searchrec;

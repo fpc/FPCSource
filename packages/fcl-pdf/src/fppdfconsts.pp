@@ -12,7 +12,9 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
@@ -236,7 +238,33 @@ const
   SCMAPKeyWMode          = 'WMode';
   SCMAPKeyUseCMap        = 'UseCMap';
 
-
+  SPDFExtGStateKeyType  = 'Type';
+  SPDFExtGStateKeyLW    = 'LW';
+  SPDFExtGStateKeyLC    = 'LC';
+  SPDFExtGStateKeyLJ    = 'LJ';
+  SPDFExtGStateKeyML    = 'ML';
+  SPDFExtGStateKeyD     = 'D';
+  SPDFExtGStateKeyRI    = 'RI';
+  SPDFExtGStateKeyOP_U  = 'OP';
+  SPDFExtGStateKeyop_l  = 'op';
+  SPDFExtGStateKeyOPM   = 'OPM';
+  SPDFExtGStateKeyFont  = 'Font';
+  SPDFExtGStateKeyBG    = 'BG';
+  SPDFExtGStateKeyBG2   = 'BG2';
+  SPDFExtGStateKeyUCR   = 'UCR';
+  SPDFExtGStateKeyUCR2  = 'UCR2';
+  SPDFExtGStateKeyTR    = 'TR';
+  SPDFExtGStateKeyTR2   = 'TR2';
+  SPDFExtGStateKeyHT    = 'HT';
+  SPDFExtGStateKeyFL    = 'FL';
+  SPDFExtGStateKeySM    = 'SM';
+  SPDFExtGStateKeySA    = 'SA';
+  SPDFExtGStateKeyBM    = 'BM';
+  SPDFExtGStateKeySMask = 'SMask';
+  SPDFExtGStateKeyCA_U  = 'CA';
+  SPDFExtGStateKeyca_l  = 'ca';
+  SPDFExtGStateKeyAIS   = 'AIS';
+  SPDFExtGStateKeyTK    = 'TK';
 
 
   // CJK Cmaps
@@ -302,6 +330,13 @@ const
   CMAPUniKS_UTF16_V = 'UniKS-UTF16-V';
   CMAPIdentity_H = 'Identity-H';
   CMAPIdentity_V = 'Identity-V';
+
+  SPDFColorSpaceDeviceGray  = 'DeviceGray';
+  SPDFColorSpaceDeviceRGB   = 'DeviceRGB';
+  SPDFColorSpaceDeviceCMYK  = 'DeviceCMYK';
+  SPDFColorSpacePattern     = 'Pattern';
+  SPDFColorSpaceCalGray     = 'CalGray';
+  SPDFColorSpaceCalRGB      = 'CalRGB';
 
 implementation
 

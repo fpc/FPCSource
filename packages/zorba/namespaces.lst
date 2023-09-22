@@ -1,0 +1,5 @@
+src/zorba.pas=namespaced/Api.Zorba.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/zorbadyn.pas=namespaced/Api.ZorbaDyn.pas
+src/xqc.pas=namespaced/Api.Xqc.pas

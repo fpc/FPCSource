@@ -22,10 +22,10 @@ var
   gdb : tgdbinterface;
 
 
-procedure processlog(const fn:string);
+procedure processlog(const fn:ShortString);
 var
   t    : text;
-  hs,s : string;
+  hs,s : ShortString;
   code : word;
   i,
   addr : longint;

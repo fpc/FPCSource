@@ -29,10 +29,16 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT RENDER;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Utility,Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,utility,agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR RenderBase : pLibrary = nil;
 
@@ -40,7 +46,7 @@ type
     pPLANEPTR = ^TPLANEPTR;
 
 const
-    RENDERNAME : PChar = 'render.library';
+    RENDERNAME : PAnsiChar = 'render.library';
 
 {
         $VER: render.h v40 (19.12.2002)

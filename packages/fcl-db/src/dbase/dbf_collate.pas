@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_collate;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,8 +21,13 @@ unit dbf_collate;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
@@ -43,7 +50,7 @@ const
 
 
 function GetCollationTable( DbfLangId :integer ) :PCollationTable;
-function DbfCompareString( CollationTable :PCollationTable; String1 :PChar; nLength1 :integer; String2 :PChar; nLength2 :integer ) :integer;
+function DbfCompareString( CollationTable :PCollationTable; String1 :PAnsiChar; nLength1 :integer; String2 :PAnsiChar; nLength2 :integer ) :integer;
 function RegisterCollation( DbfLangId :integer; CollationTable :PCollationTable; BDEName :TCollationBDEName ) :Boolean;
 
 
@@ -52,7 +59,11 @@ var
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Dbf.Lang, System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbf_lang, math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 procedure InitialiseCollationTables;
@@ -78,7 +89,7 @@ begin
     end;
 end;
 
-function DbfCompareString( CollationTable :PCollationTable; String1 :PChar; nLength1 :integer; String2 :PChar; nLength2 :integer ) :integer;
+function DbfCompareString( CollationTable :PCollationTable; String1 :PAnsiChar; nLength1 :integer; String2 :PAnsiChar; nLength2 :integer ) :integer;
 var
   nCnt, nMax, nVal1, nVal2 :integer;
 const

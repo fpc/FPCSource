@@ -14,11 +14,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit microhttpapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes, FpWeb.HostApp.Custom.MicroHttpApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,Classes, custmicrohttpapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -33,7 +39,11 @@ Var
   
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.CustApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses CustApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure InitHTTP;
 

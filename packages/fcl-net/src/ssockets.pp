@@ -11,13 +11,21 @@
 
  **********************************************************************}
 {$MODE objfpc}{$H+}
+{$R-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ssockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.CTypes, System.Net.Sockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, ctypes, sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -106,8 +114,8 @@ type
     Procedure GetSockOptions;
     procedure SetConnectTimeout(AValue: Integer);
     Procedure SetSocketOptions(Value : TSocketOptions);
-    function GetLocalAddress: sockets.TSockAddr;
-    function GetRemoteAddress: sockets.TSockAddr;
+    function GetLocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.TSockAddr;
+    function GetRemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.TSockAddr;
     procedure SetIOTimeout(AValue: Integer);
   Protected
     Procedure DoOnClose; virtual;
@@ -123,8 +131,8 @@ type
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
-    property LocalAddress: sockets.TSockAddr read GetLocalAddress;
-    property RemoteAddress: sockets.TSockAddr read GetRemoteAddress;
+    property LocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetLocalAddress;
+    property RemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetRemoteAddress;
     Property LastError : Integer Read GetLastError;
     Property ReadFlags : Integer Read FReadFlags Write FReadFlags;
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
@@ -160,7 +168,6 @@ type
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
     FSocket : longint;
-    FListened : Boolean;
     FAccepting : Boolean;
     FMaxConnections : Longint;
     FQueueSize : Longint;
@@ -329,6 +336,17 @@ type
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+// This must be here, to prevent it from overriding the sockets definitions... :/
+{$ifdef unix}
+  UnixApi.Base,UnixApi.Unix,
+{$endif}
+{$ifdef Windows}
+  WinApi.Winsock2, WinApi.Windows,
+{$endif}
+  System.Net.Resolve;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 // This must be here, to prevent it from overriding the sockets definitions... :/
 {$ifdef unix}
@@ -338,9 +356,9 @@ uses
   winsock2, windows,
 {$endif}
   resolve;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
-  SocketWouldBlock = -2;
   SocketBlockingMode = 0;
   SocketNonBlockingMode = 1;
 
@@ -482,7 +500,7 @@ begin
   Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, PTV);
 {$endif}
 {$ifdef windows}
-  Res:=winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
+  Res:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
 {$if defined(unix) or defined(windows)}
   if Res>0 then
@@ -682,7 +700,7 @@ begin
   Result := fpSelect(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
 {$endif}
 {$ifdef windows}
-  Result := winsock2.Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+  Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
 {$endif}
   aRead:=FillArr(FDR,aRead);
   aWrite:=FillArr(FDR,aRead);
@@ -699,6 +717,7 @@ begin
   DoOnClose;
   if FSocketInitialized then
     FHandler.Close; // Ignore the result
+  FSocketInitialized:=False;
   FreeAndNil(FHandler);
   CloseSocket(Handle);
   FClosed:=True;
@@ -775,20 +794,20 @@ begin
   Result:=FHandler.Send(Buffer,Count);
 end;
 
-function TSocketStream.GetLocalAddress: sockets.TSockAddr;
+function TSocketStream.GetLocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr;
 var
   len: LongInt;
 begin
-  len := SizeOf(sockets.TSockAddr);
+  len := SizeOf({$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr);
   if fpGetSockName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
 
-function TSocketStream.GetRemoteAddress: sockets.TSockAddr;
+function TSocketStream.GetRemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr;
 var
   len: LongInt;
 begin
-  len := SizeOf(sockets.TSockAddr);
+  len := SizeOf({$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr);
   if fpGetPeerName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
@@ -867,8 +886,11 @@ begin
 end;
 
 procedure TSocketServer.Abort;
+{$if defined(unix) or defined(mswindows) or defined(hasamiga)}
+{$else}
 var
   ASocket: longint;
+{$endif}
 begin
 {$if defined(unix)}
   fpShutdown(FSocket,SHUT_RDWR);
@@ -923,12 +945,13 @@ begin
     FDS := Default(TFDSet);
     FD_Zero(FDS);
     FD_Set(FSocket, FDS);
-    Result := winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+    Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
-    If not Result then
-      DoOnIdle;
-  Until Result or (Not FAccepting);
+    If Result then
+      break;
+    DoOnIdle;
+  Until (Not FAccepting);
 end;
 
 procedure TSocketServer.Listen;
@@ -936,7 +959,7 @@ procedure TSocketServer.Listen;
 begin
   If Not FBound then
     Bind;
-  If  Sockets.FpListen(FSocket,FQueueSize)<>0 then
+  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpListen(FSocket,FQueueSize)<>0 then
     Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
@@ -1002,11 +1025,10 @@ begin
   Listen;
   Repeat
     Repeat
+      Stream:=Nil;
       Try
         If (AcceptIdleTimeOut=0) or RunIdleLoop then
-          Stream:=GetConnection
-        else
-          Stream:=Nil;
+          Stream:=GetConnection;
         if Assigned(Stream) then
           if (MaxSimultaneousConnections>0) and (ConnectionCount>=MaxSimultaneousConnections) then
             begin
@@ -1236,7 +1258,7 @@ Var S : longint;
 begin
   FHost:=aHost;
   FPort:=APort;
-  S:=Sockets.FpSocket(AF_INET,SOCK_STREAM,0);
+  S:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpSocket(AF_INET,SOCK_STREAM,0);
   If S=-1 Then
     Raise ESocketError.Create(seCreationFailed,[Format('%d',[APort])]);
   Inherited Create(S,AHandler);
@@ -1248,7 +1270,7 @@ begin
   Faddr.sin_family := AF_INET;
   Faddr.sin_port := ShortHostToNet(FPort);
   Faddr.sin_addr.s_addr := LongWord(StrToNetAddr(FHost));
-  if  Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
+  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
     raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
   FBound:=True;
 end;
@@ -1256,7 +1278,7 @@ end;
 function TInetServer.SockToStream(ASocket: Longint): TSocketStream;
 Var
   H : TSocketHandler;
-  A : Boolean;
+  ok : Boolean;
   aClass : TInetSocketClass;
 
   procedure ShutDownH;
@@ -1265,24 +1287,25 @@ Var
     FreeAndNil(Result);
   end;
 
-
 begin
   H:=GetClientSocketHandler(aSocket);
   aClass:=DefaultInetSocketClass;
+
+  // Should be: Result:=TServerSocketStream.Create(ASocket,H);
+
   if aClass=Nil then
-      aClass:=TInetSocket;
+    aClass:=TInetSocket;
   Result:=aClass.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
 
+  ok:=false;
   try
-    A:=H.Accept;
-  except
-    ShutDownH;
-    raise;
+    ok:=H.Accept;
+  finally
+    if not ok then
+      ShutDownH;
   end;
-  if Not A then
-    ShutDownH;
 end;
 
 function TInetServer.Accept: Longint;
@@ -1297,7 +1320,7 @@ begin
   While (R=ESysEINTR) do
 {$ENDIF UNIX}
    begin
-   Result:=Sockets.fpAccept(Socket,@Faddr,@L);
+   Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(Socket,@Faddr,@L);
    R:=SocketError;
    end;
 {$ifdef Unix}
@@ -1325,7 +1348,7 @@ Var S : Longint;
 
 begin
   FFileName:=AFileName;
-  S:=Sockets.fpSocket(AF_UNIX,SOCK_STREAM,0);
+  S:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpSocket(AF_UNIX,SOCK_STREAM,0);
   If S=-1 then
     Raise ESocketError.Create(seCreationFailed,[AFileName])
   else
@@ -1345,7 +1368,7 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
-  If  Sockets.FpBind(Socket,@FUnixAddr,AddrLen)<>0 then
+  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpBind(Socket,@FUnixAddr,AddrLen)<>0 then
     Raise ESocketError.Create(seBindFailed,[FFileName]);
   FBound:=True;
 end;
@@ -1356,7 +1379,7 @@ Var L : longint;
 
 begin
   L:=Length(FFileName);
-  Result:=Sockets.fpAccept(Socket,@FUnixAddr,@L);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(Socket,@FUnixAddr,@L);
   If Result<0 then
     If SocketError=ESysEWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
@@ -1478,7 +1501,7 @@ begin
     Res:=fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   {$ifdef windows}
-    Res:=winsock2.select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
+    Res:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   if (Res=0) then
     Result:=ctrTimeout

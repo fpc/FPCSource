@@ -20,12 +20,19 @@
  *
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xlbx;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';

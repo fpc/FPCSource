@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_type;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes,
+     Sdo.BaseTypes, Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes,
      sdo_types, sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   VALUE_STATUS_LENGTH = 1;
@@ -485,8 +492,14 @@ type
   end;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Impl.Utils, Sdo.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_imp_utils, sdo_date_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { TSDOTypeAsbtract }
@@ -734,7 +747,7 @@ end;
 constructor TSDOCharacterType.Create(const AOwner : ISDODataFactory);
 begin
   inherited Create(AOwner, 'Character',sdo_namespace);
-  setAlias('Char');
+  setAlias('AnsiChar');
   setAlias('WideChar');
   setAlias('AnsiChar');
 end;

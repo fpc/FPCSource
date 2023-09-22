@@ -178,7 +178,7 @@ function gnome_dock_item_get_type:TGTKType;cdecl;external libgnomeuidll name 'gn
 function gnome_dock_item_new(name:Pgchar; behavior:TGnomeDockItemBehavior):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dock_item_new';
 procedure gnome_dock_item_construct(new_dock_item:PGnomeDockItem; name:Pgchar; behavior:TGnomeDockItemBehavior);cdecl;external libgnomeuidll name 'gnome_dock_item_construct';
 function gnome_dock_item_get_child(dock_item:PGnomeDockItem):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dock_item_get_child';
-function gnome_dock_item_get_name(dock_item:PGnomeDockItem):Pchar;cdecl;external libgnomeuidll name 'gnome_dock_item_get_name';
+function gnome_dock_item_get_name(dock_item:PGnomeDockItem):PAnsiChar;cdecl;external libgnomeuidll name 'gnome_dock_item_get_name';
 procedure gnome_dock_item_set_shadow_type(dock_item:PGnomeDockItem; thetype:TGtkShadowType);cdecl;external libgnomeuidll name 'gnome_dock_item_set_shadow_type';
 function gnome_dock_item_get_shadow_type(dock_item:PGnomeDockItem):TGtkShadowType;cdecl;external libgnomeuidll name 'gnome_dock_item_get_shadow_type';
 function gnome_dock_item_set_orientation(dock_item:PGnomeDockItem; orientation:TGtkOrientation):gboolean;cdecl;external libgnomeuidll name 'gnome_dock_item_set_orientation';
@@ -226,7 +226,7 @@ function gnome_dock_band_get_num_children(band:PGnomeDockBand):guint;cdecl;exter
 procedure gnome_dock_band_drag_begin(band:PGnomeDockBand; item:PGnomeDockItem);cdecl;external libgnomeuidll name 'gnome_dock_band_drag_begin';
 function gnome_dock_band_drag_to(band:PGnomeDockBand; item:PGnomeDockItem; x:gint; y:gint):gboolean;cdecl;external libgnomeuidll name 'gnome_dock_band_drag_to';
 procedure gnome_dock_band_drag_end(band:PGnomeDockBand; item:PGnomeDockItem);cdecl;external libgnomeuidll name 'gnome_dock_band_drag_end';
-function gnome_dock_band_get_item_by_name(band:PGnomeDockBand; name:Pchar; position_return:Pguint; offset_return:Pguint):PGnomeDockItem;cdecl;external libgnomeuidll name 'gnome_dock_band_get_item_by_name';
+function gnome_dock_band_get_item_by_name(band:PGnomeDockBand; name:PAnsiChar; position_return:Pguint; offset_return:Pguint):PGnomeDockItem;cdecl;external libgnomeuidll name 'gnome_dock_band_get_item_by_name';
 procedure gnome_dock_band_layout_add(band:PGnomeDockBand; layout:PGnomeDockLayout; placement:TGnomeDockPlacement; band_num:guint);cdecl;external libgnomeuidll name 'gnome_dock_band_layout_add';
 
 function GNOME_TYPE_DOCK : TGTKType;

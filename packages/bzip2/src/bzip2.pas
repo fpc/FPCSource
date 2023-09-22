@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bzip2;
+{$ENDIF FPC_DOTTEDUNITS}
 {****************************************************************************
 
                              BZIP2 decompression unit
@@ -26,7 +28,11 @@ interface
 
 {$goto on}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Objects, System.Bzip2comn;
+{$ELSE FPC_DOTTEDUNITS}
 uses objects, bzip2comn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
       Tbzip2_decode_stream=object(Tstream)
@@ -97,8 +103,8 @@ implementation
 
 constructor Tbzip2_decode_stream.init(Areadstream:Pstream);
 
-var magic:array[1..3] of char;
-    c:char;
+var magic:array[1..3] of AnsiChar;
+    c:AnsiChar;
 
 begin
   readstream:=Areadstream;
@@ -511,13 +517,13 @@ function Tbzip2_decode_stream.decode_block:boolean;
 
 {Decode a new compressed block.}
 
-var magic:array[1..6] of char;
+var magic:array[1..6] of AnsiChar;
     stored_blockcrc:cardinal;
     i:byte;
 
 begin
   for i:=1 to 6 do
-    magic[i]:=char(get_byte);
+    magic[i]:=AnsiChar(get_byte);
   if magic='1AY&SY' then
     begin
       inc(current_block);

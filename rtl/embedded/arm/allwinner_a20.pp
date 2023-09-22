@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit allwinner_a20;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 

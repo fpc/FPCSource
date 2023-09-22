@@ -42,7 +42,9 @@
 
 // $Id: JwaWS2tcpip.pas,v 1.12 2007/09/05 11:58:53 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWS2tcpip;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaWS2tcpip;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -467,7 +474,7 @@ type
     ai_socktype: Integer;    // SOCK_xxx
     ai_protocol: Integer;    // 0 or IPPROTO_xxx for IPv4 and IPv6
     ai_addrlen: size_t;  // Length of ai_addr
-    ai_canonname: PChar; // Canonical name for nodename
+    ai_canonname: PAnsiChar; // Canonical name for nodename
     ai_addr: PSockAddr;  // Binary address
     ai_next: LPADDRINFO;  // Next structure in linked list
   end;
@@ -485,7 +492,7 @@ const
   AI_NUMERICHOST = $4; // Nodename must be a numeric address string
   {$EXTERNALSYM AI_NUMERICHOST}
 
-function getaddrinfo(nodename, servname: PChar; hints: PAddrInfo; var res: PAddrInfo): Integer; stdcall;
+function getaddrinfo(nodename, servname: PAnsiChar; hints: PAddrInfo; var res: PAddrInfo): Integer; stdcall;
 {$EXTERNALSYM getaddrinfo}
 
 procedure freeaddrinfo(ai: PAddrInfo); stdcall;
@@ -501,7 +508,7 @@ const
   GAI_STRERROR_BUFFER_SIZE = 1024;
   {$EXTERNALSYM GAI_STRERROR_BUFFER_SIZE}
 
-function gai_strerrorA(ecode: Integer): PChar;
+function gai_strerrorA(ecode: Integer): PAnsiChar;
 {$EXTERNALSYM gai_strerrorA}
 function gai_strerrorW(ecode: Integer): PWideChar;
 {$EXTERNALSYM gai_strerrorW}
@@ -512,7 +519,7 @@ type
   socklen_t = Integer;
   {$EXTERNALSYM socklen_t}
 
-function getnameinfo(sa: PSockAddr; salen: socklen_t; host: PChar; hostlen: DWORD; serv: PChar; servlen: DWORD; flags: Integer): Integer; stdcall;
+function getnameinfo(sa: PSockAddr; salen: socklen_t; host: PAnsiChar; hostlen: DWORD; serv: PAnsiChar; servlen: DWORD; flags: Integer): Integer; stdcall;
 {$EXTERNALSYM getnameinfo}
 
 const
@@ -542,8 +549,13 @@ const
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, JwaWinBase, JwaWinNT;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
@@ -683,19 +695,19 @@ begin
 end;
 
 var
-  gai_strerror_buffA: array [0..GAI_STRERROR_BUFFER_SIZE-1] of Char;
+  gai_strerror_buffA: array [0..GAI_STRERROR_BUFFER_SIZE-1] of AnsiChar;
   gai_strerror_buffW: array [0..GAI_STRERROR_BUFFER_SIZE-1] of WideChar;
 
-function gai_strerrorA(ecode: Integer): PChar;
+function gai_strerrorA(ecode: Integer): PAnsiChar;
 var
   dwMsgLen: DWORD;
 begin
   dwMsgLen := FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM or FORMAT_MESSAGE_IGNORE_INSERTS or FORMAT_MESSAGE_MAX_WIDTH_MASK,
-    nil, ecode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), PChar(@gai_strerror_buffA[0]), GAI_STRERROR_BUFFER_SIZE, nil);
+    nil, ecode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), PAnsiChar(@gai_strerror_buffA[0]), GAI_STRERROR_BUFFER_SIZE, nil);
   if dwMsgLen = 0 then
     Result := nil
   else
-    Result := PChar(@gai_strerror_buffA[0]);
+    Result := PAnsiChar(@gai_strerror_buffA[0]);
 end;
 
 function gai_strerrorW(ecode: Integer): PWideChar;

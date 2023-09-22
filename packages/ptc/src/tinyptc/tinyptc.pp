@@ -1,17 +1,24 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TinyPTC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
 interface
 
-function ptc_open(const ATitle: string; AWidth, AHeight: Integer): Boolean;
+function ptc_open(const ATitle: AnsiString; AWidth, AHeight: Integer): Boolean;
 function ptc_update(ABuffer: Pointer): Boolean;
 procedure ptc_close;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Ptc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, ptc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   Console: TPTCConsole = nil;
@@ -19,7 +26,7 @@ var
   Palette: TPTCPalette = nil;
   Width, Height: Integer;
 
-function ptc_open(const ATitle: string; AWidth, AHeight: Integer): Boolean;
+function ptc_open(const ATitle: AnsiString; AWidth, AHeight: Integer): Boolean;
 begin
   try
     if Console = nil then

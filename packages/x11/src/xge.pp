@@ -23,14 +23,21 @@
  * Authors: Peter Hutterer, University of South Australia, NICTA
  *
  *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xge;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXge = 'Xext';

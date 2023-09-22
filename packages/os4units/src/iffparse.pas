@@ -14,12 +14,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iffparse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Clipboard, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, clipboard, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 // Struct associated with an active IFF stream. "iff_Stream" is a value used by the client's read/write/seek functions -
@@ -152,7 +159,7 @@ const
   IFFCMD_PURGELCI = 7; // Purge a LocalContextItem
 
 const
-  IFFPARSENAME: PChar = 'iffparse.library';
+  IFFPARSENAME: PAnsiChar = 'iffparse.library';
 
 var
   IFFParseBase: PLibrary = nil;
@@ -203,11 +210,11 @@ function GoodID(ID: LongInt): LongInt; syscall IIFFParse 224;
 function GoodType(Type_: LongInt): LongInt; syscall IIFFParse 228;
 function IDtoStr(ID: LongInt; Buf: STRPTR): STRPTR; syscall IIFFParse 232;
 
-function Make_ID(Str: string): LongWord;
+function Make_ID(Str: shortstring): LongWord;
 
 implementation
 
-function Make_ID(Str: string): LongWord;
+function Make_ID(Str: shortstring): LongWord;
 begin
   Make_ID := 0;
   if Length(Str) >= 4 then

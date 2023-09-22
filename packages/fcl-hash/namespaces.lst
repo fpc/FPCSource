@@ -1,0 +1,12 @@
+src/onetimepass.pp=namespaced/System.Hash.Onetimepass.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/fptlsbigint.pas=namespaced/System.Hash.Tlsbigint.pas
+src/fpsha512.pp=namespaced/System.Hash.Sha512.pp
+src/fpecc.pp=namespaced/System.Hash.Ecc.pp
+src/fpsha256.pp=namespaced/System.Hash.Sha256.pp
+src/fprsa.pas=namespaced/System.Hash.Rsa.pas
+src/fppem.pp=namespaced/System.Hash.Pem.pp
+src/fphashutils.pp=namespaced/System.Hash.Utils.pp
+src/fpecdsa.pp=namespaced/System.Hash.Ecdsa.pp
+src/fpasn.pp=namespaced/System.Hash.Asn.pp

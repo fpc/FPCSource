@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit major;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {

@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit consoleio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     History:
@@ -36,7 +38,11 @@ unit consoleio;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Console, Amiga.Core.Amigalib, Amiga.Core.Conunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition, console, amigalib, conunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 TYPE
     tConsoleSet = record
@@ -45,7 +51,7 @@ TYPE
                      WriteRequest,
                      ReadRequest : pIOStdReq;
                      Window     : pWindow; { not yet used }
-                     Buffer     : Char;
+                     Buffer     : AnsiChar;
                  end;
     pConsoleSet = ^tConsoleSet;
 
@@ -57,18 +63,18 @@ dealing with windows.  They are pulled from the ROM Kernel Manual.
 See ConsoleTest.p for an example of using these routines.
 }
 
-Procedure ConPutChar(Request : pIOStdReq; Character : Char);
-Procedure ConWrite(Request : pIOStdReq; Str : pchar; length : longint);
-Procedure ConPutStr(Request : pIOStdReq; Str : pchar);
-Procedure QueueRead(Request : pIOStdReq; Where : pchar);
+Procedure ConPutChar(Request : pIOStdReq; Character : AnsiChar);
+Procedure ConWrite(Request : pIOStdReq; Str : PAnsiChar; length : longint);
+Procedure ConPutStr(Request : pIOStdReq; Str : PAnsiChar);
+Procedure QueueRead(Request : pIOStdReq; Where : PAnsiChar);
 Function ConGetChar(consolePort : pMsgPort; Request : pIOStdReq;
-                        WhereTo : pchar) : Char;
+                        WhereTo : PAnsiChar) : AnsiChar;
 Procedure CleanSet(con : pConsoleSet);
 Function AttachConsole(w : pWindow) : pConsoleSet;
-Function ReadKey(con : pConsoleSet) : Char;
+Function ReadKey(con : pConsoleSet) : AnsiChar;
 Function KeyPressed(con : pConsoleSet) : Boolean;
-Procedure WriteString(con : pConsoleSet; Str : Pchar);
-Procedure WriteString(con : pConsoleSet; Str : string);
+Procedure WriteString(con : pConsoleSet; Str : PAnsiChar);
+Procedure WriteString(con : pConsoleSet; Str : ShortString);
 Function MaxX(con : pConsoleSet) : smallint;
 Function MaxY(con : pConsoleSet) : smallint;
 Function WhereX(con : pConsoleSet) : smallint;
@@ -81,7 +87,7 @@ Procedure ClrScr(con : pConsoleSet);
 Procedure CursOff(con : pConsoleSet);
 Procedure CursOn(con : pConsoleSet);
 Procedure DelLine(con : pConsoleSet);
-Function LongToStr (I : smallint) : String;
+Function LongToStr (I : smallint) : ShortString;
 Procedure GotoXY(con : pConsoleSet; x,y : smallint);
 Procedure InsLine(con : pConsoleSet);
 Procedure OpenConsoleDevice;
@@ -89,7 +95,7 @@ Procedure CloseConsoleDevice;
 
 implementation
 
-Procedure ConPutChar(Request : pIOStdReq; Character : Char);
+Procedure ConPutChar(Request : pIOStdReq; Character : AnsiChar);
 var
     Error : longint;
 begin
@@ -99,7 +105,7 @@ begin
     Error := DoIO(pIORequest(Request));
 end;
 
-Procedure ConWrite(Request : pIOStdReq; Str : pchar; length : longint);
+Procedure ConWrite(Request : pIOStdReq; Str : PAnsiChar; length : longint);
 var
    Error : longint;
 begin
@@ -109,7 +115,7 @@ begin
     Error := DoIO(pIORequest(Request));
 end;
 
-Procedure ConPutStr(Request : pIOStdReq; Str : pchar);
+Procedure ConPutStr(Request : pIOStdReq; Str : PAnsiChar);
 var
     Error : longint;
 begin
@@ -119,7 +125,7 @@ begin
     Error := DoIO(pIORequest(Request));
 end;
 
-Procedure QueueRead(Request : pIOStdReq; Where : pchar);
+Procedure QueueRead(Request : pIOStdReq; Where : PAnsiChar);
 begin
     Request^.io_Command := CMD_READ;
     Request^.io_Data := Where;
@@ -128,9 +134,9 @@ begin
 end;
 
 Function ConGetChar(consolePort : pMsgPort; Request : pIOStdReq;
-                        WhereTo : pchar) : Char;
+                        WhereTo : PAnsiChar) : AnsiChar;
 var
-    Temp : Char;
+    Temp : AnsiChar;
     TempMsg : pMessage;
 begin
     if GetMsg(consolePort) = Nil then begin
@@ -201,7 +207,7 @@ begin
     AttachConsole := Con;
 end;
 
-Function ReadKey(con : pConsoleSet) : Char;
+Function ReadKey(con : pConsoleSet) : AnsiChar;
 begin
     with con^ do
         ReadKey := ConGetChar(ReadPort, ReadRequest, Addr(Buffer));
@@ -213,14 +219,14 @@ begin
         KeyPressed := CheckIO(pIORequest(ReadRequest)) <> Nil;
 end;
 
-Procedure WriteString(con : pConsoleSet; Str : Pchar);
+Procedure WriteString(con : pConsoleSet; Str : PAnsiChar);
 begin
     ConPutStr(con^.WriteRequest, Str);
 end;
 
-Procedure WriteString(con : pConsoleSet; Str : string);
+Procedure WriteString(con : pConsoleSet; Str : ShortString);
 var
-    temp : string;
+    temp : ShortString;
 begin
     temp := Str;
     temp := temp + #0;
@@ -338,9 +344,9 @@ begin
     WriteString(con, CSI + 'M');
 end;
 
-Function LongToStr (I : smallint) : String;
+Function LongToStr (I : smallint) : ShortString;
 Var
-    S : String;
+    S : ShortString;
 begin
     Str (I,S);
     LongToStr:=S;
@@ -359,9 +365,9 @@ begin
     YRep := LongToStr(y);
     WriteString(con,CSI);
     WriteString(con,(YRep));
-    WriteString(con,string(';'));
+    WriteString(con,ShortString(';'));
     WriteString(con,(XRep));
-    WriteString(con,string('H'));
+    WriteString(con,ShortString('H'));
 end;
 
 

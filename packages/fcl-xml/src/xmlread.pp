@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLRead;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
 {$MODE objfpc}{$H+}
@@ -22,18 +24,23 @@ unit XMLRead;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Xml.Dom, Xml.Utils, Xml.Reader, Xml.TextReader;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DOM, xmlutils, xmlreader, xmltextreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TErrorSeverity = xmlreader.TErrorSeverity;
-  EXMLReadError = xmlreader.EXMLReadError;
-  TXMLInputSource = xmlreader.TXMLInputSource;
+  TErrorSeverity = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.TErrorSeverity;
+  EXMLReadError = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.EXMLReadError;
+  TXMLInputSource = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.TXMLInputSource;
 
 const
-  esWarning = xmlreader.esWarning;
-  esError = xmlreader.esError;
-  esFatal = xmlreader.esFatal;
+  esWarning = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.esWarning;
+  esError = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.esError;
+  esFatal = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.esFatal;
 
 procedure ReadXMLFile(out ADoc: TXMLDocument; const AFilename: String); overload;
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text); overload;
@@ -51,8 +58,8 @@ procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream); overload;
 procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String); overload;
 
 type
-  TXMLErrorEvent = xmlreader.TXMLErrorEvent;
-  TDOMParseOptions = xmlreader.TXMLReaderSettings;
+  TXMLErrorEvent = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.TXMLErrorEvent;
+  TDOMParseOptions = {$IFDEF FPC_DOTTEDUNITS}Xml.Reader{$ELSE}xmlreader{$ENDIF}.TXMLReaderSettings;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
   TXMLContextAction = (
@@ -78,8 +85,8 @@ type
     property OnError: TXMLErrorEvent read GetOnError write SetOnError;
   end;
 
-  TDecoder = xmltextreader.TDecoder;
-  TGetDecoderProc = xmltextreader.TGetDecoderProc;
+  TDecoder = {$IFDEF FPC_DOTTEDUNITS}Xml.TextReader{$ELSE}xmltextreader{$ENDIF}.TDecoder;
+  TGetDecoderProc = {$IFDEF FPC_DOTTEDUNITS}Xml.TextReader{$ELSE}xmltextreader{$ENDIF}.TGetDecoderProc;
 
 procedure RegisterDecoder(Proc: TGetDecoderProc);
 
@@ -87,8 +94,13 @@ procedure RegisterDecoder(Proc: TGetDecoderProc);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.UriParser, Xml.DtdModel;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   UriParser, dtdmodel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TLoader = object
@@ -106,7 +118,7 @@ type
 
 procedure RegisterDecoder(Proc: TGetDecoderProc);
 begin
-  xmltextreader.RegisterDecoder(Proc);
+  {$IFDEF FPC_DOTTEDUNITS}Xml.TextReader{$ELSE}xmltextreader{$ENDIF}.RegisterDecoder(Proc);
 end;
 
 { TDOMParser }

@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_field_imp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes,
+     Sdo.Types, Sdo.Base, Sdo.BaseTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes,
      sdo_types, sdo, sdo_type;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   BIT_ORDER_SET  = 1;
@@ -1294,8 +1301,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Impl.Utils, Sdo.DateUtils, System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_imp_utils, sdo_date_utils, Variants;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   FieldMAP : array[TSDOTypeKind] of ISDOField;

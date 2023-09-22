@@ -18,15 +18,23 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmfilewriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Chm.Writer, System.IniFiles, System.Contnrs, Chm.Sitemap, Fcl.AVLTree,
+  {for html scanning } Xml.Dom, Html.Sax, Html.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
   {for html scanning } dom,SAX_HTML,dom_html;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TChmProject = class;
@@ -130,7 +138,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.Config, Chm.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses XmlCfg, CHMTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -574,7 +586,7 @@ var
   Fini      : TMemIniFile;  // TMemInifile is more compatible with Delphi. Delphi's API based TIniFile fails on .hhp files.
   secs,strs : TStringList;
   i,j       : Integer;
-  section   : TSectionEnum;
+  _section  : TSectionEnum;
   nd        : TChmContextNode;
 
 begin
@@ -615,10 +627,10 @@ begin
 
   for i:=0 to secs.count-1 do
     begin
-      section:=FindSectionName(Uppercase(Secs[i]));
-      if section<>secunknown then
+      _section:=FindSectionName(Uppercase(Secs[i]));
+      if _section<>secunknown then
         fini.readsectionvalues(secs[i] ,strs);
-      case section of
+      case _section of
       secOptions   : readinioptions(strs);
       secWindows   : for j:=0 to strs.count-1 do
                        FWindows.add(TCHMWindow.Create(strs[j]));

@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -271,7 +272,7 @@ begin
 end;
 {$endif}
 
-function TBinaryObjectReader.ReadIdent(ValueType: TValueType): String;
+function TBinaryObjectReader.ReadIdent(ValueType: TValueType): RawByteString;
 var
   i: Byte;
 begin
@@ -353,7 +354,7 @@ begin
     raise EReadError.Create(SInvalidImage);
 end;
 
-function TBinaryObjectReader.ReadStr: String;
+function TBinaryObjectReader.ReadStr: RawByteString;
 var
   i: Byte;
 begin
@@ -363,7 +364,7 @@ begin
     Read(Pointer(@Result[1])^, i);
 end;
 
-function TBinaryObjectReader.ReadString(StringType: TValueType): String;
+function TBinaryObjectReader.ReadString(StringType: TValueType): RawByteString;
 var
   b: Byte;
   i: Integer;
@@ -549,7 +550,7 @@ begin
     CopyNow := FBufEnd - FBufPos;
     if CopyNow > Count then
       CopyNow := Count;
-    Move(PChar(FBuffer)[FBufPos], Dest^, CopyNow);
+    Move(PAnsiChar(FBuffer)[FBufPos], Dest^, CopyNow);
     Inc(FBufPos, CopyNow);
     Inc(Dest, CopyNow);
     Dec(Count, CopyNow);
@@ -637,7 +638,7 @@ begin
     // Try again with the parent class type
     ClassType := ClassType.ClassParent;
   end;
-  Result := Classes.GetClass(ClassName);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.GetClass(ClassName);
 end;
 
 
@@ -754,7 +755,7 @@ begin
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: string
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: RawBytestring
   ): CodePointer;
 var
   ErrorResult: Boolean;
@@ -867,7 +868,7 @@ begin
     raise EReadError.Create(SInvalidPropertyValue);
 end;
 
-function TReader.ReadChar: Char;
+function TReader.ReadChar: AnsiChar;
 var
   s: String;
 begin
@@ -1150,7 +1151,7 @@ begin
 end;
 {$endif}
 
-function TReader.ReadIdent: string;
+function TReader.ReadIdent: rawbytestring;
 var
   ValueType: TValueType;
 begin
@@ -1284,9 +1285,9 @@ end;
 
 procedure TReader.ReadProperty(AInstance: TPersistent);
 var
-  Path: String;
+  Path: RawByteString;
   Instance: TPersistent;
-  DotPos, NextPos: PChar;
+  DotPos, NextPos: PAnsiChar;
   PropInfo: PPropInfo;
   Obj: TObject;
   Name: String;
@@ -1295,17 +1296,25 @@ var
   OldPropName: String;
 
   function HandleMissingProperty(IsPath: Boolean): boolean;
+
+  Var
+    lPropName : String;
+
   begin
     Result:=true;
     if Assigned(OnPropertyNotFound) then begin
       // user defined property error handling
       OldPropName:=FPropName;
+      lPropName:=FPropName;
       Handled:=false;
       Skip:=false;
-      OnPropertyNotFound(Self,Instance,FPropName,IsPath,Handled,Skip);
-      if Handled and (not Skip) and (OldPropName<>FPropName) then
+      OnPropertyNotFound(Self,Instance,lPropName,IsPath,Handled,Skip);
+      if Handled and (not Skip) and (OldPropName<>lPropName) then
         // try alias property
+        begin
+        FPropName:=lPropName;
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
+        end;
       if Skip then begin
         FDriver.SkipValue;
         Result:=false;
@@ -1320,7 +1329,7 @@ begin
     try
       Instance := AInstance;
       FCanHandleExcepts := True;
-      DotPos := PChar(Path);
+      DotPos := PAnsiChar(Path);
       while True do
       begin
         NextPos := StrScan(DotPos, '.');
@@ -1396,10 +1405,12 @@ var
   PropType: PTypeInfo;
   Value: LongInt;
 {  IdentToIntFn: TIdentToInt; }
-  Ident: String;
+  Ident: RawByteString;
   Method: TMethod;
   Handled: Boolean;
   TmpStr: String;
+  uTmpStr : UnicodeString;
+
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1466,7 +1477,14 @@ begin
         SetStrProp(Instance, PropInfo, TmpStr);
       end;
     tkUstring:
-      SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
+      begin
+        uTmpStr:=ReadUnicodeString;
+{$IFDEF UNICODERTL}
+        if Assigned(FOnReadStringProperty) then
+          FOnReadStringProperty(Self,Instance,PropInfo,uTmpStr);
+{$ENDIF}
+        SetUnicodeStrProp(Instance,PropInfo,uTmpStr);
+      end;
     tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
     tkVariant:
@@ -1610,7 +1628,8 @@ begin
 end;
 
 
-function TReader.ReadString: string;
+function TReader.ReadString: rawbytestring;
+
 var
   StringType: TValueType;
 begin
@@ -1619,12 +1638,12 @@ begin
     begin
       Result := FDriver.ReadString(StringType);
       if (StringType=vaUTF8String) then
-        Result:=string(utf8Decode(Result));
+        Result:=rawbytestring(utf8Decode(Result));
     end
   else if StringType in [vaWString] then
-    Result:= string(FDriver.ReadWidestring)
+    Result:= rawbytestring(FDriver.ReadWidestring)
   else if StringType in [vaUString] then
-    Result:= string(FDriver.ReadUnicodeString)
+    Result:= rawbytestring(FDriver.ReadUnicodeString)
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
@@ -1632,7 +1651,7 @@ end;
 
 function TReader.ReadWideString: WideString;
 var
- s: String;
+ s: RawByteString;
  i: Integer;
  vt:TValueType;
 begin
@@ -1659,7 +1678,7 @@ end;
 
 function TReader.ReadUnicodeString: UnicodeString;
 var
- s: String;
+ s: RawByteString;
  i: Integer;
  vt:TValueType;
 begin
@@ -1763,7 +1782,7 @@ begin
   end;
 end;
 
-function TReader.FindComponentClass(const AName, anUnitName, AClassName: string
+function TReader.FindComponentClass(const AName, anUnitName, AClassName: rawbytestring
   ): TComponentClass;
 
 var
@@ -1802,7 +1821,11 @@ var
                 and PersistenClass.InheritsFrom(TComponent) then
               exit(TComponentClass(PersistenClass));
           end;
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
           FieldInfo := PFieldInfo(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+          FieldInfo := PFieldInfo(align(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name), sizeof(SizeUInt)));
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         end;
       end;
       // Try again with the parent class type

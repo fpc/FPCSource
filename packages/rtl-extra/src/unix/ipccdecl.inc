@@ -27,9 +27,9 @@ Function cmsgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint;  
 Function cmsgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;  cdecl; external;
 Function cmsgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;  cdecl; external;
 
-function cftok(path:Pchar; id:cint):key_t; cdecl; external;
+function cftok(path:PAnsiChar; id:cint):key_t; cdecl; external;
 
-function ftok(path:Pchar; id:cint):key_t;
+function ftok(path:PAnsiChar; id:cint):key_t;
 
 var st:stat;
 

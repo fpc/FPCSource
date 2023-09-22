@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XmlReader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TErrorSeverity = (esWarning, esError, esFatal);
@@ -51,22 +58,34 @@ type
     rsClosed
   );
 
+  { TXMLInputSource }
+  TInputSourceType = (istStream,istAnsi,istUnicode,istSystemID);
+
   TXMLInputSource = class(TObject)
   private
+    FInputSourceType: TInputSourceType;
     FStream: TStream;
-    FStringData: string;
+    FAnsiStringData : AnsiString;
+    FUnicodeStringData : UnicodeString;
     FBaseURI: XMLString;
     FSystemID: XMLString;
     FPublicID: XMLString;
+    function GetStringData: String;
+    procedure SetSystemID(AValue: XMLString);
 //    FEncoding: string;
   public
     constructor Create(AStream: TStream); overload;
-    constructor Create(const AStringData: string); overload;
+    constructor Create(const AStringData: AnsiString); overload;
+    constructor Create(const AStringData: UnicodeString); overload;
+
     property Stream: TStream read FStream;
-    property StringData: string read FStringData;
+    property AnsiStringData: AnsiString read FAnsiStringData;
+    property UnicodeStringData: UnicodeString read FUnicodeStringData;
+//    property StringData: String read GetStringData; deprecated 'Use AnsiStringData or UnicodeStringData';
     property BaseURI: XMLString read FBaseURI write FBaseURI;
-    property SystemID: XMLString read FSystemID write FSystemID;
+    property SystemID: XMLString read FSystemID write SetSystemID;
     property PublicID: XMLString read FPublicID write FPublicID;
+    Property InputSourceType : TInputSourceType Read FInputSourceType;
 //    property Encoding: string read FEncoding write FEncoding;
   end;
 
@@ -189,16 +208,41 @@ end;
 
 { TXMLInputSource }
 
+function TXMLInputSource.GetStringData: String;
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UnicodeStringData
+{$ELSE}
+  Result:=AnsiStringData
+{$ENDIF}
+end;
+
+procedure TXMLInputSource.SetSystemID(AValue: XMLString);
+begin
+  if FSystemID=AValue then Exit;
+  FSystemID:=AValue;
+  FInputSourceType:=istSystemID;
+end;
+
 constructor TXMLInputSource.Create(AStream: TStream);
 begin
   inherited Create;
   FStream := AStream;
+  FInputSourceType:=istStream;
 end;
 
-constructor TXMLInputSource.Create(const AStringData: string);
+constructor TXMLInputSource.Create(const AStringData: AnsiString);
 begin
   inherited Create;
-  FStringData := AStringData;
+  FAnsiStringData:=aStringData;
+  FInputSourceType:=istAnsi;
+end;
+
+constructor TXMLInputSource.Create(const AStringData: UnicodeString);
+begin
+  inherited Create;
+  FUnicodeStringData:=aStringData;
+  FInputSourceType:=istUnicode;
 end;
 
 { TXMLReaderSettings }

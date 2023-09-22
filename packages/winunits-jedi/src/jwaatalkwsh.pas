@@ -42,7 +42,9 @@
 
 // $Id: JwaAtalkWsh.pas,v 1.9 2007/09/05 11:58:48 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAtalkWsh;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -56,8 +58,13 @@ interface
 {$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -226,12 +233,12 @@ const
 
 type
   WSH_NBP_NAME = record
-    ObjectNameLen: CHAR;
-    ObjectName: array [0..MAX_ENTITY - 1] of CHAR;
-    TypeNameLen: CHAR;
-    TypeName: array [0..MAX_ENTITY - 1] of CHAR;
-    ZoneNameLen: CHAR;
-    ZoneName: array [0..MAX_ENTITY - 1] of CHAR;
+    ObjectNameLen: AnsiChar;
+    ObjectName: array [0..MAX_ENTITY - 1] of AnsiChar;
+    TypeNameLen: AnsiChar;
+    TypeName: array [0..MAX_ENTITY - 1] of AnsiChar;
+    ZoneNameLen: AnsiChar;
+    ZoneName: array [0..MAX_ENTITY - 1] of AnsiChar;
   end;
   {$EXTERNALSYM WSH_NBP_NAME}
   PWSH_NBP_NAME = ^WSH_NBP_NAME;
@@ -272,7 +279,7 @@ type
   _WSH_LOOKUP_ZONES = record
     NoZones: ULONG;
     //
-    //  CHAR    Zones[] - null separated zones
+    //  AnsiChar    Zones[] - null separated zones
     //
   end;
   {$EXTERNALSYM _WSH_LOOKUP_ZONES}

@@ -19,7 +19,9 @@
    Boston, MA 02110-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtk;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 { Always use smartlinking for win32, this solves some undefined functions
@@ -32,8 +34,13 @@ interface
 
 {$mode objfpc} { needed for array of const }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk1.Glib,Api.Gtk1.Gdk;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib,gdk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win32}
   const

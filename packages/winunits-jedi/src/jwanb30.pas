@@ -43,7 +43,9 @@
 // $Id: JwaNb30.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaNb30;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -59,8 +61,13 @@ unit JwaNb30;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -91,19 +98,19 @@ type
     ncb_retcode: UCHAR;  // return code
     ncb_lsn: UCHAR;      // local session number
     ncb_num: UCHAR;      // number of our network name
-    ncb_buffer: PChar;   // address of message buffer
+    ncb_buffer: PAnsiChar;   // address of message buffer
     ncb_length: Word;    // size of message buffer
-    ncb_callname: array [0..NCBNAMSZ - 1] of Char; // blank-padded name of remote
-    ncb_name: array [0..NCBNAMSZ - 1] of Char;     // our blank-padded netname
+    ncb_callname: array [0..NCBNAMSZ - 1] of AnsiChar; // blank-padded name of remote
+    ncb_name: array [0..NCBNAMSZ - 1] of AnsiChar;     // our blank-padded netname
     ncb_rto: UCHAR;      // rcv timeout/retry count
     ncb_sto: UCHAR;      // send timeout/sys timeout
     ncb_post: TNcbPost;  // POST routine address
     ncb_lana_num: UCHAR; // lana (adapter) number
     ncb_cmd_cplt: UCHAR; // 0xff => commmand pending
     {$IFDEF WIN64}
-    ncb_reserve: array [0..17] of Char; // reserved, used by BIOS
+    ncb_reserve: array [0..17] of AnsiChar; // reserved, used by BIOS
     {$ELSE}
-    ncb_reserve: array [0..9] of Char;  // reserved, used by BIOS
+    ncb_reserve: array [0..9] of AnsiChar;  // reserved, used by BIOS
     {$ENDIF WIN64}
     ncb_event: HANDLE;   // HANDLE to Win32 event which
                          // will be set to the signalled
@@ -158,7 +165,7 @@ type
   PAdapterStatus = PADAPTER_STATUS;
 
   _NAME_BUFFER = record
-    name: array [0..NCBNAMSZ - 1] of Char;
+    name: array [0..NCBNAMSZ - 1] of AnsiChar;
     name_num: UCHAR;
     name_flags: UCHAR;
   end;

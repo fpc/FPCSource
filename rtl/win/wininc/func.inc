@@ -208,7 +208,7 @@ function SetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL
 function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external 'kernel32' name 'SetCommMask';
 function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32' name 'SetCommState';
 function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'SetCommTimeouts';
-function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external 'kernel32' name 'TransmitCommChar';
+function TransmitCommChar(hFile:HANDLE; cChar:AnsiChar):WINBOOL; external 'kernel32' name 'TransmitCommChar';
 function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WaitCommEvent';
 function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;bImmediate:WINBOOL):DWORD; external 'kernel32' name 'SetTapePosition';
 function GetTapePosition(hDevice:HANDLE; dwPositionType:DWORD; lpdwPartition:LPDWORD; lpdwOffsetLow:LPDWORD; lpdwOffsetHigh:LPDWORD):DWORD; external 'kernel32' name 'GetTapePosition';
@@ -1439,7 +1439,7 @@ end;
 
 procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
 begin
-  FillChar(Destination^,Length,Char(Fill));
+  FillChar(Destination^,Length,AnsiChar(Fill));
 end;
 
 

@@ -22,11 +22,17 @@ The PNM (Portable aNyMaps) is a generic name for :
 There is normally no file format associated  with PNM itself.}
 
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPNM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   BufSize = 1024;
@@ -42,9 +48,9 @@ type
       FHeight     : Integer;
       FBufPos : Integer;
       FBufLen : Integer;
-      FBuffer : Array of char;
-      function DropWhiteSpaces(Stream: TStream): Char;
-      function ReadChar(Stream: TStream): Char;
+      FBuffer : Array of AnsiChar;
+      function DropWhiteSpaces(Stream: TStream): AnsiChar;
+      function ReadChar(Stream: TStream): AnsiChar;
       function ReadInteger(Stream: TStream): Integer;
       procedure ReadScanlineBuffer(Stream: TStream;p:Pbyte;Len:Integer);
     protected
@@ -52,7 +58,7 @@ type
       FBitPP        : Byte;
       FScanLineSize : Integer;
       FScanLine   : PByte;
-      procedure ReadHeader(Stream : TStream);
+      procedure ReadHeader(Stream : TStream); virtual;
       function  InternalCheck (Stream:TStream):boolean;override;
       procedure InternalRead(Stream:TStream;Img:TFPCustomImage);override;
       procedure ReadScanLine(Row : Integer; Stream:TStream);
@@ -70,7 +76,7 @@ const
 
 function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
 var
-  hdr: array[0..2] of char;
+  hdr: array[0..2] of AnsiChar;
   oldPos: Int64;
   i,n: Integer;
 begin
@@ -93,7 +99,7 @@ begin
   end;
 end;
 
-function TFPReaderPNM.DropWhiteSpaces(Stream : TStream) :Char;
+function TFPReaderPNM.DropWhiteSpaces(Stream : TStream) :AnsiChar;
 
 begin
   with Stream do
@@ -145,7 +151,7 @@ begin
     Stream.ReadBuffer(p^,len);
 end;
 
-function TFPReaderPNM.ReadChar(Stream: TStream): Char;
+Function TFPReaderPNM.ReadChar(Stream : TStream) : AnsiChar;
 
 begin
   If (FBufPos>=FBufLen) then
@@ -164,7 +170,7 @@ end;
 procedure TFPReaderPNM.ReadHeader(Stream : TStream);
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   C:=ReadChar(Stream);

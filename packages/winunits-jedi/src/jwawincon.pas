@@ -43,7 +43,9 @@
 // $Id: JwaWinCon.pas,v 1.12 2007/09/05 11:58:53 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinCon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -60,8 +62,13 @@ unit JwaWinCon;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
@@ -97,7 +104,7 @@ type
   TCharUnion = record
     case Integer of
       0: (UnicodeChar: WCHAR);
-      1: (AsciiChar: CHAR);
+      1: (AsciiChar: AnsiChar);
   end;
 
   PKEY_EVENT_RECORD = ^KEY_EVENT_RECORD;
@@ -523,7 +530,7 @@ function WriteConsoleOutputAttribute(hConsoleOutput: HANDLE; lpAttribute: PWORD;
   nLength: DWORD; dwWriteCoord: COORD; var lpNumberOfAttrsWritten: DWORD): BOOL; stdcall;
 {$EXTERNALSYM WriteConsoleOutputAttribute}
 
-function FillConsoleOutputCharacterA(hConsoleOutput: HANDLE; cCharacter: CHAR;
+function FillConsoleOutputCharacterA(hConsoleOutput: HANDLE; cCharacter: AnsiChar;
   nLength: DWORD; dwWriteCoord: COORD; var lpNumberOfCharsWritten: DWORD): BOOL; stdcall;
 {$EXTERNALSYM FillConsoleOutputCharacterA}
 function FillConsoleOutputCharacterW(hConsoleOutput: HANDLE; cCharacter: WCHAR;

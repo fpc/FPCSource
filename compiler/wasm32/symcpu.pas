@@ -60,6 +60,16 @@ type
   tcpuerrordefclass = class of tcpuerrordef;
 
   tcpupointerdef = class(tpointerdef)
+  protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+  public
+    { flag, indicating whether the pointer is a WebAssembly externref reference type }
+    is_wasm_externref: boolean;
+    constructor create_externref(def: tdef);
+    function getcopy: tstoreddef; override;
+    function GetTypeName: string; override;
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -107,9 +117,14 @@ type
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
+    promising_first_export_name: string;
+    promising_last_export_name: string;
     destructor destroy; override;
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
+    function suspending_wrapper_name: ansistring;
+    function promising_wrapper_name(last:boolean): ansistring;
+    procedure add_promising_export(aextname: ansistring;last:boolean);
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -196,6 +211,14 @@ type
 const
   pbestrealtype : ^tdef = @s64floattype;
 
+  {# Returns true if p is a WebAssembly funcref reference type }
+  function is_wasm_funcref(p : tdef): boolean;
+
+  {# Returns true if p is a WebAssembly externref reference type }
+  function is_wasm_externref(p : tdef): boolean;
+
+  {# Returns true if p is a WebAssembly reference type (funcref or externref) }
+  function is_wasm_reference_type(p : tdef): boolean;
 
 implementation
 
@@ -209,6 +232,21 @@ implementation
     tgcpu
     ;
 
+  function is_wasm_funcref(p: tdef): boolean;
+    begin
+      result:=(p.typ=procvardef) and (po_wasm_funcref in tprocvardef(p).procoptions);
+    end;
+
+  function is_wasm_externref(p: tdef): boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).is_wasm_externref);
+    end;
+
+  function is_wasm_reference_type(p: tdef): boolean;
+    begin
+      result:=is_wasm_funcref(p) or is_wasm_externref(p);
+    end;
+
 
   {****************************************************************************
                                tcpuproptertysym
@@ -219,6 +257,53 @@ implementation
 {****************************************************************************
                              tcpuenumdef
 ****************************************************************************}
+
+
+{****************************************************************************
+                             tcpupointerdef
+****************************************************************************}
+
+
+  procedure tcpupointerdef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      is_wasm_externref:=ppufile.getboolean;
+    end;
+
+
+  procedure tcpupointerdef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putboolean(is_wasm_externref);
+    end;
+
+
+  constructor tcpupointerdef.create_externref(def: tdef);
+    begin
+      inherited create(def);
+      is_wasm_externref:=true;
+    end;
+
+
+  function tcpupointerdef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpupointerdef(result).is_wasm_externref:=is_wasm_externref;
+    end;
+
+
+  function tcpupointerdef.GetTypeName: string;
+    begin
+      result:=inherited;
+      if is_wasm_externref then
+        result:=result+';wasmexternref';
+    end;
+
+
+  function tcpupointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=tcpupointerdef(ptr).is_wasm_externref=is_wasm_externref;
+    end;
 
 
 {****************************************************************************
@@ -239,7 +324,11 @@ implementation
           for i:=0 to pd.paras.Count-1 do
             begin
               prm := tcpuparavarsym(pd.paras[i]);
-              case prm.paraloc[callerside].Size of
+              if is_wasm_funcref(prm.vardef) then
+                result.add_param(wbt_funcref)
+              else if is_wasm_externref(prm.vardef) then
+                result.add_param(wbt_externref)
+              else case prm.paraloc[callerside].Size of
                 OS_8..OS_32, OS_S8..OS_S32:
                   result.add_param(wbt_i32);
                 OS_64, OS_S64:
@@ -264,16 +353,7 @@ implementation
         begin
           if not defToWasmBasic(pd.returndef,bt) then
             bt:=wbt_i32;
-          case bt of
-            wbt_i64:
-              result.add_result(wbt_i64);
-            wbt_f32:
-              result.add_result(wbt_f32);
-            wbt_f64:
-              result.add_result(wbt_f64);
-          else
-            result.add_result(wbt_i32);
-          end;
+          result.add_result(bt);
         end;
     end;
 
@@ -294,6 +374,41 @@ implementation
   function tcpuprocdef.is_pushleftright: boolean;
     begin
       Result:=true;
+    end;
+
+
+  function tcpuprocdef.suspending_wrapper_name: ansistring;
+    begin
+      Result:='__fpc_wasm_suspending_'+procsym.realname;
+    end;
+
+
+  function tcpuprocdef.promising_wrapper_name(last: boolean): ansistring;
+    begin
+      if last then
+        Result:='__fpc_wasm_promising_last_'+procsym.realname
+      else
+        Result:='__fpc_wasm_promising_first_'+procsym.realname;
+    end;
+
+
+  procedure tcpuprocdef.add_promising_export(aextname: ansistring; last: boolean);
+    begin
+      if (synthetickind<>tsk_none) and (synthetickind<>tsk_wasm_promising) then
+        internalerror(2023061301);
+      synthetickind:=tsk_wasm_promising;
+      if last then
+        begin
+          if promising_last_export_name<>'' then
+            internalerror(2023061601);
+          promising_last_export_name:=aextname;
+        end
+      else
+        begin
+          if promising_first_export_name<>'' then
+            internalerror(2023061602);
+          promising_first_export_name:=aextname;
+        end;
     end;
 
 
@@ -328,7 +443,11 @@ implementation
     function tcpustaticvarsym.try_get_wasm_global_vardef_type(out res: TWasmBasicType): Boolean;
       begin
         Result:=True;
-        if is_64bitint(vardef) then
+        if is_wasm_externref(vardef) then
+          res:=wbt_externref
+        else if is_wasm_funcref(vardef) then
+          res:=wbt_funcref
+        else if is_64bitint(vardef) then
           res:=wbt_i64
         else if is_pointer(vardef) then
           res:=wbt_i32

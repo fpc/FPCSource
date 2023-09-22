@@ -40,7 +40,7 @@ var
   transitions  : PInt64 = nil;
   type_idxs    : pbyte = Nil;
   types        : pttinfo = Nil;
-  zone_names   : pchar = Nil;
+  zone_names   : PAnsiChar = Nil;
   leaps        : pleap = Nil;
 
 function find_transition(timer:int64;timerIsUTC:Boolean;var trans_start,trans_end:int64):pttinfo;
@@ -138,7 +138,7 @@ end;
 procedure DoGetLocalTimezoneEx(timer:int64;info:pttinfo;var ATZInfoEx:TTZInfoEx);
 var
   i : longint;
-  names: array[Boolean] of pchar;
+  names: array[Boolean] of PAnsiChar;
 begin
   names[true]:=nil;
   names[false]:=nil;
@@ -489,7 +489,7 @@ Const
 
 {$ifndef FPC_HAS_GETTIMEZONEFILE}
 
-function GetTimezoneFile:shortstring;
+function GetTimezoneFile:string;
 var
   f,len : longint;
   fn,s : shortstring;

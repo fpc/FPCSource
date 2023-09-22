@@ -33,7 +33,7 @@ begin
   Writeln('ParamCount          : ',ParamCount);
   For I:=0 to ParamCount do
     Writeln('Params [',I:3,']        : ',Params[i]);
-  Writeln('Option char         : ',OptionChar);
+  Writeln('Option AnsiChar         : ',OptionChar);
   Writeln('Case sensitive opts : ',CaseSensitiveOptions);
   Writeln('StopOnException     : ',StopOnException);
   Writeln('----------------------------------------');

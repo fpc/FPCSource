@@ -1,0 +1,3 @@
+src/libtar.pp=namespaced/Libx.Libtar.pp
+{s*:src/}=namespaced/
+{i+:src/}

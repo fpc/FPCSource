@@ -28,7 +28,9 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mmsystem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
@@ -38,7 +40,11 @@ unit mmsystem;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Mmreg;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, mmreg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS 1} // #include "pshpack1.h"   // Assume byte packing throughout
 
@@ -809,7 +815,7 @@ type
        wMid:word;                  //* manufacturer ID */
        wPid:word;                  //* product ID */
        vDriverVersion:MMVERSION;        //* version of the driver */
-       szPname:array[0..MAXPNAMELEN-1] of char;  //* product name (NULL terminated string) */
+       szPname:array[0..MAXPNAMELEN-1] of AnsiChar;  //* product name (NULL terminated string) */
        wTechnology:word;           //* type of device */
        wVoices:word;               //* # of voices (internal synth only) */
        wNotes:word;                //* max # of notes (internal synth only) */
@@ -889,7 +895,7 @@ type
        wMid:word;                  //* manufacturer ID */
        wPid:word;                  //* product ID */
        vDriverVersion:MMVERSION;        //* version of the driver */
-       szPname:array[0..MAXPNAMELEN-1] of char;  //* product name (NULL terminated string) */
+       szPname:array[0..MAXPNAMELEN-1] of AnsiChar;  //* product name (NULL terminated string) */
 //#if (WINVER >= 0x0400)
        dwSupport:DWORD;             //* functionality supported by driver */
 //#endif
@@ -1638,11 +1644,11 @@ const
       MMIOERR_INVALIDFILE         = MMIOERR_BASE + 16; //* default error file error */
 
 //* MMIO constants */
-      CFSEPCHAR       = '+';             //* compound file name separator char. */
+      CFSEPCHAR       = '+';             //* compound file name separator AnsiChar. */
 
 //* MMIO data types */
 type
-      HPSTR = ^char;          //* a huge version of LPSTR */
+      HPSTR = ^AnsiChar;          //* a huge version of LPSTR */
 
       HMMIO = HANDLE;                  //* a handle to an open file */
 

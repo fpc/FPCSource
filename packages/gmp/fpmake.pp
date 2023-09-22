@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T : TTarget;
@@ -32,6 +32,9 @@ begin
     T:=P.Targets.AddUnit('libgmp.pp');
 
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

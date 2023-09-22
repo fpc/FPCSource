@@ -1,9 +1,10 @@
 {$ifndef ALLPACKAGES}
+
 {$mode objfpc}{$H+}
 program fpmake;
 
 uses
-  fpmkunit,
+  {$ifdef unix}cthreads,{$endif} fpmkunit,
   sysutils;
 {$endif ALLPACKAGES}
 
@@ -143,6 +144,7 @@ begin
     end;
 end;
 
+
 procedure add_ide_comandlineoptions();
 begin
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
@@ -166,6 +168,11 @@ Var
   llvm: boolean;
 
 begin
+  if SameText(Defaults.SubTarget,'unicodertl') then
+    exit;
+  if Defaults.Namespaces then 
+    exit;
+     
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
@@ -310,7 +317,7 @@ begin
         if CompilerTarget<>Defaults.CPU then
           begin
             T.SetExeName(AddProgramExtension(CPUToString(CompilerTarget)+'-fp',Defaults.BuildOS));
-            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
+            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildTarget)+CPUToString(CompilerTarget));
             P.Options.Add('-dCROSSGDB');
           end;
 
@@ -366,15 +373,20 @@ begin
         P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
 
         P.BeforeCompileProc:=@ide_check_gdb_availability;
+
+        P.NamespaceMap:='namespaces.lst';
       end;
   end;
 end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_ide_comandlineoptions();
-  add_ide('');
-  Installer.Run;
+  If Assigned(Installer) and not Defaults.Namespaces then
+    begin
+    add_ide_comandlineoptions();
+    add_ide('');
+    Installer.Run;
+    end;
 end.
 {$endif ALLPACKAGES}
 

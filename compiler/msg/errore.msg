@@ -30,6 +30,7 @@
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #   package_  package handling
+#   sym_      symbol handling 
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -445,7 +446,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03365 is the last used one
+# 03368 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1639,17 +1640,29 @@ parser_e_section_directive_not_allowed_for_target=03362_E_Directive section not 
 % Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
 parser_e_absolute_sym_cannot_reference_itself=03363_E_Absolute variable cannot reference itself
 parser_e_syscall_format_not_support=03364_E_Syntax of syscall directive not supported by current target
-% Published property is ignored
-parser_w_ignoring_published_property=03365_W_This property will not be published
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
+parser_w_ignoring_published_property=03365_W_This property will not be published
+% Published property is ignored
+parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly reference types can only be passed by value
+% WebAssembly reference types don't have an in-memory representation and can only be passed by value.
+parser_e_promising_exports_not_supported_on_current_platform=03367_E_Declaring exports as 'promising' is WebAssembly-specific and is not supported on the current platform
+% Promising exports are WebAssembly-specific. They are not allowed on other platforms.
+parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declaring externals as 'suspending' is WebAssembly-specific and is not supported on the current platform
+% Suspending externals are WebAssembly-specific. They are not allowed on other platforms.
+parser_w_widechar_set_reduced=03369_W_Reducing Widechar set to single-byte AnsiChar set.
+% The base type of a set can only have 255 elements. Sets of wide characters
+% are reduced to sets of 1-byte characters.
+parser_e_nostringaliasinsystem=03370_e_Using 'string' alias is not allowed in the system unit. Use short-,ansi- or unicodestring.
+% As a safeguard, the system unit may only use basic string types, not the
+% string alias which is dependent on the mode in which a unit is compiled.
 %
 % \end{description}
 %
 # Type Checking
 #
-# 04131 is the last used one
+# 04133 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2105,12 +2118,16 @@ type_e_nested_procvar_to_funcref=04131_E_A nested function variable can not be a
 % Function references can live beyond the scope of the function they're contained in while
 % nested functions assigned to nested function variables can't. Due to this discrepancy
 % in design assigning a nested function variable to a function reference is forbidden.
+type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of a WebAssembly externref
+% WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
+type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly reference types don't have an observable size
+% WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
 %
 % \end{description}
 #
 # Symtable
 #
-# 05099 is the last used one
+# 05101 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2431,6 +2448,13 @@ sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 sym_e_symbol_no_capture=05099_E_Symbol "$1" can not be captured
 % The specified symbol can not be captured to be used in a function reference.
 % For example \var{var} or \var{out} parameters can not be captured in that way.
+sym_f_systemunitnotloaded=05100_F_System unit not loaded
+% The compiler used a function that requires the system unit to be loaded,
+% but it was not yet loaded. This is an internal compiler error and must be reported.
+sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly reference types cannot be used inside records, objects, or classes
+% WebAssembly reference types don't have an in-memory representation and therefore
+% cannot be used inside records, objects or classes.
+%
 % \end{description}
 #
 # Codegenerator
@@ -3125,7 +3149,7 @@ exec_f_controllertype_expected=09036_F_To generate the correct linker call, a co
 % Xtensa micro controller require a detailed specification linker command which depends on the target controller.
 % If no target controller is set, this command cannot be build and thus linking cannot be carried out.
 %
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3152,7 +3176,7 @@ execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % Informational message showing the stack size that the compiler committed for the executable.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3223,7 +3247,7 @@ link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
 % The specified symbol is used, but not defined and was first seen in the specified object file.
 link_e_undefined_symbol=09222_E_Undefined symbol: $1
 % The specified symbol is used, but not defined.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3468,15 +3492,15 @@ unit_u_ppu_wasm_threads_mismatch=10070_U_PPU and program must both be compiled w
 #
 #  Options
 #
-# 11064 is the last used one
+# 11067 is the last used one
 #
-option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
 %
 % \section{Command line handling errors}
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
+option_usage=11000_O_$1 [options] <inputfile> [options]
 option_only_one_source_support=11001_W_Only one source file supported, changing source file to compile from "$1" into "$2"
 % You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
@@ -3629,7 +3653,13 @@ option_unsupported_fpu=11063_F_The selected FPU type "$1" is not supported by th
 % Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
 option_too_many_exception_modes=11064_E_Only one WebAssembly exception support mode can be specified.
 % Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
-%\end{description}
+option_subtarget_is_already_set=11065_W_Subtarget is already set to: $1
+% Displayed if more than one \var{-t} option is specified.
+option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no corresponding config file $2 found.
+% Displayed if more than one \var{-t} option is specified.
+option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
+% Displayed if more than one \var{-t} option is specified.
+% \end{description}
 # EndOfTeX
 
 #
@@ -3705,7 +3735,7 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness i
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 
@@ -3883,6 +3913,7 @@ new features, etc.):
 #    I = VIS
 #    J = JVM
 #    L = LLVM variant
+#    l = loongarch64 targets
 #    M = MIPS (MIPSEB) targets
 #    m = MIPSEL targets
 #    P = PowerPC targets
@@ -3987,6 +4018,11 @@ Z*2Az80asm_Assemble using z80asm
 **2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
+V*2Cd<x>_Discard selected RTL startup sections (use with caution)
+V*3Cdc_Discard initializing data. Data defaults to noinit section
+V*3Cdj_Discard jump to PASCALMAIN. Use only if PASCALMAIN follows directly after startup code
+V*3Cds_Discard _START code. Use only if all interrupts are disabled
+V*3Cdz_Discard code initializing the zero register and stack pointer
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
 **2CE_Generate FPU code which can raise exceptions
@@ -4264,6 +4300,8 @@ a*2Twin64_Windows 64
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
+# loongarch64 targets
+l*2Tlinux_Linux
 # mipsel targets
 m*2Tandroid_Android
 m*2Tembedded_Embedded
@@ -4313,24 +4351,43 @@ Z*2Tzxspectrum_ZX Spectrum
 W*2Tembedded_Embedded
 W*2Twasi_The WebAssembly System Interface (WASI)
 # end of targets section
+**1t<x>_Target architecture
+**2*_ * Defines FPC_SUBTARGET_<x> 
+**2*_ * Defines FPC_SUBTARGET as <arg>
+**2*_ * Additionally reads config file fpc-<subtarget>.cfg
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
 **2Ur_Generate release unit files (never automatically recompiled)
 **2Us_Compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_0 : Show nothing (except errors) p : Write tree.log with parse tree
-**2*_a : Show everything              q : Show message numbers
-**2*_b : Write file names messages    r : Rhide/GCC compatibility mode
-**2*_    with full path               s : Show time stamps
-**2*_c : Show conditionals            t : Show tried/used files
-**2*_d : Show debug info              u : Show unit info
-**2*_e : Show errors (default)        v : Write fpcdebug.txt with
-**2*_h : Show hints                       lots of debugging info
-**2*_i : Show general info            w : Show warnings
-**2*_l : Show linenumbers             x : Show info about invoked tools
+**2*_0 : Show nothing (except errors)
+**2*_a : Show everything
+**2*_b : Write file names messages with full path
+**2*_c : Show conditionals
+**2*_d : Show debug info
+**2*_e : Show errors (default)
+#**2*_f : Not used yet
+#**2*_g : Not used yet
+**2*_h : Show hints
+**2*_i : Show general info
+**2*_j : Always add main source (useful when run in parallel make)
+#**2*_k : Not used yet
+**2*_l : Show linenumbers
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
-**2*_n : Show notes                   z : Write output to stderr
+**2*_n : Show notes
+#**2*_o : Not used yet
+**2*_p : Write tree.log with parse tree
+**2*_q : Show message numbers
+**2*_r : Rhide/GCC compatibility mode
+**2*_s : Show time stamps
+**2*_t : Show tried/used files
+**2*_u : Show unit info
+**2*_v : Write fpcdebug.txt with lots of debugging info
+**2*_w : Show warnings
+**2*_x : Show info about invoked tools
+#**2*_y : Not used yet
+**2*_z : Write output to stderr
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)
@@ -4416,6 +4473,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)
 6*3WQxtcc_Set metadata to XTcc style
 **2WX_Enable executable stack (Linux)
+**1x<suff>_Set suffix for compiler executable (fpc command only)
 **1X_Executable options:
 **2X9_Generate linkerscript for GNU Binutils ld older than version 2.19.1 (Linux)
 **2Xa_Generate code which allows to use more than 2 GB static data on 64 bit targets (Linux)

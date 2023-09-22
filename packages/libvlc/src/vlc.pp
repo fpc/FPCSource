@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vlc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.CTypes, Api.Vlc, System.SyncObjs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ctypes, libvlc, syncobjs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -603,8 +610,12 @@ end;
 
 procedure TCustomVLCMediaPlayer.SetAspectRatio(AValue: String);
 
+var
+  A : AnsiString;
+
 begin
-  libvlc_video_set_aspect_ratio(Instance,Pcchar(PChar(AValue)));
+  A:=AValue;
+  libvlc_video_set_aspect_ratio(Instance,Pcchar(PAnsiChar(A)));
 end;
 
 function TCustomVLCMediaPlayer.GetAudioMuted: Boolean;
@@ -619,13 +630,15 @@ function TCustomVLCMediaPlayer.GetAspectRatio: String;
 
 Var
   P : Pcchar;
+  S : AnsiString;
 
 begin
   P:=libvlc_video_get_aspect_ratio(Instance);
   if (P<>Nil) then
-    Result:=StrPas(PChar(P))
+    S:=StrPas(PAnsiChar(P))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TCustomVLCMediaPlayer.GetAudioTrack: Integer;
@@ -740,8 +753,10 @@ function TCustomVLCMediaPlayer.GetAudioTrackDescriptions(AIndex: Integer): Strin
 
 var
   t : plibvlc_track_description_t;
+  S : AnsiString;
 
 begin
+  S:='';
   Result := '';
   If (AIndex>=0) And Assigned(FInstance) then
     begin
@@ -752,8 +767,9 @@ begin
       t:=t^.p_next;
       end;
     If Assigned(t) and Assigned(t^.psz_name) then
-      Result:=StrPas(PChar(t^.psz_name));
+      S:=StrPas(PAnsiChar(t^.psz_name));
     end;
+  Result:=S;
 end;
 
 function TCustomVLCMediaPlayer.GetChannel: Integer;
@@ -1080,11 +1096,11 @@ procedure TCustomVLCMediaPlayer.DoOnError;
 
 Var
   P : pcchar;
-  E : String;
+  E : AnsiString;
 begin
   p:=libvlc_errmsg();
   if p<>Nil then
-    E:=StrPas(PChar(P))
+    E:=StrPas(PAnsiChar(P))
   else
     E:='';
   If Assigned(FOnError) then
@@ -1130,13 +1146,13 @@ end;
 procedure TCustomVLCMediaPlayer.DoOnSnapshot(Const AFileName : PCChar);
 
 Var
-  S :String;
+  S :AnsiString;
 
 begin
   If Assigned(FOnSnapshot) then
     begin
     if Assigned(AFileName) then
-      S:=StrPas(PChar(AFileName))
+      S:=StrPas(PAnsiChar(AFileName))
     else
       S:='';
     FOnSnapShot(Self,S);
@@ -1301,11 +1317,14 @@ begin
 end;
 
 function TCustomVLCMediaPlayer.Snapshot(const AFileName: String; AWidth,
-  AHeight: Cardinal): Boolean;
+                                        AHeight: Cardinal): Boolean;
+var
+  FN : AnsiString;
 begin
   Result:=Assigned(FInstance);
+  FN:=AFileName;
   If Result then
-    Result:=libvlc_video_take_snapshot(FInstance,0,PCChar(PChar(AFileName)),AWidth,AHeight)=0;
+    Result:=libvlc_video_take_snapshot(FInstance,0,PCChar(PAnsiChar(FN)),AWidth,AHeight)=0;
 end;
 
 function TCustomVLCMediaPlayer.GetVideoSize(var AWidth, AHeight: Cardinal
@@ -1402,25 +1421,30 @@ function TVLCMediaItem.GetMD(AMeta : libvlc_meta_t): String;
 
 Var
   P : PCChar;
+  S : AnsiString;
 
 begin
   P:=libvlc_media_get_meta(Instance,AMeta);
+  S:='';
   if (P<>Nil) then
-    Result:=StrPas(PChar(p))
+    S:=StrPas(PAnsiChar(p))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TVLCMediaItem.GetMRL: String;
 Var
   P : PCChar;
-
+  S : AnsiString;
 begin
+  S:='';
   P:=libvlc_media_get_mrl(Instance);
   if (P<>Nil) then
-    Result:=StrPas(PChar(p))
+    S:=StrPas(PAnsiChar(p))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TVLCMediaItem.GetParsed: Boolean;
@@ -1436,12 +1460,15 @@ end;
 procedure TVLCMediaItem.SetDIM(AValue: TDeinterlaceMode);
 
 Const
-  DMS : Array[TDeinterlaceMode] of string
-      = ('blend', 'discard', 'bob', 'linear', 'mean', 'x', 'yadif', 'yadif2x');
+  DMS : Array[TDeinterlaceMode] of AnsiString
+  = ('blend', 'discard', 'bob', 'linear', 'mean', 'x', 'yadif', 'yadif2x');
+Var
+    S : AnsiString;
 begin
   if (FDIM=AValue) then Exit;
   FDIM:=AValue;
-  libvlc_media_add_option(Instance, PCChar(PChar('deinterlace-mode='+DMS[AValue])));
+  S:='deinterlace-mode='+DMS[AValue];
+  libvlc_media_add_option(Instance, PCChar(PAnsiChar(S)));
 end;
 
 procedure TVLCMediaItem.SetFD(AValue: Integer);
@@ -1456,20 +1483,28 @@ end;
 procedure TVLCMediaItem.SetFSS(AValue: TSNapshotFormat);
 
 Const
-  ssfs : Array[TSnapShotFormat] of string = ('png','jpg');
+  ssfs : Array[TSnapShotFormat] of AnsiString = ('png','jpg');
 
+var
+  S : AnsiString;
 begin
   if FSS=AValue then Exit;
   FSS:=AValue;
-  libvlc_media_add_option(Instance, PCChar(PChar('no-snapshot-preview')));
-  libvlc_media_add_option(instance, PCChar(PChar('snapshot-format=' + SSFS[aValue])));
+  S:='no-snapshot-preview';
+  libvlc_media_add_option(Instance, PCChar(PAnsiChar(S)));
+  S:='snapshot-format=' + SSFS[aValue];
+  libvlc_media_add_option(instance, PCChar(PAnsiChar(S)));
 end;
 
 procedure TVLCMediaItem.SetM(AIndex: Integer; AValue: Boolean);
 
+Var
+  S : AnsiString;
+
 begin
   FOpts[AIndex]:=AValue;
-  libvlc_media_add_option(FInstance,PcChar(PChar(GetBoolOpt(AIndex,AValue))));
+  S:=GetBoolOpt(AIndex,AValue);
+  libvlc_media_add_option(FInstance,PcChar(PAnsiChar(S)));
 end;
 
 function TVLCMediaItem.GetBoolOpt(AIndex: Integer; AValue: Boolean): String;
@@ -1486,23 +1521,37 @@ begin
 end;
 
 procedure TVLCMediaItem.SetMD(AMeta : libvlc_meta_t; AValue: String);
+
+Var
+  S : AnsiString;
 begin
-  libvlc_media_set_meta(Instance,AMeta,Pcchar(PChar(AValue)));
+  S:=AValue;
+  libvlc_media_set_meta(Instance,AMeta,Pcchar(PAnsiChar(S)));
 end;
 
 procedure TVLCMediaItem.SetMRL(AValue: String);
+
+Var
+  S : AnsiString;
+
 begin
-  Finstance:=libvlc_media_new_location(GetVLC.Instance,PCChar(AValue));
+  S:=AValue;
+  Finstance:=libvlc_media_new_location(GetVLC.Instance,PCChar(S));
   If (FInstance=Nil) then
     Raise EVLC.CreateFmt('Failed to create media item from MRL : "%s"',[AValue]);
   RegisterInstance;
 end;
 
 procedure TVLCMediaItem.SetPath(AValue: String);
+
+Var
+  S : AnsiString;
+
 begin
   if FPath=AValue then Exit;
   FPath:=AValue;
-  FInstance:=libvlc_media_new_path(GetVLC.Instance,PCChar(AValue));
+  S:=FPath;
+  FInstance:=libvlc_media_new_path(GetVLC.Instance,PCChar(S));
   if (FInstance=Nil) then
     Raise EVLC.CreateFmt('Failed to create media item from path : "%s"',[AValue]);
   RegisterInstance;
@@ -1598,8 +1647,13 @@ begin
 end;
 
 procedure TVLCMediaItem.AddOption(const AValue: String);
+
+Var
+  S : AnsiString;
+
 begin
-  libvlc_media_add_option(Instance,PCChar(PChar(AValue)));
+  S:=AValue;
+  libvlc_media_add_option(Instance,PCChar(PAnsiChar(S)));
 end;
 
 procedure TVLCMediaItem.Parse;
@@ -1636,13 +1690,14 @@ function TVLCLibrary.GetLastError: String;
 
 Var
   P : PCChar;
-
+  S : AnsiString;
 begin
   P:=libvlc_errmsg();
   if Assigned(P) then
-    Result := StrPas(PChar(P))
+    S := StrPas(PAnsiChar(P))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TVLCLibrary.GetI: Boolean;
@@ -1653,38 +1708,41 @@ end;
 function TVLCLibrary.GetVersion: String;
 Var
   P : PCChar;
-
+  S : AnsiString;
 begin
   P:=libvlc_get_version();
   if Assigned(P) then
-    Result := StrPas(PChar(P))
+    S := StrPas(PAnsiChar(P))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TVLCLibrary.GetCompiler: String;
 Var
   P : PCChar;
-
+  S : AnsiString;
 begin
   P:=libvlc_get_compiler();
   if Assigned(P) then
-    Result := StrPas(PChar(P))
+    S := StrPas(PAnsiChar(P))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 function TVLCLibrary.GetChangeSet: String;
 
 Var
   P : PCChar;
-
+  S : AnsiString;
 begin
   P:=libvlc_get_changeset();
   if Assigned(P) then
-    Result := StrPas(PChar(P))
+    S := StrPas(PAnsiChar(P))
   else
-    Result:='';
+    S:='';
+  Result:=S;
 end;
 
 procedure TVLCLibrary.SetLibraryPath(const AValue: String);
@@ -1709,11 +1767,11 @@ begin
     LibraryArgs.add('--no-video-title-show');
     SetLength(cArgs,LibraryArgs.Count+2);
     SetLength(Args,LibraryArgs.Count+1);
-    cargs[0] := PChar(FLibraryPath);
+    cargs[0] := PAnsiChar(FLibraryPath);
     For I:=0 to LibraryArgs.Count-1 do
       begin
       Args[i]:=LibraryArgs[i];
-      CArgs[i+1]:=PChar(Args[i]);
+      CArgs[i+1]:=PAnsiChar(Args[i]);
       end;
     argc:=Length(CArgs);
     cargs[argc-1] := NIL;

@@ -510,7 +510,7 @@ function apr_os_dso_handle_get(dso: Papr_os_dso_handle_t;
 {
  * Private: apr-util's apr_uuid module when supported by the platform
  }
-function apr_os_uuid_get(uuid_data: PChar): apr_status_t;
+function apr_os_uuid_get(uuid_data: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_os_uuid_get' + LibSuff8;
 {$endif}
@@ -522,7 +522,7 @@ function apr_os_uuid_get(uuid_data: PChar): apr_status_t;
  * Get the name of the system default characer set.
  * @param pool the pool to allocate the name from, if needed
  }
-function apr_os_default_encoding(pool: Papr_pool_t): PChar;
+function apr_os_default_encoding(pool: Papr_pool_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_os_default_encoding' + LibSuff4;
 
@@ -532,7 +532,7 @@ function apr_os_default_encoding(pool: Papr_pool_t): PChar;
  * @remark Defers to apr_os_default_encoding if the current locale's
  * data can't be retreved on this system.
  }
-function apr_os_locale_encoding(pool: Papr_pool_t): PChar;
+function apr_os_locale_encoding(pool: Papr_pool_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_os_locale_encoding' + LibSuff4;
 

@@ -340,7 +340,7 @@ function pthread_barrier_wait(_para1:Ppthread_barrier_t):longint;cdecl;external 
 function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external 'c' name 'sem_init';
 function sem_destroy(__sem:Psem_t):cint;cdecl;external 'c' name 'sem_destroy';
 function sem_close(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_close';
-function sem_unlink(__name:Pchar):cint;cdecl;external 'c' name 'sem_unlink';
+function sem_unlink(__name:PAnsiChar):cint;cdecl;external 'c' name 'sem_unlink';
 function sem_wait(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_wait';
 function sem_trywait(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_trywait';
 function sem_post(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_post';

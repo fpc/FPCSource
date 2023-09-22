@@ -14,11 +14,17 @@
  *    August 29, 1994   Created by Art Lamb
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit field;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Font, PalmApi.Window, PalmApi.Control;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, font, window, control;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   maxFieldTextLen = $7fff;
@@ -63,7 +69,7 @@ type
     start: UInt16;
     end_: UInt16;
     bufferLen: UInt16;
-    buffer: PChar;
+    buffer: PAnsiChar;
   {$endif}
   end;
   FieldUndoTag = FieldUndoType;
@@ -92,7 +98,7 @@ type
 
   LineInfoType = record
   {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_FIELDS} // These fields will not be available in the next OS release!
-    start: UInt16;  // position in text string of first char.
+    start: UInt16;  // position in text string of first AnsiChar.
     length: UInt16; // number of character in the line
   {$endif}
   end;
@@ -104,7 +110,7 @@ type
     id: UInt16;
     rect: RectangleType;
     attr: FieldAttrType;
-    text: PChar; // pointer to the start of text string
+    text: PAnsiChar; // pointer to the start of text string
     textHandle: MemHandle; // block the contains the text string
     lines: LineInfoPtr;
     textLen: UInt16;
@@ -143,7 +149,7 @@ procedure FldGetSelection(const fldP: FieldPtr; var startPosition, endPosition: 
 
 function FldGetTextHandle(const fldP: FieldPtr): MemHandle; syscall sysTrapFldGetTextHandle;
 
-function FldGetTextPtr(const fldP: FieldPtr): PChar; syscall sysTrapFldGetTextPtr;
+function FldGetTextPtr(const fldP: FieldPtr): PAnsiChar; syscall sysTrapFldGetTextPtr;
 
 function FldHandleEvent(fldP: FieldPtr; eventP: EventPtr): Boolean; syscall sysTrapFldHandleEvent;
 
@@ -159,7 +165,7 @@ procedure FldSetText(fldP: FieldPtr; textHandle: MemHandle; offset, size: UInt16
 
 procedure FldSetTextHandle(fldP: FieldPtr; textHandle: MemHandle); syscall sysTrapFldSetTextHandle;
 
-procedure FldSetTextPtr(fldP: FieldPtr; textP: PChar); syscall sysTrapFldSetTextPtr;
+procedure FldSetTextPtr(fldP: FieldPtr; textP: PAnsiChar); syscall sysTrapFldSetTextPtr;
 
 procedure FldSetUsable(fldP: FieldPtr; usable: Boolean); syscall sysTrapFldSetUsable;
 
@@ -191,9 +197,9 @@ function FldGetVisibleLines(const fldP: FieldPtr): UInt16; syscall sysTrapFldGet
 
 function FldGetTextHeight(const fldP: FieldPtr): UInt16; syscall sysTrapFldGetTextHeight;
 
-function FldCalcFieldHeight(const chars: PChar; maxWidth: UInt16): UInt16; syscall sysTrapFldCalcFieldHeight;
+function FldCalcFieldHeight(const chars: PAnsiChar; maxWidth: UInt16): UInt16; syscall sysTrapFldCalcFieldHeight;
 
-function FldWordWrap(const chars: PChar; maxWidth: Int16): UInt16; syscall sysTrapFldWordWrap;
+function FldWordWrap(const chars: PAnsiChar; maxWidth: Int16): UInt16; syscall sysTrapFldWordWrap;
 
 procedure FldCompactText(fldP: FieldPtr); syscall sysTrapFldCompactText;
 
@@ -205,7 +211,7 @@ function FldGetMaxChars(const fldP: FieldPtr): UInt16; syscall sysTrapFldGetMaxC
 
 procedure FldSetMaxChars(fldP: FieldPtr; maxChars: UInt16); syscall sysTrapFldSetMaxChars;
 
-function FldInsert(fldP: FieldPtr; const insertChars: PChar; insertLen: UInt16): Boolean; syscall sysTrapFldInsert;
+function FldInsert(fldP: FieldPtr; const insertChars: PAnsiChar; insertLen: UInt16): Boolean; syscall sysTrapFldInsert;
 
 procedure FldDelete(fldP: FieldPtr; start, end_: UInt16); syscall sysTrapFldDelete;
 

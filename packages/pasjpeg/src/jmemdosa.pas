@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit jmemdosa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$G+} {enable 286/287 instructions }
 
@@ -11,8 +13,13 @@ Unit jmemdosa;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   XMSDRIVER = pointer; {far}    { actually a pointer to code }
@@ -28,7 +35,7 @@ type
   end;
 { offset is a reserved word in BASM }
 
-function jdos_open (var handle : short {far}; const filename {: PChar}) : short;
+function jdos_open (var handle : short {far}; const filename {: PAnsiChar}) : short;
 
 function jdos_close (handle : short) : short;
 
@@ -52,7 +59,7 @@ implementation
 
 
 function jdos_open (var handle : short {far};
-                    const filename {: PChar}) : short; assembler;
+                    const filename {: PAnsiChar}) : short; assembler;
 { Create and open a temporary file }
 label
   open_err;
@@ -294,7 +301,7 @@ function jems_available : short; assembler;
 label
   no_ems, avail_done;
 const
-  ASCII_device_name : packed array[0..7] of char  = 'EMMXXXX0';
+  ASCII_device_name : packed array[0..7] of AnsiChar  = 'EMMXXXX0';
 asm
         push    si                      { save all registers for safety }
         push    di

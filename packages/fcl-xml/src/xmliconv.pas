@@ -12,14 +12,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmliconv;
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$mode objfpc}
+{$h+}
 
 interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Read, UnixApi.Iconvenc, UnixApi.Types, UnixApi.Base, System.InitC;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   xmlread, iconvenc, unixtype, baseunix, initc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef FPC_LITTLE_ENDIAN}
@@ -28,7 +38,7 @@ const
   utf16_encoding = 'UTF-16BE';
 {$endif  FPC_LITTLE_ENDIAN}
 
-function Iconv_Decode(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Iconv_Decode(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   OutChars: size_t;
   InChars: size_t;
@@ -60,7 +70,7 @@ function GetIconvDecoder(const AEncoding: string; out Decoder: TDecoder): Boolea
 var
   f: iconv_t;
 begin
-  f := iconv_open(utf16_encoding, PChar(AEncoding));
+  f := iconv_open(utf16_encoding, PAnsiChar(AEncoding));
   if f <> Pointer(-1) then
   begin
     Decoder.Context := f;

@@ -57,13 +57,13 @@ TYPE
 
    { system information services }
    UtsName   = Record
-                Sysname : Array[0..UTSNAME_LENGTH -1] OF Char;   // Name of this OS
-                Nodename: Array[0..UTSNAME_NODENAME_LENGTH-1] OF Char;   // Name of this network node.
-                Release : Array[0..UTSNAME_LENGTH -1] OF Char;   // Release level.
-                Version : Array[0..UTSNAME_LENGTH -1] OF Char;   // Version level.
-                Machine : Array[0..UTSNAME_LENGTH -1] OF Char;   // Hardware type.
+                Sysname : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Name of this OS
+                Nodename: Array[0..UTSNAME_NODENAME_LENGTH-1] OF AnsiChar;   // Name of this network node.
+                Release : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Release level.
+                Version : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Version level.
+                Machine : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Hardware type.
                {$ifdef usedomain}
-                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
+                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of AnsiChar {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
                {$endif}
                end;
   TUtsName   = UtsName;
@@ -90,12 +90,49 @@ const
 {$endif}
   _STAT_VER = _STAT_VER_LINUX;
 
+{$if defined(use_statx_syscall)}
+  STATX_BASIC_STATS=$000007ff;
+{$endif}
+
 type
 
 {$i stat.inc}
 
   TStat      = Stat;
   PStat      = ^Stat;
+
+  { Referred to rtl/linux/linux.pp }
+  statx64_timestamp = record
+    tv_sec : cint64;
+    tv_nsec : cuint32;
+    __reserved : cint32;
+  end;
+  pstatx64_timestamp = ^statx64_timestamp;
+
+  tstatx64 = record
+    stx_mask : cuint32;
+    stx_blksize : cuint32;
+    stx_attributes : cuint64;
+    stx_nlink : cuint32;
+    stx_uid : cuint32;
+    stx_gid : cuint32;
+    stx_mode : word;
+    __spare0 : array[0..0] of word;
+    stx_ino : cuint64;
+    stx_size : cuint64;
+    stx_blocks : cuint64;
+    stx_attributes_mask : cuint64;
+    stx_atime : statx64_timestamp;
+    stx_btime : statx64_timestamp;
+    stx_ctime : statx64_timestamp;
+    stx_mtime : statx64_timestamp;
+    stx_rdev_major : cuint32;
+    stx_rdev_minor : cuint32;
+    stx_dev_major : cuint32;
+    stx_dev_minor : cuint32;
+    __spare2 : array[0..13] of cuint64;
+  end;
+  pstatx64 = ^tstatx64;
 
   { directory services }
   { the Dirent type for getdents64 is no longer declared as ending with
@@ -116,7 +153,7 @@ type
                 d_off         : off_t;
                 d_reclen      : cushort;                        // length of string in d_name
                 d_type        : cuchar;                         // file type, see below
-                d_name        : array[0..4095-sizeof(ino64_t)-sizeof(off_t)-sizeof(cushort)-sizeof(cuchar)] of char;  // name buffer + padding for extra records; align total record size to a page size
+                d_name        : array[0..4095-sizeof(ino64_t)-sizeof(off_t)-sizeof(cushort)-sizeof(cuchar)] of AnsiChar;  // name buffer + padding for extra records; align total record size to a page size
                end;
   TDirent  = Dirent;
   pDirent  = ^Dirent;
@@ -138,7 +175,7 @@ type
         // new libc one. NOTE that off_t must be real, so 64-bit ifdef
    Dir       = Record   // packing doesn't matter. This is a userland struct.
                 fd      : cint;
-                data    : pchar;
+                data    : PAnsiChar;
                 allocation: size_t;
                 _size     : size_t;
                 offset    : size_t;

@@ -15,54 +15,65 @@
 {$mode objfpc}
 {$h+}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     Case insensitive search/replace
   ---------------------------------------------------------------------}
 
-Function AnsiResemblesText(const AText, AOther: string): Boolean;
-Function AnsiContainsText(const AText, ASubText: string): Boolean;
-Function AnsiStartsText(const ASubText, AText: string): Boolean;
-Function AnsiEndsText(const ASubText, AText: string): Boolean;
-Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
-Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
+Function AnsiResemblesText(const AText, AOther: AnsiString): Boolean;
+Function AnsiContainsText(const AText, ASubText: AnsiString): Boolean;
+Function AnsiStartsText(const ASubText, AText: AnsiString): Boolean;
+Function AnsiEndsText(const ASubText, AText: AnsiString): Boolean;
+function AnsiEndsText(const ASubText, AText: UnicodeString): Boolean;
+Function AnsiReplaceText(const AText, AFromText, AToText: AnsiString): AnsiString;inline;
+Function AnsiMatchText(const AText: AnsiString; const AValues: array of AnsiString): Boolean;inline;
+Function AnsiIndexText(const AText: AnsiString; const AValues: array of AnsiString): Integer;
 Function StartsText(const ASubText, AText: string): Boolean; inline;
 Function EndsText(const ASubText, AText: string): Boolean; inline;
 
 function ResemblesText(const AText, AOther: string): Boolean; inline;
 function ContainsText(const AText, ASubText: string): Boolean; inline;
-function MatchText(const AText: string; const AValues: array of string): Boolean; inline;
-function IndexText(const AText: string; const AValues: array of string): Integer; inline;
+function MatchText(const AText: Ansistring; const AValues: array of Ansistring): Boolean; inline;
+function IndexText(const AText: Ansistring; const AValues: array of Ansistring): Integer; inline;
 
 { ---------------------------------------------------------------------
     Case sensitive search/replace
   ---------------------------------------------------------------------}
 
-Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
-Function AnsiStartsStr(const ASubText, AText: string): Boolean;
-Function AnsiEndsStr(const ASubText, AText: string): Boolean;
-Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
-Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
+Function AnsiContainsStr(const AText, ASubText: AnsiString): Boolean;inline;
+function AnsiContainsStr(const AText, ASubText: Unicodestring): Boolean; inline;
+Function AnsiStartsStr(const ASubText, AText: AnsiString): Boolean;
+Function AnsiStartsStr(const ASubText, AText: UnicodeString): Boolean;
+Function AnsiEndsStr(const ASubText, AText: AnsiString): Boolean;
+Function AnsiEndsStr(const ASubText, AText: UnicodeString): Boolean;
+Function AnsiReplaceStr(const AText, AFromText, AToText: AnsiString): AnsiString;inline;
+Function AnsiMatchStr(const AText: AnsiString; const AValues: array of AnsiString): Boolean;inline;
+Function AnsiIndexStr(const AText: Ansistring; const AValues: array of Ansistring): Integer;
 Function StartsStr(const ASubText, AText: string): Boolean;
 Function EndsStr(const ASubText, AText: string): Boolean;
 Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function MatchText(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 Function IndexText(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
-Operator in (const AText: string; const AValues: array of string):Boolean;inline;
+Operator in (const AText: Ansistring; const AValues: array of Ansistring):Boolean;inline;
 Operator in (const AText: UnicodeString; const AValues: array of UnicodeString):Boolean;inline;
 
 function ContainsStr(const AText, ASubText: string): Boolean; inline;
-function MatchStr(const AText: string; const AValues: array of string): Boolean; inline;
-function IndexStr(const AText: string; const AValues: array of string): Integer; inline;
+function MatchStr(const AText: Ansistring; const AValues: array of Ansistring): Boolean; inline;
+function IndexStr(const AText: Ansistring; const AValues: array of Ansistring): Integer; inline;
 
 { ---------------------------------------------------------------------
     Miscellaneous
@@ -76,9 +87,9 @@ Function RandomFrom(const AValues: array of string): string; overload;
 Function IfThen(AValue: Boolean; const ATrue: string; const AFalse: string = ''): string; overload;
 Function IfThen(AValue: Boolean; const ATrue: TStringDynArray; const AFalse: TStringDynArray = nil): TStringDynArray; overload;
 function NaturalCompareText (const S1 , S2 : string ): Integer ;
-function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: Char): Integer;
+function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: AnsiChar): Integer;
 
-function SplitString(const S, Delimiters: string): TStringDynArray;
+function SplitString(const S, Delimiters: string): TRTLStringDynArray;
 
 { ---------------------------------------------------------------------
     VB emulations.
@@ -103,7 +114,7 @@ Function MidStr(const AText: WideString; const AStart, ACount: SizeInt): WideStr
 
 const
   { Default word delimiters are any character except the core alphanumerics. }
-  WordDelimiters: set of Char = [#0..#255] - ['a'..'z','A'..'Z','1'..'9','0'];
+  WordDelimiters: set of AnsiChar = [#0..#255] - ['a'..'z','A'..'Z','1'..'9','0'];
   
 resourcestring
   SErrAmountStrings        = 'Amount of search and replace strings don''t match';
@@ -113,15 +124,15 @@ type
   TStringSearchOptions = set of TStringSearchOption;
   TStringSeachOption = TStringSearchOption;
 
-Function SearchBuf(Buf: PChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String; Options: TStringSearchOptions): PChar;
-Function SearchBuf(Buf: PChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String): PChar;inline; // ; Options: TStringSearchOptions = [soDown]
-Function PosEx(const SubStr, S: string; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: string): SizeInt;inline; // Offset: Cardinal = 1
-Function PosEx(c:char; const S: string; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: UnicodeString; Offset: SizeUint): SizeInt;
-Function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: UnicodeString): Sizeint;inline; // Offset: Cardinal = 1
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+Function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String; Options: TStringSearchOptions): PAnsiChar;
+Function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String): PAnsiChar;inline; // ; Options: TStringSearchOptions = [soDown]
+Function PosEx(const SubStr, S: Ansistring; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: Ansistring): SizeInt;inline;
+Function PosEx(c:AnsiChar; const S: AnsiString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: UnicodeString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: UnicodeString): Sizeint;inline;
+function StringsReplace(const S: Ansistring; OldPattern, NewPattern: array of Ansistring;  Flags: TReplaceFlags): string;
 
 { ---------------------------------------------------------------------
     Delphi compat
@@ -173,28 +184,28 @@ resourcestring
 
 function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
 function DelSpace(const S: string): string;
-function DelChars(const S: string; Chr: Char): string;
+function DelChars(const S: string; Chr: AnsiChar): string;
 function DelChars(const S: string; Chars: TSysCharSet): string;
 function DelSpace1(const S: string): string;
 function Tab2Space(const S: string; Numb: Byte): string;
 function NPos(const C: string; S: string; N: Integer): SizeInt;
 
-Function RPosEx(C:char;const S : AnsiString;offs:cardinal):SizeInt; overload;
-Function RPosEx(C:Unicodechar;const S : UnicodeString;offs:cardinal):SizeInt; overload;
-Function RPosEx(Const Substr : AnsiString; Const Source : AnsiString;offs:cardinal) : SizeInt; overload;
-Function RPosEx(Const Substr : UnicodeString; Const Source : UnicodeString;offs:cardinal) : SizeInt; overload;
-Function RPos(c:char;const S : AnsiString):SizeInt; overload;
-Function RPos(c:Unicodechar;const S : UnicodeString):SizeInt; overload;
-Function RPos(Const Substr : AnsiString; Const Source : AnsiString) : SizeInt; overload;
-Function RPos(Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt; overload;
+Function RPosEx(C:AnsiChar;const S : AnsiString;offs:SizeInt):SizeInt; overload;
+Function RPosEx(C:Unicodechar;const S : UnicodeString;offs:SizeInt):SizeInt; overload;
+Function RPosEx(Const Substr : AnsiString; Const Source : AnsiString;offs:SizeInt) : SizeInt; overload;
+Function RPosEx(Const Substr : UnicodeString; Const Source : UnicodeString;offs:SizeInt) : SizeInt; overload;
+Function RPos(c:AnsiChar;const S : AnsiString):SizeInt; overload; inline;
+Function RPos(c:Unicodechar;const S : UnicodeString):SizeInt; overload; inline;
+Function RPos(Const Substr : AnsiString; Const Source : AnsiString) : SizeInt; overload; inline;
+Function RPos(Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt; overload; inline;
 
-function AddChar(C: Char; const S: string; N: Integer): string;
-function AddCharR(C: Char; const S: string; N: Integer): string;
+function AddChar(C: AnsiChar; const S: string; N: Integer): string;
+function AddCharR(C: AnsiChar; const S: string; N: Integer): string;
 function PadLeft(const S: string; N: Integer): string;inline;
 function PadRight(const S: string; N: Integer): string;inline;
 function PadCenter(const S: string; Len: SizeInt): string;
-function Copy2Symb(const S: string; Symb: Char): string;
-function Copy2SymbDel(var S: string; Symb: Char): string;
+function Copy2Symb(const S: string; Symb: AnsiChar): string;
+function Copy2SymbDel(var S: string; Symb: AnsiChar): string;
 function Copy2Space(const S: string): string;inline;
 function Copy2SpaceDel(var S: string): string;inline;
 function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
@@ -214,8 +225,8 @@ function IsWordPresent(const W, S: string; const WordDelims: TSysCharSet): Boole
 function FindPart(const HelpWilds, InputStr: string): SizeInt;
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 function XorString(const Key, Src: ShortString): ShortString;
-function XorEncode(const Key, Source: string): string;
-function XorDecode(const Key, Source: string): string;
+function XorEncode(const Key, Source: Ansistring): Ansistring;
+function XorDecode(const Key, Source: Ansistring): Ansistring;
 function GetCmdLineArg(const Switch: string; SwitchChars: TSysCharSet): string;
 function Numb2USA(const S: string): string;
 function Hex2Dec(const S: string): Longint;
@@ -236,7 +247,14 @@ procedure BinToHex(BinValue: PAnsiChar; HexValue: PAnsiChar; BinBufSize: Integer
 procedure BinToHex(BinValue: PAnsiChar; HexValue: PWideChar; BinBufSize: Integer); overload;
 procedure BinToHex(const BinValue; HexValue: PAnsiChar; BinBufSize: Integer); overload;
 procedure BinToHex(BinValue: Pointer; HexValue: PAnsiChar; BinBufSize: Integer); overload;
-function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
+function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PWideChar; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer; overload;
+function HexToBin(const HexText: TBytes; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer; overload;
+function HexToBin(HexText: PWideChar; BinBuffer: Pointer; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer; overload;
+function HexToBin(HexText: PWideChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer; overload;
+function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer; overload;
 
 const
   DigitChars = ['0'..'9'];
@@ -249,8 +267,10 @@ function PosSet (const c:string;const s : ansistring ):SizeInt;
 function PosSetEx (const c:TSysCharSet;const s : ansistring;count:Integer ):SizeInt;
 function PosSetEx (const c:string;const s : ansistring;count:Integer ):SizeInt;
 
-Procedure RemoveLeadingchars(VAR S : AnsiString; Const CSet:TSysCharset);
+Procedure RemoveLeadingChars(VAR S : AnsiString; Const CSet:TSysCharset);
 Procedure RemoveTrailingChars(VAR S : AnsiString;Const CSet:TSysCharset);
+Procedure RemoveLeadingChars(VAR S : UnicodeString; Const CSet:TSysCharset);
+Procedure RemoveTrailingChars(VAR S : UnicodeString;Const CSet:TSysCharset);
 Procedure RemovePadChars(VAR S : AnsiString;Const CSet:TSysCharset);
 
 function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
@@ -261,10 +281,10 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 type
   SizeIntArray = array of SizeInt;
 
-Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
 Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
 
-Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
 Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 
 Type
@@ -278,8 +298,10 @@ Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceF
 { We need these for backwards compatibility:
   The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
   They currently simply refer to sysutils, till the new mechanisms are proven to work with unicode.}
+{$IF SIZEOF(CHAR)=1}
 Function StringReplace(const S, OldPattern, NewPattern: unicodestring; Flags: TReplaceFlags): unicodestring; overload;
 Function StringReplace(const S, OldPattern, NewPattern: widestring; Flags: TReplaceFlags): widestring; overload;
+{$ENDIF}
 
 
 Type
@@ -292,7 +314,11 @@ Function SplitCommandLine(S : UnicodeString) : TUnicodeStringArray;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysConst; // HexDigits
+{$ELSE FPC_DOTTEDUNITS}
 uses sysconst; // HexDigits
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*
   FindMatchesBoyerMooreCaseSensitive
@@ -301,8 +327,8 @@ uses sysconst; // HexDigits
   It is case sensitive.
 
   * Parameters:
-  S: The PChar to be searched in. (Read only).
-  OldPattern: The PChar to be searched. (Read only).
+  S: The PAnsiChar to be searched in. (Read only).
+  OldPattern: The PAnsiChar to be searched. (Read only).
   SSize: The size of S in Chars. (Read only).
   OldPatternSize: The size of OldPatter in chars. (Read only).
   aMatches: SizeInt array where match indexes are returned (zero based) (write only).
@@ -314,7 +340,7 @@ uses sysconst; // HexDigits
   The function is based in the Boyer-Moore algorithm.
 *)
 
-function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PChar;
+function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PAnsiChar;
   const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
   const aMatchAll: Boolean) : Boolean;
   
@@ -334,20 +360,20 @@ type
     if a1>a2 then Result:=a1 else Result:=a2;
   end;
 
-  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
   var
     i: SizeInt;
   begin
     for i := 0 to ALPHABET_LENGHT-1 do begin
       DeltaJumpTable1[i]:=aPatternSize;
     end;
-    //Last char do not enter in the equation
+    //Last AnsiChar do not enter in the equation
     for i := 0 to aPatternSize - 1 - 1 do begin
       DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize -1 - i;
     end;
   end;
 
-  function IsPrefix(const aPattern: PChar; const aPatternSize, aPos: SizeInt): Boolean;
+  function IsPrefix(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): Boolean;
   var
     i: SizeInt;
     SuffixLength: SizeInt;
@@ -361,7 +387,7 @@ type
     Result:=true;
   end;
 
-  function SuffixLength(const aPattern: PChar; const aPatternSize, aPos: SizeInt): SizeInt;
+  function SuffixLength(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): SizeInt;
   var
     i: SizeInt;
   begin
@@ -372,7 +398,7 @@ type
     Result:=i;
   end;
 
-  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
   var
     Position: SizeInt;
     LastPrefixIndex: SizeInt;
@@ -449,7 +475,7 @@ begin
   Result:=MatchesCount>0;
 end;
 
-function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out
+function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out
   aMatches: SizeIntArray; const aMatchAll: Boolean): Boolean;
 const
   ALPHABET_LENGHT=256;
@@ -458,7 +484,7 @@ var
   //Lowercased OldPattern
   lPattern: string;
   //Array of lowercased alphabet
-  lCaseArray: array [0..ALPHABET_LENGHT-1] of char;
+  lCaseArray: array [0..ALPHABET_LENGHT-1] of AnsiChar;
   //Stores the amount of replaces that will take place
   MatchesCount: SizeInt;
   //Currently allocated space for matches.
@@ -471,20 +497,20 @@ type
     if a1>a2 then Result:=a1 else Result:=a2;
   end;
 
-  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
   var
     i: SizeInt;
   begin
     for i := 0 to ALPHABET_LENGHT-1 do begin
       DeltaJumpTable1[i]:=aPatternSize;
     end;
-    //Last char do not enter in the equation
+    //Last AnsiChar do not enter in the equation
     for i := 0 to aPatternSize - 1 - 1 do begin
       DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize - 1 - i;
     end;
   end;
 
-  function IsPrefix(const aPattern: PChar; const aPatternSize, aPos: SizeInt): Boolean; inline;
+  function IsPrefix(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): Boolean; inline;
   var
     i: SizeInt;
     SuffixLength: SizeInt;
@@ -498,7 +524,7 @@ type
     Result:=true;
   end;
 
-  function SuffixLength(const aPattern: PChar; const aPatternSize, aPos: SizeInt): SizeInt; inline;
+  function SuffixLength(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): SizeInt; inline;
   var
     i: SizeInt;
   begin
@@ -509,7 +535,7 @@ type
     Result:=i;
   end;
 
-  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
   var
     Position: SizeInt;
     LastPrefixIndex: SizeInt;
@@ -555,7 +581,7 @@ var
   DeltaJumpTable1: array [0..ALPHABET_LENGHT-1] of SizeInt;
   DeltaJumpTable2: SizeIntArray;
   //Pointer to lowered OldPattern
-  plPattern: PChar;
+  plPattern: PAnsiChar;
 begin
   MatchesCount:=0;
   MatchesAllocatedLimit:=0;
@@ -564,9 +590,9 @@ begin
     Exit;
   end;
 
-  //Build an internal array of lowercase version of every possible char.
+  //Build an internal array of lowercase version of every possible AnsiChar.
   for j := 0 to Pred(ALPHABET_LENGHT) do begin
-    lCaseArray[j]:=AnsiLowerCase(char(j))[1];
+    lCaseArray[j]:=AnsiLowerCase(AnsiChar(j))[1];
   end;
 
   //Create the new lowercased pattern
@@ -677,8 +703,8 @@ begin
           end;
         end;
         if MatchInternal=0 then begin
-          //Match found, all char meet the sequence
-          //MatchTarget points to char before, so matching is +1
+          //Match found, all AnsiChar meet the sequence
+          //MatchTarget points to AnsiChar before, so matching is +1
           AddMatch(MatchTarget+1);
           inc(MatchIndex,OldPatternSize);
           if not (rfReplaceAll in Flags) then begin
@@ -712,8 +738,8 @@ begin
           end;
         end;
         if MatchInternal=0 then begin
-          //Match found, all char meet the sequence
-          //MatchTarget points to char before, so matching is +1
+          //Match found, all AnsiChar meet the sequence
+          //MatchTarget points to AnsiChar before, so matching is +1
           AddMatch(MatchTarget+1);
           inc(MatchIndex,OldPatternSize);
           if not (rfReplaceAll in Flags) then begin
@@ -853,25 +879,26 @@ Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceF
 
 begin
   Case Algorithm of
-    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraDefault    : Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
     sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,aCount);
     sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
 end;
 
+{$IF SIZEOF(CHAR)=1}
 
 function StringReplace(const S, OldPattern, NewPattern: unicodestring; Flags: TReplaceFlags): unicodestring;
 
 begin
-  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags);
 end;
 
 function StringReplace(const S, OldPattern, NewPattern: widestring; Flags: TReplaceFlags): widestring;
 
 begin
-  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags);
 end;
-
+{$ENDIF}
 
 function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean
   ): Boolean;
@@ -880,7 +907,7 @@ Var
   I : SizeInt;
 
 begin
-  Result:=FindMatchesBoyerMooreCaseSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  Result:=FindMatchesBoyerMooreCaseSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
   For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
@@ -892,7 +919,7 @@ Var
   I : SizeInt;
 
 begin
-  Result:=FindMatchesBoyerMooreCaseInSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  Result:=FindMatchesBoyerMooreCaseInSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
   For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
@@ -940,7 +967,7 @@ end;
 { ---------------------------------------------------------------------
     Case insensitive search/replace
   ---------------------------------------------------------------------}
-function AnsiResemblesText(const AText, AOther: string): Boolean;
+function AnsiResemblesText(const AText, AOther: AnsiString): Boolean;
 
 begin
   if Assigned(AnsiResemblesProc) then
@@ -949,25 +976,32 @@ begin
     Result:=False;
 end;
 
-function AnsiContainsText(const AText, ASubText: string): Boolean;
+function AnsiContainsText(const AText, ASubText: AnsiString): Boolean;
 begin
   AnsiContainsText:=AnsiPos(AnsiUppercase(ASubText),AnsiUppercase(AText))>0;
 end;
 
 
-function AnsiStartsText(const ASubText, AText: string): Boolean;
+function AnsiStartsText(const ASubText, AText: AnsiString): Boolean;
 begin
   Result := (ASubText = '') or AnsiSameText(LeftStr(AText, Length(ASubText)), ASubText);
 end;
 
 
-function AnsiEndsText(const ASubText, AText: string): Boolean;
+function AnsiEndsText(const ASubText, AText: AnsiString): Boolean;
 begin
   Result := (ASubText = '') or AnsiSameText(RightStr(AText, Length(ASubText)), ASubText);
 end;
 
+function AnsiEndsText(const ASubText, AText: UnicodeString): Boolean;
 
-function StartsText(const ASubText, AText: string): Boolean; inline;
+begin
+  Result := (ASubText = '') or SameText(RightStr(AText, Length(ASubText)), ASubText);
+end;
+
+
+
+function StartsText(const ASubText, AText: String): Boolean; inline;
 begin
   Result := AnsiStartsText(ASubText, AText);
 end;
@@ -991,42 +1025,42 @@ begin
   Result := AnsiContainsText(AText, ASubText);
 end;
 
-function MatchText(const AText: string; const AValues: array of string): Boolean;
+function MatchText(const AText: Ansistring; const AValues: array of Ansistring): Boolean;
 begin
   Result := AnsiMatchText(AText, AValues);
 end;
 
-function IndexText(const AText: string; const AValues: array of string): Integer;
+function IndexText(const AText: Ansistring; const AValues: array of Ansistring): Integer;
 begin
   Result := AnsiIndexText(AText, AValues);
 end;
 
-function ContainsStr(const AText, ASubText: string): Boolean;
+function ContainsStr(const AText, ASubText: String): Boolean;
 begin
   Result := AnsiContainsStr(AText, ASubText);
 end;
 
-function MatchStr(const AText: string; const AValues: array of string): Boolean;
+function MatchStr(const AText: Ansistring; const AValues: array of Ansistring): Boolean;
 begin
   Result := AnsiMatchStr(AText, AValues);
 end;
 
-function IndexStr(const AText: string; const AValues: array of string): Integer;
+function IndexStr(const AText: AnsiString; const AValues: array of AnsiString): Integer;
 begin
   Result := AnsiIndexStr(AText, AValues);
 end;
 
-function AnsiReplaceText(const AText, AFromText, AToText: string): string;
+function AnsiReplaceText(const AText, AFromText, AToText: Ansistring): Ansistring;
 begin
   Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll,rfIgnoreCase]);
 end;
 
-function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
+function AnsiMatchText(const AText: Ansistring; const AValues: array of AnsiString): Boolean;
 begin
   Result:=(AnsiIndexText(AText,AValues)<>-1)
 end;
 
-function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
+function AnsiIndexText(const AText: AnsiString; const AValues: array of Ansistring): Integer;
 begin
   for Result := Low(AValues) to High(AValues) do
     if AnsiSameText(AValues[Result], AText) then
@@ -1039,19 +1073,34 @@ end;
     Case sensitive search/replace
   ---------------------------------------------------------------------}
 
-function AnsiContainsStr(const AText, ASubText: string): Boolean;
+function AnsiContainsStr(const AText, ASubText: Ansistring): Boolean;
+begin
+  Result := AnsiPos(ASubText,AText)>0;
+end;
+
+function AnsiContainsStr(const AText, ASubText: Unicodestring): Boolean;
 begin
   Result := AnsiPos(ASubText,AText)>0;
 end;
 
 
-function AnsiStartsStr(const ASubText, AText: string): Boolean;
+function AnsiStartsStr(const ASubText, AText: AnsiString): Boolean;
+begin
+  Result := (ASubText = '') or (LeftStr(AText, Length(ASubText)) = ASubText);
+end;
+
+function AnsiStartsStr(const ASubText, AText: UnicodeString): Boolean;
 begin
   Result := (ASubText = '') or (LeftStr(AText, Length(ASubText)) = ASubText);
 end;
 
 
-function AnsiEndsStr(const ASubText, AText: string): Boolean;
+function AnsiEndsStr(const ASubText, AText: AnsiString): Boolean;
+begin
+  Result := (ASubText = '') or (RightStr(AText, Length(ASubText)) = ASubText);
+end;
+
+function AnsiEndsStr(const ASubText, AText: UnicodeString): Boolean;
 begin
   Result := (ASubText = '') or (RightStr(AText, Length(ASubText)) = ASubText);
 end;
@@ -1076,19 +1125,19 @@ begin
 end;
 
 
-function AnsiReplaceStr(const AText, AFromText, AToText: string): string;
+function AnsiReplaceStr(const AText, AFromText, AToText: AnsiString): AnsiString;
 begin
 Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll]);
 end;
 
 
-function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
+function AnsiMatchStr(const AText: AnsiString; const AValues: array of AnsiString): Boolean;
 begin
   Result:=AnsiIndexStr(AText,Avalues)<>-1;
 end;
 
 
-function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
+function AnsiIndexStr(const AText: AnsiString; const AValues: array of AnsiString): Integer;
 var
   i : longint;
 begin
@@ -1137,7 +1186,7 @@ begin
        exit(i);  // make sure it is the first val.
 end;
 
-operator in(const AText: string; const AValues: array of string): Boolean;
+operator in(const AText: AnsiString; const AValues: array of AnsiString): Boolean;
 begin
   Result := AnsiIndexStr(AText,AValues) <>-1;   
 end;
@@ -1173,11 +1222,11 @@ begin
   // (1) duplicate (count = 4), add AText (count = 5)
   for BitIndex := BsrDWord(ACount) downto 0 do
   begin
-    Move(Pointer(Result)^, PChar(Pointer(Result))[Rp], Rp * SizeOf(Char));
+    Move(Pointer(Result)^, PAnsiChar(Pointer(Result))[Rp], Rp * SizeOf(AnsiChar));
     Inc(Rp, Rp);
     if ACount shr BitIndex and 1 <> 0 then
     begin
-      Move(Pointer(AText)^, PChar(Pointer(Result))[Rp], Len * SizeOf(Char));
+      Move(Pointer(AText)^, PAnsiChar(Pointer(Result))[Rp], Len * SizeOf(AnsiChar));
       Inc(Rp, Len);
     end;
   end;
@@ -1250,7 +1299,7 @@ begin
     result:=afalse;
 end;
 
-function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: Char): Integer;
+function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: AnsiChar): Integer;
 {
  NaturalCompareBase compares strings in a collated order and
  so numbers are sorted too. It sorts like this:
@@ -1271,7 +1320,7 @@ function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThou
  }
 var
   Num1, Num2: double;
-  pStr1, pStr2: PChar;
+  pStr1, pStr2: PAnsiChar;
   Len1, Len2: SizeInt;
   TextLen1, TextLen2: SizeInt;
   TextStr1: string = '';
@@ -1290,12 +1339,12 @@ var
       Result:=0;
   end;
 
-  function IsNumber(ch: char): boolean;
+  function IsNumber(ch: AnsiChar): boolean;
   begin
     Result := ch in ['0'..'9'];
   end;
 
-  function GetInteger(var pch: PChar; var Len: sizeint): double;
+  function GetInteger(var pch: PAnsiChar; var Len: sizeint): double;
   begin
     Result := 0;
     while (pch^ <> #0) and IsNumber(pch^) do
@@ -1338,8 +1387,8 @@ var
 begin
   if (Str1 <> '') and (Str2 <> '') then
   begin
-    pStr1 := PChar(Str1);
-    pStr2 := PChar(Str2);
+    pStr1 := PAnsiChar(Str1);
+    pStr2 := PAnsiChar(Str2);
     Result := 0;
     while not ((pStr1^ = #0) or (pStr2^ = #0)) do
     begin
@@ -1397,10 +1446,10 @@ begin
   end;
 end;
 
-function SplitString(const S, Delimiters: string): TStringDynArray;
+function SplitString(const S, Delimiters: string): TRTLStringDynArray;
 
 Var
-  a : Array of char;
+  a : Array of Char;
   I : Integer;
   
 begin
@@ -1513,19 +1562,19 @@ end;
   ---------------------------------------------------------------------}
 
 type
-  TEqualFunction = function (const a,b : char) : boolean;
+  TEqualFunction = function (const a,b : AnsiChar) : boolean;
 
-function EqualWithCase (const a,b : char) : boolean;
+function EqualWithCase (const a,b : AnsiChar) : boolean;
 begin
   result := (a = b);
 end;
 
-function EqualWithoutCase (const a,b : char) : boolean;
+function EqualWithoutCase (const a,b : AnsiChar) : boolean;
 begin
   result := (lowerCase(a) = lowerCase(b));
 end;
 
-function IsWholeWord (bufstart, bufend, wordstart, wordend : pchar) : boolean;
+function IsWholeWord (bufstart, bufend, wordstart, wordend : PAnsiChar) : boolean;
 begin
             // Check start
   result := ((wordstart = bufstart) or ((wordstart-1)^ in worddelimiters)) and
@@ -1533,10 +1582,10 @@ begin
             ((wordend = bufend) or ((wordend+1)^ in worddelimiters));
 end;
 
-function SearchDown(buf,aStart,endchar:pchar; SearchString:string;
-    Equals : TEqualFunction; WholeWords:boolean) : pchar;
+function SearchDown(buf,aStart,endchar:PAnsiChar; SearchString:string;
+    Equals : TEqualFunction; WholeWords:boolean) : PAnsiChar;
 var Found : boolean;
-    s, c : pchar;
+    s, c : PAnsiChar;
 begin
   result := aStart;
   Found := false;
@@ -1567,10 +1616,10 @@ begin
     result := nil;
 end;
 
-function SearchUp(buf,aStart,endchar:pchar; SearchString:string;
-    equals : TEqualFunction; WholeWords:boolean) : pchar;
+function SearchUp(buf,aStart,endchar:PAnsiChar; SearchString:string;
+    equals : TEqualFunction; WholeWords:boolean) : PAnsiChar;
 var Found : boolean;
-    s, c, l : pchar;
+    s, c, l : PAnsiChar;
 begin
   result := aStart;
   Found := false;
@@ -1604,9 +1653,9 @@ begin
     result := nil;
 end;
 
-//function SearchDown(buf,aStart,endchar:pchar; SearchString:string; equal : TEqualFunction; WholeWords:boolean) : pchar;
-function SearchBuf(Buf: PChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String; Options: TStringSearchOptions
-  ): PChar;
+//function SearchDown(buf,aStart,endchar:PAnsiChar; SearchString:string; equal : TEqualFunction; WholeWords:boolean) : PAnsiChar;
+function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String; Options: TStringSearchOptions
+  ): PAnsiChar;
 var
   equal : TEqualFunction;
 begin
@@ -1627,116 +1676,45 @@ begin
 end;
 
 
-function SearchBuf(Buf: PChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String): PChar; // ; Options: TStringSearchOptions = [soDown]
+function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String): PAnsiChar; // ; Options: TStringSearchOptions = [soDown]
 begin
   Result:=SearchBuf(Buf,BufLen,SelStart,SelLength,SearchString,[soDown]);
 end;
 
-function PosEx(const SubStr, S: string; Offset: SizeUint): SizeInt;
-
-var
-  i,MaxLen, SubLen : SizeInt;
-  SubFirst: Char;
-  pc : pchar;
+function PosEx(const SubStr, S: AnsiString; Offset: SizeInt): SizeInt;
 begin
-  PosEx:=0;
-  SubLen := Length(SubStr);
-  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
-   begin
-    MaxLen := Length(S)- SubLen;
-    SubFirst := SubStr[1];
-    i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
-    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
-    begin
-      pc := @S[i+SizeInt(Offset)];
-      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
-      if (CompareByte(Substr[1],pc^,SubLen) = 0) then
-      begin
-        PosEx := i + SizeInt(Offset);
-        Exit;
-      end;
-      //point Offset to next char in S
-      Offset := sizeuint(i) + Offset + 1;
-      i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
-    end;
-  end;
+  Result := Pos(SubStr, S, Offset);
 end;
 
-function PosEx(c: char; const S: string; Offset: SizeUint): SizeInt;
-
-var
-  p,Len : SizeInt;
-
+function PosEx(c: AnsiChar; const S: Ansistring; Offset: SizeInt): SizeInt;
 begin
-  Len := length(S);
-  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
-  Len := length(S);
-  p := indexbyte(S[Offset],Len-offset+1,Byte(c));
-  if (p < 0) then
-    PosEx := 0
-  else
-    PosEx := p + sizeint(Offset);
+  Result := Pos(c, S, Offset);
 end; 
 
-function PosEx(const SubStr, S: string): SizeInt; // Offset: Cardinal = 1
+function PosEx(const SubStr, S: Ansistring): SizeInt;
 begin
-  posex:=posex(substr,s,1);
+  Result := Pos(SubStr, S);
 end;
 
-function PosEx(const SubStr, S: UnicodeString; Offset: SizeUint): SizeInt;
-
-var
-  i,MaxLen, SubLen : SizeInt;
-  SubFirst: WideChar;
-  pc : pwidechar;
+function PosEx(const SubStr, S: UnicodeString; Offset: SizeInt): SizeInt;
 begin
-  PosEx:=0;
-  SubLen := Length(SubStr);
-  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
-   begin
-    MaxLen := Length(S)- SubLen;
-    SubFirst := SubStr[1];
-    i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
-    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
-    begin
-      pc := @S[i+SizeInt(Offset)];
-      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
-      if (CompareWord(Substr[1],pc^,SubLen) = 0) then
-      begin
-        PosEx := i + SizeInt(Offset);
-        Exit;
-      end;
-      //point Offset to next char in S
-      Offset := sizeuint(i) + Offset + 1;
-      i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
-    end;
-  end;
+  Result := Pos(SubStr, S, Offset);
 end;
 
-function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeUint): SizeInt;
-var
-  Len,p : SizeInt;
-
+function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeInt): SizeInt;
 begin
-  Len := length(S);
-  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
-  Len := length(S);
-  p := indexword(S[Offset],Len-offset+1,Word(c));
-  if (p < 0) then
-    PosEx := 0
-  else
-    PosEx := p + sizeint(Offset);
+  Result := Pos(c, S, Offset);
 end;
 
-function PosEx(const SubStr, S: UnicodeString): Sizeint; // Offset: Cardinal = 1
+function PosEx(const SubStr, S: UnicodeString): Sizeint;
 begin
-  PosEx:=PosEx(SubStr,S,1);
+  Result := Pos(SubStr, S);
 end;
 
 
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+function StringsReplace(const S: AnsiString; OldPattern, NewPattern: array of AnsiString;  Flags: TReplaceFlags): string;
 
-var pc,pcc,lastpc : pchar;
+var pc,pcc,lastpc : PAnsiChar;
     strcount      : integer;
     ResStr,
     CompStr       : string;
@@ -1813,7 +1791,7 @@ end;
     Soundex Functions.
   ---------------------------------------------------------------------}
 Const
-  SScore : array[1..255] of Char =
+  SScore : array[1..255] of AnsiChar =
      ('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', // 1..32
       '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', // 33..64
       '0','1','2','3','0','1','2','i','0','2','2','4','5','5','0','1','2','6','2','3','0','1','i','2','i','2', // 65..90
@@ -1828,7 +1806,7 @@ Const
 function Soundex(const AText: string; ALength: TSoundexLength): string;
 
 Var
-  S,PS : Char;
+  S,PS : AnsiChar;
   I,L : SizeInt;
 
 begin
@@ -2000,7 +1978,7 @@ begin
   Result:=DelChars(S,' ');
 end;
 
-function DelChars(const S: string; Chr: Char): string;
+function DelChars(const S: string; Chr: AnsiChar): string;
 
 var
   I,J: SizeInt;
@@ -2114,7 +2092,7 @@ begin
     Result:=K;
 end;
 
-function AddChar(C: Char; const S: string; N: Integer): string;
+function AddChar(C: AnsiChar; const S: string; N: Integer): string;
 
 Var
   l : SizeInt;
@@ -2126,7 +2104,7 @@ begin
     Result:=StringOfChar(C,N-l)+Result;
 end;
 
-function AddCharR(C: Char; const S: string; N: Integer): string;
+function AddCharR(C: AnsiChar; const S: string; N: Integer): string;
 
 Var
   l : SizeInt;
@@ -2151,7 +2129,7 @@ begin
 end;
 
 
-function Copy2Symb(const S: string; Symb: Char): string;
+function Copy2Symb(const S: string; Symb: AnsiChar): string;
 
 var
   p: SizeInt;
@@ -2163,7 +2141,7 @@ begin
   Result:=Copy(S,1,p-1);
 end;
 
-function Copy2SymbDel(var S: string; Symb: Char): string;
+function Copy2SymbDel(var S: string; Symb: AnsiChar): string;
 
 var
   p: SizeInt;
@@ -2195,11 +2173,11 @@ end;
 function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
 
 var
-  P,PE : PChar;
+  P,PE : PAnsiChar;
 
 begin
   Result:=AnsiLowerCase(S);
-  P:=PChar(pointer(Result));
+  P:=PAnsiChar(pointer(Result));
   PE:=P+Length(Result);
   while (P<PE) do
     begin
@@ -2215,11 +2193,11 @@ end;
 function WordCount(const S: string; const WordDelims: TSysCharSet): SizeInt;
 
 var
-  P,PE : PChar;
+  P,PE : PAnsiChar;
 
 begin
   Result:=0;
-  P:=Pchar(pointer(S));
+  P:=PAnsiChar(pointer(S));
   PE:=P+Length(S);
   while (P<PE) do
     begin
@@ -2235,13 +2213,13 @@ end;
 function WordPosition(const N: Integer; const S: string; const WordDelims: TSysCharSet): SizeInt;
 
 var
-  PS,P,PE : PChar;
+  PS,P,PE : PAnsiChar;
   Count: Integer;
 
 begin
   Result:=0;
   Count:=0;
-  PS:=PChar(pointer(S));
+  PS:=PAnsiChar(pointer(S));
   PE:=PS+Length(S);
   P:=PS;
   while (P<PE) and (Count<>N) do
@@ -2484,7 +2462,7 @@ const
               = (100,500,0,0,0,0,1,0,0,50,1000,0,0,0,0,0,0,0,0,5,0,10);
 
 var
-  index, Next: Char;
+  index, Next: AnsiChar;
   i,l: SizeInt;
   Negative: Boolean;
 
@@ -2801,7 +2779,7 @@ end;
 
 function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
 var endpos : integer;
-    p,p2:pchar;
+    p,p2:PChar;
     k: integer;
 begin
   Result:='';
@@ -2833,13 +2811,13 @@ begin
 end;
 
 function IntToBin(Value: Longint; Digits: Integer): string;
-var p,p2 : pchar;
+var p,p2 : PChar;
 begin
   result:='';
   if digits<=0 then exit;
   setlength(result,digits);
-  p:=pchar(pointer(@result[digits]));
-  p2:=pchar(pointer(@result[1]));
+  p:=PChar(pointer(@result[digits]));
+  p2:=PChar(pointer(@result[1]));
   // typecasts because we want to keep intto* delphi compat and take an integer
   while (p>=p2) and (cardinal(value)>0) do     
     begin
@@ -2853,13 +2831,13 @@ begin
 end;
 
 function intToBin(Value: int64; Digits:integer): string;
-var p,p2 : pchar;
+var p,p2 : PChar;
 begin
   result:='';
   if digits<=0 then exit;
   setlength(result,digits);
-  p:=pchar(pointer(@result[digits]));
-  p2:=pchar(pointer(@result[1]));
+  p:=PChar(pointer(@result[digits]));
+  p2:=PChar(pointer(@result[1]));
   // typecasts because we want to keep intto* delphi compat and take a signed val
   // and avoid warnings
   while (p>=p2) and (qword(value)>0) do     
@@ -3025,7 +3003,7 @@ begin
       Result[i]:=Chr(Byte(Key[1 + ((i - 1) mod Length(Key))]) xor Ord(Src[i]));
 end;
 
-function XorEncode(const Key, Source: string): string;
+function XorEncode(const Key, Source: Ansistring): Ansistring;
 
 var
   i: Integer;
@@ -3043,10 +3021,10 @@ begin
     end;
 end;
 
-function XorDecode(const Key, Source: string): string;
+function XorDecode(const Key, Source: Ansistring): Ansistring;
 var
   i: Integer;
-  C: Char;
+  C: AnsiChar;
 begin
   Result:='';
   for i:=0 to Length(Source) div 2 - 1 do
@@ -3079,14 +3057,12 @@ begin
     end;
 end;
 
-function RPosEx(C: char; const S: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(C: AnsiChar; const S: AnsiString; offs: SizeInt): SizeInt;
 
-var I   : SizeUInt;
-    p,p2: pChar;
+var p,p2: PAnsiChar;
 
 Begin
- I:=Length(S);
- If (I<>0) and (offs<=i) Then
+ If (offs>0) and (offs<=Length(S)) Then
    begin
      p:=@s[offs];
      p2:=@s[1];
@@ -3097,93 +3073,55 @@ Begin
     RPosEX:=0;
 End;
 
-function RPos(c: char; const S: AnsiString): SizeInt;
-
-var I   : SizeInt;
-    p,p2: pChar;
+function RPos(c: AnsiChar; const S: AnsiString): SizeInt;
 
 Begin
- I:=Length(S);
- If I<>0 Then
-   begin
-     p:=@s[i];
-     p2:=@s[1];
-     while (p2<=p) and (p^<>c) do dec(p);
-     i:=p-p2+1;
-   end;
-  RPos:=i;
+ Result:=RPosEx(c,S,Length(S)); { Length(S) must be used because character version returns 0 on offs > length. }
 End;
 
 function RPos(const Substr: AnsiString; const Source: AnsiString): SizeInt;
-var
-  MaxLen,llen : SizeInt;
-  c : char;
-  pc,pc2 : pchar;
 begin
-  rPos:=0;
-  llen:=Length(SubStr);
-  maxlen:=length(source);
-  if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
-   begin
- //    i:=maxlen;
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareChar(Substr[1],pchar(pc-llen+1)^,Length(SubStr))=0) then
-         begin
-           rPos:=pchar(pc-llen+1)-pchar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
-   end;
+  Result:=RPosEx(Substr,Source,High(Result)); { High(Result) is possible because string version clamps offs > length to offs = length. }
 end;
 
-function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: SizeInt): SizeInt;
 var
   MaxLen,llen : SizeInt;
-  c : char;
-  pc,pc2 : pchar;
+  c : AnsiChar;
+  pc,pc2 : PAnsiChar;
 begin
-  rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
-  if SizeInt(offs)<maxlen then maxlen:=offs;
+  if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
-//     i:=maxlen;
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareChar(Substr[1],pchar(pc-llen+1)^,Length(SubStr))=0) then
-         begin
-           rPosex:=pchar(pc-llen+1)-pchar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
+     pc:=@source[maxlen-llen+1];
+     pc2:=@source[1];
+     c:=substr[1];
+     repeat
+       if (c=pc^) and
+          (CompareChar(Substr[1],pc^,llen)=0) then
+        begin
+          rPosex:=pc-pc2+1;
+          exit;
+        end;
+       dec(pc);
+     until pc<pc2;
    end;
+  rPosex:=0;
 end;
 
-function RPosEx(C: unicodechar; const S: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(C: unicodechar; const S: UnicodeString; offs: SizeInt): SizeInt;
 
-var I   : SizeUInt;
-    p,p2: PUnicodeChar;
+var p,p2: PUnicodeChar;
 
 Begin
- I:=Length(S);
- If (I<>0) and (offs<=i) Then
+ If (offs>0) and (offs<=Length(S)) Then
    begin
      p:=@s[offs];
      p2:=@s[1];
      while (p2<=p) and (p^<>c) do dec(p);
-     RPosEx:=(p-p2)+1;
+     RPosEx:=SizeUint(pointer(p)-pointer(p2)) div sizeof(unicodechar)+1; { p-p2+1 but avoids signed division... }
    end
   else
     RPosEX:=0;
@@ -3191,74 +3129,40 @@ End;
 
 function RPos(c: Unicodechar; const S: UnicodeString): SizeInt;
 
-var I   : SizeInt;
-    p,p2: pUnicodeChar;
-
 Begin
- I:=Length(S);
- If I<>0 Then
-   begin
-     p:=@s[i];
-     p2:=@s[1];
-     while (p2<=p) and (p^<>c) do dec(p);
-     i:=p-p2+1;
-   end;
-  RPos:=i;
+ Result:=RPosEx(c,S,Length(S)); { Length(S) must be used because character version returns 0 on offs > length. }
 End;
 
 function RPos(const Substr: UnicodeString; const Source: UnicodeString): SizeInt;
-var
-  MaxLen,llen : SizeInt;
-  c : Unicodechar;
-  pc,pc2 : PUnicodechar;
 begin
-  rPos:=0;
-  llen:=Length(SubStr);
-  maxlen:=length(source);
-  if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
-   begin
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareWord(Substr[1],punicodechar(pc-llen+1)^,Length(SubStr))=0) then
-         begin
-           rPos:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
-   end;
+  Result:=RPosEx(Substr,Source,High(Result)); { High(Result) is possible because string version clamps offs > length to offs = length. }
 end;
 
-function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: SizeInt): SizeInt;
 var
   MaxLen,llen : SizeInt;
   c : unicodechar;
   pc,pc2 : punicodechar;
 begin
-  rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
-  if SizeInt(offs)<maxlen then maxlen:=offs;
+  if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (Compareword(Substr[1],punicodechar(pc-llen+1)^,Length(SubStr))=0) then
-         begin
-           rPosex:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
+     pc:=@source[maxlen-llen+1];
+     pc2:=@source[1];
+     c:=substr[1];
+     repeat
+       if (c=pc^) and
+          (Compareword(Substr[1],pc^,llen)=0) then
+        begin
+          rPosex:=SizeUint(pointer(pc)-pointer(pc2)) div sizeof(unicodechar)+1; { pc-pc2+1 but avoids signed division... }
+          exit;
+        end;
+       dec(pc);
+     until pc<pc2;
    end;
+  rPosex:=0;
 end;
 
 procedure BinToHex(BinValue: PAnsiChar; HexValue: PAnsiChar; BinBufSize: Integer);
@@ -3320,38 +3224,156 @@ begin
 end;
 
 
-function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
-// more complex, have to accept more than bintohex
-// A..F    1000001
-// a..f    1100001
-// 0..9     110000
-
-var i,j,h,l : integer;
-
+function HexToBin(const HexText: PWideChar; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer;
+var
+  i : Integer;
+  PText : PWideChar;
+  PBinBuf : PAnsiChar;
 begin
-  i:=binbufsize;
+  PText:=HexText+HexTextOffset;
+  PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
+  i:=Count;
+  Result:=HexToBin(PText, PBinBuf, i);
+end;
+
+function HexToBin(const HexText: TBytes; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer;
+var
+  i : Integer;
+  PText : PAnsiChar;
+  PBinBuf : PAnsiChar;
+begin
+  PText:=PAnsiChar(HexText)+HexTextOffset;
+  PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
+  i:=Count;
+  Result:=HexToBin(PText, PBinBuf, i);
+end;
+
+function HexToBin(HexText: PWideChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
+
+const
+  LookUpTable1 : array ['0' .. '9'] of UInt8 = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+  LookUpTable2 : array ['a' .. 'f'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  LookUpTable3 : array ['A' .. 'F'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  
+var
+  i : integer;
+  num1,num2 : UInt8;
+  res : UInt8;
+  
+begin
+  i:=BinBufSize;
   while (i>0) do
     begin
-    if hexvalue^ IN ['A'..'F','a'..'f'] then
-      h:=((ord(hexvalue^)+9) and 15)
-    else if hexvalue^ IN ['0'..'9'] then
-      h:=((ord(hexvalue^)) and 15)
-    else
-      break;
-    inc(hexvalue);
-    if hexvalue^ IN ['A'..'F','a'..'f'] then
-      l:=(ord(hexvalue^)+9) and 15
-    else if hexvalue^ IN ['0'..'9'] then
-      l:=(ord(hexvalue^)) and 15
-    else
-      break;
-    j := l + (h shl 4);
-    inc(hexvalue);
-    binvalue^:=chr(j);
-    inc(binvalue);
+    // get value of first character (1-byte)
+    case HexText^ of
+      '0'..'9':
+        num1:=LookUpTable1[HexText^];
+      'a'..'f':
+        num1:=LookUpTable2[HexText^];
+      'A'..'F':
+        num1:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    inc(HexText);
+
+    // get value of second character (1-byte)
+    case HexText^ of
+      '0'..'9':
+        num2:=LookUpTable1[HexText^];
+      'a'..'f':
+        num2:=LookUpTable2[HexText^];
+      'A'..'F':
+        num2:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    // map two byte values into one byte
+    res:=num2+(num1 shl 4);
+    BinBuffer^:=AnsiChar(res);
+    inc(BinBuffer);
+
+    inc(HexText);
     dec(i);
     end;
-  result:=binbufsize-i;
+  Result:=BinBufSize-i;
+end;
+
+function HexToBin(HexText: PWideChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
+const
+  LookUpTable1 : array ['0' .. '9'] of UInt8 = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+  LookUpTable2 : array ['a' .. 'f'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  LookUpTable3 : array ['A' .. 'F'] of UInt8 = (10, 11, 12, 13, 14, 15);
+var
+  i : integer;
+  num1,num2 : UInt8;
+  res : UInt8;
+begin
+  i:=BinBufSize;
+  while (i>0) do
+  begin
+    // 2-byte chars could use lower bits for another character
+    if (HexText^ > #255) then break;
+    // get value of first character (2-byte)
+    case HexText^ of
+      '0'..'9':
+        num1:=LookUpTable1[HexText^];
+      'a'..'f':
+        num1:=LookUpTable2[HexText^];
+      'A'..'F':
+        num1:=LookUpTable3[HexText^];
+      else
+        break;
+     end;
+
+    inc(HexText);
+
+    // 2-byte chars could use lower bits for another character
+    if (HexText^ > #255) then break;
+    // get value of second character (2-byte)
+    case HexText^ of
+      '0'..'9':
+        num2:=LookUpTable1[HexText^];
+      'a'..'f':
+        num2:=LookUpTable2[HexText^];
+      'A'..'F':
+        num2:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    // map four byte values into one byte
+    res:=num2+(num1 shl 4);
+    BinBuffer^:=AnsiChar(res);
+    inc(BinBuffer);
+
+    inc(HexText);
+    dec(i);
+  end;
+
+  Result:=BinBufSize-i;
+end;
+
+function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
 end;
 
 function PosSetEx(const c: TSysCharSet; const s: ansistring; count: Integer): SizeInt;
@@ -3359,7 +3381,7 @@ function PosSetEx(const c: TSysCharSet; const s: ansistring; count: Integer): Si
 var i,j:SizeInt;
 
 begin
- if pchar(pointer(s))=nil then
+ if PAnsiChar(pointer(s))=nil then
   j:=0
  else
   begin
@@ -3425,6 +3447,24 @@ Begin
 End;
 
 
+procedure Removeleadingchars(VAR S: UnicodeString; const CSet: TSysCharset);
+
+VAR I,J : Longint;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=1;
+   While (J<=I) And (S[J] IN CSet) DO
+     INC(J);
+   IF J>1 Then
+    Delete(S,1,J-1);
+   End;
+End;
+
+
+
 function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
 
 begin
@@ -3446,6 +3486,22 @@ Begin
     SetLength(S,J);
   End;
 End;
+
+procedure RemoveTrailingChars(VAR S: UnicodeString; const CSet: TSysCharset);
+
+VAR I,J: LONGINT;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=I;
+   While (j>0) and (S[J] IN CSet) DO DEC(J);
+   IF J<>I Then
+    SetLength(S,J);
+  End;
+End;
+
 
 function TrimRightSet(const S: String; const CSet: TSysCharSet): String;
 
@@ -3481,6 +3537,35 @@ Begin
      setlength(s,j);  
   End;
 End;
+
+procedure RemovePadChars(VAR S: UnicodeString; const CSet: TSysCharset);
+
+VAR I,J,K: LONGINT;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=I;
+   While (j>0) and (S[J] IN CSet) DO DEC(J);
+   if j=0 Then
+     begin
+       s:='';
+       exit;
+     end;
+   k:=1;
+   While (k<=I) And (S[k] IN CSet) DO
+     INC(k);
+   IF k>1 Then
+     begin
+       move(s[k],s[1],j-k+1);
+       setlength(s,j-k+1);
+     end
+   else
+     setlength(s,j);
+  End;
+End;
+
 
 function TrimSet(const S: String;const CSet:TSysCharSet): String;
 

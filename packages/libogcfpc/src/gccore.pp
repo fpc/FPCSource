@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gccore;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -9,8 +11,13 @@ unit gccore;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CMem, System.CTypes, System.Math, WiiApi.Gctypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   cmem, ctypes, math, gctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   RNC_FILE_IS_NOT_RNC     = -1;

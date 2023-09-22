@@ -20,7 +20,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Accessibility;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -205,7 +207,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.AXErrors,MacOsApi.AXConstants,MacOsApi.AXUIElement,MacOsApi.AXValue,MacOsApi.AXTextAttributedString;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,AXErrors,AXConstants,AXUIElement,AXValue,AXTextAttributedString;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

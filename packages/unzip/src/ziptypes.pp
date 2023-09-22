@@ -1,6 +1,8 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT ZipTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {
 Type definitions for UNZIP
   * original version by Christian Ghisler
@@ -58,8 +60,8 @@ CONST
 
 TYPE
   { Record for UNZIP }
-  buftype  = ARRAY [ 0..tBufSize ] of char;
-  TDirtype = ARRAY [ 0..tFSize ] of char;
+  buftype  = ARRAY [ 0..tBufSize ] of AnsiChar;
+  TDirtype = ARRAY [ 0..tFSize ] of AnsiChar;
   TZipRec = PACKED RECORD
        buf : ^buftype;        {please}         {buffer containing central dir}
        bufsize,               {do not}         {size of buffer}
@@ -159,13 +161,13 @@ CONST
 
 { the various unzip methods }
 CONST
-Unzipmethods : ARRAY [ 0..9 ] of pchar =
+Unzipmethods : ARRAY [ 0..9 ] of PAnsiChar =
   ( 'stored', 'shrunk', 'reduced 1', 'reduced 2', 'reduced 3',
    'reduced 4', 'imploded', 'tokenized', 'deflated', 'skipped' );
 
 { unzip actions being undertaken }
 CONST
-UnzipActions : ARRAY [ 0..9 ] of pchar =
+UnzipActions : ARRAY [ 0..9 ] of PAnsiChar =
   ( 'copying', 'unshrinking', 'unreducing 1', 'unreducing 2', 'unreducing 3',
    'unreducing 4', 'exploding', 'un-tokenizing', 'inflating', 'skipping' );
 

@@ -26,12 +26,19 @@ with OS/2 and eComStation. However, the Clock API DLL is not Rexx
 enabled.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit clkdll;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 If you need to know the universal world time call this API. The
@@ -69,7 +76,7 @@ Return values:   0 ... ok
                 40 ... Date only
                128 ... failed
 }
-Function ClkQuerySTData(ID: PChar; var NextDate: TDateTime): Cardinal; cdecl;
+Function ClkQuerySTData(ID: PAnsiChar; var NextDate: TDateTime): Cardinal; cdecl;
     external 'clkdll' name 'ClkQuerySTData'; {index 00004}
 
 {
@@ -80,7 +87,7 @@ Return values:   0 ... ok
                 40 ... Date only
                128 ... failed
 }
-Function ClkQueryDSTData(ID: PChar; var NextDate: TDateTime): Cardinal; cdecl;
+Function ClkQueryDSTData(ID: PAnsiChar; var NextDate: TDateTime): Cardinal; cdecl;
     external 'clkdll' name 'ClkQueryDSTData'; {index 00005}
 
 {
@@ -89,7 +96,7 @@ from the actual TZ environment setting.
 Return values:   0 ... ok
                128 ... failed
 }
-Function ClkQueryTimeZone(value: PChar): Cardinal; cdecl;
+Function ClkQueryTimeZone(value: PAnsiChar): Cardinal; cdecl;
     external 'clkdll' name 'ClkQueryTimeZone'; {index 00006}
 
 {
@@ -152,7 +159,7 @@ Return values:   0 ... ok
 }
 Function ClkGetSynchData(var Last, LastSuccess: TDateTime;
                          var LastWasSuccessful: Integer;
-                         LastSuccessfulHost: PChar): Cardinal; cdecl;
+                         LastSuccessfulHost: PAnsiChar): Cardinal; cdecl;
     external 'clkdll' name 'ClkGetSynchData'; {index 00016}
 
 { not documented

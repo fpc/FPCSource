@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjwaes256;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Jwt.Types, System.Hash.Ecc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjwt, fpEcc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TJWTSignerES256 }
@@ -22,7 +29,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Utils, Fcl.BaseNEnc, System.Hash.Ecdsa;
+{$ELSE FPC_DOTTEDUNITS}
 uses fphashutils, basenenc, fpecdsa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TJWTSignerES256 }
 
@@ -60,7 +71,7 @@ end;
 Class function TJWTSignerES256.Verify(const aJWT: String; aPrivateKey: TECCPrivateKey): Boolean;
 
 Var
-  J,C,S : AnsiString;
+  J,C,S : String;
   aSignature : TEccSignature;
   B : TBytes;
 
@@ -68,7 +79,11 @@ begin
   Result:=GetParts(aJWT,J,C,S);
   if Not Result then
     exit;
+{$IF SIZEOF(CHAR)=2}    
+  B:=TEncoding.UTF8.GetBytes(J+'.'+C);
+{$ELSE}  
   B:=TEncoding.UTF8.GetAnsiBytes(J+'.'+C);
+{$ENDIF}  
   BytesToVar(Base64url.Decode(S),aSignature,Sizeof(aSignature));
   Result:=TECDSA.verifySHA256(B,aPrivateKey,aSignature);
 end;
@@ -76,7 +91,7 @@ end;
 class function TJWTSignerES256.Verify(const aJWT: String; aPublicKey: TECCPublicKey): Boolean;
 
 Var
-  J,C,S : AnsiString;
+  J,C,S : String;
   aSignature : TEccSignature;
   B : TBytes;
 
@@ -84,7 +99,11 @@ begin
   Result:=GetParts(aJWT,J,C,S);
   if Not Result then
     exit;
+{$IF SIZEOF(CHAR)=2}    
+  B:=TEncoding.UTF8.GetBytes(J+'.'+C);
+{$ELSE}     
   B:=TEncoding.UTF8.GetAnsiBytes(J+'.'+C);
+{$ENDIF}  
   Base64url.Decode(S,@aSignature);
   Result:=TECDSA.verifySHA256(B,aPublicKey,aSignature);
 end;

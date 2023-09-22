@@ -30,12 +30,12 @@
 Procedure Move(const source;var dest;count:SizeInt);
 Procedure FillChar(var x;count:SizeInt;Value:Byte);
 Procedure FillChar(var x;count:SizeInt;Value:Boolean);
-Procedure FillChar(var x;count:SizeInt;Value:Char);
+Procedure FillChar(var x;count:SizeInt;Value:AnsiChar);
 procedure FillByte(var x;count:SizeInt;value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);
-function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
+function  IndexChar(const buf;len:SizeInt;b:AnsiChar):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
@@ -45,7 +45,7 @@ function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
-function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
+function  IndexChar0(const buf;len:SizeInt;b:AnsiChar):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
 procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
 procedure ReadBarrier;
@@ -471,11 +471,11 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 *)
 
 {****************************************************************************
-                      PChar and String Handling
+                      PAnsiChar and String Handling
 ****************************************************************************}
 (*
-function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
-function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
+function strpas(p:PAnsiChar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+function strlen(p:PAnsiChar):sizeint;external name 'FPC_PCHAR_LENGTH';
 *)
 
 { result:
@@ -497,10 +497,10 @@ var
 {$ifdef VER3_0}
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
-Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
+Procedure Insert(source:AnsiChar;var s:shortstring;index:SizeInt);
 {$endif VER3_0}
 Function  Pos(const substr:shortstring;const s:shortstring; Offset: Sizeint = 1):SizeInt;
-Function  Pos(C:Char;const s:shortstring; Offset: Sizeint = 1):SizeInt;
+Function  Pos(C:AnsiChar;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function  Pos(const Substr : ShortString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 
@@ -512,7 +512,7 @@ Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
 Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
@@ -534,13 +534,13 @@ Function  hexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endi
 Function  hexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
-{ Char functions }
+{ AnsiChar functions }
 {$if defined(VER3_2) or defined(VER3_0)}
-Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+Function Chr(b : byte) : AnsiChar;      [INTERNPROC: fpc_in_chr_byte];
 {$endif defined(VER3_2) or defined(VER3_0)}
-Function  upCase(c:Char):Char;
-Function  lowerCase(c:Char):Char; overload;
-function  pos(const substr : shortstring;c:char; Offset : Sizeint=1): SizeInt;
+Function  upCase(c:AnsiChar):AnsiChar;
+Function  lowerCase(c:AnsiChar):AnsiChar; overload;
+function  pos(const substr : shortstring;c:AnsiChar; Offset : Sizeint=1): SizeInt;
 
 
 {****************************************************************************
@@ -679,7 +679,7 @@ Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
-Procedure SetTextLineEnding(var f:Text; Ending:string);
+Procedure SetTextLineEnding(var f:Text; Ending:Shortstring);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_TEXTIO}
@@ -817,7 +817,7 @@ Const
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
-Function  ParamStr(l:Longint):string;
+Function  ParamStr(l:Longint):Shortstring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifndef JVM}
@@ -858,10 +858,10 @@ Procedure SysInitFPU;
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function StringToPPChar(var S:AnsiString;ReserveEntries:integer):ppchar;
+function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):PPAnsiChar; // const ?
+Function StringToPPChar(var S:AnsiString;ReserveEntries:integer):PPAnsiChar;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+Function StringToPPChar(S: PAnsiChar;ReserveEntries:integer):PPAnsiChar;
 {$endif FPC_HAS_FEATURE_HEAP}
 
 

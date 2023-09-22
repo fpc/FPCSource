@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 {$endif ALLPACKAGES}
 
@@ -39,6 +39,9 @@ begin
     P.Dependencies.Add('fcl-registry',AllWindowsOSes);
     P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
+{$ifndef ALLPACKAGES}
+    P.Dependencies.Add('httpd20', AllOses - [amiga,aros,morphos]);
+{$endif ALLPACKAGES}    
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
@@ -507,6 +510,8 @@ begin
       AddUnit('fphttpclient');
       AddUnit('fphttpclientpool');
       end;
+    P.NamespaceMap:='namespaces.lst';
+      
 end;
     
 {$ifndef ALLPACKAGES}

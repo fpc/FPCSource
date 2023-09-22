@@ -7,21 +7,16 @@ main=rtl
 
 [target]
 #loaders=prt0
-units=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas buildrtl cpall
-implicitunits=$(SYSINITUNITS) athreads dos sysutils \
-      ctypes strings rtlconsts sysconst math types \
-      typinfo sortbase fgl classes charset character getopts \
-      fpwidestring fpintres exeinfo lineinfo \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
-      unicodedata \
-      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+units=$(SYSTEMUNIT) $(HEAPTRCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
+implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) $(SYSUTILSUNIT) \
+               $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
+               $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \
+               $(FPWIDESTRINGUNIT) $(EXEINFOUNIT) $(LINEINFOUNIT) \
+               $(CP_UNITS) $(UNICODEDATAUNIT) \
+               $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT)  $(UFLOAT128UNIT)
 
 
-rsts=math rtlconsts typinfo classes sysconst
+rsts=$(MATHUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -31,7 +26,6 @@ fpcpackage=y
 buildunit=buildrtl
 
 [default]
-fpcdir=../..
 target=morphos
 cpu=powerpc
 
@@ -92,27 +86,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
-
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/uuchar.pp
-
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
-
-extpas$(PPUEXT) : $(INC)/extpas.pp buildrtl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
-
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 

@@ -14,11 +14,17 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keymap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Inputevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, inputevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -88,11 +94,11 @@ Const
 var KeyMapBase : pLibrary;
 
 const
-    KEYMAPNAME : PChar = 'keymap.library';
+    KEYMAPNAME : PAnsiChar = 'keymap.library';
 
 function AskKeyMapDefault : PKeyMap; syscall KeyMapBase 6;
-function MapANSI(TheString : PChar; Count : LongInt; Buffer : PChar; Length : LongInt; KeyMap : PKeyMap) : LongInt;  syscall KeyMapBase 8;
-function MapRawKey(Event : PInputEvent; Buffer : PChar; Length : LongInt; KeyMap : PKeyMap) : SmallInt;  syscall KeyMapBase 7;
+function MapANSI(TheString : PAnsiChar; Count : LongInt; Buffer : PAnsiChar; Length : LongInt; KeyMap : PKeyMap) : LongInt;  syscall KeyMapBase 8;
+function MapRawKey(Event : PInputEvent; Buffer : PAnsiChar; Length : LongInt; KeyMap : PKeyMap) : SmallInt;  syscall KeyMapBase 7;
 procedure SetKeyMapDefault(KeyMap : PKeyMap);  syscall KeyMapBase 5;
 
 implementation

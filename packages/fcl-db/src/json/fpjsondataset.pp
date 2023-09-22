@@ -1,6 +1,8 @@
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjsondataset;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -19,8 +21,13 @@ unit fpjsondataset;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Db, System.TypInfo, System.Classes, System.SysUtils, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DB, typinfo, Classes, SysUtils, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TBaseJSONDataset = class;
@@ -350,7 +357,11 @@ type
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Variants, System.DateUtils, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses variants, dateutils, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TIntegerFieldComparer }
 
@@ -1188,7 +1199,7 @@ begin
     if (length(W)>0) then
       Move(W[1],Buffer^,Length(W)*SizeOf(Widechar)+1)
     else
-      PChar(Buffer)^:=#0;
+      PAnsiChar(Buffer)^:=#0;
     end;
     ftfixedchar,
     ftString:
@@ -1197,7 +1208,7 @@ begin
       if (length(s)>0) then
         Move(S[1],Buffer^,Length(S)+1)
       else
-        PChar(Buffer)^:=#0;
+        PAnsiChar(Buffer)^:=#0;
       end;
     ftBoolean:
       begin

@@ -24,11 +24,17 @@
       Contains manifests, macros, types and prototypes for Windows HTTP Services
 
 }	
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinHTTP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from winhttp.h

@@ -16,12 +16,20 @@
 
 {$INCLUDE sdo_global.inc}
 {$RANGECHECKS OFF}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_linked_list;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Types,
+  Sdo.BaseTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Types,
   sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -315,6 +323,7 @@ function TLinkedListIterator.GetBookmark(): TLinkedListBookmark;
 var
   rec : TLinkedListBookmarkRecord;
 begin
+  Result:=Default(TLinkedListBookmark);
   rec._Data := FData;
   rec._Node := FCurrent;
   rec._Generation := FData.Generation;

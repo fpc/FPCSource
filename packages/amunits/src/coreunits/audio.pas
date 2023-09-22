@@ -23,15 +23,21 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit audio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
-    AUDIONAME           : PChar = 'audio.device';
+    AUDIONAME           : PAnsiChar = 'audio.device';
 
     ADHARD_CHANNELS     = 4;
 

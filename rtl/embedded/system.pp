@@ -56,8 +56,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ':';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { FileNameCaseSensitive and FileNameCasePreserving are defined below! }
@@ -92,8 +92,8 @@ const
 
 type
   trtl_do_close = procedure (handle : longint);
-  trtl_do_erase = procedure (p : pchar);
-  trtl_do_rename = procedure (p1,p2 : pchar);
+  trtl_do_erase = procedure (p : PAnsiChar);
+  trtl_do_rename = procedure (p1,p2 : PAnsiChar);
   trtl_do_write = function (h: longint; addr: pointer; len: longint) : longint;
   trtl_do_read = function (h: longint; addr: pointer; len: longint) : longint;
   trtl_do_filepos = function (handle: longint) : longint;
@@ -101,7 +101,7 @@ type
   trtl_do_seekend = function (handle: longint):longint;
   trtl_do_filesize = function (handle : longint) : longint;
   trtl_do_truncate = procedure (handle, pos: longint);
-  trtl_do_open = procedure (var f;p:pchar;flags:longint);
+  trtl_do_open = procedure (var f;p:PAnsiChar;flags:longint);
   trtl_do_isdevice = function (handle: longint): boolean;
 
 var
@@ -121,9 +121,9 @@ var
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 var
   argc: LongInt = 0;
-  argv: PPChar = nil;
-  envp: PPChar = nil;
-  cmdline: PChar = nil;
+  argv: PPAnsiChar = nil;
+  envp: PPAnsiChar = nil;
+  cmdline: PAnsiChar = nil;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifndef FPUNONE}
@@ -169,7 +169,7 @@ var
 
 { Include ELF resources }
 
-const calculated_cmdline:Pchar=nil;
+const calculated_cmdline:PAnsiChar=nil;
 
 {$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
@@ -229,7 +229,7 @@ Begin
 End;
 
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  begin
    paramstr := '';
  end;

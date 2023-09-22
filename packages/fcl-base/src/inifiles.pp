@@ -46,14 +46,20 @@
  *
  *}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit IniFiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, sysutils, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

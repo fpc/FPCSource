@@ -1,9 +1,37 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
+    Free Pascal development team
+
+    DBF common functions and constants.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db
+{$ifndef Windows}
+  , System.Types, Data.Dbf.Wtil
+{$ifdef KYLIX}
+  , Libc
+{$endif}  
+{$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DB
 {$ifndef WINDOWS}
@@ -13,6 +41,7 @@ uses
 {$endif}  
 {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 const
@@ -29,7 +58,7 @@ type
   EDbfError = class (EDatabaseError);
   EDbfWriteError = class (EDbfError);
 
-  TDbfFieldType = char;
+  TDbfFieldType = AnsiChar;
 
   TXBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII, xVisualFoxPro);
   TSearchKeyType = (stEqual, stGreaterEqual, stGreater);
@@ -46,7 +75,6 @@ type
   PSmallInt = ^SmallInt;
   PCardinal = ^Cardinal;
   PDouble = ^Double;
-  PString = ^String;
 
 {$ifdef DELPHI_3}
   dword = cardinal;
@@ -107,7 +135,7 @@ procedure SwapInt64LE(Value, Result: Pointer); register;
 {$endif}
 
 // Translate string between codepages
-function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
+function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 
 // Returns a pointer to the first occurence of Chr in Str within the first Length characters
 // Does not stop at null (#0) terminator!
@@ -124,8 +152,13 @@ function Max(x, y: integer): integer;
 implementation
 
 {$ifdef WINDOWS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 //====================================================================
@@ -371,7 +404,7 @@ end;
 
 {$endif}
 
-function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
+function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 var
   WideCharStr: array[0..1023] of WideChar;
   wideBytes: Cardinal;
@@ -416,7 +449,7 @@ function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 var
   I: Integer;
 begin
-  // Make sure we pass a buffer of bytes instead of a pchar otherwise
+  // Make sure we pass a buffer of bytes instead of a PAnsiChar otherwise
   // the call will always fail
   I := System.IndexByte(PByte(Buffer)^, Length, Chr);
   if I = -1 then

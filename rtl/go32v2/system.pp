@@ -43,8 +43,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
@@ -76,9 +76,9 @@ var
   meml : array[0..($7fffffff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc:longint;public name 'operatingsystem_parameter_argc';
-  argv:PPchar;public name 'operatingsystem_parameter_argv';
-  envp:PPchar;public name 'operatingsystem_parameter_envp';
-  dos_argv0 : pchar; public name 'dos_argv0';
+  argv:PPAnsiChar;public name 'operatingsystem_parameter_argv';
+  envp:PPAnsiChar;public name 'operatingsystem_parameter_envp';
+  dos_argv0 : PAnsiChar; public name 'dos_argv0';
 
   AllFilesMask: string [3];
 
@@ -94,7 +94,7 @@ type
 { Dos Extender info }
   p_stub_info = ^t_stub_info;
   t_stub_info = packed record
-       magic         : array[0..15] of char;
+       magic         : array[0..15] of AnsiChar;
        size          : longint;
        minstack      : longint;
        memory_handle : longint;
@@ -105,9 +105,9 @@ type
        psp_selector  : word;
        cs_selector   : word;
        env_size      : word;
-       basename      : array[0..7] of char;
-       argv0         : array [0..15] of char;
-       dpmi_server   : array [0..15] of char;
+       basename      : array[0..7] of AnsiChar;
+       argv0         : array [0..15] of AnsiChar;
+       dpmi_server   : array [0..15] of AnsiChar;
   end;
 
   p_go32_info_block = ^t_go32_info_block;
@@ -163,10 +163,10 @@ implementation
 
 
 var
-  c_environ : ppchar;external name '__environ';
-  _args : ppchar;external name '_args';
+  c_environ : PPAnsiChar;external name '__environ';
+  _args : PPAnsiChar;external name '_args';
   __stubinfo : p_stub_info;external name '__stubinfo';
-  ___dos_argv0 : pchar;external name '___dos_argv0';
+  ___dos_argv0 : PAnsiChar;external name '___dos_argv0';
 
 
 procedure setup_arguments;
@@ -179,16 +179,16 @@ var
   rm_argv  : ^arrayword;
   argv0len : longint;
   useproxy : boolean;
-  hp       : ppchar;
+  hp       : PPAnsiChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
   arglen,cmdlen,
   count   : longint;
   argstart,
-  pc,arg  : pchar;
-  quote   : char;
+  pc,arg  : PAnsiChar;
+  quote   : AnsiChar;
   argvlen : longint;
 
-  function atohex(s : pchar) : longint;
+  function atohex(s : PAnsiChar) : longint;
   var
     rv : longint;
     v  : byte;
@@ -275,7 +275,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -292,7 +292,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -332,7 +332,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -352,7 +352,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -465,7 +465,7 @@ end;
 procedure setup_environment;
 var env_selector : word;
     env_count : longint;
-    dos_env,cp : pchar;
+    dos_env,cp : PAnsiChar;
 begin
    stub_info:=__stubinfo;
    dos_env := sysgetmem(stub_info^.env_size);
@@ -479,7 +479,7 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  envp := sysgetmem((env_count+1) * sizeof(pchar));
+  envp := sysgetmem((env_count+1) * sizeof(PAnsiChar));
   if (envp = nil) then HandleError (203);
   c_environ:=envp;
   cp:=dos_env;
@@ -572,7 +572,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l+1<=argc) then
    paramstr:=strpas(argv[l])
@@ -600,7 +600,7 @@ end;
 function CheckLFN:boolean;
 var
   regs     : TRealRegs;
-  RootName : pchar;
+  RootName : PAnsiChar;
 begin
 { Check LFN API on drive c:\ }
   RootName:='C:\';

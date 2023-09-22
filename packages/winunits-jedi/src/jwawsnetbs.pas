@@ -42,7 +42,9 @@
 
 // $Id: JwaWSnetbs.pas,v 1.6 2007/09/05 11:58:53 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWSnetbs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaWSnetbs;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -84,7 +91,7 @@ type
   SOCKADDR_NB = record
     snb_family: Smallint;
     snb_type: Word;
-    snb_name: array [0..NETBIOS_NAME_LENGTH - 1] of Char;
+    snb_name: array [0..NETBIOS_NAME_LENGTH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM SOCKADDR_NB}
   PSOCKADDR_NB = ^SOCKADDR_NB;
@@ -114,7 +121,7 @@ const
 // A macro convenient for setting up NETBIOS SOCKADDRs.
 //
 
-procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: string; Port: Byte);
+procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: ansistring; Port: Byte);
 {$EXTERNALSYM SET_NETBIOS_SOCKADDR}
 
 
@@ -138,7 +145,7 @@ implementation
 
 {$IFNDEF JWA_INTERFACESECTION}
 
-procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: string; Port: Byte);
+procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: ansistring; Port: Byte);
 var
   I: Integer;
 begin
@@ -154,7 +161,7 @@ begin
     SNB.snb_name[I] := SNB.snb_name[I + 1];
     Inc(I);
   end;
-  SNB.snb_name[NETBIOS_NAME_LENGTH - 1] := Char(Port);
+  SNB.snb_name[NETBIOS_NAME_LENGTH - 1] := AnsiChar(Port);
 end;
 
 {$ENDIF JWA_INTERFACESECTION}

@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FileInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes,  System.Resources.Resource, System.Resources.VersionTypes, System.Resources.Version;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes,  resource, versiontypes, versionresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Low level interface
@@ -206,7 +213,7 @@ var
   Stream: TResourceStream;
 begin
   FreeResources;
-  Stream := TResourceStream.CreateFromID(Instance, 1, {$ifdef FPC_OS_UNICODE}PWideChar{$else}PChar{$endif}(RT_VERSION));
+  Stream := TResourceStream.CreateFromID(Instance, 1, {$ifdef FPC_OS_UNICODE}PWideChar{$else}PAnsiChar{$endif}(RT_VERSION));
   try
     FVersionInfo:=TVersionResource.Create;
     FVersionInfo.SetCustomRawDataStream(Stream);

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -163,6 +163,9 @@ begin
     P.Targets.AddExampleProgram('testdb4.pp');
     P.Targets.AddExampleProgram('mysqls.pp');
     // 'mysqls.c
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

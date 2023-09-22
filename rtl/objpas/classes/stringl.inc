@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -148,7 +149,7 @@ begin
   FQuoteChar:=c;
 end;
 
-Function TStrings.GetQuoteChar :Char;
+Function TStrings.GetQuoteChar : Char;
 begin
   CheckSpecialChars;
   Result:=FQuoteChar;
@@ -162,7 +163,7 @@ end;
 
 
 
-Function TStrings.GetNameValueSeparator :Char;
+Function TStrings.GetNameValueSeparator : Char;
 begin
   CheckSpecialChars;
   Result:=FNameValueSeparator;
@@ -216,30 +217,34 @@ Function TStrings.GetDelimitedText: string;
 
 Var
   I : integer;
-  p : pchar;
-  BreakChars : set of char;
+  Pend,P : PChar;
   S : String;
   doQuote : Boolean;
-    
+
+  Function IsBreakChar(C : Char) : Boolean;
+
+  begin
+    Result:=(C=QuoteChar) or (C=Delimiter) or (C=#0);
+    if Not StrictDelimiter then
+      Result:=Result or (Ord(C)<=Ord(' '));
+  end;
+
 begin
   CheckSpecialChars;
   result:='';
-  if StrictDelimiter then
-    BreakChars:=[#0,QuoteChar,Delimiter]
-  else  
-    BreakChars:=[#0..' ',QuoteChar,Delimiter];
   // Check for break characters and quote if required.
   For i:=0 to count-1 do
     begin
     S:=Strings[i];
+    PEnd:=PChar(S)+length(S)*SizeOf(Char);
     doQuote:=FAlwaysQuote;
     If not DoQuote then
       begin
-      p:=pchar(S);
+      p:=PChar(S);
       //Quote strings that include BreakChars:
-      while not(p^ in BreakChars) do
+      while not IsBreakChar(p^) do
         inc(p);
-      DoQuote:=(p<>pchar(S)+length(S));  
+      DoQuote:=(p^<>#0);
       end;
     if DoQuote and (QuoteChar<>#0) then
       Result:=Result+QuoteString(S,QuoteChar)
@@ -772,7 +777,7 @@ end;
 
 Function TStrings.GetTextStr: string;
 
-Var P : Pchar;
+Var P : PChar;
     I,L,NLS : SizeInt;
     S,NL : String;
 
@@ -792,8 +797,8 @@ begin
     S:=Strings[I];
     L:=Length(S);
     if L<>0 then
-      System.Move(Pointer(S)^,P^,L);
-    P:=P+L;
+      System.Move(Pointer(S)^,P^,L*SizeOf(Char));
+    Inc(P,L);
     if (I<Count-1) or Not SkipLastLineBreak then
       For L:=1 to NLS do
         begin
@@ -857,7 +862,7 @@ begin
     System.Delete(S, FuturePos, High(FuturePos))
   else
     begin
-    SetString(S, @Value[StartPos], FuturePos - StartPos);
+    SetString(S, PChar(@Value[StartPos]), FuturePos - StartPos);
     if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #13) then
       Inc(FuturePos);
     if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #10) then
@@ -1254,7 +1259,7 @@ end;
 
 Function TStrings.GetText: PChar;
 begin
-  Result:=StrNew(Pchar(Self.Text));
+  Result:=StrNew(PChar(Self.Text));
 end;
 
 
@@ -1612,14 +1617,22 @@ begin
     end;
 
   NL := GetLineBreakCharLBS;
+{$if sizeof(char)=1}
   BNL:=AEncoding.GetAnsiBytes(NL);
+{$else}
+  BNL:=AEncoding.GetBytes(NL);
+{$endif}
   BNLS:=Length(BNL);
   For i:=0 To count-1 do
     begin
     S:=Strings[I];
     if S<>'' then
       begin
+      {$if sizeof(char)=1}
       B:=AEncoding.GetAnsiBytes(S);
+      {$else}
+      B:=AEncoding.GetBytes(S);
+      {$endif}
       Stream.WriteBuffer(B[0],Length(B));
       end;
     if (I<Count-1) or Not SkipLastLineBreak then
@@ -1848,7 +1861,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
+      FillWord (PAnsiChar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;
@@ -2070,7 +2083,7 @@ end;
 procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
-  CustomSort(CompareFn, SortBase.DefaultSortingAlgorithm);
+  CustomSort(CompareFn, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 type

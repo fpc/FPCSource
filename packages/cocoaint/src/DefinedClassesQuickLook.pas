@@ -3,7 +3,9 @@
 {$modeswitch cvar}
 {$packrecords c}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DefinedClassesQuickLook;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 implementation

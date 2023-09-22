@@ -1,16 +1,24 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wsupgrader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs, FpWeb.Http.Server, FpWeb.WebSocket.Protocol, FpWeb.WebSocket.Custom.Server;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpprotocol, httpdefs, fphttpserver, fpwebsocket, fpcustwsserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
   { TCustomWebsocketUpgrader }
   TAllowUpgradeEvent = Procedure(Sender : TObject; aRequest : TRequest; var aAllow : Boolean) of object;
+  TWSConnectEvent = procedure(Sender: TObject; AConnection: TWSServerConnection) of object;
 
   TCustomWebsocketUpgrader = Class(TCustomWSServer)
   private
@@ -22,8 +30,8 @@ Type
     FHost: String;
     function GetHandshakeRequest(aRequest: TFPHTTPConnectionRequest): TWSHandShakeRequest;
     function GetUpgradeName: String;
-    procedure SetHost(const AValue: String);
-    procedure SetUpgradeName(const AValue: String);
+    procedure SetHost(AValue: String);
+    procedure SetUpgradeName(AValue: String);
     procedure SetWebServer(AValue: TFPCustomHttpServer);
   Protected
     // Override from custom server
@@ -64,6 +72,7 @@ Type
     Property MessageWaitTime;
     Property Options;
     Property OnAllow;
+    property OnConnect;
     property OnMessageReceived;
     property OnDisconnect;
     property OnControlReceived;
@@ -117,7 +126,7 @@ begin
   FreeConnectionHandler;
 end;
 
-procedure TCustomWebsocketUpgrader.SetHost(const AValue: String);
+procedure TCustomWebsocketUpgrader.SetHost(AValue: String);
 begin
   if Host=AValue then Exit;
   CheckInactive;
@@ -204,6 +213,8 @@ begin
     aConn.DoHandshake(aHandshake);
     Connections.Add(aConn);
     ConnectionHandler.HandleConnection(aConn,False);
+    if Assigned(OnConnect) then
+      OnConnect(Self,aConn);
   finally
     aHandshake.Free;
   end;
@@ -216,7 +227,7 @@ begin
 end;
 
 
-procedure TCustomWebsocketUpgrader.SetUpgradeName(const AValue: String);
+procedure TCustomWebsocketUpgrader.SetUpgradeName(AValue: String);
 begin
   if aValue=GetUpgradeName then
     exit;

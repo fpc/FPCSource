@@ -53,7 +53,7 @@ type
         parent_class : TGnomeCanvasClass;
         select_icon : procedure (gil:PGnomeIconList; num:gint; event:PGdkEvent);cdecl;
         unselect_icon : procedure (gil:PGnomeIconList; num:gint; event:PGdkEvent);cdecl;
-        text_changed : function (gil:PGnomeIconList; num:gint; new_text:Pchar):gboolean;cdecl;
+        text_changed : function (gil:PGnomeIconList; num:gint; new_text:PAnsiChar):gboolean;cdecl;
      end;
 
 const
@@ -72,10 +72,10 @@ procedure gnome_icon_list_set_hadjustment(gil:PGnomeIconList; hadj:PGtkAdjustmen
 procedure gnome_icon_list_set_vadjustment(gil:PGnomeIconList; vadj:PGtkAdjustment);cdecl;external libgnomeuidll name 'gnome_icon_list_set_vadjustment';
 procedure gnome_icon_list_freeze(gil:PGnomeIconList);cdecl;external libgnomeuidll name 'gnome_icon_list_freeze';
 procedure gnome_icon_list_thaw(gil:PGnomeIconList);cdecl;external libgnomeuidll name 'gnome_icon_list_thaw';
-procedure gnome_icon_list_insert(gil:PGnomeIconList; pos:longint; icon_filename:Pchar; thetext:Pchar);cdecl;external libgnomeuidll name 'gnome_icon_list_insert';
-procedure gnome_icon_list_insert_imlib(gil:PGnomeIconList; pos:longint; image:PGdkImlibImage; thetext:Pchar);cdecl;external libgnomeuidll name 'gnome_icon_list_insert_imlib';
-function gnome_icon_list_append(gil:PGnomeIconList; icon_filename:Pchar; thetext:Pchar):longint;cdecl;external libgnomeuidll name 'gnome_icon_list_append';
-function gnome_icon_list_append_imlib(gil:PGnomeIconList; image:PGdkImlibImage; thetext:Pchar):longint;cdecl;external libgnomeuidll name 'gnome_icon_list_append_imlib';
+procedure gnome_icon_list_insert(gil:PGnomeIconList; pos:longint; icon_filename:PAnsiChar; thetext:PAnsiChar);cdecl;external libgnomeuidll name 'gnome_icon_list_insert';
+procedure gnome_icon_list_insert_imlib(gil:PGnomeIconList; pos:longint; image:PGdkImlibImage; thetext:PAnsiChar);cdecl;external libgnomeuidll name 'gnome_icon_list_insert_imlib';
+function gnome_icon_list_append(gil:PGnomeIconList; icon_filename:PAnsiChar; thetext:PAnsiChar):longint;cdecl;external libgnomeuidll name 'gnome_icon_list_append';
+function gnome_icon_list_append_imlib(gil:PGnomeIconList; image:PGdkImlibImage; thetext:PAnsiChar):longint;cdecl;external libgnomeuidll name 'gnome_icon_list_append_imlib';
 procedure gnome_icon_list_clear(gil:PGnomeIconList);cdecl;external libgnomeuidll name 'gnome_icon_list_clear';
 procedure gnome_icon_list_remove(gil:PGnomeIconList; pos:longint);cdecl;external libgnomeuidll name 'gnome_icon_list_remove';
 procedure gnome_icon_list_set_selection_mode(gil:PGnomeIconList; mode:TGtkSelectionMode);cdecl;external libgnomeuidll name 'gnome_icon_list_set_selection_mode';
@@ -87,7 +87,7 @@ procedure gnome_icon_list_set_row_spacing(gil:PGnomeIconList; pixels:longint);cd
 procedure gnome_icon_list_set_col_spacing(gil:PGnomeIconList; pixels:longint);cdecl;external libgnomeuidll name 'gnome_icon_list_set_col_spacing';
 procedure gnome_icon_list_set_text_spacing(gil:PGnomeIconList; pixels:longint);cdecl;external libgnomeuidll name 'gnome_icon_list_set_text_spacing';
 procedure gnome_icon_list_set_icon_border(gil:PGnomeIconList; pixels:longint);cdecl;external libgnomeuidll name 'gnome_icon_list_set_icon_border';
-procedure gnome_icon_list_set_separators(gil:PGnomeIconList; sep:Pchar);cdecl;external libgnomeuidll name 'gnome_icon_list_set_separators';
+procedure gnome_icon_list_set_separators(gil:PGnomeIconList; sep:PAnsiChar);cdecl;external libgnomeuidll name 'gnome_icon_list_set_separators';
 procedure gnome_icon_list_set_icon_data(gil:PGnomeIconList; pos:longint; data:gpointer);cdecl;external libgnomeuidll name 'gnome_icon_list_set_icon_data';
 procedure gnome_icon_list_set_icon_data_full(gil:PGnomeIconList; pos:longint; data:gpointer; destroy:TGtkDestroyNotify);cdecl;external libgnomeuidll name 'gnome_icon_list_set_icon_data_full';
 function gnome_icon_list_find_icon_from_data(gil:PGnomeIconList; data:gpointer):longint;cdecl;external libgnomeuidll name 'gnome_icon_list_find_icon_from_data';

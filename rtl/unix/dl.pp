@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -79,22 +81,22 @@ const
 type
   Pdl_info = ^dl_info;
   dl_info = record
-    dli_fname      : Pchar;
+    dli_fname      : PAnsiChar;
     dli_fbase      : pointer;
-    dli_sname      : Pchar;
+    dli_sname      : PAnsiChar;
     dli_saddr      : pointer;
   end;
 
-function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
-function dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
+function dlopen(Name : PAnsiChar; Flags : longint) : Pointer; cdecl; external libdl;
+function dlsym(Lib : Pointer; Name : PAnsiChar) : Pointer; cdecl; external Libdl;
 {$ifdef ELF}
-function dlvsym(Lib : Pointer; Name : Pchar; Version: Pchar) : Pointer; cdecl; external Libdl;
+function dlvsym(Lib : Pointer; Name : PAnsiChar; Version: PAnsiChar) : Pointer; cdecl; external Libdl;
 {$endif}
 function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
-function dlerror() : Pchar; cdecl; external libdl;
+function dlerror() : PAnsiChar; cdecl; external libdl;
 
 { overloaded for compatibility with hmodule }
-function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
+function dlsym(Lib : PtrInt; Name : PAnsiChar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
 function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$if not defined(aix) and not defined(android)} external; {$endif}
 
@@ -102,7 +104,7 @@ type
   plink_map = ^link_map;
   link_map = record
     l_addr:pointer;  { Difference between the address in the ELF file and the address in memory }
-    l_name:Pchar;  { Absolute pathname where object was found }
+    l_name:PAnsiChar;  { Absolute pathname where object was found }
     l_ld:pointer;    { Dynamic section of the shared object }
     l_next, l_prev:^link_map; { Chain of loaded objects }
     {Plus additional fields private to the implementation }
@@ -118,8 +120,13 @@ function dlinfo(Lib:pointer;request:longint;info:pointer):longint;cdecl;external
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
   function PosLastSlash(const s : string) : longint;
     var
@@ -138,7 +145,7 @@ uses
     end;
 
 
-  procedure UnixGetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: openstring);
+  procedure UnixGetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     var
       dlinfo: dl_info;
     begin

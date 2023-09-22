@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -214,17 +215,12 @@ end;
 
 procedure TBinaryObjectWriter.WriteIdent(const Ident: string);
 begin
-  { Check if Ident is a special identifier before trying to just write
-    Ident directly }
-  if UpperCase(Ident) = 'NIL' then
-    WriteValue(vaNil)
-  else if UpperCase(Ident) = 'FALSE' then
-    WriteValue(vaFalse)
-  else if UpperCase(Ident) = 'TRUE' then
-    WriteValue(vaTrue)
-  else if UpperCase(Ident) = 'NULL' then
-    WriteValue(vaNull) else
-  begin
+  Case UpperCase(Ident) of
+    'NIL'   : WriteValue(vaNil);
+    'FALSE' : WriteValue(vaFalse);
+    'TRUE'  : WriteValue(vaTrue);
+    'NULL'  : WriteValue(vaNull);
+  else
     WriteValue(vaIdent);
     WriteStr(Ident);
   end;
@@ -314,7 +310,7 @@ begin
   WriteStr('');
 end;
 
-procedure TBinaryObjectWriter.WriteString(const Value: String);
+procedure TBinaryObjectWriter.WriteString(const Value: RawByteString);
 var
   i: Integer;
   b: byte;
@@ -443,7 +439,7 @@ end;
 procedure TBinaryObjectWriter.Write(const Buffer; Count: Longint);
 var
   CopyNow: LongInt;
-  SourceBuf: PChar;
+  SourceBuf: PAnsiChar;
 begin
   SourceBuf:=@Buffer;
   while Count > 0 do
@@ -451,7 +447,7 @@ begin
     CopyNow := Count;
     if CopyNow > FBufSize - FBufPos then
       CopyNow := FBufSize - FBufPos;
-    Move(SourceBuf^, PChar(FBuffer)[FBufPos], CopyNow);
+    Move(SourceBuf^, PAnsiChar(FBuffer)[FBufPos], CopyNow);
     Dec(Count, CopyNow);
     Inc(FBufPos, CopyNow);
     inc(SourceBuf, CopyNow);
@@ -468,7 +464,7 @@ begin
   Write(b, 1);
 end;
 
-procedure TBinaryObjectWriter.WriteStr(const Value: String);
+procedure TBinaryObjectWriter.WriteStr(const Value: RawByteString);
 var
   i: integer;
   b: byte;
@@ -609,7 +605,7 @@ begin
   Driver.WriteBoolean(Value);
 end;
 
-procedure TWriter.WriteChar(Value: Char);
+procedure TWriter.WriteChar(Value: AnsiChar);
 begin
   WriteString(Value);
 end;

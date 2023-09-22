@@ -84,97 +84,95 @@ asm
     mov    %rdi, %rcx
 {$endif win64}
 
-    mov    %r8, %rax
+    cmp    $3, %r8
+    jle    .L3OrLess
+    cmp    $8, %r8
+    jle    .L4to8
+    cmp    $16, %r8
+    jle    .L9to16
+    movdqu (%rcx), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17â€“32 branch. }
+    movdqu -16(%rcx,%r8), %xmm5
+    cmp    $32, %r8
+    jg     .L33OrMore
+    movdqu %xmm4, (%rdx)         { 17â€“32 bytes }
+    movdqu %xmm5, -16(%rdx,%r8)
+    ret
+
+    .balign 16
+.L3OrLess:
+    cmp    $1, %r8
+    jl     .LZero
+    movzbl (%rcx), %eax
+    je     .LOne
+    movzwl -2(%rcx,%r8), %r9d
+    mov    %r9w, -2(%rdx,%r8)
+.LOne:
+    mov    %al, (%rdx)
+.LZero:
+    ret
+
+.L4to8:
+    mov    (%rcx), %eax
+    mov    -4(%rcx,%r8), %r9d
+    mov    %eax, (%rdx)
+    mov    %r9d, -4(%rdx,%r8)
+    ret
+
+.L9to16:
+    mov    (%rcx), %rax
+    mov    -8(%rcx,%r8), %r9
+    mov    %rax, (%rdx)
+    mov    %r9, -8(%rdx,%r8)
+.Lquit:
+    ret
+    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32f into a no-op. }
+
+.L33OrMore:
     sub    %rdx, %rcx            { rcx = src - dest }
     jz     .Lquit                { exit if src=dest }
-    jnb    .L1                   { src>dest => forward move }
+    jnb    .LForward             { src>dest => forward move }
 
+    mov    %r8, %rax
     add    %rcx, %rax            { rcx is negative => r8+rcx > 0 if regions overlap }
     jb     .Lback                { if no overlap, still do forward move }
 
-.L1:
-    cmp    $8, %r8
-    jl     .Lless8f              { signed compare, negative count not allowed }
-    test   $7, %dl
-    je     .Ldestaligned
+.LForward:
+    mov    %rdx, %r9             { remember original dest to write first 16 bytes }
+    add    %rdx, %r8             { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
+    add    $16, %rdx
+    and    $-16, %rdx
+    sub    %rdx, %r8
 
-    test   $1, %dl               { align dest by moving first 1+2+4 bytes }
-    je     .L2f
-    mov    (%rcx,%rdx,1),%al
-    dec    %r8
-    mov    %al, (%rdx)
-    add    $1, %rdx
-.L2f:
-    test   $2, %dl
-    je     .L4f
-    mov    (%rcx,%rdx,1),%ax
-    sub    $2, %r8
-    mov    %ax, (%rdx)
-    add    $2, %rdx
-.L4f:
-    test   $4, %dl
-    je     .Ldestaligned
-    mov    (%rcx,%rdx,1),%eax
-    sub    $4, %r8
-    mov    %eax, (%rdx)
-    add    $4, %rdx
+.LRestAfterNTf:
+    sub    $32, %r8              { During the NÃ— loop, r8 is N bytes less than actually remained to allow sub N+jae .LLoop instead of sub N+cmp N+jae .LLoop. }
+    jbe    .LPost32f
+    cmp    $0x40000, %r8         { this limit must be processor-specific (1/2 L2 cache size) }
+    jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
 
-.Ldestaligned:
-    mov    %r8, %r9
-    shr    $5, %r9
-    jne    .Lmore32
+    .balign 16                   { no-op }
+.Lloop32f:
+    movdqu (%rcx,%rdx), %xmm0
+    movdqa %xmm0, (%rdx)
+    movdqu 16(%rcx,%rdx), %xmm0
+    movdqa %xmm0, 16(%rdx)
+    add    $32, %rdx
+    sub    $32, %r8
+    ja     .Lloop32f
 
-.Ltail:
-    mov    %r8, %r9
-    shr    $3, %r9
-    je     .Lless8f
+.LPost32f:                       { +32 fixup not applied after 32Ã— loop, r8 = remaining - 32 here. }
+    cmp    $-16, %r8
+    jle    .LFirstAndLast16f
+    movdqu (%rcx,%rdx), %xmm0
+    movdqa %xmm0, (%rdx)
+.LFirstAndLast16f:
+    movdqu %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
+    movdqu %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
+    ret
 
-    .balign 16
-.Lloop8f:                             { max. 8 iterations }
-    mov    (%rcx,%rdx,1),%rax
-    mov    %rax, (%rdx)
-    add    $8, %rdx
-    dec    %r9
-    jne    .Lloop8f
-    and    $7, %r8
-
-.Lless8f:
-    test   %r8, %r8
-    jle    .Lquit
-
-    .balign 16
-.Lloop1f:
-    mov    (%rcx,%rdx,1),%al
-    mov    %al,(%rdx)
-    inc    %rdx
-    dec    %r8
-    jne    .Lloop1f
-.Lquit:
-    retq
-
-
-.Lmore32:
-    cmp    $0x2000, %r9          { this limit must be processor-specific (1/2 L2 cache size) }
-    jnae   .Lloop32
-    cmp    $0x1000, %rcx         { but don't bother bypassing cache if src and dest }
-    jnb    .Lntloopf             { are close to each other}
-
-    .balign 16
-.Lloop32:
-    add    $32,%rdx
-    mov    -32(%rcx,%rdx,1),%rax
-    mov    -24(%rcx,%rdx,1),%r10
-    mov    %rax,-32(%rdx)
-    mov    %r10,-24(%rdx)
-    dec    %r9
-    mov    -16(%rcx,%rdx,1),%rax
-    mov    -8(%rcx,%rdx,1),%r10
-    mov    %rax,-16(%rdx)
-    mov    %r10,-8(%rdx)
-    jne    .Lloop32
-
-    and    $0x1f, %r8
-    jmpq   .Ltail
+.Lntf:
+    cmp    $0x1000, %rcx         { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
+    jb     .Lloop32f             { (this check is performed here to not stand in the way of smaller counts) }
+    sub    $0xFE0, %r8           { r8 = remaining - 0x1000, but 32 was subtracted already, so must subtract only (0x1000 - 32) = 0xFE0. }
 
 .Lntloopf:
     mov    $32, %eax
@@ -185,124 +183,72 @@ asm
     prefetchnta 0x40(%rcx,%rdx,1)
     add    $0x80, %rdx
     dec    %eax
-    jne    .Lpref
+    jnz    .Lpref
 
     sub    $0x1000, %rdx
     mov    $64, %eax
 
     .balign 16
-.Loop64:
+.Lntloop64f:
     add    $64, %rdx
-    mov    -64(%rcx,%rdx,1), %r9
-    mov    -56(%rcx,%rdx,1), %r10
-    movnti %r9, -64(%rdx)
-    movnti %r10, -56(%rdx)
-
-    mov    -48(%rcx,%rdx,1), %r9
-    mov    -40(%rcx,%rdx,1), %r10
-    movnti %r9, -48(%rdx)
-    movnti %r10, -40(%rdx)
+    movdqu -64(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, -64(%rdx)
+    movdqu -48(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, -48(%rdx)
+    movdqu -32(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, -32(%rdx)
+    movdqu -16(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, -16(%rdx)
     dec    %eax
-    mov    -32(%rcx,%rdx,1), %r9
-    mov    -24(%rcx,%rdx,1), %r10
-    movnti %r9, -32(%rdx)
-    movnti %r10, -24(%rdx)
-
-    mov    -16(%rcx,%rdx,1), %r9
-    mov    -8(%rcx,%rdx,1), %r10
-    movnti %r9, -16(%rdx)
-    movnti %r10, -8(%rdx)
-    jne    .Loop64
+    jnz    .Lntloop64f
 
     sub    $0x1000, %r8
-    cmp    $0x1000, %r8
     jae    .Lntloopf
 
     mfence
-    jmpq    .Ldestaligned        { go handle remaining bytes }
+    add    $0x1000, %r8
+    jmpq   .LRestAfterNTf        { go handle remaining bytes }
+    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
-    add    %r8, %rdx             { points to the end of dest }
-    cmp    $8, %r8
-    jl     .Lless8b              { signed compare, negative count not allowed }
-    test   $7, %dl
-    je     .Ldestalignedb
-    test   $1, %dl
-    je     .L2b
-    dec    %rdx
-    mov    (%rcx,%rdx,1), %al
-    dec    %r8
-    mov    %al, (%rdx)
-.L2b:
-    test   $2, %dl
-    je     .L4b
-    sub    $2, %rdx
-    mov    (%rcx,%rdx,1), %ax
-    sub    $2, %r8
-    mov    %ax, (%rdx)
-.L4b:
-    test   $4, %dl
-    je     .Ldestalignedb
-    sub    $4, %rdx
-    mov    (%rcx,%rdx,1), %eax
-    sub    $4, %r8
-    mov    %eax, (%rdx)
+    lea    (%rdx,%r8), %r9       { points to the end of dest; remember to write last 16 bytes }
+    lea    -1(%r9), %r8          { move dest to the previous 16-byte boundary... }
+    and    $-16, %r8
+    sub    %rdx, %r8
+    add    %r8, %rdx
 
-.Ldestalignedb:
-    mov    %r8, %r9
-    shr    $5, %r9
-    jne    .Lmore32b
+.LRestAfterNTb:
+    sub    $32, %r8
+    jbe    .LPost32b
+    cmp    $0x40000, %r8
+    jae    .Lntb
 
-.Ltailb:
-    mov    %r8, %r9
-    shr    $3, %r9
-    je     .Lless8b
-
-.Lloop8b:
-    sub    $8, %rdx
-    mov    (%rcx,%rdx,1), %rax
-    dec    %r9
-    mov    %rax, (%rdx)
-    jne    .Lloop8b
-    and    $7, %r8
-
-.Lless8b:
-    test   %r8, %r8
-    jle    .Lquit2
-
-    .balign 16
-.Lsmallb:
-    dec   %rdx
-    mov   (%rcx,%rdx,1), %al
-    dec   %r8
-    mov   %al,(%rdx)
-    jnz   .Lsmallb
-.Lquit2:
-    retq
-
-.Lmore32b:
-    cmp   $0x2000, %r9
-    jnae  .Lloop32b
-    cmp    $0xfffffffffffff000,%rcx
-    jb     .Lntloopb
-
-    .balign 16
+    .balign 16                   { no-op }
 .Lloop32b:
     sub    $32, %rdx
-    mov    24(%rcx,%rdx,1), %rax
-    mov    16(%rcx,%rdx,1), %r10
-    mov    %rax, 24(%rdx)
-    mov    %r10, 16(%rdx)
-    dec    %r9
-    mov    8(%rcx,%rdx,1),%rax
-    mov    (%rcx,%rdx,1), %r10
-    mov    %rax, 8(%rdx)
-    mov    %r10, (%rdx)
-    jne    .Lloop32b
-    and    $0x1f, %r8
-    jmpq   .Ltailb
+    movdqu 16(%rcx,%rdx), %xmm0
+    movdqa %xmm0, 16(%rdx)
+    movdqu (%rcx,%rdx), %xmm0
+    movdqa %xmm0, (%rdx)
+    sub    $32, %r8
+    ja     .Lloop32b
 
+.LPost32b:
+    cmp    $-16, %r8
+    jle    .LFirstAndLast16b
+    movdqu -16(%rcx,%rdx), %xmm0
+    movdqa %xmm0, -16(%rdx)
+.LFirstAndLast16b:
+    sub    %r8, %rdx
+    movdqu %xmm4, -32(%rdx)
+    movdqu %xmm5, -16(%r9)
+    ret
+
+.Lntb:
+    cmp    $0xfffffffffffff000,%rcx
+    jnb    .Lloop32b
+    sub    $0xFE0, %r8
 
 .Lntloopb:
     mov    $32, %eax
@@ -319,34 +265,25 @@ asm
     mov    $0x40, %eax
 
     .balign 16
-.Lloop64b:
+.Lntloop64b:
     sub    $64, %rdx
-    mov    56(%rcx,%rdx,1), %r9
-    mov    48(%rcx,%rdx,1), %r10
-    movnti %r9, 56(%rdx)
-    movnti %r10, 48(%rdx)
-
-    mov    40(%rcx,%rdx,1), %r9
-    mov    32(%rcx,%rdx,1), %r10
-    movnti %r9, 40(%rdx)
-    movnti %r10, 32(%rdx)
+    movdqu 48(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 48(%rdx)
+    movdqu 32(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 32(%rdx)
+    movdqu 16(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 16(%rdx)
+    movdqu (%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, (%rdx)
     dec    %eax
-    mov    24(%rcx,%rdx,1), %r9
-    mov    16(%rcx,%rdx,1), %r10
-    movnti %r9, 24(%rdx)
-    movnti %r10, 16(%rdx)
-
-    mov    8(%rcx,%rdx,1), %r9
-    mov    (%rcx,%rdx,1), %r10
-    movnti %r9, 8(%rdx)
-    movnti %r10, (%rdx)
-    jne    .Lloop64b
+    jnz    .Lntloop64b
 
     sub    $0x1000, %r8
-    cmp    $0x1000, %r8
     jae    .Lntloopb
+
     mfence
-    jmpq   .Ldestalignedb
+    add    $0x1000, %r8
+    jmpq   .LRestAfterNTb
 end;
 {$endif FPC_SYSTEM_HAS_MOVE}
 
@@ -400,10 +337,10 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
       x = [UH][H1][H2][...][T2][T1]
       x = UH][H1][H2][...][T2][T1][UT
 
-      UH ("unaligned head") is written, potentially overlapping with H1, with the 'movdqu'. Has 1–16 bytes.
-      H1 and so on are “heads”.
-      T1 and so on are “tails”.
-      UT ("unaligned tail") is written with another 'movdqu' after the loop. Has 0–15 bytes. }
+      UH (â€œunaligned headâ€) is written, potentially overlapping with H1, with the 'movdqu'. Has 1â€“16 bytes.
+      H1 and so on are â€œheadsâ€.
+      T1 and so on are â€œtailsâ€.
+      UT (â€œunaligned tailâ€) is written with another 'movdqu' after the loop. Has 0â€“15 bytes. }
 
     movdqu %xmm0, (%rcx)
     lea    -64(%rcx,%rdx), %r8 { r8 = end of x - 64, loop bound }
@@ -414,14 +351,14 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
     movdqa %xmm0, 16(%rcx) { Write H1. }
     mov    %r8, %rax
-    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8. }
+    and    $-16, %rax { rax = â€œT4â€ (possibly fictive) = aligned r8. }
     cmp    $48, %rdx { 33~48 bytes might contain 1~2 heads+tails; write as H1 and T1. }
     jle    .LOneAlignedTailWrite
     movdqa %xmm0, 32(%rcx) { Write H2. }
-    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1â€“2 and T2â€“1. }
     jle    .LTwoAlignedTailWrites
     movdqa %xmm0, 48(%rcx) { Write H3. }
-    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1–3 and T3–1. }
+    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1â€“3 and T3â€“1. }
     jle    .LThreeAlignedTailWrites
 
     add    $48, %rcx
@@ -1009,20 +946,10 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Ldeclockednolock
-     lock
-     decl       (%rcx)
-     setzb      %al
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Ldeclockednolock:
-     decl       (%rcx)
+     jz         .Ldeclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Ldeclockedskiplock:
+     decl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1038,20 +965,10 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Ldeclockednolock
-     lock
-     decq       (%rcx)
-     setzb      %al
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Ldeclockednolock:
-     decq       (%rcx)
+     jz         .Ldeclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Ldeclockedskiplock:
+     decq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1068,19 +985,10 @@ procedure inclocked(var l : longint);assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Linclockednolock
-     lock
-     incl       (%rcx)
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Linclockednolock:
-     incl       (%rcx)
+     jz         .Linclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Linclockedskiplock:
+     incl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 
@@ -1096,19 +1004,10 @@ procedure inclocked(var l : int64);assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Linclockednolock
-     lock
-     incq       (%rcx)
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Linclockednolock:
-     incq       (%rcx)
+     jz         .Linclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Linclockedskiplock:
+     incq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 

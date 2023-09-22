@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit telephonymgrtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Errorbase, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, errorbase, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   telErrorClass = appErrorClass + $100; // DOLATER: remove this constant
@@ -183,8 +189,8 @@ type
 
   // command string
   TelSendCommandStringType = record
-    commandString: PChar;  // command string to be sent
-    resultString:  PChar;  // result string
+    commandString: PAnsiChar;  // command string to be sent
+    resultString:  PAnsiChar;  // result string
     resultSize:    UInt16; // result string buffer size/max bytes retrieved on result
     timeOut:       UInt32; // milliseconds time out for command processing (before phone starts replying)
   end;
@@ -197,13 +203,13 @@ type
 
     // outgoing or incoming call number
     numberSize: UInt8; // size of number (in), length of number + 1 (out)
-    number: PChar;     // called or calling number
+    number: PAnsiChar;     // called or calling number
   end;
 
   // network support
   TelNwkGetNetworkNameType = record
     id: UInt32;   // network ID
-    value: PChar; // name
+    value: PAnsiChar; // name
     size: UInt16; // size of name (in), name len including '\0' (out)
   end;
 
@@ -214,27 +220,27 @@ type
 
   // phone location within network web
   TelNwkGetLocationType = record
-     value: PChar; // current location string
+     value: PAnsiChar; // current location string
      size: UInt16; // size of value (in), location len including '\0' (out)
   end;
 
   // change security code
   TelStyChangeAuthenticationType = record
     codeId: UInt8;  // code to be changed
-    oldCode: PChar; // old code value
-    newCode: PChar; // new code value
+    oldCode: PAnsiChar; // old code value
+    newCode: PAnsiChar; // new code value
   end;
 
   // SMS center
   TelCfgGetSmsCenterType = record
     size: UInt8;  // size of value (in), SMS dial number len including '\0' (out)
-    value: PChar; // SMS center dial number
+    value: PAnsiChar; // SMS center dial number
   end;
 
   // phone number
   TelCfgGetPhoneNumberType = record
     size: UInt8;  // size of value (in), phone dial number len including '\0' (out)
-    value: PChar; // phone dial number
+    value: PAnsiChar; // phone dial number
   end;
 
   // SMS
@@ -278,7 +284,7 @@ type
     rejectDuplicatedRequest: Boolean; // GSM - Network must reject msg if the same exists
     replyPath: Boolean;               // GSM - use reply specified path
 
-    serviceCenterNumber: PChar;       // SMS service center number
+    serviceCenterNumber: PAnsiChar;       // SMS service center number
     serviceCenterNumberSize: UInt8;   // Used for decoding only
   end;
 
@@ -294,7 +300,7 @@ type
 
     alertOnDeliveryRequest: Boolean;  // CDMA & TDMA(?)
 
-    callbackNumber: PChar;            // CDMA & TDMA only - address to reply
+    callbackNumber: PAnsiChar;            // CDMA & TDMA only - address to reply
     callbackNumberSize: UInt8;
   end;
 
@@ -314,7 +320,7 @@ type
 
     networkDeliveryRequest: Boolean;    // All - Ask a network delivery report / status report
 
-    destinationAddress: PChar;          // length : GSM 12bytes, CDMA up to 2x64 bytes
+    destinationAddress: PAnsiChar;          // length : GSM 12bytes, CDMA up to 2x64 bytes
     destinationAddressSize: UInt8;      // Used for decoding only
 
     dataSize: UInt16;                   // Length of data being sent
@@ -347,7 +353,7 @@ type
   // Manual acknowledge structure
   TelSmsManualAckType = record
     version: UInt16;           // SMS API version
-    destinationAddress: PChar; // length : GSM 12bytes, CDMA up to 2x64 bytes
+    destinationAddress: PAnsiChar; // length : GSM 12bytes, CDMA up to 2x64 bytes
     messagesId: UInt32;        // Message Id of message to be acknowledged
 
     dataSize: UInt16;          // Length of data being sent
@@ -361,7 +367,7 @@ type
     protocolId: UInt16; // reserved - not supported - GSM only
 
     replyPath: Boolean; // GSM - must use specified reply path
-    serviceCenterNumber: PChar;
+    serviceCenterNumber: PAnsiChar;
     serviceCenterNumberSize: UInt8;
   end;
 
@@ -379,7 +385,7 @@ type
     voiceMessageNumber: UInt8;          // CDMA, TDMA, GSM
 
     callbackNumberSize: UInt8;
-    callbackNumberAddress: PChar;       // Store callback address
+    callbackNumberAddress: PAnsiChar;       // Store callback address
 
     languageIndicator: UInt8;           // reserved - not supported - CDMA only
   end;
@@ -398,7 +404,7 @@ type
     voiceMessageNumber: UInt8;          // CDMA, TDMA, GSM
 
     callbackNumberSize: UInt8;
-    callbackNumberAddress: PChar;       // Store callback address
+    callbackNumberAddress: PAnsiChar;       // Store callback address
   end;
 
   TelSmsDeliveryMessageAdvancedParams = record
@@ -423,7 +429,7 @@ type
     dataCodingScheme: UInt8;           // enum All
 
     originatingAddressSize: UInt8;
-    originatingAddress: PChar;         // Store originating address (delivery message)
+    originatingAddress: PAnsiChar;         // Store originating address (delivery message)
 
     otherToReceive: Boolean;           // GSM & CDMA & TDMA(?)
 
@@ -448,7 +454,7 @@ type
     data: ^UInt8;
     dataCodingScheme: UInt8;
 
-    originatingAddress: PChar; // Store originating address
+    originatingAddress: PAnsiChar; // Store originating address
     originatingAddressSize: UInt8;
 
     report: UInt8;
@@ -500,18 +506,18 @@ type
   TelEmcGetNumberType = record
     index: UInt8; // EMC number index, zero based
     size: UInt8;  // EMC dial number len including '\0' (out), value size (in)
-    value: PChar; // EMC dial number
+    value: PAnsiChar; // EMC dial number
   end;
 
   TelEmcSetNumberType = record
     index: UInt8; // EMC number index, zero based
-    value: PChar; // EMC dial number
+    value: PAnsiChar; // EMC dial number
   end;
 
   // speech call support
   TelSpcGetCallerNumberType = record
     size: UInt8;  // dial number len including '\0' (out), value size (in)
-    value: PChar; // dial number
+    value: PAnsiChar; // dial number
   end;
 
   TelSpcPlayDTMFType = record
@@ -522,9 +528,9 @@ type
   // phonebook support
   TelPhbEntryType = record
     phoneIndex: UInt16;    // entry's index in the phonebook, zero based
-    fullName: PChar;
+    fullName: PAnsiChar;
     fullNameSize: UInt8;   // name len including '\0' (out), name size (in)
-    dialNumber: PChar;
+    dialNumber: PAnsiChar;
     dialNumberSize: UInt8; // dial number len including '\0' (out), dialNumber size (in)
   end;
 
@@ -559,12 +565,12 @@ type
   TelInfGetInformationType = record
     infoType: UInt8; // expected information, can be up to 2Kb (!)
     size: UInt16;    // value len including '\0' (out), value size (in)
-    value: PChar;    //  returned information string
+    value: PAnsiChar;    //  returned information string
   end;
 
   // data call support
   TelDtcCallNumberType = record
-    dialNumberP: PChar; // number to dial
+    dialNumberP: PAnsiChar; // number to dial
     lineId: UInt8;      // resulting line id, sent back in event
   end;
 

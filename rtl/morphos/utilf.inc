@@ -97,19 +97,19 @@ function UDivMod32(dividend: Cardinal location 'd0';
                    divisor : Cardinal location 'd1'): Cardinal;
 SysCall MOS_UtilityBase 156;
 
-function Stricmp(string1: PChar location 'a0';
-                 string2: PChar location 'a1'): LongInt;
+function Stricmp(string1: PAnsiChar location 'a0';
+                 string2: PAnsiChar location 'a1'): LongInt;
 SysCall MOS_UtilityBase 162;
 
-function Strnicmp(string1: PChar   location 'a0';
-                  string2: PChar   location 'a1';
+function Strnicmp(string1: PAnsiChar   location 'a0';
+                  string2: PAnsiChar   location 'a1';
                   length : LongInt location 'd0'): LongInt;
 SysCall MOS_UtilityBase 168;
 
-function ToUpper(character: Cardinal location 'd0'): Char;
+function ToUpper(character: Cardinal location 'd0'): AnsiChar;
 SysCall MOS_UtilityBase 174;
 
-function ToLower(character: Cardinal location 'd0'): Char;
+function ToLower(character: Cardinal location 'd0'): AnsiChar;
 SysCall MOS_UtilityBase 180;
 
 procedure ApplyTagChanges(list      : PTagItem location 'a0';
@@ -138,7 +138,7 @@ function AddNamedObject(nameSpace: PNamedObject location 'a0';
                         nobject  : PNamedObject location 'a1'): LongBool;
 SysCall MOS_UtilityBase 222;
 
-function AllocNamedObjectA(name   : PChar    location 'a0';
+function AllocNamedObjectA(name   : PAnsiChar    location 'a0';
                            tagList: PTagItem location 'a1'): PNamedObject;
 SysCall MOS_UtilityBase 228;
 
@@ -146,14 +146,14 @@ function AttemptRemNamedObject(nobject: PNamedObject location 'a0'): LongInt;
 SysCall MOS_UtilityBase 234;
 
 function FindNamedObject(nameSpace : PNamedObject location 'a0';
-                         name      : PChar        location 'a1';
+                         name      : PAnsiChar        location 'a1';
                          lastObject: PNamedObject location 'a2'): PNamedObject;
 SysCall MOS_UtilityBase 240;
 
 procedure FreeNamedObject(nobject: PNamedObject location 'a0');
 SysCall MOS_UtilityBase 246;
 
-function NamedObjectName(nobject: PNamedObject location 'a0'): PChar;
+function NamedObjectName(nobject: PNamedObject location 'a0'): PAnsiChar;
 SysCall MOS_UtilityBase 252;
 
 procedure ReleaseNamedObject(nobject: pNamedObject location 'a0');

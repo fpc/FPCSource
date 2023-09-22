@@ -21,7 +21,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacMemory;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -206,7 +208,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -1623,7 +1629,7 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
  *    bits
  *  
  *  Discussion:
- *    The HGetState function returns a signed byte (char) containing
+ *    The HGetState function returns a signed byte (AnsiChar) containing
  *    the flags of the master pointer for the given handle. You can
  *    save this byte, change the state of any of the flags using the
  *    functions described in this section, and then restore their

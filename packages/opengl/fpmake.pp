@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -45,6 +45,9 @@ begin
     P.Targets.AddExampleProgram('glutdemo.pp');
     P.Targets.AddExampleProgram('glxtest.pp');
     P.Sources.AddSrc('readme');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

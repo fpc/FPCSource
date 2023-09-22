@@ -22,11 +22,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit telephonymgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Systemresources, PalmApi.Event_, PalmApi.Systemmgr, PalmApi.Telephonymgrtypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, systemresources, event_, systemmgr, telephonymgrtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // sysMakeROMVersion(major, minor, fix, stage, buildNum)
 const
@@ -451,7 +457,7 @@ function TelNwkSetSearchMode(iRefnum: UInt16; iAppId: TelAppID; iMode: UInt8; va
 // security
 function TelStyGetAuthenticationState(iRefnum: UInt16; iAppId: TelAppID; var oStateP: UInt8; var ioTransIdP: UInt16): Err; syscall telLibTrapStyGetAuthenticationState;
 
-function TelStyEnterAuthenticationCode(iRefnum: UInt16; iAppId: TelAppID;  const iCodeP: PChar; var ioTransIdP: UInt16): Err; syscall telLibTrapStyEnterAuthenticationCode;
+function TelStyEnterAuthenticationCode(iRefnum: UInt16; iAppId: TelAppID;  const iCodeP: PAnsiChar; var ioTransIdP: UInt16): Err; syscall telLibTrapStyEnterAuthenticationCode;
 
 function TelStyChangeAuthenticationCode(iRefnum: UInt16; iAppId: TelAppID; var iParamP: TelStyChangeAuthenticationType; var ioTransIdP: UInt16): Err; syscall telLibTrapStyChangeAuthenticationCode;
 
@@ -463,7 +469,7 @@ function TelPowGetBatteryStatus(iRefnum: UInt16; iAppId: TelAppID; var oStatusP:
 function TelPowSetPhonePower(iRefnum: UInt16; iAppId: TelAppID; iPowerOn: Boolean): Err; syscall telLibTrapPowSetPhonePower;
 
 // configuration
-function TelCfgSetSmsCenter(iRefnum: UInt16; iAppId: TelAppID; const iDialNumberP: PChar; var ioTransIdP: UInt16): Err; syscall telLibTrapCfgSetSmsCenter;
+function TelCfgSetSmsCenter(iRefnum: UInt16; iAppId: TelAppID; const iDialNumberP: PAnsiChar; var ioTransIdP: UInt16): Err; syscall telLibTrapCfgSetSmsCenter;
 
 function TelCfgGetSmsCenter(iRefnum: UInt16; iAppId: TelAppID; var ioParamP: TelCfgGetSmsCenterType; var ioTransIdP: UInt16): Err; syscall telLibTrapCfgGetSmsCenter;
 
@@ -514,7 +520,7 @@ function TelEmcSetNumber(iRefnum: UInt16; iAppId: TelAppID; var iParamP: TelEmcS
 function TelEmcSelectNumber(iRefnum: UInt16; iAppId: TelAppID; iIndex: UInt8; var ioTransIdP: UInt16): Err; syscall telLibTrapEmcSelectNumber;
 
 // speech call
-function TelSpcCallNumber(iRefnum: UInt16; iAppId: TelAppID; const iDialNumberP: PChar; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcCallNumber;
+function TelSpcCallNumber(iRefnum: UInt16; iAppId: TelAppID; const iDialNumberP: PAnsiChar; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcCallNumber;
 
 function TelSpcCloseLine(iRefnum: UInt16; iAppId: TelAppID; iLineId: UInt8; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcCloseLine;
 
@@ -532,7 +538,7 @@ function TelSpcRejectCall(iRefnum: UInt16; iAppId: TelAppID; var ioTransIdP: UIn
 
 function TelSpcGetCallerNumber(iRefnum: UInt16; iAppId: TelAppID; var ioParamP: TelSpcGetCallerNumberType; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcGetCallerNumber;
 
-function TelSpcSendBurstDTMF(iRefnum: UInt16; iAppId: TelAppID; const iDTMFStringP: PChar; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcSendBurstDTMF;
+function TelSpcSendBurstDTMF(iRefnum: UInt16; iAppId: TelAppID; const iDTMFStringP: PAnsiChar; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcSendBurstDTMF;
 
 function TelSpcStartContinuousDTMF(iRefnum: UInt16; iAppId: TelAppID; iKeyCode: UInt8; var ioTransIdP: UInt16): Err; syscall telLibTrapSpcStartContinuousDTMF;
 

@@ -1,0 +1,4 @@
+src/gles11.pp=namespaced/Api.OpenGL.Gles11.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gles20.pas=namespaced/Api.OpenGL.Gles20.pas

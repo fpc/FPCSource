@@ -42,7 +42,9 @@
 
 // $Id: JwaDSClient.pas,v 1.12 2007/09/06 14:57:11 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaDSClient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaDSClient;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Adstlb, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaAdsTLB, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -575,8 +582,8 @@ type
     dwMask: DWORD;
     dwState: DWORD;
     dwStateMask: DWORD;
-    szDisplayName: array [0..DSB_MAX_DISPLAYNAME_CHARS - 1] of CHAR;
-    szIconLocation: array [0..MAX_PATH - 1] of CHAR;
+    szDisplayName: array [0..DSB_MAX_DISPLAYNAME_CHARS - 1] of AnsiChar;
+    szIconLocation: array [0..MAX_PATH - 1] of AnsiChar;
     iIconResID: Integer;
   end;
   {$EXTERNALSYM DSBITEMA}

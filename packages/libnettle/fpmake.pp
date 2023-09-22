@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T : TTarget;
@@ -33,6 +33,9 @@ begin
     T:=P.Targets.AddUnit('libnettle.pp');
 
     P.Sources.AddExampleFiles('examples/*.lpr',P.Directory,false,'.');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

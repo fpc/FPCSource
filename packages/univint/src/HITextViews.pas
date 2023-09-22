@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HITextViews;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Appearance,MacOsApi.CarbonEvents,MacOsApi.Controls,MacOsApi.MacTextEditor,MacOsApi.QuickdrawTypes,MacOsApi.TextCommon, MacOsApi.CFBase,MacOsApi.CGBase,MacOsApi.HIGeometry,MacOsApi.HIObject,MacOsApi.HIView;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Appearance,CarbonEvents,Controls,MacTextEditor,QuickdrawTypes,TextCommon, CFBase,CGBase,HIGeometry,HIObject,HIView;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -862,7 +868,7 @@ const
 
 const
 	kControlEditTextSingleLineTag = FourCharCode('sglc'); { data is a Boolean; indicates whether the control should always be single-line}
-	kControlEditTextInsertTextBufferTag = FourCharCode('intx'); { data is an array of char; get or set the control's text as WorldScript-encoded text}
+	kControlEditTextInsertTextBufferTag = FourCharCode('intx'); { data is an array of AnsiChar; get or set the control's text as WorldScript-encoded text}
 	kControlEditTextInsertCFStringRefTag = FourCharCode('incf'); { data is a CFStringRef; get or set the control's text as a CFStringRef. Caller should release CFString if getting.}
 	kControlEditUnicodeTextPostUpdateProcTag = FourCharCode('upup'); { data is a UnicodePostUpdateUPP; get or set the post-update proc}
 	kControlEditTextSpellCheckingTag = FourCharCode('spck'); { data is a Boolean; indicates whether the control wants to have spell checking support. Available in Leopard and later.}

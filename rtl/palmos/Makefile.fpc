@@ -7,33 +7,29 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) si_prc uuchar objpas iso7185 strings \
+units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
        ctypes \
-       charset cpall \
+       $(CHARSETUNIT) $(CPALLUNIT) \
        sysconst \
        systraps pilot
-#units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
-#      lnfodwrf lineinfo heaptrc \
-#      windows messages dynlibs \
+#units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+#      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
+#      windows messages $(DYNLIBSUNIT) \
 #      dos objects \
 #      rtlconsts sysconst sysutils \
-#      typinfo types fgl classes fmtbcd \
-#      strutils convutils math dateutils \
+#      typinfo types $(FGLUNIT) classes fmtbcd \
+#      strutils convutils $(MATHUNIT) dateutils \
 #      varutils variants \
 #      matrix ucomplex \
-#      charset cpall getopts winsock sockets
-# initc cmem signals \
+#      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
+# initc $(CMEMUNIT) signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut
-implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+implicitunits=$(CP_UNITS)
 
-# rsts=math varutils typinfo variants classes dateutils sysconst
+# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils sysconst
 
 [require]
 nortl=y
@@ -42,7 +38,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=palmos
 
 [compiler]
@@ -71,9 +66,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-
-
 
 [rules]
 .NOTPARALLEL:
@@ -112,25 +104,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 
 si_prc$(PPUEXT): si_prc.pp palmos.inc $(SYSTEMUNIT)$(PPUEXT)
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMUNIT)$(PPUEXT)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
-
-#extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $(INC)/extpas.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -138,11 +112,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 #
 # System Dependent Units
@@ -175,8 +144,6 @@ pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 #####################################################################
 # Libs
 #####################################################################

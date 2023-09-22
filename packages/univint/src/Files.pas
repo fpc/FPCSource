@@ -23,7 +23,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Files;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -208,7 +210,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.Acl,MacOsApi.MacTypes,MacOsApi.MixedMode,MacOsApi.OSUtils,MacOsApi.TextCommon,MacOsApi.UTCUtils,MacOsApi.Finder,MacOsApi.MacOSXPosix,MacOsApi.DADisk,MacOsApi.CFBase,MacOsApi.CFDate,MacOsApi.CFDictionary,MacOsApi.CFRunLoop,MacOsApi.CFUUID;
+{$ELSE FPC_DOTTEDUNITS}
 uses acl,MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -1999,7 +2005,7 @@ type
 		userNameOffset: SInt16;         { offset to pascal User Name string }
 		userPasswordOffset: SInt16;     { offset to pascal User Password string }
 		volPasswordOffset: SInt16;      { offset to pascal Volume Password string }
-		AFPData: packed array [1..144] of char;           { variable length data may follow }
+		AFPData: packed array [1..144] of AnsiChar;           { variable length data may follow }
 	end;
 	AFPVolMountInfoPtr = ^AFPVolMountInfo;
 
@@ -2022,7 +2028,7 @@ type
 		extendedFlags: SInt16;          { extended flags word }
 		uamNameOffset: SInt16;          { offset to a pascal UAM name string }
 		alternateAddressOffset: SInt16; { offset to Alternate Addresses in tagged format }
-		AFPData: packed array [1..176] of char;           { variable length data may follow }
+		AFPData: packed array [1..176] of AnsiChar;           { variable length data may follow }
 	end;
 	AFPXVolMountInfoPtr = ^AFPXVolMountInfo;
 const
@@ -6344,7 +6350,7 @@ function FSMoveObjectToTrashSync( const (*var*) source: FSRef; var target: FSRef
  *      NULL to use the source object name.
  *    
  *    targetPath:
- *      A pointer to a char * to allow returning the path to the newly
+ *      A pointer to a AnsiChar * to allow returning the path to the newly
  *      created object.  The path is allocated using malloc and it is
  *      the caller's responsibility to free.  The pointer will be set
  *      to NULL if the copy failed.
@@ -6389,7 +6395,7 @@ function FSPathCopyObjectSync( sourcePath: ConstCStringPtr; destDirPath: ConstCS
  *      Pass NULL to use the source object name.
  *    
  *    targetPath:
- *      A pointer to a char * to allow returning the path to the newly
+ *      A pointer to a AnsiChar * to allow returning the path to the newly
  *      created object.  The path is allocated using malloc and it is
  *      the caller's responsibility to free.  The pointer will be set
  *      to NULL if the move failed.
@@ -6425,7 +6431,7 @@ function FSPathMoveObjectSync( sourcePath: ConstCStringPtr; destDirPath: ConstCS
  *      The UTF-8 path string of the source object to move.
  *    
  *    targetPath:
- *      A pointer to a char * to allow returning the path to the newly
+ *      A pointer to a AnsiChar * to allow returning the path to the newly
  *      created object.  The path is allocated using malloc and it is
  *      the caller's responsibility to free.  The pointer will be set
  *      to NULL if the move failed.

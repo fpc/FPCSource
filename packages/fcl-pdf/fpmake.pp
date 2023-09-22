@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'PDF generating and TTF file info library';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,win16,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes:=P.OSes-[embedded,win16,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -65,6 +65,9 @@ begin
     T:=P.Targets.AddUnit('src/fppdfobjects.pp');
     T.Dependencies.AddUnit('fppdfconsts');
 
+    T:=P.Targets.AddUnit('src/fppdfcommands.pp');
+    T.Dependencies.AddUnit('fppdfobjects');
+
     T:=P.Targets.AddUnit('src/fppdfscanner.pp');
     T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fppdfobjects');
@@ -78,6 +81,9 @@ begin
     T.Dependencies.AddUnit('fppdfpredict');
      
     // md5.ref
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -12,14 +12,21 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpPdf.Objects, FpPdf.Source;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fppdfobjects, fppdfsource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   PDFStringLengthDelta = 100;
@@ -586,6 +593,7 @@ Var
   lRes,lRawlen : Integer;
 
 begin
+  Result:='';
   aValue:=Char(aStartByte)+GetTillByte(Ord('>'));
   lRawlen:=Length(aValue) div 2;
   SetLength(Result,lRawLen);

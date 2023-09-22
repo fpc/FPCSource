@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JCOMapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains application interface routines that are used for both
   compression and decompression. }
@@ -9,10 +11,17 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Abort processing of a JPEG compression or decompression operation,
   but don't destroy the object itself. }

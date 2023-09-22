@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -34,7 +34,7 @@ begin
     T:=P.Targets.AddUnit('src/md5.pp');
     T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
     T:=P.Targets.AddUnit('src/sha1.pp');
-    T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes-[darwin]);
+    T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes);
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
@@ -50,6 +50,9 @@ begin
     T:=P.Targets.AddExampleunit('examples/md5performancetest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1performancetest.pas');
     // md5.ref
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

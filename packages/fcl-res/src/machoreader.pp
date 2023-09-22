@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit machoreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Macho.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, machotypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
 
@@ -56,7 +63,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes, System.Resources.Macho.Consts, System.Resources.Factory, System.Resources.Tree, System.Resources.DataStream, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes, machoconsts, resfactory, resourcetree, resdatastream, fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -121,7 +132,7 @@ Generics don't work with record types, so use macros to do this task
 function TAbstractMachOSubReader.ReadString(aStream: TStream; aPos: longword
   ): string;
 var oldpos : int64;
-    c : char;
+    c : AnsiChar;
     maxleft : int64;
 begin
   Result:='';

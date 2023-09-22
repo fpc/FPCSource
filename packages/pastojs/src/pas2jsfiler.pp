@@ -76,7 +76,9 @@ Todo:
 - when pcu is bad, unload and use src
 - replace GUID with crc
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JsFiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -86,6 +88,17 @@ unit Pas2JsFiler;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.Types, System.SysUtils, System.Contnrs,
+  {$ifdef pas2js}
+  {$else}
+  System.ZLib.Zstream, Fcl.AVLTree,
+  {$endif}
+  FpJson.Data, FpJson.Parser, FpJson.Scanner,
+  Pascal.Tree, Pascal.Scanner, Pascal.Parser, Pascal.ResolveEval, Pascal.Resolver,
+  Pas2Js.Files.Utils, Pas2Js.Compiler.Transpiler, Pas2Js.Utils, Js.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, Types, SysUtils, contnrs,
   {$ifdef pas2js}
@@ -95,6 +108,7 @@ uses
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js, Pas2JSUtils, jsbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   PCUMagic = 'Pas2JSCache';
@@ -643,7 +657,7 @@ type
   TPCUSourceFileArray = array of TPCUSourceFile;
 
   TPCUGetSrcEvent = procedure(Sender: TObject; aFilename: string;
-    out p: PChar; out Count: integer) of object;
+    out p: PAnsiChar; out Count: integer) of object;
 
   { TPCUFilerContext - base class TPCUWriterContext/TPCUReaderContext }
 
@@ -1083,7 +1097,8 @@ type
     function CheckJSONArray(Data: TJSONData; El: TPasElement; const PropName: string): TJSONArray;
     function CheckJSONObject(Data: TJSONData; Id: int64): TJSONObject;
     function CheckJSONString(Data: TJSONData; Id: int64): String;
-    function ReadString(Obj: TJSONObject; const PropName: string; out s: string; El: TPasElement): boolean;
+    function ReadString(Obj: TJSONObject; const PropName: string; out s: AnsiString; El: TPasElement): boolean;
+    function ReadString(Obj: TJSONObject; const PropName: string; out s: UnicodeString; El: TPasElement): boolean;
     function ReadInteger(Obj: TJSONObject; const PropName: string; out i: integer; El: TPasElement): boolean;
     function ReadBoolean(Obj: TJSONObject; const PropName: string; out b: boolean; El: TPasElement): boolean;
     function ReadArray(Obj: TJSONObject; const PropName: string; out Arr: TJSONArray; El: TPasElement): boolean;
@@ -1318,7 +1333,7 @@ function EncodeVLQ(i: TMaxPrecUInt): string; overload;
 function DecodeVLQ(const s: string): TMaxPrecInt; // base256 Variable Length Quantity
 function DecodeVLQ(var p: PByte): TMaxPrecInt; // base256 Variable Length Quantity
 
-function ComputeChecksum(p: PChar; Cnt: integer): TPCUSourceFileChecksum;
+function ComputeChecksum(p: PAnsiChar; Cnt: integer): TPCUSourceFileChecksum;
 function crc32(crc: cardinal; buf: Pbyte; len: cardinal): cardinal;
 
 function ModeSwitchToInt(ms: TModeSwitch): byte;
@@ -1329,7 +1344,7 @@ procedure WriteJSON(aData: TJSONData; TargetStream: TStream; Compressed: boolean
 procedure GrowIdToRefsArray(var IdToRefsArray: TPCUFilerElementRefArray; Id: integer);
 
 function dbgmem(const s: string): string; overload;
-function dbgmem(p: PChar; Cnt: integer): string; overload;
+function dbgmem(p: PAnsiChar; Cnt: integer): string; overload;
 
 implementation
 
@@ -1477,9 +1492,9 @@ begin
     Result:=-Result;
 end;
 
-function ComputeChecksum(p: PChar; Cnt: integer): TPCUSourceFileChecksum;
+function ComputeChecksum(p: PAnsiChar; Cnt: integer): TPCUSourceFileChecksum;
 var
-  SrcP, SrcEndP, SrcLineEndP, SrcLineStartP: PChar;
+  SrcP, SrcEndP, SrcLineEndP, SrcLineStartP: PAnsiChar;
   l: PtrInt;
   CheckSum, CurLen: Cardinal;
 begin
@@ -1688,7 +1703,7 @@ var
     TargetStream.Write(s[1],length(s));
   end;
 
-  procedure WriteChar(const c: char);
+  procedure WriteChar(const {%H-}c: AnsiChar);
   begin
     TargetStream.Write(c,1);
   end;
@@ -1829,10 +1844,10 @@ end;
 function dbgmem(const s: string): string;
 begin
   if s='' then exit('');
-  Result:=dbgmem(PChar(s),length(s));
+  Result:=dbgmem(PAnsiChar(s),length(s));
 end;
 
-function dbgmem(p: PChar; Cnt: integer): string;
+function dbgmem(p: PAnsiChar; Cnt: integer): string;
 
   procedure AddLine(const Line: string);
   begin
@@ -1842,7 +1857,7 @@ function dbgmem(p: PChar; Cnt: integer): string;
   end;
 
 var
-  c: Char;
+  c: AnsiChar;
   IsTxt: boolean;
   Line: String;
   i: Integer;
@@ -2103,7 +2118,7 @@ end;
 
 function TPCUFiler.GetSrcCheckSum(aFilename: string): TPCUSourceFileChecksum;
 var
-  p: PChar;
+  p: PAnsiChar;
   Cnt: integer;
 begin
   OnGetSrc(Self,aFilename,p,Cnt);
@@ -3350,6 +3365,7 @@ function TPCUWriter.IsExternalEl(El: TPasElement): boolean;
 var
   C: TClass;
 begin
+  Result:=false;
   while El<>nil do
     begin
     C:=El.ClassType;
@@ -3477,6 +3493,8 @@ begin
     ParentRef:=WriteExternalReference(SpecItem.GenericEl,aContext)
   else if IsExternalEl(Parent) then
     ParentRef:=WriteExternalReference(Parent,aContext)
+  else if Parent=nil then
+    ParentRef:=nil
   else
     begin
     // El is external, Parent is not
@@ -5006,7 +5024,7 @@ begin
     {$IFDEF VerbosePCUFiler}
     writeln('TPCUWriter.WritePCU create js');
     {$ENDIF}
-    Pas2jsFiler.WriteJSON(aJSON,TargetStream,Compressed);
+    {$IFDEF FPC_DOTTEDUNITS}Pas2js.Filer{$ELSE}Pas2jsFiler{$ENDIF}.WriteJSON(aJSON,TargetStream,Compressed);
     if Compressed then
       try
         {$IFDEF VerbosePCUFiler}
@@ -5833,7 +5851,7 @@ begin
 end;
 
 function TPCUReader.ReadString(Obj: TJSONObject; const PropName: string; out
-  s: string; El: TPasElement): boolean;
+  s: AnsiString; El: TPasElement): boolean;
 var
   Data: TJSONData;
 begin
@@ -5843,6 +5861,23 @@ begin
   if Data.ClassType=TJSONString then
     begin
     s:=String(Data.AsString);
+    exit(true);
+    end;
+  RaiseMsg(20180205133227,El,PropName+':'+Data.ClassName);
+  Result:=false;
+end;
+
+function TPCUReader.ReadString(Obj: TJSONObject; const PropName: string; out
+  s: UnicodeString; El: TPasElement): boolean;
+var
+  Data: TJSONData;
+begin
+  s:='';
+  Data:=Obj.Find(PropName);
+  if Data=nil then exit(false);
+  if Data.ClassType=TJSONString then
+    begin
+    s:=Data.AsUnicodeString;
     exit(true);
     end;
   RaiseMsg(20180205133227,El,PropName+':'+Data.ClassName);

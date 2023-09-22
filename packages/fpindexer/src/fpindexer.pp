@@ -13,7 +13,9 @@
 
  **********************************************************************}
  
-unit FPIndexer;
+{$IFNDEF FPC_DOTTEDUNITS}
+unit FpIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -21,8 +23,13 @@ unit FPIndexer;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TWordTokenType = (wtOr, wtAnd, wtWord);
@@ -41,7 +48,7 @@ type
   TWordParser = class
   private
     FCount: integer;
-    FWildCardChar: char;
+    FWildCardChar: AnsiChar;
     WordList: array of TWordToken;
     procedure AddToken(AValue: UTF8String; ATokenType: TWordTokenType);
     function GetSearchWordQuery: UTF8String;
@@ -50,7 +57,7 @@ type
   public
     constructor Create(ASearchWords: UTF8String);
     property Count: integer read FCount write SetCount;
-    property WildCardChar: char read FWildCardChar write FWildCardChar;
+    property WildCardChar: AnsiChar read FWildCardChar write FWildCardChar;
     property SearchWordQuery: UTF8String read GetSearchWordQuery;
     property Token[index: integer]: TWordToken read GetToken;
   end;
@@ -463,11 +470,19 @@ function QuoteString(S: UTF8String): UTF8String;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef LangDetect}
+     fpTextCat, Math,
+  {$endif}
+  FpIndexer.Masks;     //please note that this is an LCL unit, should be moved to FCL afaic
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef LangDetect}
      fpTextCat, Math,
   {$endif}
   fpmasks;     //please note that this is an LCL unit, should be moved to FCL afaic
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoSuchLanguage = 'Unknown language : "%s".';
@@ -945,7 +960,7 @@ Const
 
 var
   s: UTF8String;
-  c: char;
+  c: AnsiChar;
 
 begin
   if not Assigned(Stream) then

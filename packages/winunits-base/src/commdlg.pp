@@ -13,7 +13,9 @@
     Note these functions were in the windows unit in older versions
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CommDlg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$mode delphi} // interface
@@ -24,7 +26,11 @@ interface
 {$ifdef FPC_OS_UNICODE}
   {$define UNICODE}
 {$endif}
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
      LPOFNHOOKPROC=function (h:HWND; u:UINT; w:WPARAM; l:LPARAM):  UINT_PTR; stdcall;

@@ -7,29 +7,22 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
-implicitunits=sysinitpas sysinitcyg sysinitgprof \
-      extpas \
-      ctypes strings \
-      heaptrc \
-      windows initc cmem dynlibs signals \
-      dos messages \
-      rtlconsts sysconst sysutils math types \
-      typinfo sortbase fgl classes \
-      cpu mmx charset character getopts \
-      fpwidestring \
-      winsysut sharemem exeinfo fpintres windirs \
-      softfpu sfpux80 ufloatx80 sfpu128 ufloat128 \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
-      unicodedata
+units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(WINDOWSUNIT) $(SYSUTILSUNIT) buildrtl $(CHARSETUNIT) $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
+implicitunits=sysinitpas sysinitcyg sysinitgprof initc $(EXTPASUNIT) $(HEAPTRCUNIT) \
+      $(WINSYSUTUNIT) $(CTYPESUNIT) $(STRINGSUNIT) \
+      $(DOSUNIT) $(MESSAGESUNIT) \
+      $(CMEMUNIT) $(DYNLIBSUNIT) \
+      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
+      $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(GETOPTSUNIT) \
+      $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) \
+      $(SHAREMEMUNIT) $(EXEINFOUNIT) $(FPINTRESUNIT) $(WINDIRSUNIT) \
+      $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
+      $(CP_UNITS) $(UNICODEDATAUNIT) \
+      $(CPU_UNITS)
 
 # shared=$(DLLS)
 
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 
 [require]
 nortl=y
@@ -39,12 +32,11 @@ fpcpackage=y
 buildunit=buildrtl
 
 [default]
-fpcdir=../..
 target=win32
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(WINDIR)
-sourcedir=$(INC) $(PROCINC) $(COMMON) $(WINDIR)
+includedir=$(INC) $(PROCINC) $(WINDIR) ./$(ARCH) $(WININC)
+sourcedir=$(INC) $(PROCINC) $(COMMON) $(WINDIR) ../$(ARCH)
 
 
 [prerules]
@@ -54,19 +46,30 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 WININC=../win/wininc
 WINDIR=../win
+OSDIR=win32
+NSOSDIR=$(NSDIR)/windows
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 DLLS=fpcmemdll
-
+CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT) $(MMXUNIT)
 # Paths
 OBJPASDIR=$(RTL)/objpas
+FPC_SYSTEM_OPT=-Fu$(WINDIR)
+SYSUTILSDIR=$(WINDIR)
+SYSUTILS_OPT=-Fi$(WINDIR)
+SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
+WINDIRSDIR=$(WINDIR)
+DYNLIBSINCDIR=$(WINDIR)
 
 # Files used by windows.pp
 include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
+EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
+EXTPAS_DEPS_OS=buildrtl$(PPUEXT)
+FPWIDESTRING_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
 
 [rules]
 .NOTPARALLEL:
@@ -88,40 +91,23 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
+BUILDINCLUDEPATHS= -Fi$(OBJPASDIR)/sysutils -Fi$(WINDIR) -Fi$(OBJPASDIR) \
+                   -Fi$(OBJPASDIR)/classes -Fi$(WININC) -Fi$(INC)
+
+BUILDUNITPATHS=-Fu$(WININC) -Fu$(WINDIR) -Fu$(INC) -Fu$(OBJPASDIR) -Fu../$(ARCH)
+
+ifdef FPC_DOTTEDUNITS
+BUILDRTL_OPT:=$(BUILDRTL_OPT) -Fu$(NSINC) -Fu$(NSOSDIR) -dFPC_DOTTEDUNITS 
+endif
+
 #
 # Unit specific rules
 #
 
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fi../win
+BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINDOWSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
+              $(BUILDRTL_DEPS_OS) $(BUILDRTL_DEPS_CPU)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/heaptrc.pp
+buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)
+	$(COMPILER) $(BUILDUNITPATHS) $(BUILDINCLUDEPATHS) $(BUILDRTL_OPT) $<
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
-	$(COMPILER) $(INC)/uuchar.pp
-
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) $(INC)/lineinfo.pp
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) $(INC)/lnfodwrf.pp
-
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 

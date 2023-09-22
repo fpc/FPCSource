@@ -13,13 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit x86;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$inline on}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 Uses BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ReadPortB (Port : Longint): Byte;inline;
 function ReadPortW (Port : Longint): Word;inline;
@@ -46,7 +52,11 @@ Function  fpIoPL(Level : cint) : cint;
 implementation
 {$ASMMODE ATT}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF cpullvm}
 procedure fpc_x86_outportb(p:longint;v:byte);
@@ -412,12 +422,12 @@ type
 
     i386_vm86_args = record
         sub_op   : cint;             { sub-operation to perform }
-        sub_args : pchar;               { args }
+        sub_args : PAnsiChar;               { args }
         end;
 
    sysarch_args     = record
                         op    : longint;
-                        parms : pchar;
+                        parms : PAnsiChar;
                        end;
 
 Function fpIOPerm(From,Num:CARDINAL;Value:cint):cint;

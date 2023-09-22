@@ -10,18 +10,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgPackagesStructure;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpPkg.Repos,
+  FpPkg.XmlRep,
+  FpPkg.Options;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   fprepos,
   fpxmlrep,
   pkgoptions;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -112,11 +123,19 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fpmkunit,
+  FpPkg.Messages,
+  FpPkg.PackageRepos,
+  FpPkg.Globals;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpmkunit,
   pkgmessages,
   pkgrepos,
   pkgglobals;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFPArchiveFilenamePackagesStructure }
 

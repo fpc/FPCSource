@@ -74,7 +74,7 @@ function apr_uid_current(userid: Papr_uid_t; groupid: Papr_gid_t;
  * @param p The pool from which to allocate the string
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-function apr_uid_name_get(username: PPChar; userid: apr_uid_t;
+function apr_uid_name_get(username: PPAnsiChar; userid: apr_uid_t;
  p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_uid_name_get' + LibSuff12;
@@ -88,7 +88,7 @@ function apr_uid_name_get(username: PPChar; userid: apr_uid_t;
  * @remark This function is available only if APR_HAS_USER is defined.
  }
 function apr_uid_get(userid: Papr_uid_t; groupid: Papr_gid_t;
- const username: PChar; p: Papr_pool_t): apr_status_t;
+ const username: PAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_uid_get' + LibSuff16;
 
@@ -99,7 +99,7 @@ function apr_uid_get(userid: Papr_uid_t; groupid: Papr_gid_t;
  * @param p The pool from which to allocate the string
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-function apr_uid_homepath_get(dirname: PPChar; const username: PChar;
+function apr_uid_homepath_get(dirname: PPAnsiChar; const username: PAnsiChar;
  p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_uid_homepath_get' + LibSuff12;
@@ -126,7 +126,7 @@ function apr_uid_homepath_get(dirname: PPChar; const username: PChar;
  * @param p The pool from which to allocate the string
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-function apr_gid_name_get(groupname: PPChar; groupid: apr_gid_t;
+function apr_gid_name_get(groupname: PPAnsiChar; groupid: apr_gid_t;
  p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_gid_name_get' + LibSuff12;
@@ -138,7 +138,7 @@ function apr_gid_name_get(groupname: PPChar; groupid: apr_gid_t;
  * @param p The pool from which to allocate the string
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-function apr_gid_get(groupid: Papr_gid_t; const groupname: PChar;
+function apr_gid_get(groupid: Papr_gid_t; const groupname: PAnsiChar;
  p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_gid_get' + LibSuff12;

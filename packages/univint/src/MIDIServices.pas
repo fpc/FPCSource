@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MIDIServices;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFData,MacOsApi.CFDictionary;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFData,CFDictionary;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ifc TARGET_OS_MAC}
@@ -571,13 +577,16 @@ type
 						situations.)
 }
 
+{$push}
+{$packrecords 4}
 	MIDIPacket = record
 		timeStamp: MIDITimeStamp;
 		length: UInt16;
 		data: packed array [0..255] of Byte;
 	end;
 	MIDIPacketPtr = ^MIDIPacket;
-	
+{$pop}
+
 {!
 	@struct			MIDIPacketList
 	@abstract		A list of MIDI events being received from, or being sent to,
@@ -608,10 +617,14 @@ type
 						An open-ended array of variable-length MIDIPackets.
 }
 
+{$push}
+{$packrecords 4}
 	MIDIPacketList = record
 		numPackets: UInt32;	
 		packet: array [0..0] of MIDIPacket;
 	end;
+{$pop}
+
 {$ALIGN POWER}
 
 {!

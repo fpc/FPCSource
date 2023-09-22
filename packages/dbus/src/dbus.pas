@@ -26,7 +26,9 @@
  * MA 02110-1301, USA.
  *
  }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbus;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
   {$mode delphi}{$H+}
@@ -48,7 +50,11 @@ unit dbus;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef unix}

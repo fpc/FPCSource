@@ -14,7 +14,7 @@
  ***********************************************************************}
 { The following definitions come from linux/ipc.h }
 
-Function ftok (Path : pchar; ID : cint) : TKey;
+Function ftok (Path : PAnsiChar; ID : cint) : TKey;
 Var Info : TStat;
 begin
   If fpstat(path,info)<0 then
@@ -60,12 +60,12 @@ begin
 end;
 
 Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer;
-Var raddr : pchar;
+Var raddr : PAnsiChar;
     error : ptrint;
 begin
   error:=ipccall(CALL_SHMAT,shmid,shmflg,cint(@raddr),shmaddr,0);
   If Error<0 then
-    shmat:=pchar(error)
+    shmat:=PAnsiChar(error)
   else
     shmat:=raddr;
 end;

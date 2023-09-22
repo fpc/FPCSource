@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit smslib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Errorbase, PalmApi.Exgmgr, PalmApi.Telephonymgrui, PalmApi.Telephonymgrtypes, PalmApi.Telephonymgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, errorbase, exgmgr, telephonymgrui, telephonymgrtypes, telephonymgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The Sms library is used as an Exchange library. ExgLib.h defines all the
 // primary entrypoints into the library. The rest of this include file defines the
@@ -121,7 +127,7 @@ type
     index: UInt16;             // SMS index on the phone storage
     reportType: UInt8;         // Delivery report type
     report: UInt8;             // Status report indicator
-    originatingAddress: PChar; // Phone number to which belong the report (was sent)
+    originatingAddress: PAnsiChar; // Phone number to which belong the report (was sent)
   end;
   SmsReportParamsTag = SmsReportParamsType;
   SmsReportParamsPtr = ^SmsReportParamsType;
@@ -147,7 +153,7 @@ type
    manualAckRequest: UInt8; //:1
    reserved: UInt8;         //:6
 }
-   callbackNumber: PChar; // Address to reply
+   callbackNumber: PAnsiChar; // Address to reply
   end;
   SmsSendCDMAParamsTag = SmsSendCDMAParamsType;
   SmsSendCDMAParamsPtr = ^SmsSendCDMAParamsType;
@@ -161,7 +167,7 @@ type
 type
   SmsSendGSMParamsType = record
     protocolId: UInt16;         // Reserved - not supported (Fax, paging, . . .)
-    serviceCenterNumber: PChar; // SMS Center number - Optionel
+    serviceCenterNumber: PAnsiChar; // SMS Center number - Optionel
 
     rejectDuplicated: Boolean;  // Network must reject msg if the same exists
     replyPath: Boolean;         // Use reply specified path
@@ -176,7 +182,7 @@ type
 type
   SmsSendParamsType = record
     validityPeriod: TelSmsDateTimeType;  // SMS validity Period
-    destinationAddress: PChar;           // recipient number -> to send the sms to
+    destinationAddress: PAnsiChar;           // recipient number -> to send the sms to
 
     bits: UInt8;
 {
@@ -219,7 +225,7 @@ type
     voiceMessageNumber: UInt8;
     languageIndicator: UInt8;
 
-    callbackNumberAddress: PChar; // Store callback address
+    callbackNumberAddress: PAnsiChar; // Store callback address
   end;
   SmsReceiveCDMAParamsTag = SmsReceiveCDMAParamsType;
   SmsReceiveCDMAParamsPtr = ^SmsReceiveCDMAParamsType;
@@ -232,7 +238,7 @@ type
 type
   SmsReceiveGSMParamsType = record
     protocolId: UInt16; // reserved - not supported
-    serviceCenterNumber: PChar;
+    serviceCenterNumber: PAnsiChar;
 
     replyPath: Boolean; // Must use specified reply path
   end;
@@ -245,7 +251,7 @@ type
 type
   SmsReceiveParamsType = record
    timeStamp: UInt32;          // Palm
-   originatingAddress: PChar;  // originating number -> to send the sms to
+   originatingAddress: PAnsiChar;  // originating number -> to send the sms to
 
    bits: UInt8;
 {
@@ -277,8 +283,8 @@ type
     creator: UInt32;         // MUST ALWAYS BE SET TO sysFileCSmsLib
     smsID: UInt16;           // ID of the SMS (output)
 
-    extension: PChar;        // Extension type of the data - Optionel     (Output)
-    mimeTypes: PChar;        // Mime type of object - Optionel            (Output)
+    extension: PAnsiChar;        // Extension type of the data - Optionel     (Output)
+    mimeTypes: PAnsiChar;        // Mime type of object - Optionel            (Output)
     appCreator: UInt32;      // Application Creator of the target - Optionel (Output)
 
     dataCodingScheme: UInt8; // How SMS are going to convert the data (0 = 8 bit, 1 = 7 bit)
@@ -306,7 +312,7 @@ type
     leave: Boolean;          // Leave SMS on Phone
     report: Boolean;         // Ask for a network delivery report
     autoSMSC: Boolean;       // If set, don't use the value stored in smscNumber field
-    smscNumber: array [1..kSmsMaxPhoneSize] of Char; // SMS Service Center. Could be null
+    smscNumber: array [1..kSmsMaxPhoneSize] of AnsiChar; // SMS Service Center. Could be null
   end;
   SmsPrefTag = SmsPrefType;
   SmsPrefPtr = ^SmsPrefType;

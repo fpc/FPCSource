@@ -1,10 +1,17 @@
 {$mode objfpc}{$h+}
 program GtkDef;
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,  // exception
+     Fpgtkext,  // Application, TFPgtkApplication
+     Settingsrec,
+     Gtkeditor;  // Mainwindow: TGtkEditorWindow
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,  // exception
      FPgtkExt,  // Application, TFPgtkApplication
      settingsrec,
      GTKEditor;  // Mainwindow: TGtkEditorWindow
+{$ENDIF FPC_DOTTEDUNITS}
 
 begin
   try

@@ -14,14 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_parserutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes
+  {$IFNDEF FPC}, xmldom, sdo_win_xml{$ELSE},Xml.Dom{$ENDIF},
+  Sdo.Cursor.Intf, Sdo.Dom.Cursors, Sdo.Xsd.Consts, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes
   {$IFNDEF FPC}, xmldom, sdo_win_xml{$ELSE},DOM{$ENDIF},
   sdo_cursor_intf, sdo_dom_cursors, xsd_consts, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TNotFoundAction = ( nfaNone, nfaRaiseException );
@@ -101,12 +110,16 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, Sdo.Rtti.Filters;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils, sdo_rtti_filters;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const LANGAGE_TOKEN : array[0..127] of string = (
   'ABSOLUTE', 'ABSTRACT', 'AND', 'ARRAY', 'AS', 'ASM',
   'BEGIN', 'BOOLEAN', 'BYTE',
-  'CASE', 'CDECL', 'CHAR', 'CLASS', 'COMP', 'CONST', 'CONSTRUCTOR', 'CONTAINS',
+  'CASE', 'CDECL', 'AnsiChar', 'CLASS', 'COMP', 'CONST', 'CONSTRUCTOR', 'CONTAINS',
   'CURRENCY', 'DEFAULT', 'DEPRECATED', 'DESTRUCTOR', 'DISPINTERFACE', 'DISPOSE', 'DIV', 'DO',
   'DOUBLE', 'DOWNTO', 'DYNAMIC', 'END', 'EXCEPT', 'EXIT', 'EXPORT', 'EXPORTS',
   'EXTERNAL', 'FALSE', 'FAR', 'FILE', 'FINALIZATION', 'FINALLY', 'FOR',
@@ -116,7 +129,7 @@ const LANGAGE_TOKEN : array[0..127] of string = (
   'LABEL', 'LIBRARY', 'LOCAL', 'LONGINT', 'LONGWORD',
   'MOD', 'NEAR', 'NEW', 'NIL', 'NODEFAULT', 'NOT',
   'OBJECT', 'OF', 'OLEVARIANT', 'ON', 'OPERATOR', 'OR', 'OUT', 'OVERLOAD',
-  'OVERRIDE','PACKAGE', 'PACKED', 'PASCAL', 'PCHAR', 'PRIVATE', 'PROCEDURE',
+  'OVERRIDE','PACKAGE', 'PACKED', 'PASCAL', 'PAnsiChar', 'PRIVATE', 'PROCEDURE',
   'PROGRAM', 'PROPERTY', 'PROTECTED', 'PUBLIC', 'PUBLISHED',
   'RAISE', 'READ', 'REAL', 'RECORD', 'REGISTER', 'REINTRODUCE', 'REPEAT',
   'REQUIRES', 'RESOURCESTRING', 'RESULT', 'SAFECALL', 'SELF', 'SET', 'SHL',
@@ -128,8 +141,8 @@ const LANGAGE_TOKEN : array[0..127] of string = (
 const SDO_RESERVED_TOKEN : array[0..1] of string = ( 'Item', 'Item' );
 function IsReservedKeyWord(const AValue : string):Boolean ;
 begin
-  Result := AnsiMatchText(AValue,LANGAGE_TOKEN) or
-            AnsiMatchText(AValue,SDO_RESERVED_TOKEN);
+  Result := MatchText(AValue,LANGAGE_TOKEN) or
+            MatchText(AValue,SDO_RESERVED_TOKEN);
 end;
 
 function IsStrEmpty(Const AStr : String):Boolean;
@@ -212,11 +225,11 @@ end;
 function DecodeLineBreak(const AInStr : string) : string;
 var
   i, c : PtrInt;
-  pc : PChar;
+  pc : PAnsiChar;
   tmp, res : string;
 begin
   res := '';
-  pc := PChar(AInStr);
+  pc := PAnsiChar(AInStr);
   i := 1;
   c := Length(AInStr);
   while ( i <= c ) do begin
@@ -238,7 +251,7 @@ begin
 
   tmp := res;
   res := '';
-  pc := PChar(tmp);
+  pc := PAnsiChar(tmp);
   i := 1;
   c := Length(tmp);
   while ( i <= c ) do begin

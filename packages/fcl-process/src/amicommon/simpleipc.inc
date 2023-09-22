@@ -16,8 +16,13 @@
 
 {$DEFINE OSNEEDIPCINITDONE}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrMsgPortExists = 'MsgPort already exists: %s';
@@ -105,10 +110,10 @@ Type
 function SafePutToPort(Msg: PMessage; Portname: string): Boolean;
  var
    Port: PMsgPort;
-   PName: PChar;
+   PName: PAnsiChar;
  begin
    Result := False;
-   PName := PChar(Portname + #0);
+   PName := PAnsiChar(Portname + #0);
    Forbid();
    Port := FindPort(PName);
    if Assigned(Port) then
@@ -193,12 +198,12 @@ end;
 Procedure TAmigaServerComm.StartServer;
 begin
   FPortName := PORTNAMESTART + Owner.ServerID + #0;
-  if Assigned(FindPort(PChar(FPortName))) then
+  if Assigned(FindPort(PAnsiChar(FPortName))) then
   begin
     DoError(SErrMsgPortExists,[FPortName]);
     Exit;
   end;
-  FMsgPort^.mp_Node.ln_Name := PChar(FPortName);
+  FMsgPort^.mp_Node.ln_Name := PAnsiChar(FPortName);
   FMsgPort^.mp_Node.ln_Pri := 0;
   AddPort(FMsgPort);
   if Assigned(MsgBody) then

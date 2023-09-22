@@ -1,0 +1,7 @@
+src/postgres.pp=namespaced/Api.Postgres.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/postgres3dyn.pp=namespaced/Api.Postgres3dyn.pp
+src/dllist.pp=namespaced/Api.Dllist.pp
+src/dllistdyn.pp=namespaced/Api.Dllistdyn.pp
+src/postgres3.pp=namespaced/Api.Postgres3.pp

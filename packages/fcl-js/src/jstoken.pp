@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                                 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jstoken;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -60,7 +62,7 @@ const
 
   TokenInfos: array[TJSToken] of String = ('unknown',
        // Specials
-        'EOF','whitespace','Char','String', 'identifier','number','comment','regular expression', 'reserved word',
+        'EOF','whitespace','AnsiChar','String', 'identifier','number','comment','regular expression', 'reserved word',
         '&&','&=',
         '(',')','[',']','{','}',
         ',',':','.',';','=','>','<','?',

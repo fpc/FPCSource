@@ -24,17 +24,19 @@
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
+  if assigned (@rtl_do_close) then
+    rtl_do_close(handle);
 end;
 
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 begin
   if assigned (@rtl_do_erase) then
     rtl_do_erase(p);
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 begin
   if assigned (@rtl_do_rename) then
     rtl_do_rename(p1, p2);

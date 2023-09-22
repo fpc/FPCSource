@@ -37,7 +37,7 @@ begin
       end;
 
     {Set a variable}
-    setOpVal := QSetOp(session, 'testVal',pchar('just a test'#0), 12);
+    setOpVal := QSetOp(session, 'testVal',PAnsiChar('just a test'#0), 12);
     if setOpVal = 0 then begin
       writeln('Warning, QSetOp failed.');
       end;

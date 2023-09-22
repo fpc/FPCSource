@@ -43,7 +43,9 @@
 // $Id: JwaImageHlp.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaImageHlp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaImageHlp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -934,7 +941,7 @@ type
     Size: DWORD; // estimated size of symbol, can be zero
     Flags: DWORD; // info about the symbols, see the SYMF defines
     MaxNameLength: DWORD; // maximum size of symbol name in 'Name'
-    Name: array [0..0] of CHAR; // symbol name (null terminated string)
+    Name: array [0..0] of AnsiChar; // symbol name (null terminated string)
   end;
   {$EXTERNALSYM _IMAGEHLP_SYMBOL64}
   IMAGEHLP_SYMBOL64 = _IMAGEHLP_SYMBOL64;
@@ -944,7 +951,7 @@ type
 
   _IMAGEHLP_SYMBOL64_PACKAGE = record
     sym: IMAGEHLP_SYMBOL64;
-    name: array [0..MAX_SYM_NAME] of CHAR;
+    name: array [0..MAX_SYM_NAME] of AnsiChar;
   end;
   {$EXTERNALSYM _IMAGEHLP_SYMBOL64_PACKAGE}
   IMAGEHLP_SYMBOL64_PACKAGE = _IMAGEHLP_SYMBOL64_PACKAGE;
@@ -971,7 +978,7 @@ type
     Size: DWORD; // estimated size of symbol, can be zero
     Flags: DWORD; // info about the symbols, see the SYMF defines
     MaxNameLength: DWORD; // maximum size of symbol name in 'Name'
-    Name: array [0..0] of CHAR; // symbol name (null terminated string)
+    Name: array [0..0] of AnsiChar; // symbol name (null terminated string)
   end;
   {$EXTERNALSYM _IMAGEHLP_SYMBOL}
   IMAGEHLP_SYMBOL = _IMAGEHLP_SYMBOL;
@@ -981,7 +988,7 @@ type
 
   _IMAGEHLP_SYMBOL_PACKAGE = record
     sym: IMAGEHLP_SYMBOL;
-    name: array [0..MAX_SYM_NAME] of CHAR;
+    name: array [0..MAX_SYM_NAME] of AnsiChar;
   end;
   {$EXTERNALSYM _IMAGEHLP_SYMBOL_PACKAGE}
   IMAGEHLP_SYMBOL_PACKAGE = _IMAGEHLP_SYMBOL_PACKAGE;
@@ -1007,9 +1014,9 @@ type
     CheckSum: DWORD; // checksum from the pe header
     NumSyms: DWORD; // number of symbols in the symbol table
     SymType: SYM_TYPE; // type of symbols loaded
-    ModuleName: array [0..3] of CHAR; // module name
-    ImageName: array [0..255] of CHAR; // image name
-    LoadedImageName: array [0..255] of CHAR; // symbol file name
+    ModuleName: array [0..3] of AnsiChar; // module name
+    ImageName: array [0..255] of AnsiChar; // image name
+    LoadedImageName: array [0..255] of AnsiChar; // symbol file name
   end;
   {$EXTERNALSYM _IMAGEHLP_MODULE64}
   IMAGEHLP_MODULE64 = _IMAGEHLP_MODULE64;
@@ -1047,9 +1054,9 @@ type
     CheckSum: DWORD; // checksum from the pe header
     NumSyms: DWORD; // number of symbols in the symbol table
     SymType: SYM_TYPE; // type of symbols loaded
-    ModuleName: array [0..31] of CHAR; // module name
-    ImageName: array [0..255] of CHAR; // image name
-    LoadedImageName: array [0..255] of CHAR; // symbol file name
+    ModuleName: array [0..31] of AnsiChar; // module name
+    ImageName: array [0..255] of AnsiChar; // image name
+    LoadedImageName: array [0..255] of AnsiChar; // symbol file name
   end;
   {$EXTERNALSYM _IMAGEHLP_MODULE}
   IMAGEHLP_MODULE = _IMAGEHLP_MODULE;
@@ -1087,7 +1094,7 @@ type
     SizeOfStruct: DWORD; // set to sizeof(IMAGEHLP_LINE64)
     Key: PVOID; // internal
     LineNumber: DWORD; // line number in file
-    FileName: PCHAR; // full filename
+    FileName: PAnsiChar; // full filename
     Address: DWORD64; // first instruction of line
   end;
   {$EXTERNALSYM _IMAGEHLP_LINE64}
@@ -1102,7 +1109,7 @@ type
     SizeOfStruct: DWORD; // set to sizeof(IMAGEHLP_LINE)
     Key: PVOID; // internal
     LineNumber: DWORD; // line number in file
-    FileName: PCHAR; // full filename
+    FileName: PAnsiChar; // full filename
     Address: DWORD; // first instruction of line
   end;
   {$EXTERNALSYM _IMAGEHLP_LINE}
@@ -1118,7 +1125,7 @@ type
 type
   _SOURCEFILE = record
     ModBase: DWORD64;                // base address of loaded module
-    FileName: PCHAR;                 // full filename of source
+    FileName: PAnsiChar;                 // full filename of source
   end;
   {$EXTERNALSYM _SOURCEFILE}
   SOURCEFILE = _SOURCEFILE;
@@ -1186,7 +1193,7 @@ type
   _IMAGEHLP_CBA_EVENT = record
     severity: DWORD;                                     // values from sevInfo to sevFatal
     code: DWORD;                                         // numerical code IDs the error
-    desc: PCHAR;                                         // may contain a text description of the error
+    desc: PAnsiChar;                                         // may contain a text description of the error
     object_: PVOID;                                      // value dependant upon the error code
   end;
   {$EXTERNALSYM _IMAGEHLP_CBA_EVENT}
@@ -1204,7 +1211,7 @@ type
     BaseOfImage: DWORD64; // base load address of module
     CheckSum: DWORD; // checksum from the pe header
     TimeDateStamp: DWORD; // date/time stamp from pe header
-    FileName: array [0..MAX_PATH - 1] of CHAR; // symbols file or image name
+    FileName: array [0..MAX_PATH - 1] of AnsiChar; // symbols file or image name
     Reparse: ByteBool; // load failure reparse
     hFile: HANDLE; // file handle, if passed
     Flags: DWORD; //
@@ -1229,7 +1236,7 @@ type
     BaseOfImage: DWORD; // base load address of module
     CheckSum: DWORD; // checksum from the pe header
     TimeDateStamp: DWORD; // date/time stamp from pe header
-    FileName: array [0..MAX_PATH - 1] of CHAR; // symbols file or image name
+    FileName: array [0..MAX_PATH - 1] of AnsiChar; // symbols file or image name
     Reparse: ByteBool; // load failure reparse
     hFile: HANDLE; // file handle, if passed    
   end;
@@ -1507,7 +1514,7 @@ type
   _IMAGEHLP_SYMBOL_SRC = record
     sizeofstruct: DWORD;
     type_: DWORD;
-    file_: array [0..MAX_PATH - 1] of Char;
+    file_: array [0..MAX_PATH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _IMAGEHLP_SYMBOL_SRC}
   IMAGEHLP_SYMBOL_SRC = _IMAGEHLP_SYMBOL_SRC;
@@ -1546,7 +1553,7 @@ type
     Tag: ULONG; // pdb classification
     NameLen: ULONG; // Actual length of name
     MaxNameLen: ULONG;
-    Name: array [0..0] of CHAR; // Name of symbol
+    Name: array [0..0] of AnsiChar; // Name of symbol
   end;
   {$EXTERNALSYM _SYMBOL_INFO}
   SYMBOL_INFO = _SYMBOL_INFO;
@@ -1556,7 +1563,7 @@ type
 
   _SYMBOL_INFO_PACKAGE = record
     si: SYMBOL_INFO;
-    name: array [0..MAX_SYM_NAME] of CHAR;
+    name: array [0..MAX_SYM_NAME] of AnsiChar;
   end;
   {$EXTERNALSYM _SYMBOL_INFO_PACKAGE}
   SYMBOL_INFO_PACKAGE = _SYMBOL_INFO_PACKAGE;

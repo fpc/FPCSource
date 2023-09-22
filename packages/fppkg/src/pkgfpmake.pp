@@ -10,18 +10,36 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgfpmake;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils, System.DateUtils,
+  FpPkg.Handler, Fpmkunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,SysUtils,DateUtils,
   pkghandler, fpmkunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpPkg.Repos,
+  FpPkg.Options,
+  FpPkg.Globals,
+  FpPkg.Messages,
+  FpPkg.PackageRepos,
+  FpPkg.Package,
+  FpPkg.XmlRep;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fprepos,
   pkgoptions,
@@ -30,6 +48,7 @@ uses
   pkgrepos,
   pkgFppkg,
   fpxmlrep;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TFPMakeCompiler }
@@ -121,14 +140,14 @@ procedure CreateFPMKUnitSource(const AFileName:string);
 var
   InStream,
   OutStream : TStream;
-  pend      : pchar;
+  pend      : PChar;
 begin
   try
     // Don't write trailing #0
-    pend:=pchar(@fpmkunitsrc)+sizeof(fpmkunitsrc)-1;
+    pend:=PChar(@fpmkunitsrc)+sizeof(fpmkunitsrc)-1;
     while pend^=#0 do
       dec(pend);
-    InStream:=TMyMemoryStream.Create(@fpmkunitsrc,pend-pchar(@fpmkunitsrc));
+    InStream:=TMyMemoryStream.Create(@fpmkunitsrc,pend-PChar(@fpmkunitsrc));
     OutStream:=TFileStream.Create(AFileName,fmCreate);
     OutStream.CopyFrom(InStream,InStream.Size);
   finally

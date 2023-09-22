@@ -16,12 +16,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpWeb.Handler, System.Classes,System.SysUtils, FpWeb.Http.Defs, FpWeb.Cgi.Protocol, FpWeb.Http.Protocol;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   CustWeb, Classes,SysUtils, httpdefs, cgiprotocol, httpprotocol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TCGIRequest }
@@ -133,7 +140,7 @@ Type
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
 
-  ECGI = Class(EFPWebError);
+  ECGI = Class(EFpWebError);
 
 Var
   CGIRequestClass : TCGIRequestClass = TCGIRequest;
@@ -148,11 +155,19 @@ ResourceString
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef CGIDEBUG}
+  dbugintf,
+{$endif}
+  Fcl.Streams.IO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef CGIDEBUG}
   dbugintf,
 {$endif}
   iostream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TMap = record

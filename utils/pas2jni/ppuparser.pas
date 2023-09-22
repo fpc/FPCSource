@@ -41,7 +41,7 @@ type
     function ReadUnit(const AName: string): string;
     function InternalParse(const AUnitName: string): TUnitDef;
     procedure AddSearchPath(const ASearchPath: string);
-    function ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: string): integer;
+    function ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: ansistring): integer;
     procedure AddDefaultSearchPath(const ACPU, AOS: string);
   public
     SearchPath: TStringList;
@@ -702,9 +702,9 @@ begin
   end;
 end;
 
-function TPPUParser.ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: string): integer;
+function TPPUParser.ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: ansistring): integer;
 
-  procedure _ReadOutput(o: TInputPipeStream; var s: string; var idx: integer);
+  procedure _ReadOutput(o: TInputPipeStream; var s: ansistring; var idx: integer);
   var
     i: integer;
   begin
@@ -754,7 +754,8 @@ end;
 
 procedure TPPUParser.AddDefaultSearchPath(const ACPU, AOS: string);
 var
-  fpc, s, e: string;
+  fpc : string;
+  s, e: ansistring;
   sl: TStringList;
   i, j: integer;
 begin

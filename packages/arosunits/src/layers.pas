@@ -13,11 +13,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit layers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -91,7 +98,7 @@ const
   LA_Behind  = TAG_USER + 99 + 103; // ABI_V0 compatibility
   LA_ChildOf = TAG_USER + 99 + 101; // ABI_V0 compatibility
 
-  LAYERSNAME : PChar = 'layers.library';
+  LAYERSNAME : PAnsiChar = 'layers.library';
 
 var
   LayersBase : PLibrary;

@@ -4,7 +4,9 @@
 {$LONGSTRINGS ON}
 {$MACRO ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ENet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   ENet - Reliable UDP networking library
@@ -35,6 +37,15 @@ unit ENet;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+{$IFDEF Windows}
+  WinApi.Winsock2;
+{$ELSE}
+  UnixApi.Base, System.Net.Sockets;
+{$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
 {$IFDEF WINDOWS}
@@ -42,6 +53,7 @@ uses
 {$ELSE}
   BaseUnix, Sockets;
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 ////////////////////////////////////////////////////////////////////////////////
 // types.h
@@ -616,10 +628,10 @@ function enet_socket_shutdown( socket: ENetSocket; how: ENetSocketShutdown ): ci
 procedure enet_socket_destroy( socket: ENetSocket ); libraryENet;
 function enet_socketset_select( maxSocket: ENetSocket; readSet: pENetSocketSet; writeSet: pENetSocketSet; timeout: enet_uint32 ): cint; libraryENet;
 
-function enet_address_set_host_ip( address: pENetAddress; const hostName: PChar ): cint; libraryENet;
-function enet_address_set_host( address: pENetAddress; const hostName: PChar ): cint; libraryENet;
-function enet_address_get_host_ip( const address: pENetAddress; hostName: PChar; nameLength: csize_t ): cint; libraryENet;
-function enet_address_get_host( const address: pENetAddress; hostName: PChar; nameLength: csize_t ): cint; libraryENet;
+function enet_address_set_host_ip( address: pENetAddress; const hostName: PAnsiChar ): cint; libraryENet;
+function enet_address_set_host( address: pENetAddress; const hostName: PAnsiChar ): cint; libraryENet;
+function enet_address_get_host_ip( const address: pENetAddress; hostName: PAnsiChar; nameLength: csize_t ): cint; libraryENet;
+function enet_address_get_host( const address: pENetAddress; hostName: PAnsiChar; nameLength: csize_t ): cint; libraryENet;
 
 function enet_packet_create( const data: Pointer; dataLength: csize_t; flags: enet_uint32 ): pENetPacket; libraryENet;
 procedure enet_packet_destroy( packet: pENetPacket ); libraryENet;

@@ -17,7 +17,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pagemem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************}
                                    interface

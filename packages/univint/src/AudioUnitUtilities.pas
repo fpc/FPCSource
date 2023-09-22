@@ -38,7 +38,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioUnitUtilities;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -223,7 +225,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFRunLoop,MacOsApi.AUComponent;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFRunLoop,AUComponent;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -641,7 +647,7 @@ function AUParameterValueToLinear( inParameterValue: AudioUnitParameterValue; co
         3       1000-9990       -1
         4       10000-99900     -2</pre>
 }                              
-function AUParameterFormatValue( inParameterValue: Float64; const (*var*) inParameter: AudioUnitParameter; var inTextBuffer: char; inDigits: UInt32 ): CStringPtr; external name '_AUParameterFormatValue';
+function AUParameterFormatValue( inParameterValue: Float64; const (*var*) inParameter: AudioUnitParameter; var inTextBuffer: AnsiChar; inDigits: UInt32 ): CStringPtr; external name '_AUParameterFormatValue';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
 
 

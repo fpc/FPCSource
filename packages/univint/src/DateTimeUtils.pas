@@ -25,7 +25,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DateTimeUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -210,7 +212,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.UTCUtils,MacOsApi.CFDate;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,UTCUtils,CFDate;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -267,7 +273,7 @@ const
 const
 { Date equates }
 	smallDateBit = 31;   {Restrict valid date/time to range of Time global}
-	togChar12HourBit = 30;   {If toggling hour by char, accept hours 1..12 only}
+	togChar12HourBit = 30;   {If toggling hour by AnsiChar, accept hours 1..12 only}
 	togCharZCycleBit = 29;   {Modifier for togChar12HourBit: accept hours 0..11 only}
 	togDelta12HourBit = 28;   {If toggling hour up/down, restrict to 12-hour range (am/pm)}
 	genCdevRangeBit = 27;   {Restrict date/time to range used by genl CDEV}

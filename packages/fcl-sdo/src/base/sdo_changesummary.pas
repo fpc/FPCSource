@@ -26,12 +26,20 @@
         it will be accepted later _only_ as a new DataObject regardless of the fact that
         it was an ancient member.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_changesummary;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs,
+  Sdo.Base, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs,
   sdo, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -384,8 +392,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {function DataObjectExtractor(const AList : TObjectList; const AIndex : PtrInt) : PtrInt;
 begin
@@ -531,7 +544,7 @@ end;
 //--------------- END: Byte procs -----------------------------
 
 {$IFDEF HAS_SDO_BYTES}
-//--------------- START : Char procs -----------------------------
+//--------------- START : AnsiChar procs -----------------------------
 procedure listUndo_append_bytes(const AList : ISDODataObjectList; const AItm : TManyValuePropRecordData);
 begin
   if not AList.getCursor().MoveLast() then
@@ -574,7 +587,7 @@ end;
 {$ENDIF HAS_SDO_BYTES}
 
 {$IFDEF HAS_SDO_CHAR}
-//--------------- START : Char procs -----------------------------
+//--------------- START : AnsiChar procs -----------------------------
 procedure listUndo_append_char(const AList : ISDODataObjectList; const AItm : TManyValuePropRecordData);
 begin
   if not AList.getCursor().MoveLast() then
@@ -613,7 +626,7 @@ begin
     raise ESDOInvalidStateOperationException.Create('listUndo_change_char');
   AList.setCharacter(AItm.Index,AItm.Value.CharValue);
 end;
-//--------------- END: Char procs -----------------------------
+//--------------- END: AnsiChar procs -----------------------------
 {$ENDIF HAS_SDO_CHAR}
 
 {$IFDEF HAS_SDO_CURRENCY}

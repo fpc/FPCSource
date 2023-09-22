@@ -520,7 +520,7 @@ end;
 
 procedure TTestConstParser.TestTypedNilConst;
 begin
-  Typed:='PChar';
+  Typed:='PAnsiChar';
   DoTestSimpleNilConst
 end;
 
@@ -637,8 +637,6 @@ begin
 end;
 
 procedure TTestConstParser.TestConstErrorRecovery;
-Var
-  D : String;
 begin
   Add('Const');
   Add(' A : 1;');

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CairoXlib;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal libraries.
     Copyright (c) 2003-2008 by the Free Pascal development team
@@ -30,8 +32,13 @@ unit CairoXlib;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Cairo.Lib, Api.X11.X, Api.X11.Xlib, Api.X11.Xrender;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Cairo, x, xlib, xrender;
+{$ENDIF FPC_DOTTEDUNITS}
   
 function  cairo_xlib_surface_create(dpy: PDisplay; drawable: TDrawable; visual: PVisual; width, height: LongInt): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_xlib_surface_create_for_bitmap(dpy: PDisplay; bitmap: TPixmap; screen: PScreen; width, height: LongInt): Pcairo_surface_t; cdecl; external LIB_CAIRO;

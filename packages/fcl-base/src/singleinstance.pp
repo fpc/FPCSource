@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit singleinstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     This file is part of the Free Component Library (FCL)
@@ -18,8 +20,13 @@ unit singleinstance;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -40,7 +47,7 @@ type
     function GetIsClient: Boolean; virtual; abstract;
     function GetIsServer: Boolean; virtual; abstract;
     function GetStartResult: TSingleInstanceStart; virtual;
-    procedure DoServerReceivedParams(const aParamsDelimitedText: string);
+    procedure DoServerReceivedParams(const aParamsDelimitedText: AnsiString);
     Procedure SetStartResult(AValue : TSingleInstanceStart); 
   public
     constructor Create(aOwner: TComponent); override;
@@ -91,7 +98,7 @@ begin
 end;
 
 procedure TBaseSingleInstance.DoServerReceivedParams(
-  const aParamsDelimitedText: string);
+  const aParamsDelimitedText: AnsiString);
 var
   xSL: TStringList;
 begin

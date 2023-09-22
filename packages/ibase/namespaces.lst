@@ -1,0 +1,5 @@
+src/ibase40.pp=namespaced/Api.Ibase40.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/ibase60.pp=namespaced/Api.Ibase60.pp
+src/ibase60dyn.pp=namespaced/Api.Ibase60dyn.pp

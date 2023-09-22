@@ -46,7 +46,7 @@ end;
                --- File:File handling related calls ---
 *****************************************************************************}
 
-function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
+function Fpopen(path: PAnsiChar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 
 Begin
 {$if defined(generic_linux_syscalls)}
@@ -74,19 +74,19 @@ begin
 {$endif}
 end;
 
-function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
+function Fpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
 
 begin
   Fpread:=do_syscall(syscall_nr_read,Fd,TSysParam(buf),nbytes);
 end;
 
-function Fpwrite(fd: cint;buf:pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
+function Fpwrite(fd: cint;buf:PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
 
 begin
  Fpwrite:=do_syscall(syscall_nr_write,Fd,TSysParam(buf),nbytes);
 end;
 
-function Fpunlink(path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
+function Fpunlink(path: PAnsiChar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -96,7 +96,7 @@ begin
 {$endif}
 end;
 
-function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
+function Fprename(old : PAnsiChar; newpath: PAnsiChar): cint; [public, alias : 'FPC_SYSC_RENAME'];
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -110,7 +110,29 @@ begin
 {$endif}
 end;
 
-function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+{$if defined(use_statx_syscall)}
+function makedev(major,minor: cuint32): cuint32;
+
+begin
+  makedev:=(minor and $ff) or (major shl 8) or ((minor and $fffffff00) shl 12);
+end;
+
+{$i cp_new_stat.inc}
+
+function Fpstat(path: pansichar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+
+var
+  nbuf:tstatx64;
+
+begin
+  Fpstat:=do_syscall(syscall_nr_statx,AT_FDCWD,TSysParam(path),AT_NO_AUTOMOUNT,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpstat=0 then
+    cp_new_stat(@nbuf,@buf);
+end;
+
+{$else defined(use_statx_syscall)}
+
+function Fpstat(path: PAnsiChar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
 { standard stat call is 32 bit on sparc64, so explicitly force a stat64 call }
@@ -124,18 +146,19 @@ begin
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
 *****************************************************************************}
 
-function Fpchdir(path : pchar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
+function Fpchdir(path : PAnsiChar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
 
 begin
  Fpchdir:=do_syscall(syscall_nr_chdir,TSysParam(path));
 end;
 
-function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
+function Fpmkdir(path : PAnsiChar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -145,7 +168,7 @@ begin
 {$endif}
 end;
 
-function Fprmdir(path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
+function Fprmdir(path : PAnsiChar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -155,7 +178,7 @@ begin
 {$endif}
 end;
 
-function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
+function Fpopendir(dirname : PAnsiChar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
   fd:cint;
@@ -403,6 +426,20 @@ end;
 
 {$undef FPC_ALIGN_DUMMY}
 
+{$if defined(use_statx_syscall)}
+function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
+
+var
+  nbuf:tstatx64;
+  nonestr:char=#0;
+
+begin
+  Fpfstat:=do_syscall(syscall_nr_statx,fd,TSysParam(@nonestr),AT_EMPTY_PATH,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpfstat=0 then
+    cp_new_stat(@nbuf,@sb);
+end;
+
+{$else defined(use_statx_syscall)}
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
@@ -416,6 +453,7 @@ begin
   FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPFORK}
@@ -443,7 +481,7 @@ End;
 
 // Look at execve variants later, when overloaded is determined.
 {
-function Fpexecve(path : pathstr; argv : ppchar; envp: ppchar): cint;
+function Fpexecve(path : pathstr; argv : PPAnsiChar; envp: PPAnsiChar): cint;
 }
 {
   Replaces the current program by the program specified in path,
@@ -458,7 +496,7 @@ Begin
 End;
 }
 {
-function Fpexecve(path : pchar; argv : ppchar; envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
+function Fpexecve(path : PAnsiChar; argv : PPAnsiChar; envp: PPAnsiChar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
 }
 {
   Replaces the current program by the program specified in path,
@@ -487,7 +525,7 @@ begin
 {$endif WAIT4}
 end;
 
-function Fpaccess(pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
+function Fpaccess(pathname : PAnsiChar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
 {
   Test users access rights on the specified file.
   Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
@@ -648,7 +686,7 @@ begin
  FpGetPID:=do_syscall(syscall_nr_getpid);
 end;
 
-Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  [public, alias : 'FPC_SYSC_READLINK'];
+Function FpReadLink(name,linkname:PAnsiChar;maxlen:size_t):cint;  [public, alias : 'FPC_SYSC_READLINK'];
 
 begin
 {$if defined(generic_linux_syscalls)}
@@ -686,10 +724,10 @@ begin
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
 end;
 
-function fpgetcwd(path : pchar; siz:tsize):pchar;  [public, alias : 'FPC_SYSC_GETCWD'];
+function fpgetcwd(path : PAnsiChar; siz:tsize):PAnsiChar;  [public, alias : 'FPC_SYSC_GETCWD'];
 
 begin
-  fpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
+  fpgetcwd:=PAnsiChar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
 end;
 
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias: 'FPC_SYSC_GETTIMEOFDAY'];
@@ -699,11 +737,23 @@ begin
 end;
 
 
+{$ifdef USE_PRLIMIT64}
+function FpPRlimit64(pid : pid_t; resource : cInt; nrlim, orlim : PRLimit) : cInt;
+begin
+  FpPRlimit64 := do_syscall(syscall_nr_prlimit64, TSysParam(pid),
+    TSysParam(resource), TSysParam(nrlim), TSysParam(orlim));
+end;
+{$endif}
+
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; [public, alias : 'FPC_SYSC_GETRLIMIT'];
 begin
 {$ifndef NO_SYSCALL_GETRLIMIT}
-  FpGetRLimit := do_syscall(syscall_nr_getrlimit,
-    TSysParam(resource), TSysParam(rlim));
+  {$ifndef USE_PRLIMIT64}
+    FpGetRLimit := do_syscall(syscall_nr_getrlimit,
+      TSysParam(resource), TSysParam(rlim));
+  {$else}
+    FpGetRLimit := FpPRlimit64(0, RLIMIT_STACK, PRLimit(0), rlim);
+  {$endif}
 {$else}
   FpGetRLimit := do_syscall(syscall_nr_ugetrlimit,
     TSysParam(resource), TSysParam(rlim));
@@ -729,7 +779,11 @@ end;
 
 function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
 begin
+{$ifndef USE_PRLIMIT64}
   fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
+{$else}
+  fpsetrlimit:=FpPRlimit64(0, RLIMIT_STACK, rlim, PRLimit(0));
+{$endif USE_PRLIMIT64}
 end;
 
 function FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint;

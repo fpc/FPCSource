@@ -12,9 +12,9 @@ type
         tsp_u : record
             case longint of
                0 : ( tspu_time : timeval );
-               1 : ( tspu_hopcnt : char );
+               1 : ( tspu_hopcnt : AnsiChar );
             end;
-        tsp_name : array[0..(MAXHOSTNAMELEN)-1] of char;
+        tsp_name : array[0..(MAXHOSTNAMELEN)-1] of AnsiChar;
      end;
 
 
@@ -46,7 +46,7 @@ const
    TSP_LOOP = 24;
    TSPTYPENUMBER = 25;
 
-   tsptype : array [0..TSPTYPENUMBER-1] of pchar =
+   tsptype : array [0..TSPTYPENUMBER-1] of PAnsiChar =
   (
    'ANY', 'ADJTIME', 'ACK', 'MASTERREQ', 'MASTERACK', 'SETTIME', 'MASTERUP',
    'SLAVEUP', 'ELECTION', 'ACCEPT', 'REFUSE', 'CONFLICT', 'RESOLVE', 'QUIT',

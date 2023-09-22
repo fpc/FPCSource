@@ -21,13 +21,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit ode;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Solve first order, starting value, differential eqs,
 Calc y(b) for dy/dx=f(x,y) and y(a)=ae}

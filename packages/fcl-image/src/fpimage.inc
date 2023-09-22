@@ -398,6 +398,48 @@ begin
   result := GetInternalColor(x,y);
 end;
 
+procedure TFPCustomImage.SetResolutionUnit(AResolutionUnit: TResolutionUnit);
+begin
+  if (AResolutionUnit<>FResolutionUnit) then
+  begin
+    Case AResolutionUnit of
+    ruPixelsPerInch : if (FResolutionUnit=ruPixelsPerCentimeter) then //Old Resolution is in Cm
+             begin
+               FResolutionX :=FResolutionX*2.54;
+               FResolutionY :=FResolutionY*2.54;
+             end;
+    ruPixelsPerCentimeter: if (FResolutionUnit=ruPixelsPerInch) then //Old Resolution is in Inch
+                  begin
+                    FResolutionX :=FResolutionX/2.54;
+                    FResolutionY :=FResolutionY/2.54;
+                  end;
+    end;
+    FResolutionUnit :=AResolutionUnit;
+  end;
+end;
+
+function TFPCustomImage.GetResolutionWidth: Single;
+begin
+  if (FResolutionUnit=ruNone)
+  then Result :=FWidth
+  else begin
+         Result :=0;
+         if (FResolutionX<>0)
+         then Result :=FWidth/FResolutionX;
+       end;
+end;
+
+function TFPCustomImage.GetResolutionHeight: Single;
+begin
+  if (FResolutionUnit=ruNone)
+  then Result :=FHeight
+  else begin
+         Result :=0;
+         if (FResolutionY<>0)
+         then Result :=FHeight/FResolutionY;
+       end;
+end;
+
 procedure TFPCustomImage.SetInternalColor (x,y:integer; const Value:TFPColor);
 var i : integer;
 begin
@@ -469,6 +511,11 @@ begin
   If Source is TFPCustomImage then
     begin
     Src:=TFPCustomImage(Source);
+
+    // Copy Resolution info
+    ResolutionUnit :=Src.ResolutionUnit;
+    ResolutionX :=Src.ResolutionX;
+    ResolutionY :=Src.ResolutionY;
     // Copy extra info
     FExtra.Assign(Src.Fextra);
     // Copy palette if needed.

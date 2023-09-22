@@ -42,7 +42,9 @@
 
 // $Id: JwaWShisotp.pas,v 1.6 2007/09/14 06:48:47 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWShisotp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaWShisotp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -156,7 +163,7 @@ type
   TSockAddrTP = SOCKADDR_TP;
   PSockAddrTP = LPSOCKADDR_TP;  
 
-//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PChar; portlen: u_short; node: PChar; nodelen: u_short);
+//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PAnsiChar; portlen: u_short; node: PAnsiChar; nodelen: u_short);
 //{$EXTERNALSYM ISO_SET_TP_ADDR}
 
 //
@@ -181,7 +188,7 @@ implementation
 {$IFNDEF JWA_INTERFACESECTION}
 
 // TODO
-//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PChar; portlen: u_short; node: PChar; nodelen: u_short);
+//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PAnsiChar; portlen: u_short; node: PAnsiChar; nodelen: u_short);
 //begin
 //  sa_tp.tp_family := AF_ISO;
 //  sa_tp.tp_addr_type := ISO_HIERARCHICAL;

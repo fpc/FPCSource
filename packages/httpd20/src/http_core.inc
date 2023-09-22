@@ -115,9 +115,9 @@ function ap_allow_overrides(r: Prequest_rec): Integer;
  * Retrieve the value of the DefaultType directive, or text/plain if not set
  * @param r The current request
  * @return The default type
- * @deffunc const char *ap_default_type(request_rec *r)
+ * @deffunc const AnsiChar *ap_default_type(request_rec *r)
  }
-function ap_default_type(r: Prequest_rec): PChar;
+function ap_default_type(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_default_type' + LibSuff4;
 
@@ -127,9 +127,9 @@ function ap_default_type(r: Prequest_rec): PChar;
  * @warning Don't use this!  If your request went through a Userdir, or 
  * something like that, it'll screw you.  But it's back-compatible...
  * @return The document root
- * @deffunc const char *ap_document_root(request_rec *r)
+ * @deffunc const AnsiChar *ap_document_root(request_rec *r)
  }
-function ap_document_root(r: Prequest_rec): PChar;
+function ap_document_root(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_document_root' + LibSuff4;
 
@@ -155,10 +155,10 @@ function ap_document_root(r: Prequest_rec): PChar;
  * @param str_is_ip unless NULL is passed, this will be set to non-zero on output when an IP address 
  *        string is returned
  * @return The remote hostname
- * @deffunc const char *ap_get_remote_host(conn_rec *conn, void *dir_config, int type, int *str_is_ip)
+ * @deffunc const AnsiChar *ap_get_remote_host(conn_rec *conn, void *dir_config, int type, int *str_is_ip)
  }
 function ap_get_remote_host(conn: Pconn_rec; dir_config: Pointer;
-  _type: Integer; str_is_ip: PInteger): PChar;
+  _type: Integer; str_is_ip: PInteger): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_remote_host' + LibSuff16;
 
@@ -167,9 +167,9 @@ function ap_get_remote_host(conn: Pconn_rec; dir_config: Pointer;
  * determined
  * @param r The current request
  * @return The user logged in to the client machine
- * @deffunc const char *ap_get_remote_logname(request_rec *r)
+ * @deffunc const AnsiChar *ap_get_remote_logname(request_rec *r)
  }
-function ap_get_remote_logname(r: Prequest_rec): PChar;
+function ap_get_remote_logname(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_remote_logname' + LibSuff4;
 
@@ -182,9 +182,9 @@ function ap_get_remote_logname(r: Prequest_rec): PChar;
  * @param uri The path to the requested file
  * @param r The current request
  * @return A fully qualified URL
- * @deffunc char *ap_construct_url(apr_pool_t *p, const char *uri, request_rec *r)
+ * @deffunc AnsiChar *ap_construct_url(apr_pool_t *p, const AnsiChar *uri, request_rec *r)
  }
-function ap_construct_url(p: Papr_pool_t; const uri: PChar; r: Prequest_rec): PChar;
+function ap_construct_url(p: Papr_pool_t; const uri: PAnsiChar; r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_construct_url' + LibSuff12;
 
@@ -192,9 +192,9 @@ function ap_construct_url(p: Papr_pool_t; const uri: PChar; r: Prequest_rec): PC
  * Get the current server name from the request
  * @param r The current request
  * @return the server name
- * @deffunc const char *ap_get_server_name(request_rec *r)
+ * @deffunc const AnsiChar *ap_get_server_name(request_rec *r)
  }
-function ap_get_server_name(r: Prequest_rec): PChar;
+function ap_get_server_name(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_server_name' + LibSuff4;
 
@@ -235,7 +235,7 @@ function ap_get_limit_xml_body(r: Prequest_rec): size_t;
  * @param string The custom response.  This can be a static string, a file
  *               or a URL
  }
-procedure ap_custom_response(r: Prequest_rec; status: Integer; const str: PChar);
+procedure ap_custom_response(r: Prequest_rec; status: Integer; const str: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_custom_response' + LibSuff12;
 
@@ -253,9 +253,9 @@ function ap_is_recursion_limit_exceeded(r: Prequest_rec): Integer;
  * Check for a definition from the server command line
  * @param name The define to check for
  * @return 1 if defined, 0 otherwise
- * @deffunc int ap_exists_config_define(const char *name)
+ * @deffunc int ap_exists_config_define(const AnsiChar *name)
  }
-function ap_exists_config_define(name: PChar): Integer;
+function ap_exists_config_define(name: PAnsiChar): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_exists_config_define' + LibSuff4;
 
@@ -276,16 +276,16 @@ type
     { Where the require line is in the config file. }
     method_mask: apr_int64_t;
     { The complete string from the command line }
-    requirement: PChar;
+    requirement: PAnsiChar;
   end;
      
 {
  * Return the type of authorization required for this request
  * @param r The current request
  * @return The authorization required
- * @deffunc const char *ap_auth_type(request_rec *r)
+ * @deffunc const AnsiChar *ap_auth_type(request_rec *r)
  }
-function ap_auth_type(r: Prequest_rec): PChar;
+function ap_auth_type(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_auth_type' + LibSuff4;
 
@@ -293,9 +293,9 @@ function ap_auth_type(r: Prequest_rec): PChar;
  * Return the current Authorization realm
  * @param r The current request
  * @return The current authorization realm
- * @deffunc const char *ap_auth_name(request_rec *r)
+ * @deffunc const AnsiChar *ap_auth_name(request_rec *r)
  }
-function ap_auth_name(r: Prequest_rec): PChar;
+function ap_auth_name(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_auth_name' + LibSuff4;
 
@@ -362,7 +362,7 @@ type
     { Custom response strings registered via ap_custom_response(),
      * or NULL; check per-dir config if nothing found here
      }
-    response_code_strings: PPChar; { from ap_custom_response(), not from
+    response_code_strings: PPAnsiChar; { from ap_custom_response(), not from
                                    * ErrorDocument
                                    }
     { Should addition of charset= be suppressed for this request?
@@ -417,7 +417,7 @@ type
 
 {
  * Bits of info that go into making an ETag for a file
- * document.  Why a long?  Because char historically
+ * document.  Why a long?  Because AnsiChar historically
  * proved too short for Options, and int can be different
  * sizes on different platforms.
  }
@@ -475,7 +475,7 @@ type
   core_dir_config = record
 
     { path of the directory/regex/etc. see also d_is_fnmatch/absolute below }
-    d: PChar;
+    d: PAnsiChar;
     { the number of slashes in d }
     d_components: Cardinal;
 
@@ -496,22 +496,22 @@ type
      * goes untyped by other mechanisms before it slips out the door...
      }
     
-    ap_default_type: PChar;
+    ap_default_type: PAnsiChar;
   
     { Authentication stuff.  Groan... }
     
     satisfy: PInteger; { for every method one }
-    ap_auth_type: PChar;
-    ap_auth_name: PChar;
+    ap_auth_type: PAnsiChar;
+    ap_auth_name: PAnsiChar;
     ap_requires: Papr_array_header_t;
 
     { Custom response config. These can contain text or a URL to redirect to.
      * if response_code_strings is NULL then there are none in the config,
-     * if it's not null then it's allocated to sizeof(char*)*RESPONSE_CODES.
+     * if it's not null then it's allocated to sizeof(AnsiChar*)*RESPONSE_CODES.
      * This lets us do quick merges in merge_core_dir_configs().
      }
   
-    response_code_strings: PPChar; { from ErrorDocument, not from
+    response_code_strings: PPAnsiChar; { from ErrorDocument, not from
                                    * ap_custom_response() }
 
     { Hostname resolution etc }
@@ -533,7 +533,7 @@ type
      * if so, which charset?
      }
 {    unsigned add_default_charset : 2; }
-    add_default_charset_name: PChar;
+    add_default_charset_name: PAnsiChar;
 
     { System Resource Control }
 {$ifdef RLIMIT_CPU}
@@ -558,10 +558,10 @@ type
     sec_file: Papr_array_header_t;
     r: Pregex_t;
 
-    mime_type: PChar;       { forced with ForceType  }
-    handler: PChar;         { forced with SetHandler }
-    output_filters: PChar;  { forced with SetOutputFilters }
-    input_filters: PChar;   { forced with SetInputFilters }
+    mime_type: PAnsiChar;       { forced with ForceType  }
+    handler: PAnsiChar;         { forced with SetHandler }
+    output_filters: PAnsiChar;  { forced with SetOutputFilters }
+    input_filters: PAnsiChar;   { forced with SetInputFilters }
     accept_path_info: Integer;        { forced with AcceptPathInfo }
 
     ct_output_filters: Papr_hash_t; { added with AddOutputFilterByType }
@@ -597,18 +597,18 @@ type
    core_server_config = record
   
 {$ifdef GPROF}
-    gprof_dir: PChar;
+    gprof_dir: PAnsiChar;
 {$endif}
 
     { Name translations --- we want the core to be able to do *something*
      * so it's at least a minimally functional web server on its own (and
      * can be tested that way).  But let's keep it to the bare minimum:
      }
-    ap_document_root: PChar;
+    ap_document_root: PAnsiChar;
   
     { Access control }
 
-    access_name: PChar;
+    access_name: PAnsiChar;
     sec_dir: Papr_array_header_t;
     sec_url: Papr_array_header_t;
 
@@ -630,7 +630,7 @@ type
 {AP_CORE_DECLARE(void) ap_add_per_dir_conf(server_rec *s, void *dir_config);
 AP_CORE_DECLARE(void) ap_add_per_url_conf(server_rec *s, void *url_config);
 AP_CORE_DECLARE(void) ap_add_file_conf(core_dir_config *conf, void *url_config);
-AP_CORE_DECLARE_NONSTD(const char *) ap_limit_section(cmd_parms *cmd, void *dummy, const char *arg);}
+AP_CORE_DECLARE_NONSTD(const AnsiChar *) ap_limit_section(cmd_parms *cmd, void *dummy, const AnsiChar *arg);}
 
 //#endif COREPRIVATE
 
@@ -649,14 +649,14 @@ type
 
   ap_mgmt_value = record
     case Integer of
-     0: (s_value: PChar);
+     0: (s_value: PAnsiChar);
      1: (i_value: cLong);
      2: (h_value: Papr_hash_t);
   end;
 
   ap_mgmt_item_t = record
-    description: PChar;
-    name: PChar;
+    description: PAnsiChar;
+    name: PAnsiChar;
     vtype: ap_mgmt_type_e;
     v: ap_mgmt_value;
   end;
@@ -682,11 +682,11 @@ extern AP_DECLARE_DATA ap_filter_rec_t *ap_core_input_filter_handle;}
  * @ingroup hooks
  }
 type
-  ap_HOOK_get_mgmt_items_t = function(p: Papr_pool_t; const val: PChar;
+  ap_HOOK_get_mgmt_items_t = function(p: Papr_pool_t; const val: PAnsiChar;
     ht: Papr_hash_t): Integer; cdecl;
 
 procedure ap_hook_get_mgmt_items(pf: ap_HOOK_get_mgmt_items_t;
- const aszPre: PPChar; const aszSucc: PPChar; nOrder: Integer);
+ const aszPre: PPAnsiChar; const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_get_mgmt_items' + LibSuff16;
 

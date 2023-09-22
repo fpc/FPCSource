@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -49,6 +49,9 @@ begin
    T:=P.Targets.AddUnit('cairowin32.pp',AllWindowsOses);
     with T.Dependencies do
         AddUnit('cairo');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -2,11 +2,18 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libsee;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from libsee.c
@@ -33,7 +40,7 @@ uses
 
 Type
   Tsize_t = csize_t;
-  tcuchar = char;
+  tcuchar = AnsiChar;
   Tuint16_t = word;
   Tuint32_t = cardinal;
   Tuint64_t = qword;
@@ -43,11 +50,11 @@ Type
   TDouble = double;  
   tcuint = word;
   tcint = integer;
-  PTcchar = pchar;
+  PTcchar = PAnsiChar;
   PPTcchar = ^PTcchar;
   Ptcint = ^tcint;
   PTcuint = ^tcuint;
-  tcchar = char;
+  tcchar = AnsiChar;
 
 var
   SEE_literal_NaN : array[0..7] of Tcuchar;cvar;external;
@@ -586,8 +593,13 @@ Function  LibseeLoaded : Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
     
 {$ifndef libseehelper}
 function new_SEE_interpreter : PSEE_Interpreter;
@@ -729,7 +741,7 @@ procedure SEE_SET_BOOLEAN(v : PSEE_value; b : Boolean);
 
 begin
   SEE_SET_TYPE(V,SEE_BOOLEAN);
-  V^.u.boolean:=char(ord(B));
+  V^.u.boolean:=AnsiChar(ord(B));
 end;
 
 procedure SEE_SET_NUMBER(v : PSEE_value; n : TSEE_number_t);
@@ -938,7 +950,7 @@ procedure Loadlibsee(Const Alib : string);
 
 begin
   Freelibsee;
-  hlib:=LoadLibrary(pchar(Alib));
+  hlib:=LoadLibrary(PAnsiChar(Alib));
   if hlib=0 then
     raise Exception.Create(format('Could not load library: %s',[Alib]));
   pointer(_SEE_isnan):=GetProcAddress(hlib,'_SEE_isnan');

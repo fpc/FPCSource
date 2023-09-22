@@ -15,12 +15,19 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   searchrec = packed record
@@ -71,8 +78,13 @@ procedure exec_ansistring(path : string;comline : ansistring);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}
@@ -219,7 +231,7 @@ var
   use_proxy       : boolean;
   proxy_argc      : longint;
   ExecBufSize, TB : longint;
-  ExecBufPtr      : PChar;
+  ExecBufPtr      : PAnsiChar;
   execblock       : texecblock;
   c               : ansistring;
   p               : string;
@@ -228,7 +240,7 @@ var
   {Changed by Laaca - added parameter N}
   var
 {
-    c : pchar;
+    c : PAnsiChar;
 }
     CLen : cardinal;
     start_pos,ls : longint;
@@ -273,7 +285,7 @@ var
     MAX_ARGS = 128;
   var
     i : longint;
-    quote : char;
+    quote : AnsiChar;
     end_of_arg, skip_char : boolean;
     la_proxy_seg    : word;
     la_proxy_ofs    : longint;
@@ -784,7 +796,7 @@ var
   lfnfile : text;
 {$endif DEBUG_LFN}
 
-procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+procedure LFNFindFirst(path:PAnsiChar;attr:longint;var s:searchrec);
 var
   i : longint;
   w : LFNSearchRec;
@@ -885,7 +897,7 @@ begin
 end;
 
 
-procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
+procedure DosFindfirst(path : PAnsiChar;attr : word;var f : searchrec);
 var
    i : longint;
 begin
@@ -929,7 +941,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..255] of char;
+  path0 : array[0..255] of AnsiChar;
 begin
   doserror:=0;
   strpcopy(path0,path);
@@ -1032,7 +1044,7 @@ end;
 { change to short filename if successful DOS call PM }
 function GetShortName(var p : String) : boolean;
 var
-  c : array[0..255] of char;
+  c : array[0..255] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -1049,7 +1061,7 @@ begin
    begin
      copyfromdos(c,256);
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetShortName:=true;
    end
   else
@@ -1060,7 +1072,7 @@ end;
 { change to long filename if successful DOS call PM }
 function GetLongName(var p : String) : boolean;
 var
-  c : array[0..255] of char;
+  c : array[0..255] of AnsiChar;
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
@@ -1077,7 +1089,7 @@ begin
    begin
      copyfromdos(c,256);
      move(c[0],p[1],strlen(c));
-     p[0]:=char(strlen(c));
+     p[0]:=AnsiChar(strlen(c));
      GetLongName:=true;
    end
   else
@@ -1120,7 +1132,7 @@ begin
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-  copytodos(pchar(r)^,length(r)+1);
+  copytodos(PAnsiChar(r)^,length(r)+1);
 {$endif}
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
@@ -1153,7 +1165,7 @@ begin
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-  copytodos(pchar(r)^,length(r)+1);
+  copytodos(PAnsiChar(r)^,length(r)+1);
 {$endif}
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
@@ -1176,7 +1188,7 @@ end;
 
 function envcount : longint;
 var
-  hp : ppchar;
+  hp : PPAnsiChar;
 begin
   hp:=envp;
   envcount:=0;
@@ -1193,13 +1205,13 @@ begin
   if (index<=0) or (index>envcount) then
     envstr:=''
   else
-    envstr:=strpas(ppchar(pointer(envp)+SizeOf(PChar)*(index-1))^);
+    envstr:=strpas(PPAnsiChar(pointer(envp)+SizeOf(PAnsiChar)*(index-1))^);
 end;
 
 
 Function  GetEnv(envvar: string): string;
 var
-  hp    : ppchar;
+  hp    : PPAnsiChar;
   hs    : string;
   eqpos : longint;
 begin

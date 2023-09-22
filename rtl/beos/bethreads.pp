@@ -15,7 +15,9 @@
  **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bethreads;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$S-}
 
@@ -23,12 +25,21 @@ Procedure SetBeThreadManager;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  systhrds,
+  UnixApi.Base,
+  UnixApi.Unix,
+  UnixApi.Types,
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   systhrds,
   BaseUnix,
   unix,
   unixtype,
   sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************
                              Generic overloaded

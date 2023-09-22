@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_fields;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -14,16 +16,26 @@ unit dbf_fields;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-interface
-
 {$I dbf_common.inc}
 
+interface
+
+
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes,
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Common,
+  Data.Dbf.Str;
+{$ELSE FPC_DOTTEDUNITS}
+uses
   SysUtils,
+  Classes,
   db,
   dbf_common,
   dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PDbfFieldDef = ^TDbfFieldDef;
@@ -38,9 +50,9 @@ type
     FIsSystemField: Boolean;
     FVarLengthPosition: integer;
     FNativeFieldType: TDbfFieldType;
-    FDefaultBuf: PChar;
-    FMinBuf: PChar;
-    FMaxBuf: PChar;
+    FDefaultBuf: PAnsiChar;
+    FMinBuf: PAnsiChar;
+    FMaxBuf: PAnsiChar;
     FSize: Integer;
     FPrecision: Integer;
     FHasDefault: Boolean;
@@ -65,7 +77,7 @@ type
     procedure NativeToVCL;
     procedure FreeBuffers;
   protected
-    function  GetDisplayName: string; override;
+    function  GetDisplayName: String; override;
     procedure AssignTo(Dest: TPersistent); override;
     // File is compatible with this database product
     property DbfVersion: TXBaseVersion read GetDbfVersion;
@@ -83,9 +95,9 @@ type
     // Yes if field is a blob/memo type field (storage in external file)
     function  IsBlob: Boolean;
 
-    property DefaultBuf: PChar read FDefaultBuf;
-    property MinBuf: PChar read FMinBuf;
-    property MaxBuf: PChar read FMaxBuf;
+    property DefaultBuf: PAnsiChar read FDefaultBuf;
+    property MinBuf: PAnsiChar read FMinBuf;
+    property MaxBuf: PAnsiChar read FMaxBuf;
     property HasDefault: Boolean read FHasDefault write FHasDefault;
     property HasMin: Boolean read FHasMin write FHasMin;
     property HasMax: Boolean read FHasMax write FHasMax;
@@ -150,8 +162,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Dbf.Dbffile;      // for Data.Dbf.Dbf header structures
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbf_dbffile;      // for dbf header structures
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I dbf_struct.inc}
 

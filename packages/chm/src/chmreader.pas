@@ -18,7 +18,9 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}
 
@@ -28,9 +30,15 @@ unit chmreader;
 {define nonumber}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SYstem.Generics.Collections, System.Classes, System.SysUtils,  System.Contnrs,
+  Chm.Base, Chm.Lzx, Chm.FiftiMain, Chm.Sitemap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Generics.Collections, Classes, SysUtils,  Contnrs,
   chmbase, paslzx, chmFIftiMain, chmsitemap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -50,7 +58,7 @@ type
   end;
   { TITSFReader }
 
-  TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, Section: Integer) of object;
+  TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, _Section: Integer) of object;
 
   TITSFReader = class(TObject)
   protected
@@ -177,7 +185,12 @@ const
   function ChmErrorToStr(Error: Integer): String;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ChmTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ChmErrorToStr(Error: Integer): String;
 begin
@@ -192,7 +205,7 @@ end;
 
 function ChunkType(Stream: TMemoryStream): TDirChunkType;
 var
-  ChunkID: array[0..3] of char;
+  ChunkID: array[0..3] of AnsiChar;
 begin
   Result := ctUnknown;
   if Stream.Size< 4 then exit;
@@ -272,7 +285,7 @@ procedure TChmReader.ReadCommonData;
    // A little helper proc to make reading a null terminated string easier
    function ReadString(const Stream: TStream; StartPos: DWord; FixURL: Boolean): String;
    var
-     buf: array[0..49] of char;
+     buf: array[0..49] of AnsiChar;
    begin
      Result := '';
      Stream.Position := StartPos;
@@ -288,7 +301,7 @@ procedure TChmReader.ReadCommonData;
      //Version: DWord;
      EntryType: Word;
      EntryLength: Word;
-     Data: array[0..511] of char;
+     Data: array[0..511] of AnsiChar;
      fSystem: TMemoryStream;
      Tmp: String;
    begin
@@ -468,7 +481,7 @@ begin
     Exit;
   if APosition < fStringsStream.Size-1 then
   begin
-    Result := PChar(fStringsStream.Memory+APosition);
+    Result := PAnsiChar(fStringsStream.Memory+APosition);
   end;
 end;
 
@@ -492,7 +505,7 @@ begin
   fURLSTRStream.ReadDWord; // URL
   fURLSTRStream.ReadDWord; // FrameName
   if fURLSTRStream.Position < fURLSTRStream.Size-1 then
-    Result := PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
+    Result := PAnsiChar(fURLSTRStream.Memory+fURLSTRStream.Position);
 end;
 
 function TChmReader.CheckCommonStreams: Boolean;
@@ -604,7 +617,7 @@ end;
 
 function TITSFReader.GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TDirChunkType;
 var
-  Sig: array[0..3] of char;
+  Sig: array[0..3] of AnsiChar;
 begin
   Result := ctUnknown;
   Stream.Position := fDirectoryEntriesStartPos + (fDirectoryHeader.ChunkSize * ChunkIndex);
@@ -642,7 +655,7 @@ end;
 
 function TITSFReader.ReadPMGLchunkEntryFromStream(Stream: TMemoryStream; var PMGLEntry: TPMGListChunkEntry): Boolean;
 var
-Buf: array [0..1023] of char;
+Buf: array [0..1023] of AnsiChar;
 NameLength: LongInt;
 begin
   Result := False;
@@ -674,7 +687,7 @@ end;
 function TITSFReader.ReadPMGIchunkEntryFromStream(Stream: TMemoryStream;
   var PMGIEntry: TPMGIIndexChunkEntry): Boolean;
 var
-Buf: array [0..1023] of char;
+Buf: array [0..1023] of AnsiChar;
 NameLength: LongInt;
 begin
   Result := False;
@@ -1497,7 +1510,7 @@ function TITSFReader.GetBlockFromSection(SectionPrefix: String; StartPos: QWord;
   BlockLength: QWord): TMemoryStream;
 var
   Compressed: Boolean;
-  Sig: Array [0..3] of char;
+  Sig: Array [0..3] of AnsiChar;
   CompressionVersion: LongWord;
   CompressedSize: QWord;
   UnCompressedSize: QWord;

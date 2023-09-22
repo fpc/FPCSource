@@ -15,11 +15,17 @@
  *    May 31, 1995   Created by Roger Flores
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit day;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Datetime, PalmApi.Control;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, datetime, control;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   SelectDayType = Enum;

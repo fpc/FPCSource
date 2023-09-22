@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -116,6 +116,9 @@ begin
     T.Dependencies.AddInclude('define.inc');	
     T:=P.Targets.AddExampleProgram('testmodule.pp');
     T.Dependencies.AddInclude('define.inc');	
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

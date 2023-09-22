@@ -16,10 +16,21 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit buildwinutilsbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    WinApi.Flatsb, WinApi.Winver, WinApi.Mmsystem, WinApi.Comconst, WinApi.Commctrl, WinApi.Comobj, WinApi.Commdlg,
+    WinApi.Ole2, WinApi.Activex, WinApi.Shellapi, WinApi.Shlobj, WinApi.Oleserver,  WinApi.Shfolder, WinApi.Richedit,
+    WinApi.Imagehlp, WinApi.Wininet, WinApi.Uxtheme, WinApi.Dwmapi, WinApi.Multimon, WinApi.Htmlhelp, WinApi.Winutils,
+    WinApi.Comserv, WinApi.Winspool, WinApi.Imm, WinApi.ImmDyn, WinApi.Nb30, WinApi.Stdole2,
+    WinApi.Eventsink, WinApi.Typelib, WinApi.Libkinect10, WinApi.Urlmon, WinApi.Winhttp,
+    WinApi.Shlwapi, WinApi.Httpapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     flatsb, winver, mmsystem, comconst, commctrl, comobj, commdlg,
     ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,
@@ -27,6 +38,7 @@ uses
     comserv, winspool, imm, imm_dyn, nb30, stdole2,
     eventsink, typelib, libkinect10, urlmon, winhttp,
     shlwapi, httpapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 

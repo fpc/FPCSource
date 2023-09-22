@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -26,6 +26,9 @@ begin
     P.Targets.AddExampleProgram('newt3.pas');
     P.Targets.AddExampleProgram('newt2.pas');
     P.Targets.AddExampleProgram('newt1.pas');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

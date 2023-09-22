@@ -45,7 +45,9 @@
 
 // $Id: JwaIpHlpApi.pas,v 1.11 2007/09/05 11:58:50 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaIpHlpApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -60,8 +62,13 @@ unit JwaIpHlpApi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Ipexport, WinApi.Jedi.Iprtrmib, WinApi.Jedi.Iptypes, WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Winsock;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaIpExport, JwaIpRtrMib, JwaIpTypes, JwaWinType, JwaWinBase, JwaWinSock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 

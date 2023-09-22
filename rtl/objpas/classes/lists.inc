@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Pascal Run Time Library (rtl)
     Copyright (c) 1999-2005 by the Free Pascal development team
@@ -306,7 +307,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortCompare);
 begin
-  Sort(Compare, SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 
@@ -318,7 +319,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortComparer_Context; Context: Pointer);
 begin
-  Sort(Compare, Context, SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, Context, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 

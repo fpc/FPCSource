@@ -31,7 +31,7 @@
  * @return APR_SUCCESS if all went well
  }
 function ap_register_provider(pool: Papr_pool_t;
- const provider_group, provider_name, provider_version: PChar;
+ const provider_group, provider_name, provider_version: PAnsiChar;
  const provider: Pointer): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_register_provider' + LibSuff20;
@@ -44,7 +44,7 @@ function ap_register_provider(pool: Papr_pool_t;
  * @param provider_version The version for the provider
  * @return provider pointer to provider if found, NULL otherwise
  }
-function ap_lookup_provider(provider_group, provider_name, provider_version: PChar): Pointer;
+function ap_lookup_provider(provider_group, provider_name, provider_version: PAnsiChar): Pointer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_lookup_provider' + LibSuff12;
 

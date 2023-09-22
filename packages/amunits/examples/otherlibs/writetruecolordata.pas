@@ -23,7 +23,7 @@ uses exec, amigados, intuition, agraphics, picasso96api, utility;
 Const
     DataWidth   =   160;
     DataHeight  =   160;
-    template    :   PChar = 'Width=W/N,Height=H/N,Depth=D/N';
+    template    :   PAnsiChar = 'Width=W/N,Height=H/N,Depth=D/N';
     vecarray    :   Array[0..2] of long = (0,0,0);
     ltrue       :   longint = 1;
 Var
@@ -57,7 +57,7 @@ Var
     imsg        :   pIntuiMessage;
 
 
-procedure CleanUp(why : string);
+procedure CleanUp(why : ShortString);
 begin
     if assigned(win) then CloseWindow(win);
     if assigned(sc) then p96CloseScreen(sc);

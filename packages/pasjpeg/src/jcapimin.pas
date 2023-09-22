@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcAPImin;
+{$ENDIF FPC_DOTTEDUNITS}
 {$N+}
 {  This file contains application interface code for the compression half
   of the JPEG library.  These are the "minimum" API routines that may be
@@ -17,6 +19,17 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jcomapi,
+  System.Jpeg.Jmemmgr,
+  System.Jpeg.Jcmarker;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -26,6 +39,7 @@ uses
   jcomapi,
   jmemmgr,
   jcmarker;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Initialization of JPEG compression objects.
   Nomssi: This is a macro in the original code.

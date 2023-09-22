@@ -6,7 +6,7 @@ type
    Pif_nameindex = ^_if_nameindex;
    _if_nameindex = record
         if_index : dword;
-        if_name : Pchar;
+        if_name : PAnsiChar;
      end;
    P_if_nameindex = ^_if_nameindex;
 
@@ -60,7 +60,7 @@ type
    ifreq = record
         ifr_ifrn : record
             case longint of
-               0 : ( ifrn_name : array[0..(IFNAMSIZ)-1] of char );
+               0 : ( ifrn_name : array[0..(IFNAMSIZ)-1] of AnsiChar );
             end;
         ifr_ifru : record
             case longint of
@@ -73,8 +73,8 @@ type
                6 : ( ifru_ivalue : longint );
                7 : ( ifru_mtu : longint );
                8 : ( ifru_map : ifmap );
-               9 : ( ifru_slave : array[0..(IFNAMSIZ)-1] of char );
-               10 : ( ifru_newname : array[0..(IFNAMSIZ)-1] of char );
+               9 : ( ifru_slave : array[0..(IFNAMSIZ)-1] of AnsiChar );
+               10 : ( ifru_newname : array[0..(IFNAMSIZ)-1] of AnsiChar );
                11 : ( ifru_data : __caddr_t );
             end;
      end;
@@ -90,8 +90,8 @@ type
      end;
 
 
-function if_nametoindex(__ifname:Pchar):dword;cdecl;external clib name 'if_nametoindex';
-function if_indextoname(__ifindex:dword; __ifname:Pchar):Pchar;cdecl;external clib name 'if_indextoname';
+function if_nametoindex(__ifname:PAnsiChar):dword;cdecl;external clib name 'if_nametoindex';
+function if_indextoname(__ifindex:dword; __ifname:PAnsiChar):PAnsiChar;cdecl;external clib name 'if_indextoname';
 function if_nameindex:Pif_nameindex;cdecl;external clib name 'if_nameindex';
 procedure if_freenameindex(__ptr:Pif_nameindex);cdecl;external clib name 'if_freenameindex';
 

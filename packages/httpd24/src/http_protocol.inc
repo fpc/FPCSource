@@ -43,19 +43,19 @@ typedef
   void ap_HOOK_insert_error_filter_t (request_rec *r);
 
   void ap_hook_insert_error_filter(ap_HOOK_insert_error_filter_t *pf,
-                                   const char * const *aszPre,
-                                   const char * const *aszSucc,
+                                   const AnsiChar * const *aszPre,
+                                   const AnsiChar * const *aszSucc,
                                    int nOrder);
   void ap_run_insert_error_filter (request_rec *r);
   apr_array_header_t * ap_hook_get_insert_error_filter(void);
 
-  typedef struct ap_LINK_insert_error_filter_t { ap_HOOK_insert_error_filter_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_insert_error_filter_t;
+  typedef struct ap_LINK_insert_error_filter_t { ap_HOOK_insert_error_filter_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_insert_error_filter_t;
 *)
 type
   ap_HOOK_insert_error_filter_t = procedure(r: Prequest_rec); cdecl;
 
 procedure ap_hook_insert_error_filter(pf: ap_HOOK_insert_error_filter_t;
-                                      const aszPre, aszSucc: PPChar;
+                                      const aszPre, aszSucc: PPAnsiChar;
                                       nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_insert_error_filter' + LibSuff16;
@@ -184,9 +184,9 @@ function ap_rationalize_mtime(r: Prequest_rec; mtime: apr_time_t): apr_time_t;
  * @param type The content type
  * @return The content-type
  *}
-//AP_DECLARE(const char *) ap_make_content_type(request_rec *r,
-//                                              const char *type);
-function ap_make_content_type(r: Prequest_rec; type_: PChar): PChar;
+//AP_DECLARE(const AnsiChar *) ap_make_content_type(request_rec *r,
+//                                              const AnsiChar *type);
+function ap_make_content_type(r: Prequest_rec; type_: PAnsiChar): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_make_content_type' + LibSuff8;
 
@@ -207,8 +207,8 @@ procedure ap_setup_make_content_type(pool: Papr_pool_t);
  *                   again in as short an interval.
  * @return The entity tag
  *}
-//AP_DECLARE(char *) ap_make_etag(request_rec *r, int force_weak);
-function ap_make_etag(r: Prequest_rec; force_weak: Integer): PChar;
+//AP_DECLARE(AnsiChar *) ap_make_etag(request_rec *r, int force_weak);
+function ap_make_etag(r: Prequest_rec; force_weak: Integer): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_make_etag' + LibSuff8;
 
@@ -301,8 +301,8 @@ function ap_send_mmap(mm: Papr_mmap_t;
  * @param methname The name of the new method to register.
  * @return         Ab int value representing an offset into a bitmask.
  *}
-//AP_DECLARE(int) ap_method_register(apr_pool_t *p, const char *methname);
-function ap_method_register(p: Papr_pool_t; methname: PChar): Integer;
+//AP_DECLARE(int) ap_method_register(apr_pool_t *p, const AnsiChar *methname);
+function ap_method_register(p: Papr_pool_t; methname: PAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_register' + LibSuff8;
 
@@ -357,8 +357,8 @@ procedure ap_copy_method_list(dest, src: Pap_method_list_t);
  * @param   l       Pointer to a method list, such as r->allowed_methods.
  * @return  1 if method is in the list, otherwise 0
  *}
-//AP_DECLARE(int) ap_method_in_list(ap_method_list_t *l, const char *method);
-function ap_method_in_list(l: Pap_method_list_t; const method: PChar): Integer;
+//AP_DECLARE(int) ap_method_in_list(ap_method_list_t *l, const AnsiChar *method);
+function ap_method_in_list(l: Pap_method_list_t; const method: PAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_in_list' + LibSuff8;
 
@@ -370,8 +370,8 @@ function ap_method_in_list(l: Pap_method_list_t; const method: PChar): Integer;
  * @param   l       Pointer to a method list, such as r->allowed_methods.
  * @return  None.
  *}
-//AP_DECLARE(void) ap_method_list_add(ap_method_list_t *l, const char *method);
-procedure ap_method_list_add(l: Pap_method_list_t; const method: PChar);
+//AP_DECLARE(void) ap_method_list_add(ap_method_list_t *l, const AnsiChar *method);
+procedure ap_method_list_add(l: Pap_method_list_t; const method: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_list_add' + LibSuff8;
 
@@ -383,8 +383,8 @@ procedure ap_method_list_add(l: Pap_method_list_t; const method: PChar);
  * @return  None.
  *}
 //AP_DECLARE(void) ap_method_list_remove(ap_method_list_t *l,
-//                                       const char *method);
-procedure ap_method_list_remove(l: Pap_method_list_t; const method: PChar);
+//                                       const AnsiChar *method);
+procedure ap_method_list_remove(l: Pap_method_list_t; const method: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_list_remove' + LibSuff8;
 
@@ -406,8 +406,8 @@ procedure ap_clear_method_list(l: Pap_method_list_t);
  * @warning This function must be called to set r->content_type in order
  * for the AddOutputFilterByType directive to work correctly.
  *}
-//AP_DECLARE(void) ap_set_content_type(request_rec *r, const char *ct);
-procedure ap_set_content_type(r: Prequest_rec; const ct: PChar);
+//AP_DECLARE(void) ap_set_content_type(request_rec *r, const AnsiChar *ct);
+procedure ap_set_content_type(r: Prequest_rec; const ct: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_set_content_type' + LibSuff8;
 
@@ -454,7 +454,7 @@ function ap_rwrite(const buf: Pointer; nbyte: Integer; r: Prequest_rec): Integer
  * @return The number of bytes sent
  * @note ap_rputs may be implemented as macro or inline function
  *}
-//static APR_INLINE int ap_rputs(const char *str, request_rec *r)
+//static APR_INLINE int ap_rputs(const AnsiChar *str, request_rec *r)
 //{
 //    return ap_rwrite(str, strlen(str), r);
 //}
@@ -477,8 +477,8 @@ function ap_rvputs(r: Prequest_rec; params: array of const): Integer; cdecl;
  * @param vlist The arguments to use to fill out the format string
  * @return The number of bytes sent
  *}
-//AP_DECLARE(int) ap_vrprintf(request_rec *r, const char *fmt, va_list vlist);
-function ap_vrprintf(r: Prequest_rec; const fmt: PChar; vlist: va_list): Integer;
+//AP_DECLARE(int) ap_vrprintf(request_rec *r, const AnsiChar *fmt, va_list vlist);
+function ap_vrprintf(r: Prequest_rec; const fmt: PAnsiChar; vlist: va_list): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_vrprintf' + LibSuff12;
 
@@ -489,10 +489,10 @@ function ap_vrprintf(r: Prequest_rec; const fmt: PChar; vlist: va_list): Integer
  * @param ... The arguments to use to fill out the format string
  * @return The number of bytes sent
  *}
-//AP_DECLARE_NONSTD(int) ap_rprintf(request_rec *r, const char *fmt,...)
+//AP_DECLARE_NONSTD(int) ap_rprintf(request_rec *r, const AnsiChar *fmt,...)
 //                                __attribute__((format(printf,2,3)));
 function ap_rprintf(r: Prequest_rec;
-                    const fmt: PChar; params: array of const): Integer; cdecl;
+                    const fmt: PAnsiChar; params: array of const): Integer; cdecl;
   external LibHTTPD name 'ap_rprintf';
 
 {**
@@ -523,8 +523,8 @@ function ap_index_of_response(status: Integer): Integer;
  * @param status The HTTP status code
  * @return The Status-Line
  *}
-//AP_DECLARE(const char *) ap_get_status_line(int status);
-function ap_get_status_line(status: Integer): PChar;
+//AP_DECLARE(const AnsiChar *) ap_get_status_line(int status);
+function ap_get_status_line(status: Integer): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_get_status_line' + LibSuff4;
 
@@ -568,8 +568,8 @@ function ap_should_client_block(r: Prequest_rec): Integer;
  * @return Number of bytes inserted into the buffer.  When done reading, 0
  *         if EOF, or -1 if there was an error
  *}
-//AP_DECLARE(long) ap_get_client_block(request_rec *r, char *buffer, apr_size_t bufsiz);
-function ap_get_client_block(r: Prequest_rec; buffer: PChar; bufsiz: apr_size_t): cLong;
+//AP_DECLARE(long) ap_get_client_block(request_rec *r, AnsiChar *buffer, apr_size_t bufsiz);
+function ap_get_client_block(r: Prequest_rec; buffer: PAnsiChar; bufsiz: apr_size_t): cLong;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_get_client_block' + LibSuff12;
 
@@ -621,27 +621,27 @@ procedure ap_note_digest_auth_failure(r: Prequest_rec);
  * @param auth_type the configured auth_type
  * @return OK, DECLINED
  *}
-//AP_DECLARE_HOOK(int, note_auth_failure, (request_rec *r, const char *auth_type))
+//AP_DECLARE_HOOK(int, note_auth_failure, (request_rec *r, const AnsiChar *auth_type))
 (*macro expanded:
   typedef
-    int ap_HOOK_note_auth_failure_t (request_rec *r, const char *auth_type);
+    int ap_HOOK_note_auth_failure_t (request_rec *r, const AnsiChar *auth_type);
 
-    void ap_hook_note_auth_failure(ap_HOOK_note_auth_failure_t *pf, const char * const *aszPre, const char * const *aszSucc, int nOrder);
-    int ap_run_note_auth_failure (request_rec *r, const char *auth_type);
+    void ap_hook_note_auth_failure(ap_HOOK_note_auth_failure_t *pf, const AnsiChar * const *aszPre, const AnsiChar * const *aszSucc, int nOrder);
+    int ap_run_note_auth_failure (request_rec *r, const AnsiChar *auth_type);
     apr_array_header_t * ap_hook_get_note_auth_failure(void);
 
-  typedef struct ap_LINK_note_auth_failure_t { ap_HOOK_note_auth_failure_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_note_auth_failure_t;
+  typedef struct ap_LINK_note_auth_failure_t { ap_HOOK_note_auth_failure_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_note_auth_failure_t;
 *)
 type
   ap_HOOK_note_auth_failure_t = procedure(r: Prequest_rec); cdecl;
 
 procedure ap_hook_note_auth_failure(pf: ap_HOOK_note_auth_failure_t;
-                                            const aszPre, aszSucc: PPChar;
+                                            const aszPre, aszSucc: PPAnsiChar;
                                             nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_HOOK_note_auth_failure' + LibSuff16;
 
-procedure ap_run_note_auth_failure(r: Prequest_rec; auth_type: PChar);
+procedure ap_run_note_auth_failure(r: Prequest_rec; auth_type: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_run_note_auth_failure' + LibSuff8;
 
@@ -663,8 +663,8 @@ function ap_hook_get_note_auth_failure: Papr_array_header_t;
  *         it wasn't Basic (in which case, the caller should presumably
  *         decline as well).
  *}
-//AP_DECLARE(int) ap_get_basic_auth_pw(request_rec *r, const char **pw);
-function ap_get_basic_auth_pw(r: Prequest_rec; pw: PPChar): Integer;
+//AP_DECLARE(int) ap_get_basic_auth_pw(request_rec *r, const AnsiChar **pw);
+function ap_get_basic_auth_pw(r: Prequest_rec; pw: PPAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_get_basic_auth_pw' + LibSuff8;
 
@@ -677,8 +677,8 @@ function ap_get_basic_auth_pw(r: Prequest_rec; pw: PPChar): Integer;
  * @param r The current request
  * @param uri The uri to break apart
  *}
-//AP_CORE_DECLARE(void) ap_parse_uri(request_rec *r, const char *uri);
-procedure ap_parse_uri(r: Prequest_rec; const uri: PChar);
+//AP_CORE_DECLARE(void) ap_parse_uri(request_rec *r, const AnsiChar *uri);
+procedure ap_parse_uri(r: Prequest_rec; const uri: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_parse_uri' + LibSuff8;
 
@@ -692,8 +692,8 @@ procedure ap_parse_uri(r: Prequest_rec; const uri: PChar);
  *         n, if the line is too big to fit in the buffer
  *         -1 for miscellaneous errors
  *}
-//AP_DECLARE(int) ap_getline(char *s, int n, request_rec *r, int fold);
-function ap_getline(s: PChar; n: Integer; r: Prequest_rec; fold: Integer): Integer;
+//AP_DECLARE(int) ap_getline(AnsiChar *s, int n, request_rec *r, int fold);
+function ap_getline(s: PAnsiChar; n: Integer; r: Prequest_rec; fold: Integer): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_getline' + LibSuff16;
 
@@ -720,7 +720,7 @@ function ap_getline(s: PChar; n: Integer; r: Prequest_rec; fold: Integer): Integ
  *         Other errors where appropriate
  *}
 //#if APR_CHARSET_EBCDIC
-//AP_DECLARE(apr_status_t) ap_rgetline(char **s, apr_size_t n,
+//AP_DECLARE(apr_status_t) ap_rgetline(AnsiChar **s, apr_size_t n,
 //                                     apr_size_t *read,
 //                                     request_rec *r, int fold,
 //                                     apr_bucket_brigade *bb);
@@ -730,11 +730,11 @@ function ap_getline(s: PChar; n: Integer; r: Prequest_rec; fold: Integer): Integ
 //#endif
 
 {** @see ap_rgetline *}
-//AP_DECLARE(apr_status_t) ap_rgetline_core(char **s, apr_size_t n,
+//AP_DECLARE(apr_status_t) ap_rgetline_core(AnsiChar **s, apr_size_t n,
 //                                          apr_size_t *read,
 //                                          request_rec *r, int fold,
 //                                          apr_bucket_brigade *bb);
-function ap_rgetline_core(s: PPChar; n: apr_size_t;
+function ap_rgetline_core(s: PPAnsiChar; n: apr_size_t;
                           read: Papr_size_t;
                           r: Prequest_rec; fold: Integer;
                           bb: apr_bucket_brigade): apr_status_t;
@@ -747,8 +747,8 @@ function ap_rgetline_core(s: PPChar; n: apr_size_t;
  * @param method A string containing a valid HTTP method
  * @return The method number
  *}
-//AP_DECLARE(int) ap_method_number_of(const char *method);
-function ap_method_number_of(const method: PChar): Integer;
+//AP_DECLARE(int) ap_method_number_of(const AnsiChar *method);
+function ap_method_number_of(const method: PAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_number_of' + LibSuff4;
 
@@ -759,8 +759,8 @@ function ap_method_number_of(const method: PChar): Integer;
  * @param methnum An integer value corresponding to an internal method number
  * @return The name corresponding to the method number
  *}
-//AP_DECLARE(const char *) ap_method_name_of(apr_pool_t *p, int methnum);
-function ap_method_name_of(p: Papr_pool_t; methnum: Integer): PChar;
+//AP_DECLARE(const AnsiChar *) ap_method_name_of(apr_pool_t *p, int methnum);
+function ap_method_name_of(p: Papr_pool_t; methnum: Integer): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_method_name_of' + LibSuff8;
 
@@ -783,21 +783,21 @@ function ap_method_name_of(p: Papr_pool_t; methnum: Integer): PChar;
     void ap_HOOK_pre_read_request_t (request_rec *r, conn_rec *c);
 
     void ap_hook_pre_read_request(ap_HOOK_pre_read_request_t *pf,
-                                  const char * const *aszPre,
-                                  const char * const *aszSucc,
+                                  const AnsiChar * const *aszPre,
+                                  const AnsiChar * const *aszSucc,
                                   int nOrder);
     void ap_run_pre_read_request (request_rec *r,
                                   conn_rec *c);
     apr_array_header_t * ap_hook_get_pre_read_request(void);
 
-  typedef struct ap_LINK_pre_read_request_t { ap_HOOK_pre_read_request_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_pre_read_request_t;
+  typedef struct ap_LINK_pre_read_request_t { ap_HOOK_pre_read_request_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_pre_read_request_t;
 *)
 type
    ap_HOOK_pre_read_request_t = function(r: Prequest_rec): Integer; cdecl;
 
 procedure ap_hook_pre_read_request(pf: ap_HOOK_pre_read_request_t;
-                                    const aszPre: PPChar;
-                                    const aszSucc: PPChar;
+                                    const aszPre: PPAnsiChar;
+                                    const aszSucc: PPAnsiChar;
                                     nOrder: Integer);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_hook_pre_read_request' + LibSuff16;
@@ -829,20 +829,20 @@ function  ap_hook_get_pre_read_request: Papr_array_header_t;
     int ap_HOOK_post_read_request_t (request_rec *r);
 
     void ap_hook_post_read_request(ap_HOOK_post_read_request_t *pf,
-                                   const char * const *aszPre,
-                                   const char * const *aszSucc,
+                                   const AnsiChar * const *aszPre,
+                                   const AnsiChar * const *aszSucc,
                                    int nOrder);
     int ap_run_post_read_request (request_rec *r);
     apr_array_header_t * ap_hook_get_post_read_request(void);
 
-  typedef struct ap_LINK_post_read_request_t { ap_HOOK_post_read_request_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_post_read_request_t;
+  typedef struct ap_LINK_post_read_request_t { ap_HOOK_post_read_request_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_post_read_request_t;
 *)
 type
    ap_HOOK_post_read_request_t = function(r: Prequest_rec): Integer; cdecl;
 
 procedure ap_hook_post_read_request(pf: ap_HOOK_post_read_request_t;
-                                    const aszPre: PPChar;
-                                    const aszSucc: PPChar;
+                                    const aszPre: PPAnsiChar;
+                                    const aszSucc: PPAnsiChar;
                                     nOrder: Integer);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_hook_post_read_request' + LibSuff16;
@@ -869,20 +869,20 @@ function  ap_hook_get_post_read_request: Papr_array_header_t;
     int ap_HOOK_log_transaction_t (request_rec *r);
 
     void ap_hook_log_transaction(ap_HOOK_log_transaction_t *pf,
-                                 const char * const *aszPre,
-                                 const char * const *aszSucc,
+                                 const AnsiChar * const *aszPre,
+                                 const AnsiChar * const *aszSucc,
                                  int nOrder);
     int ap_run_log_transaction (request_rec *r);
     apr_array_header_t * ap_hook_get_log_transaction(void);
 
-  typedef struct ap_LINK_log_transaction_t { ap_HOOK_log_transaction_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_log_transaction_t;
+  typedef struct ap_LINK_log_transaction_t { ap_HOOK_log_transaction_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_log_transaction_t;
 *)
 type
    ap_HOOK_log_transaction_t = function(r: Prequest_rec): Integer; cdecl;
 
 procedure ap_hook_log_transaction(pf: ap_HOOK_log_transaction_t;
-                                  const aszPre: PPChar;
-                                  const aszSucc: PPChar;
+                                  const aszPre: PPAnsiChar;
+                                  const aszSucc: PPAnsiChar;
                                   nOrder: Integer);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_hook_log_transaction' + LibSuff16;
@@ -903,23 +903,23 @@ function  ap_hook_get_log_transaction: Papr_array_header_t;
  * @param r The current request
  * @return The http scheme from the request
  *}
-//AP_DECLARE_HOOK(const char *,http_scheme,(const request_rec *r))
+//AP_DECLARE_HOOK(const AnsiChar *,http_scheme,(const request_rec *r))
 (*macro expanded:
   typedef
-    const char * ap_HOOK_http_scheme_t (const request_rec *r);
+    const AnsiChar * ap_HOOK_http_scheme_t (const request_rec *r);
 
-    void ap_hook_http_scheme(ap_HOOK_http_scheme_t *pf, const char * const *aszPre, const char * const *aszSucc, int nOrder);
-    const char * ap_run_http_scheme (const request_rec *r);
+    void ap_hook_http_scheme(ap_HOOK_http_scheme_t *pf, const AnsiChar * const *aszPre, const AnsiChar * const *aszSucc, int nOrder);
+    const AnsiChar * ap_run_http_scheme (const request_rec *r);
     apr_array_header_t * ap_hook_get_http_scheme(void);
 
-  typedef struct ap_LINK_http_scheme_t { ap_HOOK_http_scheme_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_http_scheme_t;
+  typedef struct ap_LINK_http_scheme_t { ap_HOOK_http_scheme_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_http_scheme_t;
 *)
 type
    ap_HOOK_http_scheme_t = function(r: Prequest_rec): Integer; cdecl;
 
 procedure ap_hook_http_scheme(pf: ap_HOOK_http_scheme_t;
-                              const aszPre: PPChar;
-                              const aszSucc: PPChar;
+                              const aszPre: PPAnsiChar;
+                              const aszSucc: PPAnsiChar;
                               nOrder: Integer);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_hook_http_scheme' + LibSuff16;
@@ -944,18 +944,18 @@ function  ap_hook_get_http_scheme: Papr_array_header_t;
   typedef
     apr_port_t ap_HOOK_default_port_t (const request_rec *r);
 
-    void ap_hook_default_port(ap_HOOK_default_port_t *pf, const char * const *aszPre, const char * const *aszSucc, int nOrder);
+    void ap_hook_default_port(ap_HOOK_default_port_t *pf, const AnsiChar * const *aszPre, const AnsiChar * const *aszSucc, int nOrder);
     apr_port_t ap_run_default_port (const request_rec *r);
     apr_array_header_t * ap_hook_get_default_port(void);
 
-  typedef struct ap_LINK_default_port_t { ap_HOOK_default_port_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_default_port_t;
+  typedef struct ap_LINK_default_port_t { ap_HOOK_default_port_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_default_port_t;
 *)
   type
      ap_HOOK_default_port_t = function(r: Prequest_rec): Integer; cdecl;
 
   procedure ap_hook_default_port(pf: ap_HOOK_default_port_t;
-                                 const aszPre: PPChar;
-                                 const aszSucc: PPChar;
+                                 const aszPre: PPAnsiChar;
+                                 const aszSucc: PPAnsiChar;
                                  nOrder: Integer);
     {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
     external LibHTTPD name LibNamePrefix + 'ap_hook_default_port' + LibSuff16;
@@ -990,7 +990,7 @@ type
     {** The error code *}
     status: Integer;
     {** The error string *}
-    data: PChar;
+    data: PAnsiChar;
   end;
 
 {** @see ap_bucket_type_error *}
@@ -1012,9 +1012,9 @@ type
  * @return The new bucket, or NULL if allocation failed
  *}
 //AP_DECLARE(apr_bucket *) ap_bucket_error_make(apr_bucket *b, int error,
-//                const char *buf, apr_pool_t *p);
+//                const AnsiChar *buf, apr_pool_t *p);
 function ap_bucket_error_make(b: Papr_bucket; error: Integer;
-                              const buf: PChar; p: Papr_pool_t): Papr_bucket;
+                              const buf: PAnsiChar; p: Papr_pool_t): Papr_bucket;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_bucket_error_make' + LibSuff16;
 
@@ -1026,10 +1026,10 @@ function ap_bucket_error_make(b: Papr_bucket; error: Integer;
  * @param list The bucket allocator from which to allocate the bucket
  * @return The new bucket, or NULL if allocation failed
  *}
-//AP_DECLARE(apr_bucket *) ap_bucket_error_create(int error, const char *buf,
+//AP_DECLARE(apr_bucket *) ap_bucket_error_create(int error, const AnsiChar *buf,
 //                                                apr_pool_t *p,
 //                                                apr_bucket_alloc_t *list);
-function ap_bucket_error_create(error: Integer; const buf: PChar;
+function ap_bucket_error_create(error: Integer; const buf: PAnsiChar;
                                 p: Papr_pool_t;
                                 list: Papr_bucket_alloc_t): Papr_bucket;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

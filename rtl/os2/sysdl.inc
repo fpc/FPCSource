@@ -16,7 +16,7 @@
 
 threadvar
  DynLibErrNo: cardinal;
- DynLibErrPath: array [0..259] of char;
+ DynLibErrPath: array [0..259] of AnsiChar;
 
 function SysLoadLibraryA (const Name: RawbyteString): TLibHandle;
 var
@@ -44,7 +44,7 @@ var
  P: pointer;
 begin
  DynLibErrPath [0] := #0;
- DynLibErrNo := DosQueryProcAddr (Lib, 0, PChar (ProcName), P);
+ DynLibErrNo := DosQueryProcAddr (Lib, 0, PAnsiChar (ProcName), P);
  if DynLibErrNo = 0 then
   Result := P
  else
@@ -83,17 +83,17 @@ begin
  GetDynLibsError := DynLibErrNo;
 end;
 
-function GetDynLibsErrPath: PChar;
+function GetDynLibsErrPath: PAnsiChar;
 begin
  GetDynLibsErrPath := @DynLibErrPath [0];
 end;
 
-function SysGetDynLibsErrorStr: string;
+function SysGetDynLibsErrorStr: ansistring;
 const
- SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
+ SysMsgFile: array [0..10] of AnsiChar = 'OSO001.MSG'#0;
 var
- VarArr: array [1..9] of PChar;
- OutBuf: array [0..999] of char;
+ VarArr: array [1..9] of PAnsiChar;
+ OutBuf: array [0..999] of AnsiChar;
  RetMsgSize: cardinal;
  RC: cardinal;
  I: cardinal;
@@ -111,7 +111,7 @@ begin
     begin
      SetLength (Result, RetMsgSize);
      Move (OutBuf [0], Result [1], RetMsgSize);
-     AErr := ansistring (PChar (@DynlibErrPath [0]));
+     AErr := ansistring (PAnsiChar (@DynlibErrPath [0]));
      if (AErr <> '') and (Pos (AErr, Result) = 0) then
       begin
        if Result [Length (Result)] in [#13, #10, ' '] then
@@ -131,7 +131,7 @@ begin
   end;
 end;
 
-function SysGetLoadErrorStr: string;
+function SysGetLoadErrorStr: AnsiString;
 begin
  SysGetLoadErrorStr := SysGetDynLibsErrorStr;
 end;

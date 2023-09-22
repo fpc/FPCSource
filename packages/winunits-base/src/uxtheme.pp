@@ -38,7 +38,9 @@
 {                                                                              }
 {******************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UxTheme;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -48,8 +50,13 @@ unit UxTheme;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // this file is in uxtheme under Delphi, while a separate one in apilib
 {$i tmschema.inc}

@@ -38,8 +38,8 @@ Interface
 
 {$ifdef Darwin}
 var argc:longint;
-    argv:PPchar;
-    envp:PPchar;
+    argv:PPAnsiChar;
+    envp:PPAnsiChar;
 {$endif}
 
 CONST SIGSTKSZ = 40960;
@@ -132,7 +132,7 @@ Begin
 End;
 
 
-function BackPos(c:char; const s: shortstring): integer;
+function BackPos(c:AnsiChar; const s: shortstring): integer;
 var
  i: integer;
 Begin
@@ -150,7 +150,7 @@ end;
 //var
 // execpathstr : shortstring;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
@@ -250,7 +250,7 @@ var
   len,j,
   size,i : longint;
   found  : boolean;
-  buf    : pchar;
+  buf    : PAnsiChar;
 
   procedure AddBuf;
   begin
@@ -330,7 +330,7 @@ end;
 
 procedure pascalmain;external name '_PASCALMAIN';
 
-procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: PPAnsiChar; envpparam: PPAnsiChar); cdecl; [public];
 
 begin
   argc:= argcparam;

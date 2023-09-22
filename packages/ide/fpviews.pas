@@ -218,11 +218,11 @@ type
       Indicator : PIndicator;
       constructor Init(var Bounds: TRect);
       procedure   HandleEvent(var Event: TEvent); virtual;
-      procedure   WriteText(Buf : pchar;IsError : boolean);
+      procedure   WriteText(Buf : PAnsiChar;IsError : boolean);
       procedure   WriteString(Const S : string);
       procedure   WriteErrorString(Const S : string);
-      procedure   WriteOutputText(Buf : pchar);
-      procedure   WriteErrorText(Buf : pchar);
+      procedure   WriteOutputText(Buf : PAnsiChar);
+      procedure   WriteErrorText(Buf : PAnsiChar);
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -266,7 +266,7 @@ type
       constructor Init(var Bounds: TRect);
       procedure   LoadFunction(Const FuncName : string);
       procedure   LoadAddress(Addr : CORE_ADDR);
-      function    ProcessPChar(p : pchar) : boolean;
+      function    ProcessPChar(p : PAnsiChar) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   WriteSourceString(Const S : string;line : longint);
       procedure   WriteDisassemblyString(Const S : string;address : CORE_ADDR);
@@ -341,7 +341,7 @@ type
       Name     : PString;
       Items    : PTabItem;
       DefItem  : PView;
-      ShortCut : char;
+      ShortCut : AnsiChar;
     end;
 
     PTab = ^TTab;
@@ -853,13 +853,13 @@ function GetEditorCurWord(Editor: PEditor; ValidSpecChars: TCharSet): string;
 var S: string;
     PS,PE: byte;
 function Trim(S: string): string;
-const TrimChars : set of char = [#0,#9,' ',#255];
+const TrimChars : set of AnsiChar = [#0,#9,' ',#255];
 begin
   while (length(S)>0) and (S[1] in TrimChars) do Delete(S,1,1);
   while (length(S)>0) and (S[length(S)] in TrimChars) do Delete(S,length(S),1);
   Trim:=S;
 end;
-const AlphaNum : set of char = ['A'..'Z','0'..'9','_'];
+const AlphaNum : set of AnsiChar = ['A'..'Z','0'..'9','_'];
 begin
   with Editor^ do
   begin
@@ -1119,7 +1119,7 @@ end;
 function IsFPAsmReservedWord(S: string): boolean;
 var _Is: boolean;
     Idx,Item,Len: sw_integer;
-    LastC : Char;
+    LastC : AnsiChar;
     LastTwo : String[2];
 begin
   Idx:=length(S); _Is:=false;
@@ -2555,13 +2555,13 @@ begin
   GetPalette:=@P;
 end;
 
-procedure TGDBWindow.WriteOutputText(Buf : pchar);
+procedure TGDBWindow.WriteOutputText(Buf : PAnsiChar);
 begin
   {selected normal color ?}
   WriteText(Buf,false);
 end;
 
-procedure TGDBWindow.WriteErrorText(Buf : pchar);
+procedure TGDBWindow.WriteErrorText(Buf : PAnsiChar);
 begin
   {selected normal color ?}
   WriteText(Buf,true);
@@ -2577,8 +2577,8 @@ begin
   Editor^.AddErrorLine(S);
 end;
 
-procedure TGDBWindow.WriteText(Buf : pchar;IsError : boolean);
-  var p,pe : pchar;
+procedure TGDBWindow.WriteText(Buf : PAnsiChar;IsError : boolean);
+  var p,pe : PAnsiChar;
       s : string;
 begin
   p:=buf;
@@ -2767,7 +2767,7 @@ end;
 
 procedure   TDisassemblyWindow.LoadFunction(Const FuncName : string);
 var
-   p : pchar;
+   p : PAnsiChar;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
@@ -2783,7 +2783,7 @@ end;
 
 procedure   TDisassemblyWindow.LoadAddress(Addr : CORE_ADDR);
 var
-   p : pchar;
+   p : PAnsiChar;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
@@ -2800,10 +2800,10 @@ begin
 end;
 
 
-function TDisassemblyWindow.ProcessPChar(p : pchar) : boolean;
+function TDisassemblyWindow.ProcessPChar(p : PAnsiChar) : boolean;
 var
-  p1: pchar;
-  pline : pchar;
+  p1: PAnsiChar;
+  pline : PAnsiChar;
   pos1, pos2, CurLine, PrevLine : longint;
   CurAddr : CORE_ADDR;
   err : word;
@@ -3630,7 +3630,7 @@ var B     : TDrawBuffer;
     Name       : PString;
     ActiveKPos : integer;
     ActiveVPos : integer;
-    FC   : char;
+    FC   : AnsiChar;
     ClipR      : TRect;
 procedure SWriteBuf(X,Y,W,H: integer; var Buf);
 var i: integer;

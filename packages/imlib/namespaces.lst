@@ -1,0 +1,4 @@
+src/imlib.pp=namespaced/Api.Imlib.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gdk_imlib.pp=namespaced/Api.Gdk_imlib.pp

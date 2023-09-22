@@ -1,0 +1,5 @@
+src/bzip2.pas=namespaced/System.Bzip2.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/bzip2stream.pp=namespaced/System.Bzip2stream.pp
+src/bzip2comn.pp=namespaced/System.Bzip2comn.pp

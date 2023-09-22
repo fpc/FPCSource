@@ -17,10 +17,10 @@ procedure draw;
 
 function randomchar: chtype;
 var
-  ch: Char = #0;
+  ch: AnsiChar = #0;
 begin
   while not (ch in ['0'..'9','A'..'Z','a'..'z']) do
-    ch := Char(Random(123));
+    ch := AnsiChar(Random(123));
   randomchar := chtype(ch);
 end;
 
@@ -42,10 +42,10 @@ begin
 end;
 
 const
-  enumval: array[0..2] of PChar = ('one', 'two', 'three');
-  desc: array[0..5] of PChar =
+  enumval: array[0..2] of PAnsiChar = ('one', 'two', 'three');
+  desc: array[0..5] of PAnsiChar =
               (
-                'TYPE_ALPHA    Char data, a min width 8',
+                'TYPE_ALPHA    AnsiChar data, a min width 8',
                 'TYPE_ENUM      one, two, three',
                 'TYPE_INTEGER     -300 .. 300',
                 'TYPE_NUMERIC    -30.0 .. 30.0',
@@ -108,7 +108,7 @@ try
    field[6] := nil;
 
    set_field_type(field[0],TYPE_ALPHA,8);
-   set_field_type(field[1],TYPE_ENUM,PPChar(enumval),0,0);
+   set_field_type(field[1],TYPE_ENUM,PPAnsiChar(enumval),0,0);
    set_field_type(field[2],TYPE_INTEGER,3,-300,300);
    set_field_type(field[3],TYPE_NUMERIC,8,-30.0,30.0);
    set_field_type(field[4],TYPE_REGEXP,'^http://.+\.(ru|net|com)\s*$');

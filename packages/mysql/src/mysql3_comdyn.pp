@@ -4,7 +4,9 @@
   Call InitialiseMysql3_com before using any of the calls, and call ReleaseMysql3_com
   when finished.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql3_comdyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Adapted from mysql4_comdyn by Bram Kuijvenhoven (Hexis BV, The Netherlands)
@@ -15,7 +17,11 @@ unit mysql3_comdyn;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dynlibs, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
@@ -37,23 +43,23 @@ var
   init_alloc_root : procedure(root: PMEM_ROOT;block_size : Cardinal);extdecl;
   sql_alloc_first_block : function(root : PMEM_ROOT) : my_bool;extdecl;
   sql_alloc_root : function(mem_root : PMEM_ROOT;len : Cardinal) : longint;extdecl;
-  sql_strdup_root : function(root : PMEM_ROOT;st : pchar) : pchar;extdecl;
-  sql_memdup_root : function(root: PMEM_ROOT;st : pchar; len : Cardinal) : longint;extdecl;
+  sql_strdup_root : function(root : PMEM_ROOT;st : PAnsiChar) : PAnsiChar;extdecl;
+  sql_memdup_root : function(root: PMEM_ROOT;st : PAnsiChar; len : Cardinal) : longint;extdecl;
   my_net_init : function(net :PNET; fd : Socket) : Longint;extdecl;
   net_end : procedure(net : PNET);extdecl;
   net_clear : procedure(net : PNET);extdecl;
   net_flush : function(net : PNET) : longint;extdecl;
   my_net_write : function(net : PNET;packet : pbyte;len : cardinal) : longint;extdecl;
-  net_write_command : function(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;extdecl;
+  net_write_command : function(net : PNET; command : AnsiChar;packet : pbyte;len : cardinal) : longint;extdecl;
   net_real_write : function(net : PNET;packet : pbyte; len : Cardinal) : longint;extdecl;
   my_net_read : function(net : PNET) : Cardinal;extdecl;
   randominit : procedure(rand : Prand_struct; seed1,seed2 : Cardinal);extdecl;
   rnd : function(rand : Prand_struct) : double;extdecl;
-  make_scrambled_password : procedure(toarg, passwd : Pchar);extdecl;
-  get_salt_from_password : procedure(res : pcardinal; password : pchar);extdecl;
-  scramble : procedure(toarg,message,password : pchar; old_ver : my_bool);extdecl;
-  check_scramble : function(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;extdecl;
-  get_tty_password : function(opt_message:  pchar) : pchar;extdecl;
+  make_scrambled_password : procedure(toarg, passwd : PAnsiChar);extdecl;
+  get_salt_from_password : procedure(res : pcardinal; password : PAnsiChar);extdecl;
+  scramble : procedure(toarg,message,password : PAnsiChar; old_ver : my_bool);extdecl;
+  check_scramble : function(scramble,message : PAnsiChar; salt : cardinal;old_ver:my_bool) : my_bool;extdecl;
+  get_tty_password : function(opt_message:  PAnsiChar) : PAnsiChar;extdecl;
 
 Procedure InitialiseMysql3_com;
 Procedure ReleaseMysql3_com;

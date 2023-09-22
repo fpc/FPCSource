@@ -22,11 +22,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -51,7 +57,7 @@ type
    * - 'MIME mode':
    *    - follows RFC2045
    *    - ignores any characters outside of base64 alphabet
-   *    - takes any '=' as end of string
+   *    - takes any '=' as end of
    *    - handles apparently truncated input streams gracefully
    *)
   TBase64DecodingMode = (bdmStrict, bdmMIME);
@@ -86,20 +92,25 @@ type
   EBase64DecodingException = class(Exception)
   end;
 
-function EncodeStringBase64(const s:string):String;
-function DecodeStringBase64(const s:string;strict:boolean=false):String;
+function EncodeStringBase64(const s: AnsiString): AnsiString;
+function DecodeStringBase64(const s: AnsiString;strict:boolean=false): AnsiString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SStrictNonBase64Char    = 'Non-valid Base64 Encoding character in input';
   SStrictInputTruncated   = 'Input stream was truncated at non-4 byte boundary';
   SStrictMisplacedPadChar = 'Unexpected padding character ''='' before end of input stream';
 
-  EncodingTable: PChar =
+  EncodingTable: PAnsiChar =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 const
@@ -129,7 +140,7 @@ const
 function TBase64EncodingStream.Flush : Boolean;
 
 var
-  WriteBuf: array[0..3] of Char;
+  WriteBuf: array[0..3] of AnsiChar;
 begin
   // Fill output to multiple of 4
   case (TotalBytesProcessed mod 3) of
@@ -166,7 +177,7 @@ function TBase64EncodingStream.Write(const Buffer; Count: Longint): Longint;
 var
   ReadNow: LongInt;
   p: Pointer;
-  WriteBuf: array[0..3] of Char;
+  WriteBuf: array[0..3] of AnsiChar;
 begin
   Inc(TotalBytesProcessed, Count);
   Result := Count;
@@ -214,12 +225,12 @@ end;
 
 function TBase64DecodingStream.GetSize: Int64;
 var
-  endBytes: array[0..1] of Char;
+  endBytes: array[0..1] of AnsiChar;
   ipos, isize: Int64;
-  scanBuf: array[0..1023] of Char;
+  scanBuf: array[0..1023] of AnsiChar;
   count: LongInt;
   i: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   // Note: this method only works on Seekable Sources (for bdmStrict we also get the Size property)
   if DecodedSize<>-1 then Exit(DecodedSize);
@@ -417,10 +428,10 @@ begin
   raise EStreamError.Create('Invalid stream operation');
 end;
 
-function DecodeStringBase64(const s:string;strict:boolean=false):String;
+function DecodeStringBase64(const s: AnsiString;strict:boolean=false): AnsiString;
 
 var 
-  SD : String;
+  SD : Ansistring;
   Instream, 
   Outstream : TStringStream;
   Decoder   : TBase64DecodingStream;
@@ -452,7 +463,7 @@ begin
     end;
 end;
 
-function EncodeStringBase64(const s:string):String;
+function EncodeStringBase64(const s: AnsiString): AnsiString;
 
 var
   Outstream : TStringStream;

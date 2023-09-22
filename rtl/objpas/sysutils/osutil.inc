@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -19,7 +20,7 @@
 Const
   FPC_EnvCount : Integer = -1;
 
-Function FPCCountEnvVar(EP : PPChar) : integer;
+Function FPCCountEnvVar(EP : PPAnsiChar) : integer;
 
 begin
   If (FPC_EnvCount=-1) then
@@ -35,10 +36,10 @@ begin
   Result:=FPC_EnvCount;
 end;
 
-Function FPCGetEnvVarFromP(EP : PPChar; EnvVar : String) : String;
+Function FPCGetEnvVarFromP(EP : PPAnsiChar; EnvVar : String) : String;
 
 var
-  hp         : ppchar;
+  hp         : PPAnsiChar;
   lenvvar,hs : string;
   eqpos      : longint;
 
@@ -60,7 +61,7 @@ begin
      end;
 end;
 
-Function FPCGetEnvStrFromP(EP : PPChar; Index : Integer) : String;
+Function FPCGetEnvStrFromP(EP : PPAnsiChar; Index : Integer) : String;
 
 begin
   Result:='';
@@ -257,7 +258,7 @@ begin
 end;
 
 {$if not(defined(win32)) and not(defined(win64))}
-Function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+Function GetTempFileName(Dir,Prefix: PAnsiChar; uUnique: DWORD; TempFileName: PAnsiChar):DWORD;
 
 Var
   P,Buf : String;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdMaster;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains master control logic for the JPEG decompressor.
   These routines are concerned with selecting the modules to be executed
@@ -11,6 +13,25 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jdcolor, System.Jpeg.Jdsample, System.Jpeg.Jdpostct, System.Jpeg.Jddctmgr, System.Jpeg.Jdphuff, System.Jpeg.Jdhuff, System.Jpeg.Jdcoefct, System.Jpeg.Jdmainct,
+{$ifdef QUANT_1PASS_SUPPORTED}
+  System.Jpeg.Jquant1,
+{$endif}
+{$ifdef QUANT_2PASS_SUPPORTED}
+  System.Jpeg.Jquant2,
+{$endif}
+{$ifdef UPSAMPLE_MERGING_SUPPORTED}
+  System.Jpeg.Jdmerge,
+{$endif}
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -28,6 +49,7 @@ uses
   jdmerge,
 {$endif}
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Compute output image dimensions and related values.

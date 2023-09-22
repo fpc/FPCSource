@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -42,6 +43,11 @@
 
   { Type helpers}
   {$i syshelp.inc}
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
+  { strange Delphi thing }
+  {$i sysmarshal.inc}
+{$ENDIF}  
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
@@ -130,7 +136,7 @@ begin
 end;
 {$ENDIF}
 
-  { Read pchar handling functions implementation }
+  { Read PAnsiChar handling functions implementation }
   {$i syspch.inc}
 
   { generic internationalisation code }
@@ -189,7 +195,7 @@ end;
       end;
 
 
-    constructor Exception.CreateRes(ResString: PString);
+    constructor Exception.CreateRes(ResString: PResStringRec);
 
       begin
          inherited create;
@@ -197,7 +203,7 @@ end;
       end;
 
 
-    constructor Exception.CreateResFmt(ResString: PString; const Args: array of const);
+    constructor Exception.CreateResFmt(ResString: PResStringRec; const Args: array of const);
 
       begin
          inherited create;
@@ -224,7 +230,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Longint);
+    constructor Exception.CreateResHelp(ResString: PResStringRec; AHelpContext: Longint);
 
     begin
        inherited create;
@@ -233,7 +239,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResFmtHelp(ResString: PString; const Args: array of const;
+    constructor Exception.CreateResFmtHelp(ResString: PResStringRec; const Args: array of const;
       AHelpContext: Longint);
 
     begin
@@ -242,7 +248,7 @@ end;
        fhelpcontext:=AHelpContext;
     end;
 
-    Function Exception.ToString : String;
+    Function Exception.ToString : RTLString;
     begin
       Result:=ClassName+': '+Message;
     end;
@@ -348,7 +354,7 @@ type
 {$IFDEF FPC_HAS_FEATURE_RESOURCES}  // This is necessary for 2.4.4, which does not have reasources as a separate feature
     msg:  PResStringRec;
 {$else FPC_HAS_FEATURE_RESOURCES}
-    msg:  PString;
+    msg:  PAnsiString;
 {$endif FPC_HAS_FEATURE_RESOURCES}
   end;
 
@@ -408,7 +414,7 @@ Var OutOfMemory : EOutOfMemory;
 Procedure RunErrorToExcept (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
 var
   E: Exception;
-  HS: PString;
+  HS: PResStringRec;
   Entry: PExceptMapEntry;
 begin
   Case Errno of
@@ -571,7 +577,7 @@ begin
 end;
 
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                               Buffer: PChar; Size: Integer): Integer;
+                               Buffer: PAnsiChar; Size: Integer): Integer;
 
 Var
   S : AnsiString;

@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fatalalert;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Value returned by SysFatalAlert
 const
@@ -29,7 +35,7 @@ const
   fatalEnterDebugger = 1;
   fatalDoNothing = $FFFF;
 
-function SysFatalAlert(const msg: PChar): UInt16; syscall sysTrapSysFatalAlert;
+function SysFatalAlert(const msg: PAnsiChar): UInt16; syscall sysTrapSysFatalAlert;
 
 procedure SysFatalAlertInit; syscall sysTrapSysFatalAlertInit;
 

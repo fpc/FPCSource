@@ -25,7 +25,7 @@ begin
   GetKeyEventFlags := (KeyEvent and $FF000000) shr 24;
 end;
 
-function GetKeyEventChar(KeyEvent: TKeyEvent): Char;
+function GetKeyEventChar(KeyEvent: TKeyEvent): AnsiChar;
 begin
   if KeyEvent and $03000000 = $00000000 then
     GetKeyEventChar := Chr(KeyEvent and $000000FF)
@@ -387,7 +387,7 @@ end;
     KeyEvent to String representation section.
   ---------------------------------------------------------------------}
 
-Procedure AddToString (Var S : String; Const A : String);
+Procedure AddToString (Var S : shortstring; Const A : shortstring);
 
 begin
   If Length(S)=0 then
@@ -396,17 +396,17 @@ begin
     S:=S+' '+A;
 end;
 
-Function IntToStr(Int : Longint) : String;
+Function IntToStr(Int : Longint) : shortstring;
 
 begin
   Str(Int,IntToStr);
 end;
 
-Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : shortstring;
 
 Var
   S : Integer;
-  T : String;
+  T : shortstring;
 
 begin
   S:=GetKeyEventShiftState(KeyEvent);
@@ -428,7 +428,7 @@ begin
   ShiftStateToString:=T;
 end;
 
-Function FunctionKeyName (KeyCode : Word) : String;
+Function FunctionKeyName (KeyCode : Word) : shortstring;
 
 begin
   If ((KeyCode-KbdF1)<$1F) Then
@@ -442,10 +442,10 @@ begin
     end;
 end;
 
-Function KeyEventToString(KeyEvent : TKeyEvent) : String;
+Function KeyEventToString(KeyEvent : TKeyEvent) : shortstring;
 
 Var
-  T : String;
+  T : shortstring;
 
 begin
   T:=ShiftStateToString(KeyEvent,False);

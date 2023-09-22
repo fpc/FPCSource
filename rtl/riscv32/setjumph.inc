@@ -16,7 +16,11 @@
 
 type
    jmp_buf = record
-    ra,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,sp: dword;
+    ra,s0,s1
+    {$ifndef CPURV_HAS_16REGISTERS}
+    ,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11
+    {$endif CPURV_HAS_16REGISTERS}
+    ,sp: dword;
 {$if defined(FPUFD) or defined(FPUD)}
     fcsr,dummy : dword;
     f8,f9,f18,f19,f20,f21,

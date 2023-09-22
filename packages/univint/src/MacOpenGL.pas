@@ -17,7 +17,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacOpenGL;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -202,7 +204,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes, MacOsApi.CGLTypes, MacOsApi.CGLCurrent, MacOsApi.Macgl;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes, CGLTypes, CGLCurrent, macgl;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -342,7 +348,7 @@ procedure CGLGetVersion( majorvers: PGLint; minorvers: PGLint ); external name '
 {
 ** Convert an error code to a string
 }
-function CGLErrorString( error: CGLError ): PChar; external name '_CGLErrorString';
+function CGLErrorString( error: CGLError ): PAnsiChar; external name '_CGLErrorString';
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

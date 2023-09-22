@@ -1,0 +1,8 @@
+src/webidltopas2js.pp=namespaced/WebIdl.ToPas2Js.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/webidlparser.pp=namespaced/WebIdl.Parser.pp
+src/webidltowasmjob.pp=namespaced/WebIdl.ToWasmJob.pp
+src/webidltopas.pp=namespaced/WebIdl.ToPascal.pp
+src/webidldefs.pp=namespaced/WebIdl.Defs.pp
+src/webidlscanner.pp=namespaced/WebIdl.Scanner.pp

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZipUtils;
+{$ENDIF}
 
 { ziputils.pas - IO on .zip files using zlib
   - definitions, declarations and routines used by both
@@ -36,7 +38,7 @@ type
   seek_mode = (SEEK_SET, SEEK_CUR, SEEK_END);
   open_mode = (fopenread, fopenwrite, fappendwrite);
 
-function fopen(filename: PChar; mode: open_mode): FILEptr;
+function fopen(filename: PAnsiChar; mode: open_mode): FILEptr;
 
 procedure fclose(fp: FILEptr);
 
@@ -84,14 +86,14 @@ const
   SIZEZIPLOCALHEADER = $1e;
 
 const
-  Paszip_copyright: PChar = ' Paszip Copyright 2000 Jacques Nomssi Nzali ';
+  Paszip_copyright: PAnsiChar = ' Paszip Copyright 2000 Jacques Nomssi Nzali ';
 
 implementation
 
 {$ifdef Streams}
 { ---------------------------------------------------------------- }
 
-function fopen(filename: PChar; mode: open_mode): FILEptr;
+function fopen(filename: PAnsiChar; mode: open_mode): FILEptr;
 var
   fp: FILEptr;
 begin
@@ -178,7 +180,7 @@ end;
 {$else}
 { ---------------------------------------------------------------- }
 
-function fopen(filename : PChar; mode : open_mode) : FILEptr;
+function fopen(filename : PAnsiChar; mode : open_mode) : FILEptr;
 var
   fp : FILEptr;
   OldFileMode : byte;

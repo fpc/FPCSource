@@ -15,17 +15,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit get9;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   Get9Base: Pointer = nil;
 
 const
-  GET9NAME : PChar = 'get9.library';
+  GET9NAME : PAnsiChar = 'get9.library';
 
 procedure DNetCheck(force: boolean);
 SysCall BaseSysV Get9Base 28;

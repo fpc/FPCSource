@@ -29,16 +29,22 @@
      nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WBArgs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Workbench,Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses workbench,amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function GetStartupMsg: pWBStartup;
-function ProgramName: string;
+function ProgramName: ShortString;
 function WBArgCount: smallint;
-function GetWBArg(num : smallint): STRING;
+function GetWBArg(num : smallint): ShortString;
 
 implementation
 
@@ -50,10 +56,10 @@ begin
        GetStartupMsg := nil;
 end;
 
-function ProgramName: string;
+function ProgramName: ShortString;
 var
     WBMsg : pWBStartup;
-    buffer : array[0..255] of char;
+    buffer : array[0..255] of AnsiChar;
 begin
     WBMsg := GetStartupMsg;
     if WBMsg <> nil then begin
@@ -80,7 +86,7 @@ begin
    else WBArgCount := 0;
 end;
 
-function GetWBArg(num : smallint): string;
+function GetWBArg(num : smallint): ShortString;
 var
     WBMsg : pWBStartup;
     param : smallint;

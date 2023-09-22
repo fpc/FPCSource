@@ -26,11 +26,17 @@
         nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hisoft;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Gadtools,Amiga.Utils.Pastoc,Amiga.Core.Amigados,Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, gadtools,pastoc,amigados,intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
     ppbyte = pointer;
@@ -42,15 +48,15 @@ const
 
 procedure MakeMenu(var mnm: tNewMenu;
         nmType: byte;
-        nmLabel: string;
-        nmCommKey: string;
+        nmLabel: ShortString;
+        nmCommKey: ShortString;
         nmFlags: word;
         nmMutualExclude: longint;
         nmUserData: longint);
 
-function ptrtopas(s : pchar): string;
-function FExpandLock( l : BPTR): String;
-Function CSCPAR(rk : pRemember; s : String) : STRPTR;
+function ptrtopas(s : PAnsiChar): ShortString;
+function FExpandLock( l : BPTR): ShortString;
+Function CSCPAR(rk : pRemember; s : ShortString) : STRPTR;
 
 implementation
 
@@ -61,8 +67,8 @@ implementation
  *)
 procedure MakeMenu(var mnm: tNewMenu;
         nmType: byte;
-        nmLabel: string;
-        nmCommKey: string;
+        nmLabel: ShortString;
+        nmCommKey: ShortString;
         nmFlags: word;
         nmMutualExclude: longint;
         nmUserData: longint);
@@ -79,14 +85,14 @@ begin
         mnm.nm_UserData := pointer(nmUserData);
 end;
 
-function ptrtopas(s : pchar): string;
+function ptrtopas(s : PAnsiChar): ShortString;
 begin
    ptrtopas := strpas(s);
 end;
 
-function FExpandLock( l : BPTR): String;
+function FExpandLock( l : BPTR): ShortString;
 var
-   buffer : array[0..255] of char;
+   buffer : array[0..255] of AnsiChar;
 begin
   {$if not defined(AMIGA_V1_2_ONLY)}
    if l <> 0 then begin
@@ -97,7 +103,7 @@ begin
      FExpandLock := '';
 end;
 
-Function CSCPAR(rk : pRemember; s : String) : STRPTR;
+Function CSCPAR(rk : pRemember; s : ShortString) : STRPTR;
 VAR
         p : STRPTR;
 

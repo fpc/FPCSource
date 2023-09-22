@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit UComplex;
+{$ENDIF FPC_DOTTEDUNITS}
 {$INLINE ON}
 {$define TEST_INLINE}
 
@@ -23,7 +25,11 @@ Unit UComplex;
   interface
 
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+    uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
     uses math;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type complex = record
                      re : real;
@@ -516,9 +522,11 @@ Unit UComplex;
     { sinus complex }
     { sin(x+iy) = sin(x).cos(iy) + cos(x).sin(iy) }
     { cos(ix) = cosh(x) et sin(ix) = i.sinh(x) }
+    var sinre,cosre : real;
     begin
-       csin.re := sin(z.re) * cosh(z.im);
-       csin.im := cos(z.re) * sinh(z.im);
+       sincos(z.re,sinre,cosre);
+       csin.re := sinre * cosh(z.im);
+       csin.im := cosre * sinh(z.im);
     end;
 
   function ctg (const z : complex) : complex;

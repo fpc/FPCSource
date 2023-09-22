@@ -24,7 +24,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioHardwareDeprecated;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -209,7 +211,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes, MacOsApi.CFRunLoop, MacOsApi.CoreAudioTypes, MacOsApi.AudioHardwareBase, MacOsApi.AudioHardware;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes, CFRunLoop, CoreAudioTypes, AudioHardwareBase, AudioHardware;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -269,7 +275,7 @@ const
 
 {!
     @enum           AudioBooleanControl Subclass IDs
-    @abstract       The four char codes that identify the various standard subclasses of
+    @abstract       The four AnsiChar codes that identify the various standard subclasses of
                     AudioBooleanControl.
     @constant       kAudioISubOwnerClassID
                         An AudioBooleanControl where true means that the AudioDevice that

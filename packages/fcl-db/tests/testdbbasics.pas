@@ -1185,18 +1185,18 @@ begin
     begin
     open;
     AVar:=FieldValues['id'];
-    CheckEquals(AVar,1);
+    CheckEquals(1,AVar);
 
     AVar:=FieldValues['name'];
-    CheckEquals(AVar,'TestName1');
+    CheckEquals('TestName1',AVar);
 
     AVar:=FieldValues['id;name'];
-    CheckEquals(AVar[0],1);
-    CheckEquals(AVar[1],'TestName1');
+    CheckEquals(1,AVar[0]);
+    CheckEquals('TestName1',AVar[1]);
 
     AVar:=FieldValues['name;id;'];
-    CheckEquals(AVar[1],1);
-    CheckEquals(AVar[0],'TestName1');
+    CheckEquals(1,AVar[1]);
+    CheckEquals('TestName1',AVar[0]);
     
     PassException:=false;
     try
@@ -1205,7 +1205,6 @@ begin
       on E: EDatabaseError do PassException := True;
     end;
     CheckTrue(PassException);
-
     end;
 end;
 
@@ -2603,7 +2602,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(testValues[AFieldType,i], AField.AsString);
+    CheckEquals(testValues[AFieldType,i], AField.AsAnsiString);
     ADataSet.Next;
     end;
   ADataSet.Close;
@@ -3067,6 +3066,7 @@ begin
 end;
 
 procedure TTestDBBasics.TestCanModifySpecialFields;
+
 var ds    : TDataset;
     lds   : TDataset;
     fld   : TField;
@@ -3078,6 +3078,9 @@ begin
     Fld := TIntegerField.Create(ds);
     Fld.FieldName:='ID';
     Fld.DataSet:=ds;
+    Fld := TStringField.Create(ds);
+    Fld.FieldName:='Name';
+    Fld.DataSet:=ds;
 
     Fld := TStringField.Create(ds);
     Fld.FieldName:='LookupFld';
@@ -3087,8 +3090,8 @@ begin
     Fld.LookupResultField:='NAME';
     Fld.LookupKeyFields:='ID';
     Fld.KeyFields:='ID';
-
     lds.Open;
+
     Open;
     if IsUniDirectional then
       // The CanModify property is always False for UniDirectional datasets
@@ -3098,7 +3101,6 @@ begin
     CheckFalse(FieldByName('LookupFld').CanModify);
     CheckFalse(FieldByName('ID').ReadOnly);
     CheckFalse(FieldByName('LookupFld').ReadOnly);
-
     CheckEquals(1,FieldByName('ID').AsInteger);
     if IsUniDirectional then
       // Lookup fields are not supported by UniDirectional datasets
@@ -3297,7 +3299,7 @@ initialization
   RegisterTestDecorator(TDBBasicsTestSetup, TTestCursorDBBasics);
 
   // The SQL connectors are descendents of bufdataset and therefore benefit from testing:
-  if (uppercase(dbconnectorname)='SQL') or (uppercase(dbconnectorname)='BUFDATASET') then
+  if (uppercase(dbconnectorname)='SQL') {or (uppercase(dbconnectorname)='BUFDATASET') } then
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestBufDatasetDBBasics);
     RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);

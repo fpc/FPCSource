@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SCSI;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.MixedMode,MacOsApi.AppleDiskPartitions;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,MixedMode,AppleDiskPartitions;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -631,14 +637,14 @@ type
 		scsiMaxTarget: UInt16;          { <- maximum Target number supported           }
 		scsiMaxLUN: UInt16;             { <- maximum Logical Unit number supported    }
 
-		scsiSIMVendor: packed array [0..15] of char;			{ <- Vendor ID of SIM (or XPT if bus<FF)        }
-		scsiHBAVendor: packed array [0..15] of char;			{ <- Vendor ID of the HBA                }
-		scsiControllerFamily:	packed array [0..15] of char;			{ <- Family of SCSI Controller           }
-		scsiControllerType: packed array [0..15] of char;			{ <- Specific Model of SCSI Controller used  }
+		scsiSIMVendor: packed array [0..15] of AnsiChar;			{ <- Vendor ID of SIM (or XPT if bus<FF)        }
+		scsiHBAVendor: packed array [0..15] of AnsiChar;			{ <- Vendor ID of the HBA                }
+		scsiControllerFamily:	packed array [0..15] of AnsiChar;			{ <- Family of SCSI Controller           }
+		scsiControllerType: packed array [0..15] of AnsiChar;			{ <- Specific Model of SCSI Controller used  }
 
-		scsiXPTversion: packed array [0..3] of char;			{ <- version number of XPT              }
-		scsiSIMversion: packed array [0..3] of char;			{ <- version number of SIM              }
-		scsiHBAversion: packed array [0..3] of char;			{ <- version number of HBA              }
+		scsiXPTversion: packed array [0..3] of AnsiChar;			{ <- version number of XPT              }
+		scsiSIMversion: packed array [0..3] of AnsiChar;			{ <- version number of SIM              }
+		scsiHBAversion: packed array [0..3] of AnsiChar;			{ <- version number of HBA              }
 
 		scsiHBAslotType: UInt8;        { <- type of "slot" that this HBA is in       }
 		scsiHBAslotNumber: UInt8;      { <- slot number of this HBA                  }

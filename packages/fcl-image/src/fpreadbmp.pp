@@ -18,16 +18,25 @@
    - If we have bpp <= 8 make an indexed image instead of converting it to RGB
    - Support for RLE4 and RLE8 decoding
    - Support for top-down bitmaps
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadBMP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, BMPcomn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.Bitmap;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, BMPcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderBMP = class (TFPCustomImageReader)
@@ -281,6 +290,10 @@ begin
         Img.Palette.Color[i]:=FPalette[i];
     end;
     Img.SetSize(BFI.Width,BFI.Height);
+
+    Img.ResolutionUnit:=ruPixelsPerCentimeter;
+    Img.ResolutionX :=BFI.XPelsPerMeter/100;
+    Img.ResolutionY :=BFI.YPelsPerMeter/100;
 
     percent:=0;
     percentinterval:=(Img.Height*4) div 100;

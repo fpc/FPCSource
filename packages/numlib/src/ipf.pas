@@ -26,12 +26,18 @@
 
 {
  }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ipf;
+{$ENDIF FPC_DOTTEDUNITS}
 {$modeswitch exceptions}
 {$I direct.inc}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ, NumLib.Mdt, NumLib.Dsl, NumLib.Sle, NumLib.Spe;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ, mdt, dsl, sle, spe;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THermiteSplineType = (

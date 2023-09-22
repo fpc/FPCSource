@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CoreAudioTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -371,7 +377,7 @@ const
     @field          mSampleRate
                         The number of sample frames per second of the data in the stream.
     @field          mFormatID
-                        A four char code indicating the general kind of data in the stream.
+                        A four AnsiChar code indicating the general kind of data in the stream.
     @field          mFormatFlags
                         Flags specific to each format.
     @field          mBytesPerPacket
@@ -413,7 +419,7 @@ const
 
 {!
     @enum           Format IDs
-    @abstract       The four char code IDs used to identify individual formats of audio data.
+    @abstract       The four AnsiChar code IDs used to identify individual formats of audio data.
     @constant       kAudioFormatLinearPCM
                         Linear PCM, uses the standard flags.
     @constant       kAudioFormatAC3
@@ -944,11 +950,11 @@ const
     @struct         AudioClassDescription
     @abstract       This structure is used to describe codecs installed on the system.
     @field          mType
-                        The four char code codec type.
+                        The four AnsiChar code codec type.
     @field          mSubType
-                        The four char code codec subtype.
+                        The four AnsiChar code codec subtype.
     @field          mManufacturer
-                        The four char code codec manufacturer.
+                        The four AnsiChar code codec manufacturer.
 }
 type
 	AudioClassDescription = record

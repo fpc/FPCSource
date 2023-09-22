@@ -40,7 +40,8 @@ Type
        cpu_rv32im,
        cpu_rv32i,
        cpu_rv32e,
-       cpu_rv32imc
+       cpu_rv32imc,
+       cpu_rv32ec
       );
 
    tfputype =
@@ -81,7 +82,12 @@ Type
       ct_ch32v307rc,
       ct_ch32v307wc,
       ct_ch32V307vc,
-      ct_esp32c3
+      ct_esp32c3,
+      ct_CH32V0x,
+      ct_CH32Vxxxx6,
+      ct_CH32Vxxxx8,
+      ct_CH32VxxxxB,
+      ct_CH32VxxxxC
      );
 
    tcontrollerdatatype = record
@@ -133,7 +139,12 @@ Const
       (controllertypestr:'CH32V307RC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'CH32V307WC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'CH32V307VC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
-      (controllertypestr:'ESP32C3'; controllerunitstr:'ESP32C3';    cputype:cpu_rv32imc; fputype:fpu_none; flashbase:$00000000; flashsize:4*1024*1024; srambase:$20000000; sramsize:400*1024)
+      (controllertypestr:'ESP32C3'; controllerunitstr:'ESP32C3';    cputype:cpu_rv32imc; fputype:fpu_none; flashbase:$00000000; flashsize:4*1024*1024; srambase:$20000000; sramsize:400*1024),
+      (controllertypestr:'CH32V0X' ; controllerunitstr:'CH32VxBootstrap';   cputype:cpu_rv32e; fputype:fpu_none; flashbase:$00000000; flashsize:$00004000; srambase:$20000000; sramsize:$00000800; eeprombase:0; eepromsize:0;BootBase:$1FFFF000; BootSize:1920),
+      (controllertypestr:'CH32VXXXX6' ; controllerunitstr:'CH32VxBootstrap';   cputype:cpu_rv32imac; fputype:fpu_none; flashbase:$00000000; flashsize:$00008000; srambase:$20000000; sramsize:$00002800),
+      (controllertypestr:'CH32VXXXX8' ; controllerunitstr:'CH32VxBootstrap';   cputype:cpu_rv32imac; fputype:fpu_none; flashbase:$00000000; flashsize:$00010000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'CH32VXXXXB' ; controllerunitstr:'CH32VxBootstrap';   cputype:cpu_rv32imac; fputype:fpu_none; flashbase:$00000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
+      (controllertypestr:'CH32VXXXXC' ; controllerunitstr:'CH32VxBootstrap';   cputype:cpu_rv32imac; fputype:fpu_none; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00020000)
    );
    {$POP}
 
@@ -156,7 +167,8 @@ Const
      'RV32IM',
      'RV32I',
      'RV32E',
-     'RV32IMC'
+     'RV32IMC',
+     'RV32EC'
    );
 
    fputypestr : array[tfputype] of string[8] = (         
@@ -197,7 +209,8 @@ Const
        { cpu_rv32im    } [CPURV_HAS_MUL],
        { cpu_rv32i     } [],
        { cpu_rv32e     } [CPURV_HAS_16REGISTERS],
-       { cpu_rv32imc   } [CPURV_HAS_MUL,CPURV_HAS_COMPACT]
+       { cpu_rv32imc   } [CPURV_HAS_MUL,CPURV_HAS_COMPACT],
+       { cpu_rv32ec    } [CPURV_HAS_16REGISTERS,CPURV_HAS_COMPACT]
      );
 
 Implementation

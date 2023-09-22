@@ -15,11 +15,17 @@
  **********************************************************************}
 {$packrecords 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit configvars;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Configregs;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, configregs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -115,6 +115,9 @@ begin
        AddInclude('gstbin_impl.inc');
       end;
     P.Sources.AddExampleFiles('examples/camrecord.lpr',P.Directory,false,'.');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

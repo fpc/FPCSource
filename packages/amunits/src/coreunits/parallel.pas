@@ -18,11 +18,17 @@
         external declarations for Parallel Port Driver
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit parallel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -96,7 +102,7 @@ Const
 
 { Note: previous versions of this include files had bits 0 and 2 swapped }
 
-    PARALLELNAME        : PChar = 'parallel.device';
+    PARALLELNAME        : PAnsiChar = 'parallel.device';
 
     PDCMD_QUERY         = CMD_NONSTD;
     PDCMD_SETPARAMS     = CMD_NONSTD + 1;

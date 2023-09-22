@@ -21,12 +21,19 @@
     nils.sjoholm@mailbox.swipnet.se  Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit console;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Inputevent, Amiga.Core.Keymap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, inputevent, keymap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -114,7 +121,7 @@ var
   IConsoleDevice: Pointer = nil;
 
 function CDInputHandler(Events: PInputEvent; ConsoleDev: PLibrary): PInputEvent; syscall IConsoleDevice 76;
-function RawKeyConvert(Events: PInputEvent; Buffer: PChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall IConsoleDevice 80;
+function RawKeyConvert(Events: PInputEvent; Buffer: PAnsiChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall IConsoleDevice 80;
 function GetConSnip(): APTR; syscall ConsoleDevice 9;
 function SetConSnip(Param: APTR): LongInt; syscall ConsoleDevice 10;
 procedure AddConSnipHook(Hook: PHook); syscall ConsoleDevice 11;

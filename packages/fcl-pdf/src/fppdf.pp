@@ -20,7 +20,9 @@
        If you do localise anything, make sure you know what you are doing.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpPDF;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -29,6 +31,19 @@ unit fpPDF;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.StrUtils,
+  System.Contnrs,
+  FpImage,
+  FpImage.Reader.JPEG, FpImage.Reader.PNG, FpImage.Reader.Bitmap, // these are required for auto image-handler functionality
+  System.ZLib.Zstream,
+  FpPdf.Ttf.Parser,
+  FpPdf.Ttf.Subsetter,
+  FpPdf.FontTextMapping;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -40,6 +55,7 @@ uses
   fpparsettf,
   fpTTFSubsetter,
   FPFontTextMapping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   { Some popular predefined colors. Channel format is: RRGGBB }
@@ -626,8 +642,8 @@ type
     procedure AddName(const AKey,AName : String; const AMustEscape: boolean = True);
     procedure AddInteger(const AKey : String; AInteger : Integer);
     procedure AddReference(const AKey : String; AReference : Integer);
-    procedure AddString(const AKey, AString : String);
-    procedure AddString(const AKey:string;const AString : UnicodeString);
+    procedure AddString(const AKey: string; const AString : AnsiString);
+    procedure AddString(const AKey: string; const AString : UnicodeString);
     function IndexOfKey(const AValue: string): integer;
     procedure Write(const AStream: TStream); override;
     procedure WriteDictionary(const AObject: integer; const AStream: TStream);
@@ -785,6 +801,8 @@ type
     procedure CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
     { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
     Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
+    { Define a rectangle that becomes a clickable hotspot, referencing the document page. }
+    Procedure AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const APageIndex: Integer; ABorder: boolean = false);
     { This returns the paper height, converted to whatever UnitOfMeasure is set too }
     function GetPaperHeight: TPDFFloat;
     Function HasImages : Boolean;
@@ -908,9 +926,11 @@ type
     FHeight: TPDFFloat;
     FURI: string;
     FBorder: boolean;
+    FExternalLink: Boolean;
   public
     constructor Create(const ADocument: TPDFDocument); override; overload;
-    constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false); overload;
+    constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false;
+      const AExternalLink: Boolean = true); overload;
   end;
 
 
@@ -1235,7 +1255,7 @@ const
 
 // Helper procedures - made them global for unit testing purposes
 procedure CompressStream(AFrom: TStream; ATo: TStream; ACompressLevel: TCompressionLevel = clDefault; ASkipHeader: boolean = False);
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 procedure DecompressStream(AFrom: TStream; ATo: TStream);
 
 function mmToPDF(mm: single): TPDFFloat;
@@ -1254,10 +1274,17 @@ Operator = (a,b : TPDFPaper) z : boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math,
+  System.Hash.Md5,
+  FpPdf.Ttf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math,
   md5,
   fpttf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 resourcestring
@@ -1362,7 +1389,7 @@ begin
   end;
 end;
 
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 var
   lStreamFrom : TStringStream;
   lStreamTo  : TStringStream;
@@ -1723,9 +1750,12 @@ begin
       if FTextMappingList[n].CharID = c then
       begin
         result := Result + IntToHex(FTextMappingList[n].GlyphID, 4);
+        c:=0;
         break;
       end;
     end;
+    if C<>0 then
+      Result:=Result+IntToHex(C, 4);
   end;
 end;
 
@@ -2146,7 +2176,7 @@ begin
 end;
 
 constructor TPDFAnnot.Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat;
-  const AURI: String; const ABorder: Boolean);
+  const AURI: String; const ABorder: Boolean; const AExternalLink: Boolean);
 begin
   Create(ADocument);
   FLeft := ALeft;
@@ -2155,6 +2185,7 @@ begin
   FHeight := AHeight;
   FURI := AURI;
   FBorder := ABorder;
+  FExternalLink := AExternalLink;
 end;
 
 { TPDFAnnotList }
@@ -2803,6 +2834,21 @@ begin
   p2.Y := AHeight;
   DoUnitConversion(p2);
   an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, AURI, ABorder);
+  Annots.Add(an);
+end;
+
+procedure TPDFPage.AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
+    const APageIndex: Integer; ABorder: boolean);
+var
+  an: TPDFAnnot;
+  p1, p2: TPDFCoord;
+begin
+  p1 := Matrix.Transform(APosX, APosY);
+  DoUnitConversion(p1);
+  p2.X := AWidth;
+  p2.Y := AHeight;
+  DoUnitConversion(p2);
+  an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, Format('[%d]', [APageIndex]), ABorder, False);
   Annots.Add(an);
 end;
 
@@ -4422,7 +4468,7 @@ begin
   AddElement(AKey,Document.CreateReference(AReference));
 end;
 
-procedure TPDFDictionary.AddString(const AKey, AString: String);
+procedure TPDFDictionary.AddString(const AKey : string; const AString: AnsiString);
 begin
   AddElement(AKey,Document.CreateString(AString));
 end;
@@ -4878,7 +4924,7 @@ end;
 function TPDFDocument.GetFontNamePrefix(const AFontNum: Integer): string;
 begin
   // TODO: it must be 6 uppercase characters - no numbers!
-  Result := 'GRAEA' + Char(65+AFontNum) + '+';
+  Result := 'GRAEA' + AnsiChar(65+AFontNum) + '+';
 end;
 
 function TPDFDocument.IndexOfGlobalXRef(const AValue: string): integer;
@@ -5635,9 +5681,17 @@ begin
 
   ADict := CreateDictionary;
   lDict.AddElement('A', ADict);
-  ADict.AddName('Type', 'Action');
-  ADict.AddName('S', 'URI');
-  ADict.AddString('URI', an.FURI);
+  if an.FExternalLink then
+  begin
+    ADict.AddName('Type', 'Action');
+    ADict.AddName('S', 'URI');
+    ADict.AddString('URI', an.FURI);
+  end
+  else
+  begin
+    ADict.AddName('S', 'GoTo');
+    ADict.AddName('D' + an.FURI, '');
+  end;
 
   result := GlobalXRefCount-1;
 end;

@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTTPSvlt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$Mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, System.Async.Fpasync, System.Net.Fpsock, HTTPBase, Servlets;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, fpAsync, fpSock, HTTPBase, Servlets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrUnknownMethod = 'Unknown HTTP method "%s" used';

@@ -20,11 +20,17 @@
 **********************************************************************}
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AHI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   AHIBase: PLibrary = nil;
@@ -343,7 +349,7 @@ var
   { Function to filter mode id's  }
      AHIR_FilterFunc = AHI_TagBase + 271;
   {   DEFS  }
-     AHINAME : PChar = 'ahi.device';
+     AHINAME : PAnsiChar = 'ahi.device';
   { Invalid Audio ID  }
      AHI_INVALID_ID =  not (0);
   { Only for AHI_AllocAudioA()!  }
@@ -538,7 +544,7 @@ SysCall AHIBase 150;
 function AHI_RemoveAudioMode(d0arg : Cardinal location 'd0') : Cardinal;
 SysCall AHIBase 156;
 
-function AHI_LoadModeFile(a0arg : PChar location 'a0') : Cardinal;
+function AHI_LoadModeFile(a0arg : PAnsiChar location 'a0') : Cardinal;
 SysCall AHIBase 162;
 
 

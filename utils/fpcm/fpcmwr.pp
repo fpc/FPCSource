@@ -75,6 +75,7 @@ interface
         FOutput : TStringList;
         FPhony  : string;
         FHasSection : array[tsections] of boolean;
+        FSkipPackageInfo: Boolean;
         procedure LoadFPCMakeIni;
         procedure AddIniSection(const s:string);
         procedure AddCustomSection(const s:string);
@@ -96,6 +97,7 @@ interface
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
         destructor  Destroy;override;
         procedure WriteGenericMakefile;
+        property SkipPackageInfo : Boolean Read FSkipPackageInfo Write FSkipPackageInfo;
       end;
 
 
@@ -290,7 +292,7 @@ implementation
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
                   begin
-                    FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
+                    FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
                     FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
                     FOutput.Add('endif');
                   end;
@@ -347,7 +349,7 @@ implementation
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
                   begin
-                    FOutput.Add('ifeq ($(FULL_TARGET),'+CpuStr[c]+'-'+OSStr[t]+')');
+                    FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CpuStr[c]+'-'+OSStr[t]+')');
                     AddTokens(s);
                     FOutput.Add('endif');
                   end;
@@ -536,6 +538,14 @@ implementation
           unitfpmakedirvar:='UNITDIR_FPMAKE_'+VarName(pack);
           { Search packagedir by looking for Makefile.fpc }
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
+          { Packages may no longer have a Makefile.fpc . Check existance of Makefile + fpmake.pp to be sure }
+          FOutput.Add('ifeq ($('+packdirvar+'),)');
+          FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile,$(PACKAGESDIR))))))');
+          FOutput.Add('ifneq ($('+packdirvar+'),)');
+          FOutput.Add(packdirvar+':=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /'+pack+'/fpmake.pp,$(PACKAGESDIR))))))');
+          FOutput.Add('endif');
+          FOutput.Add('endif');
+
           FOutput.Add('ifneq ($('+packdirvar+'),)');
           { Create unit dir, check if os dependent dir exists }
           FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(TARGETSUFFIX)),)');
@@ -608,7 +618,7 @@ implementation
                 FInput.Verbose(FPCMakeInfo,CpuStr[c]+'-'+OSStr[t]+' requires: '+sl.CommaText);
                 if sl.count>0 then
                  begin
-                   FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
+                   FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
                    for i:=0 to sl.count-1 do
                     begin
                       FOutput.Add(prefix+VarName(sl[i])+'=1');
@@ -758,8 +768,9 @@ implementation
            AddIniSection('fpcdircheckenv');
            AddIniSection('fpcdirdetect');
            AddIniSection('fpmakefpcdetect');
-           { Package }
-           AddVariable('package_name');
+           { Package info }
+           if not SkipPackageInfo then
+             AddVariable('package_name');
            AddVariable('package_version');
            AddVariable('package_targets');
            { Directory of main package }
@@ -888,7 +899,7 @@ implementation
             AddStrings(TFPCMakeSection(FInput['rules']).List);
          end;
         { write to disk }
-        FInput.Verbose(FPCMakeInfo,'Writing Makefile');
+        FInput.Verbose(FPCMakeInfo,'Writing '+FFileName);
         Fixtab(FOutput);
         FOutput.SaveToFile(FFileName);
       end;

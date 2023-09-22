@@ -37,7 +37,7 @@ type
 
    Pax25_address = ^ax25_address;
    ax25_address = record
-        ax25_call : array[0..6] of char;
+        ax25_call : array[0..6] of AnsiChar;
      end;
    Psockaddr_ax25 = ^sockaddr_ax25;
    sockaddr_ax25 = record
@@ -106,7 +106,7 @@ type
 
    Pax25_bpqaddr_struct = ^ax25_bpqaddr_struct;
    ax25_bpqaddr_struct = record
-        dev : array[0..15] of char;
+        dev : array[0..15] of AnsiChar;
         addr : ax25_address;
      end;
 

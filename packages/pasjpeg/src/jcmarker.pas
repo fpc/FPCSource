@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit jcmarker;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains routines to write JPEG datastream markers. }
 
@@ -8,9 +10,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jinclude, System.Jpeg.Jmorecfg, System.Jpeg.Jerror,
+  System.Jpeg.Jdeferr, System.Jpeg.Jpeglib, System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jinclude, jmorecfg, jerror,
   jdeferr, jpeglib, jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 const

@@ -29,13 +29,19 @@
 //
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit extapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Tapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, TAPI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 // ExTAPI LINEERR_ constants

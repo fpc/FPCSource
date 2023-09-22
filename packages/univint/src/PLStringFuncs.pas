@@ -20,7 +20,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PLStringFuncs;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -205,7 +207,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -495,7 +501,7 @@ function PLstrncat( str1: StringPtr; const (*var*) append: Str255; num: SInt16 )
  *  
  *  Discussion:
  *    The PLstrrchr() function locates the first occurrence of ch1
- *    (converted to an unsigned char) in the string s.  If ch1 does not
+ *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
@@ -535,7 +541,7 @@ function PLstrchr( const (*var*) str1: Str255; ch1: SInt16 ): Ptr; external name
  *  
  *  Discussion:
  *    The PLstrrchr() function locates the last occurrence of ch1
- *    (converted to an unsigned char) in the string s.  If ch1 does not
+ *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.

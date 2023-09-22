@@ -174,6 +174,7 @@ interface
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
+        localnamespacelist,
         resourcefiles,
         linkorderedsymbols : TCmdStrList;
         linkunitofiles,
@@ -241,6 +242,7 @@ interface
         constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
         procedure reset;virtual;
+        procedure loadlocalnamespacelist;
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
         procedure addimportedsym(sym:TSymEntry);
@@ -572,6 +574,7 @@ implementation
         localframeworksearchpath:=TSearchPathList.Create;
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
+        localnamespacelist:=TCmdStrList.Create;
         resourcefiles:=TCmdStrList.Create;
         linkorderedsymbols:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
@@ -945,6 +948,26 @@ implementation
            sources_avail
         }
       end;
+
+    procedure tmodule.loadlocalnamespacelist;
+
+    var
+      nsitem : TCmdStrListItem;
+
+    begin
+      // Copying local namespace list
+      if premodule_namespacelist.Count>0 then
+        begin
+        nsitem:=TCmdStrListItem(premodule_namespacelist.First);
+        while assigned(nsItem) do
+          begin
+          localnamespacelist.Concat(nsitem.Str);
+          nsItem:=TCmdStrListItem(nsitem.Next);
+          end;
+        premodule_namespacelist.Clear;
+        end;
+      current_namespacelist:=localnamespacelist;
+    end;
 
 
     procedure tmodule.adddependency(callermodule:tmodule);

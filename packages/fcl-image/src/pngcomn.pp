@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PNGComn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses SysUtils, FPImage, FPImgCmn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, FpImage, FpImage.Common;
+{$ELSE FPC_DOTTEDUNITS}
+uses SysUtils, FpImage, FPImgCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -33,7 +39,7 @@ type
     );
 
   EightLong = array[0..7] of longword;
-  TChunkCode = array[0..3] of char;
+  TChunkCode = array[0..3] of AnsiChar;
 
   TChunk = record
     acapacity, alength, CRC : longword;
@@ -51,6 +57,12 @@ type
     Width, height : longword;
     BitDepth, ColorType, Compression, Filter, Interlace : byte;
   end;
+
+  TPNGPhysicalDimensions = packed record
+    X_Pixels, Y_Pixels :DWord;
+    Unit_Specifier :Byte;
+  end;
+  PPNGPhysicalDimensions=^TPNGPhysicalDimensions;
 
 const
 

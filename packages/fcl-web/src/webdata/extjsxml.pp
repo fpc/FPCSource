@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit extjsxml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Data.Extjs.Base, Xml.Dom, Xml.Read, Xml.Writer, FpWeb.Data.Base, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fpextjs, dom, xmlread, xmlwrite, fpwebdata, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -96,6 +103,7 @@ Type
   end;
 
 implementation
+
 { $define wmdebug}
 {$ifdef wmdebug}
 uses dbugintf;
@@ -336,7 +344,7 @@ begin
       begin
       T:=TStringStream.Create(Request.Content);
       try
-        XmlRead.ReadXMLFile(FXML,T);
+        {$IFDEF FPC_DOTTEDUNITS}Xml.Read{$ELSE}XmlRead{$ENDIF}.ReadXMLFile(FXML,T);
         If (DocumentElement<>'') and (FXML.DocumentElement.NodeName=DocumentElement) then
           begin
           {$ifdef wmdebug}senddebug('Document element is ExtJS DocumentElement');{$endif}

@@ -23,7 +23,9 @@
 {        WIN95/NT - FPC 0.9912+             (32 Bit)       }
 {                                                          }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT AsciiTab;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -34,16 +36,21 @@ UNIT AsciiTab;
 {====================================================================}
 
 {==== Compiler directives ===========================================}
-
+{$H-}
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$S-} { Disable Stack Checking }
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
+
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.App;      { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES FVConsts, Objects, Drivers, Views, App;      { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                        PUBLIC OBJECT DEFINITIONS                          }
@@ -64,7 +71,7 @@ type
   end;
 
 {---------------------------------------------------------------------------}
-{                  TREPORT OBJECT - View with details of current char       }
+{                  TREPORT OBJECT - View with details of current AnsiChar       }
 {---------------------------------------------------------------------------}
   PReport = ^TReport;
   TReport = object(TView)
@@ -243,7 +250,7 @@ begin
   while length(stDec)<3 do
     stDec:=' '+stDec;
   stHex:=hexstr(AsciiChar,2);
-  s:='Char "'+chr(AsciiChar)+'" Decimal: '+
+  s:='AnsiChar "'+chr(AsciiChar)+'" Decimal: '+
      StDec+' Hex: $'+StHex+
      '  '; // //{!ss:fill gap. FormatStr function using be better}
   WriteStr(0,0,S,1);

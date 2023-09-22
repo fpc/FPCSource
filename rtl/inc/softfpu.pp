@@ -77,7 +77,9 @@ these four paragraphs for those parts of this code that are retained.
 {$if not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit softfpu;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Overflow checking must be disabled,
   since some operations expect overflow!

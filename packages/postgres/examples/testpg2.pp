@@ -15,11 +15,11 @@ end;
 
 
 Var
-  pghost,pgport,pgoptions,pgtty,dbname : Pchar;
+  pghost,pgport,pgoptions,pgtty,dbname : PAnsiChar;
   nFields,i : longint;
   conn : PPGConn;
   res : PPGresult;
-  dummy : string;
+  dummy : ansistring;
 
 begin
   pghost := NiL;        { host name of the backend server }

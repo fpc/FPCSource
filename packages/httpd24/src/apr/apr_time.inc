@@ -33,9 +33,9 @@
  *)
 
 //** month names */
-//APR_DECLARE_DATA extern const char apr_month_snames[12][4];
+//APR_DECLARE_DATA extern const AnsiChar apr_month_snames[12][4];
 //** day names */
-//APR_DECLARE_DATA extern const char apr_day_snames[7][4];
+//APR_DECLARE_DATA extern const AnsiChar apr_day_snames[7][4];
 
 type
 //** number of microseconds since 00:00:00 january 1, 1970 UTC */
@@ -226,8 +226,8 @@ const APR_RFC822_DATE_LEN = (30);
  * @param date_str String to write to.
  * @param t the time to convert 
  *}
-//APR_DECLARE(apr_status_t) apr_rfc822_date(char *date_str, apr_time_t t);
-function apr_rfc822_date(date_str: PChar; t: apr_time_t): apr_status_t;
+//APR_DECLARE(apr_status_t) apr_rfc822_date(AnsiChar *date_str, apr_time_t t);
+function apr_rfc822_date(date_str: PAnsiChar; t: apr_time_t): apr_status_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibAPR name LibNamePrefix + 'apr_rfc822_date' + LibSuff12;//apr_time_t is 64bit so it is 12
 
@@ -244,8 +244,8 @@ const APR_CTIME_LEN = (25);
  * @param date_str String to write to.
  * @param t the time to convert 
  *}
-//APR_DECLARE(apr_status_t) apr_ctime(char *date_str, apr_time_t t);
-function apr_ctime(date_str: PChar; t: apr_time_t): apr_status_t;
+//APR_DECLARE(apr_status_t) apr_ctime(AnsiChar *date_str, apr_time_t t);
+function apr_ctime(date_str: PAnsiChar; t: apr_time_t): apr_status_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibAPR name LibNamePrefix + 'apr_ctime' + LibSuff12;//apr_time_t is 64bit so it is 12
 
@@ -257,12 +257,12 @@ function apr_ctime(date_str: PChar; t: apr_time_t): apr_status_t;
  * @param format The format for the time string
  * @param tm The time to convert
  *}
-//APR_DECLARE(apr_status_t) apr_strftime(char *s, apr_size_t *retsize,
-//                                       apr_size_t max, const char *format,
+//APR_DECLARE(apr_status_t) apr_strftime(AnsiChar *s, apr_size_t *retsize,
+//                                       apr_size_t max, const AnsiChar *format,
 //                                       apr_time_exp_t *tm);
-function apr_strftime(s: PChar;
+function apr_strftime(s: PAnsiChar;
                       retsize, max: apr_size_t;
-                      const format_: PChar;
+                      const format_: PAnsiChar;
                       tm: Papr_time_exp_t): apr_status_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibAPR name LibNamePrefix + 'apr_strftime' + LibSuff20;

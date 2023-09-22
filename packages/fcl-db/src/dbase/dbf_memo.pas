@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_memo;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,10 +20,17 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   dbf_pgfile,
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -35,10 +44,10 @@ type
   protected
     FDbfFile: pointer;
     FDbfVersion: TXBaseVersion;
-    FEmptySpaceFiller: Char; //filler for unused header and memo data
+    FEmptySpaceFiller: AnsiChar; //filler for unused header and memo data
     FMemoRecordSize: Integer;
     FOpened: Boolean;
-    FBuffer: PChar;
+    FBuffer: PAnsiChar;
   protected
     function  GetBlockLen: Integer; virtual; abstract;
     function  GetMemoSize: Integer; virtual; abstract;
@@ -117,8 +126,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Data.Dbf.Dbffile;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dbf_dbffile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //====================================================================
 //=== Memo and binary fields support
@@ -279,8 +293,8 @@ procedure TMemoFile.ReadMemo(BlockNo: Integer; DestStream: TStream);
 var
   bytesLeft,numBytes,dataStart: Integer;
   done: Boolean;
-  lastc: char;
-  endMemo: PChar;
+  lastc: AnsiChar;
+  endMemo: PAnsiChar;
 begin
   // clear dest
   DestStream.Position := 0;

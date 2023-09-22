@@ -153,7 +153,7 @@ var
   item : twasmtime_extern_t;
   Ok : Byte;
 begin
-  ok:=wasmtime_instance_export_get(context, instance, PChar(aName), Length(aName), @item) ;
+  ok:=wasmtime_instance_export_get(context, instance, PAnsiChar(aName), Length(aName), @item) ;
   if OK=0 then
     exit_with_error('failed to get '+aName+'export', nil, nil);
   if item.kind<>WASMTIME_EXTERN_FUNC then
@@ -196,7 +196,7 @@ begin
     F.Free;
   end;
 
-  error:=wasmtime_wat2wasm(pchar(wat.data), wat.size, @wasm);
+  error:=wasmtime_wat2wasm(PAnsiChar(wat.data), wat.size, @wasm);
   if (error<>Nil) then
     exit_with_error('failed to parse wat', error, Nil);
   wasm_byte_vec_delete(@wat);
@@ -214,7 +214,7 @@ begin
 
   Writeln('Extracting exports...');
 
-  ok:=wasmtime_instance_export_get(context, @instance, PChar('memory'), 6, @item) ;
+  ok:=wasmtime_instance_export_get(context, @instance, PAnsiChar('memory'), 6, @item) ;
   if OK=0 then
     exit_with_error('failed to get run export', nil, nil);
   if item.kind<>WASMTIME_EXTERN_MEMORY then

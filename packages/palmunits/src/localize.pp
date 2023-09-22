@@ -15,11 +15,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit localize;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The number format (thousands separator and decimal point).  This defines
 // how numbers are formatted and not neccessarily currency numbers (i.e. Switzerland).
@@ -33,7 +39,7 @@ const
   nfApostrophePeriod = Succ(nfSpaceComma);
   nfApostropheComma = Succ(nfApostrophePeriod);
 
-procedure LocGetNumberSeparators(numberFormat: NumberFormatType; thousandSeparator, decimalSeparator: PChar); syscall sysTrapLocGetNumberSeparators;
+procedure LocGetNumberSeparators(numberFormat: NumberFormatType; thousandSeparator, decimalSeparator: PAnsiChar); syscall sysTrapLocGetNumberSeparators;
 
 implementation
 

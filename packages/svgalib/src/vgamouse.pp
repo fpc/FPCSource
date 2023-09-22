@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vgamouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -44,8 +46,8 @@ unit vgamouse;
      MOUSE_6DIM = 63;
      MOUSE_DEFAULTSAMPLERATE = 150;
 
-  function mouse_init(dev:pchar; thetype:longint; samplerate:longint):longint;cdecl; external;
-  function mouse_init_return_fd(dev:pchar; thetype:longint; samplerate:longint):longint;cdecl; external;
+  function mouse_init(dev:PAnsiChar; thetype:longint; samplerate:longint):longint;cdecl; external;
+  function mouse_init_return_fd(dev:PAnsiChar; thetype:longint; samplerate:longint):longint;cdecl; external;
 
   type
 

@@ -15,14 +15,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SortAlgs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SortBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SortBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
                        HeapSort

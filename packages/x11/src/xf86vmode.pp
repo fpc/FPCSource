@@ -32,15 +32,22 @@ from Kaleb S. KEITHLEY
 
 { THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit xf86vmode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 {$DEFINE MACROS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   libXxf86vm = 'Xxf86vm';
@@ -142,8 +149,8 @@ Type
 
   PXF86VidModeMonitor = ^TXF86VidModeMonitor;
   TXF86VidModeMonitor = Record
-    vendor : PChar;
-    model : PChar;
+    vendor : PAnsiChar;
+    model : PAnsiChar;
     EMPTY : cfloat;
     nhsync : cuchar;
     hsync : PXF86VidModeSyncRange;

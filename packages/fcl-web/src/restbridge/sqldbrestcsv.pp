@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestcsv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.RestBridge.IO, FpJson.Data, FpWeb.RestBridge.Schema, Fcl.Csv.ReadWrite;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldbrestio, fpjson, sqldbrestschema, csvreadwrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TCSVInputStreamer }
@@ -58,12 +65,17 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension : String; override;
     procedure InitStreaming; override;
   end;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TCSVInputStreamer }
 
@@ -175,6 +187,11 @@ end;
 Class function TCSVOutputStreamer.GetContentType: String;
 begin
   Result:='text/csv';
+end;
+
+Class Function TCSVOutputStreamer.FileExtension : String; 
+begin
+  Result:='.csv';
 end;
 
 procedure TCSVOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);

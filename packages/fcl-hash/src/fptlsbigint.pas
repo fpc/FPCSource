@@ -10,13 +10,19 @@
 {$R-}
 {$Q-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpTLSBigInt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
@@ -1176,7 +1182,7 @@ end;
 
 function BIToString(BI: PBigInt): AnsiString;
 const
-  Digits: Array[0..15] of char = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+  Digits: Array[0..15] of AnsiChar = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
 var
   I,J,K: Integer;
   Num: TBIComponent;

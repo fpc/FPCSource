@@ -5,7 +5,9 @@
 { Copyright 1999-2000 by H.M. Swartjes         }
 { Part of project Leave, release  17-8-98 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SysTraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
         const

@@ -1,6 +1,6 @@
 {
    Copyright (c) International Business Machines  Corp., 2000
-   Copyright (c) 2003 Yuri Prokushev
+   Copyright (c) 2003,2023 Yuri Prokushev
 
    This module defines the interface to LVM.DLL, which is the
    engine that performs all of the disk partitioning/volume
@@ -22,19 +22,27 @@
    MA 02110-1301, USA.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit LVM;
+{$ENDIF FPC_DOTTEDUNITS}
 
-{$PACKRECORDS C}
+{$PACKRECORDS 1}
 
 Interface
 
 {$ifdef os2}
   {$define lvm1}
+  {$define useordinals}
 {$endif}
 
 {$ifdef linux}
-  {$define lvm2}
+  { $define lvm2}
 {$endif}
+
+{$ifdef aix}
+  { $define lvm2}
+{$endif}
+
 
 // The number of bytes in a sector on the disk.
 const
@@ -125,7 +133,7 @@ Type
   ADDRESS=Pointer;
 
 Type
-  pSTRING=PChar;
+  pSTRING=PAnsiChar;
 
 // 4 bytes
 Type
@@ -224,7 +232,7 @@ type
   _LVM_Interface_Support=record
     Interface_Supported: BOOLEAN;
   case longint of
-      0 : ( Java_Interface_Class : ^char );
+      0 : ( Java_Interface_Class : ^AnsiChar );
       1 : ( VIO_PM_Calls : LVM_OS2_Native_Support );
   end;
   LVM_Interface_Support=_LVM_Interface_Support;
@@ -247,9 +255,9 @@ const
 // The following definitions are used to control and access the various "features" available through the LVM Engine, such as Drive Linking and BBR.
 type
   _Feature_ID_Data=record
-    Name: Array[0..MAX_FEATURE_NAME_LENGTH-1] of char;             // Feature Name, for use in menus and command line parsing.
-    Short_Name: Array[0..MAX_FEATURE_SHORT_NAME_LENGTH-1] of char; // The name/code used to represent this feature during command line parsing.
-    OEM_Info: Array[0..MAX_OEM_INFO_LENGTH-1] of char;             // Name and copyright info. of the manufacturer, i.e. IBM, Vinca, etc.
+    Name: Array[0..MAX_FEATURE_NAME_LENGTH-1] of AnsiChar;             // Feature Name, for use in menus and command line parsing.
+    Short_Name: Array[0..MAX_FEATURE_SHORT_NAME_LENGTH-1] of AnsiChar; // The name/code used to represent this feature during command line parsing.
+    OEM_Info: Array[0..MAX_OEM_INFO_LENGTH-1] of AnsiChar;             // Name and copyright info. of the manufacturer, i.e. IBM, Vinca, etc.
     ID: CARDINAL32;                                        // Numeric Feature ID.
     Major_Version_Number: CARDINAL32;                      // The version number of this feature.
     Minor_Version_Number: CARDINAL32;                      // The version number of this feature.
@@ -298,7 +306,7 @@ Type
     Unusable: BOOLEAN;                          // If TRUE, the drive's MBR is not accessible and the drive can not be partitioned.
     IO_Error: BOOLEAN;                          // If TRUE, then the last I/O operation on this drive failed!
     Is_Big_Floppy: BOOLEAN;                     // If TRUE, then the drive is a PRM formatted as a big floppy (i.e. the old style removable media support).
-    Drive_Name: Array[0..DISK_NAME_SIZE-1] of Char; // User assigned name for this disk drive.
+    Drive_Name: Array[0..DISK_NAME_SIZE-1] of AnsiChar; // User assigned name for this disk drive.
   end;
 
   Partition_Information_Record=record
@@ -347,11 +355,11 @@ Type
                                                     //2 = Available - i.e. not currently assigned to a volume.
     On_Boot_Manager_Menu: BOOLEAN;                  // Set to TRUE if this partition is not part of a Volume yet is on the Boot Manager Menu.
     Reserved: BYTE;                                 // Alignment.
-    Volume_Drive_Letter: char;                      // The drive letter assigned to the volume that this partition is a part of.
-    Drive_Name: Array[0..DISK_NAME_SIZE-1] of char;   // User assigned name for this disk drive.
-    File_System_Name: Array[0..FILESYSTEM_NAME_SIZE-1] of char;// The name of the filesystem in use on this partition, if it is known.
-    Partition_Name: Array[0..PARTITION_NAME_SIZE-1] of char;   // The user assigned name for this partition.
-    Volume_Name: Array[0..VOLUME_NAME_SIZE-1] of char;         // If this partition is part of a volume, then this will be the
+    Volume_Drive_Letter: AnsiChar;                      // The drive letter assigned to the volume that this partition is a part of.
+    Drive_Name: Array[0..DISK_NAME_SIZE-1] of AnsiChar;   // User assigned name for this disk drive.
+    File_System_Name: Array[0..FILESYSTEM_NAME_SIZE-1] of AnsiChar;// The name of the filesystem in use on this partition, if it is known.
+    Partition_Name: Array[0..PARTITION_NAME_SIZE-1] of AnsiChar;   // The user assigned name for this partition.
+    Volume_Name: Array[0..VOLUME_NAME_SIZE-1] of AnsiChar;         // If this partition is part of a volume, then this will be the
                                                              //name of the volume that this partition is a part of.  If this
                                                              //record represents free space, then the Volume_Name will be
                                                              //"FREE SPACE xx", where xx is a unique numeric ID generated by
@@ -424,11 +432,11 @@ type
     Bootable: BOOLEAN;                              // Set to TRUE if this volume appears on the Boot Manager menu, or if it is
 //a compatibility volume and its corresponding partition is the first active
 //primary partition on the first drive.
-    Drive_Letter_Preference: char;               // The drive letter that this volume desires to be.
-    Current_Drive_Letter: char;                  // The drive letter currently used to access this volume.  May be different than
+    Drive_Letter_Preference: AnsiChar;               // The drive letter that this volume desires to be.
+    Current_Drive_Letter: AnsiChar;                  // The drive letter currently used to access this volume.  May be different than
 //Drive_Letter_Preference if there was a conflict ( i.e. Drive_Letter_Preference
 //is already in use by another volume ).
-    Initial_Drive_Letter: char;                  // The drive letter assigned to this volume by the operating system when LVM was started.
+    Initial_Drive_Letter: AnsiChar;                  // The drive letter assigned to this volume by the operating system when LVM was started.
 //This may be different from the Drive_Letter_Preference if there were conflicts, and
 //may be different from the Current_Drive_Letter.  This will be 0x0 if the Volume did
 //not exist when the LVM Engine was opened (i.e. it was created during this LVM session).
@@ -439,8 +447,8 @@ type
 //2 = Startable
 //3 = Installable.
     Reserved_1: BYTE;
-    Volume_Name: Array[0..VOLUME_NAME_SIZE-1] of char;         // The user assigned name for this volume.
-    File_System_Name: Array[0..FILESYSTEM_NAME_SIZE-1] of char;// The name of the filesystem in use on this partition, if it is known.
+    Volume_Name: Array[0..VOLUME_NAME_SIZE-1] of AnsiChar;         // The user assigned name for this volume.
+    File_System_Name: Array[0..FILESYSTEM_NAME_SIZE-1] of AnsiChar;// The name of the filesystem in use on this partition, if it is known.
   end;
 
 // The following structure is used to return the feature information for the installed features, or the features on a volume.
@@ -664,7 +672,7 @@ LVM_StartLog
 
 type
   _LVM_Token=record
-    TokenText: PChar;  // The actual text of the token.
+    TokenText: PAnsiChar;  // The actual text of the token.
     TokenType: Token_Characterizations;  // What the token is thought to be.
     Position: CARDINAL32;   // The position of the first character of the token on the command line.
   end;
@@ -717,7 +725,7 @@ const
 //*           LVM_Interface_Type of VIO_Interface.                                                   */
 //*                                                                                                  */
 //****************************************************************************************************/
-procedure Open_LVM_Engine(Ignore_CHS: BOOLEAN; Error_Code: PCARDINAL32); external 'lvm' name 'Open_LVM_Engine';
+procedure Open_LVM_Engine(Ignore_CHS: BOOLEAN; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0041;{$else}name 'Open_LVM_Engine';{$endif}
 
 //****************************************************************************************************/
 //*                                                                                                  */
@@ -807,7 +815,7 @@ procedure Open_LVM_Engine2(Ignore_CHS: BOOLEAN; Interface_Type: LVM_Interface_Ty
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Commit_Changes(Error_Code: PCARDINAL32): BOOLEAN; external 'lvm' name 'Commit_Changes';
+function Commit_Changes(Error_Code: PCARDINAL32): BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $0029;{$else}name 'Commit_Changes';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -859,7 +867,7 @@ function Commit_Changes(Error_Code: PCARDINAL32): BOOLEAN; external 'lvm' name '
 {$ifdef lvm2}
 type
   TJavaExecProc=procedure(
-    Class_Name: PChar;
+    Class_Name: PAnsiChar;
     InputBuffer: ADDRESS;
     InputBufferSize: CARDINAL32;
     OutputBuffer: PADDRESS;
@@ -889,7 +897,7 @@ procedure Set_Java_Call_Back(
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Close_LVM_Engine; external 'lvm' name 'Close_LVM_Engine';
+procedure Close_LVM_Engine; cdecl; external 'lvm' {$ifdef useordinals}index $0048;{$else}name 'Close_LVM_Engine';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1095,7 +1103,7 @@ CARDINAL32 *                        Error_Code);
 //*           have changed.                                           */
 //*                                                                   */
 //*********************************************************************/
-procedure Refresh_LVM_Engine(Error_Code: PCARDINAL32); external 'lvm' name 'Refresh_LVM_Engine';
+procedure Refresh_LVM_Engine(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $005B;{$else}name 'Refresh_LVM_Engine';{$endif}
 
 //****************************************************************************
 //
@@ -1136,7 +1144,7 @@ procedure Refresh_LVM_Engine(Error_Code: PCARDINAL32); external 'lvm' name 'Refr
 //*           free this memory when they are done using it.           */
 //*                                                                   */
 //*********************************************************************/
-function Get_Drive_Control_Data(Error_Code: PCARDINAL32): Drive_Control_Array; external 'lvm' name 'Get_Drive_Control_Data';
+function Get_Drive_Control_Data(Error_Code: PCARDINAL32): Drive_Control_Array; cdecl; external 'lvm' {$ifdef useordinals}index $0010;{$else}name 'Get_Drive_Control_Data';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1165,7 +1173,7 @@ function Get_Drive_Control_Data(Error_Code: PCARDINAL32): Drive_Control_Array; e
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Drive_Status(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32): Drive_Information_Record; external 'lvm' name 'Get_Drive_Status';
+function Get_Drive_Status(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32): Drive_Information_Record; cdecl; external 'lvm' {$ifdef useordinals}index $0054;{$else}name 'Get_Drive_Status';{$endif}
 
 //****************************************************************************
 //
@@ -1221,7 +1229,7 @@ function Get_Drive_Status(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32): Drive
 //*           are done using it.                                      */
 //*                                                                   */
 //*********************************************************************/
-function Get_Partitions(Handle: ADDRESS; Error_Code: PCARDINAL32): Partition_Information_Array; external 'lvm' name 'Get_Partitions';
+function Get_Partitions(Handle: ADDRESS; Error_Code: PCARDINAL32): Partition_Information_Array; cdecl; external 'lvm' {$ifdef useordinals}index $0027;{$else}name 'Get_Partitions';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1253,7 +1261,7 @@ function Get_Partitions(Handle: ADDRESS; Error_Code: PCARDINAL32): Partition_Inf
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Partition_Handle(Serial_Number: CARDINAL32; Error_Code: PCARDINAL32): ADDRESS; external 'lvm' name 'Get_Partition_Handle';
+function Get_Partition_Handle(Serial_Number: CARDINAL32; Error_Code: PCARDINAL32): ADDRESS; cdecl; external 'lvm' {$ifdef useordinals}index $0001;{$else}name 'Get_Partition_Handle';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1284,7 +1292,7 @@ function Get_Partition_Handle(Serial_Number: CARDINAL32; Error_Code: PCARDINAL32
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Partition_Information(Partition_Handle: ADDRESS; Error_Code: PCARDINAL32): Partition_Information_Record; external 'lvm' name 'Get_Partition_Information';
+function Get_Partition_Information(Partition_Handle: ADDRESS; Error_Code: PCARDINAL32): Partition_Information_Record; cdecl; external 'lvm' {$ifdef useordinals}index $0036;{$else}name 'Get_Partition_Information';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1361,7 +1369,7 @@ function Get_Partition_Information(Partition_Handle: ADDRESS; Error_Code: PCARDI
 //*                                                                   */
 //*********************************************************************/
 type
-  TPartitionName=Array[0..PARTITION_NAME_SIZE-1] of char;
+  TPartitionName=Array[0..PARTITION_NAME_SIZE-1] of AnsiChar;
 
 function Create_Partition(Handle: ADDRESS;
 Size: CARDINAL32;
@@ -1371,7 +1379,7 @@ Bootable: BOOLEAN;
 Primary_Partition: BOOLEAN;
 Allocate_From_Start: BOOLEAN;
 Error_Code: PCARDINAL32
-): ADDRESS; external 'lvm' name 'Create_Partition';
+): ADDRESS; cdecl; external 'lvm' {$ifdef useordinals}index $004F;{$else}name 'Create_Partition';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1406,7 +1414,7 @@ Error_Code: PCARDINAL32
 //*           volume!                                                 */
 //*                                                                   */
 //*********************************************************************/
-procedure Delete_Partition(Partition_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Delete_Partition';
+procedure Delete_Partition(Partition_Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0051;{$else}name 'Delete_Partition';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1444,7 +1452,7 @@ procedure Delete_Partition(Partition_Handle: ADDRESS; Error_Code: PCARDINAL32); 
 procedure Set_Active_Flag(Partition_Handle: ADDRESS;
 Active_Flag: BYTE;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Set_Active_Flag';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0045;{$else}name 'Set_Active_Flag';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1486,7 +1494,7 @@ Error_Code: PCARDINAL32
 procedure Set_OS_Flag(Partition_Handle: ADDRESS;
 OS_Flag: BYTE;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Set_OS_Flag';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0015;{$else}name 'Set_OS_Flag';{$endif}
 
 //****************************************************************************
 //
@@ -1535,7 +1543,7 @@ Error_Code: PCARDINAL32
 //*           free this memory when they are done using it.           */
 //*                                                                   */
 //*********************************************************************/
-function Get_Volume_Control_Data(Error_Code: PCARDINAL32): Volume_Control_Array; external 'lvm' name 'Get_Volume_Control_Data';
+function Get_Volume_Control_Data(Error_Code: PCARDINAL32): Volume_Control_Array; cdecl; external 'lvm' {$ifdef useordinals}index $0032;{$else}name 'Get_Volume_Control_Data';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1567,7 +1575,7 @@ function Get_Volume_Control_Data(Error_Code: PCARDINAL32): Volume_Control_Array;
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Volume_Information(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32): Volume_Information_Record; external 'lvm' name 'Get_Volume_Information';
+function Get_Volume_Information(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32): Volume_Information_Record; cdecl; external 'lvm' {$ifdef useordinals}index $0014;{$else}name 'Get_Volume_Information';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1636,17 +1644,17 @@ function Get_Volume_Information(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32)
 //*                                                                   */
 //*********************************************************************/
 type
-  TVolumeName=Array[0..VOLUME_NAME_SIZE-1] of char;
+  TVolumeName=Array[0..VOLUME_NAME_SIZE-1] of AnsiChar;
 
 procedure Create_Volume(Name: TVolumeName;
 Create_LVM_Volume: BOOLEAN;
 Bootable: BOOLEAN;
-Drive_Letter_Preference: char;
+Drive_Letter_Preference: AnsiChar;
 FeaturesToUse: CARDINAL32;
 Partition_Count: CARDINAL32;
 Partition_Handles: Array of ADDRESS;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Create_Volume';
+); cdecl; external 'lvm' {$ifdef useordinals}index $001E;{$else}name 'Create_Volume';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1723,7 +1731,7 @@ Error_Code: PCARDINAL32
 //*                                                                   */
 //*********************************************************************/
 {$ifdef lvm2}
-void _System Create_Volume2( char                               Name[VOLUME_NAME_SIZE],
+void _System Create_Volume2( AnsiChar                               Name[VOLUME_NAME_SIZE],
 BOOLEAN                            Create_LVM_Volume,
 BOOLEAN                            Bootable,
 char                               Drive_Letter_Preference,
@@ -1773,7 +1781,7 @@ CARDINAL32 *                       Error_Code
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Delete_Volume(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Delete_Volume';
+procedure Delete_Volume(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $001F;{$else}name 'Delete_Volume';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1809,7 +1817,7 @@ procedure Delete_Volume(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); extern
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Hide_Volume(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Hide_Volume';
+procedure Hide_Volume(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $000F;{$else}name 'Hide_Volume';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1873,7 +1881,7 @@ procedure Expand_Volume(Volume_Handle: ADDRESS;
 Partition_Count: CARDINAL32;
 Partition_Handles: Array of ADDRESS;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Expand_Volume';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0024;{$else}name 'Expand_Volume';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1912,9 +1920,9 @@ Error_Code: PCARDINAL32
 //*                                                                   */
 //*********************************************************************/
 procedure Assign_Drive_Letter(Volume_Handle: ADDRESS;
-New_Drive_Preference: char;
+New_Drive_Preference: AnsiChar;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Assign_Drive_Letter';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0004;{$else}name 'Assign_Drive_Letter';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1946,7 +1954,7 @@ Error_Code: PCARDINAL32
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Set_Installable(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Set_Installable';
+procedure Set_Installable(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $003F;{$else}name 'Set_Installable';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -1971,7 +1979,7 @@ procedure Set_Installable(Volume_Handle: ADDRESS; Error_Code: PCARDINAL32); exte
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Installable_Volume(Error_Code: PCARDINAL32): Volume_Information_Record; external 'lvm' name 'Get_Installable_Volume';
+function Get_Installable_Volume(Error_Code: PCARDINAL32): Volume_Information_Record; cdecl; external 'lvm' {$ifdef useordinals}index $000E;{$else}name 'Get_Installable_Volume';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2059,9 +2067,9 @@ CARDINAL32 * Error_Code ) ;
 //*                                                                   */
 //*********************************************************************/
 procedure Set_Name(Handle: ADDRESS;
-New_Name: Array of char;
+New_Name: Array of AnsiChar;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Set_Name';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0062;{$else}name 'Set_Name';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2099,7 +2107,7 @@ Error_Code: PCARDINAL32
 //*********************************************************************/
 procedure Set_Startable(Handle: ADDRESS;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Set_Startable';
+); cdecl; external 'lvm' {$ifdef useordinals}index $0018;{$else}name 'Set_Startable';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2135,7 +2143,7 @@ Error_Code: PCARDINAL32
 //*           definitions.                                            */
 //*                                                                   */
 //*********************************************************************/
-function Get_Valid_Options(Handle: ADDRESS; Error_Code: PCARDINAL32): CARDINAL32; external 'lvm' name 'Get_Valid_Options';
+function Get_Valid_Options(Handle: ADDRESS; Error_Code: PCARDINAL32): CARDINAL32; cdecl; external 'lvm' {$ifdef useordinals}index $0056;{$else}name 'Get_Valid_Options';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2290,7 +2298,7 @@ Feature_Information_Array _System Get_Features( ADDRESS Handle, CARDINAL32 * Err
 type
   PBOOLEAN=^BOOLEAN;
 
-function Boot_Manager_Is_Installed(Active: PBOOLEAN; Error_Code: PCARDINAL32): BOOLEAN; external 'lvm' name 'Boot_Manager_Is_Installed';
+function Boot_Manager_Is_Installed(Active: PBOOLEAN; Error_Code: PCARDINAL32): BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $0030;{$else}name 'Boot_Manager_Is_Installed';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2315,7 +2323,7 @@ function Boot_Manager_Is_Installed(Active: PBOOLEAN; Error_Code: PCARDINAL32): B
 //*   Notes:                                                          */
 //*                                                                   */
 //*********************************************************************/
-function Get_Boot_Manager_Handle(Error_Code: PCARDINAL32): ADDRESS; external 'lvm' name 'Get_Boot_Manager_Handle';
+function Get_Boot_Manager_Handle(Error_Code: PCARDINAL32): ADDRESS; cdecl; external 'lvm' {$ifdef useordinals}index $0023;{$else}name 'Get_Boot_Manager_Handle';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2350,7 +2358,7 @@ function Get_Boot_Manager_Handle(Error_Code: PCARDINAL32): ADDRESS; external 'lv
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Add_To_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Add_To_Boot_Manager';
+procedure Add_To_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $006A;{$else}name 'Add_To_Boot_Manager';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2382,7 +2390,7 @@ procedure Add_To_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); externa
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Remove_From_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'Remove_From_Boot_Manager';
+procedure Remove_From_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $002C;{$else}name 'Remove_From_Boot_Manager';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2419,7 +2427,7 @@ procedure Remove_From_Boot_Manager(Handle: ADDRESS; Error_Code: PCARDINAL32); ex
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Boot_Manager_Menu(Error_Code: PCARDINAL32): Boot_Manager_Menu; external 'lvm' name 'Get_Boot_Manager_Menu';
+function Get_Boot_Manager_Menu(Error_Code: PCARDINAL32): Boot_Manager_Menu; cdecl; external 'lvm' {$ifdef useordinals}index $0003;{$else}name 'Get_Boot_Manager_Menu';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2452,7 +2460,7 @@ function Get_Boot_Manager_Menu(Error_Code: PCARDINAL32): Boot_Manager_Menu; exte
 //*                                                                   */
 //*********************************************************************/
 // Only drives 0 and 1 are acceptable.
-procedure Install_Boot_Manager(Drive_Number: CARDINAL32; Error_Code: PCARDINAL32); external 'lvm' name 'Install_Boot_Manager';
+procedure Install_Boot_Manager(Drive_Number: CARDINAL32; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0069;{$else}name 'Install_Boot_Manager';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2475,7 +2483,7 @@ procedure Install_Boot_Manager(Drive_Number: CARDINAL32; Error_Code: PCARDINAL32
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Remove_Boot_Manager(Error_Code: PCARDINAL32); external 'lvm' name 'Remove_Boot_Manager';
+procedure Remove_Boot_Manager(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0002;{$else}name 'Remove_Boot_Manager';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2521,7 +2529,7 @@ Timer_Active: BOOLEAN;
 Time_Out_Value: CARDINAL32;
 Advanced_Mode: BOOLEAN;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Set_Boot_Manager_Options';
+); cdecl; external 'lvm' {$ifdef useordinals}index $002D;{$else}name 'Set_Boot_Manager_Options';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2574,7 +2582,7 @@ Timer_Active: PBOOLEAN;
 Time_Out_Value: PCARDINAL32;
 Advanced_Mode: PBOOLEAN;
 Error_Code: PCARDINAL32
-); external 'lvm' name 'Get_Boot_Manager_Options';
+); cdecl; external 'lvm' {$ifdef useordinals}index $002A;{$else}name 'Get_Boot_Manager_Options';{$endif}
 
 //****************************************************************************
 //
@@ -2638,7 +2646,7 @@ ADDRESS _System Allocate_Engine_Memory( CARDINAL32 Size );
 //*           passed into this function.                              */
 //*                                                                   */
 //*********************************************************************/
-procedure Free_Engine_Memory(Object_: ADDRESS); external 'lvm' name 'Free_Engine_Memory';
+procedure Free_Engine_Memory(Object_: ADDRESS); cdecl; external 'lvm' {$ifdef useordinals}index $005E;{$else}name 'Free_Engine_Memory';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2666,7 +2674,7 @@ procedure Free_Engine_Memory(Object_: ADDRESS); external 'lvm' name 'Free_Engine
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure New_MBR(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm' name 'New_MBR';
+procedure New_MBR(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0060;{$else}name 'New_MBR';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2694,7 +2702,7 @@ procedure New_MBR(Drive_Handle: ADDRESS; Error_Code: PCARDINAL32); external 'lvm
 //*           by OS2DASD.                                             */
 //*                                                                   */
 //*********************************************************************/
-function Get_Available_Drive_Letters(Error_Code: PCARDINAL32): CARDINAL32; external 'lcm' name 'Get_Available_Drive_Letters';
+function Get_Available_Drive_Letters(Error_Code: PCARDINAL32): CARDINAL32; cdecl; external 'lcm' {$ifdef useordinals}index $005D;{$else}name 'Get_Available_Drive_Letters';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2727,7 +2735,7 @@ function Get_Available_Drive_Letters(Error_Code: PCARDINAL32): CARDINAL32; exter
 //*           not controlled by OS2DASD.                              */
 //*                                                                   */
 //*********************************************************************/
-function Get_Reserved_Drive_Letters(Error_Code: CARDINAL32): CARDINAL32; external 'lvm' name 'Get_Reserved_Drive_Letters';
+function Get_Reserved_Drive_Letters(Error_Code: CARDINAL32): CARDINAL32; cdecl; external 'lvm' {$ifdef useordinals}index $0050;{$else}name 'Get_Reserved_Drive_Letters';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2751,7 +2759,7 @@ function Get_Reserved_Drive_Letters(Error_Code: CARDINAL32): CARDINAL32; externa
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Reboot_Required: BOOLEAN; external 'lvm' name 'Reboot_Required';
+function Reboot_Required: BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $0043;{$else}name 'Reboot_Required';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2775,7 +2783,7 @@ function Reboot_Required: BOOLEAN; external 'lvm' name 'Reboot_Required';
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Changes_Pending: BOOLEAN; external 'lvm' name 'Changes_Pending';
+function Changes_Pending: BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $003D;{$else}name 'Changes_Pending';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2807,7 +2815,7 @@ function Changes_Pending: BOOLEAN; external 'lvm' name 'Changes_Pending';
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Set_Reboot_Flag(Reboot: BOOLEAN; Error_Code: PCARDINAL32); external 'lvm' name 'Set_Reboot_Flag';
+procedure Set_Reboot_Flag(Reboot: BOOLEAN; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0042;{$else}name 'Set_Reboot_Flag';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2838,7 +2846,7 @@ procedure Set_Reboot_Flag(Reboot: BOOLEAN; Error_Code: PCARDINAL32); external 'l
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Reboot_Flag(Error_Code: PCARDINAL32): BOOLEAN; external 'lvm' name 'Get_Reboot_Flag';
+function Get_Reboot_Flag(Error_Code: PCARDINAL32): BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $0040;{$else}name 'Get_Reboot_Flag';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2868,7 +2876,7 @@ function Get_Reboot_Flag(Error_Code: PCARDINAL32): BOOLEAN; external 'lvm' name 
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Set_Install_Flags(Install_Flags: CARDINAL32; Error_Code: PCARDINAL32); external 'lvm' name 'Set_Install_Flags';
+procedure Set_Install_Flags(Install_Flags: CARDINAL32; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0055;{$else}name 'Set_Install_Flags';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2897,7 +2905,7 @@ procedure Set_Install_Flags(Install_Flags: CARDINAL32; Error_Code: PCARDINAL32);
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-function Get_Install_Flags(Error_Code: PCARDINAL32): CARDINAL32; external 'lvm' name 'Get_Install_Flags';
+function Get_Install_Flags(Error_Code: PCARDINAL32): CARDINAL32; cdecl; external 'lvm' {$ifdef useordinals}index $0053;{$else}name 'Get_Install_Flags';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2924,7 +2932,7 @@ function Get_Install_Flags(Error_Code: PCARDINAL32): CARDINAL32; external 'lvm' 
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Set_Min_Install_Size(Min_Sectors: CARDINAL32); external 'lvm' name 'Set_Min_Install_Size';
+procedure Set_Min_Install_Size(Min_Sectors: CARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0007;{$else}name 'Set_Min_Install_Size';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2950,7 +2958,7 @@ procedure Set_Min_Install_Size(Min_Sectors: CARDINAL32); external 'lvm' name 'Se
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Set_Free_Space_Threshold(Min_Sectors: CARDINAL32); external 'lvm' name 'Set_Free_Space_Threshold';
+procedure Set_Free_Space_Threshold(Min_Sectors: CARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $002E;{$else}name 'Set_Free_Space_Threshold';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -2989,7 +2997,7 @@ procedure Read_Sectors(Drive_Number: CARDINAL32;
 Starting_Sector: LBA;
 Sectors_To_Read: CARDINAL32;
 Buffer: ADDRESS;
-Error: PCARDINAL32); external 'lvm' name 'Read_Sectors';
+Error: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0012;{$else}name 'Read_Sectors';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -3029,7 +3037,7 @@ procedure Write_Sectors(Drive_Number: CARDINAL32;
 Starting_Sector: LBA;
 Sectors_To_Write: CARDINAL32;
 Buffer: ADDRESS;
-Error: PCARDINAL32); external 'lvm' name 'Write_Sectors';
+Error: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0021;{$else}name 'Write_Sectors';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -3055,7 +3063,7 @@ Error: PCARDINAL32); external 'lvm' name 'Write_Sectors';
 //*          called as this function is disabled while it is open!    */
 //*                                                                   */
 //*********************************************************************/
-procedure Rediscover_PRMs(Error_Code: PCARDINAL32); external 'lvm' name 'Rediscover_PRMs';
+procedure Rediscover_PRMs(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0046;{$else}name 'Rediscover_PRMs';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -3104,11 +3112,11 @@ procedure Rediscover_PRMs(Error_Code: PCARDINAL32); external 'lvm' name 'Redisco
 //*          closed.                                                  */
 //*                                                                   */
 //*********************************************************************/
-function Get_LVM_View(IFSM_Drive_Letter: char;
+function Get_LVM_View(IFSM_Drive_Letter: AnsiChar;
 Drive_Number: PCARDINAL32;
 Partition_LBA: PCARDINAL32;
-LVM_Drive_Letter: Pchar;
-UnitID: PBYTE): BOOLEAN; external 'lvm' name 'Get_LVM_View';
+LVM_Drive_Letter: PAnsiChar;
+UnitID: PBYTE): BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}index $0016;{$else}name 'Get_LVM_View';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -3139,7 +3147,7 @@ UnitID: PBYTE): BOOLEAN; external 'lvm' name 'Get_LVM_View';
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Start_Logging(Filename: Pchar; Error_Code: PCARDINAL32); external 'lvm' name 'Start_Logging';
+procedure Start_Logging(Filename: PAnsiChar; Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0019;{$else}name 'Start_Logging';{$endif}
 
 //*********************************************************************/
 //*                                                                   */
@@ -3164,7 +3172,7 @@ procedure Start_Logging(Filename: Pchar; Error_Code: PCARDINAL32); external 'lvm
 //*   Notes:  None.                                                   */
 //*                                                                   */
 //*********************************************************************/
-procedure Stop_Logging(Error_Code: PCARDINAL32); external 'lvm' name 'Stop_Logging';
+procedure Stop_Logging(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef useordinals}index $0017;{$else}name 'Stop_Logging';{$endif}
 
 
 {$ifdef lists}

@@ -21,17 +21,26 @@
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinSta;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DateUtils, System.SysUtils, WinApi.Jedi.Wintype, // WinApi.Jedi.Wintype must be declared before WinApi.Jedi.Winbase because of duplicate declaration of FILETIME
+  WinApi.Jedi.Winbase, WinApi.Jedi.Winerror, WinApi.Jedi.Ntstatus, WinApi.Jedi.Winnt, WinApi.Jedi.Winsock2,
+  WinApi.Jedi.Winsvc, WinApi.Jedi.Wtsapi32, WinApi.Jedi.Native;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DateUtils, SysUtils, JwaWinType, // JwaWinType must be declared before JwaWinBase because of duplicate declaration of FILETIME
   JwaWinBase, JwaWinError, JwaNTStatus, JwaWinNT, JwaWinsock2,
   JwaWinSvc, JwaWtsApi32, JwaNative;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
@@ -298,7 +307,7 @@ function CalculateDiffTime(TimeLow: INT64; TimeHigh: INT64): INT64;
 function CalculateElapsedTime(lpFileTime: PFILETIME; var DiffTime: TDiffTime):
   Boolean; stdcall;
 
-function CpuTime2Str(ACPUTime: LARGE_INTEGER): string;
+function CpuTime2Str(ACPUTime: LARGE_INTEGER): Ansistring;
 
 function CurrentDateTimeString(out lpBuffer: PWideChar): Boolean; stdcall;
 
@@ -336,7 +345,7 @@ function FileTime2DateTime(FileTime: TFileTime): TDateTime;
 function GetUnknownString: PWideChar; stdcall;
 
 function GetWTSLogonIdleTime(hServer: Handle; SessionId: DWORD;
-  var sLogonTime: string; var sIdleTime: string): Boolean;
+  var sLogonTime: AnsiString; var sIdleTime: AnsiString): Boolean;
 
 // Helper function that inits the structure for you!
 procedure InitTermSrvCounterArray(
@@ -413,7 +422,7 @@ function WinStationGetProcessSid(hServer: Handle; dwPID: DWORD;
   BOOL; stdcall;
 
 function WinStationGetRemoteIPAddress(hServer: HANDLE; SessionId: DWORD;
-  var RemoteIPAddress: string; var Port: WORD): Boolean;
+  var RemoteIPAddress: Ansistring; var Port: WORD): Boolean;
 
 function WinStationGetTermSrvCountersValue(hServer: Handle;
   dwArraySize: DWORD; PCountersArray: PTERM_SRV_COUNTER_ARRAY): BOOL;
@@ -488,8 +497,13 @@ function WinStationTerminateProcess(hServer: Handle; dwPID: DWORD;
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Windllnames;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinDLLNames;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_INCLUDEMODE}
@@ -1092,7 +1106,7 @@ end;
 
 // This functions converts CPU times as returned by
 // TSystemProcesses structure to a string
-function CpuTime2Str(ACPUTime: LARGE_INTEGER): String;
+function CpuTime2Str(ACPUTime: LARGE_INTEGER): AnsiString;
 var SystemTime: TSystemTime;
 {$IFDEF COMPILER7_UP}
   FS: TFormatSettings;
@@ -1199,7 +1213,7 @@ begin
 end;
 
 function GetWTSLogonIdleTime(hServer: HANDLE; SessionId: DWORD;
-  var sLogonTime: string; var sIdleTime: string): Boolean;
+  var sLogonTime: ansistring; var sIdleTime: ansistring): Boolean;
 var
   uReturnLength: DWORD;
   Info: _WINSTATION_INFORMATIONW;
@@ -1326,7 +1340,7 @@ begin
 end;
 
 function WinStationGetRemoteIPAddress(hServer: HANDLE; SessionId: DWORD;
-  var RemoteIPAddress: string; var Port: WORD): Boolean;
+  var RemoteIPAddress: ansistring; var Port: WORD): Boolean;
 var WinStationRemoteIPAddress: TWinStationRemoteAddress;
   pReturnLength: DWORD;
 begin

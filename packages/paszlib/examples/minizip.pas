@@ -20,7 +20,7 @@ const
   WRITEBUFFERSIZE = Z_BUFSIZE;
   MAXFILENAME     = Z_MAXFILENAMEINZIP;
 
-  function filetime(f: PChar;               { name of file to get info on }
+  function filetime(f: PAnsiChar;               { name of file to get info on }
     var tmzip: tm_zip): cuLong;             { return value: access, modific. and creation times }
   var
     dtrec: TDateTime;    { For Pack/UnpackTime}
@@ -58,19 +58,19 @@ const
     answer: string[128];
     argstr: string;
     buf:    pointer;
-    c:      char;
+    c:      AnsiChar;
     dot_found: longint;
     err:    longint;
     errclose: longint;
-    filenameinzip: PChar;
-    filename_try: array[0..MAXFILENAME - 1] of char;
+    filenameinzip: PAnsiChar;
+    filename_try: array[0..MAXFILENAME - 1] of AnsiChar;
     fin:    FILEptr;
     i:      longint;
     len:    longint;
     opt_compress_level: longint;
     opt_overwrite: longint;
-    p:      PChar;
-    rep:    char;
+    p:      PAnsiChar;
+    rep:    AnsiChar;
     size_buf: longint;
     size_read: longint;
     zf:     zipFile;
@@ -97,7 +97,7 @@ const
         argstr := ParamStr(i) + #0;
         if (argstr[1] = '-') then
         begin
-          p := @argstr[1 + 1];       {const char *p=argv[i]+1;}
+          p := @argstr[1 + 1];       {const AnsiChar *p=argv[i]+1;}
 
           while (p^ <> #0) do
           begin
@@ -131,7 +131,7 @@ const
 
       zipok  := 1;
       argstr := ParamStr(zipfilenamearg) + #0;
-      strcopy(filename_try, PChar(@argstr[1]));
+      strcopy(filename_try, PAnsiChar(@argstr[1]));
       len := strlen(filename_try);
       for i := 0 to len - 1 do
         if (filename_try[i] = '.') then
@@ -173,7 +173,7 @@ const
         argstr := ParamStr(i) + #0;
         if (argstr[1] <> '-') and (argstr[1] <> '/') then
         begin
-          filenameinzip := PChar(@argstr[1]);
+          filenameinzip := PAnsiChar(@argstr[1]);
 
           zi.tmz_date.tm_sec := 0;
           zi.tmz_date.tm_min := 0;

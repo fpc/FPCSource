@@ -23,7 +23,7 @@ procedure TEvaluator.WriteVliw(p:VLIWEvalWord); forward;
 
 Procedure TEvalInternalError(A,B:ArbInt);
 
-VAR S,S2 : String;
+VAR S,S2 : ShortString;
 
 begin
  Str(ORD(A),S);
@@ -86,7 +86,7 @@ begin
  inherited Destroy;
 end;
 
-PROCEDURE   TEvaluator.SetConstant(Name:String;Value:ArbFloat);
+PROCEDURE   TEvaluator.SetConstant(Name:ShortString;Value:ArbFloat);
 
 Var Ind,I    : Longint;
     TmpList  : TList;

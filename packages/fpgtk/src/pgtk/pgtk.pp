@@ -1,11 +1,15 @@
 program PGtk;
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils, Objectdef, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 Uses sysutils, ObjectDef, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PGtkexception = class (Exception);
 
-procedure DataRead (Filename:string; var Descr:TObjectDefs);
+procedure DataRead (Filename:AnsiString; var Descr:TObjectDefs);
 var StrStream : TFileStream;
     BinStream : TMemoryStream;
 begin
@@ -30,7 +34,7 @@ begin
     raise PGtkException.Create ('Error: Can''t find file "'+filename+'"');
 end;
 
-procedure Convert (DescrFilename, UnitFilename : string);
+procedure Convert (DescrFilename, UnitFilename : AnsiString);
 var GTK : TObjectDefs;
     l : TStrings;
 begin

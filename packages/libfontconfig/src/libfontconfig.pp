@@ -1,7 +1,9 @@
 
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libfontconfig;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   Automatically converted by H2Pas 1.0.0 from fc.h
   The following command line parameters were used:
@@ -18,8 +20,13 @@ unit libfontconfig;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$ifndef darwin}
@@ -216,9 +223,9 @@ Type
   TFcCache = record end;
   PPFcCache = ^PFcCache;
 
-  PFcChar8 = Pchar;
-  TFcChar8 = char;
-  PPFcChar8 = PPChar;
+  PFcChar8 = PAnsiChar;
+  TFcChar8 = AnsiChar;
+  PPFcChar8 = PPAnsiChar;
 
   PFcChar16 = PWideChar;
   TFcChar16 = WideChar;
@@ -534,8 +541,13 @@ Function FontConfigLibLoaded : Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure FcMatrixInit(out m : TFCMatrix);
 
@@ -799,7 +811,7 @@ begin
 end;
 
 
-Function Loadfc(lib : pchar) : Boolean;
+Function Loadfc(lib : PAnsiChar) : Boolean;
 
 begin
   Freefc;
@@ -1038,7 +1050,7 @@ begin
     end
   else
     begin
-    if LoadFC(PChar(FN)) then
+    if LoadFC(PAnsiChar(FN)) then
       begin
       inc(HCount);
       LoadedLib:=FN;

@@ -122,9 +122,9 @@
   {
    * control characters form Xenix termio.h
     }
-  { RESERVED true EOF char (V7 compatability)  }
+  { RESERVED true EOF AnsiChar (V7 compatability)  }
      VCEOF = NCC;
-  { RESERVED true EOL char  }
+  { RESERVED true EOL AnsiChar  }
      VCEOL = NCC+1;
      CNUL = 0;
      CDEL = 0177;

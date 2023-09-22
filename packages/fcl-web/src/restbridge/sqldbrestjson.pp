@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, Data.Db, FpWeb.RestBridge.IO, FpWeb.RestBridge.Schema;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, db, sqldbrestio, sqldbrestschema;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TJSONInputStreamer }
@@ -60,12 +67,17 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension : String; override;
     procedure InitStreaming; override;
   end;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses DateUtils, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TJSONInputStreamer }
 
@@ -109,7 +121,9 @@ Var
   D : TJSONData;
 
 begin
-  D:=(FJSON as TJSONObject).Find(aName);
+  D:=Nil;
+  if Assigned(FJSON) then
+    D:=(FJSON as TJSONObject).Find(aName);
   if D<>nil then
     Result:=D.Clone
   else
@@ -237,6 +251,11 @@ end;
 Class function TJSONOutputStreamer.GetContentType: String;
 begin
   Result:='application/json';
+end;
+
+Class Function TJSONOutputStreamer.FileExtension : String; 
+begin
+  Result:='.json';
 end;
 
 procedure TJSONOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);

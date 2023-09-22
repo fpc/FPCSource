@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FBEventMonitor;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interbase/Firebird Event monitor
 
@@ -36,6 +38,16 @@ unit FBEventMonitor;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+{$IfDef LinkDynamically}
+  Api.Ibase60dyn,
+{$Else}
+  Api.Ibase60,
+{$EndIf}
+  Data.SqlDb.Ib,System.SyncObjs,Data.Db,Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
 {$IfDef LinkDynamically}
@@ -44,6 +56,7 @@ uses
   ibase60,
 {$EndIf}
   IBConnection,syncobjs,db,dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TEventAlert = procedure(Sender: TObject; EventName: string; EventCount: longint;
@@ -85,8 +98,8 @@ const
   MAXEVENTSPEREPB=15;      //isc_event_block limitated to 15 events.
 type
   TEPBpair=record
-    EventBuf:PChar;        //isc_event_block event block
-    ResultBuf:PChar;       //isc_event_block result block
+    EventBuf:PAnsiChar;        //isc_event_block event block
+    ResultBuf:PAnsiChar;       //isc_event_block result block
     Signal:pointer;        //pointer to TFBEventsThread.FSignal
     Signaled:Boolean;      //this event block is signaled
     Len:ISC_LONG;          //lenght returned by isc_event_block
@@ -128,7 +141,7 @@ type
     property Handle:pointer read GetDBHandle;
   end;
 
-procedure event_function(ptr:pointer;len:ushort;updated: pchar);cdecl;
+procedure event_function(ptr:pointer;len:ushort;updated: PAnsiChar);cdecl;
 begin
   Move(updated^, PEPBpair(ptr)^.ResultBuf^, len);
   PEPBpair(ptr)^.signaled:=true;
@@ -144,7 +157,7 @@ end;
 
 procedure TFBEventsThread.CheckError(Status: PISC_STATUS);
 var
-  buf : array [0..1023] of char;
+  buf : array [0..1023] of AnsiChar;
 
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
@@ -174,11 +187,11 @@ var
   DBHandle : pointer;
   bStartup:boolean;
 
-  function P(num:integer):pchar;
+  function P(num:integer):PAnsiChar;
   begin
     num:=num+i*MAXEVENTSPEREPB;
     if num<FParent.FEvents.Count then
-      result:=pchar(FParent.FEvents[num])
+      result:=PAnsiChar(FParent.FEvents[num])
     else
       result:=nil;
   end;

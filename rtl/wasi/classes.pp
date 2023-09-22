@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$H+}
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
@@ -23,10 +24,23 @@
 { determine the type of the resource/form file }
 {$define Win16Res}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  System.RtlConsts,
+  System.Types,
+  System.SortBase,
+{$ifdef FPC_TESTGENERICS}
+  System.FGL,
+{$endif}
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
   rtlconsts,
@@ -36,6 +50,7 @@ uses
   fgl,
 {$endif}
   sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i classesh.inc}
 

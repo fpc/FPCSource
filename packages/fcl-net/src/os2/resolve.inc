@@ -33,28 +33,28 @@ Type
 
   { THostEnt Object }
   THostEnt = record
-    H_Name     : pchar;   { Official name }
-    H_Aliases  : ppchar;  { Null-terminated list of aliases}
+    H_Name     : PAnsiChar;   { Official name }
+    H_Aliases  : PPAnsiChar;  { Null-terminated list of aliases}
     H_Addrtype : longint;   { Host address type }
     H_length  : longint;   { Length of address }
-    H_Addr : ppchar;    { null-terminated list of adresses }
+    H_Addr : PPAnsiChar;    { null-terminated list of adresses }
   end;
   PHostEntry = ^THostEnt;
 
   { TNetEnt object }
   TNetEnt = record
-    N_Name     : pchar;   { Official name }
-    N_Aliases  : ppchar;  { Nill-terminated alias list }
+    N_Name     : PAnsiChar;   { Official name }
+    N_Aliases  : PPAnsiChar;  { Nill-terminated alias list }
     N_AddrType : longint; { Net address type }
     N_net      : Cardinal; { Network number }
   end;
   PNetEntry = ^TNetEnt;
 
   TServEnt = record
-    s_name    : pchar;    { Service name }
-    s_aliases : ppchar;   { Null-terminated alias list }
+    s_name    : PAnsiChar;    { Service name }
+    s_aliases : PPAnsiChar;   { Null-terminated alias list }
     s_port    : longint;  { Port number }
-    s_proto   : pchar;    { Protocol to use }
+    s_proto   : PAnsiChar;    { Protocol to use }
   end;
   PServEntry = ^TServEnt;
 
@@ -72,11 +72,11 @@ procedure setservent (StayOpen : longint); cdecl; external socklib index 25;
 procedure endservent; cdecl; external socklib index 26;
 
 function getnetbyaddr ( Net : Longint; nettype : Longint) : PNetEntry; cdecl; external socklib index 14;
-function gethostbyname ( Name : Pchar) : PHostEntry; cdecl; external socklib index 11;
-function gethostbyaddr ( Addr : PChar; Len : Longint; HType : Longint) : PHostentry ; cdecl; external socklib index 12;
-function getnetbyname ( Name : pchar) : PNetEntry; cdecl; external socklib index 13;
-function getservbyname (name : pchar  ; protocol : pchar) : PServEntry; cdecl; external socklib index 24;
-function getservbyport (port : longint; protocol : pchar) : PServEntry; cdecl; external socklib index 23;
+function gethostbyname ( Name : PAnsiChar) : PHostEntry; cdecl; external socklib index 11;
+function gethostbyaddr ( Addr : PAnsiChar; Len : Longint; HType : Longint) : PHostentry ; cdecl; external socklib index 12;
+function getnetbyname ( Name : PAnsiChar) : PNetEntry; cdecl; external socklib index 13;
+function getservbyname (name : PAnsiChar  ; protocol : PAnsiChar) : PServEntry; cdecl; external socklib index 24;
+function getservbyport (port : longint; protocol : PAnsiChar) : PServEntry; cdecl; external socklib index 23;
 
 function  GetDNSError : LongInt;
 begin

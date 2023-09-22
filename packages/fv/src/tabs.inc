@@ -18,17 +18,33 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 unit utabs;
 {$else FV_UNICODE}
 unit tabs;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I platform.inc}    (* Multi-platform support defines *)
 {$CODEPAGE cp437}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Objects,
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,
+  FreeVision.Udrivers,
+  FreeVision.Uviews,
+{$else FV_UNICODE}
+  FreeVision.Fvcommon,
+  FreeVision.Drivers,
+  FreeVision.Views,
+{$endif FV_UNICODE}
+  FreeVision.Fvconsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objects,
 {$ifdef FV_UNICODE}
@@ -41,6 +57,7 @@ uses
   views,
 {$endif FV_UNICODE}
   fvconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
@@ -57,7 +74,7 @@ type
       Name     : Sw_PString;
       Items    : PTabItem;
       DefItem  : PView;
-      ShortCut : char;
+      ShortCut : AnsiChar;
     end;
 
     PTab = ^TTab;
@@ -109,12 +126,21 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef FV_UNICODE}
+  FreeVision.Udialogs;
+{$else FV_UNICODE}
+  FreeVision.Dialogs;
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef FV_UNICODE}
   Udialogs;
 {$else FV_UNICODE}
   dialogs;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 constructor TTab.Init(var Bounds: TRect; ATabDef: PTabDef);
 begin
@@ -496,7 +522,7 @@ var B     : TDrawBuffer;
     Name       : Sw_PString;
     ActiveKPos : SmallInt;
     ActiveVPos : SmallInt;
-    FC   : char;
+    FC   : AnsiChar;
 procedure SWriteBuf(X,Y,W,H: SmallInt; var Buf);
 var i: SmallInt;
 begin

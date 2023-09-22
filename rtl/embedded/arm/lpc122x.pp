@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lpc122x;
+{$ENDIF FPC_DOTTEDUNITS}
 {$goto on}
 {$define lpc122x}
 

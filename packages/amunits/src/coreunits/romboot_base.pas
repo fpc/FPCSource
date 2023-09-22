@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit romboot_base;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -33,7 +39,7 @@ Type
 
 Const
 
-    ROMBOOT_NAME : PChar = 'romboot.library';
+    ROMBOOT_NAME : PAnsiChar = 'romboot.library';
 
 IMPLEMENTATION
 

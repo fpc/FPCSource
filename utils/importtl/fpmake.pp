@@ -2,7 +2,11 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses 
+{$ifdef unix}
+  cthreads,
+{$endif}
+  fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_importtl(const ADirectory: string);

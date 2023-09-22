@@ -362,9 +362,9 @@ type
     SrvTk_PRODUCT_ONLY	{ eg: Apache }
   );
 
-//API_EXPORT(const char *) ap_get_server_version(void);
-//API_EXPORT(void) ap_add_version_component(const char *component);
-//API_EXPORT(const char *) ap_get_server_built(void);
+//API_EXPORT(const AnsiChar *) ap_get_server_version(void);
+//API_EXPORT(void) ap_add_version_component(const AnsiChar *component);
+//API_EXPORT(const AnsiChar *) ap_get_server_built(void);
 
 { Numeric release version identifier: MMNNFFRBB: major minor fix final beta
  * Always increases along the same track as the source branch.
@@ -583,7 +583,7 @@ type
   Phtaccess_result = ^htaccess_result;
   
   htaccess_result = record
-    dir: PChar;			{ the directory to which this applies }
+    dir: PAnsiChar;			{ the directory to which this applies }
     override_: cint;		{ the overrides allowed for the .htaccess file }
     htaccess: Pointer;		{ the configuration directives }
 { the next one, or NULL if no more; N.B. never change this }
@@ -624,25 +624,25 @@ type
      * protocol.c should ever touch...
      }
 
-    the_request: PChar;		{ First line of request, so we can log it }
+    the_request: PAnsiChar;		{ First line of request, so we can log it }
     assbackwards: cint;		{ HTTP/0.9, "simple" request }
     proxyreq: proxyreqtype;     { A proxy request (calculated during
 				 * post_read_request or translate_name) }
     header_only: cint;		{ HEAD request, as opposed to GET }
-    protocol: PChar;		{ Protocol, as given to us, or HTTP/0.9 }
+    protocol: PAnsiChar;		{ Protocol, as given to us, or HTTP/0.9 }
     proto_num: cint;		{ Number version of protocol; 1.1 = 1001 }
-    hostname: PChar;	{ Host, as set by full URI or Host: }
+    hostname: PAnsiChar;	{ Host, as set by full URI or Host: }
 
     request_time: time_t;	{ When the request started }
 
-    status_line: PChar;	{ Status line, if set by script }
+    status_line: PAnsiChar;	{ Status line, if set by script }
     status: cint;			{ In any case }
 
     { Request method, two ways; also, protocol, etc..  Outside of protocol.c,
      * look, but don't touch.
      }
 
-    method: PChar;		{ GET, HEAD, POST, etc. }
+    method: PAnsiChar;		{ GET, HEAD, POST, etc. }
     method_number: cint;		{ M_GET, M_POST, etc. }
 
     {
@@ -675,8 +675,8 @@ type
 
     chunked: cint;		{ sending chunked transfer-coding }
     byterange: cint;		{ number of byte ranges }
-    boundary: PChar;		{ multipart/byteranges boundary }
-    range: PChar;		{ The Range: header }
+    boundary: PAnsiChar;		{ multipart/byteranges boundary }
+    range: PAnsiChar;		{ The Range: header }
     clength: clong;		{ The "real" content length }
 
     remaining: clong;		{ bytes left to read }
@@ -707,14 +707,14 @@ type
      * content_languages MUST be lowercased strings.  They may be pointers
      * to static strings; they should not be modified in place.
      }
-    content_type: PChar;	{ Break these out --- we dispatch on 'em }
-    handler: PChar;    	        { What we *really* dispatch on           }
+    content_type: PAnsiChar;	{ Break these out --- we dispatch on 'em }
+    handler: PAnsiChar;    	        { What we *really* dispatch on           }
 
-    content_encoding: PChar;
-    content_language: PChar;	{ for back-compat. only -- do not use }
-    content_languages: Parray_header;	{ array of (char*) }
+    content_encoding: PAnsiChar;
+    content_language: PAnsiChar;	{ for back-compat. only -- do not use }
+    content_languages: Parray_header;	{ array of (AnsiChar*) }
 
-    vlist_validator: PChar;      { variant list validator (if negotiated) }
+    vlist_validator: PAnsiChar;      { variant list validator (if negotiated) }
 
     no_cache: cint;
     no_local_copy: cint;
@@ -723,11 +723,11 @@ type
      * or content-negotiation mapping).
      }
 
-    unparsed_uri: PChar;	{ the uri without any parsing performed }
-    uri: PChar;			{ the path portion of the URI }
-    filename: PChar;		{ filename if found, otherwise NULL }
-    path_info: PChar;
-    args: PChar;		{ QUERY_ARGS, if any }
+    unparsed_uri: PAnsiChar;	{ the uri without any parsing performed }
+    uri: PAnsiChar;			{ the path portion of the URI }
+    filename: PAnsiChar;		{ filename if found, otherwise NULL }
+    path_info: PAnsiChar;
+    args: PAnsiChar;		{ QUERY_ARGS, if any }
     finfo: Integer;//stat;      { ST_MODE set to zero if no such file }
     parsed_uri: uri_components;	{ components of uri, dismantled }
 
@@ -756,7 +756,7 @@ type
      * with WebDAV need to preserve filename case to make the Java compiler 
      * happy.
      }
-    case_preserved_filename: PChar;
+    case_preserved_filename: PAnsiChar;
 
 {$ifdef CHARSET_EBCDIC}
     { We don't want subrequests to modify our current conversion flags.
@@ -798,20 +798,20 @@ type
 
     local_addr: sockaddr_in;	{ local address }
     remote_addr: sockaddr_in;	{ remote address }
-    remote_ip: PChar;		{ Client's IP address }
-    remote_host: PChar;		{ Client's DNS name, if known.
+    remote_ip: PAnsiChar;		{ Client's IP address }
+    remote_host: PAnsiChar;		{ Client's DNS name, if known.
 				 * NULL if DNS hasn't been checked,
 				 * "" if it has and no address was found.
 				 * N.B. Only access this though
 				 * get_remote_host() }
-    remote_logname: PChar;	{ Only ever set if doing rfc1413 lookups.
+    remote_logname: PAnsiChar;	{ Only ever set if doing rfc1413 lookups.
 				 * N.B. Only access this through
 				 * get_remote_logname() }
-    user: PChar;			{ If an authentication check was made,
+    user: PAnsiChar;			{ If an authentication check was made,
 				 * this gets set to the user name.  We assume
 				 * that there's only one user per connection(!)
                                  }
-    ap_auth_type: PChar;		{ Ditto. }
+    ap_auth_type: PAnsiChar;		{ Ditto. }
 
 //    unsigned aborted:1;		{ Are we still talking? }
 //    signed int keepalive:2;	{ Are we using HTTP Keep-Alive?
@@ -820,8 +820,8 @@ type
 //    signed int double_reverse:2;{ have we done double-reverse DNS?
 //				 * -1 yes/failure, 0 not yet, 1 yes/success }
     keepalives: cint;		{ How many times have we used it? }
-    local_ip: PChar;		{ server IP address }
-    local_host: PChar;		{ used for ap_get_server_name when
+    local_ip: PAnsiChar;		{ server IP address }
+    local_host: PAnsiChar;		{ used for ap_get_server_name when
 				 * UseCanonicalName is set to DNS
 				 * (ignores setting of HostnameLookups) }
   end;
@@ -842,7 +842,7 @@ type
     next: Pserver_addr_rec;
     host_addr: in_addr; 	{ The bound address, for this server }
     host_port: cushort; 	{ The bound port, for this server }
-    virthost: PChar;		{ The name given in <VirtualHost> }
+    virthost: PAnsiChar;		{ The name given in <VirtualHost> }
   end;
 
   server_rec = record
@@ -850,23 +850,23 @@ type
     next: Pserver_rec;
 
     { description of where the definition came from }
-    defn_name: PChar;
+    defn_name: PAnsiChar;
     defn_line_number: cuint;
 
     { Full locations of server config info }
 
-    srm_confname: PChar;
-    access_confname: PChar;
+    srm_confname: PAnsiChar;
+    access_confname: PAnsiChar;
 
     { Contact information }
 
-    server_admin: PChar;
-    server_hostname: PChar;
+    server_admin: PAnsiChar;
+    server_hostname: PAnsiChar;
     port: cushort;	{ for redirects, etc. }
 
     { Log files --- note that transfer log is now in the modules... }
 
-    error_fname: PChar;
+    error_fname: PAnsiChar;
     error_log: Pointer; //FILE *
     loglevel: cint;
 
@@ -888,7 +888,7 @@ type
     keep_alive: cint;		{ Use persistent connections? }
     send_buffer_size: cint;	{ size of TCP send buffer (in bytes) }
 
-    path: PChar;		{ Pathname for ServerPath }
+    path: PAnsiChar;		{ Pathname for ServerPath }
     pathlen: cint;		{ Length of path }
 
     names: Parray_header;	{ Normal names for ServerAlias servers }
@@ -922,140 +922,140 @@ type
 //extern void ap_util_init(void);
 
 { Time }
-{extern API_VAR_EXPORT const char ap_month_snames[12][4];
-extern API_VAR_EXPORT const char ap_day_snames[7][4];}
+{extern API_VAR_EXPORT const AnsiChar ap_month_snames[12][4];
+extern API_VAR_EXPORT const AnsiChar ap_day_snames[7][4];}
 
 function ap_get_gmtoff(tz: Pcint): Ptm;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_time: PChar;
+function ap_get_time: PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_field_noparam(p: Ppool; const intype: PChar): PChar;
+function ap_field_noparam(p: Ppool; const intype: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_ht_time(p: Ppool; t: time_t; const fmt: PChar; gmt: cint): PChar;
+function ap_ht_time(p: Ppool; t: time_t; const fmt: PAnsiChar; gmt: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_gm_timestr_822(p: Ppool; t: time_t): PChar;
+function ap_gm_timestr_822(p: Ppool; t: time_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{ String handling. The *_nc variants allow you to use non-const char **s as
-   arguments (unfortunately C won't automatically convert a char ** to a const
-   char **) }
+{ String handling. The *_nc variants allow you to use non-const AnsiChar **s as
+   arguments (unfortunately C won't automatically convert a AnsiChar ** to a const
+   AnsiChar **) }
 
-function ap_getword(p: Ppool; const line: PPChar; stop: Char): PChar;
+function ap_getword(p: Ppool; const line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_nc(p: Ppool; line: PPChar; stop: Char): PChar;
+function ap_getword_nc(p: Ppool; line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_white(p: Ppool; const line: PPChar): PChar;
+function ap_getword_white(p: Ppool; const line: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_white_nc(p: Ppool; line: PPChar): PChar;
+function ap_getword_white_nc(p: Ppool; line: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_nulls(p: Ppool; const line: PPChar; stop: Char): PChar;
+function ap_getword_nulls(p: Ppool; const line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_nulls_nc(p: Ppool; line: PPChar; stop: Char): PChar;
+function ap_getword_nulls_nc(p: Ppool; line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_conf(p: Ppool; const line: PPChar): PChar;
+function ap_getword_conf(p: Ppool; const line: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getword_conf_nc(p: Ppool; line: PPChar): PChar;
- {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
-
-
-function ap_size_list_item(const field: PPChar; len: Pcint): PChar;
- {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
-
-function ap_get_list_item(p: Ppool; const field: PPChar): PChar;
- {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
-
-function ap_find_list_item(p: Ppool; const line, tok: PChar): cint;
+function ap_getword_conf_nc(p: Ppool; line: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 
-function ap_get_token(p: Ppool; const accept_line: PPChar; accept_white: cint): PChar;
+function ap_size_list_item(const field: PPAnsiChar; len: Pcint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_find_token(p: Ppool; const line, tok: PChar): cint;
+function ap_get_list_item(p: Ppool; const field: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_find_last_token(p: Ppool; const line, tok: PChar): cint;
+function ap_find_list_item(p: Ppool; const line, tok: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 
-function ap_unescape_url(url: PChar): cint;
+function ap_get_token(p: Ppool; const accept_line: PPAnsiChar; accept_white: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_no2slash(name: PChar);
+function ap_find_token(p: Ppool; const line, tok: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_getparents(name: PChar);
+function ap_find_last_token(p: Ppool; const line, tok: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_escape_path_segment(p: Ppool; const s: PChar): PChar;
+
+function ap_unescape_url(url: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_os_escape_path(p: Ppool; const path: PChar; partial: cint): PChar;
+procedure ap_no2slash(name: PAnsiChar);
+ {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
+
+procedure ap_getparents(name: PAnsiChar);
+ {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
+
+function ap_escape_path_segment(p: Ppool; const s: PAnsiChar): PAnsiChar;
+ {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
+
+function ap_os_escape_path(p: Ppool; const path: PAnsiChar; partial: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 //#define ap_escape_uri(ppool,path) ap_os_escape_path(ppool,path,1)
 
-function ap_escape_html(p: Ppool; const s: PChar): PChar;
+function ap_escape_html(p: Ppool; const s: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{API_EXPORT(char *) ap_construct_server(pool *p, const char *hostname,
+{API_EXPORT(AnsiChar *) ap_construct_server(pool *p, const AnsiChar *hostname,
 				    unsigned port, const request_rec *r);
-API_EXPORT(char *) ap_escape_logitem(pool *p, const char *str);
-API_EXPORT(size_t) ap_escape_errorlog_item(char *dest, const char *source,
+API_EXPORT(AnsiChar *) ap_escape_logitem(pool *p, const AnsiChar *str);
+API_EXPORT(size_t) ap_escape_errorlog_item(AnsiChar *dest, const AnsiChar *source,
                                            size_t buflen);
-API_EXPORT(char *) ap_escape_shell_cmd(pool *p, const char *s);
+API_EXPORT(AnsiChar *) ap_escape_shell_cmd(pool *p, const AnsiChar *s);
 
-API_EXPORT(int) ap_count_dirs(const char *path);
-API_EXPORT(char *) ap_make_dirstr_prefix(char *d, const char *s, int n);
-API_EXPORT(char *) ap_make_dirstr_parent(pool *p, const char *s);}
+API_EXPORT(int) ap_count_dirs(const AnsiChar *path);
+API_EXPORT(AnsiChar *) ap_make_dirstr_prefix(AnsiChar *d, const AnsiChar *s, int n);
+API_EXPORT(AnsiChar *) ap_make_dirstr_parent(pool *p, const AnsiChar *s);}
 { deprecated.  The previous two routines are preferred. }
-{API_EXPORT(char *) ap_make_dirstr(pool *a, const char *s, int n);
-API_EXPORT(char *) ap_make_full_path(pool *a, const char *dir, const char *f);
+{API_EXPORT(AnsiChar *) ap_make_dirstr(pool *a, const AnsiChar *s, int n);
+API_EXPORT(AnsiChar *) ap_make_full_path(pool *a, const AnsiChar *dir, const AnsiChar *f);
 
-API_EXPORT(int) ap_is_matchexp(const char *str);
-API_EXPORT(int) ap_strcmp_match(const char *str, const char *exp);
-API_EXPORT(int) ap_strcasecmp_match(const char *str, const char *exp);
-API_EXPORT(char *) ap_stripprefix(const char *bigstring, const char *prefix);
-API_EXPORT(char *) ap_strcasestr(const char *s1, const char *s2);
-API_EXPORT(char *) ap_pbase64decode(pool *p, const char *bufcoded);
-API_EXPORT(char *) ap_pbase64encode(pool *p, char *string); 
-API_EXPORT(char *) ap_uudecode(pool *p, const char *bufcoded);
-API_EXPORT(char *) ap_uuencode(pool *p, char *string); }
+API_EXPORT(int) ap_is_matchexp(const AnsiChar *str);
+API_EXPORT(int) ap_strcmp_match(const AnsiChar *str, const AnsiChar *exp);
+API_EXPORT(int) ap_strcasecmp_match(const AnsiChar *str, const AnsiChar *exp);
+API_EXPORT(AnsiChar *) ap_stripprefix(const AnsiChar *bigstring, const AnsiChar *prefix);
+API_EXPORT(AnsiChar *) ap_strcasestr(const AnsiChar *s1, const AnsiChar *s2);
+API_EXPORT(AnsiChar *) ap_pbase64decode(pool *p, const AnsiChar *bufcoded);
+API_EXPORT(AnsiChar *) ap_pbase64encode(pool *p, AnsiChar *string); 
+API_EXPORT(AnsiChar *) ap_uudecode(pool *p, const AnsiChar *bufcoded);
+API_EXPORT(AnsiChar *) ap_uuencode(pool *p, AnsiChar *string); }
 
 {$if defined(OS2) or defined(WINDOWS)}
-//API_EXPORT(char *) ap_double_quotes(pool *p, const char *str);
-//API_EXPORT(char *) ap_caret_escape_args(pool *p, const char *str);
+//API_EXPORT(AnsiChar *) ap_double_quotes(pool *p, const AnsiChar *str);
+//API_EXPORT(AnsiChar *) ap_caret_escape_args(pool *p, const AnsiChar *str);
 {$endif}
 
 {$ifdef OS2}
-void os2pathname(char *path);
+void os2pathname(AnsiChar *path);
 {$endif}
 
-{API_EXPORT(int)    ap_regexec(const regex_t *preg, const char *string,
+{API_EXPORT(int)    ap_regexec(const regex_t *preg, const AnsiChar *string,
                               size_t nmatch, regmatch_t pmatch[], int eflags);
 API_EXPORT(size_t) ap_regerror(int errcode, const regex_t *preg, 
-                               char *errbuf, size_t errbuf_size);
-API_EXPORT(char *) ap_pregsub(pool *p, const char *input, const char *source,
+                               AnsiChar *errbuf, size_t errbuf_size);
+API_EXPORT(AnsiChar *) ap_pregsub(pool *p, const AnsiChar *input, const AnsiChar *source,
                               size_t nmatch, regmatch_t pmatch[]);
 
-API_EXPORT(void) ap_content_type_tolower(char *);
-API_EXPORT(void) ap_str_tolower(char *);
-API_EXPORT(int) ap_ind(const char *, char);}	{ Sigh... }
-{API_EXPORT(int) ap_rind(const char *, char);
+API_EXPORT(void) ap_content_type_tolower(AnsiChar *);
+API_EXPORT(void) ap_str_tolower(AnsiChar *);
+API_EXPORT(int) ap_ind(const AnsiChar *, AnsiChar);}	{ Sigh... }
+{API_EXPORT(int) ap_rind(const AnsiChar *, AnsiChar);
 
-API_EXPORT(char *) ap_escape_quotes (pool *p, const char *instring);
-API_EXPORT(void) ap_remove_spaces(char *dest, char *src);}
+API_EXPORT(AnsiChar *) ap_escape_quotes (pool *p, const AnsiChar *instring);
+API_EXPORT(void) ap_remove_spaces(AnsiChar *dest, AnsiChar *src);}
 
 { Common structure for reading of config files / passwd files etc. }
 type
@@ -1073,51 +1073,51 @@ type
     getstr: getstr_t;   { a fgets()-like function }
     close: close_t;	{ a close hander function }
     param: Pointer;	{ the argument passed to getch/getstr/close }
-    name: PChar;	{ the filename / description }
+    name: PAnsiChar;	{ the filename / description }
     line_number: cuint;	{ current line number, starting at 1 }
   end;
 
 { Open a configfile_t as FILE, return open configfile_t struct pointer }
-//API_EXPORT(configfile_t *) ap_pcfg_openfile(pool *p, const char *name);
+//API_EXPORT(configfile_t *) ap_pcfg_openfile(pool *p, const AnsiChar *name);
 
 { Allocate a configfile_t handle with user defined functions and params }
-//API_EXPORT(configfile_t *) ap_pcfg_open_custom(pool *p, const char *descr,
+//API_EXPORT(configfile_t *) ap_pcfg_open_custom(pool *p, const AnsiChar *descr,
 //    void *param,
 //    int( *getc_func)(void*),
 //    void *( *gets_func) (void *buf, size_t bufsiz, void *param),
 //    int( *close_func)(void *param));
 
 { Read one line from open configfile_t, strip LF, increase line number }
-//API_EXPORT(int) ap_cfg_getline(char *buf, size_t bufsize, configfile_t *cfp);
+//API_EXPORT(int) ap_cfg_getline(AnsiChar *buf, size_t bufsize, configfile_t *cfp);
 
-{ Read one char from open configfile_t, increase line number upon LF }
+{ Read one AnsiChar from open configfile_t, increase line number upon LF }
 //API_EXPORT(int) ap_cfg_getc(configfile_t *cfp);
 
 { Detach from open configfile_t, calling the close handler }
 //API_EXPORT(int) ap_cfg_closefile(configfile_t *cfp);
 
 {$ifdef NEED_STRERROR}
-//char *strerror(int err);
+//AnsiChar *strerror(int err);
 {$endif}
 
 { Misc system hackery }
 
-function ap_uname2id(const name: PChar): uid_t;
+function ap_uname2id(const name: PAnsiChar): uid_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_gname2id(const name: PChar): gid_t;
+function ap_gname2id(const name: PAnsiChar): gid_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_is_directory(const name: PChar): cint;
+function ap_is_directory(const name: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_is_rdirectory(const name: PChar): cint;
+function ap_is_rdirectory(const name: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_can_exec(const stat: Pointer): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_chdir_file(const file_: PChar);
+procedure ap_chdir_file(const file_: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 {$ifndef HAVE_CANONICAL_FILENAME}
@@ -1128,15 +1128,15 @@ procedure ap_chdir_file(const file_: PChar);
 #define ap_os_case_canonical_filename(p,f)  (f)
 #define ap_os_systemcase_filename(p,f)  (f)}
 {$else}
-//API_EXPORT(char *) ap_os_canonical_filename(pool *p, const char *file);
+//API_EXPORT(AnsiChar *) ap_os_canonical_filename(pool *p, const AnsiChar *file);
 {$ifdef WINDOWS}
-//API_EXPORT(char *) ap_os_case_canonical_filename(pool *pPool, const char *szFile);
-//API_EXPORT(char *) ap_os_systemcase_filename(pool *pPool, const char *szFile);
+//API_EXPORT(AnsiChar *) ap_os_case_canonical_filename(pool *pPool, const AnsiChar *szFile);
+//API_EXPORT(AnsiChar *) ap_os_systemcase_filename(pool *pPool, const AnsiChar *szFile);
 {$else}{$ifdef OS2}
-//API_EXPORT(char *) ap_os_case_canonical_filename(pool *pPool, const char *szFile);
-//API_EXPORT(char *) ap_os_systemcase_filename(pool *pPool, const char *szFile);
+//API_EXPORT(AnsiChar *) ap_os_case_canonical_filename(pool *pPool, const AnsiChar *szFile);
+//API_EXPORT(AnsiChar *) ap_os_systemcase_filename(pool *pPool, const AnsiChar *szFile);
 {$else}{$ifdef NETWARE}
-//API_EXPORT(char *) ap_os_case_canonical_filename(pool *pPool, const char *szFile);
+//API_EXPORT(AnsiChar *) ap_os_case_canonical_filename(pool *pPool, const AnsiChar *szFile);
 //#define ap_os_systemcase_filename(p,f) ap_os_case_canonical_filename(p,f)
 {$else}
 //#define ap_os_case_canonical_filename(p,f) ap_os_canonical_filename(p,f)
@@ -1151,8 +1151,8 @@ procedure ap_chdir_file(const file_: PChar);
 //API_EXPORT(int)    ap_checkconv_in(struct request_rec *r); { for uploads }
 {$endif} {#ifdef CHARSET_EBCDIC}
 
-{API_EXPORT(char *) ap_get_local_host(pool *);
-API_EXPORT(unsigned long) ap_get_virthost_addr(char *hostname, unsigned short *port);
+{API_EXPORT(AnsiChar *) ap_get_local_host(pool *);
+API_EXPORT(unsigned long) ap_get_virthost_addr(AnsiChar *hostname, unsigned short *port);
 
 extern API_VAR_EXPORT time_t ap_restart_time;}
 
@@ -1167,7 +1167,7 @@ extern API_VAR_EXPORT time_t ap_restart_time;}
  * Only the low slack line is used by default.  If HIGH_SLACK_LINE is defined
  * then an attempt is also made to keep all non-FILE * files above the high
  * slack line.  This is to work around a Solaris C library limitation, where it
- * uses an unsigned char to store the file descriptor.
+ * uses an unsigned AnsiChar to store the file descriptor.
  }
 
 const
@@ -1190,12 +1190,12 @@ const
   AP_SLACK_HIGH	= 2;
 #endif
 
-API_EXPORT(char *) ap_escape_quotes(pool *p, const char *instr);}
+API_EXPORT(AnsiChar *) ap_escape_quotes(pool *p, const AnsiChar *instr);}
 
 {
  * Redefine assert() to something more useful for an Apache...
  }
-{API_EXPORT(void) ap_log_assert(const char *szExp, const char *szFile, int nLine)
+{API_EXPORT(void) ap_log_assert(const AnsiChar *szExp, const AnsiChar *szFile, int nLine)
 			    __attribute__((noreturn));
 #define ap_assert(exp) ((exp) ? (void)0 : ap_log_assert(#exp,__FILE__,__LINE__))}
 
@@ -1226,7 +1226,7 @@ extern int raise_sigstop_flags;
 #define RAISE_SIGSTOP(x)
 #endif
 
-API_EXPORT(extern const char *) ap_psignature(const char *prefix, request_rec *r);}
+API_EXPORT(extern const AnsiChar *) ap_psignature(const AnsiChar *prefix, request_rec *r);}
 
   { strtoul does not exist on sunos4. }
 

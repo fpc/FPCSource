@@ -22,8 +22,13 @@ program chmcmd;
 
 {$mode objfpc}{$H+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Unix}UnixApi.CThreads, UnixApi.CWString, {$endif} System.Classes, System.SysUtils, Chm.FileWriter, System.GetOpts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef Unix}cthreads, cwstring, {$endif} Classes, Sysutils, chmfilewriter, GetOpts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   CHMCMDVersion = {$I %FPCVERSION%};

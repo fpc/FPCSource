@@ -15,7 +15,9 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit netdb;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   WARNING
   This unit hardly does any error checking. For example, stringfromlabel
@@ -30,7 +32,11 @@ unit netdb;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Net.Sockets;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF OS2}
 (* ETC directory location determined by environment variable ETC *)
@@ -355,12 +361,42 @@ function DNSRRGetSRV(const RR: TRRNameData; const pl: TPayloadTCP;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+{$ifdef FPC_USE_LIBC}
+   cNetDB,
+{$endif FPC_USE_LIBC}
+   UnixApi.Base,
+   System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
 {$ifdef FPC_USE_LIBC}
    cNetDB,
 {$endif FPC_USE_LIBC}
    BaseUnix,
    sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
+
+Function AnsiToString(S : AnsiString) : String; inline;
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Decode(S);
+{$ELSE}
+  Result:=S;
+{$ENDIF}
+end;
+
+Function AnsiToString(P : PAnsiChar) : String;
+
+Var
+  S : AnsiString;
+begin
+  S:='';
+  if P<>Nil then
+    S:=P;
+  Result:=AnsiToString(S);
+end;
 
 {$ifndef FPC_USE_LIBC}
 type
@@ -375,6 +411,7 @@ var
 { ---------------------------------------------------------------------
     Some Parsing routines
   ---------------------------------------------------------------------}
+
 
 Const 
   Whitespace = [' ',#9];
@@ -625,7 +662,7 @@ end;
 Function GetDNSServers: Integer;
 var
   i: integer;
-  s: string;
+  s,t: ansistring;
   H : THostAddr;
 begin
   if SystemApiLevel >= 26 then
@@ -643,7 +680,8 @@ begin
   SetLength(DNSServers, 9);
   for i:=1 to 9 do
     begin
-      s:=GetSystemProperty(PAnsiChar('net.dns' + IntToStr(i)));
+      t:='net.dns' + IntToStr(i);
+      s:=GetSystemProperty(PAnsiChar(T));
       if s = '' then
         break;
       H:=StrToNetAddr(s);
@@ -661,7 +699,7 @@ var
 
 Procedure CheckResolveFile;
 var
-  n, v: string;
+  n, v: ansistring;
 begin
   if not CheckResolveFileAge then
     exit;
@@ -2182,7 +2220,7 @@ begin
     // Fill the cached DefaultDomainListArr and NDots
     if (Length(DefaultDomainListArr) = 0) then
       begin
-      DefaultDomainListArr := DefaultDomainList.Split(' ',Char(9));
+      DefaultDomainListArr := DefaultDomainList.Split(Char(' '),Char(9));
       L := Pos('ndots:', DNSOptions);
       if L > 0 then
         NDots := StrToIntDef(Trim(Copy(DNSOptions, L+6, 2)), 1);
@@ -2642,6 +2680,7 @@ Function ResolveName(const HostName : String; Addresses: pointer; MaxAddresses, 
 var
   h: TAddrInfo;
   res, ai: PAddrInfo;
+  A : AnsiString;
 begin
   Result:=-1;
   if MaxAddresses = 0 then
@@ -2650,7 +2689,8 @@ begin
   h.ai_family:=Family;
   h.ai_socktype:=SOCK_STREAM;
   res:=nil;
-  if (getaddrinfo(PChar(HostName), nil, @h, @res) <> 0) or (res = nil) then
+  A:=HostName;
+  if (getaddrinfo(PAnsiChar(A), nil, @h, @res) <> 0) or (res = nil) then
     exit;
   Result:=0;
   ai:=res;
@@ -2691,7 +2731,7 @@ begin
   n:='';
   SetLength(n, NI_MAXHOST);
   if getnameinfo(Addr, AddrLen, @n[1], Length(n), nil, 0, 0) = 0 then begin
-    Names[Low(Names)]:=PAnsiChar(n);
+    Names[Low(Names)]:=AnsiToString(n);
     Result:=1;
   end;
 end;
@@ -2792,7 +2832,7 @@ begin
   Result:=False;
 end;
 
-function PPCharToString(list: PPChar): string;
+function PPCharToString(list: PPAnsiChar): Ansistring;
 begin
   Result:='';
   if list = nil then
@@ -2809,13 +2849,16 @@ end;
 Function GetNetworkByName(const NetName: String; Var N : TNetworkEntry) : boolean;
 var
   ne: PNetEnt;
+  A : AnsiString;
+  
 begin
-  ne:=getnetbyname(PAnsiChar(NetName));
+  A:=NetName;
+  ne:=getnetbyname(PAnsiChar(A));
   Result:=ne <> nil;
   if Result then begin
-    N.Name:=ne^.n_name;
+    N.Name:=AnsiToString(ne^.n_name);
     N.Addr.s_addr:=ne^.n_net;
-    N.Aliases:=PPCharToString(ne^.n_aliases);
+    N.Aliases:=AnsiToString(PPCharToString(ne^.n_aliases));
   end;
 end;
 
@@ -2835,13 +2878,16 @@ end;
 Function GetServiceByName(Const Name,Proto : String; Var E : TServiceEntry) : Boolean;
 var
   se: PServEnt;
+  A,B : AnsiString;
 begin
-  se:=getservbyname(PAnsiChar(Name), PAnsiChar(Proto));
+  A:=Name;
+  B:=Proto;
+  se:=getservbyname(PAnsiChar(A), PAnsiChar(B));
   Result:=se <> nil;
   if Result then begin
-    E.Name:=se^.s_name;
+    E.Name:=AnsiToString(se^.s_name);
     E.Port:=NToHs(se^.s_port);
-    E.Protocol:=se^.s_proto;
+    E.Protocol:=AnsiToString(se^.s_proto);
     E.Aliases:=PPCharToString(se^.s_aliases);
   end;
 end;
@@ -2849,8 +2895,11 @@ end;
 Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntry) : Boolean;
 var
   se: PServEnt;
+  A : AnsiString;
+  
 begin
-  se:=getservbyport(htons(Port), PAnsiChar(Proto));
+  A:=Proto;
+  se:=getservbyport(htons(Port), PAnsiChar(A));
   Result:=se <> nil;
   if Result then begin
     E.Name:=se^.s_name;
@@ -2863,13 +2912,15 @@ end;
 Function GetProtocolByName(const ProtoName: String;  Var H : TProtocolEntry) : boolean;
 var
   pe: PProtoEnt;
+  A : AnsiString;
 begin
-  pe:=getprotobyname(PAnsiChar(ProtoName));
+  A:=ProtoName;
+  pe:=getprotobyname(PAnsiChar(A));
   Result:=pe <> nil;
   if Result then begin
-    H.Name:=pe^.p_name;
+    H.Name:=AnsiToString(pe^.p_name);
     H.Number:=pe^.p_proto;
-    h.Aliases:=PPCharToString(pe^.p_aliases);
+    h.Aliases:=AnsiToString(PPCharToString(pe^.p_aliases));
   end;
 end;
 
@@ -2880,9 +2931,9 @@ begin
   pe:=getprotobynumber(proto);
   Result:=pe <> nil;
   if Result then begin
-    H.Name:=pe^.p_name;
+    H.Name:=AnsiToString(pe^.p_name);
     H.Number:=pe^.p_proto;
-    h.Aliases:=PPCharToString(pe^.p_aliases);
+    h.Aliases:=AnsiToString(PPCharToString(pe^.p_aliases));
   end;
 end;
 

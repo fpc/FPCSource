@@ -265,13 +265,19 @@
            236    VerifyTrust
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aygshell;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE OBJFPC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$calling cdecl}
 

@@ -28,10 +28,16 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT colorwheel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 { For use with the WHEEL_HSB tag }
@@ -78,7 +84,7 @@ const
 VAR ColorWheelBase : pLibrary = nil;
 
 const
-    COLORWHEELNAME : Pchar = 'colorwheel.library';
+    COLORWHEELNAME : PAnsiChar = 'colorwheel.library';
 
 PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB location 'a0'; rgb : pColorWheelRGB location 'a1'); syscall ColorWheelBase 030;
 PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB location 'a0'; hsb : pColorWheelHSB location 'a1'); syscall ColorWheelBase 036;

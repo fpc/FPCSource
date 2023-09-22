@@ -32,13 +32,20 @@
   {$DEFINE ENDIAN_LITTLE}
 {$ENDIF !FPC}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit collation_fr_ca;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CodePages.unicodedata, System.Unicode.Unicodeducet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unicodedata, unicodeducet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   UPDATED_FIELDS = [  ];

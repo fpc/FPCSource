@@ -14,12 +14,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit layers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LAYERSIMPLE           = 1;
@@ -143,7 +150,7 @@ const
   LCM_COMPOSE = 0;
   LCM_DAMAGE  = 1;
 
-  LAYERSNAME: PChar = 'layers.library';
+  LAYERSNAME: PAnsiChar = 'layers.library';
 var
   LayersBase: PLibrary = nil;
   ILayers: PInterface = nil;

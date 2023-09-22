@@ -15,7 +15,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JSSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -34,6 +36,22 @@ unit JSSrcMap;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  JS,
+    {$ifdef nodejs}
+    Node.FS,
+    {$endif}
+  {$else}
+  System.Contnrs,
+  {$endif}
+  System.Classes, System.SysUtils, FpJson.Data
+  {$ifdef HasJsonParser}
+  , FpJson.Parser, FpJson.Scanner
+  {$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   JS,
@@ -48,9 +66,10 @@ uses
   , jsonparser, jsonscanner
   {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
-  Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  Base64Chars = AnsiString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');
 
 type
   EJSSourceMap = class(Exception);
@@ -136,8 +155,8 @@ type
       SrcLine: integer = 1; // 1-based
       SrcCol: integer = 0; // 0-based
       const Name: String = ''): TSourceMapSegment; virtual;
-    function CreateMappings: String; virtual;
-    procedure ParseMappings(const Mapping: String); virtual;
+    function CreateMappings: AnsiString; virtual;
+    procedure ParseMappings(const Mapping: AnsiString); virtual;
     function ToJSON: TJSONObject; virtual;
     function ToString: string; override;
     procedure LoadFromJSON(Obj: TJSONObject); virtual;
@@ -168,10 +187,10 @@ type
 
 function DefaultSrcMapHeader: string;
 
-function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
-function DecodeBase64VLQ(const s: string): NativeInt; // base64 Variable Length Quantity
+function EncodeBase64VLQ(i: NativeInt): AnsiString; // base64 Variable Length Quantity
+function DecodeBase64VLQ(const s: Ansistring): NativeInt; // base64 Variable Length Quantity
 function DecodeBase64VLQ(
-  {$ifdef UsePChar}var p: PChar{$else}const s: string; var p: integer{$endif}): NativeInt; // base64 Variable Length Quantity
+  {$ifdef UsePChar}var p: PAnsiChar{$else}const s: string; var p: integer{$endif}): NativeInt; // base64 Variable Length Quantity
 
 function CompareSegmentWithGeneratedLineCol(
   Item1, Item2: {$ifdef pas2js}jsvalue{$else}Pointer{$endif}): Integer;
@@ -186,7 +205,7 @@ begin
   Result:=')]}'''+LineEnding;
 end;
 
-function EncodeBase64VLQ(i: NativeInt): String;
+function EncodeBase64VLQ(i: NativeInt): AnsiString;
 { Convert signed number to base64-VLQ:
   Each base64 has 6bit, where the most significant bit is the continuation bit
   (1=there is a next base64 character).
@@ -225,15 +244,15 @@ begin
     digits:=i and %11111;
     i:=i shr 5;
     if i>0 then
-      inc(digits,%100000); // need another char -> set continuation bit
+      inc(digits,%100000); // need another AnsiChar -> set continuation bit
     Result:=Result+Base64Chars[digits+1];
   until i=0;
 end;
 
-function DecodeBase64VLQ(const s: string): NativeInt;
+function DecodeBase64VLQ(const s: Ansistring): NativeInt;
 var
   {$ifdef UsePChar}
-  p: PChar;
+  p,pend: PAnsiChar;
   {$else}
   p: integer;
   {$endif}
@@ -241,9 +260,11 @@ begin
   if s='' then
     raise EConvertError.Create('DecodeBase64VLQ empty');
   {$ifdef UsePChar}
-  p:=PChar(s);
+  p:=PAnsiChar(s);
+  pend:=p;
+  inc(pend,length(s));
   Result:=DecodeBase64VLQ(p);
-  if p-PChar(s)<>length(s) then
+  if p<>pend then
     raise EConvertError.Create('DecodeBase64VLQ waste');
   {$else}
   p:=1;
@@ -252,13 +273,13 @@ begin
 end;
 
 function DecodeBase64VLQ(
-  {$ifdef UsePChar}var p: PChar{$else}const s: string; var p: integer{$endif}): NativeInt;
+  {$ifdef UsePChar}var p: PAnsiChar{$else}const s: string; var p: integer{$endif}): NativeInt;
 { Convert base64-VLQ to signed number,
   For the fomat see EncodeBase64VLQ
 }
 var
   {$ifdef UsePChar}
-  run: PChar;
+  run: PAnsiChar;
   {$else}
   run, l: integer;
   {$endif}
@@ -296,7 +317,8 @@ begin
     '0'..'9': digit:=ord(c)-ord('0')+52;
     '+': digit:=62;
     '/': digit:=63;
-    else RaiseInvalid;
+    else
+      RaiseInvalid;
     end;
     inc(run);
     if Shift>MaxShift then
@@ -679,7 +701,7 @@ begin
   FItems.Add(Result);
 end;
 
-function TSourceMap.CreateMappings: String;
+function TSourceMap.CreateMappings: AnsiString;
 
 {$ifdef pas2js}
 var
@@ -690,7 +712,7 @@ var
     buf.push(s);
   end;
 
-  procedure AddChar(c: char); inline;
+  procedure AddChar(c: Char); inline;
   begin
     buf.push(c);
   end;
@@ -698,15 +720,15 @@ var
 var
   buf: TMemoryStream;
 
-  procedure AddStr(const s: string);
+  procedure AddStr(const s: Ansistring);
   begin
     if s<>'' then
-      buf.Write(s[1],length(s)*sizeof(char));
+      buf.Write(s[1],length(s)*sizeof(AnsiChar));
   end;
 
-  procedure AddChar(c: char);
+  procedure AddChar({%H-}c: AnsiChar);
   begin
-    buf.Write(c,sizeof(char));
+    buf.Write(c,sizeof(AnsiChar));
   end;
 {$endif}
 
@@ -803,12 +825,12 @@ begin
   end;
 end;
 
-procedure TSourceMap.ParseMappings(const Mapping: String);
+procedure TSourceMap.ParseMappings(const Mapping: AnsiString);
 const
   MaxInt = High(integer) div 2;
 {$ifdef UsePChar}
 var
-  p: PChar;
+  p,pend: PAnsiChar;
 
   function Decode: NativeInt; inline;
   begin
@@ -817,7 +839,7 @@ var
 
   procedure E(const Msg: string);
   begin
-    raise EJSSourceMap.CreateFmt(Msg,[PtrUInt(p-PChar(Mapping))+1]);
+    raise EJSSourceMap.CreateFmt(Msg,[PtrUInt(p-PAnsiChar(Mapping))+1]);
   end;
 {$else}
 var
@@ -843,7 +865,11 @@ var
 begin
   l:=length(Mapping);
   if l=0 then exit;
-  p:={$ifdef UsePChar}PChar(Mapping){$else}1{$endif};
+  p:={$ifdef UsePChar}PAnsiChar(Mapping){$else}1{$endif};
+  {$ifdef UsePChar}
+  pend:=PAnsiChar(Mapping);
+  Inc(pend,l);
+  {$endif}
   GeneratedLine:=1;
   LastColumn:=0;
   LastSrcFileIndex:=0;
@@ -855,7 +881,7 @@ begin
     case {$ifdef UsePChar}p^{$else}Mapping[p]{$endif} of
     {$ifdef UsePChar}
     #0:
-      if p-PChar(Mapping)=length(Mapping) then
+      if p>=pend then
         exit
       else
         E('unexpected #0 at %d');

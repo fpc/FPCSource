@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit infcodes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { infcodes.c -- process literals and length/distance pairs
   Copyright (C) 1995-1998 Mark Adler
@@ -12,8 +14,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function inflate_codes_new (bl : cardinal;
                             bd : cardinal;
@@ -30,8 +37,13 @@ procedure inflate_codes_free(var c : pInflate_codes_state;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Infutil, System.ZLib.Inffast{$IFDEF ZLIB_DEBUG}, System.SysUtils{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   infutil, inffast{$IFDEF ZLIB_DEBUG}, SysUtils{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function inflate_codes_new (bl : cardinal;
@@ -183,7 +195,7 @@ begin
         c^.sub.lit := t^.base;
        {$IFDEF ZLIB_DEBUG}
         if (t^.base >= $20) and (t^.base < $7f) then
-          Tracevv('inflate:         literal '+char(t^.base))
+          Tracevv('inflate:         literal '+AnsiChar(t^.base))
         else
           Tracevv('inflate:         literal $'+IntToHex(t^.base, 2));
         {$ENDIF}          

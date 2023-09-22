@@ -662,7 +662,7 @@ procedure __libc_start_main(r3,r4,r5,r6,r7,r8,r9: pointer); cdecl; external;
 var
   __fpc_ret: pointer;
 
-procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: ppchar; stkptr: pointer);
+procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: PPAnsiChar; stkptr: pointer);
   begin
     operatingsystem_parameter_argc:=argc;
     operatingsystem_parameter_argv:=argv;
@@ -685,7 +685,7 @@ label
  * This is our FreePascal main procedure which is called by
  * libc after initializing.
  *}
-procedure main_stub(argc: longint; argv, envp: ppchar); cdecl; assembler; nostackframe;
+procedure main_stub(argc: longint; argv, envp: PPAnsiChar); cdecl; assembler; nostackframe;
   asm
 {$if defined(_CALL_ELF) and (_CALL_ELF = 2)}
 .L1:

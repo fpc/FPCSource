@@ -38,8 +38,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ':';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   maxExitCode = 255;
 
   MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
@@ -59,18 +59,18 @@ const
 
 var
   argc: LongInt = 0;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
 //  errno: integer;
 
-function get_cmdline:Pchar;
+function get_cmdline:PAnsiChar;
 
-property cmdline:Pchar read get_cmdline;
+property cmdline:PAnsiChar read get_cmdline;
 
 implementation
 
 const
-  calculated_cmdline: Pchar = nil;
+  calculated_cmdline: PAnsiChar = nil;
   { System limits, POSIX value in parentheses, used for buffer and stack allocation }
   ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
   PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
@@ -120,7 +120,7 @@ End;
 var
  execpathstr : shortstring;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
@@ -144,7 +144,7 @@ var
   len,j,
   size,i : longint;
   found  : boolean;
-  buf    : pchar;
+  buf    : PAnsiChar;
 
   procedure AddBuf;
   begin
@@ -198,7 +198,7 @@ begin
   FreeMem(buf,ARG_MAX);
 end;
 
-function get_cmdline:Pchar;
+function get_cmdline:PAnsiChar;
 
 begin
   if calculated_cmdline=nil then

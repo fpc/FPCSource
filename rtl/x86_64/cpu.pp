@@ -14,7 +14,9 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cpu;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -25,8 +27,13 @@ unit cpu;
      {$endif}
   {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
     function InterlockedCompareExchange128Support : boolean;inline;
     function CMOVSupport : boolean;inline;

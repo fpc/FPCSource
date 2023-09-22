@@ -29,7 +29,9 @@
 1.0   (1992)
   - original implementation }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StdDlg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   This unit has been modified to make some functions global, apply patches
@@ -66,14 +68,20 @@ unit StdDlg;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views, 
+  FreeVision.Dialogs, FreeVision.Validate, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FVConsts, Objects, Drivers, Views, Dialogs, Validate, Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MaxDir   = 255;   { Maximum length of a DirStr. }
   MaxFName = 255; { Maximum length of a FNameStr. }
 
-  DirSeparator : Char = system.DirectorySeparator;
+  DirSeparator : AnsiChar = system.DirectorySeparator;
 
 {$ifdef Unix}
   AllFiles = '*';
@@ -351,7 +359,7 @@ const
 function Contains(S1, S2: String): Boolean;
   { Contains returns true if S1 contains any characters in S2. }
 
-function DriveValid(Drive: Char): Boolean;
+function DriveValid(Drive: AnsiChar): Boolean;
   { DriveValid returns True if Drive is a valid DOS drive.  Drive valid works
     by attempting to change the current directory to Drive, then restoring
     the original directory. }
@@ -385,7 +393,7 @@ function GetCurDir: DirStr;
   { GetCurDir returns the current directory.  The directory returned always
     ends with a trailing backslash '\'. }
 
-function GetCurDrive: Char;
+function GetCurDrive: AnsiChar;
   { GetCurDrive returns the letter of the current drive as reported by the
     operating system. }
 
@@ -393,7 +401,7 @@ function IsWild(const S: String): Boolean;
   { IsWild returns True if S contains a question mark (?) or asterix (*). }
 
 function IsList(const S: String): Boolean;
-  { IsList returns True if S contains list separator (;) char }
+  { IsList returns True if S contains list separator (;) AnsiChar }
 
 function IsDir(const S: String): Boolean;
   { IsDir returns True if S is a valid DOS directory. }
@@ -569,8 +577,13 @@ implementation
 {            Local Declarations              }
 {****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FreeVision.App, {FreeVision.Memory,} FreeVision.HistList, FreeVision.MsgBox{, System.Resources.Resource};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   App, {Memory,} HistList, MsgBox{, Resource};
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -774,7 +787,7 @@ end;
      in_name:=true;
      for i:=length(s) downto 1 do
       if in_name and (s[i] in ['a'..'z']) then
-        uppername[i]:=char(byte(s[i])-32)
+        uppername[i]:=AnsiChar(byte(s[i])-32)
       else
        begin
           uppername[i]:=s[i];
@@ -849,7 +862,7 @@ function MatchesMask(What, Mask: string): boolean;
   begin
      for i:=1 to length(s) do
       if s[i] in ['a'..'z'] then
-       upper[i]:=char(byte(s[i])-32)
+       upper[i]:=AnsiChar(byte(s[i])-32)
       else
        upper[i]:=s[i];
      upper[0]:=s[0];
@@ -1365,7 +1378,7 @@ begin
       if C = cmOk then
       begin
         Rslt := HistoryWindow^.GetSelection;
-        if Length(Rslt) > Link^.MaxLen then Rslt[0] := Char(Link^.MaxLen);
+        if Length(Rslt) > Link^.MaxLen then Rslt[0] := AnsiChar(Link^.MaxLen);
         Link^.Data^ := Rslt;
         Link^.SelectAll(True);
         Link^.DrawView;
@@ -1850,7 +1863,7 @@ const
 var
   AList: PCollection;
   NewDir, Dirct: DirStr;
-  C, OldC: Char;
+  C, OldC: AnsiChar;
   S, Indent: String[80];
   P: PString;
   NewCur: Word;
@@ -2245,7 +2258,7 @@ end;
 {****************************************************************************}
 procedure TSortedListBox.HandleEvent(var Event: TEvent);
 const
-  SpecialChars: set of Char = [#0,#9,#27];
+  SpecialChars: set of AnsiChar = [#0,#9,#27];
 var
   CurString, NewString: String;
   K: Pointer;
@@ -2277,7 +2290,7 @@ begin
    Dec(SearchPos);
           if SearchPos = 0 then
             HandleDir:= ((GetShiftState and $3) <> 0) or (Event.CharCode in ['A'..'Z']);
-   CurString[0] := Char(SearchPos);
+   CurString[0] := AnsiChar(SearchPos);
       end
       else if (Event.CharCode = '.') then
         SearchPos := Pos('.',CurString)
@@ -2286,7 +2299,7 @@ begin
    Inc(SearchPos);
           if SearchPos = 1 then
             HandleDir := ((GetShiftState and 3) <> 0) or (Event.CharCode in ['A'..'Z']);
-   CurString[0] := Char(SearchPos);
+   CurString[0] := AnsiChar(SearchPos);
    CurString[SearchPos] := Event.CharCode;
       end;
       K := GetKey(CurString);
@@ -2371,10 +2384,10 @@ end;
 {****************************************************************************}
 { DriveValid                         }
 {****************************************************************************}
-function DriveValid(Drive: Char): Boolean;
+function DriveValid(Drive: AnsiChar): Boolean;
 {$ifdef HAS_DOS_DRIVES}
 var
-  D: Char;
+  D: AnsiChar;
 begin
   D := GetCurDrive;
   {$push}{$I-}
@@ -2475,14 +2488,14 @@ end;
 {****************************************************************************}
 { GetCurDrive                       }
 {****************************************************************************}
-function GetCurDrive: Char;
+function GetCurDrive: AnsiChar;
 {$ifdef go32v2}
 var
   Regs : Registers;
 begin
   Regs.AH := $19;
   Intr($21,Regs);
-  GetCurDrive := Char(Regs.AL + Byte('A'));
+  GetCurDrive := AnsiChar(Regs.AL + Byte('A'));
 end;
 {$else not go32v2}
 var
@@ -2492,7 +2505,7 @@ begin
   if (Length(D)>1) and (D[2]=':') then
     begin
       if (D[1]>='a') and (D[1]<='z') then
-        GetCurDrive:=Char(Byte(D[1])+Byte('A')-Byte('a'))
+        GetCurDrive:=AnsiChar(Byte(D[1])+Byte('A')-Byte('a'))
       else
         GetCurDrive:=D[1];
     end
@@ -2598,7 +2611,7 @@ end;
 {****************************************************************************}
 function NoWildChars(S: String): String;
 const
-  WildChars : array[0..1] of Char = ('?','*');
+  WildChars : array[0..1] of AnsiChar = ('?','*');
 var
   i : Sw_Word;
 begin

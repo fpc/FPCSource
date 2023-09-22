@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,12 +13,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpWeb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, Fcl.Template;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fphttp, fptemplate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -415,7 +422,11 @@ procedure TCustomFPWebModule.GetTemplateContent(ARequest: TRequest;
   
 begin
   TFPWebTemplate(FTemplate).Request:=ARequest;
+  {$IF SIZEOF(CHAR)=2}
+  AResponse.Content:=UTF8Encode(FTemplate.GetContent);
+  {$ELSE}
   AResponse.Content:=FTemplate.GetContent;
+  {$ENDIF}
 end;
 
 function TCustomFPWebModule.GetContent: String;

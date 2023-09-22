@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit moneytest;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Money, FpcUnit.Registry;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, money, testregistry;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

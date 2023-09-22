@@ -10,17 +10,36 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgcommands;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpPkg.Handler, Fpmkunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, pkghandler, fpmkunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zipper,
+  FpPkg.Messages,
+  FpPkg.Globals,
+  FpPkg.Options,
+  FpPkg.Download,
+  FpPkg.PackageRepos,
+  FpPkg.Package,
+  FpPkg.XmlRep,
+  FpPkg.Repos;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zipper,
   pkgmessages,
@@ -31,6 +50,7 @@ uses
   pkgFppkg,
   fpxmlrep,
   fprepos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TCommandAddConfig }
@@ -658,7 +678,7 @@ begin
   if L.Count > 0 then
     begin
       if DependenciesDepth=0 then
-        pkgglobals.Log(llProgress,SProgrInstallDependencies);
+        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrInstallDependencies);
       inc(DependenciesDepth);
 
       for i:=0 to L.Count-1 do
@@ -667,7 +687,7 @@ begin
 
       dec(DependenciesDepth);
       if DependenciesDepth=0 then
-        pkgglobals.Log(llProgress,SProgrDependenciesInstalled);
+        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if assigned(ManifestPackages) then
@@ -690,7 +710,7 @@ begin
     PackageManager.FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
-    pkgglobals.Log(llProgress,SProgrReinstallDependent);
+    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         if not ExecuteAction(SL[i],'build') then
@@ -700,7 +720,7 @@ begin
         if PackageManager.PackageIsBroken(PackageManager.PackageByName(SL[i], pkgpkInstalled), Reason, nil) then
           begin
             BreakLoop := true;
-            pkgglobals.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i], Reason]);
+            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i], Reason]);
           end;
       end;
   until BreakLoop;

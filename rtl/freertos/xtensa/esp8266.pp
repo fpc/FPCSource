@@ -1,7 +1,9 @@
 {******************************************************************************
 Startup code for xtensa-esp8266 using ESP8266_RTOS_SDK V3.3
 ******************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit esp8266;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 {$macro on}
@@ -10,16 +12,21 @@ unit esp8266;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      EmbeddedApi.ConsoleIO,EmbeddedApi.HeapMGR;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       consoleio,heapmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
     var
       _stack_top: record end; public name '_stack_top';
       operatingsystem_result: longint; external name 'operatingsystem_result';
 
     procedure PASCALMAIN; external name 'PASCALMAIN';
-    procedure putchar(c : char);external;
-    function uart_rx_one_char(pRxChar: PChar): longint; external;
+    procedure putchar(c : AnsiChar);external;
+    function uart_rx_one_char(pRxChar: PAnsiChar): longint; external;
     function __getreent : pointer;external;
     procedure fflush(f : pointer);external;
     procedure vTaskDelay(xTicksToDelay: uint32); external;
@@ -50,13 +57,13 @@ unit esp8266;
         _FPC_haltproc;
       end;
 
-    function WriteChar(ACh: char; AUserData: pointer): boolean;
+    function WriteChar(ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         WriteChar:=true;
         putchar(ACh);
       end;
 
-    function ReadChar(var ACh: char; AUserData: pointer): boolean;
+    function ReadChar(var ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         ReadChar := true;
         ACh := #0;

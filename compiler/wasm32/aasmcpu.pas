@@ -570,7 +570,8 @@ uses
           a_end_if,
           a_end_loop,
           a_end_try,
-          a_catch_all:
+          a_catch_all,
+          a_ref_is_null:
             result:=1;
           a_i32_trunc_sat_f32_s,
           a_i32_trunc_sat_f32_u,
@@ -581,7 +582,9 @@ uses
           a_i64_trunc_sat_f64_s,
           a_i64_trunc_sat_f64_u,
           a_memory_size,
-          a_memory_grow:
+          a_memory_grow,
+          a_ref_null_funcref,
+          a_ref_null_externref:
             result:=2;
           a_memory_copy:
             result:=4;
@@ -1991,6 +1994,18 @@ uses
               WriteByte($FC);
               WriteByte($07);
             end;
+          a_ref_null_funcref:
+            begin
+              WriteByte($D0);
+              WriteByte($70);
+            end;
+          a_ref_null_externref:
+            begin
+              WriteByte($D0);
+              WriteByte($6F);
+            end;
+          a_ref_is_null:
+            WriteByte($D1);
           else
             internalerror(2021092624);
         end;

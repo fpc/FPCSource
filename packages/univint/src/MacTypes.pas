@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.ConditionalMacros;
+{$ELSE FPC_DOTTEDUNITS}
 uses ConditionalMacros;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -647,8 +653,8 @@ const
         ConstStringPtr          Pointer to a read-only pascal string
         ConstStrNNNParam        For function parameters only - means string is const
         
-        CStringPtr              Pointer to a C string           (in C:  char*)
-        ConstCStringPtr         Pointer to a read-only C string (in C:  const char*)
+        CStringPtr              Pointer to a C string           (in C:  AnsiChar*)
+        ConstCStringPtr         Pointer to a read-only C string (in C:  const AnsiChar*)
         
     Note: The length of a pascal string is stored as the first byte.
           A pascal string does not have a termination byte.
@@ -694,7 +700,7 @@ type
 	    cross-platform.  For example FSSpec or SFReply previously
 	    contained a Str63 field.  They now contain a StrFileName
 	    field which is the same when targeting the MacOS but is
-	    a 256 char buffer for Win32 and unix, allowing them to
+	    a 256 AnsiChar buffer for Win32 and unix, allowing them to
 	    contain long file names.
 		}
 type
@@ -702,7 +708,7 @@ type
 	StringPtr = ^Str255;
 	StringHandle = ^StringPtr;
 	ConstStringPtr = StringPtr;
-	CStringPtr = PChar;
+	CStringPtr = PAnsiChar;
 	ConstCStringPtr = CStringPtr;
 	CStringPtrPtr = ^CStringPtr;
 	ConstCStringPtrPtr = ^ConstCStringPtr;
@@ -736,10 +742,10 @@ type
         Style               Quickdraw font rendering styles
         StyleParameter      Style when used as a parameter (historical 68K convention)
         StyleField          Style when used as a field (historical 68K convention)
-        CharParameter       Char when used as a parameter (historical 68K convention)
+        CharParameter       AnsiChar when used as a parameter (historical 68K convention)
         
     Note:   The original Macintosh toolbox in 68K Pascal defined Style as a SET.  
-            Both Style and CHAR occupy 8-bits in packed records or 16-bits when 
+            Both Style and AnsiChar occupy 8-bits in packed records or 16-bits when 
             used as fields in non-packed records or as parameters. 
         
 ********************************************************************************}
@@ -786,7 +792,7 @@ type
 	FixedRectPtr = ^FixedRect;
 
 type
-	CharParameter = Char;
+	CharParameter = AnsiChar;
 const
 	normal = 0;
 	bold = 1;

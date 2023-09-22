@@ -33,12 +33,18 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit easyasl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Asl, Amiga.Core.Utility, Amiga.Utils.Amigautils,System.Strings, Amiga.Core.Workbench, Amiga.Utils.Linklist;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, asl, utility, amigautils,strings, workbench, linklist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 TYPE
@@ -56,32 +62,36 @@ TYPE
     END;
 
 
-FUNCTION GetFileAsl(title : PChar; VAR path, fname : PChar; thepatt : PChar;win : Pointer): Boolean;
-FUNCTION GetFontAsl(title : PChar;VAR finfo : tFPCFontInfo; win : Pointer): Boolean;
-FUNCTION GetMultiAsl(title : PChar; VAR path : PChar;  VAR Thelist : pList; thepatt : PChar;win : Pointer): Boolean;
-FUNCTION GetPathAsl(title : PChar; VAR path : PChar; win : Pointer): Boolean;
-FUNCTION SaveFileAsl(title : PChar; VAR path, fname : PChar; win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; thepatt : PAnsiChar;win : Pointer): Boolean;
+FUNCTION GetFontAsl(title : PAnsiChar;VAR finfo : tFPCFontInfo; win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : PAnsiChar; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : PAnsiChar;win : Pointer): Boolean;
+FUNCTION GetPathAsl(title : PAnsiChar; VAR path : PAnsiChar; win : Pointer): Boolean;
+FUNCTION SaveFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; win : Pointer): Boolean;
 
 
-FUNCTION GetFileAsl(title : PChar; VAR path, fname : PChar; thepatt : String;win : Pointer): Boolean;
-FUNCTION GetFileAsl(title : String; VAR path, fname : PChar; thepatt : PChar;win : Pointer): Boolean;
-FUNCTION GetFileAsl(title : String; VAR path, fname : PChar; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : String; VAR path, fname : PAnsiChar; thepatt : PAnsiChar;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : String; VAR path, fname : PAnsiChar; thepatt : String;win : Pointer): Boolean;
 FUNCTION GetFontAsl(title : String;VAR finfo : tFPCFontInfo; win : Pointer): Boolean;
-FUNCTION GetMultiAsl(title : PChar; VAR path : PChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
-FUNCTION GetMultiAsl(title : String; VAR path : PChar;  VAR Thelist : pList; thepatt : PChar;win : Pointer): Boolean;
-FUNCTION GetMultiAsl(title : String; VAR path : PChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
-FUNCTION GetPathAsl(title : String; VAR path : PChar; win : Pointer): Boolean;
-FUNCTION SaveFileAsl(title : String; VAR path, fname : PChar; win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : PAnsiChar; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : String; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : PAnsiChar;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : String; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetPathAsl(title : String; VAR path : PAnsiChar; win : Pointer): Boolean;
+FUNCTION SaveFileAsl(title : String; VAR path, fname : PAnsiChar; win : Pointer): Boolean;
 
 
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+ uses Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
  uses pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
-FUNCTION GetFileAsl(title : PChar; VAR path, fname : PChar; thepatt : PChar;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; thepatt : PAnsiChar;win : Pointer): Boolean;
 
 VAR
     fr : pFileRequester;
@@ -155,7 +165,7 @@ BEGIN
     GetFileAsl := result;
 END;
 
-FUNCTION GetFontAsl(title : PChar;VAR finfo : tFPCFontInfo; win : Pointer): Boolean;
+FUNCTION GetFontAsl(title : PAnsiChar;VAR finfo : tFPCFontInfo; win : Pointer): Boolean;
 
 VAR
     fr : pFontRequester;
@@ -264,7 +274,7 @@ BEGIN
     GetFontAsl := result;
 END;
 
-FUNCTION GetMultiAsl(title : PChar; VAR path : PChar;  VAR Thelist : pList; thepatt : PChar;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : PAnsiChar; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : PAnsiChar;win : Pointer): Boolean;
 
 VAR
     fr : pFileRequester;
@@ -337,7 +347,7 @@ BEGIN
         GetMultiAsl := result;
 END;
 
-FUNCTION GetPathAsl(title : PChar; VAR path : PChar; win : Pointer): Boolean;
+FUNCTION GetPathAsl(title : PAnsiChar; VAR path : PAnsiChar; win : Pointer): Boolean;
 
 VAR
     fr : pFileRequester;
@@ -394,7 +404,7 @@ BEGIN
     GetPathAsl := result;
 END;
 
-FUNCTION SaveFileAsl(title : PChar; VAR path, fname : PChar; win : Pointer): Boolean;
+FUNCTION SaveFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; win : Pointer): Boolean;
 
 VAR
     fr : pFileRequester;
@@ -459,17 +469,17 @@ BEGIN
 END;
 
 
-FUNCTION GetFileAsl(title : String; VAR path, fname : PChar; thepatt : PChar;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : String; VAR path, fname : PAnsiChar; thepatt : PAnsiChar;win : Pointer): Boolean;
 begin
     GetFileAsl := GetFileAsl(pas2c(title),path,fname,thepatt,win);
 end;
 
-FUNCTION GetFileAsl(title : String; VAR path, fname : PChar; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : String; VAR path, fname : PAnsiChar; thepatt : String;win : Pointer): Boolean;
 begin
     GetFileAsl := GetFileAsl(pas2c(title),path,fname,pas2c(thepatt),win);
 end;
 
-FUNCTION GetFileAsl(title : PChar; VAR path, fname : PChar; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetFileAsl(title : PAnsiChar; VAR path, fname : PAnsiChar; thepatt : String;win : Pointer): Boolean;
 begin
     GetFileAsl := GetFileAsl(title,path,fname,pas2c(thepatt),win);
 end;
@@ -479,27 +489,27 @@ begin
     GetFontAsl := GetFontAsl(pas2c(title),finfo,win);
 end;
 
-FUNCTION GetMultiAsl(title : String; VAR path : PChar;  VAR Thelist : pList; thepatt : PChar;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : String; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : PAnsiChar;win : Pointer): Boolean;
 begin
     GetMultiAsl := GetMultiAsl(pas2c(title),path,TheList,thepatt,win);
 end;
 
-FUNCTION GetMultiAsl(title : String; VAR path : PChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : String; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
 begin
     GetMultiAsl := GetMultiAsl(pas2c(title),path,TheList,pas2c(thepatt),win);
 end;
 
-FUNCTION GetMultiAsl(title : PChar; VAR path : PChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
+FUNCTION GetMultiAsl(title : PAnsiChar; VAR path : PAnsiChar;  VAR Thelist : pList; thepatt : String;win : Pointer): Boolean;
 begin
     GetMultiAsl := GetMultiAsl(title,path,TheList,pas2c(thepatt),win);
 end;
 
-FUNCTION GetPathAsl(title : String; VAR path : PChar; win : Pointer): Boolean;
+FUNCTION GetPathAsl(title : String; VAR path : PAnsiChar; win : Pointer): Boolean;
 begin
     GetPathAsl := GetPathAsl(pas2c(title),path,win);
 end;
 
-FUNCTION SaveFileAsl(title : String; VAR path, fname : PChar; win : Pointer): Boolean;
+FUNCTION SaveFileAsl(title : String; VAR path, fname : PAnsiChar; win : Pointer): Boolean;
 begin
     SaveFileAsl := SaveFileAsl(pas2c(title),path,fname,win);
 end;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcHuff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains Huffman entropy encoding routines.
 
@@ -14,6 +16,16 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg, { longptr definition missing }
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jcomapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg, { longptr definition missing }
   jpeglib,
@@ -22,6 +34,7 @@ uses
   jutils,
   jinclude,
   jcomapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { The legal range of a DCT coefficient is
    -1024 .. +1023  for 8-bit data;

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rtl_console(const ADirectory: string);
@@ -130,6 +130,8 @@ begin
      end;
 
     T:=P.Targets.AddUnit('unixkvmbase.pp',AllUnixOSes);
+
+    P.NamespaceMap:='namespaces.lst';
   end
 end;
 

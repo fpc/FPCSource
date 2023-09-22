@@ -19,7 +19,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unicodeducet;
+{$ENDIF FPC_DOTTEDUNITS}
 {$IFDEF FPC}
   {$mode delphi}
   {$H+}
@@ -35,8 +37,13 @@ unit unicodeducet;
 interface
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CodePages.unicodedata;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unicodedata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$INCLUDE ucadata.inc}
 {$IFDEF ENDIAN_LITTLE}

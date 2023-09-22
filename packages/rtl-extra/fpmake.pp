@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rtl_extra(const ADirectory: string);
@@ -161,7 +161,10 @@ begin
      end;
     { sortalgs unit source code uses goto, which is not supported on wasm32 CPU }
     T:=P.Targets.AddUnit('sortalgs.pp',AllCPUs-[wasm32], AllTargetsextra);
-  end
+
+    P.NamespaceMap:='namespaces.lst';
+    
+  end;
 end;
 
 {$ifndef ALLPACKAGES}

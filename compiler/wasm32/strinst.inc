@@ -70,7 +70,7 @@
         // bulk memory operations
         'memory.copy', 'memory.fill', 'memory.init', 'data.drop',
         // reference instructions
-        'ref.null', 'ref.is_null', 'ref.func',
+        'ref.null_func', 'ref.null_extern', 'ref.is_null', 'ref.func',
         // table instructions
         'table.get', 'table.set', 'table.size', 'table.grow', 'table.fill', 'table.copy', 'table.init', 'elem.drop',
         // saturating truncation instructions

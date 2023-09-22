@@ -1,6 +1,8 @@
 {$MODE OBJFPC}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit resolve;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef win32}
 // Here till BSD supports the netbsd unit.
@@ -33,8 +35,13 @@ Unit resolve;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Net.Sockets,System.Classes,Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Sockets,Classes,UriParser;
+ {$ENDIF FPC_DOTTEDUNITS}
 
 Type
   THostAddr = in_addr;		
@@ -61,7 +68,7 @@ Type
   Protected
     Procedure CheckOperation(const Msg : String);
     Function NameLookup(Const S : String) : Boolean; virtual;
-    Procedure SaveAliases(P : PPChar);
+    Procedure SaveAliases(P : PPAnsiChar);
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -194,7 +201,11 @@ Implementation
   ---------------------------------------------------------------------}
 
 {$ifdef usenetdb}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Net.Netdb;
+{$ELSE FPC_DOTTEDUNITS}
 uses netdb;
+{$ENDIF FPC_DOTTEDUNITS}
 {$else}
 {$i resolve.inc}
 {$endif}
@@ -261,7 +272,7 @@ begin
   Result:=True;
 end;
 
-Procedure TResolver.SaveAliases(P : PPChar);
+Procedure TResolver.SaveAliases(P : PPAnsiChar);
 
 Var
   I : Integer;
@@ -372,7 +383,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FHostEntry:=GetHostByName(pchar(FName));
+    FHostEntry:=GetHostByName(PAnsiChar(FName));
     Result:=FHostEntry<>Nil;
     If Result then
       SaveHostEntry(FHostEntry)
@@ -415,7 +426,7 @@ Var
 
 begin
   ClearData;
-  FHostEntry:=GetHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
+  FHostEntry:=GetHostByAddr(PAnsiChar(@Address),SizeOf(Address),AF_INET);
   Result:=FHostEntry<>Nil;
   If Result then
     SaveHostEntry(FHostEntry)
@@ -494,7 +505,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FNetEntry:=GetNetByName(pchar(S));
+    FNetEntry:=GetNetByName(PAnsiChar(S));
     Result:=FNetEntry<>Nil;
     If Result then
       SaveNetEntry(FNetEntry)
@@ -631,9 +642,9 @@ begin
   FName:=S;
   FProtocol:=Proto;
   If (proto='') then
-    FServiceEntry:=GetServByName(pchar(S),Nil)
+    FServiceEntry:=GetServByName(PAnsiChar(S),Nil)
   else
-    FServiceEntry:=GetServByName(pchar(S),PChar(FProtocol));
+    FServiceEntry:=GetServByName(PAnsiChar(S),PAnsiChar(FProtocol));
   Result:=FServiceEntry<>Nil;
   If Result then
     SaveServiceEntry(FServiceEntry)
@@ -656,7 +667,7 @@ begin
   If (Proto='') then
     FServiceEntry:=GetServByPort(APort,Nil)
   else
-    FServiceEntry:=GetServByPort(APort,pchar(Proto));
+    FServiceEntry:=GetServByPort(APort,PAnsiChar(Proto));
   Result:=FServiceEntry<>Nil;
   If Result then
     SaveServiceEntry(FServiceEntry)
@@ -774,7 +785,7 @@ Var
   U : TURI;
 
 begin
-  U:=UriParser.ParseURI(AUri);
+  U:={$IFDEF FPC_DOTTEDUNITS}Fcl.{$ENDIF}UriParser.ParseURI(AUri);
   FProtocol := u.Protocol;
   FUsername := u.Username;
   FPassword := u.Password;

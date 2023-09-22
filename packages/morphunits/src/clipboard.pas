@@ -20,11 +20,17 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit clipboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     CBD_POST            = CMD_NONSTD + 0;
@@ -54,7 +60,7 @@ type
         io_Error        : Shortint;     { error or warning num  }
         io_Actual       : DWord;        { number of bytes transferred }
         io_Length       : DWord;        { number of bytes requested }
-        io_Data         : PChar;        { either clip stream or post port }
+        io_Data         : PAnsiChar;        { either clip stream or post port }
         io_Offset       : DWord;        { offset in clip stream }
         io_ClipID       : Longint;      { ordinal clip identifier }
     end;

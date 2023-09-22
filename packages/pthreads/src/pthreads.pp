@@ -13,7 +13,9 @@
 
 **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pthreads;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -21,26 +23,50 @@ interface
 {$PACKRECORDS C}
 
 {$if defined(BSD)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC,UnixApi.Base, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc,BaseUnix, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$i pthrbsd.inc}
 {$elseif defined(android)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC, System.CTypes, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc, ctypes, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$i pthrandroid.inc}
 {$elseif defined(linux)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC, System.CTypes, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc, ctypes, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$i pthrlinux.inc}
 {$elseif defined(sunos)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC, System.CTypes, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc, ctypes, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$i pthrsnos.inc}
 {$elseif defined(beos)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC, System.CTypes, UnixApi.Base, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc, ctypes, baseunix, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$ifdef haiku}
     {$i pthrhaiku.inc}
   {$else}
     {$i pthrbeos.inc}
   {$endif}
 {$elseif defined(aix)}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.InitC, System.CTypes, UnixApi.Base, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
   uses initc, ctypes, baseunix, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
   {$i pthraix.inc}
 {$else}
   {$error operating system not detected}

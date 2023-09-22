@@ -19,12 +19,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit eigh1;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure tred1(var a: ArbFloat; n, rwidth: ArbInt; var d, cd: ArbFloat;
                 var term: ArbInt);

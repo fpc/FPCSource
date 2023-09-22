@@ -17,21 +17,31 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
-{$modeswitch out}
-{ force ansistrings }
+{$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
 {OS has only 1 byte version for ExecuteProcess}
 {$define executeprocuni}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOSApi.MacOSTP;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   MacOSTP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}   {Dummy implementation:  TODO }
 //{$DEFINE HAS_OSERROR}   TODO
@@ -59,8 +69,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS, System.SysConst, MacOSApi.MacUtils; // For some included files.
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Dos, Sysconst, macutils; // For some included files.
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
@@ -243,7 +258,7 @@ begin
 end;
 
 (*
-Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
+Function LinuxToWinAttr (FN : PAnsiChar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
@@ -482,7 +497,7 @@ begin
   If Not FStat (FileName,Info) then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(Pchar(FileName),Info);
+    Result:=LinuxToWinAttr(PAnsiChar(FileName),Info);
   *)
 end;
 
@@ -529,7 +544,7 @@ end;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -537,7 +552,7 @@ Const
     );
 var
   Drives   : byte;
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Procedure AddDisk(const path:string);
 begin
@@ -643,7 +658,7 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
   (* TODO fix
-  Result:=Unix.Getenv(PChar(EnvVar));
+  Result:=Unix.Getenv(PAnsiChar(EnvVar));
   *)
 end;
 
@@ -662,7 +677,7 @@ begin
 end;
 
 { Create a DoScript AppleEvent that targets the given application with text as the direct object. }
-function CreateDoScriptEvent (applCreator: OSType; scriptText: PChar; var theEvent: AppleEvent): OSErr;
+function CreateDoScriptEvent (applCreator: OSType; scriptText: PAnsiChar; var theEvent: AppleEvent): OSErr;
 
   var
    err: OSErr;
@@ -698,13 +713,13 @@ begin
   if desc.descriptorType = FourCharCodeToLongword(typeChar) then
     begin
       HLock(desc.dataHandle);
-      Fpc_WriteBuffer(f, PChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
+      Fpc_WriteBuffer(f, PAnsiChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
       Flush(f);
       HUnLock(desc.dataHandle);
     end;
 end;
 
-function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OSErr;
+function ExecuteToolserverScript(scriptText: PAnsiChar; var statusCode: Longint): OSErr;
 
   var
     err: OSErr;
@@ -780,13 +795,13 @@ Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
   wdpath:= 'Directory ' + wdpath;
-  Result := ExecuteToolserverScript(PChar(wdpath), laststatuscode);
+  Result := ExecuteToolserverScript(PAnsiChar(wdpath), laststatuscode);
     {TODO Only change path when actually needed. But this requires some
      change counter to be incremented each time wd is changed. }
 
   s:= path + ' ' + comline;
 
-  Result := ExecuteToolserverScript(PChar(s), laststatuscode);
+  Result := ExecuteToolserverScript(PAnsiChar(s), laststatuscode);
   if Result = afpItemNotFound then
     Result := 900
   else

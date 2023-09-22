@@ -4,7 +4,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2006 by Dean Zobec
 
-    an example of plain text report for FPCUnit tests.
+    an example of plain text report for FpcUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit plaintestreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Reports, FpcUnit.Decorator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, SysUtils, fpcunit, fpcunitreport, testdecorator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TTestResultOption = (ttoSkipAddress,ttoSkipExceptionMessage,ttoErrorsOnly);
@@ -59,7 +66,11 @@ function TestResultAsPlain(aTestResult: TTestResult; Options : TTestResultOption
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {TPlainResultsWriter}
 

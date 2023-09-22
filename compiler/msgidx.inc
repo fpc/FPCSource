@@ -479,6 +479,11 @@ const
   parser_e_absolute_sym_cannot_reference_itself=03363;
   parser_e_syscall_format_not_support=03364;
   parser_w_ignoring_published_property=03365;
+  parser_e_wasm_ref_types_can_only_be_passed_by_value=03366;
+  parser_e_promising_exports_not_supported_on_current_platform=03367;
+  parser_e_suspending_externals_not_supported_on_current_platform=03368;
+  parser_w_widechar_set_reduced=03369;
+  parser_e_nostringaliasinsystem=03370;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -601,6 +606,8 @@ const
   type_e_cant_read_write_type_in_iso_mode=04129;
   type_w_array_size_does_not_match_size_of_constant_string=04130;
   type_e_nested_procvar_to_funcref=04131;
+  type_e_cannot_take_address_of_wasm_externref=04132;
+  type_e_cannot_determine_size_of_wasm_reference_type=04133;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -687,6 +694,8 @@ const
   sym_e_generic_type_param_decl=05097;
   sym_e_type_must_be_rec_or_object=05098;
   sym_e_symbol_no_capture=05099;
+  sym_f_systemunitnotloaded=05100;
+  sym_e_wasm_ref_types_cannot_be_used_in_records=05101;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -1104,6 +1113,9 @@ const
   option_valgrind_heaptrc_mismatch=11062;
   option_unsupported_fpu=11063;
   option_too_many_exception_modes=11064;
+  option_subtarget_is_already_set=11065;
+  option_subtarget_config_not_found=11066;
+  option_x_ignored=11067;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1157,9 +1169,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 90618;
+  MsgTxtSize = 92057;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,109,366,132,100,63,148,38,223,71,
-    65,20,30,1,1,1,1,1,1,1
+    28,109,371,134,102,63,148,38,223,71,
+    68,20,30,1,1,1,1,1,1,1
   );

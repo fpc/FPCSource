@@ -14,7 +14,9 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit qdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
@@ -29,7 +31,7 @@ type
   Pqlstr = ^Tqlstr;
   Tqlstr = record
     qs_strlen: word;
-    qs_str: array[0..0] of char;
+    qs_str: array[0..0] of AnsiChar;
   end;
 
 const
@@ -154,10 +156,10 @@ type
   Pqdos_queue = ^Tqdos_queue;
   Tqdos_queue = record
     q_nextq: Pqdos_queue;
-    q_end: pchar;
-    q_nextin: pchar;
-    q_nxtout: pchar;
-    q_queue: array[0..1] of char;
+    q_end: PAnsiChar;
+    q_nextin: PAnsiChar;
+    q_nxtout: PAnsiChar;
+    q_queue: array[0..1] of AnsiChar;
   end;
 
 const
@@ -341,8 +343,13 @@ procedure sd_line(chan: Tchanid; timeout: Ttimeout; x_start: double; y_start: do
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SinclairApi.Qlfloat;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   qlfloat;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   _SD_POINT = $30;

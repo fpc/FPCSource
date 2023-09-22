@@ -1,0 +1,4 @@
+src/registry.pp=namespaced/System.Registry.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/xmlreg.pp=namespaced/System.Xmlreg.pp

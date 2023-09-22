@@ -38,14 +38,21 @@
  *              x86(Linux and Windows). Only tested on little endian pc's. *
  ***************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit paslzx;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}{$R+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
   DECR_OK = 0;

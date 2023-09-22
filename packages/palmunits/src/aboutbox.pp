@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aboutbox;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos,PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos,coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // WARNING!!! This routine is for the private use of Palm applications.
 // It is released with the public headers so that the sample apps

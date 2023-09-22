@@ -14,110 +14,30 @@
  **********************************************************************
 
   ToDo: read further images
+
+  2023-07  - Massimo Magnano
+           - code fixes for reading palettes
+           - added Read of Image Resources Section
+           - added Resolution support
+
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPSD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, FPimage;
+  System.Classes, System.SysUtils, FpImage, FpImage.Common.PSD;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, PSDcomn, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TRGB = packed record
-    Red, Green, Blue : Byte;
-  end;
-
-  TLab = record
-    L, a, b: byte;
-  end;
-
-
-  TPSDHeader = packed record
-    Signature : array[0..3] of Char;   // File IDs '8BPS'
-    Version : word;                    // Version number, always 1
-    Reserved : array[0..5] of Byte;    // Reserved, must be zeroed
-    Channels : Word;                   // Number of color channels (1-24) including alpha channels
-    Rows : Cardinal;                   // Height of image in pixels (1-30000)
-    Columns : Cardinal;                // Width of image in pixels (1-30000)
-    Depth : Word;                      // Number of bits per channel (1, 8, and 16)
-    Mode: Word;                        // Color mode
-  end;
-  {
-  Mode Description
-  0 Bitmap (monochrome)
-  1 Gray-scale
-  2 Indexed color (palette color)
-  3 RGB color
-  4 CMYK color
-  7 Multichannel color
-  8 Duotone (halftone)
-  9 Lab color
-  }
-
-  TColorModeDataBlock = packed record
-    Types : array[0..3] of Char;   // Always "8BIM"
-    ID:word;                       // (See table below)
-    Name:byte;                     // Even-length Pascal-format string, 2 bytes or longer
-    Size : Cardinal;               // Length of resource data following, in bytes
-    Data:byte;                     // Resource data, padded to even length
-  end;
-  {
-  ID Data Format Description
-  03e8 WORD[5] Channels, rows, columns, depth, and mode
-  03e9 Optional Macintosh print manager information
-  03eb Indexed color table
-  03ed (See below) Resolution information
-       "TResolutionInfo"
-  03ee BYTE[] Alpha channel names (Pascal-format strings)
-  03ef (See below) Display information for each channel
-       "TDisplayInfo"
-  03f0 BYTE[] Optional Pascal-format caption string
-  03f1 LONG, WORD Fixed-point border width, border units (see below)
-  03f2 Background color
-  03f3 BYTE[8] Print flags (see below)
-  03f4 Gray-scale and halftoning information
-  03f5 Color halftoning information
-  03f6 Duotone halftoning information
-  03f7 Gray-scale and multichannel transfer function
-  03f8 Color transfer functions
-  03f9 Duotone transfer functions
-  03fa Duotone image information
-  03fb BYTE[2] Effective black and white value for dot range
-  03fc
-  03fd EPS options
-  03fe WORD, BYTE Quick Mask channel ID, flag for mask initially empty
-  03ff
-  0400 WORD Index of target layer (0=bottom)
-  0401 Working path
-  0402 WORD[] Layers group info, group ID for dragging groups
-  0403
-  0404 IPTC-NAA record
-  0405 Image mode for raw-format files
-  0406 JPEG quality (Adobe internal)
-  07d0
-  0bb6 Saved path information
-  0bb7 Clipping pathname
-  2710 (See below) Print flags information
-  }
-  TResolutionInfo = record
-    hRes:Cardinal;     // Fixed-point number: pixels per inch
-    hResUnit:word;     // 1=pixels per inch, 2=pixels per centimeter
-    WidthUnit:word;    // 1=in, 2=cm, 3=pt, 4=picas, 5=columns
-    vRes:Cardinal;     // Fixed-point number: pixels per inch
-    vResUnit:word;     // 1=pixels per inch, 2=pixels per centimeter
-    HeightUnit:word;   // 1=in, 2=cm, 3=pt, 4=picas, 5=columns
-  end;
-
-  TDisplayInfo = record
-    ColorSpace:word;
-    Color:array[0..3] of word;
-    Opacity:word;          // 0-100
-    Kind:byte;             // 0=selected, 1=protected
-    Padding:byte;          // Always zero
-  end;
-
   TFPReaderPSD = class;
 
   TPSDCreateCompatibleImgEvent = procedure(Sender: TFPReaderPSD;
@@ -131,7 +51,6 @@ type
     FOnCreateImage: TPSDCreateCompatibleImgEvent;
   protected
     FHeader        : TPSDHeader;
-    FColorDataBlock: TColorModeDataBlock;
     FBytesPerPixel : Byte;
     FScanLine      : PByte;
     FLineSize      : PtrInt;
@@ -146,6 +65,8 @@ type
     procedure CreateBWPalette;
     function ReadPalette(Stream: TStream): boolean;
     procedure AnalyzeHeader;
+    procedure ReadResourceBlockData(Img: TFPCustomImage; blockID:Word;
+                                    blockName:ShortString; Size:LongWord; Data:Pointer); virtual;
     procedure InternalRead(Stream: TStream; Img: TFPCustomImage); override;
     function ReadScanLine(Stream: TStream): boolean; virtual;
     procedure WriteScanLine(Img: TFPCustomImage); virtual;
@@ -233,37 +154,57 @@ end;
 
 function TFPReaderPSD.ReadPalette(Stream: TStream): boolean;
 Var
-  I : Integer;
-  c : TFPColor;
-  OldPos: Integer;
   BufSize:Longint;
-  PalBuf: array[0..767] of Byte;
-  ContProgress: Boolean;
+
+  procedure ReadPaletteFromStream;
+  var
+    i : Integer;
+    c : TFPColor;
+    {%H-}PalBuf: array[0..767] of Byte;
+    ContProgress: Boolean;
+
+  begin
+    Stream.Read({%H-}PalBuf, BufSize);
+    ContProgress:=true;
+    Progress(FPimage.psRunning, 0, False, Rect(0,0,0,0), '', ContProgress);
+    if not ContProgress then exit;
+    for i:=0 to BufSize div 3 do
+    begin
+      with c do
+      begin
+        Red:=PalBuf[I] shl 8;
+        Green:=PalBuf[I+(BufSize div 3)] shl 8;
+        Blue:=PalBuf[I+(BufSize div 3)* 2] shl 8;
+        Alpha:=alphaOpaque;
+      end;
+      FPalette.Add(c);
+    end;
+  end;
+
 begin
-  Result:=false;
-  ThePalette.count := 0;
-  OldPos := Stream.Position;
+  Result:=False;
   BufSize:=0;
   Stream.Read(BufSize, SizeOf(BufSize));
   BufSize:=BEtoN(BufSize);
-  Stream.Read(PalBuf, BufSize);
-  ContProgress:=true;
-  Progress(FPimage.psRunning, trunc(100.0 * (Stream.position / Stream.size)),
-           False, Rect(0,0,0,0), '', ContProgress);
-  if not ContProgress then exit;
-  For I:=0 To BufSize div 3 Do
-  Begin
-    With c do
-    begin
-      Red:=PalBuf[I] shl 8;
-      Green:=PalBuf[I+(BufSize div 3)] shl 8;
-      Blue:=PalBuf[I+(BufSize div 3)* 2] shl 8;
-      Alpha:=alphaOpaque;
-    end;
-    ThePalette.Add(C);
-  End;
-  Stream.Position := OldPos;
-  Result:=true;
+
+  Case FHeader.Mode of
+  PSD_BITMAP :begin  // Bitmap (monochrome)
+                FPalette := TFPPalette.Create(0);
+                CreateBWPalette;
+              end;
+  PSD_GRAYSCALE,
+  PSD_DUOTONE:begin // Gray-scale or Duotone image
+                FPalette := TFPPalette.Create(0);
+                CreateGrayPalette;
+              end;
+  PSD_INDEXED:begin // Indexed color (palette color)
+                FPalette := TFPPalette.Create(0);
+                if (BufSize=0) then exit;
+                ReadPaletteFromStream;
+              end;
+  end;
+
+  Result:=True;
 end;
 
 procedure TFPReaderPSD.AnalyzeHeader;
@@ -288,12 +229,101 @@ begin
   end;
 end;
 
+procedure TFPReaderPSD.ReadResourceBlockData(Img: TFPCustomImage; blockID: Word;
+                                             blockName: ShortString; Size: LongWord; Data: Pointer);
+var
+  ResolutionInfo:TResolutionInfo;
+  ResDWord: DWord;
+
+begin
+  case blockID of
+  PSD_RESN_INFO:begin
+            ResolutionInfo :=TResolutionInfo(Data^);
+            //MaxM: Do NOT Remove the Casts after BEToN
+            Img.ResolutionUnit :=PSDResolutionUnitToResolutionUnit(BEToN(Word(ResolutionInfo.hResUnit)));
+
+            //MaxM: Resolution always recorded in a fixed point implied decimal int32
+            //      with 16 bits before point and 16 after (cast as DWord and divide resolution by 2^16)
+            ResDWord :=BEToN(DWord(ResolutionInfo.hRes));
+            Img.ResolutionX :=ResDWord/65536;
+            ResDWord :=BEToN(DWord(ResolutionInfo.vRes));
+            Img.ResolutionY :=ResDWord/65536;
+
+            if (Img.ResolutionUnit<>ruNone) and
+               (ResolutionInfo.vResUnit<>ResolutionInfo.hResUnit)
+            then Case BEToN(Word(ResolutionInfo.vResUnit)) of
+                 PSD_RES_INCH: Img.ResolutionY :=Img.ResolutionY/2.54; //Vertical Resolution is in Inch convert to Cm
+                 PSD_RES_CM: Img.ResolutionY :=Img.ResolutionY*2.54; //Vertical Resolution is in Cm convert to Inch
+                 end;
+          end;
+  end;
+end;
+
 procedure TFPReaderPSD.InternalRead(Stream: TStream; Img: TFPCustomImage);
 var
   H: Integer;
   BufSize:Cardinal;
   Encoding:word;
   ContProgress: Boolean;
+
+  procedure ReadResourceBlocks;
+  var
+     TotalBlockSize,
+     pPosition:LongWord;
+     blockData,
+     curBlock :PPSDResourceBlock;
+     curBlockData :PPSDResourceBlockData;
+     signature:String[4];
+     blockName:ShortString;
+     blockID:Word;
+     dataSize:LongWord;
+
+  begin
+    //MaxM: Do NOT Remove the Casts after BEToN
+    Stream.Read(TotalBlockSize, 4);
+    TotalBlockSize :=BEtoN(DWord(TotalBlockSize));
+    GetMem(blockData, TotalBlockSize);
+    try
+       Stream.Read(blockData^, TotalBlockSize);
+
+       pPosition :=0;
+       curBlock :=blockData;
+
+       repeat
+         signature :=curBlock^.Types;
+
+         if (signature=PSD_ResourceSectionSignature) then
+         begin
+           blockID :=BEtoN(Word(curBlock^.ID));
+           blockName :=curBlock^.Name;
+           setLength(blockName, curBlock^.NameLen);
+           curBlockData :=PPSDResourceBlockData(curBlock);
+
+           Inc(Pointer(curBlockData), sizeof(TPSDResourceBlock));
+
+           if (curBlock^.NameLen>0) then //MaxM: Maybe tested, in all my tests is always 0
+           begin
+             Inc(Pointer(curBlockData), curBlock^.NameLen);
+             if not(Odd(curBlock^.NameLen))
+             then Inc(Pointer(curBlockData), 1);
+           end;
+
+           dataSize :=BEtoN(DWord(curBlockData^.Size));
+           Inc(Pointer(curBlockData), 4);
+           ReadResourceBlockData(Img, blockID, blockName, dataSize, curBlockData);
+           Inc(Pointer(curBlockData), dataSize);
+         end
+         else Inc(Pointer(curBlockData), 1); //skip padding or something went wrong, search for next '8BIM'
+
+         curBlock :=PPSDResourceBlock(curBlockData);
+         pPosition :=Pointer(curBlockData)-Pointer(blockData);
+       until (pPosition >= TotalBlockSize);
+
+    finally
+      FreeMem(blockData, TotalBlockSize);
+    end;
+  end;
+
 begin
   FScanLine:=nil;
   FPalette:=nil;
@@ -307,35 +337,17 @@ begin
     Progress(FPimage.psRunning, trunc(100.0 * (Stream.position / Stream.size)), False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
     AnalyzeHeader;
-    Case FHeader.Mode of
-        0:begin  // Bitmap (monochrome)
-            FPalette := TFPPalette.Create(0);
-            CreateBWPalette;
-          end;
-        1, 8:begin // Gray-scale
-            FPalette := TFPPalette.Create(0);
-            CreateGrayPalette;
-          end;
-        2:begin // Indexed color (palette color)
-            FPalette := TFPPalette.Create(0);
-            if not ReadPalette(stream) then exit;
-          end;
-    end;
+
+    //  color palette
+    ReadPalette(Stream);
 
     if Assigned(OnCreateImage) then
       OnCreateImage(Self,Img);
     Img.SetSize(FWidth,FHeight);
 
-    //  color palette
-    BufSize:=0;
-    Stream.Read(BufSize, SizeOf(BufSize));
-    BufSize:=BEtoN(BufSize);
-    Stream.Seek(BufSize, soCurrent);
-    //  color data block
-    Stream.Read(BufSize, SizeOf(BufSize));
-    BufSize:=BEtoN(BufSize);
-    Stream.Read(FColorDataBlock, SizeOf(FColorDataBlock));
-    Stream.Seek(BufSize-SizeOf(FColorDataBlock), soCurrent);
+    // Image Resources Section
+    ReadResourceBlocks;
+
     //  mask
     Stream.Read(BufSize, SizeOf(BufSize));
     BufSize:=BEtoN(BufSize);

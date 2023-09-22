@@ -13,11 +13,17 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inicol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils,System.Classes,System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 Uses SysUtils,Classes,Inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -26,12 +32,12 @@ Type
   TIniCollectionItem = Class(TCollectionItem)
   protected
     function GetSectionName: String; virtual; abstract;
-    procedure SetSectionName(const Value: String); virtual; abstract;
+    procedure SetSectionName(const Value: String ); virtual; abstract;
   Public
     Procedure SaveToIni(Ini: TCustomInifile; Section : String); Virtual; Abstract;
     Procedure LoadFromIni(Ini: TCustomInifile; Section : String); Virtual; Abstract;
     Procedure SaveToFile(const FileName : String; const Section : String);
-    Procedure LoadFromFile(const FileName : String; const Section : String);
+    Procedure LoadFromFile(const FileName :String ; const Section : String);
     Property SectionName : String Read GetSectionName Write SetSectionName;
   end;
 
@@ -40,7 +46,7 @@ Type
     FFileName: String;
     FGlobalSection: String;
   protected
-    FPrefix: String;  // Descendent must set this.
+    FPrefix:String ;  // Descendent must set this.
     FSectionPrefix : String;  // Descendent must set this too.
   Public
     Procedure Load;
@@ -48,9 +54,9 @@ Type
     Procedure SaveToIni(Ini: TCustomInifile; Section : String); virtual;
     Procedure SaveToFile(const AFileName : String; const Section : String);
     Procedure LoadFromIni(Ini: TCustomInifile; Section : String); virtual;
-    Procedure LoadFromFile(const AFileName : String; const Section : String);
-    Property Prefix : String Read FPrefix;
-    Property SectionPrefix : String Read FSectionPrefix;
+    Procedure LoadFromFile(const AFileName,  Section : String);
+    Property Prefix : String  Read FPrefix;
+    Property SectionPrefix : String  Read FSectionPrefix;
     Property FileName : String Read FFileName Write FFileName;
     Property GlobalSection : String Read FGlobalSection Write FGlobalSection;
   end;
@@ -59,14 +65,14 @@ Type
 
   TNamedIniCollectionItem = Class(TIniCollectionItem)
   private
-    procedure SetName(const AValue: String);
+    procedure SetName(const AValue:String);
   Protected
     FName : String;
     FUserData : TObject;
   Protected
     Procedure SetCollection(Value : TCollection); override;
     function GetSectionName: String; override;
-    procedure SetSectionName(const Value: String); override;
+    procedure SetSectionName(const Value:String ); override;
   Public
     Property UserData : TObject Read FUserData Write FUserData;
   Published
@@ -80,8 +86,8 @@ Type
     procedure SetNamedItem(Index: Integer; const AValue: TNamedIniCollectionItem);
   Public
     Function IndexOfUserData(UserData : TObject) : Integer;
-    Function IndexOfName(Const AName : String) : Integer;
-    Function FindByName(Const AName : string) : TNamedIniCollectionItem;
+    Function IndexOfName(Const AName :String ) : Integer;
+    Function FindByName(Const AName :String ) : TNamedIniCollectionItem;
     Function FindByUserData(UserData : TObject) : TNamedIniCollectionItem;
     Property NamedItems [Index: Integer] : TNamedIniCollectionItem Read GetNamedItem Write SetNamedItem; default;
   end;
@@ -158,11 +164,11 @@ begin
   end;
 end;
 
-procedure TIniCollection.LoadFromIni(Ini: TCustomInifile; Section: String);
+procedure TIniCollection.LoadFromIni(Ini: TCustomInifile; Section:String);
 
 Var
   ACount,I : Integer;
-  N,SP : String;
+  N,SP :String ;
 
 begin
   Clear;
@@ -258,7 +264,7 @@ begin
   inherited SetCollection(Value);
 end;
 
-function TNamedIniCollectionItem.GetSectionName: String;
+function TNamedIniCollectionItem.GetSectionName:String ;
 begin
   Result:=FName;
 end;
@@ -301,7 +307,7 @@ begin
     Dec(Result);
 end;
 
-function TNamedIniCollection.FindByName(const AName : string): TNamedIniCollectionItem;
+function TNamedIniCollection.FindByName(const AName : String): TNamedIniCollectionItem;
 
 Var
   I : Integer;

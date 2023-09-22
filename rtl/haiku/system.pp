@@ -27,7 +27,7 @@ implementation
 var
   initialstkptr : Pointer; external name '__stkptr';
 
-procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
+procedure debugger(s : PAnsiChar); cdecl; external 'root' name 'debugger';
 function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
 
 
@@ -115,7 +115,7 @@ var
  cookie: longint;
  image : image_info;
  index : byte;
- s : string;
+ s : shortstring;
 begin
   cookie:=0;
   fillchar(image, sizeof(image_info), 0);
@@ -135,10 +135,10 @@ begin
     end;
 end;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
 var
-  s: string;
-  s1: string;
+  s: shortstring;
+  s1: shortstring;
 begin
   { stricly conforming POSIX applications  }
   { have the executing filename as argv[0] }
@@ -199,7 +199,7 @@ type
   {$PACKRECORDS C}
   TAlternateSignalStack = record
     case Integer of
-      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of Char);
+      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of AnsiChar);
       1 : (ld : clonglong);
       2 : (l : integer);
       3 : (p : pointer);

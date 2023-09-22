@@ -120,14 +120,35 @@ procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc
   adds the range [l..h] to the set orgset
 }
 procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compilerproc;
-  type
-    tbsetarray = bitpacked array[0..high(sizeint)-1] of 0..1;
   var
-    i : ptrint;
+    bp : pbyte;
+    nbits,partbits,partbytes : sizeint;
   begin
-    move(orgset,dest,size);
-    for i:=l to h do
-       tbsetarray(dest)[i]:=1;
+    nbits:=h-l+1;
+    if nbits<=0 then
+      exit;
+    if @orgset<>@dest then
+      move(orgset,dest,size);
+    bp:=pbyte(@dest)+l shr 3;
+    partbits:=-l and 7;
+    if partbits<>0 then { Head. }
+      if partbits>=nbits then
+        begin
+          bp^:=bp^ or {$ifdef endian_little} (1 shl nbits-1) shl 8 shr partbits {$else} (1 shl nbits-1) shl partbits shr nbits {$endif};
+          exit;
+        end
+      else
+        begin
+          bp^:=bp^ or {$ifdef endian_little} byte($FF00 shr partbits) {$else} (1 shl partbits-1) {$endif};
+          inc(bp);
+          nbits:=nbits-partbits;
+        end;
+    partbytes:=nbits shr 3;
+    FillChar(bp^,partbytes,$FF); { Full bytes. }
+    bp:=bp+partbytes;
+    nbits:=nbits and 7;
+    if nbits<>0 then { Tail. }
+      bp^:=bp^ or {$ifdef endian_little} (1 shl nbits-1) {$else} byte($FF00 shr nbits) {$endif};
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_RANGE}
 
@@ -139,12 +160,29 @@ procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compil
 procedure fpc_varset_add_sets(const set1,set2; var dest;size : ptrint); compilerproc;
   type
     tbytearray = array[0..maxsetsize-1] of byte;
-  var
-    i : ptrint;
   begin
-     for i:=0 to size-1 do
-       tbytearray(dest)[i]:=tbytearray(set1)[i] or tbytearray(set2)[i];
-   end;
+    if (size>=sizeof(PtrUint))
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      and ((PtrUint(@set1) or PtrUint(@set2) or PtrUint(@dest) or PtrUint(size)) and (sizeof(PtrUint)-1)=0)
+{$endif}
+    then
+      begin
+        { Work in PtrUints from the end. }
+        size:=size-sizeof(PtrUint);
+        repeat
+          PPtrUint(pointer(@dest)+size)^:=PPtrUint(pointer(@set1)+size)^ or PPtrUint(pointer(@set2)+size)^;
+          size:=size-sizeof(PtrUint);
+        until size<=0;
+        { Head, overlapping in non-existing cases of size = sizeof(PtrUint) or size mod sizeof(PtrUint) <> 0.
+          “Or” is idempotent, so dest = set1 or set2 does not matter. }
+        PPtrUint(@dest)^:=PPtrUint(@set1)^ or PPtrUint(@set2)^;
+        exit;
+      end;
+    repeat
+      dec(size);
+      tbytearray(dest)[size]:=tbytearray(set1)[size] or tbytearray(set2)[size];
+    until size=0;
+  end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
 
 
@@ -155,11 +193,26 @@ procedure fpc_varset_add_sets(const set1,set2; var dest;size : ptrint); compiler
 procedure fpc_varset_mul_sets(const set1,set2; var dest;size : ptrint); compilerproc;
   type
     tbytearray = array[0..maxsetsize-1] of byte;
-  var
-    i : ptrint;
   begin
-    for i:=0 to size-1 do
-      tbytearray(dest)[i]:=tbytearray(set1)[i] and tbytearray(set2)[i];
+    { fpc_varset_add_sets with 'or' instead of 'and'. }
+    if (size>=sizeof(PtrUint))
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      and ((PtrUint(@set1) or PtrUint(@set2) or PtrUint(@dest) or PtrUint(size)) and (sizeof(PtrUint)-1)=0)
+{$endif}
+    then
+      begin
+        size:=size-sizeof(PtrUint);
+        repeat
+          PPtrUint(pointer(@dest)+size)^:=PPtrUint(pointer(@set1)+size)^ and PPtrUint(pointer(@set2)+size)^;
+          size:=size-sizeof(PtrUint);
+        until size<=0;
+        PPtrUint(@dest)^:=PPtrUint(@set1)^ and PPtrUint(@set2)^;
+        exit;
+      end;
+    repeat
+      dec(size);
+      tbytearray(dest)[size]:=tbytearray(set1)[size] and tbytearray(set2)[size];
+    until size=0;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
 
@@ -172,10 +225,30 @@ procedure fpc_varset_sub_sets(const set1,set2; var dest;size : ptrint); compiler
   type
     tbytearray = array[0..maxsetsize-1] of byte;
   var
-    i : ptrint;
+    headval : ptruint;
   begin
-     for i:=0 to size-1 do
-       tbytearray(dest)[i]:=tbytearray(set1)[i] and not tbytearray(set2)[i];
+    if (size>=sizeof(PtrUint))
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      and ((PtrUint(@set1) or PtrUint(@set2) or PtrUint(@dest) or PtrUint(size)) and (sizeof(PtrUint)-1)=0)
+{$endif}
+    then
+      begin
+        { Head, overlapping in non-existing cases of size = sizeof(PtrUint) or size mod sizeof(PtrUint) <> 0.
+          “And not” is not idempotent, so head must be calculated in advance to work correctly when, in this non-existing case, dest = set1 or set2. }
+        headval:=PPtrUint(@set1)^ and not PPtrUint(@set2)^;
+        { Work in PtrUints from the end. }
+        size:=size-sizeof(PtrUint);
+        repeat
+          PPtrUint(pointer(@dest)+size)^:=PPtrUint(pointer(@set1)+size)^ and not PPtrUint(pointer(@set2)+size)^;
+          size:=size-sizeof(PtrUint);
+        until size<=0;
+        PPtrUint(@dest)^:=headval;
+        exit;
+      end;
+    repeat
+      dec(size);
+      tbytearray(dest)[size]:=tbytearray(set1)[size] and not tbytearray(set2)[size];
+    until size=0;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
 
@@ -188,11 +261,29 @@ procedure fpc_varset_symdif_sets(const set1,set2; var dest;size : ptrint); compi
   type
     tbytearray = array[0..maxsetsize-1] of byte;
   var
-    i : ptrint;
-   begin
-     for i:=0 to size-1 do
-       tbytearray(dest)[i]:=tbytearray(set1)[i] xor tbytearray(set2)[i];
-   end;
+    headval : ptruint;
+  begin
+    { fpc_varset_sub_sets with 'xor' instead of 'and not'. }
+    if (size>=sizeof(PtrUint))
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      and ((PtrUint(@set1) or PtrUint(@set2) or PtrUint(@dest) or PtrUint(size)) and (sizeof(PtrUint)-1)=0)
+{$endif}
+    then
+      begin
+        headval:=PPtrUint(@set1)^ xor PPtrUint(@set2)^;
+        size:=size-sizeof(PtrUint);
+        repeat
+          PPtrUint(pointer(@dest)+size)^:=PPtrUint(pointer(@set1)+size)^ xor PPtrUint(pointer(@set2)+size)^;
+          size:=size-sizeof(PtrUint);
+        until size<=0;
+        PPtrUint(@dest)^:=headval;
+        exit;
+      end;
+    repeat
+      dec(size);
+      tbytearray(dest)[size]:=tbytearray(set1)[size] xor tbytearray(set2)[size];
+    until size=0;
+  end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
 
 
@@ -201,16 +292,8 @@ procedure fpc_varset_symdif_sets(const set1,set2; var dest;size : ptrint); compi
   compares set1 and set2 zeroflag is set if they are equal
 }
 function fpc_varset_comp_sets(const set1,set2;size : ptrint):boolean; compilerproc;
-  type
-    tbytearray = array[0..maxsetsize-1] of byte;
-  var
-    i : ptrint;
   begin
-    fpc_varset_comp_sets:= false;
-    for i:=0 to size-1 do
-      if tbytearray(set1)[i]<>tbytearray(set2)[i] then
-        exit;
-    fpc_varset_comp_sets:=true;
+    result:=CompareByte(set1,set2,size)=0;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_COMP_SETS}
 
@@ -220,15 +303,36 @@ function fpc_varset_comp_sets(const set1,set2;size : ptrint):boolean; compilerpr
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
 function fpc_varset_contains_sets(const set1,set2;size : ptrint):boolean; compilerproc;
-  type
-    tbytearray = array[0..maxsetsize-1] of byte;
   var
-    i : ptrint;
+    set1p,set2p,set1tail : pointer;
   begin
-    fpc_varset_contains_sets:= false;
-    for i:=0 to size-1 do
-      if (tbytearray(set1)[i] and not tbytearray(set2)[i])<>0 then
+    result:=false;
+    set1p:=@set1;
+    set2p:=@set2;
+    { Should scan left to right because first bits are more likely to differ. }
+    if (size>=sizeof(PtrUint))
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      and ((PtrUint(@set1) or PtrUint(@set2) or PtrUint(size)) and (sizeof(PtrUint)-1)=0)
+{$endif}
+    then
+      begin
+        set1tail:=set1p+size-sizeof(PtrUint);
+        repeat
+          if PPtrUint(set1p)^ and not PPtrUint(set2p)^<>0 then
+            exit;
+          inc(set1p,sizeof(PtrUint));
+          inc(set2p,sizeof(PtrUint));
+        until set1p>=set1tail;
+        dec(set2p,set1p-set1tail); { set2p = “set2tail” }
+        exit(PPtrUint(set1tail)^ and not PPtrUint(set2p)^=0);
+      end;
+    set1tail:=set1p+size;
+    repeat
+      if pbyte(set1p)^ and not pbyte(set2p)^<>0 then
         exit;
-    fpc_varset_contains_sets:=true;
+      inc(set1p);
+      inc(set2p);
+    until set1p=set1tail;
+    result:=true;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_CONTAINS_SET}

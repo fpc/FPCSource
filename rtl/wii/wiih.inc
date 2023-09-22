@@ -15,14 +15,14 @@
  *****************************************************************************}
 
 type
-  TDoOpen     = procedure (var f; p: pchar; flags: longint);
+  TDoOpen     = procedure (var f; p: PAnsiChar; flags: longint);
   TDoClose    = procedure (handle: THandle);
   TDoWrite    = function  (h: THandle; addr: pointer; len: longint): longint;
   TDoRead     = function  (h: THandle; addr: pointer; len: longint): longint;
   TDoSeek     = procedure (handle: THandle; pos: longint);
   TDoSeekend  = function  (handle: THandle): longint;
-  TDoErase    = procedure (p: pchar);
-  TDoRename   = procedure (p1, p2: pchar);
+  TDoErase    = procedure (p: PAnsiChar);
+  TDoRename   = procedure (p1, p2: PAnsiChar);
   TDoFilepos  = function  (handle: THandle): longint;
   TDoFilesize = function  (handle: THandle): longint;
   TDoTruncate = procedure (handle: THandle; pos: longint);
@@ -44,9 +44,9 @@ type
   end;
   PFileIO = ^TFileIO;
 
-  TDoMkdir  = procedure (const s: string);
-  TDoRmdir  = procedure (const s: string);
-  TDoChdir  = procedure (const s: string);
+  TDoMkdir  = procedure (const s: shortstring);
+  TDoRmdir  = procedure (const s: shortstring);
+  TDoChdir  = procedure (const s: shortstring);
   TDoGetdir = procedure (DriveNr: byte; var Dir: ShortString);
 
   TDirIO = packed record

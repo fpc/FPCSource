@@ -27,11 +27,17 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SAX_HTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom, Html.Dom, Html.Defs,Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -56,7 +62,7 @@ type
     FRawTokenText: string;
     FScriptEndTag: string;
     FScriptEndMatchPos: Integer;
-    FCurStringValueDelimiter: Char;
+    FCurStringValueDelimiter: AnsiChar;
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
     FNesting: Integer;
@@ -158,10 +164,10 @@ procedure THTMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
 var
-  Buffer: array[0..MaxBufferSize - 1] of Char;
+  Buffer: array[0..MaxBufferSize - 1] of AnsiChar;
   BufferSize, BufferPos: Integer;
   len: Integer;
-  ch: Char;
+  ch: AnsiChar;
 begin
   if not FStarted then
   begin

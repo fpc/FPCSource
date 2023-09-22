@@ -43,7 +43,9 @@
 // $Id: JwaAclUI.pas,v 1.13 2007/09/05 11:58:48 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAclUI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -58,8 +60,13 @@ unit JwaAclUI;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Accctrl, WinApi.Jedi.Winnt, WinApi.Jedi.Winuser, WinApi.Jedi.Wintype, WinApi.Jedi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaAccCtrl, JwaWinNT, JwaWinUser, JwaWinType, JwaActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 

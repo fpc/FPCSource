@@ -14,9 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_serialization_xml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs,
+  Sdo.Types, Sdo.Base, Sdo.Consts, Sdo.Serialization.Utils
+{$IFDEF DELPHI}
+  , xmldom, sdo_win_xml
+{$ENDIF DELPHI}
+{$IFDEF FPC}
+  , Xml.Dom, Sdo.Fpc.Xml, Xml.Read, Xml.Writer
+{$ENDIF FPC}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs,
   sdo_types, sdo, sdo_consts, sdo_serialization_utils
@@ -27,6 +41,7 @@ uses
   , DOM, sdo_fpc_xml, XMLRead, XMLWrite
 {$ENDIF FPC}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -324,8 +339,13 @@ resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Impl.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_imp_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ExtractNameSpaceShortName(const ANameSpaceDeclaration : string):string;
 var

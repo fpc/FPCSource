@@ -1,7 +1,9 @@
 {$MODE OBJFPC}
 {$LONGSTRINGS ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UENetClass;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   ENet UDP Class for Free Pascal
@@ -33,8 +35,13 @@ unit UENetClass;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Api.Enet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, ENet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TENetEventType = ( ENetEventNone, ENetEventConnect, ENetEventDisconnect,
@@ -54,7 +61,7 @@ type
     private
       FInit : Boolean;
 
-      FHostname : string;
+      FHostname : AnsiString;
       FAddress : ENetAddress;
       FIsServer : Boolean;
 
@@ -82,7 +89,7 @@ type
 
       function InitHost(): Boolean;
       procedure DeinitHost();
-      function Connect( const Host: string; Port: Word ): Boolean;
+      function Connect( const Host: AnsiString; Port: Word ): Boolean;
       function Disconnect( bNow: Boolean ): Boolean;
       function SendMsg( Channel: Byte; Data: Pointer; Length: Integer;
         flag: TENetPacketFlags; WaitResponse: Boolean = False ): Boolean;
@@ -181,7 +188,7 @@ begin
   FHost := nil;
 end;
 
-function TENetClass.Connect( const Host: string; Port: Word ): Boolean;
+function TENetClass.Connect( const Host: AnsiString; Port: Word ): Boolean;
 begin
   Result := False;
   if not FIsServer then begin

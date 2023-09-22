@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -21,8 +23,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Libc,System.Unicode.Graphemebreakproperty,System.Unicode.Eastasianwidth,System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Libc,graphemebreakproperty,eastasianwidth,charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i video.inc}
 

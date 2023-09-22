@@ -193,11 +193,29 @@
 
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit InputMethodKit;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$linkframework InputMethodKit}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef COCOAALL}
+	{$ifdef MACOSALL}
+	  Api.Cocoa.DefinedClassesAppKit, Api.Cocoa.DefinedClassesInputMethodKit, System.CTypes, Api.Cocoa.CocoaAll, MacOsApi.MacOSAll;
+	{$else}
+		Api.Cocoa.DefinedClassesAppKit, Api.Cocoa.DefinedClassesInputMethodKit, System.CTypes, MacOsApi.MacTypes, MacOsApi.MacOSXPosix, CocoaAll, MacOsApi.AEDataModel, MacOsApi.IconsCore, MacOsApi.IOSurfaceAPI, MacOsApi.SecBase, MacOsApi.SecTrust, MacOsApi.Macgl, MacOsApi.CGLTypes, MacOsApi.CFBase, MacOsApi.CFArray, MacOsApi.CFBag, MacOsApi.CFCharacterSet, MacOsApi.CFData, MacOsApi.CFDate, MacOsApi.CFDictionary, MacOsApi.CFNumber, MacOsApi.CFPropertyList, MacOsApi.CFSet, MacOsApi.CFString, MacOsApi.CFStringEncodingExt, MacOsApi.CFTimeZone, MacOsApi.CFTree, MacOsApi.CFURL, MacOsApi.CFXMLNode, MacOsApi.CFXMLParser, MacOsApi.CFMachPort, MacOsApi.CFMessagePort, MacOsApi.CFRunLoop, MacOsApi.CFSocket, MacOsApi.CFBinaryHeap, MacOsApi.CFBitVector, MacOsApi.CFBundle, MacOsApi.CFByteOrders, MacOsApi.CFPlugIn, MacOsApi.CFPreferences, MacOsApi.CFURLAccess, MacOsApi.CFUUID, MacOsApi.CFLocale, MacOsApi.CFStream, MacOsApi.CFDateFormatter, MacOsApi.CFNumberFormatter, MacOsApi.CFCalendar, MacOsApi.CFUserNotification, MacOsApi.CFNotificationCenter, MacOsApi.CFAttributedString, MacOsApi.CFNetworkErrorss, MacOsApi.CGBase, MacOsApi.CGAffineTransforms, MacOsApi.CGBitmapContext, MacOsApi.CGColor, MacOsApi.CGColorSpace, MacOsApi.CGContext, MacOsApi.CGDataConsumer, MacOsApi.CGDataProvider, MacOsApi.CGDirectDisplay, MacOsApi.CGDirectPalette, MacOsApi.CGDisplayConfiguration, MacOsApi.CGDisplayFades, MacOsApi.CGErrors, MacOsApi.CGEvent, MacOsApi.CGEventSource, MacOsApi.CGEventTypes, MacOsApi.CGFont, MacOsApi.CGFunction, MacOsApi.CGGLContext, MacOsApi.CGGeometry, MacOsApi.CGImage, MacOsApi.CGLayer, MacOsApi.CGPDFArray, MacOsApi.CGPDFContentStream, MacOsApi.CGPDFContext, MacOsApi.CGPDFDictionary, MacOsApi.CGPDFDocument, MacOsApi.CGPDFObject, MacOsApi.CGPDFOperatorTable, MacOsApi.CGPDFPage, MacOsApi.CGPDFScanner, MacOsApi.CGPDFStream, MacOsApi.CGPDFString, MacOsApi.CGPSConverter, MacOsApi.CGPath, MacOsApi.CGPattern, MacOsApi.CGRemoteOperation, MacOsApi.CGSession, MacOsApi.CGShading, MacOsApi.CGWindowLevels, MacOsApi.CVBase, MacOsApi.CVImageBuffer;
+	{$endif}
+{$else}
+	{$ifdef MACOSALL}
+	  Api.Cocoa.DefinedClassesAppKit, Api.Cocoa.DefinedClassesInputMethodKit, Api.Cocoa.AppKit, Api.Cocoa.Foundation, System.CTypes, MacOSAll;
+	{$else}
+		Api.Cocoa.DefinedClassesAppKit, Api.Cocoa.DefinedClassesInputMethodKit, Api.Cocoa.AppKit, Api.Cocoa.Foundation, System.CTypes, MacOsApi.MacTypes, MacOsApi.MacOSXPosix, MacOsApi.AEDataModel, MacOsApi.IconsCore, MacOsApi.IOSurfaceAPI, MacOsApi.SecBase, MacOsApi.SecTrust, MacOsApi.Macgl, MacOsApi.CGLTypes, MacOsApi.CFBase, MacOsApi.CFArray, MacOsApi.CFBag, MacOsApi.CFCharacterSet, MacOsApi.CFData, MacOsApi.CFDate, MacOsApi.CFDictionary, MacOsApi.CFNumber, MacOsApi.CFPropertyList, MacOsApi.CFSet, MacOsApi.CFString, MacOsApi.CFStringEncodingExt, MacOsApi.CFTimeZone, MacOsApi.CFTree, MacOsApi.CFURL, MacOsApi.CFXMLNode, MacOsApi.CFXMLParser, MacOsApi.CFMachPort, MacOsApi.CFMessagePort, MacOsApi.CFRunLoop, MacOsApi.CFSocket, MacOsApi.CFBinaryHeap, MacOsApi.CFBitVector, MacOsApi.CFBundle, MacOsApi.CFByteOrders, MacOsApi.CFPlugIn, MacOsApi.CFPreferences, MacOsApi.CFURLAccess, MacOsApi.CFUUID, MacOsApi.CFLocale, MacOsApi.CFStream, MacOsApi.CFDateFormatter, MacOsApi.CFNumberFormatter, MacOsApi.CFCalendar, MacOsApi.CFUserNotification, MacOsApi.CFNotificationCenter, MacOsApi.CFAttributedString, MacOsApi.CFNetworkErrorss, MacOsApi.CGBase, MacOsApi.CGAffineTransforms, MacOsApi.CGBitmapContext, MacOsApi.CGColor, MacOsApi.CGColorSpace, MacOsApi.CGContext, MacOsApi.CGDataConsumer, MacOsApi.CGDataProvider, MacOsApi.CGDirectDisplay, MacOsApi.CGDirectPalette, MacOsApi.CGDisplayConfiguration, MacOsApi.CGDisplayFades, MacOsApi.CGErrors, MacOsApi.CGEvent, MacOsApi.CGEventSource, MacOsApi.CGEventTypes, MacOsApi.CGFont, MacOsApi.CGFunction, MacOsApi.CGGLContext, MacOsApi.CGGeometry, MacOsApi.CGImage, MacOsApi.CGLayer, MacOsApi.CGPDFArray, MacOsApi.CGPDFContentStream, MacOsApi.CGPDFContext, MacOsApi.CGPDFDictionary, MacOsApi.CGPDFDocument, MacOsApi.CGPDFObject, MacOsApi.CGPDFOperatorTable, MacOsApi.CGPDFPage, MacOsApi.CGPDFScanner, MacOsApi.CGPDFStream, MacOsApi.CGPDFString, MacOsApi.CGPSConverter, MacOsApi.CGPath, MacOsApi.CGPattern, MacOsApi.CGRemoteOperation, MacOsApi.CGSession, MacOsApi.CGShading, MacOsApi.CGWindowLevels, MacOsApi.CVBase, MacOsApi.CVImageBuffer;
+	{$endif}
+{$endif}
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef COCOAALL}
 	{$ifdef MACOSALL}
@@ -212,6 +230,7 @@ uses
 		DefinedClassesAppKit, DefinedClassesInputMethodKit, AppKit, Foundation, CTypes, MacTypes, MacOSXPosix, AEDataModel, IconsCore, IOSurfaceAPI, SecBase, SecTrust, MacGL, CGLTypes, CFBase, CFArray, CFBag, CFCharacterSet, CFData, CFDate, CFDictionary, CFNumber, CFPropertyList, CFSet, CFString, CFStringEncodingExt, CFTimeZone, CFTree, CFURL, CFXMLNode, CFXMLParser, CFMachPort, CFMessagePort, CFRunLoop, CFSocket, CFBinaryHeap, CFBitVector, CFBundle, CFByteOrders, CFPlugIn, CFPreferences, CFURLAccess, CFUUID, CFLocale, CFStream, CFDateFormatter, CFNumberFormatter, CFCalendar, CFUserNotification, CFNotificationCenter, CFAttributedString, CFNetworkErrorss, CGBase, CGAffineTransforms, CGBitmapContext, CGColor, CGColorSpace, CGContext, CGDataConsumer, CGDataProvider, CGDirectDisplay, CGDirectPalette, CGDisplayConfiguration, CGDisplayFades, CGErrors, CGEvent, CGEventSource, CGEventTypes, CGFont, CGFunction, CGGLContext, CGGeometry, CGImage, CGLayer, CGPDFArray, CGPDFContentStream, CGPDFContext, CGPDFDictionary, CGPDFDocument, CGPDFObject, CGPDFOperatorTable, CGPDFPage, CGPDFScanner, CGPDFStream, CGPDFString, CGPSConverter, CGPath, CGPattern, CGRemoteOperation, CGSession, CGShading, CGWindowLevels, CVBase, CVImageBuffer;
 	{$endif}
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$define INTERFACE}
 {$define CGFLOAT_DEFINED}

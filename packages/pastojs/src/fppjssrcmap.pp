@@ -18,15 +18,23 @@ Abstract:
 
 
 *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPPJsSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Math,
+  Js.Writer, Js.Tree, Js.SrcMap, FpJson.Data, Pas2Js.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, math,
   jswriter, jstree, JSSrcMap, fpjson, Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TPas2JSSrcMap }
@@ -65,7 +73,7 @@ type
   public
     property SrcMap: TPas2JSSrcMap read FSrcMap write SetSrcMap;
     destructor Destroy; override;
-    procedure SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: string; s: TFPJSStream);
+    procedure SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: TJSWriterString; s: TFPJSStream);
     procedure WriteFile(Src, Filename: string);
     // Final destination filename. Usually unit, unless combining javascript in single file.
     property DestFileName : String read FDestFileName Write FDestFileName;
@@ -226,14 +234,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean;
-  const MapFilename: string; s: TFPJSStream);
+procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: TJSWriterString; s: TFPJSStream);
 var
-  MapSrc: string;
+  MapSrc: TJSWriterString;
   {$ifdef pas2js}
   i: integer;
   {$ELSE}
-  bom: string;
+  bom: TJSWriterString;
   {$endif}
 begin
   if MapFilename<>'' then

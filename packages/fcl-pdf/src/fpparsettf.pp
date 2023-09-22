@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpparsettf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -22,10 +24,17 @@ unit fpparsettf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpPdf.Ttf.Encodings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   fpttfencodings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ETTF = Class(Exception);
@@ -222,7 +231,7 @@ Type
 
   TNameEntry = Packed Record
     Info: TNameRecord;
-    Value : String;
+    Value : AnsiString;
   end;
   TNameEntries = Array of TNameEntry;
 
@@ -277,8 +286,8 @@ Type
     procedure ParseOS2(AStream : TStream); virtual;
     procedure ParsePost(AStream : TStream); virtual;
     // Make differences for postscript fonts
-    procedure PrepareEncoding(Const AEncoding : String);
-    function MakeDifferences: String; virtual;
+    procedure PrepareEncoding(Const AEncoding : AnsiString);
+    function MakeDifferences: AnsiString; virtual;
     // Utility function to convert FShort to natural units
     Function ToNatural(AUnit: Smallint) : Smallint;
   public
@@ -822,8 +831,8 @@ begin
   if embed and not Embeddable then
     raise ETTF.Create(rsFontEmbeddingNotAllowed);
   PrepareEncoding(Encoding);
-//  MissingWidth:=ToNatural(GetAdvanceWidth(Chars[CharCodes^[32]]));  // Char(32) - Space character
-  FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // Char(32) - Space character
+//  MissingWidth:=ToNatural(GetAdvanceWidth(Chars[CharCodes^[32]]));  // AnsiChar(32) - Space character
+  FMissingWidth := GetAdvanceWidth(Chars[CharCodes^[32]]);  // AnsiChar(32) - Space character
   for I:=0 to 255 do
   begin
     if (CharCodes^[i]>=0) and (CharCodes^[i]<=High(Chars))
@@ -834,7 +843,7 @@ begin
   end;
 end;
 
-procedure TTFFileInfo.PrepareEncoding(const AEncoding: String);
+procedure TTFFileInfo.PrepareEncoding(const AEncoding: AnsiString);
 var
   TE : TTTFEncoding;
   V : PTTFEncodingValues;
@@ -846,7 +855,7 @@ begin
   GetEncodingTables(Te,CharBase,V);
 end;
 
-function TTFFileInfo.MakeDifferences: String;
+function TTFFileInfo.MakeDifferences: AnsiString;
 var
   i,l: Integer;
 begin

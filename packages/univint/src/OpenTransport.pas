@@ -27,7 +27,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit OpenTransport;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -212,7 +214,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.MixedMode,MacOsApi.MacErrors;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,MixedMode,MacErrors;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -1173,8 +1179,8 @@ const
 }
 
 // #define OPT_NEXTHDR(theBuffer, theBufLen, prevOption) \
-//    (((char*)(prevOption) + T_ALIGN((prevOption)->len) < (char*)(theBuffer) + (theBufLen)) ?    \
-//           (TOption*)((char*)(prevOption)+T_ALIGN((prevOption)->len))  \
+//    (((AnsiChar*)(prevOption) + T_ALIGN((prevOption)->len) < (AnsiChar*)(theBuffer) + (theBufLen)) ?    \
+//           (TOption*)((AnsiChar*)(prevOption)+T_ALIGN((prevOption)->len))  \
 //           : (TOption*)NULL)
 
 
@@ -1457,11 +1463,11 @@ type
 		fCapabilities: UInt32;
 		fNumChildPorts: ItemCount;
 		fChildPorts: OTPortRefPtr;
-		fPortName: packed array [0..35] of char;
-		fModuleName: packed array [0..31] of char;
-		fSlotID: packed array [0..7] of char;
-		fResourceInfo: packed array [0..31] of char;
-		fReserved: packed array [0..163] of char;
+		fPortName: packed array [0..35] of AnsiChar;
+		fModuleName: packed array [0..31] of AnsiChar;
+		fSlotID: packed array [0..7] of AnsiChar;
+		fResourceInfo: packed array [0..31] of AnsiChar;
+		fReserved: packed array [0..163] of AnsiChar;
 	end;
 {
    Routines for finding, registering and unregistering ports.
@@ -1837,7 +1843,7 @@ type
 
 // #define OTNextLookupBuffer(buf)          \
 //   ((TLookupBuffer*)                   \
-//       ((char*)buf + ((OTOffsetOf(TLookupBuffer, fAddressBuffer) + buf->fAddressLength + buf->fNameLength + 3) & ~3)))
+//       ((AnsiChar*)buf + ((OTOffsetOf(TLookupBuffer, fAddressBuffer) + buf->fAddressLength + buf->fNameLength + 3) & ~3)))
 
 { ***** Initializing and Shutting Down Open Transport *****}
 
@@ -3433,7 +3439,7 @@ function OTStrLength( str: ConstCStringPtr ): OTByteCount; external name '_OTStr
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
-procedure OTStrCopy( var dest: char; src: ConstCStringPtr ); external name '_OTStrCopy';
+procedure OTStrCopy( var dest: AnsiChar; src: ConstCStringPtr ); external name '_OTStrCopy';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
@@ -3445,7 +3451,7 @@ procedure OTStrCopy( var dest: char; src: ConstCStringPtr ); external name '_OTS
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
-procedure OTStrCat( var dest: char; src: ConstCStringPtr ); external name '_OTStrCat';
+procedure OTStrCat( var dest: AnsiChar; src: ConstCStringPtr ); external name '_OTStrCat';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
@@ -3585,7 +3591,7 @@ type
   structure in which it's embedded.
 }
 // #define OTGetLinkObject(link, struc, field)    \
-//   ((struc*)((char*)(link) - OTOffsetOf(struc, field)))
+//   ((struc*)((AnsiChar*)(link) - OTOffsetOf(struc, field)))
 
 { OTLIFO}
 

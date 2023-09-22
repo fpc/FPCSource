@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpDBExport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,13 +20,18 @@ unit fpDBExport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TCustomDatasetExporter = Class;
 
-  // Quote string fields if value contains a space or delimiter char.
+  // Quote string fields if value contains a space or delimiter AnsiChar.
   TQuoteString = (qsAlways,qsSpace,qsDelimiter);
   TQuoteStrings = Set of TQuoteString;
 
@@ -86,14 +93,14 @@ Type
     FHandleNullField: Boolean;
     FTimeFormat : String;
     FDateTimeFormat : String;
-    FDecimalSeparator: Char;
+    FDecimalSeparator: AnsiChar;
     FUseDisplayText : Boolean;
   Protected
     Procedure InitSettings; virtual;
     Property HandleNullField : Boolean Read FHandleNullField Write FHandleNullField;
     Property UseDisplayText : Boolean Read FUseDisplayText Write FUseDisplayText;
     Property IntegerFormat : String Read FIntegerFormat Write FIntegerFormat;
-    Property DecimalSeparator : Char Read FDecimalSeparator Write FDecimalSeparator;
+    Property DecimalSeparator : AnsiChar Read FDecimalSeparator Write FDecimalSeparator;
     Property CurrencySymbol : String Read FCurrencySymbol Write FCurrencySymbol;
     Property CurrencyDigits : Integer Read FCurrencyDigits Write FCurrencyDigits;
     Property BooleanTrue : String Read FBooleanTrue Write FBooleanTrue;
@@ -320,7 +327,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Streamio;
+{$ELSE FPC_DOTTEDUNITS}
 uses streamio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrNoDataset           = 'Dataset not assigned';
@@ -865,8 +876,8 @@ begin
   FDateTimeFormat:=ShortDateFormat+' '+ShortTimeFormat;
   FBooleanTrue:='True';
   FBooleanFalse:='False';
-  FDecimalSeparator:=sysutils.decimalseparator;
-  FCurrencySymbol:=sysutils.CurrencyString;
+  FDecimalSeparator:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.decimalseparator;
+  FCurrencySymbol:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CurrencyString;
 end;
 
 constructor TCustomExportFormatSettings.Create(DoInitSettings: Boolean);

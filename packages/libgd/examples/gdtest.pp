@@ -10,7 +10,7 @@ var
   black,white:integer;
   red,green,blue:integer;
   im:gdImagePtr;
-  s1,s2:string;
+  s1,s2:Ansistring;
   points:array[0..2] of gdpoint;
   x : longint;
   styleDotted: array[0..1] of longint;

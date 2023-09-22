@@ -42,7 +42,9 @@
 
 // $Id: JwaLpmApi.pas,v 1.10 2007/09/05 11:58:51 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaLpmApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaLpmApi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -909,7 +916,7 @@ type
 
   IS_ADSPEC_BODY = record
     adspec_mh: IntServMainHdr;      // Main header
-    adspec_genparms: GenAdspecParams;// General char parm fragment
+    adspec_genparms: GenAdspecParams;// General AnsiChar parm fragment
     (*
      *  Followed by variable-length fragments for some or all
      *  services.  These can be minimal length fragments.

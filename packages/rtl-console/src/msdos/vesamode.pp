@@ -13,22 +13,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vesamode;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       TP.DOS,MacOsApi.Video,System.Console.Mouse;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        dos,video,mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type
-       PFarChar = ^Char; far;
+       PFarChar = ^AnsiChar; far;
        twordarray = array[0..0] of word;
 
        pwordarray = ^twordarray; far;
        TVESAInfoBlock = packed record
-         VESASignature   : ARRAY[0..3] OF CHAR;
+         VESASignature   : ARRAY[0..3] OF AnsiChar;
          VESAVersion     : WORD;
          OEMStringPtr    : PFarChar;
          Capabilities    : LONGINT;

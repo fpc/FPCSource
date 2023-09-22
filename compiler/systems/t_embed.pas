@@ -1051,6 +1051,24 @@ begin
       Add('  .rela.bss      : { *(.rela.bss)		}');
       Add('  .rel.plt       : { *(.rel.plt)		}');
       Add('  .rela.plt      : { *(.rela.plt)		}');
+      if [cs_link_discard_start,cs_link_discard_zeroreg_sp,cs_link_discard_copydata,
+          cs_link_discard_jmp_main]*current_settings.globalswitches<>[] then
+        begin
+          Add('  /DISCARD/ :');
+          Add('  { /* Discard RTL startup code */');
+          if cs_link_discard_start in current_settings.globalswitches then
+            begin
+              Add('    *(.init)  /* vector table */');
+              Add('    *(.text.*_default_irq_handler)');
+            end;
+          if cs_link_discard_zeroreg_sp in current_settings.globalswitches then
+            Add('    *(.init2) /* _FPC_init_zeroreg_SP */');
+          if cs_link_discard_copydata in current_settings.globalswitches then
+            Add('    *(.init4) /* _FPC_copy_data */');
+          if cs_link_discard_jmp_main in current_settings.globalswitches then
+            Add('    *(.init9) /* _FPC_jmp_main */');
+          Add('  }');
+        end;
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
@@ -1127,36 +1145,55 @@ begin
       Add('    KEEP (*(.fini0))');
       Add('     _etext = . ;');
       Add('  }  > text');
-      Add('  .data	  : AT (ADDR (.text) + SIZEOF (.text))');
-      Add('  {');
-      Add('     PROVIDE (__data_start = .) ;');
-      Add('    *(.data)');
-      Add('    *(.data*)');
-      Add('    *(.rodata)  /* We need to include .rodata here if gcc is used */');
-      Add('    *(.rodata*) /* with -fdata-sections.  */');
-      Add('    *(.gnu.linkonce.d*)');
-      Add('    . = ALIGN(2);');
-      Add('     _edata = . ;');
-      Add('     PROVIDE (__data_end = .) ;');
-      Add('  }  > data');
-      Add('  .bss   : AT (ADDR (.bss))');
-      Add('  {');
-      Add('     PROVIDE (__bss_start = .) ;');
-      Add('    *(.bss)');
-      Add('    *(.bss*)');
-      Add('    *(COMMON)');
-      Add('     PROVIDE (__bss_end = .) ;');
-      Add('  }  > data');
-      Add('   __data_load_start = LOADADDR(.data);');
-      Add('   __data_load_end = __data_load_start + SIZEOF(.data);');
-      Add('  /* Global data not cleared after reset.  */');
-      Add('  .noinit  :');
-      Add('  {');
-      Add('     PROVIDE (__noinit_start = .) ;');
-      Add('    *(.noinit*)');
-      Add('     PROVIDE (__noinit_end = .) ;');
-      Add('     _end = . ;');
-      Add('     PROVIDE (__heap_start = .) ;');
+      if not(cs_link_discard_copydata in current_settings.globalswitches) then
+        begin
+          Add('  .data	  : AT (ADDR (.text) + SIZEOF (.text))');
+          Add('  {');
+          Add('     PROVIDE (__data_start = .) ;');
+          Add('    *(.data)');
+          Add('    *(.data*)');
+          Add('    *(.rodata)  /* We need to include .rodata here if gcc is used */');
+          Add('    *(.rodata*) /* with -fdata-sections.  */');
+          Add('    *(.gnu.linkonce.d*)');
+          Add('    . = ALIGN(2);');
+          Add('     _edata = . ;');
+          Add('     PROVIDE (__data_end = .) ;');
+          Add('  }  > data');
+          Add('  .bss   : AT (ADDR (.bss))');
+          Add('  {');
+          Add('     PROVIDE (__bss_start = .) ;');
+          Add('    *(.bss)');
+          Add('    *(.bss*)');
+          Add('    *(COMMON)');
+          Add('     PROVIDE (__bss_end = .) ;');
+          Add('  }  > data');
+          Add('   __data_load_start = LOADADDR(.data);');
+          Add('   __data_load_end = __data_load_start + SIZEOF(.data);');
+          Add('  /* Global data not cleared after reset.  */');
+          Add('  .noinit  :');
+          Add('  {');
+          Add('     PROVIDE (__noinit_start = .) ;');
+          Add('    *(.noinit*)');
+          Add('     PROVIDE (__noinit_end = .) ;');
+          Add('     _end = . ;');
+          Add('     PROVIDE (__heap_start = .) ;');
+        end
+      else
+        begin
+          { Move all data into noinit section }
+          Add('  /* Global data not cleared after reset.  */');
+          Add('  .noinit  :');
+          Add('  {');
+          Add('    *(.data)');
+          Add('    *(.data*)');
+          Add('    *(.rodata)');
+          Add('    *(.rodata*)');
+          Add('    *(.gnu.linkonce.d*)');
+          Add('    *(.bss)');
+          Add('    *(.bss*)');
+          Add('    *(COMMON)');
+          Add('    *(.noinit*)');
+        end;
       Add('  }  > data');
       Add('  .eeprom  :');
       Add('  {');

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -42,6 +42,9 @@ begin
     T:=P.Targets.AddUnit('src/fpexmustache.pp');
       T.ResourceStrings:=true;
       T.Dependencies.AddUnit('fpmustache');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

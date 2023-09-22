@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, classes, sysutils;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit, classes, sysutils;
 
 {$endif ALLPACKAGES}
 
@@ -18,12 +18,15 @@ var
   GdbLibFound: boolean;
   GdbintTarget, GdbVerTarget: TTarget;
   Opts : TStrings;
-
+  Prefix : String;
+  
 begin
   P := Sender as TPackage;
-  // Search for a libgdb file.
+  Prefix:='';
+  if Defaults.Namespaces then
+   Prefix:='Api.';
+   // Search for a libgdb file.
   GdbLibFound:=false;
-
   // First try the environment setting GDBLIBDIR
   GdbLibDir := GetEnvironmentVariable('GDBLIBDIR');
   if (GdbLibDir<>'') then
@@ -62,7 +65,7 @@ begin
     end;
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
-  GdbintTarget:=TTarget(p.Targets.ItemByName('gdbint'));
+  GdbintTarget:=TTarget(p.Targets.ItemByName(Prefix+'gdbint'));
 
   if GdbLibFound then
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
@@ -93,7 +96,7 @@ begin
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       Cmd:=Installer.BuildEngine.AddPathPrefix(p,
-            p.GetBinOutputDir(Defaults.CPU, Defaults.OS))+
+            p.GetBinOutputDir(Defaults.CompileTarget ))+
             PathDelim+
             AddProgramExtension('gdbver',Defaults.BuildOS);
       Opts:=TStringList.Create;
@@ -209,6 +212,8 @@ begin
     P.Targets.AddExampleUnit('mingw.pas');
 
     P.Sources.AddSrc('src/gdbver_nogdb.inc');
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

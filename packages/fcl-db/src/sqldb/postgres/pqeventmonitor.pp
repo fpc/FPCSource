@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PQEventMonitor;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { PostGresql notification monitor
 
@@ -35,6 +37,15 @@ unit PQEventMonitor;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Data.SqlDb.Pq,Data.Db,Data.Consts,
+{$IfDef LinkDynamically}
+  Api.Postgres3dyn;
+{$Else}
+  Api.Postgres3;
+{$EndIf}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,pqconnection,db,dbconst,
 {$IfDef LinkDynamically}
@@ -42,6 +53,7 @@ uses
 {$Else}
   postgres3;
 {$EndIf}
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
@@ -199,7 +211,7 @@ begin
     if (FConnection.DatabaseName <> '') then sConn := sConn + ' dbname=''' + FConnection.DatabaseName + '''';
     if (FConnection.Params.Text <> '') then sConn := sConn + ' '+FConnection.Params.Text;
 
-    FDBHandle := PQconnectdb(pchar(sConn));
+    FDBHandle := PQconnectdb(PAnsiChar(sConn));
     if (PQstatus(FDBHandle) <> CONNECTION_OK) then
       begin
       msg := PQerrorMessage(FDBHandle);
@@ -208,7 +220,7 @@ begin
       end;
     for i:=0 to Events.Count-1 do
       begin
-      res := PQexec(FDBHandle,pchar('LISTEN '+ Events[i]));
+      res := PQexec(FDBHandle,PAnsiChar('LISTEN '+ Events[i]));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
         msg := PQerrorMessage(FDBHandle);
@@ -234,7 +246,7 @@ begin
     begin
     for i:=0 to Events.Count-1 do
       begin
-      res := PQexec(FDBHandle,pchar('unlisten '+ Events[i]));
+      res := PQexec(FDBHandle,PAnsiChar('unlisten '+ Events[i]));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
         msg := PQerrorMessage(FDBHandle);

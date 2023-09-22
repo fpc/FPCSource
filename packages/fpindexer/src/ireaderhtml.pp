@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2012 by the Free Pascal development team
 
     HTML text reader
@@ -12,15 +12,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit IReaderHTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.FastHtmlParser, //, Fcl.Htmlutil,          // Fast Parser Functions
+  System.Classes, FpIndexer.Indexer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FastHTMLParser, //, HTMLUtil,          // Fast Parser Functions
   Classes, fpIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -34,8 +42,8 @@ type
     LinePos: integer;
     Tg, Tx: integer;
     FParser: THTMLParser; //our htmlparser class
-    procedure OnTag(NoCaseTag, ActualTag: String);
-    procedure OnText(Text: String);
+    procedure OnTag(NoCaseTag, ActualTag: AnsiString);
+    procedure OnText(Text: AnsiString);
   protected
     function GetToken: UTF8String; override;
     function AllowedToken(token: UTF8String): boolean; override;
@@ -47,11 +55,11 @@ implementation
 
 { TIReaderHTML }
 
-procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: String);
+procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: AnsiString);
 begin
 end;
 
-procedure TIReaderHTML.OnText(Text: String);
+procedure TIReaderHTML.OnText(Text: AnsiString);
 var
   token: UTF8String;
   s: TSearchWordData;

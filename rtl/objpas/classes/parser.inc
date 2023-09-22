@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2007 by the Free Pascal development team
@@ -36,7 +37,7 @@ const
     'WideString'
   );
 
-function TParser.GetTokenName(aTok: char): string;
+function TParser.GetTokenName(aTok: Char): string;
 begin
   if ord(aTok) <= LastSpecialToken then
     Result:=TokNames[ord(aTok)]
@@ -87,7 +88,7 @@ begin
   Result:=IsAlpha or IsNumber;
 end;
 
-function TParser.GetHexValue(c: char): byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+function TParser.GetHexValue(c: AnsiChar): byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   case c of
     '0'..'9' : Result:=ord(c)-$30;
@@ -259,7 +260,7 @@ begin
 end;
 
 procedure TParser.HandleDecimalCharacter(var ascii: boolean; out
-  WideChr: widechar; out StringChr: char);
+  WideChr: widechar; out StringChr: AnsiChar);
 var i : integer;
 begin
   inc(fPos);
@@ -285,7 +286,7 @@ procedure TParser.HandleString;
 var ascii : boolean;
   s: string;
   w: WideChar;
-  c: char;
+  c: AnsiChar;
 begin
   fLastTokenWStr:='';
   fLastTokenStr:='';
@@ -313,7 +314,7 @@ begin
     end;
   end;
   if ascii then
-    fToken:=Classes.toString
+    fToken:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.toString
   else
     fToken:=toWString;
 end;

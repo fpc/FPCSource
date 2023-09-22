@@ -1,0 +1,3 @@
+src/gd.pas=namespaced/Api.Gd.pas
+{s*:src/}=namespaced/
+{i+:src/}

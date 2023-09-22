@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -153,6 +153,9 @@ begin
     T:=P.Targets.AddImplicitUnit('DefinedClassesWebKit.pas');
     T:=P.Targets.AddImplicitUnit('DefinedClassesiTunesLibrary.pas');
 
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

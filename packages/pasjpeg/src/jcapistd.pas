@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcAPIstd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original : jcapistd.c ; Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -17,6 +19,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jcapimin, System.Jpeg.Jcinit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -24,6 +35,7 @@ uses
   jerror,
   jpeglib,
   jcapimin, jcinit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

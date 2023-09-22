@@ -17,8 +17,13 @@
    MA 02110-1301, USA.
 }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   WinApi.Windows,TP.DOS,System.Console.Winevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    windows,dos,winevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
    ChangeSystemEvents : TCriticalSection;

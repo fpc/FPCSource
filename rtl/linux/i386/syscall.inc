@@ -48,7 +48,7 @@ var
 
 procedure InitSyscallIntf;
 var
-  ep: PPChar;
+  ep: PPAnsiChar;
   auxv: PElf32AuxiliaryVector;
 begin
 
@@ -507,7 +507,7 @@ asm
   .LSyscOK:
 end;
 
-{No debugging for syslinux include !}
+{No debugging for system include !}
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}

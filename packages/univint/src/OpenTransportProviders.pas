@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit OpenTransportProviders;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.OpenTransport;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,OpenTransport;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -407,7 +413,7 @@ const
 
 
 type
-	InetDomainName = packed array [0..255] of char;
+	InetDomainName = packed array [0..255] of AnsiChar;
 	InetHostInfoPtr = ^InetHostInfo;
 	InetHostInfo = record
 		name: InetDomainName;
@@ -416,8 +422,8 @@ type
 type
 	InetSysInfoPtr = ^InetSysInfo;
 	InetSysInfo = record
-		cpuType: packed array [0..31] of char;
-		osType: packed array [0..31] of char;
+		cpuType: packed array [0..31] of AnsiChar;
+		osType: packed array [0..31] of AnsiChar;
 	end;
 type
 	InetMailExchangePtr = ^InetMailExchange;
@@ -434,7 +440,7 @@ type
 		name: InetDomainName;
 		responseType: UInt16;           { answer, authority, or additional}
 		resourceLen: UInt16;            { actual length of array which follows}
-		resourceData: packed array [0..3] of char;        { size varies}
+		resourceData: packed array [0..3] of AnsiChar;        { size varies}
 	end;
 { DNSAddress}
 {
@@ -1741,7 +1747,7 @@ type
 	OTISDNAddress = record
 		fAddressType: OTAddressType;
 		fPhoneLength: UInt16;
-		fPhoneNumber: packed array [0..36] of char;
+		fPhoneNumber: packed array [0..36] of AnsiChar;
 	end;
 { IOCTL Calls for ISDN}
 { ISDN shares the same ioctl space as serial.}

@@ -13,12 +13,18 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PolygonFillTools;
+{$ENDIF}
 
 interface
 
 uses
-  Classes, FPImage, FPCanvas, PixTools;
+{$IFNDEF FPC_DOTTEDUNITS}
+  Math, Classes, FPImage, FPCanvas, PixTools;
+{$ELSE}  
+  System.Math, System.Classes, FpImage, FpImage.Canvas, FpImage.PixelTools;
+{$ENDIF}
 
 procedure FillPolygonSolid(Canv: TFPCustomCanvas; const Points: array of TPoint;
   Winding: Boolean; Color: TFPColor);
@@ -103,8 +109,7 @@ function RotatePoint(const APoint: TPoint; Angle: Double): TPoint;
 var
   sa, ca: Double;
 begin
-  sa := sin(Angle);
-  ca := cos(Angle);
+  sincos(Angle,sa,ca);
   Result.X := Round( ca * APoint.X + sa * APoint.Y);
   Result.Y := Round(-sa * APoint.X + ca * APoint.Y);
 end;

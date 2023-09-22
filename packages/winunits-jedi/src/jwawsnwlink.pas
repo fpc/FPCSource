@@ -42,7 +42,9 @@
 
 // $Id: JwaWSNwLink.pas,v 1.7 2007/09/05 11:58:53 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWSNwLink;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaWSNwLink;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
@@ -124,9 +131,9 @@ const
 
 //
 //   Enable extended addressing.  On sends, adds the element
-//   "unsigned char sa_ptype" to the SOCKADDR_IPX structure,
+//   "unsigned AnsiChar sa_ptype" to the SOCKADDR_IPX structure,
 //   making the total length 15 bytes.  On receives, add both
-//   the sa_ptype and "unsigned char sa_flags" to the SOCKADDR_IPX
+//   the sa_ptype and "unsigned AnsiChar sa_flags" to the SOCKADDR_IPX
 //   structure, making the total length 16 bytes.  The current
 //   bits defined in sa_flags are:
 //

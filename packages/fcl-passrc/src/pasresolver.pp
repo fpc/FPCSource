@@ -304,7 +304,9 @@ Notes:
    if f=g then : can implicit resolve each side once
    p(f), f as var parameter: can implicit
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasResolver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-passrc.inc}
 
@@ -313,6 +315,17 @@ unit PasResolver;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  js,
+  {$IFDEF NODEJS}
+  Node.FS,
+  {$ENDIF}
+  {$endif}
+  System.Classes, System.SysUtils, System.Math, System.Types, System.Contnrs,
+  Pascal.Tree, Pascal.Scanner, Pascal.Parser, Pascal.ResolveEval;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   js,
@@ -322,6 +335,7 @@ uses
   {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ParserMaxEmbeddedColumn = 2048;
@@ -1600,8 +1614,7 @@ type
       Scope: TPasIdentifierScope; OnlyLocal: boolean): TPasProcedure;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
-    procedure ScannerWarnDirective(Sender: TObject; Identifier: string;
-      State: TWarnMsgState; var Handled: boolean); virtual;
+    procedure ScannerWarnDirective(Sender: TObject; Identifier: TPasScannerString; State: TWarnMsgState; var Handled: boolean); virtual;
     procedure SetRootElement(const AValue: TPasModule); virtual;
     procedure CheckTopScope(ExpectedClass: TPasScopeClass; AllowDescendants: boolean = false);
     function AddIdentifier(Scope: TPasIdentifierScope;
@@ -5655,7 +5668,7 @@ begin
 end;
 
 procedure TPasResolver.ScannerWarnDirective(Sender: TObject;
-  Identifier: string; State: TWarnMsgState; var Handled: boolean);
+  Identifier: TPasScannerString; State: TWarnMsgState; var Handled: boolean);
 var
   MsgNumbers: TIntegerDynArray;
   i: Integer;
@@ -6249,7 +6262,7 @@ begin
       BaseTypeData:=TResElDataBaseType(EnumType.CustomData);
       if BaseTypeData.BaseType in (btAllChars+[btBoolean,btByte]) then
         exit;
-      RaiseXExpectedButYFound(20170216151553,'char or boolean',
+      RaiseXExpectedButYFound(20170216151553,'Char or boolean',
         GetElementTypeName(EnumType),GetEnumTypePosEl);
       end;
     end;
@@ -10324,6 +10337,9 @@ begin
     FindLongestUnitName(DeclEl,El);
     FindData.Found:=DeclEl;
     end;
+
+  if (DeclEl is TPasVariable) and El.HasParent(DeclEl) then
+    RaiseIdentifierNotFound(20230712105546,aName,El);
 
   Ref:=CreateReference(DeclEl,El,Access,@FindData);
   CheckFoundElement(FindData,Ref);
@@ -14958,6 +14974,13 @@ end;
 
 function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
   ): TResolverBaseType;
+
+{$IFDEF FPC_HAS_CPSTRING}
+{$IF SIZEOF(CHAR)=1}
+  {$DEFINE USESINGLEBYTE}
+{$ENDIF}
+{$ENDIF}
+
 // returns true if Value is a Pascal char literal
 // btAnsiChar: #65, #$50, ^G, 'a'
 // btWideChar: #10000, 'ä'
@@ -14975,7 +14998,7 @@ begin
     begin
     inc(p);
     if p>l then exit;
-    {$ifdef FPC_HAS_CPSTRING}
+    {$ifdef USESINGLEBYTE}
     case Value[2] of
     '''':
       if Value='''''''''' then
@@ -14986,7 +15009,7 @@ begin
     #192..#255:
       if BaseTypeChar=btWideChar then
         begin
-        // default char is widechar: UTF-8 'ä' is a widechar
+        // default AnsiChar is widechar: UTF-8 'ä' is a widechar
         i:=Utf8CodePointLen(@Value[2],4,false);
         //writeln('TPasResolver.IsCharLiteral "',Value,'" ',length(Value),' i=',i);
         if i<2 then
@@ -15005,7 +15028,10 @@ begin
     #$DC00..#$DFFF: ;
     else
       if (l=3) and (Value[3]='''') then
-        Result:=btWideChar; // e.g. 'a'
+        if Ord(Value[2])<128 then
+          Result:=btAnsiChar // e.g. 'a'
+        else
+          Result:=btWideChar; // e.g. 'a'
     end;
     {$endif}
     end;
@@ -15953,7 +15979,7 @@ begin
       {$ifdef FPC_HAS_CPSTRING}
       else if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
         try
-          Result:=TResEvalString.CreateValue(Char(Int));
+          Result:=TResEvalString.CreateValue(AnsiChar(Int));
         except
           RaiseMsg(20180125112510,nRangeCheckError,sRangeCheckError,[],Params);
         end
@@ -19015,7 +19041,7 @@ begin
   Params:=TParamsExpr(Expr);
 
   // first Param0: set variable
-  // todo set of int, set of char, set of bool
+  // todo set of int, set of AnsiChar, set of bool
   Param0:=Params.Params[0];
   ComputeElement(Param0,Param0Resolved,[rcNoImplicitProc]);
   Param1:=Params.Params[1];
@@ -19389,7 +19415,7 @@ begin
     exit(cIncompatible);
   Params:=TParamsExpr(Expr);
 
-  // first param: bool, integer, enum or char
+  // first param: bool, integer, enum or AnsiChar
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
@@ -19450,7 +19476,8 @@ begin
   try
     Evaluated:=fExprEvaluator.OrdValue(Value,Params);
   finally
-    ReleaseEvalValue(Value);
+    if Evaluated<>Value then
+      ReleaseEvalValue(Value);
   end;
   if Proc=nil then ;
 end;
@@ -22353,7 +22380,7 @@ begin
         @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,
         @BI_Chr_OnEval,nil,bfChr);
   if bfOrd in TheBaseProcs then
-    AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
+    AddBuiltInProc('Ord','function Ord(const Enum or char): integer',
         @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,
         @BI_Ord_OnEval,nil,bfOrd);
   if bfLow in TheBaseProcs then
@@ -22525,10 +22552,12 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
   Access: TResolvedRefAccess; FindData: PPRFindData): TResolvedReference;
 
   procedure RaiseAlreadySet;
+  {$IFDEF VerbosePasResolver}
   var
     FormerDeclEl: TPasElement;
+  {$ENDIF}
   begin
-    {AllowWriteln}
+    {$IFDEF VerbosePasResolver}
     writeln('RaiseAlreadySet RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
     writeln('  RefEl at ',GetElementSourcePosStr(RefEl));
     writeln('  RefEl.CustomData=',GetObjName(RefEl.CustomData));
@@ -22538,8 +22567,8 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
       writeln('  TResolvedReference(RefEl.CustomData).Declaration=',GetObjName(FormerDeclEl),
        ' IsSame=',FormerDeclEl=DeclEl);
       end;
-    {AllowWriteln-}
-    RaiseInternalError(20160922163554,'customdata<>nil');
+    {$ENDIF}
+    RaiseInternalError(20160922163554, 'customdata=' + GetObjName(DeclEl));
   end;
 
 begin
@@ -23392,9 +23421,10 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: int
     if ArgNo>High(Args) then
       exit('invalid param '+IntToStr(ArgNo));
     case Args[ArgNo].VType of
-{$IFDEF PAS2JS}    
+{$IFDEF PAS2JS}
     vtUnicodeString: Result:=Args[ArgNo].VUnicodeString;
-{$ELSE}    
+{$ELSE}
+    vtUnicodeString: Result:={%H-}UnicodeString(Args[ArgNo].VUnicodeString);
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
 {$ENDIF}    
     else
@@ -26970,12 +27000,19 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
             [IntToStr(ExpectedCount),'1'],ErrorEl);
         exit;
         end;
-      if (Values.BaseType in btAllStrings) and (ElTypeResolved.BaseType in btAllChars) then
-        begin
-        // e.g. array of char = ''
-        Check_ArrayOfChar_String(ArrType,ExpectedCount,ElTypeResolved,Expr,ErrorEl);
-        exit;
-        end;
+      if (ElTypeResolved.BaseType in btAllChars) then
+        if (Values.BaseType in btAllStrings) then
+          begin
+          // e.g. array of char = ''
+          Check_ArrayOfChar_String(ArrType,ExpectedCount,ElTypeResolved,Expr,ErrorEl);
+          exit;
+          end
+        else if (Values.BaseType=btWidechar) then
+          begin
+          // Widechar is (usually) 2 ansichars.
+          Check_ArrayOfChar_String(ArrType,ExpectedCount,ElTypeResolved,Expr,ErrorEl);
+          exit;
+          end;
       if (ExpectedCount>1) then
         begin
         if RaiseOnIncompatible then
@@ -27262,7 +27299,7 @@ begin
             begin
             FromTypeEl:=FromResolved.LoTypeEl;
             if FromTypeEl.ClassType=TPasEnumType then
-              // e.g. char(TEnum)
+              // e.g. Char(TEnum)
               Result:=cCompatible;
             end;
           end
@@ -29909,7 +29946,8 @@ begin
       btIntSingle,
       btUIntSingle,
       btIntDouble,
-      btUIntDouble:
+      btUIntDouble,
+      btCurrency:
         begin
         Result:=TResEvalRangeInt.Create;
         TResEvalRangeInt(Result).ElKind:=revskInt;

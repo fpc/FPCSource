@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rtl_unicode(const ADirectory: string);
@@ -147,6 +147,9 @@ begin
       begin
         AddInclude('eastasianwidth_code.inc');
       end;
+
+    P.NamespaceMap:='namespaces.lst';
+    
   end
 end;
 

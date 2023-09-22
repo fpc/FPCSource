@@ -41,7 +41,7 @@ Type
 
 function getitimer(__which:__itimer_which_t; __value:Pitimerval):longint;cdecl;external clib name 'getitimer';
 function setitimer(__which:__itimer_which_t; __new:Pitimerval; __old:Pitimerval):longint;cdecl;external clib name 'setitimer';
-function utimes(__file:Pchar; __tvp: Ptimeval):longint;cdecl;external clib name 'utimes';
+function utimes(__file:PAnsiChar; __tvp: Ptimeval):longint;cdecl;external clib name 'utimes';
 
 // Macros, translated.
 
@@ -69,7 +69,7 @@ type
   PIntervalTimerValue = ^TIntervalTimerValue;
 
 
-function utimes(__file: PChar; const AccessModTimes: TAccessModificationTimes):longint;cdecl;external clib name 'utimes';
+function utimes(__file: PAnsiChar; const AccessModTimes: TAccessModificationTimes):longint;cdecl;external clib name 'utimes';
 function gettimeofday(var __tv:timeval; __tz:__timezone_ptr_t):longint;cdecl;external clib name 'gettimeofday';
 function gettimeofday(var __tv:timeval; var _tz:timezone):longint;cdecl;external clib name 'gettimeofday';
 function settimeofday(const __tv: timeval; __tz:Ptimezone):longint;cdecl;external clib name 'settimeofday';

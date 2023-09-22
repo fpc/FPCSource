@@ -13,12 +13,19 @@
 
  **********************************************************************}
 {$PACKRECORDS C}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit commodities;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Inputevent, Amiga.Core.Keymap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, inputevent, keymap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   CxObj = LongInt;
@@ -128,9 +135,9 @@ type
   PBrokerCopy = ^TBrokerCopy;
   TBrokerCopy = record
     bc_Node: TNode;
-    bc_Name: array[0..CBD_NAMELEN - 1] of Char;
-    bc_Title: array[0..CBD_TITLELEN - 1] of Char;
-    bc_Descr: array[0..CBD_DESCRLEN - 1] of Char;
+    bc_Name: array[0..CBD_NAMELEN - 1] of AnsiChar;
+    bc_Title: array[0..CBD_TITLELEN - 1] of AnsiChar;
+    bc_Descr: array[0..CBD_DESCRLEN - 1] of AnsiChar;
     bc_Task: PTask;     // Private, do not use this
     bc_Port: PMsgPort;  // Private, do not use this
     bc_Dummy: Word;
@@ -141,7 +148,7 @@ var
  CxBase: PLibrary = nil;
 
 const
-    COMMODITIESNAME: PChar = 'commodities.library';
+    COMMODITIESNAME: PAnsiChar = 'commodities.library';
 
 function CreateCxObj(Typ: LongWord; Arg1: IPTR; Arg2: IPTR): PCxObj; syscall CxBase 5;
 function CxBroker(Nb: PNewBroker; var Error: LongInt): PCxObj; syscall CxBase 6;

@@ -1,10 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwidestring;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CodePages.unicodedata;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unicodedata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i rtldefs.inc}
 
@@ -16,6 +23,16 @@ var
   DefaultCollationName : UnicodeString = '';
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef MSWINDOWS}
+  WinApi.Windows,
+{$endif MSWINDOWS}
+{$ifdef Unix}
+  UnixApi.CP,
+{$endif}
+  System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef MSWINDOWS}
   Windows,
@@ -24,6 +41,7 @@ uses
   unixcp,
 {$endif}
   charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$ifdef MSWINDOWS}
@@ -727,14 +745,14 @@ function CompareStrAnsiString(const S1, S2: ansistring): PtrInt;
 var
   l1, l2 : PtrInt;
 begin
-  if (current_Collation.DataPtr=nil) then
-    exit(OldManager.CompareStrAnsiStringProc(s1,s2));
+  if (current_Collation.DataPtr=nil) and Assigned(OldManager.CompareStrAnsiStringProc) then
+    Exit(OldManager.CompareStrAnsiStringProc(s1,s2));
   if (Pointer(S1)=Pointer(S2)) then
-    exit(0);
+    Exit(0);
   l1:=Length(S1);
   l2:=Length(S2);
   if (l1=0) or (l2=0) then
-    exit(l1-l2);
+    Exit(l1-l2);
   Result := InternalCompareStrAnsiString(@S1[1],@S2[1],l1,l2);
 end;
 
@@ -747,7 +765,7 @@ begin
   Result:=CompareStrAnsiString(a,b);
 end;
 
-function StrCompAnsiString(S1, S2: PChar): PtrInt;
+function StrCompAnsiString(S1, S2: PAnsiChar): PtrInt;
 var
   l1,l2 : PtrInt;
 begin
@@ -758,7 +776,7 @@ begin
   Result := InternalCompareStrAnsiString(S1,S2,l1,l2);
 end;
 
-function StrLICompAnsiString(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function StrLICompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   a, b: ansistring;
 begin
@@ -771,12 +789,12 @@ begin
   Result:=CompareTextAnsiString(a,b);
 end;
 
-function StrICompAnsiString(S1, S2: PChar): PtrInt;
+function StrICompAnsiString(S1, S2: PAnsiChar): PtrInt;
 begin
   Result:=CompareTextAnsiString(ansistring(s1),ansistring(s2));
 end;
 
-function StrLowerAnsiString(Str: PChar): PChar;
+function StrLowerAnsiString(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin
@@ -784,7 +802,7 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
-function StrUpperAnsiString(Str: PChar): PChar;
+function StrUpperAnsiString(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin

@@ -8,22 +8,29 @@
   The original copyright note of is kept on each include file
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.ObjC.Rtl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objcrtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
-function alloc(classname: PChar): id; inline;
-function allocex(classname: PChar; extraBytes: Integer): id; inline;
-function objcclass(classname: PChar): _class; inline;
-function selector(cmdname: PChar): SEL; inline;
+function alloc(classname: PAnsiChar): id; inline;
+function allocex(classname: PAnsiChar; extraBytes: Integer): id; inline;
+function objcclass(classname: PAnsiChar): _class; inline;
+function selector(cmdname: PAnsiChar): SEL; inline;
 procedure release(objc: id); inline;
-function AllocAndInit(classname: PChar): id; inline;
-function AllocAndInitEx(classname: PChar; extraBytes: Integer): id; inline;
+function AllocAndInit(classname: PAnsiChar): id; inline;
+function AllocAndInitEx(classname: PAnsiChar; extraBytes: Integer): id; inline;
 function super(obj: id): objc_super;
 
 implementation
@@ -39,23 +46,23 @@ begin
   Result.class_ := class_getSuperclass(object_getClass(obj));
 end;
 
-function allocex(classname: PChar; extraBytes: Integer): id; inline;
+function allocex(classname: PAnsiChar; extraBytes: Integer): id; inline;
 begin
   Result := class_createInstance( objcclass(classname), extraBytes);
 end;
 
-function alloc(classname: PChar): id; inline;
+function alloc(classname: PAnsiChar): id; inline;
 begin
   Result := allocex(classname, 0);
   // Result := objc_msgSend( objc_getClass(classname), selector('alloc'), []);
 end;
 
-function objcclass(classname: PChar): _class; inline;
+function objcclass(classname: PAnsiChar): _class; inline;
 begin
   Result := _class(objc_getClass(classname));
 end;
 
-function selector(cmdname: PChar): SEL; inline;
+function selector(cmdname: PAnsiChar): SEL; inline;
 begin
   Result := sel_registerName(cmdname);
 end;
@@ -66,13 +73,13 @@ begin
   objc_msgSend(objc, SEL_release, []);
 end;
 
-function AllocAndInit(classname: PChar): id; inline;
+function AllocAndInit(classname: PAnsiChar): id; inline;
 begin
   if SEL_init=nil then SEL_init := selector('init');
   Result:= objc_msgSend( alloc( classname ), SEL_init, []);
 end;
 
-function AllocAndInitEx(classname: PChar; extraBytes: Integer): id; inline;
+function AllocAndInitEx(classname: PAnsiChar; extraBytes: Integer): id; inline;
 begin
   if SEL_init=nil then SEL_init := selector('init');
   Result := objc_msgSend( allocEx( classname, extraBytes ), SEL_init, []);

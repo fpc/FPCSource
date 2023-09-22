@@ -21,7 +21,9 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gemcmmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

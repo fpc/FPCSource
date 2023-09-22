@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -64,6 +64,9 @@ begin
     T:=P.Targets.AddUnit('serial.pas');
     T:=P.Targets.AddUnit('console.pas');
     T:=P.Targets.AddUnit('conunit.pas');
+    T:=P.Targets.AddUnit('openssl3.pas');
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

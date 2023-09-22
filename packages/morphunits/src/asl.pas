@@ -20,17 +20,23 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit asl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Workbench, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility, workbench, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {************************************************************************}
 
 const
-  ASLNAME: PChar = 'asl.library';
+  ASLNAME: PAnsiChar = 'asl.library';
   ASL_TB = TAG_USER + $80000;
 
 {************************************************************************}
@@ -418,7 +424,7 @@ const
  * of the semaphore is given below; it exists only with asl.library V45 and
  * IPrefs V45 and beyond.
  }
-  ASL_SEMAPHORE_NAME: PChar = 'asl.library';
+  ASL_SEMAPHORE_NAME: PAnsiChar = 'asl.library';
 
 type
   PAslSemaphore = ^TAslSemaphore;

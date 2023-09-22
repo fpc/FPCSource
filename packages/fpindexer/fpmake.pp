@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_fpindexer(const ADirectory: string);
@@ -68,6 +68,8 @@ begin
       T:=P.Targets.AddUnit('dbindexer.pp',SqldbConnectionOSes);
       T.Dependencies.AddUnit('fpindexer');
       T.Dependencies.AddUnit('ireadertxt');
+      
+      P.NamespaceMap:='namespaces.lst';
   end;
 end;
     

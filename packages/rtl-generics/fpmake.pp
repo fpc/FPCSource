@@ -3,7 +3,7 @@ program fpmake;
 
 {$mode objfpc}{$h+}
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif}
 
 Procedure add_rtl_generics(ADirectory : string);
@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Generic collection library.';
     P.NeedLibC:= false;
-    P.OSes := AllOSes-[embedded,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,watcom,sinclairql,wasi];
+    P.OSes := AllOSes-[embedded,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,watcom,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -70,6 +70,9 @@ begin
     T:=P.Targets.AddExampleProgram('tqueueproject.lpr');
     P.ExamplePath.Add('examples/tstack');
     T:=P.Targets.AddExampleProgram('tstackproject.lpr');
+
+    P.NamespaceMap:='namespaces.lst';
+    
     end;
 end;
 

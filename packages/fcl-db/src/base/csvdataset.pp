@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit csvdataset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.BufDataset, Fcl.Csv.ReadWrite, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, bufdataset, csvreadwrite, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

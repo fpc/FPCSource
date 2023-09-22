@@ -400,6 +400,8 @@ implementation
                    else
                      stoptions:=[];
                    single_type(arrayelementdef,stoptions);
+                   if assigned(arrayelementdef.typesym) then
+                     check_hints(arrayelementdef.typesym,arrayelementdef.typesym.symoptions,arrayelementdef.typesym.deprecatedmsg);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -469,6 +471,9 @@ implementation
           else
            hdef:=cformaltype;
 
+          if assigned(hdef.typesym) then
+            check_hints(hdef.typesym,hdef.typesym.symoptions,hdef.typesym.deprecatedmsg);
+
           { File types are only allowed for var and out parameters }
           if (hdef.typ=filedef) and
              not(varspez in [vs_out,vs_var]) then
@@ -510,6 +515,10 @@ implementation
                     if explicit_paraloc then
                       Message(parser_e_paraloc_all_paras);
                 end;
+{$ifdef wasm}
+              if (vs.varspez in [vs_var,vs_constref,vs_out]) and is_wasm_reference_type(vs.vardef) then
+                Message(parser_e_wasm_ref_types_can_only_be_passed_by_value);
+{$endif wasm}
             end;
         until not try_to_consume(_SEMICOLON);
 
@@ -541,6 +550,7 @@ implementation
         found,
         searchagain : boolean;
         st,
+        insertst,
         genericst: TSymtable;
         aprocsym : tprocsym;
         popclass : integer;
@@ -850,19 +860,23 @@ implementation
         hadspecialize:=false;
         addgendummy:=false;
 
+        { ensure that we don't insert into a withsymtable (can happen with
+          anonymous functions) }
+        checkstack:=symtablestack.stack;
+        while checkstack^.symtable.symtabletype in [withsymtable] do
+          checkstack:=checkstack^.next;
+        insertst:=checkstack^.symtable;
+
         if not assigned(genericdef) then
           begin
             if ppf_anonymous in flags then
               begin
-                checkstack:=symtablestack.stack;
-                while checkstack^.symtable.symtabletype in [withsymtable] do
-                  checkstack:=checkstack^.next;
-                if not (checkstack^.symtable.symtabletype in [localsymtable,staticsymtable]) then
+                if not (insertst.symtabletype in [localsymtable,staticsymtable]) then
                   internalerror(2021050101);
                 { generate a unique name for the anonymous function; don't use
                   something like file position however as this might be inside
                   an include file that's included multiple times }
-                str(checkstack^.symtable.symlist.count,orgsp);
+                str(insertst.symlist.count,orgsp);
                 orgsp:='__FPCINTERNAL__Anonymous_'+orgsp;
                 sp:=upper(orgsp);
                 spnongen:=sp;
@@ -1028,7 +1042,7 @@ implementation
                  if (potype=potype_operator)and(optoken=NOTOKEN) then
                    parse_operator_name;
 
-                 srsym:=tsym(symtablestack.top.Find(sp));
+                 srsym:=tsym(insertst.Find(sp));
 
                  { Also look in the globalsymtable if we didn't found
                    the symbol in the localsymtable }
@@ -1098,7 +1112,7 @@ implementation
                   operation }
                 if (potype=potype_operator) then
                   begin
-                    aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                    aprocsym:=Tprocsym(insertst.Find(sp));
                     if aprocsym=nil then
                       aprocsym:=cprocsym.create('$'+sp);
                   end
@@ -1111,7 +1125,7 @@ implementation
                   include(aprocsym.symoptions,sp_internal);
                 if addgendummy then
                   include(aprocsym.symoptions,sp_generic_dummy);
-                symtablestack.top.insertsym(aprocsym);
+                insertst.insertsym(aprocsym);
               end;
           end;
 
@@ -1172,7 +1186,7 @@ implementation
                   dummysym:=tsym(astruct.symtable.find(spnongen))
                 else
                   begin
-                    dummysym:=tsym(symtablestack.top.find(spnongen));
+                    dummysym:=tsym(insertst.find(spnongen));
                     if not assigned(dummysym) and
                         (symtablestack.top=current_module.localsymtable) and
                         assigned(current_module.globalsymtable) then
@@ -1186,7 +1200,7 @@ implementation
                     if assigned(astruct) then
                       astruct.symtable.insertsym(dummysym)
                     else
-                      symtablestack.top.insertsym(dummysym);
+                      insertst.insertsym(dummysym);
                   end
                 else if (dummysym.typ<>procsym) and
                     (
@@ -1278,9 +1292,17 @@ implementation
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
-        pd.visibility:=symtablestack.top.currentvisibility;
-        if symtablestack.top.currentlyoptional then
+        pd.visibility:=insertst.currentvisibility;
+        if insertst.currentlyoptional then
           include(pd.procoptions,po_optional);
+
+        { when extended rtti appears, then we must adapt this check}
+        if  (target_cpu=tsystemcpu.cpu_wasm32) and
+             assigned(astruct) and
+            (astruct.typ=objectdef) and
+            (tobjectdef(astruct).objecttype in [odt_interfacecom,odt_interfacecorba]) and
+            (pd.visibility=vis_published)  then
+          pd.synthetickind:=tsk_invoke_helper;
 
         { parse parameters }
         if token=_LKLAMMER then
@@ -1389,6 +1411,9 @@ implementation
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
+
+            if assigned(pd.returndef.typesym) then
+              check_hints(pd.returndef.typesym,pd.returndef.typesym.symoptions,pd.returndef.typesym.deprecatedmsg);
 
             if pd.is_generic or pd.is_specialization then
               symtablestack.pop(pd.parast);
@@ -2397,6 +2422,31 @@ begin
              else
                import_nr:=longint(v.svalue);
            end;
+          if (idtoken=_SUSPENDING) then
+           begin
+             if (target_info.system in systems_wasm) then
+              begin
+                consume(_SUSPENDING);
+                include(procoptions,po_wasm_suspending);
+                synthetickind:=tsk_wasm_suspending_first;
+                if idtoken=_FIRST then
+                  consume(_FIRST)
+                else if idtoken=_LAST then
+                  begin
+                    consume(_LAST);
+                    synthetickind:=tsk_wasm_suspending_last;
+                  end;
+              end
+             else
+              begin
+                message(parser_e_suspending_externals_not_supported_on_current_platform);
+                consume(_SUSPENDING);
+                if idtoken=_FIRST then
+                  consume(_FIRST)
+                else if idtoken=_LAST then
+                  consume(_LAST);
+              end;
+           end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
             begin
@@ -2476,7 +2526,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=54;
+  num_proc_directives=55;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2983,6 +3033,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_WASMFUNCREF;
+      pd_flags : [pd_procvar];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_wasm_funcref];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
     )
    );
 
@@ -3283,7 +3342,7 @@ const
           it because it can already be used somewhere (PFV) }
         if not(po_has_mangledname in pd.procoptions) then
           begin
-            if (po_external in pd.procoptions) then
+            if (po_external in pd.procoptions) and not (po_wasm_suspending in pd.procoptions) then
               begin
                 { External Procedures are only allowed to change the mangledname
                   in their first declaration }

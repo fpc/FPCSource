@@ -16,7 +16,9 @@
   Abstract:
     TPas2jsFileResolver extends TFileResolver and searches source files.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsFileCache;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -24,6 +26,18 @@ unit Pas2jsFileCache;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF Pas2js}
+    {$IFDEF NodeJS}
+    JS, node.fs,
+    {$ENDIF}
+  {$ENDIF}
+  System.Classes, System.SysUtils,
+  FpJson.Data,
+  Pascal.Scanner, Pascal.Resolver, Pascal.UseAnalyzer,
+  Pas2Js.Logger, Pas2Js.Files.Utils, Pas2Js.Files.Fs, Pas2Js.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF Pas2js}
     {$IFDEF NodeJS}
@@ -34,6 +48,7 @@ uses
   fpjson,
   PScanner, PasResolver, PasUseAnalyzer,
   Pas2jsLogger, Pas2jsFileUtils, Pas2JSFS, Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
@@ -288,7 +303,7 @@ type
     function ExpandDirectory(const Filename: string): string; override;
     function ExpandFileName(const Filename: string): string; override;
     function ExpandExecutable(const Filename: string): string; override;
-    function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; override;
+    function HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String; override;
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
     function TryCreateRelativePath(const Filename, BaseDirectory: String;
       UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
@@ -414,7 +429,7 @@ end;
 {$IFDEF FPC_HAS_CPSTRING}
 function ConvertTextToUTF8(const Src: string; var SrcEncoding: string): string;
 var
-  p: PChar;
+  p: PAnsiChar;
   NormSrcEncoding: String;
 begin
   Result:=Src;
@@ -424,7 +439,7 @@ begin
   NormSrcEncoding:=NormalizeEncoding(SrcEncoding);
   if NormSrcEncoding=NormalizeEncoding(EncodingUTF8) then
   begin
-    p:=PChar(Result);
+    p:=PAnsiChar(Result);
     if (p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF) then
     begin
       // cut out UTF-8 BOM
@@ -440,7 +455,7 @@ end;
 
 function GuessEncoding(const Src: string): string;
 var
-  p: PChar;
+  p: PAnsiChar;
   l: SizeInt;
   i: Integer;
 begin
@@ -452,12 +467,12 @@ begin
 
   // try UTF-8 (this includes ASCII)
   l:=length(Src);
-  p:=PChar(Src);
+  p:=PAnsiChar(Src);
   repeat
     if ord(p^)<128 then
     begin
       // ASCII
-      if (p^=#0) and (p-PChar(Src)>=l) then
+      if (p^=#0) and (p-PAnsiChar(Src)>=l) then
         exit(EncodingUTF8);
       inc(p);
     end else begin
@@ -469,11 +484,11 @@ begin
   until false;
 
   // check binary
-  p:=PChar(Src);
+  p:=PAnsiChar(Src);
   repeat
     case p^ of
     #0:
-      if (p-PChar(Src)>=l) then
+      if (p-PAnsiChar(Src)>=l) then
         break
       else
         exit(EncodingBinary);
@@ -489,10 +504,10 @@ end;
 
 function HasUTF8BOM(const s: string): boolean;
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   if s='' then exit(false);
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   Result:=(p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF);
 end;
 
@@ -954,7 +969,7 @@ begin
       Filename:=ChompPathDelim(ResolveDots(Filename));
       if not FilenameIsAbsolute(Filename) then
         Filename:=WorkingDirectory+Filename;
-      Result:={$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Filename);
+      Result:={$IFDEF pas2js}Node.FS{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils{$ENDIF}.DirectoryExists(Filename);
       end;
     end;
 end;
@@ -968,7 +983,7 @@ begin
   if Info.Dir<>nil then
     Result:=Info.Dir.IndexOfFile(Info.ShortFilename)>=0
   else
-    Result:={$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename);
+    Result:={$IFDEF pas2js}Node.FS{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils{$ENDIF}.FileExists(Info.Filename);
 end;
 
 function TPas2jsCachedDirectories.FileExistsI(var Filename: string): integer;
@@ -981,7 +996,7 @@ begin
   if not GetFileInfo(Info) then exit;
   if Info.Dir=nil then
   begin
-    if {$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename) then
+    if {$IFDEF pas2js}Node.FS{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils{$ENDIF}.FileExists(Info.Filename) then
       Result:=1;
   end
   else
@@ -1084,7 +1099,7 @@ begin
     {$ENDIF}
     Result:=TPas2jsCachedDirectory.Create(Dir,Self);
     FDirectories.Add(Result);
-    if DoReference then
+    if DoReference then 
       Result.Reference;
     Result.Update;
   end else
@@ -1264,7 +1279,7 @@ end;
 
 procedure TPas2jsFilesCache.SetBaseDirectory(AValue: string);
 begin
-  AValue:=Pas2jsFileUtils.ExpandDirectory(AValue);
+  AValue:={$IFDEF FPC_DOTTEDUNITS}Pas2js.Files.Utils{$ELSE}Pas2jsFileUtils{$ENDIF}.ExpandDirectory(AValue);
   if FBaseDirectory=AValue then Exit;
   FBaseDirectory:=AValue;
   DirectoryCache.WorkingDirectory:=BaseDirectory;
@@ -1583,7 +1598,7 @@ end;
 
 function TPas2jsFilesCache.SameFileName(const File1, File2: String): Boolean;
 begin
-  Result:=Pas2jsFileUtils.CompareFilenames(File1,File2)=0;
+  Result:={$IFDEF FPC_DOTTEDUNITS}Pas2js.Files.Utils{$ELSE}Pas2jsFileUtils{$ENDIF}.CompareFilenames(File1,File2)=0;
 end;
 
 function TPas2jsFilesCache.File1IsNewer(const File1, File2: String): Boolean;
@@ -1843,7 +1858,7 @@ begin
     Result:=ExpandFileName(Filename);
 end;
 
-function TPas2jsFilesCache.HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String;
+function TPas2jsFilesCache.HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String;
 
 Var
   ErrorMsg : String;
@@ -1871,7 +1886,7 @@ function TPas2jsFilesCache.TryCreateRelativePath(const Filename,
   BaseDirectory: String; UsePointDirectory,
   AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean;
 begin
-  Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
+  Result:={$IFDEF FPC_DOTTEDUNITS}Pas2js.Files.Utils{$ELSE}Pas2jsFileUtils{$ENDIF}.TryCreateRelativePath(Filename, BaseDirectory,
     UsePointDirectory, AlwaysRequireSharedBaseFolder, RelPath);
 end;
 

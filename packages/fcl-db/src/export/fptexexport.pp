@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fptexexport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fptexexport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, fpdbexport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TTeXExportOption = (teHeaderRow,teTableEnvironment,teHeaderLine,teTopLine,teBottomLine,teUseWidths,teCreateDocument);
@@ -136,14 +143,14 @@ function TCustomTexExporter.EscapeLaTeX(const S: String): String;
 
 Var
   I,J,L : Integer;
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PChar(S);
+  P:=PAnsiChar(S);
   While I<=L do
     begin
     if (P^ in ['&','{','}','#','_','$','%']) then
@@ -224,7 +231,7 @@ end;
 procedure TCustomTeXExporter.DoDataHeader;
 
 Const
-  AlChars : Array[TAlignment] of char = 'lcr';
+  AlChars : Array[TAlignment] of AnsiChar = 'lcr';
 
 Var
   I,TW : Integer;

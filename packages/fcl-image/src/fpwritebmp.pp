@@ -18,14 +18,23 @@
    - Rewritten a large part of the file, so we can handle all bmp color depths
    - Support for RLE4 and RLE8 encoding
   03/2015 MvdV finally removed bytesperpixel. 10 years should be enough.
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWriteBMP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, BMPComn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.Bitmap;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, BMPComn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -253,6 +262,11 @@ begin
     Planes:=1;
     if FBpp=15 then BitCount:=16
     else BitCount:=FBpp;
+
+    Img.ResolutionUnit :=ruPixelsPerCentimeter;
+    fXPelsPerMeter :=Trunc(Img.ResolutionX*100);
+    fYPelsPerMeter :=Trunc(Img.ResolutionY*100);
+
     XPelsPerMeter:=fXPelsPerMeter;
     YPelsPerMeter:=fYPelsPerMeter;
     ClrImportant:=0;

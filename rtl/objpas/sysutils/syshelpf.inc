@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 Class Function TFLOATHELPER.IsNan(const AValue: FLOATTYPE): Boolean; overload; inline; static;
 
 begin

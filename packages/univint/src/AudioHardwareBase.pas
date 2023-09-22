@@ -24,7 +24,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioHardwareBase;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -209,7 +211,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CoreAudioTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CoreAudioTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -255,7 +261,7 @@ type
 
 {!
     @typedef        AudioObjectPropertySelector
-    @abstract       An AudioObjectPropertySelector is a four char code that identifies, along with
+    @abstract       An AudioObjectPropertySelector is a four AnsiChar code that identifies, along with
                     the AudioObjectPropertyScope and AudioObjectPropertyElement, a specific piece of
                     information about an AudioObject.
     @discussion     The property selector specifies the general classification of the property such
@@ -268,7 +274,7 @@ type
 
 {!
     @typedef        AudioObjectPropertyScope
-    @abstract       An AudioObjectPropertyScope is a four char code that identifies, along with the
+    @abstract       An AudioObjectPropertyScope is a four AnsiChar code that identifies, along with the
                     AudioObjectPropertySelector and AudioObjectPropertyElement, a specific piece of
                     information about an AudioObject.
     @discussion     The scope specifies the section of the object in which to look for the property,

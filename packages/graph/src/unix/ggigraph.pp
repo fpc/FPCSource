@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GGIGraph;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 { objfpc is needed for array of const support }
@@ -86,8 +88,13 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   OldIO : TermIos;
@@ -119,7 +126,7 @@ const
 
 const
   GLASTMODE         = 49;
-  ModeNames: array[0..GLastMode] of PChar =
+  ModeNames: array[0..GLastMode] of PAnsiChar =
    ('[]',                       {Let GGI choose a default mode}
     'S320x200[GT_4BIT]',
     'S640x200[GT_4BIT]',
@@ -202,9 +209,9 @@ const
   libggi = 'ggi';
 function  ggiInit: Longint; cdecl; external libggi;
 procedure ggiExit; cdecl; external libggi;
-function  ggiOpen(display: PChar; args: Array of const): TGGIVisual; cdecl; external libggi;
+function  ggiOpen(display: PAnsiChar; args: Array of const): TGGIVisual; cdecl; external libggi;
 function  ggiClose(vis: TGGIVisual): Longint; cdecl; external libggi;
-function  ggiParseMode(s: PChar; var m: TGGIMode): Longint; cdecl; external libggi;
+function  ggiParseMode(s: PAnsiChar; var m: TGGIMode): Longint; cdecl; external libggi;
 function  ggiSetMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;
 function  ggiGetMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;
 function  ggiCheckMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;

@@ -1,11 +1,31 @@
+{
+  This file is part of the Free Component Library.
+  Copyright (c) 2023 by the Free Pascal team.
+
+  PEM key management
+
+  See the file COPYING.FPC, included in this distribution,
+  for details about the copyright.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.BaseNEnc, System.Hash.Sha256, System.Hash.Asn, System.Hash.Utils, System.Hash.Ecc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, basenenc, fpsha256, fpasn, fphashutils, fpecc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   _BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
@@ -65,7 +85,7 @@ end;
 procedure PemLoadPublicKey64FromList(List: TStrings; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64: AnsiString);
 
 var
-  SPrivateKeyHexa, SPublicKeyHexa: String;
+  SPrivateKeyHexa, SPublicKeyHexa: AnsiString;
   DecompressedPublicKey, SPrivateKey : TBytes;
 
 begin
@@ -149,6 +169,7 @@ begin
   ASNParsePemSection(Buffer, List, _BEGIN_EC_PRIVATE_KEY, _END_EC_PRIVATE_KEY);
   if List.Count < 7 then
     Exit;
+  Writeln(List.Text);
   CurveOID := List.Strings[4];
   Result := (CurveOID=ASN_secp256r1);
 end;
@@ -320,7 +341,8 @@ end;
 function PemToDER(const PEM, BeginTag, EndTag: String): TBytes;
 var
   sl: TStringList;
-  Line, TxtBase64: String;
+  Line :  AnsiString;
+  TxtBase64: AnsiString;
   StartIndex, EndIndex, i: Integer;
 begin
   Result:=[];
@@ -338,7 +360,7 @@ begin
         raise Exception.Create('20220428220523');
       TxtBase64:=TxtBase64+Line;
     end;
-    Result:=basenenc.Base64.Decode(TxtBase64,True);
+    Result:={$ifdef FPC_DOTTEDUNITS}Fcl.{$ENDIF}basenenc.Base64.Decode(TxtBase64,True);
   finally
     sl.Free;
   end;

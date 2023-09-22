@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit telephonymgrui;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Structure definition - to move to a public header file
@@ -47,7 +53,7 @@ type
     version: UInt16;
     error: Err;
     ioFlags: UInt32;
-    messageP: PChar;
+    messageP: PAnsiChar;
   end;
 
   TelNotifyErrorDetailsTag = TelNotifyErrorDetailsType;

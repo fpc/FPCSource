@@ -1,6 +1,7 @@
 unit tcpassrcutil;
 
 {$mode objfpc}{$H+}
+{$DEFINE NOCONSOLE}
 
 interface
 
@@ -399,8 +400,10 @@ begin
   AddLine('end.');
   FSrc.SaveToStream(FStream);
   FStream.Position:=0;
+{$IFNDEF NOCONSOLE}
   Writeln('// Test name : ',Self.TestName);
   Writeln(FSrc.Text);
+{$ENDIF}
 end;
 
 procedure TPasSrcUtilTest.AssertList(Msg: String; Els: array of string);

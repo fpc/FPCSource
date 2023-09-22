@@ -1,0 +1,14 @@
+src/fpjsontopas.pp=namespaced/FpJson.ToPas.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/jsonini.pp=namespaced/FpJson.Ini.pp
+src/fpjson.pp=namespaced/FpJson.Data.pp
+src/jsonscanner.pp=namespaced/FpJson.Scanner.pp
+src/json2yaml.pp=namespaced/FpJson.Json2Yaml.pp
+src/fpjsonrtti.pp=namespaced/FpJson.Rtti.pp
+src/fpjsonapply.pp=namespaced/FpJson.Apply.pp
+src/fpjsonvalue.pp=namespaced/FpJson.Value.pp
+src/jsonparser.pp=namespaced/FpJson.Parser.pp
+src/jsonreader.pp=namespaced/FpJson.Reader.pp
+src/jsonconf.pp=namespaced/FpJson.Conf.pp
+src/jsonfpcunit.pp=namespaced/FpJson.FpcUnit.pp

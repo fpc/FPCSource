@@ -35,7 +35,9 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit csvdocument;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$MODE DELPHI}
@@ -43,13 +45,18 @@ unit csvdocument;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, Fcl.Csv.ReadWrite, Fcl.Streams.Buffer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs, csvreadwrite, bufstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TCSVChar = csvreadwrite.TCSVChar;
-  TCSVParser = csvreadwrite.TCSVParser;
-  TCSVBuilder = csvreadwrite.TCSVBuilder;
+  TCSVChar = {$IFDEF FPC_DOTTEDUNITS}Fcl.Csv.ReadWrite{$ELSE}csvreadwrite{$ENDIF}.TCSVChar;
+  TCSVParser = {$IFDEF FPC_DOTTEDUNITS}Fcl.Csv.ReadWrite{$ELSE}csvreadwrite{$ENDIF}.TCSVParser;
+  TCSVBuilder = {$IFDEF FPC_DOTTEDUNITS}Fcl.Csv.ReadWrite{$ELSE}csvreadwrite{$ENDIF}.TCSVBuilder;
 
   {$IFNDEF FPC}
   TFPObjectList = TObjectList;

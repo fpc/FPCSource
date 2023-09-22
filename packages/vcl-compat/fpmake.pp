@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -40,6 +40,9 @@ begin
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.ioutils.pp');
     T.ResourceStrings := True;
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

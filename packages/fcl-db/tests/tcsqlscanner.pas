@@ -338,7 +338,7 @@ end;
 procedure TTestSQLScanner.DoTestString(S: String; DoubleDelim : Boolean = False);
 Var
   J : TSQLToken;
-  C : Char;
+  C : AnsiChar;
 
 begin
   CreateScanner(S);

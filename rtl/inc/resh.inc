@@ -18,7 +18,7 @@ type
   {roozbeh : maybe it shoud be moved after ifndef mswindows,as there is one declared in wince,base.inc}
   MAKEINTRESOURCE = pwidechar;
 {$else}
-  MAKEINTRESOURCE = pchar;
+  MAKEINTRESOURCE = PAnsiChar;
 {$endif}  
 {$endif not Win16}
   
@@ -51,12 +51,12 @@ const
 
 // Win32 API compatible Resource callbacks
 type
-  EnumResTypeProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; lParam : PtrInt) : LongBool; stdcall;
-  EnumResNameProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; lParam : PtrInt) : LongBool; stdcall;
-  EnumResLangProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; IDLanguage : word; lParam : PtrInt) : LongBool; stdcall;
+  EnumResTypeProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; lParam : PtrInt) : LongBool; stdcall;
+  EnumResNameProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; lParam : PtrInt) : LongBool; stdcall;
+  EnumResLangProc = function(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; IDLanguage : word; lParam : PtrInt) : LongBool; stdcall;
 
 // Useful functions (macros in win32 headers)
-function Is_IntResource(aStr : pchar) : boolean; {$ifdef SYSTEMINLINE}inline;{$endif}
+function Is_IntResource(aStr : PAnsiChar) : boolean; {$ifdef SYSTEMINLINE}inline;{$endif}
 function MakeLangID(primary,sub : word) : word; {$ifdef SYSTEMINLINE}inline;{$endif}
 
 // Win32 API compatible Resource functions
@@ -64,11 +64,11 @@ function MakeLangID(primary,sub : word) : word; {$ifdef SYSTEMINLINE}inline;{$en
 Function HINSTANCE : TFPResourceHMODULE;
 {$endif Win16}
 Function EnumResourceTypes(ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
-Function EnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
-Function EnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+Function EnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+Function EnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 {$ifndef Win16}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 Function LoadResource(ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): TFPResourceHGLOBAL;
 Function SizeofResource(ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): LongWord;
 Function LockResource(ResData: TFPResourceHGLOBAL): Pointer;
@@ -79,10 +79,10 @@ Function FreeResource(ResData: TFPResourceHGLOBAL): LongBool;
 Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName, ResourceType: AnsiString): TFPResourceHandle;
 Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
 {$ifndef Win16}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PChar): TFPResourceHandle;
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PChar; const ResourceType: AnsiString): TFPResourceHandle;
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PChar; Language : word): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PAnsiChar): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PAnsiChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PAnsiChar; const ResourceType: AnsiString): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 {$endif Win16}
 {$endif}
 
@@ -90,10 +90,10 @@ type
   TResourceManager = record
     HINSTANCEFunc : function : TFPResourceHMODULE;
     EnumResourceTypesFunc : function (ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
-    EnumResourceNamesFunc : function (ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
-    EnumResourceLanguagesFunc : function (ModuleHandle : TFPResourceHMODULE; ResourceType,ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
-    FindResourceFunc : function (ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
-    FindResourceExFunc : function (ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+    EnumResourceNamesFunc : function (ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+    EnumResourceLanguagesFunc : function (ModuleHandle : TFPResourceHMODULE; ResourceType,ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+    FindResourceFunc : function (ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
+    FindResourceExFunc : function (ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
     LoadResourceFunc : function (ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): TFPResourceHGLOBAL;
     SizeofResourceFunc : function (ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): LongWord;
     LockResourceFunc : function (ResData: TFPResourceHGLOBAL): Pointer;

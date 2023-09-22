@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit sysctl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    This file is part of the Free Pascal run time library.
@@ -18,8 +20,13 @@ Unit sysctl;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef FPC_USE_LIBC}
 {$define FPC_USE_SYSCALL}
@@ -82,26 +89,30 @@ TYPE    CtlNameRec = Record
 
 {$ifdef FPC_USE_LIBC}
 {$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
+function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
 {$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
 {$endif}
-function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
-function FPsysctlnametomib (Name: pchar;mibp:pcint;sizep:psize_t):cint; cdecl; external name 'sysctlnametomib';
+function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
+function FPsysctlnametomib (Name: PAnsiChar;mibp:pcint;sizep:psize_t):cint; cdecl; external name 'sysctlnametomib';
 {$else}
 {$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$endif}
-function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-function FPsysctlnametomib (Name: pchar; mibp:pcint;sizep:psize_t):cint;
+function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctlnametomib (Name: PAnsiChar; mibp:pcint;sizep:psize_t):cint;
 {$endif}
 
 Implementation
 
 {$ifndef FPC_USE_LIBC}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 {$ifndef FPC_USE_LIBC}
@@ -110,7 +121,7 @@ CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 
 {$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$endif}
@@ -127,7 +138,7 @@ Begin
          Exit(0);
 End;
 
-function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 Var
         name2oid_oid    : array[0..1] of cint;
         real_oid        : array[0..CTL_MAXNAME+1] of cint;
@@ -147,7 +158,7 @@ Begin
         exit(error);
 End;
 
-function FPsysctlnametomib (Name: pchar; mibp:pcint;sizep:psize_t):cint;
+function FPsysctlnametomib (Name: PAnsiChar; mibp:pcint;sizep:psize_t):cint;
 Var     oid   : array[0..1] OF cint;
         error : cint;
 

@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bitmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //-----------------------------------------------
 // The Bitmap Structure.
@@ -179,7 +185,7 @@ implementation
 
 function ColorTableEntries(ctP: ColorTablePtr): RGBColorPtr;
 begin
-  ColorTableEntries := RGBColorPtr(PChar(ctP) + SizeOf(ctP^));
+  ColorTableEntries := RGBColorPtr(PAnsiChar(ctP) + SizeOf(ctP^));
 end;
 
 end.

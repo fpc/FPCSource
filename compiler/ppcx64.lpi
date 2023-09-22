@@ -22,7 +22,9 @@
     </PublishOptions>
     <RunParams>
       <local>
+        <CommandLineParams Value="-Tlinux -tunicodertl -FUrtl-objpas\units\x86_64-linux-unicodertl\ -Fu\home\tixeo\FPC\FPC\src\rtl\units\x86_64-linux-unicodertl\ -Furtl-objpas\src\inc -Furtl-objpas\src\common -Firtl-objpas\src\inc -Firtl-objpas\src\linux -Firtl-objpas\src\x86_64 -Firtl-objpas\src\common -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -tunicodertl -Cg -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -gl -dx86_64 -Sc -viq rtl-objpas\BuildUnit_rtl_objpas.pp"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+        <WorkingDirectory Value="\home\tixeo\fpc\packages"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">

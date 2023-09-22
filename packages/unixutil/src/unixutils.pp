@@ -34,7 +34,7 @@ Type
     Property ErrorCode: Integer Read FErrorCode;
   end;
 
-Function  StrError(Error:longint):string;
+Function  StrError(Error:longint):AnsiString;
 Function  CheckUnixError (Error : Integer) : Integer;
 
 { ---------------------------------------------------------------------
@@ -63,17 +63,17 @@ Const
          (S_IRUSR,S_IWUSR,S_IXUSR,
           S_IRGRP,S_IWGRP,S_IXGRP,
           S_IROTH,S_IWOTH,S_IXOTH);
-  PermissionChars : Array[1..9] of char =
+  PermissionChars : Array[1..9] of AnsiChar =
           ('r','w','x','r','w','x','r','w','x');
 
   SuidBits  : array[1..3] of Integer = (S_ISUID,S_ISGID,S_ISVTX);
-  SuidChars : Array[1..3] of char = ('s','s','t') ;
+  SuidChars : Array[1..3] of AnsiChar = ('s','s','t') ;
 
 
 { Utility functions }
 
 Type
- TPermissionString = String[9];
+ TPermissionString = string[9];
 
 Type
   TGlobFlag = (gfErr,gfMark,gfNoSort,gfNoCheck,gfAppend,gfNoEscape,
@@ -83,35 +83,35 @@ Type
   TFnmFlag = (fnmNoEscape,fnmPathName,fnmPeriod,fnmLeadingDir,fnmCaseFold);
   TFnmFlags = Set of TFnmFlag;
 
-Procedure Stat  (Const FileName : String; Var StatInfo : TStatBuf);
-Procedure LStat  (Const FileName : String; Var StatInfo : TStatBuf);
-Procedure StatFS  (Const FileName : String; Var StatInfo : TStatFS);
-Procedure UnLink(Const FileName: String);
-Procedure Link  (Const FromName, ToName: String);
-Procedure SymLink  (Const FromName, ToName: String);
-Function  ReadLink (Const FileName : String) : String;
+Procedure Stat  (Const FileName : AnsiString; Var StatInfo : TStatBuf);
+Procedure LStat  (Const FileName : AnsiString; Var StatInfo : TStatBuf);
+Procedure StatFS  (Const FileName : AnsiString; Var StatInfo : TStatFS);
+Procedure UnLink(Const FileName: AnsiString);
+Procedure Link  (Const FromName, ToName: AnsiString);
+Procedure SymLink  (Const FromName, ToName: AnsiString);
+Function  ReadLink (Const FileName : AnsiString) : AnsiString;
 Function  FilePermString (Const Mode : __mode_t) : TPermissionString;
 Function  PermStringToMask (Const Perm : TPermissionstring) : __mode_t;
-Procedure ChMod(Const FileName : String; Mode : __mode_t);
-Procedure ReName(Const OldName,NewName : String);
-Function  Access(Const FileName : String; Mode :Integer) : Boolean;
-Procedure Glob(Const Pattern : String; Flags : TGlobFlags; List : TStrings);
+Procedure ChMod(Const FileName : AnsiString; Mode : __mode_t);
+Procedure ReName(Const OldName,NewName : AnsiString);
+Function  Access(Const FileName : AnsiString; Mode :Integer) : Boolean;
+Procedure Glob(Const Pattern : AnsiString; Flags : TGlobFlags; List : TStrings);
 // Globfree call with correct calling conventions.
 Procedure globfree(__pglob: PGlobData);cdecl;external 'libc.so.6' name 'globfree';
 
-Function  OpenDir(Const Dir : String) : PDirectoryStream;
-Function  FNMatch(Const Pattern,Name : String; Flags : TFnmFlags) : Boolean;
-Procedure GetDirectoryListing(Const Dir : String; List : TStrings);overload;
-Procedure GetDirectoryListing(Const Dir,Pattern : String;
+Function  OpenDir(Const Dir : AnsiString) : PDirectoryStream;
+Function  FNMatch(Const Pattern,Name : AnsiString; Flags : TFnmFlags) : Boolean;
+Procedure GetDirectoryListing(Const Dir : AnsiString; List : TStrings);overload;
+Procedure GetDirectoryListing(Const Dir,Pattern : AnsiString;
                               Flags : TFnmFlags; List : TStrings);overload;
-Procedure GetSubdirectories(Const Dir : String; List : TStrings);
-Function  StripTrailingSeparator(Const Dir : String) : String;
-Function  AddTraiLingSeparator(Const Dir : String) : String;
-Function  FileSizeToString(Size: Int64) : String;
-Function  SetMntEnt(FileName,Mode : String) : PIOFile;
-Procedure Mount(Const Device,Directory,FileSystemType : String; Flags : Cardinal; Data: Pointer);
+Procedure GetSubdirectories(Const Dir : AnsiString; List : TStrings);
+Function  StripTrailingSeparator(Const Dir : AnsiString) : AnsiString;
+Function  AddTraiLingSeparator(Const Dir : AnsiString) : AnsiString;
+Function  FileSizeToString(Size: Int64) : AnsiString;
+Function  SetMntEnt(FileName,Mode : AnsiString) : PIOFile;
+Procedure Mount(Const Device,Directory,FileSystemType : AnsiString; Flags : Cardinal; Data: Pointer);
 Procedure Umount(Const FileName);
-Function  FSTypeToString(FSType : Integer) : String;
+Function  FSTypeToString(FSType : Integer) : AnsiString;
 Procedure fcntl(Handle: Integer; Command: Integer; Var Lock: TFlock);
 Procedure  Dup2(Stream1,Stream2 : THandleStream);
 Function  Dup(Stream : THandleStream) : THandleStream;
@@ -132,13 +132,13 @@ Function Group_member(GroupID : __gid_t) : Boolean;
 Function Fork : __pid_t;
 Function wait(var Status : Integer) : pid_t;
 Function waitpid(PID : pid_t;var Status : Integer;options : Integer) : pid_t;
-Function ConvertStatusToString(Status : Integer) : String;
-Procedure Execve(ProgName : String; Args,Env : TStrings);
-Procedure Execv(ProgName : String; Args : TStrings);
-Procedure Execvp(ProgName : String; Args : TStrings);
-Procedure Execle(ProgName : String; Args : Array of string;Env : TStrings);
-Procedure Execl(ProgName : String; Args : Array of string);
-Procedure Execlp(ProgName : String; Args : Array of string);
+Function ConvertStatusToString(Status : Integer) : AnsiString;
+Procedure Execve(ProgName : AnsiString; Args,Env : TStrings);
+Procedure Execv(ProgName : AnsiString; Args : TStrings);
+Procedure Execvp(ProgName : AnsiString; Args : TStrings);
+Procedure Execle(ProgName : AnsiString; Args : Array of AnsiString;Env : TStrings);
+Procedure Execl(ProgName : AnsiString; Args : Array of AnsiString);
+Procedure Execlp(ProgName : AnsiString; Args : Array of AnsiString);
 
 { ---------------------------------------------------------------------
     User/group management routines
@@ -151,39 +151,39 @@ Type
 
 { User functions }
 
-Function  getpwnam(Const UserName: String) : PPasswordRecord;
-Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord); overload;
+Function  getpwnam(Const UserName: AnsiString) : PPasswordRecord;
+Procedure GetUserData(Const UserName : AnsiString; Var Data : TPasswordRecord); overload;
 Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord); overload;
-function  GetUserName(UID : Integer) : String;
-function  GetUserId(Const UserName : String) : Integer;
-function  GetUserGid(Const UserName : String) : Integer;
-function  GetUserDir(Const UserName : String): String;
-function  GetUserDescription(Const UserName : String): String;
+function  GetUserName(UID : Integer) : AnsiString;
+function  GetUserId(Const UserName : AnsiString) : Integer;
+function  GetUserGid(Const UserName : AnsiString) : Integer;
+function  GetUserDir(Const UserName : AnsiString): AnsiString;
+function  GetUserDescription(Const UserName : AnsiString): AnsiString;
 Procedure GetUserList(List : Tstrings);overload;
 Procedure GetUserList(List : TStrings; WithIDs : Boolean);overload;
 
 { Group functions }
 
-Function  getgrnam(Const GroupName: String) : PGroup;
-Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
+Function  getgrnam(Const GroupName: AnsiString) : PGroup;
+Procedure GetGroupData(Const GroupName : AnsiString; Var Data : TGroup); overload;
 Procedure GetGroupData(Gid : Integer; Var Data : TGroup); overload;
-function  GetGroupName(GID : Integer) : String;
-function  GetGroupId(Const GroupName : String) : Integer;
+function  GetGroupName(GID : Integer) : AnsiString;
+function  GetGroupId(Const GroupName : AnsiString) : Integer;
 Procedure GetGroupList(List : Tstrings);overload;
 Procedure GetGroupList(List : TStrings; WithIDs : Boolean);overload;
 Procedure GetGroupMembers(GID : Integer;List : TStrings);overload;
-Procedure GetGroupMembers(Const GroupName : String;List : TStrings);overload;
+Procedure GetGroupMembers(Const GroupName : AnsiString;List : TStrings);overload;
 
 { Shadow password functions }
 
-function getspnam(UserName : String): PPasswordFileEntry;
-function sgetspent(Line : String): PPasswordFileEntry;
-Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);overload;
+function getspnam(UserName : AnsiString): PPasswordFileEntry;
+function sgetspent(Line : AnsiString): PPasswordFileEntry;
+Procedure GetUserShadowData(Const UserName : AnsiString; Var Data : TPasswordFileEntry);overload;
 Procedure GetUserShadowData(UID : Integer; Var Data : TPasswordFileEntry);overload;
 
 { Extra functions }
 
-Function GetUserGroup(Const UserName : String) : String;
+Function GetUserGroup(Const UserName : AnsiString) : AnsiString;
 
 
 
@@ -210,7 +210,7 @@ ResourceString
   ---------------------------------------------------------------------}
 
 
-Function StrError(Error:longint):string;
+Function StrError(Error:longint):AnsiString;
 
 begin
   StrError:=strpas(libc.strerror(Error));
@@ -232,43 +232,43 @@ begin
 end;
 
 
-Procedure Stat(Const FileName : String; Var StatInfo : TStatBuf);
+Procedure Stat(Const FileName : AnsiString; Var StatInfo : TStatBuf);
 
 begin
-  CheckUnixError(Libc.Stat(Pchar(FileName),StatInfo));
+  CheckUnixError(Libc.Stat(PAnsiChar(FileName),StatInfo));
 end;
 
-Procedure LStat(Const FileName : String; Var StatInfo : TStatBuf);
+Procedure LStat(Const FileName : AnsiString; Var StatInfo : TStatBuf);
 
 begin
-  CheckUnixError(Libc.LStat(Pchar(FileName),StatInfo));
+  CheckUnixError(Libc.LStat(PAnsiChar(FileName),StatInfo));
 end;
 
-Procedure StatFS  (Const FileName : String; Var StatInfo : TStatFS);
+Procedure StatFS  (Const FileName : AnsiString; Var StatInfo : TStatFS);
 
 begin
-  CheckUnixError(Libc.statfs(PChar(FileName),STatinfo));
+  CheckUnixError(Libc.statfs(PAnsiChar(FileName),STatinfo));
 end;
 
-Procedure UnLink(const FileName: String);
+Procedure UnLink(const FileName: AnsiString);
 
 begin
-  CheckUnixError(Libc.unlink(PChar(FileName)));
+  CheckUnixError(Libc.unlink(PAnsiChar(FileName)));
 end;
 
-Procedure Link  (Const FromName, ToName: String);
+Procedure Link  (Const FromName, ToName: AnsiString);
 
 begin
-  CheckUnixError(Libc.Link(PChar(FromName),Pchar(ToName)));
+  CheckUnixError(Libc.Link(PAnsiChar(FromName),PAnsiChar(ToName)));
 end;
 
-Procedure SymLink  (Const FromName, ToName: String);
+Procedure SymLink  (Const FromName, ToName: AnsiString);
 
 begin
-  CheckUnixError(Libc.SymLink(PChar(FromName),Pchar(ToName)));
+  CheckUnixError(Libc.SymLink(PAnsiChar(FromName),PAnsiChar(ToName)));
 end;
 
-Function  ReadLink (Const FileName : String) : String;
+Function  ReadLink (Const FileName : AnsiString) : AnsiString;
 
 Const
   NameBufSize = 1024;
@@ -276,7 +276,7 @@ Const
 begin
   SetLength(Result,NameBufSize);
   Try
-    SetLength(Result,CheckUnixError(Libc.readlink(pchar(FileName),PChar(Result),NameBufSize)));
+    SetLength(Result,CheckUnixError(Libc.readlink(PAnsiChar(FileName),PAnsiChar(Result),NameBufSize)));
   except
     SetLength(Result,0);
     raise
@@ -289,7 +289,7 @@ Function  FilePermString (Const Mode : __mode_t) : TPermissionString;
 Var
   i : longint;
 
-    Function ModeToSUIBit (C,RC : Char) : Char;
+    Function ModeToSUIBit (C,RC : AnsiChar) : AnsiChar;
 
     begin
       If C='x' then
@@ -329,27 +329,27 @@ begin
           Result:=(Result or SuidBits[I div 3])
 end;
 
-Procedure ChMod(Const FileName : String; Mode : __mode_t);
+Procedure ChMod(Const FileName : AnsiString; Mode : __mode_t);
 
 begin
-  CheckUnixError(Libc.Chmod(PChar(FileName),Mode));
+  CheckUnixError(Libc.Chmod(PAnsiChar(FileName),Mode));
 end;
 
-Procedure ReName(Const OldName,NewName : String);
+Procedure ReName(Const OldName,NewName : AnsiString);
 
 begin
-  CheckUnixError(Libc.__rename(Pchar(OldName),Pchar(NewName)));
+  CheckUnixError(Libc.__rename(PAnsiChar(OldName),PAnsiChar(NewName)));
 end;
 
-Function Access(Const FileName : String; Mode :Integer) : Boolean;
+Function Access(Const FileName : AnsiString; Mode :Integer) : Boolean;
 
 begin
-  Result:=Libc.Access(Pchar(FileName),Mode)=0;
+  Result:=Libc.Access(PAnsiChar(FileName),Mode)=0;
 end;
 
 
 
-Procedure Glob(Const Pattern : String; Flags : TGlobFlags; List : TStrings);
+Procedure Glob(Const Pattern : AnsiString; Flags : TGlobFlags; List : TStrings);
 
 Const
   // Append and offset are masked to 0, since they're useless.
@@ -359,7 +359,7 @@ Const
         GLOB_TILDE,GLOB_ONLYDIR, GLOB_TILDE_CHECK);
 
 Type
-  TPCharArray = Array[Word] of PChar;
+  TPCharArray = Array[Word] of PAnsiChar;
   PPCharArray = ^TPcharArray;
 Var
   gd : TGlobData;
@@ -373,7 +373,7 @@ begin
     If i in Flags then
       F:=F or GF[i];
   Try
-    CheckUnixError(Libc.Glob(Pchar(Pattern),F,Nil,@gd));
+    CheckUnixError(Libc.Glob(PAnsiChar(Pattern),F,Nil,@gd));
     If Not (gfAppend in Flags) then
       List.Clear;
     for f:=0 to gd.gl_pathc-1 do
@@ -383,16 +383,16 @@ begin
   end;
 end;
 
-Function OpenDir(Const Dir : String) : PDirectoryStream;
+Function OpenDir(Const Dir : AnsiString) : PDirectoryStream;
 
 begin
-  Result:=Libc.OpenDir(Pchar(Dir));
+  Result:=Libc.OpenDir(PAnsiChar(Dir));
   If (Result=Nil) then
     Raise EUnixOperationFailed.CreateFmt(SErrOpeningDir,[Dir]);
 end;
 
 
-Procedure GetDirectoryListing(Const Dir : String; List : TStrings);overload;
+Procedure GetDirectoryListing(Const Dir : AnsiString; List : TStrings);overload;
 
 Var
   P : PDirent;
@@ -428,23 +428,23 @@ begin
       Result:=Result or FV[i];
 end;
 
-Function FNMatch(Const Pattern,Name : String; Flags : TFnmFlags) : Boolean;
+Function FNMatch(Const Pattern,Name : AnsiString; Flags : TFnmFlags) : Boolean;
 
 begin
-  Result:=Libc.FNMatch(PChar(Pattern),PChar(Name),FNtoFNFlags(Flags))=0;
+  Result:=Libc.FNMatch(PAnsiChar(Pattern),PAnsiChar(Name),FNtoFNFlags(Flags))=0;
 end;
 
-Procedure GetDirectoryListing(Const Dir,Pattern : String; Flags : TFnmFlags; List : TStrings);overload;
+Procedure GetDirectoryListing(Const Dir,Pattern : AnsiString; Flags : TFnmFlags; List : TStrings);overload;
 
 Var
   P     : PDirent;
   D     : PDirectoryStream;
-  PP,PF : PChar;
+  PP,PF : PAnsiChar;
   F     : Integer;
 
 begin
   D:=OpenDir(Dir);
-  PP:=PChar(Pattern);
+  PP:=PAnsiChar(Pattern);
   F:=FNtoFNFlags(Flags);
   Try
     P:=ReadDir(D);
@@ -461,12 +461,12 @@ begin
   end;
 end;
 
-Procedure GetSubdirectories(Const Dir : String; List : TStrings);
+Procedure GetSubdirectories(Const Dir : AnsiString; List : TStrings);
 
 Var
   P : PDirent;
   D : PDirectoryStream;
-  S : String;
+  S : AnsiString;
   StatInfo : TStatBuf;
 
 begin
@@ -487,7 +487,7 @@ begin
   end;
 end;
 
-Function  StripTrailingSeparator(Const Dir : String) : String;
+Function  StripTrailingSeparator(Const Dir : AnsiString) : AnsiString;
 
 Var
   L : Integer;
@@ -499,7 +499,7 @@ begin
     SetLength(Result,L-1);
 end;
 
-Function  AddTraiLingSeparator(Const Dir : String) : String;
+Function  AddTraiLingSeparator(Const Dir : AnsiString) : AnsiString;
 
 Var
   L : Integer;
@@ -511,10 +511,10 @@ begin
     Result:=Result+PathSeparator;
 end;
 
-Function  FileSizeToString(Size: Int64) : String;
+Function  FileSizeToString(Size: Int64) : AnsiString;
 
 Const
-  Sizes : Array [0..4] of String =
+  Sizes : Array [0..4] of AnsiString =
      ('Bytes','Kb','Mb','Gb','Tb');
 Var
     F : Double;
@@ -536,27 +536,27 @@ begin
     Result:=Format('%d %s',[Size,Sizes[0]]);
 end;
 
-Function  SetMntEnt(FileName,Mode : String) : PIOFile;
+Function  SetMntEnt(FileName,Mode : AnsiString) : PIOFile;
 
 begin
-  Result:=Libc.setmntent(PChar(FileName),Pchar(Mode));
+  Result:=Libc.setmntent(PAnsiChar(FileName),PAnsiChar(Mode));
 end;
 
-Procedure Mount(Const Device,Directory,FileSystemType : String; Flags : Cardinal; Data: Pointer);
+Procedure Mount(Const Device,Directory,FileSystemType : AnsiString; Flags : Cardinal; Data: Pointer);
 
 begin
-  If Libc.Mount(PChar(Device),PChar(Directory),PChar(FileSystemType),Flags,Data)<>0 then
+  If Libc.Mount(PAnsiChar(Device),PAnsiChar(Directory),PAnsiChar(FileSystemType),Flags,Data)<>0 then
     CheckUnixError(Libc.errno);
 end;
 
 Procedure Umount(Const FileName);
 
 begin
-  If Libc.umount(PChar(FileName))<>0 then
+  If Libc.umount(PAnsiChar(FileName))<>0 then
     CheckUnixError(Libc.Errno);
 end;
 
-Function  FSTypeToString(FSType : Integer) : String;
+Function  FSTypeToString(FSType : Integer) : AnsiString;
 
 begin
   Case LongWord(FStype) of
@@ -724,7 +724,7 @@ begin
   Result:=Libc.WaitPid(Pid,@Status,Options);
 end;
 
-Function ConvertStatusToString(Status : Integer) : String;
+Function ConvertStatusToString(Status : Integer) : AnsiString;
 
 begin
   If WIfExited(Status) then
@@ -742,15 +742,15 @@ end;
 
 
 Type
-  TPCharArray = Array[Word] of pchar;
+  TPCharArray = Array[Word] of PAnsiChar;
   PPCharArray = ^TPcharArray;
 
 
-Function StringsToPCharList(Arg0 : String;List : TStrings) : PPChar;
+Function StringsToPCharList(Arg0 : AnsiString;List : TStrings) : PPAnsiChar;
 
 Var
   I,Org : Integer;
-  S : String;
+  S : AnsiString;
 
 begin
   I:=(List.Count)+1;
@@ -761,18 +761,18 @@ begin
     end
   else
     org:=0;
-  GetMem(Result,I*sizeOf(PChar));
+  GetMem(Result,I*sizeOf(PAnsiChar));
   PPCharArray(Result)^[List.Count+org]:=Nil;
   If Arg0<>'' Then
-    PPCharArray(Result)^[0]:=StrNew(PChar(Arg0));
+    PPCharArray(Result)^[0]:=StrNew(PAnsiChar(Arg0));
   For I:=0 to List.Count-1 do
     begin
     S:=List[i];
-    PPCharArray(Result)^[i+org]:=StrNew(PChar(S));
+    PPCharArray(Result)^[i+org]:=StrNew(PAnsiChar(S));
     end;
 end;
 
-Procedure FreePCharList(List : PPChar);
+Procedure FreePCharList(List : PPAnsiChar);
 
 Var
   I : integer;
@@ -787,17 +787,17 @@ begin
   FreeMem(List);
 end;
 
-Procedure Execve(ProgName : String; Args,Env : TStrings);
+Procedure Execve(ProgName : AnsiString; Args,Env : TStrings);
 
 Var
-  ArgP,EnvP : PPChar;
+  ArgP,EnvP : PPAnsiChar;
 
 begin
   ArgP:=StringsToPCharList(ExtractFileName(ProgName),Args);
   try
     EnvP:=StringsToPCharList('',Env);
     try
-      CheckUnixError(Libc.execve(PChar(ProgName),ArgP,EnvP));
+      CheckUnixError(Libc.execve(PAnsiChar(ProgName),ArgP,EnvP));
     finally
       FreePCharList(EnvP);
     end;
@@ -807,35 +807,35 @@ begin
 end;
 
 
-Procedure Execv(ProgName : String; Args : TStrings);
+Procedure Execv(ProgName : AnsiString; Args : TStrings);
 
 Var
-  ArgP : PPChar;
+  ArgP : PPAnsiChar;
 
 begin
   ArgP:=StringsToPCharList(ExtractFileName(ProgName),Args);
   try
-    CheckUnixError(Libc.execv(PChar(ProgName),ArgP));
+    CheckUnixError(Libc.execv(PAnsiChar(ProgName),ArgP));
   finally
     FreePCharList(ArgP);
   end;
 end;
 
-Procedure Execvp(ProgName : String; Args : TStrings);
+Procedure Execvp(ProgName : AnsiString; Args : TStrings);
 
 Var
-  ArgP : PPChar;
+  ArgP : PPAnsiChar;
 
 begin
   ArgP:=StringsToPCharList(ExtractFileName(ProgName),Args);
   try
-    CheckUnixError(Libc.execvp(PChar(ProgName),ArgP));
+    CheckUnixError(Libc.execvp(PAnsiChar(ProgName),ArgP));
   finally
     FreePCharList(ArgP);
   end;
 end;
 
-Function CommandArgsToPCharList(Arg0 :String;Args : Array of string) : PPChar;
+Function CommandArgsToPCharList(Arg0 :AnsiString;Args : Array of AnsiString) : PPAnsiChar;
 
 Var
   I,Org : Integer;
@@ -849,25 +849,25 @@ begin
     end
   else
     org:=0;
-  GetMem(Result,I*sizeOf(PChar));
+  GetMem(Result,I*sizeOf(PAnsiChar));
   PPCharArray(Result)^[i-1]:=Nil;
   If Arg0<>'' Then
-    PPCharArray(Result)^[0]:=StrNew(PChar(Arg0));
+    PPCharArray(Result)^[0]:=StrNew(PAnsiChar(Arg0));
   For I:=0 to High(Args) do
-    PPCharArray(Result)^[i+org]:=StrNew(PChar(Args[i]));
+    PPCharArray(Result)^[i+org]:=StrNew(PAnsiChar(Args[i]));
 end;
 
-Procedure Execle(ProgName : String; Args : Array of string;Env : TStrings);
+Procedure Execle(ProgName : AnsiString; Args : Array of AnsiString;Env : TStrings);
 
 Var
-  ArgP,EnvP : PPChar;
+  ArgP,EnvP : PPAnsiChar;
 
 begin
   ArgP:=CommandArgsToPCharList(ExtractFileName(ProgName),Args);
   try
     EnvP:=StringsToPCharList('',Env);
     try
-      CheckUnixError(Libc.execve(PChar(ProgName),ArgP,EnvP));
+      CheckUnixError(Libc.execve(PAnsiChar(ProgName),ArgP,EnvP));
     finally
     FreePCharList(EnvP);
     end;
@@ -876,29 +876,29 @@ begin
   end;
 end;
 
-Procedure Execl(ProgName : String; Args : Array of string);
+Procedure Execl(ProgName : AnsiString; Args : Array of AnsiString);
 
 Var
-  ArgP : PPChar;
+  ArgP : PPAnsiChar;
 
 begin
   ArgP:=CommandArgsToPCharList(ExtractFileName(ProgName),Args);
   try
-    CheckUnixError(Libc.execv(PChar(ProgName),ArgP));
+    CheckUnixError(Libc.execv(PAnsiChar(ProgName),ArgP));
   finally
     FreePCharList(ArgP);
   end;
 end;
 
-Procedure Execlp(ProgName : String; Args : Array of string);
+Procedure Execlp(ProgName : AnsiString; Args : Array of AnsiString);
 
 Var
-  ArgP : PPChar;
+  ArgP : PPAnsiChar;
 
 begin
   ArgP:=CommandArgsToPCharList(ExtractFileName(ProgName),Args);
   try
-    CheckUnixError(Libc.execvp(PChar(ProgName),ArgP));
+    CheckUnixError(Libc.execvp(PAnsiChar(ProgName),ArgP));
   finally
     FreePCharList(ArgP);
   end;
@@ -909,13 +909,13 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function getpwnam(Const UserName: String) : PPasswordRecord;
+Function getpwnam(Const UserName: AnsiString) : PPasswordRecord;
 
 begin
-  Result:=libc.getpwnam(Pchar(UserName));
+  Result:=libc.getpwnam(PAnsiChar(UserName));
 end;
 
-Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord);
+Procedure GetUserData(Const UserName : AnsiString; Var Data : TPasswordRecord);
 
 Var P : PPasswordRecord;
 
@@ -939,7 +939,7 @@ begin
     Raise EUserLookupError.CreateFmt(ENoSuchUserID,[Uid]);
 end;
 
-function GetUserName(UID : Integer) : String;
+function GetUserName(UID : Integer) : AnsiString;
 
 Var
   UserData : TPasswordRecord;
@@ -949,7 +949,7 @@ begin
   Result:=strpas(UserData.pw_Name);
 end;
 
-function  GetUserId(Const UserName : String) : Integer;
+function  GetUserId(Const UserName : AnsiString) : Integer;
 
 Var
   UserData : TPasswordRecord;
@@ -959,7 +959,7 @@ begin
   Result:=UserData.pw_uid;
 end;
 
-function  GetUserGId(Const UserName : String) : Integer;
+function  GetUserGId(Const UserName : AnsiString) : Integer;
 
 Var
   UserData : TPasswordRecord;
@@ -969,7 +969,7 @@ begin
   Result:=UserData.pw_gid;
 end;
 
-function GetUserDir(Const UserName : String): String;
+function GetUserDir(Const UserName : AnsiString): AnsiString;
 
 Var
   UserData : TPasswordRecord;
@@ -979,7 +979,7 @@ begin
   Result:=strpas(UserData.pw_dir);
 end;
 
-function  GetUserDescription(Const UserName : String): String;
+function  GetUserDescription(Const UserName : AnsiString): AnsiString;
 
 Var
   UserData : TPasswordRecord;
@@ -1024,13 +1024,13 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function  getgrnam(Const GroupName: String) : PGroup;
+Function  getgrnam(Const GroupName: AnsiString) : PGroup;
 
 begin
-  Result:=libc.getgrnam(Pchar(GroupName));
+  Result:=libc.getgrnam(PAnsiChar(GroupName));
 end;
 
-Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
+Procedure GetGroupData(Const GroupName : AnsiString; Var Data : TGroup); overload;
 
 Var P : PGroup;
 
@@ -1054,7 +1054,7 @@ begin
     Raise EGroupLookupError.CreateFmt(ENoSuchGroupID,[Gid]);
 end;
 
-function GetGroupName(GID : Integer) : String;
+function GetGroupName(GID : Integer) : AnsiString;
 
 Var
   G : TGroup;
@@ -1064,7 +1064,7 @@ begin
   Result:=StrPas(G.gr_name);
 end;
 
-function  GetGroupId(Const GroupName : String) : Integer;
+function  GetGroupId(Const GroupName : AnsiString) : Integer;
 
 Var
   G : TGroup;
@@ -1104,14 +1104,14 @@ begin
   end;
 end;
 
-Function PCharListToStrings(P : PPChar; List : TStrings) : Integer;
+Function PCharListToStrings(P : PPAnsiChar; List : TStrings) : Integer;
 
 begin
   List.Clear;
   While P^<>Nil do
     begin
     List.Add(StrPas(P^));
-    P:=PPChar(PChar(P)+SizeOf(PChar));
+    P:=PPAnsiChar(PAnsiChar(P)+SizeOf(PAnsiChar));
     end;
   Result:=List.Count;
 end;
@@ -1127,7 +1127,7 @@ begin
   PCharListToStrings(G.gr_mem,List);
 end;
 
-Procedure GetGroupMembers(Const GroupName : String;List : TStrings);
+Procedure GetGroupMembers(Const GroupName : AnsiString;List : TStrings);
 
 Var
   G : TGroup;
@@ -1139,19 +1139,19 @@ end;
 
 { Shadow password functions }
 
-function getspnam(UserName : String): PPasswordFileEntry;
+function getspnam(UserName : AnsiString): PPasswordFileEntry;
 
 begin
-  result:=Libc.getspnam(Pchar(UserName));
+  result:=Libc.getspnam(PAnsiChar(UserName));
 end;
 
-function sgetspent(Line : String): PPasswordFileEntry;
+function sgetspent(Line : AnsiString): PPasswordFileEntry;
 
 begin
-  Result:=libc.sgetspent(Pchar(Line));
+  Result:=libc.sgetspent(PAnsiChar(Line));
 end;
 
-Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);
+Procedure GetUserShadowData(Const UserName : AnsiString; Var Data : TPasswordFileEntry);
 
 Var
   P : PPasswordFileEntry;
@@ -1175,7 +1175,7 @@ end;
 
 { Extra functions }
 
-Function GetUserGroup(Const UserName : String) : String;
+Function GetUserGroup(Const UserName : AnsiString) : AnsiString;
 
 begin
   Result := GetGroupName(GetUserGid(UserName));

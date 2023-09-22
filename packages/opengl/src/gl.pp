@@ -50,10 +50,25 @@
   {$ENDIF}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows, System.DynLibs
+  {$ELSE WinApi.Windows}
+  {$IFDEF MorphOS}
+  MorphApi.Tinygl
+  {$ELSE MorphOS}
+  System.DynLibs
+  {$ENDIF MorphOS}
+  {$ENDIF Windows};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   {$IFDEF Windows}
@@ -65,6 +80,7 @@ uses
   dynlibs
   {$ENDIF MorphOS}
   {$ENDIF Windows};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF MORPHOS}
 var
@@ -1242,7 +1258,7 @@ var
   glGetPixelMapusv: procedure(map: GLenum; values: PGLushort); extdecl;
   glGetPointerv: procedure(pname: GLenum; params: Pointer); extdecl;
   glGetPolygonStipple: procedure(mask: PGLubyte); extdecl;
-  glGetString: function(name: GLenum): PChar; extdecl;
+  glGetString: function(name: GLenum): PAnsiChar; extdecl;
   glGetTexEnvfv: procedure(target, pname: GLenum; params: PGLfloat); extdecl;
   glGetTexEnviv: procedure(target, pname: GLenum; params: PGLint); extdecl;
   glGetTexGendv: procedure(coord, pname: GLenum; params: PGLdouble); extdecl;
@@ -1504,8 +1520,13 @@ procedure FreeOpenGL;
 implementation
 
 {$if defined(cpui386) or defined(cpux86_64)}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$ifdef windows}
@@ -1881,7 +1902,7 @@ end;
 var
   MethodName: string = '';
 
-  function GetGLProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
+  function GetGLProcAddress(Lib: PtrInt; ProcName: PAnsiChar): Pointer;
   begin
     MethodName:=ProcName;
     Result:=GetProcAddress(Lib, ProcName);
@@ -1891,7 +1912,7 @@ begin
 
   FreeOpenGL;
 
-  LibGL := LoadLibrary(PChar(dll));
+  LibGL := LoadLibrary(PAnsiChar(dll));
   if LibGL = 0 then raise Exception.Create('Could not load OpenGL from ' + dll);
   try
     @glAccum := GetGLProcAddress(LibGL, 'glAccum');

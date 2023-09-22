@@ -30,10 +30,16 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT AHI_SUB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Other.Ahi, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec, ahi, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
   {
@@ -134,7 +140,7 @@ USES Exec, ahi, utility;
 VAR AHIsubBase : pLibrary = nil;
 
 const
-    AHI_SUBNAME : PChar = 'ahi_sub.library';
+    AHI_SUBNAME : PAnsiChar = 'ahi_sub.library';
 
 
 FUNCTION AHIsub_AllocAudio(tagList : pTagItem location 'a1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 30;

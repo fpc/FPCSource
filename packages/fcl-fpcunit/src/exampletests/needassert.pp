@@ -1,6 +1,10 @@
 program needassert;
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpcUnit.Test, FpcUnit.Registry, FpcUnit.Runners.Console;
+{$ELSE FPC_DOTTEDUNITS}
 uses fpcunit, testregistry, consoletestrunner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TTestNeedAssert = Class(TTestCase) 

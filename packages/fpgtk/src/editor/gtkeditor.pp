@@ -18,9 +18,15 @@ unit GtkEditor;
 
 interface
 {__$define debug}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes,
+     Api.Gtk1.Glib, Api.Gtk1.Gdk, Api.Gtk1.Gtk, Fpgtk, Fpgtkext,
+     Buttonrow, Objectdef, Settingsrec;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes,
      glib, gdk, gtk, FPGtk, FPgtkExt,
      buttonrow, ObjectDef, SettingsRec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -125,16 +131,16 @@ type
     procedure ParamDisplayChanged;
     procedure ComposeWindow;
   { File and menu handling }
-    FFileName : string;
+    FFileName : AnsiString;
     HasAFile : boolean;
     FReopenList : TStrings;
     MenuEditObject, MenuEditProperty, MenuEditParameter,
     MenuFileReopen : TFPgtkMenuItem;
     AccelGroup : integer;
-    procedure NewFilename (NewName : string);
+    procedure NewFilename (NewName : AnsiString);
     procedure BuildReopenList;
-    procedure DataRead (filename : string);
-    procedure DataWrite (filename : string);
+    procedure DataRead (filename : AnsiString);
+    procedure DataWrite (filename : AnsiString);
     procedure Generate;
   { Menu signals }
     procedure FileNew (Sender : TFPgtkObject; data : pointer);
@@ -161,15 +167,19 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xpms, Gtkdeftexts, System.IniFiles, Progwin;
+{$ELSE FPC_DOTTEDUNITS}
 uses XPMs, GtkDefTexts, inifiles, ProgWin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRightLabel = class (TFPgtkLabel)
   public
-    constructor create(aText : string);
+    constructor create(aText : AnsiString);
   end;
 
-constructor TRightLabel.Create (aText : string);
+constructor TRightLabel.Create (aText : AnsiString);
 begin
   inherited create (aText);
   XAlign := 1;
@@ -672,12 +682,12 @@ end;
 
 procedure TGtkEditorWindow.CreatePixmaps;
 
-  procedure GdkPixmap (Data : array of string; var pm : PGdkPixmap; var bm : PGdkBitmap);
+  procedure GdkPixmap (Data : array of AnsiString; var pm : PGdkPixmap; var bm : PGdkBitmap);
   var ppdata : ppgchar;
   begin
     ppdata := ArrayToPPgchar(Data);
     pm := gdk_pixmap_colormap_create_from_xpm_d (nil, Colormap, @bm, nil, ppdata);
-    freemem (ppdata, sizeof (pchar) * (high(data)-low(data)+1));
+    freemem (ppdata, sizeof (PAnsiChar) * (high(data)-low(data)+1));
   end;
 
 begin
@@ -721,7 +731,7 @@ end;
 
 procedure TGtkEditorWindow.RefreshProperty (Selected : TCollectionItem; NeedFocus:boolean);
 var r : byte;
-    s : string;
+    s : AnsiString;
 begin
   RefreshingProperty := True;
   try
@@ -994,7 +1004,7 @@ begin
 end;
 
 procedure TGtkEditorWindow.ChangedPCode (Sender:TFPgtkObject; data:pointer);
-var s : string;
+var s : AnsiString;
 begin
   if RefreshingProperty then Exit;
   if assigned(ciProperty) then
@@ -1037,7 +1047,7 @@ begin
 end;
 
 procedure TGtkEditorWindow.ChangedPWCode (Sender:TFPgtkObject; data:pointer);
-var s : string;
+var s : AnsiString;
 begin
   if RefreshingProperty then Exit;
   if assigned(ciProperty) then
@@ -1129,7 +1139,7 @@ begin
     end;
 end;
 
-procedure TGtkEditorWindow.NewFilename (NewName : string);
+procedure TGtkEditorWindow.NewFilename (NewName : AnsiString);
 var r : integer;
 begin
   if NewName = '' then
@@ -1147,7 +1157,7 @@ begin
     end;
 end;
 
-procedure TGtkEditorWindow.DataWrite (filename : string);
+procedure TGtkEditorWindow.DataWrite (filename : AnsiString);
 var
   BinStream : TMemoryStream;
   StrStream : TFileStream;
@@ -1188,10 +1198,10 @@ begin
   end;
 end;
 
-procedure TGtkEditorWindow.DataRead (filename : string);
+procedure TGtkEditorWindow.DataRead (filename : AnsiString);
 var FStream : TFileStream;
     MStream : TMemoryStream;
-    s : string[6];
+    s : AnsiString[6];
     l : TStrings;
 begin
   if fileExists (filename) then
@@ -1404,7 +1414,7 @@ const
 
 procedure TGtkEditorWindow.ReadSettings;
 var c, r : integer;
-    s : string;
+    s : AnsiString;
 begin
   with FSettings do
   with TMemInifile.Create(ChangeFileExt(paramstr(0), '.ini')) do

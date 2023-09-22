@@ -13,7 +13,7 @@ Const
 begin
   see_init;
   SEE_interpreter_init(@Interp);
-  ainput :=SEE_input_utf8(@Interp, pchar(program_text));
+  ainput :=SEE_input_utf8(@Interp, PAnsiChar(program_text));
   See_global_eval(@interp,ainput,@res);
   if (res._type=SEE_NUMBER) then
     Writeln('Result is : ',res.u.number)

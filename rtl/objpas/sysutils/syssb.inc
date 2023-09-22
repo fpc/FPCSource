@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 { TGenericStringBuilder }
 
 constructor TGenericStringBuilder.Create;
@@ -36,6 +37,27 @@ begin
   Create(aValue,DefaultCapacity);
 end;
 
+{ Enumerator }
+
+function TGenericStringBuilder.TCharEnumerator.GetCurrent: SBChar;
+begin
+  Result := FCurrentPosition^;
+  Inc(FCurrentPosition);
+end;
+
+function TGenericStringBuilder.TCharEnumerator.MoveNext: Boolean;
+begin
+  Result := FCurrentPosition < FEndPosition;
+end;
+
+function TGenericStringBuilder.GetEnumerator: TCharEnumerator;
+var
+  StartPosition: PSBChar;
+begin
+  StartPosition := @FData[0];
+  Result.FCurrentPosition := StartPosition;
+  Result.FEndPosition := StartPosition + Length;
+end;
 
 { Property getter/setter }
 
@@ -217,6 +239,29 @@ begin
   DoAppend(AValue);
   Result:=Self;
 end;
+
+{$IFDEF SBUNICODE}
+function TGenericStringBuilder.Append(const AValue: AnsiChar): TGenericStringBuilder;
+begin
+  DoAppend(WideChar(AValue));
+  Result:=Self;
+end;
+{$ELSE}
+function TGenericStringBuilder.Append(const AValue: WideChar): TGenericStringBuilder;
+begin
+  // We don't know what the target encoding is ?
+  DoAppend(AnsiChar(AValue));
+  Result:=Self;
+end;
+
+function TGenericStringBuilder.Append(const AValue: UnicodeString): TGenericStringBuilder;
+begin
+  // We don't know what the target encoding is ?
+  DoAppend(AnsiString(AValue));
+  Result:=Self;
+end;
+
+{$ENDIF}
 
 function TGenericStringBuilder.Append(const AValue: Currency): TGenericStringBuilder;
 begin
@@ -630,7 +675,12 @@ begin
 end;
 
 
+{$IFDEF UNICODERTL}
+function TGenericStringBuilder.ToString: RTLString;
+{$ELSE}
 function TGenericStringBuilder.ToString: SBString;
+{$ENDIF}
+
 begin
   Result:=ToString(0,Length);
 end;

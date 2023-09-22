@@ -13,21 +13,28 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NDKUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  NTApi.NDK;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   NDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Helpers for converting Pascal string types to NT's UNICODE_STRING
 procedure ShortStrToNTStr(aStr: ShortString; var aNTStr: UNICODE_STRING);
 procedure AnsiStrToNTStr(const aStr: RawByteString; var aNTStr: UNICODE_STRING);
 procedure UnicodeStrToNtStr(const aStr: UnicodeString;
     var aNTStr: UNICODE_STRING);
-procedure PCharToNTStr(aStr: PChar; aLen: Cardinal; var aNTStr: UNICODE_STRING);
+procedure PCharToNTStr(aStr: PAnsiChar; aLen: Cardinal; var aNTStr: UNICODE_STRING);
 procedure FreeNTStr(var aNTStr: UNICODE_STRING);
 
 // Wraps NtDisplayString for use with Write(Ln)
@@ -35,8 +42,13 @@ procedure AssignDisplayString(var aFile: Text; aUtf8: Boolean);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure ShortStrToNTStr(aStr: ShortString; var aNTStr: UNICODE_STRING);
 var
@@ -81,7 +93,7 @@ begin
   aNTStr.MaximumLength := aNTStr.Length;
 end;
 
-procedure PCharToNTStr(aStr: PChar; aLen: Cardinal; var aNTStr: UNICODE_STRING);
+procedure PCharToNTStr(aStr: PAnsiChar; aLen: Cardinal; var aNTStr: UNICODE_STRING);
 var
   i: Integer;
 begin
@@ -111,14 +123,14 @@ begin
     if (BufPos>0) then begin
       if Boolean(UserData[1]) then begin
         { TODO : check why UTF8 prints garbage }
-        {len := Utf8ToUnicode(Nil, 0, PChar(BufPtr), BufPos);
+        {len := Utf8ToUnicode(Nil, 0, PAnsiChar(BufPtr), BufPos);
         ntstr.Length := len * 2;
         ntstr.MaximumLength := ntstr.Length;
         ntstr.Buffer := GetMem(ntstr.Length);
-        Utf8ToUnicode(ntstr.Buffer, len, PChar(BufPtr), BufPos);}
-        PCharToNtStr(PChar(BufPtr), BufPos, ntstr);
+        Utf8ToUnicode(ntstr.Buffer, len, PAnsiChar(BufPtr), BufPos);}
+        PCharToNtStr(PAnsiChar(BufPtr), BufPos, ntstr);
       end else
-        PCharToNtStr(PChar(BufPtr), BufPos, ntstr);
+        PCharToNtStr(PAnsiChar(BufPtr), BufPos, ntstr);
       NtDisplayString(@ntstr);
       // FreeNTStr uses FreeMem, so we don't need an If here
       FreeNtStr(ntstr);

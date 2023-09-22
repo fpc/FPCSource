@@ -5,7 +5,9 @@
   {$error The KernelDefs unit is a legacy Kylix-compatibility unit that is only supported on Linux/i386. It is known not to work in various ways on other OSes and architectures (including Linux/x86_64). }
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit kerneldefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 // Translated from asm/types.h (i386)
@@ -48,7 +50,7 @@ type
 type
 
    Ps8 = ^s8;
-   s8 = char;
+   s8 = AnsiChar;
 
    Pu8 = ^u8;
    u8 = byte;
@@ -628,7 +630,7 @@ Function DEFLATE_MAKE_OPT(w: longint): longint;
             sat_family : sa_family_t;
             sat_port : __u8;
             sat_addr : at_addr;
-            sat_zero : array[0..7] of char;
+            sat_zero : array[0..7] of AnsiChar;
          end;
 
        Pnetrange = ^netrange;

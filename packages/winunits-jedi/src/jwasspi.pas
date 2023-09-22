@@ -42,7 +42,9 @@
 
 // $Id: JwaSspi.pas,v 1.13 2007/09/14 06:48:47 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaSspi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -59,8 +61,13 @@ unit JwaSspi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -90,7 +97,7 @@ type
   PSecWChar = ^TSecWChar;
   TSecWChar = SEC_WCHAR;
 
-  SEC_CHAR = CHAR;
+  SEC_CHAR = AnsiChar;
   {$EXTERNALSYM SEC_CHAR}
   PSEC_CHAR = ^SEC_CHAR;
   {$NODEFINE PSEC_CHAR}
@@ -1158,7 +1165,7 @@ type
 
   _SecPkgContext_AuthzID = record
     AuthzIDLength: Cardinal;
-    AuthzID: PChar;
+    AuthzID: PAnsiChar;
   end;
   {$EXTERNALSYM _SecPkgContext_AuthzID}
   SecPkgContext_AuthzID = _SecPkgContext_AuthzID;
@@ -1170,7 +1177,7 @@ type
 
   _SecPkgContext_Target = record
     TargetLength: Cardinal;
-    Target: PChar;
+    Target: PAnsiChar;
   end;
   {$EXTERNALSYM _SecPkgContext_Target}
   SecPkgContext_Target = _SecPkgContext_Target;
@@ -2135,11 +2142,11 @@ type
   PSecWinNTAuthIdentityW = PSEC_WINNT_AUTH_IDENTITY_W;
 
   _SEC_WINNT_AUTH_IDENTITY_A = record
-    User: PChar;
+    User: PAnsiChar;
     UserLength: Cardinal;
-    Domain: PChar;
+    Domain: PAnsiChar;
     DomainLength: Cardinal;
-    Password: PChar;
+    Password: PAnsiChar;
     PasswordLength: Cardinal;
     Flags: Cardinal;
   end;
@@ -2204,14 +2211,14 @@ type
   _SEC_WINNT_AUTH_IDENTITY_EXA = record
     Version: Cardinal;
     Length: Cardinal;
-    User: PChar;
+    User: PAnsiChar;
     UserLength: Cardinal;
-    Domain: PChar;
+    Domain: PAnsiChar;
     DomainLength: Cardinal;
-    Password: PChar;
+    Password: PAnsiChar;
     PasswordLength: Cardinal;
     Flags: Cardinal;
-    PackageList: PChar;
+    PackageList: PAnsiChar;
     PackageListLength: Cardinal;
   end;
   {$EXTERNALSYM _SEC_WINNT_AUTH_IDENTITY_EXA}

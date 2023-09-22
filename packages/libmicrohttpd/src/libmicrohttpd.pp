@@ -17,10 +17,23 @@
    https://www.gnu.org/software/libmicrohttpd/
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libmicrohttpd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF MSWINDOWS}
+  WinApi.Winsock2,
+{$ENDIF}
+{$IFDEF FPC}
+  {$IFDEF UNIX}UnixApi.Base, UnixApi.Unix,{$ENDIF}System.CTypes, System.Net.Sockets
+{$ELSE}
+  WinTypes
+{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF MSWINDOWS}
   WinSock2,
@@ -30,6 +43,7 @@ uses
 {$ELSE}
   WinTypes
 {$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MHD_LIB_NAME = {$IFDEF MSWINDOWS}'libmicrohttpd-10'{$ELSE}'microhttpd'{$ENDIF};
@@ -209,7 +223,8 @@ const
   MHD_USE_DEBUG = 1;
   MHD_USE_SSL = 2;
   MHD_USE_THREAD_PER_CONNECTION = 4;
-  MHD_USE_SELECT_INTERNALLY = 8;
+  MHD_USE_INTERNAL_POLLING_THREAD = 8;
+  MHD_USE_SELECT_INTERNALLY = 8 deprecated 'use MHD_USE_INTERNAL_POLLING_THREAD';
   MHD_USE_IPv6 = 16;
   MHD_USE_PEDANTIC_CHECKS = 32;
   MHD_USE_POLL = 64;
@@ -320,17 +335,23 @@ type
   Ppcchar = ^Pcchar;
   va_list = Pointer;
 {$IFDEF FPC}
-  cint = CTypes.cint;
-  cuint = CTypes.cuint;
-  cuint16 = CTypes.cuint16;
-  cuint64 = CTypes.cuint64;
-  culonglong = CTypes.culonglong;
-  socklen_t = {$IFDEF UNIX}BaseUnix.socklen_t{$ELSE}LongInt{$ENDIF};
-  size_t = {$IFDEF UNIX}BaseUnix{$ELSE}Sockets{$ENDIF}.size_t;
-  Psize_t = {$IFDEF UNIX}BaseUnix.pSize_t{$ELSE}^Sockets.size_t{$ENDIF};
-  Pfd_set = {$IFDEF UNIX}BaseUnix.pFDSet{$ELSE}WinSock2.PFDSet{$ENDIF};
-  ssize_t = {$IFDEF UNIX}BaseUnix{$ELSE}Sockets{$ENDIF}.ssize_t;
-  psockaddr = Sockets.psockaddr;
+  cint = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.cint;
+  cuint = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.cuint;
+  cuint16 = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.cuint16;
+  cuint64 = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.cuint64;
+  culonglong = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.culonglong;
+  socklen_t = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.socklen_t{$ELSE}LongInt{$ENDIF};
+  size_t = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets{$ENDIF}.size_t;
+  Psize_t = 
+  {$IFDEF UNIX}
+    {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.pSize_t
+  {$ELSE}
+    ^{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.size_t
+  {$ENDIF}
+  ;
+  Pfd_set = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.pFDSet{$ELSE}{$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinSock2.PFDSet{$ENDIF};
+  ssize_t = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets{$ENDIF}.ssize_t;
+  psockaddr = {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.psockaddr;
 {$ELSE}
   cint = LongInt;
   cuint = LongWord;
@@ -338,11 +359,11 @@ type
   cuint64 = UInt64;
   culonglong = UInt64;
   socklen_t = LongInt;
-  size_t = WinTypes.SIZE_T;
-  Psize_t = WinTypes.PSIZE_T;
-  Pfd_set = WinSock2.PFdSet;
-  ssize_t = WinTypes.SSIZE_T;
-  psockaddr = WinSock2.PSockAddr;
+  size_t = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.SIZE_T;
+  Psize_t = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.PSIZE_T;
+  Pfd_set = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinSock2.PFdSet;
+  ssize_t = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.SSIZE_T;
+  psockaddr = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinSock2.PSockAddr;
 {$ENDIF}
 {$IFNDEF MHD_SOCKET_DEFINED}
   PMHD_socket = ^MHD_socket;

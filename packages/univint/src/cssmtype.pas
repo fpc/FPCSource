@@ -39,7 +39,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cssmtype;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -224,7 +226,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Cssmconfig;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,cssmconfig;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -294,7 +300,7 @@ const
 const
 	CSSM_MODULE_STRING_SIZE = 64;
 type
-	CSSM_STRING = array [0..CSSM_MODULE_STRING_SIZE + 4-1] of char;
+	CSSM_STRING = array [0..CSSM_MODULE_STRING_SIZE + 4-1] of AnsiChar;
 
 
 type
@@ -415,9 +421,9 @@ type
 const
 	CSSM_ADDR_NONE = 0;
 	CSSM_ADDR_CUSTOM = 1;
-	CSSM_ADDR_URL = 2; { char* }
+	CSSM_ADDR_URL = 2; { AnsiChar* }
 	CSSM_ADDR_SOCKADDR = 3;
-	CSSM_ADDR_NAME = 4; { char* - qualified by access method }
+	CSSM_ADDR_NAME = 4; { AnsiChar* - qualified by access method }
 
 type
 	CSSM_NET_ADDRESS_PTR = ^cssm_net_address;

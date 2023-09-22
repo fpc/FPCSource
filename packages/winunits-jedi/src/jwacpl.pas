@@ -43,7 +43,9 @@
 // $Id: JwaCpl.pas,v 1.10 2007/09/06 14:57:11 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaCpl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaCpl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winuser, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinUser, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -142,9 +149,9 @@ type
     dwHelpContext: DWORD;                // help context to use
     lData: LONG_PTR;                     // user defined data
     hIcon: HICON; // icon to use, this is owned by CONTROL.EXE (may be deleted)
-    szName: array [0..31] of CHAR;       // short name
-    szInfo: array [0..63] of CHAR;       // long name (status line)
-    szHelpFile: array [0..127] of CHAR;  // path to help file to use
+    szName: array [0..31] of AnsiChar;       // short name
+    szInfo: array [0..63] of AnsiChar;       // long name (status line)
+    szHelpFile: array [0..127] of AnsiChar;  // path to help file to use
   end;
   {$EXTERNALSYM tagNEWCPLINFOA}
   NEWCPLINFOA = tagNEWCPLINFOA;

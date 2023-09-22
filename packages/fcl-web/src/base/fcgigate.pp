@@ -43,18 +43,28 @@ begin
     end;
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fcgigate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $define CGIGDEBUG}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF CGIGDEBUG}
+  System.Dbugintf,
+{$endif}
+  System.Classes, System.SysUtils,FpWeb.Http.Defs,FpWeb.HostApp.Custom.Cgi,Api.Fastcgi,System.Net.Ssockets,System.IniFiles,FpWeb.Handler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF CGIGDEBUG}
   dbugintf,
 {$endif}
   Classes, SysUtils,httpDefs,custcgi,fastcgi,ssockets,inifiles,custweb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -106,7 +116,7 @@ Type
     // Transform CGI environment variables.
     Function TransformRequestVars: String;virtual;
     // Encode name=value pair for PARAMS fastcgi record.
-    Function EncodeFastCGIParam(N, V: AnsiString): String;
+    Function EncodeFastCGIParam(N, V: AnsiString): ansiString;
     // High-level Communication
     // Send data from request
     procedure SendRequestData(const ARequest : TRequest); virtual;
@@ -246,7 +256,7 @@ begin
       Result:=Result+Format('#%.3d',[Ord(S[i])]);
 end;
 
-Function TFastCGIGatewayHandler.EncodeFastCGIParam(N,V : AnsiString) : String;
+Function TFastCGIGatewayHandler.EncodeFastCGIParam(N,V : AnsiString) : AnsiString;
 
   Function CalcJump(ALen : Integer) : Integer;
   begin
@@ -256,7 +266,7 @@ Function TFastCGIGatewayHandler.EncodeFastCGIParam(N,V : AnsiString) : String;
       Result:=4;
   end;
 
-  Procedure AddLengthEncoding(Var S : String; ALen : Integer; Var Offset : Integer);
+  Procedure AddLengthEncoding(Var S : AnsiString; ALen : Integer; Var Offset : Integer);
 
   Var
     J,L : integer;
@@ -445,7 +455,7 @@ var
   BytesRead : integer;
   ContentLength : word;
   PaddingLength : byte;
-  ReadBuf : Pchar;
+  ReadBuf : PAnsiChar;
 
   function ReadBytes(ByteAmount : Word) : boolean;
 
@@ -470,7 +480,7 @@ begin
   PaddingLength:=Header.paddingLength;
   Result:=Getmem(BytesRead+ContentLength+PaddingLength);
   Result^:=Header;
-  ReadBuf:=Pchar(Result)+SizeOf(Header);
+  ReadBuf:=PAnsiChar(Result)+SizeOf(Header);
   ReadBytes(ContentLength);
   ReadBuf:=ReadBuf+BytesRead;
   ReadBytes(PaddingLength);
@@ -492,7 +502,7 @@ Procedure TFastCGIGatewayHandler.ReadResponse(AResponse : TResponse);
 Var
   Rec : PFCGI_Header;
   CL : Integer;
-  WBuf : PChar;
+  WBuf : PAnsiChar;
   EOR : Boolean;
 
 begin
@@ -508,7 +518,7 @@ begin
          begin
          AResponse.ContentStream:=TMemoryStream.Create;
          end;
-      WBuf:=Pchar(Rec)+SizeOf(FCGI_Header);
+      WBuf:=PAnsiChar(Rec)+SizeOf(FCGI_Header);
       AResponse.ContentStream.WriteBuffer(WBuf^,CL);
       end
     else If (Rec^.ReqType=FCGI_END_REQUEST) and (CL>0) then

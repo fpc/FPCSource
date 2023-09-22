@@ -45,7 +45,7 @@ VAR
 
 CONST
 
-   vers  : PChar = '$VER: Talk2boopsi 37.1';
+   vers  : PAnsiChar = '$VER: Talk2boopsi 37.1';
 
    PROPGADGET_ID       = 1;
    INTGADGET_ID        = 2;
@@ -59,7 +59,7 @@ CONST
    MINWINDOWHEIGHT     = (PROPGADGETHEIGHT + 70);
    MAXCHARS            = 3;
 
-PROCEDURE CleanUp(Why : STRING; err: Word);
+PROCEDURE CleanUp(Why : ShortString; err: Word);
 BEGIN
     IF assigned(prop) THEN DisposeObject(prop);
     IF assigned(int) THEN DisposeObject(int);

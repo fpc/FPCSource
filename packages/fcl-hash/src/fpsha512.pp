@@ -11,7 +11,9 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha512;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
@@ -19,8 +21,13 @@ unit fpsha512;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   THashBuffer = array[0..127] of Byte;
@@ -222,7 +229,7 @@ begin
     begin
       Move(PBuf^, Buffer[Index], Size);
       Inc(Self.Index, Size);
-      Size := 0;
+      Break;
     end;
   end;
 end;
@@ -510,23 +517,17 @@ end;
 
 class procedure TSHA512.Stream(aStream: TStream; out aDigest: TSHA512Digest);
 
-const
-  BUFFER_SIZE = 64*1024;
-
 var
   aLen : LongInt;
-  lBuffer: TBytes;
+  lBuffer: array[0 .. 64*1024 - 1] of Byte;
   SHA512: TSHA512;
 
 begin
-  lBuffer:=Nil;
   SHA512.Init;
-  SetLength(lBuffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(lBuffer, BUFFER_SIZE);
-     if aLen = 0 then
-       Break;
-     SHA512.Update(PByte(lBuffer),aLen);
+     aLen:=aStream.Read(lBuffer, Length(lBuffer));
+     if aLen>0 then
+       SHA512.Update(PByte(lBuffer),aLen); 
   until aLen=0;
   SHA512.Final;
   aDigest:=SHA512.Digest;

@@ -13,14 +13,16 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit elftypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
 type
-  TElfMagic = array[0..3] of char;
+  TElfMagic = array[0..3] of AnsiChar;
 
 type
   TElfIdent = packed record

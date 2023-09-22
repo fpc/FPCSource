@@ -31,13 +31,19 @@
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT expansion;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Configvars, Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, configvars, amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
-    EXPANSIONNAME       : PChar = 'expansion.library';
+    EXPANSIONNAME       : PAnsiChar = 'expansion.library';
 
 { flags for the AddDosNode() call }
     ADNB_STARTPROC      = 0;

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, sysutils;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
 procedure add_fppkg(const ADirectory: string);
@@ -92,6 +92,7 @@ begin
       if Data2Inc <> '' then
         P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');
       end;
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

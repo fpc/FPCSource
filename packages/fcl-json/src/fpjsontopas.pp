@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjsontopas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // TODO : Array of Array LoadFromJSON/SaveToJSON
 
@@ -21,8 +23,13 @@ unit fpjsontopas;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EJSONToPascal = Class(EJSON);

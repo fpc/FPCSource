@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2021 - by the Free Pascal development team
 
     Abstract websocket server implementation
@@ -14,14 +14,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcustwsserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Ssockets, Fcl.ThreadPool, FpWeb.WebSocket.Protocol;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ssockets, fpthreadpool, fpwebsocket;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefaultAcceptTimeout = 50;
@@ -108,10 +115,14 @@ Type
         FConnection: TWSServerConnection;
         FOnDone : TNotifyEvent;
         FDoHandshake : Boolean;
+        FHandler: TWSThreadedConnectionHandler;
       Public
-        Constructor CreateConnection(AConnection : TWSServerConnection; aOnConnectionDone : TNotifyEvent; DoHandShake : Boolean); virtual;
+        Constructor CreateConnection(aHandler: TWSThreadedConnectionHandler;
+          aConnection : TWSServerConnection; const aOnConnectionDone : TNotifyEvent;
+          DoHandShake : Boolean); virtual;
         Procedure Execute; override;
         Property Connection : TWSServerConnection Read FConnection;
+        Property Handler: TWSThreadedConnectionHandler read FHandler;
       end;
   Public
     procedure CheckIncomingMessages; override;
@@ -353,7 +364,8 @@ begin
   SendDataTo(aData,@DoAllowAll);
 end;
 
-Procedure TCustomWSServer.DoAllowAll(aConnection :TWSServerConnection; var aAllow : Boolean);
+procedure TCustomWSServer.DoAllowAll(aConnection: TWSServerConnection;
+  var aAllow: Boolean);
 
 begin
   aAllow:=Assigned(AConnection);
@@ -475,7 +487,8 @@ begin
   end;
 end;
 
-procedure TCustomWSServer.SendMessageTo(const AMessage: string; aSelector: TWSSendToFilter);
+procedure TCustomWSServer.SendMessageTo(const AMessage: string;
+  aSelector: TWSSendToFilter);
 
   Function DoAllow(Conn : TWSServerConnection) : Boolean;
   begin
@@ -674,8 +687,11 @@ end;
 
 { TWSThreadedConnectionHandler.TWSConnectionThread }
 
-constructor TWSThreadedConnectionHandler.TWSConnectionThread.CreateConnection(AConnection: TWSServerConnection; aOnConnectionDone : TNotifyEvent; DoHandShake : Boolean);
+constructor TWSThreadedConnectionHandler.TWSConnectionThread.CreateConnection(
+  aHandler: TWSThreadedConnectionHandler; aConnection: TWSServerConnection;
+  const aOnConnectionDone: TNotifyEvent; DoHandShake: Boolean);
 begin
+  FHandler:=aHandler;
   FOnDone:=aOnConnectionDone;
   FConnection:=AConnection;
   FDoHandshake:=DoHandshake;
@@ -703,9 +719,9 @@ begin
         Terminate;
       end;
   except
-    Raise;
-   //  on E : Exception do
-      // Server.HandleUnexpectedError(E);
+    on E: Exception do begin
+      Handler.Server.HandleError(Connection,E);
+    end;
   end;
   If Assigned(FOnDone) then
     FOnDone(Connection);
@@ -725,7 +741,7 @@ end;
 
 procedure TWSThreadedConnectionHandler.HandleConnection(aConnection: TWSServerConnection; DoHandshake: Boolean);
 begin
-  TWSConnectionThread.CreateConnection(aConnection,@ConnectionDone,DoHandShake);
+  TWSConnectionThread.CreateConnection(Self,aConnection,@ConnectionDone,DoHandShake);
 end;
 
 { TWSPooledConnectionHandler.THandleRequestTask }

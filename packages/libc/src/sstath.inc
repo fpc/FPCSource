@@ -48,54 +48,54 @@ const
   DEFFILEMODE = ((((S_IRUSR or S_IWUSR) or S_IRGRP) or S_IWGRP) or S_IROTH) or S_IWOTH;
   S_BLKSIZE = 512;
 
-function stat(__file:Pchar; __buf:Pstat):longint;
+function stat(__file:PAnsiChar; __buf:Pstat):longint;
 function fstat(__fd:longint; __buf:Pstat):longint;
 
-function stat64(__file:Pchar; __buf:Pstat64):longint;
+function stat64(__file:PAnsiChar; __buf:Pstat64):longint;
 function fstat64(__fd:longint; __buf:Pstat64):longint;
 
-function lstat(__file:Pchar; __buf:Pstat):longint;
-function lstat64(__file:Pchar; __buf:Pstat64):longint;
+function lstat(__file:PAnsiChar; __buf:Pstat):longint;
+function lstat64(__file:PAnsiChar; __buf:Pstat64):longint;
 
-function chmod(__file:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'chmod';
+function chmod(__file:PAnsiChar; __mode:__mode_t):longint;cdecl;external clib name 'chmod';
 function fchmod(__fd:longint; __mode:__mode_t):longint;cdecl;external clib name 'fchmod';
 function umask(__mask:__mode_t):__mode_t;cdecl;external clib name 'umask';
 function getumask:__mode_t;cdecl;external clib name 'getumask';
 
-function __mkdir(__path:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'mkdir';
-function mknod(__path:Pchar; __mode:__mode_t; __dev:__dev_t):longint;cdecl;external clib name 'mknod';
-function mkfifo(__path:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'mkfifo';
+function __mkdir(__path:PAnsiChar; __mode:__mode_t):longint;cdecl;external clib name 'mkdir';
+function mknod(__path:PAnsiChar; __mode:__mode_t; __dev:__dev_t):longint;cdecl;external clib name 'mknod';
+function mkfifo(__path:PAnsiChar; __mode:__mode_t):longint;cdecl;external clib name 'mkfifo';
 
 function __fxstat(__ver:longint; __fildes:longint; __stat_buf:Pstat):longint;cdecl;external clib name '__fxstat';
-function __xstat(__ver:longint; __filename:Pchar; __stat_buf:Pstat):longint;cdecl;external clib name '__xstat';
-function __lxstat(__ver:longint; __filename:Pchar; __stat_buf:Pstat):longint;cdecl;external clib name '__lxstat';
+function __xstat(__ver:longint; __filename:PAnsiChar; __stat_buf:Pstat):longint;cdecl;external clib name '__xstat';
+function __lxstat(__ver:longint; __filename:PAnsiChar; __stat_buf:Pstat):longint;cdecl;external clib name '__lxstat';
 
 function __fxstat64(__ver:longint; __fildes:longint; __stat_buf:Pstat64):longint;cdecl;external clib name '__fxstat64';
-function __xstat64(__ver:longint; __filename:Pchar; __stat_buf:Pstat64):longint;cdecl;external clib name '__xstat64';
-function __lxstat64(__ver:longint; __filename:Pchar; __stat_buf:Pstat64):longint;cdecl;external clib name '__lxstat64';
+function __xstat64(__ver:longint; __filename:PAnsiChar; __stat_buf:Pstat64):longint;cdecl;external clib name '__xstat64';
+function __lxstat64(__ver:longint; __filename:PAnsiChar; __stat_buf:Pstat64):longint;cdecl;external clib name '__lxstat64';
 
-function __xmknod(__ver:longint; __path:Pchar; __mode:__mode_t; __dev:P__dev_t):longint;cdecl;external clib name '__xmknod';
+function __xmknod(__ver:longint; __path:PAnsiChar; __mode:__mode_t; __dev:P__dev_t):longint;cdecl;external clib name '__xmknod';
 
 { ---------------------------------------------------------------------
     Borland compatibility types
   ---------------------------------------------------------------------}
 
 // Type
-function stat(__file:Pchar; var __buf:_stat):longint;
+function stat(__file:PAnsiChar; var __buf:_stat):longint;
 function fstat(__fd:longint; var __buf:_stat):longint;
 
-function stat64(__file:Pchar; var __buf: _stat64):longint;
+function stat64(__file:PAnsiChar; var __buf: _stat64):longint;
 function fstat64(__fd:longint; var __buf: _stat64):longint;
 
-function lstat(__file:Pchar; var __buf:_stat):longint;
-function lstat64(__file:Pchar; var __buf:_stat64):longint;
+function lstat(__file:PAnsiChar; var __buf:_stat):longint;
+function lstat64(__file:PAnsiChar; var __buf:_stat64):longint;
 
 function __fxstat(__ver:longint; __fildes:longint; var __stat_buf: _stat):longint;cdecl;external clib name '__fxstat';
-function __xstat(__ver:longint; __filename:Pchar; var __stat_buf: _stat):longint;cdecl;external clib name '__xstat';
-function __lxstat(__ver:longint; __filename:Pchar; var __stat_buf: _stat):longint;cdecl;external clib name '__lxstat';
+function __xstat(__ver:longint; __filename:PAnsiChar; var __stat_buf: _stat):longint;cdecl;external clib name '__xstat';
+function __lxstat(__ver:longint; __filename:PAnsiChar; var __stat_buf: _stat):longint;cdecl;external clib name '__lxstat';
 
 function __fxstat64(__ver:longint; __fildes:longint; var __stat_buf: _stat64):longint;cdecl;external clib name '__fxstat64';
-function __xstat64(__ver:longint; __filename:Pchar; var __stat_buf: _stat64):longint;cdecl;external clib name '__xstat64';
-function __lxstat64(__ver:longint; __filename:Pchar; var __stat_buf: _stat64):longint;cdecl;external clib name '__lxstat64';
+function __xstat64(__ver:longint; __filename:PAnsiChar; var __stat_buf: _stat64):longint;cdecl;external clib name '__xstat64';
+function __lxstat64(__ver:longint; __filename:PAnsiChar; var __stat_buf: _stat64):longint;cdecl;external clib name '__lxstat64';
 
-function __xmknod(__ver:longint; __path:Pchar; __mode:__mode_t; var __dev: __dev_t):longint;cdecl;external clib name '__xmknod';
+function __xmknod(__ver:longint; __path:PAnsiChar; __mode:__mode_t; var __dev: __dev_t):longint;cdecl;external clib name '__xmknod';

@@ -29,7 +29,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CGA;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$ASMMODE intel}
@@ -47,8 +49,13 @@ procedure CGAFree;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32, System.Console.Crt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32, crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   palette: array[0..15, 0..2] of Byte = (

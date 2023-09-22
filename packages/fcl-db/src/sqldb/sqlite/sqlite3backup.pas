@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite3Backup;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { SQLite3 backup class.
 
@@ -33,8 +35,13 @@ unit SQLite3Backup;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Data.SqlDb.Sqlite3,Api.Sqlite3dyn;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,sqlite3conn,sqlite3dyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -101,8 +108,8 @@ begin
    FErrorMessage:='';
    Source.Connected:=true;
    Destination.Connected:=true;
-   pBackup := sqlite3_backup_init(Destination.Handle, pchar(DestinationDBName),
-      Source.Handle, pchar(SourceDBName));
+   pBackup := sqlite3_backup_init(Destination.Handle, PAnsiChar(DestinationDBName),
+      Source.Handle, PAnsiChar(SourceDBName));
    if LockUntilFinished then
      nPage:=-1
    else

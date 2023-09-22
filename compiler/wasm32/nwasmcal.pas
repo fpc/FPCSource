@@ -40,6 +40,7 @@ interface
 
        twasmcallnode = class(tcgcallnode)
        protected
+         function  pass_typecheck:tnode;override;
          procedure extra_post_call_code; override;
          procedure do_release_unused_return_value; override;
          procedure set_result_location(realresdef: tstoreddef); override;
@@ -49,9 +50,34 @@ interface
 implementation
 
     uses
-      globals, globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst, symcpu;
+      globals, globtype, verbose, aasmdata, defutil, tgobj, hlcgcpu, symconst, symsym, symcpu;
 
       { twasmcallnode }
+
+    function twasmcallnode.pass_typecheck:tnode;
+      var
+        p: tcallparanode;
+        pvs: tparavarsym;
+      begin
+        result:=inherited;
+        if codegenerror then
+          exit;
+
+        if assigned(procdefinition) then
+          begin
+            p:=tcallparanode(left);
+            while assigned(p) do
+              begin
+                pvs:=p.parasym;
+                if assigned(p.left) and is_wasm_reference_type(p.left.resultdef) and
+                   assigned(pvs) and
+                  ((pvs.varspez in [vs_var,vs_constref,vs_out]) or
+                   ((pvs.varspez=vs_const) and (pvs.vardef.typ=formaldef))) then
+                  CGMessage(parser_e_wasm_ref_types_can_only_be_passed_by_value);
+                p:=tcallparanode(tcallparanode(p).right);
+              end;
+          end;
+      end;
 
     procedure twasmcallnode.extra_post_call_code;
       begin

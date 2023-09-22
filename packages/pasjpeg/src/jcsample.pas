@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcSample;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains downsampling routines.
 
@@ -46,6 +48,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -53,6 +64,7 @@ uses
   jdeferr,
   jerror,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Module initialization routine for downsampling.

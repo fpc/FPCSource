@@ -40,7 +40,9 @@
 
 // $Id: JwaWs2Bth.pas,v 1.12 2007/09/14 06:48:49 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWs2Bth;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -55,8 +57,13 @@ unit JwaWs2Bth;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Bthsdpdef, WinApi.Jedi.Bluetoothapis, WinApi.Jedi.Bthdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaBthSdpDef, JwaBlueToothApis, JwaBthDef;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 

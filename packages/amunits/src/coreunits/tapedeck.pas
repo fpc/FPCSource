@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tapedeck;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     TDECK_Dummy            = (TAG_USER+$05000000);

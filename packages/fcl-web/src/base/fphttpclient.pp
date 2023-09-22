@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphttpclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Ssockets, FpWeb.Http.Defs, Fcl.UriParser, System.Hash.Base64, System.Net.Sslsockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Socket Read buffer size
@@ -411,8 +418,9 @@ Type
   // writing to socket
   EHTTPClientSocketWrite = Class(EHTTPClientSocket);
 
-Function EncodeURLElement(const S : String) : String;
-Function DecodeURLElement(Const S : String) : String;
+Function EncodeURLElement(const S : UnicodeString) : UnicodeString;
+Function DecodeURLElement(const S : AnsiString) : AnsiString;
+function DecodeURLElement(const S: UnicodeString): UnicodeString;
 
 implementation
 
@@ -431,7 +439,8 @@ resourcestring
 Const
   CRLF = #13#10;
 
-function EncodeURLElement(const S: String): String;
+
+function EncodeURLElement(const S: UnicodeString): UnicodeString;
 
 Const
   NotAllowed = [ ';', '/', '?', ':', '@', '=', '&', '#', '+', '_', '<', '>',
@@ -440,14 +449,15 @@ Const
 var
   i, o, l : Integer;
   h: string[2];
-  P : PChar;
-  c: AnsiChar;
+  P,PStart : PChar;
+  c: Char;
 begin
   result:='';
   l:=Length(S);
   If (l=0) then Exit;
   SetLength(Result,l*3);
-  P:=Pchar(Result);
+  PStart:=PChar(Result);
+  P:=PStart;
   for I:=1 to L do
     begin
     C:=S[i];
@@ -468,15 +478,21 @@ begin
       Inc(p);
       end;
     end;
-  SetLength(Result,P-PChar(Result));
+  SetLength(Result,P-PStart);
 end;
 
-function DecodeURLElement(Const S: AnsiString): AnsiString;
+function DecodeURLElement(const S: UnicodeString): UnicodeString;
+
+begin
+  Result:=UTF8Decode(DecodeURLElement(UTF8Encode(S)));
+end;
+
+function DecodeURLElement(const S: AnsiString): AnsiString;
 
 var
   i,l,o : Integer;
   c: AnsiChar;
-  p : pchar;
+  p : PAnsiChar;
   h : string;
 
 begin
@@ -484,7 +500,7 @@ begin
   if l=0 then exit;
   Result:='';
   SetLength(Result, l);
-  P:=PChar(Result);
+  P:=PAnsiChar(Result);
   i:=1;
   While (I<=L) do
     begin
@@ -500,14 +516,14 @@ begin
       o:=StrToIntDef(H,-1);
       If (O>=0) and (O<=255) then
         begin
-        P^:=char(O);
+        P^:=AnsiChar(O);
         Inc(P);
         Inc(I,2);
         end;
       end;
     Inc(i);
   end;
-  SetLength(Result, P-Pchar(Result));
+  SetLength(Result, P-PAnsiChar(Result));
 end;
 
 { TProxyData }
@@ -753,7 +769,7 @@ Var
   PH,UN,PW,S,L : String;
   I : Integer;
   AddContentLength : Boolean;
-  
+
 begin
   S:=Uppercase(AMethod)+' '+GetServerURL(URI)+' '+'HTTP/'+FHTTPVersion+CRLF;
   UN:=URI.Username;
@@ -891,20 +907,23 @@ end;
 
 function TFPCustomHTTPClient.WriteString(const S: String): Boolean;
 var
-  r,t : Longint;
+  r,t,Len : Longint;
+  SendS : AnsiString {$IF SIZEOF(CHAR)=1} absolute S{$ENDIF};
 
 begin
   if S='' then
     Exit(True);
-
+  {$IF SIZEOF(CHAR)=2}
+  SendS:=UTF8Encode(S);
+  {$ENDIF}
+  Len:=Length(SendS);
   T:=0;
   Repeat
-     r:=WriteToSocket(S[t+1],Length(S)-t);
+     r:=WriteToSocket(SendS[t+1],Len-t);
      inc(t,r);
      DoDataWrite;
-  Until Terminated or (t=Length(S)) or (r<=0);
-
-  Result := t=Length(S);
+  Until Terminated or (t=Len) or (r<=0);
+  Result:=t=Len;
 end;
 
 function TFPCustomHTTPClient.WriteRequestBody: Boolean;
@@ -1030,8 +1049,6 @@ begin
         DoCookies(S);
       end
   Until (S='') or Terminated;
-  If Assigned(FOnHeaders) and not Terminated then
-    FOnHeaders(Self);
 end;
 
 function TFPCustomHTTPClient.CheckResponseCode(ACode: Integer;
@@ -1237,7 +1254,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
     end;
 
   var
-    c: char;
+    c: AnsiChar;
     ChunkSize: SizeUInt;
     l: Integer;
   begin
@@ -1306,6 +1323,8 @@ begin
   FContentLength:=0;
   SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
+  If Assigned(FOnHeaders) and not Terminated then
+    FOnHeaders(Self);
   Result := FResponseStatusCode > 0;
   if not Result then
     Exit;
@@ -2396,6 +2415,21 @@ Var
   SS : TRawByteStringStream;
   I: Integer;
   N,V: String;
+
+  Procedure WriteStringToStream (aString : String);
+
+  var
+    B : TBytes;
+
+  begin
+    {$IF SIZEOF(CHAR)=1}
+    B:=TEncoding.Default.GetAnsiBytes(aString);
+    {$ELSE}
+    B:=TEncoding.Default.GetBytes(aString);
+    {$ENDIF}
+    SS.WriteBuffer(B[0],Length(B));
+  end;
+
 begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
   AddHeader('Content-Type','multipart/form-data; boundary='+Sep);
@@ -2408,16 +2442,16 @@ begin
         FormData.GetNameValue(I,N,V);
         S :='--'+Sep+CRLF;
         S:=S+Format('Content-Disposition: form-data; name="%s"'+CRLF+CRLF+'%s'+CRLF,[N, V]);
-        SS.WriteBuffer(S[1],Length(S));
+        WriteStringToStream(S);
         end;
     S:='--'+Sep+CRLF;
     s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
     s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
-    SS.WriteBuffer(S[1],Length(S));
+    WriteStringToStream(S);
     AStream.Seek(0, soFromBeginning);
     SS.CopyFrom(AStream,AStream.Size);
     S:=CRLF+'--'+Sep+'--'+CRLF;
-    SS.WriteBuffer(S[1],Length(S));
+    WriteStringToStream(S);
     SS.Position:=0;
     RequestBody:=SS;
     Post(AURL,Response);

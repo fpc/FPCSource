@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
@@ -811,7 +812,7 @@ end;
 
 class procedure TThread.Sleep(aMilliseconds: Cardinal);
 begin
-  SysUtils.Sleep(aMilliseconds);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Sleep(aMilliseconds);
 end;
 
 
@@ -847,13 +848,13 @@ end;
 
 class function TThread.GetTickCount: LongWord;
 begin
-  Result := SysUtils.GetTickCount;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount;
 end;
 
 
 class function TThread.GetTickCount64: QWord;
 begin
-  Result := SysUtils.GetTickCount64;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
 end;
 
 { TSimpleThread allows objects to create a threading method without defining
@@ -1080,9 +1081,9 @@ end;
  *       Miscellaneous procedures and functions                       *
  **********************************************************************}
 
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PAnsiChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 var
-  b, c : pchar;
+  b, c : PAnsiChar;
 
   procedure SkipWhitespace;
     begin
@@ -1102,7 +1103,7 @@ var
             begin
               setlength(s, l);
               if l>0 then
-                move (b^, s[1],l*SizeOf(char));
+                move (b^, s[1],l*SizeOf(AnsiChar));
               Strings.Add (s);
             end;
           inc (result);
@@ -1110,7 +1111,7 @@ var
     end;
 
 var
-  quoted : char;
+  quoted : AnsiChar;
 begin
   result := 0;
   c := Content;
@@ -1698,8 +1699,8 @@ type
 
 function CharToOrd(var P: Pointer): Cardinal;
 begin
-  result:= ord(pchar(P)^);
-  inc(pchar(P));
+  result:= ord(PAnsiChar(P)^);
+  inc(PAnsiChar(P));
 end;
 
 function WideCharToOrd(var P: Pointer): Cardinal;
@@ -1711,23 +1712,23 @@ end;
 function Utf8ToOrd(var P:Pointer): Cardinal;
 begin
   // Should also check for illegal utf8 combinations
-  Result := Ord(PChar(P)^);
+  Result := Ord(PAnsiChar(P)^);
   Inc(P);
   if (Result and $80) <> 0 then
     if (Ord(Result) and %11100000) = %11000000 then begin
       Result := ((Result and %00011111) shl 6)
-                or (ord(PChar(P)^) and %00111111);
+                or (ord(PAnsiChar(P)^) and %00111111);
       Inc(P);
     end else if (Ord(Result) and %11110000) = %11100000 then begin
       Result := ((Result and %00011111) shl 12)
-                or ((ord(PChar(P)^) and %00111111) shl 6)
-                or (ord((PChar(P)+1)^) and %00111111);
+                or ((ord(PAnsiChar(P)^) and %00111111) shl 6)
+                or (ord((PAnsiChar(P)+1)^) and %00111111);
       Inc(P,2);
     end else begin
       Result := ((ord(Result) and %00011111) shl 18)
-                or ((ord(PChar(P)^) and %00111111) shl 12)
-                or ((ord((PChar(P)+1)^) and %00111111) shl 6)
-                or (ord((PChar(P)+2)^) and %00111111);
+                or ((ord(PAnsiChar(P)^) and %00111111) shl 12)
+                or ((ord((PAnsiChar(P)+1)^) and %00111111) shl 6)
+                or (ord((PAnsiChar(P)+2)^) and %00111111);
       Inc(P,3);
     end;
 end;
@@ -1736,13 +1737,13 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
 var
   Version: TBinaryObjectReader.TBOVersion;
 
-  procedure OutStr(s: String);
+  procedure OutStr(s: RawByteString);
   begin
     if Length(s) > 0 then
       Output.Write(s[1], Length(s));
   end;
 
-  procedure OutLn(s: String);
+  procedure OutLn(s: RawByteString);
   begin
     OutStr(s + LineEnding);
   end;
@@ -1751,7 +1752,7 @@ var
     UseBytes: boolean = false);
 
   var
-    res, NewStr: String;
+    res, NewStr: RawByteString;
     w: Cardinal;
     InString, NewInString: Boolean;
   begin
@@ -1767,7 +1768,7 @@ var
       NewInString := InString;
       w := CharToOrdfunc(P);
       if w = ord('''') then
-        begin //quote char
+        begin //quote AnsiChar
         if not InString then
           NewInString := True;
         NewStr := '''''';
@@ -1776,7 +1777,7 @@ var
         begin //printable ascii or bytes
         if not InString then
           NewInString := True;
-        NewStr := char(w);
+        NewStr := AnsiChar(w);
         end
       else
         begin //ascii control chars, non ascii
@@ -1797,9 +1798,9 @@ var
    OutStr(res);
   end;
 
-  procedure OutString(s: String);
+  procedure OutString(s: RawByteString);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
+    OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
   end;
 
   procedure OutWString(W: WideString);
@@ -1812,12 +1813,12 @@ var
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
 
-  procedure OutUtf8Str(s: String);
+  procedure OutUtf8Str(s: RawByteString);
   begin
     if Encoding=oteLFM then
-      OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd)
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd)
     else
-      OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@Utf8ToOrd);
   end;
 
   function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1915,7 +1916,7 @@ var
   end;
 {$endif}
 
-  function ReadSStr: String;
+  function ReadSStr: RawByteString;
   var
     len: Byte;
   begin
@@ -1925,7 +1926,7 @@ var
       Input.ReadBuffer(Result[1], len);
   end;
 
-  function ReadLStr: String;
+  function ReadLStr: RawByteString;
   var
     len: DWord;
   begin
@@ -1973,15 +1974,15 @@ var
     end;
   end;
 
-  procedure ReadPropList(indent: String);
+  procedure ReadPropList(indent: RawByteString);
 
-    procedure ProcessValue(ValueType: TValueType; Indent: String);
+    procedure ProcessValue(ValueType: TValueType; Indent: RawByteString);
 
       procedure ProcessBinary;
       var
         ToDo, DoNow, i: LongInt;
         lbuf: array[0..31] of Byte;
-        s: String;
+        s: RawByteString;
       begin
         ToDo := ReadDWord;
         OutLn('{');
@@ -1999,7 +2000,7 @@ var
       end;
 
     var
-      s: String;
+      s: RawByteString;
 {      len: LongInt; }
       IsFirst: Boolean;
 {$ifndef FPUNONE}
@@ -2106,10 +2107,10 @@ var
     end;
   end;
 
-  procedure ReadObject(indent: String);
+  procedure ReadObject(indent: RawByteString);
   var
     b: Byte;
-    ObjUnitName, ObjClassName, ObjName: String;
+    ObjUnitName, ObjClassName, ObjName: RawByteString;
     ChildPos: LongInt;
     ValueType: TValueType;
     p: SizeInt;
@@ -2265,7 +2266,8 @@ var
   end;
 {$endif}
 
-  procedure WriteSString(const s: String);
+  procedure WriteSString(const s: RawByteString);
+
   var size : byte;
   begin
     if length(s)>255 then size:=255
@@ -2275,7 +2277,7 @@ var
       Output.WriteBuffer(s[1], size);
   end;
 
-  procedure WriteLString(Const s: String);
+  procedure WriteLString(Const s: RawByteString);
   begin
     WriteDWord(Length(s));
     if Length(s) > 0 then
@@ -2355,7 +2357,7 @@ var
 {$ifndef FPUNONE}
     flt: Extended;
 {$endif}
-    s: String;
+    s: RawByteString;
     stream: TMemoryStream;
   begin
     case parser.Token of
@@ -2485,7 +2487,7 @@ var
 
   procedure ProcessProperty;
   var
-    name: String;
+    name: RawByteString;
   begin
     // Get name of property
     parser.CheckToken(toSymbol);
@@ -2506,7 +2508,7 @@ var
   procedure ProcessObject(Root: boolean);
   var
     Flags: Byte;
-    ObjectName, ObjUnitName, ObjClassName: String;
+    ObjectName, ObjUnitName, ObjClassName: RawByteString;
     ChildPos: Integer;
   begin
     if parser.TokenSymbolIs('OBJECT') then
@@ -2589,6 +2591,9 @@ var
     Output.WriteByte(0);        // Terminate property list
   end;
 
+const
+  signature: PAnsiChar = 'TPF0';
+
 begin
   Version:=TBinaryObjectReader.TBOVersion.boVersion0;
   parser := TParser.Create(Input);
@@ -2650,7 +2655,7 @@ begin
     result:=afalse;
 end;
 
-function LineStart(Buffer, BufPos: PChar): PChar;
+function LineStart(Buffer, BufPos: PAnsiChar): PAnsiChar;
 
 begin
   Result := BufPos;

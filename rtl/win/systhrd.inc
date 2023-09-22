@@ -59,7 +59,7 @@ type
   TSetThreadDescription = function(threadHandle: THandle; lpThreadDescription: PWideChar): HResult; stdcall;
 var
   WinSetThreadDescription: TSetThreadDescription;
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PAnsiChar): THandle; stdcall; external KernelDLL name 'CreateEventA';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
 {$endif WINCE}
@@ -514,12 +514,12 @@ Const
 function intBasicEventCreate(EventAttributes : Pointer;
 AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 var
-  n : PChar;
+  n : PAnsiChar;
 begin
   if Length(Name) = 0 then
     n := Nil
   else
-    n := PChar(Name);
+    n := PAnsiChar(Name);
   Result := PEventState(CreateEvent(EventAttributes, AManualReset, InitialState,n));
 end;
 
@@ -541,29 +541,49 @@ begin
   SetEvent(THandle(state));
 end;
 
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; forward;
 
-type 
-      PWOHandleArray = ^THandle;
+var
+  Ole32Dll: THandle = 0; { Unloaded at win32 & win64 system_exit. }
+  CoWaitForMultipleHandlesImpl: function(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+    = @FirstCoWaitForMultipleHandles;
 
-function CoWaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:LONGBOOL; dwMilliseconds:DWORD):DWORD; external 'ole32.dll' name 'CoWaitForMultipleObjects';
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+var
+  LocalOle32Dll: THandle;
+begin
+  if Ole32Dll = 0 then
+  begin
+    LocalOle32Dll := WinLoadLibraryW('ole32.dll');
+    if InterlockedCompareExchange(Pointer(Ole32Dll), Pointer(LocalOle32Dll), nil) <> nil then
+      WinFreeLibrary(LocalOle32Dll);
+  end;
+  CodePointer(CoWaitForMultipleHandlesImpl) := WinGetProcAddress(Ole32Dll, 'CoWaitForMultipleHandles');
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
+
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT;
+begin
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
 
 function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;UseCOMWait: Boolean = False) : longint;
-
-var ret : Integer;
+const COWAIT_DEFAULT = 0;
+      RPC_S_CALLPENDING = HRESULT($80010115);
+var SignaledIndex : DWORD;
 begin
    if UseComWait Then
-     ret:=CoWaitForMultipleObjects(1,PWOHandleArray(@state), True, Timeout)
+     case CoWaitForMultipleHandles(COWAIT_DEFAULT, Timeout, 1, PWOHandleArray(@state), SignaledIndex) of
+       S_OK: Result := wrSignaled;
+       RPC_S_CALLPENDING: Result := wrTimeout;
+       else Result := wrError;
+     end
    else 
-     ret:=WaitForSingleObject(THandle(state), Timeout);
-
-   case ret of
-    WAIT_ABANDONED: Result := wrAbandoned;
-    WAIT_OBJECT_0: Result := wrSignaled;
-    WAIT_TIMEOUT: Result := wrTimeout;
-    WAIT_FAILED: Result := wrError;
-  else
-    Result := wrError;
-  end;
+     case WaitForSingleObject(THandle(state), Timeout) of
+       WAIT_OBJECT_0: Result := wrSignaled;
+       WAIT_TIMEOUT: Result := wrTimeout;
+       else result := wrError; { WAIT_FAILED or any other value. Note that only mutex waits can return WAIT_ABANDONED. }
+     end;
 end;
 
 function intRTLEventCreate: PRTLEvent;

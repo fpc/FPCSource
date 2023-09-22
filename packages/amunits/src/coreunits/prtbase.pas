@@ -29,11 +29,17 @@
         printer device data definition
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit prtbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Parallel, Amiga.Core.Serial, Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Timer,Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, parallel, serial, amigados, intuition, timer,utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -300,7 +306,7 @@ type
             pdp_Version : UWORD;   { PRIVATE! driver specific version }
             { PRIVATE! driver specific id }
             pdp_PrinterID : array[0..31] of UBYTE;
-            pdp_PrefName : array[0..(FILENAME_SIZE - 16)-1] of char;
+            pdp_PrefName : array[0..(FILENAME_SIZE - 16)-1] of AnsiChar;
             { size of this structure }
             pdp_Length : ULONG;
          end;

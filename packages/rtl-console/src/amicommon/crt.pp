@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -20,8 +22,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility, Amiga.Core.Conunit, Amiga.Core.Intuition, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, Utility, conunit, intuition, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   MaxCols, MaxRows: LongInt;
@@ -65,15 +72,15 @@ const
 
 var
   // multiple keys
-  LastKeys: string = '';
+  LastKeys: Shortstring = '';
   Pens: array[0..15] of LongInt;
   FGPen: Byte = Black;
   BGPen: Byte = LightGray;
 
 
-function IntToStr(i: LongInt): AnsiString;
+function IntToStr(i: LongInt): ShortString;
 var
-  s: AnsiString;
+  s: ShortString;
 begin
   Str(i, s);
   IntToStr := s;
@@ -187,7 +194,7 @@ var
   fh: BPTR;
   Actual: Integer;
   Width, Height: LongInt;
-  report: array[0..25] of Char;
+  report: array[0..25] of AnsiChar;
   ToSend: AnsiString;
   Start, Ende: LongInt;
 begin
@@ -220,13 +227,13 @@ begin
           Inc(Ende);
         end;
         // skip over #$9b'1;1;'
-        if GetIntValues(PChar(@report[Start + 5]), Height, Width) then
+        if GetIntValues(PAnsiChar(@report[Start + 5]), Height, Width) then
         begin
           Pt.X := Width + 1;
           Pt.Y := Height + 1;
         end
         else
-          sysdebugln('scan failed. ' + PChar(@report[Start + 5]));
+          sysdebugln('scan failed. ' + PAnsiChar(@report[Start + 5]));
       end;
       //SetMode(fh, 0); // Normal mode
     end;
@@ -263,7 +270,7 @@ var
   fh: BPTR;
   Actual: Integer;
   PosX, PosY: LongInt;
-  report: array[0..25] of Char;
+  report: array[0..25] of AnsiChar;
   ToSend: AnsiString;
   Start, Ende: LongInt;
 begin
@@ -296,13 +303,13 @@ begin
           Inc(Ende);
         end;
         // skip over #$9b
-        if GetIntValues(PChar(@report[Start + 1]), PosY, PosX) then
+        if GetIntValues(PAnsiChar(@report[Start + 1]), PosY, PosX) then
         begin
           Pt.X := PosX;
           Pt.Y := PosY;
         end
         else
-          sysdebugln('scan failed. ' +  PChar(@report[Start + 1]));
+          sysdebugln('scan failed. ' +  PAnsiChar(@report[Start + 1]));
       end;
       //SetMode(fh, 0); // Normal mode
     end;
@@ -397,11 +404,11 @@ begin
   GotoXY(1, 1);
 end;
 
-function WaitForKey: string;
+function WaitForKey: ShortString;
 var
   OutP: BPTR; // Output file handle
-  Res: Char; // Char to get from console
-  Key: string; // result
+  Res: AnsiChar; // AnsiChar to get from console
+  Key: ShortString; // result
 begin
   Key := '';
   OutP := DosOutput();
@@ -442,9 +449,9 @@ end;
 
 type
   TKeyMap = record
-    con: string;
-    c1: Char;
-    c2: Char;
+    con: ShortString;
+    c1: AnsiChar;
+    c2: AnsiChar;
   end;
 const
   KeyMapping: array[0..37] of TKeyMap =
@@ -492,9 +499,9 @@ const
      (con: #155' @'; c1: #0; c2:#68;)  // Shift Cursor Left
      );
 
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 var
-  Res: string;
+  Res: ShortString;
   i: Integer;
 begin
   // we got a key to sent
@@ -704,7 +711,7 @@ begin
   WindMaxY := MaxRows - 1;
 end;
 
-procedure WriteChar(c: Char; var Curr: TPoint; var s: AnsiString);
+procedure WriteChar(c: AnsiChar; var Curr: TPoint; var s: AnsiString);
 //var
 //  i: Integer;
 var
@@ -730,7 +737,7 @@ begin
     begin
       // all other Chars
       s := s + c;
-      //sysdebugln(' Char: ' + c + ' ' + IntToStr(Curr.X) + ' ' + IntToStr(Curr.Y) + ' - ' + IntToStr(WindMinY) + ' ' + IntToStr(WindMaxY));
+      //sysdebugln(' AnsiChar: ' + c + ' ' + IntToStr(Curr.X) + ' ' + IntToStr(Curr.Y) + ' - ' + IntToStr(WindMinY) + ' ' + IntToStr(WindMaxY));
       case c of
         #10: begin
           if WindMinX > 0 then
@@ -788,7 +795,7 @@ end;
 
 Procedure CrtRead(Var F: TextRec);
 var
-  ch : Char;
+  ch : AnsiChar;
 
   procedure BackSpace;
   begin

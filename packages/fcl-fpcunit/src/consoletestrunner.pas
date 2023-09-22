@@ -17,16 +17,25 @@
   along with this library; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit consoletestrunner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp, System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, FpcUnit.Utils,
+  FpcUnit.Reports, FpcUnit.Reports.LaTeX, FpcUnit.Reports.XMLTest, FpcUnit.Reports.Plain,
+  FpcUnit.Reports.JUnit, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   custapp, Classes, SysUtils, fpcunit, testregistry, testutils,
   fpcunitreport, latextestreport, xmltestreport, plaintestreport,
   junittestreport, dom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Version = '0.3';
@@ -81,10 +90,14 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.IniFiles, FpcUnit.Decorator;
+{$ELSE FPC_DOTTEDUNITS}
 uses inifiles, testdecorator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
-  ShortOpts = 'alhp';
+  ShortOpts = 'alhpsyrn';
   DefaultLongOpts: array[1..11] of string =
      ('all', 'list', 'progress', 'help', 'skiptiming',
       'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses');
@@ -109,7 +122,7 @@ Type
     FErrors : Integer;
     FQuiet : Boolean;
     FSuccess : Boolean;
-    procedure WriteChar(c: char);
+    procedure WriteChar(c: AnsiChar);
   public
     Constructor Create(AQuiet : Boolean);
     destructor Destroy; override;
@@ -132,10 +145,10 @@ Type
   TProgressWriter
   ---------------------------------------------------------------------}
 
-procedure TProgressWriter.WriteChar(c: char);
+procedure TProgressWriter.WriteChar(c: AnsiChar);
 begin
   write(c);
-  // flush output, so that we see the char immediately, even it is written to file
+  // flush output, so that we see the AnsiChar immediately, even it is written to file
   Flush(output);
 end;
 
@@ -321,15 +334,15 @@ begin
     writeln('    xml              output as XML source (default)');
     writeln('    junit            output as JUnit compatible XML source');
     writeln('  --skiptiming              Do not output timings (useful for diffs of testruns)');
-    writeln('  --sparse                  Produce Less output (errors/failures only)');
-    writeln('  --no-addresses            Do not display address info');
-    writeln('  --stylesheet=<reference>   add stylesheet reference');
+    writeln('  -r or --sparse            Produce Less output (errors/failures only)');
+    writeln('  -n or --no-addresses      Do not display address info');
+    writeln('  -y or --stylesheet=<reference>   add stylesheet reference');
     writeln('  --file=<filename>         output results to file');
     writeln;
     writeln('  -l or --list              show a list of registered tests');
     writeln('  -a or --all               run all tests');
     writeln('  -p or --progress          show progress');
-    writeln('  --suite=MyTestSuiteName   run single test suite class');
+    writeln('  -s or --suite=MyTestSuiteName   run single test suite class');
     WriteCustomHelp;
     writeln;
     Writeln('Defaults for long options will be read from ini file ',DefaultsFileName);
@@ -399,20 +412,20 @@ begin
     FormatParam:=StrToFormat(GetOptionValue('format'));
   if HasOption('file') then
     FileName:=GetOptionValue('file');
-  if HasOption('stylesheet') then
-    StyleSheet:=GetOptionValue('stylesheet');
+  if HasOption('y','stylesheet') then
+    StyleSheet:=GetOptionValue('y','stylesheet');
   if HasOption('p', 'progress') then
     ShowProgress:=True;
   if HasOption('skiptiming') then
     FSkipTiming:=True;
-  if HasOption('sparse') then
+  if HasOption('r','sparse') then
     FSparse:=True;
-  If HasOption('no-addresses') then
+  If HasOption('n','no-addresses') then
     FSkipAddressInfo:=True;
   // Determine runmode
-  if HasOption('suite') then
+  if HasOption('s','suite') then
     begin
-    FSuite:=GetOptionValue('suite');
+    FSuite:=GetOptionValue('s','suite');
     FRunMode:=rmSuite;
     end
   else If HasOption('a','all') then

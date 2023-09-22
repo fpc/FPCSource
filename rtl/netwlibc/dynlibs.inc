@@ -30,7 +30,7 @@ end;
 Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
-  Result:=dlsym(lib,pchar(ProcName));
+  Result:=dlsym(lib,PAnsiChar(ProcName));
 end;
 
 Function SysUnloadLibrary(Lib : TLibHandle) : Boolean;
@@ -39,7 +39,7 @@ begin
   Result:=dlClose(Lib)=0;
 end;
 
-Function SysGetLoadErrorStr: string;
+Function SysGetLoadErrorStr: AnsiString;
 
 begin  
   Result:='';

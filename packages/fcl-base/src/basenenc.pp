@@ -13,13 +13,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit basenenc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TAlphabetEncoder }
@@ -97,7 +103,7 @@ Function Base64 : TAlphabetEncoder;
 Function Base64URL : TAlphabetEncoder;
 Function GetStandardEncoder(aEncoder : TStandardEncoder): TAlphabetEncoder;
 
-Function GetRawStringBytes(const S : String) : TBytes;
+Function GetRawStringBytes(const S : AnsiString) : TBytes;
 Function GetRawStringFromBytes(B : TBytes) : RawByteString;
 
 implementation
@@ -115,7 +121,7 @@ begin
     Move(B[0],Result[1],L);
 end;
 
-Function GetRawStringBytes(Const S : String) : TBytes;
+Function GetRawStringBytes(Const S : AnsiString) : TBytes;
 
 Var
   L : Integer;

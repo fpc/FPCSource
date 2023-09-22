@@ -1019,6 +1019,39 @@ unit scandir;
       end;
 
 
+    procedure dir_namespaces;
+
+    { add namespaces to the local namespace list }
+      var
+        s : string;
+
+    begin
+      if not current_module.in_global then
+        Message(scan_w_switch_is_global)
+      else
+        begin
+          current_scanner.skipspace;
+          current_scanner.readstring;
+          s:=orgpattern;
+          While (s<>'') do
+            begin
+              // We may not yet have a correct module namespacelist.
+              if assigned(current_namespacelist) then
+                current_namespacelist.Insert(s)
+              else // copied when correct module is activated
+                premodule_namespacelist.Insert(s);
+              s:='';  
+              if c=',' then
+                begin
+                  current_scanner.readchar;
+                  current_scanner.skipspace;
+                  current_scanner.readstring;
+                  s:=orgpattern;
+                end;
+            end;
+        end;
+    end;
+
     procedure dir_namespace;
       var
         s : string;
@@ -2029,6 +2062,7 @@ unit scandir;
         AddDirective('MODE',directive_all, @dir_mode);
         AddDirective('MODESWITCH',directive_all, @dir_modeswitch);
         AddDirective('NAMESPACE',directive_all, @dir_namespace);
+        AddDirective('NAMESPACES',directive_all, @dir_namespaces);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);
         AddDirective('NOTE',directive_all, @dir_note);
         AddDirective('NOTES',directive_all, @dir_notes);

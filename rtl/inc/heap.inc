@@ -1295,8 +1295,8 @@ end;
 
 Function SysFreeMemSize(p: pointer; size: ptruint):ptruint;
 begin
-  if size=0 then
-    exit(0);
+//  if size=0 then
+//    exit(0);
   { can't free partial blocks, ignore size }
   result := SysFreeMem(p);
 end;

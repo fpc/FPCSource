@@ -1,0 +1,8 @@
+src/generics.strings.pas=namespaced/System.Generics.Strings.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/generics.collections.pas=namespaced/System.Generics.Collections.pas
+src/generics.hashes.pas=namespaced/System.Generics.Hashes.pas
+src/generics.memoryexpanders.pas=namespaced/System.Generics.MemoryExpanders.pas
+src/generics.helpers.pas=namespaced/System.Generics.Helpers.pas
+src/generics.defaults.pas=namespaced/System.Generics.Defaults.pas

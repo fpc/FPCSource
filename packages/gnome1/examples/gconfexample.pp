@@ -3,8 +3,8 @@ Program gconfexample;
 Uses glib, gtk, gconf, gconfclient;
 
 Const
-  PATH : PChar = '/apps/GNOMEnclature/gconf_example';
-  KEY : PChar= '/apps/GNOMEnclature/gconf_example/my_option';
+  PATH : PAnsiChar = '/apps/GNOMEnclature/gconf_example';
+  KEY : PAnsiChar= '/apps/GNOMEnclature/gconf_example/my_option';
 
 { Update the GConf key when the user toggles the check button. }
 Procedure button_toggled_cb (button : PGtkWidget; data : gpointer); cdecl;

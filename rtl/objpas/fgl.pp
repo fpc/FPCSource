@@ -21,12 +21,19 @@
 {$inline on}
 {$endif FGLINLINE}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fgl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types, System.SysUtils, System.SortBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   types, sysutils, sortbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MaxListSize = Maxint div 16;
@@ -437,8 +444,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************
                              TFPSList
@@ -811,7 +823,7 @@ end;
 
 procedure TFPSList.Sort(Compare: TFPSListCompareFunc);
 begin
-  Sort(Compare, SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 type
@@ -841,7 +853,7 @@ begin
   if (R > L) and (L >= 0) then
   begin
     Context.Compare := Compare;
-    SortingAlgorithm := SortBase.DefaultSortingAlgorithm;
+    SortingAlgorithm := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm;
     SortingAlgorithm^.ItemListSorter_ContextComparer(FList + FItemSize*L, R-L+1, FItemSize, @TFPSList_Sort_Comparer, @Context);
   end;
 end;

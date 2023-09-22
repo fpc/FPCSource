@@ -200,6 +200,21 @@
          Data : Pointer;
        end;
 
+       // "Maximum" available stringtype : Shortstring, AnsiString or WideString
+       {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
+       {$IFNDEF UNICODERTL}
+       RTLString = ansistring;
+       {$ELSE UNICODERTL}
+       RTLString = unicodestring;
+       {$ENDIF UNICODERTL}
+
+       {$else FPC_HAS_FEATURE_ANSISTRINGS}
+
+       RTLString = shortstring;
+
+       {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
        TObject = class
        public
           { please don't change the order of virtual methods, because
@@ -220,7 +235,7 @@
           class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;
           class function ClassName : shortstring;
-          class function ClassNameIs(const name : string) : boolean;
+          class function ClassNameIs(const name : RTLString) : boolean;
           class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
@@ -251,11 +266,11 @@
           class function GetInterfaceTable : pinterfacetable;
 
           { new since Delphi 2009 }
-          class function UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
-          class function QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+          class function UnitName : RTLString;
+          class function QualifiedClassName: RTLString;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
-          function ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};virtual;
+          function ToString: RTLString; virtual;
        end;
 
        IUnknown = interface
@@ -334,6 +349,36 @@
            function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          end;
 
+       TNoRefCountObject =  class(TObject, IInterface)
+         protected
+           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+           function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+           function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+       end;
+
+       
+       TInterfaceThunk = Class(TInterfacedObject)
+       Public
+         Type
+           TArgData = record
+             addr : pointer;   // Location
+             info : pointer;   // type info (if available: nil for untyped args)
+             idx  : smallint;  // param index in rtti
+             ahigh : sizeint;  // For open arrays, high()
+           end;
+           PArgData = ^TargData;
+         TThunkCallBack = Procedure(aInstance: Pointer; aMethod,aCount : Longint; aData : PArgData) of object;
+       Private  
+         FCallback : TThunkCallback;
+       Protected  
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         Procedure Thunk(aMethod: Longint; aCount : Longint; aData : PArgData); virtual;
+       Public  
+         constructor create(aCallBack : TThunkCallback);
+         function InterfaceVMTOffset : word; virtual;
+       end;  
+       TInterfaceThunkClass = class of TInterfaceThunk;
+
        { some pointer definitions }
        PUnknown = ^IUnknown;
        PPUnknown = ^PUnknown;
@@ -360,7 +405,7 @@
          procedure(reason: FPC_Unwind_Reason_Code; exc: PFPC_Unwind_Exception); cdecl;
 
        FPC_Unwind_Exception = record
-         { qword instead of array of char to ensure proper alignment and
+         { qword instead of array of AnsiChar to ensure proper alignment and
            padding, and also easier to compare }
          exception_class: qword;
          exception_cleanup: FPC_Unwind_Exception_Cleanup_Fn;
@@ -448,13 +493,13 @@
        StoredAttribute = Class(TCustomAttribute)
        Private
           FFlag : Boolean;
-          FName : String;
+          FName : ShortString;
        Public
          Constructor Create;
          Constructor Create(Const aFlag : Boolean);
-         Constructor Create(Const aName : String);
+         Constructor Create(Const aName : ShortString);
          Property Flag : Boolean Read FFlag;
-         Property Name : String Read FName;
+         Property Name : ShortString Read FName;
        end;
 
 
@@ -525,12 +570,12 @@
 {$ifdef ENDIAN_BIG}
            vtInteger       : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
            vtBoolean       : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
-           vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
+           vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: AnsiChar);
            vtWideChar      : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
 {$else ENDIAN_BIG}
            vtInteger       : (VInteger: Longint);
            vtBoolean       : (VBoolean: Boolean);
-           vtChar          : (VChar: Char);
+           vtChar          : (VChar: AnsiChar);
            vtWideChar      : (VWideChar: WideChar);
 {$endif ENDIAN_BIG}
 {$ifndef FPUNONE}
@@ -567,9 +612,148 @@
   type
     PResourceStringRecord = ^TResourceStringRecord;
     TResourceStringRecord = Record
-       Name,
+       Name : AnsiString;
        CurrentValue,
-       DefaultValue : AnsiString;
+       DefaultValue : RTLString;
        HashValue    : LongWord;
      end;
 {$endif FPC_HAS_FEATURE_RESOURCES}
+
+{*****************************************************************************
+                              Various Delphi elements
+ *****************************************************************************}
+
+Type
+  TPtrWrapper = record
+  private
+    FValue: Pointer;
+    class function GetNilValue: TPtrWrapper; inline; static;
+  public
+    constructor Create(AValue: PtrInt); overload;
+    constructor Create(AValue: Pointer); overload;
+    function ToPointer: Pointer; inline;
+    function ToInteger: PtrInt; inline;
+    class property NilValue: TPtrWrapper read GetNilValue;
+    class operator =(Left, Right: TPtrWrapper): Boolean; inline;
+    { ...to allow convenient and direct reading without relying on inline... and convenient writing from SysUtils until TMarshal is moved here... }
+    property Value: Pointer read FValue write FValue;
+  end;
+  TPtrWrapperArray = Array of TPtrWrapper;
+
+  { Generic array type. 
+    Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
+    But still useful for generic methods and of course Delphi compatibility}
+  generic TArray<T> = array of T;
+  
+  
+  
+  TMarshal = class sealed
+  public
+    Type 
+      TUnicodeCharArray = Array of UnicodeChar;
+      Tint8Array = Array of int8;
+      Tint16Array = Array of int16;
+      Tint32Array = Array of int32;
+      Tint64Array = Array of int64;
+      TUint8Array = Array of Uint8;
+      TUint16Array = Array of Uint16;
+      TUint32Array = Array of Uint32;
+      TUint64Array = Array of Uint64;
+      
+  Public
+    constructor Create;
+
+    class function AllocMem(Size: SizeInt): TPtrWrapper; static; inline;
+    class function ReallocMem(OldPtr: TPtrWrapper; NewSize: SizeInt): TPtrWrapper; static; inline;
+    class procedure FreeMem(Ptr: TPtrWrapper); static; inline;
+    class procedure Move(Src, Dest: TPtrWrapper; Count: SizeInt); static; inline;
+
+    class function UnsafeAddrOf(var Value): TPtrWrapper; static; inline;
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
+    class function AsAnsi(const S: UnicodeString): AnsiString; static; inline;
+    class function AsAnsi(S: PUnicodeChar): AnsiString; static; inline;
+
+    class function InOutString(const S: UnicodeString): PUnicodeChar; static; inline;
+    class function InString(const S: UnicodeString): PUnicodeChar; static; inline;
+    class function OutString(const S: UnicodeString): PUnicodeChar; static; inline;
+
+    class function AllocStringAsAnsi(const Str: UnicodeString): TPtrWrapper; static; inline;
+    class function AllocStringAsAnsi(const Str: UnicodeString; CodePage: Word): TPtrWrapper; static; inline;
+    class function AllocStringAsAnsi(S: PUnicodeChar): TPtrWrapper; static; inline;
+    class function AllocStringAsAnsi(S: PUnicodeChar; CodePage: Word): TPtrWrapper; static; inline;
+    class function AllocStringAsUnicode(const Str: UnicodeString): TPtrWrapper; static;
+    class function AllocStringAsUtf8(const Str: UnicodeString): TPtrWrapper; static; inline;
+    class function AllocStringAsUtf8(S: PUnicodeChar): TPtrWrapper; static; inline;
+
+    { Generalization of all AllocStringAsAnsi* above, public because used in TMarshaller. }
+    class function AllocStringAsAnsi(S: PUnicodeChar; Len: SizeInt; CodePage: Word): TPtrWrapper; static;
+
+    class procedure Copy(const Src: TUnicodeCharArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class function FixString(var Str: UnicodeString): TPtrWrapper; static;
+    class function UnsafeFixString(const Str: UnicodeString): TPtrWrapper; static;
+    class procedure UnfixString(Ptr: TPtrWrapper); static;
+
+    class function ReadStringAsAnsi(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
+    class function ReadStringAsAnsi(CodePage: Word; Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
+    class function ReadStringAsAnsiUpTo(CodePage: Word; Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
+
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static;
+
+    class function ReadStringAsUnicode(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
+    class function ReadStringAsUnicodeUpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
+    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
+    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
+
+    class function ReadStringAsUtf8(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
+    class function ReadStringAsUtf8UpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static; inline;
+    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUnicodeCharArray; StartIndex: SizeInt; Count: SizeInt); static; inline;
+{$ENDIF}
+
+    class procedure Copy(const Src: TUint8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUint8Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt8Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TUInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUInt16Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt16Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt32Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt32Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt64Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt64Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TPtrWrapperArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TPtrWrapperArray; StartIndex: SizeInt; Count: SizeInt); static; inline;
+
+    generic class function FixArray<T>(const Arr: specialize TArray<T>): TPtrWrapper; static;
+    generic class procedure UnfixArray<T>(ArrPtr: TPtrWrapper); static;
+
+
+
+    class function ReadByte(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Byte; static; inline;
+    class procedure WriteByte(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Byte); static; inline;
+    class procedure WriteByte(Ptr: TPtrWrapper; Value: Byte); static; inline;
+
+    class function ReadInt16(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int16; static; inline;
+    class procedure WriteInt16(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int16); static; inline;
+    class procedure WriteInt16(Ptr: TPtrWrapper; Value: Int16); static; inline;
+
+    class function ReadInt32(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int32; static; inline;
+    class procedure WriteInt32(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int32); static; inline;
+    class procedure WriteInt32(Ptr: TPtrWrapper; Value: Int32); static; inline;
+
+    class function ReadInt64(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Int64; static; inline;
+    class procedure WriteInt64(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Int64); static; inline;
+    class procedure WriteInt64(Ptr: TPtrWrapper; Value: Int64); static; inline;
+
+    class function ReadPtr(Ptr: TPtrWrapper; Ofs: SizeInt = 0): TPtrWrapper; static; inline;
+    class procedure WritePtr(Ptr: TPtrWrapper; Ofs: SizeInt; Value: TPtrWrapper); static; inline;
+    class procedure WritePtr(Ptr, Value: TPtrWrapper); static; inline;
+
+
+  end;

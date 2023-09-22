@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$GOTO on}
 
@@ -26,8 +28,13 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.Video, PalmApi.Keyboard, WinApi.WinProcs, WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   video, keyboard, WinProcs, WinTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************
                            Low level Routines
@@ -243,12 +250,12 @@ End;
 
 var
    is_last : boolean;
-   last    : char;
+   last    : AnsiChar;
 
-function readkey : char;
+function readkey : AnsiChar;
 var
   k: TKeyEvent;
-  char1, char2: char;
+  char1, char2: AnsiChar;
 begin
   if is_last then
   begin
@@ -390,7 +397,7 @@ end;
 var
   CurrX,CurrY : smallint;
 
-Procedure WriteChar(c:char);
+Procedure WriteChar(c:AnsiChar);
 begin
   case c of
    #10 : inc(CurrY);
@@ -451,7 +458,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
 Begin
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;

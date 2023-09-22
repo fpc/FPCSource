@@ -1,3 +1,6 @@
+{$IFDEF CPUWASM}
+{$DEFINE NOGOTO}
+{$ENDIF}
 { ----------------------- JPEG_INTERNAL_OPTIONS ---------------------- }
 
 
@@ -113,4 +116,5 @@
 {$MODE DELPHI}
 {$GOTO ON}
 {$DEFINE DELPHI_STREAM}
+{$H-}
 {$ENDIF}

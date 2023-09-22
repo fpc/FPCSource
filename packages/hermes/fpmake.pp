@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -83,6 +83,9 @@ T:=P.Targets.AddUnit('hermes.pp');
       AddInclude('x86_64_i8.inc',[x86_64],AllOSes);
    end;
 
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

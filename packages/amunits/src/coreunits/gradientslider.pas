@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gradientslider;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const

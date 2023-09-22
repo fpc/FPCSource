@@ -21,9 +21,15 @@ unit blockrtl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.InitC,
+    System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     initc,
     ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
   { blocks helpers }
   function _Block_copy(const aBlock: pointer): pointer; cdecl; external;
@@ -86,7 +92,7 @@ interface
       { signatures are only for the "ABI.2010.3.16" version, but that's all we support
         because otherwise the callback has to be a C-style variadic function, which
         we cannot (yet?) generate on the callee side}
-      signature: pchar;
+      signature: pAnsichar;
     end;
 
     { descriptor for a simple block (no copy/release) }
@@ -98,7 +104,7 @@ interface
       { signatures are only for the "ABI.2010.3.16" version, but that's all we support
         because otherwise the callback has to be a C-style variadic function, which
         we cannot (yet?) generate on the callee side}
-      signature: pchar;
+      signature: pansichar;
     end;
 
     { for global procedures }

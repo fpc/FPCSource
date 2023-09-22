@@ -39,8 +39,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
@@ -72,9 +72,9 @@ var
   meml : array[0..($7fffffff div sizeof(longint)) -1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc  : longint;
-  argv  : ppchar;
-  envp  : ppchar;
-  dos_argv0 : pchar;
+  argv  : PPAnsiChar;
+  envp  : PPAnsiChar;
+  dos_argv0 : PAnsiChar;
 
   AllFilesMask: string [3];
 
@@ -130,16 +130,16 @@ var
   rm_argv  : ^arrayword;
   argv0len : longint;
   useproxy : boolean;
-  hp       : ppchar;
+  hp       : PPAnsiChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
   arglen,
   count   : longint;
   argstart,
-  pc,arg  : pchar;
-  quote   : char;
+  pc,arg  : PAnsiChar;
+  quote   : AnsiChar;
   argvlen : longint;
 
-  function atohex(s : pchar) : longint;
+  function atohex(s : PAnsiChar) : longint;
   var
     rv : longint;
     v  : byte;
@@ -221,7 +221,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -238,7 +238,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -278,7 +278,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -298,7 +298,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -391,7 +391,7 @@ begin
   sysreallocmem(argv,(argc+1)*sizeof(pointer));
 end;
 
-function strcopy(dest,source : pchar) : pchar;assembler;
+function strcopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
@@ -473,7 +473,7 @@ var
 
 procedure setup_environment;
 var env_count : longint;
-    dos_env,cp : pchar;
+    dos_env,cp : PAnsiChar;
 begin
   env_count:=0;
   dos_env:=getmem(env_size);
@@ -485,7 +485,7 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  envp := sysgetmem((env_count+1) * sizeof(pchar));
+  envp := sysgetmem((env_count+1) * sizeof(PAnsiChar));
   if (envp = nil) then exit;
   cp:=dos_env;
   env_count:=0;
@@ -642,7 +642,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l+1<=argc) then
    paramstr:=strpas(argv[l])
@@ -703,7 +703,7 @@ end;
 function CheckLFN:boolean;
 var
   regs     : TRealRegs;
-  RootName : pchar;
+  RootName : PAnsiChar;
 begin
 { Check LFN API on drive c:\ }
   RootName:='C:\';

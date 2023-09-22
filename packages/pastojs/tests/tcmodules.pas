@@ -32,6 +32,7 @@ const
   // default parser+scanner options
   po_tcmodules = po_Pas2js+[po_KeepScannerError];
   co_tcmodules = [];
+  JSONNewLine = {$IFDEF Windows}'\r\n'{$ELSE}'\n'{$ENDIF};
 type
   TSrcMarkerKind = (
     mkLabel,
@@ -940,6 +941,7 @@ type
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
     procedure TestRangeChecks_TypeHelperInt;
+    procedure TestRangeChecks_AssignCurrency;
 
     // Async/AWait
     Procedure TestAsync_Proc;
@@ -7190,6 +7192,7 @@ begin
   '  Enum: byte;',
   '  Enums: tenums;',
   'begin',
+  '  Enum:=ord(1);',
   '  Enums:=[];',
   '  Enums:=[0];',
   '  Enums:=[1..2];',
@@ -7205,6 +7208,7 @@ begin
     'this.Enums = {};',
     '']),
     LinesToStr([
+    '$mod.Enum = 1;',
     '$mod.Enums = {};',
     '$mod.Enums = rtl.createSet(0);',
     '$mod.Enums = rtl.createSet(null, 1, 2);',
@@ -8874,11 +8878,11 @@ begin
   CheckSource('TestStringConst_Multiline',
     LinesToStr([
     'this.a = "";',
-    'this.b = "\nline";',
+    'this.b = "'+JSONNewLine+'line";',
     'this.c = "Single";',
     'this.d = "`";',
     'this.e = "abc`xyz";',
-    'this.f = "first''line\n       second''line\n";',
+    'this.f = "first''line'+JSONNewLine+'       second''line\n";',
     '']),
     LinesToStr([
     ]));
@@ -34806,6 +34810,52 @@ begin
     '      this.p.FSize = v;',
     '    }',
     '}, 16);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignCurrency;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'var',
+  '  c: currency = 2.34;',
+  '  i: double;',
+  'procedure DoIt(p: currency);',
+  'begin',
+  '  c:=i;',
+  '  c+=i;',
+  '  c:=1;',
+  'end;',
+  '{$R-}',
+  'procedure DoSome;',
+  'begin',
+  '  DoIt(i);',
+  '  c:=i;',
+  '  c:=2;',
+  'end;',
+  'begin',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignCurrency',
+    LinesToStr([ // statements
+    'this.c = 2.34;',
+    'this.i = 0.0;',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, -922337203685477, 922337203685477);',
+    '  $mod.c = rtl.rc(rtl.trunc($mod.i * 10000), -922337203685477, 922337203685477);',
+    '  rtl.rc($mod.c += rtl.trunc($mod.i * 10000), -922337203685477, 922337203685477);',
+    '  $mod.c = 10000;',
+    '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.i * 10000);',
+    '  $mod.c = rtl.trunc($mod.i * 10000);',
+    '  $mod.c = 20000;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

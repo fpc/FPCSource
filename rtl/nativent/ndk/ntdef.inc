@@ -23,7 +23,7 @@ type
   PHANDLE = ^HANDLE;
 
   { Upper-Case Versions of Some Standard C Types }
-  //CHAR = Char;
+  //AnsiChar = AnsiChar;
   SHORT = ShortInt;
   LONG = LongInt;
   //DOUBLE = Double;

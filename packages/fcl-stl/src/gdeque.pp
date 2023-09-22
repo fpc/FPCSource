@@ -12,7 +12,9 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdeque;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Implements a generic double ended queue.

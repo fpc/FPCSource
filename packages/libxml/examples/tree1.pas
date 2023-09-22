@@ -52,7 +52,7 @@ begin
   LIBXML_TEST_VERSION;
 
   (* parse the file and get the DOM *)
-  doc := xmlReadFile(pchar(paramStr(1)), nil, 0);
+  doc := xmlReadFile(PAnsiChar(paramStr(1)), nil, 0);
 
   if not assigned(doc) then
   begin

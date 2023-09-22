@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JFDctInt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This file contains a slow-but-accurate integer implementation of the
@@ -24,12 +26,21 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct;         { Private declarations for DCT subsystem }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jutils,
   jpeglib,
   jdct;         { Private declarations for DCT subsystem }
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Perform the forward DCT on one block of samples. }

@@ -29,7 +29,7 @@
   { which holds the Paradox-form Picture.  If an error is  }
   { found the position of the error is placed in CPos.     }
 
-function nCheckPxPicture(var s, Pic : string;
+function nCheckPxPicture(var s, Pic : shortstring;
                       var CPos : integer) : word;
   const
     { flError, flCharOk and flFormatOK are constants used  }
@@ -49,7 +49,7 @@ function nCheckPxPicture(var s, Pic : string;
   { the benefit of the author.  It changes the Copy func.  }
   { so that its parameters represent start and end points  }
   { rather than a start point followed by a quantity.      }
-  function Copy(s : string; start, stop : integer) : string;
+  function Copy(s : shortstring; start, stop : integer) : shortstring;
   begin
     if stop < start then Copy:=''
     else Copy:=System.Copy(s,start,stop-start+1);
@@ -57,7 +57,7 @@ function nCheckPxPicture(var s, Pic : string;
 
   { Function FindMatch recursively locates the matching   }
   (* grouping characters for "{" and "[".                *)
-  function FindMatch(P : string) : integer;
+  function FindMatch(P : Shortstring) : integer;
   var
     i:integer;
     match:boolean;
@@ -84,7 +84,7 @@ function nCheckPxPicture(var s, Pic : string;
   { characters successfully resolved is returned in the    }
   { parameter resolved. When groups or repetitions are     }
   { encountered CP will call itself recursively.           }
-  function CP(var s : string; Pic : string; var CPos :
+  function CP(var s : shortstring; Pic : shortstring; var CPos :
               integer; var Resolved : integer) : word;
   const
      CharMatchSet = ['#', '?', '&', '''', '@', '!'];
@@ -139,7 +139,7 @@ function nCheckPxPicture(var s, Pic : string;
           s[i]:=Pic[index];
           if i>length(s) then begin
             CPos:=i;
-            s[0]:=char(i);
+            SetLength(s,i);
           end;
           inc(i);
           inc(index);
@@ -221,13 +221,13 @@ function nCheckPxPicture(var s, Pic : string;
     function Group:word;
     var
       result_: word;
-      TempS: string;
-      TempPic: string;
+      TempS: shortstring;
+      TempPic: shortstring;
       TempCPos: integer;
       PicEnd: integer;
       TempIndex: integer;
       SwapIndex:integer;
-      SwapPic : string;
+      SwapPic : shortstring;
     begin
       TempPic:=Copy(Pic,index,length(Pic));
       PicEnd:=FindMatch(TempPic);
@@ -270,17 +270,17 @@ function nCheckPxPicture(var s, Pic : string;
     var
       result_:word;
       count:integer;
-      TempPic:string;
-      TempS:string;
+      TempPic:shortstring;
+      TempS:shortstring;
       TempCPos:integer;
       TempIndex:integer;
       SwapIndex:integer;
-      SwapPic:string;
+      SwapPic:shortstring;
       PicEnd:integer;
       commit:boolean;
 
       procedure MakeCount;
-      var nstr:string;
+      var nstr:shortstring;
           code:integer;
       begin
         if Pic[index] in ['0'..'9'] then begin

@@ -134,7 +134,7 @@ implementation
     uses
       SysUtils,
       cstreams,cutils,
-      verbose,
+      globals,verbose,
       omfbase;
 
     const

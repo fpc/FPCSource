@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -1289,6 +1289,9 @@ begin
     P.Sources.AddExampleFiles('examples/plugins/*',P.Directory,false,'plugins');
     P.Sources.AddExampleFiles('examples/scribble_simple/*',P.Directory,false,'scribble_simple');
 
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

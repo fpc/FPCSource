@@ -20,14 +20,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
@@ -43,8 +48,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -66,7 +76,7 @@ begin
     fmOpenWrite : NDSFlags := NDSFlags or O_WrOnly;
     fmOpenReadWrite : NDSFlags := NDSFlags or O_RdWr;
   end;
-  FileOpen := _open(pchar(SystemFileName), NDSFlags);
+  FileOpen := _open(PAnsiChar(SystemFileName), NDSFlags);
 end;
 
 
@@ -172,7 +182,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  if (_stat(pchar(SystemFileName), Info) < 0) or S_ISDIR(info.st_mode) then
+  if (_stat(PAnsiChar(SystemFileName), Info) < 0) or S_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result := (info.st_mtime);
@@ -217,7 +227,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  If _stat(pchar(SystemFileName), Info) <> 0 then
+  If _stat(PAnsiChar(SystemFileName), Info) <> 0 then
     Result := -1
   Else
     Result := (Info.st_mode shr 16) and $ffff;

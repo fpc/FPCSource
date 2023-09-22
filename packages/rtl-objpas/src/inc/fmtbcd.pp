@@ -136,13 +136,21 @@
   {$define maybe_packed := (**)}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT FmtBCD;
+{$ENDIF}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+  USES
+    System.SysUtils,
+    System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
   USES
     SysUtils,
     Variants;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
     MaxStringDigits = 100;          { not used ! }
@@ -858,8 +866,13 @@ INTERFACE
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+  USES
+    System.Classes {$ifopt r+}, System.SysConst {$endif};
+{$ELSE}
   USES
     classes {$ifopt r+}, sysconst {$endif};
+{$ENDIF}
 
   type
     TFMTBcdFactory = CLASS(TPublishableVarianttype)
@@ -950,7 +963,7 @@ IMPLEMENTATION
       j : Integer;
 
     const
-      ft : ARRAY [ Boolean ] of Char = ( 'f', 't' );
+      ft : ARRAY [ Boolean ] of AnsiChar = ( 'f', 't' );
 
     begin
 {$ifndef bigger_BCD}
@@ -980,7 +993,7 @@ IMPLEMENTATION
       i : Integer;
 
     const
-      ft : ARRAY [ Boolean ] of Char = ( 'f', 't' );
+      ft : ARRAY [ Boolean ] of AnsiChar = ( 'f', 't' );
 
     begin
       Write ( 'Prec:', v.Prec, ' ',
@@ -1394,7 +1407,7 @@ IMPLEMENTATION
       lav : {$ifopt r+} longword {$else} longword {$endif};
       i   : {$ifopt r+} longword {$else} longword {$endif};
 {$endif}
-      ch : Char;
+      ch : AnsiChar;
 
     type
       ife = ( inint, infrac, inexp );
@@ -2501,7 +2514,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
                              Digits : Integer ) : FmtBCDStringtype;
     var P, E: integer;
         Negative: boolean;
-        DS, TS: char;
+        DS, TS: AnsiChar;
 
     procedure RoundDecimalDigits(const d: integer);
     var i,j: integer;
@@ -2526,7 +2539,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
             break;
           end;
         end;
-      if d = 0 then dec(j); // if decimal separator is last char then do not copy them
+      if d = 0 then dec(j); // if decimal separator is last AnsiChar then do not copy them
       Result := copy(Result, 1, j);
     end;
 
@@ -2592,10 +2605,10 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
           if E < 0 then
           begin
             System.Delete(Result, P+E-1, -E);
-            Result := Result + SysUtils.Format('E%.*d' , [Digits,E])
+            Result := Result + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format('E%.*d' , [Digits,E])
           end
           else
-            Result := Result + SysUtils.Format('E+%.*d', [Digits,E]);
+            Result := Result + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format('E+%.*d', [Digits,E]);
         End;
 
         ffFixed:
@@ -2654,25 +2667,25 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       TSection=record
         FmtStart, FmtEnd,      // positions in Format string,
         Fmt1Dig,               // position of 1st digit placeholder,
-        FmtDS: PChar;          // position of decimal point
+        FmtDS: PAnsiChar;          // position of decimal point
         Digits: integer;       // number of all digit placeholders
         DigDS: integer;        // number of digit placeholders after decimal separator
         HasTS, HasDS: boolean; // has thousand or decimal separator?
       end;
 
     var
-      PFmt: PChar;
+      PFmt: PAnsiChar;
       i, j, j1, je, ReqSec, Sec, Scale: integer;
       Section: TSection;
       FF: TFloatFormat;
       BCDStr: string;                   // BCDToStrF of given BCD parameter
-      Buf: array [0..85] of char;       // output buffer
+      Buf: array [0..85] of AnsiChar;       // output buffer
 
     // Parses Format parameter, their sections (positive;negative;zero) and
     //  builds Section information for requested section
     procedure ParseFormat;
-    var C,Q: Char;
-        PFmtEnd: PChar;
+    var C,Q: AnsiChar;
+        PFmtEnd: PAnsiChar;
         Section1: TSection;
     begin
       PFmt:=@Format[1];
@@ -2744,8 +2757,8 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       end;
     end;
 
-    procedure PutFmtDigit(var AFmt: PChar; var iBCDStr, iBuf: integer; MoveBy: integer);
-    var ADig, Q: Char;
+    procedure PutFmtDigit(var AFmt: PAnsiChar; var iBCDStr, iBuf: integer; MoveBy: integer);
+    var ADig, Q: AnsiChar;
     begin
       if (iBuf < low(Buf)) or (iBuf > high(Buf)) then
         raise eBCDOverflowException.Create ( 'in FormatBCD' );
@@ -4305,7 +4318,7 @@ end;
     {$ifdef BCDgr4 }
 
   const
-    myMinIntBCDValue : packed array [ 1..3 ] of Char = #$32#$76#$80;
+    myMinIntBCDValue : packed array [ 1..3 ] of AnsiChar = #$32#$76#$80;
 
     {$endif}
   {$else}
@@ -4314,7 +4327,7 @@ end;
       {$ifdef BCDgr9 }
 
   const
-    myMinIntBCDValue : packed array [ 1..10 ] of Char = #$21#$47#$48#$36#$48;
+    myMinIntBCDValue : packed array [ 1..10 ] of AnsiChar = #$21#$47#$48#$36#$48;
 
       {$endif}
 (*
@@ -4323,7 +4336,7 @@ end;
         {$ifdef BCDgr18 }
 
   const
-    myMinIntBCDValue : packed array [ 1..19 ] of Char = #$92#$23#$37#$20#$36#$85#$47#$75#$80#$80;
+    myMinIntBCDValue : packed array [ 1..19 ] of AnsiChar = #$92#$23#$37#$20#$36#$85#$47#$75#$80#$80;
 
         {$endif}
       {$else}

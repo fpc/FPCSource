@@ -15,11 +15,17 @@
 
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Pipes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils,System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 Uses sysutils,Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EPipeError = Class(EStreamError);

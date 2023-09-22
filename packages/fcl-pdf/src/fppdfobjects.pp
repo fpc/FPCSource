@@ -14,7 +14,9 @@
 
   **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfobjects;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
@@ -25,10 +27,16 @@ unit fppdfobjects;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.TypInfo, System.Types, System.RtlConsts, System.SysUtils, System.Classes, System.Contnrs, FpPdf.Consts;
+{$ELSE FPC_DOTTEDUNITS}
   TypInfo, Types, rtlConsts, SysUtils, Classes, Contnrs, fppdfconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   PDFTextArraySpaceTreshold = 200;
+  SegmentDelta = 16;
+  PointPrecision = 0.001;
 
 Type
   EPDF = Class(Exception);
@@ -53,6 +61,90 @@ Type
   );
   TPDFTokenTypes = set of TPDFTokenType;
 
+  TPDFLineCapStyle = (lcsbutt,lcsRund,lcsProjecting);
+  TPDFLineJoinStyle = (ljsMiter,ljsRound,ljsBevel);
+
+  TPDFStrokeOption = (soClose, soStroke, soFill, soEvenOdd, soNonZeroWinding);
+  TPDFStrokeOptions = set of TPDFStrokeOption;
+
+  TPDFColorSpace = (csDict,csDeviceGray,csDeviceRGB,csDeviceCMYK);
+  TPDFColor = array[0..3] of single;
+  TPDFColorType = (ctStroke,ctFill);
+  TPDFFullColor = record
+    Space : TPDFColorSpace;
+    Color : TPDFColor;
+  end;
+
+  TPDFTextRenderModePart = (trmFill,trmStroke,trmAddToClippingPath);
+  TPDFTextRenderMode = Set of TPDFTextRenderModePart;
+
+  TPDFTransFormationLine = Array[0..2] of Single;
+  TPDFTransFormationMatrix = Array[0..2] of TPDFTransFormationLine;
+
+
+  { TPDFPoint }
+
+  TPDFPoint = Record
+    X,Y : Single;
+    class Function Create(aX,aY : Single) : TPDFPoint; static;
+    class operator +(const A, B: TPDFPoint): TPDFPoint;
+    class operator =(const A, B: TPDFPoint): Boolean;
+    Function AsString : String;
+  end;
+
+  { TPDFRect }
+
+  TPDFRect = record
+    ll : TPDFPoint;
+    ur : TPDFPoint;
+    Function AsString : String;
+  end;
+
+  TPDFSegmentType = (stStart,stLine,stBezierLimits,stBezierControl,stClose);
+
+  { TPDFPathSegment }
+
+  TPDFPathSegment = record
+     SegmentType : TPDFSegmentType;
+     P1,P2 : TPDFPoint;
+     Function Description : String;
+  end;
+  TPDFPathSegmentArray = array of TPDFPathSegment;
+
+  { TPDFPath }
+
+  TPDFPath = Record
+  Private
+    FSegments : TPDFPathSegmentArray;
+    FCount : Word;
+    Procedure AddSegment(aSegment : TPDFPathSegment);
+    function GetSegments(aIndex : Word): TPDFPathSegment;
+  Public
+    Procedure Add(aSegment : TPDFPathSegment);
+    Procedure AddBezier(aLimits,aControl : TPDFPathSegment);
+    Procedure Clear;
+    Property Segments[aIndex : Word] : TPDFPathSegment read GetSegments;
+    Property Count : Word Read FCount;
+  end;
+  { TTransFormation }
+
+  { TPDFTransFormation }
+
+  TPDFTransFormation = Record
+    M : TPDFTransFormationMatrix;
+    Class Function Default: TPDFTransformation; static;
+    Class function Create(const a,b,c,d,e,f : Single) : TPDFTransformation; static;
+    class operator *(const A, B: TPDFTransFormation): TPDFTransFormation;
+    procedure Translate(const aX,aY : Single);
+    procedure Translate(const P: TPDFPoint);
+  end;
+
+
+  TPDFDashPattern = record
+    Phase : Integer;
+    Pattern : TIntegerDynArray; // Maybe use boolean ?
+  end;
+
   { TPDFToken }
 
   TPDFToken = record
@@ -67,6 +159,7 @@ Type
     Function AsBEHexInteger : Integer;
     Function AsInteger : Integer;
     Function AsDouble : Double;
+    Function AsSingle : Single;
     Function IsHexString : Boolean;
     Function IsString : Boolean;
     Function AsString : RawByteString;
@@ -168,7 +261,9 @@ Type
     function GetDescription : String; override;
     Function IsKeyword (const aKeyWord : string) : Boolean;
     Function IsInteger : Boolean;
+    Function IsFloat : Boolean;
     Function IsInt64 : Boolean;
+    Function IsBoolean : Boolean;
     Property TokenType : TPDFTokentype Read FTokenType;
     Property Value : RawbyteString Read FValue Write FValue;
     Property AsInteger : Integer Read GetAsInteger;
@@ -303,8 +398,10 @@ Type
     class function ElementType : TPDFElementType; override;
     function GetDescription: String; override;
     Function IsIntegerAt(aIndex : Integer) : Boolean;
+    Function IsFloatAt(aIndex : Integer) : Boolean;
     Function IsKeywordAt(aIndex : Integer; const aKeyWord: RawByteString) : Boolean;
     Function GetIntegerAt(aIndex : Integer) : Integer;
+    Function GetFloatAt(aIndex : Integer) : Double;
   end;
 
   { TPDFDictEntry }
@@ -313,6 +410,7 @@ Type
   private
     FKey: String;
     FValue: TPDFObject;
+    function GetDescription(const indent : string): String;
   Public
     class function ElementType : TPDFElementType; override;
     Destructor Destroy; override;
@@ -325,6 +423,8 @@ Type
   { TPDFDictionary }
 
   TPDFDictionary = class(TPDFContainer)
+  Protected
+    function GetDescription(const Indent : String): String;
   Public
     class function ElementType : TPDFElementType; override;
     function GetDescription: String; override;
@@ -340,6 +440,7 @@ Type
     Function GetValue(const aKeyword : RawByteString) : TPDFObject;
     Function GetStringValue(const aKeyword : RawByteString) : RawByteString;
     Function GetIntegerValue(const aKeyword : RawByteString) : Integer;
+    Function GetSingleValue(const aKeyword : RawByteString) : Single;
     Function GetInt64Value(const aKeyword : RawByteString) : Int64;
     Function GetArrayValue(const aKeyword : RawByteString) : TPDFArray;
     Function GetDictionaryValue(const aKeyword : RawByteString) : TPDFDictionary;
@@ -465,6 +566,7 @@ Type
     function FindResources: TPDFDictionary;
     Function FindFontRefObj(const aFontName : String) : TPDFRef;
     Function FindFontRef(const aFontName : String) : TPDFRefData;
+    Function GetMediaBox : TPDFRect;
     Property ParentRef : TPDFRef Read GetParentRef;
     Property Parent : TPDFIndirect Read GetParent;
     Property Contents[aIndex : integer] : TPDFIndirect Read GetContent;
@@ -472,6 +574,7 @@ Type
     Property ContentCount : Integer read GetContentCount;
     Property CommandList : TPDFCommandList Read FCommandList;
     Property Resources : TPDFDictionary Read GetResources;
+
   end;
   TPDFPageClass = Class of TPDFPageObject;
 
@@ -499,6 +602,89 @@ Type
     Property ToUnicode : TPDFRef Read GetToUnicodeObj; // 5
     // Owned by Font !
     Property UnicodeCMAP : TPDFCMap Read FUnicodeCMAP Write FUnicodeCMAP;
+  end;
+
+  { TPDFFontDescriptor }
+
+  TPDFFontDescriptor = class(TPDFIndirect)
+  private
+    function GetFloat(AIndex: Integer): Single;
+    function GetInteger(AIndex: Integer): Integer;
+    function GetRect(AIndex: Integer): TPDFRect;
+    function GetStream(AIndex: Integer): TPDFRefData;
+    function GetString(AIndex: Integer): String;
+    function GetValueName(AIndex: Integer): String;
+  Protected
+    Class function RegisterAsType : String; override;
+  Public
+    Function GetDescription: String; override;
+    Property Type_ : String Index 0 Read GetString;
+    Property FontFamily : String Index 1 Read GetString;
+    Property FontName : String Index 2 Read GetString;
+    Property FontStretch : String Index 3 Read GetString;
+    Property FontWeight : Integer Index 4 Read GetInteger;
+    Property Flags : Integer Index 5 Read GetInteger;
+    Property FontBBox : TPDFRect Index 6 Read GetRect;
+    Property ItalicAngle : Single Index 7 Read GetFloat;
+    Property Ascent : Single Index 8 Read GetFloat;
+    Property Descent : Single Index 9 Read GetFloat;
+    Property Leading : Single Index 10 Read GetFloat;
+    Property CapHeight : Single Index 11 Read GetFloat;
+    Property XHeight : Single Index 12 Read GetFloat;
+    Property StemV : Single Index 13 Read GetFloat;
+    Property StemH : Single Index 14 Read GetFloat;
+    Property AvgWidth : Single Index 15 Read GetFloat;
+    Property MaxWidth : Single Index 16 Read GetFloat;
+    Property MissingWidth : Single Index 17 Read GetFloat;
+    // Owned by the Descriptor !
+    Property FontFile : TPDFRefData Index 18 Read GetStream;
+    Property FontFile2 : TPDFRefData Index 19 Read GetStream;
+    Property FontFile3 : TPDFRefData Index 20 Read GetStream;
+    Property CharSet : String Index 21 Read GetString;
+  end;
+
+  { TPDFExtGState }
+
+  TPDFExtGState = Class(TPDFIndirect)
+  private
+    function GetArray(AIndex: Integer): TPDFArray;
+    function GetBool(AIndex: Integer): Boolean;
+    function GetFloat(AIndex: Integer): Single;
+    function GetIntArray(AIndex: Integer): TIntegerDynArray;
+    function GetInteger(AIndex: Integer): Integer;
+    function GetString(AIndex: Integer): String;
+    function GetValueName(aIndex : Integer) : String;
+  Protected
+    Class function RegisterAsType : String; override;
+  Public
+    Function GetDescription: String; override;
+    Property Type_ : String Index 0 Read GetString;
+    Property LW : Single Index 1 Read GetFloat;
+    Property LC : Integer Index 2 Read GetInteger;
+    Property LJ : Integer Index 3 Read GetInteger;
+    Property ML : Single Index 4 Read GetFloat;
+    Property D : TIntegerDynArray Index 5 Read GetIntArray;
+    Property RI : String Index 6 Read GetString;
+    Property OP_U : Boolean Index 7 Read GetBool;
+    Property op_l : Boolean Index 8 Read GetBool;
+    Property OPM : Integer Index 9 Read GetInteger;
+    Property Font: TPDFArray Index 10 Read GetArray;
+    Property BG: String Index 11 Read GetString;
+    Property BG2: String Index 12 Read GetString;
+    Property UCR: String Index 13 Read GetString;
+    Property UCR2: String Index 14 Read GetString;
+    Property TR: String Index 15 Read GetString;
+    Property TR2: String Index 16 Read GetString;
+    Property HT: String Index 17 Read GetString;
+    Property FL: Single Index 18 Read GetFloat;
+    Property SM: Single Index 19 Read GetFloat;
+    Property SA: Boolean Index 20 Read GetBool;
+    Property BM: String Index 21 Read GetString;
+    Property SMask: String Index 22 Read GetString;
+    Property CA_U: Single Index 23 Read GetFloat;
+    Property ca_l: Single Index 24 Read GetFloat;
+    Property AIS: Boolean Index 25 Read GetBool;
+    Property TK: Boolean Index 26 Read GetBool;
   end;
 
 
@@ -538,6 +724,8 @@ Type
   end;
 
   { TPDFCommand }
+  TPDFCommandType = (cmtTextState,cmtText,cmtGraphicState,cmtColor,cmtPath,cmtStroke,cmtMarkedContent,cmtOther);
+
   TPDFCommand = Class(TPDFTokensObject)
   private
     class var _ClassList : TFPDataHashTable;
@@ -555,92 +743,9 @@ Type
     Class Procedure Register;
     Class Procedure UnRegister;
     Constructor Create(const aCommand : String; aTokens : TPDFTokenArray); reintroduce;
+    class function CommandType : TPDFCommandType; virtual;
   Public
     Property Command : String Read FCommand Write FCommand;
-  end;
-
-  { TPDFBTCommand }
-
-  TPDFBTCommand = class(TPDFCommand)
-    Class Function RegisterCommandName : String;override;
-  end;
-
-  { TPDFETCommand }
-
-  TPDFETCommand = class(TPDFCommand)
-    Class Function RegisterCommandName : String; override;
-  end;
-
-  // Do not register this one.
-
-  { TPDFTextCommand }
-
-  TPDFTextCommand = Class(TPDFCommand)
-  Public
-    Function GetFullText(aUnicodeMap : TPDFCMap) : RawByteString; virtual; overload;
-    Function GetFullText : RawByteString; virtual; abstract; overload;
-  end;
-
-  { TPDFTJCommand }
-
-  TPDFTJCommand = class(TPDFTextCommand)
-    Class Function RegisterCommandName : String; override;
-    Function GetFullText(aUnicodeMap : TPDFCMap) : RawByteString; override; overload;
-    Function GetFullText : RawByteString; override;
-  end;
-
-  { TPDFTfCommand }
-
-  TPDFTfCommand = class(TPDFCommand)
-  private
-    function GetFontName: String;
-    function GetFontSize: Integer;
-  public
-    Class Function RegisterCommandName : String; override;
-    property FontName : String Read GetFontName;
-    Property FontSize : Integer Read GetFontSize;
-  end;
-
-  { TPDFTj_Command }
-
-  TPDFTj_Command = class(TPDFTextCommand)
-    Class Function RegisterCommandName : String; override;
-    Function GetFullText : RawByteString; override;
-  end;
-
-
-  { TPDFTdCommand }
-
-  TPDFTDCommand = class(TPDFCommand)
-    Class Function RegisterCommandName : String; override;
-  end;
-
-  { TPDFTdCommand }
-
-  { TPDFTd_Command }
-
-  TPDFTd_Command = class(TPDFCommand)
-    Class Function RegisterCommandName : String; override;
-  end;
-
-
-  { TPDFTfCommand }
-
-
-  TPDFImageData = record
-    Width,
-    height,
-    BitsPerComponent : Integer;
-    ColorSpace : String;
-    ColorSpaceComponents : Integer;
-    Filters : Array of String;
-  end;
-
-  { TPDFImageDataCommand }
-
-  TPDFImageDataCommand = Class(TPDFCommand)
-    Class Procedure ParseImageOperands(aOperands : TPDFTokenArray; Out aImageData : TPDFImageData);
-    Class Function RegisterCommandName : String; override;
   end;
 
 
@@ -648,7 +753,6 @@ Type
   // Catch all. Do not register
   TPDFUnknownCommand = class(TPDFCommand)
   end;
-
 
   { TPDFCommandEnumerator }
 
@@ -886,10 +990,14 @@ Type
     Property XRefs[aIndex : Integer] : TPDFXRef Read getXRef;
   end;
 
+operator *(A : TPDFPoint; B: TPDFTransformation) c : TPDFPoint;
+
 implementation
 
 Resourcestring
   SErrNotAnInteger = 'Token is not an integer';
+  SErrNotASingle = 'Token is not a single-sized float';
+  SErrNotADouble = 'Token is not a double-sized float';
   SErrNotAString = 'Token is not a string';
   SErrNotAName = 'Token is not a name';
   SErrNotAnInt64 = 'Token is not an int64';
@@ -898,6 +1006,157 @@ Resourcestring
   SErrDictValueIsNotArray = 'Dictionary entry %s is not an array';
   SErrDictValueIsNotDict = 'Dictionary entry %s is not a dictionary';
   SErrNoFontAt = 'No font found at: %s';
+
+operator * (A: TPDFPoint; B: TPDFTransformation) c: TPDFPoint;
+begin
+  C.X:=a.X*B.M[0,0]+a.Y*B.M[1,0]+B.M[2,0];
+  C.Y:=a.X*B.M[0,1]+a.Y*B.M[1,1]+B.M[2,1];
+end;
+
+
+{ TPDFPoint }
+
+class function TPDFPoint.Create(aX, aY: Single): TPDFPoint;
+begin
+  Result.X:=aX;
+  Result.Y:=aY;
+end;
+
+class operator TPDFPoint.+(const A, B: TPDFPoint): TPDFPoint;
+begin
+  Result.X:=A.X+B.X;
+  Result.Y:=A.Y+B.Y;
+end;
+
+class operator TPDFPoint.=(const A, B: TPDFPoint): Boolean;
+begin
+  Result:=((A.X-B.X)<PointPrecision)
+          and ((A.Y-B.Y)<PointPrecision)
+end;
+
+function TPDFPoint.AsString: String;
+begin
+  Result:=Format('(%.4g,%.4g)',[X,Y])
+end;
+
+{ TPDFRect }
+
+function TPDFRect.AsString: String;
+begin
+  Result:=ll.AsString+' - '+ur.AsString;
+end;
+
+{ TPDFPathSegment }
+
+function TPDFPathSegment.Description: String;
+
+var
+  S : String;
+
+begin
+  Str(SegmentType,S);
+  Result:=Copy(S,3);
+  if SegmentType<>stClose then
+    Result:=Result+P1.AsString+'-'+P2.AsString;
+end;
+
+{ TPDFPath }
+
+procedure TPDFPath.AddSegment(aSegment: TPDFPathSegment);
+begin
+  if (FCount=Length(FSegments)) then
+    SetLength(FSegments,Length(FSegments)+SegmentDelta);
+
+  FSegments[FCount]:=aSegment;
+  inc(FCount);
+end;
+
+
+function TPDFPath.GetSegments(aIndex: Word): TPDFPathSegment;
+begin
+  if aIndex>=Count then
+    Raise EPDF.CreateFmt('Segment index out of bounds (max: %d)',[aIndex,Count-1]);
+  Result:=FSegments[aIndex];
+end;
+
+
+procedure TPDFPath.Add(aSegment: TPDFPathSegment);
+begin
+  if (aSegment.SegmentType in [stBezierLimits,stBezierControl]) then
+    Raise EPDF.Create('Use AddBezier to add segments of bezier curves');
+  AddSegment(aSegment);
+end;
+
+procedure TPDFPath.AddBezier(aLimits,aControl: TPDFPathSegment);
+begin
+  aLimits.SegmentType:=stBezierLimits;
+  aControl.SegmentType:=stBezierControl;
+  AddSegment(aLimits);
+  AddSegment(aControl);
+end;
+
+procedure TPDFPath.Clear;
+begin
+
+end;
+
+{ TTransFormation }
+
+class function TPDFTransFormation.Default: TPDFTransformation;
+begin
+  Result:=System.Default(TPDFTransformation);
+  Result.M[0,0]:=1;
+  Result.M[1,1]:=1;
+  Result.M[2,2]:=1;
+end;
+
+class function TPDFTransFormation.Create(const a, b, c, d, e, f: Single
+  ): TPDFTransformation;
+begin
+  Result:=System.Default(TPDFTransFormation);
+  Result.M[0,0]:=a;
+  Result.M[0,1]:=b;
+  Result.M[1,0]:=c;
+  Result.M[1,1]:=d;
+  Result.M[2,0]:=e;
+  Result.M[2,1]:=f;
+  Result.M[2,2]:=1;
+end;
+
+class operator TPDFTransFormation.*(const A,B: TPDFTransFormation
+  ): TPDFTransFormation;
+
+var
+  r : TPDFTransFormationLine;
+  i : byte;
+
+begin
+  for i:=0 to 2 do
+    begin
+    r:=a.m[i];
+    result.m[i,0]:=r[0]*b.m[0,0]
+                  +r[1]*b.m[1,0]
+                  +r[2]*b.m[2,0];
+    result.m[i,1]:=r[0]*b.m[0,1]
+                   +r[1]*b.m[1,1]
+                   +r[2]*b.m[2,1];
+    result.m[i,2]:=r[0]*b.m[0,2]
+                   +r[1]*b.m[1,2]
+                   +r[2]*b.m[2,2];
+    end;
+end;
+
+procedure TPDFTransFormation.Translate(const aX, aY: Single);
+begin
+  M[2,0]:=M[2,0]+aX;
+  M[2,1]:=M[2,1]+aY;
+end;
+
+procedure TPDFTransFormation.Translate(const P: TPDFPoint);
+begin
+  M[2,0]:=M[2,0]+P.X;
+  M[2,1]:=M[2,1]+P.Y;
+end;
 
 { TPDFTrailer }
 
@@ -1152,20 +1411,6 @@ begin
   Result:=Data.Interpret(aRaw);
 end;
 
-{ TPDFTextCommand }
-
-function TPDFTextCommand.GetFullText(aUnicodeMap: TPDFCMap): RawByteString;
-
-Var
-  aRaw : RawByteString;
-
-begin
-  aRaw:=GetFullText();
-  if not Assigned(aUnicodeMap) then
-    Result:=aRaw
-  else
-    Result:=aUnicodeMap.InterPret(aRaw);
-end;
 
 { TPDFRefData }
 
@@ -1275,210 +1520,330 @@ begin
     Result:=aDoc.FindInDirectObject(Ref);
 end;
 
-{ TPDFImageDataCommand }
+{ TPDFFontDescriptor }
 
-class procedure TPDFImageDataCommand.ParseImageOperands(
-  aOperands: TPDFTokenArray; out aImageData: TPDFImageData);
-
+function TPDFFontDescriptor.GetFloat(AIndex: Integer): Single;
 Var
-  I,J : Integer;
-
+  Obj : TPDFObject;
 
 begin
-  aImageData:=Default(TPDFImageData);
-  I:=0;
-  While (I<Length(aOperands)-1) do
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFValue) and TPDFValue(Obj).IsFloat then
+    Result:=TPDFValue(Obj).AsFloat
+  else
+    Result:=0;
+end;
+
+function TPDFFontDescriptor.GetInteger(AIndex: Integer): Integer;
+
+Var
+  Obj : TPDFObject;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFValue) and TPDFValue(Obj).IsInteger then
+    Result:=TPDFValue(Obj).AsInteger
+  else
+    Result:=0;
+end;
+
+function TPDFFontDescriptor.GetRect(AIndex: Integer): TPDFRect;
+Var
+  Obj : TPDFObject;
+  arr : TPDFArray absolute Obj;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFArray) and (Arr.Count=4) then
     begin
-    if aOperands[i].IsName then
-      begin
-      Case Copy(aOperands[i].TokenData,2,Length(aOperands[i].TokenData)-1) of
-        SPDFImageKeyW :
-          begin
-          Inc(I);
-          aImageData.Width:=aOperands[i].AsInteger;
-          end;
-        SPDFImageKeyH :
-          begin
-          Inc(I);
-          aImageData.Height:=aOperands[i].AsInteger;
-          end;
-        SPDFImageKeyBPC:
-          begin
-          Inc(I);
-          aImageData.BitsPerComponent:=aOperands[i].AsInteger;
-          end;
-        SPDFImageKeyCS:
-          begin
-          Inc(I);
-          aImageData.ColorSpace:=aOperands[i].TokenData;
-          end;
-        SPDFImageKeyF:
-          begin
-          Inc(i);
-          If aOperands[i].TokenType<>ptSquareOpen then
-            begin
-            Inc(i);
-            aImageData.Filters:=[aOperands[i].TokenData];
-            end
-          else
-            begin
-            Inc(I);
-            J:=I;
-            While (J<Length(aOperands)) and (aOperands[J].TokenType<>ptSquareClose) do
-              Inc(J);
-            SetLength(aImageData.Filters,J);
-            J:=I;
-            While (J<Length(aOperands)) and (aOperands[J].TokenType<>ptSquareClose) do
-              begin
-              aImageData.Filters[J-I]:=aOperands[J].TokenData;
-              Inc(J);
-              end
-            end;
-          end;
-      end;
-      end;
-    inc(I);
-    end;
-  Case Copy(aImageData.ColorSpace,2,Length(aImageData.ColorSpace)-1) of
-    SPDFImageKeyCMYK : aImageData.ColorSpaceComponents:=4;
-    SPDFImageKeyRGB : aImageData.ColorSpaceComponents:=3;
-    SPDFImageKeyG : aImageData.ColorSpaceComponents:=1;
+    Result.ll.X:=Arr.GetFloatAt(0);
+    Result.ll.Y:=Arr.GetFloatAt(1);
+    Result.ur.X:=Arr.GetFloatAt(2);
+    Result.ur.Y:=Arr.GetFloatAt(3);
+    end
+  else
+    Result:=Default(TPDFRect);
+end;
+
+function TPDFFontDescriptor.GetStream(AIndex: Integer): TPDFRefData;
+Var
+  Obj : TPDFObject;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFRef) then
+    Result:=(Obj as TPDFRef).Ref
+  else
+    Result:=Default(TPDFRefData);
+end;
+
+function TPDFFontDescriptor.GetString(AIndex: Integer): String;
+
+Var
+  Obj : TPDFObject;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if Obj is TPDFValue then
+    Result:=TPDFValue(Obj).Value
+  else
+    Result:='';
+end;
+
+function TPDFFontDescriptor.GetValueName(AIndex: Integer): String;
+begin
+  Case aIndex of
+    0 : Result:=SPDFFontKeyType;
+    1 : Result:=SPDFFontKeyFamily;
+    2 : Result:=SPDFFontKeyFontName;
+    3 : Result:=SPDFFontKeyStretch;
+    4 : Result:=SPDFFontKeyWeight;
+    5 : Result:=SPDFFontKeyFlags;
+    6 : Result:=SPDFFontKeyBBox;
+    7 : Result:=SPDFFontKeyItalicAngle;
+    8 : Result:=SPDFFontKeyAscent;
+    9 : Result:=SPDFFontKeyDescent;
+    10 : Result:=SPDFFontKeyLeading;
+    11 : Result:=SPDFFontKeyCapHeight;
+    12 : Result:=SPDFFontKeyXHeight;
+    13 : Result:=SPDFFontKeyStemV;
+    14 : Result:=SPDFFontKeyStemH;
+    15 : Result:=SPDFFontKeyAvgWidth;
+    16 : Result:=SPDFFontKeyMaxWidth;
+    17 : Result:=SPDFFontKeyMissingWidth;
+    // Owned by the Descriptor !
+    18 : Result:=SPDFFontKeyFontFile;
+    19 : Result:=SPDFFontKeyFontFile2;
+    20 : Result:=SPDFFontKeyFontFile3;
+    21 : Result:=SPDFFontKeyCharSet;
   end;
 end;
 
-class function TPDFImageDataCommand.RegisterCommandName: String;
+class function TPDFFontDescriptor.RegisterAsType: String;
 begin
-  Result:='ID';
+  Result:=SPDFTypeFontDescriptor;
 end;
 
-{ TPDFTd_Command }
+function TPDFFontDescriptor.GetDescription: String;
 
-class function TPDFTd_Command.RegisterCommandName: String;
-begin
-  Result:='Td';
-end;
+  Procedure MaybeAdd(Const aName,aValue : String);
 
-{ TPDFTj_Command }
+  begin
+    if aValue<>'' then
+      Result:=Result+sLineBreak+aName+': '+aValue;
+  end;
 
-class function TPDFTj_Command.RegisterCommandName: String;
-begin
-  Result:='Tj';
-end;
+  Procedure MaybeAdd(Const aName : String; aValue : Integer);
 
-function TPDFTj_Command.GetFullText: RawByteString;
-begin
-  Result:='';
-  if Length(Self.Tokens)>0 then
-    try
-      Result:=Tokens[0].AsString;
-    except
-      on E : exception do
-        begin
-        Writeln('Exception ',E.ClassName,'getting text for token: "',E.Message,'". Token data :',GetDescription);
-        Raise;
-        end;
+  begin
+    if aValue<>0 then
+      Result:=Result+sLineBreak+aName+': '+IntToStr(aValue);
+  end;
 
-    end;
-end;
+  Procedure MaybeAdd(Const aName : String; aValue : Single);
 
-{ TPDFTfCommand }
+  begin
+    if aValue>=0.01 then
+      Result:=Result+sLineBreak+aName+': '+FormatFloat('##.##',aValue);
+  end;
 
-function TPDFTfCommand.GetFontName: String;
-begin
-  Result:='';
-  If (Length(Tokens)>0) then
-    if Tokens[0].IsString then
-      Result:=Tokens[0].AsString
-    else if Tokens[0].IsName then
-      Result:=Tokens[0].AsName;
-end;
+  Procedure MaybeAdd(Const aName : String; aValue : Boolean);
 
-function TPDFTfCommand.GetFontSize: Integer;
+  begin
+    if aValue then
+      Result:=Result+sLineBreak+aName+': Yes';
+  end;
 
 begin
-  Result:=0;
-  If (Length(Tokens)>1) and Tokens[1].IsInteger then
-    Result:=Tokens[1].AsInteger
+  Result:=Format('Font descriptor (%d %d):',[ObjectID,ObjectGeneration]);
+  MaybeAdd('Type',Type_);
+  MaybeAdd('FontFamily',FontFamily);
+  MaybeAdd('FontName',FontName);
+  MaybeAdd('FontStretch',FontStretch);
+  MaybeAdd('FontWeight',FontWeight);
+  MaybeAdd('Flags',Flags);
+  MaybeAdd('FontBBox',FontBBox.AsString);
+  MaybeAdd('ItalicAngle',ItalicAngle);
+  MaybeAdd('Ascent',Ascent);
+  MaybeAdd('Descent',Descent);
+  MaybeAdd('Leading',Leading);
+  MaybeAdd('CapHeight',CapHeight);
+  MaybeAdd('XHeight',XHeight);
+  MaybeAdd('StemV',StemV);
+  MaybeAdd('StemH',StemH);
+  MaybeAdd('AvgWidth',AvgWidth);
+  MaybeAdd('MaxWidth',MaxWidth);
+  MaybeAdd('MissingWidth',MissingWidth);
+  MaybeAdd('FontFile',(FontFile.ObjectID<>0));
+  MaybeAdd('FontFile2',(FontFile2.ObjectID<>0));
+  MaybeAdd('FontFile3',(FontFile3.ObjectID<>0));
 end;
 
-class function TPDFTfCommand.RegisterCommandName: String;
-begin
-  Result:='Tf';
-end;
+{ TPDFExtGState }
 
-{ TPDFTdCommand }
-
-class function TPDFTdCommand.RegisterCommandName: String;
-begin
-  Result:='TD';
-end;
-
-{ TPDFTJCommand }
-
-class function TPDFTJCommand.RegisterCommandName: String;
-begin
-  Result:='TJ';
-end;
-
-function TPDFTJCommand.GetFullText(aUnicodeMap: TPDFCMap): RawByteString;
+function TPDFExtGState.GetArray(AIndex: Integer): TPDFArray;
 Var
-  i : integer;
+  Obj : TPDFObject;
 
 begin
-  if aUnicodeMap=Nil then
-    Exit(GetFullText);
-  Result:='';
-  if Length(Tokens)>=2 then
-    For I:=1 to Length(Tokens)-2 do
-      begin
-      if Tokens[I].TokenType=ptString then
-
-        Result:=Result+aUnicodeMap.InterPret(Tokens[I].TokenData)
-      else if Tokens[i].IsNumber then
-        begin
-        if Abs(Tokens[i].AsDouble)>PDFTextArraySpaceTreshold then
-          Result:=Result+' '
-        end
-      else
-        Raise EConvertError.Create('Unexpected char');
-      end;
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFArray) then
+    Result:=TPDFArray(Obj)
+  else
+    Result:=Nil;
 end;
 
-function TPDFTJCommand.GetFullText: RawByteString;
+function TPDFExtGState.GetBool(AIndex: Integer): Boolean;
+Var
+  Obj : TPDFObject;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFValue) then
+    TPDFValue(Obj).IsBoolean
+end;
+
+function TPDFExtGState.GetFloat(AIndex: Integer): Single;
 
 Var
-  i : integer;
+  Obj : TPDFObject;
 
 begin
-  Result:='';
-  if Length(Tokens)>=2 then
-    For I:=1 to Length(Tokens)-2 do
-      begin
-      if Tokens[I].TokenType=ptString then
-        Result:=Result+Tokens[I].TokenData
-      else if Tokens[i].IsNumber then
-        begin
-        if Abs(Tokens[i].AsDouble)>PDFTextArraySpaceTreshold then
-          Result:=Result+' '
-        end
-      else
-        Raise EConvertError.Create('Unexpected char');
-      end;
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFValue) and TPDFValue(Obj).IsFloat then
+    Result:=TPDFValue(Obj).AsFloat
+  else
+    Result:=0;
 end;
 
-{ TPDFETCommand }
-
-class function TPDFETCommand.RegisterCommandName: String;
+function TPDFExtGState.GetIntArray(AIndex: Integer): TIntegerDynArray;
 begin
-  Result:='ET';
+
 end;
 
-{ TPDFBTCommand }
+function TPDFExtGState.GetInteger(AIndex: Integer): Integer;
+Var
+  Obj : TPDFObject;
 
-class function TPDFBTCommand.RegisterCommandName: String;
 begin
-  Result:='BT';
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if (Obj is TPDFValue) and TPDFValue(Obj).IsInteger then
+    Result:=TPDFValue(Obj).AsInteger
+  else
+    Result:=0;
 end;
+
+function TPDFExtGState.GetString(AIndex: Integer): String;
+
+Var
+  Obj : TPDFObject;
+
+begin
+  Obj:=ObjectDict.FindValue(GetValueName(aIndex));
+  if Obj is TPDFValue then
+    Result:=TPDFValue(Obj).Value
+  else
+    Result:='';
+end;
+
+function TPDFExtGState.GetValueName(aIndex: Integer): String;
+begin
+  Case AIndex of
+  0 : Result:=SPDFExtGStateKeyType;
+  1 : Result:=SPDFExtGStateKeyLW;
+  2 : Result:=SPDFExtGStateKeyLC;
+  3 : Result:=SPDFExtGStateKeyLJ;
+  4 : Result:=SPDFExtGStateKeyML;
+  5 : Result:=SPDFExtGStateKeyD;
+  6 : Result:=SPDFExtGStateKeyRI;
+  7 : Result:=SPDFExtGStateKeyOP_U;
+  8 : Result:=SPDFExtGStateKeyop_l;
+  9 : Result:=SPDFExtGStateKeyOPM;
+  10 : Result:=SPDFExtGStateKeyFont;
+  11 : Result:=SPDFExtGStateKeyBG;
+  12 : Result:=SPDFExtGStateKeyBG2;
+  13 : Result:=SPDFExtGStateKeyUCR;
+  14 : Result:=SPDFExtGStateKeyUCR2;
+  15 : Result:=SPDFExtGStateKeyTR;
+  16 : Result:=SPDFExtGStateKeyTR2;
+  17 : Result:=SPDFExtGStateKeyHT;
+  18 : Result:=SPDFExtGStateKeyFL;
+  19 : Result:=SPDFExtGStateKeySM;
+  20 : Result:=SPDFExtGStateKeySA;
+  21 : Result:=SPDFExtGStateKeyBM;
+  22 : Result:=SPDFExtGStateKeySMask;
+  23 : Result:=SPDFExtGStateKeyCA_U;
+  24 : Result:=SPDFExtGStateKeyca_l;
+  25 : Result:=SPDFExtGStateKeyAIS;
+  26 : Result:=SPDFExtGStateKeyTK;
+  end;
+end;
+
+class function TPDFExtGState.RegisterAsType: String;
+begin
+  Result:=SPDFTypeExtGState;
+end;
+
+function TPDFExtGState.GetDescription: String;
+  Procedure MaybeAdd(Const aName,aValue : String);
+
+  begin
+    if aValue<>'' then
+      Result:=Result+sLineBreak+aName+': '+aValue;
+  end;
+
+  Procedure MaybeAdd(Const aName : String; aValue : Integer);
+
+  begin
+    if aValue<>0 then
+      Result:=Result+sLineBreak+aName+': '+IntToStr(aValue);
+  end;
+
+  Procedure MaybeAdd(Const aName : String; aValue : Single);
+
+  begin
+    if aValue>=0.01 then
+      Result:=Result+sLineBreak+aName+': '+FormatFloat('##.##',aValue);
+  end;
+
+  Procedure MaybeAdd(Const aName : String; aValue : Boolean);
+
+  begin
+    if aValue then
+      Result:=Result+sLineBreak+aName+': Yes';
+  end;
+
+begin
+  Result:=Format('Extended Graphics State (%d %d):',[ObjectID,ObjectGeneration]);
+  MaybeAdd('Type_ ',Type_ );
+  MaybeAdd('LW (linewidth)',LW );
+  MaybeAdd('LC (linecap)',LC );
+  MaybeAdd('LJ (linejoin)',LJ );
+  MaybeAdd('ML (MiterLimit)',ML );
+//  MaybeAdd('D ',D );
+  MaybeAdd('RI (rendering intent)',RI );
+  MaybeAdd('OP_U (Overprint control - stroke)',OP_U );
+  MaybeAdd('op_l (Overprint control - fill)',op_l );
+  MaybeAdd('OPM (overprint mode)',OPM );
+  MaybeAdd('Font',Assigned(Font));
+  MaybeAdd('BG (black generation)',BG);
+  MaybeAdd('BG2 (black generation)',BG2);
+  MaybeAdd('UCR (undercolor removal generation)',UCR);
+  MaybeAdd('UCR2 (undercolor removal generation)',UCR2);
+  MaybeAdd('TR (transfer function)',TR);
+  MaybeAdd('TR2 (transfer function)',TR2);
+  MaybeAdd('HT (halftone dict)',HT);
+  MaybeAdd('FL (flatness tolerance)',FL);
+  MaybeAdd('SM (smoothness tolerance)',SM);
+  MaybeAdd('SA (automatic stroke adjustment)',SA);
+  MaybeAdd('BM (blend mode)',BM);
+  MaybeAdd('SMask (soft mask)',SMask);
+  MaybeAdd('CA_U (alpha constant - stroking)',CA_U);
+  MaybeAdd('ca_l (alpha constant - filling)',ca_l);
+  MaybeAdd('AIS (alpha source flag)',AIS);
+  MaybeAdd('TK (text knockout)',TK);
+end;
+
 
 { TPDFCommand }
 
@@ -1545,6 +1910,12 @@ begin
   Inherited Create(aTokens);
   FCommand:=aCommand;
 end;
+
+class function TPDFCommand.CommandType: TPDFCommandType;
+begin
+  Result:=cmtOther;
+end;
+
 
 
 { TPDFCommandList }
@@ -1753,10 +2124,6 @@ begin
         begin
         aParent:=TPDFIndirect(Obj);
         Obj:=TPDFIndirect(aParent).ObjectDict;
-        if assigned(Obj) then
-            Writeln('Indirect resource : ', TPDFDictionary(Obj).GetDescription)
-        else
-          Writeln('Indirect object ',aParent.ObjectID,'does not have a dict');
         end;
       end;
     if Obj is TPDFDictionary then
@@ -1812,6 +2179,17 @@ begin
   aRef:=FindFontRefObj(aFontName);
   if Assigned(aRef) then
     Result:=aRef.FRef;
+end;
+
+function TPDFPageObject.GetMediaBox: TPDFRect;
+
+Var
+  Arr : TPDFArray;
+
+begin
+  Arr:=ObjectDict.GetArrayValue(SPDFPageKeyMediaBox);
+  Result.ll:=TPDFPoint.Create(Arr.GetFloatAt(0),Arr.GetFloatAt(1));
+  Result.ur:=TPDFPoint.Create(Arr.GetFloatAt(2),Arr.GetFloatAt(3));
 end;
 
 class function TPDFPageObject.CreateCommandList: TPDFCommandList;
@@ -2074,14 +2452,28 @@ var
 
 begin
   if not (TokenType=ptNumber) then
-    Raise EConvertError.Create(SErrNotAnInteger)
+    Raise EConvertError.Create(SErrNotADouble)
   else
     begin
     Val(TokenData,Result,C);
     if C<>0 then
-      Raise EConvertError.Create(SErrNotAnInteger)
+      Raise EConvertError.Create(SErrNotADouble)
     end;
+end;
 
+function TPDFToken.AsSingle: Single;
+var
+  c : Integer;
+
+begin
+  if not (TokenType=ptNumber) then
+    Raise EConvertError.Create(SErrNotASingle)
+  else
+    begin
+    Val(TokenData,Result,C);
+    if C<>0 then
+      Raise EConvertError.Create(SErrNotASingle)
+    end;
 end;
 
 function TPDFToken.IsHexString: Boolean;
@@ -2108,7 +2500,7 @@ begin
     If (Length(TokenData)>2) and (TokenData[1]=#254) and (TokenData[2]=#255) then
       begin
       Len:=Length(TokenData)-2;
-      SetLength(UString,Len div 2);
+      SetLength(UString{%H-},Len div 2);
       Move(TokenData[3],UString[1],Len);
       P:=PWord(PUnicodeChar(UString));
       For I:=1 to Length(UString) do
@@ -2496,6 +2888,12 @@ begin
   Result:=(Objects[aIndex] is TPDFValue) and  (TPDFValue(Objects[aIndex]).IsInteger);
 end;
 
+function TPDFArray.IsFloatAt(aIndex: Integer): Boolean;
+begin
+  Result:=(Objects[aIndex] is TPDFValue)
+          and ((TPDFValue(Objects[aIndex]).IsFloat) or (TPDFValue(Objects[aIndex]).IsInteger));
+end;
+
 function TPDFArray.IsKeywordAt(aIndex: Integer; const aKeyWord: RawByteString
   ): Boolean;
 begin
@@ -2506,6 +2904,19 @@ function TPDFArray.GetIntegerAt(aIndex: Integer): Integer;
 begin
   If (Objects[aIndex] is TPDFValue) and  (TPDFValue(Objects[aIndex]).IsInteger) then
     Result:=TPDFValue(Objects[aIndex]).AsInteger
+  else
+    Raise EConvertError.Create('Array element %d is not an integer value');
+end;
+
+function TPDFArray.GetFloatAt(aIndex: Integer): Double;
+begin
+  If (Objects[aIndex] is TPDFValue) then
+    begin
+    if (TPDFValue(Objects[aIndex]).IsInteger) then
+      Result:=TPDFValue(Objects[aIndex]).AsInteger
+    else if (TPDFValue(Objects[aIndex]).IsFloat) then
+      Result:=TPDFValue(Objects[aIndex]).AsFloat;
+    end
   else
     Raise EConvertError.Create('Array element %d is not an integer value');
 end;
@@ -2618,6 +3029,17 @@ begin
   Result:=TryStrToInt(Value,I);
 end;
 
+function TPDFValue.IsFloat: Boolean;
+Var
+  d : double;
+  c : Integer;
+
+begin
+  Val(Value,d,c);
+  D:=D*0;
+  Result:=(C=0);
+end;
+
 function TPDFValue.IsInt64: Boolean;
 Var
   I : Int64;
@@ -2626,14 +3048,14 @@ begin
   Result:=TryStrToInt64(Value,I);
 end;
 
-{ TPDFDictionary }
-
-class function TPDFDictionary.ElementType: TPDFElementType;
+function TPDFValue.IsBoolean: Boolean;
 begin
-  Result:=peDictionary;
+  Result:=(Value='true') or (Value='false');
 end;
 
-function TPDFDictionary.GetDescription: String;
+{ TPDFDictionary }
+
+function TPDFDictionary.GetDescription(const Indent: String): String;
 
 var
   I : Integer;
@@ -2644,9 +3066,20 @@ begin
   For I:=0 to Count-1 do
     begin
     E:=Objects[i] as TPDFDictEntry;
-    Result:=Result+sLineBreak+E.GetDescription;
+    Result:=Result+sLineBreak+E.GetDescription(Indent+'  ');
     end;
-  Result:=Result+sLineBreak+'>>';
+  Result:=Result+sLineBreak+Indent+'>>';
+end;
+
+class function TPDFDictionary.ElementType: TPDFElementType;
+begin
+  Result:=peDictionary;
+end;
+
+function TPDFDictionary.GetDescription: String;
+
+begin
+  Result:=GetDescription('');
 end;
 
 function TPDFDictionary.AddEntry(const aKey: String; aValue: TPDFObject): TPDFDictEntry;
@@ -2786,6 +3219,19 @@ begin
   Result:=aVal.AsInteger;
 end;
 
+function TPDFDictionary.GetSingleValue(const aKeyword: RawByteString): Single;
+Var
+  aVal : TPDFValue;
+
+begin
+  aVal:=FindValue(aKeyWord) as TPDFValue;
+  if (aVal=Nil) then
+    Raise EPDF.CreateFmt(SErrNoSuchDictValue,[aKeyWord]);
+  if not aVal.IsInteger then
+    Raise EPDF.CreateFmt(SErrDictValueIsNotInteger,[aKeyWord]);
+  Result:=aVal.AsInteger;
+end;
+
 function TPDFDictionary.GetArrayValue(const aKeyword: RawByteString): TPDFArray;
 
 begin
@@ -2805,6 +3251,17 @@ end;
 
 { TPDFDictEntry }
 
+function TPDFDictEntry.GetDescription(const indent: string): String;
+begin
+  if Value is TPDFDictionary then
+    Result:=TPDFDictionary(Value).GetDescription(indent)
+  else if Assigned(Value) then
+    Result:=Value.GetDescription
+  else
+    Result:='(nil)';
+  Result:=Format('%sEntry "%s" : %s',[Indent,Key,Result]);
+end;
+
 class function TPDFDictEntry.ElementType: TPDFElementType;
 begin
   Result:=peDictEntry;
@@ -2819,11 +3276,7 @@ end;
 function TPDFDictEntry.GetDescription: String;
 
 begin
-  if Assigned(Value) then
-    Result:=Value.GetDescription
-  else
-    Result:='(nil)';
-  Result:=Format('Entry "%s" : %s',[Key,Result]);
+  Result:=GetDescription('');
 end;
 
 { TPDFTokensObject }
@@ -3263,19 +3716,10 @@ begin
   TPDFObjectStreamObject.Register;
   TPDFIndirectXRef.Register;
   TPDFFontObject.Register;
+  TPDFFontDescriptor.Register;
+  TPDFExtGState.Register;
 end;
 
-Procedure RegisterStandardCommands;
-
-begin
-  TPDFBTCommand.Register;
-  TPDFETCommand.Register;
-  TPDFTJCommand.Register;
-  TPDFTj_Command.Register;
-  TPDFTfCommand.Register;
-  TPDFTd_Command.Register;
-  TPDFTDCommand.Register;
-end;
 
 {$IFDEF DEBUGPDFALLOCATION}
 Procedure DumpAllocations;
@@ -3295,7 +3739,6 @@ end;
 
 initialization
   RegisterStandardClasses;
-  RegisterStandardCommands;
 
 finalization
 {$IFDEF DEBUGPDFALLOCATION}

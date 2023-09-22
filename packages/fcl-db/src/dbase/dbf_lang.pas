@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_lang;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,17 @@ unit dbf_lang;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows;
+{$else}
+{$ifdef KYLIX}
+  Api.Libc, 
+{$endif}  
+  System.Types, Data.Dbf.Wtil;
+{$endif}  
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows;
@@ -27,6 +40,7 @@ uses
 {$endif}  
   Types, dbf_wtil;
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -528,8 +542,13 @@ function GetLangId_From_LangName(const LocaleStr: string): Byte;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PCardinal = ^Cardinal;
@@ -546,7 +565,7 @@ begin
     // foxpro or dbase?
     if IsFoxPro then
     begin
-      Result := 'FOX' + PChar(@SubType);
+      Result := 'FOX' + PAnsiChar(@SubType);
       if CodePage = 1252 then
         Result := Result + 'WIN'
       else
@@ -565,7 +584,7 @@ begin
         else
           Result := Result + IntToStr(CodePage);
         // add subtype
-        Result := Result + PChar(@SubType);
+        Result := Result + PAnsiChar(@SubType);
       end;
     end;
   end;
@@ -614,7 +633,7 @@ begin
       // it seems delphi does not properly understand pointers?
       // what a mess :-(
       if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
-        (PCardinal(PChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
+        (PCardinal(PAnsiChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
         // Ignore (V)FP results
         if LangID <= dBase_Regions[Region+1] then
           result := Byte(LangID);
@@ -651,7 +670,7 @@ var
   CodePageStr: string;
 begin
   // determine foxpro/dbase
-  IsFoxPro := CompareMem(PChar('FOX'), PChar(LocaleStr), 3);
+  IsFoxPro := CompareMem(PAnsiChar('FOX'), PAnsiChar(LocaleStr), 3);
   // get codepage/locale subtype
   if IsFoxPro then
   begin

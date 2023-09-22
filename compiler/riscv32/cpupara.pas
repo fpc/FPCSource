@@ -306,6 +306,7 @@ unit cpupara;
          stack_offset: longint;
          paralen: aint;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
+         MaxIntReg : TSuperRegister;
          locdef,
          fdef,
          paradef : tdef;
@@ -328,6 +329,10 @@ unit cpupara;
          nextmmreg := curmmreg;
          stack_offset := cur_stack_offset;
          maxfpureg := RS_F17;
+         if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+           MaxIntReg := RS_X15 
+         else
+           MaxIntReg := RS_X17;
 
           for i:=0 to paras.count-1 do
             begin
@@ -398,7 +403,7 @@ unit cpupara;
                   { In case of po_delphi_nested_cc, the parent frame pointer
                     is always passed on the stack. }
                   if (loc = LOC_REGISTER) and
-                     (nextintreg <= RS_X17) and
+                     (nextintreg <= MaxIntReg) and
                      (not(vo_is_parentfp in hp.varoptions) or
                       not(po_delphi_nested_cc in p.procoptions)) then
                     begin
@@ -424,7 +429,7 @@ unit cpupara;
                       dec(paralen,tcgsize2size[paraloc^.size]);
                     end
                   else if (loc = LOC_FPUREGISTER) and
-                          (nextintreg <= RS_X17) then
+                          (nextintreg <= MaxIntReg) then
                     begin
                       paraloc^.loc:=loc;
                       paraloc^.size := paracgsize;
@@ -475,7 +480,7 @@ unit cpupara;
 
                        inc(stack_offset,align(paralen,4));
                        while (paralen > 0) and
-                             (nextintreg < RS_X18) do
+                             (nextintreg <= MaxIntReg) do
                           begin
                             inc(nextintreg);
                             dec(paralen,sizeof(pint));

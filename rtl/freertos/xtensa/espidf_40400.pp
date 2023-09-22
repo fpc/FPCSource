@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit espidf_40400;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

@@ -60,7 +60,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ObjCRuntime;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -241,7 +243,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -375,7 +381,7 @@ type
 	BOOL = boolean; {SInt8}
 {
 	BOOL is explicitly signed so @encode(BOOL) == "c" rather than "C" 
-  even if -funsigned-char is used.
+  even if -funsigned-AnsiChar is used.
 }
 
 const
@@ -542,7 +548,7 @@ const
 
 
 #define marg_getRef(margs, offset, type) \
-	( (type *)((char *)margs + marg_adjustedOffset(method,offset) ) )
+	( (type *)((AnsiChar *)margs + marg_adjustedOffset(method,offset) ) )
 
 #define marg_getValue(margs, offset, type) \
 	( *marg_getRef(margs, offset, type) )
@@ -797,7 +803,7 @@ OBJC_EXPORT id	(_zoneAlloc)(Class, unsigned int, void *);
 OBJC_EXPORT id	(_zoneRealloc)(id, unsigned int, void *);
 OBJC_EXPORT id	(_zoneCopy)(id, unsigned int, void *);
 
-OBJC_EXPORT void	(_error)(id, const char *, va_list);
+OBJC_EXPORT void	(_error)(id, const AnsiChar *, va_list);
 }
 
 {$endc} {not TARGET_CPU_64 and TARGET_OS_MAC}

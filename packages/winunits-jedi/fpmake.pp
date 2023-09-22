@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T,TBuild : TTarget;
@@ -267,6 +267,9 @@ begin
           if T.TargetType=ttImplicitUnit then
             TBuild.Dependencies.AddUnit(T.Name);
         end;
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -20,7 +20,7 @@ CONST
     NumInList   =  7;
     cyclenum    =  4;
 
-    mxstrings : ARRAY[0..NumInList-1] OF PChar = (
+    mxstrings : ARRAY[0..NumInList-1] OF PAnsiChar = (
                                         'Amiga 500',
                                         'Amiga 600',
                                         'Amiga 1200',
@@ -29,7 +29,7 @@ CONST
                                         'Amiga 4000',
                                          NIL);
 
-    cyclestrings : ARRAY[0..cyclenum-1] OF PChar = (
+    cyclestrings : ARRAY[0..cyclenum-1] OF PAnsiChar = (
                                         'Hallo',
                                         'Moin',
                                         'Tach',
@@ -129,7 +129,7 @@ ProjectStart;
                    SetTRTag(TRAT_Value,5);
                    SetTRTag(TRAT_ID,ScrollGadID);
                    Space;
-                   ClippedTextBoxMW(PChar('5'),ScrollGadTextID,2);
+                   ClippedTextBoxMW(PAnsiChar('5'),ScrollGadTextID,2);
                 EndLine;
                 Space;
                 BeginLine;

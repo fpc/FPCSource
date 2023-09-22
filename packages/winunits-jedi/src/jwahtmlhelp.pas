@@ -45,7 +45,9 @@
 
 // $Id: JwaHtmlHelp.pas,v 1.15 2007/09/14 06:48:45 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaHtmlHelp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jediapilib.inc}
 
@@ -66,11 +68,19 @@ interface
 (*$HPPEMIT ''*)
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF HAS_UNIT_VARIANTS}
+  System.Variants,
+  {$ENDIF HAS_UNIT_VARIANTS}
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winuser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF HAS_UNIT_VARIANTS}
   Variants,
   {$ENDIF HAS_UNIT_VARIANTS}
   JwaWinType, JwaWinUser;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 // Commands to pass to HtmlHelp()
 
@@ -411,7 +421,7 @@ type
     clrForeGround: COLORREF;               // use -1 for default
     clrBackground: COLORREF;               // use -1 for default
     rcMargins: RECT;                       // amount of space between edges of window and text, -1 for each member to ignore
-    pszFont: LPCTSTR;                      // facename, point size, char set, BOLD ITALIC UNDERLINE
+    pszFont: LPCTSTR;                      // facename, point size, AnsiChar set, BOLD ITALIC UNDERLINE
   end;
   {$EXTERNALSYM tagHH_POPUP}
   HH_POPUP = tagHH_POPUP;
@@ -764,26 +774,26 @@ const
 
 {$IFDEF DYNAMIC_LINK}
 
-function GetOCXPath: string;
+function GetOCXPath: ansistring;
 const
   HHPathRegKey = 'CLSID\{adb880a6-d8ff-11cf-9377-00aa003b7a11}\InprocServer32';
 var
   HHKey: HKEY;
   R, PathSize, ValueType: DWORD;
-  Path: string;
+  Path: ansistring;
 begin
   R := ERROR_PATH_NOT_FOUND;
-  if RegOpenKeyExA(HKEY_CLASSES_ROOT, PChar(HHPathRegKey), 0, KEY_QUERY_VALUE, HHKey) = ERROR_SUCCESS then
+  if RegOpenKeyExA(HKEY_CLASSES_ROOT, PAnsiChar(HHPathRegKey), 0, KEY_QUERY_VALUE, HHKey) = ERROR_SUCCESS then
   begin
     ValueType := 0;
     PathSize := 0;
-    if RegQueryValueExA(HHKey, PChar(''), nil, @ValueType, nil, @PathSize) = ERROR_SUCCESS then
+    if RegQueryValueExA(HHKey, PAnsiChar(''), nil, @ValueType, nil, @PathSize) = ERROR_SUCCESS then
     begin
       if ValueType = REG_SZ then
       begin
         SetLength(Path, PathSize);
-        R := RegQueryValueExA(HHKey, PChar(''), nil, @ValueType, PByte(Path), @PathSize);
-        Result := PChar(Path);
+        R := RegQueryValueExA(HHKey, PAnsiChar(''), nil, @ValueType, PByte(Path), @PathSize);
+        Result := PAnsiChar(Path);
       end;
     end;
     RegCloseKey(HHKey);

@@ -3,7 +3,9 @@
 
  Created by Jeppe Johansen 2015 - jeppe@j-software.dk
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cortexm7;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -240,11 +242,11 @@ type
   TITM_Port = 0..31;
 
 
-procedure ITM_SendData(Port: TITM_Port; Data: char); inline;
+procedure ITM_SendData(Port: TITM_Port; Data: AnsiChar); inline;
 
 implementation
 
-procedure ITM_SendData(Port: TITM_Port; Data: char);
+procedure ITM_SendData(Port: TITM_Port; Data: AnsiChar);
 begin
   if (((ITM.TCR and 1) <> 0) and ((ITM.TER and 1) <> 0)) then
   begin

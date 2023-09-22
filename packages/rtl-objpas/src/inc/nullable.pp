@@ -12,14 +12,20 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nullable;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$modeswitch advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -61,7 +67,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.RtlConsts,System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses rtlconsts,typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TNullable }
 

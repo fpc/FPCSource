@@ -38,7 +38,9 @@
 
 // $Id: JwaAccCtrl.pas,v 1.9 2007/09/05 11:58:48 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAccCtrl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -61,8 +63,13 @@ unit JwaAccCtrl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
@@ -1225,8 +1232,13 @@ type
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

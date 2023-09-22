@@ -18,7 +18,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit glib;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$mode objfpc}
@@ -79,7 +81,7 @@ Type
 type
    PPgchar = ^Pgchar;
    Pgchar = ^gchar;
-   gchar = char;
+   gchar = AnsiChar;
    Pgshort = ^gshort;
    gshort = smallint;
    Pglong = ^glong;
@@ -89,7 +91,7 @@ type
    Pgboolean = ^gboolean;
    gboolean = longbool;
    Pguchar = ^guchar;
-   guchar = char;
+   guchar = AnsiChar;
    Pgushort = ^gushort;
    gushort = word;
    Pgulong = ^gulong;

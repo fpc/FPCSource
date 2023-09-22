@@ -14,7 +14,9 @@
 **********************************************************************}
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit glinkedlist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE DELPHI}
 

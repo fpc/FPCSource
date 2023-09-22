@@ -12,8 +12,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Dl;
+{$ELSE}
 uses dl;
+{$ENDIF}
+
 
 Function SysLoadLibraryA(const Name : RawByteString) : TLibHandle;
 {$ifdef aix}
@@ -46,7 +50,7 @@ end;
 Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
-  Result:=dlsym(lib,pchar(ProcName));
+  Result:=dlsym(lib,PAnsiChar(ProcName));
 end;
 
 Function SysUnloadLibrary(Lib : TLibHandle) : Boolean;
@@ -55,10 +59,14 @@ begin
   Result:=dlClose(Lib)=0;
 end;
 
-Function SysGetLoadErrorStr: string;
+Function SysGetLoadErrorStr: ansistring;
 
 begin
+{$IFDEF FPC_DOTTEDUNITS}
+  Result:=UnixApi.Dl.dlerror;
+{$ELSE}  
   Result:=dl.dlerror;
+{$ENDIF}
 end;
 
 const

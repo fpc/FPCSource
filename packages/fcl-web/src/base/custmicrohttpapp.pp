@@ -16,12 +16,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custmicrohttpapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs, FpWeb.Handler, Api.Microhttpd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpprotocol, httpdefs, custweb, libmicrohttpd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCustomMicroHTTPApplication = Class;
@@ -105,6 +112,7 @@ Type
   TMicroHTTPHandler = class(TWebHandler)
   Private
     FAcceptHandler: TAcceptHandler;
+    FAddress: String;
     FExtraHeaders: TStrings;
     FOnRequestError: TRequestErrorHandler;
     FPort : Word;
@@ -144,17 +152,21 @@ Type
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
     // Extra non-standard headers which can be accepted as part of requests
     Property ExtraHeaders : TStrings Read FExtraHeaders Write SetExtraHeaders;
+    // Interface Address to listen on
+    Property Address : String Read FAddress Write FAddress;
   end;
 
   { TCustomMicroHTTPApplication }
 
   TCustomMicroHTTPApplication = Class(TCustomWebApplication)
   private
+    function GetAddress: String;
     function GetExtraHeaders: TStrings;
     function GetHostName: String;
     function GetOptions: TMicroServerOptions;
     function GetPort: Word;
     function GetUseSSL: Boolean;
+    procedure SetAddress(AValue: String);
     procedure SetExtraHeaders(AValue: TStrings);
     procedure SetHostName(const AValue: String);
     procedure SetOptions(AValue: TMicroServerOptions);
@@ -175,6 +187,8 @@ Type
     Property UseSSL : Boolean Read GetUseSSL Write SetUSeSSL;
     // Extra non-standard headers which can be accepted as part of requests
     Property ExtraHeaders : TStrings Read GetExtraHeaders Write SetExtraHeaders;
+    // Interface Address to listen on
+    Property Address : String Read GetAddress Write SetAddress;
   end;
 
 
@@ -193,7 +207,7 @@ Const
   MHD_USE_DEBUG,
   MHD_USE_SSL,
   MHD_USE_THREAD_PER_CONNECTION,
-  MHD_USE_SELECT_INTERNALLY,
+  MHD_USE_INTERNAL_POLLING_THREAD,
   MHD_USE_IPv6,
   MHD_USE_PEDANTIC_CHECKS,
   MHD_USE_POLL,
@@ -210,15 +224,25 @@ Const
   libmicrohttp Callbacks
   ---------------------------------------------------------------------}
 
-Function MaybeS(p : pchar) : String;
+Function MaybeS(p : PAnsiChar) : String;
+
+Var
+  S : AnsiString;
+
 begin
-  if Assigned(P) then Result:=P else Result:='';
+  if Assigned(P) then S:=P else S:='';
+  {$IF SIZEOF(CHAR)=2}
+  Result:=UTF8Decode(S);
+  {$ELSE}
+  Result:=S;
+  {$ENDIF}
 end;
 
 function GetRequestData(cls: Pointer; kind: MHD_ValueKind; key: Pcchar; value: Pcchar): cint; cdecl;
 
 var
   K,V : String;
+
 
 
 begin
@@ -340,15 +364,23 @@ end;
 function TMicroRequest.AddData(Data: PAnsiChar; DataSize: Size_t): Size_t;
 
 Var
-  C : String;
+  C : RawByteString;
   L : Integer;
 
 begin
+  {$IF SIZEOF(CHAR)=2}
+  C:=UTF8Encode(Content);
+  {$ELSE}
   C:=Content;
+  {$ENDIF}
   L:=Length(C);
   SetLength(C,L+Datasize);
   Move(Data^,C[L+1],DataSize);
+  {$IF SIZEOF(CHAR)=2}
+  InitContent(UTF8Decode(C));
+  {$ELSE}
   InitContent(C);
+  {$ENDIF}
   Result:=Datasize;
 end;
 
@@ -364,18 +396,33 @@ end;
 procedure TMicroRequest.InitRequestVars;
 
 Var
-  P : Pchar;
-  N,S  : String;
+  P : PAnsiChar;
+  N  : AnsiString;
+  HN,S,V : String;
   I : integer;
 
 begin
   MHD_get_connection_values(FHandler.FConnection, MHD_GET_ARGUMENT_KIND,@GetRequestData,Self);
   MHD_get_connection_values(FHandler.FConnection, MHD_HEADER_KIND,@GetRequestData,Self);
-  for N in FHandler.WebHandler.ExtraHeaders do
+  for S in FHandler.WebHandler.ExtraHeaders do
     begin
-    P:=MHD_lookup_connection_value(FHandler.FConnection, MHD_HEADER_KIND,Pchar(N));
+    {$IF SIZEOF(Char)=2}
+    N:=UTF8Encode(S);
+    {$ELSE}
+    N:=S;
+    {$ENDIF}
+    P:=MHD_lookup_connection_value(FHandler.FConnection, MHD_HEADER_KIND,PAnsiChar(N));
     If P<>Nil then
-      SetCustomHeader(N,P);
+      begin
+      {$IF SIZEOF(Char)=2}
+      HN:=UTF8Decode(N);
+      V:=UTF8Decode(P);
+      {$ELSE}
+      HN:=N;
+      V:=P;
+      {$ENDIF}
+      SetCustomHeader(HN,V);
+      end;
     end;
   S:=URL;
   I:=Pos('?',S);
@@ -400,7 +447,7 @@ procedure TMicroResponse.MaybeAllocateResponse;
 
 Var
   L : Integer;
-  P : PChar;
+  P : PAnsiChar;
   B : TBytes;
 
 begin
@@ -416,14 +463,15 @@ begin
       begin
       SetLength(B,L);
       ContentStream.ReadBuffer(B[0],L);
-      P:=Pchar(B);
+      P:=PAnsiChar(B);
       FResponse:=MHD_create_response_from_buffer(L,P,MHD_RESPMEM_MUST_COPY);
       end;
     end
   else
     begin
-    L:=Length(Content);
-    P:=PChar(Content);
+    B:=TEncoding.UTF8.GetAnsiBytes(Content);
+    L:=Length(B);
+    P:=PAnsiChar(B);
     FResponse:=MHD_create_response_from_buffer(L,P,MHD_RESPMEM_MUST_COPY);
     end;
 end;
@@ -433,6 +481,8 @@ procedure TMicroResponse.DoSendHeaders(Headers: TStrings);
 Var
   I : Integer;
   N,V : String;
+  NA : RawByteString {$IF SIZEOF(CHAR)=1}absolute N{$ENDIF};
+  VA : RawByteString {$IF SIZEOF(CHAR)=1}absolute V{$ENDIF};
 
 begin
   // Note that if the response is allocated, then you cannot set the content stream any more...
@@ -441,7 +491,11 @@ begin
   For I:=0 to Headers.Count-1 do
     begin
     Headers.GetNameValue(I,N,V);
-    MHD_add_response_header(FResponse,PAnsiChar(N),PAnsiChar(V));
+    {$IF SIZEOF(CHAR)=2}
+    NA:=UTF8Encode(N);
+    VA:=UTF8Encode(V);
+    {$ENDIF}
+    MHD_add_response_header(FResponse,PAnsiChar(NA),PAnsiChar(VA));
     end;
 end;
 
@@ -536,7 +590,9 @@ begin
   end;
 end;
 
-function TMicroHTTPHandler.DoRequest(connection: PMHD_Connection; Const aUrl,aMethod,aVersion: String; Data: PAnsiChar; var DataSize: Size_t) : TRequestHandler;
+function TMicroHTTPHandler.DoRequest(connection: PMHD_Connection; const aUrl,
+  aMethod, aVersion: String; Data: PAnsiChar; var DataSize: Size_t
+  ): TRequestHandler;
 
 begin
   Result:=TRequestHandler.Create(Self,Connection);
@@ -609,7 +665,8 @@ begin
   AResponse:=Nil;
 end;
 
-Function TMicroHTTPHandler.DoAcceptConnection(Addr : PSockAddr; addrLen : socklen_t) : Boolean;
+function TMicroHTTPHandler.DoAcceptConnection(Addr: PSockAddr;
+  addrLen: socklen_t): Boolean;
 
 begin
   Result:=True;
@@ -634,7 +691,8 @@ end;
 function TMicroHTTPHandler.CreateServer: PMHD_Daemon;
 
 Var
-  F,P : Integer;
+  F : Integer;
+  P : Word;
 
 begin
   F:=OptionsToFlags;
@@ -642,8 +700,8 @@ begin
   Result:= MHD_start_daemon(F,P,
     @AcceptCallBack, Self,
     @DoMHDRequest, Self,
-    MHD_OPTION_NOTIFY_COMPLETED, @HandleRequestCompleted,
-    Nil,MHD_OPTION_END);
+    MHD_OPTION_NOTIFY_COMPLETED, @HandleRequestCompleted, Nil,
+    MHD_OPTION_END,Nil);
 end;
 
 procedure TMicroHTTPHandler.Run;
@@ -702,7 +760,7 @@ begin
   HTTPHandler.Port:=aValue;
 end;
 
-procedure TCustomMicroHTTPApplication.SetUSeSSL(AValue: Boolean);
+procedure TCustomMicroHTTPApplication.SetUseSSL(AValue: Boolean);
 begin
   if AValue then
     Options:=Options+[mcoSSL]
@@ -718,6 +776,11 @@ end;
 function TCustomMicroHTTPApplication.GetUseSSL: Boolean;
 begin
   Result:=mcoSSL in Options;
+end;
+
+procedure TCustomMicroHTTPApplication.SetAddress(AValue: String);
+begin
+  HTTPHandler.Address:=aValue;
 end;
 
 procedure TCustomMicroHTTPApplication.SetExtraHeaders(AValue: TStrings);
@@ -745,6 +808,11 @@ destructor TCustomMicroHTTPApplication.Destroy;
 begin
   MHD_set_panic_func(@DoPanic,Nil);
   inherited Destroy;
+end;
+
+function TCustomMicroHTTPApplication.GetAddress: String;
+begin
+  Result:=HTTPHandler.Address;
 end;
 
 function TCustomMicroHTTPApplication.GetExtraHeaders: TStrings;

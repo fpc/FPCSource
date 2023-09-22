@@ -107,7 +107,7 @@ function gtk_icon_theme_load_icon(icon_theme:PGtkIconTheme; icon_name:Pgchar; si
 
 function gtk_icon_theme_list_icons(icon_theme:PGtkIconTheme; context:Pgchar):PGList;cdecl;external gtklib name 'gtk_icon_theme_list_icons';
 
-function gtk_icon_theme_get_example_icon_name(icon_theme:PGtkIconTheme):Pchar;cdecl;external gtklib name 'gtk_icon_theme_get_example_icon_name';
+function gtk_icon_theme_get_example_icon_name(icon_theme:PGtkIconTheme):PAnsiChar;cdecl;external gtklib name 'gtk_icon_theme_get_example_icon_name';
 
 function gtk_icon_theme_rescan_if_needed(icon_theme:PGtkIconTheme):gboolean;cdecl;external gtklib name 'gtk_icon_theme_rescan_if_needed';
 

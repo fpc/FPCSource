@@ -19,19 +19,25 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit consolemgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (********************************************************************
  * Console Manager Routines
  ********************************************************************)
 
-function ConPutS(const message: PChar): Err; syscall sysTrapConPutS;
+function ConPutS(const message: PAnsiChar): Err; syscall sysTrapConPutS;
 
-function ConGetS(message: PChar; timeout: Int32): Err; syscall sysTrapConGetS;
+function ConGetS(message: PAnsiChar; timeout: Int32): Err; syscall sysTrapConGetS;
 
 implementation
 

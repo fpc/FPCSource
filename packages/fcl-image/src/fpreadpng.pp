@@ -13,19 +13,25 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPNG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  SysUtils,Classes, FPImage, FPImgCmn, PNGComn, ZStream;
+  System.SysUtils,System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
+  { TFPReaderPNG }
 
   TSetPixelProc = procedure (x,y:integer; CD : TColordata) of object;
   TConvertColorProc = function (CD:TColorData) : TFPColor of object;
-
-  { TFPReaderPNG }
 
   TFPReaderPNG = class (TFPCustomImageReader)
     private
@@ -80,6 +86,8 @@ Type
       procedure HandleChunk; virtual;
       procedure HandlePalette; virtual;
       procedure HandleAlpha; virtual;
+      procedure PredefinedResolutionValues; virtual;
+      procedure ReadResolutionValues; virtual;
       function CalcX (relX:integer) : integer;
       function CalcY (relY:integer) : integer;
       function CalcColor: TColorData;
@@ -294,6 +302,25 @@ begin
   end;
 end;
 
+procedure TFPReaderPNG.PredefinedResolutionValues;
+begin
+  //According with Standard: If the pHYs chunk is not present, pixels are assumed to be square
+  TheImage.ResolutionUnit :=ruNone;
+  TheImage.ResolutionX :=1;
+  TheImage.ResolutionY :=1;
+end;
+
+procedure TFPReaderPNG.ReadResolutionValues;
+begin
+  if (chunk.alength<>sizeof(TPNGPhysicalDimensions))
+  then raise Exception.Create('ctpHYs Chunk Size not Valid for TPNGPhysicalDimensions');
+  if (PPNGPhysicalDimensions(chunk.data)^.Unit_Specifier = 1)
+  then TheImage.ResolutionUnit :=ruPixelsPerCentimeter
+  else TheImage.ResolutionUnit :=ruNone;
+  TheImage.ResolutionX :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.X_Pixels)/100;
+  TheImage.ResolutionY :=BEtoN(PPNGPhysicalDimensions(chunk.data)^.Y_Pixels)/100;
+end;
+
 procedure TFPReaderPNG.HandlePalette;
 var r : longword;
     c : TFPColor;
@@ -506,7 +533,7 @@ begin
     end
 end;
 
-function TFPReaderPNG.ColorGray1 (CD:TColorDAta) : TFPColor;
+function TFPReaderPNG.ColorGray1(CD: TColorData): TFPColor;
 begin
   if CD = 0 then
     result := colBlack
@@ -514,7 +541,7 @@ begin
     result := colWhite;
 end;
 
-function TFPReaderPNG.ColorGray2 (CD:TColorDAta) : TFPColor;
+function TFPReaderPNG.ColorGray2(CD: TColorData): TFPColor;
 var c : word;
 begin
   c := CD and 3;
@@ -530,7 +557,7 @@ begin
     end;
 end;
 
-function TFPReaderPNG.ColorGray4 (CD:TColorDAta) : TFPColor;
+function TFPReaderPNG.ColorGray4(CD: TColorData): TFPColor;
 var c : word;
 begin
   c := CD and $F;
@@ -545,7 +572,7 @@ begin
     end;
 end;
 
-function TFPReaderPNG.ColorGray8 (CD:TColorDAta) : TFPColor;
+function TFPReaderPNG.ColorGray8(CD: TColorData): TFPColor;
 var c : word;
 begin
   c := CD and $FF;
@@ -559,7 +586,7 @@ begin
     end;
 end;
 
-function TFPReaderPNG.ColorGray16 (CD:TColorDAta) : TFPColor;
+function TFPReaderPNG.ColorGray16(CD: TColorData): TFPColor;
 var c : word;
 begin
   c := CD and $FFFF;
@@ -846,6 +873,7 @@ begin
     ctIDAT : HandleData;
     ctIEND : EndOfFile := True;
     cttRNS : HandleAlpha;
+    ctpHYs : ReadResolutionValues;
     else HandleUnknown;
   end;
 end;
@@ -867,6 +895,9 @@ begin
     Img.SetSize (Width, Height);
   ZData := TMemoryStream.Create;
   try
+    //Resolution: If the pHYs chunk is not present, pixels are assumed to be square
+    PredefinedResolutionValues;
+
     EndOfFile := false;
     while not EndOfFile do
       begin

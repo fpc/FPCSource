@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprtfexport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fprtfexport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, fpdbexport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRTFExportOption = (reHeaderRow,reHeaderLine,reTopLine,reBottomLine);

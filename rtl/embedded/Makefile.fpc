@@ -12,20 +12,17 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) \
-# macpas iso7185 strings
-       dos \
-       ctypes \
-       charset cpall \
-       sysconst
-#implicitunits=exeinfo \
-#      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-#      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-#      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-#      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-#      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
+# $(MACPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT)
+       $(STRINGSUNIT) \
+       $(SORTBASEUNIT) \
+       $(DOSUNIT) \
+       $(CTYPESUNIT) \
+       $(CHARSETUNIT) $(CPALLUNIT) \
+       $(SYSCONSTUNIT)
+#implicitunits=exeinfo $(CP_UNITS)
 
-#rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
+#rsts=$(MATHUNIT) rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
 nortl=y
@@ -34,7 +31,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=embedded
 
 [compiler]
@@ -59,46 +55,52 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
-# Always include rtl.cfg config file for i8086
-ifeq ($(ARCH),i8086)
-override FPCOPT+=@rtl.cfg
-endif
-
 CPU_UNITS=
 SYSINIT_UNITS=
-CPU_SPECIFIC_COMMON_UNITS=
+CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
+			  $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) \
+			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
+
+# Sysutils special deps
+SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
+# Dos unit, local source
+DOSDIR=.
+# Dos unit uses objfpc mode
+DOS_DEPS_OS=objpas$(PPUEXT)
 
 ifeq ($(ARCH),aarch64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
-CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
+CPU_UNITS=$(RASPI3UNIT) $(MMIOUNIT) $(MAILBOXUNIT) $(RASPIUARTUNIT) $(GPIOUNIT)
 CPU_UNITS_DEFINED=1
 endif
 
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
-CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 sam3x8e xmc4500 cortexm3 cortexm4 # thumb2_bare
+CPU_UNITS=$(LM3FURYUNIT) $(LM3TEMPESTUNIT) $(STM32F10X_LDUNIT) $(STM32F10X_MDUNIT) $(STM32F10X_HDUNIT) \
+	$(STM32F10X_XLUNIT) $(STM32F10X_CONNUNIT) $(STM32F10X_CLUNIT) $(LPC13XXUNIT) $(LPC1768UNIT) \
+	$(SAM3X8EUNIT) $(XMC4500UNIT) $(CORTEXM3UNIT) $(CORTEXM4UNIT) # thumb2_bare
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7em)
-CPU_UNITS=lm4f120 xmc4500 mk20d5 mk20d7 mk22f51212 mk64f12 stm32f401xx stm32f407xx stm32f411xe stm32f429xx stm32f446xx stm32f745 stm32f746 stm32f756 nrf52 cortexm3 cortexm4 cortexm7 \
-samd51p19a # thumb2_bare
+CPU_UNITS=$(LM4F120UNIT) $(XMC4500UNIT) $(MK20D5UNIT) $(MK20D7UNIT) $(MK22F51212UNIT) $(MK64F12UNIT) \
+	  $(STM32F401XXUNIT) $(STM32F407XXUNIT) $(STM32F411XEUNIT) $(STM32F429XXUNIT) $(STM32F446XXUNIT) \
+	  $(STM32F745UNIT) $(STM32F746UNIT) $(STM32F756UNIT) $(NRF52UNIT) $(CORTEXM3UNIT) $(CORTEXM4UNIT) $(CORTEXM7UNIT) \
+	  $(SAMD51P19AUNIT) # thumb2_bare
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4t)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS=$(LPC21X4UNIT) $(AT91SAM7X256UNIT) $(SC32442BUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS=$(LPC21X4UNIT) $(AT91SAM7X256UNIT) $(SC32442BUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv6m)
-CPU_UNITS=lpc8xx lpc11xx lpc122x stm32f0xx nrf51 cortexm0
+CPU_UNITS=$(LPC8XXUNIT) $(LPC11XXUNIT) $(LPC122XUNIT) $(STM32F0XXUNIT) $(NRF51UNIT) $(CORTEXM0UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7a)
-CPU_UNITS=allwinner_a20 raspi2
+CPU_UNITS=$(ALLWINNER_A20UNIT) $(RASPI2UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -178,26 +180,34 @@ endif
 endif
 
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
-CPU_UNITS=multiboot
+CPU_UNITS=$(MULTIBOOTUNIT)
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
 
+ifeq ($(ARCH),i8086)
+# Always include rtl.cfg config file for i8086
+override FPCOPT+=@rtl.cfg
+CPU_SPECIFIC_COMMON_UNITS=
+endif
+
+ifeq ($(ARCH),z80)
+# Always include rtl.cfg config file for z80
+override FPCOPT+=@rtl.cfg
+CPU_SPECIFIC_COMMON_UNITS=
+endif
+
 ifeq ($(ARCH),x86_64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
-# CPU_UNITS=multiboot
+# CPU_UNITS=$(MULTIBOOTUNIT)
 endif
 
 ifeq ($(ARCH),m68k)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
-# CPU_UNITS=multiboot
+# CPU_UNITS=$(MULTIBOOTUNIT)
 endif
 
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
 CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 CPU_UNITS_DEFINED=1
@@ -208,15 +218,25 @@ endif
 endif
 
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+ifeq ($(SUBARCH),rv32ec)
+override FPCOPT+=-Cprv32ec
+CPU_UNITS=CH32VxBootstrap
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),rv32e)
+override FPCOPT+=-Cprv32e
+CPU_UNITS=CH32VxBootstrap
+CPU_UNITS_DEFINED=1
+endif
 ifeq ($(SUBARCH),rv32imac)
 override FPCOPT+=-Cprv32imac
-CPU_UNITS=fe310g000 fe310g002 gd32vf103xx
+CPU_UNITS=CH32VxBootstrap $(FE310G000UNIT) $(FE310G002UNIT) $(GD32VF103XXUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),rv32i)
 override FPCOPT+=-Cprv32i
-CPU_UNITS=
+CPU_UNITS=CH32VxBootstrap
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -225,7 +245,6 @@ endif
 endif
 
 ifeq ($(ARCH),riscv64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -234,9 +253,8 @@ endif
 endif
 
 ifeq ($(ARCH),xtensa)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),lx106)
-CPU_UNITS=esp8266
+CPU_UNITS=$(ESP8266UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -245,13 +263,11 @@ endif
 endif
 
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
-# lineinfo
+CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
 endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 [rules]
 # .NOTPARALLEL:
@@ -268,7 +284,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
+FPC_SYSTEM_OPT=@system.cfg
 
 #
 # Loaders
@@ -278,202 +295,160 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
 
 #
-# Base Units (System, strings, os-dependent-base-unit)
+# Base Units (System, $(STRINGSUNIT), os-dependent-base-unit)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @system.cfg $(REDIR)
+CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(CONSOLEIO_DEPS_OS) $(CONSOLEIO_DEPS_CPU)
 
-uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
+consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
+        $(COMPILER) $(CONSOLEIO_OPT) $<
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
+	$(COMPILER) $(CONSOLEIO_OPT) -Fi. $<
 
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(HEAPMGR_DEPS_OS) $(HEAPMGR_DEPS_CPU)
 
+heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
+        $(COMPILER) $(HEAPMGR_OPT) $<
 
-#
-# System Dependent Units
-#
-
-#ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $<
-
-#doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $<
-
-consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp $(INC)/fexpand.inc $(INC)/filerec.inc $(INC)/textrec.inc $(INC)/dosh.inc $(INC)/dos.inc objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-#crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $<
-
-objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-#printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $<
-
-#graph$(PPUEXT) : graph.pp
-#        $(COMPILER) $<
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) sysconst$(PPUEXT) heapmgr$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
-
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
-
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/fgl.pp $(REDIR)
-
-dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
-
-#
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
-#
-# Other system-independent RTL Units
-#
-
-ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/lineinfo.pp
-
-charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
+EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
+	$(COMPILER) $(HEAPMGR_OPT) -Fi. $<
 
 #
 # Unit specific rules
 #
 
 define CPU_UNITS_RULE
+ifndef FPC_DOTTEDUNITS
 ifeq ($(ARCH),avr)
 $(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 else
 $(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
 endif
+else
+$(eval UNIT_REG_NAME=$(subst EmbeddedApi.,,$(1)))
+$(eval UNIT_REG_NAME=$(subst ARMApi.,,$(UNIT_REG_NAME)))
+ifeq ($(ARCH),avr)
+# No dotted rules for AVR cpu yet
+$(1)$(PPUEXT):  $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+else
+# mipsel is also not yet in namespaced
+ifeq ($(ARCH),mipsel)
+$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
+else
+$(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT)
+endif
+endif
+endif
 endef
-
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 
+ifndef FPC_DOTTEDUNITS
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g $<
-
-#
-# Other $(SYSTEMUNIT)-dependent RTL Units
-#
-
-errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/errors.pp
-
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/callspec.pp
-
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/cmem.pp
-
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) unix$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT) dl$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/cthreads.pp
-
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT) unixcp$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/cwstring.pp
-
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ctypes.pp
-
-fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) fpcylix.pp
-
-intrinsics$(PPUEXT) : $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(PROCINC)/intrinsics.pp
-
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/sortbase.pp
+else
+$(addsuffix $(PPUEXT),$(CPU_UNITS)):
+	$(COMPILER) -g -Fi$(OSDIR) -Fi$(OSDIR)/$(ARCH) $<
+endif
+	
 
 # AVR specific units
 
-avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
+
+# i386 specific units
+
+
+MULTIBOOT_DEPS = $(ARCH)/multiboot.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(MULTIBOOT_DEPS_OS) $(MULTIBOOT_DEPS_CPU)
+
+multiboot$(PPUEXT) : $(MULTIBOOT_DEPS)
+        $(COMPILER) $(MULTIBOOT_OPT) $<
+
+EmbeddedApi.multiboot$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.multiboot.pp $(MULTIBOOT_DEPS)
+	$(COMPILER) $(MULTIBOOT_OPT) -Fi. -Fi$(ARCH) $<
 
 # ARM specific units
 
-raspi2$(PPUEXT): $(ARCH)/raspi2.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspi2.pp
+#raspi2$(PPUEXT): $(ARCH)/raspi2.pp $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(ARCH)/raspi2.pp
+
+RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(RASPI2_DEPS_OS) $(RASPI2_DEPS_CPU)
+
+raspi2$(PPUEXT) : $(RASPI2_DEPS)
+        $(COMPILER) $(RASPI2_OPT) $<
+
+EmbeddedApi.Raspi2$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
+	$(COMPILER) $(RASPI2_OPT) -Fi. -Fi$(ARCH) $<
 
 # AARCH64 specific units
 
-raspi3$(PPUEXT): $(ARCH)/raspi3.pp consoleio$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspi3.pp
+# gpio unit
+#
+GPIO_DEPS = $(ARCH)/gpio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(GPIO_DEPS_OS) $(GPIO_DEPS_CPU)
 
-raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspiuart.pp
+gpio$(PPUEXT) : $(GPIO_DEPS)
+        $(COMPILER) $(GPIO_OPT) $<
 
-mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/mailbox.pp
+EmbeddedApi.gpio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
+	$(COMPILER) $(GPIO_OPT) -Fi. -Fi$(ARCH) $<
+
+#mmio$(PPUEXT): $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(ARCH)/mailbox.pp
+MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+        $(MMIO_DEPS_OS) $(MMIO_DEPS_CPU)
+
+mmio$(PPUEXT) : $(MMIO_DEPS)
+        $(COMPILER) $(MMIO_OPT) $<
+
+EmbeddedApi.mmio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mmio.pp $(MMIO_DEPS)
+	$(COMPILER) $(MMIO_OPT) -Fi. -Fi$(ARCH) $<
+
+#mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(ARCH)/mailbox.pp
+
+MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
+        $(MAILBOX_DEPS_OS) $(MAILBOX_DEPS_CPU)
+
+mailbox$(PPUEXT) : $(MAILBOX_DEPS)
+        $(COMPILER) $(MAILBOX_OPT) $<
+
+EmbeddedApi.mailbox$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
+	$(COMPILER) $(MAILBOX_OPT) -Fi. -Fi$(ARCH) $<
+
+#raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(ARCH)/raspiuart.pp
+
+RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
+        $(RASPIUART_DEPS_OS) $(RASPIUART_DEPS_CPU)
+
+raspiuart$(PPUEXT) : $(RASPIUART_DEPS)
+        $(COMPILER) $(RASPIUART_OPT) $<
+
+EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
+	$(COMPILER) $(RASPIUART_OPT) -Fi. -Fi$(ARCH) $<
+
+#raspi3$(PPUEXT): $(ARCH)/raspi3.pp $(CONSOLEIOUNIT)$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(ARCH)/raspi3.pp
+
+RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+	$(CONSOLEIOUNIT)$(PPUEXT) $(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) \
+	$(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
+        $(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)
+
+raspi3$(PPUEXT) : $(RASPI3_DEPS)
+        $(COMPILER) $(RASPI3_OPT) $<
+
+EmbeddedApi.raspi3$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
+	$(COMPILER) $(RASPI3_OPT) -Fi. -Fi$(ARCH) $<
 
 

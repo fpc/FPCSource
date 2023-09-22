@@ -13,15 +13,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit asl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Workbench, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, utility, workbench, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
-  ASLNAME: PChar = 'asl.library';
+  ASLNAME: PAnsiChar = 'asl.library';
   ASL_Dummy = TAG_USER + $80000;
 
 // Types of requesters known to ASL, used as arguments to AllocAslRequest()
@@ -369,7 +376,7 @@ const
   defaults for the window size and the file requester sort order. The name
   of the semaphore is given below; it exists only with asl.library V45 and
   IPrefs V45 and beyond.}
-  ASL_SEMAPHORE_NAME: PChar = 'asl.library';
+  ASL_SEMAPHORE_NAME: PAnsiChar = 'asl.library';
 
 type
   PASLSemaphore = ^TASLSemaphore;

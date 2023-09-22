@@ -29,11 +29,17 @@
  *
  ***********************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit connectionmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Datamgr, PalmApi.Modemmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, coretraps, errorbase, datamgr, modemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Definition
@@ -411,7 +417,7 @@ function CncProfileSetCurrent(profileId: CncProfileID): Err; syscall sysTrapCncM
 
 function CncProfileGetCurrent(var profileIdP: CncProfileID): Err; syscall sysTrapCncMgrDispatch, sysTrapCncMgrProfileGetCurrent;
 
-function CncProfileGetIDFromName(const profileNameP: PChar; var profileIdP: CncProfileID): Err; syscall sysTrapCncMgrDispatch, sysTrapCncMgrProfileGetIDFromName;
+function CncProfileGetIDFromName(const profileNameP: PAnsiChar; var profileIdP: CncProfileID): Err; syscall sysTrapCncMgrDispatch, sysTrapCncMgrProfileGetIDFromName;
 
 function CncProfileCreate(var profileIdP: CncProfileID): Err; syscall sysTrapCncMgrDispatch, sysTrapCncMgrProfileCreate;
 
@@ -450,13 +456,13 @@ const
 
 function CncGetProfileList(var nameListPPP: PCharPtr; var countP: UInt16): Err; syscall sysTrapCncGetProfileList;
 
-function CncGetProfileInfo(name: PChar; var port, baud: UInt32; var volume, handShake: UInt16;
-                           initString: PChar; var resetString: Char; var isModem, isPulse: Boolean): Err; syscall sysTrapCncGetProfileInfo;
+function CncGetProfileInfo(name: PAnsiChar; var port, baud: UInt32; var volume, handShake: UInt16;
+                           initString: PAnsiChar; var resetString: AnsiChar; var isModem, isPulse: Boolean): Err; syscall sysTrapCncGetProfileInfo;
 
-function CncAddProfile(name: PChar; port, baud: UInt32; volum, handShake: UInt16;
-                       const initString, resetString: PChar; isMode, isPulse: Boolean): Err; syscall sysTrapCncAddProfile;
+function CncAddProfile(name: PAnsiChar; port, baud: UInt32; volum, handShake: UInt16;
+                       const initString, resetString: PAnsiChar; isMode, isPulse: Boolean): Err; syscall sysTrapCncAddProfile;
 
-function CncDeleteProfile(const name: PChar): Err; syscall sysTrapCncDeleteProfile;
+function CncDeleteProfile(const name: PAnsiChar): Err; syscall sysTrapCncDeleteProfile;
 
 
 implementation

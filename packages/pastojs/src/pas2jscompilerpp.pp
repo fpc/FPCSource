@@ -16,14 +16,21 @@
   Abstract:
     Pas2JS compiler Postprocessor support. Can depend on filesystem.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSCompilerPP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Pas2Js.Compiler.Base, Js.Writer, Pas2Js.SrcMap, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, pas2jscompiler, jswriter, FPPJSSrcMap, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -45,7 +52,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Process, Pas2Js.Logger, Pas2Js.Utils, Pas2Js.Files.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses process, pas2jslogger, pas2jsutils, pas2jsfileutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function TPas2JSFSPostProcessorSupport.CmdListAsStr(CmdList: TStrings): string;
 var

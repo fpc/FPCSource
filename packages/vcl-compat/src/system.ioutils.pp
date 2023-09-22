@@ -27,8 +27,13 @@ unit System.IOUtils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Types, Fcl.Streams.Extra;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Types, streamex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -292,6 +297,20 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IfDef MSWINDOWS}
+    WinApi.Windows, WinApi.WinDirs,
+  {$EndIf}
+  {$IfDef WINCE}
+    WinApi.Windows,
+  {$EndIf}
+  {$IfDef Unix}
+    UnixApi.Base,
+  {$EndIf}
+   System.DateUtils
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IfDef MSWINDOWS}
     windows, WinDirs,
@@ -304,6 +323,7 @@ uses
   {$EndIf}
    DateUtils
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrFileExists = 'File "%s" already exists';
@@ -398,7 +418,7 @@ end;
 
 function UTCtoLocal(const UTCDateTime: TDateTime): TDateTime;
 begin
-  Result:=Sysutils.UniversalTimeToLocal(UTCDateTime,GetLocalTimeOffset);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UTCDateTime,GetLocalTimeOffset);
  end;
 
 { TPath }
@@ -612,7 +632,7 @@ begin
   Result:=False;
   {$IfDef MSWINDOWS}
     try
-      case GetDriveType(PChar(ExtractFileDrive(aPath))) of
+      case GetDriveType(PAnsiChar(ExtractFileDrive(aPath))) of
         DRIVE_REMOVABLE,
         DRIVE_FIXED,
         DRIVE_REMOTE,
@@ -1049,17 +1069,17 @@ end;
 
 class function TPath.GetTempFileName: string;
 begin
-  Result:=SysUtils.GetTempFileName;
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTempFileName;
 end;
 
 class function TPath.GetTempPath: string;
 begin
-  Result:=IncludeTrailingPathDelimiter(SysUtils.GetTempDir);
+  Result:=IncludeTrailingPathDelimiter({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTempDir);
 end;
 
 class function TPath.GetHomePath: string;
 begin
-  Result:=SysUtils.GetUserDir;
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetUserDir;
 end;
 
 {$ifdef UNIX}
@@ -1150,7 +1170,7 @@ begin
     {$IFDEF UNIX}
       Result:=GetUserDir+'.cache'; // Check darwin
     {$ELSE}
-    Result:=SysUtils.GetTempDir;
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTempDir;
     {$ENDIF}
   {$EndIf}
 end;
@@ -1438,14 +1458,14 @@ begin
   {$Else}
     { Attributes supported by TSearchRec}
     Result:=[];
-    AddIfSet(Result, SysUtils.faDirectory,         TFileAttribute.faDirectory);
-    AddIfSet(Result, SysUtils.faSymLink{%H-},      TFileAttribute.faSymLink);
-    AddIfSet(Result, SysUtils.faNormal,            TFileAttribute.faNormal);
-    AddIfSet(Result, SysUtils.faDirectory,  TFileAttribute.faDirectory);
-    AddIfSet(Result, SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
-    AddIfSet(Result, SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
-    AddIfSet(Result, SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
-    AddIfSet(Result, SysUtils.faArchive,    TFileAttribute.faArchive);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory,         TFileAttribute.faDirectory);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSymLink{%H-},      TFileAttribute.faSymLink);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faNormal,            TFileAttribute.faNormal);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory,  TFileAttribute.faDirectory);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
+    AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faArchive,    TFileAttribute.faArchive);
   {$EndIf}
 end;
 
@@ -1486,13 +1506,13 @@ begin
       Result:=FileAttributesToFlags(Attributes);
     {$ELSE}
        // Assume attrs as in TSearchRec
-      AddIfSet(Result, SysUtils.faDirectory,  TFileAttribute.faDirectory);
-      AddIfSet(Result, SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
-      AddIfSet(Result, SysUtils.faNormal,     TFileAttribute.faNormal);
-      AddIfSet(Result, SysUtils.faReadOnly,   TFileAttribute.faReadOnly);
-      AddIfSet(Result, SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
-      AddIfSet(Result, SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
-      AddIfSet(Result, SysUtils.faArchive,    TFileAttribute.faArchive);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory,  TFileAttribute.faDirectory);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faNormal,     TFileAttribute.faNormal);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faReadOnly,   TFileAttribute.faReadOnly);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
+      AddIfSet(Result, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faArchive,    TFileAttribute.faArchive);
     {$EndIf}
   {$EndIf}
 end;
@@ -1505,7 +1525,7 @@ end;
 class function TFile.Create(const aPath: string; const BufferSize: Integer
   ): TFileStream;
 begin
-  Result:=TFileStream.Create(aPath,Classes.fmCreate);
+  Result:=TFileStream.Create(aPath,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.fmCreate);
 end;
 
 class function TFile.OpenOrCreate(const aPath: string): TFileStream;
@@ -1685,7 +1705,7 @@ end;
 
 class procedure TFile.Delete(const aPath: string);
 begin
-  SysUtils.DeleteFile(aPath);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(aPath);
 end;
 
 class function TFile.Exists(const aPath: string; FollowLink: Boolean): Boolean;
@@ -1806,7 +1826,7 @@ class function TFile.Open(const aPath: string; const aMode: TFileMode;
 
 Const
  // faRead, faWrite, faReadWrite
-   AccessModes : Array[TFileAccess] of Word = (SysUtils.fmOpenRead, SysUtils.fmOpenWrite,fmOpenReadWrite)  ;
+   AccessModes : Array[TFileAccess] of Word = ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.fmOpenRead, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.fmOpenWrite,fmOpenReadWrite)  ;
    // fsNone, fsRead, fsWrite, fsReadWrite
    ShareModes : Array[TFileShare] of word = (fmShareExclusive, fmShareDenyRead, fmShareDenyWrite,fmShareDenyNone);
 
@@ -1825,7 +1845,7 @@ begin
     Result:=TFileStream.Create(aPath,fMode);
     end;
   TFileMode.fmCreate:
-    Result:=TFileStream.Create(aPath, Classes.fmCreate or sMode);
+    Result:=TFileStream.Create(aPath, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.fmCreate or sMode);
   TFileMode.fmOpen:
     begin
     if Exists(aPath) then
@@ -1837,7 +1857,7 @@ begin
     if Exists(aPath) then
       Result:=TFileStream.Create(aPath,fMode)
     else
-      Result:=TFileStream.Create(aPath,Classes.fmCreate or sMode);
+      Result:=TFileStream.Create(aPath,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.fmCreate or sMode);
     end;
   TFileMode.fmTruncate:
     begin
@@ -1854,7 +1874,7 @@ begin
       Result.Seek(0,soEnd);
     end
     else
-      Result:=TFileStream.Create(aPath, Classes.fmCreate or sMode);
+      Result:=TFileStream.Create(aPath, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.fmCreate or sMode);
     end;
   end;
 end;
@@ -1950,7 +1970,7 @@ begin
   ReplaceFlags:=REPLACEFILE_WRITE_THROUGH;
   if aIgnoreMetadataErrors then
       ReplaceFlags:=ReplaceFlags or REPLACEFILE_IGNORE_MERGE_ERRORS;
-  ReplaceFileA(PChar(lDest),PChar(lSrc),PChar(lBackup),ReplaceFlags,nil,nil);
+  ReplaceFileA(PAnsiChar(lDest),PAnsiChar(lSrc),PAnsiChar(lBackup),ReplaceFlags,nil,nil);
 end;
 {$ENDIF MSWINDOWS}
 
@@ -1975,7 +1995,7 @@ begin
 {$ifdef unix}
   fpCHmod(aPath,FileAttributesToInteger(aAttributes));
 {$else}
-  SysUtils.FileSetAttr(aPath, FileAttributesToInteger(aAttributes));
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FileSetAttr(aPath, FileAttributesToInteger(aAttributes));
 {$endif}
 end;
 
@@ -2046,12 +2066,12 @@ begin
   Result      :=[];
   if (FindFirst(IntPath + aSearchPattern, TFile.FileAttributesToInteger(SearchAttributes), SearchRec) = 0) then
     repeat
-      if (aSearchOption = soAllDirectories) and ((SearchRec.Attr and SysUtils.faDirectory) <> 0) then
+      if (aSearchOption = soAllDirectories) and ((SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory) <> 0) then
         Result:=Result + GetFilesAndDirectories(IntPath + SearchRec.Name, aSearchPattern, aSearchOption, SearchAttributes, aPredicate)
       else if FilterPredicate(aPath, SearchRec) then
         Result:=Result + [IntPath + SearchRec.Name];
     until FindNext(SearchRec) <> 0;
-  SysUtils.FindClose(SearchRec);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SearchRec);
 end;
 
 class function TDirectory.GetFilesAndDirectories(const aPath,
@@ -2093,7 +2113,7 @@ end;
 function DeleteDirectory(const DirectoryName: string; OnlyChildren: boolean): boolean;
 const
   //Don't follow symlinks on *nix, just delete them
-  DeleteMask = faAnyFile {$ifdef unix} or sysutils.faSymLink{%H-} {$endif unix};
+  DeleteMask = faAnyFile {$ifdef unix} or {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faSymLink{%H-} {$endif unix};
 var
   FileInfo: TSearchRec;
   CurSrcDir: String;
@@ -2108,15 +2128,15 @@ begin
         if (FileInfo.Name='.') or (FileInfo.Name='..') or (FileInfo.Name='') then
           continue;
         CurFilename:=CurSrcDir+FileInfo.Name;
-        if ((FileInfo.Attr and sysutils.faDirectory)>0)
-           {$ifdef unix} and ((FileInfo.Attr and sysutils.faSymLink{%H-})=0) {$endif unix} then begin
+        if ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faDirectory)>0)
+           {$ifdef unix} and ((FileInfo.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.faSymLink{%H-})=0) {$endif unix} then begin
           if not DeleteDirectory(CurFilename,false) then exit;
         end else begin
-          if not Sysutils.DeleteFile(CurFilename) then exit;
+          if not {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(CurFilename) then exit;
         end;
-      until Sysutils.FindNext(FileInfo)<>0;
+      until {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(FileInfo)<>0;
     finally
-      Sysutils.FindClose(FileInfo);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(FileInfo);
     end;
   if (not OnlyChildren) and (not RemoveDir(CurSrcDir)) then exit;
   Result:=true;
@@ -2472,9 +2492,9 @@ begin
         if Handle and Assigned(aAfter) then
           Continue:=aAfter(lPath,Info);
         end;
-    until (SysUtils.FindNext(Info)<>0) or not Continue;
+    until ({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(Info)<>0) or not Continue;
   finally
-    SysUtils.FindClose(Info);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(Info);
   end;
 end;
 
@@ -2487,7 +2507,7 @@ begin
     repeat
       Result:=(sr.Name = '.') or (sr.Name = '..');
     until Result and (FindNext(sr) = 0);
-  SysUtils.FindClose(sr);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(sr);
 end;
 
 class function TDirectory.IsRelativePath(const aPath: string): Boolean;
@@ -2498,7 +2518,7 @@ end;
 Function SpecialDir(Const Info : TSearchRec) : Boolean;
 
 begin
-  Result:=(Info.Attr and SysUtils.faDirectory <> 0) and (Info.Name='.') or (Info.Name='..');
+  Result:=(Info.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory <> 0) and (Info.Name='.') or (Info.Name='..');
 end;
 
 class procedure TDirectory.Move(const SourceDirName, DestDirName: string);
@@ -2531,7 +2551,7 @@ Var
       begin
         lSrc:=TPath.Combine(aPath,aInfo.Name);
 {$IFDEF WINDOWS}
-        FileSetAttr(lSrc,SysUtils.faNormal);
+        FileSetAttr(lSrc,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faNormal);
 {$ENDIF}
         RemoveDir(lSrc);
       end
@@ -2543,7 +2563,7 @@ Var
           lDestF:=IncludeTrailingPathDelimiter(lDestF+ExtractRelativePath(lSource,aPath));
         lDestF:=lDest+aInfo.Name;
 {$IFDEF WINDOWS}
-        FileSetAttr(lSrc,SysUtils.faNormal);
+        FileSetAttr(lSrc,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faNormal);
 {$ENDIF WINDOWS}
         RenameFile(lSrc,lDestF);
 {$IFDEF WINDOWS}

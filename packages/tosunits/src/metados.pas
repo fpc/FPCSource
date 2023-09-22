@@ -14,7 +14,9 @@
 
 {$PACKRECORDS 2}
 {$MODESWITCH OUT+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit metados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -31,14 +33,14 @@ type
   PMETAINFO = ^TMETAINFO;
   TMETAINFO = record
     drivemap:   LongInt;
-    version:    Pchar;
+    version:    PAnsiChar;
     reserved:   LongInt;
     info:  PMETAINFO2; {* Available from MetaDOS version 2.30 *}
   end;
 
   PMETA_DRVINFO = ^TMETA_DRVINFO;
   TMETA_DRVINFO = record
-    name: PChar;
+    name: PAnsiChar;
     reserved:   array[0..2] of LongInt;
   end;
 

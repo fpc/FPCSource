@@ -42,7 +42,9 @@
 
 // $Id: JwaRpcASync.pas,v 1.13 2007/09/05 11:58:52 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaRpcASync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -59,8 +61,13 @@ unit JwaRpcASync;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Rpc, WinApi.Jedi.Rpcdce, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaRpc, JwaRpcDce, JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -344,9 +351,9 @@ type
     Version: Cardinal;
     Flags: Cardinal;
     ServerPrincipalNameBufferLength: Cardinal;
-    ServerPrincipalName: PChar;
+    ServerPrincipalName: PAnsiChar;
     ClientPrincipalNameBufferLength: Cardinal;
-    ClientPrincipalName: PChar;
+    ClientPrincipalName: PAnsiChar;
     AuthenticationLevel: Cardinal;
     AuthenticationService: Cardinal;
     NullSession: BOOL;

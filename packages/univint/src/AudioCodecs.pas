@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioCodecs;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CoreAudioTypes,MacOsApi.AudioComponents;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CoreAudioTypes,AudioComponents;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -624,7 +630,7 @@ const
 						This property can be set on an initialized encoder object without having to uninitialize and re-intialize it
 						and allows to adjust the encoder quality level for every packet. This is useful for packets streamed over
 						unreliable IP networks where the encoder needs to adapt immediately to network condition changes.
-						Escape property ID's start with a '^' symbol as the first char code. This bypasses the initilization check.
+						Escape property ID's start with a '^' symbol as the first AnsiChar code. This bypasses the initilization check.
     @constant		kAudioCodecPropertyProgramTargetLevel
 						A Float32 specifying the program target level in dB FS for decoders.
 						Supported target levels are in the range of -31.0 to -20.0dB.

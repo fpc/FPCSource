@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit locale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PLocaleBase = ^TLocaleBase;
@@ -210,7 +217,7 @@ var
   LocaleBase: PLocaleBase = nil;
 
 const
-  LOCALENAME: PChar = 'locale.library';
+  LOCALENAME: PAnsiChar = 'locale.library';
 
 procedure CloseCatalog(Catalog: PCatalog); syscall LocaleBase 6;
 procedure CloseLocale(Locale: PLocale); syscall LocaleBase 7;

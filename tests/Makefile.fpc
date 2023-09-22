@@ -240,7 +240,7 @@ endif
 .PHONY: create_c_objects delete_c_objects copyfiles test_c_objects
 
 C_SOURCE_DIR=test/cg/obj
-C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
+C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c tcext7.c
 CPP_SOURCES=cpptcl1.cpp cpptcl2.cpp
 TASM_SOURCES=ttasm1.asm
 ifneq ($(TEST_ABI),)

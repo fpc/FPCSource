@@ -4,8 +4,8 @@ uses
   mysql4;
 
 Const
-  DataBase : Pchar = 'testdb';
-  Query    : Pchar = 'Select * from FPdev';
+  DataBase : PAnsiChar = 'testdb';
+  Query    : PAnsiChar = 'Select * from FPdev';
 
 var
   count,num : longint;
@@ -14,7 +14,7 @@ var
   qmysql : TMYSQL;
   qbuf : string [160];
   rowbuf : TMYSQL_ROW;
-  dummy : string;
+  dummy : AnsiString;
   recbuf : PMYSQL_RES;
 
 begin

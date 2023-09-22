@@ -13,7 +13,7 @@ uses
 { XPM data of Open-File icon }
 
 const
-  xpm_data:array[0..19] of pchar =
+  xpm_data:array[0..19] of PAnsiChar =
   ('16 16 3 1',
    '       c None',
    '.      c #000000000000',

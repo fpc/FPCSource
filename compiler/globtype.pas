@@ -232,6 +232,7 @@ interface
          cs_link_native,
          cs_link_pre_binutils_2_19,
          cs_link_vlink,
+         cs_link_discard_start,cs_link_discard_zeroreg_sp,cs_link_discard_copydata,cs_link_discard_jmp_main,
          { disable LTO for the system unit (needed to work around linker bugs on macOS) }
          cs_lto_nosystem,
          cs_assemble_on_target,
@@ -239,7 +240,9 @@ interface
            this not supported on all OSes }
          cs_large,
          { if applicable, the compiler generates an executable in uf2 format }
-         cs_generate_uf2
+         cs_generate_uf2,
+	 { Use ld.lld linker }
+         cs_link_lld
        );
        tglobalswitches = set of tglobalswitch;
 

@@ -2,7 +2,7 @@
 type
 
    Pcc_t = ^cc_t;
-   cc_t = char;
+   cc_t = AnsiChar;
 
    Pspeed_t = ^speed_t;
    speed_t = dword;

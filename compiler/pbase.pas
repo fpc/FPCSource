@@ -372,7 +372,7 @@ implementation
                             exit(true);
                         end;
                       { system.char? (char=widechar comes from the implicit
-                        uuchar unit -> override) }
+                        uachar/uuchar unit -> override) }
                       if (pattern='CHAR') and
                          (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
                         begin
@@ -399,6 +399,8 @@ implementation
                      end;
                   _STRING:
                     begin
+                      if cs_compilesystem in current_settings.moduleswitches then
+                        Message(parser_e_nostringaliasinsystem);
                       { system.string? }
                       if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                         begin

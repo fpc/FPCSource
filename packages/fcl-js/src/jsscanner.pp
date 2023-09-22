@@ -15,11 +15,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JSScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Js.Token;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, jstoken;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TECMAVersion = (ecma5,ecma2015,ecma2021);
@@ -47,16 +53,17 @@ resourcestring
   SErrInvalidRegularExpression = 'Syntax error in regular expression: / expected, got: %s';
 
 Type
+  TJSScannerString = UTF8String;
 
   { TLineReader }
 
   TLineReader = class
   private
-    FLastLF: string;
+    FLastLF: TJSScannerString;
   public
     function IsEOF: Boolean; virtual; abstract;
-    function ReadLine: string; virtual; abstract;
-    Property LastLF : string Read FLastLF Write FLastLF;
+    function ReadLine: TJSScannerString; virtual; abstract;
+    Property LastLF : TJSScannerString Read FLastLF Write FLastLF;
   end;
 
   { TStreamLineReader }
@@ -71,7 +78,7 @@ Type
   public
     Constructor Create(AStream : TStream);
     function IsEOF: Boolean; override;
-    function ReadLine: string; override;
+    function ReadLine: TJSScannerString; override;
   end;
 
   TFileLineReader = class(TLineReader)
@@ -79,10 +86,10 @@ Type
     FTextFile: Text;
     FileOpened: Boolean;
   public
-    constructor Create(const AFilename: string);
+    constructor Create(const AFilename: TJSScannerString);
     destructor Destroy; override;
     function IsEOF: Boolean; override;
-    function ReadLine: string; override;
+    function ReadLine: TJSScannerString; override;
   end;
 
   EJSScannerError       = class(Exception);
@@ -97,13 +104,13 @@ Type
     FReturnComments: Boolean;
     FReturnWhiteSpace: Boolean;
     FSourceFile: TLineReader;
-    FSourceFilename: string;
+    FSourceFilename: String;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: UTF8String;
-    FCurLine: string;
+    FCurTokenString: TJSScannerString;
+    FCurLine: TJSScannerString;
     FWasMultilineString: Boolean;
-    TokenStr: PChar;
+    TokenStr: PAnsiChar;
     FWasEndOfLine : Boolean;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
@@ -122,13 +129,13 @@ Type
     procedure SetECMAVersion(AValue: TECMAVersion);
     procedure SetIsTypeScript(AValue: Boolean);
   protected
-    procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string; Args: array of Const);overload;
+    procedure Error(const Msg: TJSScannerString);overload;
+    procedure Error(const Msg: TJSScannerString; Args: array of Const);overload;
   public
     constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
-    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; const aFileName : string = '');
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; const aFileName : TJSScannerString = '');
     destructor Destroy; override;
-    procedure OpenFile(const AFilename: string);
+    procedure OpenFile(const AFilename: TJSScannerString);
     Function FetchRegexprToken: TJSToken;
     Function FetchToken: TJSToken;
     Function IsEndOfLine : Boolean;
@@ -136,8 +143,8 @@ Type
     Property ReturnComments : Boolean Read FReturnComments Write FReturnComments;
     Property ReturnWhiteSpace : Boolean Read FReturnWhiteSpace Write FReturnWhiteSpace;
     property SourceFile: TLineReader read FSourceFile;
-    property CurFilename: string read FSourceFilename;
-    property CurLine: string read FCurLine;
+    property CurFilename: String read FSourceFilename;
+    property CurLine: TJSScannerString read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
@@ -152,7 +159,7 @@ Type
 implementation
 
 
-constructor TFileLineReader.Create(const AFilename: string);
+constructor TFileLineReader.Create(const AFilename: TJSScannerString);
 begin
   inherited Create;
   Assign(FTextFile, AFilename);
@@ -172,7 +179,7 @@ begin
   Result := EOF(FTextFile);
 end;
 
-function TFileLineReader.ReadLine: string;
+function TFileLineReader.ReadLine: TJSScannerString;
 begin
   ReadLn(FTextFile, Result);
 end;
@@ -185,7 +192,7 @@ begin
   FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; Const aFileName : string = '');
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; Const aFileName : TJSScannerString = '');
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
@@ -200,7 +207,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TJSScanner.OpenFile(const AFilename: string);
+procedure TJSScanner.OpenFile(const AFilename: TJSScannerString);
 begin
   FSourceFile := TFileLineReader.Create(AFilename);
   FSourceFilename := AFilename;
@@ -215,12 +222,12 @@ begin
 end;
 
 
-procedure TJSScanner.Error(const Msg: string);
+procedure TJSScanner.Error(const Msg: TJSScannerString);
 begin
   raise EJSScannerError.Create(Msg);
 end;
 
-procedure TJSScanner.Error(const Msg: string; Args: array of Const);
+procedure TJSScanner.Error(const Msg: TJSScannerString; Args: array of Const);
 begin
   raise EJSScannerError.CreateFmt(Msg, Args);
 end;
@@ -235,7 +242,7 @@ begin
   end else
   begin
     FCurLine := FSourceFile.ReadLine;
-    TokenStr := PChar(CurLine);
+    TokenStr := PAnsiChar(CurLine);
     Result := true;
     Inc(FCurRow);
     FWasEndofLine:=True;
@@ -260,7 +267,7 @@ end;
 function TJSScanner.DoSingleLineComment : TJSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len : Integer;
 
 begin
@@ -278,9 +285,9 @@ end;
 function TJSScanner.DoMultiLineComment : TJSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len,OLen : Integer;
-  PrevToken : Char;
+  PrevToken : AnsiChar;
 
 begin
   Inc(TokenStr);
@@ -342,7 +349,7 @@ end;
 function TJSScanner.ReadUnicodeEscape: WideChar;
 
 Var
-  S : String;
+  S : TJSScannerString;
   I : Integer;
 
 begin
@@ -367,7 +374,7 @@ Var
   CC : Boolean; // Character class
   Done : Boolean;
   CL,L : Integer;
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
 
 begin
   if (CurToken<>tjsDivEq) then
@@ -423,8 +430,8 @@ end;
 function TJSScanner.DoStringLiteral: TJSToken;
 
 Var
-  Delim : Char;
-  TokenStart : PChar;
+  Delim : AnsiChar;
+  TokenStart : PAnsiChar;
   Len,OLen: Integer;
   S : UTF8String;
 
@@ -474,7 +481,7 @@ begin
         Move(TokenStart^, FCurTokenString[OLen + 1], Len);
       Move(S[1],FCurTokenString[OLen + Len+1],Length(S));
       Inc(OLen, Len+Length(S));
-      // Next char
+      // Next AnsiChar
       // Inc(TokenStr);
       TokenStart := TokenStr+1;
       end;
@@ -504,7 +511,7 @@ end;
 function TJSScanner.DoNumericLiteral :TJSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len : Integer;
 
 begin
@@ -558,7 +565,7 @@ end;
 function TJSScanner.DoIdentifier : TJSToken;
 
 Var
-  TokenStart:PChar;
+  TokenStart:PAnsiChar;
   Len : Integer;
   I : TJSToken;
 
@@ -921,7 +928,7 @@ end;
 
 function TJSScanner.GetCurColumn: Integer;
 begin
-  Result := TokenStr - PChar(CurLine);
+  Result := TokenStr - PAnsiChar(CurLine);
 end;
 
 { TStreamLineReader }
@@ -951,7 +958,7 @@ begin
   FBufPos:=0;
 end;
 
-function TStreamLineReader.ReadLine: string;
+function TStreamLineReader.ReadLine: TJSScannerString;
 
 Var
   FPos,OLen,Len: Integer;
@@ -989,7 +996,7 @@ begin
     end;
   If (PRun^ in [10,13]) and (FBufPos<FBufLen) then
     begin
-    LastLF:=PChar(PRun)^;
+    LastLF:=PAnsiChar(PRun)^;
     Inc(FBufPos);
     // Check #13#10
     If (PRun^=13) then

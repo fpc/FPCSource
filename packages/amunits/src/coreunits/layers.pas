@@ -33,10 +33,16 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT layers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -82,7 +88,7 @@ const
  LAYERS_NOBACKFILL      = 1;
  LAYERS_BACKFILL        = 0;
 
- LAYERSNAME : PChar = 'layers.library';
+ LAYERSNAME : PAnsiChar = 'layers.library';
 
 VAR LayersBase : pLibrary = nil;
 

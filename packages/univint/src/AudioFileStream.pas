@@ -39,7 +39,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioFileStream;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -224,7 +226,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CoreAudioTypes,MacOsApi.AudioFile;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CoreAudioTypes,AudioFile;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -370,7 +376,7 @@ const
 					When this value has become one, all properties that can be known about the stream are known.
 					
     @constant   kAudioFileStreamProperty_FileFormat 
-					An UInt32 four char code that identifies the format of the file
+					An UInt32 four AnsiChar code that identifies the format of the file
     @constant   kAudioFileStreamProperty_DataFormat 
 					An AudioStreamBasicDescription describing the format of the audio data
     @constant   kAudioFileStreamProperty_FormatList 

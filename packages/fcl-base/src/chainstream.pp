@@ -14,14 +14,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chainstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TChainedStreamItem = record
@@ -66,7 +73,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TChainedStream }
 

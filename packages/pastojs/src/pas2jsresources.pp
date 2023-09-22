@@ -1,9 +1,21 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pas2jsresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+  {$IFDEF pas2js}
+  web,
+  {$ELSE}
+  System.Hash.Base64,
+  {$ENDIF}
+  Pas2Js.Files.Fs, Js.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
   {$IFDEF pas2js}
@@ -12,6 +24,7 @@ uses
   base64,
   {$ENDIF}
   pas2jsfs, jsTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TResourceScopeMode = (rmProgram,rmUnit);

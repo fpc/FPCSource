@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -11,6 +12,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE SUT:=sysutils}
+{$DEFINE BU:=baseunix}
+{$ELSE}
+{$DEFINE SUT:=System.SysUtils}
+{$DEFINE BU:=UnixApi.Base}
+{$ENDIF}
+
 { Using inlining for small system functions/wrappers }
 {$inline on}
 {$define SYSUTILSINLINE}
@@ -111,15 +121,15 @@ type
     public
       constructor Create(const msg : string);
       constructor CreateFmt(const msg : string; const args : array of const);
-      constructor CreateRes(ResString: PString);
-      constructor CreateResFmt(ResString: PString; const Args: array of const);
+      constructor CreateRes(ResString: PResStringRec);
+      constructor CreateResFmt(ResString: PResStringRec; const Args: array of const);
       constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
         AHelpContext: Longint);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
-      constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
+      constructor CreateResHelp(ResString: PResStringRec; AHelpContext: Longint);
+      constructor CreateResFmtHelp(ResString: PResStringRec; const Args: array of const;
         AHelpContext: Longint);
-      Function ToString : String; override;
+      Function ToString : RTLString; override;
 
       function GetBaseException : Exception;virtual;
 
@@ -239,7 +249,7 @@ type
    function ExceptFrameCount: Longint;
    function ExceptFrames: PCodePointer;
    function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                                  Buffer: PChar; Size: Integer): Integer;
+                                  Buffer: PAnsiChar; Size: Integer): Integer;
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
@@ -289,7 +299,7 @@ Type
    TTextRec=TextRec;
 
 
-  { Read pchar handling functions declaration }
+  { Read PAnsiChar handling functions declaration }
   {$i syspchh.inc}
 
   { MCBS functions }
@@ -334,6 +344,11 @@ Type
 
   { interface handling }
   {$i intfh.inc}
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
+  { strange Delphi thing }
+  {$i sysmarshalh.inc}
+{$ENDIF}  
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;

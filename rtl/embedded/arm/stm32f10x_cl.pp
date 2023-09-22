@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stm32f10x_cl;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$goto on}
 {$PACKRECORDS 2}

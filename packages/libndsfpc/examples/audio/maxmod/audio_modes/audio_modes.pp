@@ -43,7 +43,7 @@ const
   MSL_NSAMPS	= 65;
   MSL_BANKSIZE	= 68;
 
-  SHOW_TEXT: pchar =  #10 +
+  SHOW_TEXT: PAnsiChar =  #10 +
                       '   Maxmod Audio Modes Example'#10#10 +
                       ' Song: '#10 +
                       ' Mode: '#10#10 +
@@ -69,13 +69,13 @@ var
   song_volumes: array [0..2] of cshort = ( 1024, 500, 1024 );
 
   // strings for the "Song: " display
-  song_titles: array [0..2] of pchar = ( 
+  song_titles: array [0..2] of PAnsiChar = ( 
         'subtonal (30ch)  ',
         'monday (14ch)    ',
         'inspiration (4ch)');
 
 // strings for the "Mode: " display
-  audiomode_names: array [0..2] of pchar = (
+  audiomode_names: array [0..2] of PAnsiChar = (
         'A - Hardware (16ch)    ',
         'B - Interpolated (16ch)',
         'C - Extended (30ch)    ');

@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLiteIndexDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, FpIndexer.Indexer, System.CTypes, Api.Sqlite3;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, fpIndexer, ctypes, sqlite3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TDatabaseID = record
@@ -40,7 +47,7 @@ type
     SearchWordID: TDatabaseID;
     URLID: TDatabaseID;
     FMatchList : TUTF8StringArray;
-    procedure CheckSQLite(Rc: cint; pzErrMsg: PChar);
+    procedure CheckSQLite(Rc: cint; pzErrMsg: PAnsiChar);
   protected
     class function AllowForeignKeyInTable: boolean; override;
     function GetFieldType(FieldType: TIndexField): UTF8string; override;
@@ -68,9 +75,9 @@ type
 
 implementation
 
-function SearchCallback(_para1: pointer; plArgc: longint; argv: PPchar; argcol: PPchar): longint; cdecl;
+function SearchCallback(_para1: pointer; plArgc: longint; argv: PPAnsiChar; argcol: PPAnsiChar): longint; cdecl;
 var
-  PVal: ^PChar;
+  PVal: ^PAnsiChar;
   SearchRes: TSearchWordData;
 begin
   PVal := argv;
@@ -92,10 +99,10 @@ begin
   Result := 0;
 end;
 
-function WordListCallback(_para1: pointer; plArgc: longint; argv: PPchar; argcol: PPchar): longint; cdecl;
+function WordListCallback(_para1: pointer; plArgc: longint; argv: PPAnsiChar; argcol: PPAnsiChar): longint; cdecl;
 
 var
-  PVal: ^PChar;
+  PVal: ^PAnsiChar;
   S : UTF8String;
 
 begin
@@ -112,7 +119,7 @@ begin
 end;
 
 
-function IndexCallback(_para1: pointer; plArgc: longint; argv: PPchar; argcol: PPchar): longint; cdecl;
+function IndexCallback(_para1: pointer; plArgc: longint; argv: PPAnsiChar; argcol: PPAnsiChar): longint; cdecl;
 begin
   //store the query result
   TSQLiteIndexDB(_para1).QueryResult := argv^;
@@ -123,12 +130,12 @@ end;
 
 procedure TSQLiteIndexDB.Execute(const sql: UTF8string; ignoreErrors: boolean = True);
 var
-  pzErrMsg: PChar;
+  pzErrMsg: PAnsiChar;
   rc: cint;
 begin
   QueryResult := '';
   //Writeln('Executing  : ',SQL);
-  rc := sqlite3_exec(db, PChar(sql), @IndexCallback, self, @pzErrMsg);
+  rc := sqlite3_exec(db, PAnsiChar(sql), @IndexCallback, self, @pzErrMsg);
   if not ignoreErrors then
     CheckSQLite(rc, pzErrMsg);
 end;
@@ -239,7 +246,7 @@ var
 begin
   if (Filename = '') then
     raise EFPIndexer.Create('Error: no filename specified');
-  rc := sqlite3_open(PChar(FFilename), @db);
+  rc := sqlite3_open(PAnsiChar(FFilename), @db);
   if rc <> SQLITE_OK then
     raise EFPIndexer.CreateFmt('Cannot open database: %s', [filename]);
 end;
@@ -282,7 +289,7 @@ begin
   // Result:=sqlite3_last_insert_rowid(db);
 end;
 
-procedure TSQLiteIndexDB.CheckSQLite(Rc: cint; pzErrMsg: PChar);
+procedure TSQLiteIndexDB.CheckSQLite(Rc: cint; pzErrMsg: PAnsiChar);
 var
   S: UTF8string;
 begin
@@ -296,7 +303,7 @@ end;
 
 procedure TSQLiteIndexDB.FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions);
 var
-  pzErrMsg: PChar;
+  pzErrMsg: PAnsiChar;
   rc: cint;
   sql: UTF8string;
 begin
@@ -305,7 +312,7 @@ begin
 
   sql := GetMatchSQL(SearchOptions, SearchWord, False);
   //sql := Format(sql, [SearchWord]);
-  rc := sqlite3_exec(db, PChar(sql), @SearchCallback, self, @pzErrMsg);
+  rc := sqlite3_exec(db, PAnsiChar(sql), @SearchCallback, self, @pzErrMsg);
   CheckSQLite(rc, pzErrMsg);
 end;
 
@@ -314,7 +321,7 @@ function TSQLiteIndexDB.GetAvailableWords(out aList: TUTF8StringArray; aContaini
 Var
   st,sql: UTF8string;
   rc: cint;
-  pzErrMsg: PChar;
+  pzErrMsg: PAnsiChar;
 
 begin
   Result:=0;
@@ -331,7 +338,7 @@ begin
     ST:='';
   end;
   sql:=StringReplace(SQL,':'+SearchTermParam,''''+ST+'''',[]);
-  rc := sqlite3_exec(db, PChar(sql), @WordListCallback, self, @pzErrMsg);
+  rc := sqlite3_exec(db, PAnsiChar(sql), @WordListCallback, self, @pzErrMsg);
   CheckSQLite(rc, pzErrMsg);
   SetLength(FMatchList,FRow);
   aList:=FMatchList;

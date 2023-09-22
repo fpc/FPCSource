@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpAsync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Api.Async;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, libasync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -92,11 +98,11 @@ type
 //   Asynchronous line reader
 // -------------------------------------------------------------------
 
-  TLineNotify = procedure(const ALine: String) of object;
+  TLineNotify = procedure(const ALine: AnsiString) of object;
 
   TGenericLineReader = class
   protected
-    RealBuffer, FBuffer: PChar;
+    RealBuffer, FBuffer: PAnsiChar;
     FBytesInBuffer: Integer;
     FOnLine: TLineNotify;
     InCallback, DoStopAndFree: Boolean;
@@ -108,7 +114,7 @@ type
     destructor Destroy; override;
     procedure Run;              // Process as many lines as possible
 
-    property Buffer: PChar read FBuffer;
+    property Buffer: PAnsiChar read FBuffer;
     property BytesInBuffer: Integer read FBytesInBuffer;
     property OnLine: TLineNotify read FOnLine write FOnLine;
   end;
@@ -144,7 +150,7 @@ type
 
   TWriteBuffer = class(TStream)
   protected
-    FBuffer: PChar;
+    FBuffer: PAnsiChar;
     FBytesInBuffer: Integer;
     FBufferSent: Boolean;
     FOnBufferEmpty: TNotifyEvent;
@@ -158,11 +164,11 @@ type
     procedure WantWrite; virtual; abstract;
     procedure BufferEmpty; virtual;
   public
-    EndOfLineMarker: String;
+    EndOfLineMarker: AnsiString;
 
     constructor Create;
     destructor Destroy; override;
-    procedure WriteLine(const line: String);
+    procedure WriteLine(const line: AnsiString);
     procedure Run;              // Write as many data as possible
 
     property BytesInBuffer: Integer read FBytesInBuffer;
@@ -498,9 +504,9 @@ end;
 procedure TGenericLineReader.Run;
 var
   NewData: array[0..1023] of Byte;
-  p: PChar;
+  p: PAnsiChar;
   BytesRead, OldBufSize, CurBytesInBuffer, LastEndOfLine, i, LineLength: Integer;
-  line: String;
+  line: AnsiString;
   FirstRun: Boolean;
 begin
   FirstRun := True;
@@ -631,7 +637,7 @@ end;
 
 procedure TAsyncStreamLineReader.NoData;
 var
-  s: String;
+  s: AnsiString;
 begin
   if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then
   begin
@@ -722,18 +728,18 @@ begin
   Result := Count;
 end;
 
-procedure TWriteBuffer.WriteLine(const line: String);
+procedure TWriteBuffer.WriteLine(const line: AnsiString);
 var
-  s: String;
+  s: AnsiString;
 begin
   s := line + EndOfLineMarker;
-  WriteBuffer(s[1], Length(s));
+  WriteBuffer(s[1], Length(s)*sizeOf(Char));
 end;
 
 procedure TWriteBuffer.Run;
 var
   Written: Integer;
-  NewBuf: PChar;
+  NewBuf: PAnsiChar;
   Failed: Boolean;
 begin
   Failed := True;

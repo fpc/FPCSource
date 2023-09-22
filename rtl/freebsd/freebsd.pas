@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit FreeBSD;
+{$ENDIF FPC_DOTTEDUNITS}
 {
    This file is part of the Free Pascal run time library.
    (c) 2005 by Marco van de Voort
@@ -29,8 +31,13 @@ Unit FreeBSD;
               
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SF_NODISKIO = $00000001;  // don't wait for disk IO, similar to non-blocking socket setting
@@ -79,10 +86,10 @@ Type
   
   kld_file_stat = record
     Version: cInt;            {* set to sizeof(linker_file_stat) *}
-    Name: array[0..MAXPATHLEN-1] of Char;
+    Name: array[0..MAXPATHLEN-1] of AnsiChar;
     Refs: cInt;
     ID: cInt;
-    Address: pChar;           {* load address *}
+    Address: PAnsiChar;           {* load address *}
     Size: size_t;             {* size in bytes *}
   end;
   tkld_file_stat = kld_file_stat;
@@ -92,7 +99,7 @@ Type
   
   kld_sym_lookup = record
     Version: cInt;            {* sizeof(struct kld_sym_lookup) *}
-    SymName: pChar;           {* Symbol name we are looking up *}
+    SymName: PAnsiChar;           {* Symbol name we are looking up *}
     SymValue: culong;
     SymSize: size_t;
   end;
@@ -162,11 +169,11 @@ Type
                       
   // Kernel modules support
                     
-  function kldload(FileName: pChar): cInt; extdecl;
+  function kldload(FileName: PAnsiChar): cInt; extdecl;
 
   function kldunload(fileid: cInt): cInt; extdecl;
 
-  function kldfind(FileName: pChar): cInt; extdecl;
+  function kldfind(FileName: PAnsiChar): cInt; extdecl;
 
   function kldnext(fileid: cInt): cInt; extdecl;
 
@@ -236,8 +243,13 @@ function clock_settime(clk_id: clockid_t; tp: ptimespec): cint; {$ifdef FPC_USE_
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses BsdApi.SysCtl,
+{$ifndef FPC_USE_LIBC}  UnixApi.SysCall; {$else} System.InitC; {$endif}
+{$ELSE FPC_DOTTEDUNITS}
 Uses Sysctl,
 {$ifndef FPC_USE_LIBC}  SysCall; {$else} InitC; {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF FPC_USE_LIBC}
 
@@ -259,7 +271,7 @@ end;
 
 // kernel modules
 
-function kldload(FileName: pChar): cInt;
+function kldload(FileName: PAnsiChar): cInt;
 begin
   kldload:=do_sysCall(syscall_nr_kldload, TSysParam(FileName));
 end;
@@ -269,7 +281,7 @@ begin
   kldunload:=do_sysCall(syscall_nr_kldunload, TSysParam(fileid));
 end;
 
-function kldfind(FileName: pChar): cInt;
+function kldfind(FileName: PAnsiChar): cInt;
 begin
   kldfind:=do_sysCall(syscall_nr_kldfind, TSysParam(FileName));
 end;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_ttf;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdl_ttf.pas,v 1.18 2007/06/01 11:16:33 savage Exp $
 
@@ -162,6 +164,22 @@ unit sdl_ttf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+
+{$IFDEF Windows}
+  {$IFNDEF __GPC__}
+  WinApi.Windows,
+  {$ENDIF}
+{$ENDIF}
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -176,6 +194,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
@@ -269,11 +288,11 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_Init'{$ELSE} SDLttfLibName{$ENDIF __GP
  point size becomes the index of choosing which size.  If the value
  is too high, the last indexed size will be the default.
 }
-function TTF_OpenFont( const filename : Pchar; ptsize : integer ) : PTTF_Font;
+function TTF_OpenFont( const filename : PAnsiChar; ptsize : integer ) : PTTF_Font;
 cdecl; external {$IFDEF __GPC__}name 'TTF_OpenFont'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_OpenFont}
 
-function TTF_OpenFontIndex( const filename : Pchar; ptsize : integer; index : Longint ): PTTF_Font;
+function TTF_OpenFontIndex( const filename : PAnsiChar; ptsize : integer; index : Longint ): PTTF_Font;
 cdecl; external {$IFDEF __GPC__}name 'TTF_OpenFontIndex'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_OpenFontIndex}
 
@@ -326,11 +345,11 @@ function TTF_FontFaceIsFixedWidth( font : PTTF_Font ): Integer;
 cdecl; external {$IFDEF __GPC__}name 'TTF_FontFaceIsFixedWidth'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_FontFaceIsFixedWidth}
 
-function TTF_FontFaceFamilyName( font : PTTF_Font ): PChar;
+function TTF_FontFaceFamilyName( font : PTTF_Font ): PAnsiChar;
 cdecl; external {$IFDEF __GPC__}name 'TTF_FontFaceFamilyName'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_FontFaceFamilyName}
 
-function TTF_FontFaceStyleName( font : PTTF_Font ): PChar;
+function TTF_FontFaceStyleName( font : PTTF_Font ): PAnsiChar;
 cdecl; external {$IFDEF __GPC__}name 'TTF_FontFaceStyleName'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_FontFaceStyleName}
 
@@ -343,11 +362,11 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_GlyphMetrics'{$ELSE} SDLttfLibName{$EN
 {$EXTERNALSYM TTF_GlyphMetrics}
 
 { Get the dimensions of a rendered string of text }
-function TTF_SizeText( font : PTTF_Font; const text : PChar; var w : integer; var y : integer ): Integer;
+function TTF_SizeText( font : PTTF_Font; const text : PAnsiChar; var w : integer; var y : integer ): Integer;
 cdecl; external {$IFDEF __GPC__}name 'TTF_SizeText'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_SizeText}
 
-function TTF_SizeUTF8( font : PTTF_Font; const text : PChar; var w : integer; var y : integer): Integer;
+function TTF_SizeUTF8( font : PTTF_Font; const text : PAnsiChar; var w : integer; var y : integer): Integer;
 cdecl; external {$IFDEF __GPC__}name 'TTF_SizeUTF8'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_SizeUTF8}
 
@@ -362,14 +381,14 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_SizeUNICODE'{$ELSE} SDLttfLibName{$END
    This function returns the new surface, or NULL if there was an error.
 }
 function TTF_RenderText_Solid( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color ): PSDL_Surface;
 {$IFNDEF Workaround_TTF_RenderText_Solid}
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderText_Solid'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderText_Solid}
 {$ENDIF}
 
 function TTF_RenderUTF8_Solid( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderUTF8_Solid'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderUTF8_Solid}
 
@@ -397,11 +416,11 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_RenderGlyph_Solid'{$ELSE} SDLttfLibNam
    This function returns the new surface, or NULL if there was an error.
 }
 function TTF_RenderText_Shaded( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color; bg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color; bg : TSDL_Color ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderText_Shaded'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderText_Shaded}
 function TTF_RenderUTF8_Shaded( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color; bg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color; bg : TSDL_Color ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderUTF8_Shaded'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderUTF8_Shaded}
 function TTF_RenderUNICODE_Shaded( font : PTTF_Font;
@@ -426,11 +445,11 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_RenderGlyph_Shaded'{$ELSE} SDLttfLibNa
    This function returns the new surface, or NULL if there was an error.
 }
 function TTF_RenderText_Blended( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderText_Blended'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderText_Blended}
 function TTF_RenderUTF8_Blended( font : PTTF_Font;
-				const text : PChar; fg : TSDL_Color ): PSDL_Surface;
+				const text : PAnsiChar; fg : TSDL_Color ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'TTF_RenderUTF8_Blended'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_RenderUTF8_Blended}
 function TTF_RenderUNICODE_Blended( font : PTTF_Font;
@@ -474,9 +493,9 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_WasInit'{$ELSE} SDLttfLibName{$ENDIF _
 {$ENDIF MORPHOS}
 
 // We'll use SDL for reporting errors
-procedure TTF_SetError( fmt : PChar );
+procedure TTF_SetError( fmt : PAnsiChar );
 
-function TTF_GetError : PChar;
+function TTF_GetError : PAnsiChar;
 
 implementation
 
@@ -491,19 +510,19 @@ begin
   X.patch := SDL_TTF_PATCHLEVEL;
 end;
 
-procedure TTF_SetError( fmt : PChar );
+procedure TTF_SetError( fmt : PAnsiChar );
 begin
   SDL_SetError( fmt );
 end;
 
-function TTF_GetError : PChar;
+function TTF_GetError : PAnsiChar;
 begin
   result := SDL_GetError;
 end;
 
 {$IFDEF Workaround_TTF_RenderText_Solid}
 function TTF_RenderText_Solid( font : PTTF_Font;
-  const text : PChar; fg : TSDL_Color ): PSDL_Surface;
+  const text : PAnsiChar; fg : TSDL_Color ): PSDL_Surface;
 const
   Black: TSDL_Color = (r: 0; g: 0; b: 0; unused: 0);
 begin

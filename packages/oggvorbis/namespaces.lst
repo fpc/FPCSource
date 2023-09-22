@@ -1,0 +1,4 @@
+src/vorbis.pas=namespaced/Api.Vorbis.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/ogg.pas=namespaced/Api.Ogg.pas

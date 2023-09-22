@@ -11,15 +11,22 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha256;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$MODESWITCH advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TSHA256Digest = packed array[0..31] of Byte;
@@ -68,7 +75,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //------------------------------------------------------------------------------
 // SHA256
@@ -333,23 +344,17 @@ end;
 
 class procedure TSHA256.Stream(aStream: TStream; out aDigest: TSHA256Digest);
 
-const
-  BUFFER_SIZE = 64*1024;
-
 var
   aLen : LongInt;
-  Buffer: TBytes;
+  Buffer: array[0 .. 64*1024 - 1] of Byte;
   SHA256: TSHA256;
 
 begin
-  Buffer:=Nil;
   SHA256.Init;
-  SetLength(Buffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(Buffer, BUFFER_SIZE);
-     if aLen = 0 then
-       Break;
-     SHA256.Update(PByte(Buffer),aLen);
+     aLen:=aStream.Read(Buffer, Length(Buffer));
+     if aLen>0 then
+       SHA256.Update(PByte(Buffer),aLen); 
   until aLen=0;
   SHA256.Final;
   aDigest:=SHA256.Digest;

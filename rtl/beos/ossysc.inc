@@ -33,29 +33,29 @@ const netlib = 'net';
      Errno : cint; external name 'errno';
 
     function Fptime(tloc:ptime_t): time_t; cdecl; external name 'time';
-    function Fpopen(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
+    function Fpopen(const path: PAnsiChar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
     function Fpclose(fd : cint): cint; cdecl; external name 'close';
     function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
-    function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
-    function Fpwrite(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
-    function Fpunlink(const path: pchar): cint; cdecl; external name 'unlink';
-    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function Fpstat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
-    function Fpchdir(const path : pchar): cint; cdecl; external name 'chdir';
-    function Fpmkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
-    function Fprmdir(const path : pchar): cint; cdecl; external name 'rmdir';
-    function Fpopendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
+    function Fpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; cdecl; external name 'read';
+    function Fpwrite(fd: cint;const buf:PAnsiChar; nbytes : size_t): ssize_t; cdecl; external name 'write';
+    function Fpunlink(const path: PAnsiChar): cint; cdecl; external name 'unlink';
+    function Fprename(const old : PAnsiChar; const newpath: PAnsiChar): cint; cdecl;external name 'rename';
+    function Fpstat(const path: PAnsiChar; var buf : stat): cint; cdecl; external name 'stat';
+    function Fpchdir(const path : PAnsiChar): cint; cdecl; external name 'chdir';
+    function Fpmkdir(const path : PAnsiChar; mode: mode_t):cint; cdecl; external name 'mkdir';
+    function Fprmdir(const path : PAnsiChar): cint; cdecl; external name 'rmdir';
+    function Fpopendir(const dirname : PAnsiChar): pdir; cdecl; external name 'opendir';
     function Fpreaddir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
     function Fpclosedir(var dirp : dir): cint; cdecl; external name 'closedir';
     procedure Fpexit(status : cint); cdecl; external name '_exit';
     function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
     function Fpftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
-    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
+    function Fprename(const old : PAnsiChar; const newpath: PAnsiChar): cint; cdecl;external name 'rename';
     function Fpfstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
     function Fpfork : pid_t; cdecl; external name 'fork';
-    function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
+    function Fpexecve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint; cdecl; external name 'execve';
     function Fpwaitpid(pid : pid_t; tat_loc : pcint; options: cint): pid_t; cdecl; external name 'waitpid';
-    function Fpaccess(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
+    function Fpaccess(const pathname : PAnsiChar; amode : cint): cint; cdecl; external name 'access';
 
     function Fpuname(var name: utsname): cint; cdecl; external name 'uname';
 
@@ -109,7 +109,7 @@ End;
                --- File:File handling related calls ---
 *****************************************************************************}
 
-function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
+function Fpopen(path: PAnsiChar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 var
   args: SysCallArgs;
 begin
@@ -227,7 +227,7 @@ const
 type
   area_id   = Longint;
   
-function create_area(name : pchar; var addr : longint;
+function create_area(name : PAnsiChar; var addr : longint;
   addr_typ : longint; size : longint; lock_type: longint; protection : longint): area_id;
 var
  args : SysCallArgs;
@@ -250,7 +250,7 @@ const
   myheaprealsize=$20000;
 var
   myheapstart:pointer;
-  s : string;
+  s : shortstring;
 begin
   WriteLn('fpmmap');
   Str(len, s);
@@ -276,7 +276,7 @@ end;
 {$endif}
 
 
-function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
+function Fpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
 var
   args : SysCallArgs;
   funcresult: ssize_t;
@@ -302,9 +302,9 @@ begin
 }
 end;
 
-//function Fpmywrite(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
+//function Fpmywrite(fd: cint;const buf:PAnsiChar; nbytes : size_t): ssize_t; cdecl; external name 'write';
 
-function Fpwrite(fd: cint;buf:pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
+function Fpwrite(fd: cint;buf:PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
 var
   args : SysCallArgs;
   funcresult : ssize_t;
@@ -336,7 +336,7 @@ begin
 }
 end;
 
-function Fpunlink(const path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
+function Fpunlink(const path: PAnsiChar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 var
   args :SysCallArgs;
 begin
@@ -348,7 +348,7 @@ begin
 }
 end;
 
-function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
+function Fprename(old : PAnsiChar; newpath: PAnsiChar): cint; [public, alias : 'FPC_SYSC_RENAME'];
 var
   args: SysCallArgs;
 begin
@@ -362,7 +362,7 @@ begin
 }
 end;
 
-function Fpstat(const path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+function Fpstat(const path: PAnsiChar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 var
   args : SysCallArgs;
 begin
@@ -381,7 +381,7 @@ end;
                --- Directory:Directory related calls ---
 *****************************************************************************}
 
-function Fpchdir(path : pchar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
+function Fpchdir(path : PAnsiChar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
 var
   args: SysCallArgs;
 begin
@@ -393,7 +393,7 @@ begin
 }
 end;
 
-function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
+function Fpmkdir(path : PAnsiChar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 var
   args :SysCallArgs;
 begin
@@ -406,7 +406,7 @@ begin
 *)
 end;
 
-function Fprmdir(path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
+function Fprmdir(path : PAnsiChar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
 var
   args: SysCallArgs;
 begin
@@ -423,7 +423,7 @@ end;
 const DIRBLKSIZ=1024;
 
 
-function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
+function Fpopendir(dirname : PAnsiChar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 var
   args : SysCallArgs;
   dirp: pdir;
@@ -678,7 +678,7 @@ Begin
 End;
 
 {
-function Fpexecve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint;
+function Fpexecve(const path : pathstr; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;
 }
 {
   Replaces the current program by the program specified in path,
@@ -693,7 +693,7 @@ Begin
 End;
 }
 {
-function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
+function Fpexecve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
 }
 {
   Replaces the current program by the program specified in path,
@@ -719,7 +719,7 @@ begin // actually a wait4() call with 4th arg 0.
 // FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options,0);
 end;
 
-function Fpaccess(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
+function Fpaccess(const pathname : PAnsiChar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
 {
   Test users access rights on the specified file.
   Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
@@ -855,12 +855,12 @@ begin
 {$endif not darwin}
 end;
 
-function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
+function Fpgetcwd(pt:PAnsiChar; _size:size_t):PAnsiChar;[public, alias :'FPC_SYSC_GETCWD'];
 {$ifndef darwin}
 const intpathmax = 1024-4;      // didn't use POSIX data in libc
                                 // implementation.
-var ept,bpt : pchar;
-    c       : char;
+var ept,bpt : PAnsiChar;
+    c       : AnsiChar;
     ret     : cint;
 
 begin
@@ -995,7 +995,7 @@ end;
        get_next_image_info := SysCall(syscall_nr_get_next_image_info, args);
    end;       
 
-    function load_image(argc : longint; argv : ppchar; envp : ppchar): thread_id;
+    function load_image(argc : longint; argv : PPAnsiChar; envp : PPAnsiChar): thread_id;
      var
       args: SysCallArgs;
       i: longint;
@@ -1016,7 +1016,7 @@ end;
        get_system_info := i;
      end;
 
-    function dev_for_path(const pathname : pchar): dev_t;
+    function dev_for_path(const pathname : PAnsiChar): dev_t;
      var
       args: SysCallArgs;
       buffer: array[1..15] of longint;

@@ -1,7 +1,9 @@
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -14,8 +16,13 @@ interface
 
 {$packrecords c}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef netware}  {zlib.nlm comes with netware6}
@@ -223,7 +230,7 @@ const
   Z_NULL = 0;
 (* for initializing zalloc, zfree, opaque *)
 
-function zlibVersion:pchar; cdecl; external libz name 'zlibVersion';
+function zlibVersion:PAnsiChar; cdecl; external libz name 'zlibVersion';
 (*
      The application can compare zlibVersion and ZLIB_VERSION for consistency.
    If the first character differs, the library code actually used is
@@ -231,7 +238,7 @@ function zlibVersion:pchar; cdecl; external libz name 'zlibVersion';
    This check is automatically made by deflateInit and inflateInit.
 *)
 
-function deflateInit_(var strm: z_stream; level: cint; version: pchar; stream_size: cint): cint; cdecl; external libz name 'deflateInit_';
+function deflateInit_(var strm: z_stream; level: cint; version: PAnsiChar; stream_size: cint): cint; cdecl; external libz name 'deflateInit_';
 function deflateInit(var strm: z_stream; level: cint): cint;
 (*
      Initializes the internal stream state for compression. The fields
@@ -351,7 +358,7 @@ function deflateEnd(var strm: z_stream): cint; cdecl; external libz name 'deflat
    deallocated).
 *)
 
-function inflateInit_(var strm: z_stream; version: pchar; stream_size: cint): cint; cdecl; external libz name 'inflateInit_';
+function inflateInit_(var strm: z_stream; version: PAnsiChar; stream_size: cint): cint; cdecl; external libz name 'inflateInit_';
 function inflateInit(var strm: z_stream): cint;
 (*
      Initializes the internal stream state for decompression. The fields
@@ -480,7 +487,7 @@ function inflateEnd(var strm: z_stream): cint; cdecl; external libz name 'inflat
    static string (which must not be deallocated).
 *)
 
-function deflateInit2_(var strm: z_stream; level, method, windowBits, memLevel, strategy: cint; version: pchar; stream_size: cint): cint; cdecl; external libz name 'deflateInit2_';
+function deflateInit2_(var strm: z_stream; level, method, windowBits, memLevel, strategy: cint; version: PAnsiChar; stream_size: cint): cint; cdecl; external libz name 'deflateInit2_';
 function deflateInit2(var strm: z_stream; level, method, windowBits, memLevel, strategy: cint): longint;
 (*
      This is another version of deflateInit with more compression options. The
@@ -676,7 +683,7 @@ function deflateSetHeader(var strm: z_stream; var head: gz_header): cint; cdecl;
    stream state was inconsistent.
 *)
 
-function inflateInit2_(var strm: z_stream; windowBits: cint; version:pchar; stream_size: cint): cint; cdecl; external libz name 'inflateInit2_';
+function inflateInit2_(var strm: z_stream; windowBits: cint; version:PAnsiChar; stream_size: cint): cint; cdecl; external libz name 'inflateInit2_';
 function inflateInit2(var strm: z_stream; windowBits: cint): cint;
 (*
      This is another version of inflateInit with an extra parameter. The
@@ -831,7 +838,7 @@ function inflateGetHeader(var strm: z_stream; var head: gz_header): cint; cdecl;
    stream state was inconsistent.
 *)
 
-function inflateBackInit_(var strm: z_stream; windowBits: cint; window: pointer; version: pchar; stream_size: cint): cint; cdecl; external libz name 'inflateBackInit_';
+function inflateBackInit_(var strm: z_stream; windowBits: cint; window: pointer; version: PAnsiChar; stream_size: cint): cint; cdecl; external libz name 'inflateBackInit_';
 function inflateBackInit(var strm: z_stream; windowBits: cint; window: pointer): cint;
 (*
      Initialize the internal stream state for decompression using inflateBack()
@@ -855,8 +862,8 @@ function inflateBackInit(var strm: z_stream; windowBits: cint; window: pointer):
 type
   in_func = function(in_desc: pointer; var c: pcuchar): cuint; cdecl;
   out_func = function(out_desc: pointer; c: pcuchar; i: cuint): cint; cdecl;
-//typedef unsigned (*in_func) OF((void FAR *, unsigned char FAR * FAR *));
-//typedef int (*out_func) OF((void FAR *, unsigned char FAR *, unsigned));
+//typedef unsigned (*in_func) OF((void FAR *, unsigned AnsiChar FAR * FAR *));
+//typedef int (*out_func) OF((void FAR *, unsigned AnsiChar FAR *, unsigned));
 
 function inflateBack(var strm: z_stream; inf: in_func; in_desc: pointer; outf: out_func; out_desc: pointer): cint; cdecl; external libz name 'inflateBack';
 (*
@@ -990,7 +997,7 @@ function uncompress(dest: pbytef; destLen: puLongf; source: pbytef; sourceLen: u
 type
   gzFile = pointer;
 
-function gzopen(path: pchar; mode: pchar): gzFile; cdecl; external libz name 'gzopen';
+function gzopen(path: PAnsiChar; mode: PAnsiChar): gzFile; cdecl; external libz name 'gzopen';
 (*
      Opens a gzip (.gz) file for reading or writing. The mode parameter
    is as in fopen ("rb" or "wb") but can also include a compression level
@@ -1008,7 +1015,7 @@ function gzopen(path: pchar; mode: pchar): gzFile; cdecl; external libz name 'gz
    zlib error is Z_MEM_ERROR).
 *)
 
-function gzdopen(fd: cint; mode:pchar):gzFile; cdecl; external libz name 'gzdopen';
+function gzdopen(fd: cint; mode:PAnsiChar):gzFile; cdecl; external libz name 'gzdopen';
 (*
      gzdopen() associates a gzFile with the file descriptor fd.  File
    descriptors are obtained from calls like open, dup, creat, pipe or
@@ -1074,13 +1081,13 @@ function gzgets(thefile:gzFile; buf:pbytef; len: cint):pbytef; cdecl; external l
       gzgets returns buf, or Z_NULL in case of error.
 *)
 
-function gzputc(thefile:gzFile; c:char):char; cdecl; external libz name 'gzputc';
+function gzputc(thefile:gzFile; c:AnsiChar):AnsiChar; cdecl; external libz name 'gzputc';
 (*
-      Writes c, converted to an unsigned char, into the compressed file.
+      Writes c, converted to an unsigned AnsiChar, into the compressed file.
    gzputc returns the value that was written, or -1 in case of error.
 *)
 
-function gzgetc(thefile:gzFile):char; cdecl; external libz name 'gzgetc';
+function gzgetc(thefile:gzFile):AnsiChar; cdecl; external libz name 'gzgetc';
 (*
       Reads one byte from the compressed file. gzgetc returns this byte
    or -1 in case of end of file or error.
@@ -1208,7 +1215,7 @@ function crc32_combine(crc1, crc2: uLong; len2: z_off_t): uLong; cdecl; external
 *)
 
 
-function zError(err: cint): pchar; cdecl; external libz name 'zError';
+function zError(err: cint): PAnsiChar; cdecl; external libz name 'zError';
 function inflateSyncPoint(var z: z_stream): cint; cdecl; external libz name 'inflateSyncPoint';
 function get_crc_table: pointer; cdecl; external libz name 'get_crc_table';
 

@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPCanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses Math, sysutils, classes, FPImage, Types;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math, System.SysUtils, System.Classes, FpImage, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
+uses Math, sysutils, classes, FpImage, Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   PatternBitCount = sizeof(longword) * 8;
@@ -94,9 +100,9 @@ type
   public
     function CopyFont : TFPCustomFont;
     // Creates a copy of the font with all properties the same, but not allocated
-    procedure GetTextSize (text:string; var w,h:integer);
-    function GetTextHeight (text:string) : integer;
-    function GetTextWidth (text:string) : integer;
+    procedure GetTextSize (text:ansistring; var w,h:integer);
+    function GetTextHeight (text:ansistring) : integer;
+    function GetTextWidth (text:ansistring) : integer;
     property Name : string read FName write SetName;
     property Size : integer read FSize write SetSize;
     property Bold : boolean index 5 read GetFlags write SetFlags;
@@ -287,10 +293,10 @@ type
     procedure SetClipRegion(const AValue: TFPCustomRegion);
     procedure DoLockCanvas; virtual;
     procedure DoUnlockCanvas; virtual;
-    procedure DoTextOut (x,y:integer;text:string); virtual; abstract;
-    procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
-    function  DoGetTextHeight (text:string) : integer; virtual; abstract;
-    function  DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoTextOut (x,y:integer;text:ansistring); virtual; abstract;
+    procedure DoGetTextSize (text:ansistring; var w,h:integer); virtual; abstract;
+    function  DoGetTextHeight (text:ansistring) : integer; virtual; abstract;
+    function  DoGetTextWidth (text:ansistring) : integer; virtual; abstract;
     procedure DoTextOut (x,y:integer;text:unicodestring); virtual; 
     procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual; 
     function  DoGetTextHeight (text:unicodestring) : integer; virtual; 
@@ -327,13 +333,13 @@ type
     function CreatePen : TFPCustomPen;
     function CreateBrush : TFPCustomBrush;
     // using font
-    procedure TextOut (x,y:integer;text:string); virtual;
-    procedure GetTextSize (text:string; var w,h:integer);
-    function GetTextHeight (text:string) : integer;
-    function GetTextWidth (text:string) : integer;
-    function TextExtent(const Text: string): TSize; virtual;
-    function TextHeight(const Text: string): Integer; virtual;
-    function TextWidth(const Text: string): Integer; virtual;
+    procedure TextOut (x,y:integer;text:Ansistring); virtual;
+    procedure GetTextSize (text:Ansistring; var w,h:integer);
+    function GetTextHeight (text:Ansistring) : integer;
+    function GetTextWidth (text:Ansistring) : integer;
+    function TextExtent(const Text: Ansistring): TSize; virtual;
+    function TextHeight(const Text: Ansistring): Integer; virtual;
+    function TextWidth(const Text: Ansistring): Integer; virtual;
     procedure TextOut (x,y:integer;text:unicodestring); virtual;
     procedure GetTextSize (text:unicodestring; var w,h:integer);
     function GetTextHeight (text:unicodestring) : integer;
@@ -397,19 +403,19 @@ type
 
   TFPCustomDrawFont = class (TFPCustomFont)
   private
-    procedure DrawText (x,y:integer; text:string);
-    procedure GetTextSize (text:string; var w,h:integer);
-    function GetTextHeight (text:string) : integer;
-    function GetTextWidth (text:string) : integer;
+    procedure DrawText (x,y:integer; text:Ansistring);
+    procedure GetTextSize (text:ansistring; var w,h:integer);
+    function GetTextHeight (text:ansistring) : integer;
+    function GetTextWidth (text:ansistring) : integer;
     procedure DrawText (x,y:integer; text:unicodestring);
     procedure GetTextSize (text: unicodestring; var w,h:integer);
     function GetTextHeight (text: unicodestring) : integer;
     function GetTextWidth (text: unicodestring) : integer;
   protected
-    procedure DoDrawText (x,y:integer; text:string); virtual; abstract;
-    procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
-    function DoGetTextHeight (text:string) : integer; virtual; abstract;
-    function DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoDrawText (x,y:integer; text:ansistring); virtual; abstract;
+    procedure DoGetTextSize (text:ansistring; var w,h:integer); virtual; abstract;
+    function DoGetTextHeight (text:ansistring) : integer; virtual; abstract;
+    function DoGetTextWidth (text:ansistring) : integer; virtual; abstract;
     procedure DoDrawText (x,y:integer; text:unicodestring); virtual;
     procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual; 
     function DoGetTextHeight (text: unicodestring) : integer; virtual; 
@@ -458,7 +464,11 @@ procedure IncRect (var rect : TRect);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Clipping;
+{$ELSE FPC_DOTTEDUNITS}
 uses clipping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   EFont = 'Font';

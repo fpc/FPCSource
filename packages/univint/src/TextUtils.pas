@@ -25,7 +25,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TextUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -210,7 +212,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.IntlResources;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,IntlResources;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -257,7 +263,7 @@ type
 	end;
 type
 	BreakTable = record
-		charTypes: packed array [0..255] of char;
+		charTypes: packed array [0..255] of AnsiChar;
 		tripleLength: SInt16;
 		triples: array [0..0] of SInt16;
 	end;
@@ -273,7 +279,7 @@ type
 		forwdTableOff: SInt16;
 		doBackup: SInt16;
 		length: SInt16;                 { length of NBreakTable }
-		charTypes: packed array [0..255] of char;
+		charTypes: packed array [0..255] of AnsiChar;
 		tables: array [0..0] of SInt16;
 	end;
 	NBreakTablePtr = ^NBreakTable;

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_fcl_db(const ADirectory: string);
@@ -82,7 +82,7 @@ begin
     P.Dependencies.Add('pxlib',ParadoxOSes);
     P.Dependencies.Add('fcl-json');
 
-    P.Options.Add('-S2h');
+//    P.Options.Add('-S2h');
 
     // base
     T:=P.Targets.AddUnit('bufdataset.pas');
@@ -97,7 +97,6 @@ begin
       with T.Dependencies do
         begin
         AddUnit('db');
-        AddUnit('sqldb');
         AddUnit('bufdataset');
         end;
 
@@ -874,6 +873,7 @@ begin
     T:=P.Targets.AddExampleProgram('toolsunit.pas');
     // database.ini.txt
     // README.txt
+    P.NamespaceMap:='namespaces.lst';
 
     end;
 end;

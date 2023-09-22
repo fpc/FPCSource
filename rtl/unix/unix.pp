@@ -12,11 +12,19 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Base,UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   BaseUnix,UnixType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
@@ -27,6 +35,13 @@ Uses
 
 {$i aliasptp.inc}
 {$i unxconst.inc} { Get Types and Constants only exported in this unit }
+
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE BU:=baseunix}
+{$ELSE}
+{$DEFINE BU:=UnixApi.Base}
+{$ENDIF}
+
 
 {**  File handling **}
 
@@ -40,16 +55,16 @@ Const
   LOCK_NB = 4;
 
 // The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
-  PROT_READ  = baseunix.PROT_READ;             { page can be read }
-  PROT_WRITE = baseunix.PROT_WRITE;             { page can be written }
-  PROT_EXEC  = baseunix.PROT_EXEC;             { page can be executed }
-  PROT_NONE  = baseunix.PROT_NONE;             { page can not be accessed }
+  PROT_READ  = BU.PROT_READ;             { page can be read }
+  PROT_WRITE = BU.PROT_WRITE;             { page can be written }
+  PROT_EXEC  = BU.PROT_EXEC;             { page can be executed }
+  PROT_NONE  = BU.PROT_NONE;             { page can not be accessed }
 
-  MAP_FAILED    = baseunix.MAP_FAILED;	      { mmap() failed }
-  MAP_SHARED    = baseunix.MAP_SHARED;        { Share changes }
-  MAP_PRIVATE   = baseunix.MAP_PRIVATE;       { Changes are private }
-  MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
-  MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
+  MAP_FAILED    = BU.MAP_FAILED;	      { mmap() failed }
+  MAP_SHARED    = BU.MAP_SHARED;        { Share changes }
+  MAP_PRIVATE   = BU.MAP_PRIVATE;       { Changes are private }
+  MAP_TYPE      = BU.MAP_TYPE;          { Mask for type of mapping }
+  MAP_FIXED     = BU.MAP_FIXED;         { Interpret addr exactly }
 
 {** Time/Date Handling **}
 
@@ -105,13 +120,13 @@ Function GregorianToJulian(Year,Month,Day:Longint):LongInt; // use DateUtils.Jul
 
 {**  Process Handling  **}
 
-function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
+function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:PPAnsiChar):cint;
 function FpExecL  (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
 function FpExecLP (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
-function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
-function FpExecV  (Const PathName:RawByteString;args:ppchar):cint;
-function FpExecVP (Const PathName:RawByteString;args:ppchar):cint;
-function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
+function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:PPAnsiChar):cint;
+function FpExecV  (Const PathName:RawByteString;args:PPAnsiChar):cint;
+function FpExecVP (Const PathName:RawByteString;args:PPAnsiChar):cint;
+function FpExecVPE(Const PathName:RawByteString;args,env:PPAnsiChar):cint;
 
 Function fpSystem(const Command:RawByteString):cint;
 
@@ -135,10 +150,10 @@ function  TellDir(p:pdir):TOff;
 Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
 Function AssignPipe  (var pipe_in,pipe_out:text):cint;
 Function AssignPipe  (var pipe_in,pipe_out:file):cint;
-Function POpen       (var F:text;const Prog:RawByteString;rw:char):cint;
-Function POpen       (var F:file;const Prog:RawByteString;rw:char):cint;
-Function POpen       (var F:text;const Prog:UnicodeString;rw:char):cint;
-Function POpen       (var F:file;const Prog:UnicodeString;rw:char):cint;
+Function POpen       (var F:text;const Prog:RawByteString;rw:AnsiChar):cint;
+Function POpen       (var F:file;const Prog:RawByteString;rw:AnsiChar):cint;
+Function POpen       (var F:text;const Prog:UnicodeString;rw:AnsiChar):cint;
+Function POpen       (var F:file;const Prog:UnicodeString;rw:AnsiChar):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function GetDomainName:String; deprecated; // because linux only.
@@ -172,8 +187,13 @@ Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString):UnicodeStrin
 Implementation
 
 {$ifndef FPC_USE_LIBC}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$i unxovl.inc}
@@ -185,7 +205,7 @@ Uses
 
 {$i unxfunc.inc}   { Platform specific implementations }
 
-Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
+Function getenv(name:string):PAnsiChar; external name 'FPC_SYSC_FPGETENV';
 
 {******************************************************************************
                           timezone support
@@ -403,7 +423,7 @@ begin
    end;
 end;
 
-function intFpExecVEMaybeP (Const PathName:RawByteString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
+function intFpExecVEMaybeP (Const PathName:RawByteString;Args,MyEnv:PPAnsiChar;SearchPath:Boolean):cint;
 // does an ExecVE, but still has to handle P
 // execv variants call this directly, execl variants indirectly via
 //     intfpexecl
@@ -432,11 +452,11 @@ Begin
       // Stevens says "try each path prefix"
 
       // execp puts newcmd here.
-        args^:=pchar(newcmd);
+        args^:=PAnsiChar(newcmd);
    End else
       newcmd:=ToSingleByteFileSystemEncodedFileName(pathname);
  // repeat
-//      if searchpath then args^:=pchar(commandtorun)
+//      if searchpath then args^:=PAnsiChar(commandtorun)
 
   IntFpExecVEMaybeP:=fpExecVE(newcmd,Args,MyEnv);
 {
@@ -459,11 +479,11 @@ Begin
 }
 end;
 
-function intFpExecl (Const PathName:RawByteString;const s:array of RawByteString;MyEnv:ppchar;SearchPath:Boolean):cint;
-{ Handles the array of ansistring -> ppchar conversion.
+function intFpExecl (Const PathName:RawByteString;const s:array of RawByteString;MyEnv:PPAnsiChar;SearchPath:Boolean):cint;
+{ Handles the array of ansistring -> PPAnsiChar conversion.
   Base for the the "l" variants.
 }
-var p:ppchar;
+var p:PPAnsiChar;
     i:integer;
     s2:array of Rawbytestring;
 begin
@@ -478,7 +498,7 @@ begin
   p:=ArrayStringToPPchar(s2,1);
   if p=NIL Then
     Begin
-      GetMem(p,2*sizeof(pchar));
+      GetMem(p,2*sizeof(PAnsiChar));
       if p=nil then
        begin
         {$ifdef xunix}
@@ -489,13 +509,13 @@ begin
        end;
       p[1]:=nil;
     End;
-  p^:=pchar(PathName);
+  p^:=PAnsiChar(PathName);
   IntFPExecL:=intFpExecVEMaybeP(PathName,p,MyEnv,SearchPath);
   // If we come here, no attempts were executed successfully.
   Freemem(p);
 end;
 
-function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
+function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:PPAnsiChar):cint;
 
 Begin
   FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
@@ -514,25 +534,25 @@ Begin
   FpExecLP:=intFPExecl(PathName,S,EnvP,True);
 End;
 
-function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
+function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:PPAnsiChar):cint;
 
 Begin
   FpExecLPE:=intFPExecl(PathName,S,Env,True);
 End;
 
-function FpExecV(Const PathName:RawByteString;args:ppchar):cint;
+function FpExecV(Const PathName:RawByteString;args:PPAnsiChar):cint;
 
 Begin
  fpexecV:=intFpExecVEMaybeP (PathName,args,envp,false);
 End;
 
-function FpExecVP(Const PathName:RawByteString;args:ppchar):cint;
+function FpExecVP(Const PathName:RawByteString;args:PPAnsiChar):cint;
 
 Begin
  fpexecVP:=intFpExecVEMaybeP (PathName,args,envp,true);
 End;
 
-function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
+function FpExecVPE(Const PathName:RawByteString;args,env:PPAnsiChar):cint;
 
 Begin
  fpexecVPE:=intFpExecVEMaybeP (PathName,args,env,true);
@@ -541,7 +561,7 @@ End;
 // exect and execvP (ExecCapitalP) are not implement
 // Non POSIX anyway.
 // Exect turns on tracing for the process
-// execvP has the searchpath as array of ansistring ( const char *search_path)
+// execvP has the searchpath as array of ansistring ( const AnsiChar *search_path)
 
 {$define FPC_USE_FPEXEC}
 {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
@@ -549,14 +569,14 @@ End;
 {$endif}
 
 {$ifdef FPC_USE_LIBC}
-function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
+function xfpsystem(p:PAnsiChar):cint; cdecl; external clib name 'system';
 
 Function fpSystem(const Command:RawByteString):cint;
 var
   cmd: RawByteString;
 begin
   cmd:=ToSingleByteFileSystemEncodedFileName(Command);
-  fpsystem:=xfpsystem(pchar(cmd));
+  fpsystem:=xfpsystem(PAnsiChar(cmd));
 end;
 
 {$else}
@@ -569,7 +589,7 @@ var
   newsigblock,
   oldsigblock    : tsigset;
  {$ifndef SHELL_USE_FPEXEC}
-   p      : ppchar;
+   p      : PPAnsiChar;
  {$endif}
   cmd     : RawByteString;
 
@@ -765,10 +785,10 @@ begin
         { first check if we need something to write, else we may
           get a SigPipe when Close() is called (PFV) }
         if textrec(f).bufpos>0 then
-          IOPipe:=fpwrite(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+          IOPipe:=fpwrite(textrec(f).handle,PAnsiChar(textrec(f).bufptr),textrec(f).bufpos);
       end;
     fminput : Begin
-                textrec(f).bufend:=fpread(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
+                textrec(f).bufend:=fpread(textrec(f).handle,PAnsiChar(textrec(f).bufptr),textrec(f).bufsize);
                 IOPipe:=textrec(f).bufend;
               End;
   end;
@@ -857,7 +877,7 @@ begin
 end;
 
 
-Function POpen_internal(var F:text;const Prog:RawByteString;rw:char):cint;
+Function POpen_internal(var F:text;const Prog:RawByteString;rw:AnsiChar):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -871,7 +891,7 @@ var
   pid  : cint;
   pl   : ^cint;
 {$if not defined(FPC_USE_FPEXEC) or defined(USE_VFORK)}
-  pp : array[0..3] of pchar;
+  pp : array[0..3] of PAnsiChar;
   temp : string[255];
 {$endif not FPC_USE_FPEXEC or USE_VFORK}
   ret  : cint;
@@ -938,7 +958,7 @@ begin
          fpexit(127);
       end;
      {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
-     fpexecl(pchar('/bin/sh'),['-c',Prog]);
+     fpexecl(PAnsiChar('/bin/sh'),['-c',Prog]);
      {$else}
      temp:='/bin/sh'#0'-c'#0;
      pp[0]:=@temp[1];
@@ -972,7 +992,7 @@ begin
  POpen_internal:=0;
 end;
 
-Function POpen_internal(var F:file;const Prog:RawByteString;rw:char):cint;
+Function POpen_internal(var F:file;const Prog:RawByteString;rw:AnsiChar):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -986,7 +1006,7 @@ var
   pid  : cint;
   pl   : ^cint;
 {$if not defined(FPC_USE_FPEXEC) or defined(USE_VFORK)}
-  pp : array[0..3] of pchar;
+  pp : array[0..3] of PAnsiChar;
   temp : string[255];
 {$endif not FPC_USE_FPEXEC or USE_VFORK}
   ret  : cint;
@@ -1053,7 +1073,7 @@ begin
          fpexit(127);
       end;
      {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
-     fpexecl(pchar('/bin/sh'),['-c',Prog]);
+     fpexecl(PAnsiChar('/bin/sh'),['-c',Prog]);
      {$else}
      temp:='/bin/sh'#0'-c'#0;
      pp[0]:=@temp[1];
@@ -1085,7 +1105,7 @@ begin
  POpen_internal:=0;
 end;
 
-Function POpen(var F:text;const Prog:RawByteString;rw:char):cint;
+Function POpen(var F:text;const Prog:RawByteString;rw:AnsiChar):cint;
 begin
   { can't do the ToSingleByteFileSystemEncodedFileName() conversion inside
     POpen_internal, because this may destroy the temp rawbytestring result
@@ -1093,7 +1113,7 @@ begin
   POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
 end;
 
-Function POpen(var F:file;const Prog:RawByteString;rw:char):cint;
+Function POpen(var F:file;const Prog:RawByteString;rw:AnsiChar):cint;
 begin
   { can't do the ToSingleByteFileSystemEncodedFileName() conversion inside
     POpen_internal, because this may destroy the temp rawbytestring result
@@ -1101,13 +1121,13 @@ begin
   POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
 end;
 
-function POpen(var F: text; const Prog: UnicodeString; rw: char): cint;
+function POpen(var F: text; const Prog: UnicodeString; rw: AnsiChar): cint;
 begin
   POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
 end;
 
 
-function POpen(var F: file; const Prog: UnicodeString; rw: char): cint;
+function POpen(var F: file; const Prog: UnicodeString; rw: AnsiChar): cint;
 begin
   POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
 end;
@@ -1325,7 +1345,7 @@ Function GetDomainName:String;
 
 {$if defined(BSD) or defined(aix)}
 
-function intGetDomainName(Name:PChar; NameLen:Cint):cint;
+function intGetDomainName(Name:PAnsiChar; NameLen:Cint):cint;
 {$ifndef FPC_USE_LIBC}
  external name 'FPC_SYSC_GETDOMAINNAME';
 {$else FPC_USE_LIBC}
@@ -1339,11 +1359,15 @@ Function GetDomainName:String;  { linux only!}
   Get machines domain name. Returns empty string if not set.
 }
 
+var
+  s : ShortString;
+
 begin
-  if intGetDomainName(@getdomainname[1],255)=-1 then
-   getdomainname:=''
+  if intGetDomainName(@s[1],255)=-1 then
+   s:=''
   else
-   getdomainname[0]:=chr(strlen(@getdomainname[1]));
+   SetLength(s,strlen(@s[1]));
+  getdomainname:=s;  
 end;
 {$endif}
 
@@ -1380,7 +1404,7 @@ Var
   p1     : cint;
   Info   : Stat;
   i,j      : cint;
-  p      : pchar;
+  p      : PAnsiChar;
 Begin
  SetCodePage(dirlist,DefaultFileSystemCodePage);
  if CurrentDirStrategy=CurrentDirectoryFirst Then
@@ -1400,7 +1424,7 @@ Begin
   Else
    Begin
      mypath:=ToSingleByteFileSystemEncodedFileName(path);
-     p:=pchar(dirlist);
+     p:=PAnsiChar(dirlist);
      i:=length(dirlist);
      j:=1;
      Repeat

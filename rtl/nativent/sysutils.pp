@@ -14,18 +14,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  NTApi.NDK;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ndk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_CREATEGUID}
@@ -52,8 +62,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst, NTApi.NDKUtils;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst, ndkutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_NOGENERICANSIROUTINES}
 
@@ -718,7 +733,7 @@ Var
   i: LongInt;
   dirinfo: POBJECT_DIRECTORY_INFORMATION;
   filedirinfo: PFILE_DIRECTORY_INFORMATION;
-  pc: PChar;
+  pc: PAnsiChar;
   filename: UnicodeString;
   iostatus: IO_STATUS_BLOCK;
 begin
@@ -767,7 +782,7 @@ begin
         DirName:='./'
       Else
         DirName:=Copy(NTFindData^.SearchSpec,1,NTFindData^.NamePos);
-      NTFindData^.DirPtr := fpopendir(Pchar(pointer(DirName)));
+      NTFindData^.DirPtr := fpopendir(PAnsiChar(pointer(DirName)));
     end;}
   SName := Copy(Rslt.FindData.SearchSpec, Rslt.FindData.NamePos + 1,
              Length(Rslt.FindData.SearchSpec));
@@ -1144,7 +1159,7 @@ begin
      begin
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(s,len);
-        UnicodeToUTF8(PChar(s), hp, len);
+        UnicodeToUTF8(PAnsiChar(s), hp, len);
         i:=pos('=',s);
         if uppercase(copy(s,1,i-1))=upperenvvar then
           begin
@@ -1192,7 +1207,7 @@ begin
 {$else}
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(Result, len);
-        UnicodeToUTF8(PChar(Result), hp, len);
+        UnicodeToUTF8(PAnsiChar(Result), hp, len);
         SetCodePage(RawByteString(Result),CP_UTF8,false);
 {$endif}
       end;

@@ -21,7 +21,7 @@ type
     {$if defined(__LP64__)}
     _reserved:array[0..3] of id;
     {$else}
-    _compatibilityPadding:array[0..155] of char;
+    _compatibilityPadding:array[0..155] of AnsiChar;
     {$endif}
   public
     class function pageLayout: NSPageLayout; message 'pageLayout';

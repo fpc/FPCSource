@@ -26,12 +26,19 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit longarray;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PArgList = ^TArgList;
@@ -56,7 +63,7 @@ begin
       vtpchar: ArgList[Offset + i] := IPTR(Args[i].vpchar);
       vtchar: ArgList[Offset + i] := IPTR(Args[i].vchar);
       vtpointer: ArgList[Offset + i] := IPTR(Args[i].vpointer);
-      vtstring: ArgList[Offset + i] := IPTR(PChar(string(Args[i].vstring^)));
+      vtstring: ArgList[Offset + i] := IPTR(PAnsiChar(string(Args[i].vstring^)));
       vtboolean: ArgList[Offset + i] := IPTR(Byte(Args[i].vboolean));
     end;
   end;

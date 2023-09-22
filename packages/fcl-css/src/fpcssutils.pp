@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcssutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, System.Types, FPCSS.Tree, FPCSS.Parser, FPCSS.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, types, fpcsstree, fpcssparser, fpcssscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

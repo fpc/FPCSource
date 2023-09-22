@@ -13,14 +13,14 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
-   function strpcopy(d : pchar;const s : string) : pchar;
+   function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;
    var
     counter : byte;
   Begin
     counter := 0;
    { if empty pascal string  }
    { then setup and exit now }
-   if s = '' then
+   if Length(s)=0 then
    Begin
      D[0] := #0;
      StrPCopy := D;

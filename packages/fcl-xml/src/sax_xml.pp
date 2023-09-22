@@ -17,11 +17,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SAX_XML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, SAX, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -43,7 +49,7 @@ type
     FScannerContext: TXMLScannerContext;
     FTokenText: SAXString;
     FRawTokenText: string;
-    FCurStringValueDelimiter: Char;
+    FCurStringValueDelimiter: AnsiChar;
     FAttrNameRead: Boolean;
   protected
     procedure EnterNewScannerContext(NewContext: TXMLScannerContext);
@@ -108,9 +114,15 @@ procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Utils,
+  Html.Defs; // for entities...
+{$ELSE FPC_DOTTEDUNITS}
 uses
   xmlutils,
   htmldefs; // for entities...
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];
@@ -138,7 +150,7 @@ procedure TSAXXMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
 var
-  Buffer: array[0..MaxBufferSize - 1] of Char;
+  Buffer: array[0..MaxBufferSize - 1] of AnsiChar;
   BufferSize, BufferPos: Integer;
 begin
   if not FStarted then

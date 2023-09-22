@@ -17,6 +17,7 @@ unit FPHelp;
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 
@@ -634,7 +635,7 @@ begin
   FPHTMLGetSectionColor:=OK;
 end;
 
-function FPNGGetAttrColor(Attr: char; var Color: byte): boolean;
+function FPNGGetAttrColor(Attr: AnsiChar; var Color: byte): boolean;
 var OK: boolean;
 begin
   OK:=false;

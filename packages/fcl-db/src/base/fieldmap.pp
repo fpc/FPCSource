@@ -14,12 +14,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fieldmap;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 {$H+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes, Data.FMTBcd, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,Classes, fmtBCD, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   TFieldMap
@@ -46,7 +52,7 @@ type
     Procedure LoadObject(AObject : TObject); virtual;
     Function GetFromField(F : TField; ADefault : TBCD) : TBCD; overload;
     Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
-    Function GetFromField(F : TField; const ADefault : String) : String; overload;
+    Function GetFromField(F : TField; const ADefault : AnsiString) : AnsiString; overload;
     Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
     Function GetFromDateTimeField(F : TField; ADefault : TDateTime) : TDateTime; overload;
     Function GetFromField(F : TField; ADefault : Double) : Double; overload;
@@ -553,7 +559,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; const ADefault: String): String;
+function TFieldMap.GetFromField(F: TField; const ADefault: AnsiString): AnsiString;
 begin
   If Assigned(F) then
     Result:=F.AsString

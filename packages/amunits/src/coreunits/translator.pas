@@ -25,10 +25,16 @@
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT translator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 
@@ -39,9 +45,9 @@ Const
 VAR TranslatorBase : pLibrary = nil;
 
 const
-    TRANSLATORNAME : PChar = 'translator.library';
+    TRANSLATORNAME : PAnsiChar = 'translator.library';
 
-FUNCTION Translate(const inputString : pCHAR location 'a0'; inputLength : LONGINT location 'd0'; outputBuffer : pCHAR location 'a1'; bufferSize : LONGINT location 'd1') : LONGINT; syscall TranslatorBase 030;
+FUNCTION Translate(const inputString : PAnsiChar location 'a0'; inputLength : LONGINT location 'd0'; outputBuffer : PAnsiChar location 'a1'; bufferSize : LONGINT location 'd1') : LONGINT; syscall TranslatorBase 030;
 
 IMPLEMENTATION
 

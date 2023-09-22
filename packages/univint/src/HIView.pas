@@ -64,7 +64,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HIView;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -249,7 +251,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFArray,MacOsApi.CFBase,MacOsApi.CGBase,MacOsApi.CGContext,MacOsApi.CGImage,MacOsApi.CarbonEventsCore,MacOsApi.Drag,MacOsApi.Events,MacOsApi.QuickdrawTypes,MacOsApi.Menus,MacOsApi.Appearance,MacOsApi.Controls,MacOsApi.CarbonEvents,MacOsApi.HIGeometry,MacOsApi.HIObject,MacOsApi.IconsCore,MacOsApi.Icons,MacOsApi.HIShape,MacOsApi.HITheme,MacOsApi.CTFont;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFArray,CFBase,CGBase,CGContext,CGImage,CarbonEventsCore,Drag,Events,QuickdrawTypes,Menus,Appearance,Controls,CarbonEvents,HIGeometry,HIObject,IconsCore,Icons,HIShape,HITheme,CTFont;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

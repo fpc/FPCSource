@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   T : TTarget;
@@ -70,6 +70,9 @@ begin
       T:=P.Targets.AddExampleProgram('ipcclient.pp');
       T:=P.Targets.AddExampleProgram('ipcserver.pp');
       T:=P.Targets.AddExampleProgram('dbugsrv.pp');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

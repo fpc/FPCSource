@@ -1,11 +1,13 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JDataDst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains compression data destination routines for the case of
   emitting JPEG data to a file (or any stdio stream).  While these routines
   are sufficient for most applications, some will want to use a different
   destination manager.
   IMPORTANT: we assume that fwrite() will correctly transcribe an array of
-  JOCTETs into 8-bit-wide elements on external storage.  If char is wider
+  JOCTETs into 8-bit-wide elements on external storage.  If AnsiChar is wider
   than 8 bits on your machine, you may need to do some tweaking. }
 
 { Original : jdatadst.c ; Copyright (C) 1994-1996, Thomas G. Lane. }
@@ -15,12 +17,21 @@ interface
 {$I jconfig.inc}
 
 { this is not a core library module, so it doesn't define JPEG_INTERNALS }
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jpeglib,
   jinclude,
   jdeferr,
   jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Prepare for output to a stdio stream.
   The caller must have already opened the stream, and is responsible

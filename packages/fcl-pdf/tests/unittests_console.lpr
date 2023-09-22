@@ -3,6 +3,9 @@ program unittests_console;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef unix}
+  cwstring,
+  {$endif}
   Classes
   ,consoletestrunner
   {$i testunits.inc}

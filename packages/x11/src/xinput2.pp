@@ -22,7 +22,9 @@
  *
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xinput2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -30,8 +32,13 @@ interface
 
 { Definitions used by the library and client }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xi2, Api.X11.Xge, Api.X11.Xfixes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, X, Xlib, XI2, Xge, Xfixes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 const
@@ -44,7 +51,7 @@ type
   PXIAddMasterInfo = ^TXIAddMasterInfo;
   TXIAddMasterInfo = record
     _type: cint;
-    name: PChar;
+    name: PAnsiChar;
     send_core: TBool;
     enable: TBool;
   end;
@@ -172,7 +179,7 @@ type
   PXIDeviceInfo = ^TXIDeviceInfo;
   TXIDeviceInfo = record
     deviceid: cint;
-    name: PChar;
+    name: PAnsiChar;
     use: cint;
     attachment: cint;
     enabled: TBool;

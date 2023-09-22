@@ -18,7 +18,11 @@ unit ButtonRow;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Api.Gtk1.Glib, Api.Gtk1.Gtk, Api.Gtk1.Gdk, Fpgtk;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, glib, gtk, gdk, FPgtk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -37,9 +41,9 @@ type
     FCalcIconFunc : TCalcIconFunc;
     FSelectIndex : integer;
     FNeedFocus : boolean;
-    FTitle : string;
+    FTitle : AnsiString;
     AccelGroup : PGtkAccelGroup;
-    procedure SetTitle (Value : string);
+    procedure SetTitle (Value : AnsiString);
     procedure CreatePixmaps;
     procedure NewSelection (Sender : TFPgtkObject; row,column:integer;
                             event:PGdkEventButton; data : pointer);
@@ -65,13 +69,17 @@ type
     procedure ChangeCollection (ACollection : TCollection);
     function CurrentItem : TCollectionItem;
     property SelectedRow : integer read FSelectIndex;
-    property Title : string read FTitle write SetTitle;
+    property Title : AnsiString read FTitle write SetTitle;
 
   end;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xpms, Gtkdeftexts, Fpgtkext;
+{$ELSE FPC_DOTTEDUNITS}
 uses XPMs, GtkDefTexts, FPgtkExt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   DefAdd, DefCopy, DefDel, DefUp, DefDown : PGdkPixmap;
@@ -79,7 +87,7 @@ var
 
 { TButtonRow }
 
-procedure TButtonRow.SetTitle (Value : string);
+procedure TButtonRow.SetTitle (Value : AnsiString);
 begin
   FTitle := Value + ': ';
 end;

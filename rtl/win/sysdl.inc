@@ -29,7 +29,7 @@ end;
 Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
-  Result:=WinGetProcAddress(Lib,PChar(ProcName));
+  Result:=WinGetProcAddress(Lib,PAnsiChar(ProcName));
 end;
 
 {$push}
@@ -37,7 +37,7 @@ end;
 Function SysGetProcedureAddressOrdinal(Lib : TLibHandle; Ordinal : TOrdinalEntry) : Pointer;
 
 begin
-  Result:=WinGetProcAddress(Lib,PChar(Ordinal));
+  Result:=WinGetProcAddress(Lib,PAnsiChar(Ordinal));
 end;
 {$pop}
 
@@ -47,7 +47,7 @@ begin
   Result:=WinFreeLibrary(Lib);
 end;
 
-Function SysGetLoadErrorStr: string;
+Function SysGetLoadErrorStr: ansistring;
 
 Var
   rc,c : integer;
@@ -59,7 +59,7 @@ begin
                  MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
                  @temp[1], 255,nil);
   SetLength(temp,c);
-  Result:=String(temp);
+  Result:=AnsiString(temp);
 end;
 
 const

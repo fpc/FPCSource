@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dlserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Datamgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, datamgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * DLK result codes
@@ -99,7 +105,7 @@ type
 
   DlkUserInfoType = record
     header: DlkUserInfoHdrType;       // fixed size header
-    nameAndLog: array [0..1] of Char; // user name, followed by sync log;
+    nameAndLog: array [0..1] of AnsiChar; // user name, followed by sync log;
                                       // both null-terminated(for debugging)
   end;
 
@@ -167,7 +173,7 @@ type
 type
   DlkEventDatabaseOpenedType = record
     dbR: DmOpenRef;    // open database ref (v2.0)
-    dbNameP: PChar;    // database name
+    dbNameP: PAnsiChar;    // database name
     dbType: UInt32;    // databse type (v2.0)
     dbCreator: UInt32; // database creator
   end;
@@ -214,7 +220,7 @@ type
     dbR: DmOpenRef;              // TouchDown database access pointer -- if null, no current db
     cardNo: UInt16;              // memory module number
     dbCreator: UInt32;           // creator id
-    dbName: array [0..dmDBNameLength-1] of Char; // DB name
+    dbName: array [0..dmDBNameLength-1] of AnsiChar; // DB name
     dbOpenMode: UInt16;          // database open mode
     created: Boolean;            // true if the current db was created
     isResDB: Boolean;            // set to true if resource database
@@ -384,10 +390,10 @@ type
 function DlkStartServer(paramP: DlkServerParamPtr): Err; syscall sysTrapDlkStartServer;
 
 function DlkGetSyncInfo(var succSyncDateP, lastSyncDateP: UInt32;
-                        var syncStateP: DlkSyncStateType; nameBufP, logBufP: PChar;
+                        var syncStateP: DlkSyncStateType; nameBufP, logBufP: PAnsiChar;
                         var logLenP: Int32): Err; syscall sysTrapDlkGetSyncInfo;
 
-procedure DlkSetLogEntry(const textP: PChar; textLen: Int16; append: Boolean); syscall sysTrapDlkSetLogEntry;
+procedure DlkSetLogEntry(const textP: PAnsiChar; textLen: Int16; append: Boolean); syscall sysTrapDlkSetLogEntry;
 
 // Dispatch a DesktopLink request (exposed for patching)
 function DlkDispatchRequest(sessP: DlkServerSessionPtr): Err; syscall sysTrapDlkDispatchRequest;

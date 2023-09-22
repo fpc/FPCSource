@@ -4,12 +4,21 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes,
+{$IFDEF LinkDynamically}
+ System.SysUtils,
+{$ENDIF}
+    System.DynLibs, // always for sharedsuffix
+    Api.Oracle.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes,
 {$IFDEF LinkDynamically}
  sysutils,
 {$ENDIF}
     Dynlibs, // always for sharedsuffix
     oratypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from oci.h
@@ -491,7 +500,7 @@ uses ctypes,
   const // forward declarations which aren't possible in pascal
   { Attach using server handle from pool  }
      OCI_CPOOL = $0200;
-  { char set id  }
+  { AnsiChar set id  }
      OCI_ATTR_NCHARSET_ID = 262;
 
 {$include ocidfn.inc}
@@ -1255,7 +1264,7 @@ uses ctypes,
      OCI_ATTR_DN_COUNT = 161;     
   { server DN attribute  }
      OCI_ATTR_SERVER_DN = 162;     
-  { max char size of data  }
+  { max AnsiChar size of data  }
      OCI_ATTR_MAXCHAR_SIZE = 163;     
   { for scrollable result sets }
      OCI_ATTR_CURRENT_POSITION = 164;     
@@ -2240,9 +2249,9 @@ uses ctypes,
      OCI_ATTR_IS_OVERRIDING_METHOD = 283;     
   { Describe the base object  }
      OCI_ATTR_DESC_SYNBASE = 284;     
-  { char length semantics  }
+  { AnsiChar length semantics  }
      OCI_ATTR_CHAR_USED = 285;     
-  { char length  }
+  { AnsiChar length  }
      OCI_ATTR_CHAR_SIZE = 286;     
   { SQLJ support  }
   { is java implemented type ?  }

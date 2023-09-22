@@ -460,6 +460,7 @@ implementation
 
       var
         p,paran,pcalln,ptmp : tnode;
+        ecnt : longint;
         i,pcount : sizeint;
         paras : array of tnode;
         od : tobjectdef;
@@ -492,8 +493,9 @@ implementation
               if constrsym.typ<>procsym then
                 internalerror(2018102301);
 
-              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
+              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[cnf_no_convert_procvar],nil);
               p:=nil;
+              ecnt:=errorcount;
               typecheckpass(pcalln);
 
               if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
@@ -555,8 +557,12 @@ implementation
                         paras[i].free;
                     end;
                 end
-              else
+              else begin
+                { provide *some* error in case there hasn't been one }
+                if errorcount=ecnt then
+                  message(parser_e_illegal_expression);
                 pcalln.free;
+              end;
             end
           else
             begin
@@ -912,12 +918,15 @@ implementation
                             Delphi-compatible }
                           hdef2:=tstoreddef(hdef).getcopy;
                           tobjectdef(hdef2).childof:=tobjectdef(hdef);
+                          tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
                           hdef:=hdef2;
                         end
                       else
                         begin
-                          hdef:=tstoreddef(hdef).getcopy;
-                          { check if it is an ansistirng(codepage) declaration }
+                          hdef2:=tstoreddef(hdef).getcopy;
+                          tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
+                          hdef:=hdef2;
+                          { check if it is an ansistring(codepage) declaration }
                           if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                             begin
                               p:=comp_expr([ef_accept_equal]);
@@ -1297,6 +1306,8 @@ implementation
          sym : tsym;
          first,
          isgeneric : boolean;
+         pw : pcompilerwidestring;
+
       begin
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
@@ -1336,12 +1347,23 @@ implementation
                       stringconstn:
                         with Tstringconstnode(p) do
                           begin
-                             { resourcestrings are currently always single byte }
-                             if cst_type in [cst_widestring,cst_unicodestring] then
-                               changestringtype(getansistringdef);
-                             getmem(sp,len+1);
-                             move(value_str^,sp^,len+1);
-                             sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                             if not is_systemunit_unicode  then
+                               begin
+                               if cst_type in [cst_widestring,cst_unicodestring] then
+                                 changestringtype(getansistringdef);
+                               getmem(sp,len+1);
+                               move(value_str^,sp^,len+1);
+                               sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                               end
+                             else
+                               begin
+                               // For unicode rtl, resourcestrings are unicodestrings
+                               if cst_type in [cst_conststring,cst_longstring, cst_shortstring,cst_ansistring] then
+                                 changestringtype(cunicodestringtype);
+                               initwidestring(pw);
+                               copywidestring(pcompilerwidestring(value_str),pw);
+                               sym:=cconstsym.create_wstring(orgname,constresourcestring,pw);
+                               end;
                           end;
                       else
                         Message(parser_e_illegal_expression);

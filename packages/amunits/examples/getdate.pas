@@ -12,21 +12,21 @@ Program GetDate;
 
 uses amigados, strings;
 
-const template : pchar = 'Format/K,Help/S';
+const template : PAnsiChar = 'Format/K,Help/S';
 
-      version : pchar = '$VER: GetDate 1.0 (21.2.95)';
+      version : PAnsiChar = '$VER: GetDate 1.0 (21.2.95)';
 
 VAR DS : tDateStamp;
     DT : _tDateTime;
     rda : pRDArgs;
-    WeekDay, Date, Time, hours, mins, secs, day, month, year : pchar;
+    WeekDay, Date, Time, hours, mins, secs, day, month, year : PAnsiChar;
     vec : Array[0..1] of longint;
     i : longint;
-    LFormat : pchar;
+    LFormat : PAnsiChar;
 
 Procedure PrintFormat;
-VAR Str : string;
-    tmp : string;
+VAR Str : ShortString;
+    tmp : ShortString;
 Begin
  Str := strpas(LFormat);
  tmp := '';
@@ -82,7 +82,7 @@ begin
 
  LFormat:=StrAlloc(100);
 
- If StrComp(pointer(vec[0]),pchar('')) <> 0 then StrCopy(LFormat,pointer(vec[0])) else LFormat:=NIL;
+ If StrComp(pointer(vec[0]),PAnsiChar('')) <> 0 then StrCopy(LFormat,pointer(vec[0])) else LFormat:=NIL;
 
 
  If vec[1]<>0 then Help;

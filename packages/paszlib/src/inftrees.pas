@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inftrees;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { inftrees.h -- header to use inftrees.c
   inftrees.c -- generate Huffman trees for efficient decoding
@@ -17,8 +19,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Maximum size of dynamic tree.  The maximum found in a long but non-

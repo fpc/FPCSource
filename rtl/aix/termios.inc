@@ -53,7 +53,7 @@ const
 type
   Ptty_page = ^tty_page;
   tty_page = record
-      tp_flags : char;
+      tp_flags : AnsiChar;
       tp_slen : byte;
     end;
 
@@ -197,7 +197,7 @@ const
 //  TIOCSLTC =         IOC_IN or ((sizeof(struct ltchars) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 117{ set local special chars }
 //  TIOCGLTC =         IOC_OUT or ((sizeof(struct ltchars) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 116{ get local special chars }
   TIOCOUTQ =         IOC_OUT or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 115;     { output queue size }
-  TIOCSTI =          IOC_IN or ((sizeof(char) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 114;    { simulate terminal input }
+  TIOCSTI =          IOC_IN or ((sizeof(AnsiChar) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 114;    { simulate terminal input }
   TIOCNOTTY =        IOC_VOID or (ord('t') shl 8) or 113;           { void tty association }
   TIOCPKT =          IOC_IN or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 112;     { pty: set/clear packet mode }
   TIOCPKT_DATA =             $00;    { data packet }

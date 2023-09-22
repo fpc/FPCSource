@@ -12,12 +12,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 {$modeswitch out}
 {$inline on}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses UnixType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i osdefs.inc}       { Compile time defines }
 

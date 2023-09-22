@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_prssupp;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,8 +21,13 @@ unit dbf_prssupp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -62,16 +69,20 @@ type
     procedure FreeItem(Item: Pointer); override;
   end;
 
-function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
-procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+function GetStrFromInt(Val: Integer; const Dst: PAnsiChar): Integer;
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PAnsiChar; const PadChar: AnsiChar);
 {$ifdef SUPPORT_INT64}
-function  GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
+function  GetStrFromInt64(Val: Int64; const Dst: PAnsiChar): Integer;
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PAnsiChar; const PadChar: AnsiChar);
 {$endif}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 destructor TOCollection.Destroy;
 begin
@@ -199,12 +210,12 @@ begin
   StrDispose(Item);
 end;
 
-// it seems there is no pascal function to convert an integer into a PChar???
+// it seems there is no pascal function to convert an integer into a PAnsiChar???
 // NOTE: in dbf_dbffile.pas there is also a convert routine, but is slightly different
 
-function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
+function GetStrFromInt(Val: Integer; const Dst: PAnsiChar): Integer;
 var
-  Temp: array[0..10] of Char;
+  Temp: array[0..10] of AnsiChar;
   I, J: Integer;
 begin
   Val := Abs(Val);
@@ -228,11 +239,11 @@ begin
   // done!
 end;
 
-// it seems there is no pascal function to convert an integer into a PChar???
+// it seems there is no pascal function to convert an integer into a PAnsiChar???
 
-procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PAnsiChar; const PadChar: AnsiChar);
 var
-  Temp: array[0..10] of Char;
+  Temp: array[0..10] of AnsiChar;
   I, J: Integer;
   NegSign: boolean;
 begin
@@ -241,18 +252,18 @@ end;
 
 {$ifdef SUPPORT_INT64}
 
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PAnsiChar; const PadChar: AnsiChar);
 var
-  Temp: array[0..19] of Char;
+  Temp: array[0..19] of AnsiChar;
   I, J: Integer;
   NegSign: boolean;
 begin
   {$I getstrfromint.inc}
 end;
 
-function GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
+function GetStrFromInt64(Val: Int64; const Dst: PAnsiChar): Integer;
 var
-  Temp: array[0..19] of Char;
+  Temp: array[0..19] of AnsiChar;
   I, J: Integer;
 begin
   Val := Abs(Val);

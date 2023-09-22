@@ -48,6 +48,6 @@ begin
 end;
 
 initialization
-  RegisterHTTPModule('TEchoModule', TEchoModule);
+  RegisterHTTPModule('Echo', TEchoModule);
 end.
 

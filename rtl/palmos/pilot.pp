@@ -14,11 +14,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pilot;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+   uses
+      PalmApi.systraps;
+{$ELSE FPC_DOTTEDUNITS}
    uses
       SysTraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
    const
 
@@ -87,16 +94,16 @@ interface
       UInt = word;
       OsType = UInt;
 
-      Cstring = packed array[1..32] of char;
-      Cstr16 = packed array[1..16] of char;
-      Cstr8 = packed array[1..8] of char;
+      Cstring = packed array[1..32] of AnsiChar;
+      Cstr16 = packed array[1..16] of AnsiChar;
+      Cstr8 = packed array[1..8] of AnsiChar;
       PString = packed record
             case boolean of
                true: (
                      p: String;
                );
                false: (
-                     c: array[0..255] of char
+                     c: array[0..255] of AnsiChar
                );
          end;
 

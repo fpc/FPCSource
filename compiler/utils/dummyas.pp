@@ -39,7 +39,7 @@ begin
 end;
 
 var
-  i : longint;
+  i,j : longint;
   param : string;
   skipnext : boolean;
 begin
@@ -58,6 +58,36 @@ begin
           skipnext:=true;
           object_name:=ParamStr(i+1);
         end
+      else if (param='-x') then
+        begin
+        // darwin -x assembler for clang
+        skipnext:=true
+        end
+      else if (param='-target') then
+        begin
+        // darwin -target x86_64-apple-macosx10.8.0 for clang
+        skipnext:=true
+        end
+      else if (param='--32') then
+        begin
+        // Android
+        // Ignore
+        end
+      else if (param='--defsym') then
+        begin
+        // Android
+        skipnext:=true;
+        end
+      else if (Param='-f') then
+        begin
+          // ignore format in nasm
+          skipnext:=true;
+        end
+      else if copy(param,1,4)='-fo=' then  
+        begin
+        // Watcom
+        object_name:=copy(param,5);
+        end
       else if (Param[1]='-') then
         begin
           { option Param not handled }
@@ -73,6 +103,10 @@ begin
               Writeln(stderr,'first non option param =',assembler_name);
               Writeln(stderr,'second non option param =',Param);
               Writeln(stderr,'Don''t know how to handle this!');
+              write(stderr,'full command-line was:');
+              for j:=1 to ParamCount do
+                Write(' ',paramstr(j));
+              Writeln;  
               halt(1);
             end;
         end;

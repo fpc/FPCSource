@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;
@@ -70,6 +70,9 @@ begin
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('getdiscid.pp');
     T:=P.Targets.AddExampleProgram('showcds.pp');
+
+
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

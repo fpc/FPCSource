@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit soundmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, Amiga.Other.Preferences;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, preferences;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * Sound Manager constants
@@ -139,7 +145,7 @@ type
   SndMidiRecType = record
     hdr: SndMidiRecHdrType;            // offset from the beginning of the record
                                        // to the Standard Midi File data stream
-    name: array [0..2-1] of Char;      // Track name: 1 or more chars including NULL terminator.
+    name: array [0..2-1] of AnsiChar;      // Track name: 1 or more chars including NULL terminator.
                                        // If a track has no name, the NULL character must still
                                        // be provided.
                                        // Set to 2 to pad the structure out to a word boundary.
@@ -147,7 +153,7 @@ type
 
 // Midi records found by SndCreateMidiList.
   SndMidiListItemType = record
-    name: array [0..sndMidiNameLength-1] of Char; // including NULL terminator
+    name: array [0..sndMidiNameLength-1] of AnsiChar; // including NULL terminator
     uniqueRecID: UInt32;
     dbID: LocalID;
     cardNo: UInt16;

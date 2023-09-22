@@ -15,8 +15,13 @@
  **********************************************************************}
 
 {$ifdef FPC}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unix;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 (*
@@ -171,7 +176,7 @@ const
 
 function LockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh: DWORD): BOOL;
 var
-  FLockInfo: {$ifdef FPC}BaseUnix.FLock{$else}TFLock{$endif};
+  FLockInfo: {$ifdef FPC}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FLock{$else}TFLock{$endif};
   FLastError: Cardinal;
 begin
   FLockInfo.l_type := F_WRLCK;
@@ -192,7 +197,7 @@ end;
 
 function UnlockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nNumberOfBytesToUnlockLow, nNumberOfBytesToUnlockHigh: DWORD): BOOL;
 var
-  FLockInfo: {$ifdef FPC}BaseUnix.FLock{$else}TFLock{$endif};
+  FLockInfo: {$ifdef FPC}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FLock{$else}TFLock{$endif};
 begin
   FLockInfo.l_type := F_UNLCK;
   FLockInfo.l_whence := SEEK_SET;
@@ -222,7 +227,7 @@ end;
 
 {$ifdef HUNGARIAN}
 
-procedure OemHunHun(AnsiDst: PChar; cchDstLength: DWORD);
+procedure OemHunHun(AnsiDst: PAnsiChar; cchDstLength: DWORD);
 var
   Count: DWORD;
 begin
@@ -255,7 +260,7 @@ begin
   end;
 end;
 
-procedure AnsiHunHun(AnsiDst: PChar; cchDstLength: DWORD);
+procedure AnsiHunHun(AnsiDst: PAnsiChar; cchDstLength: DWORD);
 var
   Count: DWORD;
 begin
@@ -290,21 +295,21 @@ end;
 
 {$endif}
 
-function OemToChar(lpszSrc: PChar; lpszDst: PChar): BOOL;
+function OemToChar(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
   Result := true;
 end;
 
-function CharToOem(lpszSrc: PChar; lpszDst: PChar): BOOL;
+function CharToOem(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
   Result := true;
 end;
 
-function OemToCharBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function OemToCharBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
@@ -314,7 +319,7 @@ begin
   Result := true;
 end;
 
-function CharToOemBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function CharToOemBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
@@ -346,7 +351,7 @@ begin
   System.Move(TempA, lpMultiByteStr^, Result);
 end;
 
-function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
+function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PAnsiChar; cchCount1: Integer; lpString2: PAnsiChar; cchCount2: Integer): Integer;
 begin
   Result := StrLComp(lpString1, lpString2, cchCount1) + 2;
   if Result > 2 then Result := 3;

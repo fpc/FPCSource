@@ -15,15 +15,24 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
   Save in format 24 bits compressed or not
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWritePCX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
-uses FPImage, Classes, SysUtils;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -40,7 +49,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Common.PCX;
+{$ELSE FPC_DOTTEDUNITS}
 uses pcxcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function TFPWriterPCX.SaveHeader(Stream: TStream; Img: TFPCustomImage): boolean;
 var
@@ -61,8 +74,11 @@ begin
     YMin := 0;
     XMax := Img.Width - 1;
     YMax := Img.Height - 1;
-    HRes := 300;
-    VRes := 300;
+
+    Img.ResolutionUnit :=ruPixelsPerInch;
+    HRes :=Trunc(Img.ResolutionX);
+    VRes :=Trunc(Img.ResolutionY);
+
     ColorPlanes := 3;
     BytesPerLine := Img.Width;
     PaletteType := 1;

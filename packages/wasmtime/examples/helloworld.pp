@@ -2,7 +2,7 @@ program helloworld;
 
 uses classes,ctypes, wasmtime;
 
-procedure exit_with_error(message : Pchar; error : Pwasmtime_error_t; trap: Pwasm_trap_t); cdecl;
+procedure exit_with_error(message : PAnsiChar; error : Pwasmtime_error_t; trap: Pwasm_trap_t); cdecl;
 
 var
   error_message : Twasm_byte_vec_t ;
@@ -68,7 +68,7 @@ begin
     F.Free;
   end;
 
-  error:=wasmtime_wat2wasm(pchar(wat.data), wat.size, @wasm);
+  error:=wasmtime_wat2wasm(PAnsiChar(wat.data), wat.size, @wasm);
   if (error<>Nil) then
     exit_with_error('failed to parse wat', error, Nil);
   wasm_byte_vec_delete(@wat);
@@ -92,7 +92,7 @@ begin
     exit_with_error('failed to instantiate', error, trap);
 
   Writeln('Extracting export...\n');
-  ok:=wasmtime_instance_export_get(context, @instance, PChar('run'), 3, @run) ;
+  ok:=wasmtime_instance_export_get(context, @instance, PAnsiChar('run'), 3, @run) ;
   if OK=0 then
     exit_with_error('failed to get run export', nil, nil);
   if run.kind<>WASMTIME_EXTERN_FUNC then

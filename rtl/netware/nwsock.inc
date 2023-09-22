@@ -121,7 +121,7 @@ end;
                                UnixSock
 ******************************************************************************}
 
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
+Procedure Str2UnixSockAddr(const addr:shortstring;var t:TUnixSockAddr;var len:longint);
 begin
   Move(Addr[1],t.Path,length(Addr));
   t.Family:=AF_UNIX;
@@ -130,7 +130,7 @@ begin
 end;
 
 
-Function Bind(Sock:longint;const addr:string):boolean;
+Function Bind(Sock:longint;const addr:shortstring):boolean;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -155,7 +155,7 @@ end;
 
 
 
-Function DoConnect(Sock:longint;const addr:string):Boolean;
+Function DoConnect(Sock:longint;const addr:shortstring):Boolean;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -164,7 +164,7 @@ begin
   DoConnect:=Connect(Sock,UnixAddr,AddrLen);
 end;
 
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
+Function Accept(Sock:longint;var addr:shortstring;var SockIn,SockOut:text):Boolean;
 var
   s : longint;
 begin
@@ -180,7 +180,7 @@ end;
 
 
 
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:shortstring;var SockIn,SockOut:File):Boolean;
 var
   s : longint;
 begin
@@ -196,7 +196,7 @@ end;
 
 
 
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:shortstring;var SockIn,SockOut:text):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
   If Connect then
@@ -205,7 +205,7 @@ end;
 
 
 
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+Function Connect(Sock:longint;const addr:shortstring;var SockIn,SockOut:file):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
   if Connect then

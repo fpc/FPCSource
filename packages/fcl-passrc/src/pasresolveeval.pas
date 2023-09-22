@@ -33,7 +33,7 @@ Works:
 - string:
   - #65, '', 'a', 'ab'
   - +, =, <>, <, >, <=, >=
-  - pred(), succ(), chr(), ord(), low(char), high(char)
+  - pred(), succ(), chr(), ord(), low(AnsiChar), high(AnsiChar)
   - s[]
   - length(string)
   - #$DC00
@@ -41,7 +41,7 @@ Works:
 - enum
   - ord(), low(), high(), pred(), succ()
   - typecast enumtype(integer)
-- set of enum, set of char, set of bool, set of int
+- set of enum, set of AnsiChar, set of bool, set of int
   - [a,b,c..d]
   - +, -, *, ><, =, <>, >=, <=, in
   - error on duplicate in const set
@@ -57,7 +57,9 @@ ToDo:
   - error on: array[1..2] of longint = (1,2,3);
 - anonymous enum range: type f=(a,b,c,d); g=b..c;
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasResolveEval;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -70,8 +72,13 @@ unit PasResolveEval;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Math, Pascal.Tree, Pascal.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Sysutils, Classes, Math, PasTree, PScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // message numbers
 const
@@ -434,9 +441,9 @@ type
     {$endif}
     revkUnicodeString, // TResEvalUTF16
     revkEnum,     // TResEvalEnum
-    revkRangeInt, // TResEvalRangeInt: range of enum, int, char, widechar, e.g. 1..2
+    revkRangeInt, // TResEvalRangeInt: range of enum, int, AnsiChar, widechar, e.g. 1..2
     revkRangeUInt, // TResEvalRangeUInt: range of uint, e.g. 1..2
-    revkSetOfInt,  // set of enum, int, char, widechar, e.g. [1,2..3]
+    revkSetOfInt,  // set of enum, int, AnsiChar, widechar, e.g. [1,2..3]
     revkExternal // TResEvalExternal: an external const
     );
   TREVKinds = set of TREVKind;
@@ -833,7 +840,7 @@ function GetElementNameAndParams(El: TPasElement; MaxLvl: integer = 3): string;
 function GetTypeParamNames(Templates: TFPList; MaxLvl: integer = 3): string;
 function dbgs(const Flags: TResEvalFlags): string; overload;
 function dbgs(v: TResEvalValue): string; overload;
-function LastPos(c: char; const s: string): sizeint;
+function LastPos(c: AnsiChar; const s: string): sizeint;
 
 implementation
 
@@ -1023,25 +1030,25 @@ begin
   case CodePoint of
     0..$7f:
       begin
-        Result:=char(byte(CodePoint));
+        Result:=AnsiChar(byte(CodePoint));
       end;
     $80..$7ff:
       begin
-        Result:=char(byte($c0 or (CodePoint shr 6)))
-               +char(byte($80 or (CodePoint and $3f)));
+        Result:=AnsiChar(byte($c0 or (CodePoint shr 6)))
+               +AnsiChar(byte($80 or (CodePoint and $3f)));
       end;
     $800..$ffff:
       begin
-        Result:=char(byte($e0 or (CodePoint shr 12)))
-               +char(byte((CodePoint shr 6) and $3f) or $80)
-               +char(byte(CodePoint and $3f) or $80);
+        Result:=AnsiChar(byte($e0 or (CodePoint shr 12)))
+               +AnsiChar(byte((CodePoint shr 6) and $3f) or $80)
+               +AnsiChar(byte(CodePoint and $3f) or $80);
       end;
     $10000..$10ffff:
       begin
-        Result:=char(byte($f0 or (CodePoint shr 18)))
-               +char(byte((CodePoint shr 12) and $3f) or $80)
-               +char(byte((CodePoint shr 6) and $3f) or $80)
-               +char(byte(CodePoint and $3f) or $80);
+        Result:=AnsiChar(byte($f0 or (CodePoint shr 18)))
+               +AnsiChar(byte((CodePoint shr 12) and $3f) or $80)
+               +AnsiChar(byte((CodePoint shr 6) and $3f) or $80)
+               +AnsiChar(byte(CodePoint and $3f) or $80);
       end;
   else
     Result:='';
@@ -1189,7 +1196,7 @@ begin
     Result:=v.AsDebugString;
 end;
 
-function LastPos(c: char; const s: string): sizeint;
+function LastPos(c: AnsiChar; const s: string): sizeint;
 var
   i: SizeInt;
 begin
@@ -2567,7 +2574,7 @@ begin
     revkUInt:
       // int / uint
       if TResEvalUInt(RightValue).UInt=0 then
-        Flo:=DivideByZero(Math.Sign(Int),Sign(TResEvalUInt(RightValue).UInt))
+        Flo:=DivideByZero({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Sign(Int),Sign(TResEvalUInt(RightValue).UInt))
       else
         Flo:=Int / TResEvalUInt(RightValue).UInt;
     revkFloat:
@@ -3846,7 +3853,7 @@ begin
         RangeStart:=StringToOrd(Value,nil);
         if RangeStart>$ffff then
           begin
-          // set of string (not of char)
+          // set of string (not of AnsiChar)
           ReleaseEvalValue(TResEvalValue(Result));
           exit;
           end;
@@ -3861,7 +3868,7 @@ begin
           RaiseNotYetImplemented(20170713201516,El);
         if length(TResEvalUTF16(Value).S)<>1 then
           begin
-          // set of string (not of char)
+          // set of string (not of AnsiChar)
           ReleaseEvalValue(TResEvalValue(Result));
           exit;
           end;
@@ -3958,7 +3965,7 @@ begin
       // int^^int
       try
         {$Q+}{$R+}
-        Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalInt(RightValue).Int));
+        Int:=trunc({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalInt(LeftValue).Int,TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalInt.CreateValue(Int);
@@ -3969,7 +3976,7 @@ begin
       // int^^uint
       try
         {$Q+}{$R+}
-        Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalUInt(RightValue).UInt));
+        Int:=trunc({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalInt(LeftValue).Int,TResEvalUInt(RightValue).UInt));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalInt.CreateValue(Int);
@@ -3980,7 +3987,7 @@ begin
       // int^^float
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalInt(LeftValue).Int,TResEvalFloat(RightValue).FloatValue);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalInt(LeftValue).Int,TResEvalFloat(RightValue).FloatValue);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -3991,7 +3998,7 @@ begin
       // int^^currency
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalInt(LeftValue).Int,TResEvalCurrency(RightValue).Value);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalInt(LeftValue).Int,TResEvalCurrency(RightValue).Value);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4010,7 +4017,7 @@ begin
       // uint^^int
       try
         {$Q+}{$R+}
-        Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalInt(RightValue).Int));
+        Int:=trunc({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalUInt(LeftValue).UInt,TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalInt.CreateValue(Int);
@@ -4021,7 +4028,7 @@ begin
       // uint^^uint
       try
         {$Q+}{$R+}
-        Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalUInt(RightValue).UInt));
+        Int:=trunc({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalUInt(LeftValue).UInt,TResEvalUInt(RightValue).UInt));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalInt.CreateValue(Int);
@@ -4032,7 +4039,7 @@ begin
       // uint^^float
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalUInt(LeftValue).UInt,TResEvalFloat(RightValue).FloatValue);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalUInt(LeftValue).UInt,TResEvalFloat(RightValue).FloatValue);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4043,7 +4050,7 @@ begin
       // uint^^currency
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalUInt(LeftValue).UInt,TResEvalCurrency(RightValue).Value);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalUInt(LeftValue).UInt,TResEvalCurrency(RightValue).Value);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4062,7 +4069,7 @@ begin
       // float ^^ int
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalInt(RightValue).Int);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalInt(RightValue).Int);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4073,7 +4080,7 @@ begin
       // float ^^ uint
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalUInt(RightValue).UInt);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalUInt(RightValue).UInt);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4084,7 +4091,7 @@ begin
       // float ^^ float
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalFloat(RightValue).FloatValue);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalFloat(RightValue).FloatValue);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4095,7 +4102,7 @@ begin
       // float ^^ currency
       try
         {$Q+}{$R+}
-        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalCurrency(RightValue).Value);
+        Flo:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalCurrency(RightValue).Value);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalFloat.CreateValue(Flo);
@@ -4109,7 +4116,7 @@ begin
       // currency ^^ int
       try
         {$Q+}{$R+}
-        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalInt(RightValue).Int);
+        aCurrency:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalCurrency(LeftValue).Value,TResEvalInt(RightValue).Int);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalCurrency.CreateValue(aCurrency);
@@ -4120,7 +4127,7 @@ begin
       // currency ^^ uint
       try
         {$Q+}{$R+}
-        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalUInt(RightValue).UInt);
+        aCurrency:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalCurrency(LeftValue).Value,TResEvalUInt(RightValue).UInt);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalCurrency.CreateValue(aCurrency);
@@ -4131,7 +4138,7 @@ begin
       // currency ^^ float
       try
         {$Q+}{$R+}
-        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalFloat(RightValue).FloatValue);
+        aCurrency:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalCurrency(LeftValue).Value,TResEvalFloat(RightValue).FloatValue);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalCurrency.CreateValue(aCurrency);
@@ -4142,7 +4149,7 @@ begin
       // currency ^^ currency
       try
         {$Q+}{$R+}
-        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalCurrency(RightValue).Value);
+        aCurrency:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.power(TResEvalCurrency(LeftValue).Value,TResEvalCurrency(RightValue).Value);
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
         Result:=TResEvalCurrency.CreateValue(aCurrency);
@@ -4180,7 +4187,7 @@ begin
       begin
       if PosEl<>nil then
         RaiseMsg(20170522221143,nXExpectedButYFound,sXExpectedButYFound,
-          ['char','string'],PosEl)
+          ['AnsiChar','string'],PosEl)
       else
         exit(Invalid);
       end
@@ -4191,7 +4198,7 @@ begin
         begin
         if PosEl<>nil then
           RaiseMsg(20190124180407,nXExpectedButYFound,sXExpectedButYFound,
-            ['char','string'],PosEl)
+            ['AnsiChar','string'],PosEl)
         else
           exit(Invalid);
         end;
@@ -4207,7 +4214,7 @@ begin
       begin
       if PosEl<>nil then
         RaiseMsg(20170522221358,nXExpectedButYFound,sXExpectedButYFound,
-          ['char','string'],PosEl)
+          ['AnsiChar','string'],PosEl)
       else
         exit(Invalid);
       end
@@ -4286,7 +4293,7 @@ var
   end;
 {$ENDIF}
 
-  procedure AddSrc(h: String);
+  procedure AddSrc(h: AnsiString);
   {$ifdef FPC_HAS_CPSTRING}
   var
     ValueAnsi: TResEvalString;
@@ -4304,7 +4311,7 @@ var
         // append non ASCII -> needs codepage
         OnlyASCII:=false;
         FetchSourceCP;
-        SetCodePage(rawbytestring(h),SourceCP,false);
+        SetCodePage(RawByteString(h),SourceCP,false);
         break;
         end;
 
@@ -4368,7 +4375,7 @@ var
   var
     StartP: Integer;
     u: longword;
-    c: Char;
+    c: AnsiChar;
     {$ifdef FPC_HAS_CPSTRING}
     ValueAnsi: TResEvalString;
     ValueUTF16: TResEvalUTF16;
@@ -4479,7 +4486,7 @@ var
 
 var
   p, StartP, l: integer;
-  c: Char;
+  c: AnsiChar;
   S: String;
 begin
   Result:=nil;
@@ -4794,7 +4801,7 @@ begin
       revskChar:
         if Value.Kind in revkAllStrings then
           begin
-          // string in char..char
+          // string in AnsiChar..AnsiChar
           CharIndex:=StringToOrd(Value,ValueExpr);
           if (CharIndex<RgInt.RangeStart) or (CharIndex>RgInt.RangeEnd) then
             begin
@@ -5345,10 +5352,10 @@ end;
 function TResExprEvaluator.CheckValidUTF8(const s: RawByteString;
   ErrorEl: TPasElement): boolean;
 var
-  p, EndP: PChar;
+  p, EndP: PAnsiChar;
   l: SizeInt;
 begin
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   EndP:=p+length(s);
   while p<EndP do
     begin
@@ -5650,9 +5657,9 @@ begin
   if LeftSign=0 then
     Result:=0.0
   else if (LeftSign<0)<>(RightSign<0) then
-    Result:=Math.NegInfinity
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.NegInfinity
   else
-    Result:=Math.Infinity;
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Infinity;
 end;
 
 { TResolveData }
@@ -6081,7 +6088,7 @@ begin
   case ElKind of
     revskEnum: Result:='enum range';
     revskInt: Result:='integer range';
-    revskChar: Result:='char range';
+    revskChar: Result:='AnsiChar range';
     revskBool: Result:='boolean range';
   else
     Result:='integer range';

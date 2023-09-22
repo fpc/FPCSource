@@ -1,6 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZDeflate;
+{$ENDIF FPC_DOTTEDUNITS}
 
+{$IFDEF CPUWASM}
+{$DEFINE NOGOTO}
+{$ENDIF}
+
+{$IFNDEF NOGOTO}
 {$goto on}
+{$ENDIF}
 
 { Orginal: deflate.h -- internal compression state
            deflate.c -- compress data using the deflation algorithm
@@ -59,8 +67,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function deflateInit_(strm : z_streamp;
@@ -336,8 +349,13 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Trees, System.ZLib.Adler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   trees, adler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {  ===========================================================================
    Function prototypes. }
@@ -1206,8 +1224,7 @@ end;
 function longest_match(var s : deflate_state;
                        cur_match : IPos  { current match }
                        ) : cardinal;
-label
-  nextstep;
+
 var
   chain_length : cardinal;    { max hash chain length }
   {register} scan : Pbyte;   { current string }
@@ -1230,6 +1247,19 @@ var
 {$endif}
 var
   MAX_DIST : cardinal;
+  
+{$IFNDEF NOGOTO}  
+label
+  nextstep;
+{$ELSE}  
+  Procedure DoNextStep; inline;
+  
+  begin
+    cur_match := prev^[cur_match and wmask];
+    dec(chain_length);
+  end;
+{$ENDIF}  
+
 begin
   chain_length := s.max_chain_length; { max hash chain length }
   scan := @(s.window^[s.strstart]);
@@ -1307,7 +1337,15 @@ distances are limited to MAX_DIST instead of WSIZE. }
   {$PUSH} {$R-}
         if (match[best_len-1]<>scan_end) or
            (match^ <> scan_start) then
+          {$IFDEF NOGOTO} 
+          begin
+            DoNextStep;
+            Continue;
+          end;  
+          {$ELSE}
           goto nextstep; {continue;}
+          {$ENDIF}
+          
   {$POP}
 
         { It is not necessary to compare scan[2] and match[2] since they are
@@ -1353,11 +1391,25 @@ distances are limited to MAX_DIST instead of WSIZE. }
         if (Pbytearray(match)^[best_len]   <> scan_end) or
            (Pbytearray(match)^[best_len-1] <> scan_end1) or
            (match^ <> scan^) then
+          {$IFDEF NOGOTO} 
+          begin
+            DoNextStep;
+            Continue;
+          end;
+          {$ELSE}
           goto nextstep; {continue;}
+          {$ENDIF}
   {$POP}
         inc(match);
         if (match^ <> Pbytearray(scan)^[1]) then
+          {$IFDEF NOGOTO} 
+          begin
+            DoNextStep;
+            Continue;
+          end;
+          {$ELSE}
           goto nextstep; {continue;}
+          {$ENDIF}
 
         { The check at best_len-1 can be removed because it will be made
           again later. (This heuristic is not always a win.)
@@ -1411,9 +1463,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
 {$endif}
 {$pop}
         end;
+{$ifndef NOGOTO}        
     nextstep:
       cur_match := prev^[cur_match and wmask];
       dec(chain_length);
+{$ENDIF}      
     until (cur_match <= limit) or (chain_length = 0);
 
     if (cardinal(best_len) <= s.lookahead) then
@@ -1538,7 +1592,7 @@ begin
   begin
     WriteLn(' start ',start,', match ',match ,' length ', length);
     repeat
-      Write(char(s.window^[match]), char(s.window^[start]));
+      Write(AnsiChar(s.window^[match]), AnsiChar(s.window^[start]));
       inc(match);
       inc(start);
       dec(length);
@@ -1549,7 +1603,7 @@ begin
   begin
     Write('\\[',start-match,',',length,']');
     repeat
-       Write(char(s.window^[start]));
+       Write(AnsiChar(s.window^[start]));
        inc(start);
        dec(length);
     Until (length = 0);
@@ -1917,7 +1971,7 @@ end;
     begin
       { No match, output a literal byte }
       {$IFDEF ZLIB_DEBUG}
-      Tracevv(char(s.window^[s.strstart]));
+      Tracevv(AnsiChar(s.window^[s.strstart]));
       {$ENDIF}
       {_tr_tally_lit (s, 0, s.window^[s.strstart], bflush);}
       bflush := _tr_tally (s, 0, s.window^[s.strstart]);
@@ -2074,7 +2128,7 @@ begin
             single literal. If there was a match but the current match
             is longer, truncate the previous match to a single literal. }
           {$IFDEF ZLIB_DEBUG}
-          Tracevv(char(s.window^[s.strstart-1]));
+          Tracevv(AnsiChar(s.window^[s.strstart-1]));
           {$ENDIF}
           bflush := _tr_tally (s, 0, s.window^[s.strstart-1]);
 
@@ -2113,7 +2167,7 @@ begin
   if (s.match_available) then
   begin
     {$IFDEF ZLIB_DEBUG}
-    Tracevv(char(s.window^[s.strstart-1]));
+    Tracevv(AnsiChar(s.window^[s.strstart-1]));
     bflush :=
     {$ENDIF}
       _tr_tally (s, 0, s.window^[s.strstart-1]);

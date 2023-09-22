@@ -67,10 +67,10 @@ type
 
    Psg_req_info = ^sg_req_info;
    sg_req_info = record
-        req_state : char;
-        orphan : char;
-        sg_io_owned : char;
-        problem : char;
+        req_state : AnsiChar;
+        orphan : AnsiChar;
+        sg_io_owned : AnsiChar;
+        problem : AnsiChar;
         pack_id : longint;
         usr_ptr : pointer;
         duration : dword;

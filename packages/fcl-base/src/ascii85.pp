@@ -14,7 +14,9 @@
 
 // I, Danny Milosavljevic, hereby release this code into the public domain.
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ascii85;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$M+}
 {$MODE OBJFPC}
@@ -23,7 +25,11 @@ unit ascii85;
 //   which is based on C code from <http://www.stillhq.com/cgi-bin/cvsweb/ascii85/>.
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TASCII85State = (ascInitial = 0, ascOneEncodedChar = 1, ascTwoEncodedChars = 2, ascThreeEncodedChars = 3, ascFourEncodedChars = 4, ascNoEncodedChar = 5, ascPrefix = 6);
@@ -138,7 +144,7 @@ begin
     For I:=FCount+1 downto 0 do
       begin
       Inc(j);
-      S[J]:=Char(Buf[i]+Ord('!'));
+      S[J]:=AnsiChar(Buf[i]+Ord('!'));
       SetLength(S,J);
       Inc(FPos);
       If (FPos>FWidth) then
@@ -162,7 +168,7 @@ Const
   Boundary2 = slinebreak+Boundary1;
   
 Var
-  S : String;
+  S : Ansistring;
 
 begin
   If FCount>0 then

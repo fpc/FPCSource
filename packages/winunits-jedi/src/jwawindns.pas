@@ -51,7 +51,9 @@
 {******************************************************************}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinDNS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -67,8 +69,13 @@ unit JwaWinDNS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype, WinApi.Jedi.Ws2atm;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinsock2, JwaWinType, JwaWS2atm;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -348,10 +355,10 @@ const
 
 {
 #define DNS_QUESTION_NAME_FROM_HEADER( _pHeader_ ) \
-            ( (PCHAR)( (PDNS_HEADER)(_pHeader_) + 1 ) )
+            ( (PAnsiChar)( (PDNS_HEADER)(_pHeader_) + 1 ) )
 
 #define DNS_ANSWER_FROM_QUESTION( _pQuestion_ ) \
-            ( (PCHAR)( (PDNS_QUESTION)(_pQuestion_) + 1 ) )
+            ( (PAnsiChar)( (PDNS_QUESTION)(_pQuestion_) + 1 ) )
 }
 
 //
@@ -1797,7 +1804,7 @@ type
   {$EXTERNALSYM PDNS_MESSAGE_BUFFER}
   _DNS_MESSAGE_BUFFER = record
     MessageHead: DNS_HEADER;
-    MessageBody: array [0..0] of CHAR;
+    MessageBody: array [0..0] of AnsiChar;
   end;
   {$EXTERNALSYM _DNS_MESSAGE_BUFFER}
   DNS_MESSAGE_BUFFER = _DNS_MESSAGE_BUFFER;
@@ -1899,10 +1906,10 @@ end;
 
 {
 #define DNS_QUESTION_NAME_FROM_HEADER( _pHeader_ ) \
-            ( (PCHAR)( (PDNS_HEADER)(_pHeader_) + 1 ) )
+            ( (PAnsiChar)( (PDNS_HEADER)(_pHeader_) + 1 ) )
 
 #define DNS_ANSWER_FROM_QUESTION( _pQuestion_ ) \
-            ( (PCHAR)( (PDNS_QUESTION)(_pQuestion_) + 1 ) )
+            ( (PAnsiChar)( (PDNS_QUESTION)(_pQuestion_) + 1 ) )
 }
 
 function IS_WORD_ALIGNED(P: Pointer): BOOL;
@@ -1922,7 +1929,7 @@ end;
 
 function DNS_TEXT_RECORD_LENGTH(StringCount: Integer): Integer;
 begin
-  Result := SizeOf(DWORD) + ((StringCount) * SizeOf(PChar));
+  Result := SizeOf(DWORD) + ((StringCount) * SizeOf(PAnsiChar));
 end;
 
 function DNS_NULL_RECORD_LENGTH(ByteCount: Integer): Integer;

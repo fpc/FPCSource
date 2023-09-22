@@ -46,15 +46,22 @@ SOFTWARE.
 
 { Definitions used by the library and client }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xinput;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 {$MODE objfpc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXi = 'Xi';
@@ -198,7 +205,7 @@ type
     x_root: cint;              { coordinates relative to root }
     y_root: cint;              { coordinates relative to root }
     state: cuint;              { key or button mask }
-    is_hint: char;             { detail }
+    is_hint: AnsiChar;             { detail }
     same_screen: TBool;        { same screen flag }
     device_state: cuint;       { device key or button mask }
     axes_count: cuchar;
@@ -657,7 +664,7 @@ type
   TXDeviceInfo = record
     id: TXID;
     _type: TAtom;
-    name: PChar;
+    name: PAnsiChar;
     num_classes: cint;
     use: cint;
     inputclassinfo: TXAnyClassPtr;
@@ -1063,7 +1070,7 @@ procedure XFreeDeviceState(
 
 function XGetExtensionVersion(
     display: PDisplay;
-    name: {_Xconst} Pchar
+    name: {_Xconst} PAnsiChar
 ): PXExtensionVersion; cdecl; external libXi;
 
 function XListInputDevices(

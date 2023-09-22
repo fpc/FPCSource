@@ -22,12 +22,12 @@ interface
   systemh.inc is included otherwise the
   $mode switch is not effective }
 
-{ Use Ansi Char for files }
+{ Use AnsiChar for files }
 {$define FPC_ANSI_TEXTFILEREC}
 {$define FPC_STDOUT_TRUE_ALIAS}
 
 {$ifdef NO_WIDESTRINGS}
-  { Do NOT use wide Char for files }
+  { Do NOT use widechar for files }
   {$undef FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif NO_WIDESTRINGS}
 
@@ -52,8 +52,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   maxExitCode = 255;
   MaxPathLen = 256;
@@ -80,7 +80,7 @@ var
   meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0;
 { C-compatible arguments and environment }
   argc:smallint; //!! public name 'operatingsystem_parameter_argc';
-  argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
+  argv:PPAnsiChar; //!! public name 'operatingsystem_parameter_argv';
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
@@ -98,9 +98,9 @@ const
 
 implementation
 
-procedure DebugWrite(s: PChar); forward;
-procedure DebugWrite(const S: string); forward;
-procedure DebugWriteLn(const S: string); forward;
+procedure DebugWrite(s: PAnsiChar); forward;
+procedure DebugWrite(const S: Shortstring); forward;
+procedure DebugWriteLn(const S: ShortString); forward;
 
 {$ifdef todo}
 const
@@ -120,7 +120,7 @@ const
 
 type
   PFarByte = ^Byte;//far;
-  PFarChar = ^Char;//far;
+  PFarChar = ^AnsiChar;//far;
   PFarWord = ^Word;//far;
   PPFarChar = ^PFarChar;
 {$endif}
@@ -135,7 +135,7 @@ var
   __stktop : pointer;public name '__stktop';
   dos_version:Word;public name 'dos_version';
   dos_env_count:smallint;public name '__dos_env_count';
-  dos_argv0 : PChar;public name '__fpc_dos_argv0';
+  dos_argv0 : PAnsiChar;public name '__fpc_dos_argv0';
 
 {$I registers.inc}
 
@@ -258,7 +258,7 @@ function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
 {$endif FPC_HAS_FEATURE_SOFTFPU}
 {$endif FPUNONE}
 
-procedure DebugWrite(S: PChar);
+procedure DebugWrite(S: PAnsiChar);
 var
   regs: Registers;
 begin
@@ -270,7 +270,7 @@ begin
   end;
 end;
 
-procedure DebugWrite(const S: string);
+procedure DebugWrite(const S: shortstring);
 var
   regs: Registers;
   i: Byte;
@@ -282,7 +282,7 @@ begin
   end;
 end;
 
-procedure DebugWriteLn(const S: string);
+procedure DebugWriteLn(const S: shortstring);
 begin
   DebugWrite(S);
   DebugWrite(#13#10);
@@ -293,7 +293,7 @@ end;
 *****************************************************************************}
 
 var
-  internal_envp : PPChar = nil;
+  internal_envp : PPAnsiChar = nil;
 
 procedure setup_environment;
 {$ifdef todo}
@@ -338,14 +338,14 @@ begin
 {$endif}
 end;
 
-function envp:PPChar;public name '__fpc_envp';
+function envp:PPAnsiChar;public name '__fpc_envp';
 begin
   if not assigned(internal_envp) then
     setup_environment;
   envp:=internal_envp;
 end;
 
-function GetEnvVar(aName: PChar): String;
+function GetEnvVar(aName: PAnsiChar): ShortString;
 var
   regs: Registers;
   i: SizeInt;
@@ -359,7 +359,7 @@ begin
   MsxDos(regs);
   if regs.A = 0 then begin
     i := 1;
-    aName := PChar(@Result[1]);
+    aName := PAnsiChar(@Result[1]);
     while i < 256 do begin
       if aName^ = #0 then begin
         SetLength(Result, i);
@@ -375,14 +375,14 @@ end;
 procedure setup_arguments;
 var
   i: SmallInt;
-  pc: PChar;
-  quote: Char;
+  pc: PAnsiChar;
+  quote: AnsiChar;
   count: SmallInt;
   arglen, argv0len: SmallInt;
-  argblock: PChar;
-  arg: PChar;
+  argblock: PAnsiChar;
+  arg: PAnsiChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
-  tmp: String;
+  tmp: ShortString;
   regs: Registers;
 begin
   tmp := GetEnvVar('PROGRAM');
@@ -420,7 +420,7 @@ begin
               begin
                 if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                       begin
                         if quote='"' then
                           quote:=' '
@@ -437,7 +437,7 @@ begin
               begin
                 if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                       begin
                         if quote=''''  then
                          quote:=' '
@@ -461,7 +461,7 @@ begin
   Writeln(stderr,'Arg count: ', count, ', size: ', arglen);
   { set argc and allocate argv }
   argc:=count;
-  argv:=AllocMem((count+1)*SizeOf(PChar));
+  argv:=AllocMem((count+1)*SizeOf(PAnsiChar));
   { allocate a single memory block for all arguments }
   argblock:=GetMem(arglen);
   writeln('Allocated arg vector at ', hexstr(argv), ' and block at ', hexstr(argblock));
@@ -505,7 +505,7 @@ begin
               begin
                 if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                       begin
                         if quote='"' then
                           quote:=' '
@@ -525,7 +525,7 @@ begin
               begin
                 if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                       begin
                         if quote=''''  then
                           quote:=' '
@@ -580,7 +580,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : ShortString;
 begin
   if argv=nil then
     setup_arguments;

@@ -49,7 +49,7 @@
 {  would continually redraw. By moving the memavail call   }
 {  the update procedure this eliminates this problem.      }
 {                                                          }
-{   Finally the original object relied on the font char    }
+{   Finally the original object relied on the font AnsiChar    }
 {  blocks being square to erase it's entire view area as   }
 {  it used a simple writeline call in the Draw method.     }
 {  Under GFV font blocks are not necessarily square and    }
@@ -63,7 +63,9 @@
 {  1.00     12 Nov 99   First multi platform release       }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Gadgets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -84,6 +86,8 @@ UNIT Gadgets;
   {$P-} { Normal string variables }
   {$N-} { No 80x87 code generation }
   {$E+} { Emulation is on }
+{$ELSE}
+  {$H-}
 {$ENDIF}
 
 {$X+} { Extended syntax is ok }
@@ -94,7 +98,11 @@ UNIT Gadgets;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES FreeVision.Fvconsts, FreeVision.Time, System.Objects,FreeVision.Drivers, FreeVision.Views, FreeVision.App;      { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES FVConsts, Time, Objects, Drivers, Views, App;      { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                        PUBLIC OBJECT DEFINITIONS                          }
@@ -124,7 +132,7 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TClockView = OBJECT (TView)
-         am : Char;
+         am : AnsiChar;
          Refresh : Byte;                              { Refresh rate }
          LastTime: Longint;                           { Last time displayed }
          TimeStr : String[10];                        { Time string }
