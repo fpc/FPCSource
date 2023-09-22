@@ -1478,6 +1478,10 @@ UnixApi.CWString$(PPUEXT) : $(NSINC)/UnixApi.CWString.pp $(CWSTRING_DEPS)
 # Ctypes
 #
 
+ifneq ($(UNIXINC),)
+  CTYPES_DEPS_OS+=$(UNIXTYPEUNIT)$(PPUEXT)
+endif
+
 CTYPES_DEPS=$(INC)/ctypes.pp \
             $(SYSTEMUNIT)$(PPUEXT) \
             $(CTYPES_DEPS_OS) $(CTYPES_DEPS_CPU)
