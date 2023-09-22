@@ -10,13 +10,13 @@ loaders= prt0
 units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
        ctypes \
        $(CHARSETUNIT) $(CPALLUNIT) \
-       sysconst \
+       $(SYSCONSTUNIT) \
        systraps pilot
 #units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
 #      dos objects \
-#      rtlconsts sysconst sysutils \
+#      rtlconsts $(SYSCONSTUNIT) sysutils \
 #      typinfo types $(FGLUNIT) classes fmtbcd \
 #      strutils convutils $(MATHUNIT) dateutils \
 #      varutils variants \
@@ -29,7 +29,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
 #    winsysut
 implicitunits=$(CP_UNITS)
 
-# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils sysconst
+# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -109,9 +109,6 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SY
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 #
 # System Dependent Units

@@ -22,7 +22,7 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EX
        $(SYSCONSTUNIT)
 #implicitunits=exeinfo $(CP_UNITS)
 
-#rsts=$(MATHUNIT) rtlconsts varutils typinfo variants classes sysconst dateutil
+#rsts=$(MATHUNIT) rtlconsts varutils typinfo variants classes $(SYSCONSTUNIT) dateutil
 
 [require]
 nortl=y

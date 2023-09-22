@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
       $(DLUNIT) $(DYNLIBSUNIT) \
-      types sysconst $(CHARACTERUNIT) \
+      types $(SYSCONSTUNIT) $(CHARACTERUNIT) \
       rtlconsts cthreads \
       dos $(FPWIDESTRINGUNIT) \
       cwstring $(FPINTRESUNIT) $(CPU_UNITS) \
@@ -23,7 +23,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) typinfo classes sysconst rtlconst
+rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT) rtlconst
 
 [require]
 nortl=y
@@ -151,7 +151,7 @@ dos$(PPUEXT) : strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.i
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -164,9 +164,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEX
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp

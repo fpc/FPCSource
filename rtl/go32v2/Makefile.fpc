@@ -12,9 +12,9 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
       msmouse $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
-      types sysconst rtlconst \
+      types $(SYSCONSTUNIT) rtlconst \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 [require]
 nortl=y
@@ -117,7 +117,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
+		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 
@@ -136,10 +136,6 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEX
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
-	$(EXECPPAS)
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
 
 #

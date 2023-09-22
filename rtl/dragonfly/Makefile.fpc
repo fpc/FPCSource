@@ -18,12 +18,12 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) $(BSDUNIT) \
       $(CONSOLEUNIT) \
-      sysconst cthreads dos cwstring \
+      $(SYSCONSTUNIT) cthreads dos cwstring \
       $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -156,7 +156,7 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) sysconst$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
@@ -171,9 +171,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUE
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 #
 # Other system-independent RTL Units

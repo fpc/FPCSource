@@ -18,7 +18,7 @@ units=system $(UUCHARUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPA
       $(DYNLIBSUNIT) $(CWSTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU218UNIT)  $(UFLOAT128UNIT)
 #      beos
-rsts=$(MATHUNIT) typinfo sysconst rtlconsts 
+rsts=$(MATHUNIT) typinfo $(SYSCONSTUNIT) rtlconsts 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]

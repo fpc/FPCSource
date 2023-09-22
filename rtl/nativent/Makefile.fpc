@@ -14,7 +14,7 @@ implicitunits=ndk ndkutils ddk \
 #      $(HEAPTRCUNIT)
 #      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
       dos \
-      rtlconsts sysconst sysutils $(MATHUNIT) types \
+      rtlconsts $(SYSCONSTUNIT) sysutils $(MATHUNIT) types \
       typinfo $(FGLUNIT) classes \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
@@ -25,7 +25,7 @@ implicitunits=ndk ndkutils ddk \
 
 # shared=$(DLLS)
 
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT)
 
 [require]
 nortl=y
