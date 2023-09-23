@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0 dllprt0
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
-      $(STRINGSUNIT) $(SYSCALLUNIT) $(SYSCTL)  baseunix unixutil $(CHARACTERUNIT) \
+      $(STRINGSUNIT) $(SYSCALLUNIT) $(SYSCTLUNIT)  baseunix unixutil $(CHARACTERUNIT) \
       unix $(RTLCONSTSUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(DLUNIT) $(TERMIOUNIT) \
       sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
@@ -130,7 +130,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc sy
 #
 
 baseunix$(PPUEXT) :  $(UNIXINC)/baseunix.pp errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc $(SYSCTL)$(PPUEXT) \
+  signal.inc $(UNIXINC)/bunxh.inc $(SYSCTLUNIT)$(PPUEXT) \
   $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -140,7 +140,7 @@ unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYS
 	$(COMPILER) $<
 
 
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(SYSCTL)$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(SYSCTLUNIT)$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
                  unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
