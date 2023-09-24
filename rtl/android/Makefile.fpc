@@ -9,7 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) $(UNIXUTILUNIT) \
-      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
+      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) $(UNIXUNIT) $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
       types  $(SYSCONSTUNIT) $(CTHREADSUNIT) $(SORTBASEUNIT) classes $(FGLUNIT)  \
@@ -37,7 +37,7 @@ targetdir=.
 
 [shared]
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
-      unix $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) \
+      $(UNIXUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) \
       $(ERRORSUNIT) sockets \
@@ -136,20 +136,11 @@ $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 
 #
-# $(SYSTEMUNIT) Dependent Units
-#
-
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unix.pp
-
-#
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+               $(UNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/dos.pp
 
 #
@@ -157,7 +148,7 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
