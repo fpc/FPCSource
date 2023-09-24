@@ -9,7 +9,7 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) \
-      $(BASEUNIXUNIT) unixutil \
+      $(BASEUNIXUNIT) $(UNIXUTILUNIT) \
       $(TERMIOUNIT) unix $(INITCUNIT) $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
       sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
@@ -119,13 +119,10 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 # System Dependent Units
 #
 
-unix$(PPUEXT) : $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(UNIXUTILUNIT)$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unix.pp
-
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/unixutil.pp
 
 #
 # TP7 Compatible RTL Units

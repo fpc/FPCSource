@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) unixutil \
+      $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) $(UNIXUTILUNIT) \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
@@ -37,7 +37,7 @@ targetdir=.
 
 [shared]
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
-      unix $(BASEUNIXUNIT) $(UNIXTYPEUNIT) unixutil \
+      unix $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) \
       $(ERRORSUNIT) sockets \
@@ -143,9 +143,6 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(I
                  $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unix.pp
-
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixutil.pp
 
 #
 # TP7 Compatible RTL Units
