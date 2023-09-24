@@ -9,7 +9,7 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
-      baseunix unixutil $(UNIXCPUNIT) \
+      $(BASEUNIXUNIT) unixutil $(UNIXCPUNIT) \
       $(TERMIOUNIT) unix $(INITCUNIT) $(CMEMUNIT) \
       sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
@@ -117,21 +117,15 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 # System Dependent Units
 #
 
-baseunix$(PPUEXT) : unixtype$(PPUEXT) errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc \
-  ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/baseunix.pp
-
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixtype.pp
 
-unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : unixtype$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
-                 unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                 unxfunc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unix.pp
 
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
 
 #
@@ -181,6 +175,6 @@ endif
 # Other system-dependent RTL Units
 #
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
 

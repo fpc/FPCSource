@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      $(UUCHARUNIT) unixtype $(CTYPESUNIT) baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) unixutil \
+      $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
@@ -37,7 +37,7 @@ targetdir=.
 
 [shared]
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
-      unix baseunix unixtype unixutil \
+      unix $(BASEUNIXUNIT) unixtype unixutil \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) \
       $(ERRORSUNIT) sockets \
@@ -138,7 +138,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
 # $(SYSTEMUNIT) Dependent Units
 #
 
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unix.pp
@@ -148,13 +148,6 @@ unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc
 
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixtype.pp
-
-baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc \
-  $(UNIXINC)/bunxh.inc \
-  $(LINUXINC)/bunxsysc.inc $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc \
-  $(LINUXINC)/ostypes.inc $(LINUXINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/baseunix.pp
 
 #
 # TP7 Compatible RTL Units
