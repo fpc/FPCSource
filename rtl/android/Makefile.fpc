@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) unixutil \
+      $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
@@ -37,7 +37,7 @@ targetdir=.
 
 [shared]
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
-      unix $(BASEUNIXUNIT) unixtype unixutil \
+      unix $(BASEUNIXUNIT) $(UNIXTYPEUNIT) unixutil \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) \
       $(ERRORSUNIT) sockets \
@@ -56,6 +56,7 @@ DYNLIBSINCDIR=$(UNIXINC)
 DL_DEPS_OS=dlandroid.inc
 TERMIODIR=$(LINUXINC)
 PTHREADINCDIR=$(LINUXINC)
+PTYPESINCDIR=$(LINUXINC)
 
 SYSCALL_DEPS_OS=$(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc
 
@@ -145,9 +146,6 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(I
 
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixutil.pp
-
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixtype.pp
 
 #
 # TP7 Compatible RTL Units

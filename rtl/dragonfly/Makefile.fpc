@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       $(STRINGSUNIT) $(SYSCALLUNIT) $(SYSCTLUNIT) $(BASEUNIXUNIT) unixutil $(CHARACTERUNIT) \
       unix $(RTLCONSTSUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(DLUNIT) $(TERMIOUNIT) \
@@ -131,8 +131,6 @@ $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp unxconst.inc $(SYSDEPS)
 # System Dependent Units
 #
 
-unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
-
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -177,5 +175,5 @@ endif
 # Other system-dependent RTL Units
 #
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 

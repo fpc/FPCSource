@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(SYSCALLUNIT) $(BASEUNIXUNIT) \
-      $(LINUXUNIT) unixtype unixutil unix $(CTYPESUNIT) $(BSDUNIT) \
+      $(LINUXUNIT) $(UNIXTYPEUNIT) unixutil unix $(CTYPESUNIT) $(BSDUNIT) \
       $(CPU_UNITS) dos $(RTLCONSTSUNIT) \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo $(MATHUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
@@ -63,7 +63,7 @@ BASEUNIX_DEPS_OS=$(SYSCTLUNIT)$(PPUEXT)
 BSD_DEPS_OS=$(SYSCALLUNIT)$(PPUEXT)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
-SYSCALL_DEPS_OS=$(BASEUNIXUNIT)$(PPUEXT) unixtype$(PPUEXT) sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
+SYSCALL_DEPS_OS=$(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
 
 SYSTEMUNIT=system
 LINUXUNIT=
@@ -149,9 +149,6 @@ $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc sy
 # System Dependent Units
 #
 
-unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -190,7 +187,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
