@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) \
       $(BASEUNIXUNIT) unixutil \
       $(TERMIOUNIT) unix $(INITCUNIT) $(CMEMUNIT) \
@@ -119,10 +119,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 # System Dependent Units
 #
 
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/unixtype.pp
-
-unix$(PPUEXT) : unixtype$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unix.pp
@@ -176,7 +173,7 @@ endif
 # Other system-dependent RTL Units
 #
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) unix$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
 
 gpm$(PPUEXT): gpm.pp unix$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) sockets$(PPUEXT)

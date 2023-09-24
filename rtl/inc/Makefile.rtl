@@ -1416,8 +1416,12 @@ UnixApi.Utils$(PPUEXT) : $(NSINC)/UnixApi.Utils.pp $(UNIXUTIL_DEPS)
 #
 # UnixType
 #
+ifndef PTYPESINCDIR
+  PTYPESINCDIR=$(OSDIR)
+endif
+
 UNIXTYPE_DEPS=$(UNIXINC)/unixtype.pp \
-              $(SYSTEMUNIT)$(PPUEXT) $(OSDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
+              $(SYSTEMUNIT)$(PPUEXT) $(PTYPESINCDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
               $(UNIXTYPE_DEPS_OS) $(UNIXTYPE_DEPS_CPU)
                
 unixtype$(PPUEXT) : $(UNIXTYPE_DEPS)
