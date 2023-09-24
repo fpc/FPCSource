@@ -107,8 +107,8 @@ program fpcmake;
 
           { Add the subdirs }
           subdirs:='';
-          for c:=low(tcpu) to high(tcpu) do
-           for t:=low(tos) to high(tos) do
+          for c:=succ(low(tcpu)) to high(tcpu) do
+           for t:=succ(low(tos)) to high(tos) do
             if CurrFPCMake.IncludeTargets[c,t] then
              begin
                s2:=CurrFPCMake.GetTargetVariable(c,t,'target_dirs',true);
@@ -119,8 +119,8 @@ program fpcmake;
                  AddTokenNoDup(subdirs,s,' ');
                until false;
              end;
-          for c:=low(tcpu) to high(tcpu) do
-           for t:=low(tos) to high(tos) do
+          for c:=succ(low(tcpu)) to high(tcpu) do
+           for t:=succ(low(tos)) to high(tos) do
             if CurrFPCMake.IncludeTargets[c,t] then
              begin
                s2:=CurrFPCMake.GetTargetVariable(c,t,'target_exampledirs',true);
