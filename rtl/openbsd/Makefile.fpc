@@ -13,7 +13,7 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(SYSCALLUNIT) $(BASEUNIXUNIT) \
       $(LINUXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) $(UNIXUNIT) $(CTYPESUNIT) $(BSDUNIT) \
       $(CPU_UNITS) dos $(RTLCONSTSUNIT) \
-      sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo $(MATHUNIT) \
+      sysutils $(SORTBASEUNIT) $(FGLUNIT) classes $(TYPINFOUNIT) $(MATHUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(ERRORSUNIT) \
       $(TYPESUNIT) $(SYSCTLUNIT) $(SYSCONSTUNIT) \
@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(
       $(CTHREADSUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
-rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT)
+rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]
@@ -44,7 +44,7 @@ libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(UNIXUNIT)  \
       dos  \
-      sysutils typinfo $(MATHUNIT) \
+      sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT)
 
@@ -166,11 +166,8 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
+                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 #
 # Other system-independent RTL Units

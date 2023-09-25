@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
       $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
-      $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) typinfo $(FGLUNIT) \
+      $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) \
       classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
       $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 implicitunits=$(CP_UNITS)
@@ -101,14 +101,10 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
+                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                    $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
                    $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
 #

@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(TYPESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) $(LINEINFOUNIT) $(FGLUNIT) $(CMEMUNIT)
-#rsts=$(MATHUNIT) $(RTLCONSTSUNIT) varutils typinfo variants classes $(SYSCONSTUNIT) dateutil fpmkunit
+#rsts=$(MATHUNIT) $(RTLCONSTSUNIT) varutils $(TYPINFOUNIT) variants classes $(SYSCONSTUNIT) dateutil fpmkunit
 implicitunits=$(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]
