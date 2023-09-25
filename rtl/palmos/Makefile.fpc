@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
 #      dos objects \
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils \
-#      typinfo $(TYPESUNIT) $(FGLUNIT) classes fmtbcd \
+#      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) classes fmtbcd \
 #      strutils convutils $(MATHUNIT) dateutils \
 #      varutils variants \
 #      matrix ucomplex \
@@ -29,7 +29,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
 #    winsysut
 implicitunits=$(CP_UNITS)
 
-# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils $(SYSCONSTUNIT)
+# rsts=$(MATHUNIT) varutils $(TYPINFOUNIT) variants classes dateutils $(SYSCONSTUNIT)
 
 [require]
 nortl=y

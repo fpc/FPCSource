@@ -42,7 +42,7 @@ libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos \
-      sysutils typinfo $(MATHUNIT) \
+      sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) $(DYNLIBSUNIT)
 

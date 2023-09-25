@@ -8,9 +8,9 @@ main=rtl
 [target]
 loaders=cprt0 crti crtn
 units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
-      sysutils typinfo $(MATHUNIT) \
+      sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
-rsts=$(MATHUNIT) typinfo
+rsts=$(MATHUNIT) $(TYPINFOUNIT)
 
 [require]
 nortl=y
@@ -105,9 +105,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 #
 # Other system-independent RTL Units

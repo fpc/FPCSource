@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $
       $(BASEUNIXUNIT) $(UNIXUTILUNIT) \
       $(TERMIOUNIT) $(UNIXUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
-      sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
+      sysutils $(TYPINFOUNIT) $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
       # ipc 
@@ -24,7 +24,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT) $(RTLCONSTSUNIT) 
+rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT) $(RTLCONSTSUNIT) 
 
 [require]
 nortl=y
@@ -46,7 +46,7 @@ libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(UNIXUNIT)  \
       dos crt   \
-      sysutils typinfo $(MATHUNIT) \
+      sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) sockets
 
@@ -136,12 +136,9 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
+                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
 		   $(SYSTEMUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 #
 # Other system-independent RTL Units
