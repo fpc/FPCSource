@@ -14,7 +14,7 @@ implicitunits=ndk ndkutils ddk \
 #      $(HEAPTRCUNIT)
 #      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
       dos \
-      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils $(MATHUNIT) types \
+      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(FGLUNIT) classes \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
