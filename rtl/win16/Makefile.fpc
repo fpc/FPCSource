@@ -30,6 +30,8 @@ PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 
+TYPES_DEPS_OS=$(WINTYPESUNIT)$(PPUEXT)
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 # Insert exception handler in system unit
