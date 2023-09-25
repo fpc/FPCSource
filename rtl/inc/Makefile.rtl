@@ -1592,6 +1592,38 @@ messages$(PPUEXT): $(MESSAGES_DEPS)
 WinApi.Messages$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Messages.pp $(MESSAGES_DEPS)
         $(COMPILER) -Fi$(WINMESSAGESINCDIR) -Fi$(WINMMESSAGESDIR) $<
 
+#
+# win16 specific WinAPI Units
+#
+
+WINTYPES_DEPS = wintypes.pp wintypes.inc $(SYSTEMUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+
+wintypes$(PPUEXT) : $(WINTYPES_DEPS)
+	$(COMPILER) $<
+
+WinApi.WinTypes$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.WinTypes.pp $(WINTYPES_DEPS)
+	$(COMPILER) $<
+
+# winprocs uses $mode objfpc, which loads objpas unit implicitly
+WINPROCS_DEPS = winprocs.pp winprocsh.inc winprocs.inc $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+
+winprocs$(PPUEXT) : $(WINPROCS_DEPS)
+	$(COMPILER) $<
+
+WinApi.Winprocs$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.WinProcs.pp $(WINPROCS_DEPS)
+	$(COMPILER) $<
+
+# win31 uses $mode objfpc, which loads objpas unit implicitly
+WIN31_DEPS = win31.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+
+win31$(PPUEXT) : $(WIN31_DEPS)
+	$(COMPILER) $<
+
+WinApi.Win31$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.Win31.pp $(WINPROCS_DEPS)
+	$(COMPILER) $<
 
 ###################
 # BSD units
