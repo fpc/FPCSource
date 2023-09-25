@@ -888,6 +888,7 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+TYPES_DEPS_OS=$(WINTYPESUNIT)$(PPUEXT)
 OBJPASDIR=$(RTL)/objpas
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
@@ -896,7 +897,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_IMPLICITUNITS+=$(CP_UNITS)
@@ -2580,10 +2581,14 @@ System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
 ifneq ($(UNIXINC),)
   FPWIDESTRING_DEPS_OS:=$(FPWIDESTRING_DEPS_OS) $(UNIXCPUNIT)$(PPUEXT)
 endif
-ifeq ($(AMIINC),)
-  RTLDEFSINCDIR = $(OSDIR)
-else
+ifneq ($(AMIINC),)
   RTLDEFSINCDIR=$(AMIINC)
+else
+ifeq ($(OS_TARGET),android)
+  RTLDEFSINCDIR = $(LINUXINC)
+else
+  RTLDEFSINCDIR = $(OSDIR)
+endif
 endif
 FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp $(RTLDEFSINCDIR)/rtldefs.inc \
 		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNICODEDATAUNIT)$(PPUEXT) \
@@ -2677,7 +2682,11 @@ cthreads$(PPUEXT) : $(CTHREADS_DEPS)
 	$(COMPILER) $(CTHREADS_OPT) $<
 UnixApi.CThreads$(PPUEXT) : $(NSINC)/UnixApi.CThreads.pp $(CTHREADS_DEPS)
 	$(COMPILER) $(CTHREADS_OPT) $<
-CWSTRING_DEPS=$(UNIXINC)/cwstring.pp \
+ifndef CWSTRINGDIR
+  CWSTRINGDIR=$(UNIXINC)
+  CWSSTRING_INC=$(RTLDEFSINCDIR)/rtldefs.inc
+endif
+CWSTRING_DEPS=$(CWSTRINGDIR)/cwstring.pp $(CWSTRING_INC) \
 	      $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
 	      $(UNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
 	      $(DYNLIBSUNIT)$(PPUEXT) $(UNIXCPUNIT)$(PPUEXT) \
@@ -2740,6 +2749,24 @@ messages$(PPUEXT): $(MESSAGES_DEPS)
 	$(COMPILER) -Fi$(WINMESSAGESINCDIR) $<
 WinApi.Messages$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Messages.pp $(MESSAGES_DEPS)
 	$(COMPILER) -Fi$(WINMESSAGESINCDIR) -Fi$(WINMMESSAGESDIR) $<
+WINTYPES_DEPS = wintypes.pp wintypes.inc $(SYSTEMUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+wintypes$(PPUEXT) : $(WINTYPES_DEPS)
+	$(COMPILER) $<
+WinApi.WinTypes$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.WinTypes.pp $(WINTYPES_DEPS)
+	$(COMPILER) $<
+WINPROCS_DEPS = winprocs.pp winprocsh.inc winprocs.inc $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+winprocs$(PPUEXT) : $(WINPROCS_DEPS)
+	$(COMPILER) $<
+WinApi.Winprocs$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.WinProcs.pp $(WINPROCS_DEPS)
+	$(COMPILER) $<
+WIN31_DEPS = win31.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) \
+	       $(WINTYPES_DEPS_OS) $(WINTYPES_DEPS_CPU)
+win31$(PPUEXT) : $(WIN31_DEPS)
+	$(COMPILER) $<
+WinApi.Win31$(PPUEXT) : $(NSWINDOWSDIR)/WinApi.Win31.pp $(WINPROCS_DEPS)
+	$(COMPILER) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   SYSCTL_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif
@@ -2907,36 +2934,21 @@ system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
 		  sysdl.inc sysdlh.inc
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
-wintypes$(PPUEXT) : wintypes.pp wintypes.inc system$(PPUEXT)
-	$(COMPILER) wintypes.pp
-	$(EXECPPAS)
-winprocs$(PPUEXT) : winprocs.pp winprocsh.inc winprocs.inc system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
-	$(COMPILER) winprocs.pp
-	$(EXECPPAS)
-win31$(PPUEXT) : win31.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
-	$(COMPILER) win31.pp
-	$(EXECPPAS)
 dos$(PPUEXT) : dos.pp registers.inc \
 	       $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
-	       strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
+	       strings$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
 	$(EXECPPAS)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
-		    wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
+		    $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-		   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
-		   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
+		   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
+		   $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+		   $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
-	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(MATHUNIT)$(PPUEXT) wintypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
