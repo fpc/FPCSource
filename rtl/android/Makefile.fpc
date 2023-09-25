@@ -61,6 +61,9 @@ PTYPESINCDIR=$(LINUXINC)
 SYSCALL_DEPS_OS=$(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc
 SYSUTILS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 
+# Android has a specific file for cwstring.pp unit main source
+CWSTRINGDIR=$(OSDIR)
+
 UNITPREFIX=rtl
 
 CPU_UNITS=
