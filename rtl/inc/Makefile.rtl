@@ -1292,10 +1292,14 @@ endif
 
 # TODO: fpwidestring unit also includes rtldefs.inc
 # but this can be in different directories
-ifeq ($(AMIINC),)
-  RTLDEFSINCDIR = $(OSDIR)
-else
+ifneq ($(AMIINC),)
   RTLDEFSINCDIR=$(AMIINC)
+else
+ifeq ($(OS_TARGET),android)
+  RTLDEFSINCDIR = $(LINUXINC)
+else
+  RTLDEFSINCDIR = $(OSDIR)
+endif
 endif
 
 FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp $(RTLDEFSINCDIR)/rtldefs.inc \
@@ -1476,7 +1480,7 @@ UnixApi.CThreads$(PPUEXT) : $(NSINC)/UnixApi.CThreads.pp $(CTHREADS_DEPS)
 #
 # CWString
 #
-CWSTRING_DEPS=$(UNIXINC)/cwstring.pp \
+CWSTRING_DEPS=$(UNIXINC)/cwstring.pp  $(RTLDEFSINCDIR)/rtldefs.inc \
               $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
               $(UNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
               $(DYNLIBSUNIT)$(PPUEXT) $(UNIXCPUNIT)$(PPUEXT) \
