@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(
       $(STRINGSUNIT) $(SYSCALLUNIT) $(SYSCTLUNIT) $(BASEUNIXUNIT) $(UNIXUTILUNIT) $(CHARACTERUNIT) \
       $(UNIXUNIT) $(RTLCONSTSUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(DLUNIT) $(TERMIOUNIT) \
-      sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
+      sysutils $(MATHUNIT) typinfo $(TYPESUNIT) $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) $(BSDUNIT) freebsd \
       $(CONSOLEUNIT) \
@@ -155,9 +155,6 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units
