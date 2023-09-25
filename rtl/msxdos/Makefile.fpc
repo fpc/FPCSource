@@ -8,7 +8,7 @@ main=rtl
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
-#      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) typinfo cpu types \
+#      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) typinfo cpu $(TYPESUNIT) \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse $(PORTSUNIT)  \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(CTYPESUNIT) \
@@ -98,17 +98,13 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-                   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT) \
+                   $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT) \
                    $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
-	$(EXECPPAS)
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 
 #

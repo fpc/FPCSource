@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos $(SYSCONSTUNIT) \
-      $(INITCUNIT) sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
+      $(INITCUNIT) sysutils $(TYPESUNIT) typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
       cpu $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
       $(RTLCONSTSUNIT) $(MATHUNIT) \
@@ -147,15 +147,12 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-                   $(SYSCONSTUNIT)$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
+                   $(SYSCONSTUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) sortbase$(PPUEXT) \
                    tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units
