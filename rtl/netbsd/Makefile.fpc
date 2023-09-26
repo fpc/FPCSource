@@ -142,7 +142,7 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		objpas$(PPUEXT) $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
+		$(OBJPASUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

@@ -7,12 +7,12 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) \
        $(CTYPESUNIT) \
        $(CHARSETUNIT) $(CPALLUNIT) \
        $(SYSCONSTUNIT) \
        systraps pilot
-#units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+#units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
 #      dos objects \
@@ -132,7 +132,7 @@ pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 # Other system-independent RTL Units
 #
 
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #####################################################################
