@@ -19,7 +19,6 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) $(CLASSESUNIT) \
 #      strutils convutils $(MATHUNIT) \
-#      matrix ucomplex \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
 # $(INITCUNIT) $(CMEMUNIT) signals \
 #    crt graph \

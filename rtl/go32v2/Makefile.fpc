@@ -110,15 +110,3 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 	$(COMPILER) emu387.pp
 	$(EXECPPAS)
 
-#
-# Other system-independent RTL Units
-#
-
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/matrix.pp
-	$(EXECPPAS)
-
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp $(MATHUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/ucomplex.pp
-	$(EXECPPAS)
-
