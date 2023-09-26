@@ -33,6 +33,9 @@ interface
      unix,
   {$endif}
 {$endif}
+{$ifdef TEST_FPMKUNIT}
+      fpmkunit,
+{$endif}
       sysutils,classes,
       fpcmdic;
 
@@ -68,20 +71,40 @@ interface
       TitleDate=Title+' '+DateRevision;
 
     type
+{$ifdef TEST_FPMKUNIT}
+    { Please keep this order, see OSCPUSupported below
+      TCpu=(cpuNone,
+    i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,armeb,
+    mips,mipsel,mips64,mips64el,jvm,i8086,aarch64,wasm32,sparc64,riscv32,riscv64,xtensa,z80,loongarch64
+  );}
+  TCpu = fpmkunit.TCpu;
+      { Please keep this order, see OSCPUSupported below
+  TOS=(osNone,
+    linux,go32v2,win32,os2,freebsd,beos,netbsd,
+    amiga,atari, solaris, qnx, netware, openbsd,wdosx,
+    palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
+    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
+    aix,java,android,nativent,msdos,wii,aros,dragonfly,
+    win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
+    wasi
+  );}
+  TOS = fpmkunit.TOS;
+{$else}
       TCpu=(
-        c_none,c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,
-	c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_aarch64,
-	c_wasm32,c_sparc64,c_riscv32,c_riscv64,c_xtensa,c_z80, c_loongarch64
+        c_none,i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,
+	armeb,armel,mips,mipsel,mips64,mips64el,jvm,i8086,aarch64,
+	wasm32,sparc64,riscv32,riscv64,xtensa,z80,loongarch64
       );
 
       TOS=(
-        o_none,o_linux,o_go32v2,o_win32,o_os2,o_freebsd,o_beos,o_haiku,o_netbsd,
-        o_amiga,o_atari, o_solaris, o_qnx, o_netware, o_openbsd,o_wdosx,
-        o_palmos,o_macosclassic,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
-        o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
-        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_freertos,
-        o_zxspectrum,o_msxdos,o_ios,o_amstradcpc,o_sinclairql,o_wasi
+        o_none,linux,go32v2,win32,os2,freebsd,beos,haiku,netbsd,
+        amiga,atari, solaris, qnx, netware, openbsd,wdosx,
+        palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
+        win64,wince,gba,nds,embedded,symbian,nativent,iphonesim,
+        wii,aix,java,android,msdos,aros,dragonfly,win16,freertos,
+        zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasi
       );
+{$endif}
 
       TTargetSet=array[tcpu,tos] of boolean;
 
@@ -125,7 +148,14 @@ interface
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
-      OSCpuPossible : array[TOS,TCpu] of boolean = (
+{$ifdef TEST_FPMKUNIT}
+      type
+        TOSCpuPossible = array[TOS,TCpu] of boolean;
+      var
+        OSCpuPossible : TOsCpuPossible;
+{$else}
+      OSCpuPossible : array[TOS,TCpu] of boolean = 
+      (
         { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  armel  mips   mipsel mips64 misp64el jvm    i8086  aarch64 wasm32 sparc64 riscv32 riscv64 xtensa z80   loongarch64 }
         { none  }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),
         { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true,  false, true,  true,  true,  true,    false, false, true,   false, true,  true,   true,   true,  false, true),
@@ -174,7 +204,7 @@ interface
         {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),
         { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false)
       );
-
+{$endif }
     type
       TKeyValueItem = class(TDictionaryItem)
       private
@@ -1222,7 +1252,7 @@ implementation
          end;
         { for LLVM compiler support, and dwarf eh }
         for c:=succ(low(tcpu)) to high(tcpu) do
-          if FIncludeTargets[c,o_linux] then
+          if FIncludeTargets[c,linux] then
             begin
               Result:=true;
               exit;
@@ -1726,4 +1756,8 @@ implementation
         GetSec:=FSections.Search(AName);
       end;
 
+{$ifdef TEST_FPMKUNIT}
+begin
+  OSCpuPossible := TOSCpuPossible(fpmkunit.OSCPUSupported);
+{$endif}
 end.
