@@ -7,7 +7,7 @@ main=rtl
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
-#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(DOSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
 #      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CPUUNIT) $(TYPESUNIT) \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      $(MSMOUSEUNIT) $(PORTSUNIT)  \
@@ -37,6 +37,8 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+
+DOS_DEPS_OS =  registers.inc $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -80,19 +82,10 @@ system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc r
 #
 
 #
-# TP7 Compatible RTL Units
-#
-dos$(PPUEXT) : dos.pp registers.inc \
-               $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
-               strings$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dos.pp
-	$(EXECPPAS)
-
-#
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) system$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 

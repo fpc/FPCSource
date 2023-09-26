@@ -13,7 +13,7 @@ implicitunits=ndk ndkutils ddk \
       $(CTYPESUNIT) $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
 #      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
-      dos \
+      $(DOSUNIT) \
       $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(FGLUNIT) classes \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \

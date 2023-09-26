@@ -41,7 +41,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
-      dos \
+      $(DOSUNIT) \
       sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) $(DYNLIBSUNIT)

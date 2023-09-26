@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
+units=system $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) objects $(STRINGSUNIT) \
       sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=$(MATHUNIT) $(TYPINFOUNIT)
@@ -91,19 +91,11 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 
 #
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               posix$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(POSIXINC)/dos.pp
-
-#
 # Delphi Compatible Units
 #
 
 sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
 
 #

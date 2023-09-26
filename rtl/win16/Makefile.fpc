@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
+units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(DOSUNIT) \
       $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
       $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) \
       classes $(CHARSETUNIT) $(CPUUNIT) $(GETOPTSUNIT) $(CPALLUNIT) \
@@ -31,6 +31,7 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 
 TYPES_DEPS_OS=$(WINTYPESUNIT)$(PPUEXT)
+DOS_DEPS_OS = registers.inc $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -83,19 +84,10 @@ system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
 	$(EXECPPAS)
 
 #
-# TP7 Compatible RTL Units
-#
-dos$(PPUEXT) : dos.pp registers.inc \
-               $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
-               strings$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dos.pp
-	$(EXECPPAS)
-
-#
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
+                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
                     $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)

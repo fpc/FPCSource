@@ -19,7 +19,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $
       $(DLUNIT) $(DYNLIBSUNIT) \
       $(TYPESUNIT) $(SYSCONSTUNIT) \
       $(RTLCONSTSUNIT) $(CTHREADSUNIT) \
-      dos \
+      $(DOSUNIT) \
       $(CWSTRINGUNIT) $(FPWIDESTRINGUNIT) $(FPINTRESUNIT) $(CPU_UNITS) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(CP_UNITS) $(UNICODEDATAUNIT)
@@ -45,7 +45,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(UNIXUNIT)  \
-      dos crt   \
+      $(DOSUNIT) crt   \
       sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) sockets
@@ -64,6 +64,7 @@ DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 DL_DEPS_OS=$(DLUNIT)aix.inc
 TERMIO_DEPS_OS=$(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT)
+DOSDIR=$(UNIXINC)
 
 SYSTEMUNIT=system
 
@@ -115,17 +116,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : strings$(PPUEXT) $(UNIXUNIT)$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/dos.pp
-#
-# Graph
-#
 
 #
 # Delphi Compatible Units
