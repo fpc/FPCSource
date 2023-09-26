@@ -18,7 +18,7 @@ implicitunits=ndk ndkutils ddk \
       $(TYPINFOUNIT) $(FGLUNIT) $(CLASSESUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
-#      sockets printer \
+#      printer \
 #      keyboard
 #      sharemem exeinfo $(FPINTRESUNIT) \
       $(CP_UNITS)

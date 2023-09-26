@@ -48,7 +48,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT) sockets
+      $(ERRORSUNIT)
 
 [prerules]
 RTL=..
