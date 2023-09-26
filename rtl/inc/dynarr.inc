@@ -521,7 +521,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
 
 procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr:array of pointer); compilerproc;
   var
-    i,firstnonempty,elesize,totallen,copybytes,skip : sizeint;
+    i,firstnonempty,elesize,totallen,copybytes,newdestdatapos : sizeint;
     newp,realp,copysrc,olddestp : pdynarray;
     ti,eletypemngd,copydest : pointer;
   begin
@@ -555,46 +555,67 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
     if Assigned(eletypemngd) then
       eletypemngd:=PPointer(eletypemngd)^;
 
-    { Can append? }
     olddestp:=dest;
-    if (olddestp=sarr[firstnonempty]) and (olddestp[-1].refcount=1) then
+    { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+    if assigned(olddestp) and (olddestp[-1].refcount=1) then
       begin
-        { Append, and be careful with 'dest' occuring among pieces. }
+        if assigned(eletypemngd) then
+          begin
+            { Find dest occurence among inputs. If found, reuse: remember its position, don't finalize now and don't AddRef later. }
+            newdestdatapos:=0;
+            for i:=0 to high(sarr) do
+              if assigned(sarr[i]) then
+                if sarr[i]<>olddestp then
+                  inc(newdestdatapos,pdynarray(sarr[i])[-1].high+1)
+                else
+                  break;
+            if newdestdatapos=totallen then { Dest doesn't occur among inputs. }
+              int_FinalizeArray(olddestp,eletypemngd,olddestp[-1].high+1);
+          end;
         realp:=olddestp-1;
         newp:=reallocmem(realp,totallen*elesize+sizeof(tdynarray));
-        copydest:=pointer(newp+1)+(newp^.high+1)*elesize;
-        inc(firstnonempty); { Start from the next element. }
+        { First array can be skipped if appending. }
+        if olddestp=sarr[firstnonempty] then
+          inc(firstnonempty);
       end
     else
       begin
-        olddestp:=nil; { Append case is distinguished later as assigned(olddestp). }
+        olddestp:=nil; { Realloc case is distinguished later as assigned(olddestp). }
         { allocate new array }
         newp:=getmem(totallen*elesize+sizeof(tdynarray));
         newp^.refcount:=1;
-        copydest:=newp+1;
       end;
 
-    while firstnonempty<=high(sarr) do
+    { Copy arrays from last to the first, so that possible occurences of Dest could read from the beginning of the reallocated Dest. }
+    copydest:=pointer(newp+1)+totallen*elesize;
+    for i:=high(sarr) downto firstnonempty do
       begin
-        copysrc:=sarr[firstnonempty];
-        inc(firstnonempty);
+        copysrc:=sarr[i];
         if not assigned(copysrc) then
           continue;
         if copysrc=olddestp then
           { Dest used as one of the pieces! Use new pointer instead. Array header still conveniently contains original 'high'.
-            Can trigger only when appending, as otherwise olddestp = nil. }
+            Can trigger only in the ReallocMem case, as otherwise olddestp = nil. }
           copysrc:=newp+1;
         copybytes:=(copysrc[-1].high+1)*elesize;
+        dec(copydest,copybytes);
         move(copysrc^,copydest^,copybytes);
-        inc(copydest,copybytes);
       end;
 
     if assigned(eletypemngd) then
       begin
-        skip:=0;
-        if assigned(olddestp) then
-          skip:=newp^.high+1;
-        int_AddRefArray(pointer(newp+1)+skip*elesize,eletypemngd,totallen-skip);
+        { AddRef everything in GetMem case or if Dest data was not reused in the ReallocMem case. }
+        if not assigned(olddestp) or (newdestdatapos=totallen) then
+          int_AddRefArray(pointer(newp+1),eletypemngd,totallen)
+        else
+          begin
+            { Dest := A + Dest + B, Dest data reused. }
+            if newdestdatapos>0 then
+              { AddRef A. Since Dest := Dest + B is a common case, shortcut if nothing to do. }
+              int_AddRefArray(newp+1,eletypemngd,newdestdatapos);
+            { AddRef B. }
+            int_AddRefArray(pointer(newp+1)+(newdestdatapos+newp^.high+1)*elesize,eletypemngd,totallen-(newdestdatapos+newp^.high+1));
+          end;
       end;
 
     if not assigned(olddestp) then
@@ -627,28 +648,44 @@ procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 
     eletypemngd:=pdynarraytypedata(ti)^.elType;
     if assigned(eletypemngd) then
       eletypemngd:=PPointer(eletypemngd)^;
+    ofs2:=(pdynarray(src1)[-1].high+1)*elesize; { Offset of src2 data in the resulting array. }
 
     olddestp:=dest;
-    { Can append? }
-    if (olddestp=src1) and (olddestp[-1].refcount=1) then
+    { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+    if assigned(olddestp) and (olddestp[-1].refcount=1) then
       begin
-        { Append, and be careful with dest = src2. }
+        { Finalize old dest contents, if they aren't going to be reused. }
+        if assigned(eletypemngd) and (olddestp<>src1) and (olddestp<>src2) then
+          int_FinalizeArray(olddestp,eletypemngd,olddestp[-1].high+1);
+
         realp:=olddestp-1;
         newp:=reallocmem(realp,totallen*elesize+sizeof(tdynarray));
+        { Copy src2 first, as in the case of olddestp = src2 it must be copied first and in other cases the order does not matter. }
         copysrc:=src2;
-        if src2=olddestp then
+        if copysrc=olddestp then
           { Use new pointer instead. Array header still conveniently contains original 'high'. }
           copysrc:=newp+1;
-        move(copysrc^,(pointer(newp+1)+(newp^.high+1)*elesize)^,(copysrc[-1].high+1)*elesize);
+        move(copysrc^,(pointer(newp+1)+ofs2)^,(copysrc[-1].high+1)*elesize);
+        if olddestp<>src1 then { Not an append, need to copy src1? }
+          move(src1^,newp[1],(pdynarray(src1)[-1].high+1)*elesize);
+
+        { AddRef new data. }
         if assigned(eletypemngd) then
-          int_AddRefArray(pointer(newp+1)+(newp^.high+1)*elesize,eletypemngd,copysrc[-1].high+1);
+          if src1=olddestp then
+            { Dest data stayed in the same position; AddRef only copied src2. }
+            int_AddRefArray(pointer(newp+1)+ofs2,eletypemngd,copysrc[-1].high+1)
+          else if src2=olddestp then
+            { Dest data was moved as if it was src2; AddRef only copied src1. }
+            int_AddRefArray(newp+1,eletypemngd,pdynarray(src1)[-1].high+1)
+          else
+            { Dest data was not used, AddRef everything. }
+            int_AddRefArray(newp+1,eletypemngd,totallen);
       end
     else
       begin
         { allocate new array }
         newp:=getmem(totallen*elesize+sizeof(tdynarray));
         newp^.refcount:=1;
-        ofs2:=(pdynarray(src1)[-1].high+1)*elesize;
         move(src1^,newp[1],ofs2);
         move(src2^,(pointer(newp+1)+ofs2)^,(pdynarray(src2)[-1].high+1)*elesize);
 
