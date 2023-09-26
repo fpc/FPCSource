@@ -889,9 +889,6 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 LOADERS=prt0 cprt0
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 OBJPASDIR=$(RTL)/objpas
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
 ifeq ($(CPU_OS_TARGET),arm-gba)
@@ -2205,6 +2202,9 @@ endif
 ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
+ifndef TTHREADINCDIR
+TTHREADINCDIR=$(CLASSESDIR)
+endif
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
@@ -2425,8 +2425,8 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
+	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
 	     $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
@@ -2917,41 +2917,3 @@ prt0$(OEXT) : prt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.as
 cprt0$(OEXT) : cprt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) cprt0.as
-exec$(PPUEXT)    : exec.pp execf.inc execd.inc
-	$(COMPILER) exec.pp
-timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
-	$(COMPILER) timer.pp
-utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
-	$(COMPILER) utility.pp
-doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
-	$(COMPILER) doslib.pp
-hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
-	$(COMPILER) hardware.pas
-inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) inputevent.pas
-graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
-	$(COMPILER) graphics.pas
-layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) layers.pas
-intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-		    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
-	$(COMPILER) intuition.pas
-aboxlib$(PPUEXT): aboxlib.pas
-	$(COMPILER) aboxlib.pas
-clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
-	$(COMPILER) clipboard.pas
-datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-		   utility$(PPUEXT) graphics$(PPUEXT)
-	$(COMPILER) datatypes.pas
-asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) asl.pas
-ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) ahi.pas
-mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
-	$(COMPILER) mui.pas
-tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
-	$(COMPILER) tinygl.pp
-get9$(PPUEXT): get9.pas exec$(PPUEXT)
-	$(COMPILER) get9.pas
-muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) muihelper.pas

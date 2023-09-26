@@ -888,9 +888,6 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 PRT0=prt0
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override TARGET_UNITS+=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CTYPESUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(SYSCONSTUNIT) systraps pilot
@@ -2218,6 +2215,9 @@ endif
 ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
+ifndef TTHREADINCDIR
+TTHREADINCDIR=$(CLASSESDIR)
+endif
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
@@ -2438,8 +2438,8 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
+	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
 	     $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
@@ -2936,5 +2936,3 @@ systraps$(PPUEXT) : systraps.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) systraps.pp
 pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 	$(COMPILER) pilot.pp
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fmtbcd.pp
