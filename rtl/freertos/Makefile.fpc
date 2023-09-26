@@ -23,7 +23,7 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EX
        $(CHARACTERUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-#rsts=$(MATHUNIT) $(RTLCONSTSUNIT) varutils $(TYPINFOUNIT) variants classes $(SYSCONSTUNIT) dateutil
+#rsts=$(MATHUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
 
 [require]
 nortl=y
