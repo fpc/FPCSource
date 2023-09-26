@@ -130,12 +130,3 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 
-#
-# Delphi Compatible Units
-#
-
-classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
-                   $(SORTBASEUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-

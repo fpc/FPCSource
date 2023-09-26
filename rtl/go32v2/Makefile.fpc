@@ -111,15 +111,6 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 	$(EXECPPAS)
 
 #
-# Delphi Compatible Units
-#
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
-		   $(SORTBASEUNIT)$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-#
 # Other system-independent RTL Units
 #
 
