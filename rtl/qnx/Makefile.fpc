@@ -9,7 +9,7 @@ main=rtl
 loaders=cprt0 crti crtn
 units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
       sysutils $(TYPINFOUNIT) $(MATHUNIT) \
-      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
+      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=$(MATHUNIT) $(TYPINFOUNIT)
 
 [require]
@@ -105,12 +105,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
-
-#
-# Other system-independent RTL Units
-#
-
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

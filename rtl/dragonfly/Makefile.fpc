@@ -72,7 +72,7 @@ SYSTEMUNIT=system
 loaders+=gprt0
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
 endif
 
 
@@ -146,15 +146,4 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-#
-# Other system-independent RTL Units
-#
-
-ifneq ($(findstring $(ARCH),x86_64 i386),)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
-else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
-endif
-
 

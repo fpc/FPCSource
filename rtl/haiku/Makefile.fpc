@@ -60,12 +60,12 @@ DYNLIBSINCDIR=$(UNIXINC)
 
 ifeq ($(ARCH),i386)
 LOADERS=cprt0 dllcprt0
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
 LOADERS=
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)

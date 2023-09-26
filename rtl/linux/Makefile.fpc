@@ -132,7 +132,7 @@ endif
 
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifeq ($(ARCH),sparc)
