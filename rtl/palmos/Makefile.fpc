@@ -18,8 +18,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      $(DOSUNIT) objects \
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) classes fmtbcd \
-#      strutils convutils $(MATHUNIT) dateutils \
-#      varutils variants \
+#      strutils convutils $(MATHUNIT) \
 #      matrix ucomplex \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
 # $(INITCUNIT) $(CMEMUNIT) signals \
@@ -29,7 +28,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #    winsysut
 implicitunits=$(CP_UNITS)
 
-# rsts=$(MATHUNIT) varutils $(TYPINFOUNIT) variants classes dateutils $(SYSCONSTUNIT)
+# rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
 
 [require]
 nortl=y
