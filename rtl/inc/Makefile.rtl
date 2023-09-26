@@ -992,7 +992,7 @@ ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   SYSUTILS_UNIX_DEPS+= $(SYSCALLUNIT)$(PPUEXT)
 endif
 
-SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/$(SYSUTILSUNIT)/*.inc) \
+SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
               $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
               $(SYSUTILS_DEPS_OS) $(SYSUTILS_DEPS_CPU)
 
@@ -1005,7 +1005,7 @@ System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 #
 # Classes
 #
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/$(CLASSESUNIT)/*.inc) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
              $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
              $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
