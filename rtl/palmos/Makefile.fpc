@@ -21,7 +21,6 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      strutils convutils $(MATHUNIT) \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
 # $(INITCUNIT) $(CMEMUNIT) signals \
-#    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut

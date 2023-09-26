@@ -45,7 +45,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(UNIXUNIT)  \
-      $(DOSUNIT) crt   \
+      $(DOSUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) sockets

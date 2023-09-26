@@ -40,7 +40,7 @@ targetdir=.
 libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      unix  \
+      $(UNIXUNIT)  \
       $(DOSUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
