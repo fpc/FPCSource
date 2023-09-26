@@ -103,7 +103,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                    $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
-                   $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
+                   $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
