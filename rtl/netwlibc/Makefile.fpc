@@ -47,7 +47,6 @@ libcclib.imp
 # nwplibc.o
 
 SYSTEMUNIT=system
-CLASSES_DEPS_OS = tthread.inc
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
 # Use new feature from 1.0.5 version

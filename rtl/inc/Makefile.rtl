@@ -598,6 +598,10 @@ ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
 
+ifndef TTHREADINCDIR
+TTHREADINCDIR=$(CLASSESDIR)
+endif
+
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
@@ -1005,7 +1009,7 @@ System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 #
 # Classes
 #
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
 	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
              $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
              $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
