@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxetype dxeload emu387 \
-      dos $(CMEMUNIT) $(SORTBASEUNIT) \
+      $(DOSUNIT) $(CMEMUNIT) $(SORTBASEUNIT) \
       sysutils classes $(MATHUNIT) $(TYPINFOUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(CTYPESUNIT) $(FGLUNIT) \
       $(MSMOUSEUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
@@ -110,18 +110,10 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 	$(EXECPPAS)
 
 #
-# TP7 Compatible RTL Units
-#
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	       go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dos.pp
-	$(EXECPPAS)
-
-#
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
+		    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) go32$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 

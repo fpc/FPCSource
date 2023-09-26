@@ -9,7 +9,7 @@ main=rtl
 loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
-      nwsnut libc dos $(SYSCONSTUNIT) \
+      nwsnut libc $(DOSUNIT) $(SYSCONSTUNIT) \
       $(INITCUNIT) sysutils $(TYPESUNIT) $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
@@ -132,17 +132,11 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp libc.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
 # Delphi Compatible Units
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) libc.pp $(SYSCONSTUNIT)$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) libc.pp $(SYSCONSTUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

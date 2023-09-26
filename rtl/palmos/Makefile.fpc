@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
-#      dos objects \
+#      $(DOSUNIT) objects \
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils \
 #      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) classes fmtbcd \
 #      strutils convutils $(MATHUNIT) dateutils \
@@ -116,9 +116,6 @@ pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 #
 # TP7 Compatible RTL Units
 #
-
-#dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
-#	$(PP) $(OPT) dos $(REDIR)
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMPPU)
 #	$(PP) $(OPT) crt $(REDIR)

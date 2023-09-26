@@ -12,7 +12,7 @@ fpcpackage=y
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(SYSCALLUNIT) $(BASEUNIXUNIT) \
       $(LINUXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) $(UNIXUNIT) $(CTYPESUNIT) $(BSDUNIT) \
-      $(CPU_UNITS) dos $(RTLCONSTSUNIT) \
+      $(CPU_UNITS) $(DOSUNIT) $(RTLCONSTSUNIT) \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes $(TYPINFOUNIT) $(MATHUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(ERRORSUNIT) \
@@ -43,7 +43,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(UNIXUNIT)  \
-      dos  \
+      $(DOSUNIT)  \
       sysutils $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT)
@@ -61,6 +61,7 @@ TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
 
 BASEUNIX_DEPS_OS=$(SYSCTLUNIT)$(PPUEXT)
 BSD_DEPS_OS=$(SYSCALLUNIT)$(PPUEXT)
+DOSDIR=$(UNIXINC)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 SYSCALL_DEPS_OS=$(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
@@ -144,18 +145,6 @@ si_g$(PPUEXT) : si_g.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(UNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/dos.pp
-
-#
-# Graph
-#
 
 #
 # Delphi Compatible Units
