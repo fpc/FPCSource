@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      windows messages $(DYNLIBSUNIT) \
 #      $(DOSUNIT) objects \
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
-#      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) $(CLASSESUNIT) fmtbcd \
+#      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) $(CLASSESUNIT) \
 #      strutils convutils $(MATHUNIT) \
 #      matrix ucomplex \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
@@ -123,13 +123,6 @@ pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 #	$(COPY) $(INC)/objects.pp .
 #	$(PP) $(OPT) objects $(REDIR)
 #	$(DEL) objects.pp
-
-#
-# Other system-independent RTL Units
-#
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #####################################################################
 # Libs
