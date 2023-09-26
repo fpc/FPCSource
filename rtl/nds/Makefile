@@ -2205,6 +2205,9 @@ endif
 ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
+ifndef TTHREADINCDIR
+TTHREADINCDIR=$(CLASSESDIR)
+endif
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
@@ -2425,8 +2428,8 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
+	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
 	     $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
@@ -2923,23 +2926,3 @@ cprt09$(OEXT) : cprt09.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt09$(OEXT) cprt09.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
-exec$(PPUEXT)    : exec.pp execf.inc execd.inc
-timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
-utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
-doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
-hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
-inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
-graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
-layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-		    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
-aboxlib$(PPUEXT): aboxlib.pas
-clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
-datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-		   utility$(PPUEXT) graphics$(PPUEXT)
-asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
-mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
-tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
-get9$(PPUEXT): get9.pas exec$(PPUEXT)
-muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)

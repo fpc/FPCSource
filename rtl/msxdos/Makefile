@@ -2177,6 +2177,9 @@ endif
 ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
+ifndef TTHREADINCDIR
+TTHREADINCDIR=$(CLASSESDIR)
+endif
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
@@ -2397,8 +2400,8 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
+	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
 	     $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
@@ -2889,12 +2892,6 @@ override NASM_OPT+=-D__I8086_SMARTLINK_SECTIONS__
 endif
 system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-		   $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
-		   $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 si_prc$(PPUEXT) : system$(PPUEXT)
 	$(COMPILER) si_prc.pp
