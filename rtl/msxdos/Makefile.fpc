@@ -8,14 +8,14 @@ main=rtl
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
-#      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) cpu $(TYPESUNIT) \
+#      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CPUUNIT) $(TYPESUNIT) \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse $(PORTSUNIT)  \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(CTYPESUNIT) \
 #      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
 #      $(INITCUNIT) profile dxetype dxeload emu387 \
-#      cpu $(MMXUNIT) \
+#      $(CPUUNIT) $(MMXUNIT) \
 #      vesamode \
 # rsts=$(MATHUNIT) $(TYPINFOUNIT) classes dateutil $(SYSCONSTUNIT)
 implicitunits= $(CP_UNITS)
@@ -101,13 +101,6 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
                    $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-
-#
-# Other system-independent RTL Units
-#
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
 
 #

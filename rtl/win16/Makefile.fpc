@@ -8,7 +8,7 @@ loaders=prt0s prt0m prt0c prt0l prt0h
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
       $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
       $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) \
-      classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
+      classes $(CHARSETUNIT) $(CPUUNIT) $(GETOPTSUNIT) $(CPALLUNIT) \
       $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 implicitunits=$(CP_UNITS)
 
@@ -105,12 +105,5 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
                    $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-
-#
-# Other system-independent RTL Units
-#
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
 

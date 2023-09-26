@@ -56,11 +56,11 @@ SYSTEMUNIT=system
 CPU_UNITS=
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=$(X86UNIT) cpu
+CPU_UNITS=$(X86UNIT) $(CPUUNIT)
 endif
 
 DLLS=fpcmemdll

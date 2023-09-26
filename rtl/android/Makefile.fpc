@@ -72,7 +72,7 @@ SYSINIT_UNITS=
 LOADERS=prt0 dllprt0
 
 ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
@@ -158,15 +158,4 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-#
-# Other $(SYSTEMUNIT)-independent RTL Units
-#
-
-ifneq ($(findstring $(ARCH),x86_64 i386),)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-endif
-        $(COMPILER) $(PROCINC)/cpu.pp
 

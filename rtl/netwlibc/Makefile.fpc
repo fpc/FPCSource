@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(E
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos $(SYSCONSTUNIT) \
       $(INITCUNIT) sysutils $(TYPESUNIT) $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
-      cpu $(MMXUNIT) $(GETOPTSUNIT) \
+      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
       $(RTLCONSTSUNIT) $(MATHUNIT) \
       $(DYNLIBSUNIT) $(CMEMUNIT) $(CTYPESUNIT) \
@@ -150,12 +150,6 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    $(SYSCONSTUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
                    tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-#
-# Other system-independent RTL Units
-#
-
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

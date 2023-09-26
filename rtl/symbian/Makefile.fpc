@@ -45,11 +45,11 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),arm)
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifneq ($(findstring $(ARCH),i386),)
