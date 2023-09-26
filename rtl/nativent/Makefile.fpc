@@ -15,7 +15,7 @@ implicitunits=ndk ndkutils ddk \
 #      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
       $(DOSUNIT) \
       $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) \
-      $(TYPINFOUNIT) $(FGLUNIT) classes \
+      $(TYPINFOUNIT) $(FGLUNIT) $(CLASSESUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
 #      sockets printer \
@@ -25,7 +25,7 @@ implicitunits=ndk ndkutils ddk \
 
 # shared=$(DLLS)
 
-rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y

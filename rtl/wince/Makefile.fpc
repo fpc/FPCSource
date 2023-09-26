@@ -23,7 +23,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(FPINTRESUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(
 #    video mouse keyboard \
 #    winsysut
 
-# rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
+# rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 # fake dll

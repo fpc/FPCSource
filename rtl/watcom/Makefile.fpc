@@ -21,10 +21,10 @@ rsts=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 # dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxeload emu387 \
-# printer graph classes \
+# printer graph $(CLASSESUNIT) \
 # $(MSMOUSEUNIT) video mouse keyboard vesamode
 
-rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
