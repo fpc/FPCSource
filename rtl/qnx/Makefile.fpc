@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) objects $(STRINGSUNIT) \
+units=system $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=$(MATHUNIT) $(TYPINFOUNIT)
