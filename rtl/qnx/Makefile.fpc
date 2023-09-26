@@ -31,11 +31,12 @@ targetdir=.
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
-POSIXINC=$(RTL)/posix
+POSIXINC=$(RTL)/qnx
 SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+SYSUTILSDIR=$(POSIXINC)
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
