@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
-#      $(DOSUNIT) objects \
+#      $(DOSUNIT) \
 #      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) $(CLASSESUNIT) \
 #      strutils convutils $(MATHUNIT) \
@@ -109,18 +109,6 @@ systraps$(PPUEXT) : systraps.pp $(SYSTEMUNIT)$(PPUEXT)
 
 pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
         $(COMPILER) pilot.pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-#crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMPPU)
-#	$(PP) $(OPT) crt $(REDIR)
-
-#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-#	$(COPY) $(INC)/objects.pp .
-#	$(PP) $(OPT) objects $(REDIR)
-#	$(DEL) objects.pp
 
 #####################################################################
 # Libs
