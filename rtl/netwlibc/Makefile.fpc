@@ -47,6 +47,7 @@ libcclib.imp
 # nwplibc.o
 
 SYSTEMUNIT=system
+CLASSES_DEPS_OS = tthread.inc
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
 # Use new feature from 1.0.5 version
@@ -131,16 +132,6 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) netware.pp
 
 nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Delphi Compatible Units
-#
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-                   $(SYSCONSTUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
-                   tthread.inc $(FGLUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 #
 # Other system-dependent RTL Units

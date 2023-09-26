@@ -33,6 +33,7 @@ SYSTEMUNIT=system
 TYPES_DEPS_OS=$(WINTYPESUNIT)$(PPUEXT)
 DOS_DEPS_OS = registers.inc $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT)
+CLASSES_DEPS_OS = $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT)
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -82,16 +83,5 @@ system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
                   glbheap.inc glbheaph.inc locheap.inc locheaph.inc \
                   sysdl.inc sysdlh.inc
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
-
-#
-# Delphi Compatible Units
-#
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
-                   $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
-                   $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
