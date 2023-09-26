@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc $(DOSUNIT) $(SYSCONSTUNIT) \
-      $(INITCUNIT) sysutils $(TYPESUNIT) $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
+      $(INITCUNIT) $(SYSUTILSUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
       $(RTLCONSTSUNIT) $(MATHUNIT) \
@@ -47,6 +47,7 @@ libcclib.imp
 # nwplibc.o
 
 SYSTEMUNIT=system
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -135,12 +136,8 @@ nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PP
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) libc.pp $(SYSCONSTUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
+                   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                    $(SYSCONSTUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
                    tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp

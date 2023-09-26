@@ -7,7 +7,7 @@ main=rtl
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
-#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(DOSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(DOSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CPUUNIT) $(TYPESUNIT) \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      $(MSMOUSEUNIT) $(PORTSUNIT)  \
@@ -78,19 +78,10 @@ system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc r
 	$(EXECPPAS)
 
 #
-# System Dependent Units
-#
-
-#
 # Delphi Compatible Units
 #
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-	$(EXECPPAS)
-
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
+                   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                    $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
                    $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp

@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSU
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
 #      $(DOSUNIT) objects \
-#      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) sysutils \
+#      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) classes fmtbcd \
 #      strutils convutils $(MATHUNIT) dateutils \
 #      varutils variants \
@@ -129,7 +129,7 @@ pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 # Other system-independent RTL Units
 #
 
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #####################################################################
