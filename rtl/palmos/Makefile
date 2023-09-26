@@ -2431,14 +2431,14 @@ SYSUTILS_UNIX_DEPS=$(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   SYSUTILS_UNIX_DEPS+= $(SYSCALLUNIT)$(PPUEXT)
 endif
-SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/$(SYSUTILSUNIT)/*.inc) \
+SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	      $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
 	      $(SYSUTILS_DEPS_OS) $(SYSUTILS_DEPS_CPU)
 sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/$(CLASSESUNIT)/*.inc) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
@@ -2936,5 +2936,5 @@ systraps$(PPUEXT) : systraps.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) systraps.pp
 pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
 	$(COMPILER) pilot.pp
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp $(OBJPASUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fmtbcd.pp
