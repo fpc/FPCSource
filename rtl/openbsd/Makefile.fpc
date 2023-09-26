@@ -166,7 +166,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
+                   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 #
