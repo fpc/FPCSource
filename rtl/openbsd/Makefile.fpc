@@ -73,13 +73,6 @@ SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # OpenBSD defaults to libc, no syscalls
 ifeq ($(FPC_USE_SYSCALL),)
 override FPCOPT+=-dFPC_USE_LIBC

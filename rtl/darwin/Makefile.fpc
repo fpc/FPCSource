@@ -77,13 +77,6 @@ DOS_DEPS_OS=$(BASEUNIXUNIT)$(PPUEXT) $(UNIXUTILUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEX
 
 SYSTEMUNIT=system
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Darwin requires libc, no syscalls
 override FPCOPT+=-dFPC_USE_LIBC
 

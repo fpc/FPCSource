@@ -45,13 +45,6 @@ LOADERS=prt0
 SYSTEMUNIT=system
 SYSINITUNITS=si_prc
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Paths
 OBJPASDIR=$(RTL)/objpas
 

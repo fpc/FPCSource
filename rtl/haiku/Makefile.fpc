@@ -73,12 +73,6 @@ ifneq ($(findstring $(ARCH),x86_64 i386),)
 CPU_DEP_CPUS=$(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 endif
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths

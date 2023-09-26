@@ -40,12 +40,6 @@ endif
 INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) go32$(PPUEXT)
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 # Paths
 OBJPASDIR=$(RTL)/objpas
 # Insert exception handler in system unit

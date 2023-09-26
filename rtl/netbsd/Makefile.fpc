@@ -74,13 +74,6 @@ SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Paths
 OBJPASDIR=$(RTL)/objpas
 

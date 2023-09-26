@@ -49,13 +49,6 @@ libcclib.imp
 SYSTEMUNIT=system
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-# ifdef RELEASE
-override FPCOPT+=-Ur
-# endif
-
 #debug, -a: dont delete asm, -al include lines
 #override FPCOPT+=-a
 #override FPCOPT+=-al
