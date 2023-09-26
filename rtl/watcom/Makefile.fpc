@@ -22,7 +22,7 @@ implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 # dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxeload emu387 \
 # printer graph classes \
-# msmouse video mouse keyboard vesamode
+# $(MSMOUSEUNIT) video mouse keyboard vesamode
 
 rsts=$(MATHUNIT) $(TYPINFOUNIT) classes $(SYSCONSTUNIT)
 
@@ -116,10 +116,4 @@ dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)
-
-#
-# Other system-dependent RTL Units
-#
-
-msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 
