@@ -1006,7 +1006,7 @@ System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 # Classes
 #
 CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
              $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
              $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
              $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
