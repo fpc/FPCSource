@@ -8,7 +8,7 @@ loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxetype dxeload emu387 \
       $(DOSUNIT) $(CMEMUNIT) $(SORTBASEUNIT) \
-      sysutils classes $(MATHUNIT) $(TYPINFOUNIT) \
+      $(SYSUTILSUNIT) classes $(MATHUNIT) $(TYPINFOUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(CTYPESUNIT) $(FGLUNIT) \
       $(MSMOUSEUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
@@ -38,6 +38,7 @@ RTLCONSTSUNIT=rtlconst
 endif
 
 INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) go32$(PPUEXT)
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -112,13 +113,9 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 #
 # Delphi Compatible Units
 #
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) go32$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
+		   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
 		   $(SORTBASEUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 

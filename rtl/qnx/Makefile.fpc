@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=cprt0 crti crtn
 units=system $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) objects $(STRINGSUNIT) \
-      sysutils $(TYPINFOUNIT) $(MATHUNIT) \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=$(MATHUNIT) $(TYPINFOUNIT)
 
@@ -37,6 +37,7 @@ SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 SYSUTILSDIR=$(POSIXINC)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT)
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -90,14 +91,6 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
 
 #
 # Other system-dependent RTL Units
