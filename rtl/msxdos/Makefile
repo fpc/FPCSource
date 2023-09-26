@@ -2390,14 +2390,14 @@ SYSUTILS_UNIX_DEPS=$(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   SYSUTILS_UNIX_DEPS+= $(SYSCALLUNIT)$(PPUEXT)
 endif
-SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/$(SYSUTILSUNIT)/*.inc) \
+SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	      $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
 	      $(SYSUTILS_DEPS_OS) $(SYSUTILS_DEPS_CPU)
 sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/$(CLASSESUNIT)/*.inc) \
+CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 	     $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
@@ -2890,12 +2890,8 @@ endif
 system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) $(DOSUNIT)$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
+		   $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 		   $(TYPESUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 		   $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
