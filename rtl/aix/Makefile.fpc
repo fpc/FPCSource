@@ -140,9 +140,3 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 		   $(SYSTEMUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-#
-# Other system-dependent RTL Units
-#
-
-gpm$(PPUEXT): gpm.pp $(UNIXUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) sockets$(PPUEXT)
-
