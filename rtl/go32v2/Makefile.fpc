@@ -75,7 +75,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 prt0$(OEXT) : v2prt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $<
 
-exceptn$(OEXT) : exception.as
+exceptn$(OEXT) : exceptn.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)exceptn$(OEXT) $<
 
 fpu$(OEXT) : fpu.as
