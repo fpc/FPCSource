@@ -5,8 +5,8 @@
 main=rtl
 [target]
 loaders=prt0 exceptn fpu
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
-      go32 dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxetype dxeload emu387 \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+      $(GO32UNIT) $(DPMIEXCPUNIT) $(INITCUNIT) $(PORTSUNIT) $(PROFILEUNIT) $(DXETYPEUNIT) $(DXELOADUNIT) $(EMU387UNIT) \
       $(DOSUNIT) $(CMEMUNIT) $(SORTBASEUNIT) \
       $(SYSUTILSUNIT) $(CLASSESUNIT) $(MATHUNIT) $(TYPINFOUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(CTYPESUNIT) $(FGLUNIT) \
@@ -38,7 +38,7 @@ RTLCONSTSUNIT=rtlconst
 endif
 
 INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
-SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) go32$(PPUEXT)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) $(GO32UNIT)$(PPUEXT)
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -51,24 +51,35 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 [rules]
+
 .NOTPARALLEL:
+
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
 # Get the processor dependent include file names.
 # This will set the following variables :
 # CPUINCNAMES
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
 #
 # Loaders
 #
 prt0$(OEXT) : v2prt0.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) v2prt0.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $<
+
+exceptn$(OEXT) : exception.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)exceptn$(OEXT) $<
+
+fpu$(OEXT) : fpu.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)fpu$(OEXT) $<
 #
 # System Units (System, Objpas, Strings)
 #
@@ -79,28 +90,53 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
 #
 # System Dependent Units
 #
-go32$(PPUEXT) : go32.pp system$(PPUEXT)
-	$(COMPILER) go32.pp
-	$(EXECPPAS)
 
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-	$(COMPILER) -Sg dpmiexcp.pp
-	$(EXECPPAS)
+GO32_DEPS = go32.pp $(SYSTEMUNIT)$(PPUEXT)
 
-profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
-	$(COMPILER) profile.pp
-	$(EXECPPAS)
+go32$(PPUEXT) : $(GO32_DEPS)
+	$(COMPILER) $<
 
-dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
-	$(COMPILER) dxetype.pp
-	$(EXECPPAS)
+DOSApi.GO32$(PPUEXT) : $(NSOSINC)/DOSApi.GO32.pp $(GO32_DEPS)
+	$(COMPILER) -Sg $(GO32_OPT) $<
 
-dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dxeload.pp
-	$(EXECPPAS)
+DPMIEXCP_DEPS = dpmiexcp.pp exceptn$(OEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
-		  dpmiexcp$(PPUEXT)
-	$(COMPILER) emu387.pp
-	$(EXECPPAS)
+dpmiexcp$(PPUEXT) : $(DPMIEXCP_DEPS)
+	$(COMPILER) -Sg $(DPMIEXCP_OPT) $<
+
+DOSApi.dpmiexcp$(PPUEXT) : $(NSOSINC)/DOSApi.dpmiexcp.pp $(DPMIEXCP_DEPS)
+	$(COMPILER) -Sg $(DPMIEXCP_OPT) $<
+
+PROFILE_DEPS = profile.pp $(DPMIEXCPUNIT)$(PPUEXT) $(GO32UNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+profile$(PPUEXT) : $(PROFILE_DEPS)
+	$(COMPILER) $(PROFILE_OPT) $<
+
+DOSApi.profile$(PPUEXT) : $(NSOSINC)/DOSApi.profile.pp $(PROFILE_DEPS)
+	$(COMPILER) $(PROFILE_OPT) $<
+
+DXETYPE_DEPS = dxetype.pp $(SYSTEMUNIT)$(PPUEXT)
+
+dxetype$(PPUEXT) : $(DXETYPE_DEPS)
+	$(COMPILER) $(DXETYPE_OPT) $<
+
+DOSApi.dxetype$(PPUEXT) : $(NSOSINC)/DOSApi.dxetype.pp $(DXETYPE_DEPS)
+	$(COMPILER) $(DXETYPE_OPT) $<
+
+DXELOAD_DEPS = dxeload.pp $(DXETYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+dxeload$(PPUEXT) : $(DXELOAD_DEPS)
+	$(COMPILER) $(DXELOAD_OPT) $<
+
+DOSApi.dxeload$(PPUEXT) : $(NSOSINC)/DOSApi.dxeload.pp $(DXELOAD_DEPS)
+	$(COMPILER) $(DXELOAD_OPT) $<
+
+EMU387_DEPS = emu387.pp fpu$(OEXT) $(STRINGSUNIT)$(PPUEXT) $(DXELOADUNIT)$(PPUEXT) \
+		  $(DPMIEXCPUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+emu387$(PPUEXT) : $(EMU387_DEPS)
+	$(COMPILER) $(EMU387_OPT) $<
+
+DOSApi.EMU387$(PPUEXT) : $(NSOSINC)/DOSApi.EMU387.pp $(EMU387_DEPS)
+	$(COMPILER) $(EMU387_OPT) $<
 
