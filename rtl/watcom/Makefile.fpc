@@ -10,19 +10,15 @@ loaders=prt0
 #exceptn fpu
 
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
-      watcom $(DOSUNIT) \
+      $(WATCOMUNIT) $(DOSUNIT) \
       $(SYSUTILSUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(MATHUNIT) $(TYPINFOUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
       $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)  \
       $(TYPESUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SPFU128UNIT)       $(UFLOAT128UNIT)
-rsts=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
-
-# dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxeload emu387 \
-# printer graph $(CLASSESUNIT) \
-# $(MSMOUSEUNIT) video mouse keyboard vesamode
 
 rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
@@ -98,15 +94,11 @@ prt0$(OEXT) : prt0.as
 # System Dependent Units
 #
 
-watcom$(PPUEXT) : watcom.pp system$(PPUEXT)
+WATCOM_DEPS = watcom.pp $(SYSTEMUNIT)$(PPUEXT)
 
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-        $(COMPILER) -Sg dpmiexcp.pp
+watcom$(PPUEXT) : $(WATCOM_DEPS)
+	$(COMPILER) $(WATCOM_OPT) $<
 
-profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) watcom$(PPUEXT)
-
-dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
-
-emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
-                  dpmiexcp$(PPUEXT)
+WatcomApi.WatCom.pp$(PPUEXT) : $(NSOSINC)/WatcomApi.WatCom.pp $(WATCOM_DEPS)
+	$(COMPILER) $(WATCOM_OPT) $<
 
