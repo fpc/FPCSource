@@ -1982,16 +1982,19 @@ implementation
 
               { including a field declaration? }
               fieldvs:=nil;
-              sorg:=orgpattern;
-              hs:=pattern;
-              searchsym(hs,srsym,srsymtable);
-              if not(assigned(srsym) and (srsym.typ in [typesym,unitsym])) then
+              if token=_ID then
                 begin
-                  consume(_ID);
-                  consume(_COLON);
-                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
-                  variantdesc^^.variantselector:=fieldvs;
-                  symtablestack.top.insertsym(fieldvs);
+                  sorg:=orgpattern;
+                  hs:=pattern;
+                  searchsym(hs,srsym,srsymtable);
+                  if not(assigned(srsym) and (srsym.typ in [typesym,unitsym])) then
+                    begin
+                      consume(_ID);
+                      consume(_COLON);
+                      fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                      variantdesc^^.variantselector:=fieldvs;
+                      symtablestack.top.insertsym(fieldvs);
+                    end;
                 end;
               read_anon_type(casetype,true);
               block_type:=bt_var;
