@@ -44,7 +44,7 @@ endif
 
 # Paths
 
-FPC_SYSTEM_OPT=@rtl.cfg
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 [rules]
 .NOTPARALLEL:

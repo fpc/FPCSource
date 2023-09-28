@@ -103,8 +103,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+SYSDEPS = unxconst.inc $(SYSINCDEPS) $(SYSCPUDEPS)
+SYSTEMDIR = $(BSDINC)
 
 #
 # Loaders
@@ -123,13 +123,6 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 #
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp unxconst.inc $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
-
-#
 # freebsd unit
 #
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
@@ -137,7 +130,6 @@ ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
 else
   FREEBSD_DEPS_OS+=$(INITCUNIT)$(PPUEXT)
 endif
-
 
 FREEBSD_DEPS = freebsd.pas $(SYSTEMUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(SYSCTLUNIT)$(PPUEXT) \
          $(FREEBSD_DEPS_OS) $(FREEBSD_DEPS_CPU)
@@ -147,6 +139,4 @@ freebsd$(PPUEXT): $(FREEBSD_DEPS)
 
 FreeBSDApi.FreeBSD$(PPUEXT): $(NSFREEBSDDIR)/FreeBSDApi.FreeBSD.pas $(FREEBSD_DEPS)
         $(COMPILER) $(FREEBSD_OPT) $<
-
-
 

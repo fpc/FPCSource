@@ -64,7 +64,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
-
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 #
 # Loaders
@@ -81,11 +81,4 @@ cprt07$(OEXT) : cprt07.as
 
 cprt09$(OEXT) : cprt09.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt09$(OEXT) cprt09.as
-
-#
-# Base Units (System, strings, os-dependent-base-unit)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
 

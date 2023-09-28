@@ -285,7 +285,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
-FPC_SYSTEM_OPT=@system.cfg
+override FPC_SYSTEM_OPT += @system.cfg
 
 #
 # Loaders

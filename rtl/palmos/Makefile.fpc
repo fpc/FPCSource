@@ -75,7 +75,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 #
 # Loaders
@@ -88,9 +88,6 @@ $(PRT0)$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 #
 # System Units (System, Objpas, Strings)
 #
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp
 
 si_prc$(PPUEXT): si_prc.pp palmos.inc $(SYSTEMUNIT)$(PPUEXT)
 
