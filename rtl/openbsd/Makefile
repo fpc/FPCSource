@@ -2244,6 +2244,9 @@ endif
 ifndef NSSYSUTILSDIR
 NSSYSUTILSDIR=$(NSDIR)/$(SYSUTILSDIR)
 endif
+ifndef SYSTEMDIR
+SYSTEMDIR=$(OSDIR)
+endif
 ifndef CLASSESDIR
 CLASSESDIR=$(OSDIR)
 endif
@@ -2291,7 +2294,7 @@ OBJC_OPT:=$(OBJC_OPT) -dFPC_DOTTEDUNITS
 OBJCBASE_OPT:=$(OBJCBASE_OPT) -dFPC_DOTTEDUNITS
 FPCYLIX_OPT:=$(FPCYLIX_OPT) -dFPC_DOTTEDUNITS
 endif
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).$(SYSTEMUNITEXT) $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMDIR)/$(SYSTEMUNIT).$(SYSTEMUNITEXT) $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $<
 UUCHAR_DEPS=$(INC)/uuchar.pp \
 	    $(SYSTEMUNIT)$(PPUEXT) \
@@ -2957,7 +2960,8 @@ include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS= sysconst.inc systypes.inc syscalls.inc $(SYSINCDEPS) $(SYSCPUDEPS)
+SYSTEMDIR = $(BSDINC)
 prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -2968,5 +2972,3 @@ si_dll$(PPUEXT) : si_dll.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(
 	$(COMPILER) $<
 si_g$(PPUEXT) : si_g.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
