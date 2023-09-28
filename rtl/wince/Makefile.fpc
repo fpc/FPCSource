@@ -106,9 +106,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 
 WINMESSAGESDIR=$(OSDIR)
 
-sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
+sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(WINDIR)/sharemem.pp
 
-fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
+fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(WINDIR)/fpcmemdll.pp
 

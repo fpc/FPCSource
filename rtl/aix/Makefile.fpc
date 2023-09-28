@@ -106,11 +106,3 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-
-#
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
-

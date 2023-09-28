@@ -83,7 +83,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS = libc.pp $(SYSINCDEPS) $(SYSCPUDEPS)
 
 copyimpfiles:
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
@@ -100,21 +100,13 @@ copyimpfiles:
 
 # for now use the gcc pre
 nwplibc$(OEXT) :
-        cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc$(OEXT)
+	cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc$(OEXT)
 
 nwl_main$(OEXT) : nwl_main.as
         $(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
 
 nwl_dlle$(OEXT) : nwl_dlle.as
         $(AS) -o $(UNITTARGETDIRPREFIX)nwl_dlle$(OEXT) nwl_dlle.as
-
-#
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
-	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 #
 # System Dependent Units

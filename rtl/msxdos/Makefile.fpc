@@ -5,7 +5,7 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
+units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(DOSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
 #      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CPUUNIT) $(TYPESUNIT) \
@@ -62,7 +62,8 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
+
 #
 # Loaders
 #
@@ -71,15 +72,8 @@ override NASM_OPT+=-D__I8086_SMARTLINK_SECTIONS__
 endif
 
 #
-# System Units (System, Objpas, Strings)
-#
-system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
-
-#
 # Other system-dependent RTL Units
 #
 
-si_prc$(PPUEXT) : system$(PPUEXT)
+si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) si_prc.pp

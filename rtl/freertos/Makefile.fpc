@@ -256,7 +256,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
+override FPC_SYSTEM_OPT += @system.cfg
 
 #
 # Loaders
@@ -268,9 +269,6 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 #
 # Base Units (System, $(STRINGSUNIT), os-dependent-base-unit)
 #
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @system.cfg $(REDIR)
 
 consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

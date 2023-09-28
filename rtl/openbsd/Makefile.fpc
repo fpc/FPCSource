@@ -108,8 +108,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+SYSDEPS= sysconst.inc systypes.inc syscalls.inc $(SYSINCDEPS) $(SYSCPUDEPS)
+SYSTEMDIR = $(BSDINC)
 
 #
 # Loaders
@@ -134,11 +134,4 @@ si_dll$(PPUEXT) : si_dll.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(
 si_g$(PPUEXT) : si_g.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
-
-#
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 

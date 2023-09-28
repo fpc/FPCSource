@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=$(MATHUNIT) $(TYPINFOUNIT)
@@ -79,15 +79,8 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
         $(AS) -o dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
 
 #
-# system Units (system, Objpas, Strings)
-#
-
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-#
 # Other system-dependent RTL Units
 #
 
 posix$(PPUEXT) : posix.pp \
-		 errno.inc osposix.inc osposixh.inc signal.inc system$(PPUEXT)
+		 errno.inc osposix.inc osposixh.inc signal.inc $(SYSTEMUNIT)$(PPUEXT)

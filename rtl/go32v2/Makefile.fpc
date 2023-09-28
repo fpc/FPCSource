@@ -80,12 +80,6 @@ exceptn$(OEXT) : exceptn.as
 
 fpu$(OEXT) : fpu.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)fpu$(OEXT) $<
-#
-# System Units (System, Objpas, Strings)
-#
-system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
 
 #
 # System Dependent Units

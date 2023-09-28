@@ -7,8 +7,8 @@ main=rtl
 
 [target]
 loaders=
-#units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
+#units=$(SYSTEMUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
 implicitunits=ndk ndkutils ddk \
       $(CTYPESUNIT) $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
@@ -104,9 +104,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Unit specific rules
 #
 
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

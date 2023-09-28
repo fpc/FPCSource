@@ -97,8 +97,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+SYSDEPS = unxconst.inc $(SYSINCDEPS) $(SYSCPUDEPS)
+SYSTEMDIR = $(BSDINC)
 
 #
 # Loaders
@@ -115,11 +115,4 @@ gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
         $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
-
-#
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp unxconst.inc $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 
