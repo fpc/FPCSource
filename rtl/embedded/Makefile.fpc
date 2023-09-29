@@ -59,7 +59,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
 			  $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) \
-			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
+			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT) $(SOFTFPUUNIT)
 
 # Sysutils special deps
 SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
@@ -322,23 +322,19 @@ EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
 
 define CPU_UNITS_RULE
 ifndef FPC_DOTTEDUNITS
-ifeq ($(ARCH),avr)
-$(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-else
-$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
-endif
+$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT) $(addsuffix $(PPUEXT),$(CPU_SPECIFIC_COMMON_UNITS))
 else
 $(eval UNIT_REG_NAME=$(subst EmbeddedApi.,,$(1)))
 $(eval UNIT_REG_NAME=$(subst ARMApi.,,$(UNIT_REG_NAME)))
 ifeq ($(ARCH),avr)
 # No dotted rules for AVR cpu yet
-$(1)$(PPUEXT):  $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+$(1)$(PPUEXT):  $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT) $(addsuffix $(PPUEXT),$(CPU_SPECIFIC_COMMON_UNITS))
 else
 # mipsel is also not yet in namespaced
 ifeq ($(ARCH),mipsel)
-$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
+$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT) $(addsuffix $(PPUEXT),$(CPU_SPECIFIC_COMMON_UNITS))
 else
-$(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT)
+$(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT) $(addsuffix $(PPUEXT),$(CPU_SPECIFIC_COMMON_UNITS))
 endif
 endif
 endif
@@ -352,7 +348,6 @@ else
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g -Fi$(OSDIR) -Fi$(OSDIR)/$(ARCH) $<
 endif
-	
 
 # AVR specific units
 
