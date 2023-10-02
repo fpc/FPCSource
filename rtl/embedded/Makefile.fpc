@@ -43,7 +43,6 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 LOADERS=
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)

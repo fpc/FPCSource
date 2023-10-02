@@ -37,7 +37,6 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 LOADERS=prt0 cprt0
 
 # Paths

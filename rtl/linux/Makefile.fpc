@@ -153,7 +153,6 @@ override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c si_g
 endif
 
-SYSTEMUNIT=system
 
 # Causes release PPU files not to be recompiled
 ifdef RELEASE

@@ -43,7 +43,6 @@ INC=../inc
 PROCINC=../$(CPU_TARGET)
 
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
 endif

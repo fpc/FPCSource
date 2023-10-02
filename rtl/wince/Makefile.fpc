@@ -52,7 +52,6 @@ WININC=$(WINDIR)/wininc
 
 UNITPREFIX=rtl
 
-SYSTEMUNIT=system
 PRT0=wprt0
 
 ifeq ($(ARCH),i386)
