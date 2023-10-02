@@ -77,7 +77,6 @@ override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-SYSTEMUNIT=system
 BASEUNIXDIR=.
 
 [rules]

@@ -42,7 +42,6 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 LOADERS=prt0
-SYSTEMUNIT=system
 SYSINITUNITS=si_prc
 
 # Paths

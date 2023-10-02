@@ -72,7 +72,6 @@ SYSCALL_DEPS_OS = sysnr.inc $(BSDPROCINC)/syscallh.inc
 SYSUTILSDIR=$(UNIXINC)
 SYSUTILS_DEPS_OS = $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT)
 
-SYSTEMUNIT=system
 loaders+=gprt0
 
 ifeq ($(ARCH),i386)

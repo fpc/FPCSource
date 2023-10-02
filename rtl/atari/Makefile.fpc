@@ -38,7 +38,6 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 LOADERS=
-SYSTEMUNIT=system
 
 # Paths
 OBJPASDIR=$(RTL)/objpas

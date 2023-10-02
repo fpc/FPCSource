@@ -51,7 +51,6 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 
 UNITPREFIX=rtl
 
-SYSTEMUNIT=system
 PRT0=prt0
 
 # Paths
