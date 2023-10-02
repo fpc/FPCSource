@@ -586,6 +586,7 @@ SYSCONSTUNIT=System.SysConst
 SYSCTLUNIT=BsdApi.SysCtl
 SYSEMXUNIT=DOSApi.Sysemx
 SYSOS2UNIT=OS2Api.sysos2
+SYSTEMUNIT=system
 SYSTRAPSUNIT=PalmApi.Systraps
 SYSUTILSUNIT=System.SysUtils
 TERMIOUNIT=UnixApi.TermIO
@@ -832,6 +833,7 @@ SYSCONSTUNIT=sysconst
 SYSCTLUNIT=sysctl
 SYSEMXUNIT=sysemx
 SYSOS2UNIT=sysos2
+SYSTEMUNIT=system
 SYSTRAPSUNIT=systraps
 SYSUTILSUNIT=sysutils
 TERMIOUNIT=termio
@@ -964,7 +966,6 @@ ifeq ($(ARCH),loongarch64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c si_g
 endif
-SYSTEMUNIT=system
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
