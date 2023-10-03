@@ -5,16 +5,16 @@
 main=rtl
 [target]
 loaders=prt0 exceptn fpu
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
-      go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 \
-      dos $(CMEMUNIT) $(SORTBASEUNIT) \
-      sysutils classes $(MATHUNIT) typinfo \
-      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
-      msmouse $(CHARSETUNIT) $(CPALLUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+      $(GO32UNIT) $(DPMIEXCPUNIT) $(INITCUNIT) $(PORTSUNIT) $(PROFILEUNIT) $(DXETYPEUNIT) $(DXELOADUNIT) $(EMU387UNIT) \
+      $(DOSUNIT) $(CMEMUNIT) $(SORTBASEUNIT) \
+      $(SYSUTILSUNIT) $(CLASSESUNIT) $(MATHUNIT) $(TYPINFOUNIT) \
+      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(CTYPESUNIT) $(FGLUNIT) \
+      $(MSMOUSEUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
-      types sysconst rtlconst \
+      $(TYPESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 [require]
 nortl=y
@@ -33,12 +33,14 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
+ifndef FPC_DOTTEDUNITS
+RTLCONSTSUNIT=rtlconst
 endif
+
+INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
+DOS_DEPS_OS = $(GO32UNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) $(GO32UNIT)$(PPUEXT)
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 # Insert exception handler in system unit
@@ -50,123 +52,86 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 [rules]
+
 .NOTPARALLEL:
+
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
 # Get the processor dependent include file names.
 # This will set the following variables :
 # CPUINCNAMES
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
 #
 # Loaders
 #
 prt0$(OEXT) : v2prt0.as
-	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) v2prt0.as
-#
-# System Units (System, Objpas, Strings)
-#
-system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
+	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $<
+
+exceptn$(OEXT) : exceptn.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)exceptn$(OEXT) $<
+
+fpu$(OEXT) : fpu.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)fpu$(OEXT) $<
 
 #
 # System Dependent Units
 #
-go32$(PPUEXT) : go32.pp system$(PPUEXT)
-	$(COMPILER) go32.pp
-	$(EXECPPAS)
 
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-	$(COMPILER) -Sg dpmiexcp.pp
-	$(EXECPPAS)
+GO32_DEPS = go32.pp $(SYSTEMUNIT)$(PPUEXT)
 
-initc$(PPUEXT) : initc.pp system$(PPUEXT)
-	$(COMPILER) initc.pp
-	$(EXECPPAS)
+go32$(PPUEXT) : $(GO32_DEPS)
+	$(COMPILER) $<
 
-profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
-	$(COMPILER) profile.pp
-	$(EXECPPAS)
+DOSApi.GO32$(PPUEXT) : $(NSOSINC)/DOSApi.GO32.pp $(GO32_DEPS)
+	$(COMPILER) -Sg $(GO32_OPT) $<
 
-dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
-	$(COMPILER) dxetype.pp
-	$(EXECPPAS)
+DPMIEXCP_DEPS = dpmiexcp.pp exceptn$(OEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dxeload.pp
-	$(EXECPPAS)
+dpmiexcp$(PPUEXT) : $(DPMIEXCP_DEPS)
+	$(COMPILER) -Sg $(DPMIEXCP_OPT) $<
 
-emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
-		  dpmiexcp$(PPUEXT)
-	$(COMPILER) emu387.pp
-	$(EXECPPAS)
+DOSApi.dpmiexcp$(PPUEXT) : $(NSOSINC)/DOSApi.dpmiexcp.pp $(DPMIEXCP_DEPS)
+	$(COMPILER) -Sg $(DPMIEXCP_OPT) $<
 
-#
-# TP7 Compatible RTL Units
-#
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	       go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dos.pp
-	$(EXECPPAS)
+PROFILE_DEPS = profile.pp $(DPMIEXCPUNIT)$(PPUEXT) $(GO32UNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-#
-# Delphi Compatible Units
-#
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-	$(EXECPPAS)
+profile$(PPUEXT) : $(PROFILE_DEPS)
+	$(COMPILER) $(PROFILE_OPT) $<
 
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
-		   sortbase$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+DOSApi.profile$(PPUEXT) : $(NSOSINC)/DOSApi.profile.pp $(PROFILE_DEPS)
+	$(COMPILER) $(PROFILE_OPT) $<
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT)
-	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
-	$(EXECPPAS)
+DXETYPE_DEPS = dxetype.pp $(SYSTEMUNIT)$(PPUEXT)
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
-	$(EXECPPAS)
+dxetype$(PPUEXT) : $(DXETYPE_DEPS)
+	$(COMPILER) $(DXETYPE_OPT) $<
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
-	$(EXECPPAS)
+DOSApi.dxetype$(PPUEXT) : $(NSOSINC)/DOSApi.dxetype.pp $(DXETYPE_DEPS)
+	$(COMPILER) $(DXETYPE_OPT) $<
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-	$(EXECPPAS)
+DXELOAD_DEPS = dxeload.pp $(DXETYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-#
-# Other system-independent RTL Units
-#
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
-	$(COMPILER) $(PROCINC)/cpu.pp
-	$(EXECPPAS)
+dxeload$(PPUEXT) : $(DXELOAD_DEPS)
+	$(COMPILER) $(DXELOAD_OPT) $<
 
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/matrix.pp
-	$(EXECPPAS)
+DOSApi.dxeload$(PPUEXT) : $(NSOSINC)/DOSApi.dxeload.pp $(DXELOAD_DEPS)
+	$(COMPILER) $(DXELOAD_OPT) $<
 
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp $(MATHUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/ucomplex.pp
-	$(EXECPPAS)
+EMU387_DEPS = emu387.pp fpu$(OEXT) $(STRINGSUNIT)$(PPUEXT) $(DXELOADUNIT)$(PPUEXT) \
+		  $(DPMIEXCPUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-#
-# Other system-dependent RTL Units
-#
-msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
-	$(COMPILER) msmouse.pp
-	$(EXECPPAS)
+emu387$(PPUEXT) : $(EMU387_DEPS)
+	$(COMPILER) $(EMU387_OPT) $<
 
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/ctypes.pp
-	$(EXECPPAS)
+DOSApi.EMU387$(PPUEXT) : $(NSOSINC)/DOSApi.EMU387.pp $(EMU387_DEPS)
+	$(COMPILER) $(EMU387_OPT) $<
 

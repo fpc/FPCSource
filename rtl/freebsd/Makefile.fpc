@@ -10,20 +10,20 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
-      $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) \
-      unix rtlconsts initc $(CMEMUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
+      $(STRINGSUNIT) $(SYSCALLUNIT) $(SYSCTLUNIT) $(BASEUNIXUNIT) $(UNIXUTILUNIT) $(CHARACTERUNIT) \
+      $(UNIXUNIT) $(RTLCONSTSUNIT) $(INITCUNIT) $(CMEMUNIT) \
       $(DLUNIT) $(TERMIOUNIT) \
-      sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
+      $(SYSUTILSUNIT) $(MATHUNIT) $(TYPINFOUNIT) $(TYPESUNIT) $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT) $(DYNLIBSUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
-      $(ERRORSUNIT) bsd freebsd \
+      $(ERRORSUNIT) $(BSDUNIT) $(FREEBSDUNIT) \
       $(CONSOLEUNIT) \
-      sysconst cthreads dos cwstring \
+      $(SYSCONSTUNIT) $(CTHREADSUNIT) $(DOSUNIT) $(CWSTRINGUNIT) \
       $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -43,9 +43,9 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(COMMON)
 libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      unix  \
-      dos  \
-      sysutils typinfo $(MATHUNIT) \
+      $(UNIXUNIT)  \
+      $(DOSUNIT)  \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) $(DYNLIBSUNIT)
 
@@ -61,27 +61,28 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 CPU_UNITS=
+BASEUNIX_DEPS_OS=$(SYSCTLUNIT)$(PPUEXT)
+BSD_DEPS_OS=$(SYSCALLUNIT)$(PPUEXT)
+CLASSESDIR=$(UNIXINC)
+DOSDIR=$(UNIXINC)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
+
+SYSCALL_DEPS_OS = sysnr.inc $(BSDPROCINC)/syscallh.inc
+SYSUTILSDIR=$(UNIXINC)
+SYSUTILS_DEPS_OS = $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT)
 
 SYSTEMUNIT=system
 loaders+=gprt0
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT) $(MMXUNIT)
 ASTARGET=--32
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
 ASTARGET=--64
-endif
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
 endif
 
 # Paths
@@ -102,8 +103,8 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+SYSDEPS = unxconst.inc $(SYSINCDEPS) $(SYSCPUDEPS)
+SYSTEMDIR = $(BSDINC)
 
 #
 # Loaders
@@ -122,102 +123,20 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 #
-# System Units (System, Objpas, Strings)
+# freebsd unit
 #
-
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp unxconst.inc $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
-
-#
-# System Dependent Units
-#
-
-unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-		
-baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc \
-  $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
-  $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc sysctl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 unxconst.inc $(UNIXINC)/timezone.inc \
-                 unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
-	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
-                   sortbase$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-#
-# Other system-independent RTL Units
-#
-
-ifneq ($(findstring $(ARCH),x86_64 i386),)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $<
+ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
+  FREEBSD_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+  FREEBSD_DEPS_OS+=$(INITCUNIT)$(PPUEXT)
 endif
 
-#
-# Other system-dependent RTL Units
-#
+FREEBSD_DEPS = freebsd.pas $(SYSTEMUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(SYSCTLUNIT)$(PPUEXT) \
+         $(FREEBSD_DEPS_OS) $(FREEBSD_DEPS_CPU)
 
-syscall$(PPUEXT) : $(UNIXINC)/syscall.pp baseunix$(PPUEXT) unixtype$(PPUEXT)
-        $(COMPILER) $<
+freebsd$(PPUEXT): $(FREEBSD_DEPS)
+	$(COMPILER) $(FREEBSD_OPT) $<
 
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
-        $(COMPILER) $<
-
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
+FreeBSDApi.FreeBSD$(PPUEXT): $(NSFREEBSDDIR)/FreeBSDApi.FreeBSD.pas $(FREEBSD_DEPS)
+        $(COMPILER) $(FREEBSD_OPT) $<
 

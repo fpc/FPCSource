@@ -7,10 +7,10 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
-      sysutils typinfo $(MATHUNIT) \
-      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
-rsts=$(MATHUNIT) typinfo
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(DOSUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
+      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
+rsts=$(MATHUNIT) $(TYPINFOUNIT)
 
 [require]
 nortl=y
@@ -31,18 +31,13 @@ targetdir=.
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
-POSIXINC=$(RTL)/posix
+POSIXINC=$(RTL)/qnx
 SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
+SYSUTILSDIR=$(POSIXINC)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT)
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -84,40 +79,8 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
         $(AS) -o dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
 
 #
-# system Units (system, Objpas, Strings)
-#
-
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               posix$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(POSIXINC)/dos.pp
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-#
-# Other system-independent RTL Units
-#
-
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
-
-#
 # Other system-dependent RTL Units
 #
 
 posix$(PPUEXT) : posix.pp \
-		 errno.inc osposix.inc osposixh.inc signal.inc system$(PPUEXT)
+		 errno.inc osposix.inc osposixh.inc signal.inc $(SYSTEMUNIT)$(PPUEXT)

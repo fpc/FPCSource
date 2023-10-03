@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=nwpre prelude
-units=$(SYSTEMUNIT) $(UUCHARUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) $(SYSCONSTUNIT) \
       $(INITCUNIT) $(SYSUTILSUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(MATHUNIT) $(TYPINFOUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT)  $(MMXUNIT) $(GETOPTSUNIT) \
@@ -47,13 +47,7 @@ RTLCONSTSUNIT=rtlconst
 endif
 DOS_DEPS_OS=$(STRINGSUNIT)$(PPUEXT)
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-# ifdef RELEASE
-override FPCOPT+=-Ur
-# endif
+INITC_DEPS_OS=$(OSDIR)/nwsys.inc
 
 #debug, -a: dont delete asm, -al include lines
 #override FPCOPT+=-a
@@ -120,9 +114,6 @@ copyimpfiles:
 nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
-
-initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
 
 #
 # Other system-dependent RTL Units

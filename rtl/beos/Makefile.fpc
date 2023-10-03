@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system $(UUCHARUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(ERRORSUNIT) $(DOSUNIT) $(DLUNIT) $(CTHREADSUNIIT) \ 
       $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
       $(TYPESUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(TYPINFOUNIT)  $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT) $(MATHUNIT) \
@@ -18,7 +18,7 @@ units=system $(UUCHARUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPA
       $(DYNLIBSUNIT) $(CWSTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU218UNIT)  $(UFLOAT128UNIT)
 #      beos
-rsts=$(MATHUNIT) typinfo sysconst rtlconsts 
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]
@@ -40,9 +40,9 @@ targetdir=.
 libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      unix  \
-      dos crt  \
-      sysutils typinfo $(MATHUNIT) \
+      $(UNIXUNIT)  \
+      $(DOSUNIT) \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) $(DYNLIBSUNIT)
 
@@ -60,12 +60,6 @@ RTLCONSTSUNIT=rtlconst
 endif
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 
 override FPCOPT+= -dHASUNIX -n -dFPC_USE_LIBC -Si
 

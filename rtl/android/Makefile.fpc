@@ -8,15 +8,15 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
-      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) initc $(CMEMUNIT) \
-      $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
+      $(UUCHARUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(SYSCALLUNIT) $(UNIXUTILUNIT) \
+      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) $(UNIXUNIT) $(LINUXUNIT) $(INITCUNIT) $(CMEMUNIT) \
+      $(LINUXVCSUNIT) $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
-      types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
-      rtlconsts dos cwstring $(FPCYLIXUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
+      $(TYPESUNIT) $(SYSCONSTUNIT) $(CTHREADSUNIT) $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT)  \
+      $(RTLCONSTSUNIT) $(DOSUNIT) $(CWSTRINGUNIT) $(FPCYLIXUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
-rsts=$(MATHUNIT)  typinfo  sysconst rtlconsts
+rsts=$(MATHUNIT)  $(TYPINFOUNIT)  $(SYSCONSTUNIT) $(RTLCONSTSUNIT)
 
 [require]
 nortl=y
@@ -36,12 +36,12 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(ARCH) $(COMMON) $(LINUXINC)
 targetdir=.
 
 [shared]
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
-      unix baseunix unixtype unixutil \
-      sysutils typinfo $(MATHUNIT) \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(DOSUNIT) \
+      $(UNIXUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(UNIXUTILUNIT) \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) \
-      $(ERRORSUNIT) sockets \
-      $(SORTBASEUNIT) classes $(FGLUNIT) sysconst rtlconsts \
+      $(ERRORSUNIT) \
+      $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) \
 
 [prerules]
 RTL=..
@@ -51,10 +51,21 @@ PROCINC=$(RTL)/$(ARCH)
 UNIXINC=$(RTL)/unix
 OSPROCINC=$(RTL)/linux/$(CPU_TARGET)
 LINUXINC=$(RTL)/linux
+CLASSESDIR=$(UNIXINC)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 DL_DEPS_OS=dlandroid.inc
 TERMIODIR=$(LINUXINC)
+PTHREADINCDIR=$(LINUXINC)
+PTYPESINCDIR=$(LINUXINC)
+
+SYSTEMDIR = $(LINUXINC)
+SYSCALL_DEPS_OS=$(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc
+SYSUTILS_DEPS_OS=$(DLUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT)
+SYSUTILSDIR=$(UNIXINC)
+
+# Android has a specific file for cwstring.pp unit main source
+CWSTRINGDIR=$(OSDIR)
 
 UNITPREFIX=rtl
 
@@ -64,7 +75,7 @@ SYSINIT_UNITS=
 LOADERS=prt0 dllprt0
 
 ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
@@ -124,90 +135,4 @@ prt0$(OEXT) : prt0.as
 dllprt0$(OEXT) : dllprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) --defsym CPU$(CPUBITS)=1 dllprt0.as
 
-#
-# $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
-
-#
-# $(SYSTEMUNIT) Dependent Units
-#
-
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unix.pp
-
-syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/syscall.pp
-
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixutil.pp
-
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixtype.pp
-
-baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/ptypes.inc $(UNIXINC)/ctypes.inc \
-  $(UNIXINC)/bunxh.inc \
-  $(LINUXINC)/bunxsysc.inc $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc \
-  $(LINUXINC)/ostypes.inc $(LINUXINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/baseunix.pp
-
-initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/initc.pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/dos.pp
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
-
-classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-#
-# Other $(SYSTEMUNIT)-independent RTL Units
-#
-
-ifneq ($(findstring $(ARCH),x86_64 i386),)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-endif
-        $(COMPILER) $(PROCINC)/cpu.pp
-
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/cthreads.pp
-
-cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
-        $(COMPILER) cwstring.pp
-
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/ctypes.pp
 

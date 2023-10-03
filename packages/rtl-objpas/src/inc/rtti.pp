@@ -1987,7 +1987,7 @@ var
 
 begin
   Result:=Default(TValue);
-  aType:=TVarType(aValue);
+  aType:=TVarData(aValue).vtype;
   case aType of
     varEmpty,
     VarNull : TValue.Make(@aValue,System.TypeInfo(Variant),Result);

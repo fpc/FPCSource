@@ -1065,8 +1065,13 @@ end;
 Function TStrings.AddObject(const S: string; AObject: TObject): Integer;
 
 begin
-  Result:=Add(S);
-  Objects[result]:=AObject;
+  BeginUpdate;
+  try
+    Result:=Add(S);
+    Objects[result]:=AObject;
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TStrings.AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer;
@@ -1324,8 +1329,13 @@ Procedure TStrings.InsertObject(Index: Integer; const S: string;
   AObject: TObject);
 
 begin
-  Insert (Index,S);
-  Objects[Index]:=AObject;
+  BeginUpdate;
+  try
+    Insert (Index,S);
+    Objects[Index]:=AObject;
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TStrings.LastIndexOf(const S: string): Integer;

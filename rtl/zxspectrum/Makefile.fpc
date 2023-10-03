@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system si_prc
+units=$(SYSTEMUNIT) si_prc
 
 [require]
 nortl=y
@@ -50,11 +50,8 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 #
-# System Units (System, Objpas, Strings)
+# Loaders
 #
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-        $(EXECPPAS)
 
-si_prc$(PPUEXT) : system$(PPUEXT)
+si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) si_prc.pp

@@ -9,15 +9,15 @@ main=rtl
 loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
-      nwsnut libc dos sysconst \
-      initc sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
-      cpu $(MMXUNIT) $(GETOPTSUNIT) \
+      nwsnut libc $(DOSUNIT) $(SYSCONSTUNIT) \
+      $(INITCUNIT) $(SYSUTILSUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) \
+      $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
-      rtlconsts $(MATHUNIT) \
-      $(DYNLIBSUNIT) $(CMEMUNIT) ctypes \
+      $(RTLCONSTSUNIT) $(MATHUNIT) \
+      $(DYNLIBSUNIT) $(CMEMUNIT) $(CTYPESUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
-rsts=$(MATHUNIT) typinfo classes sysconst rtlconsts system
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) system
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 
 [require]
@@ -47,13 +47,7 @@ libcclib.imp
 # nwplibc.o
 
 SYSTEMUNIT=system
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-# ifdef RELEASE
-override FPCOPT+=-Ur
-# endif
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
 #debug, -a: dont delete asm, -al include lines
 #override FPCOPT+=-a
@@ -89,7 +83,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS = libc.pp $(SYSINCDEPS) $(SYSCPUDEPS)
 
 copyimpfiles:
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
@@ -106,21 +100,13 @@ copyimpfiles:
 
 # for now use the gcc pre
 nwplibc$(OEXT) :
-        cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc$(OEXT)
+	cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc$(OEXT)
 
 nwl_main$(OEXT) : nwl_main.as
         $(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
 
 nwl_dlle$(OEXT) : nwl_dlle.as
         $(AS) -o $(UNITTARGETDIRPREFIX)nwl_dlle$(OEXT) nwl_dlle.as
-
-#
-# System Units (System, Objpas, Strings)
-#
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
-	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 #
 # System Dependent Units
@@ -130,49 +116,6 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) netware.pp
 
 nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp libc.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) libc.pp sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-                   sysconst$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
-                   tthread.inc $(FGLUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-#
-# Other system-independent RTL Units
-#
-
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
-
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

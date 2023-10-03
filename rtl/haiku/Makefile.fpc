@@ -40,9 +40,9 @@ targetdir=.
 libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
-      unix  \
-      dos \
-      sysutils typinfo $(MATHUNIT) \
+      $(UNIXUNIT)  \
+      $(DOSUNIT) \
+      $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) $(DYNLIBSUNIT)
 
@@ -57,27 +57,22 @@ SYSINITUNITS=si_c si_dllc
 UNITPREFIX=rtl
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
+TTHREADINCDIR=$(UNIXINC)
 
 ifeq ($(ARCH),i386)
 LOADERS=cprt0 dllcprt0
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
 LOADERS=
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)
 CPU_DEP_CPUS=$(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 endif
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths

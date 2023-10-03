@@ -235,6 +235,12 @@ override RTLOPT+=$(RTLOPTLEVEL4)
 override LOCALOPT+=$(OPTNEW)
 override RTLOPT+=$(OPTNEW)
 endif
+else
+ifdef COMPDATESTR
+ifeq ($(FPC_VERSION),$(PACKAGE_VERSION))
+override LOCALOPT+=-DD$(COMPDATESTR)
+endif
+endif
 endif
 
 # Make OPT empty. It is copied to LOCALOPT and RTLOPT
@@ -351,7 +357,12 @@ REVSTR:=$(REVSTR)-$(word 4,$(subst -, ,$(GITDESCRIBE)))
 export REVSTR
   else
    ifneq ($(SVNVERSION),)
-REVSTR:=$(subst r,,$(subst r1:,,r$(subst exported,,$(shell $(SVNVERSION) -c .))))
+SVNVERSTR:=$(shell $(SVNVERSION) -c .)
+    ifneq ($(words $(SVNVERSTR)),1)
+REVSTR:=$(subst $() $(),_,$(SVNVERSTR))
+    else
+REVSTR:=$(subst r,,$(subst r1:,,r$(subst exported,,$(SVNVERSTR))))
+    endif
 export REVSTR
    endif
   endif

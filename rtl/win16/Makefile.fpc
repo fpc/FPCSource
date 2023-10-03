@@ -5,11 +5,11 @@
 main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
-      wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
-      sysconst rtlconsts sysutils $(MATHUNIT) types typinfo $(FGLUNIT) \
-      classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
-      $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(DOSUNIT) \
+      $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
+      $(SYSCONSTUNIT) $(RTLCONSTSUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) \
+      $(CLASSESUNIT) $(CHARSETUNIT) $(CPUUNIT) $(GETOPTSUNIT) $(CPALLUNIT) \
+      $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 implicitunits=$(CP_UNITS)
 
 [require]
@@ -29,6 +29,11 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+
+TYPES_DEPS_OS=$(WINTYPESUNIT)$(PPUEXT)
+DOS_DEPS_OS = registers.inc $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT) $(WINPROCSUNIT)$(PPUEXT)
+CLASSES_DEPS_OS = $(WINPROCSUNIT)$(PPUEXT) $(WINTYPESUNIT)$(PPUEXT)
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -52,7 +57,10 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) wintypes.inc winprocsh.inc winprocs.inc \
+                  glbheap.inc glbheaph.inc locheap.inc locheaph.inc \
+                  sysdl.inc sysdlh.inc
+
 #
 # Loaders
 #
@@ -71,84 +79,4 @@ prt0l$(OEXT) : prt0l.asm prt0comn.asm
 prt0h$(OEXT) : prt0h.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
-#
-# System Units (System, Objpas, Strings)
-#
-system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
-                  glbheap.inc glbheaph.inc locheap.inc locheaph.inc \
-                  sysdl.inc sysdlh.inc
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
 
-#
-# WinAPI Units
-#
-
-wintypes$(PPUEXT) : wintypes.pp wintypes.inc system$(PPUEXT)
-	$(COMPILER) wintypes.pp
-	$(EXECPPAS)
-
-# winprocs uses $mode objfpc, which loads objpas unit implicitly
-winprocs$(PPUEXT) : winprocs.pp winprocsh.inc winprocs.inc system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
-	$(COMPILER) winprocs.pp
-	$(EXECPPAS)
-
-# win31 uses $mode objfpc, which loads objpas unit implicitly
-win31$(PPUEXT) : win31.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
-	$(COMPILER) win31.pp
-	$(EXECPPAS)
-
-#
-# TP7 Compatible RTL Units
-#
-dos$(PPUEXT) : dos.pp registers.inc \
-               $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
-               strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) dos.pp
-	$(EXECPPAS)
-
-#
-# Delphi Compatible Units
-#
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) \
-                    wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-	$(EXECPPAS)
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-                   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
-                   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
-	$(EXECPPAS)
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(MATHUNIT)$(PPUEXT) wintypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-	$(EXECPPAS)
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-	$(EXECPPAS)
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
-	$(EXECPPAS)
-
-#
-# Other system-independent RTL Units
-#
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(PROCINC)/cpu.pp
-	$(EXECPPAS)
-
-#
-# Other system-dependent RTL Units
-#
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
-	$(EXECPPAS)

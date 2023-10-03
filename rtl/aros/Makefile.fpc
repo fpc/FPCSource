@@ -45,22 +45,15 @@ LOADERS=prt0
 SYSTEMUNIT=system
 SYSINITUNITS=si_prc
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu $(MMXUNIT) $(LINEINFOUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT) $(LINEINFOUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 
@@ -94,6 +87,6 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 #
 
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

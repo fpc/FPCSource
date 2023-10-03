@@ -285,8 +285,8 @@ implementation
         T : TOs;
         C : TCpu;
       begin
-        for c:=low(TCpu) to high(TCpu) do
-          for t:=low(TOS) to high(TOS) do
+        for c:=succ(low(TCpu)) to high(TCpu) do
+          for t:=succ(low(TOS)) to high(TOS) do
             if FInput.IncludeTargets[c,t] then
               begin
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
@@ -342,8 +342,8 @@ implementation
         C : TCpu;
       begin
         result:='';
-        for c:=low(TCpu) to high(TCpu) do
-          for t:=low(TOS) to high(TOS) do
+        for c:=succ(low(TCpu)) to high(TCpu) do
+          for t:=succ(low(TOS)) to high(TOS) do
             if FInput.IncludeTargets[c,t] then
               begin
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
@@ -609,8 +609,8 @@ implementation
         prefix:='REQUIRE_PACKAGES_';
         reqs:='';
         { Add target defines }
-        for c:=low(tcpu) to high(tcpu) do
-          for t:=low(tos) to high(tos) do
+        for c:=succ(low(tcpu)) to high(tcpu) do
+          for t:=succ(low(tos)) to high(tos) do
             if FInput.IncludeTargets[c,t] then
               begin
                 sl:=FInput.GetTargetRequires(c,t);
@@ -663,8 +663,8 @@ implementation
         t : Tos;
       begin
         s:='';
-        for c:=low(tcpu) to high(tcpu) do
-         for t:=low(tos) to high(tos) do
+        for c:=succ(low(tcpu)) to high(tcpu) do
+         for t:=succ(low(tos)) to high(tos) do
           if FInput.IncludeTargets[c,t] then
            AddToken(s,CpuStr[c]+'-'+OSStr[t],' ');
         FOutput.Add('MAKEFILETARGETS='+s);

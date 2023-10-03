@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) $(FPINTRESUNIT) $(SYSINIT_UNITS) \
 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) typinfo sysconst rtlconsts
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT)
 
 [require]
 nortl=y
@@ -65,6 +65,15 @@ DOS_DEPS_OS=$(BASEUNIXUNIT)$(PPUEXT) $(UNIXUTILUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEX
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 CTHREADS_DEPS_OS=$(LINUXUNIT)$(PPUEXT)
+ifeq ($(CPU_TARGET),sparc)
+SYSCALL_DEPS_OS=$(ARCH)/syscallh.inc $(RTL)/sparcgen/sysnr.inc
+else
+ifeq ($(CPU_TARGET),sparc64)
+SYSCALL_DEPS_OS=$(ARCH)/syscallh.inc $(RTL)/sparcgen/sysnr.inc
+else
+SYSCALL_DEPS_OS=$(ARCH)/syscallh.inc $(ARCH)/sysnr.inc
+endif
+endif
 UNIX_DEPS_OS=$(SYSCALLUNIT)$(PPUEXT)
 CPU_UNITS=
 SYSINIT_UNITS=
@@ -123,7 +132,7 @@ endif
 
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifeq ($(ARCH),sparc)

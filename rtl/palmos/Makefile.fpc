@@ -7,29 +7,26 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
-       ctypes \
+units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) \
+       $(CTYPESUNIT) \
        $(CHARSETUNIT) $(CPALLUNIT) \
-       sysconst \
+       $(SYSCONSTUNIT) \
        systraps pilot
-#units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+#units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
-#      dos objects \
-#      rtlconsts sysconst sysutils \
-#      typinfo types $(FGLUNIT) classes fmtbcd \
-#      strutils convutils $(MATHUNIT) dateutils \
-#      varutils variants \
-#      matrix ucomplex \
-#      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
-# initc $(CMEMUNIT) signals \
-#    crt graph \
+#      $(DOSUNIT) \
+#      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
+#      $(TYPINFOUNIT) $(TYPESUNIT) $(FGLUNIT) $(CLASSESUNIT) \
+#      strutils convutils $(MATHUNIT) \
+#      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock
+# $(INITCUNIT) $(CMEMUNIT) signals \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut
 implicitunits=$(CP_UNITS)
 
-# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils sysconst
+# rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -57,13 +54,6 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 PRT0=prt0
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
@@ -85,7 +75,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 #
 # Loaders
@@ -99,19 +89,7 @@ $(PRT0)$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp
-
 si_prc$(PPUEXT): si_prc.pp palmos.inc $(SYSTEMUNIT)$(PPUEXT)
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 #
 # System Dependent Units
@@ -121,28 +99,6 @@ systraps$(PPUEXT) : systraps.pp $(SYSTEMUNIT)$(PPUEXT)
 
 pilot$(PPUEXT) : pilot.pp $(SYSTEMUNIT)$(PPUEXT) systraps$(PPUEXT)
         $(COMPILER) pilot.pp
-
-#
-# TP7 Compatible RTL Units
-#
-
-#dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
-#	$(PP) $(OPT) dos $(REDIR)
-
-#crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMPPU)
-#	$(PP) $(OPT) crt $(REDIR)
-
-#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-#	$(COPY) $(INC)/objects.pp .
-#	$(PP) $(OPT) objects $(REDIR)
-#	$(DEL) objects.pp
-
-#
-# Other system-independent RTL Units
-#
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #####################################################################
 # Libs

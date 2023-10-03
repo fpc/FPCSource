@@ -15,7 +15,7 @@ implicitunits=$(SYSINITUNITS) $(EXEUNITS) athreads $(DOSUNIT) $(SYSUTILSUNIT) $(
       $(UFLOAT128UNIT)  $(UFLOATX80UNIT) $(SFPU128UNIT) $(SFPUX80UNIT) $(SOFTFPUUNIT) 
 
 
-rsts=$(MATHUNIT) rtlconsts typinfo classes sysconst
+rsts=$(MATHUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -41,13 +41,6 @@ AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 LOADERS=prt0
 SYSTEMUNIT=system
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -98,9 +91,6 @@ endif
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) $(BUILDRTL_OPT) buildrtl
-
-$(RESUNIT)$(PPUEXT) : $(INC)/$(RESUNIT).pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/$(RESUNIT).pp
 

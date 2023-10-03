@@ -7,13 +7,13 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(UUCHARUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(SORTBASEUNIT)  $(SYSUTILSUNIT) $(DOSUNIT) \
       $(CLASSESUNIT)  $(MATHUNIT) $(TYPINFOUNIT) $(CTYPESUNIT)  \
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(TYPESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) $(LINEINFOUNIT) $(FGLUNIT) $(CMEMUNIT)
-#rsts=$(MATHUNIT) rtlconsts varutils typinfo variants classes sysconst dateutil fpmkunit
+#rsts=$(MATHUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]
@@ -38,7 +38,7 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPC_SYSTEM_OPT+=@rtl.cfg
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 ifdef RELEASE
 override FPCOPT+=-Ur
@@ -63,69 +63,4 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
-
-
-#
-# Base Units (System, strings, os-dependent-base-unit)
-#
-
-#
-# Other system-dependent RTL Units
-#
-
-exec$(PPUEXT)    : exec.pp execf.inc execd.inc
-	$(COMPILER) exec.pp
-
-timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
-	$(COMPILER) timer.pp
-
-utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
-	$(COMPILER) utility.pp
-
-doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
-	$(COMPILER) doslib.pp
-
-hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
-	$(COMPILER) hardware.pas
-
-inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) inputevent.pas
-
-graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
-	$(COMPILER) graphics.pas
-
-layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) layers.pas
-
-intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
-	$(COMPILER) intuition.pas
-
-aboxlib$(PPUEXT): aboxlib.pas
-	$(COMPILER) aboxlib.pas
-
-clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
-	$(COMPILER) clipboard.pas
-
-datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-                   utility$(PPUEXT) graphics$(PPUEXT)
-	$(COMPILER) datatypes.pas
-
-asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) asl.pas
-
-ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) ahi.pas
-
-mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
-	$(COMPILER) mui.pas
-
-tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
-	$(COMPILER) tinygl.pp
-
-get9$(PPUEXT): get9.pas exec$(PPUEXT)
-	$(COMPILER) get9.pas
-
-muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
-	$(COMPILER) muihelper.pas
 

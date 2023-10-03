@@ -45,11 +45,11 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),arm)
-CPU_UNITS=cpu
+CPU_UNITS=$(CPUUNIT)
 endif
 
 ifneq ($(findstring $(ARCH),i386),)
@@ -57,7 +57,7 @@ CPU_DEPS_CPU=$(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 else
 CPU_DEPS_CPU=$(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 endif
-DOS_DEPS_OS=objpas$(PPUEXT)
+DOS_DEPS_OS=$(OBJPASUNIT)$(PPUEXT)
 
 [rules]
 .NOTPARALLEL:
@@ -82,6 +82,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System Units (System, Objpas, Strings)
 #
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) # $(MACPASUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) # $(MACPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(INC) -I$(SYMBIANINC) -I$(UIQINC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

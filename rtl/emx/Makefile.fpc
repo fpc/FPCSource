@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 prt1
-units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(PORTSUNIT) $(OS2DEFUNIT) $(DOSCALLSUNIT) $(DOSCALL2UNIT) $(KBDCALLSUNIT) \
       $(MOUCALLSUNIT) $(VIOCALLSUNIT) $(SO32DLLUNIT) \
       $(PMBITMAPUNIT) $(PMWINUNIT) $(PMGPIUNIT) $(PMSTDDLGUNIT) \
@@ -52,13 +52,6 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
-endif
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
 endif
 
 # Paths

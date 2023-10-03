@@ -19,8 +19,12 @@ asm
   mov   ebp, TSHA1Context.State[eax + 4 * 4] // From now on, eax is used for temporaries. Edx is still required for rounds 0..15 to read buf parts.
 
   // Round 0. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx]
+{$else}
   mov   eax, [edx] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 0]));
   bswap eax
+{$endif}
   add   ebp, eax // Z := Z + Blkv;
   mov   [esp], eax // Data[I and 15 = 0] := Blkv;
   mov   eax, ebx // Z := Z + RolDWord(V, 5)
@@ -34,8 +38,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 1. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 1]
+{$else}
   mov   eax, [edx + 4 * 1] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 1]));
   bswap eax
+{$endif}
   add   edi, eax // Z := Z + Blkv;
   mov   [esp + 4], eax // Data[I and 15 = 1] := Blkv;
   mov   eax, ebp // Z := Z + RolDWord(V, 5)
@@ -49,8 +57,12 @@ asm
   ror   ebx, 2 // W := RorDWord(W, 2);
 
   // Round 2. V = edi, W = ebp, X = ebx, Y = ecx, Z = esi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 2]
+{$else}
   mov   eax, [edx + 4 * 2] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 2]));
   bswap eax
+{$endif}
   add   esi, eax // Z := Z + Blkv;
   mov   [esp + 4 * 2], eax // Data[I and 15 = 2] := Blkv;
   mov   eax, edi // Z := Z + RolDWord(V, 5)
@@ -64,8 +76,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 3. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 3]
+{$else}
   mov   eax, [edx + 4 * 3] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 3]));
   bswap eax
+{$endif}
   add   ecx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 3], eax // Data[I and 15 = 3] := Blkv;
   mov   eax, esi // Z := Z + RolDWord(V, 5)
@@ -79,8 +95,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 4. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 4]
+{$else}
   mov   eax, [edx + 4 * 4] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 4]));
   bswap eax
+{$endif}
   add   ebx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 4], eax // Data[I and 15 = 4] := Blkv;
   mov   eax, ecx // Z := Z + RolDWord(V, 5)
@@ -94,8 +114,12 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 5. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 5]
+{$else}
   mov   eax, [edx + 4 * 5] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 5]));
   bswap eax
+{$endif}
   add   ebp, eax // Z := Z + Blkv;
   mov   [esp + 4 * 5], eax // Data[I and 15 = 5] := Blkv;
   mov   eax, ebx // Z := Z + RolDWord(V, 5)
@@ -109,8 +133,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 6. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 6]
+{$else}
   mov   eax, [edx + 4 * 6] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 6]));
   bswap eax
+{$endif}
   add   edi, eax // Z := Z + Blkv;
   mov   [esp + 4 * 6], eax // Data[I and 15 = 6] := Blkv;
   mov   eax, ebp // Z := Z + RolDWord(V, 5)
@@ -124,8 +152,12 @@ asm
   ror   ebx, 2 // W := RorDWord(W, 2);
 
   // Round 7. V = edi, W = ebp, X = ebx, Y = ecx, Z = esi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 7]
+{$else}
   mov   eax, [edx + 4 * 7] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 7]));
   bswap eax
+{$endif}
   add   esi, eax // Z := Z + Blkv;
   mov   [esp + 4 * 7], eax // Data[I and 15 = 7] := Blkv;
   mov   eax, edi // Z := Z + RolDWord(V, 5)
@@ -139,8 +171,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 8. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 8]
+{$else}
   mov   eax, [edx + 4 * 8] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 8]));
   bswap eax
+{$endif}
   add   ecx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 8], eax // Data[I and 15 = 8] := Blkv;
   mov   eax, esi // Z := Z + RolDWord(V, 5)
@@ -154,8 +190,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 9. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 9]
+{$else}
   mov   eax, [edx + 4 * 9] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 9]));
   bswap eax
+{$endif}
   add   ebx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 9], eax // Data[I and 15 = 9] := Blkv;
   mov   eax, ecx // Z := Z + RolDWord(V, 5)
@@ -169,8 +209,12 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 10. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 10]
+{$else}
   mov   eax, [edx + 4 * 10] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 10]));
   bswap eax
+{$endif}
   add   ebp, eax // Z := Z + Blkv;
   mov   [esp + 4 * 10], eax // Data[I and 15 = 10] := Blkv;
   mov   eax, ebx // Z := Z + RolDWord(V, 5)
@@ -184,8 +228,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 11. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 11]
+{$else}
   mov   eax, [edx + 4 * 11] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 11]));
   bswap eax
+{$endif}
   add   edi, eax // Z := Z + Blkv;
   mov   [esp + 4 * 11], eax // Data[I and 15 = 11] := Blkv;
   mov   eax, ebp // Z := Z + RolDWord(V, 5)
@@ -199,8 +247,12 @@ asm
   ror   ebx, 2 // W := RorDWord(W, 2);
 
   // Round 12. V = edi, W = ebp, X = ebx, Y = ecx, Z = esi
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 12]
+{$else}
   mov   eax, [edx + 4 * 12] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 12]));
   bswap eax
+{$endif}
   add   esi, eax // Z := Z + Blkv;
   mov   [esp + 4 * 12], eax // Data[I and 15 = 12] := Blkv;
   mov   eax, edi // Z := Z + RolDWord(V, 5)
@@ -214,8 +266,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 13. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 13]
+{$else}
   mov   eax, [edx + 4 * 13] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 13]));
   bswap eax
+{$endif}
   add   ecx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 13], eax // Data[I and 15 = 13] := Blkv;
   mov   eax, esi // Z := Z + RolDWord(V, 5)
@@ -229,8 +285,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 14. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe eax, [edx + 4 * 14]
+{$else}
   mov   eax, [edx + 4 * 14] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 14]));
   bswap eax
+{$endif}
   add   ebx, eax // Z := Z + Blkv;
   mov   [esp + 4 * 14], eax // Data[I and 15 = 14] := Blkv;
   mov   eax, ecx // Z := Z + RolDWord(V, 5)
@@ -244,10 +304,14 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 15. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
-  mov   eax, [edx + 4 * 15] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 15]));
-  bswap eax
-  add   ebp, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 15], eax // Data[I and 15 = 15] := Blkv;
+{$ifdef CPUX86_HAS_MOVBE}
+  movbe edx, [edx + 4 * 15]
+{$else}
+  mov   edx, [edx + 4 * 15] // Blkv := BEtoN(Unaligned(PCardinal(Buf)[I = 15]));
+  bswap edx
+{$endif}
+  add   ebp, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 15], edx // Data[I and 15 = 15] := Blkv; keep in edx for Round 18.
   mov   eax, ebx // Z := Z + RolDWord(V, 5)
   rol   eax, 5
   add   ebp, eax
@@ -257,8 +321,6 @@ asm
   xor   eax, edi
   lea   ebp, [ebp + eax + K20]
   ror   ecx, 2 // W := RorDWord(W, 2);
-
-  // edx is no longer of interest, it will be used as a temporary in Round 40..59.
 
   // Round 16. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
   mov   eax, [esp + 4 * 13] // Blkv := RolDWord(Data[(I + 13) and 15 = 13] xor Data[(I + 8) and 15 = 8] xor Data[(I + 2) and 15 = 2] xor Data[I and 15 = 0], 1);
@@ -297,13 +359,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 18. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
-  mov   eax, [esp + 4 * 15] // Blkv := RolDWord(Data[(I + 13) and 15 = 15] xor Data[(I + 8) and 15 = 10] xor Data[(I + 2) and 15 = 4] xor Data[I and 15 = 2], 1);
-  xor   eax, [esp + 4 * 10]
-  xor   eax, [esp + 4 * 4]
-  xor   eax, [esp + 4 * 2]
-  rol   eax, 1
-  add   ecx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 2], eax // Data[I and 15 = 2] := Blkv;
+  xor   edx, [esp + 4 * 10] // Blkv := RolDWord(Data[(I + 13) and 15 = 15] xor Data[(I + 8) and 15 = 10] xor Data[(I + 2) and 15 = 4] xor Data[I and 15 = 2], 1);
+  xor   edx, [esp + 4 * 4]
+  xor   edx, [esp + 4 * 2]
+  rol   edx, 1
+  add   ecx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 2], edx // Data[I and 15 = 2] := Blkv; keep in edx for Round 21.
   mov   eax, esi // Z := Z + RolDWord(V, 5)
   rol   eax, 5
   add   ecx, eax
@@ -350,13 +411,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 21. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
-  mov   eax, [esp + 4 * 2] // Blkv := RolDWord(Data[(I + 13) and 15 = 2] xor Data[(I + 8) and 15 = 13] xor Data[(I + 2) and 15 = 7] xor Data[I and 15 = 5], 1);
-  xor   eax, [esp + 4 * 13]
-  xor   eax, [esp + 4 * 7]
-  xor   eax, [esp + 4 * 5]
-  rol   eax, 1
-  add   edi, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 5], eax // Data[I and 15 = 5] := Blkv;
+  xor   edx, [esp + 4 * 13] // Blkv := RolDWord(Data[(I + 13) and 15 = 2] xor Data[(I + 8) and 15 = 13] xor Data[(I + 2) and 15 = 7] xor Data[I and 15 = 5], 1);
+  xor   edx, [esp + 4 * 7]
+  xor   edx, [esp + 4 * 5]
+  rol   edx, 1
+  add   edi, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 5], edx // Data[I and 15 = 5] := Blkv; keep in edx for Round 24.
   mov   eax, ebp // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   edi, eax
@@ -401,13 +461,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 24. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
-  mov   eax, [esp + 4 * 5] // Blkv := RolDWord(Data[(I + 13) and 15 = 5] xor Data[(I + 8) and 15 = 0] xor Data[(I + 2) and 15 = 10] xor Data[I and 15 = 8], 1);
-  xor   eax, [esp]
-  xor   eax, [esp + 4 * 10]
-  xor   eax, [esp + 4 * 8]
-  rol   eax, 1
-  add   ebx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 8], eax // Data[I and 15 = 8] := Blkv;
+  xor   edx, [esp] // Blkv := RolDWord(Data[(I + 13) and 15 = 5] xor Data[(I + 8) and 15 = 0] xor Data[(I + 2) and 15 = 10] xor Data[I and 15 = 8], 1);
+  xor   edx, [esp + 4 * 10]
+  xor   edx, [esp + 4 * 8]
+  rol   edx, 1
+  add   ebx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 8], edx // Data[I and 15 = 8] := Blkv; keep in edx for Round 27.
   mov   eax, ecx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebx, eax
@@ -452,13 +511,12 @@ asm
   ror   ebx, 2 // W := RorDWord(W, 2);
 
   // Round 27. V = edi, W = ebp, X = ebx, Y = ecx, Z = esi
-  mov   eax, [esp + 4 * 8] // Blkv := RolDWord(Data[(I + 13) and 15 = 8] xor Data[(I + 8) and 15 = 3] xor Data[(I + 2) and 15 = 13] xor Data[I and 15 = 11], 1);
-  xor   eax, [esp + 4 * 3]
-  xor   eax, [esp + 4 * 13]
-  xor   eax, [esp + 4 * 11]
-  rol   eax, 1
-  add   esi, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 11], eax // Data[I and 15 = 11] := Blkv;
+  xor   edx, [esp + 4 * 3] // Blkv := RolDWord(Data[(I + 13) and 15 = 8] xor Data[(I + 8) and 15 = 3] xor Data[(I + 2) and 15 = 13] xor Data[I and 15 = 11], 1);
+  xor   edx, [esp + 4 * 13]
+  xor   edx, [esp + 4 * 11]
+  rol   edx, 1
+  add   esi, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 11], edx // Data[I and 15 = 11] := Blkv; keep in edx for Round 30.
   mov   eax, edi // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   esi, eax
@@ -503,13 +561,12 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 30. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
-  mov   eax, [esp + 4 * 11] // Blkv := RolDWord(Data[(I + 13) and 15 = 11] xor Data[(I + 8) and 15 = 6] xor Data[(I + 2) and 15 = 0] xor Data[I and 15 = 14], 1);
-  xor   eax, [esp + 4 * 6]
-  xor   eax, [esp]
-  xor   eax, [esp + 4 * 14]
-  rol   eax, 1
-  add   ebp, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 14], eax // Data[I and 15 = 14] := Blkv;
+  xor   edx, [esp + 4 * 6] // Blkv := RolDWord(Data[(I + 13) and 15 = 11] xor Data[(I + 8) and 15 = 6] xor Data[(I + 2) and 15 = 0] xor Data[I and 15 = 14], 1);
+  xor   edx, [esp]
+  xor   edx, [esp + 4 * 14]
+  rol   edx, 1
+  add   ebp, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 14], edx // Data[I and 15 = 14] := Blkv; keep in edx for Round 33.
   mov   eax, ebx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebp, eax
@@ -554,13 +611,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 33. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
-  mov   eax, [esp + 4 * 14] // Blkv := RolDWord(Data[(I + 13) and 15 = 14] xor Data[(I + 8) and 15 = 9] xor Data[(I + 2) and 15 = 3] xor Data[I and 15 = 1], 1);
-  xor   eax, [esp + 4 * 9]
-  xor   eax, [esp + 4 * 3]
-  xor   eax, [esp + 4 * 1]
-  rol   eax, 1
-  add   ecx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 1], eax // Data[I and 15 = 1] := Blkv;
+  xor   edx, [esp + 4 * 9] // Blkv := RolDWord(Data[(I + 13) and 15 = 14] xor Data[(I + 8) and 15 = 9] xor Data[(I + 2) and 15 = 3] xor Data[I and 15 = 1], 1);
+  xor   edx, [esp + 4 * 3]
+  xor   edx, [esp + 4 * 1]
+  rol   edx, 1
+  add   ecx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 1], edx // Data[I and 15 = 1] := Blkv; keep in edx for Round 36.
   mov   eax, esi // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ecx, eax
@@ -605,13 +661,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 36. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
-  mov   eax, [esp + 4 * 1] // Blkv := RolDWord(Data[(I + 13) and 15 = 1] xor Data[(I + 8) and 15 = 12] xor Data[(I + 2) and 15 = 6] xor Data[I and 15 = 4], 1);
-  xor   eax, [esp + 4 * 12]
-  xor   eax, [esp + 4 * 6]
-  xor   eax, [esp + 4 * 4]
-  rol   eax, 1
-  add   edi, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 4], eax // Data[I and 15 = 4] := Blkv;
+  xor   edx, [esp + 4 * 12] // Blkv := RolDWord(Data[(I + 13) and 15 = 1] xor Data[(I + 8) and 15 = 12] xor Data[(I + 2) and 15 = 6] xor Data[I and 15 = 4], 1);
+  xor   edx, [esp + 4 * 6]
+  xor   edx, [esp + 4 * 4]
+  rol   edx, 1
+  add   edi, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 4], edx // Data[I and 15 = 4] := Blkv; keep in edx for Round 39.
   mov   eax, ebp // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   edi, eax
@@ -656,13 +711,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 39. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
-  mov   eax, [esp + 4 * 4] // Blkv := RolDWord(Data[(I + 13) and 15 = 4] xor Data[(I + 8) and 15 = 15] xor Data[(I + 2) and 15 = 9] xor Data[I and 15 = 7], 1);
-  xor   eax, [esp + 4 * 15]
-  xor   eax, [esp + 4 * 9]
-  xor   eax, [esp + 4 * 7]
-  rol   eax, 1
-  add   ebx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 7], eax // Data[I and 15 = 7] := Blkv;
+  xor   edx, [esp + 4 * 15] // Blkv := RolDWord(Data[(I + 13) and 15 = 4] xor Data[(I + 8) and 15 = 15] xor Data[(I + 2) and 15 = 9] xor Data[I and 15 = 7], 1);
+  xor   edx, [esp + 4 * 9]
+  xor   edx, [esp + 4 * 7]
+  rol   edx, 1
+  add   ebx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 7], edx // Data[I and 15 = 7] := Blkv;
   mov   eax, ecx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebx, eax
@@ -1073,13 +1127,13 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 60. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
-  mov   eax, [esp + 4 * 9] // Blkv := RolDWord(Data[(I + 13) and 15 = 9] xor Data[(I + 8) and 15 = 4] xor Data[(I + 2) and 15 = 14] xor Data[I and 15 = 12], 1);
-  xor   eax, [esp + 4 * 4]
-  xor   eax, [esp + 4 * 14]
-  xor   eax, [esp + 4 * 12]
-  rol   eax, 1
-  add   ebp, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 12], eax // Data[I and 15 = 12] := Blkv;
+  mov   edx, [esp + 4 * 9] // Blkv := RolDWord(Data[(I + 13) and 15 = 9] xor Data[(I + 8) and 15 = 4] xor Data[(I + 2) and 15 = 14] xor Data[I and 15 = 12], 1);
+  xor   edx, [esp + 4 * 4]
+  xor   edx, [esp + 4 * 14]
+  xor   edx, [esp + 4 * 12]
+  rol   edx, 1
+  add   ebp, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 12], edx // Data[I and 15 = 12] := Blkv; keep in edx for Round 63.
   mov   eax, ebx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebp, eax
@@ -1124,13 +1178,12 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 63. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
-  mov   eax, [esp + 4 * 12] // Blkv := RolDWord(Data[(I + 13) and 15 = 12] xor Data[(I + 8) and 15 = 7] xor Data[(I + 2) and 15 = 1] xor Data[I and 15 = 15], 1);
-  xor   eax, [esp + 4 * 7]
-  xor   eax, [esp + 4 * 1]
-  xor   eax, [esp + 4 * 15]
-  rol   eax, 1
-  add   ecx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 15], eax // Data[I and 15 = 15] := Blkv;
+  xor   edx, [esp + 4 * 7] // Blkv := RolDWord(Data[(I + 13) and 15 = 12] xor Data[(I + 8) and 15 = 7] xor Data[(I + 2) and 15 = 1] xor Data[I and 15 = 15], 1);
+  xor   edx, [esp + 4 * 1]
+  xor   edx, [esp + 4 * 15]
+  rol   edx, 1
+  add   ecx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 15], edx // Data[I and 15 = 15] := Blkv; keep in edx for Round 66.
   mov   eax, esi // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ecx, eax
@@ -1175,13 +1228,12 @@ asm
   ror   ecx, 2 // W := RorDWord(W, 2);
 
   // Round 66. V = ebp, W = ebx, X = ecx, Y = esi, Z = edi
-  mov   eax, [esp + 4 * 15] // Blkv := RolDWord(Data[(I + 13) and 15 = 15] xor Data[(I + 8) and 15 = 10] xor Data[(I + 2) and 15 = 4] xor Data[I and 15 = 2], 1);
-  xor   eax, [esp + 4 * 10]
-  xor   eax, [esp + 4 * 4]
-  xor   eax, [esp + 4 * 2]
-  rol   eax, 1
-  add   edi, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 2], eax // Data[I and 15 = 2] := Blkv;
+  xor   edx, [esp + 4 * 10] // Blkv := RolDWord(Data[(I + 13) and 15 = 15] xor Data[(I + 8) and 15 = 10] xor Data[(I + 2) and 15 = 4] xor Data[I and 15 = 2], 1);
+  xor   edx, [esp + 4 * 4]
+  xor   edx, [esp + 4 * 2]
+  rol   edx, 1
+  add   edi, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 2], edx // Data[I and 15 = 2] := Blkv; keep in edx for Round 69.
   mov   eax, ebp // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   edi, eax
@@ -1226,13 +1278,12 @@ asm
   ror   edi, 2 // W := RorDWord(W, 2);
 
   // Round 69. V = ecx, W = esi, X = edi, Y = ebp, Z = ebx
-  mov   eax, [esp + 4 * 2] // Blkv := RolDWord(Data[(I + 13) and 15 = 2] xor Data[(I + 8) and 15 = 13] xor Data[(I + 2) and 15 = 7] xor Data[I and 15 = 5], 1);
-  xor   eax, [esp + 4 * 13]
-  xor   eax, [esp + 4 * 7]
-  xor   eax, [esp + 4 * 5]
-  rol   eax, 1
-  add   ebx, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 5], eax // Data[I and 15 = 5] := Blkv;
+  xor   edx, [esp + 4 * 13] // Blkv := RolDWord(Data[(I + 13) and 15 = 2] xor Data[(I + 8) and 15 = 13] xor Data[(I + 2) and 15 = 7] xor Data[I and 15 = 5], 1);
+  xor   edx, [esp + 4 * 7]
+  xor   edx, [esp + 4 * 5]
+  rol   edx, 1
+  add   ebx, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 5], edx // Data[I and 15 = 5] := Blkv; keep in edx for Round 72.
   mov   eax, ecx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebx, eax
@@ -1277,13 +1328,12 @@ asm
   ror   ebx, 2 // W := RorDWord(W, 2);
 
   // Round 72. V = edi, W = ebp, X = ebx, Y = ecx, Z = esi
-  mov   eax, [esp + 4 * 5] // Blkv := RolDWord(Data[(I + 13) and 15 = 5] xor Data[(I + 8) and 15 = 0] xor Data[(I + 2) and 15 = 10] xor Data[I and 15 = 8], 1);
-  xor   eax, [esp]
-  xor   eax, [esp + 4 * 10]
-  xor   eax, [esp + 4 * 8]
-  rol   eax, 1
-  add   esi, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 8], eax // Data[I and 15 = 8] := Blkv;
+  xor   edx, [esp] // Blkv := RolDWord(Data[(I + 13) and 15 = 5] xor Data[(I + 8) and 15 = 0] xor Data[(I + 2) and 15 = 10] xor Data[I and 15 = 8], 1);
+  xor   edx, [esp + 4 * 10]
+  xor   edx, [esp + 4 * 8]
+  rol   edx, 1
+  add   esi, edx // Z := Z + Blkv;
+  mov   [esp + 4 * 8], edx // Data[I and 15 = 8] := Blkv; keep in edx for Round 75.
   mov   eax, edi // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   esi, eax
@@ -1328,13 +1378,12 @@ asm
   ror   esi, 2 // W := RorDWord(W, 2);
 
   // Round 75. V = ebx, W = ecx, X = esi, Y = edi, Z = ebp
-  mov   eax, [esp + 4 * 8] // Blkv := RolDWord(Data[(I + 13) and 15 = 8] xor Data[(I + 8) and 15 = 3] xor Data[(I + 2) and 15 = 13] xor Data[I and 15 = 11], 1);
-  xor   eax, [esp + 4 * 3]
-  xor   eax, [esp + 4 * 13]
-  xor   eax, [esp + 4 * 11]
-  rol   eax, 1
-  add   ebp, eax // Z := Z + Blkv;
-  mov   [esp + 4 * 11], eax // Data[I and 15 = 11] := Blkv;
+  xor   edx, [esp + 4 * 3] // Blkv := RolDWord(Data[(I + 13) and 15 = 8] xor Data[(I + 8) and 15 = 3] xor Data[(I + 2) and 15 = 13] xor Data[I and 15 = 11], 1);
+  xor   edx, [esp + 4 * 13]
+  xor   edx, [esp + 4 * 11]
+  rol   edx, 1
+  add   ebp, edx // Z := Z + Blkv;
+  // mov   [esp + 4 * 11], edx // Data[I and 15 = 11] := Blkv; - not required, keep in edx for Round 78.
   mov   eax, ebx // Z := Z + RolDWord(V, 5);
   rol   eax, 5
   add   ebp, eax
@@ -1379,12 +1428,11 @@ asm
   ror   ebp, 2 // W := RorDWord(W, 2);
 
   // Round 78. V = esi, W = edi, X = ebp, Y = ebx, Z = ecx
-  mov   eax, [esp + 4 * 11] // Blkv := RolDWord(Data[(I + 13) and 15 = 11] xor Data[(I + 8) and 15 = 6] xor Data[(I + 2) and 15 = 0] xor Data[I and 15 = 14], 1);
-  xor   eax, [esp + 4 * 6]
-  xor   eax, [esp]
-  xor   eax, [esp + 4 * 14]
-  rol   eax, 1
-  add   ecx, eax // Z := Z + Blkv;
+  xor   edx, [esp + 4 * 6] // Blkv := RolDWord(Data[(I + 13) and 15 = 11] xor Data[(I + 8) and 15 = 6] xor Data[(I + 2) and 15 = 0] xor Data[I and 15 = 14], 1);
+  xor   edx, [esp]
+  xor   edx, [esp + 4 * 14]
+  rol   edx, 1
+  add   ecx, edx // Z := Z + Blkv;
   // Data[I and 15 = 14] := Blkv; - not required.
   mov   eax, esi // Z := Z + RolDWord(V, 5);
   rol   eax, 5

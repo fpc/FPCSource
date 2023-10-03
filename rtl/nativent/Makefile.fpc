@@ -7,25 +7,25 @@ main=rtl
 
 [target]
 loaders=
-#units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
+#units=$(SYSTEMUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
+units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
 implicitunits=ndk ndkutils ddk \
-      ctypes $(STRINGSUNIT) \
+      $(CTYPESUNIT) $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
-#      initc $(CMEMUNIT) $(DYNLIBSUNIT) signals \
-      dos \
-      rtlconsts sysconst sysutils $(MATHUNIT) types \
-      typinfo $(FGLUNIT) classes \
+#      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
+      $(DOSUNIT) \
+      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) \
+      $(TYPINFOUNIT) $(FGLUNIT) $(CLASSESUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(GETOPTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
-#      sockets printer \
+#      printer \
 #      keyboard
 #      sharemem exeinfo $(FPINTRESUNIT) \
       $(CP_UNITS)
 
 # shared=$(DLLS)
 
-rsts=$(MATHUNIT) typinfo classes sysconst
+rsts=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -56,11 +56,11 @@ SYSTEMUNIT=system
 CPU_UNITS=
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=$(X86UNIT) cpu
+CPU_UNITS=$(X86UNIT) $(CPUUNIT)
 endif
 
 DLLS=fpcmemdll
@@ -104,9 +104,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Unit specific rules
 #
 
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

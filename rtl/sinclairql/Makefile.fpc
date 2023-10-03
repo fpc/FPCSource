@@ -8,13 +8,12 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLUNIT)
-# $(EXTPASUNIT) $(MACPASUNIT)
 implicitunits=si_prc \
-      ctypes rtlconsts $(STRINGSUNIT) \
+      $(CTYPESUNIT) $(RTLCONSTSUNIT) $(STRINGSUNIT) \
       $(SORTBASEUNIT) $(CHARSETUNIT) $(FPWIDESTRINGUNIT) \
       $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) rtlconsts typinfo classes sysconst
+rsts=$(MATHUNIT) $(RTLCONSTSUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
 
 [require]
 nortl=y
@@ -40,13 +39,6 @@ UNITPREFIX=rtl
 LOADERS=
 SYSTEMUNIT=system
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
-endif
-
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
@@ -66,18 +58,12 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) qdos.inc qdosh.inc qdosfuncs.inc sms.inc
-
+override FPC_SYSTEM_OPT += @rtl.cfg
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
-
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
-
-#fpextres$(PPUEXT) : $(INC)/fpextres.pp $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) -Sg $(INC)/fpextres.pp
 

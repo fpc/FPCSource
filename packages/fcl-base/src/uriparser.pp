@@ -101,16 +101,16 @@ end;
 function EncodeURI(const URI: TURI): String;
 // ! if no scheme then first colon in path should be escaped
 begin
-  SetLength(Result, 0);
-  if Length(URI.Protocol) > 0 then
+  Result := '';
+  if URI.Protocol <> '' then
     Result := LowerCase(URI.Protocol) + ':';
   if URI.HasAuthority then
   begin
     Result := Result + '//';
-    if Length(URI.Username) > 0 then
+    if URI.Username <> '' then
     begin
       Result := Result + URI.Username;
-      if Length(URI.Password) > 0 then
+      if URI.Password <> '' then
         Result := Result + ':' + URI.Password;
       Result := Result + '@';
     end;
@@ -119,15 +119,15 @@ begin
   if URI.Port <> 0 then
     Result := Result + ':' + IntToStr(URI.Port);
   Result := Result + Escape(URI.Path, ValidPathChars);
-  if Length(URI.Document) > 0 then
+  if URI.Document <> '' then
   begin
-    if (Length(URI.Path) > 0) and ((Length(Result) = 0) or (Result[Length(Result)] <> '/')) then
+    if (URI.Path <> '') and ((Result = '') or (Result[Length(Result)] <> '/')) then
       Result := Result + '/';
     Result := Result + Escape(URI.Document, ValidPathChars);
   end;
-  if Length(URI.Params) > 0 then
+  if URI.Params <> '' then
     Result := Result + '?' + Escape(URI.Params, ValidPathChars);
-  if Length(URI.Bookmark) > 0 then
+  if URI.Bookmark <> '' then
     Result := Result + '#' + Escape(URI.Bookmark, ValidPathChars);
 end;
 
@@ -300,7 +300,7 @@ begin
     SetLength(Authority, i - 1);
 
     // Extract username and password
-    if Length(Authority)>0 then
+    if Authority <> '' then
     begin
       i := Pos(':', Authority);
       if i = 0 then
