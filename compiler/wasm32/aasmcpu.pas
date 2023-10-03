@@ -81,7 +81,10 @@ uses
       { tai_wasmstruc_if }
 
       tai_wasmstruc_if = class(taicpu_wasm_structured_instruction)
+      private
+        constructor create_from(a_if_instr: taicpu; srclist: TAsmList);
       public
+        if_instr: taicpu;
         then_asmlist: TAsmList;
         else_asmlist: TAsmList;
 
@@ -92,6 +95,10 @@ uses
       { tai_wasmstruc_block }
 
       tai_wasmstruc_block = class(taicpu_wasm_structured_instruction)
+      private
+        constructor create_from(a_block_instr: taicpu; srclist: TAsmList);
+      public
+        block_instr: taicpu;
         inner_asmlist: TAsmList;
 
         destructor Destroy; override;
@@ -101,6 +108,10 @@ uses
       { tai_wasmstruc_loop }
 
       tai_wasmstruc_loop = class(taicpu_wasm_structured_instruction)
+      private
+        constructor create_from(a_loop_instr: taicpu; srclist: TAsmList);
+      public
+        loop_instr: taicpu;
         inner_asmlist: TAsmList;
 
         destructor Destroy; override;
@@ -110,6 +121,10 @@ uses
       { tai_wasmstruc_try }
 
       tai_wasmstruc_try = class(taicpu_wasm_structured_instruction)
+      private
+        class function create_from(srclist: TAsmList): tai_wasmstruc_try;
+        constructor internal_create(a_try_asmlist: TAsmList);
+      public
         try_asmlist: TAsmList;
 
         destructor Destroy; override;
@@ -119,12 +134,25 @@ uses
       { tai_wasmstruc_try_delegate }
 
       tai_wasmstruc_try_delegate = class(tai_wasmstruc_try)
+      private
+        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+      public
+        delegate_instr: taicpu;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
       end;
 
       { tai_wasmstruc_try_catch }
 
       tai_wasmstruc_try_catch = class(tai_wasmstruc_try)
-        catch_asmlist: array of TAsmList;
+      private
+        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+      public
+        catch_list: array of record
+          catch_instr: taicpu;
+          asmlist: TAsmList;
+        end;
         catch_all_asmlist: TAsmList;
 
         destructor Destroy; override;
@@ -216,17 +244,71 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
+
 implementation
 
 uses
   ogwasm;
 
+    function wasm_convert_first_item_to_structured(srclist: TAsmList): tai; forward;
+
     { tai_wasmstruc_if }
+
+    constructor tai_wasmstruc_if.create_from(a_if_instr: taicpu; srclist: TAsmList);
+      var
+        p: tai;
+        ThenDone, ElsePresent, ElseDone: Boolean;
+      begin
+        if assigned(a_if_instr.Previous) or assigned(a_if_instr.Next) then
+          internalerror(2023100301);
+        if_instr:=a_if_instr;
+
+        then_asmlist:=TAsmList.Create;
+
+        ThenDone:=False;
+        ElsePresent:=False;
+        repeat
+          p:=tai(srclist.First);
+          if not assigned(p) then
+            internalerror(2023100302);
+          srclist.Remove(p);
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if]) then
+            case taicpu(p).opcode of
+              a_else:
+                begin
+                  ThenDone:=True;
+                  ElsePresent:=True;
+                end;
+              a_end_if:
+                ThenDone:=True;
+            end
+          else
+            then_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+        until ThenDone;
+
+        if ElsePresent then
+          begin
+            else_asmlist:=TAsmList.Create;
+            ElseDone:=False;
+            repeat
+              p:=tai(srclist.First);
+              if not assigned(p) then
+                internalerror(2023100303);
+              srclist.Remove(p);
+              if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_if) then
+                ElseDone:=True
+              else
+                else_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+            until ElseDone;
+          end;
+      end;
 
     destructor tai_wasmstruc_if.Destroy;
       begin
         then_asmlist.free;
         else_asmlist.free;
+        if_instr.free;
         inherited Destroy;
       end;
 
@@ -235,6 +317,8 @@ uses
         p: tai_wasmstruc_if;
       begin
         p:=tai_wasmstruc_if(inherited getcopy);
+        if assigned(if_instr) then
+          p.if_instr:=taicpu(if_instr.getcopy);
         if assigned(then_asmlist) then
           begin
             p.then_asmlist:=TAsmList.Create;
@@ -250,9 +334,34 @@ uses
 
     { tai_wasmstruc_block }
 
+    constructor tai_wasmstruc_block.create_from(a_block_instr: taicpu; srclist: TAsmList);
+      var
+        Done: Boolean;
+        p: tai;
+      begin
+        if assigned(a_block_instr.Previous) or assigned(a_block_instr.Next) then
+          internalerror(2023100304);
+        block_instr:=a_block_instr;
+
+        inner_asmlist:=TAsmList.Create;
+
+        Done:=False;
+        repeat
+          p:=tai(srclist.First);
+          if not assigned(p) then
+            internalerror(2023100305);
+          srclist.Remove(p);
+          if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_block) then
+            Done:=True
+          else
+            inner_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+        until Done;
+      end;
+
     destructor tai_wasmstruc_block.Destroy;
       begin
         inner_asmlist.free;
+        block_instr.free;
         inherited Destroy;
       end;
 
@@ -261,6 +370,8 @@ uses
         p: tai_wasmstruc_block;
       begin
         p:=tai_wasmstruc_block(inherited getcopy);
+        if assigned(block_instr) then
+          p.block_instr:=taicpu(block_instr.getcopy);
         if assigned(inner_asmlist) then
           begin
             p.inner_asmlist:=TAsmList.Create;
@@ -271,9 +382,34 @@ uses
 
     { tai_wasmstruc_loop }
 
+    constructor tai_wasmstruc_loop.create_from(a_loop_instr: taicpu; srclist: TAsmList);
+      var
+        Done: Boolean;
+        p: tai;
+      begin
+        if assigned(a_loop_instr.Previous) or assigned(a_loop_instr.Next) then
+          internalerror(2023100306);
+        loop_instr:=a_loop_instr;
+
+        inner_asmlist:=TAsmList.Create;
+
+        Done:=False;
+        repeat
+          p:=tai(srclist.First);
+          if not assigned(p) then
+            internalerror(2023100307);
+          srclist.Remove(p);
+          if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_loop) then
+            Done:=True
+          else
+            inner_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+        until Done;
+      end;
+
     destructor tai_wasmstruc_loop.Destroy;
       begin
         inner_asmlist.free;
+        loop_instr.free;
         inherited Destroy;
       end;
 
@@ -282,6 +418,8 @@ uses
         p: tai_wasmstruc_loop;
       begin
         p:=tai_wasmstruc_loop(inherited getcopy);
+        if assigned(loop_instr) then
+          p.loop_instr:=taicpu(loop_instr.getcopy);
         if assigned(inner_asmlist) then
           begin
             p.inner_asmlist:=TAsmList.Create;
@@ -291,6 +429,38 @@ uses
       end;
 
     { tai_wasmstruc_try }
+
+    class function tai_wasmstruc_try.create_from(srclist: TAsmList): tai_wasmstruc_try;
+      var
+        Done: Boolean;
+        p: tai;
+        tmp_asmlist: TAsmList;
+      begin
+        tmp_asmlist:=TAsmList.Create;
+
+        Done:=False;
+        repeat
+          p:=tai(srclist.First);
+          if not assigned(p) then
+            internalerror(2023100308);
+          srclist.Remove(p);
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_catch,a_catch_all,a_delegate]) then
+            Done:=True
+          else
+            tmp_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+        until Done;
+        case taicpu(p).opcode of
+          a_end_try,a_catch,a_catch_all:
+            result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
+          a_delegate:
+            result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
+        end;
+      end;
+
+    constructor tai_wasmstruc_try.internal_create(a_try_asmlist: TAsmList);
+      begin
+        try_asmlist:=a_try_asmlist;
+      end;
 
     destructor tai_wasmstruc_try.Destroy;
       begin
@@ -313,12 +483,93 @@ uses
 
     { tai_wasmstruc_try_catch }
 
+    constructor tai_wasmstruc_try_catch.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+      var
+        p: tai;
+
+        procedure parse_next_catch_block;
+          var
+            new_catch_index: Integer;
+            al: TAsmList;
+            Done: Boolean;
+            pp: tai;
+          begin
+            SetLength(catch_list,Length(catch_list)+1);
+            new_catch_index:=High(catch_list);
+            catch_list[new_catch_index].catch_instr:=taicpu(p);
+            al:=TAsmList.Create;
+            catch_list[new_catch_index].asmlist:=al;
+            Done:=False;
+            repeat
+              pp:=tai(srclist.First);
+              srclist.Remove(pp);
+              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
+                Done:=True
+              else
+                al.Concat(wasm_convert_first_item_to_structured(srclist));
+            until Done;
+          end;
+
+        procedure parse_catch_all;
+          var
+            Done: Boolean;
+            pp: tai;
+          begin
+            catch_all_asmlist:=TAsmList.Create;
+            Done:=False;
+            repeat
+              pp:=tai(srclist.First);
+              srclist.Remove(pp);
+              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
+                begin
+                  Done:=True;
+                  if taicpu(pp).opcode in [a_catch,a_catch_all] then
+                    internalerror(2023100313);
+                end
+              else
+                catch_all_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
+            until Done;
+          end;
+
+      var
+        Done: Boolean;
+      begin
+        inherited internal_create(a_try_asmlist);
+        if assigned(first_ins.Previous) or assigned(first_ins.Next) then
+          internalerror(2023100310);
+        Done:=False;
+        p:=first_ins;
+        repeat
+          if p.typ=ait_instruction then
+            case taicpu(p).opcode of
+              a_catch:
+                parse_next_catch_block;
+              a_catch_all:
+                begin
+                  parse_catch_all;
+                  Done:=True;
+                end;
+              a_end_try:
+                Done:=True;
+              else
+                internalerror(2023100311);
+            end
+          else
+            internalerror(2023100312);
+          p:=tai(srclist.First);
+          srclist.Remove(p);
+        until Done;
+      end;
+
     destructor tai_wasmstruc_try_catch.Destroy;
       var
-        a: TAsmList;
+        i: Integer;
       begin
-        for a in catch_asmlist do
-          a.free;
+        for i:=low(catch_list) to high(catch_list) do
+          begin
+            catch_list[i].asmlist.free;
+            catch_list[i].catch_instr.free;
+          end;
         catch_all_asmlist.free;
         inherited Destroy;
       end;
@@ -329,18 +580,48 @@ uses
         i: Integer;
       begin
         p:=tai_wasmstruc_try_catch(inherited getcopy);
-        p.catch_asmlist:=Copy(catch_asmlist);
-        for i:=0 to length(catch_asmlist)-1 do
-          if assigned(catch_asmlist[i]) then
-            begin
-              p.catch_asmlist[i]:=TAsmList.Create;
-              p.catch_asmlist[i].concatListcopy(catch_asmlist[i]);
-            end;
+        p.catch_list:=Copy(catch_list);
+        for i:=0 to length(catch_list)-1 do
+          begin
+            if assigned(catch_list[i].asmlist) then
+              begin
+                p.catch_list[i].asmlist:=TAsmList.Create;
+                p.catch_list[i].asmlist.concatListcopy(catch_list[i].asmlist);
+              end;
+            if assigned(catch_list[i].catch_instr) then
+              p.catch_list[i].catch_instr:=taicpu(catch_list[i].catch_instr.getcopy);
+          end;
         if assigned(catch_all_asmlist) then
           begin
             p.catch_all_asmlist:=TAsmList.Create;
             p.catch_all_asmlist.concatListcopy(catch_all_asmlist);
           end;
+        getcopy:=p;
+      end;
+
+    { tai_wasmstruc_try_delegate }
+
+    constructor tai_wasmstruc_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+      begin
+        inherited internal_create(a_try_asmlist);
+        if assigned(first_ins.Previous) or assigned(first_ins.Next) then
+          internalerror(2023100309);
+        delegate_instr:=first_ins;
+      end;
+
+    destructor tai_wasmstruc_try_delegate.Destroy;
+      begin
+        delegate_instr.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_try_delegate.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_try_delegate;
+      begin
+        p:=tai_wasmstruc_try_delegate(inherited getcopy);
+        if assigned(delegate_instr) then
+          p.delegate_instr:=taicpu(delegate_instr.getcopy);
         getcopy:=p;
       end;
 
@@ -2214,6 +2495,42 @@ uses
 
     procedure DoneAsm;
       begin
+      end;
+
+
+    function wasm_convert_first_item_to_structured(srclist: TAsmList): tai;
+      begin
+        result:=tai(srclist.First);
+        if result<>nil then
+          begin
+            srclist.Remove(result);
+            if result.typ=ait_instruction then
+              case taicpu(result).opcode of
+                a_if:
+                  result:=tai_wasmstruc_if.create_from(taicpu(result),srclist);
+                a_block:
+                  result:=tai_wasmstruc_block.create_from(taicpu(result),srclist);
+                a_loop:
+                  result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
+                a_try:
+                  result:=tai_wasmstruc_try.create_from(srclist);
+              end;
+          end;
+      end;
+
+
+    procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
+      var
+        p: tai;
+      begin
+        repeat
+          p:=tai(srclist.First);
+          if p<>nil then
+            begin
+              srclist.Remove(p);
+              destlist.Concat(wasm_convert_first_item_to_structured(srclist));
+            end;
+        until srclist.Empty;
       end;
 
 initialization
