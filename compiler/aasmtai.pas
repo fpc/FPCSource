@@ -99,6 +99,7 @@ interface
           ait_tagtype,
           ait_import_module,
           ait_import_name,
+          ait_wasm_structured_instruction,
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive,
@@ -250,6 +251,7 @@ interface
           'tagtype',
           'import_module',
           'import_name',
+          'wasm_structured_instruction',
 {$endif}
           'cfi',
           'seh_directive',
