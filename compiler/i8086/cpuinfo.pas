@@ -174,7 +174,9 @@ type
        CPUX86_HINT_FAST_BT_MEM_REG,  { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
        CPUX86_HINT_FAST_BTX_MEM_IMM, { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
        CPUX86_HINT_FAST_BTX_MEM_REG, { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_XCHG         { XCHG %reg,%reg executes in 2 cycles or less }
+       CPUX86_HINT_FAST_XCHG,        { XCHG %reg,%reg executes in 2 cycles or less }
+       CPUX86_HINT_FAST_3COMP_ADDR,  { A 3-component address (base, index and offset) has the same latency as the 2-component version (most notable with LEA instructions) }
+       CPUX86_HINT_FAST_3COMP_ADDR_16{ As above, but with 16-bit addresses }
       );
 
  const
@@ -194,16 +196,16 @@ type
 
    cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
      { cpu_none      } [],
-     { cpu_8086      } [],
-     { cpu_186       } [],
-     { cpu_286       } [],
-     { cpu_386       } [],
-     { cpu_486       } [],
-     { cpu_Pentium   } [],
-     { cpu_Pentium2  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
-     { cpu_Pentium3  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
+     { cpu_8086      } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_186       } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_286       } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_386       } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_486       } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_Pentium   } [CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_Pentium2  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
+     { cpu_Pentium3  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16],
      { cpu_Pentium4  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
-     { cpu_PentiumM  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG]
+     { cpu_PentiumM  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_3COMP_ADDR_16]
    );
 
    x86_near_code_models = [mm_tiny,mm_small,mm_compact];
