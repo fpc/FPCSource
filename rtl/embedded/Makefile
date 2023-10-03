@@ -1083,7 +1083,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
+CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(SOFTFPUUNIT), $(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS)))
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),i386-embedded)
