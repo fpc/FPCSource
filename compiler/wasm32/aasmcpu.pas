@@ -73,6 +73,64 @@ uses
          procedure Pass2(objdata:TObjData);override;
       end;
 
+      { taicpu_wasm_structured_instruction }
+
+      taicpu_wasm_structured_instruction = class(tai)
+      end;
+
+      { tai_wasmstruc_if }
+
+      tai_wasmstruc_if = class(taicpu_wasm_structured_instruction)
+      public
+        then_asmlist: TAsmList;
+        else_asmlist: TAsmList;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
+      end;
+
+      { tai_wasmstruc_block }
+
+      tai_wasmstruc_block = class(taicpu_wasm_structured_instruction)
+        inner_asmlist: TAsmList;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
+      end;
+
+      { tai_wasmstruc_loop }
+
+      tai_wasmstruc_loop = class(taicpu_wasm_structured_instruction)
+        inner_asmlist: TAsmList;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
+      end;
+
+      { tai_wasmstruc_try }
+
+      tai_wasmstruc_try = class(taicpu_wasm_structured_instruction)
+        try_asmlist: TAsmList;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
+      end;
+
+      { tai_wasmstruc_try_delegate }
+
+      tai_wasmstruc_try_delegate = class(tai_wasmstruc_try)
+      end;
+
+      { tai_wasmstruc_try_catch }
+
+      tai_wasmstruc_try_catch = class(tai_wasmstruc_try)
+        catch_asmlist: array of TAsmList;
+        catch_all_asmlist: TAsmList;
+
+        destructor Destroy; override;
+        function getcopy:TLinkedListItem;override;
+      end;
+
       tai_align = class(tai_align_abstract)
         { nothing to add }
       end;
@@ -162,6 +220,129 @@ implementation
 
 uses
   ogwasm;
+
+    { tai_wasmstruc_if }
+
+    destructor tai_wasmstruc_if.Destroy;
+      begin
+        then_asmlist.free;
+        else_asmlist.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_if.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_if;
+      begin
+        p:=tai_wasmstruc_if(inherited getcopy);
+        if assigned(then_asmlist) then
+          begin
+            p.then_asmlist:=TAsmList.Create;
+            p.then_asmlist.concatListcopy(then_asmlist);
+          end;
+        if assigned(else_asmlist) then
+          begin
+            p.else_asmlist:=TAsmList.Create;
+            p.else_asmlist.concatListcopy(else_asmlist);
+          end;
+        getcopy:=p;
+      end;
+
+    { tai_wasmstruc_block }
+
+    destructor tai_wasmstruc_block.Destroy;
+      begin
+        inner_asmlist.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_block.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_block;
+      begin
+        p:=tai_wasmstruc_block(inherited getcopy);
+        if assigned(inner_asmlist) then
+          begin
+            p.inner_asmlist:=TAsmList.Create;
+            p.inner_asmlist.concatListcopy(inner_asmlist);
+          end;
+        getcopy:=p;
+      end;
+
+    { tai_wasmstruc_loop }
+
+    destructor tai_wasmstruc_loop.Destroy;
+      begin
+        inner_asmlist.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_loop.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_loop;
+      begin
+        p:=tai_wasmstruc_loop(inherited getcopy);
+        if assigned(inner_asmlist) then
+          begin
+            p.inner_asmlist:=TAsmList.Create;
+            p.inner_asmlist.concatListcopy(inner_asmlist);
+          end;
+        getcopy:=p;
+      end;
+
+    { tai_wasmstruc_try }
+
+    destructor tai_wasmstruc_try.Destroy;
+      begin
+        try_asmlist.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_try.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_try;
+      begin
+        p:=tai_wasmstruc_try(inherited getcopy);
+        if assigned(try_asmlist) then
+          begin
+            p.try_asmlist:=TAsmList.Create;
+            p.try_asmlist.concatListcopy(try_asmlist);
+          end;
+        getcopy:=p;
+      end;
+
+    { tai_wasmstruc_try_catch }
+
+    destructor tai_wasmstruc_try_catch.Destroy;
+      var
+        a: TAsmList;
+      begin
+        for a in catch_asmlist do
+          a.free;
+        catch_all_asmlist.free;
+        inherited Destroy;
+      end;
+
+    function tai_wasmstruc_try_catch.getcopy: TLinkedListItem;
+      var
+        p: tai_wasmstruc_try_catch;
+        i: Integer;
+      begin
+        p:=tai_wasmstruc_try_catch(inherited getcopy);
+        p.catch_asmlist:=Copy(catch_asmlist);
+        for i:=0 to length(catch_asmlist)-1 do
+          if assigned(catch_asmlist[i]) then
+            begin
+              p.catch_asmlist[i]:=TAsmList.Create;
+              p.catch_asmlist[i].concatListcopy(catch_asmlist[i]);
+            end;
+        if assigned(catch_all_asmlist) then
+          begin
+            p.catch_all_asmlist:=TAsmList.Create;
+            p.catch_all_asmlist.concatListcopy(catch_all_asmlist);
+          end;
+        getcopy:=p;
+      end;
 
     { tai_globaltype }
 
