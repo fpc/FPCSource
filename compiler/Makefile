@@ -4454,11 +4454,13 @@ extcycle:
 	$(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG" ALLOW_WARNINGS=1
 cvstest:
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
+ifeq ($(findstring -dFPC_SOFT_FPUX80,$(LOCALOPT)),)
 ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64),)
   EXCLUDE_80BIT_TARGETS=1
+endif
 endif
 full: fullcycle
 fullcycle:
