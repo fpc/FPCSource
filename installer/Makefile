@@ -9,6 +9,7 @@ LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
 ifneq ($(findstring darwin,$(OSTYPE)),)
 inUnix=1 #darwin
@@ -165,8 +166,20 @@ endif
 ifndef OS_TARGET
 OS_TARGET:=$(word 5,$(FPC_COMPILERINFO))
 endif
-FULL_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+CPU_OS_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+ifdef SUB_TARGET
+L_SUB_TARGET=$(call lc,$(SUB_TARGET))
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)-$(L_SUB_TARGET)
+else
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)
+endif
+CPU_OS_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+ifdef SUB_SOURCE
+L_SUB_SOURCE=$(call lc,$(SUB_SOURCE))
+FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)-$(L_SUB_SOURCE)
+else
 FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+endif
 ifeq ($(CPU_TARGET),armeb)
 ARCH=arm
 override FPCOPT+=-Cb
@@ -178,39 +191,43 @@ else
 ARCH=$(CPU_TARGET)
 endif
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifdef SUB_TARGET 
+FPCOPT+=-t$(SUB_TARGET)
+FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
+endif
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t or SUBARCH=armv7m) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-freertos, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m or SUBARCH=armv7em) must be defined)
 endif
@@ -227,11 +244,11 @@ TARGETSUFFIX=$(FULL_TARGET)
 endif
 SOURCESUFFIX=$(FULL_SOURCE)
 endif
-ifneq ($(FULL_TARGET),$(FULL_SOURCE))
+ifneq ($(CPU_OS_TARGET),$(CPU_OS_SOURCE))
 CROSSCOMPILE=1
 endif
 ifeq ($(findstring makefile,$(MAKECMDGOALS)),)
-ifeq ($(filter $(FULL_TARGET),$(MAKEFILETARGETS)),)
+ifeq ($(filter $(CPU_OS_TARGET),$(MAKEFILETARGETS)),)
 $(error The Makefile doesn't support target $(FULL_TARGET), please run fpcmake first)
 endif
 endif
@@ -249,7 +266,7 @@ ifdef BUILDFULLNATIVE
 BUILDNATIVE=1
 export BUILDNATIVE
 endif
-export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
+export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE SUB_TARGET SUB_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE CPU_OS_TARGET CPU_OS_SOURCE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
 ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
@@ -351,472 +368,472 @@ endif
 endif
 override PACKAGE_NAME=installer
 override PACKAGE_VERSION=3.3.1
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_PROGRAMS+=install writeidx
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override TARGET_PROGRAMS+=install writeidx
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override TARGET_PROGRAMS+=install writeidx
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override TARGET_PROGRAMS+=installer writeidx
 endif
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override CLEAN_UNITS+=scroll insthelp
 endif
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override CLEAN_FILES+=installer.pas
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override CLEAN_FILES+=installer.pas
 endif
 override INSTALL_FPCPACKAGE=y
@@ -1608,1785 +1625,1013 @@ TAROPT=vz
 TAREXT=.tar.gz
 endif
 override REQUIRE_PACKAGES=rtl rtl-unicode rtl-console fv unzip rtl-extra ide
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
-REQUIRE_PACKAGES_GRAPH=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HASH=1
-REQUIRE_PACKAGES_LIBTAR=1
-REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_RTL-UNICODE=1
 REQUIRE_PACKAGES_RTL-CONSOLE=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_UNZIP=1
 REQUIRE_PACKAGES_RTL-EXTRA=1
-REQUIRE_PACKAGES_CHM=1
-REQUIRE_PACKAGES_REGEXPR=1
 REQUIRE_PACKAGES_IDE=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
@@ -3423,198 +2668,14 @@ ifdef UNITDIR_FPMAKE_RTL
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_RTL)
 endif
 endif
-ifdef REQUIRE_PACKAGES_PASZLIB
-PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_PASZLIB),)
-ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)),)
-UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)
-else
-UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_PASZLIB)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_PASZLIB) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_PASZLIB)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_PASZLIB=
-UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_PASZLIB),)
-UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
-else
-UNITDIR_PASZLIB=
-endif
-endif
-ifdef UNITDIR_PASZLIB
-override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
-endif
-ifdef UNITDIR_FPMAKE_PASZLIB
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_PASZLIB)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-PROCESS
-PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-PROCESS),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-PROCESS) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-PROCESS=
-UNITDIR_FCL-PROCESS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-PROCESS),)
-UNITDIR_FCL-PROCESS:=$(firstword $(UNITDIR_FCL-PROCESS))
-else
-UNITDIR_FCL-PROCESS=
-endif
-endif
-ifdef UNITDIR_FCL-PROCESS
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-PROCESS)
-endif
-ifdef UNITDIR_FPMAKE_FCL-PROCESS
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-PROCESS)
-endif
-endif
-ifdef REQUIRE_PACKAGES_HASH
-PACKAGEDIR_HASH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /hash/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_HASH),)
-ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)),)
-UNITDIR_HASH=$(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)
-else
-UNITDIR_HASH=$(PACKAGEDIR_HASH)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_HASH)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_HASH)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_HASH) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_HASH)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_HASH=
-UNITDIR_HASH:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /hash/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_HASH),)
-UNITDIR_HASH:=$(firstword $(UNITDIR_HASH))
-else
-UNITDIR_HASH=
-endif
-endif
-ifdef UNITDIR_HASH
-override COMPILER_UNITDIR+=$(UNITDIR_HASH)
-endif
-ifdef UNITDIR_FPMAKE_HASH
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_HASH)
-endif
-endif
-ifdef REQUIRE_PACKAGES_LIBTAR
-PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libtar/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_LIBTAR),)
-ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)),)
-UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)
-else
-UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_LIBTAR)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_LIBTAR) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_LIBTAR)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_LIBTAR=
-UNITDIR_LIBTAR:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /libtar/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_LIBTAR),)
-UNITDIR_LIBTAR:=$(firstword $(UNITDIR_LIBTAR))
-else
-UNITDIR_LIBTAR=
-endif
-endif
-ifdef UNITDIR_LIBTAR
-override COMPILER_UNITDIR+=$(UNITDIR_LIBTAR)
-endif
-ifdef UNITDIR_FPMAKE_LIBTAR
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_LIBTAR)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FPMKUNIT
-PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FPMKUNIT),)
-ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)),)
-UNITDIR_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FPMKUNIT) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FPMKUNIT=
-UNITDIR_FPMKUNIT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FPMKUNIT),)
-UNITDIR_FPMKUNIT:=$(firstword $(UNITDIR_FPMKUNIT))
-else
-UNITDIR_FPMKUNIT=
-endif
-endif
-ifdef UNITDIR_FPMKUNIT
-override COMPILER_UNITDIR+=$(UNITDIR_FPMKUNIT)
-endif
-ifdef UNITDIR_FPMAKE_FPMKUNIT
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FPMKUNIT)
-endif
-endif
 ifdef REQUIRE_PACKAGES_RTL-UNICODE
 PACKAGEDIR_RTL-UNICODE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl-unicode/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL-UNICODE),)
+PACKAGEDIR_RTL-UNICODE:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl-unicode/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL-UNICODE),)
+PACKAGEDIR_RTL-UNICODE:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl-unicode/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL-UNICODE),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL-UNICODE)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL-UNICODE=$(PACKAGEDIR_RTL-UNICODE)/units/$(TARGETSUFFIX)
@@ -3653,6 +2714,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_RTL-CONSOLE
 PACKAGEDIR_RTL-CONSOLE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl-console/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL-CONSOLE),)
+PACKAGEDIR_RTL-CONSOLE:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl-console/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL-CONSOLE),)
+PACKAGEDIR_RTL-CONSOLE:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl-console/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL-CONSOLE),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL-CONSOLE)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL-CONSOLE=$(PACKAGEDIR_RTL-CONSOLE)/units/$(TARGETSUFFIX)
@@ -3691,6 +2758,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_FV
 PACKAGEDIR_FV:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fv/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FV),)
+PACKAGEDIR_FV:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fv/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FV),)
+PACKAGEDIR_FV:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fv/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_FV),)
 ifneq ($(wildcard $(PACKAGEDIR_FV)/units/$(TARGETSUFFIX)),)
 UNITDIR_FV=$(PACKAGEDIR_FV)/units/$(TARGETSUFFIX)
@@ -3729,6 +2802,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_UNZIP
 PACKAGEDIR_UNZIP:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /unzip/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_UNZIP),)
+PACKAGEDIR_UNZIP:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /unzip/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_UNZIP),)
+PACKAGEDIR_UNZIP:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /unzip/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_UNZIP),)
 ifneq ($(wildcard $(PACKAGEDIR_UNZIP)/units/$(TARGETSUFFIX)),)
 UNITDIR_UNZIP=$(PACKAGEDIR_UNZIP)/units/$(TARGETSUFFIX)
@@ -3767,6 +2846,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_RTL-EXTRA
 PACKAGEDIR_RTL-EXTRA:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl-extra/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL-EXTRA),)
+PACKAGEDIR_RTL-EXTRA:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl-extra/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL-EXTRA),)
+PACKAGEDIR_RTL-EXTRA:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl-extra/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL-EXTRA),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL-EXTRA)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL-EXTRA=$(PACKAGEDIR_RTL-EXTRA)/units/$(TARGETSUFFIX)
@@ -3803,84 +2888,14 @@ ifdef UNITDIR_FPMAKE_RTL-EXTRA
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_RTL-EXTRA)
 endif
 endif
-ifdef REQUIRE_PACKAGES_CHM
-PACKAGEDIR_CHM:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /chm/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_CHM),)
-ifneq ($(wildcard $(PACKAGEDIR_CHM)/units/$(TARGETSUFFIX)),)
-UNITDIR_CHM=$(PACKAGEDIR_CHM)/units/$(TARGETSUFFIX)
-else
-UNITDIR_CHM=$(PACKAGEDIR_CHM)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_CHM)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_CHM=$(PACKAGEDIR_CHM)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_CHM)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_CHM=$(PACKAGEDIR_CHM)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_CHM=$(PACKAGEDIR_CHM)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_CHM)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_CHM) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_CHM)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_CHM=
-UNITDIR_CHM:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /chm/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_CHM),)
-UNITDIR_CHM:=$(firstword $(UNITDIR_CHM))
-else
-UNITDIR_CHM=
-endif
-endif
-ifdef UNITDIR_CHM
-override COMPILER_UNITDIR+=$(UNITDIR_CHM)
-endif
-ifdef UNITDIR_FPMAKE_CHM
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_CHM)
-endif
-endif
-ifdef REQUIRE_PACKAGES_REGEXPR
-PACKAGEDIR_REGEXPR:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /regexpr/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_REGEXPR),)
-ifneq ($(wildcard $(PACKAGEDIR_REGEXPR)/units/$(TARGETSUFFIX)),)
-UNITDIR_REGEXPR=$(PACKAGEDIR_REGEXPR)/units/$(TARGETSUFFIX)
-else
-UNITDIR_REGEXPR=$(PACKAGEDIR_REGEXPR)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_REGEXPR)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_REGEXPR=$(PACKAGEDIR_REGEXPR)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_REGEXPR)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_REGEXPR=$(PACKAGEDIR_REGEXPR)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_REGEXPR=$(PACKAGEDIR_REGEXPR)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_REGEXPR)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_REGEXPR) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_REGEXPR)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_REGEXPR=
-UNITDIR_REGEXPR:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /regexpr/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_REGEXPR),)
-UNITDIR_REGEXPR:=$(firstword $(UNITDIR_REGEXPR))
-else
-UNITDIR_REGEXPR=
-endif
-endif
-ifdef UNITDIR_REGEXPR
-override COMPILER_UNITDIR+=$(UNITDIR_REGEXPR)
-endif
-ifdef UNITDIR_FPMAKE_REGEXPR
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_REGEXPR)
-endif
-endif
 ifdef REQUIRE_PACKAGES_IDE
 PACKAGEDIR_IDE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ide/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_IDE),)
+PACKAGEDIR_IDE:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /ide/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_IDE),)
+PACKAGEDIR_IDE:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /ide/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_IDE),)
 ifneq ($(wildcard $(PACKAGEDIR_IDE)/units/$(TARGETSUFFIX)),)
 UNITDIR_IDE=$(PACKAGEDIR_IDE)/units/$(TARGETSUFFIX)
@@ -3915,44 +2930,6 @@ override COMPILER_UNITDIR+=$(UNITDIR_IDE)
 endif
 ifdef UNITDIR_FPMAKE_IDE
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_IDE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_GRAPH
-PACKAGEDIR_GRAPH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /graph/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_GRAPH),)
-ifneq ($(wildcard $(PACKAGEDIR_GRAPH)/units/$(TARGETSUFFIX)),)
-UNITDIR_GRAPH=$(PACKAGEDIR_GRAPH)/units/$(TARGETSUFFIX)
-else
-UNITDIR_GRAPH=$(PACKAGEDIR_GRAPH)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_GRAPH)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_GRAPH=$(PACKAGEDIR_GRAPH)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_GRAPH)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_GRAPH=$(PACKAGEDIR_GRAPH)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_GRAPH=$(PACKAGEDIR_GRAPH)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_GRAPH)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_GRAPH) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_GRAPH)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_GRAPH=
-UNITDIR_GRAPH:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /graph/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_GRAPH),)
-UNITDIR_GRAPH:=$(firstword $(UNITDIR_GRAPH))
-else
-UNITDIR_GRAPH=
-endif
-endif
-ifdef UNITDIR_GRAPH
-override COMPILER_UNITDIR+=$(UNITDIR_GRAPH)
-endif
-ifdef UNITDIR_FPMAKE_GRAPH
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_GRAPH)
 endif
 endif
 ifndef NOCPUDEF
