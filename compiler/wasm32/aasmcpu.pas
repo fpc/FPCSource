@@ -521,10 +521,7 @@ uses
             repeat
               pp:=tai(srclist.First);
               if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
-                begin
-                  srclist.Remove(pp);
-                  Done:=True;
-                end
+                Done:=True
               else
                 al.Concat(wasm_convert_first_item_to_structured(srclist));
             until Done;
@@ -561,7 +558,11 @@ uses
           if p.typ=ait_instruction then
             case taicpu(p).opcode of
               a_catch:
-                parse_next_catch_block;
+                begin
+                  parse_next_catch_block;
+                  p:=tai(srclist.First);
+                  srclist.Remove(p);
+                end;
               a_catch_all:
                 begin
                   parse_catch_all;
@@ -574,8 +575,6 @@ uses
             end
           else
             internalerror(2023100312);
-          p:=tai(srclist.First);
-          srclist.Remove(p);
         until Done;
       end;
 
