@@ -251,7 +251,7 @@ interface
           'tagtype',
           'import_module',
           'import_name',
-          'wasm_structured_instruction',
+          'wasm_structured_instr',
 {$endif}
           'cfi',
           'seh_directive',
