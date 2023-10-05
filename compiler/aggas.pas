@@ -1691,6 +1691,34 @@ implementation
                writer.AsmWrite(', ');
                writer.AsmWriteLn(tai_import_name(hp).importname);
              end;
+           ait_wasm_structured_instruction:
+             begin
+               { What we output for these is not valid llvm-mc output
+                 and we only print it for compiler debug purposes.
+                 These shouldn't be present in the final asmlist. }
+               if hp is tai_wasmstruc_block then
+                 begin
+                   writer.AsmWriteLn('.err block {');
+                   WriteTree(tai_wasmstruc_block(hp).inner_asmlist);
+                   writer.AsmWriteLn('.err } end block');
+                 end
+               else if hp is tai_wasmstruc_loop then
+                 begin
+                   writer.AsmWriteLn('.err loop {');
+                   WriteTree(tai_wasmstruc_loop(hp).inner_asmlist);
+                   writer.AsmWriteLn('.err } end loop');
+                 end
+               else if hp is tai_wasmstruc_if then
+                 begin
+                   writer.AsmWriteLn('.err if {');
+                   WriteTree(tai_wasmstruc_if(hp).then_asmlist);
+                   writer.AsmWriteLn('.err } else {');
+                   WriteTree(tai_wasmstruc_if(hp).else_asmlist);
+                   writer.AsmWriteLn('.err } endif');
+                 end
+               else
+                 writer.AsmWriteLn('.err structured instruction: ' + taicpu_wasm_structured_instruction(hp).ClassType.ClassName);
+             end;
 {$endif WASM}
 
            else
