@@ -272,7 +272,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all]) then
             begin
               srclist.Remove(p);
               case taicpu(p).opcode of
@@ -539,12 +539,10 @@ uses
             Done:=False;
             repeat
               pp:=tai(srclist.First);
-              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
+              if (pp.typ=ait_instruction) and (taicpu(pp).opcode=a_end_try) then
                 begin
                   srclist.Remove(pp);
                   Done:=True;
-                  if taicpu(pp).opcode in [a_catch,a_catch_all] then
-                    internalerror(2023100313);
                 end
               else
                 catch_all_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
