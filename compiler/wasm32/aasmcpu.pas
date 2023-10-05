@@ -272,16 +272,18 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          srclist.Remove(p);
           if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if]) then
-            case taicpu(p).opcode of
-              a_else:
-                begin
+            begin
+              srclist.Remove(p);
+              case taicpu(p).opcode of
+                a_else:
+                  begin
+                    ThenDone:=True;
+                    ElsePresent:=True;
+                  end;
+                a_end_if:
                   ThenDone:=True;
-                  ElsePresent:=True;
-                end;
-              a_end_if:
-                ThenDone:=True;
+              end;
             end
           else
             then_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
@@ -295,9 +297,11 @@ uses
               p:=tai(srclist.First);
               if not assigned(p) then
                 internalerror(2023100303);
-              srclist.Remove(p);
               if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_if) then
-                ElseDone:=True
+                begin
+                  srclist.Remove(p);
+                  ElseDone:=True;
+                end
               else
                 else_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
             until ElseDone;
@@ -350,9 +354,11 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100305);
-          srclist.Remove(p);
           if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_block) then
-            Done:=True
+            begin
+              srclist.Remove(p);
+              Done:=True;
+            end
           else
             inner_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
         until Done;
@@ -398,9 +404,11 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100307);
-          srclist.Remove(p);
           if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_loop) then
-            Done:=True
+            begin
+              srclist.Remove(p);
+              Done:=True;
+            end
           else
             inner_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
         until Done;
@@ -443,9 +451,11 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100308);
-          srclist.Remove(p);
           if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_catch,a_catch_all,a_delegate]) then
-            Done:=True
+            begin
+              srclist.Remove(p);
+              Done:=True;
+            end
           else
             tmp_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
         until Done;
@@ -502,9 +512,11 @@ uses
             Done:=False;
             repeat
               pp:=tai(srclist.First);
-              srclist.Remove(pp);
               if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
-                Done:=True
+                begin
+                  srclist.Remove(pp);
+                  Done:=True;
+                end
               else
                 al.Concat(wasm_convert_first_item_to_structured(srclist));
             until Done;
@@ -519,9 +531,9 @@ uses
             Done:=False;
             repeat
               pp:=tai(srclist.First);
-              srclist.Remove(pp);
               if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
                 begin
+                  srclist.Remove(pp);
                   Done:=True;
                   if taicpu(pp).opcode in [a_catch,a_catch_all] then
                     internalerror(2023100313);
