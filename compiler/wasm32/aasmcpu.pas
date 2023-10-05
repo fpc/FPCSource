@@ -76,20 +76,17 @@ uses
       { taicpu_wasm_structured_instruction }
 
       taicpu_wasm_structured_instruction = class(tai)
-      protected
         constructor Create;
       end;
 
       { tai_wasmstruc_if }
 
       tai_wasmstruc_if = class(taicpu_wasm_structured_instruction)
-      private
-        constructor create_from(a_if_instr: taicpu; srclist: TAsmList);
-      public
         if_instr: taicpu;
         then_asmlist: TAsmList;
         else_asmlist: TAsmList;
 
+        constructor create_from(a_if_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
@@ -97,12 +94,10 @@ uses
       { tai_wasmstruc_block }
 
       tai_wasmstruc_block = class(taicpu_wasm_structured_instruction)
-      private
-        constructor create_from(a_block_instr: taicpu; srclist: TAsmList);
-      public
         block_instr: taicpu;
         inner_asmlist: TAsmList;
 
+        constructor create_from(a_block_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
@@ -110,12 +105,10 @@ uses
       { tai_wasmstruc_loop }
 
       tai_wasmstruc_loop = class(taicpu_wasm_structured_instruction)
-      private
-        constructor create_from(a_loop_instr: taicpu; srclist: TAsmList);
-      public
         loop_instr: taicpu;
         inner_asmlist: TAsmList;
 
+        constructor create_from(a_loop_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
@@ -125,10 +118,10 @@ uses
       tai_wasmstruc_try = class(taicpu_wasm_structured_instruction)
       private
         class function create_from(srclist: TAsmList): tai_wasmstruc_try;
-        constructor internal_create(a_try_asmlist: TAsmList);
       public
         try_asmlist: TAsmList;
 
+        constructor internal_create(a_try_asmlist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
@@ -136,11 +129,9 @@ uses
       { tai_wasmstruc_try_delegate }
 
       tai_wasmstruc_try_delegate = class(tai_wasmstruc_try)
-      private
-        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
-      public
         delegate_instr: taicpu;
 
+        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
@@ -148,15 +139,13 @@ uses
       { tai_wasmstruc_try_catch }
 
       tai_wasmstruc_try_catch = class(tai_wasmstruc_try)
-      private
-        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
-      public
         catch_list: array of record
           catch_instr: taicpu;
           asmlist: TAsmList;
         end;
         catch_all_asmlist: TAsmList;
 
+        constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
       end;
