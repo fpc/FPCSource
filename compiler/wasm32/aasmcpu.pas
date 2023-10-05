@@ -283,6 +283,8 @@ uses
                   end;
                 a_end_if:
                   ThenDone:=True;
+                else
+                  internalerror(2023100501);
               end;
             end
           else
