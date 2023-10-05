@@ -76,6 +76,8 @@ uses
       { taicpu_wasm_structured_instruction }
 
       taicpu_wasm_structured_instruction = class(tai)
+      protected
+        constructor Create;
       end;
 
       { tai_wasmstruc_if }
@@ -253,6 +255,14 @@ uses
 
     function wasm_convert_first_item_to_structured(srclist: TAsmList): tai; forward;
 
+    { taicpu_wasm_structured_instruction }
+
+    constructor taicpu_wasm_structured_instruction.Create;
+      begin
+        inherited;
+        typ:=ait_wasm_structured_instruction;
+      end;
+
     { tai_wasmstruc_if }
 
     constructor tai_wasmstruc_if.create_from(a_if_instr: taicpu; srclist: TAsmList);
@@ -260,6 +270,7 @@ uses
         p: tai;
         ThenDone, ElsePresent, ElseDone: Boolean;
       begin
+        inherited Create;
         if assigned(a_if_instr.Previous) or assigned(a_if_instr.Next) then
           internalerror(2023100301);
         if_instr:=a_if_instr;
@@ -343,6 +354,7 @@ uses
         Done: Boolean;
         p: tai;
       begin
+        inherited Create;
         if assigned(a_block_instr.Previous) or assigned(a_block_instr.Next) then
           internalerror(2023100304);
         block_instr:=a_block_instr;
@@ -393,6 +405,7 @@ uses
         Done: Boolean;
         p: tai;
       begin
+        inherited Create;
         if assigned(a_loop_instr.Previous) or assigned(a_loop_instr.Next) then
           internalerror(2023100306);
         loop_instr:=a_loop_instr;
@@ -469,6 +482,7 @@ uses
 
     constructor tai_wasmstruc_try.internal_create(a_try_asmlist: TAsmList);
       begin
+        inherited Create;
         try_asmlist:=a_try_asmlist;
       end;
 
