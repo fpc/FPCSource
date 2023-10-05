@@ -2520,17 +2520,9 @@ uses
 
 
     procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
-      var
-        p: tai;
       begin
-        repeat
-          p:=tai(srclist.First);
-          if p<>nil then
-            begin
-              srclist.Remove(p);
-              destlist.Concat(wasm_convert_first_item_to_structured(srclist));
-            end;
-        until srclist.Empty;
+        while not srclist.Empty do
+          destlist.Concat(wasm_convert_first_item_to_structured(srclist));
       end;
 
 initialization
