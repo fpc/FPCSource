@@ -272,7 +272,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all,a_delegate]) then
             begin
               srclist.Remove(p);
               case taicpu(p).opcode of
@@ -2532,7 +2532,7 @@ uses
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
-                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all:
+                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all,a_delegate:
                   internalerror(2023100503);
                 else
                   ;
