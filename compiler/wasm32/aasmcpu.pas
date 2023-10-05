@@ -2534,6 +2534,8 @@ uses
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
+                else
+                  ;
               end;
           end;
       end;
