@@ -448,6 +448,7 @@ uses
         p: tai;
         tmp_asmlist: TAsmList;
       begin
+        result:=nil;
         tmp_asmlist:=TAsmList.Create;
 
         Done:=False;
@@ -468,6 +469,8 @@ uses
             result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
           a_delegate:
             result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
+          else
+            internalerror(2023100502);
         end;
       end;
 
