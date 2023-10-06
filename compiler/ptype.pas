@@ -1339,6 +1339,9 @@ implementation
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
+               { generic parameter? }
+               undefineddef:
+                ;
                else
                  Message(sym_e_ill_type_decl_set);
              end;
