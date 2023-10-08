@@ -45,9 +45,6 @@
       <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

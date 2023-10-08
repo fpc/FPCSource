@@ -47,6 +47,7 @@ const
     );
 
   DemoAttrIDBase = 100;
+  DemoPseudoClassIDBase = 100;
 
 type
   TDemoPseudoClass = (
@@ -54,6 +55,13 @@ type
     pcHover
     );
   TDemoPseudoClasses = set of TDemoPseudoClass;
+
+const
+  DemoPseudoClassNames: array[TDemoPseudoClass] of string = (
+    // case sensitive!
+    ':active',
+    ':hover'
+    );
 
 type
 
@@ -63,7 +71,9 @@ type
   private
     class var FAttributeInitialValues: array[TDemoNodeAttribute] of string;
   private
+    FActive: boolean;
     FAttributeValues: array[TDemoNodeAttribute] of string;
+    FHover: boolean;
     FNodes: TFPObjectList; // list of TDemoNode
     FCSSClasses: TStrings;
     FParent: TDemoNode;
@@ -72,7 +82,9 @@ type
     function GetAttribute(AIndex: TDemoNodeAttribute): string;
     function GetNodeCount: integer;
     function GetNodes(Index: integer): TDemoNode;
+    procedure SetActive(const AValue: boolean);
     procedure SetAttribute(AIndex: TDemoNodeAttribute; const AValue: string);
+    procedure SetHover(const AValue: boolean);
     procedure SetParent(const AValue: TDemoNode);
     procedure SetStyleElements(const AValue: TCSSElement);
     procedure SetStyle(const AValue: string);
@@ -104,8 +116,7 @@ type
     function GetCSSAttributeClass: TCSSString; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
-    function HasCSSPseudo(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
-    function GetCSSPseudo(const {%H-}AttrID: TCSSNumericalID): TCSSString; virtual;
+    function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSEmpty: boolean; virtual;
     function GetCSSDepth: integer; virtual;
     property Parent: TDemoNode read FParent write SetParent;
@@ -123,6 +134,10 @@ type
     property Display: string index naDisplay read GetAttribute write SetAttribute;
     property Color: string index naColor read GetAttribute write SetAttribute;
     property Attribute[Attr: TDemoNodeAttribute]: string read GetAttribute write SetAttribute;
+    // CSS pseudo classes
+    property Active: boolean read FActive write SetActive;
+    property Hover: boolean read FHover write SetHover;
+    function HasPseudoClass(PseudoClass: TDemoPseudoClass): boolean;
   end;
   TDemoNodeClass = class of TDemoNode;
 
@@ -208,9 +223,9 @@ type
     // Test list spaces "div, button ,span {}"
     procedure Test_Selector_Id;
     procedure Test_Selector_Class;
-    procedure Test_Selector_ClassClass; // ToDo and combinator
-    procedure Test_Selector_ClassSpaceClass; // ToDo descendant combinator
-    procedure Test_Selector_TypeCommaType; // or combinator
+    procedure Test_Selector_ClassClass; // AND combinator
+    procedure Test_Selector_ClassSpaceClass; // Descendant combinator
+    procedure Test_Selector_TypeCommaType; // OR combinator
     procedure Test_Selector_ClassGTClass; // child combinator
     procedure Test_Selector_TypePlusType; // adjacent sibling combinator
     procedure Test_Selector_TypeTildeType; // general sibling combinator
@@ -224,7 +239,7 @@ type
     procedure Test_Selector_AttributeContainsSubstring;
     // ToDo: "all"
 
-    // pseudo attributes
+    // pseudo classes
     procedure Test_Selector_Root;
     procedure Test_Selector_Empty;
     procedure Test_Selector_FirstChild;
@@ -243,7 +258,11 @@ type
     procedure Test_Selector_Where;
     // ToDo: div:has(>img)
     // ToDo: div:has(+img)
+    // ToDo: :dir()
     // ToDo: :lang()
+
+    // custom pseudo classes
+    procedure Test_Selector_Hover;
 
     // inline style
     procedure Test_InlineStyle;
@@ -1232,6 +1251,39 @@ begin
   AssertEquals('Div2.Left','2px',Div2.Left);
 end;
 
+procedure TTestCSSResolver.Test_Selector_Hover;
+var
+  Div1, Div11: TDemoDiv;
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+  Div1.Hover:=true;
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Div1;
+  Button1.Hover:=true;
+
+  Div11:=TDemoDiv.Create(Doc);
+  Div11.Parent:=Div1;
+
+  Doc.Style:=LinesToStr([
+  ':hover { left: 1px; }',
+  'button:hover { top: 2px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Div1.Left','1px',Div1.Left);
+  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Button1.Left','1px',Button1.Left);
+  AssertEquals('Button1.Top','2px',Button1.Top);
+  AssertEquals('Div11.Left','',Div11.Left);
+  AssertEquals('Div11.Top','',Div11.Top);
+end;
+
 procedure TTestCSSResolver.Test_InlineStyle;
 var
   Div1: TDemoDiv;
@@ -1356,14 +1408,17 @@ end;
 constructor TDemoDocument.Create(AOwner: TComponent);
 var
   Attr: TDemoNodeAttribute;
-  TypeIDs, AttributeIDs: TCSSNumericalIDs;
+  TypeIDs, AttributeIDs, PseudoClassIDs: TCSSNumericalIDs;
   NumKind: TCSSNumericalIDKind;
   AttrID: TCSSNumericalID;
+  PseudoClass: TDemoPseudoClass;
 begin
   inherited Create(AOwner);
 
   for NumKind in TCSSNumericalIDKind do
     FNumericalIDs[NumKind]:=TCSSNumericalIDs.Create(NumKind);
+
+  // register all css types
   TypeIDs:=FNumericalIDs[nikType];
   TypeIDs['*']:=CSSTypeID_Universal;
   if TypeIDs['*']<>CSSTypeID_Universal then
@@ -1373,22 +1428,38 @@ begin
   TypeIDs[TDemoDiv.CSSTypeName]:=TDemoDiv.CSSTypeID;
   TypeIDs[TDemoButton.CSSTypeName]:=TDemoButton.CSSTypeID;
 
+  // register all css attribute
   AttributeIDs:=FNumericalIDs[nikAttribute];
   AttributeIDs['all']:=CSSAttributeID_All;
+  // add basic element attributes
   AttrID:=DemoAttrIDBase;
   for Attr in TDemoNodeAttribute do
   begin
     AttributeIDs[DemoAttributeNames[Attr]]:=AttrID;
     inc(AttrID);
   end;
+  // add button caption attribute
   TDemoButton.CSSCaptionID:=AttrID;
   AttributeIDs['caption']:=AttrID;
   inc(AttrID);
 
+  // register css pseudo attributes
+  PseudoClassIDs:=FNumericalIDs[nikPseudoClass];
+  AttrID:=DemoPseudoClassIDBase;
+  for PseudoClass in TDemoPseudoClass do
+  begin
+    PseudoClassIDs[DemoPseudoClassNames[PseudoClass]]:=AttrID;
+    inc(AttrID);
+  end;
+  if PseudoClassIDs[DemoPseudoClassNames[pcHover]]<>DemoPseudoClassIDBase+ord(pcHover) then
+    raise Exception.Create('20231008232201');
+
+  // create the css resolver
   FCSSResolver:=TCSSResolver.Create(nil);
   for NumKind in TCSSNumericalIDKind do
     CSSResolver.NumericalIDs[NumKind]:=FNumericalIDs[NumKind];
 
+  // create a demo root node
   Root:=TDemoNode.Create(Self);
   Root.Name:='Root';
 end;
@@ -1453,6 +1524,12 @@ begin
   FAttributeValues[AIndex]:=AValue;
 end;
 
+procedure TDemoNode.SetHover(const AValue: boolean);
+begin
+  if FHover=AValue then Exit;
+  FHover:=AValue;
+end;
+
 procedure TDemoNode.SetParent(const AValue: TDemoNode);
 begin
   if FParent=AValue then Exit;
@@ -1469,6 +1546,12 @@ begin
     FParent.FNodes.Add(Self);
     FreeNotification(FParent);
   end;
+end;
+
+procedure TDemoNode.SetActive(const AValue: boolean);
+begin
+  if FActive=AValue then Exit;
+  FActive:=AValue;
 end;
 
 procedure TDemoNode.SetStyleElements(const AValue: TCSSElement);
@@ -1701,16 +1784,12 @@ begin
   Result:=Attribute[Attr];
 end;
 
-function TDemoNode.HasCSSPseudo(const AttrID: TCSSNumericalID
-  ): boolean;
+function TDemoNode.HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
 begin
-  Result:=false;
-end;
-
-function TDemoNode.GetCSSPseudo(const AttrID: TCSSNumericalID
-  ): TCSSString;
-begin
-  Result:='';
+  if (AttrID>=DemoPseudoClassIDBase) and (AttrID<=DemoPseudoClassIDBase+ord(High(TDemoPseudoClass))) then
+    Result:=HasPseudoClass(TDemoPseudoClass(AttrID-DemoPseudoClassIDBase))
+  else
+    Result:=false;
 end;
 
 function TDemoNode.GetCSSEmpty: boolean;
@@ -1728,6 +1807,14 @@ begin
   begin
     inc(Result);
     Node:=Node.Parent;
+  end;
+end;
+
+function TDemoNode.HasPseudoClass(PseudoClass: TDemoPseudoClass): boolean;
+begin
+  case PseudoClass of
+    pcActive: Result:=Active;
+    pcHover: Result:=Hover;
   end;
 end;
 
