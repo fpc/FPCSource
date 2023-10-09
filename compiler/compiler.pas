@@ -341,6 +341,9 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
+{$ifdef DUMP_EXCEPTION_BACKTRACE}
+          DumpExceptionBackTrace(stderr);
+{$endif DUMP_EXCEPTION_BACKTRACE}
           Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
