@@ -622,7 +622,7 @@ end;
 
 Function DateOf(const AValue: TDateTime): TDateTime; inline;
 begin
-  Result:=Trunc(AValue);
+  Result:=Int(AValue);
 end;
 
 
