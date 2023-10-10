@@ -99,6 +99,7 @@ type
     procedure TestM_Hint_UnitNotUsed_No_OnlyExternal;
     procedure TestM_Hint_UnitUsed;
     procedure TestM_Hint_UnitUsedVarArgs;
+    procedure TestM_Hint_UnitNotUsed_ClassInterfacesList;
     procedure TestM_Hint_ParameterNotUsed;
     procedure TestM_Hint_ParameterNotUsedOff;
     procedure TestM_Hint_ParameterInOverrideNotUsed;
@@ -1626,6 +1627,39 @@ begin
   Add('begin');
   Add('  writeln(i);');
   AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_UnitNotUsed_ClassInterfacesList;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  IUnknown = interface',
+    '  end;',
+    '  IBird = interface(IUnknown)',
+    '  end;',
+    '']),
+    LinesToStr(['']));
+
+  AddModuleWithIntfImplSrc('unit3.pp',
+    LinesToStr([
+    'uses unit2;',
+    'type',
+    '  IBird2 = unit2.IBird;',
+    '']),
+    LinesToStr(['']));
+
+  StartUnit(true,[supTObject]);
+  Add([
+  'interface',
+  'uses unit3;',
+  'type',
+  '  TBird = class(TObject,IBird2)',
+  '  end;',
+  'implementation',
+  '']);
+  AnalyzeUnit;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
