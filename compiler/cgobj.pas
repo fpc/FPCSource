@@ -1245,7 +1245,8 @@ implementation
             begin
               hreg:=paraloc.register;
               cgsize:=paraloc.size;
-              if paraloc.shiftval>0 then
+              if (paraloc.shiftval>0) and
+	        not ((target_info.endian=endian_big) and (sizeleft in [3,5,6,7])) then
                 a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
               { in case the original size was 3 or 5/6/7 bytes, the value was
                 shifted to the top of the to 4 resp. 8 byte register on the
