@@ -75,6 +75,11 @@ type
   procedure TranslateResourceStrings(const AFilename: AnsiString);
   procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
 
+Type
+  TTranslationErrorHandler = Procedure (const aFileName, aUnitName : String; aError : Exception; Out ReRaise : Boolean);
+
+Var
+  OnTranslationError : TTranslationErrorHandler = Nil;
 
 implementation
 
@@ -335,7 +340,17 @@ begin
 end;
 {$endif}
 
+Function DoReRaise(const aFileName, aUnitName : String; E : Exception) : boolean;
+
+begin
+  Result:=False;
+  if Assigned(OnTranslationError) then
+    OnTranslationError(aFileName,aUnitName,E,Result);
+end;
+
 procedure TranslateResourceStrings(const AFilename: AnsiString);
+
+  
 var
   mo: TMOFile;
   lang, FallbackLang: AnsiString;
@@ -354,7 +369,9 @@ begin
           mo.Free;
         end;
       except
-        on e: Exception do;
+        on e: Exception do 
+          if DoReRaise(FN,'',E) then
+            Raise ;
       end;
     end;
   lang := Copy(lang, 1, 5);
@@ -369,7 +386,9 @@ begin
           mo.Free;
         end;
       except
-        on e: Exception do;
+        on e: Exception do
+          if DoReRaise(FN,'',E) then
+            Raise ;
       end;
     end;
 end;
@@ -378,30 +397,38 @@ end;
 procedure TranslateUnitResourceStrings(const AUnitName:AnsiString; const AFilename: AnsiString);
 var
   mo: TMOFile;
+  FN : String;
   lang, FallbackLang: AnsiString;
 begin
   GetLanguageIDs(Lang, FallbackLang);
   try
-    mo := TMOFile.Create(Format(AFilename, [FallbackLang]));
+    FN := Format(AFilename, [FallbackLang]);
+    mo := TMOFile.Create(FN);
     try
       TranslateUnitResourceStrings(AUnitName,mo);
     finally
       mo.Free;
     end;
   except
-    on e: Exception do;
+    on e: Exception do
+      if DoReRaise(FN,aUnitName,E) then
+        Raise ;
   end;
 
   lang := Copy(lang, 1, 5);
   try
-    mo := TMOFile.Create(Format(AFilename, [lang]));
+    FN := Format(AFilename, [FallbackLang]);
+    mo := TMOFile.Create(FN);
     try
       TranslateUnitResourceStrings(AUnitName,mo);
     finally
       mo.Free;
     end;
   except
-    on e: Exception do;
+    on e: Exception do
+      if DoReRaise(FN,aUnitName,E) then
+        Raise ;
+
   end;
 end;
 
