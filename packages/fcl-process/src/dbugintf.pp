@@ -118,6 +118,8 @@ var
 Procedure WriteMessage(Const Msg : TDebugMessage);
 
 begin
+  if not Assigned(MsgBuffer) then
+    exit;
   MsgBuffer.Seek(0,soFrombeginning);
   WriteDebugMessageToStream(MsgBuffer,Msg);
   DebugClient.SendMessage(mtUnknown,MsgBuffer);
@@ -343,25 +345,25 @@ begin
   AlwaysDisplayPID:= ShowPID;
   DebugClient:=TSimpleIPCClient.Create(Nil);
   DebugClient.ServerID:=DebugServerID;
-  If not DebugClient.ServerRunning then
-    begin
-    ServerID:=StartDebugServer(ADebugServerExe,ARaiseExceptionOnSendError,ServerLogFileName);
-    if ServerID = 0 then
-      begin
-      DebugDisabled := True;
-      FreeAndNil(DebugClient);
-      Exit;
-      end
-    else
-      DebugDisabled := False;
-    I:=0;
-    While (I<100) and not DebugClient.ServerRunning do
-      begin
-      Inc(I);
-      Sleep(100);
-      end;
-    end;
   try
+    If not DebugClient.ServerRunning then
+      begin
+      ServerID:=StartDebugServer(ADebugServerExe,ARaiseExceptionOnSendError,ServerLogFileName);
+      if ServerID = 0 then
+        begin
+        DebugDisabled := True;
+        FreeAndNil(DebugClient);
+        Exit;
+        end
+      else
+        DebugDisabled := False;
+      I:=0;
+      While (I<100) and not DebugClient.ServerRunning do
+        begin
+        Inc(I);
+        Sleep(100);
+        end;
+      end;
     DebugClient.Connect;
   except
     FreeAndNil(DebugClient);
