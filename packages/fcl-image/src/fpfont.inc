@@ -37,13 +37,14 @@ end;
 
 procedure TFPCustomFont.DoCopyProps (From:TFPCanvasHelper);
 begin
-  with from as TFPCustomFont do
-    begin
-    self.FName := FName;
-    self.FSize := FSize;
-    self.FFPColor := FFPColor;
-    self.FFlags := FFlags;
-    end;
+  if From is TFPCustomFont then
+   with from as TFPCustomFont do
+     begin
+     self.FName := FName;
+     self.FSize := FSize;
+     self.FOrientation := FOrientation
+     end;
+  Inherited;  
 end;
 
 function TFPCustomFont.CopyFont : TFPCustomFont;
