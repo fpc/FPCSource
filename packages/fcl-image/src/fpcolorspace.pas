@@ -1921,10 +1921,16 @@ end;
 { TLChAHelper }
 
 function TLChAHelper.ToLabA: TLabA;
+
+Var
+  rh,rhs,rhc : single;
+
 begin
   result.L := self.L;
-  result.a := cos(DegToRad(self.h)) * self.C;
-  result.b := sin(DegToRad(self.h)) * self.C;
+  rh:=DegToRad(self.h);
+  sincos(rh,rhs,rhc);
+  result.a := rhc * self.C;
+  result.b := rhs * self.C;
   result.Alpha:= self.alpha;
 end;
 

@@ -2508,7 +2508,7 @@ var
   R: TPDFRectangle;
   p1, p2: TPDFCoord;
   t1, t2, t3: string;
-  rad: single;
+  rad, rads,radc: single;
 begin
   p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
@@ -2519,9 +2519,10 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
+    sincos(rad,rads,radc);
+    t1 := FormatFloat(PDF_NUMBER_MASK, radc, PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -rads, PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, rads, PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2550,7 +2551,7 @@ var
   R: TPDFRoundedRectangle;
   p1, p2, p3: TPDFCoord;
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
 begin
   p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
@@ -2563,9 +2564,10 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
+    sincos(rad,rads,radc);
+    t1 := FormatFloat(PDF_NUMBER_MASK, radc, PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -rads, PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, rads, PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2587,16 +2589,17 @@ procedure TPDFPage.DrawImageRawSize(const X, Y: TPDFFloat; const APixelWidth, AP
 var
   p1: TPDFCoord;
   t1, t2, t3: string;
-  rad: single;
+  rad, rads,radc: single;
 begin
   p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
+    sincos(rad,rads,radc);
+    t1 := FormatFloat(PDF_NUMBER_MASK, radc, PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -rads, PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, rads, PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2622,7 +2625,7 @@ procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight: TPDFF
 var
   p1, p2: TPDFCoord;
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
 begin
   p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
@@ -2633,9 +2636,10 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
+    sincos(rad,rads,radc);
+    t1 := FormatFloat(PDF_NUMBER_MASK, radc, PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -rads, PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, rads, PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2661,7 +2665,7 @@ procedure TPDFPage.DrawEllipse(const APosX, APosY, AWidth, AHeight, ALineWidth: 
 var
   p1, p2: TPDFCoord;
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
 begin
   p1 := Matrix.Transform(APosX, APosY);
   DoUnitConversion(p1);
@@ -2672,9 +2676,10 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
+    sincos(rad, rads, radc);
+    t1 := FormatFloat(PDF_NUMBER_MASK, radc, PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -rads, PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, rads, PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -3863,7 +3868,7 @@ end;
 procedure TPDFText.Write(const AStream: TStream);
 var
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
   lWidth: single;
   lTextWidthInMM: single;
   lHeight: single;
@@ -3876,9 +3881,10 @@ begin
   if Degrees <> 0.0 then
   begin
     rad := DegToRad(-Degrees);
-    t1 := FloatStr(Cos(rad));
-    t2 := FloatStr(-Sin(rad));
-    t3 := FloatStr(Sin(rad));
+    sincos(rad, rads, radc);
+    t1 := FloatStr(radc);
+    t2 := FloatStr(-rads);
+    t3 := FloatStr(rads);
     WriteString(Format('%s %s %s %s %s %s Tm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
   end
   else
@@ -3947,7 +3953,7 @@ end;
 procedure TPDFUTF8Text.Write(const AStream: TStream);
 var
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
   lFC: TFPFontCacheItem;
   lWidth: single;
   lTextWidthInMM: single;
@@ -3962,9 +3968,10 @@ begin
   if Degrees <> 0.0 then
   begin
     rad := DegToRad(-Degrees);
-    t1 := FloatStr(Cos(rad));
-    t2 := FloatStr(-Sin(rad));
-    t3 := FloatStr(Sin(rad));
+    sincos(rad, rads, radc);
+    t1 := FloatStr(radc);
+    t2 := FloatStr(-rads);
+    t3 := FloatStr(rads);
     WriteString(Format('%s %s %s %s %s %s Tm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
   end
   else
@@ -4039,7 +4046,7 @@ end;
 procedure TPDFUTF16Text.Write(const AStream: TStream);
 var
   t1, t2, t3: string;
-  rad: single;
+  rad, rads, radc: single;
   lFC: TFPFontCacheItem;
   lWidth: single;
   lTextWidthInMM: single;
@@ -4056,9 +4063,10 @@ begin
   if Degrees <> 0.0 then
   begin
     rad := DegToRad(-Degrees);
-    t1 := FloatStr(Cos(rad));
-    t2 := FloatStr(-Sin(rad));
-    t3 := FloatStr(Sin(rad));
+    sincos(rad, rads, radc);
+    t1 := FloatStr(radc);
+    t2 := FloatStr(-rads);
+    t3 := FloatStr(rads);
     WriteString(Format('%s %s %s %s %s %s Tm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
   end
   else
