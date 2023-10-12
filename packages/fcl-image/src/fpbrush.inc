@@ -30,6 +30,7 @@ begin
     begin
     self.Style := Style;
     self.Image := Image;
+    self.Pattern := Pattern;
     end;
   inherited DoCopyProps(From);
 end;
