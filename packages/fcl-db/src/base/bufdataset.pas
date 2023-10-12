@@ -1396,6 +1396,7 @@ var
   i : integer;
   aPacketReader : TDataPacketReader;
   aStream : TFileStream;
+  doBind : boolean;
 
 begin
   aPacketReader:=Nil;
@@ -1410,8 +1411,23 @@ begin
         aPacketReader := GetPacketReader(dfDefault, aStream);
         end;
       IntLoadFieldDefsFromPacket(aPacketReader);
+      end
+    else
+      begin
+      // Issue 40450: At design time, create a dataset, set to active.
+      // At runtime, open is called, but fields are not bound (this happens in createdataset)
+      // So we check for unbound fields and bind them if needed.
+      // Do not call bindfields unconditonally, because descendants may have called it.
+      I:=0;
+      DoBind:=False;
+      While (Not DoBind) and (I<Fields.Count) do
+        begin
+        DoBind:=Fields[i].FieldNo=0;
+        Inc(I);
+        end;
+      if DoBind then
+        BindFields(True);
       end;
-
     // This checks if the dataset is actually created (by calling CreateDataset,
     // or reading from a stream in some other way implemented by a descendent)
     // If there are less fields than FieldDefs we know for sure that the dataset
@@ -1425,7 +1441,6 @@ begin
     //  if Fields.Count<FieldDefs.Count then
     if (Fields.Count = 0) or (FieldDefs.Count=0) then
       DatabaseError(SErrNoDataset);
-
     // search for autoinc field
     FAutoIncField:=nil;
     if FAutoIncValue>-1 then
@@ -3665,17 +3680,15 @@ var
 
 begin
   CheckInactive;
+  if ((Fields.Count=0) and (FieldDefs.Count=0)) then
+    raise Exception.Create(SErrNoFieldsDefined);
   if ((Fields.Count=0) or (FieldDefs.Count=0)) then
     begin
     if (FieldDefs.Count>0) then
       CreateFields
     else if (Fields.Count>0) then
-      begin
       InitFieldDefsFromFields;
-      BindFields(True);
-      end
-    else
-      raise Exception.Create(SErrNoFieldsDefined);
+    BindFields(True);
     end;
   if FAutoIncValue<0 then  
     FAutoIncValue:=1;
