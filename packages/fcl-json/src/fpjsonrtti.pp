@@ -152,7 +152,7 @@ Type
     procedure SetCaseInsensitive(AValue: Boolean);
   protected
     // Try to parse a date.
-    Function ExtractDateTime(S : String): TDateTime;
+    Function ExtractDateTime(const S : String): TDateTime;
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
     procedure DoClearProperty(AObject: TObject; PropInfo: PPropInfo); virtual;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); virtual;
@@ -380,7 +380,7 @@ begin
     Exclude(Foptions,jdoCaseInsensitive);
 end;
 
-function TJSONDeStreamer.ExtractDateTime(S: String): TDateTime;
+function TJSONDeStreamer.ExtractDateTime(const S: String): TDateTime;
 
 Var
   Fmt : String;

@@ -654,9 +654,9 @@ Type
     {$IFNDEF PAS2JS}
     function GetInt64s(const AName : String): Int64;
     function GetUnicodeStrings(const AName : String): TJSONUnicodeStringType;
-    function GetQWords(AName : String): QWord;
+    function GetQWords(const AName : String): QWord;
     procedure SetInt64s(const AName : String; const AValue: Int64);
-    procedure SetQWords(AName : String; AValue: QWord);
+    procedure SetQWords(const AName : String; AValue: QWord);
     procedure SetUnicodeStrings(const AName : String; const AValue: TJSONUnicodeStringType);
     {$ELSE}
     function GetNativeInts(const AName : String): NativeInt;
@@ -1507,7 +1507,7 @@ end;
 
 procedure TJSONData.DumpJSON(S: TFPJSStream);
 
-  Procedure W(T : String);
+  Procedure W(const T : String);
   begin
     if T='' then exit;
     {$IFDEF PAS2JS}
@@ -3219,7 +3219,7 @@ begin
   Result:=GetElements(AName).AsInt64;
 end;
 
-function TJSONObject.GetQWords(AName : String): QWord;
+function TJSONObject.GetQWords(const AName : String): QWord;
 begin
   Result:=GetElements(AName).AsQWord;
 end;
@@ -3235,7 +3235,7 @@ begin
   SetElements(AName,CreateJSON(AVAlue));
 end;
 
-procedure TJSONObject.SetQWords(AName : String; AValue: QWord);
+procedure TJSONObject.SetQWords(const AName : String; AValue: QWord);
 begin
   SetElements(AName,CreateJSON(AVAlue));
 end;
