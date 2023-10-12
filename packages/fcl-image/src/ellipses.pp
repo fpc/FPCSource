@@ -17,7 +17,7 @@ unit Ellipses;
 
 interface
 
-uses classes, FPImage, FPCanvas;
+uses classes, FPImage, FPCanvas, Math;
 
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; const c:TFPColor);
@@ -171,6 +171,8 @@ var infoP, infoM : PEllipseInfoData;
     halfnumber,
     r, NumberPixels, xtemp,yt,yb : integer;
     pPy, pMy, x,y, rx,ry, xd,yd,ra, rdelta : real;
+    ras,rac : single;
+    
 begin
   ClearList;
   CalculateCircular (bounds, x,y,rx,ry);
@@ -198,8 +200,9 @@ begin
     infoM := NewInfoRec (round(x - rx));
     for r := 0 to NumberPixels do
       begin
-      xd := rx * cos(ra);
-      yd := ry * sin(ra);
+      sincos(ra,ras,rac);
+      xd := rx * rac;
+      yd := ry * ras;
       // take all 4 quarters
       yt := round(y - yd);
       yb := round(y + yd);

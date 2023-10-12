@@ -2343,8 +2343,7 @@ begin
 
   maxx := DstSurface.w;
   maxy := DstSurface.h;
-  aCos := cos( Angle );
-  aSin := sin( Angle );
+  SinCos(Angle, aSin, aCos);
 
   Width := round( abs( srcrect.h * acos ) + abs( srcrect.w * asin ) );
   Height := round( abs( srcrect.h * asin ) + abs( srcrect.w * acos ) );
