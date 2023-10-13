@@ -190,6 +190,39 @@ Type
       // aliases
       LtGray             = TColor($C0C0C0); // clSilver alias
       DkGray             = TColor($808080); // clGray alias
+      // Windows system colors
+      SysScrollBar               = TColor($FF000000) platform;
+      SysBackground              = TColor($FF000001) platform;
+      SysActiveCaption           = TColor($FF000002) platform;
+      SysInactiveCaption         = TColor($FF000003) platform;
+      SysMenu                    = TColor($FF000004) platform;
+      SysWindow                  = TColor($FF000005) platform;
+      SysWindowFrame             = TColor($FF000006) platform;
+      SysMenuText                = TColor($FF000007) platform;
+      SysWindowText              = TColor($FF000008) platform;
+      SysCaptionText             = TColor($FF000009) platform;
+      SysActiveBorder            = TColor($FF00000A) platform;
+      SysInactiveBorder          = TColor($FF00000B) platform;
+      SysAppWorkSpace            = TColor($FF00000C) platform;
+      SysHighlight               = TColor($FF00000D) platform;
+      SysHighlightText           = TColor($FF00000E) platform;
+      SysBtnFace                 = TColor($FF00000F) platform;
+      SysBtnShadow               = TColor($FF000010) platform;
+      SysGrayText                = TColor($FF000011) platform;
+      SysBtnText                 = TColor($FF000012) platform;
+      SysInactiveCaptionText     = TColor($FF000013) platform;
+      SysBtnHighlight            = TColor($FF000014) platform;
+      Sys3DDkShadow              = TColor($FF000015) platform;
+      Sys3DLight                 = TColor($FF000016) platform;
+      SysInfoText                = TColor($FF000017) platform;
+      SysInfoBk                  = TColor($FF000018) platform;
+      SysHotLight                = TColor($FF00001A) platform;
+      SysGradientActiveCaption   = TColor($FF00001B) platform;
+      SysGradientInactiveCaption = TColor($FF00001C) platform;
+      SysMenuHighlight           = TColor($FF00001D) platform;
+      SysMenuBar                 = TColor($FF00001E) platform;
+      SysNone                    = TColor($1FFFFFFF) platform;
+      SysDefault                 = TColor($20000000) platform;
       var
         case Integer of
           0:  {$IFDEF ENDIAN_BIG}
