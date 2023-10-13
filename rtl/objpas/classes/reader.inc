@@ -1555,11 +1555,12 @@ begin
           ResultName := CompName;
           Lock;
           try
-            while Assigned(FindGlobalComponent(ResultName)) do
-            begin
-              Inc(i);
-              ResultName := CompName + '_' + IntToStr(i);
-            end;
+            if ResultName<>'' then
+              while Assigned(FindGlobalComponent(ResultName)) do
+              begin
+                Inc(i);
+                ResultName := CompName + '_' + IntToStr(i);
+              end;
             Result.Name := ResultName;
           finally
             Unlock;
