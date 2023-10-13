@@ -41,6 +41,7 @@ uses
       O_MOV_DEST = 0;
 
     type
+      TAsmMapFunc = function(ai: tai): tai of object;
 
       { taicpu }
 
@@ -77,6 +78,7 @@ uses
 
       taicpu_wasm_structured_instruction = class(tai)
         constructor Create;
+        procedure Map(f: TAsmMapFunc);virtual;abstract;
       end;
 
       { tai_wasmstruc_if }
@@ -89,6 +91,7 @@ uses
         constructor create_from(a_if_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure Map(f: TAsmMapFunc);override;
       end;
 
       { tai_wasmstruc_block }
@@ -100,6 +103,7 @@ uses
         constructor create_from(a_block_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure Map(f: TAsmMapFunc);override;
       end;
 
       { tai_wasmstruc_loop }
@@ -111,6 +115,7 @@ uses
         constructor create_from(a_loop_instr: taicpu; srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure Map(f: TAsmMapFunc);override;
       end;
 
       { tai_wasmstruc_try }
@@ -124,6 +129,7 @@ uses
         constructor internal_create(a_try_asmlist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure Map(f: TAsmMapFunc);override;
       end;
 
       { tai_wasmstruc_try_delegate }
@@ -148,6 +154,7 @@ uses
         constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure Map(f: TAsmMapFunc);override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -236,6 +243,7 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
+    procedure map_structured_asmlist(l: TAsmList; f: TAsmMapFunc);
 
 implementation
 
@@ -338,6 +346,12 @@ uses
         getcopy:=p;
       end;
 
+    procedure tai_wasmstruc_if.Map(f: TAsmMapFunc);
+      begin
+        map_structured_asmlist(then_asmlist,f);
+        map_structured_asmlist(else_asmlist,f);
+      end;
+
     { tai_wasmstruc_block }
 
     constructor tai_wasmstruc_block.create_from(a_block_instr: taicpu; srclist: TAsmList);
@@ -389,6 +403,11 @@ uses
         getcopy:=p;
       end;
 
+    procedure tai_wasmstruc_block.Map(f: TAsmMapFunc);
+      begin
+        map_structured_asmlist(inner_asmlist,f);
+      end;
+
     { tai_wasmstruc_loop }
 
     constructor tai_wasmstruc_loop.create_from(a_loop_instr: taicpu; srclist: TAsmList);
@@ -438,6 +457,11 @@ uses
             p.inner_asmlist.concatListcopy(inner_asmlist);
           end;
         getcopy:=p;
+      end;
+
+    procedure tai_wasmstruc_loop.Map(f: TAsmMapFunc);
+      begin
+        map_structured_asmlist(inner_asmlist,f);
       end;
 
     { tai_wasmstruc_try }
@@ -497,6 +521,11 @@ uses
             p.try_asmlist.concatListcopy(try_asmlist);
           end;
         getcopy:=p;
+      end;
+
+    procedure tai_wasmstruc_try.Map(f: TAsmMapFunc);
+      begin
+        map_structured_asmlist(try_asmlist,f);
       end;
 
     { tai_wasmstruc_try_catch }
@@ -614,6 +643,16 @@ uses
             p.catch_all_asmlist.concatListcopy(catch_all_asmlist);
           end;
         getcopy:=p;
+      end;
+
+    procedure tai_wasmstruc_try_catch.Map(f: TAsmMapFunc);
+      var
+        i: Integer;
+      begin
+        inherited;
+        for i:=low(catch_list) to high(catch_list) do
+          map_structured_asmlist(catch_list[i].asmlist,f);
+        map_structured_asmlist(catch_all_asmlist,f);
       end;
 
     { tai_wasmstruc_try_delegate }
@@ -2545,6 +2584,34 @@ uses
         while not srclist.Empty do
           destlist.Concat(wasm_convert_first_item_to_structured(srclist));
       end;
+
+
+    procedure map_structured_asmlist(l: TAsmList; f: TAsmMapFunc);
+      var
+        p, q: tai;
+      begin
+        p:=tai(l.First);
+        while p<>nil do
+          begin
+            if p.typ=ait_wasm_structured_instruction then
+              begin
+                taicpu_wasm_structured_instruction(p).Map(f);
+              end
+            else
+              begin
+                q:=f(p);
+                if q<>p then
+                  begin
+                    l.InsertAfter(q,p);
+                    l.Remove(p);
+                    p:=tai(q.next);
+                  end
+                else
+                  p:=tai(p.next);
+              end;
+          end;
+      end;
+
 
 initialization
   cai_cpu:=taicpu;
