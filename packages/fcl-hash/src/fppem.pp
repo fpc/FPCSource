@@ -169,7 +169,7 @@ begin
   ASNParsePemSection(Buffer, List, _BEGIN_EC_PRIVATE_KEY, _END_EC_PRIVATE_KEY);
   if List.Count < 7 then
     Exit;
-  Writeln(List.Text);
+//  Writeln(List.Text);
   CurveOID := List.Strings[4];
   Result := (CurveOID=ASN_secp256r1);
 end;
