@@ -1272,40 +1272,15 @@ end;
 
 {$ifndef FPUNONE}
 
-Function StrToFloat(Const S: String): Extended;
-
-begin
-  Result:=StrToFloat(S,DefaultFormatSettings);
-end;
-
-Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
-
-Begin // texttofloat handles NIL properly
-  If Not TextToFloat(PChar(pointer(S)),Result,FormatSettings) then
-    Raise EConvertError.createfmt(SInValidFLoat,[S]);
-End;
-
-function StrToFloatDef(const S: string; const Default: Extended): Extended;
-
-begin
-  Result:=StrToFloatDef(S,Default,DefaultFormatSettings);
-end;
-
-Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
-
-begin
-   if not TextToFloat(PChar(S),Result,fvExtended,FormatSettings) then
-     Result:=Default;
-end;
-
-Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function InternalTextToFloat(S: String; Out Value; ValueType: TFloatValue;
+  Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
-  S : String;
 
 Begin
-  S:=StrPas(Buffer);
+  if S = '' then
+    exit(false);  
   //ThousandSeparator not allowed as by Delphi specs
   if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
      (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
@@ -1313,68 +1288,18 @@ Begin
       Result := False;
       Exit;
     end;
-  if (FormatSettings.DecimalSeparator <> '.') and
-     (Pos('.', S) <>0) then
+  if (FormatSettings.DecimalSeparator <> '.') then
     begin
-      Result := False;
-      Exit;
-    end;
-  P:=Pos(FormatSettings.DecimalSeparator,S);
-  If (P<>0) Then
-    S[P] := '.';
-  try
-    Val(trim(S),Value,E);
-  { on x87, a floating point exception may be pending in case of an invalid
-    input value -> trigger it now }
-{$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
-    asm
-      fwait
-    end;
-{$endif}
-  except
-    E:=1;
-  end;
-  Result:=(E=0);
-End;
-
-
-Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
-
-begin
-  Result:=TextToFloat(Buffer,Value,DefaultFormatSettings);
-end;
-
-Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
-
-begin
-  Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
-end;
-
-Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
-
-Var
-  E,P : Integer;
-  S : String;
-
-Begin
-  S:=StrPas(Buffer);
-  //ThousandSeparator not allowed as by Delphi specs
-  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
-     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
-    begin
-      Result := False;
-      Exit;
-    end;
-  if (FormatSettings.DecimalSeparator <> '.') and
-     (Pos('.', S) <>0) then
-    begin
-      Result := False;
-      Exit;
+      if (Pos('.', S) <>0) then
+        begin
+          Result := False;
+          Exit;
+        end;
+      P:=Pos(FormatSettings.DecimalSeparator,S);
+      If (P<>0) Then
+        S[P] := '.';
     end;
 
-  P:=Pos(FormatSettings.DecimalSeparator,S);
-  If (P<>0) Then
-    S[P] := '.';
   s:=Trim(s);
   try
     case ValueType of
@@ -1391,6 +1316,48 @@ Begin
       fvReal:
         Val(S,Real(Value),E);
     end;
+  { on x87, a floating point exception may be pending in case of an invalid
+    input value -> trigger it now }
+{$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
+    asm
+      fwait
+    end;
+{$endif}
+  except
+    E:=1;
+  end;
+  Result:=(E=0);
+End;
+
+Function InternalTextToFloat(S: String; Out Value: Extended;
+  Const FormatSettings: TFormatSettings): Boolean;
+
+Var
+  E,P : Integer;
+Begin
+  if S = '' then
+    exit(false);
+
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  if (FormatSettings.DecimalSeparator <> '.') then
+    begin
+      if (Pos('.', S) <>0) then
+        begin
+          Result := False;
+          Exit;
+        end;
+      P:=Pos(FormatSettings.DecimalSeparator,S);
+      If (P<>0) Then
+        S[P] := '.';
+    end;
+  try
+    Val(trim(S),Value,E);
   { on x87, a floating point exception may be pending in case of an invalid
     input value -> trigger it now }
 {$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
@@ -1467,6 +1434,54 @@ Begin
 End;
 {$ENDIF}
 
+Function StrToFloat(Const S: String): Extended;
+
+begin
+  Result:=StrToFloat(S,DefaultFormatSettings);
+end;
+
+Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
+
+Begin
+  If Not InternalTextToFloat(S,Result,FormatSettings) then
+    Raise EConvertError.createfmt(SInValidFLoat,[S]);
+End;
+
+function StrToFloatDef(const S: string; const Default: Extended): Extended;
+
+begin
+  Result:=StrToFloatDef(S,Default,DefaultFormatSettings);
+end;
+
+Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
+
+begin
+   if not InternalTextToFloat(S,Result,fvExtended,FormatSettings) then
+     Result:=Default;
+end;
+
+Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+begin
+  Result := InternalTextToFloat(StrPas(Buffer), Value, FormatSettings);
+End;
+
+
+Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
+
+begin
+  Result:=InternalTextToFloat(StrPas(Buffer),Value,DefaultFormatSettings);
+end;
+
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
+
+begin
+  Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
+end;
+
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+Begin
+  Result := InternalTextToFloat(StrPas(Buffer), Value, ValueType, FormatSettings);
+End;
 
 Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
 
@@ -1476,7 +1491,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvSingle,FormatSettings);
+  Result := InternalTextToFloat(S, Value, fvSingle,FormatSettings);
 End;
 
 Function TryStrToFloat(Const S : String; Out Value: Double): Boolean;
@@ -1487,7 +1502,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvDouble,FormatSettings);
+  Result := InternalTextToFloat(S, Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1499,7 +1514,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value,FormatSettings);
+  Result := InternalTextToFloat(S, Value,FormatSettings);
 End;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -2086,39 +2101,39 @@ end;
 
 function StrToCurr(const S: string): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
+  if not InternalTextToFloat(S, Result, fvCurrency, DefaultFormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
 
 function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+  if not InternalTextToFloat(S, Result, fvCurrency,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
 
 Function TryStrToCurr(Const S : String; Out Value: Currency): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency);
+  Result := InternalTextToFloat(S, Value, fvCurrency, DefaultFormatSettings);
 End;
 
 
 function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency,FormatSettings);
+  Result := InternalTextToFloat(S, Value, fvCurrency,FormatSettings);
 End;
 
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
+  if not InternalTextToFloat(S, Result, fvCurrency, DefaultFormatSettings) then
     Result:=Default;
 end;
 
 function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+  if not InternalTextToFloat(S, Result, fvCurrency,FormatSettings) then
     Result:=Default;
 end;
 {$endif FPUNONE}
