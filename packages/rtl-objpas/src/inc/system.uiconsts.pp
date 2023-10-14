@@ -183,8 +183,8 @@ const
 function CursorToString(Cursor: TCursor): string;
 function StringToCursor(const S: string): TCursor;
 procedure GetCursorValues(const Proc: TGetStrProc);
-function CursorToIdent(Cursor: Integer; var Ident: string): Boolean; inline;
-function IdentToCursor(const Ident: string; var Cursor: Integer): Boolean; inline;
+function CursorToIdent(Cursor: LongInt; var Ident: string): Boolean; inline;
+function IdentToCursor(const Ident: string; var Cursor: LongInt): Boolean; inline;
 procedure RegisterCursorIntegerConsts;
 
 { TColor string functions }
@@ -192,8 +192,8 @@ procedure RegisterCursorIntegerConsts;
 function ColorToString(Color: TColor): string;
 function StringToColor(const S: string): TColor;
 procedure GetColorValues(Proc: TGetStrProc);
-function ColorToIdent(Color: Integer; var Ident: string): Boolean; inline;
-function IdentToColor(const Ident: string; var Color: Integer): Boolean; inline;
+function ColorToIdent(Color: Longint; var Ident: string): Boolean; inline;
+function IdentToColor(const Ident: string; var Color: LongInt): Boolean; inline;
 procedure RegisterColorIntegerConsts;
 
 { TAlphaColor string functions }
@@ -201,8 +201,8 @@ procedure RegisterColorIntegerConsts;
 procedure GetAlphaColorValues(Proc: TGetStrProc);
 function AlphaColorToString(Value: TAlphaColor): string;
 function StringToAlphaColor(const Value: string): TAlphaColor;
-function AlphaColorToIdent(Color: Integer; var Ident: string): Boolean;
-function IdentToAlphaColor(const Ident: string; var Color: Integer): Boolean;
+function AlphaColorToIdent(Color: LongInt; var Ident: string): Boolean;
+function IdentToAlphaColor(const Ident: string; var Color: Longint): Boolean;
 procedure RegisterAlphaColorIntegerConsts;
 
 { TAlphaColor function's }
@@ -486,13 +486,13 @@ uses SysUtils;
   Colors
   ****************************************************************************}
 
-function ColorToIdent(Color: Integer;var Ident: string): Boolean;
+function ColorToIdent(Color: LongInt;var Ident: string): Boolean;
 begin
   Result:=IntToIdent(Color,Ident,ColorNames);
 end;
 
 
-function IdentToColor(const Ident: string;var Color: Integer): Boolean;
+function IdentToColor(const Ident: string;var Color: LongInt): Boolean;
 begin
   Result:=IdentToInt(Ident,Color,ColorNames);
 end;
@@ -509,7 +509,7 @@ end;
 function StringToColor(const S: string): TColor;
 
 begin
-  if IdentToColor(S,Integer(Result)) then
+  if IdentToColor(S,LongInt(Result)) then
     exit;
   Result:=TColor(StrToIntDef(S,Integer(TColorRec.Black)));
 end;
@@ -538,7 +538,7 @@ end;
   AlphaColors
   ****************************************************************************}
 
-function AlphaColorToIdent(Color: Integer; var Ident: string): Boolean;
+function AlphaColorToIdent(Color: LongInt; var Ident: string): Boolean;
 
 begin
   Result:=IntToIdent(Color,Ident,AlphaColorNames);
@@ -550,7 +550,7 @@ begin
 end;
 
 
-function IdentToAlphaColor(const Ident: string; var Color: Integer): Boolean;
+function IdentToAlphaColor(const Ident: string; var Color: LongInt): Boolean;
 
 var
   S: string;
@@ -609,8 +609,8 @@ begin
     Result:=TAlphaColor(StrToIntDef(S,TAlphaColors.Black));
     end
   else 
-    if not IdentToAlphaColor(S,Integer(Result)) then
-      if not IdentToAlphaColor('cla'+S,Integer(Result)) then
+    if not IdentToAlphaColor(S,LongInt(Result)) then
+      if not IdentToAlphaColor('cla'+S,LongInt(Result)) then
         Result:=TAlphaColor(StrToIntDef(S,TAlphaColors.Black));
 end;
 
@@ -620,8 +620,6 @@ begin
   if not Assigned(FindIntToIdent(TypeInfo(TAlphaColor))) then
     RegisterIntegerConsts(TypeInfo(TAlphaColor),@IdentToAlphaColor,@AlphaColorToIdent);
 end;
-
-{ Colors }
 
 function AlphaColorToColor(const Color: TAlphaColor): TColor;
 
@@ -946,13 +944,13 @@ begin
 end;
 
 
-function CursorToIdent(Cursor: Integer;var Ident: string): Boolean;
+function CursorToIdent(Cursor: LongInt;var Ident: string): Boolean;
 begin
   Result:=IntToIdent(Cursor,Ident,CursorNames);
 end;
 
 
-function IdentToCursor(const Ident: string;var Cursor: Integer): Boolean;
+function IdentToCursor(const Ident: string;var Cursor: LongInt): Boolean;
 begin
   Result:=IdentToInt(Ident, Cursor, CursorNames);
 end;
@@ -970,7 +968,7 @@ end;
 function StringToCursor(const S: string): TCursor;
 
 var
-  C : integer;
+  C : Longint;
 begin
   if IdentToCursor(S,C) then 
     Exit(TCursor(C));
