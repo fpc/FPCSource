@@ -694,8 +694,6 @@ asm
 
 //Inc(Context.Length,64);
   ADD QWORD PTR TMDContext.Length[RDI],64
-
-  POP  RBX
 end;
 {$else CPUX86_HAS_BMI1}
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer); assembler; nostackframe;
