@@ -1,0 +1,6 @@
+
+Original TRegexpr repo is at https://github.com/andgineer/TRegExpr.git
+
+Diff between our code and original was last taken on rev. 4ff33af23055c03757761ea6df351f7a57eac8c4
+
+Please update the revision when you update the regexpr unit.
