@@ -349,7 +349,7 @@ end;
       {$i md5i386.inc}
       {$define MD5ASM}
     {$endif CPUX86_HAS_BSWAP}
-  {$else if defined(CPUX64)}
+  {$elseif defined(CPUX64)}
     {$ifdef MSWINDOWS}
       // Microsoft Windows uses a different calling convention to the System V ABI
       {$i md5x64_win.inc}
