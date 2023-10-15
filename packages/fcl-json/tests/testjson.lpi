@@ -72,9 +72,6 @@
         <TrashVariables Value="True"/>
       </Debugging>
     </Linking>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">
