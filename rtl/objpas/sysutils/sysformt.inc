@@ -263,6 +263,21 @@ begin
       DumpFormat(FCHar);
 {$endif}
       Case FChar of
+        'B' : begin
+              if Checkarg(vtInteger,False) then
+                ToAdd:=BoolToStr((Args[Doarg].VInteger<>0),True)
+              else if Checkarg(vtInt64,False) then
+                ToAdd:=BoolToStr((Args[Doarg].VInt64^<>0),True)
+              else if Checkarg(vtBoolean,True) then
+                ToAdd:=BoolToStr(Args[Doarg].VBoolean,True);
+              Index:=Length(ToAdd);
+              // Top off
+              If (Prec<>-1) and (Index>Prec) then
+                begin
+                Index:=Prec;
+                ToAdd:=Copy(ToAdd,1,Index);
+                end;
+              end;
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
