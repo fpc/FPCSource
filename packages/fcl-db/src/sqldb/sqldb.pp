@@ -1410,7 +1410,7 @@ end;
 destructor TSQLConnection.Destroy;
 begin
   try
-    Connected:=False; // needed because we want to de-allocate statements
+    CloseForDestroy; // needed because we want to de-allocate statements
   Finally  
     FreeAndNil(FStatements);
     inherited Destroy;
