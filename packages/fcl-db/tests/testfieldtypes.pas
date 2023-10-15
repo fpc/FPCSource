@@ -1671,7 +1671,7 @@ end;
 
 procedure TTestFieldTypes.TestFixedStringParamQuery;
 begin
-  TestXXParamQuery(ftFixedChar,'AnsiChar(10)',testValuesCount);
+  TestXXParamQuery(ftFixedChar,'CHAR(10)',testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
