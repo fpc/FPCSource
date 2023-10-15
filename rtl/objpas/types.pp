@@ -477,9 +477,12 @@ function Point(x,y : Integer) : TPoint; inline;
 function PointF(x,y: Single) : TPointF; inline;
 function PtInRect(const Rect : TRect; const p : TPoint) : Boolean;
 function IntersectRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
+function RectCenter(var R: TRect; const Bounds: TRect): TRect;
+function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
+function OffsetRect(var Rect : TRectF;DX : Single;DY : Single) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 function Size(AWidth, AHeight: Integer): TSize; inline;
@@ -583,6 +586,32 @@ begin
     FillChar(Rect,SizeOf(Rect),0);
 end;
 
+function RectCenter(var R: TRect; const Bounds: TRect): TRect;
+
+var
+  C : TPoint;
+  CS : TPoint;
+
+begin
+  C:=Bounds.CenterPoint;
+  CS:=R.CenterPoint;
+  OffsetRect(R,C.X-CS.X,C.Y-CS.Y);
+  Result:=R;
+end;
+
+function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
+
+Var
+  C,CS : TPointF;
+
+begin
+  C:=Bounds.CenterPoint;
+  CS:=R.CenterPoint;
+  OffsetRect(R,C.X-CS.X,C.Y-CS.Y);
+  Result:=R;
+end;
+
+
 function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
 var
   lRect: TRect;
@@ -628,6 +657,19 @@ begin
     Result := a + ((b - a) shr 1)
   else
     Result := b + ((a - b) shr 1);
+end;
+
+function OffsetRect(var Rect: TRectF; DX: Single; DY: Single): Boolean;
+begin
+  Result:=assigned(@Rect);
+  if Result then
+    with Rect do
+      begin
+        Left:=Left+dx;
+        Right:=Right+dx;
+        Top:=Top+dy;
+        Bottom:=Bottom+dy;
+      end;
 end;
 
 function CenterPoint(const Rect: TRect): TPoint;
@@ -1139,7 +1181,8 @@ end;
 
 function TRectF.CenterAt(const Dest: TRectF): TRectF;
 begin
-
+  Result:=Self;
+  RectCenter(Result,Dest);
 end;
 
 function TRectF.Fit(const Dest: TRectF): Single;
