@@ -2238,6 +2238,7 @@ type
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
     Procedure DoCloseError(aError : Exception);
+    procedure SetForcedClose(AValue: Boolean); virtual;
     procedure CloseForDestroy;
     procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
@@ -2250,7 +2251,7 @@ type
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
     procedure SetLoginParams(const ADatabaseName, AUserName, APassword: string); virtual;
-    property ForcedClose : Boolean read FForcedClose write FForcedClose;
+    property ForcedClose : Boolean read FForcedClose write SetForcedClose;
     property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close(ForceClose: Boolean=False);

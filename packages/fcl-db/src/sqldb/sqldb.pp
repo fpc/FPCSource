@@ -778,6 +778,7 @@ type
     FConnectorType: String;
     procedure SetConnectorType(const AValue: String);
   protected
+    procedure SetForcedClose(AValue: Boolean); override;
     procedure SetTransaction(Value : TSQLTransaction);override;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -3801,6 +3802,12 @@ begin
     FConnectorType:=AValue;
     CreateProxy;
     end;
+end;
+
+procedure TSQLConnector.SetForcedClose(AValue: Boolean);
+begin
+  inherited SetForcedClose(AValue);
+  FProxy.ForcedClose:=aValue;
 end;
 
 procedure TSQLConnector.SetTransaction(Value: TSQLTransaction);
