@@ -42,12 +42,9 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
 }
 
-// Define to use original MD5 code on i386 processors.
-// Undefine to use original implementation.
-{ the assembler implementation does not work on Darwin }
-{$ifdef darwin}
-{$DEFINE MD5PASCAL}
-{$endif darwin}
+// Normally, if an optimized version is available for OS/CPU, that will be used
+// Define to use generic implementation
+{ $DEFINE MD5PASCAL}
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit md5;

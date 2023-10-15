@@ -32,7 +32,7 @@ begin
 
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/md5.pp');
-    T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
+    T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes);
     T:=P.Targets.AddUnit('src/sha1.pp');
     T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes);
     T:=P.Targets.AddUnit('src/crc.pas');
@@ -43,8 +43,6 @@ begin
     
     T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
-    T:=P.Targets.AddExampleunit('examples/crctest.pas');
-    T:=P.Targets.AddExampleunit('examples/sha1test.pp');
     T:=P.Targets.AddExampleunit('examples/hmd5.pp');
     T:=P.Targets.AddExampleunit('examples/hsha1.pp');
     T:=P.Targets.AddExampleunit('examples/md5performancetest.pas');
