@@ -1,3 +1,5 @@
+{%NORUN}
+
 program Project1;
 
   {$mode delphi}
@@ -15,5 +17,4 @@ type
 
 begin
   Test<TEnum>(B);
-  ReadLn;
 end.      
