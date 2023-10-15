@@ -16,6 +16,7 @@ unit System.UIConsts;
 
 {$MODE OBJFPC}
 {$H+}
+{$R-}
 
 interface
 
