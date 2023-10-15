@@ -267,6 +267,7 @@ type
     Procedure TestNonExistingAccessError;
     Procedure TestFormat;
     Procedure TestFormatNil;
+    Procedure TestFormatForceLF;
     Procedure TestFind;
     Procedure TestIfFind;
     Procedure TestDuplicate;
@@ -3468,6 +3469,21 @@ begin
   J.Add('b',TJSONObject(Nil));
   TestJSON(J,'{ "a" : 1, "b" : null }');
   AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineObject],1));
+end;
+
+procedure TTestObject.TestFormatForceLF;
+Var
+  O : TJSONObject;
+begin
+  if sLineBreak=#10 then
+    Ignore('Not relevant when linebreak is LF');
+  O:=TJSONObject.Create(['x',1,'y',2]);
+  try
+    TestJSON(O,'{ "x" : 1, "y" : 2 }');
+    AssertEquals('FormatJSON, forced LF','{'+#10+'  "x" : 1,'+#10+'  "y" : 2'+#10+'}',O.FormatJSON([foForceLF]));
+  finally
+    O.Free;
+  end;
 end;
 
 procedure TTestObject.TestFind;
