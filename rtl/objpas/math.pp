@@ -1714,7 +1714,7 @@ function power(base,exponent : float) : float;
       result:=1.0
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
-    else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
+    else if (frac(exponent)=0.0) and (abs(exponent)<=maxint) then
       result:=intpower(base,trunc(exponent))
     else
       result:=exp(exponent * ln (base));
