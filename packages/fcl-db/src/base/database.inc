@@ -650,6 +650,12 @@ begin
   FBeforeDisconnect:=AValue;
 end;
 
+procedure TCustomConnection.SetForcedClose(AValue: Boolean);
+begin
+  if FForcedClose=AValue then Exit;
+  FForcedClose:=AValue;
+end;
+
 procedure TCustomConnection.DoCloseError(aError: Exception);
 begin
   if Assigned(FOnCloseError) then
