@@ -2219,6 +2219,7 @@ type
   { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
+  TCloseErrorEvent = procedure(Sender : TObject; aError : Exception) of object;
 
   TCustomConnection = class(TComponent)
   private
@@ -2228,6 +2229,7 @@ type
     FBeforeDisconnect: TNotifyEvent;
     FForcedClose: Boolean;
     FLoginPrompt: Boolean;
+    FOnCloseError: TCloseErrorEvent;
     FOnLogin: TLoginEvent;
     FStreamedConnected: Boolean;
     procedure SetAfterConnect(const AValue: TNotifyEvent);
@@ -2235,6 +2237,8 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
+    Procedure DoCloseError(aError : Exception);
+    procedure CloseForDestroy;
     procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
     procedure DoDisconnect; virtual;
@@ -2263,6 +2267,7 @@ type
     property BeforeConnect : TNotifyEvent read FBeforeConnect write SetBeforeConnect;
     property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
+    Property OnCloseError : TCloseErrorEvent Read FOnCloseError Write FOnCloseError;
   end;
 
 
