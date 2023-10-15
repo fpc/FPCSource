@@ -344,14 +344,21 @@
      NORM_LINGUISTIC_CASING     = $08000000;
      SORT_DIGITSASNUMBERS       = $00000008;
      SORT_STRINGSORT = 4096;
-     LCMAP_BYTEREV = 2048;
-     LCMAP_FULLWIDTH = 8388608;
-     LCMAP_HALFWIDTH = 4194304;
-     LCMAP_HIRAGANA = 1048576;
-     LCMAP_KATAKANA = 2097152;
-     LCMAP_LOWERCASE = 256;
-     LCMAP_SORTKEY = 1024;
-     LCMAP_UPPERCASE = 512;
+
+     LCMAP_LOWERCASE =   $100;
+     LCMAP_UPPERCASE =   $200;
+     LCMAP_SORTKEY   =   $400;
+     LCMAP_BYTEREV   =   $800;
+     LCMAP_HIRAGANA  = $100000;
+     LCMAP_KATAKANA  = $200000;
+     LCMAP_HALFWIDTH = $400000;
+     LCMAP_FULLWIDTH = $800000;
+     LCMAP_LINGUISTIC_CASING   =  $1000000;
+     LCMAP_SIMPLIFIED_CHINESE  =  $2000000;
+     LCMAP_TRADITIONAL_CHINESE =  $4000000;
+     LCMAP_SORTHANDLE          = $20000000;
+     LCMAP_HASH                =    $40000;
+
   { ContinueDebugEvent  }
      DBG_CONTINUE = $10002;
      DBG_CONTROL_BREAK = $40010008;
@@ -1319,6 +1326,25 @@
   { EnumSystemLocales  }
      LCID_INSTALLED = 1;
      LCID_SUPPORTED = 2;
+     LCID_ALTERNATE_SORTS = 4;
+
+     LOCALE_ALL                  = 0;              // enumerate all named based locales
+     LOCALE_WINDOWS              = $00000001;      // shipped locales and/or replacements for them
+     LOCALE_SUPPLEMENTAL         = $00000002;      // supplemental locales only
+     LOCALE_ALTERNATE_SORTS      = $00000004;      // alternate sort locales
+     LOCALE_REPLACEMENT          = $00000008;      // locales that replace shipped locales (callback flag only)
+     LOCALE_NEUTRALDATA          = $00000010;      // Locales that are "neutral" (language only, region data is default)
+     LOCALE_SPECIFICDATA         = $00000020;      // Locales that contain language and region data
+     LOCALE_NOUSEROVERRIDE       = $80000000;      // Not Recommended - do not use user overrides
+     LOCALE_USE_CP_ACP           = $40000000;      // DEPRECATED, call Unicode APIs instead: use the system ACP
+     LOCALE_RETURN_NUMBER        = $20000000;      // return number instead of string
+     LOCALE_RETURN_GENITIVE_NAMES= $10000000;      //Flag to return the Genitive forms of month names
+     LOCALE_ALLOW_NEUTRAL_NAMES  = $08000000;      //Flag to allow returning neutral names/lcids for name conversion
+
+     CSTR_LESS_THAN              = 1;           // string 1 less than string 2
+     CSTR_EQUAL                  = 2;           // string 1 equal to string 2
+     CSTR_GREATER_THAN           = 3;           // string 1 greater than string 2
+
   { EraseTape  }
      TAPE_ERASE_LONG = $1;
      TAPE_ERASE_SHORT = 0;
@@ -1411,6 +1437,7 @@
      MAP_FOLDDIGITS = 128;
      MAP_PRECOMPOSED = 32;
      MAP_COMPOSITE = 64;
+     MAP_EXPAND_LIGATURES = 8192;
   { ForegroundIdleProc  }
      HC_ACTION = 0;
   { FormatMessage  }
@@ -1539,15 +1566,25 @@
      ENABLE_PROCESSED_OUTPUT = 1;
      ENABLE_WRAP_AT_EOL_OUTPUT = 2;
   { GetCPInfo  }
-     CP_ACP = 0;
-     CP_MACCP = 2;
-     CP_OEMCP = 1;
+     CP_ACP        = 0;
+     CP_OEMCP      = 1;
+     CP_MACCP      = 2;
+
+     CP_THREAD_ACP = 3;           // current thread's ANSI code page
+     CP_SYMBOL     = 42;          // SYMBOL translations
+
   { GetDateFormat  }
   { already defined above !!
   #define DATE_SHORTDATE        (1)
   #define DATE_LONGDATE (2)
    }
-     DATE_USE_ALT_CALENDAR = 4;
+     DATE_USE_ALT_CALENDAR      = $04;  // use alternate calendar (if any)
+     DATE_YEARMONTH             = $08;  // use year month picture
+     DATE_LTRREADING            = $10;  // add marks for left to right reading order layout
+     DATE_RTLREADING            = $20;  // add marks for right to left reading order layout
+     DATE_AUTOLAYOUT            = $40;  // add appropriate marks for left-to-right or right-to-left reading order layout
+     DATE_MONTHDAY              = $80;  // include month day pictures
+
   { GetDCEx  }
      DCX_WINDOW = $1;
      DCX_CACHE = $2;
@@ -1843,6 +1880,7 @@
      C1_BLANK = 64;
      C1_XDIGIT = 128;
      C1_ALPHA = 256;
+     C1_DEFINED = 512;
      C2_LEFTTORIGHT = 1;
      C2_RIGHTTOLEFT = 2;
      C2_EUROPENUMBER = 3;
@@ -1865,6 +1903,9 @@
      C3_FULLWIDTH = 128;
      C3_IDEOGRAPH = 256;
      C3_KASHIDA = 512;
+     C3_LEXICAL = 1024;
+     C3_HIGHSURROGATE = 2048;
+     C3_LOWSURROGATE = 4095;
      C3_ALPHA = 32768;
      C3_NOTAPPLICABLE = 0;
   { GetSysColor  }
@@ -2566,153 +2607,313 @@ Type
      ICM_QUERY = 3;
   { SetJob  }
   { Locale Information  }
-     LOCALE_ILANGUAGE = 1;
-     LOCALE_SLANGUAGE = 2;
-     LOCALE_SENGLANGUAGE = 4097;
-     LOCALE_SABBREVLANGNAME = 3;
-     LOCALE_SNATIVELANGNAME = 4;
-     LOCALE_ICOUNTRY = 5;
-     LOCALE_SCOUNTRY = 6;
-     LOCALE_SENGCOUNTRY = 4098;
-     LOCALE_SABBREVCTRYNAME = 7;
-     LOCALE_SNATIVECTRYNAME = 8;
-     LOCALE_IDEFAULTLANGUAGE = 9;
-     LOCALE_IDEFAULTCOUNTRY = 10;
-     LOCALE_IDEFAULTANSICODEPAGE = 4100;
-     LOCALE_IDEFAULTCODEPAGE = 11;
-     LOCALE_SLIST = 12;
-     LOCALE_IMEASURE = 13;
-     LOCALE_SDECIMAL = 14;
-     LOCALE_STHOUSAND = 15;
-     LOCALE_SGROUPING = 16;
-     LOCALE_IDIGITS = 17;
-     LOCALE_ILZERO = 18;
-     LOCALE_INEGNUMBER = 4112;
-     LOCALE_SCURRENCY = 20;
-     LOCALE_SMONDECIMALSEP = 22;
-     LOCALE_SMONTHOUSANDSEP = 23;
-     LOCALE_SMONGROUPING = 24;
-     LOCALE_ICURRDIGITS = 25;
-     LOCALE_ICURRENCY = 27;
-     LOCALE_INEGCURR = 28;
-     LOCALE_SDATE = 29;
-     LOCALE_STIME = 30;
-     LOCALE_STIMEFORMAT = 4099;
-     LOCALE_SSHORTDATE = 31;
-     LOCALE_SLONGDATE = 32;
-     LOCALE_IDATE = 33;
-     LOCALE_ILDATE = 34;
-     LOCALE_ITIME = 35;
-     LOCALE_ITLZERO = 37;
-     LOCALE_IDAYLZERO = 38;
-     LOCALE_IMONLZERO = 39;
-     LOCALE_S1159 = 40;
-     LOCALE_S2359 = 41;
-     LOCALE_ICALENDARTYPE = 4105;
-     LOCALE_IOPTIONALCALENDAR = 4107;
-     LOCALE_IFIRSTDAYOFWEEK = 4108;
-     LOCALE_IFIRSTWEEKOFYEAR = 4109;
-     LOCALE_SDAYNAME1 = 42;
-     LOCALE_SDAYNAME2 = 43;
-     LOCALE_SDAYNAME3 = 44;
-     LOCALE_SDAYNAME4 = 45;
-     LOCALE_SDAYNAME5 = 46;
-     LOCALE_SDAYNAME6 = 47;
-     LOCALE_SDAYNAME7 = 48;
-     LOCALE_SABBREVDAYNAME1 = 49;
-     LOCALE_SABBREVDAYNAME2 = 50;
-     LOCALE_SABBREVDAYNAME3 = 51;
-     LOCALE_SABBREVDAYNAME4 = 52;
-     LOCALE_SABBREVDAYNAME5 = 53;
-     LOCALE_SABBREVDAYNAME6 = 54;
-     LOCALE_SABBREVDAYNAME7 = 55;
-     LOCALE_SMONTHNAME1 = 56;
-     LOCALE_SMONTHNAME2 = 57;
-     LOCALE_SMONTHNAME3 = 58;
-     LOCALE_SMONTHNAME4 = 59;
-     LOCALE_SMONTHNAME5 = 60;
-     LOCALE_SMONTHNAME6 = 61;
-     LOCALE_SMONTHNAME7 = 62;
-     LOCALE_SMONTHNAME8 = 63;
-     LOCALE_SMONTHNAME9 = 64;
-     LOCALE_SMONTHNAME10 = 65;
-     LOCALE_SMONTHNAME11 = 66;
-     LOCALE_SMONTHNAME12 = 67;
-     LOCALE_SMONTHNAME13 = 4110;
-     LOCALE_SABBREVMONTHNAME1 = 68;
-     LOCALE_SABBREVMONTHNAME2 = 69;
-     LOCALE_SABBREVMONTHNAME3 = 70;
-     LOCALE_SABBREVMONTHNAME4 = 71;
-     LOCALE_SABBREVMONTHNAME5 = 72;
-     LOCALE_SABBREVMONTHNAME6 = 73;
-     LOCALE_SABBREVMONTHNAME7 = 74;
-     LOCALE_SABBREVMONTHNAME8 = 75;
-     LOCALE_SABBREVMONTHNAME9 = 76;
-     LOCALE_SABBREVMONTHNAME10 = 77;
-     LOCALE_SABBREVMONTHNAME11 = 78;
-     LOCALE_SABBREVMONTHNAME12 = 79;
-     LOCALE_SABBREVMONTHNAME13 = 4111;
-     LOCALE_SPOSITIVESIGN = 80;
-     LOCALE_SNEGATIVESIGN = 81;
-     LOCALE_IPOSSIGNPOSN = 82;
-     LOCALE_INEGSIGNPOSN = 83;
-     LOCALE_IPOSSYMPRECEDES = 84;
-     LOCALE_IPOSSEPBYSPACE = 85;
-     LOCALE_INEGSYMPRECEDES = 86;
-     LOCALE_INEGSEPBYSPACE = 87;
-     LOCALE_NOUSEROVERRIDE = $80000000;
-     LOCALE_USE_CP_ACP     = $40000000;   // use the system ACP
-     LOCALE_RETURN_NUMBER  = $20000000;   // return number instead
-     LOCALE_SISO639LANGNAME = $59;
-     LOCALE_SISO3166CTRYNAME = $5A;
+
+     LOCALE_SLOCALIZEDDISPLAYNAME  =    $2;    // localized name of locale, eg "German (Germany)" in UI language
+     LOCALE_SENGLISHDISPLAYNAME    =   $72;   // Display name (language + country/region usually) in English, eg "German (Germany)"
+     LOCALE_SNATIVEDISPLAYNAME     =   $73;   // Display name in native locale language, eg "Deutsch (Deutschland)
+     LOCALE_SLOCALIZEDLANGUAGENAME =   $6f;   // Language Display Name for a language, eg "German" in UI language
+     LOCALE_SENGLISHLANGUAGENAME   = $1001;   // English name of language, eg "German"
+     LOCALE_SNATIVELANGUAGENAME    =    $4;   // native name of language, eg "Deutsch"
+     LOCALE_SLOCALIZEDCOUNTRYNAME  =    $6;   // localized name of country/region, eg "Germany" in UI language
+     LOCALE_SENGLISHCOUNTRYNAME    = $1002;   // English name of country/region, eg "Germany"
+     LOCALE_SNATIVECOUNTRYNAME     =    $8;   // native name of country/region, eg "Deutschland"
+     LOCALE_IDIALINGCODE           =    $5;   // country/region dialing code, example: en-US and en-CA return 1.
+     LOCALE_SLIST                  =    $C;   // list item separator, eg "," for "1,2,3,4"
+     LOCALE_IMEASURE               =    $D;   // 0 = metric, 1 = US measurement system
+     LOCALE_SDECIMAL               =    $E;   // decimal separator, eg "." for 1,234.00
+     LOCALE_STHOUSAND              =    $F;   // thousand separator, eg "," for 1,234.00
+     LOCALE_SGROUPING              =   $10;   // digit grouping, eg "3;0" for 1,000,000
+     LOCALE_IDIGITS                =   $11;   // number of fractional digits eg 2 for 1.00
+     LOCALE_ILZERO                 =   $12;   // leading zeros for decimal, 0 for .97, 1 for 0.97
+     LOCALE_INEGNUMBER             = $1010;   // negative number mode, 0-4, see documentation
+     LOCALE_SNATIVEDIGITS          =   $13;   // native digits for 0-9, eg "0123456789"
+     LOCALE_SCURRENCY              =   $14;   // local monetary symbol, eg "$"
+     LOCALE_SINTLSYMBOL            =   $15;   // intl monetary symbol, eg "USD"
+     LOCALE_SMONDECIMALSEP         =   $16;   // monetary decimal separator, eg "." for $1,234.00
+     LOCALE_SMONTHOUSANDSEP        =   $17;   // monetary thousand separator, eg "," for $1,234.00
+     LOCALE_SMONGROUPING           =   $18;   // monetary grouping, eg "3;0" for $1,000,000.00
+     LOCALE_ICURRDIGITS            =   $19;   // # local monetary digits, eg 2 for $1.00
+     LOCALE_ICURRENCY              =   $1B;   // positive currency mode, 0-3, see documentation
+     LOCALE_INEGCURR               =   $1C;   // negative currency mode, 0-15, see documentation
+     LOCALE_SSHORTDATE             =   $1F;   // short date format string, eg "MM/dd/yyyy"
+     LOCALE_SLONGDATE              =   $20;   // long date format string, eg "dddd, MMMM dd, yyyy"
+     LOCALE_STIMEFORMAT            = $1003;   // time format string, eg "HH:mm:ss"
+     LOCALE_SAM                    =   $28;   // AM designator, eg "AM"
+     LOCALE_SPM                    =   $29;   // PM designator, eg "PM"
+     LOCALE_ICALENDARTYPE          = $1009;   // type of calendar specifier, eg CAL_GREGORIAN
+     LOCALE_IOPTIONALCALENDAR      = $100B;   // additional calendar types specifier, eg CAL_GREGORIAN_US
+     LOCALE_IFIRSTDAYOFWEEK        = $100C;   // first day of week specifier, 0-6, 0=Monday, 6=Sunday
+     LOCALE_IFIRSTWEEKOFYEAR       = $100D;   // first week of year specifier, 0-2, see documentation
+     LOCALE_SDAYNAME1              =   $2A;   // long name for Monday
+     LOCALE_SDAYNAME2              =   $2B;   // long name for Tuesday
+     LOCALE_SDAYNAME3              =   $2C;   // long name for Wednesday
+     LOCALE_SDAYNAME4              =   $2D;   // long name for Thursday
+     LOCALE_SDAYNAME5              =   $2E;   // long name for Friday
+     LOCALE_SDAYNAME6              =   $2F;   // long name for Saturday
+     LOCALE_SDAYNAME7              =   $30;   // long name for Sunday
+     LOCALE_SABBREVDAYNAME1        =   $31;   // abbreviated name for Monday
+     LOCALE_SABBREVDAYNAME2        =   $32;   // abbreviated name for Tuesday
+     LOCALE_SABBREVDAYNAME3        =   $33;   // abbreviated name for Wednesday
+     LOCALE_SABBREVDAYNAME4        =   $34;   // abbreviated name for Thursday
+     LOCALE_SABBREVDAYNAME5        =   $35;   // abbreviated name for Friday
+     LOCALE_SABBREVDAYNAME6        =   $36;   // abbreviated name for Saturday
+     LOCALE_SABBREVDAYNAME7        =   $37;   // abbreviated name for Sunday
+     LOCALE_SMONTHNAME1            =   $38;   // long name for January
+     LOCALE_SMONTHNAME2            =   $39;   // long name for February
+     LOCALE_SMONTHNAME3            =   $3A;   // long name for March
+     LOCALE_SMONTHNAME4            =   $3B;   // long name for April
+     LOCALE_SMONTHNAME5            =   $3C;   // long name for May
+     LOCALE_SMONTHNAME6            =   $3D;   // long name for June
+     LOCALE_SMONTHNAME7            =   $3E;   // long name for July
+     LOCALE_SMONTHNAME8            =   $3F;   // long name for August
+     LOCALE_SMONTHNAME9            =   $40;   // long name for September
+     LOCALE_SMONTHNAME10           =   $41;   // long name for October
+     LOCALE_SMONTHNAME11           =   $42;   // long name for November
+     LOCALE_SMONTHNAME12           =   $43;   // long name for December
+     LOCALE_SMONTHNAME13           = $100E;   // long name for 13th month (if exists)
+     LOCALE_SABBREVMONTHNAME1      =   $44;   // abbreviated name for January
+     LOCALE_SABBREVMONTHNAME2      =   $45;   // abbreviated name for February
+     LOCALE_SABBREVMONTHNAME3      =   $46;   // abbreviated name for March
+     LOCALE_SABBREVMONTHNAME4      =   $47;   // abbreviated name for April
+     LOCALE_SABBREVMONTHNAME5      =   $48;   // abbreviated name for May
+     LOCALE_SABBREVMONTHNAME6      =   $49;   // abbreviated name for June
+     LOCALE_SABBREVMONTHNAME7      =   $4A;   // abbreviated name for July
+     LOCALE_SABBREVMONTHNAME8      =   $4B;   // abbreviated name for August
+     LOCALE_SABBREVMONTHNAME9      =   $4C;   // abbreviated name for September
+     LOCALE_SABBREVMONTHNAME10     =   $4D;   // abbreviated name for October
+     LOCALE_SABBREVMONTHNAME11     =   $4E;   // abbreviated name for November
+     LOCALE_SABBREVMONTHNAME12     =   $4F;   // abbreviated name for December
+     LOCALE_SABBREVMONTHNAME13     = $100F;   // abbreviated name for 13th month (if exists)
+     LOCALE_SPOSITIVESIGN          =   $50;   // positive sign, eg ""
+     LOCALE_SNEGATIVESIGN          =   $51;   // negative sign, eg "-"
+     LOCALE_IPOSSIGNPOSN           =   $52;   // positive sign position (derived from INEGCURR)
+     LOCALE_INEGSIGNPOSN           =   $53;   // negative sign position (derived from INEGCURR)
+     LOCALE_IPOSSYMPRECEDES        =   $54;   // mon sym precedes pos amt (derived from ICURRENCY)
+     LOCALE_IPOSSEPBYSPACE         =   $55;   // mon sym sep by space from pos amt (derived from ICURRENCY)
+     LOCALE_INEGSYMPRECEDES        =   $56;   // mon sym precedes neg amt (derived from INEGCURR)
+     LOCALE_INEGSEPBYSPACE         =   $57;   // mon sym sep by space from neg amt (derived from INEGCURR)
+     LOCALE_FONTSIGNATURE          =   $58;   // font signature
+     LOCALE_SISO639LANGNAME        =   $59;   // ISO abbreviated language name, eg "en"
+     LOCALE_SISO3166CTRYNAME       =   $5A;   // ISO abbreviated country/region name, eg "US"
+     LOCALE_IPAPERSIZE             = $100A;   // 1 = letter, 5 = legal, 8 = a3, 9 = a4
+     LOCALE_SENGCURRNAME           = $1007;   // english name of currency, eg "Euro"
+     LOCALE_SNATIVECURRNAME        = $1008;   // native name of currency, eg "euro"
+     LOCALE_SYEARMONTH             = $1006;   // year month format string, eg "MM/yyyy"
+     LOCALE_SSORTNAME              = $1013;   // sort name, usually "", eg "Dictionary" in UI Language
+     LOCALE_IDIGITSUBSTITUTION     = $1014;   // 0 = context, 1 = none, 2 = national
+     LOCALE_SNAME                  =   $5c;   // locale name (ie: en-us)
+     LOCALE_SDURATION              =   $5d;   // time duration format, eg "hh:mm:ss"
+     LOCALE_SSHORTESTDAYNAME1      =   $60;   // Shortest day name for Monday
+     LOCALE_SSHORTESTDAYNAME2      =   $61;   // Shortest day name for Tuesday
+     LOCALE_SSHORTESTDAYNAME3      =   $62;   // Shortest day name for Wednesday
+     LOCALE_SSHORTESTDAYNAME4      =   $63;   // Shortest day name for Thursday
+     LOCALE_SSHORTESTDAYNAME5      =   $64;   // Shortest day name for Friday
+     LOCALE_SSHORTESTDAYNAME6      =   $65;   // Shortest day name for Saturday
+     LOCALE_SSHORTESTDAYNAME7      =   $66;   // Shortest day name for Sunday
+     LOCALE_SISO639LANGNAME2       =   $67;   // 3 character ISO abbreviated language name, eg "eng"
+     LOCALE_SISO3166CTRYNAME2      =   $68;   // 3 character ISO country/region name, eg "USA"
+     LOCALE_SNAN                   =   $69;   // Not a Number, eg "NaN"
+     LOCALE_SPOSINFINITY           =   $6a;   // + Infinity, eg "infinity"
+     LOCALE_SNEGINFINITY           =   $6b;   // - Infinity, eg "-infinity"
+     LOCALE_SSCRIPTS               =   $6c;   // Typical scripts in the locale: ; delimited script codes, eg "Latn;"
+     LOCALE_SPARENT                =   $6d;   // Fallback name for resources, eg "en" for "en-US"
+     LOCALE_SCONSOLEFALLBACKNAME   =   $6e;   // Fallback name for within the console for Unicode Only locales, eg "en" for bn-IN
+     LOCALE_IREADINGLAYOUT         =   $70;   // Returns one of the following 4 reading layout values:
+                                                    // 0 - Left to right (eg en-US)
+                                                    // 1 - Right to left (eg arabic locales)
+                                                    // 2 - Vertical top to bottom with columns to the left and also left to right (ja-JP locales)
+                                                    // 3 - Vertical top to bottom with columns proceeding to the right
+     LOCALE_INEUTRAL               =   $71;   // Returns 0 for specific cultures, 1 for neutral cultures.
+     LOCALE_INEGATIVEPERCENT       =   $74;   // Returns 0-11 for the negative percent format
+     LOCALE_IPOSITIVEPERCENT       =   $75;   // Returns 0-3 for the positive percent formatIPOSITIVEPERCENT
+     LOCALE_SPERCENT               =   $76;   // Returns the percent symbol
+     LOCALE_SPERMILLE              =   $77;   // Returns the permille (U+2030) symbol
+     LOCALE_SMONTHDAY              =   $78;   // Returns the preferred month/day format
+     LOCALE_SSHORTTIME             =   $79;   // Returns the preferred short time format (ie: no seconds, just h:mm)
+     LOCALE_SOPENTYPELANGUAGETAG   =   $7a;   // Open type language tag, eg: "latn" or "dflt"
+     LOCALE_SSORTLOCALE            =   $7b;   // Name of locale to use for sorting/collation/casing behavior.
+     LOCALE_SRELATIVELONGDATE      =   $7c;   // Long date without year, day of week, month, date, eg: for lock screen
+     LOCALE_ICONSTRUCTEDLOCALE     =   $7d;   // Flags if this locale is constructed.  Avoid using.
+     LOCALE_SSHORTESTAM            =   $7e;   // Shortest AM designator, eg "A"
+     LOCALE_SSHORTESTPM            =   $7f;   // Shortest PM designator, eg "P"
+     LOCALE_IUSEUTF8LEGACYACP      =  $666;   // default ansi code page (use of Unicode is recommended instead)
+     LOCALE_IUSEUTF8LEGACYOEMCP    =  $999;   // default oem code page (use of Unicode is recommended instead)
+
+// DEPRECATED LCTYPEs.
+
+
+// DEPRECATED LCTYPEs for Code Pages,   use UTF-16 or UTF-8 codepage.
+     LOCALE_IDEFAULTCODEPAGE       =    $B;   // default oem code page for locale (user may configure as UTF-8, use of Unicode is recommended instead)
+     LOCALE_IDEFAULTANSICODEPAGE   = $1004;   // default ansi code page for locale (user may configure as UTF-8, use of Unicode is recommended instead)
+     LOCALE_IDEFAULTMACCODEPAGE    = $1011;   // default mac code page for locale (user may configure as UTF-8, use of Unicode is recommended instead)
+     LOCALE_IDEFAULTEBCDICCODEPAGE = $1012;   // default ebcdic code page for a locale (use of Unicode is recommended instead)
+
+// LCTYPEs using out-of-date concepts
+     LOCALE_ILANGUAGE              =    $1;   // DEPRECATED language id (LCID), LOCALE_SNAME preferred
+     LOCALE_SABBREVLANGNAME        =    $3;   // DEPRECATED arbitrary abbreviated language name, LOCALE_SISO639LANGNAME instead.
+     LOCALE_SABBREVCTRYNAME        =    $7;   // DEPRECATED arbitrary abbreviated country/region name, LOCALE_SISO3166CTRYNAME instead.
+     LOCALE_IGEOID                 =   $5B;   // DEPRECATED geographical location id, use LOCALE_SISO3166CTRYNAME instead.
+     LOCALE_IDEFAULTLANGUAGE       =    $9;   // DEPRECATED default language id, deprecated
+     LOCALE_IDEFAULTCOUNTRY        =    $A;   // DEPRECATED default country/region code, deprecated
+     LOCALE_IINTLCURRDIGITS        =   $1A;   // DEPRECATED, use LOCALE_ICURRDIGITS # intl monetary digits, eg 2 for $1.00
+
+// Derived legacy date & time values for compatibility only.
+// Please use the appropriate date or time pattern instead.
+// These can be misleading, for example a locale configured as 12h24m52s could have a time separator of "h".
+     LOCALE_SDATE                  =   $1D;   // DEPRECATED date separator (derived from LOCALE_SSHORTDATE, use that instead)
+     LOCALE_STIME                  =   $1E;   // DEPRECATED time separator (derived from LOCALE_STIMEFORMAT, use that instead)
+     LOCALE_IDATE                  =   $21;   // DEPRECATED short date format ordering (derived from LOCALE_SSHORTDATE, use that instead)
+     LOCALE_ILDATE                 =   $22;   // DEPRECATED long date format ordering (derived from LOCALE_SLONGDATE, use that instead)
+     LOCALE_ITIME                  =   $23;   // DEPRECATED time format specifier (derived from LOCALE_STIMEFORMAT, use that instead)
+     LOCALE_ITIMEMARKPOSN          = $1005;   // DEPRECATED time marker position (derived from LOCALE_STIMEFORMAT, use that instead)
+     LOCALE_ICENTURY               =   $24;   // DEPRECATED century format specifier (short date, LOCALE_SSHORTDATE is preferred)
+     LOCALE_ITLZERO                =   $25;   // DEPRECATED leading zeros in time field (derived from LOCALE_STIMEFORMAT, use that instead)
+     LOCALE_IDAYLZERO              =   $26;   // DEPRECATED leading zeros in day field (short date, LOCALE_SSHORTDATE is preferred)
+     LOCALE_IMONLZERO              =   $27;   // DEPRECATED leading zeros in month field (short date, LOCALE_SSHORTDATE is preferred)
+     LOCALE_SKEYBOARDSTOINSTALL    =   $5e;   // Used internally, see GetKeyboardLayoutName() function
+
+// LCTYPEs which have been renamed to enable more understandable source code.
+     LOCALE_SLANGUAGE              = LOCALE_SLOCALIZEDDISPLAYNAME;   // DEPRECATED as new name is more readable.
+     LOCALE_SLANGDISPLAYNAME       = LOCALE_SLOCALIZEDLANGUAGENAME;  // DEPRECATED as new name is more readable.
+     LOCALE_SENGLANGUAGE           = LOCALE_SENGLISHLANGUAGENAME;    // DEPRECATED as new name is more readable.
+     LOCALE_SNATIVELANGNAME        = LOCALE_SNATIVELANGUAGENAME;     // DEPRECATED as new name is more readable.
+     LOCALE_SCOUNTRY               = LOCALE_SLOCALIZEDCOUNTRYNAME;   // DEPRECATED as new name is more readable.
+     LOCALE_SENGCOUNTRY            = LOCALE_SENGLISHCOUNTRYNAME;     // DEPRECATED as new name is more readable.
+     LOCALE_SNATIVECTRYNAME        = LOCALE_SNATIVECOUNTRYNAME;      // DEPRECATED as new name is more readable.
+// DEPRECATED: Use LOCALE_SISO3166CTRYNAME to query for a region identifier, LOCALE_ICOUNTRY is not a region identifier.
+     LOCALE_ICOUNTRY               = LOCALE_IDIALINGCODE;   // Deprecated synonym for LOCALE_IDIALINGCODE
+     LOCALE_S1159                  = LOCALE_SAM;   // DEPRECATED: Please use LOCALE_SAM, which is more readable.
+     LOCALE_S2359                  = LOCALE_SPM;   // DEPRECATED: Please use LOCALE_SPM, which is more readable.
 
   { Calendar Type Information  }
-     CAL_ICALINTVALUE = 1;
-     CAL_IYEAROFFSETRANGE = 3;
-     CAL_SABBREVDAYNAME1 = 14;
-     CAL_SABBREVDAYNAME2 = 15;
-     CAL_SABBREVDAYNAME3 = 16;
-     CAL_SABBREVDAYNAME4 = 17;
-     CAL_SABBREVDAYNAME5 = 18;
-     CAL_SABBREVDAYNAME6 = 19;
-     CAL_SABBREVDAYNAME7 = 20;
-     CAL_SABBREVMONTHNAME1 = 34;
-     CAL_SABBREVMONTHNAME2 = 35;
-     CAL_SABBREVMONTHNAME3 = 36;
-     CAL_SABBREVMONTHNAME4 = 37;
-     CAL_SABBREVMONTHNAME5 = 38;
-     CAL_SABBREVMONTHNAME6 = 39;
-     CAL_SABBREVMONTHNAME7 = 40;
-     CAL_SABBREVMONTHNAME8 = 41;
-     CAL_SABBREVMONTHNAME9 = 42;
-     CAL_SABBREVMONTHNAME10 = 43;
-     CAL_SABBREVMONTHNAME11 = 44;
-     CAL_SABBREVMONTHNAME12 = 45;
-     CAL_SABBREVMONTHNAME13 = 46;
-     CAL_SCALNAME = 2;
-     CAL_SDAYNAME1 = 7;
-     CAL_SDAYNAME2 = 8;
-     CAL_SDAYNAME3 = 9;
-     CAL_SDAYNAME4 = 10;
-     CAL_SDAYNAME5 = 11;
-     CAL_SDAYNAME6 = 12;
-     CAL_SDAYNAME7 = 13;
-     CAL_SERASTRING = 4;
-     CAL_SLONGDATE = 6;
-     CAL_SMONTHNAME1 = 21;
-     CAL_SMONTHNAME2 = 22;
-     CAL_SMONTHNAME3 = 23;
-     CAL_SMONTHNAME4 = 24;
-     CAL_SMONTHNAME5 = 25;
-     CAL_SMONTHNAME6 = 26;
-     CAL_SMONTHNAME7 = 27;
-     CAL_SMONTHNAME8 = 28;
-     CAL_SMONTHNAME9 = 29;
-     CAL_SMONTHNAME10 = 30;
-     CAL_SMONTHNAME11 = 31;
-     CAL_SMONTHNAME12 = 32;
-     CAL_SMONTHNAME13 = 33;
-     CAL_SSHORTDATE = 5;
+
+//  The following CalTypes are mutually exclusive in that they may NOT
+//  be used in combination with each other.
+//
+     CAL_ICALINTVALUE          =       $1;  // calendar type
+     CAL_SCALNAME              =       $2;  // native name of calendar
+     CAL_IYEAROFFSETRANGE      =       $3;  // starting years of eras
+     CAL_SERASTRING            =       $4;  // era name for IYearOffsetRanges, eg A.D.
+     CAL_SSHORTDATE            =       $5;  // short date format string
+     CAL_SLONGDATE             =       $6;  // long date format string
+     CAL_SDAYNAME1             =       $7;  // native name for Monday
+     CAL_SDAYNAME2             =       $8;  // native name for Tuesday
+     CAL_SDAYNAME3             =       $9;  // native name for Wednesday
+     CAL_SDAYNAME4             =       $a;  // native name for Thursday
+     CAL_SDAYNAME5             =       $b;  // native name for Friday
+     CAL_SDAYNAME6             =       $c;  // native name for Saturday
+     CAL_SDAYNAME7             =       $d;  // native name for Sunday
+     CAL_SABBREVDAYNAME1       =       $e;  // abbreviated name for Mon
+     CAL_SABBREVDAYNAME2       =       $f;  // abbreviated name for Tue
+     CAL_SABBREVDAYNAME3       =      $10;  // abbreviated name for Wed
+     CAL_SABBREVDAYNAME4       =      $11;  // abbreviated name for Thu
+     CAL_SABBREVDAYNAME5       =      $12;  // abbreviated name for Fri
+     CAL_SABBREVDAYNAME6       =      $13;  // abbreviated name for Sat
+     CAL_SABBREVDAYNAME7       =      $14;  // abbreviated name for Sun
+// Note that in the hebrew calendar the leap month name is always returned as the 7th month
+     CAL_SMONTHNAME1           =      $15;  // native name for January
+     CAL_SMONTHNAME2           =      $16;  // native name for February
+     CAL_SMONTHNAME3           =      $17;  // native name for March
+     CAL_SMONTHNAME4           =      $18;  // native name for April
+     CAL_SMONTHNAME5           =      $19;  // native name for May
+     CAL_SMONTHNAME6           =      $1a;  // native name for June
+     CAL_SMONTHNAME7           =      $1b;  // native name for July
+     CAL_SMONTHNAME8           =      $1c;  // native name for August
+     CAL_SMONTHNAME9           =      $1d;  // native name for September
+     CAL_SMONTHNAME10          =      $1e;  // native name for October
+     CAL_SMONTHNAME11          =      $1f;  // native name for November
+     CAL_SMONTHNAME12          =      $20;  // native name for December
+     CAL_SMONTHNAME13          =      $21;  // native name for 13th month (if any)
+     CAL_SABBREVMONTHNAME1     =      $22;  // abbreviated name for Jan
+     CAL_SABBREVMONTHNAME2     =      $23;  // abbreviated name for Feb
+     CAL_SABBREVMONTHNAME3     =      $24;  // abbreviated name for Mar
+     CAL_SABBREVMONTHNAME4     =      $25;  // abbreviated name for Apr
+     CAL_SABBREVMONTHNAME5     =      $26;  // abbreviated name for May
+     CAL_SABBREVMONTHNAME6     =      $27;  // abbreviated name for Jun
+     CAL_SABBREVMONTHNAME7     =      $28;  // abbreviated name for July
+     CAL_SABBREVMONTHNAME8     =      $29;  // abbreviated name for Aug
+     CAL_SABBREVMONTHNAME9     =      $2a;  // abbreviated name for Sep
+     CAL_SABBREVMONTHNAME10    =      $2b;  // abbreviated name for Oct
+     CAL_SABBREVMONTHNAME11    =      $2c;  // abbreviated name for Nov
+     CAL_SABBREVMONTHNAME12    =      $2d;  // abbreviated name for Dec
+     CAL_SABBREVMONTHNAME13    =      $2e;  // abbreviated name for 13th month (if any)
+     CAL_SYEARMONTH            =      $2f;  // year month format string
+     CAL_ITWODIGITYEARMAX      =      $30;  // two digit year max
+
+     CAL_SSHORTESTDAYNAME1     =      $31;  // Shortest day name for Mo
+     CAL_SSHORTESTDAYNAME2     =      $32;  // Shortest day name for Tu
+     CAL_SSHORTESTDAYNAME3     =      $33;  // Shortest day name for We
+     CAL_SSHORTESTDAYNAME4     =      $34;  // Shortest day name for Th
+     CAL_SSHORTESTDAYNAME5     =      $35;  // Shortest day name for Fr
+     CAL_SSHORTESTDAYNAME6     =      $36;  // Shortest day name for Sa
+     CAL_SSHORTESTDAYNAME7     =      $37;  // Shortest day name for Su
+     CAL_SMONTHDAY             =      $38;  // Month/day format
+     CAL_SABBREVERASTRING      =      $39;  // Abbreviated era string (eg: AD)
+     CAL_SRELATIVELONGDATE     =      $3a;   // Long date without year, day of week, month, date, eg: for lock screen
+     CAL_SENGLISHERANAME       =      $3b;   // Japanese calendar only: return the English era names for .Net compatibility
+     CAL_SENGLISHABBREVERANAME =      $3c;   // Japanese calendar only: return the English Abbreviated era names for .Net compatibility
+     CAL_SJAPANESEERAFIRSTYEAR =      $3d;   // Japanese calendar only: return ichinen or gannen first year
+
+// defined above.
+//      ENUM_ALL_CALENDARS        = $ffffffff;  // enumerate all calendars
+
+//
+//  Calendar ID Values.
+//
+     CAL_GREGORIAN                  =  1;      // Gregorian (localized) calendar
+     CAL_GREGORIAN_US               =  2;      // Gregorian (U.S.) calendar
+     CAL_JAPAN                      =  3;      // Japanese Emperor Era calendar
+     CAL_TAIWAN                     =  4;      // Taiwan calendar
+     CAL_KOREA                      =  5;      // Korean Tangun Era calendar
+     CAL_HIJRI                      =  6;      // Hijri (Arabic Lunar) calendar
+     CAL_THAI                       =  7;      // Thai calendar
+     CAL_HEBREW                     =  8;      // Hebrew (Lunar) calendar
+     CAL_GREGORIAN_ME_FRENCH        =  9;      // Gregorian Middle East French calendar
+     CAL_GREGORIAN_ARABIC           = 10;     // Gregorian Arabic calendar
+     CAL_GREGORIAN_XLIT_ENGLISH     = 11;     // Gregorian Transliterated English calendar
+     CAL_GREGORIAN_XLIT_FRENCH      = 12;     // Gregorian Transliterated French calendar
+     CAL_PERSIAN                    = 22;     // Persian (Solar Hijri) calendar
+     CAL_UMALQURA                   = 23;     // UmAlQura Hijri (Arabic Lunar) calendar
+
+
+     CAL_NOUSEROVERRIDE        = LOCALE_NOUSEROVERRIDE;         // Not Recommended - do not use user overrides
+     CAL_USE_CP_ACP            = LOCALE_USE_CP_ACP;             // DEPRECATED, call Unicode APIs instead: use the system ACP
+     CAL_RETURN_NUMBER         = LOCALE_RETURN_NUMBER;          // return number instead of string
+     CAL_RETURN_GENITIVE_NAMES = LOCALE_RETURN_GENITIVE_NAMES;  // return genitive forms of month names
+
+     //
+     //  MUI function flag values
+     //
+     MUI_LANGUAGE_ID                     = $4;      // Use traditional language ID convention
+     MUI_LANGUAGE_NAME                   = $8;      // Use ISO language (culture) name convention
+     MUI_MERGE_SYSTEM_FALLBACK           = $10;     // GetThreadPreferredUILanguages merges in parent and base languages
+     MUI_MERGE_USER_FALLBACK             = $20;     // GetThreadPreferredUILanguages merges in user preferred languages
+     MUI_UI_FALLBACK                     = MUI_MERGE_SYSTEM_FALLBACK or MUI_MERGE_USER_FALLBACK;
+     MUI_THREAD_LANGUAGES                = $40;     // GetThreadPreferredUILanguages merges in user preferred languages
+     MUI_CONSOLE_FILTER                  = $100;    // SetThreadPreferredUILanguages takes on console specific behavior
+     MUI_COMPLEX_SCRIPT_FILTER           = $200;    // SetThreadPreferredUILanguages takes on complex script specific behavior
+     MUI_RESET_FILTERS                   = $001;    // Reset MUI_CONSOLE_FILTER and MUI_COMPLEX_SCRIPT_FILTER
+     MUI_USER_PREFERRED_UI_LANGUAGES     = $10;     // GetFileMUIPath returns the MUI files for the languages in the fallback list
+     MUI_USE_INSTALLED_LANGUAGES         = $20;     // GetFileMUIPath returns all the MUI files installed in the machine
+     MUI_USE_SEARCH_ALL_LANGUAGES        = $40;     // GetFileMUIPath returns all the MUI files irrespective of whether language is installed
+     MUI_LANG_NEUTRAL_PE_FILE            = $100;    // GetFileMUIPath returns target file with .mui extension
+     MUI_NON_LANG_NEUTRAL_FILE           = $200;    // GetFileMUIPath returns target file with same name as source
+     MUI_MACHINE_LANGUAGE_SETTINGS       = $400;
+     MUI_FILETYPE_NOT_LANGUAGE_NEUTRAL   = $001;   // GetFileMUIInfo found a non-split resource file
+     MUI_FILETYPE_LANGUAGE_NEUTRAL_MAIN  = $002;   // GetFileMUIInfo found a LN main module resource file
+     MUI_FILETYPE_LANGUAGE_NEUTRAL_MUI   = $004;   // GetFileMUIInfo found a LN MUI module resource file
+     MUI_QUERY_TYPE                      = $001;   // GetFileMUIInfo will look for the type of the resource file
+     MUI_QUERY_CHECKSUM                  = $002;   // GetFileMUIInfo will look for the checksum of the resource file
+     MUI_QUERY_LANGUAGE_NAME             = $004;   // GetFileMUIInfo will look for the culture of the resource file
+     MUI_QUERY_RESOURCE_TYPES            = $008;   // GetFileMUIInfo will look for the resource types of the resource file
+     MUI_FILEINFO_VERSION                = $001;   // Version of FILEMUIINFO structure used with GetFileMUIInfo
+
+     MUI_FULL_LANGUAGE                   = $01;
+     MUI_PARTIAL_LANGUAGE                = $02;
+     MUI_LIP_LANGUAGE                    = $04;
+     MUI_LANGUAGE_INSTALLED              = $20;
+     MUI_LANGUAGE_LICENSED               = $40;
+
   { SetProcessWorkingSetSize  }
   { SetPrinter  }
   { SetService  }
@@ -5475,8 +5676,6 @@ Type
      WS_EX_COMPOSITED     =   $02000000;
      WS_EX_NOACTIVATE     =   $08000000;
 
-     C3_LEXICAL     = 1024;
-
      FLASHW_STOP         = $00000000;
      FLASHW_CAPTION      = $00000001;
      FLASHW_TRAY         = $00000002;
@@ -6017,6 +6216,10 @@ const
 
   FIND_FIRST_EX_CASE_SENSITIVE    = $00000001;
   FIND_FIRST_EX_LARGE_FETCH       = $00000002;
+  FIND_STARTSWITH           = $100000;  // see if value is at the beginning of source
+  FIND_ENDSWITH             = $200000;  // see if value is at the end of source
+  FIND_FROMSTART            = $400000;  // look for value in source, starting at the beginning
+  FIND_FROMEND              = $800000;  // look for value in source, starting at the end
 
   GPT_ATTRIBUTE_PLATFORM_REQUIRED   = $0000000000000001;
 
