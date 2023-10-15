@@ -1293,7 +1293,7 @@ begin
   CreateParser(ASOURCE);
   Parser.GetNextToken;
   Parser.ParseStringDef(dt,l,cs);
-  AssertEquals('Datatype is AnsiChar',ExpectDT,Dt);
+  AssertEquals('Datatype is Char',ExpectDT,Dt);
   AssertEquals('Length is 1',ExpectLen,l);
   AssertEquals('End of Stream reached',tsqlEOF,Parser.CurrentToken);
   AssertEquals('Correct character set',ExpectCharset,CS);
