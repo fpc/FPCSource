@@ -129,9 +129,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
