@@ -374,6 +374,7 @@ interface
                      ait_tagtype,
                      ait_import_module,
                      ait_import_name,
+                     ait_wasm_structured_instruction,
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,
