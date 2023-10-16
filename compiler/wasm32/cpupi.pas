@@ -630,6 +630,11 @@ implementation
           asmlist:=l2;
 
           map_structured_asmlist(asmlist,@ConvertBranchTargetNumbersToLabels);
+
+          l2:=TAsmList.Create;
+          wasm_convert_to_flat_asmlist(asmlist,l2);
+          asmlist.Free;
+          asmlist:=l2;
         end;
 
       var

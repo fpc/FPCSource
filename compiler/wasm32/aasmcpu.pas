@@ -84,6 +84,7 @@ uses
       public
         constructor Create;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);virtual;abstract;
+        procedure ConvertToFlatList(l: TAsmList);virtual;abstract;
         function getlabel: TAsmLabel;
       end;
 
@@ -98,6 +99,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { tai_wasmstruc_block }
@@ -110,6 +112,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { tai_wasmstruc_loop }
@@ -122,6 +125,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { tai_wasmstruc_try }
@@ -135,6 +139,7 @@ uses
         constructor internal_create(a_try_asmlist: TAsmList);
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { tai_wasmstruc_try_delegate }
@@ -146,6 +151,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { tai_wasmstruc_try_catch }
@@ -161,6 +167,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
       { twasmstruc_stack }
@@ -261,6 +268,7 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
+    procedure wasm_convert_to_flat_asmlist(srclist, destlist: TAsmList);
     procedure map_structured_asmlist(l: TAsmList; f: TAsmMapFunc);
 
 implementation
@@ -403,6 +411,21 @@ uses
         blockstack.pop;
       end;
 
+    procedure tai_wasmstruc_if.ConvertToFlatList(l: TAsmList);
+      begin
+        l.Concat(if_instr);
+        if_instr:=nil;
+        l.concatList(then_asmlist);
+        if assigned(else_asmlist) then
+          begin
+            l.Concat(taicpu.op_none(A_ELSE));
+            l.concatList(else_asmlist);
+          end;
+        l.Concat(taicpu.op_none(a_end_if));
+        if FLabelIsNew then
+          l.concat(tai_label.create(FLabel));
+      end;
+
     { tai_wasmstruc_block }
 
     constructor tai_wasmstruc_block.create_from(a_block_instr: taicpu; srclist: TAsmList);
@@ -459,6 +482,16 @@ uses
         blockstack.push(self);
         map_structured_asmlist_inner(inner_asmlist,f,blockstack);
         blockstack.pop;
+      end;
+
+    procedure tai_wasmstruc_block.ConvertToFlatList(l: TAsmList);
+      begin
+        l.Concat(block_instr);
+        block_instr:=nil;
+        l.concatList(inner_asmlist);
+        l.Concat(taicpu.op_none(a_end_block));
+        if FLabelIsNew then
+          l.concat(tai_label.create(FLabel));
       end;
 
     { tai_wasmstruc_loop }
@@ -519,6 +552,16 @@ uses
         blockstack.pop;
       end;
 
+    procedure tai_wasmstruc_loop.ConvertToFlatList(l: TAsmList);
+      begin
+        l.Concat(loop_instr);
+        loop_instr:=nil;
+        if FLabelIsNew then
+          l.concat(tai_label.create(FLabel));
+        l.concatList(inner_asmlist);
+        l.Concat(taicpu.op_none(a_end_loop));
+      end;
+
     { tai_wasmstruc_try }
 
     class function tai_wasmstruc_try.create_from(srclist: TAsmList): tai_wasmstruc_try;
@@ -576,6 +619,12 @@ uses
             p.try_asmlist.concatListcopy(try_asmlist);
           end;
         getcopy:=p;
+      end;
+
+    procedure tai_wasmstruc_try.ConvertToFlatList(l: TAsmList);
+      begin
+        l.Concat(taicpu.op_none(A_TRY));
+        l.concatList(try_asmlist);
       end;
 
     { tai_wasmstruc_try_catch }
@@ -707,6 +756,27 @@ uses
         blockstack.pop;
       end;
 
+    procedure tai_wasmstruc_try_catch.ConvertToFlatList(l: TAsmList);
+      var
+        i: Integer;
+      begin
+        inherited ConvertToFlatList(l);
+        for i:=low(catch_list) to high(catch_list) do
+          begin
+            l.Concat(catch_list[i].catch_instr);
+            catch_list[i].catch_instr:=nil;
+            l.concatList(catch_list[i].asmlist);
+          end;
+        if assigned(catch_all_asmlist) then
+          begin
+            l.Concat(taicpu.op_none(a_catch_all));
+            l.concatList(catch_all_asmlist);
+          end;
+        l.Concat(taicpu.op_none(a_end_try));
+        if FLabelIsNew then
+          l.concat(tai_label.create(FLabel));
+      end;
+
     { tai_wasmstruc_try_delegate }
 
     constructor tai_wasmstruc_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
@@ -738,6 +808,15 @@ uses
         blockstack.push(self);
         map_structured_asmlist_inner(try_asmlist,f,blockstack);
         blockstack.pop;
+      end;
+
+    procedure tai_wasmstruc_try_delegate.ConvertToFlatList(l: TAsmList);
+      begin
+        inherited ConvertToFlatList(l);
+        l.Concat(delegate_instr);
+        delegate_instr:=nil;
+        if FLabelIsNew then
+          l.concat(tai_label.create(FLabel));
       end;
 
     { tai_globaltype }
@@ -2642,6 +2721,28 @@ uses
       begin
         while not srclist.Empty do
           destlist.Concat(wasm_convert_first_item_to_structured(srclist));
+      end;
+
+
+    procedure wasm_convert_to_flat_asmlist(srclist, destlist: TAsmList);
+      var
+        p: tai;
+        tmplist: TAsmList;
+      begin
+        tmplist:=TAsmList.Create;
+        while not srclist.Empty do
+          begin
+            p:=tai(srclist.First);
+            srclist.Remove(p);
+            if p.typ=ait_wasm_structured_instruction then
+              begin
+                taicpu_wasm_structured_instruction(p).ConvertToFlatList(tmplist);
+                srclist.insertList(tmplist);
+              end
+            else
+              destlist.Concat(p);
+          end;
+        tmplist.free;
       end;
 
 
