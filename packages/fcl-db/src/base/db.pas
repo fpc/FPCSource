@@ -2237,7 +2237,7 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
-    Procedure DoCloseError(aError : Exception);
+    Procedure DoCloseError(aError : Exception); virtual;
     procedure SetForcedClose(AValue: Boolean); virtual;
     procedure CloseForDestroy;
     procedure DoLoginPrompt; virtual;
