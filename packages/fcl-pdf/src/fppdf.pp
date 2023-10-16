@@ -82,6 +82,7 @@ type
   TPDFPaperOrientation = (ppoPortrait,ppoLandscape);
   TPDFPenStyle = (ppsSolid,ppsDash,ppsDot,ppsDashDot,ppsDashDotDot);
   TPDFLineCapStyle = (plcsButtCap, plcsRoundCap, plcsProjectingSquareCap);
+  TPDFLineJoinStyle = (pljsMiterJoin, pljsRoundJoin, pljsBevelJoin);
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
@@ -147,6 +148,7 @@ type
   // CharWidth array of standard PDF fonts
   TPDFFontWidthArray = array[0..255] of integer;
 
+  TDashArray = array of TPDFFloat;
 
   TPDFObject = class(TObject)
   Protected
@@ -396,16 +398,22 @@ type
     FTxtFont: integer;
     FTxtSize: string;
     FPage: TPDFPage;
+    FSimulateBold, FSimulateItalic: Boolean;
     function    GetPointSize: integer;
+    function    GetFontSize: TPDFFloat;
   protected
     procedure Write(const AStream: TStream); override;
     class function WriteEmbeddedFont(const ADocument: TPDFDocument; const Src: TMemoryStream; const AStream: TStream): int64;
     class function WriteEmbeddedSubsetFont(const ADocument: TPDFDocument; const AFontNum: integer; const AOutStream: TStream): int64;
   public
     constructor Create(const ADocument: TPDFDocument;const APage: TPDFPage; const AFont: integer; const ASize: string); overload;
+    constructor Create(const ADocument: TPDFDocument;const APage: TPDFPage; const AFont: integer; const ASize: TPDFFloat; const ASimulateBold, ASimulateItalic: Boolean); overload;
     property    FontIndex: integer read FTxtFont;
     property    PointSize: integer read GetPointSize;
+    property    FontSize: TPDFFloat read GetFontSize;
     property    Page: TPDFPage read FPage;
+    property    SimulateBold: Boolean read FSimulateBold;
+    property    SimulateItalic: Boolean read FSimulateItalic;
   end;
 
 
@@ -595,10 +603,42 @@ type
     FStyle: TPDFPenStyle;
     FPhase: integer;
     FLineWidth: TPDFFloat;
+    FLineMask: string;
   protected
     procedure Write(const AStream: TStream);override;
   public
     constructor Create(Const ADocument : TPDFDocument; AStyle: TPDFPenStyle; APhase: integer; ALineWidth: TPDFFloat); overload;
+    constructor Create(const ADocument : TPDFDocument; ADashArray: TDashArray; APhase: integer; ALineWidth: TPDFFloat); overload;
+  end;
+
+
+  TPDFCapStyle = class(TPDFDocumentObject)
+  private
+    FStyle: TPDFLineCapStyle;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(const ADocument: TPDFDocument; AStyle: TPDFLineCapStyle); overload;
+  end;
+
+
+  TPDFJoinStyle = class(TPDFDocumentObject)
+  private
+    FStyle: TPDFLineJoinStyle;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(const ADocument: TPDFDocument; AStyle: TPDFLineJoinStyle); overload;
+  end;
+
+
+  TPDFMiterLimit = class(TPDFDocumentObject)
+  private
+    FMiterLimit: TPDFFloat;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(const ADocument: TPDFDocument; AMiterLimit: TPDFFloat); overload;
   end;
 
 
@@ -731,10 +771,15 @@ type
     Destructor Destroy; override;
     Procedure AddObject(AObject : TPDFObject);
     // Commands. These will create objects in the objects list of the page.
-    Procedure SetFont(AFontIndex : Integer; AFontSize : Integer); virtual;
+    Procedure SetFont(AFontIndex : Integer; AFontSize : TPDFFloat; const
+      ASimulateBold: Boolean = False; const ASimulateItalic: Boolean = False); virtual;
     // used for stroking and nonstroking colors - purpose determined by the AStroke parameter
     Procedure SetColor(AColor : TARGBColor; AStroke : Boolean = True); virtual;
     Procedure SetPenStyle(AStyle : TPDFPenStyle; const ALineWidth: TPDFFloat = 1.0); virtual;
+    procedure SetPenStyle(ADashArray: TDashArray; const ALineWidth: TPDFFloat = 1.0);
+    procedure SetLineCapStyle(AStyle: TPDFLineCapStyle); virtual;
+    procedure SetLineJoinStyle(AStyle: TPDFLineJoinStyle); virtual;
+    procedure SetMiterLimit(AMiterLimit: TPDFFloat); virtual;
     // Set color and pen style from line style
     Procedure SetLineStyle(AIndex : Integer; AStroke : Boolean = True); overload;
     Procedure SetLineStyle(S : TPDFLineStyleDef; AStroke : Boolean = True); overload;
@@ -1042,12 +1087,14 @@ type
     FColor: TARGBColor;
     FLineWidth: TPDFFloat;
     FPenStyle: TPDFPenStyle;
+    FDashArray: TDashArray;
   Public
     Procedure Assign(Source : TPersistent); override;
   Published
     Property LineWidth : TPDFFloat Read FLineWidth Write FLineWidth;
     Property Color : TARGBColor Read FColor Write FColor Default clBlack;
     Property PenStyle : TPDFPenStyle Read FPenStyle Write FPenStyle Default ppsSolid;
+    property DashArray : TDashArray read FDashArray write FDashArray;
   end;
 
 
@@ -1163,7 +1210,8 @@ type
     Procedure SaveToFile(Const AFileName : String);
     function  IsStandardPDFFont(AFontName: string): boolean;
     // Create objects, owned by this document.
-    Function CreateEmbeddedFont(const APage: TPDFPage; AFontIndex, AFontSize : Integer) : TPDFEmbeddedFont;
+    Function CreateEmbeddedFont(const APage: TPDFPage; AFontIndex : Integer; AFontSize : TPDFFloat;
+      const ASimulateBold: Boolean = False; const ASimulateItalic: Boolean = False) : TPDFEmbeddedFont;
     Function CreateText(X,Y : TPDFFloat; AText : AnsiString; const AFont: TPDFEmbeddedFont; const ADegrees: single; const AUnderline: boolean; const AStrikethrough: boolean) : TPDFText; overload;
     Function CreateText(X,Y : TPDFFloat; AText : UTF8String; const AFont: TPDFEmbeddedFont; const ADegrees: single; const AUnderline: boolean; const AStrikethrough: boolean) : TPDFUTF8Text; overload;
     Function CreateText(X,Y : TPDFFloat; AText : UnicodeString; const AFont: TPDFEmbeddedFont; const ADegrees: single; const AUnderline: boolean; const AStrikethrough: boolean) : TPDFUTF16Text; overload;
@@ -1174,6 +1222,10 @@ type
     Function CreateInteger(AValue : Integer) : TPDFInteger;
     Function CreateReference(AValue : Integer) : TPDFReference;
     Function CreateLineStyle(APenStyle: TPDFPenStyle; const ALineWidth: TPDFFloat) : TPDFLineStyle;
+    function CreateLineStyle(ADashArray: TDashArray; const ALineWidth: TPDFFloat): TPDFLineStyle;
+    function CreateLineCapStyle(ALineCapStyle: TPDFLineCapStyle): TPDFCapStyle;
+    function CreateLineJoinStyle(ALineJoinStyle: TPDFLineJoinStyle): TPDFJoinStyle;
+    function CreateMiterLimit(AMiterLimit: TPDFFloat): TPDFMiterLimit;
     Function CreateName(AValue : String; const AMustEscape: boolean = True) : TPDFName;
     Function CreateStream(OwnsObjects : Boolean = True) : TPDFStream;
     Function CreateDictionary : TPDFDictionary;
@@ -1183,6 +1235,7 @@ type
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
     Function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; APenStyle : TPDFPenStyle = ppsSolid) : Integer;
+    function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; ADashArray : TDashArray = []) : Integer;
     procedure AddOutputIntent(const Subtype, OutputConditionIdentifier, Info: string; ICCProfile: TStream);
     procedure AddPDFA1sRGBOutputIntent;virtual;
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
@@ -1264,6 +1317,7 @@ function cmToPDF(cm: single): TPDFFloat;
 function PDFtoCM(APixels: TPDFFloat): single;
 function InchesToPDF(Inches: single): TPDFFloat;
 function PDFtoInches(APixels: TPDFFloat): single;
+function FontUnitsTomm(AUnits, APointSize: TPDFFloat; AUnitsPerEm: Integer): single;
 
 function PDFCoord(x, y: TPDFFloat): TPDFCoord;
 
@@ -1496,6 +1550,12 @@ end;
 function PDFtoInches(APixels: TPDFFloat): single;
 begin
   Result := APixels / cDefaultDPI;
+end;
+
+function FontUnitsTomm(AUnits, APointSize: TPDFFloat; AUnitsPerEm: Integer): single;
+begin
+  Result := AUnits * APointSize * gTTFontCache.DPI / (72 * AUnitsPerEm);
+  Result := Result * cInchToMM / gTTFontCache.DPI;
 end;
 
 function XMLEscape(const Data: string): string;
@@ -2108,6 +2168,7 @@ begin
     LineWidth:=L.LineWidth;
     Color:=L.Color;
     PenStyle:=L.PenStyle;
+    DashArray:=L.DashArray;
     end
   else
     Inherited;
@@ -2410,11 +2471,12 @@ begin
   FObjects.Add(AObject);
 end;
 
-procedure TPDFPage.SetFont(AFontIndex: Integer; AFontSize: Integer);
+procedure TPDFPage.SetFont(AFontIndex: Integer; AFontSize: TPDFFloat;
+  const ASimulateBold: Boolean; const ASimulateItalic: Boolean);
 Var
   F : TPDFEmbeddedFont;
 begin
-  F:=Document.CreateEmbeddedFont(self, AFontIndex, AFontSize);
+  F:=Document.CreateEmbeddedFont(self, AFontIndex, AFontSize, ASimulateBold, ASimulateItalic);
   AddObject(F);
   FLastFont := F;
 end;
@@ -2437,6 +2499,40 @@ begin
   AddObject(L);
 end;
 
+procedure TPDFPage.SetPenStyle(ADashArray: TDashArray; const
+  ALineWidth: TPDFFloat);
+var
+  L: TPDFLineStyle;
+begin
+  L := Document.CreateLineStyle(ADashArray, ALineWidth);
+  AddObject(L);
+end;
+
+procedure TPDFPage.SetLineCapStyle(AStyle: TPDFLineCapStyle);
+var
+  C: TPDFCapStyle;
+begin
+  Document.LineCapStyle := AStyle;
+  C := Document.CreateLineCapStyle(AStyle);
+  AddObject(C);
+end;
+
+procedure TPDFPage.SetLineJoinStyle(AStyle: TPDFLineJoinStyle);
+var
+  J: TPDFJoinStyle;
+begin
+  J := Document.CreateLineJoinStyle(AStyle);
+  AddObject(J);
+end;
+
+procedure TPDFPage.SetMiterLimit(AMiterLimit: TPDFFloat);
+var
+  M: TPDFMiterLimit;
+begin
+  M := Document.CreateMiterLimit(AMiterLimit);
+  AddObject(M);
+end;
+
 procedure TPDFPage.SetLineStyle(AIndex: Integer; AStroke : Boolean = True);
 begin
   SetLineStyle(Document.LineStyles[Aindex],AStroke);
@@ -2445,7 +2541,10 @@ end;
 procedure TPDFPage.SetLineStyle(S: TPDFLineStyleDef; AStroke: Boolean = True);
 begin
   SetColor(S.Color,AStroke);
-  SetPenStyle(S.PenStyle,S.LineWidth);
+  if Length(S.DashArray) = 0 then
+    SetPenStyle(S.PenStyle, S.LineWidth)
+  else
+    SetPenStyle(S.DashArray, S.LineWidth);
 end;
 
 procedure TPDFPage.WriteText(X, Y: TPDFFloat; AText: UTF8String; const ADegrees: single;
@@ -3732,7 +3831,12 @@ end;
 
 function TPDFEmbeddedFont.GetPointSize: integer;
 begin
-  Result := StrToInt(FTxtSize);
+  Result := Round(StrToFloatDef(FTxtSize, 10));
+end;
+
+function TPDFEmbeddedFont.GetFontSize: TPDFFloat;
+begin
+  Result := StrToFloatDef(FTxtSize, 10);
 end;
 
 procedure TPDFEmbeddedFont.Write(const AStream: TStream);
@@ -3801,6 +3905,17 @@ begin
   FTxtFont := AFont;
   FTxtSize := ASize;
   FPage := APage;
+end;
+
+constructor TPDFEmbeddedFont.Create(const ADocument: TPDFDocument; const APage: TPDFPage; const AFont: integer;
+  const ASize: TPDFFloat; const ASimulateBold, ASimulateItalic: Boolean);
+begin
+  inherited Create(ADocument);
+  FTxtFont := AFont;
+  FTxtSize := FloatStr(ASize);
+  FPage := APage;
+  FSimulateBold := ASimulateBold;
+  FSimulateItalic := ASimulateItalic;
 end;
 
 { TPDFBaseText }
@@ -3952,8 +4067,7 @@ end;
 
 procedure TPDFUTF8Text.Write(const AStream: TStream);
 var
-  t1, t2, t3: string;
-  rad, rads, radc: single;
+  rad: single;
   lFC: TFPFontCacheItem;
   lWidth: single;
   lTextWidthInMM: single;
@@ -3962,62 +4076,119 @@ var
   lColor: string;
   lLineWidth: string;
   lDescender: single;
+  lUnderlinePos, lUnderlineSize, lStrikeOutPos, lStrikeOutSize: Single;
+  a1, b1, c1, d1, a2, b2, c2, d2: Single;
 begin
   inherited Write(AStream);
-  WriteString('BT'+CRLF, AStream);
-  if Degrees <> 0.0 then
-  begin
-    rad := DegToRad(-Degrees);
-    sincos(rad, rads, radc);
-    t1 := FloatStr(radc);
-    t2 := FloatStr(-rads);
-    t3 := FloatStr(rads);
-    WriteString(Format('%s %s %s %s %s %s Tm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
-  end
-  else
-  begin
-    WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
+  WriteString('q' + CRLF, AStream);
+  try
+    WriteString('BT'+CRLF, AStream);
+
+    a1 := 1; b1 := 0; c1 := 0; d1 := 1;
+    if Degrees <> 0.0 then
+    begin
+      rad := DegToRad(-Degrees);
+      a1 := Cos(rad); b1 := -Sin(rad);
+      c1 := Sin(rad); d1 := a1;
+    end
+    else
+      WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
+
+    lFC := gTTFontCache.Find(Document.Fonts[Font.FontIndex].Name);
+
+    { set up a pen stroke color }
+    lColor := TPDFColor.Command(True, Color);
+
+    // do simulated bold/italic here
+    if Assigned(lFC) then
+    begin
+      if Font.SimulateBold and not lFC.IsBold then
+      begin
+        WriteString(lColor + CRLF, AStream);
+        // stroke ptSize/30 outline to simulate bold
+        WriteString(Format('2 Tr %s w', [FloatStr(Font.PointSize / 30)]) + CRLF, AStream);
+      end;
+      if Font.SimulateItalic and not lFC.IsItalic then
+      begin
+        // skew by 12 degrees
+        a2 := 1;                 b2 := 0;
+        c2 := Tan(DegToRad(12)); d2 := 1;
+        // combine matrices: skew x rotate (skew first, then rotate)
+        a1 := a2 * a1 + b2 * c1;
+        b1 := a2 * b1 + b2 * d1;
+        c1 := c2 * a1 + d2 * c1;
+        d1 := c2 * b1 + d2 * d1;
+      end;
+    end;
+    // write transformation matrix (Tm)
+    if (Degrees <> 0.0) or (Font.SimulateItalic and not lFC.IsItalic) then
+      WriteString(Format('%s %s %s %s %s %s Tm',
+        [FloatStr(a1), FloatStr(b1), FloatStr(c1), FloatStr(d1),
+         FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
+
+    FString.Write(AStream);
+    WriteString(' Tj'+CRLF, AStream);
+    WriteString('ET'+CRLF, AStream);
+
+    if (not Underline) and (not StrikeThrough) then
+      Exit;
+
+    // implement Underline and Strikethrough here
+    if not Assigned(lFC) then
+      Exit;  // we can't do anything further
+
+    // result is in Font Units
+    lWidth := lFC.TextWidth(FString.Value, Font.PointSize);
+    lHeight := lFC.TextHeight(FString.Value, Font.PointSize, lDescender);
+    { convert the Font Units to Millimeters. This is also because fontcache DPI (default 96) could differ from PDF DPI (72). }
+    lTextWidthInMM := (lWidth * cInchToMM) / gTTFontCache.DPI;
+    lTextHeightInMM := (lHeight * cInchToMM) / gTTFontCache.DPI;
+
+    if Degrees <> 0.0 then
+      // angled text
+      WriteString(Format('%s %s %s %s %s %s cm', [FloatStr(a1), FloatStr(b1), FloatStr(c1), FloatStr(d1), FloatStr(X), FloatStr(Y)]) + CRLF, AStream)
+    else
+      // horizontal text
+      WriteString(Format('1 0 0 1 %s %s cm', [FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
+
+    with lFC.FontData do
+    begin
+      { line segment is relative to matrix translation coordinate, set above }
+      if Underline then
+      begin
+        // fallback default values
+        lUnderlinePos := PDFTomm(-1.5);
+        lUnderlineSize := lTextHeightInMM / 12;
+        // use font metrics, if present
+        if PostScript.UnderlinePosition <> 0 then
+          lUnderlinePos := FontUnitsTomm(PostScript.UnderlinePosition, Font.PointSize, Head.UnitsPerEm);
+        if PostScript.underlineThickness <> 0 then
+          lUnderlineSize := FontUnitsTomm(PostScript.underlineThickness, Font.PointSize, Head.UnitsPerEm);
+
+        lLineWidth := FloatStr(mmToPDF(lUnderlineSize)) + ' w ';
+        WriteString(lLineWidth + lColor + CRLF, AStream);
+        WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lUnderlinePos)), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+      end;
+      if StrikeThrough then
+      begin
+        // fallback default values
+        lStrikeOutPos := lTextHeightInMM / 2;
+        lStrikeOutSize := lTextHeightInMM / 12;
+        // use font metrics, if present
+        if OS2Data.yStrikeoutPosition <> 0 then
+          lStrikeOutPos := FontUnitsTomm(OS2Data.yStrikeoutPosition, Font.PointSize, Head.UnitsPerEm);
+        if OS2Data.yStrikeoutSize <> 0 then
+          lStrikeOutSize := FontUnitsTomm(OS2Data.yStrikeoutSize, Font.PointSize, Head.UnitsPerEm);
+
+        lLineWidth := FloatStr(mmToPDF(lStrikeOutSize)) + ' w ';
+        WriteString(lLineWidth + lColor + CRLF, AStream);
+        WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lStrikeOutPos)), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+      end;
+    end;
+  finally
+    { restore graphics state to before the translation matrix adjustment }
+    WriteString('Q' + CRLF, AStream);
   end;
-  FString.Write(AStream);
-  WriteString(' Tj'+CRLF, AStream);
-  WriteString('ET'+CRLF, AStream);
-
-  if (not Underline) and (not StrikeThrough) then
-    Exit;
-
-  // implement Underline and Strikethrough here
-  lFC := gTTFontCache.Find(Document.Fonts[Font.FontIndex].Name);
-  if not Assigned(lFC) then
-    Exit;  // we can't do anything further
-
-  // result is in Font Units
-  lWidth := lFC.TextWidth(FString.Value, Font.PointSize);
-  lHeight := lFC.TextHeight(FString.Value, Font.PointSize, lDescender);
-  { convert the Font Units to Millimeters. This is also because fontcache DPI (default 96) could differ from PDF DPI (72). }
-  lTextWidthInMM := (lWidth * cInchToMM) / gTTFontCache.DPI;
-  lTextHeightInMM := (lHeight * cInchToMM) / gTTFontCache.DPI;
-
-  if Degrees <> 0.0 then
-    // angled text
-    WriteString(Format('q %s %s %s %s %s %s cm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream)
-  else
-    // horizontal text
-    WriteString(Format('q 1 0 0 1 %s %s cm', [FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
-
-  { set up a pen width and stroke color }
-  lColor := TPDFColor.Command(True, Color);
-  lLineWidth := FloatStr(mmToPDF(lTextHeightInMM / 12)) + ' w ';
-  WriteString(lLineWidth + lColor + CRLF, AStream);
-
-  { line segment is relative to matrix translation coordinate, set above }
-  if Underline then
-    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
-  if StrikeThrough then
-    WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lTextHeightInMM) / 2), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
-
-  { restore graphics state to before the translation matrix adjustment }
-  WriteString('Q' + CRLF, AStream);
-
 end;
 
 constructor TPDFUTF8Text.Create(const ADocument: TPDFDocument; const AX, AY: TPDFFloat; const AText: UTF8String;
@@ -4055,65 +4226,122 @@ var
   lColor: string;
   lLineWidth: string;
   lDescender: single;
+  lUnderlinePos, lUnderlineSize, lStrikeOutPos, lStrikeOutSize: Single;
+  a1, b1, c1, d1, a2, b2, c2, d2: Single;
   v : UTF8String;
   
 begin
   inherited Write(AStream);
-  WriteString('BT'+CRLF, AStream);
-  if Degrees <> 0.0 then
-  begin
-    rad := DegToRad(-Degrees);
-    sincos(rad, rads, radc);
-    t1 := FloatStr(radc);
-    t2 := FloatStr(-rads);
-    t3 := FloatStr(rads);
-    WriteString(Format('%s %s %s %s %s %s Tm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
-  end
-  else
-  begin
-    WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
+  WriteString('q' + CRLF, AStream);
+  try
+    WriteString('BT'+CRLF, AStream);
+
+    a1 := 1; b1 := 0; c1 := 0; d1 := 1;
+    if Degrees <> 0.0 then
+    begin
+      rad := DegToRad(-Degrees);
+      a1 := Cos(rad); b1 := -Sin(rad);
+      c1 := Sin(rad); d1 := a1;
+    end
+    else
+      WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
+
+    lFC := gTTFontCache.Find(Document.Fonts[Font.FontIndex].Name);
+
+    { set up a pen stroke color }
+    lColor := TPDFColor.Command(True, Color);
+
+    // do simulated bold/italic here
+    if Assigned(lFC) then
+    begin
+      if Font.SimulateBold and not lFC.IsBold then
+      begin
+        WriteString(lColor + CRLF, AStream);
+        // stroke ptSize/30 outline to simulate bold
+        WriteString(Format('2 Tr %s w', [FloatStr(Font.PointSize / 30)]) + CRLF, AStream);
+      end;
+      if Font.SimulateItalic and not lFC.IsItalic then
+      begin
+        // skew by 12 degrees
+        a2 := 1;                 b2 := 0;
+        c2 := Tan(DegToRad(12)); d2 := 1;
+        // combine matrices: skew x rotate (skew first, then rotate)
+        a1 := a2 * a1 + b2 * c1;
+        b1 := a2 * b1 + b2 * d1;
+        c1 := c2 * a1 + d2 * c1;
+        d1 := c2 * b1 + d2 * d1;
+      end;
+    end;
+    // write transformation matrix (Tm)
+    if (Degrees <> 0.0) or (Font.SimulateItalic and not lFC.IsItalic) then
+      WriteString(Format('%s %s %s %s %s %s Tm',
+        [FloatStr(a1), FloatStr(b1), FloatStr(c1), FloatStr(d1),
+         FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
+
+    FString.Write(AStream);
+    WriteString(' Tj'+CRLF, AStream);
+    WriteString('ET'+CRLF, AStream);
+
+    if (not Underline) and (not StrikeThrough) then
+      Exit;
+
+    // implement Underline and Strikethrough here
+    if not Assigned(lFC) then
+      Exit;  // we can't do anything further
+
+    // result is in Font Units
+    v:=UTF8Encode(FString.Value);
+    lWidth := lFC.TextWidth(v, Font.PointSize);
+    lHeight := lFC.TextHeight(v, Font.PointSize, lDescender);
+    { convert the Font Units to Millimeters. This is also because fontcache DPI (default 96) could differ from PDF DPI (72). }
+    lTextWidthInMM := (lWidth * cInchToMM) / gTTFontCache.DPI;
+    lTextHeightInMM := (lHeight * cInchToMM) / gTTFontCache.DPI;
+
+    if Degrees <> 0.0 then
+      // angled text
+      WriteString(Format('%s %s %s %s %s %s cm', [FloatStr(a1), FloatStr(b1), FloatStr(c1), FloatStr(d1), FloatStr(X), FloatStr(Y)]) + CRLF, AStream)
+    else
+      // horizontal text
+      WriteString(Format('1 0 0 1 %s %s cm', [FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
+
+    with lFC.FontData do
+    begin
+      { line segment is relative to matrix translation coordinate, set above }
+      if Underline then
+      begin
+        // fallback default values
+        lUnderlinePos := PDFTomm(-1.5);
+        lUnderlineSize := lTextHeightInMM / 12;
+        // use font metrics, if present
+        if PostScript.UnderlinePosition <> 0 then
+          lUnderlinePos := FontUnitsTomm(PostScript.UnderlinePosition, Font.PointSize, Head.UnitsPerEm);
+        if PostScript.underlineThickness <> 0 then
+          lUnderlineSize := FontUnitsTomm(PostScript.underlineThickness, Font.PointSize, Head.UnitsPerEm);
+
+        lLineWidth := FloatStr(mmToPDF(lUnderlineSize)) + ' w ';
+        WriteString(lLineWidth + lColor + CRLF, AStream);
+        WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lUnderlinePos)), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+      end;
+      if StrikeThrough then
+      begin
+        // fallback default values
+        lStrikeOutPos := lTextHeightInMM / 2;
+        lStrikeOutSize := lTextHeightInMM / 12;
+        // use font metrics, if present
+        if OS2Data.yStrikeoutPosition <> 0 then
+          lStrikeOutPos := FontUnitsTomm(OS2Data.yStrikeoutPosition, Font.PointSize, Head.UnitsPerEm);
+        if OS2Data.yStrikeoutSize <> 0 then
+          lStrikeOutSize := FontUnitsTomm(OS2Data.yStrikeoutSize, Font.PointSize, Head.UnitsPerEm);
+
+        lLineWidth := FloatStr(mmToPDF(lStrikeOutSize)) + ' w ';
+        WriteString(lLineWidth + lColor + CRLF, AStream);
+        WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lStrikeOutPos)), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+      end;
+    end;
+  finally
+    { restore graphics state to before the translation matrix adjustment }
+    WriteString('Q' + CRLF, AStream);
   end;
-  FString.Write(AStream);
-  WriteString(' Tj'+CRLF, AStream);
-  WriteString('ET'+CRLF, AStream);
-
-  if (not Underline) and (not StrikeThrough) then
-    Exit;
-
-  // implement Underline and Strikethrough here
-  lFC := gTTFontCache.Find(Document.Fonts[Font.FontIndex].Name);
-  if not Assigned(lFC) then
-    Exit;  // we can't do anything further
-
-  // result is in Font Units
-  v:=UTF8Encode(FString.Value);
-  lWidth := lFC.TextWidth(v, Font.PointSize);
-  lHeight := lFC.TextHeight(v, Font.PointSize, lDescender);
-  { convert the Font Units to Millimeters. This is also because fontcache DPI (default 96) could differ from PDF DPI (72). }
-  lTextWidthInMM := (lWidth * cInchToMM) / gTTFontCache.DPI;
-  lTextHeightInMM := (lHeight * cInchToMM) / gTTFontCache.DPI;
-
-  if Degrees <> 0.0 then
-    // angled text
-    WriteString(Format('q %s %s %s %s %s %s cm', [t1, t2, t3, t1, FloatStr(X), FloatStr(Y)]) + CRLF, AStream)
-  else
-    // horizontal text
-    WriteString(Format('q 1 0 0 1 %s %s cm', [FloatStr(X), FloatStr(Y)]) + CRLF, AStream);
-
-  { set up a pen width and stroke color }
-  lColor := TPDFColor.Command(True, Color);
-  lLineWidth := FloatStr(mmToPDF(lTextHeightInMM / 12)) + ' w ';
-  WriteString(lLineWidth + lColor + CRLF, AStream);
-
-  { line segment is relative to matrix translation coordinate, set above }
-  if Underline then
-    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
-  if StrikeThrough then
-    WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lTextHeightInMM) / 2), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
-
-  { restore graphics state to before the translation matrix adjustment }
-  WriteString('Q' + CRLF, AStream);
-
 end;
 
 constructor TPDFUTF16Text.Create(const ADocument: TPDFDocument; const AX, AY: TPDFFloat; const AText: UnicodeString;
@@ -4317,6 +4545,9 @@ var
   w: TPDFFloat;
 begin
   w := FLineWidth;
+  if FLineMask <> '' then
+    lMask := FLineMask
+  else
   case FStyle of
     ppsSolid:
       begin
@@ -4349,6 +4580,58 @@ begin
   FStyle := AStyle;
   FPhase := APhase;
   FLineWidth := ALineWidth;
+  FLineMask := '';
+end;
+
+constructor TPDFLineStyle.Create(const ADocument : TPDFDocument;
+  ADashArray: TDashArray; APhase: integer; ALineWidth: TPDFFloat);
+var
+  i: Integer;
+begin
+  Create(ADocument, ppsSolid, APhase, ALineWidth);
+  // custom line style
+  for i := Low(ADashArray) to High(ADashArray) do
+  begin
+    if FLineMask <> '' then FLineMask := FLineMask + ' ';
+    FLineMask := FLineMask + FloatStr(ADashArray[i] * ALineWidth);
+  end;
+end;
+
+procedure TPDFCapStyle.Write(const AStream: TStream);
+begin
+  inherited Write(AStream);
+  WriteString(IntToStr(Ord(FStyle)) + ' J' + CRLF, AStream);
+end;
+
+constructor TPDFCapStyle.Create(const ADocument: TPDFDocument;
+  AStyle: TPDFLineCapStyle);
+begin
+  inherited Create(ADocument);
+  FStyle := AStyle;
+end;
+
+procedure TPDFJoinStyle.Write(const AStream: TStream);
+begin
+  inherited Write(AStream);
+  WriteString(IntToStr(Ord(FStyle)) + ' j' + CRLF, AStream);
+end;
+
+constructor TPDFJoinStyle.Create(const ADocument: TPDFDocument; AStyle: TPDFLineJoinStyle);
+begin
+  inherited Create(ADocument);
+  FStyle := AStyle;
+end;
+
+procedure TPDFMiterLimit.Write(const AStream: TStream);
+begin
+  inherited Write(AStream);
+  WriteString(FloatStr(FMiterLimit) + ' M' + CRLF, AStream);
+end;
+
+constructor TPDFMiterLimit.Create(const ADocument: TPDFDocument; AMiterLimit: TPDFFloat);
+begin
+  inherited Create(ADocument);
+  FMiterLimit := AMiterLimit;
 end;
 
 Function ARGBGetRed(AColor : TARGBColor) : Byte;
@@ -6120,9 +6403,11 @@ begin
     Result := False;
 end;
 
-function TPDFDocument.CreateEmbeddedFont(const APage: TPDFPage; AFontIndex, AFontSize: Integer): TPDFEmbeddedFont;
+function TPDFDocument.CreateEmbeddedFont(const APage: TPDFPage; AFontIndex: Integer;
+  AFontSize: TPDFFloat; const ASimulateBold: Boolean;
+  const ASimulateItalic: Boolean): TPDFEmbeddedFont;
 begin
-  Result:=TPDFEmbeddedFont.Create(Self, APage, AFontIndex, IntToStr(AFontSize))
+  Result:=TPDFEmbeddedFont.Create(Self, APage, AFontIndex, AFontSize, ASimulateBold, ASimulateItalic);
 end;
 
 function TPDFDocument.CreateText(X, Y: TPDFFloat; AText: AnsiString; const AFont: TPDFEmbeddedFont;
@@ -6192,6 +6477,27 @@ end;
 function TPDFDocument.CreateLineStyle(APenStyle: TPDFPenStyle; const ALineWidth: TPDFFloat): TPDFLineStyle;
 begin
   Result := TPDFLineStyle.Create(Self, APenStyle, 0, ALineWidth);
+end;
+
+function TPDFDocument.CreateLineStyle(ADashArray: TDashArray; const
+  ALineWidth: TPDFFloat): TPDFLineStyle;
+begin
+  Result := TPDFLineStyle.Create(Self, ADashArray, 0, ALineWidth);
+end;
+
+function TPDFDocument.CreateLineCapStyle(ALineCapStyle: TPDFLineCapStyle): TPDFCapStyle;
+begin
+  Result := TPDFCapStyle.Create(Self, ALineCapStyle);
+end;
+
+function TPDFDocument.CreateLineJoinStyle(ALineJoinStyle: TPDFLineJoinStyle): TPDFJoinStyle;
+begin
+  Result := TPDFJoinStyle.Create(Self, ALineJoinStyle);
+end;
+
+function TPDFDocument.CreateMiterLimit(AMiterLimit: TPDFFloat): TPDFMiterLimit;
+begin
+  Result := TPDFMiterLimit.Create(Self, AMiterLimit);
 end;
 
 function TPDFDocument.CreateName(AValue: String; const AMustEscape: boolean = True): TPDFName;
@@ -6272,9 +6578,17 @@ begin
   F.LineWidth:=ALineWidth;
   F.Color:=AColor;
   F.PenStyle:=APenStyle;
+  F.DashArray:=[];
   Result:=FLineStyleDefs.Count-1;
 end;
 
+function TPDFDocument.AddLineStyleDef(ALineWidth: TPDFFloat; AColor: TARGBColor;
+  ADashArray: TDashArray) : Integer;
+begin
+  Result := AddLineStyleDef(ALineWidth, AColor, ppsSolid);
+  if Result >= 0 then
+    LineStyles[Result].DashArray := ADashArray;
+end;
 
 initialization
   PDFFormatSettings:= DefaultFormatSettings;
