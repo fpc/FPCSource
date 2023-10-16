@@ -633,7 +633,9 @@ implementation
         replace_local_frame_pointer(aktproccode);
 
         labels_resolved:=resolve_labels_simple(aktproccode);
+{$ifndef DEBUG_WASM_GOTO}
         if not labels_resolved then
+{$endif DEBUG_WASM_GOTO}
           resolve_labels_complex(aktproccode);
 
         inherited postprocess_code;
