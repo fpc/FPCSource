@@ -2681,42 +2681,6 @@ uses
         blockstack.free;
       end;
 
-  type
-    TNumberToLabelConverter = class
-      function Convert(ai: tai; blockstack: twasmstruc_stack): tai;
-    end;
-
-    function TNumberToLabelConverter.Convert(ai: tai; blockstack: twasmstruc_stack): tai;
-      var
-        instr: taicpu;
-        bl: taicpu_wasm_structured_instruction;
-        l: TAsmLabel;
-      begin
-        result:=ai;
-        if ai.typ<>ait_instruction then
-          exit;
-        instr:=taicpu(ai);
-        if not (instr.opcode in [a_br,a_br_if]) then
-          exit;
-        if instr.ops<>1 then
-          internalerror(2023101601);
-        if instr.oper[0]^.typ<>top_const then
-          exit;
-        bl:=blockstack[instr.oper[0]^.val];
-        l:=bl.getlabel;
-        instr.loadsymbol(0,l,0);
-      end;
-
-
-    procedure convert_numbers_to_labels(l: TAsmList);
-      var
-        n: TNumberToLabelConverter;
-      begin
-        n:=TNumberToLabelConverter.Create;
-        map_structured_asmlist(l,@n.Convert);
-        n.free;
-      end;
-
 
 initialization
   cai_cpu:=taicpu;
