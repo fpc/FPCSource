@@ -78,8 +78,13 @@ uses
       { taicpu_wasm_structured_instruction }
 
       taicpu_wasm_structured_instruction = class(tai)
+      protected
+        FLabel: TAsmLabel;
+        FLabelIsNew: Boolean;
+      public
         constructor Create;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);virtual;abstract;
+        function getlabel: TAsmLabel;
       end;
 
       { tai_wasmstruc_if }
@@ -167,7 +172,7 @@ uses
       public
         procedure push(ins: taicpu_wasm_structured_instruction);
         procedure pop;
-        property Items [Index: Integer]: taicpu_wasm_structured_instruction read Get;
+        property Items [Index: Integer]: taicpu_wasm_structured_instruction read Get;default;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -292,6 +297,16 @@ uses
       begin
         inherited;
         typ:=ait_wasm_structured_instruction;
+      end;
+
+    function taicpu_wasm_structured_instruction.getlabel: TAsmLabel;
+      begin
+        if not assigned(FLabel) then
+          begin
+            current_asmdata.getjumplabel(FLabel);
+            FLabelIsNew:=true;
+          end;
+        result:=FLabel;
       end;
 
     { tai_wasmstruc_if }
@@ -2665,6 +2680,43 @@ uses
         map_structured_asmlist_inner(l,f,blockstack);
         blockstack.free;
       end;
+
+  type
+    TNumberToLabelConverter = class
+      function Convert(ai: tai; blockstack: twasmstruc_stack): tai;
+    end;
+
+    function TNumberToLabelConverter.Convert(ai: tai; blockstack: twasmstruc_stack): tai;
+      var
+        instr: taicpu;
+        bl: taicpu_wasm_structured_instruction;
+        l: TAsmLabel;
+      begin
+        result:=ai;
+        if ai.typ<>ait_instruction then
+          exit;
+        instr:=taicpu(ai);
+        if not (instr.opcode in [a_br,a_br_if]) then
+          exit;
+        if instr.ops<>1 then
+          internalerror(2023101601);
+        if instr.oper[0]^.typ<>top_const then
+          exit;
+        bl:=blockstack[instr.oper[0]^.val];
+        l:=bl.getlabel;
+        instr.loadsymbol(0,l,0);
+      end;
+
+
+    procedure convert_numbers_to_labels(l: TAsmList);
+      var
+        n: TNumberToLabelConverter;
+      begin
+        n:=TNumberToLabelConverter.Create;
+        map_structured_asmlist(l,@n.Convert);
+        n.free;
+      end;
+
 
 initialization
   cai_cpu:=taicpu;
