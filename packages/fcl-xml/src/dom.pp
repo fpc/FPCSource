@@ -522,6 +522,8 @@ type
     // Extensions to DOM interface:
     constructor Create; virtual;
     destructor Destroy; override;
+    procedure RebuildIDsOfElement(aRoot: TDOMElement);
+    procedure RebuildIDList;
     function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
     property IDs: THashTable read FIDList write FIDList;
@@ -2260,6 +2262,43 @@ begin
   FNames.Free;           // free the nametable after inherited has destroyed the children
                          // (because children reference the nametable)
 end;
+
+procedure TDOMDocument.RebuildIDsOfElement(aRoot: TDOMElement);
+var
+  i: Integer;
+  AttribNode: TDOMNode;
+  id: DOMString;
+  Item: PHashItem;
+begin
+  if aRoot=Nil then 
+    exit;
+  for i := 0 to aRoot.Attributes.Length - 1 do
+  begin
+    AttribNode := aRoot.Attributes.Item[i];
+    if LowerCase(AttribNode.NodeName) = 'id' then
+    begin
+      id := AttribNode.TextContent;
+      Item := FIDList.FindOrAdd(PWideChar(id), Length(id));
+      Item^.Data := aRoot;
+      break;
+    end;
+  end;
+
+  for i := 0 to aRoot.ChildNodes.Count - 1 do
+  begin
+    if aroot.ChildNodes[i] is TDOMElement then
+      RebuildIDsOfElement(TDOMElement(aroot.ChildNodes[i]));
+  end;
+end;
+
+procedure TDOMDocument.RebuildIDList;
+begin
+  if not Assigned(FIDList) then
+    FIDList := THashTable.Create(256, False);
+  FIDList.Clear;
+  RebuildIDsOfElement(Self.DocumentElement);
+end;    
+
 
 function TDOMDocument.CloneNode(deep: Boolean): TDOMNode;
 type
