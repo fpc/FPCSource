@@ -2649,6 +2649,8 @@ uses
       var
         p, q: tai;
       begin
+        if not assigned(l) then
+          exit;
         p:=tai(l.First);
         while p<>nil do
           begin
