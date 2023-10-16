@@ -114,7 +114,8 @@ type
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
 function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
-function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
+function MSecsToTimeStamp(MSecs: Int64): TTimeStamp;
+function TimeStampToMSecs(const TimeStamp: TTimeStamp): Int64;
 function TryEncodeDate(Year, Month, Day: Word; out Date: TDateTime): Boolean;
 function TryEncodeTime(Hour, Min, Sec, MSec: Word; out Time: TDateTime): Boolean;
 function EncodeDate(Year, Month, Day :word): TDateTime;
