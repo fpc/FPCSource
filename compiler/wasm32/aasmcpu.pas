@@ -2655,6 +2655,7 @@ uses
             if p.typ=ait_wasm_structured_instruction then
               begin
                 taicpu_wasm_structured_instruction(p).Map(f,blockstack);
+                p:=tai(p.next);
               end
             else
               begin
