@@ -26,7 +26,7 @@ unit cpupi;
 interface
 
   uses
-    cutils,globtype,aasmdata,
+    cutils,globtype,aasmdata,aasmcpu,aasmtai,
     procinfo,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
@@ -35,6 +35,8 @@ interface
     { tcpuprocinfo }
 
     tcpuprocinfo=class(tcgprocinfo)
+    private
+      function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): tai;
     public
       { label to the nearest local exception handler }
       CurrRaiseLabel : tasmlabel;
@@ -50,7 +52,7 @@ interface
 implementation
 
     uses
-      systems,verbose,globals,cpubase,tgcpu,aasmcpu,aasmtai,cgexcept,
+      systems,verbose,globals,cpubase,tgcpu,cgexcept,
       tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
       fmodule,hlcgobj,hlcgcpu,defutil;
 
@@ -348,6 +350,27 @@ implementation
                            tcpuprocinfo
 *****************************************************************************}
 
+    function tcpuprocinfo.ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): tai;
+      var
+        instr: taicpu;
+        bl: taicpu_wasm_structured_instruction;
+        l: TAsmLabel;
+      begin
+        result:=ai;
+        if ai.typ<>ait_instruction then
+          exit;
+        instr:=taicpu(ai);
+        if not (instr.opcode in [a_br,a_br_if]) then
+          exit;
+        if instr.ops<>1 then
+          internalerror(2023101601);
+        if instr.oper[0]^.typ<>top_const then
+          exit;
+        bl:=blockstack[instr.oper[0]^.val];
+        l:=bl.getlabel;
+        instr.loadsymbol(0,l,0);
+      end;
+
     constructor tcpuprocinfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
@@ -605,6 +628,8 @@ implementation
           wasm_convert_to_structured_asmlist(asmlist,l2);
           asmlist.Free;
           asmlist:=l2;
+
+          map_structured_asmlist(asmlist,@ConvertBranchTargetNumbersToLabels);
         end;
 
       var
