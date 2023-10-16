@@ -108,6 +108,7 @@ type
     constructor Create(AReader: THTMLReader; ADocument: TDOMDocument);
     constructor CreateFragment(AReader: THTMLReader; AFragmentRoot: TDOMNode);
     destructor Destroy; override;
+    Property Document : TDOMDocument Read FDocument;
   end;
 
 
@@ -775,6 +776,7 @@ begin
     Converter := THTMLToDOMConverter.Create(Reader, ADoc);
     try
       Reader.ParseStream(f);
+      Converter.Document.RebuildIDList;
     finally
       Converter.Free;
     end;
@@ -805,6 +807,10 @@ begin
     Converter := THTMLToDOMConverter.CreateFragment(Reader, AParentNode);
     try
       Reader.ParseStream(f);
+      if aParentNode is TDOMElement then
+        Converter.Document.RebuildIDsOfElement(aParentNode as TDOMElement)
+      else
+        Converter.Document.RebuildIDList;
     finally
       Converter.Free;
     end;
