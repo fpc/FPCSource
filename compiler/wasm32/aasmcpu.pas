@@ -157,6 +157,18 @@ uses
         procedure Map(f: TAsmMapFunc);override;
       end;
 
+      { twasmstruc_stack }
+
+      twasmstruc_stack = class
+      private
+        FStack: array of taicpu_wasm_structured_instruction;
+        function Get(Index: Integer): taicpu_wasm_structured_instruction;
+      public
+        procedure push(ins: taicpu_wasm_structured_instruction);
+        procedure pop;
+        property Items [Index: Integer]: taicpu_wasm_structured_instruction read Get;
+      end;
+
       tai_align = class(tai_align_abstract)
         { nothing to add }
       end;
@@ -251,6 +263,26 @@ uses
   ogwasm;
 
     function wasm_convert_first_item_to_structured(srclist: TAsmList): tai; forward;
+
+    { twasmstruc_stack }
+
+    function twasmstruc_stack.Get(Index: Integer): taicpu_wasm_structured_instruction;
+      begin
+{$push}{$r+,q+}
+        Result:=FStack[High(FStack)-Index];
+{$pop}
+      end;
+
+    procedure twasmstruc_stack.push(ins: taicpu_wasm_structured_instruction);
+      begin
+        SetLength(FStack,Length(FStack)+1);
+        FStack[High(FStack)]:=ins;
+      end;
+
+    procedure twasmstruc_stack.pop;
+      begin
+        SetLength(FStack,Length(FStack)-1);
+      end;
 
     { taicpu_wasm_structured_instruction }
 
