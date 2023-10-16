@@ -100,6 +100,7 @@ uses
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
         procedure ConvertToFlatList(l: TAsmList);override;
+        procedure ConvertToBrIf(list: TAsmList);
       end;
 
       { tai_wasmstruc_block }
@@ -424,6 +425,29 @@ uses
         l.Concat(taicpu.op_none(a_end_if));
         if FLabelIsNew then
           l.concat(tai_label.create(FLabel));
+      end;
+
+    procedure tai_wasmstruc_if.ConvertToBrIf(list: TAsmList);
+      var
+        then_label: TAsmLabel;
+        res_ft: TWasmFuncType;
+      begin
+        if if_instr.ops>1 then
+          internalerror(2023101701);
+        if (if_instr.ops=1) and (if_instr.oper[0]^.typ=top_functype) then
+          res_ft:=if_instr.oper[0]^.functype
+        else
+          res_ft:=nil;
+        // TODO: handle res_ft
+
+        current_asmdata.getjumplabel(then_label);
+        list.concat(taicpu.op_sym(a_br_if,then_label));
+        if assigned(else_asmlist) then
+          list.concatList(else_asmlist);
+        list.concat(taicpu.op_sym(a_br, FLabel));
+        list.concat(tai_label.create(then_label));
+        list.concatList(then_asmlist);
+        list.concat(tai_label.create(FLabel));
       end;
 
     { tai_wasmstruc_block }
