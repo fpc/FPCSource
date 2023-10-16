@@ -899,6 +899,7 @@ DOSDIR=$(UNIXINC)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 SYSCALL_DEPS_OS = sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
+SYSTEMDIR = $(BSDINC)
 SYSUTILSDIR=$(UNIXINC)
 SYSUTILS_DEPS_OS = $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT)
 LINUXUNIT=
@@ -2962,7 +2963,6 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS= sysconst.inc systypes.inc syscalls.inc $(SYSINCDEPS) $(SYSCPUDEPS)
-SYSTEMDIR = $(BSDINC)
 prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc si_impl.inc $(ARCH)/openbsd_ident.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
