@@ -63,6 +63,8 @@ type
     Procedure TestPrepareCount;
     Procedure TestPrepareCount2;
     Procedure TestNullTypeParam;
+    procedure TestChangeSQLCloseUnprepare;
+    procedure TestChangeSQLCloseUnprepareDisabled;
   end;
 
   { TTestTSQLConnection }
@@ -862,6 +864,38 @@ begin
   finally
     SQLDBConnector.Connection.OnLog:=Nil;
   end;
+end;
+procedure TTestTSQLQuery.TestChangeSQLCloseUnprepare;
+begin
+  with SQLDBConnector.GetNDataset(10) as TSQLQuery do
+    begin
+    Open;
+    AssertTrue('Prepared after open', Prepared);
+    SQL.Text := 'SELECT * FROM FPDEV WHERE ID<0';
+    // statement must be unprepared when SQL is changed
+    AssertFalse('Prepared after SQL changed', Prepared);
+    // dataset remained active in FPC <= 3.2.2
+    AssertFalse('Active after SQL changed', Active);
+    SQL.Text := 'UPDATE FPDEV SET NAME=''Test'' WHERE ID>100';
+    ExecSQL;
+    end;
+end;
+procedure TTestTSQLQuery.TestChangeSQLCloseUnprepareDisabled;
+begin
+  with SQLDBConnector.GetNDataset(10) as TSQLQuery do
+    begin
+    OPtions:=OPtions+[sqoNoCloseOnSQLChange];
+    Open;
+    AssertTrue('Prepared after open', Prepared);
+    SQL.Text := 'SELECT * FROM FPDEV WHERE ID<0';
+    // statement must be unprepared when SQL is changed
+    AssertFalse('Prepared after SQL changed', Prepared);
+    // dataset remained active in FPC <= 3.2.2
+    AssertTrue('Active after SQL changed', Active);
+    Close;
+    SQL.Text := 'UPDATE FPDEV SET NAME=''Test'' WHERE ID>100';
+    ExecSQL;
+    end;
 end;
 
 
