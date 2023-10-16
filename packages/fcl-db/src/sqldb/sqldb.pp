@@ -365,6 +365,7 @@ type
   Private
     FCursor : TSQLCursor;
     FDatabase: TSQLConnection;
+    FOnSQLChanged: TNotifyEvent;
     FParamCheck: Boolean;
     FParams: TParams;
     FMacroCheck: Boolean;
@@ -423,6 +424,8 @@ type
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
     Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
     Property MacroCheck : Boolean Read FMacroCheck Write SetMacroCheck default false;
+    Property InfoQuery : Boolean Read FInfoQuery Write FInfoQuery;
+    Property OnSQLChanged : TNotifyEvent Read FOnSQLChanged Write FOnSQLChanged;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -474,7 +477,7 @@ type
 
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect, sqoNoCloseOnSQLChange);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -524,6 +527,7 @@ type
     function HasMacros: Boolean;
     Function HasParams : Boolean;
     Function NeedLastInsertID: TField;
+    procedure OnChangeSelectSQL(Sender: TObject);
     procedure SetMacroChar(AValue: Char);
     procedure SetOptions(AValue: TSQLQueryOptions);
     procedure SetParamCheck(AValue: Boolean);
@@ -933,6 +937,8 @@ var
   NewParams: TSQLDBParams;
 
 begin
+  if Assigned(FOnSQLChanged) then
+    FOnSQLChanged(Self);
   UnPrepare;
   RecreateMacros;
   if not ParamCheck then
@@ -2785,6 +2791,7 @@ begin
   If ParamCheck and Assigned(FDataLink) then
     (FDataLink as TMasterParamsDataLink).RefreshParamNames;
   FQuery.ServerIndexDefs.Updated:=false;
+
 end;
 
 { TCustomSQLQuery }
@@ -2801,6 +2808,7 @@ constructor TCustomSQLQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FStatement:=CreateSQLStatement(Self);
+  FStatement.OnSQLChanged:=@OnChangeSelectSQL;
 
   FInsertSQL := TStringList.Create;
   FInsertSQL.OnChange := @OnChangeModifySQL;
@@ -3406,6 +3414,13 @@ begin
       Inc(I);
       end;
     end
+end;
+
+procedure TCustomSQLQuery.OnChangeSelectSQL(Sender: TObject);
+begin
+  if (sqoNoCloseOnSQLChange in Options) then
+    exit;
+  Close;
 end;
 
 procedure TCustomSQLQuery.SetMacroChar(AValue: Char);
