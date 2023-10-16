@@ -67,6 +67,7 @@ DOSDIR=$(UNIXINC)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 SYSCALL_DEPS_OS = sysnr.inc $(BSDPROCINC)/syscallh.inc
+SYSTEMDIR = $(BSDINC)
 SYSUTILSDIR=$(UNIXINC)
 SYSUTILS_DEPS_OS = $(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT)
 
@@ -100,7 +101,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS = sysconst.inc systypes.inc syscalls.inc $(SYSINCDEPS) $(SYSCPUDEPS)
-SYSTEMDIR = $(BSDINC)
 
 #
 # Loaders
