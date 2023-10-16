@@ -8,6 +8,7 @@
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
@@ -63,12 +64,13 @@
       </ConfigFile>
       <CustomOptions Value="-dwasm32
 -dnoopt
--dEXTDEBUG"/>
+-dEXTDEBUG
+-dDEBUG_WASM_GOTO"/>
       <OtherDefines Count="4">
         <Define0 Value="wasm32"/>
         <Define1 Value="noopt"/>
         <Define2 Value="EXTDEBUG"/>
-        <Define3 Value="WASM32_INTERNALASM"/>
+        <Define3 Value="DEBUG_WASM_GOTO"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
