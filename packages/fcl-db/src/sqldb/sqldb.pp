@@ -1473,14 +1473,17 @@ Var
   L : TList;
 
 begin
-  L:=FStatements.LockList;
-  try
-    For I:=0 to L.Count-1 do
-      TCustomSQLStatement(L[i]).Unprepare;
-    L.Clear;
-  finally
-    FStatements.UnlockList;
-  end;
+  If Assigned(FStatements) then
+    begin
+    L:=FStatements.LockList;
+    try
+      For I:=0 to L.Count-1 do
+        TCustomSQLStatement(L[i]).Unprepare;
+      L.Clear;
+    finally
+      FStatements.UnlockList;
+    end;
+    end;
 end;
 
 procedure TSQLConnection.StartTransaction;
