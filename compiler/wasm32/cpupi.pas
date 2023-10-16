@@ -522,13 +522,14 @@ implementation
           blockstack.free;
         end;
 
-      procedure resolve_labels_pass2(asmlist: TAsmList);
+      function resolve_labels_pass2(asmlist: TAsmList): Boolean;
         var
           hp: tai;
           instr: taicpu;
           hlabel: tasmsymbol;
           cur_nesting_depth: longint;
         begin
+          Result:=true;
           cur_nesting_depth:=0;
           hp:=tai(asmlist.first);
           while assigned(hp) do
@@ -571,9 +572,7 @@ implementation
                               instr.loadconst(0,cur_nesting_depth-instr.oper[0]^.ref^.symbol.nestingdepth)
                             else
                               begin
-{$ifndef EXTDEBUG}
-                                internalerror(2021102007);
-{$endif EXTDEBUG}
+                                result:=false;
                                 hlabel:=tasmsymbol(instr.oper[0]^.ref^.symbol);
                                 asmlist.insertafter(tai_comment.create(strpnew('Unable to find destination of label '+hlabel.name)),hp);
                               end;
@@ -590,18 +589,28 @@ implementation
             Message1(parser_f_unsupported_feature,'unbalanced nesting level');
         end;
 
-      procedure resolve_labels(asmlist: TAsmList);
+      function resolve_labels_simple(asmlist: TAsmList): Boolean;
         begin
           if not assigned(asmlist) then
-            exit;
+            exit(true);
           resolve_labels_pass1(asmlist);
-          resolve_labels_pass2(asmlist);
+          result:=resolve_labels_pass2(asmlist);
+        end;
+
+      procedure resolve_labels_complex(var asmlist: TAsmList);
+        var
+          l2: TAsmList;
+        begin
+          l2:=TAsmList.Create;
+          wasm_convert_to_structured_asmlist(asmlist,l2);
+          asmlist.Free;
+          asmlist:=l2;
         end;
 
       var
-       templist : TAsmList;
+       templist: TAsmList;
        l : TWasmLocal;
-       first: Boolean;
+       first, labels_resolved: Boolean;
        local: tai_local;
       begin
         templist:=TAsmList.create;
@@ -623,7 +632,9 @@ implementation
 
         replace_local_frame_pointer(aktproccode);
 
-        resolve_labels(aktproccode);
+        labels_resolved:=resolve_labels_simple(aktproccode);
+        if not labels_resolved then
+          resolve_labels_complex(aktproccode);
 
         inherited postprocess_code;
       end;
