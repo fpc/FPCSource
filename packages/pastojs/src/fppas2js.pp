@@ -6780,7 +6780,7 @@ var
         else break;
         end;
         if Result>$10ffff then
-          RaiseNotYetImplemented(20170207164657,El,'maximum codepoint is $10ffff');
+          Err(20170207164657);
         inc(p);
         end;
       if p=StartP then
@@ -6859,7 +6859,8 @@ begin
         if (j>=$DC00) and (j<$DFFF) then
           Result:=Result+CodePointToJSString((i and $3FF) shl 10 + (j and $3ff) + $10000)
         else
-          Err(20231017120034);
+          // invalid surrogate -> write as two \u
+          Result:=Result+CodePointToJSString(i)+CodePointToJSString(j)
         end
       else
         Result:=Result+CodePointToJSString(i);
