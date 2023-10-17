@@ -43,6 +43,7 @@ uses
     type
       twasmstruc_stack = class;
       TAsmMapFunc = function(ai: tai; blockstack: twasmstruc_stack): tai of object;
+      TWasmLocalAllocator = function(wbt: TWasmBasicType): Integer of object;
 
       { taicpu }
 
@@ -100,7 +101,7 @@ uses
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
         procedure ConvertToFlatList(l: TAsmList);override;
-        procedure ConvertToBrIf(list: TAsmList);
+        procedure ConvertToBrIf(list: TAsmList; local_alloc: TWasmLocalAllocator);
       end;
 
       { tai_wasmstruc_block }
@@ -427,10 +428,78 @@ uses
           l.concat(tai_label.create(FLabel));
       end;
 
-    procedure tai_wasmstruc_if.ConvertToBrIf(list: TAsmList);
+    procedure tai_wasmstruc_if.ConvertToBrIf(list: TAsmList; local_alloc: TWasmLocalAllocator);
+      var
+        res_ft: TWasmFuncType;
+        save_if_reg: Integer;
+        save_param_reg: array of Integer;
+        save_result_reg: array of Integer;
+
+        procedure AllocateLocalsForSavingParamsAndResult;
+          var
+            i: Integer;
+          begin
+            if not assigned(res_ft) then
+              exit;
+            if length(res_ft.params)<>0 then
+              begin
+                save_if_reg:=local_alloc(wbt_i32);
+                SetLength(save_param_reg,length(res_ft.params));
+                for i:=low(res_ft.params) to high(res_ft.params) do
+                  save_param_reg[i]:=local_alloc(res_ft.params[i]);
+              end;
+            if length(res_ft.results)<>0 then
+              begin
+                SetLength(save_result_reg,length(res_ft.results));
+                for i:=low(res_ft.results) to high(res_ft.results) do
+                  save_result_reg[i]:=local_alloc(res_ft.results[i]);
+              end;
+          end;
+
+        procedure SaveParams;
+          var
+            i: Integer;
+          begin
+            if (not assigned(res_ft)) or (length(res_ft.params)=0) then
+              exit;
+            list.concat(taicpu.op_const(a_local_set,save_if_reg));
+            for i:=high(res_ft.params) downto low(res_ft.params) do
+              list.concat(taicpu.op_const(a_local_set,save_param_reg[i]));
+            list.concat(taicpu.op_const(a_local_get,save_if_reg));
+          end;
+
+        procedure RestoreParams;
+          var
+            i: Integer;
+          begin
+            if (not assigned(res_ft)) or (length(res_ft.params)=0) then
+              exit;
+            for i:=low(res_ft.params) to high(res_ft.params) do
+              list.concat(taicpu.op_const(a_local_get,save_param_reg[i]));
+          end;
+
+        procedure SaveResults;
+          var
+            i: Integer;
+          begin
+            if (not assigned(res_ft)) or (length(res_ft.results)=0) then
+              exit;
+            for i:=high(res_ft.results) downto low(res_ft.results) do
+              list.concat(taicpu.op_const(a_local_set,save_result_reg[i]));
+          end;
+
+        procedure RestoreResults;
+          var
+            i: Integer;
+          begin
+            if (not assigned(res_ft)) or (length(res_ft.results)=0) then
+              exit;
+            for i:=low(res_ft.results) to high(res_ft.results) do
+              list.concat(taicpu.op_const(a_local_get,save_result_reg[i]));
+          end;
+
       var
         then_label: TAsmLabel;
-        res_ft: TWasmFuncType;
       begin
         if if_instr.ops>1 then
           internalerror(2023101701);
@@ -438,16 +507,22 @@ uses
           res_ft:=if_instr.oper[0]^.functype
         else
           res_ft:=nil;
-        // TODO: handle res_ft
+        AllocateLocalsForSavingParamsAndResult;
 
         current_asmdata.getjumplabel(then_label);
+        SaveParams;
         list.concat(taicpu.op_sym(a_br_if,then_label));
+        RestoreParams;
         if assigned(else_asmlist) then
           list.concatList(else_asmlist);
+        SaveResults;
         list.concat(taicpu.op_sym(a_br, FLabel));
         list.concat(tai_label.create(then_label));
+        RestoreParams;
         list.concatList(then_asmlist);
+        SaveResults;
         list.concat(tai_label.create(FLabel));
+        RestoreResults;
       end;
 
     { tai_wasmstruc_block }
