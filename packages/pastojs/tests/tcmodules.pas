@@ -8847,6 +8847,7 @@ begin
   '  s: string;',
   'begin',
   '  s:=''😊'';', // 1F60A
+  '  s:=''Hello ''#55357#56841', // #$D83D#$DE09
   '']);
   ConvertProgram;
   CheckSource('TestStringConstSurrogate',
@@ -8854,7 +8855,8 @@ begin
     'this.s="";'
     ]),
     LinesToStr([
-    '$mod.s="😊";'
+    '$mod.s="😊";',
+    '$mod.s="Hello 😉";'
     ]));
 end;
 
