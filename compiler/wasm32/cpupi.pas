@@ -27,7 +27,7 @@ interface
 
   uses
     cutils,globtype,aasmdata,aasmcpu,aasmtai,
-    procinfo,cpuinfo, symtype,aasmbase,cgbase,
+    procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
   type
@@ -36,7 +36,13 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     private
+      FFirstFreeLocal: Integer;
+      FAllocatedLocals: array of TWasmBasicType;
+
       function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): tai;
+
+      { used for allocating locals during the postprocess_code stage (i.e. after register allocation) }
+      function AllocWasmLocal(wbt: TWasmBasicType): Integer;
     public
       { label to the nearest local exception handler }
       CurrRaiseLabel : tasmlabel;
@@ -52,7 +58,7 @@ interface
 implementation
 
     uses
-      systems,verbose,globals,cpubase,tgcpu,cgexcept,
+      systems,verbose,globals,tgcpu,cgexcept,
       tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
       fmodule,hlcgobj,hlcgcpu,defutil;
 
@@ -371,6 +377,13 @@ implementation
         instr.loadsymbol(0,l,0);
       end;
 
+    function tcpuprocinfo.AllocWasmLocal(wbt: TWasmBasicType): Integer;
+      begin
+        SetLength(FAllocatedLocals,Length(FAllocatedLocals)+1);
+        FAllocatedLocals[High(FAllocatedLocals)]:=wbt;
+        result:=High(FAllocatedLocals)+FFirstFreeLocal;
+      end;
+
     constructor tcpuprocinfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
@@ -642,11 +655,15 @@ implementation
        l : TWasmLocal;
        first, labels_resolved: Boolean;
        local: tai_local;
+       first_tai_functype: tai_functype;
       begin
+        first_tai_functype:=findfirst_tai_functype(aktproccode);
+
         templist:=TAsmList.create;
         local:=nil;
         first:=true;
         l:=ttgwasm(tg).localvars.first;
+        FFirstFreeLocal:=Length(first_tai_functype.functype.params);
         while Assigned(l) do
           begin
             local:=tai_local.create(l.typ);
@@ -654,10 +671,11 @@ implementation
             first:=false;
             templist.Concat(local);
             l:=l.nextseq;
+            Inc(FFirstFreeLocal);
           end;
         if assigned(local) then
           local.last:=true;
-        aktproccode.insertListAfter(findfirst_tai_functype(aktproccode),templist);
+        aktproccode.insertListAfter(first_tai_functype,templist);
         templist.Free;
 
         replace_local_frame_pointer(aktproccode);
