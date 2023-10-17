@@ -684,8 +684,6 @@ implementation
         labels_resolved: Boolean;
       begin
         localslist:=prepare_locals;
-        insert_localslist(aktproccode,localslist);
-        localslist.Free;
 
         replace_local_frame_pointer(aktproccode);
 
@@ -694,6 +692,9 @@ implementation
         if not labels_resolved then
 {$endif DEBUG_WASM_GOTO}
           resolve_labels_complex(aktproccode);
+
+        insert_localslist(aktproccode,localslist);
+        localslist.Free;
 
         inherited postprocess_code;
       end;
