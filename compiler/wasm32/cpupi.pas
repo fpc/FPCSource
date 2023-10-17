@@ -674,12 +674,17 @@ implementation
               local.last:=true;
           end;
 
+        procedure insert_localslist(destlist,localslist: TAsmList);
+          begin
+            destlist.insertListAfter(findfirst_tai_functype(destlist),localslist);
+          end;
+
       var
         localslist: TAsmList;
         labels_resolved: Boolean;
       begin
         localslist:=prepare_locals;
-        aktproccode.insertListAfter(findfirst_tai_functype(aktproccode),localslist);
+        insert_localslist(aktproccode,localslist);
         localslist.Free;
 
         replace_local_frame_pointer(aktproccode);
