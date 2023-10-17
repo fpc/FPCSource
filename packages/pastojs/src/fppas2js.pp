@@ -21240,7 +21240,15 @@ begin
       // check visibility
       case mt of
       mtClass:
-        if (P.Visibility<>visPublished) and (not P.InheritsFrom(TPasConstructor) or (P.Visibility <> visPublic)) then continue;
+        if (P.Visibility=visPublished) then
+          // published member
+        else if (P is TPasConstructor) and (P.Visibility = visPublic)
+            and (pcsfPublished in TPas2JSClassScope(El.CustomData).Flags) then
+          // this class supports published members -> add public constructor to RTTI
+          // workaround til extended RTTI
+          // see issue #37752
+        else
+          continue;
       mtInterface: ; // all members of an interface are published
       mtRecord:
         // a published record publishes all non private members
