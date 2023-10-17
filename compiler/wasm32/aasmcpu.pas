@@ -2856,6 +2856,13 @@ uses
           begin
             if p.typ=ait_wasm_structured_instruction then
               begin
+                q:=f(p,blockstack);
+                if q<>p then
+                  begin
+                    l.InsertAfter(q,p);
+                    l.Remove(p);
+                    p:=q;
+                  end;
                 taicpu_wasm_structured_instruction(p).Map(f,blockstack);
                 p:=tai(p.next);
               end
