@@ -650,32 +650,36 @@ implementation
           asmlist:=l2;
         end;
 
-      var
-       localslist: TAsmList;
-       l : TWasmLocal;
-       first, labels_resolved: Boolean;
-       local: tai_local;
-       first_tai_functype: tai_functype;
-      begin
-        first_tai_functype:=findfirst_tai_functype(aktproccode);
-
-        localslist:=TAsmList.create;
-        local:=nil;
-        first:=true;
-        l:=ttgwasm(tg).localvars.first;
-        FFirstFreeLocal:=Length(first_tai_functype.functype.params);
-        while Assigned(l) do
+        function prepare_locals: TAsmList;
+          var
+            local: tai_local;
+            first: Boolean;
+            l : TWasmLocal;
           begin
-            local:=tai_local.create(l.typ);
-            local.first:=first;
-            first:=false;
-            localslist.Concat(local);
-            l:=l.nextseq;
-            Inc(FFirstFreeLocal);
+            result:=TAsmList.create;
+            local:=nil;
+            first:=true;
+            l:=ttgwasm(tg).localvars.first;
+            FFirstFreeLocal:=Length(findfirst_tai_functype(aktproccode).functype.params);
+            while Assigned(l) do
+              begin
+                local:=tai_local.create(l.typ);
+                local.first:=first;
+                first:=false;
+                result.Concat(local);
+                l:=l.nextseq;
+                Inc(FFirstFreeLocal);
+              end;
+            if assigned(local) then
+              local.last:=true;
           end;
-        if assigned(local) then
-          local.last:=true;
-        aktproccode.insertListAfter(first_tai_functype,localslist);
+
+      var
+        localslist: TAsmList;
+        labels_resolved: Boolean;
+      begin
+        localslist:=prepare_locals;
+        aktproccode.insertListAfter(findfirst_tai_functype(aktproccode),localslist);
         localslist.Free;
 
         replace_local_frame_pointer(aktproccode);
