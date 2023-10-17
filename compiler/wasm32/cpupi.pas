@@ -670,13 +670,15 @@ implementation
                 l:=l.nextseq;
                 Inc(FFirstFreeLocal);
               end;
-            if assigned(local) then
-              local.last:=true;
           end;
 
         procedure insert_localslist(destlist,localslist: TAsmList);
           begin
-            destlist.insertListAfter(findfirst_tai_functype(destlist),localslist);
+            if assigned(localslist) then
+              begin
+                tai_local(localslist.Last).last:=true;
+                destlist.insertListAfter(findfirst_tai_functype(destlist),localslist);
+              end;
           end;
 
       var
