@@ -865,7 +865,7 @@ begin
     end;
   FcPatternDestroy(pat);
 end;
-
+{$define tfontmapper_find_implemented}
 {$endif}
 
 
@@ -1073,6 +1073,7 @@ begin
     reg.Free;
   end;
 end;
+{$define tfontmapper_find_implemented}
 {$endif}
 
 {$ifdef DARWIN}
@@ -1133,6 +1134,14 @@ begin
   finally
     enum.done;
   end;
+end;
+{$define tfontmapper_find_implemented}
+{$endif}
+
+{$ifndef tfontmapper_find_implemented}
+class function TFontMapper.find(const family, style: string; list: TStrings): boolean;
+begin
+  Result:=false;
 end;
 {$endif}
 
