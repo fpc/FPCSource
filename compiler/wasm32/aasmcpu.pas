@@ -42,7 +42,14 @@ uses
 
     type
       twasmstruc_stack = class;
-      TAsmMapFunc = function(ai: tai; blockstack: twasmstruc_stack): tai of object;
+      TAsmMapFuncResultType = (amfrtNoChange, amfrtNewAi, amfrtNewList);
+      TAsmMapFuncResult = record
+        case typ: TAsmMapFuncResultType of
+          amfrtNoChange: ();
+          amfrtNewAi: (newai: tai);
+          amfrtNewList: (newlist: TAsmList);
+      end;
+      TAsmMapFunc = function(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult of object;
       TWasmLocalAllocator = function(wbt: TWasmBasicType): Integer of object;
 
       { taicpu }
@@ -516,12 +523,12 @@ uses
         if assigned(else_asmlist) then
           list.concatList(else_asmlist);
         SaveResults;
-        list.concat(taicpu.op_sym(a_br, FLabel));
+        list.concat(taicpu.op_sym(a_br, GetLabel));
         list.concat(tai_label.create(then_label));
         RestoreParams;
         list.concatList(then_asmlist);
         SaveResults;
-        list.concat(tai_label.create(FLabel));
+        list.concat(tai_label.create(GetLabel));
         RestoreResults;
       end;
 
@@ -2848,6 +2855,7 @@ uses
     procedure map_structured_asmlist_inner(l: TAsmList; f: TAsmMapFunc; blockstack: twasmstruc_stack);
       var
         p, q: tai;
+        mapres: TAsmMapFuncResult;
       begin
         if not assigned(l) then
           exit;
@@ -2856,27 +2864,61 @@ uses
           begin
             if p.typ=ait_wasm_structured_instruction then
               begin
-                q:=f(p,blockstack);
-                if q<>p then
-                  begin
-                    l.InsertAfter(q,p);
-                    l.Remove(p);
-                    p:=q;
-                  end;
-                taicpu_wasm_structured_instruction(p).Map(f,blockstack);
-                p:=tai(p.next);
+                mapres:=f(p,blockstack);
+                case mapres.typ of
+                  amfrtNoChange:
+                    begin
+                      taicpu_wasm_structured_instruction(p).Map(f,blockstack);
+                      p:=tai(p.next);
+                    end;
+                  amfrtNewAi:
+                    begin
+                      q:=mapres.newai;
+                      if q<>p then
+                        begin
+                          l.InsertAfter(q,p);
+                          l.Remove(p);
+                          p:=q;
+                        end;
+                      p:=tai(p.next);
+                    end;
+                  amfrtNewList:
+                    begin
+                      q:=tai(mapres.newlist.First);
+                      l.insertListAfter(p,mapres.newlist);
+                      mapres.newlist.free;
+                      l.Remove(p);
+                      p:=q;
+                    end;
+                end;
               end
             else
               begin
-                q:=f(p,blockstack);
-                if q<>p then
-                  begin
-                    l.InsertAfter(q,p);
-                    l.Remove(p);
-                    p:=tai(q.next);
-                  end
-                else
-                  p:=tai(p.next);
+                mapres:=f(p,blockstack);
+                case mapres.typ of
+                  amfrtNoChange:
+                    p:=tai(p.next);
+                  amfrtNewAi:
+                    begin
+                      q:=mapres.newai;
+                      if q<>p then
+                        begin
+                          l.InsertAfter(q,p);
+                          l.Remove(p);
+                          p:=tai(q.next);
+                        end
+                      else
+                        p:=tai(p.next);
+                    end;
+                  amfrtNewList:
+                    begin
+                      q:=tai(mapres.newlist.First);
+                      l.insertListAfter(p,mapres.newlist);
+                      mapres.newlist.free;
+                      l.Remove(p);
+                      p:=q;
+                    end;
+                end;
               end;
           end;
       end;
