@@ -39,7 +39,8 @@ interface
       FFirstFreeLocal: Integer;
       FAllocatedLocals: array of TWasmBasicType;
 
-      function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): tai;
+      function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
+      function ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
 
       { used for allocating locals during the postprocess_code stage (i.e. after register allocation) }
       function AllocWasmLocal(wbt: TWasmBasicType): Integer;
@@ -356,13 +357,13 @@ implementation
                            tcpuprocinfo
 *****************************************************************************}
 
-    function tcpuprocinfo.ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): tai;
+    function tcpuprocinfo.ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
       var
         instr: taicpu;
         bl: taicpu_wasm_structured_instruction;
         l: TAsmLabel;
       begin
-        result:=ai;
+        result.typ:=amfrtNoChange;
         if ai.typ<>ait_instruction then
           exit;
         instr:=taicpu(ai);
@@ -375,6 +376,17 @@ implementation
         bl:=blockstack[instr.oper[0]^.val];
         l:=bl.getlabel;
         instr.loadsymbol(0,l,0);
+      end;
+
+    function tcpuprocinfo.ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
+      begin
+        result.typ:=amfrtNoChange;
+        if (ai.typ=ait_wasm_structured_instruction) and (ai is tai_wasmstruc_if) then
+          begin
+            result.typ:=amfrtNewList;
+            result.newlist:=TAsmList.Create;
+            tai_wasmstruc_if(ai).ConvertToBrIf(result.newlist,@AllocWasmLocal);
+          end;
       end;
 
     function tcpuprocinfo.AllocWasmLocal(wbt: TWasmBasicType): Integer;
@@ -643,6 +655,7 @@ implementation
           asmlist:=l2;
 
           map_structured_asmlist(asmlist,@ConvertBranchTargetNumbersToLabels);
+          map_structured_asmlist(asmlist,@ConvertIfToBrIf);
 
           l2:=TAsmList.Create;
           wasm_convert_to_flat_asmlist(asmlist,l2);
