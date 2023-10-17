@@ -651,7 +651,7 @@ implementation
         end;
 
       var
-       templist: TAsmList;
+       localslist: TAsmList;
        l : TWasmLocal;
        first, labels_resolved: Boolean;
        local: tai_local;
@@ -659,7 +659,7 @@ implementation
       begin
         first_tai_functype:=findfirst_tai_functype(aktproccode);
 
-        templist:=TAsmList.create;
+        localslist:=TAsmList.create;
         local:=nil;
         first:=true;
         l:=ttgwasm(tg).localvars.first;
@@ -669,14 +669,14 @@ implementation
             local:=tai_local.create(l.typ);
             local.first:=first;
             first:=false;
-            templist.Concat(local);
+            localslist.Concat(local);
             l:=l.nextseq;
             Inc(FFirstFreeLocal);
           end;
         if assigned(local) then
           local.last:=true;
-        aktproccode.insertListAfter(first_tai_functype,templist);
-        templist.Free;
+        aktproccode.insertListAfter(first_tai_functype,localslist);
+        localslist.Free;
 
         replace_local_frame_pointer(aktproccode);
 
