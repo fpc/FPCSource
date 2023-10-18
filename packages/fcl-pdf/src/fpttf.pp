@@ -1070,7 +1070,7 @@ begin
       end;
     if enum.matches.Count>0 then // there are matches
       begin
-      fpath:=GetWinFontsDir;
+      fpath:=IncludeTrailingPathDelimiter(GetWinFontsDir);
       for i:=enum.matches.Count-1 downto 0 do
         begin
         FI:=TFontItem(enum.matches[i]);
