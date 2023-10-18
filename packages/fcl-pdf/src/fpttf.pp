@@ -560,17 +560,18 @@ end;
 
 procedure TFPFontCacheList.ReadStandardFonts;
 
-  {$ifdef linux}
-    {$define HasFontsConf}
-    const
-      cFontsConf = '/etc/fonts/fonts.conf';
-  {$endif}
-
   {$ifdef freebsd}
     {$define HasFontsConf}
     const
       cFontsConf = '/usr/local/etc/fonts/fonts.conf';
   {$endif}
+  { Use same default for Linux and other BSD non-Darwin systems. }
+  {$if (defined(linux) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
+    {$define HasFontsConf}
+    const
+      cFontsConf = '/etc/fonts/fonts.conf';
+  {$ifend}
+
 
 <<<<<<< HEAD
   {$ifdef mswindows}
@@ -600,11 +601,26 @@ procedure TFPFontCacheList.ReadStandardFonts;
 var
   doc: TXMLDocument;
   lChild: TDOMNode;
+  FN : PFcChar8;
   lDir: string;
+  config: PfcConfig;
+const
+  is_fc_loaded:integer=0;
 {$endif}
 begin
-  {$ifdef HasFontsConf} // Linux & FreeBSD
-  ReadXMLFile(doc, cFontsConf);
+  {$ifdef HasFontsConf} // Linux & BSD
+  if (is_fc_loaded=0) then
+    is_fc_loaded:=loadfontconfiglib('');
+
+  config := FcInitLoadConfigAndFonts();
+
+  if assigned(FcConfigGetFilename) then
+    FN:=FcConfigGetFilename(config,Nil)
+  else if assigned(FcConfigFilename) then
+    FN:=FcConfigFilename(Nil)
+  else
+    FN:=cFontsConf;
+  ReadXMLFile(doc, FN);
   try
     lChild := doc.DocumentElement.FirstChild;
     while Assigned(lChild) do
