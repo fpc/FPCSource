@@ -68,6 +68,9 @@ begin
     T:=P.Targets.AddUnit('system.uiconsts.pp',uitypesOses);
       T.Dependencies.AddUnit('system.uitypes');
     T:=P.Targets.AddUnit('system.timespan.pp',uitypesOses);
+    
+    T:=P.Targets.AddUnit('system.actions.pp',UItypesOSes);
+      T.Dependencies.AddUnit('system.uitypes');
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
       T.ResourceStrings:=true;
