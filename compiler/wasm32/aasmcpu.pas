@@ -135,6 +135,7 @@ uses
         destructor Destroy; override;
         function getcopy:TLinkedListItem;override;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);override;
+        procedure ConvertToBr(list: TAsmList);
         procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
@@ -657,6 +658,13 @@ uses
         blockstack.push(self);
         map_structured_asmlist_inner(inner_asmlist,f,blockstack);
         blockstack.pop;
+      end;
+
+    procedure tai_wasmstruc_loop.ConvertToBr(list: TAsmList);
+      begin
+        list.concat(tai_label.create(GetLabel));
+        list.concatList(inner_asmlist);
+        list.concat(taicpu.op_sym(a_br,GetLabel));
       end;
 
     procedure tai_wasmstruc_loop.ConvertToFlatList(l: TAsmList);
