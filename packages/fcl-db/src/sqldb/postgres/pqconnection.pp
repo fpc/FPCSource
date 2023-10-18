@@ -450,7 +450,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences] - [sqCommitEndsPrepared];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FHandlePool:=TThreadlist.Create;
@@ -798,7 +798,7 @@ begin
   // unprepare statements associated with given transaction
   L:=FCursorList.LockList;
   try
-    For I:=0 to L.Count-1 do
+    For I:=L.Count-1 downto 0 do
       begin
       C:=TPQCursor(L[i]);
       UnprepareStatement(C,False);

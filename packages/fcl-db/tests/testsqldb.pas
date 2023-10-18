@@ -77,12 +77,15 @@ type
     procedure TestImplicitTransactionNotAssignable;
     procedure TestImplicitTransactionOK;
     procedure TryOpen;
+    procedure TestUnprepare(DoCommit : Boolean);
   published
     procedure TestUseImplicitTransaction;
     procedure TestUseExplicitTransaction;
     procedure TestExplicitConnect;
     procedure TestGetStatementInfo;
     procedure TestGetNextValue;
+    Procedure TestCommitUnprepares;
+    Procedure TestRollBackUnprepares;
   end;
 
   { TTestTSQLScript }
@@ -998,6 +1001,63 @@ begin
   SQLDBConnector.Query.Open;
 end;
 
+procedure TTestTSQLConnection.TestUnprepare(DoCommit: Boolean);
+
+Var
+  Q1,Q2 : TSQLQuery;
+  S1,S2 : TSQLStatement;
+  PrepState : Boolean;
+begin
+  S1:=Nil;
+  S2:=Nil;
+  Q2:=Nil;
+  try
+    // Only prepared, not open
+    Q1:=TSQLQuery.Create(Nil);
+    Q1.DataBase:=SQLDBConnector.Connection;
+    Q1.Transaction:=SQLDBConnector.Transaction;
+    Q1.SQL.text:='SELECT COUNT(*) from FPDEV where (ID<:MaxID)';
+    Q1.Prepare;
+    // Explicitly prepared and opened
+    Q2:=TSQLQuery.Create(Nil);
+    Q2.DataBase:=SQLDBConnector.Connection;
+    Q2.Transaction:=SQLDBConnector.Transaction;
+    Q2.SQL.text:='SELECT COUNT(*) from FPDEV where (ID>:MinID)';
+    Q2.Prepare;
+    Q2.Open;
+    // A prepared statement;
+    S1:=TSQLStatement.Create(Nil);
+    S1.DataBase:=SQLDBConnector.Connection;
+    S1.Transaction:=SQLDBConnector.Transaction;
+    S1.SQL.Text:='update fpdev set id=id+1 where (id<:MaxID);';
+    S1.Prepare;
+    // A prepared and exected statement;
+    S2:=TSQLStatement.Create(Nil);
+    S2.DataBase:=SQLDBConnector.Connection;
+    S2.Transaction:=SQLDBConnector.Transaction;
+    S2.SQL.Text:='update fpdev set id=id+1 where (id<:MaxID);';
+    S2.Prepare;
+    S2.Execute;
+    if DoCommit then
+      begin
+      SQLDBConnector.Transaction.Commit;
+      PrepState:=Not (sqCommitEndsPrepared in SQLDBConnector.Connection.ConnOptions);
+      end
+    else
+      begin
+      SQLDBConnector.Transaction.RollBack;
+      PrepState:=Not (sqRollbackEndsPrepared in SQLDBConnector.Connection.ConnOptions);
+      end;
+    AssertEquals('Q1 prepared state',PrepState,Q1.Prepared);
+    AssertEquals('Q2 prepared state',PrepState,Q2.Prepared);
+    AssertEquals('S prepared state',PrepState,S1.Prepared);
+    AssertEquals('S prepared state',PrepState,S2.Prepared);
+  finally
+    Q1.Free;
+    Q2.Free;
+  end;
+end;
+
 procedure TTestTSQLConnection.TestUseExplicitTransaction;
 begin
   SQLDBConnector.Transaction.Active:=False;
@@ -1061,6 +1121,16 @@ begin
   SQLDBConnector.TryDropSequence('me');
   SQLDBConnector.TryCreateSequence('me');
   AssertTrue('Get value',SQLDBConnector.Connection.GetNextValue('me',1)>0);
+end;
+
+procedure TTestTSQLConnection.TestCommitUnprepares;
+begin
+  TestUnprepare(True);
+end;
+
+procedure TTestTSQLConnection.TestRollBackUnprepares;
+begin
+  TestUnprepare(False);
 end;
 
 

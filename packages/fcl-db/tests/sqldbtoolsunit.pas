@@ -580,15 +580,23 @@ begin
   if assigned(FTransaction) then
     begin
     try
-      if Ftransaction.Active then Ftransaction.Rollback;
-      Ftransaction.StartTransaction;
+      if Ftransaction.Active and not (stoUseImplicit in FTransaction.Options) then
+        begin
+        Ftransaction.Rollback;
+        Ftransaction.StartTransaction;
+        end;
       Fconnection.ExecuteDirect('DROP TABLE FPDEV');
-      Ftransaction.Commit;
+      if not (stoUseImplicit in FTransaction.Options) then
+        Ftransaction.Commit;
+      Fconnection.ExecuteDirect('DROP TABLE  FPDEV2');
+      if not (stoUseImplicit in FTransaction.Options) then
+        Ftransaction.Commit;
     Except
       on E: Exception do begin
         if dblogfilename<>'' then
           DoLogEvent(nil,detCustom,'Exception running DropNDatasets: '+E.Message);
-        if Ftransaction.Active then Ftransaction.Rollback
+        if Ftransaction.Active and not (stoUseImplicit in FTransaction.Options) then
+           Ftransaction.Rollback
       end;
     end;
     end;
@@ -599,10 +607,16 @@ begin
   if assigned(FTransaction) then
     begin
     try
-      if Ftransaction.Active then Ftransaction.Rollback;
-      Ftransaction.StartTransaction;
+      if Ftransaction.Active and not (stoUseImplicit in FTransaction.Options) then
+        begin
+        Ftransaction.Rollback;
+        Ftransaction.StartTransaction;
+        end;
+      if not (stoUseImplicit in FTransaction.Options) then
+        Ftransaction.StartTransaction;
       Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
-      Ftransaction.Commit;
+      if not (stoUseImplicit in FTransaction.Options) then
+        Ftransaction.Commit;
     Except
       on E: Exception do begin
         if dblogfilename<>'' then
