@@ -29,6 +29,7 @@ Type
     PColorRef   = ^TColorRef;
     TAlphaColor = Cardinal;
     PAlphaColor = ^TAlphaColor;
+    TImageIndex = type Integer;
 
     TColorRec = record
                  class operator := (AColor : TColor): TColorRec; inline;
