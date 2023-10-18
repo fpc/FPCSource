@@ -172,6 +172,9 @@ uses
   ,WinApi.Shlobj
   ,WinApi.Activex
   {$endif}
+  {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  ,Api.Libfontconfig, UnixApi.Types
+  {$ifend}
   ;
 {$ELSE FPC_DOTTEDUNITS}
 uses
