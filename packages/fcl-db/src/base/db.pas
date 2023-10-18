@@ -2168,21 +2168,23 @@ type
 
   { TDBTransaction }
 
-  TDBTransactionClass = Class of TDBTransaction;
+
   TDBTransaction = Class(TComponent)
   Private
     FActive        : boolean;
     FDatabase      : TDatabase;
     FDataSets      : TThreadList;
+    FClients      : TThreadList;
     FOpenAfterRead : boolean;
-    Function GetDataSetCount : Longint;
-    Function GetDataset(Index : longint) : TDBDataset;
-    procedure RegisterDataset (DS : TDBDataset);
-    procedure UnRegisterDataset (DS : TDBDataset);
+    function GetDataSet(Index: Longint): TDBDataset;
+    function GetDatasetCount: Integer;
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    procedure RegisterDataset (DS : TDBDataset); virtual;
+    procedure UnRegisterDataset (DS : TDBDataset); virtual;
     Function AllowClose(DS: TDBDataset): Boolean; virtual;
+    procedure CloseDataset(DS: TDBDataset; InCommit : Boolean); virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure OpenTrans;
@@ -2197,10 +2199,13 @@ type
     procedure StartTransaction; virtual; abstract;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
+    Property DatasetCount : Integer Read GetDatasetCount;
+    property Datasets[Index: Longint]: TDBDataset read GetDataSet;
   Public
     constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
     procedure CloseDataSets;
+    procedure CloseDataSets(InCommit : Boolean);
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
   published
     property Active : boolean read FActive write setactive;

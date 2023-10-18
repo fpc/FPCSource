@@ -174,7 +174,7 @@ type
   
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
-  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning,sqSequences);
+  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning,sqSequences, sqCommitEndsPrepared, sqRollbackEndsPrepared);
   TConnOptions= set of TConnOption;
 
   TSQLConnectionOption = (scoExplicitConnect, scoApplyUpdatesChecksRowsAffected);
@@ -237,7 +237,7 @@ type
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     Procedure RegisterStatement(S : TCustomSQLStatement);
     Procedure UnRegisterStatement(S : TCustomSQLStatement);
-
+    Procedure UnPrepareStatements(aTransaction : TSQLTransaction);
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
     function StrToStatementType(s : string) : TStatementType; virtual;
@@ -280,6 +280,7 @@ type
     // Unified version
     function GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual;
     // Older versions.
+    Function HasTable(const aTable : String; SearchSystemTables : Boolean = false) : Boolean;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
@@ -330,8 +331,10 @@ type
     procedure SetParams(const AValue: TStringList);
     procedure SetSQLConnection(AValue: TSQLConnection);
   protected
+    Procedure UnPrepareStatements; virtual;
     Procedure MaybeStartTransaction;
     Function AllowClose(DS: TDBDataset): Boolean; override;
+    procedure CloseDataset(DS: TDBDataset; InCommit : Boolean); override;
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
     Function LogEvent(EventType : TDBEventType) : Boolean;
@@ -1390,6 +1393,7 @@ begin
   FLogEvents:=LogAllEvents; //match Property LogEvents...Default LogAllEvents
   FStatements:=TThreadList.Create;
   FStatements.Duplicates:=dupIgnore;
+  FConnOptions:=[sqCommitEndsPrepared, sqRollbackEndsPrepared];
 end;
 
 destructor TSQLConnection.Destroy;
@@ -1717,6 +1721,22 @@ begin
   end;
 end;
 
+function TSQLConnection.HasTable(const aTable: String; SearchSystemTables: Boolean) : Boolean;
+
+var
+  L : TStrings;
+
+begin
+  L:=TStringList.Create;
+  try
+    TStringList(L).Sorted:=True;
+    GetTableNames(L,SearchSystemTables);
+    Result:=L.IndexOf(aTable)<>-1;
+  Finally
+    L.Free;
+  end;
+end;
+
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
 var i: TConnInfoType;
 begin
@@ -2013,6 +2033,29 @@ procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
 begin
   if Assigned(FStatements) then // Can be nil, when we are destroying and datasets are uncoupled.
     FStatements.Remove(S);
+end;
+
+procedure TSQLConnection.UnPrepareStatements(aTransaction: TSQLTransaction);
+Var
+  I : integer;
+  L : TList;
+  S : TCustomSQLStatement;
+
+begin
+  if not Assigned(FStatements) then // Can be nil, when we are destroying and datasets are uncoupled.
+    exit;
+  L:=FStatements.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      begin
+      S:=TCustomSQLStatement(L[i]);
+      if (S.Transaction=aTransaction) then
+        S.Unprepare;
+      end;
+    L.Clear;
+  finally
+    FStatements.UnlockList;
+  end;
 end;
 
 function TSQLConnection.CreateCustomQuery(aOwner : TComponent) : TCustomSQLQuery;
@@ -2418,6 +2461,14 @@ begin
   Database:=AValue;
 end;
 
+
+procedure TSQLTransaction.UnPrepareStatements;
+
+begin
+  if Assigned(SQLConnection) then
+    SQLConnection.UnPrepareStatements(Self);
+end;
+
 Procedure TSQLTransaction.MaybeStartTransaction;
 begin
   if not Active then
@@ -2435,10 +2486,24 @@ end;
 
 Function TSQLTransaction.AllowClose(DS: TDBDataset): Boolean;
 begin
-  if (DS is TSQLQuery) then
-    Result:=not (sqoKeepOpenOnCommit in TSQLQuery(DS).Options)
-  else
-    Result:=Inherited AllowClose(DS);
+  Result:=(DS is TSQLQuery);
+end;
+
+procedure TSQLTransaction.CloseDataset(DS: TDBDataset; InCommit : Boolean);
+
+Const
+  UnPrepOptions : Array[Boolean] of TConnOption
+                = (sqRollBackEndsPrepared, sqCommitEndsPrepared);
+
+var
+  Q : TSQLQuery;
+
+begin
+  Q:=DS as TSQLQuery;
+  if not (sqoKeepOpenOnCommit in Q.Options) then
+    inherited CloseDataset(Q,InCommit);
+  if UnPrepOptions[InCommit] in SQLConnection.ConnOptions then
+   Q.UnPrepare;
 end;
 
 procedure TSQLTransaction.Commit;
@@ -2446,6 +2511,8 @@ begin
   if Active  then
     begin
     CloseDataSets;
+    if sqCommitEndsPrepared in SQLConnection.ConnOptions then
+      UnPrepareStatements;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
     // The inherited closetrans must always be called.
@@ -2477,6 +2544,8 @@ begin
     if (stoUseImplicit in Options) then
       DatabaseError(SErrImplicitNoRollBack);
     CloseDataSets;
+    if sqRollbackEndsPrepared in SQLConnection.ConnOptions then
+      UnPrepareStatements;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
     // The inherited closetrans must always be called.
