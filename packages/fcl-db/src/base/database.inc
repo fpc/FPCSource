@@ -485,7 +485,12 @@ begin
   Result:=Assigned(DS);
 end;
 
-procedure TDBTransaction.CloseDataSets;
+procedure TDBTransaction.CloseDataset(DS: TDBDataset; InCommit : Boolean);
+begin
+  DS.Close;
+end;
+
+procedure TDBTransaction.CloseDataSets(InCommit: Boolean);
 
 Var
   I : longint;
@@ -501,12 +506,18 @@ begin
         begin
         DS:=TDBDataset(L[i]);
         If AllowClose(DS) then
-          DS.Close;
+          CloseDataset(DS,InCommit);
         end;
     finally
       FDatasets.UnlockList;
     end;
     end;
+end;
+
+procedure TDBTransaction.CloseDataSets;
+
+begin
+  CloseDatasets(Active);
 end;
 
 destructor TDBTransaction.Destroy;
