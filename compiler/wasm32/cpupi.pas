@@ -41,6 +41,7 @@ interface
 
       function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
       function ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
+      function ConvertLoopToBr(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
 
       { used for allocating locals during the postprocess_code stage (i.e. after register allocation) }
       function AllocWasmLocal(wbt: TWasmBasicType): Integer;
@@ -389,6 +390,17 @@ implementation
           end;
       end;
 
+    function tcpuprocinfo.ConvertLoopToBr(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
+      begin
+        result.typ:=amfrtNoChange;
+        if (ai.typ=ait_wasm_structured_instruction) and (ai is tai_wasmstruc_loop) then
+          begin
+            result.typ:=amfrtNewList;
+            result.newlist:=TAsmList.Create;
+            tai_wasmstruc_loop(ai).ConvertToBr(result.newlist);
+          end;
+      end;
+
     function tcpuprocinfo.AllocWasmLocal(wbt: TWasmBasicType): Integer;
       begin
         SetLength(FAllocatedLocals,Length(FAllocatedLocals)+1);
@@ -656,6 +668,7 @@ implementation
 
           map_structured_asmlist(asmlist,@ConvertBranchTargetNumbersToLabels);
           map_structured_asmlist(asmlist,@ConvertIfToBrIf);
+          map_structured_asmlist(asmlist,@ConvertLoopToBr);
 
           l2:=TAsmList.Create;
           wasm_convert_to_flat_asmlist(asmlist,l2);
