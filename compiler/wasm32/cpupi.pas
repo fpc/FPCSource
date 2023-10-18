@@ -713,6 +713,14 @@ implementation
               end;
           end;
 
+        procedure add_extra_allocated_locals(localslist: TAsmList);
+          var
+            t: TWasmBasicType;
+          begin
+            for t in FAllocatedLocals do
+              localslist.Concat(tai_local.create(t));
+          end;
+
         procedure insert_localslist(destlist,localslist: TAsmList);
           begin
             if assigned(localslist) then
@@ -736,6 +744,7 @@ implementation
 {$endif DEBUG_WASM_GOTO}
           resolve_labels_complex(aktproccode);
 
+        add_extra_allocated_locals(localslist);
         insert_localslist(aktproccode,localslist);
         localslist.Free;
 
