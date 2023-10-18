@@ -42,12 +42,13 @@ uses
 
     type
       twasmstruc_stack = class;
-      TAsmMapFuncResultType = (amfrtNoChange, amfrtNewAi, amfrtNewList);
+      TAsmMapFuncResultType = (amfrtNoChange, amfrtNewAi, amfrtNewList, amfrtDeleteAi);
       TAsmMapFuncResult = record
         case typ: TAsmMapFuncResultType of
           amfrtNoChange: ();
           amfrtNewAi: (newai: tai);
           amfrtNewList: (newlist: TAsmList);
+          amfrtDeleteAi: ();
       end;
       TAsmMapFunc = function(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult of object;
       TWasmLocalAllocator = function(wbt: TWasmBasicType): Integer of object;
@@ -2890,6 +2891,12 @@ uses
                       l.Remove(p);
                       p:=q;
                     end;
+                  amfrtDeleteAi:
+                    begin
+                      q:=p;
+                      p:=tai(p.next);
+                      l.Remove(q);
+                    end;
                 end;
               end
             else
@@ -2917,6 +2924,12 @@ uses
                       mapres.newlist.free;
                       l.Remove(p);
                       p:=q;
+                    end;
+                  amfrtDeleteAi:
+                    begin
+                      q:=p;
+                      p:=tai(p.next);
+                      l.Remove(q);
                     end;
                 end;
               end;
