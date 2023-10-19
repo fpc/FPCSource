@@ -940,13 +940,13 @@ implementation
         case opc of
           A_ADD,
           A_AND,
+          A_BIC,
           A_EON,
           A_EOR,
           A_ORN,
           A_ORR,
           A_SUB:
             result:=opnr=3;
-          A_BIC,
           A_CMN,
           A_CMP,
           A_MOVK,
