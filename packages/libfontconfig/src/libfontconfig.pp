@@ -34,6 +34,11 @@ Const
 {$else}  
   DefaultLibName = 'libfontconfig.dylib';
 {$endif}  
+{$ifdef MSWINDOWS}
+  {$calling stdcall}
+{$else}
+  {$calling cdecl}
+{$endif}
 
 const
   FC_MAJOR = 2;    
