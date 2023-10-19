@@ -241,6 +241,7 @@ unit cpubase;
 
       shiftedregmodes = [SM_LSL,SM_UXTB,SM_UXTH,SM_UXTW,SM_UXTX,SM_SXTB,SM_SXTH,SM_SXTW,SM_SXTX];
       extendedregmodes = [SM_LSL,SM_LSR,SM_ASR];
+      logicalshiftedregmodes = [SM_LSL,SM_LSR,SM_ASR,SM_ROR];
 
 
 {*****************************************************************************
