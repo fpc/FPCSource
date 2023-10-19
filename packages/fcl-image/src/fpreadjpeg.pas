@@ -109,7 +109,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.ColorSpace;
+{$ELSE}
 uses FPColorSpace;
+{$ENDIF}
 
 type
   int_Color_Table = array[0..MAXJSAMPLE+1-1] of int;

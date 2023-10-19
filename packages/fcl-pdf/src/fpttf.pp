@@ -173,8 +173,9 @@ uses
   ,WinApi.Activex
   {$endif}
   {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
-  ,Api.Libfontconfig, UnixApi.Types
-  {$ifend}
+  , Api.Libfontconfig
+  , UnixApi.types
+  {$endif}
   ;
 {$ELSE FPC_DOTTEDUNITS}
 uses
