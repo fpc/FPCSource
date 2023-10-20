@@ -4485,7 +4485,7 @@ implementation
               end;
             procdef:
               begin
-                if block_type<>bt_body then
+                if not (block_type in [bt_body,bt_except]) then
                   begin
                     message(parser_e_illegal_expression);
                     gensym:=generrorsym;
