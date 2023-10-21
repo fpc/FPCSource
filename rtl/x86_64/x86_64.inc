@@ -407,6 +407,8 @@ function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
+    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    jz     .Lnotfound                  { exit if len=0 }
 {$ifdef win64}
     movd   %r8d, %xmm1
 {$else}
@@ -417,9 +419,7 @@ asm
     mov    %rcx, %r8
     punpcklbw  %xmm1, %xmm1
     and    $-0x10, %rcx                { highest aligned address before buf }
-    test   %rdx, %rdx
     punpcklbw  %xmm1, %xmm1
-    jz     .Lnotfound                  { exit if len=0 }
     add    $16, %rcx                   { first aligned address after buf }
     pshufd $0, %xmm1, %xmm1
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
@@ -462,6 +462,8 @@ function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
+    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    jz     .Lnotfound                  { exit if len=0 }
 {$ifdef win64}
     movd   %r8d, %xmm1
 {$else}
@@ -472,9 +474,7 @@ asm
     mov    %rcx, %r8
     punpcklwd  %xmm1, %xmm1
     and    $-0x10, %rcx
-    test   %rdx, %rdx
     pshufd $0, %xmm1, %xmm1
-    jz     .Lnotfound                  { exit if len=0 }
     add    $16, %rcx
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 14 bytes before target) }
     sub    %r8, %rcx                   { rcx=number of valid bytes }
@@ -1013,30 +1013,18 @@ procedure inclocked(var l : int64);assembler; nostackframe;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-{$ifdef win64}
-        movq    %rcx,%rax
-{$else win64}
-        movq    %rdi,%rax
-{$endif win64}
-        movl    $-1,%edx
-        xchgq   %rdx,%rax
+        movl    $-1,%eax
         lock
-        xaddl   %eax, (%rdx)
+        xaddl   %eax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
         decl    %eax
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-{$ifdef win64}
-        movq    %rcx,%rax
-{$else win64}
-        movq    %rdi,%rax
-{$endif win64}
-        movl    $1,%edx
-        xchgq   %rdx,%rax
+        movl    $1,%eax
         lock
-        xaddl   %eax, (%rdx)
+        xaddl   %eax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
         incl    %eax
 end;
 
@@ -1056,15 +1044,13 @@ end;
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
 {$ifdef win64}
-        xchgq   %rcx,%rdx
         lock
-        xaddl   %ecx, (%rdx)
-        movl    %ecx,%eax
+        xaddl   %edx, (%rcx)
+        movl    %edx,%eax
 {$else win64}
-        xchgq   %rdi,%rsi
         lock
-        xaddl   %edi, (%rsi)
-        movl    %edi,%eax
+        xaddl   %esi, (%rdi)
+        movl    %esi,%eax
 {$endif win64}
 end;
 
@@ -1085,30 +1071,18 @@ end;
 
 function InterLockedDecrement64 (var Target: int64) : int64; assembler; nostackframe;
 asm
-{$ifdef win64}
-        movq    %rcx,%rax
-{$else win64}
-        movq    %rdi,%rax
-{$endif win64}
-        movq    $-1,%rdx
-        xchgq   %rdx,%rax
+        movq    $-1,%rax
         lock
-        xaddq   %rax, (%rdx)
+        xaddq   %rax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
         decq    %rax
 end;
 
 
 function InterLockedIncrement64 (var Target: int64) : int64; assembler; nostackframe;
 asm
-{$ifdef win64}
-        movq    %rcx,%rax
-{$else win64}
-        movq    %rdi,%rax
-{$endif win64}
-        movq    $1,%rdx
-        xchgq   %rdx,%rax
+        movq    $1,%rax
         lock
-        xaddq   %rax, (%rdx)
+        xaddq   %rax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
         incq    %rax
 end;
 
@@ -1128,15 +1102,13 @@ end;
 function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
 asm
 {$ifdef win64}
-        xchgq   %rcx,%rdx
         lock
-        xaddq   %rcx, (%rdx)
-        movq    %rcx,%rax
+        xaddq   %rdx, (%rcx)
+        movq    %rdx,%rax
 {$else win64}
-        xchgq   %rdi,%rsi
         lock
-        xaddq   %rdi, (%rsi)
-        movq    %rdi,%rax
+        xaddq   %rsi, (%rdi)
+        movq    %rsi,%rax
 {$endif win64}
 end;
 
