@@ -135,14 +135,14 @@ const
   CSSPseudoID_FirstOfType = CSSPseudoID_OnlyChild+1; // :first-of-type
   CSSPseudoID_LastOfType = CSSPseudoID_FirstOfType+1; // :last-of-type
   CSSPseudoID_OnlyOfType = CSSPseudoID_LastOfType+1; // :only-of-type
-  CSSCallID_Not = CSSPseudoID_OnlyOfType+1; // :nth-child
-  CSSCallID_Is = CSSCallID_Not+1; // :nth-child
-  CSSCallID_Where = CSSCallID_Is+1; // :nth-child
-  CSSCallID_Has = CSSCallID_Where+1; // :nth-child
-  CSSCallID_NthChild = CSSCallID_Has+1; // :nth-child
-  CSSCallID_NthLastChild = CSSCallID_NthChild+1; // :nth-child
-  CSSCallID_NthOfType = CSSCallID_NthLastChild+1; // :nth-child
-  CSSCallID_NthLastOfType = CSSCallID_NthOfType+1; // :nth-child
+  CSSCallID_Not = CSSPseudoID_OnlyOfType+1; // :not()
+  CSSCallID_Is = CSSCallID_Not+1; // :is()
+  CSSCallID_Where = CSSCallID_Is+1; // :where()
+  CSSCallID_Has = CSSCallID_Where+1; // :has()
+  CSSCallID_NthChild = CSSCallID_Has+1; // :nth-child(n)
+  CSSCallID_NthLastChild = CSSCallID_NthChild+1; // :nth-last-child(n)
+  CSSCallID_NthOfType = CSSCallID_NthLastChild+1; // :nth-of-type(n)
+  CSSCallID_NthLastOfType = CSSCallID_NthOfType+1; // :nth-last-of-type(n)
   CSSLastPseudoID = CSSCallID_NthLastOfType;
 
 const
@@ -201,8 +201,7 @@ type
     function GetCSSPreviousOfType: ICSSNode;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
-    function HasCSSPseudo(const AttrID: TCSSNumericalID): boolean;
-    function GetCSSPseudo(const AttrID: TCSSNumericalID): TCSSString;
+    function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
     function GetCSSEmpty: boolean;
     function GetCSSDepth: integer;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
@@ -213,7 +212,7 @@ type
   TCSSNumericalIDKind = (
     nikType,
     nikAttribute,
-    nikPseudoAttribute
+    nikPseudoClass
     );
   TCSSNumericalIDKinds = set of TCSSNumericalIDKind;
 
@@ -221,7 +220,7 @@ const
   CSSNumericalIDKindNames: array[TCSSNumericalIDKind] of TCSSString = (
     'Type',
     'Attribute',
-    'PseudoAttribute'
+    'PseudoClass'
     );
 
 type
@@ -732,7 +731,7 @@ begin
   if OnlySpecifity then
     exit(CSSSpecifityClass);
   Result:=CSSSpecifityNoMatch;
-  PseudoID:=ResolveIdentifier(aPseudoClass,nikPseudoAttribute);
+  PseudoID:=ResolveIdentifier(aPseudoClass,nikPseudoClass);
   case PseudoID of
   CSSIDNone:
     LogWarning(croErrorOnUnknownName in Options,20220911205605,'Unknown CSS selector pseudo attribute name "'+aPseudoClass.Name+'"',aPseudoClass);
@@ -763,7 +762,7 @@ begin
         and (TestNode.GetCSSPreviousOfType=nil) then
       Result:=CSSSpecifityClass;
   else
-    if TestNode.GetCSSPseudo(PseudoID)<>'' then
+    if TestNode.HasCSSPseudoClass(PseudoID) then
       Result:=CSSSpecifityClass;
   end;
 end;
@@ -1763,7 +1762,7 @@ begin
       'class': Result:=CSSAttributeID_Class;
       'all': Result:=CSSAttributeID_All;
       end;
-    nikPseudoAttribute:
+    nikPseudoClass:
       begin
       aName:=lowercase(aName); // pseudo attributes are ASCII case insensitive
       case aName of

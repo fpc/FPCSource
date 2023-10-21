@@ -974,8 +974,10 @@ var
   P, EndP: PByte;
   O : Tbytes;
 begin
+  {$IFDEF ASN1_DEBUG}
   ASNDebug(Buffer,O);
   Writeln(TEncoding.UTF8.GetAnsiString(O));
+  {$ENDIF}
   if length(Buffer)=0 then exit;
   P:=@Buffer[0];
   EndP:=P+length(Buffer);

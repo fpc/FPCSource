@@ -42,12 +42,9 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
 }
 
-// Define to use original MD5 code on i386 processors.
-// Undefine to use original implementation.
-{ the assembler implementation does not work on Darwin }
-{$ifdef darwin}
-{$DEFINE MD5PASCAL}
-{$endif darwin}
+// Normally, if an optimized version is available for OS/CPU, that will be used
+// Define to use generic implementation
+{ $DEFINE MD5PASCAL}
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit md5;
@@ -341,177 +338,117 @@ begin
 end;
 
 
-{$IF (NOT(DEFINED(MD5PASCAL))) and (DEFINED(CPUI386)) }
-{$i md5i386.inc}
-{$ENDIF}
-{$IF (NOT(DEFINED(MD5PASCAL))) and (DEFINED(CPUX86_64)) }
-{$OPTIMIZATION USERBP} //PEEPHOLE
+// Use assembler version if we have a suitable CPU as well
+// Define MD5PASCAL to force use of original reference code
+{$ifndef MD5PASCAL}
+  {$if defined(CPU386)}
+    {$i md5i386.inc}
+    {$define MD5ASM}
+  {$elseif defined(CPUX64)}
+    {$ifdef MSWINDOWS}
+      // Microsoft Windows uses a different calling convention to the System V ABI
+      {$i md5x64_win.inc}
+      {$define MD5ASM}
+    {$else}
+      {$i md5x64_sysv.inc}
+      {$define MD5ASM}
+    {$endif MSWINDOWS}
+  {$endif}
+{$endif not MD5PASCAL}
+
+{$if not defined(MD5ASM)}
+// Pascal version
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
-type
-  TBlock = array[0..15] of Cardinal;
-  PBlock = ^TBlock;
 var
   a, b, c, d: Cardinal;
-  //Block: array[0..15] of Cardinal absolute Buffer;
-  Block: PBlock absolute Buffer;
-begin
-  //Invert(Buffer, @Block, 64);
-  a := Context.State[0];
-  b := Context.State[1];
-  c := Context.State[2];
-  d := Context.State[3];
-
-{$push}
-{$r-,q-}
-
-  // Round 1
-  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block^[0]  + $d76aa478),  7);
-  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block^[1]  + $e8c7b756), 12);
-  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block^[2]  + $242070db), 17);
-  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block^[3]  + $c1bdceee), 22);
-  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block^[4]  + $f57c0faf),  7);
-  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block^[5]  + $4787c62a), 12);
-  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block^[6]  + $a8304613), 17);
-  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block^[7]  + $fd469501), 22);
-  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block^[8]  + $698098d8),  7);
-  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block^[9]  + $8b44f7af), 12);
-  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block^[10] + $ffff5bb1), 17);
-  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block^[11] + $895cd7be), 22);
-  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block^[12] + $6b901122),  7);
-  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block^[13] + $fd987193), 12);
-  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block^[14] + $a679438e), 17);
-  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block^[15] + $49b40821), 22);
-  // Round 2
-  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block^[1]  + $f61e2562),  5);
-  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block^[6]  + $c040b340),  9);
-  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block^[11] + $265e5a51), 14);
-  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block^[0]  + $e9b6c7aa), 20);
-  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block^[5]  + $d62f105d),  5);
-  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block^[10] + $02441453),  9);
-  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block^[15] + $d8a1e681), 14);
-  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block^[4]  + $e7d3fbc8), 20);
-  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block^[9]  + $21e1cde6),  5);
-  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block^[14] + $c33707d6),  9);
-  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block^[3]  + $f4d50d87), 14);
-  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block^[8]  + $455a14ed), 20);
-  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block^[13] + $a9e3e905),  5);
-  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block^[2]  + $fcefa3f8),  9);
-  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block^[7]  + $676f02d9), 14);
-  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block^[12] + $8d2a4c8a), 20);
-  // Round 3
-  a := b + roldword(dword(a + (b xor c xor d) + Block^[5]  + $fffa3942),  4);
-  d := a + roldword(dword(d + (a xor b xor c) + Block^[8]  + $8771f681), 11);
-  c := d + roldword(dword(c + (d xor a xor b) + Block^[11] + $6d9d6122), 16);
-  b := c + roldword(dword(b + (c xor d xor a) + Block^[14] + $fde5380c), 23);
-  a := b + roldword(dword(a + (b xor c xor d) + Block^[1]  + $a4beea44),  4);
-  d := a + roldword(dword(d + (a xor b xor c) + Block^[4]  + $4bdecfa9), 11);
-  c := d + roldword(dword(c + (d xor a xor b) + Block^[7]  + $f6bb4b60), 16);
-  b := c + roldword(dword(b + (c xor d xor a) + Block^[10] + $bebfbc70), 23);
-  a := b + roldword(dword(a + (b xor c xor d) + Block^[13] + $289b7ec6),  4);
-  d := a + roldword(dword(d + (a xor b xor c) + Block^[0]  + $eaa127fa), 11);
-  c := d + roldword(dword(c + (d xor a xor b) + Block^[3]  + $d4ef3085), 16);
-  b := c + roldword(dword(b + (c xor d xor a) + Block^[6]  + $04881d05), 23);
-  a := b + roldword(dword(a + (b xor c xor d) + Block^[9]  + $d9d4d039),  4);
-  d := a + roldword(dword(d + (a xor b xor c) + Block^[12] + $e6db99e5), 11);
-  c := d + roldword(dword(c + (d xor a xor b) + Block^[15] + $1fa27cf8), 16);
-  b := c + roldword(dword(b + (c xor d xor a) + Block^[2]  + $c4ac5665), 23);
-  // Round 4
-  a := b + roldword(dword(a + (c xor (b or (not d))) + Block^[0]  + $f4292244),  6);
-  d := a + roldword(dword(d + (b xor (a or (not c))) + Block^[7]  + $432aff97), 10);
-  c := d + roldword(dword(c + (a xor (d or (not b))) + Block^[14] + $ab9423a7), 15);
-  b := c + roldword(dword(b + (d xor (c or (not a))) + Block^[5]  + $fc93a039), 21);
-  a := b + roldword(dword(a + (c xor (b or (not d))) + Block^[12] + $655b59c3),  6);
-  d := a + roldword(dword(d + (b xor (a or (not c))) + Block^[3]  + $8f0ccc92), 10);
-  c := d + roldword(dword(c + (a xor (d or (not b))) + Block^[10] + $ffeff47d), 15);
-  b := c + roldword(dword(b + (d xor (c or (not a))) + Block^[1]  + $85845dd1), 21);
-  a := b + roldword(dword(a + (c xor (b or (not d))) + Block^[8]  + $6fa87e4f),  6);
-  d := a + roldword(dword(d + (b xor (a or (not c))) + Block^[15] + $fe2ce6e0), 10);
-  c := d + roldword(dword(c + (a xor (d or (not b))) + Block^[6]  + $a3014314), 15);
-  b := c + roldword(dword(b + (d xor (c or (not a))) + Block^[13] + $4e0811a1), 21);
-  a := b + roldword(dword(a + (c xor (b or (not d))) + Block^[4]  + $f7537e82),  6);
-  d := a + roldword(dword(d + (b xor (a or (not c))) + Block^[11] + $bd3af235), 10);
-  c := d + roldword(dword(c + (a xor (d or (not b))) + Block^[2]  + $2ad7d2bb), 15);
-  b := c + roldword(dword(b + (d xor (c or (not a))) + Block^[9]  + $eb86d391), 21);
-
-
-  inc(Context.State[0],a);
-  inc(Context.State[1],b);
-  inc(Context.State[2],c);
-  inc(Context.State[3],d);
-{$pop}
-  inc(Context.Length,64);
-end;
-{$OPTIMIZATION DEFAULT}
-{$ENDIF}
-{$IF DEFINED(MD5PASCAL) or (NOT ((DEFINED(CPUX86_64)) or (DEFINED(CPUI386))))}
-// Original version
-procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
-
-{$push}
-{$r-,q-}
-
-  procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
-  // F(x,y,z) = (x and y) or ((not x) and z)
-  begin
-    a := b + roldword(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x + ac), s);
-  end;
-
-  procedure R2(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
-  // G(x,y,z) = (x and z) or (y and (not z))
-  begin
-    a := b + roldword(dword(a + {G(b,c,d)}((b and d) or (c and (not d))) + x + ac), s);
-  end;
-
-  procedure R3(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
-  // H(x,y,z) = x xor y xor z;
-  begin
-    a := b + roldword(dword(a + {H(b,c,d)}(b xor c xor d) + x + ac), s);
-  end;
-
-  procedure R4(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
-  // I(x,y,z) = y xor (x or (not z));
-  begin
-    a := b + roldword(dword(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac), s);
-  end;
-
-{$pop}
-
-var
-  a, b, c, d: Cardinal;
+{$if defined(endian_little) and not defined(fpc_requires_proper_alignment)}
+  Block: PCardinal absolute Buffer;
+{$else}
   Block: array[0..15] of Cardinal;
+{$endif}
 begin
+{$if not defined(endian_little)}
   Invert(Buffer, @Block, 64);
+{$elseif defined(fpc_requires_proper_alignment)}
+  Move(Buffer^, Block, 64);
+{$endif}
   a := Context.State[0];
   b := Context.State[1];
   c := Context.State[2];
   d := Context.State[3];
 
-  // Round 1
-  R1(a,b,c,d,Block[0] , 7,$d76aa478); R1(d,a,b,c,Block[1] ,12,$e8c7b756); R1(c,d,a,b,Block[2] ,17,$242070db); R1(b,c,d,a,Block[3] ,22,$c1bdceee);
-  R1(a,b,c,d,Block[4] , 7,$f57c0faf); R1(d,a,b,c,Block[5] ,12,$4787c62a); R1(c,d,a,b,Block[6] ,17,$a8304613); R1(b,c,d,a,Block[7] ,22,$fd469501);
-  R1(a,b,c,d,Block[8] , 7,$698098d8); R1(d,a,b,c,Block[9] ,12,$8b44f7af); R1(c,d,a,b,Block[10],17,$ffff5bb1); R1(b,c,d,a,Block[11],22,$895cd7be);
-  R1(a,b,c,d,Block[12], 7,$6b901122); R1(d,a,b,c,Block[13],12,$fd987193); R1(c,d,a,b,Block[14],17,$a679438e); R1(b,c,d,a,Block[15],22,$49b40821);
-
-  // Round 2
-  R2(a,b,c,d,Block[1] , 5,$f61e2562); R2(d,a,b,c,Block[6] , 9,$c040b340); R2(c,d,a,b,Block[11],14,$265e5a51); R2(b,c,d,a,Block[0] ,20,$e9b6c7aa);
-  R2(a,b,c,d,Block[5] , 5,$d62f105d); R2(d,a,b,c,Block[10], 9,$02441453); R2(c,d,a,b,Block[15],14,$d8a1e681); R2(b,c,d,a,Block[4] ,20,$e7d3fbc8);
-  R2(a,b,c,d,Block[9] , 5,$21e1cde6); R2(d,a,b,c,Block[14], 9,$c33707d6); R2(c,d,a,b,Block[3] ,14,$f4d50d87); R2(b,c,d,a,Block[8] ,20,$455a14ed);
-  R2(a,b,c,d,Block[13], 5,$a9e3e905); R2(d,a,b,c,Block[2] , 9,$fcefa3f8); R2(c,d,a,b,Block[7] ,14,$676f02d9); R2(b,c,d,a,Block[12],20,$8d2a4c8a);
-
-  // Round 3
-  R3(a,b,c,d,Block[5] , 4,$fffa3942); R3(d,a,b,c,Block[8] ,11,$8771f681); R3(c,d,a,b,Block[11],16,$6d9d6122); R3(b,c,d,a,Block[14],23,$fde5380c);
-  R3(a,b,c,d,Block[1] , 4,$a4beea44); R3(d,a,b,c,Block[4] ,11,$4bdecfa9); R3(c,d,a,b,Block[7] ,16,$f6bb4b60); R3(b,c,d,a,Block[10],23,$bebfbc70);
-  R3(a,b,c,d,Block[13], 4,$289b7ec6); R3(d,a,b,c,Block[0] ,11,$eaa127fa); R3(c,d,a,b,Block[3] ,16,$d4ef3085); R3(b,c,d,a,Block[6] ,23,$04881d05);
-  R3(a,b,c,d,Block[9] , 4,$d9d4d039); R3(d,a,b,c,Block[12],11,$e6db99e5); R3(c,d,a,b,Block[15],16,$1fa27cf8); R3(b,c,d,a,Block[2] ,23,$c4ac5665);
-
-  // Round 4
-  R4(a,b,c,d,Block[0] , 6,$f4292244); R4(d,a,b,c,Block[7] ,10,$432aff97); R4(c,d,a,b,Block[14],15,$ab9423a7); R4(b,c,d,a,Block[5] ,21,$fc93a039);
-  R4(a,b,c,d,Block[12], 6,$655b59c3); R4(d,a,b,c,Block[3] ,10,$8f0ccc92); R4(c,d,a,b,Block[10],15,$ffeff47d); R4(b,c,d,a,Block[1] ,21,$85845dd1);
-  R4(a,b,c,d,Block[8] , 6,$6fa87e4f); R4(d,a,b,c,Block[15],10,$fe2ce6e0); R4(c,d,a,b,Block[6] ,15,$a3014314); R4(b,c,d,a,Block[13],21,$4e0811a1);
-  R4(a,b,c,d,Block[4] , 6,$f7537e82); R4(d,a,b,c,Block[11],10,$bd3af235); R4(c,d,a,b,Block[2] ,15,$2ad7d2bb); R4(b,c,d,a,Block[9] ,21,$eb86d391);
-
 {$push}
 {$r-,q-}
+
+  // Round 1
+  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block[0]  + $d76aa478),  7);
+  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block[1]  + $e8c7b756), 12);
+  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block[2]  + $242070db), 17);
+  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block[3]  + $c1bdceee), 22);
+  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block[4]  + $f57c0faf),  7);
+  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block[5]  + $4787c62a), 12);
+  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block[6]  + $a8304613), 17);
+  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block[7]  + $fd469501), 22);
+  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block[8]  + $698098d8),  7);
+  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block[9]  + $8b44f7af), 12);
+  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block[10] + $ffff5bb1), 17);
+  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block[11] + $895cd7be), 22);
+  a := b + roldword(dword(a + ((b and c) or ((not b) and d)) + Block[12] + $6b901122),  7);
+  d := a + roldword(dword(d + ((a and b) or ((not a) and c)) + Block[13] + $fd987193), 12);
+  c := d + roldword(dword(c + ((d and a) or ((not d) and b)) + Block[14] + $a679438e), 17);
+  b := c + roldword(dword(b + ((c and d) or ((not c) and a)) + Block[15] + $49b40821), 22);
+  // Round 2
+  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block[1]  + $f61e2562),  5);
+  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block[6]  + $c040b340),  9);
+  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block[11] + $265e5a51), 14);
+  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block[0]  + $e9b6c7aa), 20);
+  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block[5]  + $d62f105d),  5);
+  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block[10] + $02441453),  9);
+  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block[15] + $d8a1e681), 14);
+  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block[4]  + $e7d3fbc8), 20);
+  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block[9]  + $21e1cde6),  5);
+  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block[14] + $c33707d6),  9);
+  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block[3]  + $f4d50d87), 14);
+  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block[8]  + $455a14ed), 20);
+  a := b + roldword(dword(a + ((b and d) or (c and (not d))) + Block[13] + $a9e3e905),  5);
+  d := a + roldword(dword(d + ((a and c) or (b and (not c))) + Block[2]  + $fcefa3f8),  9);
+  c := d + roldword(dword(c + ((d and b) or (a and (not b))) + Block[7]  + $676f02d9), 14);
+  b := c + roldword(dword(b + ((c and a) or (d and (not a))) + Block[12] + $8d2a4c8a), 20);
+  // Round 3
+  a := b + roldword(dword(a + (b xor c xor d) + Block[5]  + $fffa3942),  4);
+  d := a + roldword(dword(d + (a xor b xor c) + Block[8]  + $8771f681), 11);
+  c := d + roldword(dword(c + (d xor a xor b) + Block[11] + $6d9d6122), 16);
+  b := c + roldword(dword(b + (c xor d xor a) + Block[14] + $fde5380c), 23);
+  a := b + roldword(dword(a + (b xor c xor d) + Block[1]  + $a4beea44),  4);
+  d := a + roldword(dword(d + (a xor b xor c) + Block[4]  + $4bdecfa9), 11);
+  c := d + roldword(dword(c + (d xor a xor b) + Block[7]  + $f6bb4b60), 16);
+  b := c + roldword(dword(b + (c xor d xor a) + Block[10] + $bebfbc70), 23);
+  a := b + roldword(dword(a + (b xor c xor d) + Block[13] + $289b7ec6),  4);
+  d := a + roldword(dword(d + (a xor b xor c) + Block[0]  + $eaa127fa), 11);
+  c := d + roldword(dword(c + (d xor a xor b) + Block[3]  + $d4ef3085), 16);
+  b := c + roldword(dword(b + (c xor d xor a) + Block[6]  + $04881d05), 23);
+  a := b + roldword(dword(a + (b xor c xor d) + Block[9]  + $d9d4d039),  4);
+  d := a + roldword(dword(d + (a xor b xor c) + Block[12] + $e6db99e5), 11);
+  c := d + roldword(dword(c + (d xor a xor b) + Block[15] + $1fa27cf8), 16);
+  b := c + roldword(dword(b + (c xor d xor a) + Block[2]  + $c4ac5665), 23);
+  // Round 4
+  a := b + roldword(dword(a + (c xor (b or (not d))) + Block[0]  + $f4292244),  6);
+  d := a + roldword(dword(d + (b xor (a or (not c))) + Block[7]  + $432aff97), 10);
+  c := d + roldword(dword(c + (a xor (d or (not b))) + Block[14] + $ab9423a7), 15);
+  b := c + roldword(dword(b + (d xor (c or (not a))) + Block[5]  + $fc93a039), 21);
+  a := b + roldword(dword(a + (c xor (b or (not d))) + Block[12] + $655b59c3),  6);
+  d := a + roldword(dword(d + (b xor (a or (not c))) + Block[3]  + $8f0ccc92), 10);
+  c := d + roldword(dword(c + (a xor (d or (not b))) + Block[10] + $ffeff47d), 15);
+  b := c + roldword(dword(b + (d xor (c or (not a))) + Block[1]  + $85845dd1), 21);
+  a := b + roldword(dword(a + (c xor (b or (not d))) + Block[8]  + $6fa87e4f),  6);
+  d := a + roldword(dword(d + (b xor (a or (not c))) + Block[15] + $fe2ce6e0), 10);
+  c := d + roldword(dword(c + (a xor (d or (not b))) + Block[6]  + $a3014314), 15);
+  b := c + roldword(dword(b + (d xor (c or (not a))) + Block[13] + $4e0811a1), 21);
+  a := b + roldword(dword(a + (c xor (b or (not d))) + Block[4]  + $f7537e82),  6);
+  d := a + roldword(dword(d + (b xor (a or (not c))) + Block[11] + $bd3af235), 10);
+  c := d + roldword(dword(c + (a xor (d or (not b))) + Block[2]  + $2ad7d2bb), 15);
+  b := c + roldword(dword(b + (d xor (c or (not a))) + Block[9]  + $eb86d391), 21);
+
   inc(Context.State[0],a);
   inc(Context.State[1],b);
   inc(Context.State[2],c);
@@ -519,8 +456,7 @@ begin
 {$pop}
   inc(Context.Length,64);
 end;
-{$ENDIF}
-
+{$ENDIF MD5ASM}
 
 procedure MDInit(out Context: TMDContext; const Version: TMDVersion);
 begin

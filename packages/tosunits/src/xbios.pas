@@ -296,6 +296,8 @@ const
 
     NUMCOLS     = 7;
 
+    VM_INQUIRE  = -1;
+
 {* Values returned by VgetMonitor() *}
     MON_MONO        = 0;
     MON_COLOR       = 1;
@@ -303,7 +305,6 @@ const
     MON_TV          = 3;
 
 {* VsetSync flags - 0=internal, 1=external *}
-
     VID_CLOCK   = 1;
     VID_VSYNC   = 2;
     VID_HSYNC   = 4;
@@ -687,8 +688,8 @@ function xbios_Vsetmode(modecode: smallint): smallint; syscall 14 88;
 function xbios_mon_type: smallint; syscall 14 89;
 procedure xbios_VsetSync(flag: smallint); syscall 14 90;
 function xbios_VgetSize(mode: smallint): LongInt; syscall 14 91;
-procedure xbios_VsetRGB(index, count: smallint; xrgbArray: Array of TRGB); syscall 14 93;
-procedure xbios_VgetRGB(index, count: smallint; var xrgbArray: Array of TRGB); syscall 14 94;
+procedure xbios_VsetRGB(index, count: smallint; xrgbArray: PRGB); syscall 14 93;
+procedure xbios_VgetRGB(index, count: smallint; xrgbArray: PRGB); syscall 14 94;
 function xbios_Validmode(mode: smallint): smallint; syscall 14 95;
 procedure xbios_Dsp_DoBlock(data_in: Pointer; size_in: LongInt; data_out: Pointer; size_out: LongInt); syscall 14 96;
 procedure xbios_Dsp_BlkHandShake(data_in: Pointer; size_in: LongInt; data_out: Pointer; size_out: LongInt); syscall 14 97;

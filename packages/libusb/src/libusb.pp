@@ -781,6 +781,7 @@ type
         end;
 
       plibusb_device=^libusb_device;
+      pplibusb_device=^plibusb_device;
       libusb_device = record
           {undefined structure}
         end;
@@ -1156,8 +1157,8 @@ function libusb_error_name(errcode:integer):pansichar;LIBUSB_CALL;external libus
 function libusb_setlocale(const locale:pansichar):integer;LIBUSB_CALL;external libusb1;
 
 function libusb_strerror(errcode:libusb_error):pansichar;LIBUSB_CALL;external libusb1;
-function libusb_get_device_list(ctx:plibusb_context;var list:plibusb_device):ssize_t;LIBUSB_CALL;external libusb1;
-procedure libusb_free_device_list(list:plibusb_device;unref_devices:integer);LIBUSB_CALL;external libusb1;
+function libusb_get_device_list(ctx:plibusb_context;var list:pplibusb_device):ssize_t;LIBUSB_CALL;external libusb1;
+procedure libusb_free_device_list(list:pplibusb_device;unref_devices:integer);LIBUSB_CALL;external libusb1;
 function libusb_ref_device(dev:plibusb_device):plibusb_device;LIBUSB_CALL;external libusb1;
 procedure libusb_unref_device(dev:plibusb_device);LIBUSB_CALL;external libusb1;
 function libusb_get_configuration(dev:plibusb_device_handle;

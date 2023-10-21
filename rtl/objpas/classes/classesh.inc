@@ -122,6 +122,7 @@ type
 { Standard events }
 
   TNotifyEvent = procedure(Sender: TObject) of object;
+  THintEvent = procedure(var HintStr: string; var CanShow: Boolean) of object;
   THelpEvent = function (Command: Word; Data: Longint;
     var CallHelp: Boolean): Boolean of object;
   TGetStrProc = procedure(const S: string) of object;
@@ -2245,11 +2246,15 @@ type
     FOnChange: TNotifyEvent;
     FOnExecute: TNotifyEvent;
     FOnUpdate: TNotifyEvent;
+    procedure SetActionComponent(AValue: TComponent);
   protected
     FClients: TFpList;
     procedure Change; virtual;
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetOnExecute(Value: TNotifyEvent); virtual;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    Function ClientCount : Integer;
+    Function GetClient(Idx : Integer) : TObject;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2260,10 +2265,12 @@ type
     procedure RegisterChanges(Value: TBasicActionLink);
     procedure UnRegisterChanges(Value: TBasicActionLink);
     function Update: Boolean; virtual;
-    property ActionComponent: TComponent read FActionComponent write FActionComponent;
+    function Suspended: Boolean; virtual;
+    property ActionComponent: TComponent read FActionComponent write SetActionComponent;
     property OnExecute: TNotifyEvent read FOnExecute write SetOnExecute;
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
   end;
+  TActionEvent = procedure(Action: TBasicAction; var Handled: Boolean) of object;
 
 { TBasicAction class reference type }
 

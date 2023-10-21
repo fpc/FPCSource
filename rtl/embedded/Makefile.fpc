@@ -43,7 +43,6 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 LOADERS=
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)
@@ -263,7 +262,7 @@ endif
 endif
 
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
+CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(SOFTFPUUNIT), $(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS)))
 endif
 
 # Paths

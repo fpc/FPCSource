@@ -98,6 +98,7 @@ type
     procedure TestGen_Class_List;
     procedure TestGen_Class_Typecast;
     // ToDo: different modeswitches at parse time and specialize time
+    procedure TestGen_Class_TypeAliasAssignFail; // todo
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -1681,6 +1682,28 @@ begin
   ParseProgram;
   // FPC/pas2js: Class types "TList<afile.TBird>" and "TList<afile.TEagle>" are not related
   // Delphi: no warning
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_TypeAliasAssignFail;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TDate = type double;',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  end;',
+  'var',
+  '  a: specialize TBird<double>;',
+  '  b: specialize TBird<TDate>;',
+  'begin',
+  '  a:=b;',
+  '']);
+  CheckResolverException('Incompatible types: got  expected',
+    nGenericsWithoutSpecializationAsType);
 end;
 
 procedure TTestResolveGenerics.TestGen_ExtClass_Array;

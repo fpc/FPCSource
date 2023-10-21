@@ -306,6 +306,7 @@ Implementation
 
       var
         expr : string;
+        tmp : tx86operand;
       begin
         oper.InitRef;
         Consume(AS_LPAREN);
@@ -357,35 +358,53 @@ Implementation
             begin
               expr:=actasmpattern;
               Consume(AS_ID);
-              if not oper.SetupVar(expr,false) then
+              tmp:=Tx86Operand.create;
+              if not tmp.SetupVar(expr,false) then
                 begin
                   { look for special symbols ... }
                   if expr= '__HIGH' then
                     begin
                       consume(AS_LPAREN);
-                      if not oper.setupvar('high'+actasmpattern,false) then
+                      if not tmp.setupvar('high'+actasmpattern,false) then
                         Message1(sym_e_unknown_id,'high'+actasmpattern);
                       consume(AS_ID);
                       consume(AS_RPAREN);
                     end
                   else
                     if expr = '__SELF' then
-                      oper.SetupSelf
+                      tmp.SetupSelf
                   else
                     begin
                       message1(sym_e_unknown_id,expr);
                       RecoverConsume(false);
+                      tmp.free;
                       Exit;
                     end;
                 end;
               { convert OPR_LOCAL register para into a reference base }
-              if (oper.opr.typ=OPR_LOCAL) and
-                 AsmRegisterPara(oper.opr.localsym) then
-                oper.InitRefConvertLocal
+              if (tmp.opr.typ=OPR_LOCAL) and
+                 AsmRegisterPara(tmp.opr.localsym) then
+                begin
+                  tmp.InitRefConvertLocal;
+                  if (tmp.opr.ref.index<>NR_NO) or
+                      (tmp.opr.ref.offset<>0) or
+                      (tmp.opr.ref.scalefactor<>0) or
+                      (tmp.opr.ref.segment<>NR_NO) or
+                      (tmp.opr.ref.base=NR_NO) then
+                    begin
+                      message(asmr_e_invalid_reference_syntax);
+                      RecoverConsume(false);
+                      tmp.free;
+                      Exit;
+                    end;
+                  oper.opr.ref.base:=tmp.opr.ref.base;
+                  tmp.free;
+                end
               else
                 begin
                   message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
+                  tmp.free;
                   Exit;
                 end;
               { can either be a register, an identifier or a right parenthesis }

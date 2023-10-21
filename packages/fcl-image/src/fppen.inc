@@ -57,6 +57,8 @@ begin
     self.Width := Width;
     self.Mode := Mode;
     self.pattern := pattern;
+    self.EndCap := EndCap;
+    self.JoinStyle := JoinStyle;
     end;
   inherited;
 end;

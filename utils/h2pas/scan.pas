@@ -198,7 +198,6 @@ type
 
     var
        infile : string;
-       outfile : text;
        c : char;
        aktspace : string;
        block_type : tblocktype;
@@ -234,7 +233,7 @@ type
   implementation
 
     uses
-       h2poptions, h2pconst;
+       h2poptions, h2pconst, scanbase;
 
     const
        newline = #10;

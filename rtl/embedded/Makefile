@@ -586,6 +586,7 @@ SYSCONSTUNIT=System.SysConst
 SYSCTLUNIT=BsdApi.SysCtl
 SYSEMXUNIT=DOSApi.Sysemx
 SYSOS2UNIT=OS2Api.sysos2
+SYSTEMUNIT=system
 SYSTRAPSUNIT=PalmApi.Systraps
 SYSUTILSUNIT=System.SysUtils
 TERMIOUNIT=UnixApi.TermIO
@@ -832,6 +833,7 @@ SYSCONSTUNIT=sysconst
 SYSCTLUNIT=sysctl
 SYSEMXUNIT=sysemx
 SYSOS2UNIT=sysos2
+SYSTEMUNIT=system
 SYSTRAPSUNIT=systraps
 SYSUTILSUNIT=sysutils
 TERMIOUNIT=termio
@@ -886,7 +888,6 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 LOADERS=
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)
@@ -1083,7 +1084,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
+CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(SOFTFPUUNIT), $(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS)))
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),i386-embedded)

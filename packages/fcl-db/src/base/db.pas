@@ -2178,21 +2178,23 @@ type
 
   { TDBTransaction }
 
-  TDBTransactionClass = Class of TDBTransaction;
+
   TDBTransaction = Class(TComponent)
   Private
     FActive        : boolean;
     FDatabase      : TDatabase;
     FDataSets      : TThreadList;
+    FClients      : TThreadList;
     FOpenAfterRead : boolean;
-    Function GetDataSetCount : Longint;
-    Function GetDataset(Index : longint) : TDBDataset;
-    procedure RegisterDataset (DS : TDBDataset);
-    procedure UnRegisterDataset (DS : TDBDataset);
+    function GetDataSet(Index: Longint): TDBDataset;
+    function GetDatasetCount: Integer;
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    procedure RegisterDataset (DS : TDBDataset); virtual;
+    procedure UnRegisterDataset (DS : TDBDataset); virtual;
     Function AllowClose(DS: TDBDataset): Boolean; virtual;
+    procedure CloseDataset(DS: TDBDataset; InCommit : Boolean); virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure OpenTrans;
@@ -2207,10 +2209,13 @@ type
     procedure StartTransaction; virtual; abstract;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
+    Property DatasetCount : Integer Read GetDatasetCount;
+    property Datasets[Index: Longint]: TDBDataset read GetDataSet;
   Public
     constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
     procedure CloseDataSets;
+    procedure CloseDataSets(InCommit : Boolean);
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
   published
     property Active : boolean read FActive write setactive;
@@ -2219,6 +2224,7 @@ type
   { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
+  TCloseErrorEvent = procedure(Sender : TObject; aError : Exception) of object;
 
   TCustomConnection = class(TComponent)
   private
@@ -2228,6 +2234,7 @@ type
     FBeforeDisconnect: TNotifyEvent;
     FForcedClose: Boolean;
     FLoginPrompt: Boolean;
+    FOnCloseError: TCloseErrorEvent;
     FOnLogin: TLoginEvent;
     FStreamedConnected: Boolean;
     procedure SetAfterConnect(const AValue: TNotifyEvent);
@@ -2235,6 +2242,9 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
+    Procedure DoCloseError(aError : Exception); virtual;
+    procedure SetForcedClose(AValue: Boolean); virtual;
+    procedure CloseForDestroy;
     procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
     procedure DoDisconnect; virtual;
@@ -2246,7 +2256,7 @@ type
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
     procedure SetLoginParams(const ADatabaseName, AUserName, APassword: string); virtual;
-    property ForcedClose : Boolean read FForcedClose write FForcedClose;
+    property ForcedClose : Boolean read FForcedClose write SetForcedClose;
     property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close(ForceClose: Boolean=False);
@@ -2263,6 +2273,7 @@ type
     property BeforeConnect : TNotifyEvent read FBeforeConnect write SetBeforeConnect;
     property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
+    Property OnCloseError : TCloseErrorEvent Read FOnCloseError Write FOnCloseError;
   end;
 
 

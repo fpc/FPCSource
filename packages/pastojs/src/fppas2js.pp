@@ -6750,8 +6750,65 @@ function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
     Note that invalid UTF-8 sequences are checked by the scanner
 }
 var
-  p, StartP, i, l: integer;
+  p, StartP, l: integer;
+
+  procedure Err(id: TMaxPrecInt);
+  begin
+    RaiseMsg(id,nIllegalCharConst,sIllegalCharConst,[],El);
+  end;
+
+  function ReadNumber: integer;
+  var
+    c: AnsiChar;
+  begin
+    Result:=0;
+    inc(p);
+    if p>l then
+      Err(20170207155121);
+    if S[p]='$' then
+      begin
+      // #$hexnumber
+      inc(p);
+      StartP:=p;
+      while p<=l do
+        begin
+        c:=S[p];
+        case c of
+        '0'..'9': Result:=Result*16+ord(c)-ord('0');
+        'a'..'f': Result:=Result*16+ord(c)-ord('a')+10;
+        'A'..'F': Result:=Result*16+ord(c)-ord('A')+10;
+        else break;
+        end;
+        if Result>$10ffff then
+          Err(20170207164657);
+        inc(p);
+        end;
+      if p=StartP then
+        Err(20170207164956);
+      end
+    else
+      begin
+      // #decimalnumber
+      StartP:=p;
+      while p<=l do
+        begin
+        c:=S[p];
+        case c of
+        '0'..'9': Result:=Result*10+ord(c)-ord('0');
+        else break;
+        end;
+        if Result>$10ffff then
+          Err(20170207171140);
+        inc(p);
+        end;
+      if p=StartP then
+        Err(20170207171148);
+      end;
+  end;
+
+var
   c: AnsiChar;
+  i, j: Integer;
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
@@ -6769,7 +6826,7 @@ begin
       StartP:=p;
       repeat
         if p>l then
-          RaiseInternalError(20170207155120);
+          Err(20170207155120);
         c:=S[p];
         case c of
         '''':
@@ -6793,69 +6850,37 @@ begin
       end;
     '#':
       begin
-      // word sequence
-      inc(p);
-      if p>l then
-        RaiseInternalError(20170207155121);
-      if S[p]='$' then
+      // number
+      i:=ReadNumber;
+      if (i>=$D800) and (i<=$DFFF) and (p<l) and (S[p]='#') then
         begin
-        // #$hexnumber
-        inc(p);
-        StartP:=p;
-        i:=0;
-        while p<=l do
-          begin
-          c:=S[p];
-          case c of
-          '0'..'9': i:=i*16+ord(c)-ord('0');
-          'a'..'f': i:=i*16+ord(c)-ord('a')+10;
-          'A'..'F': i:=i*16+ord(c)-ord('A')+10;
-          else break;
-          end;
-          if i>$10ffff then
-            RaiseNotYetImplemented(20170207164657,El,'maximum codepoint is $10ffff');
-          inc(p);
-          end;
-        if p=StartP then
-          RaiseInternalError(20170207164956);
+        // surrogate
+        j:=ReadNumber;
+        if (j>=$DC00) and (j<$DFFF) then
+          Result:=Result+CodePointToJSString((i and $3FF) shl 10 + (j and $3ff) + $10000)
+        else
+          // invalid surrogate -> write as two \u
+          Result:=Result+CodePointToJSString(i)+CodePointToJSString(j)
         end
       else
-        begin
-        // #decimalnumber
-        StartP:=p;
-        i:=0;
-        while p<=l do
-          begin
-          c:=S[p];
-          case c of
-          '0'..'9': i:=i*10+ord(c)-ord('0');
-          else break;
-          end;
-          if i>$10ffff then
-            RaiseNotYetImplemented(20170207171140,El,'maximum codepoint is $10ffff');
-          inc(p);
-          end;
-        if p=StartP then
-          RaiseInternalError(20170207171148);
-        end;
-      Result:=Result+CodePointToJSString(i);
+        Result:=Result+CodePointToJSString(i);
       end;
     '^':
       begin
       // ^A is #1
       inc(p);
       if p>l then
-        RaiseInternalError(20181025125920);
+        Err(20181025125920);
       c:=S[p];
       case c of
       'a'..'z': Result:=Result+TJSChar(ord(c)-ord('a')+1);
       'A'..'Z': Result:=Result+TJSChar(ord(c)-ord('A')+1);
-      else RaiseInternalError(20170207160412);
+      else Err(20170207160412);
       end;
       inc(p);
       end;
     else
-      RaiseNotYetImplemented(20170207154653,El,'ord='+IntToStr(ord(S[p])));
+      Err(20170207154653);
     end;
   {$IFDEF VerbosePas2JS}
   {AllowWriteln}
@@ -21215,7 +21240,15 @@ begin
       // check visibility
       case mt of
       mtClass:
-        if (P.Visibility<>visPublished) and (not P.InheritsFrom(TPasConstructor) or (P.Visibility <> visPublic)) then continue;
+        if (P.Visibility=visPublished) then
+          // published member
+        else if (P is TPasConstructor) and (P.Visibility = visPublic)
+            and (pcsfPublished in TPas2JSClassScope(El.CustomData).Flags) then
+          // this class supports published members -> add public constructor to RTTI
+          // workaround til extended RTTI
+          // see issue #37752
+        else
+          continue;
       mtInterface: ; // all members of an interface are published
       mtRecord:
         // a published record publishes all non private members

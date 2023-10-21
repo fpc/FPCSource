@@ -32,7 +32,6 @@ INC=../inc
 COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 # OS specific dependencies
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
 

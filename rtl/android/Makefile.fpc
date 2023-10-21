@@ -81,7 +81,6 @@ ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
 endif
 
-SYSTEMUNIT=system
 
 # Causes release PPU files not to be recompiled
 ifdef RELEASE

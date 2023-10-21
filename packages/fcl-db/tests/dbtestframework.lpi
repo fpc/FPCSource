@@ -26,13 +26,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestFieldTypes.TestBlobParamQuery"/>
+        <CommandLineParams Value="--suite=TTestTSQLConnection.TestRollBackUnprepares"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestFieldTypes.TestBlobParamQuery"/>
+            <CommandLineParams Value="--suite=TTestTSQLConnection.TestRollBackUnprepares"/>
           </local>
         </Mode0>
       </Modes>
@@ -129,9 +129,11 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

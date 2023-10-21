@@ -7415,6 +7415,13 @@ begin
       exit;
     end;
   DD:=FileAge(Dest);
+  { Return true if dest file not found or not accessible }
+  if DD=-1 then
+    begin
+      Result:=True;
+      exit;
+    end;
+
   D1:=FileDateToDateTime(DS);
   D2:=FileDateToDateTime(DD);
   Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);

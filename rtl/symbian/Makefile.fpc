@@ -37,7 +37,6 @@ SYMBIANINC=./symbianinc
 UIQINC=./uiqinc
 
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
 endif

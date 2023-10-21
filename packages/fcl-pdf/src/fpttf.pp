@@ -21,8 +21,9 @@
 unit fpTTF;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$mode objfpc}{$H+}
-
+{$mode objfpc}
+{$H+}
+{$modeswitch advancedrecords}
 {.$define ttfdebug}
 
 interface
@@ -32,9 +33,11 @@ uses
   System.Classes,
   System.SysUtils,
   System.Contnrs,
+  System.Types,
   FpPdf.Ttf.Parser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
+  Types,
   Classes,
   SysUtils,
   contnrs,
@@ -141,29 +144,51 @@ type
     Property    BuildFontCacheIgnoresErrors : Boolean Read FBuildFontCacheIgnoresErrors Write FBuildFontCacheIgnoresErrors;
   end;
 
-
 function gTTFontCache: TFPFontCacheList;
+
+type
+  { TFontMapper }
+
+  TFontMapper = class
+    class function find(const family, style:string; List:TStrings):boolean; overload;
+    class function find(const family, style:string; out List: TStringDynArray):boolean;
+  end;
+
+const
+  style_regular = 'regular';
+  style_bold = 'bold';
+  style_italic = 'italic';
+
 
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   Xml.Dom
-  ,Xml.Read
+  , Xml.Read
+  , System.StrUtils
   {$ifdef mswindows}
   ,WinApi.Windows  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
   ,WinApi.Shlobj
   ,WinApi.Activex
   {$endif}
+  {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  , Api.Libfontconfig
+  , UnixApi.types
+  {$endif}
   ;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   DOM
-  ,XMLRead
+  , XMLRead
+  , Strutils
   {$ifdef mswindows}
   ,Windows,  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
-  Shlobj,activex
+  Shlobj, activex, registry
   {$endif}
+  {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  , libfontconfig, unixtype
+  {$ifend}
   ;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -537,50 +562,70 @@ end;
     This is definitely not a perfect solution, especially due to the inconsistent
     implementations and locations of files under various Linux distros. But it's
     the best we can do for now. }
-procedure TFPFontCacheList.ReadStandardFonts;
 
-  {$ifdef linux}
-    {$define HasFontsConf}
-    const
-      cFontsConf = '/etc/fonts/fonts.conf';
+{$ifdef mswindows}
+function GetWinFontsDir: string;
+
+var
+  {$if FPC_FULLVERSION < 30400}
+  w :  Array[0..MaxPathLen] of AnsiChar;
+  {$ELSE}
+  w : pwidechar;
+  {$ENDIF}
+
+begin
+  {$if FPC_FULLVERSION < 30400}
+  SHGetSpecialFolderPath(0,w,CSIDL_FONTS,false);
+  {$else}
+  SHGetKnownFolderPath(FOLDERID_Fonts,0,0,w);
   {$endif}
+  Result := w;
+  {$if FPC_FULLVERSION > 30400}
+  CoTaskMemFree(w);
+  {$endif}
+end;
+{$endif}
+
+procedure TFPFontCacheList.ReadStandardFonts;
 
   {$ifdef freebsd}
     {$define HasFontsConf}
     const
       cFontsConf = '/usr/local/etc/fonts/fonts.conf';
   {$endif}
+  { Use same default for Linux and other BSD non-Darwin systems. }
+  {$if (defined(linux) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
+    {$define HasFontsConf}
+    const
+      cFontsConf = '/etc/fonts/fonts.conf';
+  {$ifend}
 
-  {$ifdef mswindows}
-  function GetWinFontsDir: string;
-  var
-    {$if FPC_FULLVERSION < 30400}
-    w :  Array[0..MaxPathLen] of AnsiChar;
-    {$ELSE}
-    w : pwidechar;
-    {$ENDIF}
-  begin
-    {$if FPC_FULLVERSION < 30400}
-    SHGetSpecialFolderPath(0,w,CSIDL_FONTS,false);
-    {$else}
-    SHGetKnownFolderPath(FOLDERID_Fonts,0,0,w);
-    {$endif}
-    Result := w;
-    {$if FPC_FULLVERSION > 30400}
-    CoTaskMemFree(w);
-    {$endif}
-  end;
-{$endif}
+
 
 {$ifdef HasFontsConf}
 var
   doc: TXMLDocument;
   lChild: TDOMNode;
+  FN : PFcChar8;
   lDir: string;
+  config: PfcConfig;
+const
+  is_fc_loaded:integer=0;
 {$endif}
 begin
-  {$ifdef HasFontsConf} // Linux & FreeBSD
-  ReadXMLFile(doc, cFontsConf);
+  {$ifdef HasFontsConf} // Linux & BSD
+  if (is_fc_loaded=0) then
+    is_fc_loaded:=loadfontconfiglib('');
+
+  config := FcInitLoadConfigAndFonts();
+
+  if assigned(FcConfigGetFilename) then
+    FN:=FcConfigGetFilename(config,Nil)
+  else if assigned(FcConfigFilename) then
+    FN:=FcConfigFilename(Nil)
+  else
+    FN:=cFontsConf;
+  ReadXMLFile(doc, FN);
   try
     lChild := doc.DocumentElement.FirstChild;
     while Assigned(lChild) do
@@ -774,13 +819,357 @@ begin
   Result := APointSize * DPI / 72;
 end;
 
+{ ----------------------------------------------------------------------
+  TFontMapper
+  ----------------------------------------------------------------------}
+
+class function TFontMapper.find(const family, style:string; out List: TStringDynArray):boolean;
+
+var
+  L : TStrings;
+
+begin
+  L:=TStringList.Create;
+  try
+    Result:=Find(family,style,L);
+    if Result then
+      List:=L.ToStringArray();
+  finally
+    L.Free;
+  end;
+end;
+
+{$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+
+//https://stackoverflow.com/questions/10542832/how-to-use-fontconfig-to-get-font-list-c-c
+class function TFontMapper.find(const family, style: string; list: TStrings): boolean;
+
+var
+  res:utf8string;
+  // libfontconfig version
+  config: PfcConfig;
+  pat, font: PfcPattern;
+  ffile: PfcChar8;
+  mres:TFcResult;
+const
+  is_fc_loaded:integer=0;
+begin
+  Result:=false;
+  res:='';
+
+  if (is_fc_loaded=0) then
+    is_fc_loaded:=loadfontconfiglib('');
+
+  config := FcInitLoadConfigAndFonts();
+
+  // configure the search pattern,
+  // assume "name" is a std::string with the desired font name in it
+  res:=family+':style='+style;
+  pat := FcNameParse(PChar(res));
+  FcConfigSubstitute(config, pat, FcMatchPattern);
+  FcDefaultSubstitute(pat);
+
+  // find the font
+  font := FcFontMatch(config, pat, @mres);
+  if Assigned(font) then
+    begin
+    FFile:=nil;
+    res:=FC_FILE;
+    if (FcPatternGetString(font,PcChar(res),0,@ffile) = FcResultMatch) then
+      begin
+      if FFile<>'' then
+        List.Add(StrPas(ffile));
+      Result:=true;
+     end;
+    FcPatternDestroy(font);
+    end;
+  FcPatternDestroy(pat);
+end;
+{$define tfontmapper_find_implemented}
+{$endif}
+
+
+{$IF DEFINED(MSWINDOWS) or DEFINED(DARWIN)}
+Type
+
+  { TFontItem }
+
+  TFontItem = class
+    weight : integer;
+    name : UTF8String;
+    Constructor Create(aWeight : Integer; aName : UTF8String);
+  end;
+  TMatchList = array of TFontItem;
+
+  { TFontEnumerator }
+
+  TFontEnumerator = Record
+  public
+    family,fstyle:string;
+    lstyle: TStringDynArray;
+    matches: TFPObjectList;
+    procedure init;
+    procedure done;
+    procedure clear;
+    procedure AddDesc(const fi:TFontItem);
+    function MatchFont(const fdesc:utf8string):integer;
+    function get_lst(lst: TStrings):boolean;
+    procedure set_style(const str:string);
+    property style:string read fstyle write set_style;
+  end;
+
+{ TFontItem }
+
+constructor TFontItem.Create(aWeight: Integer; aName: UTF8String);
+begin
+  Weight:=aWeight;
+  Name:=aName;
+end;
+
+Procedure TFontEnumerator.init;
+begin
+  family:='';
+  fstyle:='';
+  lstyle:=[];
+  Matches:=TFPObjectList.Create(True);
+  Clear;
+end;
+
+procedure TFontEnumerator.done;
+begin
+  lstyle:=[];
+  FreeAndNil(matches);
+end;
+
+procedure TFontEnumerator.clear;
+
+begin
+  Matches.Clear;
+end;
+
+procedure TFontEnumerator.set_style(const str:string);
+begin
+  fstyle:=str;
+  if fstyle='' then fstyle:='normal regular';
+  lstyle:=SplitString(fstyle,' ');
+end;
+
+procedure TFontEnumerator.AddDesc(const fi:TFontItem);
+begin
+  matches.Add(fi);
+end;
+
+function TFontEnumerator.MatchFont(const fdesc:utf8string):integer;
+var
+  pn,i,pa:integer;
+  slfn,satt:string;
+begin
+  Result:=0;
+  pn:=pos(family,fdesc); // position of name
+  if pn=1 then
+    inc(Result,100)
+  else if pn>0 then
+    inc(Result,50)
+  else
+    exit;
+  satt:=copy(fdesc,pn+length(family)+1,length(fdesc));
+  slfn:=lowercase(satt);
+  if (pn=1) and (pos(style_regular,fstyle)>0) then
+    begin
+    if (satt='') then
+      exit;
+    end;
+  for i:=0 to high(lstyle) do
+    begin
+    pa:=pos(lstyle[i],slfn);
+    if pa>0 then
+      begin
+      delete(slfn,pa,length(lstyle[i]));
+      slfn:=trim(slfn);
+      inc(Result,50)
+      end
+    else
+      dec(result,10);
+  end;
+  // there is unmatched attrs
+  if length(slfn)>0 then
+     dec(result,10);
+
+  if Result>0 then
+    exit;
+  Result:=0;
+end;
+
+function CompareWeight(Left,Right : Pointer): Integer;
+begin
+  Result := (TFontItem(Right).weight - TFontItem(Left).weight);
+end;
+
+function TFontEnumerator.get_lst(lst:TStrings):boolean;
+var i:integer;
+begin
+  // sort
+  Result:=Matches.Count>0;
+  if not Result then exit;
+  Matches.Sort(@CompareWeight);
+  //QuickSort_PtrList_NoContext(PPointer(Matches),Matches),@CompareWeight);
+  for i:=0 to Matches.Count-1 do
+    lst.Add(TFontItem(matches[i]).name);
+end;
+{$ENDIF}
+
+{$IFDEF WINDOWS}
+class function TFontMapper.find(const family, style: string; list: TStrings): boolean;
+
+var
+  I: Integer;
+  reg: TRegistry;
+  enum : TFontEnumerator;
+  fpath :string;
+  FI : TFontItem;
+
+  procedure HandleValue(const AParam: UTF8String);
+
+  var
+    ptt,aweight:integer;
+    spar : UTF8String;
+
+
+  begin
+    Result:=true;
+    ptt:=pos(' (TrueType)',AParam);
+    if ptt<=0 then
+      exit;
+    spar:=copy(AParam,1,ptt-1);
+    aWeight:=Enum.MatchFont(spar);
+    if aWeight>0 then
+      enum.AddDesc(TFontItem.Create(aWeight,AParam));
+  end;
+
+  procedure ProcessValues;
+  var
+    n : Unicodestring;
+  begin
+    For N in reg.GetValueNames do
+      HandleValue(UTF8Encode(N));
+  end;
+
+begin
+  Result:=false;
+  enum:=Default(TFontEnumerator);
+  reg:=TRegistry.Create;
+  try
+    reg.RootKey:=HKEY_LOCAL_MACHINE;
+    reg.Access:=KEY_READ;
+    if not reg.OpenKey('Software\Microsoft\Windows NT\CurrentVersion\Fonts',false) then
+      exit;
+    enum.init;
+    enum.family:=family;
+    enum.style:=style;
+    ProcessValues;
+    if (enum.matches.Count=0) then // no matches
+      begin
+      enum.clear;
+      if (pos('Sans',enum.family)>0) then
+         enum.family:='Arial'
+      else if (pos('Mono',enum.family)>0) then
+         enum.family:='Courier New';
+      ProcessValues;
+      end;
+    if enum.matches.Count>0 then // there are matches
+      begin
+      fpath:=IncludeTrailingPathDelimiter(GetWinFontsDir);
+      for i:=enum.matches.Count-1 downto 0 do
+        begin
+        FI:=TFontItem(enum.matches[i]);
+        FI.name:=fpath+reg.ReadString(FI.name);
+        if not FileExists(FI.Name) then
+          Enum.matches.Delete(i)
+        end;
+      Result:=enum.get_lst(list);
+      end;
+  finally
+    enum.done;
+    reg.Free;
+  end;
+end;
+{$define tfontmapper_find_implemented}
+{$endif}
+
+{$ifdef DARWIN}
+class function TFontMapper.find(const family, style: string; list: TStrings): boolean;
+
+var
+  enum : TFontEnumerator;
+  procedure HandleValue(const AParam:string);
+
+  var
+    spar :string;
+    aweight : integer;
+
+  begin
+    Result:=true;
+    spar:=ChangeFileExt(ExtractFileName(AParam),'');
+    spar:=StringReplace(spar,'_',' ',[rfReplaceAll]);
+    aWeight:=Enum.MatchFont(spar);
+    if (aweight>0) then
+      enum.Matches.Add(TFontItem.Create(aWeight,AParam));
+  end;
+
+  Procedure DoDir(aDir : string);
+
+  var
+    sr : TSearchRec;
+  begin
+    if FindFirst(aDir+'*',faAnyFile,sr)=0 then
+      try
+        enum.family:=family;
+        enum.style:=style;
+        repeat
+           if (sr.Attr and faDirectory)=0 then
+             HandleValue(aDir+sr.Name);
+        until (FindNext(sr)<>0);
+      finally
+        FindClose(sr);
+      end;
+   end;
+
+const
+  syspath1 = '/System/Library/Fonts/Supplemental/';
+  syspath2 = '/System/Library/Fonts/';
+  syspath3 = '/Library/Fonts/';
+  syspath4 = '~/Library/Fonts/';
+
+
+begin
+  Result:=false;
+  enum:=Default(TFontEnumerator);
+  enum.init;
+  try
+    DoDir(SysPath1);
+    DoDir(SysPath2);
+    DoDir(SysPath3);
+    DoDir(ExpandFileName(SysPath4));
+    Result:=enum.get_lst(list);
+  finally
+    enum.done;
+  end;
+end;
+{$define tfontmapper_find_implemented}
+{$endif}
+
+{$ifndef tfontmapper_find_implemented}
+class function TFontMapper.find(const family, style: string; list: TStrings): boolean;
+begin
+  Result:=false;
+end;
+{$endif}
 
 initialization
   uFontCacheList := nil;
 
 finalization
   uFontCacheList.Free;
-
 end.
 
 

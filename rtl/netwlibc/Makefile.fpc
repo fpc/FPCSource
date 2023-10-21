@@ -46,7 +46,6 @@ IMPFILES=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \
 libcclib.imp
 # nwplibc.o
 
-SYSTEMUNIT=system
 SYSUTILS_DEPS_OS = $(DOSUNIT)$(PPUEXT) libc.pp
 
 #debug, -a: dont delete asm, -al include lines

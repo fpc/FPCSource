@@ -57,7 +57,6 @@ DYNLIBSINCDIR=$(WINDIR)
 TTHREADINCDIR=$(WINDIR)
 
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
 # buildrtl contains charset
 # so let's state that $(CPALLUNIT) depends on buildrtl

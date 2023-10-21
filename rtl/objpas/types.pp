@@ -141,6 +141,7 @@ type
           procedure Offset(const apt :TPointF);
           procedure Offset(const apt :TPoint);
           procedure Offset(dx,dy : Single);
+          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean;
 
           function  Scale (afactor:Single)  : TPointF;
           function  Ceiling : TPoint;
@@ -213,6 +214,11 @@ type
           property Height: Single read cy write cy;
        end;
 
+  {$SCOPEDENUMS ON}
+  TVertRectAlign = (Center, Top, Bottom);
+  THorzRectAlign = (Center, Left, Right);
+  {$SCOPEDENUMS OFF}
+
   { TRectF }
   PRectF = ^TRectF;
   TRectF =
@@ -243,25 +249,33 @@ type
     class operator := (const arc: TRect): TRectF;
     class function Empty: TRectF; static;
 
-    procedure NormalizeRect;
-    function IsEmpty: Boolean;
+    class function Intersect(R1: TRectF; R2: TRectF): TRectF; static;
+    class function Union(const Points: array of TPointF): TRectF; static;
+    class function Union(R1, R2: TRectF): TRectF; static;
+    Function Ceiling : TRectF;
+    function CenterAt(const Dest: TRectF): TRectF;
+    function CenterPoint: TPointF;
     function Contains(Pt: TPointF): Boolean;
     function Contains(R: TRectF): Boolean;
-    function IntersectsWith(R: TRectF): Boolean;
-    class function Intersect(R1: TRectF; R2: TRectF): TRectF; static;
-    procedure Intersect(R: TRectF);
-    class function Union(R1, R2: TRectF): TRectF; static;
-    class function Union(const Points: array of TPointF): TRectF; static;
-    procedure SetLocation(X, Y: Single);
-    procedure SetLocation(P: TPointF);
-    procedure Inflate(DX, DY: Single);
-    procedure Inflate(DL, DT, DR, DB: Single);
-    function CenterPoint: TPointF;
-    function FitInto(const Dest: TRectF; out Ratio: Single): TRectF; overload;
+    function EqualsTo(const R: TRectF; const Epsilon: Single = 0): Boolean;
+    function Fit(const Dest: TRectF): Single; deprecated 'Use FitInto';
     function FitInto(const Dest: TRectF): TRectF; overload;
-    procedure Union  (const r: TRectF); inline;
+    function FitInto(const Dest: TRectF; out Ratio: Single): TRectF; overload;
+    function IntersectsWith(R: TRectF): Boolean;
+    function IsEmpty: Boolean;
+    function PlaceInto(const Dest: TRectF; const AHorzAlign: THorzRectAlign = THorzRectAlign.Center;  const AVertAlign: TVertRectAlign = TVertRectAlign.Center): TRectF;
+    function Round: TRect;
+    function SnapToPixel(AScale: Single; APlaceBetweenPixels: Boolean = True): TRectF;
+    function Truncate: TRect;
+    procedure Inflate(DL, DT, DR, DB: Single);
+    procedure Inflate(DX, DY: Single);
+    procedure Intersect(R: TRectF);
+    procedure NormalizeRect;
     procedure Offset (const dx,dy : Single); inline;
     procedure Offset (DP: TPointF); inline;
+    procedure SetLocation(P: TPointF);
+    procedure SetLocation(X, Y: Single);
+    procedure Union  (const r: TRectF); inline;
     property  Width  : Single read GetWidth write SetWidth;
     property  Height : Single read GetHeight write SetHeight;
     property  Size   : TSizeF read getSize   write SetSize;
@@ -460,9 +474,12 @@ function Point(x,y : Integer) : TPoint; inline;
 function PointF(x,y: Single) : TPointF; inline;
 function PtInRect(const Rect : TRect; const p : TPoint) : Boolean;
 function IntersectRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
+function RectCenter(var R: TRect; const Bounds: TRect): TRect;
+function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
+function OffsetRect(var Rect : TRectF;DX : Single;DY : Single) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 function Size(AWidth, AHeight: Integer): TSize; inline;
@@ -570,6 +587,32 @@ begin
     FillChar(Rect,SizeOf(Rect),0);
 end;
 
+function RectCenter(var R: TRect; const Bounds: TRect): TRect;
+
+var
+  C : TPoint;
+  CS : TPoint;
+
+begin
+  C:=Bounds.CenterPoint;
+  CS:=R.CenterPoint;
+  OffsetRect(R,C.X-CS.X,C.Y-CS.Y);
+  Result:=R;
+end;
+
+function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
+
+Var
+  C,CS : TPointF;
+
+begin
+  C:=Bounds.CenterPoint;
+  CS:=R.CenterPoint;
+  OffsetRect(R,C.X-CS.X,C.Y-CS.Y);
+  Result:=R;
+end;
+
+
 function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
 var
   lRect: TRect;
@@ -615,6 +658,19 @@ begin
     Result := a + ((b - a) shr 1)
   else
     Result := b + ((a - b) shr 1);
+end;
+
+function OffsetRect(var Rect: TRectF; DX: Single; DY: Single): Boolean;
+begin
+  Result:=assigned(@Rect);
+  if Result then
+    with Rect do
+      begin
+        Left:=Left+dx;
+        Right:=Right+dx;
+        Top:=Top+dy;
+        Bottom:=Bottom+dy;
+      end;
 end;
 
 function CenterPoint(const Rect: TRect): TPoint;
@@ -709,6 +765,18 @@ procedure TPointF.Offset(dx,dy : Single);
 begin
   x:=x+dx;
   y:=y+dy;
+end;
+
+function TPointF.EqualsTo(const apt: TPointF; const aEpsilon: Single): Boolean;
+
+  function Eq(a,b : single) : boolean; inline;
+
+  begin
+    result:=abs(a-b)<=aEpsilon;
+  end;
+
+begin
+  Result:=Eq(X,apt.X) and Eq(Y,apt.Y);
 end;
 
 function TPointF.Scale(afactor: Single): TPointF;
@@ -1099,6 +1167,28 @@ begin
   Result.Y := (Bottom-Top) / 2 + Top;
 end;
 
+function TRectF.Ceiling: TRectF;
+begin
+  Result.BottomRight:=BottomRight.Ceiling;
+  Result.TopLeft:=TopLeft.Ceiling;
+end;
+
+function TRectF.CenterAt(const Dest: TRectF): TRectF;
+begin
+  Result:=Self;
+  RectCenter(Result,Dest);
+end;
+
+function TRectF.Fit(const Dest: TRectF): Single;
+
+var
+  R : TRectF;
+
+begin
+  R:=FitInto(Dest,Result);
+  Self:=R;
+end;
+
 function TRectF.FitInto(const Dest: TRectF; out Ratio: Single): TRectF;
 begin
   if (Dest.Width<=0) or (Dest.Height<=0) then
@@ -1122,6 +1212,66 @@ begin
   Result:=FitInto(Dest,Ratio);
 end;
 
+function TRectF.PlaceInto(const Dest: TRectF; const AHorzAlign: THorzRectAlign = THorzRectAlign.Center;  const AVertAlign: TVertRectAlign = TVertRectAlign.Center): TRectF;
+
+var
+  R : TRectF;
+  X,Y : Single;
+  D : TRectF absolute dest;
+
+begin
+  if (Height>Dest.Height) or (Width>Dest.Width) then
+    R:=FitInto(Dest)
+  else
+    R:=Self;
+  case AHorzAlign of
+     THorzRectAlign.Left:
+       X:=D.Left;
+     THorzRectAlign.Center:
+       X:=(D.Left+D.Right-R.Width)/2;
+     THorzRectAlign.Right:
+       X:=D.Right-R.Width;
+  end;
+  case AVertAlign of
+    TVertRectAlign.Top:
+      Y:=D.Top;
+    TVertRectAlign.Center:
+      Y:=(D.Top+D.Bottom-R.Height)/2;
+    TVertRectAlign.Bottom:
+      Y:=D.Bottom-R.Height;
+  end;
+  R.SetLocation(PointF(X,Y));
+  Result:=R;
+end;
+
+function TRectF.SnapToPixel(AScale: Single; APlaceBetweenPixels: Boolean): TRectF;
+
+  function sc (S : single) : single; inline;
+
+  begin
+    Result:=System.Trunc(S*AScale)/AScale;
+  end;
+
+var
+  R : TRectF;
+  Off: Single;
+
+begin
+  if AScale<=0 then
+    AScale := 1;
+  R.Top:=Sc(Top);
+  R.Left:=Sc(Left);
+  R.Width:=Sc(Width);
+  R.Height:=Sc(Height);
+  if APlaceBetweenPixels then
+    begin
+    Off:=1/(2*aScale);
+    R.Offset(Off,Off);
+    end;
+  Result:=R;
+end;
+
+
 function TRectF.Contains(Pt: TPointF): Boolean;
 begin
   Result := (Left <= Pt.X) and (Pt.X < Right) and (Top <= Pt.Y) and (Pt.Y < Bottom);
@@ -1135,6 +1285,12 @@ end;
 class function TRectF.Empty: TRectF;
 begin
   Result := TRectF.Create(0,0,0,0);
+end;
+
+function TRectF.EqualsTo(const R: TRectF; const Epsilon: Single): Boolean;
+begin
+  Result:=TopLeft.EqualsTo(R.TopLeft,Epsilon);
+  Result:=Result and BottomRight.EqualsTo(R.BottomRight,Epsilon);
 end;
 
 function TRectF.GetHeight: Single;
@@ -1229,6 +1385,18 @@ procedure TRectF.Offset(DP: TPointF);
 begin
   left:=left+DP.x; right:=right+DP.x;
   bottom:=bottom+DP.y; top:=top+DP.y;
+end;
+
+function TRectF.Truncate: TRect;
+begin
+  Result.BottomRight:=BottomRight.Truncate;
+  Result.TopLeft:=TopLeft.Truncate;
+end;
+
+function TRectF.Round: TRect;
+begin
+  Result.BottomRight:=BottomRight.Round;
+  Result.TopLeft:=TopLeft.Round;
 end;
 
 procedure TRectF.SetHeight(AValue: Single);

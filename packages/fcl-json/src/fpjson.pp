@@ -81,7 +81,8 @@ type
                    foDoNotQuoteMembers, // Do not quote object member names.
                    foUseTabchar,        // Use tab characters instead of spaces.
                    foSkipWhiteSpace,    // Do not use whitespace at all
-                   foSkipWhiteSpaceOnlyLeading   //  When foSkipWhiteSpace is active, skip whitespace for object members only before :
+                   foSkipWhiteSpaceOnlyLeading,   //  When foSkipWhiteSpace is active, skip whitespace for object members only before :
+                   foForceLF            // On Windows, use this to force use of LF instead of CR/LF
                    );
   TFormatOptions = set of TFormatOption;
 
@@ -654,9 +655,9 @@ Type
     {$IFNDEF PAS2JS}
     function GetInt64s(const AName : String): Int64;
     function GetUnicodeStrings(const AName : String): TJSONUnicodeStringType;
-    function GetQWords(AName : String): QWord;
+    function GetQWords(const AName : String): QWord;
     procedure SetInt64s(const AName : String; const AValue: Int64);
-    procedure SetQWords(AName : String; AValue: QWord);
+    procedure SetQWords(const AName : String; AValue: QWord);
     procedure SetUnicodeStrings(const AName : String; const AValue: TJSONUnicodeStringType);
     {$ELSE}
     function GetNativeInts(const AName : String): NativeInt;
@@ -1507,7 +1508,7 @@ end;
 
 procedure TJSONData.DumpJSON(S: TFPJSStream);
 
-  Procedure W(T : String);
+  Procedure W(const T : String);
   begin
     if T='' then exit;
     {$IFDEF PAS2JS}
@@ -2742,14 +2743,19 @@ Var
   MultiLine : Boolean;
   SkipWhiteSpace : Boolean;
   Ind : String;
+  LB : String;
   
 begin
   Result:='[';
   MultiLine:=Not (foSingleLineArray in Options);
+  if foForceLF in Options then
+    LB:=#10
+  else
+    LB:=sLineBreak;
   SkipWhiteSpace:=foSkipWhiteSpace in Options;
   Ind:=IndentString(Options, CurrentIndent+Indent);
   if MultiLine then
-    Result:=Result+sLineBreak;
+    Result:=Result+LB;
   For I:=0 to Count-1 do
     begin
     if MultiLine then
@@ -2764,7 +2770,7 @@ begin
       else
         Result:=Result+ElementSeps[SkipWhiteSpace];
     if MultiLine then
-      Result:=Result+sLineBreak
+      Result:=Result+LB
     end;
   if MultiLine then
     Result:=Result+IndentString(Options, CurrentIndent);
@@ -3219,7 +3225,7 @@ begin
   Result:=GetElements(AName).AsInt64;
 end;
 
-function TJSONObject.GetQWords(AName : String): QWord;
+function TJSONObject.GetQWords(const AName : String): QWord;
 begin
   Result:=GetElements(AName).AsQWord;
 end;
@@ -3235,7 +3241,7 @@ begin
   SetElements(AName,CreateJSON(AVAlue));
 end;
 
-procedure TJSONObject.SetQWords(AName : String; AValue: QWord);
+procedure TJSONObject.SetQWords(const AName : String; AValue: QWord);
 begin
   SetElements(AName,CreateJSON(AVAlue));
 end;
@@ -3705,11 +3711,16 @@ Var
   NSep,Sep,Ind : String;
   V : TJSONStringType;
   D : TJSONData;
+  LB : String;
 
 begin
   Result:='';
   UseQuotes:=Not (foDoNotQuoteMembers in options);
   MultiLine:=Not (foSingleLineObject in Options);
+  if foForceLF in Options then
+    LB:=#10
+  else
+    LB:=sLineBreak;
   SkipWhiteSpace:=foSkipWhiteSpace in Options;
   SkipWhiteSpaceOnlyLeading:=foSkipWhiteSpaceOnlyLeading in Options;
   CurrentIndent:=CurrentIndent+Indent;
@@ -3724,7 +3735,7 @@ begin
   else
     NSep:=' : ';
   If MultiLine then
-    Sep:=','+SLineBreak+Ind
+    Sep:=','+LB+Ind
   else if SkipWhiteSpace then
     Sep:=','
   else
@@ -3748,7 +3759,7 @@ begin
   If (Result<>'') then
     begin
     if MultiLine then
-      Result:='{'+sLineBreak+Result+sLineBreak+indentString(options,CurrentIndent-Indent)+'}'
+      Result:='{'+LB+Result+LB+indentString(options,CurrentIndent-Indent)+'}'
     else
       Result:=ObjStartSeps[SkipWhiteSpace]+Result+ObjEndSeps[SkipWhiteSpace]
     end

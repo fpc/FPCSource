@@ -2370,7 +2370,7 @@ var
           we create an entry and register the unit }
         if not assigned(hp) then
          begin
-           Message1(unit_u_registering_new_unit,Upper(s));
+           Message1(unit_u_registering_new_unit,ups);
            hp:=tppumodule.create(callermodule,s,fn,true);
            hp.loaded_from:=callermodule;
            addloadedunit(hp);

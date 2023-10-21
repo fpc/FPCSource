@@ -66,7 +66,7 @@ end;
 destructor TDatabase.Destroy;
 
 begin
-  Connected:=False;
+  CloseForDestroy;
   RemoveDatasets;
   RemoveTransactions;
   FDatasets.Free;
@@ -485,7 +485,12 @@ begin
   Result:=Assigned(DS);
 end;
 
-procedure TDBTransaction.CloseDataSets;
+procedure TDBTransaction.CloseDataset(DS: TDBDataset; InCommit : Boolean);
+begin
+  DS.Close;
+end;
+
+procedure TDBTransaction.CloseDataSets(InCommit: Boolean);
 
 Var
   I : longint;
@@ -501,12 +506,18 @@ begin
         begin
         DS:=TDBDataset(L[i]);
         If AllowClose(DS) then
-          DS.Close;
+          CloseDataset(DS,InCommit);
         end;
     finally
       FDatasets.UnlockList;
     end;
     end;
+end;
+
+procedure TDBTransaction.CloseDataSets;
+
+begin
+  CloseDatasets(Active);
 end;
 
 destructor TDBTransaction.Destroy;
@@ -650,6 +661,18 @@ begin
   FBeforeDisconnect:=AValue;
 end;
 
+procedure TCustomConnection.SetForcedClose(AValue: Boolean);
+begin
+  if FForcedClose=AValue then Exit;
+  FForcedClose:=AValue;
+end;
+
+procedure TCustomConnection.DoCloseError(aError: Exception);
+begin
+  if Assigned(FOnCloseError) then
+    FOnCloseError(Self,aError);
+end;
+
 procedure TCustomConnection.DoLoginPrompt;
 
 var
@@ -764,9 +787,34 @@ begin
   end;
 end;
 
+procedure TCustomConnection.CloseForDestroy;
+
+Const
+  MaxCount = 2;
+
+var
+  Force : Boolean;
+  aCount : Integer;
+begin
+  Force:=False;
+  aCount:=0;
+  While Connected and (aCount<MaxCount) do
+    try
+      Inc(aCount);
+      // Will set connected to false
+      Close(Force);
+    except
+      On E : Exception do
+        begin
+        Force:=True;
+        DoCloseError(E);
+        end;
+    end;
+end;
+
 destructor TCustomConnection.Destroy;
 begin
-  Connected:=False;
+  CloseForDestroy;
   Inherited Destroy;
 end;
 

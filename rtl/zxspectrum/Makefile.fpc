@@ -23,7 +23,6 @@ INC=../inc
 COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 
 # Paths
 OBJPASDIR=$(RTL)/objpas

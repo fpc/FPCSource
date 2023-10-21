@@ -34,6 +34,11 @@ Const
 {$else}  
   DefaultLibName = 'libfontconfig.dylib';
 {$endif}  
+{$ifdef MSWINDOWS}
+  {$calling stdcall}
+{$else}
+  {$calling cdecl}
+{$endif}
 
 const
   FC_MAJOR = 2;    
@@ -336,7 +341,8 @@ var
   FcCacheCreateTagFile : procedure(config:PFcConfig);
   FcConfigHome : function:PFcChar8;
   FcConfigEnableHome : function(enable:TFcBool):TFcBool;
-  FcConfigFilename : function(url:PFcChar8):PFcChar8;
+  FcConfigFilename : function(name:PFcChar8):PFcChar8;
+  FcConfigGetFilename : function(config:PFcConfig; name:PFcChar8):PFcChar8;
   FcConfigCreate : function:PFcConfig;
   FcConfigReference : function(config:PFcConfig):PFcConfig;
   FcConfigDestroy : procedure(config:PFcConfig);
@@ -620,6 +626,7 @@ begin
   FcConfigHome:=nil;
   FcConfigEnableHome:=nil;
   FcConfigFilename:=nil;
+  FcConfigGetFilename:=nil;
   FcConfigCreate:=nil;
   FcConfigReference:=nil;
   FcConfigDestroy:=nil;
@@ -838,6 +845,7 @@ begin
   pointer(FcConfigHome):=GetProcAddress(hlib,'FcConfigHome');
   pointer(FcConfigEnableHome):=GetProcAddress(hlib,'FcConfigEnableHome');
   pointer(FcConfigFilename):=GetProcAddress(hlib,'FcConfigFilename');
+  pointer(FcConfigGetFilename):=GetProcAddress(hlib,'FcConfigGetFilename');
   pointer(FcConfigCreate):=GetProcAddress(hlib,'FcConfigCreate');
   pointer(FcConfigReference):=GetProcAddress(hlib,'FcConfigReference');
   pointer(FcConfigDestroy):=GetProcAddress(hlib,'FcConfigDestroy');

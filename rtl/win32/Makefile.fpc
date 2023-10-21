@@ -49,7 +49,6 @@ WINDIR=../win
 NSOSDIR=$(NSDIR)/windows
 
 UNITPREFIX=rtl
-SYSTEMUNIT=system
 DLLS=fpcmemdll
 CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT) $(MMXUNIT)
 # Paths

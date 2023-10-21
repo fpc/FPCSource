@@ -622,21 +622,30 @@ begin
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
-        #$D800..#$DFFF:
+        #$D800..#$DBFF:
           begin
           if (I<L) then
             begin
             c:=S[I+1];
-            if (c>=#$D000) and (c<=#$DFFF) then
+            if (c>=#$DC00) and (c<=#$DFFF) then
               begin
-              inc(I,2); // surrogate, two AnsiChar codepoint
-              continue;
+              // surrogate, two WideChar codepoint
+              R:=R+Copy(S,I,2);
+              inc(I);
+              end
+            else
+              begin
+              // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
+              R:=R+'\u'+TJSString(HexStr(ord(S[i]),4));
               end;
-            // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
-            R:=R+'\u'+TJSString(HexStr(ord(S[i]),4));
             end
           else
-            // invalid UTF-16 at end of string, cannot be encoded as UTF-8 -> encode as hex
+            // high surrogate without low surrogate at end of string, cannot be encoded as UTF-8 -> encode as hex
+            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+          end;
+        #$DC00..#$DFFF:
+          begin
+            // low surrogate without high surrogate, cannot be encoded as UTF-8 -> encode as hex
             R:=R+'\u'+TJSString(HexStr(ord(c),4));
           end;
         #$FF00..#$FFFF: R:=R+'\u'+TJSString(HexStr(ord(c),4));
