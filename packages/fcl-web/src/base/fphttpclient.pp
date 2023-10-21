@@ -108,6 +108,8 @@ Type
     FAfterSocketHandlerCreated : TSocketHandlerCreatedEvent;
     FProxy : TProxyData;
     FVerifySSLCertificate: Boolean;
+    FCertCAFileName: String;
+    FTrustedCertsDir: String;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
@@ -358,6 +360,16 @@ Type
     Property KeepConnectionReconnectLimit: Integer Read FKeepConnectionReconnectLimit Write FKeepConnectionReconnectLimit;
     // SSL certificate validation.
     Property VerifySSLCertificate : Boolean Read FVerifySSLCertificate Write FVerifySSLCertificate;
+    // Certificate validation will only succeed if trusted CA certificates are known.
+    // These can be provided to the SSL library (e.g. OpenSSL, GnuTLS)
+    // in a file containing trusted certificates (e.g. PEM format file)
+    // or by providing a directory containing trusted certificates
+    // (e.g. /etc/ssl/certs on various Linux distributions).
+    // A file containing trusted certificates in PEM format can for example
+    // be created using the mk-ca-bundle script from the Curl project
+    // (https://curl.se/docs/mk-ca-bundle.html).
+    Property CertCAFileName : String Read FCertCAFileName Write FCertCAFileName;
+    Property TrustedCertsDir : String Read FTrustedCertsDir Write FTrustedCertsDir;
     // Called On redirect. Dest URL can be edited.
     // If The DEST url is empty on return, the method is aborted (with redirect status).
     Property OnRedirect : TRedirectEvent Read FOnRedirect Write FOnRedirect;
@@ -405,6 +417,8 @@ Type
     Property OnGetSocketHandler;
     Property Proxy;
     Property VerifySSLCertificate;
+    Property CertCAFileName;
+    Property TrustedCertsDir;
     Property AfterSocketHandlerCreate;
     Property OnVerifySSLCertificate;
 
@@ -669,6 +683,8 @@ begin
       SSLHandler:=TSSLSocketHandler.GetDefaultHandler;
       SSLHandler.VerifyPeerCert:=FVerifySSLCertificate;
       SSLHandler.OnVerifyCertificate:=@DoVerifyCertificate;
+      SSLHandler.CertificateData.CertCA.FileName:=FCertCAFileName;
+      SSLHandler.CertificateData.TrustedCertsDir:=FTrustedCertsDir;
       Result:=SSLHandler;
       end
     else
