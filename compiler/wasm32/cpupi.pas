@@ -802,6 +802,38 @@ implementation
           proc_body.insertList(asmlist);
         end;
 
+      procedure resolve_labels_of_asmlist_with_try_blocks_recursive(asmlist: TAsmList);
+        var
+          hp: tai;
+          i: Integer;
+        begin
+          if not assigned(asmlist) then
+            exit;
+          hp:=tai(asmlist.First);
+          while assigned(hp) do
+            begin
+              if hp.typ=ait_wasm_structured_instruction then
+                begin
+                  if not (hp is tai_wasmstruc_try) then
+                    internalerror(2023102201);
+                  resolve_labels_of_asmlist_with_try_blocks_recursive(tai_wasmstruc_try(hp).try_asmlist);
+                  if hp is tai_wasmstruc_try_catch then
+                    with tai_wasmstruc_try_catch(hp) do
+                      begin
+                        for i:=low(catch_list) to high(catch_list) do
+                          resolve_labels_of_asmlist_with_try_blocks_recursive(catch_list[i].asmlist);
+                        resolve_labels_of_asmlist_with_try_blocks_recursive(catch_all_asmlist);
+                      end
+                  else if hp is tai_wasmstruc_try_delegate then
+                    {nothing}
+                  else
+                    internalerror(2023102202);
+                end;
+              hp:=tai(hp.next);
+            end;
+          resolve_labels_via_state_machine(asmlist);
+        end;
+
       procedure resolve_labels_complex(var asmlist: TAsmList);
         var
           l2, entry_code, proc_body, exit_code: TAsmList;
@@ -826,7 +858,19 @@ implementation
           asmlist:=l2;
 
           map_structured_asmlist(asmlist,@StripBlockInstructions);
-          resolve_labels_via_state_machine(asmlist);
+
+          l2:=TAsmList.Create;
+          wasm_convert_to_structured_asmlist(asmlist,l2);
+          asmlist.Free;
+          asmlist:=l2;
+
+          resolve_labels_of_asmlist_with_try_blocks_recursive(asmlist);
+
+          l2:=TAsmList.Create;
+          wasm_convert_to_flat_asmlist(asmlist,l2);
+          asmlist.Free;
+          asmlist:=l2;
+
           asmlist.insertList(entry_code);
           entry_code.free;
           asmlist.concatList(exit_code);
