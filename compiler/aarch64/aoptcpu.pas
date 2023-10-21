@@ -54,8 +54,6 @@ Interface
       private
         function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
         function OptPass1Shift(var p: tai): boolean;
-        function OptPostCMP(var p: tai): boolean;
-        function OptPostAnd(var p: tai): Boolean;
         function OptPass1Data(var p: tai): boolean;
         function OptPass1FData(var p: tai): Boolean;
         function OptPass1STP(var p: tai): boolean;
@@ -66,6 +64,9 @@ Interface
         function OptPass1SXTW(var p: tai): Boolean;
 
         function OptPass2LDRSTR(var p: tai): boolean;
+
+        function PostPeepholeOptAND(var p: tai): Boolean;
+        function PostPeepholeOptCMP(var p: tai): boolean;
       End;
 
 Implementation
@@ -1076,7 +1077,7 @@ Implementation
     end;
 
 
-  function TCpuAsmOptimizer.OptPostAnd(var p: tai): Boolean;
+  function TCpuAsmOptimizer.PostPeepholeOptAND(var p: tai): Boolean;
     var
       hp1, hp2: tai;
       hp3: taicpu;
@@ -1126,7 +1127,7 @@ Implementation
     end;
 
 
-  function TCpuAsmOptimizer.OptPostCMP(var p : tai): boolean;
+  function TCpuAsmOptimizer.PostPeepholeOptCMP(var p : tai): boolean;
     var
      hp1,hp2: tai;
     begin
@@ -1277,9 +1278,9 @@ Implementation
         begin
           case taicpu(p).opcode of
             A_CMP:
-              Result:=OptPostCMP(p);
+              Result:=PostPeepholeOptCMP(p);
             A_AND:
-              Result:=OptPostAnd(p);
+              Result:=PostPeepholeOptAND(p);
             else
               ;
           end;
