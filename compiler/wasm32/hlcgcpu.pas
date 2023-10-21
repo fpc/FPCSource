@@ -1925,6 +1925,8 @@ implementation
         list.concat(taicpu.op_sym(a_br,l))
       else if l=current_procinfo.CurrExitLabel then
         list.concat(taicpu.op_sym(a_br,l))
+      else if l.is_pascal_goto_target then
+        list.concat(taicpu.op_sym(a_br,l))
       else
         begin
 {$ifndef EXTDEBUG}
