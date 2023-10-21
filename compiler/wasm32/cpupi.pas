@@ -768,10 +768,49 @@ implementation
           asmlist.concat(tai_label.create(state_machine_exit));
         end;
 
+      procedure filter_start_exit_code(asmlist: TAsmList; out entry_code, proc_body, exit_code: TAsmList);
+        var
+          hp, hpnext, hpprev: tai;
+        begin
+          entry_code:=TAsmList.Create;
+          proc_body:=TAsmList.Create;
+          exit_code:=TAsmList.Create;
+          repeat
+            hp:=tai(asmlist.First);
+            if assigned(hp) then
+              begin
+                hpnext:=tai(hp.next);
+                if (hp.typ=ait_instruction) and (taicpu(hp).opcode=a_block) then
+                  break;
+                asmlist.Remove(hp);
+                entry_code.Concat(hp);
+                hp:=hpnext;
+              end;
+          until not assigned(hp);
+          repeat
+            hp:=tai(asmlist.Last);
+            if assigned(hp) then
+              begin
+                hpprev:=tai(hp.Previous);
+                if (hp.typ=ait_instruction) and (taicpu(hp).opcode=a_end_block) then
+                  break;
+                asmlist.Remove(hp);
+                exit_code.Insert(hp);
+                hp:=hpprev;
+              end;
+          until not assigned(hp);
+          proc_body.insertList(asmlist);
+        end;
+
       procedure resolve_labels_complex(var asmlist: TAsmList);
         var
-          l2: TAsmList;
+          l2, entry_code, proc_body, exit_code: TAsmList;
         begin
+          filter_start_exit_code(asmlist,entry_code,proc_body,exit_code);
+          asmlist.Free;
+          asmlist:=proc_body;
+          proc_body:=nil;
+
           l2:=TAsmList.Create;
           wasm_convert_to_structured_asmlist(asmlist,l2);
           asmlist.Free;
@@ -788,6 +827,13 @@ implementation
 
           map_structured_asmlist(asmlist,@StripBlockInstructions);
           resolve_labels_via_state_machine(asmlist);
+          asmlist.insertList(entry_code);
+          entry_code.free;
+          asmlist.concatList(exit_code);
+          exit_code.free;
+
+          if not resolve_labels_simple(asmlist) then
+            internalerror(2023102101);
         end;
 
         function prepare_locals: TAsmList;
