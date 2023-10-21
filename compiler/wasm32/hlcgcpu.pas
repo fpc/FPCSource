@@ -1929,10 +1929,11 @@ implementation
         list.concat(taicpu.op_sym(a_br,l))
       else
         begin
+          list.concat(taicpu.op_sym(a_br,l))
 {$ifndef EXTDEBUG}
-          Internalerror(2019091806); // unexpected jump
+//          Internalerror(2019091806); // unexpected jump
 {$endif EXTDEBUG}
-          list.concat(tai_comment.create(strpnew('Unable to find destination of label '+l.name)));
+//          list.concat(tai_comment.create(strpnew('Unable to find destination of label '+l.name)));
         end;
     end;
 
