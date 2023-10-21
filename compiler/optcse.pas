@@ -737,7 +737,7 @@ unit optcse;
         if pi_do_call in current_procinfo.flags then
           max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption))
           { we store only addresses, so take care of the relation between address sizes and register sizes }
-            div (sizeof(PtrUInt) div sizeof(ALUUInt))
+            div max(sizeof(PtrUInt) div sizeof(ALUUInt),1)
           { heuristics, just use a quarter of all registers at maximum }
             div 4
         else
