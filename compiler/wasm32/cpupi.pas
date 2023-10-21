@@ -63,7 +63,7 @@ implementation
     uses
       systems,verbose,globals,tgcpu,cgexcept,
       tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
-      fmodule,hlcgobj,hlcgcpu,defutil;
+      fmodule,hlcgobj,hlcgcpu,defutil,itcpugas;
 
 {*****************************************************************************
                      twasmexceptionstatehandler_noexceptions
@@ -670,6 +670,104 @@ implementation
           result:=resolve_labels_pass2(asmlist);
         end;
 
+      procedure resolve_labels_via_state_machine(asmlist: TAsmList);
+        var
+          blocks: TFPHashObjectList;
+          curr_block, tmplist: TAsmList;
+          hp, hpnext: tai;
+          block_nr, machine_state, target_block_index: Integer;
+          state_machine_loop_start_label, state_machine_exit: TAsmLabel;
+        begin
+          blocks:=TFPHashObjectList.Create;
+          curr_block:=TAsmList.Create;
+          blocks.Add('.start',curr_block);
+          repeat
+            hp:=tai(asmlist.First);
+            if assigned(hp) then
+              begin
+                asmlist.Remove(hp);
+                if hp.typ=ait_label then
+                  begin
+                    curr_block:=TAsmList.Create;
+                    blocks.Add(tai_label(hp).labsym.Name,curr_block);
+                  end;
+                curr_block.Concat(hp);
+              end;
+          until not assigned(hp);
+          { asmlist is now empty }
+          asmlist.Concat(tai_comment.Create(strpnew('labels resolved via state machine')));
+          machine_state:=AllocWasmLocal(wbt_i32);
+          asmlist.Concat(tai_comment.Create(strpnew('machine state is in local '+tostr(machine_state))));
+          asmlist.Concat(taicpu.op_const(a_i32_const,0));
+          asmlist.Concat(taicpu.op_const(a_local_set,machine_state));
+          asmlist.Concat(taicpu.op_none(a_block));
+          asmlist.Concat(taicpu.op_none(a_loop));
+          current_asmdata.getjumplabel(state_machine_loop_start_label);
+          asmlist.concat(tai_label.create(state_machine_loop_start_label));
+          current_asmdata.getjumplabel(state_machine_exit);
+          for block_nr:=0 to blocks.Count-1 do
+            asmlist.Concat(taicpu.op_none(a_block));
+          for block_nr:=0 to blocks.Count-1 do
+            begin
+              { TODO: this sequence can be replaced with a single br_table instruction }
+              asmlist.Concat(taicpu.op_const(a_local_get,machine_state));
+              asmlist.Concat(taicpu.op_const(a_i32_const,block_nr));
+              asmlist.Concat(taicpu.op_none(a_i32_eq));
+              asmlist.Concat(taicpu.op_const(a_br_if,blocks.Count-block_nr-1));
+            end;
+          asmlist.Concat(taicpu.op_none(a_unreachable));
+          tmplist:=TAsmList.Create;
+          for block_nr:=0 to blocks.Count-1 do
+            begin
+              asmlist.Concat(taicpu.op_none(a_end_block));
+              asmlist.Concat(tai_comment.Create(strpnew('block '+tostr(block_nr)+' for label '+blocks.NameOfIndex(block_nr))));
+              curr_block:=TAsmList(blocks[block_nr]);
+              hp:=tai(curr_block.First);
+              while assigned(hp) do
+                begin
+                  hpnext:=tai(hp.next);
+                  if (hp.typ=ait_instruction) and (taicpu(hp).opcode in [a_br,a_br_if]) and
+                     (taicpu(hp).ops=1) and
+                     (taicpu(hp).oper[0]^.typ=top_ref) and
+                     assigned(taicpu(hp).oper[0]^.ref^.symbol) then
+                    begin
+                      target_block_index:=blocks.FindIndexOf(taicpu(hp).oper[0]^.ref^.symbol.Name);
+                      curr_block.InsertBefore(tai_comment.Create(strpnew(
+                        'branch '+gas_op2str[taicpu(hp).opcode]+
+                        ' '+taicpu(hp).oper[0]^.ref^.symbol.Name+
+                        ' target_block_index='+tostr(target_block_index))),hp);
+                      if target_block_index<>-1 then
+                        begin
+                          tmplist.Clear;
+                          if taicpu(hp).opcode=a_br_if then
+                            tmplist.Concat(taicpu.op_none(a_if));
+                          tmplist.Concat(taicpu.op_const(a_i32_const,target_block_index));
+                          tmplist.Concat(taicpu.op_const(a_local_set,machine_state));
+                          tmplist.Concat(taicpu.op_sym(a_br,state_machine_loop_start_label));
+                          if taicpu(hp).opcode=a_br_if then
+                            tmplist.Concat(taicpu.op_none(a_end_if));
+                          curr_block.insertListAfter(hp,tmplist);
+                          curr_block.Remove(hp);
+                        end;
+                    end;
+                  hp:=hpnext;
+                end;
+              if block_nr<(blocks.Count-1) then
+                begin
+                  curr_block.Concat(taicpu.op_const(a_i32_const,block_nr+1));
+                  curr_block.Concat(taicpu.op_const(a_local_set,machine_state));
+                  curr_block.Concat(taicpu.op_sym(a_br,state_machine_loop_start_label));
+                end
+              else
+                curr_block.Concat(taicpu.op_sym(a_br,state_machine_exit));
+              asmlist.concatList(curr_block);
+            end;
+          tmplist.Free;
+          asmlist.Concat(taicpu.op_none(a_end_loop));
+          asmlist.Concat(taicpu.op_none(a_end_block));
+          asmlist.concat(tai_label.create(state_machine_exit));
+        end;
+
       procedure resolve_labels_complex(var asmlist: TAsmList);
         var
           l2: TAsmList;
@@ -689,6 +787,7 @@ implementation
           asmlist:=l2;
 
           map_structured_asmlist(asmlist,@StripBlockInstructions);
+          resolve_labels_via_state_machine(asmlist);
         end;
 
         function prepare_locals: TAsmList;
