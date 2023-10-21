@@ -713,7 +713,7 @@ implementation
               asmlist.Concat(taicpu.op_const(a_local_get,machine_state));
               asmlist.Concat(taicpu.op_const(a_i32_const,block_nr));
               asmlist.Concat(taicpu.op_none(a_i32_eq));
-              asmlist.Concat(taicpu.op_const(a_br_if,blocks.Count-block_nr-1));
+              asmlist.Concat(taicpu.op_const(a_br_if,block_nr));
             end;
           asmlist.Concat(taicpu.op_none(a_unreachable));
           tmplist:=TAsmList.Create;
