@@ -1430,6 +1430,8 @@ uses
                         internalerror(2021092007);
                       result:=1+UlebSize(ref^.offset);
                     end;
+                  top_const:
+                    result:=1+UlebSize(val);
                   else
                     internalerror(2021092008);
                 end;
@@ -2199,6 +2201,8 @@ uses
                         internalerror(2021092007);
                       WriteUleb(ref^.offset);
                     end;
+                  top_const:
+                    WriteUleb(val);
                   else
                     internalerror(2021092008);
                 end;
