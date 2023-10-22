@@ -67,6 +67,7 @@ Interface
 
         function PostPeepholeOptAND(var p: tai): Boolean;
         function PostPeepholeOptCMP(var p: tai): boolean;
+        function PostPeepholeOptTST(var p: tai): Boolean;
       End;
 
 Implementation
@@ -1169,6 +1170,46 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.PostPeepholeOptTST(var p : tai): boolean;
+    var
+      hp1: tai;
+      hp3: taicpu;
+      bitval : cardinal;
+    begin
+      Result:=false;
+      {
+        tst reg1,<const=power of 2>
+        b.e/b.ne label
+
+        into
+
+        tb(n)z reg0,<power of 2>,label
+      }
+      if MatchOpType(taicpu(p),top_reg,top_const) and
+        (PopCnt(QWord(taicpu(p).oper[1]^.val))=1) and
+        GetNextInstruction(p,hp1) and
+        MatchInstruction(hp1,A_B,[C_EQ,C_NE],[PF_None]) then
+        begin
+           bitval:=BsfQWord(qword(taicpu(p).oper[1]^.val));
+           case taicpu(hp1).condition of
+            C_NE:
+              hp3:=taicpu.op_reg_const_ref(A_TBNZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
+            C_EQ:
+              hp3:=taicpu.op_reg_const_ref(A_TBZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
+            else
+              Internalerror(2021100210);
+          end;
+          taicpu(hp3).fileinfo:=taicpu(p).fileinfo;
+          asml.insertafter(hp3, p);
+
+          RemoveInstruction(hp1);
+          RemoveCurrentP(p, hp3);
+          DebugMsg(SPeepholeOptimization + 'TST; B(E/NE) -> TB(Z/NZ) done', p);
+          Result:=true;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.PrePeepHoleOptsCpu(var p: tai): boolean;
     begin
       result := false;
@@ -1285,6 +1326,8 @@ Implementation
               Result:=PostPeepholeOptCMP(p);
             A_AND:
               Result:=PostPeepholeOptAND(p);
+            A_TST:
+              Result:=PostPeepholeOptTST(p);
             else
               ;
           end;
