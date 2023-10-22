@@ -239,9 +239,6 @@ interface
          is_set    : boolean;
          is_public : boolean;
          defined_in_asmstatement : boolean;
-{$ifdef wasm32}
-         is_pascal_goto_target: boolean;
-{$endif wasm32}
          constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
