@@ -1919,13 +1919,10 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      if l=current_procinfo.CurrBreakLabel then
-        list.concat(taicpu.op_sym(a_br,l))
-      else if l=current_procinfo.CurrContinueLabel then
-        list.concat(taicpu.op_sym(a_br,l))
-      else if l=current_procinfo.CurrExitLabel then
-        list.concat(taicpu.op_sym(a_br,l))
-      else if tcpuprocinfo(current_procinfo).is_goto_target(l) then
+      if (l=current_procinfo.CurrBreakLabel) or
+         (l=current_procinfo.CurrContinueLabel) or
+         (l=current_procinfo.CurrExitLabel) or
+         tcpuprocinfo(current_procinfo).is_goto_target(l) then
         list.concat(taicpu.op_sym(a_br,l))
       else
         begin
