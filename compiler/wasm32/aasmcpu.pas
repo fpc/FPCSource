@@ -56,6 +56,8 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
+         is_br_generated_by_goto: boolean;
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
