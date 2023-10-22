@@ -57,6 +57,8 @@ Type
     function OptPass1LDR(var p: tai): Boolean; virtual;
     function OptPass1STR(var p: tai): Boolean; virtual;
     function OptPass1And(var p: tai): Boolean; virtual;
+
+    function OptPass2AND(var p: tai): Boolean;
   End;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
@@ -1582,6 +1584,101 @@ Implementation
                 end
             end;
         end;
+
+      {
+        change
+        and reg1, ...
+        mov reg2, reg1
+        to
+        and reg2, ...
+      }
+      if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         (taicpu(p).ops>=3) and
+         RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
+        Result:=true;
+    end;
+
+
+  function TARMAsmOptimizer.OptPass2AND(var p: tai): Boolean;
+    var
+      hp1, hp2: tai;
+      WorkingReg: TRegister;
+    begin
+      Result := False;
+      {
+        change
+        and  reg1, ...
+        ...
+        cmp  reg1, #0
+        b<ne/eq> @Lbl
+        to
+        ands reg1, ...
+
+        Also:
+
+        and  reg1, ...
+        ...
+        cmp  reg1, #0
+        (reg1 end of life)
+        b<ne/eq> @Lbl
+        to
+        tst  reg1, ...
+      }
+      if (taicpu(p).condition = C_None) and
+        (taicpu(p).ops>=3) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        MatchInstruction(hp1, A_CMP, [C_None], [PF_None]) and
+        MatchOperand(taicpu(hp1).oper[1]^, 0) and
+{$ifdef AARCH64}
+        (SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(p).oper[0]^.reg)) and
+        (
+          (getsubreg(taicpu(hp1).oper[0]^.reg) = getsubreg(taicpu(p).oper[0]^.reg))
+          or
+          (
+            (taicpu(p).oper[2]^.typ = top_const) and
+            (taicpu(p).oper[2]^.val >= 0) and
+            (taicpu(p).oper[2]^.val <= $FFFFFFFF)
+          )
+        ) and
+{$else AARCH64}
+        (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+{$endif AARCH64}
+
+        not RegModifiedBetween(NR_DEFAULTFLAGS, p, hp1) and
+        GetNextInstruction(hp1, hp2) and
+        MatchInstruction(hp2, A_B, [C_EQ, C_NE], [PF_None]) then
+        begin
+          AllocRegBetween(NR_DEFAULTFLAGS, p, hp1, UsedRegs);
+
+          WorkingReg := taicpu(p).oper[0]^.reg;
+
+          if RegEndOfLife(WorkingReg, taicpu(hp1)) then
+            begin
+              taicpu(p).opcode := A_TST;
+              taicpu(p).oppostfix := PF_None;
+              taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+              taicpu(p).loadoper(1, taicpu(p).oper[2]^);
+              taicpu(p).ops := 2;
+              DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+            end
+          else
+            begin
+              taicpu(p).oppostfix := PF_S;
+              DebugMsg(SPeepholeOptimization + 'AND; CMP -> ANDS', p);
+            end;
+
+          RemoveInstruction(hp1);
+
+          { If a temporary register was used for and/cmp before, we might be
+            able to deallocate the register so it can be used for other
+            optimisations later }
+          if (taicpu(p).opcode = A_TST) and TryRemoveRegAlloc(WorkingReg, p, p) then
+            ExcludeRegFromUsedRegs(WorkingReg, UsedRegs);
+
+          Result := True;
+          Exit;
+        end;
+
       {
         change
         and reg1, ...

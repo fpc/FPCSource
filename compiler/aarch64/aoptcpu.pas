@@ -1261,6 +1261,8 @@ Implementation
       if p.typ=ait_instruction then
         begin
           case taicpu(p).opcode of
+            A_AND:
+              Result := OptPass2AND(p);
             A_LDR,
             A_STR:
               Result:=OptPass2LDRSTR(p);
