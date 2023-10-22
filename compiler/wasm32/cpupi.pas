@@ -387,7 +387,7 @@ implementation
     function tcpuprocinfo.ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
       begin
         result.typ:=amfrtNoChange;
-        if (ai.typ=ait_wasm_structured_instruction) and (ai is tai_wasmstruc_if) then
+        if (ai.typ=ait_wasm_structured_instruction) and (taicpu_wasm_structured_instruction(ai).wstyp=aitws_if) then
           begin
             result.typ:=amfrtNewList;
             result.newlist:=TAsmList.Create;
@@ -398,7 +398,7 @@ implementation
     function tcpuprocinfo.ConvertLoopToBr(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
       begin
         result.typ:=amfrtNoChange;
-        if (ai.typ=ait_wasm_structured_instruction) and (ai is tai_wasmstruc_loop) then
+        if (ai.typ=ait_wasm_structured_instruction) and (taicpu_wasm_structured_instruction(ai).wstyp=aitws_loop) then
           begin
             result.typ:=amfrtNewList;
             result.newlist:=TAsmList.Create;
@@ -825,17 +825,17 @@ implementation
             begin
               if hp.typ=ait_wasm_structured_instruction then
                 begin
-                  if not (hp is tai_wasmstruc_try) then
+                  if not (taicpu_wasm_structured_instruction(hp).wstyp in [aitws_try_catch,aitws_try_delegate]) then
                     internalerror(2023102201);
                   resolve_labels_of_asmlist_with_try_blocks_recursive(tai_wasmstruc_try(hp).try_asmlist);
-                  if hp is tai_wasmstruc_try_catch then
+                  if taicpu_wasm_structured_instruction(hp).wstyp=aitws_try_catch then
                     with tai_wasmstruc_try_catch(hp) do
                       begin
                         for i:=low(catch_list) to high(catch_list) do
                           resolve_labels_of_asmlist_with_try_blocks_recursive(catch_list[i].asmlist);
                         resolve_labels_of_asmlist_with_try_blocks_recursive(catch_all_asmlist);
                       end
-                  else if hp is tai_wasmstruc_try_delegate then
+                  else if taicpu_wasm_structured_instruction(hp).wstyp=aitws_try_delegate then
                     {nothing}
                   else
                     internalerror(2023102202);

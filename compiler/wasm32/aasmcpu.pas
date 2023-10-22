@@ -84,6 +84,14 @@ uses
          procedure Pass2(objdata:TObjData);override;
       end;
 
+      taiwstype = (
+        aitws_if,
+        aitws_block,
+        aitws_loop,
+        aitws_try_delegate,
+        aitws_try_catch
+      );
+
       { taicpu_wasm_structured_instruction }
 
       taicpu_wasm_structured_instruction = class(tai)
@@ -91,6 +99,8 @@ uses
         FLabel: TAsmLabel;
         FLabelIsNew: Boolean;
       public
+        wstyp: taiwstype;
+
         constructor Create;
         procedure Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);virtual;abstract;
         procedure ConvertToFlatList(l: TAsmList);virtual;abstract;
@@ -335,6 +345,7 @@ uses
         p: tai;
         ThenDone, ElsePresent, ElseDone: Boolean;
       begin
+        wstyp:=aitws_if;
         inherited Create;
         if assigned(a_if_instr.Previous) or assigned(a_if_instr.Next) then
           internalerror(2023100301);
@@ -541,6 +552,7 @@ uses
         Done: Boolean;
         p: tai;
       begin
+        wstyp:=aitws_block;
         inherited Create;
         if assigned(a_block_instr.Previous) or assigned(a_block_instr.Next) then
           internalerror(2023100304);
@@ -609,6 +621,7 @@ uses
         Done: Boolean;
         p: tai;
       begin
+        wstyp:=aitws_loop;
         inherited Create;
         if assigned(a_loop_instr.Previous) or assigned(a_loop_instr.Next) then
           internalerror(2023100306);
@@ -792,6 +805,7 @@ uses
       var
         Done: Boolean;
       begin
+        wstyp:=aitws_try_catch;
         inherited internal_create(a_try_asmlist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100310);
@@ -896,6 +910,7 @@ uses
 
     constructor tai_wasmstruc_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
       begin
+        wstyp:=aitws_try_delegate;
         inherited internal_create(a_try_asmlist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100309);
