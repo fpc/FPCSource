@@ -143,13 +143,9 @@ implementation
 
 
     procedure tcgwasm.a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);
-      var
-        lbl: tai_label;
       begin
-        lbl:=tai_label.create(l);
-        l.is_pascal_goto_target:=true;
-        lbl.is_pascal_goto_target:=true;
-        list.concat(lbl);
+        tcpuprocinfo(current_procinfo).add_goto_target(l);
+        inherited;
       end;
 
 

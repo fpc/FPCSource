@@ -38,6 +38,7 @@ interface
     private
       FFirstFreeLocal: Integer;
       FAllocatedLocals: array of TWasmBasicType;
+      FGotoTargets: TFPHashObjectList;
 
       function ConvertBranchTargetNumbersToLabels(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
       function ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
@@ -51,11 +52,14 @@ interface
       CurrRaiseLabel : tasmlabel;
 
       constructor create(aparent: tprocinfo); override;
+      destructor destroy; override;
       function calc_stackframe_size : longint;override;
       procedure setup_eh; override;
       procedure generate_exit_label(list: tasmlist); override;
       procedure postprocess_code; override;
       procedure set_first_temp_offset;override;
+      procedure add_goto_target(l : tasmlabel);
+      function is_goto_target(l : tasmlabel): Boolean;
     end;
 
 implementation
@@ -424,8 +428,15 @@ implementation
     constructor tcpuprocinfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
+        FGotoTargets:=TFPHashObjectList.Create(false);
         if ts_wasm_bf_exceptions in current_settings.targetswitches then
           current_asmdata.getjumplabel(CurrRaiseLabel);
+      end;
+
+    destructor tcpuprocinfo.destroy;
+      begin
+        FGotoTargets.Free;
+        inherited destroy;
       end;
 
     function tcpuprocinfo.calc_stackframe_size: longint;
@@ -945,6 +956,16 @@ implementation
         procdef.init_paraloc_info(calleeside);
         sz := procdef.calleeargareasize;
         tg.setfirsttemp(sz);
+      end;
+
+    procedure tcpuprocinfo.add_goto_target(l: tasmlabel);
+      begin
+        FGotoTargets.Add(l.Name,l);
+      end;
+
+    function tcpuprocinfo.is_goto_target(l: tasmlabel): Boolean;
+      begin
+        result:=FGotoTargets.FindIndexOf(l.Name)<>-1;
       end;
 
 
