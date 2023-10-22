@@ -836,40 +836,28 @@ implementation
 
       procedure resolve_labels_complex(var asmlist: TAsmList);
         var
-          l2, entry_code, proc_body, exit_code: TAsmList;
+          entry_code, proc_body, exit_code: TAsmList;
         begin
           filter_start_exit_code(asmlist,entry_code,proc_body,exit_code);
           asmlist.Free;
           asmlist:=proc_body;
           proc_body:=nil;
 
-          l2:=TAsmList.Create;
-          wasm_convert_to_structured_asmlist(asmlist,l2);
-          asmlist.Free;
-          asmlist:=l2;
+          wasm_convert_to_structured_asmlist(asmlist);
 
           map_structured_asmlist(asmlist,@ConvertBranchTargetNumbersToLabels);
           map_structured_asmlist(asmlist,@ConvertIfToBrIf);
           map_structured_asmlist(asmlist,@ConvertLoopToBr);
 
-          l2:=TAsmList.Create;
-          wasm_convert_to_flat_asmlist(asmlist,l2);
-          asmlist.Free;
-          asmlist:=l2;
+          wasm_convert_to_flat_asmlist(asmlist);
 
           map_structured_asmlist(asmlist,@StripBlockInstructions);
 
-          l2:=TAsmList.Create;
-          wasm_convert_to_structured_asmlist(asmlist,l2);
-          asmlist.Free;
-          asmlist:=l2;
+          wasm_convert_to_structured_asmlist(asmlist);
 
           resolve_labels_of_asmlist_with_try_blocks_recursive(asmlist);
 
-          l2:=TAsmList.Create;
-          wasm_convert_to_flat_asmlist(asmlist,l2);
-          asmlist.Free;
-          asmlist:=l2;
+          wasm_convert_to_flat_asmlist(asmlist);
 
           asmlist.insertList(entry_code);
           entry_code.free;
