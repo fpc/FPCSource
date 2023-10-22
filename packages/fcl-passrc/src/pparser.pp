@@ -1539,6 +1539,8 @@ function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
 
 var
   StopAt : TTokens;
+  Obj : TObject;
+  
 begin
   Inc(FErrorCount);
   Result:=FErrorCount<FMaxErrorCount;
@@ -1556,7 +1558,10 @@ begin
   // Destroy element if engine allows it.
   if Assigned(aContext.Element) then
     if Engine.HandleResultOnError(aContext.Element) then
-      aContext.Element.Free;
+      begin
+      Obj:=aContext.Element;
+      Obj.Free;
+      end;
   // ParseExc recorded the error message, force display
   LogLastMessage;
   StopAt:=aContext.RestartTokens;

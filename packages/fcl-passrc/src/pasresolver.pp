@@ -15029,7 +15029,11 @@ begin
     else
       if (l=3) and (Value[3]='''') then
         if Ord(Value[2])<128 then
+          {$IFNDEF PAS2JS}
           Result:=btAnsiChar // e.g. 'a'
+          {$ELSE}
+          Result:=btWideChar           
+          {$ENDIF}
         else
           Result:=btWideChar; // e.g. 'a'
     end;
