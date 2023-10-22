@@ -33,7 +33,14 @@ uses
 {$ifdef testimpl}
   tests.rtti.impl,
 {$endif}
-  tests.rtti, tests.rtti.value, tests.rtti.types;
+  tests.rtti,
+  tests.rtti.value,
+  tests.rtti.types,
+  utmathvectorbase,
+  utcmatrix,
+  utcpoint,
+  utcvector,
+  utcquaternion;
 
 var
   Application: TTestRunner;

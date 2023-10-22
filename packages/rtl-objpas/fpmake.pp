@@ -71,6 +71,8 @@ begin
     
     T:=P.Targets.AddUnit('system.actions.pp',UItypesOSes);
       T.Dependencies.AddUnit('system.uitypes');
+    T:=P.Targets.AddUnit('system.math.vectors.pp',UItypesOSes);
+      T.Dependencies.AddUnit('system.uitypes');
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
       T.ResourceStrings:=true;
