@@ -4702,7 +4702,7 @@ end;
 function TPasVariable.GetDeclaration (full : boolean) : TPasTreeString;
 
 Const
- Seps : Array[Boolean] of AnsiChar = ('=',':');
+ Seps : Array[Boolean] of Char = ('=',':');
 
 begin
   If Assigned(VarType) then

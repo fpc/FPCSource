@@ -127,13 +127,20 @@ resourcestring
   SWarnIgnoringLinkLib = 'Ignoring LINKLIB directive %s -> %s (Options: %s)';
 
 type
-  {$IF NOT DECLARED(RTLSTRING)}
-    RTLString = ansistring;
+  {$IFDEF PAS2JS}
+    RTLString = string;
     TRTLStringDynArray = array of RTLString;
+    TPasScannerString = String;
+    AnsiChar = Char;
+  {$ELSE}
+    {$IF NOT DECLARED(RTLSTRING) }
+      RTLString = ansistring;
+      TRTLStringDynArray = array of RTLString;
+    {$ENDIF}
+    // String used for scanning
+    TPasScannerString = RawByteString;
   {$ENDIF}
 
-  // String used for scanning
-  TPasScannerString = RawByteString;
   // String used for interfacing with PasTree
   TPasTreeString = String;
 
@@ -490,7 +497,11 @@ type
 
   TStreamLineReader = class(TLineReader)
   private
+    {$ifndef pas2js}
     FContent: RawByteString;
+    {$ELSE}
+    FContent: String;
+    {$ENDIF}
     FPos : Integer;
   public
     {$ifdef HasStreams}
@@ -2828,10 +2839,14 @@ end;
 
 procedure TStreamLineReader.InitFromString(const s: TPasScannerString);
 begin
+{$IFDEF PAS2JS}
+  FContent:=S;
+{$ELSE}
 {$IF SIZEOF(CHAR)=2}
   FContent:=UTF8Encode(s);
 {$ELSE}
   FContent:=S;
+{$ENDIF}
 {$ENDIF}
   FPos:=0;
 end;
@@ -3728,7 +3743,7 @@ begin
         else
           begin
           // skip identifier
-          if FTokenPos[0]='@' then
+          if {$ifdef UsePChar}FTokenPos[0]='@'{$ELSE} (FTokenPos<=l) and (s[FTokenPos]='@'){$ENDIF} then
             inc(FTokenPos);
           while {$ifdef UsePChar}FTokenPos[0] in IdentChars{$else}(FTokenPos<=l) and (s[FTokenPos] in IdentChars){$endif} do
             inc(FTokenPos);
@@ -5828,10 +5843,14 @@ end;
 
 function TPascalScanner.GetTokenString: TPasTreeString;
 begin
+{$IFDEF PAS2JS}
+  Result:=RawCurTokenString;
+{$ELSE}
 {$IF SIZEOF(Char)=2}
   Result:=UTF8Decode(RawCurTokenString);
 {$ELSE}
   Result:=RawCurTokenString;
+{$ENDIF}
 {$ENDIF}
 end;
 

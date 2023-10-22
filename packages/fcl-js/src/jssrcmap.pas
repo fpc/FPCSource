@@ -68,6 +68,11 @@ uses
   ;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$IFDEF PAS2JS}
+Type
+  AnsiString = String;
+{$ENDIF}
+
 const
   Base64Chars = AnsiString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');
 
