@@ -2814,6 +2814,8 @@ implementation
         refoper : poper;
         msb : longint;
         r: byte;
+        imm : dword;
+        count : integer;
         singlerec : tcompsinglerec;
         doublerec : tcompdoublerec;
 
@@ -3870,17 +3872,51 @@ implementation
                   if assigned(currsym) then
                     offset:=currsym.offset-insoffset-8;
                   offset:=offset+oper[1]^.ref^.offset;
-                  if offset>=0 then
+                  if opcode = A_ADR then
                     begin
-                      { set U flag }
-                      bytes:=bytes or (1 shl 23);
-                      bytes:=bytes or offset
+                      { The encoding for an ADR instruction is that of an ADD instruction,
+                        so the offset has to abide by immediate shifter rules, otherwise
+                        it can't be encoded }
+                      if is_shifter_const(offset,r) then
+                        begin
+                          bytes:=bytes or (1 shl 23);
+                        end
+                      else
+                        begin
+                          bytes:=bytes or (1 shl 22);
+                          offset:=-offset;
+                        end;
+
+                      { calc rotate and adjust imm }
+                      count:=0;
+                      r:=0;
+                      imm:=dword(offset);
+                      repeat
+                        imm:=RolDWord(imm, 2);
+                        inc(r);
+                        inc(count);
+                        if count > 32 then
+                          begin
+                            message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm (offset)');
+                            exit;
+                          end;
+                      until (imm and $ff)=imm;
+                      bytes:=bytes or (r shl 8) or imm;
                     end
                   else
                     begin
-                      bytes:=bytes or (1 shl 22);
-                      offset:=-offset;
-                      bytes:=bytes or offset
+                      if offset>=0 then
+                        begin
+                          { set U flag }
+                          bytes:=bytes or (1 shl 23);
+                          bytes:=bytes or offset
+                        end
+                      else
+                        begin
+                          bytes:=bytes or (1 shl 22);
+                          offset:=-offset;
+                          bytes:=bytes or offset
+                        end;
                     end;
                 end
               else

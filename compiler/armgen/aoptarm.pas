@@ -33,7 +33,7 @@ Unit aoptarm;
 Interface
 
 uses
-  cgbase, cgutils, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+  cgbase, cgutils, globtype, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
 
 Type
   { while ARM and AAarch64 look not very similar at a first glance,
@@ -54,7 +54,6 @@ Type
     function OptPass1SXTB(var p: tai): Boolean;
     function OptPass1SXTH(var p: tai): Boolean;
 
-
     function OptPass1LDR(var p: tai): Boolean; virtual;
     function OptPass1STR(var p: tai): Boolean; virtual;
     function OptPass1And(var p: tai): Boolean; virtual;
@@ -71,11 +70,12 @@ Type
 
   function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
   function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+  function MatchOperand(const oper: TOper; const a: TCGInt): boolean; inline;
 
 Implementation
 
   uses
-    cutils,verbose,globtype,globals,
+    cutils,verbose,globals,
     systems,
     cpuinfo,
     cgobj,procinfo,
@@ -195,6 +195,11 @@ Implementation
         end
     end;
 
+
+  function MatchOperand(const oper: TOper; const a: TCGInt): boolean; inline;
+    begin
+      result := (oper.typ = top_const) and (oper.val = a);
+    end;
 
 {$ifdef AARCH64}
   function TARMAsmOptimizer.USxtOp2Op(var p,hp1: tai; shiftmode: tshiftmode): Boolean;

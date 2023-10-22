@@ -940,13 +940,13 @@ implementation
         case opc of
           A_ADD,
           A_AND,
+          A_BIC,
           A_EON,
           A_EOR,
           A_ORN,
           A_ORR,
           A_SUB:
             result:=opnr=3;
-          A_BIC,
           A_CMN,
           A_CMP,
           A_MOVK,
@@ -967,9 +967,6 @@ implementation
         case opc of
           A_ADD,
           A_SUB,
-          A_NEG,
-          A_AND,
-          A_TST,
           A_CMN,
           A_CMP:
             begin
@@ -977,23 +974,24 @@ implementation
               if not useszr then
                 result:=
                   (sm in shiftedregmodes) and
-                  ((shiftimm in [0..31]) or
-                   (is64bit and
-                    (shiftimm in [32..63])));
+                  (shiftimm in [0..31*(ord(is64bit)+1)+ord(is64bit)]);
               if not usessp then
                 result:=
                   result or
                   ((sm in extendedregmodes) and
-                   (shiftimm in [0..4]));
+                   (shiftimm in [0..31*(ord(is64bit)+1)+ord(is64bit)]));
             end;
+          A_AND,
           A_BIC,
           A_EON,
           A_EOR,
           A_MVN,
+          A_NEG,
           A_ORN,
-          A_ORR:
+          A_ORR,
+          A_TST:
             result:=
-              (sm in shiftedregmodes) and
+              (sm in logicalshiftedregmodes) and
               (shiftimm in [0..31*(ord(is64bit)+1)+ord(is64bit)]);
           A_MOVK,
           A_MOVZ,

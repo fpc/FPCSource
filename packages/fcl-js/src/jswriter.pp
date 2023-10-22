@@ -39,6 +39,7 @@ uses
 Type
   {$ifdef pas2js}
   TJSWriterString = UnicodeString;
+  AnsiChar = char;
   {$else}
   TJSWriterString = AnsiString;
   {$endif}
@@ -2283,10 +2284,14 @@ end;
 function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
 begin
   Result:=Write(S);
+{$IFDEF PAS2JS}  
+  Result:=Result+Write(LineBreak);
+{$ELSE}
 {$IF SIZEOF(Char)=1}
   Result:=Result+Write(LineBreak);
 {$else}
   Result:=Result+Write(UTF8Encode(LineBreak));
+{$ENDIF}
 {$ENDIF}
 end;
 

@@ -4295,7 +4295,7 @@ var
   end;
 {$ENDIF}
 
-  procedure AddSrc(h: AnsiString);
+  procedure AddSrc(h: {$IFDEF PAS2JS}String{$ELSE}AnsiString{$ENDIF});
   {$ifdef FPC_HAS_CPSTRING}
   var
     ValueAnsi: TResEvalString;
