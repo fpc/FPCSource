@@ -66,6 +66,13 @@ unit cgcpu;
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
+{$undef AVOID_OVERFLOW}
+{$ifopt Q+}
+  {$define AVOID_OVERFLOW}
+  const
+     low_value = low(longint);
+{$endif}
+
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
 {$R-}
@@ -472,7 +479,7 @@ unit cgcpu;
                   tmplo:=cg.GetIntRegister(list,OS_32);
                   carry:=cg.GetIntRegister(list,OS_32);
 
-                  if is_imm12(-aint(lo(value))) then
+                  if {$ifdef AVOID_OVERFLOW} (lo(value) <> low_value) and {$endif} is_imm12(-aint(lo(value))) then
                     list.concat(taicpu.op_reg_reg_const(A_ADDI,tmplo,regsrc.reglo,-aint(lo(value))))
                   else
                     begin
