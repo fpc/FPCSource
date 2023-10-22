@@ -473,7 +473,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          include(flowcontrol,fc_gotolabel);
-         hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
+         hlcg.a_jmp_always_pascal_goto(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
          if not(cs_opt_size in current_settings.optimizerswitches) then
            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
        end;

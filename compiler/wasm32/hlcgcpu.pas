@@ -103,6 +103,7 @@ uses
       procedure a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
 
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
+      procedure a_jmp_always_pascal_goto(list : TAsmList;l: tasmlabel); override;
 
       procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference); override;
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
@@ -1921,8 +1922,7 @@ implementation
     begin
       if (l=current_procinfo.CurrBreakLabel) or
          (l=current_procinfo.CurrContinueLabel) or
-         (l=current_procinfo.CurrExitLabel) or
-         tcpuprocinfo(current_procinfo).is_goto_target(l) then
+         (l=current_procinfo.CurrExitLabel) then
         list.concat(taicpu.op_sym(a_br,l))
       else
         begin
@@ -1931,6 +1931,11 @@ implementation
 {$endif EXTDEBUG}
           list.concat(tai_comment.create(strpnew('Unable to find destination of label '+l.name)));
         end;
+    end;
+
+  procedure thlcgwasm.a_jmp_always_pascal_goto(list: TAsmList; l: tasmlabel);
+    begin
+      list.concat(taicpu.op_sym(a_br,l));
     end;
 
   procedure thlcgwasm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);

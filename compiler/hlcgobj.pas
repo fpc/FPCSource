@@ -393,6 +393,7 @@ unit hlcgobj;
           procedure a_cmp_ref_loc_label(list: TAsmList; size: tdef;cmp_op: topcmp; const ref: treference; const loc: tlocation; l : tasmlabel);virtual;
 
           procedure a_jmp_always(list : TAsmList;l: tasmlabel); virtual;abstract;
+          procedure a_jmp_always_pascal_goto(list : TAsmList;l: tasmlabel);virtual;
 {$ifdef cpuflags}
           procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
@@ -3358,6 +3359,12 @@ implementation
         else
           internalerror(2010120432);
       end;
+    end;
+
+
+  procedure thlcgobj.a_jmp_always_pascal_goto(list : TAsmList;l: tasmlabel);
+    begin
+      a_jmp_always(list,l);
     end;
 
 
