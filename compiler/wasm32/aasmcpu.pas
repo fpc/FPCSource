@@ -278,8 +278,8 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
-    procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
-    procedure wasm_convert_to_flat_asmlist(srclist, destlist: TAsmList);
+    procedure wasm_convert_to_structured_asmlist(var asmlist: TAsmList);
+    procedure wasm_convert_to_flat_asmlist(var asmlist: TAsmList);
     procedure map_structured_asmlist(l: TAsmList; f: TAsmMapFunc);
 
 implementation
@@ -2836,14 +2836,24 @@ uses
       end;
 
 
-    procedure wasm_convert_to_structured_asmlist(srclist, destlist: TAsmList);
+    procedure wasm_convert_to_structured_asmlist_internal(srclist, destlist: TAsmList);
       begin
         while not srclist.Empty do
           destlist.Concat(wasm_convert_first_item_to_structured(srclist));
       end;
 
 
-    procedure wasm_convert_to_flat_asmlist(srclist, destlist: TAsmList);
+    procedure wasm_convert_to_structured_asmlist(var asmlist: TAsmList);
+      var
+        tmplist: TAsmList;
+      begin
+        tmplist:=TAsmList.Create;
+        wasm_convert_to_structured_asmlist_internal(asmlist,tmplist);
+        asmlist.Free;
+        asmlist:=tmplist;
+      end;
+
+    procedure wasm_convert_to_flat_asmlist_internal(srclist, destlist: TAsmList);
       var
         p: tai;
         tmplist: TAsmList;
@@ -2862,6 +2872,17 @@ uses
               destlist.Concat(p);
           end;
         tmplist.free;
+      end;
+
+
+    procedure wasm_convert_to_flat_asmlist(var asmlist: TAsmList);
+      var
+        tmplist: TAsmList;
+      begin
+        tmplist:=TAsmList.Create;
+        wasm_convert_to_flat_asmlist_internal(asmlist,tmplist);
+        asmlist.Free;
+        asmlist:=tmplist;
       end;
 
 
