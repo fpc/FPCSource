@@ -59,7 +59,7 @@ interface
       procedure postprocess_code; override;
       procedure set_first_temp_offset;override;
       procedure add_goto_target(l : tasmlabel);
-      function is_goto_target(l : tasmlabel): Boolean;
+      function is_goto_target(l : tasmsymbol): Boolean;
     end;
 
 implementation
@@ -918,10 +918,36 @@ implementation
               end;
           end;
 
+        procedure check_goto_br_instructions(list: TAsmList);
+          var
+            hp: tai;
+          begin
+            hp:=tai(list.first);
+            while assigned(hp) do
+              begin
+                if (hp.typ=ait_instruction) and (taicpu(hp).is_br_generated_by_goto) then
+                  begin
+                    if (taicpu(hp).opcode<>a_br) or
+                       (taicpu(hp).ops<>1) or
+                       (taicpu(hp).oper[0]^.typ<>top_ref) or
+                       (taicpu(hp).oper[0]^.ref^.offset<>0) or
+                       (taicpu(hp).oper[0]^.ref^.base<>NR_NO) or
+                       (taicpu(hp).oper[0]^.ref^.index<>NR_NO) or
+                       (taicpu(hp).oper[0]^.ref^.symbol=nil) then
+                      internalerror(2023102203);
+                    if not is_goto_target(taicpu(hp).oper[0]^.ref^.symbol) then
+                      internalerror(2023102204);
+                  end;
+                hp:=tai(hp.next);
+              end;
+          end;
+
       var
         localslist: TAsmList;
         labels_resolved: Boolean;
       begin
+        check_goto_br_instructions(aktproccode);
+
         localslist:=prepare_locals;
 
         replace_local_frame_pointer(aktproccode);
@@ -963,7 +989,7 @@ implementation
         FGotoTargets.Add(l.Name,l);
       end;
 
-    function tcpuprocinfo.is_goto_target(l: tasmlabel): Boolean;
+    function tcpuprocinfo.is_goto_target(l: tasmsymbol): Boolean;
       begin
         result:=FGotoTargets.FindIndexOf(l.Name)<>-1;
       end;

@@ -1934,8 +1934,12 @@ implementation
     end;
 
   procedure thlcgwasm.a_jmp_always_pascal_goto(list: TAsmList; l: tasmlabel);
+    var
+      br_ins: taicpu;
     begin
-      list.concat(taicpu.op_sym(a_br,l));
+      br_ins:=taicpu.op_sym(a_br,l);
+      br_ins.is_br_generated_by_goto:=true;
+      list.concat(br_ins);
     end;
 
   procedure thlcgwasm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
