@@ -259,6 +259,13 @@ begin
       AddUnit('httpdefs');
       AddUnit('httproute');
       end;
+    T:=P.Targets.AddUnit('fpdebugcapturesvc.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httproute');
+      end;
     T:=P.Targets.AddUnit('fpwebproxy.pp');
     With T.Dependencies do
       begin
