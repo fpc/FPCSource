@@ -12,7 +12,7 @@ uses
   {$ENDIF}
   sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
   fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
-  Pas2JSCompilerCfg, ssockets;
+  Pas2JSCompilerCfg, ssockets, fpdebugcapturesvc;
 
 Const
   HTTPCompilerVersion = '1.0';
@@ -93,8 +93,6 @@ Type
 
   THTTPCompilerApplication = Class(TCustomHTTPApplication)
   private
-    FCaptureFileName : String;
-    FCaptureStream : TFileStream;
     FAPI: String;
     FBaseDir: String;
     FConfigFile: String;
@@ -119,11 +117,7 @@ Type
     procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
     procedure Doquit(ARequest: TRequest; AResponse: TResponse);
-    procedure DoCapture(ARequest: TRequest; AResponse: TResponse);
-    function GetCaptureJSON(ARequest: TRequest; AResponse: TResponse; var aJSON: TJSONData): TJSONArray;
-    procedure SetupCapture(const aFileName: string);
-    procedure ShowCaptureOutput(aJSON: TJSONData);
-
+    procedure SetupCapture;
     function HandleCompileOptions(aDir: String): Boolean;
     function ProcessOptions: Boolean;
     procedure ReadConfigFile(const ConfigFile: string);
@@ -698,7 +692,7 @@ Const
 
 Var
   L : TStringList;
-  P,U : String;
+  C,P,U : String;
   I : Integer;
 
 begin
@@ -723,9 +717,11 @@ begin
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
       if ValueExists(SConfig,KeyCapture) then
         begin
-        FCaptureFileName:=ReadString(SConfig,keyCapture,'');
-        if FCaptureFileName='' then
-          FCaptureFileName:='-';
+        C:=ReadString(SConfig,keyCapture,'');
+        if C='-' then
+          TDebugCaptureService.Instance.LogToConsole:=True
+        else
+          TDebugCaptureService.Instance.LogFileName:=C;
         end;
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
@@ -753,7 +749,7 @@ end;
 function THTTPCompilerApplication.ProcessOptions: Boolean;
 
 Var
-  IndexPage,D : String;
+  C,IndexPage,D : String;
 
 begin
   Result:=False;
@@ -805,9 +801,11 @@ begin
   FCrossOriginIsolation:=hasOption('o','coi');
   if HasOption('u','capture') then
     begin
-    FCaptureFileName:=GetOptionValue('u','capture');
-    if FCaptureFileName='' then
-      FCaptureFileName:='-';
+    C:=GetOptionValue('u','capture');
+    if C='' then
+      TDebugCaptureService.Instance.LogToConsole:=True
+    else
+      TDebugCaptureService.Instance.LogFileName:=C;
     end;
   Result:=True;
 end;
@@ -849,8 +847,7 @@ begin
 {$endif}
     end;
   // Handle options
-  if FCaptureFileName<>'' then
-    SetupCapture(FCaptureFileName);
+  SetupCapture;
   if FPassword<>'' then
     HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
   if FEcho  then
@@ -892,97 +889,23 @@ begin
   end;
 end;
 
-function THTTPCompilerApplication.GetCaptureJSON(ARequest: TRequest;
-  AResponse: TResponse; var aJSON: TJSONData): TJSONArray;
 
-var
-  aJSONObj : TJSONObject absolute aJSON;
-  Cont : String;
-
-begin
-  Result:=Nil;
-  aJSON:=Nil;
-  try
-    Cont:=aRequest.Content;
-    aJSON:=GetJSON(Cont);
-    if aJSON.JSONType<>jtObject then
-      Raise EHTTP.Create('No JSON object in capture JSON');
-    Result:=aJSONObj.Get('lines',TJSONArray(Nil));
-    if Result=Nil then
-      begin
-      FreeAndNil(aJSON);
-      Raise EHTTP.Create('No lines element in capture JSON');
-      end;
-  except
-    On E : Exception do
-      begin
-      DoLog(etError,Format('Exception %s (%s) : Invalid capture content: not valid JSON: %s',[E.ClassName,E.Message,Copy(Cont,1,255)]));
-      aResponse.Code:=400;
-      aResponse.CodeText:='INVALID PARAM';
-      aResponse.SendResponse;
-      end;
-  end;
-end;
-
-procedure THTTPCompilerApplication.ShowCaptureOutput(aJSON : TJSONData);
-
-var
-  S : TJSONStringType;
-
-begin
-  if aJSON.JSONType in StructuredJSONTypes then
-    S:=aJSON.AsJSON
-  else
-    S:=aJSON.AsString;
-  if Assigned(FCaptureStream) then
-    begin
-    S:=S+sLineBreak;
-    FCaptureStream.WriteBuffer(S[1],Length(S)*SizeOf(TJSONCharType));
-    end
-  else
-    DoLog(etInfo,'Capture : '+S);
-end;
-
-procedure THTTPCompilerApplication.DoCapture(ARequest: TRequest; AResponse: TResponse);
+procedure THTTPCompilerApplication.SetupCapture;
 
 Var
-  aJSON : TJSONData;
-  aArray : TJSONArray;
-  I : Integer;
+  Dest : String;
+  Svc : TDebugCaptureService;
 
 begin
-  aJSON:=Nil;
-  aArray:=Nil;
-  try
-    aArray:=GetCaptureJSON(aRequest,aResponse,aJSON);
-    if aArray<>Nil then
-      begin
-      For I:=0 to aArray.Count-1 do
-        ShowCaptureOutput(aArray[i]);
-      aResponse.Code:=200;
-      aResponse.CodeText:='OK';
-      aResponse.SendResponse;
-      end;
-  finally
-    aJSON.Free;
-  end;
-end;
-
-procedure THTTPCompilerApplication.SetupCapture(Const aFileName : string);
-
-Var
- Dest : String;
-
-begin
-  if (aFileName<>'') and (aFileName<>'-') then
+  Svc:=TDebugCaptureService.Instance;
+  Dest:=Svc.LogFileName;
+  if (Dest='') and Svc.LogToConsole then
+    Dest:='Console';
+  if Dest<>'' then
     begin
-    FCaptureStream:=TFileStream.Create(aFileName,fmCreate);
-    Dest:='file: '+aFileName
-    end
-  else
-    Dest:='console';
-  DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
-  HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@DoCapture,False);
+    DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
+    HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
+    end;
 end;
 
 end.
