@@ -426,6 +426,11 @@ Unit AoptObj;
         { Jump/label optimisation entry method }
         function DoJumpOptimizations(var p: tai; var stoploop: Boolean): Boolean;
 
+        { Attempts to reconfigure the Regallocs and Regdeallocs before p1 and
+          after p2 so Reg is no longer allocated between them.  Returns True if
+          the register is no longer allocated at p1 }
+        function TryRemoveRegAlloc(const Reg: TRegister; p1, p2: tai): Boolean;
+
         { insert debug comments about which registers are read and written by
           each instruction. Useful for debugging the InstructionLoadsFromReg and
           other similar functions. }
@@ -2563,6 +2568,79 @@ Unit AoptObj;
         { Required to ensure recursion works properly, but to also
           return false if a jump isn't modified. [Kit] }
         if level > 0 then GetFinalDestination := True;
+      end;
+
+
+    { Attempts to reconfigure the Regallocs and Regdeallocs before p1 and
+      after p2 so Reg is no longer allocated between them.  Returns True if the
+      register is no longer allocated at p1 }
+    function TAOptObj.TryRemoveRegAlloc(const Reg: TRegister; p1, p2: tai): Boolean;
+      var
+        CurrentAlloc: tai;
+      begin
+        Result := False;
+        if RegInInstruction(Reg, p1) then
+          { Register is definitely in use }
+          Exit;
+
+        { Search for the first de/alloc before p1 that relates to Reg }
+        CurrentAlloc := tai(p1.Previous);
+        repeat
+          while Assigned(CurrentAlloc) and
+                ((CurrentAlloc.typ in (SkipInstr - [ait_regAlloc])) or
+                 ((CurrentAlloc.typ = ait_label) and
+                  not(Tai_Label(CurrentAlloc).labsym.Is_Used))) do
+            CurrentAlloc := Tai(CurrentAlloc.Previous);
+          if Assigned(CurrentAlloc) and
+            (CurrentAlloc.typ = ait_regalloc) then
+            begin
+              if (getregtype(tai_regalloc(CurrentAlloc).Reg) = getregtype(Reg)) and
+                (getsupreg(tai_regalloc(CurrentAlloc).Reg) = getsupreg(Reg)) then
+               begin
+                 Break;
+               end;
+              CurrentAlloc := Tai(CurrentAlloc.Previous);
+            end
+          else
+            begin
+              CurrentAlloc := nil;
+              Break;
+            end;
+        until false;
+
+        { Remove any register allocation prior to p1 }
+        if Assigned(CurrentAlloc) and (CurrentAlloc.typ = ait_regalloc) and
+          (tai_regalloc(CurrentAlloc).ratype = ra_alloc) then
+          begin
+            RemoveInstruction(CurrentAlloc);
+            Result := True;
+          end
+        else if not Assigned(CurrentAlloc) or (CurrentAlloc.typ <> ait_regalloc) or
+          (tai_regalloc(CurrentAlloc).ratype <> ra_dealloc) then
+          begin
+            AsmL.InsertBefore(tai_regalloc.dealloc(Reg, nil), p1);
+            Result := True;
+          end;
+
+        if (p1 <> p2) and RegInInstruction(Reg, p2) then
+          begin
+            { Reg is in use, so insert allocation before it }
+            AsmL.InsertBefore(tai_regalloc.alloc(Reg, nil), p2);
+            Exit;
+          end;
+
+        { If a deallocation exists, remove it since the register will no longer be allocated by this time }
+        CurrentAlloc := FindRegDealloc(Reg, tai(p2.Next));
+        if Assigned(CurrentAlloc) and (CurrentAlloc.typ = ait_regalloc) and
+          (tai_regalloc(CurrentAlloc).ratype = ra_dealloc) then
+          begin
+            RemoveInstruction(CurrentAlloc);
+          end
+        else
+          begin
+            { Since no deallocation was found, Register may end up being used afterwards, so add a new alloc to play safe }
+            AsmL.InsertAfter(tai_regalloc.alloc(Reg, nil), p2);
+          end;
       end;
 
 
