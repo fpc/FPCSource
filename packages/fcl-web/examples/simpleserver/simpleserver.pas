@@ -42,7 +42,8 @@ uses
   {$ifdef unix}
   baseunix,
   {$endif}
-  sysutils,Classes, jsonparser, fpjson, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
+  sysutils, Classes, jsonparser, fpjson, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy,
+  webutil, fpdebugcapturesvc;
 
 Const
   ServerVersion = '1.0';
@@ -65,8 +66,6 @@ Type
 
   THTTPApplication = Class(TParentApp)
   private
-    FCaptureFileName : String;
-    FCaptureStream : TFileStream;
     FAPISecret : String;
     FBaseDir: string;
     FIndexPageName: String;
@@ -81,16 +80,12 @@ Type
     FCrossOriginIsolation : Boolean;
     procedure AddProxy(const aProxyDef: String);
     procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
-    procedure DoCapture(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
     procedure DoQuit(ARequest: TRequest; AResponse: TResponse);
-    function GetCaptureJSON(ARequest: TRequest; AResponse: TResponse;
-      var aJSON: TJSONData): TJSONArray;
     procedure LoadMimeTypes;
     procedure ProcessOptions;
     procedure ReadConfigFile(const ConfigFile: string);
-    procedure SetupCapture(const aFileName: string);
-    procedure ShowCaptureOutput(aJSON: TJSONData);
+    procedure SetupCapture;
     procedure Usage(Msg: String);
     procedure Writeinfo;
   Public
@@ -145,81 +140,6 @@ begin
   end;
 end;
 
-function THTTPApplication.GetCaptureJSON(ARequest: TRequest;
-  AResponse: TResponse; var aJSON: TJSONData): TJSONArray;
-
-var
-  aJSONObj : TJSONObject absolute aJSON;
-  Cont : String;
-
-begin
-  Result:=Nil;
-  aJSON:=Nil;
-  try
-    Cont:=aRequest.Content;
-    aJSON:=GetJSON(Cont);
-    if aJSON.JSONType<>jtObject then
-      Raise EHTTP.Create('No JSON object in capture JSON');
-    Result:=aJSONObj.Get('lines',TJSONArray(Nil));
-    if Result=Nil then
-      begin
-      FreeAndNil(aJSON);
-      Raise EHTTP.Create('No lines element in capture JSON');
-      end;
-  except
-    On E : Exception do
-      begin
-      DoLog(etError,Format('Exception %s (%s) : Invalid capture content: not valid JSON: %s',[E.ClassName,E.Message,Copy(Cont,1,255)]));
-      aResponse.Code:=400;
-      aResponse.CodeText:='INVALID PARAM';
-      aResponse.SendResponse;
-      end;
-  end;
-end;
-
-procedure THTTPApplication.ShowCaptureOutput(aJSON : TJSONData);
-
-var
-  S : TJSONStringType;
-
-begin
-  if aJSON.JSONType in StructuredJSONTypes then
-    S:=aJSON.AsJSON
-  else
-    S:=aJSON.AsString;
-  if Assigned(FCaptureStream) then
-    begin
-    S:=S+sLineBreak;
-    FCaptureStream.WriteBuffer(S[1],Length(S)*SizeOf(TJSONCharType));
-    end
-  else
-    DoLog(etInfo,'Capture : '+S);
-end;
-
-procedure THTTPApplication.DoCapture(ARequest: TRequest; AResponse: TResponse);
-
-Var
-  aJSON : TJSONData;
-  aArray : TJSONArray;
-  I : Integer;
-
-begin
-  aJSON:=Nil;
-  aArray:=Nil;
-  try
-    aArray:=GetCaptureJSON(aRequest,aResponse,aJSON);
-    if aArray<>Nil then
-      begin
-      For I:=0 to aArray.Count-1 do
-        ShowCaptureOutput(aArray[i]);
-      aResponse.Code:=200;
-      aResponse.CodeText:='OK';
-      aResponse.SendResponse;
-      end;
-  finally
-    aJSON.Free;
-  end;
-end;
 
 procedure THTTPApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
 
@@ -397,10 +317,8 @@ begin
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
       if ValueExists(SConfig,KeyCapture) then
         begin
-        FCaptureFileName:=ReadString(SConfig,keyCapture,'');
-        if FCaptureFileName='' then
-          FCaptureFileName:='-';
-        end;  
+        TDebugCaptureService.Instance.LogFileName:=ReadString(SConfig,keyCapture,'');
+        end;
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
@@ -465,9 +383,11 @@ begin
     FCrossOriginIsolation:=true;
   if HasOption('u','capture') then
     begin
-    FCaptureFileName:=GetOptionValue('u','capture');
-    if FCaptureFileName='' then
-      FCaptureFileName:='-';
+    S:=GetOptionValue('u','capture');
+    if S='' then
+      TDebugCaptureService.Instance.LogToConsole:=True
+    else
+      TDebugCaptureService.Instance.LogFileName:=S;
     end;
 end;
 
@@ -492,25 +412,25 @@ end;
 
 destructor THTTPApplication.Destroy;
 begin
-  FreeAndNil(FCaptureStream);
   inherited Destroy;
 end;
 
-procedure THTTPApplication.SetupCapture(Const aFileName : string);
+procedure THTTPApplication.SetupCapture;
 
 Var
- Dest : String;
+  Dest : String;
+  Svc : TDebugCaptureService;
 
 begin
-  if (aFileName<>'') and (aFileName<>'-') then
+  Svc:=TDebugCaptureService.Instance;
+  Dest:=Svc.LogFileName;
+  if (Dest='') and Svc.LogToConsole then
+    Dest:='Console';
+  if Dest<>'' then
     begin
-    FCaptureStream:=TFileStream.Create(aFileName,fmCreate);
-    Dest:='file: '+aFileName
-    end
-  else
-    Dest:='console';
-  DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
-  HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@DoCapture,False);
+    DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
+    HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
+    end;
 end;
 
 procedure THTTPApplication.DoRun;
@@ -543,8 +463,7 @@ begin
     Log(etError,'Background option not supported');
 {$endif}
     end;
-  if FCaptureFileName<>'' then
-    SetupCapture(FCaptureFileName);
+  SetupCapture;
   if FPassword<>'' then
     begin
     HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
