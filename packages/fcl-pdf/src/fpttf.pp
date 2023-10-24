@@ -865,7 +865,7 @@ begin
   // configure the search pattern,
   // assume "name" is a std::string with the desired font name in it
   res:=family+':style='+style;
-  pat := FcNameParse(PChar(res));
+  pat := FcNameParse(PAnsiChar(res));
   FcConfigSubstitute(config, pat, FcMatchPattern);
   FcDefaultSubstitute(pat);
 
