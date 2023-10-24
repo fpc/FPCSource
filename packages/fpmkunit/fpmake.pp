@@ -46,7 +46,6 @@ begin
       ResourceStrings:=true;
 
 
-    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;
