@@ -12,15 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpdebugcapturesvc;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
-  CustApp, Classes, SysUtils, httpdefs, fphttp, fpjson;
-
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpJson.Data; 
+{$ELSE}
+  Classes, SysUtils, httpdefs, fphttp, fpjson;
+{$ENDIF}
 Type
   TDebugCaptureHandler = Procedure (aSender : TObject; aCapture : TJSONData) of object;
   TDebugCaptureLogHandler = Procedure (EventType : TEventType; const Msg : String) of object;
