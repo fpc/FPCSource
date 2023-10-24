@@ -536,7 +536,7 @@ begin
   end;
 end;
 
-
+{$DEFINE HAVE_INITPLATFORM}
 procedure InitPlatform;
 begin
   {$ifndef WinCE}
@@ -557,6 +557,7 @@ begin
   end;
 end;
 
+{$DEFINE HAVE_FINALIZEPLATFORM}
 procedure FinalizePlatform;
 {$IFDEF ArgsWAsUTF8}
 var

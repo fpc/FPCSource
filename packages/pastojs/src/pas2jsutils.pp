@@ -637,6 +637,44 @@ begin
 end;
 {$ENDIF UNIX}
 
+{$IF NOT DEFINED(UNIX) AND NOT DEFINED(WINDOWS)}
+function UTF8ToSystemCP(const s: Ansistring): Ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=UTF8ToAnsi(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function SystemCPToUTF8(const s: ansistring): ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=AnsiToUTF8(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function ConsoleToUTF8(const s: ansistring): ansistring;
+begin
+  Result:=SystemCPToUTF8(s);
+end;
+
+function UTF8ToConsole(const s: ansistring): ansistring;
+begin
+  Result:=UTF8ToSystemCP(s);
+end;
+{$ENDIF}
+
 initialization
   InternalInit;
 end.

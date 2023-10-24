@@ -3,7 +3,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
 
-    NodeJS backend of pas2jsfileutils
+    Unix backend of pas2jsfileutils
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,7 +17,7 @@
 
 function FilenameIsAbsolute(const aFilename: string): boolean;
 begin
-  Result:=NJS_Path.isAbsolute(aFilename);
+  Result:=ExpandFileName(aFilename)=aFileName;
 end;
 
 function ExpandFileNamePJ(const FileName: string; BaseDir: string): string;
@@ -25,7 +25,8 @@ var
   IsAbs: Boolean;
   HomeDir, Fn: String;
 begin
-  Fn := GetForcedPathDelims(Filename);
+  Fn := FileName;
+  ForcePathDelims(Fn);
   IsAbs := FileNameIsUnixAbsolute(Fn);
   if (not IsAbs) then
   begin
@@ -64,82 +65,46 @@ end;
 function GetPhysicalFilename(const Filename: string; ExceptionOnError: boolean
   ): string;
 var
-  OldPath, NewPath: String;
-  p, l: integer;
+  OldPath: String;
+  NewPath: String;
+  p: PAnsiChar;
 begin
   Result:=Filename;
-  p:=1;
-  l:=length(Result);
-  while p<=l do
-  begin
-    while (p<=l) and (Result[p]='/') do
+  p:=PAnsiChar(Result);
+  repeat
+    while p^='/' do
       inc(p);
-    if p>l then exit;
-    if Result[p]<>'/' then
+    if p^=#0 then exit;
+    if p^<>'/' then
     begin
       repeat
         inc(p);
-      until (p>l) or (Result[p]='/');
-      OldPath:=LeftStr(Result,p-1);
+      until p^ in [#0,'/'];
+      OldPath:=LeftStr(Result,p-PAnsiChar(Result));
       NewPath:=ResolveSymLinks(OldPath,ExceptionOnError);
       if NewPath='' then exit('');
       if OldPath<>NewPath then
       begin
         Result:=NewPath+copy(Result,length(OldPath)+1,length(Result));
-        p:=length(NewPath)+1;
+        p:=PAnsiChar(Result)+length(NewPath);
       end;
     end;
-  end;
+  until false;
 end;
 
 function ResolveSymLinks(const Filename: string; ExceptionOnError: boolean
   ): string;
 var
-  LinkFilename: string;
+  LinkFilename: rawbytestring;
   AText: string;
-  Depth: Integer;
 begin
   Result:=Filename;
-  Depth:=0;
-  while Depth<12 do
-  begin
-    inc(Depth);
-    try
-      LinkFilename:=NJS_FS.readlinkSync(Result);
-    except
-      if not ExceptionOnError then
-        exit;
-      if isString(JSExceptValue) then
-        AText:=String(JSExceptValue)
-      else if isObject(JSExceptValue) and isString(TJSObject(JSExceptValue)['message']) then
-      begin
-        if TJSObject(JSExceptValue)['code']='EINVAL' then
-        begin
-          // not a symbolic link
-          exit;
-        end;
-        AText:=String(TJSObject(JSExceptValue)['message']);
-      end else
-        AText:='uknown error ('+jsTypeOf(JSExceptValue)+')';
-      if Pos(Filename,AText)<1 then
-        AText+=' "'+Filename+'"';
-      raise EFOpenError.Create(AText);
-    end;
-    if LinkFilename='' then
-    begin
-      // not a symbolic link, just a regular file
-      exit;
-    end;
-    if not FilenameIsAbsolute(LinkFilename) then
-      Result:=ExtractFilePath(Result)+LinkFilename
-    else
-      Result:=LinkFilename;
-  end;
-  // probably an endless loop
-  if ExceptionOnError then
-    raise EFOpenError.Create('too many links, maybe an endless loop.')
+  if not FileGetSymLinkTarget(FileName,LinkFileName) then
+    raise EFOpenError.Create(AText);
+  if not FilenameIsAbsolute(LinkFilename) then
+    Result:=ExtractFilePath(Result)+LinkFilename
   else
-    Result:='';
+    Result:=LinkFilename;
 end;
 
 function IsUNCPath(const Path: String): Boolean;
@@ -155,23 +120,20 @@ begin
 end;
 
 function FileIsWritable(const AFilename: string): boolean;
+
+var
+  FD : THandle;
+
 begin
-  try
-    NJS_FS.accessSync(AFilename,W_OK);
-  except
-    exit(false);
-  end;
-  Result:=true;
+  FD := FileOpen(aFileName,fmOpenWrite);
+  Result:=FD>0;
+  if Result then
+    FileClose(FD);
 end;
 
 function FileIsExecutable(const AFilename: string): boolean;
 begin
-  try
-    NJS_FS.accessSync(AFilename,X_OK);
-  except
-    exit(false);
-  end;
-  Result:=true;
+  Result:=False;
 end;
 
 function GetEnvironmentVariableCountPJ: Integer;
@@ -181,18 +143,11 @@ end;
 
 function GetEnvironmentStringPJ(Index: Integer): string;
 begin
-  Result:=GetEnvironmentString(Index);
+  Result:=ConsoleToUTF8(GetEnvironmentString(Index));
 end;
 
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
-  Result:=GetEnvironmentVariable(EnvVar);
-end;
-
-function GetConsoleTextEncoding: string;
-begin
-  Result:=GetDefaultTextEncoding;
-end;
-
+  Result:=ConsoleToUTF8(GetEnvironmentVariable(EnvVar));
 end;
 
