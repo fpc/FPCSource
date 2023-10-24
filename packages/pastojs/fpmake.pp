@@ -20,7 +20,7 @@ begin
 {$endif ALLPACKAGES}
 
     P.Version:='3.3.1';
-    P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
+    P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE]+[wasi];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

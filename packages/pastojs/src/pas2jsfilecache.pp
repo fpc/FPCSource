@@ -1787,9 +1787,11 @@ begin
       end;
     except
       on E: Exception do begin
+        {$IFNDEF CPUWASM}
         i:=GetLastOSError;
         if i<>0 then
           Log.LogPlain('Note: '+SysErrorMessage(i));
+        {$ENDIF}  
         if not DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
           Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
         if FileExists(Filename) and not FileIsWritable(Filename) then

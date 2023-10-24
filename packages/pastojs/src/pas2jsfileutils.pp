@@ -838,17 +838,20 @@ end;
   {$I pas2jsfileutilsnodejs.inc}
 {$ENDIF}
 
-procedure InternalInit;
-begin
-
-  InitPlatform;
-end;
+{$IFDEF CPUWASM}
+  {$I pas2jsfileutilswasm.inc}
+{$ENDIF}
 
 initialization
-  InternalInit;
-{$IFDEF FPC}
+
+{$IFDEF HAVE_INITPLATFORM}
+  InitPlatform;
+{$ENDIF} 
+
 finalization
+{$IFDEF HAVE_FINALIZEPLATFORM}
   FinalizePlatform;
-{$ENDIF}
+{$ENDIF}  
+  
 end.
 

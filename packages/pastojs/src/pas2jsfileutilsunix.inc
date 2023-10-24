@@ -185,14 +185,3 @@ begin
   Result:=ConsoleToUTF8(GetEnvironmentVariable(EnvVar));
 end;
 
-
-procedure InitPlatform;
-begin
-
-end;
-
-procedure FinalizePlatform;
-begin
-
-end;
-
