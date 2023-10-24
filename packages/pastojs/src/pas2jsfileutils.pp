@@ -94,15 +94,13 @@ procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 
 implementation
 
+{$IFDEF Windows}
 {$IFDEF FPC_DOTTEDUNITS}
-{$IFDEF Windows}
-uses WinApi.Windows, Pas2Js.Utils;
-{$ENDIF}
+uses WinApi.Windows;
 {$ELSE FPC_DOTTEDUNITS}
-{$IFDEF Windows}
-uses Windows, pas2jsutils;
-{$ENDIF}
+uses Windows;
 {$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF}
 
 
 function FilenameIsWinAbsolute(const aFilename: string): boolean;
