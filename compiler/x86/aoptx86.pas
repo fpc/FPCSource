@@ -6065,23 +6065,22 @@ unit aoptx86;
                                 taicpu(hp1).oper[0]^.ref^.base := TempReg;
                               end;
 
-                            if (taicpu(hp1).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) then
-                              begin
-                                { Just to prevent miscalculations }
-                                if (taicpu(hp1).oper[0]^.ref^.scalefactor = 0) then
-                                  taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor
-                                else
-                                  taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(hp1).oper[0]^.ref^.scalefactor * max(taicpu(p).oper[0]^.ref^.scalefactor, 1);
-                              end
-                            else
+                            { Change lea (reg,reg) to lea(,reg,2) }
+                            if (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) then
                               begin
                                 taicpu(hp1).oper[0]^.ref^.base := NR_NO;
-                                taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor * 2;
+                                taicpu(hp1).oper[0]^.ref^.scalefactor := 2;
                               end;
 
                             if (taicpu(p).oper[0]^.ref^.offset <> 0) then
-                              Inc(taicpu(hp1).oper[0]^.ref^.offset, taicpu(p).oper[0]^.ref^.offset * max(taicpu(p).oper[0]^.ref^.scalefactor, 1));
+                              Inc(taicpu(hp1).oper[0]^.ref^.offset, taicpu(p).oper[0]^.ref^.offset * max(taicpu(hp1).oper[0]^.ref^.scalefactor, 1));
                             taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.ref^.index;
+
+                            { Just to prevent miscalculations }
+                            if (taicpu(hp1).oper[0]^.ref^.scalefactor = 0) then
+                              taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor
+                            else
+                              taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(hp1).oper[0]^.ref^.scalefactor * max(taicpu(p).oper[0]^.ref^.scalefactor, 1);
 
                             { Only remove the first LEA if we don't need the intermediate register's value as is }
                             if IntermediateRegDiscarded then
