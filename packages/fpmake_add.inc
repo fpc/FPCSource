@@ -149,6 +149,7 @@
   add_qlunits(ADirectory+IncludeTrailingPathDelimiter('qlunits'));
   add_mustache(ADirectory+IncludeTrailingPathDelimiter('fcl-mustache'));
   add_wasmtime(ADirectory+IncludeTrailingPathDelimiter('wasmtime'));
+  add_wasmedge(ADirectory+IncludeTrailingPathDelimiter('wasmedge'));
   add_gitlab(ADirectory+IncludeTrailingPathDelimiter('gitlab'));
   add_fcl_css(ADirectory+IncludeTrailingPathDelimiter('fcl-css'));
   add_gstreamer(ADirectory+IncludeTrailingPathDelimiter('gstreamer'));

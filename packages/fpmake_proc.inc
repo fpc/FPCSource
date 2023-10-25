@@ -851,6 +851,12 @@ begin
 {$include wasmtime/fpmake.pp}
 end;
 
+procedure add_wasmedge(const ADirectory: string);
+begin
+  with Installer do
+{$include wasmedge/fpmake.pp}
+end;
+
 procedure add_gstreamer(const ADirectory: string);
 begin
   with Installer do
