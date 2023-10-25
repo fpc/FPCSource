@@ -536,120 +536,7 @@ begin
   end;
 end;
 
-function GetConsoleTextEncoding: string;
-begin
-  Result:=GetWindowsEncoding(True);
-end;
-
-{$ifdef WinCe}
-function UTF8ToSystemCP(const s: ansistring): ansistring; inline;
-begin
-  Result := s;
-end;
-{$else}
-function UTF8ToSystemCP(const s: ansistring): ansistring;
-// result has codepage CP_ACP
-var
-  src: UnicodeString;
-  len: LongInt;
-begin
-  Result:=s;
-  if IsASCII(Result) then
-  begin
-    // prevent codepage conversion magic
-    SetCodePage(RawByteString(Result), CP_ACP, False);
-    exit;
-  end;
-  src:=UTF8Decode(s);
-  if src='' then
-    exit;
-  len:=WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),nil,0,nil,nil);
-  SetLength(Result,len);
-  if len>0 then
-  begin
-    WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),@Result[1],length(Result),nil,nil);
-    // prevent codepage conversion magic
-    SetCodePage(RawByteString(Result), CP_ACP, False);
-  end;
-end;
-{$endif not wince}
-
-{$ifdef WinCE}
-function SystemCPToUTF8(const s: ansistring): ansistring; inline;
-begin
-  Result := SysToUtf8(s);
-end;
-{$else}
-// for all Windows supporting 8bit codepages (e.g. not WinCE)
-function SystemCPToUTF8(const s: ansistring): ansistring;
-// result has codepage CP_ACP
-var
-  UTF16WordCnt: SizeInt;
-  UTF16Str: UnicodeString;
-begin
-  Result:=s;
-  if IsASCII(Result) then
-  begin
-    // prevent codepage conversion magic
-    SetCodePage(RawByteString(Result), CP_ACP, False);
-    exit;
-  end;
-  UTF16WordCnt:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Pointer(s), length(s), nil, 0);
-  // this will null-terminate
-  if UTF16WordCnt>0 then
-  begin
-    setlength(UTF16Str{%H-}, UTF16WordCnt);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Pointer(s), length(s), @UTF16Str[1], UTF16WordCnt);
-    Result:=UTF16ToUTF8(UTF16Str);
-  end;
-end;
-{$endif not wince}
-
-{$ifdef WinCe}
-function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
-begin
-  Result := UTF8ToSystemCP(s);
-end;
-{$else}
-function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
-var
-  Dst: PAnsiChar;
-begin
-  {$ifndef NO_CP_RTL}
-  Result := UTF8ToSystemCP(s);
-  {$else NO_CP_RTL}
-  Result := s; // Kept for compatibility
-  {$endif NO_CP_RTL}
-  Dst := AllocMem((Length(Result) + 1) * SizeOf(AnsiChar));
-  if CharToOEM(PAnsiChar(Result), Dst) then
-    Result := StrPas(Dst);
-  FreeMem(Dst);
-  {$ifndef NO_CP_RTL}
-  SetCodePage(RawByteString(Result), CP_OEMCP, False);
-  {$endif NO_CP_RTL}
-end;
-{$endif not WinCE}
-
-{$ifdef WinCE}
-function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
-begin
-  Result := SysToUTF8(s);
-end;
-{$else}
-function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
-var
-  Dst: PAnsiChar;
-begin
-  Dst := AllocMem((Length(s) + 1) * SizeOf(AnsiChar));
-  if OemToChar(PAnsiChar(s), Dst) then
-    Result := StrPas(Dst)
-  else
-    Result := s;
-  FreeMem(Dst);
-  Result := SystemCPToUTF8(Result);
-end;
-{$endif not wince}
-
+{$DEFINE HAVE_INITPLATFORM}
 procedure InitPlatform;
 begin
   {$ifndef WinCE}
@@ -670,6 +557,7 @@ begin
   end;
 end;
 
+{$DEFINE HAVE_FINALIZEPLATFORM}
 procedure FinalizePlatform;
 {$IFDEF ArgsWAsUTF8}
 var

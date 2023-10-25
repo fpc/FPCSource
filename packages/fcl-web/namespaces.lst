@@ -49,6 +49,7 @@ src/base/custcgi.pp=namespaced/FpWeb.HostApp.Custom.Cgi.pp
 src/base/websession.pp=namespaced/FpWeb.Session.pp
 src/base/fphttp.pp=namespaced/FpWeb.Http.Base.pp
 src/base/webpage.pp=namespaced/FpWeb.WebPage.pp
+src/base/fpdebugcapturesvc.pp=namespaced/FpWeb.Http.DebugCapture.pp
 src/webdata/sqldbwebdata.pp=namespaced/FpWeb.Data.SqlDb.pp
 {s*:src/webdata/}=namespaced/
 {i+:src/webdata/}

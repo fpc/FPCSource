@@ -164,6 +164,7 @@ function FileIsExecutable(const AFilename: string): boolean;
 var
   Info : Stat;
 begin
+  Info:=Default(Stat);
   // first check AFilename is not a directory and then check if executable
   Result:= (FpStat(AFilename,info{%H-})<>-1) and FPS_ISREG(info.st_mode) and
            ({$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FpAccess(AFilename,{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.X_OK)=0);
@@ -182,68 +183,5 @@ end;
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
   Result:=ConsoleToUTF8(GetEnvironmentVariable(EnvVar));
-end;
-
-{$IFNDEF Darwin}
-function GetUnixEncoding: string;
-var
-  i: integer;
-begin
-  Result:=EncodingSystem;
-  i:=pos('.',Lang);
-  if (i>0) and (i<=length(Lang)) then
-    Result:=copy(Lang,i+1,length(Lang)-i);
-end;
-{$ENDIF}
-
-function GetConsoleTextEncoding: string;
-begin
-  Result:=GetDefaultTextEncoding;
-end;
-
-function UTF8ToSystemCP(const s: Ansistring): Ansistring;
-begin
-  if NonUTF8System and not IsASCII(s) then
-  begin
-    Result:=UTF8ToAnsi(s);
-    // prevent UTF8 codepage appear in the strings - we don't need codepage
-    // conversion magic
-    SetCodePage(RawByteString(Result), StringCodePage(s), False);
-  end
-  else
-    Result:=s;
-end;
-
-function SystemCPToUTF8(const s: ansistring): ansistring;
-begin
-  if NonUTF8System and not IsASCII(s) then
-  begin
-    Result:=AnsiToUTF8(s);
-    // prevent UTF8 codepage appear in the strings - we don't need codepage
-    // conversion magic
-    SetCodePage(RawByteString(Result), StringCodePage(s), False);
-  end
-  else
-    Result:=s;
-end;
-
-function ConsoleToUTF8(const s: ansistring): ansistring;
-begin
-  Result:=SystemCPToUTF8(s);
-end;
-
-function UTF8ToConsole(const s: ansistring): ansistring;
-begin
-  Result:=UTF8ToSystemCP(s);
-end;
-
-procedure InitPlatform;
-begin
-
-end;
-
-procedure FinalizePlatform;
-begin
-
 end;
 

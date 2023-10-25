@@ -16,6 +16,10 @@
   Abstract:
     Pas2JS compiler Postprocessor support. Can depend on filesystem.
 }
+{$IFNDEF CPUWASM}
+{$DEFINE HAS_PROCESS}
+{$ENDIF}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSCompilerPP;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -53,9 +57,9 @@ Type
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Process, Pas2Js.Logger, Pas2Js.Utils, Pas2Js.Files.Utils;
+uses {$IFDEF HAS_PROCESS}System.Process,{$ENDIF} Pas2Js.Logger, Pas2Js.Utils, Pas2Js.Files.Utils;
 {$ELSE FPC_DOTTEDUNITS}
-uses process, pas2jslogger, pas2jsutils, pas2jsfileutils;
+uses {$IFDEF HAS_PROCESS}process, {$ENDIF} pas2jslogger, pas2jsutils, pas2jsfileutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 function TPas2JSFSPostProcessorSupport.CmdListAsStr(CmdList: TStrings): string;
@@ -142,6 +146,7 @@ begin
 
 end;
 
+{$IFDEF HAS_PROCESS}
 function TPas2JSFSPostProcessorSupport.Execute(const JSFilename: String; Cmd: TStringList; JS: TJSWriterString): TJSWriterString;
 
 const
@@ -267,7 +272,13 @@ begin
   if Compiler.ShowDebug or Compiler.ShowUsedTools then
     Compiler.Log.LogMsgIgnoreFilter(nPostProcessorFinished,[]);
 end;
+{$ELSE}
+function TPas2JSFSPostProcessorSupport.Execute(const JSFilename: String; Cmd: TStringList; JS: TJSWriterString): TJSWriterString;
 
+begin
+  raise EFOpenError.Create('post processor "'+Cmd[0]+'" cannot be executed, no process support');
+end;
+{$ENDIF}
 
 end.
 

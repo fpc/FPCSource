@@ -20,7 +20,7 @@ begin
 {$endif ALLPACKAGES}
 
     P.Version:='3.3.1';
-    P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
+    P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE]+[wasi];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -28,7 +28,7 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-passrc');
-    P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-process',AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE]);
     Defaults.Options.Add('-Sc');
 
     P.Author := 'Free Pascal development team';

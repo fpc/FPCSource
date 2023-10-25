@@ -91,53 +91,17 @@ type TChangeStamp = SizeInt;
 const InvalidChangeStamp = low(TChangeStamp);
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 
-const
-  EncodingUTF8 = 'UTF-8';
-  EncodingSystem = 'System';
-function NormalizeEncoding(const Encoding: string): string;
-function IsNonUTF8System: boolean;// true if system encoding is not UTF-8
-function GetDefaultTextEncoding: string;
-function GetConsoleTextEncoding: string;
-{$IFDEF Windows}
-// AConsole - If false, it is the general system encoding,
-//            if true, it is the console encoding
-function GetWindowsEncoding(AConsole: Boolean = False): string;
-{$ENDIF}
-{$IF defined(Unix) and not defined(Darwin)}
-function GetUnixEncoding: string;
-{$ENDIF}
-function IsASCII(const s: string): boolean; inline;
-
-{$IFDEF FPC_HAS_CPSTRING}
-function UTF8ToSystemCP(const s: ansistring): ansistring;
-function SystemCPToUTF8(const s: ansistring): ansistring;
-
-function ConsoleToUTF8(const s: ansistring): ansistring;
-// converts UTF8 string to console encoding (used by Write, WriteLn)
-function UTF8ToConsole(const s: ansistring): ansistring;
-{$ENDIF FPC_HAS_CPSTRING}
 
 implementation
 
+{$IFDEF Windows}
 {$IFDEF FPC_DOTTEDUNITS}
-{$IFDEF Windows}
 uses WinApi.Windows;
-{$ENDIF}
 {$ELSE FPC_DOTTEDUNITS}
-{$IFDEF Windows}
 uses Windows;
-{$ENDIF}
 {$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF}
 
-var
-  EncodingValid: boolean = false;
-  DefaultTextEncoding: string = EncodingSystem;
-  {$IFDEF Unix}
-  {$IFNDEF Darwin}
-  Lang: string = '';
-  {$ENDIF}
-  {$ENDIF}
-  NonUTF8System: boolean = {$IFDEF FPC_HAS_CPSTRING}false{$ELSE}true{$ENDIF};
 
 function FilenameIsWinAbsolute(const aFilename: string): boolean;
 begin
@@ -861,79 +825,6 @@ begin
     Stamp:=InvalidChangeStamp+1;
 end;
 
-function IsNonUTF8System: boolean;
-begin
-  Result:=NonUTF8System;
-end;
-
-function GetDefaultTextEncoding: string;
-begin
-  if EncodingValid then
-  begin
-    Result:=DefaultTextEncoding;
-    exit;
-  end;
-
-  {$IFDEF Pas2js}
-  Result:=EncodingUTF8;
-  {$ELSE}
-    {$IFDEF Windows}
-    Result:=GetWindowsEncoding;
-    {$ELSE}
-      {$IFDEF Darwin}
-      Result:=EncodingUTF8;
-      {$ELSE}
-      // unix
-      Lang := GetEnvironmentVariable('LC_ALL');
-      if Lang='' then
-      begin
-        Lang := GetEnvironmentVariable('LC_MESSAGES');
-        if Lang='' then
-          Lang := GetEnvironmentVariable('LANG');
-      end;
-      Result:=GetUnixEncoding;
-      {$ENDIF}
-    {$ENDIF}
-  {$ENDIF}
-  Result:=NormalizeEncoding(Result);
-
-  DefaultTextEncoding:=Result;
-  EncodingValid:=true;
-end;
-
-function NormalizeEncoding(const Encoding: string): string;
-var
-  i: Integer;
-begin
-  Result:=LowerCase(Encoding);
-  for i:=length(Result) downto 1 do
-    if Result[i]='-' then Delete(Result,i,1);
-end;
-
-function IsASCII(const s: string): boolean; inline;
-{$IFDEF Pas2js}
-var
-  i: Integer;
-begin
-  for i:=1 to length(s) do
-    if s[i]>#127 then exit(false);
-  Result:=true;
-end;
-{$ELSE}
-var
-  p: PAnsiChar;
-begin
-  if s='' then exit(true);
-  p:=PAnsiChar(s);
-  repeat
-    case p^ of
-    #0: if p-PAnsiChar(s)=length(s) then exit(true);
-    #128..#255: exit(false);
-    end;
-    inc(p);
-  until false;
-end;
-{$ENDIF}
 
 {$IFDEF Unix}
   {$I pas2jsfileutilsunix.inc}
@@ -945,29 +836,20 @@ end;
   {$I pas2jsfileutilsnodejs.inc}
 {$ENDIF}
 
-procedure InternalInit;
-begin
-  {$IFDEF FPC_HAS_CPSTRING}
-  SetMultiByteConversionCodePage(CP_UTF8);
-  // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
-  SetMultiByteRTLFileSystemCodePage(CP_UTF8);
-
-  GetDefaultTextEncoding;
-  {$IFDEF Windows}
-  NonUTF8System:=true;
-  {$ELSE}
-  NonUTF8System:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
-  {$ENDIF}
-  {$ENDIF}
-
-  InitPlatform;
-end;
+{$IFDEF CPUWASM}
+  {$I pas2jsfileutilswasm.inc}
+{$ENDIF}
 
 initialization
-  InternalInit;
-{$IFDEF FPC}
+
+{$IFDEF HAVE_INITPLATFORM}
+  InitPlatform;
+{$ENDIF} 
+
 finalization
+{$IFDEF HAVE_FINALIZEPLATFORM}
   FinalizePlatform;
-{$ENDIF}
+{$ENDIF}  
+  
 end.
 

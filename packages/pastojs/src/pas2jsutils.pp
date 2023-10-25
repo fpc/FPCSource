@@ -22,6 +22,16 @@ unit Pas2JSUtils;
 }
 {$mode objfpc}{$H+}
 
+// Check whether we need  the LANG variable
+{$IFDEF Unix}
+{$IFNDEF Darwin}
+{$DEFINE NEEDLANG}
+{$ENDIF}
+{$ENDIF}
+{$IFDEF WASM32}
+{$DEFINE NEEDLANG}
+{$ENDIF}
+
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -56,20 +66,35 @@ function UTF8CharacterStrictLength(P: PAnsiChar): integer;
 function UTF8ToUTF16(const s: AnsiString): UnicodeString;
 function UTF16ToUTF8(const s: UnicodeString): AnsiString;
 
+function UTF8ToSystemCP(const s: ansistring): ansistring;
+function SystemCPToUTF8(const s: ansistring): ansistring;
+
+function ConsoleToUTF8(const s: ansistring): ansistring;
+// converts UTF8 string to console encoding (used by Write, WriteLn)
+function UTF8ToConsole(const s: ansistring): ansistring;
 {$ENDIF FPC_HAS_CPSTRING}
 
 function IsNonUTF8System: boolean;// true if system encoding is not UTF-8
+
 {$IFDEF Windows}
 // AConsole - If false, it is the general system encoding,
 //            if true, it is the console encoding
 function GetWindowsEncoding(AConsole: Boolean = False): string;
 {$ENDIF}
+
 {$IF defined(Unix) and not defined(Darwin)}
 function GetUnixEncoding: string;
 {$ENDIF}
 
 Function NonUTF8System: boolean;
 function GetDefaultTextEncoding: string;
+function IsEncodingValid : Boolean;
+
+{$IFDEF NEEDLANG}
+function GetLang: string;
+{$ENDIF}
+
+function GetConsoleTextEncoding: string;
 
 procedure SplitCmdLineParams(const Params: string; ParamList: TStrings;
                              ReadBackslash: boolean = false);
@@ -84,12 +109,11 @@ uses Windows;
 {$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
+
 Var
-  {$IFDEF Unix}
-  {$IFNDEF Darwin}
+{$IFDEF NEEDLANG}
   Lang: string = '';
-  {$ENDIF}
-  {$ENDIF}
+{$ENDIF}
   EncodingValid: boolean = false;
   DefaultTextEncoding: string = EncodingSystem;
   gNonUTF8System : Boolean = {$IFDEF FPC_HAS_CPSTRING}false{$ELSE}true{$ENDIF};
@@ -99,6 +123,20 @@ Function NonUTF8System: boolean;
 begin
   Result:=gNonUTF8System;
 end;
+
+function IsEncodingValid : Boolean;
+
+begin
+  Result:=EncodingValid;
+end;
+
+{$IFDEF NEEDLANG}
+function GetLang: string;
+
+begin
+  Result:=Lang;
+end;
+{$ENDIF}
 
 function GetNextDelimitedItem(const List: string; Delimiter: Char;
   var Position: integer): string;
@@ -314,7 +352,7 @@ begin
       {$IFDEF Darwin}
       Result:=EncodingUTF8;
       {$ELSE}
-      // unix
+      // unix & wasm
       Lang := GetEnvironmentVariable('LC_ALL');
       if Lang='' then
       begin
@@ -322,7 +360,12 @@ begin
         if Lang='' then
           Lang := GetEnvironmentVariable('LANG');
       end;
+      {$IFNDEF CPUWASM}
       Result:=GetUnixEncoding;
+      {$ELSE} 
+      // wasm
+      Result:='UTF8'; // some choice needs to be made
+      {$ENDIF}
       {$ENDIF}
     {$ENDIF}
   {$ENDIF}
@@ -434,6 +477,203 @@ begin
   end;
 end;
 
+function GetConsoleTextEncoding: string;
+begin
+{$IFDEF WINDOWS}
+  Result:=GetWindowsEncoding(True);
+{$ELSE} 
+  Result:=GetDefaultTextEncoding;
+{$ENDIF}  
+end;
+
+{$IFDEF WINDOWS}
+
+{$ifdef WinCe}
+function UTF8ToSystemCP(const s: ansistring): ansistring; inline;
+begin
+  Result := s;
+end;
+{$else}
+function UTF8ToSystemCP(const s: ansistring): ansistring;
+// result has codepage CP_ACP
+var
+  src: UnicodeString;
+  len: LongInt;
+begin
+  Result:=s;
+  if IsASCII(Result) then
+  begin
+    // prevent codepage conversion magic
+    SetCodePage(RawByteString(Result), CP_ACP, False);
+    exit;
+  end;
+  src:=UTF8Decode(s);
+  if src='' then
+    exit;
+  len:=WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),nil,0,nil,nil);
+  SetLength(Result,len);
+  if len>0 then
+  begin
+    WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),@Result[1],length(Result),nil,nil);
+    // prevent codepage conversion magic
+    SetCodePage(RawByteString(Result), CP_ACP, False);
+  end;
+end;
+{$endif not wince}
+
+{$ifdef WinCE}
+function SystemCPToUTF8(const s: ansistring): ansistring; inline;
+begin
+  Result := SysToUtf8(s);
+end;
+{$else}
+// for all Windows supporting 8bit codepages (e.g. not WinCE)
+function SystemCPToUTF8(const s: ansistring): ansistring;
+// result has codepage CP_ACP
+var
+  UTF16WordCnt: SizeInt;
+  UTF16Str: UnicodeString;
+begin
+  Result:=s;
+  if IsASCII(Result) then
+  begin
+    // prevent codepage conversion magic
+    SetCodePage(RawByteString(Result), CP_ACP, False);
+    exit;
+  end;
+  UTF16WordCnt:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Pointer(s), length(s), nil, 0);
+  // this will null-terminate
+  if UTF16WordCnt>0 then
+  begin
+    setlength(UTF16Str{%H-}, UTF16WordCnt);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Pointer(s), length(s), @UTF16Str[1], UTF16WordCnt);
+    Result:=UTF16ToUTF8(UTF16Str);
+  end;
+end;
+{$endif not wince}
+
+{$ifdef WinCe}
+function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
+begin
+  Result := UTF8ToSystemCP(s);
+end;
+{$else}
+function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
+var
+  Dst: PAnsiChar;
+begin
+  {$ifndef NO_CP_RTL}
+  Result := UTF8ToSystemCP(s);
+  {$else NO_CP_RTL}
+  Result := s; // Kept for compatibility
+  {$endif NO_CP_RTL}
+  Dst := AllocMem((Length(Result) + 1) * SizeOf(AnsiChar));
+  if CharToOEM(PAnsiChar(Result), Dst) then
+    Result := StrPas(Dst);
+  FreeMem(Dst);
+  {$ifndef NO_CP_RTL}
+  SetCodePage(RawByteString(Result), CP_OEMCP, False);
+  {$endif NO_CP_RTL}
+end;
+{$endif not WinCE}
+
+{$ifdef WinCE}
+function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
+begin
+  Result := SysToUTF8(s);
+end;
+{$else}
+function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
+var
+  Dst: PAnsiChar;
+begin
+  Dst := AllocMem((Length(s) + 1) * SizeOf(AnsiChar));
+  if OemToChar(PAnsiChar(s), Dst) then
+    Result := StrPas(Dst)
+  else
+    Result := s;
+  FreeMem(Dst);
+  Result := SystemCPToUTF8(Result);
+end;
+{$endif not wince}
+
+{$ENDIF WINDOWS}
+
+{$IFDEF UNIX}
+function UTF8ToSystemCP(const s: Ansistring): Ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=UTF8ToAnsi(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function SystemCPToUTF8(const s: ansistring): ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=AnsiToUTF8(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function ConsoleToUTF8(const s: ansistring): ansistring;
+begin
+  Result:=SystemCPToUTF8(s);
+end;
+
+function UTF8ToConsole(const s: ansistring): ansistring;
+begin
+  Result:=UTF8ToSystemCP(s);
+end;
+{$ENDIF UNIX}
+
+{$IF NOT DEFINED(UNIX) AND NOT DEFINED(WINDOWS)}
+function UTF8ToSystemCP(const s: Ansistring): Ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=UTF8ToAnsi(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function SystemCPToUTF8(const s: ansistring): ansistring;
+begin
+  if NonUTF8System and not IsASCII(s) then
+  begin
+    Result:=AnsiToUTF8(s);
+    // prevent UTF8 codepage appear in the strings - we don't need codepage
+    // conversion magic
+    SetCodePage(RawByteString(Result), StringCodePage(s), False);
+  end
+  else
+    Result:=s;
+end;
+
+function ConsoleToUTF8(const s: ansistring): ansistring;
+begin
+  Result:=SystemCPToUTF8(s);
+end;
+
+function UTF8ToConsole(const s: ansistring): ansistring;
+begin
+  Result:=UTF8ToSystemCP(s);
+end;
+{$ENDIF}
 
 initialization
   InternalInit;
