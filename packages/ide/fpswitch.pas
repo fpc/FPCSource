@@ -50,7 +50,7 @@ type
     TSwitchItem = object(TObject)
       Typ       : TSwitchItemTyp;
       Name      : string[50];
-      Param     : string[10];
+      Param     : string[30];
       ParamID   : TParamID;
       constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
