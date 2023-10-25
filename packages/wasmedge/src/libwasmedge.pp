@@ -613,9 +613,13 @@ WasmEdge_ExecutorExperimentalRegisterPostHostFunction : procedure(Cxt:PWasmEdge_
 
 implementation
 
-  uses
-    SysUtils, dynlibs;
-
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DynLibs;
+{$ELSE}
+uses
+   SysUtils, dynlibs;
+{$ENDIF}
   var
     hlib : tlibhandle;
 
