@@ -925,3 +925,267 @@ begin
   For S in ArrayOfConstToStrArray(Args) do
     Add(S);
 end;
+
+Function GetCompiledArchitecture : TOSVersion.TArchitecture;
+
+begin
+  Result:=arOther;
+  {$ifdef i386}
+  Result:=arIntelX86;
+  {$endif i386}
+
+  {$ifdef m68k}
+  Result:=arM68k;
+  {$endif m68k}
+
+  {$ifdef powerpc}
+  Result:=arPowerPC
+  {$endif powerpc}
+
+  {$ifdef powerpc64}
+  Result:=arPower64
+  {$endif powerpc64}
+
+  {$ifdef arm}
+  Result:=arARM32;
+  {$endif arm}
+
+  {$ifdef aarch64}
+  Result:=arARM64
+  {$endif aarch64}
+
+  {$ifdef sparc}
+  Result:=arSparc;
+  {$endif sparc}
+
+  {$ifdef sparc64}
+  Result:=arSparc64;
+  {$endif sparc64}
+
+  {$ifdef CPUX86_64}
+  Result:=arIntelX64;
+  {$endif x86_64}
+
+  {$ifdef mipsel}
+  Result:=arMipsel
+  {$else : not mipsel}
+    {$ifdef mips}
+      Result:=arMips;
+    {$endif mips}
+  {$endif not mipsel}
+
+  {$ifdef riscv32}
+  Result:=arRiscV32;
+  {$endif riscv32}
+
+  {$ifdef riscv64}
+  Result:=arRiscV64;
+  {$endif riscv64}
+
+  {$ifdef xtensa}
+  Result:=arExtensa;
+  {$endif xtensa}
+
+  {$ifdef wasm32}
+  Result:=arWasm32;
+  {$endif wasm32}
+
+  {$ifdef loongarch64}
+  Result:=arLoongArch64;
+  {$endif loongarch64}
+end;
+
+Function GetCompiledPlatform : TOSVersion.TPlatform;
+
+begin
+  Result:=pfOther;
+  {$IFDEF WINDOWS}
+  Result:=pfWindows;
+  {$ENDIF}
+  {$Ifdef darwin}
+  Result:=pfMacOS;
+  {$ENDIF}
+  {$IFDEF IOS}
+  Result:=pfiOS;
+  {$ENDIF}
+  {$IFDEF ANDROID}
+  Result:=pfAndroid;
+  {$ENDIF}
+  {$IFDEF LINUX}
+  Result:=pfLinux;
+  {$ENDIF}
+  {$IFDEF GO32V2}
+  Result:=pfGo32v2;
+  {$ENDIF}
+  {$IFDEF OS2}
+  Result:=pfOS2;
+  {$ENDIF}
+  {$IFDEF FREEBSD}
+  Result:=pfFreeBSD;
+  {$ENDIF}
+  {$IFDEF BEOS}
+  Result:=pfBeos;
+  {$ENDIF}
+  {$IFDEF NETBSD}
+  Result:=pfNetBSD;
+  {$ENDIF}
+  {$IFDEF AMIGA}
+  Result:=pfAmiga;
+  {$ENDIF}
+  {$IFDEF ATARI}
+  Result:=pfAtari;
+  {$ENDIF}
+  {$IFDEF SUNOS}
+  Result:=pfSolaris;
+  {$ENDIF}
+  {$IFDEF QNX}
+  Result:=pfQNX;
+  {$ENDIF}
+  {$IFDEF Netware}
+  Result:=pfNetware;
+  {$ENDIF}
+  {$IFDEF OpenBSD}
+  Result:=pfOpenBSD;
+  {$ENDIF}
+  {$IFDEF WDosX}
+  Result:=pfWDosX;
+  {$ENDIF}
+  {$IFDEF PALMOS}
+  Result:=pfPalmos;
+  {$ENDIF}
+  {$IFDEF MacOSClassic}
+  Result:=pfMacOSClassic;
+  {$ENDIF}
+  {$IFDEF DARWIN}
+  Result:=pfDarwin;
+  {$ENDIF}
+  {$IFDEF EMX}
+  Result:=pfEMX;
+  {$ENDIF}
+  {$IFDEF WATCOM}
+  Result:=pfWatcom;
+  {$ENDIF}
+  {$IFDEF MORPHOS}
+  Result:=pfMorphos;
+  {$ENDIF}
+  {$IFDEF NETWLIBC}
+  Result:=pfNetwLibC;
+  {$ENDIF}
+  {$IFDEF WINCE}
+  Result:=pfWinCE;
+  {$ENDIF}
+  {$IFDEF GBA}
+  Result:=pfGBA;
+  {$ENDIF}
+  {$IFDEF NDS}
+  Result:=pfNDS;
+  {$ENDIF}
+  {$IFDEF EMBEDDED}
+  Result:=pfEmbedded;
+  {$ENDIF}
+  {$IFDEF SYMBIAN}
+  Result:=pfSymbian;
+  {$ENDIF}
+  {$IFDEF HAIKU}
+  Result:=pfHaiku;
+  {$ENDIF}
+  {$IFDEF IPHONESIM}
+  Result:=pfIPhoneSim;
+  {$ENDIF}
+  {$IFDEF AIX}
+  Result:=pfAIX;
+  {$ENDIF}
+  {$IFDEF JAVA}
+  Result:=pfJava;
+  {$ENDIF}
+  {$IFDEF NATIVENT}
+  Result:=pfNativeNT;
+  {$ENDIF}
+  {$IFDEF MSDOS}
+  Result:=pfMSDos;
+  {$ENDIF}
+  {$IFDEF WII}
+  Result:=pfWII;
+  {$ENDIF}
+  {$IFDEF AROS}
+  Result:=pfAROS;
+  {$ENDIF}
+  {$IFDEF DRAGONFLY}
+  Result:=pfDragonFly;
+  {$ENDIF}
+  {$IFDEF WIN16}
+  Result:=pfWin16;
+  {$ENDIF}
+  {$IFDEF FREERTOS}
+  Result:=pfFreeRTOS;
+  {$ENDIF}
+  {$IFDEF ZXSPECTRUM}
+  Result:=pfZXSpectrum;
+  {$ENDIF}
+  {$IFDEF MSXDOS}
+  Result:=pfMSXDOS;
+  {$ENDIF}
+  {$IFDEF AMSTRADCPC}
+  Result:=pfAmstradCPC;
+  {$ENDIF}
+  {$IFDEF SINCLAIRQL}
+  Result:=pfSinclairQL;
+  {$ENDIF}
+  {$IFDEF WASI}
+  Result:=pfWasi;
+  {$ENDIF}
+end;
+
+class constructor TOSVersion.Create;
+
+{$IFNDEF HAS_OSVERSION}
+var
+  S : String;
+{$ENDIF}
+begin
+  FArchitecture:=GetCompiledArchitecture;
+  FPlatform:=GetCompiledPlatform;
+  FBuild:=0;
+  FMajor:=0;
+  FMinor:=0;
+  FServicePackMajor:=0;
+  FServicePackMinor:=0;
+{$IFDEF HAS_OSVERSION}
+  InitOSVersion;
+{$ELSE}
+  WriteStr(S,GetCompiledPlatform);
+  FName:=Copy(S,3);
+  WriteStr(S,GetCompiledArchitecture);
+  FFull:=Copy(S,3)+'-'+FName;
+{$ENDIF}
+end;
+
+class function TOSVersion.Check(aMajor: Integer): Boolean; overload; static; inline;
+
+begin
+  Result:=(Major>=aMajor);
+end;
+
+
+class function TOSVersion.Check(aMajor, aMinor: Integer): Boolean; overload; static; inline;
+
+begin
+ Result:=(Major>aMajor)
+         or ((Major=aMajor) and (Minor>=aMinor))
+end;
+
+
+class function TOSVersion.Check(aMajor, aMinor, aServicePackMajor: Integer): Boolean; overload; static; inline;
+
+begin
+  Result:=(Major>AMajor)
+          or ((Major=aMajor) and (Minor>aMinor))
+          or ((Major=aMajor) and (Minor=aMinor) and (ServicePackMajor>=aServicePackMajor));
+end;
+
+
+class function TOSVersion.ToString: string; static;
+
+begin
+  Result:=FFull;
+end;

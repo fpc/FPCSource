@@ -371,3 +371,69 @@ Type
 
 Function ArrayOfConstToStr(Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
 Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
+
+{ Delphi compatibility }
+
+Type
+
+  { TOSVersion }
+
+  TOSVersion = record
+  public type
+    TArchitecture = (arIntelX86, arIntelX64, arARM32, arARM64, arIntelX16, arXTensa, arAVR, arM68k, arPowerPC, arPower64,
+                     arMips, arMipsel, arMips64, arMips64el, arJVM, arWasm32, arSparc64, arRiscV32, arRiscV64, arZ80,
+                     arLoongArch64, arOther);
+
+    TPlatform = (pfWindows, pfMacOS, pfiOS, pfAndroid, pfWinRT, pfLinux,
+                 pfGo32v2, pfOS2, pfFreeBSD, pfBeos, pfNetBSD, pfAmiga,
+                 pfAtari, pfSolaris, pfQNX, pfNetware, pfOpenBSD, pfWDosX,
+                 pfPalmos, pfMacOSClassic, pfDarwin, pfEMX, pfWatcom,
+                 pfMorphos, pfNetwLibC, pfWinCE, pfGBA, pfNDS, pfEmbedded,
+                 pfSymbian, pfHaiku, pfIPhoneSim, pfAIX, pfJava,
+                 pfNativeNT, pfMSDos, pfWII, pfAROS, pfDragonFly, pfWin16,
+                 pfFreeRTOS, pfZXSpectrum, pfMSXDOS, pfAmstradCPC,
+                 pfSinclairQL, pfWasi, pfOther);
+  public const
+    AllArchitectures = [Low(TArchitecture) .. High(TArchitecture)];
+    AllPlatforms = [Low(TPlatform) .. High(TPlatform)];
+  private
+    class var FFull : string;
+    class var FArchitecture: TArchitecture;
+    class var FBuild: Integer;
+    class var FMajor: Integer;
+    class var FMinor: Integer;
+    class var FName: string;
+    class var FPlatform: TPlatform;
+    class var FServicePackMajor: Integer;
+    class var FServicePackMinor: Integer;
+  {$IFDEF LINUX}
+    class var FPrettyName: string;
+    class var FLibCVersionMajor: Integer;
+    class var FLibCVersionMinor: Integer;
+  {$ENDIF LINUX}
+    class constructor Create;
+  public
+    class function Check(AMajor: Integer): Boolean; overload; static; inline;
+    class function Check(AMajor, AMinor: Integer): Boolean; overload; static; inline;
+    class function Check(AMajor, AMinor, AServicePackMajor: Integer): Boolean; overload; static; inline;
+    class function ToString: string; static;
+    class property Architecture: TArchitecture read FArchitecture;
+    class property Build: Integer read FBuild;
+    class property Major: Integer read FMajor;
+    class property Minor: Integer read FMinor;
+    class property Name: string read FName;
+    class property Platform: TPlatform read FPlatform;
+    class property ServicePackMajor: Integer read FServicePackMajor;
+    class property ServicePackMinor: Integer read FServicePackMinor;
+  {$IFDEF LINUX}
+    class property PrettyName: string read FPrettyName;
+    class property LibCVersionMajor: Integer read FLibCVersionMajor;
+    class property LibCVersionMinor: Integer read FLibCVersionMinor;
+  {$ENDIF LINUX}
+  end;
+
+  TArchitectures = set of TOSVersion.TArchitecture;
+  TPlatforms = set of TOSVersion.TPlatform;
+
+  Function GetCompiledArchitecture : TOSVersion.TArchitecture;
+  Function GetCompiledPlatform : TOSVersion.TPlatform;
