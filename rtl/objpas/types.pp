@@ -74,6 +74,8 @@ type
   TStringDynArray = Array of AnsiString;
 {$ENDIF}
 
+  TClassicStringDynArray = TStringDynArray;
+
   TObjectDynArray = array of TObject;
   TWordDynArray = array of Word;
   TCurrencyArray = Array of currency;
