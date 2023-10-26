@@ -12,7 +12,6 @@ uses
 {$ELSE}  
   ctypes;
 {$ENDIF}
-
 {
   Automatically converted by H2Pas 0.99.16 from libwasmedge4.h
   The following command line parameters were used:
@@ -28,6 +27,20 @@ uses
     -c
     libwasmedge4.h
 }
+
+const
+  {$IFDEF UNIX}
+  {$IFNDEF DARWIN}
+  LibWasmName = 'libwasmedge.so';
+  {$ELSE}
+  LibWasmName = 'libwasmedge.dylib';
+  {$ENDIF}
+  {$ELSE}
+  {$IFDEF WINDOWS}
+  LibWasmName = 'libwasmedge.dll';
+  {$ENDIF}
+  {$ENDIF}
+
 {$IFDEF FPC}
 {$PACKRECORDS C}
 {$ENDIF}
@@ -611,6 +624,9 @@ WasmEdge_Plugin_GetDescriptor : function:PWasmEdge_PluginDescriptor;cdecl;
 WasmEdge_ExecutorExperimentalRegisterPreHostFunction : procedure(Cxt:PWasmEdge_ExecutorContext; Data:pointer; Func:TFinalizer);cdecl;
 WasmEdge_ExecutorExperimentalRegisterPostHostFunction : procedure(Cxt:PWasmEdge_ExecutorContext; Data:pointer; Func:TFinalizer);cdecl;
 
+procedure Loadlibwasmedge(const lib : string = LibWasmName);
+procedure FreeLibWasmEdge;
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -626,6 +642,8 @@ uses
 
   procedure Freelibwasmedge;
     begin
+      if hLib=NilHandle then
+        exit;
       FreeLibrary(hlib);
       WasmEdge_VersionGet:=nil;
       WasmEdge_VersionGetMajor:=nil;
@@ -872,11 +890,11 @@ uses
     end;
 
 
-  procedure Loadlibwasmedge(lib : pchar);
+  procedure Loadlibwasmedge(const lib : string);
     begin
       Freelibwasmedge;
       hlib:=LoadLibrary(lib);
-      if hlib=0 then
+      if (hlib=0) then
         raise Exception.Create(format('Could not load library: %s',[lib]));
 
       pointer(WasmEdge_VersionGet):=GetProcAddress(hlib,'WasmEdge_VersionGet');
@@ -1124,8 +1142,6 @@ uses
     end;
 
 
-initialization
-  Loadlibwasmedge('libwasmedge');
 finalization
   Freelibwasmedge;
 
