@@ -171,6 +171,7 @@ uses
   ,WinApi.Windows  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
   ,WinApi.Shlobj
   ,WinApi.Activex
+  ,System.Registry
   {$endif}
   {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
   , Api.Libfontconfig
