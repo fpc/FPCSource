@@ -4,6 +4,7 @@ uses
   StrUtils;
 const
   result1 : array of SizeInt = (1, 4, 7, 10, 13, 16);
+  result2 : array of SizeInt = (7, 9);
 var 
   a : array of SizeInt;
   i : LongInt;
@@ -39,9 +40,6 @@ begin
   else
     halt(21);
 
-{
-  apparently not working yet:
-  
   if FindMatchesBoyerMooreCaseInSensitive('abcabcabcabcabcabcab','abcab',a,true) then
     begin
       if Length(a)<>Length(result1) then
@@ -73,7 +71,17 @@ begin
     end
   else
     halt(51);
-}
+
+  if FindMatchesBoyerMooreCaseInSensitive('hello hehehe','hehe',a,true) then
+    begin
+      if Length(a)<>Length(result2) then
+        halt(62);
+      for i:=Low(a) to High(a) do
+        if a[i]<>result2[i] then
+          halt(63);
+    end
+  else
+    halt(61);
 
   writeln('ok');
 end.
