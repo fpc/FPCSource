@@ -381,7 +381,7 @@ Type
   TOSVersion = record
   public type
     TArchitecture = (arIntelX86, arIntelX64, arARM32, arARM64, arIntelX16, arXTensa, arAVR, arM68k, arPowerPC, arPower64,
-                     arMips, arMipsel, arMips64, arMips64el, arJVM, arWasm32, arSparc64, arRiscV32, arRiscV64, arZ80,
+                     arMips, arMipsel, arMips64, arMips64el, arJVM, arWasm32, arSparc, arSparc64, arRiscV32, arRiscV64, arZ80,
                      arLoongArch64, arOther);
 
     TPlatform = (pfWindows, pfMacOS, pfiOS, pfAndroid, pfWinRT, pfLinux,
