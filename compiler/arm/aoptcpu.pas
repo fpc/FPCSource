@@ -2396,6 +2396,8 @@ Implementation
               Result := OptPass2STM(p);
             A_STR:
               Result := OptPass2STR(p);
+            A_TST:
+              Result := OptPass2TST(p);
             else
               ;
           end;

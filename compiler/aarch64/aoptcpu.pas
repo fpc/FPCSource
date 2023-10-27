@@ -1266,6 +1266,8 @@ Implementation
             A_LDR,
             A_STR:
               Result:=OptPass2LDRSTR(p);
+            A_TST:
+              Result := OptPass2TST(p);
             else
               ;
           end;
