@@ -15,6 +15,7 @@
 {$mode objfpc}
 {$h+}
 {$inline on}
+{$modeswitch advancedrecords}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit StrUtils;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -320,6 +321,106 @@ uses System.SysConst; // HexDigits
 uses sysconst; // HexDigits
 {$ENDIF FPC_DOTTEDUNITS}
 
+type
+  // Shared between case-sensitive and case-insensitive versions.
+  BoyerMoore = record
+    DeltaJumpTable1: array[AnsiChar] of SizeInt;
+    DeltaJumpTable2: SizeIntArray;
+    MatchesCount: SizeInt; //Stores the amount of replaces that will take place
+    MatchesAllocatedLimit: SizeInt; //Currently allocated space for matches.
+    Matches: ^SizeIntArray;
+
+  class var
+    LCaseArray: array[AnsiChar] of AnsiChar; //Array of lowercased alphabet
+    LCaseArrayPrepared: int32; // Atomic, is LCaseArray initialized, 0 = no, 1 = yes.
+
+    procedure Init(var aMatches: SizeIntArray); inline;
+    procedure MakeDeltaJumpTables(aPattern: PAnsiChar; aPatternSize: SizeInt);
+    procedure AddMatch(aPosition: SizeInt);
+    class function Max(a, b: SizeInt): SizeInt; static; inline;
+    class procedure IncrementEverything(var aMatches: array of SizeInt); static; // Make positions 1-based.
+    class procedure PrepareLCaseArray; static;
+  end;
+
+procedure BoyerMoore.Init(var aMatches: SizeIntArray);
+begin
+   MatchesCount:=0;
+   MatchesAllocatedLimit:=0;
+   Matches:=@aMatches;
+end;
+
+procedure BoyerMoore.MakeDeltaJumpTables(aPattern: PAnsiChar; aPatternSize: SizeInt);
+var
+   i, Position, LastPrefixIndex, SuffixLength: SizeInt;
+begin
+{$if sizeof(SizeInt)=sizeof(word)} FillWord
+{$elseif sizeof(SizeInt)=sizeof(dword)} FillDWord
+{$elseif sizeof(SizeInt)=sizeof(qword)} FillQWord
+{$else} {$error unknown SizeInt size}
+{$endif}
+     (DeltaJumpTable1, Length(DeltaJumpTable1), SizeUint(aPatternSize));
+   //Last AnsiChar do not enter in the equation
+   for i := 0 to aPatternSize - 1 - 1 do
+     DeltaJumpTable1[aPattern[i]]:=aPatternSize -1 - i;
+
+   SetLength(DeltaJumpTable2, aPatternSize);
+   LastPrefixIndex:=aPatternSize-1;
+   Position:=aPatternSize-1;
+   while Position>=0 do begin
+     if CompareByte(aPattern^, aPattern[Position+1], (aPatternSize-Position-1)*SizeOf(aPattern[0]))=0 then
+       LastPrefixIndex := Position+1;
+     DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
+     Dec(Position);
+   end;
+   Position:=0;
+   while Position<aPatternSize-1 do begin
+     SuffixLength:=0;
+     while (SuffixLength<Position) and (aPattern[Position-SuffixLength] = aPattern[aPatternSize-1-SuffixLength]) do
+       inc(SuffixLength);
+     if SuffixLength<Position then
+       DeltaJumpTable2[aPatternSize - 1 - SuffixLength] := aPatternSize - 1 - Position + SuffixLength;
+     Inc(Position);
+   end;
+end;
+
+procedure BoyerMoore.AddMatch(aPosition: SizeInt);
+begin
+  if MatchesCount=MatchesAllocatedLimit then begin
+    MatchesAllocatedLimit:=MatchesAllocatedLimit+4+SizeInt(SizeUint(MatchesAllocatedLimit) div 4+SizeUint(MatchesAllocatedLimit) div 8); // const + 37.5%
+    SetLength(Matches^,MatchesAllocatedLimit);
+  end;
+  Matches^[MatchesCount]:=aPosition;
+  inc(MatchesCount);
+end;
+
+class function BoyerMoore.Max(a, b: SizeInt): SizeInt;
+begin
+  if a>b then Result:=a else Result:=b;
+end;
+
+class procedure BoyerMoore.IncrementEverything(var aMatches: array of SizeInt); static;
+var
+  i: SizeInt;
+begin
+  for i:=0 to High(aMatches) do
+    Inc(aMatches[i]);
+end;
+
+class procedure BoyerMoore.PrepareLCaseArray;
+var
+  c: AnsiChar;
+begin
+  for c in AnsiChar do
+    LCaseArray[c]:=AnsiLowerCase(c)[1];
+{$if declared(InterlockedExchange)}
+  InterlockedExchange(LCaseArrayPrepared, 1);
+{$elseif not defined(fpc_has_feature_threading)}
+  LCaseArrayPrepared := 1;
+{$else}
+  {$error Either InterlockedExchange must be available or threading must not be present.}
+{$endif}
+end;
+
 (*
   FindMatchesBoyerMooreCaseSensitive
 
@@ -335,7 +436,7 @@ uses sysconst; // HexDigits
   aMatchAll: Finds all matches, not just the first one. (Read only).
 
   * Returns:
-    Nothing, information returned in aMatches parameter.
+    True if at least one occurence was found.
 
   The function is based in the Boyer-Moore algorithm.
 *)
@@ -343,117 +444,15 @@ uses sysconst; // HexDigits
 function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PAnsiChar;
   const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
   const aMatchAll: Boolean) : Boolean;
-  
-const
-  ALPHABET_LENGHT=256;
-  MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
-var
-  //Stores the amount of replaces that will take place
-  MatchesCount: SizeInt;
-  //Currently allocated space for matches.
-  MatchesAllocatedLimit: SizeInt;
-type
-  AlphabetArray=array [0..ALPHABET_LENGHT-1] of SizeInt;
-
-  function Max(const a1,a2: SizeInt): SizeInt;
-  begin
-    if a1>a2 then Result:=a1 else Result:=a2;
-  end;
-
-  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
-  var
-    i: SizeInt;
-  begin
-    for i := 0 to ALPHABET_LENGHT-1 do begin
-      DeltaJumpTable1[i]:=aPatternSize;
-    end;
-    //Last AnsiChar do not enter in the equation
-    for i := 0 to aPatternSize - 1 - 1 do begin
-      DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize -1 - i;
-    end;
-  end;
-
-  function IsPrefix(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): Boolean;
-  var
-    i: SizeInt;
-    SuffixLength: SizeInt;
-  begin
-    SuffixLength:=aPatternSize-aPos;
-    for i := 0 to SuffixLength-1 do begin
-      if (aPattern[i] <> aPattern[aPos+i]) then begin
-          exit(false);
-      end;
-    end;
-    Result:=true;
-  end;
-
-  function SuffixLength(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): SizeInt;
-  var
-    i: SizeInt;
-  begin
-    i:=0;
-    while (i<aPos) and (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) do begin
-      inc(i);
-    end;
-    Result:=i;
-  end;
-
-  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
-  var
-    Position: SizeInt;
-    LastPrefixIndex: SizeInt;
-    SuffixLengthValue: SizeInt;
-  begin
-    LastPrefixIndex:=aPatternSize-1;
-    Position:=aPatternSize-1;
-    while Position>=0 do begin
-      if IsPrefix(aPattern,aPatternSize,Position+1) then begin
-        LastPrefixIndex := Position+1;
-      end;
-      DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
-      Dec(Position);
-    end;
-    Position:=0;
-    while Position<aPatternSize-1 do begin
-      SuffixLengthValue:=SuffixLength(aPattern,aPatternSize,Position);
-      if aPattern[Position-SuffixLengthValue] <> aPattern[aPatternSize-1 - SuffixLengthValue] then begin
-        DeltaJumpTable2[aPatternSize - 1 - SuffixLengthValue] := aPatternSize - 1 - Position + SuffixLengthValue;
-      end;
-      Inc(Position);
-    end;
-  end;
-
-  //Resizes the allocated space for replacement index
-  procedure ResizeAllocatedMatches;
-  begin
-    MatchesAllocatedLimit:=MatchesCount+MATCHESCOUNTRESIZER;
-    SetLength(aMatches,MatchesAllocatedLimit);
-  end;
-
-  //Add a match to be replaced
-  procedure AddMatch(const aPosition: SizeInt); inline;
-  begin
-    if MatchesCount = MatchesAllocatedLimit then begin
-      ResizeAllocatedMatches;
-    end;
-    aMatches[MatchesCount]:=aPosition;
-    inc(MatchesCount);
-  end;
 var
   i,j: SizeInt;
-  DeltaJumpTable1: array [0..ALPHABET_LENGHT-1] of SizeInt;
-  DeltaJumpTable2: SizeIntArray;
+  bm: BoyerMoore;
 begin
-  MatchesCount:=0;
-  MatchesAllocatedLimit:=0;
-  SetLength(aMatches,MatchesCount);
-  if OldPatternSize=0 then begin
-    Exit;
-  end;
-  SetLength(DeltaJumpTable2,OldPatternSize);
-
-  MakeDeltaJumpTable1(DeltaJumpTable1,OldPattern,OldPatternSize);
-  MakeDeltaJumpTable2(DeltaJumpTable2,OldPattern,OldPatternSize);
+  aMatches:=nil;
+  if OldPatternSize=0 then
+    Exit(False);
+  bm.Init(aMatches);
+  bm.MakeDeltaJumpTables(OldPattern,OldPatternSize);
 
   i:=OldPatternSize-1;
   while i < SSize do begin
@@ -463,168 +462,65 @@ begin
       dec(j);
     end;
     if (j<0) then begin
-      AddMatch(i+1);
+      bm.AddMatch(i+1);
       //Only first match ?
       if not aMatchAll then break;
-      inc(i,DeltaJumpTable2[0]+1);
-    end else begin
-      i:=i + Max(DeltaJumpTable1[ord(s[i])],DeltaJumpTable2[j]);
-    end;
+      inc(i,bm.DeltaJumpTable2[0]+1);
+    end else
+      i:=i + bm.Max(bm.DeltaJumpTable1[s[i]],bm.DeltaJumpTable2[j]);
   end;
-  SetLength(aMatches,MatchesCount);
-  Result:=MatchesCount>0;
+  SetLength(aMatches,bm.MatchesCount);
+  Result:=bm.MatchesCount>0;
 end;
 
 function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out
   aMatches: SizeIntArray; const aMatchAll: Boolean): Boolean;
-const
-  ALPHABET_LENGHT=256;
-  MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
-var
-  //Lowercased OldPattern
-  lPattern: string;
-  //Array of lowercased alphabet
-  lCaseArray: array [0..ALPHABET_LENGHT-1] of AnsiChar;
-  //Stores the amount of replaces that will take place
-  MatchesCount: SizeInt;
-  //Currently allocated space for matches.
-  MatchesAllocatedLimit: SizeInt;
-type
-  AlphabetArray=array [0..ALPHABET_LENGHT-1] of SizeInt;
-
-  function Max(const a1,a2: SizeInt): SizeInt;
-  begin
-    if a1>a2 then Result:=a1 else Result:=a2;
-  end;
-
-  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
-  var
-    i: SizeInt;
-  begin
-    for i := 0 to ALPHABET_LENGHT-1 do begin
-      DeltaJumpTable1[i]:=aPatternSize;
-    end;
-    //Last AnsiChar do not enter in the equation
-    for i := 0 to aPatternSize - 1 - 1 do begin
-      DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize - 1 - i;
-    end;
-  end;
-
-  function IsPrefix(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): Boolean; inline;
-  var
-    i: SizeInt;
-    SuffixLength: SizeInt;
-  begin
-    SuffixLength:=aPatternSize-aPos;
-    for i := 0 to SuffixLength-1 do begin
-      if (aPattern[i+1] <> aPattern[aPos+i]) then begin
-        exit(false);
-      end;
-    end;
-    Result:=true;
-  end;
-
-  function SuffixLength(const aPattern: PAnsiChar; const aPatternSize, aPos: SizeInt): SizeInt; inline;
-  var
-    i: SizeInt;
-  begin
-    i:=0;
-    while (i<aPos) and (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) do begin
-      inc(i);
-    end;
-    Result:=i;
-  end;
-
-  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PAnsiChar; const aPatternSize: SizeInt);
-  var
-    Position: SizeInt;
-    LastPrefixIndex: SizeInt;
-    SuffixLengthValue: SizeInt;
-  begin
-    LastPrefixIndex:=aPatternSize-1;
-    Position:=aPatternSize-1;
-    while Position>=0 do begin
-      if IsPrefix(aPattern,aPatternSize,Position+1) then begin
-        LastPrefixIndex := Position+1;
-      end;
-      DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
-      Dec(Position);
-    end;
-    Position:=0;
-    while Position<aPatternSize-1 do begin
-      SuffixLengthValue:=SuffixLength(aPattern,aPatternSize,Position);
-      if aPattern[Position-SuffixLengthValue] <> aPattern[aPatternSize-1 - SuffixLengthValue] then begin
-        DeltaJumpTable2[aPatternSize - 1 - SuffixLengthValue] := aPatternSize - 1 - Position + SuffixLengthValue;
-      end;
-      Inc(Position);
-    end;
-  end;
-
-  //Resizes the allocated space for replacement index
-  procedure ResizeAllocatedMatches;
-  begin
-    MatchesAllocatedLimit:=MatchesCount+MATCHESCOUNTRESIZER;
-    SetLength(aMatches,MatchesAllocatedLimit);
-  end;
-
-  //Add a match to be replaced
-  procedure AddMatch(const aPosition: SizeInt); inline;
-  begin
-    if MatchesCount = MatchesAllocatedLimit then begin
-      ResizeAllocatedMatches;
-    end;
-    aMatches[MatchesCount]:=aPosition;
-    inc(MatchesCount);
-  end;
 var
   i,j: SizeInt;
-  DeltaJumpTable1: array [0..ALPHABET_LENGHT-1] of SizeInt;
-  DeltaJumpTable2: SizeIntArray;
-  //Pointer to lowered OldPattern
-  plPattern: PAnsiChar;
+  lPattern: PAnsiChar; //Lowercased OldPattern
+  bm: BoyerMoore;
+  lPatternStore: ansistring;
 begin
-  MatchesCount:=0;
-  MatchesAllocatedLimit:=0;
-  SetLength(aMatches,MatchesCount);
-  if OldPatternSize=0 then begin
-    Exit;
-  end;
+  aMatches:=nil;
+  if OldPatternSize=0 then
+    Exit(False);
 
   //Build an internal array of lowercase version of every possible AnsiChar.
-  for j := 0 to Pred(ALPHABET_LENGHT) do begin
-    lCaseArray[j]:=AnsiLowerCase(AnsiChar(j))[1];
-  end;
+  if bm.LCaseArrayPrepared=0 then
+    bm.PrepareLCaseArray;
 
-  //Create the new lowercased pattern
-  SetLength(lPattern,OldPatternSize);
-  for j := 0 to Pred(OldPatternSize) do begin
-    lPattern[j+1]:=lCaseArray[ord(OldPattern[j])];
-  end;
+  //Create the new lowercased pattern. Or avoid and reuse OldPattern if nothing to lowercase!
+  lPattern:=OldPattern;
+  for i := 0 to OldPatternSize-1 do
+    if bm.LCaseArray[OldPattern[i]]<>OldPattern[i] then begin
+      SetLength(lPatternStore,OldPatternSize);
+      lPattern:=PAnsiChar(Pointer(lPatternStore));
+      Move(OldPattern^,lPattern^,i*sizeof(AnsiChar));
+      for j := i to OldPatternSize-1 do
+        lPattern[j]:=bm.LCaseArray[OldPattern[j]];
+      break;
+    end;
 
-  SetLength(DeltaJumpTable2,OldPatternSize);
+  bm.Init(aMatches);
+  bm.MakeDeltaJumpTables(lPattern,OldPatternSize);
 
-  MakeDeltaJumpTable1(DeltaJumpTable1,@lPattern[1],OldPatternSize);
-  MakeDeltaJumpTable2(DeltaJumpTable2,@lPattern[1],OldPatternSize);
-
-  plPattern:=@lPattern[1];
   i:=OldPatternSize-1;
   while i < SSize do begin
     j:=OldPatternSize-1;
-    while (j>=0) and (lCaseArray[Ord(S[i])] = plPattern[j]) do begin
+    while (j>=0) and (bm.LCaseArray[S[i]] = lPattern[j]) do begin
       dec(i);
       dec(j);
     end;
     if (j<0) then begin
-      AddMatch(i+1);
+      bm.AddMatch(i+1);
       //Only first match ?
       if not aMatchAll then break;
-      inc(i,DeltaJumpTable2[0]+1);
-    end else begin
-      i:=i + Max(DeltaJumpTable1[Ord(lCaseArray[Ord(s[i])])],DeltaJumpTable2[j]);
-    end;
+      inc(i,bm.DeltaJumpTable2[0]+1);
+    end else
+      i:=i + bm.Max(bm.DeltaJumpTable1[bm.LCaseArray[s[i]]],bm.DeltaJumpTable2[j]);
   end;
-  SetLength(aMatches,MatchesCount);
-  Result:=MatchesCount>0;
+  SetLength(aMatches,bm.MatchesCount);
+  Result:=bm.MatchesCount>0;
 end;
 
 function StringReplaceFast(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; out aCount : Integer): string;
@@ -902,26 +798,16 @@ end;
 
 function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean
   ): Boolean;
-
-Var
-  I : SizeInt;
-
 begin
   Result:=FindMatchesBoyerMooreCaseSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
-  For I:=0 to pred(Length(AMatches)) do
-    Inc(AMatches[i]);
+  BoyerMoore.IncrementEverything(AMatches);
 end;
 
 function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean
   ): Boolean;
-
-Var
-  I : SizeInt;
-
 begin
   Result:=FindMatchesBoyerMooreCaseInSensitive(PAnsiChar(S),PAnsiChar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
-  For I:=0 to pred(Length(AMatches)) do
-    Inc(AMatches[i]);
+  BoyerMoore.IncrementEverything(AMatches);
 end;
 
 
