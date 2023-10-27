@@ -4,7 +4,7 @@ program testcompat;
 
 uses
   {$IFDEF UNIX}cwstring,{$ENDIF}
-  Classes, consoletestrunner, tcnetencoding, tciotuils;
+  Classes, consoletestrunner, tcnetencoding, tciotuils, utmessagemanager;
 
 type
 
