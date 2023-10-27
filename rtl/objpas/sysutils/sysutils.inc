@@ -989,7 +989,7 @@ begin
   {$endif riscv64}
 
   {$ifdef xtensa}
-  Result:=arExtensa;
+  Result:=arXtensa;
   {$endif xtensa}
 
   {$ifdef wasm32}
