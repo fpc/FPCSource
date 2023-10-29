@@ -4369,21 +4369,25 @@ unit aoptx86;
                                   if (taicpu(hp2).oper[1]^.typ = top_ref) then
                                     ReplaceRegisterInRef(taicpu(hp2).oper[1]^.ref^, p_TargetReg, p_SourceReg);
 
-                                  { Don't remove the first instruction if the temporary register is in use }
-                                  if not TempRegUsed and
-                                    { ReplaceRegisterInRef won't actually replace the register if it's a different size }
-                                    not RegInOp(p_TargetReg, taicpu(hp2).oper[1]^) then
+                                  { ReplaceRegisterInRef won't actually replace the register if it's a different size }
+                                  if not RegInOp(p_TargetReg, taicpu(hp2).oper[1]^) then
                                     begin
-                                      DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
-                                      RemoveCurrentP(p, hp1);
-                                      Result:=true;
-                                      JumpTracking.Free;
-                                      Exit;
-                                    end;
+                                      { Don't remove the first instruction if the temporary register is in use }
+                                      if not TempRegUsed then
+                                        begin
+                                          DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
+                                          RemoveCurrentP(p, hp1);
+                                          Result:=true;
+                                          JumpTracking.Free;
+                                          Exit;
+                                        end;
 
-                                  { No need to set Result to True here. If there's another instruction later
-                                    on that can be optimised, it will be detected when the main Pass 1 loop
-                                    reaches what is now hp2 and passes it through OptPass1MOV. [Kit] }
+                                      { No need to set Result to True here. If there's another instruction later
+                                        on that can be optimised, it will be detected when the main Pass 1 loop
+                                        reaches what is now hp2 and passes it through OptPass1MOV. [Kit] }
+                                      hp3 := hp2;
+                                      Continue;
+                                    end;
                                 end;
                             end;
                           top_const:
