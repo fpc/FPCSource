@@ -92,8 +92,11 @@ unit aoptx86;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
       private
         function SkipSimpleInstructions(var hp1: tai): Boolean;
+
       protected
         class function IsMOVZXAcceptable: Boolean; static; inline;
+
+        function CheckMovMov2MovMov2(const p, hp1: tai): Boolean;
 
         { Attempts to allocate a volatile integer register for use between p and hp,
           using AUsedRegs for the current register usage information.  Returns NR_NO
@@ -2882,9 +2885,28 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.CheckMovMov2MovMov2(const p, hp1: tai) : boolean;
+      begin
+        Result := False;
+        if MatchOpType(taicpu(p),top_ref,top_reg) and
+          MatchOpType(taicpu(hp1),top_ref,top_reg) and
+          (taicpu(p).opsize = taicpu(hp1).opsize) and
+          RefsEqual(taicpu(p).oper[0]^.ref^,taicpu(hp1).oper[0]^.ref^) and
+          (taicpu(p).oper[0]^.ref^.volatility=[]) and
+          (taicpu(hp1).oper[0]^.ref^.volatility=[]) and
+          not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.base)) and
+          not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.index)) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'MovMov2MovMov 2',p);
+            taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+            Result := True;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
-      hp1, hp2, hp3: tai;
+      hp1, hp2, hp3, hp4: tai;
       DoOptimisation, TempBool: Boolean;
 {$ifdef x86_64}
       NewConst: TCGInt;
@@ -4078,18 +4100,7 @@ unit aoptx86;
               movl [mem1],reg1
               movl reg1,reg2
              }
-             else if MatchOpType(taicpu(p),top_ref,top_reg) and
-               MatchOpType(taicpu(hp1),top_ref,top_reg) and
-               (taicpu(p).opsize = taicpu(hp1).opsize) and
-               RefsEqual(taicpu(p).oper[0]^.ref^,taicpu(hp1).oper[0]^.ref^) and
-               (taicpu(p).oper[0]^.ref^.volatility=[]) and
-               (taicpu(hp1).oper[0]^.ref^.volatility=[]) and
-               not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.base)) and
-               not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.index)) then
-               begin
-                 DebugMsg(SPeepholeOptimization + 'MovMov2MovMov 2',p);
-                 taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-               end;
+             else if not CheckMovMov2MovMov2(p, hp1) and
 
             {   movl const1,[mem1]
                 movl [mem1],reg1
@@ -4099,7 +4110,7 @@ unit aoptx86;
                 movl const1,reg1
                 movl reg1,[mem1]
             }
-            if MatchOpType(Taicpu(p),top_const,top_ref) and
+                 MatchOpType(Taicpu(p),top_const,top_ref) and
                  MatchOpType(Taicpu(hp1),top_ref,top_reg) and
                  (taicpu(p).opsize = taicpu(hp1).opsize) and
                  RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) and
@@ -4521,7 +4532,26 @@ unit aoptx86;
                               Break;
                           end;
 {$endif x86_64}
-                      end;
+                      end
+                    else if (taicpu(hp2).oper[0]^.typ = top_ref) and
+                      GetNextInstruction(hp2, hp4) and
+                      (taicpu(hp4).opcode = A_MOV) then
+                      { Optimise the following first:
+                          movl [mem1],reg1
+                          movl [mem1],reg2
+
+                          to
+
+                          movl [mem1],reg1
+                          movl reg1,reg2
+
+                        If [mem1] contains the target register and reg1 is the
+                        the source register, this optimisation will get missed
+                        and produce less efficient code later on.
+                      }
+                      if CheckMovMov2MovMov2(hp2, hp4) then
+                        { Initial instruction wasn't actually changed }
+                        Include(OptsToCheck, aoc_ForceNewIteration);
 
                   A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}:
                     if MatchOpType(taicpu(hp2), top_reg, top_reg) and
