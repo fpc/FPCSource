@@ -332,7 +332,7 @@ type
 
   class var
     LCaseArray: array[AnsiChar] of AnsiChar; //Array of lowercased alphabet
-    LCaseArrayPrepared: int32; // Atomic, is LCaseArray initialized, 0 = no, 1 = yes.
+    LCaseArrayPrepared: boolean;
 
     procedure Init(var aMatches: SizeIntArray); inline;
     procedure MakeDeltaJumpTables(aPattern: PAnsiChar; aPatternSize: SizeInt);
@@ -377,7 +377,7 @@ begin
      SuffixLength:=0;
      while (SuffixLength<Position) and (aPattern[Position-SuffixLength] = aPattern[aPatternSize-1-SuffixLength]) do
        inc(SuffixLength);
-     if SuffixLength<Position then
+     if aPattern[Position-SuffixLength] <> aPattern[aPatternSize-1-SuffixLength] then
        DeltaJumpTable2[aPatternSize - 1 - SuffixLength] := aPatternSize - 1 - Position + SuffixLength;
      Inc(Position);
    end;
@@ -412,13 +412,8 @@ var
 begin
   for c in AnsiChar do
     LCaseArray[c]:=AnsiLowerCase(c)[1];
-{$if declared(InterlockedExchange)}
-  InterlockedExchange(LCaseArrayPrepared, 1);
-{$elseif not defined(fpc_has_feature_threading)}
-  LCaseArrayPrepared := 1;
-{$else}
-  {$error Either InterlockedExchange must be available or threading must not be present.}
-{$endif}
+  WriteBarrier; // Write LCaseArrayPrepared only after LCaseArray contents.
+  LCaseArrayPrepared:=true;
 end;
 
 (*
@@ -486,8 +481,9 @@ begin
     Exit(False);
 
   //Build an internal array of lowercase version of every possible AnsiChar.
-  if bm.LCaseArrayPrepared=0 then
+  if not bm.LCaseArrayPrepared then
     bm.PrepareLCaseArray;
+  ReadBarrier; // Read LCaseArray contents only after LCaseArrayPrepared.
 
   //Create the new lowercased pattern. Or avoid and reuse OldPattern if nothing to lowercase!
   lPattern:=OldPattern;
