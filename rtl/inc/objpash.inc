@@ -216,6 +216,8 @@
        {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
        TObject = class
+       protected
+          function GetDisposed : Boolean; inline;
        public
           { please don't change the order of virtual methods, because
             their vmt offsets are used by some assembler code which uses
@@ -268,6 +270,9 @@
           { new since Delphi 2009 }
           class function UnitName : RTLString;
           class function QualifiedClassName: RTLString;
+          Procedure DisposeOf; inline;
+          Procedure CheckDisposed; inline;
+          Property Disposed : Boolean Read GetDisposed;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: RTLString; virtual;

@@ -1054,6 +1054,23 @@
         begin
           result:=ClassName;
         end;
+        
+      procedure TObject.DisposeOf;
+      begin
+        Free;
+      end;
+      
+      function TObject.GetDisposed : Boolean;
+      
+      begin
+        Result:=False;
+      end;    
+      
+      procedure TObject.CheckDisposed;
+      
+      begin
+        // Do nothing since we have no reference count.
+      end;
 
 {****************************************************************************
                                TINTERFACEDOBJECT
