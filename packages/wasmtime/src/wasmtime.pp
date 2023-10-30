@@ -809,6 +809,8 @@ var
   wasi_config_preopen_dir : function(config:Pwasi_config_t; path:PAnsiChar; guest_path:PAnsiChar):T_Bool;
   wasmtime_error_delete : procedure(error:Pwasmtime_error_t); cdecl;
   wasmtime_error_message : procedure(error:Pwasmtime_error_t; message:Pwasm_name_t); cdecl;
+  wasmtime_error_exit_status : function(p1: pwasmtime_error_t; status : pcint) : T_bool; cdecl;
+  wasmtime_error_wasm_trace : procedure(p1: pwasmtime_error_t; res: pwasm_frame_vec_t); cdecl ;
   wasmtime_config_debug_info_set : procedure(_para1:Pwasm_config_t; _para2:T_Bool); cdecl;
   wasmtime_config_interruptable_set : procedure(_para1:Pwasm_config_t; _para2:T_Bool); cdecl;
   wasmtime_config_consume_fuel_set : procedure(_para1:Pwasm_config_t; _para2:T_Bool); cdecl;
@@ -1542,6 +1544,8 @@ begin
   wasi_config_preopen_dir:=nil;
   wasmtime_error_delete:=nil;
   wasmtime_error_message:=nil;
+  wasmtime_error_exit_status:=nil;
+  wasmtime_error_wasm_trace:=nil;
   wasmtime_config_debug_info_set:=nil;
   wasmtime_config_interruptable_set:=nil;
   wasmtime_config_consume_fuel_set:=nil;
@@ -1958,6 +1962,8 @@ begin
   pointer(wasi_config_preopen_dir):=GetProcAddress(hlib,'wasi_config_preopen_dir');
   pointer(wasmtime_error_delete):=GetProcAddress(hlib,'wasmtime_error_delete');
   pointer(wasmtime_error_message):=GetProcAddress(hlib,'wasmtime_error_message');
+  pointer(wasmtime_error_exit_status):=GetProcAddress(hlib,'wasmtime_error_exit_status');
+  pointer(wasmtime_error_wasm_trace):=GetProcAddress(hlib,'wasmtime_error_wasm_trace');
   pointer(wasmtime_config_debug_info_set):=GetProcAddress(hlib,'wasmtime_config_debug_info_set');
   pointer(wasmtime_config_interruptable_set):=GetProcAddress(hlib,'wasmtime_config_interruptable_set');
   pointer(wasmtime_config_consume_fuel_set):=GetProcAddress(hlib,'wasmtime_config_consume_fuel_set');

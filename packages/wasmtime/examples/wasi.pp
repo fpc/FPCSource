@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 program wasi;
 
 uses classes,ctypes, wasmtime;
@@ -10,17 +12,17 @@ var
 begin
   Writeln(stderr, 'error: ', message);
   S:='';
-  if (error <> Nil)  then
-    begin
-    write('Error: ');
-    wasmtime_error_message(error, @error_message);
-    wasmtime_error_delete(error)
-    end
-  else
+  if Trap<>nil then
     begin
     write('Trap: ');
     wasm_trap_message(trap, @error_message);
     wasm_trap_delete(trap);
+    end
+  else
+    begin
+    write('Error: ');
+    wasmtime_error_message(error, @error_message);
+    wasmtime_error_delete(error)
     end;
   SetLength(S,error_message.size);
   Move(error_message.data^,S[1],error_message.size);
@@ -58,7 +60,7 @@ begin
 
   F:=TMemoryStream.Create;
   try
-    F.LoadFromFile('helloworld.wasm');
+    F.LoadFromFile('hello.wasm');
     wasm_byte_vec_new_uninitialized(@wasm, F.Size);
     Move(F.Memory^,wasm.data^,F.Size);
   finally
@@ -100,17 +102,10 @@ begin
   // And call it!
   Writeln('Calling export...');
   error:=wasmtime_func_call(context, @func, nil, 0, nil, 0, @trap);
-  if (Trap<>Nil) then
-    begin
-    // exit_proc is reported as trap.
-    if wasmtime_trap_exit_status(trap,@status)<>0 then
-      Writeln('Wasm program exited with status: ',Status)
-    else
-      exit_with_error('failed to run default export for module', error, trap);
-    end
-  else if (error<>nil) then
-    exit_with_error('failed to run default export for module', error, trap);
-
+  if wasmtime_error_exit_status(error,@status)<>0 then
+    Writeln('Wasm program exited with status: ',Status)
+  else 
+    exit_with_error('Error while running default export for module', error, trap);
   // Clean up after ourselves at this point
   Writeln('All finished!\n');
   wasmtime_module_delete(module);
