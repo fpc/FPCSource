@@ -567,6 +567,11 @@ ResourceString
   SMsgDlgYes = '&Yes';
   SMsgDlgYesToAll = 'Yes to a&ll';
 
+  // Constants for Delphi compatibility
+  sAttributeExists = 'Attribute ''%s'' already exists';
+  sDeviceExists = 'Device ''%s'' already exists';
+  sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported'; 
+  SArgumentOutOfRange = 'Argument out of range';
 
 implementation
 
