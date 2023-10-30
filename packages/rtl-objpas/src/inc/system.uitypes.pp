@@ -412,7 +412,29 @@ Type
   TAlphaColorRec = TAlphaColors;
 
   TAlphaColorF = record
+  Public
     R, G, B, A: Single;
+  const
+    Epsilon = 1.5259E-05; // 1 / 65535, minimal value for TPixelFormat.RGBA16 components
+
+    class function Create(const R, G, B: Single; const A: Single = 1): TAlphaColorF; overload; static; inline;
+    class function Create(const aColor: TAlphaColor): TAlphaColorF; overload; static; inline;
+
+    class operator +(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+    class operator -(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+    class operator =(const aColor1, aColor2: TAlphaColorF): Boolean;
+    class operator <>(const aColor1, aColor2: TAlphaColorF): Boolean;
+    class operator -(const aColor: TAlphaColorF): TAlphaColorF;
+    class operator *(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+    class operator *(const aColor: TAlphaColorF; const aFactor: Single): TAlphaColorF;
+    class operator *(const aFactor: Single; const aColor: TAlphaColorF): TAlphaColorF; inline;
+    class operator /(const aColor: TAlphaColorF; const aFactor: Single): TAlphaColorF; inline;
+
+    function PremultipliedAlpha: TAlphaColorF;
+    function UnpremultipliedAlpha: TAlphaColorF;
+
+    function Clamp: TAlphaColorF;
+    function ToAlphaColor: TAlphaColor;
   end;
 
 
@@ -535,6 +557,74 @@ type
   TPrinterCapability  = (pcCopies, pcOrientation, pcCollation);
   TPrinterCapabilities= Set of TPrinterCapability;
 
+// Gestures
+const
+  sgiNoGesture       =  0;
+  sgiLeft            =  1;
+  sgiRight           =  2;
+  sgiUp              =  3;
+  sgiDown            =  4;
+  sgiUpLeft          =  5;
+  sgiUpRight         =  6;
+  sgiDownLeft        =  7;
+  sgiDownRight       =  8;
+  sgiLeftUp          =  9;
+  sgiLeftDown        = 10;
+  sgiRightUp         = 11;
+  sgiRightDown       = 12;
+  sgiUpDown          = 13;
+  sgiDownUp          = 14;
+  sgiLeftRight       = 15;
+  sgiRightLeft       = 16;
+  sgiUpLeftLong      = 17;
+  sgiUpRightLong     = 18;
+  sgiDownLeftLong    = 19;
+  sgiDownRightLong   = 20;
+  sgiScratchout      = 21;
+  sgiTriangle        = 22;
+  sgiSquare          = 23;
+  sgiCheck           = 24;
+  sgiCurlicue        = 25;
+  sgiDoubleCurlicue  = 26;
+  sgiCircle          = 27;
+  sgiDoubleCircle    = 28;
+  sgiSemiCircleLeft  = 29;
+  sgiSemiCircleRight = 30;
+  sgiChevronUp       = 31;
+  sgiChevronDown     = 32;
+  sgiChevronLeft     = 33;
+  sgiChevronRight    = 34;
+  
+  sgiFirst           = sgiLeft;
+  sgiLast            = sgiChevronRight;
+
+  // ID range for custom gestures 
+ 
+  cgiFirst = -512;
+  cgiLast  = -1;
+
+  // Range for registered custom gestures
+  rgiFirst = -1024;
+  rgiLast  = -513;
+
+  // Interactive gesture ID range.
+  igiFirst = 256;
+  igiLast  = 511;
+
+const
+  // Interactive gesture IDs
+  igiBegin         = igiFirst + 1;
+  igiEnd           = igiFirst + 2;
+  igiZoom          = igiFirst + 3;
+  igiPan           = igiFirst + 4;
+  igiRotate        = igiFirst + 5;
+  igiTwoFingerTap  = igiFirst + 6;
+  igiPressAndTap   = igiFirst + 7;
+  igiLongTap       = igiFirst + 8;
+  igiDoubleTap     = igiFirst + 9;
+
+
+
 implementation
 
 class operator TColorRec.:= (AColor : TColor): TColorRec;
@@ -552,5 +642,221 @@ begin
   Self := TAlphaColors(Color);
 end;
 
+
+class function TAlphaColorF.Create(const R, G, B: Single; const A: Single = 1): TAlphaColorF; overload; static; 
+
+begin
+  Result.A:=A;
+  Result.R:=R;
+  Result.G:=G;
+  Result.B:=B;
+end;
+
+
+class function TAlphaColorF.Create(const aColor: TAlphaColor): TAlphaColorF; overload; static; 
+
+  function ToSingle(aCom : Byte) : single; inline;
+  begin
+    Result:=aCom/255;
+  end;
+  
+var
+  CR : TAlphaColorRec absolute aColor;  
+
+begin
+  Result.A:=ToSingle(CR.A);
+  Result.R:=ToSingle(CR.R);
+  Result.G:=ToSingle(CR.G);
+  Result.B:=ToSingle(CR.B);
+end;
+
+
+class operator TAlphaColorF.+(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+
+begin
+  With Result do
+    begin
+    A:=aColor1.A+aColor2.A;
+    R:=aColor1.R+aColor2.R;
+    G:=aColor1.G+aColor2.G;
+    B:=aColor1.B+aColor2.B;
+    end;
+end;
+
+
+class operator TAlphaColorF.-(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+
+begin
+  With Result do
+    begin
+    A:=aColor1.A-aColor2.A;
+    R:=aColor1.R-aColor2.R;
+    G:=aColor1.G-aColor2.G;
+    B:=aColor1.B-aColor2.B;
+    end;
+end;
+
+
+class function Eq(const V1,V2: Single): Boolean;inline;
+begin
+  Result:=Abs(V1-V2)<=TAlphaColorF.Epsilon;
+end;
+
+
+class operator TAlphaColorF.=(const aColor1, aColor2: TAlphaColorF): Boolean;
+
+begin
+  Result:=Eq(aColor1.A,aColor2.A)
+          and Eq(aColor1.R,aColor2.R)
+          and Eq(aColor1.G,aColor2.G)
+          and Eq(aColor1.B,aColor2.B);
+end;
+
+
+class operator TAlphaColorF.<>(const aColor1, aColor2: TAlphaColorF): Boolean;
+
+begin
+  Result:=Not (aColor1=aColor2);
+end;
+
+
+class operator TAlphaColorF.-(const aColor: TAlphaColorF): TAlphaColorF;
+
+begin
+  With Result do
+    begin
+    A:=-aColor.A;
+    R:=-aColor.R;
+    G:=-aColor.G;
+    B:=-aColor.B;
+    end;
+end;
+
+
+class operator TAlphaColorF.*(const aColor1, aColor2: TAlphaColorF): TAlphaColorF;
+
+begin
+  With Result do
+    begin
+    A:=aColor1.A*aColor2.A;
+    R:=aColor1.R*aColor2.R;
+    G:=aColor1.G*aColor2.G;
+    B:=aColor1.B*aColor2.B;
+    end;
+end;
+
+class operator TAlphaColorF.*(const aColor: TAlphaColorF; const aFactor: Single): TAlphaColorF;
+
+begin
+  With Result do
+    begin
+    A:=aColor.A*aFactor;
+    R:=aColor.R*aFactor;
+    G:=aColor.G*aFactor;
+    B:=aColor.B*aFactor;
+    end;
+end;
+
+
+class operator TAlphaColorF.*(const aFactor: Single; const aColor: TAlphaColorF): TAlphaColorF; 
+
+begin
+  With Result do
+    begin
+    A:=aFactor*aColor.A;
+    R:=aFactor*aColor.R;
+    G:=aFactor*aColor.G;
+    B:=aFactor*aColor.B;
+    end;
+
+end;
+
+class operator TAlphaColorF./(const aColor: TAlphaColorF; const aFactor: Single): TAlphaColorF; 
+
+var
+  F : Single;
+
+begin
+  F:=aFactor;
+  if F<Epsilon then 
+    F:=1;
+  With Result do
+    begin
+    A:=aColor.A/F;
+    R:=aColor.R/F;
+    G:=aColor.G/F;
+    B:=aColor.B/F;
+    end;
+end;
+
+
+function TAlphaColorF.PremultipliedAlpha: TAlphaColorF;
+
+begin
+  Result.A:=A;
+  Result.R:=A*R;
+  Result.G:=A*G;
+  Result.B:=A*B;
+end;
+
+
+function TAlphaColorF.UnpremultipliedAlpha: TAlphaColorF;
+
+var
+  F : Single;
+  
+begin
+  Result.A:=A;
+  if A<Epsilon then
+    F:=0
+  else if Abs(A-1)<Epsilon then
+    F:=1
+  else
+    F:=1/A;
+  Result.R:=F*R;
+  Result.G:=F*G;
+  Result.B:=F*B;
+end;
+
+
+
+function TAlphaColorF.Clamp: TAlphaColorF;
+
+  function Limit(C :Single) : Single; inline;
+  
+  begin
+    if C>1 then
+      Result:=1
+    else if C<0 then
+      Result:=0
+    else
+      Result:=C;
+  end;    
+
+begin
+  Result.A:=Limit(A);  
+  Result.R:=Limit(R);  
+  Result.G:=Limit(G);  
+  Result.B:=Limit(B);  
+end;
+
+
+function TAlphaColorF.ToAlphaColor: TAlphaColor;
+
+  Function CC(C : Single) : Byte; inline;
+  
+  begin
+    Result:=Round(C*255);
+  end;
+
+var
+  CR : TAlphaColorRec absolute Result;
+
+begin
+  CR.A:=CC(A);
+  CR.R:=CC(R);
+  CR.G:=CC(G);
+  CR.B:=CC(B);
+end;
 
 end.
