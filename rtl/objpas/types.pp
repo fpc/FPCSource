@@ -151,6 +151,7 @@ type
           function MidPoint(const b: TPointF): TPointF;
           class function PointInCircle(const pt, center: TPointF; radius: single): Boolean; static;
           class function PointInCircle(const pt, center: TPointF; radius: integer): Boolean; static;
+          class function Zero: TPointF; inline; static;
           function Angle(const b: TPointF): Single;
           function AngleCosine(const b: TPointF): single;
 
@@ -756,6 +757,13 @@ function TPointF.MidPoint(const b: TPointF): TPointF;
 begin
   result.x := 0.5 * (x + b.x);
   result.y := 0.5 * (y + b.y);
+end;
+
+class function TPointF.Zero: TPointF; 
+
+begin
+  Result.X:=0;
+  Result.Y:=0;
 end;
 
 class function TPointF.PointInCircle(const pt, center: TPointF; radius: single): Boolean;
