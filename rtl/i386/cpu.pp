@@ -32,6 +32,14 @@ unit cpu;
     { returns true, if the processor supports the cpuid instruction }
     function cpuid_support : boolean;
 
+type
+    TCpuidResult = record
+      eax, ebx, ecx, edx: uint32;
+    end;
+
+    function CPUID(in_eax: uint32; in_ecx: uint32 = 0): TCpuidResult; inline;
+    function CPUBrandString: shortstring;
+
     { returns true, if floating point is done by an emulator }
     function floating_point_emulation : boolean;
 
@@ -180,6 +188,41 @@ unit cpu;
       end;
 
 
+    procedure CPUID(in_eax: uint32; in_ecx: uint32; out res: TCpuidResult); assembler; nostackframe;
+      // eax = in_eax, edx = in_ecx, ecx = res
+      asm
+        push ebx
+        push esi
+        mov  esi, ecx // esi = res
+        mov  ecx, edx // ecx = in_ecx
+        cpuid
+        mov  TCpuidResult.eax[esi], eax
+        mov  TCpuidResult.ebx[esi], ebx
+        mov  TCpuidResult.ecx[esi], ecx
+        mov  TCpuidResult.edx[esi], edx
+        pop  esi
+        pop  ebx
+      end;
+
+
+    function CPUID(in_eax: uint32; in_ecx: uint32 = 0): TCpuidResult;
+      begin
+        CPUID(in_eax, in_ecx, result);
+      end;
+
+
+    function CPUBrandString: shortstring;
+      begin
+        if not cpuid_support or (CPUID($80000000).eax<$80000004) then
+          exit('');
+        TCpuidResult(pointer(@result[1])^):=CPUID($80000002);
+        TCpuidResult(pointer(@result[17])^):=CPUID($80000003);
+        TCpuidResult(pointer(@result[33])^):=CPUID($80000004);
+        result[49]:=#0;
+        result[0]:=chr(length(PAnsiChar(@result[1])));
+      end;
+
+
     function cr0 : longint;assembler;
       asm
 {$ifdef USE_REAL_INSTRUCTIONS}
@@ -216,93 +259,64 @@ unit cpu;
 
     procedure SetupSupport;
       var
-        _edx,_ecx,_ebx,maxcpuidvalue : longint;
+        maxcpuidvalue : longint;
+        cpuid1,cpuid7 : TCpuidResult;
       begin
         is_sse3_cpu:=false;
          if cpuid_support then
            begin
-              asm
-                 pushl %ebx
-                 movl $0,%eax
-                 cpuid
-                 movl %eax,maxcpuidvalue
-                 popl %ebx
-              end;
-              asm
-                 pushl %ebx
-                 movl $1,%eax
-                 cpuid
-                 movl %edx,_edx
-                 movl %ecx,_ecx
-                 popl %ebx
-              end;
-              _CMOVSupport:=(_edx and $8000)<>0;
-              _AESSupport:=(_ecx and $2000000)<>0;
-              _POPCNTSupport:=(_ecx and $800000)<>0;
-              _SSE3Support:=(_ecx and $1)<>0;
-              _SSSE3Support:=(_ecx and $200)<>0;
-              _SSE41Support:=(_ecx and $80000)<>0;
-              _SSE42Support:=(_ecx and $100000)<>0;
-              _MOVBESupport:=(_ecx and $400000)<>0;
-              _F16CSupport:=(_ecx and $20000000)<>0;
-              _RDRANDSupport:=(_ecx and $40000000)<>0;
+              maxcpuidvalue:=CPUID(0).eax;
+              cpuid1:=CPUID(1);
+              _CMOVSupport:=(cpuid1.edx and $8000)<>0;
+              _AESSupport:=(cpuid1.ecx and $2000000)<>0;
+              _POPCNTSupport:=(cpuid1.ecx and $800000)<>0;
+              _SSE3Support:=(cpuid1.ecx and $1)<>0;
+              _SSSE3Support:=(cpuid1.ecx and $200)<>0;
+              _SSE41Support:=(cpuid1.ecx and $80000)<>0;
+              _SSE42Support:=(cpuid1.ecx and $100000)<>0;
+              _MOVBESupport:=(cpuid1.ecx and $400000)<>0;
+              _F16CSupport:=(cpuid1.ecx and $20000000)<>0;
+              _RDRANDSupport:=(cpuid1.ecx and $40000000)<>0;
 
               _AVXSupport:=
                 { XGETBV suspport? }
-                ((_ecx and $08000000)<>0) and
+                ((cpuid1.ecx and $08000000)<>0) and
                 { xmm and ymm state enabled? }
                 ((XGETBV(0) and %110)=%110) and
                 { avx supported? }
-                ((_ecx and $10000000)<>0);
+                ((cpuid1.ecx and $10000000)<>0);
 
-              is_sse3_cpu:=(_ecx and $1)<>0;
+              is_sse3_cpu:=(cpuid1.ecx and $1)<>0;
 
-              _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
+              _FMASupport:=_AVXSupport and ((cpuid1.ecx and $1000)<>0);
 
-              asm
-                pushl %ebx
-                movl $0x80000001,%eax
-                cpuid
-                movl %ecx,_ecx
-                movl %edx,_edx
-                popl %ebx
-              end;
-              _LZCNTSupport:=(_ecx and $20)<>0;
+              _LZCNTSupport:=(CPUID($80000001).ecx and $20)<>0;
 
 
               if maxcpuidvalue>=7 then
                 begin
-                  asm
-                    pushl %ebx
-                    movl $7,%eax
-                    movl $0,%ecx
-                    cpuid
-                    movl %ebx,_ebx
-                    movl %ecx,_ecx
-                    movl %edx,_edx
-                    popl %ebx
-                  end;
-                  _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
-                  _AVX512FSupport:=(_ebx and $10000)<>0;
-                  _AVX512DQSupport:=(_ebx and $20000)<>0;
-                  _RDSEEDSupport:=(_ebx and $40000)<>0;
-                  _ADXSupport:=(_ebx and $80000)<>0;
-                  _AVX512IFMASupport:=(_ebx and $200000)<>0;
-                  _AVX512PFSupport:=(_ebx and $4000000)<>0;
-                  _AVX512ERSupport:=(_ebx and $8000000)<>0;
-                  _AVX512CDSupport:=(_ebx and $10000000)<>0;
-                  _AVX512BWSupport:=(_ebx and $40000000)<>0;
-                  _AVX512VBMISupport:=(_ecx and $00000002)<>0;
-                  _AVX512VBMI2Support:=(_ecx and $00000040)<>0;
-                   _VAESSupport:=(_ecx and $00000200)<>0;
-                  _VCLMULSupport:=(_ecx and $00000400)<>0;
-                  _AVX512VNNISupport:=(_ecx and $00000800)<>0;
-                  _AVX512BITALGSupport:=(_ecx and $00001000)<>0;
-                  _SHASupport:=(_ebx and $20000000)<>0;
-                  _AVX512VLSupport:=(_ebx and $80000000)<>0;
-                  _BMI1Support:=(_ebx and $8)<>0;
-                  _BMI2Support:=(_ebx and $100)<>0;
-                  _RTMSupport:=((_ebx and $800)<>0);
+                  cpuid7:=CPUID(7);
+                  _AVX2Support:=_AVXSupport and ((cpuid7.ebx and $20)<>0);
+                  _AVX512FSupport:=(cpuid7.ebx and $10000)<>0;
+                  _AVX512DQSupport:=(cpuid7.ebx and $20000)<>0;
+                  _RDSEEDSupport:=(cpuid7.ebx and $40000)<>0;
+                  _ADXSupport:=(cpuid7.ebx and $80000)<>0;
+                  _AVX512IFMASupport:=(cpuid7.ebx and $200000)<>0;
+                  _AVX512PFSupport:=(cpuid7.ebx and $4000000)<>0;
+                  _AVX512ERSupport:=(cpuid7.ebx and $8000000)<>0;
+                  _AVX512CDSupport:=(cpuid7.ebx and $10000000)<>0;
+                  _AVX512BWSupport:=(cpuid7.ebx and $40000000)<>0;
+                  _AVX512VBMISupport:=(cpuid7.ecx and $00000002)<>0;
+                  _AVX512VBMI2Support:=(cpuid7.ecx and $00000040)<>0;
+                   _VAESSupport:=(cpuid7.ecx and $00000200)<>0;
+                  _VCLMULSupport:=(cpuid7.ecx and $00000400)<>0;
+                  _AVX512VNNISupport:=(cpuid7.ecx and $00000800)<>0;
+                  _AVX512BITALGSupport:=(cpuid7.ecx and $00001000)<>0;
+                  _SHASupport:=(cpuid7.ebx and $20000000)<>0;
+                  _AVX512VLSupport:=(cpuid7.ebx and $80000000)<>0;
+                  _BMI1Support:=(cpuid7.ebx and $8)<>0;
+                  _BMI2Support:=(cpuid7.ebx and $100)<>0;
+                  _RTMSupport:=((cpuid7.ebx and $800)<>0);
                 end;
            end;
       end;

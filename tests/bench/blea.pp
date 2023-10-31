@@ -11,87 +11,10 @@ program blea;
 {$DEFINE DETECTCPU}
 
 uses
-  SysUtils;
-  
+  SysUtils {$ifdef DETECTCPU}, CPU {$endif};
+
 type
   TBenchmarkProc = function(const Input, X, Y: LongWord): LongWord;
-
-var
-  CPUName: array[0..48] of Char;
-
-{$ifdef DETECTCPU}
-function FillBrandName: Boolean; assembler; nostackframe;
-asm
-{$ifdef CPUX86_64}
-  PUSH RBX
-{$else CPUX86_64}
-  PUSH EBX
-{$endif CPUX86_64}
-  MOV  EAX, $80000000
-  CPUID
-  CMP  EAX, $80000004
-  JB   @Unavailable
-{$ifdef CPUX86_64}
-  LEA  R8,  [RIP + CPUName]
-{$endif CPUX86_64}
-  MOV  EAX, $80000002
-  CPUID
-{$ifdef CPUX86_64}
-  MOV  [R8], EAX
-  MOV  [R8 + 4], EBX
-  MOV  [R8 + 8], ECX
-  MOV  [R8 + 12], EDX
-{$else CPUX86_64}
-  MOV  [CPUName], EAX
-  MOV  [CPUName + 4], EBX
-  MOV  [CPUName + 8], ECX
-  MOV  [CPUName + 12], EDX
-{$endif CPUX86_64}
-  MOV  EAX, $80000003
-  CPUID
-{$ifdef CPUX86_64}
-  MOV  [R8 + 16], EAX
-  MOV  [R8 + 20], EBX
-  MOV  [R8 + 24], ECX
-  MOV  [R8 + 28], EDX
-{$else CPUX86_64}
-  MOV  [CPUName + 16], EAX
-  MOV  [CPUName + 20], EBX
-  MOV  [CPUName + 24], ECX
-  MOV  [CPUName + 28], EDX
-{$endif CPUX86_64}
-  MOV  EAX, $80000004
-  CPUID
-{$ifdef CPUX86_64}
-  MOV  [R8 + 32], EAX
-  MOV  [R8 + 36], EBX
-  MOV  [R8 + 40], ECX
-  MOV  [R8 + 44], EDX
-  MOV  BYTE PTR [R8 + 48], 0
-{$else CPUX86_64}
-  MOV  [CPUName + 32], EAX
-  MOV  [CPUName + 36], EBX
-  MOV  [CPUName + 40], ECX
-  MOV  [CPUName + 44], EDX
-  MOV  BYTE PTR [CPUName + 48], 0
-{$endif CPUX86_64}
-  MOV  AL,  1
-  JMP  @ExitBrand
-@Unavailable:
-  XOR  AL,  AL
-@ExitBrand:
-{$ifdef CPUX86_64}
-  POP  RBX
-{$else CPUX86_64}
-  POP  EBX
-{$endif CPUX86_64}
-end;
-{$else DETECTCPU}
-function FillBrandName: Boolean; inline;
-begin
-  Result := False;	
-end;
-{$endif DETECTPU}
 
 function Checksum_PAS(const Input, X, Y: LongWord): LongWord;
 var
@@ -150,28 +73,26 @@ end;
 
 var
   Results: array[0..2] of LongWord;
-  FailureCode, X: Integer;
+  FailureCode: Integer;
 begin
 {$ifdef CPUX86_64}
   Write('64-bit');
 {$else CPUX86_64}
   Write('32-bit');
 {$endif CPUX86_64}
-  if FillBrandName then
+{$ifdef DETECTCPU}
+  if CPUBrandString <> '' then
     begin
-      WriteLn(' CPU = ', CpuName);
-      X := 0;
-      while CpuName[X] <> #0 do
-        begin
-          CpuName[X] := '-';
-          Inc(X);
-        end;
-      WriteLn('-------------', CpuName);
+      WriteLn(' CPU = ', CPUBrandString);
+      WriteLn('-------------', StringOfChar('-', length(CPUBrandString)));
     end;
+{$else}
+  WriteLn;
+{$endif}
   Results[0] := Benchmark('   Pascal control case', @Checksum_PAS, 5000000, 1000);
   Results[1] := Benchmark(' Using LEA instruction', @Checksum_LEA, 5000000, 1000);
   Results[2] := Benchmark('Using ADD instructions', @Checksum_ADD, 5000000, 1000);
-  
+
   FailureCode := 0;
 
   if (Results[0] <> Results[1]) then
@@ -184,7 +105,7 @@ begin
       WriteLn('ERROR: Checksum_ADD doesn''t match control case');
       FailureCode := FailureCode or 2
     end;
-    
+
   if FailureCode <> 0 then
     Halt(FailureCode);
 end.
