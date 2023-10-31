@@ -985,6 +985,7 @@ const
   link_e_comdat_selection_differs=09220;
   link_e_undefined_symbol_in_obj=09221;
   link_e_undefined_symbol=09222;
+  link_e_unsupported_cross_endian_internal_linker=09223;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -1170,9 +1171,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 92222;
+  MsgTxtSize = 92299;
 
   MsgIdxMax : array[1..20] of longint=(
-    29,109,371,134,102,63,148,38,223,71,
+    29,109,371,134,102,63,148,38,224,71,
     68,20,30,1,1,1,1,1,1,1
   );

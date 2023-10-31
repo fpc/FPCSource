@@ -3185,7 +3185,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09222 is the last used one
+# 09223 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3250,6 +3250,8 @@ link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
 % The specified symbol is used, but not defined and was first seen in the specified object file.
 link_e_undefined_symbol=09222_E_Undefined symbol: $1
 % The specified symbol is used, but not defined.
+link_e_unsupported_cross_endian_internal_linker=09223_E_Using internal linker in cross-endian configuration is not supported
+% The internal linker does not correctly handle endianess conversion.
 % \end{description}
 # EndOfTeX
 
