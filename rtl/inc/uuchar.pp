@@ -20,7 +20,8 @@ interface
   type
     Char = widechar;
     PChar = pwidechar;
-
+    PPChar = ^PChar;
+    PPPChar = ^PPChar;
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 {$ifdef MSWINDOWS}

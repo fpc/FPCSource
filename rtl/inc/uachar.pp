@@ -22,6 +22,8 @@ interface
   type
     Char = AnsiChar;
     PChar = PAnsiChar;
+    PPChar = ^PChar;
+    PPPChar = ^PPChar;
 
 implementation
 
