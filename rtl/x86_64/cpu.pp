@@ -35,6 +35,14 @@ unit cpu;
       sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
+type
+    TCpuidResult = record
+      eax, ebx, ecx, edx: uint32;
+    end;
+
+    function CPUID(in_eax: uint32; in_ecx: uint32 = 0): TCpuidResult; inline;
+    function CPUBrandString: shortstring;
+
     function InterlockedCompareExchange128Support : boolean;inline;
     function CMOVSupport : boolean;inline;
     function AESSupport : boolean;inline;
@@ -115,6 +123,46 @@ unit cpu;
       _RTMSupport,
       _BMI1Support,
       _BMI2Support: boolean;
+
+
+    procedure CPUID(in_eax: uint32; in_ecx: uint32; out res: TCpuidResult); assembler; nostackframe;
+      // ^ I don't know how 16-byte result is handled in SysV, if it is returned in RDX:RAX as GCC does things become complex,
+      // that's why this internal version with "out res" exists...
+      // Win64: ecx = in_eax, edx = in_ecx, r8 = res.
+      // SysV:  edi = in_eax, esi = in_ecx, rdx = res.
+      asm
+        push  %rbx
+{$ifndef win64}
+        mov   %rdx, %r8 // r8 = res
+{$endif}
+        mov   in_eax, %eax
+        mov   in_ecx, %ecx
+        cpuid
+        mov   %eax, TCpuidResult.eax(%r8)
+        mov   %ebx, TCpuidResult.ebx(%r8)
+        mov   %ecx, TCpuidResult.ecx(%r8)
+        mov   %edx, TCpuidResult.edx(%r8)
+        pop   %rbx
+      end;
+
+
+    function CPUID(in_eax: uint32; in_ecx: uint32 = 0): TCpuidResult;
+      begin
+        CPUID(in_eax, in_ecx, result);
+      end;
+
+
+    function CPUBrandString: shortstring;
+      begin
+        if CPUID($80000000).eax<$80000004 then
+          exit('');
+        TCpuidResult(pointer(@result[1])^):=CPUID($80000002);
+        TCpuidResult(pointer(@result[17])^):=CPUID($80000003);
+        TCpuidResult(pointer(@result[33])^):=CPUID($80000004);
+        result[49]:=#0;
+        result[0]:=chr(length(PAnsiChar(@result[1])));
+      end;
+
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -197,83 +245,61 @@ unit cpu;
 
     procedure SetupSupport;
       var
-        _edx,
-        _ecx,
-        _ebx,maxcpuidvalue : longint;
+        maxcpuidvalue : longint;
+        cpuid1,cpuid7 : TCpuidResult;
       begin
-        asm
-           movl $0x0,%eax
-           cpuid
-           movl %eax,maxcpuidvalue
-        end ['rax','rbx','rcx','rdx'];
-        asm
-           movl $0x00000001,%eax
-           cpuid
-           movl %ecx,_ecx
-        end ['rax','rbx','rcx','rdx'];
-        _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
-        _AESSupport:=(_ecx and $2000000)<>0;
-        _POPCNTSupport:=(_ecx and $800000)<>0;
-        _SSE3Support:=(_ecx and $1)<>0;
-        _SSSE3Support:=(_ecx and $200)<>0;
-        _SSE41Support:=(_ecx and $80000)<>0;
-        _SSE42Support:=(_ecx and $100000)<>0;
-        _MOVBESupport:=(_ecx and $400000)<>0;
-        _F16CSupport:=(_ecx and $20000000)<>0;
-        _RDRANDSupport:=(_ecx and $40000000)<>0;
+        maxcpuidvalue:=CPUID(0).eax;
+        cpuid1:=CPUID(1);
+        _InterlockedCompareExchange128Support:=(cpuid1.ecx and $2000)<>0;
+        _AESSupport:=(cpuid1.ecx and $2000000)<>0;
+        _POPCNTSupport:=(cpuid1.ecx and $800000)<>0;
+        _SSE3Support:=(cpuid1.ecx and $1)<>0;
+        _SSSE3Support:=(cpuid1.ecx and $200)<>0;
+        _SSE41Support:=(cpuid1.ecx and $80000)<>0;
+        _SSE42Support:=(cpuid1.ecx and $100000)<>0;
+        _MOVBESupport:=(cpuid1.ecx and $400000)<>0;
+        _F16CSupport:=(cpuid1.ecx and $20000000)<>0;
+        _RDRANDSupport:=(cpuid1.ecx and $40000000)<>0;
 
         _AVXSupport:=
           { XGETBV suspport? }
-          ((_ecx and $08000000)<>0) and
+          ((cpuid1.ecx and $08000000)<>0) and
           { xmm and ymm state enabled? }
           ((XGETBV(0) and %110)=%110) and
           { avx supported? }
-          ((_ecx and $10000000)<>0);
+          ((cpuid1.ecx and $10000000)<>0);
 
-        is_sse3_cpu:=(_ecx and $1)<>0;
+        is_sse3_cpu:=(cpuid1.ecx and $1)<>0;
 
-        _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
+        _FMASupport:=_AVXSupport and ((cpuid1.ecx and $1000)<>0);
 
-        asm
-          movl $0x80000001,%eax
-          cpuid
-          movl %ecx,_ecx
-          movl %edx,_edx
-        end;
-        _LZCNTSupport:=(_ecx and $20)<>0;
+        _LZCNTSupport:=(CPUID($80000001).ecx and $20)<>0;
 
         { very early x86-64 CPUs might not support eax=7 }
         if maxcpuidvalue>=7 then
           begin
-            asm
-              movl $7,%eax
-              movl $0,%ecx
-              cpuid
-              movl %ebx,_ebx
-              movl %ecx,_ecx
-              movl %edx,_edx
-            end ['rax','rbx','rcx','rdx'];
-            _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
-            _AVX512FSupport:=(_ebx and $10000)<>0;
-            _AVX512DQSupport:=(_ebx and $20000)<>0;
-            _RDSEEDSupport:=(_ebx and $40000)<>0;
-            _ADXSupport:=(_ebx and $80000)<>0;
-            _AVX512IFMASupport:=(_ebx and $200000)<>0;
-            _AVX512PFSupport:=(_ebx and $4000000)<>0;
-            _AVX512ERSupport:=(_ebx and $8000000)<>0;
-            _AVX512CDSupport:=(_ebx and $10000000)<>0;
-            _SHASupport:=(_ebx and $20000000)<>0;
-            _AVX512BWSupport:=(_ebx and $40000000)<>0;
-            _AVX512VLSupport:=(_ebx and $80000000)<>0;
-            _AVX512VBMISupport:=(_ecx and $00000002)<>0;
-            _AVX512VBMI2Support:=(_ecx and $00000040)<>0;
-            _VAESSupport:=(_ecx and $00000200)<>0;
-            _VCLMULSupport:=(_ecx and $00000400)<>0;
-            _AVX512VNNISupport:=(_ecx and $00000800)<>0;
-            _AVX512BITALGSupport:=(_ecx and $00001000)<>0;
-            _BMI1Support:=(_ebx and $8)<>0;
-            _BMI2Support:=(_ebx and $100)<>0;
-            _RTMSupport:=(_ebx and $800)<>0;
+            cpuid7:=CPUID(7);
+            _AVX2Support:=_AVXSupport and ((cpuid7.ebx and $20)<>0);
+            _AVX512FSupport:=(cpuid7.ebx and $10000)<>0;
+            _AVX512DQSupport:=(cpuid7.ebx and $20000)<>0;
+            _RDSEEDSupport:=(cpuid7.ebx and $40000)<>0;
+            _ADXSupport:=(cpuid7.ebx and $80000)<>0;
+            _AVX512IFMASupport:=(cpuid7.ebx and $200000)<>0;
+            _AVX512PFSupport:=(cpuid7.ebx and $4000000)<>0;
+            _AVX512ERSupport:=(cpuid7.ebx and $8000000)<>0;
+            _AVX512CDSupport:=(cpuid7.ebx and $10000000)<>0;
+            _SHASupport:=(cpuid7.ebx and $20000000)<>0;
+            _AVX512BWSupport:=(cpuid7.ebx and $40000000)<>0;
+            _AVX512VLSupport:=(cpuid7.ebx and $80000000)<>0;
+            _AVX512VBMISupport:=(cpuid7.ecx and $00000002)<>0;
+            _AVX512VBMI2Support:=(cpuid7.ecx and $00000040)<>0;
+            _VAESSupport:=(cpuid7.ecx and $00000200)<>0;
+            _VCLMULSupport:=(cpuid7.ecx and $00000400)<>0;
+            _AVX512VNNISupport:=(cpuid7.ecx and $00000800)<>0;
+            _AVX512BITALGSupport:=(cpuid7.ecx and $00001000)<>0;
+            _BMI1Support:=(cpuid7.ebx and $8)<>0;
+            _BMI2Support:=(cpuid7.ebx and $100)<>0;
+            _RTMSupport:=(cpuid7.ebx and $800)<>0;
           end;
       end;
 
