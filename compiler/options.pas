@@ -38,6 +38,7 @@ Type
     LogoWritten,
     ABISetExplicitly,
     FPUSetExplicitly,
+    LinkInternSetExplicitly,
     CPUSetExplicitly,
     OptCPUSetExplicitly: boolean;
     FileLevel : longint;
@@ -2613,7 +2614,10 @@ begin
                     'e' :
                       begin
                         If UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_extern)
+                          begin
+                            exclude(init_settings.globalswitches,cs_link_extern);
+                            linkinternsetexplicitly:=true;
+                          end
                         else
                           include(init_settings.globalswitches,cs_link_extern);
                       end;
@@ -2632,6 +2636,10 @@ begin
                           include(init_settings.globalswitches,cs_link_extern)
                         else
                           exclude(init_settings.globalswitches,cs_link_extern);
+                          begin
+                            exclude(init_settings.globalswitches,cs_link_extern);
+                            LinkInternSetExplicitly:=true;
+                          end;
                       end;
                     'n' :
                       begin
@@ -4436,6 +4444,13 @@ begin
 
   if not option.LinkTypeSetExplicitly then
     set_default_link_type;
+  if source_info.endian<>target_info.endian then
+    begin
+      if option.LinkInternSetExplicitly then
+        Message(link_e_unsupported_cross_endian_internal_linker)
+      else
+        include(init_settings.globalswitches,cs_link_extern);
+    end;
 
   { Default alignment settings,
     1. load the defaults for the target
