@@ -131,7 +131,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SortBase;
+{$ELSE}
 uses sortbase;
+{$ENDIF}
 
 { TBaseDeviceInfo }
 
