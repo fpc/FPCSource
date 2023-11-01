@@ -61,6 +61,7 @@ const
    varArray = $2000;
    varByRef = $4000;
 
+   varUInt32 = varLongWord; // Delphi compatibility 
    varWord64 = varQWord;
    varUInt64 = varQWord; // Delphi alias
 
