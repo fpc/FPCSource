@@ -622,7 +622,10 @@ const
   igiLongTap       = igiFirst + 8;
   igiDoubleTap     = igiFirst + 9;
 
+// Edit controls
 
+Type
+  TEditCharCase = (ecNormal, ecUpperCase, ecLowerCase);
 
 implementation
 
