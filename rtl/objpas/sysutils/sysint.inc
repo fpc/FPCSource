@@ -15,6 +15,14 @@
 
 class function TFormatSettings.Invariant : TFormatSettings; 
 
+const
+  DefShortMonthNames : TMonthNameArray = ('Jan','Feb','Mar','Apr','May','Jun', 
+                      'Jul','Aug','Sep','Oct','Nov','Dec');
+  DefLongMonthNames : TMonthNameArray = ('January','February','March','April','May','June',
+                     'July','August','September','October','November','December');
+  DefShortDayNames : TWeekNameArray = ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+  DefLongDayNames : TWeekNameArray = ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+                     
 begin
   With Result do
     begin
@@ -33,13 +41,10 @@ begin
     TimePMString:='PM';
     ShortTimeFormat:='hh:nn';
     LongTimeFormat:='hh:nn:ss';
-    ShortMonthNames:=['Jan','Feb','Mar','Apr','May','Jun', 
-                      'Jul','Aug','Sep','Oct','Nov','Dec'];
-    LongMonthNames:=['January','February','March','April','May','June',
-                     'July','August','September','October','November','December'];
-    ShortDayNames:=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    LongDayNames:=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    TwoDigitYearCenturyWindow:=50;
+    ShortMonthNames:=DefShortMonthNames;
+    LongMonthNames:=DefLongMonthNames;
+    ShortDayNames:=DefShortDayNames;
+    LongDayNames:=DefLongDayNames;
     end;
 end;
 
