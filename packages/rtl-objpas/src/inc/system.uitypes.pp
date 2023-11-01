@@ -32,6 +32,7 @@ Type
     TImageIndex = type Integer;
 
     TColorRec = record
+     class var ColorToRGB: function (Color: TColor): Longint;
                  class operator := (AColor : TColor): TColorRec; inline;
                  class operator := (AColor : TColorRec): TColor; inline;
       const
@@ -982,4 +983,11 @@ begin
   CR.B:=CC(B);
 end;
 
+function DefaultColorToRGB(Color: TColor): Longint;
+begin
+  Result:=Color;
+end;
+
+initialization
+  TColorRec.ColorToRGB:=@DefaultColorToRGB;
 end.
