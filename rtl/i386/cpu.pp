@@ -316,7 +316,7 @@ type
                   _AVX512VLSupport:=(cpuid7.ebx and $80000000)<>0;
                   _BMI1Support:=(cpuid7.ebx and $8)<>0;
                   _BMI2Support:=(cpuid7.ebx and $100)<>0;
-                  _RTMSupport:=((cpuid7.ebx and $800)<>0);
+                  _RTMSupport:=((cpuid7.ebx and $800)<>0) and (cpuid7.edx and (1 shl 11)=0 {RTM_ALWAYS_ABORT});
                 end;
            end;
       end;
