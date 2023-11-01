@@ -3497,7 +3497,7 @@ unit_u_ppu_wasm_threads_mismatch=10070_U_PPU and program must both be compiled w
 #
 #  Options
 #
-# 11067 is the last used one
+# 11068 is the last used one
 #
 # BeginOfTeX
 %
@@ -3563,6 +3563,9 @@ option_obsolete_switch_use_new=11019_W_You are using the obsolete switch $1, ple
 option_switch_bin_to_src_assembler=11020_N_Switching assembler to default source writing assembler
 % This notifies you that the assembler has been changed because you used the
 % -a switch, which cannot be used with a binary assembler writer.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
 option_incompatible_asm=11021_W_Assembler output selected "$1" is not compatible with "$2"
 option_asm_forced=11022_W_"$1" assembler use forced
 % The assembler output selected cannot generate
