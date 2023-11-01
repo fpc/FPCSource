@@ -5702,7 +5702,7 @@ begin
   if source_info.endian<>target_info.endian then
     begin
       if option.LinkInternSetExplicitly then
-        Message(link_e_unsupported_cross_endian_internal_linker)
+        Message(link_w_unsupported_cross_endian_internal_linker)
       else
         include(init_settings.globalswitches,cs_link_extern);
     end;

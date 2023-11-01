@@ -3250,7 +3250,7 @@ link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
 % The specified symbol is used, but not defined and was first seen in the specified object file.
 link_e_undefined_symbol=09222_E_Undefined symbol: $1
 % The specified symbol is used, but not defined.
-link_e_unsupported_cross_endian_internal_linker=09223_E_Using internal linker in cross-endian configuration is not supported
+link_w_unsupported_cross_endian_internal_linker=09223_W_Internal linker in cross-endian configuration is work in progress
 % The internal linker does not correctly handle endianess conversion.
 % \end{description}
 # EndOfTeX
