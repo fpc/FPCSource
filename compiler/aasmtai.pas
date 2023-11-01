@@ -337,7 +337,7 @@ interface
         the way the program runs/behaves, but which may be encountered by the
         optimizer (= if it's sometimes added to the exprasm list). Update if you add
         a new ait type!                                                              }
-      SkipInstr = [ait_comment, ait_symbol,ait_section
+      SkipInstr = [ait_comment, ait_symbol,ait_section,ait_align
                    ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end
                    ,ait_directive
