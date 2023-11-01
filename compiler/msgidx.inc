@@ -1023,6 +1023,7 @@ const
   option_obsolete_switch=11018;
   option_obsolete_switch_use_new=11019;
   option_switch_bin_to_src_assembler=11020;
+  option_switch_bin_to_src_assembler_cross_endian=11068;
   option_incompatible_asm=11021;
   option_asm_forced=11022;
   option_using_file=11026;
@@ -1113,9 +1114,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 83831;
+  MsgTxtSize = 83925;
 
   MsgIdxMax : array[1..20] of longint=(
     28,106,350,127,99,63,142,34,221,67,
-    63,20,30,1,1,1,1,1,1,1
+    69,20,30,1,1,1,1,1,1,1
   );
