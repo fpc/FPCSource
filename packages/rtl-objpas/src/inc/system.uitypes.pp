@@ -222,6 +222,7 @@ Type
       SysMenuHighlight           = TColor($FF00001D) platform;
       SysMenuBar                 = TColor($FF00001E) platform;
       SysNone                    = TColor($1FFFFFFF) platform;
+      Null                       = TColor($00000000);
       SysDefault                 = TColor($20000000) platform;
       var
         case Integer of
@@ -409,6 +410,8 @@ Type
     {$ENDIF}
   end;
   TAlphaColorRec = TAlphaColors;
+  PAlphaColorRec = ^TAlphaColorRec;
+
 
   TAlphaColorF = record
   Public
@@ -465,8 +468,10 @@ const
   mrNoToAll = mrNone + 9;
   mrYesToAll = mrNone + 10;
   mrClose = mrNone + 11;
-  mrLast = mrClose;
-
+  mrContinue = mrNone + 12;
+  mrTryAgain = mrNone + 13;
+  mrLast = mrTryAgain;
+  
   // String representation of ModalResult values
   ModalResultStr: array[mrNone..mrLast] of shortstring = (
     'mrNone',
@@ -480,23 +485,44 @@ const
     'mrAll',
     'mrNoToAll',
     'mrYesToAll',
-    'mrClose');
+    'mrClose',
+    'mrContinue',
+    'mrTryAgain');
 
 // CONTROLS
 type
   TCloseAction = (caNone, caHide, caFree, caMinimize);
+  TCloseActions = set of  TCloseAction;
+  
   TMouseButton = (mbLeft, mbRight, mbMiddle, mbExtra1, mbExtra2);
+  TMouseButtons = set of TMouseButton;
+  
   TTabOrder = -1..32767;
+  
   TDragKind = (dkDrag, dkDock);
+  TDragKinds = set of TDragKind;
+  
   TDragMode = (dmManual , dmAutomatic);
+  TDragModes = set of TDragMode;
+  
   TDragState = (dsDragEnter, dsDragLeave, dsDragMove);
+  TDragStates = set of TDragState;
+  
   TDragMessage = (dmDragEnter, dmDragLeave, dmDragMove, dmDragDrop,
                   dmDragCancel,dmFindTarget);
+  TDragMessages = set of TDragMessage;
 
   TAnchorKind = (akTop, akLeft, akRight, akBottom);
   TAnchors = set of TAnchorKind;
-  TAnchorSideReference = (asrTop, asrBottom, asrCenter);
+  TAnchorKinds = TAnchors;
 
+  TAnchorSideReference = (asrTop, asrBottom, asrCenter);
+  TAnchorSideReferences = set of TAnchorSideReference;
+
+  TScrollCode = (scLineUp, scLineDown, scPageUp, scPageDown, scPosition,
+                scTrack, scTop, scBottom, scEndScroll);
+  TScrollCodes = set of TScrollCode;
+  
   TCursor = -32768..32767;
 
 const
@@ -553,8 +579,14 @@ type
 
 // PRINTERS
   TPrinterOrientation = (poPortrait,poLandscape,poReverseLandscape,poReversePortrait);
+  TPrinterOrientations = set of TPrinterOrientation;
+  
   TPrinterCapability  = (pcCopies, pcOrientation, pcCollation);
   TPrinterCapabilities= Set of TPrinterCapability;
+  
+  TPrinterState = (psNoHandle, psHandleIC, psHandleDC);
+  TPrinterStates = set of TPrinterState;
+  
 
 // Gestures
 const
@@ -627,7 +659,95 @@ const
 Type
   TEditCharCase = (ecNormal, ecUpperCase, ecLowerCase);
 
+  // Forms
+  
+  TWindowState = (wsNormal, wsMinimized, wsMaximized);
+  TWindowStates = Set of TWindowState;
+  
+  TBorderIcon = (biSystemMenu, biMinimize, biMaximize, biHelp);
+  TBorderIcons = set of TBorderIcon;
+    
+  // Dialogs
+  TOpenOption = (ofReadOnly, ofOverwritePrompt, ofHideReadOnly,
+    ofNoChangeDir, ofShowHelp, ofNoValidate, ofAllowMultiSelect,
+    ofExtensionDifferent, ofPathMustExist, ofFileMustExist, ofCreatePrompt,
+    ofShareAware, ofNoReadOnlyReturn, ofNoTestFileCreate, ofNoNetworkButton,
+    ofNoLongNames, ofOldStyleDialog, ofNoDereferenceLinks, ofEnableIncludeNotify,
+    ofEnableSizing, ofDontAddToRecent, ofForceShowHidden);
+  TOpenOptions = set of TOpenOption;
+
+  TOpenOptionEx = (ofExNoPlacesBar);
+  TOpenOptionsEx = set of TOpenOptionEx;
+
+  TDialogType = (Standard, Directory);
+
+  TPrintRange = (prAllPages, prSelection, prPageNums);
+  TPrintDialogOption = (poPrintToFile, poPageNums, poSelection, poWarning,
+    poHelp, poDisablePrintToFile);
+  TPrintDialogOptions = set of TPrintDialogOption;
+
+  TPageSetupDialogOption = (psoDefaultMinMargins, psoDisableMargins,
+      psoDisableOrientation, psoDisablePagePainting, psoDisablePaper, psoDisablePrinter,
+      psoMargins, psoMinMargins, psoShowHelp, psoWarning, psoNoNetworkButton);
+    TPageSetupDialogOptions = set of TPageSetupDialogOption;
+
+  TPageMeasureUnits = (pmDefault, pmMillimeters, pmInches);
+
+  TCalDayOfWeek = (dowMonday, dowTuesday, dowWednesday, dowThursday,
+    dowFriday, dowSaturday, dowSunday, dowLocaleDefault);
+
+function IsPositiveResult(const AModalResult: TModalResult): Boolean;
+function IsNegativeResult(const AModalResult: TModalResult): Boolean;
+function IsAbortResult(const AModalResult: TModalResult): Boolean;
+function IsAnAllResult(const AModalResult: TModalResult): Boolean;
+function StripAllFromResult(const AModalResult: TModalResult): TModalResult;
+
+
 implementation
+
+function IsPositiveResult(const AModalResult: TModalResult): Boolean;
+
+begin
+  Result:=aModalResult in [mrOk,mrYes,mrAll,mrYesToAll,mrContinue]
+end;
+
+
+function IsNegativeResult(const AModalResult: TModalResult): Boolean;
+
+begin
+  Result:=aModalResult in [mrNo,mrNoToAll,mrTryAgain]
+end;
+
+
+function IsAbortResult(const AModalResult: TModalResult): Boolean;
+
+begin
+   Result:=aModalResult in [mrCancel,mrAbort]
+end;
+
+
+function IsAnAllResult(const AModalResult: TModalResult): Boolean;
+
+begin
+  Result:=aModalResult in [mrAll,mrNoToAll,mrYesToAll]
+end;
+
+
+function StripAllFromResult(const AModalResult: TModalResult): TModalResult;
+
+begin
+  case aModalResult of
+  mrAll:
+    Result:=mrOk;
+  mrNoToAll:
+    Result:=mrNo;
+  mrYesToAll: 
+    Result:=mrYes;
+  else
+    Result:=aModalResult;
+  end;
+end;
+
 
 class operator TColorRec.:= (AColor : TColor): TColorRec;
 begin
