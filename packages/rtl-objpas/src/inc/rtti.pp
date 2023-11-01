@@ -36,7 +36,7 @@ unit Rtti;
 {$ifdef InLazIDE}
 {$define NoGenericMethods}
 {$endif}
-
+{$WARN 4055 off : Conversion between ordinals and pointers is not portable}
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -124,6 +124,60 @@ type
     function GetTypeKind: TTypeKind; inline;
     function GetIsEmpty: boolean; inline;
     procedure Init; inline;
+    // typecast
+    procedure CastAssign(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastToVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // from integer
+    procedure CastIntegerToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastIntegerToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastIntegerToInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastIntegerToQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // from Ansichar
+    procedure CastCharToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromAnsiChar(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From WideChar
+    procedure CastWCharToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromWideChar(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From Enumerated
+    procedure CastEnumToEnum(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromEnum(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From float
+    procedure CastFloatToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFloatToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From string
+    procedure CastStringToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From class
+    procedure CastClassRefToClassRef(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastClassToClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastClassToInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From Int64
+    procedure CastInt64ToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastInt64ToQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastInt64ToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From QWord
+    procedure CastQWordToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastQWordToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastQWordToInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From Interface
+    procedure CastInterfaceToInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From Pointer
+    procedure CastFromPointer(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From set
+    procedure CastSetToSet(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromSet(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // From variant
+    procedure CastVariantToVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure CastFromVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    procedure DoCastFromVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
+    // Cast entry
+    procedure CastFromType(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
@@ -142,6 +196,8 @@ type
     class function FromVariant(const aValue : Variant) : TValue; static;
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
+    // Maybe we need to check these now that Cast<> is implemented.
+    // OTOH they will probablu be faster.
     function AsString: string; inline;
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
@@ -156,6 +212,7 @@ type
     function AsCurrency: Currency;
     function AsSingle : Single;
     function AsDateTime : TDateTime;
+    function IsDateTime: boolean; inline;
     function AsDouble : Double;
     function AsInteger: Integer;
     function AsError: HRESULT;
@@ -171,9 +228,14 @@ type
     function GetArrayLength: SizeInt;
     function GetArrayElement(AIndex: SizeInt): TValue;
     procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
-    function IsType(ATypeInfo: PTypeInfo): boolean; inline;
+    function IsType(aTypeInfo: PTypeInfo): boolean; inline;
+    function TryCast(aTypeInfo: PTypeInfo; out aResult: TValue; const aEmptyAsAnyType: Boolean = True): Boolean;
+    function Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
 {$ifndef NoGenericMethods}
+    generic function Cast<T>(const aEmptyAsAnyType: Boolean = True): TValue; overload;
     generic function IsType<T>: Boolean; inline;
+    generic function AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
+    generic function TryAsType<T>(out aResult: T; const aEmptyAsAnyType: Boolean = True): Boolean; inline;
 {$endif}
     function TryAsOrdinal(out AResult: int64): boolean;
     function GetReferenceToRawData: Pointer;
@@ -704,6 +766,7 @@ uses
 {$ifdef unix}
   UnixApi.Base,
 {$endif}
+  System.SysConst,
   System.FGL;
 {$ELSE FPC_DOTTEDUNITS}
   Variants,
@@ -713,6 +776,7 @@ uses
 {$ifdef unix}
   BaseUnix,
 {$endif}
+  sysconst,
   fgl;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -727,6 +791,132 @@ begin
   Result := aPtr;
 {$endif}
 {$endif}
+end;
+
+Function IsDateTimeType(aData : PTypeInfo) : Boolean; inline;
+
+begin
+  Result:=(aData=TypeInfo(TDateTime))
+          or (aData=TypeInfo(TDate))
+          or (aData=TypeInfo(TTime));
+end;
+
+Function TypeInfoToVarType(aTypeInfo : PTypeInfo; out aType : TVarType) : Boolean;
+
+begin
+  aType:=varEmpty;
+  case aTypeInfo^.Kind of
+    tkChar,
+    tkWideChar,
+    tkString,
+    tkLString:
+      aType:=varString;
+    tkUString:
+      aType:=varUString;
+    tkWString:
+      aType:=varOleStr;
+    tkVariant:
+      aType:=varVariant;
+    tkInteger:
+      case GetTypeData(aTypeInfo)^.OrdType of
+        otSByte:  aType:=varShortInt;
+        otSWord:  aType:=varSmallint;
+        otSLong:  aType:=varInteger;
+        otUByte:  aType:=varByte;
+        otUWord:  aType:=varWord;
+        otULong:  aType:=varLongWord;
+        otUQWord: aType:=varQWord;
+        otSQWord: aType:=varInt64;
+      end;
+    tkEnumeration:
+      if IsBoolType(aTypeInfo) then
+        aType:=varBoolean;
+    tkFloat:
+      if IsDateTimeType(aTypeInfo) then
+        aType:=varDate
+      else
+        case GetTypeData(aTypeInfo)^.FloatType of
+          ftSingle:   aType:=varSingle;
+          ftDouble:   aType:=varDouble;
+          ftExtended: aType:=varDouble;
+          ftComp:     aType:=varInt64;
+          ftCurr:     aType:=varCurrency;
+        end;
+    tkInterface:
+      if aTypeInfo=System.TypeInfo(IDispatch) then
+        aType:=varDispatch
+      else
+        aType:=varUnknown;
+    tkInt64:
+      aType:=varInt64;
+    tkQWord:
+      aType:=varUInt64
+  else
+    aType:=varEmpty;
+  end;
+  Result:=(aType<>varEmpty);
+end;
+
+function VarTypeToTypeInfo(aVarType : TVarType; out DataType: PTypeInfo) : Boolean;
+
+begin
+  Result:=True;
+  DataType:=Nil;
+  case aVarType of
+    varEmpty,
+    varNull:
+      ;
+    varUnknown:
+      DataType:=System.TypeInfo(IInterface);
+    varShortInt:
+      DataType:=System.TypeInfo(ShortInt);
+    varSmallint:
+      DataType:=System.TypeInfo(SmallInt);
+    varInteger:
+      DataType:=System.TypeInfo(Integer);
+    varSingle:
+      DataType:=System.TypeInfo(Single);
+    varCurrency:
+      DataType:=System.TypeInfo(Currency);
+    varDate:
+      DataType:=System.TypeInfo(TDateTime);
+    varOleStr:
+      DataType:=System.TypeInfo(WideString);
+    varUString:
+      DataType:=System.TypeInfo(UnicodeString);
+    varDispatch:
+      DataType:=System.TypeInfo(IDispatch);
+    varError:
+      DataType:=System.TypeInfo(HRESULT);
+    varByte:
+      DataType:=System.TypeInfo(Byte);
+    varWord:
+      DataType:=System.TypeInfo(Word);
+    varInt64:
+      DataType:=System.TypeInfo(Int64);
+    varUInt64:
+      DataType:=System.TypeInfo(UInt64);
+    varBoolean:
+      DataType:=System.TypeInfo(Boolean);
+    varDouble:
+      DataType:=System.TypeInfo(Double);
+    varString:
+      DataType:=System.TypeInfo(RawByteString);
+  else
+    Result:=False;
+  end;
+end;
+
+Function FloatTypeToTypeInfo(FT : TFloatType) : PTypeInfo;
+
+begin
+  Case FT of
+    ftSingle: Result:=System.TypeInfo(Single);
+    ftDouble: Result:=System.TypeInfo(Double);
+    ftExtended: Result:=System.TypeInfo(Extended);
+    ftComp: Result:=System.TypeInfo(Comp);
+    ftCurr: Result:=System.TypeInfo(Currency);
+  end;
 end;
 
 type
@@ -808,6 +998,8 @@ type
     function GetIntfType: TInterfaceType; override;
   end;
 
+  { TRttiVmtMethodParameter }
+
   TRttiVmtMethodParameter = class(TRttiParameter)
   private
     FVmtMethodParam: PVmtMethodParam;
@@ -818,7 +1010,10 @@ type
     function GetParamType: TRttiType; override;
   public
     constructor Create(AVmtMethodParam: PVmtMethodParam);
+    function GetAttributes: TCustomAttributeArray; override;
   end;
+
+  { TRttiMethodTypeParameter }
 
   TRttiMethodTypeParameter = class(TRttiParameter)
   private
@@ -833,13 +1028,18 @@ type
     function GetParamType: TRttiType; override;
   public
     constructor Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
+    function GetAttributes: TCustomAttributeArray; override;
   end;
+
+  { TRttiIntfMethod }
 
   TRttiIntfMethod = class(TRttiMethod)
   private
     FIntfMethodEntry: PIntfMethodEntry;
     FIndex: SmallInt;
     FParams, FParamsAll: TRttiParameterArray;
+    FAttributesResolved: boolean;
+    FAttributes: TCustomAttributeArray;
   protected
     function GetHandle: Pointer; override;
     function GetName: String; override;
@@ -857,6 +1057,7 @@ type
     function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
   public
     constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
+    function GetAttributes: TCustomAttributeArray; override;
   end;
 
 resourcestring
@@ -879,19 +1080,19 @@ resourcestring
   SErrInvokeCallableNotProc   = 'The callable value is not a procedure variable for: %s';
   SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
   SErrMethodImplNoCallback    = 'No callback specified for method implementation';
-  SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
+//  SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
   SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
   SErrVirtIntfTypeNil = 'No type information provided for TVirtualInterface';
   SErrVirtIntfTypeMustBeIntf = 'Type ''%s'' is not an interface type';
   SErrVirtIntfTypeNotFound = 'Type ''%s'' is not valid';
   SErrVirtIntfNotAllMethodsRTTI = 'Not all methods of ''%s'' or its parents have the required RTTI';
-  SErrVirtIntfRetrieveIInterface = 'Failed to retrieve IInterface information';
+//  SErrVirtIntfRetrieveIInterface = 'Failed to retrieve IInterface information';
   SErrVirtIntfCreateThunk = 'Failed to create thunks for ''%0:s''';
-  SErrVirtIntfCreateImpl = 'Failed to create implementation for method ''%1:s'' of ''%0:s''';
+//  SErrVirtIntfCreateImpl = 'Failed to create implementation for method ''%1:s'' of ''%0:s''';
   SErrVirtIntfInvalidVirtIdx = 'Virtual index %2:d for method ''%1:s'' of ''%0:s'' is invalid';
   SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
   SErrVirtIntfCreateVmt = 'Failed to create VMT for ''%s''';
-  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';
+//  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';
 
 var
   PoolRefCount : integer;
@@ -1603,23 +1804,6 @@ end;
 
 { TValue }
 
-procedure TValue.Init;
-begin
-  { resets the whole variant part; FValueData is already Nil }
-{$if SizeOf(TMethod) > SizeOf(QWord)}
-  FData.FAsMethod.Code := Nil;
-  FData.FAsMethod.Data := Nil;
-{$else}
-  FData.FAsUInt64 := 0;
-{$endif}
-end;
-
-class function TValue.Empty: TValue;
-begin
-  Result.Init;
-  result.FData.FTypeInfo := nil;
-end;
-
 function TValue.GetTypeDataProp: PTypeData;
 begin
   result := GetTypeData(FData.FTypeInfo);
@@ -1637,6 +1821,209 @@ begin
   else
     result := FData.FTypeInfo^.Kind;
 end;
+
+function TValue.IsObject: boolean;
+begin
+  result := (Kind = tkClass) or ((Kind = tkUnknown) and not Assigned(FData.FAsObject));
+end;
+
+function TValue.IsClass: boolean;
+begin
+  result := (Kind = tkClassRef) or ((Kind in [tkClass,tkUnknown]) and not Assigned(FData.FAsObject));
+end;
+
+function TValue.IsOrdinal: boolean;
+begin
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration, tkChar, tkWChar, tkUChar]) or
+            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
+end;
+
+function TValue.IsDateTime: boolean;
+
+begin
+  Result:=IsDateTimeType(TypeInfo);
+end;
+
+{$ifndef NoGenericMethods}
+generic function TValue.IsType<T>:Boolean;
+begin
+  Result := IsType(PTypeInfo(System.TypeInfo(T)));
+end;
+
+generic class procedure TValue.Make<T>(const AValue: T; out Result: TValue);
+begin
+  TValue.Make(@AValue, PTypeInfo(System.TypeInfo(T)), Result);
+end;
+
+generic class function TValue.From<T>(constref aValue: T): TValue;
+begin
+  TValue.Make(@aValue, PTypeInfo(System.TypeInfo(T)), Result);
+end;
+
+generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
+var
+  arrdata: Pointer;
+begin
+  if Length(aValue) > 0 then
+    arrdata := @aValue[0]
+  else
+    arrdata := Nil;
+  TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
+end;
+{$endif}
+
+function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
+begin
+  result := ATypeInfo = TypeInfo;
+end;
+
+class procedure TValue.Make(AValue: NativeInt; ATypeInfo: PTypeInfo; out Result: TValue);
+begin
+  TValue.Make(@AValue, ATypeInfo, Result);
+end;
+
+class operator TValue.:=(const AValue: ShortString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: AnsiString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: UnicodeString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+
+class operator TValue.:=(const AValue: WideString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: SmallInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: ShortInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Byte): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Word): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Cardinal): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: LongInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Single): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Double): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+class operator TValue.:=(AValue: Extended): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+{$endif}
+
+class operator TValue.:=(AValue: Currency): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Comp): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Int64): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: QWord): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: TObject): TValue;
+begin
+  Make(@AValue, PTypeInfo(AValue.ClassInfo), Result);
+end;
+
+class operator TValue.:=(AValue: TClass): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Boolean): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: IUnknown): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: TVarRec): TValue;
+
+begin
+  Result:=TValue.FromVarRec(aValue);
+end;
+
+function TValue.AsString: string;
+begin
+  if System.GetTypeKind(String) = tkUString then
+    Result := String(AsUnicodeString)
+  else
+    Result := String(AsAnsiString);
+end;
+
+procedure TValue.Init;
+begin
+  { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  FData.FAsMethod.Code := Nil;
+  FData.FAsMethod.Data := Nil;
+{$else}
+  FData.FAsUInt64 := 0;
+{$endif}
+end;
+
+class function TValue.Empty: TValue;
+begin
+  Result.Init;
+  result.FData.FTypeInfo := nil;
+end;
+
 
 function TValue.GetDataSize: SizeInt;
 begin
@@ -1720,6 +2107,855 @@ begin
   end;
 end;
 
+Procedure TValue.CastAssign(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  aRes:=True;
+  aDest:=Self;
+end;
+
+Procedure TValue.CastIntegerToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  value: Integer;
+
+begin
+  with FData do
+    case GetTypeData(FTypeInfo)^.OrdType of
+      otSByte: Value:=FAsSByte;
+      otSWord: Value:=FAsSWord;
+      otSLong: Value:=FAsSLong;
+    else
+      value:=Integer(FAsULong);
+    end;
+  TValue.Make(@value,aDestType,aDest);
+  aRes:=True;
+end;
+
+
+Procedure TValue.CastIntegerToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : Int64;
+  Ti : PtypeInfo;
+
+begin
+  Tmp:=AsInt64;
+  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
+  TValue.Make(@Tmp,Ti,aDest);
+  aRes:=True;
+end;
+
+Procedure TValue.CastIntegerToInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: Int64;
+
+begin
+  Tmp:=AsInt64;
+  TValue.Make(@Tmp,aDestType,aDest);
+  aRes:=True;
+end;
+
+Procedure TValue.CastIntegerToQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: QWord;
+
+begin
+  Tmp:=QWord(AsInt64);
+  TValue.Make(@Tmp, aDestType, aDest);
+  aRes:=True;
+end;
+
+
+Procedure TValue.CastCharToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: AnsiChar;
+  S : RawByteString;
+
+begin
+  Tmp:=AsAnsiChar;
+  aRes:=True;
+  case aDestType^.Kind of
+    tkChar:
+      TValue.Make(NativeInt(Tmp), aDestType, aDest);
+    tkString:
+      TValue.Make(@Tmp,System.TypeInfo(ShortString),aDest);
+    tkWString:
+      TValue.Make(@Tmp,System.TypeInfo(WideString),aDest);
+    tkUString:
+      TValue.Make(@Tmp,System.TypeInfo(UnicodeString),aDest);
+    tkLString:
+      begin
+      SetString(S, PAnsiChar(@Tmp), 1);
+      SetCodePage(S,GetTypeData(aDestType)^.CodePage);
+      TValue.Make(@S, aDestType, aDest);
+      end;
+  else
+    aRes:=False;
+  end;
+end;
+
+Procedure TValue.CastWCharToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: WideChar;
+  RS: RawByteString;
+  SS : ShortString;
+  WS : WideString;
+  US : WideString;
+
+begin
+  Tmp:=AsWideChar;
+  aRes:=True;
+  case aDestType^.Kind of
+    tkWChar: TValue.Make(NativeInt(Tmp), aDestType, aDest);
+    tkString:
+      begin
+      SS:=Tmp;
+      aDest:=TValue.Specialize From<ShortString>(SS);
+      end;
+    tkWString:
+      begin
+      WS:=Tmp;
+      aDest:=TValue.Specialize From<WideString>(WS);
+      end;
+    tkUString:
+      begin
+      US:=Tmp;
+      aDest:=TValue.Specialize From<UnicodeString>(US);
+      end;
+    tkLString:
+      begin
+      SetString(RS,PAnsiChar(@Tmp),1);
+      SetCodePage(RS,GetTypeData(aDestType)^.CodePage);
+      TValue.Make(@RS,aDestType,aDest);
+      end;
+  else
+    aRes:=False;
+  end;
+
+end;
+
+Procedure TValue.CastEnumToEnum(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+  Function GetEnumBaseType(aType : PTypeInfo) : PTypeInfo;
+
+  begin
+    if aType^.Kind=tkEnumeration then
+      Result:=GetTypeData(aType)^.BaseType
+    else
+      Result:=Nil;
+  end;
+
+var
+  N : NativeInt;
+  BoolType : PTypeInfo;
+begin
+  N:=AsOrdinal;
+  if IsBoolType(FData.FTypeInfo) and IsBoolType(aDestType) then
+    begin
+    aRes:=True;
+    BoolType:=GetEnumBaseType(aDestType);
+    if (N<>0) then
+      if (BoolType=System.TypeInfo(Boolean)) then
+        N:=Ord(True)
+      else
+        N:=-1;
+    TValue.Make(NativeInt(N),aDestType,aDest)
+    end
+  else
+    begin
+    aRes:=GetEnumBaseType(FData.FTypeInfo)=GetEnumBaseType(aDestType);
+    if aRes then
+      TValue.Make(NativeInt(N), aDestType, aDest);
+    end;
+end;
+
+
+Procedure TValue.CastFloatToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Ti : PTypeInfo;
+  S : Single;
+  D : Double;
+  E : Extended;
+  Co : Comp;
+  Cu : Currency;
+
+begin
+  // Destination float type
+  ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
+  case TypeData^.FloatType of
+    ftSingle:
+      begin
+      S:=AsSingle;
+      TValue.Make(@S,Ti,aDest);
+      end;
+    ftDouble:
+      begin
+      D:=AsDouble;
+      TValue.Make(@D,Ti,aDest);
+      end;
+    ftExtended:
+      begin
+      E:=AsExtended;
+      TValue.Make(@E,Ti,aDest);
+      end;
+    ftComp:
+      begin
+      Co:=FData.FAsComp;
+      TValue.Make(@Co,Ti,aDest);
+      end;
+    ftCurr:
+      begin
+      Cu:=AsCurrency;
+      TValue.Make(@Cu,Ti,aDest);
+      end;
+    end;
+  aRes:=True;
+  // This is for TDateTime, TDate, TTime
+  aDest.FData.FTypeInfo:=aDestType;
+end;
+
+Procedure TValue.CastStringToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  US : UnicodeString;
+  RS : RawByteString;
+  WS : WideString;
+  SS : ShortString;
+
+begin
+  aRes:=False;
+  US:=AsUnicodeString;
+  case aDestType^.Kind of
+  tkUString:
+    TValue.Make(@US,aDestType,aDest);
+  tkWString:
+    begin
+    WS:=US;
+    TValue.Make(@WS,aDestType,aDest);
+    end;
+  tkString:
+    begin
+    RS:=AnsiString(US);
+    if Length(RS)>GetTypeData(aDestType)^.MaxLength then
+      Exit;
+    SS:=RS;
+    TValue.Make(@SS,aDestType,aDest);
+    end;
+  tkChar:
+    begin
+    RS:=AnsiString(US);
+    if Length(RS)<>1 then
+      Exit;
+    TValue.Make(PAnsiChar(RS),aDestType,aDest);
+    end;
+  tkLString:
+    begin
+    SetString(RS,PAnsiChar(US),Length(US));
+    TValue.Make(@RS, aDestType, aDest);
+    end;
+  tkWChar:
+    begin
+    if Length(US)<>1 then
+      Exit;
+    TValue.Make(PWideChar(US),aDestType,aDest);
+    end;
+  else
+     // silence compiler warning
+  end;
+  aRes:=True;
+end;
+
+Procedure TValue.CastClassToClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : TObject;
+  aClass : TClass;
+
+begin
+  Tmp:=AsObject;
+  aClass:=GetTypeData(aDestType)^.ClassType;
+  aRes:=Tmp.InheritsFrom(aClass);
+  if aRes then
+    TValue.Make(IntPtr(Tmp),aDestType,aDest);
+end;
+
+Procedure TValue.CastClassRefToClassRef(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Cfrom,Cto: TClass;
+
+begin
+  ExtractRawData(@CFrom);
+  Cto:=GetTypeData(GetTypeData(aDestType)^.InstanceType)^.ClassType;
+  aRes:=(cFrom=nil) or (Cfrom.InheritsFrom(cTo));
+  if aRes then
+    TValue.Make(PtrInt(cFrom),aDestType,aDest);
+end;
+
+Procedure TValue.CastClassToInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  aGUID : TGUID;
+  P : Pointer;
+
+begin
+  aRes:=False;
+  aGUID:=GetTypeData(aDestType)^.Guid;
+  if IsEqualGUID(GUID_NULL,aGUID) then
+    Exit;
+  aRes:=TObject(AsObject).GetInterface(aGUID,P);
+  if aRes then
+    TValue.Make(@P,aDestType,aDest);
+end;
+
+Procedure TValue.CastInterfaceToInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Parent: PTypeData;
+  Tmp : Pointer;
+
+begin
+  aRes:=(aDestType=TypeInfo) or (aDestType=System.TypeInfo(IInterface));
+  if not aRes then
+    begin
+    Parent:=GetTypeData(TypeInfo);
+    while (not aRes) and Assigned(Parent) and Assigned(Parent^.IntfParent) do
+      begin
+      aRes:=(Parent^.IntfParent=aDestType);
+      if not aRes then
+        Parent:=GetTypeData(Parent^.IntfParent);
+      end;
+    end;
+  if not aRes then
+    exit;
+  ExtractRawDataNoCopy(@Tmp);
+  TValue.Make(@Tmp,aDestType,aDest);
+end;
+
+Procedure TValue.CastQWordToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : QWord;
+  N : NativeInt;
+
+begin
+  aRes:=True;
+  Tmp:=FData.FAsUInt64;
+  case GetTypeData(aDestType)^.OrdType of
+    otSByte: N:=NativeInt(Int8(Tmp));
+    otSWord: N:=NativeInt(Int16(Tmp));
+    otSLong: N:=NativeInt(Int32(Tmp));
+    otUByte: N:=NativeInt(UInt8(Tmp));
+    otUWord: N:=NativeInt(UInt16(Tmp));
+    otULong: N:=NativeInt(UInt32(Tmp));
+  else
+    aRes:=False;
+  end;
+  if aRes then
+    TValue.Make(N, aDestType, aDest);
+end;
+
+Procedure TValue.CastInt64ToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: Int64;
+  N : NativeInt;
+
+begin
+  Tmp:=FData.FAsSInt64;
+  aRes:=True;
+  case GetTypeData(aDestType)^.OrdType of
+    otSByte: N:=NativeInt(Int8(Tmp));
+    otSWord: N:=NativeInt(Int16(Tmp));
+    otSLong: N:=NativeInt(Int32(Tmp));
+    otUByte: N:=NativeInt(UInt8(Tmp));
+    otUWord: N:=NativeInt(UInt16(Tmp));
+    otULong: N:=NativeInt(UInt32(Tmp));
+  else
+    aRes:=False;
+  end;
+  if aRes then
+    TValue.Make(N, aDestType, aDest);
+end;
+
+Procedure TValue.CastQWordToInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : QWord;
+
+begin
+  Tmp:=FData.FAsUInt64;
+  TValue.Make(@Tmp,System.TypeInfo(Int64),aDest);
+  aRes:=True;
+end;
+
+
+Procedure TValue.CastInt64ToQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : Int64;
+
+begin
+  Tmp:=FData.FAsSInt64;
+  TValue.Make(@Tmp,System.TypeInfo(QWord),aDest);
+  aRes:=True;
+end;
+
+
+Procedure TValue.CastQWordToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : QWord;
+  Ti : PTypeInfo;
+
+begin
+  Tmp:=FData.FAsUInt64;
+  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
+  TValue.Make(@Tmp,Ti,aDest);
+  aRes:=True;
+end;
+
+Procedure TValue.CastInt64ToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : Int64;
+  Ti : PTypeInfo;
+begin
+  Tmp:=AsInt64;
+  Ti:=FloatTypeToTypeInfo(GetTypeData(aDestType)^.FloatType);
+  TValue.Make(@Tmp,Ti,aDest);
+  aRes:=True;
+end;
+
+Procedure TValue.CastFloatToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: Int64;
+  DTD : PTypeData;
+
+begin
+  aRes:=TypeData^.FloatType=ftComp;
+  if not aRes then
+    Exit;
+  Tmp:=FData.FAsSInt64;
+  DTD:=GetTypeData(aDestType);
+  Case aDestType^.Kind of
+  tkInteger:
+    begin
+    with DTD^ do
+      if MinValue<=MaxValue then
+        aRes:=(Tmp>=MinValue) and (Tmp<=MaxValue)
+      else
+        aRes:=(Tmp>=Cardinal(MinValue)) and (Tmp<=Cardinal(MaxValue))
+    end;
+  tkInt64:
+    With DTD^ do
+      aRes:=(Tmp>=MinInt64Value) and (Tmp<=MaxInt64Value);
+  tkQWord:
+    With DTD^ do
+      aRes:=(Tmp>=0) and (QWord(Tmp)>=Qword(MinInt64Value)) and (QWord(Tmp)<=UInt64(MaxInt64Value));
+  else
+    aRes:=False;
+  end;
+  if aRes then
+    TValue.Make(@Tmp, aDestType, aDest);
+end;
+
+Procedure TValue.CastFromVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : Variant;
+  tmpBool: Boolean;
+  tmpExtended: Extended;
+  tmpShortString: ShortString;
+
+  VarType: TVarType;
+  DataPtr: Pointer;
+  DataType: PTypeInfo;
+
+begin
+  aRes:=False;
+  Tmp:=AsVariant;
+  if VarIsNull(Tmp) and NullStrictConvert then
+    Exit;
+  if not TypeInfoToVarType(aDestType,VarType) then
+    exit;
+  try
+    Tmp:=VarAsType(Tmp,VarType);
+  except
+    Exit;
+  end;
+  DataType:=nil;
+  DataPtr:=@TVarData(Tmp).VBoolean;
+  if not VarTypeToTypeInfo(TVarData(Tmp).VType,DataType) then
+    Exit;
+  if DataType=Nil then
+    begin
+    aDest:=TValue.Empty;
+    aRes:=True;
+    Exit;
+    end;
+  // Some special cases
+  if (DataType=System.TypeInfo(Boolean)) then
+    begin
+    tmpBool:=TVarData(Tmp).VBoolean=True;
+    DataPtr:=@tmpBool;
+    end
+  else if (DataType=System.TypeInfo(Double)) then
+    begin
+    if GetTypeData(aDestType)^.FloatType=ftExtended then
+      begin
+      tmpExtended:=Extended(TVarData(Tmp).VDouble);
+      DataPtr:=@tmpExtended;
+      DataType:=System.TypeInfo(Extended);
+      end
+    end
+  else if (DataType=System.TypeInfo(ShortString)) then
+    begin
+    tmpShortString:=RawByteString(TVarData(tmp).VString);
+    DataPtr:=@tmpShortString;
+    end;
+  TValue.Make(DataPtr,DataType,aDest);
+  aRes:=True;
+end;
+
+
+Procedure TValue.CastToVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: Variant;
+
+begin
+  aRes:=False;
+  case Self.Kind of
+    tkChar:
+      Tmp:=Specialize AsType<AnsiChar>;
+    tkString,
+    tkLString,
+    tkWString,
+    tkUString:
+      Tmp:=AsString;
+    tkWChar:
+      Tmp:=WideChar(FData.FAsUWord);
+    tkClass:
+      Tmp:=PtrInt(AsObject);
+    tkInterface:
+      Tmp:=AsInterface;
+    tkInteger:
+      begin
+        case TypeData^.OrdType of
+          otSByte: Tmp:=FData.FAsSByte;
+          otUByte: Tmp:=FData.FAsUByte;
+          otSWord: Tmp:=FData.FAsSWord;
+          otUWord: Tmp:=FData.FAsUWord;
+          otSLong: Tmp:=FData.FAsSLong;
+          otULong: Tmp:=FData.FAsULong;
+          otSQWord: Tmp:=FData.FAsSInt64;
+          otUQWord: Tmp:=FData.FAsUInt64;
+        end;
+      end;
+    tkFloat:
+      if IsDateTime then
+        Tmp:=TDateTime(FData.FAsDouble)
+      else
+        case TypeData^.FloatType of
+          ftSingle,
+          ftDouble,
+          ftExtended:
+            Tmp:=AsExtended;
+          ftComp:
+            Tmp:=FData.FAsComp;
+          ftCurr:
+            Tmp:=FData.FAsCurr;
+        end;
+    tkInt64:
+      Tmp:=AsInt64;
+    tkQWord:
+      Tmp:=AsUInt64;
+    tkEnumeration:
+      if IsType(System.TypeInfo(Boolean)) then
+        Tmp:=AsBoolean
+      else
+        Tmp:=AsOrdinal;
+  else
+    Exit;
+  end;
+  if aDestType=System.TypeInfo(OleVariant) then
+    TValue.Make(@Tmp,System.TypeInfo(OleVariant),aDest)
+  else
+    TValue.Make(@Tmp,System.TypeInfo(Variant),aDest);
+  aRes:=True;
+end;
+
+Procedure TValue.CastVariantToVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp : Variant;
+
+
+begin
+  if (TypeInfo=aDestType) then
+    aDest:=Self
+  else
+    begin
+    Tmp:=AsVariant;
+    if (aDestType=System.TypeInfo(OleVariant)) then
+      TValue.Make(@Tmp,System.TypeInfo(OleVariant),aDest)
+    else
+      TValue.Make(@Tmp,System.TypeInfo(Variant),aDest);
+    end;
+  aRes:=True;
+end;
+
+Procedure TValue.CastSetToSet(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  sMax, dMax, sMin, dMin : Integer;
+  TD : PTypeData;
+
+begin
+  aRes:=False;
+  TD:=TypeData;
+  TD:=GetTypeData(TD^.CompType);
+  sMin:=TD^.MinValue;
+  sMax:=TD^.MaxValue;
+  TD:=GetTypeData(aDestType);
+  TD:=GetTypeData(TD^.CompType);
+  dMin:=TD^.MinValue;
+  dMax:=TD^.MaxValue;
+  aRes:=(sMin=dMin) and (sMax=dMax);
+  if aRes then
+    begin
+    TValue.Make(GetReferenceToRawData, aDestType, aDest);
+    aRes:=true;
+    end
+end;
+
+Procedure TValue.CastFromInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkChar: CastIntegerToInteger(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+    tkInt64 : CastIntegerToInt64(aRes,aDest,aDestType);
+    tkQWord : CastIntegerToQWord(aRes,aDest,aDestType);
+    tkFloat : CastIntegerToFloat(aRes,aDest,aDestType);
+  else
+    aRes:=False
+  end;
+end;
+
+Procedure TValue.CastFromAnsiChar(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  case aDestType^.Kind of
+    tkString,
+    tkWChar,
+    tkLString,
+    tkWString,
+    tkUString : CastCharToString(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False
+  end;
+end;
+
+Procedure TValue.CastFromWideChar(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  case aDestType^.Kind of
+    tkString,
+    tkWChar,
+    tkLString,
+    tkWString,
+    tkUString : CastWCharToString(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
+Procedure TValue.CastFromEnum(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  case aDestType^.Kind of
+    tkEnumeration : CastEnumToEnum(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=false;
+  end;
+end;
+
+
+Procedure TValue.CastFromFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  case aDestType^.Kind of
+    tkInt64,
+    tkQWord,
+    tkInteger : CastFloatToInteger(aRes,aDest,aDestType);
+    tkFloat : CastFloatToFloat(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
+Procedure TValue.CastFromString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkString,
+    tkWChar,
+    tkLString,
+    tkWString,
+    tkUString,
+    tkChar : CastStringToString(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end
+end;
+
+Procedure TValue.CastFromSet(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkSet : CastSetToSet(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
+Procedure TValue.CastFromClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkClass : CastClassToClass(aRes,aDest,aDestType);
+    tkInterfaceRaw,
+    tkInterface : CastClassToInterface(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
+Procedure TValue.CastFromInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkInterfaceRaw,
+    tkInterface : CastInterfaceToInterface(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
+Procedure TValue.DoCastFromVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkInteger,
+    tkChar,
+    tkEnumeration,
+    tkFloat,
+    tkString,
+    tkWChar,
+    tkLString,
+    tkWString,
+    tkInt64,
+    tkQWord,
+    tkUnicodeString : CastFromVariant(aRes,aDest,aDestType);
+    tkVariant : CastVariantToVariant(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+Procedure TValue.CastFromPointer(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkPointer, tkProcedure: CastAssign(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+Procedure TValue.CastFromInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkInteger: CastInt64ToInteger(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+    tkInt64 : CastAssign(aRes,aDest,aDestType);
+    tkQWord : CastInt64ToQWord(aRes,aDest,aDestType);
+    tkFloat : CastInt64ToFloat(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+Procedure TValue.CastFromQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case aDestType^.Kind of
+    tkInteger: CastQWordToInteger(aRes,aDest,aDestType);
+    tkVariant : CastToVariant(aRes,aDest,aDestType);
+    tkInt64 : CastQWordToInt64(aRes,aDest,aDestType);
+    tkQWord : CastAssign(aRes,aDest,aDestType);
+    tkFloat : CastQWordToFloat(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+Procedure TValue.CastFromType(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+begin
+  Case Kind of
+    tkInteger : CastFromInteger(aRes,aDest,aDestType);
+    tkChar : CastFromAnsiChar(aRes,aDest,aDestType);
+    tkEnumeration : CastFromEnum(aRes,aDest,aDestType);
+    tkFloat : CastFromFloat(aRes,aDest,aDestType);
+    tkLString,
+    tkWString,
+    tkUstring,
+    tkSString : CastFromString(aRes,aDest,aDestType);
+    tkSet : CastFromSet(aRes,aDest,aDestType);
+    tkWChar : CastFromWideChar(aRes,aDest,aDestType);
+    tkInterfaceRaw,
+    tkInterface : CastFromInterface(aRes,aDest,aDestType);
+    tkVariant : DoCastFromVariant(aRes,aDest,aDestType);
+    tkInt64 : CastFromInt64(aRes,aDest,aDestType);
+    tkQWord : CastFromQWord(aRes,aDest,aDestType);
+    tkClassRef : begin
+                 aRes:=(aDestType^.kind=tkClassRef);
+                 if aRes then
+                   CastClassRefToClassRef(aRes,aDest,aDestType);
+                 end;
+
+    tkProcedure,
+    tkPointer : CastFromPointer(aRes,aDest,aDestType);
+  else
+    aRes:=False;
+  end;
+end;
+
+
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
 type
   PMethod = ^TMethod;
@@ -1745,6 +2981,8 @@ begin
     tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, False);
     tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, False);
     tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
+  else
+    // Silence compiler warning
   end;
   if not Assigned(ABuffer) then
     Exit;
@@ -1814,6 +3052,8 @@ begin
                      otUWord: result.FData.FAsUWord := PWord(ABuffer)^;
                      otSLong: result.FData.FAsSLong := PLongInt(ABuffer)^;
                      otULong: result.FData.FAsULong := PLongWord(ABuffer)^;
+                   else
+                     // Silence compiler warning
                    end;
                  end;
     tkBool     : begin
@@ -1842,10 +3082,6 @@ begin
   end;
 end;
 
-class procedure TValue.Make(AValue: NativeInt; ATypeInfo: PTypeInfo; out Result: TValue);
-begin
-  TValue.Make(@AValue, ATypeInfo, Result);
-end;
 
 class procedure TValue.MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue);
 var
@@ -1872,29 +3108,6 @@ begin
   Make(Nil, Result.TypeData^.ArrayData.ElType, el);
   Result.FData.FElSize := el.DataSize;
 end;
-
-{$ifndef NoGenericMethods}
-generic class procedure TValue.Make<T>(const AValue: T; out Result: TValue);
-begin
-  TValue.Make(@AValue, PTypeInfo(System.TypeInfo(T)), Result);
-end;
-
-generic class function TValue.From<T>(constref aValue: T): TValue;
-begin
-  TValue.Make(@aValue, PTypeInfo(System.TypeInfo(T)), Result);
-end;
-
-generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
-var
-  arrdata: Pointer;
-begin
-  if Length(aValue) > 0 then
-    arrdata := @aValue[0]
-  else
-    arrdata := Nil;
-  TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
-end;
-{$endif}
 
 class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
 {$ifdef ENDIAN_BIG}
@@ -2036,13 +3249,6 @@ begin
   Result := (Kind = tkArray) and (td^.ArrayData.Size = 0) and (td^.ArrayData.ElCount = 0)
 end;
 
-function TValue.AsString: string;
-begin
-  if System.GetTypeKind(String) = tkUString then
-    Result := String(AsUnicodeString)
-  else
-    Result := String(AsAnsiString);
-end;
 
 function TValue.AsUnicodeString: UnicodeString;
 
@@ -2103,32 +3309,78 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
-function TValue.IsObject: boolean;
+
+
+function TValue.TryCast(aTypeInfo: PTypeInfo; out aResult: TValue; const aEmptyAsAnyType: Boolean = True): Boolean;
+
 begin
-  result := (Kind = tkClass) or ((Kind = tkUnknown) and not Assigned(FData.FAsObject));
+  Result:=False;
+  if aEmptyAsAnyType and IsEmpty then
+    begin
+    aResult:=TValue.Empty;
+    if (aTypeInfo=nil) then
+      exit;
+    AResult.FData.FTypeInfo:=aTypeInfo;
+    Exit(True);
+    end;
+  if not aEmptyAsAnyType and (Self.TypeInfo=nil) then
+    Exit;
+  if (Self.TypeInfo=ATypeInfo) then
+    begin
+    aResult:=Self;
+    Exit(True);
+    end;
+  if Not Assigned(aTypeInfo) then
+    Exit;
+  if (aTypeInfo=System.TypeInfo(TValue)) then
+    begin
+    TValue.Make(@Self,System.TypeInfo(TValue),aResult);
+    Exit(True);
+    end;
+  CastFromType(Result,aResult,ATypeInfo);
 end;
 
-function TValue.IsClass: boolean;
-begin
-  result := (Kind = tkClassRef) or ((Kind in [tkClass,tkUnknown]) and not Assigned(FData.FAsObject));
-end;
+function TValue.Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
 
-function TValue.IsOrdinal: boolean;
 begin
-  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration, tkChar, tkWChar, tkUChar]) or
-            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
-end;
-
-function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
-begin
-  result := ATypeInfo = TypeInfo;
+  if not TryCast(aTypeInfo,Result,aEmptyAsAnyType) then
+    raise EInvalidCast.Create(SInvalidCast);
 end;
 
 {$ifndef NoGenericMethods}
-generic function TValue.IsType<T>:Boolean;
+
+generic function TValue.AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
+
 begin
-  Result := IsType(PTypeInfo(System.TypeInfo(T)));
+  if not (specialize TryAsType<T>(Result,aEmptyAsAnyType)) then
+    raise EInvalidCast.Create(SInvalidCast);
 end;
+
+generic function TValue.Cast<T>(const aEmptyAsAnyType: Boolean = True): TValue; overload;
+
+var
+  Info : PTypeInfo;
+
+begin
+  Info:=System.TypeInfo(T);
+  if not TryCast(Info,Result,aEmptyAsAnyType) then
+    raise EInvalidCast.Create(SInvalidCast);
+end;
+
+generic function TValue.TryAsType<T>(out aResult: T; const aEmptyAsAnyType: Boolean = True): Boolean; inline;
+
+var
+  Tmp: TValue;
+  Info : PTypeInfo;  
+begin
+  Info:=System.TypeInfo(T);
+  Result:=TryCast(Info,Tmp,aEmptyAsAnyType);
+  if Result then
+    if Assigned(Tmp.TypeInfo) then
+      Tmp.ExtractRawData(@aResult)
+    else  
+      aResult:=Default(T);
+end;   
 {$endif}
 
 function TValue.AsObject: TObject;
@@ -2217,11 +3469,12 @@ end;
 function TValue.AsDateTime: TDateTime;
 
 begin
-  if (Kind = tkFloat) and (TypeData^.FloatType=ftDouble) and (TypeInfo=System.TypeInfo(TDateTime)) then
+  if (Kind = tkFloat) and (TypeData^.FloatType=ftDouble) and IsDateTimeType(TypeInfo) then
     result := FData.FAsDouble
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
+
 
 function TValue.AsDouble: Double;
 begin
@@ -2577,6 +3830,8 @@ begin
       tkUString,
       tkWString:
         Assert(false, 'Managed/complex type not handled through IValueData');
+    else
+      // Silence compiler warning
     end;
   end;
 end;
@@ -2597,123 +3852,6 @@ begin
     Move((@FData.FAsPointer)^, ABuffer^, DataSize);
 end;
 
-class operator TValue.:=(const AValue: ShortString): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(const AValue: AnsiString): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(const AValue: UnicodeString): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-
-class operator TValue.:=(const AValue: WideString): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: SmallInt): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: ShortInt): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: Byte): TValue; inline;
-
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: Word): TValue; inline;
-
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: Cardinal): TValue; inline;
-
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-
-class operator TValue.:=(AValue: LongInt): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: Single): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: Double): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-class operator TValue.:=(AValue: Extended): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-{$endif}
-
-class operator TValue.:=(AValue: Currency): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: Comp): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: Int64): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: QWord): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: TObject): TValue;
-begin
-  Make(@AValue, PTypeInfo(AValue.ClassInfo), Result);
-end;
-
-class operator TValue.:=(AValue: TClass): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: Boolean): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:=(AValue: IUnknown): TValue;
-begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
-end;
-
-class operator TValue.:= (AValue: TVarRec): TValue;
-
-begin
-  Result:=TValue.FromVarRec(aValue);
-end;
 
 function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray;
   aCallConv: TCallConv; aResultType: PTypeInfo; aIsStatic: Boolean;
@@ -2736,7 +3874,7 @@ begin
     Include(flags, fcfStatic)
   else if Length(aArgs) = 0 then
     raise EInvocationError.Create(SErrMissingSelfParam);
-
+  funcargs:=[];
   SetLength(funcargs, Length(aArgs));
   for i := Low(aArgs) to High(aArgs) do begin
     funcargs[i - Low(aArgs) + Low(funcargs)].ValueRef := aArgs[i].GetReferenceToRawData;
@@ -2803,6 +3941,8 @@ begin
     restype := Nil;
   end;
 
+  highargs:=[];
+  args:=[];
   SetLength(highargs, highs);
   SetLength(args, Length(aParams));
   unhidden := 0;
@@ -2920,6 +4060,7 @@ var
   arr: specialize TArray<T>;
   i: SizeInt;
 begin
+  arr:=[];
   SetLength(arr, Length(aArray));
   for i := 0 to High(aArray) do
     arr[i] := aArray[i];
@@ -2933,6 +4074,7 @@ var
   I,Len: Integer;
 
 begin
+  Result:=[];
   Len:=Length(aValues);
   SetLength(Result,Len);
   for I:=0 to Len-1 do
@@ -3130,6 +4272,11 @@ begin
   FVmtMethodParam := AVmtMethodParam;
 end;
 
+function TRttiVmtMethodParameter.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=Nil;
+end;
+
 { TRttiMethodTypeParameter }
 
 function TRttiMethodTypeParameter.GetHandle: Pointer;
@@ -3165,6 +4312,11 @@ begin
   fName := aName;
   fFlags := aFlags;
   fType := aType;
+end;
+
+function TRttiMethodTypeParameter.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=Nil;
 end;
 
 { TRttiIntfMethod }
@@ -3249,6 +4401,30 @@ begin
   inherited Create(AParent);
   FIntfMethodEntry := AIntfMethodEntry;
   FIndex := AIndex;
+end;
+
+function TRttiIntfMethod.GetAttributes: TCustomAttributeArray;
+{var
+  i: SizeInt;
+  at: PAttributeTable;}
+begin
+  FAttributes:=Nil;
+  FAttributesResolved:=True;
+{ // needs extended RTTI branch
+  if not FAttributesResolved then
+    begin
+      at := FIntfMethodEntry^.Attributes
+      if Assigned(at) then
+        begin
+          SetLength(FAttributes, at^.AttributeCount);
+          for i := 0 to High(FAttributes) do
+            FAttributes[i] := TCustomAttribute({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(at, i));
+        end;
+      FAttributesResolved:=true;
+    end;
+}
+  result := FAttributes;
+
 end;
 
 function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
@@ -3466,6 +4642,7 @@ var
   res: TValue;
 begin
   Assert(fArgLen = Length(aArgs), 'Length of arguments does not match');
+  args:=[];
   SetLength(args, fArgLen);
   argidx := 0;
   validx := 0;
@@ -3673,6 +4850,7 @@ begin
 
   resinparam := False;
   params := GetParameters(True);
+  args:=[];
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
     if Assigned(params[i].ParamType) then
@@ -3708,6 +4886,7 @@ begin
 
   resinparam := False;
   params := GetParameters(True);
+  args:=[];
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
     if Assigned(params[i].ParamType) then
@@ -3750,6 +4929,7 @@ begin
 
   resinparam := False;
   params := GetParameters(True);
+  args:=[];
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
     if Assigned(params[i].ParamType) then
@@ -3785,6 +4965,7 @@ begin
 
   resinparam := False;
   params := GetParameters(True);
+  args:=[];
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
     if Assigned(params[i].ParamType) then
@@ -3871,8 +5052,8 @@ begin
   total := 0;
 
   if FTypeData^.ParamCount > 0 then begin
+    infos:=[];
     SetLength(infos, FTypeData^.ParamCount);
-
     while total < FTypeData^.ParamCount do begin
       { align }
       ptr := AlignTParamFlags(ptr);
@@ -4082,6 +5263,8 @@ begin
     tkAString : result := skAnsiString;
     tkUString : result := skUnicodeString;
     tkWString : result := skWideString;
+  else
+    Raise EConvertError.Create('Not a string type :'+GetEnumName(TypeInfo(TTypeKind),Ord(TypeKind)));
   end;
 end;
 
@@ -4382,6 +5565,8 @@ function TRttiProperty.GetValue(Instance: pointer): TValue;
           bl := LongBool(value);
           p := @bl;
         end;
+    else
+      // Silence compiler warning
     end;
     TValue.Make(p, FPropInfo^.PropType, result);
   end;
@@ -4414,6 +5599,8 @@ function TRttiProperty.GetValue(Instance: pointer): TValue;
           i32 := value;
           p := @i32;
         end;
+    else
+      // Silence compiler warning
     end;
     TValue.Make(p, FPropInfo^.PropType, result);
   end;
