@@ -97,7 +97,7 @@ const
       {$i sha1i386.inc}
       {$define SHA1ASM}
     {$endif CPUX86_HAS_BSWAP}
-  {$else if defined(CPUX64)}
+  {$elseif defined(CPUX64)}
     {$IFDEF MSWINDOWS}
       // Microsoft Windows uses a different calling convention to the System V ABI
       {$i sha1x64_win.inc}
