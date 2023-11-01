@@ -52,6 +52,10 @@ type
     ShortDayNames: TWeekNameArray;
     LongDayNames: TWeekNameArray;
     TwoDigitYearCenturyWindow: Word;
+    class function Invariant : TFormatSettings; static;
+    class function Create: TFormatSettings; overload; static; inline;
+    //  class function Create(Locale: TLocaleID): TFormatSettings; overload; platform; static;
+    //  class function Create(const LocaleName: string): TFormatSettings; overload; static;  
   end;
 
 var
