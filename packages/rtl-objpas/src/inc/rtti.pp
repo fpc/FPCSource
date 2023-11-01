@@ -2117,18 +2117,18 @@ end;
 Procedure TValue.CastIntegerToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
-  value: Integer;
+  Tmp : Integer;
 
 begin
   with FData do
     case GetTypeData(FTypeInfo)^.OrdType of
-      otSByte: Value:=FAsSByte;
-      otSWord: Value:=FAsSWord;
-      otSLong: Value:=FAsSLong;
+      otSByte: Tmp:=FAsSByte;
+      otSWord: Tmp:=FAsSWord;
+      otSLong: Tmp:=FAsSLong;
     else
-      value:=Integer(FAsULong);
+      Tmp:=Integer(FAsULong);
     end;
-  TValue.Make(@value,aDestType,aDest);
+  TValue.Make(@Tmp,aDestType,aDest);
   aRes:=True;
 end;
 
@@ -2215,17 +2215,17 @@ begin
     tkString:
       begin
       SS:=Tmp;
-      aDest:=TValue.Specialize From<ShortString>(SS);
+      TValue.Make(@SS,System.TypeInfo(ShortString),aDest);
       end;
     tkWString:
       begin
       WS:=Tmp;
-      aDest:=TValue.Specialize From<WideString>(WS);
+      TValue.Make(@WS,System.TypeInfo(WideString),aDest);
       end;
     tkUString:
       begin
       US:=Tmp;
-      aDest:=TValue.Specialize From<UnicodeString>(US);
+      TValue.Make(@US,System.TypeInfo(UnicodeString),aDest);
       end;
     tkLString:
       begin
