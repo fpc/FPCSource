@@ -4052,6 +4052,13 @@ begin
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
     begin
+      if (option.paratargetasm=as_default) then
+        begin
+          if (target_info.endian<>source_info.endian) then
+            option.paratargetasm:=target_info.assemextern
+          else
+            option.paratargetasm:=target_info.assem;
+        end;
       if not set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then
@@ -4076,7 +4083,6 @@ begin
         begin
           option.paratargetdbg:=dbg_dwarf2;
         end;
-
     end;
   {TOptionheck a second time as we might have changed assembler just above }
   option.checkoptionscompatibility;
@@ -4087,10 +4093,16 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if (cs_asm_leave in init_settings.globalswitches) and
-     (af_outputbinary in target_asm.flags) then
+  if (af_outputbinary in target_asm.flags) and
+     ((cs_asm_leave in init_settings.globalswitches) or
+      { if -s is passed, we shouldn't call the internal assembler }
+      (cs_asm_extern in init_settings.globalswitches)) or
+      ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
    begin
-     Message(option_switch_bin_to_src_assembler);
+     if ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
+       Message(option_switch_bin_to_src_assembler_cross_endian)
+     else
+       Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
      set_target_asm(as_clang_llvm);
 {$else}
