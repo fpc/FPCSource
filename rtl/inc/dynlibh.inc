@@ -17,7 +17,8 @@
 { These are fallback declarations }
 type
   TLibHandle = THandle;
-
+  HINST = TLibHandle;
+  
 const
   NilHandle = TLibHandle(0);
 {$endif FPC_SYSTEM_HAS_SYSDLH}
