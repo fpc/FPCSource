@@ -2395,6 +2395,55 @@ type
   end;
   TDataModuleClass = Class of TDataModule;
 
+  TPlatformIds = UInt32;
+  
+  ComponentPlatformsAttribute = class(TCustomAttribute)
+  private
+    FPlatforms: TPlatformIds;
+  public
+    constructor Create(const aPlatforms: TPlatformIds);
+    property Platforms: TPlatformIds read FPlatforms write FPlatforms;
+  end;  
+  
+const
+  { Platform identifiers }
+    pidWin32          = $00000001;
+    pidWin64          = $00000002;
+    pidOSX32          = $00000004;
+    pidiOSSimulator32 = $00000008;
+    pidAndroidArm32   = $00000010;
+    pidLinux32        = $00000020;
+    pidiOSDevice32    = $00000040;
+    pidLinux64        = $00000080;
+
+    pidWinNX32        = $00000100;
+    pidWinIoT32       = $00000200;
+    pidiOSDevice64    = $00000400;
+    pidWinARM32       = $00000800;
+    pidOSX64          = $00001000;
+    pidLinuxArm32     = $00002000;
+    pidLinuxArm64     = $00004000;
+    pidAndroidArm64   = $00008000;
+    pidiOSSimulator64 = $00010000;
+
+    pidOSXArm64       = $00020000;
+    pidWinArm64       = $00040000;
+    pidiOSSimulatorArm64 = $00080000;
+
+    pidAllPlatforms = pidWin32 or pidWin64 or
+                    pidOSX32 or pidOSX64 or pidOSXArm64 or
+                    pidiOSDevice32 or pidiOSDevice64 or
+                    pidiOSSimulator32 or pidiOSSimulator64 or 
+                    pidAndroidArm32 or pidAndroidArm64 or
+                    pidLinux64;
+                    
+    pfidWindows     = pidWin32 or pidWin64;
+    pfidOSX         = pidOSX32 or pidOSX64 or pidOSXArm64;
+    pfidiOS         = pidiOSDevice32 or pidiOSDevice64 or
+                      pidiOSSimulator32 or pidiOSSimulator64;
+    pfidAndroid     = pidAndroidArm32 or pidAndroidArm64;
+    pfidLinux       = pidLinux64;  
+
 var
   // IDE hooks for TDatamodule support.
   AddDataModule              : procedure (DataModule: TDataModule) of object;
@@ -2484,6 +2533,7 @@ type
   TIntToIdent = function(Int: Longint; var Ident: string): Boolean;
   TFindGlobalComponent = function(const Name: string): TComponent;
   TInitComponentHandler = function(Instance: TComponent; RootAncestor : TClass): boolean;
+  TGetStreamProc = procedure (const S: TStream) of object;
 
 var
   MainThreadID: TThreadID;

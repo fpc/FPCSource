@@ -2774,3 +2774,8 @@ end;
 {$i twriter.inc}
 
 
+constructor ComponentPlatformsAttribute.Create(const aPlatforms: TPlatformIds);
+
+begin
+  FPlatForms:=aPlatForms;
+end;
