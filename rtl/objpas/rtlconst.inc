@@ -16,6 +16,10 @@ unit RtlConsts;
 
 interface
 
+Const
+  SEmpty : string = 'Empty';  
+
+
 ResourceString
 
 { ---------------------------------------------------------------------
@@ -31,6 +35,7 @@ ResourceString
   SAllButton                    = '&All';
   SAllFilter                    = 'All files';
   SAncestorNotFound             = 'Ancestor class for "%s" not found';
+  SArgumentInvalid              = 'Invalid argument';
   SArgumentNil                  = 'Argument must not be nil';
   SAssignError                  = 'Cannot assign a %s to a %s';
   SAsyncSocketError             = 'Asynchronous socket error: %d';
@@ -166,6 +171,7 @@ ResourceString
   SInvalidImage                 = 'Invalid stream format';
   SInvalidImageList             = 'Invalid ImageList';
   SInvalidImageSize             = 'Invalid image size';
+  SInvalidKnownFilename         = 'Invalid filename - %s';
   SInvalidMask                  = '"%s" is not a valid mask at (%d)';
   SInvalidMemoSize              = 'Text larger than memo capacity';
   SInvalidMetafile              = 'Invalid Metafile';
