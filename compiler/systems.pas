@@ -470,6 +470,14 @@ interface
        asms_int_coff = [as_arm_pecoffwince,as_x86_64_pecoff,as_i386_pecoffwince,
                         as_i386_pecoffwdosx,as_i386_pecoff,as_i386_coff];
 
+       { all internal ELF writers }
+       asms_int_elf = [as_arm_elf32,as_x86_64_elf64,as_m68k_elf32,
+                       as_sparc_elf32,as_i386_elf32];
+
+       { all internal writers }
+       asms_internals = asms_int_coff + asms_int_elf
+                        + [as_i8086_omf, as_z80_rel, as_wasm32_wasm, as_i386_macho];
+
        cpu2str : array[TSystemCpu] of string[12] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',

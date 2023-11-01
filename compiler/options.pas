@@ -5142,7 +5142,10 @@ begin
     begin
       if (option.paratargetasm=as_default) then
         begin
-          option.paratargetasm:=target_info.assem;
+          if (target_info.endian<>source_info.endian) then
+            option.paratargetasm:=target_info.assemextern
+          else
+            option.paratargetasm:=target_info.assem;
         end;
       if not set_target_asm(option.paratargetasm) then
         begin
@@ -5182,9 +5185,13 @@ begin
   if (af_outputbinary in target_asm.flags) and
      ((cs_asm_leave in init_settings.globalswitches) or
       { if -s is passed, we shouldn't call the internal assembler }
-      (cs_asm_extern in init_settings.globalswitches)) then
+      (cs_asm_extern in init_settings.globalswitches)) or
+      ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
    begin
-     Message(option_switch_bin_to_src_assembler);
+     if ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
+       Message(option_switch_bin_to_src_assembler_cross_endian)
+     else
+       Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
      if not(target_info.system in systems_darwin) then
        set_target_asm(as_clang_llvm)
