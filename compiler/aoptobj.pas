@@ -2592,8 +2592,10 @@ Unit AoptObj;
 
               FirstInstruction := False;
               if assigned(p) then
-                p := tai(UpdateUsedRegsAndOptimize(p).Next);
-
+                begin
+                  p:=tai(p.next);
+                  UpdateUsedRegs(p);
+                end;
             end;
 
           Inc(PassCount);
@@ -2629,7 +2631,10 @@ Unit AoptObj;
                   continue;
                 end;
               if assigned(p) then
-                p := tai(UpdateUsedRegsAndOptimize(p).Next);
+                begin
+                  p:=tai(p.next);
+                  UpdateUsedRegs(p);
+                end;
             end;
 
           Inc(PassCount);
@@ -2650,10 +2655,7 @@ Unit AoptObj;
             if PostPeepHoleOptsCpu(p) then
               continue;
             if assigned(p) then
-              begin
-                p:=tai(p.next);
-                UpdateUsedRegs(p);
-              end;
+              p := tai(UpdateUsedRegsAndOptimize(p).Next);
           end;
       end;
 
