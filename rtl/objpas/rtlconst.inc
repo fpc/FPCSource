@@ -33,6 +33,7 @@ ResourceString
   SAllButton                    = '&All';
   SAllFilter                    = 'All files';
   SAncestorNotFound             = 'Ancestor class for "%s" not found';
+  SArgumentNil                  = 'Argument must not be nil';
   SAssignError                  = 'Cannot assign a %s to a %s';
   SAsyncSocketError             = 'Asynchronous socket error: %d';
   SBG                           = 'BG';
