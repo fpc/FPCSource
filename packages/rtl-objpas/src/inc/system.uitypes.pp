@@ -663,7 +663,7 @@ Type
 
   // Forms
   
-  TWindowState = (wsNormal, wsMinimized, wsMaximized);
+  TWindowState = (wsNormal, wsMinimized, wsMaximized, wsFullScreen);
   TWindowStates = Set of TWindowState;
   
   TBorderIcon = (biSystemMenu, biMinimize, biMaximize, biHelp);
