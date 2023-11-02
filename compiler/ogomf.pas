@@ -3481,7 +3481,7 @@ cleanup:
             omfsec.Data.read(w,2);
             w:=LEtoN(w);
             Inc(w,fixupamount);
-            w:=LEtoN(w);
+            w:=NtoLE(w);
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.write(w,2);
           end;
@@ -3494,7 +3494,7 @@ cleanup:
             omfsec.Data.read(lw,4);
             lw:=LEtoN(lw);
             Inc(lw,fixupamount);
-            lw:=LEtoN(lw);
+            lw:=NtoLE(lw);
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.write(lw,4);
           end;
@@ -3507,7 +3507,7 @@ cleanup:
             omfsec.Data.read(w,2);
             w:=LEtoN(w);
             Inc(w,framebase shr 4);
-            w:=LEtoN(w);
+            w:=NtoLE(w);
             omfsec.Data.seek(DataOffset);
             omfsec.Data.write(w,2);
             Header.AddRelocation(omfsec.MZExeUnifiedLogicalSegment.MemBasePos shr 4,
