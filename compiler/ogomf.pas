@@ -1241,7 +1241,16 @@ implementation
                 objreloc:=TOmfRelocation.CreateGroup(CurrObjSec.Size,TObjSectionGroup(GroupsList.Find('DGROUP')),RELOC_SEGREL);
               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
-        CurrObjSec.write(data,len);
+        case len of
+          1:
+            CurrObjSec.write(data,1);
+          2:
+            CurrObjSec.writeInt16LE(int16(data));
+          4:
+            CurrObjSec.writeInt32LE(int32(data));
+          else
+            internalerror(2023110201);
+        end;
       end;
 
     procedure TOmfObjData.AddImportSymbol(const libname, symname,
