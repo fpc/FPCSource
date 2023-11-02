@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <SaveOnlyProjectUnits Value="True"/>
@@ -9,9 +9,9 @@
         <MainUnitHasTitleStatement Value="False"/>
         <SaveJumpHistory Value="False"/>
         <SaveFoldState Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="testfppdf"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -57,6 +57,7 @@
     </SearchPaths>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsDwarf2"/>
         <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
