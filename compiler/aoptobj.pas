@@ -1031,7 +1031,7 @@ Unit AoptObj;
 
           repeat
             while assigned(p) and
-                  ((p.typ in (SkipInstr + [ait_align, ait_label] - [ait_RegAlloc])) or
+                  ((p.typ in (SkipInstr + [ait_label] - [ait_RegAlloc])) or
                    ((p.typ = ait_marker) and
                     (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
                  begin
@@ -1074,7 +1074,7 @@ Unit AoptObj;
               end;
             NotFirst := True;
           until not(assigned(p)) or
-                (not(p.typ in SkipInstr + [ait_align]) and
+                (not(p.typ in SkipInstr) and
                  not((p.typ = ait_label) and
                      labelCanBeSkipped(tai_label(p))));
         end;
@@ -1794,6 +1794,7 @@ Unit AoptObj;
         tmp, tmpNext: tai;
         hp1: tai;
         CurrentAlign: tai;
+        FoundLabels: Boolean;
       begin
         CurrentAlign := nil;
         Result := False;
@@ -1807,26 +1808,33 @@ Unit AoptObj;
             case hp1.typ of
               ait_label:
                 begin
+                  { Set tmp to the next valid entry }
+                  tmp := tai(hp1.Next);
                   with tai_label(hp1).labsym do
-                    if is_used or (bind <> AB_LOCAL) or (labeltype <> alt_jump) then
-                      begin
-                        { Valid label }
-                        if Result then
-                          NextValid := hp1;
+                    begin
+                      if (labeltype <> alt_jump) then
+                        begin
+                          { Non-jump label - skip over }
+                          hp1 := tmp;
+                          Continue;
+                        end;
 
-                        DebugWrite('JUMP DEBUG: Last label in cluster:' + tostr(labelnr));
+                      if is_used or (bind <> AB_LOCAL) then
+                        begin
+                          { Valid label }
+                          DebugWrite('JUMP DEBUG: Last label in cluster:' + tostr(labelnr));
 
-                        Exit;
-                      end;
+                          Exit;
+                        end;
+                    end;
 
                   DebugWrite('JUMP DEBUG: Removed label ' + tostr(TAsmLabel(tai_label(hp1).labsym).labelnr));
 
-                  { Set tmp to the next valid entry }
-                  tmp := tai(hp1.Next);
                   { Remove label }
-                  AsmL.Remove(hp1);
-                  hp1.Free;
+                  if (NextValid = hp1) then
+                    NextValid := tmp;
 
+                  RemoveInstruction(hp1);
                   hp1 := tmp;
 
                   Result := True;
@@ -1835,6 +1843,9 @@ Unit AoptObj;
               { Also remove the align if it comes before an unused label }
               ait_align:
                 begin
+                  { Signal that we can possibly delete this align entry }
+                  CurrentAlign := hp1;
+
                   tmp := tai(hp1.Next);
                   if tmp = BlockEnd then
                     { End of block }
@@ -1863,8 +1874,7 @@ Unit AoptObj;
                                 end;
 
                               tmpNext := tai(tmp.Next);
-                              AsmL.Remove(tmp);
-                              tmp.Free;
+                              RemoveInstruction(tmp);
                               Result := True;
                               tmp := tmpNext;
                             end
@@ -1875,28 +1885,30 @@ Unit AoptObj;
                         end;
                       ait_label:
                         begin
-                          { Signal that we can possibly delete this align entry }
-                          CurrentAlign := hp1;
-
                           repeat
                             with tai_label(tmp).labsym do
-                              if is_used or (bind <> AB_LOCAL) or (labeltype <> alt_jump) then
-                                begin
-                                  { Valid label }
-                                  if Result then
-                                    NextValid := tmp;
+                              begin
+                                if (labeltype <> alt_jump) then
+                                  begin
+                                    { Non-jump label - skip over }
+                                    tmp := tai(tmp.Next);
+                                    Continue;
+                                  end;
 
-                                  DebugWrite('JUMP DEBUG: Last label in cluster:' + tostr(labelnr));
+                                if is_used or (bind <> AB_LOCAL) then
+                                  begin
+                                    { Valid label }
+                                    DebugWrite('JUMP DEBUG: Last label in cluster:' + tostr(labelnr));
 
-                                  Exit;
-                                end;
+                                    Exit;
+                                  end;
+                              end;
 
-                            DebugWrite('JUMP DEBUG: Removed label ' + tostr(TAsmLabel(tai_label(tmp).labsym).labelnr));
+                            DebugWrite('JUMP DEBUG: Removed label ' + tai_label(tmp).labsym.name);
 
                             { Remove label }
                             tmpNext := tai(tmp.Next);
-                            AsmL.Remove(tmp);
-                            tmp.Free;
+                            RemoveInstruction(tmp);
                             Result := True;
                             tmp := tmpNext;
 
@@ -1908,6 +1920,12 @@ Unit AoptObj;
                         end
                       else
                         begin
+                          if tmp.typ in SkipInstr then
+                            begin
+                              tmp := tai(tmp.Next);
+                              Continue;
+                            end;
+
                           { Set hp1 to the instruction after the align, because the
                             align might get deleted later and hence set NextValid
                             to a dangling pointer. [Kit] }
@@ -1927,20 +1945,27 @@ Unit AoptObj;
             hp1 := tai(hp1.Next);
           end;
 
-        { hp1 will be the next valid entry }
-        NextValid := hp1;
-
-        { Remove the alignment field (but only if the next valid entry is not a live label) }
-        while Assigned(CurrentAlign) and (CurrentAlign.typ = ait_align) do
+        if Assigned(CurrentAlign) then
           begin
-            DebugWrite('JUMP DEBUG: Alignment field removed');
+            { Remember what the first one was }
+            tmpNext := CurrentAlign;
 
-            tmp := tai(CurrentAlign.next);
+            { Remove the alignment field (but only if the next valid entry is not a live label) }
+            repeat
+              tmp := tai(CurrentAlign.next);
 
-            AsmL.Remove(CurrentAlign);
-            CurrentAlign.Free;
+              { Any labels found are non-jump labels and will be skipped over }
+              if CurrentAlign.typ = ait_align then
+                begin
+                  DebugWrite('JUMP DEBUG: Alignment field removed');
+                  RemoveInstruction(CurrentAlign);
+                end;
 
-            CurrentAlign := tmp;
+              CurrentAlign := tmp;
+            until not Assigned(CurrentAlign) or not (CurrentAlign.typ in [ait_align, ait_label]);
+
+            if (NextValid = tmpNext) then
+              NextValid := tmp;
           end;
       end;
 
