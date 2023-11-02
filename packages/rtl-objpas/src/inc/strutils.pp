@@ -185,7 +185,7 @@ resourcestring
 
 function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
 function DelSpace(const S: string): string;
-function DelChars(const S: string; Chr: AnsiChar): string;
+function DelChars(const S: string; Chr: Char): string;
 function DelChars(const S: string; Chars: TSysCharSet): string;
 function DelSpace1(const S: string): string;
 function Tab2Space(const S: string; Numb: Byte): string;
@@ -1954,7 +1954,8 @@ function DelChars(const S: string; Chars: TSysCharSet): string;
 
 var
   Ss, Sp, Se, Rp: PChar;
-
+  aDelta : Integer;
+  
 begin
   Ss := PChar(Pointer(S));
   Sp := Ss;
@@ -1966,8 +1967,9 @@ begin
   SetLength(result, SizeUint(Pointer(Se) - Pointer(Ss)) div sizeof(Char));
   Rp := PChar(Pointer(Result));
   repeat
-    Move(Ss^, Rp^, Pointer(Sp) - Pointer(Ss));
-    Inc(Pointer(Rp), Pointer(Sp) - Pointer(Ss));
+    aDelta:=(Pointer(Sp) - Pointer(Ss))*SizeOf(Char);
+    Move(Ss^, Rp^, aDelta);
+    Inc(Pointer(Rp), aDelta);
     repeat
       Inc(Sp); // Can increment to Se + 1.
     until (Sp >= Se) or not (Sp^ in Chars);
