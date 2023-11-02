@@ -4271,7 +4271,7 @@ implementation
                 then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
-                 objdata.writebytes(currval,2);
+                 objdata.writeInt16LE(int16(currval));
               end;
             &34,&35,&36 :     // 034..036
               { !!! These are intended (and used in opcode table) to select depending
@@ -4282,21 +4282,21 @@ implementation
                 if assigned(currsym) then
                   objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
-                  objdata.writebytes(currval,2);
+                  objdata.writeInt16LE(int16(currval));
 {$else i8086}
                 if opsize=S_Q then
                   begin
                     if assigned(currsym) then
                      objdata_writereloc(currval,8,currsym,currabsreloc)
                     else
-                     objdata.writebytes(currval,8);
+                     objdata.writeInt64LE(int64(currval));
                   end
                 else
                   begin
                     if assigned(currsym) then
                       objdata_writereloc(currval,4,currsym,currabsreloc32)
                     else
-                      objdata.writebytes(currval,4);
+                      objdata.writeInt32LE(int32(currval));
                   end
 {$endif i8086}
               end;
@@ -4310,7 +4310,7 @@ implementation
                 then
                  objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
-                 objdata.writebytes(currval,4);
+                 objdata.writeInt32LE(int32(currval));
               end;
             &44,&45,&46 :// 044..046 - select between word/dword/qword depending on
               begin      // address size (we support only default address sizes).
@@ -4319,17 +4319,17 @@ implementation
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
                 else
-                  objdata.writebytes(currval,8);
+                  objdata.writeInt64LE(int64(currval));
 {$elseif defined(i386)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
-                  objdata.writebytes(currval,4);
+                  objdata.writeInt32LE(int32(currval));
 {$elseif defined(i8086)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
-                  objdata.writebytes(currval,2);
+                  objdata.writeInt16LE(int16(currval));
 {$endif}
               end;
             &50,&51,&52 :   // 050..052 - byte relative operand
@@ -4351,7 +4351,7 @@ implementation
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
                 else
-                  objdata.writebytes(currval,8);
+                  objdata.writeInt64LE(int64(currval));
               end;
             &60,&61,&62 :
               begin
@@ -4403,7 +4403,7 @@ implementation
                 if assigned(currsym) then
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
-                  objdata.writebytes(currval,4);
+                  objdata.writeInt32LE(int32(currval));
               end;
             &300,&301,&302:
               begin
