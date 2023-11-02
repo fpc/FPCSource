@@ -1967,7 +1967,7 @@ begin
   SetLength(result, SizeUint(Pointer(Se) - Pointer(Ss)) div sizeof(Char));
   Rp := PChar(Pointer(Result));
   repeat
-    aDelta:=(Pointer(Sp) - Pointer(Ss))*SizeOf(Char);
+    aDelta:=(Pointer(Sp) - Pointer(Ss));
     Move(Ss^, Rp^, aDelta);
     Inc(Pointer(Rp), aDelta);
     repeat
