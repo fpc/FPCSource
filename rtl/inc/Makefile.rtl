@@ -1044,7 +1044,7 @@ System.TypInfo$(PPUEXT): $(NSINC)/System.TypInfo.pp $(TYPINFO_DEPS)
 #
 # let it depend on buildcollations to prevent simultaneous building of $(UNICODEDATAUNIT)
 
-CHARACTER_DEPS=$(OBJPASDIR)/character.pas \
+CHARACTER_DEPS=$(OBJPASDIR)/character.pas $(UNICODEDATAUNIT)$(PPUEXT) \
                $(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                $(CHARACTER_DEPS_OS) $(CHARACTER_DEPS_CPU)
 
