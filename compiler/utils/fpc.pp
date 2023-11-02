@@ -265,7 +265,7 @@ Const
         end;
       end;
 
-Function FindConfigFile(const aFile : string) : String;
+Function FindConfigFile(const aFile : string; const aCompiler : String) : String;
 // Adapted from check_configfile(fn:string; var foundfn:string):boolean;
 {
   Order to read configuration file :
@@ -286,6 +286,7 @@ Function FindConfigFile(const aFile : string) : String;
 }
 
 var
+  {$ifdef unix}sl : rawbytestring;{$endif}
   {$ifdef unix}hs,{$endif} aSearchPath,exepath,configpath : string;
 
   Procedure AddToPath(aDir : String);
@@ -313,7 +314,22 @@ begin
       exit;
     end;
   if configpath='' then
+    begin
+    {  
+      We need to search relative to compiler binary, not relative to FPC binary.
+      Beware of symlinks !
+    }
+    hs:=aCompiler;
+    While FileGetSymLinkTarget(hs,sl) do
+      begin
+      if copy(sl,1,1)<>'/' then
+        hs:=ExpandFileName(ExtractFilePath(hs)+sl)
+      else
+        hs:=sl;  
+      end;
+    ExePath:=ExtractFilePath(hs);
     configpath:=ExpandFileName(ExePath+'../etc/');
+    end;
 {$endif}
   AddToPath(ConfigPath);
 {$ifdef WINDOWS}
@@ -467,16 +483,16 @@ begin
         end;
       end;
     end;
+     ppcbin := findcompiler(ppcbin, cpusuffix, exesuffix);
      if (TargetName<>'') then
        begin
        S:='fpc-'+lowercase(TargetName)+'.cfg';
-       CfgFile:=FindConfigFile(s);
+       CfgFile:=FindConfigFile(s,ppcbin);
        if CfgFile='' then
          Error('Cannot find subtarget config file: '+s);
        ProcessConfigFile(CfgFile,ExeSuffix);
        end;
      SetLength(ppccommandline, ppccommandlinelen);
-     ppcbin := findcompiler(ppcbin, cpusuffix, exesuffix);
 
      { call ppcXXX }
      try
