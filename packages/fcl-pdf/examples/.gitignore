@@ -1,8 +1,3 @@
-stdfonttest  
-testfppdf
-*.exe
-*.pdf
-fonts
-lib
 pdfdump
-fonts
+testfppdf
+test.pdf
