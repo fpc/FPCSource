@@ -53,7 +53,9 @@ type
     procedure   AdvancedShapes(D: TPDFDocument; APage: integer);
     procedure   SampleMatrixTransform(D: TPDFDocument; APage: integer);
     procedure   SampleLandscape(D: TPDFDocument; APage: integer);
-    procedure   TextInABox(const APage: TPDFPage; const AX, AY: TPDFFloat; const APointSize: integer; const ABoxColor: TARGBColor; const AFontName: string; const AText: UTF8String);
+    procedure   TextInABox(const APage: TPDFPage; const AX, AY: TPDFFloat;
+      const APointSize: integer; const ABoxColor: TARGBColor;
+      AFontName, AFontFamilyName: string; const AText: UTF8String);
   protected
     procedure   DoRun; override;
   public
@@ -76,6 +78,11 @@ var
   lOpts: TPDFOptions;
 begin
   Result := TPDFDocument.Create(Nil);
+
+  // init search paths
+  Result.FontDirectory := ExpandFileName('fonts');
+
+  // set global props
   Result.Infos.Title := Application.Title;
   Result.Infos.Author := 'Graeme Geldenhuys';
   Result.Infos.Producer := 'fpGUI Toolkit 1.4.1';
@@ -105,6 +112,7 @@ begin
     Include(lOpts,poMetadataEntry);  
   Result.Options := lOpts;
 
+  // add content
   Result.StartDocument;
   S := Result.Sections.AddSection; // we always need at least one section
   lPageCount := cPageCount;
@@ -177,18 +185,40 @@ end;
 
 { all units of measure are in millimeters }
 procedure TPDFTestApp.SimpleText(D: TPDFDocument; APage: integer);
+const
+  FontNameTitle = 'Helvetica';
+  FontNameText1 = 'FreeSans-Regular'; // arbitrary name, could be 'Free Sans Regular' too
+  FontFamilyNameText1 = 'FreeSans'; // must correspond to the family name of the ttf
+  FontNameText2 = 'Times-BoldItalic';
+  FontNameWaterMark = 'Helvetica-Bold';
 var
   P : TPDFPage;
   FtTitle, FtText1, FtText2: integer;
   FtWaterMark: integer;
+  ms: TMemoryStream;
+  aFilename: String;
 begin
   P := D.Pages[APage];
 
-  // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica');
-  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans');
-  FtText2 := D.AddFont('Times-BoldItalic');
-  FtWaterMark := D.AddFont('Helvetica-Bold');
+  // create the fonts to be used
+  FtTitle := D.AddFont(FontNameTitle); // use one of the 14 Adobe PDF standard fonts
+
+  // demonstrating loading a font from a stream (used glyphs will be embedded in the pdf)
+  aFilename:=IncludeTrailingPathDelimiter(D.FontDirectory)+'FreeSans.ttf';
+  ms:=TMemoryStream.Create;
+  try
+    ms.LoadFromFile(aFilename);
+    FtText1 := D.AddFont(ms,FontNameText1);
+    ms.Position:=0;
+    gTTFontCache.AddFontFromStream(ms);
+  finally
+    ms.Free;
+  end;
+  // alternatively you can load from file:
+  //  FtText1 := D.AddFont(aFilename,FontNameText1);
+
+  FtText2 := D.AddFont(FontNameText2); // use a standard font
+  FtWaterMark := D.AddFont(FontNameWaterMark); // use a standard font
 
   { Page title }
   P.SetFont(FtTitle, 23);
@@ -203,7 +233,7 @@ begin
   // Write text using PDF standard fonts
   P.SetFont(FtTitle, 12);
   P.SetColor(clBlue, false);
-  P.WriteText(25, 50, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
+  P.WriteText(25, 50, '(25mm,50mm) '+FontNameTitle+': The quick brown fox jumps over the lazy dog.');
   P.SetColor(clBlack, false);
   P.WriteText(25, 57, 'Click the URL:  http://www.freepascal.org');
   P.AddExternalLink(54, 58, 49, 5, 'http://www.freepascal.org', false);
@@ -223,7 +253,7 @@ begin
 
   P.SetFont(ftText2,16);
   P.SetColor($C00000, false);
-  P.WriteText(50, 100, '(50mm,100mm) Times-BoldItalic: Big text at absolute position');
+  P.WriteText(50, 100, '(50mm,100mm) '+FontNameText2+': Big text at absolute position');
 
 
   // -----------------------------------
@@ -248,10 +278,10 @@ begin
   P.WriteText(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
 
   { draw a rectangle around the text }
-  TextInABox(P, 25, 255, 23, clRed, 'FreeSans', '“Text in a Box gyj?”');
+  TextInABox(P, 25, 255, 23, clRed, FontNameText1, FontFamilyNameText1, '“Text in a Box?”');
 
   { lets make a hyperlink more prominent }
-  TextInABox(P, 100, 255, 12, clMagenta, 'FreeSans', 'http://www.freepascal.org');
+  TextInABox(P, 100, 255, 12, clMagenta, FontNameText1, FontFamilyNameText1, 'http://www.freepascal.org');
   P.AddExternalLink(99, 255, 49, 5, 'http://www.freepascal.org', false);
 end;
 
@@ -753,8 +783,9 @@ begin
   P.WriteText(145, 95, Format('%d x %d  (mm)', [PixelsToMM(P.Paper.W), PixelsToMM(P.Paper.H)]));
 end;
 
-procedure TPDFTestApp.TextInABox(const APage: TPDFPage; const AX, AY: TPDFFloat; const APointSize: integer;
-    const ABoxColor: TARGBColor; const AFontName: string; const AText: UTF8String);
+procedure TPDFTestApp.TextInABox(const APage: TPDFPage; const AX,
+  AY: TPDFFloat; const APointSize: integer; const ABoxColor: TARGBColor;
+  AFontName, AFontFamilyName: string; const AText: UTF8String);
 var
   lFontIdx: integer;
   lFC: TFPFontCacheItem;
@@ -766,6 +797,8 @@ var
   lDescenderHeightInMM: single;
   i: integer;
 begin
+  if AFontFamilyName='' then AFontFamilyName:=AFontName;
+
   for i := 0 to APage.Document.Fonts.Count-1 do
   begin
     if APage.Document.Fonts[i].Name = AFontName then
@@ -778,9 +811,9 @@ begin
   APage.SetColor(clBlack, false);
   APage.WriteText(AX, AY, AText);
 
-  lFC := gTTFontCache.Find(AFontName, False, False);
+  lFC := gTTFontCache.Find(AFontFamilyName, False, False);
   if not Assigned(lFC) then
-    raise Exception.Create(AFontName + ' font not found');
+    raise Exception.Create(AFontFamilyName + ' font family not found');
 
   lHeight := lFC.TextHeight(AText, APointSize, lDescenderHeight);
   { convert the Font Units to mm as our PDFPage.UnitOfMeasure is set to mm. }

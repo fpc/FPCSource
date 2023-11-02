@@ -43,10 +43,13 @@ type
   TFPFontCacheList = class;
 
 
+  { TFPFontCacheItem }
+
   TFPFontCacheItem = class(TObject)
   private
     FFamilyName: String;
     FFileName: String;
+    FStream: TStream;
     FStyleFlags: TTrueTypeFontStyles;
     FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
@@ -65,13 +68,15 @@ type
     function    GetHumanFriendlyName: string;
     function    GetFileInfo: TTFFileInfo;
   public
-    constructor Create(const AFilename: String);
+    constructor Create(const AFilename: String); overload;
+    constructor Create(const AStream: TStream); overload; // AStream is freed on destroy
     destructor  Destroy; override;
     { Result is in pixels }
     function    TextWidth(const AStr: utf8string; const APointSize: single): single;
     { Result is in pixels }
     function    TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
     property    FileName: String read FFileName;
+    property    Stream: TStream read FStream;
     property    FamilyName: String read GetFamilyName;
     property    PostScriptName: string read GetPostScriptName;
     property    HumanFriendlyName: string read GetHumanFriendlyName;
@@ -92,7 +97,7 @@ type
   TFPFontCacheList = class(TObject)
   private
     FBuildFontCacheIgnoresErrors: Boolean;
-    FList: TObjectList;
+    FList: TObjectList; // list of TFPFontCacheItem
     FSearchPath: TStringList;
     FDPI: integer;
     procedure   SearchForFonts(const AFontPath: String);
@@ -109,9 +114,10 @@ type
     destructor  Destroy; override;
     procedure   BuildFontCache;
     function    Add(const AObject: TFPFontCacheItem): integer;
+    function    AddFontFromStream(AStream: TStream): integer; // add a single font from stream, returns index
     procedure   AssignFontList(const AStrings: TStrings);
     procedure   Clear;
-    procedure   LoadFromFile(const AFilename: string);
+    procedure   LoadFromFile(const AFilename: string); // load list of filenames
     procedure   ReadStandardFonts;
     property    Count: integer read GetCount;
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
@@ -192,14 +198,18 @@ end;
 
 procedure TFPFontCacheItem.LoadFileInfo;
 begin
-  if FileExists(FFilename) then
+  if FStream<>nil then
+  begin
+    FFileInfo := TTFFileInfo.Create;
+    FFileInfo.LoadFromStream(FStream);
+  end else if (FFilename<>'') and FileExists(FFilename) then
   begin
     FFileInfo := TTFFileInfo.Create;
     FFileInfo.LoadFromFile(FFilename);
-    BuildFontCacheItem;
   end
   else
     raise ETTF.CreateFmt(rsMissingFontFile, [FFilename]);
+  BuildFontCacheItem;
 end;
 
 function TFPFontCacheItem.GetIsBold: boolean;
@@ -304,9 +314,20 @@ begin
     raise ETTF.Create(rsNoFontFileName);
 end;
 
+constructor TFPFontCacheItem.Create(const AStream: TStream);
+begin
+  inherited Create;
+  if AStream = nil then
+    raise ETTF.Create(rsNoFontFileName);
+
+  FStream := AStream;
+  FStyleFlags := [fsRegular];
+end;
+
 destructor TFPFontCacheItem.Destroy;
 begin
-  FFileInfo.Free;
+  FreeAndNil(FStream);
+  FreeAndNil(FFileInfo);
   inherited Destroy;
 end;
 
@@ -526,6 +547,20 @@ begin
   end;
 end;
 
+function TFPFontCacheList.AddFontFromStream(AStream: TStream): integer;
+var
+  ms: TMemoryStream;
+  Item: TFPFontCacheItem;
+begin
+  ms:=TMemoryStream.Create;
+  ms.CopyFrom(AStream,AStream.Size-AStream.Position);
+  ms.Position:=0;
+  Item:=TFPFontCacheItem.Create(ms);
+  Result:=Add(Item);
+  if Item.FamilyName='' then
+    raise EFontNotFound.Create('TFPFontCacheList.AddFontFromStream font has no family name');
+end;
+
 { This is operating system dependent. Our default implementation only supports
   Linux, FreeBSD, Windows and OSX. On other platforms, no fonts will be loaded,
   until a implementation is created.
@@ -690,7 +725,8 @@ begin
   Result:=DoFindPostScriptFontName(aFontName,aBold,aItalic,lfc);
 end;
 
-function  TFPFontCacheList.DoFindPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean; Out aBaseFont : TFPFontCacheItem): String;
+function TFPFontCacheList.DoFindPostScriptFontName(const AFontName: string;
+  ABold: boolean; AItalic: boolean; out aBaseFont: TFPFontCacheItem): String;
 
 Var
    lNewFC : TFPFontCacheItem;

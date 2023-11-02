@@ -855,6 +855,8 @@ type
   TPDFPageClass = class of TPDFPage;
 
 
+  { TPDFSection }
+
   TPDFSection = Class(TCollectionItem)
   private
     FTitle: String;
@@ -870,6 +872,8 @@ type
   end;
 
 
+  { TPDFSectionList }
+
   TPDFSectionList = Class(TCollection)
   private
     function GetS(AIndex : Integer): TPDFSection;
@@ -879,16 +883,19 @@ type
   end;
 
 
+  { TPDFFont }
+
   TPDFFont = class(TCollectionItem)
   private
     FIsStdFont: boolean;
     FName: String;
     FFontFilename: String;
+    FFontStream: TMemoryStream;
     FTrueTypeFile: TTFFileInfo;
     { stores mapping of Char IDs to font Glyph IDs }
     FTextMappingList: TTextMappingList;
     FSubsetFont: TStream;
-    procedure   PrepareTextMapping;
+    procedure   PrepareTextMapping(aStream: TStream = nil);
     procedure   SetFontFilename(const AValue: string);
     procedure   GenerateSubsetFont;
   public
@@ -897,13 +904,17 @@ type
     { Returns a string where each character is replaced with a glyph index value instead. }
     function    GetGlyphIndices(const AText: UnicodeString): AnsiString;
     procedure   AddTextToMappingList(const AText: UnicodeString);
+    procedure   LoadFromStream(aStream: TStream);
     Property    FontFile: string read FFontFilename write SetFontFilename;
+    Property    FontStream: TMemoryStream read FFontStream;
     Property    Name: String Read FName Write FName;
     property    TextMapping: TTextMappingList read FTextMappingList;
     property    IsStdFont: boolean read FIsStdFont write FIsStdFont;
     property    SubsetFont: TStream read FSubsetFont;
   end;
 
+
+  { TPDFTrueTypeCharWidths }
 
   TPDFTrueTypeCharWidths = class(TPDFDocumentObject)
   private
@@ -1218,6 +1229,7 @@ type
     Function CreateImage(const ALeft, ABottom, AWidth, AHeight: TPDFFloat; ANumber: integer) : TPDFImage;
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
+    Function AddFont(AFontStream: TStream; AName : String) : Integer; overload;
     Function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; APenStyle : TPDFPenStyle = ppsSolid) : Integer;
     function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; ADashArray : TDashArray = nil) : Integer;
     procedure AddOutputIntent(const Subtype, OutputConditionIdentifier, Info: string; ICCProfile: TStream);
@@ -1712,16 +1724,22 @@ end;
 
 { TPDFFont }
 
-procedure TPDFFont.PrepareTextMapping;
+procedure TPDFFont.PrepareTextMapping(aStream: TStream);
 begin
-  if FFontFilename <> '' then
+  if (FFontFilename = '') and (FFontStream=nil) then
+    exit;
+  // only create objects when needed
+  if FTextMappingList<>nil then
+    Exception.Create('TPDFFont.PrepareTextMapping already created');
+  FTextMappingList := TTextMappingList.Create;
+  FTrueTypeFile := TTFFileInfo.Create;
+  if FFontStream<>nil then
   begin
-    // only create objects when needed
-    FTextMappingList := TTextMappingList.Create;
-    FTrueTypeFile := TTFFileInfo.Create;
+    FFontStream.Position:=0;
+    FTrueTypeFile.LoadFromStream(FFontStream);
+  end else
     FTrueTypeFile.LoadFromFile(FFontFilename);
-    FTrueTypeFile.PrepareFontDefinition('cp1252', True);
-  end;
+  FTrueTypeFile.PrepareFontDefinition('cp1252', True);
 end;
 
 procedure TPDFFont.SetFontFilename(const AValue: string);
@@ -1764,9 +1782,10 @@ end;
 
 destructor TPDFFont.Destroy;
 begin
-  FTextMappingList.Free;
-  FTrueTypeFile.Free;
-  FSubSetFont.Free;
+  FreeAndNil(FFontStream);
+  FreeAndNil(FTextMappingList);
+  FreeAndNil(FTrueTypeFile);
+  FreeAndNil(FSubSetFont);
   inherited Destroy;
 end;
 
@@ -1807,6 +1826,18 @@ begin
     gid := FTrueTypeFile.GetGlyphIndex(c);
     FTextMappingList.Add(c, gid);
   end;
+end;
+
+procedure TPDFFont.LoadFromStream(aStream: TStream);
+begin
+  if FFontStream=aStream then Exit;
+  if FFontStream<>nil then
+    raise Exception.Create('TPDFFont.SetFontStream has already a stream');
+  if FFontFilename<>'' then
+    raise Exception.Create('TPDFFont.SetFontStream has already a file');
+  FFontStream:=TMemoryStream.Create;
+  FFontStream.CopyFrom(aStream,aStream.Size-aStream.Position);
+  PrepareTextMapping;
 end;
 
 { TPDFTrueTypeCharWidths }
@@ -3004,7 +3035,7 @@ begin
     Raise EPDF.CreateFmt(rsErrInvalidSectionPage,[AIndex]);
 end;
 
-function TPDFSection.GetP: INteger;
+function TPDFSection.GetP: Integer;
 begin
   if Assigned(FPages) then
     Result:=FPages.Count
@@ -4769,6 +4800,7 @@ var
   M, Buf : TMemoryStream;
   E : TPDFDictionaryItem;
   D : TPDFDictionary;
+  aFont: TPDFFont;
 begin
   if GetE(0).FKey.Name='' then
     GetE(0).Write(AStream)  // write a charwidth array of a font
@@ -4823,6 +4855,7 @@ begin
           begin
             Value:=E.FKey.Name;
             NumFnt:=StrToInt(Copy(Value, Succ(Pos(' ', Value)), Length(Value) - Pos(' ', Value)));
+            aFont:=Document.Fonts[NumFnt];
             if poSubsetFont in Document.Options then
             begin
 
@@ -4845,9 +4878,15 @@ begin
             end
             else
             begin
-              M:=TMemoryStream.Create;
+              if aFont.FontStream<>nil then
+              begin
+                M:=aFont.FontStream;
+                M.Position:=0;
+              end else
+                M:=TMemoryStream.Create;
               try
-                m.LoadFromFile(Document.FontFiles[NumFnt]);
+                if aFont.FontStream=nil then
+                  m.LoadFromFile(Document.FontFiles[NumFnt]);
                 Buf := TMemoryStream.Create;
                 try
                   // write fontfile stream (could be compressed or not) to a temporary buffer so we can get the size
@@ -4864,7 +4903,8 @@ begin
                   Buf.Free;
                 end;
               finally
-                M.Free;
+                if aFont.FontStream=nil then
+                  M.Free;
               end;
             end;
           end;
@@ -5665,6 +5705,9 @@ var
   s: string;
 begin
   Result := False;
+  if AFont.TextMapping<>nil then
+    exit(true);
+
   if ExtractFilePath(AFont.FontFile) <> '' then
     // assume AFont.FontFile is the full path to the TTF file
     lFName := AFont.FontFile
@@ -5687,6 +5730,8 @@ var
   N: TPDFName;
   Arr: TPDFArray;
   lFontXRef: integer;
+  aFilename: String;
+  TTF: TTFFileInfo;
 begin
   lFontXRef := GlobalXRefCount; // will be used a few lines down in AddFontNameToPages()
 
@@ -5717,7 +5762,20 @@ begin
     FDict.AddReference('ToUnicode', GlobalXRefCount);
     CreateToUnicode(EmbeddedFontNum);
   end;
-  FontFiles.Add(Fonts[EmbeddedFontNum].FTrueTypeFile.Filename);
+  TTF:=Fonts[EmbeddedFontNum].FTrueTypeFile;
+  aFilename:=TTF.Filename;
+  if ExtractFilename(aFilename)='' then
+  begin
+    aFilename:='';
+    if TTF.Bold then
+      aFilename:=aFilename+'Bold';
+    if TTF.ItalicAngle<>0 then
+      aFilename:=aFilename+'Italic';
+    if aFilename='' then
+      aFilename:='Regular';
+    aFilename:=TTF.FamilyName+'-'+aFilename;
+  end;
+  FontFiles.Add(aFilename);
 end;
 
 procedure TPDFDocument.CreateTTFDescendantFont(const EmbeddedFontNum: integer);
@@ -6508,9 +6566,8 @@ end;
 function TPDFDocument.AddFont(AName: String): Integer;
 var
   F: TPDFFont;
-  i: integer;
 begin
-  { reuse existing font definition if it exists }
+  // reuse existing font definition if it exists
   Result:=Fonts.FindFont(AName);
   if Result>=0 then exit;
   F := Fonts.AddFontDef;
@@ -6522,10 +6579,9 @@ end;
 function TPDFDocument.AddFont(AFontFile: String; AName: String): Integer;
 var
   F: TPDFFont;
-  i: integer;
   lFName: string;
 begin
-  { reuse existing font definition if it exists }
+  // reuse existing font definition if it exists
   Result:=Fonts.FindFont(AName);
   if Result>=0 then exit;
   F := Fonts.AddFontDef;
@@ -6538,6 +6594,20 @@ begin
   F.FontFile := lFName;
   F.Name := AName;
   F.IsStdFont := False;
+  Result := Fonts.Count-1;
+end;
+
+function TPDFDocument.AddFont(AFontStream: TStream; AName: String): Integer;
+var
+  F: TPDFFont;
+begin
+  // reuse existing font definition if it exists
+  Result:=Fonts.FindFont(AName);
+  if Result>=0 then exit;
+  F := Fonts.AddFontDef;
+  F.Name := AName;
+  F.IsStdFont := False;
+  F.LoadFromStream(AFontStream);
   Result := Fonts.Count-1;
 end;
 
