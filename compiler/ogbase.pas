@@ -444,6 +444,18 @@ interface
        procedure alloc(len:TObjSectionOfs);
        procedure allocalign(len:longint);
        procedure writebytes(const Data;len:TObjSectionOfs);
+       procedure writeInt16LE(v: int16);
+       procedure writeInt16BE(v: int16);
+       procedure writeInt32LE(v: int32);
+       procedure writeInt32BE(v: int32);
+       procedure writeInt64LE(v: int64);
+       procedure writeInt64BE(v: int64);
+       procedure writeUInt16LE(v: uint16);
+       procedure writeUInt16BE(v: uint16);
+       procedure writeUInt32LE(v: uint32);
+       procedure writeUInt32BE(v: uint32);
+       procedure writeUInt64LE(v: uint64);
+       procedure writeUInt64BE(v: uint64);
        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
@@ -1573,6 +1585,114 @@ implementation
       end;
 
 
+    procedure TObjData.writeInt16LE(v: int16);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,2);
+      end;
+
+
+    procedure TObjData.writeInt16BE(v: int16);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,2);
+      end;
+
+
+    procedure TObjData.writeInt32LE(v: int32);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,4);
+      end;
+
+
+    procedure TObjData.writeInt32BE(v: int32);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,4);
+      end;
+
+
+    procedure TObjData.writeInt64LE(v: int64);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,8);
+      end;
+
+
+    procedure TObjData.writeInt64BE(v: int64);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,8);
+      end;
+
+
+    procedure TObjData.writeUInt16LE(v: uint16);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,2);
+      end;
+
+
+    procedure TObjData.writeUInt16BE(v: uint16);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,2);
+      end;
+
+
+    procedure TObjData.writeUInt32LE(v: uint32);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,4);
+      end;
+
+
+    procedure TObjData.writeUInt32BE(v: uint32);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,4);
+      end;
+
+
+    procedure TObjData.writeUInt64LE(v: uint64);
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+        writebytes(v,8);
+      end;
+
+
+    procedure TObjData.writeUInt64BE(v: uint64);
+      begin
+{$ifdef FPC_LITTLE_ENDIAN}
+        v:=SwapEndian(v);
+{$endif FPC_LITTLE_ENDIAN}
+        writebytes(v,8);
+      end;
+
+
     procedure TObjData.alloc(len:TObjSectionOfs);
       begin
         if not assigned(CurrObjSec) then
@@ -1684,7 +1804,7 @@ implementation
       end;
 
 
-    procedure TObjData.layoutsections(var DataPos:TObjSectionOfs);
+        procedure TObjData.layoutsections(var datapos: TObjSectionOfs);
       var
         i: longint;
       begin
