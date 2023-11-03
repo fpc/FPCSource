@@ -44,6 +44,7 @@ uses Dynlibs,ctypes;
   const
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
+    fbclib2 = fbclib;
     fbembedlib = 'fbembed.dll';
     libfc  = fbclib;
     libem  = fbembedlib;
@@ -2517,7 +2518,7 @@ implementation
 
 ResourceString
   SErrEmbeddedFailed = 'Can not load embedded Firebird client "%s". Check your installation.';
-  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s" or "%s" or "%s"). Check your installation.';
+  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s", "%s", "%s", "%s" or "%s"). Check your installation.';
   SErrLoadFailed     = 'Can not load Firebird client library "%s". Check your installation.';
   SErrAlreadyLoaded  = 'Firebird interface already initialized from library %s.';
   
@@ -2743,9 +2744,12 @@ begin
     If (TryInitialiseIBase60(fbembedlib)=0) and
        (TryInitialiseIBase60(libem)=0) and
        (TryInitialiseIBase60(fbclib)=0) and
+       {$IFDEF UNIX}
+       (TryInitialiseIBase60(fbclib2)=0) and
+       {$ENDIF}
        (TryInitialiseIBase60(libfc)=0) and
        (TryInitialiseIBase60(gdslib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,gdslib,fbembedlib]);
+        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,fbclib2,libfc,gdslib,fbembedlib]);
     end;    
   Result := RefCount;
 end;
