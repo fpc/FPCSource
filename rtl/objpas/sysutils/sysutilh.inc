@@ -398,7 +398,7 @@ Type
     TArchitecture = (arIntelX86, arIntelX64, arARM32, arARM64, arIntelX16, arXTensa, arAVR, arM68k, arPowerPC, arPower64,
                      arMips, arMipsel, arMips64, arMips64el, arJVM, arWasm32, arSparc, arSparc64, arRiscV32, arRiscV64, arZ80,
                      arLoongArch64, arOther);
-
+    
     TPlatform = (pfWindows, pfMacOS, pfiOS, pfAndroid, pfWinRT, pfLinux,
                  pfGo32v2, pfOS2, pfFreeBSD, pfBeos, pfNetBSD, pfAmiga,
                  pfAtari, pfSolaris, pfQNX, pfNetware, pfOpenBSD, pfWDosX,
@@ -408,6 +408,7 @@ Type
                  pfNativeNT, pfMSDos, pfWII, pfAROS, pfDragonFly, pfWin16,
                  pfFreeRTOS, pfZXSpectrum, pfMSXDOS, pfAmstradCPC,
                  pfSinclairQL, pfWasi, pfOther);
+    TDelphiPlatform = TPlatform.pfWindows..TPlatform.pfLinux;             
   public const
     AllArchitectures = [Low(TArchitecture) .. High(TArchitecture)];
     AllPlatforms = [Low(TPlatform) .. High(TPlatform)];
@@ -449,6 +450,7 @@ Type
 
   TArchitectures = set of TOSVersion.TArchitecture;
   TPlatforms = set of TOSVersion.TPlatform;
+  TDelphiPlatforms = set of TOSVersion.TDelphiPlatform;
 
   Function GetCompiledArchitecture : TOSVersion.TArchitecture;
   Function GetCompiledPlatform : TOSVersion.TPlatform;
