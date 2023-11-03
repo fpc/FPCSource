@@ -2428,9 +2428,6 @@ var
   quoted : boolean;
 begin
   quoted:=false;
-  // If first and last are quotes, we assume it is already quoted.
-  if (Length(S)>1) and (S[1]='"') and (S[Length(S)]='"') then
-    Exit(S);
   s1:='"';
   for i:=1 to length(s) do
    begin
@@ -8100,7 +8097,7 @@ begin
 
   // Replace strings
   for I:=0 to Args.Count-1 do
-    Args[i]:=maybequoted(APackage.Dictionary.ReplaceStrings(Args[i]));
+    Args[i]:=APackage.Dictionary.ReplaceStrings(Args[i]);
   // Add Filename to compile
   Args.Add(AddPathPrefix(APackage,ATarget.TargetSourceFileName));
 end;
