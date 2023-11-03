@@ -84,10 +84,11 @@ begin
 end;
 
 const
-  K20 = $5A827999;
-  K40 = $6ED9EBA1;
-  K60 = $8F1BBCDC;
-  K80 = $CA62C1D6;
+  { typecast to Longint to prevent assembler errors }
+  K20 = LongInt($5A827999);
+  K40 = LongInt($6ED9EBA1);
+  K60 = LongInt($8F1BBCDC);
+  K80 = LongInt($CA62C1D6);
 
 // Use assembler version if we have a suitable CPU as well
 // Define SHA1PASCAL to force use of original reference code
