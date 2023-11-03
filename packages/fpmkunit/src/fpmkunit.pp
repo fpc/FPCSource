@@ -2429,7 +2429,7 @@ var
 begin
   quoted:=false;
   // If first and last are quotes, we assume it is already quoted.
-  if Length(S)>1 and (S[1]='"') and (S[Length(S)]='"') then
+  if (Length(S)>1) and (S[1]='"') and (S[Length(S)]='"') then
     Exit(S);
   s1:='"';
   for i:=1 to length(s) do
