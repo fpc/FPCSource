@@ -1366,7 +1366,7 @@ uses
         err : boolean;
         i,
         gencount : longint;
-        countstr,genname,ugenname : string;
+        countstr,genname,ugenname,prettygenname: string;
         tmpstack : tfpobjectlist;
         symowner : tsymtable;
         hmodule : tmodule;
@@ -1477,6 +1477,7 @@ uses
         countstr:='';
         str(context.paramlist.Count,countstr);
 
+        prettygenname:=genname;
         genname:=genname+'$'+countstr;
         ugenname:=upper(genname);
 
@@ -1534,7 +1535,7 @@ uses
 
         if not found or not (context.sym.typ in [typesym,procsym]) then
           begin
-            identifier_not_found(genname);
+            identifier_not_found(prettygenname);
             if not try_to_consume(_GT) then
               try_to_consume(_RSHARPBRACKET);
             context.free;
