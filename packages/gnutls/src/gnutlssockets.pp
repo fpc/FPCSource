@@ -588,7 +588,9 @@ Var
 
 begin
   P:=PByte(@Buffer);
-  Result:=Check(gnutls_record_send(Fsession,P,Count));
+  repeat
+    Result:=Check(gnutls_record_send(FSession,P,Count));
+  until (Result <> GNUTLS_E_AGAIN) and (Result <> GNUTLS_E_INTERRUPTED);
   if Result<0 then
     Result:=-1;
 end;
@@ -600,7 +602,9 @@ Var
 
 begin
   P:=PByte(@Buffer);
-  Result:=Check(gnutls_record_recv(FSession,P,Count));
+  repeat
+    Result:=Check(gnutls_record_recv(FSession,P,Count));
+  until (Result <> GNUTLS_E_AGAIN) and (Result <> GNUTLS_E_INTERRUPTED);
   if Result<0 then
     Result:=-1;
 end;
