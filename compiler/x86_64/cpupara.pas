@@ -1855,7 +1855,7 @@ unit cpupara;
                                 end;
 {$endif not LLVM}
                               paraloc^.size:=def_cgsize(paraloc^.def);
-                              { s64comp is pushed in an int register }
+                              { s64comp/s64currency is pushed in an int register }
                               if paraloc^.size=OS_C64 then
                                 begin
                                   paraloc^.size:=OS_64;
@@ -1972,6 +1972,15 @@ unit cpupara;
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REFERENCE;
                           paraloc^.def:=loc[locidx].def;
+
+                          { s64comp/s64currency are passed as integer types
+                            (important for LLVM here) }
+                          if paracgsize=OS_C64 then
+                            begin
+                              paraloc^.size:=OS_64;
+                              paraloc^.def:=u64inttype;
+                            end;
+
                           {Hack alert!!! We should modify int_cgsize to handle OS_128,
                            however, since int_cgsize is called in many places in the
                            compiler where only a few can already handle OS_128, fixing it
