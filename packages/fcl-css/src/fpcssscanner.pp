@@ -251,12 +251,12 @@ begin
       vtWideChar:
         begin
         U:=Args[i].VWideChar;
-        MsgArgs[i] := U;
+        MsgArgs[i] := String(U);
         end;
       vtPWideChar:
         begin
         U:=Args[i].VPWideChar;
-        MsgArgs[i] := U;
+        MsgArgs[i] := String(U);
         end;
       vtAnsiString:
         begin
@@ -269,14 +269,14 @@ begin
       vtWidestring:
         begin
         U:=WideString(Args[i].VWideString);
-        MsgArgs[i] := U;
+        MsgArgs[i] := String(U);
         end;
       vtInt64:        MsgArgs[i] := IntToStr(Args[i].VInt64^);
       vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
       vtUnicodeString:
         begin
         U:=UnicodeString(Args[i].VUnicodeString);
-        MsgArgs[i] := U;
+        MsgArgs[i] := String(U);
         end;
     end;
     {$endif}
