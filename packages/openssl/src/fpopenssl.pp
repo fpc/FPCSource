@@ -108,6 +108,7 @@ Type
     function CipherBits: integer;
     function CipherAlgBits: integer;
     Function VerifyResult : Integer;
+    function Set1Host(const hostname: string): Integer;
     Property SSL: PSSL Read FSSL;
   end;
 
@@ -808,6 +809,11 @@ Function TSSL.VerifyResult: Integer;
 
 begin
   Result:=SslGetVerifyResult(FSsl);
+end;
+
+function TSSL.Set1Host(const hostname: string): Integer;
+begin
+  Result := SslSet1Host(FSsl, hostname);
 end;
 
 end.
