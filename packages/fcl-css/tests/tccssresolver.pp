@@ -1428,7 +1428,7 @@ begin
   TypeIDs[TDemoDiv.CSSTypeName]:=TDemoDiv.CSSTypeID;
   TypeIDs[TDemoButton.CSSTypeName]:=TDemoButton.CSSTypeID;
 
-  // register all css attribute
+  // register all css attributes
   AttributeIDs:=FNumericalIDs[nikAttribute];
   AttributeIDs['all']:=CSSAttributeID_All;
   // add basic element attributes
