@@ -21,12 +21,12 @@ Selector 	Example 	Example description
 .class1 .class2 	.name1 .name2 	Selects all elements with name2 that is a descendant of an element with name1
 #id 	#firstname 	Selects the element with name="firstname"
 * 	* 	Selects all elements
-element 	p 	Selects all <p> elements
-element.class 	p.intro 	Selects all <p> elements with class="intro"
-element,element 	div, p 	Selects all <div> elements and all <p> elements
-element element 	div p 	Selects all <p> elements inside <div> elements
-element>element 	div > p 	Selects all <p> elements where the parent is a <div> element
-element+element 	div + p 	Selects the first <p> element that is placed immediately after <div> elements
+type 	p 	Selects all <p> elements
+type.class 	p.intro 	Selects all <p> elements with class="intro"
+type,type 	div, p 	Selects all <div> elements and all <p> elements
+type type 	div p 	Selects all <p> elements inside <div> elements
+type>type 	div > p 	Selects all <p> elements where the parent is a <div> element
+type+type 	div + p 	Selects the first <p> element that is placed immediately after a <div> element
 element1~element2 	p ~ ul 	Selects every <ul> element that is preceded by a <p> element
 [attribute] 	[target] 	Selects all elements with a target attribute
 [attribute=value] 	[target=_blank] 	Selects all elements with target="_blank"
@@ -63,29 +63,31 @@ ToDo:
 - 'all' attribute: resets all properties, except direction and unicode bidi
 - :has()
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements
+- TCSSNumericalIDs: once initialized sort and use binary search
 - namespaces
 - layers
+- --varname
+- counter-reset
+- counter-increment
 - @rules:-----------------------------------------------------------------------
-- @media
-- @font-face
-- @keyframes
-- columns combinator ||     col.selected || td
-- :nth-col()
-- :nth-last-col()
+  - @media
+  - @font-face
+  - @keyframes
 - Pseudo-elements - not case sensitive:-----------------------------------------
- - ::first-letter 	p::first-letter 	Selects the first letter of every <p> element
- - ::first-line 	p::first-line 	Selects the first line of every <p> element
- - ::selection 	::selection 	Selects the portion of an element that is selected by a user
+  - ::first-letter 	p::first-letter 	Selects the first letter of every <p> element
+  - ::first-line 	p::first-line 	Selects the first line of every <p> element
+  - ::selection 	::selection 	Selects the portion of an element that is selected by a user
 - Altering:---------------------------------------------------------------------
- - ::after 	p::after 	Insert something after the content of each <p> element
- - ::before 	p::before 	Insert something before the content of each <p> element
+  - ::after 	p::after 	Insert something after the content of each <p> element
+  - ::before 	p::before 	Insert something before the content of each <p> element
 - Functions and Vars:-----------------------------------------------------------
- - attr() 	Returns the value of an attribute of the selected element
- - calc() 	Allows you to perform calculations to determine CSS property values  calc(100% - 100px)
- - max() min()  min(50%, 50px)
- - --varname
- - counter-reset
- - counter-increment
+  - attr() 	Returns the value of an attribute of the selected element
+  - calc() 	Allows you to perform calculations to determine CSS property values  calc(100% - 100px)
+  - max() min()  min(50%, 50px)
+- columns:----------------------------------------------------------------------
+  - columns combinator ||     col.selected || td
+  - :nth-col()
+  - :nth-last-col()
 
 }
 
