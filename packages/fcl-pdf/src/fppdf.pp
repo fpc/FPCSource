@@ -1753,7 +1753,7 @@ begin
     exit;
   // only create objects when needed
   if FTextMappingList<>nil then
-    Exception.Create('TPDFFont.PrepareTextMapping already created');
+    EPDF.Create('TPDFFont.PrepareTextMapping already created');
   FTextMappingList := TTextMappingList.Create;
   FTrueTypeFile := TTFFileInfo.Create;
   if FFontStream<>nil then
@@ -1858,9 +1858,9 @@ procedure TPDFFont.LoadFromStream(aStream: TStream);
 begin
   if FFontStream=aStream then Exit;
   if FFontStream<>nil then
-    raise Exception.Create('TPDFFont.SetFontStream has already a stream');
+    raise EPDF.Create('TPDFFont.SetFontStream has already a stream');
   if FFontFilename<>'' then
-    raise Exception.Create('TPDFFont.SetFontStream has already a file');
+    raise EPDF.Create('TPDFFont.SetFontStream has already a file');
   FFontStream:=TMemoryStream.Create;
   FFontStream.CopyFrom(aStream,aStream.Size-aStream.Position);
   PrepareTextMapping;
@@ -3907,7 +3907,7 @@ var
   CompressedStream: TMemoryStream;
 begin
   if ADocument.Fonts[AFontNum].SubsetFont = nil then
-    raise Exception.Create('WriteEmbeddedSubsetFont: SubsetFont stream was not initialised.');
+    raise EPDF.Create('WriteEmbeddedSubsetFont: SubsetFont stream was not initialised.');
   WriteString(CRLF+'stream'+CRLF, AOutStream);
   PS := AOutStream.Position;
   if poCompressFonts in ADocument.Options then
