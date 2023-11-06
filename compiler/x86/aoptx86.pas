@@ -4535,7 +4535,7 @@ unit aoptx86;
                       end
                     else if (taicpu(hp2).oper[0]^.typ = top_ref) and
                       GetNextInstruction(hp2, hp4) and
-                      (hp4 is taicpu) and (taicpu(hp4).opcode = A_MOV) then
+                      (hp4.typ = ait_instruction) and (taicpu(hp4).opcode = A_MOV) then
                       { Optimise the following first:
                           movl [mem1],reg1
                           movl [mem1],reg2
