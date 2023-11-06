@@ -2752,7 +2752,20 @@ uses
               interface is still being parsed and thus the localsymtable is in
               reality the global symtable }
             if pu.u.in_interface then
-              symtablestack.push(pu.u.localsymtable)
+              begin
+                {
+                  MVC: The case where localsymtable is also nil can appear in complex cases and still produce valid code.
+                  In order to allow people in this case to continue, SKIP_INTERNAL20231102 can be defined.
+                  Default behaviour is to raise an internal error.
+                }
+                {$IFDEF SKIP_INTERNAL20231102}
+                if (pu.u.localsymtable<>Nil) then
+                {$ELSE}
+                if (pu.u.localsymtable=Nil) then
+                  internalerror(20231102);
+                {$ENDIF}
+                  symtablestack.push(pu.u.localsymtable);
+              end
             else
               internalerror(200705153)
           else
