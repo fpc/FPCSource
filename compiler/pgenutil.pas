@@ -2757,6 +2757,8 @@ uses
                   MVC: The case where localsymtable is also nil can appear in complex cases and still produce valid code.
                   In order to allow people in this case to continue, SKIP_INTERNAL20231102 can be defined.
                   Default behaviour is to raise an internal error.
+                  See also
+                  https://gitlab.com/freepascal.org/fpc/source/-/issues/40502
                 }
                 {$IFDEF SKIP_INTERNAL20231102}
                 if (pu.u.localsymtable<>Nil) then
