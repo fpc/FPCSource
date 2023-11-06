@@ -2722,15 +2722,12 @@ begin
                   end;
                 ST_LOADMESSAGES:
                   begin
-                    inc(tbi);
-                    mesgnb:=tokenbuf[tbi];
+                    mesgnb:=gettokenbufsizeint;;
                     writeln([space,mesgnb,' messages: ']);
-                    inc(tbi);
                     for nb:=1 to mesgnb do
                       begin
-                        msgvalue:=gettokenbufsizeint;
-                        //inc(tbi,sizeof(sizeint));
-                        state:=tmsgstate(gettokenbufsizeint);
+                        msgvalue:=gettokenbuflongint;
+                        state:=tmsgstate(gettokenbuflongint);
                         writeln(['#',msgvalue,' ',state]);
                       end;
                   end;
