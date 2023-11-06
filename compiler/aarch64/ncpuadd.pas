@@ -50,14 +50,15 @@ interface
   implementation
 
     uses
-      systems,
+      systems,symtype,symdef,
+      globals,globtype,
       cutils,verbose,
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,cgcpu,cgutils,
       cpupara,
-      ncon,nset,nadd,
-      hlcgobj, ncgutil,cgobj;
+      ncon,nset,nadd,nmat,
+      hlcgobj, ncgutil,cgobj,pass_2;
 
 {*****************************************************************************
                                taarch64addnode
@@ -364,6 +365,7 @@ interface
         multops: array[boolean] of TAsmOp = (A_SMULL,A_UMULL);
       var
         unsigned: boolean;
+        logical_not_op: TAsmOp;
       begin
         { 32x32->64 multiplication }
         if (nodetype=muln) and
@@ -382,9 +384,87 @@ interface
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
+            Exit;
           end
-        else
-          inherited second_addordinal;
+        else if (cs_opt_level2 in current_settings.optimizerswitches) then
+          begin
+            { Can we turn "x and (not y)" into an ANDN instruction instead? }
+            if (nodetype in [andn, orn, xorn]) and
+              (
+                (
+                  (left.nodetype = notn) and
+                  (tnotnode(left).left.location.loc <> LOC_CONSTANT)
+                ) or
+                (
+                  (right.nodetype = notn) and
+                  (tnotnode(right).left.location.loc <> LOC_CONSTANT)
+                )
+              ) then
+              begin
+                { BIC only supports the second operand being inverted; however,
+                  since we're dealing with ordinals, there won't be any Boolean
+                  shortcutting, so we can safely swap the parameters }
+
+                if (left.nodetype = notn) and (tnotnode(left).left.location.loc <> LOC_CONSTANT) then
+                  { If the left node is "not" but is inverting a constant, then
+                    the right node must also be a "not", but with a non-constant
+                    input }
+                  swapleftright;
+
+                secondpass(left);
+
+                { Skip the not node completely }
+                Include(right.flags, nf_do_not_execute);
+                secondpass(tnotnode(right).left);
+
+                { allocate registers }
+                if not (tnotnode(right).left.location.loc in [LOC_REGISTER, LOC_CREGISTER]) then
+                  hlcg.location_force_reg(
+                    current_asmdata.CurrAsmList,
+                    tnotnode(right).left.location,
+                    tnotnode(right).left.resultdef,
+                    tnotnode(right).left.resultdef,
+                    // tnotnode(right).resultdef, { In case the "not" node does some implicit typecasting }
+                    false
+                  );
+
+                if not (left.location.loc in [LOC_REGISTER, LOC_CREGISTER]) then
+                  hlcg.location_force_reg(
+                    current_asmdata.CurrAsmList,
+                    left.location,
+                    left.resultdef,
+                    left.resultdef,
+                    false
+                  );
+
+                set_result_location_reg;
+
+                case nodetype of
+                  andn:
+                    logical_not_op := A_BIC;
+                  orn:
+                    logical_not_op := A_ORN;
+                  xorn:
+                    logical_not_op := A_EON;
+                  else
+                    InternalError(2022102130);
+                end;
+
+                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(logical_not_op,location.register,left.location.register,tnotnode(right).left.location.register));
+
+                { We have to make sure trailing bits are cut off for unsigned
+                  extensions since it will be full of 1s, so do this by
+                  downsizing the register from 32-bit to the target size }
+                if (def_cgsize(resultdef) in [OS_8, OS_16]) then
+                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,torddef(u32inttype),resultdef,self.location.register,self.location.register);
+
+                { Overflow can't happen with bic/orn/eon }
+                Exit;
+              end;
+          end;
+
+        { Default behaviour }
+        inherited second_addordinal;
       end;
 
 
