@@ -694,7 +694,7 @@ implementation
                        LOC_CREGISTER:
                          emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, loadnode.location.register, loadnode.location.register);
                        else
-                         InternalError(2022102110);
+                         InternalError(2022102120);
                      end;
 
                      Exit;
