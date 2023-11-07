@@ -1778,7 +1778,7 @@ implementation
                   else
                     inc(l.svalue);
                   first:=false;
-                  { don't generate enum members is this is a specialization because aktenumdef is copied from the generic type }
+                  { don't generate enum members if this is a specialization because aktenumdef is copied from the generic type }
                   if not is_specialize then
                     begin
                       storepos:=current_tokenpos;
