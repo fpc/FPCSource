@@ -586,8 +586,8 @@ implementation
         addstatement(loopbodystatement,hloopbody);
 
         forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-          genintconstnode(1),
-          cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar)),
+          cinlinenode.createintern(in_low_x,false,ctemprefnode.create(stringvar)),
+          cinlinenode.create(in_high_x,false,ctemprefnode.create(stringvar)),
           loopbody,
           false);
 
