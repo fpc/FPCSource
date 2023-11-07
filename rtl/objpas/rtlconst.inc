@@ -580,6 +580,14 @@ ResourceString
   sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported'; 
   SArgumentOutOfRange = 'Argument out of range';
 
+  { Classes observer support }
+  SErrNotIObserverInterface = 'Interface is not an IObserver interface';
+  SErrUnsupportedObserver = 'Observer type not supported';
+  SErrOnlyOneEditingObserverAllowed = 'Only one editing link observer is allowed';
+  SErrObserverNoSinglecast = 'No singlecast observer interface found';
+  SerrObserverNoMulticastFound = 'No multicast observer interface (%d) found';
+  SErrObserverNotAvailable = 'Observer type (%d) not available';
+
 implementation
 
 end.

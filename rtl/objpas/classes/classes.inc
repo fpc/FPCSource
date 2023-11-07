@@ -65,6 +65,9 @@ var
 { TStrings and TStringList implementations }
 {$i stringl.inc}
 
+{ ObservableMemberAttribute, TObservers and TObserverMapping}
+{$i observer.inc}
+
 { TThread implementation }
 
 { system independend threading code }

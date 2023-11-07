@@ -105,6 +105,13 @@ begin
     Result:=-1;
 end;
 
+function TComponent.GetObservers: TObservers;
+begin
+  if FDObservers=Nil then
+    FDObservers:=TObservers.Create;
+  Result:=FDObservers;
+end;
+
 
 Procedure TComponent.Insert(AComponent: TComponent);
 
@@ -472,6 +479,7 @@ Var
 
 begin
   Destroying;
+  FreeAndNil(FObservers);
   If Assigned(FFreeNotifies) then
     begin
     I:=FFreeNotifies.Count-1;

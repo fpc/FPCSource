@@ -189,7 +189,282 @@ Type
   end;
 {$INTERFACES COM}
 
+{ ---------------------------------------------------------------------
+  Delphi Observer support
+  ---------------------------------------------------------------------}
+
+  TComponent = Class;
+  TStringList = Class;
+
   EObserver = Class(Exception);
+
+  IObserver = interface;
+{$IFDEF FPC_HAS_REFERENCE_PROCEDURE}
+  TObserverToggleEvent = reference to procedure(const aObserver: IObserver; const aValue: Boolean);
+{$ELSE}
+  TObserverToggleEvent = procedure(const aObserver: IObserver; const aValue: Boolean) of object;
+{$ENDIF}
+
+  IObserver = interface
+    ['{B03253D8-7720-4B68-B10A-E3E79B91ECD3}']
+    procedure Removed;
+    function GetActive: Boolean;
+    procedure SetActive(Value: Boolean);
+    function GetOnObserverToggle: TObserverToggleEvent;
+    procedure SetOnObserverToggle(aEvent: TObserverToggleEvent);
+    property OnObserverToggle: TObserverToggleEvent read GetOnObserverToggle write SetOnObserverToggle;
+    property Active: Boolean read GetActive write SetActive;
+  end;
+
+  ISingleCastObserver = interface(IObserver)
+    ['{D0395F17-52AA-4515-93A5-5B292F03AA7B}']
+  end;
+
+  IMultiCastObserver = interface(IObserver)
+    ['{C19CB01E-1233-4405-8A30-7987DF2C3690}']
+  end;
+
+  IEditFormatLink = interface
+    ['{D1CE0112-FA41-4922-A9F1-D4641C02AA05}']
+    function GetDisplayName: string;
+    function GetDisplayWidth: Integer;
+    function GetDisplayTextWidth: Integer;
+    function GetReadOnly: Boolean;
+    function GetVisible: Boolean;
+    function GetCurrency: Boolean;
+    function GetEditMask: string;
+    function GetAlignment: TAlignment;
+    function GetMaxLength: Integer;
+    property DisplayName: string read GetDisplayName;
+    property DisplayWidth: Integer read GetDisplayWidth;
+    property DisplayTextWidth: Integer read GetDisplayTextWidth;
+    property ReadOnly: Boolean read GetReadOnly;
+    property Visible: Boolean read GetVisible;
+    property Currency: Boolean read GetCurrency;
+    property EditMask: string read GetEditMask;
+    property Alignment: TAlignment read GetAlignment;
+    property MaxLength: Integer read GetMaxLength;
+  end;
+
+  IEditLinkObserver = interface(ISingleCastObserver)
+    ['{E88C2705-7C5A-4E66-9B81-447D05D5E640}']
+    procedure Update;
+    function Edit: Boolean;
+    procedure Reset;
+    procedure Modified;
+    function IsModified: Boolean;
+    function IsValidChar(aKey: Char): Boolean;
+    function IsRequired: Boolean;
+    function GetIsReadOnly: Boolean;
+    procedure SetIsReadOnly(Value: Boolean);
+    property IsReadOnly: Boolean read GetIsReadOnly write SetIsReadOnly;
+    function GetIsEditing: Boolean;
+    property IsEditing: Boolean read GetIsEditing;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    function GetUpdating: Boolean;
+    property Updating: Boolean read GetUpdating;
+    function GetFormatLink: IEditFormatLink;
+    property FormatLink: IEditFormatLink read GetFormatLink;
+  end;
+
+{$IFDEF FPC_HAS_REFERENCE_PROCEDURE}
+  TObserverGetCurrentEvent = reference to function: TVarRec;
+{$ELSE}
+  TObserverGetCurrentEvent = function: TVarRec of object;
+{$ENDIF}
+
+  IEditGridLinkObserver = interface(IEditLinkObserver)
+    ['{A911B648-E1E5-4EEC-9FEE-D8E62FFA0E71}']
+    function GetCurrent: TVarRec;
+    property Current: TVarRec read GetCurrent;
+    function GetOnObserverCurrent: TObserverGetCurrentEvent;
+    procedure SetOnObserverCurrent(aEvent: TObserverGetCurrentEvent);
+    property OnObserverCurrent: TObserverGetCurrentEvent read GetOnObserverCurrent write SetOnObserverCurrent;
+  end;
+
+  IPositionLinkObserver170 = interface
+    ['{FA45CF0C-E8DB-4F9E-B53F-E072C94659F6}']
+    procedure PosChanged;
+  end;
+
+  IPositionLinkObserver = interface(IPositionLinkObserver170)
+    ['{E78B0035-6802-447C-A80A-0AEC04AD851F}']
+    procedure PosChanging;
+  end;
+
+   IControlValueObserver = interface
+    ['{61DAC12C-B950-43CA-86B5-43D8E78012E8}']
+    procedure ValueModified;
+    procedure ValueUpdate;
+  end;
+
+  // May be implemented by EditLink or ControlValue observer
+  IObserverTrack = interface
+    ['{8B9F22C3-FDA3-45FD-99E1-5A88481A9F95}']
+    function GetTrack: Boolean;
+    property Track: Boolean read GetTrack;
+  end;
+
+  IIteratorLinkObserver = interface
+    ['{8429848A-4447-4211-93D2-745543C7AB57}']
+    procedure StartFrom(aPosition: Integer);
+    function MoveNext: Boolean;
+    procedure UpdateControlComponent(aControl: TComponent);
+    procedure Finish;
+  end;
+
+
+  { TObservers }
+  TIInterfaceArray = Array of IInterface;
+
+  TObservers = class
+  public type
+{$IFDEF FPC_HAS_REFERENCE_PROCEDURE}
+    TCanObserveEvent = reference to function(const aID: Integer): Boolean;
+    TObserverAddedEvent = reference to procedure(const aID: Integer; const aObserver: IObserver);
+{$ELSE}
+    TCanObserveEvent = function(const aID: Integer): Boolean of object;
+    TObserverAddedEvent = procedure(const aID: Integer; const aObserver: IObserver) of object;
+{$ENDIF}
+  private type
+
+    { TIDArray }
+
+    TIDArray = record
+      ID : Integer;
+      List : Array of IInterface;
+      Count : Integer;
+      Procedure Add(const aInterface : IInterface);
+      Procedure Remove(const aInterface : IInterface);
+      Function GetActive: IObserver;
+      Function GetSingleCast : ISingleCastObserver;
+    end;
+    PIDArray = ^TIDArray;
+
+    { TIDArrayList }
+
+    TIDArrayList = record
+      List : Array of TIDArray;
+      Count : Integer;
+      Function IndexOfID(aId : Integer) : Integer;
+      Function AddID(aId : Integer) : Integer;
+      Procedure AddInterface(aID : integer; aInterFace : IInterface);
+      Function GetIDArray(aIdx : Integer) : PIDArray;
+      Function GetIDArrayFromID(aId : Integer) : PIDArray;
+    end;
+  private
+    FList : TIDArrayList;
+    FCanObserve: TCanObserveEvent;
+    FObserverAdded: TObserverAddedEvent;
+  public
+    property OnCanObserve: TCanObserveEvent read FCanObserve write FCanObserve;
+    property OnObserverAdded: TObserverAddedEvent read FObserverAdded write FObserverAdded;
+
+    function CanObserve(const aID: Integer): Boolean; overload; virtual;
+    procedure AddObserver(const aID: Integer; const aIntf: IInterface); overload; virtual;
+    procedure AddObserver(const aIDs: Array of Integer; const aIntf: IInterface); overload; virtual;
+    procedure RemoveObserver(const aID: Integer; const aIntf: IInterface); overload; virtual;
+    procedure RemoveObserver(const aIDs: Array of Integer; const aIntf: IInterface); overload; virtual;
+    function IsObserving(const aID: Integer): Boolean; overload; virtual;
+    function TryIsObserving(const aID: Integer; out aIntf: IInterface): Boolean; virtual;
+    function GetSingleCastObserver(const aID: Integer): IInterface; virtual;
+    function GetMultiCastObserverArray(const aID: Integer) : TIInterfaceArray; virtual;
+  end;
+
+  { TLinkObservers }
+
+  TLinkObservers = class
+  protected
+    class function CheckObserving(const aObservers: TObservers; aID: Integer): Integer;
+  public
+    class function GetEditGridLink(const aObservers: TObservers): IEditGridLinkObserver; static;
+    class function GetEditLink(const aObservers: TObservers): IEditLinkObserver; static;
+    class procedure EditLinkUpdate(const aObservers: TObservers); static; inline;
+    class function EditLinkTrackUpdate(const aObservers: TObservers): Boolean; static;
+    class procedure EditLinkReset(const aObservers: TObservers); static; inline;
+    class procedure EditLinkModified(aObservers: TObservers); static; inline;
+    class function EditLinkIsModified(const aObservers: TObservers): Boolean; static; inline;
+    class function EditLinkIsValidChar(const aObservers: TObservers; aKey: Char): Boolean; static; inline;
+    class function EditLinkIsEditing(const aObservers: TObservers): Boolean; static; inline;
+    class function EditLinkEdit(const aObservers: TObservers): Boolean; static; inline;
+    class procedure EditLinkSetIsReadOnly(const aObservers: TObservers; AValue: Boolean); static; inline;
+    class function EditLinkIsReadOnly(const aObservers: TObservers): Boolean; static; inline;
+
+    class procedure EditGridLinkUpdate(const aObservers: TObservers); static; inline;
+    class procedure EditGridLinkReset(const aObservers: TObservers); static; inline;
+    class procedure EditGridLinkModified(const aObservers: TObservers); static; inline;
+    class function EditGridLinkIsModified(const aObservers: TObservers): Boolean; static; inline;
+    class function EditGridLinkIsValidChar(const aObservers: TObservers; aKey: Char): Boolean; static; inline;
+    class function EditGridLinkIsEditing(const aObservers: TObservers): Boolean; static; inline;
+    class function EditGridLinkEdit(const aObservers: TObservers): Boolean; static; inline;
+    class function EditGridLinkIsReadOnly(const aObservers: TObservers): Boolean; static; inline;
+    class procedure EditGridLinkSetIsReadOnly(const aObservers: TObservers; aValue: Boolean); static; inline;
+
+    class procedure PositionLinkPosChanged(const aObservers: TObservers); static;
+    class procedure PositionLinkPosChanging(const aObservers: TObservers); static;
+    class procedure ListSelectionChanged(const aObservers: TObservers); static;
+    class procedure ControlValueUpdate(aObservers: TObservers); static;
+    class procedure ControlValueModified(aObservers: TObservers); static;
+    class function ControlValueTrackUpdate(const aObservers: TObservers): Boolean; static;
+
+    class function AllowControlChange(const aObservers: TObservers): Boolean; static;
+    class procedure ControlChanged(const aObservers: TObservers); static;
+
+    class function AllowControlChange(const aControl: TComponent): Boolean; static;
+    class procedure ControlChanged(const aControl: TComponent); static;
+    class procedure IteratorLinkUpdateControlComponent(const aObservers: TObservers; aControl: TComponent); static;
+
+    class procedure IteratorLinkStartFrom(const aObservers: TObservers; aPosition: Integer); static;
+    class function IteratorLinkMoveNext(const aObservers: TObservers): Boolean; static;
+    class procedure IteratorLinkFinish(const aObservers: TObservers); static;
+  end;
+
+  { TObserverMapping }
+
+  TObserverMapping = class (Tobject)
+  private
+    FList: TStringList;
+  class var
+    _Instance: TObserverMapping;
+  protected
+    class property Instance: TObserverMapping read _instance;
+  protected
+    Property List : TStringList Read FList;
+  public const
+    EditLinkID = 1;
+    EditGridLinkID = 2;
+    PositionLinkID = 3;
+    ControlValueID = 4;
+    IteratorLinkID = 5;
+    MappedID = 100;
+  private
+    const MinPublicID = MappedID+1;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    class constructor Init;
+    class destructor Done;
+    class function GetObserverID(const aKey: string): Integer;
+    class procedure Clear;
+  end;
+
+  EObserverException = class(Exception);
+
+  ObservableMemberAttribute = class(TCustomAttribute)
+  strict protected
+    FMemberName: String;
+    FFramework: string;
+    FTrack: Boolean;
+  public
+    constructor Create(const aMemberName, aFramework: string; aTrack: Boolean); overload;
+    constructor Create(const aMemberName: string; aTrack: Boolean); overload;
+    constructor Create(const aMemberName: string); overload;
+    property MemberName: String read FMemberName;
+    property Framework: string read FFramework;
+    property Track: Boolean read FTrack;
+  end;
+
 
 { Forward class declarations }
 
@@ -197,7 +472,6 @@ Type
   TFiler = class;
   TReader = class;
   TWriter = class;
-  TComponent = class;
 
 { TFPList class }
 
@@ -803,8 +1077,6 @@ type
   TStringsClass = Class of TStrings;
 
 { TStringList class }
-
-  TStringList = class;
 
   TStringListSortCompare = function(List: TStringList; Index1, Index2: Integer): Integer;
 
@@ -2119,10 +2391,12 @@ type
     FDesignInfo: Longint;
     FVCLComObject: Pointer;
     FComponentState: TComponentState;
+    FDObservers : TObservers;
     function GetComObject: IUnknown;
     function GetComponent(AIndex: Integer): TComponent;
     function GetComponentCount: Integer;
     function GetComponentIndex: Integer;
+    function GetObservers: TObservers;
     procedure Insert(AComponent: TComponent);
     procedure ReadLeft(Reader: TReader);
     procedure ReadTop(Reader: TReader);
@@ -2210,6 +2484,7 @@ type
     property DesignInfo: Longint read FDesignInfo write FDesignInfo;
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
+    Property Observers : TObservers Read GetObservers;
   published
     property Name: TComponentName read FName write SetName stored False;
     property Tag: PtrInt read FTag write FTag default 0;
