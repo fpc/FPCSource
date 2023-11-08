@@ -2218,14 +2218,14 @@ Implementation
       Result := False;
 
       { See if STM/STR can be merged into a single STM }
-      if (taicpu(p).oper[0]^.typ = top_ref) and
-         (taicpu(p).oper[0]^.ref^.addressmode = AM_OFFSET) then
+      { taicpu(p).opcode is A_STM, so first operand is a memory reference }
+      if (taicpu(p).oper[0]^.ref^.addressmode = AM_OFFSET) then
         begin
           { Only try to handle simple base reg, without index }
           if (taicpu(p).oper[0]^.ref^.index = NR_NO) then
             basereg:=taicpu(p).oper[0]^.ref^.base
           else if (taicpu(p).oper[0]^.ref^.base = NR_NO) and
-            (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
+            (taicpu(p).oper[0]^.ref^.shiftmode = SM_NONE) then
             basereg:=taicpu(p).oper[0]^.ref^.index
           else
             exit;
@@ -2244,16 +2244,15 @@ Implementation
           while (LastReg < maxcpuregister) and
             GetNextInstruction(hp1, hp1) and (hp1.typ = ait_instruction) and
             (taicpu(hp1).opcode = A_STR) and
-            (taicpu(hp1).oper[0]^.typ = top_reg) and
             (taicpu(hp1).oper[1]^.typ = top_ref) do
             if (taicpu(hp1).condition = taicpu(p).condition) and
               (taicpu(hp1).oppostfix = PF_None) and
               (getregtype(taicpu(hp1).oper[0]^.reg) = R_INTREGISTER) and
               (taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
+              (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_NONE) and
               (
                 (
                   (taicpu(hp1).oper[1]^.ref^.base = NR_NO) and
-                  (taicpu(hp1).oper[1]^.ref^.scalefactor in [0,1]) and
                   (taicpu(hp1).oper[1]^.ref^.index = basereg)
                 ) or (
                   (taicpu(hp1).oper[1]^.ref^.index = NR_NO) and
