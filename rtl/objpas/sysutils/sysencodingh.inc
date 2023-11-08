@@ -28,26 +28,32 @@ type
         seBigEndianUnicode,
         seUTF7,
         seUTF8);
-    var
-      FStandardEncodings: array[TStandardEncoding] of TEncoding; static;
-      FSystemEncodings: array of TEncoding; static;
+      TCreateEncodingProc = function: TEncoding; // "case Se of" or the like is simpler but would link all encodings into the executable.
     Class Var
-      FLock : TRTLCriticalSection;
-    class function GetANSI: TEncoding; static;
-    class function GetASCII: TEncoding; static;
-    class function GetBigEndianUnicode: TEncoding; static;
+      FStandardEncodings: array[TStandardEncoding] of TEncoding;
+      FSystemEncodingsList: TEncoding;
+    var
+      FNext: TEncoding;
+    class function GetStandard(Se: TStandardEncoding; Ctr: TCreateEncodingProc): TEncoding; static;
+    class function CreateANSI: TEncoding; static;
+    class function GetANSI: TEncoding; static; inline;
+    class function CreateASCII: TEncoding; static;
+    class function GetASCII: TEncoding; static; inline;
+    class function CreateBigEndianUnicode: TEncoding; static;
+    class function GetBigEndianUnicode: TEncoding; static; inline;
     class function GetDefault: TEncoding; static;
     class function GetSystemEncoding: TEncoding; static;
-    class function GetUnicode: TEncoding; static;
-    class function GetUTF7: TEncoding; static;
-    class function GetUTF8: TEncoding; static;
+    class function CreateUnicode: TEncoding; static;
+    class function GetUnicode: TEncoding; static; inline;
+    class function CreateUTF7: TEncoding; static;
+    class function GetUTF7: TEncoding; static; inline;
+    class function CreateUTF8: TEncoding; static;
+    class function GetUTF8: TEncoding; static; inline;
 
-    class constructor Create;
     class destructor Destroy;
   strict protected
     FIsSingleByte: Boolean;
     FMaxCharSize: Integer;
-    class procedure FreeEncodings;
     function GetByteCount(Chars: PUnicodeChar; CharCount: Integer): Integer; overload; virtual; abstract;
     function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; virtual; abstract;
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; virtual; abstract;
