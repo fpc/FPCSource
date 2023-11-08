@@ -1119,6 +1119,25 @@ begin
     Result := ReadInt64;
 end;
 
+function TReader.ReadDouble: Double;
+begin
+  // We have no vaDouble 
+  Case FDriver.NextValue of
+  vaExtended:
+    begin
+    ReadValue;
+    Result := FDriver.ReadFloat
+    end;
+  vaSingle:
+    begin
+    ReadValue;
+    Result := FDriver.ReadSingle
+    end;
+  else
+    Result := ReadInt64;
+  end
+end;
+
 procedure TReader.ReadSignature;
 begin
   FDriver.ReadSignature;
