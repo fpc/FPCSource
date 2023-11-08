@@ -195,6 +195,7 @@ Type
 
   TComponent = Class;
   TStringList = Class;
+  IInterfaceList = Interface;
 
   EObserver = Class(Exception);
 
@@ -370,6 +371,7 @@ Type
     function TryIsObserving(const aID: Integer; out aIntf: IInterface): Boolean; virtual;
     function GetSingleCastObserver(const aID: Integer): IInterface; virtual;
     function GetMultiCastObserverArray(const aID: Integer) : TIInterfaceArray; virtual;
+    function GetMultiCastObserver(const aID: Integer) : IInterfaceList; virtual;
   end;
 
   { TLinkObservers }

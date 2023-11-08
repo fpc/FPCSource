@@ -138,6 +138,19 @@ begin
     raise EObserverException.CreateFmt(SerrObserverNoMulticastFound, [aID]);
 end;
 
+function TObservers.GetMultiCastObserver(const aID: Integer): IInterfaceList;
+
+Var
+  IntfArray : TIInterfaceArray;
+  Intf : IInterface;
+
+begin
+  Result:=TInterfaceList.Create;
+  IntfArray:=GetMultiCastObserverArray(aId);
+  For Intf in IntfArray do
+    Result.Add(Intf);
+end;
+
 { TObservers.TIDArray }
 
 procedure TObservers.TIDArray.Add(const aInterface: IInterface);
