@@ -162,6 +162,8 @@ type
           class function Zero: TPointF; inline; static;
           function Angle(const b: TPointF): Single;
           function AngleCosine(const b: TPointF): single;
+          function CrossProduct(const apt: TPointF): Single;
+          function Normalize: TPointF;
 
           class function Create(const ax, ay: Single): TPointF; overload; static; inline;
           class function Create(const apt: TPoint): TPointF; overload; static; inline;
@@ -1228,6 +1230,29 @@ begin
   Result.x := apt.X;
   Result.y := apt.Y;
 end;
+
+
+function TPointF.CrossProduct(const apt: TPointF): Single;
+begin
+  Result:=X*apt.Y-Y*apt.X;
+end;
+
+function TPointF.Normalize: TPointF;
+
+var
+  L: Single;
+  
+begin
+  L:=Sqrt(Sqr(X)+Sqr(Y));
+  if SameValue(L,0,Epsilon) then
+    Result:=Self
+  else
+    begin
+    Result.X:=X/L;
+    Result.Y:=Y/L;
+    end;
+end;
+
 
 { TSizeF }
 
