@@ -63,6 +63,7 @@ const
 
 type
   TSeekOrigin = (soBeginning, soCurrent, soEnd);
+  TStreamOriginalFormat = (sofUnknown, sofBinary, sofText, sofUTF8Text);
   TDuplicates = TYU.TDuplicates;
 
 // For Delphi and backwards compatibility.
