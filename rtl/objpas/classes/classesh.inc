@@ -1864,6 +1864,7 @@ type
     function EndOfList: Boolean;
     procedure EndReferences;
     procedure FixupReferences;
+    procedure SkipValue;
     function NextValue: TValueType;
     //Please don't use read, better use ReadBinary whenever possible
     //uuups, ReadBinary is protected ..

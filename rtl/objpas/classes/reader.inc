@@ -1070,6 +1070,12 @@ begin
   end;
 end;
 
+procedure TReader.SkipValue;
+
+begin
+  FDriver.SkipValue;
+end;
+
 procedure TReader.ReadData(Instance: TComponent);
 var
   SavedOwner, SavedParent: TComponent;
