@@ -25,6 +25,7 @@
 type
    { extra types to compile with FPC }
    HRSRC =  TFPResourceHandle deprecated;
+   
    TComponentName = type string;
    THandle = System.THandle;
 
@@ -39,7 +40,9 @@ type
 {$endif}
 
 const
-
+{$IF NOT DECLARED(NilHandle)}
+  NilHandle = TFPResourceHMODULE(0);
+{$ENDIF}
 { Maximum TList size }
 
 {$ifdef cpu16}
