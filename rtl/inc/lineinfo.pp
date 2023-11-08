@@ -16,9 +16,7 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
-{$IFNDEF FPC_DOTTEDUNITS}
 unit lineinfo;
-{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
