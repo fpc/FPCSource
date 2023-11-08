@@ -76,7 +76,7 @@ begin
       Remove(AClass);
       if Assigned(ClassAliasList) then
         for i:=ClassAliasList.Count-1 downto 0 do
-          if TPersistentClass(ClassAliasList.Objects[i])=AClass then
+          if TPersistentClass(pointer(ClassAliasList.Objects[i]))=AClass then
             ClassAliasList.Delete(i);
     finally
       ClassList.UnlockList;
