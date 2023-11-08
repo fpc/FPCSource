@@ -1945,7 +1945,7 @@ begin
      end;
   if ResHandle=NilHandle then 
     exit;     
-  S:=TResourceStream.Create(NilHandle,DeltaName, PChar(RT_RCDATA));
+  S:=TResourceStream.Create(NilHandle,DeltaName, PAnsiChar(RT_RCDATA));
   try
     Proc(S);
   finally
