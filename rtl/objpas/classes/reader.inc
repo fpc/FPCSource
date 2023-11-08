@@ -1528,6 +1528,15 @@ begin
   end;
 end;
 
+procedure TReader.ReadPrefix(var aFlags: TFilerFlags; var aChildPos: Integer); 
+
+var
+  CompUnitName, CompClassName, CompName : String;
+  
+begin
+  Driver.BeginComponent(aFlags,aChildPos, CompUnitName, CompClassName, CompName);
+end;
+
 function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
 var
   Dummy, i: Integer;

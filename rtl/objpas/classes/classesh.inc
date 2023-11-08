@@ -1869,7 +1869,7 @@ type
     //Please don't use read, better use ReadBinary whenever possible
     //uuups, ReadBinary is protected ..
     procedure Read(var Buf; Count: LongInt); virtual;
-
+    procedure ReadPrefix(var aFlags: TFilerFlags; var aChildPos: Integer);  virtual;
     function ReadBoolean: Boolean;
     function ReadChar: AnsiChar;
     function ReadWideChar: WideChar;
