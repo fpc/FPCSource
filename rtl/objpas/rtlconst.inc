@@ -579,7 +579,8 @@ ResourceString
   sDeviceExists = 'Device ''%s'' already exists';
   sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported'; 
   SArgumentOutOfRange = 'Argument out of range';
-
+  StrNoClientClass = 'The client cannot be an instance of the class %s';  
+  
   { Classes observer support }
   SErrNotIObserverInterface = 'Interface is not an IObserver interface';
   SErrUnsupportedObserver = 'Observer type not supported';
