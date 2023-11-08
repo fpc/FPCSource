@@ -1410,6 +1410,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended;
     function ReadSingle: Single;
+    function ReadDouble: Double;
     function ReadDate: TDateTime;
 {$endif}
     function ReadCurrency: Currency;
