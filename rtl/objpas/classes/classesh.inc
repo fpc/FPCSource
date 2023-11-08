@@ -1808,6 +1808,8 @@ type
   TReadWriteStringPropertyEvent = procedure(Sender:TObject;
     const Instance: TPersistent; PropInfo: PPropInfo;
     var Content:string) of object;
+  TGetStreamProc = procedure (const S: TStream) of object;
+  TGetDeltaStreamsEvent = procedure (Sender: TObject; Proc: TGetStreamProc; var Handled: Boolean) of object;
 
 
   { TReader }
@@ -1888,6 +1890,7 @@ type
     procedure ReadListBegin;
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
+    function ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of Ansistring; const Proc: TGetStreamProc): TComponent;
     function ReadVariant: Variant;
     procedure ReadSignature;
     function ReadString: RawBytestring;
@@ -2381,6 +2384,7 @@ type
   end;
 
   TBasicAction = class;
+  
 
   { TComponent }
 
@@ -2395,6 +2399,7 @@ type
     FVCLComObject: Pointer;
     FComponentState: TComponentState;
     FDObservers : TObservers;
+    FOnGetDeltaStreams: TGetDeltaStreamsEvent;
     function GetComObject: IUnknown;
     function GetComponent(AIndex: Integer): TComponent;
     function GetComponentCount: Integer;
@@ -2411,6 +2416,9 @@ type
     procedure WriteTop(Writer: TWriter);
   protected
     FComponentStyle: TComponentStyle;
+    procedure GetDeltaStreams(aProc: TGetStreamProc); virtual;
+    procedure ReadDeltaStream(const S: TStream);
+    procedure ReadDeltaState; virtual;
     procedure ChangeName(const NewName: TComponentName);
     procedure DefineProperties(Filer: TFiler); override;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); dynamic;
@@ -2488,6 +2496,7 @@ type
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
     Property Observers : TObservers Read GetObservers;
+    property OnGetDeltaStreams: TGetDeltaStreamsEvent read FOnGetDeltaStreams write FOnGetDeltaStreams;    
   published
     property Name: TComponentName read FName write SetName stored False;
     property Tag: PtrInt read FTag write FTag default 0;
@@ -2811,7 +2820,6 @@ type
   TIntToIdent = function(Int: Longint; var Ident: string): Boolean;
   TFindGlobalComponent = function(const Name: string): TComponent;
   TInitComponentHandler = function(Instance: TComponent; RootAncestor : TClass): boolean;
-  TGetStreamProc = procedure (const S: TStream) of object;
 
 var
   MainThreadID: TThreadID;

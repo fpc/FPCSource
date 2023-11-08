@@ -1889,7 +1889,36 @@ begin
       raise EClassNotFound.CreateFmt(SNoFieldOfClassIn, [AClassName, Root.ClassName]);
 end;
 
+function TReader.ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of Ansistring; const Proc: TGetStreamProc): TComponent;
 
+var
+  ResHandle: THandle;
+  RootName, Delta, DeltaName: AnsiString;
+  S: TStream;
+  
+begin
+  if (Instance=nil) or not Assigned(Proc) then
+    Raise EArgumentNilException.Create(SArgumentNil);
+  Result:=Instance;
+  RootName:=Instance.ClassName;
+  for Delta in DeltaCandidates do
+     begin
+     DeltaName:=RootName+'_'+Delta;
+     // No module support yet
+     ResHandle:=FindResource(Nilhandle,PAnsiChar(DeltaName), PAnsiChar(RT_RCDATA));
+     if ResHandle<>NilHandle then
+       Break;
+     end;
+  if ResHandle=NilHandle then 
+    exit;     
+  S:=TResourceStream.Create(NilHandle,DeltaName, PChar(RT_RCDATA));
+  try
+    Proc(S);
+  finally
+    S.Free;
+  end;
+end;
+    
 { TAbstractObjectReader }
 
 procedure TAbstractObjectReader.FlushBuffer;
