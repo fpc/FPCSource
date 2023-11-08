@@ -1462,6 +1462,8 @@ function DefaultInitHandler(Instance: TComponent; RootAncestor: TClass): Boolean
     try
 {$endif}
       result:=doinit(Instance.ClassType);
+      if Result then 
+        Instance.ReadDeltaState;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
       GlobalNameSpace.EndWrite;

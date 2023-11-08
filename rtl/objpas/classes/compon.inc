@@ -730,3 +730,33 @@ begin
   else
     Result := E_NOTIMPL;
 end;
+
+{ Delta stream support }
+
+
+procedure TComponent.GetDeltaStreams(aProc: TGetStreamProc); 
+
+begin
+  // To be implemented by descendants
+end;
+
+procedure TComponent.ReadDeltaStream(const S: TStream);
+begin
+  S.ReadComponent(Self);
+end;
+
+procedure TComponent.ReadDeltaState;
+
+var
+  Done : boolean;
+  
+begin
+  if (csDesigning in ComponentState) then
+    exit;
+  Done:=False;
+  if Assigned(FOnGetDeltaStreams) then
+    FOnGetDeltaStreams(Self,@ReadDeltaStream,Done);  
+  if not Done then
+    GetDeltaStreams(@ReadDeltaStream);
+end;
+
