@@ -149,6 +149,7 @@ const
   SFullpattern                  = 'Couldn''t match entire pattern string. Input too short at pattern position %d.';
   SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
   SAMPMError                    = 'Hour >= 13 not allowed in AM/PM mode.';
+  SErrListIndexExt              = 'List index out of bounds (%d): %s object range is 0..%d';
 
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';
