@@ -1939,13 +1939,18 @@ begin
      begin
      DeltaName:=RootName+'_'+Delta;
      // No module support yet
-     ResHandle:=FindResource(Nilhandle,PAnsiChar(DeltaName), PAnsiChar(RT_RCDATA));
+     ResHandle:=System.FindResource(Nilhandle,DeltaName, PAnsiChar(RT_RCDATA));
      if ResHandle<>NilHandle then
        Break;
      end;
   if ResHandle=NilHandle then 
     exit;     
+{$ifdef FPC_OS_UNICODE}    
+// Wince
+  S:=TResourceStream.Create(NilHandle,DeltaName, PWideChar(RT_RCDATA));
+{$ELSE}  
   S:=TResourceStream.Create(NilHandle,DeltaName, PAnsiChar(RT_RCDATA));
+{$ENDIF}
   try
     Proc(S);
   finally
