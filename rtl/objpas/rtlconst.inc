@@ -563,6 +563,21 @@ ResourceString
   SMsgDlgYes = '&Yes';
   SMsgDlgYesToAll = 'Yes to a&ll';
 
+  // Constants for Delphi compatibility
+  sAttributeExists = 'Attribute ''%s'' already exists';
+  sDeviceExists = 'Device ''%s'' already exists';
+  sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported'; 
+  SArgumentOutOfRange = 'Argument out of range';
+  StrNoClientClass = 'The client cannot be an instance of the class %s';  
+  SListIndexErrorExt = 'List index out of bounds (%0:d).  %2:s object range is 0..%1:d';
+  
+  { Classes observer support }
+  SErrNotIObserverInterface = 'Interface is not an IObserver interface';
+  SErrUnsupportedObserver = 'Observer type not supported';
+  SErrOnlyOneEditingObserverAllowed = 'Only one editing link observer is allowed';
+  SErrObserverNoSinglecast = 'No singlecast observer interface found';
+  SerrObserverNoMulticastFound = 'No multicast observer interface (%d) found';
+  SErrObserverNotAvailable = 'Observer type (%d) not available';
 
 implementation
 

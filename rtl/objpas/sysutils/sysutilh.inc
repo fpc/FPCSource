@@ -247,6 +247,7 @@ type
    EInvalidOpException = class(Exception);
 
    ENoConstructException = class(Exception);
+   EListError = Class(Exception);
 
    EOperationCancelled = class(Exception);
 
@@ -260,7 +261,7 @@ type
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
-
+   procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
 
 Type
    TBeepHandler = Procedure;
