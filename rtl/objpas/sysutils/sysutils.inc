@@ -628,6 +628,20 @@ begin
   Raise OutOfMemory;
 end;
 
+procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
+
+var
+ aClassName : string;
+
+begin
+  if Assigned(aObj) then
+    aClassName:=aObj.ClassName
+  else
+    aClassName:='<nil>';  
+  Raise EListError.CreateFmt(SErrListIndexExt,[aIndex,aClassName,aMax])
+end;
+
+
 { ---------------------------------------------------------------------
     Initialization/Finalization/exit code
   ---------------------------------------------------------------------}
@@ -1195,3 +1209,5 @@ class function TOSVersion.ToString: string; static;
 begin
   Result:=FFull;
 end;
+
+

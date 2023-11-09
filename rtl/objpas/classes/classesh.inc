@@ -143,11 +143,7 @@ type
   EMethodNotFound = class(EFilerError);
   EInvalidImage = class(EFilerError);
   EResNotFound = class(Exception);
-{$ifdef FPC_TESTGENERICS}
-  EListError = fgl.EListError;
-{$else}
-  EListError = class(Exception);
-{$endif}
+  EListError = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.EListError;
   EBitsError = class(Exception);
   EStringListError = class(Exception);
   EComponentError = class(Exception);
