@@ -229,6 +229,7 @@ type
     function GetArrayElement(AIndex: SizeInt): TValue;
     procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
     function IsType(aTypeInfo: PTypeInfo): boolean; inline;
+    function IsInstanceOf(aClass : TClass): boolean; inline;
     function TryCast(aTypeInfo: PTypeInfo; out aResult: TValue; const aEmptyAsAnyType: Boolean = True): Boolean;
     function Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
 {$ifndef NoGenericMethods}
@@ -1842,6 +1843,19 @@ function TValue.IsDateTime: boolean;
 
 begin
   Result:=IsDateTimeType(TypeInfo);
+end;
+
+function TValue.IsInstanceOf(aClass : TClass): boolean; 
+
+var
+  Obj : TObject;
+
+begin
+  Result:=IsObject;
+  if not Result then
+    exit;
+  Obj:=AsObject;
+  Result:=Assigned(Obj) and Obj.InheritsFrom(aClass);
 end;
 
 {$ifndef NoGenericMethods}
