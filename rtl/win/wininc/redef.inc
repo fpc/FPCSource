@@ -312,6 +312,7 @@ function CreateAcceleratorTableW(var Accel; Count: Integer): HACCEL; external 'u
 function CreateColorSpace(var ColorSpace: TLogColorSpace): HCOLORSPACE;external 'gdi32' name 'CreateColorSpaceA';
 function CreateColorSpaceA(var ColorSpace: TLogColorSpaceA): HCOLORSPACE; external 'gdi32' name 'CreateColorSpaceA';
 //function CreateColorSpaceW(var ColorSpace: TLogColorSpaceW): HCOLORSPACE; external 'gdi32' name 'CreateColorSpaceW';
+function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32' name 'CreateConsoleScreenBuffer';
 function CreateDialogIndirectParam(hInstance: HINST; const lpTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): HWND;external 'user32' name 'CreateDialogIndirectParamA';
 //function CreateDialogIndirectParamA(hInstance: HINST; const lpTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): HWND; external 'user32' name 'CreateDialogIndirectParamA';
 //function CreateDialogIndirectParamW(hInstance: HINST; const lpTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): HWND; external 'user32' name 'CreateDialogIndirectParamW';

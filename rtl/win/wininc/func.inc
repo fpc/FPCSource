@@ -994,7 +994,7 @@ function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WIN
 function GenerateConsoleCtrlEvent(dwCtrlEvent:DWORD; dwProcessGroupId:DWORD):WINBOOL; external 'kernel32' name 'GenerateConsoleCtrlEvent';
 function AllocConsole:WINBOOL; external 'kernel32' name 'AllocConsole';
 function FreeConsole:WINBOOL; external 'kernel32' name 'FreeConsole';
-function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32' name 'CreateConsoleScreenBuffer';
+function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32' name 'CreateConsoleScreenBuffer';
 function GetConsoleCP:UINT; external 'kernel32' name 'GetConsoleCP';
 function SetConsoleCP(wCodePageID:UINT):WINBOOL; external 'kernel32' name 'SetConsoleCP';
 function GetConsoleOutputCP:UINT; external 'kernel32' name 'GetConsoleOutputCP';
