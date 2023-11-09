@@ -19,10 +19,16 @@ class function TEncoding.GetStandard(Se: TStandardEncoding; Ctr: TCreateEncoding
 begin
   Result := FStandardEncodings[Se];
   if Assigned(Result) then
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    ReadDependencyBarrier; // Read Result contents (by caller) after Result pointer.
+{$endif}
     Exit;
+  end;
 
   Result := Ctr();
 {$ifdef FPC_HAS_FEATURE_THREADING}
+  WriteBarrier; // Write FStandardEncodings[Se] after Result contents.
   if InterlockedCompareExchange(Pointer(FStandardEncodings[Se]), Pointer(Result), nil) <> nil then
   begin
     Result.Free;
@@ -110,6 +116,9 @@ begin
   repeat
     Cp := DefaultSystemCodePage;
     Head := FSystemEncodingsList; // Must not be re-read until InterlockedCompareExchange to guarantee that search was performed against this head.
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    ReadDependencyBarrier; // Read Head contents after Head pointer.
+{$endif}
     Result := Head;
     while Assigned(Result) do
       if Result.CodePage = Cp then
@@ -121,6 +130,7 @@ begin
     Result := TMBCSEncoding.Create(Cp);
     Result.FNext := Head;
 {$ifdef FPC_HAS_FEATURE_THREADING}
+    WriteBarrier; // Write FSystemEncodingsList after Result contents.
     if InterlockedCompareExchange(Pointer(FSystemEncodingsList), Pointer(Result), Pointer(Head)) = Pointer(Head) then
       break
     else
