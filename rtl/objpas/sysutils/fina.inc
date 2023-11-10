@@ -37,6 +37,12 @@ begin
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
+function ChangeFilePath(const aFileName,aPath: PathStr): PathStr;
+begin
+  Result:=IncludeTrailingPathDelimiter(aPath)+ExtractFileName(aFileName);
+end;
+
+
 function ExtractFilePath(const FileName: PathStr): PathStr;
 var
   i : longint;
