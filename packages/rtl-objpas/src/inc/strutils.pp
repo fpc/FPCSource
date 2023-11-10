@@ -1131,9 +1131,9 @@ begin
   if ALength> k then
     ALength:=k;
   SetLength(Result,i+j-ALength);
-  move (AText[1],result[1],AStart-1);
-  move (ASubText[1],result[AStart],j);
-  move (AText[AStart+ALength], Result[AStart+j],i+1-AStart-ALength);
+  move (AText[1],result[1],AStart-1*SizeOf(Char));
+  move (ASubText[1],result[AStart],j*SizeOf(Char));
+  move (AText[AStart+ALength], Result[AStart+j],(i+1-AStart-ALength)*SizeOf(Char));
 end;
 
 function RandomFrom(const AValues: array of string): string;
