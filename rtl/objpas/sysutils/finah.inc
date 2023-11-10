@@ -21,6 +21,7 @@ type
 {$endif}
 
 function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
+function ChangeFilePath(const aFileName,aPath: PathStr): PathStr;
 function ExtractFilePath(const FileName: PathStr): PathStr;
 function ExtractFileDrive(const FileName: PathStr): PathStr;
 function ExtractFileName(const FileName: PathStr): PathStr;
