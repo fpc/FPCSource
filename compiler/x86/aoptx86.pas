@@ -15249,6 +15249,7 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptMov(var p : tai) : Boolean;
       var
         Value, RegName: string;
+        hp1: tai;
       begin
         Result:=false;
         if (taicpu(p).oper[1]^.typ = top_reg) and (taicpu(p).oper[0]^.typ = top_const) then
@@ -15257,7 +15258,12 @@ unit aoptx86;
             case taicpu(p).oper[0]^.val of
             0:
               { Don't make this optimisation if the CPU flags are required, since XOR scrambles them }
-              if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+              if not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs) or
+                (
+                  { See if we can still convert the instruction }
+                  GetNextInstructionUsingReg(p, hp1, NR_DEFAULTFLAGS) and
+                  RegLoadedWithNewValue(NR_DEFAULTFLAGS, hp1)
+                ) then
                 begin
                   { change "mov $0,%reg" into "xor %reg,%reg" }
                   taicpu(p).opcode := A_XOR;
@@ -15302,7 +15308,14 @@ unit aoptx86;
               { Don't make this optimisation if the CPU flags are required, since OR scrambles them }
               if (cs_opt_size in current_settings.optimizerswitches) and
                 (taicpu(p).opsize <> S_B) and
-                not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+                (
+                  not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs) or
+                  (
+                    { See if we can still convert the instruction }
+                    GetNextInstructionUsingReg(p, hp1, NR_DEFAULTFLAGS) and
+                    RegLoadedWithNewValue(NR_DEFAULTFLAGS, hp1)
+                  )
+                ) then
                 begin
                   { change "mov $-1,%reg" into "or $-1,%reg" }
                   { NOTES:
