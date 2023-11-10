@@ -616,13 +616,6 @@ end;
   TSemaphore
   ---------------------------------------------------------------------}
 
-function NilPChar(Const aName : String) : PChar; inline;
-begin
-  Result:=Nil;
-  if aName='' then
-    Result:=PChar(aName);
-end;
-
 constructor TSemaphore.Create(aUseCOMWait: boolean = false); 
  
 begin
@@ -638,7 +631,7 @@ var
 begin
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
-  PN:=NilPchar(aName);
+  PN:=Pchar(Pointer(aName));
 {$IF SIZEOF(CHAR)=1}
   FHandle:=TEventHandle(CreateSemaphoreA(aAttributes,aInitial,aMaximum,PN));
 {$ELSE}
@@ -670,7 +663,7 @@ begin
   Create(Nil,1,1,aName,aUseCOMWait);
 {$ELSE WINDOWS}  
   inherited Create(aUseCOMWait);
-  PN:=NilPChar(aName);
+  PN:=PChar(Pointer(aName));
 {$IF SIZEOF(CHAR)=1}    
   FHandle:=TEventHandle(OpenSemaphoreA(aAccess,aInherit,PN));
 {$ELSE}  
@@ -863,7 +856,7 @@ begin
 {$ELSE}    
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
-  PN:=NilPChar(aName);
+  PN:=PChar(Pointer(aName));
   {$IF SIZEOF(CHAR)=1}
   FHandle:=TEventHandle(CreateMutexA(aAttributes,aInitialOwner,PN));
   {$ELSE}
@@ -890,7 +883,7 @@ begin
 {$ELSE}  
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
-  PN:=NilPChar(aName);
+  PN:=PChar(Pointer(aName));
 {$IF SIZEOF(CHAR)=1}
   FHandle:=TEventHandle(OpenMutexA(aAccess,aInherit,PN));
 {$ELSE}
