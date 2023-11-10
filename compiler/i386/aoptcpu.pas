@@ -291,6 +291,10 @@ unit aoptcpu;
               case taicpu(p).opcode Of
                 A_ADD:
                   Result:=OptPass2ADD(p);
+                A_CMP:
+                  Result:=OptPass2CMP(p);
+                A_TEST:
+                  Result:=OptPass2TEST(p);
                 A_Jcc:
                   Result:=OptPass2Jcc(p);
                 A_Lea:

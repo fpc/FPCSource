@@ -196,6 +196,8 @@ unit aoptx86;
         function OptPass2SUB(var p: tai): Boolean;
         function OptPass2ADD(var p : tai): Boolean;
         function OptPass2SETcc(var p : tai) : boolean;
+        function OptPass2Cmp(var p: tai): Boolean;
+        function OptPass2Test(var p: tai): Boolean;
 
         function CheckMemoryWrite(var first_mov, second_mov: taicpu): Boolean;
 
@@ -218,6 +220,7 @@ unit aoptx86;
         function CheckJumpMovTransferOpt(var p: tai; hp1: tai; LoopCount: Integer; out Count: Integer): Boolean;
         function TrySwapMovOp(var p, hp1: tai): Boolean;
         function TrySwapMovCmp(var p, hp1: tai): Boolean;
+        function TryCmpCMovOpts(var p, hp1: tai) : Boolean;
 
         { Processor-dependent reference optimisation }
         class procedure OptimizeRefs(var p: taicpu); static;
@@ -11744,6 +11747,297 @@ unit aoptx86;
                       end
                   end;
                 Result := True;
+              end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.TryCmpCMovOpts(var p, hp1: tai): Boolean;
+      var
+        hp2, hp3, pFirstMOV, pLastMOV, pCMOV: tai;
+        TargetReg: TRegister;
+        condition, inverted_condition: TAsmCond;
+        FoundMOV: Boolean;
+      begin
+        Result := False;
+        { In some situations, the CMOV optimisations in OptPass2Jcc can't
+          create the most optimial instructions possible due to limited
+          register availability, and there are situations where two
+          complementary "simple" CMOV blocks are created which, after the fact
+          can be merged into a "double" block.  For example:
+
+            movw        $257,%ax
+            movw        $2,%r8w
+            xorl        r9d,%r9d
+            testw       $16,18(%rcx)
+            cmovew      %ax,%dx
+            cmovew      %r8w,%bx
+            cmovel      %r9d,%r14d
+            movw        $1283,%ax
+            movw        $4,%r8w
+            movl        $9,%r9d
+            cmovnew     %ax,%dx
+            cmovnew     %r8w,%bx
+            cmovnel     %r9d,%r14d
+
+            The CMOVNE instructions at the end can be removed, and the
+            destination registers copied into the MOV instructions directly
+            above them, before finally being moved to before the first CMOVE
+            instructions, to produce:
+
+            movw        $257,%ax
+            movw        $2,%r8w
+            xorl        r9d,%r9d
+            testw       $16,18(%rcx)
+            movw        $1283,%dx
+            movw        $4,%bx
+            movl        $9,%r14d
+            cmovew      %ax,%dx
+            cmovew      %r8w,%bx
+            cmovel      %r9d,%r14d
+
+            Which can then be later optimised to:
+
+
+            movw        $257,%ax
+            movw        $2,%r8w
+            xorl        r9d,%r9d
+            movw        $1283,%dx
+            movw        $4,%bx
+            movl        $9,%r14d
+            testw       $16,18(%rcx)
+            cmovew      %ax,%dx
+            cmovew      %r8w,%bx
+            cmovel      %r9d,%r14d
+        }
+        TargetReg := taicpu(hp1).oper[1]^.reg;
+        condition := taicpu(hp1).condition;
+        inverted_condition := inverse_cond(condition);
+
+        pFirstMov := nil;
+        pLastMov := nil;
+        pCMOV := nil;
+
+        if (
+            (taicpu(hp1).oper[0]^.typ = top_reg) or
+            IsRefSafe(taicpu(hp1).oper[0]^.ref)
+          ) then
+          begin
+            { We have to tread carefully here, hence why we're not using
+              GetNextInstructionUsingReg... we can only accept MOV and other
+              CMOV instructions.  Anything else and we must drop out}
+            hp2 := hp1;
+            while GetNextInstruction(hp2, hp2) and (hp2 <> BlockEnd) and (hp2.typ = ait_instruction) do
+              begin
+                case taicpu(hp2).opcode of
+                  A_MOV:
+                    begin
+                      if not Assigned(pFirstMov) then
+                        pFirstMov := hp2;
+
+                      pLastMOV := hp2;
+
+                      if not MatchOpType(taicpu(hp2), top_const, top_reg) then
+                        { Something different - drop out }
+                        Exit;
+                      { Otherwise, leave it for now }
+                    end;
+                  A_CMOVcc:
+                    begin
+                      if taicpu(hp2).condition = inverted_condition then
+                        begin
+                          { We found what we're looking for }
+                          if taicpu(hp2).oper[1]^.reg = TargetReg then
+                            begin
+                              if (taicpu(hp2).oper[0]^.typ = top_reg) or
+                                IsRefSafe(taicpu(hp2).oper[0]^.ref) then
+                                begin
+                                  pCMOV := hp2;
+                                  Break;
+                                end
+                              else
+                                { Unsafe reference - drop out }
+                                Exit;
+                            end;
+                        end
+                      else if taicpu(hp2).condition <> condition then
+                        { Something weird - drop out }
+                        Exit;
+                    end;
+                  else
+                    { Invalid }
+                    Exit;
+                end;
+              end;
+
+            if not Assigned(pCMOV) then
+              { No complementary CMOV found }
+              Exit;
+
+            if not Assigned(pFirstMov) or (taicpu(pCMOV).oper[0]^.typ = top_ref) then
+              begin
+                { Don't need to do anything special or search for a matching MOV }
+                Asml.Remove(pCMOV);
+                Asml.InsertBefore(pCMOV, p);
+
+                taicpu(pCMOV).opcode := A_MOV;
+                taicpu(pCMOV).condition := C_None;
+
+                { Don't need to worry about allocating new registers in these cases }
+                DebugMsg(SPeepholeOptimization + 'CMovCMov2MovCMov 2', pCMOV);
+
+                Result := True;
+                Exit;
+              end
+            else
+              begin
+                DebugMsg(SPeepholeOptimization + 'CMovCMov2MovCMov 1', hp1);
+
+                FoundMOV := False;
+
+                { Search for the MOV that sets the target register }
+                hp2 := pFirstMov;
+                repeat
+                  if (taicpu(hp2).opcode = A_MOV) and
+                    (taicpu(hp2).oper[1]^.typ = top_reg) and
+                    SuperRegistersEqual(taicpu(hp2).oper[1]^.reg, taicpu(pCMOV).oper[0]^.reg) then
+                    begin
+                      { Change the destination }
+                      taicpu(hp2).loadreg(1, newreg(R_INTREGISTER, getsupreg(TargetReg), getsubreg(taicpu(hp2).oper[1]^.reg)));
+
+                      if not FoundMOV then
+                        begin
+                          FoundMOV := True;
+                          { Make sure the register is allocated }
+                          AllocRegBetween(TargetReg, p, hp2, UsedRegs);
+                        end;
+
+                      hp3 := tai(hp2.Previous);
+                      Asml.Remove(hp2);
+                      Asml.InsertBefore(hp2, p);
+                      hp2 := hp3;
+                    end;
+                until (hp2 = pLastMOV) or not GetNextInstruction(hp2, hp2) or (hp2 = BlockEnd) or (hp2.typ <> ait_instruction);
+
+                if FoundMOV then
+                  { Delete the CMOV }
+                  RemoveInstruction(pcMOV)
+                else
+                  begin
+                    { If no MOV was found, we have to actually move and transmute the CMOV }
+                    Asml.Remove(pCMOV);
+                    Asml.InsertBefore(pCMOV, p);
+
+                    taicpu(pCMOV).opcode := A_MOV;
+                    taicpu(pCMOV).condition := C_None;
+                  end;
+
+                Result := True;
+                Exit;
+              end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2Cmp(var p: tai): Boolean;
+      var
+        hp1, hp2, pCond: tai;
+      begin
+        Result := False;
+
+        { Search ahead for CMOV instructions }
+        if (cs_opt_level2 in current_settings.optimizerswitches) then
+          begin
+            hp1 := p;
+            hp2 := p;
+
+            pCond := nil; { To prevent compiler warnings }
+
+            { For TryCmpCMOVOpts, try to insert MOVs before the allocation of
+              DEFAULTFLAGS }
+            if not SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, p), pCond) or
+              (tai_regalloc(pCond).ratype = ra_dealloc) then
+              pCond := p;
+
+            while GetNextInstruction(hp1, hp1) and (hp1 <> BlockEnd) do
+              begin
+                if (hp1.typ = ait_instruction) then
+                  begin
+                    case taicpu(hp1).opcode of
+                      A_MOV:
+                        { Ignore regular MOVs unless they are obviously not related
+                          to a CMOV block }
+                        if taicpu(hp1).oper[1]^.typ <> top_reg then
+                          Break;
+                      A_CMOVcc:
+                        if TryCmpCMovOpts(pCond, hp1) then
+                          begin
+                            hp1 := hp2;
+
+                            { p itself isn't changed, and we're still inside a
+                              while loop to catch subsequent CMOVs, so just flag
+                              a new iteration }
+                            Include(OptsToCheck, aoc_ForceNewIteration);
+                            Continue;
+                          end;
+                      else
+                        Break;
+                    end;
+                  end;
+
+                hp2 := hp1;
+              end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2Test(var p: tai): Boolean;
+      var
+        hp1, hp2, pCond: tai;
+      begin
+        Result := False;
+
+        { Search ahead for CMOV instructions }
+        if (cs_opt_level2 in current_settings.optimizerswitches) then
+          begin
+            hp1 := p;
+            hp2 := p;
+
+            pCond := nil; { To prevent compiler warnings }
+
+            { For TryCmpCMOVOpts, try to insert MOVs before the allocation of
+              DEFAULTFLAGS }
+            if not SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, p), pCond) or
+              (tai_regalloc(pCond).ratype = ra_dealloc) then
+              pCond := p;
+
+            while GetNextInstruction(hp1, hp1) and (hp1 <> BlockEnd) do
+              begin
+                if (hp1.typ = ait_instruction) then
+                  begin
+                    case taicpu(hp1).opcode of
+                      A_MOV:
+                        { Ignore regular MOVs unless they are obviously not related
+                          to a CMOV block }
+                        if taicpu(hp1).oper[1]^.typ <> top_reg then
+                          Break;
+                      A_CMOVcc:
+                        if TryCmpCMovOpts(pCond, hp1) then
+                          begin
+                            hp1 := hp2;
+
+                            { p itself isn't changed, and we're still inside a
+                              while loop to catch subsequent CMOVs, so just flag
+                              a new iteration }
+                            Include(OptsToCheck, aoc_ForceNewIteration);
+                            Continue;
+                          end;
+                      else
+                        Break;
+                    end;
+                  end;
+
+                hp2 := hp1;
               end;
           end;
       end;
