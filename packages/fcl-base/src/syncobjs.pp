@@ -912,7 +912,7 @@ function TMutex.WaitFor(aTimeout: Cardinal): TWaitResult;
 {$IFDEF UNIX}
 var
   td,tm,Errno: Integer;
-  {$IFNDEF USE_pthread_mutex_trylock}
+  {$IFDEF USE_pthread_mutex_trylock}
   tnew : timeval;
   {$ENDIF}  
   tnow: ttimeval;
