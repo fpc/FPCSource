@@ -636,6 +636,19 @@ begin
 end; 
 {$ENDIF WAITLOOP}
 
+procedure MSecsFromNow (tNow : Timeval; aTimeout : Integer; out tfuture: TTimespec);
+
+var
+  td,tm : integer;
+
+begin
+  td:=aTimeout div 1000;
+  tm:=aTimeout mod 1000;
+  tfuture.tv_sec:=tnow.tv_sec+td;
+  tfuture.tv_nsec:=tnow.tv_usec*1000+(tm*1000*1000);
+end;
+{$ENDIF UNIX}
+
 { ---------------------------------------------------------------------
   TSemaphore
   ---------------------------------------------------------------------}
@@ -708,19 +721,6 @@ begin
   inherited Destroy;
 end;
 
-
-procedure MSecsFromNow (tNow : Timeval; aTimeout : Integer; out tfuture: TTimespec);
-
-var
-  td,tm : integer;
-
-begin
-  td:=aTimeout div 1000;
-  tm:=aTimeout mod 1000;
-  tfuture.tv_sec:=tnow.tv_sec+td;
-  tfuture.tv_nsec:=tnow.tv_usec*1000+(tm*1000*1000);
-end;
-{$ENDIF UNIX}
 
 
 function TSemaphore.WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; 
