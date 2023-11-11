@@ -612,6 +612,30 @@ end;
 
 {$ENDIF NOPOINTER}
 
+{$IFDEF UNIX}
+{$IF NOT DECLARED(sem_timedwait)}
+{$DEFINE USE_SEM_TRYWAIT}
+{$DEFINE WAITLOOP}
+{$ENDIF}
+
+{$IF NOT DECLARED(pthread_mutex_timedlock)}
+{$DEFINE USE_pthread_mutex_trylock}
+{$DEFINE WAITLOOP}
+{$ENDIF}
+
+{$IFDEF WAITLOOP}
+Const
+  WaitloopMsecsInterval = 10;
+  
+function MsecsBetween(tnow,tthen : Timeval) : Int64;
+
+
+begin
+  Result:=(tnow.tv_sec-tthen.tv_sec)*1000;
+  Result:=Result+((tnow.tv_usec-tthen.tv_usec) div 1000);
+end; 
+{$ENDIF WAITLOOP}
+
 { ---------------------------------------------------------------------
   TSemaphore
   ---------------------------------------------------------------------}
@@ -684,30 +708,6 @@ begin
   inherited Destroy;
 end;
 
-{$IFDEF UNIX}
-
-{$IF NOT DECLARED(sem_timedwait)}
-{$DEFINE USE_SEM_TRYWAIT}
-{$DEFINE WAITLOOP}
-{$ENDIF}
-
-{$IF NOT DECLARED(pthread_mutex_timedlock)}
-{$DEFINE USE_pthread_mutex_trylock}
-{$DEFINE WAITLOOP}
-{$ENDIF}
-
-{$IFDEF WAITLOOP}
-Const
-  WaitloopMsecsInterval = 10;
-  
-function MsecsBetween(tnow,tthen : Timeval) : Int64;
-
-
-begin
-  Result:=(tnow.tv_sec-tthen.tv_sec)*1000;
-  Result:=Result+((tnow.tv_usec-tthen.tv_usec) div 1000);
-end; 
-{$ENDIF WAITLOOP}
 
 procedure MSecsFromNow (tNow : Timeval; aTimeout : Integer; out tfuture: TTimespec);
 
@@ -912,6 +912,9 @@ function TMutex.WaitFor(aTimeout: Cardinal): TWaitResult;
 {$IFDEF UNIX}
 var
   td,tm,Errno: Integer;
+  {$IFNDEF USE_pthread_mutex_trylock}
+  tnew : timeval;
+  {$ENDIF}  
   tnow: ttimeval;
   Tmp: timespec;
 {$ENDIF}  
@@ -932,14 +935,26 @@ begin
     begin
     // Todo: maybe write small helper function, reuse it here and in semaphore
     fpgettimeofday(@tnow,Nil);
-    td:=aTimeout div 1000;
-    tm:=aTimeout mod 1000;
-    tmp.tv_sec:=tnow.tv_sec+td;
-    tmp.tv_nsec:=tnow.tv_usec*1000+(tm*1000*1000);
+    {$IFNDEF USE_pthread_mutex_trylock }
+    MsecsFromNow(tnow,aTimeOut,tmp);
     ErrNo:=pthread_mutex_timedlock(@FMutex,@tmp);
+    {$ELSE}
+    Repeat  
+      ErrNo:=pthread_mutex_trylock(@FMutex); 
+      if ErrNo=ESysEAGAIN then
+        begin
+        Sleep(10);
+        fpgettimeofday(@tnew,Nil);  
+        if MSecsBetween(tnew,tnow)>aTimeOut then
+          errNo:=ESysETIMEDOUT;
+        end
+      else if ErrNo=ESysEINTR then
+        ErrNo:=ESysEAGAIN;
+    until (ErrNo<>ESysEAGAIN);
+    {$ENDIF}
     if ErrNo=0 then
       Result:=wrSignaled
-    else if (Errno=ESysEBUSY)  then
+    else if (Errno=ESysEBUSY) or (errNo=ESysETIMEDOUT) then
       Result:=wrTimeout
     end 
   else 
