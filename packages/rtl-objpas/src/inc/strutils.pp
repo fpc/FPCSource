@@ -1131,7 +1131,7 @@ begin
   if ALength> k then
     ALength:=k;
   SetLength(Result,i+j-ALength);
-  move (AText[1],result[1],AStart-1*SizeOf(Char));
+  move (AText[1],result[1],(AStart-1)*SizeOf(Char));
   move (ASubText[1],result[AStart],j*SizeOf(Char));
   move (AText[AStart+ALength], Result[AStart+j],(i+1-AStart-ALength)*SizeOf(Char));
 end;
