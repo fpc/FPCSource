@@ -144,6 +144,7 @@ interface
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
 
+
 {$IFDEF HASAMIGA}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
 {$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
@@ -603,30 +604,36 @@ end;
                3. UPPERCASE
             }
             FoundFile:=path+fn;
-            If FileExists(FoundFile,allowcache) then
+            If (ftNone in AllowedFilenameTransFormations) and FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
              end;
-            fn2:=Lower(fn);
-            if fn2<>fn then
+            if (ftLowerCase in AllowedFilenameTransFormations) then
               begin
-                FoundFile:=path+fn2;
-                If FileExists(FoundFile,allowcache) then
-                 begin
-                   result:=true;
-                   exit;
-                 end;
+                fn2:=Lower(fn);
+                if (fn2<>fn) then
+                  begin
+                    FoundFile:=path+fn2;
+                    If FileExists(FoundFile,allowcache) then
+                     begin
+                       result:=true;
+                       exit;
+                     end;
+                  end;
               end;
-            fn2:=Upper(fn);
-            if fn2<>fn then
+            if (ftUpperCase in AllowedFilenameTransFormations)  then
               begin
-                FoundFile:=path+fn2;
-                If FileExists(FoundFile,allowcache) then
-                 begin
-                   result:=true;
-                   exit;
-                 end;
+                fn2:=Upper(fn);
+                if (fn2<>fn) then
+                  begin
+                  FoundFile:=path+fn2;
+                  If FileExists(FoundFile,allowcache) then
+                    begin
+                      result:=true;
+                      exit;
+                    end;
+                  end;
               end;
           end
         else

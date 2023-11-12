@@ -27,6 +27,7 @@ const
   general_f_oserror=01025;
   general_e_exception_raised=01026;
   general_t_unitscope=01027;
+  general_i_reduced_filesearch=01028;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -1169,9 +1170,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 92057;
+  MsgTxtSize = 92222;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,109,371,134,102,63,148,38,223,71,
+    29,109,371,134,102,63,148,38,223,71,
     68,20,30,1,1,1,1,1,1,1
   );

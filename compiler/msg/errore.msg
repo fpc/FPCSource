@@ -143,6 +143,9 @@ general_t_unitscope=01027_T_Using unit scope: $1
 % When the \var{-vt} switch is used, this line tells you what unit scopes (namespaces)
 % the compiler is using when looking up units. You can add a unit scope with the
 % \var{-FN} option.
+general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
 % \end{description}
 #
 # Scanner
@@ -4108,6 +4111,7 @@ A*2CV<x>_Set section threadvar model to <x>
 **2Fo<x>_Add <x> to object path
 **2Fr<x>_Load error message file <x>
 **2FR<x>_Set resource (.res) linker to <x>
+**2Ft_Do not search uppercased or 8.3 unit filenames on case sensitive filesystems.
 **2Fu<x>_Add <x> to unit path
 **2FU<x>_Set unit output path to <x>, overrides -FE
 **2Fw<x>_Load previously stored whole-program optimization feedback from <x>

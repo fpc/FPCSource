@@ -415,6 +415,7 @@ var
         if search_unit(onlysource,false) then
           found:=true;
         if (not found) and
+           (ft83 in AllowedFilenameTransFormations) and
            (length(modulename^)>8) and
            search_unit(onlysource,true) then
           found:=true;

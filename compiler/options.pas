@@ -3101,6 +3101,11 @@ begin
       Msgfilename:=More;
     'R' :
       ResCompiler:=More;
+    't' :
+      begin
+        AllowedFilenameTransFormations:=[ftNone,ftLowerCase];
+        Message(general_i_reduced_filesearch);
+      end;
     'u' :
       begin
         if ispara then

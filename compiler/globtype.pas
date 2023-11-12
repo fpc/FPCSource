@@ -935,6 +935,12 @@ interface
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
 
+  Type
+    tfilenametransformation = (ftNone,ftLowerCase,ftUpperCase,ft83);
+    tfilenametransformations = set of tfilenametransformation;
+
+   Const AllTransformations = [Low(tfilenametransformation)..high(tfilenametransformation)];
+
 implementation
 
 end.
