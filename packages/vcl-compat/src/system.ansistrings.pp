@@ -102,9 +102,7 @@ function ExtractFileExt(const FileName: AnsiString): AnsiString; overload;
 function ExtractFileName(const FileName: AnsiString): AnsiString; overload;
 function ExtractFilePath(const FileName: AnsiString): AnsiString; overload;
 function ExtractRelativePath(const BaseName, DestName: AnsiString): AnsiString; overload;
-{$IFDEF MSWINDOWS}
 function ExtractShortPathName(const FileName: AnsiString): AnsiString; overload;
-{$ENDIF}
 function FloatToText(BufferArg: PAnsiChar; const Value; ValueType: TFloatValue;  Format: TFloatFormat; Precision, Digits: Integer; const AFormatSettings: TFormatSettings): Integer; overload;
 function FloatToText(BufferArg: PAnsiChar; const Value; ValueType: TFloatValue;  Format: TFloatFormat; Precision, Digits: Integer): Integer; overload; inline;
 function FloatToTextFmt(Buf: PAnsiChar; const Value; ValueType: TFloatValue; Format: PAnsiChar; const AFormatSettings: TFormatSettings): Integer; overload;
@@ -1421,6 +1419,12 @@ function UpperCase(const S: AnsiString; LocaleOptions: TLocaleOptions
   ): AnsiString;
 begin
   Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UpperCase(S,LocaleOptions);
+end;
+
+function ExtractShortPathName(const FileName: AnsiString): AnsiString; overload;
+
+begin
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.ExtractShortPathName(FileName);
 end;
 
 end.
