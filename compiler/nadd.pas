@@ -846,9 +846,6 @@ implementation
               }
               result := ctypeconvnode.create_internal(PruneKeepLeft(),resultdef)
 
-            else if (tordconstnode(right).value = -1) and (nodetype=muln) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepLeft()),ld)
-
             { try to fold
                           op                         op
                          /  \                       /  \
@@ -888,6 +885,15 @@ implementation
                     end;
                   end
               end;
+
+            if assigned(result) then
+              exit;
+
+            { multiplication by -1? Convert it into an unary minus if the other conversions before failed, don't do
+              it before the folding above, see #40448 }
+            if (tordconstnode(right).value = -1) and (nodetype=muln) then
+              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepLeft()),ld);
+
             if assigned(result) then
               exit;
           end;
