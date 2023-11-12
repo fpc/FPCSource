@@ -13,6 +13,16 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+
+{$IF DEFINED(WINCE) or DEFINED(AIX) or DEFINED(NETBSD) or DEFINED (OPENBSD)}
+{$DEFINE NO_SEMAPHORE_SUPPORT}
+{$ENDIF}
+
+{$IF DEFINED(WINCE)} 
+{$DEFINE NO_MUTEX_SUPPORT}
+{$ENDIF}
+
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit syncobjs;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -43,9 +53,11 @@ type
   PSecurityAttributes = Pointer;
   TEventHandle = Pointer;
 
+{$IFNDEF NO_SEMAPHORE_SUPPORT}
 {$IFDEF UNIX}
   TPosixSemaphore = sem_t;
   PPosixSemaphore = ^TPosixSemaphore;
+{$ENDIF}
 {$ENDIF}
 
 const
@@ -166,7 +178,8 @@ type
 {$endif VER3_0}
 {$ENDIF NOPOINTER}
   end;
-  
+
+{$IFNDEF NO_SEMAPHORE_SUPPORT}
   TSemaphore = class(THandleObject)
   {$IFDEF UNIX}
      Fsem: TPosixSemaphore;
@@ -181,7 +194,9 @@ type
      function Release(aCount: Integer): Integer; reintroduce; overload;
      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; override;
    end;
+{$ENDIF}
 
+{$IFNDEF NO_MUTEX_SUPPORT}
   TMutex = class(THandleObject)
   private
 {$IFDEF UNIX}
@@ -196,7 +211,7 @@ type
     procedure Acquire; override;
     procedure Release; override;
   end;
-
+{$ENDIF}
 
 
 
@@ -652,7 +667,7 @@ end;
 { ---------------------------------------------------------------------
   TSemaphore
   ---------------------------------------------------------------------}
-
+{$IFNDEF NO_SEMAPHORE_SUPPORT}
 constructor TSemaphore.Create(aUseCOMWait: boolean = false); 
  
 begin
@@ -816,11 +831,13 @@ begin
 {$ENDIF}
 end;
 
+{$ENDIF NO_SEMAPHORE_SUPPORT}
 
 { ---------------------------------------------------------------------
   TMutex
   ---------------------------------------------------------------------}
 
+{$IFNDEF NO_MUTEX_SUPPORT}
 
 constructor TMutex.Create(aUseCOMWait: Boolean = False);
 
@@ -983,5 +1000,6 @@ begin
   CheckOSError(pthread_mutex_unlock(@FMutex));
 {$ENDIF UNIX}
 end;
+{$ENDIF NO_MUTEX_SUPPORT}
 
 end.
