@@ -324,6 +324,7 @@ unit cpubase;
     function reg_cgsize(const reg: tregister) : tcgsize;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function is_calljmpmaybeuncondret(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
     function findreg_by_number(r:Tregister):tregisterindex;
@@ -448,6 +449,13 @@ unit cpubase;
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         is_calljmp:=o in [A_B,A_BL,A_BLR,A_RET,A_CBNZ,A_CBZ,A_TBNZ,A_TBZ];
+      end;
+
+
+    function is_calljmpmaybeuncondret(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        { Note that the caller still has to check the instruction's condition }
+        is_calljmpmaybeuncondret:=(o in [A_B,A_BL,A_BLR,A_RET]);
       end;
 
 

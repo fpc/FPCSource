@@ -35,7 +35,7 @@ Interface
       globtype, globals,
       cutils,
       cgbase, cpubase, aasmtai, aasmcpu,
-      aopt, aoptcpub, aoptarm;
+      aopt, aoptcpub, aoptarm, aoptobj;
 
     Type
       TCpuAsmOptimizer = class(TARMAsmOptimizer)
@@ -63,19 +63,31 @@ Interface
         function OptPass1B(var p: tai): boolean;
         function OptPass1SXTW(var p: tai): Boolean;
 
+        function OptPass2B(var p: tai): Boolean;
         function OptPass2LDRSTR(var p: tai): boolean;
 
         function PostPeepholeOptAND(var p: tai): Boolean;
         function PostPeepholeOptCMP(var p: tai): boolean;
         function PostPeepholeOptTST(var p: tai): Boolean;
+      protected
+        { Like UpdateUsedRegs, but ignores deallocations }
+        class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
+
+        { Attempts to allocate a volatile integer register for use between p and hp,
+          using AUsedRegs for the current register usage information.  Returns NR_NO
+          if no free register could be found }
+        function GetIntRegisterBetween(RegSize: TSubRegister; var AUsedRegs: TAllUsedRegs; p, hp: tai; DontAlloc: Boolean = False): TRegister;
       End;
 
 Implementation
 
   uses
     aasmbase,
+    aoptbase,
     aoptutils,
     cgutils,
+    procinfo,
+    paramgr,
     verbose;
 
 {$ifdef DEBUG_AOPTCPU}
@@ -87,6 +99,60 @@ Implementation
     const
       SPeepholeOptimization = '';
 {$endif DEBUG_AOPTCPU}
+
+      MAX_CSEL_INSTRUCTIONS = 8;
+      MAX_CSEL_REGISTERS = 30;
+
+    type
+      TCSELTrackingState = (tsInvalid, tsSimple, tsDetour, tsBranching,
+        tsDouble, tsDoubleBranchSame, tsDoubleBranchDifferent, tsDoubleSecondBranching,
+        tsProcessed);
+
+      { For OptPass2Jcc }
+      TCSELTracking = object
+      private
+        CSELScore, ConstCount: LongInt;
+
+        RegWrites: array[0..MAX_CSEL_INSTRUCTIONS*2 - 1] of TRegister;
+
+        ConstRegs: array[0..MAX_CSEL_REGISTERS - 1] of TRegister;
+        ConstVals: array[0..MAX_CSEL_REGISTERS - 1] of TCGInt;
+        ConstSizes: array[0..MAX_CSEL_REGISTERS - 1] of TSubRegister; { May not match ConstRegs if one is shared over multiple CSELs. }
+        ConstMovs: array[0..MAX_CSEL_REGISTERS - 1] of tai; { Location of initialisation instruction }
+
+        ConstWriteSizes: array[0..first_int_imreg - 1] of TSubRegister; { Largest size of register written. }
+
+        fOptimizer: TCpuAsmOptimizer;
+
+        fLabel: TAsmSymbol;
+
+        fInsertionPoint,
+        fCondition,
+        fInitialJump,
+        fFirstMovBlock,
+        fFirstMovBlockStop,
+        fSecondJump,
+        fThirdJump,
+        fSecondMovBlock,
+        fSecondMovBlockStop,
+        fMidLabel,
+        fEndLabel,
+        fAllocationRange: tai;
+
+        fState: TCSELTrackingState;
+
+        function TryCSELConst(p, start, stop: tai; var Count: LongInt): Boolean;
+        function InitialiseBlock(BlockStart, OneBeforeBlock: tai; out BlockStop: tai; out EndJump: tai): Boolean;
+        function AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
+      public
+        RegisterTracking: TAllUsedRegs;
+        constructor Init(Optimizer: TCpuAsmOptimizer; var p_initialjump, p_initialmov: tai; var AFirstLabel: TAsmLabel);
+        destructor Done;
+        procedure Process(out new_p: tai);
+        property State: TCSELTrackingState read fState;
+      end;
+
+      PCSELTracking = ^TCSELTracking;
 
   function CanBeCond(p : tai) : boolean;
     begin
@@ -923,6 +989,45 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass2B(var p: tai): Boolean;
+    var
+      hp1: tai;
+      CSELTracking: PCSELTracking;
+    begin
+      Result := False;
+      if (taicpu(p).condition <> C_None) and
+        IsJumpToLabel(taicpu(p)) and
+        GetNextInstruction(p, hp1) and
+        (hp1.typ = ait_instruction) and
+        (taicpu(hp1).opcode = A_MOV) then
+        begin
+          { check for
+                jCC   xxx
+                <several movs>
+             xxx:
+
+           Also spot:
+                Jcc   xxx
+                <several movs>
+                jmp   xxx
+
+           Change to:
+                <several csets with inverted condition>
+                jmp   xxx  (only for the 2nd case)
+          }
+          CSELTracking := New(PCSELTracking, Init(Self, p, hp1, TAsmLabel(JumpTargetOp(taicpu(p))^.ref^.symbol)));
+
+          if CSELTracking^.State <> tsInvalid then
+            begin
+              CSELTracking^.Process(p);
+              Result := True;
+            end;
+
+          CSELTracking^.Done;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPass2LDRSTR(var p: tai): boolean;
     var
       hp1, hp1_last: tai;
@@ -1304,6 +1409,8 @@ Implementation
           case taicpu(p).opcode of
             A_AND:
               Result := OptPass2AND(p);
+            A_B:
+              Result:=OptPass2B(p);
             A_LDR,
             A_STR:
               Result:=OptPass2LDRSTR(p);
@@ -1332,6 +1439,801 @@ Implementation
               ;
           end;
         end;
+    end;
+
+
+  class procedure TCpuAsmOptimizer.UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai);
+    begin
+      { Update integer registers, ignoring deallocations }
+      repeat
+        while assigned(p) and
+              ((p.typ in (SkipInstr - [ait_RegAlloc])) or
+               (p.typ = ait_label) or
+               ((p.typ = ait_marker) and
+                (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
+             p := tai(p.next);
+        while assigned(p) and
+              (p.typ=ait_RegAlloc) Do
+          begin
+            if (getregtype(tai_regalloc(p).reg) = R_INTREGISTER) then
+              begin
+                case tai_regalloc(p).ratype of
+                  ra_alloc :
+                    IncludeRegInUsedRegs(tai_regalloc(p).reg, AUsedRegs);
+                  else
+                    ;
+                end;
+              end;
+            p := tai(p.next);
+          end;
+      until not(assigned(p)) or
+            (not(p.typ in SkipInstr) and
+             not((p.typ = ait_label) and
+                 labelCanBeSkipped(tai_label(p))));
+    end;
+
+  { Attempts to allocate a volatile integer register for use between p and hp,
+    using AUsedRegs for the current register usage information.  Returns NR_NO
+    if no free register could be found }
+  function TCpuAsmOptimizer.GetIntRegisterBetween(RegSize: TSubRegister; var AUsedRegs: TAllUsedRegs; p, hp: tai; DontAlloc: Boolean = False): TRegister;
+    var
+      RegSet: TCPURegisterSet;
+      CurrentSuperReg: Integer;
+      CurrentReg: TRegister;
+      Currentp: tai;
+      Breakout: Boolean;
+    begin
+      Result := NR_NO;
+      RegSet :=
+        paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption) +
+        current_procinfo.saved_regs_int;
+(*
+      { Don't use the frame register unless explicitly allowed (fixes i40111) }
+      if ([cs_useebp, cs_userbp] * current_settings.optimizerswitches) = [] then
+        Exclude(RegSet, RS_FRAME_POINTER_REG);
+*)
+      for CurrentSuperReg in RegSet do
+        begin
+          CurrentReg := newreg(R_INTREGISTER, TSuperRegister(CurrentSuperReg), RegSize);
+          if not AUsedRegs[R_INTREGISTER].IsUsed(CurrentReg)
+            then
+            begin
+              Currentp := p;
+              Breakout := False;
+              while not Breakout and GetNextInstruction(Currentp, Currentp) and (Currentp <> hp) do
+                begin
+                  case Currentp.typ of
+                    ait_instruction:
+                      begin
+                        if RegInInstruction(CurrentReg, Currentp) then
+                          begin
+                            Breakout := True;
+                            Break;
+
+                          end;
+                        { Cannot allocate across an unconditional jump }
+                        if is_calljmpmaybeuncondret(taicpu(Currentp).opcode) and (taicpu(Currentp).condition = C_None) then
+                          Exit;
+                      end;
+                    ait_marker:
+                      { Don't try anything more if a marker is hit }
+                      Exit;
+                    ait_regalloc:
+                      if (tai_regalloc(Currentp).ratype <> ra_dealloc) and SuperRegistersEqual(CurrentReg, tai_regalloc(Currentp).reg) then
+                        begin
+                          Breakout := True;
+                          Break;
+                        end;
+                    else
+                      ;
+                  end;
+                end;
+
+              if Breakout then
+                { Try the next register }
+                Continue;
+
+              { We have a free register available }
+              Result := CurrentReg;
+              if not DontAlloc then
+                AllocRegBetween(CurrentReg, p, hp, AUsedRegs);
+              Exit;
+            end;
+        end;
+    end;
+
+
+  function TCSELTracking.InitialiseBlock(BlockStart, OneBeforeBlock: tai; out BlockStop: tai; out EndJump: tai): Boolean;
+    begin
+      Result := False;
+      EndJump := nil;
+      BlockStop := nil;
+
+      while (BlockStart <> fOptimizer.BlockEnd) and
+        { stop on labels }
+        (BlockStart.typ <> ait_label) do
+        begin
+          { Keep track of all integer registers that are used }
+          fOptimizer.UpdateIntRegsNoDealloc(RegisterTracking, tai(OneBeforeBlock.Next));
+          if BlockStart.typ = ait_instruction then
+            begin
+              if MatchInstruction(BlockStart, A_B, [C_None], []) then
+                begin
+                  if not IsJumpToLabel(taicpu(BlockStart)) or
+                    (JumpTargetOp(taicpu(BlockStart))^.ref^.index <> NR_NO) then
+                    Exit;
+
+                  EndJump := BlockStart;
+                  Break;
+                end
+              { Check to see if we have a valid MOV instruction instead }
+              else if (taicpu(BlockStart).opcode <> A_MOV) or
+                { Can't include the stack pointer in CSEL }
+                fOptimizer.RegInInstruction(NR_SP, BlockStart) then
+                begin
+                  Exit;
+                end
+              else
+                { This will be a valid MOV }
+                fAllocationRange := BlockStart;
+            end;
+
+          OneBeforeBlock := BlockStart;
+          fOptimizer.GetNextInstruction(BlockStart, BlockStart);
+        end;
+
+      if (BlockStart = fOptimizer.BlockEnd) then
+        Exit;
+
+      BlockStop := BlockStart;
+      Result := True;
+    end;
+
+
+  function TCSELTracking.AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
+    var
+      hp1: tai;
+      RefModified: Boolean;
+    begin
+      Result := 0;
+      hp1 := BlockStart;
+      RefModified := False; { As long as the condition is inverted, this can be reset }
+
+      while assigned(hp1) and
+        (hp1 <> BlockStop) do
+        begin
+          case hp1.typ of
+            ait_instruction:
+              if MatchInstruction(hp1, A_MOV, []) then
+                begin
+                  Inc(Result);
+                  if taicpu(hp1).oper[1]^.typ = top_reg then
+                    begin
+                      Inc(Result);
+                    end
+                  else if not (cs_opt_size in current_settings.optimizerswitches) and
+                    { CSEL with constants grows the code size }
+                    TryCSELConst(hp1, SearchStart, BlockStop, Result) then
+                    begin
+                      { Register was reserved by TryCSELConst and
+                        stored on ConstRegs }
+                    end
+                  else
+                    begin
+                      Result := -1;
+                      Exit;
+                    end;
+                end
+              else
+                begin
+                  Result := -1;
+                  Exit;
+                end;
+            else
+              { Most likely an align };
+          end;
+          fOptimizer.GetNextInstruction(hp1, hp1);
+        end;
+    end;
+
+
+  constructor TCSELTracking.Init(Optimizer: TCpuAsmOptimizer; var p_initialjump, p_initialmov: tai; var AFirstLabel: TAsmLabel);
+
+    { For the tsBranching type, increase the weighting score to account for the new conditional jump
+      (this is done as a separate stage because the double types are extensions of the branching type,
+      but we can't discount the conditional jump until the last step) }
+    procedure EvaluateBranchingType;
+      begin
+        Inc(CSELScore);
+        if (CSELScore > MAX_CSEL_INSTRUCTIONS) then
+          { Too many instructions to be worthwhile }
+          fState := tsInvalid;
+      end;
+
+    var
+      hp1: tai;
+      Count: Integer;
+    begin
+      { Table of valid CSEL block types
+
+        Block type                  2nd Jump    Mid-label   2nd MOVs    3rd Jump    End-label
+        ----------                  ---------   ---------   ---------   ---------   ---------
+        tsSimple                        X          Yes          X           X           X
+        tsDetour                      = 1st         X           X           X           X
+        tsBranching                  <> Mid        Yes          X           X           X
+        tsDouble                    End-label      Yes *       Yes          X          Yes
+        tsDoubleBranchSame           <> Mid        Yes *       Yes        = 2nd         X
+        tsDoubleBranchDifferent      <> Mid        Yes *       Yes       <> 2nd         X
+        tsDoubleSecondBranching     End-label      Yes *       Yes       <> 2nd        Yes
+
+        * Only one reference allowed
+      }
+
+      hp1 := nil; { To prevent compiler warnings }
+
+      Optimizer.CopyUsedRegs(RegisterTracking);
+      fOptimizer := Optimizer;
+      fLabel := AFirstLabel;
+
+      CSELScore := 0;
+      ConstCount := 0;
+
+      { Initialise RegWrites, ConstRegs, ConstVals, ConstSizes, ConstWriteSizes and ConstMovs }
+      FillChar(RegWrites[0], MAX_CSEL_INSTRUCTIONS * 2 * SizeOf(TRegister), 0);
+      FillChar(ConstRegs[0], MAX_CSEL_REGISTERS * SizeOf(TRegister), 0);
+      FillChar(ConstVals[0], MAX_CSEL_REGISTERS * SizeOf(TCGInt), 0);
+      FillChar(ConstSizes[0], MAX_CSEL_REGISTERS * SizeOf(TSubRegister), 0);
+      FillChar(ConstWriteSizes[0], first_int_imreg * SizeOf(TOpSize), 0);
+      FillChar(ConstMovs[0], MAX_CSEL_REGISTERS * SizeOf(taicpu), 0);
+
+      fInsertionPoint := p_initialjump;
+      fCondition := nil;
+      fInitialJump := p_initialjump;
+      fFirstMovBlock := p_initialmov;
+      fFirstMovBlockStop := nil;
+
+      fSecondJump := nil;
+      fSecondMovBlock := nil;
+      fSecondMovBlockStop := nil;
+
+      fMidLabel := nil;
+
+      fSecondJump := nil;
+      fSecondMovBlock := nil;
+
+      fEndLabel := nil;
+
+      fAllocationRange := nil;
+
+      { Assume it all goes horribly wrong! }
+      fState := tsInvalid;
+
+      { Look backwards at the comparisons to get an accurate picture of register usage and a better position for any MOV const,reg insertions }
+      if Optimizer.GetLastInstruction(p_initialjump, fCondition) and
+        (
+          MatchInstruction(fCondition, [A_CMP, A_CMN, A_TST], []) or
+          (
+            (fCondition.typ = ait_instruction) and
+            (taicpu(fCondition).opcode = A_AND) and
+            (taicpu(fCondition).oppostfix = PF_S)
+          )
+        ) then
+        begin
+          { Mark all the registers in the comparison as 'in use', even if they've just been deallocated }
+          for Count := 0 to taicpu(fCondition).ops - 1 do
+            with taicpu(fCondition).oper[Count]^ do
+              case typ of
+                top_reg:
+                  if getregtype(reg) = R_INTREGISTER then
+                    Optimizer.IncludeRegInUsedRegs(reg, RegisterTracking);
+                top_ref:
+                  begin
+                    if
+                      (ref^.base <> NR_NO) then
+                      Optimizer.IncludeRegInUsedRegs(ref^.base, RegisterTracking);
+
+                    if (ref^.index <> NR_NO) then
+                      Optimizer.IncludeRegInUsedRegs(ref^.index, RegisterTracking);
+                  end
+                else
+                  ;
+              end;
+
+          { When inserting instructions before hp_prev, try to insert them
+            before the allocation of the FLAGS register }
+          if not SetAndTest(Optimizer.FindRegAllocBackward(NR_DEFAULTFLAGS, tai(fCondition.Previous)), fInsertionPoint) or
+            (tai_regalloc(fInsertionPoint).ratype = ra_dealloc) then
+            { If not found, set it equal to the condition so it's something sensible }
+            fInsertionPoint := fCondition;
+
+        end
+      else
+        fCondition := nil;
+
+      { When inserting instructions, try to insert them before the allocation of the FLAGS register }
+      if SetAndTest(Optimizer.FindRegAllocBackward(NR_DEFAULTFLAGS, tai(p_initialjump.Previous)), hp1) and
+        (tai_regalloc(hp1).ratype <> ra_dealloc) then
+        { If not found, set it equal to p so it's something sensible }
+        fInsertionPoint := hp1;
+
+      hp1 := p_initialmov;
+
+      if not InitialiseBlock(p_initialmov, p_initialjump, fFirstMovBlockStop, fSecondJump) then
+        Exit;
+
+      hp1 := fFirstMovBlockStop; { Will either be on a label or a jump }
+
+      if (hp1.typ <> ait_label) then { should be on a jump }
+        begin
+          if not Optimizer.GetNextInstruction(hp1, fMidLabel) or (fMidLabel.typ <> ait_label) then
+            { Need a label afterwards }
+            Exit;
+        end
+      else
+        fMidLabel := hp1;
+
+      if tai_label(fMidLabel).labsym <> AFirstLabel then
+        { Not the correct label }
+        fMidLabel := nil;
+
+      if not Assigned(fSecondJump) and not Assigned(fMidLabel) then
+        { If there's neither a 2nd jump nor correct label, then it's invalid
+          (see above table) }
+        Exit;
+
+      { Analyse the first block of MOVs more closely }
+      CSELScore := AnalyseMOVBlock(fFirstMovBlock, fFirstMovBlockStop, fInsertionPoint);
+
+      if Assigned(fSecondJump) then
+        begin
+          if (JumpTargetOp(taicpu(fSecondJump))^.ref^.symbol = AFirstLabel) then
+            begin
+              fState := tsDetour
+            end
+          else
+            begin
+              { Need the correct mid-label for this one }
+              if not Assigned(fMidLabel) then
+                Exit;
+
+              fState := tsBranching;
+            end;
+        end
+      else
+        { No jump. but mid-label is present }
+        fState := tsSimple;
+
+      if (CSELScore > MAX_CSEL_INSTRUCTIONS) or (CSELScore <= 0) then
+        begin
+          { Invalid or too many instructions to be worthwhile }
+          fState := tsInvalid;
+          Exit;
+        end;
+
+
+      { check further for
+             b     xxx
+             <several movs 1>
+             bl    yyy
+         xxx:
+             <several movs 2>
+         yyy:
+
+        etc.
+      }
+      if (fState = tsBranching) and
+        { Estimate for required savings for extra jump }
+        (CSELScore <= MAX_CSEL_INSTRUCTIONS - 1) and
+        { Only one reference is allowed for double blocks }
+        (AFirstLabel.getrefs = 1) then
+        begin
+          Optimizer.GetNextInstruction(fMidLabel, hp1);
+          fSecondMovBlock := hp1;
+
+          if not InitialiseBlock(fSecondMovBlock, fMidLabel, fSecondMovBlockStop, fThirdJump) then
+            begin
+              EvaluateBranchingType;
+              Exit;
+            end;
+
+          hp1 := fSecondMovBlockStop; { Will either be on a label or a jump }
+
+          if (hp1.typ <> ait_label) then { should be on a jump }
+            begin
+              if not Optimizer.GetNextInstruction(hp1, fEndLabel) or (fEndLabel.typ <> ait_label) then
+                begin
+                  { Need a label afterwards }
+                  EvaluateBranchingType;
+                  Exit;
+                end;
+            end
+          else
+            fEndLabel := hp1;
+
+          if tai_label(fEndLabel).labsym <> JumpTargetOp(taicpu(fSecondJump))^.ref^.symbol then
+            { Second jump doesn't go to the end }
+            fEndLabel := nil;
+
+          if not Assigned(fThirdJump) and not Assigned(fEndLabel) then
+            begin
+            { If there's neither a 3rd jump nor correct end label, then it's
+              not a invalid double block, but is a valid single branching
+              block (see above table) }
+              EvaluateBranchingType;
+              Exit;
+            end;
+
+          Count := AnalyseMOVBlock(fSecondMovBlock, fSecondMovBlockStop, fMidLabel);
+
+          if (Count > MAX_CSEL_INSTRUCTIONS) or (Count <= 0) then
+            { Invalid or too many instructions to be worthwhile }
+            Exit;
+
+          Inc(CSELScore, Count);
+
+          if Assigned(fThirdJump) then
+            begin
+              if not Assigned(fSecondJump) then
+                fState := tsDoubleSecondBranching
+              else if (JumpTargetOp(taicpu(fSecondJump))^.ref^.symbol = JumpTargetOp(taicpu(fThirdJump))^.ref^.symbol) then
+                fState := tsDoubleBranchSame
+              else
+                fState := tsDoubleBranchDifferent;
+            end
+          else
+            fState := tsDouble;
+        end;
+
+      if fState = tsBranching then
+        EvaluateBranchingType;
+    end;
+
+  { Tries to convert a mov const,%reg instruction into a CSEL by reserving a
+    new register to store the constant }
+  function TCSELTracking.TryCSELConst(p, start, stop: tai; var Count: LongInt): Boolean;
+    var
+      RegSize: TSubRegister;
+      CurrentVal: TCGInt;
+      ANewReg: TRegister;
+      X: ShortInt;
+    begin
+      Result := False;
+
+      if not MatchOpType(taicpu(p), top_reg, top_const) then
+        Exit;
+
+      if ConstCount >= MAX_CSEL_REGISTERS then
+        { Arrays are full }
+        Exit;
+
+      { See if the value has already been reserved for another CSEL instruction }
+      CurrentVal := taicpu(p).oper[1]^.val;
+      RegSize := getsubreg(taicpu(p).oper[0]^.reg);
+      for X := 0 to ConstCount - 1 do
+        if ConstVals[X] = CurrentVal then
+          begin
+            ConstRegs[ConstCount] := ConstRegs[X];
+            ConstSizes[ConstCount] := RegSize;
+            ConstVals[ConstCount] := CurrentVal;
+
+            Inc(ConstCount);
+            Inc(Count);
+
+            Result := True;
+            Exit;
+          end;
+
+      ANewReg := fOptimizer.GetIntRegisterBetween(R_SUBWHOLE, RegisterTracking, start, stop, True);
+      if ANewReg = NR_NO then
+        { No free registers }
+        Exit;
+
+      { Reserve the register so subsequent TryCSELConst calls don't all end
+        up vying for the same register }
+      fOptimizer.IncludeRegInUsedRegs(ANewReg, RegisterTracking);
+
+      ConstRegs[ConstCount] := ANewReg;
+      ConstSizes[ConstCount] := RegSize;
+      ConstVals[ConstCount] := CurrentVal;
+
+      Inc(ConstCount);
+      Inc(Count);
+
+      Result := True;
+    end;
+
+  destructor TCSELTracking.Done;
+    begin
+      TAOptObj.ReleaseUsedRegs(RegisterTracking);
+    end;
+
+  procedure TCSELTracking.Process(out new_p: tai);
+    var
+      Count, Writes: LongInt;
+      RegMatch: Boolean;
+      hp1, hp_new: tai;
+      inverted_condition, condition: TAsmCond;
+    begin
+      if (fState in [tsInvalid, tsProcessed]) then
+        InternalError(2023110702);
+
+      { Repurpose RegisterTracking to mark registers that we've defined }
+      RegisterTracking[R_INTREGISTER].Clear;
+
+      Count := 0;
+      Writes := 0;
+      condition := taicpu(fInitialJump).condition;
+      inverted_condition := inverse_cond(condition);
+
+      { Exclude tsDoubleBranchDifferent from this check, as the second block
+        doesn't get CSELs in this case }
+      if (fState in [tsDouble, tsDoubleBranchSame, tsDoubleSecondBranching]) then
+        begin
+          { Include the jump in the flag tracking }
+          if Assigned(fThirdJump) then
+            begin
+              if (fState = tsDoubleBranchSame) then
+                begin
+                  { Will be an unconditional jump, so track to the instruction before it }
+                  if not fOptimizer.GetLastInstruction(fThirdJump, hp1) then
+                    InternalError(2023110712);
+                end
+              else
+                hp1 := fThirdJump;
+            end
+          else
+            hp1 := fSecondMovBlockStop;
+        end
+      else
+        begin
+          { Include a conditional jump in the flag tracking }
+          if Assigned(fSecondJump) then
+            begin
+              if (fState = tsDetour) then
+                begin
+                  { Will be an unconditional jump, so track to the instruction before it }
+                  if not fOptimizer.GetLastInstruction(fSecondJump, hp1) then
+                    InternalError(2023110713);
+                end
+              else
+                hp1 := fSecondJump;
+            end
+          else
+            hp1 := fFirstMovBlockStop;
+        end;
+
+      fOptimizer.AllocRegBetween(NR_DEFAULTFLAGS, fInitialJump, hp1, fOptimizer.UsedRegs);
+
+      { Process the second set of MOVs first, because if a destination
+        register is shared between the first and second MOV sets, it is more
+        efficient to turn the first one into a MOV instruction and place it
+        before the CMP if possible, but we won't know which registers are
+        shared until we've processed at least one list, so we might as well
+        make it the second one since that won't be modified again. }
+
+      if (fState in [tsDouble, tsDoubleBranchSame, tsDoubleBranchDifferent, tsDoubleSecondBranching]) then
+        begin
+          hp1 := fSecondMovBlock;
+          repeat
+            if not Assigned(hp1) then
+              InternalError(2018062902);
+
+            if (hp1.typ = ait_instruction) then
+              begin
+                { Extra safeguard }
+                if (taicpu(hp1).opcode <> A_MOV) then
+                  InternalError(2018062903);
+
+                { Note: tsDoubleBranchDifferent is essentially identical to
+                  tsBranching and the 2nd block is best left largely
+                  untouched, but we need to evaluate which registers the MOVs
+                  write to in order to track what would be complementary CSEL
+                  pairs that can be further optimised. [Kit] }
+                if fState <> tsDoubleBranchDifferent then
+                  begin
+                    if taicpu(hp1).oper[1]^.typ = top_const then
+                      begin
+                        RegMatch := False;
+
+                        for Count := 0 to ConstCount - 1 do
+                          if (ConstVals[Count] = taicpu(hp1).oper[1]^.val) and
+                            (getsubreg(taicpu(hp1).oper[0]^.reg) = ConstSizes[Count]) then
+                            begin
+                              RegMatch := True;
+
+                              { If it's in RegisterTracking, then this register
+                                is being used more than once and hence has
+                                already had its value defined (it gets added to
+                                UsedRegs through AllocRegBetween below) }
+                              if not RegisterTracking[R_INTREGISTER].IsUsed(ConstRegs[Count]) then
+                                begin
+                                  hp_new := tai(hp1.getcopy);
+                                  taicpu(hp_new).oper[0]^.reg := ConstRegs[Count];
+                                  taicpu(hp_new).fileinfo := taicpu(fInitialJump).fileinfo;
+
+                                  fOptimizer.asml.InsertBefore(hp_new, fInsertionPoint);
+                                  fOptimizer.IncludeRegInUsedRegs(ConstRegs[Count], RegisterTracking);
+
+                                  ConstMovs[Count] := hp_new;
+                                end
+                              else
+                                { We just need an instruction between hp_prev and hp1
+                                  where we know the register is marked as in use }
+                                hp_new := fSecondMovBlock;
+
+                              { Keep track of largest write for this register so it can be optimised later }
+                              if (getsubreg(taicpu(hp1).oper[0]^.reg) > ConstWriteSizes[getsupreg(ConstRegs[Count])]) then
+                                ConstWriteSizes[getsupreg(ConstRegs[Count])] := getsubreg(taicpu(hp1).oper[0]^.reg);
+
+                              fOptimizer.AllocRegBetween(ConstRegs[Count], hp_new, hp1, fOptimizer.UsedRegs);
+                              taicpu(hp1).loadreg(1, newreg(R_INTREGISTER, getsupreg(ConstRegs[Count]), ConstSizes[Count]));
+                              Break;
+                            end;
+
+                        if not RegMatch then
+                          InternalError(2021100413);
+                      end;
+
+                    taicpu(hp1).opcode := A_CSEL;
+                    taicpu(hp1).ops := 4;
+                    taicpu(hp1).loadreg(2, taicpu(hp1).oper[0]^.reg);
+                    taicpu(hp1).loadconditioncode(3, condition);
+                  end;
+
+                { Store these writes to search for duplicates later on }
+                RegWrites[Writes] := taicpu(hp1).oper[0]^.reg;
+                Inc(Writes);
+              end;
+
+            fOptimizer.GetNextInstruction(hp1, hp1);
+          until (hp1 = fSecondMovBlockStop);
+        end;
+
+      { Now do the first set of MOVs }
+      hp1 := fFirstMovBlock;
+      repeat
+        if not Assigned(hp1) then
+          InternalError(2018062904);
+
+        if (hp1.typ = ait_instruction) then
+          begin
+            RegMatch := False;
+
+            { Extra safeguard }
+            if (taicpu(hp1).opcode <> A_MOV) then
+              InternalError(2018062905);
+
+            { Search through the RegWrites list to see if there are any
+              opposing CSEL pairs that write to the same register }
+            for Count := 0 to Writes - 1 do
+              if (RegWrites[Count] = taicpu(hp1).oper[0]^.reg) then
+                begin
+                  { We have a match.  Keep this as a MOV }
+
+                  { Move ahead in preparation }
+                  fOptimizer.GetNextInstruction(hp1, hp1);
+
+                  RegMatch := True;
+                  Break;
+                end;
+
+            if RegMatch then
+              Continue;
+
+            if taicpu(hp1).oper[1]^.typ = top_const then
+              begin
+                for Count := 0 to ConstCount - 1 do
+                  if (ConstVals[Count] = taicpu(hp1).oper[1]^.val) and
+                    (getsubreg(taicpu(hp1).oper[0]^.reg) = ConstSizes[Count]) then
+                    begin
+                      RegMatch := True;
+
+                      { If it's in RegisterTracking, then this register is
+                        being used more than once and hence has already had
+                        its value defined (it gets added to UsedRegs through
+                        AllocRegBetween below) }
+                      if not RegisterTracking[R_INTREGISTER].IsUsed(ConstRegs[Count]) then
+                        begin
+                          hp_new := tai(hp1.getcopy);
+                          taicpu(hp_new).oper[0]^.reg := ConstRegs[Count];
+                          taicpu(hp_new).fileinfo := taicpu(fInitialJump).fileinfo;
+
+                          fOptimizer.asml.InsertBefore(hp_new, fInsertionPoint);
+                          fOptimizer.IncludeRegInUsedRegs(ConstRegs[Count], RegisterTracking);
+
+                          ConstMovs[Count] := hp_new;
+                        end
+                      else
+                        { We just need an instruction between hp_prev and hp1
+                          where we know the register is marked as in use }
+                          hp_new := fFirstMovBlock;
+
+                      { Keep track of largest write for this register so it can be optimised later }
+                      if (getsubreg(taicpu(hp1).oper[0]^.reg) > ConstWriteSizes[getsupreg(ConstRegs[Count])]) then
+                        ConstWriteSizes[getsupreg(ConstRegs[Count])] := getsubreg(taicpu(hp1).oper[0]^.reg);
+
+                      fOptimizer.AllocRegBetween(ConstRegs[Count], hp_new, hp1, fOptimizer.UsedRegs);
+                      taicpu(hp1).loadreg(1, newreg(R_INTREGISTER, getsupreg(ConstRegs[Count]), ConstSizes[Count]));
+                      Break;
+                    end;
+
+                if not RegMatch then
+                  InternalError(2021100412);
+              end;
+
+              taicpu(hp1).opcode := A_CSEL;
+              taicpu(hp1).ops := 4;
+              taicpu(hp1).loadreg(2, taicpu(hp1).oper[0]^.reg);
+              taicpu(hp1).loadconditioncode(3, inverted_condition);
+
+            if (fState = tsDoubleBranchDifferent) then
+              begin
+                { Store these writes to search for duplicates later on }
+                RegWrites[Writes] := taicpu(hp1).oper[0]^.reg;
+                Inc(Writes);
+              end;
+          end;
+
+        fOptimizer.GetNextInstruction(hp1, hp1);
+      until (hp1 = fFirstMovBlockStop);
+
+      { Update initialisation MOVs to the smallest possible size }
+      for Count := 0 to ConstCount - 1 do
+        if Assigned(ConstMovs[Count]) then
+          setsubreg(taicpu(ConstMovs[Count]).oper[0]^.reg, ConstWriteSizes[Word(ConstRegs[Count])]);
+
+      case fState of
+        tsSimple:
+          begin
+            fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Simple type)', fInitialJump);
+            { No branch to delete }
+          end;
+        tsDetour:
+          begin
+            fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Detour type)', fInitialJump);
+            { Preserve jump }
+          end;
+        tsBranching, tsDoubleBranchDifferent:
+          begin
+            if (fState = tsBranching) then
+              fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Branching type)', fInitialJump)
+            else
+              fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Double branching (different) type)', fInitialJump);
+            taicpu(fSecondJump).condition := inverted_condition;
+          end;
+        tsDouble, tsDoubleBranchSame:
+          begin
+            if (fState = tsDouble) then
+              fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Double type)', fInitialJump)
+            else
+              fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Double branching (same) type)', fInitialJump);
+            { Delete second jump }
+            JumpTargetOp(taicpu(fSecondJump))^.ref^.symbol.decrefs;
+            fOptimizer.RemoveInstruction(fSecondJump);
+          end;
+        tsDoubleSecondBranching:
+          begin
+            fOptimizer.DebugMsg(SPeepholeOptimization + 'CSEL Block (Double, second branching type)', fInitialJump);
+            { Delete second jump, preserve third jump as conditional }
+            JumpTargetOp(taicpu(fSecondJump))^.ref^.symbol.decrefs;
+            fOptimizer.RemoveInstruction(fSecondJump);
+            taicpu(fThirdJump).condition := condition;
+          end;
+        else
+          InternalError(2023110721);
+      end;
+
+      { Now we can safely decrement the reference count }
+      tasmlabel(fLabel).decrefs;
+
+      fOptimizer.UpdateUsedRegs(tai(fInitialJump.next));
+
+      { Remove the original jump }
+      fOptimizer.RemoveInstruction(fInitialJump); { Note, the choice to not use RemoveCurrentp is deliberate }
+
+      new_p := fFirstMovBlock; { Appears immediately after the initial jump }
+
+      fState := tsProcessed;
     end;
 
 begin
