@@ -468,7 +468,7 @@ end;
 function AnsiStartsStr(const ASubText, AText: AnsiString): Boolean;
 begin
   if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
-    Result := StrLComp(PChar(ASubText), PAnsiChar(AText), Length(ASubText)) = 0
+    Result := StrLComp(PAnsiChar(ASubText), PAnsiChar(AText), Length(ASubText)) = 0
   else
     Result := (AsubText='');
 end;
@@ -859,7 +859,7 @@ function FloatToTextFmt(Buf: PAnsiChar; const Value; ValueType: TFloatValue;
   Format: PAnsiChar; const AFormatSettings: TFormatSettings): Integer;
 Var
   E : Extended;
-
+  SBuf,Fmt : String;
 begin
   Case ValueType of
     fvComp : E:=PComp(@Value)^;
@@ -869,7 +869,9 @@ begin
     fvSingle : E:=PSingle(@Value)^;
     fvCurrency : E:=PCurrency(@Value)^;
   end;
-  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FloatToTextFmt(Buf,E,Format,aFormatSettings);
+  SBuf:=StrPas(Buf);
+  Fmt:=StrPas(Format);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FloatToTextFmt(PChar(SBuf),E,PChar(Fmt),aFormatSettings);
 end;
 
 function FloatToTextFmt(Buf: PAnsiChar; const Value; ValueType: TFloatValue;
