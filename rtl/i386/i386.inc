@@ -2296,42 +2296,40 @@ end;
 
 
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
         movl    $-1,%edx
-        xchgl   %edx,%eax
         lock
-        xaddl   %eax, (%edx)
-        decl    %eax
+        xaddl   %edx, (%eax)
+        lea     -1(%edx),%eax
 end;
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
         movl    $1,%edx
-        xchgl   %edx,%eax
         lock
-        xaddl   %eax, (%edx)
-        incl    %eax
+        xaddl   %edx, (%eax)
+        lea     1(%edx),%eax
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
         xchgl   (%eax),%edx
         movl    %edx,%eax
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-        xchgl   %eax,%edx
         lock
-        xaddl   %eax, (%edx)
+        xaddl   %edx, (%eax)
+        movl    %edx,%eax
 end;
 
 
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
         xchgl   %eax,%ecx
         lock
@@ -2629,14 +2627,15 @@ end;
 function BsfQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
      bsfl    4(%esp),%eax
-     jnz     .L2
+     jz     .L1
+     ret     $8
 .L1:
      bsfl    8(%esp),%eax
-     jnz     .L3
-     movl    $223,%eax
-.L3:
-     addl    $32,%eax
+     jz      .L2
+     add     $32,%eax
+     ret     $8
 .L2:
+     movl    $255,%eax
 end;
 {$endif FPC_SYSTEM_HAS_BSF_QWORD}
 
@@ -2648,12 +2647,13 @@ asm
      bsrl    8(%esp),%eax
      jz     .L1
      add     $32,%eax
-     jmp     .L2
+     ret     $8
 .L1:
      bsrl    4(%esp),%eax
-     jnz     .L2
-     movl    $255,%eax
+     jz      .L2
+     ret     $8
 .L2:
+     movl    $255,%eax
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}
 
@@ -2661,20 +2661,17 @@ end;
 {$define FPC_SYSTEM_HAS_SAR_QWORD}
 function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
 asm
-        movb   %al,%cl
         movl   8(%esp),%edx
-        movl   4(%esp),%eax
-        andb   $63,%cl
-        cmpb   $32,%cl
+        movzbl %al,%ecx
+        cmpb   $32,%al
         jnb    .L1
+        movl   4(%esp),%eax
         shrdl  %cl,%edx,%eax
         sarl   %cl,%edx
-        jmp    .Lexit
+        ret    $8
 .L1:
         movl   %edx,%eax
         sarl   $31,%edx
-        andb   $31,%cl
-        sarl   %cl,%eax
-.Lexit:
+        sarl   %cl,%eax // uses 5 lower bits of cl.
 end;
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
