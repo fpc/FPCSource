@@ -273,7 +273,8 @@ end;
 
 destructor THandleObject.Destroy;
 begin
-  BasicEventDestroy(Handle);
+  if (Handle<>Nil) then
+    BasicEventDestroy(Handle);
 end;
 
 constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
