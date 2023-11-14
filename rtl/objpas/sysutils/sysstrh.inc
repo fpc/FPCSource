@@ -101,6 +101,7 @@ function AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: SizeUInt): Integer;{$ifdef SYS
 function AnsiStrLower(Str: PAnsiChar): PAnsiChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrUpper(Str: PAnsiChar): PAnsiChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLastChar(const S: AnsiString): PAnsiChar;
+function AnsiLastChar(const S: UnicodeString): PWideChar;
 function AnsiStrLastChar(Str: PAnsiChar): PAnsiChar;
 
 function Trim(const S: ansistring): ansistring;
