@@ -42,6 +42,7 @@ begin
     T:=P.Targets.AddUnit('system.ioutils.pp');
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.ansistrings.pp');
+    T:=P.Targets.AddUnit('system.imagelist.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
