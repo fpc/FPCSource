@@ -185,6 +185,7 @@ interface
       TWasmObjInput = class(TObjInput)
       public
         constructor create;override;
+        class function CanReadObjData(AReader:TObjectreader):boolean;override;
       end;
 
       { TWasmAssembler }
@@ -2097,6 +2098,26 @@ implementation
       begin
         inherited create;
         cobjdata:=TWasmObjData;
+      end;
+
+    class function TWasmObjInput.CanReadObjData(AReader: TObjectreader): boolean;
+      var
+        ModuleMagic: array [0..3] of Byte;
+        ModuleVersion: array [0..3] of Byte;
+        i: Integer;
+      begin
+        result:=false;
+        if not AReader.read(ModuleMagic,4) then
+          exit;
+        for i:=0 to 3 do
+          if ModuleMagic[i]<>WasmModuleMagic[i] then
+            exit;
+        if not AReader.read(ModuleVersion,4) then
+          exit;
+        for i:=0 to 3 do
+          if ModuleVersion[i]<>WasmVersion[i] then
+            exit;
+        result:=true;
       end;
 
 {****************************************************************************
