@@ -1,3 +1,19 @@
+{
+    This file is part of the Free Pascal Run Time Library (rtl)
+    Copyright (c) 2023 by the Free Pascal development team
+
+    This file provides an ansistring unit as delphi has it.
+    Most routines are present in the SysUtils and StrUtils unit.
+    Do not use this for new FPC code.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit System.AnsiStrings;
 
 {$mode objfpc}
