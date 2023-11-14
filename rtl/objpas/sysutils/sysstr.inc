@@ -533,7 +533,7 @@ begin
   AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
 end;
 
-function AnsiLastChar(const S: string): PAnsiChar;
+function AnsiLastChar(const S: AnsiString): PAnsiChar;
 
 begin
   //!! No multibyte yet, so we return the last one.
