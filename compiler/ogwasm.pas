@@ -180,6 +180,13 @@ interface
         destructor destroy;override;
       end;
 
+      { TWasmObjInput }
+
+      TWasmObjInput = class(TObjInput)
+      public
+        constructor create;override;
+      end;
+
       { TWasmAssembler }
 
       TWasmAssembler = class(tinternalassembler)
@@ -2080,6 +2087,16 @@ implementation
         FWasmRelocationDebugRangesTable.Free;
         FWasmRelocationDebugStrTable.Free;
         inherited destroy;
+      end;
+
+{****************************************************************************
+                               TWasmObjInput
+****************************************************************************}
+
+    constructor TWasmObjInput.create;
+      begin
+        inherited create;
+        cobjdata:=TWasmObjData;
       end;
 
 {****************************************************************************
