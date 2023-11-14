@@ -47,6 +47,7 @@ begin
     T:=P.Targets.AddUnit('system.analytics.pp');
     T:=P.Targets.AddUnit('system.ansistrings.pp');
     T:=P.Targets.AddUnit('system.imagelist.pp');
+    T:=P.Targets.AddUnit('system.diagnostics.pp');
 
 
 {$ifndef ALLPACKAGES}
