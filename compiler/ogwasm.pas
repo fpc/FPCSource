@@ -183,9 +183,12 @@ interface
       { TWasmObjInput }
 
       TWasmObjInput = class(TObjInput)
+      private
+        function ReadUleb(r: TObjectReader; out v: uint64): boolean;
       public
         constructor create;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
+        function ReadObjData(AReader:TObjectreader;out ObjData:TObjData):boolean;override;
       end;
 
       { TWasmAssembler }
@@ -2094,6 +2097,24 @@ implementation
                                TWasmObjInput
 ****************************************************************************}
 
+    function TWasmObjInput.ReadUleb(r: TObjectReader; out v: uint64): boolean;
+      var
+        b: byte;
+        shift:integer;
+      begin
+        result:=false;
+        b:=0;
+        v:=0;
+        shift:=0;
+        repeat
+          if not r.read(b,1) then
+            exit;
+          v:=v or (uint64(b and 127) shl shift);
+          inc(shift,7);
+        until (b and 128)=0;
+        result:=true;
+      end;
+
     constructor TWasmObjInput.create;
       begin
         inherited create;
@@ -2118,6 +2139,63 @@ implementation
           if ModuleVersion[i]<>WasmVersion[i] then
             exit;
         result:=true;
+      end;
+
+    function TWasmObjInput.ReadObjData(AReader: TObjectreader; out ObjData: TObjData): boolean;
+
+      function ReadSection: Boolean;
+        var
+          SectionId: Byte;
+          SectionSize: uint64;
+        begin
+          Result:=False;
+          if not AReader.read(SectionId,1) then
+            begin
+              InputError('Error reading section ID');
+              exit;
+            end;
+          if not ReadUleb(AReader,SectionSize) then
+            begin
+              InputError('Error reading section size');
+              exit;
+            end;
+          if SectionSize>high(uint32) then
+            begin
+              InputError('Invalid section size');
+              exit;
+            end;
+          if (AReader.Pos+SectionSize)>AReader.size then
+            begin
+              InputError('Section exceeds beyond the end of file');
+              exit;
+            end;
+          { skip the section for now... TODO: parse the section }
+          if SectionSize>0 then
+            AReader.seek(AReader.Pos+SectionSize);
+          Result:=True;
+        end;
+
+      var
+        ModuleMagic: array [0..3] of Byte;
+        ModuleVersion: array [0..3] of Byte;
+        i: Integer;
+      begin
+        objdata:=CObjData.Create(InputFileName);
+        result:=false;
+        if not AReader.read(ModuleMagic,4) then
+          exit;
+        for i:=0 to 3 do
+          if ModuleMagic[i]<>WasmModuleMagic[i] then
+            exit;
+        if not AReader.read(ModuleVersion,4) then
+          exit;
+        for i:=0 to 3 do
+          if ModuleVersion[i]<>WasmVersion[i] then
+            exit;
+        while AReader.Pos<AReader.size do
+          if not ReadSection then
+            exit;
+        Result:=True;
       end;
 
 {****************************************************************************
