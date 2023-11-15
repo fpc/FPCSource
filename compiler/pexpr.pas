@@ -5012,6 +5012,7 @@ implementation
       s : string;
       pw : pcompilerwidestring;
       pc : pansichar;
+      len : Integer;
 
     begin
       get_stringconst:='';
@@ -5026,7 +5027,9 @@ implementation
       else if (tstringconstnode(p).cst_type in [cst_unicodestring,cst_widestring]) then
          begin
            pw:=pcompilerwideString(tstringconstnode(p).value_str);
-           pc:=getmem(getlengthwidestring(pw));
+           len:=getlengthwidestring(pw);
+           pc:=getmem(Len+1);
+           pc[len]:=#0;
            unicode2ascii(pw,pc,current_settings.sourcecodepage);
            get_stringconst:=strpas(pc);
            freemem(pc);
