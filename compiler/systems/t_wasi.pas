@@ -35,7 +35,7 @@ uses
   cfileutl, cutils, cclasses,
 
   import, export, aasmdata, aasmcpu,
-  fmodule, ogbase,
+  fmodule, ogbase, ogwasm,
 
   symconst, symsym, symdef, symcpu,
 
@@ -70,6 +70,15 @@ type
 
     function  MakeExecutable:boolean;override;
     function  MakeSharedLibrary:boolean;override;
+  end;
+
+  { TInternalLinkerWasi }
+
+  TInternalLinkerWasi=class(tinternallinker)
+  protected
+    procedure DefaultLinkScript;override;
+  public
+    constructor create;override;
   end;
 
 
@@ -269,6 +278,19 @@ end;
 procedure texportlibwasi.generatelib;
 begin
   //inherited generatelib;
+end;
+
+{ TInternalLinkerWasi }
+
+procedure TInternalLinkerWasi.DefaultLinkScript;
+begin
+  {TODO}
+end;
+
+constructor TInternalLinkerWasi.create;
+begin
+  inherited create;
+  CObjInput:=TWasmObjInput;
 end;
 
 initialization
