@@ -290,6 +290,7 @@ end;
 constructor TInternalLinkerWasi.create;
 begin
   inherited create;
+  CExeOutput:=TWasmExeOutput;
   CObjInput:=TWasmObjInput;
 end;
 

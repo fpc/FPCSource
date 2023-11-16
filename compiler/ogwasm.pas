@@ -191,6 +191,14 @@ interface
         function ReadObjData(AReader:TObjectreader;out ObjData:TObjData):boolean;override;
       end;
 
+      { TWasmExeOutput }
+
+      TWasmExeOutput = class(TExeOutput)
+      protected
+        function writeData:boolean;override;
+        procedure DoRelocationFixup(objsec:TObjSection);override;
+      end;
+
       { TWasmAssembler }
 
       TWasmAssembler = class(tinternalassembler)
@@ -2197,6 +2205,22 @@ implementation
             exit;
         Result:=True;
       end;
+
+{****************************************************************************
+                               TWasmExeOutput
+****************************************************************************}
+
+    function TWasmExeOutput.writeData: boolean;
+      begin
+        result:=false;
+        {TODO: implement}
+      end;
+
+    procedure TWasmExeOutput.DoRelocationFixup(objsec: TObjSection);
+      begin
+        {TODO: implement}
+      end;
+
 
 {****************************************************************************
                                TWasmAssembler
