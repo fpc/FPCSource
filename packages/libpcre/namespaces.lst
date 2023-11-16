@@ -1,0 +1,5 @@
+src/libpcre2_8.pp=namespaced/Api.PCRE2_8.pp
+src/libpcre2_16.pp=namespaced/Api.PCRE2_16.pp
+src/libpcre2_32.pp=namespaced/Api.PCRE2_32.pp
+{s*:src/}=namespaced/
+{i+:src/}
