@@ -361,7 +361,7 @@ implementation
     var
       flags: CFStringCompareFlags;
     begin
-      flags:=0;
+      flags:=kCFCompareNonliteral;
       if case_insensitive then
         flags:=flags or kCFCompareCaseInsensitive;
       result:=CFStringCompare(s1,s2,flags)
