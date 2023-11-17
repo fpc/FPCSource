@@ -595,23 +595,21 @@ function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
-    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    test   len, len
     jz     .Lnotfound                  { exit if len=0 }
+    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
 {$ifdef win64}
-    movd   %r8d, %xmm1
+    mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
+    add    $16, %rcx
 {$else}
-    movd   %edx, %xmm1
-    movq   %rdi, %rcx
-    movq   %rsi, %rdx
+    lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
-    mov    %rcx, %r8
     punpcklbw  %xmm1, %xmm1
-    and    $-0x10, %rcx                { highest aligned address before buf }
+    and    $-0x10, %rcx                { first aligned address after buf }
     punpcklbw  %xmm1, %xmm1
-    add    $16, %rcx                   { first aligned address after buf }
     pshufd $0, %xmm1, %xmm1
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
-    sub    %r8, %rcx                   { rcx=number of valid bytes, r8=original ptr }
+    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
 
     pcmpeqb %xmm1, %xmm0               { compare with pattern and get bitmask }
     pmovmskb %xmm0, %eax
@@ -619,28 +617,27 @@ asm
     shl    %cl, %eax                   { shift valid bits into high word }
     and    $0xffff0000, %eax           { clear low word containing invalid bits }
     shr    %cl, %eax                   { shift back }
-    jmp   .Lcontinue
-
-    .balign 16
-.Lloop:
-    movdqa (%r8,%rcx), %xmm0           { r8 and rcx may have any values, }
-    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
-    pcmpeqb %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-.Lcontinue:
-    test   %eax, %eax
-    jnz    .Lmatch
-    cmp    %rcx, %rdx
-    ja     .Lloop
-.Lnotfound:
-    or     $-1, %rax
-    retq
-
+    jz     .Lcontinue
 .Lmatch:
     bsf    %eax, %eax
     lea    -16(%rcx,%rax), %rax
-    cmp    %rax, %rdx                  { check against the buffer length }
+    cmp    %rax, len                   { check against the buffer length }
     jbe    .Lnotfound
+    ret
+
+    .balign 16
+.Lloop:
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
+    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
+    pcmpeqb %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    test   %eax, %eax
+    jnz    .Lmatch
+.Lcontinue:
+    cmp    %rcx, len
+    ja     .Lloop
+.Lnotfound:
+    or     $-1, %rax
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
@@ -650,24 +647,22 @@ function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
-    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    test   len, len
     jz     .Lnotfound                  { exit if len=0 }
+    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
 {$ifdef win64}
-    movd   %r8d, %xmm1
+    mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
+    add    $16, %rcx
 {$else}
-    movd   %edx, %xmm1
-    movq   %rdi, %rcx
-    movq   %rsi, %rdx
+    lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
-    mov    %rcx, %r8
     punpcklwd  %xmm1, %xmm1
     and    $-0x10, %rcx
     pshufd $0, %xmm1, %xmm1
-    add    $16, %rcx
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 14 bytes before target) }
-    sub    %r8, %rcx                   { rcx=number of valid bytes }
+    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes }
 
-    test   $1, %r8b                    { if buffer isn't aligned to word boundary, }
+    test   $1, {$ifdef win64} %r8b {$else} %dil {$endif} { if buffer isn't aligned to word boundary, }
     jnz    .Lunaligned                 { use a different algorithm }
 
     pcmpeqw  %xmm1, %xmm0
@@ -677,30 +672,30 @@ asm
     and    $0xffff0000, %eax
     shr    %cl, %eax
     shr    $1, %ecx                    { bytes->words }
-    jmp    .Lcontinue
-
-    .balign 16
-.Lloop:
-    movdqa (%r8,%rcx,2), %xmm0
-    add    $8, %rcx
-    pcmpeqw  %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-.Lcontinue:
     test   %eax, %eax
-    jnz    .Lmatch
-    cmp    %rcx, %rdx
-    ja     .Lloop
-
-.Lnotfound:
-    or    $-1, %rax
-    retq
-
+    jz     .Lcontinue
 .Lmatch:
     bsf    %eax, %eax
     shr    $1, %eax                    { in words }
     lea    -8(%rcx,%rax), %rax
-    cmp    %rax, %rdx
+    cmp    %rax, len
     jbe    .Lnotfound                  { if match is after the specified length, ignore it }
+    retq
+
+    .balign 16
+.Lloop:
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx,2), %xmm0
+    add    $8, %rcx
+    pcmpeqw  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    test   %eax, %eax
+    jnz    .Lmatch
+.Lcontinue:
+    cmp    %rcx, len
+    ja     .Lloop
+
+.Lnotfound:
+    or    $-1, %rax
     retq
 
 .Lunaligned:
@@ -716,13 +711,13 @@ asm
     and    $0xffff0000, %eax
     shr    %cl, %eax
 
-    add    %rdx, %rdx                  { length words -> bytes }
+    add    len, len                    { length words -> bytes }
     xor    %r10d, %r10d                { nothing to merge yet }
     jmp    .Lcontinue_u
 
     .balign 16
 .Lloop_u:
-    movdqa (%r8,%rcx), %xmm0
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0
     add    $16, %rcx
     pcmpeqb %xmm1, %xmm0               { compare by bytes }
     shr    $16, %r10d                  { bit 16 shifts into 0 }
@@ -735,7 +730,7 @@ asm
     and    %r10d, %eax
     and    $0x5555, %eax               { also reset odd bits }
     jnz    .Lmatch_u
-    cmpq   %rcx, %rdx
+    cmpq   %rcx, len
     ja     .Lloop_u
 
 .Lnotfound_u:
@@ -744,7 +739,7 @@ asm
 .Lmatch_u:
     bsf    %eax, %eax
     lea    -16(%rcx,%rax), %rax
-    cmp    %rax, %rdx
+    cmp    %rax, len
     jbe    .Lnotfound_u                { if match is after the specified length, ignore it }
     sar    $1, %rax                    { in words }
 end;
