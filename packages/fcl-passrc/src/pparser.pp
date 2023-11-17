@@ -7456,6 +7456,9 @@ begin
     begin
     Result:=True;
     NextToken;
+    // Forward external declaration ?
+    if CurToken=tkSemicolon then
+      exit;
     if CurToken<>tkString then
       UnGetToken
     else
