@@ -35,11 +35,13 @@ begin
           AddInclude('pcreconst.inc');
         end;
     T:=P.Targets.AddUnit('libpcre2_16.pp');
+    T.OSes:=[Win64,Linux];
       with T.Dependencies do
         begin
           AddInclude('pcreconst.inc');
         end;
     T:=P.Targets.AddUnit('libpcre2_32.pp');
+    T.OSes:=[Win64,Linux];
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('tpcre.pp');
     P.NamespaceMap:='namespaces.lst';
