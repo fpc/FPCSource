@@ -4172,13 +4172,21 @@ begin
     if not LocalFetchLine then
       exit(tkEOF);
     // Skip whitespace, but count.
-    While FTokenPos[0]=' ' do
+    {$IFDEF USEPCHAR}
+    While (FTokenPos[0]=' ') do
+    {$ELSE}
+    While (FTokenPos<=l) and (s[FTokenPos]=' ') do
+    {$ENDIF}
       begin
       Inc(FTokenPos);
       Inc(WhiteSpaces);
       end;
     // Count quotes
+    {$IFDEF USEPCHAR}
     While (FTokenPos[0]=SingleQuote) and (QuoteCount<QuoteLen) do
+    {$ELSE}
+    While  (QuoteCount<QuoteLen) and (FTokenPos<=l) and (s[FTokenPos]=SingleQuote) do
+    {$ENDIF}
       begin
       Inc(FTokenPos);
       Inc(QuoteCount);
@@ -4198,9 +4206,13 @@ begin
       FCurTokenString:=FCurTokenString+CurLf;
     If Lines[I]<>'' then
       begin
+      {$IFDEF USEPCHAR}
       TokenStart:=@Lines[I][1];
       SpaceCount:=0;
       While (TokenStart[0]=' ') and (SpaceCount<WhiteSpaces) do
+      {$ELSE}
+      While (S[TokenStart]=' ') and (SpaceCount<WhiteSpaces) do
+      {$ENDIF}
         begin
         Inc(SpaceCount);
         Inc(TokenStart);
@@ -5539,7 +5551,7 @@ var
   Function IsDelphiMultiLine (out QuoteLen : integer): Boolean;
   var
     P : PAnsiChar;
-    I : Integer;
+
   begin
     P:=FTokenPos;
     QuoteLen:=0;
@@ -5553,13 +5565,23 @@ var
     Result:=(P[0]=#0) and (QuoteLen>2) and ((QuoteLen mod 2) = 1);
   end;
   {$ELSE}
-  Function IsDelphiMultiLine(out Quotelen : integer) Boolean;
+  Function IsDelphiMultiLine(out Quotelen : integer) : Boolean;
+
+  var
+    P : Integer;
 
   begin
-    if (FTokenPos<>L-2) then
-      exit(false);
+    P:=FTokenPos;
+    QuoteLen:=0;
+    While (P<=L) do
+      begin
+      inc(QuoteLen);
+      if (S[P]<>SingleQuote) then
+        Exit(false);
+      Inc(P);
+      end;
     // Accessing single char is more expensive than a copy
-    Result:=(Copy(S,FTokenPos,3)=TripleQuote);
+    Result:=(P>L) and (QuoteLen>2) and ((QuoteLen mod 2) = 1);
   end;
   {$ENDIF}
 
