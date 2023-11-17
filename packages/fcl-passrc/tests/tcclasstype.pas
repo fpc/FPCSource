@@ -29,6 +29,7 @@ type
     function GetP1: TPasProperty;
     function GetP2: TPasProperty;
     function GetT(AIndex : Integer) : TPasType;
+    procedure TestExternalClassFunctionFinal;
   protected
     Procedure StartClass (AncestorName : String = 'TObject'; InterfaceList : String = ''; aClassType : TClassDeclType = cdtClass);
     Procedure StartExternalClass (AParent : String; AExternalName,AExternalNameSpace : String );
@@ -595,6 +596,7 @@ Procedure TTestClassType.TestForwardExternalObjCClass;
 begin
   FStarted:=True;
   FEnded:=True;
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msObjectiveC1];
   FDecl.Add('TMyClass = ObjcClass external');
   ParseClass;
 end;
@@ -2311,22 +2313,48 @@ end;
 procedure TTestClassType.TestExternalClassFinalVar;
 
 begin
-  // final var Xyz : Integer;
- Fail  ('To be implemented');
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  FStarted:=True;
+  FDecl.add('TMyClass = Class external name ''me'' ');
+  FDecl.add('final var X : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('X');
+  AssertVisibility;
 end;
+
+Procedure TTestClassType.TestExternalClassFunctionFinal;
+
+begin
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  FStarted:=True;
+  FDecl.add('TMyClass = Class external name ''me'' ');
+  FDecl.add('function Something : Someresult; final');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('Something');
+  AssertVisibility;
+end;
+
 
 procedure TTestClassType.TestEscapedVisibilityVar;
 
 begin
-  //  &Public : Integer;
-  Fail('To be implemented');
+  AddMember('&public : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('public');
+  AssertVisibility;
 end;
 
 procedure TTestClassType.TestEscapedAbsoluteVar;
 
 begin
-  // var absolute  : integer;
-  Fail('To be implemented.');
+  AddMember('&absolute : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('absolute');
+  AssertVisibility;
 end;
 
 initialization

@@ -187,7 +187,6 @@ type
     procedure TestOperatorNames;
     Procedure TestAssignOperatorAfterObject;
     Procedure TestFunctionNoResult;
-    Procedure TestExternalFunctionFinal;
     Procedure TestFunctionSyscallSingleNumber;
     Procedure TestFunctionSyscallDoubleNumber;
     Procedure TestFunctionSysCallSysTrapIdentifier;
@@ -869,19 +868,19 @@ end;
 procedure TTestProcedureFunction.TestCallingConventionSysCallExecbase;
 begin
   ParseProcedure('; syscall _execBase 123');
-  AssertProc([],[],ccSysCall,0);
+  AssertProc([pmExternal],[],ccSysCall,0);
 end;
 
 procedure TTestProcedureFunction.TestCallingConventionSysCallUtilitybase;
 begin
   ParseProcedure('; syscall _utilityBase 123');
-  AssertProc([],[],ccSysCall,0);
+  AssertProc([pmExternal],[],ccSysCall,0);
 end;
 
 procedure TTestProcedureFunction.TestCallingConventionSysCallConsoleDevice;
 begin
   ParseProcedure('; syscall ConsoleDevice 123');
-  AssertProc([],[],ccSysCall,0);
+  AssertProc([pmExternal],[],ccSysCall,0);
 end;
 
 procedure TTestProcedureFunction.TestFunctionDiscardResult;
@@ -1491,20 +1490,13 @@ begin
 end;
 
 
-Procedure TTestProcedureFunction.TestExternalFunctionFinal;
-
-begin
-  // class external 'XYZ' name 'ABC'
-  //  function Something : Someresult; final;
-  // end; 
-  Fail('To be implemented');
-end;
-
 
 Procedure TTestProcedureFunction.TestFunctionSyscallSingleNumber;
 begin
   // function Something : Someresult; syscall 12
-  Fail('To be implemented');
+  AddDeclaration('function A : Integer; syscall 12');
+  ParseFunction;
+  AssertFunc([pmExternal],[],ccSysCall,0);
 end;
 
 
@@ -1512,7 +1504,9 @@ Procedure TTestProcedureFunction.TestFunctionSyscallDoubleNumber;
 
 begin
   // function Something : Someresult; syscall 12 13
-  Fail('To be implemented');
+  AddDeclaration('function A : Integer; syscall 12 13');
+  ParseFunction;
+  AssertFunc([pmExternal],[],ccSysCall,0);
 end;
 
 
@@ -1520,7 +1514,10 @@ Procedure TTestProcedureFunction.TestFunctionSysCallSysTrapIdentifier;
 
 begin
   // function Something : Someresult; syscall systrapNNN
-  Fail('To be implemented');
+//  Fail('To be implemented');
+  AddDeclaration('function A : Integer; syscall systrap12');
+  ParseFunction;
+  AssertFunc([pmExternal],[],ccSysCall,0);
 end;
 
 

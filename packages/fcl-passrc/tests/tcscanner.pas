@@ -1325,13 +1325,13 @@ end;
 procedure TTestScanner.TestAsmComments;
 
 begin
-  Fail('To be implemented');
+  TestTokens([tkAsm,tkWhitespace,tkComment,tkLineEnding,tkEnd],'asm { something '+sLinebreak+' in comment }'+sLineBreak+'end');
 end;
 
 procedure TTestScanner.TestAsmConditionals;
 
 begin
-  Fail('To be implemented');
+  TestTokens([tkAsm,tkWhitespace,tkComment,tkLineEnding,tkEnd],'asm {$IFDEF SOMETHING}{ something '+sLinebreak+' in comment }{$ENDIF}'+sLineBreak+'end');
 end;
 
 
