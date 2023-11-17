@@ -398,7 +398,9 @@ procedure TPasSrcUtilTest.EndSource;
 begin
   AddLine('');
   AddLine('end.');
+  {$IFNDEF PAS2JS}
   FSrc.SaveToStream(FStream);
+  {$ENDIF}
   FStream.Position:=0;
 {$IFNDEF NOCONSOLE}
   Writeln('// Test name : ',Self.TestName);

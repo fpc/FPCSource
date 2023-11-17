@@ -507,9 +507,7 @@ type
     {$ENDIF}
     FPos : Integer;
   public
-    {$ifdef HasStreams}
     Procedure InitFromStream(AStream : TStream);
-    {$endif}
     Procedure InitFromString(const s: TPasScannerString);
     function IsEOF: Boolean; override;
     function ReadLine: TPasScannerString; override;
@@ -594,7 +592,6 @@ type
   end;
 {$ENDIF}
 
-  {$ifdef fpc}
   { TStreamResolver }
 
   TStreamResolver = class(TBaseFileResolver)
@@ -617,7 +614,7 @@ type
     Property OwnsStreams : Boolean Read FOwnsStreams write SetOwnsStreams;
     Property Streams: TStringList read FStreams;
   end;
-  {$endif}
+
 
 const
   CondDirectiveBool: array[boolean] of TPasScannerString = (
@@ -2832,8 +2829,26 @@ end;
 
 { TStreamLineReader }
 
-{$ifdef HasStreams}
+
 Procedure TStreamLineReader.InitFromStream(AStream : TStream);
+
+{$IFDEF PAS2JS}
+  function BufferToString(aBuffer: TBytes): String;
+
+  var
+    a : TJSUint16Array;
+    i,len: Integer;
+
+  begin
+    Result:=''; // Silence warning
+    len:=Length(aBuffer);
+    a:=TJSUint16Array.New(Len);
+    for I:=0 to Len-1 do
+      a[i]:=aBuffer[i];
+    if a<>nil then
+      Result:=String(TJSFunction(@TJSString.fromCharCode).apply(nil,TJSValueDynArray(JSValue(a))));
+  end;
+{$ENDIF}
 
 Var
   B : TBytes;
@@ -2841,11 +2856,20 @@ Var
 begin
   SetLength(B{%H-},AStream.Size);
   if Length(B)>0 then
+    {$ifdef pas2js}
+    AStream.Read(B,length(B));
+    {$ELSE}
     AStream.Read(B[0],length(B));
+    {$ENDIF}
+  {$IFNDEF PAS2JS}
   FContent:=TEncoding.Default.GetAnsiString(B);
+  {$ELSE}
+  FContent:=BufferToString(B);
+  {$ENDIF}
+
   FPos:=0;
 end;
-{$endif}
+
 
 procedure TStreamLineReader.InitFromString(const s: TPasScannerString);
 begin
@@ -3184,7 +3208,6 @@ begin
 end;
 {$ENDIF}
 
-{$ifdef fpc}
 { TStreamResolver }
 
 procedure TStreamResolver.SetOwnsStreams(AValue: Boolean);
@@ -3224,11 +3247,16 @@ procedure TStreamResolver.Clear;
 
 Var
   I : integer;
+  Obj : TObject;
 begin
   if OwnsStreams then
     begin
     For I:=0 to FStreams.Count-1 do
-      Fstreams.Objects[i].Free;
+      begin
+      Obj:=Fstreams.Objects[i];
+      Fstreams.Objects[i]:=nil;
+      Obj.Free;
+      end;
     end;
   FStreams.Clear;
 end;
@@ -3295,7 +3323,7 @@ function TStreamResolver.FindIncludeFile(const AName: String): TLineReader;
 begin
   Result:=FindStreamReader(AName,True);
 end;
-{$endif}
+
 
 { ---------------------------------------------------------------------
   TPascalScanner
