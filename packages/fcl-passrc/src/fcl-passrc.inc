@@ -4,7 +4,6 @@
 {$ifdef fpc}
   {$define UsePChar}
   {$define HasInt64}
-  {$define UsePChar}
   {$define UseAnsiStrings}
   {$define HasStreams}
   {$IF FPC_FULLVERSION<30101}
