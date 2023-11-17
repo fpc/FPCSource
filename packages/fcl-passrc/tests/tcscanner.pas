@@ -9,6 +9,11 @@ interface
 uses
   Classes, SysUtils, typinfo, fpcunit, testregistry, pscanner;
 
+Const
+  SingleQuote = #39;
+  DoubleQuote = #39#39;
+  TripleQuote = #39#39#39;
+
 type
 
   { TTestTokenFinder }
@@ -65,6 +70,9 @@ type
     FComment: string;
     FPathPrefix : String;
     FTestTokenString: String;
+    FMultiLine : String;
+    procedure DoTestDelphiMultiLine;
+    procedure DoTestDelphiMultiLineString;
   protected
     procedure DoComment(Sender: TObject; aComment: TPasScannerString);
     procedure DoLinkLib(Sender: TObject; const aLibName,aAlias,aOptions : TPasScannerString; var aHandled : Boolean);
@@ -72,10 +80,13 @@ type
     procedure TearDown; override;
     Procedure DoMultilineError;
     Function TokenToString(tk : TToken) : string;
+    class Function CreateDelphiMultiLine(Lines : Array of string; PrefixCount : Byte = 2; Suffix : String = '';QuoteCount : Integer=3) : string;
 
     Procedure AssertEquals(Msg : String; Expected,Actual : TToken); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitch); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitches); overload;
+    Procedure AssertEquals(Msg : String; Expected,Actual : TEOLStyle); overload;
+
     // creates a virtual source file with name 'afile.pp', prepended with PathPrefix
     procedure NewSource(Const Source : RawBytestring; DoClear : Boolean = True);
     Procedure DoTestToken(t : TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True);
@@ -127,6 +138,16 @@ type
     procedure TestMultilineStringTrimAll;
     procedure TestMultilineStringTrimAuto;
     procedure TestMultilineStringTrim2;
+    Procedure TestDelphiMultiLine;
+    procedure TestDelphiMultiLineNotEnabled;
+    procedure TestDelphiMultiLineWrongIndent;
+    procedure TestDelphiMultiLineSpecial1;
+    procedure TestDelphiMultiLineSpecial2;
+    procedure TestDelphiMultiLineTrailingGarbage1;
+    procedure TestDelphiMultiLineTrailingGarbage2;
+    procedure TestDelphiMultiLineTrailingGarbage3;
+    procedure TestDelphiMultiLineEmbeddedQuotes;
+    Procedure TestTextBlockDirective;
     procedure TestNumber;
     procedure TestChar;
     procedure TestCharString;
@@ -478,6 +499,20 @@ begin
   Result:=GetEnumName(TypeInfo(TToken),Ord(tk));
 end;
 
+class function TTestScanner.CreateDelphiMultiLine(Lines: array of string; PrefixCount: Byte; Suffix: String = '';QuoteCount : Integer=3): string;
+
+Var
+  Quotes,S,Prefix : String;
+
+begin
+  Prefix:=StringOfChar(' ',PrefixCount);
+  Quotes:=StringOfChar(SingleQuote,QuoteCount);
+  Result:=Prefix+Quotes+sLineBreak;
+  For S in Lines do
+    Result:=Result+Prefix+S+sLineBreak;
+  Result:=Result+Prefix+Quotes+Suffix+sLineBreak;
+end;
+
 procedure TTestScanner.AssertEquals(Msg: String; Expected, Actual: TToken);
 begin
   AssertEquals(Msg,TokenToString(Expected),TokenToString(Actual));
@@ -509,6 +544,12 @@ procedure TTestScanner.AssertEquals(Msg: String; Expected, Actual: TModeSwitches
 
 begin
   AssertEquals(Msg,ToString(Expected),ToString(Actual));
+end;
+
+procedure TTestScanner.AssertEquals(Msg: String; Expected, Actual: TEOLStyle);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TEOLStyle),Ord(Expected)),
+                   GetEnumName(TypeInfo(TEOLStyle),Ord(Actual)))
 end;
 
 procedure TTestScanner.NewSource(const Source: RawBytestring; DoClear : Boolean = True);
@@ -592,7 +633,9 @@ begin
     begin
     tk:=FScanner.FetchToken;
     if (tk=tkLineEnding) then
-      tk:=FScanner.FetchToken;
+      tk:=FScanner.FetchToken
+    else if not (tk in [tkComment,tkEOF]) then
+      AssertEquals('Wrong character, expected lineending.',tkLineEnding,tk);
     AssertEquals('EOF reached.',tkEOF,FScanner.FetchToken);
     end;
 end;
@@ -873,6 +916,144 @@ begin
   AssertEquals('Correct trim',S,TestTokenString);
   DoTestToken(pscanner.tkString,' `AB'#13#10' CD`');
   AssertEquals('Correct trim 2',S2,TestTokenString);
+end;
+
+
+procedure TTestScanner.DoTestDelphiMultiLineString;
+
+begin
+  TestTokens([pscanner.tkWhitespace,pscanner.tkString],FMultiLine);
+end;
+
+procedure TTestScanner.DoTestDelphiMultiLine;
+
+var
+  S1,S2 : String;
+begin
+  S1:='Line 1';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2]);
+  DoTestDelphiMultiLineString;
+end;
+
+
+procedure TTestScanner.TestDelphiMultiLineNotEnabled;
+
+begin
+  AssertException('Must be enabled',EScannerError,@DoTestDelphiMultiLine);
+end;
+
+procedure TTestScanner.TestDelphiMultiLineWrongIndent;
+var
+  Prefix,S1,S2 : String;
+begin
+  S1:='Line 1';
+  S2:='Line 2';
+  Prefix:='    ';
+  FMultiLine:=Prefix+TripleQuote+sLineBreak;    // Line 1
+  FMultiLine:=FMultiLine+Prefix+S1+sLineBreak;  // Line 2
+  FMultiLine:=FMultiLine+'  '+S2+sLineBreak;    // Line 3,  2 indent so error col is 2.
+  FMultiLine:=FMultiLine+Prefix+TripleQuote+sLineBreak;  // Line 4
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  // We check the error message for the displayed line number and column.
+  AssertException('Wrong indent',EScannerError,@DoTestDelphiMultiLineString,'afile.pp(3,2) Error:  Inconsistent indent characters');
+end;
+
+procedure TTestScanner.TestDelphiMultiLineSpecial1;
+
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1 ''#39';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2]);
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  DoTestDelphiMultiLineString;
+  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+end;
+
+procedure TTestScanner.TestDelphiMultiLineSpecial2;
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1 ''^A';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2]);
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  DoTestDelphiMultiLineString;
+  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+end;
+
+procedure TTestScanner.TestDelphiMultiLineTrailingGarbage1;
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2],2,SingleQuote);
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  // test on actual error message, we need
+  AssertException('Trailing garbage leads to error',EScannerError,@DoTestDelphiMultiLineString,'afile.pp(4,7) Error: string exceeds end of line');
+end;
+
+procedure TTestScanner.TestDelphiMultiLineTrailingGarbage2;
+
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1 ';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2],2,'^A');
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  // EAssertionFailedError because the last token is a Dereferencing token
+  AssertException('Trailing garbage leads to error',EAssertionFailedError,@DoTestDelphiMultiLineString,'"Wrong character, expected lineending." expected: <tkLineEnding> but was: <tkChar>');
+end;
+
+procedure TTestScanner.TestDelphiMultiLineTrailingGarbage3;
+
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1 ';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2],2,'#01');
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  // EAssertionFailedError because the last token is a Dereferencing token
+  AssertException('Trailing garbage leads to error',EAssertionFailedError,@DoTestDelphiMultiLineString,'"Wrong character, expected lineending." expected: <tkLineEnding> but was: <tkChar>');
+end;
+
+procedure TTestScanner.TestDelphiMultiLineEmbeddedQuotes;
+var
+  S1,S2,S3 : String;
+
+begin
+  S1:='Line 1 ';
+  S2:='Line 2 '+TripleQuote;
+  S3:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2,S3],2,'',5);
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  DoTestDelphiMultiLineString;
+  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+sLineBreak+S3+SingleQuote,TestTokenString);
+end;
+
+
+procedure TTestScanner.TestDelphiMultiLine;
+
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2]);
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  DoTestDelphiMultiLineString;
+  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
 end;
 
 procedure TTestScanner.TestCharString;
@@ -2253,6 +2434,21 @@ begin
   AssertEquals('Library name','../solong/my-file.min.js',LibName);
   AssertEquals('Library alias','MyFile',LibAlias);
   AssertEquals('Library options','opt1, opt2',LibOptions);
+end;
+
+procedure TTestScanner.TestTextBlockDirective;
+begin
+  DoTestToken(tkComment,'{$TEXTBLOCK LF}');
+  AssertEquals('Correct EOL style',elLF,Scanner.MultilineStringsEOLStyle);
+  DoTestToken(tkComment,'{$TEXTBLOCK CRLF}');
+  AssertEquals('Correct EOL style',elCRLF,Scanner.MultilineStringsEOLStyle);
+  DoTestToken(tkComment,'{$TEXTBLOCK CR}');
+  AssertEquals('Correct EOL style',elCR,Scanner.MultilineStringsEOLStyle);
+  DoTestToken(tkComment,'{$TEXTBLOCK NATIVE}');
+  AssertEquals('Correct EOL style',elPlatform,Scanner.MultilineStringsEOLStyle);
+  // Ident allowed after...
+  DoTestToken(tkComment,'{$TEXTBLOCK NATIVE XYZ}');
+  AssertEquals('Correct EOL style',elPlatform,Scanner.MultilineStringsEOLStyle);
 end;
 
 initialization
