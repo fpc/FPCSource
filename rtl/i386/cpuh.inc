@@ -25,6 +25,8 @@ const
   has_sse2_support : boolean = false;
   has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
+  has_avx_support : boolean = false;
+  has_avx2_support : boolean = false;
 
 function fpc_x86_inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
 function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];

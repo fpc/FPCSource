@@ -2091,18 +2091,19 @@ Procedure SysResetFPU;
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
   var
-    _ecx,_edx : longint;
+    _eax,_ecx_cpuid1,_edx_cpuid1,_ebx : longint;
   begin
     if cpuid_support then
       begin
         asm
             movl $1,%eax
+            xorl %ecx,%ecx
             cpuid
-            movl %edx,_edx
-            movl %ecx,_ecx
+            movl %edx,_edx_cpuid1
+            movl %ecx,_ecx_cpuid1
         end ['ebx'];
-        has_mmx_support:=(_edx and $800000)<>0;
-        if ((_edx and $2000000)<>0) then
+        has_mmx_support:=(_edx_cpuid1 and $800000)<>0;
+        if ((_edx_cpuid1 and $2000000)<>0) then
           begin
             os_supports_sse:=true;
             sse_check:=true;
@@ -2121,8 +2122,34 @@ procedure fpc_cpucodeinit;
           end;
         if has_sse_support then
           begin
-            has_sse2_support:=((_edx and $4000000)<>0);
-            has_sse3_support:=((_ecx and $200)<>0);
+            has_sse2_support:=((_edx_cpuid1 and $4000000)<>0);
+            has_sse3_support:=((_ecx_cpuid1 and $200)<>0);
+
+            { now avx }
+            asm
+              xorl %eax,%eax
+              cpuid
+              movl %eax,_eax
+            end;
+            if _eax>=7 then
+              begin
+                asm
+                  xorl %ecx,%ecx
+                  .byte   0x0f,0x01,0xd0 { xgetbv }
+                  movl %eax,_eax
+                end;
+                if (_eax and 6)=6 then
+                  begin
+                    has_avx_support:=(_ecx_cpuid1 and $10000000)<>0;
+                    asm
+                      movl $7,%eax
+                      xorl %ecx,%ecx
+                      cpuid
+                      movl %ebx,_ebx
+                    end;
+                    has_avx2_support:=(_ebx and $20)<>0;
+                  end;
+              end;
           end;
       end;
 
