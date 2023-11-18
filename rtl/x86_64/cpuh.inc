@@ -17,6 +17,9 @@
 const
   {$I cpuinnr.inc}
 
+  has_avx_support : boolean = false;
+  has_avx2_support : boolean = false;
+
 function fpc_x86_inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
 function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
 function fpc_x86_inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];

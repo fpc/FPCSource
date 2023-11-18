@@ -1249,6 +1249,8 @@ const
 
 {$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
+  var
+    _eax,_ebx,_ecx : dword;
   begin
     { don't let libraries influence the FPU cw set by the host program }
     if IsLibrary then
@@ -1257,6 +1259,36 @@ procedure fpc_cpuinit;
         DefaultMXCSR:=GetMXCSR;
       end;
     SysResetFPU;
+    asm
+      xorl %eax,%eax
+      cpuid
+      movl %eax,_eax
+    end;
+    if _eax>=7 then
+      begin
+        asm
+          xorl %ecx,%ecx
+          .byte   0x0f,0x01,0xd0 { xgetbv }
+          movl %eax,_eax
+        end;
+        if (_eax and 6)=6 then
+          begin
+            asm
+              movl $1,%eax
+              xorl %ecx,%ecx
+              cpuid
+              movl %ecx,_ecx
+            end;
+            has_avx_support:=(_ecx and $10000000)<>0;
+            asm
+              movl $7,%eax
+              xorl %ecx,%ecx
+              cpuid
+              movl %ebx,_ebx
+            end;
+            has_avx2_support:=(_ebx and $20)<>0;
+          end;
+      end;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
