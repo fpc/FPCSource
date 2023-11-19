@@ -305,6 +305,21 @@ end;
        ErrCode:=Code;
     end;
 
+  
+constructor EInOutArgumentException.Create(const aMsg, aPath: string); overload;
+
+begin
+  Path:=aPath;
+  Inherited Create(aMsg);
+end;
+
+constructor EInOutArgumentException.CreateRes(ResStringRec: PResStringRec; const aPath: string); overload;
+
+begin
+  Path:=aPath;
+  Inherited CreateRes(ResStringRec);
+end;
+
 {$if defined(win32) or defined(win64) or defined (wince)}
 function EExternal.GetExceptionRecord: PExceptionRecord;
 begin
