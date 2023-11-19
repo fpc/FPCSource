@@ -1272,7 +1272,7 @@ const
      msOut,msDefaultPara,msDuplicateNames,msHintDirective,
      msProperty,msDefaultInline,msExcept,msAdvancedRecords,msTypeHelpers,
      msPrefixedAttributes,msArrayOperators,msImplicitFunctionSpec,
-     msFunctionReferences,msAnonymousFunctions
+     msFunctionReferences,msAnonymousFunctions,msDelphiMultiLineStrings
      ];
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];

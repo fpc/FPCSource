@@ -147,6 +147,7 @@ type
     procedure TestDelphiMultiLineTrailingGarbage2;
     procedure TestDelphiMultiLineTrailingGarbage3;
     procedure TestDelphiMultiLineEmbeddedQuotes;
+    procedure TestDelphiMultiLineInDelphiMode;
     Procedure TestTextBlockDirective;
     procedure TestNumber;
     procedure TestChar;
@@ -1039,6 +1040,21 @@ begin
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   DoTestDelphiMultiLineString;
   AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+sLineBreak+S3+SingleQuote,TestTokenString);
+end;
+
+procedure TTestScanner.TestDelphiMultiLineInDelphiMode;
+
+  var
+    S1,S2 : String;
+
+  begin
+    S1:='Line 1';
+    S2:='Line 2';
+    FMultiLine:='{$mode delphi}'+sLineBreak+CreateDelphiMultiLine([S1,S2]);
+    TestTokens([pscanner.tkComment, pscanner.tkLineEnding,pscanner.tkWhitespace,pscanner.tkString],FMultiLine);
+
+    AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+
 end;
 
 
