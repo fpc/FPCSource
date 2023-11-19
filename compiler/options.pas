@@ -2175,6 +2175,8 @@ begin
       target_unsup_features:=[f_threading];
     system_m68k_atari:
       target_unsup_features:=[f_threading];
+    system_m68k_human68k:
+      target_unsup_features:=[f_threading,f_dynlibs];
     { classic amiga has dynamic libraries, but they cannot be integrated in the
       normal dynlibs infrastructure due to architectural differences, so therefore
       lets disable the feature. }
@@ -2201,8 +2203,8 @@ begin
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
 {$ifdef m68k}
-   { always enable vlink as default linker for the Sinclair QL and Atari }
-   if (target_info.system in [system_m68k_sinclairql,system_m68k_atari]) and
+   { always enable vlink as default linker for the Sinclair QL, Atari, and Human 68k }
+   if (target_info.system in [system_m68k_sinclairql,system_m68k_atari,system_m68k_human68k]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif m68k}
@@ -5511,7 +5513,8 @@ begin
           end;
       end;
     system_m68k_atari,
-    system_m68k_sinclairql:
+    system_m68k_sinclairql,
+    system_m68k_human68k:
       begin
         if not option.CPUSetExplicitly then
           init_settings.cputype:=cpu_mc68000;

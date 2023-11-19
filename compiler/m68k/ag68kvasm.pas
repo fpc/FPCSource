@@ -102,7 +102,8 @@ unit ag68kvasm;
           system_m68k_amiga,
           system_m68k_atari,
           system_m68k_embedded,
-          system_m68k_sinclairql: objtype:='-Felf';
+          system_m68k_sinclairql,
+          system_m68k_human68k: objtype:='-Felf';
         else
           internalerror(2016052601);
         end;
@@ -136,7 +137,7 @@ unit ag68kvasm;
          idtxt  : 'VASM';
          asmbin : 'vasmm68k_std';
          asmcmd:  '-quiet -elfregs -gas $OTYPE $ARCH -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_sinclairql,system_m68k_embedded];
+         supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_sinclairql,system_m68k_human68k,system_m68k_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;

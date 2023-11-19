@@ -97,6 +97,9 @@ uses
 {$ifdef haiku}
   ,i_haiku
 {$endif haiku}
+{$ifdef human68k}
+  ,i_human68k
+{$endif human68k}
 {$ifdef linux}
   ,i_linux
 {$endif linux}

@@ -56,6 +56,9 @@ implementation
     {$ifndef NOTARGETSINCLAIRQL}
       ,t_sinclairql
     {$endif}
+    {$ifndef NOTARGETHUMAN68K}
+      ,t_human68k
+    {$endif}
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}

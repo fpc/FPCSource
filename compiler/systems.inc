@@ -213,7 +213,8 @@
              system_mips64el_linux,     { 118 }
              system_riscv32_freertos,   { 119 }
              system_loongarch64_linux,  { 120 }
-             system_aarch64_iphonesim   { 121 }
+             system_aarch64_iphonesim,  { 121 }
+             system_m68k_human68k       { 122 }
        );
 
      type
@@ -331,7 +332,8 @@
              ld_msxdos,
              ld_amstradcpc,
              ld_sinclairql,
-             ld_wasi
+             ld_wasi,
+             ld_human68k
        );
 
        tar = (ar_none
