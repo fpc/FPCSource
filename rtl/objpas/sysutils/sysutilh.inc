@@ -204,6 +204,7 @@ type
    EInvalidInsert = class(Exception);
 
    EPackageError = class(Exception);
+   ECFError = class(Exception);
 
    EOSError = class(Exception)
    public
@@ -216,6 +217,12 @@ type
    ENoDynLibsSupport = class(Exception);
 
    EProgrammerNotFound = class(Exception);
+   
+   EMonitor = class(Exception);
+   EMonitorLockException = class(EMonitor);
+   ENoMonitorSupportException = class(EMonitor);   
+
+   EObjectDisposed = class(Exception);
 
    ENotImplemented = class(Exception);
 
@@ -229,9 +236,18 @@ type
    EFileNotFoundException = class(Exception);
    EPathNotFoundException = class(Exception);
 
+   EInOutArgumentException = class(EArgumentException)
+   public
+     Path: string;
+     constructor Create(const aMsg, aPath: string); overload;
+     constructor CreateRes(ResStringRec: PResStringRec; const aPath: string); overload;
+   end;
+
    EInvalidOpException = class(Exception);
 
    ENoConstructException = class(Exception);
+
+   EOperationCancelled = class(Exception);
 
    { Exception handling routines }
    function ExceptObject: TObject;
