@@ -86,14 +86,14 @@ interface
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
     win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
-    wasi
+    wasi,human68k
   );}
   TOS = fpmkunit.TOS;
 {$else}
       TCpu=(
         c_none,i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,
-	armeb,armel,mips,mipsel,mips64,mips64el,jvm,i8086,aarch64,
-	wasm32,sparc64,riscv32,riscv64,xtensa,z80,loongarch64
+        armeb,armel,mips,mipsel,mips64,mips64el,jvm,i8086,aarch64,
+        wasm32,sparc64,riscv32,riscv64,xtensa,z80,loongarch64
       );
 
       TOS=(
@@ -102,7 +102,7 @@ interface
         palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
         win64,wince,gba,nds,embedded,symbian,nativent,iphonesim,
         wii,aix,java,android,msdos,aros,dragonfly,win16,freertos,
-        zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasi
+        zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasi,human68k
       );
 {$endif}
 
@@ -111,20 +111,20 @@ interface
     const
       CpuStr : array[TCpu] of string=(
         'none','i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr',
-	'armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64',
-	'wasm32','sparc64','riscv32','riscv64','xtensa','z80', 'loongarch64'
+        'armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64',
+        'wasm32','sparc64','riscv32','riscv64','xtensa','z80', 'loongarch64'
       );
 
       CpuSuffix : array[TCpu] of string=(
         '_none','_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr',
-	'_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64',
-	'_wasm32','_sparc64','_riscv32','_riscv64','xtensa','_z80', 'loongarch64'
+        '_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64',
+        '_wasm32','_sparc64','_riscv32','_riscv64','xtensa','_z80', 'loongarch64'
       );
 
       ppcSuffix : array[TCpu] of string=(
         'none','386','68k','ppc','sparc','x64','arm','ppc64','avr',
-	'armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','a64',
-	'wasm32','sparc64','rv32','rv64','xtensa','z80', 'loongarch64'
+        'armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','a64',
+        'wasm32','sparc64','rv32','rv64','xtensa','z80', 'loongarch64'
       );
 
       OSStr : array[TOS] of string=(
@@ -134,7 +134,7 @@ interface
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
         'dragonfly', 'win16', 'freertos', 'zxspectrum', 'msxdos',
-        'ios','amstradcpc','sinclairql','wasi'
+        'ios','amstradcpc','sinclairql','wasi','human68k'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -144,7 +144,7 @@ interface
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_freertos','_zxspectrum','_msxdos',
-        '_ios','_amstradcpc','_sinclairql','_wasi'
+        '_ios','_amstradcpc','_sinclairql','_wasi','_human68k'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -202,7 +202,8 @@ interface
         { ios }     ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true ,  false, false, false,  false,  false, false, false),
         {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true,  false),
         {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),
-        { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false)
+        { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false),
+        { human68k }( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false)
       );
 {$endif }
     type
