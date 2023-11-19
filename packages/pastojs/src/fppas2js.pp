@@ -1340,7 +1340,8 @@ const
     msOmitRTTI,
     msMultiHelpers,
     msImplicitFunctionSpec,
-    msMultilineStrings];
+    msMultilineStrings,
+    msDelphiMultilineStrings];
 
   bsAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
