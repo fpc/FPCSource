@@ -715,10 +715,10 @@ implementation
         doinclude:=true;
         case s[length(s)] of
           '+':
-            s:=copy(s,1,length(s)-1);
+            setlength(s,length(s)-1);
           '-':
             begin
-              s:=copy(s,1,length(s)-1);
+              setlength(s,length(s)-1);
               doinclude:=false;
             end;
         end;
