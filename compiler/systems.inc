@@ -285,7 +285,7 @@
              ,as_wasm32_wasm
              ,as_clang_llvm_darwin
              ,as_m68k_elf32
-	     ,as_win64_gas
+             ,as_win64_gas
        );
 
        tlink = (ld_none,
