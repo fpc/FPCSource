@@ -1040,7 +1040,7 @@ begin
   Result:=''; // DO NOT LOCALIZE
   SetLength(Result,FNLen);
   for i:=1 to FNLen do
-    if i = DotAt then
+    if i <> DotAt then
       begin
       C:=Random(3);
       Result[I]:=SelectChars[C][1+Random(SelectLengths[C])];
