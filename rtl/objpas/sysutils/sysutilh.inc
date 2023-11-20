@@ -241,6 +241,7 @@ type
      Path: string;
      constructor Create(const aMsg, aPath: string); overload;
      constructor CreateRes(ResStringRec: PResStringRec; const aPath: string); overload;
+     constructor CreateFmt(const fmt : string;  const args : array of const; const aPath : String); overload;
    end;
 
    EInvalidOpException = class(Exception);
