@@ -1250,7 +1250,7 @@ const
 {$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   var
-    _eax,_ebx,_ecx : dword;
+    _eax,_ebx,cpuid1_ecx : dword;
   begin
     { don't let libraries influence the FPU cw set by the host program }
     if IsLibrary then
@@ -1267,26 +1267,30 @@ procedure fpc_cpuinit;
     if _eax>=7 then
       begin
         asm
+          movl $1,%eax
           xorl %ecx,%ecx
-          .byte   0x0f,0x01,0xd0 { xgetbv }
-          movl %eax,_eax
+          cpuid
+          movl %ecx,cpuid1_ecx
         end;
-        if (_eax and 6)=6 then
+        { XGETBV support? }
+        if (cpuid1_ecx and $8000000)<>0 then 
           begin
             asm
-              movl $1,%eax
               xorl %ecx,%ecx
-              cpuid
-              movl %ecx,_ecx
+              .byte   0x0f,0x01,0xd0 { xgetbv }
+              movl %eax,_eax
             end;
-            has_avx_support:=(_ecx and $10000000)<>0;
-            asm
-              movl $7,%eax
-              xorl %ecx,%ecx
-              cpuid
-              movl %ebx,_ebx
-            end;
-            has_avx2_support:=(_ebx and $20)<>0;
+            if (_eax and 6)=6 then
+              begin
+                has_avx_support:=(cpuid1_ecx and $10000000)<>0;
+                asm
+                  movl $7,%eax
+                  xorl %ecx,%ecx
+                  cpuid
+                  movl %ebx,_ebx
+                end;
+                has_avx2_support:=(_ebx and $20)<>0;
+              end;
           end;
       end;
   end;
