@@ -4049,16 +4049,16 @@ begin
       option.paratargetasm:=as_clang_llvm;
     end;
 {$endif llvm}
+  if (option.paratargetasm=as_none) then
+    begin
+      if (target_info.endian<>source_info.endian) then
+        option.paratargetasm:=target_info.assemextern
+      else
+        option.paratargetasm:=target_info.assem;
+    end;
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
     begin
-      if (option.paratargetasm=as_default) then
-        begin
-          if (target_info.endian<>source_info.endian) then
-            option.paratargetasm:=target_info.assemextern
-          else
-            option.paratargetasm:=target_info.assem;
-        end;
       if not set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then
