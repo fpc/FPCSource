@@ -77,8 +77,7 @@ const
         addis  r4,r5,(factor-.Lpiclab)@ha
         lfd    f2,(factor-.Lpiclab)@l(r4)
         {$else darwin}
-        lis    r4,(factor)@ha
-        lfd    f2,(factor)@l(r4)
+        {$error Add pic code for linux/ppc32}
         {$endif darwin}
         {$else FPC_PIC}
         lis    r4,factor@ha
@@ -108,8 +107,7 @@ const
         addis  r4,r5,(longint_to_real_helper-.Lpiclab)@ha
         lfd    f0,(longint_to_real_helper-.Lpiclab)@l(r4)
         {$else darwin}
-        lis    r4,(longint_to_real_helper)@ha
-        lfd    f0,(longint_to_real_helper)@l(r4)
+        {$error Add pic code for linux/ppc32}
         {$endif darwin}
         {$else FPC_PIC}
         lis    r4,longint_to_real_helper@ha
@@ -135,8 +133,7 @@ const
         addis  r4,r5,(factor2-.Lpiclab)@ha
         lfd    f2,(factor2-.Lpiclab)@l(r4)
         {$else darwin}
-        lis    r4,(factor2)@ha
-        lfd    f2,(factor2)@l(r4)
+        {$error Add pic code for linux/ppc32}
         {$endif darwin}
         {$else FPC_PIC}
         lis    r4,factor2@ha
@@ -300,8 +297,7 @@ asm
            addis  r3,r5,(longint_to_real_helper-.Lpiclab)@ha
            lfd    f1,(longint_to_real_helper-.Lpiclab)@l(r3)
            {$else darwin}
-           lis    r3,(longint_to_real_helper)@ha
-           lfd    f1,(longint_to_real_helper)@l(r3)
+           {$error Add pic code for linux/ppc32}
            {$endif darwin}
            {$else FPC_PIC}
            lis    r3,longint_to_real_helper@ha
@@ -323,11 +319,7 @@ asm
            lfd    f3,temp
            lfd    f2,(int_to_real_factor-.Lpiclab)@l(r4)
            {$else darwin}
-           lis    r4,(cardinal_to_real_helper)@ha
-           lfd    f1,(cardinal_to_real_helper)@l(r4)
-           lis    r4,(int_to_real_factor)@ha
-           lfd    f3,temp
-           lfd    f2,(int_to_real_factor)@l(r4)
+           {$error Add pic code for linux/ppc32}
            {$endif darwin}
            {$else FPC_PIC}
            lis    r4,cardinal_to_real_helper@ha
@@ -375,8 +367,7 @@ asm
            addis  r3,r5,(cardinal_to_real_helper-.Lpiclab)@ha
            lfd    f1,(cardinal_to_real_helper-.Lpiclab)@l(r3)
            {$else darwin}
-           lis    r3,(cardinal_to_real_helper)@ha
-           lfd    f1,(cardinal_to_real_helper)@l(r3)
+           {$error Add pic code for linux/ppc32}
            {$endif darwin}
            {$else FPC_PIC}
            lis    r3,cardinal_to_real_helper@ha
@@ -395,8 +386,7 @@ asm
            addis  r4,r5,(int_to_real_factor-.Lpiclab)@ha
            lfd    f2,(int_to_real_factor-.Lpiclab)@l(r4)
            {$else darwin}
-           lis    r4,(int_to_real_factor)@ha
-           lfd    f2,(int_to_real_factor)@l(r4)
+           {$error Add pic code for linux/ppc32}
            {$endif darwin}
            {$else FPC_PIC}
            lis    r4,int_to_real_factor@ha
