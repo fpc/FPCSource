@@ -2131,7 +2131,7 @@ procedure fpc_cpucodeinit;
               cpuid
               movl %eax,_eax
             end;
-            if _eax>=7 then
+            if (_eax>=7) and (_ecx_cpuid1 and $08000000<>0 {XGETBV support?}) then
               begin
                 asm
                   xorl %ecx,%ecx
