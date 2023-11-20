@@ -411,19 +411,19 @@ interface
                              + [system_i386_beos,system_i386_haiku]
                              + [system_powerpc_morphos];
 
-       systems_support_uf2 = [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded];
+       systems_support_uf2 = [system_arm_embedded,system_avr_embedded,system_mipsel_embedded];
 
        { all internal COFF writers }
        asms_int_coff = [as_arm_pecoffwince,as_x86_64_pecoff,as_i386_pecoffwince,
                         as_i386_pecoffwdosx,as_i386_pecoff,as_i386_coff];
 
        { all internal ELF writers }
-       asms_int_elf = [as_arm_elf32,as_x86_64_elf64,as_m68k_elf32,
+       asms_int_elf = [as_arm_elf32,as_x86_64_elf64,
                        as_sparc_elf32,as_i386_elf32];
 
        { all internal writers }
        asms_internals = asms_int_coff + asms_int_elf
-                        + [as_i8086_omf, as_z80_rel, as_wasm32_wasm, as_i386_macho];
+                        + [as_i8086_omf, as_i386_macho];
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
