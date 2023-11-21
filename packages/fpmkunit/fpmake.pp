@@ -30,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'Basic library of the fpmake/fppkg build system.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,atari,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,atari,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi,human68k];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

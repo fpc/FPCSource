@@ -22,7 +22,7 @@ begin
     begin
     P:=AddPackage('utils-fpcmkcfg');
     P.ShortName:='fcmk';
-    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,atari,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,atari,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi,human68k];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

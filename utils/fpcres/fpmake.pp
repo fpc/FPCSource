@@ -20,7 +20,7 @@ begin
     begin
     P:=AddPackage('utils-fpcres');
     P.ShortName:='fprs';
-    P.OSes:=AllOSes-[atari,embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes:=AllOSes-[atari,embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi,human68k];
     //P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,ios,solaris,os2,emx,aix,aros,amiga,morphos];
 
     if Defaults.CPU=jvm then

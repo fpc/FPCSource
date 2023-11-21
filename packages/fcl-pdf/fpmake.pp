@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'PDF generating and TTF file info library';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,win16,wince,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
+    P.OSes:=P.OSes-[embedded,win16,wince,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,human68k];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

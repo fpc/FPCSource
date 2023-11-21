@@ -25,7 +25,7 @@ begin
     P.Description := 'Mustache templates for FPC';
     P.NeedLibC:= false;
     P.SourcePath.Add('src');
-    P.OSes:=P.OSes-[embedded,win16,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
+    P.OSes:=P.OSes-[embedded,win16,msdos,nativent,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,human68k];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
