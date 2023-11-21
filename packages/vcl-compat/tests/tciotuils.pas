@@ -41,6 +41,7 @@ type
     Procedure TestMatchesPattern;
     Procedure TestChangeExtension;
     Procedure TestCombine;
+    Procedure TestCombineMulti;
     Procedure TestGetDirectoryName;
     Procedure TestGetExtension;
     Procedure TestGetFileName;
@@ -388,6 +389,80 @@ begin
   TestIt('/path/','/path/','');
   TestIt('/path/a.doc','/path','a.doc');
   TestIt('/path/a.doc','/path/','a.doc');
+end;
+
+procedure TTestTPath.TestCombineMulti;
+
+  procedure DoTest(const Paths: array of String; Validate: Boolean; Expected: string; ExceptionExpected: Boolean=False);
+
+    function ArgsToStr: string;
+    var
+      i: Integer;
+    begin
+      Result := '';
+      for i := Low(Paths) to High(Paths) do
+        Result := Result+''''+Paths[i] + ''',';
+      if (Result <> '') then SetLength(Result, Length(Result)-1);
+      Result := '['+Result+']';
+    end;
+
+  var
+    Res,FailMsg: String;
+    P : Array of string;
+    I : Integer;
+
+  begin
+    FailMsg:='';
+    try
+      SetLength(P,Length(Paths));
+      for I:=0 to Length(Paths)-1 do
+        begin
+        P[i]:=Paths[i];
+        DoDirSeparators(P[i]);
+        end;
+      DoDirSeparators(Expected);
+      Res := TPath.Combine(P,Validate);
+      AssertEquals(ArgsToStr,Expected,Res)
+    except
+      on E: Exception do
+        if not ExceptionExpected then
+          FailMsg:=Format('%s : an unexpected exception %s occurred: %s',[ArgsToStr,E.ClassName,E.Message])
+    end;
+    if FailMsg<>'' then
+      Fail(FailMsg);
+  end;
+
+  var
+    S: String;
+
+begin
+  //EInOutError
+  DoTest([''],True,'');
+  DoTest(['',''],True,'');
+  DoTest(['','',''],True,'');
+  DoTest(['a','b','c'],True,'a\b\c');
+  DoTest(['a','b','\c'],True,'\c');
+  DoTest(['a','\b','c'],True,'\b\c');
+  DoTest(['\a','\b','c'],True,'\b\c');
+  DoTest(['\a','\b','\c'],True,'\c');
+  DoTest(['\a','b','\c:'],True,'\c:');
+  DoTest(['a','<>','\b','c','\d'],True,'',True);
+  {$IFDEF WINDOWS}
+  DoTest(['c:','a','b'],True,'c:a\b',False);
+  {$ENDIF}
+  DoTest(['\1','..\2','..\3','..4'],True,'\1\..\2\..\3\..4');
+  DoTest(['\1','','','4','','6',''],True,'\1\4\6');
+  DoTest(['','','','<>|'],True,'<>|',True);
+  DoTest([''],False,'');
+  DoTest(['',''],False,'');
+  DoTest(['','',''],False,'');
+  DoTest(['a','b','c'],False,'a\b\c');
+  DoTest(['a','b','\c'],False,'\c');
+  DoTest(['a','\b','c'],False,'\b\c');
+  DoTest(['\a','\b','c'],False,'\b\c');
+  DoTest(['\a','\b','\c'],False,'\c');
+  DoTest(['\a','b','\c:'],False,'\c:');
+  DoTest(['a','<>','\b','c','\d'],False,'\d',False);
 end;
 
 procedure TTestTPath.TestGetDirectoryName;
