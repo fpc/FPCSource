@@ -74,7 +74,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink $QLFLAGS $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b xfile $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
      end;
    end;
 end;
