@@ -204,7 +204,7 @@ begin
     begin
     P:=AddPackage('utils-fpcm');
     P.ShortName:='fpcm';
-    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,macosclassic,atari,palmos,human68k,zxspectrum,msxdos,amstradcpc,sinclairql];
+    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,macosclassic,atari,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,human68k];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
