@@ -5,7 +5,7 @@ default: all
 MAKEFILETARGETS=i386-linux m68k-linux powerpc-linux sparc-linux x86_64-linux arm-linux powerpc64-linux armeb-linux mips-linux mipsel-linux mips64-linux mips64el-linux aarch64-linux sparc64-linux riscv32-linux riscv64-linux xtensa-linux loongarch64-linux
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
-LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
+LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari human68k
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE

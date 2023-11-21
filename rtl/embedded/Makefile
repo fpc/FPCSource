@@ -5,7 +5,7 @@ default: all
 MAKEFILETARGETS=i386-embedded m68k-embedded powerpc-embedded sparc-embedded x86_64-embedded arm-embedded powerpc64-embedded avr-embedded armeb-embedded mipsel-embedded i8086-embedded aarch64-embedded wasm32-embedded riscv32-embedded riscv64-embedded xtensa-embedded z80-embedded
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
-LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
+LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari human68k
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
@@ -548,7 +548,6 @@ PROFILEUNIT=DOSApi.Profile
 RASPI2UNIT=EmbeddedApi.raspi2
 RASPI3UNIT=EmbeddedApi.raspi3
 RASPIUARTUNIT=EmbeddedApi.raspiuart
-RP2040UNIT=EmbeddedApi.rp2040
 RTLCONSTSUNIT=System.RtlConsts
 SAM3X8EUNIT=EmbeddedApi.sam3x8e
 SAMD51P19AUNIT=EmbeddedApi.samd51p19a
@@ -796,7 +795,6 @@ PROFILEUNIT=profile
 RASPI2UNIT=raspi2
 RASPI3UNIT=raspi3
 RASPIUARTUNIT=raspiuart
-RP2040UNIT=rp2040
 RTLCONSTSUNIT=rtlconsts
 SAM3X8EUNIT=sam3x8e
 SAMD51P19AUNIT=samd51p19a

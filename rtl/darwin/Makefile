@@ -5,7 +5,7 @@ default: all
 MAKEFILETARGETS=i386-darwin i386-iphonesim powerpc-darwin x86_64-darwin x86_64-iphonesim arm-ios powerpc64-darwin aarch64-darwin aarch64-iphonesim aarch64-ios
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
-LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
+LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari human68k
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
