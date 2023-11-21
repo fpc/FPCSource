@@ -48,6 +48,8 @@ begin
     T:=P.Targets.AddUnit('system.ansistrings.pp');
     T:=P.Targets.AddUnit('system.imagelist.pp');
     T:=P.Targets.AddUnit('system.diagnostics.pp');
+    T:=P.Targets.AddUnit('system.notification.pp');
+    T.Dependencies.Add('system.messaging');
 
 
 {$ifndef ALLPACKAGES}
