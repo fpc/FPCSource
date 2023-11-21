@@ -248,7 +248,7 @@ const
   { 119 } 'FreeRTos-RiscV32',
   { 120 } 'Linux-LoongArch64',
   { 121 } 'iPhoneSim-AArch64',
-  { 122 ] 'Human68k-m68k'
+  { 122 } 'Human68k-m68k'
   );
 
 const
