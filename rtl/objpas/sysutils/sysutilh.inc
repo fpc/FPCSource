@@ -297,6 +297,7 @@ type
 
 {$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+generic function Exchange<T>(var target:T; const newvalue:T) :T; inline;
 {$ENDIF}
 
 Var

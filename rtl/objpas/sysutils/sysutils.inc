@@ -878,6 +878,12 @@ begin
   else
     Result:=ifFalse;
 end;
+
+generic function Exchange<T>(var target:T; const newvalue:T) :T;
+begin
+  Result := target;
+  target := newvalue;
+end;
 {$ENDIF}
 
 Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
