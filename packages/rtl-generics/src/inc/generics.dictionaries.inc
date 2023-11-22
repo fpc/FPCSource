@@ -1059,7 +1059,11 @@ constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACapacity: Siz
   const AComparer: IExtendedEqualityComparer<TKey>);
 begin
   FMaxLoadFactor := TProbeSequence.DEFAULT_LOAD_FACTOR;
-  FEqualityComparer := AComparer;
+  // Delphi creates one if you pass nil...
+  if aComparer=Nil then
+    FEqualityComparer := TExtendedEqualityComparer<TKey>.Default(THashFactory)
+  else
+    FEqualityComparer := AComparer;
   SetCapacity(ACapacity);
 end;
 
