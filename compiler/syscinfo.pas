@@ -38,7 +38,7 @@ type
 
 const
   syscall_conventions: array[1..10] of tsyscallinfo = (
-      ( token: NOTOKEN;    procoption: po_syscall;           validon: [system_m68k_atari,system_m68k_palmos,system_arm_palmos] ),
+      ( token: NOTOKEN;    procoption: po_syscall;           validon: [system_m68k_atari,system_m68k_palmos,system_arm_palmos,system_m68k_human68k] ),
       ( token: _LEGACY;    procoption: po_syscall_legacy;    validon: [system_powerpc_morphos,system_m68k_amiga] ),
       // old sysv naming, for compatibility only (on MorphOS/OS4)
       ( token: _SYSV;      procoption: po_syscall_basenone;  validon: [system_powerpc_morphos] ),
@@ -72,10 +72,11 @@ type
   end;
 
 const
-  default_syscall_conventions: array[0..8] of tsyscalldefaultinfo = (
+  default_syscall_conventions: array[0..9] of tsyscalldefaultinfo = (
       ( system: system_arm_palmos;      procoption: po_syscall ),
       ( system: system_m68k_palmos;     procoption: po_syscall ),
       ( system: system_m68k_atari;      procoption: po_syscall ),
+      ( system: system_m68k_human68k;   procoption: po_syscall ),
       ( system: system_m68k_amiga;      procoption: po_syscall_legacy ),
       ( system: system_powerpc_amiga;   procoption: po_syscall_basefirst ),
       ( system: system_powerpc_morphos; procoption: po_syscall_legacy ),

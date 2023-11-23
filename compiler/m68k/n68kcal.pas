@@ -115,6 +115,13 @@ implementation
               else
                 internalerror(2017081201);
             end;
+          system_m68k_human68k:
+            begin
+              if po_syscall in tprocdef(procdefinition).procoptions then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
+                end;
+            end;
           else
             internalerror(2004042901);
         end;

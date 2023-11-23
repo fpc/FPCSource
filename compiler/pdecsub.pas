@@ -2207,6 +2207,7 @@ procedure pd_syscall(pd:tabstractprocdef);
         case target_info.system of
           system_arm_palmos,
           system_m68k_palmos,
+          system_m68k_human68k,
           system_m68k_atari,
           system_m68k_amiga,
           system_powerpc_amiga:
@@ -2316,6 +2317,17 @@ begin
         message(parser_e_range_check_error)
       else
         tprocdef(pd).import_nr:=longint(v.svalue);
+
+      exit;
+    end;
+
+  if target_info.system = system_m68k_human68k then
+    begin
+      v:=get_intconst;
+      if ((v<$ff00) or (v>high(word))) then
+        message(parser_e_range_check_error)
+      else
+        tprocdef(pd).extnumber:=longint(v.svalue);
 
       exit;
     end;
