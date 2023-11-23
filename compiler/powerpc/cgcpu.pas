@@ -780,6 +780,8 @@ const
 
      var regcounter,firstregfpu,firstregint: TSuperRegister;
          href : treference;
+	 aoffset : aint;
+	 reg : tregister;
          usesfpr,usesgpr : boolean;
 
       begin
@@ -815,6 +817,7 @@ const
                     internalerror(2019050940);
                 end;
                 list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
+                current_asmdata.asmcfi.cfa_offset(list, NR_R0, href.offset);
                 if not(cs_profile in current_settings.moduleswitches) then
                   a_reg_dealloc(list,NR_R0);
               end;
@@ -840,13 +843,16 @@ const
              if tcpuprocinfo(current_procinfo).needs_frame_pointer then
                list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
+        current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
 
         if usesfpr then
           begin
              reference_reset_base(href,NR_R1,-8,ctempposinvalid,8,[]);
              for regcounter:=firstregfpu to RS_F31 do
                begin
-                 a_loadfpu_reg_ref(list,OS_F64,OS_F64,newreg(R_FPUREGISTER,regcounter,R_SUBNONE),href);
+                 reg:=newreg(R_FPUREGISTER,regcounter,R_SUBNONE);
+                 a_loadfpu_reg_ref(list,OS_F64,OS_F64,reg,href);
+                 current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
                  dec(href.offset,8);
                end;
              { compute start of gpr save area }
@@ -865,13 +871,22 @@ const
                 (firstregint <= RS_R29)) then
               begin
                 { TODO: TODO: 64 bit support }
+                aoffset:=href.offset;
                 dec(href.offset,(RS_R31-firstregint)*sizeof(pint));
                 list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
+                for regcounter:=firstregint to RS_R31 do
+                  begin
+                    reg:=newreg(R_INTREGISTER,regcounter,R_SUBNONE);
+                    current_asmdata.asmcfi.cfa_offset(list, reg, aoffset);
+                    dec(aoffset,4);
+		  end;
               end
             else
               for regcounter:=firstregint to RS_R31 do
                 begin
-                  a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter,R_SUBNONE),href);
+                  reg:=newreg(R_INTREGISTER,regcounter,R_SUBNONE);
+                  a_load_reg_ref(list,OS_INT,OS_INT,reg,href);
+                  current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
                   dec(href.offset,4);
                 end;
           end;
@@ -889,6 +904,7 @@ const
               begin
                 reference_reset_base(href,NR_STACK_POINTER_REG,-localsize,ctempposinvalid,8,[]);
                 a_load_store(list,A_STWU,NR_STACK_POINTER_REG,href);
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
               end
             else
               begin
@@ -907,6 +923,7 @@ const
                 else
                   list.concat(taicpu.op_reg_reg_const(A_ORIS,NR_R0,NR_R0,word(((-localsize) shr 16) and $ffff)));
                 a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
                 a_reg_dealloc(list,href.index);
               end;
           end;
@@ -917,6 +934,7 @@ const
           begin
             reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
+            current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
           end;
 
         { save the CR if/when we ever start using caller-save portions of that
