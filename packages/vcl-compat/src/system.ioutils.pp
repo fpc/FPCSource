@@ -173,8 +173,10 @@ type
     class constructor Create;
     class function IsValidPathChar(const AChar: Char): Boolean;
     class function IsValidFileNameChar(const AChar: Char): Boolean;
-    class function HasValidPathChars(const aPath: string; const UseWildcards: Boolean = false): Boolean;
-    class function HasValidFileNameChars(const FileName: string; const UseWildcards: Boolean = False): Boolean;
+    class function HasValidPathChars(const aPath: string; const UseWildcards: Boolean = false): Boolean; inline;
+    class function HasValidPathChars(const aPath: string; out Index: Integer; const UseWildcards: Boolean = false): Boolean;
+    class function HasValidFileNameChars(const FileName: string; const UseWildcards: Boolean = False): Boolean; inline;
+    class function HasValidFileNameChars(const FileName: string; out Index: Integer; const UseWildcards: Boolean = False): Boolean;
     class function GetExtendedPrefix(const aPath: string): TPathPrefixType;
     class function IsDriveRooted(const aPath: string): Boolean;
     class function IsExtendedPrefixed(const aPath: string): Boolean;
@@ -506,6 +508,14 @@ end;
 class function TPath.HasValidPathChars(const aPath: string;
   const UseWildcards: Boolean): Boolean;
 var
+  dummy: Integer;
+begin
+  Result:=TPath.HasValidPathChars(aPath, dummy, UseWildcards);
+end;
+
+class function TPath.HasValidPathChars(const aPath: string;
+  out Index: integer; const UseWildcards: Boolean): Boolean;
+var
   P: PChar;
   S,I,Len: Integer;
   C : Char;
@@ -521,6 +531,7 @@ begin
   Inc(P,S-1);
   for I:=S to Len do
     begin
+    Index:=i;
     C:=P^;
     if CheckWC and (CharInSet(C,['?','*'])) then
       exit;
@@ -533,6 +544,14 @@ end;
 
 class function TPath.HasValidFileNameChars(const FileName: string;
   const UseWildcards: Boolean): Boolean;
+var
+  dummy: Integer;
+begin
+  Result:=HasValidFileNameChars(FileName, dummy, UseWildCards);
+end;
+
+class function TPath.HasValidFileNameChars(const FileName: string;
+  out Index: Integer; const UseWildcards: Boolean): Boolean;
 var
   P: PChar;
   S,I,Len: Integer;
@@ -549,6 +568,7 @@ begin
   Inc(P,S-1);
   for I:=S to Len do
     begin
+    Index:=I;
     C:=P^;
     if CheckWC and (CharInSet(C,['?','*'])) then
       exit;
