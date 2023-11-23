@@ -1118,6 +1118,7 @@ var
   var
     regcount : TSuperRegister;
     href : TReference;
+    reg : TRegister;
     mayNeedLRStore : boolean;
     opc : tasmop;
   begin
@@ -1146,14 +1147,16 @@ var
       reference_reset_base(href, NR_STACK_POINTER_REG, -8, ctempposinvalid, 8, []);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
-          a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, newreg(R_FPUREGISTER,
-            regcount, R_SUBNONE), href);
+          reg:=newreg(R_FPUREGISTER, regcount, R_SUBNONE);
+          a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, reg, href);
+          current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
           dec(href.offset, tcgsize2size[OS_FLOAT]);
         end;
       if (gprcount > 0) then
         for regcount := RS_R31 downto firstreggpr do begin
-          a_load_reg_ref(list, OS_INT, OS_INT, newreg(R_INTREGISTER, regcount,
-            R_SUBNONE), href);
+          reg:=newreg(R_INTREGISTER, regcount, R_SUBNONE);
+	  a_load_reg_ref(list, OS_INT, OS_INT, reg, href);
+          current_asmdata.asmcfi.cfa_offset(list, reg, href.offset);
           dec(href.offset, sizeof(pint));
         end;
       { VMX registers not supported by FPC atm }
@@ -1165,6 +1168,7 @@ var
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
+      current_asmdata.asmcfi.cfa_offset(list, NR_R0, href.offset);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1225,6 +1229,7 @@ begin
   { save old stack frame pointer }
   if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
+  current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and
@@ -1232,6 +1237,7 @@ begin
     if (localsize <= high(smallint)) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, ctempposinvalid, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
+      current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
     end else begin
       reference_reset_base(href, NR_NO, -localsize, ctempposinvalid, 8, []);
 
@@ -1254,6 +1260,7 @@ begin
       list.concat(taicpu.op_reg_reg_const(A_ORI, NR_R0, NR_R0, word(href.offset)));
 
       list.concat(taicpu.op_reg_reg_reg(A_STDUX, NR_R1, NR_R1, NR_R0));
+      current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize);
     end;
   end;
 
@@ -1264,6 +1271,7 @@ begin
     begin
       reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
       a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
+      current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
     end;
 
   { CR register not used by FPC atm }
