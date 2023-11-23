@@ -258,12 +258,12 @@ begin
   with Info do
    begin
      {$ifndef netware}
-     ExeCmd[1]:= FindUtil(utilsprefix+'ld') + ' -Ur -T $RES $STRIP -o $TMPOBJ';
-     ExeCmd[2]:= FindUtil(utilsprefix+'nlmconv') + ' -T$RES';
+     ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
+     ExeCmd[2]:= 'nlmconv -T$RES';
      {$else}
      {for running on netware we need absolute pathes since ld has another working directory}
-     ExeCmd[1]:= FindUtil(utilsprefix+'ld') + ' -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
-     ExeCmd[2]:= FindUtil(utilsprefix+'nlmconv') + ' -T'+FExpand(outputexedir+'n'+Info.ResName);
+     ExeCmd[1]:= 'ld -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
+     ExeCmd[2]:= 'nlmconv -T'+FExpand(outputexedir+'n'+Info.ResName);
      {$endif}
    end;
 end;
@@ -578,6 +578,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
+  BinStr:=FindUtil(utilsprefix+BinStr);
   Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
 
@@ -592,6 +593,7 @@ begin
     NLMConvLinkFile.Free;
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
+    BinStr:=FindUtil(utilsprefix+BinStr);
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
