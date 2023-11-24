@@ -2418,7 +2418,24 @@ Implementation
               (getsupreg(taicpu(p1).oper[0]^.reg)+1=getsupreg(reg)) then
         Result:=true
       else
-        Result:=inherited RegInInstruction(Reg, p1);
+        begin
+          if SuperRegistersEqual(Reg, NR_DEFAULTFLAGS) then
+            begin
+              { Conditional instruction reads CPSR register }
+              if (taicpu(p1).condition <> C_None) then
+                Exit(True);
+
+              { Comparison instructions (and procedural jump) }
+              if (taicpu(p1).opcode in [A_BL, A_CMP, A_CMN, A_TST, A_TEQ]) then
+                Exit(True);
+
+              { Instruction sets CPSR register due to S suffix (floating-point
+                instructios won't raise false positives) }
+              if (taicpu(p1).oppostfix = PF_S) then
+                Exit(True)
+            end;
+          Result:=inherited RegInInstruction(Reg, p1);
+        end;
     end;
 
   const
