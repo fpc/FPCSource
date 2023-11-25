@@ -2094,6 +2094,26 @@ Implementation
       hp1, hp_last: tai;
     begin
       Result := False;
+      if not GetNextInstructionUsingReg(p, hp1, NR_DEFAULTFLAGS) then
+        Exit;
+
+      if (hp1.typ = ait_label) or
+        (
+          (hp1.typ = ait_instruction) and
+          (taicpu(hp1).condition = C_None) and
+          (
+            RegModifiedByInstruction(NR_DEFAULTFLAGS, hp1) or
+            is_calljmp(taicpu(hp1).opcode)
+          )
+        ) then
+        begin
+          { The comparison is a null operation }
+          DebugMsg(SPeepholeOptimization + 'CMP -> nop', p);
+          RemoveCurrentP(p);
+          Result := True;
+          Exit;
+        end;
+
       {
         change
         <op> reg,x,y
@@ -2103,7 +2123,6 @@ Implementation
       }
       if (taicpu(p).oppostfix = PF_None) and
         (taicpu(p).oper[1]^.val = 0) and
-        GetNextInstruction(p, hp1) and
         { be careful here, following instructions could use other flags
           however after a jump fpc never depends on the value of flags }
         { All above instructions set Z and N according to the following
@@ -2111,7 +2130,7 @@ Implementation
           N := result[31];
           EQ = Z=1; NE = Z=0;
           MI = N=1; PL = N=0; }
-        (MatchInstruction(hp1, A_B, [C_EQ,C_NE,C_MI,C_PL], []) or
+        (MatchInstruction(hp1, [A_B, A_CMP, A_CMN, A_TST, A_TEQ], [C_EQ,C_NE,C_MI,C_PL], []) or
         { mov is also possible, but only if there is no shifter operand, it could be an rxx,
           we are too lazy to check if it is rxx or something else }
         (MatchInstruction(hp1, A_MOV, [C_EQ,C_NE,C_MI,C_PL], []) and (taicpu(hp1).ops=2))) and

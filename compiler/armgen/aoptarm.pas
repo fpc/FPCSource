@@ -1646,51 +1646,61 @@ Implementation
 {$endif AARCH64}
 
         not RegModifiedBetween(NR_DEFAULTFLAGS, p, hp1) and
-        GetNextInstruction(hp1, hp2) and
-        MatchInstruction(hp2, A_B, [C_EQ, C_NE], [PF_None]) then
+        GetNextInstruction(hp1, hp2) then
         begin
-          AllocRegBetween(NR_DEFAULTFLAGS, p, hp1, UsedRegs);
-
-          WorkingReg := taicpu(p).oper[0]^.reg;
-
-          if RegEndOfLife(WorkingReg, taicpu(hp1)) then
+          if MatchInstruction(hp2, [A_B, A_CMP, A_CMN, A_TST{$ifndef AARCH64}, A_TEQ{$endif not AARCH64}], [C_EQ, C_NE], [PF_None]) then
             begin
-              taicpu(p).opcode := A_TST;
-              taicpu(p).oppostfix := PF_None;
-              taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
-              taicpu(p).loadoper(1, taicpu(p).oper[2]^);
-              taicpu(p).ops := 2;
-              DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+              AllocRegBetween(NR_DEFAULTFLAGS, p, hp1, UsedRegs);
+
+              WorkingReg := taicpu(p).oper[0]^.reg;
+
+              if RegEndOfLife(WorkingReg, taicpu(hp1)) then
+                begin
+                  taicpu(p).opcode := A_TST;
+                  taicpu(p).oppostfix := PF_None;
+                  taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+                  taicpu(p).loadoper(1, taicpu(p).oper[2]^);
+                  taicpu(p).ops := 2;
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+                end
+              else
+                begin
+                  taicpu(p).oppostfix := PF_S;
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> ANDS', p);
+                end;
+
+              RemoveInstruction(hp1);
+
+              { If a temporary register was used for and/cmp before, we might be
+                able to deallocate the register so it can be used for other
+                optimisations later }
+              if (taicpu(p).opcode = A_TST) and TryRemoveRegAlloc(WorkingReg, p, p) then
+                ExcludeRegFromUsedRegs(WorkingReg, UsedRegs);
+
+              Result := True;
+              Exit;
             end
-          else
+          else if
+            (hp2.typ = ait_label) or
+            { Conditional comparison instructions have already been covered }
+            RegModifiedByInstruction(NR_DEFAULTFLAGS, hp2) then
             begin
-              taicpu(p).oppostfix := PF_S;
-              DebugMsg(SPeepholeOptimization + 'AND; CMP -> ANDS', p);
+              { The comparison is a null operation }
+              if RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> nop', p);
+                  RemoveInstruction(hp1);
+                  RemoveCurrentP(p);
+                end
+              else
+                begin
+                  DebugMsg(SPeepholeOptimization + 'CMP -> nop', hp1);
+                  RemoveInstruction(hp1);
+                end;
+              Result := True;
+              Exit;
             end;
-
-          RemoveInstruction(hp1);
-
-          { If a temporary register was used for and/cmp before, we might be
-            able to deallocate the register so it can be used for other
-            optimisations later }
-          if (taicpu(p).opcode = A_TST) and TryRemoveRegAlloc(WorkingReg, p, p) then
-            ExcludeRegFromUsedRegs(WorkingReg, UsedRegs);
-
-          Result := True;
-          Exit;
         end;
-
-      {
-        change
-        and reg1, ...
-        mov reg2, reg1
-        to
-        and reg2, ...
-      }
-      if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         (taicpu(p).ops>=3) and
-         RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
-        Result:=true;
     end;
 
 
