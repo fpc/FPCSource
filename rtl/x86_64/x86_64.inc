@@ -21,6 +21,15 @@
                                Primitives
 ****************************************************************************}
 
+{$ifndef win64}
+  {$define use_fast_repmovstos} { REP STOS uses nonvolatile RDI and would require a stack frame on Win64 to be SEH-compliant. }
+{$endif}
+
+{$ifdef use_fast_repmovstos}
+var
+  fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
+{$endif}
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
@@ -297,6 +306,11 @@ procedure FillXxxx_MoreThanTwoXmms; assembler; nostackframe;
   rdx = byte count
   xmm0 = pattern for unaligned writes
   xmm1 = pattern for aligned writes }
+const
+{$ifdef use_fast_repmovstos}
+  ErmsThreshold = 1536;
+{$endif}
+  NtThreshold = 512 * 1024;
 asm
     { x can start and end misaligned on the vector boundary:
 
@@ -326,8 +340,13 @@ asm
     jle    .LFourAlignedTailWrites
 
     add    $48, %rcx
-    cmp    $0x80000, %rdx
+{$ifdef use_fast_repmovstos}
+    cmp    $ErmsThreshold, %rdx
+    jae    .LRepStos
+{$else}
+    cmp    $NtThreshold, %rdx
     jae    .L64xNT_Body
+{$endif}
 
 .balign 16
 .L64x_Body:
@@ -346,8 +365,37 @@ asm
     movdqa %xmm1, 32(%rax) { T2 }
 .LOneAlignedTailWrite:
     movdqa %xmm1, 48(%rax) { T1 }
-    movdqu %xmm0, 49(%r8) { UT }
+    movdqu %xmm0, 65-16(%r8) { UT }
     ret
+
+{$ifdef use_fast_repmovstos}
+.LRepStos:
+{$ifdef FPC_PIC}
+    movq   fast_large_repmovstosb@GOTPCREL(%rip), %r9
+    cmpb   $1, (%r9)
+{$else FPC_PIC}
+    cmpb   $1, fast_large_repmovstosb(%rip)
+{$endif FPC_PIC}
+    jne    .LRepStosIsNotBetter
+{$ifdef win64}
+    push   %rdi { For tests on Windows; however this is SEH incompliant so the entire use_fast_repmovstos branch is disabled by default! }
+{$endif}
+    mov    %rcx, %rdi { rdi = REP STOS destination. }
+    lea    65-16+8-1(%r8), %rcx
+    sub    %rdi, %rcx
+    shr    $3, %rcx { rcx = count of REP STOSQ blocks before UT. }
+    movq   %xmm1, %rax { recover pattern for aligned writes back to GPR :) }
+    rep stosq
+    movdqu %xmm0, 65-16(%r8) { UT }
+{$ifdef win64}
+    pop    %rdi
+{$endif}
+    ret
+{$endif}
+
+.LRepStosIsNotBetter:
+    cmp    $NtThreshold, %rdx
+    jb     .L64x_Body
 
 .balign 16
 .L64xNT_Body:
@@ -1452,7 +1500,7 @@ const
 {$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   var
-    _eax,_ebx,cpuid1_ecx : dword;
+    _eax,cpuid7_ebx,cpuid1_ecx : dword;
   begin
     { don't let libraries influence the FPU cw set by the host program }
     if IsLibrary then
@@ -1473,7 +1521,14 @@ procedure fpc_cpuinit;
           xorl %ecx,%ecx
           cpuid
           movl %ecx,cpuid1_ecx
+          movl $7,%eax
+          xorl %ecx,%ecx
+          cpuid
+          movl %ebx,cpuid7_ebx
         end;
+{$ifdef use_fast_repmovstos}
+        fast_large_repmovstosb:=cpuid7_ebx and (1 shl 9)<>0;
+{$endif}
         { XGETBV support? }
         if (cpuid1_ecx and $8000000)<>0 then 
           begin
@@ -1485,13 +1540,7 @@ procedure fpc_cpuinit;
             if (_eax and 6)=6 then
               begin
                 has_avx_support:=(cpuid1_ecx and $10000000)<>0;
-                asm
-                  movl $7,%eax
-                  xorl %ecx,%ecx
-                  cpuid
-                  movl %ebx,_ebx
-                end;
-                has_avx2_support:=(_ebx and $20)<>0;
+                has_avx2_support:=(cpuid7_ebx and $20)<>0;
               end;
           end;
       end;
