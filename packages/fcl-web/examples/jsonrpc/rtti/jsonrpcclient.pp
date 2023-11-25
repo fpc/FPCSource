@@ -61,7 +61,7 @@ begin
   request := TJSONObject.Create;
   try
     request.Add('method', aMethod.Name);
-    request.Add('classname', fName);
+    request.Add('class', fName);
     request.Add('jsonrpc','2.0');
     inc(aID);
     request.Add('id',aID);
