@@ -1600,7 +1600,7 @@ begin
             else
             begin
               li := pqgetlength(res,curtuple,x);
-              if li > FieldDef.Size then li := FieldDef.Size;
+              if li > FieldDef.Size*FieldDef.CharSize then li := FieldDef.Size*FieldDef.CharSize;
               Move(CurrBuff^, Buffer^, li);
             end;
           end;
