@@ -198,7 +198,7 @@ begin
   if (FScanner=Nil) then
     DoError(SErrNoScanner);
   DoParse(False,True);
-  if joStrict in Options then
+  if (joStrict in Options) and not (joSingle in Options) then
     begin
     Repeat
        GetNextToken;

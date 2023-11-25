@@ -57,7 +57,7 @@ type
 
   EScannerError = class(EParserError);
 
-  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates,joBOMCheck);
+  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates,joBOMCheck,joSingle);
   TJSONOptions = set of TJSONOption;
 
 Const
@@ -81,6 +81,7 @@ Type
     function GetCurColumn: Integer; inline;
     function GetCurLine: AnsiString;
     function GetO(AIndex: TJSONOption): Boolean;
+    function GetAbsolutePos: Integer;
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
@@ -97,7 +98,7 @@ Type
     property CurLine: Ansistring read GetCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
-
+    Property AbsolutePos : Integer Read GetAbsolutePos;
     property CurToken: TJSONToken read FCurToken;
     property CurTokenString: Ansistring read FCurTokenString;
     // Use strict JSON: " for strings, object members are strings, not identifiers
@@ -625,6 +626,12 @@ end;
 function TJSONScanner.GetO(AIndex: TJSONOption): Boolean;
 begin
   Result:=AIndex in FOptions;
+end;
+
+function TJSONScanner.GetAbsolutePos: Integer;
+
+begin
+  Result:=FCurPos-PChar(FSource);
 end;
 
 procedure TJSONScanner.SetO(AIndex: TJSONOption; AValue: Boolean);
