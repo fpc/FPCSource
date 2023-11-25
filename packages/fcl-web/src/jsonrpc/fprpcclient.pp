@@ -333,7 +333,7 @@ begin
   Result := TJSONObject.Create;
   try
     Result.Add('method', aMethodName);
-    Result.Add('classname', aClassName);
+    Result.Add('class', aClassName);
     Result.Add('jsonrpc','2.0');
     // In case of notification, do not send an ID
     if Not (IsNotification and (rcoNotifications in Options))  then
