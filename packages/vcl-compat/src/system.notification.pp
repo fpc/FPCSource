@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Pascal Run Time Library (rtl)
+    Copyright (c) 2023 by the Free Pascal development team
+
+    This file provides a basic Delphi-compatible notifications engine.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit System.Notification;
 
 {$mode objfpc}
