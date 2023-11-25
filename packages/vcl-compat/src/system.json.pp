@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
     Copyright (c) 2023 by Michael Van Canneyt michael@freepascal.org
 
-    Delph-compatible JSON unit
+    Delphi-compatible JSON unit
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
