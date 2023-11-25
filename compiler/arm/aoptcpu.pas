@@ -86,6 +86,7 @@ Type
     function OptPass1Push(var p: tai): Boolean;
 
     function OptPass2Bcc(var p: tai): Boolean;
+    function OptPass2CMP(var p: tai): Boolean;
     function OptPass2STM(var p: tai): Boolean;
     function OptPass2STR(var p: tai): Boolean;
   End;
@@ -852,53 +853,6 @@ Implementation
                   end
                 else
                   hp1 := hp2;
-            end;
-
-          {
-            change
-            <op> reg,x,y
-            cmp reg,#0
-            into
-            <op>s reg,x,y
-          }
-          if (taicpu(p).oppostfix = PF_None) and
-            (taicpu(p).oper[1]^.val = 0) and
-            { be careful here, following instructions could use other flags
-              however after a jump fpc never depends on the value of flags }
-            { All above instructions set Z and N according to the following
-              Z := result = 0;
-              N := result[31];
-              EQ = Z=1; NE = Z=0;
-              MI = N=1; PL = N=0; }
-            (MatchInstruction(hp1, A_B, [C_EQ,C_NE,C_MI,C_PL], []) or
-            { mov is also possible, but only if there is no shifter operand, it could be an rxx,
-              we are too lazy to check if it is rxx or something else }
-            (MatchInstruction(hp1, A_MOV, [C_EQ,C_NE,C_MI,C_PL], []) and (taicpu(hp1).ops=2))) and
-            GetLastInstruction(p, hp_last) and
-            MatchInstruction(hp_last, [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,
-              A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_MLA], [C_None], [PF_None]) and
-            (
-              { mlas is only allowed in arm mode }
-              (taicpu(hp_last).opcode<>A_MLA) or
-              (current_settings.instructionset<>is_thumb)
-            ) and
-            (taicpu(hp_last).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
-            assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp1.Next))) then
-            begin
-              DebugMsg(SPeepholeOptimization + 'OpCmp2OpS done', hp_last);
-
-              taicpu(hp_last).oppostfix:=PF_S;
-
-              { move flag allocation if possible }
-              hp1:=FindRegAlloc(NR_DEFAULTFLAGS,tai(hp_last.Next));
-              if assigned(hp1) then
-                begin
-                  asml.Remove(hp1);
-                  asml.insertbefore(hp1, hp_last);
-                end;
-
-              RemoveCurrentP(p);
-              Result:=true;
             end;
         end;
     end;
@@ -2135,6 +2089,61 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass2CMP(var p: tai): Boolean;
+    var
+      hp1, hp_last: tai;
+    begin
+      Result := False;
+      {
+        change
+        <op> reg,x,y
+        cmp reg,#0
+        into
+        <op>s reg,x,y
+      }
+      if (taicpu(p).oppostfix = PF_None) and
+        (taicpu(p).oper[1]^.val = 0) and
+        GetNextInstruction(p, hp1) and
+        { be careful here, following instructions could use other flags
+          however after a jump fpc never depends on the value of flags }
+        { All above instructions set Z and N according to the following
+          Z := result = 0;
+          N := result[31];
+          EQ = Z=1; NE = Z=0;
+          MI = N=1; PL = N=0; }
+        (MatchInstruction(hp1, A_B, [C_EQ,C_NE,C_MI,C_PL], []) or
+        { mov is also possible, but only if there is no shifter operand, it could be an rxx,
+          we are too lazy to check if it is rxx or something else }
+        (MatchInstruction(hp1, A_MOV, [C_EQ,C_NE,C_MI,C_PL], []) and (taicpu(hp1).ops=2))) and
+        GetLastInstruction(p, hp_last) and
+        MatchInstruction(hp_last, [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,
+          A_EOR,A_AND,A_RSB,A_RSC,A_SBC,A_MLA], [C_None], [PF_None]) and
+        (
+          { mlas is only allowed in arm mode }
+          (taicpu(hp_last).opcode<>A_MLA) or
+          (current_settings.instructionset<>is_thumb)
+        ) and
+        (taicpu(hp_last).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+        assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp1.Next))) then
+        begin
+          DebugMsg(SPeepholeOptimization + 'OpCmp2OpS done', hp_last);
+
+          taicpu(hp_last).oppostfix:=PF_S;
+
+          { move flag allocation if possible }
+          hp1:=FindRegAlloc(NR_DEFAULTFLAGS,tai(hp_last.Next));
+          if assigned(hp1) then
+            begin
+              asml.Remove(hp1);
+              asml.insertbefore(hp1, hp_last);
+            end;
+
+          RemoveCurrentP(p);
+          Result:=true;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPass2STR(var p: tai): Boolean;
     var
       hp1: tai;
@@ -2390,6 +2399,8 @@ Implementation
           case taicpu(p).opcode of
             A_AND:
               Result := OptPass2AND(p);
+            A_CMP:
+              Result := OptPass2CMP(p);
             A_B:
               Result := OptPass2Bcc(p);
             A_STM:
