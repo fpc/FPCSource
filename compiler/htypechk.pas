@@ -1197,7 +1197,8 @@ implementation
          if not(m_nested_procvars in current_settings.modeswitches) and
             (from_def.parast.symtablelevel>normal_function_level) and
             not (po_anonymous in from_def.procoptions) and
-            (to_def.typ=procvardef) then
+            (to_def.typ=procvardef) and
+            (tprocvardef(to_def).parast.symtablelevel <= normal_function_level) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
 
