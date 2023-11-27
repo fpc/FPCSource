@@ -51,10 +51,12 @@ begin
     T:=P.Targets.AddUnit('system.diagnostics.pp');
     T:=P.Targets.AddUnit('system.notification.pp');
     T.Dependencies.AddUnit('system.messaging');
-    T:=P.Targets.AddUnit('system.pushnotifications.pp');
-    T.Dependencies.AddUnit('system.messaging');
     T:=P.Targets.AddUnit('system.json.pp');
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('system.pushnotifications.pp');
+    T.ResourceStrings := True;
+    T.Dependencies.AddUnit('system.messaging');
+    T.Dependencies.AddUnit('system.json');
 
 
 {$ifndef ALLPACKAGES}
