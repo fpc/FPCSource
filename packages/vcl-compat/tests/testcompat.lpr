@@ -5,7 +5,7 @@ program testcompat;
 uses
   {$IFDEF UNIX}cwstring,{$ENDIF}
   Classes, consoletestrunner, tcnetencoding, tciotuils, 
-  utmessagemanager, utcdevices, utcanalytics, utcimagelist, utcnotifications, utcjson;
+  utmessagemanager, utcdevices, utcanalytics, utcimagelist, utcnotifications, utcjson, utcpush;
 
 type
 
