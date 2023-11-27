@@ -754,7 +754,7 @@ end;
 function TJSONValue.GetValueA(const aIndex: Integer): TJSONValue;
 
 begin
-  Result:=FindValue(Sysutils.Format('[%s]',[aIndex]));
+  Result:=FindValue({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format('[%s]',[aIndex]));
   if Result = nil then
     raise EJSONException.CreateFmt(SErrIndexNotFound,[aIndex]);
 end;
