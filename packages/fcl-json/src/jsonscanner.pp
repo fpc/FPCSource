@@ -631,7 +631,7 @@ end;
 function TJSONScanner.GetAbsolutePos: Integer;
 
 begin
-  Result:=FCurPos-PChar(FSource);
+  Result:=FCurPos-PAnsiChar(FSource);
 end;
 
 procedure TJSONScanner.SetO(AIndex: TJSONOption; AValue: Boolean);
