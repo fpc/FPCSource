@@ -50,7 +50,7 @@ begin
     T:=P.Targets.AddUnit('system.imagelist.pp');
     T:=P.Targets.AddUnit('system.diagnostics.pp');
     T:=P.Targets.AddUnit('system.notification.pp');
-    T.Dependencies.Add('system.messaging');
+    T.Dependencies.AddUnit('system.messaging');
     T:=P.Targets.AddUnit('system.json.pp');
     T.ResourceStrings := True;
 
