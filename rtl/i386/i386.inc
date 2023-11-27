@@ -1066,7 +1066,6 @@ asm
         sub     $1, %ecx
 .LAlignedToPtrUintOrNaturallyMisaligned:
         sub     $2, %ecx
-        jle     .LLastPtrUint
 .balign 16
 .LPtrUintWise_Next:
         mov     (%edx,%eax), %ebx
@@ -1075,7 +1074,6 @@ asm
         add     $4, %eax
         sub     $2, %ecx
         jg      .LPtrUintWise_Next
-.LLastPtrUint:
         lea     (%eax,%ecx,2), %eax
         mov     (%edx,%eax), %ebx
         cmp     %ebx, (%eax)
@@ -1088,7 +1086,7 @@ asm
         cmp     %bx, (%eax)
         jne     .LDoSbb
         shr     $16, %ebx
-        cmp     %bx, (%eax)
+        cmp     %bx, 2(%eax)
 .LDoSbb:
         sbb     %eax, %eax
         or      $1, %eax
