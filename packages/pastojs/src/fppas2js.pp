@@ -16343,14 +16343,19 @@ function TPasToJSConverter.ConvertExtClassType(El: TPasClassType;
 //     jsclass: "Object"
 //   });
 var
+  A: Integer;
   TIObj: TJSObjectLiteral;
   Call: TJSCallExpression;
   TIProp: TJSObjectLiteralElement;
   ClassScope: TPas2JSClassScope;
   AncestorType: TPasClassType;
   aResolver: TPas2JSResolver;
+  St: TJSStatementList;
+  MemberElement: TPasElement;
+
 begin
   Result:=nil;
+
   if not El.IsExternal then
     RaiseNotSupported(El,AContext,20191027183236);
 
@@ -16387,7 +16392,20 @@ begin
     TIProp:=TIObj.Elements.AddElement;
     TIProp.Name:=TJSString(GetBIName(pbivnRTTIExtClass_JSClass));
     TIProp.Expr:=CreateLiteralString(El,TPasClassType(El).ExternalName);
-    Result:=Call;
+    St:=TJSStatementList(CreateElement(TJSStatementList,El));
+    St.A := Call;
+    Result:=St;
+
+    for A := 0 to Pred(El.Members.Count) do
+    begin
+      MemberElement := El.Members[A];
+      if (MemberElement is TPasClassType) and not (TPasClassType(MemberElement).IsForward) then
+      begin
+        St.B := ConvertExtClassType(TPasClassType(MemberElement), AContext);
+
+        St := St.B as TJSStatementList;
+      end;
+    end;
   finally
     if Result=nil then
       Call.Free;
