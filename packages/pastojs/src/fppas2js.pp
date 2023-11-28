@@ -16398,7 +16398,7 @@ begin
 
     for A := 0 to Pred(El.Members.Count) do
     begin
-      MemberElement := El.Members[A];
+      MemberElement := TPasElement(El.Members[A]);
       if (MemberElement is TPasClassType) and not (TPasClassType(MemberElement).IsForward) then
       begin
         St.B := ConvertExtClassType(TPasClassType(MemberElement), AContext);
