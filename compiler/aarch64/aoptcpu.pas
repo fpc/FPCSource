@@ -823,7 +823,6 @@ Implementation
         (taicpu(hp2).condition = C_None) and
         (taicpu(hp2).oper[0]^.typ = top_ref) and
         GetNextInstruction(hp2, hp3) and
-        SkipAligns(hp3, hp3) and
         (hp3.typ = ait_label) and
         (tasmlabel(taicpu(p).oper[0]^.ref^.symbol) = tai_label(hp3).labsym) and
         GetNextInstruction(hp3, hp4) and
@@ -869,7 +868,6 @@ Implementation
           )
         ) and
         GetNextInstruction(hp4, hp5) and
-        SkipAligns(hp5, hp5) and
         (hp5.typ = ait_label) and
         (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol) = tai_label(hp5).labsym) then
         begin
