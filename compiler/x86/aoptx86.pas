@@ -601,9 +601,6 @@ unit aoptx86;
         if not Result then
           Break;
 
-        if Next.typ = ait_align then
-          Result := SkipAligns(Next, Next);
-
         if (Next.typ=ait_instruction) and is_calljmp(taicpu(Next).opcode) then
           if is_calljmpuncondret(taicpu(Next).opcode) then
             begin
@@ -627,8 +624,7 @@ unit aoptx86;
                     Include(OptsToCheck, aoc_ForceNewIteration);
                 end
               else if IsJumpToLabel(taicpu(Next)) and
-                GetNextInstruction(Next, Next_Label) and
-                SkipAligns(Next_Label, Next_Label) then
+                GetNextInstruction(Next, Next_Label) then
                 begin
 
                   { If we have JMP .lbl, and the label after it has all of its
@@ -6621,7 +6617,6 @@ unit aoptx86;
             )
           ) and
           GetNextInstruction(hp3, hp4) and
-          SkipAligns(hp4, hp4) and
           (hp4.typ=ait_label) and
           (tai_label(hp4).labsym=JumpLoc) and
           (
@@ -7843,14 +7838,14 @@ unit aoptx86;
 
                      if Assigned(p_jump) then
                        begin
-                         hp1 := p_jump;
-                         if (p_jump.typ in [ait_align]) then
-                           SkipAligns(p_jump, p_jump);
-
-                         { CollapseZeroDistJump will be set to the label after the
-                           jump if it optimises, whether or not it's live or dead }
-                         if (p_jump.typ in [ait_label]) and
-                           not (tai_label(p_jump).labsym.is_used) then
+                         { CollapseZeroDistJump will be set to the label or an align
+                           before it after the jump if it optimises, whether or not
+                           the label is live or dead }
+                         if (p_jump.typ = ait_align) or
+                           (
+                             (p_jump.typ = ait_label) and
+                             not (tai_label(p_jump).labsym.is_used)
+                           ) then
                            GetNextInstruction(p_jump, p_jump);
                        end;
 
@@ -7920,7 +7915,6 @@ unit aoptx86;
                        end
                      else if IsCmpSubset(taicpu(hp1_dist).condition, inverse_cond(taicpu(p_jump).condition)) and
                        GetNextInstruction(hp1_dist, hp1_label) and
-                       SkipAligns(hp1_label, hp1_label) and
                        (hp1_label.typ = ait_label) then
                        begin
                          JumpLabel_far := tai_label(hp1_label).labsym;
@@ -8038,7 +8032,6 @@ unit aoptx86;
                  )
                ) and
                GetNextInstruction(hp2, hp1_label) and
-               SkipAligns(hp1_label, hp1_label) and
                (hp1_label.typ = ait_label) and
                (tai_label(hp1_label).labsym = taicpu(hp1).oper[0]^.ref^.symbol) then
                begin
@@ -8620,7 +8613,6 @@ unit aoptx86;
          GetNextInstruction(hp1,hp2) and
          MatchInstruction(hp2,A_JMP,[]) and (taicpu(hp2).oper[0]^.ref^.refaddr=addr_full) and
          GetNextInstruction(hp2,hp3) and
-         SkipAligns(hp3, hp3) and
          (hp3.typ=ait_label) and
          (tasmlabel(taicpu(p).oper[0]^.ref^.symbol)=tai_label(hp3).labsym) and
          GetNextInstruction(hp3,hp4) and
@@ -8632,7 +8624,6 @@ unit aoptx86;
          ) and
          MatchOperand(taicpu(hp1).oper[1]^,taicpu(hp4).oper[1]^) and
          GetNextInstruction(hp4,hp5) and
-         SkipAligns(hp5, hp5) and
          (hp5.typ=ait_label) and
          (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol)=tai_label(hp5).labsym) then
          begin
@@ -8963,7 +8954,7 @@ unit aoptx86;
 
       while Assigned(hp2) do
         begin
-          if Assigned(hp2) and (hp2.typ in [ait_label, ait_align]) then
+          if Assigned(hp2) and (hp2.typ = ait_label) then
             SkipLabels(hp2,hp2);
 
           if not Assigned(hp2) or (hp2.typ <> ait_instruction) then
@@ -9062,7 +9053,7 @@ unit aoptx86;
           DebugMsg(SPeepholeOptimization + 'Duplicated ' + debug_tostr(Count) + ' assignment(s) and redirected jump', p);
           while True do
             begin
-              if Assigned(hp1) and (hp1.typ in [ait_label, ait_align]) then
+              if Assigned(hp1) and (hp1.typ = ait_label) then
                 SkipLabels(hp1,hp1);
 
               if (hp1.typ <> ait_instruction) then
@@ -9433,7 +9424,6 @@ unit aoptx86;
               Exit;
 
             case hp1.typ of
-              ait_align,
               ait_label:
                 begin
                   { Change:
@@ -9453,7 +9443,7 @@ unit aoptx86;
 
                     (Not if it's optimised for size)
                   }
-                  if not SkipAligns(hp1, hp1) or not GetNextInstruction(hp1, hp2) then
+                  if not GetNextInstruction(hp1, hp2) then
                     Exit;
 
                   if (hp2.typ = ait_instruction) and
@@ -9537,12 +9527,6 @@ unit aoptx86;
                               if not GetLastInstruction(hp1, hp2) then
                                 { Shouldn't fail here }
                                 InternalError(2021040701);
-
-                              { Before the aligns too }
-                              while (hp2.typ = ait_align) do
-                                if not GetLastInstruction(hp2, hp2) then
-                                  { Shouldn't fail here }
-                                  InternalError(2021040702);
                             end
                           else
                             hp2 := p;
@@ -11957,7 +11941,6 @@ unit aoptx86;
                 ((Taicpu(hp1).opcode=A_INC) or (Taicpu(hp1).opcode=A_DEC))
               ) and
               GetNextInstruction(hp1,hp2) and
-              SkipAligns(hp2, hp2) and
               (hp2.typ = ait_label) and
               (Tasmlabel(symbol) = Tai_label(hp2).labsym) then
              { jb @@1                            cmc
@@ -12167,8 +12150,6 @@ unit aoptx86;
                 GetNextInstruction(hp1,hp2) and
                 MatchInstruction(hp2,A_JMP,[]) and (taicpu(hp2).oper[0]^.ref^.refaddr=addr_full) and
                 GetNextInstruction(hp2,hp3) and
-                { skip align }
-                ((hp3.typ<>ait_align) or GetNextInstruction(hp3,hp3)) and
                 (hp3.typ=ait_label) and
                 (tasmlabel(taicpu(p).oper[0]^.ref^.symbol)=tai_label(hp3).labsym) and
                 (tai_label(hp3).labsym.getrefs=1) and
@@ -12188,9 +12169,6 @@ unit aoptx86;
                   RemoveInstruction(hp5);
                   { remove second label }
                   RemoveInstruction(hp3);
-                  { if align is present remove it }
-                  if GetNextInstruction(hp2,hp3) and (hp3.typ=ait_align) then
-                    RemoveInstruction(hp3);
                   { remove jmp }
                   RemoveInstruction(hp2);
                   if taicpu(hp1).opsize=S_B then
@@ -12546,12 +12524,6 @@ unit aoptx86;
                                     { What we expected - break out of the loop (it won't be a dead label at the top of
                                       a cluster because that was optimised at an earlier stage) }
                                     Break;
-                                  ait_align:
-                                    { Go to the next entry until a label is found (may be multiple aligns before it) }
-                                    begin
-                                      hp2 := tai(hp2.Next);
-                                      Continue;
-                                    end;
                                   ait_instruction:
                                     begin
                                       if taicpu(hp2).opcode<>A_JMP then
