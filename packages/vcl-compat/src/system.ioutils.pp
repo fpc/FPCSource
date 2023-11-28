@@ -891,21 +891,7 @@ end;
 
 class function TPath.Combine(const Path1, Path2: string; const ValidateParams : Boolean = True): string;
 begin
-  if (Path1='') or (Path2='') then
-    begin
-    if Path1='' then
-      Result:=Path2
-    else
-      Result:=Path1
-    end
-  else
-    begin
-    if not TPath.HasValidPathChars(Path1,False) then
-      Raise EArgumentException.CreateFmt(SErrInvalidCharsInPath,[Path1]);
-    if not TPath.HasValidPathChars(Path2,False) then
-      Raise EArgumentException.CreateFmt(SErrInvalidCharsInPath,[Path2]);
-    Result:=ConcatPaths([Path1, Path2]);
-    end;
+  Result:=TPath.Combine([Path1,Path2],ValidateParams)
 end;
 
 class function TPath.Combine(const Path1, Path2, Path3 : string; const ValidateParams : Boolean = True): string;
