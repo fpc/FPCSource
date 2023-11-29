@@ -989,7 +989,7 @@ label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, C
 
 begin
   //* Set up the internal state */
-  a := $DEADBEEF + UInt32(ALength shl 2) + APrimaryHashAndInitVal; // delphi version bug? original version don't have "shl 2"
+  a := $DEADBEEF + UInt32(ALength) + APrimaryHashAndInitVal;
   b := a;
   c := b;
   c += ASecondaryHashAndInitVal;
@@ -1265,7 +1265,7 @@ label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, C
 {$ENDIF NOGOTO}
 
 begin
-  a := $DEADBEEF + UInt32(ALength shl 2) + AInitVal; // delphi version bug? original version don't have "shl 2"
+  a := $DEADBEEF + UInt32(ALength) + AInitVal;
   b := a;
   c := b;
 
