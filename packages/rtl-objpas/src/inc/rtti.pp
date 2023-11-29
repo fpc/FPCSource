@@ -682,7 +682,9 @@ type
     fImpls: array of TMethodImplementation;
     fVmt: PCodePointer;
   protected
-    function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; reintroduce; virtual;
+    function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; reintroduce; virtual;
+    function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; reintroduce; virtual;
 
     procedure HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
   public
@@ -6126,6 +6128,16 @@ begin
     Result := S_OK;
   end else
     Result := inherited QueryInterface(aIID, aObj);
+end;
+
+function TVirtualInterface._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; 
+begin
+  Result:=Inherited _AddRef;
+end;
+
+function TVirtualInterface._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  Result:=Inherited _Release;
 end;
 
 procedure TVirtualInterface.HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
