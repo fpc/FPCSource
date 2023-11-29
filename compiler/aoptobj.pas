@@ -2400,7 +2400,7 @@ Unit AoptObj;
                 while (p1<>StartPoint) and CollapseZeroDistJump(p1, TAsmLabel(JumpTargetOp(taicpu(p1))^.ref^.symbol)) do
                   begin
                     { Note: Cannot remove the first instruction }
-                    if (p1.typ = ait_label) then
+                    if (p1.typ in [ait_align, ait_label]) then
                       SkipLabels(p1, p1);
 
                     if not Assigned(p1) then
