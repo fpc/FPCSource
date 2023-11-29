@@ -455,3 +455,8 @@ Type
 
   Function GetCompiledArchitecture : TOSVersion.TArchitecture;
   Function GetCompiledPlatform : TOSVersion.TPlatform;
+
+{$IFNDEF HAS_INVALIDHANDLE}
+const 
+  INVALID_HANDLE_VALUE = DWORD(-1);
+{$ENDIF}
