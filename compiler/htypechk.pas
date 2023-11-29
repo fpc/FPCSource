@@ -2913,7 +2913,7 @@ implementation
         convtype : tconverttype;
         pdtemp,
         pdoper   : tprocdef;
-        releasecurrpt : boolean;
+        releasecurrpt, check_valid_var : boolean;
         cdoptions : tcompare_defs_options;
         n : tnode;
 
@@ -2946,6 +2946,8 @@ implementation
                 is passed. This is to prevent that the change is permanent }
               currpt:=pt;
               releasecurrpt:=false;
+	      { Should we check if the callparanode.left is valid for var }
+	      check_valid_var:=true;
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
               def_from:=currpt.resultdef;
@@ -3036,11 +3038,6 @@ implementation
                  not is_array_constructor(def_from) then
                 eq:=te_equal
               else
-                { if var or out parameter type but paranode not is_valid_for_var }
-                if (currpara.varspez in [vs_var,vs_out]) and not valid_for_var(currpt.left,false)
-                   and (currpara.vardef.typ<>formaldef) then
-                  eq:=te_incompatible
-              else
               { same definition -> exact }
                if (def_from=def_to) then
                  eq:=te_exact
@@ -3106,6 +3103,7 @@ implementation
                   def_is_related(tobjectdef(def_from),tobjectdef(def_to)) then
                  begin
                    eq:=te_convert_l1;
+                   check_valid_var:=false;
                    { resolve anonymous external class definitions }
                    obj_from:=find_real_class_definition(tobjectdef(def_from),false);
                    obj_to:=find_real_class_definition(tobjectdef(def_to),false);
@@ -3126,6 +3124,7 @@ implementation
                    n:=currpt.left.getcopy;
                    arrayconstructor_to_set(n);
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
+                   check_valid_var:=false;
                    n.free;
                  end
               else if is_open_array(def_to) and
@@ -3151,6 +3150,7 @@ implementation
                     n:=tarrayconstructornode(n).right;
                   until not assigned(n);
                   eq:=mineq;
+                  check_valid_var:=false;
                 end
               else
               { generic type comparision }
@@ -3160,7 +3160,10 @@ implementation
                     is_ansistring(def_to) and
                     (tstringdef(def_from).encoding<>tstringdef(def_to).encoding) and
                     (currpara.varspez in [vs_var,vs_out]) then
-                    eq:=te_convert_l1 // don't allow to pass different ansistring types to each-other
+                    begin
+                      eq:=te_convert_l1; // don't allow to pass different ansistring types to each-other
+                      check_valid_var:=false;
+		    end
                  else
                    eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
@@ -3173,10 +3176,7 @@ implementation
                         { para requires an equal type so the previous found
                           match was not good enough, reset to incompatible }
                         eq:=te_incompatible;
-                        { var_para_allowed will return te_equal and te_convert_l1 to
-                          make a difference for best matching }
-			if valid_for_var(currpt.left,false) or (currpara.vardef.typ=formaldef) then
-                          var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
+                        var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
                       end
                     else
                       para_allowed(eq,currpt,def_to);
@@ -3197,6 +3197,10 @@ implementation
                 procvar is choosen. See tb0471 (PFV) }
               if (pt<>currpt) and (eq=te_exact) then
                 eq:=te_equal;
+              { if var or out parameter type but paranode not is_valid_for_var }
+              if check_valid_var and (currpara.varspez in [vs_var,vs_out]) and not valid_for_var(currpt.left,false)
+                 and (def_to.typ<>formaldef) and not is_open_array(def_to) then
+                eq:=te_incompatible;
 
               { increase correct counter }
               case eq of
