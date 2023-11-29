@@ -286,6 +286,77 @@
 
 
 {****************************************************************************
+                           TGUID
+ ****************************************************************************}
+
+class operator TGUID.=(const aLeft, aRight: TGUID): Boolean;
+
+var
+  P1,P2 : ^Cardinal;
+
+begin
+  P1:=PCardinal(@aLeft);
+  P2:=PCardinal(@aRight);
+  Result:=(P1[0]=P2[0]) and (P1[1]=P2[1]) and (P1[2]=P2[2]) and (P1[3]=P2[3]);
+end;
+
+class operator TGUID.<>(const aLeft, aRight: TGUID): Boolean;
+
+begin
+  Result:=Not (aLeft=aRight);
+end;
+
+class function TGUID.Empty: TGUID; static;
+
+begin
+  Result:=Default(TGUID);
+end;
+
+
+class function TGUID.Create(const aData; aBigEndian: Boolean = False): TGUID; overload; static;
+
+begin
+  Result:=Create(PByte(@aData),aBigEndian);
+end;
+
+class function TGUID.Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
+
+const
+  SysBigendian = {$IFDEF FPC_LITTLE_ENDIAN} false {$ELSE} true {$ENDIF};
+
+begin
+  Result := PGuid(aData)^;
+  if (aBigEndian=SysBigEndian) then
+    exit;
+  Result.D1:=SwapEndian(Result.D1);
+  Result.D2:=SwapEndian(Result.D2);
+  Result.D3:=SwapEndian(Result.D3);
+end;
+
+
+class function TGUID.Create(const aData: array of Byte; aStartIndex: Cardinal; aBigEndian: Boolean = False): TGUID; overload; static;
+
+begin
+  if ((Length(aData)-aStartIndex)<16) then
+    Result:=Empty
+  else
+    Result:=Create(PByte(@aData[aStartIndex]),aBigEndian);
+end;
+
+
+function TGUID.IsEmpty: Boolean;
+
+var
+  P : ^Cardinal;
+
+begin
+  P:=PCardinal(@Self);
+  Result:=(P[0]=0) and (P[1]=0) and (P[2]=0) and (P[3]=0)
+end;
+
+
+
+{****************************************************************************
                            TINTERFACEENTRY
 ****************************************************************************}
 

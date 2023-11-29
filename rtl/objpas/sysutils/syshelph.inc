@@ -42,8 +42,6 @@ Const
 
 Type
   TGuidHelper = record helper for TGUID
-    Class function Create(const Data; BigEndian: Boolean): TGUID; overload; static;
-    class function Create(const Data: array of Byte; AStartIndex: Cardinal; BigEndian: Boolean): TGUID; overload; static;
     Class Function Create(const Data; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
     Class Function Create(const B: TBytes; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
     Class Function Create(const B: TBytes; AStartIndex: Cardinal; DataEndian: TEndian = CPUEndian): TGUID; overload; static;

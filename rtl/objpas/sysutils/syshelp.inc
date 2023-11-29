@@ -10,42 +10,6 @@ begin
   Raise Exception.Create('Not yet implemented : '+S);
 end;
 
-Class function TGUIDHelper.Create(const Data; BigEndian: Boolean): TGUID; overload; static;
-
-Const
-  GUIDSize = SizeOf(TGUID);
-
-Var
-  B : Array[1..GUIDSize] of Byte;
-
-begin
-  Move(Data,B,GUIDSize);
-  Result:=Create(B,0,BigEndian);
-end;
-
-class function TGUIDHelper.Create(const Data: array of Byte; AStartIndex: Cardinal; BigEndian: Boolean): TGUID; overload; static;
-
-Var
-  A : Cardinal;
-  B,C : Word;
-
-begin
-  if ((System.Length(Data)-AStartIndex)<16) then
-    raise EArgumentException.CreateFmt('The length of a GUID array must be at least %d',[]);
-  Move(Data[AStartIndex],A,SizeOf(Cardinal));
-  Move(Data[AStartIndex+4],B,SizeOf(Word));
-  Move(Data[AStartIndex+6],C,SizeOf(Word));
-//  Writeln('BigEndian : ',BigEndian,', CPU bigendian : ',(CPUendian=TEndian.Big));
-  if BigEndian<>(CPUendian=TEndian.Big) then
-    begin
-//    Writeln('Swapping');
-    A:=SwapEndian(A);
-    B:=SwapEndian(B);
-    C:=SwapEndian(C);
-    end;
-  Result:=Create(A,B,C,Data[AStartIndex+8],Data[AStartIndex+9],Data[AStartIndex+10],Data[AStartIndex+11],Data[AStartIndex+12],Data[AStartIndex+13],Data[AStartIndex+14],Data[AStartIndex+15]);
-end;
-
 Class Function TGUIDHelper.Create(const Data; DataEndian: TEndian = CPUEndian): TGUID; overload; static; inline;
 
 begin
