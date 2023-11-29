@@ -3559,10 +3559,15 @@ unit aoptx86;
                                 case taicpu(hp3).opcode of
                                   A_Jcc:
                                     begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (jump made unconditional)', hp3);
                                       { Check for jump shortcuts before we destroy the condition }
+                                      hp4 := hp3;
                                       DoJumpOptimizations(hp3, TempBool);
-                                      MakeUnconditional(taicpu(hp3));
+                                      { Make sure hp3 hasn't changed }
+                                      if (hp4 = hp3) then
+                                        begin
+                                          DebugMsg(SPeepholeOptimization + 'Condition is always true (jump made unconditional)', hp3);
+                                          MakeUnconditional(taicpu(hp3));
+                                        end;
                                       Result := True;
                                     end;
                                   A_CMOVcc:
