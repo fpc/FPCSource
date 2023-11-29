@@ -195,7 +195,7 @@ type
 implementation
 
 uses
-{$IFDEF FPC_DOTTEDUNIS}
+{$IFDEF FPC_DOTTEDUNITS}
   System.Generics.Defaults;
 {$ELSE}
   Generics.Defaults;
