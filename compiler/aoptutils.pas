@@ -70,7 +70,7 @@ unit aoptutils;
     function SkipLabels(hp: tai; out hp2: tai): boolean;
       begin
         while assigned(hp.next) and
-              (tai(hp.next).typ in SkipInstr + [ait_label,ait_align]) Do
+              (tai(hp.next).typ in SkipInstr + [ait_label]) Do
           hp := tai(hp.next);
         if assigned(hp.next) then
           begin
