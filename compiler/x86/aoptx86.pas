@@ -5279,7 +5279,35 @@ unit aoptx86;
         hp1, p_label, p_dist, hp1_dist, hp1_last: tai;
         JumpLabel, JumpLabel_dist: TAsmLabel;
         FirstValue, SecondValue: TCGInt;
-        TempBool: Boolean;
+
+        function OptimizeJump(var InputP: tai): Boolean;
+          var
+            TempBool: Boolean;
+          begin
+            Result := False;
+            TempBool := True;
+            if DoJumpOptimizations(InputP, TempBool) or
+              not TempBool then
+              begin
+                Result := True;
+
+                if Assigned(InputP) then
+                  begin
+                    { CollapseZeroDistJump will be set to the label or an align
+                      before it after the jump if it optimises, whether or not
+                      the label is live or dead }
+                    if (InputP.typ = ait_align) or
+                      (
+                        (InputP.typ = ait_label) and
+                        not (tai_label(InputP).labsym.is_used)
+                      ) then
+                      GetNextInstruction(InputP, InputP);
+                  end;
+
+                Exit;
+              end;
+          end;
+
       begin
         Result := False;
         if (taicpu(p).oper[0]^.typ = top_const) and
@@ -5325,23 +5353,25 @@ unit aoptx86;
             Exit;
           end;
 
+        p_label := nil;
+        JumpLabel := nil;
+
         if MatchInstruction(hp1, A_Jcc, []) then
           begin
-            TempBool := True;
-            if DoJumpOptimizations(hp1, TempBool) or
-              not TempBool then
+            if OptimizeJump(hp1) then
               begin
                 Result := True;
 
                 if Assigned(hp1) then
                   begin
-                    if (hp1.typ in [ait_align]) then
-                      SkipAligns(hp1, hp1);
-
-                    { CollapseZeroDistJump will be set to the label after the
-                      jump if it optimises, whether or not it's live or dead }
-                    if (hp1.typ in [ait_label]) and
-                      not (tai_label(hp1).labsym.is_used) then
+                    { CollapseZeroDistJump will be set to the label or an align
+                      before it after the jump if it optimises, whether or not
+                      the label is live or dead }
+                    if (hp1.typ = ait_align) or
+                      (
+                        (hp1.typ = ait_label) and
+                        not (tai_label(hp1).labsym.is_used)
+                      ) then
                       GetNextInstruction(hp1, hp1);
                   end;
 
@@ -5360,6 +5390,13 @@ unit aoptx86;
                   end;
 
                 Exit;
+              end;
+
+            if IsJumpToLabel(taicpu(hp1)) then
+              begin
+                JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
+                if Assigned(JumpLabel) then
+                  p_label := getlabelwithsym(JumpLabel);
               end;
           end;
 
@@ -5440,6 +5477,12 @@ unit aoptx86;
                   GetNextInstruction(p_dist, hp1_dist) and
                   MatchInstruction(hp1_dist, A_JCC, []) then
                   begin
+                    if OptimizeJump(hp1_dist) then
+                      begin
+                        Result := True;
+                        Exit;
+                      end;
+
                     if
                       (taicpu(p_dist).opcode = A_CMP) { constant will be zero } or
                       (
@@ -5455,9 +5498,6 @@ unit aoptx86;
                       in case the flags are modified in between) }
                     if (FirstValue = SecondValue) then
                       begin
-                        { We have to check the entire range }
-                        TempBool := not RegModifiedBetween(NR_DEFAULTFLAGS, hp1, p_dist);
-
                         if condition_in(taicpu(hp1_dist).condition, taicpu(hp1).condition) then
                           begin
                             { Since the second jump's condition is a subset of the first, we
@@ -5497,7 +5537,7 @@ unit aoptx86;
                           { If a jump wasn't removed or made unconditional, only
                             remove the identical TEST instruction if the flags
                             weren't modified }
-                          TempBool then
+                          not RegModifiedBetween(NR_DEFAULTFLAGS, hp1, p_dist) then
                           begin
                             DebugMsg(SPeepholeOptimization + 'TEST/Jcc/TEST; removed superfluous TEST', p_dist);
                             RemoveInstruction(p_dist);
@@ -5524,16 +5564,8 @@ unit aoptx86;
                           end;
                       end;
 
+                    hp1_last := nil;
                     if (taicpu(hp1).condition in [C_NE, C_NZ]) and
-                      (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
-                      { If the first instruction is test %reg,%reg or test $-1,%reg,
-                        then the second jump will never branch, so it can also be
-                        removed regardless of where it goes }
-                      (
-                        (FirstValue = -1) or
-                        (SecondValue = -1) or
-                        MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
-                      ) and
                       (
                         { In this situation, the TEST/JNE pairs must be adjacent (fixes #40366) }
 
@@ -5543,6 +5575,36 @@ unit aoptx86;
                           GetNextInstruction(hp1, hp1_last) and
                           (hp1_last = p_dist)
                         )
+                      ) and
+                      (
+                        (
+                          { Test the following variant:
+                              test  $x,(reg/ref)
+                              jne   @lbl1
+                              test  $y,(reg/ref)
+                              je    @lbl2
+                            @lbl1:
+
+                            Becomes:
+                              test  $(x or y),(reg/ref)
+                              je    @lbl2
+                            @lbl1: (may become a dead label)
+                          }
+                          (taicpu(hp1_dist).condition in [C_E, C_Z]) and
+                          GetNextInstruction(hp1_dist, hp1_last) and
+                          (hp1_last = p_label)
+                        ) or
+                        (
+                          (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
+                          { If the first instruction is test %reg,%reg or test $-1,%reg,
+                            then the second jump will never branch, so it can also be
+                            removed regardless of where it goes }
+                          (
+                            (FirstValue = -1) or
+                            (SecondValue = -1) or
+                            MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
+                          )
+                        )
                       ) then
                       begin
                         { Same jump location... can be a register since nothing's changed }
@@ -5551,31 +5613,48 @@ unit aoptx86;
                           merged $(x or y) is also test %reg,%reg / test $-1,%reg }
                         taicpu(p).loadconst(0, FirstValue or SecondValue);
 
-                        if IsJumpToLabel(taicpu(hp1_dist)) then
-                          TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
-
-                        { Only remove the second test if no jumps or other conditional instructions follow }
-                        TransferUsedRegs(TmpUsedRegs);
-                        UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                        UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                        UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
-                        if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1_dist, TmpUsedRegs) then
+                        if (hp1_last = p_label) then
                           begin
-                            DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
+                            { Variant }
+                            DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JE/@Lbl merged', p);
                             RemoveInstruction(p_dist);
 
-                            { Remove the first jump, not the second, to keep
-                              any register deallocations between the second
-                              TEST/JNE pair in the same place.  Aids future
-                              optimisation. }
+                            if Assigned(JumpLabel) then
+                              JumpLabel.decrefs;
+
                             RemoveInstruction(hp1);
                           end
                         else
                           begin
-                            DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged (second TEST preserved)', p);
+                            { Only remove the second test if no jumps or other conditional instructions follow }
+                            TransferUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                            UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
+                            if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1_dist, TmpUsedRegs) then
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
+                                RemoveInstruction(p_dist);
 
-                            { Remove second jump in this instance }
-                            RemoveInstruction(hp1_dist);
+                                { Remove the first jump, not the second, to keep
+                                  any register deallocations between the second
+                                  TEST/JNE pair in the same place.  Aids future
+                                  optimisation. }
+                                if Assigned(JumpLabel) then
+                                  JumpLabel.decrefs;
+
+                                RemoveInstruction(hp1);
+                              end
+                            else
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged (second TEST preserved)', p);
+
+                                if IsJumpToLabel(taicpu(hp1_dist)) then
+                                  TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
+
+                                { Remove second jump in this instance }
+                                RemoveInstruction(hp1_dist);
+                              end;
                           end;
 
                         Result := True;
@@ -5614,43 +5693,35 @@ unit aoptx86;
         if (taicpu(p).oper[1]^.typ = top_reg) and
           (taicpu(p).oper[0]^.typ = top_reg) and
           (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
-          MatchInstruction(hp1, A_JCC, []) and
-          IsJumpToLabel(taicpu(hp1)) then
+          { p_label <> nil is a marker that hp1 is a Jcc to a label }
+          Assigned(p_label) and
+          GetNextInstruction(p_label, p_dist) and
+          MatchInstruction(p_dist, A_TEST, []) and
+          { It's fine if the second test uses smaller sub-registers }
+          (taicpu(p_dist).opsize <= taicpu(p).opsize) and
+          MatchOpType(taicpu(p_dist), top_reg, top_reg) and
+          SuperRegistersEqual(taicpu(p_dist).oper[0]^.reg, taicpu(p).oper[0]^.reg) and
+          SuperRegistersEqual(taicpu(p_dist).oper[1]^.reg, taicpu(p).oper[1]^.reg) and
+          GetNextInstruction(p_dist, hp1_dist) and
+          MatchInstruction(hp1_dist, A_JCC, []) then { This doesn't have to be an explicit label }
           begin
-            JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
-            p_label := nil;
-            if Assigned(JumpLabel) then
-              p_label := getlabelwithsym(JumpLabel);
+            JumpLabel_dist := TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol);
 
-            if Assigned(p_label) and
-              GetNextInstruction(p_label, p_dist) and
-              MatchInstruction(p_dist, A_TEST, []) and
-              { It's fine if the second test uses smaller sub-registers }
-              (taicpu(p_dist).opsize <= taicpu(p).opsize) and
-              MatchOpType(taicpu(p_dist), top_reg, top_reg) and
-              SuperRegistersEqual(taicpu(p_dist).oper[0]^.reg, taicpu(p).oper[0]^.reg) and
-              SuperRegistersEqual(taicpu(p_dist).oper[1]^.reg, taicpu(p).oper[1]^.reg) and
-              GetNextInstruction(p_dist, hp1_dist) and
-              MatchInstruction(hp1_dist, A_JCC, []) then { This doesn't have to be an explicit label }
+            if JumpLabel = JumpLabel_dist then
+              { This is an infinite loop }
+              Exit;
+
+            { Best optimisation when the first condition is a subset (or equal) of the second }
+            if condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
               begin
-                JumpLabel_dist := TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol);
+                { Any registers used here will already be allocated }
+                if Assigned(JumpLabel) then
+                  JumpLabel.DecRefs;
 
-                if JumpLabel = JumpLabel_dist then
-                  { This is an infinite loop }
-                  Exit;
-
-                { Best optimisation when the first condition is a subset (or equal) of the second }
-                if condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
-                  begin
-                    { Any registers used here will already be allocated }
-                    if Assigned(JumpLabel) then
-                      JumpLabel.DecRefs;
-
-                    DebugMsg(SPeepholeOptimization + 'TEST/Jcc/@Lbl/TEST/Jcc -> TEST/Jcc, redirecting first jump', hp1);
-                    taicpu(hp1).loadref(0, taicpu(hp1_dist).oper[0]^.ref^); { This also increases the reference count }
-                    Result := True;
-                    Exit;
-                  end;
+                DebugMsg(SPeepholeOptimization + 'TEST/Jcc/@Lbl/TEST/Jcc -> TEST/Jcc, redirecting first jump', hp1);
+                taicpu(hp1).loadref(0, taicpu(hp1_dist).oper[0]^.ref^); { This also increases the reference count }
+                Result := True;
+                Exit;
               end;
           end;
       end;
