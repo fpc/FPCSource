@@ -3036,6 +3036,11 @@ implementation
                  not is_array_constructor(def_from) then
                 eq:=te_equal
               else
+                { if var or out parameter type but paranode not is_valid_for_var }
+                if (currpara.varspez in [vs_var,vs_out]) and not valid_for_var(currpt.left,false)
+                   and (currpara.vardef.typ<>formaldef) then
+                  eq:=te_incompatible
+              else
               { same definition -> exact }
                if (def_from=def_to) then
                  eq:=te_exact
@@ -3170,7 +3175,8 @@ implementation
                         eq:=te_incompatible;
                         { var_para_allowed will return te_equal and te_convert_l1 to
                           make a difference for best matching }
-                        var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
+			if valid_for_var(currpt.left,false) or (currpara.vardef.typ=formaldef) then
+                          var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
                       end
                     else
                       para_allowed(eq,currpt,def_to);
