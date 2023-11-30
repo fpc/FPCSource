@@ -140,6 +140,7 @@ type
   private
     FDidFinal : Boolean;
     case FHashVersion: TSHA2Version of
+      Sha256 : (_S224 : TSHA224);
       Sha256 : (_S256 : TSHA256);
       Sha384 : (_S384 : TSHA384);
       Sha512 : (_S512 : TSHA512);
@@ -728,7 +729,7 @@ end;
 class function THashSHA2.Create(aHashVersion: TSHA2Version): THashSHA2;
 
 begin
-  if aHashVersion in [SHA224, SHA512_224, SHA512_256] then
+  if aHashVersion in [SHA512_224, SHA512_256] then
     NotSupportedVersion(aHashVersion);
   Result.FHashVersion:=aHashVersion;
   Result.Reset;
@@ -872,6 +873,7 @@ end;
 procedure THashSHA2.Reset;
 begin
   case FHashVersion of
+    Sha224 : _S224.Init;
     Sha256 : _S256.Init;
     Sha384 : _S384.Init;
     Sha512 : _S512.Init;
@@ -887,6 +889,7 @@ end;
 procedure THashSHA2.Update(const aData: PByte; aLength: Cardinal);
 begin
   case FHashVersion of
+    Sha224 : _S224.Update(aData,aLength);
     Sha256 : _S256.Update(aData,aLength);
     Sha384 : _S384.Update(aData,aLength);
     Sha512 : _S512.Update(aData,aLength);
@@ -914,6 +917,7 @@ procedure THashSHA2.DoFinal;
 
 begin
   case FHashVersion of
+    Sha224 : _S224.Final;
     Sha256 : _S256.Final;
     Sha384 : _S384.Final;
     Sha512 : _S512.Final;
@@ -933,6 +937,7 @@ begin
     DoFinal;
   // These should normally all be the same...
   case FHashVersion of
+    Sha224 : P:=@_S224.Digest;
     Sha256 : P:=@_S256.Digest;
     Sha384 : P:=@_S384.Digest;
     Sha512 : P:=@_S512.Digest;
