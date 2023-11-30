@@ -140,7 +140,7 @@ type
   private
     FDidFinal : Boolean;
     case FHashVersion: TSHA2Version of
-      Sha256 : (_S224 : TSHA224);
+      Sha224 : (_S224 : TSHA224);
       Sha256 : (_S256 : TSHA256);
       Sha384 : (_S384 : TSHA384);
       Sha512 : (_S512 : TSHA512);
