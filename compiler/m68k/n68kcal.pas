@@ -53,7 +53,7 @@ implementation
 
     procedure tm68kcallnode.pop_parasize(pop_size: longint);
       begin
-        if pop_size<>0 then
+        if (pop_size<>0) and not (po_noreturn in procdefinition.procoptions) then
           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_SP));
       end;
 
