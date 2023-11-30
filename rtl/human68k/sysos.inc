@@ -15,6 +15,8 @@
 
  **********************************************************************}
 
+{$include h68kdos.inc}
+
 procedure Error2InOutRes(errno: longint);
 begin
 end;

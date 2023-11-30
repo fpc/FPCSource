@@ -36,8 +36,20 @@ end;
 
 
 function do_write(h: longint; addr: pointer; len: longint) : longint;
+var
+  dosResult: longint;
 begin
-  do_write:=-1;
+  do_write:=0;
+  if (len<=0) or (h=-1) then
+    exit;
+
+  dosResult:=h68kdos_write(h, addr, len);
+  if dosResult < 0 then
+    begin
+      Error2InOutRes(dosResult);
+    end
+  else
+    do_write:=dosResult;
 end;
 
 

@@ -20,10 +20,12 @@
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
+  SysOSAlloc:=h68kdos_malloc(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  h68kdos_mfree(p);
 end;

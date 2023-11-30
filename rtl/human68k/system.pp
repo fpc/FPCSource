@@ -19,6 +19,7 @@ interface
 {$define FPC_IS_SYSTEM}
 {$define FPC_STDOUT_TRUE_ALIAS}
 {$define FPC_ANSI_TEXTFILEREC}
+{$define FPC_SYSTEM_EXIT_NO_RETURN}
 {$define FPC_HUMAN68K_USE_TINYHEAP}
 
 {$ifdef FPC_HUMAN68K_USE_TINYHEAP}
@@ -52,9 +53,9 @@ const
 
 const
     UnusedHandle    = -1;
-    StdInputHandle: longint = UnusedHandle;
-    StdOutputHandle: longint = UnusedHandle;
-    StdErrorHandle: longint = UnusedHandle;
+    StdInputHandle: longint = 0;
+    StdOutputHandle: longint = 1;
+    StdErrorHandle: longint = 2;
 
 var
     args: PChar;
@@ -138,9 +139,13 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-procedure system_exit;
+procedure haltproc(e:longint); noreturn; external name '_haltproc';
+
+Procedure system_exit; noreturn;
 begin
+  haltproc(ExitCode);
 end;
+
 
 {*****************************************************************************
                          System Unit Initialization

@@ -19,25 +19,56 @@ interface
 
 implementation
 
+{$include h68kdos.inc}
+
 var
   stacktop: pointer; public name '__stktop';
   stklen: longint; external name '__stklen';
 
+type
+  Th68k_startup = record
+    mcb: pbyte;
+    bss_end: pbyte;
+    comm: pbyte;
+    environ: pbyte;
+    entry: pbyte;
+    intr: pbyte;
+  end;
+  Ph68k_startup = ^Th68k_startup;
+
+var
+  h68k_startup: Th68k_startup; public name '_h68k_startup';
 
 procedure PascalMain; external name 'PASCALMAIN';
-
+procedure PascalStart(const startparams: Ph68k_startup); noreturn; forward;
 
 { this function must be the first in this unit which contains code }
-{$OPTIMIZATION OFF}
-procedure _FPC_proc_start; cdecl; public name '_start';
+procedure _FPC_proc_start; assembler; nostackframe; noreturn; public name '_start';
+asm
+  movem.l a0-a5,-(sp)
+  move.l sp,a0
+  jbsr PascalStart
+end;
+
+procedure PascalStart(const startparams: Ph68k_startup); noreturn;
+var
+  bss_start: pbyte;
 begin
+  with startparams^ do
+    begin
+      { clear BSS }
+      bss_start:=pbyte(pdword(@mcb[30])^);
+      fillchar(bss_start^,bss_end-bss_start,0);
+    end;
+
+  h68k_startup:=startparams^;
+
   PASCALMAIN;
 end;
 
-procedure _FPC_proc_halt(_ExitCode: longint); cdecl; assembler public name '_haltproc';
-asm
-  dc.w $ff00  { _EXIT }
+procedure _FPC_proc_halt(_ExitCode: longint); noreturn; public name '_haltproc';
+begin
+  h68kdos_exit2(_ExitCode);
 end;
-
 
 end.
