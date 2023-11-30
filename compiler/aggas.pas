@@ -531,6 +531,7 @@ implementation
          system_i386_go32v2,
          system_i386_win32,
          system_x86_64_win64,
+         system_i386_nativent,
          system_i386_wince,
          system_arm_wince,
          system_aarch64_win64:
@@ -1786,7 +1787,7 @@ implementation
         { on Windows/(PE)COFF, global symbols are hidden by default: global
           symbols that are not explicitly exported from an executable/library,
           become hidden }
-        if (target_info.system in (systems_windows+systems_wince)) then
+        if (target_info.system in (systems_windows+systems_wince+systems_nativent)) then
           exit;
         if target_info.system in systems_darwin then
           writer.AsmWrite(#9'.private_extern ')
