@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fnvhash;
+{$ENDIF}
 
 {$mode objfpc}
 
 interface
 
-uses sysutils, types;
+uses 
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, System.Types;
+{$ELSE}
+  sysutils, types;
+{$ENDIF}
 
 Const
   // FNV 32-bit hash, see http://www.isthe.com/chongo/src/fnv/hash_32.c

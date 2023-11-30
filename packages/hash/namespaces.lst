@@ -7,3 +7,4 @@ src/uuid.pas=namespaced/System.Hash.Uuid.pas
 src/ntlm.pas=namespaced/System.Hash.Ntlm.pas
 src/hmac.pp=namespaced/System.Hash.Hmac.pp
 src/md5.pp=namespaced/System.Hash.Md5.pp
+src/fnvhash.pp=namespaced/System.Hash.Fnv.pp
