@@ -1078,6 +1078,7 @@ type
   public
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure ReadElement(AReader: TFPReportStreamer); override;
+    procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     constructor Create(AOwner: TComponent); override;
   end;
   TFPReportCustomDataBandClass = Class of TFPReportCustomDataBand;
@@ -5903,6 +5904,14 @@ begin
   FooterBand:=TFPReportCustomDataFooterBand(RBand('Footer'));
   HeaderBand:=TFPReportCustomDataHeaderBand(RBand('Header'));
   MasterBand:=TFPReportCustomDataBand(RBand('Master'));
+  FDisplayPosition := AReader.ReadInteger('DisplayPosition', 0);
+end;
+
+procedure TFPReportCustomDataBand.WriteElement(AWriter: TFPReportStreamer;
+  AOriginal: TFPReportElement);
+begin
+  inherited WriteElement(AWriter, AOriginal);
+  AWriter.WriteInteger('DisplayPosition', FDisplayPosition);
 end;
 
 constructor TFPReportCustomDataBand.Create(AOwner: TComponent);
