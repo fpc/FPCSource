@@ -34,6 +34,8 @@ begin
     P.Dependencies.Add('rtl-objpas'); 
     P.Dependencies.Add('rtl-generics');
     P.Dependencies.Add('fcl-json');
+    P.Dependencies.Add('fcl-hash');
+    P.Dependencies.Add('hash');
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -57,6 +59,8 @@ begin
     T.ResourceStrings := True;
     T.Dependencies.AddUnit('system.messaging');
     T.Dependencies.AddUnit('system.json');
+    T:=P.Targets.AddUnit('system.hash.pp');
+    T.ResourceStrings := True;
 
 
 {$ifndef ALLPACKAGES}
