@@ -70,7 +70,7 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+      ExeCmd[1]:='ld -b xfile -m human68kxfile $DYNLINK $GCSECTIONS $OPT $MAP -d -n -o $EXE $RES';
      end
     else
      begin
@@ -200,7 +200,11 @@ begin
     begin
       if create_smartlink_sections then
         GCSectionsStr:='-gc-all -sc';
-    end;
+    end
+  else
+    if (cs_link_smart in current_settings.globalswitches) and
+       create_smartlink_sections then
+      GCSectionsStr:='--gc-sections';
 
   ExeName:=current_module.exefilename;
 
