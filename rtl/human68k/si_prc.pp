@@ -57,7 +57,7 @@ begin
   with startparams^ do
     begin
       { clear BSS }
-      bss_start:=pbyte(pdword(@mcb[30])^);
+      bss_start:=pbyte(pdword(@mcb[$30])^);
       fillchar(bss_start^,bss_end-bss_start,0);
     end;
 
