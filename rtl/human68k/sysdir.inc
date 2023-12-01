@@ -18,12 +18,34 @@
                            Directory Handling
 *****************************************************************************}
 procedure do_mkdir(const s : rawbytestring);
+var
+  dosResult: longint;
+  ps: rawbytestring;
 begin
+  ps:=s;
+  DoDirSeparators(ps);
+  dosResult:=h68kdos_mkdir(PAnsiChar(ps));
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
 end;
 
 
 procedure do_rmdir(const s : rawbytestring);
+var
+  dosResult: longint;
+  ps: rawbytestring;
 begin
+  ps:=s;
+  DoDirSeparators(ps);
+  if ps='.' then
+    begin
+      InOutRes:=16;
+      exit;
+    end;
+
+  dosResult:=h68kdos_rmdir(PAnsiChar(ps));
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
 end;
 
 

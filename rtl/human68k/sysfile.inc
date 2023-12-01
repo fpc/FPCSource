@@ -21,12 +21,27 @@
 
 { close a file from the handle value }
 procedure do_close(handle : longint);
+var
+  dosResult: longint;
 begin
+  dosResult:=h68kdos_close(handle);
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
 end;
 
 
 procedure do_erase(p : pchar; pchangeable: boolean);
+var
+  oldp: PAnsiChar;
+  dosResult: longint;
 begin
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
+  dosResult:=h68kdos_delete(p);
+  if dosResult <0 then
+    Error2InOutRes(dosResult);
+  if oldp<>p then
+    FreeMem(p);
 end;
 
 
@@ -54,31 +69,74 @@ end;
 
 
 function do_read(h: longint; addr: pointer; len: longint) : longint;
+var
+  dosResult: longint;
 begin
-  do_read:=-1;
+  do_read:=0;
+  if (len<=0) or (h=-1) then exit;
+
+  dosResult:=h68kdos_read(h, addr, len);
+  if dosResult<0 then
+    begin
+      Error2InOutRes(dosResult);
+    end
+  else
+    do_read:=dosResult;
 end;
 
 
 function do_filepos(handle: longint) : longint;
+var
+  dosResult: longint;
 begin
   do_filepos:=-1;
+  dosResult:=h68kdos_seek(handle, 0, SEEK_FROM_CURRENT);
+  if dosResult < 0 then
+    begin
+      Error2InOutRes(dosResult);
+    end
+  else
+    do_filepos:=dosResult;
 end;
 
 
 procedure do_seek(handle, pos: longint);
+var
+  dosResult: longint;
 begin
+  dosResult:=h68kdos_seek(handle, pos, SEEK_FROM_START);
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
 end;
 
 
 function do_seekend(handle: longint):longint;
+var
+  dosResult: longint;
 begin
   do_seekend:=-1;
+
+  dosResult:=h68kdos_seek(handle, 0, SEEK_FROM_END);
+  if dosResult < 0 then
+    begin
+      Error2InOutRes(dosResult);
+    end
+  else
+    do_seekend:=dosResult;
 end;
 
 
 function do_filesize(handle : THandle) : longint;
+var
+  currfilepos: longint;
 begin
   do_filesize:=-1;
+  currfilepos:=do_filepos(handle);
+  if currfilepos >= 0 then
+    begin
+      do_filesize:=do_seekend(handle);
+    end;
+  do_seek(handle,currfilepos);
 end;
 
 

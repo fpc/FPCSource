@@ -48,8 +48,24 @@ type
     reserve_2: array[0..35] of byte;
   end;
 
+// as used by seek
+const
+    SEEK_FROM_START   = 0;
+    SEEK_FROM_CURRENT = 1;
+    SEEK_FROM_END     = 2;
+
 procedure h68kdos_exit; noreturn; syscall $ff00;
+function h68kdos_gettim2: longint; syscall $ff27;
+function h68kdos_mkdir(name: pchar): longint; syscall $ff39;
+function h68kdos_rmdir(name: pchar): longint; syscall $ff3a;
+function h68kdos_chdir(name: pchar): longint; syscall $ff3b;
+function h68kdos_create(name: pchar; attr: word): longint; syscall $ff3c;
+function h68kdos_open(name: pchar; mode: word): longint; syscall $ff3d;
+function h68kdos_close(fileno: word): longint; syscall $ff3e;
+function h68kdos_read(fileno: word; buffer: pointer; len: longint): longint; syscall $ff3f;
 function h68kdos_write(fileno: word; buffer: pointer; len: longint): longint; syscall $ff40;
+function h68kdos_delete(name: pchar): longint; syscall $ff41;
+function h68kdos_seek(fileno: word; offset: longint; mode: word): longint; syscall $ff42;
 function h68kdos_malloc(size: longint): pointer; syscall $ff48;
 function h68kdos_mfree(ptr: pointer): longint; syscall $ff49;
 function h68kdos_setblock(ptr: pointer; size: longint): longint; syscall $ff4a;
