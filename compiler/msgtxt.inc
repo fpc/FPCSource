@@ -1899,12 +1899,12 @@ const msgtxt : array[0..000385,1..240] of char=(
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tembedded_Embedded'#010+
-  '6*2','Tlinux_Linux'#010+
+  '6*2','Thuman68k_Human 68k'#010+
+  '6*2Tlinux_Linux'#010+
   '6*2Tnetbsd_NetBSD'#010+
   '6*2Tmacosclassic_Classic Mac OS'#010+
   '6*2Tpalmos_PalmOS'#010+
   '6*2Tsinclairql_Sinclair QL'#010+
-  '6*2Thuman68k_Human 68k'#010+
   '8*2Tembedded_Embedded'#010+
   '8*2Tmsdos_MS-DOS (and compatible)'#010+
   '8*2Twin16_Windows 16 bit'#010+

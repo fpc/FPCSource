@@ -4277,12 +4277,12 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tembedded_Embedded
+6*2Thuman68k_Human 68k
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
 6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
 6*2Tsinclairql_Sinclair QL
-6*2Thuman68k_Human 68k
 # i8086 targets
 8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (and compatible)
