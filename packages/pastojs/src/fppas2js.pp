@@ -5882,19 +5882,24 @@ var
   C: TClass;
 begin
   Result:=inherited;
-  Params:=TParamsExpr(Expr);
-  Param:=Params.Params[1];
-  ComputeElement(Param,ParamResolved,[]);
-  Result:=cIncompatible;
-  bt:=ParamResolved.BaseType;
-  if bt=btRange then
-    bt:=ParamResolved.SubType;
-  if bt=btContext then
-    begin
-    C:=ParamResolved.LoTypeEl.ClassType;
-    if (C=TPasEnumType) or (C=TPasRangeType) then
-      Result:=cExact
-    end;
+
+  if CheckBuiltInMinParamCount(Proc, Expr, 3, RaiseOnError) then
+  begin
+    Params:=TParamsExpr(Expr);
+    Param:=Params.Params[1];
+    ComputeElement(Param,ParamResolved,[]);
+    Result:=cIncompatible;
+    bt:=ParamResolved.BaseType;
+    if bt=btRange then
+      bt:=ParamResolved.SubType;
+    if bt=btContext then
+      begin
+      C:=ParamResolved.LoTypeEl.ClassType;
+      if (C=TPasEnumType) or (C=TPasRangeType) then
+        Result:=cExact
+      end;
+  end;
+
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20181214142349,2,Param,ParamResolved,
          'enum variable',RaiseOnError));
