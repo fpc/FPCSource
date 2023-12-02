@@ -1,6 +1,8 @@
 program tpcre;
 
-{$DEFINE USE_WIDESTRING}
+{$mode objfpc}
+{$h+}
+{ $DEFINE USE_WIDESTRING}
 
 uses
    {$IFNDEF USE_WIDESTRING}
@@ -14,18 +16,40 @@ uses
 {$IFNDEF USE_WIDESTRING}
 function GetStrLen(p : PAnsiChar; len : Integer) : AnsiString;
 
+var
+   L : Integer;
+
 begin
-  SetLength(Result,Len);
+  Result:='';
+  L:=StrLen(P);
+  if L>len then
+    L:=Len;
+  SetLength(Result,L);
   if Len>0 then
-    Move(P^,Result[1],Len);
+    Move(P^,Result[1],L);
 end;
 {$ELSE}
 function GetStrLen(p : PWideChar; len : Integer) : UnicodeString;
 
+var
+  L : Integer;
+  P2: PWideChar;
+
 begin
-  SetLength(Result,Len);
+  Result:='';
+  L:=0;
+  P2:=P;
+  // No widestring strlen unless we compile in unicode rtl...
+  While (P2^<>#0) do
+    begin
+    inc(L);
+    inc(P2);
+    end;
+  if L>len then
+    L:=Len;
+  SetLength(Result,L);
   if Len>0 then
-    Move(P^,Result[1],Len*2);
+    Move(P^,Result[1],L*2);
 end;
 {$ENDIF}
 
@@ -34,9 +58,11 @@ var
  {$IFNDEF USE_WIDESTRING}
  ptrn : AnsiString;
  subj : AnsiString;
+ groupname : AnsiString;
  {$ELSE}
  ptrn : UnicodeString;
  subj : UnicodeString;
+ groupname : UnicodeString;
  {$ENDIF}
 
  pattern : PCRE2_SPTR;     (* PCRE2_SPTR is a pointer to unsigned code units of *)
@@ -314,9 +340,16 @@ begin
     tabptr := name_table;
     for i:=0 to namecount-1 do
       begin
+{$IFDEF USE_WIDESTRING}
+      n:=ord(tabptr[0]);
+      groupname:=GetStrLen((TabPtr+1),name_entry_size-2);
+{$ELSE}
       n:=(ord(tabptr[0]) shl 8) or ord(tabptr[1]);
+      groupname:=GetStrLen((tabptr + 2),name_entry_size - 3),
+{$ENDIF}
       matchlen:=integer(ovector[2*n+1] - ovector[2*n]);
-      writeln( '(',n,')', GetStrLen((tabptr + 2),name_entry_size - 3),' : ',
+
+      writeln( '(',n,')', Groupname,' : ',
                           GetStrLen((subject + ovector[2*n]), Matchlen));
       inc(tabptr, name_entry_size);
       end ;
@@ -546,9 +579,15 @@ begin
       Writeln('Named substrings');
       for i:=0 to namecount-1 do
         begin
-        n := (Ord(tabptr[0]) shl 8) or ord(tabptr[1]);
-        writeln(n,': ',GetStrLen(tabptr + 2,name_entry_size - 3),'= ',
-                        GetStrLen(subject + ovector[2*n], integer(ovector[2*n+1] - ovector[2*n])));
+        {$IFDEF USE_WIDESTRING}
+        n:=ord(tabptr[0]);
+        groupname:=GetStrLen((TabPtr+1),name_entry_size-2);
+        {$ELSE}
+        n:=(ord(tabptr[0]) shl 8) or ord(tabptr[1]);
+        groupname:=GetStrLen((tabptr + 2),name_entry_size - 3),
+        {$ENDIF}
+        matchlen:=integer(ovector[2*n+1] - ovector[2*n]);
+        writeln( '(',n,')', Groupname,' : ', GetStrLen((subject + ovector[2*n]), Matchlen));
         tabptr := tabptr+name_entry_size;
         end ;
       end;
