@@ -19,4 +19,23 @@
 
 procedure Error2InOutRes(errno: longint);
 begin
+  case errno of
+    DOSE_NOENT,
+    DOSE_NODIR,
+    DOSE_MFILE,
+    DOSE_ISDIR,
+    DOSE_BADF,
+    DOSE_ILGARG,
+    DOSE_ILGDRV,
+    DOSE_ISCURDIR:
+      InOutRes:=-errno;
+
+    DOSE_RDONLY:
+      InOutRes:=105;
+    DOSE_CANTSEEK:
+      InOutRes:=156;
+
+    else
+      InOutRes:=word(errno);
+  end;
 end;

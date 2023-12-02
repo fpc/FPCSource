@@ -13,6 +13,43 @@
 
  **********************************************************************}
 
+const
+  DOSE_ILGFNC = -1; { Invalid function code executed }
+  DOSE_NOENT = -2; { File not found }
+  DOSE_NODIR = -3; { Directory not found }
+  DOSE_MFILE = -4; { Too many open files }
+  DOSE_ISDIR = -5; { Directory and volume label inaccessible }
+  DOSE_BADF = -6; { The specified handle is not open }
+  DOSE_BROKNMEM = -7; { The memory management area was destroyed }
+  DOSE_NOMEM = -8; { Not enough memory for execution }
+  DOSE_ILGMPTR = -9; { Invalid memory management pointer specified }
+  DOSE_ILGENV = -10; { Illegal environment specified }
+  DOSE_ILGFMT = -11; { Abnormal executable file format }
+  DOSE_ILGARG = -12; { Abnormal open access mode }
+  DOSE_ILGFNAME = -13; { Invalid file name }
+  DOSE_ILGPARM = -14; { Called with invalid parameter }
+  DOSE_ILGDRV = -15; { Invalid drive specified }
+  DOSE_ISCURDIR = -16; { Current directory can't be deleted }
+  DOSE_CANTIOC = -17; { ioctrl can not be used }
+  DOSE_NOMORE = -18; { No more files found }
+  DOSE_RDONLY = -19; { The file can't be written }
+  DOSE_EXISTDIR = -20; { The directory already exists }
+  DOSE_NOTEMPTY = -21; { File can't be deleted }
+  DOSE_CANTREN = -22; { File can't be renamed }
+  DOSE_DISKFULL = -23; { File can't be created because disk is full }
+  DOSE_DIRFULL = -24; { File can't be created because folder is full }
+  DOSE_CANTSEEK = -25; { Can't seek to the specified position }
+  DOSE_SUPER = -26; { Supervisor mode require while in supervisor mode }
+  DOSE_DUPTHNAM = -27; { Thread name exists }
+  DOSE_CANTSEND = -28; { IPC buffer is write protected }
+  DOSE_THFULL = -29; { Can't start any more background processes }
+  DOSE_LCKFULL = -32; { Insufficient lock space }
+  DOSE_LCKERR = -33; { File is locked and can't be accessed }
+  DOSE_BUSYDRV = -34; { The drive has a handler open }
+  DOSE_SYMLOOP = -35; { Symbolic link nest exceeded 16 links(lndrv) }
+  DOSE_EXISTFILE = -80; { File exists }
+
+
 type
   h68kdos_comline = record
     case boolean of

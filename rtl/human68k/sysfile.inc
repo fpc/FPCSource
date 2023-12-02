@@ -160,5 +160,15 @@ end;
 
 function do_isdevice(handle: thandle): boolean;
 begin
-  do_isdevice:=false;
+  { FIX ME! }
+
+  { Prefer to return true here as a default answer, as it is less harmful
+    than false. This basically determines if the file handle is a "device",
+    for example the console. Returning true here causes a flush before a
+    read on the file handle which is preferred for consoleio, and a few
+    other minor behavioral changes, for example shorter stacktraces.
+    Returning false will cause weird behavior and unprinted lines when
+    read() and write() is mixed during consoleio. }
+
+  do_isdevice:=true;
 end;
