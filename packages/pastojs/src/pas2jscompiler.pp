@@ -116,6 +116,8 @@ const
   nRTLIdentifierChanged = 144; sRTLIdentifierChanged = 'RTL identifier %s changed from %s to %s';
   nSkipNoConstResourcestring = 145; sSkipNoConstResourcestring = 'Resource string %s is not a constant, not adding to resourcestrings file.';
   nUnknownOptimizationOption = 146; sUnknownOptimizationOption = 'unknown -Oo option %s';
+  nSubtargetConfigNotFound = 147; sSubtargetConfigNotFound = 'Subtarget %s config file not found';
+
   // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
@@ -487,12 +489,14 @@ type
   Protected
     // These must be overridden in descendents
     function FindDefaultConfig: String; virtual; abstract;
+    function FindSubtargetConfig(const aSubTtarget : string): String; virtual; abstract;
     function GetReader(aFileName: string): TSourceLineReader; virtual; abstract;
   Public
     constructor Create(aCompiler: TPas2jsCompiler); override;
     destructor Destroy; override;
     procedure LoadDefaultConfig;
     procedure LoadConfig(Const aFileName: String);virtual;
+    procedure LoadSubTargetConfig(Const aSubTarget: String);virtual;
     property Compiler:  TPas2jsCompiler Read FCompiler;
   end;
 
@@ -607,6 +611,7 @@ type
     // params, cfg files
     FCurParam: string;
     FResourceOutputFile: String;
+    FSubTarget: String;
     procedure LoadConfig(CfgFilename: string);
     procedure ReadEnvironment;
     procedure ReadParam(Param: string; Quick, FromCmdLine: boolean);
@@ -615,6 +620,7 @@ type
     procedure ReadCodeGenerationFlags(Param: String; p: integer);
     procedure ReadSyntaxFlags(Param: String; p: integer);
     procedure ReadVerbosityFlags(Param: String; p: integer);
+    procedure SetSubTarget(AValue: String);
   protected
     // Create various other classes. Virtual so they can be overridden in descendents
     function CreateImportList : TJSSourceElements;
@@ -741,6 +747,7 @@ type
     property ShowUsedTools: boolean read GetShowUsedTools write SetShowUsedTools;
     property SkipDefaultConfig: Boolean read GetSkipDefaultConfig write SetSkipDefaultConfig;
     property TargetPlatform: TPasToJsPlatform read GetTargetPlatform write SetTargetPlatform;
+    property SubTarget : String Read FSubTarget Write SetSubTarget;
     property TargetProcessor: TPasToJsProcessor read GetTargetProcessor write SetTargetProcessor;
     property WPOAnalyzer: TPas2JSAnalyzer read FWPOAnalyzer; // Whole Program Optimization
     property WriteDebugLog: boolean read GetWriteDebugLog write SetWriteDebugLog;
@@ -1959,6 +1966,21 @@ begin
   end;
   if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
     Compiler.Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(aFilename)]);
+end;
+
+procedure TPas2JSConfigSupport.LoadSubTargetConfig(const aSubTarget: String);
+var
+  aFileName: string;
+
+begin
+  aFileName:=FindSubTargetConfig(aSubTarget);
+  if aFileName='' then
+    begin
+    Compiler.Log.Log(mtFatal,Format(sSubtargetConfigNotFound,[aSubtarget]),nSubtargetConfigNotFound);
+    Compiler.Terminate(ExitCodeFileNotFound);
+    end
+  else
+    LoadConfig(aFilename);
 end;
 
 procedure TPas2JSConfigSupport.LoadDefaultConfig;
@@ -4033,6 +4055,11 @@ begin
           else
             ReadSyntaxFlags(Param,p);
         end;
+      't': // subtarget
+        begin
+        inc(p);
+        SubTarget:=copy(Param,p,length(Param));
+        end;
       'T': // target platform
         begin
         inc(p);
@@ -4244,6 +4271,13 @@ begin
     'z': WriteMsgToStdErr:=false;
     end;
   end;
+end;
+
+procedure TPas2jsCompiler.SetSubTarget(AValue: String);
+begin
+  if FSubTarget=AValue then Exit;
+  FSubTarget:=AValue;
+  //
 end;
 
 function TPas2jsCompiler.CreateImportList: TJSSourceElements;
@@ -4576,6 +4610,8 @@ begin
   AddDefine('FPC_WIDESTRING_EQUAL_UNICODESTRING');
   AddDefine('STR_CONCAT_PROCS');
   AddDefine('UNICODE');
+  if SubTarget<>'' then
+    AddDefine('FPC_SUBTARGET',SubTarget);
 
   FHasShownLogo:=false;
   FHasShownEncoding:=false;
@@ -4611,6 +4647,8 @@ begin
     // read default config
     if Assigned(ConfigSupport) and not SkipDefaultConfig then
       ConfigSupport.LoadDefaultConfig;
+    if Assigned(ConfigSupport) and (SubTarget<>'') then
+      ConfigSupport.LoadSubTargetConfig(SubTarget);
 
     // read env PAS2JS_OPTS
     ReadEnvironment;
@@ -4873,6 +4911,7 @@ begin
   w('  -SI<x>  : Set interface style to <x>');
   w('    -SIcom  : COM, reference counted interface (default)');
   w('    -SIcorba: CORBA interface');
+  w('  -T<x>  : Set subtarget (searches for pas2js-<subtarget>.cfg');
   w('  -T<x>  : Set target platform');
   w('    -Tbrowser: default');
   w('    -Tnodejs : add pas.run(), includes -Jc');

@@ -39,9 +39,15 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
+  
+  { TPas2JSFileConfigSupport }
+
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)
+    function FindConfig(const aBaseName : string): String;
     function FindDefaultConfig: String; override;
     function GetReader(aFileName: string): TSourceLineReader; override;
+  protected
+    function FindSubtargetConfig(const aSubTarget: string): String; override;
   end;
 
 implementation
@@ -56,7 +62,26 @@ begin
   Result:=CacheFile.CreateLineReader(true);
 end;
 
-Function TPas2JSFileConfigSupport.FindDefaultConfig : String;
+function TPas2JSFileConfigSupport.FindSubtargetConfig(const aSubTarget: string): String;
+
+var
+  FN,Ext : String;
+
+begin
+  FN:=ChangeFileExt(DefaultConfigFile,'');
+  Ext:=ExtractFileExt(DefaultConfigFile);
+  FN:=FN+'-'+LowerCase(aSubtarget)+Ext;
+  Result:=FindConfig(FN);
+end;
+
+function TPas2JSFileConfigSupport.FindDefaultConfig: String;
+
+begin
+  Result:=FindConfig(DefaultConfigFile);
+end;
+
+function TPas2JSFileConfigSupport.FindConfig(const aBaseName : string): String;
+
 var
   Tried: TStringList;
 
@@ -70,7 +95,7 @@ var
     if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
       Compiler.Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not Compiler.FS.FileExists(aFilename) then exit;
-    FindDefaultConfig:=aFilename;
+    FindConfig:=aFilename;
     Result:=true;
   end;
 
@@ -85,7 +110,7 @@ begin
     aFilename:=ChompPathDelim(GetEnvironmentVariablePJ('HOME'));
     if aFilename<>'' then
       begin
-      aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
+      aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+aBaseName;
       if TryConfig(aFileName) then
         exit;
       end;
@@ -96,7 +121,7 @@ begin
       aFilename:=ExtractFilePath(Compiler.CompilerExe);
       if aFilename<>'' then
       begin
-        aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
+        aFilename:=IncludeTrailingPathDelimiter(aFilename)+aBaseName;
         if TryConfig(aFilename) then
           exit;
       end;
@@ -105,7 +130,7 @@ begin
       if (aFilename<>'') and (aFilename<>Compiler.CompilerExe) then
       begin
         aFilename:=ExtractFilePath(aFilename);
-        aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
+        aFilename:=IncludeTrailingPathDelimiter(aFilename)+aBaseName;
         if TryConfig(aFilename) then
           exit;
       end;
@@ -113,7 +138,7 @@ begin
 
     // finally try global directory
     {$IFDEF Unix}
-    if TryConfig('/etc/'+DefaultConfigFile) then
+    if TryConfig('/etc/'+aBaseName) then
       exit;
     {$ENDIF}
 
