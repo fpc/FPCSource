@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2023 The free pascal team
+    Copyright (c) 2023 The Free Pascal team
 
     Delphi-compatible Regular expressions unit.
 
