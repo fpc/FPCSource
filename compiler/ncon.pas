@@ -569,9 +569,9 @@ implementation
         inherited printnodedata(t);
         write(t,printnodeindention,'value = ',value_real);
         if is_currency(resultdef) then
-          writeln(', value_currency = ',value_currency)
+          writeln(t,', value_currency = ',value_currency)
         else
-          writeln;
+          writeln(t);
       end;
 
     function trealconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
