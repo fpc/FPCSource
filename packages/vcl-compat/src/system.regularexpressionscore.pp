@@ -72,7 +72,7 @@ type
     Type
       TTransformation = (tNone,tLowerCase,tUpperCase,tFirstCap,tInitialCap);
 
-    class function TransForm(aTransform: TTransformation; S: TREString): TREString;
+    class function TransForm(aTransform: TTransformation; const S: TREString): TREString;
   private
   {$IFDEF USEWIDESTRING}
     FCode : Ppcre2_code_16;
@@ -988,7 +988,7 @@ begin
   Result:=Group;
 end;
 
-Class function TPerlRegEx.TransForm(aTransform : TTransformation; S : TREString): TREString;
+Class function TPerlRegEx.TransForm(aTransform : TTransformation; const S : TREString): TREString;
 
 begin
   Case aTransform of
