@@ -3189,7 +3189,7 @@ S*2Aas_Monta usando o GNU AS
 **2bl_Gera informa‡äes s¡mbolos locais
 **1B_Constr¢i todos os m¢dulos
 **1C<x>_Op‡äes gera‡Æo de c¢digo:
-**2C3<x>_Ligar verifica‡Æo de erro ieee para constantes
+**2C3<x>_Ligar verifica‡Æo de erro IEEE para constantes
 **2Ca<x>_Seleciona ABI, veja fpc -i para poss¡veis valores
 **2Cb_Gera c¢digo 'big-endian'
 **2Cc<x>_Ajusta conven‡Æo de chamada para <x>

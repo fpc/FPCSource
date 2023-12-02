@@ -1586,7 +1586,7 @@ const msgtxt : array[0..000385,1..240] of char=(
   '**2bl_Generate local symbol info'#010+
   '**1B_Build all modules'#010+
   '**1C<x>_Code generation options:'#010+
-  '**2C3_Turn on ieee error checking for constants'#010+
+  '**2C3_Turn on IEEE error checking for constants'#010+
   '**2Ca<x>_Select ABI; see fpc -i or fpc -ia fo','r possible values'#010+
   '**2Cb_Generate code for a big-endian variant of the target architectur'+
   'e'#010+

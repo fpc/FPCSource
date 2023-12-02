@@ -4061,7 +4061,7 @@ Z*2Az80asm_Assembliere mit Hilfe von z80asm
 **2bl_Erzeuge Info zu lokalen Symbolen
 **1B_Erzeuge alle Module (Build)
 **1C<x>_Optionen fr Code-Erzeugung:
-**2C3<x>_Schalte ieee-Prfung von Konstanten ein
+**2C3<x>_Schalte IEEE-Prfung von Konstanten ein
 **2Ca<x>_W„hle ABI aus; fpc -i oder fpc -ia geben die m”glichen Werte aus
 **2Cb_Erzeuge Code fr die "big-endian"-Variante der Zielarchitektur
 **2Cc<x>_Setze "default calling convention" zu <x>

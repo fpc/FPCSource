@@ -4022,7 +4022,7 @@ Z*2Az80asm_Assemble using z80asm
 **2bl_Generate local symbol info
 **1B_Build all modules
 **1C<x>_Code generation options:
-**2C3_Turn on ieee error checking for constants
+**2C3_Turn on IEEE error checking for constants
 **2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
