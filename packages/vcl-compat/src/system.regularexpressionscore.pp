@@ -114,7 +114,7 @@ type
     function GetMatchedOffset: Integer;
     function GetMatchedText: TREString;
     function GetModifiedSubject: TREString;
-    function GetNamedGroup(aName : TREString): TREString;
+    function GetNamedGroup(const aName : TREString): TREString;
     procedure GetNamedGroupInfo;
     function GetPCREErrorMsg(ErrorNr: Integer): TREString;
     function GetResultString(aIndex: Integer): TREString;
@@ -125,11 +125,11 @@ type
     function GetSubjectRight: TREString;
     function MakeOptions(aOptions: TPerlRegExOptions): Integer;
     procedure SetOptions(aValue: TPerlRegExOptions);
-    procedure SetRegEx(aValue: TREString);
-    procedure SetReplacement(aValue: TREString);
+    procedure SetRegEx(const aValue: TREString);
+    procedure SetReplacement(const aValue: TREString);
     procedure SetStart(aValue: Integer);
     procedure SetStop(aValue: Integer);
-    procedure SetSubject(aValue: TREString);
+    procedure SetSubject(const aValue: TREString);
   protected
     procedure FreeCodeData;
     procedure FreeMatchData;
@@ -415,7 +415,7 @@ begin
   Result:=FModifiedSubject;
 end;
 
-function TPerlRegEx.GetNamedGroup(aName : TREString): TREString;
+function TPerlRegEx.GetNamedGroup(const aName: TREString): TREString;
 
 var
   Idx : integer;
@@ -463,13 +463,13 @@ begin
   CleanUp; // Need to reset...
 end;
 
-procedure TPerlRegEx.SetRegEx(aValue: TREString);
+procedure TPerlRegEx.SetRegEx(const aValue: TREString);
 begin
   if FRegEx=AValue then Exit;
   FRegEx:=aValue;
 end;
 
-procedure TPerlRegEx.SetReplacement(aValue: TREString);
+procedure TPerlRegEx.SetReplacement(const aValue: TREString);
 begin
   FReplacement:=AValue;
 end;
@@ -485,7 +485,7 @@ begin
   FStop:=aValue-1;
 end;
 
-procedure TPerlRegEx.SetSubject(aValue: TREString);
+procedure TPerlRegEx.SetSubject(const aValue: TREString);
 begin
   FSubject:=aValue;
   FSubjectLength:=Length(FSubject);
