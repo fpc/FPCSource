@@ -189,15 +189,15 @@ procedure TTestTPath.TestGetExtendedPrefix;
     DoDirSeparators(aPath);
     Str(aExpected,S);
     {$IFNDEF WINDOWS}
-    aExpected:=pptNoPrefix;
+    aExpected:=TPathPrefixType.pptNoPrefix;
     {$ENDIF}
     AssertTrue(aPath+' -> '+S,aExpected=TPath.GetExtendedPrefix(aPath));
   end;
 
 begin
-  TestIt(pptNoPrefix,'/a/b/c.txt');
-  TestIt(pptExtended,'//?/a/b/c.txt');
-  TestIt(pptExtendedUNC,'//?/UNC/a/b/c.txt');
+  TestIt(TPathPrefixType.pptNoPrefix,'/a/b/c.txt');
+  TestIt(TPathPrefixType.pptExtended,'//?/a/b/c.txt');
+  TestIt(TPathPrefixType.pptExtendedUNC,'//?/UNC/a/b/c.txt');
 end;
 
 procedure TTestTPath.TestIsDriveRooted;
@@ -1099,10 +1099,10 @@ procedure TTestTPath.TestGetSetAttributes;
 
 Const
 {$IFDEF UNIX}
-  FAS = [faOwnerRead, faOwnerWrite, faOwnerExecute,
-         faGroupRead, faGroupWrite, faGroupExecute,
-         faOthersRead, faOthersWrite, faOthersExecute,
-         faUserIDExecution, faGroupIDExecution, faStickyBit];
+  FAS = [TFileAttribute.faOwnerRead, TFileAttribute.faOwnerWrite, TFileAttribute.faOwnerExecute,
+         TFileAttribute.faGroupRead, TFileAttribute.faGroupWrite, TFileAttribute.faGroupExecute,
+         TFileAttribute.faOthersRead, TFileAttribute.faOthersWrite, TFileAttribute.faOthersExecute,
+         TFileAttribute.faUserIDExecution, TFileAttribute.faGroupIDExecution, TFileAttribute.faStickyBit];
 {$ENDIF}
 
 
