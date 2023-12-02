@@ -36,6 +36,7 @@ begin
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-hash');
     P.Dependencies.Add('hash');
+    P.Dependencies.Add('libpcre');
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -61,6 +62,10 @@ begin
     T.Dependencies.AddUnit('system.json');
     T:=P.Targets.AddUnit('system.hash.pp');
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp');
+    T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('system.regularexpressionscore.pp');
+    T.Dependencies.AddUnit('system.regularexpressionsconsts');
 
 
 {$ifndef ALLPACKAGES}
