@@ -150,11 +150,11 @@ begin
   inquotes:=false;
   inarg:=false;
 
-  p:=pchar(h68k_startup.comm);
+  p:=@h68k_startup.comm^.buffer;
   if not assigned(p) then
     exit;
 
-  argl:=length(p);
+  argl:=h68k_startup.comm^.len;
   if argl < 1 then
     argl:=1;
 

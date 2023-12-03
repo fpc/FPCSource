@@ -92,7 +92,7 @@ type
   Th68kdos_startup = record
     mcb: pbyte;
     bss_end: pbyte;
-    comm: pbyte;
+    comm: ph68kdos_comline;
     environ: pbyte;
     entry: pbyte;
     intr: pbyte;
