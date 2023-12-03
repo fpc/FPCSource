@@ -1410,7 +1410,7 @@ end;
 ****************************************************************************}
 
 
-Function GetEpochTime: cint;
+Function GetEpochTime: time_t;
 {
   Get the number of seconds since 00:00, January 1 1970, GMT
   the time NOT corrected any way
