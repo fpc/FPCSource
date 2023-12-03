@@ -108,6 +108,10 @@ var
     GetProcessID := 1;
   end;
 
+var
+  h68k_startup: Th68kdos_startup; external name '_h68k_startup';
+  h68k_psp: Ph68kdos_psp; external name '_h68k_psp';
+
 
 {*****************************************************************************
                              ParamStr
@@ -116,17 +120,104 @@ var
 { number of args }
 function ParamCount: LongInt;
 begin
-  ParamCount:=0;
+  ParamCount:=argc;
 end;
 
 { argument number l }
 function ParamStr(l: LongInt): shortstring;
 begin
-  ParamStr:='';
+  if assigned(argv) and (l >= 0) and (l <= argc) then
+    ParamStr:=argv[l]
+  else
+    ParamStr:='';
+end;
+
+procedure GenerateArgs;
+var
+  argcc: longint;
+  argl: longint;
+  p: pchar;
+  argsp: pchar;
+  inquotes: boolean;
+  inarg: boolean;
+begin
+  argc:=0;
+  inquotes:=false;
+  inarg:=false;
+
+  p:=pchar(h68k_startup.comm);
+  if not assigned(p) then
+    exit;
+
+  argl:=length(p);
+  if argl < 1 then
+    argl:=1;
+
+  args:=getmem(argl);
+  fillchar(args^,argl,#0);
+  argsp:=args;
+
+  while p^ <> #0 do
+    begin
+      case p^ of
+        ' ':
+          begin
+            if not inquotes then
+              begin
+                if inarg then
+                  begin
+                    inc(argc);
+                    inarg:=false;
+                  end;
+                argsp^:=#0;
+              end
+            else
+              argsp^:=p^;
+            inc(argsp);
+          end;
+        '"':
+          begin
+            inquotes:=not inquotes;
+          end;
+        else
+          begin
+            inarg:=true;
+            argsp^:=p^;
+            inc(argsp);
+          end;
+      end;
+      inc(p);
+    end;
+  if inarg then
+    inc(argc);
+
+  argv:=GetMem(argc+1);
+  argsp:=args;
+  argcc:=0;
+  inarg:=false;
+  while (argsp < (args + argl)) and (argcc < argc) do
+    begin
+      if argsp^ = #0 then
+        inarg:=false
+      else
+        if not inarg then
+          begin
+            inarg:=true;
+            argv[argcc+1]:=argsp;
+            inc(argcc);
+          end;
+      inc(argsp);
+    end;
+
+  argl:=length(h68k_psp^.exe_path)+length(h68k_psp^.exe_name);
+  argv[0]:=GetMem(argl+1);
+  MoveChar0(h68k_psp^.exe_path[0],argv[0][0],argl);
+  MoveChar0(h68k_psp^.exe_name[0],argv[0][length(argv[0])],argl);
 end;
 
 procedure SysInitParamsAndEnv;
 begin
+  GenerateArgs;
 end;
 
 
