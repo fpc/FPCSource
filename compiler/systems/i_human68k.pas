@@ -91,7 +91,7 @@ unit i_human68k;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 8192;
+            stacksize    : 16384;
             stackalign   : 2;
             abi : abi_default;
             llvmdatalayout : 'todo';
