@@ -159,7 +159,7 @@ begin
     argl:=1;
 
   args:=getmem(argl+1);
-  fillchar(args^,argl,#0);
+  fillchar(args^,argl+1,#0);
   argsp:=args;
 
   while p^ <> #0 do
