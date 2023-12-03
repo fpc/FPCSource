@@ -3510,7 +3510,7 @@ implementation
                      not (sp_generic_para in srsym.symoptions) and
                      (token in [_LT, _LSHARPBRACKET])
                    ) then
-                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,tokenpos);
 
                { if nothing found give error and return errorsym }
                if not assigned(srsym) or
