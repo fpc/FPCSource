@@ -35,6 +35,8 @@ procedure PascalStart(const startparams: Ph68kdos_startup); noreturn; forward;
 { this function must be the first in this unit which contains code }
 procedure _FPC_proc_start; assembler; nostackframe; noreturn; public name '_start';
 asm
+  move.l  a1,sp
+  add.l   stklen,sp
   movem.l a0-a5,-(sp)
   move.l sp,a0
   jbsr PascalStart
@@ -49,6 +51,10 @@ begin
       { clear BSS }
       bss_start:=pbyte(pdword(@mcb[$30])^);
       fillchar(bss_start^,bss_end-bss_start,0);
+
+      h68k_psp:=pointer(@mcb[$10]);
+      h68kdos_setblock(h68k_psp,bss_end-pointer(h68k_psp)+stklen);
+      stacktop:=bss_end+stklen;
     end;
 
   h68k_startup:=startparams^;
