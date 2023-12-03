@@ -51,19 +51,20 @@ const
 
 
 type
-  h68kdos_comline = record
+  Th68kdos_comline = record
     case boolean of
       true: ( len: byte; buffer: array[0..255] of char; );
       false: ( pstr: shortstring; )
   end;
+  Ph68kdos_comline = ^Th68kdos_comline;
 
 type
-  h68kdos_psp = record
+  Th68kdos_psp = record
     env: pchar;
     _exit: pointer;
     ctrlc: pointer;
     errexit: pointer;
-    comline: ^h68kdos_comline;
+    comline: Ph68kdos_comline;
     handle: array[0..11] of byte;
     bss: pointer;
     heap: pointer;
@@ -84,6 +85,19 @@ type
     exe_name: array[0..23] of char;
     reserve_2: array[0..35] of byte;
   end;
+  Ph68kdos_psp = ^Th68kdos_psp;
+
+// register contents on startup, a0-a5 respectively
+type
+  Th68kdos_startup = record
+    mcb: pbyte;
+    bss_end: pbyte;
+    comm: pbyte;
+    environ: pbyte;
+    entry: pbyte;
+    intr: pbyte;
+  end;
+  Ph68kdos_startup = ^Th68kdos_startup;
 
 // as used by seek
 const
