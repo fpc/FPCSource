@@ -21,6 +21,10 @@
 function SysOSAlloc(size: ptruint): pointer;
 begin
   SysOSAlloc:=h68kdos_malloc(size);
+
+  { uppermost bit set means, the allocation has failed, so return nil }
+  if (PtrUInt(SysOSAlloc) and $80000000) > 0 then
+    SysOSAlloc:=nil;
 end;
 
 {$define HAS_SYSOSFREE}
