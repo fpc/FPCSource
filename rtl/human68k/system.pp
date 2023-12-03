@@ -158,7 +158,7 @@ begin
   if argl < 1 then
     argl:=1;
 
-  args:=getmem(argl);
+  args:=getmem(argl+1);
   fillchar(args^,argl,#0);
   argsp:=args;
 
