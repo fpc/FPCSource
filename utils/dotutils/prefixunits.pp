@@ -59,6 +59,9 @@ begin
   Writeln('-n or --namespace=NS              Namespace to apply to file.');
   Writeln('-o or --option=option             Option to pass to compiler.');
   Writeln('-b or --backup                    Create backups of existing files when overwriting.');
+  writeln('-p --program                      Assume the sources are a program. This will not write a dotted file. Namespace is not needed');
+  Writeln('-r or --replace                   Default is to create an include and use a define to separate dotted from non-dotted');
+  Writeln('                                  Use this to replace the units clause as-is.');
   Writeln('All other options are passed as-is to the parser');
   Halt(Ord(Err<>''));
 end;
@@ -66,12 +69,13 @@ end;
 procedure TApplication.DoRun;
 
 Const
-  ShortOpts = 'bhf:k:n:o:d:';
-  LongOpts : Array of string = ('backup','filename:','known-namespaces:','namespace:','option:','dest-filename:');
+  ShortOpts = 'bhf:k:n:o:d:rp';
+  LongOpts : Array of string = ('backup','filename:','known-namespaces:','namespace:','option:','dest-filename:','replace','program');
 
 Var
   S : String;
   Opts : Array of string;
+  Prog : Boolean;
 
 begin
   Terminate;
@@ -79,6 +83,8 @@ begin
   if (S<>'') or HasOption('h','help') then
     Usage(S);
   FPrefixer.NameSpace:=GetOptionValue('n','namespace');
+  if HasOption('r','replace') then
+    FPrefixer.UnitFileMode :=fmReplace;
   FPrefixer.FileName:=GetOptionValue('f','filename');
   FPrefixer.DestFileName:=GetOptionValue('d','dest-filename');
   FPrefixer.CreateBackups:=HasOption('b','backup');
@@ -89,10 +95,12 @@ begin
       FPrefixer.FileName:=Opts[0];
     end;
   Opts:=GetOptionValues('o','option');
+  Prog:=HasOption('p','program');
   For S in Opts do
     FPrefixer.Params.Add(S);
-  if (FPrefixer.NameSpace='') then
+  if Not Prog and (FPrefixer.NameSpace='') then
     Usage('Namespace is required');
+  FPrefixer.SkipDestFileName:=Prog;
   if (FPrefixer.FileName='') then
     Usage('Filename is required');
   S:=GetOptionValue('k','known-namespaces');

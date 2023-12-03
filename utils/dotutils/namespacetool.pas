@@ -396,9 +396,12 @@ begin
       P:=Pos(' ',Opt);
       if P=0 then
         P:=Length(Opt)+1;
-      aOpts[I]:=Copy(Opt,1,P-1);
-      Opt:=Trim(Copy(Opt,P+1));
-      inc(I);
+      if p>1 then
+        begin
+        aOpts[I]:=Copy(Opt,1,P-1);
+        Opt:=Trim(Copy(Opt,P+1));
+        inc(I);
+        end;
     until (Opt='');
     SetLength(aOpts,I);
     end;

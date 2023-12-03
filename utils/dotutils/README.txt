@@ -35,7 +35,7 @@ This file is used to construct dotted unit files from undotted files.
 
 The file must be contain all files in a give directory grouped:
 
-Ff a line contains no rule or compile options, the last used rule/compile options for a file in the same directory is reused.
+If a line contains no rule or compile options, the last used rule/compile options for a file in the same directory is reused.
 
 ```
 src/sysutils.pp=System;-S2
@@ -47,16 +47,18 @@ will result in classes being parsed with -S2 and the resulting name will be Syst
 the name of the math unit will not be changed.
 
 
-### Known units rules
+## Known units rules
 
 A file with OldName=Rule pairs to apply to unit names in a uses clause. a Rule may never specify a path
 or an extension. The same extension as the original is used. 
 
-## Conversion Rules
+This file is used by the prefixunits tool.
+
+# Conversion Rules
 
 A rule can take the following forms:
   
-"*DottedUnitName" : Use the dotted name as ypes.
+"*DottedUnitName" : Use the dotted name as typed.
    
 Example:
 
@@ -210,6 +212,10 @@ a rule file of units to treat and the 'known mappings' rule file.
 ## prefixunits.pp
 
 Prefix units in a uses clause of a single program or unit.
+This is the main tool: it allows you to change the uses clause of your
+program or unit so it uses dotted names, based on a list of known aliases.
+
+
 
 ## proxyunit.pp
 

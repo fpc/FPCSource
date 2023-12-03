@@ -377,7 +377,7 @@ end;
 function TPrefixer.GetDestFileName: String;
 
 Var
-  DN, FN : String;
+  DN, FN, NS : String;
 
 begin
   Result:=FDestFileName;
@@ -385,10 +385,13 @@ begin
     begin
     DN:=ExtractFilePath(FileName);
     FN:=ExtractFileName(FileName);
+    NS:=NameSpace;
+    if NS<>'' then
+      NS:=NS+'.';
     if CasedFileNames then
-      Result:=DN+NameSpace+'.'+FN
+      Result:=DN+NS+FN
     else
-      Result:=DN+LowerCase(NameSpace+'.'+FN);
+      Result:=DN+LowerCase(NS+FN);
     end;
 end;
 
