@@ -220,7 +220,7 @@ function TX509Certificate.GetKeySize: Integer;
 begin
   Result:=FKeySize;
   if Result=0 then
-    Result:=1024;
+    Result:=2048;
 end;
 
 function TX509Certificate.GetValidFrom: TDateTime;
