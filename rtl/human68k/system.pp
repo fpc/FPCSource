@@ -140,7 +140,7 @@ end;
 procedure GenerateArgs;
 var
   argcc: longint;
-  argl: longint;
+  argl,pathlen,namelen: longint;
   p: pchar;
   argsp: pchar;
   inquotes: boolean;
@@ -214,10 +214,13 @@ begin
       inc(argsp);
     end;
 
-  argl:=length(h68k_psp^.exe_path)+length(h68k_psp^.exe_name);
+  pathlen:=strlen(h68k_psp^.exe_path);
+  namelen:=strlen(h68k_psp^.exe_name);
+  argl:=pathlen+namelen;
   argv[0]:=GetMem(argl+1);
-  MoveChar0(h68k_psp^.exe_path[0],argv[0][0],argl);
-  MoveChar0(h68k_psp^.exe_name[0],argv[0][length(argv[0])],argl);
+  Move(h68k_psp^.exe_path[0],argv[0][0],pathlen);
+  Move(h68k_psp^.exe_name[0],argv[0][pathlen],namelen);
+  argv[0][argl]:=#0;
 end;
 
 procedure SysInitParamsAndEnv;
