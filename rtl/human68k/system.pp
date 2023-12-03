@@ -112,6 +112,11 @@ var
   h68k_startup: Th68kdos_startup; external name '_h68k_startup';
   h68k_psp: Ph68kdos_psp; external name '_h68k_psp';
 
+{$ifdef FPC_HUMAN68K_USE_TINYHEAP}
+  initial_heap_start: pointer; public name '__initial_heap_start';
+  initial_heap_end: pointer; public name '__initial_heap_end';
+{$endif FPC_HUMAN68K_USE_TINYHEAP}
+
 
 {*****************************************************************************
                              ParamStr
@@ -242,6 +247,17 @@ end;
                          System Unit Initialization
 *****************************************************************************}
 
+{$ifdef FPC_HUMAN68K_USE_TINYHEAP}
+procedure InitHeap;
+var
+  aligned_heap_start: pointer;
+begin
+  aligned_heap_start:=align(initial_heap_start,sizeof(ttinyheapblock));
+  RegisterTinyHeapBlock_Simple_Prealigned(aligned_heap_start, ptruint(initial_heap_end - aligned_heap_start));
+end;
+{$endif FPC_HUMAN68K_USE_TINYHEAP}
+
+
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
@@ -263,10 +279,8 @@ begin
   StackLength := CheckInitialStkLen (InitialStkLen);
 { Initialize ExitProc }
   ExitProc:=Nil;
-{$ifndef FPC_HUMAN68K_USE_TINYHEAP}
 { Setup heap }
   InitHeap;
-{$endif FPC_HUMAN68K_USE_TINYHEAP}
   SysInitExceptions;
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;

@@ -17,6 +17,8 @@ unit si_prc;
 
 interface
 
+{$.define FPC_HUMAN68K_USE_TINYHEAP}
+
 implementation
 
 {$include h68kdos.inc}
@@ -24,6 +26,10 @@ implementation
 var
   stacktop: pointer; public name '__stktop';
   stklen: longint; external name '__stklen';
+{$ifdef FPC_HUMAN68K_USE_TINYHEAP}
+  initial_heap_start: pointer; external name '__initial_heap_start';
+  initial_heap_end: pointer; external name '__initial_heap_end';
+{$endif FPC_HUMAN68K_USE_TINYHEAP}
 
 var
   h68k_startup: Th68kdos_startup; public name '_h68k_startup';
@@ -45,6 +51,7 @@ end;
 procedure PascalStart(const startparams: Ph68kdos_startup); noreturn;
 var
   bss_start: pbyte;
+  blocksize: longint;
 begin
   with startparams^ do
     begin
@@ -53,8 +60,17 @@ begin
       fillchar(bss_start^,bss_end-bss_start,0);
 
       h68k_psp:=pointer(@mcb[$10]);
-      h68kdos_setblock(h68k_psp,bss_end-pointer(h68k_psp)+stklen);
+{$ifdef FPC_HUMAN68K_USE_TINYHEAP}
+      blocksize:=bss_end-pointer(h68k_psp)+stklen+heapsize;
+{$else FPC_HUMAN68K_USE_TINYHEAP}
+      blocksize:=bss_end-pointer(h68k_psp)+stklen;
+{$endif FPC_HUMAN68K_USE_TINYHEAP}
+      h68kdos_setblock(h68k_psp,blocksize);
       stacktop:=bss_end+stklen;
+{$ifdef FPC_HUMAN68K_USE_TINYHEAP}
+      initial_heap_start:=stacktop;
+      initial_heap_end:=initial_heap_start+heapsize;
+{$endif FPC_HUMAN68K_USE_TINYHEAP}
     end;
 
   h68k_startup:=startparams^;

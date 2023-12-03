@@ -125,6 +125,12 @@ implementation
            system_powerpc_morphos,
            system_x86_64_aros:
              include(supported_calling_conventions,pocall_syscall);
+           system_m68k_human68k:
+             begin
+               include(supported_calling_conventions,pocall_syscall);
+               if heapsize=0 then
+                 heapsize:=65536;
+             end;
 {$ifdef i8086}
            system_i8086_embedded:
              begin
