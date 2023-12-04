@@ -145,26 +145,24 @@ var
   argsp: pchar;
   inquotes: boolean;
   inarg: boolean;
+  i: longint;
 begin
-  argc:=0;
   inquotes:=false;
   inarg:=false;
 
-  p:=@h68k_startup.comm^.buffer;
-  if not assigned(p) then
+  if not assigned(h68k_startup.comm) then
     exit;
 
+  p:=@h68k_startup.comm^.buffer;
   argl:=h68k_startup.comm^.len;
-  if argl < 1 then
-    argl:=1;
 
   args:=getmem(argl+1);
   fillchar(args^,argl+1,#0);
   argsp:=args;
 
-  while p^ <> #0 do
+  for i:=0 to argl-1 do
     begin
-      case p^ of
+      case p[i] of
         ' ':
           begin
             if not inquotes then
@@ -177,7 +175,7 @@ begin
                 argsp^:=#0;
               end
             else
-              argsp^:=p^;
+              argsp^:=p[i];
             inc(argsp);
           end;
         '"':
@@ -187,11 +185,10 @@ begin
         else
           begin
             inarg:=true;
-            argsp^:=p^;
+            argsp^:=p[i];
             inc(argsp);
           end;
       end;
-      inc(p);
     end;
   if inarg then
     inc(argc);
