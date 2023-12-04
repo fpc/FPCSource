@@ -37,7 +37,7 @@ interface
           function first_int_to_real: tnode; override;
           function first_int_to_bool: tnode; override;
           function first_nil_to_methodprocvar: tnode; override;
-          function first_real_to_real: tnode; override;
+         { function first_real_to_real: tnode; override; }
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -169,29 +169,6 @@ function tllvmtypeconvnode.first_nil_to_methodprocvar: tnode;
     if assigned(result) then
       exit;
     expectloc:=LOC_REFERENCE;
-  end;
-
-
-function tllvmtypeconvnode.first_real_to_real: tnode;
-  begin
-    result:=inherited;
-    if assigned(result) then
-      exit;
-    { fptosui always uses round to zero, while we have to use the current
-      rounding mode when converting from another floating point type to
-      currency/comp to be compatible with the regular code generators ->
-      call round() instead }
-    if (tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
-       not(tfloatdef(left.resultdef).floattype in [s64currency,s64comp]) and
-       not(nf_internal in flags) then
-      begin
-        result:=ccallnode.createinternfromunit('SYSTEM','ROUND',
-          ccallparanode.create(left,nil));
-        left:=nil;
-        { left was already been multiplied by 10000 by typecheck_real_to_real
-          -> ensure we don't do that again with the result of round }
-        result:=ctypeconvnode.create_internal(result,resultdef);
-      end;
   end;
 
 
