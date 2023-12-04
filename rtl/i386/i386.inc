@@ -25,6 +25,8 @@ var
   os_supports_sse : boolean;
   { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
   sse_check : boolean;
+  fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
+  fpc_cpucodeinit_performed : boolean; { Code before fpc_cpucodeinit can call certain dispatched functions, such as Move. }
 
 {$asmmode ATT}
 
@@ -47,15 +49,6 @@ function cpuid_support : boolean;assembler;nostackframe;
     setnz   %al
   end;
 
-{$ifndef FPC_PIC}
-{$ifndef FPC_SYSTEM_HAS_MOVE}
-{$ifndef OLD_ASSEMBLER}
-{$define USE_FASTMOVE}
-{$i fastmove.inc}
-{$endif not OLD_ASSEMBLER}
-{$endif FPC_SYSTEM_HAS_MOVE}
-{$endif FPC_PIC}
-
 {$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   begin
@@ -63,7 +56,6 @@ procedure fpc_cpuinit;
       must be implemented OS dependend (FK)
     has_sse_support:=sse_support;
     has_mmx_support:=mmx_support;
-    setup_fastmove;
     }
   end;
 
@@ -78,6 +70,12 @@ procedure fpc_geteipasecx; [public, alias: 'fpc_geteipasecx'];assembler; nostack
 asm
   movl    (%esp),%ecx
 end;
+{$endif}
+
+{$if not defined(FPC_SYSTEM_HAS_MOVE)
+ and not defined(OLD_ASSEMBLER)
+ and not defined(darwin)}
+{$i fastmove.inc}
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
@@ -2027,7 +2025,7 @@ Procedure SysResetFPU;
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
   var
-    _eax,_ecx_cpuid1,_edx_cpuid1,_ebx : longint;
+    _eax,_ecx_cpuid1,_edx_cpuid1,_ebx_cpuid7 : longint;
   begin
     if cpuid_support then
       begin
@@ -2067,23 +2065,27 @@ procedure fpc_cpucodeinit;
               cpuid
               movl %eax,_eax
             end;
-            if (_eax>=7) and (_ecx_cpuid1 and $08000000<>0 {XGETBV support?}) then
+            if _eax>=7 then
               begin
                 asm
+                  movl $7,%eax
                   xorl %ecx,%ecx
-                  .byte   0x0f,0x01,0xd0 { xgetbv }
-                  movl %eax,_eax
+                  cpuid
+                  movl %ebx,_ebx_cpuid7
                 end;
-                if (_eax and 6)=6 then
+                fast_large_repmovstosb:=_ebx_cpuid7 and (1 shl 9)<>0;
+                if (_ecx_cpuid1 and $08000000<>0 {XGETBV support?}) then
                   begin
-                    has_avx_support:=(_ecx_cpuid1 and $10000000)<>0;
                     asm
-                      movl $7,%eax
                       xorl %ecx,%ecx
-                      cpuid
-                      movl %ebx,_ebx
+                      .byte   0x0f,0x01,0xd0 { xgetbv }
+                      movl %eax,_eax
                     end;
-                    has_avx2_support:=(_ebx and $20)<>0;
+                    if (_eax and 6)=6 then
+                      begin
+                        has_avx_support:=(_ecx_cpuid1 and $10000000)<>0;
+                        has_avx2_support:=(_ebx_cpuid7 and $20)<>0;
+                      end;
                   end;
               end;
           end;
@@ -2098,9 +2100,7 @@ procedure fpc_cpucodeinit;
       end;
 
     SysResetFPU;
-{$ifdef USE_FASTMOVE}
-    setup_fastmove;
-{$endif}
+    fpc_cpucodeinit_performed:=true;
   end;
 
 
