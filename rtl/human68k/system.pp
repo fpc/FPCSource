@@ -157,6 +157,8 @@ begin
   argl:=h68k_startup.comm^.len;
 
   args:=getmem(argl+1);
+  if not assigned(args) then
+    exit;
   fillchar(args^,argl+1,#0);
   argsp:=args;
 
@@ -194,6 +196,8 @@ begin
     inc(argc);
 
   argv:=GetMem(argc+1);
+  if not assigned(argv) then
+    exit;
   argsp:=args;
   argcc:=0;
   inarg:=false;
@@ -215,6 +219,8 @@ begin
   namelen:=strlen(h68k_psp^.exe_name);
   argl:=pathlen+namelen;
   argv[0]:=GetMem(argl+1);
+  if not assigned(argv[0]) then
+    exit;
   Move(h68k_psp^.exe_path[0],argv[0][0],pathlen);
   Move(h68k_psp^.exe_name[0],argv[0][pathlen],namelen);
   argv[0][argl]:=#0;
