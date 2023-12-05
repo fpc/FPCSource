@@ -55,5 +55,26 @@ end;
 
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
+var
+  dosResult: longint;
+  pathbuf: array[0..259] of AnsiChar;
 begin
+  Dir := '';
+
+  dosResult:=h68kdos_curdir(DriveNr,@pathbuf[2]);
+  if dosResult < 0 then
+    begin
+      Error2InOutRes(dosResult);
+      exit;
+    end;
+
+  if DriveNr = 0 then
+    DriveNr := h68kdos_curdrv + 1;
+
+  { return a full path, including drive }
+  pathbuf[0]:=AnsiChar(ord('A') + DriveNr - 1);
+  pathbuf[1]:=DriveSeparator;
+
+  Dir:=pathbuf;
+  SetCodePage(Dir,DefaultSystemCodePage,false);
 end;
