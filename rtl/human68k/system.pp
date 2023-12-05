@@ -156,7 +156,7 @@ begin
   p:=@h68k_startup.comm^.buffer;
   argl:=h68k_startup.comm^.len;
 
-  args:=getmem(argl+1);
+  args:=GetMem(argl+1);
   if not assigned(args) then
     exit;
   fillchar(args^,argl+1,#0);
