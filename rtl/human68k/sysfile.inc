@@ -154,7 +154,76 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
   when (flags and $1000)  the file will be truncate/rewritten
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
+var
+  oldp     : PAnsiChar;
+  dosResult: longint;
 begin
+{ close first if opened }
+  if ((flags and $10000)=0) then
+   begin
+     case filerec(f).mode of
+       fmInput, fmOutput, fmInout:
+         do_close(filerec(f).handle);
+       fmClosed: ;
+     else
+       begin
+         InOutRes:=102; {not assigned}
+         exit;
+       end;
+     end;
+   end;
+
+{ reset file handle }
+  filerec(f).handle:=UnusedHandle;
+
+  { convert filemode to filerec modes }
+  case (flags and 3) of
+    0 : filerec(f).mode:=fmInput;
+    1 : filerec(f).mode:=fmOutput;
+    2 : filerec(f).mode:=fmInout;
+  end;
+
+  { empty name is special }
+  if p[0]=#0 then begin
+    case filerec(f).mode of
+      fminput :
+        filerec(f).handle:=StdInputHandle;
+      fmappend,
+      fmoutput : begin
+        filerec(f).handle:=StdOutputHandle;
+        filerec(f).mode:=fmOutput; {fool fmappend}
+      end;
+    end;
+    exit;
+  end;
+
+  oldp:=p;
+  DoDirSeparators(p);
+
+  { rewrite (create a new file) }
+  if (flags and $1000)<>0 then
+    dosResult:=h68kdos_create(p,0)
+  else
+    dosResult:=h68kdos_open(p,flags and 3);
+
+  if oldp<>p then
+    freemem(p);
+
+  if dosResult < 0 then
+    begin
+      Error2InOutRes(dosResult);
+      filerec(f).mode:=fmClosed;
+      exit;
+    end
+  else
+    filerec(f).handle:=word(dosResult);
+
+  { append mode }
+  if ((Flags and $100)<>0) and
+      (FileRec(F).Handle<>UnusedHandle) then begin
+    do_seekend(filerec(f).handle);
+    filerec(f).mode:=fmOutput; {fool fmappend}
+  end;
 end;
 
 
