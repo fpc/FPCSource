@@ -4,8 +4,12 @@
 { at least valgrind up to 3.3 has a bug which prevents the default code to
   work so we use a rather simple implementation here }
 procedure Move_8OrMore_Valgrind; assembler; nostackframe;
-{ ebx pushed, eax = source, edx = dest, ecx = count (ecx >= 8). }
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
 asm
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
     sub    %edx, %eax
     jae    .LForward
     mov    %ecx, %ebx
@@ -38,7 +42,8 @@ asm
 end;
 
 procedure Move_8OrMore_IA32; assembler; nostackframe;
-{ ebx pushed, eax = source, edx = dest, ecx = count (ecx >= 8). }
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
 asm
     fildq  (%eax)                { First and last 8 bytes, used both in .L33OrMore and ladder ending (.L9to16). }
     fildq  -8(%eax,%ecx)
@@ -53,18 +58,25 @@ asm
 .L9to16:
     fistpq -8(%edx,%ecx)         { 9–16 bytes }
     fistpq (%edx)
+{$ifdef FPC_PIC}
     pop    %ebx
+{$endif}
     ret
 
 .Lcancel:
     fucompp                      { Pop two elements loaded at the beginning. }
+{$ifdef FPC_PIC}
     pop    %ebx
+{$endif}
     ret
-    .byte  0x66,0x0F,0x1F,0x84,0,0,0,0,0 { Turns .balign 16 before .Lloop16f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16f into a no-op. }
 
 .L33OrMore:
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lcancel              { exit if src=dest }
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
     jnb    .LForward             { src>dest => forward move }
 
     mov    %ecx, %ebx
@@ -101,7 +113,7 @@ asm
     fistpq (%ebx)                { Important for <8-byte step between src and dest. }
     pop    %ebx
     ret
-    .byte  0x0F,0x1F,0x84,0,0,0,0,0 { Turns .balign 16 before .Lloop16b into a no-op. }
+    .byte  102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16b into a no-op. }
 
 { backwards move }
 .Lback:
@@ -137,10 +149,14 @@ asm
 end;
 
 procedure Move_8OrMore_MMX; assembler; nostackframe;
-{ ebx pushed, eax = source, edx = dest, ecx = count (ecx >= 8). }
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
 asm
     cmp    $72, %ecx             { Size at which using MMX becomes worthwhile. }
     jl     Move_8OrMore_IA32
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
     movq   (%eax), %mm4          { First and last 8 bytes. }
     movq   -8(%eax,%ecx), %mm5
     sub    %edx, %eax            { eax = src - dest }
@@ -183,7 +199,7 @@ asm
     emms
     pop    %ebx
     ret
-    .byte  0x66,0x66,0x66,0x66,0x66,0x2E,0x0F,0x1F,0x84,0,0,0,0,0 { Turns .balign 16 before .Lloop16b into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16b into a no-op. }
 
 { backwards move }
 .Lback:
@@ -221,7 +237,8 @@ end;
 
 {$ifndef FASTMOVE_DISABLE_SSE}
 procedure Move_8OrMore_SSE; assembler; nostackframe;
-{ ebx pushed, eax = source, edx = dest, ecx = count (ecx >= 8). }
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
 const
   ErmsThreshold = 1536;
   NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
@@ -235,7 +252,9 @@ asm
     jg     .L33OrMore
     movups %xmm4, (%edx)         { 17–32 bytes }
     movups %xmm5, -16(%edx,%ecx)
+{$ifdef FPC_PIC}
     pop    %ebx
+{$endif}
     ret
 
 .L9to16:
@@ -244,13 +263,18 @@ asm
     movq   %xmm0, (%edx)
     movq   %xmm1, -8(%edx,%ecx)
 .Lquit:
+{$ifdef FPC_PIC}
     pop    %ebx
+{$endif}
     ret
-    .byte  0x66,0x66,0x66,0x66,0x66,0x2E,0x0F,0x1F,0x84,0,0,0,0,0 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lquit                { exit if src=dest }
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
     jnb    .LForward             { src>dest => forward move }
 
     mov    %ecx, %ebx
@@ -386,7 +410,7 @@ asm
     sfence
     add    $PrefetchDistance+64, %ecx
     jmp    .LRestAfterNTf
-    .byte  0x66,0x0F,0x1F,0x44,0,0 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
@@ -480,8 +504,12 @@ begin
 end;
 
 procedure Move_8OrMore_Dispatch; assembler; nostackframe;
-{ ebx pushed, eax = source, edx = dest, ecx = count (ecx >= 8). }
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
 asm
+{$ifndef FPC_PIC}
+    push %ebx
+{$endif}
     push %eax
     push %edx
     push %ecx
@@ -490,15 +518,20 @@ asm
     pop  %ecx
     pop  %edx
     pop  %eax
+{$ifdef FPC_PIC}
     jmp  %ebx
+{$else}
+    call %ebx
+    pop  %ebx
+{$endif}
 end;
 
 procedure Move(const source;var dest;count:SizeInt); [public, alias: 'FPC_MOVE']; assembler; nostackframe;
 asm
-    push   %ebx
     cmp    $8, %ecx
     jle    .L8OrLess
 {$ifdef FPC_PIC}
+    push   %ebx
     call   fpc_geteipasebx
     addl   $_GLOBAL_OFFSET_TABLE_, %ebx
     movl   fastmoveproc@GOT(%ebx), %ebx
@@ -510,6 +543,7 @@ asm
 .L8OrLess:
     cmp    $3, %ecx
     jle    .L3OrLess
+    push   %ebx
     mov    (%eax), %ebx
     mov    -4(%eax,%ecx), %eax
     mov    %ebx, (%edx)
@@ -520,14 +554,15 @@ asm
 .L3OrLess:
     cmp    $1, %ecx
     jl     .LZero
+    push   %ebx
     movzbl (%eax), %ebx
     je     .LOne
     movzwl -2(%eax,%ecx), %eax
     mov    %ax, -2(%edx,%ecx)
 .LOne:
     mov    %bl, (%edx)
-.LZero:
     pop    %ebx
+.LZero:
 end;
 
 {$endif  FPC_SYSTEM_HAS_MOVE}
