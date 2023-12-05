@@ -27,6 +27,8 @@ type
   published
     Procedure TestHookup;
     procedure TestMatch;
+    procedure TestMatchStart;
+    procedure TestMatchStop;
     procedure TestNamedGroups;
     procedure TestReplace;
     procedure TestReplaceAll;
@@ -48,11 +50,16 @@ type
 
 implementation
 
-procedure TTestRegExpCore.AssertMatch(Const Msg,aMatch : TREString; aPos,aLength : Integer; Groups : Array of TREString);
+Const
+  TestStr = 'xyz abba abbba abbbba zyx';
+  TestExpr = 'a(b*)a';
+
+procedure TTestRegExpCore.AssertMatch(const Msg, aMatch: TREString; aPos, aLength: Integer; Groups: array of TREString);
 
 var
   I : Integer;
 begin
+  AssertTrue(Msg+': Found match',Regex.FoundMatch);
   AssertEquals(Msg+': matched text',aMatch,Regex.MatchedText);
   AssertEquals(Msg+': offset',aPos,Regex.MatchedOffset);
   AssertEquals(Msg+': length',aLength,Regex.MatchedLength);
@@ -69,8 +76,8 @@ end;
 procedure TTestRegExpCore.TestMatch;
 
 begin
-  Regex.subject:='xyz abba abbba abbbba zyx';
-  Regex.RegEx:='a(b*)a';
+  Regex.subject:=TestStr;
+  Regex.RegEx:=TestExpr;
   AssertTrue('First match found',Regex.Match);
   AssertEquals('Match event called',1,FMatchEventCount);
   AssertMatch('Match 1','abba',5,4,['bb']);
@@ -82,6 +89,35 @@ begin
   AssertMatch('Match 3','abbbba',16,6,['bbbb']);
   AssertFalse('No more matches',Regex.MatchAgain);
   AssertEquals('Match event called',3,FMatchEventCount);
+end;
+
+procedure TTestRegExpCore.TestMatchStart;
+
+begin
+  Regex.subject:=TestStr;
+  Regex.RegEx:=TestExpr;
+  Regex.Start:=Pos('abbba',TestStr);
+  AssertTrue('First match found',Regex.Match);
+  AssertMatch('Match 1','abbba',10,5,['bbb']);
+
+  AssertTrue('Second match found',Regex.MatchAgain);
+  AssertMatch('Match 3','abbbba',16,6,['bbbb']);
+  AssertFalse('No more matches',Regex.MatchAgain);
+
+end;
+
+procedure TTestRegExpCore.TestMatchStop;
+begin
+  Regex.subject:=TestStr;
+  Regex.RegEx:=TestExpr;
+  Regex.Stop:=4;
+  AssertFalse('No match found',Regex.Match);
+  Regex.Stop:=9;
+  AssertTrue('First match found',Regex.Match);
+  AssertEquals('Match event called',1,FMatchEventCount);
+  AssertMatch('Match 1','abba',5,4,['bb']);
+  AssertFalse('No more matches',Regex.MatchAgain);
+  AssertEquals('Match event not called again',1,FMatchEventCount);
 end;
 
 procedure TTestRegExpCore.TestNamedGroups;
@@ -106,8 +142,8 @@ end;
 
 procedure TTestRegExpCore.TestReplace;
 begin
-  Regex.subject:='xyz abba abbba abbbba zyx';
-  Regex.RegEx:='a(b*)a';
+  Regex.subject:=TestStr;
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='c';
   AssertTrue('First match found',Regex.Match);
   AssertEquals('Replace','c',Regex.Replace);
@@ -123,8 +159,8 @@ end;
 
 procedure TTestRegExpCore.TestReplaceAll;
 begin
-  Regex.subject:='xyz abba abbba abbbba zyx';
-  Regex.RegEx:='a(b*)a';
+  Regex.subject:=TestStr;
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='c';
   AssertTrue('Replacements done',Regex.ReplaceAll);
   AssertEquals('ReplaceAll result','xyz c c c zyx',Regex.Subject);
@@ -135,7 +171,7 @@ procedure TTestRegExpCore.TestReplaceGroupBackslash;
 // \n
 begin
   Regex.subject:='*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='\1';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','bb',Regex.Replace);
@@ -146,7 +182,7 @@ procedure TTestRegExpCore.TestReplaceGroupDollar;
 // $N
 begin
   Regex.subject:='*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='$1';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','bb',Regex.Replace);
@@ -157,7 +193,7 @@ procedure TTestRegExpCore.TestReplaceGroupQuoted;
 // \{N}
 begin
   Regex.subject:='*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='\{1}';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','bb',Regex.Replace);
@@ -201,7 +237,7 @@ end;
 procedure TTestRegExpCore.TestReplaceWholeSubject;
 begin
   Regex.subject:='*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='<\_>';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','<*abba*>',Regex.Replace);
@@ -212,7 +248,7 @@ procedure TTestRegExpCore.TestReplaceLeftOfMatch;
 // \`
 begin
   Regex.subject:='x*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='<\`>';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','<x*>',Regex.Replace);
@@ -223,7 +259,7 @@ procedure TTestRegExpCore.TestReplaceRightOfMatch;
 // \'
 begin
   Regex.subject:='*abba*x';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='<\''>';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','<*x>',Regex.Replace);
@@ -234,7 +270,7 @@ procedure TTestRegExpCore.TestReplaceWholeMatch;
 // \&
 begin
   Regex.subject:='*abba*';
-  Regex.RegEx:='a(b*)a';
+  Regex.RegEx:=TestExpr;
   Regex.Replacement:='<\&>';
   AssertTrue('Match',Regex.Match);
   AssertEquals('ReplaceText','<abba>',Regex.Replace);
@@ -255,7 +291,7 @@ end;
 
 procedure TTestRegExpCore.TestSplitAll;
 begin
-  Regex.subject:='xyz abba abbba abbbba zyx';
+  Regex.subject:=TestStr;
   Regex.RegEx:='\s';
   Regex.Split(SplitSubject,0);
   AssertEquals('Count',5,SplitSubject.Count);
@@ -269,7 +305,7 @@ end;
 procedure TTestRegExpCore.TestSplitLimit;
 
 begin
-  Regex.subject:='xyz abba abbba abbbba zyx';
+  Regex.subject:=TestStr;
   Regex.RegEx:='\s';
   Regex.Split(SplitSubject,2);
   AssertEquals('Count',2,SplitSubject.Count);

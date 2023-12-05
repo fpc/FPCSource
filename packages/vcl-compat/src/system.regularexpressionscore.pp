@@ -51,6 +51,7 @@ type
   {$ElSE}
   TREString = AnsiString;
   {$ENDIF}
+  TREStringDynArray = Array of TREString;
 
   TPerlRegExOption = (preCaseLess,preMultiLine,preSingleLine,preExtended,preAnchored,preUnGreedy,preNoAutoCapture,
                       preAllowEmptyClass, preAltBSUX, preAltCircumFlex, preAltVerbNames,
@@ -71,7 +72,7 @@ type
   Private
     Type
       TTransformation = (tNone,tLowerCase,tUpperCase,tFirstCap,tInitialCap);
-
+      TMatchResult = (mrFound,mrNotFound,mrAfterStop);
     class function TransForm(aTransform: TTransformation; const S: TREString): TREString;
   private
   {$IFDEF USEWIDESTRING}
@@ -102,7 +103,7 @@ type
     FCrLFIsNewLine,
     FIsUtf : Boolean;
     Procedure CheckMatch; inline;
-    function DoMatch(Opts: CUInt32): Boolean;
+    function DoMatch(Opts: CUInt32): TMatchResult;
     function GetBackRefIndex(const Ref: TREString; var I: Integer): Integer;
     function GetCompiled: Boolean;
     function GetFoundMatch: Boolean; inline;
@@ -116,6 +117,7 @@ type
     function GetModifiedSubject: TREString;
     function GetNamedGroup(const aName : TREString): TREString;
     procedure GetNamedGroupInfo;
+    function GetNames(aIndex : Integer): TREString;
     function GetPCREErrorMsg(ErrorNr: Integer): TREString;
     function GetResultString(aIndex: Integer): TREString;
     function GetStart: Integer;
@@ -161,12 +163,16 @@ type
     // Index in groups of name.
     function NamedGroup(const aName: TREString): Integer;
     // Split subject TREString based on regex. aStrings will contain everything outside the matches.
-    procedure Split(const aStrings: TStrings; aLimit: Integer);
+    procedure Split(const aStrings: TStrings; aLimit: Integer = 0);
+    // Split subject TREString based on regex. Result will contain everything outside the matches.
+    function Split(aLimit: Integer = 0) : TREStringDynArray;
     // Split subject TREString based on regex, but include matches in result.
     procedure SplitCapture(const aStrings: TStrings; aLimit: Integer); overload;
     // Split subject TREString based on regex, but include matches in result.
     // if aoffset is > 1 then everything till offset is put in the first TREString.
     procedure SplitCapture(const aStrings: TStrings; aLimit: Integer; aOffset : Integer); overload;
+    // Same with result in array
+    function SplitCapture(aLimit: Integer; aOffset : Integer) : TREStringDynArray; overload;
     // Was the regex compiled ?
     property Compiled: Boolean read GetCompiled;
     // Match found ?
@@ -191,6 +197,9 @@ type
     property GroupOffsets[aIndex: Integer]: Integer read GetGroupOffsets;
     // Named access to groups.
     property NamedGroups[aName : TREString] : TREString Read GetNamedGroup;
+    // Names available in current match.
+    Property NameCount : Cardinal Read FNameCount;
+    Property Names[aIndex : Integer] : TREString Read GetNames;
     // Subject TREString. Will be modified by replace !
     property Subject: TREString read GetModifiedSubject write SetSubject;
     // Original subject TREString. Not modified by replace !
@@ -415,6 +424,7 @@ begin
   Result:=FModifiedSubject;
 end;
 
+
 function TPerlRegEx.GetNamedGroup(const aName: TREString): TREString;
 
 var
@@ -491,6 +501,8 @@ begin
   FSubjectLength:=Length(FSubject);
   FModifiedSubject:=aValue;
   CleanUp;
+  FStart:=0;
+  FStop:=Length(FSubject);
 end;
 
 procedure TPerlRegEx.CleanUp;
@@ -500,8 +512,6 @@ begin
   ClearStoredGroups;
   FResultCount:=0;
   FResultVector:=Nil;
-  FStart:=0;
-  FStop:=Length(FSubject);
   FLastModifiedEnd:=0;
 end;
 
@@ -692,6 +702,27 @@ begin
     @FNameEntrySize);
 end;
 
+function TPerlRegEx.GetNames(aIndex : Integer): TREString;
+var
+  Ptr : PCRE2_SPTR;
+  N,I : Integer;
+  tblName : TREString;
+
+begin
+  Ptr:=FNameTable;
+  if (aIndex<0) or (aIndex>FNameCount) then
+    Raise ERegularExpressionError.CreateFmt(SErrInvalidNameIndex,[aIndex,FNameCount]);
+  for i:=0 to aIndex-1 do
+    Inc(Ptr,FNameEntrySize);
+{$IFDEF USEWIDESTRING}
+  n:=ord(ptr[0]);
+  Result:=GetStrLen((Ptr+1),FNameEntrySize-2);
+{$ELSE}
+  n:=(ord(ptr[0]) shl 8) or ord(ptr[1]);
+  Result:=GetStrLen((Ptr+2),FNameEntrySize-3);
+{$ENDIF}
+end;
+
 function TPerlRegEx.Match: Boolean;
 
 var
@@ -703,8 +734,8 @@ begin
   if not Compiled then
     Compile;
   FMatchData:=pcre2_match_data_create_from_pattern(FCode,Nil);
-  Result:=DoMatch(0);
-  if Result then
+  Result:=DoMatch(0)=mrFound;
+  if Result  then
     begin
     pcre2_pattern_info(FCode,PCRE2_INFO_ALLOPTIONS, @option_bits);
     FIsUtf:=((option_bits and PCRE2_UTF) <> 0);
@@ -716,14 +747,14 @@ begin
 end;
 
 
-function TPerlRegEx.DoMatch(Opts : CUInt32): Boolean;
+function TPerlRegEx.DoMatch(Opts : CUInt32): TMatchResult;
 
 var
   len,rc : cInt;
   S : TREString;
 
 begin
-  Result:=False;
+  Result:=mrNotFound;
 {$IF SIZEOF(CHAR)=2}
   rc:=pcre2_match_w(
 {$ELSE}
@@ -741,15 +772,17 @@ begin
     FreeMatchData;
     FreeCodeData;
     if (rc=PCRE2_ERROR_NOMATCH) then
-      Exit(False)
+      Exit(mrNotFound)
     else if (rc = 0) then
       raise ERegularExpressionError.CreateFmt(SRegExMatchError,[SErrRegexOvectorTooSmall])
     else
       raise ERegularExpressionError.CreateFmt(SRegExMatchError,[GetPCREErrorMsg(rc)]);
     end;
-  Result:=True;
+  Result:=mrFound;
   FResultCount:=rc;
   FResultVector:=pcre2_get_ovector_pointer(FMatchData);
+  if FResultVector[0]>FStop then
+    Exit(mrAfterStop);
   {For i:=0 to FResultCount-1 do
     Writeln(I,': ',FResultVector[2*I],' - ',FResultVector[2*I+1]);}
   if (FResultVector[0]>FResultVector[1]) then
@@ -804,7 +837,12 @@ begin
         end;
       end;
     end;
-  Result:=DoMatch(Opts);
+  // If we're behind stop, exit at once.
+  Case DoMatch(Opts) of
+    mrAfterStop : Exit(False);
+    mrNotFound : Result:=False;
+    mrFound: Result:=True;
+  end;
   (*
     This time, a result of NOMATCH isn't an error. If the value in 'options'
     is zero, it just means we have found all possible matches, so the loop ends.
@@ -838,7 +876,15 @@ begin
         inc(FResultVector[1]);
         end;
       end;
-    Result:=DoMatch(Opts);
+    Case DoMatch(Opts) of
+      mrAfterStop :
+        begin
+        Result:=False;
+        Break;
+        end;
+      mrNotFound : Result:=False;
+      mrFound: Result:=True;
+    end;
     end;
 end;
 
@@ -901,7 +947,7 @@ end;
   On return, I is the index of the next character to process.
 }
 
-Function TPerlRegEx.GetBackRefIndex(const Ref : TREString; var I : Integer) : Integer;
+function TPerlRegEx.GetBackRefIndex(const Ref: TREString; var I: Integer): Integer;
 
 var
   Len,P,N,Group : Integer;
@@ -988,7 +1034,7 @@ begin
   Result:=Group;
 end;
 
-Class function TPerlRegEx.TransForm(aTransform : TTransformation; const S : TREString): TREString;
+class function TPerlRegEx.TransForm(aTransform: TTransformation; const S: TREString): TREString;
 
 begin
   Case aTransform of
@@ -1183,6 +1229,24 @@ begin
   aStrings.Add(TREString(Copy(FSubject,LastEnd+1,FSubjectLength -LastEnd)));
 end;
 
+function TPerlRegEx.Split(aLimit: Integer): TREStringDynArray;
+var
+  L: TStrings;
+  I : integer;
+
+begin
+  L:=TStringList.Create;
+  try
+    Split(L,aLimit);
+    // We cannot use L.ToStringArray, because the string type may differ :/
+    SetLength(Result,L.Count);
+    For I:=0 to L.Count-1 do
+      Result[I]:=L[I];
+  finally
+    L.Free;
+  end;
+end;
+
 procedure TPerlRegEx.SplitCapture(const aStrings: TStrings; aLimit: Integer);
 
 begin
@@ -1221,6 +1285,25 @@ begin
       end;
   until ((aLimit>1) and (Matches>=aLimit)) or not MatchAgain;
   aStrings.Add(TREString(Copy(FSubject,LastEnd+1,FSubjectLength-LastEnd)));
+end;
+
+function TPerlRegEx.SplitCapture(aLimit: Integer; aOffset: Integer): TREStringDynArray;
+
+var
+  L: TStrings;
+  I : integer;
+
+begin
+  L:=TStringList.Create;
+  try
+    SplitCapture(L,aLimit,aOffset);
+    // We cannot use L.ToStringArray, because the string type may differ :/
+    SetLength(Result,L.Count);
+    For I:=0 to L.Count-1 do
+      Result[I]:=L[I];
+  finally
+    L.Free;
+  end;
 end;
 
 { TPerlRegExList }
