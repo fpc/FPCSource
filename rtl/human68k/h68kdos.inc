@@ -125,3 +125,9 @@ function h68kdos_malloc(size: longint): pointer; syscall $ff48;
 function h68kdos_mfree(ptr: pointer): longint; syscall $ff49;
 function h68kdos_setblock(ptr: pointer; size: longint): longint; syscall $ff4a;
 procedure h68kdos_exit2(code: smallint); noreturn; syscall $ff4c;
+
+{ * human68k v2 only calls * }
+function h68kdos_rename_v2(oldname: PChar; newname: PChar): longint; syscall $ff56;
+
+{ * human68k v3 only calls * }
+function h68kdos_rename_v3(oldname: PChar; newname: PChar): longint; syscall $ff86;

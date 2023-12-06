@@ -46,7 +46,27 @@ end;
 
 
 procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+var
+  oldp1, oldp2 : PAnsiChar;
+  dosResult: longint;
 begin
+  oldp1:=p1;
+  oldp2:=p2;
+  DoDirSeparators(p1,p1changeable);
+  DoDirSeparators(p2,p2changeable);
+
+  if hi(human68k_vernum) <= 2 then
+    dosResult:=h68kdos_rename_v2(p1,p2)
+  else
+    dosResult:=h68kdos_rename_v3(p1,p2);
+
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
+
+  if oldp1<>p1 then
+    FreeMem(p1);
+  if oldp2<>p2 then
+    FreeMem(p2);
 end;
 
 
