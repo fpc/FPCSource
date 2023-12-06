@@ -227,7 +227,8 @@ const
     'ExternalClass',
     'OmitRTTI',
     'MultilineStrings',
-    'DelphiMultilineStrings'
+    'DelphiMultilineStrings',
+    'InlineVars'
     ); // Dont forget to update ModeSwitchToInt !
 
   PCUDefaultBoolSwitches: TBoolSwitches = [
