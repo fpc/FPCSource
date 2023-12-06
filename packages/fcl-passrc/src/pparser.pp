@@ -2627,6 +2627,8 @@ var
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
   ProcExpr: TProcedureExpr;
+  AllowKWAsSubIdent : Boolean;
+
 begin
   Result:=nil;
   CanSpecialize:=aCannot;
@@ -2723,7 +2725,7 @@ begin
   else
     ParseExcExpectedIdentifier;
   end;
-
+  AllowKWAsSubIdent:=(msDelphi in CurrentModeswitches);
   Result:=Last;
   ISE:=nil;
   NextToken;
@@ -2748,6 +2750,17 @@ begin
         CanSpecialize:=aCannot;
       if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are sub identifiers as well
         begin
+        aName:=aName+'.'+CurTokenString;
+        Expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
+        AddToBinaryExprChain(Result,Expr,eopSubIdent,ScrPos);
+        Func:=Expr;
+        NextToken;
+        end
+      else if AllowKWAsSubIdent and (Curtoken>=tkabsolute) and (Curtoken<=tkXor) then
+        begin
+        // Delphi allows keywords as identifier e.g. TEnum.In, but only for enums.
+        // Unfortunately, we do not know at this point if the previous identifier is an enum, so we allow it always.
+        // Not ideal :/
         aName:=aName+'.'+CurTokenString;
         Expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
         AddToBinaryExprChain(Result,Expr,eopSubIdent,ScrPos);
@@ -2947,6 +2960,7 @@ const
 Var
   AllowedBinaryOps : Set of TToken;
   SrcPos: TPasSourcePos;
+
 begin
   AllowedBinaryOps:=BinaryOP;
   if Not AllowEqual then

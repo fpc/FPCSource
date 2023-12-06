@@ -5,7 +5,7 @@ unit tcexprparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, tcbaseparser, pastree, PScanner;
+  Classes, SysUtils, fpcunit, testregistry, tcbaseparser, pastree, pparser, PScanner;
 
 type
 
@@ -110,6 +110,8 @@ type
     Procedure TestAPlusBBracketDotC;
     Procedure TestADotBDotC;
     Procedure TestADotBBracketC;
+    procedure TestADotKeyWord;
+    procedure TestADotKeyWordOnlyDelphi;
     Procedure TestSelfDotBBracketC;
     Procedure TestAasBDotCBracketFuncParams;
     Procedure TestRange;
@@ -1234,6 +1236,27 @@ begin
   TAssert.AssertSame('PlusB.right.parent=PlusB',PlusB,PlusB.Right.Parent);
   AssertExpression('left a',PlusB.Left,pekIdent,'a');
   AssertExpression('right b',PlusB.Right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestADotKeyWord;
+
+begin
+  Add('{$MODE DELPHI}');
+  Add('Type TEnum = (&in,&of);');
+  Add('Var a : TEnum;');
+  Add('begin');
+  Add('  a:=Tenum.in;');
+  ParseExpression;
+  AssertExpression('Binary identifier',TheExpr,pekBinary,TBinaryExpr);
+end;
+
+procedure TTestExpressions.TestADotKeyWordOnlyDelphi;
+begin
+  Add('Type TEnum = (&in,&of);');
+  Add('Var a : TEnum;');
+  Add('begin');
+  Add('  a:=Tenum.in;');
+  AssertException(EParserError,@ParseExpression);
 end;
 
 procedure TTestExpressions.TestADotBDotC;
