@@ -63,6 +63,7 @@ var
     argv: PPChar;
     envp: PPChar;
 
+    human68k_vernum: word;
 
     {$if defined(FPUSOFT)}
 
@@ -282,6 +283,8 @@ end;
 
 
 begin
+  human68k_vernum:=word(h68kdos_vernum);
+
   StackLength := CheckInitialStkLen (InitialStkLen);
 { Initialize ExitProc }
   ExitProc:=Nil;

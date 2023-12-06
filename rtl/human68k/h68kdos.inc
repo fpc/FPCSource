@@ -109,6 +109,7 @@ procedure h68kdos_exit; noreturn; syscall $ff00;
 function h68kdos_chgdrv(newdrv: word): longint; syscall $ff0e;
 function h68kdos_curdrv: longint; syscall $ff17;
 function h68kdos_gettim2: longint; syscall $ff27;
+function h68kdos_vernum: longint; syscall $ff30;
 function h68kdos_mkdir(name: pchar): longint; syscall $ff39;
 function h68kdos_rmdir(name: pchar): longint; syscall $ff3a;
 function h68kdos_chdir(name: pchar): longint; syscall $ff3b;
