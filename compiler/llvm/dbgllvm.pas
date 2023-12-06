@@ -83,6 +83,7 @@ interface
         { reusable deref node }
         fderefexpression  : tai_llvmspecialisedmetadatanode;
 
+        fllvm_dbg_declare_pd: tprocdef;
         fllvm_dbg_addr_pd: tprocdef;
 
         function absolute_llvm_path(const s:tcmdstr):tcmdstr;
@@ -490,6 +491,8 @@ implementation
 
     procedure TDebugInfoLLVM.ensuremetainit;
       begin
+        if not assigned(fllvm_dbg_declare_pd) then
+          fllvm_dbg_declare_pd:=search_system_proc('llvm_dbg_declare');
         if not assigned(fllvm_dbg_addr_pd) then
           fllvm_dbg_addr_pd:=search_system_proc('llvm_dbg_addr');
         if not assigned(fenums) then
@@ -574,7 +577,8 @@ implementation
         { not really clean since hardcoding the structure of the call
           instruction's procdef encoding, but quick }
         if (hp.oper[taillvm.callpdopernr]^.def.typ<>pointerdef) or
-           (tpointerdef(hp.oper[taillvm.callpdopernr]^.def).pointeddef<>fllvm_dbg_addr_pd) then
+           ((tpointerdef(hp.oper[taillvm.callpdopernr]^.def).pointeddef<>fllvm_dbg_declare_pd) and
+            (tpointerdef(hp.oper[taillvm.callpdopernr]^.def).pointeddef<>fllvm_dbg_addr_pd)) then
           exit;
         deref:=false;
 

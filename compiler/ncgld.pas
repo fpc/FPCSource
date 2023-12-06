@@ -236,7 +236,7 @@ implementation
         location.reference:=ref;
         tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,oldtemptype);
         tabstractnormalvarsym(symtableentry).localloc:=location;
-        hlcg.recordnewsymloc(current_asmdata.CurrAsmList,symtableentry,tabstractnormalvarsym(symtableentry).vardef,location.reference);
+        hlcg.recordnewsymloc(current_asmdata.CurrAsmList,symtableentry,tabstractnormalvarsym(symtableentry).vardef,location.reference,false);
       end;
 
 

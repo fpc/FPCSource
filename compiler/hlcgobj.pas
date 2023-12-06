@@ -653,7 +653,7 @@ unit hlcgobj;
           { allocate a local temp to serve as storage for a para/localsym }
           procedure getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref : treference);
           { the symbol is stored at this location from now on }
-          procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference); virtual;
+          procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference; initial: boolean); virtual;
          protected
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
           procedure init_paras(p:TObject;arg:pointer);
@@ -5289,10 +5289,10 @@ implementation
   procedure thlcgobj.getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref: treference);
     begin
       tg.getlocal(list,size,alignment,def,ref);
-      recordnewsymloc(list,sym,def,ref);
+      recordnewsymloc(list,sym,def,ref,true);
     end;
 
-  procedure thlcgobj.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference);
+  procedure thlcgobj.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference; initial: boolean);
     begin
       // do nothing
     end;

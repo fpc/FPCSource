@@ -52,7 +52,7 @@ uses
       procedure allocallcpuregisters(list: TAsmList); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
-      procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference); override;
+      procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference; initial: boolean); override;
 
       class function def2regtyp(def: tdef): tregistertype; override;
      public
@@ -403,7 +403,7 @@ implementation
     end;
 
 
-  procedure thlcgllvm.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference);
+  procedure thlcgllvm.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference; initial: boolean);
     var
       varmetapara,
       symmetadatapara,
@@ -414,7 +414,10 @@ implementation
          (sym.visibility<>vis_hidden) and
          (cs_debuginfo in current_settings.moduleswitches) then
         begin
-          pd:=search_system_proc('llvm_dbg_addr');
+          if initial then
+            pd:=search_system_proc('llvm_dbg_declare')
+          else
+            pd:=search_system_proc('llvm_dbg_addr');
           varmetapara.init;
           symmetadatapara.init;
           exprmetapara.init;
