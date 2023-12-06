@@ -69,6 +69,8 @@ type
     Procedure TestFunctionOneOutArg;
     procedure TestProcedureOneConstRefArg;
     Procedure TestFunctionOneConstRefArg;
+    procedure TestFunctionOneConstRefAttributeArg;
+    procedure TestFunctionOneConstRefAttributeArgReversed;
     procedure TestProcedureTwoArgs;
     Procedure TestFunctionTwoArgs;
     procedure TestProcedureTwoArgsSeparate;
@@ -515,7 +517,7 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'^Integer','');
 end;
 
-procedure TTestProcedureFunction.TestFunctionPointerResult;
+procedure TTestProcedureFunction.TestFUnctionPointerResult;
 begin
   ParseFunction('()','^LongInt');
   AssertFunc([],[],ccDefault,0);
@@ -555,6 +557,24 @@ begin
   AssertFunc([],[],ccDefault,1);
   AssertArg(FuncType,0,'B',argConst,'Integer','');
 end;
+
+
+procedure TTestProcedureFunction.TestFunctionOneConstRefAttributeArg;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msPrefixedAttributes];
+  ParseFunction('([ref] Const B : Integer)');
+  AssertFunc([],[],ccDefault,1);
+  AssertArg(FuncType,0,'B',argConstRef,'Integer','');
+end;
+
+procedure TTestProcedureFunction.TestFunctionOneConstRefAttributeArgReversed;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msPrefixedAttributes];
+  ParseFunction('(Const [ref] B : Integer)');
+  AssertFunc([],[],ccDefault,1);
+  AssertArg(FuncType,0,'B',argConstRef,'Integer','');
+end;
+
 
 procedure TTestProcedureFunction.TestProcedureOneOutArg;
 begin
@@ -1491,7 +1511,7 @@ end;
 
 
 
-Procedure TTestProcedureFunction.TestFunctionSyscallSingleNumber;
+procedure TTestProcedureFunction.TestFunctionSyscallSingleNumber;
 begin
   // function Something : Someresult; syscall 12
   AddDeclaration('function A : Integer; syscall 12');
@@ -1500,7 +1520,7 @@ begin
 end;
 
 
-Procedure TTestProcedureFunction.TestFunctionSyscallDoubleNumber;
+procedure TTestProcedureFunction.TestFunctionSyscallDoubleNumber;
 
 begin
   // function Something : Someresult; syscall 12 13
@@ -1510,7 +1530,7 @@ begin
 end;
 
 
-Procedure TTestProcedureFunction.TestFunctionSysCallSysTrapIdentifier;
+procedure TTestProcedureFunction.TestFunctionSysCallSysTrapIdentifier;
 
 begin
   // function Something : Someresult; syscall systrapNNN

@@ -82,6 +82,8 @@ type
     procedure TestOneSpecializedClassInterface;
     Procedure TestOneField;
     Procedure TestOneFieldComment;
+    procedure TestOneFieldWithAttribute;
+    procedure TestOneFieldVarWithAttribute;
     Procedure TestOneClassOfField;
     procedure TestOneFieldStatic;
     Procedure TestOneHelperField;
@@ -592,7 +594,7 @@ begin
   ParseClass;
 end;
 
-Procedure TTestClassType.TestForwardExternalObjCClass;
+procedure TTestClassType.TestForwardExternalObjCClass;
 begin
   FStarted:=True;
   FEnded:=True;
@@ -714,6 +716,26 @@ begin
   AssertMemberName('a');
   AssertVisibility;
 end;
+
+procedure TTestClassType.TestOneFieldWithAttribute;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msPrefixedAttributes];
+  AddMember('[volatile] a : integer');
+  ParseClass;
+  AssertEquals('Have 2 members',2,TheClass.Members.Count);
+  AssertMemberName('a',Members[1]);
+  AssertVisibility;
+end;
+
+procedure TTestClassType.TestOneFieldVarWithAttribute;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msPrefixedAttributes];
+  AddMember('var [volatile] a : integer');
+  ParseClass;
+  AssertEquals('Have 2 members',2,TheClass.Members.Count);
+  AssertMemberName('a',Members[1]);
+end;
+
 
 procedure TTestClassType.TestOneFieldStatic;
 begin
@@ -2323,7 +2345,7 @@ begin
   AssertVisibility;
 end;
 
-Procedure TTestClassType.TestExternalClassFunctionFinal;
+procedure TTestClassType.TestExternalClassFunctionFinal;
 
 begin
   Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];

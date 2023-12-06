@@ -5070,6 +5070,10 @@ end;
 // Starts after the opening bracket token
 procedure TPasParser.ParseArgList(Parent: TPasElement; Args: TFPList; EndToken: TToken);
 
+
+var
+  HasRef: Boolean;
+
   Function GetParamName : string;
 
   begin
@@ -5084,6 +5088,41 @@ procedure TPasParser.ParseArgList(Parent: TPasElement; Args: TFPList; EndToken: 
         ParseExcTokenError('identifier')
       end;
   end;
+
+  Procedure ParseAttr(Peek : Boolean);
+
+  begin
+    HasRef:=False;
+    NextToken;
+    While CurToken=tkIdentifier do
+      begin
+      HasRef:=HasRef or CurTokenIsIdentifier('ref');
+      NextToken;
+      // We ignore the attribute value for the moment.
+      if CurToken=tkComma then
+        NextToken;
+      end;
+    CheckToken(tkSquaredBraceClose);
+    if not Peek then
+      NextToken;
+  end;
+
+  Function CheckAttributes(peek: boolean) : Boolean;
+
+  begin
+    if Peek then
+      NextToken;
+    Result:=CurToken = tkSquaredBraceOpen;
+    if Result then
+      begin
+      if not (msPrefixedAttributes in CurrentModeswitches) then
+        ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
+      ParseAttr(Peek);
+      end
+    else if Peek then
+      UnGettoken;
+  end;
+
 var
   OldForceCaret,IsUntyped, LastHadDefaultValue: Boolean;
   Name : String;
@@ -5092,6 +5131,8 @@ var
   Arg: TPasArgument;
   Access: TArgumentAccess;
   ArgType: TPasType;
+  HasAttr : Boolean;
+
 begin
   LastHadDefaultValue := false;
   while True do
@@ -5101,6 +5142,10 @@ begin
     IsUntyped := False;
     ArgType := nil;
     NextToken;
+    // [ref] (const|var|) a : type;
+    HasRef:=False;
+    HasAttr:=CheckAttributes(False);
+
     if CurToken = tkDotDotDot then
     begin
       expectToken(endToken);
@@ -5108,14 +5153,21 @@ begin
     end else  if CurToken = tkConst then
     begin
       Access := argConst;
+      // (const|var|) [ref]  a : type;
+      CheckAttributes(True);
+      if HasRef then
+        Access := argConstRef;
       Name := GetParamName;
     end else if CurToken = tkConstRef then
     begin
       Access := argConstref;
+      CheckAttributes(True);
       Name := getParamName;
     end else if CurToken = tkVar then
     begin
       Access := ArgVar;
+      // (const|var|) [ref]  a : type;
+      CheckAttributes(True);
       Name:=GetParamName;
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
     begin

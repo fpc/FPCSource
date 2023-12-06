@@ -64,6 +64,7 @@ Type
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
     Procedure TestVarHintPriorToInit;
+    Procedure TestVarAttribute;
     Procedure TestErrorRecovery;
   end;
 
@@ -450,6 +451,22 @@ begin
   AssertEquals('Correctly initialized',TBoolConstExpr,Thevar.Expr.ClassType);
   E:=Thevar.Expr as TBoolConstExpr;
   AssertEquals('Correct initialization value',False, E.Value);
+end;
+
+procedure TTestVarParser.TestVarAttribute;
+var
+  V : TPasVariable;
+begin
+
+  add('{$mode delphi}');
+  Add('Var');
+  Add('  [xyz] A : integer;');
+  ParseDeclarations;
+  AssertEquals('One variable definition',1,Declarations.Variables.Count);
+  AssertEquals('First declaration is type definition.',TPasVariable,TObject(Declarations.Variables[0]).ClassType);
+  V:=TPasVariable(Declarations.Variables[0]);
+  AssertEquals('First declaration has correct name.','A',V.Name);
+
 end;
 
 procedure TTestVarParser.TestErrorRecovery;

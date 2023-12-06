@@ -27,13 +27,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestScanner.TestDelphiMultiLineTrailingGarbage2"/>
+        <CommandLineParams Value="--suite=TTestProcedureFunction.TestFunctionOneConstRefAttributeArg"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestScanner.TestDelphiMultiLineTrailingGarbage2"/>
+            <CommandLineParams Value="--suite=TTestProcedureFunction.TestFunctionOneConstRefAttributeArg"/>
           </local>
         </Mode0>
       </Modes>
