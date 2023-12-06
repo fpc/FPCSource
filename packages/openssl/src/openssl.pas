@@ -1155,7 +1155,7 @@ var
   function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
     bytes: string; len, loc, _set: cInt): cInt;
   function X509Sign(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt;
-  function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME;
+  function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cLong): PASN1_UTCTIME;
   function X509SetNotBefore(x: PX509; tm: PASN1_UTCTIME): cInt;
   function X509SetNotAfter(x: PX509; tm: PASN1_UTCTIME): cInt;
   function X509GetSerialNumber(x: PX509): PASN1_cInt;
@@ -1653,7 +1653,7 @@ type
   TX509NameAddEntryByTxt = function(name: PX509_NAME; field: PChar; _type: cInt;
     bytes: PChar; len, loc, _set: cInt): cInt; cdecl;
   TX509Sign = function(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt; cdecl;
-  TX509GmtimeAdj = function(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME; cdecl;
+  TX509GmtimeAdj = function(s: PASN1_UTCTIME; adj: cLong): PASN1_UTCTIME; cdecl;
   TX509SetNotBefore = function(x: PX509; tm: PASN1_UTCTIME): cInt; cdecl;
   TX509SetNotAfter = function(x: PX509; tm: PASN1_UTCTIME): cInt; cdecl;
   TX509GetSerialNumber = function(x: PX509): PASN1_cInt; cdecl;
@@ -3016,7 +3016,7 @@ begin
     Result := 0;
 end;
 
-function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME;
+function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cLong): PASN1_UTCTIME;
 begin
   if InitSSLInterface and Assigned(_X509GmtimeAdj) then
     Result := _X509GmtimeAdj(s, adj)
