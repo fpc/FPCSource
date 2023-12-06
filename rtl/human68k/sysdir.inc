@@ -50,7 +50,39 @@ end;
 
 
 procedure do_ChDir(const s: rawbytestring);
+var
+  ps: rawbytestring;
+  len: longint;
+  curdrive: word;
+  newdrive: word;
+  dosResult: longint;
 begin
+  ps:=s;
+  DoDirSeparators(ps);
+  len:=Length(ps);
+
+  { first, handle drive changes }
+  if (len>=2) and (ps[2]=':') then
+    begin
+      curdrive:=h68kdos_curdrv;
+      newdrive:=(ord(ps[1]) and (not 32))-ord('A');
+      if (newdrive <> curdrive) then
+        begin
+          dosResult:=h68kdos_chgdrv(newdrive);
+          if dosResult <= newdrive then
+            begin
+              Error2InOutRes(DOSE_ILGDRV);
+              exit;
+            end;
+        end;
+
+      if len=2 then
+        exit;
+    end;
+  { do normal setpath }
+  dosResult:=h68kdos_chdir(PAnsiChar(ps));
+  if dosResult < 0 then
+    Error2InOutRes(dosResult);
 end;
 
 
