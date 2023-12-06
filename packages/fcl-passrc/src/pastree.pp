@@ -1554,6 +1554,18 @@ type
     Body: TPasImplElement;
   end;
 
+  { TPasInlineVarDeclStatement }
+
+  TPasInlineVarDeclStatement = class(TPasImplStatement)
+  public
+    Declarations: TFPList; // list of TPasVariable
+  Public
+    constructor Create(const aName : TPasTreeString; aParent: TPasElement); override;
+    procedure FreeChildren(Prepare: boolean); override;
+    destructor Destroy; override;
+  end;
+
+
   TPasImplCaseStatement = class;
   TPasImplCaseElse = class;
 
@@ -1610,6 +1622,8 @@ type
     StartExpr : TPasExpr;
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Variable: TPasVariable; // not used by TPasParser
+    VarType : TPasType; // For initialized variables
+    ImplicitTyped : Boolean;
     Body: TPasImplElement;
     Function Down: boolean; inline;// downto, backward compatibility
     Function StartValue : TPasTreeString;
@@ -3950,6 +3964,7 @@ begin
   StartExpr:=TPasExpr(FreeChild(StartExpr,Prepare));
   EndExpr:=TPasExpr(FreeChild(EndExpr,Prepare));
   Variable:=TPasVariable(FreeChild(Variable,Prepare));
+  VarType:=TPasType(FreeChild(VarType,Prepare));
   Body:=TPasImplElement(FreeChild(Body,Prepare));
   inherited FreeChildren(Prepare);
 end;
@@ -5448,6 +5463,26 @@ begin
   if Elements.IndexOf(Body)<0 then
     ForEachChildCall(aMethodCall,Arg,Body,false);
   inherited ForEachCall(aMethodCall, Arg);
+end;
+
+{ TPasInlineVarDeclStatement }
+
+constructor TPasInlineVarDeclStatement.Create(const aName: TPasTreeString; aParent: TPasElement);
+begin
+  inherited Create('',aParent);
+  Declarations:=TFPList.Create;
+end;
+
+procedure TPasInlineVarDeclStatement.FreeChildren(Prepare: boolean);
+begin
+  FreeChildList(Declarations,Prepare);
+  inherited FreeChildren(Prepare);
+end;
+
+destructor TPasInlineVarDeclStatement.Destroy;
+begin
+  inherited Destroy;
+  FreeAndNil(Declarations)
 end;
 
 { TPasImplTry }

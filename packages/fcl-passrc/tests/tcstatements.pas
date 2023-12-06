@@ -82,7 +82,11 @@ Type
     procedure TestRepeatBlockNosemicolon;
     Procedure TestRepeatNested;
     Procedure TestFor;
+    Procedure TestForVarDef;
+    Procedure TestForVarDefImplicit;
     Procedure TestForIn;
+    Procedure TestForInDef;
+    Procedure TestForInDefImplicit;
     Procedure TestForExpr;
     Procedure TestForBlock;
     procedure TestDowntoBlock;
@@ -133,6 +137,9 @@ Type
     Procedure TestPlatformIdentifier;
     Procedure TestPlatformIdentifier2;
     Procedure TestArgumentNameOn;
+    Procedure TestInlineVarDeclaration;
+    Procedure TestInlineVarDeclarationDotted;
+    Procedure TestInlineVarDeclarationNoType;
   end;
 
 
@@ -909,6 +916,44 @@ begin
   AssertNull('Empty body',F.Body);
 end;
 
+procedure TTestStatementParser.TestForVarDef;
+Var
+  F : TPasImplForLoop;
+begin
+  AddStatements([
+    '{$modeswitch inlinevars}',
+    'for var a : integer := 1 to 10 do',';'
+  ]);
+  ParseModule;
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
+  AssertEquals('Loop type',ltNormal,F.Looptype);
+  AssertEquals('Implicitly typed',False,F.ImplicitTyped);
+  AssertNotNull('Var type',F.VarType);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'1');
+  AssertExpression('end value',F.EndExpr,pekNumber,'10');
+  AssertNull('Empty body',F.Body);
+end;
+
+procedure TTestStatementParser.TestForVarDefImplicit;
+Var
+  F : TPasImplForLoop;
+begin
+  AddStatements([
+    '{$modeswitch inlinevars}',
+    'for var a := 1 to 10 do',';'
+  ]);
+  ParseModule;
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
+  AssertEquals('Loop type',ltNormal,F.Looptype);
+  AssertEquals('Implicitly typed',True,F.ImplicitTyped);
+  AssertNull('Var type',F.VarType);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'1');
+  AssertExpression('end value',F.EndExpr,pekNumber,'10');
+  AssertNull('Empty body',F.Body);
+end;
+
 procedure TTestStatementParser.TestForIn;
 
 Var
@@ -920,6 +965,45 @@ begin
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
   AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltIn,F.Looptype);
+  AssertEquals('In loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
+  AssertNull('Loop type',F.EndExpr);
+  AssertNull('Empty body',F.Body);
+end;
+
+procedure TTestStatementParser.TestForInDef;
+Var
+  F : TPasImplForLoop;
+
+begin
+  TestStatement(['{$modeswitch inlinevars}',
+                 'For var a : Integer in SomeSet Do',
+                 ';']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
+  AssertEquals('Loop type',ltIn,F.Looptype);
+  AssertEquals('Implicitly typed',False,F.ImplicitTyped);
+  AssertNotNull('Var type',F.VarType);
+  AssertEquals('In loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
+  AssertNull('Loop type',F.EndExpr);
+  AssertNull('Empty body',F.Body);
+
+end;
+
+procedure TTestStatementParser.TestForInDefImplicit;
+Var
+  F : TPasImplForLoop;
+
+begin
+  TestStatement(['{$modeswitch inlinevars}',
+                 'For var a in SomeSet Do',
+                 ';']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
+  AssertEquals('Loop type',ltIn,F.Looptype);
+  AssertEquals('Implicitly typed',True,F.ImplicitTyped);
+  AssertNull('Var type',F.VarType);
   AssertEquals('In loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
   AssertNull('Loop type',F.EndExpr);
@@ -1982,6 +2066,36 @@ begin
   Source.Add('  begin');
   Source.Add('  end.');
   ParseModule;
+end;
+
+procedure TTestStatementParser.TestInlineVarDeclaration;
+begin
+  AddStatements([
+    '{$modeswitch inlinevars}',
+    'var a : integer;'
+  ]);
+  ParseModule;
+  AssertStatement('Var declaration statement',TPasInlineVarDeclStatement);
+end;
+
+procedure TTestStatementParser.TestInlineVarDeclarationDotted;
+begin
+  AddStatements([
+    '{$modeswitch inlinevars}',
+    'var a := c.d(x);'
+  ]);
+  ParseModule;
+  AssertStatement('Var declaration statement',TPasInlineVarDeclStatement);
+end;
+
+procedure TTestStatementParser.TestInlineVarDeclarationNoType;
+begin
+  AddStatements([
+    '{$modeswitch inlinevars}',
+    'var a := 1;'
+  ]);
+  ParseModule;
+  AssertStatement('Var declaration statement',TPasInlineVarDeclStatement);
 end;
 
 procedure TTestStatementParser.TestGotoInIfThen;

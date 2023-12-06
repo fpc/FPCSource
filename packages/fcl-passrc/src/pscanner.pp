@@ -341,7 +341,8 @@ type
     msExternalClass,       { pas2js: Allow external class definitions }
     msOmitRTTI,            { pas2js: treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
     msMultiLineStrings,     { pas2js: Multiline strings }
-    msDelphiMultiLineStrings { Delpi-compatible multiline strings }
+    msDelphiMultiLineStrings, { Delpi-compatible multiline strings }
+    msInlineVars              { Allow inline var declarations }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1184,7 +1185,8 @@ const
     'EXTERNALCLASS',
     'OMITRTTI',
     'MULTILINESTRINGS',
-    'DELPHIMULTILINESTRINGS'
+    'DELPHIMULTILINESTRINGS',
+    'INLINEVARS'
     );
 
   LetterSwitchNames: array['A'..'Z'] of TPasScannerString=(
@@ -1272,7 +1274,8 @@ const
      msOut,msDefaultPara,msDuplicateNames,msHintDirective,
      msProperty,msDefaultInline,msExcept,msAdvancedRecords,msTypeHelpers,
      msPrefixedAttributes,msArrayOperators,msImplicitFunctionSpec,
-     msFunctionReferences,msAnonymousFunctions,msDelphiMultiLineStrings
+     msFunctionReferences,msAnonymousFunctions,msDelphiMultiLineStrings,
+     msInlineVars
      ];
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];
@@ -5359,6 +5362,7 @@ var
   OldLength: integer;
   Ch: AnsiChar;
   LE: String[2];
+  I : Integer;
   {$else}
   TokenStart: Integer;
   s: String;
@@ -5393,14 +5397,14 @@ begin
       begin
       SectionLength:=FTokenPos - TokenStart;
       {$ifdef UsePChar}
-      SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
+      SetLength(FCurTokenString, OldLength + SectionLength + length(LE)); // Corrected JC
       if SectionLength > 0 then
         Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
       Inc(OldLength, SectionLength);
-      for Ch in LE do
+      for I:=1 to Length(LE) do
         begin
         Inc(OldLength);
-        FCurTokenString[OldLength] := Ch;
+        FCurTokenString[OldLength] := LE[i];
         end;
       {$else}
       FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
@@ -5455,6 +5459,7 @@ var
   TokenStart: PAnsiChar;
   OldLength: integer;
   Ch: AnsiChar;
+  I : Integer;
   LE: String[2];
   {$else}
   TokenStart: Integer;
@@ -5487,16 +5492,16 @@ begin
       begin
       SectionLength := FTokenPos - TokenStart;
       {$ifdef UsePChar}
-      SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
+      SetLength(FCurTokenString, OldLength + SectionLength + length(LE)); // Corrected JC
       if SectionLength > 0 then
         Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
 
       // Corrected JC: Append the correct lineending
       Inc(OldLength, SectionLength);
-      for Ch in LE do
+      for I:=1 to length(LE) do
         begin
           Inc(OldLength);
-          FCurTokenString[OldLength] := Ch;
+          FCurTokenString[OldLength] := LE[i];
         end;
       {$else}
       FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
