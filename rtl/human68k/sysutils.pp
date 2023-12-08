@@ -60,6 +60,8 @@ uses
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+{$i h68kdos.inc}
+
 {****************************************************************************
                               File Functions
 ****************************************************************************}
@@ -127,7 +129,7 @@ begin
   if (Count<=0) then
     exit;
 
-  FileRead:=-1;
+  FileRead:=h68kdos_read(Handle, @Buffer, Count);
   if FileRead < -1 then
     FileRead:=-1;
 end;
@@ -139,7 +141,7 @@ begin
   if (Count<=0) then 
     exit;
 
-  FileWrite:=-1;
+  FileWrite:=h68kdos_write(Handle, @Buffer, Count);
   if FileWrite < -1 then
     FileWrite:=-1;
 end;
@@ -151,7 +153,8 @@ var
 begin
   FileSeek:=-1;
 
-  dosResult:=-1;
+  { Human68k seek mode flags are actually compatible to DOS/TP }
+  dosResult:=h68kdos_seek(Handle, FOffset, Origin);
   if dosResult < 0 then
     exit;
 
@@ -166,6 +169,7 @@ end;
 
 procedure FileClose(Handle: THandle);
 begin
+  h68kdos_close(Handle);
 end;
 
 
@@ -177,13 +181,16 @@ end;
 
 function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
-  DeleteFile:=false;
+  DeleteFile:=h68kdos_delete(PAnsiChar(FileName)) >= 0;
 end;
 
 
 function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
-  RenameFile:=false;
+  if hi(human68k_vernum) <= 2 then
+    RenameFile:=h68kdos_rename_v2(PAnsiChar(oldname),PAnsiChar(newname)) >= 0
+  else
+    RenameFile:=h68kdos_rename_v3(PAnsiChar(oldname),PAnsiChar(newname)) >= 0;
 end;
 
 
@@ -307,27 +314,29 @@ end;
 function DiskSize(Drive: Byte): Int64;
 var
   dosResult: longint;
+  fi: Th68kdos_freeinfo;
 begin
   DiskSize := -1;
 
-  dosResult:=-1;
+  dosResult:=h68kdos_dskfre(drive,@fi);
   if dosResult < 0 then
     exit;
 
-  DiskSize:=0;
+  DiskSize:=fi.max * fi.sectors * fi.bytes;
 end;
 
 function DiskFree(Drive: Byte): Int64;
 var
   dosResult: longint;
+  fi: Th68kdos_freeinfo;
 begin
   DiskFree := -1;
 
-  dosResult:=-1;
+  dosResult:=h68kdos_dskfre(drive,@fi);
   if dosResult < 0 then
     exit;
 
-  DiskFree:=0;
+  DiskFree:=fi.free * fi.sectors * fi.bytes;
 end;
 
 function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;

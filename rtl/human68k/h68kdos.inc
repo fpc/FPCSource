@@ -99,6 +99,15 @@ type
   end;
   Ph68kdos_startup = ^Th68kdos_startup;
 
+type
+  Th68kdos_freeinfo = record
+    free: word;
+    max: word;
+    sectors: word;
+    bytes: word;
+  end;
+  Ph68kdos_freeinfo = ^Th68kdos_freeinfo;
+
 // as used by seek
 const
     SEEK_FROM_START   = 0;
@@ -110,6 +119,7 @@ function h68kdos_chgdrv(newdrv: word): longint; syscall $ff0e;
 function h68kdos_curdrv: longint; syscall $ff17;
 function h68kdos_gettim2: longint; syscall $ff27;
 function h68kdos_vernum: longint; syscall $ff30;
+function h68kdos_dskfre(drive: word; buffer: Ph68kdos_freeinfo): longint; syscall $ff36;
 function h68kdos_mkdir(name: pchar): longint; syscall $ff39;
 function h68kdos_rmdir(name: pchar): longint; syscall $ff3a;
 function h68kdos_chdir(name: pchar): longint; syscall $ff3b;
