@@ -432,6 +432,7 @@ Type
   // writing to socket
   EHTTPClientSocketWrite = Class(EHTTPClientSocket);
 
+Function EncodeURLElement(const S : AnsiString) : AnsiString;
 Function EncodeURLElement(const S : UnicodeString) : UnicodeString;
 Function DecodeURLElement(const S : AnsiString) : AnsiString;
 function DecodeURLElement(const S: UnicodeString): UnicodeString;
@@ -455,6 +456,11 @@ Const
 
 
 function EncodeURLElement(const S: UnicodeString): UnicodeString;
+begin
+  Result:=UTF8Decode(EncodeURLElement(UTF8Encode(S)));
+end;
+
+function EncodeURLElement(const S : AnsiString) : AnsiString;
 
 Const
   NotAllowed = [ ';', '/', '?', ':', '@', '=', '&', '#', '+', '_', '<', '>',
