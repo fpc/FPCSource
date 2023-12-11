@@ -45,6 +45,7 @@ begin
     T:=P.Targets.AddExampleProgram('gemcube.pas');
     T:=P.Targets.AddExampleProgram('showpic.pas');
 
+    P.Sources.AddDoc('README.txt');
 
     P.NamespaceMap:='namespaces.lst';
 
