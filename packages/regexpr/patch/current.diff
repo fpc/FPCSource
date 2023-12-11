@@ -33,7 +33,10 @@
 > {$DEFINE UseSpaceChars} // Use SpaceChars property, otherwise fixed list
 > {$DEFINE UseLineSep} // Use LineSeparators property, otherwise fixed line-break chars
 > { off $DEFINE FastUnicodeData} // Use arrays for UpperCase/LowerCase/IsWordChar, they take 320K more memory
-116a111,122
+116d109
+< 
+121a115,127
+> 
 > {$IFDEF FPC_DOTTEDUNITS}
 > uses
 >   System.SysUtils, // Exception
@@ -46,5 +49,13 @@
 >   {$ENDIF}
 >   System.Classes; // TStrings in Split method
 > {$ELSE FPC_DOTTEDUNITS}
-126a133
+131a138
 > {$ENDIF FPC_DOTTEDUNITS}
+2922d2928
+< 
+3110d3115
+< 
+6535d6539
+< 
+6543a6548
+> 
