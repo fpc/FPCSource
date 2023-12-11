@@ -1546,7 +1546,7 @@ implementation
             end;
 
             Write(T, ' name="', SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
-            if po_hascallingconvention in procdef.procoptions then
+            if (po_hascallingconvention in procdef.procoptions) or (procdef.proccalloption <> pocall_default) then
               Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
             WriteLn(T, '>');
 
