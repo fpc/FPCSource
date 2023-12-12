@@ -25021,6 +25021,8 @@ begin
           Lit.Value.AsNumber:=0
         else if bt in btAllJSFloats then
           Lit.Value.CustomValue:='0.0'
+        else if bt in btAllJSChars then
+          Lit.Value.AsString := #0
         else if bt in btAllJSStringAndChars then
           Lit.Value.AsString:=''
         else if bt in btAllJSBooleans then
