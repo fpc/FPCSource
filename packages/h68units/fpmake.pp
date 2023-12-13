@@ -37,8 +37,6 @@ begin
 
     P.Sources.AddDoc('README.md');
 
-    P.NamespaceMap:='namespaces.lst';
-
 {$ifndef ALLPACKAGES}
     Run;
     end;
