@@ -46,6 +46,8 @@ Type
   TRunCommandEventCode = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.TRunCommandEventCode;
   TOnRunCommandEvent = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.TOnRunCommandEvent;
   EProcess = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.EProcess;
+  
+  TProcess = Class;
 
 {$macro on}
 {$IF SIZEOF(CHAR)=1}

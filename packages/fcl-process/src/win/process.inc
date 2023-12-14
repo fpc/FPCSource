@@ -32,7 +32,7 @@ Const
                        NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS,
                        BELOW_NORMAL_PRIORITY_CLASS,ABOVE_NORMAL_PRIORITY_CLASS);
 
-procedure TProcessnamemacro.CloseProcessHandles;
+procedure TProcess.CloseProcessHandles;
 begin
   if (FProcessHandle<>0) then
     CloseHandle(FProcessHandle);
@@ -40,7 +40,7 @@ begin
     CloseHandle(FThreadHandle);
 end;
 
-Function TProcessnamemacro.PeekExitStatus : Boolean;
+Function TProcess.PeekExitStatus : Boolean;
 begin
   Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
   // wait up to 10ms extra till process really done to get rest of input bug #39821
@@ -48,12 +48,10 @@ begin
     WaitForSingleObject(FProcessHandle,10);
 end;
 
-Function GetStartupFlags (P : TProcessnamemacro): Cardinal;
+Function GetStartupFlags (P : TProcess): Cardinal;
 
 begin
-  Result:=0;
-  if poUsePipes in P.Options then
-     Result:=Result or Startf_UseStdHandles;
+  Result:=Result or Startf_UseStdHandles;
   if suoUseShowWindow in P.StartupOptions then
     Result:=Result or startf_USESHOWWINDOW;
   if suoUSESIZE in P.StartupOptions then
@@ -66,7 +64,7 @@ begin
     Result:=Result or startf_USEFILLATTRIBUTE;
 end;
 
-Function GetCreationFlags(P : TProcessnamemacro) : Cardinal;
+Function GetCreationFlags(P : TProcess) : Cardinal;
 
 begin
   Result:=CREATE_UNICODE_ENVIRONMENT;
@@ -114,21 +112,21 @@ begin
   CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
-Procedure InitProcessAttributes(P : TProcessnamemacro; Var PA : TSecurityAttributes);
+Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
 
 begin
   FillChar(PA,SizeOf(PA),0);
   PA.nLength := SizeOf(PA);
 end;
 
-Procedure InitThreadAttributes(P : TProcessnamemacro; Var TA : TSecurityAttributes);
+Procedure InitThreadAttributes(P : TProcess; Var TA : TSecurityAttributes);
 
 begin
   FillChar(TA,SizeOf(TA),0);
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcessnamemacro; Var SI : STARTUPINFOW);
+Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -233,7 +231,7 @@ begin
 end;
 
 
-Procedure TProcessnamemacro.Execute;
+Procedure TProcess.Execute;
 Var
   i : Integer;
   WName,WDir,WCommandLine : UnicodeString;
@@ -248,6 +246,9 @@ Var
   Cmd : TProcessString;
 
  begin
+  FDescriptors[phtInput].PrepareHandles;
+  FDescriptors[phtOutput].PrepareHandles;
+  FDescriptors[phtError].PrepareHandles;
   WName:='';
   WCommandLine:='';
   WDir:='';
@@ -278,8 +279,20 @@ Var
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
-    If poUsePipes in Options then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poPassInput in Options), Not(poStdErrToOutPut in Options), FPipeBufferSize);
+    FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
+    if FDescriptors[phtInput].IOType=iotPipe then
+      DuplicateHandleFP(FStartupInfo.hStdInput);
+    FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
+    if FDescriptors[phtOutput].IOType=iotPipe then
+      DuplicateHandleFP(FStartupInfo.hStdOutput);
+    if Not(poStdErrToOutPut in Options) then  
+      begin
+      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle;
+      if FDescriptors[phtError].IOType=iotPipe then
+        DuplicateHandleFP(FStartupInfo.hStdError);
+      end
+    else  
+      FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
     Try
       // Beware: CreateProcess can alter the strings
       // Beware: nil is not the same as a pointer to a #0
@@ -295,17 +308,9 @@ Var
       FThreadId:=FProcessInformation.dwThreadId;  
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
-      if POUsePipes in Options then
-        begin
-        if not (poPassInput in Options) then
-          FileClose(FStartupInfo.hStdInput);
-        FileClose(FStartupInfo.hStdOutput);
-        if Not (poStdErrToOutPut in Options) then
-          FileClose(FStartupInfo.hStdError);
-        CreateStreams(HI,HO,HE);
-        if poPassInput in Options then
-           FInputStream.DontClose:=true;
-        end;
+      FDescriptors[phtInput].CloseTheirHandle;
+      FDescriptors[phtOutput].CloseTheirHandle;
+      FDescriptors[phtError].CloseTheirHandle;
     end;
     FRunning:=True;
   Finally
@@ -318,7 +323,7 @@ Var
     WaitOnExit;
 end;
 
-Function TProcessnamemacro.WaitOnExit : Boolean;
+Function TProcess.WaitOnExit : Boolean;
 Var
   R : DWord;
 begin
@@ -329,7 +334,7 @@ begin
   FRunning:=False;
 end;
 
-Function TProcessnamemacro.WaitOnExit(Timeout : DWord) : Boolean;
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
 Var
   R : DWord;
 begin
@@ -342,19 +347,19 @@ begin
     end;
 end;
 
-Function TProcessnamemacro.Suspend : Longint;
+Function TProcess.Suspend : Longint;
 
 begin
   Result:=SuspendThread(ThreadHandle);
 end;
 
-Function TProcessnamemacro.Resume : LongInt;
+Function TProcess.Resume : LongInt;
 
 begin
   Result:=ResumeThread(ThreadHandle);
 end;
 
-Function TProcessnamemacro.Terminate(AExitCode : Integer) : Boolean;
+Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
   Result:=False;
@@ -362,7 +367,7 @@ begin
     Result:=TerminateProcess(Handle,AexitCode);
 end;
 
-Procedure TProcessnamemacro.SetShowWindow (Value : TShowWindowOptions);
+Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 
 begin
   FShowWindow:=Value;

@@ -32,7 +32,6 @@ Resourcestring
   SErrNoSuchProgram     = 'Executable not found: "%s"';
   SErrNoTerminalProgram = 'Could not detect X-Terminal program';
   SErrCannotFork        = 'Failed to Fork process';
-  SErrCannotCreatePipes = 'Failed to create pipes';
 
 Const
   // unused as of yet, I assume these are nice levels ?
@@ -42,6 +41,9 @@ Const
 Const
   GeometryOption : String = '-geometry';
   TitleOption : String ='-title';
+
+
+
 
 procedure TProcess.CloseProcessHandles;
 
@@ -57,6 +59,7 @@ begin
   else
     Result:=0;
 end;
+
 
 Function TProcess.PeekExitStatus : Boolean;
 var
@@ -325,18 +328,16 @@ end;
 Procedure TProcess.Execute;
 
 Var
-  HI,HO,HE : TPipePair;
   PID      : Longint;
   FEnv     : PPAnsiChar;
   Argv     : PPAnsiChar;
-  fd       : Integer;
-  res      : cint;
   FoundName,
   PName    : String;
 
 begin
-  If (poUsePipes in Options) then
-    CreatePipes(HI, HO, HE, Not(poPassInput in Options), Not (poStdErrToOutPut in Options));
+  FDescriptors[phtInput].PrepareHandles;
+  FDescriptors[phtOutput].PrepareHandles;
+  FDescriptors[phtError].PrepareHandles;
   Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
@@ -410,30 +411,26 @@ begin
                    fpexit(127);
 {$pop}
                end;
-            if PoUsePipes in Options then
-              begin
-                if not (poPassInput in Options) then
-                  begin
-                    FileClose(HI[peWrite]);
-                    safefpdup2(HI[peRead],0);
-                  end;
-                FileClose(HO[peRead]);
-                safefpdup2(HO[peWrite],1);
-                if (poStdErrToOutPut in Options) then
-                  safefpdup2(HO[peWrite],2)
-                else
-                  begin
-                    FileClose(HE[peRead]);
-                    safefpdup2(HE[peWrite],2);
-                  end
-              end
-            else if poNoConsole in Options then
-              begin
-                fd:=FileOpen('/dev/null',fmOpenReadWrite or fmShareDenyNone);
-                safefpdup2(fd,0);
-                safefpdup2(fd,1);
-                safefpdup2(fd,2);
-              end;
+            if FDescriptors[phtInput].ResolveProcessHandle<>StdInputHandle then
+               begin
+               if FDescriptors[phtInput].IOType=iotPipe then
+                 FDescriptors[phtInput].CloseOurHandle;
+               safefpdup2(FDescriptors[phtInput].ResolveProcessHandle,0);
+               end;
+            if FDescriptors[phtOutput].ResolveProcessHandle<>StdOutputHandle then
+               begin
+               if FDescriptors[phtOutput].IOType=iotPipe then
+                 FDescriptors[phtOutput].CloseOurHandle;
+               safefpdup2(FDescriptors[phtOutput].ResolveProcessHandle,1);
+               if (poStdErrToOutPut in Options) then
+                 safefpdup2(FDescriptors[phtOutput].ResolveProcessHandle,2);
+               end;
+            if not (poStdErrToOutPut in Options) and (FDescriptors[phtError].ResolveProcessHandle<>StdErrorHandle) then
+               begin
+               if FDescriptors[phtOutput].IOType=iotPipe then
+                 FDescriptors[phtError].CloseOurHandle;
+               safefpdup2(FDescriptors[phtError].ResolveProcessHandle,2);
+               end;
             if Assigned(FForkEvent) then
               FForkEvent(Self);
             if (poRunSuspended in Options) then
@@ -452,15 +449,10 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    if POUsePipes in Options then
-      begin
-        FileClose(HO[peWrite]);
-        if not (POPassInput in Options) then
-          FileClose(HI[peRead]);
-        if Not (poStdErrToOutPut in FProcessOptions) then
-          FileClose(HE[peWrite]);
-        CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
-      end;
+    Writeln('closing handles');
+    FDescriptors[phtInput].CloseTheirHandle;
+    FDescriptors[phtOutput].CloseTheirHandle;
+    FDescriptors[phtError].CloseTheirHandle;
   end;
   FRunning:=True;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
