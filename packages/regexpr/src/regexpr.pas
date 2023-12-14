@@ -72,7 +72,7 @@ interface
 {$EXTENDEDSYNTAX ON}
 {$LONGSTRINGS ON}
 {$MODE DELPHI} // Delphi-compatible mode in FreePascal
-{$INLINE ON}
+{$INLINE Off}
 {$DEFINE COMPAT}
 // ======== Define options for TRegExpr engine
 { off $DEFINE UnicodeRE} // Use WideChar for characters and UnicodeString/WideString for strings
