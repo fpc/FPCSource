@@ -310,7 +310,7 @@ const
 {$ifdef use_fast_repmovstos}
   ErmsThreshold = 1536;
 {$endif}
-  NtThreshold = 512 * 1024;
+  NtThreshold = 4 * 1024 * 1024;
 asm
     { x can start and end misaligned on the vector boundary:
 

@@ -207,7 +207,7 @@ label
 procedure FillXxxx_U32Pattern_SSE2_16OrMore; assembler; nostackframe;
 { eax — x, ecx — uint32 pattern, edx — byte count >= 16 (preferably > 16). }
 const
-  NtThreshold = 512 * 1024;
+  NtThreshold = 4 * 1024 * 1024;
 asm
         movd   %ecx, %xmm0
         pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
