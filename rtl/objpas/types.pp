@@ -64,7 +64,7 @@ type
   TShortIntDynArray = array of ShortInt;
   TSmallIntDynArray = array of SmallInt;
 
-  TRTLStringDynArray = array of RTLString;
+  TRTLStringDynArray = array of Ansistring;
   TAnsiStringDynArray = Array of AnsiString;
   TWideStringDynArray   = array of WideString;
   TUnicodeStringDynArray = array of UnicodeString;
