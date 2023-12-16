@@ -1112,7 +1112,7 @@ const TypeStrings : array[TFieldType] of string =
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
       'Unknown'   // ftWideMemo
-      {$IFNDEF VER3_2}
+      {IFNDEF VER3_2}
              ,
       'Unknown',   // ftOraTimeStamp
       'Unknown',   // ftOraInterval
@@ -1121,7 +1121,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftByte
       'Unknown',   // ftExtended
       'real'       // ftSingle
-{$ENDIF}
+{ENDIF}
     );
 
 
