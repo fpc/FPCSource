@@ -280,18 +280,10 @@ Var
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
     FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
-    if FDescriptors[phtInput].IOType=iotPipe then
-      DuplicateHandleFP(FStartupInfo.hStdInput);
     FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
-    if FDescriptors[phtOutput].IOType=iotPipe then
-      DuplicateHandleFP(FStartupInfo.hStdOutput);
-    if Not(poStdErrToOutPut in Options) then  
-      begin
-      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle;
-      if FDescriptors[phtError].IOType=iotPipe then
-        DuplicateHandleFP(FStartupInfo.hStdError);
-      end
-    else  
+    if Not(poStdErrToOutPut in Options) then
+      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle
+    else
       FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
     Try
       // Beware: CreateProcess can alter the strings
