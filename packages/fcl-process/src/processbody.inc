@@ -40,7 +40,7 @@ Type
    TProcessStringList = TStringList;
    {$endif}
 
-   TFileWriteMode = (fwmAtstart, fwmTruncate, fwmAppend);
+   TFileWriteMode = (fwmTruncate, fwmAppend, fwmAtstart);
 
    TIODescriptor = class(TPersistent)
    private
@@ -74,17 +74,20 @@ Type
      Function CreateProcessHandle : THandle;
      Function ResolveProcessHandle : THandle;
      Function ResolveStream : THandleStream;
-     Function OurHandle : THandle;
      Procedure CloseOurHandle;
      Procedure CloseTheirHandle;
      Procedure PrepareHandles;
+     Procedure ResetHandles;
      Property OwnerProcess : TProcess Read FOwnerProcess;
      Property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize;
+     Property OurHandle: THandle Read FOurHandle;
+     Property HandleValid : Boolean Read FHandleValid;
    public
      Constructor Create(aOwnerProcess : TProcess; aType : TProcessHandleType);
      Destructor Destroy; override;
      Property ProcessHandleType : TProcessHandleType Read FHandleType;
      Property CustomHandle : THandle Read FCustomHandle Write FCustomHandle;
+
    Published
      Property IOType : TIOType Read FIOType Write SetIOType;
      Property FileName : TFileName Read FFileName Write SetFileName;
@@ -162,6 +165,7 @@ Type
     FThreadHandle : Thandle;
     procedure CloseProcessHandles; virtual;
     procedure Loaded; override;
+    Procedure SysExecute; virtual;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -403,6 +407,18 @@ begin
   If (csDesigning in ComponentState) and (FCommandLine<>'') then
     ConvertCommandLine;
 end;
+
+Procedure TProcess.Execute;
+
+Var
+  HT : TProcessHandleType;
+
+begin
+  for HT in TProcessHandleType do
+    FDescriptors[HT].ResetHandles;
+  SysExecute;
+end;
+
 
 procedure TProcess.CloseInput;
 begin
@@ -896,6 +912,10 @@ begin
   FProcess:=AValue;
   if Assigned(FOwnerProcess) and Assigned(FProcess) then
     FProcess.RemoveComponent(FOwnerProcess);
+  if Self.ProcessHandleType=phtInput then
+    FProcess.OutputDescriptor.IOType:=iotPipe
+  else
+    FProcess.InputDescriptor.IOType:=iotPipe;
 end;
 
 
@@ -973,31 +993,20 @@ Function TIODescriptor.CreateProcessHandle : THandle;
 begin
   if Not Assigned(Process) then
     Raise EProcess.Create('Cannot get handle. No process assigned');
-  if not Process.Running then
-    Raise EProcess.Create('Cannot get handle. Process not active');
   case ProcessHandleType of
     phtInput:  Result:=Process.OutputDescriptor.OurHandle;
     phtOutput:  Result:=Process.InputDescriptor.OurHandle;
     phtError:  Result:=Process.InputDescriptor.OurHandle;
   end;
-end;
-
-function TIODescriptor.OurHandle: THandle;
-begin
-  Case IOType of
-    iotNone : Result:=CreateStandardHandle;
-    iotProcess : Result:=Process.ProcessHandle;
-    iotPipe : Result:=FOurHandle;
-    iotFile : Result:=CreateProcessHandle;
-    iotHandle : Result:=CreateProcessHandle;
-  end;
+  if Result=THandle(INVALID_HANDLE_VALUE) then
+    Raise EProcess.Create('Cannot get handle. Process not active');
 end;
 
 function TIODescriptor.ResolveStream: THandleStream;
 begin
   if (FStream=Nil) and (FHandleValid) and (IOType=iotPipe) then
     begin
-    Writeln(ProcessHandleType,' creating stream for stream ',IOType,': ',OurHandle);
+    // Writeln(ProcessHandleType,' creating stream for stream ',IOType,': ',OurHandle);
     Case FHandleType of
       phtInput : FStream:=TOutputPipeStream.Create(OurHandle);
       phtError,
@@ -1007,6 +1016,7 @@ begin
   Result:=FStream;
 end;
 
+
 procedure TIODescriptor.CloseOurHandle;
 
 var
@@ -1015,15 +1025,8 @@ var
 begin
   if Not FHandleValid then
      exit;
-  H:=THandle(INVALID_HANDLE_VALUE);
-  Writeln(StdErr, GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
-  Case IOType of
-    iotNone : ;
-    iotProcess : H:=OurHandle;
-    iotPipe : H:=OurHandle;
-    iotFile : H:=FTheirHandle;
-    iotHandle : H:=FTheirHandle;
-  end;
+  H:=OurHandle;
+  // Writeln(StdErr, GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
   if H<>THandle(INVALID_HANDLE_VALUE) then
     FileClose(H);
   FOurHandle:=THandle(INVALID_HANDLE_VALUE) ;
@@ -1037,7 +1040,7 @@ begin
   if (IOType=iotNone) or Not FHandleValid then
      exit;
   H:=ResolveProcessHandle;
-  Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
+  // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
   if H<>THandle(INVALID_HANDLE_VALUE) then
     FileClose(H);
 end;
@@ -1051,9 +1054,18 @@ var
 begin
   WriteStr(S,IOType);
   H:=ResolveProcessHandle;
-  Writeln('PReparing handle ',S,' : ',H,' (ours: ',OurHandle,')');
+  // Writeln('PReparing handle ',S,' : ',H,' (ours: ',OurHandle,')');
   if H=THandle(INVALID_HANDLE_VALUE) then
      Raise EProcess.CreateFmt('Failed to prepare process handle for %s',[S]);
+end;
+
+procedure TIODescriptor.ResetHandles;
+
+begin
+  CloseOurHandle;
+  CloseTheirHandle;
+  FreeAndNil(FStream);
+  FHandleValid:=False;
 end;
 
 
@@ -1066,6 +1078,7 @@ var
 begin
   if not FHandleValid then
     begin
+    FOurHandle:=THAndle(INVALID_HANDLE_VALUE);
     Case IOType of
       iotNone : H:=CreateStandardHandle;
       iotPipe : H:=CreatePipeHandle;

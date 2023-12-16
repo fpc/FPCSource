@@ -335,7 +335,7 @@ begin
   until (safefpdup2<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 
 Var
   PID      : Longint;
@@ -459,7 +459,7 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    Writeln(system.StdErr,'fork closing our handles');
+    // Writeln(system.StdErr,'fork closing our handles');
     FDescriptors[phtInput].CloseTheirHandle;
     FDescriptors[phtOutput].CloseTheirHandle;
     FDescriptors[phtError].CloseTheirHandle;
@@ -528,6 +528,7 @@ begin
   else
     Result:=1;
 end;
+
 
 Function TProcess.Resume : LongInt;
 

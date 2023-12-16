@@ -231,7 +231,7 @@ begin
 end;
 
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 Var
   i : Integer;
   WName,WDir,WCommandLine : UnicodeString;
