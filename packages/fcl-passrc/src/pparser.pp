@@ -384,7 +384,7 @@ type
     procedure HandleProcedureTypeModifier(ProcType: TPasProcedureType; ptm : TProcTypeModifier);
     procedure ParseMembersLocalConsts(AType: TPasMembersType; AVisibility: TPasMemberVisibility);
     procedure ParseMembersLocalTypes(AType: TPasMembersType; AVisibility: TPasMemberVisibility);
-    procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; varParseType : TDeclParseType);
+    procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; VarParseType : TDeclParseType);
     procedure SetOptions(AValue: TPOptions);
     procedure OnScannerModeChanged(Sender: TObject; NewMode: TModeSwitch;
       Before: boolean; var Handled: boolean);
@@ -4850,7 +4850,7 @@ end;
 
 // Full means that a full variable declaration is being parsed.
 procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility;
-  varParseType: TDeclParseType);
+  VarParseType: TDeclParseType);
 // on Exception the VarList is restored, no need to Release the new elements
 
 var
@@ -4876,6 +4876,8 @@ begin
   try
     D:=SaveComments; // This means we support only one comment per 'list'.
     VarEl:=nil;
+
+    // read attributes
     while CurToken=tkSquaredBraceOpen do
       begin
       if msPrefixedAttributes in CurrentModeswitches then
@@ -4886,6 +4888,8 @@ begin
       else
         CheckToken(tkIdentifier);
       end;
+
+    // read names
     Repeat
       VarEl:=TPasVariable(CreateElement(TPasVariable,CurTokenString,Parent,
                                         AVisibility,CurTokenPos));
@@ -4897,7 +4901,7 @@ begin
       tkComma: ExpectIdentifier;
       tkAssign :
         begin
-        if varParseType<>dptInline then
+        if VarParseType<>dptInline then
           ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
         UnGetToken; // Value parsing starts with NextToken
         IsUnTyped:=True;
@@ -4907,6 +4911,9 @@ begin
         ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
       end;
     Until (CurToken=tkColon);
+
+    // read type
+    VarType:=nil;
     if CurToken=tkColon then
       begin
       OldForceCaret:=Scanner.SetForceCaret(True);
@@ -4924,8 +4931,10 @@ begin
         //VarType.Parent := VarEl; // this is wrong for references
         end;
       end;
+    // read hints
     H:=CheckHint(Nil,False);
-    If varParseType in [dptFull,dptInline]then
+    // read value and location
+    If VarParseType in [dptFull,dptInline]then
       GetVariableValueAndLocation(VarEl,IsUnTyped,Value,AbsoluteExpr,AbsoluteLocString);
     if VarCnt>1 then
       begin
@@ -4942,6 +4951,7 @@ begin
     ExternalStruct:=(msExternalClass in CurrentModeSwitches)
                     and (Parent is TPasMembersType);
 
+    // read modifiers
     H:=H+CheckHint(Nil,False);
     if (VarParseType=dptFull) or ExternalStruct then
       begin
