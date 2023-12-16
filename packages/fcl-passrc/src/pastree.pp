@@ -5469,7 +5469,7 @@ end;
 
 constructor TPasInlineVarDeclStatement.Create(const aName: TPasTreeString; aParent: TPasElement);
 begin
-  inherited Create('',aParent);
+  inherited Create(aName,aParent);
   Declarations:=TFPList.Create;
 end;
 

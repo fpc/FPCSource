@@ -141,8 +141,7 @@ begin
       TStreamResolver(Fresolver).AddStream(FileName,Stream);
       end
     else
-      {$IFDEF HASFS}FResolver:=TFileResolver.Create{$ENDIF}
-      ;
+      FResolver:=TFileResolver.Create;
     D:=ExtractFilePath(FileName);
     If (D='') then
       D:='.';

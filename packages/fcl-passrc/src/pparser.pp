@@ -5178,7 +5178,6 @@ var
   Arg: TPasArgument;
   Access: TArgumentAccess;
   ArgType: TPasType;
-  HasAttr : Boolean;
 
 begin
   LastHadDefaultValue := false;
@@ -5191,7 +5190,7 @@ begin
     NextToken;
     // [ref] (const|var|) a : type;
     HasRef:=False;
-    HasAttr:=CheckAttributes(False);
+    CheckAttributes(False);
 
     if CurToken = tkDotDotDot then
     begin

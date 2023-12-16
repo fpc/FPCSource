@@ -1331,7 +1331,6 @@ const
   Letters = ['a'..'z','A'..'Z'];
   HexDigits = ['0'..'9','a'..'f','A'..'F'];
   SingleQuote = #39;
-  TripleQuote = #39#39#39;
 
 Var
   SortedTokens : array of TToken;
@@ -4150,13 +4149,12 @@ function TPascalScanner.DoFetchDelphiMultiLineTextToken(quotelen : Integer): TTo
 // works similar to DoFetchTextToken, except changes indentation
 
 var
-  StartPos: Integer;
   TokenStart: {$ifdef UsePChar}PAnsiChar{$else}integer{$endif};
   {$ifndef UsePChar}
   s: TPasScannerString;
   l: integer;
   {$endif}
-  Msg,CurLF : TPasScannerString;
+  CurLF : TPasScannerString;
   Lines : Array of String;
   I,SpaceCount,QuoteCount,WhiteSpaces,CurLines : Integer;
 
@@ -5360,7 +5358,6 @@ var
   {$ifdef UsePChar}
   TokenStart: PAnsiChar;
   OldLength: integer;
-  Ch: AnsiChar;
   LE: String[2];
   I : Integer;
   {$else}
@@ -5458,7 +5455,6 @@ var
   {$ifdef UsePChar}
   TokenStart: PAnsiChar;
   OldLength: integer;
-  Ch: AnsiChar;
   I : Integer;
   LE: String[2];
   {$else}
