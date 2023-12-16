@@ -625,9 +625,6 @@ const
 
 const
   ResolverResultVar = 'Result';
-  {$IFDEF CheckPasTreeRefCount}
-  RefIdInferenceParamsExpr = 'InferenceParamsExpr';
-  {$ENDIF}
 
 type
   {$ifdef pas2js}
@@ -1888,14 +1885,11 @@ type
     procedure SpecializeElImplEl(GenEl, SpecEl: TPasElement;
       GenImplEl: TPasImplElement; var SpecImplEl: TPasImplElement);
     procedure SpecializeElImplAlias(GenEl, SpecEl: TPasImplBlock;
-      GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement
-      {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+      GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement);
     procedure SpecializeElList(GenEl, SpecEl: TPasElement;
-      GenList, SpecList: TFPList; AllowReferences: boolean
-      {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+      GenList, SpecList: TFPList; AllowReferences: boolean);
     procedure SpecializeElArray(GenEl, SpecEl: TPasElement;
-      GenList: TPasElementArray; var SpecList: TPasElementArray; AllowReferences: boolean
-      {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+      GenList: TPasElementArray; var SpecList: TPasElementArray; AllowReferences: boolean);
     procedure SpecializeProcedure(GenEl, SpecEl: TPasProcedure; SpecializedItem: TPRSpecializedItem); virtual;
     procedure SpecializeOperator(GenEl, SpecEl: TPasOperator);
     procedure SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType; SpecializedItem: TPRSpecializedItem);
@@ -6074,8 +6068,7 @@ end;
 procedure TPasResolver.FinishTypeSectionEl(El: TPasType);
 
   function ReplaceDestType(Decl: TPasType; var DestType: TPasType;
-    const DestName: string; MustExist: boolean; ErrorEl: TPasElement
-    {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF}): boolean;
+    const DestName: string; MustExist: boolean; ErrorEl: TPasElement): boolean;
   // returns true if replaces
   var
     Abort: boolean;
@@ -6136,8 +6129,7 @@ begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.FinishTypeSection resolving "',ClassOfEl.Name,'" = class of unresolved "',TypeEl.Name,'"');
       {$ENDIF}
-      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl
-        {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
+      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl);
       end
     else if TypeEl.ClassType=TPasClassType then
       begin
@@ -6150,8 +6142,7 @@ begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.FinishTypeSection improving "',ClassOfEl.Name,'" = class of resolved "',TypeEl.Name,'"');
       {$ENDIF}
-      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,ClassOfEl.DestType.Name,false,ClassOfEl
-        {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
+      ReplaceDestType(ClassOfEl,ClassOfEl.DestType,ClassOfEl.DestType.Name,false,ClassOfEl);
       end;
     end
   else if C=TPasPointerType then
@@ -6165,8 +6156,7 @@ begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.FinishTypeSection resolving "',PtrType.Name,'" = pointer of unresolved "',TypeEl.Name,'"');
       {$ENDIF}
-      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl
-        {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
+      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl);
       end
     else
       begin
@@ -6178,8 +6168,7 @@ begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.FinishTypeSection improving "',PtrType.Name,'" = pointer of resolved "',TypeEl.Name,'"');
       {$ENDIF}
-      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType
-        {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
+      ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType);
       end;
     end;
 end;
@@ -7539,7 +7528,6 @@ begin
     begin
     // add 'Self'
     ImplProcScope.SelfArg:=SelfArg;
-    {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
     AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
     end;
 
@@ -8922,7 +8910,6 @@ begin
     // create canonical class-of for the "Self" in non static class functions
     CanonicalSelf:=TPasClassOfType(CreateOwnedElement(TPasClassOfType,'Self',aClass));
     ClassScope.CanonicalClassOf:=CanonicalSelf;
-    {$IFDEF CheckPasTreeRefCount}CanonicalSelf.RefIds.Add('TPasClassScope.CanonicalClassOf');{$ENDIF}
     CanonicalSelf.DestType:=aClass;
     CanonicalSelf.Visibility:=visStrictPrivate;
     CanonicalSelf.SourceFilename:=aClass.SourceFilename;
@@ -12007,8 +11994,7 @@ end;
 
 procedure TPasResolver.DeanonymizeType(El: TPasType);
 
-  procedure InsertInFront(NewParent: TPasElement; List: TFPList
-    {$IFDEF CheckPasTreeRefCount};const aId: string{$ENDIF});
+  procedure InsertInFront(NewParent: TPasElement; List: TFPList);
   var
     i: Integer;
     p, Prev: TPasElement;
@@ -12073,13 +12059,13 @@ begin
       if p is TPasDeclarations then
         begin
         Decl:=TPasDeclarations(p);
-        InsertInFront(Decl,Decl.Declarations{$IFDEF CheckPasTreeRefCount},'TPasDeclarations.Declarations'{$ENDIF});
+        InsertInFront(Decl,Decl.Declarations);
         Decl.Types.Add(El);
         end
       else if p is TPasMembersType then
         begin
         MembersType:=TPasMembersType(p);
-        InsertInFront(MembersType,MembersType.Members{$IFDEF CheckPasTreeRefCount},'TPasMembersType.Members'{$ENDIF});
+        InsertInFront(MembersType,MembersType.Members);
         end;
       break;
       end
@@ -12489,7 +12475,6 @@ begin
   else
     begin
     CanonicalSet:=TPasSetType(CreateOwnedElement(TPasSetType,'',El));
-    {$IFDEF CheckPasTreeRefCount}CanonicalSet.RefIds.Add('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
     CanonicalSet.EnumType:=El;
     end;
   EnumScope.CanonicalSet:=CanonicalSet;
@@ -17022,12 +17007,10 @@ begin
   if NewParent is TPasDeclarations then
     begin
     InsertBehind(TPasDeclarations(NewParent).Declarations);
-    {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasDeclarations.Children');{$ENDIF}
     end
   else if NewParent is TPasMembersType then
     begin
     InsertBehind(TPasMembersType(NewParent).Members);
-    {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasMembersType.Members');{$ENDIF}
     end;
 
   if GenScope.GenericStep>=psgsInterfaceParsed then
@@ -17845,8 +17828,7 @@ begin
   SpecEl.DispIDReadOnly:=GenEl.DispIDReadOnly;
   SpecEl.IsDefault:=GenEl.IsDefault;
   SpecEl.IsNodefault:=GenEl.IsNodefault;
-  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false
-    {$IFDEF CheckPasTreeRefCount},'TPasProperty.Args'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false);
   FinishProperty(SpecEl);
 end;
 
@@ -17918,8 +17900,7 @@ begin
 end;
 
 procedure TPasResolver.SpecializeElImplAlias(GenEl, SpecEl: TPasImplBlock;
-  GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement
-  {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+  GenImplAlias: TPasImplElement; var SpecImplAlias: TPasImplElement);
 var
   i: Integer;
 begin
@@ -17933,8 +17914,7 @@ begin
 end;
 
 procedure TPasResolver.SpecializeElList(GenEl, SpecEl: TPasElement;
-  GenList, SpecList: TFPList; AllowReferences: boolean
-  {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+  GenList, SpecList: TFPList; AllowReferences: boolean);
 var
   i: Integer;
   GenListItem, SpecListItem, Ref: TPasElement;
@@ -17965,7 +17945,7 @@ end;
 
 procedure TPasResolver.SpecializeElArray(GenEl, SpecEl: TPasElement;
   GenList: TPasElementArray; var SpecList: TPasElementArray;
-  AllowReferences: boolean{$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
+  AllowReferences: boolean);
 var
   l, i: Integer;
   GenListItem, Ref, SpecListItem: TPasElement;
@@ -18163,8 +18143,7 @@ begin
       end;
     end;
   // Args
-  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false
-    {$IFDEF CheckPasTreeRefCount},'TPasProcedureType.Args'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false);
   for i:=0 to SpecEl.Args.Count-1 do
     FinishArgument(TPasArgument(SpecEl.Args[i]));
   // varargs
@@ -18272,8 +18251,7 @@ begin
   SpecEl.DestType:=TPasGenericType(Ref);
 
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
-  SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
-    {$IFDEF CheckPasTreeRefCount},'TPasSpecializeType.Params'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true);
 
   if GenEl.SubType<>nil then
     begin
@@ -18402,15 +18380,13 @@ begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.CaseExpr,SpecEl.CaseExpr);
   SpecializeImplBlock(GenEl,SpecEl); // Elements
   if GenEl.ElseBranch<>nil then
-    SpecializeElImplAlias(GenEl,SpecEl,GenEl.ElseBranch,TPasImplElement(SpecEl.ElseBranch)
-      {$IFDEF CheckPasTreeRefCount},'TPasImplCaseOf.ElseBranch'{$ENDIF});
+    SpecializeElImplAlias(GenEl,SpecEl,GenEl.ElseBranch,TPasImplElement(SpecEl.ElseBranch));
 end;
 
 procedure TPasResolver.SpecializeImplCaseStatement(GenEl,
   SpecEl: TPasImplCaseStatement);
 begin
-  SpecializeElList(GenEl,SpecEl,GenEl.Expressions,SpecEl.Expressions,false
-    {$IFDEF CheckPasTreeRefCount},'TPasImplCaseStatement.CaseExpr'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Expressions,SpecEl.Expressions,false);
   SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
 end;
 
@@ -18594,7 +18570,7 @@ begin
   SpecializeExpr(GenEl,SpecEl);
   SpecializeElExpr(GenEl,SpecEl,GenEl.NameExpr,SpecEl.NameExpr);
   SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,
-    true{$IFDEF CheckPasTreeRefCount},'TInlineSpecializeExpr.Params'{$ENDIF});
+    true);
 end;
 
 procedure TPasResolver.SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
@@ -18750,8 +18726,7 @@ begin
   SpecializeElType(GenEl,SpecEl,
                    GenEl.AncestorType,SpecEl.AncestorType);
   SpecializeElList(GenEl,SpecEl,
-                   GenEl.Interfaces,SpecEl.Interfaces,true
-                   {$IFDEF CheckPasTreeRefCount},'TPasClassType.Interfaces'{$ENDIF});
+                   GenEl.Interfaces,SpecEl.Interfaces,true);
   if HeaderScope<>nil then
     begin
     if TopScope<>HeaderScope then
@@ -18796,8 +18771,7 @@ end;
 
 procedure TPasResolver.SpecializeEnumType(GenEl, SpecEl: TPasEnumType);
 begin
-  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false
-    {$IFDEF CheckPasTreeRefCount},'TPasEnumType.Values'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false);
   FinishEnumType(SpecEl);
 end;
 
@@ -18810,8 +18784,7 @@ end;
 
 procedure TPasResolver.SpecializeVariant(GenEl, SpecEl: TPasVariant);
 begin
-  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false
-    {$IFDEF CheckPasTreeRefCount},'TPasVariant.Values'{$ENDIF});
+  SpecializeElList(GenEl,SpecEl,GenEl.Values,SpecEl.Values,false);
   RaiseNotYetImplemented(20190808214218,GenEl)
   //ToDo: Members: TPasRecordType;
 end;
@@ -21140,7 +21113,6 @@ begin
 
   // create element
   El:=CreateOwnedElement(AClass,AName,AParent);
-  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('CreateElement');{$ENDIF}
   FLastElement:=El;
   El.Visibility:=AVisibility;
   El.SourceFilename:=ASrcPos.FileName;
@@ -22080,7 +22052,6 @@ begin
 
     // set ancestor
     aClass.AncestorType := DestType;
-    {$IFDEF CheckPasTreeRefCount}DestType.ChangeRefId('ResolveTypeReference','TPasClassType.AncestorType');{$ENDIF}
     FinishScope(stAncestors,aClass);
     end;
 end;
@@ -22479,7 +22450,6 @@ var
   El: TPasUnresolvedSymbolRef;
 begin
   El:=TPasUnresolvedSymbolRef(CreateOwnedElement(TPasUnresolvedSymbolRef,aName,nil));
-  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('TPasResolver.AddBaseType');{$ENDIF}
   if not (Typ in [btNone,btCustom]) then
     FBaseTypes[Typ]:=El;
   Result:=TResElDataBaseType.Create;
@@ -22494,7 +22464,6 @@ var
   CustomData: TResElDataBaseType;
 begin
   Result:=TPasUnresolvedSymbolRef(CreateOwnedElement(TPasUnresolvedSymbolRef,aName,nil));
-  {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('TPasResolver.AddCustomBaseType');{$ENDIF}
   CustomData:=aClass.Create;
   CustomData.BaseType:=btCustom;
   AddResolveData(Result,CustomData,lkBuiltIn);
@@ -22524,7 +22493,6 @@ begin
   El:=TPasUnresolvedSymbolRef(CreateOwnedElement(TPasUnresolvedSymbolRef,aName,nil));
   Result:=TResElDataBuiltInProc.Create;
   Result.Proc:=El;
-  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('TResElDataBuiltInProc.Proc');{$ENDIF}
   Result.Signature:=Signature;
   Result.BuiltIn:=BuiltIn;
   Result.GetCallCompatibility:=GetCallCompatibility;
@@ -29694,7 +29662,6 @@ begin
       // Note: this is true in classes, adv records and helpers
       SelfArg:=TPasArgument(CreateOwnedElement(TPasArgument,'Self',Proc));
       ProcScope.SelfArg:=SelfArg;
-      {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
       SelfArg.Access:=argConst;
       SelfArg.ArgType:=TPasClassScope(ClassOrRecScope).CanonicalClassOf;
       end
@@ -29706,7 +29673,6 @@ begin
     // 'Self' in a method is the hidden instance argument
     SelfArg:=TPasArgument(CreateOwnedElement(TPasArgument,'Self',Proc));
     ProcScope.SelfArg:=SelfArg;
-    {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
     SelfType:=ClassRecType;
     if (SelfType.ClassType=TPasClassType)
         and (TPasClassType(SelfType).HelperForType<>nil) then
