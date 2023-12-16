@@ -50,11 +50,11 @@ uses
   {$IFDEF NodeJS}
   Node.FS,
   {$ENDIF}
-  {$ENDIF}
-  pas2jsutils,
   {$IFDEF HASFILESYSTEM}
   pas2jsfileutils,
   {$ENDIF}
+  {$ENDIF}
+  pas2jsutils,
   Types, Classes, SysUtils,
   PasTree, PScanner,
   jstree, jsbase, jswriter, fpjson;

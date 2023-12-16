@@ -841,7 +841,6 @@ end;
 {$ENDIF}
 
 initialization
-
 {$IFDEF HAVE_INITPLATFORM}
   InitPlatform;
 {$ENDIF} 
