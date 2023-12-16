@@ -248,40 +248,6 @@ end;
 
 
 { ---------------------------------------------------------------------
-  TBooleanSysHelper
-  ---------------------------------------------------------------------}
-
-{$define TBOOLHELPER:=TBooleanSysHelper}
-{$define TBOOLTYPE:=Boolean}
-{$i syshelpersb.inc}
-
-{ ---------------------------------------------------------------------
-  TByteBoolSysHelper
-  ---------------------------------------------------------------------}
-
-{$define TBOOLHELPER:=TByteBoolSysHelper}
-{$define TBOOLTYPE:=ByteBool}
-{$i syshelpersb.inc}
-
-{ ---------------------------------------------------------------------
-  TWordBoolSysHelper
-  ---------------------------------------------------------------------}
-
-{$define TBOOLHELPER:=TWordBoolSysHelper}
-{$define TBOOLTYPE:=WordBool}
-{$i syshelpersb.inc}
-
-{ ---------------------------------------------------------------------
-  TLongBoolSysHelper
-  ---------------------------------------------------------------------}
-
-
-{$define TBOOLHELPER:=TLongBoolSysHelper}
-{$define TBOOLTYPE:=LongBool}
-{$i syshelpersb.inc}
-
-
-{ ---------------------------------------------------------------------
   TByteSysHelper
   ---------------------------------------------------------------------}
 
@@ -374,6 +340,39 @@ end;
 {$define TORDINALBITINDEX:=TNativeUIntBitIndex}
 {$define TORDINALNIBBLEINDEX:=TNativeUIntNibbleIndex}
 {$i syshelperso.inc}
+
+{ ---------------------------------------------------------------------
+  TBooleanSysHelper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TBooleanSysHelper}
+{$define TBOOLTYPE:=Boolean}
+{$i syshelpersb.inc}
+
+{ ---------------------------------------------------------------------
+  TByteBoolSysHelper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TByteBoolSysHelper}
+{$define TBOOLTYPE:=ByteBool}
+{$i syshelpersb.inc}
+
+{ ---------------------------------------------------------------------
+  TWordBoolSysHelper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TWordBoolSysHelper}
+{$define TBOOLTYPE:=WordBool}
+{$i syshelpersb.inc}
+
+{ ---------------------------------------------------------------------
+  TLongBoolSysHelper
+  ---------------------------------------------------------------------}
+
+
+{$define TBOOLHELPER:=TLongBoolSysHelper}
+{$define TBOOLTYPE:=LongBool}
+{$i syshelpersb.inc}
 
 end.
 
