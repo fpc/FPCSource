@@ -1,3 +1,4 @@
+{%main ../process.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2008 by the Free Pascal development team
@@ -140,10 +141,19 @@ Function DetectXterm : String;
   end;
 
 Const
+  xterm = 'xterm';
   Konsole   = 'konsole';
   GNomeTerm = 'gnome-terminal';
+  // Windowmaker
+  aterm = 'aterm';
+  wterm = 'wterm';
+  // Xfce
+  xfceterm = 'xfce4-terminal';
+  rxvt = 'rxvt';
+  xtermemulator = 'x-terminal-emulator';
+
   DefaultTerminals : Array [1..6] of string
-                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt','xfce4-terminal');
+                   = (xtermemulator,xterm,aterm,wterm,rxvt,xfceterm);
 
 Var
   D :String;
@@ -154,25 +164,25 @@ begin
     // try predefined
     If Length(TryTerminals)>0 then
       TestTerminals(TryTerminals);
-    // try session-specific terminal
+    // try session-specific terminal first.
     if (XTermProgram='') then
       begin
       D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
       If (Pos('kde',D)<>0) then
         begin
-        TestTerminal('konsole');
+        TestTerminal(konsole);
         end
       else if (D='gnome') then
         begin
-        TestTerminal('gnome-terminal');
+        TestTerminal(gnometerm);
         end
       else if (D='windowmaker') then
         begin
-        If not TestTerminal('aterm') then
-          TestTerminal('wterm');
+        If not TestTerminal(aterm) then
+          TestTerminal(wterm);
         end
       else if (D='xfce') then
-        TestTerminal('xfce4-terminal');
+        TestTerminal(xfceterm);
       end;
     if (XTermProgram='') then
       TestTerminals(DefaultTerminals)
@@ -449,7 +459,7 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    Writeln('closing handles');
+    Writeln(system.StdErr,'fork closing our handles');
     FDescriptors[phtInput].CloseTheirHandle;
     FDescriptors[phtOutput].CloseTheirHandle;
     FDescriptors[phtError].CloseTheirHandle;
@@ -531,6 +541,7 @@ end;
 Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
+  if aExitCode<>0 then ; // silence compiler warning
   Result:=fpkill(Handle,SIGTERM)=0;
   If Result and Running then
     Result:=fpkill(Handle,SIGKILL)=0;
@@ -545,5 +556,32 @@ Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 
 begin
   FShowWindow:=Value;
+end;
+
+function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+begin
+  Result:=aHandle;
+end;
+
+
+Function TIODescriptor.SysCreateFileNameHandle : THandle;
+
+const
+  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
+  ModeNames : Array[Boolean] of String = ('Reading','Writing');
+
+begin
+  if (FileName='') then
+    Raise EProcess.Create('No filename set');
+  case ProcessHandleType of
+    phtInput:  Result:=FileOpen(FileName,fmOpenRead);
+    phtOutput,
+    phtError: if FileExists(FileName) then
+                Result:=FileOpen(FileName,fmOpenWrite or fmShareDenyNone)
+              else
+                Result:=FileCreate(FileName,fmShareDenyNone,DefaultRights)
+  end;
+  if (Result=-1) then
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[FileName,ModeNames[ProcessHandleType<>phtInput]]);
 end;
 

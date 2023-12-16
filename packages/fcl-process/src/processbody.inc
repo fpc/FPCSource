@@ -40,36 +40,46 @@ Type
    TProcessStringList = TStringList;
    {$endif}
 
+   TFileWriteMode = (fwmAtstart, fwmTruncate, fwmAppend);
+
    TIODescriptor = class(TPersistent)
    private
      FCustomHandle: THandle;
+     FFileWriteMode: TFileWriteMode;
      FHandleType: TProcessHandleType;
      FFileName: TFileName;
      FIOType: TIOType;
      FOnGetHandle: TGetHandleEvent;
      FOwnerProcess: TProcess;
+     FPipeBufferSize: cardinal;
      FProcess: TProcess;
-     FProcessHandle : THandle;
+     FTheirHandle : THandle;
      FHandleValid : Boolean;
      FStream : THandleStream;
      FOurHandle : THandle;
      procedure SetFileName(AValue: TFileName);
+     procedure SetFileWriteMode(AValue: TFileWriteMode);
      procedure SetIOType(AValue: TIOType);
      procedure SetProcess(AValue: TProcess);
+     function SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+     Function SysCreateFileNameHandle : THandle;
    protected
      Procedure CheckNotRunning; virtual;
+     // Create handles for new process
+     Function PrepareCreatedHandleForProcess(aHandle : THandle) : THandle;
+     Function CreateStandardHandle : THandle;
+     Function CreatePipeHandle : THandle;
+     Function CreateFileNameHandle : THandle;
+     Function CreateCustomHandle : THandle;
+     Function CreateProcessHandle : THandle;
      Function ResolveProcessHandle : THandle;
-     Function GetStandardHandle : THandle;
-     Function GetPipeHandle : THandle;
-     Function GetFileNameHandle : THandle;
-     Function GetCustomHandle : THandle;
-     Function GetProcessHandle : THandle;
-     Function OurHandle : THandle;
      Function ResolveStream : THandleStream;
+     Function OurHandle : THandle;
      Procedure CloseOurHandle;
      Procedure CloseTheirHandle;
      Procedure PrepareHandles;
      Property OwnerProcess : TProcess Read FOwnerProcess;
+     Property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize;
    public
      Constructor Create(aOwnerProcess : TProcess; aType : TProcessHandleType);
      Destructor Destroy; override;
@@ -80,6 +90,7 @@ Type
      Property FileName : TFileName Read FFileName Write SetFileName;
      Property OnGetHandle : TGetHandleEvent Read FOnGetHandle Write FOnGetHandle;
      Property Process : TProcess Read FProcess Write SetProcess;
+     Property FileWriteMode : TFileWriteMode Read FFileWriteMode Write SetFileWriteMode;
    end;
 
 
@@ -126,6 +137,7 @@ Type
     procedure SetCommandLine(const AValue: TProcessString); deprecated;
     procedure SetDescriptor(AIndex: Integer; AValue: TIODescriptor);
     procedure SetParameters(const AValue: TProcessStrings);
+    procedure SetPipeBufferSize(AValue: cardinal);
     Procedure SetWindowRect (Value : TRect);
     Procedure SetShowWindow (Value : TShowWindowOptions);
     Procedure SetWindowColumns (Value : Cardinal);
@@ -169,7 +181,7 @@ Type
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
-    Property ThreadHandle : THandle Read FThreadHandle;
+    Property ThreadHandle : THandle Read FProcessHandle;
     Property ProcessID : Integer Read FProcessID;
     Property ThreadID : Integer Read FThreadID;
     Property Input  : TOutputPipeStream Read GetInputStream;
@@ -184,7 +196,7 @@ Type
     property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
     {$endif UNIX}
   Published
-    property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize default 1024;
+    property PipeBufferSize : cardinal read FPipeBufferSize write SetPipeBufferSize default 1024;
     Property Active : Boolean Read GetRunning Write SetActive;
     Property ApplicationName : TProcessString Read FApplicationName Write SetApplicationName; deprecated;
     Property CommandLine : TProcessString Read FCommandLine Write SetCommandLine ; deprecated;
@@ -382,7 +394,7 @@ end;
 
 function TProcess.GetStderrStream: TinputPipeStream;
 begin
-  Result:=FDescriptors[phtOutput].ResolveStream as TInputPipeStream;
+  Result:=FDescriptors[phtError].ResolveStream as TInputPipeStream;
 end;
 
 procedure TProcess.Loaded;
@@ -476,6 +488,16 @@ begin
   FParameters.Assign(AValue);
 end;
 
+procedure TProcess.SetPipeBufferSize(AValue: cardinal);
+var
+  HT: TProcessHandleType;
+begin
+  if FPipeBufferSize = AValue then Exit;
+  FPipeBufferSize := AValue;
+  for HT in TProcessHandleType do
+    FDescriptors[HT].PipeBufferSize:=AValue;
+end;
+
 Procedure TProcess.SetWindowRect (Value : Trect);
 begin
   Include(FStartupOptions,suoUseSize);
@@ -521,7 +543,7 @@ begin
     for HT in TProcessHandleType do
       FDescriptors[HT].IOType:=iotPipe;
   if poStderrToOutPut in FProcessOptions then
-    FDescriptors[phtOutput].IOType:=iotNone;
+    FDescriptors[phtError].IOType:=iotNone;
   if poPassInput in FProcessOptions then
     FDescriptors[phtInput].IOType:=iotNone;
 end;
@@ -842,6 +864,13 @@ begin
     FIOType:=iotFile;
 end;
 
+procedure TIODescriptor.SetFileWriteMode(AValue: TFileWriteMode);
+begin
+  if FFileWriteMode=AValue then Exit;
+  CheckNotRunning;
+  FFileWriteMode:=AValue;
+end;
+
 procedure TIODescriptor.SetIOType(AValue: TIOType);
 begin
   if FIOType=AValue then Exit;
@@ -854,9 +883,6 @@ begin
 end;
 
 procedure TIODescriptor.SetProcess(AValue: TProcess);
-
-var
-  C : TProcess;
 
 begin
   if FProcess=AValue then Exit;
@@ -872,6 +898,7 @@ begin
     FProcess.RemoveComponent(FOwnerProcess);
 end;
 
+
 procedure TIODescriptor.CheckNotRunning;
 begin
   If Assigned(FOwnerProcess) then
@@ -879,7 +906,12 @@ begin
        Raise EProcess.Create('Cannot perform operation while process is running');
 end;
 
-Function TIODescriptor.GetStandardHandle : THandle;
+function TIODescriptor.PrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+begin
+  Result:=SysPrepareCreatedHandleForProcess(aHandle);
+end;
+
+Function TIODescriptor.CreateStandardHandle : THandle;
 
 begin
   case ProcessHandleType of
@@ -889,10 +921,11 @@ begin
   end;
 end;
 
-Function TIODescriptor.GetPipeHandle : THandle;
+Function TIODescriptor.CreatePipeHandle : THandle;
 
 var
   HIn,HOut : Thandle;
+
 begin
   HIn:=THandle(INVALID_HANDLE_VALUE);
   HOut:=HIn;
@@ -913,41 +946,29 @@ begin
   end;
 end;
 
-Function TIODescriptor.GetFileNameHandle : THandle;
-
-const
-  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
-  ModeNames : Array[Boolean] of String = ('Reading','Writing');
-
-var
-  FM :  Integer;
+Function TIODescriptor.CreateFileNameHandle : THandle;
 
 begin
-  if (FileName='') then
-    Raise EProcess.Create('No filename set');
-  case ProcessHandleType of
-    phtInput:  Result:=FileOpen(FileName,fmOpenRead);
-    phtOutput,
-    phtError: if FileExists(FileName) then
-                Result:=FileOpen(FileName,fmOpenWrite or fmShareDenyNone)
-              else
-                Result:=FileCreate(FileName,fmShareDenyNone,DefaultRights)
-  end;
-  if (Result=-1) then
-    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[FileName,ModeNames[ProcessHandleType<>phtInput]]);
+  Result:=SysCreateFileNameHandle;
+  if (ProcessHandleType<>phtInput) then
+    case FFileWriteMode of
+      fwmAtstart: ;
+      fwmTruncate : FileTruncate(Result,0);
+      fwmAppend : FileSeek(Result,0,soFromEnd);
+    end;
 end;
 
-Function TIODescriptor.GetCustomHandle : THandle;
+Function TIODescriptor.CreateCustomHandle : THandle;
 
 begin
   Result:=FCustomHandle;
   if Assigned(FOnGetHandle) then
     FOnGetHandle(Self,Result);
-  if FCustomHandle=INVALID_HANDLE_VALUE then
+  if FCustomHandle=THandle(INVALID_HANDLE_VALUE) then
     Raise EProcess.Create('Cannot get custom handle. No handle set');
 end;
 
-Function TIODescriptor.GetProcessHandle : THandle;
+Function TIODescriptor.CreateProcessHandle : THandle;
 
 begin
   if Not Assigned(Process) then
@@ -964,11 +985,11 @@ end;
 function TIODescriptor.OurHandle: THandle;
 begin
   Case IOType of
-    iotNone : Result:=GetStandardHandle;
+    iotNone : Result:=CreateStandardHandle;
     iotProcess : Result:=Process.ProcessHandle;
     iotPipe : Result:=FOurHandle;
-    iotFile : Result:=GetProcessHandle;
-    iotHandle : Result:=GetProcessHandle;
+    iotFile : Result:=CreateProcessHandle;
+    iotHandle : Result:=CreateProcessHandle;
   end;
 end;
 
@@ -995,13 +1016,13 @@ begin
   if Not FHandleValid then
      exit;
   H:=THandle(INVALID_HANDLE_VALUE);
-  Writeln(GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
+  Writeln(StdErr, GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
   Case IOType of
     iotNone : ;
     iotProcess : H:=OurHandle;
     iotPipe : H:=OurHandle;
-    iotFile : H:=ResolveProcessHandle;
-    iotHandle : H:=ResolveProcessHandle;
+    iotFile : H:=FTheirHandle;
+    iotHandle : H:=FTheirHandle;
   end;
   if H<>THandle(INVALID_HANDLE_VALUE) then
     FileClose(H);
@@ -1016,10 +1037,9 @@ begin
   if (IOType=iotNone) or Not FHandleValid then
      exit;
   H:=ResolveProcessHandle;
-  Writeln(GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
+  Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
   if H<>THandle(INVALID_HANDLE_VALUE) then
     FileClose(H);
-
 end;
 
 procedure TIODescriptor.PrepareHandles;
@@ -1039,19 +1059,24 @@ end;
 
 
 function TIODescriptor.ResolveProcessHandle: THandle;
+
+var
+  H : THandle;
+
 begin
   if not FHandleValid then
     begin
     Case IOType of
-      iotNone : FProcessHandle:=GetStandardHandle;
-      iotPipe : FProcessHandle:=GetPipeHandle;
-      iotFile : FProcessHandle:=GetFileNameHandle;
-      iotProcess : FProcessHandle:=GetProcessHandle;
-      iotHandle : FProcessHandle:=GetCustomHandle;
+      iotNone : H:=CreateStandardHandle;
+      iotPipe : H:=CreatePipeHandle;
+      iotFile : H:=CreateFileNameHandle;
+      iotProcess : H:=CreateProcessHandle;
+      iotHandle : H:=CreateCustomHandle;
     end;
+    FTheirHandle:=PrepareCreatedHandleForProcess(H);
     FHandleValid:=True;
     end;
-  Result:=FProcessHandle;
+  Result:=FTheirHandle;
 end;
 
 constructor TIODescriptor.Create(aOwnerProcess: TProcess; aType: TProcessHandleType);
@@ -1059,8 +1084,9 @@ begin
   FOwnerProcess:=aOwnerProcess;
   FHandleType:=aType;
   FCustomHandle:=THandle(INVALID_HANDLE_VALUE);
-  FProcessHandle:=THandle(INVALID_HANDLE_VALUE);
+  FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
   FOurHandle:=THandle(INVALID_HANDLE_VALUE);
+  FPipeBufferSize := 1024;
 end;
 
 destructor TIODescriptor.Destroy;
