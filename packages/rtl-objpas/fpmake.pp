@@ -71,7 +71,6 @@ begin
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('syshelpers.pp',StrUtilsOses);
     T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
     T:=P.Targets.AddUnit('varutils.pp',VarUtilsOses);
     with T.Dependencies do
