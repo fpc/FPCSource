@@ -1680,7 +1680,7 @@ begin
     msMultiHelpers: Result:=49;
     msImplicitFunctionSpec: Result:=50;
     msMultiLineStrings: Result:=51;
-    msDelphiMultiLineStrings: Result:=51;
+    msDelphiMultiLineStrings: Result:=52;
   end;
 end;
 
