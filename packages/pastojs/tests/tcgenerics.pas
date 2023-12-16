@@ -953,7 +953,7 @@ begin
     'rtl.createClass(this, "TBird$G2", this.TObject, function () {',
     '  this.$init = function () {',
     '    $mod.TObject.$init.call(this);',
-    '    this.F = "";',
+    '    this.F = "\x00";',
     '  };',
     '}, "TBird<System.Char>");',
     'this.w = null;',
