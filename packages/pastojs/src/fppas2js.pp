@@ -5883,22 +5883,19 @@ var
 begin
   Result:=inherited;
 
-  if CheckBuiltInMinParamCount(Proc, Expr, 3, RaiseOnError) then
-  begin
-    Params:=TParamsExpr(Expr);
-    Param:=Params.Params[1];
-    ComputeElement(Param,ParamResolved,[]);
-    Result:=cIncompatible;
-    bt:=ParamResolved.BaseType;
-    if bt=btRange then
-      bt:=ParamResolved.SubType;
-    if bt=btContext then
-      begin
-      C:=ParamResolved.LoTypeEl.ClassType;
-      if (C=TPasEnumType) or (C=TPasRangeType) then
-        Result:=cExact
-      end;
-  end;
+  Params:=TParamsExpr(Expr);
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  Result:=cIncompatible;
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt=btContext then
+    begin
+    C:=ParamResolved.LoTypeEl.ClassType;
+    if (C=TPasEnumType) or (C=TPasRangeType) then
+      Result:=cExact
+    end;
 
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20181214142349,2,Param,ParamResolved,
@@ -25023,7 +25020,7 @@ begin
           Lit.Value.CustomValue:='0.0'
         else if bt in btAllJSChars then
           Lit.Value.AsString := #0
-        else if bt in btAllJSStringAndChars then
+        else if bt in btAllJSStrings then
           Lit.Value.AsString:=''
         else if bt in btAllJSBooleans then
           Lit.Value.AsBoolean:=false
