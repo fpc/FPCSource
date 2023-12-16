@@ -329,7 +329,15 @@ end;
 
 {$define TORDINALHELPER:=TNativeIntSysHelper}
 {$define TORDINALBITINDEX:=TNativeIntBitIndex}
-{$define TORDINALNIBBLEINDEX:=TNativeIntNibbleIndex}
+{$ifdef cpu16}
+  {$define TORDINALNIBBLEINDEX:=TSmallIntNibbleIndex}
+{$endif}
+{$ifdef cpu32}
+  {$define TORDINALNIBBLEINDEX:=TIntegerNibbleIndex}
+{$endif}
+{$ifdef cpu64}
+  {$define TORDINALNIBBLEINDEX:=TInt64NibbleIndex}
+{$endif}
 {$i syshelperso.inc}
 
 { ---------------------------------------------------------------------
@@ -338,7 +346,15 @@ end;
 
 {$define TORDINALHELPER:=TNativeUIntSysHelper}
 {$define TORDINALBITINDEX:=TNativeUIntBitIndex}
-{$define TORDINALNIBBLEINDEX:=TNativeUIntNibbleIndex}
+{$ifdef cpu16}
+  {$define TORDINALNIBBLEINDEX:=TWordNibbleIndex}
+{$endif}
+{$ifdef cpu32}
+  {$define TORDINALNIBBLEINDEX:=TDwordNibbleIndex}
+{$endif}
+{$ifdef cpu64}
+  {$define TORDINALNIBBLEINDEX:=TQwordNibbleIndex}
+{$endif}
 {$i syshelperso.inc}
 
 { ---------------------------------------------------------------------
