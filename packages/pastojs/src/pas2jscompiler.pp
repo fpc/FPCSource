@@ -4911,7 +4911,7 @@ begin
   w('  -SI<x>  : Set interface style to <x>');
   w('    -SIcom  : COM, reference counted interface (default)');
   w('    -SIcorba: CORBA interface');
-  w('  -T<x>  : Set subtarget (searches for pas2js-<subtarget>.cfg');
+  w('  -t<x>  : Set subtarget (searches for pas2js-<subtarget>.cfg');
   w('  -T<x>  : Set target platform');
   w('    -Tbrowser: default');
   w('    -Tnodejs : add pas.run(), includes -Jc');
@@ -4953,7 +4953,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2022 Free Pascal team.');
+  Log.LogPlain('Copyright (c) 2023 Free Pascal team.');
   if coShowInfos in Options then
     WriteEncoding;
 end;
