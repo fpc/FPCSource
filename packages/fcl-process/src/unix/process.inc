@@ -544,8 +544,15 @@ Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 begin
   if aExitCode<>0 then ; // silence compiler warning
   Result:=fpkill(Handle,SIGTERM)=0;
-  If Result and Running then
-    Result:=fpkill(Handle,SIGKILL)=0;
+  If Result then
+    begin
+    // Give the process some time to handle it. Sleeping may also yield to the process.
+    if SignalWaitTime>0 then
+      Sleep(SignalWaitTime);
+    // Not handled yet ?
+    if Running then
+      Result:=fpkill(Handle,SIGKILL)=0;
+    end;
   { the fact that the signal has been sent does not
     mean that the process has already handled the
     signal -> wait instead of calling getexitstatus }
@@ -565,24 +572,34 @@ begin
 end;
 
 
-Function TIODescriptor.SysCreateFileNameHandle : THandle;
+function TIODescriptor.SysCreateFileNameHandle(const aFileName: string): THandle;
 
 const
   DefaultRights = 438; // 438 = 666 octal which is rw rw rw
   ModeNames : Array[Boolean] of String = ('Reading','Writing');
 
 begin
-  if (FileName='') then
-    Raise EProcess.Create('No filename set');
+  if (aFileName='') then
+    Raise EProcess.Create('No filename provided');
   case ProcessHandleType of
-    phtInput:  Result:=FileOpen(FileName,fmOpenRead);
+    phtInput:  Result:=FileOpen(aFileName,fmOpenRead);
     phtOutput,
-    phtError: if FileExists(FileName) then
-                Result:=FileOpen(FileName,fmOpenWrite or fmShareDenyNone)
+    phtError: if FileExists(aFileName) then
+                Result:=FileOpen(aFileName,fmOpenWrite or fmShareDenyNone)
               else
-                Result:=FileCreate(FileName,fmShareDenyNone,DefaultRights)
+                Result:=FileCreate(aFileName,fmShareDenyNone,DefaultRights)
   end;
   if (Result=-1) then
-    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[FileName,ModeNames[ProcessHandleType<>phtInput]]);
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
+end;
+
+function TIODescriptor.SysNullFileName: string;
+begin
+  result:='/dev/null';
+end;
+
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
 end;
 

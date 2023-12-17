@@ -62,7 +62,9 @@ Type
      procedure SetIOType(AValue: TIOType);
      procedure SetProcess(AValue: TProcess);
      function SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
-     Function SysCreateFileNameHandle : THandle;
+     Function SysCreateFileNameHandle(const aFileName : string) : THandle;
+     function SysNullFileName : string;
+     function SysIsTypeSupported(AValue: TIOType) : Boolean;
    protected
      Procedure CheckNotRunning; virtual;
      // Create handles for new process
@@ -70,6 +72,7 @@ Type
      Function CreateStandardHandle : THandle;
      Function CreatePipeHandle : THandle;
      Function CreateFileNameHandle : THandle;
+     Function CreateNullFileHandle : THandle;
      Function CreateCustomHandle : THandle;
      Function CreateProcessHandle : THandle;
      Function ResolveProcessHandle : THandle;
@@ -236,6 +239,7 @@ Procedure CommandToList(S : TProcessString; List : TProcessStrings);
 Var
   TryTerminals : Array of string;
   XTermProgram : String;
+  SignalWaitTime : Integer = 20; // Wait time in ms. after sending SIGTERM
   Function DetectXTerm : String;
 {$endif unix}
 
@@ -888,14 +892,24 @@ begin
 end;
 
 procedure TIODescriptor.SetIOType(AValue: TIOType);
+
+var
+  S : String;
+
 begin
   if FIOType=AValue then Exit;
   CheckNotRunning;
+  if not SysIsTypeSupported(aValue) then
+    begin
+    WriteStr(S,aValue);
+    Raise EProcess.CreateFmt('I/O Type "%s" not supported on this platform',[S]);
+    end;
   FIOType:=AValue;
+  // Some cleanup
   if aValue<>iotProcess then
     FProcess:=Nil;
   if aValue<>iotFile then
-    FFileName:=''
+    FFileName:='';
 end;
 
 procedure TIODescriptor.SetProcess(AValue: TProcess);
@@ -969,13 +983,18 @@ end;
 Function TIODescriptor.CreateFileNameHandle : THandle;
 
 begin
-  Result:=SysCreateFileNameHandle;
+  Result:=SysCreateFileNameHandle(FileName);
   if (ProcessHandleType<>phtInput) then
     case FFileWriteMode of
       fwmAtstart: ;
       fwmTruncate : FileTruncate(Result,0);
       fwmAppend : FileSeek(Result,0,soFromEnd);
     end;
+end;
+
+function TIODescriptor.CreateNullFileHandle: THandle;
+begin
+  Result:=SysCreateFileNameHandle(SysNullFileName);
 end;
 
 Function TIODescriptor.CreateCustomHandle : THandle;
@@ -1085,6 +1104,7 @@ begin
       iotFile : H:=CreateFileNameHandle;
       iotProcess : H:=CreateProcessHandle;
       iotHandle : H:=CreateCustomHandle;
+      iotNull : H:=CreateNullFileHandle;
     end;
     FTheirHandle:=PrepareCreatedHandleForProcess(H);
     FHandleValid:=True;

@@ -36,6 +36,10 @@ type
     procedure TestHookUp;
     procedure TestSimple;
     procedure TestSimpleParam;
+    Procedure TestExitStatus;
+    Procedure TestWaitFor;
+    Procedure TestOptionWaitOnExit;
+    Procedure TestTerminate;
     Procedure TestPipes;
     Procedure TestWritePipes;
     Procedure TestStdErr;
@@ -43,17 +47,24 @@ type
     Procedure TestInputFile;
     Procedure TestOutputFile;
     Procedure TestStdErrFile;
+    Procedure TestInputNull;
+    Procedure TestOutputFileExistingAppend;
+    Procedure TestOutputFileExistingTruncate;
+    Procedure TestOutputFileExistingAtStart;
     Procedure TestPipeOut;
     Procedure TestPipeOutToFile;
     Procedure TestPipeInOutToFile;
+    Procedure TestPipeRestart;
   end;
 
 implementation
 
+uses dateutils;
+
 const
   dotouch = 'dotouch';
   docat = 'docat';
-  dols = 'dols';
+  doexit = 'doexit';
   genout = 'genout';
   fntouch = 'touch.txt';
   fntestoutput = 'output.txt';
@@ -145,6 +156,78 @@ begin
   Proc.Execute;
   WaitForFile(FN);
   AssertFileContent(FN,FN);
+end;
+
+procedure TTestProcess.TestExitStatus;
+// Test that halt(23) results in 23...
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('23');
+  Proc.Execute;
+  Proc.WaitOnExit;
+  AssertEquals('Exit code',23,Proc.ExitStatus);
+end;
+
+procedure TTestProcess.TestWaitFor;
+
+var
+  N : TDateTime;
+  ms : Int64;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('0');
+  Proc.Parameters.Add('1000');
+  N:=Now;
+  Proc.Execute;
+  Proc.WaitOnExit;
+  ms:=MilliSecondsBetween(Now,N);
+  AssertEquals('Exit code',0,Proc.ExitStatus);
+  AssertTrue('Wait time',ms>900);
+
+end;
+
+procedure TTestProcess.TestOptionWaitOnExit;
+var
+  N : TDateTime;
+  ms : Int64;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('0');
+  Proc.Parameters.Add('1000');
+  N:=Now;
+  Proc.Options:=Proc.Options+[poWaitOnExit];
+  Proc.Execute;
+  ms:=MilliSecondsBetween(Now,N);
+  AssertEquals('Exit code',0,Proc.ExitStatus);
+  AssertTrue('Wait time',ms>900);
+end;
+
+procedure TTestProcess.TestTerminate;
+
+var
+  N : TDateTime;
+  ms : Int64;
+
+begin
+  Proc.Executable:=GetHelper(doexit);
+  Proc.Parameters.Add('0');
+  Proc.Parameters.Add('2000');
+  N:=Now;
+  Proc.Execute;
+  Sleep(500);
+  Proc.Terminate(23);
+  ms:=MilliSecondsBetween(Now,N);
+  AssertTrue('Process exits at once',ms<1000);
+{$IFDEF UNIX}
+  // Also check Kill if term will not work
+  AssertTrue('Exit status',(15=Proc.ExitStatus) or (9=Proc.ExitStatus));
+{$ENDIF}
+{$IFDEF WINDOWS}
+  // Check exit status provided to terminate.
+  AssertTrue('Exit status',(23=Proc.ExitCode));
+{$ENDIF}
 end;
 
 procedure TTestProcess.AssertGenOutLines(const S : String; aCount : integer);
@@ -320,6 +403,79 @@ begin
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
+procedure TTestProcess.TestInputNull;
+
+var
+  B : TBytes;
+
+begin
+  Proc.Executable:=GetHelper(docat);
+  Proc.InputDescriptor.IOType:=iotNull;
+  Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
+  Proc.Execute;
+  Sleep(100);
+  B:=Sysutils.GetFileContents(GetTestFile(fntestoutput));
+  AssertEquals('Empty file',0,Length(B));
+end;
+
+procedure TTestProcess.TestOutputFileExistingAppend;
+// Check that we actually append
+begin
+  CreateInputLinesFile(GetTestFile(fntestoutput),3);
+  Proc.Executable:=GetHelper(genout);
+  Proc.Parameters.add('3');
+  Proc.Parameters.add('3');
+  Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
+  Proc.OutputDescriptor.FileWriteMode:=fwmAppend;
+  Proc.Execute;
+  AssertGenOutLinesFile(GetTestFile(fntestoutput),6);
+
+end;
+
+procedure TTestProcess.TestOutputFileExistingTruncate;
+// Check that we actually rewrite
+begin
+  CreateInputLinesFile(GetTestFile(fntestoutput),6);
+  AssertGenOutLinesFile(GetTestFile(fntestoutput),6);
+  Proc.Executable:=GetHelper(genout);
+  Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
+  Proc.OutputDescriptor.FileWriteMode:=fwmTruncate;
+  Proc.Execute;
+  AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
+end;
+
+procedure TTestProcess.TestOutputFileExistingAtStart;
+// Check that we actually write at start of file...
+// Write file with 6 lines (1-6), overwrite files with first 3 lines 7-9
+// Result has 7 - 8 - 9 - 4 - 5 -6
+
+var
+  L : TStrings;
+  I : Integer;
+begin
+  CreateInputLinesFile(GetTestFile(fntestoutput),6);
+  Proc.Executable:=GetHelper(genout);
+  Proc.Parameters.add('3');
+  Proc.Parameters.add('6'); // Offset 6, so first output line is 7
+  Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
+  Proc.OutputDescriptor.FileWriteMode:=fwmAtStart;
+  Proc.Execute;
+  sleep(100);
+  // Writeln('Testing file >>',aFileName,'<<');
+  L:=TStringList.Create;
+  try
+    L.LoadFromFile(GetTestFile(fntestoutput));
+    AssertEquals('Count',6,L.Count);
+    For I:=1 to 3 do
+      AssertEquals('Content Line '+IntToStr(I),'Line '+IntToStr(I+6),L[I-1]);
+    For I:=4 to 6 do
+      AssertEquals('Content Line '+IntToStr(I),'Line '+IntToStr(I),L[I-1]);
+  finally
+    L.Free;
+  end;
+
+end;
+
 procedure TTestProcess.TestPipeOut;
 { Simulate
   genout | docat
@@ -381,6 +537,11 @@ begin
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
 
+procedure TTestProcess.TestPipeRestart;
+begin
+
+end;
+
 function TTestProcess.GetTestFile(const aName: string) : String;
 
 begin
@@ -416,6 +577,7 @@ begin
   CheckHelper(genout);
   CheckHelper(docat);
   CheckHelper(dotouch);
+  CheckHelper(doexit);
   DeleteFile(fntouch);
   DeleteFile(GetTestFile(fntouch));
   DeleteFile(GetTestFile(fntestoutput));

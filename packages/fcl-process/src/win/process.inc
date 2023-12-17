@@ -365,7 +365,7 @@ begin
   FShowWindow:=Value;
 end;
 
-Function TIODescriptor.SysCreateFileNameHandle : THandle;
+Function TIODescriptor.SysCreateFileNameHandle(const aFileName: string) : THandle;
 
 const
   DefaultRights = 438; // 438 = 666 octal which is rw rw rw
@@ -376,25 +376,25 @@ var
   Sec: SECURITY_ATTRIBUTES;
 
 begin
-  if (FileName='') then
+  if (aFileName='') then
     Raise EProcess.Create('No filename set');
   FillByte(sec, SizeOf(sec), 0);
   sec.nLength := SizeOf(Sec);
   sec.bInheritHandle := True;
   case ProcessHandleType of
-    phtInput:  Result:=CreateFileW(PWideChar(WideString(FileName)), GENERIC_READ,
+    phtInput:  Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_READ,
       FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     phtOutput,
     phtError:
       begin
-        Result:=CreateFileW(PWideChar(WideString(FileName)), GENERIC_WRITE,
+        Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_WRITE,
           FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
         if not(Result=INVALID_HANDLE_VALUE) then
           FileSeek(Result, 0, 2);
       end;
   end;
   if (Result=INVALID_HANDLE_VALUE) then
-    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[FileName,ModeNames[ProcessHandleType<>phtInput]]);
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
 end;
 
 
@@ -405,3 +405,13 @@ begin
     Raise EProcess.CreateFmt('Could not duplicate handle %d',[aHandle]);
   Result:=aHandle;
 end;    
+
+function TIODescriptor.SysNullFileName: string;
+begin
+  result:='NULL';
+end;
+
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
+end;
