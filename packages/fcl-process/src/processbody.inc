@@ -1100,7 +1100,7 @@ procedure TIODescriptor.ResetHandles;
 
 begin
   CloseOurHandle;
-  CloseTheirHandle;
+  CloseTheirHandle(True);
   FreeAndNil(FStream);
   FHandleValid:=False;
 end;
