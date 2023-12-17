@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$DEFINE OS_HASCREATEPIPE}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility;
@@ -71,6 +73,7 @@ begin
   Result := WStart;
 end;
 
+
 function MaybeQuote (const S: ansistring): ansistring;
 begin
   if (Pos (' ', S) <> 0) then
@@ -89,14 +92,14 @@ const
   BUF_NONE = 2; // no buffering
 {$endif}
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 var
   I: integer;
   ExecName, FoundName: ansistring;
   E2: EProcess;
   OrigDir: ansistring;
   Cmd,Params: ansistring;
-  TempName: ansistring;
+  TempName,OTempName: ansistring;
   cos: BPTR;
   {$ifdef MorphOS}
   inA, inB, OutA, OutB: BPTR;
@@ -144,16 +147,24 @@ begin
    end;
   try
     {$ifdef MorphOS}
-    if (poUsePipes in Options) and (not (poWaitOnExit in Options)) then
+    if (not (poWaitOnExit in Options)) then
     begin
       FProcessID := 0;
-      // Pipenames, should be unique
-      TempName := 'PIPE:PrO_' + HexStr(Self) + HexStr(GetTickCount, 8);
-      inA := DOSOpen(PAnsiChar(TempName), MODE_OLDFILE);
-      inB := DOSOpen(PAnsiChar(TempName), MODE_NEWFILE);
-      TempName := TempName + 'o';
-      outA := DOSOpen(PAnsiChar(TempName), MODE_OLDFILE);
-      outB := DOSOpen(PAnsiChar(TempName), MODE_NEWFILE);
+        // MVC : IMO this should go to CreatePipes.
+     if (FDescriptors[phtInput].IOType=iotPipe) then
+       begin
+       // Read handle
+       InB:=FDescriptors[phtInput].FTheirHandle;
+       // Write handle
+       OutA:=FDescriptors[phtInput].FOurHandle;
+       end;
+     if (FDescriptors[phtOutput].IOType=iotPipe) then
+       begin
+       // Write handle
+       OutB:=FDescriptors[phtOutput].FTheirHandle;
+       // Read handle
+       InA:=FDescriptors[phtOutput].FOurHandle;
+       end;
       // set buffer for all pipes
       SetVBuf(inA, nil, BUF_NONE, -1);
       SetVBuf(inB, nil, BUF_LINE, -1);
@@ -170,7 +181,8 @@ begin
       if Res <> -1 then
       begin
         FProcessID := 1;
-        CreateStreams(THandle(outB), THandle(inA),0);
+        // No longer needed, done in TIOFileDescriptor
+        // CreateStreams(THandle(outB), THandle(inA),0);
       end
       else
       begin
@@ -195,7 +207,6 @@ begin
       cos := AmigaDos.DosOpen(PAnsiChar(TempName), MODE_READWRITE);
       FExitCode := LongInt(amigados.Execute(PAnsiChar(ExecName + ' ' + Params), BPTR(0), cos));
       DosSeek(cos, 0, OFFSET_BEGINNING);
-      CreateStreams(0, THandle(cos),0);
     end;
     //FExitCode := ExecuteProcess (ExecName, Params);
   except
@@ -240,4 +251,75 @@ Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 begin
 end;
 
+function TIODescriptor.SysNullFileName: string;
+begin
+//  result:='/dev/null';
+end;
 
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
+end; 
+
+
+function TIODescriptor.SysCreateFileNameHandle(const aFileName: string): THandle;
+
+const
+  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
+  ModeNames : Array[Boolean] of String = ('Reading','Writing');
+
+begin
+  if (aFileName='') then
+    Raise EProcess.Create('No filename provided');
+  case ProcessHandleType of
+    phtInput:  Result:=FileOpen(aFileName,fmOpenRead);
+    phtOutput,
+    phtError: if FileExists(aFileName) then
+                Result:=FileOpen(aFileName,fmOpenWrite or fmShareDenyNone)
+              else
+                Result:=FileCreate(aFileName,fmShareDenyNone,DefaultRights)
+  end;
+  if (Result=-1) then
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
+end;
+
+function TIODescriptor.SysCreatePipeHandle: THandle;
+
+var
+  TempName : AnsiString;
+  HIn,HOut : BPTR;
+  
+begin
+  // MVC : This should be moved to CreatePipeHandles.
+  TempName := 'PIPE:PrO_' + HexStr(Self) + HexStr(GetTickCount, 8);
+  if ProcessHandleType=phtInput then
+    TempName:=TempName+'i'
+  else  
+    TempName:=TempName+'o';
+  // Read handle
+  HIn := DOSOpen(PAnsiChar(TempName), MODE_OLDFILE);
+  // Write handle
+  HOut := DOSOpen(PAnsiChar(TempName), MODE_NEWFILE);
+  // Check correctness ?
+  //
+  // Set needed handkers
+  case ProcessHandleType of
+    phtInput:
+      begin
+      Result:=THandle(HIn);
+      FOurHandle:=THandle(hOut);
+      end;
+    phtOutput,
+    phtError:
+      begin
+      Result:=THandle(hOut);
+      FOurHandle:=THandle(HIn);
+      end;
+  end;
+  
+end;
+
+function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+begin
+  Result:=aHandle;
+end;   

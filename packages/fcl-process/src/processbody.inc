@@ -61,6 +61,7 @@ Type
      procedure SetFileWriteMode(AValue: TFileWriteMode);
      procedure SetIOType(AValue: TIOType);
      procedure SetProcess(AValue: TProcess);
+     function SysCreatePipeHandle: THandle;
      function SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
      Function SysCreateFileNameHandle(const aFileName : string) : THandle;
      function SysNullFileName : string;
@@ -957,9 +958,15 @@ end;
 
 Function TIODescriptor.CreatePipeHandle : THandle;
 
+begin
+  Result:=SysCreatePipeHandle;
+end;
+
+{$IFNDEF OS_HASCREATEPIPE}
+Function TIODescriptor.SysCreatePipeHandle : THandle;
+
 var
   HIn,HOut : Thandle;
-
 begin
   HIn:=THandle(INVALID_HANDLE_VALUE);
   HOut:=HIn;
@@ -979,6 +986,7 @@ begin
       end;
   end;
 end;
+{$ENDIF}
 
 Function TIODescriptor.CreateFileNameHandle : THandle;
 
