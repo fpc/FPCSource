@@ -42,8 +42,11 @@ Type
 
    TFileWriteMode = (fwmTruncate, fwmAppend, fwmAtstart);
 
+
    TIODescriptor = class(TPersistent)
    private
+     FAfterAllocateHandle: TAfterAllocateHandleEvent;
+     FCloseHandleOnExecute: Boolean;
      FCustomHandle: THandle;
      FFileWriteMode: TFileWriteMode;
      FHandleType: TProcessHandleType;
@@ -79,13 +82,14 @@ Type
      Function ResolveProcessHandle : THandle;
      Function ResolveStream : THandleStream;
      Procedure CloseOurHandle;
-     Procedure CloseTheirHandle;
+     Procedure CloseTheirHandle(aForceClose : Boolean = false);
      Procedure PrepareHandles;
      Procedure ResetHandles;
      Property OwnerProcess : TProcess Read FOwnerProcess;
      Property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize;
      Property OurHandle: THandle Read FOurHandle;
      Property HandleValid : Boolean Read FHandleValid;
+     Property CloseHandleOnExecute : Boolean Read FCloseHandleOnExecute Write FCloseHandleOnExecute;
    public
      Constructor Create(aOwnerProcess : TProcess; aType : TProcessHandleType);
      Destructor Destroy; override;
@@ -96,6 +100,7 @@ Type
      Property IOType : TIOType Read FIOType Write SetIOType;
      Property FileName : TFileName Read FFileName Write SetFileName;
      Property OnGetHandle : TGetHandleEvent Read FOnGetHandle Write FOnGetHandle;
+     Property AfterAllocateHandle : TAfterAllocateHandleEvent Read FAfterAllocateHandle Write FAfterAllocateHandle;
      Property Process : TProcess Read FProcess Write SetProcess;
      Property FileWriteMode : TFileWriteMode Read FFileWriteMode Write SetFileWriteMode;
    end;
@@ -1010,7 +1015,7 @@ Function TIODescriptor.CreateCustomHandle : THandle;
 begin
   Result:=FCustomHandle;
   if Assigned(FOnGetHandle) then
-    FOnGetHandle(Self,Result);
+    FOnGetHandle(Self,Result,FCloseHandleOnExecute);
   if FCustomHandle=THandle(INVALID_HANDLE_VALUE) then
     Raise EProcess.Create('Cannot get custom handle. No handle set');
 end;
@@ -1059,12 +1064,14 @@ begin
   FOurHandle:=THandle(INVALID_HANDLE_VALUE) ;
 end;
 
-procedure TIODescriptor.CloseTheirHandle;
+procedure TIODescriptor.CloseTheirHandle(aForceClose: Boolean);
 var
   H : THandle;
 
 begin
   if (IOType=iotNone) or Not FHandleValid then
+     exit;
+  If not (CloseHandleOnExecute or aForceClose) then
      exit;
   H:=ResolveProcessHandle;
   // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
@@ -1117,7 +1124,10 @@ begin
       iotHandle : H:=CreateCustomHandle;
       iotNull : H:=CreateNullFileHandle;
     end;
+    FCloseHandleOnExecute:=(IOType<>iotNone);
     FTheirHandle:=PrepareCreatedHandleForProcess(H);
+    if Assigned(FAfterAllocateHandle) then
+      FAfterAllocateHandle(Self,FTheirHandle,FCloseHandleOnExecute);
     FHandleValid:=True;
     end;
   Result:=FTheirHandle;

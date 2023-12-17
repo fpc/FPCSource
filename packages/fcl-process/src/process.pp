@@ -63,7 +63,8 @@ Type
   TIOType = (iotNone, iotPipe, iotFile, iotHandle, iotProcess, iotNull);
   TProcessHandleType = (phtInput,phtOutput,phtError);
 
-  TGetHandleEvent = procedure(Sender : TObject; var aHandle : THandle) of object;
+  TGetHandleEvent = procedure(Sender : TObject; var aHandle : THandle; var CloseOnExecute : Boolean) of object;
+  TAfterAllocateHandleEvent = procedure(Sender : TObject; aHandle : THandle; var CloseOnExecute : Boolean) of object;
 
   { TIODescriptor }
   TProcess = Class;
