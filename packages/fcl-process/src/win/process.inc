@@ -345,8 +345,10 @@ var
   Res : Boolean;
   
 begin
-  if IOType in [iotNone,iotFile] then
+  if IOType in [iotNone,iotFile] then begin
+    Result:=aHandle;
     exit;
+  end;
   oldHandle := ahandle;
   ahandle:=THandle(INVALID_HANDLE_VALUE); 
   Res := DuplicateHandle
