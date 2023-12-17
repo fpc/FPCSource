@@ -72,19 +72,19 @@ Type
    protected
      Procedure CheckNotRunning; virtual;
      // Create handles for new process
-     Function PrepareCreatedHandleForProcess(aHandle : THandle) : THandle;
-     Function CreateStandardHandle : THandle;
-     Function CreatePipeHandle : THandle;
-     Function CreateFileNameHandle : THandle;
-     Function CreateNullFileHandle : THandle;
-     Function CreateCustomHandle : THandle;
-     Function CreateProcessHandle : THandle;
-     Function ResolveProcessHandle : THandle;
-     Function ResolveStream : THandleStream;
-     Procedure CloseOurHandle;
-     Procedure CloseTheirHandle(aForceClose : Boolean = false);
-     Procedure PrepareHandles;
-     Procedure ResetHandles;
+     Function PrepareCreatedHandleForProcess(aHandle : THandle) : THandle; virtual;
+     Function CreateStandardHandle : THandle; virtual;
+     Function CreatePipeHandle : THandle; virtual;
+     Function CreateFileNameHandle : THandle; virtual;
+     Function CreateNullFileHandle : THandle; virtual;
+     Function CreateCustomHandle : THandle; virtual;
+     Function CreateProcessHandle : THandle; virtual;
+     Function ResolveProcessHandle : THandle; virtual;
+     Function ResolveStream : THandleStream; virtual;
+     Procedure CloseOurHandle; virtual;
+     Procedure CloseTheirHandle(aForceClose : Boolean = false);virtual;
+     Procedure PrepareHandles;virtual;
+     Procedure ResetHandles;virtual;
      Property OwnerProcess : TProcess Read FOwnerProcess;
      Property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize;
      Property OurHandle: THandle Read FOurHandle;
@@ -175,6 +175,7 @@ Type
     procedure CloseProcessHandles; virtual;
     procedure Loaded; override;
     Procedure SysExecute; virtual;
+    function CreateIODescriptor(aOwner: TProcess; aHandleType: TProcessHandleType): TIODescriptor; virtual;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -346,7 +347,7 @@ begin
   FRunCommandSleepTime:=100;
   FOnRunCommandEvent:=@IntOnIdleSleep;
   For HT in TProcessHandleType do
-    FDescriptors[HT]:=TIODescriptor.Create(Self,HT);
+    FDescriptors[HT]:=CreateIODescriptor(Self,HT)
 end;
 
 Destructor TProcess.Destroy;
@@ -361,6 +362,12 @@ begin
   For HT in TProcessHandleType do
     FreeAndNil(FDescriptors[HT]);
   Inherited Destroy;
+end;
+
+Function TProcess.CreateIODescriptor(aOwner : TProcess; aHandleType : TProcessHandleType) :TIODescriptor;
+
+begin
+  Result:=TIODescriptor.Create(aOwner,aHandleType);
 end;
 
 function TProcess.GetDescriptor(AIndex: Integer): TIODescriptor;
