@@ -2737,6 +2737,10 @@ implementation
         case intrinsiccode of
           in_str_x_string:
             begin
+              { rare optimization opportunity which takes some extra time,
+                so check only at level 3+ }
+              if not(cs_opt_level3 in current_settings.optimizerswitches) then
+                exit;
               { If n is a constant, attempt to convert, for example:
                   "Str(5, Output);" to "Output := '5';" }
 
