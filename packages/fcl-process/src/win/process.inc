@@ -160,67 +160,6 @@ begin
    SI.dwX:=P.WindowLeft;
 end;
 
-{ The handles that are to be passed to the child process must be
-  inheritable. On the other hand, only non-inheritable handles
-  allow the sending of EOF when the write-end is closed. This
-  function is used to duplicate the child process's ends of the
-  handles into inheritable ones, leaving the parent-side handles
-  non-inheritable.
-}
-function DuplicateHandleFP(var handle: THandle): Boolean;
-
-var
-  oldHandle: THandle;
-begin
-  oldHandle := handle;
-  Result := DuplicateHandle
-  ( GetCurrentProcess(),
-    oldHandle,
-    GetCurrentProcess(),
-    @handle,
-    0,
-    true,
-    DUPLICATE_SAME_ACCESS
-  );
-  if Result then
-    Result := CloseHandle(oldHandle);
-end;
-
-
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CI, CE : Boolean; APipeBufferSize : Cardinal);
-
-begin
-  if CI then
-    begin
-      CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
-      DuplicateHandleFP(SI.hStdInput);
-    end
-  else
-    begin
-      SI.hStdInput:=StdInputHandle;
-    end;
-  CreatePipeHandles(HO,Si.hStdOutput, APipeBufferSize);
-  DuplicateHandleFP(   Si.hStdOutput);
-  if CE then begin
-    CreatePipeHandles(HE,SI.hStdError, APipeBufferSize);
-    DuplicateHandleFP(   SI.hStdError);
-    end
-  else
-    begin
-    SI.hStdError:=SI.hStdOutput;
-    HE:=HO;
-    end;
-end;
-
-{Function MaybeQuote(Const S : String) : String;
-
-begin
-  If (Pos(' ',S)<>0) then
-    Result:='"'+S+'"'
-  else
-     Result:=S;
-end;
-}
 Function MaybeQuoteIfNotQuoted(Const S : TProcessString) : TProcessString;
 
 begin
@@ -400,9 +339,32 @@ end;
 
 
 function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+
+var
+  oldHandle: THandle;
+  Res : Boolean;
+  
 begin
-  if not DuplicateHandleFP(aHandle) then
-    Raise EProcess.CreateFmt('Could not duplicate handle %d',[aHandle]);
+  if IOType in [iotNone,iotFile] then
+    exit;
+  oldHandle := ahandle;
+  ahandle:=THandle(INVALID_HANDLE_VALUE); 
+  Res := DuplicateHandle
+  ( GetCurrentProcess(),
+    oldHandle,
+    GetCurrentProcess(),
+    @aHandle,
+    0,
+    true,
+    DUPLICATE_SAME_ACCESS
+  );
+  if Res then
+    Res:=CloseHandle(oldHandle);
+  if not Res then
+    begin
+    FileClose(aHandle);
+    Raise EProcess.CreateFmt('Could not make handle %d inheritable',[aHandle]);
+    end;
   Result:=aHandle;
 end;    
 
