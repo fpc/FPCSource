@@ -1069,7 +1069,10 @@ begin
   H:=ResolveProcessHandle;
   // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
   if H<>THandle(INVALID_HANDLE_VALUE) then
+    begin
     FileClose(H);
+    FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
+    end;
 end;
 
 procedure TIODescriptor.PrepareHandles;
@@ -1133,6 +1136,7 @@ end;
 destructor TIODescriptor.Destroy;
 begin
   FreeAndNil(FStream);
+  ResetHandles;
   inherited Destroy;
 end;
 
