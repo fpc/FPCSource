@@ -391,7 +391,7 @@ Function TProcess.GetExitStatus : Integer;
 
 begin
   GetRunning;
-  Result:=FExitCode;
+  Result:=Integer(FExitCode);
 end;
 
 {$IFNDEF OS_HASEXITCODE}
