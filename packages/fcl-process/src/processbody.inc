@@ -1052,6 +1052,7 @@ begin
       phtOutput : FStream:=TInputPipeStream.Create(OurHandle);
     end;
     end;
+  FOurHandle:=THandle(INVALID_HANDLE_VALUE);
   Result:=FStream;
 end;
 
