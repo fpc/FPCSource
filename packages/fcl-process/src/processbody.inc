@@ -57,6 +57,7 @@ Type
      FPipeBufferSize: cardinal;
      FProcess: TProcess;
      FTheirHandle : THandle;
+     FTheirHandleIOType: TIOType;
      FHandleValid : Boolean;
      FStream : THandleStream;
      FOurHandle : THandle;
@@ -1043,7 +1044,7 @@ end;
 
 function TIODescriptor.ResolveStream: THandleStream;
 begin
-  if (FStream=Nil) and (FHandleValid) and (IOType=iotPipe) then
+  if (FStream=Nil) and (FHandleValid) and (FTheirHandleIOType=iotPipe) then
     begin
     // Writeln(ProcessHandleType,' creating stream for stream ',IOType,': ',OurHandle);
     Case FHandleType of
@@ -1077,7 +1078,7 @@ var
   H : THandle;
 
 begin
-  if (IOType=iotNone) or Not FHandleValid then
+  if (FTheirHandleIOType=iotNone) or Not FHandleValid then
      exit;
   If not (CloseHandleOnExecute or aForceClose) then
      exit;
@@ -1123,6 +1124,7 @@ var
 begin
   if not FHandleValid then
     begin
+    FTheirHandleIOType := IOType;
     FOurHandle:=THAndle(INVALID_HANDLE_VALUE);
     Case IOType of
       iotNone : H:=CreateStandardHandle;
