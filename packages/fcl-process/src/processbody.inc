@@ -1066,9 +1066,9 @@ begin
      exit;
   H:=OurHandle;
   // Writeln(StdErr, GetProcessID ,' : ',ProcessHandleType,' closing our handle ',IOType,': ',FOurHandle);
+  FOurHandle:=THandle(INVALID_HANDLE_VALUE) ;
   if H<>THandle(INVALID_HANDLE_VALUE) then
     FileClose(H);
-  FOurHandle:=THandle(INVALID_HANDLE_VALUE) ;
 end;
 
 procedure TIODescriptor.CloseTheirHandle(aForceClose: Boolean);
@@ -1082,10 +1082,10 @@ begin
      exit;
   H:=ResolveProcessHandle;
   // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
+  FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
   if H<>THandle(INVALID_HANDLE_VALUE) then
     begin
     FileClose(H);
-    FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
     end;
 end;
 
