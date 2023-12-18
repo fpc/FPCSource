@@ -2284,8 +2284,11 @@ type
     constructor Create(CreateSuspended: Boolean;
                        const StackSize: SizeUInt = DefaultStackSize);
     destructor Destroy; override;
-    { Note: Once closures are supported aProc will be changed to TProc }
     class function CreateAnonymousThread(aProc: TProcedure): TThread; static;
+    {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    class function CreateAnonymousThread(aProc: TThreadProcedure): TThread; static;
+    {$ENDIF}
+    class function CreateAnonymousThread(aProc: TThreadMethod): TThread; static;
     class procedure NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
     class procedure NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
     class procedure SetReturnValue(aValue: Integer); static;
