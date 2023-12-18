@@ -1219,7 +1219,7 @@ type
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
     Function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; APenStyle : TPDFPenStyle = ppsSolid) : Integer;
-    function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; ADashArray : TDashArray = []) : Integer;
+    function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; ADashArray : TDashArray = nil) : Integer;
     procedure AddOutputIntent(const Subtype, OutputConditionIdentifier, Info: string; ICCProfile: TStream);
     procedure AddPDFA1sRGBOutputIntent;virtual;
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
