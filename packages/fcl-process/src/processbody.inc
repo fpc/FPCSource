@@ -1078,10 +1078,13 @@ var
   H : THandle;
 
 begin
-  if (FTheirHandleIOType=iotNone) or Not FHandleValid then
+  if Not FHandleValid then
      exit;
-  If not (CloseHandleOnExecute or aForceClose) then
+  If (FTheirHandleIOType=iotNone) or not (CloseHandleOnExecute or aForceClose) then
+    begin
+    FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
      exit;
+    end;
   H:=ResolveProcessHandle;
   // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
   FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
