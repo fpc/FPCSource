@@ -573,7 +573,6 @@ procedure TFPFontCacheList.ReadStandardFonts;
   {$ifend}
 
 
-<<<<<<< HEAD
   {$ifdef mswindows}
   function GetWinFontsDir: string;
   var
@@ -594,8 +593,6 @@ procedure TFPFontCacheList.ReadStandardFonts;
     {$endif}
   end;
 {$endif}
-=======
->>>>>>> 354ae2344e... * Add fontmapper by Anton Kavalenka. Fixes issue #39363
 
 {$ifdef HasFontsConf}
 var
