@@ -51,7 +51,7 @@ end;
 Function GetStartupFlags (P : TProcess): Cardinal;
 
 begin
-  Result:=Result or Startf_UseStdHandles;
+  Result:= Startf_UseStdHandles;
   if suoUseShowWindow in P.StartupOptions then
     Result:=Result or startf_USESHOWWINDOW;
   if suoUSESIZE in P.StartupOptions then
