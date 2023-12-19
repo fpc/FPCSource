@@ -258,16 +258,16 @@ asm
     ret
 
 .L9to16:
-    movq   (%eax), %xmm0
-    movq   -8(%eax,%ecx), %xmm1
-    movq   %xmm0, (%edx)
-    movq   %xmm1, -8(%edx,%ecx)
+    movlps (%eax), %xmm0
+    movlps -8(%eax,%ecx), %xmm1
+    movlps %xmm0, (%edx)
+    movlps %xmm1, -8(%edx,%ecx)
 .Lquit:
 {$ifdef FPC_PIC}
     pop    %ebx
 {$endif}
     ret
-    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
     sub    %edx, %eax            { eax = src - dest }
@@ -277,7 +277,7 @@ asm
 {$endif}
     jnb    .LForward             { src>dest => forward move }
 
-    mov    %ecx, %ebx
+    lea    -1(%ecx), %ebx
     add    %eax, %ebx            { eax is negative => ecx+eax > 0 if regions overlap }
     jb     .Lback                { if no overlap, still do forward move }
 
@@ -293,10 +293,10 @@ asm
     jbe    .LPost32f
     cmp    $NtThreshold-32, %ecx
     jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
-.LNtIsNotBetter:
+.LNtIsNotBetterF:
     cmp    $ErmsThreshold-32, %ecx { Even enhanced REP MOV does not seem to use NT so falls behind on huge moves. So prioritize NT. }
     jae    .LRepMovsF
-.LRepMovsIsNotBetter:
+.LRepMovsIsNotBetterF:
     test   $15, %eax
     jz     .Lalignedloop32f
 
@@ -353,7 +353,7 @@ asm
 {$else FPC_PIC}
     cmpb   $1, fast_large_repmovstosb
 {$endif FPC_PIC}
-    jne    .LRepMovsIsNotBetter
+    jne    .LRepMovsIsNotBetterF
     push   %esi
     push   %edi
     lea    (%eax,%edx), %esi
@@ -368,7 +368,7 @@ asm
 
 .Lntf:
     cmp    $NtThreshold, %eax    { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
-    jb     .LNtIsNotBetter       { (this check is performed here to not stand in the way of smaller counts) }
+    jb     .LNtIsNotBetterF      { (this check is performed here to not stand in the way of smaller counts) }
     sub    $PrefetchDistance+32, %ecx { ecx = remaining - prefetch distance - bytes per loop (64), but 32 was subtracted already. }
     test   $15, %eax
     jz     .Lalignedntloop64f
@@ -410,7 +410,7 @@ asm
     sfence
     add    $PrefetchDistance+64, %ecx
     jmp    .LRestAfterNTf
-    .byte  102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
@@ -425,6 +425,9 @@ asm
     jbe    .LPost32b
     cmp    $NtThreshold-32, %ecx
     jae    .Lntb
+.LNtIsNotBetterB:
+    cmp    $ErmsThreshold-32, %ecx
+    jae    .LRepMovsB
 
     .balign 16                   { no-op }
 .Lloop32b:
@@ -448,9 +451,72 @@ asm
     pop    %ebx
     ret
 
+.LRepMovsB:
+    {         dst = 3
+              v
+      Move(abcdefghijXXX, count=10)
+           ^
+           src = 0
+
+         = abcABCDEFGHIJ
+
+      can be moved right to left in non-overlapping groups of “dst - src”:
+
+      abcdefghijHIJ
+             ^^^
+
+      abcdefgEFGhij
+          ^^^
+
+      abcdBCDefghij
+       ^^^
+
+      abcAbcdefghij <- tail is handled by restarting the Move with corresponding count instead, as it can have 0 to dst - src - 1 bytes.
+      ^
+
+      Only REP MOVs with DF=0 are fast with ERMS, in case you’re wondering why not just use DF=1. }
+
+    cmp    $-ErmsThreshold, %eax
+    jnbe   .Lloop32b             { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
+{$ifdef FPC_PIC}
+    push   %ebx
+    call   fpc_geteipasebx
+    addl   $_GLOBAL_OFFSET_TABLE_, %ebx
+    movl   fast_large_repmovstosb@GOT(%ebx), %ebx
+    cmpb   $1, (%ebx)
+    pop    %ebx
+{$else FPC_PIC}
+    cmpb   $1, fast_large_repmovstosb
+{$endif FPC_PIC}
+    jne    .Lloop32b
+    movups %xmm5, -15(%ebx)      { Write last 16 bytes right away, freeing up ebx. Unlike .LFirstAndLast16f, it is safe here because step is >= 16... assuming ErmsThreshold >= 16 :). }
+    lea    32(%ecx), %ebx        { ebx = remaining }
+    add    %eax, %ebx            { eax = src - dst = -step; remaining -= step. }
+    jnc    .LRepMovsTailB        { CF=0 after remaining -= step means that remaining became strictly negative and the loop must be stopped/not performed. }
+    push   %esi                  { ^ Because of aligning dest, step > remaining is not guaranteed even for the first time, i.e. the ranges may have stopped overlapping by here. }
+    push   %edi
+.LRepMovsNextPieceB:
+    add    %eax, %edx            { dst -= step }
+    lea    (%eax,%edx), %esi     { esi = src = rep movsb source }
+    mov    %edx, %edi            { edi = dst = rep movsb dest }
+    mov    %eax, %ecx
+    neg    %ecx                  { ecx = step = rep movsb count }
+    rep movsb
+    add    %eax, %ebx            { remaining -= step }
+    jc     .LRepMovsNextPieceB
+    pop    %edi
+    pop    %esi
+.LRepMovsTailB:
+    sub    %eax, %ebx            { ebx = remaining }
+    mov    %ebx, %ecx            { ecx = remaining }
+    sub    %ebx, %edx            { edx = dest }
+    lea    (%eax,%edx), %eax     { eax = src }
+    pop    %ebx
+    jmp    Move                  { Remaining piece ("a" in the example above). Can save a bit of jumps by doing first something like: if ecx >= 16, jump directly to "movups -16(%eax,%ecx), %xmm5". }
+
 .Lntb:
     cmp    $-NtThreshold, %eax
-    jnb    .Lloop32b
+    jnb    .LNtIsNotBetterB
     sub    $PrefetchDistance+32, %ecx
 
     .balign 16
