@@ -4277,7 +4277,8 @@ procedure TPas2jsCompiler.SetSubTarget(AValue: String);
 begin
   if FSubTarget=AValue then Exit;
   FSubTarget:=AValue;
-  //
+  AddDefine('FPC_SUBTARGET',SubTarget);
+  AddDefine('FPC_SUBTARGET_'+Uppercase(SubTarget));
 end;
 
 function TPas2jsCompiler.CreateImportList: TJSSourceElements;
@@ -4611,8 +4612,10 @@ begin
   AddDefine('STR_CONCAT_PROCS');
   AddDefine('UNICODE');
   if SubTarget<>'' then
+    begin
     AddDefine('FPC_SUBTARGET',SubTarget);
-
+    AddDefine('FPC_SUBTARGET_'+Uppercase(SubTarget));
+    end;
   FHasShownLogo:=false;
   FHasShownEncoding:=false;
   FFS.Reset;
