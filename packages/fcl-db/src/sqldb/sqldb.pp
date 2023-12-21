@@ -424,7 +424,6 @@ type
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
     Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
     Property MacroCheck : Boolean Read FMacroCheck Write SetMacroCheck default false;
-    Property InfoQuery : Boolean Read FInfoQuery Write FInfoQuery;
     Property OnSQLChanged : TNotifyEvent Read FOnSQLChanged Write FOnSQLChanged;
   Public
     constructor Create(AOwner : TComponent); override;
