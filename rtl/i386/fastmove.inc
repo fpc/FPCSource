@@ -236,20 +236,24 @@ asm
 end;
 
 {$ifndef FASTMOVE_DISABLE_SSE}
+label
+  Move_8OrMore_SSE_9to16, Move_8OrMore_SSE_33OrMore, Move_8OrMore_SSE_CancelERMSBackwards;
+
+const
+  Move_NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
+
 procedure Move_8OrMore_SSE; assembler; nostackframe;
 { eax = source, edx = dest, ecx = count (ecx >= 8).
   If FPC_PIC: ebx pushed. }
 const
-  ErmsThreshold = 1536;
-  NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
   PrefetchDistance = 512;
 asm
     cmp    $16, %ecx
-    jle    .L9to16
-    movups (%eax), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17–32 branch. }
+    jle    Move_8OrMore_SSE_9to16
+    movups (%eax), %xmm4         { First and last 16 bytes, used both in Move_8OrMore_SSE_33OrMore and 17–32 branch. }
     movups -16(%eax,%ecx), %xmm5
     cmp    $32, %ecx
-    jg     .L33OrMore
+    jg     Move_8OrMore_SSE_33OrMore
     movups %xmm4, (%edx)         { 17–32 bytes }
     movups %xmm5, -16(%edx,%ecx)
 {$ifdef FPC_PIC}
@@ -257,7 +261,7 @@ asm
 {$endif}
     ret
 
-.L9to16:
+Move_8OrMore_SSE_9to16:
     movlps (%eax), %xmm0
     movlps -8(%eax,%ecx), %xmm1
     movlps %xmm0, (%edx)
@@ -267,9 +271,9 @@ asm
     pop    %ebx
 {$endif}
     ret
-    .byte  {$ifndef FPC_PIC}102,{$endif}144 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
-.L33OrMore:
+Move_8OrMore_SSE_33OrMore:
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lquit                { exit if src=dest }
 {$ifndef FPC_PIC}
@@ -291,12 +295,9 @@ asm
 .LRestAfterNTf:
     sub    $32, %ecx             { During the N× loop, ecx is N bytes less than actually remained to allow sub N+jae .LLoop instead of sub N+cmp N+jae .LLoop. }
     jbe    .LPost32f
-    cmp    $NtThreshold-32, %ecx
+    cmp    $Move_NtThreshold-32, %ecx
     jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
 .LNtIsNotBetterF:
-    cmp    $ErmsThreshold-32, %ecx { Even enhanced REP MOV does not seem to use NT so falls behind on huge moves. So prioritize NT. }
-    jae    .LRepMovsF
-.LRepMovsIsNotBetterF:
     test   $15, %eax
     jz     .Lalignedloop32f
 
@@ -342,32 +343,8 @@ asm
     pop    %ebx
     ret
 
-.LRepMovsF:
-{$ifdef FPC_PIC}
-    push   %ebx
-    call   fpc_geteipasebx
-    addl   $_GLOBAL_OFFSET_TABLE_, %ebx
-    movl   fast_large_repmovstosb@GOT(%ebx), %ebx
-    cmpb   $1, (%ebx)
-    pop    %ebx
-{$else FPC_PIC}
-    cmpb   $1, fast_large_repmovstosb
-{$endif FPC_PIC}
-    jne    .LRepMovsIsNotBetterF
-    push   %esi
-    push   %edi
-    lea    (%eax,%edx), %esi
-    mov    %edx, %edi
-    add    $32, %ecx
-    rep movsb
-    movups %xmm4, (%ebx)         { last 16 aren't required }
-    pop    %edi
-    pop    %esi
-    pop    %ebx
-    ret
-
 .Lntf:
-    cmp    $NtThreshold, %eax    { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
+    cmp    $Move_NtThreshold, %eax { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
     jb     .LNtIsNotBetterF      { (this check is performed here to not stand in the way of smaller counts) }
     sub    $PrefetchDistance+32, %ecx { ecx = remaining - prefetch distance - bytes per loop (64), but 32 was subtracted already. }
     test   $15, %eax
@@ -412,6 +389,13 @@ asm
     jmp    .LRestAfterNTf
     .byte  102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
+Move_8OrMore_SSE_CancelERMSBackwards:
+    { Adapt from Move_8OrMore_SSE_ERMS.Lback where eax = src, edx = dest - src, xmm4 and xmm5 aren’t read. }
+    add    %eax, %edx
+    movups (%eax), %xmm4
+    movups -16(%eax,%ecx), %xmm5
+    sub    %edx, %eax
+
 { backwards move }
 .Lback:
     lea    -1(%edx,%ecx), %ebx   { points to the end of dest; remember to write last 16 bytes }
@@ -423,11 +407,8 @@ asm
 .LRestAfterNTb:
     sub    $32, %ecx
     jbe    .LPost32b
-    cmp    $NtThreshold-32, %ecx
+    cmp    $Move_NtThreshold-32, %ecx
     jae    .Lntb
-.LNtIsNotBetterB:
-    cmp    $ErmsThreshold-32, %ecx
-    jae    .LRepMovsB
 
     .balign 16                   { no-op }
 .Lloop32b:
@@ -451,7 +432,75 @@ asm
     pop    %ebx
     ret
 
-.LRepMovsB:
+.Lntb:
+    cmp    $-Move_NtThreshold, %eax
+    jnb    .Lloop32b
+    sub    $PrefetchDistance+32, %ecx
+
+    .balign 16
+.Lntloop64b:
+    prefetchnta -PrefetchDistance(%eax,%edx,1)
+    sub    $64, %edx
+    movups 48(%eax,%edx,1), %xmm0
+    movntps %xmm0, 48(%edx)
+    movups 32(%eax,%edx,1), %xmm0
+    movntps %xmm0, 32(%edx)
+    movups 16(%eax,%edx,1), %xmm0
+    movntps %xmm0, 16(%edx)
+    movups (%eax,%edx,1), %xmm0
+    movntps %xmm0, (%edx)
+    sub    $64, %ecx
+    jae    .Lntloop64b
+
+    sfence
+    add    $PrefetchDistance+64, %ecx
+    jmp    .LRestAfterNTb
+end;
+
+procedure Move_8OrMore_SSE_ERMS; assembler; nostackframe;
+{ eax = source, edx = dest, ecx = count (ecx >= 8).
+  If FPC_PIC: ebx pushed. }
+const
+    ErmsThreshold = 1536;
+asm
+    cmp    $16, %ecx
+    jle    Move_8OrMore_SSE_9to16
+    cmp    $ErmsThreshold, %ecx
+    jae    .LRepMovs
+.LCancelRepMovs:
+    movups (%eax), %xmm4         { Same as in Move_8OrMore_SSE. }
+    movups -16(%eax,%ecx), %xmm5
+    cmp    $32, %ecx
+    jg     Move_8OrMore_SSE_33OrMore
+    movups %xmm4, (%edx)         { 17–32 bytes }
+    movups %xmm5, -16(%edx,%ecx)
+{$ifdef FPC_PIC}
+    pop    %ebx
+{$endif}
+    ret
+
+.LRepMovs:
+    cmp    $Move_NtThreshold+16, %ecx
+    jae    .LCancelRepMovs       { Even enhanced REP MOV does not seem to use NT so falls behind on huge moves. So prioritize NT done by Move_8OrMore_SSE. }
+    sub    %eax, %edx            { edx = dest - src }
+    jz     .Lquit                { exit if src=dest }
+    cmp    %edx, %ecx            { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
+    ja     .Lback
+
+    push   %esi
+    push   %edi
+    mov    %eax, %esi
+    lea    (%edx,%eax), %edi
+    rep movsb
+    pop    %edi
+    pop    %esi
+.Lquit:
+{$ifdef FPC_PIC}
+    pop    %ebx
+{$endif}
+    ret
+
+.Lback:
     {         dst = 3
               v
       Move(abcdefghijXXX, count=10)
@@ -475,68 +524,32 @@ asm
       ^
 
       Only REP MOVs with DF=0 are fast with ERMS, in case you’re wondering why not just use DF=1. }
-
-    cmp    $-ErmsThreshold, %eax
-    jnbe   .Lloop32b             { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
-{$ifdef FPC_PIC}
+{$ifndef FPC_PIC}
     push   %ebx
-    call   fpc_geteipasebx
-    addl   $_GLOBAL_OFFSET_TABLE_, %ebx
-    movl   fast_large_repmovstosb@GOT(%ebx), %ebx
-    cmpb   $1, (%ebx)
-    pop    %ebx
-{$else FPC_PIC}
-    cmpb   $1, fast_large_repmovstosb
-{$endif FPC_PIC}
-    jne    .Lloop32b
-    movups %xmm5, -15(%ebx)      { Write last 16 bytes right away, freeing up ebx. Unlike .LFirstAndLast16f, it is safe here because step is >= 16... assuming ErmsThreshold >= 16 :). }
-    lea    32(%ecx), %ebx        { ebx = remaining }
-    add    %eax, %ebx            { eax = src - dst = -step; remaining -= step. }
-    jnc    .LRepMovsTailB        { CF=0 after remaining -= step means that remaining became strictly negative and the loop must be stopped/not performed. }
-    push   %esi                  { ^ Because of aligning dest, step > remaining is not guaranteed even for the first time, i.e. the ranges may have stopped overlapping by here. }
+{$endif}
+    cmp    $ErmsThreshold, %edx
+    jb     Move_8OrMore_SSE_CancelERMSBackwards { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
+
+    mov    %ecx, %ebx            { ebx = remaining }
+    sub    %edx, %ebx            { edx = dst - src = step; remaining -= step. }
+    add    %ecx, %eax
+    push   %esi
     push   %edi
-.LRepMovsNextPieceB:
-    add    %eax, %edx            { dst -= step }
-    lea    (%eax,%edx), %esi     { esi = src = rep movsb source }
-    mov    %edx, %edi            { edi = dst = rep movsb dest }
-    mov    %eax, %ecx
-    neg    %ecx                  { ecx = step = rep movsb count }
+.LRepMovsNextPieceB:             { At least 1 iteration is always performed. }
+    mov    %eax, %edi            { edi = src before subtracting step = dst = rep movsb dest }
+    sub    %edx, %eax            { src -= step }
+    mov    %eax, %esi            { esi = src = rep movsb source }
+    mov    %edx, %ecx            { ecx = step = rep movsb count }
     rep movsb
-    add    %eax, %ebx            { remaining -= step }
-    jc     .LRepMovsNextPieceB
+    sub    %edx, %ebx            { remaining -= step }
+    jnc    .LRepMovsNextPieceB   { CF=1 after remaining -= step means that remaining became strictly negative and the loop must be stopped/not performed. }
     pop    %edi
     pop    %esi
-.LRepMovsTailB:
-    sub    %eax, %ebx            { ebx = remaining }
-    mov    %ebx, %ecx            { ecx = remaining }
-    sub    %ebx, %edx            { edx = dest }
-    lea    (%eax,%edx), %eax     { eax = src }
+    lea    (%edx,%ebx), %ecx     { ecx = remaining }
+    sub    %ecx, %eax            { eax = src }
+    add    %eax, %edx            { edx = dest }
     pop    %ebx
-    jmp    Move                  { Remaining piece ("a" in the example above). Can save a bit of jumps by doing first something like: if ecx >= 16, jump directly to "movups -16(%eax,%ecx), %xmm5". }
-
-.Lntb:
-    cmp    $-NtThreshold, %eax
-    jnb    .LNtIsNotBetterB
-    sub    $PrefetchDistance+32, %ecx
-
-    .balign 16
-.Lntloop64b:
-    prefetchnta -PrefetchDistance(%eax,%edx,1)
-    sub    $64, %edx
-    movups 48(%eax,%edx,1), %xmm0
-    movntps %xmm0, 48(%edx)
-    movups 32(%eax,%edx,1), %xmm0
-    movntps %xmm0, 32(%edx)
-    movups 16(%eax,%edx,1), %xmm0
-    movntps %xmm0, 16(%edx)
-    movups (%eax,%edx,1), %xmm0
-    movntps %xmm0, (%edx)
-    sub    $64, %ecx
-    jae    .Lntloop64b
-
-    sfence
-    add    $PrefetchDistance+64, %ecx
-    jmp    .LRestAfterNTb
+    jmp    Move                  { Remaining piece ("a" in the example above). Can save a bit of jumps by doing first something like: if ecx >= 16, jump directly to .LCancelRepMovs. }
 end;
 {$endif ndef FASTMOVE_DISABLE_SSE}
 
@@ -558,6 +571,8 @@ begin
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     result:=@Move_8OrMore_Valgrind
 {$ifndef FASTMOVE_DISABLE_SSE}
+  else if fast_large_repmovstosb then
+    result:=@Move_8OrMore_SSE_ERMS
   else if has_sse_support then
     result:=@Move_8OrMore_SSE
 {$endif ndef FASTMOVE_DISABLE_SSE}
