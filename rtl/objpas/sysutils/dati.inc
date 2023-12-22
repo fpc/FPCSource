@@ -96,7 +96,8 @@ end;
 
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): Int64;
 begin
-  result := TimeStamp.Time + timestamp.date * msecsperday;
+  //  Int64() typecast fixes issues 40522 and 40568 on 32-bit.
+  result := TimeStamp.Time + Int64(timestamp.date) * msecsperday;
 end;
 
 Function TryEncodeDate(Year,Month,Day : Word; Out Date : TDateTime) : Boolean;
