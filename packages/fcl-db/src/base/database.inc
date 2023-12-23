@@ -454,15 +454,14 @@ end;
 procedure TDBTransaction.SetDatabase(Value: TDatabase);
 
 begin
-  If Value<>FDatabase then
-    begin
-    CheckInactive;
-    If Assigned(FDatabase) then
-      FDatabase.UnregisterTransaction(Self);
-    If Value<>Nil Then
-      Value.RegisterTransaction(Self);
-    FDatabase:=Value;
-    end;
+  If Value=FDatabase then
+    exit;
+  CheckInactive;
+  If Assigned(FDatabase) then
+    FDatabase.UnregisterTransaction(Self);
+  If Value<>Nil Then
+    Value.RegisterTransaction(Self);
+  FDatabase:=Value;
 end;
 
 constructor TDBTransaction.Create(AOwner: TComponent);
@@ -523,9 +522,9 @@ end;
 destructor TDBTransaction.Destroy;
 
 begin
-  Database:=Nil;
   CloseDataSets;
   RemoveDatasets;
+  Database:=Nil;
   FDatasets.Free;
   Inherited;
 end;

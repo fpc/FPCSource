@@ -2518,13 +2518,21 @@ Const
 
 var
   Q : TSQLQuery;
+  C : TSQLConnection;
 
 begin
   Q:=DS as TSQLQuery;
   if not (sqoKeepOpenOnCommit in Q.Options) then
     inherited CloseDataset(Q,InCommit);
-  if UnPrepOptions[InCommit] in SQLConnection.ConnOptions then
-   Q.UnPrepare;
+  C:=SQLConnection;
+  if C=Nil then
+    C:=Q.SQLConnection;
+  if Q.Prepared then
+    if not Assigned(C) then
+      // No database, we must unprepare...
+      Q.UnPrepare // Unprepare checks if there is still a cursor.
+    else if UnPrepOptions[InCommit] in C.ConnOptions then
+      Q.UnPrepare;
 end;
 
 procedure TSQLTransaction.Commit;
