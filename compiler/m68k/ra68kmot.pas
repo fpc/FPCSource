@@ -982,6 +982,7 @@ const
       else
         begin
           Message(asmr_e_syntax_error);
+          Consume(actasmtoken);
         end;
       end; { end case }
     until actasmtoken = AS_SEPARATOR;
