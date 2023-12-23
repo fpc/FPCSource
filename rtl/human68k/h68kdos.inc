@@ -108,6 +108,23 @@ type
   end;
   Ph68kdos_freeinfo = ^Th68kdos_freeinfo;
 
+type
+  Th68kdos_filbuf = record
+    searchatr: byte;
+    driveno: byte;
+    dirsec: dword;
+    dirlft: word;
+    dirpos: word;
+    filename: array[0..7] of char;
+    ext: array[0..2] of char;
+    atr: byte;
+    time: word;
+    date: word;
+    filelen: dword;
+    name: array[0..22] of char;
+  end;
+  Ph68kdos_filbuf = ^Th68kdos_filbuf;
+
 // as used by seek
 const
     SEEK_FROM_START   = 0;
@@ -118,6 +135,11 @@ procedure h68kdos_exit; noreturn; syscall $ff00;
 function h68kdos_chgdrv(newdrv: word): longint; syscall $ff0e;
 function h68kdos_curdrv: longint; syscall $ff17;
 function h68kdos_gettim2: longint; syscall $ff27;
+function h68kdos_settim2(time: longint): longint; syscall $ff28;
+function h68kdos_getdate: longint; syscall $ff2a;
+function h68kdos_setdate(date: word): longint; syscall $ff2b;
+function h68kdos_gettime: longint; syscall $ff2c;
+function h68kdos_settime(time: word): longint; syscall $ff2d;
 function h68kdos_vernum: longint; syscall $ff30;
 function h68kdos_dskfre(drive: word; buffer: Ph68kdos_freeinfo): longint; syscall $ff36;
 function h68kdos_mkdir(name: pchar): longint; syscall $ff39;
@@ -130,14 +152,20 @@ function h68kdos_read(fileno: word; buffer: pointer; len: longint): longint; sys
 function h68kdos_write(fileno: word; buffer: pointer; len: longint): longint; syscall $ff40;
 function h68kdos_delete(name: pchar): longint; syscall $ff41;
 function h68kdos_seek(fileno: word; offset: longint; mode: word): longint; syscall $ff42;
+function h68kdos_chmod(name: pchar; atr: word):longint; syscall $ff43;
 function h68kdos_curdir(driveno: word; buffer: pointer): longint; syscall $ff47;
 function h68kdos_malloc(size: longint): pointer; syscall $ff48;
 function h68kdos_mfree(ptr: pointer): longint; syscall $ff49;
 function h68kdos_setblock(ptr: pointer; size: longint): longint; syscall $ff4a;
+function h68kdos_exec(mode: word; fil: pchar; p1: pointer; p2: pointer): longint; syscall $ff4b;
 procedure h68kdos_exit2(code: smallint); noreturn; syscall $ff4c;
+function h68kdos_files(filbuf: Ph68kdos_filbuf; name: pchar; atr: word): longint; syscall $ff4e;
+function h68kdos_nfiles(filbuf: Ph68kdos_filbuf): longint; syscall $ff4f;
 
 { * human68k v2 only calls * }
 function h68kdos_rename_v2(oldname: PChar; newname: PChar): longint; syscall $ff56;
+function h68kdos_filedate_v2(fileno: word; datetime: longint): longint; syscall $ff57;
 
 { * human68k v3 only calls * }
 function h68kdos_rename_v3(oldname: PChar; newname: PChar): longint; syscall $ff86;
+function h68kdos_filedate_v3(fileno: word; datetime: longint): longint; syscall $ff87;

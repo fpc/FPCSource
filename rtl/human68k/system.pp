@@ -120,6 +120,23 @@ var
 
 
 {*****************************************************************************
+                      Platform Specific Helpers
+*****************************************************************************}
+
+function h68kdos_exec0(const fil: pchar; p1: pointer; p2: pointer): longint; assembler; public name '_fpc_h68kdos_exec0';
+asm
+  movem.l d2-d7/a2-a6,-(sp)
+  move.l p2,-(sp)
+  move.l p1,-(sp)
+  move.l fil,-(sp)
+  move.w #0,-(sp)
+  dc.w $ff4b
+  lea.l 14(sp),sp
+  movem.l (sp)+,d2-d7/a2-a6
+end;
+
+
+{*****************************************************************************
                              ParamStr
 *****************************************************************************}
 
