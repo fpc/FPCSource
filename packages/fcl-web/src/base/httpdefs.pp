@@ -114,6 +114,10 @@ const
     'Thu', 'Fri', 'Sat');
 
 Type
+{$IF NOT DECLARED(RTLString)}
+  RTLString = Ansistring;
+{$ENDIF}
+
   // HTTP related variables.
   THTTPVariableType = (hvUnknown,hvHTTPVersion, hvMethod, hvCookie, hvSetCookie, hvXRequestedWith,
                    hvPathInfo,hvPathTranslated,hvRemoteAddress,hvRemoteHost,hvScriptName,

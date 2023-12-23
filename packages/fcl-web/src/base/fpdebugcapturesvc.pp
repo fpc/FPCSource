@@ -272,7 +272,11 @@ end;
 procedure TDebugCaptureService.DoLog(aType: TEventType; const aFmt: String; args: array of const);
 begin
   if Assigned(FonLog) then
+{$IF DECLARED(SafeFormat)}
     FonLog(aType,SafeFormat(aFmt,args));
+{$ELSE}
+    FonLog(aType,Format(aFmt,args));
+{$ENDIF}
 end;
 
 function TDebugCaptureService.CreateRegistrationList: THandlerRegistrationList;
