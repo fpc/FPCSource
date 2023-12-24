@@ -210,7 +210,7 @@ interface
 implementation
 
     uses
-      verbose,version,globals;
+      cutils,verbose,version,globals;
 
     procedure WriteUleb5(d: tdynamicarray; v: uint64);
       var
@@ -2137,6 +2137,7 @@ implementation
         ModuleVersion: array [0..3] of Byte;
         i: Integer;
       begin
+        Writeln('CanReadObjData');
         result:=false;
         if not AReader.read(ModuleMagic,4) then
           exit;
@@ -2157,6 +2158,53 @@ implementation
         var
           SectionId: Byte;
           SectionSize: uint64;
+          SectionStart: LongInt;
+
+        function ReadCustomSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadTypeSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadImportSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadFunctionSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadGlobalSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadExportSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadCodeSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadDataSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
+        function ReadDataCountSection: Boolean;
+          begin
+            Result:=False;
+          end;
+
         begin
           Result:=False;
           if not AReader.read(SectionId,1) then
@@ -2179,9 +2227,35 @@ implementation
               InputError('Section exceeds beyond the end of file');
               exit;
             end;
+          SectionStart:=AReader.Pos;
           { skip the section for now... TODO: parse the section }
+          case SectionId of
+            Byte(wsiCustom):
+              Result := ReadCustomSection;
+            Byte(wsiType):
+              Result := ReadTypeSection;
+            Byte(wsiImport):
+              Result := ReadImportSection;
+            Byte(wsiFunction):
+              Result := ReadFunctionSection;
+            Byte(wsiGlobal):
+              Result := ReadGlobalSection;
+            Byte(wsiExport):
+              Result := ReadExportSection;
+            Byte(wsiCode):
+              Result := ReadCodeSection;
+            Byte(wsiData):
+              Result := ReadDataSection;
+            Byte(wsiDataCount):
+              Result := ReadDataCountSection;
+            else
+              begin
+                InputError('Unknown section: ' + ToStr(SectionId));
+                exit;
+              end;
+          end;
           if SectionSize>0 then
-            AReader.seek(AReader.Pos+SectionSize);
+            AReader.seek(SectionStart+SectionSize);
           Result:=True;
         end;
 
