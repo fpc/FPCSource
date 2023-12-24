@@ -77,6 +77,10 @@ type
   TInternalLinkerWasi=class(tinternallinker)
   protected
     procedure DefaultLinkScript;override;
+
+    function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+    function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+    function GetBssSize(aExeOutput: TExeOutput): QWord;override;
   public
     constructor create;override;
 
@@ -287,6 +291,24 @@ end;
 procedure TInternalLinkerWasi.DefaultLinkScript;
 begin
   {TODO}
+end;
+
+function TInternalLinkerWasi.GetCodeSize(aExeOutput: TExeOutput): QWord;
+begin
+  {TODO}
+  Result:=0;
+end;
+
+function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
+begin
+  {TODO}
+  Result:=0;
+end;
+
+function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  {TODO}
+  Result:=0;
 end;
 
 constructor TInternalLinkerWasi.create;
