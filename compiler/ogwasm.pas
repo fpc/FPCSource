@@ -2284,7 +2284,12 @@ implementation
                     FFuncTypes[i].add_result(wbt);
                   end;
               end;
-            result:=AReader.Pos=(SectionStart+SectionSize);
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected type section size');
+                exit;
+              end;
+            Result:=true;
           end;
 
         function ReadImportSection: Boolean;
