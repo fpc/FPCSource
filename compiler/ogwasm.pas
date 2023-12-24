@@ -2176,6 +2176,7 @@ implementation
           SectionStart: LongInt;
 
           TypeSectionRead: Boolean = false;
+          ImportSectionRead: Boolean = false;
 
         function ReadCustomSection: Boolean;
           begin
@@ -2295,6 +2296,13 @@ implementation
         function ReadImportSection: Boolean;
           begin
             Result:=False;
+            if ImportSectionRead then
+              begin
+                InputError('Import section is duplicated');
+                exit;
+              end;
+            ImportSectionRead:=True;
+
           end;
 
         function ReadFunctionSection: Boolean;
