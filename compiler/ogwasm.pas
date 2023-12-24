@@ -187,6 +187,7 @@ interface
         FFuncTypes: array of TWasmFuncType;
 
         function ReadUleb(r: TObjectReader; out v: uint64): boolean;
+        function ReadName(r: TObjectReader; out v: ansistring): boolean;
       public
         constructor create;override;
         destructor Destroy;override;
@@ -2128,6 +2129,22 @@ implementation
         result:=true;
       end;
 
+    function TWasmObjInput.ReadName(r: TObjectReader; out v: ansistring): boolean;
+      var
+        len: uint64;
+      begin
+        result:=false;
+        if not ReadUleb(r,len) then
+          exit;
+        if len>high(uint32) then
+          exit;
+        SetLength(v,len);
+        if len>0 then
+          result:=r.read(v[1],len)
+        else
+          result:=true;
+      end;
+
     constructor TWasmObjInput.create;
       begin
         inherited create;
@@ -2294,6 +2311,14 @@ implementation
           end;
 
         function ReadImportSection: Boolean;
+          var
+            ImportsCount, typidx, TableLimitsMin, TableLimitsMax,
+              MemoryLimitsMin, MemoryLimitsMax: uint64;
+            i: Integer;
+            ModName, Name: ansistring;
+            ImportType, TableElemTyp, TableLimitsKind, MemoryLimitsKind,
+            GlobalType, GlobalMutabilityType: Byte;
+            TableElemWBT, GlobalTypeWBT: TWasmBasicType;
           begin
             Result:=False;
             if ImportSectionRead then
@@ -2302,7 +2327,221 @@ implementation
                 exit;
               end;
             ImportSectionRead:=True;
-
+            if not ReadUleb(AReader,ImportsCount) then
+              begin
+                InputError('Error reading the imports count');
+                exit;
+              end;
+            if AReader.Pos>(SectionStart+SectionSize) then
+              begin
+                InputError('The imports count stretches beyond the end of the import section');
+                exit;
+              end;
+            if ImportsCount>high(uint32) then
+              begin
+                InputError('The imports count does not fit in an unsigned 32-bit int');
+                exit;
+              end;
+            for i:=0 to ImportsCount-1 do
+              begin
+                if not ReadName(AReader,ModName) then
+                  begin
+                    InputError('Error reading import module name');
+                    exit;
+                  end;
+                if not ReadName(AReader,Name) then
+                  begin
+                    InputError('Error import name');
+                    exit;
+                  end;
+                if not AReader.Read(ImportType,1) then
+                  begin
+                    InputError('Error reading import type');
+                    exit;
+                  end;
+                case ImportType of
+                  $00:  { func }
+                    begin
+                      if not ReadUleb(AReader,typidx) then
+                        begin
+                          InputError('Error reading type index for func import');
+                          exit;
+                        end;
+                      if typidx>high(FFuncTypes) then
+                        begin
+                          InputError('Type index in func import exceeds bounds of the types table');
+                          exit;
+                        end;
+                    end;
+                  $01:  { table }
+                    begin
+                      if not AReader.read(TableElemTyp,1) then
+                        begin
+                          InputError('Error reading table element type for table import');
+                          exit;
+                        end;
+                      if not decode_wasm_basic_type(TableElemTyp,TableElemWBT) then
+                        begin
+                          InputError('Invalid table element type for table import: $' + HexStr(TableElemTyp,2));
+                          exit;
+                        end;
+                      if not (TableElemWBT in WasmReferenceTypes) then
+                        begin
+                          InputError('Table element type for table import must be a reference type');
+                          exit;
+                        end;
+                      if not AReader.read(TableLimitsKind,1) then
+                        begin
+                          InputError('Error reading table limits kind for table import');
+                          exit;
+                        end;
+                      case TableLimitsKind of
+                        $00:
+                          begin
+                            if not ReadUleb(AReader,TableLimitsMin) then
+                              begin
+                                InputError('Error reading table limits min for table import');
+                                exit;
+                              end;
+                            if TableLimitsMin>high(uint32) then
+                              begin
+                                InputError('Table limits min does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                          end;
+                        $01:
+                          begin
+                            if not ReadUleb(AReader,TableLimitsMin) then
+                              begin
+                                InputError('Error reading table limits min for table import');
+                                exit;
+                              end;
+                            if TableLimitsMin>high(uint32) then
+                              begin
+                                InputError('Table limits min does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                            if not ReadUleb(AReader,TableLimitsMax) then
+                              begin
+                                InputError('Error reading table limits max for table import');
+                                exit;
+                              end;
+                            if TableLimitsMax>high(uint32) then
+                              begin
+                                InputError('Table limits max does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                            if TableLimitsMin>TableLimitsMax then
+                              begin
+                                InputError('Table limits min exceed table limits max in table import');
+                                exit;
+                              end;
+                          end;
+                        else
+                          begin
+                            InputError('Unsupported table limits kind for table import: $' + HexStr(TableLimitsKind,2));
+                            exit;
+                          end;
+                      end;
+                    end;
+                  $02:  { mem }
+                    begin
+                      if not AReader.read(MemoryLimitsKind,1) then
+                        begin
+                          InputError('Error reading memory limits kind for memory import');
+                          exit;
+                        end;
+                      case MemoryLimitsKind of
+                        $00:
+                          begin
+                            if not ReadUleb(AReader,MemoryLimitsMin) then
+                              begin
+                                InputError('Error reading memory limits min for memory import');
+                                exit;
+                              end;
+                            if MemoryLimitsMin>high(uint32) then
+                              begin
+                                InputError('Memory limits min does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                          end;
+                        $01:
+                          begin
+                            if not ReadUleb(AReader,MemoryLimitsMin) then
+                              begin
+                                InputError('Error reading memory limits min for memory import');
+                                exit;
+                              end;
+                            if MemoryLimitsMin>high(uint32) then
+                              begin
+                                InputError('Memory limits min does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                            if not ReadUleb(AReader,MemoryLimitsMax) then
+                              begin
+                                InputError('Error reading memory limits max for memory import');
+                                exit;
+                              end;
+                            if MemoryLimitsMax>high(uint32) then
+                              begin
+                                InputError('Memory limits max does not fit in an unsigned 32-bit int');
+                                exit;
+                              end;
+                            if MemoryLimitsMin>MemoryLimitsMax then
+                              begin
+                                InputError('Memory limits min exceed memory limits max in memory import');
+                                exit;
+                              end;
+                          end;
+                        else
+                          begin
+                            InputError('Unsupported memory limits kind for memory import: $' + HexStr(MemoryLimitsKind,2));
+                            exit;
+                          end;
+                      end;
+                    end;
+                  $03:  { global }
+                    begin
+                      if not AReader.read(GlobalType,1) then
+                        begin
+                          InputError('Error reading global type for global import');
+                          exit;
+                        end;
+                      if not decode_wasm_basic_type(GlobalType,GlobalTypeWBT) then
+                        begin
+                          InputError('Unsupported global type for global import: ' + HexStr(GlobalType,2));
+                          exit;
+                        end;
+                      if not AReader.read(GlobalMutabilityType,1) then
+                        begin
+                          InputError('Error reading global mutability flag for global import');
+                          exit;
+                        end;
+                      case GlobalMutabilityType of
+                        $00:
+                          {const};
+                        $01:
+                          {var};
+                        else
+                          begin
+                            InputError('Unknown global mutability flag for global import: $' + HexStr(GlobalMutabilityType,2));
+                            exit;
+                          end;
+                      end;
+                    end;
+                  else
+                    begin
+                      InputError('Unknown import type: $' + HexStr(ImportType,2));
+                      exit;
+                    end;
+                end;
+              end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected import section size');
+                exit;
+              end;
+            Result:=true;
           end;
 
         function ReadFunctionSection: Boolean;
@@ -2368,7 +2607,11 @@ implementation
                   exit;
                 end;
             Byte(wsiImport):
-              Result := ReadImportSection;
+              if not ReadImportSection then
+                begin
+                  InputError('Error reading the import section');
+                  exit;
+                end;
             Byte(wsiFunction):
               Result := ReadFunctionSection;
             Byte(wsiGlobal):
