@@ -4279,7 +4279,8 @@ procedure TPas2jsCompiler.SetSubTarget(AValue: String);
 begin
   if FSubTarget=AValue then Exit;
   FSubTarget:=AValue;
-  //
+  AddDefine('FPC_SUBTARGET',UPPERCASE(aValue));
+  AddDefine('FPC_SUBTARGET_'+UPPERCASE(aValue));
 end;
 
 function TPas2jsCompiler.CreateImportList: TJSSourceElements;
