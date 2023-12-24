@@ -2546,6 +2546,8 @@ implementation
           end;
 
         function ReadFunctionSection: Boolean;
+          var
+            FunctionsCount: uint64;
           begin
             Result:=False;
             if FunctionSectionRead then
@@ -2554,6 +2556,21 @@ implementation
                 exit;
               end;
             FunctionSectionRead:=True;
+            if not ReadUleb(AReader,FunctionsCount) then
+              begin
+                InputError('Error reading the functions count');
+                exit;
+              end;
+            if AReader.Pos>(SectionStart+SectionSize) then
+              begin
+                InputError('The functions count stretches beyond the end of the function section');
+                exit;
+              end;
+            if FunctionsCount>high(uint32) then
+              begin
+                InputError('The functions count does not fit in an unsigned 32-bit int');
+                exit;
+              end;
           end;
 
         function ReadGlobalSection: Boolean;
