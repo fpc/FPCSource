@@ -79,7 +79,11 @@ unit i_wasi;
             dirsep       : '/';
             assem        : as_wasm32_wasm;
             assemextern  : as_wasm32_llvm_mc;
+{$ifdef ENABLE_WASM_INTERNAL_LINKER}
+            link         : ld_int_wasi;
+{$else ENABLE_WASM_INTERNAL_LINKER}
             link         : ld_none;
+{$endif ENABLE_WASM_INTERNAL_LINKER}
             linkextern   : ld_wasi;
             ar           : ar_none;
             res          : res_none;

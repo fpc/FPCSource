@@ -65,12 +65,14 @@
       <CustomOptions Value="-dwasm32
 -dnoopt
 -dEXTDEBUG
--dDEBUG_WASM_GOTO"/>
-      <OtherDefines Count="4">
+-dDEBUG_WASM_GOTO
+-dENABLE_WASM_INTERNAL_LINKER"/>
+      <OtherDefines Count="5">
         <Define0 Value="wasm32"/>
         <Define1 Value="noopt"/>
         <Define2 Value="EXTDEBUG"/>
         <Define3 Value="DEBUG_WASM_GOTO"/>
+        <Define4 Value="ENABLE_WASM_INTERNAL_LINKER"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
