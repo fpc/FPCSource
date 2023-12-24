@@ -289,8 +289,15 @@ end;
 { TInternalLinkerWasi }
 
 procedure TInternalLinkerWasi.DefaultLinkScript;
+var
+  s: TCmdStr;
 begin
-  {TODO}
+  while not ObjectFiles.Empty do
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+  end;
 end;
 
 function TInternalLinkerWasi.GetCodeSize(aExeOutput: TExeOutput): QWord;
