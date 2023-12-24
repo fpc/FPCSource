@@ -2215,7 +2215,13 @@ implementation
     function TWasmExeOutput.writeData: boolean;
       begin
         result:=false;
+
         {TODO: implement}
+
+        Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
+        Writer.write(WasmVersion,SizeOf(WasmVersion));
+
+        result := true;
       end;
 
     procedure TWasmExeOutput.DoRelocationFixup(objsec: TObjSection);
