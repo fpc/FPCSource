@@ -79,6 +79,8 @@ type
     procedure DefaultLinkScript;override;
   public
     constructor create;override;
+
+    procedure InitSysInitUnitName;override;
   end;
 
 
@@ -292,6 +294,14 @@ begin
   inherited create;
   CExeOutput:=TWasmExeOutput;
   CObjInput:=TWasmObjInput;
+end;
+
+procedure TInternalLinkerWasi.InitSysInitUnitName;
+begin
+  if current_module.islibrary then
+    sysinitunit:='si_dll'
+  else
+    sysinitunit:='si_prc';
 end;
 
 initialization
