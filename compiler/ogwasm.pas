@@ -2194,6 +2194,7 @@ implementation
 
           TypeSectionRead: Boolean = false;
           ImportSectionRead: Boolean = false;
+          FunctionSectionRead: Boolean = false;
 
         function ReadCustomSection: Boolean;
           begin
@@ -2547,6 +2548,12 @@ implementation
         function ReadFunctionSection: Boolean;
           begin
             Result:=False;
+            if FunctionSectionRead then
+              begin
+                InputError('Function section is duplicated');
+                exit;
+              end;
+            FunctionSectionRead:=True;
           end;
 
         function ReadGlobalSection: Boolean;
