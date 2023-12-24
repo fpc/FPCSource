@@ -157,6 +157,10 @@ uses
       op2strtable=array[tasmop] of string[31];
 
     Const
+      WasmNumberTypes = [wbt_i32, wbt_i64, wbt_f32, wbt_f64];
+      WasmReferenceTypes = [wbt_funcref, wbt_externref];
+      WasmVectorTypes = [wbt_v128];
+
       {# First value of opcode enumeration }
       firstop = low(tasmop);
       {# Last value of opcode enumeration  }
