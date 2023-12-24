@@ -391,6 +391,7 @@ uses
 
     function natural_alignment_for_load_store(op: TAsmOp): shortint;
     function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
+    function decode_wasm_basic_type(b: Byte; out wbt: TWasmBasicType): Boolean;
 
 implementation
 
@@ -592,6 +593,32 @@ uses
             result:=$6F;
           wbt_v128:
             result:=$7B;
+        end;
+      end;
+
+    function decode_wasm_basic_type(b: Byte; out wbt: TWasmBasicType): Boolean;
+      begin
+        result:=true;
+        case b of
+          $7F:
+            wbt:=wbt_i32;
+          $7E:
+            wbt:=wbt_i64;
+          $7D:
+            wbt:=wbt_f32;
+          $7C:
+            wbt:=wbt_f64;
+          $7B:
+            wbt:=wbt_v128;
+          $70:
+            wbt:=wbt_funcref;
+          $6F:
+            wbt:=wbt_externref;
+          else
+            begin
+              result:=false;
+              wbt:=default(TWasmBasicType);
+            end;
         end;
       end;
 
