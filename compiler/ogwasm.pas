@@ -2195,6 +2195,9 @@ implementation
           TypeSectionRead: Boolean = false;
           ImportSectionRead: Boolean = false;
           FunctionSectionRead: Boolean = false;
+          DataCountSectionRead: Boolean = false;
+
+          DataCount: uint32;
 
         function ReadCustomSection: Boolean;
           begin
@@ -2614,8 +2617,33 @@ implementation
           end;
 
         function ReadDataCountSection: Boolean;
+          var
+            v: uint64;
           begin
             Result:=False;
+            if DataCountSectionRead then
+              begin
+                InputError('Data count section is duplicated');
+                exit;
+              end;
+            DataCountSectionRead:=True;
+            if not ReadUleb(AReader,v) then
+              begin
+                InputError('Error reading the data count from the data count section');
+                exit;
+              end;
+            if v>high(uint32) then
+              begin
+                InputError('Data count does not fit in an unsigned 32-bit int');
+                exit;
+              end;
+            DataCount:=v;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected data count section size');
+                exit;
+              end;
+            Result:=true;
           end;
 
         begin
@@ -2671,7 +2699,13 @@ implementation
             Byte(wsiData):
               Result := ReadDataSection;
             Byte(wsiDataCount):
-              Result := ReadDataCountSection;
+              begin
+                if not ReadDataCountSection then
+                  begin
+                    InputError('Error reading the data count section');
+                    exit;
+                  end;
+              end
             else
               begin
                 InputError('Unknown section: ' + ToStr(SectionId));
