@@ -2350,7 +2350,6 @@ implementation
               exit;
             end;
           SectionStart:=AReader.Pos;
-          { skip the section for now... TODO: parse the section }
           case SectionId of
             Byte(wsiCustom):
               Result := ReadCustomSection;
