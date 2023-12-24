@@ -327,6 +327,7 @@
              ld_int_win16,
              ld_int_zxspectrum,
              ld_int_msxdos,
+             ld_int_wasi,
              ld_freertos,
              ld_zxspectrum,
              ld_msxdos,
