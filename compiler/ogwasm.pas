@@ -2547,7 +2547,8 @@ implementation
 
         function ReadFunctionSection: Boolean;
           var
-            FunctionsCount: uint64;
+            FunctionsCount, typidx: uint64;
+            i: Integer;
           begin
             Result:=False;
             if FunctionSectionRead then
@@ -2571,6 +2572,25 @@ implementation
                 InputError('The functions count does not fit in an unsigned 32-bit int');
                 exit;
               end;
+            for i:=0 to FunctionsCount-1 do
+              begin
+                if not ReadUleb(AReader,typidx) then
+                  begin
+                    InputError('Error reading type index for function');
+                    exit;
+                  end;
+                if typidx>high(FFuncTypes) then
+                  begin
+                    InputError('Type index in the function section exceeds bounds of the types table');
+                    exit;
+                  end;
+              end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected function section size');
+                exit;
+              end;
+            Result:=true;
           end;
 
         function ReadGlobalSection: Boolean;
@@ -2637,7 +2657,11 @@ implementation
                   exit;
                 end;
             Byte(wsiFunction):
-              Result := ReadFunctionSection;
+              if not ReadFunctionSection then
+                begin
+                  InputError('Error reading the function section');
+                  exit;
+                end;
             Byte(wsiGlobal):
               Result := ReadGlobalSection;
             Byte(wsiExport):
