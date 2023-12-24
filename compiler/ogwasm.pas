@@ -184,9 +184,12 @@ interface
 
       TWasmObjInput = class(TObjInput)
       private
+        FFuncTypes: array of TWasmFuncType;
+
         function ReadUleb(r: TObjectReader; out v: uint64): boolean;
       public
         constructor create;override;
+        destructor Destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
         function ReadObjData(AReader:TObjectreader;out ObjData:TObjData):boolean;override;
       end;
@@ -2131,6 +2134,18 @@ implementation
         cobjdata:=TWasmObjData;
       end;
 
+    destructor TWasmObjInput.Destroy;
+      var
+        i: Integer;
+      begin
+        for i:=low(FFuncTypes) to high(FFuncTypes) do
+          begin
+            FFuncTypes[i].free;
+            FFuncTypes[i]:=nil;
+          end;
+        inherited Destroy;
+      end;
+
     class function TWasmObjInput.CanReadObjData(AReader: TObjectreader): boolean;
       var
         ModuleMagic: array [0..3] of Byte;
@@ -2160,14 +2175,116 @@ implementation
           SectionSize: uint64;
           SectionStart: LongInt;
 
+          TypeSectionRead: Boolean = false;
+
         function ReadCustomSection: Boolean;
           begin
             Result:=False;
           end;
 
         function ReadTypeSection: Boolean;
+          var
+            FuncTypesCount, ParamsCount, ResultsCount: uint64;
+            FuncTypeId, WasmTypeId: Byte;
+            i, j: Integer;
+            wbt: TWasmBasicType;
           begin
             Result:=False;
+            if TypeSectionRead then
+              begin
+                InputError('Type section is duplicated');
+                exit;
+              end;
+            TypeSectionRead:=True;
+            if not ReadUleb(AReader, FuncTypesCount) then
+              begin
+                InputError('Error reading the func types count');
+                exit;
+              end;
+            if AReader.Pos>(SectionStart+SectionSize) then
+              begin
+                InputError('The func types count stretches beyond the end of the type section');
+                exit;
+              end;
+            if FuncTypesCount>high(uint32) then
+              begin
+                InputError('The func types count does not fit in an unsigned 32-bit int');
+                exit;
+              end;
+            SetLength(FFuncTypes,FuncTypesCount);
+            for i:=0 to FuncTypesCount - 1 do
+              begin
+                FFuncTypes[i]:=TWasmFuncType.Create([],[]);
+                if not AReader.read(FuncTypeId,1) then
+                  begin
+                    InputError('Error reading the function type identifier');
+                    exit;
+                  end;
+                if FuncTypeId<>$60 then
+                  begin
+                    InputError('Incorrect function type identifier (expected $60, got $' + HexStr(FuncTypeId,2) + ')');
+                    exit;
+                  end;
+                if not ReadUleb(AReader, ParamsCount) then
+                  begin
+                    InputError('Error reading the function parameters count');
+                    exit;
+                  end;
+                if AReader.Pos>(SectionStart+SectionSize) then
+                  begin
+                    InputError('The function paramaters count stretches beyond the end of the type section');
+                    exit;
+                  end;
+                if ParamsCount>high(uint32) then
+                  begin
+                    InputError('The function parameters count does not fit in an unsigned 32-bit int');
+                    exit;
+                  end;
+                for j:=0 to ParamsCount-1 do
+                  begin
+                    if not AReader.read(WasmTypeId,1) then
+                      begin
+                        InputError('Error reading a function parameter basic type');
+                        exit;
+                      end;
+                    if not decode_wasm_basic_type(WasmTypeId,wbt) then
+                      begin
+                        InputError('Unknown function parameter basic type: $' + HexStr(WasmTypeId,2));
+                        exit;
+                      end;
+                    FFuncTypes[i].add_param(wbt);
+                  end;
+                if not ReadUleb(AReader, ResultsCount) then
+                  begin
+                    InputError('Error reading the function results count');
+                    exit;
+                  end;
+                if AReader.Pos>(SectionStart+SectionSize) then
+                  begin
+                    InputError('The function results count stretches beyond the end of the type section');
+                    exit;
+                  end;
+                if ResultsCount>high(uint32) then
+                  begin
+                    InputError('The function results count does not fit in an unsigned 32-bit int');
+                    exit;
+                  end;
+                for j:=0 to ResultsCount-1 do
+                  begin
+                    if not AReader.read(WasmTypeId,1) then
+                      begin
+                        InputError('Error reading a function result basic type');
+                        exit;
+                      end;
+                    if not decode_wasm_basic_type(WasmTypeId,wbt) then
+                      begin
+                        InputError('Unknown function result basic type: $' + HexStr(WasmTypeId,2));
+                        exit;
+                      end;
+                    FFuncTypes[i].add_result(wbt);
+                  end;
+              end;
+            result:=AReader.Pos=(SectionStart+SectionSize);
           end;
 
         function ReadImportSection: Boolean;
@@ -2233,7 +2350,11 @@ implementation
             Byte(wsiCustom):
               Result := ReadCustomSection;
             Byte(wsiType):
-              Result := ReadTypeSection;
+              if not ReadTypeSection then
+                begin
+                  InputError('Error reading the type section');
+                  exit;
+                end;
             Byte(wsiImport):
               Result := ReadImportSection;
             Byte(wsiFunction):
