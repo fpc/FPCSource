@@ -197,6 +197,8 @@ interface
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
+      public
+        constructor create;override;
       end;
 
       { TWasmAssembler }
@@ -2219,6 +2221,12 @@ implementation
     procedure TWasmExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
         {TODO: implement}
+      end;
+
+    constructor TWasmExeOutput.create;
+      begin
+        inherited create;
+        CObjData:=TWasmObjData;
       end;
 
 
