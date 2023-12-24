@@ -4057,7 +4057,7 @@ begin
         end;
       't': // subtarget
         begin
-        if not Quick then
+        if not FromCmdLine then
           ParamFatal('subtarget -t parameter can only be passed as cmd line parameter');
         inc(p);
         SubTarget:=copy(Param,p,length(Param));
