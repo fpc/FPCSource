@@ -152,8 +152,11 @@ begin
     BufSize:=SizeOf(Buffer);
     BufPtr:=@Buffer;
     Name[0]:=#0;
+    {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+    FullName := nil;
+    {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
     end;
-   SetTextCodePage(F,CP_ACP); 
+   SetTextCodePage(F,CP_ACP);
 end;
 
 
