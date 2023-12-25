@@ -43,15 +43,15 @@ Type
     function GetLastErrorMessage: String; virtual; abstract;
     function JSONToTests(const aJSON: string): TStringDynArray;
     // URL is Relative to base URL
-    procedure ServerPost(aURL: string; const aContent: string = ''); virtual; abstract;
-    Function ServerGet(aURL: string) : string; virtual; abstract;
-    Procedure ServerDelete(aURL: string) ; virtual; abstract;
-    Function ConcatURL(aURL : String) : String; virtual;
+    procedure ServerPost(const aURL: string; const aContent: string = ''); virtual; abstract;
+    Function ServerGet(const aURL: string) : string; virtual; abstract;
+    Procedure ServerDelete(const aURL: string) ; virtual; abstract;
+    Function ConcatURL(const aURL : String) : String; virtual;
   public
     constructor Create(const aBaseURL : String); virtual;
     destructor Destroy; override;
     procedure LoadConfig(const aConfigFileName : String; aSection : String = '');
-    procedure LoadConfig(aIni : TCustomIniFile; aSection : String);
+    procedure LoadConfig(aIni : TCustomIniFile; const aSection : String);
     procedure GetServerOptions;
     // The client will free the result.
     procedure PostResult(const testResult: TTestInsightResult; forceSend: Boolean);
@@ -80,9 +80,9 @@ Type
   protected
     function GetHasError: Boolean; override;
     function GetLastErrorMessage: string; override;
-    procedure ServerPost(aURL: string; const aContent: string = ''); override;
-    Function ServerGet(aURL: string) : string; override;
-    Procedure ServerDelete(aURL: string); override;
+    procedure ServerPost(const aURL: string; const aContent: string = ''); override;
+    Function ServerGet(const aURL: string) : string; override;
+    Procedure ServerDelete(const aURL: string); override;
   public
     Constructor Create(Const aBaseURL : String); override;
     Destructor Destroy; override;
@@ -93,7 +93,7 @@ implementation
 
 { TTestInsightHTTPClient }
 
-procedure TTestInsightHTTPClient.ServerPost(aURL: string; const aContent: string = '');
+procedure TTestInsightHTTPClient.ServerPost(const aURL: string; const aContent: string = '');
 
 Var
   Body,Res : TStringStream;
@@ -120,7 +120,7 @@ begin
   end;
 end;
 
-function TTestInsightHTTPClient.ServerGet(aURL: string): string;
+function TTestInsightHTTPClient.ServerGet(const aURL: string): string;
 Var
   Res : TStringStream;
 
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-procedure TTestInsightHTTPClient.ServerDelete(aURL: string);
+procedure TTestInsightHTTPClient.ServerDelete(const aURL: string);
 begin
   try
     FHTTP.Delete(ConcatURL(aURL));
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-function TAbstractTestInsightClient.ConcatURL(aURL: String): String;
+function TAbstractTestInsightClient.ConcatURL(const aURL: String): String;
 begin
   Result:=fBaseURL;
   if (Result<>'') and (aURL<>'') and (Result[Length(Result)]<>'/') then
@@ -261,7 +261,7 @@ begin
   end;
 end;
 
-procedure TAbstractTestInsightClient.LoadConfig(aIni: TCustomIniFile;aSection : String);
+procedure TAbstractTestInsightClient.LoadConfig(aIni: TCustomIniFile; const aSection : String);
 begin
   FBaseURL:=aIni.ReadString(aSection,KeyBaseURL,BaseURL);
   Options.ShowProgress:=aIni.ReadBool(aSection,keyShowProgress,Self.Options.ShowProgress);

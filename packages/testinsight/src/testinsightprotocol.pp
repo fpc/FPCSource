@@ -127,15 +127,15 @@ Const
   TestPhaseNames: array[TTestPhase] of string
     = ('Setup', 'Run', 'TearDown','');
 
-Function StringToResultType(aValue : string) : TTestResultType;
+Function StringToResultType(const aValue : string) : TTestResultType;
 Function ResultTypeToString(aValue : TTestResultType) : string;
 
-Function StringToTestPhase(aValue : string) : TTestPhase;
+Function StringToTestPhase(const aValue : string) : TTestPhase;
 Function TestPhaseToString(aValue : TTestPhase) : string;
 
 
 // Convert CR/LF separated list name to expected JSON format
-Function TestStringsToJSON(aContent : String): TJSONObject;
+Function TestStringsToJSON(const aContent : String): TJSONObject;
 
 
 implementation
@@ -145,7 +145,7 @@ begin
   Result:=ResultTypeNames[aValue];
 end;
 
-function StringToTestPhase(aValue: string): TTestPhase;
+function StringToTestPhase(const aValue: string): TTestPhase;
 Var
   T : TTestPhase;
 
@@ -161,7 +161,7 @@ begin
   Result:=TestPhaseNames[aValue];
 end;
 
-Function StringToResultType(aValue : string) : TTestResultType;
+Function StringToResultType(const aValue : string) : TTestResultType;
 
 Var
   T : TTestResultType;
@@ -173,7 +173,7 @@ begin
       Exit(T);
 end;
 
-Procedure AddTests(aParent : TJSONObject; aList : TStrings; aPath : String; var aIdx : Integer);
+Procedure AddTests(aParent : TJSONObject; aList : TStrings; const aPath : String; var aIdx : Integer);
 
 Var
   P : integer;
@@ -210,7 +210,7 @@ begin
 end;
 
 
-Function TestStringsToJSON(aContent : String): TJSONObject;
+Function TestStringsToJSON(const aContent : String): TJSONObject;
 
 Var
   L : TStringList;
