@@ -155,4 +155,5 @@
   add_gitlab(ADirectory+IncludeTrailingPathDelimiter('gitlab'));
   add_fcl_css(ADirectory+IncludeTrailingPathDelimiter('fcl-css'));
   add_gstreamer(ADirectory+IncludeTrailingPathDelimiter('gstreamer'));
+  add_testinsight(ADirectory+IncludeTrailingPathDelimiter('testinsight'));
   
