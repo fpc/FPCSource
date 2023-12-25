@@ -4575,13 +4575,13 @@ Var
 
 begin
   Result:=False;
-  I:=0;
-  While (Not Result) and (I<Members.Count) do
+  For I:=0 to Members.Count-1 do
     begin
     Member:=TPasElement(Members[i]);
-    if (Member.Visibility<>visPublic) then exit(true);
-    if (Member.ClassType<>TPasVariable) then exit(true);
-    Inc(I);
+    if (Member.Visibility<>visPublic) then 
+      Exit(True);
+    if (Member.ClassType<>TPasVariable) then 
+      Exit(True);
     end;
 end;
 
