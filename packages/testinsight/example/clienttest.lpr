@@ -3,8 +3,7 @@ program clienttest;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, jsonparser, consoletestrunner, tcTests, fpcunittestinsight, testinsightclient,
-  testinsightprotocol;
+  Classes, jsonparser, consoletestrunner, tcTests, fpcunittestinsight;
 
 type
 
