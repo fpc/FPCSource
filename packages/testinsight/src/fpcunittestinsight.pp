@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcunittestinsight;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, System.Types, FpJson.Data, FpcUnit.Test, FpcUnit.Registry, TestInsight.Protocol, TestInsight.Client;
+{$ELSE}
   Classes, SysUtils, types, fpjson, fpcunit, testregistry, testinsightprotocol, testinsightclient;
+{$ENDIF}
 
 type
 
@@ -60,7 +66,11 @@ Procedure TestSuiteToJSON(aSuite : TTest; aJSON : TJSONObject);
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.DateUtils;
+{$ELSE}  
   DateUtils;
+{$ENDIF}
 
 Function DefaultTestConfigFileName : String;
 begin

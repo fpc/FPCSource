@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS} 
 unit testinsightclient;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS} 
+  System.Classes, System.SysUtils, System.Types, TestInsight.Protocol, FpWeb.Http.Client, FpJson.Data, System.Contnrs, System.IniFiles;
+{$ELSE}
   Classes, SysUtils, types, testinsightprotocol, fphttpclient, fpjson, contnrs, inifiles;
+{$ENDIF}
 
 Type
 

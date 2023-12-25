@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS} 
 unit testinsightprotocol;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS} 
+  System.Classes, System.SysUtils, FpJson.Data;
+{$ELSE}
   Classes, SysUtils, fpJSON;
+{$ENDIF}
 
 Type
   ETestInsight = class(Exception);

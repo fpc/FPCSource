@@ -1,0 +1,5 @@
+{s*:src/}=namespaced/
+{i+:src/}
+src/fpcunittestinsight.pp=namespaced/TestInsight.FpcUnit.pp
+src/testinsightclient.pp=namespaced/TestInsight.Client.pp
+src/testinsightprotocol.pp=namespaced/TestInsight.Protocol.pp
