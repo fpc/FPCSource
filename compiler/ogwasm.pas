@@ -2232,10 +2232,23 @@ implementation
             end;
 
           function ReadLinkingSection: Boolean;
+
+            function ReadSegmentInfo: Boolean;
+              begin
+                Result:=False;
+              end;
+
+            function ReadSymbolTable: Boolean;
+              begin
+                Result:=False;
+              end;
+
             const
               ExpectedVersion = 2;
             var
-              Version: uint32;
+              Version, SubsectionSize, SaveSectionSize: uint32;
+              SubsectionType: Byte;
+              SaveSectionStart: LongInt;
             begin
               Result:=False;
               if not ReadUleb32(Version) then
@@ -2248,6 +2261,43 @@ implementation
                   InputError('The ''linking'' subsection has an unsupported version (expected version ' + tostr(ExpectedVersion) + ', got version ' + tostr(Version) + ')');
                   exit;
                 end;
+              while AReader.Pos<(SectionStart+SectionSize) do
+                begin
+                  if not read(SubsectionType, 1) then
+                    begin
+                      InputError('Error reading subsection type in the ''linking'' section');
+                      exit;
+                    end;
+                  if not ReadUleb32(SubsectionSize) then
+                    begin
+                      InputError('Error reading subsection size in the ''linking'' section');
+                      exit;
+                    end;
+                  if (AReader.Pos+SubsectionSize)>(SectionStart+SectionSize) then
+                    begin
+                      InputError('Subsection size exceeds bounds of its parent ''linking'' section');
+                      exit;
+                    end;
+                  SaveSectionStart:=SectionStart;
+                  SaveSectionSize:=SectionSize;
+                  SectionStart:=AReader.Pos;
+                  SectionSize:=SubsectionSize;
+                  case SubsectionType of
+                    Byte(WASM_SEGMENT_INFO):
+                      result:=ReadSegmentInfo;
+                    Byte(WASM_SYMBOL_TABLE):
+                      result:=ReadSymbolTable;
+                    else
+                      begin
+                        InputError('Unsupported ''linking'' section subsection type ' + tostr(SubsectionType));
+                        exit;
+                      end;
+                  end;
+                  AReader.Seek(SectionStart+SectionSize);
+                  SectionStart:=SaveSectionStart;
+                  SectionSize:=SaveSectionSize;
+                end;
+              result:=True;
             end;
 
           function ReadProducersSection: Boolean;
@@ -2272,7 +2322,11 @@ implementation
             else
               case SectionName of
                 'linking':
-                  Result:=ReadLinkingSection;
+                  if not ReadLinkingSection then
+                    begin
+                      InputError('Error reading the ''linking'' section');
+                      exit;
+                    end;
                 'producers':
                   Result:=ReadProducersSection;
                 'target_features':
@@ -2280,6 +2334,7 @@ implementation
                 else
                   InputError('Unsupported custom section: ''' + SectionName + '''');
               end;
+            Result:=True;
           end;
 
         function ReadTypeSection: Boolean;
@@ -2679,7 +2734,11 @@ implementation
           CheckSectionBounds:=true;
           case SectionId of
             Byte(wsiCustom):
-              Result := ReadCustomSection;
+              if not ReadCustomSection then
+                begin
+                  InputError('Error encountered, while reading a custom section');
+                  exit;
+                end;
             Byte(wsiType):
               if not ReadTypeSection then
                 begin
