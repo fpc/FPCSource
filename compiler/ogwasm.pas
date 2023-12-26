@@ -2789,6 +2789,8 @@ implementation
         ModuleVersion: array [0..3] of Byte;
         i: Integer;
       begin
+        FReader:=AReader;
+        InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
         if not AReader.read(ModuleMagic,4) then
