@@ -2232,8 +2232,22 @@ implementation
             end;
 
           function ReadLinkingSection: Boolean;
+            const
+              ExpectedVersion = 2;
+            var
+              Version: uint32;
             begin
               Result:=False;
+              if not ReadUleb32(Version) then
+                begin
+                  InputError('Error reading the version of the ''linking'' subsection');
+                  exit;
+                end;
+              if Version<>ExpectedVersion then
+                begin
+                  InputError('The ''linking'' subsection has an unsupported version (expected version ' + tostr(ExpectedVersion) + ', got version ' + tostr(Version) + ')');
+                  exit;
+                end;
             end;
 
           function ReadProducersSection: Boolean;
