@@ -2169,6 +2169,9 @@ implementation
           Len: uint32;
           Offset: int32;
           DataPos: LongInt;
+          SegName: ansistring;
+          SegAlignment: uint32;
+          SegFlags: uint32;
         end;
 
       function ReadSection: Boolean;
@@ -2293,9 +2296,8 @@ implementation
 
             function ReadSegmentInfo: Boolean;
               var
-                SegmentCount, SegAlignment, SegFlags: uint32;
+                SegmentCount: uint32;
                 i: Integer;
-                SegName: ansistring;
               begin
                 Result:=False;
                 if SegmentInfoSectionRead then
@@ -2315,23 +2317,24 @@ implementation
                     exit;
                   end;
                 for i:=0 to SegmentCount-1 do
-                  begin
-                    if not ReadName(SegName) then
-                      begin
-                        InputError('Error reading segment name from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
-                        exit;
-                      end;
-                    if not ReadUleb32(SegAlignment) then
-                      begin
-                        InputError('Error reading segment alignment from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
-                        exit;
-                      end;
-                    if not ReadUleb32(SegFlags) then
-                      begin
-                        InputError('Error reading segment flags from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
-                        exit;
-                      end;
-                  end;
+                  with DataSegments[i] do
+                    begin
+                      if not ReadName(SegName) then
+                        begin
+                          InputError('Error reading segment name from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                          exit;
+                        end;
+                      if not ReadUleb32(SegAlignment) then
+                        begin
+                          InputError('Error reading segment alignment from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                          exit;
+                        end;
+                      if not ReadUleb32(SegFlags) then
+                        begin
+                          InputError('Error reading segment flags from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                          exit;
+                        end;
+                    end;
                 if AReader.Pos<>(SectionStart+SectionSize) then
                   begin
                     InputError('Unexpected WASM_SEGMENT_INFO section size');
