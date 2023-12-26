@@ -2769,6 +2769,11 @@ implementation
                 exit;
               end;
             DataCountSectionRead:=True;
+            if DataSectionRead then
+              begin
+                InputError('The data count section must occur before the data section');
+                exit;
+              end;
             if not ReadUleb32(DataCount) then
               begin
                 InputError('Error reading the data count from the data count section');
