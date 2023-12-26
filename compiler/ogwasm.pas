@@ -2234,8 +2234,41 @@ implementation
           function ReadLinkingSection: Boolean;
 
             function ReadSegmentInfo: Boolean;
+              var
+                SegmentCount, SegAlignment, SegFlags: uint32;
+                i: Integer;
+                SegName: ansistring;
               begin
                 Result:=False;
+                if not ReadUleb32(SegmentCount) then
+                  begin
+                    InputError('Error reading the segment count from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                    exit;
+                  end;
+                for i:=0 to SegmentCount-1 do
+                  begin
+                    if not ReadName(SegName) then
+                      begin
+                        InputError('Error reading segment name from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                        exit;
+                      end;
+                    if not ReadUleb32(SegAlignment) then
+                      begin
+                        InputError('Error reading segment alignment from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                        exit;
+                      end;
+                    if not ReadUleb32(SegFlags) then
+                      begin
+                        InputError('Error reading segment flags from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                        exit;
+                      end;
+                  end;
+                if AReader.Pos<>(SectionStart+SectionSize) then
+                  begin
+                    InputError('Unexpected WASM_SEGMENT_INFO section size');
+                    exit;
+                  end;
+                Result:=True;
               end;
 
             function ReadSymbolTable: Boolean;
@@ -2284,7 +2317,11 @@ implementation
                   SectionSize:=SubsectionSize;
                   case SubsectionType of
                     Byte(WASM_SEGMENT_INFO):
-                      result:=ReadSegmentInfo;
+                      if not ReadSegmentInfo then
+                        begin
+                          InputError('Error reading the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                          exit;
+                        end;
                     Byte(WASM_SYMBOL_TABLE):
                       result:=ReadSymbolTable;
                     else
