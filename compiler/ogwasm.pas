@@ -2552,6 +2552,9 @@ implementation
           end;
 
         function ReadCodeSection: Boolean;
+          var
+            CodeEntriesCount: uint32;
+            i: Integer;
           begin
             Result:=False;
             if CodeSectionRead then
@@ -2560,6 +2563,15 @@ implementation
                 exit;
               end;
             CodeSectionRead:=True;
+            if not ReadUleb32(CodeEntriesCount) then
+              begin
+                InputError('Error reading the code entries cound from the code section');
+                exit;
+              end;
+            for i:=0 to CodeEntriesCount-1 do
+              begin
+                {TODO}
+              end;
           end;
 
         function ReadDataSection: Boolean;
