@@ -2731,6 +2731,8 @@ implementation
           end;
 
         function ReadDataSection: Boolean;
+          var
+            DataCount: uint32;
           begin
             Result:=False;
             if DataSectionRead then
@@ -2739,6 +2741,21 @@ implementation
                 exit;
               end;
             DataSectionRead:=True;
+            if not ReadUleb32(DataCount) then
+              begin
+                InputError('Error reading the data entries count from the data section');
+                exit;
+              end;
+            if DataCountSectionRead then
+              begin
+                if Length(DataSegments)<>DataCount then
+                  begin
+                    InputError('Data entries count in the data section do not match the number, specified in the data count section');
+                    exit
+                  end;
+              end
+            else
+              SetLength(DataSegments,DataCount);
           end;
 
         function ReadDataCountSection: Boolean;
