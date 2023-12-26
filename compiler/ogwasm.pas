@@ -2233,6 +2233,9 @@ implementation
 
           function ReadLinkingSection: Boolean;
 
+            var
+              SegmentInfoSectionRead: Boolean = false;
+
             function ReadSegmentInfo: Boolean;
               var
                 SegmentCount, SegAlignment, SegFlags: uint32;
@@ -2240,6 +2243,12 @@ implementation
                 SegName: ansistring;
               begin
                 Result:=False;
+                if SegmentInfoSectionRead then
+                  begin
+                    InputError('The WASM_SEGMENT_INFO section is duplicated');
+                    exit;
+                  end;
+                SegmentInfoSectionRead:=True;
                 if not ReadUleb32(SegmentCount) then
                   begin
                     InputError('Error reading the segment count from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
