@@ -2225,8 +2225,47 @@ implementation
           DataCount: uint32;
 
         function ReadCustomSection: Boolean;
+
+          function ReadRelocationSection: Boolean;
+            begin
+              Result:=False;
+            end;
+
+          function ReadLinkingSection: Boolean;
+            begin
+              Result:=False;
+            end;
+
+          function ReadProducersSection: Boolean;
+            begin
+              Result:=False;
+            end;
+
+          function ReadTargetFeaturesSection: Boolean;
+            begin
+              Result:=False;
+            end;
+
+          const
+            RelocationSectionPrefix = 'reloc.';
+          var
+            SectionName: ansistring;
           begin
             Result:=False;
+            ReadName(SectionName);
+            if Copy(SectionName,1,Length(RelocationSectionPrefix)) = RelocationSectionPrefix then
+              Result:=ReadRelocationSection
+            else
+              case SectionName of
+                'linking':
+                  Result:=ReadLinkingSection;
+                'producers':
+                  Result:=ReadProducersSection;
+                'target_features':
+                  Result:=ReadTargetFeaturesSection;
+                else
+                  InputError('Unsupported custom section: ''' + SectionName + '''');
+              end;
           end;
 
         function ReadTypeSection: Boolean;
