@@ -2222,7 +2222,8 @@ implementation
           CodeSectionRead: Boolean = false;
           DataCountSectionRead: Boolean = false;
 
-          DataCount: uint32;
+          DataSegments: array of record
+          end;
 
         function ReadCustomSection: Boolean;
 
@@ -2245,7 +2246,7 @@ implementation
                 Result:=False;
                 if SegmentInfoSectionRead then
                   begin
-                    InputError('The WASM_SEGMENT_INFO section is duplicated');
+                    InputError('The WASM_SEGMENT_INFO subsection is duplicated');
                     exit;
                   end;
                 SegmentInfoSectionRead:=True;
@@ -2735,7 +2736,7 @@ implementation
 
         function ReadDataCountSection: Boolean;
           var
-            v: uint32;
+            DataCount: uint32;
           begin
             Result:=False;
             if DataCountSectionRead then
@@ -2744,17 +2745,17 @@ implementation
                 exit;
               end;
             DataCountSectionRead:=True;
-            if not ReadUleb32(v) then
+            if not ReadUleb32(DataCount) then
               begin
                 InputError('Error reading the data count from the data count section');
                 exit;
               end;
-            DataCount:=v;
             if AReader.Pos<>(SectionStart+SectionSize) then
               begin
                 InputError('Unexpected data count section size');
                 exit;
               end;
+            SetLength(DataSegments, DataCount);
             Result:=true;
           end;
 
