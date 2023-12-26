@@ -2201,6 +2201,56 @@ implementation
             result:=true;
           end;
 
+        function ReadSleb(out v: int64): boolean;
+          var
+            b: byte;
+            shift:integer;
+          begin
+            result:=false;
+            b:=0;
+            v:=0;
+            shift:=0;
+            repeat
+              if not read(b,1) then
+                exit;
+              v:=v or (uint64(b and 127) shl shift);
+              inc(shift,7);
+            until (b and 128)=0;
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+{$ifopt R+}
+{$define rangeon}
+{$R-}
+{$endif}
+            if (b and 64)<>0 then
+              v:=v or (high(uint64) shl shift);
+            result:=true;
+          end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+{$ifdef rangeon}
+{$R+}
+{$undef rangeon}
+{$endif}
+
+        function ReadSleb32(out v: int32): boolean;
+          var
+            vv: int64;
+          begin
+            result:=false;
+            v:=default(int32);
+            if not ReadSleb(vv) then
+              exit;
+            if (vv>high(int32)) or (vv<low(int32)) then
+              exit;
+            v:=vv;
+            result:=true;
+          end;
+
         function ReadName(out v: ansistring): boolean;
           var
             len: uint32;
@@ -2224,6 +2274,11 @@ implementation
           DataCountSectionRead: Boolean = false;
 
           DataSegments: array of record
+            Active: Boolean;
+            MemIdx: uint32;
+            Len: uint32;
+            Offset: int32;
+            DataPos: LongInt;
           end;
 
         function ReadCustomSection: Boolean;
@@ -2731,8 +2786,35 @@ implementation
           end;
 
         function ReadDataSection: Boolean;
+
+          function ReadExpr(out ExprV: int32): Boolean;
+            var
+              b: Byte;
+            begin
+              Result:=False;
+              if not Read(b,1) then
+                exit;
+              if b<>$41 then
+                begin
+                  InputError('Only i32.const expressions supported');
+                  exit;
+                end;
+              if not ReadSleb32(ExprV) then
+                exit;
+              if not Read(b,1) then
+                exit;
+              if b<>$0B then
+                begin
+                  InputError('Only single const expressions supported');
+                  exit;
+                end;
+              Result:=True;
+            end;
+
           var
             DataCount: uint32;
+            DataType: Byte;
+            i: Integer;
           begin
             Result:=False;
             if DataSectionRead then
@@ -2751,11 +2833,71 @@ implementation
                 if Length(DataSegments)<>DataCount then
                   begin
                     InputError('Data entries count in the data section do not match the number, specified in the data count section');
-                    exit
+                    exit;
                   end;
               end
             else
               SetLength(DataSegments,DataCount);
+            for i:=0 to DataCount-1 do
+              with DataSegments[i] do
+                begin
+                  if not read(DataType, 1) then
+                    begin
+                      InputError('Error reading data type of segment from the data section');
+                      exit;
+                    end;
+                  case DataType of
+                    0:
+                      begin
+                        Active:=True;
+                        MemIdx:=0;
+                        if not ReadExpr(Offset) then
+                          begin
+                            InputError('Error reading memory offset of segment from the data section');
+                            exit;
+                          end;
+                      end;
+                    1:
+                      Active:=False;
+                    2:
+                      begin
+                        Active:=True;
+                        if not ReadUleb32(MemIdx) then
+                          begin
+                            InputError('Error reading MemIdx of segment from the data section');
+                            exit;
+                          end;
+                        if not ReadExpr(Offset) then
+                          begin
+                            InputError('Error reading memory offset of segment from the data section');
+                            exit;
+                          end;
+                      end;
+                    else
+                      begin
+                        InputError('Unsupported data type of segment in the data section: ' + tostr(DataType));
+                        exit;
+                      end;
+                  end;
+                  if not ReadUleb32(Len) then
+                    begin
+                      InputError('Error reading data segment length');
+                      exit;
+                    end;
+                  if (AReader.Pos+Len)>(SectionStart+SectionSize) then
+                    begin
+                      InputError('Data segment exceeds the bounds of the data section');
+                      exit;
+                    end;
+                  DataPos:=AReader.Pos;
+                  AReader.Seek(AReader.Pos+Len);
+                end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected data section size');
+                exit;
+              end;
+            Result:=true;
           end;
 
         function ReadDataCountSection: Boolean;
@@ -2840,7 +2982,11 @@ implementation
             Byte(wsiCode):
               Result := ReadCodeSection;
             Byte(wsiData):
-              Result := ReadDataSection;
+              if not ReadDataSection then
+                begin
+                  InputError('Error reading the data section');
+                  exit;
+                end;
             Byte(wsiDataCount):
               begin
                 if not ReadDataCountSection then
@@ -2948,3 +3094,4 @@ initialization
   RegisterAssembler(as_wasm32_wasm_info,TWasmAssembler);
 {$endif wasm32}
 end.
+
