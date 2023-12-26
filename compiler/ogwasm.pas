@@ -2885,6 +2885,11 @@ implementation
                         exit;
                       end;
                   end;
+                  if MemIdx<>0 then
+                    begin
+                      InputError('Memory index other than 0 not supported (got ' + tostr(MemIdx) + ')');
+                      exit;
+                    end;
                   if not ReadUleb32(Len) then
                     begin
                       InputError('Error reading data segment length');
