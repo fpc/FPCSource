@@ -2220,6 +2220,7 @@ implementation
           ImportSectionRead: Boolean = false;
           FunctionSectionRead: Boolean = false;
           CodeSectionRead: Boolean = false;
+          DataSectionRead: Boolean = false;
           DataCountSectionRead: Boolean = false;
 
           DataSegments: array of record
@@ -2732,6 +2733,12 @@ implementation
         function ReadDataSection: Boolean;
           begin
             Result:=False;
+            if DataSectionRead then
+              begin
+                InputError('Data section is duplicated');
+                exit;
+              end;
+            DataSectionRead:=True;
           end;
 
         function ReadDataCountSection: Boolean;
