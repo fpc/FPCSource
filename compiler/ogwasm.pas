@@ -187,6 +187,7 @@ interface
         FFuncTypes: array of TWasmFuncType;
 
         function ReadUleb(r: TObjectReader; out v: uint64): boolean;
+        function ReadUleb32(r: TObjectReader; out v: uint32): boolean;
         function ReadName(r: TObjectReader; out v: ansistring): boolean;
       public
         constructor create;override;
@@ -2129,14 +2130,26 @@ implementation
         result:=true;
       end;
 
-    function TWasmObjInput.ReadName(r: TObjectReader; out v: ansistring): boolean;
+    function TWasmObjInput.ReadUleb32(r: TObjectReader; out v: uint32): boolean;
       var
-        len: uint64;
+        vv: uint64;
       begin
         result:=false;
-        if not ReadUleb(r,len) then
+        v:=default(uint32);
+        if not ReadUleb(r, vv) then
           exit;
-        if len>high(uint32) then
+        if vv>high(uint32) then
+          exit;
+        v:=vv;
+        result:=true;
+      end;
+
+    function TWasmObjInput.ReadName(r: TObjectReader; out v: ansistring): boolean;
+      var
+        len: uint32;
+      begin
+        result:=false;
+        if not ReadUleb32(r,len) then
           exit;
         SetLength(v,len);
         if len>0 then
@@ -2206,7 +2219,7 @@ implementation
 
         function ReadTypeSection: Boolean;
           var
-            FuncTypesCount, ParamsCount, ResultsCount: uint64;
+            FuncTypesCount, ParamsCount, ResultsCount: uint32;
             FuncTypeId, WasmTypeId: Byte;
             i, j: Integer;
             wbt: TWasmBasicType;
@@ -2218,7 +2231,7 @@ implementation
                 exit;
               end;
             TypeSectionRead:=True;
-            if not ReadUleb(AReader, FuncTypesCount) then
+            if not ReadUleb32(AReader, FuncTypesCount) then
               begin
                 InputError('Error reading the func types count');
                 exit;
@@ -2226,11 +2239,6 @@ implementation
             if AReader.Pos>(SectionStart+SectionSize) then
               begin
                 InputError('The func types count stretches beyond the end of the type section');
-                exit;
-              end;
-            if FuncTypesCount>high(uint32) then
-              begin
-                InputError('The func types count does not fit in an unsigned 32-bit int');
                 exit;
               end;
             SetLength(FFuncTypes,FuncTypesCount);
@@ -2247,7 +2255,7 @@ implementation
                     InputError('Incorrect function type identifier (expected $60, got $' + HexStr(FuncTypeId,2) + ')');
                     exit;
                   end;
-                if not ReadUleb(AReader, ParamsCount) then
+                if not ReadUleb32(AReader, ParamsCount) then
                   begin
                     InputError('Error reading the function parameters count');
                     exit;
@@ -2255,11 +2263,6 @@ implementation
                 if AReader.Pos>(SectionStart+SectionSize) then
                   begin
                     InputError('The function paramaters count stretches beyond the end of the type section');
-                    exit;
-                  end;
-                if ParamsCount>high(uint32) then
-                  begin
-                    InputError('The function parameters count does not fit in an unsigned 32-bit int');
                     exit;
                   end;
                 for j:=0 to ParamsCount-1 do
@@ -2276,7 +2279,7 @@ implementation
                       end;
                     FFuncTypes[i].add_param(wbt);
                   end;
-                if not ReadUleb(AReader, ResultsCount) then
+                if not ReadUleb32(AReader, ResultsCount) then
                   begin
                     InputError('Error reading the function results count');
                     exit;
@@ -2284,11 +2287,6 @@ implementation
                 if AReader.Pos>(SectionStart+SectionSize) then
                   begin
                     InputError('The function results count stretches beyond the end of the type section');
-                    exit;
-                  end;
-                if ResultsCount>high(uint32) then
-                  begin
-                    InputError('The function results count does not fit in an unsigned 32-bit int');
                     exit;
                   end;
                 for j:=0 to ResultsCount-1 do
