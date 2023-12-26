@@ -2219,6 +2219,7 @@ implementation
           TypeSectionRead: Boolean = false;
           ImportSectionRead: Boolean = false;
           FunctionSectionRead: Boolean = false;
+          CodeSectionRead: Boolean = false;
           DataCountSectionRead: Boolean = false;
 
           DataCount: uint32;
@@ -2553,6 +2554,12 @@ implementation
         function ReadCodeSection: Boolean;
           begin
             Result:=False;
+            if CodeSectionRead then
+              begin
+                InputError('Code section is duplicated');
+                exit;
+              end;
+            CodeSectionRead:=True;
           end;
 
         function ReadDataSection: Boolean;
