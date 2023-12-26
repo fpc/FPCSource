@@ -2247,11 +2247,6 @@ implementation
                 InputError('Error reading the func types count');
                 exit;
               end;
-            if AReader.Pos>(SectionStart+SectionSize) then
-              begin
-                InputError('The func types count stretches beyond the end of the type section');
-                exit;
-              end;
             SetLength(FFuncTypes,FuncTypesCount);
             for i:=0 to FuncTypesCount - 1 do
               begin
@@ -2271,11 +2266,6 @@ implementation
                     InputError('Error reading the function parameters count');
                     exit;
                   end;
-                if AReader.Pos>(SectionStart+SectionSize) then
-                  begin
-                    InputError('The function paramaters count stretches beyond the end of the type section');
-                    exit;
-                  end;
                 for j:=0 to ParamsCount-1 do
                   begin
                     if not AReader.read(WasmTypeId,1) then
@@ -2293,11 +2283,6 @@ implementation
                 if not ReadUleb32(ResultsCount) then
                   begin
                     InputError('Error reading the function results count');
-                    exit;
-                  end;
-                if AReader.Pos>(SectionStart+SectionSize) then
-                  begin
-                    InputError('The function results count stretches beyond the end of the type section');
                     exit;
                   end;
                 for j:=0 to ResultsCount-1 do
@@ -2343,11 +2328,6 @@ implementation
             if not ReadUleb32(ImportsCount) then
               begin
                 InputError('Error reading the imports count');
-                exit;
-              end;
-            if AReader.Pos>(SectionStart+SectionSize) then
-              begin
-                InputError('The imports count stretches beyond the end of the import section');
                 exit;
               end;
             for i:=0 to ImportsCount-1 do
@@ -2537,11 +2517,6 @@ implementation
             if not ReadUleb32(FunctionsCount) then
               begin
                 InputError('Error reading the functions count');
-                exit;
-              end;
-            if AReader.Pos>(SectionStart+SectionSize) then
-              begin
-                InputError('The functions count stretches beyond the end of the function section');
                 exit;
               end;
             for i:=0 to FunctionsCount-1 do
