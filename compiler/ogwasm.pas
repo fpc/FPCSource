@@ -185,10 +185,6 @@ interface
       TWasmObjInput = class(TObjInput)
       private
         FFuncTypes: array of TWasmFuncType;
-
-        function ReadUleb(r: TObjectReader; out v: uint64): boolean;
-        function ReadUleb32(r: TObjectReader; out v: uint32): boolean;
-        function ReadName(r: TObjectReader; out v: ansistring): boolean;
       public
         constructor create;override;
         destructor Destroy;override;
@@ -2112,52 +2108,6 @@ implementation
                                TWasmObjInput
 ****************************************************************************}
 
-    function TWasmObjInput.ReadUleb(r: TObjectReader; out v: uint64): boolean;
-      var
-        b: byte;
-        shift:integer;
-      begin
-        result:=false;
-        b:=0;
-        v:=0;
-        shift:=0;
-        repeat
-          if not r.read(b,1) then
-            exit;
-          v:=v or (uint64(b and 127) shl shift);
-          inc(shift,7);
-        until (b and 128)=0;
-        result:=true;
-      end;
-
-    function TWasmObjInput.ReadUleb32(r: TObjectReader; out v: uint32): boolean;
-      var
-        vv: uint64;
-      begin
-        result:=false;
-        v:=default(uint32);
-        if not ReadUleb(r, vv) then
-          exit;
-        if vv>high(uint32) then
-          exit;
-        v:=vv;
-        result:=true;
-      end;
-
-    function TWasmObjInput.ReadName(r: TObjectReader; out v: ansistring): boolean;
-      var
-        len: uint32;
-      begin
-        result:=false;
-        if not ReadUleb32(r,len) then
-          exit;
-        SetLength(v,len);
-        if len>0 then
-          result:=r.read(v[1],len)
-        else
-          result:=true;
-      end;
-
     constructor TWasmObjInput.create;
       begin
         inherited create;
@@ -2205,6 +2155,60 @@ implementation
           SectionSize: uint32;
           SectionStart: LongInt;
 
+{          TypeSectionRead: Boolean = false;
+          ImportSectionRead: Boolean = false;
+          FunctionSectionRead: Boolean = false;
+          DataCountSectionRead: Boolean = false;
+
+          DataCount: uint32;}
+
+        function ReadUleb(r: TObjectReader; out v: uint64): boolean;
+          var
+            b: byte;
+            shift:integer;
+          begin
+            result:=false;
+            b:=0;
+            v:=0;
+            shift:=0;
+            repeat
+              if not r.read(b,1) then
+                exit;
+              v:=v or (uint64(b and 127) shl shift);
+              inc(shift,7);
+            until (b and 128)=0;
+            result:=true;
+          end;
+
+        function ReadUleb32(r: TObjectReader; out v: uint32): boolean;
+          var
+            vv: uint64;
+          begin
+            result:=false;
+            v:=default(uint32);
+            if not ReadUleb(r, vv) then
+              exit;
+            if vv>high(uint32) then
+              exit;
+            v:=vv;
+            result:=true;
+          end;
+
+        function ReadName(r: TObjectReader; out v: ansistring): boolean;
+          var
+            len: uint32;
+          begin
+            result:=false;
+            if not ReadUleb32(r,len) then
+              exit;
+            SetLength(v,len);
+            if len>0 then
+              result:=r.read(v[1],len)
+            else
+              result:=true;
+          end;
+
+        var
           TypeSectionRead: Boolean = false;
           ImportSectionRead: Boolean = false;
           FunctionSectionRead: Boolean = false;
