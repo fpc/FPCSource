@@ -2253,12 +2253,12 @@ implementation
               Result:=False;
               if not ReadUleb32(Version) then
                 begin
-                  InputError('Error reading the version of the ''linking'' subsection');
+                  InputError('Error reading the version of the ''linking'' section');
                   exit;
                 end;
               if Version<>ExpectedVersion then
                 begin
-                  InputError('The ''linking'' subsection has an unsupported version (expected version ' + tostr(ExpectedVersion) + ', got version ' + tostr(Version) + ')');
+                  InputError('The ''linking'' section has an unsupported version (expected version ' + tostr(ExpectedVersion) + ', got version ' + tostr(Version) + ')');
                   exit;
                 end;
               while AReader.Pos<(SectionStart+SectionSize) do
