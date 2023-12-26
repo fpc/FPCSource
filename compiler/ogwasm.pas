@@ -2149,12 +2149,28 @@ implementation
 
     function TWasmObjInput.ReadObjData(AReader: TObjectreader; out ObjData: TObjData): boolean;
 
+      var
+        SectionId: Byte;
+        SectionSize: uint32;
+        SectionStart: LongInt;
+        CheckSectionBounds: Boolean;
+
+        TypeSectionRead: Boolean = false;
+        ImportSectionRead: Boolean = false;
+        FunctionSectionRead: Boolean = false;
+        CodeSectionRead: Boolean = false;
+        DataSectionRead: Boolean = false;
+        DataCountSectionRead: Boolean = false;
+
+        DataSegments: array of record
+          Active: Boolean;
+          MemIdx: uint32;
+          Len: uint32;
+          Offset: int32;
+          DataPos: LongInt;
+        end;
+
       function ReadSection: Boolean;
-        var
-          SectionId: Byte;
-          SectionSize: uint32;
-          SectionStart: LongInt;
-          CheckSectionBounds: Boolean;
 
         function read(out b;len:longint):boolean;
           begin
@@ -2265,22 +2281,6 @@ implementation
               result:=true;
           end;
 
-        var
-          TypeSectionRead: Boolean = false;
-          ImportSectionRead: Boolean = false;
-          FunctionSectionRead: Boolean = false;
-          CodeSectionRead: Boolean = false;
-          DataSectionRead: Boolean = false;
-          DataCountSectionRead: Boolean = false;
-
-          DataSegments: array of record
-            Active: Boolean;
-            MemIdx: uint32;
-            Len: uint32;
-            Offset: int32;
-            DataPos: LongInt;
-          end;
-
         function ReadCustomSection: Boolean;
 
           function ReadRelocationSection: Boolean;
@@ -2309,6 +2309,11 @@ implementation
                 if not ReadUleb32(SegmentCount) then
                   begin
                     InputError('Error reading the segment count from the WASM_SEGMENT_INFO subsection of the ''linking'' section');
+                    exit;
+                  end;
+                if SegmentCount<>Length(DataSegments) then
+                  begin
+                    InputError('Segment count in the WASM_SEGMENT_INFO subsection does not match the data count in the data section');
                     exit;
                   end;
                 for i:=0 to SegmentCount-1 do
