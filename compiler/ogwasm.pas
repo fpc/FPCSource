@@ -2161,6 +2161,8 @@ implementation
         DataSectionRead: Boolean = false;
         DataCountSectionRead: Boolean = false;
 
+        SegmentInfoSectionRead: Boolean = false;
+
         DataSegments: array of record
           Active: Boolean;
           MemIdx: uint32;
@@ -2288,9 +2290,6 @@ implementation
             end;
 
           function ReadLinkingSection: Boolean;
-
-            var
-              SegmentInfoSectionRead: Boolean = false;
 
             function ReadSegmentInfo: Boolean;
               var
