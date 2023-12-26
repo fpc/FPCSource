@@ -3032,6 +3032,7 @@ implementation
         InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
+        DataSegments:=nil;
         if not AReader.read(ModuleMagic,4) then
           exit;
         for i:=0 to 3 do
