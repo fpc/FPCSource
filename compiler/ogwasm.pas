@@ -3016,6 +3016,7 @@ implementation
         ModuleMagic: array [0..3] of Byte;
         ModuleVersion: array [0..3] of Byte;
         i: Integer;
+        CurrSec: TObjSection;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -3034,6 +3035,18 @@ implementation
         while AReader.Pos<AReader.size do
           if not ReadSection then
             exit;
+
+        for i:=low(DataSegments) to high(DataSegments) do
+          with DataSegments[i] do
+            if Active then
+              begin
+                CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write],false);
+                CurrSec.DataPos:=DataPos;
+                CurrSec.MemPos:=Offset;
+                CurrSec.Size:=Len;
+              end;
+        ReadSectionContent(ObjData);
+
         Result:=True;
       end;
 
