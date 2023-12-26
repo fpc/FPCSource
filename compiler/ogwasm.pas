@@ -2154,10 +2154,19 @@ implementation
           SectionId: Byte;
           SectionSize: uint32;
           SectionStart: LongInt;
+          CheckSectionBounds: Boolean;
 
         function read(out b;len:longint):boolean;
           begin
-            result:=AReader.read(b,len);
+            result:=false;
+            if not CheckSectionBounds or ((AReader.Pos+len)<=(SectionStart+SectionSize)) then
+              result:=AReader.read(b,len)
+            else
+              begin
+                { trying to read beyond the end of the section }
+                AReader.read(b,SectionStart+SectionSize-AReader.Pos);
+                result:=false;
+              end;
           end;
 
         function ReadUleb(out v: uint64): boolean;
@@ -2608,6 +2617,7 @@ implementation
               InputError('Error reading section ID');
               exit;
             end;
+          CheckSectionBounds:=false;
           if not ReadUleb32(SectionSize) then
             begin
               InputError('Error reading section size');
@@ -2619,6 +2629,7 @@ implementation
               exit;
             end;
           SectionStart:=AReader.Pos;
+          CheckSectionBounds:=true;
           case SectionId of
             Byte(wsiCustom):
               Result := ReadCustomSection;
