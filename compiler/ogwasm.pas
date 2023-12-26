@@ -2132,7 +2132,6 @@ implementation
         ModuleVersion: array [0..3] of Byte;
         i: Integer;
       begin
-        Writeln('CanReadObjData');
         result:=false;
         if not AReader.read(ModuleMagic,4) then
           exit;
