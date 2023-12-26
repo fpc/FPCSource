@@ -2155,8 +2155,12 @@ implementation
           SectionSize: uint32;
           SectionStart: LongInt;
 
+        function read(out b;len:longint):boolean;
+          begin
+            result:=AReader.read(b,len);
+          end;
 
-        function ReadUleb(r: TObjectReader; out v: uint64): boolean;
+        function ReadUleb(out v: uint64): boolean;
           var
             b: byte;
             shift:integer;
@@ -2166,7 +2170,7 @@ implementation
             v:=0;
             shift:=0;
             repeat
-              if not r.read(b,1) then
+              if not read(b,1) then
                 exit;
               v:=v or (uint64(b and 127) shl shift);
               inc(shift,7);
@@ -2174,13 +2178,13 @@ implementation
             result:=true;
           end;
 
-        function ReadUleb32(r: TObjectReader; out v: uint32): boolean;
+        function ReadUleb32(out v: uint32): boolean;
           var
             vv: uint64;
           begin
             result:=false;
             v:=default(uint32);
-            if not ReadUleb(r, vv) then
+            if not ReadUleb(vv) then
               exit;
             if vv>high(uint32) then
               exit;
@@ -2188,16 +2192,16 @@ implementation
             result:=true;
           end;
 
-        function ReadName(r: TObjectReader; out v: ansistring): boolean;
+        function ReadName(out v: ansistring): boolean;
           var
             len: uint32;
           begin
             result:=false;
-            if not ReadUleb32(r,len) then
+            if not ReadUleb32(len) then
               exit;
             SetLength(v,len);
             if len>0 then
-              result:=r.read(v[1],len)
+              result:=read(v[1],len)
             else
               result:=true;
           end;
@@ -2229,7 +2233,7 @@ implementation
                 exit;
               end;
             TypeSectionRead:=True;
-            if not ReadUleb32(AReader, FuncTypesCount) then
+            if not ReadUleb32(FuncTypesCount) then
               begin
                 InputError('Error reading the func types count');
                 exit;
@@ -2253,7 +2257,7 @@ implementation
                     InputError('Incorrect function type identifier (expected $60, got $' + HexStr(FuncTypeId,2) + ')');
                     exit;
                   end;
-                if not ReadUleb32(AReader, ParamsCount) then
+                if not ReadUleb32(ParamsCount) then
                   begin
                     InputError('Error reading the function parameters count');
                     exit;
@@ -2277,7 +2281,7 @@ implementation
                       end;
                     FFuncTypes[i].add_param(wbt);
                   end;
-                if not ReadUleb32(AReader, ResultsCount) then
+                if not ReadUleb32(ResultsCount) then
                   begin
                     InputError('Error reading the function results count');
                     exit;
@@ -2327,7 +2331,7 @@ implementation
                 exit;
               end;
             ImportSectionRead:=True;
-            if not ReadUleb32(AReader,ImportsCount) then
+            if not ReadUleb32(ImportsCount) then
               begin
                 InputError('Error reading the imports count');
                 exit;
@@ -2339,12 +2343,12 @@ implementation
               end;
             for i:=0 to ImportsCount-1 do
               begin
-                if not ReadName(AReader,ModName) then
+                if not ReadName(ModName) then
                   begin
                     InputError('Error reading import module name');
                     exit;
                   end;
-                if not ReadName(AReader,Name) then
+                if not ReadName(Name) then
                   begin
                     InputError('Error import name');
                     exit;
@@ -2357,7 +2361,7 @@ implementation
                 case ImportType of
                   $00:  { func }
                     begin
-                      if not ReadUleb32(AReader,typidx) then
+                      if not ReadUleb32(typidx) then
                         begin
                           InputError('Error reading type index for func import');
                           exit;
@@ -2393,7 +2397,7 @@ implementation
                       case TableLimitsKind of
                         $00:
                           begin
-                            if not ReadUleb32(AReader,TableLimitsMin) then
+                            if not ReadUleb32(TableLimitsMin) then
                               begin
                                 InputError('Error reading table limits min for table import');
                                 exit;
@@ -2401,12 +2405,12 @@ implementation
                           end;
                         $01:
                           begin
-                            if not ReadUleb32(AReader,TableLimitsMin) then
+                            if not ReadUleb32(TableLimitsMin) then
                               begin
                                 InputError('Error reading table limits min for table import');
                                 exit;
                               end;
-                            if not ReadUleb32(AReader,TableLimitsMax) then
+                            if not ReadUleb32(TableLimitsMax) then
                               begin
                                 InputError('Error reading table limits max for table import');
                                 exit;
@@ -2434,7 +2438,7 @@ implementation
                       case MemoryLimitsKind of
                         $00:
                           begin
-                            if not ReadUleb32(AReader,MemoryLimitsMin) then
+                            if not ReadUleb32(MemoryLimitsMin) then
                               begin
                                 InputError('Error reading memory limits min for memory import');
                                 exit;
@@ -2442,12 +2446,12 @@ implementation
                           end;
                         $01:
                           begin
-                            if not ReadUleb32(AReader,MemoryLimitsMin) then
+                            if not ReadUleb32(MemoryLimitsMin) then
                               begin
                                 InputError('Error reading memory limits min for memory import');
                                 exit;
                               end;
-                            if not ReadUleb32(AReader,MemoryLimitsMax) then
+                            if not ReadUleb32(MemoryLimitsMax) then
                               begin
                                 InputError('Error reading memory limits max for memory import');
                                 exit;
@@ -2521,7 +2525,7 @@ implementation
                 exit;
               end;
             FunctionSectionRead:=True;
-            if not ReadUleb32(AReader,FunctionsCount) then
+            if not ReadUleb32(FunctionsCount) then
               begin
                 InputError('Error reading the functions count');
                 exit;
@@ -2533,7 +2537,7 @@ implementation
               end;
             for i:=0 to FunctionsCount-1 do
               begin
-                if not ReadUleb32(AReader,typidx) then
+                if not ReadUleb32(typidx) then
                   begin
                     InputError('Error reading type index for function');
                     exit;
@@ -2583,7 +2587,7 @@ implementation
                 exit;
               end;
             DataCountSectionRead:=True;
-            if not ReadUleb32(AReader,v) then
+            if not ReadUleb32(v) then
               begin
                 InputError('Error reading the data count from the data count section');
                 exit;
@@ -2604,7 +2608,7 @@ implementation
               InputError('Error reading section ID');
               exit;
             end;
-          if not ReadUleb32(AReader,SectionSize) then
+          if not ReadUleb32(SectionSize) then
             begin
               InputError('Error reading section size');
               exit;
