@@ -2202,7 +2202,7 @@ implementation
       function ReadSection: Boolean;
         var
           SectionId: Byte;
-          SectionSize: uint64;
+          SectionSize: uint32;
           SectionStart: LongInt;
 
           TypeSectionRead: Boolean = false;
@@ -2315,7 +2315,7 @@ implementation
         function ReadImportSection: Boolean;
           var
             ImportsCount, typidx, TableLimitsMin, TableLimitsMax,
-              MemoryLimitsMin, MemoryLimitsMax: uint64;
+              MemoryLimitsMin, MemoryLimitsMax: uint32;
             i: Integer;
             ModName, Name: ansistring;
             ImportType, TableElemTyp, TableLimitsKind, MemoryLimitsKind,
@@ -2329,7 +2329,7 @@ implementation
                 exit;
               end;
             ImportSectionRead:=True;
-            if not ReadUleb(AReader,ImportsCount) then
+            if not ReadUleb32(AReader,ImportsCount) then
               begin
                 InputError('Error reading the imports count');
                 exit;
@@ -2337,11 +2337,6 @@ implementation
             if AReader.Pos>(SectionStart+SectionSize) then
               begin
                 InputError('The imports count stretches beyond the end of the import section');
-                exit;
-              end;
-            if ImportsCount>high(uint32) then
-              begin
-                InputError('The imports count does not fit in an unsigned 32-bit int');
                 exit;
               end;
             for i:=0 to ImportsCount-1 do
@@ -2364,7 +2359,7 @@ implementation
                 case ImportType of
                   $00:  { func }
                     begin
-                      if not ReadUleb(AReader,typidx) then
+                      if not ReadUleb32(AReader,typidx) then
                         begin
                           InputError('Error reading type index for func import');
                           exit;
@@ -2400,37 +2395,22 @@ implementation
                       case TableLimitsKind of
                         $00:
                           begin
-                            if not ReadUleb(AReader,TableLimitsMin) then
+                            if not ReadUleb32(AReader,TableLimitsMin) then
                               begin
                                 InputError('Error reading table limits min for table import');
-                                exit;
-                              end;
-                            if TableLimitsMin>high(uint32) then
-                              begin
-                                InputError('Table limits min does not fit in an unsigned 32-bit int');
                                 exit;
                               end;
                           end;
                         $01:
                           begin
-                            if not ReadUleb(AReader,TableLimitsMin) then
+                            if not ReadUleb32(AReader,TableLimitsMin) then
                               begin
                                 InputError('Error reading table limits min for table import');
                                 exit;
                               end;
-                            if TableLimitsMin>high(uint32) then
-                              begin
-                                InputError('Table limits min does not fit in an unsigned 32-bit int');
-                                exit;
-                              end;
-                            if not ReadUleb(AReader,TableLimitsMax) then
+                            if not ReadUleb32(AReader,TableLimitsMax) then
                               begin
                                 InputError('Error reading table limits max for table import');
-                                exit;
-                              end;
-                            if TableLimitsMax>high(uint32) then
-                              begin
-                                InputError('Table limits max does not fit in an unsigned 32-bit int');
                                 exit;
                               end;
                             if TableLimitsMin>TableLimitsMax then
@@ -2456,37 +2436,22 @@ implementation
                       case MemoryLimitsKind of
                         $00:
                           begin
-                            if not ReadUleb(AReader,MemoryLimitsMin) then
+                            if not ReadUleb32(AReader,MemoryLimitsMin) then
                               begin
                                 InputError('Error reading memory limits min for memory import');
-                                exit;
-                              end;
-                            if MemoryLimitsMin>high(uint32) then
-                              begin
-                                InputError('Memory limits min does not fit in an unsigned 32-bit int');
                                 exit;
                               end;
                           end;
                         $01:
                           begin
-                            if not ReadUleb(AReader,MemoryLimitsMin) then
+                            if not ReadUleb32(AReader,MemoryLimitsMin) then
                               begin
                                 InputError('Error reading memory limits min for memory import');
                                 exit;
                               end;
-                            if MemoryLimitsMin>high(uint32) then
-                              begin
-                                InputError('Memory limits min does not fit in an unsigned 32-bit int');
-                                exit;
-                              end;
-                            if not ReadUleb(AReader,MemoryLimitsMax) then
+                            if not ReadUleb32(AReader,MemoryLimitsMax) then
                               begin
                                 InputError('Error reading memory limits max for memory import');
-                                exit;
-                              end;
-                            if MemoryLimitsMax>high(uint32) then
-                              begin
-                                InputError('Memory limits max does not fit in an unsigned 32-bit int');
                                 exit;
                               end;
                             if MemoryLimitsMin>MemoryLimitsMax then
@@ -2548,7 +2513,7 @@ implementation
 
         function ReadFunctionSection: Boolean;
           var
-            FunctionsCount, typidx: uint64;
+            FunctionsCount, typidx: uint32;
             i: Integer;
           begin
             Result:=False;
@@ -2558,7 +2523,7 @@ implementation
                 exit;
               end;
             FunctionSectionRead:=True;
-            if not ReadUleb(AReader,FunctionsCount) then
+            if not ReadUleb32(AReader,FunctionsCount) then
               begin
                 InputError('Error reading the functions count');
                 exit;
@@ -2568,14 +2533,9 @@ implementation
                 InputError('The functions count stretches beyond the end of the function section');
                 exit;
               end;
-            if FunctionsCount>high(uint32) then
-              begin
-                InputError('The functions count does not fit in an unsigned 32-bit int');
-                exit;
-              end;
             for i:=0 to FunctionsCount-1 do
               begin
-                if not ReadUleb(AReader,typidx) then
+                if not ReadUleb32(AReader,typidx) then
                   begin
                     InputError('Error reading type index for function');
                     exit;
@@ -2616,7 +2576,7 @@ implementation
 
         function ReadDataCountSection: Boolean;
           var
-            v: uint64;
+            v: uint32;
           begin
             Result:=False;
             if DataCountSectionRead then
@@ -2625,14 +2585,9 @@ implementation
                 exit;
               end;
             DataCountSectionRead:=True;
-            if not ReadUleb(AReader,v) then
+            if not ReadUleb32(AReader,v) then
               begin
                 InputError('Error reading the data count from the data count section');
-                exit;
-              end;
-            if v>high(uint32) then
-              begin
-                InputError('Data count does not fit in an unsigned 32-bit int');
                 exit;
               end;
             DataCount:=v;
@@ -2651,14 +2606,9 @@ implementation
               InputError('Error reading section ID');
               exit;
             end;
-          if not ReadUleb(AReader,SectionSize) then
+          if not ReadUleb32(AReader,SectionSize) then
             begin
               InputError('Error reading section size');
-              exit;
-            end;
-          if SectionSize>high(uint32) then
-            begin
-              InputError('Invalid section size');
               exit;
             end;
           if (AReader.Pos+SectionSize)>AReader.size then
