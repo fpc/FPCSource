@@ -2155,12 +2155,6 @@ implementation
           SectionSize: uint32;
           SectionStart: LongInt;
 
-{          TypeSectionRead: Boolean = false;
-          ImportSectionRead: Boolean = false;
-          FunctionSectionRead: Boolean = false;
-          DataCountSectionRead: Boolean = false;
-
-          DataCount: uint32;}
 
         function ReadUleb(r: TObjectReader; out v: uint64): boolean;
           var
