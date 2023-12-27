@@ -2175,6 +2175,16 @@ implementation
           SegFlags: uint32;
         end;
 
+        SymbolTable: array of record
+          SymFlags: uint32;
+          TargetSection: uint32;
+          SymIndex: uint32;
+          SymOffset: uint32;
+          SymSize: uint32;
+          SymKind: Byte;
+          SymName: ansistring;
+        end;
+
       function ReadSection: Boolean;
 
         function read(out b;len:longint):boolean;
@@ -2346,11 +2356,8 @@ implementation
 
             function ReadSymbolTable: Boolean;
               var
-                SymCount, SymFlags, TargetSection, SymIndex, SymOffset,
-                  SymSize: uint32;
+                SymCount: uint32;
                 i: Integer;
-                SymKind: Byte;
-                SymName: ansistring;
                 SymKindName: string;
               begin
                 Result:=False;
@@ -2365,81 +2372,83 @@ implementation
                     InputError('Error reading the symbol count from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
                     exit;
                   end;
+                SetLength(SymbolTable,SymCount);
                 for i:=0 to SymCount-1 do
-                  begin
-                    if not Read(SymKind,1) then
-                      begin
-                        InputError('Error reading symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
-                        exit;
-                      end;
-                    if not ReadUleb32(SymFlags) then
-                      begin
-                        InputError('Error reading symbol flags from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
-                        exit;
-                      end;
-                    case SymKind of
-                      byte(SYMTAB_FUNCTION),
-                      byte(SYMTAB_GLOBAL),
-                      byte(SYMTAB_EVENT),
-                      byte(SYMTAB_TABLE):
+                  with SymbolTable[i] do
+                    begin
+                      if not Read(SymKind,1) then
                         begin
-                          WriteStr(SymKindName, TWasmSymbolType(SymKind));
-                          if not ReadUleb32(SymIndex) then
-                            begin
-                              InputError('Error reading the index of a ' + SymKindName + ' symbol');
-                              exit;
-                            end;
-                          if ((SymFlags and WASM_SYM_EXPLICIT_NAME)<>0) or
-                             ((SymFlags and WASM_SYM_UNDEFINED)=0) then
-                            begin
-                              if not ReadName(SymName) then
-                                begin
-                                  InputError('Error reading symbol name of a ' + SymKindName + ' symbol');
-                                  exit;
-                                end;
-                            end;
-                        end;
-                      byte(SYMTAB_DATA):
-                        begin
-                          if not ReadName(SymName) then
-                            begin
-                              InputError('Error reading symbol name of a SYMTAB_DATA symbol');
-                              exit;
-                            end;
-                          if (SymFlags and WASM_SYM_UNDEFINED)=0 then
-                            begin
-                              if not ReadUleb32(SymIndex) then
-                                begin
-                                  InputError('Error reading the data segment index of a SYMTAB_DATA symbol');
-                                  exit;
-                                end;
-                              if not ReadUleb32(SymOffset) then
-                                begin
-                                  InputError('Error reading the offset of a SYMTAB_DATA symbol');
-                                  exit;
-                                end;
-                              if not ReadUleb32(SymSize) then
-                                begin
-                                  InputError('Error reading the size of a SYMTAB_DATA symbol');
-                                  exit;
-                                end;
-                            end;
-                        end;
-                      byte(SYMTAB_SECTION):
-                        begin
-                          if not ReadUleb32(TargetSection) then
-                            begin
-                              InputError('Error reading the target section of a SYMTAB_SECTION symbol');
-                              exit;
-                            end;
-                        end;
-                      else
-                        begin
-                          InputError('Unsupported symbol kind: ' + tostr(SymKind));
+                          InputError('Error reading symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
                           exit;
                         end;
+                      if not ReadUleb32(SymFlags) then
+                        begin
+                          InputError('Error reading symbol flags from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
+                          exit;
+                        end;
+                      case SymKind of
+                        byte(SYMTAB_FUNCTION),
+                        byte(SYMTAB_GLOBAL),
+                        byte(SYMTAB_EVENT),
+                        byte(SYMTAB_TABLE):
+                          begin
+                            WriteStr(SymKindName, TWasmSymbolType(SymKind));
+                            if not ReadUleb32(SymIndex) then
+                              begin
+                                InputError('Error reading the index of a ' + SymKindName + ' symbol');
+                                exit;
+                              end;
+                            if ((SymFlags and WASM_SYM_EXPLICIT_NAME)<>0) or
+                               ((SymFlags and WASM_SYM_UNDEFINED)=0) then
+                              begin
+                                if not ReadName(SymName) then
+                                  begin
+                                    InputError('Error reading symbol name of a ' + SymKindName + ' symbol');
+                                    exit;
+                                  end;
+                              end;
+                          end;
+                        byte(SYMTAB_DATA):
+                          begin
+                            if not ReadName(SymName) then
+                              begin
+                                InputError('Error reading symbol name of a SYMTAB_DATA symbol');
+                                exit;
+                              end;
+                            if (SymFlags and WASM_SYM_UNDEFINED)=0 then
+                              begin
+                                if not ReadUleb32(SymIndex) then
+                                  begin
+                                    InputError('Error reading the data segment index of a SYMTAB_DATA symbol');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(SymOffset) then
+                                  begin
+                                    InputError('Error reading the offset of a SYMTAB_DATA symbol');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(SymSize) then
+                                  begin
+                                    InputError('Error reading the size of a SYMTAB_DATA symbol');
+                                    exit;
+                                  end;
+                              end;
+                          end;
+                        byte(SYMTAB_SECTION):
+                          begin
+                            if not ReadUleb32(TargetSection) then
+                              begin
+                                InputError('Error reading the target section of a SYMTAB_SECTION symbol');
+                                exit;
+                              end;
+                          end;
+                        else
+                          begin
+                            InputError('Unsupported symbol kind: ' + tostr(SymKind));
+                            exit;
+                          end;
+                      end;
                     end;
-                  end;
                 if AReader.Pos<>(SectionStart+SectionSize) then
                   begin
                     InputError('Unexpected WASM_SYMBOL_TABLE section size');
@@ -3137,6 +3146,7 @@ implementation
         objdata:=CObjData.Create(InputFileName);
         result:=false;
         DataSegments:=nil;
+        SymbolTable:=nil;
         if not AReader.read(ModuleMagic,4) then
           exit;
         for i:=0 to 3 do
