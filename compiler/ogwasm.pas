@@ -2422,6 +2422,11 @@ implementation
                                     InputError('Error reading the data segment index of a SYMTAB_DATA symbol');
                                     exit;
                                   end;
+                                if SymIndex>high(DataSegments) then
+                                  begin
+                                    InputError('Data segment index of SYMTAB_DATA symbol out of bounds');
+                                    exit;
+                                  end;
                                 if not ReadUleb32(SymOffset) then
                                   begin
                                     InputError('Error reading the offset of a SYMTAB_DATA symbol');
