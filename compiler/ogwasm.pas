@@ -2162,6 +2162,7 @@ implementation
         DataCountSectionRead: Boolean = false;
 
         SegmentInfoSectionRead: Boolean = false;
+        SymbolTableSectionRead: Boolean = false;
 
         DataSegments: array of record
           Active: Boolean;
@@ -2346,6 +2347,12 @@ implementation
             function ReadSymbolTable: Boolean;
               begin
                 Result:=False;
+                if SymbolTableSectionRead then
+                  begin
+                    InputError('The WASM_SYMBOL_TABLE subsection is duplicated');
+                    exit;
+                  end;
+                SymbolTableSectionRead:=True;
               end;
 
             const
