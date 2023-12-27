@@ -2148,6 +2148,12 @@ implementation
 
     function TWasmObjInput.ReadObjData(AReader: TObjectreader; out ObjData: TObjData): boolean;
 
+      type
+        TLimits = record
+          Min, Max: uint32;
+          HasMax: Boolean;
+        end;
+
       var
         SectionId: Byte;
         SectionSize: uint32;
@@ -2163,6 +2169,40 @@ implementation
 
         SegmentInfoSectionRead: Boolean = false;
         SymbolTableSectionRead: Boolean = false;
+
+        FuncTypes: array of record
+          IsImport: Boolean;
+          ImportName: ansistring;
+          ImportModName: ansistring;
+          typidx: uint32;
+        end;
+        FuncTypeImportsCount: uint32;
+
+        TableTypes: array of record
+          IsImport: Boolean;
+          ImportName: ansistring;
+          ImportModName: ansistring;
+          reftype: TWasmBAsicType;
+          limits: TLimits;
+        end;
+        TableTypeImportsCount: uint32;
+
+        MemTypes: array of record
+          IsImport: Boolean;
+          ImportName: ansistring;
+          ImportModName: ansistring;
+          limits: TLimits;
+        end;
+        MemTypeImportsCount: uint32;
+
+        GlobalTypes: array of record
+          IsImport: Boolean;
+          ImportName: ansistring;
+          ImportModName: ansistring;
+          valtype: TWasmBasicType;
+          IsMutable: Boolean;
+        end;
+        GlobalTypeImportsCount: uint32;
 
         DataSegments: array of record
           Active: Boolean;
@@ -2646,13 +2686,11 @@ implementation
 
         function ReadImportSection: Boolean;
           var
-            ImportsCount, typidx, TableLimitsMin, TableLimitsMax,
-              MemoryLimitsMin, MemoryLimitsMax: uint32;
+            ImportsCount: uint32;
             i: Integer;
             ModName, Name: ansistring;
             ImportType, TableElemTyp, TableLimitsKind, MemoryLimitsKind,
             GlobalType, GlobalMutabilityType: Byte;
-            TableElemWBT, GlobalTypeWBT: TWasmBasicType;
           begin
             Result:=False;
             if ImportSectionRead then
@@ -2686,142 +2724,180 @@ implementation
                 case ImportType of
                   $00:  { func }
                     begin
-                      if not ReadUleb32(typidx) then
+                      Inc(FuncTypeImportsCount);
+                      SetLength(FuncTypes,FuncTypeImportsCount);
+                      with FuncTypes[FuncTypeImportsCount-1] do
                         begin
-                          InputError('Error reading type index for func import');
-                          exit;
-                        end;
-                      if typidx>high(FFuncTypes) then
-                        begin
-                          InputError('Type index in func import exceeds bounds of the types table');
-                          exit;
+                          IsImport:=True;
+                          ImportName:=Name;
+                          ImportModName:=ModName;
+                          if not ReadUleb32(typidx) then
+                            begin
+                              InputError('Error reading type index for func import');
+                              exit;
+                            end;
+                          if typidx>high(FFuncTypes) then
+                            begin
+                              InputError('Type index in func import exceeds bounds of the types table');
+                              exit;
+                            end;
                         end;
                     end;
                   $01:  { table }
                     begin
-                      if not AReader.read(TableElemTyp,1) then
+                      Inc(TableTypeImportsCount);
+                      SetLength(TableTypes,TableTypeImportsCount);
+                      with TableTypes[TableTypeImportsCount-1] do
                         begin
-                          InputError('Error reading table element type for table import');
-                          exit;
-                        end;
-                      if not decode_wasm_basic_type(TableElemTyp,TableElemWBT) then
-                        begin
-                          InputError('Invalid table element type for table import: $' + HexStr(TableElemTyp,2));
-                          exit;
-                        end;
-                      if not (TableElemWBT in WasmReferenceTypes) then
-                        begin
-                          InputError('Table element type for table import must be a reference type');
-                          exit;
-                        end;
-                      if not AReader.read(TableLimitsKind,1) then
-                        begin
-                          InputError('Error reading table limits kind for table import');
-                          exit;
-                        end;
-                      case TableLimitsKind of
-                        $00:
-                          begin
-                            if not ReadUleb32(TableLimitsMin) then
+                          IsImport:=True;
+                          ImportName:=Name;
+                          ImportModName:=ModName;
+                          if not AReader.read(TableElemTyp,1) then
+                            begin
+                              InputError('Error reading table element type for table import');
+                              exit;
+                            end;
+                          if not decode_wasm_basic_type(TableElemTyp,reftype) then
+                            begin
+                              InputError('Invalid table element type for table import: $' + HexStr(TableElemTyp,2));
+                              exit;
+                            end;
+                          if not (reftype in WasmReferenceTypes) then
+                            begin
+                              InputError('Table element type for table import must be a reference type');
+                              exit;
+                            end;
+                          if not AReader.read(TableLimitsKind,1) then
+                            begin
+                              InputError('Error reading table limits kind for table import');
+                              exit;
+                            end;
+                          case TableLimitsKind of
+                            $00:
                               begin
-                                InputError('Error reading table limits min for table import');
+                                limits.HasMax:=False;
+                                limits.Max:=high(limits.Max);
+                                if not ReadUleb32(limits.min) then
+                                  begin
+                                    InputError('Error reading table limits min for table import');
+                                    exit;
+                                  end;
+                              end;
+                            $01:
+                              begin
+                                limits.HasMax:=True;
+                                if not ReadUleb32(limits.min) then
+                                  begin
+                                    InputError('Error reading table limits min for table import');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(limits.max) then
+                                  begin
+                                    InputError('Error reading table limits max for table import');
+                                    exit;
+                                  end;
+                                if limits.min>limits.max then
+                                  begin
+                                    InputError('Table limits min exceed table limits max in table import');
+                                    exit;
+                                  end;
+                              end;
+                            else
+                              begin
+                                InputError('Unsupported table limits kind for table import: $' + HexStr(TableLimitsKind,2));
                                 exit;
                               end;
                           end;
-                        $01:
-                          begin
-                            if not ReadUleb32(TableLimitsMin) then
-                              begin
-                                InputError('Error reading table limits min for table import');
-                                exit;
-                              end;
-                            if not ReadUleb32(TableLimitsMax) then
-                              begin
-                                InputError('Error reading table limits max for table import');
-                                exit;
-                              end;
-                            if TableLimitsMin>TableLimitsMax then
-                              begin
-                                InputError('Table limits min exceed table limits max in table import');
-                                exit;
-                              end;
-                          end;
-                        else
-                          begin
-                            InputError('Unsupported table limits kind for table import: $' + HexStr(TableLimitsKind,2));
-                            exit;
-                          end;
-                      end;
+                        end;
                     end;
                   $02:  { mem }
                     begin
-                      if not AReader.read(MemoryLimitsKind,1) then
+                      Inc(MemTypeImportsCount);
+                      SetLength(MemTypes,MemTypeImportsCount);
+                      with MemTypes[MemTypeImportsCount-1] do
                         begin
-                          InputError('Error reading memory limits kind for memory import');
-                          exit;
+                          IsImport:=True;
+                          ImportName:=Name;
+                          ImportModName:=ModName;
+                          if not AReader.read(MemoryLimitsKind,1) then
+                            begin
+                              InputError('Error reading memory limits kind for memory import');
+                              exit;
+                            end;
+                          case MemoryLimitsKind of
+                            $00:
+                              begin
+                                limits.HasMax:=False;
+                                limits.Max:=high(limits.Max);
+                                if not ReadUleb32(limits.min) then
+                                  begin
+                                    InputError('Error reading memory limits min for memory import');
+                                    exit;
+                                  end;
+                              end;
+                            $01:
+                              begin
+                                limits.HasMax:=True;
+                                if not ReadUleb32(limits.min) then
+                                  begin
+                                    InputError('Error reading memory limits min for memory import');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(limits.max) then
+                                  begin
+                                    InputError('Error reading memory limits max for memory import');
+                                    exit;
+                                  end;
+                                if limits.Min>limits.Max then
+                                  begin
+                                    InputError('Memory limits min exceed memory limits max in memory import');
+                                    exit;
+                                  end;
+                              end;
+                            else
+                              begin
+                                InputError('Unsupported memory limits kind for memory import: $' + HexStr(MemoryLimitsKind,2));
+                                exit;
+                              end;
+                          end;
                         end;
-                      case MemoryLimitsKind of
-                        $00:
-                          begin
-                            if not ReadUleb32(MemoryLimitsMin) then
-                              begin
-                                InputError('Error reading memory limits min for memory import');
-                                exit;
-                              end;
-                          end;
-                        $01:
-                          begin
-                            if not ReadUleb32(MemoryLimitsMin) then
-                              begin
-                                InputError('Error reading memory limits min for memory import');
-                                exit;
-                              end;
-                            if not ReadUleb32(MemoryLimitsMax) then
-                              begin
-                                InputError('Error reading memory limits max for memory import');
-                                exit;
-                              end;
-                            if MemoryLimitsMin>MemoryLimitsMax then
-                              begin
-                                InputError('Memory limits min exceed memory limits max in memory import');
-                                exit;
-                              end;
-                          end;
-                        else
-                          begin
-                            InputError('Unsupported memory limits kind for memory import: $' + HexStr(MemoryLimitsKind,2));
-                            exit;
-                          end;
-                      end;
                     end;
                   $03:  { global }
                     begin
-                      if not AReader.read(GlobalType,1) then
+                      Inc(GlobalTypeImportsCount);
+                      SetLength(GlobalTypes,GlobalTypeImportsCount);
+                      with GlobalTypes[GlobalTypeImportsCount-1] do
                         begin
-                          InputError('Error reading global type for global import');
-                          exit;
-                        end;
-                      if not decode_wasm_basic_type(GlobalType,GlobalTypeWBT) then
-                        begin
-                          InputError('Unsupported global type for global import: ' + HexStr(GlobalType,2));
-                          exit;
-                        end;
-                      if not AReader.read(GlobalMutabilityType,1) then
-                        begin
-                          InputError('Error reading global mutability flag for global import');
-                          exit;
-                        end;
-                      case GlobalMutabilityType of
-                        $00:
-                          {const};
-                        $01:
-                          {var};
-                        else
-                          begin
-                            InputError('Unknown global mutability flag for global import: $' + HexStr(GlobalMutabilityType,2));
-                            exit;
+                          IsImport:=True;
+                          ImportName:=Name;
+                          ImportModName:=ModName;
+                          if not AReader.read(GlobalType,1) then
+                            begin
+                              InputError('Error reading global type for global import');
+                              exit;
+                            end;
+                          if not decode_wasm_basic_type(GlobalType,valtype) then
+                            begin
+                              InputError('Unsupported global type for global import: ' + HexStr(GlobalType,2));
+                              exit;
+                            end;
+                          if not AReader.read(GlobalMutabilityType,1) then
+                            begin
+                              InputError('Error reading global mutability flag for global import');
+                              exit;
+                            end;
+                          case GlobalMutabilityType of
+                            $00:
+                              IsMutable:=False;
+                            $01:
+                              IsMutable:=True;
+                            else
+                              begin
+                                InputError('Unknown global mutability flag for global import: $' + HexStr(GlobalMutabilityType,2));
+                                exit;
+                              end;
                           end;
-                      end;
+                        end;
                     end;
                   else
                     begin
@@ -3153,6 +3229,15 @@ implementation
         result:=false;
         DataSegments:=nil;
         SymbolTable:=nil;
+        FuncTypes:=nil;
+        FuncTypeImportsCount:=0;
+        TableTypes:=nil;
+        TableTypeImportsCount:=0;
+        MemTypes:=nil;
+        MemTypeImportsCount:=0;
+        GlobalTypes:=nil;
+        GlobalTypeImportsCount:=0;
+
         if not AReader.read(ModuleMagic,4) then
           exit;
         for i:=0 to 3 do
