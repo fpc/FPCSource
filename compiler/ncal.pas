@@ -1022,6 +1022,7 @@ implementation
            initcopy:=fparainit.getcopy;
          n:=tcallparanode(inherited dogetcopy);
          n.callparaflags:=callparaflags;
+         n.originalindex:=originalindex;
          n.parasym:=parasym;
          n.fparainit:=initcopy;
          if assigned(fparacopyback) then
