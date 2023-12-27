@@ -1765,9 +1765,9 @@ implementation
         if (destpara.resultdef.typ=enumdef) or
            ((destpara.resultdef.typ=floatdef) and (tfloatdef(destpara.resultdef).floattype=s64comp))
           then
-            tc:=ccallnode.createintern(procname,newparas)
+            tc:=ccallnode.createfromintrinsic(in_val_x,procname,newparas)
         else
-          tc:=ctypeconvnode.create(ccallnode.createintern(procname,newparas),destpara.left.resultdef);
+          tc:=ctypeconvnode.create(ccallnode.createfromintrinsic(in_val_x,procname,newparas),destpara.left.resultdef);
         addstatement(newstatement,cassignmentnode.create(
           destpara.left,ctypeconvnode.create_internal(tc,destpara.left.resultdef)));
 

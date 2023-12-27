@@ -2734,6 +2734,9 @@ implementation
         maxlennode, outnode, valnode: TNode;
         MaxStrLen: Int64;
         StringLiteral: string;
+        ValOutput: TConstExprInt;
+        ValCode: TCGInt;
+        NewStatements: TStatementNode;
       begin
         result := nil;
         case intrinsiccode of
@@ -2798,6 +2801,69 @@ implementation
                                     end;
                                 end;
                             end;
+                        end;
+                    end;
+                end;
+            end;
+          in_val_x:
+            begin
+              { rare optimization opportunity which takes some extra time,
+                so check only at level 3+ }
+              if not(cs_opt_level3 in current_settings.optimizerswitches) then
+                exit;
+              { If the input is a constant, attempt to convert, for example:
+                  "Val('5', Output, Code);" to "Output := 5; Code := 0;" }
+
+              { Format of the internal function fpc_val_sint_*str) is:
+                fpc_val_sint_*str(SizeInt; *String; out ValSInt): ValSInt; }
+
+              { Remember the parameters are in reverse order - the leftmost one
+                is the integer data size can usually be ignored.
+
+                For fpc_val_uint_*str variants, the data size is not present as
+                of FPC 3.2.0
+
+                Para indices:
+                * 0 = Code output (present even if omitted in original code)
+                * 1 = String input
+                * 2 = Data size
+              }
+              para := GetParaFromIndex(0);
+              if Assigned(para) then
+                begin
+                  outnode := para.left;
+                  para := GetParaFromIndex(1);
+                  if Assigned(para) then
+                    begin
+                      valnode := para.left;
+                      if is_conststringnode(valnode) then
+                        begin
+                          ValOutput.signed := is_signed(ResultDef);
+                          if ValOutput.signed then
+                            Val(TStringConstNode(valnode).value_str, ValOutput.svalue, ValCode)
+                          else
+                            Val(TStringConstNode(valnode).value_str, ValOutput.uvalue, ValCode);
+
+                          { Due to the way the node tree works, we have to insert
+                            the assignment to the Code output within the
+                            assignment to the value output (function result),
+                            so use a block node for that}
+
+                          Result := internalstatements(NewStatements);
+
+                          { Create a node for writing the Code output }
+                          addstatement(
+                            NewStatements,
+                            CAssignmentNode.Create_Internal(
+                              outnode.getcopy(), { The original will get destroyed }
+                              COrdConstNode.Create(ValCode, outnode.ResultDef, False)
+                            )
+                          );
+
+                          { Now actually create the function result }
+                          valnode := COrdConstNode.Create(ValOutput, ResultDef, False);
+                          addstatement(NewStatements, valnode);
+                          { Result will now undergo firstpass }
                         end;
                     end;
                 end;
