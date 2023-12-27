@@ -3311,7 +3311,7 @@ implementation
                       end
                     else
                       begin
-                        objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName);
+                        objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName);
                         objsym.bind:=AB_EXTERNAL;
                         objsym.typ:=AT_FUNCTION;
                         objsym.objsection:=nil;
