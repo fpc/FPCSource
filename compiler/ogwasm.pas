@@ -2438,6 +2438,11 @@ implementation
                                 InputError('Error reading the index of a ' + SymKindName + ' symbol');
                                 exit;
                               end;
+                            if ((SymKind=byte(SYMTAB_FUNCTION)) and (SymIndex>high(FuncTypes))) then
+                              begin
+                                InputError('Symbol index too high');
+                                exit;
+                              end;
                             if ((SymFlags and WASM_SYM_EXPLICIT_NAME)<>0) or
                                ((SymFlags and WASM_SYM_UNDEFINED)=0) then
                               begin
