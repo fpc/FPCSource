@@ -3194,7 +3194,10 @@ implementation
                 else
                   begin
                     objsym:=ObjData.CreateSymbol(SymName);
-                    objsym.bind:=AB_GLOBAL;
+                    if (SymFlags and WASM_SYM_BINDING_LOCAL)<> 0 then
+                      objsym.bind:=AB_LOCAL
+                    else
+                      objsym.bind:=AB_GLOBAL;
                     objsym.typ:=AT_DATA;
                     objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex]);
                     objsym.offset:=SymOffset;
