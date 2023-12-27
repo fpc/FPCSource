@@ -3145,6 +3145,7 @@ implementation
         ModuleVersion: array [0..3] of Byte;
         i: Integer;
         CurrSec: TObjSection;
+        objsym: TObjSymbol;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -3176,6 +3177,38 @@ implementation
                 CurrSec.Size:=Len;
               end;
         ReadSectionContent(ObjData);
+
+        for i:=low(SymbolTable) to high(SymbolTable) do
+          with SymbolTable[i] do
+            case SymKind of
+              byte(SYMTAB_DATA):
+                if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                  begin
+                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym.bind:=AB_EXTERNAL;
+                    objsym.typ:=AT_DATA;
+                    objsym.objsection:=nil;
+                    objsym.offset:=0;
+                    objsym.size:=0;
+                  end
+                else
+                  begin
+                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym.bind:=AB_GLOBAL;
+                    objsym.typ:=AT_DATA;
+                    objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex]);
+                    objsym.offset:=SymOffset;
+                    objsym.size:=SymSize;
+                  end;
+              byte(SYMTAB_FUNCTION),
+              byte(SYMTAB_GLOBAL),
+              byte(SYMTAB_SECTION),
+              byte(SYMTAB_EVENT),
+              byte(SYMTAB_TABLE):
+                {TODO};
+              else
+                internalerror(2023122701);
+            end;
 
         Result:=True;
       end;
