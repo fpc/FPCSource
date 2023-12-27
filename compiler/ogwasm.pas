@@ -2916,7 +2916,7 @@ implementation
 
         function ReadFunctionSection: Boolean;
           var
-            FunctionsCount, typidx: uint32;
+            FunctionsCount: uint32;
             i: Integer;
           begin
             Result:=False;
@@ -2931,19 +2931,22 @@ implementation
                 InputError('Error reading the functions count');
                 exit;
               end;
+            SetLength(FuncTypes, FuncTypeImportsCount + FunctionsCount);
             for i:=0 to FunctionsCount-1 do
-              begin
-                if not ReadUleb32(typidx) then
-                  begin
-                    InputError('Error reading type index for function');
-                    exit;
-                  end;
-                if typidx>high(FFuncTypes) then
-                  begin
-                    InputError('Type index in the function section exceeds bounds of the types table');
-                    exit;
-                  end;
-              end;
+              with FuncTypes[i + FuncTypeImportsCount] do
+                begin
+                  IsImport:=False;
+                  if not ReadUleb32(typidx) then
+                    begin
+                      InputError('Error reading type index for function');
+                      exit;
+                    end;
+                  if typidx>high(FFuncTypes) then
+                    begin
+                      InputError('Type index in the function section exceeds bounds of the types table');
+                      exit;
+                    end;
+                end;
             if AReader.Pos<>(SectionStart+SectionSize) then
               begin
                 InputError('Unexpected function section size');
