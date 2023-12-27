@@ -1819,7 +1819,8 @@ implementation
         n.procdefinition:=procdefinition;
         n.typedef := typedef;
         n.callnodeflags := callnodeflags;
-        n.pushedparasize:=pushedparasize;
+        n.pushedparasize := pushedparasize;
+        n.intrinsiccode := intrinsiccode;
         if assigned(callinitblock) then
           n.callinitblock:=tblocknode(callinitblock.dogetcopy)
         else
