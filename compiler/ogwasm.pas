@@ -3296,7 +3296,38 @@ implementation
                     objsym.offset:=SymOffset;
                     objsym.size:=SymSize;
                   end;
-              byte(SYMTAB_FUNCTION),
+              byte(SYMTAB_FUNCTION):
+                if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                  begin
+                    if not FuncTypes[SymIndex].IsImport then
+                      begin
+                        InputError('WASM_SYM_UNDEFINED set on a SYMTAB_FUNCTION symbol, that is not an import');
+                        exit;
+                      end;
+                    if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
+                      begin
+                        Writeln('Alias: ', SymName, ' -> ', FuncTypes[SymIndex].ImportModName, '.', FuncTypes[SymIndex].ImportName);
+                        {todo...}
+                      end
+                    else
+                      begin
+                        objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName);
+                        objsym.bind:=AB_EXTERNAL;
+                        objsym.typ:=AT_FUNCTION;
+                        objsym.objsection:=nil;
+                        objsym.offset:=0;
+                        objsym.size:=0;
+                      end;
+                  end
+                else
+                  begin
+                    if FuncTypes[SymIndex].IsImport then
+                      begin
+                        InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_FUNCTION symbol, that is an import');
+                        exit;
+                      end;
+                    {todo...}
+                  end;
               byte(SYMTAB_GLOBAL),
               byte(SYMTAB_SECTION),
               byte(SYMTAB_EVENT),
