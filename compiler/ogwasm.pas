@@ -2219,6 +2219,7 @@ implementation
         GlobalTypeImportsCount: uint32;
 
         CodeSegments: array of record
+          CodeSectionOffset: uint32;
           CodeSize: uint32;
           DataPos: LongInt;
           SegName: ansistring;
@@ -2226,6 +2227,7 @@ implementation
         end;
 
         DataSegments: array of record
+          DataSectionOffset: uint32;
           Active: Boolean;
           MemIdx: uint32;
           Len: uint32;
@@ -3330,6 +3332,7 @@ implementation
                       exit;
                     end;
                   DataPos:=AReader.Pos;
+                  CodeSectionOffset:=AReader.Pos-SectionStart;
                   AReader.Seek(AReader.Pos+CodeSize);
                 end;
             if AReader.Pos<>(SectionStart+SectionSize) then
@@ -3456,6 +3459,7 @@ implementation
                       exit;
                     end;
                   DataPos:=AReader.Pos;
+                  DataSectionOffset:=AReader.Pos-SectionStart;
                   AReader.Seek(AReader.Pos+Len);
                 end;
             if AReader.Pos<>(SectionStart+SectionSize) then
@@ -3585,11 +3589,55 @@ implementation
           Result:=True;
         end;
 
+        function FindCodeSegment(Ofs: uint32): Integer;
+          var
+            L, R, M: Integer;
+          begin
+            L:=Low(CodeSegments);
+            R:=High(CodeSegments);
+            while L<=R do
+              begin
+                M:=(L+R) div 2;
+                if (CodeSegments[M].CodeSectionOffset+CodeSegments[M].CodeSize-1) < Ofs then
+                  L:=M+1
+                else if CodeSegments[M].CodeSectionOffset > Ofs then
+                  R:=M-1
+                else
+                  begin
+                    Result:=M;
+                    exit;
+                  end;
+              end;
+            Result:=-1;
+          end;
+
+        function FindDataSegment(Ofs: uint32): Integer;
+          var
+            L, R, M: Integer;
+          begin
+            L:=Low(DataSegments);
+            R:=High(DataSegments);
+            while L<=R do
+              begin
+                M:=(L+R) div 2;
+                if (DataSegments[M].DataSectionOffset+DataSegments[M].Len-1) < Ofs then
+                  L:=M+1
+                else if DataSegments[M].DataSectionOffset > Ofs then
+                  R:=M-1
+                else
+                  begin
+                    Result:=M;
+                    exit;
+                  end;
+              end;
+            Result:=-1;
+          end;
+
       var
         ModuleMagic: array [0..3] of Byte;
         ModuleVersion: array [0..3] of Byte;
-        i, FirstDataSegmentIdx: Integer;
-        CurrSec: TObjSection;
+        i, j, FirstDataSegmentIdx, SegI: Integer;
+        CurrSec, ObjSec: TObjSection;
         objsym: TObjSymbol;
       begin
         FReader:=AReader;
@@ -3732,6 +3780,36 @@ implementation
               else
                 internalerror(2023122701);
             end;
+
+        for j:=0 to high(RelocationTable) do
+          for i:=0 to high(RelocationTable[j]) do
+            with RelocationTable[j,i] do
+              begin
+                case j of
+                  0:
+                    begin
+                      SegI:=FindCodeSegment(RelocOffset);
+                      if SegI=-1 then
+                        begin
+                          InputError('Relocation offset not found in code segment');
+                          Exit;
+                        end;
+                      ObjSec:=TObjSection(ObjData.ObjSectionList[SegI]);
+                    end;
+                  1:
+                    begin
+                      SegI:=FindDataSegment(RelocOffset);
+                      if SegI=-1 then
+                        begin
+                          InputError('Relocation offset not found in data segment');
+                          Exit;
+                        end;
+                      ObjSec:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SegI]);
+                    end
+                  else
+                    internalerror(2023122801);
+                end;
+              end;
 
         Result:=True;
       end;
