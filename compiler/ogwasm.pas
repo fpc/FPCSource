@@ -2163,6 +2163,7 @@ implementation
         TypeSectionRead: Boolean = false;
         ImportSectionRead: Boolean = false;
         FunctionSectionRead: Boolean = false;
+        GlobalSectionRead: Boolean = false;
         CodeSectionRead: Boolean = false;
         DataSectionRead: Boolean = false;
         DataCountSectionRead: Boolean = false;
@@ -2961,8 +2962,106 @@ implementation
           end;
 
         function ReadGlobalSection: Boolean;
+
+          function ParseExpr: Boolean;
+            var
+              B: Byte;
+              tmpbuf: array [1..8] of Byte;
+              tmpInt32: int32;
+              tmpInt64: int64;
+            begin
+              Result:=False;
+              repeat
+                if not Read(B, 1) then
+                  exit;
+                case B of
+                  $0B:  { end }
+                    ;
+                  $41:  { i32.const }
+                    if not ReadSleb32(tmpInt32) then
+                      exit;
+                  $42:  { i64.const }
+                    if not ReadSleb(tmpInt64) then
+                      exit;
+                  $43:  { f32.const }
+                    if not Read(tmpbuf, 4) then
+                      exit;
+                  $44:  { f64.const }
+                    if not Read(tmpbuf, 8) then
+                      exit;
+                  $D0:  { ref.null }
+                    if not Read(tmpbuf, 1) then
+                      exit;
+                  else
+                    begin
+                      InputError('Unsupported opcode in global initializer');
+                      exit;
+                    end;
+                end;
+              until b = $0B;
+              Result:=True;
+            end;
+
+          var
+            GlobalsCount: uint32;
+            i: Integer;
+            vt: Byte;
+            mut: Byte;
           begin
             Result:=False;
+            if GlobalSectionRead then
+              begin
+                InputError('Global section is duplicated');
+                exit;
+              end;
+            GlobalSectionRead:=True;
+            if not ReadUleb32(GlobalsCount) then
+              begin
+                InputError('Error reading the globals count from the global section');
+                exit;
+              end;
+            SetLength(GlobalTypes,Length(GlobalTypes)+GlobalsCount);
+            for i:=0 to GlobalsCount-1 do
+              with GlobalTypes[i + GlobalTypeImportsCount] do
+                begin
+                  if not read(vt,1) then
+                    begin
+                      InputError('Error reading the type of a global from the global section');
+                      exit;
+                    end;
+                  if not decode_wasm_basic_type(vt,valtype) then
+                    begin
+                      InputError('Unsupported type of global in the global section');
+                      exit;
+                    end;
+                  if not read(mut,1) then
+                    begin
+                      InputError('Error reading the mutability flag of a global in the global section');
+                      exit;
+                    end;
+                  case mut of
+                    $00:
+                      IsMutable:=False;
+                    $01:
+                      IsMutable:=True;
+                    else
+                      begin
+                        InputError('Unsupported value (' + tostr(mut) + ') for the mutability flag of a global in the global section');
+                        exit;
+                      end;
+                  end;
+                  if not ParseExpr then
+                    begin
+                      InputError('Error parsing the global initializer expression in the global section');
+                      exit;
+                    end;
+                end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected global section size');
+                exit;
+              end;
+            Result:=True;
           end;
 
         function ReadExportSection: Boolean;
@@ -3194,7 +3293,11 @@ implementation
                   exit;
                 end;
             Byte(wsiGlobal):
-              Result := ReadGlobalSection;
+              if not ReadGlobalSection then
+                begin
+                  InputError('Error reading the global section');
+                  exit;
+                end;
             Byte(wsiExport):
               Result := ReadExportSection;
             Byte(wsiCode):
