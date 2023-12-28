@@ -2155,6 +2155,7 @@ implementation
         end;
 
       var
+        SectionIndex: Integer = -1;
         SectionId: Byte;
         SectionSize: uint32;
         SectionStart: LongInt;
@@ -2171,6 +2172,9 @@ implementation
 
         SegmentInfoSectionRead: Boolean = false;
         SymbolTableSectionRead: Boolean = false;
+
+        CodeSectionIndex: Integer = -1;
+        DataSectionIndex: Integer = -1;
 
         FuncTypes: array of record
           IsImport: Boolean;
@@ -3279,6 +3283,7 @@ implementation
                 exit;
               end;
             CodeSectionRead:=True;
+            CodeSectionIndex:=SectionIndex;
             if not ReadUleb32(CodeEntriesCount) then
               begin
                 InputError('Error reading the code entries cound from the code section');
@@ -3352,6 +3357,7 @@ implementation
                 exit;
               end;
             DataSectionRead:=True;
+            DataSectionIndex:=SectionIndex;
             if not ReadUleb32(DataCount) then
               begin
                 InputError('Error reading the data entries count from the data section');
@@ -3471,6 +3477,7 @@ implementation
 
         begin
           Result:=False;
+          Inc(SectionIndex);
           if not AReader.read(SectionId,1) then
             begin
               InputError('Error reading section ID');
