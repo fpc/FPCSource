@@ -2356,8 +2356,24 @@ implementation
         function ReadCustomSection: Boolean;
 
           function ReadRelocationSection: Boolean;
+            var
+              TargetSection, RelocCount: uint32;
+              i: Integer;
             begin
               Result:=False;
+              if not ReadUleb32(TargetSection) then
+                begin
+                  InputError('Error reading the index of the target section of a relocation section');
+                  exit;
+                end;
+              if not ReadUleb32(RelocCount) then
+                begin
+                  InputError('Error reading the relocation entries count from a relocation section');
+                  exit;
+                end;
+              for i:=0 to RelocCount-1 do
+                ;
+              Result:=True;
             end;
 
           function ReadLinkingSection: Boolean;
@@ -2607,7 +2623,13 @@ implementation
             Result:=False;
             ReadName(SectionName);
             if Copy(SectionName,1,Length(RelocationSectionPrefix)) = RelocationSectionPrefix then
-              Result:=ReadRelocationSection
+              begin
+                if not ReadRelocationSection then
+                  begin
+                    InputError('Error reading the relocation section ''' + SectionName + '''');
+                    exit;
+                  end;
+              end
             else
               case SectionName of
                 'linking':
