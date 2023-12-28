@@ -2246,6 +2246,7 @@ implementation
           SymSize: uint32;
           SymKind: Byte;
           SymName: ansistring;
+          ObjSym: TObjSymbol;
         end;
 
         { meaning of first index: }
@@ -3638,7 +3639,7 @@ implementation
         ModuleVersion: array [0..3] of Byte;
         i, j, FirstDataSegmentIdx, SegI: Integer;
         CurrSec, ObjSec: TObjSection;
-        objsym: TObjSymbol;
+        BaseSectionOffset: UInt32;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -3694,9 +3695,9 @@ implementation
           with CodeSegments[i] do
             begin
               if SegIsExported then
-                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load,oso_keep],false)
+                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load,oso_keep],false)
               else
-                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load],false);
+                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load],false);
               CurrSec.DataPos:=DataPos;
               CurrSec.Size:=CodeSize;
             end;
@@ -3794,6 +3795,7 @@ implementation
                           InputError('Relocation offset not found in code segment');
                           Exit;
                         end;
+                      BaseSectionOffset:=CodeSegments[SegI].CodeSectionOffset;
                       ObjSec:=TObjSection(ObjData.ObjSectionList[SegI]);
                     end;
                   1:
@@ -3804,10 +3806,25 @@ implementation
                           InputError('Relocation offset not found in data segment');
                           Exit;
                         end;
+                      BaseSectionOffset:=DataSegments[SegI].DataSectionOffset;
                       ObjSec:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SegI]);
                     end
                   else
                     internalerror(2023122801);
+                end;
+                case TWasmRelocationType(RelocType) of
+                  R_WASM_FUNCTION_INDEX_LEB:
+                    begin
+                      if RelocIndex>high(SymbolTable) then
+                        begin
+                          InputError('Symbol index in relocation too high');
+                          exit;
+                        end;
+                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
+                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_FUNCTION_INDEX_LEB))
+                      else
+                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                    end;
                 end;
               end;
 
