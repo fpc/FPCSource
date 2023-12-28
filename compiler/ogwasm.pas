@@ -3825,6 +3825,18 @@ implementation
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
+                  R_WASM_TABLE_INDEX_SLEB:
+                    begin
+                      if RelocIndex>high(SymbolTable) then
+                        begin
+                          InputError('Symbol index in relocation too high');
+                          exit;
+                        end;
+                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
+                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB))
+                      else
+                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                    end;
                 end;
               end;
 
