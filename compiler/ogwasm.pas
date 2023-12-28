@@ -3640,6 +3640,7 @@ implementation
         i, j, FirstDataSegmentIdx, SegI: Integer;
         CurrSec, ObjSec: TObjSection;
         BaseSectionOffset: UInt32;
+        ObjReloc: TWasmObjRelocation;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -3846,6 +3847,22 @@ implementation
                         end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE))
+                      else
+                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                    end;
+                  R_WASM_MEMORY_ADDR_LEB:
+                    begin
+                      if RelocIndex>high(SymbolTable) then
+                        begin
+                          InputError('Symbol index in relocation too high');
+                          exit;
+                        end;
+                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
+                        begin
+                          ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_LEB);
+                          ObjReloc.Addend:=RelocAddend;
+                          ObjSec.ObjRelocations.Add(ObjReloc);
+                        end
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
