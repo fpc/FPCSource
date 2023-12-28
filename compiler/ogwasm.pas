@@ -2357,8 +2357,10 @@ implementation
 
           function ReadRelocationSection: Boolean;
             var
-              TargetSection, RelocCount: uint32;
+              TargetSection, RelocCount, RelocOffset, RelocIndex: uint32;
               i: Integer;
+              RelocType: Byte;
+              RelocAddend: int32;
             begin
               Result:=False;
               if not ReadUleb32(TargetSection) then
@@ -2372,7 +2374,36 @@ implementation
                   exit;
                 end;
               for i:=0 to RelocCount-1 do
-                ;
+                begin
+                  if not Read(RelocType,1) then
+                    begin
+                      InputError('Error reading the relocation type of a relocation entry');
+                      exit;
+                    end;
+                  if not ReadUleb32(RelocOffset) then
+                    begin
+                      InputError('Error reading the relocation offset of a relocation entry');
+                      exit;
+                    end;
+                  if not ReadUleb32(RelocIndex) then
+                    begin
+                      InputError('Error reading the relocation index of a relocation entry');
+                      exit;
+                    end;
+                  if TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_OFFSET_I32,R_WASM_SECTION_OFFSET_I32,R_WASM_MEMORY_ADDR_LEB,R_WASM_MEMORY_ADDR_SLEB,R_WASM_MEMORY_ADDR_I32] then
+                    begin
+                      if not ReadSleb32(RelocAddend) then
+                        begin
+                          InputError('Error reading the relocation addend of a relocation entry');
+                          exit;
+                        end;
+                    end;
+                end;
+              if AReader.Pos<>(SectionStart+SectionSize) then
+                begin
+                  InputError('Unexpected relocation section size');
+                  exit;
+                end;
               Result:=True;
             end;
 
