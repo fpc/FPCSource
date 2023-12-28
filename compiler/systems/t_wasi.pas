@@ -298,6 +298,17 @@ begin
     if s<>'' then
       LinkScript.Concat('READOBJECT ' + maybequoted(s));
   end;
+
+  LinkScript.Concat('EXESECTION .text');
+  LinkScript.Concat('  OBJSECTION .text.*');
+  LinkScript.Concat('ENDEXESECTION');
+
+  LinkScript.Concat('EXESECTION .data');
+  LinkScript.Concat('  OBJSECTION .rodata.*');
+  LinkScript.Concat('  OBJSECTION .data.*');
+  LinkScript.Concat('  OBJSECTION .bss');
+  LinkScript.Concat('ENDEXESECTION');
+
 end;
 
 function TInternalLinkerWasi.GetCodeSize(aExeOutput: TExeOutput): QWord;
