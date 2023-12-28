@@ -3663,6 +3663,7 @@ implementation
       begin
         inherited create;
         CObjData:=TWasmObjData;
+        MaxMemPos:=$FFFFFFFF;
       end;
 
 
