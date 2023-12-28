@@ -2372,6 +2372,13 @@ implementation
                   InputError('Error reading the index of the target section of a relocation section');
                   exit;
                 end;
+              if TargetSection=CodeSectionIndex then
+              else if TargetSection=DataSectionIndex then
+              else
+                begin
+                  InputError('Relocation for custom sections not supported, yet');
+                  exit;
+                end;
               if not ReadUleb32(RelocCount) then
                 begin
                   InputError('Error reading the relocation entries count from a relocation section');
