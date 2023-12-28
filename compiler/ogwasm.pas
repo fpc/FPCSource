@@ -2218,6 +2218,7 @@ implementation
           CodeSize: uint32;
           DataPos: LongInt;
           SegName: ansistring;
+          SegIsExported: Boolean;
         end;
 
         DataSegments: array of record
@@ -3535,14 +3536,21 @@ implementation
                     InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_FUNCTION symbol, that is an import');
                     exit;
                   end;
-                CodeSegments[SymIndex-FuncTypeImportsCount].SegName:='.text.n_'+SymName;
+                with CodeSegments[SymIndex-FuncTypeImportsCount] do
+                  begin
+                    SegName:='.text.n_'+SymName;
+                    SegIsExported:=FuncTypes[SymIndex].IsExported;
+                  end;
               end;
 
         { create segments }
         for i:=low(CodeSegments) to high(CodeSegments) do
           with CodeSegments[i] do
             begin
-              CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load],false);
+              if SegIsExported then
+                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load,oso_keep],false)
+              else
+                CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load],false);
               CurrSec.DataPos:=DataPos;
               CurrSec.Size:=CodeSize;
             end;
