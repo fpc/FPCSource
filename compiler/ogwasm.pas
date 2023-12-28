@@ -2380,6 +2380,21 @@ implementation
                       InputError('Error reading the relocation type of a relocation entry');
                       exit;
                     end;
+                  if not (TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_INDEX_LEB,
+                                                             R_WASM_MEMORY_ADDR_LEB,
+                                                             R_WASM_TABLE_INDEX_SLEB,
+                                                             R_WASM_MEMORY_ADDR_SLEB,
+                                                             R_WASM_SECTION_OFFSET_I32,
+                                                             R_WASM_TABLE_INDEX_I32,
+                                                             R_WASM_FUNCTION_OFFSET_I32,
+                                                             R_WASM_MEMORY_ADDR_I32,
+                                                             R_WASM_TYPE_INDEX_LEB,
+                                                             R_WASM_GLOBAL_INDEX_LEB,
+                                                             R_WASM_TAG_INDEX_LEB]) then
+                    begin
+                      InputError('Unsupported relocation type: ' + tostr(RelocType));
+                      exit;
+                    end;
                   if not ReadUleb32(RelocOffset) then
                     begin
                       InputError('Error reading the relocation offset of a relocation entry');
