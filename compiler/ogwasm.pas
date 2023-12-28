@@ -3091,6 +3091,11 @@ implementation
                 InputError('Error reading the code entries cound from the code section');
                 exit;
               end;
+            if CodeEntriesCount <> (Length(FuncTypes) - FuncTypeImportsCount) then
+              begin
+                InputError('Code segment count in the code section does not match the function definition count in the function section');
+                exit;
+              end;
             SetLength(CodeSegments,CodeEntriesCount);
             for i:=0 to CodeEntriesCount-1 do
               with CodeSegments[i] do
