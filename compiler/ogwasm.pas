@@ -3898,9 +3898,17 @@ implementation
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
+                  R_WASM_TYPE_INDEX_LEB:
+                    begin
+                      if RelocIndex>high(FFuncTypes) then
+                        begin
+                          InputError('Type index in relocation too high');
+                          exit;
+                        end;
+                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateTypeIndex(RelocOffset-BaseSectionOffset,RelocIndex));
+                    end;
                   R_WASM_SECTION_OFFSET_I32,
                   R_WASM_FUNCTION_OFFSET_I32,
-                  R_WASM_TYPE_INDEX_LEB,
                   R_WASM_GLOBAL_INDEX_LEB,
                   R_WASM_TAG_INDEX_LEB:
                     {TODO};
