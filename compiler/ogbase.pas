@@ -1469,6 +1469,8 @@ implementation
               end;
           end;
         result:=secoptions[atype];
+        if (target_info.system in systems_wasm) and (atype=sec_bss) then
+          Result:=Result+[oso_data,oso_sparse_data];
 {$ifdef OMFOBJSUPPORT}
         { in the huge memory model, BSS data is actually written in the regular
           FAR_DATA segment of the module }
