@@ -2205,6 +2205,11 @@ implementation
         end;
         GlobalTypeImportsCount: uint32;
 
+        CodeSegments: array of record
+          CodeSize: uint32;
+          DataPos: LongInt;
+        end;
+
         DataSegments: array of record
           Active: Boolean;
           MemIdx: uint32;
@@ -3086,10 +3091,29 @@ implementation
                 InputError('Error reading the code entries cound from the code section');
                 exit;
               end;
+            SetLength(CodeSegments,CodeEntriesCount);
             for i:=0 to CodeEntriesCount-1 do
+              with CodeSegments[i] do
+                begin
+                  if not ReadUleb32(CodeSize) then
+                    begin
+                      InputError('Error reading the code size of an entry in the code section');
+                      exit;
+                    end;
+                  if (AReader.Pos+CodeSize)>(SectionStart+SectionSize) then
+                    begin
+                      InputError('Code segment exceeds the bounds of the code section');
+                      exit;
+                    end;
+                  DataPos:=AReader.Pos;
+                  AReader.Seek(AReader.Pos+CodeSize);
+                end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
               begin
-                {TODO}
+                InputError('Unexpected code section size');
+                exit;
               end;
+            Result:=true;
           end;
 
         function ReadDataSection: Boolean;
@@ -3301,7 +3325,11 @@ implementation
             Byte(wsiExport):
               Result := ReadExportSection;
             Byte(wsiCode):
-              Result := ReadCodeSection;
+              if not ReadCodeSection then
+                begin
+                  InputError('Error reading the code section');
+                  exit;
+                end;
             Byte(wsiData):
               if not ReadDataSection then
                 begin
@@ -3338,6 +3366,7 @@ implementation
         InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
+        CodeSegments:=nil;
         DataSegments:=nil;
         SymbolTable:=nil;
         FuncTypes:=nil;
