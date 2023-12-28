@@ -2164,6 +2164,7 @@ implementation
         ImportSectionRead: Boolean = false;
         FunctionSectionRead: Boolean = false;
         GlobalSectionRead: Boolean = false;
+        ExportSectionRead: Boolean = false;
         CodeSectionRead: Boolean = false;
         DataSectionRead: Boolean = false;
         DataCountSectionRead: Boolean = false;
@@ -2176,6 +2177,8 @@ implementation
           ImportName: ansistring;
           ImportModName: ansistring;
           typidx: uint32;
+          IsExported: Boolean;
+          ExportName: ansistring;
         end;
         FuncTypeImportsCount: uint32;
 
@@ -2185,6 +2188,8 @@ implementation
           ImportModName: ansistring;
           reftype: TWasmBAsicType;
           limits: TLimits;
+          IsExported: Boolean;
+          ExportName: ansistring;
         end;
         TableTypeImportsCount: uint32;
 
@@ -2193,6 +2198,8 @@ implementation
           ImportName: ansistring;
           ImportModName: ansistring;
           limits: TLimits;
+          IsExported: Boolean;
+          ExportName: ansistring;
         end;
         MemTypeImportsCount: uint32;
 
@@ -2202,6 +2209,8 @@ implementation
           ImportModName: ansistring;
           valtype: TWasmBasicType;
           IsMutable: Boolean;
+          IsExported: Boolean;
+          ExportName: ansistring;
         end;
         GlobalTypeImportsCount: uint32;
 
@@ -3071,8 +3080,122 @@ implementation
           end;
 
         function ReadExportSection: Boolean;
+          var
+            ExportsCount, FuncIdx, TableIdx, MemIdx, GlobalIdx: uint32;
+            i: Integer;
+            Name: ansistring;
+            ExportType: Byte;
           begin
             Result:=False;
+            if ExportSectionRead then
+              begin
+                InputError('Export section is duplicated');
+                exit;
+              end;
+            ExportSectionRead:=True;
+            if not ReadUleb32(ExportsCount) then
+              begin
+                InputError('Error reading the exports count from the export section');
+                exit;
+              end;
+            for i:=0 to ExportsCount-1 do
+              begin
+                if not ReadName(Name) then
+                  begin
+                    InputError('Error reading an export name from the export section');
+                    exit;
+                  end;
+                if not Read(ExportType,1) then
+                  begin
+                    InputError('Error reading an export type from the export section');
+                    exit;
+                  end;
+                case ExportType of
+                  $00:  { func }
+                    begin
+                      if not ReadUleb32(FuncIdx) then
+                        begin
+                          InputError('Error reading a func index from the export section');
+                          exit;
+                        end;
+                      if FuncIdx>high(FuncTypes) then
+                        begin
+                          InputError('Func index too high in the export section');
+                          exit;
+                        end;
+                      with FuncTypes[FuncIdx] do
+                        begin
+                          IsExported:=True;
+                          ExportName:=Name;
+                        end;
+                    end;
+                  $01:  { table }
+                    begin
+                      if not ReadUleb32(TableIdx) then
+                        begin
+                          InputError('Error reading a table index from the export section');
+                          exit;
+                        end;
+                      if TableIdx>high(TableTypes) then
+                        begin
+                          InputError('Table index too high in the export section');
+                          exit;
+                        end;
+                      with TableTypes[TableIdx] do
+                        begin
+                          IsExported:=True;
+                          ExportName:=Name;
+                        end;
+                    end;
+                  $02:  { mem }
+                    begin
+                      if not ReadUleb32(MemIdx) then
+                        begin
+                          InputError('Error reading a mem index from the export section');
+                          exit;
+                        end;
+                      if MemIdx>high(MemTypes) then
+                        begin
+                          InputError('Mem index too high in the export section');
+                          exit;
+                        end;
+                      with MemTypes[MemIdx] do
+                        begin
+                          IsExported:=True;
+                          ExportName:=Name;
+                        end;
+                    end;
+                  $03:  { global }
+                    begin
+                      if not ReadUleb32(GlobalIdx) then
+                        begin
+                          InputError('Error reading a global index from the export section');
+                          exit;
+                        end;
+                      if GlobalIdx>high(GlobalTypes) then
+                        begin
+                          InputError('Global index too high in the export section');
+                          exit;
+                        end;
+                      with GlobalTypes[GlobalIdx] do
+                        begin
+                          IsExported:=True;
+                          ExportName:=Name;
+                        end;
+                    end;
+                  else
+                    begin
+                      InputError('Unsupported export type in the export section: ' + tostr(ExportType));
+                      exit;
+                    end;
+                end;
+              end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected export section size');
+                exit;
+              end;
+            Result:=True;
           end;
 
         function ReadCodeSection: Boolean;
@@ -3329,7 +3452,11 @@ implementation
                   exit;
                 end;
             Byte(wsiExport):
-              Result := ReadExportSection;
+              if not ReadExportSection then
+                begin
+                  InputError('Error reading the export section');
+                  exit;
+                end;
             Byte(wsiCode):
               if not ReadCodeSection then
                 begin
