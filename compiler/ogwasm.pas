@@ -2208,6 +2208,7 @@ implementation
         CodeSegments: array of record
           CodeSize: uint32;
           DataPos: LongInt;
+          SegName: ansistring;
         end;
 
         DataSegments: array of record
@@ -3363,7 +3364,7 @@ implementation
       var
         ModuleMagic: array [0..3] of Byte;
         ModuleVersion: array [0..3] of Byte;
-        i: Integer;
+        i, FirstDataSegmentIdx: Integer;
         CurrSec: TObjSection;
         objsym: TObjSymbol;
       begin
@@ -3397,6 +3398,28 @@ implementation
           if not ReadSection then
             exit;
 
+        { fill the code segment names }
+        for i:=low(SymbolTable) to high(SymbolTable) do
+          with SymbolTable[i] do
+            if (SymKind=byte(SYMTAB_FUNCTION)) and ((SymFlags and WASM_SYM_UNDEFINED)=0) then
+              begin
+                if FuncTypes[SymIndex].IsImport then
+                  begin
+                    InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_FUNCTION symbol, that is an import');
+                    exit;
+                  end;
+                CodeSegments[SymIndex-FuncTypeImportsCount].SegName:='.text.n_'+SymName;
+              end;
+
+        { create segments }
+        for i:=low(CodeSegments) to high(CodeSegments) do
+          with CodeSegments[i] do
+            begin
+              CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_load],false);
+              CurrSec.DataPos:=DataPos;
+              CurrSec.Size:=CodeSize;
+            end;
+        FirstDataSegmentIdx:=ObjData.ObjSectionList.Count;
         for i:=low(DataSegments) to high(DataSegments) do
           with DataSegments[i] do
             if Active then
@@ -3429,7 +3452,7 @@ implementation
                     else
                       objsym.bind:=AB_GLOBAL;
                     objsym.typ:=AT_DATA;
-                    objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex]);
+                    objsym.objsection:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SymIndex]);
                     objsym.offset:=SymOffset;
                     objsym.size:=SymSize;
                   end;
@@ -3448,7 +3471,10 @@ implementation
                       end
                     else
                       begin
-                        objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName);
+                        if FuncTypes[SymIndex].ImportModName = 'env' then
+                          objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName)
+                        else
+                          objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName);
                         objsym.bind:=AB_EXTERNAL;
                         objsym.typ:=AT_FUNCTION;
                         objsym.objsection:=nil;
@@ -3458,12 +3484,12 @@ implementation
                   end
                 else
                   begin
-                    if FuncTypes[SymIndex].IsImport then
-                      begin
-                        InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_FUNCTION symbol, that is an import');
-                        exit;
-                      end;
-                    {todo...}
+                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym.bind:=AB_GLOBAL;
+                    objsym.typ:=AT_FUNCTION;
+                    objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
+                    objsym.offset:=0;
+                    objsym.size:=objsym.objsection.Size;
                   end;
               byte(SYMTAB_GLOBAL),
               byte(SYMTAB_SECTION),
