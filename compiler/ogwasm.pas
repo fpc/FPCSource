@@ -2246,6 +2246,17 @@ implementation
           SymName: ansistring;
         end;
 
+        { meaning of first index: }
+        {   table 0 is code relocs }
+        {   table 1 is data relocs }
+        {   tables 2.. are custom section relocs }
+        RelocationTable: array of array of record
+          RelocType: Byte;
+          RelocOffset: uint32;
+          RelocIndex: uint32;
+          RelocAddend: int32;
+        end;
+
       function ReadSection: Boolean;
 
         function read(out b;len:longint):boolean;
@@ -2361,10 +2372,9 @@ implementation
 
           function ReadRelocationSection: Boolean;
             var
-              TargetSection, RelocCount, RelocOffset, RelocIndex: uint32;
+              TargetSection, RelocCount: uint32;
               i: Integer;
-              RelocType: Byte;
-              RelocAddend: int32;
+              RelocTableIndex: Integer;
             begin
               Result:=False;
               if not ReadUleb32(TargetSection) then
@@ -2373,7 +2383,9 @@ implementation
                   exit;
                 end;
               if TargetSection=CodeSectionIndex then
+                RelocTableIndex:=0
               else if TargetSection=DataSectionIndex then
+                RelocTableIndex:=1
               else
                 begin
                   InputError('Relocation for custom sections not supported, yet');
@@ -2384,47 +2396,49 @@ implementation
                   InputError('Error reading the relocation entries count from a relocation section');
                   exit;
                 end;
+              SetLength(RelocationTable[RelocTableIndex],RelocCount);
               for i:=0 to RelocCount-1 do
-                begin
-                  if not Read(RelocType,1) then
-                    begin
-                      InputError('Error reading the relocation type of a relocation entry');
-                      exit;
-                    end;
-                  if not (TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_INDEX_LEB,
-                                                             R_WASM_MEMORY_ADDR_LEB,
-                                                             R_WASM_TABLE_INDEX_SLEB,
-                                                             R_WASM_MEMORY_ADDR_SLEB,
-                                                             R_WASM_SECTION_OFFSET_I32,
-                                                             R_WASM_TABLE_INDEX_I32,
-                                                             R_WASM_FUNCTION_OFFSET_I32,
-                                                             R_WASM_MEMORY_ADDR_I32,
-                                                             R_WASM_TYPE_INDEX_LEB,
-                                                             R_WASM_GLOBAL_INDEX_LEB,
-                                                             R_WASM_TAG_INDEX_LEB]) then
-                    begin
-                      InputError('Unsupported relocation type: ' + tostr(RelocType));
-                      exit;
-                    end;
-                  if not ReadUleb32(RelocOffset) then
-                    begin
-                      InputError('Error reading the relocation offset of a relocation entry');
-                      exit;
-                    end;
-                  if not ReadUleb32(RelocIndex) then
-                    begin
-                      InputError('Error reading the relocation index of a relocation entry');
-                      exit;
-                    end;
-                  if TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_OFFSET_I32,R_WASM_SECTION_OFFSET_I32,R_WASM_MEMORY_ADDR_LEB,R_WASM_MEMORY_ADDR_SLEB,R_WASM_MEMORY_ADDR_I32] then
-                    begin
-                      if not ReadSleb32(RelocAddend) then
-                        begin
-                          InputError('Error reading the relocation addend of a relocation entry');
-                          exit;
-                        end;
-                    end;
-                end;
+                with RelocationTable[RelocTableIndex,i] do
+                  begin
+                    if not Read(RelocType,1) then
+                      begin
+                        InputError('Error reading the relocation type of a relocation entry');
+                        exit;
+                      end;
+                    if not (TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_INDEX_LEB,
+                                                               R_WASM_MEMORY_ADDR_LEB,
+                                                               R_WASM_TABLE_INDEX_SLEB,
+                                                               R_WASM_MEMORY_ADDR_SLEB,
+                                                               R_WASM_SECTION_OFFSET_I32,
+                                                               R_WASM_TABLE_INDEX_I32,
+                                                               R_WASM_FUNCTION_OFFSET_I32,
+                                                               R_WASM_MEMORY_ADDR_I32,
+                                                               R_WASM_TYPE_INDEX_LEB,
+                                                               R_WASM_GLOBAL_INDEX_LEB,
+                                                               R_WASM_TAG_INDEX_LEB]) then
+                      begin
+                        InputError('Unsupported relocation type: ' + tostr(RelocType));
+                        exit;
+                      end;
+                    if not ReadUleb32(RelocOffset) then
+                      begin
+                        InputError('Error reading the relocation offset of a relocation entry');
+                        exit;
+                      end;
+                    if not ReadUleb32(RelocIndex) then
+                      begin
+                        InputError('Error reading the relocation index of a relocation entry');
+                        exit;
+                      end;
+                    if TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_OFFSET_I32,R_WASM_SECTION_OFFSET_I32,R_WASM_MEMORY_ADDR_LEB,R_WASM_MEMORY_ADDR_SLEB,R_WASM_MEMORY_ADDR_I32] then
+                      begin
+                        if not ReadSleb32(RelocAddend) then
+                          begin
+                            InputError('Error reading the relocation addend of a relocation entry');
+                            exit;
+                          end;
+                      end;
+                  end;
               if AReader.Pos<>(SectionStart+SectionSize) then
                 begin
                   InputError('Unexpected relocation section size');
@@ -3585,6 +3599,8 @@ implementation
         CodeSegments:=nil;
         DataSegments:=nil;
         SymbolTable:=nil;
+        RelocationTable:=nil;
+        SetLength(RelocationTable,2);
         FuncTypes:=nil;
         FuncTypeImportsCount:=0;
         TableTypes:=nil;
