@@ -3882,6 +3882,15 @@ implementation
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
+                  R_WASM_SECTION_OFFSET_I32,
+                  R_WASM_FUNCTION_OFFSET_I32,
+                  R_WASM_MEMORY_ADDR_I32,
+                  R_WASM_TYPE_INDEX_LEB,
+                  R_WASM_GLOBAL_INDEX_LEB,
+                  R_WASM_TAG_INDEX_LEB:
+                    {TODO};
+                  else
+                    internalerror(2023122802);
                 end;
               end;
 
