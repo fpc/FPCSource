@@ -1641,7 +1641,8 @@ implementation
       { not required anymore }
       capturedsyms.free;
 
-      foreachnodestatic(pm_postprocess,tree,@convert_captured_sym,@convertarg);
+      if convertarg.mappings.count>0 then
+        foreachnodestatic(pm_postprocess,tree,@convert_captured_sym,@convertarg);
 
       for i:=0 to convertarg.mappings.count-1 do
         begin
