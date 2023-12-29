@@ -956,7 +956,7 @@ implementation
       invokename:=method_name_funcref_invoke_decl+'__FPCINTERNAL__'+fileinfo_to_suffix(sym.fileinfo);
 
       ps:=cprocsym.create(invokename);
-      pd:=tprocdef(tabstractprocdef(n.resultdef).getcopyas(procdef,pc_normal,'',false));
+      pd:=tprocdef(tabstractprocdef(n.resultdef).getcopyas(procdef,pc_normal_no_hidden,'',false));
       pd.aliasnames.clear;
 
       pd.procsym:=ps;
@@ -966,8 +966,6 @@ implementation
       pd.localst.symtablelevel:=normal_function_level;
       { reset procoptions }
       pd.procoptions:=[];
-      { to simplify some checks }
-      pd.was_anonymous:=true;
       ps.ProcdefList.Add(pd);
       pd.forwarddef:=false;
       { set procinfo and current_procinfo.procdef }
@@ -975,6 +973,7 @@ implementation
       pi.procdef:=pd;
       if not assigned(pinested) then
         begin
+          insert_funcret_para(pd);
           insert_funcret_local(pd);
           { we always do a call, namely to the provided function }
           include(pi.flags,pi_do_call);
@@ -989,11 +988,14 @@ implementation
           { fix function return symbol }
           pd.funcretsym:=pinested.procdef.funcretsym;
           pinested.procdef.funcretsym:=nil;
+          insert_funcret_para(pinested.procdef);
           insert_funcret_local(pinested.procdef);
           { the nested function needs access to the parent's framepointer to
             access the capturer }
           insert_parentfp_para(pinested.procdef);
         end;
+      { to simplify some checks, but only after insert_funcret_para }
+      pd.was_anonymous:=true;
       capturedef.symtable.insertsym(ps);
       owner.addnestedproc(pi);
 
@@ -1073,8 +1075,12 @@ implementation
         end;
       if assigned(pd.returndef) and not is_void(pd.returndef) then
         begin
+          if assigned(pinested) then
+            sym:=pinested.procdef.funcretsym
+          else
+            sym:=pd.funcretsym;
           n1:=cassignmentnode.create(
-                      cloadnode.create(pd.funcretsym,pd.localst),
+                      cloadnode.create(sym,sym.owner),
                       n1
                     );
           { captured variables cannot be in registers }
