@@ -990,6 +990,9 @@ implementation
           pd.funcretsym:=pinested.procdef.funcretsym;
           pinested.procdef.funcretsym:=nil;
           insert_funcret_local(pinested.procdef);
+          { the nested function needs access to the parent's framepointer to
+            access the capturer }
+          insert_parentfp_para(pinested.procdef);
         end;
       capturedef.symtable.insertsym(ps);
       owner.addnestedproc(pi);
