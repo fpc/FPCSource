@@ -718,7 +718,7 @@ implementation
       if not (sym.owner.symtabletype in [parasymtable,localsymtable]) then
         exit;
       if sym.owner.symtablelevel>normal_function_level then begin
-        pd.add_captured_sym(sym,n.fileinfo);
+        pd.add_captured_sym(sym,tloadnode(n).resultdef,n.fileinfo);
         result:=fen_true;
       end;
     end;
@@ -1098,13 +1098,13 @@ implementation
               for i:=0 to capturesyms.count-1 do
                 begin
                   captured:=pcapturedsyminfo(capturesyms[i]);
-                  pi.add_captured_sym(captured^.sym,captured^.fileinfo);
+                  pi.add_captured_sym(captured^.sym,captured^.def,captured^.fileinfo);
                   dispose(captured);
                 end;
               capturesyms.clear;
             end;
           { the original nested function now needs to capture only the capturer }
-          pinested.procdef.add_captured_sym(capturer,n.fileinfo);
+          pinested.procdef.add_captured_sym(capturer,capturedef,n.fileinfo);
         end
       { does this need to capture Self? }
       else if not foreachnodestatic(pm_postprocess,n,@find_self_sym,@selfinfo) then
@@ -1128,7 +1128,7 @@ implementation
       if assigned(selfinfo.selfsym) and not assigned(fieldsym) then
         { this isn't a procdef that was captured into a field, so capture the
           self }
-        pd.add_captured_sym(selfinfo.selfsym,n.fileinfo);
+        pd.add_captured_sym(selfinfo.selfsym,tabstractvarsym(selfinfo.selfsym).vardef,n.fileinfo);
 
       print_procinfo(pi);
       if assigned(pinested) then
@@ -1272,9 +1272,10 @@ implementation
 
                       { update the captured symbol }
                       info^.sym:=outerself;
+                      info^.def:=tabstractvarsym(outerself).vardef;
                     end
                   else if info^.sym.owner.defowner<>owner.procdef then
-                    owner.procdef.add_captured_sym(info^.sym,info^.fileinfo);
+                    owner.procdef.add_captured_sym(info^.sym,info^.def,info^.fileinfo);
                 end;
             end;
           { delete the original self parameter }

@@ -4343,7 +4343,7 @@ implementation
              (procdefinition.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
              (procdefinition.parast.symtablelevel>normal_function_level) and
              (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-           current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,fileinfo);
+           current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,procdefinition,fileinfo);
 
          finally
            aktcallnode:=oldcallnode;

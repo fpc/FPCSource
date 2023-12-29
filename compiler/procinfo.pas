@@ -186,7 +186,7 @@ unit procinfo;
           procedure add_local_ref_def(def:tdef);
           procedure export_local_ref_defs;
 
-          procedure add_captured_sym(sym:tsym;const fileinfo:tfileposinfo);
+          procedure add_captured_sym(sym:tsym;def:tdef;const fileinfo:tfileposinfo);
 
           function create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
 
@@ -376,9 +376,9 @@ implementation
           end;
       end;
 
-    procedure tprocinfo.add_captured_sym(sym:tsym;const fileinfo:tfileposinfo);
+    procedure tprocinfo.add_captured_sym(sym:tsym;def:tdef;const fileinfo:tfileposinfo);
       begin
-        procdef.add_captured_sym(sym,fileinfo);
+        procdef.add_captured_sym(sym,def,fileinfo);
       end;
 
     function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;

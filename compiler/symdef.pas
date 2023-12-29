@@ -784,6 +784,7 @@ interface
 
        tcapturedsyminfo = record
          sym : tsym;
+         def : tdef;
          { the location where the symbol was first encountered }
          fileinfo : tfileposinfo;
        end;
@@ -945,7 +946,7 @@ interface
           function get_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
           function get_safecall_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
 
-          procedure add_captured_sym(sym:tsym;const filepos:tfileposinfo);
+          procedure add_captured_sym(sym:tsym;def:tdef;const filepos:tfileposinfo);
 
           { returns whether the mangled name or any of its aliases is equal to
             s }
@@ -7009,7 +7010,7 @@ implementation
       end;
 
 
-    procedure tprocdef.add_captured_sym(sym:tsym;const filepos:tfileposinfo);
+    procedure tprocdef.add_captured_sym(sym:tsym;def:tdef;const filepos:tfileposinfo);
       var
         i : longint;
         capturedsym : pcapturedsyminfo;
@@ -7021,11 +7022,12 @@ implementation
         for i:=0 to implprocdefinfo^.capturedsyms.count-1 do
           begin
             capturedsym:=pcapturedsyminfo(implprocdefinfo^.capturedsyms[i]);
-            if capturedsym^.sym=sym then
+            if (capturedsym^.sym=sym) and (capturedsym^.def=def) then
               exit;
           end;
         new(capturedsym);
         capturedsym^.sym:=sym;
+        capturedsym^.def:=def;
         capturedsym^.fileinfo:=filepos;
         implprocdefinfo^.capturedsyms.add(capturedsym);
       end;

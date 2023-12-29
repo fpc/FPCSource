@@ -375,6 +375,7 @@ implementation
            localvarsym :
              begin
                tabstractvarsym(symtableentry).IncRefCountBy(1);
+               resultdef:=tabstractvarsym(symtableentry).vardef;
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
                if assigned(current_procinfo) and
@@ -386,7 +387,7 @@ implementation
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
                    current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
                    { reference this as a captured symbol }
-                   current_procinfo.add_captured_sym(symtableentry,fileinfo);
+                   current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);
@@ -396,8 +397,7 @@ implementation
                else if assigned(current_procinfo) and
                    (vo_is_self in tabstractvarsym(symtableentry).varoptions) and
                    (symtable.symtablelevel>normal_function_level) then
-                 current_procinfo.add_captured_sym(symtableentry,fileinfo);
-               resultdef:=tabstractvarsym(symtableentry).vardef;
+                 current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
 
                { e.g. self for objects is passed as var-parameter on the caller
                  side, but on the callee-side we use it as a pointer ->
