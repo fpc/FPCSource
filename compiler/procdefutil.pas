@@ -1595,7 +1595,7 @@ implementation
 
           selfsym:=get_capturer(pd);
 
-          { only capture those symbols that weren't capture already by one of
+          { only capture those symbols that weren't captured already by one of
             the above if-clauses and thus are now listed in capturedsyms }
           tocapture:=tfplist.create;
 
