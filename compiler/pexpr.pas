@@ -1076,6 +1076,14 @@ implementation
                 assigned(getfuncrefdef) then
                aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef);
 
+             { ensure that the correct function is considered as captured }
+             if assigned(current_procinfo) and
+                 assigned(aprocdef) and
+                 (aprocdef.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
+                 (aprocdef.parast.symtablelevel>normal_function_level) and
+                 (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
+               current_procinfo.add_captured_sym(sym,aprocdef,current_filepos);
+
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
              p2:=cloadnode.create_procvar(sym,aprocdef,st);
