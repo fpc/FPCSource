@@ -127,7 +127,9 @@ procedure TWebIDLToPasApplication.DoRun;
 
   procedure E(const Msg: string);
   begin
+    {AllowWriteln}
     writeln('Error: ',Msg);
+    {AllowWriteln-}
     Halt(1);
   end;
 
