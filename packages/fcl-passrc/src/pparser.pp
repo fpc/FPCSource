@@ -2429,7 +2429,7 @@ begin
     if Ref=nil then
       begin
       {$IFDEF VerbosePasResolverWriteln}
-      if po_resolvestandardtypes in FOptions then
+      if po_ResolveStandardTypes in FOptions then
         begin
         writeln('ERROR: TPasParser.ResolveTypeReference: resolver failed to raise an error');
         ParseExcExpectedIdentifier;
