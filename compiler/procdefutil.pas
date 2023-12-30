@@ -993,6 +993,7 @@ implementation
           { the nested function needs access to the parent's framepointer to
             access the capturer }
           insert_parentfp_para(pinested.procdef);
+          pd.copied_from:=pinested.procdef;
         end;
       { to simplify some checks, but only after insert_funcret_para }
       pd.was_anonymous:=true;

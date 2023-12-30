@@ -907,6 +907,7 @@ interface
 {$endif}
           { only needed when actually compiling a unit, no need to save/load from ppu }
           invoke_helper : tprocdef;
+          copied_from : tprocdef;
           constructor create(level:byte;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
