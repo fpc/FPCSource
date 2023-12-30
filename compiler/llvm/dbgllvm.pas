@@ -2925,7 +2925,7 @@ implementation
 
             if (hp.typ=ait_llvmins) and
                ((nolineinfolevel=0) or
-                (taillvm(hp).llvmopcode=la_call)) then
+                (taillvm(hp).llvmopcode in [la_call,la_invoke])) then
               begin
                 positionmeta:=nil;
                 { valid file -> add info }
@@ -2941,7 +2941,7 @@ implementation
                   end
                 { LLVM requires line info for call instructions that may
                   potentially be inlined }
-                else if taillvm(hp).llvmopcode=la_call then
+                else if taillvm(hp).llvmopcode in [la_call,la_invoke] then
                   begin
                     positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,true);
                   end;
