@@ -119,6 +119,7 @@ interface
         destructor Destroy; override;
 
         function AddOrGetFuncType(wft: TWasmFuncType): integer;
+        procedure WriteTo(d: tdynamicarray);
         property Count: Integer read GetCount;
         property Items[Index: Integer]: TWasmFuncType read GetItem; default;
       end;
@@ -614,6 +615,21 @@ implementation
         result:=Length(FFuncTypes);
         SetLength(FFuncTypes,result+1);
         FFuncTypes[result]:=TWasmFuncType.Create(wft);
+      end;
+
+    procedure TWasmFuncTypeTable.WriteTo(d: tdynamicarray);
+      var
+        types_count, i: Integer;
+      begin
+        types_count:=Count;
+        WriteUleb(d,types_count);
+        for i:=0 to types_count-1 do
+          with Items[i] do
+            begin
+              WriteByte(d,$60);
+              WriteWasmResultType(d,params);
+              WriteWasmResultType(d,results);
+            end;
       end;
 
 {****************************************************************************
@@ -1527,7 +1543,6 @@ implementation
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
-        types_count,
         imports_count, NextImportFunctionIndex, NextFunctionIndex,
         code_section_nr, data_section_nr,
         debug_abbrev_section_nr,debug_info_section_nr,debug_str_section_nr,
@@ -1579,15 +1594,7 @@ implementation
               Inc(export_functions_count);
           end;
 
-        types_count:=FData.FFuncTypes.Count;
-        WriteUleb(FWasmSections[wsiType],types_count);
-        for i:=0 to types_count-1 do
-          with FData.FFuncTypes[i] do
-            begin
-              WriteByte(FWasmSections[wsiType],$60);
-              WriteWasmResultType(FWasmSections[wsiType],params);
-              WriteWasmResultType(FWasmSections[wsiType],results);
-            end;
+        FData.FFuncTypes.WriteTo(FWasmSections[wsiType]);
 
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
