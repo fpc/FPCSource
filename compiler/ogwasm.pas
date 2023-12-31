@@ -2288,7 +2288,7 @@ implementation
           SymSize: uint32;
           SymKind: Byte;
           SymName: ansistring;
-          ObjSym: TObjSymbol;
+          ObjSym: TWasmObjSymbol;
         end;
 
         { meaning of first index: }
@@ -3762,7 +3762,7 @@ implementation
               byte(SYMTAB_DATA):
                 if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
                   begin
-                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                     objsym.bind:=AB_EXTERNAL;
                     objsym.typ:=AT_DATA;
                     objsym.objsection:=nil;
@@ -3771,7 +3771,7 @@ implementation
                   end
                 else
                   begin
-                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                     if (SymFlags and WASM_SYM_BINDING_LOCAL)<> 0 then
                       objsym.bind:=AB_LOCAL
                     else
@@ -3797,9 +3797,9 @@ implementation
                     else
                       begin
                         if FuncTypes[SymIndex].ImportModName = 'env' then
-                          objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName)
+                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName))
                         else
-                          objsym:=ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName);
+                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName));
                         objsym.bind:=AB_EXTERNAL;
                         objsym.typ:=AT_FUNCTION;
                         objsym.objsection:=nil;
@@ -3809,7 +3809,7 @@ implementation
                   end
                 else
                   begin
-                    objsym:=ObjData.CreateSymbol(SymName);
+                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                     objsym.bind:=AB_GLOBAL;
                     objsym.typ:=AT_FUNCTION;
                     objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
