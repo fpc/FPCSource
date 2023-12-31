@@ -41,6 +41,13 @@ interface
     type
       TWasmObjSymbolExtraData = class;
 
+      { TWasmObjSymbolLinkingData }
+
+      TWasmObjSymbolLinkingData = class
+        ImportModule: string;
+        ImportName: string;
+      end;
+
       { TWasmObjSymbol }
 
       TWasmObjSymbol = class(TObjSymbol)
@@ -50,7 +57,9 @@ interface
         TagIndex: Integer;
         AliasOf: string;
         ExtraData: TWasmObjSymbolExtraData;
+        LinkingData: TWasmObjSymbolLinkingData;
         constructor create(AList:TFPHashObjectList;const AName:string);override;
+        destructor Destroy;override;
         function IsAlias: Boolean;
       end;
 
@@ -411,6 +420,13 @@ implementation
         TagIndex:=-1;
         AliasOf:='';
         ExtraData:=nil;
+        LinkingData:=TWasmObjSymbolLinkingData.Create;
+      end;
+
+    destructor TWasmObjSymbol.Destroy;
+      begin
+        LinkingData.Free;
+        inherited Destroy;
       end;
 
     function TWasmObjSymbol.IsAlias: Boolean;
@@ -3791,8 +3807,14 @@ implementation
                       end;
                     if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
                       begin
-                        Writeln('Alias: ', SymName, ' -> ', FuncTypes[SymIndex].ImportModName, '.', FuncTypes[SymIndex].ImportName);
-                        {todo...}
+                        objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                        objsym.bind:=AB_EXTERNAL;
+                        objsym.typ:=AT_FUNCTION;
+                        objsym.objsection:=nil;
+                        objsym.offset:=0;
+                        objsym.size:=0;
+                        objsym.LinkingData.ImportModule:=FuncTypes[SymIndex].ImportModName;
+                        objsym.LinkingData.ImportName:=FuncTypes[SymIndex].ImportName;
                       end
                     else
                       begin
