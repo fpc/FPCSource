@@ -4052,10 +4052,13 @@ implementation
       begin
         result:=false;
 
-        {TODO: implement}
+        FFuncTypes.WriteTo(FWasmSections[wsiType]);
+
+        {...}
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
+        WriteWasmSection(wsiType);
 
         result := true;
       end;
