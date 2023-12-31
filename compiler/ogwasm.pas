@@ -4061,11 +4061,15 @@ implementation
       end;
 
     constructor TWasmExeOutput.create;
+      var
+        i: TWasmSectionID;
       begin
         inherited create;
         CObjData:=TWasmObjData;
         MaxMemPos:=$FFFFFFFF;
         FFuncTypes:=TWasmFuncTypeTable.Create;
+        for i in TWasmSectionID do
+          FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
       end;
 
     destructor TWasmExeOutput.destroy;
