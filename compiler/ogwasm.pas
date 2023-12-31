@@ -48,7 +48,9 @@ interface
         ImportModule: string;
         ImportName: string;
         FuncType: TWasmFuncType;
+        ExeFunctionIndex: Integer;
 
+        constructor Create;
         destructor Destroy;override;
       end;
 
@@ -226,6 +228,13 @@ interface
       private
         FImports: TFPHashObjectList;
         FFuncTypes: TWasmFuncTypeTable;
+
+        FFunctionImports: array of record
+          ModName: ansistring;
+          Name: ansistring;
+          TypeIdx: uint32;
+        end;
+
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -402,6 +411,11 @@ implementation
 {****************************************************************************
                          TWasmObjSymbolLinkingData
 ****************************************************************************}
+
+    constructor TWasmObjSymbolLinkingData.Create;
+      begin
+        ExeFunctionIndex:=-1;
+      end;
 
     destructor TWasmObjSymbolLinkingData.Destroy;
       begin
@@ -4083,6 +4097,21 @@ implementation
       end;
 
     procedure TWasmExeOutput.AfterUnusedSectionRemoval;
+
+      function AddFunctionImport(const libname,symname:TCmdStr; functype: TWasmFuncType): Integer;
+        begin
+          if assigned(exemap) then
+            exemap.Add('  Importing Function ' + symname + functype.ToString);
+          SetLength(FFunctionImports,Length(FFunctionImports)+1);
+          Result:=High(FFunctionImports);
+          with FFunctionImports[Result] do
+            begin
+              ModName:=libname;
+              Name:=symname;
+              TypeIdx:=FFuncTypes.AddOrGetFuncType(functype);
+            end;
+        end;
+
       var
         i, j: Integer;
         ImportLibrary: TImportLibrary;
@@ -4107,8 +4136,8 @@ implementation
                         exemap.Add('Importing from module '+ImportLibrary.Name);
                       end;
                     newdll:=True;
-                    if assigned(exemap) then
-                      exemap.Add('  Importing Function ' + ImportSymbol.Name + TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType.ToString);
+                    TWasmObjSymbol(exesym.ObjSymbol).LinkingData.ExeFunctionIndex:=
+                      AddFunctionImport(ImportLibrary.Name,ImportSymbol.Name,TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType);
                   end;
               end;
           end;
