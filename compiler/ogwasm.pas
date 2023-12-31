@@ -49,6 +49,7 @@ interface
         ImportName: string;
         FuncType: TWasmFuncType;
         ExeFunctionIndex: Integer;
+        ExeTypeIndex: Integer;
 
         constructor Create;
         destructor Destroy;override;
@@ -231,6 +232,7 @@ interface
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure PrepareImports;
+        procedure PrepareFunctions;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -494,6 +496,7 @@ implementation
     constructor TWasmObjSymbolLinkingData.Create;
       begin
         ExeFunctionIndex:=-1;
+        ExeTypeIndex:=-1;
       end;
 
     destructor TWasmObjSymbolLinkingData.Destroy;
@@ -4072,7 +4075,7 @@ implementation
         var
           i: Integer;
           exesec: TExeSection;
-          objsec: TObjSection;
+          objsec: TWasmObjSection;
         begin
           exesec:=FindExeSection('.text');
           if not assigned(exesec) then
@@ -4083,12 +4086,12 @@ implementation
           WriteUleb(FWasmSections[wsiCode],exesec.ObjSectionList.Count);
           for i:=0 to exesec.ObjSectionList.Count-1 do
             begin
-              objsec:=TObjSection(exesec.ObjSectionList[i]);
+              objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
               if not (oso_data in objsec.secoptions) then
                 internalerror(2023123104);
               if not assigned(objsec.data) then
                 internalerror(2023123105);
-              WriteUleb(FWasmSections[wsiFunction],0);  { todo: TypIdx }
+              WriteUleb(FWasmSections[wsiFunction],objsec.MainFuncSymbol.LinkingData.ExeTypeIndex);
               WriteUleb(FWasmSections[wsiCode],objsec.Data.size);
               objsec.Data.seek(0);
               CopyDynamicArray(objsec.Data,FWasmSections[wsiCode],objsec.Data.size);
@@ -4172,6 +4175,7 @@ implementation
     procedure TWasmExeOutput.AfterUnusedSectionRemoval;
       begin
         PrepareImports;
+        PrepareFunctions;
       end;
 
     procedure TWasmExeOutput.PrepareImports;
@@ -4218,6 +4222,33 @@ implementation
                       AddFunctionImport(ImportLibrary.Name,ImportSymbol.Name,TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType);
                   end;
               end;
+          end;
+      end;
+
+    procedure TWasmExeOutput.PrepareFunctions;
+      var
+        i: Integer;
+        exesec: TExeSection;
+        objsec: TWasmObjSection;
+        fsym: TWasmObjSymbol;
+      begin
+        exesec:=FindExeSection('.text');
+        if not assigned(exesec) then
+          internalerror(2023123106);
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
+            fsym:=objsec.MainFuncSymbol;
+            if not assigned(fsym) then
+              internalerror(2023123107);
+            if not assigned(fsym.LinkingData.FuncType) then
+              internalerror(2023123108);
+            if fsym.LinkingData.ExeFunctionIndex<>-1 then
+              internalerror(2023123109);
+            if fsym.LinkingData.ExeTypeIndex<>-1 then
+              internalerror(2023123109);
+            fsym.LinkingData.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(fsym.LinkingData.FuncType);
+            fsym.LinkingData.ExeFunctionIndex:=i+Length(FFunctionImports);
           end;
       end;
 
