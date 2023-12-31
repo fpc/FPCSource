@@ -235,6 +235,7 @@ interface
           TypeIdx: uint32;
         end;
 
+        FWasmSections: array [TWasmSectionID] of tdynamicarray;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -4063,7 +4064,11 @@ implementation
       end;
 
     destructor TWasmExeOutput.destroy;
+      var
+        i: TWasmSectionID;
       begin
+        for i in TWasmSectionID do
+          FWasmSections[i].Free;
         FFuncTypes.Free;
         inherited destroy;
       end;
