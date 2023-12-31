@@ -220,6 +220,7 @@ interface
 
       TWasmExeOutput = class(TExeOutput)
       private
+        FImports: TFPHashObjectList;
         FFuncTypes: TWasmFuncTypeTable;
       protected
         function writeData:boolean;override;
@@ -228,6 +229,7 @@ interface
         constructor create;override;
         destructor destroy;override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
+        procedure AfterUnusedSectionRemoval;override;
       end;
 
       { TWasmAssembler }
@@ -239,7 +241,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,version,globals;
+      cutils,verbose,version,globals,ogmap;
 
     procedure WriteUleb5(d: tdynamicarray; v: uint64);
       var
@@ -4042,6 +4044,9 @@ implementation
         ImportSymbol: TImportSymbol;
         exesym: TExeSymbol;
       begin
+        { Here map import symbols to exe symbols and create necessary sections.
+          Actual import generation is done after unused sections (and symbols) are removed. }
+        FImports:=ImportLibraryList;
         for i:=0 to ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
@@ -4058,6 +4063,38 @@ implementation
               end;
           end;
         PackUnresolvedExeSymbols('after module imports');
+      end;
+
+    procedure TWasmExeOutput.AfterUnusedSectionRemoval;
+      var
+        i, j: Integer;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+        newdll: Boolean;
+      begin
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+            newdll:=False;
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=ImportSymbol.CachedExeSymbol;
+                if assigned(exesym) and
+                   exesym.Used then
+                  begin
+                    if (not newdll) and assigned(exemap) then
+                      begin
+                        exemap.Add('');
+                        exemap.Add('Importing from module '+ImportLibrary.Name);
+                      end;
+                    newdll:=True;
+                    if assigned(exemap) then
+                      exemap.Add('  Importing Function ' + ImportSymbol.Name);
+                  end;
+              end;
+          end;
       end;
 
 
