@@ -210,11 +210,14 @@ interface
       { TWasmExeOutput }
 
       TWasmExeOutput = class(TExeOutput)
+      private
+        FFuncTypes: TWasmFuncTypeTable;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
         constructor create;override;
+        destructor destroy;override;
       end;
 
       { TWasmAssembler }
@@ -4000,6 +4003,13 @@ implementation
         inherited create;
         CObjData:=TWasmObjData;
         MaxMemPos:=$FFFFFFFF;
+        FFuncTypes:=TWasmFuncTypeTable.Create;
+      end;
+
+    destructor TWasmExeOutput.destroy;
+      begin
+        FFuncTypes.Free;
+        inherited destroy;
       end;
 
 
