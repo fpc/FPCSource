@@ -183,7 +183,6 @@ interface
         FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
-        procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
         procedure WriteZeros(dest: tdynamicarray; size: QWord);
         function IsExternalFunction(sym: TObjSymbol): Boolean;
         function IsExportedFunction(sym: TWasmObjSymbol): Boolean;
@@ -468,6 +467,23 @@ implementation
 
         d.seek(p);
         d.write(q,4);
+      end;
+
+    procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
+      var
+        buf: array [0..4095] of byte;
+        bs: Integer;
+      begin
+        while size>0 do
+          begin
+            if size<SizeOf(buf) then
+              bs:=Integer(size)
+            else
+              bs:=SizeOf(buf);
+            src.read(buf,bs);
+            dest.write(buf,bs);
+            dec(size,bs);
+          end;
       end;
 
 {****************************************************************************
@@ -1040,23 +1056,6 @@ implementation
         Writer.write(b,1);
         WriteUleb(Writer,FWasmCustomSections[wcst].size);
         Writer.writearray(FWasmCustomSections[wcst]);
-      end;
-
-    procedure TWasmObjOutput.CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
-      var
-        buf: array [0..4095] of byte;
-        bs: Integer;
-      begin
-        while size>0 do
-          begin
-            if size<SizeOf(buf) then
-              bs:=Integer(size)
-            else
-              bs:=SizeOf(buf);
-            src.read(buf,bs);
-            dest.write(buf,bs);
-            dec(size,bs);
-          end;
       end;
 
     procedure TWasmObjOutput.WriteZeros(dest: tdynamicarray; size: QWord);
@@ -4067,11 +4066,39 @@ implementation
               end;
         end;
 
+      procedure WriteCodeSegments;
+        var
+          i: Integer;
+          exesec: TExeSection;
+          objsec: TObjSection;
+        begin
+          exesec:=FindExeSection('.text');
+          if not assigned(exesec) then
+            internalerror(2023123102);
+          if not (oso_Data in exesec.SecOptions) then
+            internalerror(2023123103);
+          WriteUleb(FWasmSections[wsiFunction],exesec.ObjSectionList.Count);
+          WriteUleb(FWasmSections[wsiCode],exesec.ObjSectionList.Count);
+          for i:=0 to exesec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TObjSection(exesec.ObjSectionList[i]);
+              if not (oso_data in objsec.secoptions) then
+                internalerror(2023123104);
+              if not assigned(objsec.data) then
+                internalerror(2023123105);
+              WriteUleb(FWasmSections[wsiFunction],0);  { todo: TypIdx }
+              WriteUleb(FWasmSections[wsiCode],objsec.Data.size);
+              objsec.Data.seek(0);
+              CopyDynamicArray(objsec.Data,FWasmSections[wsiCode],objsec.Data.size);
+            end;
+        end;
+
       begin
         result:=false;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
+        WriteCodeSegments;
 
         {...}
 
@@ -4079,6 +4106,8 @@ implementation
         Writer.write(WasmVersion,SizeOf(WasmVersion));
         WriteWasmSection(wsiType);
         WriteWasmSection(wsiImport);
+        WriteWasmSection(wsiFunction);
+        WriteWasmSection(wsiCode);
 
         result := true;
       end;
