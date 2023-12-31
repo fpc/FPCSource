@@ -4091,6 +4091,8 @@ implementation
                 internalerror(2023123104);
               if not assigned(objsec.data) then
                 internalerror(2023123105);
+              if objsec.MainFuncSymbol.LinkingData.ExeFunctionIndex<>(i+Length(FFunctionImports)) then
+                internalerror(2024010101);
               WriteUleb(FWasmSections[wsiFunction],objsec.MainFuncSymbol.LinkingData.ExeTypeIndex);
               WriteUleb(FWasmSections[wsiCode],objsec.Data.size);
               objsec.Data.seek(0);
