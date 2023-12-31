@@ -220,7 +220,7 @@ unit TypInfo;
         function GetNext: PVmtFieldEntry; inline;
         function GetTail: Pointer; inline;
       public
-        FieldOffset: PtrUInt;
+        FieldOffset: SizeUInt;
         TypeIndex: Word;
         Name: ShortString;
         property Tail: Pointer read GetTail;
