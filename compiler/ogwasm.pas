@@ -230,6 +230,7 @@ interface
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         procedure WriteWasmSection(wsid: TWasmSectionID);
+        procedure PrepareImports;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -4169,6 +4170,11 @@ implementation
       end;
 
     procedure TWasmExeOutput.AfterUnusedSectionRemoval;
+      begin
+        PrepareImports;
+      end;
+
+    procedure TWasmExeOutput.PrepareImports;
 
       function AddFunctionImport(const libname,symname:TCmdStr; functype: TWasmFuncType): Integer;
         begin
