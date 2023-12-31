@@ -4125,8 +4125,35 @@ implementation
       end;
 
     procedure TWasmExeOutput.DoRelocationFixup(objsec: TObjSection);
+      var
+        i: Integer;
+        objreloc: TWasmObjRelocation;
+        objsym: TWasmObjSymbol;
       begin
-        {TODO: implement}
+        for i:=0 to objsec.ObjRelocations.Count-1 do
+          begin
+            objreloc:=TWasmObjRelocation(objsec.ObjRelocations[i]);
+            if assigned(objreloc.symbol) then
+              begin
+                objsym:=TWasmObjSymbol(objreloc.symbol);
+                case objreloc.typ of
+                  RELOC_FUNCTION_INDEX_LEB:
+                    begin
+                      if objsym.LinkingData.ExeFunctionIndex<>-1 then
+                        begin
+                          objsec.Data.seek(objreloc.DataOffset);
+                          WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
+                        end
+                      else
+                        Writeln('RELOC_FUNCTION_INDEX_LEB to a function with unresolved index: ', objsym.Name);
+                    end;
+                  else
+                    Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
+                end;
+              end
+            else
+              Writeln('Non-symbol relocation not yet implemented! ', objreloc.typ);
+          end;
       end;
 
     constructor TWasmExeOutput.create;
