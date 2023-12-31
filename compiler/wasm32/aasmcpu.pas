@@ -1677,7 +1677,7 @@ uses
                 case typ of
                   top_functype:
                     begin
-                      TWasmObjData(objdata).AddFuncType(functype);
+                      TWasmObjData(objdata).FuncTypes.AddOrGetFuncType(functype);
                       result:=6+
                         UlebSize(0);
                     end;
@@ -2658,7 +2658,7 @@ uses
                   top_functype:
                     begin
                       WriteByte($11);
-                      objdata.writeReloc(TWasmObjData(objdata).AddFuncType(functype),5,nil,RELOC_TYPE_INDEX_LEB);
+                      objdata.writeReloc(TWasmObjData(objdata).FuncTypes.AddOrGetFuncType(functype),5,nil,RELOC_TYPE_INDEX_LEB);
                       WriteUleb(0);
                     end;
                   else

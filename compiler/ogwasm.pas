@@ -124,7 +124,6 @@ interface
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
-        function AddFuncType(wft: TWasmFuncType): integer;
         function globalref(asmsym:TAsmSymbol):TObjSymbol;
         function ExceptionTagRef(asmsym:TAsmSymbol):TObjSymbol;
         procedure DeclareGlobalType(gt: tai_globaltype);
@@ -135,6 +134,7 @@ interface
         procedure DeclareImportName(ain: tai_import_name);
         procedure DeclareLocal(al: tai_local);
         procedure symbolpairdefine(akind: TSymbolPairKind;const asym, avalue: string);override;
+        property FuncTypes: TWasmFuncTypeTable read FFuncTypes;
       end;
 
       { TWasmObjOutput }
@@ -783,11 +783,6 @@ implementation
           result:=TWasmObjSymbolExtraData.Create(FObjSymbolsExtraDataList,symname);
       end;
 
-    function TWasmObjData.AddFuncType(wft: TWasmFuncType): integer;
-      begin
-        Result:=FFuncTypes.AddOrGetFuncType(wft);
-      end;
-
     function TWasmObjData.globalref(asmsym: TAsmSymbol): TObjSymbol;
       begin
         if assigned(asmsym) then
@@ -835,7 +830,7 @@ implementation
         ObjSymExtraData: TWasmObjSymbolExtraData;
       begin
         FLastFuncName:=ft.funcname;
-        i:=AddFuncType(ft.functype);
+        i:=FFuncTypes.AddOrGetFuncType(ft.functype);
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ft.funcname);
         ObjSymExtraData.TypeIdx:=i;
       end;
@@ -848,7 +843,7 @@ implementation
       begin
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(tt.tagname);
         ft:=TWasmFuncType.Create([],tt.params);
-        i:=AddFuncType(ft);
+        i:=FFuncTypes.AddOrGetFuncType(ft);
         ft.free;
         ObjSymExtraData.ExceptionTagTypeIdx:=i;
       end;
