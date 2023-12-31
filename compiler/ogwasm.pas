@@ -184,8 +184,6 @@ interface
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
         procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
         procedure WriteZeros(dest: tdynamicarray; size: QWord);
-        procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
-        procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
         function IsExternalFunction(sym: TObjSymbol): Boolean;
         function IsExportedFunction(sym: TWasmObjSymbol): Boolean;
         procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
@@ -363,6 +361,20 @@ implementation
       begin
         WriteUleb(d,Length(s));
         d.writestr(s);
+      end;
+
+    procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
+      begin
+        WriteByte(dest,encode_wasm_basic_type(wbt));
+      end;
+
+    procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
+      var
+        i: Integer;
+      begin
+        WriteUleb(dest,Length(wrt));
+        for i:=low(wrt) to high(wrt) do
+          WriteWasmBasicType(dest,wrt[i]);
       end;
 
     function ReadUleb(d: tdynamicarray): uint64;
@@ -1046,20 +1058,6 @@ implementation
             dest.write(buf,bs);
             dec(size,bs);
           end;
-      end;
-
-    procedure TWasmObjOutput.WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
-      var
-        i: Integer;
-      begin
-        WriteUleb(dest,Length(wrt));
-        for i:=low(wrt) to high(wrt) do
-          WriteWasmBasicType(dest,wrt[i]);
-      end;
-
-    procedure TWasmObjOutput.WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
-      begin
-        WriteByte(dest,encode_wasm_basic_type(wbt));
       end;
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
