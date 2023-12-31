@@ -4108,7 +4108,7 @@ implementation
                       end;
                     newdll:=True;
                     if assigned(exemap) then
-                      exemap.Add('  Importing Function ' + ImportSymbol.Name);
+                      exemap.Add('  Importing Function ' + ImportSymbol.Name + TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType.ToString);
                   end;
               end;
           end;
