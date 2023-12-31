@@ -227,6 +227,7 @@ interface
       public
         constructor create;override;
         destructor destroy;override;
+        procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
       end;
 
       { TWasmAssembler }
@@ -4032,6 +4033,31 @@ implementation
       begin
         FFuncTypes.Free;
         inherited destroy;
+      end;
+
+    procedure TWasmExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
+      var
+        i, j: Integer;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        for i:=0 to ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
+                if assigned(exesym) and
+                   (exesym.State<>symstate_defined) then
+                  begin
+                    ImportSymbol.CachedExeSymbol:=exesym;
+                    exesym.State:=symstate_defined;
+                  end;
+              end;
+          end;
+        PackUnresolvedExeSymbols('after module imports');
       end;
 
 
