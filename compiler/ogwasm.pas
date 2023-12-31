@@ -180,11 +180,6 @@ interface
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
-        procedure WriteUleb(d: tdynamicarray; v: uint64);
-        procedure WriteUleb(w: TObjectWriter; v: uint64);
-        procedure WriteSleb(d: tdynamicarray; v: int64);
-        procedure WriteByte(d: tdynamicarray; b: byte);
-        procedure WriteName(d: tdynamicarray; const s: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
         procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
@@ -315,6 +310,58 @@ implementation
               b:=b or 128;
             d.write(b,1);
           end;
+      end;
+    procedure WriteUleb(d: tdynamicarray; v: uint64);
+      var
+        b: byte;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          d.write(b,1);
+        until v=0;
+      end;
+
+    procedure WriteUleb(w: TObjectWriter; v: uint64);
+      var
+        b: byte;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          w.write(b,1);
+        until v=0;
+      end;
+
+    procedure WriteSleb(d: tdynamicarray; v: int64);
+      var
+        b: byte;
+        Done: Boolean=false;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=SarInt64(v,7);
+          if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
+            Done:=true
+          else
+            b:=b or 128;
+          d.write(b,1);
+        until Done;
+      end;
+
+    procedure WriteByte(d: tdynamicarray; b: byte);
+      begin
+        d.write(b,1);
+      end;
+
+    procedure WriteName(d: tdynamicarray; const s: string);
+      begin
+        WriteUleb(d,Length(s));
+        d.writestr(s);
       end;
 
     function ReadUleb(d: tdynamicarray): uint64;
@@ -945,59 +992,6 @@ implementation
 {****************************************************************************
                                TWasmObjOutput
 ****************************************************************************}
-
-    procedure TWasmObjOutput.WriteUleb(d: tdynamicarray; v: uint64);
-      var
-        b: byte;
-      begin
-        repeat
-          b:=byte(v) and 127;
-          v:=v shr 7;
-          if v<>0 then
-            b:=b or 128;
-          d.write(b,1);
-        until v=0;
-      end;
-
-    procedure TWasmObjOutput.WriteUleb(w: TObjectWriter; v: uint64);
-      var
-        b: byte;
-      begin
-        repeat
-          b:=byte(v) and 127;
-          v:=v shr 7;
-          if v<>0 then
-            b:=b or 128;
-          w.write(b,1);
-        until v=0;
-      end;
-
-    procedure TWasmObjOutput.WriteSleb(d: tdynamicarray; v: int64);
-      var
-        b: byte;
-        Done: Boolean=false;
-      begin
-        repeat
-          b:=byte(v) and 127;
-          v:=SarInt64(v,7);
-          if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
-            Done:=true
-          else
-            b:=b or 128;
-          d.write(b,1);
-        until Done;
-      end;
-
-    procedure TWasmObjOutput.WriteByte(d: tdynamicarray; b: byte);
-      begin
-        d.write(b,1);
-      end;
-
-    procedure TWasmObjOutput.WriteName(d: tdynamicarray; const s: string);
-      begin
-        WriteUleb(d,Length(s));
-        d.writestr(s);
-      end;
 
     procedure TWasmObjOutput.WriteWasmSection(wsid: TWasmSectionID);
       var
