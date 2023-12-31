@@ -4049,16 +4049,36 @@ implementation
       end;
 
     function TWasmExeOutput.writeData: boolean;
+
+      procedure WriteImportSection;
+        var
+          imports_count: SizeInt;
+          i: Integer;
+        begin
+          imports_count:=Length(FFunctionImports);
+          WriteUleb(FWasmSections[wsiImport],imports_count);
+          for i:=0 to Length(FFunctionImports)-1 do
+            with FFunctionImports[i] do
+              begin
+                WriteName(FWasmSections[wsiImport],ModName);
+                WriteName(FWasmSections[wsiImport],Name);
+                WriteByte(FWasmSections[wsiImport],$00);
+                WriteUleb(FWasmSections[wsiImport],TypeIdx);
+              end;
+        end;
+
       begin
         result:=false;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
+        WriteImportSection;
 
         {...}
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
         WriteWasmSection(wsiType);
+        WriteWasmSection(wsiImport);
 
         result := true;
       end;
