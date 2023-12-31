@@ -231,6 +231,7 @@ interface
         end;
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
+        procedure WriteWasmSection(wsid: TWasmSectionID);
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -4031,6 +4032,16 @@ implementation
 {****************************************************************************
                                TWasmExeOutput
 ****************************************************************************}
+
+    procedure TWasmExeOutput.WriteWasmSection(wsid: TWasmSectionID);
+      var
+        b: byte;
+      begin
+        b:=ord(wsid);
+        Writer.write(b,1);
+        WriteUleb(Writer,FWasmSections[wsid].size);
+        Writer.writearray(FWasmSections[wsid]);
+      end;
 
     function TWasmExeOutput.writeData: boolean;
       begin
