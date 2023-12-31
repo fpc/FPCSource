@@ -44,8 +44,12 @@ interface
       { TWasmObjSymbolLinkingData }
 
       TWasmObjSymbolLinkingData = class
+      public
         ImportModule: string;
         ImportName: string;
+        FuncType: TWasmFuncType;
+
+        destructor Destroy;override;
       end;
 
       { TWasmObjSymbol }
@@ -393,6 +397,16 @@ implementation
 
         d.seek(p);
         d.write(q,4);
+      end;
+
+{****************************************************************************
+                         TWasmObjSymbolLinkingData
+****************************************************************************}
+
+    destructor TWasmObjSymbolLinkingData.Destroy;
+      begin
+        FuncType.Free;
+        inherited Destroy;
       end;
 
 {****************************************************************************
@@ -3801,46 +3815,49 @@ implementation
                     objsym.size:=SymSize;
                   end;
               byte(SYMTAB_FUNCTION):
-                if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
-                  begin
-                    if not FuncTypes[SymIndex].IsImport then
-                      begin
-                        InputError('WASM_SYM_UNDEFINED set on a SYMTAB_FUNCTION symbol, that is not an import');
-                        exit;
-                      end;
-                    if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
-                      begin
-                        objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
-                        objsym.bind:=AB_EXTERNAL;
-                        objsym.typ:=AT_FUNCTION;
-                        objsym.objsection:=nil;
-                        objsym.offset:=0;
-                        objsym.size:=0;
-                        objsym.LinkingData.ImportModule:=FuncTypes[SymIndex].ImportModName;
-                        objsym.LinkingData.ImportName:=FuncTypes[SymIndex].ImportName;
-                      end
-                    else
-                      begin
-                        if FuncTypes[SymIndex].ImportModName = 'env' then
-                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName))
-                        else
-                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName));
-                        objsym.bind:=AB_EXTERNAL;
-                        objsym.typ:=AT_FUNCTION;
-                        objsym.objsection:=nil;
-                        objsym.offset:=0;
-                        objsym.size:=0;
-                      end;
-                  end
-                else
-                  begin
-                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
-                    objsym.bind:=AB_GLOBAL;
-                    objsym.typ:=AT_FUNCTION;
-                    objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
-                    objsym.offset:=0;
-                    objsym.size:=objsym.objsection.Size;
-                  end;
+                begin
+                  if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                    begin
+                      if not FuncTypes[SymIndex].IsImport then
+                        begin
+                          InputError('WASM_SYM_UNDEFINED set on a SYMTAB_FUNCTION symbol, that is not an import');
+                          exit;
+                        end;
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
+                        begin
+                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_FUNCTION;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=0;
+                          objsym.LinkingData.ImportModule:=FuncTypes[SymIndex].ImportModName;
+                          objsym.LinkingData.ImportName:=FuncTypes[SymIndex].ImportName;
+                        end
+                      else
+                        begin
+                          if FuncTypes[SymIndex].ImportModName = 'env' then
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportName))
+                          else
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(FuncTypes[SymIndex].ImportModName + '.' + FuncTypes[SymIndex].ImportName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_FUNCTION;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=0;
+                        end;
+                    end
+                  else
+                    begin
+                      objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                      objsym.bind:=AB_GLOBAL;
+                      objsym.typ:=AT_FUNCTION;
+                      objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
+                      objsym.offset:=0;
+                      objsym.size:=objsym.objsection.Size;
+                    end;
+                  objsym.LinkingData.FuncType:=TWasmFuncType.Create(FFuncTypes[FuncTypes[SymIndex].typidx]);
+                end;
               byte(SYMTAB_GLOBAL),
               byte(SYMTAB_SECTION),
               byte(SYMTAB_EVENT),
