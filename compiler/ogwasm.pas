@@ -647,6 +647,7 @@ implementation
         CObjSection:=TWasmObjSection;
         CObjSymbol:=TWasmObjSymbol;
         FObjSymbolsExtraDataList:=TFPHashObjectList.Create;
+        FFuncTypes:=TWasmFuncTypeTable.Create;
       end;
 
     destructor TWasmObjData.destroy;
