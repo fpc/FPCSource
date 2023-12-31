@@ -103,7 +103,7 @@ interface
       public
         destructor Destroy; override;
 
-        function AddFuncType(wft: TWasmFuncType): integer;
+        function AddOrGetFuncType(wft: TWasmFuncType): integer;
         property Count: Integer read GetCount;
         property Items[Index: Integer]: TWasmFuncType read GetItem; default;
       end;
@@ -492,7 +492,7 @@ implementation
           end;
       end;
 
-    function TWasmFuncTypeTable.AddFuncType(wft: TWasmFuncType): integer;
+    function TWasmFuncTypeTable.AddOrGetFuncType(wft: TWasmFuncType): integer;
       var
         i: Integer;
       begin
@@ -785,7 +785,7 @@ implementation
 
     function TWasmObjData.AddFuncType(wft: TWasmFuncType): integer;
       begin
-        Result:=FFuncTypes.AddFuncType(wft);
+        Result:=FFuncTypes.AddOrGetFuncType(wft);
       end;
 
     function TWasmObjData.globalref(asmsym: TAsmSymbol): TObjSymbol;
