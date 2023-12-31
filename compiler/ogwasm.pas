@@ -93,11 +93,26 @@ interface
         function IsDebug: Boolean;
       end;
 
+      { TWasmFuncTypeTable }
+
+      TWasmFuncTypeTable = class
+      private
+        FFuncTypes: array of TWasmFuncType;
+        function GetCount: Integer;
+        function GetItem(Index: Integer): TWasmFuncType;
+      public
+        destructor Destroy; override;
+
+        function AddFuncType(wft: TWasmFuncType): integer;
+        property Count: Integer read GetCount;
+        property Items[Index: Integer]: TWasmFuncType read GetItem; default;
+      end;
+
       { TWasmObjData }
 
       TWasmObjData = class(TObjData)
       private
-        FFuncTypes: array of TWasmFuncType;
+        FFuncTypes: TWasmFuncTypeTable;
         FObjSymbolsExtraDataList: TFPHashObjectList;
         FLastFuncName: string;
 
@@ -451,6 +466,46 @@ implementation
       end;
 
 {****************************************************************************
+                             TWasmFuncTypeTable
+****************************************************************************}
+
+    function TWasmFuncTypeTable.GetCount: Integer;
+      begin
+        Result:=Length(FFuncTypes);
+      end;
+
+    function TWasmFuncTypeTable.GetItem(Index: Integer): TWasmFuncType;
+      begin
+        if (Index<Low(FFuncTypes)) or (Index>High(FFuncTypes)) then
+          internalerror(2023123101);
+        Result:=FFuncTypes[Index];
+      end;
+
+    destructor TWasmFuncTypeTable.Destroy;
+      var
+        i: Integer;
+      begin
+        for i:=low(FFuncTypes) to high(FFuncTypes) do
+          begin
+            FFuncTypes[i].free;
+            FFuncTypes[i]:=nil;
+          end;
+      end;
+
+    function TWasmFuncTypeTable.AddFuncType(wft: TWasmFuncType): integer;
+      var
+        i: Integer;
+      begin
+        for i:=low(FFuncTypes) to high(FFuncTypes) do
+          if wft.Equals(FFuncTypes[i]) then
+            exit(i);
+
+        result:=Length(FFuncTypes);
+        SetLength(FFuncTypes,result+1);
+        FFuncTypes[result]:=TWasmFuncType.Create(wft);
+      end;
+
+{****************************************************************************
                                 TWasmObjData
 ****************************************************************************}
 
@@ -599,11 +654,7 @@ implementation
         i: Integer;
       begin
         FObjSymbolsExtraDataList.Free;
-        for i:=low(FFuncTypes) to high(FFuncTypes) do
-          begin
-            FFuncTypes[i].free;
-            FFuncTypes[i]:=nil;
-          end;
+        FFuncTypes.Free;
         inherited destroy;
       end;
 
@@ -733,16 +784,8 @@ implementation
       end;
 
     function TWasmObjData.AddFuncType(wft: TWasmFuncType): integer;
-      var
-        i: Integer;
       begin
-        for i:=low(FFuncTypes) to high(FFuncTypes) do
-          if wft.Equals(FFuncTypes[i]) then
-            exit(i);
-
-        result:=Length(FFuncTypes);
-        SetLength(FFuncTypes,result+1);
-        FFuncTypes[result]:=TWasmFuncType.Create(wft);
+        Result:=FFuncTypes.AddFuncType(wft);
       end;
 
     function TWasmObjData.globalref(asmsym: TAsmSymbol): TObjSymbol;
@@ -1496,7 +1539,7 @@ implementation
               Inc(export_functions_count);
           end;
 
-        types_count:=Length(FData.FFuncTypes);
+        types_count:=FData.FFuncTypes.Count;
         WriteUleb(FWasmSections[wsiType],types_count);
         for i:=0 to types_count-1 do
           with FData.FFuncTypes[i] do
