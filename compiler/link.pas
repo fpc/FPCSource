@@ -931,18 +931,50 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
+      var
+        total_size, power : longint;
+
         function GetNextFiles(const maxCmdLength : Longint; var item : TCmdStrListItem; const addfilecmd : string) : TCmdStr;
+          var
+            ItemExists : boolean;
+	    ItemSize : longint;
+	    fs : file;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
-              result := result + ' ' + addfilecmd + item.str;
+              ItemExists:=FileExists(FixFilename(item.str),true);
+	      ItemSize:=0;
+	      if ItemExists then
+                begin
+                  system.assign(fs,item.str);
+                  system.reset(fs);
+		  ItemSize:=FileSize(fs);
+                  system.close(fs);
+                  system.inc(total_size,align(ItemSize,16));
+                end;
+              if (cs_link_nolink in current_settings.globalswitches) or
+                 (ItemExists and (ItemSize>0)) then
+                result := result + ' ' + addfilecmd + item.str;
               item := TCmdStrListItem(item.next);
             end;
           end;
 
         function get_wlib_record_size: integer;
+	  var
+            nb_pages,page_size : longint;
           begin
-            result:=align(align(SmartLinkOFiles.Count,128) div 128,16);
+            { Set wlib page size to a sensible value }
+            if total_size>0 then
+              begin
+                page_size:=16 div 2;
+                repeat
+                  page_size:=page_size*2;
+                  nb_pages:=(total_size + (page_size-1)*SmartLinkOFiles.count) div page_size;
+		until nb_pages <= high(word);
+                result:=nb_pages;
+              end
+            else
+              result:=max(16,nextpowerof2(SmartLinkOFiles.count div 16, power));
           end;
 
       var
@@ -956,6 +988,7 @@ Implementation
         first : boolean;
       begin
         MakeStaticLibrary:=false;
+	total_size:=0;
       { remove the library, to be sure that it is rewritten }
         DeleteFile(current_module.staticlibfilename);
       { Call AR }
