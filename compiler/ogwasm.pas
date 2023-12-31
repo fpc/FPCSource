@@ -4107,6 +4107,10 @@ implementation
         WriteImportSection;
         WriteCodeSegments;
 
+        WriteUleb(FWasmSections[wsiMemory],1);
+        WriteByte(FWasmSections[wsiMemory],0);
+        WriteUleb(FWasmSections[wsiMemory],2);  { todo: fill min memory (pages) }
+
         {...}
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
@@ -4114,6 +4118,7 @@ implementation
         WriteWasmSection(wsiType);
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
+        WriteWasmSection(wsiMemory);
         WriteWasmSection(wsiCode);
 
         result := true;
