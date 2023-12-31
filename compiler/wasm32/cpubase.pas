@@ -151,6 +151,7 @@ uses
         procedure add_param(param: TWasmBasicType);
         procedure add_result(res: TWasmBasicType);
         function Equals(Obj: TObject): boolean; override;
+        function ToString: ansistring; override;
       end;
 
       {# This should define the array of instructions as string }
@@ -675,6 +676,29 @@ uses
           end
         else
           Result:=inherited Equals(Obj);
+      end;
+
+    function TWasmFuncType.ToString: ansistring;
+      const
+        wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64','funcref','externref','v128');
+      var
+        i: Integer;
+      begin
+        Result:='(';
+        for i:=0 to high(params) do
+          begin
+            if i<>0 then
+              Result:=Result+', ';
+            Result:=Result+wasm_basic_type_str[params[i]];
+          end;
+        Result:=Result+') -> (';
+        for i:=0 to high(results) do
+          begin
+            if i<>0 then
+              Result:=Result+', ';
+            Result:=Result+wasm_basic_type_str[results[i]];
+          end;
+        Result:=Result+')';
       end;
 
 end.
