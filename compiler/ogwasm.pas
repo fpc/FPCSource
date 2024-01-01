@@ -4154,7 +4154,7 @@ implementation
                           WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
                         end
                       else
-                        Writeln('RELOC_FUNCTION_INDEX_LEB to a function with unresolved index: ', objsym.Name);
+                        internalerror(2024010103);
                     end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
