@@ -65,6 +65,9 @@ interface
         GlobalIsMutable: Boolean;
         GlobalInitializer: TGlobalInitializer;
 
+        IsExported: Boolean;
+        ExportName: ansistring;
+
         constructor Create;
         destructor Destroy;override;
       end;
@@ -3996,6 +3999,8 @@ implementation
                       objsym.size:=objsym.objsection.Size;
                     end;
                   objsym.LinkingData.FuncType:=TWasmFuncType.Create(FFuncTypes[FuncTypes[SymIndex].typidx]);
+                  objsym.LinkingData.IsExported:=FuncTypes[SymIndex].IsExported;
+                  objsym.LinkingData.ExportName:=FuncTypes[SymIndex].ExportName;
                 end;
               byte(SYMTAB_GLOBAL):
                 begin
@@ -4051,6 +4056,8 @@ implementation
                     end;
                   objsym.LinkingData.GlobalType:=GlobalTypes[SymIndex].valtype;
                   objsym.LinkingData.GlobalIsMutable:=GlobalTypes[SymIndex].IsMutable;
+                  objsym.LinkingData.IsExported:=GlobalTypes[SymIndex].IsExported;
+                  objsym.LinkingData.ExportName:=GlobalTypes[SymIndex].ExportName;
                 end;
               byte(SYMTAB_SECTION),
               byte(SYMTAB_EVENT),
@@ -4433,13 +4440,43 @@ implementation
 
       procedure WriteExportSection;
         const
-          ExportsCount=1;
+          MemoryExportsCount=1;
+        var
+          FunctionExportsCount: Integer;
+          ExportsCount: Integer;
+          textsec: TExeSection;
+          i: Integer;
+          objsec: TWasmObjSection;
         begin
+          FunctionExportsCount:=0;
+          textsec:=FindExeSection('.text');
+          if not assigned(textsec) then
+            internalerror(2024010115);
+          for i:=0 to textsec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TWasmObjSection(textsec.ObjSectionList[i]);
+              if objsec.MainFuncSymbol.LinkingData.IsExported then
+                Inc(FunctionExportsCount)
+            end;
+
+          ExportsCount:=MemoryExportsCount+FunctionExportsCount;
+
           WriteUleb(FWasmSections[wsiExport],ExportsCount);
           { export 0 }
           WriteName(FWasmSections[wsiExport],'memory');
           WriteByte(FWasmSections[wsiExport],$02);  { mem }
           WriteUleb(FWasmSections[wsiExport],0);    { memidx = 0 }
+
+          for i:=0 to textsec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TWasmObjSection(textsec.ObjSectionList[i]);
+              if objsec.MainFuncSymbol.LinkingData.IsExported then
+                begin
+                  WriteName(FWasmSections[wsiExport],objsec.MainFuncSymbol.LinkingData.ExportName);
+                  WriteByte(FWasmSections[wsiExport],$00);  { func }
+                  WriteUleb(FWasmSections[wsiExport],objsec.MainFuncSymbol.LinkingData.ExeFunctionIndex);    { funcidx }
+                end;
+            end;
         end;
 
       begin
