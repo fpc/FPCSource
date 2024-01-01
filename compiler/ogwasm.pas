@@ -4149,7 +4149,14 @@ implementation
                           exit;
                         end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE))
+                        begin
+                          if SymbolTable[RelocIndex].ObjSym.typ<>AT_FUNCTION then
+                            begin
+                              InputError('R_WASM_TABLE_INDEX_I32 relocation must point to a function symbol');
+                              exit;
+                            end;
+                          ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE))
+                        end
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
