@@ -267,7 +267,7 @@ implementation
                       maybe_add_comment(tcb,#9'param count');
                       tcb.emit_ord_const(def.paras.count,u16inttype);
                       maybe_add_comment(tcb,#9'caller args size');
-                      tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
+                      tcb.emit_ord_const(def.callerargareasize,sizesinttype);
                       maybe_add_comment(tcb,#9'invoke helper');
                       if def.invoke_helper=nil then
                         tcb.emit_tai(Tai_const.Create_nil_dataptr,voidcodepointertype)
