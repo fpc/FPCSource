@@ -297,6 +297,10 @@ begin
       LinkScript.Concat('READOBJECT ' + maybequoted(s));
   end;
 
+  LinkScript.Concat('EXESECTION .wasm_globals');
+  LinkScript.Concat('  SYMBOL __stack_pointer');
+  LinkScript.Concat('ENDEXESECTION');
+
   LinkScript.Concat('EXESECTION .text');
   LinkScript.Concat('  OBJSECTION .text.*');
   LinkScript.Concat('ENDEXESECTION');

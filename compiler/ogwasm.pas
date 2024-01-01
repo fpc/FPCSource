@@ -254,7 +254,7 @@ interface
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         procedure AfterUnusedSectionRemoval;override;
         procedure MemPos_ExeSection(const aname:string);override;
-        procedure Load_Start;override;
+        procedure Load_Symbol(const aname: string);override;
       end;
 
       { TWasmAssembler }
@@ -4485,13 +4485,17 @@ implementation
         inherited MemPos_ExeSection(aname);
       end;
 
-    procedure TWasmExeOutput.Load_Start;
+    procedure TWasmExeOutput.Load_Symbol(const aname: string);
       const
-        aname='__stack_pointer';
+        StackPointerSymStr='__stack_pointer';
       begin
-        inherited Load_Start;
-        internalObjData.createsection('*'+aname,0,[]);
-        internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
+        if aname=StackPointerSymStr then
+          begin
+            internalObjData.createsection('*'+aname,0,[]);
+            internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
+          end
+        else
+          inherited;
       end;
 
     procedure TWasmExeOutput.PrepareImports;
