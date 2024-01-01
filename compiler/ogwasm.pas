@@ -4195,6 +4195,38 @@ implementation
           WriteExeSection(FindExeSection('.data'));
         end;
 
+      procedure WriteTableAndElemSections;
+        const
+          TableCount=1;
+        var
+          i: Integer;
+        begin
+          { Table section }
+
+          WriteUleb(FWasmSections[wsiTable],TableCount);
+          { table 0 }
+          {   table type }
+          WriteByte(FWasmSections[wsiTable],encode_wasm_basic_type(wbt_funcref));
+          {   table limits }
+          WriteByte(FWasmSections[wsiTable],$01);  { has min & max }
+          WriteUleb(FWasmSections[wsiTable],Length(FIndirectFunctionTable));  { min }
+          WriteUleb(FWasmSections[wsiTable],Length(FIndirectFunctionTable));  { max }
+
+          { Elem section }
+
+          WriteUleb(FWasmSections[wsiElement],1);  { 1 element segment }
+          { element segment 0 }
+          WriteByte(FWasmSections[wsiElement],0);  { type funcref, init((ref.func y) end)*, mode active <table 0, offset e> }
+          { e:expr }
+          WriteByte(FWasmSections[wsiElement],$41);  { i32.const }
+          WriteSleb(FWasmSections[wsiElement],1);    { starting from 1 (table entry 0 is ref.null) }
+          WriteByte(FWasmSections[wsiElement],$0B);  { end }
+          { y*:vec(funcidx) }
+          WriteUleb(FWasmSections[wsiElement],Length(FIndirectFunctionTable)-1);
+          for i:=1 to Length(FIndirectFunctionTable)-1 do
+            WriteUleb(FWasmSections[wsiElement],FIndirectFunctionTable[i].FuncIdx);
+        end;
+
       begin
         result:=false;
 
@@ -4202,6 +4234,7 @@ implementation
         WriteImportSection;
         WriteCodeSegments;
         WriteDataSegments;
+        WriteTableAndElemSections;
 
         WriteUleb(FWasmSections[wsiMemory],1);
         WriteByte(FWasmSections[wsiMemory],0);
@@ -4214,7 +4247,9 @@ implementation
         WriteWasmSection(wsiType);
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
+        WriteWasmSection(wsiTable);
         WriteWasmSection(wsiMemory);
+        WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
         WriteWasmSection(wsiData);
