@@ -4148,13 +4148,10 @@ implementation
                 case objreloc.typ of
                   RELOC_FUNCTION_INDEX_LEB:
                     begin
-                      if objsym.LinkingData.ExeFunctionIndex<>-1 then
-                        begin
-                          objsec.Data.seek(objreloc.DataOffset);
-                          WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
-                        end
-                      else
+                      if objsym.LinkingData.ExeFunctionIndex=-1 then
                         internalerror(2024010103);
+                      objsec.Data.seek(objreloc.DataOffset);
+                      WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
                     end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
