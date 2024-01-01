@@ -390,6 +390,20 @@ implementation
         until Done;
       end;
 
+    function UlebEncodingSize(v: uint64): Integer;
+      var
+        b: byte;
+      begin
+        Result:=0;
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          Inc(Result);
+        until v=0;
+      end;
+
 {$ifdef FPC_LITTLE_ENDIAN}
     procedure WriteF32LE(d: tdynamicarray; v: Single);
       begin
@@ -4679,16 +4693,43 @@ implementation
       end;
 
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
+      var
+        ExeSec: TExeSection;
+        i: Integer;
+        objsec: TObjSection;
       begin
         { WebAssembly is a Harvard architecture.
           Data lives in a separate address space, so start addressing back from 0
           (the LLVM leaves the first 1024 bytes in the data segment empty, so we
           start at 1024). }
         if aname='.rodata' then
-          CurrMemPos:=1024
+          begin
+            CurrMemPos:=1024;
+            inherited;
+          end
         else if aname='.text' then
-          CurrMemPos:=0;
-        inherited MemPos_ExeSection(aname);
+          begin
+            CurrMemPos:=0;
+            ExeSec:=FindExeSection(aname);
+            if not assigned(ExeSec) then
+              exit;
+            exesec.MemPos:=CurrMemPos;
+
+            CurrMemPos:=CurrMemPos+UlebEncodingSize(exesec.ObjSectionList.Count);
+
+            { set position of object ObjSections }
+            for i:=0 to exesec.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[i]);
+                CurrMemPos:=CurrMemPos+UlebEncodingSize(objsec.Size);
+                CurrMemPos:=objsec.setmempos(CurrMemPos);
+              end;
+
+            { calculate size of the section }
+            exesec.Size:=CurrMemPos-exesec.MemPos;
+          end
+        else
+          inherited;
       end;
 
     procedure TWasmExeOutput.Load_Symbol(const aname: string);
