@@ -76,7 +76,14 @@ interface
       public
         TypeIndex: Integer;
         Addend: LongInt;
+
+        { used during linking }
+        FuncType: TWasmFuncType;
+        ExeTypeIndex: Integer;
+
         constructor CreateTypeIndex(ADataOffset:TObjSectionOfs; ATypeIndex: Integer);
+        constructor CreateFuncType(ADataOffset:TObjSectionOfs; AFuncType: TWasmFuncType);
+        destructor Destroy;override;
       end;
 
       { TWasmObjSymbolExtraData }
@@ -518,6 +525,27 @@ implementation
         ObjSection:=nil;
         ftype:=ord(RELOC_TYPE_INDEX_LEB);
         TypeIndex:=ATypeIndex;
+        FuncType:=nil;
+        ExeTypeIndex:=-1;
+      end;
+
+    constructor TWasmObjRelocation.CreateFuncType(ADataOffset: TObjSectionOfs; AFuncType: TWasmFuncType);
+      begin
+        DataOffset:=ADataOffset;
+        Symbol:=nil;
+        OrgSize:=0;
+        Group:=nil;
+        ObjSection:=nil;
+        ftype:=ord(RELOC_TYPE_INDEX_LEB);
+        TypeIndex:=-1;
+        ExeTypeIndex:=-1;
+        FuncType:=TWasmFuncType.Create(AFuncType);
+      end;
+
+    destructor TWasmObjRelocation.Destroy;
+      begin
+        FuncType.Free;
+        inherited Destroy;
       end;
 
 {****************************************************************************
@@ -4017,7 +4045,7 @@ implementation
                           InputError('Type index in relocation too high');
                           exit;
                         end;
-                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateTypeIndex(RelocOffset-BaseSectionOffset,RelocIndex));
+                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateFuncType(RelocOffset-BaseSectionOffset,FFuncTypes[RelocIndex]));
                     end;
                   R_WASM_FUNCTION_OFFSET_I32:
                     begin
@@ -4156,6 +4184,12 @@ implementation
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
+              end
+            else if objreloc.typ=RELOC_TYPE_INDEX_LEB then
+              begin
+                objreloc.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(objreloc.FuncType);
+                objsec.Data.seek(objreloc.DataOffset);
+                WriteUleb5(objsec.Data,objreloc.ExeTypeIndex);
               end
             else
               Writeln('Non-symbol relocation not yet implemented! ', objreloc.typ);
