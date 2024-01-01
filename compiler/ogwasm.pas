@@ -3922,7 +3922,49 @@ implementation
                     end;
                   objsym.LinkingData.FuncType:=TWasmFuncType.Create(FFuncTypes[FuncTypes[SymIndex].typidx]);
                 end;
-              byte(SYMTAB_GLOBAL),
+              byte(SYMTAB_GLOBAL):
+                begin
+                  if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                    begin
+                      if not GlobalTypes[SymIndex].IsImport then
+                        begin
+                          InputError('WASM_SYM_UNDEFINED set on a SYMTAB_GLOBAL symbol, that is not an import');
+                          exit;
+                        end;
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
+                        begin
+                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_WASM_GLOBAL;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=0;
+                          objsym.LinkingData.ImportModule:=GlobalTypes[SymIndex].ImportModName;
+                          objsym.LinkingData.ImportName:=GlobalTypes[SymIndex].ImportName;
+                        end
+                      else
+                        begin
+                          if GlobalTypes[SymIndex].ImportModName = 'env' then
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(GlobalTypes[SymIndex].ImportName))
+                          else
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(GlobalTypes[SymIndex].ImportModName + '.' + GlobalTypes[SymIndex].ImportName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_WASM_GLOBAL;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=0;
+                        end;
+                    end
+                  else
+                    begin
+                      if GlobalTypes[SymIndex].IsImport then
+                        begin
+                          InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_GLOBAL symbol, that is an import');
+                          exit;
+                        end;
+                      Writeln('defined global ', SymName);
+                    end;
+                end;
               byte(SYMTAB_SECTION),
               byte(SYMTAB_EVENT),
               byte(SYMTAB_TABLE):
