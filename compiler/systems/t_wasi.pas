@@ -78,9 +78,7 @@ type
   protected
     procedure DefaultLinkScript;override;
 
-    function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
     function GetDataSize(aExeOutput: TExeOutput): QWord;override;
-    function GetBssSize(aExeOutput: TExeOutput): QWord;override;
   public
     constructor create;override;
 
@@ -315,22 +313,10 @@ begin
 
 end;
 
-function TInternalLinkerWasi.GetCodeSize(aExeOutput: TExeOutput): QWord;
-begin
-  {TODO}
-  Result:=0;
-end;
-
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  {TODO}
-  Result:=0;
-end;
-
-function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
-begin
-  {TODO}
-  Result:=0;
+  Result:=aExeOutput.findexesection('.rodata').size +
+          aExeOutput.findexesection('.data').size;
 end;
 
 constructor TInternalLinkerWasi.create;
