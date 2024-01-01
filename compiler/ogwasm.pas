@@ -3940,7 +3940,7 @@ implementation
                           objsym.typ:=AT_WASM_GLOBAL;
                           objsym.objsection:=nil;
                           objsym.offset:=0;
-                          objsym.size:=0;
+                          objsym.size:=1;
                           objsym.LinkingData.ImportModule:=GlobalTypes[SymIndex].ImportModName;
                           objsym.LinkingData.ImportName:=GlobalTypes[SymIndex].ImportName;
                         end
@@ -3954,7 +3954,7 @@ implementation
                           objsym.typ:=AT_WASM_GLOBAL;
                           objsym.objsection:=nil;
                           objsym.offset:=0;
-                          objsym.size:=0;
+                          objsym.size:=1;
                         end;
                     end
                   else
@@ -3969,7 +3969,7 @@ implementation
                       objsym.typ:=AT_WASM_GLOBAL;
                       objsym.objsection:=ObjData.findsection('.wasm_globals');
                       objsym.offset:=0;
-                      objsym.size:=0;
+                      objsym.size:=1;
                     end;
                 end;
               byte(SYMTAB_SECTION),
@@ -4487,11 +4487,14 @@ implementation
     procedure TWasmExeOutput.Load_Symbol(const aname: string);
       const
         StackPointerSymStr='__stack_pointer';
+      var
+        objsym: TObjSymbol;
       begin
         if aname=StackPointerSymStr then
           begin
             internalObjData.createsection('*'+aname,0,[]);
-            internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
+            objsym:=internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
+            objsym.size:=1;
           end
         else
           inherited;
