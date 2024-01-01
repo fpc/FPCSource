@@ -4216,10 +4216,10 @@ implementation
 
       function AddFunctionImport(const libname,symname:TCmdStr; functype: TWasmFuncType): Integer;
         begin
-          if assigned(exemap) then
-            exemap.Add('  Importing Function ' + symname + functype.ToString);
           SetLength(FFunctionImports,Length(FFunctionImports)+1);
           Result:=High(FFunctionImports);
+          if assigned(exemap) then
+            exemap.Add('  Importing Function[' + tostr(Result) + '] ' + symname + functype.ToString);
           with FFunctionImports[Result] do
             begin
               ModName:=libname;
