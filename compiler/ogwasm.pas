@@ -49,6 +49,7 @@ interface
         ImportName: string;
         FuncType: TWasmFuncType;
         ExeFunctionIndex: Integer;
+        ExeIndirectFunctionTableIndex: Integer;
         ExeTypeIndex: Integer;
 
         constructor Create;
@@ -235,10 +236,15 @@ interface
           TypeIdx: uint32;
         end;
 
+        FIndirectFunctionTable: array of record
+          FuncIdx: Integer;
+        end;
+
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure PrepareImports;
         procedure PrepareFunctions;
+        function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -521,6 +527,7 @@ implementation
     constructor TWasmObjSymbolLinkingData.Create;
       begin
         ExeFunctionIndex:=-1;
+        ExeIndirectFunctionTableIndex:=-1;
         ExeTypeIndex:=-1;
       end;
 
@@ -4216,6 +4223,15 @@ implementation
       end;
 
     procedure TWasmExeOutput.DoRelocationFixup(objsec: TObjSection);
+
+      procedure writeUInt32LE(v: uint32);
+        begin
+{$ifdef FPC_BIG_ENDIAN}
+          v:=SwapEndian(v);
+{$endif FPC_BIG_ENDIAN}
+          objsec.data.write(v,4);
+        end;
+
       var
         i: Integer;
         objreloc: TWasmObjRelocation;
@@ -4240,12 +4256,17 @@ implementation
                       case objsym.typ of
                         AT_FUNCTION:
                           begin
-                            Writeln('TODO: function table index');
+                            if objsym.LinkingData.ExeFunctionIndex=-1 then
+                              internalerror(2024010103);
+                            if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
+                              objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
+                            objsec.Data.seek(objreloc.DataOffset);
+                            writeUInt32LE(UInt32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
                           end;
                         AT_DATA:
                           begin
                             objsec.Data.seek(objreloc.DataOffset);
-                            objsec.writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                            writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
                           end;
                         else
                           internalerror(2024010108);
@@ -4276,6 +4297,8 @@ implementation
         FFuncTypes:=TWasmFuncTypeTable.Create;
         for i in TWasmSectionID do
           FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
+        SetLength(FIndirectFunctionTable,1);
+        FIndirectFunctionTable[0].FuncIdx:=-1;
       end;
 
     destructor TWasmExeOutput.destroy;
@@ -4428,6 +4451,21 @@ implementation
                   end;
               end;
           end;
+      end;
+
+    function TWasmExeOutput.AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
+      var
+        i: Integer;
+      begin
+        for i:=1 to length(FIndirectFunctionTable)-1 do
+          if FIndirectFunctionTable[i].FuncIdx=FuncIdx then
+            begin
+              Result:=i;
+              exit;
+            end;
+        SetLength(FIndirectFunctionTable,Length(FIndirectFunctionTable)+1);
+        Result:=High(FIndirectFunctionTable);
+        FIndirectFunctionTable[Result].FuncIdx:=FuncIdx;
       end;
 
 
