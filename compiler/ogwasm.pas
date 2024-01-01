@@ -4071,10 +4071,18 @@ implementation
                       else
                         Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
                     end;
-                  R_WASM_SECTION_OFFSET_I32,
-                  R_WASM_GLOBAL_INDEX_LEB,
-                  R_WASM_TAG_INDEX_LEB:
+                  R_WASM_SECTION_OFFSET_I32:
+                    begin
+                      InputError('R_WASM_SECTION_OFFSET_I32 relocations not yet implemented');
+                      exit;
+                    end;
+                  R_WASM_GLOBAL_INDEX_LEB:
                     {TODO};
+                  R_WASM_TAG_INDEX_LEB:
+                    begin
+                      InputError('R_WASM_TAG_INDEX_LEB relocations not yet implemented');
+                      exit;
+                    end;
                   else
                     internalerror(2023122802);
                 end;
