@@ -4235,6 +4235,22 @@ implementation
                       objsec.Data.seek(objreloc.DataOffset);
                       WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
                     end;
+                  RELOC_ABSOLUTE:
+                    begin
+                      case objsym.typ of
+                        AT_FUNCTION:
+                          begin
+                            Writeln('TODO: function table index');
+                          end;
+                        AT_DATA:
+                          begin
+                            objsec.Data.seek(objreloc.DataOffset);
+                            objsec.writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                          end;
+                        else
+                          internalerror(2024010108);
+                      end;
+                    end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
