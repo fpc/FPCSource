@@ -3777,10 +3777,13 @@ implementation
                     InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_FUNCTION symbol, that is an import');
                     exit;
                   end;
-                with CodeSegments[SymIndex-FuncTypeImportsCount] do
+                if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
                   begin
-                    SegName:='.text.n_'+SymName;
-                    SegIsExported:=FuncTypes[SymIndex].IsExported;
+                    with CodeSegments[SymIndex-FuncTypeImportsCount] do
+                      begin
+                        SegName:='.text.n_'+SymName;
+                        SegIsExported:=FuncTypes[SymIndex].IsExported;
+                      end;
                   end;
               end;
 
