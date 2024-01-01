@@ -4596,7 +4596,7 @@ implementation
                       if objsym.typ<>AT_WASM_GLOBAL then
                         internalerror(2024010111);
                       objsec.Data.seek(objreloc.DataOffset);
-                      WriteUleb5(objsec.Data,UInt32(objsym.offset));
+                      WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                     end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
