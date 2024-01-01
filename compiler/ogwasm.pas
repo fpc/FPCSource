@@ -3791,6 +3791,11 @@ implementation
         for i:=low(CodeSegments) to high(CodeSegments) do
           with CodeSegments[i] do
             begin
+              if SegName='' then
+                begin
+                  InputError('Code section ' + tostr(i) + ' does not have a main symbol defined in the symbol table');
+                  exit;
+                end;
               if SegIsExported then
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load,oso_keep],false)
               else
