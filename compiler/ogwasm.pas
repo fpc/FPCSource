@@ -4314,6 +4314,27 @@ implementation
                       objsec.Data.seek(objreloc.DataOffset);
                       WriteUleb5(objsec.Data,UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
                     end;
+                  RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
+                    begin
+                      case objsym.typ of
+                        AT_FUNCTION:
+                          begin
+                            if objsym.LinkingData.ExeFunctionIndex=-1 then
+                              internalerror(2024010103);
+                            if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
+                              objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
+                            objsec.Data.seek(objreloc.DataOffset);
+                            WriteSleb5(objsec.Data,Int32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                          end;
+                        AT_DATA:
+                          begin
+                            objsec.Data.seek(objreloc.DataOffset);
+                            WriteSleb5(objsec.Data,Int32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                          end;
+                        else
+                          internalerror(2024010110);
+                      end;
+                    end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
