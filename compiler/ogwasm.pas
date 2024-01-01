@@ -191,7 +191,6 @@ interface
         FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
-        procedure WriteZeros(dest: tdynamicarray; size: QWord);
         function IsExternalFunction(sym: TObjSymbol): Boolean;
         function IsExportedFunction(sym: TWasmObjSymbol): Boolean;
         procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
@@ -496,6 +495,24 @@ implementation
             dec(size,bs);
           end;
       end;
+
+    procedure WriteZeros(dest: tdynamicarray; size: QWord);
+      var
+        buf : array[0..1023] of byte;
+        bs: Integer;
+      begin
+        fillchar(buf,sizeof(buf),0);
+        while size>0 do
+          begin
+            if size<SizeOf(buf) then
+              bs:=Integer(size)
+            else
+              bs:=SizeOf(buf);
+            dest.write(buf,bs);
+            dec(size,bs);
+          end;
+      end;
+
 
 {****************************************************************************
                          TWasmObjSymbolLinkingData
@@ -1089,23 +1106,6 @@ implementation
         Writer.write(b,1);
         WriteUleb(Writer,FWasmCustomSections[wcst].size);
         Writer.writearray(FWasmCustomSections[wcst]);
-      end;
-
-    procedure TWasmObjOutput.WriteZeros(dest: tdynamicarray; size: QWord);
-      var
-        buf : array[0..1023] of byte;
-        bs: Integer;
-      begin
-        fillchar(buf,sizeof(buf),0);
-        while size>0 do
-          begin
-            if size<SizeOf(buf) then
-              bs:=Integer(size)
-            else
-              bs:=SizeOf(buf);
-            dest.write(buf,bs);
-            dec(size,bs);
-          end;
       end;
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
@@ -4138,12 +4138,63 @@ implementation
             end;
         end;
 
+      procedure WriteDataSegments;
+
+        procedure WriteExeSection(exesec: TExeSection);
+          var
+            i: Integer;
+            objsec: TObjSection;
+            exesecdatapos: LongWord;
+            dpos, pad: QWord;
+          begin
+            WriteByte(FWasmSections[wsiData],0);
+
+            WriteByte(FWasmSections[wsiData],$41);  { i32.const }
+            WriteSleb(FWasmSections[wsiData],longint(exesec.MemPos));
+            WriteByte(FWasmSections[wsiData],$0B);  { end }
+
+            WriteUleb(FWasmSections[wsiData],exesec.Size);
+            exesecdatapos:=FWasmSections[wsiData].size;
+            for i:=0 to exesec.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[i]);
+                if not (oso_data in objsec.secoptions) then
+                  internalerror(2024010104);
+                if not assigned(objsec.data) then
+                  internalerror(2024010105);
+
+                dpos:=objsec.MemPos-exesec.MemPos+exesecdatapos;
+                pad:=dpos-FWasmSections[wsiData].size;
+                { objsection must be within SecAlign bytes from the previous one }
+                if (dpos<FWasmSections[wsiData].Size) or
+                  (pad>=max(objsec.SecAlign,1)) then
+                  internalerror(2024010106);
+                writeZeros(FWasmSections[wsiData],pad);
+
+                objsec.data.seek(0);
+                CopyDynamicArray(objsec.data,FWasmSections[wsiData],objsec.data.size);
+              end;
+            if (FWasmSections[wsiData].size-exesecdatapos)<>exesec.Size then
+              internalerror(2024010107);
+          end;
+
+        var
+          DataCount: Integer;
+        begin
+          DataCount:=2;
+          WriteUleb(FWasmSections[wsiDataCount],DataCount);
+          WriteUleb(FWasmSections[wsiData],DataCount);
+          WriteExeSection(FindExeSection('.rodata'));
+          WriteExeSection(FindExeSection('.data'));
+        end;
+
       begin
         result:=false;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
         WriteCodeSegments;
+        WriteDataSegments;
 
         WriteUleb(FWasmSections[wsiMemory],1);
         WriteByte(FWasmSections[wsiMemory],0);
@@ -4157,7 +4208,9 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiMemory);
+        WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
+        WriteWasmSection(wsiData);
 
         result := true;
       end;
