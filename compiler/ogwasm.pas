@@ -4127,7 +4127,17 @@ implementation
                       exit;
                     end;
                   R_WASM_GLOBAL_INDEX_LEB:
-                    {TODO};
+                    begin
+                      if RelocIndex>high(SymbolTable) then
+                        begin
+                          InputError('Symbol index in relocation too high');
+                          exit;
+                        end;
+                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
+                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB))
+                      else
+                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                    end;
                   R_WASM_TAG_INDEX_LEB:
                     begin
                       InputError('R_WASM_TAG_INDEX_LEB relocations not yet implemented');
