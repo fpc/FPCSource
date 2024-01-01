@@ -147,6 +147,12 @@ begin
    end;
   try
     {$ifdef MorphOS}
+    if poUsePipes in Options then
+    begin
+      FDescriptors[phtInput].PrepareHandles;
+      FDescriptors[phtOutput].PrepareHandles;
+      //FDescriptors[phtError].PrepareHandles;
+    end;
     if (not (poWaitOnExit in Options)) then
     begin
       FProcessID := 0;
@@ -172,8 +178,8 @@ begin
       SetVBuf(outB, nil, BUF_LINE, -1);
       // the actual Start of the command with given parameter and streams
       Res := SystemTags(PAnsiChar(ExecName + ' ' + Params),
-                        [SYS_Input, AsTag(outA),
-                         SYS_Output, AsTag(inB),
+                        [SYS_Input, AsTag(inB),
+                         SYS_Output, AsTag(outB),
                          SYS_Asynch, AsTag(True),
                          TAG_END]);
       // the two streams will be destroyed by system, we do not need to care about
@@ -181,16 +187,16 @@ begin
       if Res <> -1 then
       begin
         FProcessID := 1;
+        // Remove the Used Pipe end because they will be freed by the system
+        FDescriptors[phtInput].FTheirHandle := INVALID_HANDLE_VALUE;
+        FDescriptors[phtOutput].FTheirHandle := INVALID_HANDLE_VALUE;
         // No longer needed, done in TIOFileDescriptor
         // CreateStreams(THandle(outB), THandle(inA),0);
       end
       else
       begin
         // if the command did not start, we need to delete all Streams
-        if outB <> BPTR(0) then DosClose(outB);
-        if outA <> BPTR(0) then DosClose(outA);
-        if inB <> BPTR(0) then DosClose(inB);
-        if inA <> BPTR(0) then DosClose(inA);
+        // not needed to remove the pipes anymore the descriptors will care about that
       end;
     end
     else
