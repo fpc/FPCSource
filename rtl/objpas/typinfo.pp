@@ -197,6 +197,9 @@ unit TypInfo;
         property Tail: Pointer read GetTail;
       end;
 
+      { The following three types are essentially copies from the TObject.FieldAddress
+        function. If something is changed there, change it here as well }
+
       PVmtFieldClassTab = ^TVmtFieldClassTab;
       TVmtFieldClassTab =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
