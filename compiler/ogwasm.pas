@@ -4266,6 +4266,11 @@ implementation
         objsec: TWasmObjSection;
         fsym: TWasmObjSymbol;
       begin
+        if assigned(exemap) then
+          begin
+            exemap.Add('');
+            exemap.Add('Functions, defined in this module:');
+          end;
         exesec:=FindExeSection('.text');
         if not assigned(exesec) then
           internalerror(2023123106);
@@ -4283,6 +4288,10 @@ implementation
               internalerror(2023123109);
             fsym.LinkingData.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(fsym.LinkingData.FuncType);
             fsym.LinkingData.ExeFunctionIndex:=i+Length(FFunctionImports);
+            if assigned(exemap) then
+              begin
+                exemap.Add('  Function[' + tostr(fsym.LinkingData.ExeFunctionIndex) + '] ' + fsym.Name + fsym.LinkingData.FuncType.ToString);
+              end;
           end;
       end;
 
