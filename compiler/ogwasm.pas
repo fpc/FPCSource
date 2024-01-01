@@ -4403,6 +4403,13 @@ implementation
                           internalerror(2024010110);
                       end;
                     end;
+                  RELOC_GLOBAL_INDEX_LEB:
+                    begin
+                      if objsym.typ<>AT_WASM_GLOBAL then
+                        internalerror(2024010111);
+                      objsec.Data.seek(objreloc.DataOffset);
+                      WriteUleb5(objsec.Data,UInt32(objsym.offset));
+                    end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
