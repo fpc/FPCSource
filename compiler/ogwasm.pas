@@ -3851,6 +3851,7 @@ implementation
                 CurrSec.Size:=Len;
               end;
         ReadSectionContent(ObjData);
+        ObjData.createsection('.wasm_globals',1,[]);
 
         for i:=low(SymbolTable) to high(SymbolTable) do
           with SymbolTable[i] do
@@ -3966,9 +3967,7 @@ implementation
                       objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                       objsym.bind:=AB_GLOBAL;
                       objsym.typ:=AT_WASM_GLOBAL;
-                      objsym.objsection:=nil;
-                      //if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
-                      //  TWasmObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
+                      objsym.objsection:=ObjData.findsection('.wasm_globals');
                       objsym.offset:=0;
                       objsym.size:=0;
                     end;

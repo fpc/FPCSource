@@ -299,6 +299,7 @@ begin
 
   LinkScript.Concat('EXESECTION .wasm_globals');
   LinkScript.Concat('  SYMBOL __stack_pointer');
+  LinkScript.Concat('  OBJSECTION .wasm_globals');
   LinkScript.Concat('ENDEXESECTION');
 
   LinkScript.Concat('EXESECTION .text');
