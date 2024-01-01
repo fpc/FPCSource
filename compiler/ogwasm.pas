@@ -3851,7 +3851,6 @@ implementation
                 CurrSec.Size:=Len;
               end;
         ReadSectionContent(ObjData);
-        ObjData.createsection('.wasm_globals',1,[]);
 
         for i:=low(SymbolTable) to high(SymbolTable) do
           with SymbolTable[i] do
@@ -3967,7 +3966,9 @@ implementation
                       objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                       objsym.bind:=AB_GLOBAL;
                       objsym.typ:=AT_WASM_GLOBAL;
-                      objsym.objsection:=ObjData.findsection('.wasm_globals');
+                      objsym.objsection:=ObjData.createsection('.wasm_globals.n_'+SymName,1,[oso_Data,oso_load],true);
+                      if objsym.objsection.Size=0 then
+                        objsym.objsection.WriteZeros(1);
                       objsym.offset:=0;
                       objsym.size:=1;
                     end;
@@ -4492,9 +4493,10 @@ implementation
       begin
         if aname=StackPointerSymStr then
           begin
-            internalObjData.createsection('*'+aname,0,[]);
+            internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             objsym:=internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
             objsym.size:=1;
+            objsym.ObjSection.WriteZeros(1);
           end
         else
           inherited;
