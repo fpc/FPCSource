@@ -4681,9 +4681,11 @@ implementation
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
       begin
         { WebAssembly is a Harvard architecture.
-          Data lives in a separate address space, so start addressing back from 0. }
+          Data lives in a separate address space, so start addressing back from 0
+          (the LLVM leaves the first 1024 bytes in the data segment empty, so we
+          start at 1024). }
         if aname='.rodata' then
-          CurrMemPos:=0;
+          CurrMemPos:=1024;
         inherited MemPos_ExeSection(aname);
       end;
 
