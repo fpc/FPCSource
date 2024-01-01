@@ -593,14 +593,19 @@ end;
 procedure FillQWord_SSE2(var x;count:SizeInt;value:QWord);assembler;nostackframe;
 { eax = x, edx = count, [esp + 4] = value }
 asm
-        cmp     $1, %edx
-        jle     .LOneOrLess
         cmp     $4, %edx
-        jle     .L2to4
+        jle     .L4OrLess
         movq    4(%esp), %xmm0
         punpcklqdq %xmm0, %xmm0
+        { Stack is 12 bytes:
+          [esp] = return address, [esp + 4] = value (not required anymore).
+          Convert to 8 bytes expected by FillXxxx_MoreThanTwoXMMs:
+          [esp] = esi, [esp + 4] = return address. }
+        mov     (%esp), %ecx
+        add     $4, %esp
+        mov     %esi, (%esp)
+        mov     %ecx, 4(%esp)
         shl     $3, %edx
-        push    %esi
         movdqu  %xmm0, (%eax)
         movdqa  %xmm0, %xmm1
         test    $7, %eax { Since misaligning the pattern is not very trivial, shortcut if x is aligned. }
@@ -618,17 +623,12 @@ asm
         por     %xmm2, %xmm1
         jmp     FillXxxx_MoreThanTwoXMMs
 
-.LOneOrLess:
+.L4OrLess: { Doing this with 64-bit half-XMM MOVQs is a lot simpler but 2x slower (Coffee Lake). :\ }
+        cmp     $1, %edx
         jl      .LQuit
         mov     4(%esp), %ecx
         mov     %ecx, (%eax)
-        mov     8(%esp), %ecx
-        mov     %ecx, 4(%eax)
-.LQuit:
-        ret     $8
-.L2to4:
-        mov     4(%esp), %ecx
-        mov     %ecx, (%eax)
+        je      .LSecondHalfOf1
         mov     %ecx, 8(%eax)
         mov     %ecx, -16(%eax,%edx,8)
         mov     %ecx, -8(%eax,%edx,8)
@@ -637,6 +637,11 @@ asm
         mov     %ecx, 12(%eax)
         mov     %ecx, -12(%eax,%edx,8)
         mov     %ecx, -4(%eax,%edx,8)
+.LQuit:
+        ret     $8
+.LSecondHalfOf1:
+        mov     8(%esp), %ecx
+        mov     %ecx, 4(%eax)
 end;
 
 procedure FillQWord_Dispatch(var x;count:SizeInt;value:qword); forward;
