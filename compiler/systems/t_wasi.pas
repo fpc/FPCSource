@@ -303,9 +303,13 @@ begin
   LinkScript.Concat('  OBJSECTION .text.*');
   LinkScript.Concat('ENDEXESECTION');
 
-  LinkScript.Concat('EXESECTION .data');
+  LinkScript.Concat('EXESECTION .rodata');
   LinkScript.Concat('  OBJSECTION .rodata.*');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .data');
   LinkScript.Concat('  OBJSECTION .data.*');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .bss');
   LinkScript.Concat('  OBJSECTION .bss');
   LinkScript.Concat('ENDEXESECTION');
 

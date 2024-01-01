@@ -4257,7 +4257,7 @@ implementation
       begin
         { WebAssembly is a Harvard architecture.
           Data lives in a separate address space, so start addressing back from 0. }
-        if aname='.data' then
+        if aname='.rodata' then
           CurrMemPos:=0;
         inherited MemPos_ExeSection(aname);
       end;
