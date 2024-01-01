@@ -254,6 +254,7 @@ interface
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         procedure AfterUnusedSectionRemoval;override;
         procedure MemPos_ExeSection(const aname:string);override;
+        procedure Load_Start;override;
       end;
 
       { TWasmAssembler }
@@ -4465,6 +4466,15 @@ implementation
         if aname='.rodata' then
           CurrMemPos:=0;
         inherited MemPos_ExeSection(aname);
+      end;
+
+    procedure TWasmExeOutput.Load_Start;
+      const
+        aname='__stack_pointer';
+      begin
+        inherited Load_Start;
+        internalObjData.createsection('*'+aname,0,[]);
+        internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
       end;
 
     procedure TWasmExeOutput.PrepareImports;
