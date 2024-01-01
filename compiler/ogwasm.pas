@@ -4685,7 +4685,9 @@ implementation
           (the LLVM leaves the first 1024 bytes in the data segment empty, so we
           start at 1024). }
         if aname='.rodata' then
-          CurrMemPos:=1024;
+          CurrMemPos:=1024
+        else if aname='.text' then
+          CurrMemPos:=0;
         inherited MemPos_ExeSection(aname);
       end;
 
