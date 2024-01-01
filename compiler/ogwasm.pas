@@ -248,6 +248,7 @@ interface
         destructor destroy;override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         procedure AfterUnusedSectionRemoval;override;
+        procedure MemPos_ExeSection(const aname:string);override;
       end;
 
       { TWasmAssembler }
@@ -4250,6 +4251,15 @@ implementation
       begin
         PrepareImports;
         PrepareFunctions;
+      end;
+
+    procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
+      begin
+        { WebAssembly is a Harvard architecture.
+          Data lives in a separate address space, so start addressing back from 0. }
+        if aname='.data' then
+          CurrMemPos:=0;
+        inherited MemPos_ExeSection(aname);
       end;
 
     procedure TWasmExeOutput.PrepareImports;
