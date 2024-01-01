@@ -4431,6 +4431,17 @@ implementation
             end;
         end;
 
+      procedure WriteExportSection;
+        const
+          ExportsCount=1;
+        begin
+          WriteUleb(FWasmSections[wsiExport],ExportsCount);
+          { export 0 }
+          WriteName(FWasmSections[wsiExport],'memory');
+          WriteByte(FWasmSections[wsiExport],$02);  { mem }
+          WriteUleb(FWasmSections[wsiExport],0);    { memidx = 0 }
+        end;
+
       begin
         result:=false;
 
@@ -4440,6 +4451,7 @@ implementation
         WriteDataSegments;
         WriteTableAndElemSections;
         WriteGlobalSection;
+        WriteExportSection;
 
         WriteUleb(FWasmSections[wsiMemory],1);
         WriteByte(FWasmSections[wsiMemory],0);
@@ -4455,6 +4467,7 @@ implementation
         WriteWasmSection(wsiTable);
         WriteWasmSection(wsiMemory);
         WriteWasmSection(wsiGlobal);
+        WriteWasmSection(wsiExport);
         WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
