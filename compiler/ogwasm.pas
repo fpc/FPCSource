@@ -257,10 +257,12 @@ interface
         end;
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
+        FStackPointerSym: TWasmObjSymbol;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure PrepareImports;
         procedure PrepareFunctions;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
+        procedure SetStackPointer;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -283,6 +285,9 @@ implementation
 
     uses
       cutils,verbose,version,globals,ogmap;
+
+    const
+      StackPointerSymStr='__stack_pointer';
 
     procedure WriteUleb5(d: tdynamicarray; v: uint64);
       var
@@ -4482,6 +4487,8 @@ implementation
       begin
         result:=false;
 
+        SetStackPointer;
+
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
         WriteCodeSegments;
@@ -4681,22 +4688,18 @@ implementation
       end;
 
     procedure TWasmExeOutput.Load_Symbol(const aname: string);
-      const
-        StackPointerSymStr='__stack_pointer';
-      var
-        objsym: TWasmObjSymbol;
       begin
         if aname=StackPointerSymStr then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
-            objsym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
-            objsym.size:=1;
-            objsym.ObjSection.WriteZeros(1);
-            TWasmObjSection(objsym.ObjSection).MainFuncSymbol:=objsym;
-            objsym.LinkingData.GlobalType:=wbt_i32;
-            objsym.LinkingData.GlobalIsMutable:=True;
-            objsym.LinkingData.GlobalInitializer.typ:=wbt_i32;
-            objsym.LinkingData.GlobalInitializer.init_i32:=0;
+            FStackPointerSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
+            FStackPointerSym.size:=1;
+            FStackPointerSym.ObjSection.WriteZeros(1);
+            TWasmObjSection(FStackPointerSym.ObjSection).MainFuncSymbol:=FStackPointerSym;
+            FStackPointerSym.LinkingData.GlobalType:=wbt_i32;
+            FStackPointerSym.LinkingData.GlobalIsMutable:=True;
+            FStackPointerSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+            FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
         else
           inherited;
@@ -4814,6 +4817,15 @@ implementation
         SetLength(FIndirectFunctionTable,Length(FIndirectFunctionTable)+1);
         Result:=High(FIndirectFunctionTable);
         FIndirectFunctionTable[Result].FuncIdx:=FuncIdx;
+      end;
+
+    procedure TWasmExeOutput.SetStackPointer;
+      var
+        BssSec: TExeSection;
+        StackStart: QWord;
+      begin
+        BssSec:=FindExeSection('.bss');
+        FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32((BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15));
       end;
 
 
