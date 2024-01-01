@@ -3879,7 +3879,8 @@ implementation
                       objsym.bind:=AB_GLOBAL;
                       objsym.typ:=AT_FUNCTION;
                       objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
-                      TWasmObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
+                        TWasmObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
                       objsym.offset:=0;
                       objsym.size:=objsym.objsection.Size;
                     end;
