@@ -4270,10 +4270,11 @@ implementation
 
     procedure TWasmExeOutput.PrepareFunctions;
       var
-        i: Integer;
+        i, j: Integer;
         exesec: TExeSection;
         objsec: TWasmObjSection;
         fsym: TWasmObjSymbol;
+        objdata: TObjData;
       begin
         if assigned(exemap) then
           begin
@@ -4300,6 +4301,21 @@ implementation
             if assigned(exemap) then
               begin
                 exemap.Add('  Function[' + tostr(fsym.LinkingData.ExeFunctionIndex) + '] ' + fsym.Name + fsym.LinkingData.FuncType.ToString);
+              end;
+          end;
+        { set ExeFunctionIndex to the alias symbols as well }
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            objdata:=TObjData(ObjDataList[i]);
+            for j:=0 to objdata.ObjSymbolList.Count-1 do
+              begin
+                fsym:=TWasmObjSymbol(objdata.ObjSymbolList[j]);
+                if assigned(fsym.objsection) and fsym.objsection.USed and (fsym.typ=AT_FUNCTION) and (fsym.LinkingData.ExeFunctionIndex=-1) then
+                  begin
+                    fsym.LinkingData.ExeFunctionIndex:=TWasmObjSection(fsym.objsection).MainFuncSymbol.LinkingData.ExeFunctionIndex;
+                    if fsym.LinkingData.ExeFunctionIndex=-1 then
+                      internalerror(2024010102);
+                  end;
               end;
           end;
       end;
