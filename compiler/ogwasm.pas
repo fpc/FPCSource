@@ -4307,6 +4307,13 @@ implementation
                           internalerror(2024010108);
                       end;
                     end;
+                  RELOC_MEMORY_ADDR_LEB:
+                    begin
+                      if objsym.typ<>AT_DATA then
+                        internalerror(2024010109);
+                      objsec.Data.seek(objreloc.DataOffset);
+                      WriteUleb5(objsec.Data,UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                    end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
