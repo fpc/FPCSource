@@ -41,16 +41,29 @@ interface
     type
       TWasmObjSymbolExtraData = class;
 
+      TGlobalInitializer = record
+        case typ:TWasmBasicType of
+          wbt_i32: (init_i32: Int32);
+          wbt_i64: (init_i64: Int64);
+          wbt_f32: (init_f32: Single);
+          wbt_f64: (init_f64: Double);
+      end;
+
       { TWasmObjSymbolLinkingData }
 
       TWasmObjSymbolLinkingData = class
       public
         ImportModule: string;
         ImportName: string;
+
         FuncType: TWasmFuncType;
         ExeFunctionIndex: Integer;
         ExeIndirectFunctionTableIndex: Integer;
         ExeTypeIndex: Integer;
+
+        GlobalType: TWasmBasicType;
+        GlobalIsMutable: Boolean;
+        GlobalInitializer: TGlobalInitializer;
 
         constructor Create;
         destructor Destroy;override;
@@ -368,6 +381,36 @@ implementation
           d.write(b,1);
         until Done;
       end;
+
+{$ifdef FPC_LITTLE_ENDIAN}
+    procedure WriteF32LE(d: tdynamicarray; v: Single);
+      begin
+        d.write(v,4);
+      end;
+
+    procedure WriteF64LE(d: tdynamicarray; v: Double);
+      begin
+        d.write(v,8);
+      end;
+{$else FPC_LITTLE_ENDIAN}
+    procedure WriteF32LE(d: tdynamicarray; v: Single);
+      var
+        tmpI: UInt32;
+      begin
+        Move(v,tmpI,4);
+        tmpI:=SwapEndian(tmpI);
+        d.write(tmpI,4);
+      end;
+
+    procedure WriteF64LE(d: tdynamicarray; v: Double);
+      var
+        tmpI: UInt64;
+      begin
+        Move(v,tmpI,8);
+        tmpI:=SwapEndian(tmpI);
+        d.write(tmpI,8);
+      end;
+{$endif FPC_LITTLE_ENDIAN}
 
     procedure WriteByte(d: tdynamicarray; b: byte);
       begin
@@ -2345,6 +2388,7 @@ implementation
           IsMutable: Boolean;
           IsExported: Boolean;
           ExportName: ansistring;
+          GlobalInit: TGlobalInitializer;
         end;
         GlobalTypeImportsCount: uint32;
 
@@ -3205,12 +3249,11 @@ implementation
 
         function ReadGlobalSection: Boolean;
 
-          function ParseExpr: Boolean;
+          function ParseExpr(out Init: TGlobalInitializer): Boolean;
             var
-              B: Byte;
-              tmpbuf: array [1..8] of Byte;
-              tmpInt32: int32;
-              tmpInt64: int64;
+              B, B2: Byte;
+              tmpU32: UInt32;
+              tmpU64: UInt64;
             begin
               Result:=False;
               repeat
@@ -3220,20 +3263,46 @@ implementation
                   $0B:  { end }
                     ;
                   $41:  { i32.const }
-                    if not ReadSleb32(tmpInt32) then
-                      exit;
+                    begin
+                      Init.typ:=wbt_i32;
+                      if not ReadSleb32(Init.init_i32) then
+                        exit;
+                    end;
                   $42:  { i64.const }
-                    if not ReadSleb(tmpInt64) then
-                      exit;
+                    begin
+                      Init.typ:=wbt_i64;
+                      if not ReadSleb(Init.init_i64) then
+                        exit;
+                    end;
                   $43:  { f32.const }
-                    if not Read(tmpbuf, 4) then
-                      exit;
+                    begin
+                      Init.typ:=wbt_f32;
+                      if not Read(tmpU32, 4) then
+                        exit;
+{$ifdef FPC_BIG_ENDIAN}
+                      tmpU32:=SwapEndian(tmpU32);
+{$endif FPC_BIG_ENDIAN}
+                      Move(tmpU32,Init.init_f32,4);
+                    end;
                   $44:  { f64.const }
-                    if not Read(tmpbuf, 8) then
-                      exit;
+                    begin
+                      Init.typ:=wbt_f64;
+                      if not Read(tmpU64, 8) then
+                        exit;
+{$ifdef FPC_BIG_ENDIAN}
+                      tmpU64:=SwapEndian(tmpU64);
+{$endif FPC_BIG_ENDIAN}
+                      Move(tmpU64,Init.init_f64,8);
+                    end;
                   $D0:  { ref.null }
-                    if not Read(tmpbuf, 1) then
-                      exit;
+                    begin
+                      if not Read(B2, 1) then
+                        exit;
+                      if not decode_wasm_basic_type(B2, Init.typ) then
+                        exit;
+                      if not (Init.typ in WasmReferenceTypes) then
+                        exit;
+                    end;
                   else
                     begin
                       InputError('Unsupported opcode in global initializer');
@@ -3292,9 +3361,14 @@ implementation
                         exit;
                       end;
                   end;
-                  if not ParseExpr then
+                  if not ParseExpr(GlobalInit) then
                     begin
                       InputError('Error parsing the global initializer expression in the global section');
+                      exit;
+                    end;
+                  if GlobalInit.typ<>valtype then
+                    begin
+                      InputError('Initializer expression for global produces a type, which does not match the type of the global');
                       exit;
                     end;
                 end;
@@ -3969,9 +4043,14 @@ implementation
                       objsym.objsection:=ObjData.createsection('.wasm_globals.n_'+SymName,1,[oso_Data,oso_load],true);
                       if objsym.objsection.Size=0 then
                         objsym.objsection.WriteZeros(1);
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
+                        TWasmObjSection(objsym.objsection).MainFuncSymbol:=objsym;
                       objsym.offset:=0;
                       objsym.size:=1;
+                      objsym.LinkingData.GlobalInitializer:=GlobalTypes[SymIndex].GlobalInit;
                     end;
+                  objsym.LinkingData.GlobalType:=GlobalTypes[SymIndex].valtype;
+                  objsym.LinkingData.GlobalIsMutable:=GlobalTypes[SymIndex].IsMutable;
                 end;
               byte(SYMTAB_SECTION),
               byte(SYMTAB_EVENT),
@@ -4295,6 +4374,63 @@ implementation
             WriteUleb(FWasmSections[wsiElement],FIndirectFunctionTable[i].FuncIdx);
         end;
 
+      procedure WriteGlobalSection;
+        var
+          exesec: TExeSection;
+          globals_count, i: Integer;
+          objsec: TWasmObjSection;
+        begin
+          exesec:=FindExeSection('.wasm_globals');
+          if not assigned(exesec) then
+            internalerror(2024010112);
+          globals_count:=exesec.ObjSectionList.Count;
+          if globals_count<>exesec.Size then
+            internalerror(2024010113);
+          WriteUleb(FWasmSections[wsiGlobal],globals_count);
+          for i:=0 to exesec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
+              WriteByte(FWasmSections[wsiGlobal],encode_wasm_basic_type(objsec.MainFuncSymbol.LinkingData.GlobalType));
+              if objsec.MainFuncSymbol.LinkingData.GlobalIsMutable then
+                WriteByte(FWasmSections[wsiGlobal],1)
+              else
+                WriteByte(FWasmSections[wsiGlobal],0);
+              { initializer expr }
+              with objsec.MainFuncSymbol.LinkingData.GlobalInitializer do
+                case typ of
+                  wbt_i32:
+                    begin
+                      WriteByte(FWasmSections[wsiGlobal],$41);  { i32.const }
+                      WriteSleb(FWasmSections[wsiGlobal],init_i32);
+                    end;
+                  wbt_i64:
+                    begin
+                      WriteByte(FWasmSections[wsiGlobal],$42);  { i64.const }
+                      WriteSleb(FWasmSections[wsiGlobal],init_i64);
+                    end;
+                  wbt_f32:
+                    begin
+                      WriteByte(FWasmSections[wsiGlobal],$43);  { f32.const }
+                      WriteF32LE(FWasmSections[wsiGlobal],init_f32);
+                    end;
+                  wbt_f64:
+                    begin
+                      WriteByte(FWasmSections[wsiGlobal],$44);  { f64.const }
+                      WriteF64LE(FWasmSections[wsiGlobal],init_f64);
+                    end;
+                  wbt_funcref,
+                  wbt_externref:
+                    begin
+                      WriteByte(FWasmSections[wsiGlobal],$D0);  { ref.null }
+                      WriteByte(FWasmSections[wsiGlobal],encode_wasm_basic_type(typ));
+                    end;
+                  else
+                    internalerror(2024010114);
+                end;
+              WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+            end;
+        end;
+
       begin
         result:=false;
 
@@ -4303,6 +4439,7 @@ implementation
         WriteCodeSegments;
         WriteDataSegments;
         WriteTableAndElemSections;
+        WriteGlobalSection;
 
         WriteUleb(FWasmSections[wsiMemory],1);
         WriteByte(FWasmSections[wsiMemory],0);
@@ -4317,6 +4454,7 @@ implementation
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiTable);
         WriteWasmSection(wsiMemory);
+        WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
@@ -4496,14 +4634,19 @@ implementation
       const
         StackPointerSymStr='__stack_pointer';
       var
-        objsym: TObjSymbol;
+        objsym: TWasmObjSymbol;
       begin
         if aname=StackPointerSymStr then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
-            objsym:=internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL);
+            objsym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
             objsym.size:=1;
             objsym.ObjSection.WriteZeros(1);
+            TWasmObjSection(objsym.ObjSection).MainFuncSymbol:=objsym;
+            objsym.LinkingData.GlobalType:=wbt_i32;
+            objsym.LinkingData.GlobalIsMutable:=True;
+            objsym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+            objsym.LinkingData.GlobalInitializer.init_i32:=0;
           end
         else
           inherited;
