@@ -3963,7 +3963,14 @@ implementation
                           InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_GLOBAL symbol, that is an import');
                           exit;
                         end;
-                      Writeln('defined global ', SymName);
+                      objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                      objsym.bind:=AB_GLOBAL;
+                      objsym.typ:=AT_WASM_GLOBAL;
+                      objsym.objsection:=nil;
+                      //if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
+                      //  TWasmObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
+                      objsym.offset:=0;
+                      objsym.size:=0;
                     end;
                 end;
               byte(SYMTAB_SECTION),
