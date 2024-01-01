@@ -12377,12 +12377,12 @@ unit aoptx86;
                      c := 0;
 
                      { Initialise RegWrites, ConstRegs, ConstVals, ConstSizes, ConstWriteSizes and ConstMovs }
-                     FillChar(RegWrites[0], MAX_CMOV_INSTRUCTIONS * 2 * SizeOf(TRegister), 0);
-                     FillChar(ConstRegs[0], MAX_CMOV_REGISTERS * SizeOf(TRegister), 0);
-                     FillChar(ConstVals[0], MAX_CMOV_REGISTERS * SizeOf(TCGInt), 0);
-                     FillChar(ConstSizes[0], MAX_CMOV_REGISTERS * SizeOf(TSubRegister), 0);
-                     FillChar(ConstWriteSizes[0], first_int_imreg * SizeOf(TOpSize), 0);
-                     FillChar(ConstMovs[0], MAX_CMOV_REGISTERS * SizeOf(taicpu), 0);
+                     FillChar(RegWrites, SizeOf(RegWrites), 0);
+                     FillChar(ConstRegs, SizeOf(ConstRegs), 0);
+                     FillChar(ConstVals, SizeOf(ConstVals), 0);
+                     FillChar(ConstSizes, SizeOf(ConstSizes), 0);
+                     FillChar(ConstWriteSizes, SizeOf(ConstWriteSizes), 0);
+                     FillChar(ConstMovs, SizeOf(ConstMovs), 0);
 
                      RefModified := False;
                      while assigned(hp1) and
