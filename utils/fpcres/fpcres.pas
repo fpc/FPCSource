@@ -76,7 +76,7 @@ begin
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
   writeln('                         riscv32, riscv64,');
-  writeln('                         sparc, alpha, ia64, mips, mipsel (elf)');
+  writeln('                         sparc, sparc64, alpha, ia64, mips, mipsel (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, aarch64 (mach-o)');
   writeln('                         bigendian, littleendian (external)');
   writeln('  --subarch, -s <name> Set object file sub-architecture. Supported values:');
@@ -255,6 +255,7 @@ begin
     mtarmeb : Result.MachineType:=emtarmeb;
     mtm68k : Result.MachineType:=emtm68k;
     mtsparc : Result.MachineType:=emtsparc;
+    mtsparc64 : Result.MachineType:=emtsparc64;
     mtalpha : Result.MachineType:=emtalpha;
     mtia64 : Result.MachineType:=emtia64;
     mtmips : Result.MachineType:=emtmips;

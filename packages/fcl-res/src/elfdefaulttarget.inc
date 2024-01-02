@@ -46,6 +46,9 @@
   {$IFDEF CPUSPARC}
   fMachineType:=emtsparc;
   {$ENDIF}
+  {$IFDEF CPUSPARC64}
+  fMachineType:=emtsparc64;
+  {$ENDIF}
   {$IFDEF CPUALPHA}
   fMachineType:=emtalpha;
   {$ENDIF}
