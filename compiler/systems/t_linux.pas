@@ -442,11 +442,22 @@ begin
 {$ifdef arm}       target_opt:='';{$endif} {unknown :( }
 {$ifdef aarch64}   target_opt:='';{$endif} {unknown :( }
 {$ifdef m68k}      target_opt:='';{$endif} {unknown :( }
-{$ifdef mips}
+{$ifdef mips32}
   {$ifdef mipsel}
   platformopt:=' -EL';
+  emulation_opt:=' -m elf32ltsmip';
   {$else}
   platformopt:=' -EB';
+  emulation_opt:=' -m elf32btsmip';
+  {$endif}
+{$endif}
+{$ifdef mips64}
+  {$ifdef mips64el}
+  platformopt:=' -EL';
+  emulation_opt:=' -m elf64ltsmip';
+  {$else}
+  platformopt:=' -EB';
+  emulation_opt:=' -m elf64btsmip';
   {$endif}
 {$endif}
 {$ifdef riscv32}
