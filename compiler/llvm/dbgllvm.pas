@@ -2937,18 +2937,23 @@ implementation
                         functionscope.addint64('scopeLine',tailineinfo(hp).fileinfo.line);
                         firstline:=false;
                       end;
+
                     positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,nolineinfolevel<>0);
-                  end
+                  end;
+
                 { LLVM requires line info for call instructions that may
                   potentially be inlined }
-                else if taillvm(hp).llvmopcode in [la_call,la_invoke] then
+                if (taillvm(hp).llvmopcode in [la_call,la_invoke]) and
+                   not assigned(positionmeta) then
                   begin
-                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,true);
+                    positionmeta:=filepos_getmetanode(procdeffileinfo,procdeffileinfo,functionscope,true);
                   end;
+
                 if assigned(positionmeta) then
                   taillvm(hp).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',positionmeta));
+
                 if (cs_debuginfo in current_settings.moduleswitches) and
-                   (taillvm(hp).llvmopcode=la_call) then
+                   (taillvm(hp).llvmopcode = la_call) then
                   updatelocalvardbginfo(taillvm(hp),pd,functionscope);
               end;
             hp:=tai(hp.next);
