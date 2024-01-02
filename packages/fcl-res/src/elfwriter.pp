@@ -545,6 +545,7 @@ procedure TElfResourceWriter.SetMachineType(const aMachineType: TElfMachineType)
 begin
   case aMachineType of
     emtsparc  : begin fMachineTypeInt:=EM_SPARC; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
+    emtsparc64: begin fMachineTypeInt:=EM_SPARCV9; fBits:=ELFCLASS64; fOrder:=ELFDATA2MSB; end;
     emti386   : begin fMachineTypeInt:=EM_386; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtm68k   : begin fMachineTypeInt:=EM_68K; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
     emtppc    : begin fMachineTypeInt:=EM_PPC; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;

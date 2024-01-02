@@ -421,6 +421,7 @@ begin
       EM_AARCH64: begin RelocType:=R_AARCH64_ABS64; SectionType:=SHT_RELA; end;
       EM_68K    : begin RelocType:=R_68K_32;        SectionType:=SHT_RELA; end;
       EM_SPARC  : begin RelocType:=R_SPARC_32;      SectionType:=SHT_RELA; end;
+      EM_SPARCV9: begin RelocType:=R_SPARC_64;      SectionType:=SHT_RELA; end;
       EM_X86_64 : begin RelocType:=R_x86_64_64;     SectionType:=SHT_RELA; end;
       EM_PPC64  : begin RelocType:=R_PPC64_ADDR64;  SectionType:=SHT_RELA; end;
       EM_ALPHA  : begin RelocType:=R_ALPHA_REFQUAD; SectionType:=SHT_RELA; end;

@@ -274,6 +274,7 @@ begin
     end;
     case subreader.MachineType of
       EM_SPARC  : fMachineType:=emtsparc;
+      EM_SPARCV9: fMachineType:=emtsparc64;
       EM_386    : fMachineType:=emti386;
       EM_68K    : fMachineType:=emtm68k;
       EM_PPC    : fMachineType:=emtppc;
