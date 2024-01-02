@@ -3882,7 +3882,7 @@ implementation
       var
         ModuleMagic: array [0..3] of Byte;
         ModuleVersion: array [0..3] of Byte;
-        i, j, FirstDataSegmentIdx, SegI: Integer;
+        i, j, FirstCodeSegmentIdx, FirstDataSegmentIdx, SegI: Integer;
         CurrSec, ObjSec: TObjSection;
         BaseSectionOffset: UInt32;
         ObjReloc: TWasmObjRelocation;
@@ -3940,6 +3940,7 @@ implementation
               end;
 
         { create segments }
+        FirstCodeSegmentIdx:=ObjData.ObjSectionList.Count;
         for i:=low(CodeSegments) to high(CodeSegments) do
           with CodeSegments[i] do
             begin
@@ -4030,9 +4031,9 @@ implementation
                       objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                       objsym.bind:=AB_GLOBAL;
                       objsym.typ:=AT_FUNCTION;
-                      objsym.objsection:=TObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]);
+                      objsym.objsection:=TObjSection(ObjData.ObjSectionList[FirstCodeSegmentIdx+SymIndex-FuncTypeImportsCount]);
                       if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
-                        TWasmObjSection(ObjData.ObjSectionList[SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
+                        TWasmObjSection(ObjData.ObjSectionList[FirstCodeSegmentIdx+SymIndex-FuncTypeImportsCount]).MainFuncSymbol:=objsym;
                       objsym.offset:=0;
                       objsym.size:=objsym.objsection.Size;
                     end;
@@ -4119,7 +4120,7 @@ implementation
                           Exit;
                         end;
                       BaseSectionOffset:=CodeSegments[SegI].CodeSectionOffset;
-                      ObjSec:=TObjSection(ObjData.ObjSectionList[SegI]);
+                      ObjSec:=TObjSection(ObjData.ObjSectionList[FirstCodeSegmentIdx+SegI]);
                     end;
                   1:
                     begin
