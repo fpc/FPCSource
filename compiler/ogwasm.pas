@@ -2886,6 +2886,16 @@ implementation
               Result:=False;
             end;
 
+          function ReadDebugSection(const SectionName: string): Boolean;
+            var
+              ObjSec: TObjSection;
+            begin
+              ObjSec:=ObjData.createsection(SectionName,1,[oso_Data,oso_debug],false);
+              ObjSec.DataPos:=AReader.Pos;
+              ObjSec.Size:=SectionStart+SectionSize-AReader.Pos;
+              Result:=True;
+            end;
+
           const
             RelocationSectionPrefix = 'reloc.';
           var
@@ -2913,6 +2923,12 @@ implementation
                   Result:=ReadProducersSection;
                 'target_features':
                   Result:=ReadTargetFeaturesSection;
+                '.debug_abbrev',
+                '.debug_info',
+                '.debug_line',
+                '.debug_aranges',
+                '.debug_ranges':
+                  Result:=ReadDebugSection(SectionName);
                 else
                   InputError('Unsupported custom section: ''' + SectionName + '''');
               end;
