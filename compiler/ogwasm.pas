@@ -2588,7 +2588,9 @@ implementation
                 RelocTableIndex:=1
               else
                 begin
-                  InputError('Relocation for custom sections not supported, yet');
+                  Writeln('Warning! Relocation section ignored!');
+                  Result:=True;
+                  //InputError('Relocation for custom sections not supported, yet');
                   exit;
                 end;
               if not ReadUleb32(RelocCount) then
