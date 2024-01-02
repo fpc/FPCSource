@@ -258,6 +258,7 @@ interface
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FStackPointerSym: TWasmObjSymbol;
+        FMinMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure PrepareImports;
         procedure PrepareFunctions;
@@ -4520,7 +4521,7 @@ implementation
 
         WriteUleb(FWasmSections[wsiMemory],1);
         WriteByte(FWasmSections[wsiMemory],0);
-        WriteUleb(FWasmSections[wsiMemory],2);  { todo: fill min memory (pages) }
+        WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
 
         {...}
 
@@ -4874,10 +4875,12 @@ implementation
     procedure TWasmExeOutput.SetStackPointer;
       var
         BssSec: TExeSection;
-        StackStart: QWord;
+        StackStart, InitialStackPtrAddr: QWord;
       begin
         BssSec:=FindExeSection('.bss');
-        FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32((BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15));
+        InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
+        FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
+        FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
       end;
 
 
