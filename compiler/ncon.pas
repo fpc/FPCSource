@@ -144,6 +144,7 @@ interface
           { returns whether this platform uses the nil pointer to represent
             empty dynamic strings }
           class function emptydynstrnil: boolean; virtual;
+          procedure printnodedata(var T: Text); override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -1211,6 +1212,12 @@ implementation
     class function tstringconstnode.emptydynstrnil: boolean;
       begin
         result:=true;
+      end;
+
+      procedure tstringconstnode.printnodedata(var T: Text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'value = "',value_str,'"');
       end;
 
 {$ifdef DEBUG_NODE_XML}
