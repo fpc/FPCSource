@@ -244,7 +244,6 @@ implementation
         rtticount,
         totalcount,
         i,j,k : longint;
-        vmt_index : integer;
         sym : tprocsym;
         def : tprocdef;
         para : tparavarsym;
@@ -318,19 +317,11 @@ implementation
                         { write visibility section for extended RTTI }
                         maybe_add_comment(tcb,#9'visibility');
                         tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),u8inttype);
-                        { for classes write a VMT index }
+                        { for objects and classes write a VMT index }
                         if st.defowner.typ=objectdef then
                           begin
-                            vmt_index:=-1;
-                            if po_virtualmethod in def.procoptions then
-                              for k:=0 to tobjectdef(st.defowner).vmtentries.count-1 do
-                                if pvmtentry(tobjectdef(st.defowner).vmtentries[k])^.procdef=def then
-                                  begin
-                                    vmt_index:=k;
-                                    break;
-                                  end;
                             maybe_add_comment(tcb,#9'VMT index');
-                            tcb.emit_ord_const(vmt_index,s16inttype);
+                            tcb.emit_ord_const(def.extnumber,u16inttype);
                           end;
                       end;
 
