@@ -32,7 +32,7 @@ Const
                        NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS,
                        BELOW_NORMAL_PRIORITY_CLASS,ABOVE_NORMAL_PRIORITY_CLASS);
 
-procedure TProcessnamemacro.CloseProcessHandles;
+procedure TProcess.CloseProcessHandles;
 begin
   if (FProcessHandle<>0) then
     CloseHandle(FProcessHandle);
@@ -40,7 +40,7 @@ begin
     CloseHandle(FThreadHandle);
 end;
 
-Function TProcessnamemacro.PeekExitStatus : Boolean;
+Function TProcess.PeekExitStatus : Boolean;
 begin
   Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
   // wait up to 10ms extra till process really done to get rest of input bug #39821
@@ -48,12 +48,10 @@ begin
     WaitForSingleObject(FProcessHandle,10);
 end;
 
-Function GetStartupFlags (P : TProcessnamemacro): Cardinal;
+Function GetStartupFlags (P : TProcess): Cardinal;
 
 begin
-  Result:=0;
-  if poUsePipes in P.Options then
-     Result:=Result or Startf_UseStdHandles;
+  Result:= Startf_UseStdHandles;
   if suoUseShowWindow in P.StartupOptions then
     Result:=Result or startf_USESHOWWINDOW;
   if suoUSESIZE in P.StartupOptions then
@@ -66,7 +64,7 @@ begin
     Result:=Result or startf_USEFILLATTRIBUTE;
 end;
 
-Function GetCreationFlags(P : TProcessnamemacro) : Cardinal;
+Function GetCreationFlags(P : TProcess) : Cardinal;
 
 begin
   Result:=CREATE_UNICODE_ENVIRONMENT;
@@ -114,21 +112,21 @@ begin
   CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
-Procedure InitProcessAttributes(P : TProcessnamemacro; Var PA : TSecurityAttributes);
+Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
 
 begin
   FillChar(PA,SizeOf(PA),0);
   PA.nLength := SizeOf(PA);
 end;
 
-Procedure InitThreadAttributes(P : TProcessnamemacro; Var TA : TSecurityAttributes);
+Procedure InitThreadAttributes(P : TProcess; Var TA : TSecurityAttributes);
 
 begin
   FillChar(TA,SizeOf(TA),0);
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcessnamemacro; Var SI : STARTUPINFOW);
+Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -162,67 +160,6 @@ begin
    SI.dwX:=P.WindowLeft;
 end;
 
-{ The handles that are to be passed to the child process must be
-  inheritable. On the other hand, only non-inheritable handles
-  allow the sending of EOF when the write-end is closed. This
-  function is used to duplicate the child process's ends of the
-  handles into inheritable ones, leaving the parent-side handles
-  non-inheritable.
-}
-function DuplicateHandleFP(var handle: THandle): Boolean;
-
-var
-  oldHandle: THandle;
-begin
-  oldHandle := handle;
-  Result := DuplicateHandle
-  ( GetCurrentProcess(),
-    oldHandle,
-    GetCurrentProcess(),
-    @handle,
-    0,
-    true,
-    DUPLICATE_SAME_ACCESS
-  );
-  if Result then
-    Result := CloseHandle(oldHandle);
-end;
-
-
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CI, CE : Boolean; APipeBufferSize : Cardinal);
-
-begin
-  if CI then
-    begin
-      CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
-      DuplicateHandleFP(SI.hStdInput);
-    end
-  else
-    begin
-      SI.hStdInput:=StdInputHandle;
-    end;
-  CreatePipeHandles(HO,Si.hStdOutput, APipeBufferSize);
-  DuplicateHandleFP(   Si.hStdOutput);
-  if CE then begin
-    CreatePipeHandles(HE,SI.hStdError, APipeBufferSize);
-    DuplicateHandleFP(   SI.hStdError);
-    end
-  else
-    begin
-    SI.hStdError:=SI.hStdOutput;
-    HE:=HO;
-    end;
-end;
-
-{Function MaybeQuote(Const S : String) : String;
-
-begin
-  If (Pos(' ',S)<>0) then
-    Result:='"'+S+'"'
-  else
-     Result:=S;
-end;
-}
 Function MaybeQuoteIfNotQuoted(Const S : TProcessString) : TProcessString;
 
 begin
@@ -233,7 +170,7 @@ begin
 end;
 
 
-Procedure TProcessnamemacro.Execute;
+Procedure TProcess.SysExecute;
 Var
   i : Integer;
   WName,WDir,WCommandLine : UnicodeString;
@@ -248,6 +185,9 @@ Var
   Cmd : TProcessString;
 
  begin
+  FDescriptors[phtInput].PrepareHandles;
+  FDescriptors[phtOutput].PrepareHandles;
+  FDescriptors[phtError].PrepareHandles;
   WName:='';
   WCommandLine:='';
   WDir:='';
@@ -278,8 +218,12 @@ Var
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
-    If poUsePipes in Options then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poPassInput in Options), Not(poStdErrToOutPut in Options), FPipeBufferSize);
+    FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
+    FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
+    if Not(poStdErrToOutPut in Options) then
+      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle
+    else
+      FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
     Try
       // Beware: CreateProcess can alter the strings
       // Beware: nil is not the same as a pointer to a #0
@@ -295,17 +239,9 @@ Var
       FThreadId:=FProcessInformation.dwThreadId;  
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
-      if POUsePipes in Options then
-        begin
-        if not (poPassInput in Options) then
-          FileClose(FStartupInfo.hStdInput);
-        FileClose(FStartupInfo.hStdOutput);
-        if Not (poStdErrToOutPut in Options) then
-          FileClose(FStartupInfo.hStdError);
-        CreateStreams(HI,HO,HE);
-        if poPassInput in Options then
-           FInputStream.DontClose:=true;
-        end;
+      FDescriptors[phtInput].CloseTheirHandle;
+      FDescriptors[phtOutput].CloseTheirHandle;
+      FDescriptors[phtError].CloseTheirHandle;
     end;
     FRunning:=True;
   Finally
@@ -318,7 +254,7 @@ Var
     WaitOnExit;
 end;
 
-Function TProcessnamemacro.WaitOnExit : Boolean;
+Function TProcess.WaitOnExit : Boolean;
 Var
   R : DWord;
 begin
@@ -329,7 +265,7 @@ begin
   FRunning:=False;
 end;
 
-Function TProcessnamemacro.WaitOnExit(Timeout : DWord) : Boolean;
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
 Var
   R : DWord;
 begin
@@ -342,19 +278,19 @@ begin
     end;
 end;
 
-Function TProcessnamemacro.Suspend : Longint;
+Function TProcess.Suspend : Longint;
 
 begin
   Result:=SuspendThread(ThreadHandle);
 end;
 
-Function TProcessnamemacro.Resume : LongInt;
+Function TProcess.Resume : LongInt;
 
 begin
   Result:=ResumeThread(ThreadHandle);
 end;
 
-Function TProcessnamemacro.Terminate(AExitCode : Integer) : Boolean;
+Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
   Result:=False;
@@ -362,8 +298,84 @@ begin
     Result:=TerminateProcess(Handle,AexitCode);
 end;
 
-Procedure TProcessnamemacro.SetShowWindow (Value : TShowWindowOptions);
+Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 
 begin
   FShowWindow:=Value;
+end;
+
+Function TIODescriptor.SysCreateFileNameHandle(const aFileName: string) : THandle;
+
+const
+  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
+  ModeNames : Array[Boolean] of String = ('Reading','Writing');
+
+var
+  FM :  Integer;
+  Sec: SECURITY_ATTRIBUTES;
+
+begin
+  if (aFileName='') then
+    Raise EProcess.Create('No filename set');
+  FillByte(sec, SizeOf(sec), 0);
+  sec.nLength := SizeOf(Sec);
+  sec.bInheritHandle := True;
+  case ProcessHandleType of
+    phtInput:  Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_READ,
+      FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    phtOutput,
+    phtError:
+      begin
+        Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_WRITE,
+          FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        if not(Result=INVALID_HANDLE_VALUE) then
+          FileSeek(Result, 0, 2);
+      end;
+  end;
+  if (Result=INVALID_HANDLE_VALUE) then
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
+end;
+
+
+
+function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+
+var
+  oldHandle: THandle;
+  Res : Boolean;
+  
+begin
+  if IOType in [iotNone,iotFile] then begin
+    Result:=aHandle;
+    exit;
+  end;
+  oldHandle := ahandle;
+  ahandle:=THandle(INVALID_HANDLE_VALUE); 
+  Res := DuplicateHandle
+  ( GetCurrentProcess(),
+    oldHandle,
+    GetCurrentProcess(),
+    @aHandle,
+    0,
+    true,
+    DUPLICATE_SAME_ACCESS
+  );
+  if Res then
+    Res:=CloseHandle(oldHandle);
+  if not Res then
+    begin
+    FileClose(aHandle);
+    Raise EProcess.CreateFmt('Could not make handle %d inheritable',[aHandle]);
+    end;
+  Result:=aHandle;
+end;    
+
+function TIODescriptor.SysNullFileName: string;
+begin
+  result:='NULL';
+end;
+
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
 end;

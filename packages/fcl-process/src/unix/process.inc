@@ -1,3 +1,4 @@
+{%main ../process.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2008 by the Free Pascal development team
@@ -32,7 +33,6 @@ Resourcestring
   SErrNoSuchProgram     = 'Executable not found: "%s"';
   SErrNoTerminalProgram = 'Could not detect X-Terminal program';
   SErrCannotFork        = 'Failed to Fork process';
-  SErrCannotCreatePipes = 'Failed to create pipes';
 
 Const
   // unused as of yet, I assume these are nice levels ?
@@ -42,6 +42,9 @@ Const
 Const
   GeometryOption : String = '-geometry';
   TitleOption : String ='-title';
+
+
+
 
 procedure TProcess.CloseProcessHandles;
 
@@ -57,6 +60,7 @@ begin
   else
     Result:=0;
 end;
+
 
 Function TProcess.PeekExitStatus : Boolean;
 var
@@ -137,10 +141,19 @@ Function DetectXterm : String;
   end;
 
 Const
+  xterm = 'xterm';
   Konsole   = 'konsole';
   GNomeTerm = 'gnome-terminal';
+  // Windowmaker
+  aterm = 'aterm';
+  wterm = 'wterm';
+  // Xfce
+  xfceterm = 'xfce4-terminal';
+  rxvt = 'rxvt';
+  xtermemulator = 'x-terminal-emulator';
+
   DefaultTerminals : Array [1..6] of string
-                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt','xfce4-terminal');
+                   = (xtermemulator,xterm,aterm,wterm,rxvt,xfceterm);
 
 Var
   D :String;
@@ -151,25 +164,25 @@ begin
     // try predefined
     If Length(TryTerminals)>0 then
       TestTerminals(TryTerminals);
-    // try session-specific terminal
+    // try session-specific terminal first.
     if (XTermProgram='') then
       begin
       D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
       If (Pos('kde',D)<>0) then
         begin
-        TestTerminal('konsole');
+        TestTerminal(konsole);
         end
       else if (D='gnome') then
         begin
-        TestTerminal('gnome-terminal');
+        TestTerminal(gnometerm);
         end
       else if (D='windowmaker') then
         begin
-        If not TestTerminal('aterm') then
-          TestTerminal('wterm');
+        If not TestTerminal(aterm) then
+          TestTerminal(wterm);
         end
       else if (D='xfce') then
-        TestTerminal('xfce4-terminal');
+        TestTerminal(xfceterm);
       end;
     if (XTermProgram='') then
       TestTerminals(DefaultTerminals)
@@ -322,21 +335,19 @@ begin
   until (safefpdup2<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 
 Var
-  HI,HO,HE : TPipePair;
   PID      : Longint;
   FEnv     : PPAnsiChar;
   Argv     : PPAnsiChar;
-  fd       : Integer;
-  res      : cint;
   FoundName,
   PName    : String;
 
 begin
-  If (poUsePipes in Options) then
-    CreatePipes(HI, HO, HE, Not(poPassInput in Options), Not (poStdErrToOutPut in Options));
+  FDescriptors[phtInput].PrepareHandles;
+  FDescriptors[phtOutput].PrepareHandles;
+  FDescriptors[phtError].PrepareHandles;
   Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
@@ -410,30 +421,26 @@ begin
                    fpexit(127);
 {$pop}
                end;
-            if PoUsePipes in Options then
-              begin
-                if not (poPassInput in Options) then
-                  begin
-                    FileClose(HI[peWrite]);
-                    safefpdup2(HI[peRead],0);
-                  end;
-                FileClose(HO[peRead]);
-                safefpdup2(HO[peWrite],1);
-                if (poStdErrToOutPut in Options) then
-                  safefpdup2(HO[peWrite],2)
-                else
-                  begin
-                    FileClose(HE[peRead]);
-                    safefpdup2(HE[peWrite],2);
-                  end
-              end
-            else if poNoConsole in Options then
-              begin
-                fd:=FileOpen('/dev/null',fmOpenReadWrite or fmShareDenyNone);
-                safefpdup2(fd,0);
-                safefpdup2(fd,1);
-                safefpdup2(fd,2);
-              end;
+            if FDescriptors[phtInput].ResolveProcessHandle<>StdInputHandle then
+               begin
+               if FDescriptors[phtInput].IOType=iotPipe then
+                 FDescriptors[phtInput].CloseOurHandle;
+               safefpdup2(FDescriptors[phtInput].ResolveProcessHandle,0);
+               end;
+            if FDescriptors[phtOutput].ResolveProcessHandle<>StdOutputHandle then
+               begin
+               if FDescriptors[phtOutput].IOType=iotPipe then
+                 FDescriptors[phtOutput].CloseOurHandle;
+               safefpdup2(FDescriptors[phtOutput].ResolveProcessHandle,1);
+               if (poStdErrToOutPut in Options) then
+                 safefpdup2(FDescriptors[phtOutput].ResolveProcessHandle,2);
+               end;
+            if not (poStdErrToOutPut in Options) and (FDescriptors[phtError].ResolveProcessHandle<>StdErrorHandle) then
+               begin
+               if FDescriptors[phtOutput].IOType=iotPipe then
+                 FDescriptors[phtError].CloseOurHandle;
+               safefpdup2(FDescriptors[phtError].ResolveProcessHandle,2);
+               end;
             if Assigned(FForkEvent) then
               FForkEvent(Self);
             if (poRunSuspended in Options) then
@@ -452,15 +459,10 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    if POUsePipes in Options then
-      begin
-        FileClose(HO[peWrite]);
-        if not (POPassInput in Options) then
-          FileClose(HI[peRead]);
-        if Not (poStdErrToOutPut in FProcessOptions) then
-          FileClose(HE[peWrite]);
-        CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
-      end;
+    // Writeln(system.StdErr,'fork closing our handles');
+    FDescriptors[phtInput].CloseTheirHandle;
+    FDescriptors[phtOutput].CloseTheirHandle;
+    FDescriptors[phtError].CloseTheirHandle;
   end;
   FRunning:=True;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
@@ -527,6 +529,7 @@ begin
     Result:=1;
 end;
 
+
 Function TProcess.Resume : LongInt;
 
 begin
@@ -539,9 +542,17 @@ end;
 Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
+  if aExitCode<>0 then ; // silence compiler warning
   Result:=fpkill(Handle,SIGTERM)=0;
-  If Result and Running then
-    Result:=fpkill(Handle,SIGKILL)=0;
+  If Result then
+    begin
+    // Give the process some time to handle it. Sleeping may also yield to the process.
+    if SignalWaitTime>0 then
+      Sleep(SignalWaitTime);
+    // Not handled yet ?
+    if Running then
+      Result:=fpkill(Handle,SIGKILL)=0;
+    end;
   { the fact that the signal has been sent does not
     mean that the process has already handled the
     signal -> wait instead of calling getexitstatus }
@@ -553,5 +564,42 @@ Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 
 begin
   FShowWindow:=Value;
+end;
+
+function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+begin
+  Result:=aHandle;
+end;
+
+
+function TIODescriptor.SysCreateFileNameHandle(const aFileName: string): THandle;
+
+const
+  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
+  ModeNames : Array[Boolean] of String = ('Reading','Writing');
+
+begin
+  if (aFileName='') then
+    Raise EProcess.Create('No filename provided');
+  case ProcessHandleType of
+    phtInput:  Result:=FileOpen(aFileName,fmOpenRead);
+    phtOutput,
+    phtError: if FileExists(aFileName) then
+                Result:=FileOpen(aFileName,fmOpenWrite or fmShareDenyNone)
+              else
+                Result:=FileCreate(aFileName,fmShareDenyNone,DefaultRights)
+  end;
+  if (Result=-1) then
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
+end;
+
+function TIODescriptor.SysNullFileName: string;
+begin
+  result:='/dev/null';
+end;
+
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
 end;
 

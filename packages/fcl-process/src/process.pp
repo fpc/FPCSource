@@ -60,9 +60,18 @@ Type
   TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
+  TIOType = (iotNone, iotPipe, iotFile, iotHandle, iotProcess, iotNull);
+  TProcessHandleType = (phtInput,phtOutput,phtError);
+
+  TGetHandleEvent = procedure(Sender : TObject; var aHandle : THandle; var CloseOnExecute : Boolean) of object;
+  TAfterAllocateHandleEvent = procedure(Sender : TObject; aHandle : THandle; var CloseOnExecute : Boolean) of object;
+
+  { TIODescriptor }
+  TProcess = Class;
+
 {$macro on}
 {define processunicodestring}
-{$define TProcessnamemacro:=TProcess}
 
 {$i processbody.inc}
+
 end.

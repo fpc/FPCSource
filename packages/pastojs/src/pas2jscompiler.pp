@@ -4614,8 +4614,10 @@ begin
   AddDefine('STR_CONCAT_PROCS');
   AddDefine('UNICODE');
   if SubTarget<>'' then
+    begin
     AddDefine('FPC_SUBTARGET',SubTarget);
-
+    AddDefine('FPC_SUBTARGET_'+Uppercase(SubTarget));
+    end;
   FHasShownLogo:=false;
   FHasShownEncoding:=false;
   FFS.Reset;
