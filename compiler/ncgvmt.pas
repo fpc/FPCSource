@@ -527,6 +527,7 @@ implementation
          count : longint;
          lists : tvmtasmoutput;
          pubmethodsarraydef: tarraydef;
+         methodstabledef: trecorddef;
          datatcb: ttai_typedconstbuilder;
          packrecords: longint;
       begin
@@ -555,6 +556,9 @@ implementation
                }
               tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,lists.pubmethodstcb,lab);
               get_tabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
+              { begin record ecompassing the tmethodnametable and the extended method table }
+              lists.pubmethodstcb.begin_anonymous_record('',packrecords,
+                  pubmethodsdef.alignment, targetinfos[target_info.system]^.alignment.recordalignmin);
               { begin tmethodnametable }
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
@@ -572,7 +576,9 @@ implementation
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
               { write extended method rtti }
               RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class);
-              tcb.finish_internal_data_builder(lists.pubmethodstcb,lab,pubmethodsdef,sizeof(pint));
+              { end the encompassing record }
+              methodstabledef:=lists.pubmethodstcb.end_anonymous_record;
+              tcb.finish_internal_data_builder(lists.pubmethodstcb,lab,methodstabledef,sizeof(pint));
            end
          else
            begin
