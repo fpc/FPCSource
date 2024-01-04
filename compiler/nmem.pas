@@ -124,6 +124,7 @@ interface
           function docompare(p: tnode): boolean; override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
+          procedure printnodedata(var T: Text); override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
@@ -990,6 +991,12 @@ implementation
         docompare :=
           inherited docompare(p) and
           (vs = tsubscriptnode(p).vs);
+      end;
+
+      procedure tsubscriptnode.printnodedata(var T: Text);
+      begin
+        inherited printnodedata(T);
+        writeln(t,printnodeindention,'field = ',vs.name);
       end;
 
 {$ifdef DEBUG_NODE_XML}
