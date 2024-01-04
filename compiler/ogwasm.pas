@@ -257,13 +257,16 @@ interface
         end;
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
+        FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         FStackPointerSym: TWasmObjSymbol;
         FMinMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
+        procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
         procedure PrepareImports;
         procedure PrepareFunctions;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
         procedure SetStackPointer;
+        procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -4297,6 +4300,16 @@ implementation
         Writer.writearray(FWasmSections[wsid]);
       end;
 
+    procedure TWasmExeOutput.WriteWasmCustomSection(wcst: TWasmCustomSectionType);
+      var
+        b: byte;
+      begin
+        b:=0;
+        Writer.write(b,1);
+        WriteUleb(Writer,FWasmCustomSections[wcst].size);
+        Writer.writearray(FWasmCustomSections[wcst]);
+      end;
+
     function TWasmExeOutput.writeData: boolean;
 
       procedure WriteImportSection;
@@ -4525,8 +4538,26 @@ implementation
             end;
         end;
 
+      procedure MaybeWriteDebugSection(st: TWasmCustomDebugSectionType);
+        var
+          exesec: TExeSection;
+        begin
+          exesec:=FindExeSection(WasmCustomSectionName[st]);
+          if assigned(exesec) then
+            begin
+              WriteExeSectionToDynArray(exesec,FWasmCustomSections[st]);
+              WriteWasmCustomSection(st);
+            end;
+        end;
+
+      var
+        cust_sec: TWasmCustomSectionType;
       begin
         result:=false;
+
+        { each custom sections starts with its name }
+        for cust_sec in TWasmCustomSectionType do
+          WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
 
         SetStackPointer;
 
@@ -4557,6 +4588,14 @@ implementation
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
         WriteWasmSection(wsiData);
+
+        MaybeWriteDebugSection(wcstDebugAbbrev);
+        MaybeWriteDebugSection(wcstDebugInfo);
+        MaybeWriteDebugSection(wcstDebugStr);
+        MaybeWriteDebugSection(wcstDebugLine);
+        MaybeWriteDebugSection(wcstDebugFrame);
+        MaybeWriteDebugSection(wcstDebugAranges);
+        MaybeWriteDebugSection(wcstDebugRanges);
 
         result := true;
       end;
@@ -4664,6 +4703,7 @@ implementation
     constructor TWasmExeOutput.create;
       var
         i: TWasmSectionID;
+        j: TWasmCustomSectionType;
       begin
         inherited create;
         CObjData:=TWasmObjData;
@@ -4671,6 +4711,8 @@ implementation
         FFuncTypes:=TWasmFuncTypeTable.Create;
         for i in TWasmSectionID do
           FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
+        for j in TWasmCustomSectionType do
+          FWasmCustomSections[j] := tdynamicarray.create(SectionDataMaxGrow);
         SetLength(FIndirectFunctionTable,1);
         FIndirectFunctionTable[0].FuncIdx:=-1;
       end;
@@ -4678,9 +4720,12 @@ implementation
     destructor TWasmExeOutput.destroy;
       var
         i: TWasmSectionID;
+        j: TWasmCustomSectionType;
       begin
         for i in TWasmSectionID do
           FWasmSections[i].Free;
+        for j in TWasmCustomSectionType do
+          FWasmCustomSections[j].Free;
         FFuncTypes.Free;
         inherited destroy;
       end;
@@ -4900,6 +4945,37 @@ implementation
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
         FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
+      end;
+
+    procedure TWasmExeOutput.WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
+      var
+        exesecdatapos: LongWord;
+        i: Integer;
+        objsec: TObjSection;
+        dpos, pad: QWord;
+      begin
+        exesecdatapos:=dynarr.size;
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(exesec.ObjSectionList[i]);
+            if not (oso_data in objsec.secoptions) then
+              internalerror(2024010104);
+            if not assigned(objsec.data) then
+              internalerror(2024010105);
+
+            dpos:=objsec.MemPos-exesec.MemPos+exesecdatapos;
+            pad:=dpos-dynarr.size;
+            { objsection must be within SecAlign bytes from the previous one }
+            if (dpos<dynarr.Size) or
+              (pad>=max(objsec.SecAlign,1)) then
+              internalerror(2024010106);
+            writeZeros(dynarr,pad);
+
+            objsec.data.seek(0);
+            CopyDynamicArray(objsec.data,dynarr,objsec.data.size);
+          end;
+        if (dynarr.size-exesecdatapos)<>exesec.Size then
+          internalerror(2024010107);
       end;
 
 
