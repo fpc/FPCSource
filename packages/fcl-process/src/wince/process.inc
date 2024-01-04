@@ -172,7 +172,7 @@ begin
 end;
 
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 
 
 Var

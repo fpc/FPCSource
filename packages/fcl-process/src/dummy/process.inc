@@ -71,7 +71,7 @@ begin
    Result := S;
 end;
 
-Procedure TProcess.Execute;
+Procedure TProcess.SysExecute;
 var
   I: integer;
   ExecName, FoundName: string;
