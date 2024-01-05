@@ -51,7 +51,7 @@ uses
   Node.FS,
   {$ENDIF}
   {$IFDEF HASFILESYSTEM}
-  pas2jsfileutils,
+  Pas2jsFileUtils,
   {$ENDIF}
   {$ENDIF}
   pas2jsutils,

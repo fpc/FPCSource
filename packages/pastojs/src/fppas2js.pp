@@ -19080,15 +19080,6 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
   var
     NextArrType: TPasArrayType;
     NextRgIndex: integer;
-    IsLastRange: boolean;
-
-    function ConvertSubExpr(SubExpr: TPasExpr): TJSElement;
-    begin
-      if IsLastRange then
-        Result:=ConvertExpression(SubExpr,AContext)
-      else
-        Result:=ConvertArrayExpr(NextArrType,NextRgIndex,SubExpr);
-    end;
 
     function ConvertSubValues(ExprArray: TPasExprArray): TJSArrayLiteral;
     var
@@ -19123,7 +19114,6 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
     aResolver: TPas2JSResolver;
   begin
     Result:=nil;
-    IsLastRange:=false;
     NextArrType:=CurArrType;
     NextRgIndex:=RgIndex+1;
     if RgIndex>=length(CurArrType.Ranges)-1 then
@@ -19137,7 +19127,7 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
         NextRgIndex:=0;
         end
       else
-        IsLastRange:=true;
+        ; //IsLastRange:=true;
       end;
     if CurExpr.ClassType=TArrayValues then
       begin

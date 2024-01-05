@@ -189,10 +189,12 @@ begin
   Result:=GetEnvironmentVariable(EnvVar);
 end;
 
+{$IFDEF FPC_HAS_CPSTRING}
 function GetConsoleTextEncoding: string;
 begin
   Result:=GetDefaultTextEncoding;
 end;
+{$ENDIF}
 
-end;
+end.
 

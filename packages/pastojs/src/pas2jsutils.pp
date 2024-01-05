@@ -637,7 +637,7 @@ begin
 end;
 {$ENDIF UNIX}
 
-{$IF NOT DEFINED(UNIX) AND NOT DEFINED(WINDOWS)}
+{$IF NOT DEFINED(UNIX) AND NOT DEFINED(WINDOWS) and defined(FPC_HAS_CPSTRING)}
 function UTF8ToSystemCP(const s: Ansistring): Ansistring;
 begin
   if NonUTF8System and not IsASCII(s) then

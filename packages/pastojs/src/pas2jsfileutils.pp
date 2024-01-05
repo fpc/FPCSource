@@ -84,7 +84,7 @@ function GetEnvironmentVariableCountPJ: Integer;
 function GetEnvironmentStringPJ(Index: Integer): string;
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 
-function GetNextDelimitedItem(const List: string; Delimiter: AnsiChar;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
                               var Position: integer): string;
 
 type TChangeStamp = SizeInt;
@@ -434,7 +434,7 @@ end;
   end;
 
 var SrcPos, DestPos, Len, DirStart: integer;
-  c: AnsiChar;
+  c: Char;
   MacroPos: LongInt;
 begin
   Len:=length(AFilename);
@@ -636,7 +636,7 @@ end;
 function GetForcedPathDelims(const FileName: string): String;
 var
   i: Integer;
-  c: AnsiChar;
+  c: Char;
 begin
   Result:=Filename;
   {$IFDEF Pas2js}
@@ -804,7 +804,7 @@ begin
 end;
 {$ENDIF}
 
-function GetNextDelimitedItem(const List: string; Delimiter: AnsiChar;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
   var Position: integer): string;
 var
   StartPos: Integer;
