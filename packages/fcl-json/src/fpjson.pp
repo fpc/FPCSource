@@ -56,7 +56,7 @@ type
   TFPJSStream = TMemoryStream;
   TJSONLargeInt = Int64;
   {$else}
-  TJSONCharType = AnsiChar;
+  TJSONCharType = Char;
   TJSONVariant = jsvalue;
   TFPJSStream = TJSArray;
   TJSONLargeInt = NativeInt;
@@ -550,7 +550,7 @@ Type
     {$ELSE}
     function Add(I : NativeInt): Integer;
     {$ENDIF}
-    function Add(const S : AnsiString): Integer;
+    function Add(const S : TJSONStringType): Integer;
     function Add: Integer;
     function Add(F : TJSONFloat): Integer;
     function Add(B : Boolean): Integer;
@@ -570,7 +570,7 @@ Type
     {$ELSE}
     procedure Insert(Index: Integer; I : NativeInt);
     {$ENDIF}
-    procedure Insert(Index: Integer; const S : AnsiString);
+    procedure Insert(Index: Integer; const S : TJSONStringType);
     procedure Insert(Index: Integer; F : TJSONFloat);
     procedure Insert(Index: Integer; B : Boolean);
     procedure Insert(Index: Integer; AnArray : TJSONArray);
@@ -770,9 +770,13 @@ Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass)
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
 Function StringToJSONString(const S : TJSONStringType; Strict : Boolean = False) : TJSONStringType;
+{$IFNDEF PAS2JS}
 Function StringToJSONString(const S : UnicodeString; Strict : Boolean = False) : TJSONStringType;
+{$ENDIF}
 Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
+{$IFNDEF PAS2JS}
 Function JSONStringToString(const S : UnicodeString) : TJSONStringType;
+{$ENDIF}
 Function JSONTypeName(JSONType : TJSONType) : String;
 
 // These functions create JSONData structures, taking into account the instance types
@@ -1000,13 +1004,13 @@ begin
   if SPos>SLastPos then
     W(SLastPos,SPos-SLastPos);
 end;
-{$ENDIF}
 
 function StringToJSONString(const S: UnicodeString; Strict: Boolean
   ): TJSONStringType;
 begin
   Result:=StringToJSONString(UTF8Encode(S),Strict);
 end;
+{$ENDIF}
 
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;
 
@@ -1137,12 +1141,12 @@ begin
   MaybeAppendUnicode;
   Result:=Result+Copy(S,J,I-J+1);
 end;
-{$ENDIF}
 
 function JSONStringToString(const S: UnicodeString): TJSONStringType;
 begin
   Result:=JSONStringToString(UTF8Encode(S));
 end;
+{$ENDIF}
 
 function JSONTypeName(JSONType: TJSONType): String;
 begin
@@ -3080,7 +3084,7 @@ end;
 
 {$ENDIF}
 
-function TJSONArray.Add(const S: AnsiString): Integer;
+function TJSONArray.Add(const S: TJSONStringType): Integer;
 begin
   Result:=Add(CreateJSON(S));
 end;
@@ -3150,7 +3154,7 @@ begin
 end;
 
 
-procedure TJSONArray.Insert(Index: Integer; const S: AnsiString);
+procedure TJSONArray.Insert(Index: Integer; const S: TJSONStringType);
 begin
   FList.Insert(Index, CreateJSON(S));
 end;
