@@ -2,6 +2,12 @@
 unit syscall;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$ifdef LINUX}
+  {$ifdef FPC_USE_LIBC}
+    {$mode objfpc}
+  {$endif}
+{$endif}
+
 interface
 {$define FPC_USE_SYSCALL}
 
