@@ -4810,6 +4810,8 @@ implementation
       end;
 
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
+      const
+        DebugPrefix = '.debug_';
       var
         ExeSec: TExeSection;
         i: Integer;
@@ -4844,6 +4846,11 @@ implementation
 
             { calculate size of the section }
             exesec.Size:=CurrMemPos-exesec.MemPos;
+          end
+        else if Copy(aname,1,Length(DebugPrefix))=DebugPrefix then
+          begin
+            CurrMemPos:=0;
+            inherited;
           end
         else
           inherited;
