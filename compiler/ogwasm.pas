@@ -2928,8 +2928,8 @@ implementation
                   Result:=ReadProducersSection;
                 'target_features':
                   Result:=ReadTargetFeaturesSection;
-                '.debug_abbrev':
-                  if not ReadDebugSection(SectionName, wcstDebugAbbrev) then
+                '.debug_frame':
+                  if not ReadDebugSection(SectionName, wcstDebugFrame) then
                     begin
                       InputError('Error reading section ' + SectionName);
                       exit;
@@ -2946,6 +2946,12 @@ implementation
                       InputError('Error reading section ' + SectionName);
                       exit;
                     end;
+                '.debug_abbrev':
+                  if not ReadDebugSection(SectionName, wcstDebugAbbrev) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
                 '.debug_aranges':
                   if not ReadDebugSection(SectionName, wcstDebugAranges) then
                     begin
@@ -2954,6 +2960,12 @@ implementation
                     end;
                 '.debug_ranges':
                   if not ReadDebugSection(SectionName, wcstDebugRanges) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
+                '.debug_str':
+                  if not ReadDebugSection(SectionName, wcstDebugStr) then
                     begin
                       InputError('Error reading section ' + SectionName);
                       exit;
