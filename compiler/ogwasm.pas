@@ -2825,7 +2825,8 @@ implementation
                                 InputError('Error reading the index of a ' + SymKindName + ' symbol');
                                 exit;
                               end;
-                            if ((SymKind=SYMTAB_FUNCTION) and (SymIndex>high(FuncTypes))) then
+                            if ((SymKind=SYMTAB_FUNCTION) and (SymIndex>high(FuncTypes))) or
+                               ((SymKind=SYMTAB_EVENT) and (SymIndex>high(TagTypes))) then
                               begin
                                 InputError('Symbol index too high');
                                 exit;
