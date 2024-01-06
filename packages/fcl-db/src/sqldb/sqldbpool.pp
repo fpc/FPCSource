@@ -1003,7 +1003,6 @@ begin
   finally
     FLock.Leave;
   end;
-  IndexOf(aConnection)
 end;
 
 
