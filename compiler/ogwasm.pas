@@ -4238,80 +4238,43 @@ implementation
                 end;
                 case TWasmRelocationType(RelocType) of
                   R_WASM_FUNCTION_INDEX_LEB:
-                    begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_FUNCTION_INDEX_LEB))
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_FUNCTION_INDEX_LEB));
                   R_WASM_TABLE_INDEX_SLEB:
-                    begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB))
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB));
                   R_WASM_TABLE_INDEX_I32:
                     begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
+                      if SymbolTable[RelocIndex].ObjSym.typ<>AT_FUNCTION then
                         begin
-                          if SymbolTable[RelocIndex].ObjSym.typ<>AT_FUNCTION then
-                            begin
-                              InputError('R_WASM_TABLE_INDEX_I32 relocation must point to a function symbol');
-                              exit;
-                            end;
-                          ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE))
-                        end
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                          InputError('R_WASM_TABLE_INDEX_I32 relocation must point to a function symbol');
+                          exit;
+                        end;
+                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE));
                     end;
                   R_WASM_MEMORY_ADDR_LEB:
                     begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        begin
-                          ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_LEB);
-                          ObjReloc.Addend:=RelocAddend;
-                          ObjSec.ObjRelocations.Add(ObjReloc);
-                        end
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                      ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_LEB);
+                      ObjReloc.Addend:=RelocAddend;
+                      ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_MEMORY_ADDR_SLEB:
                     begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        begin
-                          ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB);
-                          ObjReloc.Addend:=RelocAddend;
-                          ObjSec.ObjRelocations.Add(ObjReloc);
-                        end
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                      ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB);
+                      ObjReloc.Addend:=RelocAddend;
+                      ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_MEMORY_ADDR_I32:
                     begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        begin
-                          ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
-                          ObjReloc.Addend:=RelocAddend;
-                          ObjSec.ObjRelocations.Add(ObjReloc);
-                        end
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                      ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
+                      ObjReloc.Addend:=RelocAddend;
+                      ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_TYPE_INDEX_LEB:
-                    begin
-                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateFuncType(RelocOffset-BaseSectionOffset,FFuncTypes[RelocIndex]));
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateFuncType(RelocOffset-BaseSectionOffset,FFuncTypes[RelocIndex]));
                   R_WASM_FUNCTION_OFFSET_I32:
                     begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        begin
-                          ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
-                          ObjReloc.Addend:=RelocAddend;
-                          ObjSec.ObjRelocations.Add(ObjReloc);
-                        end
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
+                      ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
+                      ObjReloc.Addend:=RelocAddend;
+                      ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_SECTION_OFFSET_I32:
                     begin
@@ -4320,12 +4283,7 @@ implementation
                       ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_GLOBAL_INDEX_LEB:
-                    begin
-                      if Assigned(SymbolTable[RelocIndex].ObjSym) then
-                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB))
-                      else
-                        Writeln('Warning! No object symbol created for ', SymbolTable[RelocIndex].SymName);
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB));
                   R_WASM_TAG_INDEX_LEB:
                     begin
                       InputError('R_WASM_TAG_INDEX_LEB relocations not yet implemented');
