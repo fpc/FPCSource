@@ -4350,7 +4350,61 @@ implementation
                       exit;
                     end;
                 end;
-              SYMTAB_EVENT,
+              SYMTAB_EVENT:
+                begin
+                  if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                    begin
+                      if not TagTypes[SymIndex].IsImport then
+                        begin
+                          InputError('WASM_SYM_UNDEFINED set on a SYMTAB_EVENT symbol, that is not an import');
+                          exit;
+                        end;
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)<>0 then
+                        begin
+                          objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_WASM_EXCEPTION_TAG;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=1;
+                          objsym.LinkingData.ImportModule:=TagTypes[SymIndex].ImportModName;
+                          objsym.LinkingData.ImportName:=TagTypes[SymIndex].ImportName;
+                        end
+                      else
+                        begin
+                          if GlobalTypes[SymIndex].ImportModName = 'env' then
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(GlobalTypes[SymIndex].ImportName))
+                          else
+                            objsym:=TWasmObjSymbol(ObjData.CreateSymbol(GlobalTypes[SymIndex].ImportModName + '.' + GlobalTypes[SymIndex].ImportName));
+                          objsym.bind:=AB_EXTERNAL;
+                          objsym.typ:=AT_WASM_EXCEPTION_TAG;
+                          objsym.objsection:=nil;
+                          objsym.offset:=0;
+                          objsym.size:=1;
+                        end;
+                    end
+                  else
+                    begin
+                      if TagTypes[SymIndex].IsImport then
+                        begin
+                          InputError('WASM_SYM_UNDEFINED not set on a SYMTAB_EVENT symbol, that is an import');
+                          exit;
+                        end;
+                      objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                      objsym.bind:=AB_GLOBAL;
+                      objsym.typ:=AT_WASM_EXCEPTION_TAG;
+                      objsym.objsection:=ObjData.createsection('.wasm_tags.n_'+SymName,1,[oso_Data,oso_load],true);
+                      if objsym.objsection.Size=0 then
+                        objsym.objsection.WriteZeros(1);
+                      if (SymFlags and WASM_SYM_EXPLICIT_NAME)=0 then
+                        TWasmObjSection(objsym.objsection).MainFuncSymbol:=objsym;
+                      objsym.offset:=0;
+                      objsym.size:=1;
+                    end;
+                  objsym.LinkingData.FuncType:=TWasmFuncType.Create(FFuncTypes[TagTypes[SymIndex].TagTypeIdx]);
+                  objsym.LinkingData.IsExported:=TagTypes[SymIndex].IsExported;
+                  objsym.LinkingData.ExportName:=TagTypes[SymIndex].ExportName;
+                end;
               SYMTAB_TABLE:
                 {TODO};
             end;
