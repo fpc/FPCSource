@@ -2366,6 +2366,7 @@ implementation
         FunctionSectionRead: Boolean = false;
         GlobalSectionRead: Boolean = false;
         ExportSectionRead: Boolean = false;
+        ElementSectionRead: Boolean = false;
         CodeSectionRead: Boolean = false;
         DataSectionRead: Boolean = false;
         DataCountSectionRead: Boolean = false;
@@ -3646,6 +3647,20 @@ implementation
             Result:=True;
           end;
 
+        function ReadElementSection: Boolean;
+          begin
+            Result:=False;
+            if ElementSectionRead then
+              begin
+                InputError('Element section is duplicated');
+                exit;
+              end;
+            ElementSectionRead:=True;
+            { We skip the element section for now }
+            { TODO: implement reading it (and linking of tables) }
+            Result:=True;
+          end;
+
         function ReadCodeSection: Boolean;
           var
             CodeEntriesCount: uint32;
@@ -3908,6 +3923,12 @@ implementation
               if not ReadExportSection then
                 begin
                   InputError('Error reading the export section');
+                  exit;
+                end;
+            Byte(wsiElement):
+              if not ReadElementSection then
+                begin
+                  InputError('Error reading the element section');
                   exit;
                 end;
             Byte(wsiCode):
