@@ -316,7 +316,7 @@ begin
   LinkScript.Concat('  OBJSECTION .bss*');
   LinkScript.Concat('ENDEXESECTION');
 
-  ScriptAddGenericSections('.debug_abbrev,.debug_info,.debug_line,.debug_aranges,.debug_ranges');
+  ScriptAddGenericSections('.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
 end;
 
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
