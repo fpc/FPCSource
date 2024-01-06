@@ -3368,6 +3368,11 @@ implementation
                               InputError('Error reading import tag type index');
                               exit;
                             end;
+                          if TagTypeIdx>high(FFuncTypes) then
+                            begin
+                              InputError('Type index in tag import exceeds bounds of the types table');
+                              exit;
+                            end;
                         end;
                     end;
                   else
@@ -3721,6 +3726,11 @@ implementation
                   if not ReadUleb32(TagTypeIdx) then
                     begin
                       InputError('Error reading tag type index');
+                      exit;
+                    end;
+                  if TagTypeIdx>high(FFuncTypes) then
+                    begin
+                      InputError('Type index in tag import exceeds bounds of the types table');
                       exit;
                     end;
                 end;
