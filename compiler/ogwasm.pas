@@ -2654,9 +2654,23 @@ implementation
                             exit;
                           end;
                       end;
-                    if (TWasmRelocationType(RelocType) in [R_WASM_SECTION_OFFSET_I32]) and (RelocIndex>High(SymbolTable)) then
+                    if (TWasmRelocationType(RelocType) in [
+                          R_WASM_SECTION_OFFSET_I32,
+                          R_WASM_FUNCTION_INDEX_LEB,
+                          R_WASM_TABLE_INDEX_SLEB,
+                          R_WASM_TABLE_INDEX_I32,
+                          R_WASM_MEMORY_ADDR_LEB,
+                          R_WASM_MEMORY_ADDR_SLEB,
+                          R_WASM_MEMORY_ADDR_I32,
+                          R_WASM_FUNCTION_OFFSET_I32,
+                          R_WASM_GLOBAL_INDEX_LEB]) and (RelocIndex>High(SymbolTable)) then
                       begin
                         InputError('Relocation index outside the bounds of the symbol table');
+                        exit;
+                      end;
+                    if (TWasmRelocationType(RelocType)=R_WASM_TYPE_INDEX_LEB) and (RelocIndex>High(FFuncTypes)) then
+                      begin
+                        InputError('Relocation index of R_WASM_TYPE_INDEX_LEB outside the bounds of the func types, defined in the func section of the module');
                         exit;
                       end;
                     if (TWasmRelocationType(RelocType)=R_WASM_SECTION_OFFSET_I32) and (TWasmSymbolType(SymbolTable[RelocIndex].SymKind)<>SYMTAB_SECTION) then
@@ -4225,11 +4239,6 @@ implementation
                 case TWasmRelocationType(RelocType) of
                   R_WASM_FUNCTION_INDEX_LEB:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_FUNCTION_INDEX_LEB))
                       else
@@ -4237,11 +4246,6 @@ implementation
                     end;
                   R_WASM_TABLE_INDEX_SLEB:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB))
                       else
@@ -4249,11 +4253,6 @@ implementation
                     end;
                   R_WASM_TABLE_INDEX_I32:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         begin
                           if SymbolTable[RelocIndex].ObjSym.typ<>AT_FUNCTION then
@@ -4268,11 +4267,6 @@ implementation
                     end;
                   R_WASM_MEMORY_ADDR_LEB:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         begin
                           ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_LEB);
@@ -4284,11 +4278,6 @@ implementation
                     end;
                   R_WASM_MEMORY_ADDR_SLEB:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         begin
                           ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB);
@@ -4300,11 +4289,6 @@ implementation
                     end;
                   R_WASM_MEMORY_ADDR_I32:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         begin
                           ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
@@ -4316,20 +4300,10 @@ implementation
                     end;
                   R_WASM_TYPE_INDEX_LEB:
                     begin
-                      if RelocIndex>high(FFuncTypes) then
-                        begin
-                          InputError('Type index in relocation too high');
-                          exit;
-                        end;
                       ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateFuncType(RelocOffset-BaseSectionOffset,FFuncTypes[RelocIndex]));
                     end;
                   R_WASM_FUNCTION_OFFSET_I32:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         begin
                           ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
@@ -4347,11 +4321,6 @@ implementation
                     end;
                   R_WASM_GLOBAL_INDEX_LEB:
                     begin
-                      if RelocIndex>high(SymbolTable) then
-                        begin
-                          InputError('Symbol index in relocation too high');
-                          exit;
-                        end;
                       if Assigned(SymbolTable[RelocIndex].ObjSym) then
                         ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB))
                       else
