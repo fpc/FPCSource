@@ -30,10 +30,10 @@ begin
     I := Length(FileName)+1
   else
     begin
-	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-  	if (SOF) and not FirstDotAtFileNameStartIsExtension then
-	  I:=Length(FileName)+1;
-	end;  
+    SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+    if (SOF) and not FirstDotAtFileNameStartIsExtension then
+      I:=Length(FileName)+1;
+    end;
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
@@ -48,14 +48,13 @@ var
   i : longint;
   EndSep : Set of AnsiChar;
 begin
+  Result:='';
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (i > 0) and not CharInSet(FileName[i],EndSep) do
     Dec(i);
   If I>0 then
-    Result := Copy(FileName, 1, i)
-  else
-    Result:='';
+    Result := Copy(FileName, 1, i);
 end;
 
 function ExtractFileDir(const FileName: PathStr): PathStr;
@@ -67,8 +66,9 @@ begin
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (I > 0) and not CharInSet(FileName[I],EndSep) do
     Dec(I);
-  if (I > 1) and CharInSet(FileName[I],AllowDirectorySeparators) and
-     not CharInSet(FileName[I - 1],EndSep) then
+  if (I > 1) 
+     and CharInSet(FileName[I],AllowDirectorySeparators) 
+     and not CharInSet(FileName[I - 1],EndSep) then
     Dec(I);
   Result := Copy(FileName, 1, I);
 end;
@@ -130,12 +130,10 @@ begin
     Dec(I);
   if (I > 0) and (FileName[I] = ExtensionSeparator) then
     begin
-	  SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-	  if (Not SOF) or FirstDotAtFileNameStartIsExtension then
-	    Result := Copy(FileName, I, MaxInt);
-	  end
-  else
-    Result := '';
+    SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+    if (Not SOF) or FirstDotAtFileNameStartIsExtension then
+      Result:=Copy(FileName, I, MaxInt);
+    end;
 end;
 
 {$ifndef HASEXTRACTSHORTPATHNAME}
