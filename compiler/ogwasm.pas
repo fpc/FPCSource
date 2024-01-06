@@ -2891,7 +2891,7 @@ implementation
               Result:=False;
             end;
 
-          function ReadDebugSection(const SectionName: string): Boolean;
+          function ReadDebugSection(const SectionName: string; SectionType: TWasmCustomDebugSectionType): Boolean;
             var
               ObjSec: TObjSection;
             begin
@@ -2928,12 +2928,36 @@ implementation
                   Result:=ReadProducersSection;
                 'target_features':
                   Result:=ReadTargetFeaturesSection;
-                '.debug_abbrev',
-                '.debug_info',
-                '.debug_line',
-                '.debug_aranges',
+                '.debug_abbrev':
+                  if not ReadDebugSection(SectionName, wcstDebugAbbrev) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
+                '.debug_info':
+                  if not ReadDebugSection(SectionName, wcstDebugInfo) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
+                '.debug_line':
+                  if not ReadDebugSection(SectionName, wcstDebugLine) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
+                '.debug_aranges':
+                  if not ReadDebugSection(SectionName, wcstDebugAranges) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
                 '.debug_ranges':
-                  Result:=ReadDebugSection(SectionName);
+                  if not ReadDebugSection(SectionName, wcstDebugRanges) then
+                    begin
+                      InputError('Error reading section ' + SectionName);
+                      exit;
+                    end;
                 else
                   InputError('Unsupported custom section: ''' + SectionName + '''');
               end;
