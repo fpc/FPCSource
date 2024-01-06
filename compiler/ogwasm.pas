@@ -4206,8 +4206,6 @@ implementation
               SYMTAB_EVENT,
               SYMTAB_TABLE:
                 {TODO};
-              else
-                internalerror(2023122701);
             end;
 
         for j:=0 to high(RelocationTable) do
