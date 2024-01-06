@@ -4898,6 +4898,8 @@ implementation
         ImportSymbol: TImportSymbol;
         exesym: TExeSymbol;
         newdll: Boolean;
+        fsym: TWasmObjSymbol;
+        objdata: TObjData;
       begin
         for i:=0 to FImports.Count-1 do
           begin
@@ -4919,6 +4921,18 @@ implementation
                     TWasmObjSymbol(exesym.ObjSymbol).LinkingData.ExeFunctionIndex:=
                       AddFunctionImport(ImportLibrary.Name,ImportSymbol.Name,TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType);
                   end;
+              end;
+          end;
+
+        { set ExeFunctionIndex to the alias symbols as well }
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            objdata:=TObjData(ObjDataList[i]);
+            for j:=0 to objdata.ObjSymbolList.Count-1 do
+              begin
+                fsym:=TWasmObjSymbol(objdata.ObjSymbolList[j]);
+                if (fsym.LinkingData.ExeFunctionIndex=-1) and assigned(fsym.exesymbol) and (TWasmObjSymbol(fsym.exesymbol.ObjSymbol).LinkingData.ExeFunctionIndex<>-1) then
+                  fsym.LinkingData.ExeFunctionIndex:=TWasmObjSymbol(fsym.exesymbol.ObjSymbol).LinkingData.ExeFunctionIndex;
               end;
           end;
       end;
