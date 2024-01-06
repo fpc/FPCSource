@@ -4269,14 +4269,7 @@ implementation
                   R_WASM_TABLE_INDEX_SLEB:
                     ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB));
                   R_WASM_TABLE_INDEX_I32:
-                    begin
-                      if SymbolTable[RelocIndex].ObjSym.typ<>AT_FUNCTION then
-                        begin
-                          InputError('R_WASM_TABLE_INDEX_I32 relocation must point to a function symbol');
-                          exit;
-                        end;
-                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE));
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE));
                   R_WASM_MEMORY_ADDR_LEB:
                     begin
                       ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_MEMORY_ADDR_LEB);
