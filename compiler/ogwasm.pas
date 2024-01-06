@@ -2456,7 +2456,7 @@ implementation
         {   table 1 is data relocs }
         {   tables 2.. are custom section relocs for debug sections }
         RelocationTable: array of array of record
-          RelocType: Byte;
+          RelocType: TWasmRelocationType;
           RelocOffset: uint32;
           RelocIndex: uint32;
           RelocAddend: int32;
@@ -2621,19 +2621,19 @@ implementation
                         InputError('Error reading the relocation type of a relocation entry');
                         exit;
                       end;
-                    if not (TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_INDEX_LEB,
-                                                               R_WASM_MEMORY_ADDR_LEB,
-                                                               R_WASM_TABLE_INDEX_SLEB,
-                                                               R_WASM_MEMORY_ADDR_SLEB,
-                                                               R_WASM_SECTION_OFFSET_I32,
-                                                               R_WASM_TABLE_INDEX_I32,
-                                                               R_WASM_FUNCTION_OFFSET_I32,
-                                                               R_WASM_MEMORY_ADDR_I32,
-                                                               R_WASM_TYPE_INDEX_LEB,
-                                                               R_WASM_GLOBAL_INDEX_LEB,
-                                                               R_WASM_TAG_INDEX_LEB]) then
+                    if not (RelocType in [R_WASM_FUNCTION_INDEX_LEB,
+                                          R_WASM_MEMORY_ADDR_LEB,
+                                          R_WASM_TABLE_INDEX_SLEB,
+                                          R_WASM_MEMORY_ADDR_SLEB,
+                                          R_WASM_SECTION_OFFSET_I32,
+                                          R_WASM_TABLE_INDEX_I32,
+                                          R_WASM_FUNCTION_OFFSET_I32,
+                                          R_WASM_MEMORY_ADDR_I32,
+                                          R_WASM_TYPE_INDEX_LEB,
+                                          R_WASM_GLOBAL_INDEX_LEB,
+                                          R_WASM_TAG_INDEX_LEB]) then
                       begin
-                        InputError('Unsupported relocation type: ' + tostr(RelocType));
+                        InputError('Unsupported relocation type: ' + tostr(Ord(RelocType)));
                         exit;
                       end;
                     if not ReadUleb32(RelocOffset) then
@@ -2646,7 +2646,7 @@ implementation
                         InputError('Error reading the relocation index of a relocation entry');
                         exit;
                       end;
-                    if TWasmRelocationType(RelocType) in [R_WASM_FUNCTION_OFFSET_I32,R_WASM_SECTION_OFFSET_I32,R_WASM_MEMORY_ADDR_LEB,R_WASM_MEMORY_ADDR_SLEB,R_WASM_MEMORY_ADDR_I32] then
+                    if RelocType in [R_WASM_FUNCTION_OFFSET_I32,R_WASM_SECTION_OFFSET_I32,R_WASM_MEMORY_ADDR_LEB,R_WASM_MEMORY_ADDR_SLEB,R_WASM_MEMORY_ADDR_I32] then
                       begin
                         if not ReadSleb32(RelocAddend) then
                           begin
@@ -2654,7 +2654,7 @@ implementation
                             exit;
                           end;
                       end;
-                    if (TWasmRelocationType(RelocType) in [
+                    if (RelocType in [
                           R_WASM_SECTION_OFFSET_I32,
                           R_WASM_FUNCTION_INDEX_LEB,
                           R_WASM_TABLE_INDEX_SLEB,
@@ -2668,12 +2668,12 @@ implementation
                         InputError('Relocation index outside the bounds of the symbol table');
                         exit;
                       end;
-                    if (TWasmRelocationType(RelocType)=R_WASM_TYPE_INDEX_LEB) and (RelocIndex>High(FFuncTypes)) then
+                    if (RelocType=R_WASM_TYPE_INDEX_LEB) and (RelocIndex>High(FFuncTypes)) then
                       begin
                         InputError('Relocation index of R_WASM_TYPE_INDEX_LEB outside the bounds of the func types, defined in the func section of the module');
                         exit;
                       end;
-                    if (TWasmRelocationType(RelocType)=R_WASM_SECTION_OFFSET_I32) and (TWasmSymbolType(SymbolTable[RelocIndex].SymKind)<>SYMTAB_SECTION) then
+                    if (RelocType=R_WASM_SECTION_OFFSET_I32) and (TWasmSymbolType(SymbolTable[RelocIndex].SymKind)<>SYMTAB_SECTION) then
                       begin
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
@@ -4236,7 +4236,7 @@ implementation
                   else
                     internalerror(2023122801);
                 end;
-                case TWasmRelocationType(RelocType) of
+                case RelocType of
                   R_WASM_FUNCTION_INDEX_LEB:
                     ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_FUNCTION_INDEX_LEB));
                   R_WASM_TABLE_INDEX_SLEB:
