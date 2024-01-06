@@ -2448,6 +2448,7 @@ implementation
           SymKind: Byte;
           SymName: ansistring;
           ObjSym: TWasmObjSymbol;
+          ObjSec: TWasmObjSection;
         end;
 
         { meaning of first index: }
@@ -2652,6 +2653,16 @@ implementation
                             InputError('Error reading the relocation addend of a relocation entry');
                             exit;
                           end;
+                      end;
+                    if (TWasmRelocationType(RelocType) in [R_WASM_SECTION_OFFSET_I32]) and (RelocIndex>High(SymbolTable)) then
+                      begin
+                        InputError('Relocation index outside the bounds of the symbol table');
+                        exit;
+                      end;
+                    if (TWasmRelocationType(RelocType)=R_WASM_SECTION_OFFSET_I32) and (TWasmSymbolType(SymbolTable[RelocIndex].SymKind)<>SYMTAB_SECTION) then
+                      begin
+                        InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
+                        exit;
                       end;
                   end;
               if AReader.Pos<>(SectionStart+SectionSize) then
@@ -3942,6 +3953,7 @@ implementation
         CurrSec, ObjSec: TObjSection;
         BaseSectionOffset: UInt32;
         ObjReloc: TWasmObjRelocation;
+        ds: TWasmCustomDebugSectionType;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -4154,7 +4166,20 @@ implementation
                   objsym.LinkingData.IsExported:=GlobalTypes[SymIndex].IsExported;
                   objsym.LinkingData.ExportName:=GlobalTypes[SymIndex].ExportName;
                 end;
-              byte(SYMTAB_SECTION),
+              byte(SYMTAB_SECTION):
+                begin
+                  for ds:=Low(DebugSectionIndex) to High(DebugSectionIndex) do
+                    if DebugSectionIndex[ds]=TargetSection then
+                      begin
+                        ObjSec:=TWasmObjSection(ObjData.findsection(WasmCustomSectionName[ds]));
+                        break;
+                      end;
+                  if ObjSec=nil then
+                    begin
+                      InputError('SYMTAB_SECTION entry points to an unsupported section');
+                      exit;
+                    end;
+                end;
               byte(SYMTAB_EVENT),
               byte(SYMTAB_TABLE):
                 {TODO};
@@ -4316,8 +4341,9 @@ implementation
                     end;
                   R_WASM_SECTION_OFFSET_I32:
                     begin
-                      InputError('R_WASM_SECTION_OFFSET_I32 relocations not yet implemented');
-                      exit;
+                      ObjReloc:=TWasmObjRelocation.CreateSection(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSec,RELOC_ABSOLUTE);
+                      ObjReloc.Addend:=RelocAddend;
+                      ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_GLOBAL_INDEX_LEB:
                     begin
