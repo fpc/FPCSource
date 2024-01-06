@@ -2445,7 +2445,7 @@ implementation
           SymIndex: uint32;
           SymOffset: uint32;
           SymSize: uint32;
-          SymKind: Byte;
+          SymKind: TWasmSymbolType;
           SymName: ansistring;
           ObjSym: TWasmObjSymbol;
           ObjSec: TWasmObjSection;
@@ -2673,7 +2673,7 @@ implementation
                         InputError('Relocation index of R_WASM_TYPE_INDEX_LEB outside the bounds of the func types, defined in the func section of the module');
                         exit;
                       end;
-                    if (RelocType=R_WASM_SECTION_OFFSET_I32) and (TWasmSymbolType(SymbolTable[RelocIndex].SymKind)<>SYMTAB_SECTION) then
+                    if (RelocType=R_WASM_SECTION_OFFSET_I32) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_SECTION) then
                       begin
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
@@ -2771,18 +2771,18 @@ implementation
                           exit;
                         end;
                       case SymKind of
-                        byte(SYMTAB_FUNCTION),
-                        byte(SYMTAB_GLOBAL),
-                        byte(SYMTAB_EVENT),
-                        byte(SYMTAB_TABLE):
+                        SYMTAB_FUNCTION,
+                        SYMTAB_GLOBAL,
+                        SYMTAB_EVENT,
+                        SYMTAB_TABLE:
                           begin
-                            WriteStr(SymKindName, TWasmSymbolType(SymKind));
+                            WriteStr(SymKindName, SymKind);
                             if not ReadUleb32(SymIndex) then
                               begin
                                 InputError('Error reading the index of a ' + SymKindName + ' symbol');
                                 exit;
                               end;
-                            if ((SymKind=byte(SYMTAB_FUNCTION)) and (SymIndex>high(FuncTypes))) then
+                            if ((SymKind=SYMTAB_FUNCTION) and (SymIndex>high(FuncTypes))) then
                               begin
                                 InputError('Symbol index too high');
                                 exit;
@@ -2797,7 +2797,7 @@ implementation
                                   end;
                               end;
                           end;
-                        byte(SYMTAB_DATA):
+                        SYMTAB_DATA:
                           begin
                             if not ReadName(SymName) then
                               begin
@@ -2828,7 +2828,7 @@ implementation
                                   end;
                               end;
                           end;
-                        byte(SYMTAB_SECTION):
+                        SYMTAB_SECTION:
                           begin
                             if not ReadUleb32(TargetSection) then
                               begin
@@ -2838,7 +2838,7 @@ implementation
                           end;
                         else
                           begin
-                            InputError('Unsupported symbol kind: ' + tostr(SymKind));
+                            InputError('Unsupported symbol kind: ' + tostr(Ord(SymKind)));
                             exit;
                           end;
                       end;
@@ -4004,7 +4004,7 @@ implementation
         { fill the code segment names }
         for i:=low(SymbolTable) to high(SymbolTable) do
           with SymbolTable[i] do
-            if (SymKind=byte(SYMTAB_FUNCTION)) and ((SymFlags and WASM_SYM_UNDEFINED)=0) then
+            if (SymKind=SYMTAB_FUNCTION) and ((SymFlags and WASM_SYM_UNDEFINED)=0) then
               begin
                 if FuncTypes[SymIndex].IsImport then
                   begin
@@ -4053,7 +4053,7 @@ implementation
         for i:=low(SymbolTable) to high(SymbolTable) do
           with SymbolTable[i] do
             case SymKind of
-              byte(SYMTAB_DATA):
+              SYMTAB_DATA:
                 if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
                   begin
                     objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
@@ -4075,7 +4075,7 @@ implementation
                     objsym.offset:=SymOffset;
                     objsym.size:=SymSize;
                   end;
-              byte(SYMTAB_FUNCTION):
+              SYMTAB_FUNCTION:
                 begin
                   if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
                     begin
@@ -4123,7 +4123,7 @@ implementation
                   objsym.LinkingData.IsExported:=FuncTypes[SymIndex].IsExported;
                   objsym.LinkingData.ExportName:=FuncTypes[SymIndex].ExportName;
                 end;
-              byte(SYMTAB_GLOBAL):
+              SYMTAB_GLOBAL:
                 begin
                   if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
                     begin
@@ -4180,7 +4180,7 @@ implementation
                   objsym.LinkingData.IsExported:=GlobalTypes[SymIndex].IsExported;
                   objsym.LinkingData.ExportName:=GlobalTypes[SymIndex].ExportName;
                 end;
-              byte(SYMTAB_SECTION):
+              SYMTAB_SECTION:
                 begin
                   for ds:=Low(DebugSectionIndex) to High(DebugSectionIndex) do
                     if DebugSectionIndex[ds]=TargetSection then
@@ -4194,8 +4194,8 @@ implementation
                       exit;
                     end;
                 end;
-              byte(SYMTAB_EVENT),
-              byte(SYMTAB_TABLE):
+              SYMTAB_EVENT,
+              SYMTAB_TABLE:
                 {TODO};
               else
                 internalerror(2023122701);
