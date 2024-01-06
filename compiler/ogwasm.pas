@@ -2752,6 +2752,7 @@ implementation
                 SymCount: uint32;
                 i: Integer;
                 SymKindName: string;
+                SymKindB: Byte;
               begin
                 Result:=False;
                 if SymbolTableSectionRead then
@@ -2769,11 +2770,17 @@ implementation
                 for i:=0 to SymCount-1 do
                   with SymbolTable[i] do
                     begin
-                      if not Read(SymKind,1) then
+                      if not Read(SymKindB,1) then
                         begin
                           InputError('Error reading symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
                           exit;
                         end;
+                      if (SymKindB<Low(Ord(TWasmSymbolType))) or (SymKindB>High(Ord(TWasmSymbolType))) then
+                        begin
+                          InputError('Unsupported symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
+                          exit;
+                        end;
+                      SymKind:=TWasmSymbolType(SymKindB);
                       if not ReadUleb32(SymFlags) then
                         begin
                           InputError('Error reading symbol flags from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
