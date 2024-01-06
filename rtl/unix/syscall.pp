@@ -34,5 +34,10 @@ procedure seterrno(err:cint); external name 'FPC_SYS_SETERRNO';
 {$ifdef FPC_HAS_SETSYSNR_INC}
 begin
   SetSyscallNumbers;
+{$else}
+{$if defined(linux) and defined(i386) and defined(FPC_USE_LIBC)}
+begin
+  InitSyscallIntf;
+{$endif}
 {$endif FPC_HAS_SETSYSNR_INC}
 end.

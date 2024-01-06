@@ -77,11 +77,6 @@ property cmdline:PAnsiChar read get_cmdline;
                                  implementation
 {*****************************************************************************}
 
-{$if defined(CPUI386) and not defined(FPC_USE_LIBC)}
-var
-  sysenter_supported: LongInt = 0;
-{$endif}
-
 const
   calculated_cmdline:PAnsiChar=nil;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}

@@ -45,6 +45,7 @@ type
 
 var
   psysinfo: LongWord = 0;
+  sysenter_supported : longint = 0;
 
 procedure InitSyscallIntf;
 var
