@@ -2678,6 +2678,15 @@ implementation
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
                       end;
+                    if (RelocType in [
+                          R_WASM_FUNCTION_INDEX_LEB,
+                          R_WASM_TABLE_INDEX_SLEB,
+                          R_WASM_TABLE_INDEX_I32,
+                          R_WASM_FUNCTION_OFFSET_I32]) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_FUNCTION) then
+                      begin
+                        InputError('Relocation must point to a SYMTAB_FUNCTION symbol');
+                        exit;
+                      end;
                   end;
               if AReader.Pos<>(SectionStart+SectionSize) then
                 begin
