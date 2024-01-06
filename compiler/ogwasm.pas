@@ -2866,11 +2866,6 @@ implementation
                                 exit;
                               end;
                           end;
-                        else
-                          begin
-                            InputError('Unsupported symbol kind: ' + tostr(Ord(SymKind)));
-                            exit;
-                          end;
                       end;
                     end;
                 if AReader.Pos<>(SectionStart+SectionSize) then
