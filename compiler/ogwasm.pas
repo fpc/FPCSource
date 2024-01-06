@@ -2422,6 +2422,15 @@ implementation
         end;
         GlobalTypeImportsCount: uint32;
 
+        TagTypes: array of record
+          IsImport: Boolean;
+          ImportName: ansistring;
+          ImportModName: ansistring;
+          TagAttr: Byte;
+          TagTypeIdx: uint32;
+        end;
+        TagTypeImportsCount: uint32;
+
         CodeSegments: array of record
           CodeSectionOffset: uint32;
           CodeSize: uint32;
@@ -3340,6 +3349,27 @@ implementation
                           end;
                         end;
                     end;
+                  $04: { tag }
+                    begin
+                      Inc(TagTypeImportsCount);
+                      SetLength(TagTypes,TagTypeImportsCount);
+                      with TagTypes[TagTypeImportsCount-1] do
+                        begin
+                          IsImport:=True;
+                          ImportName:=Name;
+                          ImportModName:=ModName;
+                          if not Read(TagAttr,1) then
+                            begin
+                              InputError('Error reading import tag attribute');
+                              exit;
+                            end;
+                          if not ReadUleb32(TagTypeIdx) then
+                            begin
+                              InputError('Error reading import tag type index');
+                              exit;
+                            end;
+                        end;
+                    end;
                   else
                     begin
                       InputError('Unknown import type: $' + HexStr(ImportType,2));
@@ -4078,6 +4108,8 @@ implementation
         MemTypeImportsCount:=0;
         GlobalTypes:=nil;
         GlobalTypeImportsCount:=0;
+        TagTypes:=nil;
+        TagTypeImportsCount:=0;
 
         if not AReader.read(ModuleMagic,4) then
           exit;
@@ -5149,4 +5181,3 @@ initialization
   RegisterAssembler(as_wasm32_wasm_info,TWasmAssembler);
 {$endif wasm32}
 end.
-
