@@ -4727,6 +4727,13 @@ implementation
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
               end
+            else if assigned(objreloc.objsection) then
+              begin
+                if objreloc.typ<>RELOC_ABSOLUTE then
+                  internalerror(2024010601);
+                objsec.Data.seek(objreloc.DataOffset);
+                writeUInt32LE(UInt32((objreloc.objsection.MemPos)+objreloc.Addend));
+              end
             else if objreloc.typ=RELOC_TYPE_INDEX_LEB then
               begin
                 objreloc.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(objreloc.FuncType);
