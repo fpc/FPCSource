@@ -302,21 +302,7 @@ begin
   LinkScript.Concat('  OBJSECTION .wasm_globals.*');
   LinkScript.Concat('ENDEXESECTION');
 
-  LinkScript.Concat('EXESECTION .text');
-  LinkScript.Concat('  OBJSECTION .text.*');
-  LinkScript.Concat('ENDEXESECTION');
-
-  LinkScript.Concat('EXESECTION .rodata');
-  LinkScript.Concat('  OBJSECTION .rodata.*');
-  LinkScript.Concat('ENDEXESECTION');
-  LinkScript.Concat('EXESECTION .data');
-  LinkScript.Concat('  OBJSECTION .data.*');
-  LinkScript.Concat('ENDEXESECTION');
-  LinkScript.Concat('EXESECTION .bss');
-  LinkScript.Concat('  OBJSECTION .bss*');
-  LinkScript.Concat('ENDEXESECTION');
-
-  ScriptAddGenericSections('.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
+  ScriptAddGenericSections('.text,.rodata,.data,.bss,.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
 end;
 
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
