@@ -2367,6 +2367,7 @@ implementation
         GlobalSectionRead: Boolean = false;
         ExportSectionRead: Boolean = false;
         ElementSectionRead: Boolean = false;
+        TagSectionRead: Boolean = false;
         CodeSectionRead: Boolean = false;
         DataSectionRead: Boolean = false;
         DataCountSectionRead: Boolean = false;
@@ -3661,6 +3662,45 @@ implementation
             Result:=True;
           end;
 
+        function ReadTagSection: Boolean;
+          var
+            TagCount, TagTypeIdx: uint32;
+            i: Integer;
+            Attr: Byte;
+          begin
+            Result:=False;
+            if TagSectionRead then
+              begin
+                InputError('Tag section is duplicated');
+                exit;
+              end;
+            TagSectionRead:=True;
+            if not ReadUleb32(TagCount) then
+              begin
+                InputError('Error reading the tag count from the tag section');
+                exit;
+              end;
+            for i:=0 to TagCount-1 do
+              begin
+                if not Read(Attr,1) then
+                  begin
+                    InputError('Error reading tag attribute');
+                    exit;
+                  end;
+                if not ReadUleb32(TagTypeIdx) then
+                  begin
+                    InputError('Error reading tag type index');
+                    exit;
+                  end;
+              end;
+            if AReader.Pos<>(SectionStart+SectionSize) then
+              begin
+                InputError('Unexpected tag section size');
+                exit;
+              end;
+            Result:=True;
+          end;
+
         function ReadCodeSection: Boolean;
           var
             CodeEntriesCount: uint32;
@@ -3929,6 +3969,12 @@ implementation
               if not ReadElementSection then
                 begin
                   InputError('Error reading the element section');
+                  exit;
+                end;
+            Byte(wsiTag):
+              if not ReadTagSection then
+                begin
+                  InputError('Error reading the tag section');
                   exit;
                 end;
             Byte(wsiCode):
