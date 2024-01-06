@@ -2789,7 +2789,7 @@ implementation
                           InputError('Error reading symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
                           exit;
                         end;
-                      if SymKindB>High(Ord(TWasmSymbolType)) then
+                      if SymKindB>Ord(High(TWasmSymbolType)) then
                         begin
                           InputError('Unsupported symbol type from the WASM_SYMBOL_TABLE subsection of the ''linking'' section');
                           exit;
