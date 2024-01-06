@@ -4396,7 +4396,7 @@ implementation
                           exit;
                         end;
                       objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
-                      objsym.bind:=AB_GLOBAL;
+                      objsym.bind:=AB_COMMON;
                       objsym.typ:=AT_WASM_EXCEPTION_TAG;
                       objsym.objsection:=ObjData.createsection('.wasm_tags.n_'+SymName,1,[oso_Data,oso_load],true);
                       if objsym.objsection.Size=0 then
