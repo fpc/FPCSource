@@ -188,6 +188,10 @@ type
   end;
   tcpuabsolutevarsymclass = class of tcpuabsolutevarsym;
 
+  tcpusymrefsym = class(tsymrefsym)
+  end;
+  tcpusymrefsymclass = class of tcpusymrefsym;
+
   tcpupropertysym = class(tpropertysym)
    protected
     { when a private/protected field is exposed via a property with a higher
@@ -952,5 +956,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+  csymrefsym:=tcpusymrefsym;
+
 end.
 

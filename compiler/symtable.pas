@@ -638,6 +638,7 @@ implementation
                  ibsyssym : sym:=csyssym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
            ibnamespacesym : sym:=cnamespacesym.ppuload(ppufile);
+              ibsymrefsym : sym:=csymrefsym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else

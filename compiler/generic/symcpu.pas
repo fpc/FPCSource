@@ -167,6 +167,10 @@ type
   end;
   tcpusyssymclass = class of tcpusyssym;
 
+  tcpusymrefsym = class(tsymrefsym)
+  end;
+  tcpusymrefsymclass = class of tcpusymrefsym;
+
 
 const
   pbestrealtype : ^tdef = @<somestandardfloattype>;
@@ -212,5 +216,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+  csymrefsym:=tcpusymrefsym;
+
 end.
 

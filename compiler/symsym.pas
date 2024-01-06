@@ -475,8 +475,16 @@ interface
        { used in composition to reference a symbol from a child element }
        tsymrefsym = class(tstoredsym)
          fieldvs : tfieldvarsym;
+         fieldvsderef : tderef;
          ref : tsym;
+         refderef : tderef;
          constructor create(const s : tsym;f : tfieldvarsym);virtual;
+         constructor ppuload(ppufile:tcompilerppufile);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+          procedure buildderef;override;
+          procedure deref;override;
        end;
        tsymrefsymclass = class of tsymrefsym;
 
@@ -527,6 +535,7 @@ interface
        cconstsym: tconstsymclass;
        cenumsym: tenumsymclass;
        csyssym: tsyssymclass;
+       csymrefsym: tsymrefsymclass;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -3209,7 +3218,41 @@ implementation
       begin
          inherited create(symrefsym,s.name);
          ref:=s;
+         refderef.reset;
          fieldvs:=f;
+         fieldvsderef.reset;
+      end;
+
+    constructor tsymrefsym.ppuload(ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(symrefsym,ppufile);
+        ppufile.getderef(refderef);
+        ppufile.getderef(fieldvsderef);
+        ppuload_platform(ppufile);
+      end;
+
+
+    procedure tsymrefsym.buildderef;
+      begin
+        inherited;
+        refderef.build(ref);
+        fieldvsderef.build(fieldvs);
+      end;
+
+
+    procedure tsymrefsym.deref;
+      begin
+        inherited;
+        ref:=tsym(refderef.resolve);
+        fieldvs:=tfieldvarsym(fieldvsderef.resolve);
+      end;
+
+    procedure tsymrefsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(refderef);
+        ppufile.putderef(fieldvsderef);
+        writeentry(ppufile,ibsymrefsym);
       end;
 
 {*****************************************************************************

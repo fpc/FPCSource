@@ -133,6 +133,9 @@ type
   tcpusyssym = class(tsyssym)
   end;
 
+  tcpusymrefsym = class(tsymrefsym)
+  end;
+
 
 var
   pbestrealtype : ^tdef = @s64floattype;
@@ -178,5 +181,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+  csymrefsym:=tcpusymrefsym;
+
 end.
 
