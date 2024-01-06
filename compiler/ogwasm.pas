@@ -4492,10 +4492,7 @@ implementation
                   R_WASM_GLOBAL_INDEX_LEB:
                     ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB));
                   R_WASM_TAG_INDEX_LEB:
-                    begin
-                      InputError('R_WASM_TAG_INDEX_LEB relocations not yet implemented');
-                      exit;
-                    end;
+                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_TAG_INDEX_LEB));
                   else
                     internalerror(2023122802);
                 end;
