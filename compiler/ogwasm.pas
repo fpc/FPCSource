@@ -3694,9 +3694,8 @@ implementation
 
         function ReadTagSection: Boolean;
           var
-            TagCount, TagTypeIdx: uint32;
+            TagCount: uint32;
             i: Integer;
-            Attr: Byte;
           begin
             Result:=False;
             if TagSectionRead then
@@ -3710,19 +3709,21 @@ implementation
                 InputError('Error reading the tag count from the tag section');
                 exit;
               end;
+            SetLength(TagTypes,Length(TagTypes)+TagCount);
             for i:=0 to TagCount-1 do
-              begin
-                if not Read(Attr,1) then
-                  begin
-                    InputError('Error reading tag attribute');
-                    exit;
-                  end;
-                if not ReadUleb32(TagTypeIdx) then
-                  begin
-                    InputError('Error reading tag type index');
-                    exit;
-                  end;
-              end;
+              with TagTypes[i + TagTypeImportsCount] do
+                begin
+                  if not Read(TagAttr,1) then
+                    begin
+                      InputError('Error reading tag attribute');
+                      exit;
+                    end;
+                  if not ReadUleb32(TagTypeIdx) then
+                    begin
+                      InputError('Error reading tag type index');
+                      exit;
+                    end;
+                end;
             if AReader.Pos<>(SectionStart+SectionSize) then
               begin
                 InputError('Unexpected tag section size');
