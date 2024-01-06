@@ -629,7 +629,10 @@ begin
     end;
 end;
 
-function GetFinalPathNameByHandle(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD; external 'kernel32' name 'GetFinalPathNameByHandleA';
+type
+  TGetFinalPathNameByHandle = function(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD;
+var
+  GetFinalPathNameByHandle:TGetFinalPathNameByHandle=nil;
 
 Const
   VOLUME_NAME_NT = $2;
@@ -647,7 +650,7 @@ begin
   FillChar(Buf,MAX_PATH+1,0);
   if Not FileExists(aLink,False) then 
     exit;
-  if not CheckWin32Version(6, 0) then 
+  if not CheckWin32Version(6, 0) or not(assigned(GetFinalPathNameByHandle)) then 
     exit;
   Attrs:=GetFileAttributes(PChar(aLink));
   if (Attrs=INVALID_FILE_ATTRIBUTES) or ((Attrs and faSymLink)=0) then
@@ -1704,6 +1707,8 @@ begin
   // GetTimeZoneInformationForYear is supported only on Vista and newer
   if (kernel32dll<>0) and (Win32MajorVersion>=6) then
     GetTimeZoneInformationForYear:=TGetTimeZoneInformationForYear(GetProcAddress(kernel32dll,'GetTimeZoneInformationForYear'));
+  if (kernel32dll<>0) then
+    GetFinalPathNameByHandle:=TGetFinalPathNameByHandle(GetProcAddress(kernel32dll,'GetFinalPathNameByHandleA'));
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
