@@ -2687,6 +2687,14 @@ implementation
                         InputError('Relocation must point to a SYMTAB_FUNCTION symbol');
                         exit;
                       end;
+                    if (RelocType in [
+                          R_WASM_MEMORY_ADDR_LEB,
+                          R_WASM_MEMORY_ADDR_SLEB,
+                          R_WASM_MEMORY_ADDR_I32]) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_DATA) then
+                      begin
+                        InputError('Relocation must point to a SYMTAB_DATA symbol');
+                        exit;
+                      end;
                   end;
               if AReader.Pos<>(SectionStart+SectionSize) then
                 begin
