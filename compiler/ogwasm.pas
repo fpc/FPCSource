@@ -2697,6 +2697,11 @@ implementation
                         InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
                         exit;
                       end;
+                    if (RelocType=R_WASM_TAG_INDEX_LEB) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_EVENT) then
+                      begin
+                        InputError('Relocation must point to a SYMTAB_EVENT symbol');
+                        exit;
+                      end;
                     if (RelocType in [
                           R_WASM_FUNCTION_INDEX_LEB,
                           R_WASM_TABLE_INDEX_SLEB,
