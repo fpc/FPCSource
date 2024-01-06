@@ -2453,7 +2453,7 @@ implementation
         { meaning of first index: }
         {   table 0 is code relocs }
         {   table 1 is data relocs }
-        {   tables 2.. are custom section relocs }
+        {   tables 2.. are custom section relocs for debug sections }
         RelocationTable: array of array of record
           RelocType: Byte;
           RelocOffset: uint32;
@@ -2579,6 +2579,7 @@ implementation
               TargetSection, RelocCount: uint32;
               i: Integer;
               RelocTableIndex: Integer;
+              ds: TWasmCustomDebugSectionType;
             begin
               Result:=False;
               if not ReadUleb32(TargetSection) then
@@ -2592,10 +2593,18 @@ implementation
                 RelocTableIndex:=1
               else
                 begin
-                  Writeln('Warning! Relocation section ignored!');
-                  Result:=True;
-                  //InputError('Relocation for custom sections not supported, yet');
-                  exit;
+                  RelocTableIndex:=-1;
+                  for ds:=Low(DebugSectionIndex) to High(DebugSectionIndex) do
+                    if DebugSectionIndex[ds]=TargetSection then
+                      begin
+                        RelocTableIndex:=2+(Ord(ds)-Ord(Low(TWasmCustomDebugSectionType)));
+                        break;
+                      end;
+                  if RelocTableIndex=-1 then
+                    begin
+                      InputError('Relocation found for a custom section, that is not supported');
+                      exit;
+                    end;
                 end;
               if not ReadUleb32(RelocCount) then
                 begin
@@ -3942,7 +3951,7 @@ implementation
         DataSegments:=nil;
         SymbolTable:=nil;
         RelocationTable:=nil;
-        SetLength(RelocationTable,2);
+        SetLength(RelocationTable,2+(Ord(High(TWasmCustomDebugSectionType))-Ord(Low(TWasmCustomDebugSectionType))+1));
         FuncTypes:=nil;
         FuncTypeImportsCount:=0;
         TableTypes:=nil;
@@ -4179,7 +4188,12 @@ implementation
                         end;
                       BaseSectionOffset:=DataSegments[SegI].DataSectionOffset;
                       ObjSec:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SegI]);
-                    end
+                    end;
+                  2..2+(Ord(High(TWasmCustomDebugSectionType))-Ord(Low(TWasmCustomDebugSectionType))):
+                    begin
+                      BaseSectionOffset:=0;
+                      ObjSec:=ObjData.findsection(WasmCustomSectionName[TWasmCustomSectionType((j-2)+Ord(Low(TWasmCustomDebugSectionType)))]);
+                    end;
                   else
                     internalerror(2023122801);
                 end;
