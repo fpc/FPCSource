@@ -2264,29 +2264,18 @@ implementation
              visibility:=pcompositefield(cf[i])^.visibility;
              fieldvs:=pcompositefield(cf[i])^.fieldvs;
              dispose(pcompositefield(cf[i]));
-             { Only composition with records objects and classes are allowed }
+             { Only composition with records are allowed }
              if not (
-               (fieldvs.vardef.typ in [recorddef,objectdef]) or (
+               (fieldvs.vardef.typ in [recorddef]) or (
                  { also allow for generic params that are resolved later }
                  (fieldvs.vardef.typ=undefineddef) and
                  (sp_generic_para in fieldvs.vardef.typesym.symoptions)
                )
              ) then
                begin
-                 Message(sym_e_type_must_be_rec_or_object_or_class);
+                 { FIXME: Better error (only record not rec or object) }
+                 Message(sym_e_type_must_be_rec_or_object);
                  continue;
-               end;
-             if (fieldvs.vardef.typ=objectdef) then
-               begin
-                 if oo_is_forward in tobjectdef(fieldvs.vardef).objectoptions then
-                   Message1(parser_e_forward_declaration_must_be_resolved, fieldvs.vardef.typesym.RealName);
-                 if (tobjectdef(fieldvs.vardef).objecttype<>odt_object) and
-                    (fieldvs.visibility=vis_hidden) then
-                   { beacause classes are only accessible via pointer,
-                     they are only allowed when having a field to initialize }
-                   Message(sym_e_type_must_be_rec_or_object);
-                 if ErrorCount>0 then
-                   continue;
                end;
              { Composition of generic parameters will be deferred to when the
                type is specialized. Then this same function will be called
