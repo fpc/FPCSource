@@ -225,8 +225,6 @@ interface
           { offset in record/object, for bitpacked fields the offset is
             given in bit, else in bytes }
           fieldoffset   : asizeint;
-          compositefield : boolean;
-          compositevisibility : tvisibility;
 {$ifdef llvm}
           { the llvm version of the record does not support variants,   }
           { so the llvm equivalent field may not be at the exact same   }
@@ -3217,6 +3215,11 @@ implementation
     constructor tsymrefsym.create(const s : tsym;f : tfieldvarsym);
       begin
          inherited create(symrefsym,s.name);
+
+         if not (f.vardef is tabstractrecorddef) or
+            not assigned(tabstractrecorddef(f.vardef).symtable.symlist.findwithhash(s.name,s.hash)) then
+           internalerror(2024010602);
+
          ref:=s;
          refderef.reset;
          fieldvs:=f;

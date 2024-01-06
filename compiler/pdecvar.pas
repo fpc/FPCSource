@@ -1712,8 +1712,15 @@ implementation
 
 
     procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+      type
+        tcompositefield=record
+          fieldvs:tfieldvarsym;
+          visibility:tvisibility;
+        end;
+        pcompositefield=^tcompositefield;
       var
-         sc , cf : TFPObjectList;
+         cf : TFPList;
+         sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
          gendef,hdef,casetype : tdef;
@@ -1725,6 +1732,7 @@ implementation
          maxpadalign, startpadalign: shortint;
          pt : tnode;
          fieldvs   : tfieldvarsym;
+         cfvs : pcompositefield;
          hstaticvs : tstaticvarsym;
          vs    : tabstractvarsym;
          srsym : tsym;
@@ -1758,7 +1766,7 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
-         cf:=TFPObjectList.create(false);
+         cf:=TFPList.create;
          removeclassoption:=false;
          had_generic:=false;
          attr_element_count:=0;
@@ -1803,15 +1811,17 @@ implementation
 
                            { check for duplicates }
                            for i:=0 to cf.count-1 do
-                             if cf[i]=srsym then
+                             if pcompositefield(cf[i])^.fieldvs=srsym then
                                begin
                                  Message(sym_e_duplicate_id);
                                  srsym:=nil;
                                end;
                            if assigned(srsym) then
                              begin
-                               tfieldvarsym(srsym).compositevisibility:=visibility;
-                               cf.add(srsym);
+                               new(cfvs);
+                               cfvs^.visibility:=visibility;
+                               cfvs^.fieldvs:=tfieldvarsym(srsym);
+                               cf.add(cfvs);
                              end;
                            consume(_SEMICOLON);
                            continue;
@@ -1836,14 +1846,15 @@ implementation
                    fieldvs.visibility:=vis_hidden
                  else
                    fieldvs.visibility:=visibility;
-                 fieldvs.compositevisibility:=visibility;
-                 fieldvs.compositefield:=true;
                  fieldvs.register_sym;
                  sc.add(fieldvs);
                  recst.insertsym(fieldvs);
                  had_generic:=false;
 
-                 cf.Add(fieldvs);
+                 new(cfvs);
+                 cfvs^.visibility:=visibility;
+                 cfvs^.fieldvs:=fieldvs;
+                 cf.Add(cfvs);
 
                  block_type:=bt_var_type;
                end
@@ -2250,7 +2261,9 @@ implementation
          { Because of duplication checks add composite symbols after all normal symbols have been read }
          for i:=0 to cf.count-1 do
            begin
-             fieldvs:=tfieldvarsym(cf[i]);
+             visibility:=pcompositefield(cf[i])^.visibility;
+             fieldvs:=pcompositefield(cf[i])^.fieldvs;
+             dispose(pcompositefield(cf[i]));
              { Only composition with records objects and classes are allowed }
              if not (
                (fieldvs.vardef.typ in [recorddef,objectdef]) or (
@@ -2282,7 +2295,7 @@ implementation
                (fieldvs.vardef.typ=undefineddef) and
                (sp_generic_para in fieldvs.vardef.typesym.symoptions)
              ) then
-               recst.add_composition_references(fieldvs);
+               recst.add_composition_references(fieldvs,visibility);
            end;
          { free the lists }
          cf.free;
