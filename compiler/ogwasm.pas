@@ -2428,6 +2428,8 @@ implementation
           ImportModName: ansistring;
           TagAttr: Byte;
           TagTypeIdx: uint32;
+          IsExported: Boolean;
+          ExportName: ansistring;
         end;
         TagTypeImportsCount: uint32;
 
@@ -3566,7 +3568,7 @@ implementation
 
         function ReadExportSection: Boolean;
           var
-            ExportsCount, FuncIdx, TableIdx, MemIdx, GlobalIdx: uint32;
+            ExportsCount, FuncIdx, TableIdx, MemIdx, GlobalIdx, TagIdx: uint32;
             i: Integer;
             Name: ansistring;
             ExportType: Byte;
@@ -3663,6 +3665,24 @@ implementation
                           exit;
                         end;
                       with GlobalTypes[GlobalIdx] do
+                        begin
+                          IsExported:=True;
+                          ExportName:=Name;
+                        end;
+                    end;
+                  $04:  { tag }
+                    begin
+                      if not ReadUleb32(TagIdx) then
+                        begin
+                          InputError('Error reading a tag index from the export section');
+                          exit;
+                        end;
+                      if TagIdx>high(TagTypes) then
+                        begin
+                          InputError('Tag index too high in the export section');
+                          exit;
+                        end;
+                      with TagTypes[TagIdx] do
                         begin
                           IsExported:=True;
                           ExportName:=Name;
