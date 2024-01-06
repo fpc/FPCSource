@@ -2374,6 +2374,7 @@ implementation
 
         CodeSectionIndex: Integer = -1;
         DataSectionIndex: Integer = -1;
+        DebugSectionIndex: array [TWasmCustomDebugSectionType] of Integer = (-1,-1,-1,-1,-1,-1,-1);
 
         FuncTypes: array of record
           IsImport: Boolean;
@@ -2895,6 +2896,13 @@ implementation
             var
               ObjSec: TObjSection;
             begin
+              Result:=False;
+              if DebugSectionIndex[SectionType]<>-1 then
+                begin
+                  InputError('Duplicated debug section: ' + SectionName);
+                  exit;
+                end;
+              DebugSectionIndex[SectionType]:=SectionIndex;
               ObjSec:=ObjData.createsection(SectionName,1,[oso_Data,oso_debug],false);
               ObjSec.DataPos:=AReader.Pos;
               ObjSec.Size:=SectionStart+SectionSize-AReader.Pos;
