@@ -97,6 +97,7 @@ interface
         { used during linking }
         FuncType: TWasmFuncType;
         ExeTypeIndex: Integer;
+        IsFunctionOffsetI32: Boolean;
 
         constructor CreateTypeIndex(ADataOffset:TObjSectionOfs; ATypeIndex: Integer);
         constructor CreateFuncType(ADataOffset:TObjSectionOfs; AFuncType: TWasmFuncType);
@@ -4294,6 +4295,7 @@ implementation
                     begin
                       ObjReloc:=TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE);
                       ObjReloc.Addend:=RelocAddend;
+                      ObjReloc.IsFunctionOffsetI32:=True;
                       ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_SECTION_OFFSET_I32:
@@ -4665,15 +4667,27 @@ implementation
                       case objsym.typ of
                         AT_FUNCTION:
                           begin
-                            if objsym.LinkingData.ExeFunctionIndex=-1 then
-                              internalerror(2024010103);
-                            if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
-                              objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
-                            objsec.Data.seek(objreloc.DataOffset);
-                            writeUInt32LE(UInt32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                            if objreloc.IsFunctionOffsetI32 then
+                              begin
+                                { R_WASM_FUNCTION_OFFSET_I32 }
+                                objsec.Data.seek(objreloc.DataOffset);
+                                writeUInt32LE(UInt32(objsym.objsection.MemPos+objreloc.Addend));
+                              end
+                            else
+                              begin
+                                { R_WASM_TABLE_INDEX_I32 }
+                                if objsym.LinkingData.ExeFunctionIndex=-1 then
+                                  internalerror(2024010103);
+                                if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
+                                  objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
+                                objsec.Data.seek(objreloc.DataOffset);
+                                writeUInt32LE(UInt32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                              end;
                           end;
                         AT_DATA:
                           begin
+                            if objreloc.IsFunctionOffsetI32 then
+                              internalerror(2024010602);
                             objsec.Data.seek(objreloc.DataOffset);
                             writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
                           end;
