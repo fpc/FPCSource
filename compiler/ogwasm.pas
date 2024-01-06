@@ -2678,6 +2678,11 @@ implementation
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
                       end;
+                    if (RelocType=R_WASM_GLOBAL_INDEX_LEB) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_GLOBAL) then
+                      begin
+                        InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
+                        exit;
+                      end;
                     if (RelocType in [
                           R_WASM_FUNCTION_INDEX_LEB,
                           R_WASM_TABLE_INDEX_SLEB,
