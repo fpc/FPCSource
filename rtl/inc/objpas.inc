@@ -531,12 +531,20 @@ end;
       type
          {$PUSH}
          {$PACKRECORDS NORMAL}
-         tmethodnamerec = packed record
+         tmethodnamerec =
+         {$IFNDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+         packed
+         {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
+         record
             name : pshortstring;
             addr : codepointer;
          end;
 
-         tmethodnametable = packed record
+         tmethodnametable =
+         {$IFNDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+         packed
+         {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
+         record
            count : dword;
            entries : packed array[0..0] of tmethodnamerec;
          end;
