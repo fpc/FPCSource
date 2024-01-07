@@ -1047,10 +1047,10 @@ implementation
             writer.AsmWrite(' noreturn');
           if pio_thunk in pd.implprocoptions then
             writer.AsmWrite(' "thunk"');
-          if llvmflag_null_pointer_valid in llvmversion_properties[current_settings.llvmversion] then
-            writer.AsmWrite(' "null-pointer-is-valid"="true"')
-          else if llvmflag_null_pointer_valid_new in llvmversion_properties[current_settings.llvmversion] then
-            writer.AsmWrite(' null_pointer_is_valid');
+          if llvmflag_null_pointer_valid_new in llvmversion_properties[current_settings.llvmversion] then
+            writer.AsmWrite(' null_pointer_is_valid')
+          else
+            writer.AsmWrite(' "null-pointer-is-valid"="true"');
           if not(pio_fastmath in pd.implprocoptions) then
             writer.AsmWrite(' strictfp');
           if cs_sanitize_address in current_settings.moduleswitches then

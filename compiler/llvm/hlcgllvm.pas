@@ -1271,7 +1271,6 @@ implementation
       pd: tprocdef;
       sourcepara, destpara, sizepara, alignpara, volatilepara: tcgpara;
       maxalign: longint;
-      indivalign: boolean;
     begin
       { perform small copies directly; not larger ones, because then llvm
         will try to load the entire large datastructure into registers and
@@ -1282,11 +1281,7 @@ implementation
           a_load_ref_ref(list,size,size,source,dest);
           exit;
         end;
-      indivalign:=llvmflag_memcpy_indiv_align in llvmversion_properties[current_settings.llvmversion];
-      if indivalign then
-        pd:=search_system_proc('llvm_memcpy64_indivalign')
-      else
-        pd:=search_system_proc('llvm_memcpy64');
+      pd:=search_system_proc('llvm_memcpy64_indivalign');
       sourcepara.init;
       destpara.init;
       sizepara.init;
@@ -1295,27 +1290,14 @@ implementation
       paramanager.getcgtempparaloc(list,pd,1,destpara);
       paramanager.getcgtempparaloc(list,pd,2,sourcepara);
       paramanager.getcgtempparaloc(list,pd,3,sizepara);
-      if indivalign then
-        begin
-          paramanager.getcgtempparaloc(list,pd,4,volatilepara);
-          destpara.Alignment:=-dest.alignment;
-          sourcepara.Alignment:=-source.alignment;
-        end
-      else
-        begin
-          paramanager.getcgtempparaloc(list,pd,4,alignpara);
-          paramanager.getcgtempparaloc(list,pd,5,volatilepara);
-          maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
-          a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
-        end;
+      paramanager.getcgtempparaloc(list,pd,4,volatilepara);
+      destpara.Alignment:=-dest.alignment;
+      sourcepara.Alignment:=-source.alignment;
       a_loadaddr_ref_cgpara(list,size,dest,destpara);
       a_loadaddr_ref_cgpara(list,size,source,sourcepara);
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
       a_load_const_cgpara(list,llvmbool1type,ord((vol_read in source.volatility) or (vol_write in dest.volatility)),volatilepara);
-      if indivalign then
-        g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@volatilepara],nil).resetiftemp
-      else
-        g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
+      g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;
       sizepara.done;
