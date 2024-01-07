@@ -197,7 +197,7 @@ implementation
       end;
 
     begin
-      filename:=packagename^;
+      filename:=realpackagename^;
       result:=search_path_list(packagesearchpath);
     end;
 
