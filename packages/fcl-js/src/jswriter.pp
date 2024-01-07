@@ -384,9 +384,14 @@ end;
 procedure TBufferWriter.SetCapacity(AValue: Cardinal);
 begin
   if FCapacity=AValue then Exit;
+  {$ifdef pas2js}
+  // capacity not needed, FBuffer is an JS array
+  FCapacity:=AValue;
+  {$else}
   SetLength(FBuffer,AValue);
   if (FBufPos>Capacity) then
     FBufPos:=Capacity;
+  {$endif}
 end;
 
 function TBufferWriter.DoWrite(const S: TJSWriterString): integer;
