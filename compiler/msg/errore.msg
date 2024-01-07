@@ -455,7 +455,7 @@ scan_e_invalid_rtti_option=02111_E_A Invalid RTTI option "$1" (expected Methods,
 % The \var{\$RTTI EXPLICIT} can only contain \var{FIELDS}, \var{PROPERTIES} and \var{METHODS}
 % entries.
 scan_e_duplicate_rtti_option=02112_E_A Duplicate RTTI option "$1"
-% An option in a \var{$RTTI EXPLICIT} directive can only appear once.
+% An option in a \var{\$RTTI EXPLICIT} directive can only appear once.
 scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive cannot be used here
 % The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
 % or \var{UNIT} headers).
