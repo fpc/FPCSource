@@ -79,8 +79,8 @@ endif
 # syscall unit compiled with -dFPC_USE_LIBC
 # required mode objfpc which adds a dependency to
 # objpas unit 
-ifneq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
-  SYSCALL_DEPS_OS+=$(OBJPASUNITUNIT)$(PPUEXT)
+ifneq ($(filter -dFPC_USE_LIBC,$(OPT) $(CROSSOPT)),)
+  SYSCALL_DEPS_OS+=$(OBJPASUNIT)$(PPUEXT)
 endif
 
 SYSUTILSDIR=$(UNIXINC)
