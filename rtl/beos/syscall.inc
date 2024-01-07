@@ -62,12 +62,12 @@ begin
   funcresult := do_SysCall(callnr, args);
   if funcresult < 0 then
    begin
-     errno := funcresult;
+     seterrno(funcresult);
      SysCall := - 1;
    end
   else
    begin
      SysCall := funcresult;
-     errno := 0;
+     seterrno(0);
    end;
 end;
