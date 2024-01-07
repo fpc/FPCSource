@@ -3387,7 +3387,7 @@ wpo_cant_create_feedback_file=12019_E_Невозможно создать фай
 #
 option_logo=11023_[
 Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
-Copyright (c) 1993-2023 by Florian Klaempfl and others
+Copyright (c) 1993-2024 by Florian Klaempfl and others
 ]
 
 #
