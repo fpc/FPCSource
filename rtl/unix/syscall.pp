@@ -26,8 +26,9 @@ uses
 {$endif FPC_HAS_SETSYSNR_INC}
 
 {$ifdef FPC_USE_LIBC}
+{$if not declared(seterrno)}
 procedure seterrno(err:cint); external name 'FPC_SYS_SETERRNO';
-
+{$endif}
 {$I syscall.inc}
 {$endif}
 
