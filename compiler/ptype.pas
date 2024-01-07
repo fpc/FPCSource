@@ -1101,6 +1101,8 @@ implementation
 
     { reads a type definition and returns a pointer to it }
     procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
+      const
+        SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         pt : tnode;
         tt2 : tdef;
@@ -1350,6 +1352,37 @@ implementation
            end
           else
            def:=generrordef;
+        end;
+
+
+      procedure pointer_dec;
+        var
+          sym: tsym;
+        begin
+          consume(_CARET);
+          single_type(tt2,
+              SingleTypeOptionsInTypeBlock[block_type=bt_type]+[stoAllowSpecialization]
+            );
+          { in case of e.g. var or const sections we need to especially
+            check that we don't use a generic dummy symbol }
+          if (block_type<>bt_type) and
+              (tt2.typ=undefineddef) and
+              assigned(tt2.typesym) and
+              (sp_generic_dummy in tt2.typesym.symoptions) then
+            begin
+              sym:=resolve_generic_dummysym(tt2.typesym.name);
+              if assigned(sym) and
+                  not (sp_generic_dummy in sym.symoptions) and
+                  (sym.typ=typesym) then
+                tt2:=ttypesym(sym).typedef
+              else
+                Message(parser_e_no_generics_as_types);
+            end;
+          { don't use cpointerdef.getreusable() here, since this is a type
+            declaration (-> must create new typedef) }
+          def:=cpointerdef.create(tt2);
+          if tt2.typ=forwarddef then
+            current_module.checkforwarddefs.add(def);
         end;
 
 
@@ -1675,8 +1708,6 @@ implementation
             result:=pd;
           end;
 
-      const
-        SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         p  : tnode;
         hdef : tdef;
@@ -1805,40 +1836,11 @@ implementation
 {$endif}
               end;
             _ARRAY:
-              begin
-                array_dec(false,genericdef,genericlist);
-              end;
+              array_dec(false,genericdef,genericlist);
             _SET:
-              begin
-                set_dec;
-              end;
-           _CARET:
-              begin
-                consume(_CARET);
-                single_type(tt2,
-                    SingleTypeOptionsInTypeBlock[block_type=bt_type]+[stoAllowSpecialization]
-                  );
-                { in case of e.g. var or const sections we need to especially
-                  check that we don't use a generic dummy symbol }
-                if (block_type<>bt_type) and
-                    (tt2.typ=undefineddef) and
-                    assigned(tt2.typesym) and
-                    (sp_generic_dummy in tt2.typesym.symoptions) then
-                  begin
-                    sym:=resolve_generic_dummysym(tt2.typesym.name);
-                    if assigned(sym) and
-                        not (sp_generic_dummy in sym.symoptions) and
-                        (sym.typ=typesym) then
-                      tt2:=ttypesym(sym).typedef
-                    else
-                      Message(parser_e_no_generics_as_types);
-                  end;
-                { don't use cpointerdef.getreusable() here, since this is a type
-                  declaration (-> must create new typedef) }
-                def:=cpointerdef.create(tt2);
-                if tt2.typ=forwarddef then
-                  current_module.checkforwarddefs.add(def);
-              end;
+              set_dec;
+            _CARET:
+              pointer_dec;
             _RECORD:
               begin
                 consume(token);
