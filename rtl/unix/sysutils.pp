@@ -69,8 +69,9 @@ uses
 {$ENDIF}
 
 {$IF defined(DARWIN)}
-{$DEFINE HAS_ISFILENAMECASEPRESERVING}
-{$DEFINE HAS_ISFILENAMECASESENSITIVE}
+  {$DEFINE HAS_ISFILENAMECASEPRESERVING}
+  {$DEFINE HAS_ISFILENAMECASESENSITIVE}
+  {$DEFINE USE_FUTIMES}
 {$ENDIF}
 
 {$if defined(LINUX)}
@@ -1178,7 +1179,7 @@ end;
 Function FileSetDate (Handle : Longint;Age : Int64) : Longint;
 {$ifdef USE_FUTIMES}
 var
-  times : tkernel_timespecs;
+  times : TTimespecArr;
 {$endif USE_FUTIMES}
 begin
   Result:=0;
@@ -1187,7 +1188,7 @@ begin
   times[0].tv_nsec:=0;
   times[1].tv_sec:=Age;
   times[1].tv_nsec:=0;
-  if futimens(Handle,times) = -1 then
+  if fpfutimens(Handle,times) = -1 then
     Result:=fpgeterrno;
 {$else USE_FUTIMES}
   FileSetDate:=-1;

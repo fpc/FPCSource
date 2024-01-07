@@ -374,6 +374,13 @@ begin
  FPutime:=do_syscall(syscall_nr_utimes,TSysParam(path),TSysParam(tvp));
 end;
 
+
+Function  FpFutimens   (handle: cint;constref times: TTimespecArr):cint;
+begin
+  FpFutimens:=do_syscall(syscall_nr_futimens,TSysParam(handle),TSysParam(@times));
+end;
+
+
 {$if (defined (freebsd))}
 function FPpipe(var fildes : tfildes; flags:cint):cint;
 

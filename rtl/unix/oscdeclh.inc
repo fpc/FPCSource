@@ -30,6 +30,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
+     TTimespecArr = array[0..1] of ttimespec;
+
 const
 {$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
@@ -55,6 +57,7 @@ const
     Function  FpChmod      (path : PAnsiChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
     Function  FpChown   (path : PAnsiChar; owner : TUid; group : TGid): cInt; cdecl; external clib name 'chown';
     Function  FPUtime(path:PAnsiChar;times:putimbuf):cint; cdecl; external clib name 'utime';
+    Function  FPFUtimens(handle: cint;constref times: TTimespecArr):cint; cdecl; external clib name 'futimens';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     function  FpDup     (oldd:cint):cint; cdecl; external clib name 'dup';
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';

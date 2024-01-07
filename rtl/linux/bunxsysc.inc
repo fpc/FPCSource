@@ -407,6 +407,26 @@ end;
 {$endif}
 
 
+Function  FpFUtimens   (handle: cint;constref times: TTimespecArr):cint;
+var
+  tsa: Array[0..1] of timespec;
+begin
+{$if sizeof(clong)<=4}
+  FpFUtimens:=do_syscall(syscall_nr_utimensat_time64,handle,TSysParam(nil),TSysParam(@times),0);
+  if (FpFUtimens>=0) or (fpgeterrno<>ESysENOSYS) then
+    exit;
+  { try 32 bit fall back }
+  tsa[0].tv_sec := times[0].tv_sec;
+  tsa[0].tv_nsec := times[0].tv_nsec;
+  tsa[1].tv_sec := times[1].tv_sec;
+  tsa[1].tv_nsec := times[1].tv_nsec;
+  FpFUtimens:=do_syscall(syscall_nr_utimensat,handle,TSysParam(nil),TSysParam(@tsa),0);
+{$else sizeof(clong)<=4}
+  FpFUtimens:=do_syscall(syscall_nr_utimensat,handle,TSysParam(nil),TSysParam(@times),0);
+{$endif sizeof(clong)<=4}
+end;
+
+
 {$ifndef FPC_BASEUNIX_HAS_FPPIPE}
 Function fppipe(var fildes : tfildes):cint;
 
