@@ -4739,7 +4739,7 @@ implementation
         begin
           exesec:=FindExeSection('.wasm_tags');
           if not assigned(exesec) then
-            internalerror(2024010701);
+            exit;
           tags_count:=exesec.ObjSectionList.Count;
           if tags_count<>exesec.Size then
             internalerror(2024010702);
