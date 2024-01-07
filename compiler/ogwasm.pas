@@ -4956,6 +4956,13 @@ implementation
                       objsec.Data.seek(objreloc.DataOffset);
                       WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                     end;
+                  RELOC_TAG_INDEX_LEB:
+                    begin
+                      if objsym.typ<>AT_WASM_EXCEPTION_TAG then
+                        internalerror(2024010708);
+                      objsec.Data.seek(objreloc.DataOffset);
+                      WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                    end;
                   else
                     Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
                 end;
