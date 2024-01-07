@@ -4964,7 +4964,7 @@ implementation
                       WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                     end;
                   else
-                    Writeln('Symbol relocation not yet implemented! ', objreloc.typ);
+                    internalerror(2024010109);
                 end;
               end
             else if assigned(objreloc.objsection) then
@@ -4981,7 +4981,7 @@ implementation
                 WriteUleb5(objsec.Data,objreloc.ExeTypeIndex);
               end
             else
-              Writeln('Non-symbol relocation not yet implemented! ', objreloc.typ);
+              internalerror(2024010110);
           end;
       end;
 
