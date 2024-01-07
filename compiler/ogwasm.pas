@@ -61,6 +61,8 @@ interface
         ExeIndirectFunctionTableIndex: Integer;
         ExeTypeIndex: Integer;
 
+        ExeTagIndex: Integer;
+
         GlobalType: TWasmBasicType;
         GlobalIsMutable: Boolean;
         GlobalInitializer: TGlobalInitializer;
@@ -253,6 +255,9 @@ interface
           TypeIdx: uint32;
         end;
 
+        FTagImports: array of record
+        end;
+
         FIndirectFunctionTable: array of record
           FuncIdx: Integer;
         end;
@@ -262,9 +267,11 @@ interface
         FStackPointerSym: TWasmObjSymbol;
         FMinMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
+        procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
         procedure PrepareImports;
         procedure PrepareFunctions;
+        procedure PrepareTags;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
         procedure SetStackPointer;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
@@ -600,6 +607,7 @@ implementation
         ExeFunctionIndex:=-1;
         ExeIndirectFunctionTableIndex:=-1;
         ExeTypeIndex:=-1;
+        ExeTagIndex:=-1;
       end;
 
     destructor TWasmObjSymbolLinkingData.Destroy;
@@ -4520,6 +4528,12 @@ implementation
         Writer.writearray(FWasmSections[wsid]);
       end;
 
+    procedure TWasmExeOutput.WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
+      begin
+        if FWasmSections[wsid].size>0 then
+          WriteWasmSection(wsid);
+      end;
+
     procedure TWasmExeOutput.WriteWasmCustomSection(wcst: TWasmCustomSectionType);
       var
         b: byte;
@@ -4717,6 +4731,29 @@ implementation
             end;
         end;
 
+      procedure WriteTagSection;
+        var
+          exesec: TExeSection;
+          tags_count, i: Integer;
+          objsec: TWasmObjSection;
+        begin
+          exesec:=FindExeSection('.wasm_tags');
+          if not assigned(exesec) then
+            internalerror(2024010701);
+          tags_count:=exesec.ObjSectionList.Count;
+          if tags_count<>exesec.Size then
+            internalerror(2024010702);
+          if tags_count=0 then
+            exit;
+          WriteUleb(FWasmSections[wsiTag],tags_count);
+          for i:=0 to exesec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
+              WriteByte(FWasmSections[wsiTag],0);
+              WriteUleb(FWasmSections[wsiTag],objsec.MainFuncSymbol.LinkingData.ExeTypeIndex);
+            end;
+        end;
+
       procedure WriteExportSection;
         const
           MemoryExportsCount=1;
@@ -4787,6 +4824,7 @@ implementation
         WriteDataSegments;
         WriteTableAndElemSections;
         WriteGlobalSection;
+        WriteTagSection;
         WriteExportSection;
 
         WriteUleb(FWasmSections[wsiMemory],1);
@@ -4802,6 +4840,7 @@ implementation
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiTable);
         WriteWasmSection(wsiMemory);
+        WriteWasmSectionIfNotEmpty(wsiTag);
         WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiExport);
         WriteWasmSection(wsiElement);
@@ -5001,6 +5040,7 @@ implementation
       begin
         PrepareImports;
         PrepareFunctions;
+        PrepareTags;
       end;
 
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
@@ -5177,6 +5217,58 @@ implementation
                     fsym.LinkingData.ExeFunctionIndex:=TWasmObjSection(fsym.objsection).MainFuncSymbol.LinkingData.ExeFunctionIndex;
                     if fsym.LinkingData.ExeFunctionIndex=-1 then
                       internalerror(2024010102);
+                  end;
+              end;
+          end;
+      end;
+
+    procedure TWasmExeOutput.PrepareTags;
+      var
+        exesec: TExeSection;
+        i, j: Integer;
+        objsec: TWasmObjSection;
+        fsym: TWasmObjSymbol;
+        objdata: TObjData;
+      begin
+        exesec:=FindExeSection('.wasm_tags');
+        if not assigned(exesec) then
+          exit;
+        if assigned(exemap) then
+          begin
+            exemap.Add('');
+            exemap.Add('Tags, defined in this module:');
+          end;
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
+            fsym:=objsec.MainFuncSymbol;
+            if not assigned(fsym) then
+              internalerror(2024010703);
+            if not assigned(fsym.LinkingData.FuncType) then
+              internalerror(2024010704);
+            if fsym.LinkingData.ExeTagIndex<>-1 then
+              internalerror(2024010705);
+            if fsym.LinkingData.ExeTypeIndex<>-1 then
+              internalerror(2024010706);
+            fsym.LinkingData.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(fsym.LinkingData.FuncType);
+            fsym.LinkingData.ExeTagIndex:=i+Length(FTagImports);
+            if assigned(exemap) then
+              begin
+                exemap.Add('  Tag[' + tostr(fsym.LinkingData.ExeTagIndex) + '] ' + fsym.Name + fsym.LinkingData.FuncType.ToString);
+              end;
+          end;
+        { set ExeTagIndex to the alias symbols as well }
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            objdata:=TObjData(ObjDataList[i]);
+            for j:=0 to objdata.ObjSymbolList.Count-1 do
+              begin
+                fsym:=TWasmObjSymbol(objdata.ObjSymbolList[j]);
+                if assigned(fsym.objsection) and fsym.objsection.USed and (fsym.typ=AT_WASM_EXCEPTION_TAG) and (fsym.LinkingData.ExeTagIndex=-1) then
+                  begin
+                    fsym.LinkingData.ExeTagIndex:=TWasmObjSection(fsym.objsection).MainFuncSymbol.LinkingData.ExeTagIndex;
+                    if fsym.LinkingData.ExeTagIndex=-1 then
+                      internalerror(2024010707);
                   end;
               end;
           end;
