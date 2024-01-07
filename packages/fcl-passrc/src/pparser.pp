@@ -1389,7 +1389,7 @@ begin
     p^.TokenPos:=Scanner.CurTokenPos;
     P^.IsEscaped:=Scanner.CurTokenEscaped;
     end;
-  //writeln('TPasParser.NextToken END Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
+  //writeln('TPasParser.NextToken END Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur="',CurTokenString,'"');
 end;
 
 procedure TPasParser.ChangeToken(tk: TToken);

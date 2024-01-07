@@ -5481,6 +5481,9 @@ begin
   {$ifdef UsePChar}
   LE:=LineEnding;
   OldLength := 0;
+  {$else}
+  s:=FCurLine;
+  l:=length(FCurLine);
   {$endif}
   NestingLevel := 0;
   repeat
@@ -5536,7 +5539,7 @@ begin
   {$endif}
   Inc(FTokenPos);
   Result := tkComment;
-  if (Copy(CurTokenString,1,1)='$') then
+  if (length(CurTokenString)>0) and (CurTokenString[1]='$') then
     Result:=HandleDirective(CurTokenString)
   else
     DoHandleComment(Self, CurTokenString)
@@ -5547,7 +5550,7 @@ function TPascalScanner.DoFetchToken: TToken;
 var
   TokenStart: {$ifdef UsePChar}PAnsiChar{$else}integer{$endif};
   i: TToken;
-  QuoteLen,SectionLength,  Index: Integer;
+  QuoteLen, SectionLength, Index: Integer;
   {$ifdef UsePChar}
   //
   {$else}
@@ -5580,7 +5583,6 @@ var
   Function IsDelphiMultiLine (out QuoteLen : integer): Boolean;
   var
     P : PAnsiChar;
-
   begin
     P:=FTokenPos;
     QuoteLen:=0;
@@ -5595,10 +5597,8 @@ var
   end;
   {$ELSE}
   Function IsDelphiMultiLine(out Quotelen : integer) : Boolean;
-
   var
     P : Integer;
-
   begin
     P:=FTokenPos;
     QuoteLen:=0;
@@ -5623,6 +5623,7 @@ begin
       begin
       Result := tkEOF;
       FCurToken := Result;
+      FCurTokenString := '';
       exit;
       end;
   FCurTokenString := '';
@@ -5676,7 +5677,7 @@ begin
       end;
     '#':
       Result:=DoFetchTextToken;
-    #39:
+    '''':
       if (msDelphiMultiLineStrings in CurrentModeSwitches) and IsDelphiMultiLine(Quotelen) then
         Result:=DoFetchDelphiMultiLineTextToken(Quotelen)
       else
