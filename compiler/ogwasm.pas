@@ -5041,7 +5041,8 @@ implementation
             { calculate size of the section }
             exesec.Size:=CurrMemPos-exesec.MemPos;
           end
-        else if Copy(aname,1,Length(DebugPrefix))=DebugPrefix then
+        else if (aname='.wasm_globals') or (aname='.wasm_tags') or
+                (Copy(aname,1,Length(DebugPrefix))=DebugPrefix) then
           begin
             CurrMemPos:=0;
             inherited;
