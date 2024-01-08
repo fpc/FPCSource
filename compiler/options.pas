@@ -5367,7 +5367,7 @@ begin
         else
           begin
             if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
-	       or (target_info.system = system_arm_ios) then
+              or (target_info.system = system_arm_ios) then
               begin
                 Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
