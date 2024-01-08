@@ -386,16 +386,22 @@ ifdef NO_UNIT_PROCESS
 UNIT_PROCESS=-dNO_UNIT_PROCESS
 else
 UNIT_PROCESS=
+USE_PROCESS_DUMMY_DIR=1
 ifneq ($(findstring $(OS_SOURCE),win32 win64),)
-UNIT_PROCESS+=-Fi../fcl-process/src/win
+UNIT_PROCESS+=-Fi../fcl-process/src/win -Fi../fcl-process/src/winall
+USE_PROCESS_DUMMY_DIR=0
 endif
 ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin iphonesim netbsd openbsd solaris haiku aix android dragonfly),)
 UNIT_PROCESS+=-Fi../fcl-process/src/unix
+USE_PROCESS_DUMMY_DIR=0
 endif
 ifneq ($(findstring $(OS_SOURCE),os2 emx),)
 UNIT_PROCESS+=-Fi../fcl-process/src/os2
 endif
-UNIT_PROCESS+=-Fu../fcl-process/src -Fi../fcl-process/src/$(OS_SOURCE) -Fi../fcl-process/src/dummy
+UNIT_PROCESS+=-Fu../fcl-process/src -Fi../fcl-process/src/$(OS_SOURCE)
+ifeq ($(USE_PROCESS_DUMMY_DIR),1)
+UNIT_PROCESS+=-Fi../fcl-process/src/dummy
+endif
 endif
 ifdef NO_UNIT_ZIPPER
 UNIT_ZIPPER=-dNO_UNIT_ZIPPER
