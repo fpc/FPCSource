@@ -10,7 +10,11 @@ unit buildrtl;
       rtlconsts, sysconst, math, types,
       typinfo, sortbase, fgl, classes,
       charset, character, getopts,
-      fpwidestring;
+      fpwidestring
+{$IFNDEF FPUNONE}
+      ,softfpu, sfpux80, ufloatx80, sfpu128, ufloat128
+{$ENDIF}
+      ;
 
   implementation
 
