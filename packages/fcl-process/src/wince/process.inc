@@ -171,12 +171,45 @@ begin
     end;
 end;
 
+function WStrAsUniquePWideChar(var s: UnicodeString): PWideChar;
+begin
+  UniqueString(s);
+  if s<>'' then
+    Result:=PWideChar(s)
+  else
+    Result:=nil;
+end;
+
+Function StringsToWChars(List : TProcessStrings): pointer;
+
+var
+  EnvBlock: UnicodeString;
+  I: Integer;
+
+begin
+  EnvBlock := '';
+  For I:=0 to List.Count-1 do
+    EnvBlock := EnvBlock + List[i] + #0;
+  EnvBlock := EnvBlock + #0;
+  GetMem(Result, Length(EnvBlock)*2);
+  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
+end;
+
+Function MaybeQuoteIfNotQuoted(Const S : TProcessString) : TProcessString;
+
+begin
+  If (Pos(' ',S)<>0) and (pos('"',S)=0) then
+    Result:='"'+S+'"'
+  else
+     Result:=S;
+end;
 
 Procedure TProcess.SysExecute;
 
-
 Var
-  PName,PDir,PCommandLine : PWidechar;
+  i : Integer;
+  WName,WDir,WCommandLine : UnicodeString;
+  PWName,PWDir,PWCommandLine : PWideChar;
   FEnv: pointer;
   FCreationFlags : Cardinal;
   FProcessAttributes : TSecurityAttributes;
@@ -184,31 +217,35 @@ Var
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFO;
   HI,HO,HE : THandle;
+  Cmd : TProcessString;
 
-begin
-  PName:=Nil;
-  PCommandLine:=Nil;
-  PDir:=Nil;
-    
-  if (FApplicationName='') then
+ begin
+  FDescriptors[phtInput].PrepareHandles;
+  FDescriptors[phtOutput].PrepareHandles;
+  FDescriptors[phtError].PrepareHandles;
+  WName:='';
+  WCommandLine:='';
+  WDir:='';
+  if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
+    Raise EProcess.Create(SNoCommandline);
+  if (FApplicationName<>'') then
     begin
-      If (FCommandLine='') then
-        Raise EProcess.Create(SNoCommandline);
-      PCommandLine:=PWidechar(FCommandLine)
+    WName:=FApplicationName;
+    WCommandLine:=FCommandLine;
     end
-  else
+  else If (FCommandLine<>'') then
+    WCommandLine:=FCommandLine
+  else if (FExecutable<>'') then
     begin
-      PName:=PWidechar(FApplicationName);
-      If (FCommandLine='') then
-        PCommandLine:=PWidechar(FApplicationName)
-      else
-        PCommandLine:=PWidechar(FCommandLine)
+    Cmd:=MaybeQuoteIfNotQuoted(Executable);
+    For I:=0 to Parameters.Count-1 do
+      Cmd:=Cmd+' '+MaybeQuoteIfNotQuoted(Parameters[i]);
+    WCommandLine:=Cmd;
     end;
-    
   If FCurrentDirectory<>'' then
-    PDir:=PWidechar(FCurrentDirectory);
+    WDir:=FCurrentDirectory;
   if FEnvironment.Count<>0 then
-    FEnv:=StringsToPWideChars(FEnvironment)
+    FEnv:=StringsToWChars(FEnvironment)
   else
     FEnv:=Nil;
   Try
@@ -216,25 +253,30 @@ begin
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
-    If poUsePipes in FProcessOptions then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions),FPipeBufferSize);
+    FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
+    FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
+    if Not(poStdErrToOutPut in Options) then
+      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle
+    else
+      FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
     Try
-      If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
-                   FInheritHandles,FCreationFlags,FEnv,PDir,@FStartupInfo,
+      // Beware: CreateProcess can alter the strings
+      // Beware: nil is not the same as a pointer to a #0
+      PWName:=WStrAsUniquePWideChar(WName);
+      PWCommandLine:=WStrAsUniquePWideChar(WCommandLine);
+      PWDir:=WStrAsUniquePWideChar(WDir);
+      If Not CreateProcessW (PWName,PWCommandLine,@FProcessAttributes,@FThreadAttributes,
+                   FInheritHandles,FCreationFlags,FEnv,PWDir,FStartupInfo,
                    fProcessInformation) then
         Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
+      FThreadId:=FProcessInformation.dwThreadId;  
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
-      if POUsePipes in FProcessOptions then
-        begin
-        FileClose(FStartupInfo.hStdInput);
-        FileClose(FStartupInfo.hStdOutput);
-        if Not (poStdErrToOutPut in FProcessOptions) then
-          FileClose(FStartupInfo.hStdError);
-        CreateStreams(HI,HO,HE);
-        end;
+      FDescriptors[phtInput].CloseTheirHandle;
+      FDescriptors[phtOutput].CloseTheirHandle;
+      FDescriptors[phtError].CloseTheirHandle;
     end;
     FRunning:=True;
   Finally
@@ -242,10 +284,11 @@ begin
       FreeMem(FEnv);
   end;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
-     (poWaitOnExit in FProcessOptions) and
-      not (poRunSuspended in FProcessOptions) then
+     (poWaitOnExit in Options) and
+      not (poRunSuspended in Options) then
     WaitOnExit;
 end;
+
 
 Function TProcess.WaitOnExit : Boolean;
 Var
@@ -300,5 +343,78 @@ begin
   FShowWindow:=Value;
 end;
 
+Function TIODescriptor.SysCreateFileNameHandle(const aFileName: string) : THandle;
+
+const
+  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
+  ModeNames : Array[Boolean] of String = ('Reading','Writing');
+
+var
+  FM :  Integer;
+  Sec: SECURITY_ATTRIBUTES;
+
+begin
+  if (aFileName='') then
+    Raise EProcess.Create('No filename set');
+  FillByte(sec, SizeOf(sec), 0);
+  sec.nLength := SizeOf(Sec);
+  sec.bInheritHandle := True;
+  case ProcessHandleType of
+    phtInput:  Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_READ,
+      FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    phtOutput,
+    phtError:
+      begin
+        Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_WRITE,
+          FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        if not(Result=INVALID_HANDLE_VALUE) then
+          FileSeek(Result, 0, 2);
+      end;
+  end;
+  if (Result=INVALID_HANDLE_VALUE) then
+    Raise EProcess.CreateFmt('Could not open file "%s" for %s',[aFileName,ModeNames[ProcessHandleType<>phtInput]]);
+end;
 
 
+
+function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
+
+var
+  oldHandle: THandle;
+  Res : Boolean;
+  
+begin
+  if IOType in [iotNone,iotFile] then begin
+    Result:=aHandle;
+    exit;
+  end;
+  oldHandle := ahandle;
+  ahandle:=THandle(INVALID_HANDLE_VALUE); 
+  Res := DuplicateHandle
+  ( GetCurrentProcess(),
+    oldHandle,
+    GetCurrentProcess(),
+    @aHandle,
+    0,
+    true,
+    DUPLICATE_SAME_ACCESS
+  );
+  if Res then
+    Res:=CloseHandle(oldHandle);
+  if not Res then
+    begin
+    FileClose(aHandle);
+    Raise EProcess.CreateFmt('Could not make handle %d inheritable',[aHandle]);
+    end;
+  Result:=aHandle;
+end;    
+
+function TIODescriptor.SysNullFileName: string;
+begin
+  result:='NULL';
+end;
+
+function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
+begin
+  Result:=True;
+end;
