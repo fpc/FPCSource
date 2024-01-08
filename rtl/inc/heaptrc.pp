@@ -1684,7 +1684,7 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
-{$elseif defined(wince)}
+{$elseif defined(wince) or defined(sinclairql)}
 Function GetEnv(P:string):PAnsichar;
 begin
   { WinCE does not have environment strings.
