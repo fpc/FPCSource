@@ -398,6 +398,10 @@ endif
 ifneq ($(findstring $(OS_SOURCE),os2 emx),)
 UNIT_PROCESS+=-Fi../fcl-process/src/os2
 endif
+ifneq ($(findstring $(OS_SOURCE),amiga morphos aros),)
+UNIT_PROCESS+=-Fi../fcl-process/src/amicommon
+USE_PROCESS_DUMMY_DIR=0
+endif
 UNIT_PROCESS+=-Fu../fcl-process/src -Fi../fcl-process/src/$(OS_SOURCE)
 ifeq ($(USE_PROCESS_DUMMY_DIR),1)
 UNIT_PROCESS+=-Fi../fcl-process/src/dummy
