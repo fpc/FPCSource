@@ -5191,7 +5191,10 @@ begin
       ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
    begin
      if ((option.paratargetasm=as_none) and (target_info.endian<>source_info.endian)) then
-       Message(option_switch_bin_to_src_assembler_cross_endian)
+       begin
+         if not ((target_info.assem = target_info.assemextern) or (target_info.assem = as_none)) then
+           Message(option_switch_bin_to_src_assembler_cross_endian);
+       end
      else
        Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
