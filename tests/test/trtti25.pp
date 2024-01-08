@@ -27,7 +27,10 @@ var
   vft: PVmtFieldTable;
   vfe: PVmtFieldEntry;
   vfct: PVmtFieldClassTab;
+  t: TTest;
 begin
+  t := TTest.Create;
+
   vmt := PVmt(TTest);
   vft := PVmtFieldTable(vmt^.vFieldTable);
   if vft^.Count <> 3 then
@@ -43,20 +46,26 @@ begin
     Halt(4);
   if vfct^.ClassRef[vfe^.TypeIndex - 1]^.ClassName <> 'TSub1' then
     Halt(5);
+  if t.FieldAddress('Field1') <> PByte(t) + vfe^.FieldOffset then
+    Halt(6);
 
   vfe := vft^.Field[1];
   if vfe^.Name <> 'Field2' then
-    Halt(6);
-  if vfe^.TypeIndex > vfct^.Count then
     Halt(7);
-  if vfct^.ClassRef[vfe^.TypeIndex - 1]^.ClassName <> 'TSub2' then
+  if vfe^.TypeIndex > vfct^.Count then
     Halt(8);
+  if vfct^.ClassRef[vfe^.TypeIndex - 1]^.ClassName <> 'TSub2' then
+    Halt(9);
+  if t.FieldAddress('Field2') <> PByte(t) + vfe^.FieldOffset then
+    Halt(10);
 
   vfe := vft^.Field[2];
   if vfe^.Name <> 'Field3' then
-    Halt(9);
-  if vfe^.TypeIndex > vfct^.Count then
-    Halt(10);
-  if vfct^.ClassRef[vfe^.TypeIndex - 1]^.ClassName <> 'TSub1' then
     Halt(11);
+  if vfe^.TypeIndex > vfct^.Count then
+    Halt(12);
+  if vfct^.ClassRef[vfe^.TypeIndex - 1]^.ClassName <> 'TSub1' then
+    Halt(13);
+  if t.FieldAddress('Field3') <> PByte(t) + vfe^.FieldOffset then
+    Halt(14);
 end.
