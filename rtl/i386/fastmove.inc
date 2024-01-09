@@ -387,10 +387,13 @@ Move_8OrMore_SSE_33OrMore:
     sfence
     add    $PrefetchDistance+64, %ecx
     jmp    .LRestAfterNTf
-    .byte  102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  {$ifdef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 Move_8OrMore_SSE_CancelERMSBackwards:
-    { Adapt from Move_8OrMore_SSE_ERMS.Lback where eax = src, edx = dest - src, xmm4 and xmm5 aren’t read. }
+    { Adapt from Move_8OrMore_SSE_ERMS.Lback where eax = src, edx = dest - src, xmm4 and xmm5 aren’t read, ebx isn't pushed if not FPC_PIC. }
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
     add    %eax, %edx
     movups (%eax), %xmm4
     movups -16(%eax,%ecx), %xmm5
@@ -434,7 +437,7 @@ Move_8OrMore_SSE_CancelERMSBackwards:
 
 .Lntb:
     cmp    $-Move_NtThreshold, %eax
-    jnb    .Lloop32b
+    ja     .Lloop32b
     sub    $PrefetchDistance+32, %ecx
 
     .balign 16
@@ -467,7 +470,6 @@ asm
     jle    Move_8OrMore_SSE_9to16
     cmp    $ErmsThreshold, %ecx
     jae    .LRepMovs
-.LCancelRepMovs:
     movups (%eax), %xmm4         { Same as in Move_8OrMore_SSE. }
     movups -16(%eax,%ecx), %xmm5
     cmp    $32, %ecx
@@ -480,12 +482,13 @@ asm
     ret
 
 .LRepMovs:
-    cmp    $Move_NtThreshold+16, %ecx
-    jae    .LCancelRepMovs       { Even enhanced REP MOV does not seem to use NT so falls behind on huge moves. So prioritize NT done by Move_8OrMore_SSE. }
     sub    %eax, %edx            { edx = dest - src }
     jz     .Lquit                { exit if src=dest }
     cmp    %edx, %ecx            { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
     ja     .Lback
+    cmp    $Move_NtThreshold+16, %ecx
+    jae    .LNtF                 { Even enhanced REP MOV does not seem to use NT so falls behind on huge moves. So prioritize NT done by Move_8OrMore_SSE. }
+.LNtIsNotBetterF:
 
     push   %esi
     push   %edi
@@ -499,6 +502,12 @@ asm
     pop    %ebx
 {$endif}
     ret
+
+.LNtF:
+    cmp    $-Move_NtThreshold, %edx { Check move distance. Bad case for forward NT is 0 < src - dest < NtThreshold => unsigned(dest - src) > unsigned(-NtThreshold). }
+    ja     .LNtIsNotBetterF      { NT is not better and Move_8OrMore_SSE won't perform it either. Use REP MOVSB. }
+    add    %eax, %edx            { Recover edx = dest. }
+    jmp    Move_8OrMore_SSE      { Will perform NT. }
 
 .Lback:
     {         dst = 3
@@ -524,12 +533,15 @@ asm
       ^
 
       Only REP MOVs with DF=0 are fast with ERMS, in case you’re wondering why not just use DF=1. }
+    cmp    $ErmsThreshold, %edx
+    jb     Move_8OrMore_SSE_CancelERMSBackwards { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
+    cmp    $Move_NtThreshold+16, %ecx
+    jae    .LNtB
+.LNtIsNotBetterB:
+
 {$ifndef FPC_PIC}
     push   %ebx
 {$endif}
-    cmp    $ErmsThreshold, %edx
-    jb     Move_8OrMore_SSE_CancelERMSBackwards { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
-
     mov    %ecx, %ebx            { ebx = remaining }
     sub    %edx, %ebx            { edx = dst - src = step; remaining -= step. }
     add    %ecx, %eax
@@ -549,7 +561,13 @@ asm
     sub    %ecx, %eax            { eax = src }
     add    %eax, %edx            { edx = dest }
     pop    %ebx
-    jmp    Move                  { Remaining piece ("a" in the example above). Can save a bit of jumps by doing first something like: if ecx >= 16, jump directly to .LCancelRepMovs. }
+    jmp    Move                  { Remaining piece ("a" in the example above). Can save a bit of jumps by doing more checks and jumping to more specific places, but whatever. }
+
+.LNtB:
+    cmp    $Move_NtThreshold, %edx { Check move distance. Bad case for backward NT is dest - src < NtThreshold; src is always < dest. }
+    jb     .LNtIsNotBetterB      { NT is not better and Move_8OrMore_SSE won't perform it either. Use REP MOVSB. }
+    add    %eax, %edx            { Recover edx = dest. }
+    jmp    Move_8OrMore_SSE      { Will perform NT. }
 end;
 {$endif ndef FASTMOVE_DISABLE_SSE}
 
