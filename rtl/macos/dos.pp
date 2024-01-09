@@ -61,8 +61,7 @@ Implementation
  calls must then be weak linked.}
 
 Uses
-  macutils,
-  unixutil {for FNMatch};
+  macutils;
 
 {$UNDEF USE_FEXPAND_INC}
 //{$DEFINE USE_FEXPAND_INC}

@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 units=system uuchar strings objpas iso7185 heaptrc getopts macostp macutils \
-      unixutil dos extpas cmem charset cpall ctypes sysconst \
+      dos extpas cmem charset cpall ctypes sysconst \
       softfpu macpas classes fgl types sysutils \
       sfpux80 ufloatx80 sfpu128 ufloat128
 #     macpas \
@@ -161,7 +161,7 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : $(DOSDEPS) unixutil$(PPUEXT) system$(PPUEXT)
+dos$(PPUEXT) : $(DOSDEPS) macostp$(PPUEXT) macutils$(PPUEXT) system$(PPUEXT)
         $(COMPILER) dos $(REDIR)
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
@@ -185,9 +185,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp $(REDIR)
-
-unixutil$(PPUEXT) : ../unix/unixutil.pp
-        $(COMPILER) ../unix/unixutil.pp $(REDIR)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
