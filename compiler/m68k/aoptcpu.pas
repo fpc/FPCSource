@@ -236,8 +236,7 @@ unit aoptcpu;
         begin
           opstr:=opname(p);
           DebugMsg('Optimizer: '+opstr+', TST, Jxx/Sxx to '+opstr+', Jxx/Sxx',p);
-          asml.remove(next);
-          next.free;
+          RemoveInstruction(next);
           result:=true;
         end;
     end;
@@ -275,8 +274,8 @@ unit aoptcpu;
                     begin
                       {  move %reg0, %tmpreg; move %tmpreg, <ea> -> move %reg0, <ea> }
                       taicpu(p).loadOper(1,taicpu(next).oper[1]^);
-                      asml.remove(next);
-                      next.free;
+                      UpdateUsedRegs(p);
+                      RemoveInstruction(next);
                       result:=true;
                       { also remove leftover move %reg0, %reg0, which can occur as the result
                         of the previous optimization, if %reg0 and %tmpreg was different types
@@ -284,10 +283,7 @@ unit aoptcpu;
                       if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
                         begin
                           DebugMsg('Optimizer: '+opstr+' + '+opstr+' removed',p);
-                          GetNextInstruction(p,next);
-                          asml.remove(p);
-                          p.free;
-                          p:=next;
+                          RemoveCurrentP(p);
                         end
                       else
                         DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #1',p)
@@ -311,8 +307,8 @@ unit aoptcpu;
                         begin
                           DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #3',p);
                           taicpu(p).loadOper(1,taicpu(next).oper[1]^);
-                          asml.remove(next);
-                          next.free;
+                          UpdateUsedRegs(p);
+                          RemoveInstruction(next);
                           result:=true;
                         end;
                   end;
@@ -380,12 +376,9 @@ unit aoptcpu;
          (taicpu(p).oper[0]^.ref^.offset = 0) then
         begin
           DebugMsg('Optimizer: LEA 0(Ax),Ax removed',p);
-          GetNextInstruction(p,next);
-          asml.remove(p);
-          p.free;
-          p:=next;
-          result:=true;
-          exit;
+          result:=RemoveCurrentP(p);
+          if result then
+            exit;
         end;
       if (taicpu(p).oper[1]^.reg=NR_A7) and
         (taicpu(p).oper[0]^.ref^.base=NR_A7) and
@@ -404,9 +397,7 @@ unit aoptcpu;
         begin
           DebugMsg('Optimizer: LEA, MOVE(M) to MOVE(M) predecremented',p);
           taicpu(next).oper[1]^.ref^.direction:=dir_dec;
-          asml.remove(p);
-          p.free;
-          p:=next;
+          RemoveCurrentP(p,next);
           result:=true;
           exit;
         end;
@@ -434,8 +425,7 @@ unit aoptcpu;
         begin
           DebugMsg('Optimizer: MOVE(M), LEA to MOVE(M) postincremented',p);
           taicpu(p).oper[0]^.ref^.direction:=dir_inc;
-          asml.remove(next);
-          next.free;
+          RemoveInstruction(next);
           result:=true;
           exit;
         end;
@@ -542,8 +532,7 @@ unit aoptcpu;
                     begin
                       DebugMsg('Optimizer: JSR, RTS to JMP',p);
                       taicpu(p).opcode:=A_JMP;
-                      asml.remove(next);
-                      next.free;
+                      RemoveInstruction(next);
                       result:=true;
                     end;
                 end;
