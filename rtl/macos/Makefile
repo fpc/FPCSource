@@ -2925,7 +2925,7 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
-dos$(PPUEXT) : $(DOSDEPS) system$(PPUEXT)
+dos$(PPUEXT) : $(DOSDEPS) macostp$(PPUEXT) macutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos $(REDIR)
 iso7185$(PPUEXT) : $(INC)/iso7185.pp heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/iso7185.pp
