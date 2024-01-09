@@ -69,12 +69,10 @@ Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 Uses
-  MacOSApi.MacUtils,
-  UnixApi.Utils {for FNMatch};
+  MacOSApi.MacUtils;
 {$ELSE FPC_DOTTEDUNITS}
 Uses
-  macutils,
-  unixutil {for FNMatch};
+  macutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$UNDEF USE_FEXPAND_INC}
