@@ -474,7 +474,12 @@ implementation
                  { allocate a register for the result }
                  location.register := hlcg.getintregister(current_asmdata.CurrAsmList, uopdef);
 
-                 if right.location.loc=LOC_CONSTANT then
+                 if (right.location.loc=LOC_CONSTANT) and
+                      (opsize < OS_S8) and { = if unsigned }
+                      (((left.resultdef.typ=orddef) and
+                        (torddef(left.resultdef).low >= int64(tsetdef(right.resultdef).setbase))) or
+                       ((left.resultdef.typ=enumdef) and
+                        (tenumdef(left.resultdef).min >= aint(tsetdef(right.resultdef).setbase)))) then
                    begin
                      { can it actually occur currently? CEC }
                      { yes: "if bytevar in [1,3,5,7,9,11,13,15]" (JM) }
