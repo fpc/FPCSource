@@ -153,7 +153,7 @@ begin
     exit;
   end;
 
-  while (Mask mod 2)=0 do { rightmost bit is 0 }
+  while (Mask and 1)=0 do { rightmost bit is 0 }
   begin
     inc(tmp);
     Mask:= Mask shr 1;
