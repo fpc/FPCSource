@@ -1181,6 +1181,7 @@ Var
   Key : String;
   L : TConnectionList;
 begin
+  Result:=0;
   Key:=CreateKey(aDef);
   Lock;
   try
