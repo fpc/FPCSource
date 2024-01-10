@@ -1630,12 +1630,14 @@ implementation
           slen : asizeuint;
           arr : tasmlabel;
         begin
+{$push}
+{$R-}{$Q-}
           { fix length of openshortstring }
           slen:=aword(def.len);
           if (slen=0) or
              (slen>maxlen) then
             slen:=maxlen;
-
+{$pop}
           { create a structure with two elements }
           if not(tf_dwarf_only_local_labels in target_info.flags) then
             current_asmdata.getglobaldatalabel(arr)
