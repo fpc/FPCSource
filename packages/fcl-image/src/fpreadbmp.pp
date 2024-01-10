@@ -144,22 +144,9 @@ end;
   highest in the color, so we must shr (5-(8-6))=3, and we have XXXX XX00.
   A negative value means "shift left"  }
 function TFPReaderBMP.ShiftCount(Mask : longword) : shortint;
-var tmp : shortint;
 begin
-  tmp:=0;
-  if Mask=0 then
-  begin
-    Result:=0;
-    exit;
-  end;
-
-  while (Mask and 1)=0 do { rightmost bit is 0 }
-  begin
-    inc(tmp);
-    Mask:= Mask shr 1;
-  end;
-  tmp:=tmp-(8-popcnt(byte(Mask and $FF)));
-  Result:=tmp;
+  Result:=BsfDWord(Mask or ord(Mask = 0) shl 8); { Also makes the function return 0 on Mask = 0. }
+  Result:=Result-(8-popcnt(byte(Mask shr Result)));
 end;
 
 function TFPReaderBMP.ExpandColor(value : longword) : TFPColor;
