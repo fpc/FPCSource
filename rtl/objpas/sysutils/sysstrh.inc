@@ -222,7 +222,7 @@ Function FloatToText(Buffer: PWideChar; Value: Extended; format: TFloatFormat; P
 Function FloatToText(Buffer: PAnsiChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToText(Buffer: PAnsiChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
-Function FloattoCurr (Const Value : Extended) : Currency;
+Function FloatToCurr (Const Value : Extended) : Currency;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
 Function CurrToStr(Value: Currency): string;
