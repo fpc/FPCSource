@@ -138,6 +138,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function simplify(forinline : boolean) : tnode; override;
           procedure mark_write;override;
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
@@ -166,7 +167,7 @@ implementation
 {$ifdef i8086}
       cpuinfo,
 {$endif i8086}
-      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
+      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo,widestr
       ;
 
 {*****************************************************************************
@@ -1335,6 +1336,44 @@ implementation
              else
                expectloc:=LOC_REFERENCE
            end;
+      end;
+
+
+    function tvecnode.simplify(forinline : boolean) : tnode;
+      begin
+        Result := nil;
+        { If left is a string constant and right is an ordinal constant, then
+          we can replace the entire branch with an ordinal constant
+          corresponding to the character
+        }
+        if
+          { If the address of the result is taken, do not optimise, as the
+            pointer of the original string constant is in use }
+          not (nf_address_taken in flags) and
+          (left.nodetype = stringconstn) and
+          (right.nodetype = ordconstn) and
+          { Ensure the index is in range }
+          (TOrdConstNode(right).value > 0) and
+          (TOrdConstNode(right).value <= TStringConstNode(left).len) then
+          begin
+
+            { The internal fields are zero-based }
+            case TStringConstNode(left).cst_type of
+              cst_widestring, cst_unicodestring:
+                { value_str is of type PCompilerWideString }
+                Result := COrdConstNode.create(
+                  PCompilerWideString(TStringConstNode(left).value_str)^.data[TOrdConstNode(right).value - 1],
+                  resultdef,
+                  False
+                );
+              else
+                Result := COrdConstNode.create(
+                  Byte(TStringConstNode(left).value_str[TOrdConstNode(right).value - 1]),
+                  resultdef,
+                  False
+                );
+            end;
+          end;
       end;
 
 
