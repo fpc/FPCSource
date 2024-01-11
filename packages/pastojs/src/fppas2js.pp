@@ -23887,7 +23887,7 @@ begin
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.ConvertForStatement LoopType=',El.LoopType){%H-};
     {$ENDIF}
-    RaiseNotSupported(El,AContext,20171110141937);
+    RaiseNotSupported(El,AContext,20171110141937){%H-};
   end;
 
   // get function context
