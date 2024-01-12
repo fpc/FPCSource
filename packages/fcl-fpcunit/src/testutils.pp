@@ -72,12 +72,20 @@ end;
 procedure GetMethodList(AClass: TClass; AList: TStrings);
 type
   PMethodNameRec = ^TMethodNameRec;
-  TMethodNameRec = packed record
+  TMethodNameRec =
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+  {$endif}
+  record
     name : pshortstring;
     addr : codepointer;
   end;
 
-  TMethodNameTable = packed record
+  TMethodNameTable =
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+  {$endif}
+  record
     count : dword;
     entries : packed array[0..0] of TMethodNameRec;
   end;
