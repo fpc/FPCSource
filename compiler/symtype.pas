@@ -924,6 +924,8 @@ implementation
                { same as above }
                if tdef(s).defid=defid_registered_nost then
                  Internalerror(2015102501);
+               if tdef(s).typ=errordef then
+                 Internalerror(2024011501);
                if not tdef(s).registered then
                  tdef(s).register_def;
                st:=FindUnitSymtable(tdef(s).owner);
