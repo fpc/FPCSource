@@ -46,7 +46,7 @@ Type
 
   TRestDispatcherOptions = set of TRestDispatcherOption;
   TRestDispatcherLogOption = (rloUser,           // Include username in log messages, when available
-                              rtloHTTP,          // Log HTTP request (remote, URL)
+                              rloHTTP,           // Log HTTP request (remote, URL)
                               rloResource,       // Log resource requests (operation, resource)
                               rloConnection,     // Log database connections (connect to database)
                               rloAuthentication, // Log authentication attempt
@@ -56,6 +56,7 @@ Type
   TRestDispatcherLogOptions = Set of TRestDispatcherLogOption;
 
 Const
+  rtloHTTP = rloHTTP deprecated 'use rlohttp instead';
   DefaultDispatcherOptions = [rdoExposeMetadata];
   AllDispatcherLogOptions = [Low(TRestDispatcherLogOption)..High(TRestDispatcherLogOption)];
   DefaultDispatcherLogOptions = AllDispatcherLogOptions-[rloSQL];
@@ -699,7 +700,7 @@ Var
   LogMsg,UN : UTF8String;
 
 begin
-  if MustLog(rtloHTTP) then
+  if MustLog(rloHTTP) then
     begin
     LogMsg:='';
     With aRequest do
@@ -714,7 +715,7 @@ begin
     UN:=TRestBasicAuthenticator.ExtractUserName(aRequest);
     if (UN<>'?') then
       LogMsg:='User: '+UN+LogMsg;
-    DoLog(rtloHTTP,Nil,LogMsg);
+    DoLog(rloHTTP,Nil,LogMsg);
     end;
   aRequest.RouteParams['resource']:='_'+Strings.MetadataResourceName;
   HandleRequest(aRequest,aResponse);
@@ -2218,7 +2219,7 @@ Var
   LogMsg,UN : UTF8String;
 
 begin
-  if MustLog(rtloHTTP) then
+  if MustLog(rloHTTP) then
     begin
     LogMsg:='';
     With aRequest do
@@ -2233,7 +2234,7 @@ begin
     UN:=TRestBasicAuthenticator.ExtractUserName(aRequest);
     if (UN<>'?') then
       LogMsg:='User: '+UN+LogMsg;
-    DoLog(rtloHTTP,Nil,LogMsg);
+    DoLog(rloHTTP,Nil,LogMsg);
     end;
   aRequest.RouteParams['resource']:=Strings.MetadataParametersName;
   HandleRequest(aRequest,aResponse);
