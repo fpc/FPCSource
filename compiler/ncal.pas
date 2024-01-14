@@ -2733,10 +2733,18 @@ implementation
         para: TCallParaNode;
         maxlennode, outnode, valnode: TNode;
         MaxStrLen: Int64;
-        StringLiteral: string;
+        StringLiteral, name: string;
         ValOutput: TConstExprInt;
-        ValCode: Word;
+        ValCode: Longint;
         NewStatements: TStatementNode;
+        si : ShortInt;
+        b: Byte;
+        i: SmallInt;
+        w: Word;
+        li: LongInt;
+        dw: DWord;
+        i64: Int64;
+        qw: QWord;
       begin
         result := nil;
         case intrinsiccode of
@@ -2835,14 +2843,62 @@ implementation
                   para := GetParaFromIndex(1);
                   if Assigned(para) then
                     begin
-                      valnode := para.left;
-                      if is_conststringnode(valnode) then
+                      valnode:=para.left;
+                      name:=tprocdef(procdefinition).fullprocname(true);
+                      if is_conststringnode(valnode) and
+                        { we can handle only the fpc_val_sint helpers so far }
+                        ((copy(name,1,13)='$fpc_val_sint') or (copy(name,1,13)='$fpc_val_uint')) then
                         begin
                           ValOutput.signed := is_signed(ResultDef);
-                          if ValOutput.signed then
-                            Val(TStringConstNode(valnode).value_str, ValOutput.svalue, ValCode)
-                          else
-                            Val(TStringConstNode(valnode).value_str, ValOutput.uvalue, ValCode);
+
+                          case Longint(tordconstnode(GetParaFromIndex(2).paravalue).value.svalue) of
+                            1:
+                              if ValOutput.signed then
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, si, ValCode);
+                                  ValOutput.svalue:=si;
+                                end
+                              else
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, b, ValCode);
+                                  ValOutput.uvalue:=b;
+                                end;
+                            2:
+                              if ValOutput.signed then
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, i, ValCode);
+                                  ValOutput.svalue:=i;
+                                end
+                              else
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, w, ValCode);
+                                  ValOutput.uvalue:=w;
+                                end;
+                            4:
+                              if ValOutput.signed then
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, li, ValCode);
+                                  ValOutput.svalue:=li;
+                                end
+                              else
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, dw, ValCode);
+                                  ValOutput.uvalue:=dw;
+                                end;
+                            8:
+                              if ValOutput.signed then
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, i64, ValCode);
+                                  ValOutput.svalue:=i64;
+                                end
+                              else
+                                begin
+                                  Val(TStringConstNode(valnode).value_str, qw, ValCode);
+                                  ValOutput.uvalue:=qw;
+                                end;
+                            else
+                              Internalerror(2024011402);
+                          end;
 
                           { Due to the way the node tree works, we have to insert
                             the assignment to the Code output within the
@@ -2861,7 +2917,12 @@ implementation
                           );
 
                           { Now actually create the function result }
-                          valnode := COrdConstNode.Create(ValOutput, ResultDef, False);
+                          case resultdef.typ of
+                            orddef:
+                              valnode := COrdConstNode.Create(ValOutput, resultdef, False);
+                            else
+                              Internalerror(2024011401);
+                          end;
                           addstatement(NewStatements, valnode);
                           { Result will now undergo firstpass }
                         end;
