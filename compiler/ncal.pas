@@ -2735,7 +2735,7 @@ implementation
         MaxStrLen: Int64;
         StringLiteral: string;
         ValOutput: TConstExprInt;
-        ValCode: TCGInt;
+        ValCode: Word;
         NewStatements: TStatementNode;
       begin
         result := nil;
