@@ -525,7 +525,7 @@ implementation
 
     uses
        { global }
-       verbose,
+       verbose,cmsgs,
        { target }
        systems,
        { symtable }
@@ -590,22 +590,34 @@ implementation
 
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring;filepos:tfileposinfo);
+      var
+        def : tdef;
+        name : tmsgstr;
       begin
         if not assigned(srsym) then
           internalerror(200602051);
+        if symoptions*[sp_hint_deprecated,sp_hint_experimental,sp_hint_platform,sp_hint_library,sp_hint_unimplemented]<>[] then
+          begin
+            name:=srsym.realname;
+            def:=tdef(srsym.owner.defowner);
+            if assigned(def) then
+              name:=def.typesymbolprettyname+'.'+name;
+          end
+        else
+          name:='';
         if sp_hint_deprecated in symoptions then
           if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
-            MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
+            MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,name,deprecatedmsg^)
           else
-            MessagePos1(filepos,sym_w_deprecated_symbol,srsym.realname);
+            MessagePos1(filepos,sym_w_deprecated_symbol,name);
         if sp_hint_experimental in symoptions then
-          MessagePos1(filepos,sym_w_experimental_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_experimental_symbol,name);
         if sp_hint_platform in symoptions then
-          MessagePos1(filepos,sym_w_non_portable_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_non_portable_symbol,name);
         if sp_hint_library in symoptions then
-          MessagePos1(filepos,sym_w_library_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_library_symbol,name);
         if sp_hint_unimplemented in symoptions then
-          MessagePos1(filepos,sym_w_non_implemented_symbol,srsym.realname);
+          MessagePos1(filepos,sym_w_non_implemented_symbol,name);
       end;
 
 {****************************************************************************
