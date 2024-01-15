@@ -2313,7 +2313,8 @@ type
     class procedure Yield; static;
     { use HAS_TTHREAD_GETSYSTEMTIMES to implement a platform specific variant
       which does not return a zeroed record }
-    class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
+    class function GetSystemTimes(out aSystemTimes: TSystemTimes) : boolean; static;
+    class function GetCPUUsage(var Previous: TSystemTimes): Integer;
     class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
     class function GetTickCount64: QWord; static;
     // Object based

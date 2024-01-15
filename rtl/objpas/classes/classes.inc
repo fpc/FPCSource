@@ -898,12 +898,33 @@ end;
 
 
 {$ifndef HAS_TTHREAD_GETSYSTEMTIMES}
-class procedure TThread.GetSystemTimes(out aSystemTimes: TSystemTimes);
+class function TThread.GetSystemTimes(out aSystemTimes: TSystemTimes) : Boolean;
 begin
   { by default we just return a zeroed out record }
   FillChar(aSystemTimes, SizeOf(aSystemTimes), 0);
+  Result:=False;
 end;
 {$endif}
+
+class function TThread.GetCPUUsage(var Previous: TSystemTimes): Integer;
+
+var
+  Act : TSystemTimes;
+  Load,Idle: QWord;
+  
+begin
+  Result:=0;
+  if not GetSystemTimes(Act) then 
+    exit;
+  Load:=(Act.UserTime-Previous.UserTime) +
+        (Act.KernelTime-Previous.KernelTime) +
+        (Act.NiceTime-Previous.NiceTime);
+  Idle:=Act.IdleTime-Previous.IdleTime;
+  Previous:=Act;
+  if (Load<>0) and (Load>Idle) then
+    Result:=100*Trunc(1-(Idle/Load));
+end;
+
 
 
 class function TThread.GetTickCount: LongWord;

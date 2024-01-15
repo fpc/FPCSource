@@ -66,6 +66,72 @@ uses
   ;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$IFDEF LINUX}
+{$DEFINE HAS_TTHREAD_GETSYSTEMTIMES}
+class function TThread.GetSystemTimes(out aSystemTimes : TSystemTimes) : Boolean;
+
+const
+  StatFile = '/proc/stat';
+  CPULine = 'cpu';
+
+var
+  Line: string;
+  aFile : Text;
+  Idle : Int64;
+
+  Function GetNextWord(var l : String) : String;
+
+  var
+    P : Integer;
+
+  begin
+    P:=Pos(' ',L);
+    if P=0 then 
+      P:=Length(L)+1;
+    Result:=Copy(L,1,P-1);
+    Delete(L,1,P);
+    L:=Trim(L);
+  end;
+  
+  Function GetNextInt : Int64; inline;
+  
+  begin
+    Result:=StrToint64(GetNextWord(Line));
+  end;
+
+begin
+  Result := False;
+  aSystemTimes:=Default(TThread.TSystemTimes);
+  {$i-}
+  AssignFile(aFile,StatFile);
+  Reset(aFile);
+  if IOResult<>0 then 
+    exit;
+  {$i+}
+  While not EOF(aFile) do
+    begin
+    ReadLn(aFile,Line);
+    if Pos(CPULine,Line)>0 then
+      begin
+      GetNextWord(Line); // Skip "cpu"
+      // cpuN usertime nicetime kerneltime idletime
+      With aSystemTimes do
+        begin
+        Inc(UserTime, GetNextInt);
+        Inc(NiceTime, GetNextInt);
+        Inc(KernelTime, GetNextInt);
+        Idle:=GetNextInt;
+        Inc(KernelTime,Idle); // windows seems to count idle as kernel
+        Inc(IdleTime,Idle);
+        end;
+      Result:=True;
+      end
+    end;
+ CloseFile(aFile);  
+end;
+{$ENDIF}
+
+
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
