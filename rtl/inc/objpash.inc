@@ -502,10 +502,16 @@
          constructor Create;
        end;
        {$POP}
-       WeakAttribute = class(TCustomAttribute);
-       UnsafeAttribute = class(TCustomAttribute);
-       RefAttribute = class(TCustomAttribute);
-       VolatileAttribute = class(TCustomAttribute);
+
+       TUnimplementedAttribute = class(TCustomAttribute)
+       public
+         constructor Create; unimplemented;
+       end;
+
+       WeakAttribute = class(TUnimplementedAttribute);
+       UnsafeAttribute = class(TUnimplementedAttribute);
+       RefAttribute = class(TUnimplementedAttribute);
+       VolatileAttribute = class(TUnimplementedAttribute);
 
        StoredAttribute = Class(TCustomAttribute)
        Private
