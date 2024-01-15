@@ -552,8 +552,8 @@ Type
   function statx(dfd: cint; filename: PAnsiChar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; weakexternal name 'statx'; {$ENDIF}
 
 {$ifndef android}
-Function utimensat(dfd: cint; path:PAnsiChar;const times:tkernel_timespecs;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
-Function futimens(fd: cint; const times:tkernel_timespecs):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'futimens'; {$ENDIF}
+Function utimensat(dfd: cint; path:PAnsiChar;const times:TTimespecArr;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
+Function futimens(fd: cint; const times:TTimespecArr):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'futimens'; {$ENDIF}
 {$endif android}
 
 implementation
@@ -877,7 +877,7 @@ end;
 
 
 {$ifndef android}
-Function utimensat(dfd: cint; path:PAnsiChar;const times:tkernel_timespecs;flags:cint):cint;
+Function utimensat(dfd: cint; path:PAnsiChar;const times:TTimespecArr;flags:cint):cint;
 var
   tsa: Array[0..1] of timespec;
 begin
@@ -897,7 +897,7 @@ begin
 end;
 
 
-Function futimens(fd: cint; const times:tkernel_timespecs):cint;
+Function futimens(fd: cint; const times:TTimespecArr):cint;
 var
   tsa: Array[0..1] of timespec;
 begin
@@ -916,6 +916,7 @@ begin
 {$endif sizeof(clong)<=4}
 end;
 {$endif android}
+
 {$endif not FPC_USE_LIBC}
 
 end.
