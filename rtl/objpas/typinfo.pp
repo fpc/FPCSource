@@ -4622,7 +4622,7 @@ begin
   if Index >= ParamCount then
     Result := Nil
   else
-    Result := PVmtMethodParamArray(@params)[Index];
+    Result := PVmtMethodParam(@params) + Index;
 end;
 
 function TVMTMethodExEntry.GetResultLocs: PParameterLocations;
