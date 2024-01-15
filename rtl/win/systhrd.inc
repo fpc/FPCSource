@@ -545,7 +545,7 @@ function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint
 
 var
   Ole32Dll: THandle = 0; { Unloaded at win32 & win64 system_exit. }
-  CoWaitForMultipleHandlesImpl: function(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+  CoWaitForMultipleHandlesImpl: function(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall
     = @FirstCoWaitForMultipleHandles;
 
 function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
