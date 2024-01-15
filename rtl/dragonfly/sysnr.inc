@@ -341,3 +341,24 @@ const
  syscall_nr_linkat                      = 531;
  syscall_nr_eaccess                     = 532;
  syscall_nr_lpathconf                   = 533;
+                                        { 534  --- 535   OBSOL   vmm_guest_ctl & vmm_guest_sync_addr }
+ syscall_nr_procctl                     = 536;
+ syscall_nr_chflagsat                   = 537;
+ syscall_nr_pipe2                       = 538;
+ syscall_nr_utimensat                   = 539;
+ syscall_nr_futimens                    = 540;
+ syscall_nr_accept4                     = 541;
+ syscall_nr_lwp_setname                 = 542;
+ syscall_nr_ppoll                       = 543;
+ syscall_nr_lwp_setaffinity             = 544;
+ syscall_nr_lwp_getaffinity             = 545;
+ syscall_nr_lwp_create2                 = 546;
+ syscall_nr_getcpuclockid               = 547;
+ syscall_nr_wait6                       = 548;
+ syscall_nr_lwp_getname                 = 549;
+ syscall_nr_getrandom                   = 550;
+ syscall_nr___realpath                  = 551;
+ syscall_nr_fexecve                     = 552;
+ syscall_nr_posix_fallocate             = 553;
+ syscall_nr_fdatasync                   = 554;
+
