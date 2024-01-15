@@ -2328,7 +2328,9 @@ type
     procedure Suspend; deprecated;
     procedure Terminate;
     function WaitFor: Integer;
+    class function CurrentIsMain : Boolean; static; inline;
     class property CurrentThread: TThread read GetCurrentThread;
+    class property Current: TThread read GetCurrentThread;
     class property ProcessorCount: LongWord read FProcessorCount;
     class property IsSingleProcessor: Boolean read GetIsSingleProcessor;
     property FreeOnTerminate: Boolean read FFreeOnTerminate write FFreeOnTerminate;

@@ -434,6 +434,13 @@ procedure TThread.DoneSynchronizeEvent;
   end;
 
 
+
+class function TThread.CurrentIsMain : Boolean;
+
+begin
+  Result:=TThread.Current.ThreadID=MainThreadID;
+end;
+
 class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
   var
     syncentry: PThreadQueueEntry;
