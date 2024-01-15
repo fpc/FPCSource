@@ -413,7 +413,7 @@ end;
 
 procedure fpc_fillmem(out data;len:sizeuint;b : byte);
 begin
-  FillByte(data,len,b);
+  FillChar(data,len,AnsiChar(b));
 end;
 
 { Include generic pascal only routines which are not defined in the processor
