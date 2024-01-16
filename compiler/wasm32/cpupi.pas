@@ -918,15 +918,17 @@ implementation
               end;
           end;
 
-        procedure check_goto_br_instructions(list: TAsmList);
+        procedure check_goto_br_instructions(list: TAsmList; out HasGotoBrInstructions: boolean);
           var
             hp: tai;
           begin
+            HasGotoBrInstructions:=False;
             hp:=tai(list.first);
             while assigned(hp) do
               begin
                 if (hp.typ=ait_instruction) and (taicpu(hp).is_br_generated_by_goto) then
                   begin
+                    HasGotoBrInstructions:=True;
                     if (taicpu(hp).opcode<>a_br) or
                        (taicpu(hp).ops<>1) or
                        (taicpu(hp).oper[0]^.typ<>top_ref) or
@@ -944,15 +946,18 @@ implementation
 
       var
         localslist: TAsmList;
-        labels_resolved: Boolean;
+        labels_resolved, has_goto: Boolean;
       begin
-        check_goto_br_instructions(aktproccode);
+        check_goto_br_instructions(aktproccode,has_goto);
 
         localslist:=prepare_locals;
 
         replace_local_frame_pointer(aktproccode);
 
-        labels_resolved:=resolve_labels_simple(aktproccode);
+        labels_resolved:=false;
+        if not has_goto then
+          { TODO: make resolve_labels_simple handle goto labels correctly }
+          labels_resolved:=resolve_labels_simple(aktproccode);
 {$ifndef DEBUG_WASM_GOTO}
         if not labels_resolved then
 {$endif DEBUG_WASM_GOTO}
