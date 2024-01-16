@@ -19195,6 +19195,7 @@ var
   ObjLit: TJSObjectLiteral;
   Call: TJSCallExpression;
   HasRTTIMembers: Boolean;
+  RecordInfo: TJSObjectLiteralElement;
 begin
   // module.$rtti.$Record("typename",{});
   Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,FuncContext,ObjLit);
@@ -19206,7 +19207,13 @@ begin
   end;
 
   HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,MembersSrc,MembersFuncContext,Call,false);
-  if not HasRTTIMembers then
+  if HasRTTIMembers then
+  begin
+    RecordInfo := ObjLit.Elements.AddElement;
+    RecordInfo.Name := GetBIName(pbivnPtrRecord);
+    RecordInfo.Expr := CreatePrimitiveDotExpr('this', El);
+  end
+  else
     begin
     // no published members, add "module.$rtti.$Record..."
     if Src=MembersSrc then
