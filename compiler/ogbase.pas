@@ -1414,6 +1414,8 @@ implementation
           {debug_abbrev} [oso_Data,oso_debug],
           {debug_aranges} [oso_Data,oso_debug],
           {debug_ranges} [oso_Data,oso_debug],
+          {debug_loc} [oso_Data,oso_debug],
+          {debug_loclists} [oso_Data,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write],
           {toc} [oso_Data,oso_load],
           {init} [oso_Data,oso_load,oso_executable],

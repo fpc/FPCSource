@@ -126,6 +126,8 @@ interface
          sec_debug_abbrev,
          sec_debug_aranges,
          sec_debug_ranges,
+         sec_debug_loc,
+         sec_debug_loclists,
          { Yury: "sec_fpc is intended for storing fpc specific data
                   which must be recognized and processed specially by linker.
                   Currently fpc version string, dummy links to stab sections
