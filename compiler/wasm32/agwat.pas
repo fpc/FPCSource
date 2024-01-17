@@ -402,7 +402,7 @@ implementation
         InlineLevel : longint;
         do_line  : boolean;
       const
-        WasmBasicTypeStr : array [TWasmBasicType] of string = ('i32','i64','f32','f64','funcref','externref','v128');
+        WasmBasicTypeStr : array [TWasmBasicType] of string = ('unknown','i32','i64','f32','f64','funcref','externref','v128');
 
       begin
         if not assigned(p) then

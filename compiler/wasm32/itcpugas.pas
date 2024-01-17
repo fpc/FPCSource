@@ -129,7 +129,7 @@ interface
       'memory.atomic.wait32', 'memory.atomic.wait64', 'memory.atomic.notify', 'atomic.fence'
     );
 
-    gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64','funcref','externref','v128');
+    gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('unknown','i32','i64','f32','f64','funcref','externref','v128');
 
     function gas_regname(r:Tregister):string;
 

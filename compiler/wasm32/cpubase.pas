@@ -131,6 +131,7 @@ uses
       );
 
       TWasmBasicType = (
+        wbt_Unknown,
         { number types }
         wbt_i32, wbt_i64, wbt_f32, wbt_f64,
         { reference types }
@@ -680,7 +681,7 @@ uses
 
     function TWasmFuncType.ToString: ansistring;
       const
-        wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64','funcref','externref','v128');
+        wasm_basic_type_str : array [TWasmBasicType] of string = ('unknown','i32','i64','f32','f64','funcref','externref','v128');
       var
         i: Integer;
       begin
