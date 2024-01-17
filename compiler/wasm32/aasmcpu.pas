@@ -41,6 +41,20 @@ uses
       O_MOV_DEST = 0;
 
     type
+
+      { TWasmValueStack }
+
+      TWasmValueStack = class
+      private
+        FValStack: array of TWasmBasicType;
+        function GetItems(AIndex: Integer): TWasmBasicType;
+        procedure SetItems(AIndex: Integer; AValue: TWasmBasicType);
+      public
+        procedure Push(wbt: TWasmBasicType);
+        function Pop: TWasmBasicType;
+        property Items[AIndex: Integer]: TWasmBasicType read GetItems write SetItems; default;
+      end;
+
       twasmstruc_stack = class;
       TAsmMapFuncResultType = (amfrtNoChange, amfrtNewAi, amfrtNewList, amfrtDeleteAi);
       TAsmMapFuncResult = record
@@ -301,6 +315,36 @@ uses
 
     function wasm_convert_first_item_to_structured(srclist: TAsmList): tai; forward;
     procedure map_structured_asmlist_inner(l: TAsmList; f: TAsmMapFunc; blockstack: twasmstruc_stack); forward;
+
+    { TWasmValueStack }
+
+    function TWasmValueStack.GetItems(AIndex: Integer): TWasmBasicType;
+      begin
+        if (AIndex<Low(FValStack)) or (AIndex>High(FValStack)) then
+          internalerror(2024011702);
+        Result:=FValStack[AIndex];
+      end;
+
+    procedure TWasmValueStack.SetItems(AIndex: Integer; AValue: TWasmBasicType);
+      begin
+        if (AIndex<Low(FValStack)) or (AIndex>High(FValStack)) then
+          internalerror(2024011703);
+        FValStack[AIndex]:=AValue;
+      end;
+
+    procedure TWasmValueStack.Push(wbt: TWasmBasicType);
+      begin
+        SetLength(FValStack,Length(FValStack)+1);
+        FValStack[High(FValStack)]:=wbt;
+      end;
+
+    function TWasmValueStack.Pop: TWasmBasicType;
+      begin
+        if Length(FValStack)=0 then
+          internalerror(2024011701);
+        Result:=FValStack[High(FValStack)];
+        SetLength(FValStack,Length(FValStack)-1);
+      end;
 
     { twasmstruc_stack }
 
