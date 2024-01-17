@@ -1250,7 +1250,7 @@ Function FileSetDate (Const FileName : RawByteString; Age : Int64) : Longint;
 var
   SystemFileName: RawByteString;
 {$ifdef USE_UTIMENSAT}
-  times : tkernel_timespecs;
+  times : TTimespecArr;
 {$endif USE_UTIMENSAT}
   t: TUTimBuf;
 begin
