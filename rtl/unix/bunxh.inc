@@ -16,30 +16,7 @@
 Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
-     pFilDes = ^TFilDes;
-
-
-    { For 32 bit 2038 safe support, we have to use the kernel_timespec on linux which
-      makes all fields 64 bit regardless of the bit size of the CPU.
-
-      I have no idea though how to work around this when libc is used 
-    }
-{$if defined(linux) and not(defined(FPC_USE_LIBC))}
-     kernel_time64_t = clonglong;
-
-     kernel_timespec = record
-       tv_sec  : kernel_time64_t;
-       tv_nsec : clonglong;
-     end;
-     tkernel_timespec = kernel_timespec;
-     pkernel_timespec = ^kernel_timespec;
-
-     tkernel_timespecs = array[0..1] of kernel_timespec;
-
-     TTimespecArr = tkernel_timespecs;
-{$else linux}     
-     TTimespecArr = array[0..1] of ttimespec;
-{$endif linux}     
+     pFilDes = ^TFilDes;    
 
 // if you are looking for macro definitions or non C template overloaded versions, they are moved to bunxovlh.inc
 

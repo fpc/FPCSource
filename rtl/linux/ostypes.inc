@@ -511,3 +511,22 @@ const
 
 {$i signal.inc}
 
+  { For 32 bit 2038 safe support, we have to use the kernel_timespec on linux which
+    makes all fields 64 bit regardless of the bit size of the CPU.
+
+    I have no idea though how to work around this when libc is used 
+  }
+{$ifndef FPC_USE_LIBC}
+  kernel_time64_t = clonglong;
+
+  kernel_timespec = record
+    tv_sec  : kernel_time64_t;
+    tv_nsec : clonglong;
+  end;
+  tkernel_timespec = kernel_timespec;
+  pkernel_timespec = ^kernel_timespec;
+
+  tkernel_timespecs = array[0..1] of kernel_timespec;
+
+  TTimespecArr = tkernel_timespecs;
+{$endif FPC_USE_LIBC}

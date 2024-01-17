@@ -600,4 +600,5 @@ type
 
 {$i signal.inc}
 
-
+type
+  TTimespecArr  = array[0..1] of ttimespec;

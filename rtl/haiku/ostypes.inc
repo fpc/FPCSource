@@ -330,3 +330,5 @@ type
   tpollfd = pollfd;
   ppollfd = ^pollfd;
 
+type
+  TTimespecArr  = array[0..1] of ttimespec;
