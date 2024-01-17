@@ -68,7 +68,8 @@ begin
     T.Dependencies.AddUnit('system.regularexpressionsconsts',[Win64,Linux,darwin]);
     T:=P.Targets.AddUnit('system.regularexpressions.pp',[Win64,Linux,darwin]);
     T.Dependencies.AddUnit('system.regularexpressionscore',[Win64,Linux,darwin]);
-
+    T:=P.Targets.AddUnit('system.threading.pp',AllOSes-[go32v2,nativent,atari]);
+    T.ResourceStrings := True;
 
 {$ifndef ALLPACKAGES}
     Run;
