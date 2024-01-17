@@ -61,9 +61,9 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  VersionMajor = 2;
-  VersionMinor = 3;
-  VersionRelease = 1;
+  VersionMajor = 3;
+  VersionMinor = 0;
+  VersionRelease = 0;
   VersionExtra = '';
   DefaultConfigFile = 'pas2js.cfg';
 
