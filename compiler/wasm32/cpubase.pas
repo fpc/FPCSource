@@ -585,6 +585,8 @@ uses
     function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
       begin
         case wbt of
+          wbt_unknown:
+            internalerror(2024011702);
           wbt_i32:
             result:=$7F;
           wbt_i64:
