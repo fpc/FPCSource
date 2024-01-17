@@ -1841,6 +1841,7 @@ const pemagic : array[0..3] of byte = (
             else
               secrec.nrelocs:=65535;
             inc(symidx);
+	    MaybeSwap(secrec);
             FCoffSyms.write(secrec,sizeof(secrec));
             { aux recs have the same size as symbols, so we need to add two
               Byte of padding in case of a Big Obj Coff }
@@ -2396,7 +2397,8 @@ const pemagic : array[0..3] of byte = (
         strname   : string;
         auxrec    : array[0..sizeof(coffsymbol)-1] of byte;
         boauxrec  : array[0..sizeof(coffbigobjsymbol)-1] of byte;
-        secrec    : pcoffsectionrec;
+        psecrec   : pcoffsectionrec;
+        secrec    : coffsectionrec;
         objsec    : TObjSection;
         secidx    : longint;
         symvalue  : longword;
@@ -2546,15 +2548,19 @@ const pemagic : array[0..3] of byte = (
                   if bigobj then
                     begin
                       FCoffSyms.Read(boauxrec,sizeof(boauxrec));
-                      secrec:=pcoffsectionrec(@boauxrec[0]);
+                      psecrec:=pcoffsectionrec(@boauxrec[0]);
+		      secrec:=psecrec^;
+		      MaybeSwap(secrec);
                     end
                   else
                     begin
                       FCoffSyms.Read(auxrec,sizeof(auxrec));
-                      secrec:=pcoffsectionrec(@auxrec);
+                      psecrec:=pcoffsectionrec(@auxrec);
+		      secrec:=psecrec^;
+		      MaybeSwap(secrec);
                     end;
 
-                  case secrec^.select of
+                  case secrec.select of
                     IMAGE_COMDAT_SELECT_NODUPLICATES:
                       comdatsel:=oscs_none;
                     IMAGE_COMDAT_SELECT_ANY:
@@ -2569,14 +2575,14 @@ const pemagic : array[0..3] of byte = (
                       comdatsel:=oscs_largest;
                     else begin
                       comdatsel:=oscs_none;
-                      Message2(link_e_comdat_select_unsupported,inttostr(secrec^.select),objsym.objsection.name);
+                      Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
                     end;
                   end;
 
                   if comdatsel in [oscs_associative,oscs_exact_match] then
                     { only temporary }
                     Comment(V_Error,'Associative or exact match COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
-                  else if (comdatsel=oscs_associative) and (secrec^.assoc=0) then
+                  else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
                     Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
                     Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
@@ -2584,9 +2590,9 @@ const pemagic : array[0..3] of byte = (
                     begin
                       objsym.objsection.ComdatSelection:=comdatsel;
 
-                      if (secrec^.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
+                      if (secrec.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
                         begin
-                          objsym.objsection.AssociativeSection:=GetSection(secrec^.assoc);
+                          objsym.objsection.AssociativeSection:=GetSection(secrec.assoc);
                           if not assigned(objsym.objsection.AssociativeSection) then
                             Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
                         end;
