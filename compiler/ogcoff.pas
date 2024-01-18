@@ -2193,6 +2193,8 @@ const pemagic : array[0..3] of byte = (
            FWriter.writearray(FCoffSyms);
            { Strings }
            i:=FCoffStrs.size+4;
+           if source_info.endian<>target_info.endian then
+             i:=SwapEndian(i);
            FWriter.write(i,4);
            FWriter.writearray(FCoffStrs);
          end;
@@ -3362,6 +3364,8 @@ const pemagic : array[0..3] of byte = (
           begin
             { Strings }
             i:=FCoffStrs.size+4;
+            if source_info.endian<>target_info.endian then
+              i:=SwapEndian(i);
             FWriter.write(i,4);
             FWriter.writearray(FCoffStrs);
           end;
@@ -3514,6 +3518,7 @@ const pemagic : array[0..3] of byte = (
           );
         var
           ordint: dword;
+          word_ordint: word;
 
           procedure WriteTableEntry(objsec:TObjSection);
           begin
@@ -3529,14 +3534,20 @@ const pemagic : array[0..3] of byte = (
                 ordint:=AOrdNr;
                 if target_info.system in systems_peoptplus then
                   begin
-                    objsec.write(ordint,sizeof(ordint));
+                    if source_info.endian<>target_info.endian then
+                      ordint:=SwapEndian(ordint);
+                    objsec.write(ordint,4);
                     ordint:=$80000000;
-                    objsec.write(ordint,sizeof(ordint));
+                    if source_info.endian<>target_info.endian then
+                      ordint:=SwapEndian(ordint);
+                    objsec.write(ordint,4);
                   end
                 else
                   begin
                     ordint:=ordint or $80000000;
-                    objsec.write(ordint,sizeof(ordint));
+                    if source_info.endian<>target_info.endian then
+                      ordint:=SwapEndian(ordint);
+                    objsec.write(ordint,4);
                   end;
               end;
           end;
@@ -3578,8 +3589,10 @@ const pemagic : array[0..3] of byte = (
           if (AOrdNr<=0) then
             begin
               { index hint, function name, null terminator and align }
-              ordint:=abs(AOrdNr);
-              idata6objsection.write(ordint,2);
+              word_ordint:=abs(AOrdNr);
+              if source_info.endian<>target_info.endian then
+                      word_ordint:=SwapEndian(word_ordint);
+              idata6objsection.write(word_ordint,2);
               idata6objsection.writestr(afuncname);
               idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
             end;
@@ -3673,6 +3686,8 @@ const pemagic : array[0..3] of byte = (
         p:=internalObjData.CurrObjSec.Data.Pos;
         internalObjData.CurrObjSec.Data.seek(hdrpos+4);
         len:=p-hdrpos;
+        if source_info.endian<>target_info.endian then
+          len:=SwapEndian(len);
         internalObjData.CurrObjSec.Data.write(len,4);
         internalObjData.CurrObjSec.Data.seek(p);
         hdrpos:=longword(-1);
@@ -3717,9 +3732,11 @@ const pemagic : array[0..3] of byte = (
                         FinishBlock;
                         pgaddr:=(offset div 4096)*4096;
                         hdrpos:=internalObjData.CurrObjSec.Data.Pos;
+                        if source_info.endian<>target_info.endian then
+                          pgaddr:=SwapEndian(pgaddr);
                         internalObjData.writebytes(pgaddr,4);
                         { Reserving space for block size. The size will be written later in FinishBlock }
-                        internalObjData.writebytes(k,4);
+                        internalObjData.writebytes(pgaddr,4);
                       end;
 {$ifdef cpu64bitaddr}
                     if objreloc.typ = RELOC_ABSOLUTE then
@@ -3728,6 +3745,8 @@ const pemagic : array[0..3] of byte = (
 {$endif cpu64bitaddr}
                       w:=IMAGE_REL_BASED_HIGHLOW;
                     w:=(w shl 12) or (offset-pgaddr);
+                    if source_info.endian<>target_info.endian then
+                      w:=SwapEndian(w);
                     internalObjData.writebytes(w,2);
                   end;
               end;
