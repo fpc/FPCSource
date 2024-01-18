@@ -30,8 +30,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
-     TTimespecArr = array[0..1] of ttimespec;
-
 const
 {$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
