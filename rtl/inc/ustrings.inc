@@ -2361,12 +2361,24 @@ begin
   Result := UTF8Decode(S);
 end;
 
+function UTF8ToUnicodeString(const s : RawByteString): UnicodeString;
+begin
+   Result := UTF8Decode(S);
+end;
+
+
+
 function UTF8ToString(const S: ShortString): UnicodeString;
 Var
   rs: RawByteString;
 begin
   rs:=S;
   Result := UTF8Decode(rs);
+end;
+
+function UTF8ToUnicodeString(const S: ShortString): unicodestring;
+begin
+  Result:=UTF8ToString(S);
 end;
 
 function UTF8ToString(const S: PAnsiChar): UnicodeString;
@@ -2379,6 +2391,12 @@ begin
   if Count > 0 then
     fpc_pchar_ansistr_intern_charmove(S,0,rs,0,Count);
   Result := UTF8ToString(rs);
+end;
+
+function UTF8ToUnicodeString(const S: PAnsiChar): unicodestring;
+
+begin
+  Result:=UTF8ToString(S);
 end;
 
 { byte and ansichar are the same on the JVM, and "array of" and "pointer to"

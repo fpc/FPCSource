@@ -142,6 +142,11 @@ function UTF8Decode(const s : RawByteString): UnicodeString;
 function UTF8ToString(const s : RawByteString): UnicodeString;inline;
 function UTF8ToString(const S: ShortString): unicodestring;
 function UTF8ToString(const S: PAnsiChar): unicodestring;
+// Delphi compatibility overloads...
+function UTF8ToUnicodeString(const s : RawByteString): UnicodeString;inline;
+function UTF8ToUnicodeString(const S: ShortString): unicodestring;inline;
+function UTF8ToUnicodeString(const S: PAnsiChar): unicodestring;inline;
+
 { byte and ansichar are the same on the JVM, and "array of" and "pointer to"
   are as well }
 {$ifndef CPUJVM}
