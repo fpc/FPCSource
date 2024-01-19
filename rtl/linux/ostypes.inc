@@ -529,4 +529,6 @@ const
   tkernel_timespecs = array[0..1] of kernel_timespec;
 
   TTimespecArr = tkernel_timespecs;
+{$else FPC_USE_LIBC}
+  TTimespecArr = array[0..1] of ttimespec;
 {$endif FPC_USE_LIBC}
