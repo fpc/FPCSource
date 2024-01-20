@@ -249,9 +249,61 @@ const
   syscall_nr_preadv2 = 392;
   syscall_nr_pwritev2 = 393;
   syscall_nr_statx = 397;
+  syscall_nr_rseq = 398;
+  syscall_nr_io_pgetevents = 399;
+  syscall_nr_migrate_pages = 400;
+  syscall_nr_kexec_file_load = 401;
+  syscall_nr_clock_gettime64 = 403;
+  syscall_nr_clock_settime64 = 404;
+  syscall_nr_clock_adjtime64 = 405;
+  syscall_nr_clock_getres_time64 = 406;
+  syscall_nr_clock_nanosleep_time64 = 407;
+  syscall_nr_timer_gettime64 = 408;
+  syscall_nr_timer_settime64 = 409;
+  syscall_nr_timerfd_gettime64 = 410;
+  syscall_nr_timerfd_settime64 = 411;
+  syscall_nr_utimensat_time64 = 412;
+  syscall_nr_pselect6_time64 = 413;
+  syscall_nr_ppoll_time64 = 414;
+  syscall_nr_io_pgetevents_time64 = 416;
+  syscall_nr_recvmmsg_time64 = 417;
+  syscall_nr_mq_timedsend_time64 = 418;
+  syscall_nr_mq_timedreceive_time64 = 419;
+  syscall_nr_semtimedop_time64 = 420;
+  syscall_nr_rt_sigtimedwait_time64 = 421;
+  syscall_nr_futex_time64 = 422;
+  syscall_nr_sched_rr_get_interval_time64 = 423;
+  syscall_nr_pidfd_send_signal = 424;
+  syscall_nr_io_uring_setup = 425;
+  syscall_nr_io_uring_enter = 426;
+  syscall_nr_io_uring_register = 427;
+  syscall_nr_open_tree = 428;
+  syscall_nr_move_mount = 429;
+  syscall_nr_fsopen = 430;
+  syscall_nr_fsconfig = 431;
+  syscall_nr_fsmount = 432;
+  syscall_nr_fspick = 433;
+  syscall_nr_pidfd_open = 434;
+  syscall_nr_clone3 = 435;
+  syscall_nr_close_range = 436;
+  syscall_nr_openat2 = 437;
+  syscall_nr_pidfd_getfd = 438;
+  syscall_nr_faccessat2 = 439;
+  syscall_nr_process_madvise = 440;
+  syscall_nr_epoll_pwait2 = 441;
+  syscall_nr_mount_setattr = 442;
+  syscall_nr_quotactl_fd = 443;
+  syscall_nr_landlock_create_ruleset = 444;
+  syscall_nr_landlock_add_rule = 445;
+  syscall_nr_landlock_restrict_self = 446;
+  syscall_nr_process_mrelease = 448;
+  syscall_nr_futex_waitv = 449;
+  syscall_nr_set_mempolicy_home_node = 450;
+
   syscall_nr___ARM_NR_cacheflush = 983042;
   syscall_nr_cacheflush = syscall_nr___ARM_NR_cacheflush;
   syscall_nr___ARM_NR_set_tls = 983045;
+
 
 // The following syscalls are blocked by SECCOMP starting from Android 8.
 // Do not use them, unless you know what you are doing.
