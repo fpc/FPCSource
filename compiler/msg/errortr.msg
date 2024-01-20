@@ -3281,7 +3281,7 @@ wpo_cant_create_feedback_file=12019_E_"$1" belirtilen tüm program optimizasyon 
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2024 by Florian Klaempfl and others
 ]
 
 #
