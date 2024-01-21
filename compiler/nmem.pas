@@ -1362,13 +1362,13 @@ implementation
               cst_widestring, cst_unicodestring:
                 { value_str is of type PCompilerWideString }
                 Result := COrdConstNode.create(
-                  PCompilerWideString(TStringConstNode(left).value_str)^.data[TOrdConstNode(right).value - 1],
+                  PCompilerWideString(TStringConstNode(left).value_str)^.data[AWord(TOrdConstNode(right).value.uvalue) - 1],
                   resultdef,
                   False
                 );
               else
                 Result := COrdConstNode.create(
-                  Byte(TStringConstNode(left).value_str[TOrdConstNode(right).value - 1]),
+                  Byte(TStringConstNode(left).value_str[AWord(TOrdConstNode(right).value.uvalue) - 1]),
                   resultdef,
                   False
                 );
