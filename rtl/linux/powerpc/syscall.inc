@@ -19,6 +19,10 @@
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
 
+{$IFNDEF DISABLE_SETERRNO}
+  {$DEFINE USE_SETERRNO}
+{$ENDIF DISABLE_SETERRNO}
+
 
 { This variable is needed in syscall.inc assembler code }
 var
@@ -40,6 +44,13 @@ asm
   mr  r0,r3
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -60,6 +71,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -76,6 +88,13 @@ asm
   mr  r3,r4
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -96,6 +115,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -114,6 +134,13 @@ asm
   mr  r4,r5
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -134,6 +161,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -152,6 +180,13 @@ asm
   mr  r5,r6
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -172,6 +207,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -192,6 +228,13 @@ asm
   mr  r6,r7
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -212,6 +255,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -232,6 +276,13 @@ asm
   mr  r7,r8
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -252,6 +303,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
@@ -274,6 +326,13 @@ asm
   mr  r8,r9
   sc
   bns   .LDone
+{$ifdef USE_SETERRNO}
+  mflr  r5
+  stw   r5,retaddress
+  bl    seterrno
+  lwz   r5,retaddress
+  mtlr  r5
+{$else}
   lis   r10,(fpc_threadvar_relocate_proc)@ha
   lwz   r10,(fpc_threadvar_relocate_proc)@l(r10)
   cmpwi r10,0
@@ -294,6 +353,7 @@ asm
   stw   r4,0(r3)
   mtlr  r5
 .LFailed:
+{$endif USE_SETERRNO}
   li    r3,-1
 .LDone:
 end;
