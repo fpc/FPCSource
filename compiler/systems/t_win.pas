@@ -325,14 +325,14 @@ implementation
                 ordint:=ordnr;
                 if target_info.system in systems_peoptplus then
                   begin
-                    objdata.writebytes(ordint,sizeof(ordint));
+                    objdata.writeUInt32LE(ordint);
                     ordint:=$80000000;
-                    objdata.writebytes(ordint,sizeof(ordint));
+                    objdata.writeUInt32LE(ordint);
                   end
                 else
                   begin
                     ordint:=ordint or $80000000;
-                    objdata.writebytes(ordint,sizeof(ordint));
+                    objdata.writeUInt32LE(ordint);
                   end;
               end;
           end;
@@ -359,7 +359,7 @@ implementation
           idata6label:=objdata.SymbolDefine(asmprefix+'_'+tostr(idatalabnr),AB_LOCAL,AT_DATA);
           absordnr:=Abs(ordnr);
           { write index hint }
-          objdata.writebytes(absordnr,2);
+          objdata.writeUInt16LE(absordnr);
           if ordnr <= 0 then
             objdata.writebytes(afuncname[1],length(afuncname));
           objdata.writebytes(emptyint,1);
