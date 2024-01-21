@@ -1361,14 +1361,23 @@ implementation
             case TStringConstNode(left).cst_type of
               cst_widestring, cst_unicodestring:
                 { value_str is of type PCompilerWideString }
+
+                { while the conversion to PtrUInt is not correct when compiling from an 32 bit to a 64 bit platform because
+                  in theory for a 64 bit target the string could be longer than 2^32,
+                  it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
+                }
                 Result := COrdConstNode.create(
-                  PCompilerWideString(TStringConstNode(left).value_str)^.data[AWord(TOrdConstNode(right).value.uvalue) - 1],
+                  PCompilerWideString(TStringConstNode(left).value_str)^.data[PtrUInt(TOrdConstNode(right).value.uvalue) - 1],
                   resultdef,
                   False
                 );
               else
+                { while the conversion to PtrUInt is not correct when compiling from an 32 bit to a 64 bit platform because
+                  in theory for a 64 bit target the string could be longer than 2^32,
+                  it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
+                }
                 Result := COrdConstNode.create(
-                  Byte(TStringConstNode(left).value_str[AWord(TOrdConstNode(right).value.uvalue) - 1]),
+                  Byte(TStringConstNode(left).value_str[PtrUInt(TOrdConstNode(right).value.uvalue) - 1]),
                   resultdef,
                   False
                 );
