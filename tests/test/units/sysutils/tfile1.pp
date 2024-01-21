@@ -45,6 +45,22 @@ BEGIN
     do_error(1004);
   Close(f);
 
+  dateTime := EncodeDate(2104,2,29);
+  Assign(f,'datetest.dat');
+  Rewrite(f);
+  if FileSetDate(filerec(f).handle, DateTimeToFileDate(dateTime))<>0 then
+    do_error(1005);
+  Close(f);
+
+  Assign(f,'datetest.dat');
+  Reset(f);
+  if FileGetDate(filerec(f).handle)<>DateTimeToFileDate(dateTime) then
+    begin
+      writeln('Got: ',DateTimeToStr(FileDateToDateTime(FileGetDate(filerec(f).handle))),' expected ',DateTimeToStr(dateTime)); 
+      do_error(1006);
+    end;
+  Close(f);  
+  
   if FileExists('datetest.dat') then
     begin
       Assign(f,'datetest.dat');
