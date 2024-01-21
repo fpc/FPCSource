@@ -406,12 +406,19 @@ end;
 
 {$endif}
 
+{ on 32 bit systems, we should use the 64 bit time calls }
+{$if (sizeof(time_t)<=4)}
+  { mipsel-android doesn't have them as it is not part of newer android versions anymode }
+  {$if not(defined(ANDROID) and defined(CPU_MIPSEL))}
+    {$define USE_TIME64}
+  {$endif  not(defined(ANDROID) and defined(CPU_MIPSEL))}
+{$endif (sizeof(clong)<=4)}
 
 Function  FpFUtimens   (handle: cint;constref times: TTimespecArr):cint;
 var
   tsa: Array[0..1] of timespec;
 begin
-{$if sizeof(clong)<=4}
+{$ifdef USE_TIME64}
   FpFUtimens:=do_syscall(syscall_nr_utimensat_time64,handle,TSysParam(nil),TSysParam(@times),0);
   if (FpFUtimens>=0) or (fpgeterrno<>ESysENOSYS) then
     exit;
@@ -421,9 +428,9 @@ begin
   tsa[1].tv_sec := times[1].tv_sec;
   tsa[1].tv_nsec := times[1].tv_nsec;
   FpFUtimens:=do_syscall(syscall_nr_utimensat,handle,TSysParam(nil),TSysParam(@tsa),0);
-{$else sizeof(clong)<=4}
+{$else USE_TIME64}
   FpFUtimens:=do_syscall(syscall_nr_utimensat,handle,TSysParam(nil),TSysParam(@times),0);
-{$endif sizeof(clong)<=4}
+{$endif USE_TIME64}
 end;
 
 
