@@ -409,9 +409,9 @@ end;
 { on 32 bit systems, we should use the 64 bit time calls }
 {$if (sizeof(time_t)<=4)}
   { mipsel-android doesn't have them as it is not part of newer android versions anymode }
-  {$if not(defined(ANDROID) and defined(CPU_MIPSEL))}
+  {$if not(defined(ANDROID) and defined(CPUMIPSEL))}
     {$define USE_TIME64}
-  {$endif  not(defined(ANDROID) and defined(CPU_MIPSEL))}
+  {$endif  not(defined(ANDROID) and defined(CPUMIPSEL))}
 {$endif (sizeof(clong)<=4)}
 
 Function  FpFUtimens   (handle: cint;constref times: TTimespecArr):cint;
