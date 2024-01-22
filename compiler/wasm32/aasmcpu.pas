@@ -347,17 +347,23 @@ uses
     { TWasmValueStack }
 
     function TWasmValueStack.GetItems(AIndex: Integer): TWasmBasicType;
+      var
+        I: Integer;
       begin
-        if (AIndex<Low(FValStack)) or (AIndex>High(FValStack)) then
+        I:=High(FValStack)-AIndex;
+        if (I<Low(FValStack)) or (I>High(FValStack)) then
           internalerror(2024011702);
-        Result:=FValStack[AIndex];
+        Result:=FValStack[I];
       end;
 
     procedure TWasmValueStack.SetItems(AIndex: Integer; AValue: TWasmBasicType);
+      var
+        I: Integer;
       begin
-        if (AIndex<Low(FValStack)) or (AIndex>High(FValStack)) then
+        I:=High(FValStack)-AIndex;
+        if (I<Low(FValStack)) or (I>High(FValStack)) then
           internalerror(2024011703);
-        FValStack[AIndex]:=AValue;
+        FValStack[I]:=AValue;
       end;
 
     procedure TWasmValueStack.Push(wbt: TWasmBasicType);
