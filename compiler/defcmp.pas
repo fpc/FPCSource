@@ -2600,8 +2600,13 @@ implementation
            include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_interrupt,po_iocheck,po_varargs,po_far];
-         { check static only if we compare method pointers }
-         if def1.is_methodpointer and def2.is_methodpointer then
+         { check static only if we compare method pointers (and function
+           references don't count as methodpointers here) }
+         if def1.is_methodpointer and
+             (
+               def2.is_methodpointer and
+               not (po_is_function_ref in def2.procoptions)
+             ) then
            include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
