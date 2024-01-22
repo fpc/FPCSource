@@ -55,6 +55,34 @@ uses
         property Items[AIndex: Integer]: TWasmBasicType read GetItems write SetItems; default;
       end;
 
+      { TWasmControlFrame }
+
+      TWasmControlFrame = class
+        opcode: tasmop;
+        start_types: array of TWasmBasicType;
+        end_types: array of TWasmBasicType;
+        height: Integer;
+        unreachable: Boolean;
+      end;
+
+      { TWasmControlStack }
+
+      TWasmControlStack = class
+      end;
+
+      { TWasmValidationStacks }
+
+      TWasmValidationStacks = class
+      private
+        FValueStack: TWasmValueStack;
+        FCtrlStack: TWasmControlStack;
+      public
+        constructor Create;
+        destructor Destroy; override;
+
+        procedure PushVal(vt: TWasmBasicType);
+      end;
+
       twasmstruc_stack = class;
       TAsmMapFuncResultType = (amfrtNoChange, amfrtNewAi, amfrtNewList, amfrtDeleteAi);
       TAsmMapFuncResult = record
@@ -344,6 +372,26 @@ uses
           internalerror(2024011701);
         Result:=FValStack[High(FValStack)];
         SetLength(FValStack,Length(FValStack)-1);
+      end;
+
+    { TWasmValidationStacks }
+
+    constructor TWasmValidationStacks.Create;
+      begin
+        FValueStack:=TWasmValueStack.Create;
+        FCtrlStack:=TWasmControlStack.Create;
+      end;
+
+    destructor TWasmValidationStacks.Destroy;
+      begin
+        FValueStack.Free;
+        FCtrlStack.Free;
+        inherited Destroy;
+      end;
+
+    procedure TWasmValidationStacks.PushVal(vt: TWasmBasicType);
+      begin
+        FValueStack.Push(vt);
       end;
 
     { twasmstruc_stack }
