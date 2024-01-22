@@ -78,7 +78,7 @@ interface
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
           procedure setprocdef(p : tprocdef);
-          property procdef: tprocdef read fprocdef write setprocdef;
+          property procdef: tprocdef read fprocdef;
        end;
        tloadnodeclass = class of tloadnode;
 
