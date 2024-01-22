@@ -2997,7 +2997,7 @@ implementation
                    pdtemp:=tprocsym(tloadnode(currpt.left).symtableentry).find_procdef_byfuncrefdef(tobjectdef(def_to));
                  if assigned(pdtemp) then
                    begin
-                     tloadnode(currpt.left).setprocdef(pdtemp);
+                     tloadnode(currpt.left).setprocdef(pdtemp,def_to.typ<>procvardef);
                      currpt.resultdef:=currpt.left.resultdef;
                      def_from:=currpt.left.resultdef;
                    end;
@@ -3022,7 +3022,7 @@ implementation
                    pdtemp:=tprocsym(tloadnode(ttypeconvnode(currpt.left).left).symtableentry).find_procdef_byfuncrefdef(tobjectdef(def_to));
                  if assigned(pdtemp) then
                    begin
-                     tloadnode(ttypeconvnode(currpt.left).left).setprocdef(pdtemp);
+                     tloadnode(ttypeconvnode(currpt.left).left).setprocdef(pdtemp,def_to.typ<>procvardef);
                      ttypeconvnode(currpt.left).totypedef:=cprocvardef.getreusableprocaddr(pdtemp,pc_normal);
                      ttypeconvnode(currpt.left).resultdef:=ttypeconvnode(currpt.left).totypedef;
                      def_from:=ttypeconvnode(currpt.left).resultdef;

@@ -77,7 +77,7 @@ interface
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
-          procedure setprocdef(p : tprocdef);
+          procedure setprocdef(p : tprocdef;forfuncref:boolean);
           property procdef: tprocdef read fprocdef;
        end;
        tloadnodeclass = class of tloadnode;
@@ -505,9 +505,11 @@ implementation
               end;
             procsym :
               begin
-                { initialise left for nested procs if necessary }
+                { initialise left for nested procs if necessary (this won't need
+                  to pass true for the forfuncref parameter, cause code that would
+                  need that wouldn't have been reworked before it reaches pass_1) }
                 if (m_nested_procvars in current_settings.modeswitches) then
-                  setprocdef(fprocdef);
+                  setprocdef(fprocdef,false);
                 { method pointer or nested proc ? }
                 if assigned(left) then
                   begin
@@ -557,13 +559,14 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure tloadnode.setprocdef(p : tprocdef);
+    procedure tloadnode.setprocdef(p : tprocdef;forfuncref:boolean);
       begin
         fprocdef:=p;
         resultdef:=p;
         { nested procedure? }
         if assigned(p) and
            is_nested_pd(p) and
+           not forfuncref and
            (
              not (po_anonymous in p.procoptions) or
              (po_delphi_nested_cc in p.procoptions)
