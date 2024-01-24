@@ -112,15 +112,27 @@ interface
        end;
        tstatementnodeclass = class of tstatementnode;
 
+       TBlockNodeFlag = (
+         bnf_strippable { Block node can be removed via simplify etc. }
+       );
+
+       TBlockNodeFlags = set of TBlockNodeFlag;
+
        tblocknode = class(tunarynode)
+          blocknodeflags : TBlockNodeFlags;
           constructor create(l : tnode);virtual;
           destructor destroy; override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif state_tracking}
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           property statements : tnode read left write left;
        end;
        tblocknodeclass = class of tblocknode;
@@ -686,6 +698,7 @@ implementation
 
       begin
          inherited create(blockn,l);
+         blocknodeflags:=[];
       end;
 
     destructor tblocknode.destroy;
@@ -703,6 +716,20 @@ implementation
             hp := next;
           end;
         inherited destroy;
+      end;
+
+
+    constructor tblocknode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getset(tppuset1(blocknodeflags));
+      end;
+
+
+    procedure tblocknode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(blocknodeflags));
       end;
 
 
@@ -863,6 +890,30 @@ implementation
             end;
       end;
 {$endif state_tracking}
+{$ifdef DEBUG_NODE_XML}
+    procedure TBlockNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i_bnf: TBlockNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+
+        First := True;
+        for i_bnf in blocknodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' blocknodeflags="', i_bnf);
+                First := False;
+              end
+            else
+              Write(T, ',', i_bnf)
+          end;
+
+        if not First then
+          write(T,'"');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TASMNODE
