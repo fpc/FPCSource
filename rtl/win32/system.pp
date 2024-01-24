@@ -619,6 +619,7 @@ initialization
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
+  SetThreadStackGuarantee(@StackMargin);
 
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap and threading, these may be already initialized from TLS callback }

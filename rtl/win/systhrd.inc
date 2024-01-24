@@ -227,7 +227,10 @@ var
           - static threadvars, no callback: ThreadID remains 0 and
             initialization happens here. }
         if ThreadID=TThreadID(0) then
-          InitThread(ti.stklen);
+          begin
+            InitThread(ti.stklen);
+            SetThreadStackGuarantee(@StackMargin);
+          end;
 
         dispose(pthreadinfo(param));
 

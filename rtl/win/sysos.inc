@@ -273,6 +273,8 @@ type
   function GetModuleHandle(p : PAnsiChar) : THandle;
     stdcall;external KernelDLL name 'GetModuleHandleA';
 
+  function SetThreadStackGuarantee(StackSizeInBytes : PPtrUint) : BOOL;
+    stdcall;external KernelDLL name 'SetThreadStackGuarantee';
 {$else WINCE}
 
    { module functions }
