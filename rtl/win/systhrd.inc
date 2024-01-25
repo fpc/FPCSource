@@ -229,7 +229,9 @@ var
         if ThreadID=TThreadID(0) then
           begin
             InitThread(ti.stklen);
+{$ifndef wince}            
             SetThreadStackGuarantee(@StackMargin);
+{$endif wince}            
           end;
 
         dispose(pthreadinfo(param));
