@@ -1127,22 +1127,22 @@ Implementation
         ssingle: single;
         ddouble: double;
 {$ifdef FPC_COMP_IS_INT64}
-	ccomp: int64;
+        ccomp: int64;
 {$else}
         ccomp: comp;
 {$endif}
-	comp_data_size : byte;
+        comp_data_size : byte;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended: extended;
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
 {$define USE_SOFT_FLOATX80}
-	f32 : float32;
-	f64 : float64;
-	eextended: floatx80;
-	gap_ofs_low,gap_ofs_high : byte;
-	gap_index, gap_size : byte;
-	has_gap : boolean;
+        f32 : float32;
+        f64 : float64;
+        eextended: floatx80;
+        gap_ofs_low,gap_ofs_high : byte;
+        gap_index, gap_size : byte;
+        has_gap : boolean;
 {$endif}
 {$endif cpuextended}
       begin
@@ -1167,20 +1167,20 @@ Implementation
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
              aitrealconst_s80bit:
                begin
-     	         if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
                    writer.AsmWriteLn(asminfo^.comment+'Emulated s80bit real value (on s64bit): '+double2str(tai_realconst(hp).value.s80val))
-     	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                    writer.AsmWriteLn(asminfo^.comment+'Emulated s80bit real value (on s32bit): '+single2str(tai_realconst(hp).value.s80val))
                 else
-     	         internalerror(2017091901);
-       	      end;
+                      internalerror(2017091901);
+                     end;
 {$pop}
 {$endif}
 {$endif cpuextended}
               aitrealconst_s64comp:
                 begin
                   writer.AsmWriteLn(asminfo^.comment+'s64comp real value: '+extended2str(tai_realconst(hp).value.s64compval));
-	          comp_data_size:=sizeof(comp);
+                  comp_data_size:=sizeof(comp);
                   if (comp_data_size<>tai_realconst(hp).datasize) then
                     writer.AsmWriteLn(asminfo^.comment+'s64comp value type size is '+tostr(comp_data_size)+' but datasize is '+tostr(tai_realconst(hp).datasize));
                 end
@@ -1215,7 +1215,7 @@ Implementation
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
           aitrealconst_s80bit:
             begin
-	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+              if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
                 begin
                   f64:=float64(double(tai_realconst(hp).value.s80val));
                   if float64_is_signaling_nan(f64)<>0 then
@@ -1225,23 +1225,23 @@ Implementation
                     end;
                   eextended:=float64_to_floatx80(f64);
                 end
-	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+              else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                 begin
                   f32:=float32(single(tai_realconst(hp).value.s80val));
                   if float32_is_signaling_nan(f32)<>0 then
                     begin
                       f32 := longword($ffc00000);
-	            end;
+                    end;
                   eextended:=float32_to_floatx80(f32);
                 end
-	      else
-	        internalerror(2017091902);
+              else
+                internalerror(2017091902);
               pdata:=@eextended;
               if sizeof(eextended)>10 then
                 begin
                   gap_ofs_high:=(pbyte(@eextended.high) - pbyte(@eextended));
                   gap_ofs_low:=(pbyte(@eextended.low) - pbyte(@eextended));
-		  if (gap_ofs_low<gap_ofs_high) then
+                  if (gap_ofs_low<gap_ofs_high) then
                     begin
                       gap_index:=gap_ofs_low+sizeof(eextended.low);
                       gap_size:=gap_ofs_high-gap_index;
@@ -1252,7 +1252,7 @@ Implementation
                       gap_size:=gap_ofs_low-gap_index;
                     end;
                   if source_info.endian<>target_info.endian then
-		      gap_index:=gap_index+gap_size-1;
+                      gap_index:=gap_index+gap_size-1;
                   has_gap:=gap_size <> 0;
                 end
               else
@@ -1680,7 +1680,7 @@ Implementation
               write a the value field with relocation }
             oldsec:=ObjData.CurrObjSec;
             ObjData.SetSection(ObjData.StabsSec);
-	    MaybeSwapStab(stab);
+            MaybeSwapStab(stab);
             ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
             ObjData.Writereloc(stab.nvalue,4,relocsym,RELOC_ABSOLUTE32);
             ObjData.setsection(oldsec);
@@ -2169,17 +2169,21 @@ Implementation
         ddouble : double;
         {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended : extended;
-	{$else}
+        {$else}
         {$ifdef FPC_SOFT_FPUX80}
-	f32 : float32;
-	f64 : float64;
-	eextended : floatx80;
+        f32 : float32;
+        f64 : float64;
+        eextended : floatx80;
         {$endif}
         {$endif}
         ccomp : comp;
         tmp    : word;
         cpu: tcputype;
         ddword : dword;
+        b : byte;
+        w : word;
+        d : dword;
+        q : qword;
         eabi_section: TObjSection;
         s: String;
         TmpDataPos: TObjSectionOfs;
@@ -2346,7 +2350,34 @@ Implementation
                        else if relative_reloc then
                          ObjData.writereloc(ObjData.CurrObjSec.size+tai_const(hp).size-objsym.address+tai_const(hp).symofs,tai_const(hp).size,objsymend,RELOC_RELATIVE)
                        else
-                         ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                         if source_info.endian<>target_info.endian then
+                           begin
+                             case tai_const(hp).size of
+                                1 : begin
+                                      b:=byte(Tai_const(hp).value);
+                                      ObjData.writebytes(b,1);
+                                    end;
+                                2 : begin
+                                      w:=word(Tai_const(hp).value);
+                                      w:=swapendian(w);
+                                      ObjData.writebytes(w,2);
+                                    end;
+                                4 : begin
+                                      d:=dword(Tai_const(hp).value);
+                                      d:=swapendian(d);
+                                      ObjData.writebytes(d,4);
+                                    end;
+                                8 : begin
+                                      q:=qword(Tai_const(hp).value);
+                                      q:=swapendian(q);
+                                      ObjData.writebytes(q,8);
+                                    end;
+                             else
+                               internalerror(2024012502);
+                             end;
+                           end
+                         else
+                           ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
                    aitconst_rva_symbol :
                      begin
