@@ -626,18 +626,18 @@ implementation
       type 
         multi = record
           case integer of
-	  0 : (ba : array[0..sizeof(aint)-1] of byte);
-	  1 : (b : byte);
-	  2 : (w : word);
-	  4 : (d : dword);
-	  8 : (q : qword);
-	end;
+          0 : (ba : array[0..sizeof(aint)-1] of byte);
+          1 : (b : byte);
+          2 : (w : word);
+          4 : (d : dword);
+          8 : (q : qword);
+        end;
 
       var
         symaddr : aint;
-	ba : multi;
-	b : byte;
-	objreloc: TObjRelocation;
+        ba : multi;
+        b : byte;
+        objreloc: TObjRelocation;
       begin
         if CurrObjSec=nil then
           internalerror(200403292);
@@ -702,19 +702,19 @@ implementation
                 1 : ba.b:=byte(data);
                 2 : begin
                       ba.w:=word(data);
-		      ba.w:=swapendian(ba.w);
+                      ba.w:=swapendian(ba.w);
                     end;
                 4 : begin
                       ba.d:=dword(data);
-		      ba.d:=swapendian(ba.d);
+                      ba.d:=swapendian(ba.d);
                     end;
                 8 : begin
                       ba.q:=qword(data);
-		      ba.q:=swapendian(ba.q);
+                      ba.q:=swapendian(ba.q);
                     end;
               else
-		internalerror(2024012501);
-	      end;
+                internalerror(2024012501);
+              end;
             CurrObjSec.write(ba,len);
           end
         else
