@@ -11838,6 +11838,9 @@ unit aoptx86;
             hp2 := hp1;
             while GetNextInstruction(hp2, hp2) and (hp2 <> BlockEnd) do
               begin
+                if (hp2.typ <> ait_instruction) then
+                  Exit;
+
                 case taicpu(hp2).opcode of
                   A_MOV:
                     begin
@@ -11987,29 +11990,32 @@ unit aoptx86;
 
             while GetNextInstruction(hp1, hp1) and (hp1 <> BlockEnd) do
               begin
-                if (hp1.typ = ait_instruction) then
-                  begin
-                    case taicpu(hp1).opcode of
-                      A_MOV:
-                        { Ignore regular MOVs unless they are obviously not related
-                          to a CMOV block }
-                        if taicpu(hp1).oper[1]^.typ <> top_reg then
-                          Break;
-                      A_CMOVcc:
-                        if TryCmpCMovOpts(pCond, hp1) then
-                          begin
-                            hp1 := hp2;
+                if (hp1.typ <> ait_instruction) then
+                  { Break out on markers and labels etc. }
+                  Break;
 
-                            { p itself isn't changed, and we're still inside a
-                              while loop to catch subsequent CMOVs, so just flag
-                              a new iteration }
-                            Include(OptsToCheck, aoc_ForceNewIteration);
-                            Continue;
-                          end;
-                      else
-                        Break;
-                    end;
-                  end;
+                case taicpu(hp1).opcode of
+                  A_MOV:
+                    { Ignore regular MOVs unless they are obviously not related
+                      to a CMOV block }
+                    if taicpu(hp1).oper[1]^.typ <> top_reg then
+                      Break;
+                  A_CMOVcc:
+                    if TryCmpCMovOpts(pCond, hp1) then
+                      begin
+                        hp1 := hp2;
+
+                        { p itself isn't changed, and we're still inside a
+                          while loop to catch subsequent CMOVs, so just flag
+                          a new iteration }
+                        Include(OptsToCheck, aoc_ForceNewIteration);
+                        Continue;
+                      end;
+
+                  else
+                    { Drop out if we find anything else }
+                    Break;
+                end;
 
                 hp2 := hp1;
               end;
@@ -12039,29 +12045,31 @@ unit aoptx86;
 
             while GetNextInstruction(hp1, hp1) and (hp1 <> BlockEnd) do
               begin
-                if (hp1.typ = ait_instruction) then
-                  begin
-                    case taicpu(hp1).opcode of
-                      A_MOV:
-                        { Ignore regular MOVs unless they are obviously not related
-                          to a CMOV block }
-                        if taicpu(hp1).oper[1]^.typ <> top_reg then
-                          Break;
-                      A_CMOVcc:
-                        if TryCmpCMovOpts(pCond, hp1) then
-                          begin
-                            hp1 := hp2;
+                if (hp1.typ <> ait_instruction) then
+                  { Break out on markers and labels etc. }
+                  Break;
 
-                            { p itself isn't changed, and we're still inside a
-                              while loop to catch subsequent CMOVs, so just flag
-                              a new iteration }
-                            Include(OptsToCheck, aoc_ForceNewIteration);
-                            Continue;
-                          end;
-                      else
-                        Break;
-                    end;
-                  end;
+                case taicpu(hp1).opcode of
+                  A_MOV:
+                    { Ignore regular MOVs unless they are obviously not related
+                      to a CMOV block }
+                    if taicpu(hp1).oper[1]^.typ <> top_reg then
+                      Break;
+                  A_CMOVcc:
+                    if TryCmpCMovOpts(pCond, hp1) then
+                      begin
+                        hp1 := hp2;
+
+                        { p itself isn't changed, and we're still inside a
+                          while loop to catch subsequent CMOVs, so just flag
+                          a new iteration }
+                        Include(OptsToCheck, aoc_ForceNewIteration);
+                        Continue;
+                      end;
+                  else
+                    { Drop out if we find anything else }
+                    Break;
+                end;
 
                 hp2 := hp1;
               end;
