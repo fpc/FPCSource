@@ -479,7 +479,9 @@ type
   end;
 
 type
+  t_ppu_endian = (ppu_unknown_endian, ppu_little_endian, ppu_big_endian );
   tppudumpfile = class(tppufile)
+    internal_endian : t_ppu_endian;
   protected
     procedure RaiseAssertion(Code: Longint); override;
   end;
@@ -521,11 +523,6 @@ type
     case byte of
       0: (bytes: Array[0..9] of byte);
       1: (words: Array[0..4] of word);
-{$ifdef FPC_LITTLE_ENDIAN}
-      2: (cards: Array[0..1] of cardinal; w: word);
-{$else not FPC_LITTLE_ENDIAN}
-      2: (w:word; cards: Array[0..1] of cardinal);
-{$endif not FPC_LITTLE_ENDIAN}
   end;
 const
   maxDigits = 17;
@@ -537,7 +534,8 @@ const
     exp : smallint;
     d : double;
     i : longint;
-    mantval : qword;
+    e_qw, mantval : qword;
+    e_w : word;
   begin
     if ppufile.change_endian then
       begin
@@ -552,16 +550,21 @@ const
         exit;
       end;
     { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
-    sign := (e.w and $8000) <> 0;
-    expMaximal := (e.w and $7fff) = 32767;
-    exp:=(e.w and $7fff) - 16383 - 63;
-    fraczero := (e.cards[0] = 0) and
-                    ((e.cards[1] and $7fffffff) = 0);
-{$ifdef FPC_LITTLE_ENDIAN}
-    mantval := qword(e.cards[0]) or (qword(e.cards[1]) shl 32);
-{$else not FPC_LITTLE_ENDIAN}
-    mantval := (qword(e.cards[0]) shl 32) or qword(e.cards[1]);
-{$endif not FPC_LITTLE_ENDIAN}
+    if (ppufile.internal_endian=ppu_big_endian) then
+      begin
+        e_w:=pword(@(e.bytes[0]))^;
+        e_qw:=unaligned(pqword(@(e.bytes[2]))^);
+      end
+    else
+      begin
+        e_w:=pword(@(e.bytes[8]))^;
+        e_qw:=pqword(@(e.bytes[0]))^;
+      end;
+    sign := (e_w and $8000) <> 0;
+    expMaximal := (e_w and $7fff) = 32767;
+    exp:=(e_w and $7fff) - 16383 - 63;
+    fraczero := ((e_qw and qword($7fffffffffffffff)) = 0);
+    mantval:=e_qw;
     if expMaximal then
       if fraczero then
         if sign then
@@ -601,7 +604,7 @@ const
           system.str(d,temp);
         end;
       end;
-
+    temp:=temp+' w=$'+hexstr(e_w,4)+',qw=$'+hexstr(e_qw,16);
     result:=temp;
   end;
 {$POP}
@@ -855,6 +858,8 @@ type
   end;
 const
   flagopts=8;
+  mask_big_endian = $4;
+  mask_little_endian = $1000;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $4    ;str:'big_endian'),
 //    (mask: $10   ;str:'browser'),
@@ -874,6 +879,7 @@ var
 begin
   s:='';
   ntflags:=flags;
+  ppufile.internal_endian:=ppu_unknown_endian;
   if flags<>0 then
    begin
      first:=true;
@@ -885,7 +891,25 @@ begin
          else
            s:=s+', ';
          s:=s+flagopt[i].str;
-         ntflags:=ntflags and (not flagopt[i].mask);
+         if flagopt[i].mask=mask_big_endian then
+           begin
+             if (ppufile.internal_endian<>ppu_unknown_endian) then
+               begin
+                 s:=s+' endianess explicitly set twice';
+                 SetHasErrors;
+               end;
+             ppufile.internal_endian:=ppu_big_endian;
+           end;
+         if flagopt[i].mask=mask_little_endian then
+           begin
+             if (ppufile.internal_endian<>ppu_unknown_endian) then
+               begin
+                 s:=s+' endianess explicitly set twice';
+                 SetHasErrors;
+               end;
+             ppufile.internal_endian:=ppu_little_endian;
+           end;
+          ntflags:=ntflags and (not flagopt[i].mask);
        end;
    end
   else
@@ -893,6 +917,11 @@ begin
   if ntflags<>0 then
     begin
       s:=s+' unknown '+hexstr(ntflags,8);
+      SetHasErrors;
+    end;
+  if (ppufile.internal_endian=ppu_unknown_endian) then
+    begin
+      s:=s+' endianess not explicitly set';
       SetHasErrors;
     end;
   PPUFlags2Str:=s;
@@ -2348,7 +2377,7 @@ const
         'Assemble on target OS', {cs_asemble_on_target}
         'Use a memory model to support >2GB static data on 64 Bit target', {cs_large}
         'Generate UF2 binary', {cs_generate_uf2}
-	'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
+        'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }
@@ -3839,6 +3868,8 @@ begin
                          if j>1 then
                           write(',');
                          b:=getbyte;
+                         if ppufile.change_endian then
+                           b:=reverse_byte(b);
                          write(hexstr(b,2));
                          constdef.VSet[i*j-1]:=b;
                        end;
