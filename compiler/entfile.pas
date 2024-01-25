@@ -1945,7 +1945,7 @@ begin
       softfloat_exception_mask:=local_softfloat_exception_mask;
 {$ifdef FPC_BIG_ENDIAN}
       pword(@floatx80_ba[0])^:=floatx80_e.high;
-      pqword(@floatx80_ba[8])^:=floatx80_e.low;
+      unaligned(pqword(@floatx80_ba[2])^):=floatx80_e.low;
 {$else}
       pword(@floatx80_ba[8])^:=floatx80_e.high;
       pqword(@floatx80_ba[0])^:=floatx80_e.low;
