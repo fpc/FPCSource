@@ -1126,37 +1126,49 @@ Implementation
         index, step, swapmask, count: longint;
         ssingle: single;
         ddouble: double;
+{$ifdef FPC_COMP_IS_INT64}
+	ccomp: int64;
+{$else}
         ccomp: comp;
+{$endif}
+	comp_data_size : byte;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended: extended;
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
+{$define USE_SOFT_FLOATX80}
 	f32 : float32;
 	f64 : float64;
 	eextended: floatx80;
+	gap_ofs_low,gap_ofs_high : byte;
+	gap_index, gap_size : byte;
+	has_gap : boolean;
 {$endif}
 {$endif cpuextended}
       begin
+{$ifdef USE_SOFT_FLOATX80}
+        has_gap:=false;
+{$endif USE_SOFT_FLOATX80}
         if do_line then
           begin
             case tai_realconst(hp).realtyp of
               aitrealconst_s32bit:
-                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+                writer.AsmWriteLn(asminfo^.comment+'s32bit real value: '+single2str(tai_realconst(hp).value.s32val));
               aitrealconst_s64bit:
-                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+                writer.AsmWriteLn(asminfo^.comment+'s64bit real value: '+double2str(tai_realconst(hp).value.s64val));
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
               { can't write full 80 bit floating point constants yet on non-x86 }
               aitrealconst_s80bit:
-                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+                writer.AsmWriteLn(asminfo^.comment+'s80bit real value: '+extended2str(tai_realconst(hp).value.s80val));
 {$else}
-{$ifdef FPC_SOFT_FPUX80}
+{$ifdef USE_SOFT_FLOATX80}
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
              aitrealconst_s80bit:
                begin
      	         if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
-                   writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
+                   writer.AsmWriteLn(asminfo^.comment+'Emulated s80bit real value (on s64bit): '+double2str(tai_realconst(hp).value.s80val))
      	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
-                   writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
+                   writer.AsmWriteLn(asminfo^.comment+'Emulated s80bit real value (on s32bit): '+single2str(tai_realconst(hp).value.s80val))
                 else
      	         internalerror(2017091901);
        	      end;
@@ -1164,7 +1176,12 @@ Implementation
 {$endif}
 {$endif cpuextended}
               aitrealconst_s64comp:
-                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+                begin
+                  writer.AsmWriteLn(asminfo^.comment+'s64comp real value: '+extended2str(tai_realconst(hp).value.s64compval));
+	          comp_data_size:=sizeof(comp);
+                  if (comp_data_size<>tai_realconst(hp).datasize) then
+                    writer.AsmWriteLn(asminfo^.comment+'s64comp value type size is '+tostr(comp_data_size)+' but datasize is '+tostr(tai_realconst(hp).datasize));
+                end
               else
                 internalerror(2014050604);
             end;
@@ -1192,7 +1209,7 @@ Implementation
               pdata:=@eextended;
             end;
 {$else}
-{$ifdef FPC_SOFT_FPUX80}
+{$ifdef USE_SOFT_FLOATX80}
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
           aitrealconst_s80bit:
             begin
@@ -1218,13 +1235,37 @@ Implementation
 	      else
 	        internalerror(2017091902);
               pdata:=@eextended;
+              if sizeof(eextended)>10 then
+                begin
+                  gap_ofs_high:=(pbyte(@eextended.high) - pbyte(@eextended));
+                  gap_ofs_low:=(pbyte(@eextended.low) - pbyte(@eextended));
+		  if (gap_ofs_low<gap_ofs_high) then
+                    begin
+                      gap_index:=gap_ofs_low+sizeof(eextended.low);
+                      gap_size:=gap_ofs_high-gap_index;
+                    end
+                  else
+                    begin
+                      gap_index:=gap_ofs_high+sizeof(eextended.high);
+                      gap_size:=gap_ofs_low-gap_index;
+                    end;
+                  if source_info.endian<>target_info.endian then
+		      gap_index:=gap_index+gap_size-1;
+                  has_gap:=gap_size <> 0;
+                end
+              else
+                has_gap:=false;
             end;
 {$pop}
 {$endif}
 {$endif cpuextended}
           aitrealconst_s64comp:
             begin
+{$ifdef FPC_COMP_IS_INT64}
+              ccomp:=system.trunc(tai_realconst(hp).value.s64compval);
+{$else}
               ccomp:=comp(tai_realconst(hp).value.s64compval);
+{$endif}
               pdata:=@ccomp;
             end;
           else
@@ -1236,7 +1277,12 @@ Implementation
         if source_info.endian<>target_info.endian then
           begin
             { go from back to front }
-            index:=count-1;
+{$ifdef USE_SOFT_FLOATX80}
+            if has_gap then
+              index:=sizeof(eextended)-1
+            else
+{$endif USE_SOFT_FLOATX80}
+              index:=count-1;
             step:=-1;
           end
         else
@@ -1259,6 +1305,10 @@ Implementation
 {$endif ARM}
           swapmask:=0;
         repeat
+{$ifdef USE_SOFT_FLOATX80}
+          if has_gap and (index=gap_index) then
+            index:=index+step*gap_size;
+{$endif USE_SOFT_FLOATX80}
           writer.AsmWrite(tostr(pdata[index xor swapmask]));
           inc(index,step);
           dec(count);
