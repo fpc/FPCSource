@@ -11754,7 +11754,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.TryCmpCMovOpts(var p, hp1: tai): Boolean;
       var
-        hp2, hp3, pFirstMOV, pLastMOV, pCMOV: tai;
+        hp2, pCond, pFirstMOV, pLastMOV, pCMOV: tai;
         TargetReg: TRegister;
         condition, inverted_condition: TAsmCond;
         FoundMOV: Boolean;
@@ -11818,6 +11818,15 @@ unit aoptx86;
         pLastMov := nil;
         pCMOV := nil;
 
+        if (p.typ = ait_instruction) then
+          pCond := p
+        else if not GetNextInstruction(p, pCond) then
+          InternalError(2024012501);
+
+        if not MatchInstruction(pCond, A_CMP, A_TEST, []) then
+          { We should get the CMP or TEST instructeion }
+          InternalError(2024012502);
+
         if (
             (taicpu(hp1).oper[0]^.typ = top_reg) or
             IsRefSafe(taicpu(hp1).oper[0]^.ref)
@@ -11827,7 +11836,7 @@ unit aoptx86;
               GetNextInstructionUsingReg... we can only accept MOV and other
               CMOV instructions.  Anything else and we must drop out}
             hp2 := hp1;
-            while GetNextInstruction(hp2, hp2) and (hp2 <> BlockEnd) and (hp2.typ = ait_instruction) do
+            while GetNextInstruction(hp2, hp2) and (hp2 <> BlockEnd) do
               begin
                 case taicpu(hp2).opcode of
                   A_MOV:
@@ -11878,7 +11887,11 @@ unit aoptx86;
               begin
                 { Don't need to do anything special or search for a matching MOV }
                 Asml.Remove(pCMOV);
-                Asml.InsertBefore(pCMOV, p);
+                if RegInInstruction(TargetReg, pCond) then
+                  { Make sure we don't overwrite the register if it's being used in the condition }
+                  Asml.InsertAfter(pCMOV, pCond)
+                else
+                  Asml.InsertBefore(pCMOV, pCond);
 
                 taicpu(pCMOV).opcode := A_MOV;
                 taicpu(pCMOV).condition := C_None;
@@ -11912,21 +11925,34 @@ unit aoptx86;
                           AllocRegBetween(TargetReg, p, hp2, UsedRegs);
                         end;
 
-                      hp3 := tai(hp2.Previous);
+                      hp1 := tai(hp2.Previous);
                       Asml.Remove(hp2);
-                      Asml.InsertBefore(hp2, p);
-                      hp2 := hp3;
+                      if RegInInstruction(TargetReg, pCond) then
+                        { Make sure we don't overwrite the register if it's being used in the condition }
+                        Asml.InsertAfter(hp2, pCond)
+                      else
+                        Asml.InsertBefore(hp2, pCond);
+
+                      if (hp2 = pLastMov) then
+                        { If the MOV instruction is the last one, "hp2 = pLastMOV" won't trigger }
+                        Break;
+
+                      hp2 := hp1;
                     end;
                 until (hp2 = pLastMOV) or not GetNextInstruction(hp2, hp2) or (hp2 = BlockEnd) or (hp2.typ <> ait_instruction);
 
                 if FoundMOV then
                   { Delete the CMOV }
-                  RemoveInstruction(pcMOV)
+                  RemoveInstruction(pCMOV)
                 else
                   begin
                     { If no MOV was found, we have to actually move and transmute the CMOV }
                     Asml.Remove(pCMOV);
-                    Asml.InsertBefore(pCMOV, p);
+                    if RegInInstruction(TargetReg, pCond) then
+                      { Make sure we don't overwrite the register if it's being used in the condition }
+                      Asml.InsertAfter(pCMOV, pCond)
+                    else
+                      Asml.InsertBefore(pCMOV, pCond);
 
                     taicpu(pCMOV).opcode := A_MOV;
                     taicpu(pCMOV).condition := C_None;
