@@ -273,8 +273,8 @@ type
   function GetModuleHandle(p : PAnsiChar) : THandle;
     stdcall;external KernelDLL name 'GetModuleHandleA';
 
-  function SetThreadStackGuarantee(StackSizeInBytes : PPtrUint) : BOOL;
-    stdcall;external KernelDLL name 'SetThreadStackGuarantee';
+var
+  SetThreadStackGuarantee: function(StackSizeInBytes : PPtrUint) : BOOL; stdcall;
 {$else WINCE}
 
    { module functions }
@@ -304,7 +304,7 @@ type
    procedure GetSystemInfo(lpSystemInfo: PSystemInfo); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetSystemInfo';
 
    function WinLoadLibraryW(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryW';
-   function WinLoadLibraryA(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryA';
+   function WinGetModuleHandleW(lpModuleName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetModuleHandleW';
    {$ifdef wince}
    function WinGetProcAddress(hModule:THandle; lpProcName:PAnsiChar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddressA';
    {$else}

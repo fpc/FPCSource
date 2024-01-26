@@ -229,8 +229,9 @@ var
         if ThreadID=TThreadID(0) then
           begin
             InitThread(ti.stklen);
-{$ifndef wince}            
-            SetThreadStackGuarantee(@StackMargin);
+{$ifndef wince}
+            if Assigned(SetThreadStackGuarantee) then
+              SetThreadStackGuarantee(@StackMargin);
 {$endif wince}            
           end;
 
