@@ -15131,7 +15131,7 @@ begin
         ReleaseEvalValue(Value);
       end;
       end
-    else if (C=TPasClassType) or (C=TPasPointerType) then
+    else if (C=TPasClassType) or (C=TPasPointerType) or (C=TPasClassOfType) then
       begin
       Result:=CreateLiteralNull(El);
       exit;
