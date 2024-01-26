@@ -39,7 +39,10 @@ unit aoptutils;
     function SkipLabels(hp: tai; out hp2: tai): boolean;
 
     { sets hp2 to hp and returns True if hp is not nil }
-    function SetAndTest(const hp: tai; out hp2: tai): Boolean;
+    function SetAndTest(const hp: tai; out hp2: tai): Boolean; inline;
+
+    { Set Store and Result to Condition (useful as an inline assignment in a conditional block) }
+    function SetAndTest(const Condition: Boolean; out Store: Boolean): Boolean; inline;
 
   implementation
 
@@ -85,10 +88,18 @@ unit aoptutils;
       end;
 
     { sets hp2 to hp and returns True if hp is not nil }
-    function SetAndTest(const hp: tai; out hp2: tai): Boolean; inline;
+    function SetAndTest(const hp: tai; out hp2: tai): Boolean;
       begin
         hp2 := hp;
         Result := Assigned(hp);
+      end;
+
+
+    { Set Store and Result to Condition (useful as an inline assignment in a conditional block) }
+    function SetAndTest(const Condition: Boolean; out Store: Boolean): Boolean;
+      begin
+        Store := Condition;
+        Result := Store;
       end;
 
 end.
