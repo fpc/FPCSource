@@ -273,8 +273,14 @@ type
   function GetModuleHandle(p : PAnsiChar) : THandle;
     stdcall;external KernelDLL name 'GetModuleHandleA';
 
+{$ifdef win64}
+  { all win64 versions have this function, including 64 bit XP }
+  function SetThreadStackGuarantee(StackSizeInBytes : PPtrUint) : BOOL;
+    stdcall;external KernelDLL name 'SetThreadStackGuarantee';
+{$else win64}
 var
   SetThreadStackGuarantee: function(StackSizeInBytes : PPtrUint) : BOOL; stdcall;
+{$endif win64}
 {$else WINCE}
 
    { module functions }

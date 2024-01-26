@@ -230,7 +230,9 @@ var
           begin
             InitThread(ti.stklen);
 {$ifndef wince}
+{$ifdef win32}
             if Assigned(SetThreadStackGuarantee) then
+{$endif win32}
               SetThreadStackGuarantee(@StackMargin);
 {$endif wince}            
           end;

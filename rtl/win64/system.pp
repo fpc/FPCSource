@@ -478,9 +478,7 @@ initialization
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
-  CodePointer(SetThreadStackGuarantee) := WinGetProcAddress(WinGetModuleHandleW(KernelDLL), 'SetThreadStackGuarantee');
-  if Assigned(SetThreadStackGuarantee) then
-    SetThreadStackGuarantee(@StackMargin);
+  SetThreadStackGuarantee(@StackMargin);
   
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
