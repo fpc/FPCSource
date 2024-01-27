@@ -275,7 +275,7 @@ var
   if (u1<>0) then
     begin
     if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-      U:=Utf8Encode(WideString(WideChar(u1))) // ToDo: use faster function
+      U:=Utf8Encode(UnicodeString(WideChar(u1))) // ToDo: use faster function
     else
       U:=String(WideChar(u1)); // WideChar converts the encoding. Should it warn on loss?
     FCurTokenString:=FCurTokenString+U;
@@ -367,7 +367,7 @@ begin
                       if not ((u2>=$DC00) and (u2<=$DFFF)) then
                         Error(SErrInvalidCharacter, [CurRow,CurColumn,IntToStr(u2)]);
                       if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-                        S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
+                        S:=Utf8Encode(UnicodeString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
                       else
                         S:=String(WideChar(u1)+WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
                       u1:=0;
@@ -383,7 +383,7 @@ begin
                       else
                         begin
                         if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
-                          S:=Utf8Encode(WideString(WideChar(u2))) // ToDo: use faster function
+                          S:=Utf8Encode(UnicodeString(WideChar(u2))) // ToDo: use faster function
                         else
                           S:=String(WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
                         U1:=0;  
