@@ -186,6 +186,7 @@ unit aoptx86;
         function OptPass1SHXX(var p: tai): boolean;
         function OptPass1VMOVDQ(var p: tai): Boolean;
         function OptPass1_V_Cvtss2sd(var p: tai): boolean;
+        function OptPass1STCCLC(var p: tai): Boolean;
 
         function OptPass2Movx(var p : tai): Boolean;
         function OptPass2MOV(var p : tai) : boolean;
@@ -9455,6 +9456,83 @@ unit aoptx86;
           { Looks like we can - if successful, this benefits PostPeepholeOptTestOr }
           TrySwapMovOp(hp2, hp1);
     end;
+
+
+  function TX86AsmOptimizer.OptPass1STCCLC(var p: tai): Boolean;
+    var
+      hp1, hp2, p_dist, hp1_dist: tai;
+      JumpLabel: TAsmLabel;
+
+    begin
+      Result := False;
+      { Look for:
+          stc/clc
+          j(c)     .L1
+          ...
+        .L1:
+          set(n)cb %reg
+          (flags deallocated)
+          j(c)     .L2
+
+        Change to:
+          mov $0/$1,%reg (depending on if the carry bit is cleared or not)
+          j(c)     .L2
+      }
+      if not GetNextInstruction(p, hp1) then
+        Exit;
+
+      if (hp1.typ = ait_instruction) and
+        IsJumpToLabel(taicpu(hp1)) then
+        begin
+          hp2 := nil; { Suppress compiler warning }
+          JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
+          if Assigned(JumpLabel) and
+            SetAndTest(getlabelwithsym(JumpLabel), hp2) and
+            GetNextInstruction(hp2, p_dist) and
+            MatchInstruction(p_dist, A_SETcc, []) and
+            (taicpu(p_dist).condition in [C_C, C_NC]) and
+            { Make sure the flags aren't used again }
+            SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(p_dist.Next)), hp2) and
+            GetNextInstruction(hp2, hp1_dist) and
+            IsJumpToLabel(taicpu(hp1_dist)) and
+            { Make sure the carry flag doesn't appear in the jump conditions }
+            not (taicpu(hp1).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
+            not (taicpu(hp1_dist).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
+            { This works if hp1_dist or both are regular JMP instructions }
+            condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
+            begin
+              taicpu(p).allocate_oper(2);
+              taicpu(p).ops := 2;
+
+              { clc + setc = 0; clc + setnc = 1; stc + setc = 1; stc + setnc = 0 }
+              taicpu(p).loadconst(0, TCGInt((taicpu(p).opcode = A_STC) xor (taicpu(p_dist).condition = C_NC)));
+              taicpu(p).loadoper(1, taicpu(p_dist).oper[0]^);
+              taicpu(p).opcode := A_MOV;
+              taicpu(p).opsize := S_B;
+
+              if (taicpu(p_dist).oper[0]^.typ = top_reg) then
+                AllocRegBetween(taicpu(p_dist).oper[0]^.reg, p, hp1, UsedRegs);
+
+              DebugMsg(SPeepholeOptimization + 'STC/CLC; JMP; ... SET(N)C; JMP -> MOV; JMP (StcClc2Mov)', p);
+
+              JumpLabel.decrefs;
+              taicpu(hp1).loadsymbol(0, taicpu(hp1_dist).oper[0]^.ref^.symbol, 0);
+
+              { If a flag allocation is found, try to move it to after the MOV so "mov $0,%reg" gets optimised to "xor %reg,%reg" }
+              if SetAndTest(FindRegAlloc(NR_DEFAULTFLAGS, p), hp1) and
+                (tai_regalloc(hp1).ratype = ra_alloc) then
+                begin
+                  Asml.Remove(hp1);
+                  Asml.InsertAfter(hp1, p);
+                end;
+
+              Result := True;
+              Exit;
+            end;
+        end;
+
+    end;
+
 
 
   function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
