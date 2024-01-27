@@ -351,7 +351,7 @@ implementation
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
               vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
-              pd.localst.insertsym(vs);
+              pd.localst.insertsym(vs,false);
               pd.funcretsym:=vs;
             end;
 
