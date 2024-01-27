@@ -8626,8 +8626,9 @@ unit aoptx86;
 
    function TX86AsmOptimizer.OptPass1Jcc(var p : tai) : boolean;
      var
-       hp1, hp2, hp3, hp4, hp5, hp6: tai;
+       hp1, hp2, hp3, hp4, hp5: tai;
        ThisReg: TRegister;
+       TempBool: Boolean;
      begin
        Result := False;
        if not GetNextInstruction(p,hp1) then
@@ -8784,6 +8785,56 @@ unit aoptx86;
 
            Result:=true;
            exit;
+         end
+       else if MatchInstruction(hp1, A_CLC, A_STC, []) then
+         begin
+           {
+               j(c)   .L1
+               stc/clc
+             .L1:
+               jc/jnc .L2
+               (Flags deallocated)
+
+             Change to:
+               j)c)   .L1
+               jmp    .L2
+             .L1:
+               jc/jnc .L2
+
+             Then call DoJumpOptimizations to convert to:
+               j(nc)  .L2
+             .L1: (may become a dead label)
+               jc/jnc .L2
+           }
+           if GetNextInstruction(hp1, hp2) and
+             (hp2.typ = ait_label) and
+             (tai_label(hp2).labsym = TAsmLabel(taicpu(p).oper[0]^.ref^.symbol)) and
+             GetNextInstruction(hp2, hp3) and
+             MatchInstruction(hp3, A_Jcc, []) and
+             (
+               (
+                 (taicpu(hp3).condition = C_C) and
+                 (taicpu(hp1).opcode = A_STC)
+               ) or (
+                 (taicpu(hp3).condition = C_NC) and
+                 (taicpu(hp1).opcode = A_CLC)
+               )
+             ) and
+             { Make sure the flags aren't used again }
+             Assigned(FindRegDealloc(NR_DEFAULTFLAGS, tai(hp3.Next))) then
+             begin
+               taicpu(hp1).allocate_oper(1);
+               taicpu(hp1).ops := 1;
+               taicpu(hp1).loadsymbol(0, TAsmLabel(taicpu(hp3).oper[0]^.ref^.symbol), 0);
+               taicpu(hp1).opcode := A_JMP;
+               taicpu(hp1).is_jmp := True;
+
+               TempBool := True; { Prevent compiler warnings }
+               if DoJumpOptimizations(p, TempBool) then
+                 Result := True
+               else
+                 Include(OptsToCheck, aoc_ForceNewIteration);
+             end;
          end
        else if (hp1.typ = ait_label) then
          Result := DoSETccLblRETOpt(p, tai_label(hp1));
