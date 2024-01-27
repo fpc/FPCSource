@@ -45,7 +45,7 @@ BEGIN
     do_error(1004);
   Close(f);
 
-  dateTime := EncodeDate(2104,2,29);
+  dateTime := EncodeDate(2096,2,29);
   Assign(f,'datetest.dat');
   Rewrite(f);
   if FileSetDate(filerec(f).handle, DateTimeToFileDate(dateTime))<>0 then
