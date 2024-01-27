@@ -2176,7 +2176,12 @@ Implementation
         eextended : floatx80;
         {$endif}
         {$endif}
-        ccomp : comp;
+{$ifdef FPC_COMP_IS_INT64}
+        ccomp: int64;
+{$else}
+        ccomp: comp;
+{$endif}
+        comp_data_size : byte;
         tmp    : word;
         cpu: tcputype;
         ddword : dword;
@@ -2290,12 +2295,22 @@ Implementation
          {$endif cpuextended}
                    aitrealconst_s64comp:
                      begin
+{$ifdef FPC_COMP_IS_INT64}
+                       ccomp:=system.trunc(tai_realconst(hp).value.s64compval);
+{$else}
                        ccomp:=comp(tai_realconst(hp).value.s64compval);
+{$endif}
                        pdata:=@ccomp;
                      end;
                    else
                      internalerror(2015030501);
                  end;
+                 if source_info.endian<>target_info.endian then
+                   begin
+                     for d:=0 to tai_realconst(hp).datasize-1 do
+                       lebbuf[d]:=pbyte(pdata)[tai_realconst(hp).datasize-1-d];
+                     pdata:=@lebbuf;
+                   end;
                  ObjData.writebytes(pdata^,tai_realconst(hp).datasize);
                  ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-tai_realconst(hp).datasize);
                end;
