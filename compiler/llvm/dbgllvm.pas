@@ -758,7 +758,7 @@ implementation
       begin
         filemeta:=file_getmetanode(fileinfo.moduleindex,fileinfo.fileindex);
         if not assigned(filemeta) then
-          internalerror(2022041701);
+          internalerror(2022041730);
         result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation);
         result.addqword('line',fileinfo.line);
         result.addqword('column',fileinfo.column);
