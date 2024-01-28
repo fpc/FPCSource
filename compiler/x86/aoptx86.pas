@@ -9436,20 +9436,67 @@ unit aoptx86;
       if (hp1.typ = ait_instruction) and
         IsJumpToLabel(taicpu(hp1)) then
         begin
+          JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
+          if not Assigned(JumpLabel) then
+            InternalError(2024012801);
+
           { Optimise the J(c); stc/clc optimisation first since this will
             get missed if the main optimisation takes place }
-          if (taicpu(hp1).opcode = A_JCC) and
-            GetNextInstruction(hp1, hp2) and
-            MatchInstruction(hp2, A_CLC, A_STC, []) and
-            TryJccStcClcOpt(hp1, hp2) then
+          if (taicpu(hp1).opcode = A_JCC) then
             begin
-              Result := True;
-              Exit;
+              if GetNextInstruction(hp1, hp2) and
+                MatchInstruction(hp2, A_CLC, A_STC, []) and
+                TryJccStcClcOpt(hp1, hp2) then
+                begin
+                  Result := True;
+                  Exit;
+                end;
+
+              hp2 := nil; { Suppress compiler warning }
+
+              if (taicpu(hp1).condition in [C_C, C_NC]) and
+                { Make sure the flags aren't used again }
+                SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(hp1.Next)), hp2) then
+                begin
+                  { clc + jc = False; clc + jnc = True; stc + jc = True; stc + jnc = False }
+                  if ((taicpu(p).opcode = A_STC) xor (taicpu(hp1).condition = C_NC)) then
+                    begin
+                      if (taicpu(p).opcode = A_STC) then
+                        DebugMsg(SPeepholeOptimization + 'STC; JC -> JMP (Deterministic jump) (StcJc2Jmp)', p)
+                      else
+                        DebugMsg(SPeepholeOptimization + 'CLC; JNC -> JMP (Deterministic jump) (ClcJnc2Jmp)', p);
+
+                      MakeUnconditional(taicpu(hp1));
+                      { Move the jump to after the flag deallocations }
+                      Asml.Remove(hp1);
+                      Asml.InsertAfter(hp1, hp2);
+
+                      RemoveCurrentP(p, hp1);
+                      RemoveDeadCodeAfterJump(p); { Might as well do it now }
+                    end
+                  else
+                    begin
+                      JumpLabel.DecRefs;
+
+                      if (taicpu(p).opcode = A_STC) then
+                        DebugMsg(SPeepholeOptimization + 'STC; JNC -> NOP (Deterministic jump) (StcJnc2Nop)', p)
+                      else
+                        DebugMsg(SPeepholeOptimization + 'CLC; JC -> NOP (Deterministic jump) (ClcJc2Nop)', p);
+
+                      { In this case, the jump is deterministic in that it will never be taken }
+                      RemoveCurrentP(p, tai(hp1.Next)); { hp1 will get removed too }
+                      RemoveInstruction(hp1);
+                    end;
+
+                  Result := True;
+                  Exit;
+                end;
             end;
 
           hp2 := nil; { Suppress compiler warning }
-          JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
-          if Assigned(JumpLabel) and
+          if
+            { Make sure the carry flag doesn't appear in the jump conditions }
+            not (taicpu(hp1).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
             SetAndTest(getlabelwithsym(JumpLabel), hp2) and
             GetNextInstruction(hp2, p_dist) and
             MatchInstruction(p_dist, A_Jcc, A_SETcc, []) and
@@ -9486,9 +9533,8 @@ unit aoptx86;
                   if { Make sure the flags aren't used again }
                     SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(p_dist.Next)), hp2) and
                     GetNextInstruction(hp2, hp1_dist) and
+                    (Hp1_dist.typ = ait_instruction) and
                     IsJumpToLabel(taicpu(hp1_dist)) and
-                    { Make sure the carry flag doesn't appear in the jump conditions }
-                    not (taicpu(hp1).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
                     not (taicpu(hp1_dist).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
                     { This works if hp1_dist or both are regular JMP instructions }
                     condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
@@ -9570,8 +9616,6 @@ unit aoptx86;
         { Make sure the flags aren't used again }
         Assigned(FindRegDealloc(NR_DEFAULTFLAGS, tai(hp3.Next))) then
         begin
-          tai_label(hp2).labsym.DecRefs;
-
           taicpu(hp1).allocate_oper(1);
           taicpu(hp1).ops := 1;
           taicpu(hp1).loadsymbol(0, TAsmLabel(taicpu(hp3).oper[0]^.ref^.symbol), 0);
