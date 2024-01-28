@@ -471,7 +471,8 @@ Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
 
 begin
   FileOpen:=FileOpenNoLocking(FileName, Mode);
-  FileOpen:=DoFileLocking(FileOpen, Mode);
+  if (Mode and fmShareNoLocking)=0 then
+    FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
 function FileFlush(Handle: THandle): Boolean;
@@ -513,7 +514,7 @@ begin
     (which we can by definition) }
   fd:=FileOpenNoLocking(FileName,ShareMode);
   { the file exists, check whether our locking request is compatible }
-  if fd>=0 then
+  if (fd>=0) and ((ShareMode and fmShareNoLocking)=0) then
     begin
       Result:=DoFileLocking(fd,ShareMode);
       FileClose(fd);
@@ -523,7 +524,8 @@ begin
     end;
   { now create the file }
   Result:=FileCreate(FileName,Rights);
-  Result:=DoFileLocking(Result,ShareMode);
+  if (ShareMode and fmShareNoLocking)=0 then
+    Result:=DoFileLocking(Result,ShareMode);
 end;
 
 
