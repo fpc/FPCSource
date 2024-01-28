@@ -514,9 +514,12 @@ begin
     (which we can by definition) }
   fd:=FileOpenNoLocking(FileName,ShareMode);
   { the file exists, check whether our locking request is compatible }
-  if (fd>=0) and ((ShareMode and fmShareNoLocking)=0) then
+  if (fd>=0) then
     begin
-      Result:=DoFileLocking(fd,ShareMode);
+      if ((ShareMode and fmShareNoLocking)=0) then
+        Result:=DoFileLocking(fd,ShareMode)
+      else
+        Result:=0;
       FileClose(fd);
      { Can't lock -> abort }
       if Result<0 then
@@ -524,7 +527,7 @@ begin
     end;
   { now create the file }
   Result:=FileCreate(FileName,Rights);
-  if (ShareMode and fmShareNoLocking)=0 then
+  if ((ShareMode and fmShareNoLocking)=0) then
     Result:=DoFileLocking(Result,ShareMode);
 end;
 
