@@ -9412,9 +9412,9 @@ unit aoptx86;
 
   function TX86AsmOptimizer.OptPass1STCCLC(var p: tai): Boolean;
     var
-      hp1, hp2, p_dist, hp1_dist: tai;
+      hp1, hp2, p_last, p_dist, hp1_dist: tai;
       JumpLabel: TAsmLabel;
-      Tmp: string;
+      TmpBool: Boolean;
     begin
       Result := False;
       { Look for:
@@ -9430,12 +9430,16 @@ unit aoptx86;
           mov $0/$1,%reg (depending on if the carry bit is cleared or not)
           j(c)     .L2
       }
-      if not GetNextInstruction(p, hp1) then
-        Exit;
+      p_last := p;
 
-      if (hp1.typ = ait_instruction) and
-        IsJumpToLabel(taicpu(hp1)) then
+      while GetNextInstruction(p_last, hp1) and
+        (hp1.typ = ait_instruction) and
+        IsJumpToLabel(taicpu(hp1)) do
         begin
+          if DoJumpOptimizations(hp1, TmpBool) then
+            { Re-evaluate from p_last.  Probably could be faster, but it's guaranteed to be correct }
+            Continue;
+
           JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
           if not Assigned(JumpLabel) then
             InternalError(2024012801);
@@ -9471,25 +9475,25 @@ unit aoptx86;
                       Asml.Remove(hp1);
                       Asml.InsertAfter(hp1, hp2);
 
-                      RemoveCurrentP(p, hp1);
-                      RemoveDeadCodeAfterJump(p); { Might as well do it now }
+                      RemoveCurrentP(p); { hp1 may not be the immediate next instruction }
+                      Result := True;
+                      Exit;
                     end
                   else
                     begin
-                      JumpLabel.DecRefs;
-
                       if (taicpu(p).opcode = A_STC) then
                         DebugMsg(SPeepholeOptimization + 'STC; JNC -> NOP (Deterministic jump) (StcJnc2Nop)', p)
                       else
                         DebugMsg(SPeepholeOptimization + 'CLC; JC -> NOP (Deterministic jump) (ClcJc2Nop)', p);
 
                       { In this case, the jump is deterministic in that it will never be taken }
-                      RemoveCurrentP(p, tai(hp1.Next)); { hp1 will get removed too }
+                      JumpLabel.DecRefs;
                       RemoveInstruction(hp1);
-                    end;
 
-                  Result := True;
-                  Exit;
+                      RemoveCurrentP(p); { hp1 may not have been the immediate next instruction }
+                      Result := True;
+                      Exit;
+                    end;
                 end;
             end;
 
@@ -9504,36 +9508,42 @@ unit aoptx86;
             begin
               case taicpu(p_dist).opcode of
                 A_Jcc:
-                  { clc + jc = False; clc + jnc = True; stc + jc = True; stc + jnc = False }
-                  if ((taicpu(p).opcode = A_STC) xor (taicpu(p_dist).condition = C_NC)) then
-                    begin
-                      DebugMsg(SPeepholeOptimization + 'STC/CLC; JMP/Jcc; ... J(N)C -> JMP/Jcc (StcClcJ(c)2Jmp)', p);
+                  begin
+                    if DoJumpOptimizations(p_dist, TmpBool) then
+                      { Re-evaluate from p_last.  Probably could be faster, but it's guaranteed to be correct }
+                      Continue;
 
-                      JumpLabel.decrefs;
-                      taicpu(hp1).loadsymbol(0, taicpu(p_dist).oper[0]^.ref^.symbol, 0);
+                    { clc + jc = False; clc + jnc = True; stc + jc = True; stc + jnc = False }
+                    if ((taicpu(p).opcode = A_STC) xor (taicpu(p_dist).condition = C_NC)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'STC/CLC; JMP/Jcc; ... J(N)C -> JMP/Jcc (StcClcJ(c)2Jmp)', p);
 
-                      RemoveCurrentP(p, hp1);
-                      Result := True;
-                      Exit;
-                    end
-                  else if GetNextInstruction(p_dist, hp1_dist) and
-                    (hp1_dist.typ = ait_label) then
-                    begin
-                      DebugMsg(SPeepholeOptimization + 'STC/CLC; JMP/Jcc; ... J(N)C; .Lbl -> JMP/Jcc .Lbl (StcClcJ(~c)Lbl2Jmp)', p);
+                        JumpLabel.decrefs;
+                        taicpu(hp1).loadsymbol(0, taicpu(p_dist).oper[0]^.ref^.symbol, 0);
 
-                      JumpLabel.decrefs;
-                      taicpu(hp1).loadsymbol(0, tai_label(hp1_dist).labsym, 0);
+                        RemoveCurrentP(p); { hp1 may not be the immediate next instruction }
+                        Result := True;
+                        Exit;
+                      end
+                    else if GetNextInstruction(p_dist, hp1_dist) and
+                      (hp1_dist.typ = ait_label) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'STC/CLC; JMP/Jcc; ... J(N)C; .Lbl -> JMP/Jcc .Lbl (StcClcJ(~c)Lbl2Jmp)', p);
 
-                      RemoveCurrentP(p, hp1);
-                      Result := True;
-                      Exit;
-                    end;
+                        JumpLabel.decrefs;
+                        taicpu(hp1).loadsymbol(0, tai_label(hp1_dist).labsym, 0);
+
+                        RemoveCurrentP(p); { hp1 may not be the immediate next instruction }
+                        Result := True;
+                        Exit;
+                      end;
+                  end;
 
                 A_SETcc:
                   if { Make sure the flags aren't used again }
                     SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(p_dist.Next)), hp2) and
                     GetNextInstruction(hp2, hp1_dist) and
-                    (Hp1_dist.typ = ait_instruction) and
+                    (hp1_dist.typ = ait_instruction) and
                     IsJumpToLabel(taicpu(hp1_dist)) and
                     not (taicpu(hp1_dist).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
                     { This works if hp1_dist or both are regular JMP instructions }
@@ -9557,11 +9567,11 @@ unit aoptx86;
                       taicpu(hp1).loadsymbol(0, taicpu(hp1_dist).oper[0]^.ref^.symbol, 0);
 
                       { If a flag allocation is found, try to move it to after the MOV so "mov $0,%reg" gets optimised to "xor %reg,%reg" }
-                      if SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, tai(p.Previous)), hp1) and
-                        (tai_regalloc(hp1).ratype = ra_alloc) then
+                      if SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, tai(p.Previous)), hp2) and
+                        (tai_regalloc(hp2).ratype = ra_alloc) then
                         begin
-                          Asml.Remove(hp1);
-                          Asml.InsertAfter(hp1, p);
+                          Asml.Remove(hp2);
+                          Asml.InsertAfter(hp2, p);
                         end;
 
                       Result := True;
@@ -9571,6 +9581,8 @@ unit aoptx86;
                   ;
               end;
             end;
+
+          p_last := hp1;
         end;
 
     end;
