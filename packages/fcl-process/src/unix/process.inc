@@ -585,7 +585,8 @@ begin
     phtInput:  Result:=FileOpen(aFileName,fmOpenRead);
     phtOutput,
     phtError: if FileExists(aFileName) then
-                Result:=FileOpen(aFileName,fmOpenWrite or fmShareDenyNone)
+                // No locking for existing file. (e.g. /dev/null cannot be locked)
+                Result:=FileOpen(aFileName,fmOpenWrite or fmShareNoLocking)
               else
                 Result:=FileCreate(aFileName,fmShareDenyNone,DefaultRights)
   end;
