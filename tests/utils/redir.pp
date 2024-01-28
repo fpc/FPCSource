@@ -36,25 +36,12 @@ Interface
 {$define implemented}
 {$define USES_UNIT_PROCESS}
 {$endif}
-{$ifdef linux}
+{$IFDEF UNIX}
 {$define implemented}
+{$ifndef MACOS}
+{$define USES_UNIT_PROCESS}
 {$endif}
-{$ifdef BSD}
-{$define implemented}
 {$endif}
-{$ifdef BEOS}
-{$define implemented}
-{$endif}
-{$ifdef macos}
-{$define shell_implemented}
-{$endif}
-{$ifdef sunos}
-{$define implemented}
-{$endif}
-{$ifdef aix}
-{$define implemented}
-{$endif}
-
 Var
   IOStatus                   : Integer;
   RedirErrorOut,RedirErrorIn,
@@ -799,6 +786,32 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 
 {............................................................................}
 
+{$ifdef USES_UNIT_PROCESS}
+function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
+
+const
+  max_count = 6000;
+
+var
+  P : TProcess;
+
+begin
+  P := TProcess.Create(nil);
+  try
+    P.CommandLine:=Progname + ' ' + ComLine;
+    P.InputDescriptor.FileName:=RedirStdIn;
+    P.OutputDescriptor.FileName:=RedirStdOut;
+    P.ErrorDescriptor.FileName:=RedirStdErr;
+    P.Execute;
+    Result:=P.WaitOnExit(max_count);
+    if Result then
+      result:=P.ExitStatus=0;
+  finally
+    P.Free;
+  end;
+end;
+{$ELSE}
+
 function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 Begin
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
@@ -818,6 +831,7 @@ Begin
                 (RedirErrorIn=0) and (RedirErrorError=0) and
                 (ExecuteResult=0);
 End;
+{$ENDIF}
 
 {............................................................................}
 
