@@ -1,5 +1,5 @@
 { %RESULT=202 }
-{ %opt=gl }
+{ %opt=gl -Ct }
 
 {$mode objfpc}
 
@@ -10,6 +10,8 @@ type
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
+  writeln(hexstr(stackbottom));
+  writeln(hexstr(sptr));
   Button1Click(self);
 end;
 
