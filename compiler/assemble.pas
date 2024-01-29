@@ -1148,6 +1148,8 @@ Implementation
       begin
 {$ifdef USE_SOFT_FLOATX80}
         has_gap:=false;
+        gap_index:=0;
+        gap_size:=0;
 {$endif USE_SOFT_FLOATX80}
         if do_line then
           begin
