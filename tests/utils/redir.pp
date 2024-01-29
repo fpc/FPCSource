@@ -32,16 +32,25 @@ Interface
 {$ifdef OS2}
 {$define implemented}
 {$endif}
+
 {$ifdef windows}
 {$define implemented}
+{$if (FPC_FULLVERSION > 30300)}
+{$define EXECUTEREDIR_USES_PROCESS}
+{$ENDIF}
 {$define USES_UNIT_PROCESS}
 {$endif}
+
 {$IFDEF UNIX}
 {$define implemented}
 {$ifndef MACOS}
+{$if (FPC_FULLVERSION > 30300)}
+{$define EXECUTEREDIR_USES_PROCESS}
+{$ENDIF}
 {$define USES_UNIT_PROCESS}
 {$endif}
-{$endif}
+{$ENDIF}
+
 Var
   IOStatus                   : Integer;
   RedirErrorOut,RedirErrorIn,
@@ -786,7 +795,7 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 
 {............................................................................}
 
-{$ifdef USES_UNIT_PROCESS}
+{$ifdef EXECUTEREDIR_USES_PROCESS}
 function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 
 const
