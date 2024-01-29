@@ -235,6 +235,9 @@ uses
                   Result:=OptPass2CMP(p);
                 A_TEST:
                   Result:=OptPass2TEST(p);
+                A_CLC,
+                A_STC:
+                  Result:=OptPass2STCCLC(p);
                 else
                   ;
               end;

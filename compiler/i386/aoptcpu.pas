@@ -316,6 +316,9 @@ unit aoptcpu;
                   Result:=OptPass2SUB(p);
                 A_SETcc:
                   Result:=OptPass2SETcc(p);
+                A_CLC,
+                A_STC:
+                  Result:=OptPass2STCCLC(p);
                 else
                   ;
               end;

@@ -41,7 +41,8 @@ unit aoptx86;
     type
       TOptsToCheck = (
         aoc_MovAnd2Mov_3,
-        aoc_ForceNewIteration
+        aoc_ForceNewIteration,
+        aoc_DoPass2JccOpts
       );
 
       TX86AsmOptimizer = class(TAsmOptimizer)
@@ -188,6 +189,7 @@ unit aoptx86;
         function OptPass1_V_Cvtss2sd(var p: tai): boolean;
         function OptPass1STCCLC(var p: tai): Boolean;
 
+        function OptPass2STCCLC(var p: tai): Boolean;
         function OptPass2Movx(var p : tai): Boolean;
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -9643,6 +9645,13 @@ unit aoptx86;
     end;
 
 
+  function TX86AsmOptimizer.OptPass2STCCLC(var p: tai): Boolean;
+    begin
+      { This generally only executes under -O3 and above }
+      Result := (aoc_DoPass2JccOpts in OptsToCheck) and OptPass1STCCLC(p);
+    end;
+
+
   function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
 
      function IsXCHGAcceptable: Boolean; inline;
@@ -11893,7 +11902,11 @@ unit aoptx86;
                     if taicpu(hp2).opcode = A_SETcc then
                       DebugMsg(SPeepholeOptimization + 'SETcc/TEST/SETcc -> SETcc',p)
                     else
-                      DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                          Include(OptsToCheck, aoc_DoPass2JccOpts);
+                      end;
                   end
                 else
                   if taicpu(hp2).opcode = A_SETcc then
@@ -13236,8 +13249,13 @@ unit aoptx86;
         CMOVTracking: PCMOVTracking;
         hp3,hp4,hp5: tai;
 {$endif i8086}
+        TempBool: Boolean;
 
       begin
+        if (aoc_DoPass2JccOpts in OptsToCheck) and
+          DoJumpOptimizations(p, TempBool) then
+          Exit(True);
+
         result:=false;
         if GetNextInstruction(p,hp1) then
           begin
