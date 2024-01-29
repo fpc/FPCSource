@@ -207,9 +207,12 @@ type
     Property Socket : TSocketStream Read FSocket;
   end;
 
+  { TWSTransport }
+
   TWSTransport = class(TObject, IWSTransport)
   Private
     FHelper : TWSSocketHelper;
+    FSocketClosed: boolean;
     FStream : TSocketStream;
     function GetSocket: TSocketStream;
   Public
@@ -218,6 +221,7 @@ type
     Procedure CloseSocket;
     Property Helper : TWSSocketHelper Read FHelper Implements IWSTransport;
     Property Socket : TSocketStream Read GetSocket;
+    Property SocketClosed: boolean read FSocketClosed;
   end;
 
 
@@ -291,7 +295,7 @@ type
   TCloseStates = Set of TCloseState;
 
   TWSOption = (woPongExplicit,      // Send Pong explicitly, not implicitly.
-               woCloseExplicit,     // SeDo Close explicitly, not implicitly.
+               woCloseExplicit,     // Send Close explicitly, not implicitly.
                woIndividualFrames,  // Send frames one by one, do not concatenate.
                woSkipUpgradeCheck,  // Skip handshake "Upgrade:" HTTP header cheack.
                woSkipVersionCheck,  // Skip handshake "Sec-WebSocket-Version' HTTP header check.
@@ -530,9 +534,6 @@ begin
 end;
 
 
-{ TWSServerTransport }
-
-
 { TWSHandShakeResponse }
 
 constructor TWSHandShakeResponse.Create(const aResource: string; const aExtraHeaders: TStrings);
@@ -555,7 +556,7 @@ procedure TWSHandShakeResponse.ToStrings(aHandShake: TWSHandshakeRequest; aRespo
     // respond key
     b:=[];
     k:= Trim(aHandshake.Key) + SSecWebSocketGUID;
-    hash:=SHA1String(k);
+    hash:={$IFDEF FPC_DOTTEDUNITS}System.Hash.{$ENDIF}sha1.SHA1String(k);
     SetLength(B,SizeOf(hash));
     Move(Hash,B[0],Length(B));
     Result:=EncodeBytesBase64(B);
@@ -599,6 +600,8 @@ end;
 
 procedure TWSTransport.CloseSocket;
 begin
+  if SocketClosed then exit;
+  FSocketClosed:=true;
   {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.CloseSocket(FStream.Handle);
 end;
 
@@ -1278,6 +1281,9 @@ end;
 
 procedure TWSConnection.SetCloseState(aValue: TCloseState);
 begin
+  {$IFDEF VerboseStopServer}
+  writeln('TWSConnection.SetCloseState Old=',FCloseState,' New=',aValue);
+  {$ENDIF}
   FCloseState:=aValue;
   if (FCloseState=csClosed) and AutoDisconnect then
     Disconnect;
@@ -1326,10 +1332,16 @@ function TWSConnection.HandleIncoming(aFrame: TWSFrame) : Boolean;
    Procedure UpdateCloseState;
 
    begin
+     {$IFDEF VerboseStopServer}
+     writeln('TWSConnection.HandleIncoming START ',ClassName,' ',HexStr(Ptruint(Self),16),' FCloseState=',FCloseState);
+     {$ENDIF}
      if (FCloseState=csNone) then
        FCloseState:=csReceived
      else if (FCloseState=csSent) then
        FCloseState:=csClosed;
+     {$IFDEF VerboseStopServer}
+     writeln('TWSConnection.HandleIncoming END ',ClassName,' ',HexStr(Ptruint(Self),16),' FCloseState=',FCloseState);
+     {$ENDIF}
    end;
 
    procedure ProtocolError(aCode: Word);
@@ -1354,9 +1366,7 @@ begin
     Exit;
   end;
   { If control frame it must be complete }
-  if ((aFrame.FrameType=ftPing) or
-      (aFrame.FrameType=ftPong) or
-      (aFrame.FrameType=ftClose))
+  if (aFrame.FrameType in [ftPing,ftPong,ftClose])
      and (not aFrame.FinalFrame) then
   begin
     ProtocolError(CLOSE_PROTOCOL_ERROR);
@@ -1433,8 +1443,8 @@ begin
            if IsValidUTF8(aFrame.Payload.Data) then
            begin
              DispatchEvent(ftClose,aFrame,aFrame.Payload.Data);
-             Close('', aFrame.Reason); // Will update state
              UpdateCloseState;
+             Close('', aFrame.Reason); // Will update state, so call after UpdateCloseState
              Result:=False; // We can disconnect.
            end
            else
@@ -1615,8 +1625,8 @@ procedure TWSConnection.Send(aFrame: TWSFrame);
 
 Var
   Data : TBytes;
-  Res: Integer;
-  ErrMsg: UTF8String;
+  Res, Err : Integer;
+  ErrMsg : UTF8String;
 
 begin
   if FCloseState=csClosed then
@@ -1625,12 +1635,23 @@ begin
   Res := Transport.WriteBytes(Data,Length(Data));
   if Res < 0 then
   begin
+    {$IFDEF VerboseStopServer}
+    writeln('TWSConnection.Send ',ClassName,' Connection=',HexStr(Ptruint(Self),16),' aFrame.FrameType=',aFrame.FrameType,' WriteBytes Failed, FCloseState=',FCloseState,' new=csClosed');
+    {$ENDIF}
     FCloseState:=csClosed;
-    ErrMsg := Format(SErrWriteReturnedError, [GetLastOSError, SysErrorMessage(GetLastOSError)]);
+    Err := GetLastOSError;
+    ErrMsg := Format(SErrWriteReturnedError, [Err, SysErrorMessage(Err)]);
+    if ErrMsg='' then
+      ErrMsg:=IntToStr(Err);
     if woSendErrClosesConn in Options then
     begin
-      SetLength(Data, 0);
-      Data.Append(TEncoding.UTF8.GetBytes(UnicodeString(ErrMsg)));
+      if CP_ACP=CP_UTF8 then begin
+        SetLength(Data, length(ErrMsg));
+        Move(ErrMsg[1],Data[0],length(Data));
+      end else begin
+        SetLength(Data, 0);
+        Data.Append(TEncoding.UTF8.GetBytes(UnicodeString(ErrMsg)));
+      end;
       DispatchEvent(ftClose, nil, Data);
     end
     else
@@ -1638,6 +1659,9 @@ begin
   end;
   if (aFrame.FrameType=ftClose) then
     begin
+    {$IFDEF VerboseStopServer}
+    writeln('TWSConnection.Send ',ClassName,' Connection=',HexStr(Ptruint(Self),16),' ftClose FCloseState=',FCloseState);
+    {$ENDIF}
     if FCloseState=csNone then
       FCloseState:=csSent
     else if FCloseState=csReceived then
