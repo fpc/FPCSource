@@ -805,7 +805,7 @@ begin
     P.Execute;
     Result:=P.WaitOnExit(max_count);
     if Result then  
-      ExecuteResult:=P.ExitStatus
+      ExecuteResult:=P.ExitCode
     else
       begin
       Writeln(stderr,'Terminate requested for ',Progname,' ',ComLine);
@@ -816,7 +816,7 @@ begin
         P.Terminate(255);
         Sleep(10);
       Until not P.Running;  
-      ExecuteResult:=1000+P.ExitStatus;
+      ExecuteResult:=1000+P.ExitCode;
       end;  
     Result:=ExecuteResult=0;
   finally
