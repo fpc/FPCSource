@@ -804,8 +804,21 @@ begin
     P.ErrorDescriptor.FileName:=RedirStdErr;
     P.Execute;
     Result:=P.WaitOnExit(max_count);
-    if Result then
-      result:=P.ExitStatus=0;
+    if Result then  
+      ExecuteResult:=P.ExitStatus
+    else
+      begin
+      Writeln(stderr,'Terminate requested for ',Progname,' ',ComLine);
+      { Issue it also to output, so it gets added to log file
+                  if ExecuteRedir is in use }
+      Writeln('Terminate requested for ',Progname,' ',ComLine);      
+      Repeat 
+        P.Terminate(255);
+        Sleep(10);
+      Until not P.Running;  
+      ExecuteResult:=1000+P.ExitStatus;
+      end;  
+    Result:=ExecuteResult=0;
   finally
     P.Free;
   end;
@@ -910,11 +923,11 @@ begin
   Fsplit(Filename,d,n,e);
 
   if (e='') and FileExist(FileName+exeext) then
-    begin
+     begin
       FileName:=FileName+exeext;
       LocateExeFile:=true;
       Exit;
-    end;
+     end;
 {$ifdef macos}
   S:=GetEnv('Commands');
 {$else}
@@ -930,7 +943,8 @@ begin
         Delete(S,1,i)
       else
         S:='';
-      if FileExist(Dir+FileName) then
+  
+       if FileExist(Dir+FileName) then
         Begin
            FileName:=Dir+FileName;
            LocateExeFile:=true;
