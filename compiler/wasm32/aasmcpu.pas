@@ -47,12 +47,14 @@ uses
       TWasmValueStack = class
       private
         FValStack: array of TWasmBasicType;
+        function GetCount: Integer;
         function GetItems(AIndex: Integer): TWasmBasicType;
         procedure SetItems(AIndex: Integer; AValue: TWasmBasicType);
       public
         procedure Push(wbt: TWasmBasicType);
         function Pop: TWasmBasicType;
         property Items[AIndex: Integer]: TWasmBasicType read GetItems write SetItems; default;
+        property Count: Integer read GetCount;
       end;
 
       { TWasmControlFrame }
@@ -70,12 +72,14 @@ uses
       TWasmControlStack = class
       private
         FControlStack: array of TWasmControlFrame;
+        function GetCount: Integer;
         function GetItems(AIndex: Integer): TWasmControlFrame;
         procedure SetItems(AIndex: Integer; const AValue: TWasmControlFrame);
       public
         procedure Push(const wcf: TWasmControlFrame);
         function Pop: TWasmControlFrame;
         property Items[AIndex: Integer]: TWasmControlFrame read GetItems write SetItems; default;
+        property Count: Integer read GetCount;
       end;
 
       { TWasmValidationStacks }
@@ -89,6 +93,7 @@ uses
         destructor Destroy; override;
 
         procedure PushVal(vt: TWasmBasicType);
+        function PopVal: TWasmBasicType;
       end;
 
       twasmstruc_stack = class;
@@ -364,6 +369,11 @@ uses
         Result:=FValStack[I];
       end;
 
+    function TWasmValueStack.GetCount: Integer;
+      begin
+        Result:=Length(FValStack);
+      end;
+
     procedure TWasmValueStack.SetItems(AIndex: Integer; AValue: TWasmBasicType);
       var
         I: Integer;
@@ -398,6 +408,11 @@ uses
         if (I<Low(FControlStack)) or (I>High(FControlStack)) then
           internalerror(2024013101);
         Result:=FControlStack[I];
+      end;
+
+    function TWasmControlStack.GetCount: Integer;
+      begin
+        Result:=Length(FControlStack);
       end;
 
     procedure TWasmControlStack.SetItems(AIndex: Integer; const AValue: TWasmControlFrame);
@@ -442,6 +457,19 @@ uses
     procedure TWasmValidationStacks.PushVal(vt: TWasmBasicType);
       begin
         FValueStack.Push(vt);
+      end;
+
+    function TWasmValidationStacks.PopVal: TWasmBasicType;
+      begin
+        if FValueStack.Count = FCtrlStack[0].height then
+          begin
+            if FCtrlStack[0].unreachable then
+              Result:=wbt_Unknown
+            else
+              internalerror(2024013104);
+          end
+        else
+          Result:=FValueStack.Pop;
       end;
 
     { twasmstruc_stack }
