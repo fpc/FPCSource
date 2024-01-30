@@ -406,15 +406,15 @@ implementation
              if (token=_UNIT) or (compile_level>1) then
                begin
                  current_module.is_unit:=true;
-                 finished:=proc_unit;
+                 finished:=proc_unit(current_module);
                end
              else if (token=_ID) and (idtoken=_PACKAGE) then
                begin
                  current_module.IsPackage:=true;
-                 proc_package;
+                 proc_package(current_module);
                end
              else
-               proc_program(token=_LIBRARY);
+               proc_program(current_module,token=_LIBRARY);
            except
              on ECompilerAbort do
                raise;
