@@ -41,6 +41,7 @@ uses
       O_MOV_DEST = 0;
 
     type
+      TWasmBasicTypeList = array of TWasmBasicType;
 
       { TWasmValueStack }
 
@@ -61,8 +62,8 @@ uses
 
       TWasmControlFrame = record
         opcode: tasmop;
-        start_types: array of TWasmBasicType;
-        end_types: array of TWasmBasicType;
+        start_types: TWasmBasicTypeList;
+        end_types: TWasmBasicTypeList;
         height: Integer;
         unreachable: Boolean;
       end;
