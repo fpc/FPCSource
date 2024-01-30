@@ -987,6 +987,92 @@ type
           end;
       end;
 
+    function parse_unit_interface_declarations(curr : tmodule) : boolean;
+
+      begin
+        { create whole program optimisation information (may already be
+          updated in the interface, e.g., in case of classrefdef typed
+          constants }
+        curr.wpoinfo:=tunitwpoinfo.create;
+
+        { ... parse the declarations }
+        Message1(parser_u_parsing_interface,curr.realmodulename^);
+        symtablestack.push(curr.globalsymtable);
+{$ifdef jvm}
+         { fake classdef to represent the class corresponding to the unit }
+         addmoduleclass;
+{$endif}
+        read_interface_declarations;
+
+        { Export macros defined in the interface for macpas. The macros
+          are put in the globalmacrosymtable that will only be used by other
+          units. The current unit continues to use the localmacrosymtable }
+
+        if (m_mac in current_settings.modeswitches) then
+          begin
+            curr.globalmacrosymtable:=tmacrosymtable.create(true);
+            curr.localmacrosymtable.SymList.ForEachCall(@copy_macro,curr);
+          end;
+
+        { leave when we got an error }
+        if (Errorcount>0) and not status.skip_error then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            status.skip_error:=true;
+            symtablestack.pop(curr.globalsymtable);
+
+{$ifdef DEBUG_NODE_XML}
+            XMLFinalizeNodeFile('unit');
+{$endif DEBUG_NODE_XML}
+            exit;
+          end;
+
+        { Our interface is compiled, generate CRC and switch to implementation }
+        if not(cs_compilesystem in current_settings.moduleswitches) and
+          (Errorcount=0) then
+           tppumodule(curr).getppucrc;
+
+        curr.in_interface:=false;
+        curr.interface_compiled:=true;
+
+        { First reload all units depending on our interface, we need to do this
+          in the implementation part to prevent erroneous circular references }
+        tppumodule(curr).setdefgeneration;
+        tppumodule(curr).reload_flagged_units;
+
+        { Parse the implementation section }
+        if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
+          curr.interface_only:=true
+        else
+          curr.interface_only:=false;
+
+        parse_only:=false;
+
+        { create static symbol table }
+        curr.localsymtable:=tstaticsymtable.create(curr.modulename^,curr.moduleid);
+
+        { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
+        maybe_load_got;
+
+        if not curr.interface_only then
+          begin
+            consume(_IMPLEMENTATION);
+            Message1(unit_u_loading_implementation_units,curr.modulename^);
+            { Read the implementation units }
+            if token=_USES then
+              begin
+                loadunits(curr,curr.globalsymtable);
+                consume(_SEMICOLON);
+              end;
+          end;
+
+        if curr.state=ms_compiled then
+          begin
+            symtablestack.pop(curr.globalsymtable);
+            exit;
+          end;
+        result:=proc_unit_implementation(curr);
+      end;
 
     function proc_unit(curr: tmodule):boolean;
       var
@@ -1143,86 +1229,7 @@ type
          if consume_semicolon_after_uses then
            consume(_SEMICOLON);
 
-         { create whole program optimisation information (may already be
-           updated in the interface, e.g., in case of classrefdef typed
-           constants }
-         curr.wpoinfo:=tunitwpoinfo.create;
-
-         { ... parse the declarations }
-         Message1(parser_u_parsing_interface,curr.realmodulename^);
-         symtablestack.push(curr.globalsymtable);
-{$ifdef jvm}
-         { fake classdef to represent the class corresponding to the unit }
-         addmoduleclass;
-{$endif}
-         read_interface_declarations;
-
-         { Export macros defined in the interface for macpas. The macros
-           are put in the globalmacrosymtable that will only be used by other
-           units. The current unit continues to use the localmacrosymtable }
-         if (m_mac in current_settings.modeswitches) then
-          begin
-            curr.globalmacrosymtable:=tmacrosymtable.create(true);
-            curr.localmacrosymtable.SymList.ForEachCall(@copy_macro,curr);
-          end;
-
-         { leave when we got an error }
-         if (Errorcount>0) and not status.skip_error then
-          begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
-            status.skip_error:=true;
-            symtablestack.pop(curr.globalsymtable);
-
-{$ifdef DEBUG_NODE_XML}
-            XMLFinalizeNodeFile('unit');
-{$endif DEBUG_NODE_XML}
-            exit;
-          end;
-
-         { Our interface is compiled, generate CRC and switch to implementation }
-         if not(cs_compilesystem in current_settings.moduleswitches) and
-            (Errorcount=0) then
-           tppumodule(curr).getppucrc;
-         curr.in_interface:=false;
-         curr.interface_compiled:=true;
-
-         { First reload all units depending on our interface, we need to do this
-           in the implementation part to prevent erroneous circular references }
-         tppumodule(curr).setdefgeneration;
-         tppumodule(curr).reload_flagged_units;
-
-         { Parse the implementation section }
-         if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
-           curr.interface_only:=true
-         else
-           curr.interface_only:=false;
-
-         parse_only:=false;
-
-         { create static symbol table }
-         curr.localsymtable:=tstaticsymtable.create(curr.modulename^,curr.moduleid);
-
-         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
-         maybe_load_got;
-
-         if not curr.interface_only then
-           begin
-             consume(_IMPLEMENTATION);
-             Message1(unit_u_loading_implementation_units,curr.modulename^);
-             { Read the implementation units }
-             if token=_USES then
-               begin
-                 loadunits(curr,curr.globalsymtable);
-                 consume(_SEMICOLON);
-               end;
-           end;
-
-         if curr.state=ms_compiled then
-           begin
-             symtablestack.pop(curr.globalsymtable);
-             exit;
-           end;
-         result:=proc_unit_implementation(curr);
+         result:=parse_unit_interface_declarations(curr);
       end;
 
     procedure finish_unit(module:tmodule;immediate:boolean);
