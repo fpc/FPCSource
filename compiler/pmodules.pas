@@ -1597,8 +1597,6 @@ type
         main_file : tinputfile;
         hp,hp2    : tmodule;
         pkg : tpcppackage;
-        {finalize_procinfo,
-        init_procinfo,}
         main_procinfo : tcgprocinfo;
         force_init_final : boolean;
         uu : tused_unit;
