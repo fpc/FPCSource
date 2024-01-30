@@ -190,12 +190,18 @@ type
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
        CPUX86_HAS_SSE2,         { SSE2 instructions are available }
+       CPUX86_HAS_SSE4_1,       { SSE 4.1 instructions are available }
+       CPUX86_HAS_SSE4_2,       { SSE 4.2 instructions are available }
+       CPUX86_HAS_SSSE3,        { SSSE3 instructions are available }
        CPUX86_HAS_BMI1,         { BMI1 instructions are available }
        CPUX86_HAS_BMI2,         { BMI2 instructions are available }
+       CPUX86_HAS_CMPXCHG16B,   { CMPXCHG16B is available (not on i386, only for less ifdefs in the compiler }
+       CPUX86_HAS_LAHF_SAHF,    { LAHF/SAHF is available }
        CPUX86_HAS_POPCNT,       { POPCNT is available }
        CPUX86_HAS_LZCNT,        { LZCNT is available }
        CPUX86_HAS_MOVBE,        { MOVBE is available }
-       CPUX86_HAS_BSWAP         { BSWAP is available }
+       CPUX86_HAS_BSWAP,        { BSWAP is available }
+       CPUX86_HAS_OSXSAVE       { XGETBV is available }
       );
 
    tfpuflags =
@@ -204,6 +210,8 @@ type
        FPUX86_HAS_FMA4,
        FPUX86_HAS_AVX2,
        FPUX86_HAS_AVX512F,
+       FPUX86_HAS_AVX512BW,
+       FPUX86_HAS_AVX512CD,
        FPUX86_HAS_AVX512VL,
        FPUX86_HAS_AVX512DQ
       );
