@@ -57,7 +57,7 @@ uses
 
       { TWasmControlFrame }
 
-      TWasmControlFrame = class
+      TWasmControlFrame = record
         opcode: tasmop;
         start_types: array of TWasmBasicType;
         end_types: array of TWasmBasicType;
