@@ -163,8 +163,20 @@ ctest:
         @exit 1
 endif
 
+ifneq ($(findstring dosbox_wrapper,$(EMULATOR)),)
+  MSDOS_EXITCODE_SRC=../utils/dosbox/exitcode.pas
+  MSDOS_EXITCODE_PROG=../utils/dosbox/exitcode.exe
+else
+  MSDOS_EXITCODE_SRC=
+  MSDOS_EXITCODE_PROG=
+endif
 
-extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
+ifdef MSDOS_EXITCODE_PROG
+$(MSDOS_EXITCODE_PROG): $(MSDOS_EXITCODE_SRC)
+	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) -o$(MSDOS_EXITCODE_PROG) $(MSDOS_EXITCODE_SRC)
+endif
+
+extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT) $(MSDOS_EXITCODE_PROG)
 
 
 #####################################################################

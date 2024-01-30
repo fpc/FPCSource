@@ -2329,7 +2329,18 @@ ctest:
 	@$(ECHO) "No C compiler found"
 	@exit 1
 endif
-extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
+ifneq ($(findstring dosbox_wrapper,$(EMULATOR)),)
+  MSDOS_EXITCODE_SRC=../utils/dosbox/exitcode.pas
+  MSDOS_EXITCODE_PROG=../utils/dosbox/exitcode.exe
+else
+  MSDOS_EXITCODE_SRC=
+  MSDOS_EXITCODE_PROG=
+endif
+ifdef MSDOS_EXITCODE_PROG
+$(MSDOS_EXITCODE_PROG): $(MSDOS_EXITCODE_SRC)
+	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) -o$(MSDOS_EXITCODE_PROG) $(MSDOS_EXITCODE_SRC)
+endif
+extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT) $(MSDOS_EXITCODE_PROG)
 PPULIST:=$(wildcard */*.ppu) $(wildcard units/*/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
 RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
