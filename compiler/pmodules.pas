@@ -48,7 +48,7 @@ implementation
        objcgutl,
        pkgutil,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,pgenutil,pparautl,ncgvmt,ncgrtti,
+       scanner,pbase,pexpr,psystem,psub,pgenutil,pparautl,ncgvmt,ncgrtti,
        cpuinfo;
 
 
@@ -481,83 +481,95 @@ implementation
         until false;
       end;
 
+    procedure parseusesclause(curr: tmodule);
 
-    procedure loadunits(curr: tmodule; preservest:tsymtable);
       var
          s,sorg  : ansistring;
          fn      : string;
-         pu,pu2  : tused_unit;
+         pu  : tused_unit;
          hp2     : tmodule;
          unitsym : tunitsym;
          filepos : tfileposinfo;
-      begin
-         consume(_USES);
-         repeat
-           s:=pattern;
-           sorg:=orgpattern;
-           filepos:=current_tokenpos;
-           consume(_ID);
-           while token=_POINT do
-             begin
-               consume(_POINT);
-               s:=s+'.'+pattern;
-               sorg:=sorg+'.'+orgpattern;
-               consume(_ID);
-             end;
-           { support "<unit> in '<file>'" construct, but not for tp7 }
-           fn:='';
-           if not(m_tp7 in current_settings.modeswitches) and
-              try_to_consume(_OP_IN) then
-             fn:=FixFileName(get_stringconst);
-           { Give a warning if lineinfo is loaded }
-           if s='LINEINFO' then
-             begin
-               Message(parser_w_no_lineinfo_use_switch);
-               if (target_dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
-                s := 'LNFODWRF';
-              sorg := s;
-             end;
-           { Give a warning if objpas is loaded }
-           if s='OBJPAS' then
-            Message(parser_w_no_objpas_use_mode);
-           { Using the unit itself is not possible }
-           if (s<>curr.modulename^) then
-            begin
-              { check if the unit is already used }
-              hp2:=nil;
-              pu:=tused_unit(curr.used_units.first);
-              while assigned(pu) do
-               begin
-                 if (pu.u.modulename^=s) then
-                  begin
-                    hp2:=pu.u;
-                    break;
-                  end;
-                 pu:=tused_unit(pu.next);
-               end;
-              if not assigned(hp2) then
-                hp2:=registerunit(curr,sorg,fn)
-              else
-                Message1(sym_e_duplicate_id,s);
-              { Create unitsym, we need to use the name as specified, we
-                can not use the modulename because that can be different
-                when -Un is used }
-              current_tokenpos:=filepos;
-              unitsym:=cunitsym.create(sorg,nil);
-              { the current module uses the unit hp2 }
-              curr.addusedunit(hp2,true,unitsym);
-            end
-           else
-            Message1(sym_e_duplicate_id,s);
-           if token=_COMMA then
-            begin
-              pattern:='';
-              consume(_COMMA);
-            end
-           else
-            break;
-         until false;
 
+      begin
+        consume(_USES);
+        repeat
+          s:=pattern;
+          sorg:=orgpattern;
+          filepos:=current_tokenpos;
+          consume(_ID);
+          while token=_POINT do
+            begin
+              consume(_POINT);
+              s:=s+'.'+pattern;
+              sorg:=sorg+'.'+orgpattern;
+              consume(_ID);
+            end;
+          { support "<unit> in '<file>'" construct, but not for tp7 }
+          fn:='';
+          if not(m_tp7 in current_settings.modeswitches) and
+             try_to_consume(_OP_IN) then
+            fn:=FixFileName(get_stringconst);
+          { Give a warning if lineinfo is loaded }
+          if s='LINEINFO' then
+            begin
+              Message(parser_w_no_lineinfo_use_switch);
+              if (target_dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
+               s := 'LNFODWRF';
+             sorg := s;
+            end;
+          { Give a warning if objpas is loaded }
+          if s='OBJPAS' then
+           Message(parser_w_no_objpas_use_mode);
+          { Using the unit itself is not possible }
+          if (s<>curr.modulename^) then
+           begin
+             { check if the unit is already used }
+             hp2:=nil;
+             pu:=tused_unit(curr.used_units.first);
+             while assigned(pu) do
+              begin
+                if (pu.u.modulename^=s) then
+                 begin
+                   hp2:=pu.u;
+                   break;
+                 end;
+                pu:=tused_unit(pu.next);
+              end;
+             if not assigned(hp2) then
+               hp2:=registerunit(curr,sorg,fn)
+             else
+               Message1(sym_e_duplicate_id,s);
+             { Create unitsym, we need to use the name as specified, we
+               can not use the modulename because that can be different
+               when -Un is used }
+             current_tokenpos:=filepos;
+             unitsym:=cunitsym.create(sorg,nil);
+             { the current module uses the unit hp2 }
+             curr.addusedunit(hp2,true,unitsym);
+           end
+          else
+           Message1(sym_e_duplicate_id,s);
+          if token=_COMMA then
+           begin
+             pattern:='';
+             consume(_COMMA);
+           end
+          else
+           break;
+        until false;
+      end;
+
+
+    procedure loadunits(curr: tmodule; preservest:tsymtable);
+
+      var
+         s,sorg  : ansistring;
+         pu,pu2  : tused_unit;
+         hp2     : tmodule;
+
+      begin
+         parseusesclause(curr);
          { Load the units }
          pu:=tused_unit(curr.used_units.first);
          while assigned(pu) do
@@ -894,26 +906,99 @@ type
     end;
     pfinishstate=^tfinishstate;
 
+
     procedure finish_unit(module:tmodule;immediate:boolean);forward;
+
+    function proc_unit_implementation(curr: tmodule):boolean;
+
+      var
+        init_procinfo,
+        finalize_procinfo : tcgprocinfo;
+        i,j : integer;
+        finishstate:pfinishstate;
+        globalstate:pglobalstate;
+
+      begin
+        result:=true;
+        init_procinfo:=nil;
+        finalize_procinfo:=nil;
+        finishstate:=nil;
+        globalstate:=nil;
+
+
+        { All units are read, now give them a number }
+        curr.updatemaps;
+
+        { further, changing the globalsymtable is not allowed anymore }
+        curr.globalsymtable.sealed:=true;
+        symtablestack.push(curr.localsymtable);
+
+        if not curr.interface_only then
+          begin
+            Message1(parser_u_parsing_implementation,curr.modulename^);
+            if curr.in_interface then
+              internalerror(200212285);
+
+            { Compile the unit }
+            init_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'init$'),potype_unitinit,curr.localsymtable);
+            init_procinfo.procdef.aliasnames.concat(make_mangledname('INIT$',curr.localsymtable,''));
+            init_procinfo.parse_body;
+            { save file pos for debuginfo }
+            curr.mainfilepos:=init_procinfo.entrypos;
+
+            { parse finalization section }
+            if token=_FINALIZATION then
+              begin
+                { Compile the finalize }
+                finalize_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'finalize$'),potype_unitfinalize,curr.localsymtable);
+                finalize_procinfo.procdef.aliasnames.concat(make_mangledname('FINALIZE$',curr.localsymtable,''));
+                finalize_procinfo.parse_body;
+              end
+          end;
+
+        { remove all units that we are waiting for that are already waiting for
+          us => breaking up circles }
+        for i:=0 to curr.waitingunits.count-1 do
+          for j:=curr.waitingforunit.count-1 downto 0 do
+            if curr.waitingunits[i]=curr.waitingforunit[j] then
+              curr.waitingforunit.delete(j);
+
+    {$ifdef DEBUG_UNITWAITING}
+        Writeln('Units waiting for ', curr.modulename^, ': ',
+          curr.waitingforunit.Count);
+    {$endif}
+        result:=curr.waitingforunit.count=0;
+
+        { save all information that is needed for finishing the unit }
+        New(finishstate);
+        finishstate^.init_procinfo:=init_procinfo;
+        finishstate^.finalize_procinfo:=finalize_procinfo;
+        curr.finishstate:=finishstate;
+
+        if result then
+          finish_unit(curr,true)
+        else
+          begin
+            { save the current state, so the parsing can continue where we left
+              of here }
+            New(globalstate);
+            save_global_state(globalstate^,true);
+            curr.globalstate:=globalstate;
+          end;
+      end;
+
 
     function proc_unit(curr: tmodule):boolean;
       var
          main_file: tinputfile;
          s1,s2  : ^string; {Saves stack space}
-         finalize_procinfo,
-         init_procinfo : tcgprocinfo;
          unitname : ansistring;
          unitname8 : string[8];
-         i,j : longint;
-         finishstate:pfinishstate;
-         globalstate:pglobalstate;
          consume_semicolon_after_uses:boolean;
          feature : tfeature;
+
       begin
          result:=true;
-
-         init_procinfo:=nil;
-         finalize_procinfo:=nil;
 
          if m_mac in current_settings.modeswitches then
            curr.mode_switch_allowed:= false;
@@ -1137,66 +1222,7 @@ type
              symtablestack.pop(curr.globalsymtable);
              exit;
            end;
-
-         { All units are read, now give them a number }
-         curr.updatemaps;
-
-         { further, changing the globalsymtable is not allowed anymore }
-         curr.globalsymtable.sealed:=true;
-         symtablestack.push(curr.localsymtable);
-
-         if not curr.interface_only then
-           begin
-             Message1(parser_u_parsing_implementation,curr.modulename^);
-             if curr.in_interface then
-               internalerror(200212285);
-
-             { Compile the unit }
-             init_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'init$'),potype_unitinit,curr.localsymtable);
-             init_procinfo.procdef.aliasnames.concat(make_mangledname('INIT$',curr.localsymtable,''));
-             init_procinfo.parse_body;
-             { save file pos for debuginfo }
-             curr.mainfilepos:=init_procinfo.entrypos;
-
-             { parse finalization section }
-             if token=_FINALIZATION then
-               begin
-                 { Compile the finalize }
-                 finalize_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'finalize$'),potype_unitfinalize,curr.localsymtable);
-                 finalize_procinfo.procdef.aliasnames.concat(make_mangledname('FINALIZE$',curr.localsymtable,''));
-                 finalize_procinfo.parse_body;
-               end
-           end;
-
-         { remove all units that we are waiting for that are already waiting for
-           us => breaking up circles }
-         for i:=0 to curr.waitingunits.count-1 do
-           for j:=curr.waitingforunit.count-1 downto 0 do
-             if curr.waitingunits[i]=curr.waitingforunit[j] then
-               curr.waitingforunit.delete(j);
-
-{$ifdef DEBUG_UNITWAITING}
-         Writeln('Units waiting for ', curr.modulename^, ': ',
-           curr.waitingforunit.Count);
-{$endif}
-         result:=curr.waitingforunit.count=0;
-
-         { save all information that is needed for finishing the unit }
-         New(finishstate);
-         finishstate^.init_procinfo:=init_procinfo;
-         finishstate^.finalize_procinfo:=finalize_procinfo;
-         curr.finishstate:=finishstate;
-
-         if result then
-           finish_unit(curr,true)
-         else
-           begin
-             { save the current state, so the parsing can continue where we left
-               of here }
-             New(globalstate);
-             save_global_state(globalstate^,true);
-             curr.globalstate:=globalstate;
-           end;
+         result:=proc_unit_implementation(curr);
       end;
 
     procedure finish_unit(module:tmodule;immediate:boolean);
@@ -1240,7 +1266,7 @@ type
         globalstate : tglobalstate;
         waitingmodule : tmodule;
       begin
-         fillchar(globalstate,sizeof(tglobalstate),0);
+          globalstate:=default(tglobalstate);
          if not immediate then
            begin
 {$ifdef DEBUG_UNITWAITING}
