@@ -69,6 +69,7 @@ interface
           procedure getppucrc;
           procedure writeppu;
           procedure loadppu;
+          procedure discardppu;
           function  needrecompile:boolean;
           procedure setdefgeneration;
           procedure reload_flagged_units;
@@ -158,11 +159,9 @@ var
       end;
 
 
-    destructor tppumodule.Destroy;
+    destructor tppumodule.destroy;
       begin
-        if assigned(ppufile) then
-         ppufile.free;
-        ppufile:=nil;
+        discardppu;
         comments.free;
         comments:=nil;
         { all derefs allocated with new
@@ -177,11 +176,7 @@ var
     procedure tppumodule.reset;
       begin
         inc(currentdefgeneration);
-        if assigned(ppufile) then
-         begin
-           ppufile.free;
-           ppufile:=nil;
-         end;
+        discardppu;
         freederefunitimportsyms;
         unitimportsymsderefs.free;
         unitimportsymsderefs:=tfplist.create;
@@ -225,8 +220,7 @@ var
         ppufile:=tcompilerppufile.create(ppufilename);
         if not ppufile.openfile then
          begin
-           ppufile.free;
-           ppufile:=nil;
+           discardppu;
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
@@ -242,8 +236,7 @@ var
         ppufile:=tcompilerppufile.create(ppufilename);
         if not ppufile.openstream(strm) then
          begin
-           ppufile.free;
-           ppufile:=nil;
+           discardppu;
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
@@ -380,8 +373,7 @@ var
         if not checkheader or
            not checkextraheader then
           begin
-            ppufile.free;
-            ppufile:=nil;
+            discardppu;
             exit;
           end;
 
@@ -1775,9 +1767,7 @@ var
          close(ppufile.CRCFile);
 {$endif Test_Double_checksum_write}
 
-         ppufile.closefile;
-         ppufile.free;
-         ppufile:=nil;
+         discardppu;
       end;
 
 
@@ -1886,9 +1876,7 @@ var
          ppufile.header.common.flags:=headerflags;
          ppufile.writeheader;
 
-         ppufile.closefile;
-         ppufile.free;
-         ppufile:=nil;
+         discardppu;
       end;
 
 
@@ -2084,11 +2072,7 @@ var
         state:=ms_compiled;
 
         { free ppu }
-        if assigned(ppufile) then
-          begin
-            ppufile.free;
-            ppufile:=nil;
-          end;
+        discardppu;
 
         inherited end_of_parsing;
       end;
@@ -2131,9 +2115,7 @@ var
             { PPU is not needed anymore }
             if assigned(ppufile) then
              begin
-                ppufile.closefile;
-                ppufile.free;
-                ppufile:=nil;
+               discardppu;
              end;
             { add the unit to the used units list of the program }
             usedunits.concat(tused_unit.create(self,true,false,nil));
@@ -2242,9 +2224,7 @@ var
               { PPU is not needed anymore }
               if assigned(ppufile) then
                begin
-                  ppufile.closefile;
-                  ppufile.free;
-                  ppufile:=nil;
+                  discardppu;
                end;
             end;
 
@@ -2320,6 +2300,15 @@ var
         set_current_module(old_current_module);
       end;
 
+    procedure tppumodule.discardppu;
+      begin
+        { PPU is not needed anymore }
+        if not assigned(ppufile) then
+          exit;
+        ppufile.closefile;
+        ppufile.free;
+        ppufile:=nil;
+      end;
 
 {*****************************************************************************
                                RegisterUnit
