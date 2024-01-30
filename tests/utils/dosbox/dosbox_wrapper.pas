@@ -427,7 +427,9 @@ begin
     DosBoxProcess.Parameters.Add(ADosBoxDir + 'dosbox.conf');
     if hide_execution then
       DosBoxProcess.ShowWindow := swoHIDE;
-    DosBoxProcess.Execute;
+    if verbose then
+      writeln('Starting ',ADosBoxBinaryPath+' -conf dosbox.conf');
+     DosBoxProcess.Execute;
     repeat
       Inc(Time);
       if (Time > 10*dosbox_timeout) and do_exit then
