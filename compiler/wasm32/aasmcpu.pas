@@ -68,6 +68,14 @@ uses
       { TWasmControlStack }
 
       TWasmControlStack = class
+      private
+        FControlStack: array of TWasmControlFrame;
+        function GetItems(AIndex: Integer): TWasmControlFrame;
+        procedure SetItems(AIndex: Integer; const AValue: TWasmControlFrame);
+      public
+        procedure Push(const wcf: TWasmControlFrame);
+        function Pop: TWasmControlFrame;
+        property Items[AIndex: Integer]: TWasmControlFrame read GetItems write SetItems; default;
       end;
 
       { TWasmValidationStacks }
@@ -378,6 +386,42 @@ uses
           internalerror(2024011701);
         Result:=FValStack[High(FValStack)];
         SetLength(FValStack,Length(FValStack)-1);
+      end;
+
+    { TWasmControlStack }
+
+    function TWasmControlStack.GetItems(AIndex: Integer): TWasmControlFrame;
+      var
+        I: Integer;
+      begin
+        I:=High(FControlStack)-AIndex;
+        if (I<Low(FControlStack)) or (I>High(FControlStack)) then
+          internalerror(2024013101);
+        Result:=FControlStack[I];
+      end;
+
+    procedure TWasmControlStack.SetItems(AIndex: Integer; const AValue: TWasmControlFrame);
+      var
+        I: Integer;
+      begin
+        I:=High(FControlStack)-AIndex;
+        if (I<Low(FControlStack)) or (I>High(FControlStack)) then
+          internalerror(2024013102);
+        FControlStack[I]:=AValue;
+      end;
+
+    procedure TWasmControlStack.Push(const wcf: TWasmControlFrame);
+      begin
+        SetLength(FControlStack,Length(FControlStack)+1);
+        FControlStack[High(FControlStack)]:=wcf;
+      end;
+
+    function TWasmControlStack.Pop: TWasmControlFrame;
+      begin
+        if Length(FControlStack)=0 then
+          internalerror(2024013103);
+        Result:=FControlStack[High(FControlStack)];
+        SetLength(FControlStack,Length(FControlStack)-1);
       end;
 
     { TWasmValidationStacks }
