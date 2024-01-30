@@ -2446,23 +2446,113 @@ type
         proc_program_after_parsing(curr,islibrary);
       end;
 
-    procedure proc_program(curr: tmodule; islibrary : boolean);
-      type
-        TProgramParam = record
-          name : ansistring;
-          nr : dword;
+    procedure proc_library_header(curr: tmodule);
+      var
+        program_name : ansistring;
+
+      begin
+        consume(_LIBRARY);
+        program_name:=orgpattern;
+        consume(_ID);
+        while token=_POINT do
+         begin
+           consume(_POINT);
+           program_name:=program_name+'.'+orgpattern;
+           consume(_ID);
+         end;
+        curr.setmodulename(program_name);
+        curr.islibrary:=true;
+        exportlib.preparelib(program_name);
+
+        if tf_library_needs_pic in target_info.flags then
+         begin
+           include(current_settings.moduleswitches,cs_create_pic);
+           { also set create_pic for all unit compilation }
+           include(init_settings.moduleswitches,cs_create_pic);
+         end;
+
+        { setup things using the switches, do this before the semicolon, because after the semicolon has been
+         read, all following directives are parsed as well }
+        setupglobalswitches;
+
+        {$ifdef DEBUG_NODE_XML}
+        XMLInitializeNodeFile('library', program_name);
+        {$endif DEBUG_NODE_XML}
+      end;
+
+    type
+      TProgramParam = record
+        name : ansistring;
+        nr : dword;
+      end;
+      TProgramParamArray = array of TProgramParam;
+
+      procedure proc_program_header(curr: tmodule; out sc : TProgramParamArray);
+
+        var
+          program_name : ansistring;
+          paramnum : integer;
+
+        begin
+          sc:=nil;
+          consume(_PROGRAM);
+          program_name:=orgpattern;
+          consume(_ID);
+          while token=_POINT do
+            begin
+              consume(_POINT);
+              program_name:=program_name+'.'+orgpattern;
+              consume(_ID);
+            end;
+          curr.setmodulename(program_name);
+          if (target_info.system in systems_unit_program_exports) then
+            exportlib.preparelib(program_name);
+          if token=_LKLAMMER then
+            begin
+               consume(_LKLAMMER);
+               paramnum:=1;
+               repeat
+                 if m_isolike_program_para in current_settings.modeswitches then
+                   begin
+                     if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
+                       begin
+                         { the symtablestack is not setup here, so text must be created later on }
+                         Setlength(sc,length(sc)+1);
+                         with sc[high(sc)] do
+                           begin
+                             name:=pattern;
+                             nr:=paramnum;
+                           end;
+                         inc(paramnum);
+                       end;
+                   end;
+                 consume(_ID);
+               until not try_to_consume(_COMMA);
+               consume(_RKLAMMER);
+            end;
+
+          { setup things using the switches, do this before the semicolon, because after the semicolon has been
+            read, all following directives are parsed as well }
+          setupglobalswitches;
+
+
+{$ifdef DEBUG_NODE_XML}
+          XMLInitializeNodeFile('program', program_name);
+{$endif DEBUG_NODE_XML}
         end;
+
+    procedure proc_program(curr: tmodule; islibrary : boolean);
+
       var
          main_file : tinputfile;
-         program_name : ansistring;
          consume_semicolon_after_uses,
          consume_semicolon_after_loaded : boolean;
          ps : tprogramparasym;
-         paramnum : longint;
          textsym : ttypesym;
-         sc : array of TProgramParam;
+         sc : TProgramParamArray;
          i : Longint;
          feature : tfeature;
+
       begin
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
@@ -2508,86 +2598,15 @@ type
 
          if islibrary then
            begin
-              consume(_LIBRARY);
-              program_name:=orgpattern;
-              consume(_ID);
-              while token=_POINT do
-                begin
-                  consume(_POINT);
-                  program_name:=program_name+'.'+orgpattern;
-                  consume(_ID);
-                end;
-              curr.setmodulename(program_name);
-              curr.islibrary:=true;
-              exportlib.preparelib(program_name);
-
-              if tf_library_needs_pic in target_info.flags then
-                begin
-                  include(current_settings.moduleswitches,cs_create_pic);
-                  { also set create_pic for all unit compilation }
-                  include(init_settings.moduleswitches,cs_create_pic);
-                end;
-
-              { setup things using the switches, do this before the semicolon, because after the semicolon has been
-                read, all following directives are parsed as well }
-              setupglobalswitches;
-
-              consume_semicolon_after_loaded:=true;
-
-{$ifdef DEBUG_NODE_XML}
-              XMLInitializeNodeFile('library', program_name);
-{$endif DEBUG_NODE_XML}
+             proc_library_header(curr);
+             consume_semicolon_after_loaded:=true;
            end
-         else
+         else if token=_PROGRAM then
            { is there an program head ? }
-           if token=_PROGRAM then
-            begin
-              consume(_PROGRAM);
-              program_name:=orgpattern;
-              consume(_ID);
-              while token=_POINT do
-                begin
-                  consume(_POINT);
-                  program_name:=program_name+'.'+orgpattern;
-                  consume(_ID);
-                end;
-              curr.setmodulename(program_name);
-              if (target_info.system in systems_unit_program_exports) then
-                exportlib.preparelib(program_name);
-              if token=_LKLAMMER then
-                begin
-                   consume(_LKLAMMER);
-                   paramnum:=1;
-                   repeat
-                     if m_isolike_program_para in current_settings.modeswitches then
-                       begin
-                         if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
-                           begin
-                             { the symtablestack is not setup here, so text must be created later on }
-                             Setlength(sc,length(sc)+1);
-                             with sc[high(sc)] do
-                               begin
-                                 name:=pattern;
-                                 nr:=paramnum;
-                               end;
-                             inc(paramnum);
-                           end;
-                       end;
-                     consume(_ID);
-                   until not try_to_consume(_COMMA);
-                   consume(_RKLAMMER);
-                end;
-
-              { setup things using the switches, do this before the semicolon, because after the semicolon has been
-                read, all following directives are parsed as well }
-              setupglobalswitches;
-
-              consume_semicolon_after_loaded:=true;
-
-{$ifdef DEBUG_NODE_XML}
-              XMLInitializeNodeFile('program', program_name);
-{$endif DEBUG_NODE_XML}
-            end
+           begin
+             proc_program_header(curr,sc);
+             consume_semicolon_after_loaded:=true;
+           end
          else
            begin
              if (target_info.system in systems_unit_program_exports) then
