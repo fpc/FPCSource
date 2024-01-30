@@ -25,10 +25,13 @@ unit parser;
 
 interface
 
+uses fmodule;
+
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
 {$endif PREPROCWRITE}
     procedure compile(const filename:string);
+    procedure compile_module(module : tmodule);
     procedure initparser;
     procedure doneparser;
 
@@ -43,7 +46,7 @@ implementation
       cclasses,
       globtype,tokens,systems,globals,verbose,switches,globstat,
       symbase,symtable,symdef,
-      finput,fmodule,fppu,
+      finput,fppu,
       aasmdata,
       cscript,gendef,
       comphook,
@@ -320,6 +323,19 @@ implementation
 *****************************************************************************}
 
     procedure compile(const filename:string);
+
+    var
+      m : TModule;
+
+    begin
+      m:=tppumodule.create(nil,'',filename,false);
+//       m.is_initial:=initial;
+      m.state:=ms_compile;
+      compile_module(m);
+    end;
+
+    procedure compile_module(module : tmodule);
+
       var
          olddata : pglobalstate;
          hp,hp2 : tmodule;
@@ -331,7 +347,7 @@ implementation
          if assigned(current_structdef) then
            internalerror(200811122);
          inc(compile_level);
-         parser_current_file:=filename;
+         parser_current_file:=module.mainsource;
          { Uses heap memory instead of placing everything on the
            stack. This is needed because compile() can be called
            recursively }
@@ -350,7 +366,7 @@ implementation
          getfuncrefdef:=nil;
 
        { show info }
-         Message1(parser_i_compiling,filename);
+         Message1(parser_i_compiling,module.mainsource);
 
        { reset symtable }
          symtablestack:=tdefawaresymtablestack.create;
@@ -371,7 +387,7 @@ implementation
            begin
              if assigned(current_module) then
                internalerror(200501158);
-             set_current_module(tppumodule.create(nil,'',filename,false));
+             set_current_module(module);
              addloadedunit(current_module);
              main_module:=current_module;
              current_module.state:=ms_compile;
@@ -384,7 +400,7 @@ implementation
          current_asmdata:=TAsmData(current_module.asmdata);
 
          { startup scanner and load the first file }
-         current_scanner:=tscannerfile.Create(filename);
+         current_scanner:=tscannerfile.Create(module.mainsource);
          current_scanner.firstfile;
          current_module.scanner:=current_scanner;
 
