@@ -462,7 +462,6 @@ procedure TFPCustomSimpleThreadPool.TThreadPoolList.TaskDone(Sender: TObject);
 begin
   If Assigned(Pool) and Assigned(Pool.FThreadDoneEvent) then
     Pool.FThreadDoneEvent.SetEvent;
-
 end;
 
 constructor TFPCustomSimpleThreadPool.TThreadPoolList.CreateList(aPool : TFPCustomSimpleThreadPool);
