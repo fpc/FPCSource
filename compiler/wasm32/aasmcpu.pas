@@ -101,6 +101,8 @@ uses
 
         procedure PushCtrl(_opcode: tasmop; _in, _out: TWasmBasicTypeList);
         function PopCtrl: TWasmControlFrame;
+
+        function label_types(const frame: TWasmControlFrame): TWasmBasicTypeList;
       end;
 
       twasmstruc_stack = class;
@@ -529,6 +531,14 @@ uses
         if FValueStack.Count<>Result.height then
           internalerror(2024013107);
         FCtrlStack.Pop;
+      end;
+
+    function TWasmValidationStacks.label_types(const frame: TWasmControlFrame): TWasmBasicTypeList;
+      begin
+        if frame.opcode=a_loop then
+          Result:=frame.start_types
+        else
+          Result:=frame.end_types;
       end;
 
     { twasmstruc_stack }
