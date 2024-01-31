@@ -45,7 +45,9 @@ Type
 
    tcputype =
       (cpu_none,
+       cpu_x86_64_v1,
        cpu_athlon64,
+       cpu_x86_64_v2,
        cpu_core_i,
        cpu_bobcat,
        cpu_core_avx,
@@ -53,8 +55,10 @@ Type
        cpu_piledriver,
        cpu_excavator,
        cpu_core_avx2,
+       cpu_x86_64_v3,
        cpu_zen,
        cpu_zen2,
+       cpu_x86_64_v4,
        cpu_icelake,
        cpu_icelake_client,
        cpu_icelake_server,
@@ -65,14 +69,18 @@ Type
      (fpu_none,
 //      fpu_soft,  { generic }
       fpu_sse64,
+      fpu_x86_64_v1,
       fpu_sse3,
       fpu_ssse3,
       fpu_sse41,
       fpu_sse42,
+      fpu_x86_64_v2,
       fpu_avx,
       fpu_fma,
       fpu_avx2,
-      fpu_avx512f
+      fpu_x86_64_v3,
+      fpu_avx512f,
+      fpu_x86_64_v4
      );
 
    tcontrollertype =
@@ -124,46 +132,58 @@ Const
 
    cputypestr : array[tcputype] of string[16] = ('',
      'ATHLON64',
+     'X86-64-V1',
      'COREI',
+     'X86-64-V2',
      'BOBCAT',
      'COREAVX',
      'JAGUAR',
      'PILEDRIVER',
      'EXCAVATOR',
      'COREAVX2',
+     'X86-64-V3',
      'ZEN',
      'ZEN2',
+     'X86-64-V4',
      'ICELAKE',
      'ICELAKE-CLIENT',
      'ICELAKE-SERVER',
      'ZEN3'
    );
 
-   fputypestr : array[tfputype] of string[7] = (
+   fputypestr : array[tfputype] of string[9] = (
      'NONE',
 //     'SOFT',
      'SSE64',
+     'X86-64-V1',
      'SSE3',
      'SSSE3',
      'SSE41',
      'SSE42',
+     'X86-64-V1',
      'AVX',
      'FMA',
      'AVX2',
-     'AVX512F'
+     'X86-64-V3',
+     'AVX512F',
+     'X86-64-V1'
    );
 
-   fputypestrllvm : array[tfputype] of string[7] = ('',
+   fputypestrllvm : array[tfputype] of string[9] = ('',
 //     'SOFT',
      '',
+     'x86-64-v1',
      'sse3',
      'ssse3',
      'sse4.1',
      'sse4.2',
+     'x86-64-v2',
      'avx',
      'fma',
      'avx2',
-     'avx512f'
+     'x86-64-v3',
+     'avx512f',
+     'x86-64-v1'
    );
 
    sse_singlescalar = [fpu_sse64..fpu_avx512f];
@@ -192,9 +212,6 @@ type
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
        CPUX86_HAS_SSE2,         { SSE2 instructions are available }
-       CPUX86_HAS_SSE4_1,       { SSE 4.1 instructions are available }
-       CPUX86_HAS_SSE4_2,       { SSE 4.2 instructions are available }
-       CPUX86_HAS_SSSE3,        { SSSE3 instructions are available }
        CPUX86_HAS_BMI1,         { BMI1 instructions are available }
        CPUX86_HAS_BMI2,         { BMI2 instructions are available }
        CPUX86_HAS_CMPXCHG16B,   { CMPXCHG16B is available }
@@ -207,7 +224,11 @@ type
       );
 
    tfpuflags =
-      (FPUX86_HAS_AVXUNIT,
+      (FPUX86_HAS_SSE3,
+       FPUX86_HAS_SSE4_1,
+       FPUX86_HAS_SSE4_2,
+       FPUX86_HAS_SSSE3,
+       FPUX86_HAS_AVXUNIT,
        FPUX86_HAS_FMA,
        FPUX86_HAS_FMA4,
        FPUX86_HAS_F16C,
@@ -236,49 +257,72 @@ type
       );
 
  const
+   cpu_x86_64_v1_flags = [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2];
+   cpu_x86_64_v2_flags = cpu_x86_64_v1_flags+[CPUX86_HAS_CMPXCHG16B,CPUX86_HAS_LAHF_SAHF,CPUX86_HAS_POPCNT];
+   cpu_x86_64_v3_flags = cpu_x86_64_v2_flags+[CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_OSXSAVE]; { most is in the fpu flags here }
+   cpu_x86_64_v4_flags = cpu_x86_64_v3_flags; { most is in the fpu flags here }
+
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
-     { Athlon64      } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
-     { cpu_core_i    } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { Athlon64      } cpu_x86_64_v1_flags,
+     { x86_64-v1     } cpu_x86_64_v1_flags,
+     { cpu_core_i    } cpu_x86_64_v1_flags+[CPUX86_HAS_POPCNT],
+     { x86_64-v2     } cpu_x86_64_v2_flags,
      { cpu_bobcat    } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_LZCNT],
      { cpu_core_avx  } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
      { cpu_jaguar    } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_piledriver} [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_excavator } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
-     { cpu_core_avx2 } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
+     { cpu_core_avx2 } cpu_x86_64_v3_flags,
+     { x86_64-v3     } cpu_x86_64_v3_flags,
      { cpu_zen       } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_zen2      } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
+     { x86_64-v4     } cpu_x86_64_v4_flags,
      { cpu_icelake   } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_icelake_client } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_icelake_server } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_zen3      } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
+   fpu_x86_64_v1_flags = [];
+   fpu_x86_64_v2_flags = fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSE4_1,FPUX86_HAS_SSE4_2,FPUX86_HAS_SSSE3];
+   fpu_x86_64_v3_flags = fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_F16C,FPUX86_HAS_AVX2];
+   fpu_x86_64_v4_flags = fpu_x86_64_v3_flags;
+
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
-      { fpu_none     } [],
-      { fpu_sse64    } [],
-      { fpu_sse3     } [],
-      { fpu_ssse3    } [],
-      { fpu_sse41    } [],
-      { fpu_sse42    } [],
-      { fpu_avx      } [FPUX86_HAS_AVXUNIT],
-      { fpu_fma      } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA],
-      { fpu_avx2     } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_AVX2],
-      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_AVX2,FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ]
+      { fpu_none      }  [],
+      { fpu_sse64     }  [],
+      { fpu_x86_64_v1 }  fpu_x86_64_v1_flags,
+      { fpu_sse3      }  fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3],
+      { fpu_ssse3     }  fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSSE3],
+      { fpu_sse41     }  fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSE4_1],
+      { fpu_sse42     }  fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSE4_1,FPUX86_HAS_SSE4_2],
+      { fpu_x86_64_v2 }  fpu_x86_64_v2_flags,
+      { fpu_avx       }  fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT],
+      { fpu_fma       }  fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA],
+      { fpu_avx2      }  fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_AVX2],
+      { fpu_x86_64_v3 }  fpu_x86_64_v3_flags,
+      { fpu_avx512f   }  fpu_x86_64_v3_flags+[FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ],
+      { fpu_x86_64_v4 }  fpu_x86_64_v4_flags
+
    );
 
    cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
       { cpu_none      } [],
       { cpu_Athlon64  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
+      { cpu_x86_64-v1 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_core_i    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
+      { cpu_x86_64-v2 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_bobcat    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_core_avx  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG], { From Sandy Bridge up to Ice Lake, complex LEA instructions are much slower }
       { cpu_jaguar    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_piledriver} [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_excavator } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_core_avx2 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT],
+      { cpu_x86_64-v3 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT],
       { cpu_zen       } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_zen2      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
+      { cpu_x86_64-v4 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_icelake   } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_icelake_client } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_icelake_server } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
