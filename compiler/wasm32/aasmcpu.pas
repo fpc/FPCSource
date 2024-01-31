@@ -98,6 +98,8 @@ uses
         function PopVal(expect: TWasmBasicType): TWasmBasicType;
         procedure PushVals(vals: TWasmBasicTypeList);
         function PopVals(vals: TWasmBasicTypeList): TWasmBasicTypeList;
+
+        procedure PushCtrl(_opcode: tasmop; _in, _out: TWasmBasicTypeList);
       end;
 
       twasmstruc_stack = class;
@@ -497,6 +499,22 @@ uses
         SetLength(Result,Length(vals));
         for I:=High(vals) downto Low(Vals) do
           Result[I]:=PopVal(vals[I]);
+      end;
+
+    procedure TWasmValidationStacks.PushCtrl(_opcode: tasmop; _in, _out: TWasmBasicTypeList);
+      var
+        frame: TWasmControlFrame;
+      begin
+        FillChar(frame,SizeOf(frame),0);
+        with frame do
+          begin
+            opcode:=_opcode;
+            start_types:=Copy(_in);
+            end_types:=Copy(_out);
+            height:=FValueStack.Count;
+            unreachable:=False;
+          end;
+        FCtrlStack.Push(frame);
       end;
 
     { twasmstruc_stack }
