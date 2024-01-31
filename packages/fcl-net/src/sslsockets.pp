@@ -52,7 +52,7 @@ Type
     function GetString(AIndex: Integer): string;
     procedure SetCertificateData(AValue: TCertificateData);
     procedure SetSSLData(AIndex: Integer; AValue: TSSLData);
-    procedure SetString(AIndex: Integer; const AValue: string);
+    procedure SetString(AIndex: Integer; AValue: string);
   Private
     Class Var FDefaultHandlerClass : TSSLSocketHandlerClass;
   protected
@@ -148,7 +148,7 @@ end;
 
 
 
-procedure TSSLSocketHandler.SetString(AIndex: Integer; const AValue: string);
+procedure TSSLSocketHandler.SetString(AIndex: Integer; AValue: string);
 begin
   Case AIndex of
     0 : FCertificateData.KeyPassword:=AValue;
@@ -227,6 +227,7 @@ end;
 
 function TSSLSocketHandler.CreateCertGenerator: TX509Certificate;
 begin
+  Result:=nil;
   Raise ESSLSocketError.Create(SErrNoX509Certificate);
 end;
 
