@@ -59,7 +59,6 @@ implementation
       begin
          { Current compiled module/proc }
          set_current_module(nil);
-         current_module:=nil;
          current_asmdata:=nil;
          current_procinfo:=nil;
          current_structdef:=nil;
@@ -86,7 +85,7 @@ implementation
          pattern:='';
          orgpattern:='';
          cstringpattern:='';
-         current_scanner:=nil;
+         set_current_scanner(nil,true);
          switchesstatestackpos:=0;
 
          { register all nodes and tais }
@@ -191,7 +190,6 @@ implementation
          { Reset current compiling info, so destroy routines can't
            reference the data that might already be destroyed }
          set_current_module(nil);
-         current_module:=nil;
          current_procinfo:=nil;
          current_asmdata:=nil;
          current_structdef:=nil;
@@ -220,7 +218,8 @@ implementation
          if assigned(current_scanner) then
           begin
             current_scanner.free;
-            current_scanner:=nil;
+            set_current_scanner(nil,true);
+
           end;
 
          { close scanner }
@@ -340,6 +339,8 @@ implementation
          olddata : pglobalstate;
          hp,hp2 : tmodule;
          finished : boolean;
+         sc : tscannerfile;
+
        begin
          { parsing a procedure or declaration should be finished }
          if assigned(current_procinfo) then
@@ -388,26 +389,30 @@ implementation
              if assigned(current_module) then
                internalerror(200501158);
              set_current_module(module);
-             addloadedunit(current_module);
-             main_module:=current_module;
-             current_module.state:=ms_compile;
-           end;
+             addloadedunit(module);
+             main_module:=module;
+             module.state:=ms_compile;
+           end
+         else
+           set_current_module(module);
          if not(assigned(current_module) and
                 (current_module.state in [ms_compile,ms_second_compile])) then
            internalerror(200212281);
 
          { load current asmdata from current_module }
-         current_asmdata:=TAsmData(current_module.asmdata);
+         current_asmdata:=TAsmData(module.asmdata);
 
          { startup scanner and load the first file }
-         current_scanner:=tscannerfile.Create(module.mainsource);
-         current_scanner.firstfile;
-         current_module.scanner:=current_scanner;
+         sc:=tscannerfile.Create(module.mainsource);
+         sc.firstfile;
+         module.scanner:=sc;
+         module.mainscanner:=sc;
+         set_current_scanner(sc,false);
 
          { init macros before anything in the file is parsed.}
-         current_module.localmacrosymtable:= tmacrosymtable.create(false);
+         module.localmacrosymtable:= tmacrosymtable.create(false);
          macrosymtablestack.push(initialmacrosymtable);
-         macrosymtablestack.push(current_module.localmacrosymtable);
+         macrosymtablestack.push(module.localmacrosymtable);
 
          { read the first token }
          current_scanner.readtoken(false);
@@ -421,16 +426,16 @@ implementation
            try
              if (token=_UNIT) or (compile_level>1) then
                begin
-                 current_module.is_unit:=true;
-                 finished:=proc_unit(current_module);
+                 module.is_unit:=true;
+                 finished:=proc_unit(module);
                end
              else if (token=_ID) and (idtoken=_PACKAGE) then
                begin
-                 current_module.IsPackage:=true;
-                 proc_package(current_module);
+                 module.IsPackage:=true;
+                 proc_package(module);
                end
              else
-               proc_program(current_module,token=_LIBRARY);
+               proc_program(module,token=_LIBRARY);
            except
              on ECompilerAbort do
                raise;
@@ -453,10 +458,10 @@ implementation
            if (compile_level=1) and not finished then
              internalerror(2012091901);
          finally
-           if assigned(current_module) then
+           if assigned(module) then
              begin
                if finished then
-                 current_module.end_of_parsing
+                 module.end_of_parsing
                else
                  begin
                    { these are saved in the unit's state and thus can be set to
@@ -464,7 +469,7 @@ implementation
                    macrosymtablestack:=nil;
                    symtablestack:=nil;
                    if current_scanner=current_module.scanner then
-                     current_scanner:=nil;
+                     set_current_scanner(nil,false);
                  end;
              end;
 
@@ -501,7 +506,7 @@ implementation
               while assigned(hp) do
                begin
                  hp2:=tmodule(hp.next);
-                 if (hp<>current_module) then
+                 if (hp<>module) then
                    begin
                      loaded_units.remove(hp);
                      hp.free;
