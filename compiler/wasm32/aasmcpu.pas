@@ -95,6 +95,7 @@ uses
 
         procedure PushVal(vt: TWasmBasicType);
         function PopVal: TWasmBasicType;
+        function PopVal(expect: TWasmBasicType): TWasmBasicType;
       end;
 
       twasmstruc_stack = class;
@@ -471,6 +472,13 @@ uses
           end
         else
           Result:=FValueStack.Pop;
+      end;
+
+    function TWasmValidationStacks.PopVal(expect: TWasmBasicType): TWasmBasicType;
+      begin
+        Result:=PopVal;
+        if (Result<>expect) and (Result<>wbt_Unknown) and (expect<>wbt_Unknown) then
+          internalerror(2024013105);
       end;
 
     { twasmstruc_stack }
