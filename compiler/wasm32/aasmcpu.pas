@@ -467,9 +467,8 @@ uses
       begin
         if FValueStack.Count = FCtrlStack[0].height then
           begin
-            if FCtrlStack[0].unreachable then
-              Result:=wbt_Unknown
-            else
+            Result:=wbt_Unknown;
+            if not FCtrlStack[0].unreachable then
               internalerror(2024013104);
           end
         else
