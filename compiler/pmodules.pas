@@ -183,10 +183,11 @@ implementation
       var
         hp : tppumodule;
         unitsym : tunitsym;
+
       begin
         { load unit }
         hp:=registerunit(curr,s,'');
-        hp.loadppu;
+        hp.loadppu(curr);
         hp.adddependency(curr);
         { add to symtable stack }
         symtablestack.push(hp.globalsymtable);
@@ -293,6 +294,9 @@ implementation
 
 
     procedure loadsystemunit(curr : tmodule);
+      var
+        state: pglobalstate;
+
       begin
         { we are going to rebuild the symtablestack, clear it first }
         symtablestack.clear;
@@ -319,7 +323,15 @@ implementation
           internal types from the system unit }
         AddUnit(curr,'system');
         systemunit:=tglobalsymtable(symtablestack.top);
+
+        { load_intern_types resets the scanner... }
+        current_scanner.tempcloseinputfile;
+        new(state);
+        save_global_state(state^,true);
         load_intern_types;
+        restore_global_state(state^,true);
+        dispose(state);
+        current_scanner.tempopeninputfile;
 
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
@@ -330,7 +342,7 @@ implementation
         if not (cs_compilesystem in current_settings.moduleswitches) then
           if ([m_objfpc,m_delphi] * current_settings.modeswitches)<>[] then
             if is_systemunit_unicode then
-              Include(current_settings.modeswitches,m_default_unicodestring)
+              Include(current_settings.modeswitches,m_default_unicodestring);
       end;
 
 
@@ -567,9 +579,26 @@ implementation
          s,sorg  : ansistring;
          pu,pu2  : tused_unit;
          hp2     : tmodule;
+         state: pglobalstate;
+
+         procedure restorestate;
+
+         begin
+           restore_global_state(state^,true);
+           if assigned(current_scanner) and (current_module.scanner=current_scanner) then
+              begin
+              if assigned(current_scanner.inputfile) then
+                current_scanner.tempopeninputfile;
+              end;
+
+           dispose(state);
+         end;
 
       begin
-         parseusesclause(curr);
+        parseusesclause(curr);
+        current_scanner.tempcloseinputfile;
+        new(state);
+        save_global_state(state^,true);
          { Load the units }
          pu:=tused_unit(curr.used_units.first);
          while assigned(pu) do
@@ -579,10 +608,13 @@ implementation
             if pu.in_uses and
                (pu.in_interface=curr.in_interface) then
              begin
-               tppumodule(pu.u).loadppu;
+               tppumodule(pu.u).loadppu(curr);
                { is our module compiled? then we can stop }
                if curr.state=ms_compiled then
-                 exit;
+                 begin
+                   Restorestate;
+                   exit;
+                 end;
                { add this unit to the dependencies }
                pu.u.adddependency(curr);
                { save crc values }
@@ -636,6 +668,7 @@ implementation
              end;
             pu:=tused_unit(pu.next);
           end;
+         Restorestate;
       end;
 
 
@@ -990,6 +1023,7 @@ type
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
 
       begin
+        result:=true;
         { create whole program optimisation information (may already be
           updated in the interface, e.g., in case of classrefdef typed
           constants }
@@ -1031,7 +1065,6 @@ type
         if not(cs_compilesystem in current_settings.moduleswitches) and
           (Errorcount=0) then
            tppumodule(curr).getppucrc;
-
         curr.in_interface:=false;
         curr.interface_compiled:=true;
 
@@ -1069,7 +1102,7 @@ type
         if curr.state=ms_compiled then
           begin
             symtablestack.pop(curr.globalsymtable);
-            exit;
+            exit(true);
           end;
         result:=proc_unit_implementation(curr);
       end;
