@@ -1645,13 +1645,13 @@ begin
       ErrMsg:=IntToStr(Err);
     if woSendErrClosesConn in Options then
     begin
-      if CP_ACP=CP_UTF8 then begin
-        SetLength(Data, length(ErrMsg));
-        Move(ErrMsg[1],Data[0],length(Data));
-      end else begin
-        SetLength(Data, 0);
-        Data.Append(TEncoding.UTF8.GetBytes(UnicodeString(ErrMsg)));
-      end;
+      {$IF SIZEOF(CHAR)=2}
+      SetLength(Data, 0);
+      Data.Append(TEncoding.UTF8.GetBytes(UnicodeString(ErrMsg)));
+      {$ELSE}
+      SetLength(Data, length(ErrMsg));
+      Move(ErrMsg[1],Data[0],length(Data));
+      {$ENDIF}
       DispatchEvent(ftClose, nil, Data);
     end
     else
