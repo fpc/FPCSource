@@ -50,16 +50,18 @@ uses
         FValStack: array of TWasmBasicType;
         function GetCount: Integer;
         function GetItems(AIndex: Integer): TWasmBasicType;
+        procedure SetCount(AValue: Integer);
         procedure SetItems(AIndex: Integer; AValue: TWasmBasicType);
       public
         procedure Push(wbt: TWasmBasicType);
         function Pop: TWasmBasicType;
         property Items[AIndex: Integer]: TWasmBasicType read GetItems write SetItems; default;
-        property Count: Integer read GetCount;
+        property Count: Integer read GetCount write SetCount;
       end;
 
       { TWasmControlFrame }
 
+      PWasmControlFrame = ^TWasmControlFrame;
       TWasmControlFrame = record
         opcode: tasmop;
         start_types: TWasmBasicTypeList;
@@ -75,11 +77,13 @@ uses
         FControlStack: array of TWasmControlFrame;
         function GetCount: Integer;
         function GetItems(AIndex: Integer): TWasmControlFrame;
+        function GetPItems(AIndex: Integer): PWasmControlFrame;
         procedure SetItems(AIndex: Integer; const AValue: TWasmControlFrame);
       public
         procedure Push(const wcf: TWasmControlFrame);
         function Pop: TWasmControlFrame;
         property Items[AIndex: Integer]: TWasmControlFrame read GetItems write SetItems; default;
+        property PItems[AIndex: Integer]: PWasmControlFrame read GetPItems;
         property Count: Integer read GetCount;
       end;
 
@@ -103,6 +107,7 @@ uses
         function PopCtrl: TWasmControlFrame;
 
         function label_types(const frame: TWasmControlFrame): TWasmBasicTypeList;
+        procedure Unreachable;
       end;
 
       twasmstruc_stack = class;
@@ -378,6 +383,11 @@ uses
         Result:=FValStack[I];
       end;
 
+    procedure TWasmValueStack.SetCount(AValue: Integer);
+      begin
+        SetLength(FValStack,AValue);
+      end;
+
     function TWasmValueStack.GetCount: Integer;
       begin
         Result:=Length(FValStack);
@@ -417,6 +427,16 @@ uses
         if (I<Low(FControlStack)) or (I>High(FControlStack)) then
           internalerror(2024013101);
         Result:=FControlStack[I];
+      end;
+
+    function TWasmControlStack.GetPItems(AIndex: Integer): PWasmControlFrame;
+      var
+        I: Integer;
+      begin
+        I:=High(FControlStack)-AIndex;
+        if (I<Low(FControlStack)) or (I>High(FControlStack)) then
+          internalerror(2024013101);
+        Result:=@(FControlStack[I]);
       end;
 
     function TWasmControlStack.GetCount: Integer;
@@ -539,6 +559,15 @@ uses
           Result:=frame.start_types
         else
           Result:=frame.end_types;
+      end;
+
+    procedure TWasmValidationStacks.Unreachable;
+      var
+        c: PWasmControlFrame;
+      begin
+        c:=FCtrlStack.PItems[0];
+        FValueStack.Count:=c^.height;
+        c^.unreachable:=true;
       end;
 
     { twasmstruc_stack }
