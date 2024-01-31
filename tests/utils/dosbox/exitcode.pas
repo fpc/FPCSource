@@ -23,7 +23,7 @@ begin
   SwapVectors;
 
   if DosError <> 0 then
-    ExitCode := DosError shl 16
+    ExitCode := DosError shl 16 + DosExitCode
   else
     ExitCode := DosExitCode;
 
