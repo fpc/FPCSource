@@ -852,9 +852,6 @@ begin
   Result:=aLastCount=0;
 end;
 
-
-
-
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
@@ -877,8 +874,6 @@ begin
     Result := '';
 end;
 
-
-
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
 Var
@@ -889,7 +884,7 @@ begin
     exit;
   S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetHTTPStatusText(Code)]);
   For I:=0 to Headers.Count-1 do
-    S:=S+UTF8Encode(Headers[i]+#13#10);
+    S:=S+UTF8Encode(Headers[i])+#13#10;
   // Last line in headers is empty.
   Connection.Socket.WriteBuffer(S[1],Length(S));
 end;
@@ -900,9 +895,8 @@ begin
     exit;
   If Assigned(ContentStream) and (ContentStream.Size>0) then
     Connection.Socket.CopyFrom(ContentStream,0)
-  else
-    if Length(Content)>0 then
-      Connection.Socket.WriteBuffer(Content[1],Length(Content));
+  else if Length(Content)>0 then
+    Connection.Socket.WriteBuffer(Content[1],Length(Content));
 end;
 
 { TFPHTTPConnection }
