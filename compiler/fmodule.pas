@@ -163,6 +163,7 @@ interface
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
         localmacrosymtable : TSymtable;{ pointer to the local macro symtable of this unit }
+        mainscanner   : TObject;  { scanner object used }
         scanner       : TObject;  { scanner object used }
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
@@ -347,7 +348,7 @@ implementation
             current_asmdata:=tasmdata(current_module.asmdata);
             current_debuginfo:=tdebuginfo(current_module.debuginfo);
             { restore scanner and file positions }
-            current_scanner:=tscannerfile(current_module.scanner);
+            set_current_scanner(tscannerfile(current_module.scanner),false);
             if assigned(current_scanner) then
               begin
                 current_scanner.tempopeninputfile;
@@ -363,7 +364,7 @@ implementation
         else
           begin
             current_asmdata:=nil;
-            current_scanner:=nil;
+            set_current_scanner(nil,false);
             current_debuginfo:=nil;
           end;
       end;
@@ -682,8 +683,9 @@ implementation
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-             current_scanner:=nil;
-            tscannerfile(scanner).free;
+              set_current_scanner(nil,false);
+            freeandnil(scanner);
+
          end;
         if assigned(asmdata) then
           begin
@@ -784,9 +786,8 @@ implementation
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-             current_scanner:=nil;
-            tscannerfile(scanner).free;
-            scanner:=nil;
+              set_current_scanner(nil,false);
+            freeandnil(scanner);
           end;
         if assigned(procinfo) then
           begin
@@ -1152,8 +1153,8 @@ implementation
         if assigned(scanner) then
           begin
             if current_scanner=tscannerfile(scanner) then
-              current_scanner:=nil;
-            tscannerfile(scanner).free;
+              set_current_scanner(nil,false);
+            FreeAndNil(scanner);
             scanner:=nil;
           end;
 
