@@ -97,6 +97,7 @@ uses
         function PopVal: TWasmBasicType;
         function PopVal(expect: TWasmBasicType): TWasmBasicType;
         procedure PushVals(vals: TWasmBasicTypeList);
+        function PopVals(vals: TWasmBasicTypeList): TWasmBasicTypeList;
       end;
 
       twasmstruc_stack = class;
@@ -488,6 +489,15 @@ uses
       begin
         for v in vals do
           PushVal(v);
+      end;
+
+    function TWasmValidationStacks.PopVals(vals: TWasmBasicTypeList): TWasmBasicTypeList;
+      var
+        I: Integer;
+      begin
+        SetLength(Result,Length(vals));
+        for I:=High(vals) downto Low(Vals) do
+          Result[I]:=PopVal(vals[I]);
       end;
 
     { twasmstruc_stack }
