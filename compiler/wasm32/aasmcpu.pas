@@ -479,6 +479,7 @@ uses
 
     function TWasmValidationStacks.PopVal(expect: TWasmBasicType): TWasmBasicType;
       begin
+        Result:=wbt_Unknown;
         Result:=PopVal;
         if (Result<>expect) and (Result<>wbt_Unknown) and (expect<>wbt_Unknown) then
           internalerror(2024013105);
