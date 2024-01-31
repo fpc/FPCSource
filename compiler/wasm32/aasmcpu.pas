@@ -520,6 +520,7 @@ uses
       var
         I: Integer;
       begin
+        Result:=nil;
         SetLength(Result,Length(vals));
         for I:=High(vals) downto Low(Vals) do
           Result[I]:=PopVal(vals[I]);
@@ -543,7 +544,7 @@ uses
 
     function TWasmValidationStacks.PopCtrl: TWasmControlFrame;
       begin
-        FillChar(Result,SizeOf(Result),0);
+        Result:=Default(TWasmControlFrame);
         if FCtrlStack.Count=0 then
           internalerror(2024013106);
         Result:=FCtrlStack[0];
