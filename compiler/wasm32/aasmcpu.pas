@@ -100,6 +100,7 @@ uses
         function PopVals(vals: TWasmBasicTypeList): TWasmBasicTypeList;
 
         procedure PushCtrl(_opcode: tasmop; _in, _out: TWasmBasicTypeList);
+        function PopCtrl: TWasmControlFrame;
       end;
 
       twasmstruc_stack = class;
@@ -516,6 +517,18 @@ uses
             unreachable:=False;
           end;
         FCtrlStack.Push(frame);
+      end;
+
+    function TWasmValidationStacks.PopCtrl: TWasmControlFrame;
+      begin
+        FillChar(Result,SizeOf(Result),0);
+        if FCtrlStack.Count=0 then
+          internalerror(2024013106);
+        Result:=FCtrlStack[0];
+        PopVals(Result.end_types);
+        if FValueStack.Count<>Result.height then
+          internalerror(2024013107);
+        FCtrlStack.Pop;
       end;
 
     { twasmstruc_stack }
