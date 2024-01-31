@@ -959,7 +959,7 @@ procedure TSocketServer.Listen;
 begin
   If Not FBound then
     Bind;
-  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpListen(FSocket,FQueueSize)<>0 then
+  If {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpListen(FSocket,FQueueSize)<>0 then
     Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
@@ -1059,8 +1059,8 @@ begin
             end;
           end;
        end;
-    Until (Stream<>Nil) or (Not NonBlocking);
-  Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
+    Until (Stream<>Nil) or (Not NonBlocking) or (Not FAccepting);
+  Until (Not FAccepting) or ((FMaxConnections>=0) and (NoConnections>=FMaxConnections));
 end;
 
 procedure TSocketServer.StopAccepting(DoAbort: Boolean = False);
@@ -1271,7 +1271,7 @@ begin
   Faddr.sin_port := ShortHostToNet(FPort);
   Faddr.sin_addr.s_addr := LongWord(StrToNetAddr(FHost));
   if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
-    raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
+    raise ESocketError.Create(seBindFailed, ['port '+IntToStr(FPort)]);
   FBound:=True;
 end;
 
@@ -1290,14 +1290,15 @@ Var
 begin
   H:=GetClientSocketHandler(aSocket);
   aClass:=DefaultInetSocketClass;
-
-  // Should be: Result:=TServerSocketStream.Create(ASocket,H);
-
   if aClass=Nil then
     aClass:=TInetSocket;
+  {$IFDEF UseServerSocketStreamForInetServer}
+  Result:=TServerSocketStream.Create(ASocket,H);
+  {$ELSE}
   Result:=aClass.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
+  {$ENDIF}
 
   ok:=false;
   try
@@ -1368,7 +1369,7 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
-  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpBind(Socket,@FUnixAddr,AddrLen)<>0 then
+  If {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpBind(Socket,@FUnixAddr,AddrLen)<>0 then
     Raise ESocketError.Create(seBindFailed,[FFileName]);
   FBound:=True;
 end;
