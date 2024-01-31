@@ -68,7 +68,7 @@ interface
           function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
           procedure writeppu;
-          procedure loadppu;
+          procedure loadppu(from_module : tmodule);
           procedure discardppu;
           function  needrecompile:boolean;
           procedure setdefgeneration;
@@ -1894,7 +1894,7 @@ var
          begin
            if pu.in_interface then
             begin
-              tppumodule(pu.u).loadppu;
+              tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
               if state=ms_compiled then
                exit;
@@ -1926,7 +1926,6 @@ var
             end;
            pu:=tused_unit(pu.next);
          end;
-
         { ok, now load the interface of this unit }
         if current_module<>self then
          internalerror(200208187);
@@ -1956,7 +1955,7 @@ var
          begin
            if (not pu.in_interface) then
             begin
-              tppumodule(pu.u).loadppu;
+              tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
               if state=ms_compiled then
                exit;
@@ -2058,7 +2057,7 @@ var
               (hp.defsgeneration<defsgeneration) then
              begin
                hp.defsgeneration:=defsgeneration;
-               hp.loadppu
+               hp.loadppu(self)
              end
            else
              hp.do_reload:=false;
@@ -2078,22 +2077,20 @@ var
       end;
 
 
-    procedure tppumodule.loadppu;
+    procedure tppumodule.loadppu(from_module : tmodule);
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
         do_load,
         second_time        : boolean;
-        old_current_module : tmodule;
         pu : tused_unit;
       begin
-        old_current_module:=current_module;
-        Message3(unit_u_load_unit,old_current_module.modulename^,
-                 ImplIntf[old_current_module.in_interface],
+        Message3(unit_u_load_unit,from_module.modulename^,
+                 ImplIntf[from_module.in_interface],
                  modulename^);
 
         { Update loaded_from to detect cycles }
-        loaded_from:=old_current_module;
+        loaded_from:=from_module ;
 
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
@@ -2162,7 +2159,7 @@ var
                      must also be re-resolved, because they will also contain
                      pointers to procdefs in the old trgobj (in case of a
                      recompile, all old defs are freed) }
-                   flagdependent(old_current_module);
+                   flagdependent(from_module);
                    reload_flagged_units;
                  end
                else
@@ -2182,7 +2179,7 @@ var
               Message1(unit_u_second_load_unit,modulename^);
               Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
               { Flag modules to reload }
-              flagdependent(old_current_module);
+              flagdependent(from_module);
               { Reset the module }
               reset;
               if state in [ms_compile,ms_second_compile] then
@@ -2240,7 +2237,7 @@ var
                     printcomments;
                     if recompile_reason=rr_noppu then
                       begin
-                        pu:=tused_unit(loaded_from.used_units.first);
+                        pu:=tused_unit(from_module.used_units.first);
                         while assigned(pu) do
                           begin
                             if pu.u=self then
@@ -2248,9 +2245,9 @@ var
                             pu:=tused_unit(pu.next);
                           end;
                         if assigned(pu) and assigned(pu.unitsym) then
-                          MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^)
+                          MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^)
                         else
-                          Message2(unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^);
+                          Message2(unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^);
                       end
                     else
                       Message1(unit_f_cant_compile_unit,realmodulename^);
@@ -2263,13 +2260,13 @@ var
                 comments:=nil;
               end;
               { Flag modules to reload }
-              flagdependent(old_current_module);
+              flagdependent(from_module);
               { Reset the module }
               reset;
               { compile this module }
               if not(state in [ms_compile,ms_second_compile]) then
                 state:=ms_compile;
-              compile(mainsource);
+              compile_module(self);
               setdefgeneration;
             end
            else
@@ -2297,7 +2294,8 @@ var
          end;
 
         { we are back, restore current_module }
-        set_current_module(old_current_module);
+
+        set_current_module(from_module);
       end;
 
     procedure tppumodule.discardppu;
