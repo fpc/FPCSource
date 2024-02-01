@@ -194,14 +194,18 @@ var
 
       begin
         Message1(unit_u_reresolving_unit,modulename^);
-        tstoredsymtable(globalsymtable).deref(false);
-        tstoredsymtable(globalsymtable).derefimpl(false);
+        if tstoredsymtable(globalsymtable).is_deref_built then
+          tstoredsymtable(globalsymtable).deref(false);
+        if tstoredsymtable(globalsymtable).is_derefimpl_built then
+          tstoredsymtable(globalsymtable).derefimpl(false);
         if assigned(localsymtable) then
           begin
             { we have only builderef(impl)'d the registered symbols of
               the localsymtable -> also only deref those again }
-            tstoredsymtable(localsymtable).deref(true);
-            tstoredsymtable(localsymtable).derefimpl(true);
+            if tstoredsymtable(localsymtable).is_deref_built then
+              tstoredsymtable(localsymtable).deref(true);
+            if tstoredsymtable(localsymtable).is_derefimpl_built then
+              tstoredsymtable(localsymtable).derefimpl(true);
           end;
         if assigned(wpoinfo) then
           begin

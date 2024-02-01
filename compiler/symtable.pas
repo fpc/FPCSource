@@ -36,9 +36,14 @@ interface
 ****************************************************************************}
 
     type
+
+       { tstoredsymtable }
+
        tstoredsymtable = class(TSymtable)
        private
           init_final_check_done : boolean;
+          deref_built : boolean;
+          derefimpl_built : boolean;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure do_init_final_check;
           procedure check_forward(sym:TObject;arg:pointer);
@@ -73,6 +78,8 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean; virtual;
           function  has_non_trivial_init:boolean;virtual;
+          function is_derefimpl_built: Boolean;
+          function is_deref_built: Boolean;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
           procedure register_children;
        end;
@@ -697,6 +704,15 @@ implementation
         ppufile.writeentry(ibendsyms);
       end;
 
+    function tstoredsymtable.is_deref_built: Boolean;
+    begin
+      Result:=deref_built;
+    end;
+
+    function tstoredsymtable.is_derefimpl_built: Boolean;
+    begin
+      Result:=derefimpl_built;
+    end;
 
     procedure tstoredsymtable.buildderef;
       var
@@ -716,6 +732,7 @@ implementation
             sym:=tstoredsym(SymList[i]);
             sym.buildderef;
           end;
+        deref_built:=True;
       end;
 
 
@@ -730,6 +747,7 @@ implementation
             def:=tstoreddef(DefList[i]);
             def.buildderefimpl;
           end;
+        derefimpl_built:=True;
       end;
 
 
