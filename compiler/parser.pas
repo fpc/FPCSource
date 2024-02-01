@@ -85,7 +85,7 @@ implementation
          pattern:='';
          orgpattern:='';
          cstringpattern:='';
-         set_current_scanner(nil,true);
+         set_current_scanner(nil);
          switchesstatestackpos:=0;
 
          { register all nodes and tais }
@@ -218,7 +218,7 @@ implementation
          if assigned(current_scanner) then
           begin
             current_scanner.free;
-            set_current_scanner(nil,true);
+            set_current_scanner(nil);
 
           end;
 
@@ -407,7 +407,7 @@ implementation
          sc.firstfile;
          module.scanner:=sc;
          module.mainscanner:=sc;
-         set_current_scanner(sc,false);
+         set_current_scanner(sc);
 
          { init macros before anything in the file is parsed.}
          module.localmacrosymtable:= tmacrosymtable.create(false);
@@ -469,7 +469,7 @@ implementation
                    macrosymtablestack:=nil;
                    symtablestack:=nil;
                    if current_scanner=current_module.scanner then
-                     set_current_scanner(nil,false);
+                     set_current_scanner(nil);
                  end;
              end;
 

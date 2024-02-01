@@ -348,7 +348,7 @@ implementation
             current_asmdata:=tasmdata(current_module.asmdata);
             current_debuginfo:=tdebuginfo(current_module.debuginfo);
             { restore scanner and file positions }
-            set_current_scanner(tscannerfile(current_module.scanner),false);
+            set_current_scanner(tscannerfile(current_module.scanner));
             if assigned(current_scanner) then
               begin
                 current_scanner.tempopeninputfile;
@@ -364,7 +364,7 @@ implementation
         else
           begin
             current_asmdata:=nil;
-            set_current_scanner(nil,false);
+            set_current_scanner(nil);
             current_debuginfo:=nil;
           end;
       end;
@@ -683,7 +683,7 @@ implementation
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-              set_current_scanner(nil,false);
+              set_current_scanner(nil);
             freeandnil(scanner);
 
          end;
@@ -786,7 +786,7 @@ implementation
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-              set_current_scanner(nil,false);
+              set_current_scanner(nil);
             freeandnil(scanner);
           end;
         if assigned(procinfo) then
@@ -1153,7 +1153,7 @@ implementation
         if assigned(scanner) then
           begin
             if current_scanner=tscannerfile(scanner) then
-              set_current_scanner(nil,false);
+              set_current_scanner(nil);
             FreeAndNil(scanner);
             scanner:=nil;
           end;

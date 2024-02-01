@@ -151,7 +151,7 @@ uses
               current_module:=old_current_module; {!}
               current_asmdata:=old_asmdata;
               current_debuginfo:=old_debuginfo;
-              set_current_scanner(old_scanner,False);
+              set_current_scanner(old_scanner);
               parser_current_file:=old_parser_file;
             end;
         end;

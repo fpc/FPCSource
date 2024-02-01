@@ -168,7 +168,7 @@ implementation
         in the current one }
       old_block_type:=block_type;
       sstate.new_scanner:=tscannerfile.Create('_Macro_.'+tempname,true);
-      set_current_scanner(sstate.new_scanner,False);
+      set_current_scanner(sstate.new_scanner);
       block_type:=old_block_type;
       { required for e.g. FpcDeepCopy record method (uses "out" parameter; field
         names are escaped via &, so should not cause conflicts }
@@ -181,7 +181,7 @@ implementation
       if sstate.valid then
         begin
           sstate.new_scanner.free;
-          set_current_scanner(sstate.old_scanner,false);
+          set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
           token:=sstate.old_token;
           current_settings.modeswitches:=sstate.old_modeswitches;

@@ -256,7 +256,9 @@ interface
           function  readpreprocint(var value:int64;const place:string):boolean;
           function  readpreprocset(conform_to:tsetdef;var value:tnormalset;const place:string):boolean;
           function  asmgetchar:char;
+{$ifdef EXTDEBUG}
           function DumpPointer : string;
+{$endif EXTDEBUG}
        end;
 
 {$ifdef PREPROCWRITE}
@@ -299,12 +301,15 @@ interface
     procedure DoneScanner;
 
     function current_scanner : tscannerfile;  { current scanner in use }
-    procedure set_current_scanner(avalue : tscannerfile; FreeOld : Boolean);  { current scanner in use }
+    procedure set_current_scanner(avalue : tscannerfile);  { current scanner in use }
 
     { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
     procedure SetAppType(NewAppType:tapptype);
+
+    var
+      onfreescanner : procedure(s : tscannerfile) = nil;
 
 implementation
 
@@ -324,11 +329,19 @@ implementation
       { dictionaries with the supported directives }
       turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
       mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
-      _current_scanner : tscannerfile; { current scanner in use }
+      {
+        By default the current_scanner is current_module.scanner.
+        set_current_scanner sets the _temp_scanner variable.
+        If _temp_scanner is set, it is returned as the current scanner
+      }
+      _temp_scanner : tscannerfile;
 
       function current_scanner : tscannerfile;  { current scanner in use }
 
       begin
+        Result:=_temp_scanner;
+        if result<>nil then
+          exit;
         if assigned(current_module) then
           Result:=Tscannerfile(current_module.scanner)
         else
@@ -506,13 +519,9 @@ implementation
 {$endif i8086}
       end;
 
-
-    procedure set_current_scanner(avalue: tscannerfile; FreeOld: Boolean);
+    procedure set_current_scanner(avalue: tscannerfile);
     begin
-      if (avalue=nil) and FreeOld and (_current_scanner<>nil) then
-        _current_scanner.Free;
-
-      _current_scanner:=avalue;
+      _temp_scanner:=avalue;
     end;
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
@@ -2972,7 +2981,7 @@ type
                                 TSCANNERFILE
  ****************************************************************************}
 
-        constructor tscannerfile.Create(const fn: string; is_macro: boolean);
+    constructor tscannerfile.Create(const fn: string; is_macro: boolean);
       begin
         inputfile:=do_openinputfile(fn);
         if is_macro then
@@ -3015,8 +3024,10 @@ type
       end;
 
 
-        destructor tscannerfile.Destroy;
+    destructor tscannerfile.Destroy;
       begin
+        if assigned(onfreescanner) then
+          onfreescanner(self);
         if assigned(current_module) and
            (current_module.state=ms_compiled) and
            (status.errorcount=0) then
@@ -6216,6 +6227,7 @@ exit_label:
          until false;
       end;
 
+{$ifdef EXTDEBUG}
     function tscannerfile.DumpPointer: string;
       var
         i: Integer;
@@ -6224,12 +6236,13 @@ exit_label:
         Result:='';
         if inputpointer=nil then exit;
         i:=0;
-        While (inputpointer[I]<>#0) and (i<100) do
+        While (inputpointer[I]<>#0) and (i<200) do
           inc(i);
         Setlength(result,I);
         move(inputpointer^,Result[1],I);
+        result:='<'+inttostr(inputstart)+'>'+result;
       end;
-
+{$endif EXTDEBUG}
 
 {*****************************************************************************
                                    Helpers
