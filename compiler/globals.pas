@@ -405,7 +405,6 @@ Const
 
        block_type : tblock_type;         { type of currently parsed block }
 
-       compile_level : word;
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
@@ -1702,7 +1701,6 @@ implementation
         do_build:=false;
         do_release:=false;
         do_make:=true;
-        compile_level:=0;
         codegenerror:=false;
 
         { Output }

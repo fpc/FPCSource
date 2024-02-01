@@ -1524,7 +1524,7 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows) then
           Message(scan_w_setpeuserversion_not_support);
-        if (compile_level<>1) then
+        if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
         else
           do_version(peuserversionmajor,peuserversionminor,dummyrev,dummystr,false,SetPEUserVersionSetExplicitely);
@@ -1537,7 +1537,7 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows) then
           Message(scan_w_setpeosversion_not_support);
-        if (compile_level<>1) then
+        if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
         else
           do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,SetPEOSVersionSetExplicitely);
@@ -1550,7 +1550,7 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows) then
           Message(scan_w_setpesubsysversion_not_support);
-        if (compile_level<>1) then
+        if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
         else
           do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,SetPESubSysVersionSetExplicitely);
@@ -1702,7 +1702,7 @@ unit scandir;
             Message(scan_n_version_not_support);
             exit;
           end;
-        if (compile_level<>1) then
+        if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
         else
           begin

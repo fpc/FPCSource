@@ -28,8 +28,11 @@ interface
 uses fmodule;
 
     function proc_unit(curr: tmodule):boolean;
+    function parse_unit_interface_declarations(curr : tmodule) : boolean;
+    function proc_unit_implementation(curr: tmodule):boolean;
     procedure proc_package(curr: tmodule);
     procedure proc_program(curr: tmodule; islibrary : boolean);
+    procedure proc_program_declarations(curr : tmodule; islibrary : boolean);
 
 implementation
 
@@ -1117,7 +1120,7 @@ type
            curr.mode_switch_allowed:= false;
 
          consume(_UNIT);
-         if compile_level=1 then
+         if curr.is_initial then
           Status.IsExe:=false;
 
          unitname:=orgpattern;
@@ -2015,7 +2018,7 @@ type
              pkg.initmoduleinfo(curr);
 
              { create the executable when we are at level 1 }
-             if (compile_level=1) then
+             if (curr.is_initial) then
                begin
                  { create global resource file by collecting all resource files }
                  CollectResourceFiles;
@@ -2278,7 +2281,7 @@ type
           end;
         { create the executable when we are at level 1 }
 
-        if (not curr.is_unit) and (compile_level=1) then
+        if (not curr.is_unit) and (curr.is_initial) then
           proc_create_executable(curr,sysinitmod,islibrary);
 
         { Give Fatal with error count for linker errors }

@@ -107,6 +107,7 @@ interface
       private
         FImportLibraryList : TFPHashObjectList;
       public
+        is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
@@ -198,6 +199,8 @@ interface
 
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
+        loadcount : integer;
+        compilecount : integer;
 
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of
@@ -251,6 +254,7 @@ interface
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
+        function usedunitsloaded(interface_units: boolean): boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -782,6 +786,7 @@ implementation
         i   : longint;
         current_debuginfo_reset : boolean;
       begin
+        is_reset:=true;
         if assigned(scanner) then
           begin
             { also update current_scanner if it was pointing
@@ -1000,7 +1005,7 @@ implementation
               (pm.u.state<>ms_compiled) then
              Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
            else
-            if pm.u.state=ms_second_compile then
+            if (pm.u.state=ms_compile) and (pm.u.compilecount>1) then
               Message1(unit_u_no_reload_in_second_compile,pm.u.modulename^)
            else
             begin
@@ -1026,6 +1031,27 @@ implementation
         used_units.concat(pu);
         addusedunit:=pu;
       end;
+
+
+    function tmodule.usedunitsloaded(interface_units : boolean): boolean;
+
+    var
+      itm : TLinkedListItem;
+
+    begin
+      Result:=True;
+      itm:=self.used_units.First;
+      while Result and assigned(itm) do
+        begin
+        if (tused_unit(itm).in_interface=interface_units) then
+          begin
+          result:=tused_unit(itm).u.state in [ms_compiled,ms_compiling_waitimpl];
+          if not result then
+            writeln('module ',modulename^,' : cannot continue, interface unit ',tused_unit(itm).u.modulename^,' is not fully loaded');
+          end;
+        itm:=itm.Next;
+        end;
+    end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
 

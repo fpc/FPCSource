@@ -347,7 +347,7 @@ implementation
            internalerror(200811121);
          if assigned(current_structdef) then
            internalerror(200811122);
-         inc(compile_level);
+         inc(module.compilecount);
          parser_current_file:=module.mainsource;
          { Uses heap memory instead of placing everything on the
            stack. This is needed because compile() can be called
@@ -383,7 +383,7 @@ implementation
 
        { reset the unit or create a new program }
          { a unit compiled at command line must be inside the loaded_unit list }
-         if (compile_level=1) then
+         if (module.is_initial) then
            begin
              if assigned(current_module) then
                internalerror(200501158);
@@ -395,7 +395,7 @@ implementation
          else
            set_current_module(module);
          if not(assigned(current_module) and
-                (current_module.state in [ms_compile,ms_second_compile])) then
+                (current_module.state in [ms_compile])) then
            internalerror(200212281);
 
          { load current asmdata from current_module }
@@ -423,7 +423,7 @@ implementation
            message if we are trying to use a program as unit.}
          try
            try
-             if (token=_UNIT) or (compile_level>1) then
+             if (token=_UNIT) or (not module.is_initial) then
                begin
                  module.is_unit:=true;
                  finished:=proc_unit(module);
@@ -454,7 +454,7 @@ implementation
 
            { the program or the unit at the command line should not need to wait
              for other units }
-           if (compile_level=1) and not finished then
+           if (module.is_initial) and not finished then
              internalerror(2012091901);
          finally
            if assigned(module) then
@@ -472,7 +472,7 @@ implementation
                  end;
              end;
 
-            if (compile_level=1) and
+            if (module.is_initial) and
                (status.errorcount=0) then
               { Write Browser Collections }
               do_extractsymbolinfo;
@@ -485,7 +485,7 @@ implementation
             exceptblockcounter:=0;
 
             { Shut down things when the last file is compiled succesfull }
-            if (compile_level=1) and
+            if (module.is_initial) and
                 (status.errorcount=0) then
               begin
                 parser_current_file:='';
@@ -499,7 +499,7 @@ implementation
 
           { free now what we did not free earlier in
             proc_program PM }
-          if (compile_level=1) and needsymbolinfo then
+          if (module.is_initial) and needsymbolinfo then
             begin
               hp:=tmodule(loaded_units.first);
               while assigned(hp) do
@@ -515,7 +515,7 @@ implementation
               { free also unneeded units we didn't free before }
               unloaded_units.Clear;
              end;
-           dec(compile_level);
+
            { If used units are compiled current_module is already the same as
              the stored module. Now if the unit is not finished its scanner is
              not yet freed and thus set_current_module would reopen the scanned

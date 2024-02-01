@@ -2177,14 +2177,14 @@ var
           flagdependent(from_module);
           { Reset the module }
           reset;
-          if state in [ms_compile,ms_second_compile] then
+          if state in [ms_compile] then
             begin
               Message1(unit_u_second_compile_unit,modulename^);
-              state:=ms_second_compile;
+              state:=ms_compile;
               do_compile:=true;
             end
           else
-            state:=ms_second_load;
+            state:=ms_load;
         end;
 
     procedure tppumodule.try_load_ppufile(from_module : tmodule);
@@ -2249,7 +2249,7 @@ var
         { Reset the module }
         reset;
         { compile this module }
-        if not(state in [ms_compile,ms_second_compile]) then
+        if not (state in [ms_compile]) then
           state:=ms_compile;
         compile_module(self);
         setdefgeneration;

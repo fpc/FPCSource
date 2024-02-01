@@ -152,6 +152,7 @@ uses
 {$ifdef aix}
   ,i_aix
 {$endif aix}
+  ,ctask
   ,globtype;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -159,6 +160,8 @@ function Compile(const cmd:TCmdStr):longint;
 implementation
 
 uses
+  finput,
+  fppu,
   aasmcpu;
 
 {$if defined(MEMDEBUG)}
@@ -196,6 +199,7 @@ begin
   DoneGlobals;
   DoneFileUtils;
   donetokens;
+  DoneTaskHandler;
 end;
 
 
@@ -233,6 +237,7 @@ begin
   InitAsm;
   InitWpo;
 
+  InitTaskHandler;
   CompilerInitedAfterArgs:=true;
 end;
 
@@ -261,6 +266,8 @@ var
 {$endif SHOWUSEDMEM}
   ExceptionMask : TFPUExceptionMask;
   totaltime : real;
+  m : tppumodule;
+
 begin
   try
     try
@@ -291,7 +298,14 @@ begin
         parser.preprocess(inputfilepath+inputfilename)
        else
   {$endif PREPROCWRITE}
-        parser.compile(inputfilepath+inputfilename);
+         begin
+         m:=tppumodule.create(Nil,'',inputfilepath+inputfilename,false);
+         m.state:=ms_compile;
+         m.is_initial:=true;
+         task_handler.addmodule(m);
+         task_handler.processqueue;
+         end;
+
 
        { Show statistics }
        if status.errorcount=0 then
