@@ -64,6 +64,7 @@ interface
           constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
+          procedure re_resolve(loadfrom: tmodule);
           function  openppufile:boolean;
           function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
@@ -83,7 +84,12 @@ interface
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
 
+          function check_loadfrompackage: boolean;
+          procedure check_reload(from_module: tmodule; var do_load: boolean);
           function  openppu(ppufiletime:longint):boolean;
+          procedure post_load_or_compile(second_time: boolean);
+          procedure prepare_second_load(from_module: tmodule);
+          procedure recompile_from_sources(from_module: tmodule);
           function  search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
           function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):boolean;
           function  loadfrompackage:boolean;
@@ -95,6 +101,7 @@ interface
           procedure buildderefunitimportsyms;
           procedure derefunitimportsyms;
           procedure freederefunitimportsyms;
+          procedure try_load_ppufile(from_module: tmodule);
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -182,6 +189,39 @@ var
         unitimportsymsderefs:=tfplist.create;
         inherited reset;
       end;
+
+    procedure tppumodule.re_resolve(loadfrom: tmodule);
+
+      begin
+        Message1(unit_u_reresolving_unit,modulename^);
+        tstoredsymtable(globalsymtable).deref(false);
+        tstoredsymtable(globalsymtable).derefimpl(false);
+        if assigned(localsymtable) then
+          begin
+            { we have only builderef(impl)'d the registered symbols of
+              the localsymtable -> also only deref those again }
+            tstoredsymtable(localsymtable).deref(true);
+            tstoredsymtable(localsymtable).derefimpl(true);
+          end;
+        if assigned(wpoinfo) then
+          begin
+            tunitwpoinfo(wpoinfo).deref;
+            tunitwpoinfo(wpoinfo).derefimpl;
+          end;
+
+        { We have to flag the units that depend on this unit even
+          though it didn't change, because they might also
+          indirectly depend on the unit that did change (e.g.,
+          in case rgobj, rgx86 and rgcpu have been compiled
+          already, and then rgobj is recompiled for some reason
+          -> rgx86 is re-reresolved, but the vmtentries of trgcpu
+          must also be re-resolved, because they will also contain
+          pointers to procdefs in the old trgobj (in case of a
+          recompile, all old defs are freed) }
+        flagdependent(loadfrom);
+        reload_flagged_units;
+      end;
+
 
     procedure tppumodule.queuecomment(const s:TMsgStr;v,w:longint);
     begin
@@ -2076,6 +2116,164 @@ var
         inherited end_of_parsing;
       end;
 
+    procedure tppumodule.check_reload(from_module : tmodule; var do_load : boolean);
+
+      begin
+        { A force reload }
+        if not do_reload then
+          exit;
+        Message(unit_u_forced_reload);
+        do_reload:=false;
+        { When the unit is already loaded or being loaded
+         we can maybe skip a complete reload/recompile }
+        if assigned(globalsymtable) and
+          (not needrecompile) then
+         begin
+           { When we don't have any data stored yet there
+             is nothing to resolve }
+           if interface_compiled and
+             { it makes no sense to re-resolve the unit if it is already finally compiled }
+             not(state=ms_compiled) then
+             begin
+               re_resolve(from_module);
+             end
+           else
+             Message1(unit_u_skipping_reresolving_unit,modulename^);
+           do_load:=false;
+         end;
+      end;
+
+    { Returns true if the module was loaded from package }
+    function tppumodule.check_loadfrompackage : boolean;
+
+      begin
+        { try to load it as a package unit first }
+        Result:=(packagelist.count>0) and loadfrompackage;
+        if Result then
+          begin
+            do_reload:=false;
+            state:=ms_compiled;
+            { PPU is not needed anymore }
+            if assigned(ppufile) then
+             begin
+               discardppu;
+             end;
+            { add the unit to the used units list of the program }
+            usedunits.concat(tused_unit.create(self,true,false,nil));
+          end;
+      end;
+
+      procedure tppumodule.prepare_second_load(from_module: tmodule);
+
+        begin
+          { try to load the unit a second time first }
+          Message1(unit_u_second_load_unit,modulename^);
+          Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
+          { Flag modules to reload }
+          flagdependent(from_module);
+          { Reset the module }
+          reset;
+          if state in [ms_compile,ms_second_compile] then
+            begin
+              Message1(unit_u_second_compile_unit,modulename^);
+              state:=ms_second_compile;
+              do_compile:=true;
+            end
+          else
+            state:=ms_second_load;
+        end;
+
+    procedure tppumodule.try_load_ppufile(from_module : tmodule);
+
+      begin
+        Message1(unit_u_loading_unit,modulename^);
+        search_unit_files(from_module,false);
+        if not do_compile then
+         begin
+           load_interface;
+           setdefgeneration;
+           if not do_compile then
+            begin
+              load_usedunits;
+              if not do_compile then
+                Message1(unit_u_finished_loading_unit,modulename^);
+            end;
+         end;
+        { PPU is not needed anymore }
+        if assigned(ppufile) then
+            discardppu;
+      end;
+
+    procedure tppumodule.recompile_from_sources(from_module : tmodule);
+
+      var
+        pu : tused_unit;
+      begin
+        { recompile the unit or give a fatal error if sources not available }
+        if not(sources_avail) then
+         begin
+           search_unit_files(from_module,true);
+           if not(sources_avail) then
+            begin
+              printcomments;
+              if recompile_reason=rr_noppu then
+                begin
+                  pu:=tused_unit(from_module.used_units.first);
+                  while assigned(pu) do
+                    begin
+                      if pu.u=self then
+                        break;
+                      pu:=tused_unit(pu.next);
+                    end;
+                  if assigned(pu) and assigned(pu.unitsym) then
+                    MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^)
+                  else
+                    Message2(unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^);
+                end
+              else
+                Message1(unit_f_cant_compile_unit,realmodulename^);
+            end;
+         end;
+        { we found the sources, we do not need the verbose messages anymore }
+        if comments <> nil then
+        begin
+          comments.free;
+          comments:=nil;
+        end;
+        { Flag modules to reload }
+        flagdependent(from_module);
+        { Reset the module }
+        reset;
+        { compile this module }
+        if not(state in [ms_compile,ms_second_compile]) then
+          state:=ms_compile;
+        compile_module(self);
+        setdefgeneration;
+      end;
+
+    procedure tppumodule.post_load_or_compile(second_time : boolean);
+
+    begin
+      if current_module<>self then
+        internalerror(200212282);
+
+      if in_interface then
+        internalerror(200212283);
+
+      { for a second_time recompile reload all dependent units,
+        for a first time compile register the unit _once_ }
+      if second_time then
+        reload_flagged_units
+      else
+        usedunits.concat(tused_unit.create(self,true,false,nil));
+
+      { reopen the old module }
+{$ifdef SHORT_ON_FILE_HANDLES}
+      if old_current_module.is_unit and
+          assigned(tppumodule(old_current_module).ppufile) then
+         tppumodule(old_current_module).ppufile.tempopen;
+{$endif SHORT_ON_FILE_HANDLES}
+    end;
 
     procedure tppumodule.loadppu(from_module : tmodule);
       const
@@ -2083,13 +2281,11 @@ var
       var
         do_load,
         second_time        : boolean;
-        pu : tused_unit;
+
       begin
         Message3(unit_u_load_unit,from_module.modulename^,
                  ImplIntf[from_module.in_interface],
                  modulename^);
-
-        { Update loaded_from to detect cycles }
 
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
@@ -2102,198 +2298,48 @@ var
         second_time:=false;
         set_current_module(self);
 
-        { try to load it as a package unit first }
-        if (packagelist.count>0) and loadfrompackage then
-          begin
-            do_load:=false;
-            do_reload:=false;
-            state:=ms_compiled;
-            { PPU is not needed anymore }
-            if assigned(ppufile) then
-             begin
-               discardppu;
-             end;
-            { add the unit to the used units list of the program }
-            usedunits.concat(tused_unit.create(self,true,false,nil));
-          end;
+        do_load:=not check_loadfrompackage;
 
         { A force reload }
-        if do_reload then
-         begin
-           Message(unit_u_forced_reload);
-           do_reload:=false;
-           { When the unit is already loaded or being loaded
-             we can maybe skip a complete reload/recompile }
-           if assigned(globalsymtable) and
-              (not needrecompile) then
-             begin
-               { When we don't have any data stored yet there
-                 is nothing to resolve }
-               if interface_compiled and
-                 { it makes no sense to re-resolve the unit if it is already finally compiled }
-                 not(state=ms_compiled) then
-                 begin
-                   Message1(unit_u_reresolving_unit,modulename^);
-                   tstoredsymtable(globalsymtable).deref(false);
-                   tstoredsymtable(globalsymtable).derefimpl(false);
-                   if assigned(localsymtable) then
-                    begin
-                      { we have only builderef(impl)'d the registered symbols of
-                        the localsymtable -> also only deref those again }
-                      tstoredsymtable(localsymtable).deref(true);
-                      tstoredsymtable(localsymtable).derefimpl(true);
-                    end;
-                   if assigned(wpoinfo) then
-                     begin
-                       tunitwpoinfo(wpoinfo).deref;
-                       tunitwpoinfo(wpoinfo).derefimpl;
-                     end;
+        check_reload(from_module, do_load);
 
-                   { We have to flag the units that depend on this unit even
-                     though it didn't change, because they might also
-                     indirectly depend on the unit that did change (e.g.,
-                     in case rgobj, rgx86 and rgcpu have been compiled
-                     already, and then rgobj is recompiled for some reason
-                     -> rgx86 is re-reresolved, but the vmtentries of trgcpu
-                     must also be re-resolved, because they will also contain
-                     pointers to procdefs in the old trgobj (in case of a
-                     recompile, all old defs are freed) }
-                   flagdependent(from_module);
-                   reload_flagged_units;
-                 end
-               else
-                 Message1(unit_u_skipping_reresolving_unit,modulename^);
-               do_load:=false;
-             end;
-         end;
+        if not do_load then
+          begin
+            // No need to do anything, restore situation and exit.
+            set_current_module(from_module);
+            exit;
+          end;
 
-        if do_load then
-         begin
-           { loading the unit for a second time? }
-           if state=ms_registered then
-            state:=ms_load
-           else
-            begin
-              { try to load the unit a second time first }
-              Message1(unit_u_second_load_unit,modulename^);
-              Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
-              { Flag modules to reload }
-              flagdependent(from_module);
-              { Reset the module }
-              reset;
-              if state in [ms_compile,ms_second_compile] then
-                begin
-                  Message1(unit_u_second_compile_unit,modulename^);
-                  state:=ms_second_compile;
-                  do_compile:=true;
-                end
-              else
-                state:=ms_second_load;
-              second_time:=true;
-            end;
-
-           { close old_current_ppu on system that are
-             short on file handles like DOS PM }
+        { loading the unit for a second time? }
+        if state=ms_registered then
+          state:=ms_load
+        else
+          begin
+            second_time:=true;
+            prepare_second_load(from_module);
+          end;
+        { close old_current_ppu on system that are
+          short on file handles like DOS PM }
 {$ifdef SHORT_ON_FILE_HANDLES}
-           if old_current_module.is_unit and
-              assigned(tppumodule(old_current_module).ppufile) then
-             tppumodule(old_current_module).ppufile.tempclose;
+        if old_current_module.is_unit and
+           assigned(tppumodule(old_current_module).ppufile) then
+          tppumodule(old_current_module).ppufile.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
 
-           { try to opening ppu, skip this when we already
-             know that we need to compile the unit }
-           if not do_compile then
-            begin
-              Message1(unit_u_loading_unit,modulename^);
-              search_unit_files(from_module,false);
-              if not do_compile then
-               begin
-                 load_interface;
-                 setdefgeneration;
-                 if not do_compile then
-                  begin
-                    load_usedunits;
-                    if not do_compile then
-                      Message1(unit_u_finished_loading_unit,modulename^);
-                  end;
-               end;
-              { PPU is not needed anymore }
-              if assigned(ppufile) then
-               begin
-                  discardppu;
-               end;
-            end;
+        { try to opening ppu, skip this when we already
+          know that we need to compile the unit }
+        if not do_compile then
+          try_load_ppufile(from_module);
 
-           { Do we need to recompile the unit }
-           if do_compile then
-            begin
-              { recompile the unit or give a fatal error if sources not available }
-              if not(sources_avail) then
-               begin
-                 search_unit_files(from_module,true);
-                 if not(sources_avail) then
-                  begin
-                    printcomments;
-                    if recompile_reason=rr_noppu then
-                      begin
-                        pu:=tused_unit(from_module.used_units.first);
-                        while assigned(pu) do
-                          begin
-                            if pu.u=self then
-                              break;
-                            pu:=tused_unit(pu.next);
-                          end;
-                        if assigned(pu) and assigned(pu.unitsym) then
-                          MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^)
-                        else
-                          Message2(unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^);
-                      end
-                    else
-                      Message1(unit_f_cant_compile_unit,realmodulename^);
-                  end;
-               end;
-              { we found the sources, we do not need the verbose messages anymore }
-              if comments <> nil then
-              begin
-                comments.free;
-                comments:=nil;
-              end;
-              { Flag modules to reload }
-              flagdependent(from_module);
-              { Reset the module }
-              reset;
-              { compile this module }
-              if not(state in [ms_compile,ms_second_compile]) then
-                state:=ms_compile;
-              compile_module(self);
-              setdefgeneration;
-            end
-           else
-            state:=ms_compiled;
+        { Do we need to recompile the unit }
+        if do_compile then
+          recompile_from_sources(from_module)
+        else
+          state:=ms_compiled;
 
-           if current_module<>self then
-             internalerror(200212282);
-
-           if in_interface then
-             internalerror(200212283);
-
-           { for a second_time recompile reload all dependent units,
-             for a first time compile register the unit _once_ }
-           if second_time then
-            reload_flagged_units
-           else
-            usedunits.concat(tused_unit.create(self,true,false,nil));
-
-           { reopen the old module }
-{$ifdef SHORT_ON_FILE_HANDLES}
-           if old_current_module.is_unit and
-              assigned(tppumodule(old_current_module).ppufile) then
-             tppumodule(old_current_module).ppufile.tempopen;
-{$endif SHORT_ON_FILE_HANDLES}
-         end;
+        post_load_or_compile(second_time);
 
         { we are back, restore current_module }
-
         set_current_module(from_module);
       end;
 
