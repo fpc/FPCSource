@@ -1778,9 +1778,11 @@ begin
            name:=GetStr(T.Name);
            msource:=hp.mainsource;
            New(UnitS, Init(Name,msource));
+{          // A unit can be loaded from many other places, so a single loaded_from is misleading.
            if Assigned(hp.loaded_from) then
              if assigned(hp.loaded_from.globalsymtable) then
                UnitS^.SetLoadedFrom(tsymtable(hp.loaded_from.globalsymtable).name^);
+               }
 {           pimportlist(current_module^.imports^.first);}
 
            if assigned(hp.sourcefiles) then

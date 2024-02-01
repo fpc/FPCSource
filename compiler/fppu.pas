@@ -84,8 +84,8 @@ interface
           defsgeneration : longint;
 
           function  openppu(ppufiletime:longint):boolean;
-          function  search_unit_files(onlysource:boolean):boolean;
-          function  search_unit(onlysource,shortname:boolean):boolean;
+          function  search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
+          function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):boolean;
           function  loadfrompackage:boolean;
           procedure load_interface;
           procedure load_implementation;
@@ -399,23 +399,23 @@ var
       end;
 
 
-    function tppumodule.search_unit_files(onlysource:boolean):boolean;
+    function tppumodule.search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
       var
         found : boolean;
       begin
         found:=false;
-        if search_unit(onlysource,false) then
+        if search_unit(loaded_from,onlysource,false) then
           found:=true;
         if (not found) and
            (ft83 in AllowedFilenameTransFormations) and
            (length(modulename^)>8) and
-           search_unit(onlysource,true) then
+           search_unit(loaded_from,onlysource,true) then
           found:=true;
         search_unit_files:=found;
       end;
 
 
-    function tppumodule.search_unit(onlysource,shortname:boolean):boolean;
+    function tppumodule.search_unit(loaded_from : tmodule; onlysource,shortname:boolean):boolean;
       var
          singlepathstring,
          filename : TCmdStr;
@@ -1899,7 +1899,7 @@ var
               if state=ms_compiled then
                exit;
               { add this unit to the dependencies }
-              pu.u.adddependency(self);
+              pu.u.adddependency(self,true);
               { need to recompile the current unit, check the interface
                 crc. And when not compiled with -Ur then check the complete
                 crc }
@@ -1960,7 +1960,7 @@ var
               if state=ms_compiled then
                exit;
               { add this unit to the dependencies }
-              pu.u.adddependency(self);
+              pu.u.adddependency(self,false);
               { need to recompile the current unit ? }
               if (pu.u.interface_crc<>pu.interface_checksum) or
                  (pu.u.indirect_crc<>pu.indirect_checksum) then
@@ -2090,7 +2090,6 @@ var
                  modulename^);
 
         { Update loaded_from to detect cycles }
-        loaded_from:=from_module ;
 
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
@@ -2206,7 +2205,7 @@ var
            if not do_compile then
             begin
               Message1(unit_u_loading_unit,modulename^);
-              search_unit_files(false);
+              search_unit_files(from_module,false);
               if not do_compile then
                begin
                  load_interface;
@@ -2231,7 +2230,7 @@ var
               { recompile the unit or give a fatal error if sources not available }
               if not(sources_avail) then
                begin
-                 search_unit_files(true);
+                 search_unit_files(from_module,true);
                  if not(sources_avail) then
                   begin
                     printcomments;
@@ -2314,15 +2313,61 @@ var
 
 
     function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
+
+
+          function FindCycle(aFile, SearchFor: TModule; var Cycle: TFPList): boolean;
+          // Note: when traversing, add every search file to Cycle, to avoid running in circles.
+          // When a cycle is detected, clear the Cycle list and build the cycle path
+          var
+
+            aParent: tdependent_unit;
+          begin
+            Cycle.Add(aFile);
+            aParent:=tdependent_unit(afile.dependent_units.First);
+            While Assigned(aParent) do
+              begin
+              if aParent.in_interface then
+                begin
+                // writeln('Registering ',Callermodule.get_modulename,': checking cyclic dependency of ',aFile.get_modulename, ' on ',aparent.u.get_modulename);
+                if aParent.u=SearchFor then
+                begin
+                  // unit cycle found
+                  Cycle.Clear;
+                  Cycle.Add(aParent.u);
+                  Cycle.Add(aFile);
+                  // Writeln('exit at ',aParent.u.get_modulename);
+                  exit(true);
+                end;
+                if Cycle.IndexOf(aParent.u)<0 then
+                  if FindCycle(aParent.u,SearchFor,Cycle) then
+                    begin
+                    // Writeln('Cycle found, exit at ',aParent.u.get_modulename);
+                    Cycle.Add(aFile);
+                    exit(true);
+                    end;
+                end;
+              aParent:=tdependent_unit(aParent.Next);
+              end;
+           Result:=false;
+          end;
+
+
       var
         ups   : TIDString;
         hp    : tppumodule;
         hp2   : tmodule;
+        cycle : TFPList;
+        havecycle: boolean;
+{$IFDEF DEBUGCYCLE}
+        cyclepath : ansistring
+{$ENDIF}
+
       begin
         { Info }
         ups:=upper(s);
         { search all loaded units }
         hp:=tppumodule(loaded_units.first);
+        hp2:=nil;
         while assigned(hp) do
          begin
            if hp.modulename^=ups then
@@ -2333,18 +2378,30 @@ var
               if hp.is_unit then
                begin
                  { both units in interface ? }
-                 if callermodule.in_interface and
-                    hp.in_interface then
+                 if hp.in_interface and callermodule.usesmodule_in_interface(hp) then
                   begin
                     { check for a cycle }
-                    hp2:=callermodule.loaded_from;
-                    while assigned(hp2) and (hp2<>hp) do
-                     begin
-                       if hp2.in_interface then
-                         hp2:=hp2.loaded_from
-                       else
-                         hp2:=nil;
-                     end;
+                    Cycle:=TFPList.Create;
+                    try
+                      HaveCycle:=FindCycle(CallerModule,hp,Cycle);
+                      Writeln('Done cycle check, have cycle: ',HaveCycle);
+                      if HaveCycle then
+                      begin
+                      {$IFDEF DEBUGCYCLE}
+                         Writeln('Done cycle check');
+                        CyclePath:='';
+                        hp2:=TModule(Cycle[Cycle.Count-1]);
+                        for i:=0 to Cycle.Count-1 do begin
+                          if i>0 then CyclePath:=CyclePath+',';
+                          CyclePath:=CyclePath+TModule(Cycle[i]).realmodulename^;
+                        end;
+                        Writeln('Unit cycle detected: ',CyclePath);
+                        {$ENDIF}
+                        Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
+                      end;
+                    finally
+                      Cycle.Free;
+                    end;
                     if assigned(hp2) then
                       Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
                   end;
@@ -2360,7 +2417,6 @@ var
          begin
            Message1(unit_u_registering_new_unit,ups);
            hp:=tppumodule.create(callermodule,s,fn,true);
-           hp.loaded_from:=callermodule;
            addloadedunit(hp);
          end;
         { return }

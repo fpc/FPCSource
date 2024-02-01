@@ -172,7 +172,6 @@ interface
         externasmsyms : TFPHashObjectList; { contains the assembler symbols which are imported from another unit }
         unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
-        loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
         localnamespacelist,
@@ -247,10 +246,11 @@ interface
         destructor destroy;override;
         procedure reset;virtual;
         procedure loadlocalnamespacelist;
-        procedure adddependency(callermodule:tmodule);
+        procedure adddependency(callermodule:tmodule; frominterface : boolean);
         procedure flagdependent(callermodule:tmodule);
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
+        function  usesmodule_in_interface(m : tmodule) : boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -279,7 +279,8 @@ interface
 
        tdependent_unit = class(tlinkedlistitem)
           u : tmodule;
-          constructor create(_u : tmodule);
+          in_interface : boolean;
+          constructor create(_u : tmodule; frominterface : boolean);
        end;
 
     var
@@ -535,9 +536,10 @@ implementation
                             TDENPENDENT_UNIT
  ****************************************************************************}
 
-    constructor tdependent_unit.create(_u : tmodule);
+        constructor tdependent_unit.create(_u: tmodule; frominterface: boolean);
       begin
          u:=_u;
+         in_interface:=frominterface;
       end;
 
 
@@ -631,7 +633,6 @@ implementation
         localsymtable:=nil;
         globalmacrosymtable:=nil;
         localmacrosymtable:=nil;
-        loaded_from:=LoadedFrom;
         do_reload:=false;
         do_compile:=false;
         sources_avail:=true;
@@ -661,7 +662,7 @@ implementation
       end;
 
 
-    destructor tmodule.Destroy;
+        destructor tmodule.destroy;
       var
         i : longint;
         current_debuginfo_reset : boolean;
@@ -974,13 +975,13 @@ implementation
     end;
 
 
-    procedure tmodule.adddependency(callermodule:tmodule);
+    procedure tmodule.adddependency(callermodule: tmodule; frominterface: boolean);
       begin
         { This is not needed for programs }
         if not callermodule.is_unit then
           exit;
         Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
-        dependent_units.concat(tdependent_unit.create(callermodule));
+        dependent_units.concat(tdependent_unit.create(callermodule,frominterface));
       end;
 
 
@@ -1026,6 +1027,21 @@ implementation
         addusedunit:=pu;
       end;
 
+    function tmodule.usesmodule_in_interface(m: tmodule): boolean;
+
+    var
+      u : tused_unit;
+
+    begin
+      result:=False;
+      u:=tused_unit(used_units.First);
+      while assigned(u) do
+        begin
+        if (u.u=m) then
+          exit(u.in_interface) ;
+        u:=tused_unit(u.next);
+        end;
+    end;
 
     procedure tmodule.updatemaps;
       var
@@ -1211,8 +1227,8 @@ implementation
       end;
 
 
-    procedure TModule.AddExternalImport(const libname,symname,symmangledname:string;
-              OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+        procedure tmodule.AddExternalImport(const libname, symname, symmangledname: string; OrdNr: longint; isvar: boolean;
+      ImportByOrdinalOnly: boolean);
       var
         ImportLibrary,OtherIL : TImportLibrary;
         ImportSymbol  : TImportSymbol;

@@ -188,7 +188,7 @@ implementation
         { load unit }
         hp:=registerunit(curr,s,'');
         hp.loadppu(curr);
-        hp.adddependency(curr);
+        hp.adddependency(curr,curr.in_interface);
         { add to symtable stack }
         symtablestack.push(hp.globalsymtable);
         if (m_mac in current_settings.modeswitches) and
@@ -571,7 +571,7 @@ implementation
         until false;
       end;
 
-    procedure loadunits(curr: tmodule; preservest:tsymtable);
+    procedure loadunits(curr: tmodule; preservest:tsymtable; frominterface : boolean);
 
       var
          s,sorg  : ansistring;
@@ -613,7 +613,7 @@ implementation
                    exit;
                  end;
                { add this unit to the dependencies }
-               pu.u.adddependency(curr);
+               pu.u.adddependency(curr,frominterface);
                { save crc values }
                pu.checksum:=pu.u.crc;
                pu.interface_checksum:=pu.u.interface_crc;
@@ -1088,7 +1088,7 @@ type
             { Read the implementation units }
             if token=_USES then
               begin
-                loadunits(curr,curr.globalsymtable);
+                loadunits(curr,curr.globalsymtable,false);
                 consume(_SEMICOLON);
               end;
           end;
@@ -1230,7 +1230,7 @@ type
                curr.Loadlocalnamespacelist
              else
                current_namespacelist:=Nil;
-             loadunits(curr, nil);
+             loadunits(curr, nil,true);
              { has it been compiled at a higher level ?}
              if curr.state=ms_compiled then
                begin
@@ -2703,7 +2703,7 @@ type
                curr.Loadlocalnamespacelist
              else
                current_namespacelist:=Nil;
-             loadunits(curr,nil);
+             loadunits(curr,nil,false);
              consume_semicolon_after_uses:=true;
            end
          else
