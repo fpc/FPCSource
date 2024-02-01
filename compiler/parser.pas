@@ -336,7 +336,7 @@ implementation
     procedure compile_module(module : tmodule);
 
       var
-         olddata : pglobalstate;
+         olddata : tglobalstate;
          hp,hp2 : tmodule;
          finished : boolean;
          sc : tscannerfile;
@@ -352,10 +352,9 @@ implementation
          { Uses heap memory instead of placing everything on the
            stack. This is needed because compile() can be called
            recursively }
-         new(olddata);
          { handle the postponed case first }
          flushpendingswitchesstate;
-         save_global_state(olddata^,false);
+         olddata:=tglobalstate.create(false);
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
@@ -478,7 +477,7 @@ implementation
               { Write Browser Collections }
               do_extractsymbolinfo;
 
-            restore_global_state(olddata^,false);
+            olddata.restore(false);
 
             { Restore all locally modified warning messages }
             RestoreLocalVerbosity(current_settings.pmessage);
@@ -523,12 +522,12 @@ implementation
              file which will result in pointing to the wrong position in the
              file. In the normal case current_scanner and current_module.scanner
              would be Nil, thus nothing bad would happen }
-           if olddata^.old_current_module<>current_module then
-             set_current_module(olddata^.old_current_module);
+           if olddata.old_current_module<>current_module then
+             set_current_module(olddata.old_current_module);
 
            FreeLocalVerbosity(current_settings.pmessage);
 
-           dispose(olddata);
+           FreeAndNil(olddata);
          end;
     end;
 

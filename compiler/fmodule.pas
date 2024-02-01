@@ -225,7 +225,7 @@ interface
         waitingunits: tfpobjectlist;
 
         finishstate: pointer;
-        globalstate: pointer;
+        globalstate: tobject;
 
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 

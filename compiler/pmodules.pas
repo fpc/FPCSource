@@ -295,7 +295,7 @@ implementation
 
     procedure loadsystemunit(curr : tmodule);
       var
-        state: pglobalstate;
+        state: tglobalstate;
 
       begin
         { we are going to rebuild the symtablestack, clear it first }
@@ -326,11 +326,10 @@ implementation
 
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
-        new(state);
-        save_global_state(state^,true);
+        state:=tglobalstate.create(true);
         load_intern_types;
-        restore_global_state(state^,true);
-        dispose(state);
+        state.restore(true);
+        FreeAndNil(state);
         current_scanner.tempopeninputfile;
 
         { Set the owner of errorsym and errortype to symtable to
@@ -572,33 +571,31 @@ implementation
         until false;
       end;
 
-
     procedure loadunits(curr: tmodule; preservest:tsymtable);
 
       var
          s,sorg  : ansistring;
          pu,pu2  : tused_unit;
          hp2     : tmodule;
-         state: pglobalstate;
+         state: tglobalstate;
 
          procedure restorestate;
 
          begin
-           restore_global_state(state^,true);
+           state.restore(true);
            if assigned(current_scanner) and (current_module.scanner=current_scanner) then
               begin
               if assigned(current_scanner.inputfile) then
                 current_scanner.tempopeninputfile;
               end;
 
-           dispose(state);
+           state.free;
          end;
 
       begin
         parseusesclause(curr);
         current_scanner.tempcloseinputfile;
-        new(state);
-        save_global_state(state^,true);
+        state:=tglobalstate.create(true);
          { Load the units }
          pu:=tused_unit(curr.used_units.first);
          while assigned(pu) do
@@ -949,7 +946,7 @@ type
         finalize_procinfo : tcgprocinfo;
         i,j : integer;
         finishstate:pfinishstate;
-        globalstate:pglobalstate;
+        globalstate:tglobalstate;
 
       begin
         result:=true;
@@ -1014,9 +1011,7 @@ type
           begin
             { save the current state, so the parsing can continue where we left
               of here }
-            New(globalstate);
-            save_global_state(globalstate^,true);
-            curr.globalstate:=globalstate;
+            globalstate:=tglobalstate.create(true);
           end;
       end;
 
@@ -1086,7 +1081,6 @@ type
 
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
         maybe_load_got;
-
         if not curr.interface_only then
           begin
             consume(_IMPLEMENTATION);
@@ -1259,10 +1253,12 @@ type
 
          { consume the semicolon after maps have been updated else conditional compiling expressions
            might cause internal errors, see tw8611 }
+
          if consume_semicolon_after_uses then
            consume(_SEMICOLON);
 
          result:=parse_unit_interface_declarations(curr);
+
       end;
 
     procedure finish_unit(module:tmodule;immediate:boolean);
@@ -1285,8 +1281,8 @@ type
 
       procedure module_is_done(curr: tmodule);inline;
         begin
-          dispose(pglobalstate(curr.globalstate));
-          curr.globalstate:=nil;
+
+          FreeAndNil(curr.globalstate);
           dispose(pfinishstate(curr.finishstate));
           curr.finishstate:=nil;
         end;
@@ -1316,7 +1312,7 @@ type
              save_global_state(globalstate,true);
              if not assigned(module.globalstate) then
                internalerror(2012091802);
-             restore_global_state(pglobalstate(module.globalstate)^,true);
+             tglobalstate(module.globalstate).restore(true);
            end;
 
          { curr is now module }
@@ -1604,6 +1600,8 @@ type
         Message1(unit_u_finished_compiling,module.modulename^);
 
         module_is_done(module);
+        module.end_of_parsing;
+
         if not immediate then
           restore_global_state(globalstate,true);
 
