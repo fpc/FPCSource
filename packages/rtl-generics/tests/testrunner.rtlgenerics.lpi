@@ -63,7 +63,7 @@
       <Unit8>
         <Filename Value="tests.generics.stack.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit9>
+      </Unit8>
       <Unit9>
         <Filename Value="tests.generics.queue.pas"/>
         <IsPartOfProject Value="True"/>
