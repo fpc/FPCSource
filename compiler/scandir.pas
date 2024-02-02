@@ -1261,10 +1261,10 @@ unit scandir;
           { Reset verbosity and forget previous pmeesage }
           RestoreLocalVerbosity(nil);
           current_settings.pmessage:=nil;
-          { Do not yet activate these changes, as otherwise
-            you get problem idf you put a $pop just right after
-            a addition for instance fro which you explicitly truned the overflow check
-            out by using $Q- after a $push PM 2012-08-29 }
+          { Do not activate these changes yet, as otherwise
+            you get a problem if you put a $pop just right after
+            a addition for instance for which you explicitly turned the overflow check
+            off by using $Q- after a $push PM 2012-08-29 }
           // flushpendingswitchesstate;
         end;
     end;
