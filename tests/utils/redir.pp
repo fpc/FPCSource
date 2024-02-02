@@ -799,7 +799,7 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 
 const
-  max_count = 6000;
+  max_count = 60000;
 
 var
   P : TProcess;
