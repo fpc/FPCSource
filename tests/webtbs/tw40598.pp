@@ -1,5 +1,5 @@
 { %RESULT=202 }
-{ %opt=gl -Ct }
+{ %opt=-gl -Ct }
 
 {$mode objfpc}
 
