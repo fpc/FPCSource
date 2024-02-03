@@ -108,6 +108,7 @@ interface
 {$if defined(x86_64)}
         'ia64',        // cpu_none
         'x64',         // cpu_athlon64
+        'x64',         // cpu_x86_64
         'x64',         // cpu_x86_64_v1
         'ia64',        // cpu_core_i
         'ia64',        // cpu_x86_64_v2

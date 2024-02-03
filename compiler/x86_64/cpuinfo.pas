@@ -45,6 +45,7 @@ Type
 
    tcputype =
       (cpu_none,
+       cpu_x86_64,
        cpu_x86_64_v1,
        cpu_athlon64,
        cpu_x86_64_v2,
@@ -132,6 +133,7 @@ Const
 
    cputypestr : array[tcputype] of string[16] = ('',
      'ATHLON64',
+     'X86-64',
      'X86-64-V1',
      'COREI',
      'X86-64-V2',
@@ -265,6 +267,7 @@ type
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { Athlon64      } cpu_x86_64_v1_flags,
+     { cpu_x86_64    } cpu_x86_64_v1_flags,
      { cpu_x86_64_v1 } cpu_x86_64_v1_flags,
      { cpu_core_i    } cpu_x86_64_v1_flags+[CPUX86_HAS_POPCNT],
      { cpu_x86_64_v2 } cpu_x86_64_v2_flags,
@@ -310,6 +313,7 @@ type
    cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
       { cpu_none      } [],
       { cpu_Athlon64  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
+      { cpu_x86_64    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_x86_64_v1 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_core_i    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_x86_64_v2 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
