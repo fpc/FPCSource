@@ -87,7 +87,7 @@ Type
     Function UnRegisterMessageFile : Boolean; virtual;
     Procedure Pause;
     Procedure Resume;
-    Procedure Log (EventType : TEventType; const Msg : String); {$ifndef fpc }Overload;{$endif}
+    Procedure Log (EventType : TEventType; const Msg : String); virtual; {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Log (const Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
