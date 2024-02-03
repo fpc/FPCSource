@@ -15400,14 +15400,21 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
       var
-        hp1, hp2, hp3, hp4, hp5: tai;
+        hp1, hp2, hp3, hp4, hp5, hp6, hp7, hp8: tai;
       begin
         Result:=false;
         hp5:=nil;
+        hp6:=nil;
+        hp7:=nil;
+        hp8:=nil;
         { replace
             leal(q) x(<stackpointer>),<stackpointer>
+            <optional .seh_stackalloc ...>
+            <optional .seh_endprologue ...>
             call   procname
+            <optional NOP>
             leal(q) -x(<stackpointer>),<stackpointer>
+            <optional VZEROUPPER>
             ret
           by
             jmp    procname
@@ -15418,22 +15425,36 @@ unit aoptx86;
           MatchOpType(taicpu(p),top_ref,top_reg) and
           (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.index=NR_NO) and
-          { the -8 or -24 are not required, but bail out early if possible,
+          { the -8, -24, -40 are not required, but bail out early if possible,
             higher values are unlikely }
           ((taicpu(p).oper[0]^.ref^.offset=-8) or
-           (taicpu(p).oper[0]^.ref^.offset=-24))  and
+           (taicpu(p).oper[0]^.ref^.offset=-24) or
+           (taicpu(p).oper[0]^.ref^.offset=-40))  and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(p, hp1) and
           { Take a copy of hp1 }
           SetAndTest(hp1, hp4) and
+
           { trick to skip label }
-          ((hp1.typ=ait_instruction) or GetNextInstruction(hp1, hp1)) and
+          ((hp1.typ=ait_instruction) or (SetAndTest(hp1, hp7) and GetNextInstruction(hp1, hp1))) and
+
+          { skip directives, .seh_stackalloc and .seh_endprologue on windows
+          ((hp1.typ=ait_instruction) or (SetAndTest(hp1, hp7) and GetNextInstruction(hp1, hp1))) and
+          ((hp1.typ=ait_instruction) or (SetAndTest(hp1, hp8) and GetNextInstruction(hp1, hp1))) and }
+
           SkipSimpleInstructions(hp1) and
           MatchInstruction(hp1,A_CALL,[S_NO]) and
           GetNextInstruction(hp1, hp2) and
-          MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]) and
+
+          (MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]) or
+           { skip nop instruction on win64 }
+           (MatchInstruction(hp2,A_NOP,[S_NO]) and
+            SetAndTest(hp2,hp6) and
+            GetNextInstruction(hp2,hp2) and
+            MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]))
+          ) and
           MatchOpType(taicpu(hp2),top_ref,top_reg) and
           (taicpu(hp2).oper[0]^.ref^.offset=-taicpu(p).oper[0]^.ref^.offset) and
           (taicpu(hp2).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
@@ -15457,14 +15478,40 @@ unit aoptx86;
             taicpu(hp1).opcode := A_JMP;
             taicpu(hp1).is_jmp := true;
             DebugMsg(SPeepholeOptimization + 'LeaCallLeaRet2Jmp done',p);
+
+            { search for the stackalloc directive and remove it }
+            hp7:=tai(p.next);
+            while assigned(hp7) and (tai(hp7).typ<>ait_instruction) do
+              begin
+                if (hp7.typ=ait_seh_directive) and (tai_seh_directive(hp7).kind=ash_stackalloc) then
+                  begin
+                    { sanity check }
+                    if taicpu(p).oper[0]^.ref^.offset<>-tai_seh_directive(hp7).data.offset then
+                      Internalerror(2024012201);
+
+                    hp8:=tai(hp7.next);
+                    RemoveInstruction(tai(hp7));
+                    hp7:=hp8;
+                    break;
+                  end
+                else
+                  hp7:=tai(hp7.next);
+              end;
+
             RemoveCurrentP(p, hp4);
             RemoveInstruction(hp2);
             RemoveInstruction(hp3);
+
+            { if there is a vzeroupper instruction then move it before the jmp }
             if Assigned(hp5) then
               begin
                 AsmL.Remove(hp5);
                 ASmL.InsertBefore(hp5,hp1)
               end;
+
+            { remove nop on win64 }
+            if Assigned(hp6) then
+              RemoveInstruction(hp6);
             Result:=true;
           end;
       end;
