@@ -56,10 +56,10 @@ interface
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
     uses
-       System.SysUtils;
+       System.BaseMath, System.SysUtils;
 {$ELSE FPC_DOTTEDUNITS}
     uses
-       sysutils;
+       basemath, sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPDOC_MATH}
@@ -855,21 +855,65 @@ generic function RandomFrom<T>(const AValues:array of T):T;
 { cpu specific stuff }
 
 type
-  TFPURoundingMode = system.TFPURoundingMode;
-  TFPUPrecisionMode = system.TFPUPrecisionMode;
-  TFPUException = system.TFPUException;
-  TFPUExceptionMask = system.TFPUExceptionMask;
+  TFPURoundingMode = basemath.TFPURoundingMode;
+  TFPUPrecisionMode = basemath.TFPUPrecisionMode;
+  TFPUException = basemath.TFPUException;
+  TFPUExceptionMask = basemath.TFPUExceptionMask;
 
-function GetRoundMode: TFPURoundingMode;
-function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
-function GetPrecisionMode: TFPUPrecisionMode;
-function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
-function GetExceptionMask: TFPUExceptionMask;
-function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-procedure ClearExceptions(RaisePending: Boolean =true);
+function GetRoundMode: TFPURoundingMode; inline;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode; inline;
+function GetPrecisionMode: TFPUPrecisionMode; inline;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode; inline;
+function GetExceptionMask: TFPUExceptionMask; inline;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask; inline;
+procedure ClearExceptions(RaisePending: Boolean =true); inline;
 
 
 implementation
+
+{ redirections to basemath }
+
+function GetRoundMode: TFPURoundingMode;
+  begin
+    Result:=BaseMath.GetRoundMode;
+  end;
+
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  begin
+    Result:=BaseMath.SetRoundMode(RoundMode);
+  end;
+
+  
+function GetPrecisionMode: TFPUPrecisionMode;
+  begin
+    Result:=BaseMath.GetPrecisionMode;
+  end;
+
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+  begin
+    Result:=BaseMath.SetPrecisionMode(Precision);
+  end;
+
+
+function GetExceptionMask: TFPUExceptionMask;
+  begin
+    Result:=BaseMath.GetExceptionMask;
+  end;
+
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  begin
+    Result:=BaseMath.SetExceptionMask(Mask);
+  end;
+
+
+procedure ClearExceptions(RaisePending: Boolean =true);
+  begin
+    BaseMath.ClearExceptions(RaisePending);
+  end;
+
 
 function copysign(x,y: float): float; forward;    { returns abs(x)*sign(y) }
 

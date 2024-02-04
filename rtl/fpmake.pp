@@ -121,6 +121,7 @@ begin
       T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('macpas.pp');
       T.Dependencies.AddUnit('system');
+      T.Dependencies.AddUnit('basemath');
 
     // Unix units
     T:=P.Targets.AddUnit('unixtype.pp',AllUnixOSes);
@@ -544,9 +545,14 @@ begin
     T:=P.Targets.AddUnit('fmtbcd.pp');
       T.Dependencies.AddUnit('sysutils');
       T.Dependencies.AddUnit('variants');
+
+    T:=P.Targets.AddUnit('basemath.pp');
+      T.Dependencies.AddInclude('basemath.inc');
+
     T:=P.Targets.AddUnit('math.pp');
       With T.Dependencies do
         begin
+          AddUnit('basemath');
           AddUnit('sysutils');
           AddInclude('mathu.inc');
         end;
