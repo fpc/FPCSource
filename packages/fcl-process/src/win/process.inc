@@ -48,10 +48,13 @@ begin
     WaitForSingleObject(FProcessHandle,10);
 end;
 
-Function GetStartupFlags (P : TProcess): Cardinal;
+Function GetStartupFlags (P : TProcess; AllDescriptorsDefault: Boolean): Cardinal;
 
 begin
-  Result:= Startf_UseStdHandles;
+  if AllDescriptorsDefault then
+    Result:= 0
+  else
+    Result:= Startf_UseStdHandles;
   if suoUseShowWindow in P.StartupOptions then
     Result:=Result or startf_USESHOWWINDOW;
   if suoUSESIZE in P.StartupOptions then
@@ -126,7 +129,7 @@ begin
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
+Procedure InitStartupInfo(P : TProcess; AllDescriptorsDefault: Boolean; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -137,16 +140,12 @@ Const
 begin
   FillChar(SI,SizeOf(SI),0);
   SI.cb:=SizeOf(SI);
-  SI.dwFlags:=GetStartupFlags(P);
+  SI.dwFlags:=GetStartupFlags(P, AllDescriptorsDefault);
   if P.FShowWindow<>swoNone then
    SI.dwFlags:=SI.dwFlags or Startf_UseShowWindow
   else
     SI.dwFlags:=SI.dwFlags and not Startf_UseShowWindow;
   SI.wShowWindow:=SWC[P.FShowWindow];
-  if (poUsePipes in P.Options) then
-    begin
-    SI.dwFlags:=SI.dwFlags or Startf_UseStdHandles;
-    end;
   if P.FillAttribute<>0 then
     begin
     SI.dwFlags:=SI.dwFlags or Startf_UseFillAttribute;
@@ -183,8 +182,13 @@ Var
   FStartupInfo : STARTUPINFOW;
   HI,HO,HE : THandle;
   Cmd : TProcessString;
+  AllDescriptorsDefault: Boolean;
 
  begin
+  AllDescriptorsDefault :=
+    (FDescriptors[phtInput].IOType = iotDefault) and
+    (FDescriptors[phtOutput].IOType = iotDefault) and
+    (FDescriptors[phtError].IOType = iotDefault);
   FDescriptors[phtInput].PrepareHandles;
   FDescriptors[phtOutput].PrepareHandles;
   FDescriptors[phtError].PrepareHandles;
@@ -217,13 +221,16 @@ Var
     FCreationFlags:=GetCreationFlags(Self);
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
-    InitStartupInfo(Self,FStartUpInfo);
-    FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
-    FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
-    if Not(poStdErrToOutPut in Options) then
-      FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle
-    else
-      FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
+    InitStartupInfo(Self,AllDescriptorsDefault,FStartUpInfo);
+    if not AllDescriptorsDefault then
+      begin
+      FStartupInfo.hStdInput:=FDescriptors[phtInput].ResolveProcessHandle;
+      FStartupInfo.hStdOutput:=FDescriptors[phtOutput].ResolveProcessHandle;
+      if Not(poStdErrToOutPut in Options) then
+        FStartupInfo.hStdError:=FDescriptors[phtError].ResolveProcessHandle
+      else
+        FStartupInfo.hStdError:=FStartupInfo.hStdOutput;
+      end;
     Try
       // Beware: CreateProcess can alter the strings
       // Beware: nil is not the same as a pointer to a #0
