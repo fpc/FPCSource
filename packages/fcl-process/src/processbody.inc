@@ -1,3 +1,4 @@
+{%MainUnit process.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -268,6 +269,55 @@ Resourcestring
 implementation
 
 {$i process.inc}
+
+function TIOTypeHelper.ToString : string;
+
+begin
+  WriteStr(Result,Self);
+end;
+
+{ TProcessHandleTypeHelper }
+
+function TProcessHandleTypeHelper.ToString: string;
+begin
+  WriteStr(Result,Self);
+end;
+
+
+{ TProcessOption }
+
+function TProcessOptionHelper.ToString: String;
+begin
+  WriteStr(Result,Self);
+end;
+
+{ TShowWindowOptionsHelper }
+
+function TShowWindowOptionsHelper.ToString: String;
+begin
+  WriteStr(Result,Self);
+end;
+
+{ TStartupOptionHelper }
+
+function TStartupOptionHelper.ToString: String;
+begin
+  WriteStr(Result,Self);
+end;
+
+{ TProcessPriorityhelper }
+
+function TProcessPriorityhelper.ToString: String;
+begin
+  WriteStr(Result,Self);
+end;
+
+{ TRunCommandEventCodeHelper }
+
+function TRunCommandEventCodeHelper.ToString: string;
+begin
+  WriteStr(Result,Self);
+end;
 
 
 
@@ -1083,7 +1133,7 @@ begin
   If (FTheirHandleIOType=iotDefault) or not (CloseHandleOnExecute or aForceClose) then
     begin
     FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
-     exit;
+    exit;
     end;
   H:=ResolveProcessHandle;
   // Writeln(StdErr,GetProcessID,' : ',ProcessHandleType,' closing their handle ',IOType,': ',H);
