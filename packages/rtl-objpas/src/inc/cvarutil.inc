@@ -1283,7 +1283,7 @@ begin
 {$ifndef FPUNONE}
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
-        varCurrency : Result := FloatToStr(vCurrency);
+        varCurrency : Result := CurrToStr(vCurrency);
         varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
@@ -1306,7 +1306,7 @@ begin
 {$ifndef FPUNONE}
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
-        varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
+        varCurrency : Result := CurrToStr(PCurrency(vPointer)^);
         varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
@@ -1350,7 +1350,7 @@ begin
 {$ifndef FPUNONE}
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
-        varCurrency : Result := FloatToStr(vCurrency);
+        varCurrency : Result := CurrToStr(vCurrency);
         varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
@@ -1373,7 +1373,7 @@ begin
 {$ifndef FPUNONE}
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
-        varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
+        varCurrency : Result := CurrToStr(PCurrency(vPointer)^);
         varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
