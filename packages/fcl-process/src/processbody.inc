@@ -1180,6 +1180,7 @@ begin
     begin
     FTheirHandleIOType := IOType;
     FOurHandle:=THAndle(INVALID_HANDLE_VALUE);
+    FCloseHandleOnExecute:=(IOType<>iotDefault);
     Case IOType of
       iotDefault : H:=CreateStandardHandle;
       iotPipe : H:=CreatePipeHandle;
@@ -1188,7 +1189,6 @@ begin
       iotHandle : H:=CreateCustomHandle;
       iotNull : H:=CreateNullFileHandle;
     end;
-    FCloseHandleOnExecute:=(IOType<>iotDefault);
     FTheirHandle:=PrepareCreatedHandleForProcess(H);
     if Assigned(FAfterAllocateHandle) then
       FAfterAllocateHandle(Self,FTheirHandle,FCloseHandleOnExecute);
