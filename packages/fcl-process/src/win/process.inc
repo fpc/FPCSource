@@ -345,7 +345,7 @@ var
   Res : Boolean;
   
 begin
-  if IOType in [iotNone,iotFile] then begin
+  if IOType in [iotDefault,iotFile] then begin
     Result:=aHandle;
     exit;
   end;

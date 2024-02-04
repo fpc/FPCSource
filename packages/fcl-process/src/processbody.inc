@@ -577,9 +577,9 @@ begin
     for HT in TProcessHandleType do
       FDescriptors[HT].IOType:=iotPipe;
   if poStderrToOutPut in FProcessOptions then
-    FDescriptors[phtError].IOType:=iotNone;
+    FDescriptors[phtError].IOType:=iotDefault;
   if poPassInput in FProcessOptions then
-    FDescriptors[phtInput].IOType:=iotNone;
+    FDescriptors[phtInput].IOType:=iotDefault;
 end;
 
 procedure TProcess.SetActive(const Value: Boolean);
@@ -1080,7 +1080,7 @@ var
 begin
   if Not FHandleValid then
      exit;
-  If (FTheirHandleIOType=iotNone) or not (CloseHandleOnExecute or aForceClose) then
+  If (FTheirHandleIOType=iotDefault) or not (CloseHandleOnExecute or aForceClose) then
     begin
     FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
      exit;
@@ -1130,14 +1130,14 @@ begin
     FTheirHandleIOType := IOType;
     FOurHandle:=THAndle(INVALID_HANDLE_VALUE);
     Case IOType of
-      iotNone : H:=CreateStandardHandle;
+      iotDefault : H:=CreateStandardHandle;
       iotPipe : H:=CreatePipeHandle;
       iotFile : H:=CreateFileNameHandle;
       iotProcess : H:=CreateProcessHandle;
       iotHandle : H:=CreateCustomHandle;
       iotNull : H:=CreateNullFileHandle;
     end;
-    FCloseHandleOnExecute:=(IOType<>iotNone);
+    FCloseHandleOnExecute:=(IOType<>iotDefault);
     FTheirHandle:=PrepareCreatedHandleForProcess(H);
     if Assigned(FAfterAllocateHandle) then
       FAfterAllocateHandle(Self,FTheirHandle,FCloseHandleOnExecute);

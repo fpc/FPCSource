@@ -60,7 +60,7 @@ Type
   TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
-  TIOType = (iotNone, iotPipe, iotFile, iotHandle, iotProcess, iotNull);
+  TIOType = (iotDefault, iotPipe, iotFile, iotHandle, iotProcess, iotNull);
   TProcessHandleType = (phtInput,phtOutput,phtError);
 
   TGetHandleEvent = procedure(Sender : TObject; var aHandle : THandle; var CloseOnExecute : Boolean) of object;
