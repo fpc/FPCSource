@@ -270,6 +270,7 @@ implementation
 
 {$i process.inc}
 
+{$IFNDEF SKIPHELPERS}
 function TIOTypeHelper.ToString : string;
 
 begin
@@ -319,7 +320,7 @@ begin
   WriteStr(Result,Self);
 end;
 
-
+{$ENDIF SKIPHELPERS}
 
 Procedure CommandToList(S : TProcessString; List : TProcessStrings);
 

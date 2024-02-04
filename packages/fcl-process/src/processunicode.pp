@@ -55,7 +55,7 @@ Type
 {$define processunicodestring}
 {$ENDIF}
 {$define TProcessnamemacro:=TProcess}
-
+{$DEFINE SKIPHELPERS}
 {$i processbody.inc}
 
 end.
