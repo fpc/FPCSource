@@ -547,7 +547,11 @@ begin
       T.Dependencies.AddUnit('variants');
 
     T:=P.Targets.AddUnit('basemath.pp');
-      T.Dependencies.AddInclude('basemath.inc');
+      With T.Dependencies do
+        begin
+          AddUnit('objpas');
+          T.Dependencies.AddInclude('basemath.inc');
+        end;
 
     T:=P.Targets.AddUnit('math.pp');
       With T.Dependencies do
