@@ -800,6 +800,99 @@ type
     String_len:FT_UInt;   {in bytes}
   end;
 
+  TFT_Sfnt_Tag = (FT_SFNT_HEAD, FT_SFNT_MAXP, FT_SFNT_OS2, FT_SFNT_HHEA,
+    FT_SFNT_VHEA, FT_SFNT_POST, FT_SFNT_PCLT, FT_SFNT_MAX);
+
+  TCreated = array [0..1] of FT_ULong;
+  TModified = array [0..1] of FT_ULong;
+
+  PTT_Header = ^TTT_Header;
+  TTT_Header = record
+    Table_Version : FT_Fixed;
+    Font_Revision : FT_Fixed;
+
+    CheckSum_Adjust : FT_Long;
+    Magic_Number : FT_Long;
+
+    Flags : FT_UShort;
+    Units_Per_EM : FT_UShort;
+
+    Created : TCreated;
+    Modified : TModified;
+
+    xMin : FT_Short;
+    yMin : FT_Short;
+    xMax : FT_Short;
+    FyMax : FT_Short;
+
+    Mac_Style : FT_UShort;
+    Lowest_Rec_PPEM : FT_UShort;
+
+    Font_Direction : FT_Short;
+    Index_To_Loc_Format : FT_Short;
+    Glyph_Data_Format : FT_Short;
+  end;
+
+  TPanose = array [0..9] of FT_Byte;
+  TAchVendID = array [0..3]  of FT_Char;
+
+  PTT_OS = ^TTT_OS2;
+  TTT_OS2 = record
+    version : FT_UShort;                {0x0001 - more or 0xFFFF}
+    xAvgCharWidth : FT_Short;
+    usWeightClass : FT_UShort;
+    usWidthClass : FT_UShort;
+    fsType : FT_UShort;
+    ySubscriptXSize : FT_Short;
+    ySubscriptYSize : FT_Short;
+    ySubscriptXOffset : FT_Short;
+    ySubscriptYOffset : FT_Short;
+    ySuperscriptXSize : FT_Short;
+    ySuperscriptYSize : FT_Short;
+    ySuperscriptXOffset : FT_Short;
+    ySuperscriptYOffset : FT_Short;
+    yStrikeoutSize : FT_Short;
+    yStrikeoutPosition : FT_Short;
+    sFamilyClass : FT_Short;
+
+    panose : TPanose;
+
+    ulUnicodeRange1 : FT_ULong;         {Bits 0-31}
+    ulUnicodeRange2 : FT_ULong;         {Bits 32-63}
+    ulUnicodeRange3 : FT_ULong;         {Bits 64-95}
+    ulUnicodeRange4 : FT_ULong;         {Bits 96-127}
+
+    achVendID : TAchVendID;
+
+    fsSelection : FT_UShort;
+    usFirstCharIndex : FT_UShort;
+    usLastCharIndex : FT_UShort;
+    sTypoAscender : FT_Short;
+    sTypoDescender : FT_Short;
+    sTypoLineGap : FT_Short;
+    usWinAscent : FT_UShort;
+    usWinDescent : FT_UShort;
+
+    {only version 1 and higher:}
+
+    ulCodePageRange1 : FT_ULong;        {Bits 0-31}
+    ulCodePageRange2 : FT_ULong;        {Bits 32-63}
+
+    {only version 2 and higher:}
+
+    sxHeight : FT_Short;
+    sCapHeight : FT_Short;
+    usDefaultChar : FT_UShort;
+    usBreakChar : FT_UShort;
+    usMaxContext : FT_UShort;
+
+    {only version 5 and higher:}
+
+    usLowerOpticalPointSize : FT_UShort;{in twips (1/20 points)}
+    usUpperOpticalPointSize : FT_UShort;{in twips (1/20 points)}
+
+  end;
+
 // Macro
 function FT_IS_SCALABLE(face: PFT_Face): boolean;
 
@@ -820,6 +913,8 @@ procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector
 
 function FT_Get_Sfnt_Name_Count(face: PFT_Face): FT_UInt; cdecl; external FreeTypeDLL Name 'FT_Get_Sfnt_Name_Count';
 function FT_Get_Sfnt_Name(face: PFT_Face; idx: FT_UInt; var aname: TFT_SfntName): integer; cdecl; external FreeTypeDLL Name 'FT_Get_Sfnt_Name';
+
+function FT_Get_Sfnt_Table(face: PFT_Face; tag: TFT_Sfnt_Tag): pointer; cdecl; external FreeTypeDLL Name 'FT_Get_Sfnt_Table';
 
 //Outline Processing
 function FT_Outline_Decompose(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl; external FreeTypeDLL Name 'FT_Outline_Decompose';
@@ -853,6 +948,8 @@ Type
   TFT_Get_Sfnt_Name_Count = function(face: PFT_Face): FT_UInt; cdecl;
   TFT_Get_Sfnt_Name = function(face: PFT_Face; idx: FT_UInt; var aname: TFT_SfntName): integer; cdecl;
 
+  TFT_Get_Sfnt_Table = function(face: PFT_Face; tag: TFT_Sfnt_Tag): pointer; cdecl;
+
     //Outline Processing
   TFT_Outline_Decompose = function(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl;
 
@@ -880,6 +977,7 @@ Var
   FT_Set_Transform : TFT_Set_Transform;
   FT_Get_Sfnt_Name_Count : TFT_Get_Sfnt_Name_Count;
   FT_Get_Sfnt_Name : TFT_Get_Sfnt_Name;
+  FT_Get_Sfnt_Table : TFT_Get_Sfnt_Table;
 
 
   //Outline Processing
@@ -936,6 +1034,7 @@ begin
   pointer(FT_Set_Transform) := GetProcedureAddress(LibHandle,'FT_Set_Transform');
   pointer(FT_Get_Sfnt_Name_Count) := GetProcedureAddress(LibHandle,'FT_Get_Sfnt_Name_Count');
   pointer(FT_Get_Sfnt_Name) := GetProcedureAddress(LibHandle,'FT_Get_Sfnt_Name');
+  pointer(FT_Get_Sfnt_Table) := GetProcedureAddress(LibHandle,'FT_Get_Sfnt_Table');
   pointer(FT_Outline_Decompose) := GetProcedureAddress(LibHandle,'FT_Outline_Decompose');
   pointer(FT_Library_Version) := GetProcedureAddress(LibHandle,'FT_Library_Version');
   pointer(FT_Get_Glyph) := GetProcedureAddress(LibHandle,'FT_Get_Glyph');
@@ -961,6 +1060,7 @@ begin
   pointer(FT_Set_Transform) := Nil;
   pointer(FT_Get_Sfnt_Name_Count) := Nil;
   pointer(FT_Get_Sfnt_Name) := Nil;
+  pointer(FT_Get_Sfnt_Table) := Nil;
   pointer(FT_Outline_Decompose) := Nil;
   pointer(FT_Library_Version) := Nil;
   pointer(FT_Get_Glyph) := Nil;
