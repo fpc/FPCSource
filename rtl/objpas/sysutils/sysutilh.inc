@@ -163,6 +163,7 @@ type
    EZeroDivide = Class(EMathError);
    EOverflow   = Class(EMathError);
    EUnderflow  = Class(EMathError);
+   EInvalidArgument = class(EMathError);
 
    { Run-time and I/O Errors }
    EInOutError = class(Exception)
