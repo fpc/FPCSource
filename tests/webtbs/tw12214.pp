@@ -1,7 +1,7 @@
 {$mode objfpc}
 program test_raise;
 
-uses Math;
+uses Math, SysUtils;
 
 var
   X, Y: double;

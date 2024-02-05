@@ -52,15 +52,7 @@ unit Math;
 {$ENDIF FPC_DOTTEDUNITS}
 interface
 
-
 {$ifndef FPUNONE}
-{$IFDEF FPC_DOTTEDUNITS}
-    uses
-       System.SysUtils;
-{$ELSE FPC_DOTTEDUNITS}
-    uses
-       sysutils;
-{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPDOC_MATH}
 Type
@@ -141,8 +133,6 @@ Const
        PInteger = ObjPas.PInteger;
 
        TPaymentTime = (ptEndOfPeriod,ptStartOfPeriod);
-
-       EInvalidArgument = class(ematherror);
 
        TValueRelationship = -1..1;
 
@@ -875,22 +865,6 @@ function copysign(x,y: float): float; forward;    { returns abs(x)*sign(y) }
 
 { include cpu specific stuff }
 {$i mathu.inc}
-
-ResourceString
-  SMathError = 'Math Error : %s';
-  SInvalidArgument = 'Invalid argument';
-
-Procedure DoMathError(Const S : String);
-begin
-  Raise EMathError.CreateFmt(SMathError,[S]);
-end;
-
-Procedure InvalidArgument;
-
-begin
-  Raise EInvalidArgument.Create(SInvalidArgument);
-end;
-
 
 function Sign(const AValue: Integer): TValueSign;inline;
 
@@ -1749,8 +1723,6 @@ operator ** (base,exponent : int64) res: int64;
 begin
   if exponent<0 then
     begin
-      if base<=0 then
-        raise EInvalidArgument.Create('Non-positive base with negative exponent in **');
       if base=1 then
         res:=1
       else
