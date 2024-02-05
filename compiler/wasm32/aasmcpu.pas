@@ -932,6 +932,8 @@ uses
               PopVal(wbt_i32);
               PopVal(wbt_i32);
             end;
+          else
+            internalerror(2024030502);
         end;
       end;
 
