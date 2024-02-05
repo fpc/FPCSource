@@ -125,6 +125,7 @@ interface
         'ia64',        // cpu_icelake
         'ia64',        // cpu_icelake_client
         'ia64',        // cpu_icelake_server
+        'ia64',        // cpu_zen3
         'ia64'         // cpu_zen3
 {$elseif defined(i386)}
         'ia64',     // cpu_none

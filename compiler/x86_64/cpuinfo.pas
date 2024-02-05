@@ -63,7 +63,8 @@ Type
        cpu_icelake,
        cpu_icelake_client,
        cpu_icelake_server,
-       cpu_zen3
+       cpu_zen3,
+       cpu_zen4
       );
 
    tfputype =
@@ -150,7 +151,8 @@ Const
      'ICELAKE',
      'ICELAKE-CLIENT',
      'ICELAKE-SERVER',
-     'ZEN3'
+     'ZEN3',
+     'ZEN4'
    );
 
    fputypestr : array[tfputype] of string[9] = (
@@ -284,7 +286,8 @@ type
      { cpu_icelake   } cpu_x86_64_v3_flags,
      { cpu_icelake_client } cpu_x86_64_v3_flags,
      { cpu_icelake_server } cpu_x86_64_v3_flags,
-     { cpu_zen3      } cpu_x86_64_v3_flags
+     { cpu_zen3      } cpu_x86_64_v3_flags,
+     { cpu_zen4      } cpu_x86_64_v4_flags
    );
 
    fpu_x86_64_v1_flags = [];
@@ -330,7 +333,8 @@ type
       { cpu_icelake   } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_icelake_client } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_icelake_server } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_zen3      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR]
+      { cpu_zen3      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
+      { cpu_zen4      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR]
    );
 
 Implementation
