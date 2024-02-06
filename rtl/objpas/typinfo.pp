@@ -1479,7 +1479,7 @@ begin
           Result:='';
       end;
     end
- else
+ else if TypeInfo^.Kind=tkEnumeration then
    begin
      PS:=@PT^.NameList;
      dec(Value,PT^.MinValue);
@@ -1489,7 +1489,11 @@ begin
          Dec(Value);
        end;
      Result:=PS^;
-   end;
+   end
+ else if TypeInfo^.Kind=tkInteger then
+   Result:=IntToStr(Value)
+ else
+   Result:='';  
 end;
 
 
