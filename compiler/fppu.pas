@@ -69,7 +69,8 @@ interface
           function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
           procedure writeppu;
-          procedure loadppu(from_module : tmodule);
+          function loadppu(from_module : tmodule) : boolean;
+          procedure post_load_or_compile(second_time: boolean);
           procedure discardppu;
           function  needrecompile:boolean;
           procedure setdefgeneration;
@@ -87,7 +88,6 @@ interface
           function check_loadfrompackage: boolean;
           procedure check_reload(from_module: tmodule; var do_load: boolean);
           function  openppu(ppufiletime:longint):boolean;
-          procedure post_load_or_compile(second_time: boolean);
           procedure prepare_second_load(from_module: tmodule);
           procedure recompile_from_sources(from_module: tmodule);
           function  search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
@@ -132,7 +132,7 @@ interface
 {$ENDIF}
        end;
 
-    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
+    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
 
 implementation
@@ -1306,6 +1306,8 @@ var
         indchecksum,
         intfchecksum,
         checksum : cardinal;
+        isnew : boolean;
+
       begin
         while not ppufile.endofentry do
          begin
@@ -1315,7 +1317,10 @@ var
            indchecksum:=cardinal(ppufile.getlongint);
            { set the state of this unit before registering, this is
              needed for a correct circular dependency check }
-           hp:=registerunit(self,hs,'');
+           hp:=registerunit(self,hs,'',isnew);
+           if isnew then
+             usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
+
            pu:=addusedunit(hp,false,nil);
            pu.checksum:=checksum;
            pu.interface_checksum:=intfchecksum;
@@ -1940,7 +1945,7 @@ var
             begin
               tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
-              if state=ms_compiled then
+              if state in [ms_compiled,ms_processed] then
                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,true);
@@ -2248,10 +2253,10 @@ var
         flagdependent(from_module);
         { Reset the module }
         reset;
-        { compile this module }
+        is_reset:=false;
+        { mark this module for recompilation }
         if not (state in [ms_compile]) then
           state:=ms_compile;
-        compile_module(self);
         setdefgeneration;
       end;
 
@@ -2267,9 +2272,7 @@ var
       { for a second_time recompile reload all dependent units,
         for a first time compile register the unit _once_ }
       if second_time then
-        reload_flagged_units
-      else
-        usedunits.concat(tused_unit.create(self,true,false,nil));
+        reload_flagged_units;
 
       { reopen the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
@@ -2277,9 +2280,10 @@ var
           assigned(tppumodule(old_current_module).ppufile) then
          tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
+      state:=ms_processed;
     end;
 
-    procedure tppumodule.loadppu(from_module : tmodule);
+    function tppumodule.loadppu(from_module : tmodule) : boolean;
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
@@ -2287,6 +2291,7 @@ var
         second_time        : boolean;
 
       begin
+        Result:=false;
         Message3(unit_u_load_unit,from_module.modulename^,
                  ImplIntf[from_module.in_interface],
                  modulename^);
@@ -2295,7 +2300,7 @@ var
           we must reload when the do_reload flag is set }
         if (not do_reload) and
            assigned(globalsymtable) then
-           exit;
+           exit(True);
 
         { reset }
         do_load:=true;
@@ -2311,7 +2316,7 @@ var
           begin
             // No need to do anything, restore situation and exit.
             set_current_module(from_module);
-            exit;
+            exit(state=ms_compiled);
           end;
 
         { loading the unit for a second time? }
@@ -2322,6 +2327,7 @@ var
             second_time:=true;
             prepare_second_load(from_module);
           end;
+
         { close old_current_ppu on system that are
           short on file handles like DOS PM }
 {$ifdef SHORT_ON_FILE_HANDLES}
@@ -2341,7 +2347,14 @@ var
         else
           state:=ms_compiled;
 
-        post_load_or_compile(second_time);
+        Result:=(state=ms_compiled);
+
+        // We cannot do this here, the order is all messed up...
+        // if not second_time then
+        //   usedunits.concat(tused_unit.create(self,true,false,nil));
+
+        if result then
+          post_load_or_compile(second_time);
 
         { we are back, restore current_module }
         set_current_module(from_module);
@@ -2362,7 +2375,7 @@ var
 *****************************************************************************}
 
 
-    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
+    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
 
           function FindCycle(aFile, SearchFor: TModule; var Cycle: TFPList): boolean;
@@ -2428,13 +2441,12 @@ var
               if hp.is_unit then
                begin
                  { both units in interface ? }
-                 if hp.in_interface and callermodule.usesmodule_in_interface(hp) then
+                 if hp.in_interface and callermodule.in_interface then
                   begin
                     { check for a cycle }
                     Cycle:=TFPList.Create;
                     try
                       HaveCycle:=FindCycle(CallerModule,hp,Cycle);
-                      Writeln('Done cycle check, have cycle: ',HaveCycle);
                       if HaveCycle then
                       begin
                       {$IFDEF DEBUGCYCLE}
@@ -2463,7 +2475,8 @@ var
          end;
         { the unit is not in the loaded units,
           we create an entry and register the unit }
-        if not assigned(hp) then
+        is_new:=not assigned(hp);
+        if is_new then
          begin
            Message1(unit_u_registering_new_unit,ups);
            hp:=tppumodule.create(callermodule,s,fn,true);

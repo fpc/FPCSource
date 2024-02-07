@@ -269,7 +269,7 @@ uses
         if hmodule=current_module then
           exit;
 
-        if hmodule.state<>ms_compiled then
+        if not (hmodule.state in [ms_compiled,ms_processed]) then
           begin
 {$ifdef DEBUG_UNITWAITING}
             Writeln('Unit ', current_module.modulename^,

@@ -62,7 +62,7 @@ type
     // Can we continue processing this module ? If not, firstwaiting contains first module that m is waiting for.
     function cancontinue(m : tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
     // Overload of cancontinue, based on task.
-    function cancontinue(t: ttask_list; out firstwaiting: tmodule): boolean; inline
+    function cancontinue(t: ttask_list; out firstwaiting: tmodule): boolean; inline;
     // Continue processing this module. Return true if the module is done and can be removed.
     function continue(t : ttask_list): Boolean;
     // process the queue. Note that while processing the queue, elements will be added.

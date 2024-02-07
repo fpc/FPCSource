@@ -30,9 +30,9 @@ uses fmodule;
     function proc_unit(curr: tmodule):boolean;
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
     function proc_unit_implementation(curr: tmodule):boolean;
-    procedure proc_package(curr: tmodule);
-    procedure proc_program(curr: tmodule; islibrary : boolean);
-    procedure proc_program_declarations(curr : tmodule; islibrary : boolean);
+    function proc_package(curr: tmodule) : boolean;
+    function proc_program(curr: tmodule; islibrary : boolean) : boolean;
+    function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
 
 implementation
 
@@ -52,6 +52,7 @@ implementation
        pkgutil,
        wpobase,
        scanner,pbase,pexpr,psystem,psub,pgenutil,pparautl,ncgvmt,ncgrtti,
+       ctask,
        cpuinfo;
 
 
@@ -186,17 +187,23 @@ implementation
       var
         hp : tppumodule;
         unitsym : tunitsym;
+        isnew,load_ok : boolean;
 
       begin
         { load unit }
-        hp:=registerunit(curr,s,'');
-        hp.loadppu(curr);
+        hp:=registerunit(curr,s,'',isnew);
+        if isnew then
+          usedunits.concat(tused_unit.create(hp,true,addasused,nil));
+        load_ok:=hp.loadppu(curr);
         hp.adddependency(curr,curr.in_interface);
+        if not load_ok then
+          { We must schedule a compile. }
+          task_handler.addmodule(hp);
         { add to symtable stack }
         symtablestack.push(hp.globalsymtable);
         if (m_mac in current_settings.modeswitches) and
-           assigned(hp.globalmacrosymtable) then
-          macrosymtablestack.push(hp.globalmacrosymtable);
+            assigned(hp.globalmacrosymtable) then
+           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
         unitsym:=cunitsym.create(hp.modulename^,hp);
         inc(unitsym.refs);
@@ -214,11 +221,12 @@ implementation
       end;
 
 
-    procedure maybeloadvariantsunit(curr : tmodule);
+    function maybeloadvariantsunit(curr : tmodule) : boolean;
       var
         hp : tmodule;
         addsystemnamespace : Boolean;
       begin
+        result:=true;
         { Do we need the variants unit? Skip this
           for VarUtils unit for bootstrapping }
         if not(mf_uses_variants in curr.moduleflags) or
@@ -238,7 +246,7 @@ implementation
         addsystemnamespace:=namespacelist.Find('System')=Nil;
         if addsystemnamespace then
           namespacelist.concat('System');
-        AddUnit(curr,'variants');
+        result:=AddUnit(curr,'variants').state in [ms_compiled,ms_processed];
         if addsystemnamespace then
           namespacelist.Remove('System');
       end;
@@ -288,6 +296,17 @@ implementation
            { remove the tused_unit }
             usedunits.Remove(uu);
             uu.Free;
+            // Remove from local list
+            uu:=tused_unit(curr.used_units.first);
+            while assigned(uu) do
+              begin
+                if uu.u=hp then break;
+                uu:=tused_unit(uu.next);
+              end;
+            if not assigned(uu) then
+              internalerror(2024020701);
+            curr.used_units.Remove(uu);
+            uu.Free;
            { remove the module }
             loaded_units.Remove(hp);
             unloaded_units.Concat(hp);
@@ -296,11 +315,13 @@ implementation
       end;
 
 
-    procedure loadsystemunit(curr : tmodule);
+    function loadsystemunit(curr : tmodule) : boolean;
       var
         state: tglobalstate;
+        sys : tmodule;
 
       begin
+        Result:=False;
         { we are going to rebuild the symtablestack, clear it first }
         symtablestack.clear;
         macrosymtablestack.clear;
@@ -324,7 +345,8 @@ implementation
 
         { insert the system unit, it is allways the first. Load also the
           internal types from the system unit }
-        AddUnit(curr,'system');
+        Sys:=AddUnit(curr,'system');
+        Result:=Assigned(Sys) and (Sys.State in [ms_processed,ms_compiled]);
         systemunit:=tglobalsymtable(symtablestack.top);
 
         { load_intern_types resets the scanner... }
@@ -348,34 +370,49 @@ implementation
       end;
 
 
-    procedure loaddefaultunits(curr :tmodule);
+    { Return true if all units were loaded, no recompilation needed. }
+    function loaddefaultunits(curr :tmodule) : boolean;
+
+      Procedure CheckAddUnit(s: string);
+
+        var
+          OK : boolean;
+          m : TModule;
+
+        begin
+          m:=AddUnit(curr,s,true);
+          OK:=assigned(m) and (m.state in [ms_processed,ms_compiled]);
+          Result:=ok and Result;
+        end;
+
       begin
+        Result:=True;
         { Units only required for main module }
         if not(curr.is_unit) then
          begin
            { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in current_settings.globalswitches) then
-             AddUnit(curr,'heaptrc');
+             CheckAddUnit('heaptrc');
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) or
               (([cs_sanitize_address]*current_settings.moduleswitches)<>[]) then
-             AddUnit(curr,'cmem');
+             CheckAddUnit('cmem');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              case target_dbg.id of
                dbg_stabs:
-                 AddUnit(curr,'lineinfo');
+                 CheckAddUnit('lineinfo');
                dbg_stabx:
-                 AddUnit(curr,'lnfogdb');
+                 CheckAddUnit('lnfogdb');
                else
-                 AddUnit(curr,'lnfodwrf');
+                 CheckAddUnit('lnfodwrf');
              end;
            end;
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
            if (cs_fp_emulation in current_settings.moduleswitches) and not(target_info.system in system_wince) then
-             AddUnit('softfpu');
+             CheckAddUnit('softfpu');
            }
 {$endif cpufpemu}
            { Which kind of resource support?
@@ -383,33 +420,33 @@ implementation
              otherwise we need it here since it must be loaded quite early }
            if (tf_has_winlike_resources in target_info.flags) then
              if target_res.id=res_ext then
-               AddUnit(curr,'fpextres')
+               CheckAddUnit('fpextres')
              else
-               AddUnit(curr,'fpintres');
+               CheckAddUnit('fpintres');
          end
         else if (cs_checkpointer in current_settings.localswitches) then
-          AddUnit(curr,'heaptrc');
+          CheckAddUnit('heaptrc');
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
-          AddUnit(curr,'objpas');
+          CheckAddUnit('objpas');
 
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
-          AddUnit(curr,'macpas');
+          CheckAddUnit('macpas');
 
         if m_iso in current_settings.modeswitches then
-          AddUnit(curr,'iso7185');
+          CheckAddUnit('iso7185');
 
         if m_extpas in current_settings.modeswitches then
           begin
             { basic procedures for Extended Pascal are for now provided by the iso unit }
-            AddUnit(curr,'iso7185');
-            AddUnit(curr,'extpas');
+            CheckAddUnit('iso7185');
+            CheckAddUnit('extpas');
           end;
 
         { blocks support? }
         if m_blocks in current_settings.modeswitches then
-          AddUnit(curr,'blockrtl');
+          CheckAddUnit('blockrtl');
 
         { Determine char size. }
 
@@ -417,35 +454,35 @@ implementation
         if not is_systemunit_unicode then
           begin
           if m_default_unicodestring in current_settings.modeswitches then
-            AddUnit(curr,'uuchar'); // redefines char as widechar
+            CheckAddUnit('uuchar'); // redefines char as widechar
           end
         else
           begin
           // Unicode RTL
           if not (m_default_ansistring in current_settings.modeswitches) then
             if not (curr.modulename^<>'UACHAR') then
-              AddUnit(curr,'uachar'); // redefines char as ansichar
+              CheckAddUnit('uachar'); // redefines char as ansichar
           end;
 
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
           begin
             { interface to Objective-C run time }
-            AddUnit(curr,'objc');
+            CheckAddUnit('objc');
             loadobjctypes;
             { NSObject }
             if not(curr.is_unit) or
                (curr.modulename^<>'OBJCBASE') then
-              AddUnit(curr,'objcbase');
+              CheckAddUnit('objcbase');
           end;
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
-          AddUnit(curr,'profile');
+          CheckAddUnit('profile');
         if (cs_load_fpcylix_unit in current_settings.globalswitches) then
           begin
-            AddUnit(curr,'fpcylix');
-            AddUnit(curr,'dynlibs');
+            CheckAddUnit('fpcylix');
+            CheckAddUnit('dynlibs');
           end;
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
@@ -454,27 +491,27 @@ implementation
           (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>curr.modulename^) then
-          AddUnit(curr,embedded_controllers[current_settings.controllertype].controllerunitstr);
+          CheckAddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$pop}
 {$ifdef XTENSA}
         if not(curr.is_unit) and (target_info.system=system_xtensa_freertos) then
           if (current_settings.controllertype=ct_esp32) then
             begin
               if (idf_version>=40100) and (idf_version<40200) then
-                AddUnit(curr,'espidf_40100')
+                CheckAddUnit('espidf_40100')
               else if (curr,idf_version>=40200) and (idf_version<40400) then
-                AddUnit(curr,'espidf_40200')
+                CheckAddUnit('espidf_40200')
               else if idf_version>=40400 then
-                AddUnit(curr,'espidf_40400')
+                CheckAddUnit('espidf_40400')
               else
                 Comment(V_Warning, 'Unsupported esp-idf version');
             end
           else if (current_settings.controllertype=ct_esp8266) then
             begin
               if (idf_version>=30300) and (idf_version<30400) then
-                AddUnit(curr,'esp8266rtos_30300')
+                CheckAddUnit('esp8266rtos_30300')
               else if idf_version>=30400 then
-                AddUnit(curr,'esp8266rtos_30400')
+                CheckAddUnit('esp8266rtos_30400')
               else
                 Comment(V_Warning, 'Unsupported esp-rtos version');
             end;
@@ -482,16 +519,31 @@ implementation
       end;
 
 
-    procedure loadautounits(curr: tmodule);
+    { Return true if all units were loaded, no recompilation needed. }
+    function loadautounits(curr: tmodule) : boolean;
+
+      Procedure CheckAddUnit(s: string);
+
+        var
+          OK : boolean;
+          m : TModule;
+
+        begin
+          m:=AddUnit(curr,s,true);
+          OK:=assigned(m) and (m.state in [ms_compiled,ms_processed]);
+          Result:=ok and Result;
+        end;
+
       var
         hs,s : string;
       begin
+        Result:=True;
         hs:=autoloadunits;
         repeat
           s:=GetToken(hs,',');
           if s='' then
             break;
-          AddUnit(curr,s);
+          CheckAddUnit(s);
         until false;
       end;
 
@@ -504,6 +556,7 @@ implementation
          hp2     : tmodule;
          unitsym : tunitsym;
          filepos : tfileposinfo;
+         isnew : boolean;
 
       begin
         consume(_USES);
@@ -551,7 +604,11 @@ implementation
                 pu:=tused_unit(pu.next);
               end;
              if not assigned(hp2) then
-               hp2:=registerunit(curr,sorg,fn)
+               begin
+               hp2:=registerunit(curr,sorg,fn,isnew);
+               if isnew then
+                 usedunits.concat(tused_unit.create(hp2,curr.in_interface,true,nil));
+               end
              else
                Message1(sym_e_duplicate_id,s);
              { Create unitsym, we need to use the name as specified, we
@@ -574,13 +631,14 @@ implementation
         until false;
       end;
 
-    procedure loadunits(curr: tmodule; preservest:tsymtable; frominterface : boolean);
+    function loadunits(curr: tmodule; frominterface : boolean) : boolean;
 
       var
-         s,sorg  : ansistring;
-         pu,pu2  : tused_unit;
-         hp2     : tmodule;
+         s  : ansistring;
+         pu  : tused_unit;
          state: tglobalstate;
+         isLoaded : Boolean;
+         mwait : tmodule;
 
          procedure restorestate;
 
@@ -596,7 +654,8 @@ implementation
          end;
 
       begin
-        parseusesclause(curr);
+        Result:=true;
+        mwait:=nil;
         current_scanner.tempcloseinputfile;
         state:=tglobalstate.create(true);
          { Load the units }
@@ -606,70 +665,124 @@ implementation
             { Only load the units that are in the current
               (interface/implementation) uses clause }
             if pu.in_uses and
-               (pu.in_interface=curr.in_interface) then
+               (pu.in_interface=frominterface) then
              begin
-               tppumodule(pu.u).loadppu(curr);
-               { is our module compiled? then we can stop }
-               if curr.state=ms_compiled then
+               if (pu.u.state in [ms_processed, ms_compiled,ms_compiling_waitimpl]) then
+                 isLoaded:=true
+               else if (pu.u.state=ms_registered) then
+                  // try to load
+                 isLoaded:=tppumodule(pu.u).loadppu(curr)
+               else
+                 isLoaded:=False;
+               isLoaded:=IsLoaded and not pu.u.is_reset;
+               if not IsLoaded then
                  begin
-                   Restorestate;
-                   exit;
+                   if mwait=nil then
+                     mwait:=pu.u;
+                   // In case of is_reset, the task handler will discard the state if the module was already there
+                   task_handler.addmodule(pu.u);
+                 end;
+               Result:=Result and IsLoaded;
+               { is our module compiled? then we can stop }
+               if curr.state in [ms_compiled,ms_processed] then
+                 begin
+                 Restorestate;
+                 exit;
                  end;
                { add this unit to the dependencies }
                pu.u.adddependency(curr,frominterface);
-               { save crc values }
-               pu.checksum:=pu.u.crc;
-               pu.interface_checksum:=pu.u.interface_crc;
-               pu.indirect_checksum:=pu.u.indirect_crc;
-               if tppumodule(pu.u).nsprefix<>'' then
-                 begin
-                   { use the name as declared in the uses section for -Un }
-                   sorg:=tppumodule(pu.u).nsprefix+'.'+pu.unitsym.realname;
-                   s:=upper(sorg);
-                   { check whether the module was already loaded }
-                   hp2:=nil;
-                   pu2:=tused_unit(curr.used_units.first);
-                   while assigned(pu2) and (pu2<>pu) do
-                    begin
-                      if (pu2.u.modulename^=s) then
-                       begin
-                         hp2:=pu.u;
-                         break;
-                       end;
-                      pu2:=tused_unit(pu2.next);
-                    end;
-                   if assigned(hp2) then
-                     begin
-                       MessagePos1(pu.unitsym.fileinfo,sym_e_duplicate_id,s);
-                       pu:=tused_unit(pu.next);
-                       continue;
-                     end;
-                   { update unitsym now that we have access to the full name }
-                   pu.unitsym.free;
-                   pu.unitsym:=cunitsym.create(sorg,pu.u);
-                 end
-               else
-                 begin
-                   { connect unitsym to the module }
-                   pu.unitsym.module:=pu.u;
-                   pu.unitsym.register_sym;
-                 end;
-               tabstractunitsymtable(curr.localsymtable).insertunit(pu.unitsym);
-               { add to symtable stack }
-               if assigned(preservest) then
-                 symtablestack.pushafter(pu.u.globalsymtable,preservest)
-               else
-                 symtablestack.push(pu.u.globalsymtable);
-               if (m_mac in current_settings.modeswitches) and
-                  assigned(pu.u.globalmacrosymtable) then
-                 macrosymtablestack.push(pu.u.globalmacrosymtable);
                { check hints }
                pu.check_hints;
              end;
             pu:=tused_unit(pu.next);
           end;
+
          Restorestate;
       end;
+
+     {
+       Connect loaded units: check crc and add to symbol tables.
+       this can only be called after all units were actually loaded!
+     }
+
+     procedure connect_loaded_units(_module : tmodule; preservest:tsymtable);
+
+     var
+       pu  : tused_unit;
+       sorg   : ansistring;
+       unitsymtable: tabstractunitsymtable;
+
+     begin
+       // writeln(_module.get_modulename,': Connecting units');
+       pu:=tused_unit(_module.used_units.first);
+       while assigned(pu) do
+         begin
+         {
+         Writeln('Connect : ',Assigned(_module.modulename), ' ', assigned(pu.u), ' ' ,assigned(pu.u.modulename));
+         if assigned(pu.u) then
+           begin
+             if assigned(pu.u.modulename) then
+               Writeln(_module.modulename^,': Examining connect of file ',pu._fn,' (',pu.u.modulename^,')')
+             else
+               Writeln(_module.modulename^,': Examining connect of file ',pu._fn);
+
+           end
+         else
+           Writeln(_module.modulename^,': Examining unit without module... ');
+         }
+         if not (pu.in_uses and
+            (pu.in_interface=_module.in_interface)) then
+           begin
+//           writeln('Must not connect ',pu.u.modulename^,' (pu.in_interface: ',pu.in_interface,' <> module.in_interface',_module.in_interface,')');
+           end
+         else
+           begin
+//           writeln('Must connect ',pu.u.modulename^,'(sym: ',pu.unitsym.realname,')');
+           { save crc values }
+           pu.checksum:=pu.u.crc;
+           pu.interface_checksum:=pu.u.interface_crc;
+           pu.indirect_checksum:=pu.u.indirect_crc;
+           if tppumodule(pu.u).nsprefix<>'' then
+             begin
+               { use the name as declared in the uses section for -Un }
+               sorg:=tppumodule(pu.u).nsprefix+'.'+pu.unitsym.realname;
+               { update unitsym now that we have access to the full name }
+               pu.unitsym.free;
+               pu.unitsym:=cunitsym.create(sorg,pu.u);
+             end
+           else
+             begin
+               { connect unitsym to the module }
+               pu.unitsym.module:=pu.u;
+               pu.unitsym.register_sym;
+             end;
+           {
+             Add the unit symbol in the current symtable.
+             localsymtable will be nil after the interface uses clause is parsed and the local symtable
+             is moved to the global.
+           }
+           if assigned(_module.localsymtable) then
+             unitsymtable:=tabstractunitsymtable(_module.localsymtable)
+           else
+             unitsymtable:=tabstractunitsymtable(_module.globalsymtable);
+           // Writeln('Adding used unit sym ',pu.unitsym.realName,' to table ',unitsymtable.get_name);
+           unitsymtable.insertunit(pu.unitsym);
+           { add to symtable stack }
+           // Writeln('Adding used unit symtable ',pu.u.globalsymtable.name^,' (',pu.u.globalsymtable.DefList.Count, ' defs) to stack');
+           if assigned(preservest) then
+             symtablestack.pushafter(pu.u.globalsymtable,preservest)
+           else
+             symtablestack.push(pu.u.globalsymtable);
+           if (m_mac in current_settings.modeswitches) and
+              assigned(pu.u.globalmacrosymtable) then
+             macrosymtablestack.push(pu.u.globalmacrosymtable);
+
+           end;
+         pu:=tused_unit(pu.next);
+         end;
+       // writeln(_module.get_modulename,': Done Connecting units');
+     end;
+
 
 
      procedure reset_all_defs(curr: tmodule);
@@ -949,15 +1062,20 @@ type
         finalize_procinfo : tcgprocinfo;
         i,j : integer;
         finishstate:pfinishstate;
-        globalstate:tglobalstate;
+
 
       begin
+        if (curr.modulename^='OGBASE') then
+          Writeln('Here');
         result:=true;
         init_procinfo:=nil;
         finalize_procinfo:=nil;
         finishstate:=nil;
-        globalstate:=nil;
 
+        set_current_module(curr);
+
+        { We get here only after used modules were loaded }
+        connect_loaded_units(curr,curr.globalsymtable);
 
         { All units are read, now give them a number }
         curr.updatemaps;
@@ -1010,31 +1128,42 @@ type
 
         if result then
           finish_unit(curr,true)
-        else
-          begin
-            { save the current state, so the parsing can continue where we left
-              of here }
-            globalstate:=tglobalstate.create(true);
-          end;
       end;
 
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
 
       begin
         result:=true;
-        { create whole program optimisation information (may already be
-          updated in the interface, e.g., in case of classrefdef typed
-          constants }
-        curr.wpoinfo:=tunitwpoinfo.create;
+        set_current_module(curr);
+
+        { update the symtable }
+        connect_loaded_units(curr,nil);
+
+        { We must do this again, because units can have been added to the list while another task was being handled }
+        curr.updatemaps;
+
+        { consume the semicolon after maps have been updated else conditional compiling expressions
+          might cause internal errors, see tw8611 }
+
+        if curr.consume_semicolon_after_uses then
+          consume(_SEMICOLON);
+
+        { now push our own symtable }
+        symtablestack.push(curr.globalsymtable);
+        { Dump stack
+          Write(curr.modulename^);
+          symtablestack.dump;
+          }
 
         { ... parse the declarations }
         Message1(parser_u_parsing_interface,curr.realmodulename^);
-        symtablestack.push(curr.globalsymtable);
+
 {$ifdef jvm}
          { fake classdef to represent the class corresponding to the unit }
          addmoduleclass;
 {$endif}
         read_interface_declarations;
+
 
         { Export macros defined in the interface for macpas. The macros
           are put in the globalmacrosymtable that will only be used by other
@@ -1082,6 +1211,7 @@ type
         { create static symbol table }
         curr.localsymtable:=tstaticsymtable.create(curr.modulename^,curr.moduleid);
 
+
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
         maybe_load_got;
         if not curr.interface_only then
@@ -1091,17 +1221,23 @@ type
             { Read the implementation units }
             if token=_USES then
               begin
-                loadunits(curr,curr.globalsymtable,false);
-                consume(_SEMICOLON);
+              parseusesclause(curr);
+              if not loadunits(curr,false) then
+                 curr.state:=ms_compiling_waitimpl;
+               consume(_SEMICOLON);
               end;
           end;
 
-        if curr.state=ms_compiled then
-          begin
-            symtablestack.pop(curr.globalsymtable);
-            exit(true);
-          end;
-        result:=proc_unit_implementation(curr);
+        if curr.state in [ms_compiled,ms_processed] then
+           begin
+           // Writeln('Popping global symtable ?');
+           symtablestack.pop(curr.globalsymtable);
+           end;
+
+        { Can we continue compiling ? }
+        result:=curr.state<>ms_compiling_waitimpl;
+        if result then
+          result:=proc_unit_implementation(curr)
       end;
 
     function proc_unit(curr: tmodule):boolean;
@@ -1112,6 +1248,7 @@ type
          unitname8 : string[8];
          consume_semicolon_after_uses:boolean;
          feature : tfeature;
+         load_ok : boolean;
 
       begin
          result:=true;
@@ -1193,7 +1330,7 @@ type
 
          { load default system unit, it must be loaded before interface is parsed
            else we cannot use e.g. feature switches before the next real token }
-         loadsystemunit(curr);
+         load_ok:=loadsystemunit(curr);
 
          { system unit is loaded, now insert feature defines }
          for feature:=low(tfeature) to high(tfeature) do
@@ -1222,7 +1359,7 @@ type
 
          { load default units, like language mode units }
          if not(cs_compilesystem in current_settings.moduleswitches) then
-           loaddefaultunits(curr);
+           load_ok:=loaddefaultunits(curr) and load_ok;
 
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in current_settings.moduleswitches) and
@@ -1233,9 +1370,10 @@ type
                curr.Loadlocalnamespacelist
              else
                current_namespacelist:=Nil;
-             loadunits(curr, nil,true);
+             parseusesclause(curr);
+             load_ok:=loadunits(curr,true) and load_ok;
              { has it been compiled at a higher level ?}
-             if curr.state=ms_compiled then
+             if curr.state in [ms_compiled,ms_processed] then
                begin
                  Message1(parser_u_already_compiled,curr.realmodulename^);
                  exit;
@@ -1246,22 +1384,27 @@ type
          else
            consume_semicolon_after_uses:=false;
 
+         { we need to store this in case compilation is transferred to another unit }
+         curr.consume_semicolon_after_uses:=consume_semicolon_after_uses;
+
          { move the global symtable from the temporary local to global }
-         curr.globalsymtable:=curr.localsymtable;
-         curr.localsymtable:=nil;
+         current_module.globalsymtable:=current_module.localsymtable;
+         current_module.localsymtable:=nil;
 
-         { number all units, so we know if a unit is used by this unit or
-           needs to be added implicitly }
-         curr.updatemaps;
+         { Now we check if we can continue. }
 
-         { consume the semicolon after maps have been updated else conditional compiling expressions
-           might cause internal errors, see tw8611 }
+         if not load_ok then
+           curr.state:=ms_compiling_waitintf;
 
-         if consume_semicolon_after_uses then
-           consume(_SEMICOLON);
+         { create whole program optimisation information (may already be
+           updated in the interface, e.g., in case of classrefdef typed
+           constants }
+         curr.wpoinfo:=tunitwpoinfo.create;
 
-         result:=parse_unit_interface_declarations(curr);
-
+         { Can we continue compiling ? }
+         result:=curr.state<>ms_compiling_waitintf;
+         if result then
+           result:=parse_unit_interface_declarations(curr);
       end;
 
     procedure finish_unit(module:tmodule;immediate:boolean);
@@ -1626,7 +1769,7 @@ type
       end;
 
 
-    procedure proc_package(curr: tmodule);
+    function proc_package(curr: tmodule) : boolean;
       var
         main_file : tinputfile;
         hp,hp2    : tmodule;
@@ -1638,6 +1781,7 @@ type
         pentry: ppackageentry;
         feature : tfeature;
       begin
+         Result:=True;
          Status.IsPackage:=true;
          Status.IsExe:=true;
          parse_only:=false;
@@ -2234,7 +2378,7 @@ type
         cnodeutils.InsertResStrInits;
 
         { insert Tables and StackLength }
-        cnodeutils.InsertInitFinalTable;
+        cnodeutils.InsertInitFinalTable(curr);
         cnodeutils.InsertThreadvarTablesTable;
         cnodeutils.InsertResourceTablesTable;
         cnodeutils.InsertWideInitsTablesTable;
@@ -2290,9 +2434,12 @@ type
            Message1(unit_f_errors_in_unit,tostr(Errorcount));
            status.skip_error:=true;
          end;
+
+        curr.state:=ms_processed;
+
       end;
 
-    procedure proc_program_declarations(curr : tmodule; islibrary : boolean);
+    function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
 
       var
         initpd    : tprocdef;
@@ -2302,9 +2449,22 @@ type
         force_init_final : boolean;
 
       begin
+        result:=true;
         main_procinfo:=nil;
         init_procinfo:=nil;
         finalize_procinfo:=nil;
+
+        set_current_module(curr);
+
+        { All units are read, now give them a number }
+        curr.updatemaps;
+
+        { consume the semicolon after maps have been updated else conditional compiling expressions
+          might cause internal errors, see tw8611 }
+        if curr.consume_semicolon_after_uses then
+          consume(_SEMICOLON);
+
+        connect_loaded_units(curr,nil);
 
         {Insert the name of the main program into the symbol table.}
         if curr.realmodulename^<>'' then
@@ -2475,7 +2635,10 @@ type
         { consume the last point }
         consume(_POINT);
 
+
         proc_program_after_parsing(curr,islibrary);
+
+
       end;
 
     procedure proc_library_header(curr: tmodule);
@@ -2573,7 +2736,7 @@ type
 {$endif DEBUG_NODE_XML}
         end;
 
-    procedure proc_program(curr: tmodule; islibrary : boolean);
+    function proc_program(curr: tmodule; islibrary : boolean) : boolean;
 
       var
          main_file : tinputfile;
@@ -2584,8 +2747,10 @@ type
          sc : TProgramParamArray;
          i : Longint;
          feature : tfeature;
+         load_ok : boolean;
 
       begin
+         result:=true;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
          Status.IsExe:=true;
@@ -2665,7 +2830,7 @@ type
          curr.localsymtable:=tstaticsymtable.create(curr.modulename^,curr.moduleid);
 
          { load system unit }
-         loadsystemunit(curr);
+         load_ok:=loadsystemunit(curr);
 
          { consume the semicolon now that the system unit is loaded }
          if consume_semicolon_after_loaded then
@@ -2680,10 +2845,10 @@ type
              def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
 
          { load standard units, e.g objpas,profile unit }
-         loaddefaultunits(curr);
+         load_ok:=loaddefaultunits(curr) and load_ok;
 
          { Load units provided on the command line }
-         loadautounits(curr);
+         load_ok:=loadautounits(curr) and load_ok;
 
          { insert iso program parameters }
          if length(sc)>0 then
@@ -2706,21 +2871,24 @@ type
                curr.Loadlocalnamespacelist
              else
                current_namespacelist:=Nil;
-             loadunits(curr,nil,false);
+             parseusesclause(curr);
+             load_ok:=loadunits(curr,false) and load_ok;
              consume_semicolon_after_uses:=true;
            end
          else
            consume_semicolon_after_uses:=false;
 
-         { All units are read, now give them a number }
-         curr.updatemaps;
+         Curr.consume_semicolon_after_uses:=consume_semicolon_after_uses;
 
-         { consume the semicolon after maps have been updated else conditional compiling expressions
-           might cause internal errors, see tw8611 }
-         if consume_semicolon_after_uses then
-           consume(_SEMICOLON);
+         if not load_ok then
+           curr.state:=ms_compiling_wait;
 
-         proc_program_declarations(curr,islibrary);
+
+         { Can we continue compiling ? }
+
+         result:=curr.state<>ms_compiling_wait;
+         if result then
+           result:=proc_program_declarations(curr,islibrary)
       end;
 
 end.
