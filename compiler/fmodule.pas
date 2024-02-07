@@ -256,7 +256,7 @@ interface
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
-        function usedunitsloaded(interface_units: boolean): boolean;
+        function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -342,6 +342,7 @@ implementation
       end;
 
     procedure set_current_module(p:tmodule);
+
       begin
         { save the state of the scanner }
         if assigned(current_scanner) then
@@ -502,7 +503,7 @@ implementation
         in_interface:=intface;
         in_uses:=inuses;
         unitsym:=usym;
-        if _u.state=ms_compiled then
+        if _u.state in [ms_compiled,ms_processed] then
          begin
            checksum:=u.crc;
            interface_checksum:=u.interface_crc;
@@ -542,7 +543,7 @@ implementation
                             TDENPENDENT_UNIT
  ****************************************************************************}
 
-        constructor tdependent_unit.create(_u: tmodule; frominterface: boolean);
+    constructor tdependent_unit.create(_u: tmodule; frominterface: boolean);
       begin
          u:=_u;
          in_interface:=frominterface;
@@ -668,7 +669,7 @@ implementation
       end;
 
 
-        destructor tmodule.destroy;
+    destructor tmodule.destroy;
       var
         i : longint;
         current_debuginfo_reset : boolean;
@@ -1004,7 +1005,7 @@ implementation
              this unit, unless this unit is already compiled during
              the loading }
            if (pm.u=callermodule) and
-              (pm.u.state<>ms_compiled) then
+              (pm.u.state<ms_compiled) then
              Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
            else
             if (pm.u.state=ms_compile) and (pm.u.compilecount>1) then
@@ -1035,22 +1036,29 @@ implementation
       end;
 
 
-    function tmodule.usedunitsloaded(interface_units : boolean): boolean;
+    function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
+
+    const
+      statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl],
+                                                        [ms_processed, ms_compiled,ms_compiling_waitimpl]);
 
     var
       itm : TLinkedListItem;
+      states : set of tmodulestate;
 
     begin
       Result:=True;
+      States:=statesneeded[interface_units];
       itm:=self.used_units.First;
+      firstwaiting:=Nil;
       while Result and assigned(itm) do
         begin
-        if (tused_unit(itm).in_interface=interface_units) then
-          begin
-          result:=tused_unit(itm).u.state in [ms_compiled,ms_compiling_waitimpl];
-          if not result then
-            writeln('module ',modulename^,' : cannot continue, interface unit ',tused_unit(itm).u.modulename^,' is not fully loaded');
-          end;
+        result:=tused_unit(itm).u.state in states;
+        if not result then
+           begin
+           if firstwaiting=Nil then
+              firstwaiting:=tused_unit(itm).u;
+           end;
         itm:=itm.Next;
         end;
     end;
