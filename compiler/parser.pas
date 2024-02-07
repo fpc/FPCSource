@@ -30,8 +30,9 @@ uses fmodule;
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
 {$endif PREPROCWRITE}
-    procedure compile(const filename:string);
-    procedure compile_module(module : tmodule);
+    function compile(const filename:string) : boolean;
+    function compile_module(module : tmodule) : boolean;
+    procedure parsing_done(module : tmodule);
     procedure initparser;
     procedure doneparser;
 
@@ -54,6 +55,71 @@ implementation
       pbase,psystem,pmodules,psub,ncgrtti,
       cpuinfo,procinfo;
 
+    procedure parsing_done(module: tmodule);
+
+    var
+       hp,hp2 :  tmodule;
+
+    begin
+
+       module.end_of_parsing;
+
+       if (module.is_initial) and
+          (status.errorcount=0) then
+         { Write Browser Collections }
+         do_extractsymbolinfo;
+
+       // olddata.restore(false);
+
+       { Restore all locally modified warning messages }
+       RestoreLocalVerbosity(current_settings.pmessage);
+       current_exceptblock:=0;
+       exceptblockcounter:=0;
+
+       { Shut down things when the last file is compiled succesfull }
+       if (module.is_initial) and (module.state=ms_compiled) and
+           (status.errorcount=0) then
+         begin
+           parser_current_file:='';
+           { Close script }
+           if (not AsmRes.Empty) then
+           begin
+             Message1(exec_i_closing_script,AsmRes.Fn);
+             AsmRes.WriteToDisk;
+           end;
+         end;
+
+     { free now what we did not free earlier in
+       proc_program PM }
+     if (module.is_initial) and (module.state=ms_compiled) and needsymbolinfo then
+       begin
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+          begin
+            hp2:=tmodule(hp.next);
+            if (hp<>module) then
+              begin
+                loaded_units.remove(hp);
+                hp.free;
+              end;
+            hp:=hp2;
+          end;
+         { free also unneeded units we didn't free before }
+         unloaded_units.Clear;
+        end;
+
+      { If used units are compiled current_module is already the same as
+        the stored module. Now if the unit is not finished its scanner is
+        not yet freed and thus set_current_module would reopen the scanned
+        file which will result in pointing to the wrong position in the
+        file. In the normal case current_scanner and current_module.scanner
+        would be Nil, thus nothing bad would happen }
+{           if olddata.old_current_module<>current_module then
+        set_current_module(olddata.old_current_module);}
+
+      FreeLocalVerbosity(current_settings.pmessage);
+
+    end;
 
     procedure initparser;
       begin
@@ -321,27 +387,26 @@ implementation
                              Compile a source file
 *****************************************************************************}
 
-    procedure compile(const filename:string);
+    function compile(const filename:string) : boolean;
 
     var
       m : TModule;
 
     begin
       m:=tppumodule.create(nil,'',filename,false);
-//       m.is_initial:=initial;
       m.state:=ms_compile;
-      compile_module(m);
+      result:=compile_module(m);
     end;
 
-    procedure compile_module(module : tmodule);
+    function compile_module(module : tmodule) : boolean;
 
       var
-         olddata : tglobalstate;
          hp,hp2 : tmodule;
          finished : boolean;
          sc : tscannerfile;
 
        begin
+         Result:=True;
          { parsing a procedure or declaration should be finished }
          if assigned(current_procinfo) then
            internalerror(200811121);
@@ -354,7 +419,6 @@ implementation
            recursively }
          { handle the postponed case first }
          flushpendingswitchesstate;
-         olddata:=tglobalstate.create(false);
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
@@ -431,10 +495,10 @@ implementation
              else if (token=_ID) and (idtoken=_PACKAGE) then
                begin
                  module.IsPackage:=true;
-                 proc_package(module);
+                 finished:=proc_package(module);
                end
              else
-               proc_program(module,token=_LIBRARY);
+               finished:=proc_program(module,token=_LIBRARY);
            except
              on ECompilerAbort do
                raise;
@@ -451,83 +515,14 @@ implementation
                  raise;
                end;
            end;
-
+           Result:=Finished;
            { the program or the unit at the command line should not need to wait
              for other units }
-           if (module.is_initial) and not finished then
-             internalerror(2012091901);
+           // if (module.is_initial) and not finished then
+           //  internalerror(2012091901);
          finally
-           if assigned(module) then
-             begin
-               if finished then
-                 module.end_of_parsing
-               else
-                 begin
-                   { these are saved in the unit's state and thus can be set to
-                     Nil again as would be done by tmodule.end_of_parsing }
-                   macrosymtablestack:=nil;
-                   symtablestack:=nil;
-                   if current_scanner=current_module.scanner then
-                     set_current_scanner(nil);
-                 end;
-             end;
-
-            if (module.is_initial) and
-               (status.errorcount=0) then
-              { Write Browser Collections }
-              do_extractsymbolinfo;
-
-            olddata.restore(false);
-
-            { Restore all locally modified warning messages }
-            RestoreLocalVerbosity(current_settings.pmessage);
-            current_exceptblock:=0;
-            exceptblockcounter:=0;
-
-            { Shut down things when the last file is compiled succesfull }
-            if (module.is_initial) and
-                (status.errorcount=0) then
-              begin
-                parser_current_file:='';
-                { Close script }
-                if (not AsmRes.Empty) then
-                begin
-                  Message1(exec_i_closing_script,AsmRes.Fn);
-                  AsmRes.WriteToDisk;
-                end;
-              end;
-
-          { free now what we did not free earlier in
-            proc_program PM }
-          if (module.is_initial) and needsymbolinfo then
-            begin
-              hp:=tmodule(loaded_units.first);
-              while assigned(hp) do
-               begin
-                 hp2:=tmodule(hp.next);
-                 if (hp<>module) then
-                   begin
-                     loaded_units.remove(hp);
-                     hp.free;
-                   end;
-                 hp:=hp2;
-               end;
-              { free also unneeded units we didn't free before }
-              unloaded_units.Clear;
-             end;
-
-           { If used units are compiled current_module is already the same as
-             the stored module. Now if the unit is not finished its scanner is
-             not yet freed and thus set_current_module would reopen the scanned
-             file which will result in pointing to the wrong position in the
-             file. In the normal case current_scanner and current_module.scanner
-             would be Nil, thus nothing bad would happen }
-           if olddata.old_current_module<>current_module then
-             set_current_module(olddata.old_current_module);
-
-           FreeLocalVerbosity(current_settings.pmessage);
-
-           FreeAndNil(olddata);
+            if finished then
+              parsing_done(module);
          end;
     end;
 

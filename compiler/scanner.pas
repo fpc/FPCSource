@@ -3029,7 +3029,7 @@ type
         if assigned(onfreescanner) then
           onfreescanner(self);
         if assigned(current_module) and
-           (current_module.state=ms_compiled) and
+           (current_module.state in [ms_processed,ms_compiled]) and
            (status.errorcount=0) then
           checkpreprocstack
         else

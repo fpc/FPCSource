@@ -57,9 +57,12 @@ type
   public
     constructor create;
     destructor destroy; override;
+    // Find the task for module m
     function findtask(m : tmodule) : ttask_list;
-    // Can we continue processing this module ?
-    function cancontinue(t : ttask_list) : boolean;
+    // Can we continue processing this module ? If not, firstwaiting contains first module that m is waiting for.
+    function cancontinue(m : tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
+    // Overload of cancontinue, based on task.
+    function cancontinue(t: ttask_list; out firstwaiting: tmodule): boolean; inline
     // Continue processing this module. Return true if the module is done and can be removed.
     function continue(t : ttask_list): Boolean;
     // process the queue. Note that while processing the queue, elements will be added.
@@ -77,7 +80,7 @@ procedure DoneTaskHandler;
 
 implementation
 
-uses verbose, finput, globtype, sysutils, scanner, parser, pmodules;
+uses verbose, fppu, finput, globtype, sysutils, scanner, parser, pmodules;
 
 procedure InitTaskHandler;
 begin
@@ -126,22 +129,21 @@ end;
 procedure ttask_list.SaveState;
 begin
   if State=Nil then
-    State:=tglobalstate.Create(true);
+    State:=tglobalstate.Create(true)
+  else
+    State.save(true);
 end;
 
 procedure ttask_list.RestoreState;
 begin
   if not module.is_reset then
     state.restore(true);
-
   if assigned(current_scanner) and assigned(current_scanner.inputfile) then
       if current_scanner.inputfile.closed then
       begin
       current_scanner.tempopeninputfile;
       current_scanner.gettokenpos;
-      // parser_current_file:=current_scanner.inputfile.name;
       end;
-
 end;
 
 { ttask_handler }
@@ -172,25 +174,63 @@ begin
     end;
 end;
 
-function ttask_handler.cancontinue(t : ttask_list): boolean;
+function ttask_handler.cancontinue(m: tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
+
+  procedure CheckUsed(out acandidate : tmodule);
+
+  var
+    itm : TLinkedListItem;
+    iscandidate : boolean;
+    m2 : tmodule;
+
+  begin
+    acandidate:=nil;
+    itm:=m.used_units.First;
+    while (acandidate=Nil) and assigned(itm) do
+      begin
+      iscandidate:=Not (tused_unit(itm).u.state in [ms_compiled]);
+      if iscandidate then
+        begin
+        acandidate:=tused_unit(itm).u;
+        if not cancontinue(acandidate,false,m2) then
+          acandidate:=nil;
+        end;
+      itm:=itm.Next;
+      end;
+   end;
 
 var
-  m : tmodule;
+  m2 : tmodule;
 
 begin
-  m:=t.module;
-  case m.state of
-    ms_unknown : cancontinue:=true;
-    ms_registered : cancontinue:=true;
-    ms_compile : cancontinue:=true;
-    ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false);
-    ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true);
-    ms_compiling_wait : cancontinue:=m.usedunitsloaded(true);
-    ms_compiled : cancontinue:=true;
-    ms_moduleerror : cancontinue:=true;
-  else
-    InternalError(2024011802);
-  end;
+  firstwaiting:=nil;
+  if m.is_initial and (list.count>1) then
+    exit(False);
+    case m.state of
+      ms_unknown : cancontinue:=true;
+      ms_registered : cancontinue:=true;
+      ms_compile : cancontinue:=true;
+      ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
+      ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+      ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+      ms_compiled : cancontinue:=true;
+      ms_processed : cancontinue:=true;
+      ms_moduleerror : cancontinue:=true;
+    else
+      InternalError(2024011802);
+    end;
+    if (not cancontinue) and checksub then
+      begin
+      checkused(m2);
+      if m2<>nil then
+        firstwaiting:=m2;
+      end;
+end;
+
+function ttask_handler.cancontinue(t : ttask_list; out firstwaiting : tmodule): boolean;
+
+begin
+  Result:=cancontinue(t.module,true,firstwaiting);
 end;
 
 function ttask_handler.continue(t : ttask_list) : Boolean;
@@ -205,14 +245,23 @@ begin
   case m.state of
     ms_registered : parser.compile_module(m);
     ms_compile : parser.compile_module(m);
+    ms_compiled : if (not m.is_initial) or m.is_unit  then
+                   (m as tppumodule).post_load_or_compile(m.compilecount>1);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
+    ms_processed : ;
   else
     InternalError(2024011801);
   end;
-  Result:=m.state=ms_compiled;
-  if not Result then
+  if m.state=ms_compiled then
+    begin
+    parsing_done(m);
+    if m.is_initial and not m.is_unit then
+      m.state:=ms_processed;
+    end;
+  Result:=m.state=ms_processed;
+  if not result then
     // Not done, save state
     t.SaveState;
 end;
@@ -220,14 +269,15 @@ end;
 procedure ttask_handler.processqueue;
 
 var
-  t : ttask_list;
+  t,t2 : ttask_list;
   process : boolean;
+  m,firstwaiting : tmodule;
 
 begin
   t:=list.firsttask;
   While t<>nil do
     begin
-    process:=cancontinue(t);
+    process:=cancontinue(t,firstwaiting);
     if process then
       begin
       if continue(t) then
@@ -238,13 +288,21 @@ begin
       // maybe the strategy can be improved.
       t:=list.firsttask;
       end
+    else if assigned(firstwaiting) and cancontinue(firstwaiting,true, m) then
+      begin
+      t2:=findtask(firstwaiting);
+      if t2=nil then
+        t2:=t.nexttask;
+      t:=t2;
+      end
     else
+      begin
       t:=t.nexttask;
+      end;
     end;
 end;
 
 procedure ttask_handler.addmodule(m: tmodule);
-
 
 var
   n : TSymStr;
@@ -265,7 +323,6 @@ begin
   else
     begin
     // We have a task, if it was reset, then clear the state and move the task to the start.
-
     if m.is_reset then
       begin
       m.is_reset:=false;

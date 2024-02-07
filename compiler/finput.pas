@@ -123,8 +123,11 @@ interface
           ms_compiling_waitimpl,
           ms_compiling_wait,
           ms_compiled,
+          ms_processed,
           ms_moduleerror
         );
+        tmodulestates = set of tmodulestate;
+
      const
         ModuleStateStr : array[TModuleState] of string[32] = (
           'Unknown',
@@ -135,6 +138,7 @@ interface
           'Compiling_Waiting_implementation',
           'Compiling_Waiting',
           'Compiled',
+          'Processed',
           'Error'
         );
 
