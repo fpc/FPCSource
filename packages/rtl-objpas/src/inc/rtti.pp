@@ -41,11 +41,13 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+  System.Types,
   System.Classes,
   System.SysUtils,
   System.TypInfo;
 {$ELSE FPC_DOTTEDUNITS}
 uses
+  Types,
   Classes,
   SysUtils,
   typinfo;
@@ -379,6 +381,19 @@ type
     property MinValue: LongInt read GetMinValue;
     property MaxValue: LongInt read GetMaxValue;
   end;
+  
+  { TRttiEnumerationType }
+
+  TRttiEnumerationType = class(TRttiOrdinalType)
+  private
+    function GetUnderlyingType: TRttiType;
+  public
+    function GetNames: TStringDynArray;
+    generic class function GetName<T{: enum}>(AValue: T): string; reintroduce; static;
+    generic class function GetValue<T{: enum}>(const AName: string): T; static;
+    property UnderlyingType: TRttiType read GetUnderlyingType;
+  end;
+  
 
   TRttiInt64Type = class(TRttiType)
   private
@@ -757,7 +772,8 @@ resourcestring
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
   SErrCallbackHandlerNil = 'Callback handler is Nil';
   SErrMissingSelfParam = 'Missing self parameter';
-
+  SErrNotEnumeratedType = '%s is not an enumerated type.';
+  
 implementation
 
 uses
@@ -1597,6 +1613,7 @@ begin
           tkInteger,
           tkChar,
           tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo);
+          tkEnumeration : Result := TRttiEnumerationType.Create(ATypeInfo);
           tkSString,
           tkLString,
           tkAString,
@@ -4552,6 +4569,52 @@ begin
       Result := SizeOf(QWord);
   end;
 end;
+
+{ TRttiEnumerationType }
+
+function TRttiEnumerationType.GetUnderlyingType: TRttiType;
+
+begin
+  Result:=GRttiPool.GetType(GetTypeData(Handle)^.BaseType);
+end;
+
+
+function TRttiEnumerationType.GetNames: TStringDynArray;
+
+var
+  I : Integer;
+
+begin
+  Result:=[];
+  SetLength(Result,GetEnumNameCount(Handle));
+  For I:=0 to Length(Result)-1 do
+    Result[I]:=GetEnumName(Handle,I);
+end;
+
+generic class function TRttiEnumerationType.GetName<T{: enum}>(AValue: T): string;
+
+var
+  Info : PTypeInfo;
+
+begin
+  Info:=PtypeInfo(TypeInfo(T));
+  if Not (Info^.kind in [tkBool,tkEnumeration]) then
+    raise EInvalidCast.CreateFmt(SErrNotEnumeratedType,[PtypeInfo(TypeInfo(T))^.name]);
+  Result:=GetEnumName(Info,Ord(aValue))
+end;
+
+generic class function TRttiEnumerationType.GetValue<T{: enum}>(const AName: string): T;
+
+var
+  Info : PTypeInfo;
+
+begin
+  Info:=PtypeInfo(TypeInfo(T));
+  if Not (Info^.kind in [tkBool,tkEnumeration]) then
+    raise EInvalidCast.CreateFmt(SErrNotEnumeratedType,[PtypeInfo(TypeInfo(T))^.name]);
+  Result:=T(GetEnumValue(Info,aName))
+end;
+
 
 { TRttiFloatType }
 
