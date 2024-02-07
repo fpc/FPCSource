@@ -1028,7 +1028,7 @@ implementation
 
 
 {$ifdef jvm}
-      procedure addmoduleclass;
+      procedure addmoduleclass(curr : tmodule);
         var
           def: tobjectdef;
           typesym: ttypesym;
@@ -1065,8 +1065,6 @@ type
 
 
       begin
-        if (curr.modulename^='OGBASE') then
-          Writeln('Here');
         result:=true;
         init_procinfo:=nil;
         finalize_procinfo:=nil;
@@ -1160,7 +1158,7 @@ type
 
 {$ifdef jvm}
          { fake classdef to represent the class corresponding to the unit }
-         addmoduleclass;
+         addmoduleclass(curr);
 {$endif}
         read_interface_declarations;
 
@@ -2476,7 +2474,7 @@ type
 
   {$ifdef jvm}
         { fake classdef to represent the class corresponding to the unit }
-        addmoduleclass;
+        addmoduleclass(curr);
   {$endif}
 
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
