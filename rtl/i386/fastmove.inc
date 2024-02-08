@@ -7,35 +7,34 @@ procedure Move_8OrMore_Valgrind; assembler; nostackframe;
 { eax = source, edx = dest, ecx = count (ecx >= 8).
   If FPC_PIC: ebx pushed. }
 asm
-{$ifndef FPC_PIC}
-    push   %ebx
-{$endif}
-    sub    %edx, %eax
-    jae    .LForward
-    mov    %ecx, %ebx
-    add    %eax, %ebx            { eax is negative => ecx+eax > 0 if regions overlap }
-    jb     .LBack                { if no overlap, still do forward move }
+    sub    %eax, %edx            { edx = dest - src }
+    cmp    %edx, %ecx
+    ja     .LBack                { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
 
-.LForward:
 {$ifdef FPC_ENABLED_CLD}
     cld
 {$endif FPC_ENABLED_CLD}
     push   %esi
     push   %edi
-    lea    (%eax,%edx), %esi
-    mov    %edx, %edi
+    mov    %eax, %esi
+    lea    (%edx,%eax), %edi
     rep movsb
     pop    %edi
     pop    %esi
+{$ifdef FPC_PIC}
     pop    %ebx
+{$endif}
     ret
 
 .LBack:
-    add    %ecx, %edx
+{$ifndef FPC_PIC}
+    push   %ebx
+{$endif}
+    add    %ecx, %eax
 .LNextb:
-    dec    %edx
-    mov    (%eax,%edx), %bl
-    mov    %bl, (%edx)
+    dec    %eax
+    mov    (%eax), %bl
+    mov    %bl, (%edx,%eax)
     dec    %ecx
     jnz    .LNextb
     pop    %ebx
@@ -77,13 +76,11 @@ asm
 {$ifndef FPC_PIC}
     push   %ebx
 {$endif}
-    jnb    .LForward             { src>dest => forward move }
+    mov    %eax, %ebx
+    neg    %ebx
+    cmp    %ebx, %ecx
+    ja     .Lback                { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
 
-    mov    %ecx, %ebx
-    add    %eax, %ebx            { eax is negative => ecx+eax > 0 if regions overlap }
-    jb     .Lback                { if no overlap, still do forward move }
-
-.LForward:
     mov    %edx, %ebx            { remember original dest to write first 16 bytes }
     add    %edx, %ecx            { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
     add    $8, %edx
@@ -161,13 +158,11 @@ asm
     movq   -8(%eax,%ecx), %mm5
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lquit                { exit if src=dest }
-    jnb    .LForward             { src>dest => forward move }
+    mov    %eax, %ebx
+    neg    %ebx
+    cmp    %ebx, %ecx
+    ja     .Lback                { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
 
-    mov    %ecx, %ebx
-    add    %eax, %ebx            { eax is negative => ecx+eax > 0 if regions overlap }
-    jb     .Lback                { if no overlap, still do forward move }
-
-.LForward:
     mov    %edx, %ebx            { remember original dest to write first 16 bytes }
     add    %edx, %ecx            { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
     add    $8, %edx
@@ -237,7 +232,7 @@ end;
 
 {$ifndef FASTMOVE_DISABLE_SSE}
 label
-  Move_8OrMore_SSE_9to16, Move_8OrMore_SSE_33OrMore, Move_8OrMore_SSE_CancelERMSBackwards;
+  Move_8OrMore_SSE_9to15, Move_8OrMore_SSE_33OrMore, Move_8OrMore_SSE_CancelERMSBackwards;
 
 const
   Move_NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
@@ -248,20 +243,20 @@ procedure Move_8OrMore_SSE; assembler; nostackframe;
 const
   PrefetchDistance = 512;
 asm
-    cmp    $16, %ecx
-    jle    Move_8OrMore_SSE_9to16
+    cmp    $15, %ecx
+    jle    Move_8OrMore_SSE_9to15
     movups (%eax), %xmm4         { First and last 16 bytes, used both in Move_8OrMore_SSE_33OrMore and 17–32 branch. }
     movups -16(%eax,%ecx), %xmm5
     cmp    $32, %ecx
     jg     Move_8OrMore_SSE_33OrMore
-    movups %xmm4, (%edx)         { 17–32 bytes }
+    movups %xmm4, (%edx)         { 16–32 bytes }
     movups %xmm5, -16(%edx,%ecx)
 {$ifdef FPC_PIC}
     pop    %ebx
 {$endif}
     ret
 
-Move_8OrMore_SSE_9to16:
+Move_8OrMore_SSE_9to15:
     movlps (%eax), %xmm0
     movlps -8(%eax,%ecx), %xmm1
     movlps %xmm0, (%edx)
@@ -271,7 +266,7 @@ Move_8OrMore_SSE_9to16:
     pop    %ebx
 {$endif}
     ret
-    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 Move_8OrMore_SSE_33OrMore:
     sub    %edx, %eax            { eax = src - dest }
@@ -279,13 +274,11 @@ Move_8OrMore_SSE_33OrMore:
 {$ifndef FPC_PIC}
     push   %ebx
 {$endif}
-    jnb    .LForward             { src>dest => forward move }
+    mov    %eax, %ebx
+    neg    %ebx
+    cmp    %ebx, %ecx
+    ja     .Lback                { count (ecx) > unsigned(dest - src) (edx) if regions overlap }
 
-    lea    -1(%ecx), %ebx
-    add    %eax, %ebx            { eax is negative => ecx+eax > 0 if regions overlap }
-    jb     .Lback                { if no overlap, still do forward move }
-
-.LForward:
     mov    %edx, %ebx            { remember original dest to write first 16 bytes }
     add    %edx, %ecx            { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
     add    $16, %edx
@@ -466,15 +459,15 @@ procedure Move_8OrMore_SSE_ERMS; assembler; nostackframe;
 const
     ErmsThreshold = 1536;
 asm
-    cmp    $16, %ecx
-    jle    Move_8OrMore_SSE_9to16
+    cmp    $15, %ecx
+    jle    Move_8OrMore_SSE_9to15
     cmp    $ErmsThreshold, %ecx
     jae    .LRepMovs
     movups (%eax), %xmm4         { Same as in Move_8OrMore_SSE. }
     movups -16(%eax,%ecx), %xmm5
     cmp    $32, %ecx
     jg     Move_8OrMore_SSE_33OrMore
-    movups %xmm4, (%edx)         { 17–32 bytes }
+    movups %xmm4, (%edx)         { 16–32 bytes }
     movups %xmm5, -16(%edx,%ecx)
 {$ifdef FPC_PIC}
     pop    %ebx

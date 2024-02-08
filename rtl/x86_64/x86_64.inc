@@ -134,18 +134,17 @@ asm
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
     ret
-    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  102,144               { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
     sub    %rdx, %rcx            { rcx = src - dest }
     jz     .Lquit                { exit if src=dest }
-    jnb    .LForward             { src>dest => forward move }
 
-    mov    %r8, %rax
-    add    %rcx, %rax            { rcx is negative => r8+rcx > 0 if regions overlap }
-    jb     .Lback                { if no overlap, still do forward move }
+    mov    %rcx, %rax
+    neg    %rax
+    cmp    %rax, %r8
+    ja     .Lback                { count (r8) > unsigned(dest - src) (rax) if regions overlap }
 
-.LForward:
     mov    %rdx, %r9             { remember original dest to write first 16 bytes }
     add    %rdx, %r8             { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
     add    $16, %rdx
@@ -217,7 +216,7 @@ asm
     mfence
     add    $0x1000, %r8
     jmpq   .LRestAfterNTf        { go handle remaining bytes }
-    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,144           { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
