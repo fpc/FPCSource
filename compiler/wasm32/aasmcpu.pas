@@ -611,6 +611,8 @@ uses
                     end;
                   top_const:
                     Result:=val;
+                  else
+                    internalerror(2024020805);
                 end;
             end;
         end;
