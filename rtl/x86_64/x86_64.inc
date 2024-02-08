@@ -86,6 +86,9 @@ end;
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 { Linux: rdi source, rsi dest, rdx count
   win64: rcx source, rdx dest, r8 count }
+const
+  NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
+  PrefetchDistance = 512;
 asm
 {$ifndef win64}
     mov    %rdx, %r8
@@ -157,7 +160,7 @@ asm
 .LRestAfterNTf:
     sub    $32, %r8              { During the N× loop, r8 is N bytes less than actually remained to allow sub N+jae .LLoop instead of sub N+cmp N+jae .LLoop. }
     jbe    .LPost32f
-    cmp    $0x40000, %r8         { this limit must be processor-specific (1/2 L2 cache size) }
+    cmp    $NtThreshold-32, %r8
     jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
 
     .balign 16                   { no-op }
@@ -176,46 +179,31 @@ asm
     movdqu %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
     ret
 
+    .balign 16
 .Lntf:
-    cmp    $0x1000, %rcx         { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
+    cmp    $NtThreshold, %rcx    { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
     jb     .Lloop32f             { (this check is performed here to not stand in the way of smaller counts) }
-    sub    $0xFE0, %r8           { r8 = remaining - 0x1000, but 32 was subtracted already, so must subtract only (0x1000 - 32) = 0xFE0. }
+    sub    $PrefetchDistance+32, %r8 { r8 = remaining - prefetch distance - bytes per loop (64), but 32 was subtracted already. }
 
-.Lntloopf:
-    mov    $32, %eax
-
-    .balign 16
-.Lpref:
-    prefetchnta (%rcx,%rdx,1)
-    prefetchnta 0x40(%rcx,%rdx,1)
-    add    $0x80, %rdx
-    dec    %eax
-    jnz    .Lpref
-
-    sub    $0x1000, %rdx
-    mov    $64, %eax
-
-    .balign 16
+    .balign 16                   { no-op }
 .Lntloop64f:
+    prefetchnta 0+PrefetchDistance(%rcx,%rdx,1)
+    movdqu (%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, (%rdx)
+    movdqu 16(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 16(%rdx)
+    movdqu 32(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 32(%rdx)
+    movdqu 48(%rcx,%rdx,1), %xmm0
+    movntdq %xmm0, 48(%rdx)
     add    $64, %rdx
-    movdqu -64(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -64(%rdx)
-    movdqu -48(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -48(%rdx)
-    movdqu -32(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -32(%rdx)
-    movdqu -16(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -16(%rdx)
-    dec    %eax
-    jnz    .Lntloop64f
+    sub    $64, %r8
+    jae    .Lntloop64f
 
-    sub    $0x1000, %r8
-    jae    .Lntloopf
-
-    mfence
-    add    $0x1000, %r8
+    sfence
+    add    $PrefetchDistance+64, %r8
     jmpq   .LRestAfterNTf        { go handle remaining bytes }
-    .byte  102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
@@ -229,7 +217,7 @@ asm
 .LRestAfterNTb:
     sub    $32, %r8
     jbe    .LPost32b
-    cmp    $0x40000, %r8
+    cmp    $NtThreshold-32, %r8
     jae    .Lntb
 
     .balign 16                   { no-op }
@@ -249,27 +237,15 @@ asm
     movdqu %xmm5, -16(%r9)
     ret
 
+    .balign 16
 .Lntb:
-    cmp    $0xfffffffffffff000,%rcx
+    cmp    $-NtThreshold,%rcx
     jnb    .Lloop32b
-    sub    $0xFE0, %r8
+    sub    $PrefetchDistance+32, %r8
 
-.Lntloopb:
-    mov    $32, %eax
-
-    .balign 16
-.Lprefb:
-    sub    $0x80, %rdx
-    prefetchnta (%rcx,%rdx,1)
-    prefetchnta 0x40(%rcx,%rdx,1)
-    dec    %eax
-    jnz    .Lprefb
-
-    add    $0x1000, %rdx
-    mov    $0x40, %eax
-
-    .balign 16
+    .balign 16                   { no-op }
 .Lntloop64b:
+    prefetchnta -PrefetchDistance(%rcx,%rdx,1)
     sub    $64, %rdx
     movdqu 48(%rcx,%rdx,1), %xmm0
     movntdq %xmm0, 48(%rdx)
@@ -279,14 +255,11 @@ asm
     movntdq %xmm0, 16(%rdx)
     movdqu (%rcx,%rdx,1), %xmm0
     movntdq %xmm0, (%rdx)
-    dec    %eax
-    jnz    .Lntloop64b
+    sub    $64, %r8
+    jae    .Lntloop64b
 
-    sub    $0x1000, %r8
-    jae    .Lntloopb
-
-    mfence
-    add    $0x1000, %r8
+    sfence
+    add    $PrefetchDistance+64, %r8
     jmpq   .LRestAfterNTb
 end;
 {$endif FPC_SYSTEM_HAS_MOVE}
