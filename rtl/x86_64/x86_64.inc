@@ -102,12 +102,12 @@ asm
     jle    .L4to8
     cmp    $16, %r8
     jle    .L9to16
-    movdqu (%rcx), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17–32 branch. }
-    movdqu -16(%rcx,%r8), %xmm5
+    movups (%rcx), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17–32 branch. }
+    movups -16(%rcx,%r8), %xmm5
     cmp    $32, %r8
     jg     .L33OrMore
-    movdqu %xmm4, (%rdx)         { 17–32 bytes }
-    movdqu %xmm5, -16(%rdx,%r8)
+    movups %xmm4, (%rdx)         { 17–32 bytes }
+    movups %xmm5, -16(%rdx,%r8)
     ret
 
     .balign 16
@@ -137,10 +137,10 @@ asm
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
     ret
-    .byte  102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
-    movdqu -32(%rcx,%r8), %xmm3  { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
+    movups -32(%rcx,%r8), %xmm3  { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
                                  { but -32(%rcx,%r8) is about to become not accessible so easily, .Lback is rare, and small .Lback is even rarer / matters even less. }
 
     sub    %rdx, %rcx            { rcx = src - dest }
@@ -165,18 +165,18 @@ asm
 
     .balign 16                   { no-op }
 .Lloop32f:
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
-    movdqu 16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, 16(%rdx)
+    movups (%rcx,%rdx), %xmm0
+    movaps %xmm0, (%rdx)
+    movups 16(%rcx,%rdx), %xmm0
+    movaps %xmm0, 16(%rdx)
     add    $32, %rdx
     sub    $32, %r8
     ja     .Lloop32f
 
 .LPost32f:                       { +32 fixup not applied after 32× loop, r8 = remaining - 32 here. }
-    movdqu %xmm3, (%rdx, %r8)
-    movdqu %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
-    movdqu %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
+    movups %xmm3, (%rdx, %r8)
+    movups %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
+    movups %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
     ret
 
     .balign 16
@@ -188,14 +188,14 @@ asm
     .balign 16                   { no-op }
 .Lntloop64f:
     prefetchnta 0+PrefetchDistance(%rcx,%rdx,1)
-    movdqu (%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, (%rdx)
-    movdqu 16(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 16(%rdx)
-    movdqu 32(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 32(%rdx)
-    movdqu 48(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 48(%rdx)
+    movups (%rcx,%rdx,1), %xmm0
+    movntps %xmm0, (%rdx)
+    movups 16(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 16(%rdx)
+    movups 32(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 32(%rdx)
+    movups 48(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 48(%rdx)
     add    $64, %rdx
     sub    $64, %r8
     jae    .Lntloop64f
@@ -203,11 +203,11 @@ asm
     sfence
     add    $PrefetchDistance+64, %r8
     jmpq   .LRestAfterNTf        { go handle remaining bytes }
-    .byte  102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
-    movdqu 16(%rcx,%rdx), %xmm3  { Second vector from the start. }
+    movups 16(%rcx,%rdx), %xmm3  { Second vector from the start. }
     lea    (%rdx,%r8), %r9       { points to the end of dest; remember to write last 16 bytes }
     lea    -1(%r9), %r8          { move dest to the previous 16-byte boundary... }
     and    $-16, %r8
@@ -223,18 +223,18 @@ asm
     .balign 16                   { no-op }
 .Lloop32b:
     sub    $32, %rdx
-    movdqu 16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, 16(%rdx)
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
+    movups 16(%rcx,%rdx), %xmm0
+    movaps %xmm0, 16(%rdx)
+    movups (%rcx,%rdx), %xmm0
+    movaps %xmm0, (%rdx)
     sub    $32, %r8
     ja     .Lloop32b
 
 .LPost32b:
     sub    %r8, %rdx
-    movdqu %xmm3, -16(%rdx)
-    movdqu %xmm4, -32(%rdx)
-    movdqu %xmm5, -16(%r9)
+    movups %xmm3, -16(%rdx)
+    movups %xmm4, -32(%rdx)
+    movups %xmm5, -16(%r9)
     ret
 
     .balign 16
@@ -247,14 +247,14 @@ asm
 .Lntloop64b:
     prefetchnta -PrefetchDistance(%rcx,%rdx,1)
     sub    $64, %rdx
-    movdqu 48(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 48(%rdx)
-    movdqu 32(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 32(%rdx)
-    movdqu 16(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 16(%rdx)
-    movdqu (%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, (%rdx)
+    movups 48(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 48(%rdx)
+    movups 32(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 32(%rdx)
+    movups 16(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 16(%rdx)
+    movups (%rcx,%rdx,1), %xmm0
+    movntps %xmm0, (%rdx)
     sub    $64, %r8
     jae    .Lntloop64b
 
