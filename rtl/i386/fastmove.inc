@@ -63,19 +63,19 @@ asm
     ret
 
 .Lcancel:
+    fstp   %st(0)                { Pop the “second int64 from the end” .L33OrMore loads. }
     fucompp                      { Pop two elements loaded at the beginning. }
-{$ifdef FPC_PIC}
     pop    %ebx
-{$endif}
     ret
-    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16f into a no-op. }
+    .byte  102,102,144           { Turns .balign 16 before .Lloop16f into a no-op. }
 
 .L33OrMore:
-    sub    %edx, %eax            { eax = src - dest }
-    jz     .Lcancel              { exit if src=dest }
+    fildq  -16(%eax,%ecx)        { Second int64 from the end. }
 {$ifndef FPC_PIC}
     push   %ebx
 {$endif}
+    sub    %edx, %eax            { eax = src - dest }
+    jz     .Lcancel              { exit if src=dest }
     mov    %eax, %ebx
     neg    %ebx
     cmp    %ebx, %ecx
@@ -101,19 +101,17 @@ asm
     ja     .Lloop16f
 
 .LPost16f:                       { +16 fixup not applied after 16× loop, ecx = remaining - 16 here. }
-    cmp    $-8, %ecx
-    jle    .LFirstAndLast8f
-    fildq  (%eax,%edx)
-    fistpq (%edx)
-.LFirstAndLast8f:
+    fistpq (%edx,%ecx)
     fistpq 8(%edx,%ecx)          { Write first and last 8 bytes after everything else. }
     fistpq (%ebx)                { Important for <8-byte step between src and dest. }
     pop    %ebx
     ret
-    .byte  102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16b into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16b into a no-op. }
 
 { backwards move }
 .Lback:
+    fstp   %st(0)
+    fildq  8(%eax,%edx)          { Second int64 from the start. }
     lea    -1(%edx,%ecx), %ebx   { points to the end of dest; remember to write last 8 bytes }
     mov    %ebx, %ecx            { move dest to the previous 8-byte boundary... }
     and    $-8, %ecx
@@ -134,12 +132,8 @@ asm
     ja     .Lloop16b
 
 .LPost16b:
-    cmp    $-8, %ecx
-    jle    .LFirstAndLast8b
-    fildq  -8(%eax,%edx)
-    fistpq -8(%edx)
-.LFirstAndLast8b:
     sub    %ecx, %edx
+    fistpq -8(%edx)
     fistpq -7(%ebx)
     fistpq -16(%edx)
     pop    %ebx
@@ -156,6 +150,7 @@ asm
 {$endif}
     movq   (%eax), %mm4          { First and last 8 bytes. }
     movq   -8(%eax,%ecx), %mm5
+    movq   -16(%eax,%ecx), %mm3  { Second vector from the end. }
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lquit                { exit if src=dest }
     mov    %eax, %ebx
@@ -183,21 +178,18 @@ asm
     ja     .Lloop16f
 
 .LPost16f:                       { +16 fixup not applied after 16× loop, ecx = remaining - 16 here. }
-    cmp    $-8, %ecx
-    jle    .LFirstAndLast8f
-    movq   (%eax,%edx), %mm0
-    movq   %mm0, (%edx)
-.LFirstAndLast8f:
+    movq   %mm3, (%edx,%ecx)
     movq   %mm5, 8(%edx,%ecx)    { Write first and last 8 bytes after everything else. }
     movq   %mm4, (%ebx)          { Important for <8-byte step between src and dest. }
 .Lquit:
     emms
     pop    %ebx
     ret
-    .byte  102,102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop16b into a no-op. }
+    .byte  144 { Turns .balign 16 before .Lloop16b into a no-op. }
 
 { backwards move }
 .Lback:
+    movq   8(%eax,%edx), %mm3    { Second vector from the start. }
     lea    -1(%edx,%ecx), %ebx   { points to the end of dest; remember to write last 8 bytes }
     mov    %ebx, %ecx            { move dest to the previous 8-byte boundary... }
     and    $-8, %ecx
@@ -218,12 +210,8 @@ asm
     ja     .Lloop16b
 
 .LPost16b:
-    cmp    $-8, %ecx
-    jle    .LFirstAndLast8b
-    movq   -8(%eax,%edx), %mm0
-    movq   %mm0, -8(%edx)
-.LFirstAndLast8b:
     sub    %ecx, %edx
+    movq   %mm3, -8(%edx)
     movq   %mm4, -16(%edx)
     movq   %mm5, -7(%ebx)
     emms
@@ -266,9 +254,12 @@ Move_8OrMore_SSE_9to15:
     pop    %ebx
 {$endif}
     ret
-    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  {$ifndef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 Move_8OrMore_SSE_33OrMore:
+    movups -32(%eax,%ecx), %xmm3 { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
+                                 { but -32(%eax,%ecx) is about to become not accessible so easily, .Lback is rare, and small .Lback is even rarer / matters even less. }
+
     sub    %edx, %eax            { eax = src - dest }
     jz     .Lquit                { exit if src=dest }
 {$ifndef FPC_PIC}
@@ -305,11 +296,7 @@ Move_8OrMore_SSE_33OrMore:
     ja     .Lloop32f
 
 .LPost32f:                       { +32 fixup not applied after 32× loop, ecx = remaining - 32 here. }
-    cmp    $-16, %ecx
-    jle    .LFirstAndLast16f
-    movups (%eax,%edx), %xmm0
-    movaps %xmm0, (%edx)
-.LFirstAndLast16f:
+    movups %xmm3, (%edx, %ecx)
     movups %xmm5, 16(%edx,%ecx)  { Write first and last 16 bytes after everything else. }
     movups %xmm4, (%ebx)         { Important for <16-byte step between src and dest. }
     pop    %ebx
@@ -326,11 +313,7 @@ Move_8OrMore_SSE_33OrMore:
     ja     .Lalignedloop32f
 
 .LalignedPost32f:
-    cmp    $-16, %ecx
-    jle    .LalignedFirstAndLast16f
-    movaps (%eax,%edx), %xmm0
-    movaps %xmm0, (%edx)
-.LalignedFirstAndLast16f:
+    movups %xmm3, (%edx, %ecx)
     movups %xmm5, 16(%edx,%ecx)
     movups %xmm4, (%ebx)
     pop    %ebx
@@ -380,7 +363,7 @@ Move_8OrMore_SSE_33OrMore:
     sfence
     add    $PrefetchDistance+64, %ecx
     jmp    .LRestAfterNTf
-    .byte  {$ifdef FPC_PIC}102,{$endif}102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  {$ifdef FPC_PIC}102,{$endif}102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 Move_8OrMore_SSE_CancelERMSBackwards:
     { Adapt from Move_8OrMore_SSE_ERMS.Lback where eax = src, edx = dest - src, xmm4 and xmm5 aren’t read, ebx isn't pushed if not FPC_PIC. }
@@ -394,6 +377,7 @@ Move_8OrMore_SSE_CancelERMSBackwards:
 
 { backwards move }
 .Lback:
+    movups 16(%eax,%edx), %xmm3  { Second vector from the start. }
     lea    -1(%edx,%ecx), %ebx   { points to the end of dest; remember to write last 16 bytes }
     mov    %ebx, %ecx            { move dest to the previous 16-byte boundary... }
     and    $-16, %ecx
@@ -417,12 +401,8 @@ Move_8OrMore_SSE_CancelERMSBackwards:
     ja     .Lloop32b
 
 .LPost32b:
-    cmp    $-16, %ecx
-    jle    .LFirstAndLast16b
-    movups -16(%eax,%edx), %xmm0
-    movaps %xmm0, -16(%edx)
-.LFirstAndLast16b:
     sub    %ecx, %edx
+    movups %xmm3, -16(%edx)
     movups %xmm4, -32(%edx)
     movups %xmm5, -15(%ebx)
     pop    %ebx

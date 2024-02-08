@@ -134,9 +134,12 @@ asm
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
     ret
-    .byte  102,144               { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
+    movdqu -32(%rcx,%r8), %xmm3  { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
+                                 { but -32(%rcx,%r8) is about to become not accessible so easily, .Lback is rare, and small .Lback is even rarer / matters even less. }
+
     sub    %rdx, %rcx            { rcx = src - dest }
     jz     .Lquit                { exit if src=dest }
 
@@ -168,11 +171,7 @@ asm
     ja     .Lloop32f
 
 .LPost32f:                       { +32 fixup not applied after 32× loop, r8 = remaining - 32 here. }
-    cmp    $-16, %r8
-    jle    .LFirstAndLast16f
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
-.LFirstAndLast16f:
+    movdqu %xmm3, (%rdx, %r8)
     movdqu %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
     movdqu %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
     ret
@@ -216,10 +215,11 @@ asm
     mfence
     add    $0x1000, %r8
     jmpq   .LRestAfterNTf        { go handle remaining bytes }
-    .byte  102,102,144           { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
+    movdqu 16(%rcx,%rdx), %xmm3  { Second vector from the start. }
     lea    (%rdx,%r8), %r9       { points to the end of dest; remember to write last 16 bytes }
     lea    -1(%r9), %r8          { move dest to the previous 16-byte boundary... }
     and    $-16, %r8
@@ -243,12 +243,8 @@ asm
     ja     .Lloop32b
 
 .LPost32b:
-    cmp    $-16, %r8
-    jle    .LFirstAndLast16b
-    movdqu -16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, -16(%rdx)
-.LFirstAndLast16b:
     sub    %r8, %rdx
+    movdqu %xmm3, -16(%rdx)
     movdqu %xmm4, -32(%rdx)
     movdqu %xmm5, -16(%r9)
     ret
