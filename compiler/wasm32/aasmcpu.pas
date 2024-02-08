@@ -89,14 +89,17 @@ uses
 
       taicpu = class;
 
+      TGetLocalTypeProc = function(localidx: Integer): TWasmBasicType of object;
+
       { TWasmValidationStacks }
 
       TWasmValidationStacks = class
       private
         FValueStack: TWasmValueStack;
         FCtrlStack: TWasmControlStack;
+        FGetLocalType: TGetLocalTypeProc;
       public
-        constructor Create;
+        constructor Create(AGetLocalType: TGetLocalTypeProc);
         destructor Destroy; override;
 
         procedure PushVal(vt: TWasmBasicType);
@@ -475,8 +478,9 @@ uses
 
     { TWasmValidationStacks }
 
-    constructor TWasmValidationStacks.Create;
+    constructor TWasmValidationStacks.Create(AGetLocalType: TGetLocalTypeProc);
       begin
+        FGetLocalType:=AGetLocalType;
         FValueStack:=TWasmValueStack.Create;
         FCtrlStack:=TWasmControlStack.Create;
       end;
@@ -585,6 +589,32 @@ uses
       end;
 
     procedure TWasmValidationStacks.Validate(a: taicpu);
+
+      function GetLocalIndex: Integer;
+        begin
+          Result:=-1;
+          with a do
+            begin
+              if ops<>1 then
+                internalerror(2024020801);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        internalerror(2024020802);
+                      if ref^.base<>NR_STACK_POINTER_REG then
+                        internalerror(2024020803);
+                      if ref^.index<>NR_NO then
+                        internalerror(2024020804);
+                      Result:=ref^.offset;
+                    end;
+                  top_const:
+                    Result:=val;
+                end;
+            end;
+        end;
+
       begin
         case a.opcode of
           a_nop:
@@ -931,6 +961,15 @@ uses
               PopVal(wbt_i32);
               PopVal(wbt_i32);
               PopVal(wbt_i32);
+            end;
+          a_local_get:
+            PushVal(FGetLocalType(GetLocalIndex));
+          a_local_set:
+            PopVal(FGetLocalType(GetLocalIndex));
+          a_local_tee:
+            begin
+              PopVal(FGetLocalType(GetLocalIndex));
+              PushVal(FGetLocalType(GetLocalIndex));
             end;
           else
             internalerror(2024030502);
