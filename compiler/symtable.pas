@@ -3245,6 +3245,22 @@ implementation
         objfield.fieldname:=1 -> contextobjdef = def of objfield
     }
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
+
+      function is_current_unit(st:tsymtable):boolean;
+        begin
+          result :=
+            (
+              (
+                assigned(current_structdef) and
+                (st.moduleid=current_structdef.symtable.moduleid)
+              ) or
+              (
+                not assigned(current_structdef) and
+                st.iscurrentunit
+              )
+            );
+        end;
+
       var
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
@@ -3276,7 +3292,7 @@ implementation
                 module as they are defined }
               result:=(
                        (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
-                       (nonlocalst.iscurrentunit)
+                       is_current_unit(nonlocalst)
                       ) or
                       ( // the case of specialize inside the generic declaration and nested types
                        (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
@@ -3284,7 +3300,7 @@ implementation
                          assigned(current_structdef) and
                          (
                            (current_structdef=symownerdef) or
-                           (current_structdef.owner.iscurrentunit)
+                           (current_structdef.owner.moduleid=symownerdef.symtable.moduleid)
                          )
                        ) or
                        (
@@ -3345,12 +3361,12 @@ implementation
               result:=(
                        (
                         (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
-                        (nonlocalst.iscurrentunit)
+                        is_current_unit(nonlocalst)
                        ) or
                        (
                         assigned(contextobjdef) and
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable,recordsymtable,localsymtable]) and
-                        (contextobjdef.owner.iscurrentunit) and
+                        is_current_unit(contextobjdef.owner) and
                         def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
@@ -3359,7 +3375,7 @@ implementation
                           assigned(current_structdef) and
                           (
                             (current_structdef=symownerdef) or
-                            (current_structdef.owner.iscurrentunit)
+                            (current_structdef.owner.moduleid=symownerdef.symtable.moduleid)
                           )
                         ) or
                         (
