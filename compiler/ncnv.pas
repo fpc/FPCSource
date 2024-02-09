@@ -503,6 +503,7 @@ implementation
         lr,hr : TConstExprInt;
         hp : tarrayconstructornode;
         oldfilepos: tfileposinfo;
+        first: Boolean;
       begin
         { keep in sync with arrayconstructor_can_be_set }
         if p.nodetype<>arrayconstructorn then
@@ -522,10 +523,11 @@ implementation
         hp:=tarrayconstructornode(p);
         if assigned(hp.left) then
          begin
+           first:=true;
            while assigned(hp) do
             begin
               p4:=nil; { will contain the tree to create the set }
-            {split a range into p2 and p3 }
+              { split a range into p2 and p3 }
               if hp.left.nodetype=arrayconstructorrangen then
                begin
                  p2:=tarrayconstructorrangenode(hp.left).left;
@@ -557,7 +559,6 @@ implementation
                       { widechars are not yet supported }
                       if is_widechar(p2.resultdef) then
                         begin
-
                           if block_type<>bt_const then
                             inserttypeconv(p2,cansichartype);
                           if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
@@ -596,7 +597,10 @@ implementation
                              if (p2.nodetype=ordconstn) and (p3.nodetype=ordconstn) then
                               begin
                                  if not(is_integer(p3.resultdef)) then
-                                   hdef:=p3.resultdef
+                                   begin
+                                     if not(assigned(hdef)) and first then
+                                       hdef:=p3.resultdef;
+                                   end
                                  else
                                    begin
                                      inserttypeconv(p3,u8inttype);
@@ -620,6 +624,8 @@ implementation
 
                                 if assigned(hdef) then
                                   inserttypeconv(p3,hdef)
+                                else if first then
+                                  hdef:=p3.resultdef
                                 else
                                   inserttypeconv(p3,u8inttype);
                                 p4:=csetelementnode.create(p2,p3);
@@ -631,13 +637,15 @@ implementation
                          { Single value }
                          if p2.nodetype=ordconstn then
                           begin
-                            if not(is_integer(p2.resultdef)) then
-                              update_constsethi(p2.resultdef,true);
-
                             if assigned(hdef) then
                               inserttypeconv(p2,hdef)
+                            else if not(is_integer(p2.resultdef)) and first then
+                              hdef:=p2.resultdef
                             else
                               inserttypeconv(p2,u8inttype);
+
+                            if not(is_integer(p2.resultdef)) then
+                              update_constsethi(p2.resultdef,true);
 
                             do_set(tordconstnode(p2).value.svalue);
                             p2.free;
@@ -648,6 +656,8 @@ implementation
 
                             if assigned(hdef) then
                               inserttypeconv(p2,hdef)
+                            else if not(is_integer(p2.resultdef)) and first then
+                              hdef:=p2.resultdef
                             else
                               inserttypeconv(p2,u8inttype);
 
@@ -658,23 +668,22 @@ implementation
 
                   stringdef :
                     begin
-                        if (p2.nodetype<>stringconstn) then
-                          Message(parser_e_illegal_expression)
-                        { if we've already set elements which are constants }
-                        { throw an error                                    }
-                        else if ((hdef=nil) and assigned(result)) or
-                          not(is_char(hdef)) then
-                          CGMessage(type_e_typeconflict_in_set)
-                        else
-                         for l:=1 to length(pshortstring(tstringconstnode(p2).value_str)^) do
-                          do_set(ord(pshortstring(tstringconstnode(p2).value_str)^[l]));
-                        if hdef=nil then
-                         hdef:=cansichartype;
-                        p2.free;
-                      end;
-
-                    else
-                      CGMessage(type_e_ordinal_expr_expected);
+                      if (p2.nodetype<>stringconstn) then
+                        Message(parser_e_illegal_expression)
+                      { if we've already set elements which are constants }
+                      { throw an error                                    }
+                      else if ((hdef=nil) and assigned(result)) or
+                        not(is_char(hdef)) then
+                        CGMessage(type_e_typeconflict_in_set)
+                      else
+                       for l:=1 to length(pshortstring(tstringconstnode(p2).value_str)^) do
+                        do_set(ord(pshortstring(tstringconstnode(p2).value_str)^[l]));
+                      if hdef=nil then
+                       hdef:=cansichartype;
+                      p2.free;
+                    end;
+                  else
+                    CGMessage(type_e_ordinal_expr_expected);
               end;
               { insert the set creation tree }
               if assigned(p4) then
@@ -686,8 +695,9 @@ implementation
               if freep then
                 p2.free;
               current_filepos:=oldfilepos;
+              first:=false;
             end;
-           if (hdef=nil) then
+          if (hdef=nil) then
             hdef:=u8inttype;
          end
         else
