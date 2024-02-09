@@ -157,9 +157,7 @@ type
     Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
     procedure AddHandle(T: TPGHandle);
-{$IFNDEF VER3_2}
     function PortParamName: string; override;
-{$endif}
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
@@ -905,7 +903,6 @@ begin
   else if Not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
     begin
     HaveError:=True;
-    {$IFNDEF VER3_2}
     SEVERITY:=PQresultErrorField(res,PG_DIAG_SEVERITY);
     SQLSTATE:=PQresultErrorField(res,PG_DIAG_SQLSTATE);
     MESSAGE_PRIMARY:=PQresultErrorField(res,PG_DIAG_MESSAGE_PRIMARY);
@@ -917,7 +914,6 @@ begin
     COLUMN_NAME:=PQresultErrorField(res,PG_DIAG_COLUMN_NAME);
     DATATYPE_NAME:=PQresultErrorField(res,PG_DIAG_DATATYPE_NAME);
     CONSTRAINT_NAME:=PQresultErrorField(res,PG_DIAG_CONSTRAINT_NAME);
-    {$ENDIF}
     sErr:=PQresultErrorMessage(res);
     if Connection.VerboseErrors then
       begin
@@ -1113,7 +1109,6 @@ const TypeStrings : array[TFieldType] of string =
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
       'Unknown'   // ftWideMemo
-      {IFNDEF VER3_2}
              ,
       'Unknown',   // ftOraTimeStamp
       'Unknown',   // ftOraInterval
@@ -1122,7 +1117,6 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftByte
       'Unknown',   // ftExtended
       'real'       // ftSingle
-{ENDIF}
     );
 
 
@@ -1654,12 +1648,10 @@ begin
     end;
 end;
 
-{$IFNDEF VER3_2}
 function TPQConnection.PortParamName: string;
 begin
   Result := 'port';
 end;
-{$ENDIF}
 
 procedure TPQConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
