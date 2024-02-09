@@ -473,11 +473,13 @@ implementation
          if (
                (df_generic in def_to.defoptions) and
                (df_specialization in def_from.defoptions) and
-               (tstoreddef(def_from).genericdef=def_to)
+               (tstoreddef(def_from).genericdef=def_to) and
+               assigned(tstoreddef(def_to).genericparas)
              ) or (
                (df_generic in def_from.defoptions) and
                (df_specialization in def_to.defoptions) and
-               (tstoreddef(def_to).genericdef=def_from)
+               (tstoreddef(def_to).genericdef=def_from) and
+               assigned(tstoreddef(def_from).genericparas)
              ) then
            begin
              if tstoreddef(def_from).genericdef=def_to then
