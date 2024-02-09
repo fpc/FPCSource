@@ -21,11 +21,12 @@
                                Primitives
 ****************************************************************************}
 
+{$define move_use_fast_repmovstos}
 {$ifndef win64}
-  {$define use_fast_repmovstos} { REP STOS uses nonvolatile RDI and would require a stack frame on Win64 to be SEH-compliant. }
+  {$define fillxxxx_use_fast_repmovstos} { REP STOS uses nonvolatile RDI and would require a stack frame on Win64 to be SEH-compliant. }
 {$endif}
 
-{$ifdef use_fast_repmovstos}
+{$if defined(move_use_fast_repmovstos) or defined(fillxxxx_use_fast_repmovstos)}
 var
   fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
 {$endif}
@@ -91,13 +92,25 @@ procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 const
   NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
   PrefetchDistance = 512;
+{$ifdef move_use_fast_repmovstos}
+  ErmsThreshold = 1536;
+{$endif}
 asm
-{$ifndef win64}
+{$if not defined(win64)}
     mov    %rdx, %r8
     mov    %rsi, %rdx
     mov    %rdi, %rcx
-{$endif win64}
+{$elseif defined(move_use_fast_repmovstos)}
+    push   %rsi
+.seh_pushreg %rsi
+    push   %rdi
+.seh_pushreg %rdi
+.seh_endprologue
+{$endif}
 
+{$ifdef move_use_fast_repmovstos}
+.LRe:
+{$endif}
     cmp    $3, %r8
     jle    .L3OrLess
     cmp    $8, %r8
@@ -110,6 +123,10 @@ asm
     jg     .L33OrMore
     movups %xmm4, (%rdx)         { 17–32 bytes }
     movups %xmm5, -16(%rdx,%r8)
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
 
     .balign 16
@@ -123,6 +140,10 @@ asm
 .LOne:
     mov    %al, (%rdx)
 .LZero:
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
 
 .L4to8:
@@ -130,6 +151,10 @@ asm
     mov    -4(%rcx,%r8), %r9d
     mov    %eax, (%rdx)
     mov    %r9d, -4(%rdx,%r8)
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
 
 .L9to16:
@@ -138,8 +163,16 @@ asm
     mov    %rax, (%rdx)
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
-    .byte  102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    .byte  102,102,102,102,102,144
+{$else}
+    .byte  102,102,102,102,102,102,102,102,102,102,102,144
+{$endif}                         { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
     movups -32(%rcx,%r8), %xmm3  { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
@@ -162,8 +195,15 @@ asm
 .LRestAfterNTf:
     sub    $32, %r8              { During the N× loop, r8 is N bytes less than actually remained to allow sub N+jae .LLoop instead of sub N+cmp N+jae .LLoop. }
     jbe    .LPost32f
+{$ifdef move_use_fast_repmovstos}
+    cmp    $ErmsThreshold-32, %r8
+    jae    .LRepMovsOrNtF
+.LRepMovsIsNotBetterF:
+{$else}
     cmp    $NtThreshold-32, %r8
     jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
+.LNtIsNotBetterF:
+{$endif}
 
     .balign 16                   { no-op }
 .Lloop32f:
@@ -179,12 +219,40 @@ asm
     movups %xmm3, (%rdx, %r8)
     movups %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
     movups %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
+
+{$ifdef move_use_fast_repmovstos}
+.LRepMovsOrNtF:
+    cmp    $NtThreshold-32, %r8
+    jae    .Lntf
+.LNtIsNotBetterF:
+{$ifdef FPC_PIC}
+    movq   fast_large_repmovstosb@GOTPCREL(%rip), %rax
+    cmpb   $1, (%rax)
+{$else FPC_PIC}
+    cmpb   $1, fast_large_repmovstosb(%rip)
+{$endif FPC_PIC}
+    jne    .LRepMovsIsNotBetterF
+    lea    (%rcx,%rdx), %rsi
+    mov    %rdx, %rdi
+    lea    32(%r8), %rcx
+    rep movsb
+    movdqu %xmm4, (%r9) { last 16 aren't required }
+{$ifdef win64}
+    pop    %rdi
+    pop    %rsi
+{$endif}
+    ret
+{$endif move_use_fast_repmovstos}
 
     .balign 16
 .Lntf:
     cmp    $NtThreshold, %rcx    { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
-    jb     .Lloop32f             { (this check is performed here to not stand in the way of smaller counts) }
+    jb     .LNtIsNotBetterF      { (this check is performed here to not stand in the way of smaller counts) }
     sub    $PrefetchDistance+32, %r8 { r8 = remaining - prefetch distance - bytes per loop (64), but 32 was subtracted already. }
 
     .balign 16                   { no-op }
@@ -219,8 +287,15 @@ asm
 .LRestAfterNTb:
     sub    $32, %r8
     jbe    .LPost32b
-    cmp    $NtThreshold-32, %r8
-    jae    .Lntb
+{$ifdef move_use_fast_repmovstos}
+    cmp    $ErmsThreshold-32, %r8
+    jae    .LRepMovsOrNtB
+.LRepMovsIsNotBetterB:
+{$else}
+    cmp    $NtThreshold-32, %r8  { this limit must be processor-specific (1/2 L2 cache size) }
+    jae    .Lntb                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
+.LNtIsNotBetterB:
+{$endif}
 
     .balign 16                   { no-op }
 .Lloop32b:
@@ -237,12 +312,75 @@ asm
     movups %xmm3, -16(%rdx)
     movups %xmm4, -32(%rdx)
     movups %xmm5, -16(%r9)
+{$if defined(win64) and defined(move_use_fast_repmovstos)}
+    pop    %rdi
+    pop    %rsi
+{$endif}
     ret
+
+{$ifdef move_use_fast_repmovstos}
+.LRepMovsOrNtB:
+    cmp    $NtThreshold-32, %r8
+    jae    .Lntb
+.LNtIsNotBetterB:
+    {         dst = 3
+              v
+      Move(abcdefghijXXX, count=10)
+           ^
+           src = 0
+
+         = abcABCDEFGHIJ
+
+      can be moved right to left in non-overlapping groups of “dst - src”:
+
+      abcdefghijHIJ
+             ^^^
+
+      abcdefgEFGhij
+          ^^^
+
+      abcdBCDefghij
+       ^^^
+
+      abcAbcdefghij <- tail is handled by restarting the Move with corresponding count instead, as it can have 0 to dst - src - 1 bytes.
+      ^
+
+      Only REP MOVs with DF=0 are fast with ERMS, in case you’re wondering why not just use DF=1. }
+
+    cmp    $-ErmsThreshold, %rcx
+    jnbe   .LRepMovsIsNotBetterB { Unfortunately this branch can’t benefit the common case of small distance (like inserting 1 array element into the beginning). :( }
+{$ifdef FPC_PIC}
+    movq   fast_large_repmovstosb@GOTPCREL(%rip), %rax
+    cmpb   $1, (%rax)
+{$else FPC_PIC}
+    cmpb   $1, fast_large_repmovstosb(%rip)
+{$endif FPC_PIC}
+    jne    .LRepMovsIsNotBetterB
+    movups %xmm5, -16(%r9)       { Write last 16 bytes right away. Unlike in the SSE branch, it is safe here because step is >= 16... assuming ErmsThreshold >= 16 :). }
+    mov    %rcx, %rax            { rax = src - dst = -step; as rcx will be required for rep movsb. }
+    add    $32, %r8              { r8 = remaining }
+    add    %rax, %r8             { remaining -= step }
+    jnc    .LRepMovsTailB        { CF=0 after remaining -= step means that remaining became strictly negative and the loop must be stopped/not performed. }
+.LRepMovsNextPieceB:             { ^ Because of aligning dest, step > remaining is not guaranteed even for the first time, i.e. the ranges may have stopped overlapping by here. }
+    add    %rax, %rdx            { dst -= step }
+    lea    (%rax,%rdx), %rsi     { rsi = src = rep movsb source }
+    mov    %rdx, %rdi            { rdi = dst = rep movsb dest }
+    mov    %rax, %rcx
+    neg    %rcx                  { rcx = step = rep movsb count }
+    rep movsb
+    add    %rax, %r8             { remaining -= step }
+    jc     .LRepMovsNextPieceB
+.LRepMovsTailB:
+    sub    %rax, %r8             { r8 = remaining }
+    sub    %r8, %rdx             { rdx = dest }
+    lea    (%rax,%rdx), %rcx     { rcx = src }
+    jmp    .LRe                  { Remaining piece ("a" in the example above). }
+{$endif}
 
     .balign 16
 .Lntb:
     cmp    $-NtThreshold,%rcx
-    jnb    .Lloop32b
+    jnb    .LNtIsNotBetterB
     sub    $PrefetchDistance+32, %r8
 
     .balign 16                   { no-op }
@@ -277,7 +415,7 @@ procedure FillXxxx_MoreThanTwoXmms; assembler; nostackframe;
   xmm0 = pattern for ALIGNED writes
   First and last 16 bytes are written. }
 const
-{$ifdef use_fast_repmovstos}
+{$ifdef fillxxxx_use_fast_repmovstos}
   ErmsThreshold = 1536;
 {$endif}
   NtThreshold = 4 * 1024 * 1024;
@@ -311,7 +449,7 @@ asm
     jle    .LFourAlignedTailWrites
 
     add    $48, %rcx { rcx = H3. }
-{$ifdef use_fast_repmovstos}
+{$ifdef fillxxxx_use_fast_repmovstos}
     cmp    $ErmsThreshold-64, %rax { Need to write aligned byte count − 32 bytes already written. rax = aligned byte count − 96, so compare rax + 64 to ErmsThreshold, or rax to ErmsThreshold − 64. }
     jae    .LRepStos
 {$else}
@@ -338,7 +476,7 @@ asm
     movdqa %xmm0, 48(%rdx) { T1 }
     ret
 
-{$ifdef use_fast_repmovstos}
+{$ifdef fillxxxx_use_fast_repmovstos}
 .LRepStos:
 {$ifdef FPC_PIC}
     movq   fast_large_repmovstosb@GOTPCREL(%rip), %r8
@@ -348,7 +486,7 @@ asm
 {$endif FPC_PIC}
     jne    .LRepStosIsNotBetter
 {$ifdef win64}
-    push   %rdi { For tests on Windows; however this is SEH incompliant so the entire use_fast_repmovstos branch is disabled by default! }
+    push   %rdi { For tests on Windows; however this is SEH incompliant so the entire fillxxxx_use_fast_repmovstos branch is disabled by default! }
 {$endif}
     mov    %rcx, %rdi { rdi = REP STOS destination. }
     lea    64(%rax), %rcx
@@ -1653,7 +1791,7 @@ procedure fpc_cpuinit;
           cpuid
           movl %ebx,cpuid7_ebx
         end ['eax', 'ebx', 'ecx', 'edx'];
-{$ifdef use_fast_repmovstos}
+{$if defined(move_use_fast_repmovstos) or defined(fillxxxx_use_fast_repmovstos)}
         fast_large_repmovstosb:=cpuid7_ebx and (1 shl 9)<>0;
 {$endif}
         { XGETBV support? }
