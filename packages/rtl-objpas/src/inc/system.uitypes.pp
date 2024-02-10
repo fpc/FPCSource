@@ -25,9 +25,9 @@ interface
 Type  
     TColor      = -$7FFFFFFF-1..$7FFFFFFF;
     PColor      = ^TColor;
-    TColorRef   = Cardinal;
+    TColorRef   = Type Cardinal;
     PColorRef   = ^TColorRef;
-    TAlphaColor = Cardinal;
+    TAlphaColor = Type Cardinal;
     PAlphaColor = ^TAlphaColor;
     TImageIndex = type Integer;
 
