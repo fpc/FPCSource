@@ -553,137 +553,120 @@ implementation
               oldfilepos:=current_filepos;
               current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
-                 enumdef,
-                 orddef:
-                   begin
-                      { widechars are not yet supported }
-                      if is_widechar(p2.resultdef) then
+                enumdef,
+                orddef:
+                  begin
+                    { widechars are not yet supported }
+                    if is_widechar(p2.resultdef) then
+                      begin
+                        if block_type<>bt_const then
+                          inserttypeconv(p2,cansichartype);
+                        if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
+                          incompatibletypes(cwidechartype,cansichartype);
+                      end;
+
+                    getrange(p2.resultdef,lr,hr);
+                    if assigned(p3) then
+                     begin
+                       if is_widechar(p3.resultdef) then
+                         begin
+                           if block_type<>bt_const then
+                             inserttypeconv(p3,cansichartype);
+                           if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
+                             begin
+                               current_filepos:=p3.fileinfo;
+                               incompatibletypes(cwidechartype,cansichartype);
+                             end;
+                         end;
+                       { this isn't good, you'll get problems with
+                         type t010 = 0..10;
+                              ts = set of t010;
+                         var  s : ts;b : t010
+                         begin  s:=[1,2,b]; end.
+                       if is_integer(p3^.resultdef) then
                         begin
-                          if block_type<>bt_const then
-                            inserttypeconv(p2,cansichartype);
-                          if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
-                            incompatibletypes(cwidechartype,cansichartype);
+                          inserttypeconv(p3,u8bitdef);
                         end;
+                       }
+                       if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
+                         begin
+                            CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
+                         end
+                       else
+                         begin
+                           if (p2.nodetype=ordconstn) and (p3.nodetype=ordconstn) then
+                            begin
+                               if not(is_integer(p3.resultdef)) then
+                                 begin
+                                   if not(assigned(hdef)) and first then
+                                     hdef:=p3.resultdef;
+                                 end
+                               else
+                                 begin
+                                   inserttypeconv(p3,u8inttype);
+                                   inserttypeconv(p2,u8inttype);
+                                 end;
 
-                      getrange(p2.resultdef,lr,hr);
-                      if assigned(p3) then
-                       begin
-                         if is_widechar(p3.resultdef) then
-                           begin
-                             if block_type<>bt_const then
-                               inserttypeconv(p3,cansichartype);
-                             if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
-                               begin
-                                 current_filepos:=p3.fileinfo;
-                                 incompatibletypes(cwidechartype,cansichartype);
-                               end;
-                           end;
-                         { this isn't good, you'll get problems with
-                           type t010 = 0..10;
-                                ts = set of t010;
-                           var  s : ts;b : t010
-                           begin  s:=[1,2,b]; end.
-                         if is_integer(p3^.resultdef) then
-                          begin
-                            inserttypeconv(p3,u8bitdef);
-                          end;
-                         }
-                         if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
-                           begin
-                              CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
-                           end
-                         else
-                           begin
-                             if (p2.nodetype=ordconstn) and (p3.nodetype=ordconstn) then
-                              begin
-                                 if not(is_integer(p3.resultdef)) then
-                                   begin
-                                     if not(assigned(hdef)) and first then
-                                       hdef:=p3.resultdef;
-                                   end
-                                 else
-                                   begin
-                                     inserttypeconv(p3,u8inttype);
-                                     inserttypeconv(p2,u8inttype);
-                                   end;
+                              if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
+                                CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
+                              for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
+                                do_set(l);
+                              p2.free;
+                              p3.free;
+                            end
+                           else
+                            begin
+                              update_constsethi(p2.resultdef,false);
+                              inserttypeconv(p2,hdef);
 
-                                if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
-                                  CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
-                                for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
-                                  do_set(l);
-                                p2.free;
-                                p3.free;
-                              end
-                             else
-                              begin
-                                update_constsethi(p2.resultdef,false);
-                                inserttypeconv(p2,hdef);
+                              update_constsethi(p3.resultdef,false);
+                              inserttypeconv(p3,hdef);
 
-                                update_constsethi(p3.resultdef,false);
-                                inserttypeconv(p3,hdef);
+                              if assigned(hdef) then
+                                inserttypeconv(p3,hdef)
+                              else if first then
+                                hdef:=p3.resultdef
+                              else
+                                inserttypeconv(p3,u8inttype);
+                              p4:=csetelementnode.create(p2,p3);
+                            end;
+                         end;
+                     end
+                    else
+                     begin
+                       { Single value }
+                       if p2.nodetype=ordconstn then
+                        begin
+                          if assigned(hdef) then
+                            inserttypeconv(p2,hdef)
+                          else if not(is_integer(p2.resultdef)) and first then
+                            hdef:=p2.resultdef
+                          else
+                            inserttypeconv(p2,u8inttype);
 
-                                if assigned(hdef) then
-                                  inserttypeconv(p3,hdef)
-                                else if first then
-                                  hdef:=p3.resultdef
-                                else
-                                  inserttypeconv(p3,u8inttype);
-                                p4:=csetelementnode.create(p2,p3);
-                              end;
-                           end;
-                       end
-                      else
-                       begin
-                         { Single value }
-                         if p2.nodetype=ordconstn then
-                          begin
-                            if assigned(hdef) then
-                              inserttypeconv(p2,hdef)
-                            else if not(is_integer(p2.resultdef)) and first then
-                              hdef:=p2.resultdef
-                            else
-                              inserttypeconv(p2,u8inttype);
+                          if not(is_integer(p2.resultdef)) then
+                            update_constsethi(p2.resultdef,true);
 
-                            if not(is_integer(p2.resultdef)) then
-                              update_constsethi(p2.resultdef,true);
+                          do_set(tordconstnode(p2).value.svalue);
+                          p2.free;
+                        end
+                       else
+                        begin
+                          update_constsethi(p2.resultdef,false);
 
-                            do_set(tordconstnode(p2).value.svalue);
-                            p2.free;
-                          end
-                         else
-                          begin
-                            update_constsethi(p2.resultdef,false);
+                          if assigned(hdef) then
+                            inserttypeconv(p2,hdef)
+                          else if not(is_integer(p2.resultdef)) and first then
+                            hdef:=p2.resultdef
+                          else
+                            inserttypeconv(p2,u8inttype);
 
-                            if assigned(hdef) then
-                              inserttypeconv(p2,hdef)
-                            else if not(is_integer(p2.resultdef)) and first then
-                              hdef:=p2.resultdef
-                            else
-                              inserttypeconv(p2,u8inttype);
-
-                            p4:=csetelementnode.create(p2,nil);
-                          end;
-                       end;
-                    end;
-
-                  stringdef :
-                    begin
-                      if (p2.nodetype<>stringconstn) then
-                        Message(parser_e_illegal_expression)
-                      { if we've already set elements which are constants }
-                      { throw an error                                    }
-                      else if ((hdef=nil) and assigned(result)) or
-                        not(is_char(hdef)) then
-                        CGMessage(type_e_typeconflict_in_set)
-                      else
-                       for l:=1 to length(pshortstring(tstringconstnode(p2).value_str)^) do
-                        do_set(ord(pshortstring(tstringconstnode(p2).value_str)^[l]));
-                      if hdef=nil then
-                       hdef:=cansichartype;
-                      p2.free;
-                    end;
-                  else
-                    CGMessage(type_e_ordinal_expr_expected);
+                          p4:=csetelementnode.create(p2,nil);
+                        end;
+                     end;
+                  end;
+                else
+                  CGMessage(type_e_ordinal_expr_expected);
               end;
               { insert the set creation tree }
               if assigned(p4) then
