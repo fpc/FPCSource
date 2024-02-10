@@ -41,7 +41,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	1201000
+	.long	1400097
         .long   8
         .long   4
         .long   1

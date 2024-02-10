@@ -37,7 +37,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	900044
+	.long	1400097
 
 	.text
 #APP
