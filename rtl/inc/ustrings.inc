@@ -966,16 +966,14 @@ Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,A
 }
 Var
   Temp : Pointer;
-  movelen: SizeInt;
-  nl,lens, lena : SizeUInt;
+  lens, lena : SizeUInt;
 begin
-  nl:=l;
    if (l>0) then
     begin
       if Pointer(S)=nil then
         begin
           { Need a complete new string...}
-          Pointer(s):=NewUnicodeString(nl);
+          Pointer(s):=NewUnicodeString(l);
         end
       else
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
@@ -983,31 +981,24 @@ begin
             Temp:=Pointer(s)-UnicodeFirstOff;
             lens:=MemSize(Temp);
             lena:=SizeUInt(L*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
-            if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-              begin
-                reallocmem(Temp, lena);
-                Pointer(S):=Temp+UnicodeFirstOff;
-              end;
+            if (lena>lens) or ((lens>32) and (lena<=SizeInt(SizeUint(lens) div 2))) then
+              Pointer(S):=reallocmem(Temp, lena)+UnicodeFirstOff;
           end
       else
         begin
           { Reallocation is needed... }
-          Temp:=NewUnicodeString(nL);
-          if Length(S)>0 then
-            begin
-              if l < succ(length(s)) then
-                movelen := l
-              { also move terminating null }
-              else
-                movelen := succ(length(s));
-              Move(Pointer(S)^,Temp^,movelen * Sizeof(UnicodeChar));
-            end;
+          Temp:=NewUnicodeString(l);
+          { also move terminating null }
+          lens:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len+1;
+          if l<lens then
+            lens:=l;
+          Move(Pointer(S)^,Temp^,lens * Sizeof(UnicodeChar));
           fpc_unicodestr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
         end;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(UnicodeChar))^:=0;
-      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=nl;
+      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l;
     end
   else  { length=0, deallocate the string }
     fpc_unicodestr_decr_ref (Pointer(S));
@@ -1140,9 +1131,7 @@ Var
   L    : SizeInt;
 begin
   pointer(result) := pointer(s);
-  If Pointer(S)=Nil then
-    exit;
-  if PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref<>1 then
+  If (result<>nil) and (PUnicodeRec(result-UnicodeFirstOff)^.Ref<>1) then
    begin
      L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len;
      SNew:=NewUnicodeString (L);
@@ -1160,17 +1149,16 @@ end;
 {$define FPC_HAS_UNICODESTR_COPY}
 Function Fpc_UnicodeStr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
 var
+  Lim : SizeInt;
   ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
   dec(index);
   if Index < 0 then
     Index := 0;
-  { Check Size. Accounts for Zero-length S, the double check is needed because
-    Size can be maxint and will get <0 when adding index }
-  if (Size>Length(S)) or
-     (Index+Size>Length(S)) then
-   Size:=Length(S)-Index;
+  Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
+  if Size>Lim then
+   Size:=Lim;
   If Size>0 then
    begin
      ResultAddress:=NewUnicodeString(Size);

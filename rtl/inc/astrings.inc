@@ -792,24 +792,19 @@ begin
           lens:=MemSize(Temp);
           lena:=AnsiFirstOff+L+sizeof(AnsiChar);
           { allow shrinking string if that saves at least half of current size }
-          if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-            begin
-              reallocmem(Temp,lena);
-              Pointer(S):=Temp+AnsiFirstOff;
-            end;
+          if (lena>lens) or ((lens>32) and (lena<=SizeInt(SizeUint(lens) div 2))) then
+            Pointer(S):=reallocmem(Temp,lena)+AnsiFirstOff;
         end
       else
         begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
           PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-          lens:=length(s);
-          if l<=lens then
-            lens:=l
-          else
-            { Also copy a trailing implicit #0 of the original string
-              to the new larger string }
-            Inc(lens);
+          { Also copy a trailing implicit #0 of the original string
+            to the new larger string }
+          lens:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len+1;
+          if l<lens then
+            lens:=l;
           Move(Pointer(S)^,Temp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
@@ -894,9 +889,7 @@ Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSI
 }
 begin
   pointer(result) := pointer(s);
-  If Pointer(S)=Nil then
-    exit;
-  if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref<>1 then
+  if (result<>Nil) and (PAnsiRec(result-AnsiFirstOff)^.Ref<>1) then
     result:=fpc_truely_ansistr_unique(s);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
@@ -905,17 +898,16 @@ end;
 {$define FPC_HAS_ANSISTR_COPY}
 Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 var
+  Lim : SizeInt;
   ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
   dec(index);
   if Index < 0 then
     Index := 0;
-  { Check Size. Accounts for Zero-length S, the double check is needed because
-    Size can be maxint and will get <0 when adding index }
-  if (Size>Length(S)) or
-     (Index+Size>Length(S)) then
-   Size:=Length(S)-Index;
+  Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
+  if Size>Lim then
+    Size:=Lim;
   If Size>0 then
    begin
      ResultAddress:=NewAnsiString(Size);
@@ -927,7 +919,7 @@ begin
         PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
       end;
    end;
-   fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
+  fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 {$endif FPC_HAS_ANSISTR_COPY}
