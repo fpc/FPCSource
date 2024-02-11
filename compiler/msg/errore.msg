@@ -1671,9 +1671,12 @@ parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declarin
 parser_w_widechar_set_reduced=03369_W_Reducing Widechar set to single-byte AnsiChar set.
 % The base type of a set can only have 255 elements. Sets of wide characters
 % are reduced to sets of 1-byte characters.
-parser_e_nostringaliasinsystem=03370_e_Using 'string' alias is not allowed in the system unit. Use short-,ansi- or unicodestring.
+parser_e_nostringaliasinsystem=03370_E_Using 'string' alias is not allowed in the system unit. Use short-,ansi- or unicodestring.
 % As a safeguard, the system unit may only use basic string types, not the
 % string alias which is dependent on the mode in which a unit is compiled.
+parser_e_coperators_off=03371_E_C styled assignment operators are turned off
+% By default, c style assignment operators (+=, -=, *=, /=) are turn off. Either turn them on by the command line
+% parameter -Sc or in the source code by {$COPERATORS ON}
 %
 % \end{description}
 %

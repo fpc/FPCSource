@@ -5438,7 +5438,7 @@ type
              '+' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_PLUSASN;
@@ -5451,7 +5451,7 @@ type
              '-' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_MINUSASN;
@@ -5477,7 +5477,7 @@ type
              '*' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_STARASN;
@@ -5499,12 +5499,9 @@ type
                  case c of
                    '=' :
                      begin
-                       if (cs_support_c_operators in current_settings.moduleswitches) then
-                        begin
-                          readchar;
-                          token:=_SLASHASN;
-                          goto exit_label;
-                        end;
+                       readchar;
+                       token:=_SLASHASN;
+                       goto exit_label;
                      end;
                    '/' :
                      begin

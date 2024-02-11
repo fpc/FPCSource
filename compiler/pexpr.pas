@@ -4952,24 +4952,32 @@ implementation
              end;
            _PLUSASN :
              begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_PLUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_MINUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_STARASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_SLASHASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
