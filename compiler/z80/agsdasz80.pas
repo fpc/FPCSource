@@ -507,7 +507,7 @@ unit agsdasz80;
     var
       lasthp,
       hp: tai;
-      s, LastSecName: string;
+      s, sb, LastSecName: string;
       counter,lines,i,j,l,tokens,pos,last_align: longint;
       quoted, do_line: Boolean;
       consttype: taiconst_type;
@@ -719,28 +719,61 @@ unit agsdasz80;
             ait_string :
               begin
                 pos:=0;
+		s:='';
+                sb:='';
                 for i:=1 to tai_string(hp).len do
                   begin
-                    if pos=0 then
-                      begin
-                        writer.AsmWrite(#9'.ascii'#9'"');
-                        pos:=20;
-                      end;
                     ch:=tai_string(hp).str[i-1];
-                    case ch of
-                              #0, {This can't be done by range, because a bug in FPC}
-                         #1..#31,
-                      #128..#255 : s:='\'+tostr(ord(ch) shr 6)+tostr((ord(ch) and 63) shr 3)+tostr(ord(ch) and 7);
-                             '"' : s:='\"';
-                             '\' : s:='\\';
+		    if ch in [#32..chr(ord('"')-1),char(ord('"')+1)..#127] then
+                      begin
+                        if sb<>'' then
+                          begin
+                            writer.AsmWriteln(sb);
+                            sb:='';
+                            pos:=0;
+                          end;
+                        if pos=0 then
+                          begin
+                            s:=#9'.ascii'#9'"'+ch;
+                            pos:=20;
+                          end
+		        else
+                          begin
+                            s:=s+ch;
+                            inc(pos);
+                          end;
+                      end
                     else
-                      s:=ch;
-                    end;
-                    writer.AsmWrite(s);
-                    inc(pos,length(s));
+                      begin
+                        if s<>'' then
+                          begin
+                            writer.AsmWriteln(s+'"');
+                            s:='';
+                            pos:=0;
+                          end;
+                        if pos=0 then
+                          begin
+                            sb:=#9'.byte'#9+tostr(ord(ch));
+                            pos:=15;
+                          end
+		        else
+                          begin
+                            sb:=sb+','+tostr(ord(ch));
+                            inc(pos,4);
+			  end;
+                      end;
                     if (pos>line_length) or (i=tai_string(hp).len) then
                       begin
-                        writer.AsmWriteLn('"');
+                        if s<>'' then
+                          begin
+                            writer.AsmWriteLn(s+'"');
+                            s:='';
+                          end
+                        else if sb<>'' then
+                          begin
+                            writer.AsmWriteLn(sb);
+                            sb:='';
+                          end;
                         pos:=0;
                       end;
                   end;
