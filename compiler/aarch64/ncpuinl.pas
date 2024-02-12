@@ -63,8 +63,9 @@ implementation
       compinnr,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
+      procinfo,
       ncal,nutils,
-      cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
+      cpubase,ncgutil,cgobj,cgcpu,hlcgobj;
 
 {*****************************************************************************
                               taarch64inlinenode
@@ -84,6 +85,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -91,6 +94,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -98,6 +103,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -105,6 +112,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -112,6 +121,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -119,6 +130,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -126,6 +139,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -356,6 +371,8 @@ implementation
           begin
             expectloc:=LOC_MMREGISTER;
             Result:=nil;
+            if cs_check_fpu_exceptions in current_settings.localswitches then
+              Include(current_procinfo.flags,pi_do_call);
           end
         else if is_32bitint(resultdef) then
           begin
