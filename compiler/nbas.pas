@@ -754,32 +754,35 @@ implementation
           main program body, and those nodes should always be blocknodes
           since that's what the compiler expects elsewhere. }
 
-        if assigned(left) and
-           not assigned(tstatementnode(left).right) then
+        if assigned(left) then
           begin
-            case tstatementnode(left).left.nodetype of
-              blockn:
-                begin
-                  { if the current block contains only one statement, and
-                    this one statement only contains another block, replace
-                    this block with that other block.                       }
-                  result:=tstatementnode(left).left;
-                  tstatementnode(left).left:=nil;
-                  { make sure the nf_block_with_exit flag is safeguarded }
-                  result.flags:=result.flags+(flags*[nf_block_with_exit,nf_usercode_entry]);
-                  exit;
+            if not assigned(tstatementnode(left).right) then
+              begin
+                { Block has a lone statement }
+                case tstatementnode(left).left.nodetype of
+                  blockn:
+                    begin
+                      { if the current block contains only one statement, and
+                        this one statement only contains another block, replace
+                        this block with that other block.                       }
+                      result:=tstatementnode(left).left;
+                      tstatementnode(left).left:=nil;
+                      { make sure the nf_block_with_exit flag is safeguarded }
+                      result.flags:=result.flags+(flags*[nf_block_with_exit,nf_usercode_entry]);
+                      exit;
+                    end;
+                  nothingn:
+                    begin
+                      { if the block contains only a statement with a nothing node,
+                        get rid of the statement }
+                      left.Free;
+                      left:=nil;
+                      exit;
+                    end;
+                  else
+                    ;
                 end;
-              nothingn:
-                begin
-                  { if the block contains only a statement with a nothing node,
-                    get rid of the statement }
-                  left.Free;
-                  left:=nil;
-                  exit;
-                end;
-              else
-                ;
-            end;
+              end;
           end;
 {$ifdef break_inlining}
         { simple sequence of tempcreate, assign and return temp.? }
