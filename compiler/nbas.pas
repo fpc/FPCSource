@@ -744,8 +744,9 @@ implementation
 
 
     function tblocknode.simplify(forinline : boolean): tnode;
-{$ifdef break_inlining}
       var
+        n, p, first, last: tstatementnode;
+{$ifdef break_inlining}
         a : array[0..3] of tstatementnode;
 {$endif break_inlining}
       begin
@@ -783,6 +784,53 @@ implementation
                   else
                     ;
                 end;
+              end
+            else
+              begin
+                n := TStatementNode(left);
+                while Assigned(n) and Assigned(n.right) do
+                  begin
+                    { Look one statement ahead in case it can be deleted - we
+                      need the previous statement to stitch the tree correctly
+                    }
+                    p := TStatementNode(n.Next);
+                    if Assigned(p.left) then
+                      begin
+                        case p.left.nodetype of
+                          blockn:
+                            if (bnf_strippable in TBlockNode(p.left).blocknodeflags) and
+                              ((p.left.flags * [nf_block_with_exit] = []) or no_exit_statement_in_block(p.left)) then
+                              begin
+                                { Attempt to merge this block into the main statement
+                                  set }
+
+                                { Find last statement }
+                                first := TStatementNode(TBlockNode(p.left).PruneKeepLeft());
+                                if Assigned(first) then
+                                  begin
+                                    last := first;
+                                    while Assigned(last.right) do
+                                      last := TStatementNode(last.right);
+
+                                    n.right := first;
+                                  end
+                                else
+                                  last := n;
+
+                                last.right := p.PruneKeepRight();
+
+                                { make sure the nf_usercode_entry flag is safeguarded }
+                                Flags := Flags + (p.left.flags * [nf_usercode_entry]);
+
+                                p.Free;
+                                Continue;
+                              end;
+                          else
+                            ;
+                        end;
+                      end;
+                    n := TStatementNode(n.Next);
+                  end;
               end;
           end;
 {$ifdef break_inlining}
