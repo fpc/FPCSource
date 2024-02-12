@@ -164,7 +164,7 @@ Const
      'SSSE3',
      'SSE41',
      'SSE42',
-     'X86-64-V1',
+     'X86-64-V2',
      'AVX',
      'FMA',
      'AVX2',
