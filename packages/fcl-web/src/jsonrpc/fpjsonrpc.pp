@@ -58,7 +58,7 @@ Type
 
   { TJSONParamDefs }
 
-  TJSONParamDefs = Class(TCollection)
+  TJSONParamDefs = Class(TOwnedCollection)
   private
     function GetP(AIndex : Integer): TJSONParamDef;
     procedure SetP(AIndex : Integer; const AValue: TJSONParamDef);
@@ -884,7 +884,7 @@ end;
 function TCustomJSONRPCHandler.CreateParamDefs : TJSONParamDefs;
 
 begin
-  Result:=TJSONParamDefs.Create(TJSONParamDef);
+  Result:=TJSONParamDefs.Create(Self,TJSONParamDef);
 end;
 
 function TCustomJSONRPCHandler.Execute(Const Params: TJSONData;AContext : TJSONRPCCallContext = Nil): TJSONData;
@@ -1554,7 +1554,7 @@ end;
 function TJSONRPCHandlerDef.GetParamDefs: TJSONParamDefs;
 begin
   IF (FParamDefs=Nil) then
-    FParamDefs:=TJSONParamDefs.Create(TJSONParamDef);
+    FParamDefs:=TJSONParamDefs.Create(Self,TJSONParamDef);
   Result:=FParamDefs;
 end;
 
@@ -1577,7 +1577,7 @@ procedure TJSONRPCHandlerDef.SetParamDefs(AValue: TJSONParamDefs);
 begin
   if FParamDefs=AValue then Exit;
   IF (FParamDefs=Nil) then
-    FParamDefs:=TJSONParamDefs.Create(TJSONParamDef);
+    FParamDefs:=TJSONParamDefs.Create(Self,TJSONParamDef);
   if (AValue<>Nil) then
     FParamDefs.Assign(AValue)
   else
