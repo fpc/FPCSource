@@ -2453,7 +2453,7 @@ Implementation
         Result:=true
       else
         begin
-          if SuperRegistersEqual(Reg, NR_DEFAULTFLAGS) then
+          if SuperRegistersEqual(Reg, NR_DEFAULTFLAGS) and (p1.typ = ait_instruction) then
             begin
               { Conditional instruction reads CPSR register }
               if (taicpu(p1).condition <> C_None) then
