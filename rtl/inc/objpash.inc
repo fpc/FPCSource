@@ -226,6 +226,12 @@
        RTLString = shortstring;
 
        {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+       
+       // Dispatch needs a DWord as the first 4 bytes in its untyped parameter.
+       // Note that this is different from Delphi, which uses only a word.
+       TDispatchMessage = record
+         MsgID: DWord;
+       end;  
 
        TObject = class
        protected
