@@ -248,6 +248,7 @@ var
 var
   StringLength: Integer;
 begin
+  if Source=Nil then exit;
   dp := 0;
   LastSHPos := 0;
 
