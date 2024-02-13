@@ -5511,7 +5511,7 @@ implementation
                 if FindUnitSymtable(tloadnode(n).symtable).moduleid<>current_module.moduleid then
                   current_module.addimportedsym(sym);
               end
-            else if (sym.typ=constsym) and (tconstsym(sym).consttyp=constresourcestring) then
+            else if (sym.typ=constsym) and (tconstsym(sym).consttyp in [constwresourcestring,constresourcestring]) then
               begin
                 if tloadnode(n).symtableentry.owner.moduleid<>current_module.moduleid then
                   current_module.addimportedsym(sym);

@@ -3121,7 +3121,7 @@ implementation
 
           constsym :
             begin
-              if tconstsym(srsym).consttyp=constresourcestring then
+              if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring]then
                 begin
                   result:=cloadnode.create(srsym,srsymtable);
                   do_typecheckpass(result);

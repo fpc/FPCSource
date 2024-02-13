@@ -5892,6 +5892,7 @@ implementation
                   hpc:=tconstsym(hp.defaultconstsym);
                   hs:='';
                   case hpc.consttyp of
+                    constwresourcestring,
                     constwstring:
                       begin
                         if pcompilerwidestring(hpc.value.valueptr)^.len>0 then

@@ -1362,7 +1362,7 @@ implementation
                                  changestringtype(cunicodestringtype);
                                initwidestring(pw);
                                copywidestring(pcompilerwidestring(value_str),pw);
-                               sym:=cconstsym.create_wstring(orgname,constresourcestring,pw);
+                               sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
                                end;
                           end;
                       else

@@ -1064,7 +1064,8 @@ type
             getmem(value.valueptr,value.len+1);
             move(c.value.valueptr^,value.valueptr^,value.len+1);
           end;
-        constwstring:
+        constwstring,
+        constwresourcestring:
           begin
             initwidestring(value.valueptr);
             copywidestring(c.value.valueptr,value.valueptr);
@@ -1519,7 +1520,8 @@ type
         conststring,
         constresourcestring :
           freemem(value.valueptr,value.len+1);
-        constwstring :
+        constwstring,
+        constwresourcestring:
           donewidestring(pcompilerwidestring(value.valueptr));
         constreal :
           dispose(pbestreal(value.valueptr));

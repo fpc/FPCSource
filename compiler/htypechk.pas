@@ -1939,7 +1939,7 @@ implementation
                      end;
                    constsym:
                      begin
-                       if (tconstsym(tloadnode(hp).symtableentry).consttyp=constresourcestring) and
+                       if (tconstsym(tloadnode(hp).symtableentry).consttyp in [constresourcestring,constwresourcestring]) and
                          (valid_addr in opts) then
                          result:=true
                        else

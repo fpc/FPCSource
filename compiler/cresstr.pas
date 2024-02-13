@@ -338,7 +338,7 @@ uses
     procedure Tresourcestrings.ConstSym_Register(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=constsym) and
-           (tconstsym(p).consttyp=constresourcestring) then
+           (tconstsym(p).consttyp in [constresourcestring,constwresourcestring]) then
           List.Concat(TResourceStringItem.Create(TConstsym(p)));
       end;
 

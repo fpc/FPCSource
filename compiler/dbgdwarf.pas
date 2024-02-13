@@ -2703,6 +2703,7 @@ implementation
                 usedef:=clongstringtype;
             end;
           constresourcestring,
+          constwresourcestring,
           constwstring:
             usedef:=nil;
           else
@@ -2753,6 +2754,7 @@ implementation
                 end;
             end;
           constwstring,
+          constwresourcestring,
           constresourcestring:
             begin
               { write dummy for now }

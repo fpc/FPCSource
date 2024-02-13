@@ -1022,7 +1022,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     labelsym :
                       ftcb.queue_emit_label(tlabelsym(srsym));
                     constsym :
-                      if tconstsym(srsym).consttyp=constresourcestring then
+                      if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring] then
                         ftcb.queue_emit_const(tconstsym(srsym))
                       else
                         Message(type_e_constant_expr_expected);

@@ -441,7 +441,7 @@ implementation
               end;
            constsym:
              begin
-                if tconstsym(symtableentry).consttyp=constresourcestring then
+                if tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring] then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
                      indirect:=(tf_supports_packages in target_info.flags) and
