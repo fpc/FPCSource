@@ -1942,8 +1942,19 @@ begin
 end;
 
 class function TFile.OpenText(const aPath: string): TStreamReader;
-begin
 
+var
+  F : TFileStream;
+  
+begin
+  Result:=Nil;
+  F:=TFilestream.Create(aPath,fmOpenRead or fmShareDenyWrite);
+  try  
+    Result := TStreamReader.Create(F,BUFFER_SIZE,True);
+  except
+    F.Free;
+    Raise;
+  end
 end;
 
 class function TFile.OpenWrite(const aPath: string): TFileStream;
