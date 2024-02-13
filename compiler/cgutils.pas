@@ -224,11 +224,17 @@ unit cgutils;
       WARNING: d must not be a power of 2 (including 2^0 = 1) }
     procedure calc_mul_inverse(N: byte; d: aWord; out reciprocal: aWord; out shift: Byte);
 
+    { returns true if the CPU architecture we are currently compiling for needs
+      software checks for fpu exceptions }
+    function needs_check_for_fpu_exceptions : boolean;
+
 implementation
 
 uses
   systems,
   verbose,
+  globals,
+  cpuinfo,
   cgobj;
 
 {****************************************************************************
@@ -570,6 +576,24 @@ uses
           reciprocal:=swap_r;
         until d<=1;
       end;
+
+
+    function needs_check_for_fpu_exceptions: boolean;
+      begin
+{$if defined(AARCH64)}
+        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+{$elseif defined(ARM)}
+        result:=(cs_check_fpu_exceptions in current_settings.localswitches) and
+          not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]);
+{$elseif defined(RISCV)}
+        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+{$elseif defined(XTENSA)}
+        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+{$else}
+        result:=false;
+{$endif}
+      end;
+
 {$pop}
 
 end.
