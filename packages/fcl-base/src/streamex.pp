@@ -95,6 +95,7 @@ type
      procedure ReadLine(out AString: AnsiString); virtual; abstract; overload;
      function ReadLine: AnsiString; overload;
      property Eof: Boolean read IsEof;
+     property EndOfStream : boolean read IsEof;
    end;
 
    { TStreamReader }
