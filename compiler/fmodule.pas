@@ -257,6 +257,7 @@ interface
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
         function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
+        function nowaitingforunits : Boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -1061,6 +1062,12 @@ implementation
            end;
         itm:=itm.Next;
         end;
+    end;
+
+    function tmodule.nowaitingforunits: Boolean;
+
+    begin
+      Result:=waitingforunit.count=0;
     end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;

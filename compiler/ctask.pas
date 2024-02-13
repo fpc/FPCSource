@@ -211,6 +211,7 @@ begin
       ms_registered : cancontinue:=true;
       ms_compile : cancontinue:=true;
       ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
+      ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits;
       ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
       ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
       ms_compiled : cancontinue:=true;
@@ -249,6 +250,7 @@ begin
                    (m as tppumodule).post_load_or_compile(m.compilecount>1);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
+    ms_compiling_waitfinish : pmodules.proc_unit_implementation(m);
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_processed : ;
   else

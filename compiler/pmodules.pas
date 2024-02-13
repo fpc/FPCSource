@@ -33,6 +33,7 @@ uses fmodule;
     function proc_package(curr: tmodule) : boolean;
     function proc_program(curr: tmodule; islibrary : boolean) : boolean;
     function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
+    procedure finish_unit(module:tmodule;immediate:boolean);
 
 implementation
 
@@ -1053,7 +1054,6 @@ type
     pfinishstate=^tfinishstate;
 
 
-    procedure finish_unit(module:tmodule;immediate:boolean);forward;
 
     function proc_unit_implementation(curr: tmodule):boolean;
 
@@ -1084,6 +1084,8 @@ type
 
         if not curr.interface_only then
           begin
+            if (curr.modulename^='FMX.UTILS') then
+              Writeln('Here');
             Message1(parser_u_parsing_implementation,curr.modulename^);
             if curr.in_interface then
               internalerror(200212285);
@@ -1126,6 +1128,8 @@ type
 
         if result then
           finish_unit(curr,true)
+        else
+          curr.state:=ms_compiling_waitfinish;
       end;
 
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
