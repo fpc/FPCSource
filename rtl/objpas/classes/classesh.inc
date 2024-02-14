@@ -1845,6 +1845,7 @@ type
     procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
     procedure PropertyError;
     procedure ReadData(Instance: TComponent);
+    procedure SetName(aComponent: TComponent; aName : string); virtual;
     property PropName: rawbytestring read FPropName;
     property CanHandleExceptions: Boolean read FCanHandleExcepts;
     function CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader; virtual;

@@ -923,6 +923,14 @@ begin
   ReadListEnd;
 end;
 
+procedure TReader.SetName(aComponent: TComponent; aName : string);
+
+begin
+  if Assigned(FOnSetName) then 
+    FOnSetName(Self,aComponent,aName);
+  aComponent.Name:=aName;
+end;
+
 function TReader.ReadComponent(Component: TComponent): TComponent;
 var
   Flags: TFilerFlags;
@@ -1022,9 +1030,7 @@ begin
         if not (ffInherited in Flags) then
           try
             Result.SetParentComponent(Parent);
-            if Assigned(FOnSetName) then
-              FOnSetName(Self, Result, Name);
-            Result.Name := Name;
+            SetName(Result,Name);
             if FindGlobalComponent(Name) = Result then
               Include(Result.FComponentState, csInline);
           except
