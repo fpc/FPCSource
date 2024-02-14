@@ -95,7 +95,7 @@ Type
     function GrowParts(by: SizeInt): PSizeInt;
     procedure AddPiece(start, ed: PAnsiChar);
     procedure AddCodepoint(cp: uint32);
-    function GetCurTokenString: string;
+    function GetCurTokenString: ansistring;
     procedure BuildCurTokenString;
     class function CodepointToASCII(cp: uint32; Rp: PAnsiChar): SizeInt; static;
 
@@ -375,7 +375,7 @@ begin
   GrowParts(1)^ := -1 - SizeInt(cp);
 end;
 
-function TJSONScanner.GetCurTokenString: string;
+function TJSONScanner.GetCurTokenString: ansistring;
 begin
   if FNParts >= 0 then
     BuildCurTokenString;
