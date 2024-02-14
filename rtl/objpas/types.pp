@@ -145,7 +145,8 @@ type
           procedure Offset(const apt :TPointF);
           procedure Offset(const apt :TPoint);
           procedure Offset(dx,dy : Single);
-          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean;
+          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean; overload;
+          function EqualsTo(const apt: TPointF): Boolean; overload;
 
           function  Scale (afactor:Single)  : TPointF;
           function  Ceiling : TPoint;
@@ -1048,6 +1049,12 @@ procedure TPointF.Offset(dx,dy : Single);
 begin
   x:=x+dx;
   y:=y+dy;
+end;
+
+function TPointF.EqualsTo(const apt: TPointF): Boolean;
+
+begin
+  Result:=EqualsTo(apt,0);
 end;
 
 function TPointF.EqualsTo(const apt: TPointF; const aEpsilon: Single): Boolean;
