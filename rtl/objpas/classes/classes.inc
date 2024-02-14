@@ -2747,7 +2747,7 @@ begin
     Result:=sofBinary
   else if (AnsiChar(Sig[0]) in StartChars) then
     Result:=sofText
-  else if (Sig[1]=$BF) and (Sig[2]=$BB) and (Sig[3]=$EF) then
+  else if (Sig[0]=$EF) and (Sig[1]=$BB) and (Sig[2]=$BF) then
     Result:=sofUTF8Text;
 end;
 
