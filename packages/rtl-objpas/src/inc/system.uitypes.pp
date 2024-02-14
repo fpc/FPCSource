@@ -659,7 +659,9 @@ const
 
 Type
   TEditCharCase = (ecNormal, ecUpperCase, ecLowerCase);
-
+  
+  TTouchTracking = set of (ttVertical, ttHorizontal);
+  
   // Forms
   
   TWindowState = (wsNormal, wsMinimized, wsMaximized, wsFullScreen);
