@@ -2411,7 +2411,6 @@ type
     function GetComponent(AIndex: Integer): TComponent;
     function GetComponentCount: Integer;
     function GetComponentIndex: Integer;
-    function GetObservers: TObservers;
     procedure Insert(AComponent: TComponent);
     procedure ReadLeft(Reader: TReader);
     procedure ReadTop(Reader: TReader);
@@ -2423,6 +2422,7 @@ type
     procedure WriteTop(Writer: TWriter);
   protected
     FComponentStyle: TComponentStyle;
+    function GetObservers: TObservers;virtual;
     procedure GetDeltaStreams(aProc: TGetStreamProc); virtual;
     procedure ReadDeltaStream(const S: TStream);
     procedure ReadDeltaState; virtual;
