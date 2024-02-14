@@ -2438,6 +2438,7 @@ type
       Operation: TOperation); virtual;
     procedure PaletteCreated; dynamic;
     procedure ReadState(Reader: TReader); virtual;
+    procedure RemoveFreeNotifications;
     procedure SetAncestor(Value: Boolean);
     procedure SetDesigning(Value: Boolean; SetChildren : Boolean = True);
     procedure SetDesignInstance(Value: Boolean);
