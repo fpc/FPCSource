@@ -2883,6 +2883,7 @@ procedure ObjectTextToBinary(Input, Output: TStream);
 
 procedure ObjectResourceToText(Input, Output: TStream);
 procedure ObjectTextToResource(Input, Output: TStream);
+function TestStreamFormat(const Stream: TStream): TStreamOriginalFormat;
 
 { Utility routines }
 
