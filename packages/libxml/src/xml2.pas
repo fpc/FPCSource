@@ -19,7 +19,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.DynLibs,
-  System.CTypes;
+  System.CTypes,
   System.Math;
 {$ELSE FPC_DOTTEDUNITS}
 uses
