@@ -810,7 +810,10 @@ begin
     P.CommandLine:=Progname + ' ' + ComLine;
     P.InputDescriptor.FileName:=RedirStdIn;
     P.OutputDescriptor.FileName:=RedirStdOut;
-    P.ErrorDescriptor.FileName:=RedirStdErr;
+    if RedirStdErr='stdout' then
+      P.Options:=P.options+[poStdErrToOutput]
+    else  
+      P.ErrorDescriptor.FileName:=RedirStdErr;
     P.Execute;
     Result:=P.WaitOnExit(max_count);
     if Result then  
