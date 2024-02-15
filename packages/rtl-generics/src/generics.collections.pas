@@ -178,12 +178,13 @@ type
   protected
     type // bug #24282
       TArrayHelperBugHack = TArrayHelper<T>;
+      TArrayOfT = array of T;
   private
     FOnNotify: TCollectionNotifyEvent<T>;
     function GetCapacity: SizeInt; inline;
   protected
     FLength: SizeInt;
-    FItems: array of T;
+    FItems: TArrayOfT;
 
     function PrepareAddingItem: SizeInt; virtual;
     function PrepareAddingRange(ACount: SizeInt): SizeInt; virtual;
@@ -196,6 +197,7 @@ type
 
     property Count: SizeInt read GetCount;
     property Capacity: SizeInt read GetCapacity write SetCapacity;
+    property List: TArrayOfT read FItems;
     property OnNotify: TCollectionNotifyEvent<T> read FOnNotify write FOnNotify;
 
     procedure TrimExcess; virtual; abstract;
