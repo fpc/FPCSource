@@ -1,9 +1,16 @@
 { %CPU=i386,x86_64 }
 { %OPT=-O2 -CpCOREAVX }
+uses
+  cpu;
 
 var
   X, Y: LongWord;
 begin
+  if not popcntsupport then
+    begin
+      writeln('This CPU doesn''t support POPCNT instruction');
+      halt(0);
+    end;
   for X := 0 to 9 do
     begin
       Y := PopCnt(X);
