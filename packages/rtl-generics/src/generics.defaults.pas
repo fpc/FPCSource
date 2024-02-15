@@ -644,8 +644,10 @@ type
 
 
     FEqualityComparerInstances: array[TTypeKind] of TInstance;
+    TablesInitialized : Boolean;
   private
     class constructor Create;
+    class procedure InitTables;
   public
     class function LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
   end;
@@ -763,8 +765,10 @@ type
 
     // all instances
     FExtendedEqualityComparerInstances: array[TTypeKind] of TInstance;
+    TablesInitialized : Boolean;
   private
     class constructor Create;
+    class procedure InitTables;
   public
     class function LookupExtendedEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
   end;
@@ -2306,6 +2310,8 @@ begin
     Exit(SelectBinaryEqualityComparer(Nil, ASize))
   else
   begin
+    If not TablesInitialized  then
+      InitTables;
     LInstance := @FEqualityComparerInstances[ATypeInfo.Kind];
     Result := LInstance.Instance;
     if LInstance.Selector then
@@ -2319,6 +2325,16 @@ end;
 
 class constructor THashService<T>.Create;
 begin
+  if not TablesInitialized then
+    InitTables
+end;
+
+class Procedure THashService<T>.InitTables;
+
+begin
+  if TablesInitialized then
+    exit;
+  TablesInitialized:=true;
   FEqualityComparer_Int8_VMT          := EqualityComparer_Int8_VMT         ;
   FEqualityComparer_Int16_VMT         := EqualityComparer_Int16_VMT        ;
   FEqualityComparer_Int32_VMT         := EqualityComparer_Int32_VMT        ;
@@ -2510,6 +2526,8 @@ begin
     Exit(SelectBinaryEqualityComparer(Nil, ASize))
   else
   begin
+    if not TablesInitialized then
+      InitTables;
     LInstance := @FExtendedEqualityComparerInstances[ATypeInfo.Kind];
     Result := LInstance.Instance;
     if LInstance.Selector then
@@ -2523,6 +2541,16 @@ end;
 
 class constructor TExtendedHashService<T>.Create;
 begin
+  // The InitTables can have been called before from the class constructors of other classes.
+  if not TablesInitialized then
+    InitTables
+end;
+
+class procedure TExtendedHashService<T>.InitTables;
+
+begin
+  if TablesInitialized then exit;
+  TablesInitialized:=True;
   FExtendedEqualityComparer_Int8_VMT          := ExtendedEqualityComparer_Int8_VMT         ;
   FExtendedEqualityComparer_Int16_VMT         := ExtendedEqualityComparer_Int16_VMT        ;
   FExtendedEqualityComparer_Int32_VMT         := ExtendedEqualityComparer_Int32_VMT        ;
@@ -3409,7 +3437,6 @@ begin
       begin
         if AFactory = nil then
           AFactory := TDefaultHashFactory;
-
         Exit(
           AFactory.GetHashService.LookupEqualityComparer(ATypeInfo, ASize));
       end;
