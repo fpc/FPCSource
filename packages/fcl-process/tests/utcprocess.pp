@@ -47,6 +47,7 @@ type
     Procedure TestInputFile;
     Procedure TestOutputFile;
     Procedure TestStdErrFile;
+    Procedure TestStdErrToStdOut;
     Procedure TestInputNull;
     Procedure TestOutputFileExistingAppend;
     Procedure TestOutputFileExistingTruncate;
@@ -399,6 +400,16 @@ begin
   Proc.Executable:=GetHelper(genout);
   Proc.Parameters.Add('-3');
   Proc.ErrorDescriptor.FileName:=GetTestFile(fntestoutput);
+  Proc.Execute;
+  AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
+end;
+
+procedure TTestProcess.TestStdErrToStdOut;
+begin
+  Proc.Executable:=GetHelper(genout);
+  Proc.Options:=Proc.Options+[poStderrToOutPut];
+  Proc.Parameters.Add('-3');
+  Proc.OutputDescriptor.FileName:=GetTestFile(fntestoutput);
   Proc.Execute;
   AssertGenOutLinesFile(GetTestFile(fntestoutput),3);
 end;
