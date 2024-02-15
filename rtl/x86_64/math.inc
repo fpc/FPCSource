@@ -389,8 +389,7 @@ const
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;compilerproc; assembler; nostackframe;
       asm
-        movq      %xmm0,  %rax
-        shr       $48,    %rax
+        pextrw    $3, %xmm0, %eax { eax = d[48:63] }
         and       $0x7ff0,%ax
         cmp       $0x4330,%ax
         jge       .L0
@@ -422,9 +421,8 @@ const
       asm
         { Windows defines %xmm4 and %xmm5 as first non-parameter volatile registers;
           on SYSV systems all are considered as such, so use %xmm4 }
-        movq      %xmm0,  %rax
+        pextrw    $3, %xmm0, %eax { eax = d[48:63] }
         movapd    %xmm0,  %xmm4
-        shr       $48,    %rax
         and       $0x7ff0,%ax
         cmp       $0x4330,%ax
         jge       .L0
