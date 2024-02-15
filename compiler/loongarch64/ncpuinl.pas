@@ -59,6 +59,7 @@ implementation
       aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
+      procinfo,
       cgbase,pass_2,
       cpuinfo,ncgutil,
       hlcgobj,cgutils,cgobj,rgobj,tgobj;
@@ -72,6 +73,8 @@ implementation
        begin
          expectloc:=LOC_FPUREGISTER;
          first_sqrt_real := nil;
+         if needs_check_for_fpu_exceptions then
+           Include(current_procinfo.flags,pi_do_call);
        end;
 
 
@@ -86,6 +89,8 @@ implementation
        begin
          expectloc:=LOC_FPUREGISTER;
          first_sqr_real := nil;
+         if needs_check_for_fpu_exceptions then
+           Include(current_procinfo.flags,pi_do_call);
        end;
 
 
@@ -93,6 +98,8 @@ implementation
        begin
          expectloc:=LOC_FPUREGISTER;
          first_round_real := nil;
+         if needs_check_for_fpu_exceptions then
+           Include(current_procinfo.flags,pi_do_call);
        end;
 
 
@@ -100,6 +107,8 @@ implementation
        begin
          expectloc:=LOC_FPUREGISTER;
          first_trunc_real := nil;
+         if needs_check_for_fpu_exceptions then
+           Include(current_procinfo.flags,pi_do_call);
        end;
 
 
