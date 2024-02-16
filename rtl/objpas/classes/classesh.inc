@@ -1599,6 +1599,8 @@ type
   public
     constructor Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PAnsiChar);
     constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PAnsiChar);
+    constructor Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PWideChar);
+    constructor CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
     destructor Destroy; override;
   end;
 {$endif FPC_OS_UNICODE}
