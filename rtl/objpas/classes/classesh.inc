@@ -47,6 +47,7 @@ const
 
 { values for TShortCut }
 
+  scCommand = $1000;
   scShift = $2000;
   scCtrl = $4000;
   scAlt = $8000;
