@@ -7902,6 +7902,7 @@ unit aoptx86;
          p_jump := hp1;
          while Assigned(p_jump) and MatchInstruction(p_jump, A_JCC, []) do
            begin
+             Prefetch(p_jump.Next);
              if IsJumpToLabel(taicpu(p_jump)) then
                begin
                  { Do jump optimisations first in case the condition becomes
@@ -7985,7 +7986,7 @@ unit aoptx86;
 
                          DebugMsg(SPeepholeOptimization + 'CMP/Jcc/@Lbl/CMP/Jcc -> CMP/Jcc, redirecting first jump', p_jump);
                          taicpu(p_jump).loadref(0, taicpu(hp1_dist).oper[0]^.ref^); { This also increases the reference count }
-                         Result := True;
+                         Include(OptsToCheck, aoc_ForceNewIteration);
                          { Don't exit yet.  Since p and p_jump haven't actually been
                            removed, we can check for more on this iteration }
                        end
@@ -8060,6 +8061,13 @@ unit aoptx86;
                  RemoveInstruction(hp2);
                  Result := True;
                  { Continue the while loop in case "Jcc/CMP" follows the second CMP that was just removed }
+               end
+             else
+               begin
+                 { hp2 is the next instruction, so save time and just set p_jump
+                   to it instead of calling GetNextInstruction below }
+                 p_jump := hp2;
+                 Continue;
                end;
 
              GetNextInstruction(p_jump, p_jump);
