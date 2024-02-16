@@ -3264,6 +3264,8 @@ implementation
         end;
 
       var
+        orgcontextobjdef,
+        orgsymownerdef,
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
         isspezproc : boolean;
@@ -3275,6 +3277,8 @@ implementation
            not (symst.symtabletype in [objectsymtable,recordsymtable]) then
           internalerror(200810285);
         symownerdef:=tabstractrecorddef(symst.defowner);
+        orgsymownerdef:=symownerdef;
+        orgcontextobjdef:=contextobjdef;
         { for specializations we need to check the visibility of the generic,
           not the specialization (at least when comparing outside of the
           specialization }
@@ -3282,12 +3286,14 @@ implementation
           begin
             if not (symownerdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020901);
+            orgsymownerdef:=symownerdef;
             symownerdef:=tabstractrecorddef(symownerdef.genericdef);
           end;
         if assigned(contextobjdef) and (df_specialization in contextobjdef.defoptions) then
           begin
             if not (contextobjdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020902);
+            orgcontextobjdef:=contextobjdef;
             contextobjdef:=tabstractrecorddef(contextobjdef.genericdef);
           end;
         if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
@@ -3355,16 +3361,33 @@ implementation
           vis_strictprotected :
             begin
                result:=(
-                         { access from nested class }
+                         { access from nested class (specialization case) }
                          assigned(curstruct) and
                          is_owned_by(curstruct,symownerdef)
                        ) or
                        (
-                         { access from child class }
+                         { access from nested class (non-specialization case) }
+                         (orgsymownerdef<>symownerdef) and
+                         assigned(curstruct) and
+                         is_owned_by(curstruct,orgsymownerdef)
+                       ) or
+                       (
+                         { access from child class (specialization case) }
                          assigned(contextobjdef) and
                          assigned(curstruct) and
                          def_is_related(contextobjdef,symownerdef) and
                          def_is_related(curstruct,contextobjdef)
+                       ) or
+                       (
+                         { access from child class (non-specialization case) }
+                         assigned(orgcontextobjdef) and
+                         (
+                           (orgcontextobjdef<>contextobjdef) or
+                           (orgsymownerdef<>symownerdef)
+                         ) and
+                         assigned(curstruct) and
+                         def_is_related(orgcontextobjdef,orgsymownerdef) and
+                         def_is_related(curstruct,orgcontextobjdef)
                        ) or
                        (
                          { helpers can access strict protected symbols }
@@ -3389,10 +3412,24 @@ implementation
                         is_current_unit(nonlocalst)
                        ) or
                        (
+                        { context object is inside the current unit and related to
+                          the symbol owner (specialization case) }
                         assigned(contextobjdef) and
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable,recordsymtable,localsymtable]) and
                         is_current_unit(contextobjdef.owner) and
                         def_is_related(contextobjdef,symownerdef)
+                       ) or
+                       (
+                        { context object is inside the current unit and related to
+                          the symbol owner (non-specialization case) }
+                        assigned(orgcontextobjdef) and
+                        (
+                          (orgcontextobjdef<>contextobjdef) or
+                          (orgsymownerdef<>symownerdef)
+                        ) and
+                        (orgcontextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable,recordsymtable,localsymtable]) and
+                        is_current_unit(orgcontextobjdef.owner) and
+                        def_is_related(orgcontextobjdef,orgsymownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
                         (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
