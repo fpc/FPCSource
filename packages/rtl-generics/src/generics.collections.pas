@@ -290,6 +290,7 @@ type
     procedure Delete(AIndex: SizeInt); inline;
     procedure DeleteRange(AIndex, ACount: SizeInt);
     function ExtractIndex(const AIndex: SizeInt): T; overload;
+    Function ExtractAt(const AIndex: SizeInt): T; inline;
     function Extract(const AValue: T): T; overload;
 
     procedure Exchange(AIndex1, AIndex2: SizeInt); virtual;
@@ -1748,6 +1749,14 @@ function TList<T>.ExtractIndex(const AIndex: SizeInt): T;
 begin
   Result := DoRemove(AIndex, cnExtracted);
 end;
+
+
+function TList<T>.ExtractAt(const AIndex: SizeInt): T;
+begin
+  Result:=ExtractIndex(AIndex);
+end;
+
+
 
 function TList<T>.Extract(const AValue: T): T;
 var
