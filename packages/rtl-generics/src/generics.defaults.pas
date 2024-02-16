@@ -55,6 +55,7 @@ type
 
   TOnComparison<T> = function(const Left, Right: T): Integer of object;
   TComparisonFunc<T> = function(const Left, Right: T): Integer;
+  TComparison<T> = reference to function(const Left, Right: T): Integer;
 
   TComparer<T> = class(TInterfacedObject, IComparer<T>)
   public
@@ -79,6 +80,14 @@ type
   public
     function Compare(const ALeft, ARight: T): Integer; override;
     constructor Create(AComparison: TComparisonFunc<T>);
+  end;
+  
+  TDelegatedComparer<T> = class(TComparer<T>)
+  private
+    FCompareFunc: TComparison<T>;
+  public
+    constructor Create(const aCompare: TComparison<T>);
+    function Compare(const aLeft, aRight: T): Integer; override;
   end;
 
   IEqualityComparer<T> = interface
@@ -1120,6 +1129,18 @@ constructor TDelegatedComparerFunc<T>.Create(AComparison: TComparisonFunc<T>);
 begin
   FComparison := AComparison;
 end;
+
+constructor TDelegatedComparer<T>.Create(const aCompare: TComparison<T>);
+begin
+  FCompareFunc:=aCompare;
+end;
+
+function TDelegatedComparer<T>.Compare(const aLeft, aRight: T): Integer;
+begin
+  Result:=FCompareFunc(aLeft, aRight);
+end;
+
+
 
 { TInterface }
 
