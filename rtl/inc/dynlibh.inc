@@ -66,3 +66,11 @@ Procedure GetDynLibsManager (Out Manager : TDynLibsManager);
 Procedure SetDynLibsManager (Const New : TDynLibsManager);
 Procedure SetDynLibsManager (Const New : TDynLibsManager; out Old: TDynLibsManager);
 
+// Delphi compatibility, needs to be expanded when packages arrive.
+Type
+  TEnumModuleFuncLW = function (HInstance: THandle; Data: Pointer): Boolean;
+  
+procedure EnumModules(Func: TEnumModuleFuncLW; Data: Pointer); 
+
+  
+  

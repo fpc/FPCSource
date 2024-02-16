@@ -212,3 +212,8 @@ begin
 end;
 
 {$endif DISABLE_NO_DYNLIBS_MANAGER}
+
+procedure EnumModules(Func: TEnumModuleFuncLW; Data: Pointer); 
+begin
+  Func(HInstance,Data);
+end;
