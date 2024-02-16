@@ -1682,6 +1682,7 @@ type
     Procedure FlushBuffer; virtual;
     function NextValue: TValueType; virtual; abstract;
     function ReadValue: TValueType; virtual; abstract;
+    function CurrentValue : TValueType; virtual; abstract;
     procedure BeginRootComponent; virtual; abstract;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
       var CompClassName, CompName: String); virtual; abstract; overload;
@@ -1735,7 +1736,8 @@ type
     FBufPos: Integer;
     FBufEnd: Integer;
     FVersion: TBOVersion;
-
+    FCurrentValue : TValueType;
+    Function CurrentValue : TValueType; override;
     function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     function ReadDWord : longword; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     function ReadQWord : qword; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1847,6 +1849,7 @@ type
     procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
     procedure PropertyError;
     procedure ReadData(Instance: TComponent);
+    function DoReadString(aType : TValueType): rawbytestring;
     procedure SetName(aComponent: TComponent; aName : string); virtual;
     property PropName: rawbytestring read FPropName;
     property CanHandleExceptions: Boolean read FCanHandleExcepts;
@@ -1897,6 +1900,8 @@ type
     function ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of Ansistring; const Proc: TGetStreamProc): TComponent;
     function ReadVariant: Variant;
     procedure ReadSignature;
+    // Readstr assumes that valuetype has aleady been read and will raise an error if it was not a string type
+    function ReadStr : RawByteString;
     function ReadString: RawBytestring;
     function ReadWideString: WideString;
     function ReadUnicodeString: UnicodeString;

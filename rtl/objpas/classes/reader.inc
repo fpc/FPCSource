@@ -142,12 +142,24 @@ var
   b: byte;
 begin
   Read(b, 1);
-  Result := TValueType(b);
+  FCurrentValue:=TValueType(b);
+  Result := FCurrentValue;
+end;
+
+function TBinaryObjectReader.CurrentValue: TValueType;
+
+begin
+  Result:=FCurrentValue;
 end;
 
 function TBinaryObjectReader.NextValue: TValueType;
+
+var
+  b: byte;
+
 begin
-  Result := ReadValue;
+  Read(b,1);
+  Result:=TValueType(b);
   { We only 'peek' at the next value, so seek back to unget the read value: }
   Dec(FBufPos);
 end;
@@ -376,6 +388,7 @@ begin
   if i > 0 then
     Read(Pointer(@Result[1])^, i);
 end;
+
 
 function TBinaryObjectReader.ReadString(StringType: TValueType): RawByteString;
 var
@@ -1688,24 +1701,35 @@ begin
 end;
 
 
-function TReader.ReadString: rawbytestring;
+function TReader.ReadStr : rawbytestring;
 
-var
-  StringType: TValueType;
 begin
-  StringType := FDriver.ReadValue;
-  if StringType in [vaString, vaLString,vaUTF8String] then
-    begin
-      Result := FDriver.ReadString(StringType);
-      if (StringType=vaUTF8String) then
+  Result:=DoReadString(Driver.CurrentValue)
+end;
+
+function TReader.DoReadString(aType : TValueType): rawbytestring;
+
+begin
+  Case aType of
+    vaString, vaLString,vaUTF8String:
+      begin
+      Result := FDriver.ReadString(aType);
+      if (aType=vaUTF8String) then
         Result:=rawbytestring(utf8Decode(Result));
-    end
-  else if StringType in [vaWString] then
-    Result:= rawbytestring(FDriver.ReadWidestring)
-  else if StringType in [vaUString] then
-    Result:= rawbytestring(FDriver.ReadUnicodeString)
+      end;
+    vaWString:
+      Result:= rawbytestring(FDriver.ReadWidestring);
+    vaUString:
+    Result:= rawbytestring(FDriver.ReadUnicodeString);
   else
     raise EReadError.Create(SInvalidPropertyValue);
+  end;
+end;
+
+function TReader.ReadString: rawbytestring;
+
+begin
+  DoReadString(FDriver.ReadValue);
 end;
 
 
