@@ -303,6 +303,14 @@ implementation
         else
           Result:=inherited pass_1;
 
+        { if the result is not nil, a new node has been generated and the current node will be discarted }
+        if Result=nil then
+          begin
+            if left.resultdef.typ=floatdef then
+              if needs_check_for_fpu_exceptions then
+                Include(current_procinfo.flags,pi_do_call);
+          end;
+
         if expectloc=LOC_FLAGS then
           expectloc:=LOC_REGISTER;
         if (expectloc=LOC_JUMP)
