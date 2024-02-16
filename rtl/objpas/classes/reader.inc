@@ -244,6 +244,19 @@ begin
   r.d:=ReadDWord;
   Result:=r.s;
 end;
+
+function TBinaryObjectReader.ReadDouble: Double;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (d: double);
+  end;
+
+begin
+  r.q:=ReadQWord;
+  Result:=R.d;
+end;
 {$endif}
 
 function TBinaryObjectReader.ReadCurrency: Currency;
@@ -1139,6 +1152,11 @@ begin
     ReadValue;
     Result := FDriver.ReadSingle
     end;
+  vaDouble:
+    begin
+    ReadValue;
+    Result := FDriver.ReadDouble
+    end;
   else
     Result := ReadInt64;
   end
@@ -1158,6 +1176,7 @@ begin
   end else
     Result := ReadInteger;
 end;
+
 {$endif}
 
 function TReader.ReadCurrency: Currency;
