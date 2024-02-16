@@ -949,7 +949,7 @@ begin
   ReadListEnd;
 end;
 
-procedure TReader.SetName(aComponent: TComponent; aName : string);
+procedure TReader.SetName(aComponent: TComponent; var aName : string);
 
 begin
   if Assigned(FOnSetName) then 

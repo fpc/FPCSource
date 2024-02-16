@@ -1850,7 +1850,7 @@ type
     procedure PropertyError;
     procedure ReadData(Instance: TComponent);
     function DoReadString(aType : TValueType): rawbytestring;
-    procedure SetName(aComponent: TComponent; aName : string); virtual;
+    procedure SetName(aComponent: TComponent; var aName : string); virtual;
     property PropName: rawbytestring read FPropName;
     property CanHandleExceptions: Boolean read FCanHandleExcepts;
     function CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader; virtual;
