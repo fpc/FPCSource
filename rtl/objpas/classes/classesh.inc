@@ -1636,7 +1636,7 @@ type
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
     vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64,
-    vaUTF8String, vaUString, vaQWord);
+    vaUTF8String, vaUString, vaQWord, vaDouble);
 
   TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;
@@ -1696,6 +1696,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended; virtual; abstract;
     function ReadSingle: Single; virtual; abstract;
+    function ReadDouble: Double; virtual; abstract;
     function ReadDate: TDateTime; virtual; abstract;
 {$endif}
     function ReadCurrency: Currency; virtual; abstract;
@@ -1761,6 +1762,7 @@ type
 {$ifndef FPUNONE}
     function ReadFloat: Extended; override;
     function ReadSingle: Single; override;
+    function ReadDouble: Double; override;
     function ReadDate: TDateTime; override;
 {$endif}
     function ReadCurrency: Currency; override;
