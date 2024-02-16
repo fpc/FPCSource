@@ -2575,6 +2575,7 @@ type
     property ActionComponent: TComponent read FActionComponent write SetActionComponent;
     property OnExecute: TNotifyEvent read FOnExecute write SetOnExecute;
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
+    Property Clients[Idx : Integer] : TObject Read GetClient;
   end;
   TActionEvent = procedure(Action: TBasicAction; var Handled: Boolean) of object;
 
