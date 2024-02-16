@@ -123,7 +123,7 @@ type
       AIndex, ACount: SizeInt): Boolean; override; overload;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
-  TCollectionNotification = (cnAdded, cnRemoved, cnExtracted);
+  TCollectionNotification = (cnAdding, cnAdded, cnDeleting, cnRemoved, cnExtracting,  cnExtracted);
   TCollectionNotifyEvent<T> = procedure(ASender: TObject; const AItem: T; AAction: TCollectionNotification)
     of object;
 
