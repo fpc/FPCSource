@@ -2420,18 +2420,6 @@ begin
 end;
 
 
-Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): SizeInt;
-
-begin
-  if TypeInfo^.Kind=tkRecord then
-    Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
-  else if TypeInfo^.Kind=tkClass then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
-  else
-    Result:=0
-end;
-
-
 Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 Var
@@ -2449,11 +2437,22 @@ begin
   end;
 end;
 
-
 Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 begin
   Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities);
+end;
+
+
+Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): SizeInt;
+
+begin
+  if TypeInfo^.Kind=tkRecord then
+    Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
+  else if TypeInfo^.Kind=tkClass then
+    Result:=GetFieldList(GetTypeData(TypeInfo)^.ClassType,FieldList,Visibilities)
+  else
+    Result:=0
 end;
 
 { -- Methods -- }
