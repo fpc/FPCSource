@@ -573,6 +573,10 @@ interface
                (unsigned and (nodetype in [ltn,lten,gtn,gten]))
               ) then
               expectloc:=LOC_FLAGS;
+            if (left.resultdef.typ=floatdef) and
+              ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+              needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
           end;
       end;
 

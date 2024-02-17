@@ -61,6 +61,7 @@ implementation
 
     uses
       globtype,verbose,globals,
+      procinfo,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
@@ -135,6 +136,9 @@ implementation
               else
                 internalerror(2009112401);
             end;
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+              needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
             first_abs_real:=nil;
           end;
       end;
@@ -163,6 +167,9 @@ implementation
               else
                 internalerror(2009112402);
             end;
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+              needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
             first_sqr_real:=nil;
           end;
       end;
@@ -191,6 +198,9 @@ implementation
               else
                 internalerror(2009112403);
             end;
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+              needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
             first_sqrt_real := nil;
           end;
       end;
@@ -198,11 +208,13 @@ implementation
 
      function tarminlinenode.first_fma : tnode;
        begin
-         if (true) and
-           ((is_double(resultdef)) or (is_single(resultdef))) then
+         if ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
              expectloc:=LOC_MMREGISTER;
              Result:=nil;
+             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+               needs_check_for_fpu_exceptions then
+               Include(current_procinfo.flags,pi_do_call);
            end
          else
            Result:=inherited first_fma;
