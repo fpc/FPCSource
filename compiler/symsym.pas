@@ -2887,6 +2887,7 @@ implementation
             ;
           conststring,
           constresourcestring,
+          constwresourcestring,
           constwstring:
             begin
               WriteLn(T, PrintNodeIndention, '<length>', value.len, '</length>');
