@@ -6326,11 +6326,20 @@ unit aoptx86;
                                 inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
                                 taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
                               end;
+
                             if taicpu(p).oper[0]^.ref^.index<>NR_NO then
                               begin
                                 taicpu(hp1).oper[0]^.ref^.base:=taicpu(hp1).oper[0]^.ref^.index;
                                 taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
-                                taicpu(hp1).oper[0]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
+
+                                if (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[0]^.ref^.base) then
+                                  { Catch the situation where the base = index
+                                    and treat this as *2.  The scalefactor of
+                                    p will be 0 or 1 due to the conditional
+                                    checks above.  Fixes i40647 }
+                                  taicpu(hp1).oper[0]^.ref^.scalefactor := 2
+                                else
+                                  taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor;
                               end;
 
                             { Only remove the first LEA if we don't need the intermediate register's value as is }
