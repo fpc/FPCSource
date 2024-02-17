@@ -353,10 +353,11 @@ var
   Res : Boolean;
   
 begin
-  if IOType in [iotDefault,iotFile] then begin
+  if (IOType in [iotDefault,iotFile]) or ((IOType=iotHandle) and FCustomHandleIsInheritable) then
+    begin
     Result:=aHandle;
     exit;
-  end;
+    end;
   oldHandle := ahandle;
   ahandle:=THandle(INVALID_HANDLE_VALUE); 
   Res := DuplicateHandle
@@ -368,8 +369,12 @@ begin
     true,
     DUPLICATE_SAME_ACCESS
   );
-  if Res then
-    Res:=CloseHandle(oldHandle);
+  if Res then begin
+    if (IOType=iotHandle) and not FAutoCloseCustomHandle then
+      FCloseHandleOnExecute:=True // AutoCloseCustomHandle protects the original Handle
+    else
+      Res:=CloseHandle(oldHandle);
+  end;
   if not Res then
     begin
     FileClose(aHandle);
