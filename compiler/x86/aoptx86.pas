@@ -7873,7 +7873,7 @@ unit aoptx86;
      function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
        var
          v: TCGInt;
-         hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
+         true_hp1, hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
          FirstMatch, TempBool: Boolean;
          NewReg: TRegister;
          JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
@@ -7883,6 +7883,8 @@ unit aoptx86;
          { All these optimisations need a next instruction }
          if not GetNextInstruction(p, hp1) then
            Exit;
+
+         true_hp1 := hp1;
 
          { Search for:
              cmp   ###,###
@@ -8058,6 +8060,8 @@ unit aoptx86;
                ) then
                begin
                  DebugMsg(SPeepholeOptimization + 'CMP/Jcc/CMP; removed superfluous CMP', hp2);
+                 TransferUsedRegs(TmpUsedRegs);
+                 AllocRegBetween(NR_DEFAULTFLAGS, p, hp2, TmpUsedRegs);
                  RemoveInstruction(hp2);
                  Result := True;
                  { Continue the while loop in case "Jcc/CMP" follows the second CMP that was just removed }
@@ -8075,7 +8079,7 @@ unit aoptx86;
 
          if (
              { Don't call GetNextInstruction again if we already have it }
-             (hp1 = p_jump) or
+             (true_hp1 = p_jump) or
              GetNextInstruction(p, hp1)
            ) and
            MatchInstruction(hp1, A_Jcc, []) and
@@ -8210,12 +8214,12 @@ unit aoptx86;
                end;
            end;
 
-         if taicpu(p).oper[0]^.typ = top_const then
+         if (taicpu(p).oper[0]^.typ = top_const) and
+           MatchInstruction(hp1,A_Jcc,A_SETcc,[]) then
            begin
 
              if (taicpu(p).oper[0]^.val = 0) and
-               (taicpu(p).oper[1]^.typ = top_reg) and
-               MatchInstruction(hp1,A_Jcc,A_SETcc,[]) then
+               (taicpu(p).oper[1]^.typ = top_reg) then
                begin
                  hp2 := p;
                  FirstMatch := True;
@@ -8232,6 +8236,7 @@ unit aoptx86;
                      MatchInstruction(hp1,A_Jcc,A_SETcc,[])
                    ) do
                    begin
+                     Prefetch(hp1.Next);
                      FirstMatch := False;
                      case taicpu(hp1).condition of
                        C_B, C_C, C_NAE, C_O:
@@ -8316,72 +8321,79 @@ unit aoptx86;
                  Result := True;
                  Exit;
                end
-             else if (taicpu(p).oper[0]^.val = 1) and
-               MatchInstruction(hp1,A_Jcc,A_SETcc,[]) and
-               (taicpu(hp1).condition in [C_L, C_NL, C_NGE, C_GE]) then
+             else
                begin
-                 { Convert;       To:
-                     cmp $1,r/m     cmp $0,r/m
-                     jl  @lbl       jle @lbl
-                     (Also do inverted conditions)
-                 }
-                 DebugMsg(SPeepholeOptimization + 'Cmp1Jl2Cmp0Jle', p);
-                 taicpu(p).oper[0]^.val := 0;
-                 if taicpu(hp1).condition in [C_L, C_NGE] then
-                   taicpu(hp1).condition := C_LE
-                 else
-                   taicpu(hp1).condition := C_NLE;
+                 TransferUsedRegs(TmpUsedRegs);
+                 UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
 
-                 { If the instruction is now "cmp $0,%reg", convert it to a
-                   TEST (and effectively do the work of the "cmp $0,%reg" in
-                   the block above)
-                 }
-                 if (taicpu(p).oper[1]^.typ = top_reg) then
+                 if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
                    begin
-                     taicpu(p).opcode := A_TEST;
-                     taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                   end;
-
-                 Result := True;
-                 Exit;
-               end
-             else if (taicpu(p).oper[1]^.typ = top_reg)
-{$ifdef x86_64}
-               and (taicpu(p).opsize <> S_Q) { S_Q will never happen: cmp with 64 bit constants is not possible }
-{$endif x86_64}
-               then
-               begin
-                 { cmp register,$8000                neg register
-                   je target                 -->     jo target
-
-                   .... only if register is deallocated before jump.}
-                 case Taicpu(p).opsize of
-                   S_B: v:=$80;
-                   S_W: v:=$8000;
-                   S_L: v:=qword($80000000);
-                   else
-                     internalerror(2013112905);
-                 end;
-
-                 if (taicpu(p).oper[0]^.val=v) and
-                    MatchInstruction(hp1,A_Jcc,A_SETcc,[]) and
-                    (Taicpu(hp1).condition in [C_E,C_NE]) then
-                   begin
-                     TransferUsedRegs(TmpUsedRegs);
-                     UpdateUsedRegs(TmpUsedRegs,tai(p.next));
-                     if not(RegInUsedRegs(Taicpu(p).oper[1]^.reg, TmpUsedRegs)) then
+                     if (taicpu(p).oper[0]^.val = 1) and
+                       (taicpu(hp1).condition in [C_L, C_NL, C_NGE, C_GE]) then
                        begin
-                         DebugMsg(SPeepholeOptimization + 'CmpJe2NegJo done',p);
-                         Taicpu(p).opcode:=A_NEG;
-                         Taicpu(p).loadoper(0,Taicpu(p).oper[1]^);
-                         Taicpu(p).clearop(1);
-                         Taicpu(p).ops:=1;
-                         if Taicpu(hp1).condition=C_E then
-                           Taicpu(hp1).condition:=C_O
+                         { Convert;       To:
+                             cmp $1,r/m     cmp $0,r/m
+                             jl  @lbl       jle @lbl
+                             (Also do inverted conditions)
+                         }
+                         DebugMsg(SPeepholeOptimization + 'Cmp1Jl2Cmp0Jle', p);
+                         taicpu(p).oper[0]^.val := 0;
+                         if taicpu(hp1).condition in [C_L, C_NGE] then
+                           taicpu(hp1).condition := C_LE
                          else
-                           Taicpu(hp1).condition:=C_NO;
-                         Result:=true;
-                         exit;
+                           taicpu(hp1).condition := C_NLE;
+
+                         { If the instruction is now "cmp $0,%reg", convert it to a
+                           TEST (and effectively do the work of the "cmp $0,%reg" in
+                           the block above)
+                         }
+                         if (taicpu(p).oper[1]^.typ = top_reg) then
+                           begin
+                             taicpu(p).opcode := A_TEST;
+                             taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                           end;
+
+                         Result := True;
+                         Exit;
+                       end
+                     else if (taicpu(p).oper[1]^.typ = top_reg)
+{$ifdef x86_64}
+                       and (taicpu(p).opsize <> S_Q) { S_Q will never happen: cmp with 64 bit constants is not possible }
+{$endif x86_64}
+                       then
+                       begin
+                         { cmp register,$8000                neg register
+                           je target                 -->     jo target
+
+                           .... only if register is deallocated before jump.}
+                         case Taicpu(p).opsize of
+                           S_B: v:=$80;
+                           S_W: v:=$8000;
+                           S_L: v:=qword($80000000);
+                           else
+                             internalerror(2013112905);
+                         end;
+
+                         if (taicpu(p).oper[0]^.val=v) and
+                            (Taicpu(hp1).condition in [C_E,C_NE]) then
+                           begin
+                             TransferUsedRegs(TmpUsedRegs);
+                             UpdateUsedRegs(TmpUsedRegs,tai(p.next));
+                             if not(RegInUsedRegs(Taicpu(p).oper[1]^.reg, TmpUsedRegs)) then
+                               begin
+                                 DebugMsg(SPeepholeOptimization + 'CmpJe2NegJo done',p);
+                                 Taicpu(p).opcode:=A_NEG;
+                                 Taicpu(p).loadoper(0,Taicpu(p).oper[1]^);
+                                 Taicpu(p).clearop(1);
+                                 Taicpu(p).ops:=1;
+                                 if Taicpu(hp1).condition=C_E then
+                                   Taicpu(hp1).condition:=C_O
+                                 else
+                                   Taicpu(hp1).condition:=C_NO;
+                                 Result:=true;
+                                 exit;
+                               end;
+                           end;
                        end;
                    end;
                end;
