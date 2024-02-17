@@ -63,6 +63,7 @@ type
     FSkipAddressInfo : Boolean;
     FSuite: String;
     FRunMode : TRunMode;
+    procedure DoStatus(const msg: string);
   protected
     Class function StrToFormat(const S: String): TFormat;
     function DefaultsFileName: String;
@@ -97,10 +98,10 @@ uses inifiles, testdecorator;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  ShortOpts = 'alhpsyrn';
-  DefaultLongOpts: array[1..11] of string =
+  ShortOpts = 'alhpsyrnu';
+  DefaultLongOpts: array[1..12] of string =
      ('all', 'list', 'progress', 'help', 'skiptiming',
-      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses');
+      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses','status');
 
 Type
   TTestDecoratorClass = Class of TTestDecorator;
@@ -242,6 +243,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TTestRunner.DoStatus(const msg: string);
+begin
+  Writeln(stderr,msg);
+end;
+
 class function TTestRunner.StrToFormat(const S: String): TFormat;
 
 begin
@@ -342,6 +348,7 @@ begin
     writeln('  -l or --list              show a list of registered tests');
     writeln('  -a or --all               run all tests');
     writeln('  -p or --progress          show progress');
+    writeln('  -u or --status            show status messages on stderr');
     writeln('  -s or --suite=MyTestSuiteName   run single test suite class');
     WriteCustomHelp;
     writeln;
@@ -422,6 +429,8 @@ begin
     FSparse:=True;
   If HasOption('n','no-addresses') then
     FSkipAddressInfo:=True;
+  If HasOption('u','status') then
+    TAssert.StatusEvent:=@DoStatus;
   // Determine runmode
   if HasOption('s','suite') then
     begin
