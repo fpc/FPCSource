@@ -73,3 +73,5 @@ _haltproc:
 	.weak   operatingsystem_parameter_argv
 	.weak   operatingsystem_parameter_envp
 
+	.section .note.GNU-stack,"",@progbits
+
