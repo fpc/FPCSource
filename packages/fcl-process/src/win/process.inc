@@ -370,8 +370,9 @@ begin
     DUPLICATE_SAME_ACCESS
   );
   if Res then begin
-    if (IOType=iotHandle) and not FAutoCloseCustomHandle then
-      FCloseHandleOnExecute:=True // AutoCloseCustomHandle protects the original Handle
+    // Either AutoCloseCustomHandle or set in OnGetHandle
+    if (IOType=iotHandle) and not FCloseHandleOnExecute then
+      FCloseHandleOnExecute:=True // the original CustomHandle is kept open / Set True for the duplicate handle
     else
       Res:=CloseHandle(oldHandle);
   end;
