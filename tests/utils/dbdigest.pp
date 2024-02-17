@@ -444,6 +444,8 @@ const
   UseLongLog : boolean = false;
   LongLogOpenCount : longint = 0;
   FirstLongLogLine : boolean = true;
+const
+   SeparationLine = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
 Function GetContentsFromLongLog(Line : String) : String;
 var
@@ -459,7 +461,7 @@ begin
       if FirstLongLogLine then
         begin
           { At start of file there is a separation line }
-          if (pos('>>>>>>>>>>>',S)=1) then
+          if (pos(Line,S)=0) and (pos(SeparationLine,S)>=1) then
             Readln(LongLogFile,S);
           FirstLongLogLine:=false;
         end;
@@ -470,10 +472,12 @@ begin
             begin
               ReadLn(LongLogFile,S);
               { End of file marker }
-              if eof(LongLogFile) or (pos('>>>>>>>>>>>',S)=1) then
+              if eof(LongLogFile) or (pos(SeparationLine,S)=1) then
                 exit;
               if length(Result)<MaxLogSize then
                 Result:=Result+S+LineEnding;
+              if pos(SeparationLine,S)>1 then
+                exit;
             end;
         end
       else if IsFirst then
