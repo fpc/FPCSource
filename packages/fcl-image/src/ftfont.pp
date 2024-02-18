@@ -76,6 +76,7 @@ type
     constructor Create; override;
     destructor Destroy; override;
     property FontIndex : integer read FIndex write SetIndex;
+    property FontID : integer read FFontID;
     property Resolution : longword read FResolution write FResolution;
     property AntiAliased : boolean read FAntiAliased write FAntiAliased;
     property Size : real read FRealSize write SetRealSize;
