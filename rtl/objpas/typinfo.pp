@@ -1200,16 +1200,16 @@ Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Vi
 Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 
 // Infos require initialized memory or nil to count
-Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
+Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
 Function GetRecordMethodInfos(aRecordData: PRecordData; MethodList: PRecordMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 Function GetMethodInfos(aRecord: PRecordData; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 // List will initialize the memory
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
-Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
-Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
+Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
 
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PRecordMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
@@ -2463,7 +2463,7 @@ begin
   Result:=GetRecordMethodInfos(aRecord,MethodList,Visibilities)
 end;
 
-Function GetClassMethodInfos(aClassData: PClassData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetClassMethodInfos(aClassData: PClassData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean): Integer;
 
 
 var
@@ -2491,7 +2491,7 @@ begin
         end;
       end;
     { Go to parent type }
-    if aClassData^.Parent=Nil then
+    if (aClassData^.Parent=Nil) or Not IncludeInherited then
       aClassData:=Nil
     else
       aClassData:=PClassData(GetTypeData(aClassData^.Parent^)); ;
@@ -2499,10 +2499,10 @@ begin
 
 end;
 
-Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetMethodInfos(PTypeInfo(aClass.ClassInfo),MethodList,Visibilities);
+  Result:=GetMethodInfos(PTypeInfo(aClass.ClassInfo),MethodList,Visibilities,IncludeInherited);
 end;
 
 Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
@@ -2514,11 +2514,11 @@ begin
     Result:=0
 end;
 
-Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
   if TypeInfo^.Kind=tkClass then
-    Result:=GetClassMethodInfos(PClassData(GetTypeData(TypeInfo)),MethodList,Visibilities)
+    Result:=GetClassMethodInfos(PClassData(GetTypeData(TypeInfo)),MethodList,Visibilities,IncludeInherited)
   else
     Result:=0
 end;
@@ -2547,7 +2547,7 @@ end;
 
 
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean;
-  Visibilities: TVisibilityClasses): longint;
+  Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): longint;
 
 Type
    TInsertMethod = Procedure (PL : PExtendedMethodInfoTable;PI : PVmtMethodExEntry; Count : longint);
@@ -2565,7 +2565,7 @@ Var
 begin
   MethodList:=nil;
   Result:=0;
-  aCount:=GetMethodList(TypeInfo,TempList,Visibilities);
+  aCount:=GetMethodList(TypeInfo,TempList,Visibilities,IncludeInherited);
   if aCount=0 then
     exit;
   if sorted then
@@ -2709,34 +2709,34 @@ begin
   end;
 end;
 
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetMethodInfos(TypeInfo,PExtendedMethodInfoTable(Nil),Visibilities);
+  aCount:=GetMethodInfos(TypeInfo,PExtendedMethodInfoTable(Nil),Visibilities,IncludeInherited);
   MethodList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetMethodInfos(TypeInfo,MethodList,Visibilities);
+    Result:=GetMethodInfos(TypeInfo,MethodList,Visibilities,IncludeInherited);
   except
     FreeMem(MethodList);
     Raise;
   end;
 end;
 
-Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetMethodInfos(aClass,Nil,[]);
+  aCount:=GetMethodInfos(aClass,Nil,[],IncludeInherited);
   MethodList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetMethodInfos(aClass,MethodList,Visibilities);
+    Result:=GetMethodInfos(aClass,MethodList,Visibilities,IncludeInherited);
   except
     FreeMem(MethodList);
     Raise;
@@ -2744,10 +2744,10 @@ begin
 end;
 
 
-Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetMethodList(Instance.ClassType,MethodList,Visibilities);
+  Result:=GetMethodList(Instance.ClassType,MethodList,Visibilities,IncludeInherited);
 end;
 
 
