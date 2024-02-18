@@ -52,12 +52,26 @@ uses
   SysUtils,
   typinfo;
 {$ENDIF FPC_DOTTEDUNITS}
+
+Const
+{$IFDEF FPC_DOTTEDUNITS}
+  DefaultUsePublishedOnly = False;
+{$ELSE}
+  DefaultUsePublishedOnly = True;
+{$ENDIF}
+
+Var
+  GlobalUsePublishedOnly : Boolean = DefaultUsePublishedOnly;
+
 type
+
   TRttiObject = class;
   TRttiType = class;
   TRttiMethod = class;
+  TRttiField = Class;
   TRttiProperty = class;
   TRttiInstanceType = class;
+  TRttiRecordType = class;
 
   TCustomAttributeClass = class of TCustomAttribute;
   TRttiClass = class of TRttiObject;
@@ -280,12 +294,15 @@ type
   { TRttiContext }
 
   TRttiContext = record
+  Public
+    UsePublishedOnly : Boolean;
   private
     FContextToken: IInterface;
     function GetByHandle(AHandle: Pointer): TRttiObject;
     procedure AddObject(AObject: TRttiObject);
   public
     class function Create: TRttiContext; static;
+    class function Create(aUsePublishedOnly : Boolean): TRttiContext; static;
     procedure  Free;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
     function GetType(AClass: TClass): TRttiType;
@@ -295,6 +312,8 @@ type
   { TRttiObject }
 
   TRttiObject = class abstract
+  Private
+    FUsePublishedOnly : Boolean;
   protected
     function GetHandle: Pointer; virtual; abstract;
   public
@@ -317,13 +336,16 @@ type
   end;
 
   { TRttiType }
+  TRttiFieldArray = specialize TArray<TRttiField>;
+  TRttiPropertyArray = specialize TArray<TRttiProperty>;
+  TRttiMethodArray = specialize TArray<TRttiMethod>;
 
   TRttiType = class(TRttiNamedObject)
   private
     FTypeInfo: PTypeInfo;
     FAttributesResolved: boolean;
     FAttributes: TCustomAttributeArray;
-    FMethods: specialize TArray<TRttiMethod>;
+    FMethods: TRttiMethodArray;
     function GetAsInstance: TRttiInstanceType;
   protected
     FTypeData: PTypeData;
@@ -339,13 +361,15 @@ type
     function GetBaseType: TRttiType; virtual;
   public
     constructor Create(ATypeInfo : PTypeInfo);
+    constructor Create(ATypeInfo : PTypeInfo; aUsePublishedOnly : Boolean);
     destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
-    function GetProperties: specialize TArray<TRttiProperty>; virtual;
+    function GetFields: TRttiFieldArray; virtual;
+    function GetDeclaredMethods: TRttiMethodArray; virtual;
+    function GetProperties: TRttiPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
-    function GetMethods: specialize TArray<TRttiMethod>; virtual;
+    function GetMethods: TRttiMethodArray; virtual;
     function GetMethod(const aName: String): TRttiMethod; virtual;
-    function GetDeclaredMethods: specialize TArray<TRttiMethod>; virtual;
     property IsInstance: boolean read GetIsInstance;
     property isManaged: boolean read GetIsManaged;
     property IsOrdinal: boolean read GetIsOrdinal;
@@ -466,40 +490,89 @@ type
   TRttiMember = class(TRttiNamedObject)
   private
     FParent: TRttiType;
-  protected
+    FVisibility : TMemberVisibility;
+    FStrictVisibility : Boolean;
     function GetVisibility: TMemberVisibility; virtual;
+    function GetStrictVisibility: Boolean; virtual;
   public
     constructor Create(AParent: TRttiType);
     property Visibility: TMemberVisibility read GetVisibility;
+    Property StrictVisibility: Boolean Read GetStrictVisibility;
     property Parent: TRttiType read FParent;
+  end;
+
+  TRttiDataMember = class abstract(TRttiMember)
+  private
+    function GetDataType: TRttiType; virtual; abstract;
+    function GetIsReadable: Boolean; virtual; abstract;
+    function GetIsWritable: Boolean; virtual; abstract;
+  public
+    function GetValue(Instance: Pointer): TValue; virtual; abstract;
+    procedure SetValue(Instance: Pointer; const AValue: TValue); virtual; abstract;
+    property DataType: TRttiType read GetDataType;
+    property IsReadable: Boolean read GetIsReadable;
+    property IsWritable: Boolean read GetIsWritable;
   end;
 
   { TRttiProperty }
 
-  TRttiProperty = class(TRttiMember)
+  TRttiProperty = class(TRttiDataMember)
   private
     FPropInfo: PPropInfo;
     FAttributesResolved: boolean;
     FAttributes: TCustomAttributeArray;
     function GetPropertyType: TRttiType;
-    function GetIsWritable: boolean;
-    function GetIsReadable: boolean;
+    function GetIsWritable: boolean; override;
+    function GetIsReadable: boolean; override;
+    function GetDataType: TRttiType; override;
   protected
-    function GetVisibility: TMemberVisibility; override;
     function GetName: string; override;
     function GetHandle: Pointer; override;
   public
     constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
     destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
-    function GetValue(Instance: pointer): TValue;
-    procedure SetValue(Instance: pointer; const AValue: TValue);
+    function GetValue(Instance: pointer): TValue;  override;
+    procedure SetValue(Instance: pointer; const AValue: TValue); override;
     property PropertyType: TRttiType read GetPropertyType;
     property IsReadable: boolean read GetIsReadable;
     property IsWritable: boolean read GetIsWritable;
-    property Visibility: TMemberVisibility read GetVisibility;
   end;
-  TRttiPropertyArray = specialize TArray<TRttiProperty>;
+
+  { TRttiField }
+
+  TRttiField = class(TRttiDataMember)
+  private
+    FFieldType: TRttiType;
+    FOffset: Integer;
+    FName : String;
+    FHandle : PExtendedFieldEntry;
+    function GetName: string; override;
+    function GetDataType: TRttiType; override;
+    function GetIsReadable: Boolean; override;
+    function GetIsWritable: Boolean; override;
+    function GetHandle: Pointer; override;
+    Function GetAttributes: TCustomAttributeArray; override;
+//    constructor Create(AParent: TRttiObject; var P: PByte); override;
+  public
+    function GetValue(Instance: Pointer): TValue; override;
+    procedure SetValue(Instance: Pointer; const AValue: TValue); override;
+    function ToString: string; override;
+    property FieldType: TRttiType read FFieldType;
+    property Offset: Integer read FOffset;
+  end;
+
+(*
+  TRttiManagedField = class(TRttiObject)
+  private
+    function GetFieldOffset: Integer;
+    function GetDataType: TRttiType;
+//    constructor Create(AParent: TRttiObject; var P: PByte); override;
+  public
+    property FieldType: TRttiType read GetDataType;
+    property FieldOffset: Integer read GetFieldOffset;
+  end;
+*)
 
   TRttiParameter = class(TRttiNamedObject)
   private
@@ -516,6 +589,8 @@ type
 
   TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object;
   TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  TFunctionCallParameterInfoArray = specialize TArray<TFunctionCallParameterInfo>;
+  TPointerArray = specialize TArray<Pointer>;
 
   TMethodImplementation = class
   private
@@ -529,9 +604,9 @@ type
     fResult: PTypeInfo;
     fCC: TCallConv;
     procedure InitArgs;
-    procedure HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
-    constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
-    constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
+    procedure HandleCallback(const aArgs: TPointerArray; aResult: Pointer; aContext: Pointer);
+    constructor Create(aCC: TCallConv; aArgs: TFunctionCallParameterInfoArray; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
+    constructor Create(aCC: TCallConv; aArgs: TFunctionCallParameterInfoArray; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
   Protected
     function GetCodeAddress: CodePointer; inline;
   public
@@ -627,7 +702,7 @@ type
     property ReturnType: TRttiType read GetReturnType;
     property VirtualIndex: SmallInt read GetVirtualIndex;
     function ToString: String; override;
-    function GetParameters: TRttiParameterArray; inline;
+    function GetParameters: TRttiParameterArray;
     function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
@@ -647,7 +722,7 @@ type
 
   TRttiInterfaceType = class(TRttiType)
   private
-    fDeclaredMethods: specialize TArray<TRttiMethod>;
+    fDeclaredMethods: TRttiMethodArray;
   protected
     function IntfMethodCount: Word;
     function MethodTable: PIntfMethodTable; virtual; abstract;
@@ -665,7 +740,7 @@ type
     property GUIDStr: String read GetGUIDStr;
     property IntfFlags: TIntfFlags read GetIntfFlags;
     property IntfType: TInterfaceType read GetIntfType;
-    function GetDeclaredMethods: specialize TArray<TRttiMethod>; override;
+    function GetDeclaredMethods: TRttiMethodArray; override;
   end;
 
   { TRttiInstanceType }
@@ -673,18 +748,54 @@ type
   TRttiInstanceType = class(TRttiStructuredType)
   private
     FPropertiesResolved: Boolean;
-    FProperties: specialize TArray<TRttiProperty>;
+    FProperties: TRttiPropertyArray;
+    FFieldsResolved: Boolean;
+    FFields: TRttiFieldArray;
+    FDeclaredMethods : TRttiMethodArray;
+    FMethodsResolved : Boolean;
     function GetDeclaringUnitName: string;
     function GetMetaClassType: TClass;
+    procedure ResolveClassicProperties;
+    procedure ResolveExtendedProperties;
+    procedure ResolveFields;
+    procedure ResolveMethods;
   protected
     function GetIsInstance: boolean; override;
     function GetTypeSize: integer; override;
     function GetBaseType: TRttiType; override;
   public
-    function GetProperties: specialize TArray<TRttiProperty>; override;
+    function GetProperties: TRttiPropertyArray; override;
+    function GetFields: TRttiFieldArray; override;
+    function GetDeclaredMethods: TRttiMethodArray; override;
     property MetaClassType: TClass read GetMetaClassType;
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
+
+  { TRttiRecordType }
+
+  TRttiRecordType = class(TRttiStructuredType)
+  private
+    FMethOfs: PByte;
+//    function GetManagedFields: TRttiManagedFieldArray;
+    FPropertiesResolved: Boolean;
+    FProperties: TRttiPropertyArray;
+    FFieldsResolved: Boolean;
+    FFields: TRttiFieldArray;
+    FDeclaredMethods : TRttiMethodArray;
+    FMethodsResolved : Boolean;
+  protected
+    procedure ResolveFields;
+    procedure ResolveMethods;
+    procedure ResolveProperties;
+    function GetTypeSize: Integer; override;
+  public
+    function GetProperties: TRttiPropertyArray; override;
+    function GetFields: TRttiFieldArray; override;
+    function GetDeclaredMethods: TRttiMethodArray;
+    function GetAttributes: TCustomAttributeArray;
+//    property ManagedFields: TRttiManagedFieldArray read GetManagedFields;
+  end;
+
 
   TVirtualInterfaceInvokeEvent = procedure(aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue) of object;
 
@@ -798,6 +909,12 @@ uses
   sysconst,
   fgl;
 {$ENDIF FPC_DOTTEDUNITS}
+
+
+Const
+  MemberVisibilities: array[TVisibilityClass] of TMemberVisibility
+                    = (mvPrivate, mvProtected, mvPublic, mvPublished);
+
 
 function AlignToPtr(aPtr: Pointer): Pointer; inline;
 begin
@@ -953,6 +1070,7 @@ type
   public
     function GetTypes: specialize TArray<TRttiType>;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
+    function GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
     function GetByHandle(aHandle: Pointer): TRttiObject;
     procedure AddObject(aObject: TRttiObject);
     constructor Create;
@@ -967,8 +1085,9 @@ type
   { TPoolToken }
 
   TPoolToken = class(TInterfacedObject, IPooltoken)
+    FUsePublishedOnly : Boolean;
   public
-    constructor Create;
+    constructor Create(aUsePublishedOnly : Boolean);
     destructor Destroy; override;
     function RttiPool: TRttiPool;
   end;
@@ -1079,6 +1198,65 @@ type
     function GetAttributes: TCustomAttributeArray; override;
   end;
 
+  { TRttiInstanceMethod }
+
+  TRttiInstanceMethod = class(TRttiMethod)
+  private
+    FHandle: PVmtMethodExEntry;
+    FIndex : integer;
+    // False: without hidden, true: with hidden
+    FParams : Array [Boolean] of TRttiParameterArray;
+    FAttributesResolved: boolean;
+    FAttributes: TCustomAttributeArray;
+    procedure ResolveParams;
+  protected
+    function GetHandle: Pointer; override;
+    function GetName: String; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetCodeAddress: CodePointer; override;
+    function GetDispatchKind: TDispatchKind; override;
+    function GetHasExtendedInfo: Boolean; override;
+    function GetIsClassMethod: Boolean; override;
+    function GetIsConstructor: Boolean; override;
+    function GetIsDestructor: Boolean; override;
+    function GetIsStatic: Boolean; override;
+    function GetMethodKind: TMethodKind; override;
+    function GetReturnType: TRttiType; override;
+    function GetVirtualIndex: SmallInt; override;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
+  public
+    constructor Create(AParent: TRttiType; aHandle:  PVmtMethodExEntry);
+    function GetAttributes: TCustomAttributeArray; override;
+  end;
+
+ { TRttiRecordMethod }
+
+ TRttiRecordMethod = class(TRttiMethod)
+  private
+    FHandle : PRecMethodExEntry;
+    // False: without hidden, true: with hidden
+    FParams : Array [Boolean] of TRttiParameterArray;
+    procedure ResolveParams;
+  Protected
+    function GetName: string; override;
+    Function GetIsConstructor: Boolean; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetReturnType: TRttiType; override;
+    function GetDispatchKind: TDispatchKind; override;
+    function GetMethodKind: TMethodKind; override;
+    function GetHasExtendedInfo: Boolean; override;
+    function GetCodeAddress: Pointer; override;
+    function GetIsClassMethod: Boolean; override;
+    function GetIsStatic: Boolean; override;
+    function GetVisibility: TMemberVisibility; override;
+    function GetHandle : Pointer; override;
+    function GetVirtualIndex: SmallInt; override;
+  public
+    constructor Create(AParent: TRttiType; aHandle: PRecMethodExEntry);
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
+    Function GetAttributes: TCustomAttributeArray; override;
+  end;
+
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
@@ -1114,8 +1292,9 @@ resourcestring
 //  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';
 
 var
-  PoolRefCount : integer;
-  GRttiPool    : TRttiPool;
+  // Boolean = UsePublishedOnly
+  PoolRefCount : Array [Boolean] of integer;
+  GRttiPool : Array [Boolean] of TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
 
 function AllocateMemory(aSize: PtrUInt): Pointer;
@@ -1564,6 +1743,153 @@ begin
   for cc := Low(TCallConv) to High(TCallConv) do
     FuncCallMgr[cc] := NoFunctionCallManager;
 end;
+
+{ TRttiInstanceMethod }
+
+function TRttiInstanceMethod.GetHandle: Pointer;
+begin
+  Result:=FHandle;
+end;
+
+function TRttiInstanceMethod.GetName: String;
+begin
+  Result:=FHandle^.Name;
+end;
+
+function TRttiInstanceMethod.GetCallingConvention: TCallConv;
+begin
+  Result:=FHandle^.CC;
+end;
+
+function TRttiInstanceMethod.GetCodeAddress: CodePointer;
+begin
+  Result:=Nil
+end;
+
+function TRttiInstanceMethod.GetDispatchKind: TDispatchKind;
+begin
+  if FHandle^.VmtIndex<>-1 then
+    Result:=dkStatic
+  else
+    Result:=dkVtable;
+end;
+
+function TRttiInstanceMethod.GetHasExtendedInfo: Boolean;
+begin
+  Result:=inherited GetHasExtendedInfo;
+end;
+
+function TRttiInstanceMethod.GetIsClassMethod: Boolean;
+begin
+  Result:=MethodKind in [mkClassConstructor, mkClassDestructor, mkClassProcedure,mkClassFunction];
+end;
+
+function TRttiInstanceMethod.GetIsConstructor: Boolean;
+begin
+  Result:=MethodKind in [mkClassConstructor, mkConstructor];
+end;
+
+function TRttiInstanceMethod.GetIsDestructor: Boolean;
+begin
+  Result:=MethodKind in [mkClassDestructor, mkDestructor];
+end;
+
+function TRttiInstanceMethod.GetIsStatic: Boolean;
+begin
+  // ?
+  Result:=False;
+end;
+
+function TRttiInstanceMethod.GetMethodKind: TMethodKind;
+begin
+  Result:=FHandle^.Kind;
+end;
+
+function TRttiInstanceMethod.GetReturnType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FHandle^.ResultType) then
+    Exit(Nil);
+  context := TRttiContext.Create(FUsePublishedOnly);
+  try
+    Result := context.GetType(FHandle^.ResultType^);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiInstanceMethod.GetVirtualIndex: SmallInt;
+begin
+  Result:=FHandle^.VmtIndex;
+end;
+
+Procedure TRttiInstanceMethod.ResolveParams;
+
+var
+  param: PVmtMethodParam;
+  total, visible: SizeInt;
+  context: TRttiContext;
+  obj: TRttiObject;
+  prtti : TRttiVmtMethodParameter;
+
+begin
+  total := 0;
+  visible := 0;
+  SetLength(FParams[False],FHandle^.ParamCount);
+  SetLength(FParams[True],FHandle^.ParamCount);
+  context := TRttiContext.Create(FUsePublishedOnly);
+  try
+    param := FHandle^.Param[0];
+    while total < FHandle^.ParamCount do
+      begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        prtti := obj as TRttiVmtMethodParameter
+      else
+        begin
+        prtti := TRttiVmtMethodParameter.Create(param);
+        context.AddObject(FParams[True][total]);
+        end;
+      FParams[True][total]:=prtti;
+      if not (pfHidden in param^.Flags) then
+        begin
+        FParams[False][visible] := prtti;
+        Inc(visible);
+      end;
+
+      param := param^.Next;
+      Inc(total);
+    end;
+
+    if visible <> total then
+      SetLength(FParams[False], visible);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiInstanceMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
+begin
+  if  (Length(FParams[aWithHidden]) > 0) then
+    Exit(FParams[aWithHidden]);
+  if FHandle^.ParamCount = 0 then
+    Exit(Nil);
+  ResolveParams;
+  Result := FParams[aWithHidden];
+end;
+
+constructor TRttiInstanceMethod.Create(AParent: TRttiType; aHandle: PVmtMethodExEntry);
+begin
+  Inherited Create(aParent);
+  FHandle:=aHandle;
+end;
+
+function TRttiInstanceMethod.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=Nil;
+end;
+
 { TRttiPool }
 
 function TRttiPool.GetTypes: specialize TArray<TRttiType>;
@@ -1583,6 +1909,13 @@ begin
 end;
 
 function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
+
+begin
+  Result:=GetType(aTypeInfo,GlobalUsePublishedOnly);
+end;
+
+function TRttiPool.GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
+
 var
   obj: TRttiObject;
 begin
@@ -1603,9 +1936,9 @@ begin
             SetLength(FTypesList, FTypeCount * 2);
           end;
         case ATypeInfo^.Kind of
-          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo);
-          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo);
-          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo);
+          tkClass   : Result := TRttiInstanceType.Create(ATypeInfo,UsePublishedOnly);
+          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo,UsePublishedOnly);
+          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo,UsePublishedOnly);
           tkArray: Result := TRttiArrayType.Create(ATypeInfo);
           tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo);
           tkInt64,
@@ -1623,6 +1956,7 @@ begin
           tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
           tkProcVar : Result := TRttiProcedureType.Create(ATypeInfo);
           tkMethod  : Result := TRttiMethodType.Create(ATypeInfo);
+          tkRecord : Result:=TRttiRecordType.Create(aTypeInfo,UsePublishedOnly);
         else
           Result := TRttiType.Create(ATypeInfo);
         end;
@@ -1707,23 +2041,24 @@ end;
 
 { TPoolToken }
 
-constructor TPoolToken.Create;
+constructor TPoolToken.Create(aUsePublishedOnly : Boolean);
 begin
   inherited Create;
-  if InterlockedIncrement(PoolRefCount)=1 then
-    GRttiPool := TRttiPool.Create;
+  FUsePublishedOnly:=aUsePublishedOnly;
+  if InterlockedIncrement(PoolRefCount[FUsePublishedOnly])=1 then
+    GRttiPool[FUsePublishedOnly] := TRttiPool.Create;
 end;
 
 destructor TPoolToken.Destroy;
 begin
-  if InterlockedDecrement(PoolRefCount)=0 then
-    GRttiPool.Free;
+  if InterlockedDecrement(PoolRefCount[FUsePublishedOnly])=0 then
+    GRttiPool[FUsePublishedOnly].Free;
   inherited;
 end;
 
 function TPoolToken.RttiPool: TRttiPool;
 begin
-  result := GRttiPool;
+  result := GRttiPool[FUsePublishedOnly];
 end;
 
 { TValueDataIntImpl }
@@ -4118,7 +4453,7 @@ end;
 
 function TRttiPointerType.GetReferredType: TRttiType;
 begin
-  Result := GRttiPool.GetType(FTypeData^.RefType);
+  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.RefType);
 end;
 
 { TRttiArrayType }
@@ -4132,12 +4467,12 @@ function TRttiArrayType.GetDimension(aIndex: SizeInt): TRttiType;
 begin
   if aIndex >= FTypeData^.ArrayData.DimCount then
     raise ERtti.CreateFmt(SErrDimensionOutOfRange, [aIndex, FTypeData^.ArrayData.DimCount]);
-  Result := GRttiPool.GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
+  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
 end;
 
 function TRttiArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool.GetType(FTypeData^.ArrayData.ElType);
+  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ArrayData.ElType);
 end;
 
 function TRttiArrayType.GetTotalElementCount: SizeInt;
@@ -4159,7 +4494,7 @@ end;
 
 function TRttiDynamicArrayType.GetElementType: TRttiType;
 begin
-  Result := GRttiPool.GetType(FTypeData^.ElType2);
+  Result := GRttiPool[FUsePublishedOnly].GetType(FTypeData^.ElType2);
 end;
 
 function TRttiDynamicArrayType.GetOleAutoVarType: TVarType;
@@ -4575,7 +4910,7 @@ end;
 function TRttiEnumerationType.GetUnderlyingType: TRttiType;
 
 begin
-  Result:=GRttiPool.GetType(GetTypeData(Handle)^.BaseType);
+  Result:=GRttiPool[FUsePublishedOnly].GetType(GetTypeData(Handle)^.BaseType);
 end;
 
 
@@ -5155,7 +5490,7 @@ begin
     { skip return type name }
     ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
     { handle return type }
-    FReturnType := GRttiPool.GetType(PPPTypeInfo(ptr)^^);
+    FReturnType := GRttiPool[FUsePublishedOnly].GetType(PPPTypeInfo(ptr)^^);
     Inc(ptr, SizeOf(PPTypeInfo));
   end;
 
@@ -5449,7 +5784,7 @@ function TRttiInstanceType.GetBaseType: TRttiType;
 var
   AContext: TRttiContext;
 begin
-  AContext := TRttiContext.Create;
+  AContext := TRttiContext.Create(FUsePublishedOnly);
   try
     result := AContext.GetType(FTypeData^.ParentInfo);
   finally
@@ -5467,76 +5802,399 @@ begin
   Result:=sizeof(TObject);
 end;
 
-function TRttiInstanceType.GetProperties: specialize TArray<TRttiProperty>;
+
+Procedure TRttiInstanceType.ResolveExtendedProperties;
+
 var
-  TypeInfo: PTypeInfo;
+  List : PPropListEx;
+  info : PPropInfoEx;
+  TP : PPropInfo;
+  Prop : TRttiProperty;
+  i,Idx,IdxCount,aCount : Integer;
+  obj: TRttiObject;
+  NameIndexes : Array of Integer;
+
+  Function IndexOfNameIndex(Idx : Integer) : integer;
+  begin
+    Result:=IdxCount-1;
+    While (Result>=0) and (NameIndexes[Result]<>Idx) do
+      Dec(Result);
+  end;
+
+begin
+  NameIndexes:=[];
+  IdxCount:=0;
+  aCount:=GetPropListEx(FTypeinfo,List);
+  SetLength(FProperties,aCount);
+  SetLength(NameIndexes,aCount);
+  For I:=0 to aCount-1 do
+    begin
+    Info:=List^[I];
+    TP:=Info^.Info;
+    // Don't overwrite properties with the same name
+    // We cannot use NameIndex directly, because there may be classes in
+    // the hierarchy which do not have RTTI for properties, but they are
+    // still used for the NameIndex, so nameindex can be bigger than property count.
+    Idx:=IndexOfNameIndex(TP^.NameIndex);
+    if Idx<>-1 then
+      Prop:=FProperties[Idx]
+    else
+      begin
+      NameIndexes[IdxCount]:=TP^.NameIndex;
+      Inc(IdxCount);
+      obj := GRttiPool[FUsePublishedOnly].GetByHandle(TP);
+      if Assigned(obj) then
+        FProperties[I]:=obj as TRttiProperty
+      else
+        begin
+        Prop:=TRttiProperty.Create(Self, TP);
+        FProperties[I]:=Prop;
+        GRttiPool[FUsePublishedOnly].AddObject(Prop);
+        end;
+      end;
+    Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
+    Prop.FStrictVisibility:=Info^.StrictVisibility;
+    end;
+end;
+
+Procedure TRttiInstanceType.ResolveClassicProperties;
+
+var
+  lTypeInfo: PTypeInfo;
   TypeRttiType: TRttiType;
   TD: PTypeData;
   PPD: PPropData;
   TP: PPropInfo;
-  Count: longint;
+  Idx,Count: longint;
   obj: TRttiObject;
+
+begin
+  lTypeInfo := FTypeInfo;
+
+  // Get the total properties count
+  SetLength(FProperties,FTypeData^.PropCount);
+  TypeRttiType:= self;
+  repeat
+    TD:=GetTypeData(lTypeInfo);
+
+    // published properties count for this object
+    // skip the attribute-info if available
+    PPD:=PClassData(TD)^.PropertyTable;
+    Count:=PPD^.PropCount;
+    // Now point TP to first propinfo record.
+    TP:=PPropInfo(@PPD^.PropList);
+    While (Count>0) do
+      begin
+        // Don't overwrite properties with the same name
+        if FProperties[TP^.NameIndex]=nil then
+          begin
+          obj := GRttiPool[FUsePublishedOnly].GetByHandle(TP);
+          if Assigned(obj) then
+            FProperties[TP^.NameIndex] := obj as TRttiProperty
+          else
+            begin
+            FProperties[TP^.NameIndex] := TRttiProperty.Create(TypeRttiType, TP);
+            GRttiPool[FUsePublishedOnly].AddObject(FProperties[TP^.NameIndex]);
+            end;
+          end;
+        // Point to TP next propinfo record.
+        // Located at Name[Length(Name)+1] !
+        TP:=TP^.Next;
+        Dec(Count);
+      end;
+    lTypeInfo:=TD^.Parentinfo;
+    TypeRttiType:= GRttiPool[FUsePublishedOnly].GetType(lTypeInfo);
+  until lTypeInfo=nil;
+  FPropertiesResolved:=True;
+end;
+
+function TRttiInstanceType.GetProperties: TRttiPropertyArray;
+begin
+  if Not FPropertiesResolved then
+    if fUsePublishedOnly then
+      ResolveClassicProperties
+    else
+      ResolveExtendedProperties;
+  result := FProperties;
+end;
+
+procedure TRttiInstanceType.ResolveFields;
+
+Var
+  Tbl : PExtendedFieldInfoTable;
+  aData: PExtendedVmtFieldEntry;
+  Fld : TRttiField;
+  i,Len : integer;
+  Ctx : TRttiContext;
+
+begin
+  Len:=GetFieldList(FTypeInfo,Tbl);
+  SetLength(FFields,Len);
+  FFieldsResolved:=True;
+  if Len=0 then
+    exit;
+  Ctx:=TRttiContext.Create;
+  try
+    Ctx.UsePublishedOnly:=False;
+    For I:=0 to Len-1 do
+      begin
+      aData:=Tbl^[i];
+      Fld:=TRttiField.Create(Self);
+      FFields[I]:=Fld;
+      Fld.FName:=aData^.Name^;
+      Fld.FOffset:=aData^.FieldOffset;
+      Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
+      Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
+      Fld.FStrictVisibility:=aData^.StrictVisibility;
+      Fld.FHandle:=aData;
+      // Some way to set the attributes is needed.
+      Ctx.AddObject(Fld);
+      end;
+  finally
+    Ctx.Free;
+  end;
+end;
+
+procedure TRttiInstanceType.ResolveMethods;
+
+Var
+  Tbl : PExtendedMethodInfoTable;
+  aData: PVmtMethodExEntry;
+  Meth : TRttiInstanceMethod;
+  i,idx,aCount,Len : integer;
+  Ctx : TRttiContext;
+
+begin
+  Ctx:=TRttiContext.Create;
+  try
+    Ctx.UsePublishedOnly:=False;
+    FMethodsResolved:=True;
+    Len:=GetMethodList(FTypeInfo,Tbl,[],False);
+    if not FUsePublishedOnly then
+      aCount:=Len
+    else
+      begin
+      aCount:=0;
+      For I:=0 to Len-1 do
+        if Tbl^[I]^.MethodVisibility=vcPublished then
+           Inc(aCount);
+      end;
+    SetLength(FDeclaredMethods,aCount);
+    Idx:=0;
+    For I:=0 to Len-1 do
+      begin
+      aData:=Tbl^[i];
+      if (Not FUsePublishedOnly) or (aData^.MethodVisibility=vcPublished) then
+        begin
+        Meth:=TRttiInstanceMethod(Ctx.GetByHandle(aData));
+        if Meth=Nil then
+          begin
+          Meth:=TRttiInstanceMethod.Create(Self,aData);
+          Meth.FUsePublishedOnly:=Self.FUsePublishedOnly;
+          Meth.FVisibility:=MemberVisibilities[aData^.MethodVisibility];
+          Meth.FStrictVisibility:=aData^.StrictVisibility;
+          end;
+        FDeclaredMethods[Idx]:=Meth;
+        Inc(Idx);
+        end;
+      end;
+  finally
+    Ctx.Free;
+  end;
+end;
+
+function TRttiInstanceType.GetFields: TRttiFieldArray;
+begin
+  if not FFieldsResolved then
+    ResolveFields;
+  Result:=FFields;
+end;
+
+function TRttiInstanceType.GetDeclaredMethods: TRttiMethodArray;
+begin
+  if not FMethodsResolved then
+    ResolveMethods;
+  Result:=FDeclaredMethods;
+end;
+
+{ TRttiRecordType }
+
+procedure TRttiRecordType.ResolveFields;
+Var
+  Tbl : PExtendedFieldInfoTable;
+  aData: PExtendedVmtFieldEntry;
+  Fld : TRttiField;
+  i,Len : integer;
+  Ctx : TRttiContext;
+
+begin
+  Len:=GetFieldList(FTypeInfo,Tbl);
+  SetLength(FFields,Len);
+  FFieldsResolved:=True;
+  if Len=0 then
+    exit;
+  Ctx:=TRttiContext.Create;
+  try
+    Ctx.UsePublishedOnly:=False;
+    For I:=0 to Len-1 do
+      begin
+      aData:=Tbl^[i];
+      Fld:=TRttiField.Create(Self);
+      FFields[I]:=Fld;
+      Fld.FName:=aData^.Name^;
+      Fld.FOffset:=aData^.FieldOffset;
+      Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
+      Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
+      Fld.FStrictVisibility:=aData^.StrictVisibility;
+      Fld.FHandle:=aData;
+      // Some way to set the attributes is needed.
+      Ctx.AddObject(Fld);
+      end;
+  finally
+    Ctx.Free;
+  end;
+end;
+
+procedure TRttiRecordType.ResolveMethods;
+
+Var
+  Tbl : PRecordMethodInfoTable;
+  aData: PRecMethodExEntry;
+  Meth : TRttiRecordMethod;
+  i,idx,aCount,Len : integer;
+  Ctx : TRttiContext;
+
+begin
+  Ctx:=TRttiContext.Create;
+  try
+    Ctx.UsePublishedOnly:=False;
+    FMethodsResolved:=True;
+    Len:=GetMethodList(FTypeInfo,Tbl,[]);
+    if not FUsePublishedOnly then
+      aCount:=Len
+    else
+      begin
+      aCount:=0;
+      For I:=0 to Len-1 do
+        if Tbl^[I]^.MethodVisibility=vcPublished then
+           Inc(aCount);
+      end;
+    SetLength(FDeclaredMethods,aCount);
+    Idx:=0;
+    For I:=0 to Len-1 do
+      begin
+      aData:=Tbl^[i];
+      if (Not FUsePublishedOnly) or (aData^.MethodVisibility=vcPublished) then
+        begin
+        Meth:=TRttiRecordMethod(Ctx.GetByHandle(aData));
+        if Meth=Nil then
+          begin
+          Meth:=TRttiRecordMethod.Create(Self,aData);
+          Meth.FUsePublishedOnly:=Self.FUsePublishedOnly;
+          Meth.FVisibility:=MemberVisibilities[aData^.MethodVisibility];
+          Meth.FStrictVisibility:=aData^.StrictVisibility;
+          end;
+        FDeclaredMethods[Idx]:=Meth;
+        Inc(Idx);
+        end;
+      end;
+  finally
+    Ctx.Free;
+  end;
+end;
+
+procedure TRttiRecordType.ResolveProperties;
+
+var
+  List : PPropListEx;
+  info : PPropInfoEx;
+  TP : PPropInfo;
+  Prop : TRttiProperty;
+  i, aCount : Integer;
+  obj: TRttiObject;
+
+begin
+  aCount:=GetPropListEx(FTypeinfo,List);
+  SetLength(FProperties,aCount);
+  For I:=0 to aCount-1 do
+    begin
+    Info:=List^[I];
+    TP:=Info^.Info;
+    obj:=GRttiPool[FUsePublishedOnly].GetByHandle(TP);
+    if Assigned(obj) then
+      FProperties[I]:=obj as TRttiProperty
+    else
+      begin
+      Prop:=TRttiProperty.Create(Self, TP);
+      FProperties[I]:=Prop;
+      GRttiPool[FUsePublishedOnly].AddObject(Prop);
+      end;
+    Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
+    Prop.FStrictVisibility:=Info^.StrictVisibility;
+    end;
+end;
+
+function TRttiRecordType.GetTypeSize: Integer;
+begin
+  Result:=GetTypeData(PTypeInfo(Handle))^.RecSize;
+end;
+
+function TRttiRecordType.GetProperties: TRttiPropertyArray;
 begin
   if not FPropertiesResolved then
-    begin
-      TypeInfo := FTypeInfo;
+    ResolveProperties;
+  Result:=FProperties;
+end;
 
-      // Get the total properties count
-      SetLength(FProperties,FTypeData^.PropCount);
-      TypeRttiType:= self;
-      repeat
-        TD:=GetTypeData(TypeInfo);
+function TRttiRecordType.GetFields: TRttiFieldArray;
+begin
+  If not FFieldsResolved then
+    ResolveFields;
+  Result:=FFields;
+end;
 
-        // published properties count for this object
-        // skip the attribute-info if available
-        PPD := PClassData(TD)^.PropertyTable;
-        Count:=PPD^.PropCount;
-        // Now point TP to first propinfo record.
-        TP:=PPropInfo(@PPD^.PropList);
-        While Count>0 do
-          begin
-            // Don't overwrite properties with the same name
-            if FProperties[TP^.NameIndex]=nil then begin
-              obj := GRttiPool.GetByHandle(TP);
-              if Assigned(obj) then
-                FProperties[TP^.NameIndex] := obj as TRttiProperty
-              else begin
-                FProperties[TP^.NameIndex] := TRttiProperty.Create(TypeRttiType, TP);
-                GRttiPool.AddObject(FProperties[TP^.NameIndex]);
-              end;
-            end;
+function TRttiRecordType.GetDeclaredMethods: TRttiMethodArray;
+begin
+  If not FMethodsResolved then
+    ResolveMethods;
+  Result:=FDeclaredMethods;
+end;
 
-            // Point to TP next propinfo record.
-            // Located at Name[Length(Name)+1] !
-            TP:=TP^.Next;
-            Dec(Count);
-          end;
-        TypeInfo:=TD^.Parentinfo;
-        TypeRttiType:= GRttiPool.GetType(TypeInfo);
-      until TypeInfo=nil;
-    end;
-
-  result := FProperties;
+function TRttiRecordType.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=inherited GetAttributes;
 end;
 
 { TRttiMember }
 
 function TRttiMember.GetVisibility: TMemberVisibility;
 begin
-  result := mvPublished;
+  Result:=FVisibility;
+end;
+
+function TRttiMember.GetStrictVisibility: Boolean;
+begin
+  Result:=FStrictVisibility;
 end;
 
 constructor TRttiMember.Create(AParent: TRttiType);
 begin
   inherited Create();
   FParent := AParent;
+  FVisibility:=mvPublished;
 end;
 
 { TRttiProperty }
 
+function TRttiProperty.GetDataType: TRttiType;
+
+begin
+  Result:=GetPropertyType
+end;
+
 function TRttiProperty.GetPropertyType: TRttiType;
 begin
-  result := GRttiPool.GetType(FPropInfo^.PropType);
+  result := GRttiPool[FUsePublishedOnly].GetType(FPropInfo^.PropType);
 end;
 
 function TRttiProperty.GetIsReadable: boolean;
@@ -5547,12 +6205,6 @@ end;
 function TRttiProperty.GetIsWritable: boolean;
 begin
   result := assigned(FPropInfo^.SetProc);
-end;
-
-function TRttiProperty.GetVisibility: TMemberVisibility;
-begin
-  // At this moment only pulished rtti-property-info is supported by fpc
-  result := mvPublished;
 end;
 
 function TRttiProperty.GetName: string;
@@ -5839,6 +6491,53 @@ begin
   end
 end;
 
+{ TRttiField }
+
+function TRttiField.GetName: string;
+begin
+  Result:=FName;
+end;
+
+function TRttiField.GetDataType: TRttiType;
+begin
+  Result:=FFieldType;
+end;
+
+function TRttiField.GetIsReadable: Boolean;
+begin
+  Result:=True;
+end;
+
+function TRttiField.GetIsWritable: Boolean;
+begin
+  Result:=True;
+end;
+
+function TRttiField.GetHandle: Pointer;
+begin
+  Result:=FHandle;
+end;
+
+function TRttiField.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=nil;
+end;
+
+function TRttiField.GetValue(Instance: Pointer): TValue;
+begin
+
+end;
+
+procedure TRttiField.SetValue(Instance: Pointer; const AValue: TValue);
+begin
+
+end;
+
+function TRttiField.ToString: string;
+begin
+  Result:=inherited ToString;
+end;
+
 function TRttiType.GetIsInstance: boolean;
 begin
   result := false;
@@ -5895,12 +6594,19 @@ begin
   Result := FTypeInfo;
 end;
 
-constructor TRttiType.Create(ATypeInfo: PTypeInfo);
+constructor TRttiType.Create(ATypeInfo: PTypeInfo; aUsePublishedOnly : boolean);
+
 begin
   inherited Create();
   FTypeInfo:=ATypeInfo;
   if assigned(FTypeInfo) then
     FTypeData:=GetTypeData(ATypeInfo);
+  fUsePublishedOnly:=aUsePublishedOnly;
+end;
+
+constructor TRttiType.Create(ATypeInfo: PTypeInfo);
+begin
+  Create(aTypeInfo,GlobalUsePublishedOnly);
 end;
 
 destructor TRttiType.Destroy;
@@ -5910,6 +6616,13 @@ begin
   for attr in FAttributes do
     attr.Free;
   inherited;
+end;
+
+
+function TRttiType.GetFields: TRttiFieldArray;
+
+begin
+  Result:=Nil;
 end;
 
 function TRttiType.GetAttributes: TCustomAttributeArray;
@@ -5931,7 +6644,7 @@ begin
   result := FAttributes;
 end;
 
-function TRttiType.GetProperties: specialize TArray<TRttiProperty>;
+function TRttiType.GetProperties: TRttiPropertyArray;
 begin
   Result := Nil;
 end;
@@ -5951,9 +6664,9 @@ begin
       end;
 end;
 
-function TRttiType.GetMethods: specialize TArray<TRttiMethod>;
+function TRttiType.GetMethods: TRttiMethodArray;
 var
-  parentmethods, selfmethods: specialize TArray<TRttiMethod>;
+  parentmethods, selfmethods: TRttiMethodArray;
   parent: TRttiType;
 begin
   if Assigned(fMethods) then
@@ -5983,7 +6696,7 @@ begin
   Result := Nil;
 end;
 
-function TRttiType.GetDeclaredMethods: specialize TArray<TRttiMethod>;
+function TRttiType.GetDeclaredMethods: TRttiMethodArray;
 begin
   Result := Nil;
 end;
@@ -6005,6 +6718,13 @@ end;
 class function TRttiContext.Create: TRttiContext;
 begin
   result.FContextToken := nil;
+  result.UsePublishedOnly:=DefaultUsePublishedOnly;
+end;
+
+class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
+begin
+  Result:=Create;
+  Result.UsePublishedOnly:=aUsePublishedOnly;
 end;
 
 procedure TRttiContext.Free;
@@ -6015,22 +6735,22 @@ end;
 function TRttiContext.GetByHandle(AHandle: Pointer): TRttiObject;
 begin
   if not Assigned(FContextToken) then
-    FContextToken := TPoolToken.Create;
+    FContextToken := TPoolToken.Create(UsePublishedOnly);
   Result := (FContextToken as IPooltoken).RttiPool.GetByHandle(AHandle);
 end;
 
 procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
   if not Assigned(FContextToken) then
-    FContextToken := TPoolToken.Create;
+    FContextToken := TPoolToken.Create(UsePublishedOnly);
   (FContextToken as IPooltoken).RttiPool.AddObject(AObject);
 end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
 begin
   if not assigned(FContextToken) then
-    FContextToken := TPoolToken.Create;
-  result := (FContextToken as IPooltoken).RttiPool.GetType(ATypeInfo);
+    FContextToken := TPoolToken.Create(UsePublishedOnly);
+  result := (FContextToken as IPooltoken).RttiPool.GetType(ATypeInfo,UsePublishedOnly);
 end;
 
 
@@ -6240,6 +6960,149 @@ begin
 end;
 
 
+{ TRttiRecordMethod }
+
+constructor TRttiRecordMethod.Create(AParent: TRttiType; aHandle: PRecMethodExEntry);
+begin
+  inherited create(aParent);
+  FHandle:=aHandle;
+end;
+
+function TRttiRecordMethod.GetCallingConvention: TCallConv;
+begin
+  Result:=Fhandle^.CC;
+end;
+
+function TRttiRecordMethod.GetReturnType: TRttiType;
+
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FHandle^.ResultType) then
+    Exit(Nil);
+  context := TRttiContext.Create(FUsePublishedOnly);
+  try
+    Result := context.GetType(FHandle^.ResultType^);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiRecordMethod.GetDispatchKind: TDispatchKind;
+begin
+  Result := dkStatic;
+end;
+
+function TRttiRecordMethod.GetHasExtendedInfo: Boolean;
+begin
+  Result:=False
+end;
+
+function TRttiRecordMethod.GetCodeAddress: Pointer;
+begin
+  Result := Nil;
+end;
+
+function TRttiRecordMethod.GetIsClassMethod: Boolean;
+begin
+  Result := GetMethodKind in [mkClassProcedure, mkClassFunction, mkOperatorOverload];
+end;
+
+function TRttiRecordMethod.GetIsStatic: Boolean;
+begin
+  Result:=not (GetMethodKind in [mkProcedure, mkFunction]);
+end;
+
+function TRttiRecordMethod.GetVisibility: TMemberVisibility;
+begin
+  Result:=MemberVisibilities[FHandle^.MethodVisibility];
+end;
+
+function TRttiRecordMethod.GetHandle: Pointer;
+begin
+  Result:=FHandle;
+end;
+
+function TRttiRecordMethod.GetVirtualIndex: SmallInt;
+begin
+  Result:=-1;
+end;
+
+Procedure TRttiRecordMethod.ResolveParams;
+
+var
+  param: PVmtMethodParam;
+  total, visible: SizeInt;
+  context: TRttiContext;
+  obj: TRttiObject;
+  prtti : TRttiVmtMethodParameter ;
+
+begin
+  total := 0;
+  visible := 0;
+  SetLength(FParams[False],FHandle^.ParamCount);
+  SetLength(FParams[True],FHandle^.ParamCount);
+
+  context := TRttiContext.Create(FUsePublishedOnly);
+  try
+    param := FHandle^.Param[0];
+    while total < FHandle^.ParamCount do
+      begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        prtti := obj as TRttiVmtMethodParameter
+      else
+        begin
+        prtti := TRttiVmtMethodParameter.Create(param);
+        context.AddObject(prtti);
+        end;
+      FParams[True][total]:=prtti;
+      if not (pfHidden in param^.Flags) then
+        begin
+        FParams[False][visible]:=prtti;
+        Inc(visible);
+        end;
+      param := param^.Next;
+      Inc(total);
+    end;
+    if visible <> total then
+      SetLength(FParams[False], visible);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiRecordMethod.GetParameters(aWithHidden : Boolean): TRttiParameterArray;
+begin
+  if  (Length(FParams[aWithHidden]) > 0) then
+    Exit(FParams[aWithHidden]);
+  if FHandle^.ParamCount = 0 then
+    Exit(Nil);
+  ResolveParams;
+  Result := FParams[aWithHidden];
+end;
+
+function TRttiRecordMethod.GetAttributes: TCustomAttributeArray;
+begin
+  Result:=Nil;
+end;
+
+function TRttiRecordMethod.GetMethodKind: TMethodKind;
+begin
+  Result:=FHandle^.Kind;
+end;
+
+function TRttiRecordMethod.GetName: string;
+begin
+  Result:=FHandle^.Name;
+end;
+
+function TRttiRecordMethod.GetIsConstructor: Boolean;
+begin
+  Result:=GetMethodKind in [mkConstructor,mkClassConstructor];
+end;
+
+
 {$ifndef InLazIDE}
 {$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}
 {$I invoke.inc}
@@ -6247,7 +7110,8 @@ end;
 {$endif}
 
 initialization
-  PoolRefCount := 0;
+  PoolRefCount[False] := 0;
+  PoolRefCount[True] := 0;
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;

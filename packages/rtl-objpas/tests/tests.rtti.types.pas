@@ -174,6 +174,116 @@ Type
     Property Something : String Read FSomething Write FSomeThing;
   end;
 
+  {$RTTI EXPLICIT
+     PROPERTIES([vcPrivate,vcProtected,vcPublic,vcPublished])
+     FIELDS([vcPrivate,vcProtected,vcPublic,vcPublished])
+     METHODS([vcPrivate,vcProtected,vcPublic,vcPublished])}
+
+Type
+  { TFieldRTTI }
+  {$M+}
+  TFieldRTTI = Class(TObject)
+  private
+    FPrivateA: Integer;
+    Property PrivateA : Integer Read FPrivateA Write FPrivateA;
+  strict private
+    FPrivateB: Integer;
+    Property PrivateB : Integer Read FPrivateB Write FPrivateB;
+  Protected
+    FProtectedA: Integer;
+    Property ProtectedA : Integer Read FProtectedA Write FProtectedA;
+  Strict Protected
+    FProtectedB: Integer;
+    Property ProtectedB : Integer Read FProtectedB Write FProtectedB;
+  Public
+    FPublicA: Integer;
+    FPublicB: Integer;
+    Property PublicA : Integer Read FPublicA Write FPublicA;
+    Property PublicB : Integer Read FPublicA Write FPublicB;
+  Private
+    FPublishedA: Integer;
+    FPublishedB: Integer;
+  Published
+    FPublishedC: TFieldRTTI;
+    FPublishedD: TFieldRTTI;
+    Property PublishedA : Integer Read FPublishedA Write FPublishedA;
+    Property PublishedB : Integer Read FPublishedA Write FPublishedB;
+  end;
+
+  { TMethodClassRTTI }
+
+  TMethodClassRTTI = Class (TObject)
+  private
+    Procedure PrivateMethodA;
+  strict private
+    Procedure PrivateMethodB; virtual;
+  private
+    Procedure PrivateMethodC; virtual; abstract;
+  protected
+    Procedure ProtectedMethodA;
+  strict protected
+    Procedure ProtectedMethodB; virtual;
+  protected
+    Procedure ProtectedMethodC; virtual; abstract;
+  public
+    Procedure PublicMethodA;
+    Procedure PublicMethodB; virtual;
+    Procedure PublicMethodC; virtual; abstract;
+  published
+    Procedure PublishedMethodA(a : Integer);
+    Procedure PublishedMethodB; virtual;
+    Procedure PublishedMethodC; virtual; abstract;
+  end;
+
+  { TAdditionalMethodClassRTTI }
+
+  TAdditionalMethodClassRTTI = class(TMethodClassRTTI)
+  public
+    Procedure PublicAdditionalMethod;
+  end;
+
+  // Use different names, so we can distinguish RTTI in asm file...
+  TRecordFieldRTTI = record
+    private
+      FRPrivateA: Integer;
+      FRPrivateB: Integer;
+      Property RPrivateA : Integer Read FRPrivateA Write FRPrivateA;
+      Property RPrivateB : Integer Read FRPrivateB Write FRPrivateB;
+    Public
+      FRPublicA: Integer;
+      FRPublicB: Integer;
+      Property RPublicA : Integer Read FRPublicA Write FRPublicA;
+      Property RPublicB : Integer Read FRPublicA Write FRPublicB;
+
+   end;
+
+  TRecordFieldRTTIMixed = record
+    private
+      FRPrivateA: Integer;
+      FRPrivateB: Integer;
+      Property RPrivateA : Integer Read FRPrivateA Write FRPrivateA;
+      Property RPrivateB : Integer Read FRPrivateB Write FRPrivateB;
+    Public
+      FRPublicA: Integer;
+      FRPublicB: Integer;
+      Property RPublicA : Integer Read FRPublicA Write FRPublicA;
+      Property RPublicB : Integer Read FRPublicA Write FRPublicB;
+      Procedure DoA;
+   end;
+  // Use different names, so we can distinguish RTTI in asm file...
+
+  { TRecordMethodRTTI }
+
+  TRecordMethodRTTI = record
+    a,b,c : Integer;
+  private
+    Procedure PrivateMethodA;
+    Procedure PrivateMethodB;
+  Public
+    Procedure PublicMethodA;
+    Procedure PublicMethodB(I : Integer);
+   end;
+
 implementation
 
 { TTestValueClass }
@@ -210,11 +320,88 @@ begin
   FValue:=aValue;
 end;
 
+{ TMethodClassRTTI }
+
+procedure TMethodClassRTTI.PrivateMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI.PrivateMethodB;
+begin
+
+end;
+
+procedure TMethodClassRTTI.ProtectedMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI.ProtectedMethodB;
+begin
+
+end;
+
+procedure TMethodClassRTTI.PublicMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI.PublicMethodB;
+begin
+
+end;
+
+procedure TMethodClassRTTI.PublishedMethodA(a : Integer);
+begin
+
+end;
+
+procedure TMethodClassRTTI.PublishedMethodB;
+begin
+
+end;
+
+{ TAdditionalMethodClassRTTI }
+
+procedure TAdditionalMethodClassRTTI.PublicAdditionalMethod;
+begin
+
+end;
+
 {$ifdef fpc}
 class operator TManagedRecOp.AddRef(var  a: TManagedRecOp);
 begin
 end;
 {$endif}
+
+{ TRecordMethodRTTI }
+
+procedure TRecordMethodRTTI.PrivateMethodA;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PrivateMethodB;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PublicMethodA;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PublicMethodB(I : Integer);
+begin
+  //
+end;
+
+Procedure TRecordFieldRTTIMixed.DoA;
+
+begin
+//
+end;
 
 
 end.

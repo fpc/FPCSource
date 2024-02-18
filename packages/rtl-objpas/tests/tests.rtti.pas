@@ -81,10 +81,50 @@ type
 {$endif}
   end;
 
+  { TTestExtendedRTTI }
+  // Note: the tests assume that TObject has no RTTI associated with it.
+  // The tests need to be adapted so they will work in both cases.
+  TTestExtendedRTTI = class(TTestCase)
+  Private
+    FCtx: TRttiContext;
+    Procedure AssertEquals(Msg : String; aExpected,aActual : TMemberVisibility); overload;
+    Procedure AssertEquals(Msg : String; aExpected,aActual : TTypeKind);overload;
+    procedure CheckField(aIdx: Integer; aData: TRttiField; aName: String; aKind: TTypeKind; aVisibility: TMemberVisibility;
+      aStrict: Boolean=False);
+    procedure CheckMethod(aPrefix: string; aIdx: Integer; aData: TRttiMethod; aName: String; aVisibility: TMemberVisibility;
+      aStrict: Boolean=False);
+    procedure CheckProperty(aIdx: Integer; aData: TRttiProperty; aName: String; aKind: TTypeKind; aVisibility: TMemberVisibility;
+      isStrict: Boolean=False);
+  public
+    Procedure Setup; override;
+    Procedure TearDown; override;
+  end;
+
+  { TTestClassExtendedRTTI }
+
+  TTestClassExtendedRTTI = class(TTestExtendedRtti)
+  published
+    Procedure TestFields;
+    Procedure TestProperties;
+    Procedure TestDeclaredMethods;
+    Procedure TestMethods;
+  end;
+
+  { TTestRecordExtendedRTTI }
+
+  TTestRecordExtendedRTTI = class(TTestExtendedRtti)
+  published
+    Procedure TestFields;
+    Procedure TestProperties;
+    Procedure TestDeclaredMethods;
+    Procedure TestMethods;
+  end;
+
+
 implementation
 
 uses
-  Tests.Rtti.Util, tests.rtti.types;
+  Tests.Rtti.Util, {tests.rtti.exttypes, }tests.rtti.types;
 
 
 
@@ -1570,11 +1610,296 @@ begin
   end;
 end;
 
+{ TTestExtendedRTTI }
+
+procedure TTestExtendedRTTI.AssertEquals(Msg: String; aExpected, aActual: TMemberVisibility);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TMemberVisibility),Ord(aExpected)),
+                   GetEnumName(TypeInfo(TMemberVisibility),Ord(aActual)));
+end;
+
+procedure TTestExtendedRTTI.AssertEquals(Msg: String; aExpected, aActual: TTypeKind);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TTypeKind),Ord(aExpected)),
+                   GetEnumName(TypeInfo(TTypeKind),Ord(aActual)));
+end;
+
+
+procedure TTestExtendedRTTI.Setup;
+
+begin
+  Inherited;
+  FCtx:=TRttiContext.Create;
+  FCtx.UsePublishedOnly:=False;
+end;
+
+procedure TTestExtendedRTTI.TearDown;
+begin
+  FCtx.Free;
+  inherited TearDown;
+end;
+
+Procedure TTestExtendedRTTI.CheckField(aIdx : Integer; aData: TRttiField; aName : String; aKind : TTypeKind; aVisibility : TMemberVisibility; aStrict : Boolean = False);
+
+Var
+  Msg : String;
+
+begin
+  Msg:='Checking field '+IntToStr(aIdx)+' ('+aName+') ';
+  AssertNotNull(Msg+'Have data',AData);
+  AssertEquals(Msg+'name',aName,aData.Name);
+  AssertEquals(Msg+'kind',aKind,aData.FieldType.TypeKind);
+  AssertEquals(Msg+'visibility',aVisibility,aData.Visibility);
+  AssertEquals(Msg+'strict',aStrict,aData.StrictVisibility);
+end;
+
+Procedure TTestExtendedRTTI.CheckProperty(aIdx : Integer; aData: TRttiProperty; aName : String; aKind : TTypeKind; aVisibility : TMemberVisibility; isStrict : Boolean = False);
+
+Var
+  Msg : String;
+
+begin
+  Msg:='Checking prop '+IntToStr(aIdx)+' ('+aName+') ';
+  AssertNotNull(Msg+'Have data',AData);
+  AssertEquals(Msg+'name',aName, aData.Name);
+  AssertEquals(Msg+'kind',aKind, aData.PropertyType.TypeKind);
+  AssertEquals(Msg+'visibility',aVisibility,aData.Visibility);
+  AssertEquals(Msg+'strict',isStrict,aData.StrictVisibility);
+end;
+
+Procedure TTestExtendedRTTI.CheckMethod(aPrefix : string; aIdx : Integer; aData: TRttiMethod; aName : String; aVisibility : TMemberVisibility; aStrict : Boolean = False);
+
+Var
+  Msg : String;
+
+begin
+  Msg:=aPrefix+': Checking method '+IntToStr(aIdx)+' ('+aName+') ';
+  AssertNotNull(Msg+'Have data',AData);
+  AssertEquals(Msg+'name',aData.Name,aName);
+  AssertEquals(Msg+'visibility',aVisibility,aData.Visibility);
+  AssertEquals(Msg+'strict',aData.StrictVisibility,aStrict);
+end;
+
+procedure TTestClassExtendedRTTI.TestFields;
+
+Var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  A : TRttiFieldArray;
+  t : TFieldRTTI;
+
+begin
+  Obj:=FCtx.GetType(TFieldRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  A:=RttiData.GetFields;
+  AssertEquals('Class field Count',10,Length(A));
+  CheckField(0, A[0],'FPrivateA',tkInteger,mvPrivate);
+  CheckField(1, A[1],'FPrivateB',tkInteger,mvPrivate,True);
+  CheckField(2, A[2],'FProtectedA',tkInteger,mvProtected);
+  CheckField(3, A[3],'FProtectedB',tkInteger,mvProtected,True);
+  CheckField(4, A[4],'FPublicA',tkInteger,mvPublic);
+  CheckField(5, A[5],'FPublicB',tkInteger,mvPublic);
+  CheckField(6, A[6],'FPublishedA',tkInteger,mvPrivate);
+  CheckField(7, A[7],'FPublishedB',tkInteger,mvPrivate);
+  CheckField(8, A[8],'FPublishedC',tkClass,mvPublished);
+  CheckField(9, A[9],'FPublishedD',tkClass,mvPublished);
+
+  t := TFieldRTTI.Create;
+  AssertEquals('Legacy Field 0', A[8].Offset, Integer(PByte(t.FieldAddress('FPublishedC')) - PByte(t)));
+  AssertEquals('Legacy Field 1', A[9].Offset, Integer(PByte(t.FieldAddress('FPublishedD')) - PByte(t)));
+  T.Free;
+end;
+
+procedure TTestClassExtendedRTTI.TestProperties;
+
+Var
+  A : TRttiPropertyArray;
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  aCount : Integer;
+
+
+begin
+  Obj:=FCtx.GetType(TFieldRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  A:=RttiData.GetProperties;
+  aCount:=Length(A);
+  AssertEquals('Property Count',8,aCount);
+  CheckProperty(0, A[0],'PrivateA',tkInteger,mvPrivate);
+  CheckProperty(1, A[1],'PrivateB',tkInteger,mvPrivate,True);
+  CheckProperty(2, A[2],'ProtectedA',tkInteger,mvProtected);
+  CheckProperty(3, A[3],'ProtectedB',tkInteger,mvProtected,True);
+  CheckProperty(4, A[4],'PublicA',tkInteger,mvPublic);
+  CheckProperty(5, A[5],'PublicB',tkInteger,mvPublic);
+  CheckProperty(6, A[6],'PublishedA',tkInteger,mvPublished);
+  CheckProperty(7, A[7],'PublishedB',tkInteger,mvPublished);
+end;
+
+procedure TTestClassExtendedRTTI.TestDeclaredMethods;
+
+Var
+  A : TRttiMethodArray;
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Parms : TRttiParameterArray;
+  aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TMethodClassRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  A:=RttiData.GetDeclaredMethods;
+  aCount:=Length(A);
+  AssertEquals('Full Count',12,aCount);
+  CheckMethod('Full',0, A[0],'PrivateMethodA',mvPrivate);
+  CheckMethod('Full',1, A[1],'PrivateMethodB',mvPrivate,True);
+  CheckMethod('Full',2, A[2],'PrivateMethodC',mvPrivate);
+  CheckMethod('Full',3, A[3],'ProtectedMethodA',mvProtected);
+  CheckMethod('Full',4, A[4],'ProtectedMethodB',mvProtected,True);
+  CheckMethod('Full',5, A[5],'ProtectedMethodC',mvProtected);
+  CheckMethod('Full',6, A[6],'PublicMethodA',mvPublic);
+  CheckMethod('Full',7, A[7],'PublicMethodB',mvPublic);
+  CheckMethod('Full',8, A[8],'PublicMethodC',mvPublic);
+  CheckMethod('Full',9, A[9],'PublishedMethodA',mvPublished);
+  CheckMethod('Full',10, A[10],'PublishedMethodB',mvPublished);
+  CheckMethod('Full',11, A[11],'PublishedMethodC',mvPublished);
+  Parms:=A[9].GetParameters;
+  AssertEquals('Parameter length',1,Length(Parms));
+  AssertEquals('Parameter name','a',Parms[0].Name);
+
+end;
+
+procedure TTestClassExtendedRTTI.TestMethods;
+Var
+  A : TRttiMethodArray;
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TAdditionalMethodClassRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  A:=RttiData.GetMethods;
+  aCount:=Length(A);
+  AssertEquals('Full Count',13,aCount);
+  CheckMethod('Full',12, A[12],'PublicAdditionalMethod',mvPublic);
+
+end;
+
+{ TTestRecordExtendedRTTI }
+
+procedure TTestRecordExtendedRTTI.TestFields;
+
+Var
+  A : TRttiFieldArray;
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TRecordFieldRTTI));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetFields;
+  aCount:=Length(A);
+  AssertEquals('Record fields Count',4,aCount);
+  CheckField(0, A[0],'FRPrivateA',tkInteger,mvPrivate);
+  CheckField(1, A[1],'FRPrivateB',tkInteger,mvPrivate);
+  CheckField(4, A[2],'FRPublicA',tkInteger,mvPublic);
+  CheckField(5, A[3],'FRPublicB',tkInteger,mvPublic);
+
+
+  Obj:=FCtx.GetType(TypeInfo(TRecordFieldRTTIMixed));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetFields;
+  aCount:=Length(A);
+  AssertEquals('Mixed record fields Count',4,aCount);
+  CheckField(0, A[0],'FRPrivateA',tkInteger,mvPrivate);
+  CheckField(1, A[1],'FRPrivateB',tkInteger,mvPrivate);
+  CheckField(4, A[2],'FRPublicA',tkInteger,mvPublic);
+  CheckField(5, A[3],'FRPublicB',tkInteger,mvPublic);
+
+end;
+
+procedure TTestRecordExtendedRTTI.TestProperties;
+
+Var
+  A : TRttiPropertyArray;
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  aCount : Integer;
+
+begin
+  // TRecordFieldRTTI
+  Obj:=FCtx.GetType(TypeInfo(TRecordFieldRTTI));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetProperties;
+  aCount:=Length(A);
+  AssertEquals('Record property Count',4,aCount);
+  CheckProperty(0, A[0],'RPrivateA',tkInteger,mvPrivate);
+  CheckProperty(1, A[1],'RPrivateB',tkInteger,mvPrivate);
+  CheckProperty(2, A[2],'RPublicA',tkInteger,mvPublic);
+  CheckProperty(3, A[3],'RPublicB',tkInteger,mvPublic);
+  // TRecordFieldRTTIMixed
+  Obj:=FCtx.GetType(TypeInfo(TRecordFieldRTTIMixed));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetProperties;
+  aCount:=Length(A);
+  AssertEquals('Record mixed property Count',4,aCount);
+  CheckProperty(0, A[0],'RPrivateA',tkInteger,mvPrivate);
+  CheckProperty(1, A[1],'RPrivateB',tkInteger,mvPrivate);
+  CheckProperty(2, A[2],'RPublicA',tkInteger,mvPublic);
+  CheckProperty(3, A[3],'RPublicB',tkInteger,mvPublic);
+end;
+
+procedure TTestRecordExtendedRTTI.TestDeclaredMethods;
+Var
+  A : TRttiMethodArray;
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  aCount : Integer;
+  Parms : TRttiParameterArray;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TRecordMethodRTTI));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetDeclaredMethods;
+  aCount:=Length(A);
+  AssertEquals('Method Full Count',4,aCount);
+  CheckMethod('Full',0, A[0],'PrivateMethodA',mvPrivate);
+  CheckMethod('Full',1, A[1],'PrivateMethodB',mvPrivate);
+  CheckMethod('Full',2, A[2],'PublicMethodA',mvPublic);
+  CheckMethod('Full',3, A[3],'PublicMethodB',mvPublic);
+  Parms:=A[3].GetParameters;
+  AssertEquals('Parameter length',1,Length(Parms));
+  AssertNotNull('Have Parameter',Parms[0]);
+  AssertEquals('Parameter name','I',Parms[0].Name);
+end;
+
+procedure TTestRecordExtendedRTTI.TestMethods;
+Var
+  A : TRttiMethodArray;
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  aCount : Integer;
+begin
+  Obj:=FCtx.GetType(TypeInfo(TRecordMethodRTTI));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  A:=RttiData.GetDeclaredMethods;
+  aCount:=Length(A);
+  // Just check that the count is correct
+  AssertEquals('Method Full Count',4,aCount);
+end;
+
+
+
 initialization
 {$ifdef fpc}
   RegisterTest(TTestRTTI);
+  RegisterTest(TTestClassExtendedRTTI);
+  RegisterTest(TTestRecordExtendedRTTI);
 {$else fpc}
   RegisterTest(TTestRTTI.Suite);
+  RegisterTest(TTestClassExtendedRTTI.suite);
+  RegisterTest(TTestRecordExtendedRTTI.Suite);
 {$endif fpc}
 end.
 
