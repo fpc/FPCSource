@@ -803,9 +803,6 @@ type
   TFT_Sfnt_Tag = (FT_SFNT_HEAD, FT_SFNT_MAXP, FT_SFNT_OS2, FT_SFNT_HHEA,
     FT_SFNT_VHEA, FT_SFNT_POST, FT_SFNT_PCLT, FT_SFNT_MAX);
 
-  TCreated = array [0..1] of FT_ULong;
-  TModified = array [0..1] of FT_ULong;
-
   PTT_Header = ^TTT_Header;
   TTT_Header = record
     Table_Version : FT_Fixed;
@@ -817,8 +814,8 @@ type
     Flags : FT_UShort;
     Units_Per_EM : FT_UShort;
 
-    Created : TCreated;
-    Modified : TModified;
+    Created : array [0..1] of FT_ULong;
+    Modified : array [0..1] of FT_ULong;
 
     xMin : FT_Short;
     yMin : FT_Short;
@@ -832,9 +829,6 @@ type
     Index_To_Loc_Format : FT_Short;
     Glyph_Data_Format : FT_Short;
   end;
-
-  TPanose = array [0..9] of FT_Byte;
-  TAchVendID = array [0..3]  of FT_Char;
 
   PTT_OS = ^TTT_OS2;
   TTT_OS2 = record
@@ -855,14 +849,14 @@ type
     yStrikeoutPosition : FT_Short;
     sFamilyClass : FT_Short;
 
-    panose : TPanose;
+    panose : array [0..9] of FT_Byte;
 
     ulUnicodeRange1 : FT_ULong;         {Bits 0-31}
     ulUnicodeRange2 : FT_ULong;         {Bits 32-63}
     ulUnicodeRange3 : FT_ULong;         {Bits 64-95}
     ulUnicodeRange4 : FT_ULong;         {Bits 96-127}
 
-    achVendID : TAchVendID;
+    achVendID : array [0..3]  of FT_Char;
 
     fsSelection : FT_UShort;
     usFirstCharIndex : FT_UShort;
@@ -890,8 +884,36 @@ type
 
     usLowerOpticalPointSize : FT_UShort;{in twips (1/20 points)}
     usUpperOpticalPointSize : FT_UShort;{in twips (1/20 points)}
-
   end;
+
+  PTT_HoriHeader = ^TTT_HoriHeader;
+  TTT_HoriHeader = record
+    Version : FT_Fixed;
+      Ascender : FT_Short;
+      Descender : FT_Short;
+      Line_Gap : FT_Short;
+
+      advance_Width_Max : FT_UShort;    {advance width maximum }
+
+      min_Left_Side_Bearing : FT_Short; {minimum left-sb}
+      min_Right_Side_Bearing : FT_Short;{minimum right-sb}
+      xMax_Extent : FT_Short;           {xmax extents}
+      caret_Slope_Rise : FT_Short;
+      caret_Slope_Run : FT_Short;
+      caret_Offset : FT_Short;
+
+      Reserved : array [0..3] of FT_Short;
+
+      metric_Data_Format : FT_Short;
+      number_Of_HMetrics : FT_UShort;
+
+      {The following fields are not defined by the OpenType specification}
+      {but they are used to connect the metrics header to the relevant}
+      {'hmtx' table.}
+
+      long_metrics : pointer;
+      short_metrics : pointer;
+    end;
 
 // Macro
 function FT_IS_SCALABLE(face: PFT_Face): boolean;
