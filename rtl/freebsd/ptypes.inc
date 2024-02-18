@@ -180,7 +180,7 @@ type
   fsid_t  = array[0..1] of cint32;
 
 Const
-     MNAMELEN   = 88;
+     MNAMELEN   = 1024;
      MFSNamELen = 16;	
      STATFS_VERSION = $20030518;
      OMNAMLEN   = 88-2*sizeof(clong); // slightly machine specific.
