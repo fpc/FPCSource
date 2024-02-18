@@ -3456,11 +3456,6 @@ implementation
                         (
                           not assigned(curstruct) and
                           (symownerdef.owner.iscurrentunit)
-                        ) or
-                        (
-                          { helpers can access protected symbols }
-                          is_objectpascal_helper(contextobjdef) and
-                          def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                         )
                        ) or
                        { access from a generic method that belongs to the class
