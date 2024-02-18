@@ -1676,7 +1676,7 @@ parser_e_nostringaliasinsystem=03370_E_Using 'string' alias is not allowed in th
 % string alias which is dependent on the mode in which a unit is compiled.
 parser_e_coperators_off=03371_E_C styled assignment operators are turned off
 % By default, c style assignment operators (+=, -=, *=, /=) are turn off. Either turn them on by the command line
-% parameter -Sc or in the source code by {$COPERATORS ON}
+% parameter -Sc or in the source code by {\$COPERATORS ON}
 %
 % \end{description}
 %
