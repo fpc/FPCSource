@@ -3277,6 +3277,23 @@ implementation
         end;
 
       function check_strict_protected:boolean;
+
+        function owner_hierarchy_related(nested,check:tabstractrecorddef):boolean;
+          var
+            owner:tabstractrecorddef;
+          begin
+            result:=true;
+            repeat
+              if def_is_related(nested,check) then
+                exit;
+              if nested.owner.symtabletype in [recordsymtable,objectsymtable] then
+                nested:=tabstractrecorddef(nested.owner.defowner)
+              else
+                break;
+            until not assigned(nested);
+            result:=false;
+          end;
+
         begin
           result:=(
                     { access from nested class (specialization case) }
@@ -3293,7 +3310,7 @@ implementation
                     { access from child class (specialization case) }
                     assigned(contextobjdef) and
                     assigned(curstruct) and
-                    def_is_related(contextobjdef,symownerdef) and
+                    owner_hierarchy_related(contextobjdef,symownerdef) and
                     def_is_related(curstruct,contextobjdef)
                   ) or
                   (
@@ -3304,7 +3321,7 @@ implementation
                       (orgsymownerdef<>symownerdef)
                     ) and
                     assigned(curstruct) and
-                    def_is_related(orgcontextobjdef,orgsymownerdef) and
+                    owner_hierarchy_related(orgcontextobjdef,orgsymownerdef) and
                     def_is_related(curstruct,orgcontextobjdef)
                   ) or
                   (
