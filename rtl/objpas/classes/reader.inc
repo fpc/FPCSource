@@ -1729,7 +1729,7 @@ end;
 function TReader.ReadString: rawbytestring;
 
 begin
-  DoReadString(FDriver.ReadValue);
+  Result:=DoReadString(FDriver.ReadValue);
 end;
 
 
