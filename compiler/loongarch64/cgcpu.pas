@@ -462,7 +462,7 @@ implementation
         utosize:=tcgsize2unsigned[tosize];
         ufrom:=ufromsize=fromsize;
         uto:=utosize=tosize;
-        if (fromsize=tosize) or ((ufromsize=OS_INT) and (utosize=OS_INT)) then
+        if (ufromsize=OS_INT) and (utosize=OS_INT) then
           begin
             ai:=taicpu.op_reg_reg(A_MOVE,reg2,reg1);
             list.concat(ai);
