@@ -201,3 +201,5 @@ operatingsystem_parameters:
 	.align 8
 .LEFDE1:
 	.ident	"GCC: (GNU) 4.2.1 20070719  [FreeBSD]"
+
+.section .note.GNU-stack,"",@progbits
