@@ -3372,7 +3372,8 @@ implementation
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
-              result:=(
+              result:=check_strict_private or
+                      (
                        (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
                        is_current_unit(nonlocalst)
                       ) or
@@ -3417,7 +3418,8 @@ implementation
               { protected symbols are visible in the module that defines them and
                 also visible to related objects. The related object must be defined
                 in the current module }
-              result:=(
+              result:=check_strict_protected or
+                      (
                        (
                         (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
                         is_current_unit(nonlocalst)
