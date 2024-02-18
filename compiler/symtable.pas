@@ -3269,6 +3269,57 @@ implementation
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
         isspezproc : boolean;
+
+      function check_strict_private:boolean;
+        begin
+          result:=assigned(curstruct) and
+                  is_owned_by(curstruct,symownerdef);
+        end;
+
+      function check_strict_protected:boolean;
+        begin
+          result:=(
+                    { access from nested class (specialization case) }
+                    assigned(curstruct) and
+                    is_owned_by(curstruct,symownerdef)
+                  ) or
+                  (
+                    { access from nested class (non-specialization case) }
+                    (orgsymownerdef<>symownerdef) and
+                    assigned(curstruct) and
+                    is_owned_by(curstruct,orgsymownerdef)
+                  ) or
+                  (
+                    { access from child class (specialization case) }
+                    assigned(contextobjdef) and
+                    assigned(curstruct) and
+                    def_is_related(contextobjdef,symownerdef) and
+                    def_is_related(curstruct,contextobjdef)
+                  ) or
+                  (
+                    { access from child class (non-specialization case) }
+                    assigned(orgcontextobjdef) and
+                    (
+                      (orgcontextobjdef<>contextobjdef) or
+                      (orgsymownerdef<>symownerdef)
+                    ) and
+                    assigned(curstruct) and
+                    def_is_related(orgcontextobjdef,orgsymownerdef) and
+                    def_is_related(curstruct,orgcontextobjdef)
+                  ) or
+                  (
+                    { helpers can access strict protected symbols }
+                    is_objectpascal_helper(contextobjdef) and
+                    def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
+                  ) or
+                  (
+                    { same as above, but from context of call node inside
+                      helper method }
+                    is_objectpascal_helper(curstruct) and
+                    def_is_related(tobjectdef(curstruct).extendeddef,symownerdef)
+                  );
+        end;
+
       begin
         result:=false;
 
@@ -3355,51 +3406,11 @@ implementation
             end;
           vis_strictprivate :
             begin
-              result:=assigned(curstruct) and
-                      is_owned_by(curstruct,symownerdef);
+              result:=check_strict_private;
             end;
           vis_strictprotected :
             begin
-               result:=(
-                         { access from nested class (specialization case) }
-                         assigned(curstruct) and
-                         is_owned_by(curstruct,symownerdef)
-                       ) or
-                       (
-                         { access from nested class (non-specialization case) }
-                         (orgsymownerdef<>symownerdef) and
-                         assigned(curstruct) and
-                         is_owned_by(curstruct,orgsymownerdef)
-                       ) or
-                       (
-                         { access from child class (specialization case) }
-                         assigned(contextobjdef) and
-                         assigned(curstruct) and
-                         def_is_related(contextobjdef,symownerdef) and
-                         def_is_related(curstruct,contextobjdef)
-                       ) or
-                       (
-                         { access from child class (non-specialization case) }
-                         assigned(orgcontextobjdef) and
-                         (
-                           (orgcontextobjdef<>contextobjdef) or
-                           (orgsymownerdef<>symownerdef)
-                         ) and
-                         assigned(curstruct) and
-                         def_is_related(orgcontextobjdef,orgsymownerdef) and
-                         def_is_related(curstruct,orgcontextobjdef)
-                       ) or
-                       (
-                         { helpers can access strict protected symbols }
-                         is_objectpascal_helper(contextobjdef) and
-                         def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
-                       ) or
-                       (
-                         { same as above, but from context of call node inside
-                           helper method }
-                         is_objectpascal_helper(curstruct) and
-                         def_is_related(tobjectdef(curstruct).extendeddef,symownerdef)
-                       );
+              result:=check_strict_protected;
             end;
           vis_protected :
             begin
