@@ -749,6 +749,9 @@ implementation
           Internalerror(2011021001);
 
         consume(_FOR);
+        { set extendeddef to non-Nil so that potential checks for it won't trigger
+          access violations }
+        current_objectdef.extendeddef:=generrordef;
         single_type(hdef,[stoParseClassParent]);
         if not assigned(hdef) or (hdef.typ=errordef) then
           begin
@@ -808,9 +811,7 @@ implementation
           end;
 
         if assigned(hdef) then
-          current_objectdef.extendeddef:=hdef
-        else
-          current_objectdef.extendeddef:=generrordef;
+          current_objectdef.extendeddef:=hdef;
       end;
 
     procedure parse_guid;
