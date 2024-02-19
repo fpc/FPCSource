@@ -1245,7 +1245,7 @@ type
     function GetDispatchKind: TDispatchKind; override;
     function GetMethodKind: TMethodKind; override;
     function GetHasExtendedInfo: Boolean; override;
-    function GetCodeAddress: Pointer; override;
+    function GetCodeAddress: CodePointer; override;
     function GetIsClassMethod: Boolean; override;
     function GetIsStatic: Boolean; override;
     function GetVisibility: TMemberVisibility; override;
@@ -6998,7 +6998,7 @@ begin
   Result:=False
 end;
 
-function TRttiRecordMethod.GetCodeAddress: Pointer;
+function TRttiRecordMethod.GetCodeAddress: CodePointer;
 begin
   Result := Nil;
 end;
