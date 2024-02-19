@@ -2001,11 +2001,17 @@ uses
                     else
                       begin
                         hadtypetoken:=false;
+
+                        { ensure a pretty name for error messages, might be chanced below }
+                        if _prettyname<>'' then
+                          ttypesym(srsym).fprettyname:=_prettyname
+                        else
+                          ttypesym(srsym).fprettyname:=prettyname;
+
                         read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
                         ttypesym(srsym).typedef:=result;
                         result.typesym:=srsym;
                       end;
-
 
                     if _prettyname<>'' then
                       ttypesym(result.typesym).fprettyname:=_prettyname

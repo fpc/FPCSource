@@ -162,6 +162,7 @@ interface
           function  has_non_trivial_init_child(check_parent:boolean):boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
+          function  OwnerHierarchyPrettyName: string; override;
           function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
@@ -2221,6 +2222,25 @@ implementation
           result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
         until tmp=nil;
       end;
+
+
+    function tstoreddef.OwnerHierarchyPrettyName: string;
+      var
+        tmp: tdef;
+      begin
+        tmp:=self;
+        result:='';
+        repeat
+          { can be not assigned in case of a forwarddef }
+          if assigned(tmp.owner) and
+             (tmp.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+            tmp:=tdef(tmp.owner.defowner)
+          else
+            break;
+          result:=tabstractrecorddef(tmp).typesymbolprettyname+'.'+result;
+        until tmp=nil;
+      end;
+
 
     function tstoreddef.fullownerhierarchyname(skipprocparams:boolean): TSymStr;
       var

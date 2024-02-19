@@ -589,7 +589,7 @@ implementation
                        end
                      else
                        if oo_is_sealed in childof.objectoptions then
-                         Message1(parser_e_sealed_descendant,childof.typename)
+                         Message1(parser_e_sealed_descendant,childof.typesymbolprettyname)
                        else
                          childof:=find_real_class_definition(childof,true);
                    odt_interfacecorba,
