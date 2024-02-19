@@ -41,7 +41,7 @@ uses
   utcmatrix,
   utcpoint,
   utcvector,
-  utcquaternion, tests.rtti.exttypes;
+  utcquaternion;
 
 var
   Application: TTestRunner;
