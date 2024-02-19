@@ -697,6 +697,7 @@ implementation
           end;
         if target_info.endian<>source_info.endian then
           begin
+            ba.q:=0;
             if (len<=sizeof(data)) then
               case len of
                 1 : ba.b:=byte(data);
@@ -715,7 +716,6 @@ implementation
               else
                 begin
                   internalerror(2024012501);
-		  ba.q:=0;
 		end;
               end;
             CurrObjSec.write(ba,len);
