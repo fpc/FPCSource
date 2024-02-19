@@ -2434,6 +2434,8 @@ type
   protected
     FComponentStyle: TComponentStyle;
     function GetObservers: TObservers;virtual;
+    function CanObserve(const ID: Integer): Boolean; virtual;
+    procedure ObserverAdded(const ID: Integer; const Observer: IObserver); virtual;
     procedure GetDeltaStreams(aProc: TGetStreamProc); virtual;
     procedure ReadDeltaStream(const S: TStream);
     procedure ReadDeltaState; virtual;

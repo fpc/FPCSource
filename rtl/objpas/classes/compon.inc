@@ -108,10 +108,23 @@ end;
 function TComponent.GetObservers: TObservers;
 begin
   if FDObservers=Nil then
+    begin
     FDObservers:=TObservers.Create;
+    FDObservers.OnCanObserve:=@CanObserve;
+    FDObservers.OnObserverAdded:=@ObserverAdded;
+    end;
   Result:=FDObservers;
 end;
 
+function TComponent.CanObserve(const ID: Integer): Boolean; 
+begin
+  Result:=False;
+end;
+
+procedure TComponent.ObserverAdded(const ID: Integer; const Observer: IObserver); 
+begin
+  // Do nothing, can be used in descendants
+end;
 
 Procedure TComponent.Insert(AComponent: TComponent);
 
