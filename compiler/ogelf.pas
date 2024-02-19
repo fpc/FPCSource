@@ -714,9 +714,7 @@ implementation
                       ba.q:=swapendian(ba.q);
                     end;
               else
-                begin
-                  internalerror(2024012501);
-		end;
+                internalerror(2024012501);
               end;
             CurrObjSec.write(ba,len);
           end
