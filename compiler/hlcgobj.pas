@@ -4298,6 +4298,7 @@ implementation
       r : treference;
       forcesize: aint;
       hregister: TRegister;
+      hl: TAsmLabel;
     begin
       case l.loc of
         LOC_FPUREGISTER,
@@ -4331,6 +4332,23 @@ implementation
             l.reference:=r;
           end;
 {$endif cpuflags}
+        LOC_JUMP :
+          begin
+            a_label(list,l.truelabel);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
+            if is_cbool(size) then
+              a_load_const_ref(list,size,-1,r)
+            else
+              a_load_const_ref(list,size,1,r);
+            current_asmdata.getjumplabel(hl);
+            a_jmp_always(list,hl);
+            a_label(list,l.falselabel);
+            a_load_const_ref(list,size,0,r);
+            a_label(list,hl);
+
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
+            l.reference:=r;
+          end;
         LOC_CONSTANT,
         LOC_REGISTER,
         LOC_CREGISTER,
