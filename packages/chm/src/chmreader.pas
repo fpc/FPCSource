@@ -32,7 +32,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  SYstem.Generics.Collections, System.Classes, System.SysUtils,  System.Contnrs,
+  System.Generics.Collections, System.Classes, System.SysUtils,  System.Contnrs,
   Chm.Base, Chm.Lzx, Chm.FiftiMain, Chm.Sitemap;
 {$ELSE FPC_DOTTEDUNITS}
 uses
