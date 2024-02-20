@@ -1396,6 +1396,40 @@ end;
                              Various Delphi constructs
 ****************************************************************************}
 
+class operator TMethod.=(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(aLeft.Data=aRight.Data) and (aLeft.Code=aRight.Code);
+end;
+
+class operator TMethod.<>(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(aLeft.Data<>aRight.Data) or (aLeft.Code<>aRight.Code);
+end;
+
+class operator TMethod.>(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(PtrUInt(aLeft.Data)>PtrUInt(aRight.Data)) 
+            or
+          ((aLeft.Data=aRight.Data) and (PtrUInt(aLeft.Code)>PtrUint(aRight.Code)));
+end;
+
+class operator TMethod.>=(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(aLeft>aRight) or (aLeft=aRight);
+end;
+
+class operator TMethod.<(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(PtrUInt(aLeft.Data)<PtrUInt(aRight.Data)) 
+            or
+          ((aLeft.Data=aRight.Data) and (PtrUInt(aLeft.Code)<PtrUint(aRight.Code)));
+end;
+
+class operator TMethod.<=(const aLeft, aRight: TMethod): Boolean; inline;
+begin
+  Result:=(aLeft<aRight) or (aLeft=aRight);
+end;
+
 
 function TPtrWrapper.ToPointer: Pointer;
 begin
@@ -1863,3 +1897,4 @@ begin
 end;
 
 {$ENDIF}
+

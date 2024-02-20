@@ -210,6 +210,13 @@
        TMethod = record
          Code : CodePointer;
          Data : Pointer;
+       public
+         class operator =(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <>(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator >(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator >=(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <=(const aLeft, aRight: TMethod): Boolean; inline;
        end;
 
        // "Maximum" available stringtype : Shortstring, AnsiString or WideString
