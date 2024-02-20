@@ -1146,16 +1146,16 @@ unit scandir;
          begin
            hs:=current_scanner.readid;
            if (hs='NORMAL') or (hs='DEFAULT') then
-            current_settings.packenum:=4
+            recordpendingpackenum(4)
            else
             Message1(scan_e_illegal_pack_enum, hs);
          end
         else
          begin
            case current_scanner.readval of
-            1 : current_settings.packenum:=1;
-            2 : current_settings.packenum:=2;
-            4 : current_settings.packenum:=4;
+            1 : recordpendingpackenum(1);
+            2 : recordpendingpackenum(2);
+            4 : recordpendingpackenum(4);
            else
             Message1(scan_e_illegal_pack_enum, pattern);
            end;
@@ -1184,22 +1184,22 @@ unit scandir;
            hs:=current_scanner.readid;
            { C has the special recordalignmax of C_alignment }
            if (hs='C') then
-            current_settings.packrecords:=C_alignment
+            recordpendingpackrecords(C_alignment)
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             current_settings.packrecords:=default_settings.packrecords
+             recordpendingpackrecords(default_settings.packrecords)
            else
             Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
            case current_scanner.readval of
-             1 : current_settings.packrecords:=1;
-             2 : current_settings.packrecords:=2;
-             4 : current_settings.packrecords:=4;
-             8 : current_settings.packrecords:=8;
-            16 : current_settings.packrecords:=16;
-            32 : current_settings.packrecords:=32;
+             1 : recordpendingpackrecords(1);
+             2 : recordpendingpackrecords(2);
+             4 : recordpendingpackrecords(4);
+             8 : recordpendingpackrecords(8);
+            16 : recordpendingpackrecords(16);
+            32 : recordpendingpackrecords(32);
            else
             Message1(scan_e_illegal_pack_records,pattern);
            end;
@@ -1216,17 +1216,17 @@ unit scandir;
          begin
            hs:=current_scanner.readid;
            if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
-            current_settings.setalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
+            recordpendingsetalloc(0) {Fixed mode, sets are 4 or 32 bytes}
            else
             Message(scan_e_only_packset);
          end
         else
          begin
            case current_scanner.readval of
-            1 : current_settings.setalloc:=1;
-            2 : current_settings.setalloc:=2;
-            4 : current_settings.setalloc:=4;
-            8 : current_settings.setalloc:=8;
+            1 : recordpendingsetalloc(1);
+            2 : recordpendingsetalloc(2);
+            4 : recordpendingsetalloc(4);
+            8 : recordpendingsetalloc(8);
            else
             Message(scan_e_only_packset);
            end;
