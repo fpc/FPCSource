@@ -64,6 +64,7 @@ type
 
     class function Construct(const AComparison: TOnComparison<T>): IComparer<T>; overload;
     class function Construct(const AComparison: TComparisonFunc<T>): IComparer<T>; overload;
+    class function Construct(const AComparison: TComparison<T>): IComparer<T>; overload;
   end;
 
   TDelegatedComparerEvents<T> = class(TComparer<T>)
@@ -1103,6 +1104,11 @@ end;
 class function TComparer<T>.Construct(const AComparison: TOnComparison<T>): IComparer<T>;
 begin
   Result := TDelegatedComparerEvents<T>.Create(AComparison);
+end;
+
+class function TComparer<T>.Construct(const AComparison: TComparison<T>): IComparer<T>;
+begin
+  Result := TDelegatedComparer<T>.Create(AComparison);
 end;
 
 class function TComparer<T>.Construct(const AComparison: TComparisonFunc<T>): IComparer<T>;
