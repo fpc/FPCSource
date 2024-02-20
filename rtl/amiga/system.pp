@@ -24,6 +24,8 @@ interface
 {$define FPC_ANSI_TEXTFILEREC}
 {$ifdef cpum68k}
 {$define FPC_SYSTEM_HAS_BACKTRACESTR}
+{$define FPC_SYSTEM_NO_VERBOSE_THREADERROR}
+{$define FPC_SYSTEM_NO_VERBOSE_UNICODEERROR}
 {$endif}
 
 {$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
