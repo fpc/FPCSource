@@ -23,6 +23,8 @@ unit ctask;
 
 {$mode ObjFPC}
 
+{ $DEFINE DEBUG_CTASK}
+
 interface
 
 uses
@@ -172,6 +174,7 @@ begin
       exit;
     result:=result.nexttask;
     end;
+  {$IFDEF DEBUG_CTASK}Writeln('No task found for '+m.ToString);{$ENDIF}
 end;
 
 function ttask_handler.cancontinue(m: tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
@@ -241,6 +244,7 @@ var
 
 begin
   m:=t.module;
+  {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' Continues. State: ',m.state);{$ENDIF}
   if Assigned(t.state) then
     t.RestoreState;
   case m.state of
@@ -263,6 +267,13 @@ begin
       m.state:=ms_processed;
     end;
   Result:=m.state=ms_processed;
+  {$IFDEF DEBUG_CTASK}
+  Write(m.ToString,' done: ',Result);
+  if Result then
+    Writeln
+  else
+    Writeln(', state is now: ',m.state);
+  {$ENDIF}
   if not result then
     // Not done, save state
     t.SaveState;
@@ -273,7 +284,7 @@ procedure ttask_handler.processqueue;
 var
   t,t2 : ttask_list;
   process : boolean;
-  m,firstwaiting : tmodule;
+  dummy,firstwaiting : tmodule;
 
 begin
   t:=list.firsttask;
@@ -284,13 +295,14 @@ begin
       begin
       if continue(t) then
         begin
+        {$IFDEF DEBUG_CTASK}Writeln(t.module.ToString,' is finished, removing from task list');{$ENDIF}
         hash.Remove(t.module);
         list.Remove(t);
         end;
       // maybe the strategy can be improved.
       t:=list.firsttask;
       end
-    else if assigned(firstwaiting) and cancontinue(firstwaiting,true, m) then
+    else if assigned(firstwaiting) and cancontinue(firstwaiting,true, dummy) then
       begin
       t2:=findtask(firstwaiting);
       if t2=nil then
@@ -312,6 +324,7 @@ var
   t : ttask_list;
 
 begin
+  {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' added to task scheduler. State: ',m.state);{$ENDIF}
   n:=m.modulename^;
   e:=tmodule(Hash.Find(n));
   if e=nil then

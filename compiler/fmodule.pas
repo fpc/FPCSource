@@ -270,6 +270,7 @@ interface
         procedure add_extern_asmsym(sym:TAsmSymbol);
         procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
+        function ToString: RTLString; override;
       end;
 
        tused_unit = class(tlinkedlistitem)
@@ -1055,6 +1056,7 @@ implementation
       while Result and assigned(itm) do
         begin
         result:=tused_unit(itm).u.state in states;
+        {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
         if not result then
            begin
            if firstwaiting=Nil then
@@ -1349,6 +1351,16 @@ implementation
             exit;
           end;
         tasmsymbol.create(externasmsyms,name,bind,typ);
+      end;
+
+    function tmodule.ToString: RTLString;
+      begin
+        // Assigned self so we can detect nil.
+        if assigned(modulename) then
+          Result:='('+ModuleName^+')'
+        else
+         Result:='(<'+inttostr(ptrint(self))+'>)';
+        // Possibly add some state ?
       end;
 
 
