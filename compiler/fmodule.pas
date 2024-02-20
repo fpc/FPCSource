@@ -229,7 +229,6 @@ interface
         waitingunits: tfpobjectlist;
 
         finishstate: pointer;
-        globalstate: tobject;
 
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 
@@ -1041,7 +1040,7 @@ implementation
     function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
 
     const
-      statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl],
+      statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
                                                         [ms_processed, ms_compiled,ms_compiling_waitimpl]);
 
     var

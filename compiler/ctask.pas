@@ -191,7 +191,7 @@ function ttask_handler.cancontinue(m: tmodule; checksub : boolean; out firstwait
     itm:=m.used_units.First;
     while (acandidate=Nil) and assigned(itm) do
       begin
-      iscandidate:=Not (tused_unit(itm).u.state in [ms_compiled]);
+      iscandidate:=Not (tused_unit(itm).u.state in [ms_processed,ms_compiled]);
       if iscandidate then
         begin
         acandidate:=tused_unit(itm).u;
@@ -207,28 +207,29 @@ var
 
 begin
   firstwaiting:=nil;
-  if m.is_initial and (list.count>1) then
+  // We do not need to consider the program as long as there are units that need to be treated.
+  if (m.is_initial and not m.is_unit) and (list.count>1) then
     exit(False);
-    case m.state of
-      ms_unknown : cancontinue:=true;
-      ms_registered : cancontinue:=true;
-      ms_compile : cancontinue:=true;
-      ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
-      ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits;
-      ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
-      ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
-      ms_compiled : cancontinue:=true;
-      ms_processed : cancontinue:=true;
-      ms_moduleerror : cancontinue:=true;
-    else
-      InternalError(2024011802);
+  case m.state of
+    ms_unknown : cancontinue:=true;
+    ms_registered : cancontinue:=true;
+    ms_compile : cancontinue:=true;
+    ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
+    ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits;
+    ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+    ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+    ms_compiled : cancontinue:=true;
+    ms_processed : cancontinue:=true;
+    ms_moduleerror : cancontinue:=true;
+  else
+    InternalError(2024011802);
+  end;
+  if (not cancontinue) and checksub then
+    begin
+    checkused(m2);
+    if m2<>nil then
+      firstwaiting:=m2;
     end;
-    if (not cancontinue) and checksub then
-      begin
-      checkused(m2);
-      if m2<>nil then
-        firstwaiting:=m2;
-      end;
 end;
 
 function ttask_handler.cancontinue(t : ttask_list; out firstwaiting : tmodule): boolean;
@@ -254,7 +255,7 @@ begin
                    (m as tppumodule).post_load_or_compile(m.compilecount>1);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
-    ms_compiling_waitfinish : pmodules.proc_unit_implementation(m);
+    ms_compiling_waitfinish : pmodules.finish_unit(m);
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_processed : ;
   else
@@ -313,6 +314,8 @@ begin
       begin
       t:=t.nexttask;
       end;
+    if t=nil then
+      t:=list.firsttask;
     end;
 end;
 

@@ -2889,6 +2889,8 @@ uses
         def : tstoreddef;
         state : tspecializationstate;
         hmodule : tmodule;
+        mstate : tmodulestate;
+
       begin
         { first copy all entries and then work with that list to ensure that
           we don't get an infinite recursion }
@@ -2920,7 +2922,8 @@ uses
                   { we need to check for a forward declaration only if the
                     generic was declared in the same unit (otherwise there
                     should be one) }
-                  if ((hmodule=current_module) or (hmodule.state=ms_compile)) and tprocdef(def.genericdef).forwarddef then
+                  mstate:=hmodule.state;
+                  if ((hmodule=current_module) or (hmodule.state<ms_compiling_waitfinish)) and tprocdef(def.genericdef).forwarddef then
                     begin
                       readdlist.add(def);
                       continue;

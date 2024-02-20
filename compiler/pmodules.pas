@@ -33,7 +33,7 @@ uses fmodule;
     function proc_package(curr: tmodule) : boolean;
     function proc_program(curr: tmodule; islibrary : boolean) : boolean;
     function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
-    procedure finish_unit(module:tmodule;immediate:boolean);
+    procedure finish_unit(module:tmodule);
 
 implementation
 
@@ -1127,7 +1127,7 @@ type
         curr.finishstate:=finishstate;
 
         if result then
-          finish_unit(curr,true)
+          finish_unit(curr)
         else
           curr.state:=ms_compiling_waitfinish;
       end;
@@ -1409,7 +1409,7 @@ type
            result:=parse_unit_interface_declarations(curr);
       end;
 
-    procedure finish_unit(module:tmodule;immediate:boolean);
+    procedure finish_unit(module:tmodule);
 
       function is_assembler_generated:boolean;
       var
@@ -1429,8 +1429,6 @@ type
 
       procedure module_is_done(curr: tmodule);inline;
         begin
-
-          FreeAndNil(curr.globalstate);
           dispose(pfinishstate(curr.finishstate));
           curr.finishstate:=nil;
         end;
@@ -1447,22 +1445,8 @@ type
         i : longint;
         ag : boolean;
         finishstate : tfinishstate;
-        globalstate : tglobalstate;
         waitingmodule : tmodule;
       begin
-          globalstate:=default(tglobalstate);
-         if not immediate then
-           begin
-{$ifdef DEBUG_UNITWAITING}
-             writeln('finishing waiting unit ''', module.modulename^, '''');
-{$endif DEBUG_UNITWAITING}
-             { restore the state when we stopped working on the unit }
-             save_global_state(globalstate,true);
-             if not assigned(module.globalstate) then
-               internalerror(2012091802);
-             tglobalstate(module.globalstate).restore(true);
-           end;
-
          { curr is now module }
 
          if not assigned(module.finishstate) then
@@ -1577,7 +1561,9 @@ type
          symtablestack.pop(module.globalsymtable);
 
          { the last char should always be a point }
-         consume(_POINT);
+         { Do not attempt to read next token after dot,
+           there may be a #0 when the unit was finished in a separate stage }
+         consume_last_dot;
 
          { reset wpo flags for all defs }
          reset_all_defs(module);
@@ -1605,9 +1591,6 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             module_is_done(module);
-            if not immediate then
-              restore_global_state(globalstate,true);
-
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
@@ -1698,9 +1681,6 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             module_is_done(module);
-            if not immediate then
-              restore_global_state(globalstate,true);
-
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
@@ -1750,21 +1730,12 @@ type
         module_is_done(module);
         module.end_of_parsing;
 
-        if not immediate then
-          restore_global_state(globalstate,true);
-
         for i:=0 to module.waitingunits.count-1 do
           begin
             waitingmodule:=tmodule(module.waitingunits[i]);
             waitingmodule.waitingforunit.remove(module);
-            { only finish the module if it isn't already finished }
-            if (waitingmodule.waitingforunit.count=0) and
-                assigned(waitingmodule.finishstate) then
-              begin
-                finish_unit(waitingmodule,false);
-                waitingmodule.end_of_parsing;
-              end;
           end;
+
 {$ifdef DEBUG_NODE_XML}
         XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}

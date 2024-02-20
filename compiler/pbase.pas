@@ -76,6 +76,10 @@ interface
     { a syntax error is written                           }
     procedure consume(i : ttoken);
 
+    { Same as consume, but will not attempt to read next token if the token is a point }
+
+    procedure consume_last_dot;
+
     {Tries to consume the token i, and returns true if it was consumed:
      if token=i.}
     function try_to_consume(i:Ttoken):boolean;
@@ -144,8 +148,10 @@ implementation
 
 
     { consumes token i, write error if token is different }
+
     procedure consume(i : ttoken);
-      begin
+
+    begin
         if (token<>i) and (idtoken<>i) then
           if token=_id then
             Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+pattern)
@@ -159,6 +165,19 @@ implementation
           end;
       end;
 
+    procedure consume_last_dot;
+
+    begin
+        if (token<>_POINT) then
+          begin
+          if token=_id then
+            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,'identifier '+pattern)
+          else
+            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[token].str)
+          end
+        else if c<>#0 then
+          current_scanner.readtoken(true);
+    end;
 
     function try_to_consume(i:Ttoken):boolean;
       begin
