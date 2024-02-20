@@ -781,7 +781,6 @@ implementation
                genorgtypename:=orgtypename;
              end;
 
-
            consume(_EQ);
 
            { support 'ttype=type word' syntax }
