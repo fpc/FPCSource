@@ -594,6 +594,24 @@ begin
   SetValue(FItems[LIndex].Pair.Value, AValue);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetMutableValue(const AKey: TKey): PValue;
+var
+  LIndex: SizeInt;
+  LHash: UInt32;
+begin
+  LIndex := FindBucketIndex(FItems, AKey, LHash);
+  if LIndex < 0 then
+    Result := Nil
+  else
+    Result := @FItems[LIndex].Pair.Value;
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetMutableValue(const AKey: TKey; out APValue: PValue): Boolean;
+begin
+  APValue := GetMutableValue(AKey);
+  Result := APValue <>Nil;
+end;
+
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
 var
   LIndex: SizeInt;
