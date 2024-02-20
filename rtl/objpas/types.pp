@@ -36,7 +36,9 @@ const
 Const
   Epsilon: Single = 1E-40;
   Epsilon2: Single = 1E-30;
-
+  
+  CurveKappa = 0.5522847498; 
+  CurveKappaInv = 1 - CurveKappa;
 
 type
   TEndian =  Objpas.TEndian;
