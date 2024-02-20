@@ -881,6 +881,8 @@ Type
   TPrintDialogOption = (poPrintToFile, poPageNums, poSelection, poWarning,
     poHelp, poDisablePrintToFile);
   TPrintDialogOptions = set of TPrintDialogOption;
+  TPageType = (ptEnvelope, ptPaper);
+  TPageTypes = set of TPageType;
 
   TPageSetupDialogOption = (psoDefaultMinMargins, psoDisableMargins,
       psoDisableOrientation, psoDisablePagePainting, psoDisablePaper, psoDisablePrinter,
