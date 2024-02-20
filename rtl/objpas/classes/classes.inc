@@ -1462,6 +1462,14 @@ function FindGlobalComponent(const Name: string): TComponent;
       end;
   end;
 
+function IsUniqueGlobalComponentName(const aName: string): Boolean;
+
+begin
+  if Assigned(IsUniqueGlobalComponentNameProc) then
+    Result:=IsUniqueGlobalComponentNameProc(aName)
+  else 
+    Result:=Not Assigned(FindGlobalComponent(aName));
+end;
 
 procedure RegisterInitComponentHandler(ComponentClass: TComponentClass;   Handler: TInitComponentHandler);
 Var

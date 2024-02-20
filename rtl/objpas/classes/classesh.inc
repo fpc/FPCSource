@@ -2829,9 +2829,13 @@ procedure RegisterNoIcon(ComponentClasses: array of TComponentClass);
 procedure RegisterNonActiveX(ComponentClasses: array of TComponentClass;
   AxRegType: TActiveXRegType);
 
+Type
+  TIsUniqueGlobalComponentName = function(const Name: string): Boolean;
+
 var
   GlobalNameSpace: IReadWriteSync;
-
+  IsUniqueGlobalComponentNameProc: TIsUniqueGlobalComponentName;
+  
 { Object filing routines }
 
 type
@@ -2844,7 +2848,7 @@ type
   TIntToIdent = function(Int: Longint; var Ident: string): Boolean;
   TFindGlobalComponent = function(const Name: string): TComponent;
   TInitComponentHandler = function(Instance: TComponent; RootAncestor : TClass): boolean;
-
+  
 var
   MainThreadID: TThreadID;
 
@@ -2858,6 +2862,7 @@ function FindIdentToInt(AIntegerType: Pointer): TIdentToInt;
 procedure RegisterFindGlobalComponentProc(AFindGlobalComponent: TFindGlobalComponent);
 procedure UnregisterFindGlobalComponentProc(AFindGlobalComponent: TFindGlobalComponent);
 function FindGlobalComponent(const Name: string): TComponent;
+function IsUniqueGlobalComponentName(const aName: string): Boolean;
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
 function InitComponentRes(const ResName: string; Instance: TComponent): Boolean;
