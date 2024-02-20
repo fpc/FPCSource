@@ -157,7 +157,7 @@ function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_mfree(block: pointer): dword; syscall 1 73;
 function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
 function gemdos_pexec(mode: word; name: PAnsiChar; cmdline: PAnsiChar; env: PAnsiChar): longint; syscall 1 75;
-procedure gemdos_pterm(returncode: smallint); syscall 1 76;
+procedure gemdos_pterm(returncode: smallint); noreturn; syscall 1 76;
 
 function gemdos_fsfirst(filename: PAnsiChar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;

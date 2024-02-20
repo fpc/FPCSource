@@ -249,7 +249,7 @@ function Metaioctl(drive: smallint; magic: LongInt; opcode: smallint; buffer: Po
 (*                  GEMDOS                  *)
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 
-procedure pterm0; syscall 1 0;
+procedure pterm0; noreturn; syscall 1 0;
 function cconin: longint; syscall 1 1;
 function cconout(c: smallint): longint; syscall 1 2;
 function cauxin: longint; syscall 1 3;
@@ -283,7 +283,7 @@ function tsettime(time: word): word; syscall 1 45;
 
 function fgetdta: DTAPtr; syscall 1 47;
 function sversion: smallint; syscall 1 48;
-procedure ptermres(keepcnt: longint; returncode: smallint); syscall 1 49;
+procedure ptermres(keepcnt: longint; returncode: smallint); noreturn; syscall 1 49;
 function sconfig(mode: smallint; flags: longint): longint; syscall 1 51;
 
 function dfree(out buf: TDISKINFO; driveno: smallint): smallint; syscall 1 54;
@@ -308,7 +308,7 @@ function free(block: pointer): dword; syscall 1 73;
 function mfree(block: pointer): dword; syscall 1 73;
 function mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
 function pexec(mode: word; const name: shortstring; cmdline: shortstring; env: PAnsiChar): longint;
-procedure pterm(returncode: smallint); syscall 1 76;
+procedure pterm(returncode: smallint); noreturn; syscall 1 76;
 
 function fsfirst(const filename: shortstring; attr: smallint): longint;
 function fsnext: smallint;

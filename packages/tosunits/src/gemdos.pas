@@ -194,7 +194,7 @@ type
   end;
 
 
-procedure gemdos_pterm0; syscall 1 0;
+procedure gemdos_pterm0; noreturn; syscall 1 0;
 function gemdos_cconin: longint; syscall 1 1;
 function gemdos_cconout(c: smallint): longint; syscall 1 2;
 function gemdos_cauxin: longint; syscall 1 3;
@@ -228,7 +228,7 @@ function gemdos_tsettime(time: word): word; syscall 1 45;
 
 function gemdos_fgetdta: PDTA; syscall 1 47;
 function gemdos_sversion: smallint; syscall 1 48;
-procedure gemdos_ptermres(keepcnt: longint; returncode: smallint); syscall 1 49;
+procedure gemdos_ptermres(keepcnt: longint; returncode: smallint); noreturn; syscall 1 49;
 function gemdos_sconfig(mode: smallint; flags: longint): longint; syscall 1 51;
 
 function gemdos_dfree(var buf: TDISKINFO; driveno: smallint): smallint; syscall 1 54;
@@ -252,7 +252,7 @@ function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_mfree(block: pointer): dword; syscall 1 73;
 function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
 function gemdos_pexec(mode: word; name: PAnsiChar; cmdline: PAnsiChar; env: PAnsiChar): longint; syscall 1 75;
-procedure gemdos_pterm(returncode: smallint); syscall 1 76;
+procedure gemdos_pterm(returncode: smallint); noreturn; syscall 1 76;
 
 function gemdos_fsfirst(const filename: PAnsiChar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
