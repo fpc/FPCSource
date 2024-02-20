@@ -230,6 +230,19 @@ begin
     if m2<>nil then
       firstwaiting:=m2;
     end;
+  {$IFDEF DEBUG_CTASK}
+  Write(m.ToString,' state: ',m.state,', can continue: ',Result);
+  if result then
+    Writeln
+  else
+    begin
+    Write(' (First waiting: ');
+    If Assigned(FirstWaiting) then
+      Writeln(FirstWaiting.ToString,' )')
+    else
+      Writeln('<none>)');
+    end;
+  {$ENDIF}
 end;
 
 function ttask_handler.cancontinue(t : ttask_list; out firstwaiting : tmodule): boolean;
