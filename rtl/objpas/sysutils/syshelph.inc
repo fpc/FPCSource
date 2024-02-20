@@ -2,7 +2,14 @@
 
 Type
   TStringArray = Array of string;
-  TCharArray = Array of AnsiChar;
+  TAnsiStringArray = Array of Ansistring;
+  TUnicodeStringArray = Array of UnicodeString;
+  TWideStringArray = Array of WideString;
+  TShortStringArray = Array of ShortString;
+  TAnsiCharArray = Array of AnsiChar;
+  TWideCharArray = Array of WideChar;
+  TCharArray = Array of Char;
+
   TEndian = ObjPas.TEndian;
   TByteBitIndex = 0..7;
   TShortIntBitIndex = 0..7;
