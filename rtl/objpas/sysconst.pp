@@ -247,7 +247,7 @@ begin
      230 : Result:=SSafecallException;
      231 : Result:=SExceptionStack;
      232 : Result:=SNoThreadSupport;
-     233 : Result:=SMissingWStringManager;
+     234 : Result:=SMissingWStringManager;
      235 : Result:=SNoDynLibsSupport;
 
      255 : Result:=SFallbackError;
