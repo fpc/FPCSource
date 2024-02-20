@@ -2227,11 +2227,13 @@ procedure unimplementedunicodestring;
   begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 {$ifndef HAS_WIDESTRINGMANAGER}
+{$ifndef FPC_SYSTEM_NO_VERBOSE_UNICODEERROR}
     If IsConsole then
       begin
       Writeln(StdErr,SNoUnicodestrings);
       Writeln(StdErr,SRecompileWithUnicodestrings);
       end;
+{$endif FPC_SYSTEM_NO_VERBOSE_UNICODEERROR}
 {$endif HAS_WIDESTRINGMANAGER}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
     HandleErrorAddrFrameInd(234{RuntimeErrorExitCodes[reCodesetConversion]},get_pc_addr,get_frame);
