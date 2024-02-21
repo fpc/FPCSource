@@ -804,6 +804,7 @@ type
   TCollectionItemClass = class of TCollectionItem;
   TCollectionNotification = (cnAdded, cnExtracting, cnDeleting);
   TCollectionSortCompare = function (Item1, Item2: TCollectionItem): Integer;
+  TCollectionSortCompare_Context = function (Item1, Item2: TCollectionItem; context : Pointer): Integer;
 
   TCollection = class(TPersistent)
   private
@@ -848,6 +849,7 @@ type
     procedure Exchange(Const Index1, index2: integer);
     procedure Move(Const Index1, index2: integer);
     procedure Sort(Const Compare : TCollectionSortCompare);
+    procedure Sort(Const Compare : TCollectionSortCompare_Context; Context : Pointer);
     property Count: Integer read GetCount;
     property ItemClass: TCollectionItemClass read FItemClass;
     property Items[Index: Integer]: TCollectionItem read GetItem write SetItem;
