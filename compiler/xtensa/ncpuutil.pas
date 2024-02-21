@@ -29,13 +29,13 @@ interface
     cclasses,
     node,nbas,
     ngenutil,
-    symtype,symconst,symsym,symdef;
+    symtype,symconst,symsym,symdef,fmodule;
 
 
   type
     txtensanodeutils = class(tnodeutils)
     protected
-      class procedure insert_init_final_table(entries:tfplist); override;
+      class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     end;
 
 implementation
@@ -52,7 +52,7 @@ implementation
       pass_1;
 
 
-  class procedure txtensanodeutils.insert_init_final_table(entries:tfplist);
+  class procedure txtensanodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
     var
       callop, retop: TAsmOp;
       initList, finalList, header: TAsmList;
@@ -129,7 +129,7 @@ implementation
       initList.Free;
       finalList.Free;
 
-      inherited insert_init_final_table(entries);
+      inherited insert_init_final_table(main,entries);
     end;
 
 begin
