@@ -500,7 +500,7 @@ implementation
             begin
               if (idf_version>=40100) and (idf_version<40200) then
                 CheckAddUnit('espidf_40100')
-              else if (curr,idf_version>=40200) and (idf_version<40400) then
+              else if (idf_version>=40200) and (idf_version<40400) then
                 CheckAddUnit('espidf_40200')
               else if idf_version>=40400 then
                 CheckAddUnit('espidf_40400')
@@ -918,7 +918,7 @@ implementation
 
     { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
 
-    procedure maybe_load_got;
+    procedure maybe_load_got(curr: tmodule);
 {$if defined(i386) or defined (sparcgen)}
        var
          gotvarsym : tstaticvarsym;
@@ -1215,7 +1215,7 @@ type
 
 
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
-        maybe_load_got;
+        maybe_load_got(curr);
         if not curr.interface_only then
           begin
             consume(_IMPLEMENTATION);
@@ -2453,7 +2453,7 @@ type
   {$endif}
 
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
-        maybe_load_got;
+        maybe_load_got(curr);
 
         { create whole program optimisation information }
         curr.wpoinfo:=tunitwpoinfo.create;

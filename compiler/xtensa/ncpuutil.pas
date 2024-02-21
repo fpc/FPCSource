@@ -41,7 +41,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globtype,globals,constexp,fmodule,
+      verbose,cutils,globtype,globals,constexp,
       aasmdata,aasmtai,aasmcpu,aasmcnst,aasmbase,
       cpubase,
       symbase,symcpu,symtable,defutil,
