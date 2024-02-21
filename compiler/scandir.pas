@@ -221,7 +221,7 @@ unit scandir;
     procedure dir_align;
       var
         hs : string;
-        b : byte;
+        b : longint;
       begin
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
@@ -253,12 +253,7 @@ unit scandir;
          begin
            b:=current_scanner.readval;
            case b of
-             1 : current_settings.packrecords:=1;
-             2 : current_settings.packrecords:=2;
-             4 : current_settings.packrecords:=4;
-             8 : current_settings.packrecords:=8;
-            16 : current_settings.packrecords:=16;
-            32 : current_settings.packrecords:=32;
+             1,2,4,8,16,32 : current_settings.packrecords:=b;
            else
             Message1(scan_e_illegal_pack_records,tostr(b));
            end;
@@ -1140,6 +1135,7 @@ unit scandir;
     procedure dir_packenum;
       var
         hs : string;
+        v : longint;
       begin
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
@@ -1152,10 +1148,9 @@ unit scandir;
          end
         else
          begin
-           case current_scanner.readval of
-            1 : recordpendingpackenum(1);
-            2 : recordpendingpackenum(2);
-            4 : recordpendingpackenum(4);
+           v:=current_scanner.readval;
+           case v of
+            1,2,4 : recordpendingpackenum(v);
            else
             Message1(scan_e_illegal_pack_enum, pattern);
            end;
@@ -1174,6 +1169,7 @@ unit scandir;
     procedure dir_packrecords;
       var
         hs : string;
+        v : longint;
       begin
         { can't change packrecords setting on managed vm targets }
         if target_info.system in systems_managed_vm then
@@ -1193,13 +1189,9 @@ unit scandir;
          end
         else
          begin
-           case current_scanner.readval of
-             1 : recordpendingpackrecords(1);
-             2 : recordpendingpackrecords(2);
-             4 : recordpendingpackrecords(4);
-             8 : recordpendingpackrecords(8);
-            16 : recordpendingpackrecords(16);
-            32 : recordpendingpackrecords(32);
+           v:=current_scanner.readval;
+           case v of
+             1,2,4,8,16,32 : recordpendingpackrecords(v);
            else
             Message1(scan_e_illegal_pack_records,pattern);
            end;
@@ -1210,6 +1202,7 @@ unit scandir;
     procedure dir_packset;
       var
         hs : string;
+        v : longint;
       begin
         current_scanner.skipspace;
         if not(c in ['1','2','4','8']) then
@@ -1222,11 +1215,9 @@ unit scandir;
          end
         else
          begin
-           case current_scanner.readval of
-            1 : recordpendingsetalloc(1);
-            2 : recordpendingsetalloc(2);
-            4 : recordpendingsetalloc(4);
-            8 : recordpendingsetalloc(8);
+           v:=current_scanner.readval;
+           case v of
+            1,2,4,8 : recordpendingsetalloc(v);
            else
             Message(scan_e_only_packset);
            end;
