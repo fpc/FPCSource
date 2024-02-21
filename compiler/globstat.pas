@@ -81,7 +81,7 @@ procedure restore_global_state(state:tglobalstate;full:boolean);
 implementation
 
 uses
-  pbase,comphook;
+  switches, verbose, pbase,comphook;
 
 var
   states : array of tglobalstate;
@@ -159,6 +159,14 @@ var
       oldidtoken:=idtoken;
       old_block_type:=block_type;
       oldtokenpos:=current_tokenpos;
+      {
+        consuming the semicolon after a uses clause can add to the
+        pending state if the first directives change warning state.
+        So we must flush before context switch. See for example:
+        ppcgen/cgppc.pas
+        line 144 has a WARN 6018 OFF...
+      }
+      flushpendingswitchesstate;
       old_switchesstatestack:=switchesstatestack;
       old_switchesstatestackpos:=switchesstatestackpos;
 
@@ -167,7 +175,6 @@ var
 
       { save akt... state }
       { handle the postponed case first }
-      //flushpendingswitchesstate;
       oldcurrent_filepos:=current_filepos;
       old_settings:=current_settings;
       old_verbosity:=status.verbosity;
@@ -205,6 +212,9 @@ var
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
       status.verbosity:=old_verbosity;
+      { restore message settings which were recorded prior to unit switch }
+
+      RestoreLocalVerbosity(current_settings.pmessage);
 
       if full then
         begin
