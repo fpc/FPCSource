@@ -3984,6 +3984,8 @@ end;
 
 function TValue.ToString: String;
 begin
+  if IsEmpty then
+    Exit('(empty)');
   case Kind of
     tkWString,
     tkUString : result := AsUnicodeString;
@@ -4000,7 +4002,7 @@ begin
     tkChar: Result := AnsiChar(FData.FAsUByte);
     tkWChar: Result := UTF8Encode(WideChar(FData.FAsUWord));
   else
-    result := '';
+    result := '<unknown kind>';
   end;
 end;
 
