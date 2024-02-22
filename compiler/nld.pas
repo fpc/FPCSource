@@ -722,7 +722,11 @@ implementation
 
         { assignments to formaldefs and open arrays aren't allowed }
         if is_open_array(left.resultdef) then
-          CGMessage(type_e_assignment_not_allowed)
+          begin
+            CGMessage(type_e_assignment_not_allowed);
+            result:=cerrornode.create;
+            exit;
+          end
         else if (left.resultdef.typ=formaldef) then
           if not(target_info.system in systems_managed_vm) then
             CGMessage(type_e_assignment_not_allowed)
