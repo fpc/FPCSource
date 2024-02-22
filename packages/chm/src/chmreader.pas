@@ -529,7 +529,6 @@ var
   version   : integer;
   x         : TChmWindow;
 begin
- if not assigned(fwindowslist) then
  fWindowsList.Clear;
  mem.Position:=0;
  cnt  := LEtoN(mem.ReadDWord);
@@ -594,7 +593,7 @@ end;
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   fContextList := TContextList.Create;
-  fWindowslist      := TObjectlist.Create(True);
+  fWindowslist := TObjectlist.Create(True);
   fDefaultWindow:='';
 
   inherited Create(AStream, FreeStreamOnDestroy);
