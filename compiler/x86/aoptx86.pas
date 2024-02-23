@@ -9578,7 +9578,13 @@ unit aoptx86;
                     IsJumpToLabel(taicpu(hp1_dist)) and
                     not (taicpu(hp1_dist).condition in [C_AE, C_NB, C_NC, C_B, C_C, C_NAE, C_BE, C_NA]) and
                     { This works if hp1_dist or both are regular JMP instructions }
-                    condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
+                    condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) and
+                    (
+                      (taicpu(p_dist).oper[0]^.typ <> top_reg) or
+                      { Make sure the register isn't still in use, otherwise it
+                        may get corrupted (fixes #40659) }
+                      not RegUsedBetween(taicpu(p_dist).oper[0]^.reg, p, p_dist)
+                    ) then
                     begin
                       taicpu(p).allocate_oper(2);
                       taicpu(p).ops := 2;
