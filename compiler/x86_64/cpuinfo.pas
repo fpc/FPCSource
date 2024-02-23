@@ -293,7 +293,7 @@ type
    fpu_x86_64_v1_flags = [];
    fpu_x86_64_v2_flags = fpu_x86_64_v1_flags+[FPUX86_HAS_SSE3,FPUX86_HAS_SSE4_1,FPUX86_HAS_SSE4_2,FPUX86_HAS_SSSE3];
    fpu_x86_64_v3_flags = fpu_x86_64_v2_flags+[FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_F16C,FPUX86_HAS_AVX2];
-   fpu_x86_64_v4_flags = fpu_x86_64_v3_flags;
+   fpu_x86_64_v4_flags = fpu_x86_64_v3_flags+[FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512BW,FPUX86_HAS_AVX512CD,FPUX86_HAS_AVX512DQ,FPUX86_HAS_AVX512VL];
 
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
       { fpu_none      }  [],
