@@ -1673,6 +1673,14 @@ implementation
             { apply $RTTI directive to current object }
             current_structdef.apply_rtti_directive(current_module.rtti_directive);
 
+            { generate TObject VMT space }
+            { We must insert the VMT at the start for system.tobject, and class_tobject was already set.
+              The cs_compilesystem is superfluous, but we add it for safety.
+
+            }
+            if (current_objectdef=class_tobject) and (cs_compilesystem in current_settings.moduleswitches) then
+              current_objectdef.insertvmt;
+
             { parse and insert object members }
             parse_object_members;
 
@@ -1706,15 +1714,18 @@ implementation
           end;
 
         { generate vmt space if needed }
+        {
+           Here we only do it for non-classes, all classes have it since they depend on TObject
+           so their vmt is already created when TObject was parsed.
+        }
         if not(oo_has_vmt in current_structdef.objectoptions) and
+           not(current_objectdef.objecttype in [odt_class]) and
            not(oo_is_forward in current_structdef.objectoptions) and
            not(parse_generic) and
            { no vmt for helpers ever }
            not is_objectpascal_helper(current_structdef) and
-           (
-            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[]) or
-            (current_objectdef.objecttype in [odt_class])
-           ) then
+            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[])
+           then
           current_objectdef.insertvmt;
 
         { for implemented classes with a vmt check if there is a constructor }
