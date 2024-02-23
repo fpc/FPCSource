@@ -17,6 +17,8 @@ unit system;
 
 interface
 
+
+{$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
 {$define FPC_IS_SYSTEM}
 {$ifdef FPC_WASM_THREADS}
   {$define DISABLE_NO_THREAD_MANAGER}
