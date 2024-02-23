@@ -25,6 +25,7 @@ Unit System;
                                     interface
 {*****************************************************************************}
 
+{$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}

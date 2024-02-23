@@ -460,11 +460,23 @@ end;
            i : longint;
 {$endif VER3_0}
         begin
+           I:=instancesize;
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
-           ppointer(instance)^:=pointer(self);
+           {$IFNDEF SYSTEM_HAS_FEATURE_MONITOR}
+             ppointer(instance)^:=pointer(self);
+           {$ELSE}
+             {$IFDEF VER3_2}
+             // In 3.2.x Compiler (used during bootstrap) still inserts VMT at offset...
+             ppointer(PByte(instance)+SizeOf(Pointer))^:=pointer(self);
+             {$ELSE}
+             // As of 3.3.x compiler forces insert of VMT at first pos.
+             ppointer(instance)^:=pointer(self);
+             {$ENDIF}
+          {$ENDIF}
+
            if {$ifdef VER3_0}PVmt(self)^.vIntfTable <> @emptyintf{$else}assigned(PVmt(self)^.vIntfTable){$endif} then
              InitInterfacePointers(self,instance);
 
@@ -852,6 +864,10 @@ end;
 {$endif def FPC_HAS_FEATURE_RTTI}
                vmt:= vmt^.vParent;
              end;
+           {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+           if Assigned(_MonitorData) then
+             TMonitor.FreeMonitorData(_MonitorData);
+           {$ENDIF}
         end;
 
       procedure TObject.AfterConstruction;
@@ -1156,6 +1172,20 @@ end;
       begin
         // Do nothing since we have no reference count.
       end;
+
+      {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+
+       procedure TObject.SetMonitorData(aData : Pointer);
+       begin
+         _MonitorData:=aData;
+       end;
+
+       function TObject.GetMonitorData: Pointer;
+       begin
+         Result:=_MonitorData;
+       end;
+      {$ENDIF}
+
 
 {****************************************************************************
                                TINTERFACEDOBJECT
@@ -1898,3 +1928,6 @@ end;
 
 {$ENDIF}
 
+{$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+{$i monitor.inc}
+{$ENDIF}
