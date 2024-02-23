@@ -2946,8 +2946,8 @@ implementation
                 is passed. This is to prevent that the change is permanent }
               currpt:=pt;
               releasecurrpt:=false;
-	      { Should we check if the callparanode.left is valid for var }
-	      check_valid_var:=true;
+              { Should we check if the callparanode.left is valid for var }
+              check_valid_var:=true;
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
               def_from:=currpt.resultdef;
@@ -3163,7 +3163,7 @@ implementation
                     begin
                       eq:=te_convert_l1; // don't allow to pass different ansistring types to each-other
                       check_valid_var:=false;
-		    end
+                    end
                  else
                    eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
@@ -3176,7 +3176,8 @@ implementation
                         { para requires an equal type so the previous found
                           match was not good enough, reset to incompatible }
                         eq:=te_incompatible;
-                        var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
+                        var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left);
+                        check_valid_var:=false;
                       end
                     else
                       para_allowed(eq,currpt,def_to);
