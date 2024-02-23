@@ -855,12 +855,17 @@ begin
     begin
     Def:=ParamDefs[i];
     if I>=ParamArray.Count then
+      begin
       if ParamDefs[i].Required then
         JSONRPCParamError(SErrParamsRequiredParamNotFound,[def.Name]);
-    Param:=ParamArray[i];
-    // jtUnkown accepts all data types
-    if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
-      JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
+      end
+    else
+      begin  
+      Param:=ParamArray[i];
+      // jtUnkown accepts all data types
+      if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
+        JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
+      end;  
     end;
 end;
 
