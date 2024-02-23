@@ -1726,7 +1726,15 @@ implementation
          else
            name:='';
          { type a = type ..,; syntax is allowed only with type syms and apparently helpers, see below }
-         if hadtypetoken and ((token<>_ID) or (idtoken=_REFERENCE)) and (token<>_STRING) and (token<>_FILE) then
+         if hadtypetoken and
+             (
+               (token<>_ID) or
+               (
+                 (m_function_references in current_settings.modeswitches) and
+                 (idtoken=_REFERENCE)
+               )
+             ) and
+             (token<>_STRING) and (token<>_FILE) then
            consume(_ID);
          case token of
             _STRING,_FILE:
