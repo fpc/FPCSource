@@ -973,6 +973,16 @@ uses
               PopVal(FGetLocalType(GetLocalIndex));
               PushVal(FGetLocalType(GetLocalIndex));
             end;
+          a_call_indirect:
+            begin
+              if a.ops<>1 then
+                internalerror(2024022401);
+              if a.oper[0]^.typ<>top_functype then
+                internalerror(2024022402);
+              PopVal(wbt_i32);
+              PopVals(a.oper[0]^.functype.params);
+              PushVals(a.oper[0]^.functype.results);
+            end;
           else
             internalerror(2024030502);
         end;
