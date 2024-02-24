@@ -283,9 +283,9 @@ type
      { cpu_zen       } cpu_x86_64_v3_flags,
      { cpu_zen2      } cpu_x86_64_v3_flags,
      { cpu_x86_64_v4 } cpu_x86_64_v4_flags,
-     { cpu_icelake   } cpu_x86_64_v3_flags,
-     { cpu_icelake_client } cpu_x86_64_v3_flags,
-     { cpu_icelake_server } cpu_x86_64_v3_flags,
+     { cpu_icelake   } cpu_x86_64_v4_flags,
+     { cpu_icelake_client } cpu_x86_64_v4_flags,
+     { cpu_icelake_server } cpu_x86_64_v4_flags,
      { cpu_zen3      } cpu_x86_64_v3_flags,
      { cpu_zen4      } cpu_x86_64_v4_flags
    );
