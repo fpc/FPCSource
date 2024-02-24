@@ -29,7 +29,7 @@ Const
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
-  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS];
+  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku];
   CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,freertos,wasi]+UnixLikes+AllAmigaLikeOSes;
 
 Var
