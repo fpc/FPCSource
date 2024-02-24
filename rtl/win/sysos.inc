@@ -21,7 +21,9 @@ const
    INVALID_HANDLE_VALUE = THandle(-1);
 
    IGNORE = 0;               { Ignore signal }
+{$IF NOT DECLARED(INFINITE)}   
    INFINITE = longint($FFFFFFFF);     { Infinite timeout }
+{$ENDIF}   
 
    { flags for CreateFile }
    GENERIC_READ=$80000000;

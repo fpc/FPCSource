@@ -641,7 +641,7 @@
   end;
 
   const
-    INFINITE = Cardinal($FFFFFFFF);
+    INFINITE = CARDINAL($FFFFFFFF);
 
   function MonitorEnter(Const aObject: TObject; aTimeout: Cardinal = INFINITE): Boolean; inline;
   function MonitorTryEnter(Const aObject: TObject): Boolean; inline;
