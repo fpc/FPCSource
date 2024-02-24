@@ -19,8 +19,13 @@ program testrunner.rtlobjpas;
 {$endif}
 {$endif}
 
+{$IF DEFINED(WINDOWS) or DEFINED(UNIX)}
+{$DEFINE HAS_MONITOR}
+{$ENDIF}
+
 uses
-{$ifdef unix} 
+{$ifdef unix}
+  cthreads,
   cwstring,
 {$endif}
 {$ifdef useffi}
@@ -41,7 +46,13 @@ uses
   utcmatrix,
   utcpoint,
   utcvector,
-  utcquaternion;
+  utcquaternion,
+{$IFDEF HAS_MONITOR}
+  utcfpmonitor
+{$ENDIF}
+
+;
+
 
 var
   Application: TTestRunner;
