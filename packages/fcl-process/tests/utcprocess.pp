@@ -63,10 +63,10 @@ implementation
 uses dateutils;
 
 const
-  dotouch = 'dotouch';
-  docat = 'docat';
-  doexit = 'doexit';
-  genout = 'genout';
+  dotouch = 'tdotouch';
+  docat = 'tdocat';
+  doexit = 'tdoexit';
+  genout = 't_genout';
   fntouch = 'touch.txt';
   fntestoutput = 'output.txt';
   fntestinput = 'input.txt';
