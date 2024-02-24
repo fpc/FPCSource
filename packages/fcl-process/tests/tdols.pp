@@ -1,3 +1,5 @@
+{%norun}
+
 program dols;
 
 {$mode objfpc}
