@@ -1,5 +1,7 @@
 program dols;
 
+{$mode objfpc}
+
 uses sysutils;
 
 var
