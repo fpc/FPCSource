@@ -1,4 +1,5 @@
 {%norun}
+{%neededafter}
 
 program docat;
 
