@@ -28,7 +28,7 @@ interface
 
 uses
   globtype,
-  aasmbase,aasmdata,
+  aasmbase,aasmdata,aasmcpu,
   symbase,symconst,symtype,symdef,symsym,
   node,
   cpubase, hlcgobj, cgbase, cgutils, parabase, wasmdef;
@@ -55,6 +55,7 @@ uses
                               (check d.size to determine which one of the two)
         }
       function is_methodptr_like_type(d:tdef): boolean;
+      function RefStackPointerSym: TWasmGlobalAsmSymbol;
      public
       fntypelookup : TWasmProcTypeLookup;
 
@@ -257,7 +258,7 @@ implementation
   uses
     verbose,cutils,globals,fmodule,constexp,
     defutil,cpupi,
-    aasmtai,aasmcpu,
+    aasmtai,
     symtable,symcpu,
     procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr;
 
@@ -315,6 +316,12 @@ implementation
         and is_nested_pd(tprocvardef(d))
         and not(po_addressonly in tprocvardef(d).procoptions);
       result:=is_8byterecord or is_methodptr or is_nestedprocptr;
+    end;
+
+  function thlcgwasm.RefStackPointerSym: TWasmGlobalAsmSymbol;
+    begin
+      result:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL));
+      result.WasmGlobalType:=wbt_i32;
     end;
 
   constructor thlcgwasm.create;
@@ -2049,7 +2056,7 @@ implementation
 
       g_fingerprint(list);
 
-      list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
       incstack(list,1);
       list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
       decstack(list,1);
@@ -2065,7 +2072,7 @@ implementation
         decstack(list,1);
         list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
         incstack(list,1);
-        list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+        list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
         decstack(list,1);
       end;
     end;
@@ -2077,7 +2084,7 @@ implementation
       pd:=tcpuprocdef(current_procinfo.procdef);
       list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
       incstack(list,1);
-      list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
       decstack(list,1);
 
       list.concat(taicpu.op_none(a_return));
