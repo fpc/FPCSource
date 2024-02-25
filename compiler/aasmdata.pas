@@ -214,6 +214,7 @@ interface
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol;
         function  DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+        function  WeakRefAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
         function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
         function  RefAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
         function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
@@ -641,11 +642,17 @@ implementation
       end;
 
 
-    function TAsmData.WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
+    function TAsmData.WeakRefAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,_typ);
+          result:=symclass.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,_typ);
+      end;
+
+
+    function TAsmData.WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
+      begin
+        result:=WeakRefAsmSymbolByClass(TAsmSymbol,s,_typ);
       end;
 
 
