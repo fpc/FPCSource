@@ -2265,8 +2265,6 @@ begin
   if aRecord=Nil then exit;
   FieldTable:=aRecord^.ExtendedFields;
   if FieldTable=Nil then exit;
-  if FieldList<>Nil then
-    FillChar(FieldList^[Result],FieldTable^.FieldCount*sizeof(Pointer),0);
   For I:=0 to FieldTable^.FieldCount-1 do
     begin
     FieldEntry:=FieldTable^.Field[i];
