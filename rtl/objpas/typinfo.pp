@@ -556,6 +556,9 @@ unit TypInfo;
         FieldType: PPTypeInfo;
         Flags: Byte;
         Name: PShortString;
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
         property FieldVisibility: TVisibilityClass read GetVisibility;
         property StrictVisibility: Boolean read GetStrictVisibility;
         property Tail: Pointer read GetTail;
@@ -2098,11 +2101,8 @@ Var
 
 begin
   Result:=0;
-  // Clear list
   repeat
     TD:=PClassData(GetTypeData(TypeInfo))^.ExRTTITable;
-    if PropList<>Nil then
-      FillChar(PropList^,TD^.PropCount*sizeof(PPropInfoEx),0);
     Count:=TD^.PropCount;
     // Now point TP to first propinfo record.
     For I:=0 to Count-1 do
