@@ -1270,6 +1270,12 @@ type
            add_synthetic_interface_classes_for_st(current_module.localsymtable);
            end;
 
+         { generate construction functions for all attributes in the unit:
+           this must be done before writing the VMTs because
+           during VMT writing  the extended field info is written }
+
+         generate_attr_constrs(current_module.used_rtti_attrs);
+
          { Generate VMTs }
          if Errorcount=0 then
            begin
@@ -1281,9 +1287,6 @@ type
            the compiler }
          add_synthetic_method_implementations(current_module.globalsymtable);
          add_synthetic_method_implementations(current_module.localsymtable);
-
-         { generate construction functions for all attributes in the unit }
-         generate_attr_constrs(current_module.used_rtti_attrs);
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }

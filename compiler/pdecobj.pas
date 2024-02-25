@@ -1084,7 +1084,7 @@ implementation
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
         rtti_attrs_def: trtti_attribute_list;
-
+        fldCount : Integer;
 
       procedure parse_const;
         begin
@@ -1242,7 +1242,6 @@ implementation
               end;
             _ID :
               begin
-                check_unbound_attributes;
                 if is_objcprotocol(current_structdef) and
                    ((idtoken=_REQUIRED) or
                     (idtoken=_OPTIONAL)) then
@@ -1323,7 +1322,6 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            rtti_attrs_def := nil;
                             if (idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
                                 (
@@ -1367,13 +1365,34 @@ implementation
                                   include(vdoptions,vd_final);
                                 if threadvar_fields then
                                   include(vdoptions,vd_threadvar);
+                                // Record count
+                                fldCount:=FieldList.Count;
                                 read_record_fields(vdoptions,fieldlist,nil,hadgeneric);
+                                if assigned(rtti_attrs_def) then
+                                  begin
+                                  { read_record_fields can read a list of fields with the same type.
+                                    for the first fields, we simply copy. for the last one we bind.}
+                                  While (fldCount+1<FieldList.Count) do
+                                    begin
+                                    trtti_attribute_list.copyandbind(rtti_attrs_def,tfieldvarsym(fieldlist[FldCount]).rtti_attribute_list);
+                                    inc(fldcount);
+                                    end;
+                                  if fldCount<FieldList.Count then
+                                    trtti_attribute_list.bind(rtti_attrs_def,tfieldvarsym(fieldlist[FldCount]).rtti_attribute_list)
+                                  else
+                                    rtti_attrs_def.free;
+                                  end;
+                                rtti_attrs_def:=nil;
                               end;
                           end
                         else if object_member_blocktype=bt_type then
+                          begin
+                          check_unbound_attributes;
                           types_dec(true,hadgeneric, rtti_attrs_def)
+                          end
                         else if object_member_blocktype=bt_const then
                           begin
+                            check_unbound_attributes;
                             typedconstswritable:=false;
                             if final_fields then
                               begin
@@ -1394,9 +1413,6 @@ implementation
               end;
             _PROPERTY :
               begin
-                { for now attributes are only allowed on published properties }
-                if current_structdef.symtable.currentvisibility<>vis_published then
-                  check_unbound_attributes;
                 struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
