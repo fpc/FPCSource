@@ -974,6 +974,15 @@ uses
               PopVal(FGetLocalType(GetLocalIndex));
               PushVal(FGetLocalType(GetLocalIndex));
             end;
+          a_call:
+            begin
+              if a.ops<>2 then
+                internalerror(2024022501);
+              if a.oper[1]^.typ<>top_functype then
+                internalerror(2024022502);
+              PopVals(a.oper[1]^.functype.params);
+              PushVals(a.oper[1]^.functype.results);
+            end;
           a_call_indirect:
             begin
               if a.ops<>1 then
