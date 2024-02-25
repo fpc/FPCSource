@@ -641,6 +641,7 @@ uses
 
       var
         frame: TWasmControlFrame;
+        n: TCGInt;
       begin
         case a.opcode of
           a_nop:
@@ -1083,6 +1084,31 @@ uses
               if frame.opcode<>a_loop then
                 internalerror(2024022515);
               PushVals(frame.end_types);
+            end;
+          a_br:
+            begin
+              if a.ops<>1 then
+                internalerror(2024022516);
+              if a.oper[0]^.typ<>top_const then
+                internalerror(2024022517);
+              n:=a.oper[0]^.val;
+              if FCtrlStack.Count < n then
+                internalerror(2024022518);
+              PopVals(label_types(FCtrlStack[n]));
+              Unreachable;
+            end;
+          a_br_if:
+            begin
+              if a.ops<>1 then
+                internalerror(2024022519);
+              if a.oper[0]^.typ<>top_const then
+                internalerror(2024022520);
+              n:=a.oper[0]^.val;
+              if FCtrlStack.Count < n then
+                internalerror(2024022521);
+              PopVal(wbt_i32);
+              PopVals(label_types(FCtrlStack[n]));
+              PushVals(label_types(FCtrlStack[n]));
             end;
           else
             internalerror(2024030502);
