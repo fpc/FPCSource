@@ -995,6 +995,28 @@ uses
               PopVal(FGetLocalType(GetLocalIndex));
               PushVal(FGetLocalType(GetLocalIndex));
             end;
+          a_global_get,
+          a_global_set:
+            begin
+              if a.ops<>1 then
+                internalerror(2024022504);
+              if a.oper[0]^.typ<>top_ref then
+                internalerror(2024022505);
+              if not assigned(a.oper[0]^.ref^.symbol) then
+                internalerror(2024022506);
+              if (a.oper[0]^.ref^.base<>NR_NO) or (a.oper[0]^.ref^.index<>NR_NO) or (a.oper[0]^.ref^.offset<>0) then
+                internalerror(2024022507);
+              if a.oper[0]^.ref^.symbol.typ<>AT_WASM_GLOBAL then
+                internalerror(2024022508);
+              case a.opcode of
+                a_global_get:
+                  PushVal(TWasmGlobalAsmSymbol(a.oper[0]^.ref^.symbol).WasmGlobalType);
+                a_global_set:
+                  PopVal(TWasmGlobalAsmSymbol(a.oper[0]^.ref^.symbol).WasmGlobalType);
+                else
+                  internalerror(2024022509);
+              end;
+            end;
           a_call:
             begin
               if a.ops<>2 then
