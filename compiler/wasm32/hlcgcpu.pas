@@ -412,7 +412,7 @@ implementation
 
   function thlcgwasm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
-      list.concat(taicpu.op_sym(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
+      list.concat(taicpu.op_sym_functype(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),tcpuprocdef(pd).create_functype));
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 

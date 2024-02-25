@@ -143,6 +143,7 @@ uses
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
 
          constructor op_sym_const(op : tasmop;_op1 : tasmsymbol;_op2 : aint);
+         constructor op_sym_functype(op : tasmop;_op1 : tasmsymbol;_op2 : TWasmFuncType);
 
          constructor op_single(op : tasmop;_op1 : single);
          constructor op_double(op : tasmop;_op1 : double);
@@ -1808,6 +1809,15 @@ uses
       end;
 
 
+    constructor taicpu.op_sym_functype(op : tasmop;_op1 : tasmsymbol;_op2 : TWasmFuncType);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadsymbol(0,_op1,0);
+        loadfunctype(1,_op2);
+      end;
+
+
     constructor taicpu.op_single(op: tasmop; _op1: single);
       begin
         inherited create(op);
@@ -2341,7 +2351,7 @@ uses
             end;
           a_call:
             begin
-              if ops<>1 then
+              if ops<>2 then
                 internalerror(2021092021);
               with oper[0]^ do
                 case typ of
@@ -3320,7 +3330,7 @@ uses
             end;
           a_call:
             begin
-              if ops<>1 then
+              if ops<>2 then
                 internalerror(2021092021);
               with oper[0]^ do
                 case typ of
