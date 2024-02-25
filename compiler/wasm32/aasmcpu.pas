@@ -639,6 +639,8 @@ uses
             end;
         end;
 
+      var
+        frame: TWasmControlFrame;
       begin
         case a.opcode of
           a_nop:
@@ -1035,6 +1037,52 @@ uses
               PopVal(wbt_i32);
               PopVals(a.oper[0]^.functype.params);
               PushVals(a.oper[0]^.functype.results);
+            end;
+          a_if,
+          a_block,
+          a_loop:
+            begin
+              if a.opcode=a_if then
+                PopVal(wbt_i32);
+              if a.ops>1 then
+                internalerror(2024022510);
+              if a.ops=0 then
+                PushCtrl(a.opcode,[],[])
+              else
+                begin
+                  if a.oper[0]^.typ<>top_functype then
+                    internalerror(2024022511);
+                  PopVals(a.oper[0]^.functype.params);
+                  PushCtrl(a.opcode,a.oper[0]^.functype.params,a.oper[0]^.functype.results);
+                end;
+            end;
+          a_else:
+            begin
+              frame:=PopCtrl;
+              if frame.opcode<>a_if then
+                internalerror(2024022512);
+              PushCtrl(a_else,frame.start_types,frame.end_types);
+            end;
+          a_end_if:
+            begin
+              frame:=PopCtrl;
+              if (frame.opcode<>a_if) and (frame.opcode<>a_else) then
+                internalerror(2024022513);
+              PushVals(frame.end_types);
+            end;
+          a_end_block:
+            begin
+              frame:=PopCtrl;
+              if frame.opcode<>a_block then
+                internalerror(2024022514);
+              PushVals(frame.end_types);
+            end;
+          a_end_loop:
+            begin
+              frame:=PopCtrl;
+              if frame.opcode<>a_loop then
+                internalerror(2024022515);
+              PushVals(frame.end_types);
             end;
           else
             internalerror(2024030502);
