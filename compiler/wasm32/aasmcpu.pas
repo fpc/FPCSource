@@ -43,6 +43,11 @@ uses
     type
       TWasmBasicTypeList = array of TWasmBasicType;
 
+      { TWasmGlobalAsmSymbol }
+
+      TWasmGlobalAsmSymbol = class(TAsmSymbol)
+      end;
+
       { TWasmValueStack }
 
       TWasmValueStack = class
@@ -1652,7 +1657,7 @@ uses
     constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean);
       begin
         inherited Create;
-        sym:=current_asmdata.RefAsmSymbol(aglobalname,AT_WASM_GLOBAL);
+        sym:=current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AT_WASM_GLOBAL);
         typ:=ait_globaltype;
         globalname:=aglobalname;
         gtype:=atype;
@@ -1664,7 +1669,7 @@ uses
     constructor tai_globaltype.create_local(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       begin
         inherited Create;
-        sym:=current_asmdata.DefineAsmSymbol(aglobalname,AB_LOCAL,AT_WASM_GLOBAL,def);
+        sym:=current_asmdata.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_LOCAL,AT_WASM_GLOBAL,def);
         typ:=ait_globaltype;
         globalname:=aglobalname;
         gtype:=atype;
@@ -1676,7 +1681,7 @@ uses
     constructor tai_globaltype.create_global(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       begin
         inherited Create;
-        sym:=current_asmdata.DefineAsmSymbol(aglobalname,AB_GLOBAL,AT_WASM_GLOBAL,def);
+        sym:=current_asmdata.DefineAsmSymbolByClass(TWasmGlobalAsmSymbol,aglobalname,AB_GLOBAL,AT_WASM_GLOBAL,def);
         typ:=ait_globaltype;
         globalname:=aglobalname;
         gtype:=atype;

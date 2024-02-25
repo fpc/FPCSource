@@ -2049,7 +2049,7 @@ implementation
 
       g_fingerprint(list);
 
-      list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
       incstack(list,1);
       list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
       decstack(list,1);
@@ -2065,7 +2065,7 @@ implementation
         decstack(list,1);
         list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
         incstack(list,1);
-        list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+        list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
         decstack(list,1);
       end;
     end;
@@ -2077,7 +2077,7 @@ implementation
       pd:=tcpuprocdef(current_procinfo.procdef);
       list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
       incstack(list,1);
-      list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL)));
       decstack(list,1);
 
       list.concat(taicpu.op_none(a_return));

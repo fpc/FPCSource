@@ -544,7 +544,7 @@ implementation
 
     procedure twasminlinenode.second_tls_get(const SymStr: string);
       begin
-        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(SymStr,AT_WASM_GLOBAL)));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,SymStr,AT_WASM_GLOBAL)));
         thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
