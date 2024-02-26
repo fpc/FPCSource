@@ -431,8 +431,7 @@ begin
     if Result=Nil then
       begin
       // At some point we could cache this.
-      GetMem(Result,SizeOf(TMonitorData));
-      Result^:=Default(TMonitorData);
+      New(Result);
       Result^.Init;
       SetMonitorData(aObject,Result);
       end;
