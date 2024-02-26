@@ -512,13 +512,13 @@ begin
     If (Length(O)>1) and (O[1]=FOptionChar) then
       begin
       Delete(O,1,1);
-      LongOpt:=(Length(O)>0) and (O[1]=FOptionChar);
+      LongOpt:=(O[1]=FOptionChar);
       If LongOpt then
         begin
         Delete(O,1,1);
         P:=Pos('=',O);
         If (P<>0) then
-          O:=Copy(O,1,P-1);
+          SetLength(O,P-1);
         end;
       If Not CaseSensitiveOptions then
         O:=UpperCase(O);
