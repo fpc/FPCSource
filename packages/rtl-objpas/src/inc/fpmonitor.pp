@@ -165,7 +165,6 @@ end;
 
 procedure TMonitorData.Enter;
 var
-  I : integer;
   TID : TThreadID;
   IsOwner : Boolean;
 
@@ -175,18 +174,16 @@ begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin enter. Is Owner: ',IsOwner);{$ENDIF}
   if IsOwner then
     begin
-    I:=AtomicIncrement(LockCount);
-    if I<>1 then
-      begin
-      {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Recursive enter detected');{$ENDIF}
-      exit;
-      end;
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Recursive enter detected');{$ENDIF}
+    end
+  else
+    begin
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entering critical section');{$ENDIF}
+    EnterCriticalSection(CriticalSection);
+    LockOwnerThreadID:=TID;
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entered critical section');{$ENDIF}
     end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entering critical section');{$ENDIF}
-  EnterCriticalSection(CriticalSection);
-  LockCount:=1;
-  LockOwnerThreadID:=TID;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Entered critical section');{$ENDIF}
+  Inc(LockCount);
 end;
 
 function TMonitorData.TryEnter: Boolean;
@@ -196,15 +193,14 @@ begin
   TID:=GetCurrentThreadId;
   Result:=TID=LockOwnerThreadID;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin TryEnter. Is Owner: ',Result);{$ENDIF}
-  if Not Result then
+  if not Result then
     begin
     Result:=TryEnterCriticalSection(CriticalSection)<>0;
     if Result then
-      begin
       LockOwnerThreadID:=TID;
-      LockCount:=1;
-      end;
     end;
+  if Result then
+    Inc(LockCount);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End TryEnter. Result: ',Result);{$ENDIF}
 end;
 
@@ -314,19 +310,15 @@ end;
 
 procedure TMonitorData.Leave;
 
-var
-  I : integer;
-
 begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
   CheckLockOwner;
-  I:=AtomicDecrement(LockCount);
-  {$IFDEF DEBUG_MONITOR}if I>0 then Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Owner holds recursive lock: ',I);{$ENDIF}
-  if I<>0 then
+  Dec(LockCount);
+  {$IFDEF DEBUG_MONITOR}if LockCount>0 then Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Owner holds recursive lock: ',LockCount);{$ENDIF}
+  if LockCount<>0 then
     Exit;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Leaving critical section');{$ENDIF}
   LockOwnerThreadID:=TThreadID(0);
-  LockCount:=0;
   LeaveCriticalSection(CriticalSection);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Leave. Is owner: ',GetCurrentThreadID=LockOwnerThreadID);{$ENDIF}
 end;
