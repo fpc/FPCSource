@@ -293,18 +293,30 @@ function TMonitorData.Wait(aLock : PMonitorData; aTimeout: Cardinal): Boolean;
 
 var
   aPulse : TPulseData;
+  PrevLockCount : Integer;
 
 begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
   aLock^.CheckLockOwner;
   aPulse:=TPulseData.Create;
   AddToPulseData(@aPulse);
-  aLock^.Leave;
+
+  // Forcibly unlock through any amount of recursive acquisitions!
+  PrevLockCount:=aLock^.LockCount;
+  aLock^.LockCount:=0;
+  aLock^.LockOwnerThreadID:=0;
+  LeaveCriticalSection(aLock^.CriticalSection);
+
   Result:=aPulse.Wait(aTimeOut);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Wait Removing from Pulse data');{$ENDIF}
   RemoveFromPulseData(@aPulse);
   aPulse.Done;
-  aLock^.Enter;
+
+  // Lock back as if nothing happened!
+  EnterCriticalSection(aLock^.CriticalSection);
+  aLock^.LockOwnerThreadID:=GetCurrentThreadId;
+  aLock^.LockCount:=PrevLockCount;
+
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
 end;
 
