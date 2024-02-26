@@ -4394,7 +4394,11 @@ end;
 
 function TExtendedVmtFieldEntry.GetTail: Pointer;
 begin
-  Result := PByte(@Name) + SizeOf(Pointer);
+
+  Result := PByte(@Name) + SizeOf(Pointer) ;
+  {$ifdef PROVIDE_ATTR_TABLE}
+  Result := Result + SizeOf(Pointer) ;
+  {$ENDIF}
 end;
 
 function TExtendedVmtFieldEntry.GetVisibility: TVisibilityClass;
