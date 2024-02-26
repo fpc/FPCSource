@@ -108,8 +108,10 @@ uses
         FValueStack: TWasmValueStack;
         FCtrlStack: TWasmControlStack;
         FGetLocalType: TGetLocalTypeProc;
+        FFuncType: TWasmFuncType;
+        FEndFunctionReached: Boolean;
       public
-        constructor Create(AGetLocalType: TGetLocalTypeProc);
+        constructor Create(AGetLocalType: TGetLocalTypeProc; AFuncType: TWasmFuncType);
         destructor Destroy; override;
 
         procedure PushVal(vt: TWasmBasicType);
@@ -500,11 +502,14 @@ uses
 
     { TWasmValidationStacks }
 
-    constructor TWasmValidationStacks.Create(AGetLocalType: TGetLocalTypeProc);
+    constructor TWasmValidationStacks.Create(AGetLocalType: TGetLocalTypeProc; AFuncType: TWasmFuncType);
       begin
+        FEndFunctionReached:=False;
         FGetLocalType:=AGetLocalType;
         FValueStack:=TWasmValueStack.Create;
         FCtrlStack:=TWasmControlStack.Create;
+        FFuncType:=AFuncType;
+        PushCtrl(a_block,[],[]);
       end;
 
     destructor TWasmValidationStacks.Destroy;
@@ -534,7 +539,7 @@ uses
     function TWasmValidationStacks.PopVal(expect: TWasmBasicType): TWasmBasicType;
       begin
         Result:=wbt_Unknown;
-        Result:=PopVal;
+        Result:=PopVal();
         if (Result<>expect) and (Result<>wbt_Unknown) and (expect<>wbt_Unknown) then
           internalerror(2024013105);
       end;
@@ -643,6 +648,8 @@ uses
         frame: TWasmControlFrame;
         n: TCGInt;
       begin
+        if FEndFunctionReached then
+          internalerror(2024022602);
         case a.opcode of
           a_nop:
             ;
@@ -1110,6 +1117,13 @@ uses
               PopVals(label_types(FCtrlStack[n]));
               PushVals(label_types(FCtrlStack[n]));
             end;
+          a_return:
+            begin
+              PopVals(FFuncType.results);
+              Unreachable;
+            end;
+          a_end_function:
+            FEndFunctionReached:=True;
           else
             internalerror(2024030502);
         end;

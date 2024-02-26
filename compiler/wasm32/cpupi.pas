@@ -36,6 +36,9 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     private
+      FFuncType: TWasmFuncType;
+      FLocals: array of TWasmBasicType;
+      FParametersCount: Integer;
       FFirstFreeLocal: Integer;
       FAllocatedLocals: array of TWasmBasicType;
       FGotoTargets: TFPHashObjectList;
@@ -47,6 +50,7 @@ interface
 
       { used for allocating locals during the postprocess_code stage (i.e. after register allocation) }
       function AllocWasmLocal(wbt: TWasmBasicType): Integer;
+      function GetLocalType(localidx: Integer): TWasmBasicType;
     public
       { label to the nearest local exception handler }
       CurrRaiseLabel : tasmlabel;
@@ -423,6 +427,16 @@ implementation
         SetLength(FAllocatedLocals,Length(FAllocatedLocals)+1);
         FAllocatedLocals[High(FAllocatedLocals)]:=wbt;
         result:=High(FAllocatedLocals)+FFirstFreeLocal;
+
+        SetLength(FLocals,Length(FLocals)+1);
+        FLocals[High(FLocals)]:=wbt;
+      end;
+
+    function tcpuprocinfo.GetLocalType(localidx: Integer): TWasmBasicType;
+      begin
+        if (localidx<Low(FLocals)) or (localidx>High(FLocals)) then
+          internalerror(2024022601);
+        result:=FLocals[localidx];
       end;
 
     constructor tcpuprocinfo.create(aparent: tprocinfo);
@@ -889,9 +903,14 @@ implementation
             local:=nil;
             first:=true;
             l:=ttgwasm(tg).localvars.first;
-            FFirstFreeLocal:=Length(findfirst_tai_functype(aktproccode).functype.params);
+            FFuncType:=findfirst_tai_functype(aktproccode).functype;
+            FLocals:=Copy(FFuncType.params);
+            FParametersCount:=Length(FLocals);
+            FFirstFreeLocal:=FParametersCount;
             while Assigned(l) do
               begin
+                SetLength(FLocals,Length(FLocals)+1);
+                FLocals[High(FLocals)]:=l.typ;
                 local:=tai_local.create(l.typ);
                 local.first:=first;
                 first:=false;
@@ -944,6 +963,23 @@ implementation
               end;
           end;
 
+        procedure validate_code;
+          var
+            vs: TWasmValidationStacks;
+            hp: tai;
+          begin
+            vs:=TWasmValidationStacks.Create(@GetLocalType,FFuncType);
+
+            hp:=tai(aktproccode.first);
+            while assigned(hp) do
+              begin
+                if hp.typ=ait_instruction then
+                  vs.Validate(taicpu(hp));
+                hp:=tai(hp.next);
+              end;
+            vs.Free;
+          end;
+
       var
         localslist: TAsmList;
         labels_resolved, has_goto: Boolean;
@@ -966,6 +1002,10 @@ implementation
         add_extra_allocated_locals(localslist);
         insert_localslist(aktproccode,localslist);
         localslist.Free;
+
+{$ifdef DEBUG_WASM_VALIDATION}
+        validate_code;
+{$endif DEBUG_WASM_VALIDATION}
 
         inherited postprocess_code;
       end;
