@@ -408,7 +408,6 @@ var
   _oldMonitor,
   _monitor : TMonitorManager;
   _DummySpinCount : Integer;
-  _MemLock : TRTLCriticalSection;
 
 function GetMonitorData(aObject : TObject) : PMonitorData; inline;
 
@@ -416,28 +415,31 @@ begin
   Result:=PMonitorData(_monitor.DoGetMonitorObjectData(aObject));
 end;
 
-procedure SetMonitorData(aObject : TObject; aData : PMonitorData); inline;
+function SetMonitorData(aObject : TObject; aData,aComparand : PMonitorData) : PMonitorData; inline;
 
 begin
-  _monitor.DoSetMonitorObjectData(aObject,aData);
+  Result:=_monitor.DoSetMonitorObjectData(aObject,aData,aComparand);
 end;
 
 function SyncEnsureData(aObject : TObject) : PMonitorData;
 
 begin
-  EnterCriticalSection(_MemLock);
-  try
+  repeat
     Result:=GetMonitorData(aObject);
-    if Result=Nil then
+    if Result<>Nil then
       begin
-      // At some point we could cache this.
-      New(Result);
-      Result^.Init;
-      SetMonitorData(aObject,Result);
+      ReadDependencyBarrier; // Read Result fields after Result pointer.
+      exit;
       end;
-  finally
-    LeaveCriticalSection(_MemLock);
-  end;
+
+    // At some point we could cache this.
+    New(Result);
+    Result^.Init;
+    WriteBarrier; // Write pointer with SetMonitorData only after Result fields have been written.
+    if SetMonitorData(aObject,Result,nil)=nil then
+      break;
+    Dispose(Result); // And retry GetMonitorData + ReadDependencyBarrier from the beginning of the loop, which will guaranteedly succeed.
+  until false;
 end;
 
 procedure SyncFreeData(aData : PMonitorData);
@@ -549,7 +551,6 @@ end;
 procedure RegisterMonitorSupport;
 
 begin
-  InitCriticalSection(_MemLock);
   InitMonitorSupport;
   _OldMonitor:=SetMonitorManager(_Monitor);
 end;
@@ -557,7 +558,6 @@ end;
 procedure UnRegisterMonitorSupport;
 
 begin
-  DoneCriticalSection(_MemLock);
   SetMonitorManager(_oldMonitor);
 end;
 

@@ -245,7 +245,7 @@
        strict private
           _MonitorData : Pointer;
        private
-          procedure SetMonitorData(aData : Pointer); inline;
+          function SetMonitorData(aData,aComparand : Pointer) : Pointer; inline;
           function GetMonitorData: Pointer; inline;
        {$ENDIF}
        protected
@@ -620,7 +620,7 @@
     TMonitorFunc = function(const aObject : TObject) : Boolean;
     TMonitorTimeoutFunc = function(const aObject : TObject; aTimeout : Cardinal) : Boolean;
     TMonitorLockTimeoutFunc = function(const aObject,aLock : TObject; aTimeout : Cardinal) : Boolean;
-    TMonitorSetObjectDataProc = procedure (const aObject : TObject; aData : Pointer);
+    TMonitorSetObjectDataProc = function (const aObject : TObject; aData,aComparand : Pointer) : Pointer;
     TMonitorGetObjectDataFunc = function (const aObject : TObject): Pointer;
     TMonitorFreeDataProc = procedure (aData : Pointer);
   Public

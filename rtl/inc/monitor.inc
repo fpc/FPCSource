@@ -85,9 +85,9 @@ end;
   Monitor manager
   *********************************************************************}
 
-procedure SysMonitorSetObjectDataProc(const aObject : TObject; aData : Pointer);
+function SysMonitorSetObjectDataProc(const aObject : TObject; aData,aComparand : Pointer) : Pointer;
 begin
-  aObject.SetMonitorData(aData);
+  Result:=aObject.SetMonitorData(aData,aComparand);
 end;
 
 function SysMonitorGetObjectDataFunc (const aObject : TObject): Pointer;

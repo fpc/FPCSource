@@ -1175,9 +1175,9 @@ end;
 
       {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
 
-       procedure TObject.SetMonitorData(aData : Pointer);
+       function TObject.SetMonitorData(aData,aComparand : Pointer) : Pointer;
        begin
-         _MonitorData:=aData;
+         Result:=InterlockedCompareExchange(_MonitorData,aData,aComparand);
        end;
 
        function TObject.GetMonitorData: Pointer;
