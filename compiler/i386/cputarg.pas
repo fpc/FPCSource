@@ -107,9 +107,16 @@ implementation
       ,agx86int
     {$endif}
 
+    {$ifndef NOOGCOFF}
       ,ogcoff
+    {$endif}
+    {$ifndef NOOGCOFF}
       ,ogelf
       ,cpuelf
+    {$endif}
+    {$ifndef NOOGMACHO}
+      ,ogmacho
+    {$endif}
 
 {**************************************
         Assembler Readers
