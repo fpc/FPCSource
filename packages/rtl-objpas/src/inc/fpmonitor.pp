@@ -80,14 +80,16 @@ end;
 Type
 
   { TPulseData }
-
+  PPulseData = ^TPulseData;
   TPulseData = record
     Event : PEventState;
+    Next,Prev : PPulseData; // Next is set to nil when PPulseData is not in the list, allowing to check this fact as “(PD^.Next=nil) and (PD<>PulseTail)”.
+{$ifdef DEBUG_MONITOR}
     ThreadID : TThreadID;
+{$endif}
     Class Function Create : TPulseData; static;
     Procedure Done;
     function Wait(aTimeout : Cardinal) : boolean;
-    function Match(aPulse : TPulseData) : boolean;
     Procedure Pulse;
   end;
   TPulseDataArray = Array of TPulseData;
@@ -100,8 +102,7 @@ Type
     LockOwnerThreadID : TThreadID;
     CriticalSection : TRTLCriticalSection;
     PulseLock : TRTLCriticalSection;
-    PulseData : TPulseDataArray;
-    PulseCount : Integer;
+    PulseHead,PulseTail : PPulseData;
     Procedure EnterPulse;
     Procedure LeavePulse;
     Procedure Enter;
@@ -114,10 +115,9 @@ Type
     Procedure Pulse;
     Procedure PulseAll;
   private
-    procedure AddToPulseData(aPulse: TPulseData);
-    function PopPulseData(out aData: TPulseData): Boolean;
-    procedure RemoveFromPulseData(aPulse: TPulseData);
-    procedure ShiftPulseData(Idx: Integer);
+    procedure AddToPulseData(aPulse: PPulseData);
+    function UnlockedPopPulseData: PPulseData; // Pulse/PulseAll require separate locking to not race with Waits.
+    procedure RemoveFromPulseData(aPulse: PPulseData);
     procedure CheckLockOwner;
   end;
 
@@ -125,10 +125,13 @@ Type
 
 class function TPulseData.Create: TPulseData;
 begin
-  Result.ThreadID:=GetCurrentThreadId;
   Result.Event:=RTLEventCreate;
   if (Result.Event=Nil) then
     Raise EMonitor.Create('Could not create event');
+  Result.Next:=nil; // Support the comment on Next. Prev is set by AddToPulseData and is otherwise unimportant.
+{$ifdef DEBUG_MONITOR}
+  Result.ThreadID:=GetCurrentThreadId;
+{$endif}
 end;
 
 procedure TPulseData.Done;
@@ -141,12 +144,6 @@ function TPulseData.Wait(aTimeout: Cardinal): boolean;
 begin
   // actually wrSignaled
   Result:=BasicEventWaitFor(aTimeout,Event,False)=0;
-end;
-
-function TPulseData.Match(aPulse: TPulseData): boolean;
-begin
-  Result:=(aPulse.ThreadID=Self.ThreadID) and (aPulse.Event=Self.Event);
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Match ',aPulse.ThreadID,'=',Self.ThreadID,') and (',Ptrint(aPulse.Event),'=',Ptrint(Self.Event),' : ',Result);{$ENDIF}
 end;
 
 procedure TPulseData.Pulse;
@@ -227,88 +224,73 @@ begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Enter(',aTimeout,'), Result: ',Result);{$ENDIF}
 end;
 
-procedure TMonitorData.ShiftPulseData(Idx: Integer);
-// Only call this inside EnterPulse/Leavepulse !
-
-begin
-  // Not sure if we need to preserve order. Better assume yes.
-  // shift items. If need be, this can be done with a move.
-  While Idx<PulseCount-1 do
-    begin
-    PulseData[Idx]:=PulseData[Idx+1];
-    Inc(Idx);
-    end;
-  Dec(PulseCount);
-end;
-
 procedure TMonitorData.CheckLockOwner;
 begin
   if LockOwnerThreadID<>GetCurrentThreadId then
     Raise EMonitor.CreateFmt('Lock not owned by this thread %d <> %d',[LockOwnerThreadID,GetCurrentThreadId]);
 end;
 
-function TMonitorData.PopPulseData (out aData : TPulseData) : Boolean;
+function TMonitorData.UnlockedPopPulseData: PPulseData;
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin PopPulseData');{$ENDIF}
-  EnterPulse;
-  try
-   Result:=PulseCount>0;
-   if Result then
-     begin
-     aData:=PulseData[0];
-     ShiftPulseData(0);
-     end;
-  finally
-    LeavePulse;
-  end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End PopPulseData Result: ',Result,', left:',PulseCount);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin UnlockedPopPulseData');{$ENDIF}
+  Result:=PulseHead;
+  if Result<>nil then
+    begin
+    PulseHead:=Result^.Next;
+    if PulseHead<>nil then
+      PulseHead^.Prev:=nil
+    else
+      PulseTail:=nil;
+    Result^.Next:=nil; // Mark as removed for future RemoveFromPulseData call from Wait.
+    end;
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End UnlockedPopPulseData Result: ',HexStr(Result));{$ENDIF}
 end;
 
-procedure TMonitorData.RemoveFromPulseData(aPulse: TPulseData);
+procedure TMonitorData.RemoveFromPulseData(aPulse: PPulseData);
 
 var
-  Idx : integer;
+  Prev, Next: PPulseData;
 
 begin
   EnterPulse;
   try
-    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin RemoveFromPulseData (Thread: ',aPulse.ThreadID,', count: ',PulseCount,')');{$ENDIF}
-    // Find index
-    Idx:=PulseCount-1;
-    While (Idx>=0) and Not PulseData[Idx].Match(aPulse) do
-      Dec(Idx);
-    if Idx<0 then
-      begin
-      {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' end RemoveFromPulseData. Count: ',PulseCount);{$ENDIF}
-      exit;
-      end;
-    PulseData[Idx].Done;
-    ShiftPulseData(Idx);
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin RemoveFromPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+    Next:=aPulse^.Next;
+    if (Next=nil) and (aPulse<>PulseTail) then // Already removed.
+    begin
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Cancel RemoveFromPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+    exit;
+    end;
+    Prev:=aPulse^.Prev;
+    if Prev<>nil then
+      Prev^.Next:=Next
+    else
+      PulseHead:=Next;
+    if Next<>nil then
+      Next^.Prev:=Prev
+    else
+      PulseTail:=Prev;
+    {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' end RemoveFromPulseData.');{$ENDIF}
   finally
     LeavePulse;
   end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' end RemoveFromPulseData. Count: ',PulseCount);{$ENDIF}
 end;
 
-procedure TMonitorData.AddToPulseData(aPulse: TPulseData);
-
-var
-  Len : integer;
+procedure TMonitorData.AddToPulseData(aPulse: PPulseData);
 
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin AddToPulseData (Thread: ',aPulse.ThreadID,')');{$ENDIF}
-  EnterPulse;
-  try
-    Len:=Length(PulseData);
-    If PulseCount=Len then
-      SetLength(PulseData,Len+10);
-    PulseData[PulseCount]:=aPulse;
-    Inc(PulseCount);
-  finally
-    LeavePulse;
-  end;
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End AddToPulseData. Count: ',PulseCount);{$ENDIF}
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin AddToPulseData (Thread: ',aPulse^.ThreadID,')');{$ENDIF}
+  EnterPulse; // try .. finally aren’t required as the code cannot throw, for now.
+  aPulse^.Next:=nil;
+  aPulse^.Prev:=PulseTail;
+  if PulseTail<>nil then
+    PulseTail^.Next:=aPulse
+  else
+    PulseHead:=aPulse;
+  PulseTail:=aPulse;
+  LeavePulse;
+  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End AddToPulseData.');{$ENDIF}
 end;
 
 function TMonitorData.Wait(aLock : PMonitorData; aTimeout: Cardinal): Boolean;
@@ -320,12 +302,12 @@ begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
   aLock^.CheckLockOwner;
   aPulse:=TPulseData.Create;
-  AddToPulseData(aPulse);
+  AddToPulseData(@aPulse);
   aLock^.Leave;
   Result:=aPulse.Wait(aTimeOut);
-  Sleep(20);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Wait Removing from Pulse data');{$ENDIF}
-  RemoveFromPulseData(aPulse);
+  RemoveFromPulseData(@aPulse);
+  aPulse.Done;
   aLock^.Enter;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Wait (aTimeout: ',aTimeOut,')');{$ENDIF}
 end;
@@ -355,20 +337,14 @@ begin
   LockOwnerThreadID:= TThreadID(0);
   InitCriticalSection(CriticalSection);
   InitCriticalSection(PulseLock);
-  PulseCount:=0;
+  PulseHead:=nil;
+  PulseTail:=nil;
 end;
 
 procedure TMonitorData.Done;
 
-var
-  I : integer;
-
 begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Done monitor data');{$ENDIF}
-  // We don't lock as normally this is only called when object is destroyed.
-  For I:=0 to PulseCount-1 do
-    PulseData[i].Done;
-  SetLength(PulseData,0);
   DoneCriticalSection(PulseLock);
   DoneCriticalSection(CriticalSection);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Done monitor data');{$ENDIF}
@@ -377,29 +353,44 @@ end;
 procedure TMonitorData.Pulse;
 
 var
-  aPulse : TPulseData;
-  HavePulse: Boolean;
+  aPulse : PPulseData;
+{$IFDEF DEBUG_MONITOR}HavePulse: Boolean;{$endif}
 begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Pulse');{$ENDIF}
-  HavePulse:=PopPulseData(aPulse);
-  if HavePulse then
-    aPulse.Pulse;
+  EnterPulse;
+  try
+    aPulse:=UnlockedPopPulseData;
+{$IFDEF DEBUG_MONITOR}HavePulse:=aPulse<>nil;{$endif}
+    if aPulse<>nil then
+      aPulse^.Pulse; // Note this must be performed before LeavePulse, otherwise corresponding TMonitor.Wait call might destroy aPulse and quit.
+  finally
+    LeavePulse;
+  end;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Pulse (had pulse: ',HavePulse,')');{$ENDIF}
 end;
 
 procedure TMonitorData.PulseAll;
 
 var
-  aPulse : TPulseData;
-  aCount : Integer;
+  aPulse : PPulseData;
+{$IFDEF DEBUG_MONITOR}aCount : Integer;{$ENDIF}
 begin
-  {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin PulseAll');{$ENDIF}
+{$IFDEF DEBUG_MONITOR}
+  Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin PulseAll');
   aCount:=0;
-  While PopPulseData(aPulse) do
-    begin
-    aPulse.Pulse;
-    Inc(aCount);
-    end;
+{$ENDIF}
+  EnterPulse;
+  try
+    repeat
+      aPulse:=UnlockedPopPulseData;
+      if aPulse=nil then
+        break;
+      aPulse^.Pulse; // Note this must be performed before LeavePulse, otherwise corresponding TMonitor.Wait call might destroy aPulse and quit.
+{$IFDEF DEBUG_MONITOR}Inc(aCount);{$endif}
+    until false;
+  finally
+    LeavePulse;
+  end;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End PulseAll (Pulse count: ',aCount,')');{$ENDIF}
 end;
 
