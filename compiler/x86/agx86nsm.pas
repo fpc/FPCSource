@@ -146,6 +146,7 @@ interface
         'ia64',     // cpu_core_avx2
         'ia64',     // cpu_zen
         'ia64',     // cpu_zen2
+        'ia64',     // cpu_skylake_x
         'ia64',     // cpu_icelake
         'ia64',     // cpu_icelake_client
         'ia64',     // cpu_icelake_server

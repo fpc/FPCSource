@@ -1,4 +1,4 @@
-{$mode delphi}
+ {$mode delphi}
 
 type
  TMyClass = class
