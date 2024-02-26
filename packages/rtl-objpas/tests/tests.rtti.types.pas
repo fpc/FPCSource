@@ -254,7 +254,6 @@ Type
       FRPublicB: Integer;
       Property RPublicA : Integer Read FRPublicA Write FRPublicA;
       Property RPublicB : Integer Read FRPublicA Write FRPublicB;
-
    end;
 
   TRecordFieldRTTIMixed = record

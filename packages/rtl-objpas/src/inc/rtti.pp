@@ -365,6 +365,7 @@ type
     destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
     function GetFields: TRttiFieldArray; virtual;
+    function GetField(const aName: String): TRttiField; virtual;
     function GetDeclaredMethods: TRttiMethodArray; virtual;
     function GetProperties: TRttiPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
@@ -6521,8 +6522,19 @@ begin
 end;
 
 function TRttiField.GetAttributes: TCustomAttributeArray;
+
+var
+  tbl : PAttributeTable;
+  i : Integer;
+
 begin
-  Result:=nil;
+  Result:=[];
+  tbl:=FHandle^.AttributeTable;
+  if not (assigned(Tbl) and (Tbl^.AttributeCount>0)) then
+    exit;
+  SetLength(Result,Tbl^.AttributeCount);
+  For I:=0 to Length(Result)-1 do
+    Result[I]:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(Tbl,I);
 end;
 
 function TRttiField.GetValue(Instance: Pointer): TValue;
@@ -6596,7 +6608,7 @@ begin
   Result := FTypeInfo;
 end;
 
-constructor TRttiType.Create(ATypeInfo: PTypeInfo; aUsePublishedOnly : boolean);
+constructor TRttiType.Create(ATypeInfo: PTypeInfo; aUsePublishedOnly: Boolean);
 
 begin
   inherited Create();
@@ -6624,6 +6636,20 @@ end;
 function TRttiType.GetFields: TRttiFieldArray;
 
 begin
+  Result:=Nil;
+end;
+
+function TRttiType.GetField(const aName: String): TRttiField;
+
+var
+  Flds : TRttiFieldArray;
+  Fld: TRttiField;
+
+begin
+  Flds:=GetFields;
+  For Fld in Flds do
+    if SameText(Fld.Name,aName) then
+      Exit(Fld);
   Result:=Nil;
 end;
 

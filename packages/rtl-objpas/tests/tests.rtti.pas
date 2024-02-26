@@ -108,6 +108,13 @@ type
     Procedure TestProperties;
     Procedure TestDeclaredMethods;
     Procedure TestMethods;
+    Procedure TestPrivateFieldAttributes;
+    Procedure TestProtectedFieldAttributes;
+    Procedure TestPublicFieldAttributes;
+    Procedure TestPrivatePropertyAttributes;
+    Procedure TestProtectedPropertyAttributes;
+    Procedure TestPublicPropertyAttributes;
+    Procedure TestPublishedPropertyAttributes;
   end;
 
   { TTestRecordExtendedRTTI }
@@ -118,13 +125,15 @@ type
     Procedure TestProperties;
     Procedure TestDeclaredMethods;
     Procedure TestMethods;
+    Procedure TestPrivateFieldAttributes;
+    Procedure TestPublicFieldAttributes;
   end;
 
 
 implementation
 
 uses
-  Tests.Rtti.Util, {tests.rtti.exttypes, }tests.rtti.types;
+  Tests.Rtti.Util, {tests.rtti.exttypes, } tests.rtti.attrtypes, tests.rtti.types;
 
 
 
@@ -1785,6 +1794,217 @@ begin
 
 end;
 
+procedure TTestClassExtendedRTTI.TestPrivateFieldAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Fld : TRttiField;
+  O : TCustomAttribute;
+  M2 : My2Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TFieldObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Fld:=RttiData.GetField('PrivateField');
+  AssertNotNull('Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',3,Length(Attrs));
+  AssertEquals('Attribute 1 name','WeakAttribute',Attrs[0].ClassName);
+  AssertEquals('Attribute 2 name','MyAttribute',Attrs[1].ClassName);
+  AssertEquals('Attribute 2 name','My2Attribute',Attrs[2].ClassName);
+  O:=Attrs[2];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My2Attribute);
+  AssertEquals('Attribute value ',2,M2.Int);
+end;
+
+procedure TTestClassExtendedRTTI.TestProtectedFieldAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Fld : TRttiField;
+  O : TCustomAttribute;
+  M2 : My2Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TFieldObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Fld:=RttiData.GetField('ProtectedField');
+  AssertNotNull('Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My2Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My2Attribute);
+  AssertEquals('Attribute value ',3,M2.Int);
+end;
+
+Procedure TTestClassExtendedRTTI.TestPublicFieldAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Fld : TRttiField;
+  O : TCustomAttribute;
+  M3 : My3Attribute absolute O;
+  aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TFieldObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  aCount:=0;
+  For Fld in RttiData.GetFields do
+    if Fld.Visibility=mvPublic then
+      inc(aCount);
+  AssertEquals('Field count',3,aCount);
+  // PublicField
+  Fld:=RttiData.GetField('PublicField');
+  AssertNotNull('Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('Attribute value ',4,M3.Int);
+  // A
+  Fld:=RttiData.GetField('A');
+  AssertNotNull('A Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('A Have attribute data',Pointer(Attrs));
+  AssertEquals('A Attribute count',1,Length(Attrs));
+  AssertEquals('A Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('A: Attribute class ',O);
+  AssertEquals('A: Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('A: Attribute value ',4,M3.Int);
+  // B
+  Fld:=RttiData.GetField('B');
+  AssertNotNull('B Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('B Have attribute data',Pointer(Attrs));
+  AssertEquals('A Attribute count',1,Length(Attrs));
+  AssertEquals('A Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('B: Attribute class ',O);
+  AssertEquals('B: Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('B: Attribute value ',4,M3.Int);
+end;
+
+Procedure TTestClassExtendedRTTI.TestPrivatePropertyAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Prop : TRttiProperty;
+  O : TCustomAttribute;
+  aCount : Integer;
+  M2 : My2Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TPropertyObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  aCount:=0;
+  Prop:=RttiData.GetProperty('PrivateProperty');
+  AssertNotNull('Have property',Prop);
+  Attrs:=Prop.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',3,Length(Attrs));
+  AssertEquals('Attribute 1 name','WeakAttribute',Attrs[0].ClassName);
+  AssertEquals('Attribute 2 name','MyAttribute',Attrs[1].ClassName);
+  AssertEquals('Attribute 2 name','My2Attribute',Attrs[2].ClassName);
+  O:=Attrs[2];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My2Attribute);
+  AssertEquals('Attribute value ',2,M2.Int);
+end;
+
+Procedure TTestClassExtendedRTTI.TestProtectedPropertyAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Prop : TRttiProperty;
+  O : TCustomAttribute;
+  M2 : My2Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TPropertyObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Prop:=RttiData.GetProperty('ProtectedProperty');
+  AssertNotNull('Have property',Prop);
+  Attrs:=Prop.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My2Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My2Attribute);
+  AssertEquals('Attribute value ',3,M2.Int);
+end;
+
+Procedure TTestClassExtendedRTTI.TestPublicPropertyAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Prop : TRttiProperty;
+  O : TCustomAttribute;
+  M3 : My3Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TPropertyObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Prop:=RttiData.GetProperty('PublicProperty');
+  AssertNotNull('Have property',Prop);
+  Attrs:=Prop.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('Attribute value ',4,M3.Int);
+end;
+
+Procedure TTestClassExtendedRTTI.TestPublishedPropertyAttributes ;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Prop : TRttiProperty;
+  O : TCustomAttribute;
+  M3 : My3Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TPropertyObject));
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Prop:=RttiData.GetProperty('PublishedProperty');
+  AssertNotNull('Have property',Prop);
+  Attrs:=Prop.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('Attribute value ',5,M3.Int);
+end;
+
+
 { TTestRecordExtendedRTTI }
 
 procedure TTestRecordExtendedRTTI.TestFields;
@@ -1887,6 +2107,87 @@ begin
   aCount:=Length(A);
   // Just check that the count is correct
   AssertEquals('Method Full Count',4,aCount);
+end;
+
+Procedure TTestRecordExtendedRTTI.TestPrivateFieldAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Fld : TRttiField;
+  O : TCustomAttribute;
+  M2 : My2Attribute absolute O;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TFieldRecord));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  Fld:=RttiData.GetField('PrivateField');
+  AssertNotNull('Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',3,Length(Attrs));
+  AssertEquals('Attribute 1 name','WeakAttribute',Attrs[0].ClassName);
+  AssertEquals('Attribute 2 name','MyAttribute',Attrs[1].ClassName);
+  AssertEquals('Attribute 2 name','My2Attribute',Attrs[2].ClassName);
+  O:=Attrs[2];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My2Attribute);
+  AssertEquals('Attribute value ',2,M2.Int);
+end;
+
+Procedure TTestRecordExtendedRTTI.TestPublicFieldAttributes;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiRecordType absolute obj;
+  Attrs : TCustomAttributeArray;
+  Fld : TRttiField;
+  O : TCustomAttribute;
+  M3 : My3Attribute absolute O;
+  aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TypeInfo(TFieldRecord));
+  AssertEquals('Correct class type',TRttiRecordType,Obj.ClassType);
+  aCount:=0;
+  For Fld in RttiData.GetFields do
+    if Fld.Visibility=mvPublic then
+      inc(aCount);
+  AssertEquals('Field count',3,aCount);
+  // PublicField
+  Fld:=RttiData.GetField('PublicField');
+  AssertNotNull('Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('Have attribute data',Pointer(Attrs));
+  AssertEquals('attribute count',1,Length(Attrs));
+  AssertEquals('Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('Attribute class ',O);
+  AssertEquals('Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('Attribute value ',3,M3.Int);
+  // A
+  Fld:=RttiData.GetField('A');
+  AssertNotNull('A Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('A Have attribute data',Pointer(Attrs));
+  AssertEquals('A Attribute count',1,Length(Attrs));
+  AssertEquals('A Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('A: Attribute class ',O);
+  AssertEquals('A: Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('A: Attribute value ',4,M3.Int);
+  // B
+  Fld:=RttiData.GetField('B');
+  AssertNotNull('B Have field',Fld);
+  Attrs:=Fld.GetAttributes;
+  AssertNotNull('B Have attribute data',Pointer(Attrs));
+  AssertEquals('A Attribute count',1,Length(Attrs));
+  AssertEquals('A Attribute 1 name','My3Attribute',Attrs[0].ClassName);
+  O:=Attrs[0];
+  AssertNotNull('B: Attribute class ',O);
+  AssertEquals('B: Attribute class ',O.ClassType,My3Attribute);
+  AssertEquals('B: Attribute value ',4,M3.Int);
 end;
 
 
