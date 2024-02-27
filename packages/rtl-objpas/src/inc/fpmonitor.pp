@@ -247,7 +247,7 @@ begin
          TimeToSleep:=SleepTime[Stage];
          if aTimeout<TimeToSleep then
            TimeToSleep:=aTimeout;
-         SysUtils.Sleep(TimeToSleep);
+         Sleep(TimeToSleep);
          end;
      end;
      TimeB:=GetTickCount64;
