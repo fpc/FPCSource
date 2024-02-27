@@ -1048,7 +1048,8 @@ uses
             end;
           a_if,
           a_block,
-          a_loop:
+          a_loop,
+          a_try:
             begin
               if a.opcode=a_if then
                 PopVal(wbt_i32);
@@ -1071,6 +1072,13 @@ uses
                 internalerror(2024022512);
               PushCtrl(a_else,frame.start_types,frame.end_types);
             end;
+          a_catch:
+            begin
+              frame:=PopCtrl;
+              if (frame.opcode<>a_try) and (frame.opcode<>a_catch) then
+                internalerror(2024022701);
+              PushCtrl(a_catch,frame.start_types,frame.end_types);
+            end;
           a_end_if:
             begin
               frame:=PopCtrl;
@@ -1090,6 +1098,13 @@ uses
               frame:=PopCtrl;
               if frame.opcode<>a_loop then
                 internalerror(2024022515);
+              PushVals(frame.end_types);
+            end;
+          a_end_try:
+            begin
+              frame:=PopCtrl;
+              if (frame.opcode<>a_try) and (frame.opcode<>a_catch) then
+                internalerror(2024022702);
               PushVals(frame.end_types);
             end;
           a_br:
@@ -1117,6 +1132,10 @@ uses
               PopVals(label_types(FCtrlStack[n]));
               PushVals(label_types(FCtrlStack[n]));
             end;
+          a_throw:
+            Unreachable;
+          a_rethrow:
+            Unreachable;
           a_return:
             begin
               PopVals(FFuncType.results);
