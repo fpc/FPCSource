@@ -551,7 +551,7 @@ unit scandir;
 
     procedure dir_stackchecking;
       begin
-        do_delphiswitch('T');
+        do_delphiswitch('S');
       end;
 
     procedure dir_fputype;
