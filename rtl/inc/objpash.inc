@@ -245,7 +245,7 @@
        strict private
           _MonitorData : Pointer;
        private
-          function SetMonitorData(aData,aComparand : Pointer) : Pointer; inline;
+          function SetMonitorData(aData,aCheckOld : Pointer) : Pointer; inline;
           function GetMonitorData: Pointer; inline;
        {$ENDIF}
        protected
