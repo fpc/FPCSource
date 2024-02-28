@@ -137,7 +137,7 @@ type
     function GetDataSize: SizeInt;
     function GetTypeDataProp: PTypeData; inline;
     function GetTypeInfo: PTypeInfo; inline;
-    function GetTypeKind: TTypeKind; inline;
+    function GetTypeKind: TTypeKind; // inline;
     function GetIsEmpty: boolean; inline;
     procedure Init; inline;
     // typecast
@@ -556,8 +556,8 @@ type
     Function GetAttributes: TCustomAttributeArray; override;
 //    constructor Create(AParent: TRttiObject; var P: PByte); override;
   public
-    function GetValue(Instance: Pointer): TValue; override;
-    procedure SetValue(Instance: Pointer; const AValue: TValue); override;
+    function GetValue(aInstance: Pointer): TValue; override;
+    procedure SetValue(aInstance: Pointer; const aValue: TValue); override;
     function ToString: string; override;
     property FieldType: TRttiType read FFieldType;
     property Offset: Integer read FOffset;
@@ -885,7 +885,8 @@ resourcestring
   SErrCallbackHandlerNil = 'Callback handler is Nil';
   SErrMissingSelfParam = 'Missing self parameter';
   SErrNotEnumeratedType = '%s is not an enumerated type.';
-  
+  SErrNoFieldRtti = 'No field type info available';
+
 implementation
 
 uses
@@ -3311,6 +3312,7 @@ begin
     tkVariant : DoCastFromVariant(aRes,aDest,aDestType);
     tkInt64 : CastFromInt64(aRes,aDest,aDestType);
     tkQWord : CastFromQWord(aRes,aDest,aDestType);
+    tkClass : CastFromClass(aRes,aDest,aDestType);
     tkClassRef : begin
                  aRes:=(aDestType^.kind=tkClassRef);
                  if aRes then
@@ -6537,14 +6539,26 @@ begin
     Result[I]:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(Tbl,I);
 end;
 
-function TRttiField.GetValue(Instance: Pointer): TValue;
+function TRttiField.GetValue(aInstance: Pointer): TValue;
 begin
-
+  if Not Assigned(FieldType) then
+    raise EInsufficientRtti.Create(SErrNoFieldRtti);
+  TValue.Make(PByte(aInstance)+Offset,FieldType.Handle,Result);
 end;
 
-procedure TRttiField.SetValue(Instance: Pointer; const AValue: TValue);
-begin
+procedure TRttiField.SetValue(aInstance: Pointer; const aValue: TValue);
 
+var
+  FldAddr : Pointer;
+
+begin
+  if Not Assigned(FieldType) then
+    raise EInsufficientRtti.Create(SErrNoFieldRtti);
+  FldAddr:=PByte(aInstance)+Offset;
+  if aValue.TypeInfo=FieldType.Handle then
+    aValue.ExtractRawData(FldAddr)
+  else
+    aValue.Cast(FieldType.Handle).ExtractRawData(FldAddr);
 end;
 
 function TRttiField.ToString: string;
