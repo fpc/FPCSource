@@ -1171,13 +1171,13 @@ end;
 procedure TTestExpressionConverter.TestBinaryPower;
 Var
   B : TBinaryExpr;
-  E : TJSRelationalExpressionInstanceOf;
+  E : TJSPowerExpression;
 
 begin
   B:=CreateBinary(eopPower);
   B.left:=CreateIdent('a');
   B.Right:=CreateIdent('b');
-  E:=TJSRelationalExpressionInstanceOf(TestBinaryExpression(B,TJSRelationalExpressionInstanceOf));
+  E:=TJSPowerExpression(TestBinaryExpression(B,TJSPowerExpression));
   AssertIdentifier('Correct left literal for power',E.A,'a');
   AssertIdentifier('Correct right literal for power',E.B,'b');
 end;
