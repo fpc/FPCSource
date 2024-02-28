@@ -698,6 +698,11 @@ begin
         Inc(TokenStr);
         Result := tjsMulEq;
         end
+      else if (TokenStr[0]='*') then
+        begin
+        Inc(TokenStr);
+        Result := tjsPower;
+        end
       else
         Result := tjsMul;
       end;

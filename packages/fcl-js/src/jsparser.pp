@@ -1821,7 +1821,7 @@ begin
         Result:=TJSPrimaryExpressionThis(CreateElement(TJSPrimaryExpressionThis));
         GetNextToken;
         end;
-      tjsidentifier:
+      tjsIdentifier:
         begin
         R:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent));
         Result:=R;

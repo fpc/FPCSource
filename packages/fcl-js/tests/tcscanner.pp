@@ -67,6 +67,7 @@ type
     procedure TestCurlyBraceClose;
     procedure TestCurlyBraceOpen;
     procedure TestDiv;
+    procedure TestPower;
     procedure TestDiveq;
     procedure TestXor;
     procedure TestXoreq;
@@ -183,7 +184,8 @@ type
 
 implementation
 
-Function TTestJSScanner.CreateScanner(AInput : TJSScannerString; aVersion : TECMAVersion = ecma5) : TJSScanner;
+function TTestJSScanner.CreateScanner(AInput: TJSScannerString;
+  aVersion: TECMAVersion): TJSScanner;
 
 begin
   FStream:=TStringStream.Create(AInput);
@@ -363,6 +365,11 @@ procedure TTestJSScanner.TestDiv;
 
 begin
   CheckToken(tjsDiv,'/');
+end;
+
+procedure TTestJSScanner.TestPower;
+begin
+  CheckToken(tjsPower,'**');
 end;
 
 procedure TTestJSScanner.TestEq;
@@ -796,7 +803,8 @@ begin
   CheckToken(tjsYield,'yield',ecma2021);
 end;
 
-procedure TTestJSScanner.CheckTokens(ASource : TJSScannerString; ATokens : Array of TJSToken; aVersion: TECMAVersion = ecma5);
+procedure TTestJSScanner.CheckTokens(ASource: TJSScannerString;
+  ATokens: array of TJSToken; aVersion: TECMAVersion);
 
 Var
   I : Integer;
