@@ -760,6 +760,7 @@ type
     function EvalSetExpr(Expr: TPasExpr; ExprArray: TPasExprArray; Flags: TResEvalFlags): TResEvalSet;
     function EvalArrayValuesExpr(Expr: TArrayValues; Flags: TResEvalFlags): TResEvalSet;
     function EvalPrimitiveExprString(Expr: TPrimitiveExpr): TResEvalValue; virtual;
+    function EvalPrimitiveExprStringMultiLine(Expr: TPrimitiveExpr): TResEvalValue; virtual;
     procedure PredBool(Value: TResEvalBool; ErrorEl: TPasElement);
     procedure SuccBool(Value: TResEvalBool; ErrorEl: TPasElement);
     procedure PredInt(Value: TResEvalInt; ErrorEl: TPasElement);
@@ -4508,64 +4509,75 @@ begin
   {$else}
   Value:=TResEvalUTF16.Create;
   {$endif}
-  p:=1;
-  //writeln('TResExprEvaluator.EvalPrimitiveExprString ',GetObjPath(Expr),' ',Expr.SourceFilename,' ',Expr.SourceLinenumber div 2048,' S=[',S,']');
-  while p<=l do
-    case S[p] of
-    {$ifdef UsePChar}
-    #0: break;
-    {$endif}
-    '''':
-      begin
-      inc(p);
-      StartP:=p;
-      repeat
+  try
+    p:=1;
+    //writeln('TResExprEvaluator.EvalPrimitiveExprString ',GetObjPath(Expr),' ',Expr.SourceFilename,' ',Expr.SourceLinenumber div 2048,' S=[',S,']');
+    while p<=l do
+      case S[p] of
+      {$ifdef UsePChar}
+      #0: break;
+      {$endif}
+      '''':
+        begin
+        inc(p);
+        StartP:=p;
+        repeat
+          if p>l then
+            RaiseInternalError(20170523113938);
+          c:=S[p];
+          case c of
+          '''':
+            begin
+            if p>StartP then
+              AddSrc(copy(S,StartP,p-StartP));
+            inc(p);
+            StartP:=p;
+            if (p>l) or (S[p]<>'''') then
+              break;
+            AddSrc('''');
+            inc(p);
+            StartP:=p;
+            end;
+          else
+            inc(p);
+          end;
+        until false;
+        if p>StartP then
+          AddSrc(copy(S,StartP,p-StartP));
+        end;
+      '#':
+        p:=ReadHash(S,p,l);
+      '^':
+        begin
+        // ^A is #1
+        inc(p);
         if p>l then
-          RaiseInternalError(20170523113938);
+          RaiseInternalError(20181016121520);
         c:=S[p];
         case c of
-        '''':
-          begin
-          if p>StartP then
-            AddSrc(copy(S,StartP,p-StartP));
-          inc(p);
-          StartP:=p;
-          if (p>l) or (S[p]<>'''') then
-            break;
-          AddSrc('''');
-          inc(p);
-          StartP:=p;
-          end;
-        else
-          inc(p);
+        'a'..'z': AddHash(ord(c)-ord('a')+1);
+        'A'..'Z': AddHash(ord(c)-ord('A')+1);
+        else RaiseInternalError(20170523123809);
         end;
-      until false;
-      if p>StartP then
-        AddSrc(copy(S,StartP,p-StartP));
+        inc(p);
+        end;
+      else
+        RaiseNotYetImplemented(20170523123815,Expr,'ord='+IntToStr(ord(S[p])));
       end;
-    '#':
-      p:=ReadHash(S,p,l);
-    '^':
-      begin
-      // ^A is #1
-      inc(p);
-      if p>l then
-        RaiseInternalError(20181016121520);
-      c:=S[p];
-      case c of
-      'a'..'z': AddHash(ord(c)-ord('a')+1);
-      'A'..'Z': AddHash(ord(c)-ord('A')+1);
-      else RaiseInternalError(20170523123809);
-      end;
-      inc(p);
-      end;
-    else
-      RaiseNotYetImplemented(20170523123815,Expr,'ord='+IntToStr(ord(S[p])));
-    end;
-  Result:=Value;
+    Result:=Value;
+    Value:=nil;
+  finally
+    Value.Free;
+  end;
   {$IFDEF VerbosePasResEval}
   //writeln('TResExprEvaluator.EvalPrimitiveExprString Result=',Result.AsString);
   {$ENDIF}
+end;
+
+function TResExprEvaluator.EvalPrimitiveExprStringMultiLine(Expr: TPrimitiveExpr
+  ): TResEvalValue;
+begin
+  Result:=TResEvalUTF16.CreateValue(GetUnicodeStr(Expr.Value,Expr));
 end;
 
 function TResExprEvaluator.CreateResEvalInt(UInt: TMaxPrecUInt): TResEvalValue;
@@ -4671,6 +4683,11 @@ begin
       pekString:
         begin
         Result:=EvalPrimitiveExprString(TPrimitiveExpr(Expr));
+        exit;
+        end;
+      pekStringMultiLine:
+        begin
+        Result:=EvalPrimitiveExprStringMultiLine(TPrimitiveExpr(Expr));
         exit;
         end;
     else

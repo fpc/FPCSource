@@ -193,7 +193,8 @@ type
     {$endif}
   end;
 
-  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst,
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekStringMultiLine, pekSet,
+     pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
      pekInherited, pekSelf, pekSpecialize, pekProcedure);
 
@@ -1754,7 +1755,8 @@ const
   ExprKindNames : Array[TPasExprKind] of TPasTreeString = (
       'Ident',
       'Number',
-      'TPasTreeString',
+      'String',
+      'StringMultiLine',
       'Set',
       'Nil',
       'BoolConst',
