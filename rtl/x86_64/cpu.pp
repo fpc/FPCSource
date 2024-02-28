@@ -66,6 +66,7 @@ type
     function ADXSupport: boolean;inline;
     function SHASupport: boolean;inline;    
     function FMASupport: boolean;inline;
+    function CMPXCHG16BSupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
     function LZCNTSupport: boolean;inline;
     function SSE3Support: boolean;inline;
@@ -103,6 +104,7 @@ type
       _AVX512VLSupport,
       _AVX512VBMISupport,
       _AVX512VBMI2Support,
+      _CMPXCHG16BSupport,
       _VAESSupport,
       _VCLMULSupport,
       _AVX512VNNISupport,
@@ -272,6 +274,7 @@ type
         is_sse3_cpu:=(cpuid1.ecx and $1)<>0;
 
         _FMASupport:=_AVXSupport and ((cpuid1.ecx and $1000)<>0);
+        _CMPXCHG16BSupport:=(cpuid1.ecx and $2000)<>0;
 
         _LZCNTSupport:=(CPUID($80000001).ecx and $20)<>0;
 
@@ -439,6 +442,12 @@ type
     function FMASupport: boolean;inline;
       begin
         result:=_FMASupport;
+      end;
+
+
+    function CMPXCHG16BSupport: boolean;inline;
+      begin
+        result:=_CMPXCHG16BSupport;
       end;
 
 

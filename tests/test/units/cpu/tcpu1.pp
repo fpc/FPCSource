@@ -3,6 +3,9 @@
 uses
   cpu;
 
+var
+  dummy16b : array[0..15] of byte;
+  
 begin
   write('CMOV support: ');
   if CMOVSupport then
@@ -189,6 +192,20 @@ begin
       writeln('yes');
       asm
         rdseed %eax
+      end;
+    end
+  else
+    writeln('no');
+  write('CMPXCHG16B support: ');
+  if CMPXCHG16BSupport then
+    begin
+      writeln('yes');
+      asm
+{$ifdef FPC_PIC}
+        cmpxchg16b       Dummy16b@GOTPCREL(%rip)
+{$else FPC_PIC}
+        cmpxchg16b       Dummy16b(%rip)
+{$endif FPC_PIC}
       end;
     end
   else
