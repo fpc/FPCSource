@@ -344,7 +344,7 @@ begin
   // Forcibly unlock through any amount of recursive acquisitions!
   PrevLockCount:=aLock^.LockCount;
   aLock^.LockCount:=0;
-  aLock^.LockOwnerThreadID:=0;
+  aLock^.LockOwnerThreadID:=TThreadID(0);
   LeaveCriticalSection(aLock^.CriticalSection);
 
   Result:=aPulse.Wait(aTimeOut);
