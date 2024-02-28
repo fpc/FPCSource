@@ -9243,13 +9243,8 @@ begin
           C:=TJSBitwiseXOrExpression; // no logical xor in JS. bitwise works for boolean too
         end;
       eopPower:
-        begin
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreatePrimitiveDotExpr('Math.pow',El);
-        Call.AddArg(A);
-        Call.AddArg(B);
-        Result:=Call;
-        end;
+        // convert pascal ** to js **
+        C:=TJSPowerExpression;
       else
         if C=nil then
           DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
