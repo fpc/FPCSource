@@ -1676,7 +1676,15 @@ Implementation
                   taicpu(p).oppostfix := PF_None;
                   taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
                   taicpu(p).loadoper(1, taicpu(p).oper[2]^);
-                  taicpu(p).ops := 2;
+                  if (taicpu(p).ops = 4) then
+                    begin
+                      { Make sure any shifter operator is also transferred }
+                      taicpu(p).loadshifterop(2, taicpu(p).oper[3]^.shifterop^);
+                      taicpu(p).ops := 3;
+                    end
+                  else
+                    taicpu(p).ops := 2;
+
                   DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
                 end
               else
