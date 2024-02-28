@@ -505,6 +505,9 @@ unit TypInfo;
         NamePtr: PShortString;
         Flags: Byte;
         VmtIndex: Smallint;
+        {$IFNDEF VER3_2}
+        CodeAddress : CodePointer;
+        {$ENDIF}
         property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
         property ResultLocs: PParameterLocations read GetResultLocs;
@@ -4650,7 +4653,11 @@ var
 
 begin
   if ParamCount = 0 then
+{$IFNDEF VER3_2}
+    Result := PByte(@CodeAddress) + SizeOf(CodePointer)
+{$ELSE}
     Result := PByte(@VmtIndex) + SizeOf(VmtIndex)
+{$ENDIF}
   else
     Result:=Param[ParamCount-1]^.GetTail;
   if Assigned(ResultType) then

@@ -322,7 +322,9 @@ implementation
                           begin
                             maybe_add_comment(tcb,#9'VMT index');
                             tcb.emit_ord_const(def.extnumber,u16inttype);
-                          end;
+                            maybe_add_comment(tcb,#9'Code Address');
+                            tcb.emit_procdef_const(def);
+                          end
                       end;
 
                     for k:=0 to def.paras.count-1 do
