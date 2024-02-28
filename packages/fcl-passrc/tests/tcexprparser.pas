@@ -142,6 +142,8 @@ type
     Procedure TestPrecedencePlusMod;
     Procedure TestPrecedenceMultiplyDiv;
     Procedure TestPrecedenceDivMultiply;
+    Procedure TestPrecedenceMultiplyPower;
+    Procedure TestPrecedencePowerMultiply;
     Procedure TestTypeCast;
     procedure TestTypeCast2;
     Procedure TestCreate;
@@ -581,6 +583,18 @@ procedure TTestExpressions.TestPrecedenceDivMultiply;
 begin
   ParseExpression('1 div 2 * 3');
   AssertLeftPrecedence(1,eopDiv,2,eopMultiply,3);
+end;
+
+procedure TTestExpressions.TestPrecedenceMultiplyPower;
+begin
+  ParseExpression('1 * 2 ** 3');
+  AssertRightPrecedence(1,eopMultiply,2,eopPower,3);
+end;
+
+procedure TTestExpressions.TestPrecedencePowerMultiply;
+begin
+  ParseExpression('1 ** 2 * 3');
+  AssertLeftPrecedence(1,eopPower,2,eopMultiply,3);
 end;
 
 procedure TTestExpressions.TestTypeCast;

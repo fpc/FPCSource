@@ -2872,9 +2872,9 @@ begin
   case t of
   //  tkDot:
   //    Result:=5;
-    tknot,tkAt,tkAtAt:
+    tknot, tkAt, tkAtAt, tkPower:
       Result:=4;
-    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower, tkis:
+    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkis:
       // Note that "is" has same precedence as "and" in Delphi and fpc, even though
       // some docs say otherwise. e.g. "Obj is TObj and aBool"
       Result:=3;
