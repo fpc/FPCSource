@@ -1284,7 +1284,7 @@ end;
 function TPasParser.CurTokenText: String;
 begin
   case CurToken of
-    tkIdentifier, tkString, tkNumber, tkChar:
+    tkIdentifier, tkString, tkStringMultiLine, tkNumber, tkChar:
       Result := FCurTokenString;
     else
       Result := TokenInfos[CurToken];
@@ -1707,7 +1707,7 @@ begin
       if (h=hDeprecated) then
         begin
         NextToken;
-        if (Curtoken<>tkString) then
+        if (CurToken<>tkString) then
           UnGetToken
         else if assigned(Element) then
           Element.HintMessage:=CurTokenString;
@@ -2647,8 +2647,9 @@ begin
   CanSpecialize:=aCannot;
   aName:='';
   case CurToken of
+    tkChar:   Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
     tkString: Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
-    tkChar:   Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
+    tkStringMultiLine: Last:=CreatePrimitiveExpr(AParent,pekStringMultiLine,CurTokenString);
     tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin

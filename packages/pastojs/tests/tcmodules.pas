@@ -534,6 +534,7 @@ type
     Procedure TestRecord_Const;
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
+    Procedure TestRecord_ArrayConstMultiline;
 
     // anonymous record
     Procedure TestRecordAnonym_Field;
@@ -13161,6 +13162,54 @@ begin
     '  var p = [];',
     '  p = rtl.arraySetLength(p, TPoint$1, 2);',
     '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRecord_ArrayConstMultiline;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird = record Wing: string; end;',
+  'const',
+  '  Birds: array[1..2] of TBird = (',
+  '    (Wing: ''''''',
+  '      First',
+  '      Second',
+  '      Third',
+  '    ''''''),',
+  '    (Wing: ''''''',
+  '      Value:=''Im in quotes''; ',
+  '    '''''')',
+  '  );',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRecord_ArrayConstMultiline',
+    LinesToStr([ // statements
+    'rtl.recNewT(this, "TBird", function () {',
+    '  this.Wing = "";',
+    '  this.$eq = function (b) {',
+    '    return this.Wing === b.Wing;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.Wing = s.Wing;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Birds$a$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = $mod.TBird.$clone(a[c]);',
+    '  return b;',
+    '};',
+    'this.Birds = [this.TBird.$clone({',
+    '  Wing: "  First\n  Second\n  Third"',
+    '}), this.TBird.$clone({',
+    '  Wing: "  Value:=''Im in quotes''; "',
+    '})];',
     '']),
     LinesToStr([ // $mod.$main
     '']));

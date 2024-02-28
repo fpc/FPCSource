@@ -354,6 +354,7 @@ const
     'Ident',
     'Number',
     'String',
+    'StringMultiLine',
     'Set',
     'Nil',
     'Bool',

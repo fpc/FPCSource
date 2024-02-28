@@ -146,8 +146,10 @@ type
     procedure TestDelphiMultiLineTrailingGarbage1;
     procedure TestDelphiMultiLineTrailingGarbage2;
     procedure TestDelphiMultiLineTrailingGarbage3;
+    procedure TestDelphiMultiLineTrailingPlusLit;
     procedure TestDelphiMultiLineEmbeddedQuotes;
     procedure TestDelphiMultiLineInDelphiMode;
+    procedure TestDelphiMultiLineFailNonWhiteSpaceBeforeClosing;
     Procedure TestTextBlockDirective;
     procedure TestNumber;
     procedure TestChar;
@@ -625,10 +627,14 @@ begin
     begin
     tk:=FScanner.FetchToken;
     AssertEquals(Format('Read token %d equals expected token.',[i]),t[i],tk);
-    if tk=tkIdentifier then
-      LastIdentifier:=FScanner.CurtokenString
-    else if tk=tkString then
+    case tk of
+    tkIdentifier:
+      LastIdentifier:=FScanner.CurtokenString;
+    tkString:
       fTestTokenString:=FScanner.CurTokenString;
+    tkStringMultiLine:
+      fTestTokenString:=FScanner.CurTokenString;
+    end;
     end;
   if CheckEOF then
     begin
@@ -923,7 +929,7 @@ end;
 procedure TTestScanner.DoTestDelphiMultiLineString;
 
 begin
-  TestTokens([pscanner.tkWhitespace,pscanner.tkString],FMultiLine);
+  TestTokens([pscanner.tkWhitespace,pscanner.tkStringMultiLine],FMultiLine);
 end;
 
 procedure TTestScanner.DoTestDelphiMultiLine;
@@ -971,7 +977,7 @@ begin
   FMultiLine:=CreateDelphiMultiLine([S1,S2]);
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   DoTestDelphiMultiLineString;
-  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+  AssertEquals('Correct string',S1+sLineBreak+S2,TestTokenString);
 end;
 
 procedure TTestScanner.TestDelphiMultiLineSpecial2;
@@ -984,7 +990,7 @@ begin
   FMultiLine:=CreateDelphiMultiLine([S1,S2]);
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   DoTestDelphiMultiLineString;
-  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+  AssertEquals('Correct string',S1+sLineBreak+S2,TestTokenString);
 end;
 
 procedure TTestScanner.TestDelphiMultiLineTrailingGarbage1;
@@ -1028,6 +1034,19 @@ begin
   AssertException('Trailing garbage leads to error',EAssertionFailedError,@DoTestDelphiMultiLineString,'"Wrong character, expected lineending." expected: <tkLineEnding> but was: <tkChar>');
 end;
 
+procedure TTestScanner.TestDelphiMultiLineTrailingPlusLit;
+var
+  S1,S2 : String;
+
+begin
+  S1:='Line 1 ';
+  S2:='Line 2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2],2,'+''abc'';');
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  TestTokens([pscanner.tkWhitespace,pscanner.tkStringMultiLine,pscanner.tkPlus,pscanner.tkString,pscanner.tkSemicolon],FMultiLine);
+  AssertEquals('Correct string','''abc''',TestTokenString);
+end;
+
 procedure TTestScanner.TestDelphiMultiLineEmbeddedQuotes;
 var
   S1,S2,S3 : String;
@@ -1039,22 +1058,32 @@ begin
   FMultiLine:=CreateDelphiMultiLine([S1,S2,S3],2,'',5);
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   DoTestDelphiMultiLineString;
-  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+sLineBreak+S3+SingleQuote,TestTokenString);
+  AssertEquals('Correct string',S1+sLineBreak+S2+sLineBreak+S3,TestTokenString);
 end;
 
 procedure TTestScanner.TestDelphiMultiLineInDelphiMode;
 
-  var
-    S1,S2 : String;
+var
+  S1,S2 : String;
 
-  begin
-    S1:='Line 1';
-    S2:='Line 2';
-    FMultiLine:='{$mode delphi}'+sLineBreak+CreateDelphiMultiLine([S1,S2]);
-    TestTokens([pscanner.tkComment, pscanner.tkLineEnding,pscanner.tkWhitespace,pscanner.tkString],FMultiLine);
+begin
+  S1:='Line 1';
+  S2:='Line 2';
+  FMultiLine:='{$mode delphi}'+sLineBreak+CreateDelphiMultiLine([S1,S2]);
+  TestTokens([pscanner.tkComment, pscanner.tkLineEnding,pscanner.tkWhitespace,pscanner.tkStringMultiLine],FMultiLine);
 
-    AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+  AssertEquals('Correct string',S1+sLineBreak+S2,TestTokenString);
+end;
 
+procedure TTestScanner.TestDelphiMultiLineFailNonWhiteSpaceBeforeClosing;
+var
+  S1, S2: String;
+begin
+  S1:='Line1';
+  S2:='Line''''''''2';
+  FMultiLine:=CreateDelphiMultiLine([S1,S2],2,'');
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
+  AssertException('Non Whitespace chars before closing',EScannerError,@DoTestDelphiMultiLineString,'afile.pp(3,10) Error: '+SErrMultilineNonWhiteSpaceBeforeClosing);
 end;
 
 
@@ -1069,7 +1098,7 @@ begin
   FMultiLine:=CreateDelphiMultiLine([S1,S2]);
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   DoTestDelphiMultiLineString;
-  AssertEquals('Correct string',SingleQuote+S1+sLineBreak+S2+SingleQuote,TestTokenString);
+  AssertEquals('Correct string',S1+sLineBreak+S2,TestTokenString);
 end;
 
 procedure TTestScanner.TestCharString;
