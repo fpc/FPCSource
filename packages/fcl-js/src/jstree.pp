@@ -707,6 +707,12 @@ Type
     Class function OperatorToken : tjsToken; override;
   end;
 
+  { TJSPowerExpression - e.g. A ** B }
+
+  TJSPowerExpression = Class(TJSBinaryExpression)
+    Class function OperatorToken : tjsToken; override;
+  end;
+
   { TJSCommaExpression - e.g. A , B }
 
   TJSCommaExpression = Class(TJSBinaryExpression)
@@ -2718,6 +2724,13 @@ end;
 Class function TJSMultiplicativeExpressionMod.OperatorToken: tjsToken;
 begin
   Result:=tjsMod;
+end;
+
+{ TJSPowerExpression }
+
+class function TJSPowerExpression.OperatorToken: tjsToken;
+begin
+  Result:=tjsPower;
 end;
 
 { TJSMultiplicativeExpressionDiv }
