@@ -1932,6 +1932,8 @@ begin
 end;
 
 begin
+  {$ifndef DARWIN}
+  // SSE4.2 assembly doesn't yet work on Darwin
   {$ifdef CPUINTEL}
   if SSE42Support then
   begin
@@ -1940,6 +1942,7 @@ begin
   end
   else
   {$endif CPUINTEL}
+  {$endif DARWIN}
   {$ifdef CPULOONGARCH64}
   if True then
   begin
