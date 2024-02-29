@@ -143,6 +143,8 @@ begin
        end;
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpmonitor.pp',MonitorOSes);
+    T:=P.Targets.AddUnit('fpwinmonitor.pp',[Win32,win64]);
+      T.Dependencies.AddUnit('fpmonitor');
 
     P.NamespaceMap:='namespaces.lst';
     

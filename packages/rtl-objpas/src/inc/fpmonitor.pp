@@ -4,6 +4,7 @@ unit fpmonitor;
 
 {$mode objfpc}
 {$modeswitch advancedrecords}
+{$modeswitch anonymousfunctions}
 
 { $DEFINE MONITOR_STATS}
 { $DEFINE DEBUG_MONITOR}
@@ -31,6 +32,13 @@ Procedure ClearStats;
 
 procedure RegisterMonitorSupport;
 procedure UnRegisterMonitorSupport;
+
+// Helpers shared with fpwinmonitor.
+type
+  TTryEnterProc = function(param : pointer) : boolean;
+
+procedure ThrowNotOwnedBy(aThread : TThreadID);
+function EmulateEnterTimeout(aTimeout : Cardinal; aTryEnter : TTryEnterProc; aParam : pointer) : boolean;
 
 implementation
 
@@ -205,65 +213,23 @@ begin
 end;
 
 function TMonitorData.Enter(aTimeout: Cardinal): Boolean;
-
-type
-  StageEnum = (Spin, ThreadSwitch, SleepA, SleepB, SleepC, SleepD, SleepE, SleepF);
-
-const
-  SleepTime: array[SleepA .. High(StageEnum)] of uint8 = (2, 4, 8, 16, 30, 50);
-  StageIterations: array[StageEnum] of uint8 = (40, 40, 8, 8, 8, 8, 8, 8);
-
-var
-  TimeA,TimeB,Elapsed : Int64;
-  Stage : StageEnum;
-  StageIteration,TimeToSleep : uint32;
-
 begin
   // Should preferably use an event raised on Leave somehow.
   // And this event should preferably not exist until someone actually uses timeouted Enter, ant not be raised until there are outstanding timeouted Enters.
   // Sounds complex, so until then, spin-wait + exponentially wait.
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' Begin Enter(',aTimeout,')');{$ENDIF}
-  TimeA:=-1;
-  Stage:=Spin;
-  Int32(StageIteration):=-1;
-  Repeat
-     Result:=TryEnter;
-     if Result or (aTimeout=0) then
-       break;
-     if TimeA=-1 then
-       TimeA:=GetTickCount64; // Avoid GetTickCount64 call if first TryEnter succeeds. -1 is a possible timestamp, but nothing particularly bad will happen.
-     Inc(Int32(StageIteration));
-     if StageIteration>=StageIterations[Stage] then
-       begin
-       if Stage<High(Stage) then
-         Inc(Stage);
-       StageIteration:=0;
-       end;
-     case Stage of
-       Spin: ;
-       ThreadSwitch: System.ThreadSwitch;
-       SleepA .. High(StageEnum):
-         begin
-         TimeToSleep:=SleepTime[Stage];
-         if aTimeout<TimeToSleep then
-           TimeToSleep:=aTimeout;
-         Sleep(TimeToSleep);
-         end;
-     end;
-     TimeB:=GetTickCount64;
-     Elapsed:=TimeB-TimeA;
-     TimeA:=TimeB; // Sum of Elapseds will always be exactly <current time> - <start time>.
-     if Elapsed>=aTimeout then
-       break;
-     aTimeout:=aTimeout-Elapsed;
-  until false;
+  Result:=EmulateEnterTimeout(aTimeout,
+    function(param : pointer) : boolean
+    begin
+      Result:=PMonitorData(param)^.TryEnter;
+    end, @self);
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End Enter(',aTimeout,'), Result: ',Result);{$ENDIF}
 end;
 
 procedure TMonitorData.CheckLockOwner;
 begin
   if LockOwnerThreadID<>GetCurrentThreadId then
-    Raise EMonitor.CreateFmt('Lock not owned by this thread %d <> %d',[LockOwnerThreadID,GetCurrentThreadId]);
+    ThrowNotOwnedBy(LockOwnerThreadID);
 end;
 
 function TMonitorData.UnlockedPopPulseData: PPulseData;
@@ -436,6 +402,64 @@ begin
     LeavePulse;
   end;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadId,' End PulseAll (Pulse count: ',aCount,')');{$ENDIF}
+end;
+
+
+procedure ThrowNotOwnedBy(aThread : TThreadID);
+begin
+  Raise EMonitor.CreateFmt('Lock not owned by this thread %d <> %d',[aThread,GetCurrentThreadId]);
+end;
+
+
+function EmulateEnterTimeout(aTimeout : Cardinal; aTryEnter : TTryEnterProc; aParam : pointer) : boolean;
+
+type
+  StageEnum = (Spin, ThreadSwitch, SleepA, SleepB, SleepC, SleepD, SleepE, SleepF);
+
+const
+  SleepTime: array[SleepA .. High(StageEnum)] of uint8 = (2, 4, 8, 16, 30, 50);
+  StageIterations: array[StageEnum] of uint8 = (40, 40, 8, 8, 8, 8, 8, 8);
+
+var
+  TimeA,TimeB,Elapsed : Int64;
+  Stage : StageEnum;
+  StageIteration,TimeToSleep : uint32;
+
+begin
+  TimeA:=-1;
+  Stage:=Spin;
+  Int32(StageIteration):=-1;
+  Repeat
+     Result:=aTryEnter(aParam);
+     if Result or (aTimeout=0) then
+       break;
+     if TimeA=-1 then
+       TimeA:=GetTickCount64; // Avoid GetTickCount64 call if first TryEnter succeeds. -1 is a possible timestamp, but nothing particularly bad will happen.
+     Inc(Int32(StageIteration));
+     if StageIteration>=StageIterations[Stage] then
+       begin
+       if Stage<High(Stage) then
+         Inc(Stage);
+       StageIteration:=0;
+       end;
+     case Stage of
+       Spin: ;
+       ThreadSwitch: System.ThreadSwitch;
+       SleepA .. High(StageEnum):
+         begin
+         TimeToSleep:=SleepTime[Stage];
+         if aTimeout<TimeToSleep then
+           TimeToSleep:=aTimeout;
+         Sleep(TimeToSleep);
+         end;
+     end;
+     TimeB:=GetTickCount64;
+     Elapsed:=TimeB-TimeA;
+     TimeA:=TimeB; // Sum of Elapseds will always be exactly <current time> - <start time>.
+     if Elapsed>=aTimeout then
+       break;
+     aTimeout:=aTimeout-Elapsed;
+  until false;
 end;
 
 

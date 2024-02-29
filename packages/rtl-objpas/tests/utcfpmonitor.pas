@@ -6,7 +6,12 @@ unit utcfpmonitor;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpmonitor;
+  Classes, SysUtils, fpcunit, testregistry,
+{$ifdef windows}
+  fpwinmonitor
+{$else}
+  fpmonitor
+{$endif};
 
 const
   WaitPeriod = 10;
