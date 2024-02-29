@@ -38,7 +38,7 @@ interface
 
     procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc: ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -1679,7 +1679,7 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -1707,6 +1707,7 @@ implementation
          hadgendummy,
          semicoloneaten,
          removeclassoption: boolean;
+         dummyattrelementcount : integer;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
@@ -1727,6 +1728,7 @@ implementation
          sc:=TFPObjectList.create(false);
          removeclassoption:=false;
          had_generic:=false;
+         attr_element_count:=0;
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
@@ -1775,6 +1777,9 @@ implementation
              if had_generic and (sc.count=0) then
                break;
              consume(_COLON);
+             if attr_element_count=0 then
+               attr_element_count:=sc.Count;
+
              typepos:=current_filepos;
 
              read_anon_type(hdef,false);
@@ -2056,7 +2061,7 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy);
+                  read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
 

@@ -1084,7 +1084,7 @@ implementation
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
         rtti_attrs_def: trtti_attribute_list;
-        fldCount : Integer;
+        attr_element_count,fldCount : Integer;
 
       procedure parse_const;
         begin
@@ -1367,15 +1367,28 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                read_record_fields(vdoptions,fieldlist,nil,hadgeneric);
+                                read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                {
+                                  attr_element_count returns the number of fields to which the attribute must be applied.
+                                  For
+                                  [someattr]
+                                  a : integer;
+                                  b : integer;
+                                  attr_element_count returns 1. For
+                                  [someattr]
+                                  a, b : integer;
+                                  it returns 2.
+                                  Basically the number of variables before the first colon.
+                                }
                                 if assigned(rtti_attrs_def) then
                                   begin
                                   { read_record_fields can read a list of fields with the same type.
                                     for the first fields, we simply copy. for the last one we bind.}
-                                  While (fldCount+1<FieldList.Count) do
+                                  While (attr_element_count>1) do
                                     begin
                                     trtti_attribute_list.copyandbind(rtti_attrs_def,tfieldvarsym(fieldlist[FldCount]).rtti_attribute_list);
                                     inc(fldcount);
+                                    dec(attr_element_count);
                                     end;
                                   if fldCount<FieldList.Count then
                                     trtti_attribute_list.bind(rtti_attrs_def,tfieldvarsym(fieldlist[FldCount]).rtti_attribute_list)

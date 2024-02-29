@@ -698,6 +698,7 @@ implementation
         vdoptions: tvar_dec_options;
         rtti_attrs_def: trtti_attribute_list;
         fldCount : Integer;
+        attr_element_count : Integer;
 
       procedure check_unbound_attributes;
         begin
@@ -894,15 +895,29 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=current_structdef.symtable.SymList.Count;
-                                read_record_fields(vdoptions,nil,nil,hadgeneric);
+                                read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                {
+                                  attr_element_count returns the number of fields to which the attribute must be applied.
+                                  For
+                                  [someattr]
+                                  a : integer;
+                                  b : integer;
+                                  attr_element_count returns 1. For
+                                  [someattr]
+                                  a, b : integer;
+                                  it returns 2.
+                                  Basically the number of variables before the first colon.
+                                }
                                 if assigned(rtti_attrs_def) then
                                   begin
-                                  While (fldCount+1<current_structdef.symtable.SymList.Count) do
+                                  While (attr_element_count>1) do
                                     begin
                                     trtti_attribute_list.copyandbind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
                                     inc(fldcount);
+                                    dec(attr_element_count);
                                     end;
-                                  trtti_attribute_list.bind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
+                                  if fldCount<current_structdef.symtable.SymList.Count then
+                                    trtti_attribute_list.bind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
                                   end;
                               end;
                           end
@@ -1036,6 +1051,7 @@ implementation
          recst: trecordsymtable;
          hadgendummy : boolean;
          alignment: Integer;
+         dummyattrelcount : Integer;
       begin
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
@@ -1100,7 +1116,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record],nil,nil,hadgendummy);
+             read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));
