@@ -1765,7 +1765,7 @@ end;
 
 function TRttiInstanceMethod.GetCodeAddress: CodePointer;
 begin
-  Result:=Nil
+  Result:=FHandle^.CodeAddress;
 end;
 
 function TRttiInstanceMethod.GetDispatchKind: TDispatchKind;
