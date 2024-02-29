@@ -234,10 +234,6 @@ interface
          { tderefnode }
          nf_no_checkpointer,
 
-         { tvecnode }
-         nf_memindex,
-         nf_memseg,
-         nf_callunique,
 
          { tloadnode/ttypeconvnode }
          nf_absolute,
@@ -783,7 +779,7 @@ implementation
         ppufile.getset(tppuset5(localswitches));
         verbosity:=ppufile.getlongint;
         ppufile.getderef(resultdefderef);
-        ppufile.getset(tppuset5(flags));
+        ppufile.getset(tppuset4(flags));
         { updated by firstpass }
         expectloc:=LOC_INVALID;
         { updated by secondpass }
@@ -798,7 +794,7 @@ implementation
         ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);
         ppufile.putderef(resultdefderef);
-        ppufile.putset(tppuset5(flags));
+        ppufile.putset(tppuset4(flags));
       end;
 
 

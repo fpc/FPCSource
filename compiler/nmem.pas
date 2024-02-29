@@ -131,17 +131,30 @@ interface
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
 
+       TVecNodeFlag = (
+         vnf_memindex,
+         vnf_memseg,
+         vnf_callunique
+       );
+
+       TVecNodeFlags = set of TVecNodeFlag;
+
        tvecnode = class(tbinarynode)
        protected
           function first_arraydef: tnode; virtual;
           function gen_array_rangecheck: tnode; virtual;
        public
+          vecnodeflags: TVecNodeFlags;
           constructor create(l,r : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode; override;
+          function dogetcopy : tnode;override;
           procedure mark_write;override;
 {$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
        end;
@@ -1012,9 +1025,23 @@ implementation
 *****************************************************************************}
 
     constructor tvecnode.create(l,r : tnode);
-
       begin
          inherited create(vecn,l,r);
+         vecnodeflags := [];
+      end;
+
+
+    constructor tvecnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        ppufile.getset(tppuset1(vecnodeflags));
+      end;
+
+
+    procedure tvecnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(vecnodeflags));
       end;
 
 
@@ -1312,7 +1339,7 @@ implementation
          if codegenerror then
            exit;
 
-         if (nf_callunique in flags) and
+         if (vnf_callunique in vecnodeflags) and
             (is_ansistring(left.resultdef) or
              is_unicodestring(left.resultdef) or
             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
@@ -1324,10 +1351,10 @@ implementation
              firstpass(left);
              { double resultdef passes somwhere else may cause this to be }
              { reset though :/                                             }
-             exclude(flags,nf_callunique);
+             exclude(vecnodeflags,vnf_callunique);
            end
          else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
-           exclude(flags,nf_callunique);
+           exclude(vecnodeflags,vnf_callunique);
 
          { a range node as array index can only appear in function calls, and
            those convert the range node into something else in
@@ -1390,6 +1417,16 @@ implementation
                 );
             end;
           end;
+      end;
+
+
+    function tvecnode.dogetcopy: tnode;
+      var
+        n: tvecnode;
+      begin
+        n:=tvecnode(inherited dogetcopy);
+        n.vecnodeflags := vecnodeflags;
+        result:=n;
       end;
 
 
@@ -1486,6 +1523,28 @@ implementation
 
 
 {$ifdef DEBUG_NODE_XML}
+    procedure TVecNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TVecNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in vecnodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' vecnodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+
+
     procedure TVecNode.XMLPrintNodeData(var T: Text);
       begin
         XMLPrintNode(T, Left);

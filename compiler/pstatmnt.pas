@@ -622,7 +622,7 @@ implementation
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
-            (nf_memseg in p.flags) then
+            (vnf_memseg in tvecnode(p).vecnodeflags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
          { "with procvar" can never mean anything, so always try

@@ -2349,8 +2349,8 @@ implementation
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
                                     p2:=crangenode.create(p2,caddnode.create(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=cvecnode.create(p1,p2);
-                                  include(tvecnode(p1).flags,nf_memseg);
-                                  include(tvecnode(p1).flags,nf_memindex);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memseg);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end
                                else
                                 begin
@@ -2358,7 +2358,7 @@ implementation
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
                                     p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                                   p1:=cvecnode.create(p1,p2);
-                                  include(tvecnode(p1).flags,nf_memindex);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end;
 {$else}
                                internalerror(2013053105);

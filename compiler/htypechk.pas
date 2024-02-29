@@ -1403,7 +1403,7 @@ implementation
            case p.nodetype of
              vecn:
                begin
-                 include(p.flags,nf_callunique);
+                 include(tvecnode(p).vecnodeflags,vnf_callunique);
                  break;
                end;
              typeconvn,

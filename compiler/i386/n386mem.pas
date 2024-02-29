@@ -81,7 +81,7 @@ implementation
     procedure ti386vecnode.pass_generate_code;
       begin
         inherited pass_generate_code;
-        if nf_memseg in flags then
+        if vnf_memseg in vecnodeflags then
           location.reference.segment:=NR_FS;
       end;
 

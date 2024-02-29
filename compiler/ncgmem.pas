@@ -610,7 +610,7 @@ implementation
 
      function tcgvecnode.get_mul_size : asizeint;
        begin
-         if nf_memindex in flags then
+         if vnf_memindex in vecnodeflags then
           get_mul_size:=1
          else
           begin
@@ -892,7 +892,7 @@ implementation
          if is_ansistring(left.resultdef) or
             is_wide_or_unicode_string(left.resultdef) then
            begin
-              if nf_callunique in flags then
+              if vnf_callunique in vecnodeflags then
                 internalerror(200304236);
 
               {DM!!!!!}
