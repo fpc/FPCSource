@@ -260,9 +260,6 @@ interface
          { tinlinenode }
          nf_inlineconst,
 
-         { tasmnode }
-         nf_get_asm_position,
-
          { tblocknode / this is not node-specific because it can also appear on
            implicit try/finally nodes }
          nf_block_with_exit,

@@ -71,11 +71,19 @@ interface
        end;
        tfinalizetempsnodeclass = class of tfinalizetempsnode;
 
+       TAsmNodeFlag =
+       (
+         asmnf_get_asm_position,
+         { Used registers in assembler block }
+         asmnf_has_registerlist
+       );
+
+       TAsmNodeFlags = set of TAsmNodeFlag;
+
        tasmnode = class(tnode)
+          asmnodeflags: TAsmNodeFlags;
           p_asm : TAsmList;
           currenttai : tai;
-          { Used registers in assembler block }
-          has_registerlist : boolean;
           constructor create(p : TAsmList);virtual;
           constructor create_get_position;
           destructor destroy;override;
@@ -88,6 +96,7 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
 {$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
        end;
@@ -864,6 +873,7 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=p;
+        asmnodeflags := [];
         currenttai:=nil;
       end;
 
@@ -872,7 +882,7 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=nil;
-        include(flags,nf_get_asm_position);
+        asmnodeflags := [asmnf_get_asm_position];
         currenttai:=nil;
       end;
 
@@ -890,7 +900,8 @@ implementation
         hp : tai;
       begin
         inherited ppuload(t,ppufile);
-        if not(nf_get_asm_position in flags) then
+        ppufile.getset(tppuset1(asmnodeflags));
+        if not(asmnf_get_asm_position in asmnodeflags) then
           begin
             p_asm:=TAsmList.create;
             repeat
@@ -913,8 +924,9 @@ implementation
         hp : tai;
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(asmnodeflags));
 { TODO: FIXME Add saving of register sets}
-        if not(nf_get_asm_position in flags) then
+        if not(asmnf_get_asm_position in asmnodeflags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -933,7 +945,7 @@ implementation
         hp : tai;
       begin
         inherited buildderefimpl;
-        if not(nf_get_asm_position in flags) then
+        if not(asmnf_get_asm_position in asmnodeflags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -950,7 +962,7 @@ implementation
         hp : tai;
       begin
         inherited derefimpl;
-        if not(nf_get_asm_position in flags) then
+        if not(asmnf_get_asm_position in asmnodeflags) then
           begin
             hp:=tai(p_asm.first);
             while assigned(hp) do
@@ -967,6 +979,7 @@ implementation
         n: tasmnode;
       begin
         n := tasmnode(inherited dogetcopy);
+        n.asmnodeflags := asmnodeflags;
         if assigned(p_asm) then
           begin
             n.p_asm:=TAsmList.create;
@@ -974,7 +987,6 @@ implementation
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;
-        n.has_registerlist:=has_registerlist;
         result:=n;
       end;
 
@@ -983,7 +995,7 @@ implementation
       begin
         result:=nil;
         resultdef:=voidtype;
-        if not(nf_get_asm_position in flags) then
+        if not(asmnf_get_asm_position in asmnodeflags) then
           include(current_procinfo.flags,pi_has_assembler_block);
       end;
 
@@ -1002,6 +1014,28 @@ implementation
       end;
 
 {$ifdef DEBUG_NODE_XML}
+    procedure TAsmNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TAsmNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in asmnodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' asmnodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+
+
     procedure TAsmNode.XMLPrintNodeData(var T: Text);
 
       procedure PadString(var S: string; Len: Integer);
