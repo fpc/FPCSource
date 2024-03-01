@@ -1608,7 +1608,7 @@ implementation
 
     function doshortbooleval(p : tnode) : Boolean;
       begin
-        Result:=(p.nodetype in [orn,andn]) and ((nf_short_bool in taddnode(p).flags) or not(cs_full_boolean_eval in p.localswitches));
+        Result:=(p.nodetype in [orn,andn]) and ((anf_short_bool in taddnode(p).addnodeflags) or not(cs_full_boolean_eval in p.localswitches));
       end;
 
 

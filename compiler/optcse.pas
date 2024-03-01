@@ -380,8 +380,14 @@ unit optcse;
                                 begin
                                   n.localswitches:=n.localswitches+(tbinarynode(n).left.localswitches*[cs_full_boolean_eval]);
                                   exclude(tbinarynode(n).left.localswitches,cs_full_boolean_eval);
-                                  tbinarynode(n).left.flags:=tbinarynode(n).left.flags+(n.flags*[nf_short_bool]);
-                                  exclude(n.Flags,nf_short_bool);
+                                  if (n.nodetype in [orn,andn]) then
+                                    begin
+                                      if (tbinarynode(n).left.nodetype in [orn,andn]) then
+                                        taddnode(tbinarynode(n).left).addnodeflags := taddnode(tbinarynode(n).left).addnodeflags +
+                                          (taddnode(n).addnodeflags * [anf_short_bool]);
+
+                                      exclude(taddnode(n).addnodeflags, anf_short_bool);
+                                    end;
                                 end;
 
                               hp2:=tbinarynode(tbinarynode(n).left).left;

@@ -223,7 +223,7 @@ implementation
 
         if {$ifndef cpu64bitalu}(cgsize<>OS_64) and{$endif}
            (((cs_full_boolean_eval in current_settings.localswitches) and
-             not(nf_short_bool in flags)) or
+             not(anf_short_bool in addnodeflags)) or
             (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn])) then
           begin
             if left.nodetype in [ordconstn,realconstn] then

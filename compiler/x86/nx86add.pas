@@ -2240,7 +2240,7 @@ unit nx86add;
       begin
         if (nodetype in [orn,andn]) and
            (not(cs_full_boolean_eval in current_settings.localswitches) or
-          (nf_short_bool in flags)) then
+          (anf_short_bool in addnodeflags)) then
           inherited second_addboolean
         else if is_64bit(left.resultdef) then
           inherited

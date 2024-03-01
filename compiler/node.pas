@@ -236,16 +236,12 @@ interface
          { tderefnode }
          nf_no_checkpointer,
 
-
          { tloadnode/ttypeconvnode }
          nf_absolute,
 
-         { taddnode }
+         { taddnode, but appears in typeconv nodes as well among other places }
          { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
          nf_is_currency,
-         nf_has_pointerdiv,
-         { the node shall be short boolean evaluated, this flag has priority over localswitches }
-         nf_short_bool,
 
          { tmoddivnode }
          nf_isomod,
