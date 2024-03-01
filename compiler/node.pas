@@ -228,7 +228,9 @@ interface
          { Node cannot be assigned to }
          nf_no_lvalue,
          { this node is the user code entry, if a node with this flag is removed
-           during simplify, the flag must be moved to another node }
+           during simplify, the flag must be moved to another node.  Though
+           normally applicable to block nodes, they can also appear on asm nodes
+           in the case of pure assembly routines }
          nf_usercode_entry,
 
          { tderefnode }
@@ -268,10 +270,11 @@ interface
          { tasmnode }
          nf_get_asm_position,
 
-         { tblocknode }
+         { tblocknode / this is not node-specific because it can also appear on
+           implicit try/finally nodes }
          nf_block_with_exit,
 
-         { tloadvmtaddrnode }
+         { tloadvmtaddrnode / tisnode }
          nf_ignore_for_wpo, { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
          { node is derived from generic parameter }
