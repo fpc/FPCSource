@@ -3639,7 +3639,8 @@ implementation
                end;
            { there could be more elements }
            until not try_to_consume(_COMMA);
-           buildp.allow_array_constructor:=block_type in [bt_body,bt_except];
+           if block_type in [bt_body,bt_except] then
+             Include(buildp.arrayconstructornodeflags, acnf_allow_array_constructor);
            factor_read_set:=buildp;
          end;
 

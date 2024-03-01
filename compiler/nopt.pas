@@ -339,7 +339,7 @@ begin
       include(sn.flags,nf_internal);
     end;
   arrp:=carrayconstructornode.create(sn,arrp);
-  arrp.allow_array_constructor:=true;
+  Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
      (
@@ -452,7 +452,7 @@ begin
     end;
   sn:=ctypeconvnode.create_internal(hp.getcopy,voidpointertype);
   arrp:=carrayconstructornode.create(sn,arrp);
-  arrp.allow_array_constructor:=true;
+  Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
      (aktassignmentnode.left.resultdef=p.resultdef) and

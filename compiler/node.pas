@@ -243,10 +243,6 @@ interface
          { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
          nf_is_currency,
 
-         { tarrayconstructnode }
-         nf_forcevaria,
-         nf_novariaallowed,
-
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
          { second one also for subtractions of u32-u32 implicitly upcasted to s64 }
          { last one also used on addnode to inhibit procvar calling }

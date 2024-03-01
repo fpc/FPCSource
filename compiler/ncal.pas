@@ -1224,11 +1224,11 @@ implementation
                     if is_array_of_const(parasym.vardef) then
                      begin
                        { force variant array }
-                       include(left.flags,nf_forcevaria);
+                       include(tarrayconstructornode(left).arrayconstructornodeflags,acnf_forcevaria);
                      end
                     else
                      begin
-                       include(left.flags,nf_novariaallowed);
+                       include(tarrayconstructornode(left).arrayconstructornodeflags,acnf_novariaallowed);
                        { now that the resultting type is know we can insert the required
                          typeconvs for the array constructor }
                        if parasym.vardef.typ=arraydef then

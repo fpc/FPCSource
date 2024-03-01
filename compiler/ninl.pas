@@ -5436,7 +5436,7 @@ implementation
                      inserttypeconv_internal(n,voidpointertype);
                      arrconstr:=carrayconstructornode.create(n,arrconstr);
                    end;
-                 arrconstr.allow_array_constructor:=true;
+                 Include(arrconstr.arrayconstructornodeflags, acnf_allow_array_constructor);
 
                  { based on the code from nopt.genmultistringadd() }
                  tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);

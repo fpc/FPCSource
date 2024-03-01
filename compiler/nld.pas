@@ -124,14 +124,25 @@ interface
        end;
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
+       TArrayConstructorNodeFlag =
+       (
+         acnf_allow_array_constructor,
+         acnf_forcevaria,
+         acnf_novariaallowed
+       );
+
+       TArrayConstructorNodeFlags = set of TArrayConstructorNodeFlag;
+
        tarrayconstructornode = class(tbinarynode)
-          allow_array_constructor : boolean;
+          arrayconstructornodeflags: TArrayConstructorNodeFlags;
          private
           function has_range_node:boolean;
          protected
           procedure wrapmanagedvarrec(var n: tnode);virtual;abstract;
          public
           constructor create(l,r : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -139,6 +150,9 @@ interface
           procedure force_type(def:tdef);
           procedure insert_typeconvs;
           function isempty : boolean;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var t : text);override;
+{$endif DEBUG_NODE_XML}
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
 
@@ -1161,7 +1175,21 @@ implementation
     constructor tarrayconstructornode.create(l,r : tnode);
       begin
          inherited create(arrayconstructorn,l,r);
-         allow_array_constructor:=false;
+         arrayconstructornodeflags := [];
+      end;
+
+
+    constructor tarrayconstructornode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getset(tppuset1(arrayconstructornodeflags));
+      end;
+
+
+    procedure tarrayconstructornode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(arrayconstructornodeflags));
       end;
 
 
@@ -1170,6 +1198,7 @@ implementation
          n : tarrayconstructornode;
       begin
          n:=tarrayconstructornode(inherited dogetcopy);
+         n.arrayconstructornodeflags := arrayconstructornodeflags;
          result:=n;
       end;
 
@@ -1214,7 +1243,7 @@ implementation
         Do this only if we didn't convert the arrayconstructor yet. This
         is needed for the cases where the resultdef is forced for a second
         run }
-        if not allow_array_constructor or has_range_node then
+        if not (acnf_allow_array_constructor in arrayconstructornodeflags) or has_range_node then
          begin
            hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(tnode(hp));
@@ -1270,7 +1299,7 @@ implementation
                            hdef:=hp.left.resultdef;
                        end
                      else
-                       if (nf_novariaallowed in flags) then
+                       if (acnf_novariaallowed in arrayconstructornodeflags) then
                          varia:=true;
                    end;
                end;
@@ -1320,7 +1349,7 @@ implementation
         hp        : tarrayconstructornode;
         dovariant : boolean;
       begin
-        dovariant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
+        dovariant:=(acnf_forcevaria in arrayconstructornodeflags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
         { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
@@ -1344,7 +1373,7 @@ implementation
         do_variant,
         do_managed_variant:boolean;
       begin
-        do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
+        do_variant:=(acnf_forcevaria in arrayconstructornodeflags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
         do_managed_variant:=
           do_variant and
           (target_info.system in systems_managed_vm);
@@ -1387,6 +1416,28 @@ implementation
         docompare:=inherited docompare(p);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TArrayConstructorNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TArrayConstructorNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in arrayconstructornodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' arrayconstructornodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                               TTYPENODE
