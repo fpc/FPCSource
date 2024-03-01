@@ -4846,7 +4846,7 @@ implementation
                  begin
                    p1:=cmoddivnode.create(modn,p1,p2);
                    if m_isolike_mod in current_settings.modeswitches then
-                     include(p1.flags,nf_isomod);
+                     include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;
                _OP_SHL :
                  p1:=cshlshrnode.create(shln,p1,p2);

@@ -243,9 +243,6 @@ interface
          { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
          nf_is_currency,
 
-         { tmoddivnode }
-         nf_isomod,
-
          { tassignmentnode }
          nf_assign_done_in_right,
 
