@@ -2002,7 +2002,7 @@ implementation
                         elem,nil)));
 
             result:=cinlinenode.create(in_insert_x_y_z,false,para);
-            include(aktassignmentnode.flags,nf_assign_done_in_right);
+            include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
           end;
 
       begin
@@ -3402,7 +3402,7 @@ implementation
                             'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
                             para
                           );
-                  include(aktassignmentnode.flags,nf_assign_done_in_right);
+                  include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                   firstpass(result);
                 end
               else
@@ -3546,7 +3546,7 @@ implementation
               left:=nil;
               right:=nil;
 
-              include(aktassignmentnode.flags,nf_assign_done_in_right);
+              include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
               firstpass(result);
             end
           else
@@ -3759,7 +3759,7 @@ implementation
                             'fpc_dynarray_concat',
                             para
                           );
-                  include(aktassignmentnode.flags,nf_assign_done_in_right);
+                  include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                   firstpass(result);
                 end
               else

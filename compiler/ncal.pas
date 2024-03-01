@@ -3466,7 +3466,7 @@ implementation
                 funcretnode:=aktassignmentnode.left.getcopy;
                 include(funcretnode.flags,nf_is_funcret);
                 { notify the assignment node that the assignment can be removed }
-                include(aktassignmentnode.flags,nf_assign_done_in_right);
+                include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
               end
             else
               begin

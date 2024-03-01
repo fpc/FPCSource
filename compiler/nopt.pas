@@ -370,7 +370,7 @@ begin
                 'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
                 para
               );
-      include(aktassignmentnode.flags,nf_assign_done_in_right);
+      include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin
@@ -469,7 +469,7 @@ begin
                 'fpc_dynarray_concat_multi',
                 para
               );
-      include(aktassignmentnode.flags,nf_assign_done_in_right);
+      include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin

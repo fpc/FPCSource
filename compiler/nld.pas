@@ -85,10 +85,17 @@ interface
        { different assignment types }
        tassigntype = (at_normal,at_plus,at_minus,at_star,at_slash);
 
+       TAssignmentNodeFlag = (
+         anf_assign_done_in_right
+       );
+
+       TAssignmentNodeFlags = set of TAssignmentNodeFlag;
+
        tassignmentnode = class(tbinarynode)
          protected
           function direct_shortstring_assignment: boolean; virtual;
          public
+          assignmentnodeflags: TAssignmentNodeFlags;
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
           { no checks for validity of assignment }
@@ -104,6 +111,7 @@ interface
        {$endif state_tracking}
           function docompare(p: tnode): boolean; override;
 {$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
           procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
        end;
@@ -616,6 +624,7 @@ implementation
 
       begin
          inherited create(assignn,l,r);
+         assignmentnodeflags := [];
          assigntype:=at_normal;
          if r.nodetype = typeconvn then
            ttypeconvnode(r).warn_pointer_to_signed:=false;
@@ -632,6 +641,7 @@ implementation
     constructor tassignmentnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        ppufile.getset(tppuset1(assignmentnodeflags));
         assigntype:=tassigntype(ppufile.getbyte);
       end;
 
@@ -639,6 +649,7 @@ implementation
     procedure tassignmentnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(assignmentnodeflags));
         ppufile.putbyte(byte(assigntype));
       end;
 
@@ -650,6 +661,7 @@ implementation
 
       begin
          n:=tassignmentnode(inherited dogetcopy);
+         n.assignmentnodeflags := assignmentnodeflags;
          n.assigntype:=assigntype;
          result:=n;
       end;
@@ -707,7 +719,7 @@ implementation
           exit;
 
         { just in case the typecheckpass of right optimized something here }
-        if nf_assign_done_in_right in flags then
+        if anf_assign_done_in_right in assignmentnodeflags then
           begin
             result:=right;
             right:=nil;
@@ -916,7 +928,7 @@ implementation
          aktassignmentnode:=self;
          firstpass(right);
          aktassignmentnode:=oldassignmentnode;
-         if nf_assign_done_in_right in flags then
+         if anf_assign_done_in_right in assignmentnodeflags then
            begin
              result:=right;
              right:=nil;
@@ -1079,6 +1091,28 @@ implementation
 
 
 {$ifdef DEBUG_NODE_XML}
+    procedure TAssignmentNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TAssignmentNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in assignmentnodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' assignmentnodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+
+
     procedure TAssignmentNode.XMLPrintNodeData(var T: Text);
       begin
         { For assignments, put the left and right branches on the same level for clarity }

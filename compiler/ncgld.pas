@@ -807,7 +807,7 @@ implementation
                (right.nodetype in [blockn,calln]) then
               begin
                 { verify that we indeed have nothing to do }
-                if not(nf_assign_done_in_right in flags) then
+                if not(anf_assign_done_in_right in assignmentnodeflags) then
                   internalerror(2015042201);
               end
             { empty constant string }
