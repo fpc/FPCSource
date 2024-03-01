@@ -5954,7 +5954,11 @@ begin
   SetLength(FFields,Len);
   FFieldsResolved:=True;
   if Len=0 then
+    begin
+    if Assigned(Tbl) then
+      FreeMem(Tbl);
     exit;
+    end;
   Ctx:=TRttiContext.Create;
   try
     Ctx.UsePublishedOnly:=False;
