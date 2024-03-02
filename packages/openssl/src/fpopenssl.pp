@@ -17,7 +17,7 @@ unit fpopenssl;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
-{$DEFINE DUMPCERT}
+{.$DEFINE DUMPCERT}
 
 interface
 
