@@ -1840,7 +1840,7 @@ implementation
         { left is reused }
         left := nil;
         result := cderefnode.create(result);
-        include(result.flags,nf_no_checkpointer);
+        include(TDerefNode(result).derefnodeflags,drnf_no_checkpointer);
       end;
 
 

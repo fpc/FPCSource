@@ -160,7 +160,7 @@ implementation
    {$ifdef x86}
                (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
    {$endif x86}
-               not(nf_no_checkpointer in flags) and
+               not(drnf_no_checkpointer in derefnodeflags) and
                { can be NR_NO in case of LOC_CONSTANT }
                (location.reference.base<>NR_NO) then
              begin

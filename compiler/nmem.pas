@@ -103,11 +103,25 @@ interface
        end;
        taddrnodeclass = class of taddrnode;
 
+       TDerefNodeFlag =
+       (
+         drnf_no_checkpointer
+       );
+
+       TDerefNodeFlags = set of TDerefNodeFlag;
+
        tderefnode = class(tunarynode)
+          derefnodeflags: TDerefNodeFlags;
           constructor create(l : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text);
+{$endif DEBUG_NODE_XML}
        end;
        tderefnodeclass = class of tderefnode;
 
@@ -850,6 +864,30 @@ implementation
       end;
 
 
+    constructor tderefnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        ppufile.getset(tppuset1(derefnodeflags));
+      end;
+
+
+    procedure tderefnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(derefnodeflags));
+      end;
+
+
+    function tderefnode.dogetcopy : tnode;
+      var
+        n: TDerefNode;
+      begin
+        n := TDerefNode(inherited dogetcopy);
+        n.derefnodeflags := derefnodeflags;
+        Result := n;
+      end;
+
+
     function tderefnode.pass_typecheck:tnode;
       begin
          result:=nil;
@@ -885,6 +923,28 @@ implementation
          expectloc:=LOC_REFERENCE;
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TDerefNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TDerefNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in derefnodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' derefnodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                             TSUBSCRIPTNODE

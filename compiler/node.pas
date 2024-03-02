@@ -233,9 +233,6 @@ interface
            in the case of pure assembly routines }
          nf_usercode_entry,
 
-         { tderefnode }
-         nf_no_checkpointer,
-
          { tloadnode/ttypeconvnode }
          nf_absolute,
 
