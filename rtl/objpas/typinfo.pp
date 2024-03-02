@@ -507,6 +507,7 @@ unit TypInfo;
         VmtIndex: Smallint;
         {$IFNDEF VER3_2}
         CodeAddress : CodePointer;
+        AttributeTable : PAttributeTable;
         {$ENDIF}
         property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
@@ -664,6 +665,10 @@ unit TypInfo;
         {$ENDIF}
         NamePtr: PShortString;
         Flags: Byte;
+        {$IFNDEF VER3_2}
+        CodeAddress : CodePointer;
+        AttributeTable : PAttributeTable;
+        {$ENDIF}
         { Params: array[0..ParamCount - 1] of TRecMethodParam }
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
@@ -4654,7 +4659,7 @@ var
 begin
   if ParamCount = 0 then
 {$IFNDEF VER3_2}
-    Result := PByte(@CodeAddress) + SizeOf(CodePointer)
+    Result := PByte(@CodeAddress) + SizeOf(CodePointer)+SizeOf(AttributeTable)
 {$ELSE}
     Result := PByte(@VmtIndex) + SizeOf(VmtIndex)
 {$ENDIF}
@@ -4679,6 +4684,9 @@ end;
 function TRecMethodExEntry.GetParamsStart: PByte;
 begin
   Result:=PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)+SizeOf(FLags)));
+  {$IFNDEF VER3_2}
+  Result:=Result+SizeOf(CodeAddress)+SizeOf(AttributeTable);
+  {$ENDIF}
 end;
 
 function TRecMethodExEntry.GetMethodVisibility: TVisibilityClass;
@@ -4709,7 +4717,7 @@ end;
 
 function TRecMethodExEntry.GetTail: Pointer;
 begin
-  Result := PByte(@Flags) + SizeOf(Flags);
+  Result := GetParamsStart;
   if ParamCount > 0 then
     Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TRecMethodParam))));
   if Assigned(ResultType) then

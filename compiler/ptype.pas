@@ -959,10 +959,14 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                check_unbound_attributes;
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
                 pd:=parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                if assigned(rtti_attrs_def) then
+                  begin
+                  trtti_attribute_list.bind(rtti_attrs_def,pd.rtti_attribute_list);
+                  rtti_attrs_def:=Nil;
+                  end;
                 hadgeneric:=false;
                 fields_allowed:=false;
                 is_classdef:=false;

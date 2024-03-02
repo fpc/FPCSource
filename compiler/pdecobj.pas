@@ -1085,6 +1085,7 @@ implementation
         fieldlist: tfpobjectlist;
         rtti_attrs_def: trtti_attribute_list;
         attr_element_count,fldCount : Integer;
+        method_def : tprocdef;
 
       procedure parse_const;
         begin
@@ -1442,9 +1443,12 @@ implementation
             _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
-                check_unbound_attributes;
-                rtti_attrs_def := nil;
-                method_dec(current_structdef,is_classdef,hadgeneric);
+                method_def:=method_dec(current_structdef,is_classdef,hadgeneric);
+                if assigned(rtti_attrs_def) then
+                  begin
+                  trtti_attribute_list.bind(rtti_attrs_def,method_def.rtti_attribute_list);
+                  rtti_attrs_def:=nil;
+                  end;
                 fields_allowed:=false;
                 is_classdef:=false;
                 hadgeneric:=false;
