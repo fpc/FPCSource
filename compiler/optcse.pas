@@ -383,10 +383,10 @@ unit optcse;
                                   if (n.nodetype in [orn,andn]) then
                                     begin
                                       if (tbinarynode(n).left.nodetype in [orn,andn]) then
-                                        taddnode(tbinarynode(n).left).addnodeflags := taddnode(tbinarynode(n).left).addnodeflags +
-                                          (taddnode(n).addnodeflags * [anf_short_bool]);
+                                        taddnode(tbinarynode(n).left).addnodeflags:=taddnode(tbinarynode(n).left).addnodeflags+
+                                          (taddnode(n).addnodeflags*[anf_short_bool]);
 
-                                      exclude(taddnode(n).addnodeflags, anf_short_bool);
+                                      exclude(taddnode(n).addnodeflags,anf_short_bool);
                                     end;
                                 end;
 

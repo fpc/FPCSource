@@ -103,15 +103,14 @@ interface
        end;
        taddrnodeclass = class of taddrnode;
 
-       TDerefNodeFlag =
-       (
+       TDerefNodeFlag = (
          drnf_no_checkpointer
        );
 
        TDerefNodeFlags = set of TDerefNodeFlag;
 
        tderefnode = class(tunarynode)
-          derefnodeflags: TDerefNodeFlags;
+          derefnodeflags : TDerefNodeFlags;
           constructor create(l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -155,13 +154,13 @@ interface
 
        tvecnode = class(tbinarynode)
        protected
-          function first_arraydef: tnode; virtual;
+          function first_arraydef : tnode; virtual;
           function gen_array_rangecheck: tnode; virtual;
        public
           vecnodeflags: TVecNodeFlags;
-          constructor create(l,r : tnode);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor  create(l,r : tnode);virtual;
+          constructor ppuload(t : tnodetype;ppufile : tcompilerppufile);override;
+          procedure ppuwrite(ppufile : tcompilerppufile);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode; override;
@@ -1087,7 +1086,7 @@ implementation
     constructor tvecnode.create(l,r : tnode);
       begin
          inherited create(vecn,l,r);
-         vecnodeflags := [];
+         vecnodeflags:=[];
       end;
 
 
@@ -1485,7 +1484,7 @@ implementation
         n: tvecnode;
       begin
         n:=tvecnode(inherited dogetcopy);
-        n.vecnodeflags := vecnodeflags;
+        n.vecnodeflags:=vecnodeflags;
         result:=n;
       end;
 
@@ -1505,6 +1504,7 @@ implementation
           else
             expectloc:=LOC_SUBSETREF;
       end;
+
 
     function tvecnode.gen_array_rangecheck: tnode;
     var

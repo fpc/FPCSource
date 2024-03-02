@@ -36,7 +36,7 @@ interface
        TModDivNodeFlags = set of TModDivNodeFlag;
 
        tmoddivnode = class(tbinopnode)
-          moddivnodeflags: TModDivNodeFlags;
+          moddivnodeflags : TModDivNodeFlags;
           constructor create(t:tnodetype;l,r : tnode); override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -126,7 +126,7 @@ implementation
     constructor tmoddivnode.create(t:tnodetype;l,r : tnode);
       begin
         inherited create(t, l, r);
-        moddivnodeflags := [];
+        moddivnodeflags:=[];
       end;
 
 
@@ -249,7 +249,7 @@ implementation
         n: tmoddivnode;
       begin
         n:=tmoddivnode(inherited dogetcopy);
-        n.moddivnodeflags := moddivnodeflags;
+        n.moddivnodeflags:=moddivnodeflags;
         result:=n;
       end;
 

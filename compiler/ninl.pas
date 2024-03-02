@@ -29,15 +29,14 @@ interface
        node,htypechk,symtype,compinnr;
 
     type
-       TInlineNodeFlag =
-       (
+       TInlineNodeFlag = (
          inf_inlineconst
        );
 
        TInlineNodeFlags = set of TInlineNodeFlag;
 
        tinlinenode = class(tunarynode)
-          inlinenodeflags: TInlineNodeFlags;
+          inlinenodeflags : TInlineNodeFlags;
           inlinenumber : tinlinenumber;
           constructor create(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
           constructor createintern(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
@@ -164,9 +163,9 @@ implementation
       begin
          inherited create(inlinen,l);
          if is_const then
-           inlinenodeflags := [inf_inlineconst]
+           inlinenodeflags:=[inf_inlineconst]
          else
-           inlinenodeflags := [];
+           inlinenodeflags:=[];
          inlinenumber:=number;
       end;
 
@@ -175,7 +174,7 @@ implementation
      l : tnode);
       begin
          create(number,is_const,l);
-         inlinenodeflags := [];
+         inlinenodeflags:=[];
          include(flags,nf_internal);
       end;
 
@@ -201,7 +200,7 @@ implementation
          n : tinlinenode;
       begin
          n:=tinlinenode(inherited dogetcopy);
-         n.inlinenodeflags := inlinenodeflags;
+         n.inlinenodeflags:=inlinenodeflags;
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
@@ -5466,7 +5465,7 @@ implementation
                      inserttypeconv_internal(n,voidpointertype);
                      arrconstr:=carrayconstructornode.create(n,arrconstr);
                    end;
-                 Include(arrconstr.arrayconstructornodeflags, acnf_allow_array_constructor);
+                 Include(arrconstr.arrayconstructornodeflags,acnf_allow_array_constructor);
 
                  { based on the code from nopt.genmultistringadd() }
                  tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);

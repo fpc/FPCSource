@@ -1099,8 +1099,8 @@ implementation
 
          { Force an empty register list for pure assembler routines,
            so that pass2 won't allocate volatile registers for them. }
-         if Assigned(asmstat) and (po_assembler in current_procinfo.procdef.procoptions) then
-           Include(asmstat.asmnodeflags, asmnf_has_registerlist);
+         if (po_assembler in current_procinfo.procdef.procoptions) then
+           Include(asmstat.asmnodeflags,asmnf_has_registerlist);
 
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
@@ -1140,8 +1140,7 @@ implementation
                   if not try_to_consume(_COMMA) then
                     break;
                 until false;
-                if Assigned(asmstat) then
-                  Include(asmstat.asmnodeflags, asmnf_has_registerlist);
+                Include(asmstat.asmnodeflags,asmnf_has_registerlist);
               end;
              consume(_RECKKLAMMER);
            end;

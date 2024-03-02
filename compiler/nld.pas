@@ -95,7 +95,7 @@ interface
          protected
           function direct_shortstring_assignment: boolean; virtual;
          public
-          assignmentnodeflags: TAssignmentNodeFlags;
+          assignmentnodeflags : TAssignmentNodeFlags;
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
           { no checks for validity of assignment }
@@ -124,8 +124,7 @@ interface
        end;
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
-       TArrayConstructorNodeFlag =
-       (
+       TArrayConstructorNodeFlag = (
          acnf_allow_array_constructor,
          acnf_forcevaria,
          acnf_novariaallowed
@@ -134,15 +133,15 @@ interface
        TArrayConstructorNodeFlags = set of TArrayConstructorNodeFlag;
 
        tarrayconstructornode = class(tbinarynode)
-          arrayconstructornodeflags: TArrayConstructorNodeFlags;
+          arrayconstructornodeflags : TArrayConstructorNodeFlags;
          private
           function has_range_node:boolean;
          protected
-          procedure wrapmanagedvarrec(var n: tnode);virtual;abstract;
+          procedure wrapmanagedvarrec(var n : tnode);virtual;abstract;
          public
           constructor create(l,r : tnode);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor ppuload(t : tnodetype;ppufile : tcompilerppufile);override;
+          procedure ppuwrite(ppufile : tcompilerppufile);override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -638,7 +637,7 @@ implementation
 
       begin
          inherited create(assignn,l,r);
-         assignmentnodeflags := [];
+         assignmentnodeflags:=[];
          assigntype:=at_normal;
          if r.nodetype = typeconvn then
            ttypeconvnode(r).warn_pointer_to_signed:=false;
@@ -675,7 +674,7 @@ implementation
 
       begin
          n:=tassignmentnode(inherited dogetcopy);
-         n.assignmentnodeflags := assignmentnodeflags;
+         n.assignmentnodeflags:=assignmentnodeflags;
          n.assigntype:=assigntype;
          result:=n;
       end;
@@ -1175,7 +1174,7 @@ implementation
     constructor tarrayconstructornode.create(l,r : tnode);
       begin
          inherited create(arrayconstructorn,l,r);
-         arrayconstructornodeflags := [];
+         arrayconstructornodeflags:=[];
       end;
 
 
@@ -1198,7 +1197,7 @@ implementation
          n : tarrayconstructornode;
       begin
          n:=tarrayconstructornode(inherited dogetcopy);
-         n.arrayconstructornodeflags := arrayconstructornodeflags;
+         n.arrayconstructornodeflags:=arrayconstructornodeflags;
          result:=n;
       end;
 

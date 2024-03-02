@@ -71,8 +71,7 @@ interface
        end;
        tfinalizetempsnodeclass = class of tfinalizetempsnode;
 
-       TAsmNodeFlag =
-       (
+       TAsmNodeFlag = (
          asmnf_get_asm_position,
          { Used registers in assembler block }
          asmnf_has_registerlist
@@ -81,7 +80,7 @@ interface
        TAsmNodeFlags = set of TAsmNodeFlag;
 
        tasmnode = class(tnode)
-          asmnodeflags: TAsmNodeFlags;
+          asmnodeflags : TAsmNodeFlags;
           p_asm : TAsmList;
           currenttai : tai;
           constructor create(p : TAsmList);virtual;
@@ -873,7 +872,7 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=p;
-        asmnodeflags := [];
+        asmnodeflags:=[];
         currenttai:=nil;
       end;
 
@@ -882,7 +881,7 @@ implementation
       begin
         inherited create(asmn);
         p_asm:=nil;
-        asmnodeflags := [asmnf_get_asm_position];
+        asmnodeflags:=[asmnf_get_asm_position];
         currenttai:=nil;
       end;
 
@@ -890,7 +889,7 @@ implementation
     destructor tasmnode.destroy;
       begin
         if assigned(p_asm) then
-         p_asm.free;
+          p_asm.free;
         inherited destroy;
       end;
 
@@ -978,14 +977,15 @@ implementation
       var
         n: tasmnode;
       begin
-        n := tasmnode(inherited dogetcopy);
-        n.asmnodeflags := asmnodeflags;
+        n:=tasmnode(inherited dogetcopy);
+        n.asmnodeflags:=asmnodeflags;
         if assigned(p_asm) then
           begin
             n.p_asm:=TAsmList.create;
             n.p_asm.concatlistcopy(p_asm);
           end
-        else n.p_asm := nil;
+        else
+          n.p_asm:=nil;
         n.currenttai:=currenttai;
         result:=n;
       end;

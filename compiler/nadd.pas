@@ -46,7 +46,7 @@ interface
           function pass_typecheck_internal:tnode;
        public
           resultrealdef : tdef;
-          addnodeflags: TAddNodeFlags;
+          addnodeflags : TAddNodeFlags;
           constructor create(tt : tnodetype;l,r : tnode);override;
           constructor create_internal(tt:tnodetype;l,r:tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -192,9 +192,8 @@ implementation
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
-         addnodeflags := [];
+         addnodeflags:=[];
       end;
-
 
     constructor taddnode.create_internal(tt:tnodetype;l,r:tnode);
       begin
@@ -754,13 +753,13 @@ implementation
                        begin
                          if not(anf_has_pointerdiv in addnodeflags) then
                            internalerror(2008030101);
-                         t := cpointerconstnode.create(qword(v),resultdef)
+                         t:=cpointerconstnode.create(qword(v),resultdef)
                        end
                      else
-                       t := cpointerconstnode.create(qword(v),resultdef)
+                       t:=cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
-                       t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches)
+                       t:=create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches)
                      else
                        t:=cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
@@ -1890,7 +1889,7 @@ implementation
         n: taddnode;
       begin
         n:=taddnode(inherited dogetcopy);
-        n.addnodeflags := addnodeflags;
+        n.addnodeflags:=addnodeflags;
         n.resultrealdef:=resultrealdef;
         result:=n;
       end;
