@@ -247,9 +247,6 @@ interface
          nf_internal,  { no warnings/hints generated }
          nf_load_procvar,
 
-         { tinlinenode }
-         nf_inlineconst,
-
          { tblocknode / this is not node-specific because it can also appear on
            implicit try/finally nodes }
          nf_block_with_exit,

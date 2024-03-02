@@ -29,7 +29,15 @@ interface
        node,htypechk,symtype,compinnr;
 
     type
+       TInlineNodeFlag =
+       (
+         inf_inlineconst
+       );
+
+       TInlineNodeFlags = set of TInlineNodeFlag;
+
        tinlinenode = class(tunarynode)
+          inlinenodeflags: TInlineNodeFlags;
           inlinenumber : tinlinenumber;
           constructor create(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
           constructor createintern(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
@@ -137,7 +145,7 @@ implementation
       globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
       cpuinfo,cpubase,
-      pass_1,
+      pass_1,ppu,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
       cgbase,procinfo;
@@ -153,11 +161,12 @@ implementation
 *****************************************************************************}
 
     constructor tinlinenode.create(number : tinlinenumber;is_const:boolean;l : tnode);
-
       begin
          inherited create(inlinen,l);
          if is_const then
-           include(flags,nf_inlineconst);
+           inlinenodeflags := [inf_inlineconst]
+         else
+           inlinenodeflags := [];
          inlinenumber:=number;
       end;
 
@@ -166,6 +175,7 @@ implementation
      l : tnode);
       begin
          create(number,is_const,l);
+         inlinenodeflags := [];
          include(flags,nf_internal);
       end;
 
@@ -173,6 +183,7 @@ implementation
     constructor tinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        ppufile.getset(tppuset1(inlinenodeflags));
         inlinenumber:=tinlinenumber(ppufile.getlongint);
       end;
 
@@ -180,6 +191,7 @@ implementation
     procedure tinlinenode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(inlinenodeflags));
         ppufile.putlongint(longint(inlinenumber));
       end;
 
@@ -189,6 +201,7 @@ implementation
          n : tinlinenode;
       begin
          n:=tinlinenode(inherited dogetcopy);
+         n.inlinenodeflags := inlinenodeflags;
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
@@ -202,8 +215,25 @@ implementation
 
 {$ifdef DEBUG_NODE_XML}
     procedure TInlineNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TInlineNodeFlag;
+        First: Boolean;
       begin
-        inherited;
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in inlinenodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' inlinenodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+
         Write(T, ' inlinenumber="', inlinenumber, '"');
       end;
 {$endif DEBUG_NODE_XML}
@@ -2338,7 +2368,7 @@ implementation
       begin { simplify }
          result:=nil;
          { handle intern constant functions in separate case }
-         if nf_inlineconst in flags then
+         if inf_inlineconst in inlinenodeflags then
           begin
             { no parameters? }
             if not assigned(left) then
@@ -3040,7 +3070,7 @@ implementation
               typecheckpass(left);
           end;
 
-        if not(nf_inlineconst in flags) then
+        if not(inf_inlineconst in inlinenodeflags) then
           begin
             case inlinenumber of
               in_lo_long,
@@ -3918,7 +3948,7 @@ implementation
            end;
 
          { intern const should already be handled }
-         if nf_inlineconst in flags then
+         if inf_inlineconst in inlinenodeflags then
           internalerror(200104044);
          case inlinenumber of
           in_lo_qword,
