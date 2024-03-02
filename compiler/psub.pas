@@ -1176,7 +1176,8 @@ implementation
     procedure tcgprocinfo.OptimizeNodeTree;
       var
         i : integer;
-        RedoDFA, changed: Boolean;
+        UserCode : TNode;
+        RedoDFA, changed : Boolean;
         {RedoDFA : boolean;}
       begin
        { do this before adding the entry code else the tail recursion recognition won't work,
@@ -1240,7 +1241,8 @@ implementation
              { iterate through life info of the first node }
              for i:=0 to dfabuilder.nodemap.count-1 do
                begin
-                 if DFASetIn(GetUserCode.optinfo^.life,i) then
+                 UserCode:=GetUserCode();
+                 if DFASetIn(UserCode.optinfo^.life,i) then
                    begin
                      { do not warn for certain parameters: }
                      if not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
@@ -1250,7 +1252,7 @@ implementation
                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) or
                        { do not warn about initialized hidden parameters }
                        ((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions*[vo_is_high_para,vo_is_parentfp,vo_is_result,vo_is_self])<>[]))) then
-                       CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                       CheckAndWarn(UserCode,tnode(dfabuilder.nodemap[i]));
                    end
                  else
                    begin
