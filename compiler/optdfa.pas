@@ -188,12 +188,11 @@ unit optdfa;
           life info for the node
         }
         procedure updatelifeinfo(n : tnode;const l : TDFASet);
-          var
-            b : boolean;
           begin
-            b:=DFASetNotEqual(l,n.optinfo^.life);
+            if not DFASetNotEqual(l,n.optinfo^.life) then
+              exit;
 {$ifdef DEBUG_DFA}
-            if not(changed) and b then
+            if not(changed) then
               begin
                 writeln('Another DFA pass caused by: ',nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,')');
                 write('  Life info set was:     ');PrintDFASet(Output,n.optinfo^.life);writeln;
@@ -201,7 +200,7 @@ unit optdfa;
               end;
 {$endif DEBUG_DFA}
 
-            changed:=changed or b;
+            changed:=true;
             n.optinfo^.life:=l;
           end;
 

@@ -59,7 +59,6 @@ unit optdeadstore;
 
                 { we need to have dfa for the node }
                 if assigned(a.left.optinfo) and
-                   (a.left.optinfo^.index<>aword(-1)) and
                    { node must be either a local or parameter load node }
                    (a.left.nodetype=loadn) and
                    { its address cannot have escaped the current routine }
