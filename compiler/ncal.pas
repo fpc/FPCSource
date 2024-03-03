@@ -5602,7 +5602,7 @@ implementation
 
         typecheckpass(tnode(inlineblock));
         doinlinesimplify(tnode(inlineblock));
-        node_reset_flags(tnode(inlineblock),[nf_pass1_done]);
+        node_reset_flags(tnode(inlineblock),[],[tnf_pass1_done]);
         firstpass(tnode(inlineblock));
         result:=inlineblock;
 

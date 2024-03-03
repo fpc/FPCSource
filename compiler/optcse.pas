@@ -398,7 +398,7 @@ unit optcse;
 
                               { the transformed tree could result in new possibilities to fold constants
                                 so force a firstpass on the root node }
-                              exclude(tbinarynode(n).right.flags,nf_pass1_done);
+                              exclude(tbinarynode(n).right.transientflags,tnf_pass1_done);
                               do_firstpass(tbinarynode(n).right);
                             end
                           else

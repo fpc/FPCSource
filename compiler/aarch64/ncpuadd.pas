@@ -415,7 +415,7 @@ interface
                 secondpass(left);
 
                 { Skip the not node completely }
-                Include(right.flags, nf_do_not_execute);
+                Include(right.transientflags, tnf_do_not_execute);
                 secondpass(tnotnode(right).left);
 
                 { allocate registers }

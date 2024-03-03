@@ -1860,7 +1860,7 @@ implementation
            (cs_opt_loopunroll in current_settings.optimizerswitches) and
            assigned(t2) and
            { statements must be error free }
-           not(nf_error in t2.flags) then
+           not(tnf_error in t2.transientflags) then
            begin
              typecheckpass(t2);
              res:=t2.simplify(false);
@@ -1925,7 +1925,7 @@ implementation
         begin
           { get rid of nf_write etc. as the left node is now only read }
           leftcopy:=left.getcopy;
-          node_reset_flags(leftcopy,[nf_pass1_done,nf_modify,nf_write]);
+          node_reset_flags(leftcopy,[nf_modify,nf_write],[tnf_pass1_done]);
 
           if fw then
             addstatement(s,
@@ -2079,7 +2079,7 @@ implementation
 
         { get rid of nf_write etc. as the left node is now only read }
         leftcopy:=left.getcopy;
-        node_reset_flags(leftcopy,[nf_pass1_done,nf_modify,nf_write]);
+        node_reset_flags(leftcopy,[nf_modify,nf_write],[tnf_pass1_done]);
 
         if needsifblock then
           begin

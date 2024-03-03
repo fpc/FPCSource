@@ -1976,7 +1976,7 @@ unit nx86add;
                    secondpass(left);
 
                    { Skip the not node completely }
-                   Include(right.flags, nf_do_not_execute);
+                   Include(right.transientflags, tnf_do_not_execute);
                    secondpass(tnotnode(right).left);
 
                    { allocate registers }
@@ -2051,8 +2051,8 @@ unit nx86add;
                    secondpass(left);
 
                    { Skip the subtract and shift nodes completely }
-                   Include(right.flags, nf_do_not_execute);
-                   Include(taddnode(right).left.flags, nf_do_not_execute);
+                   Include(right.transientflags, tnf_do_not_execute);
+                   Include(taddnode(right).left.transientflags, tnf_do_not_execute);
 
                    { Helps avoid all the awkward typecasts }
                    indexnode := tshlshrnode(taddnode(right).left).right;
@@ -2063,7 +2063,7 @@ unit nx86add;
                      begin
                        { Convert to the 32-bit type }
                        indexnode.resultdef := resultdef;
-                       node_reset_flags(indexnode,[nf_pass1_done]);
+                       node_reset_flags(indexnode,[],[tnf_pass1_done]);
 
                        { We should't be getting any new errors }
                        if do_firstpass(indexnode) then

@@ -4478,7 +4478,7 @@ implementation
     var
       storepos : tfileposinfo;
     begin
-       if nf_error in p.flags then
+       if tnf_error in p.transientflags then
          exit;
        storepos:=current_filepos;
        current_filepos:=p.fileinfo;

@@ -288,7 +288,7 @@ unit optconstprop;
         if n.nodetype<>callparan then
           begin
             if tree_modified then
-              exclude(n.flags,nf_pass1_done);
+              exclude(n.transientflags,tnf_pass1_done);
 
             do_firstpass(n);
           end;

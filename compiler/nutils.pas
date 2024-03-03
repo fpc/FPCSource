@@ -162,7 +162,7 @@ interface
     function get_open_const_array(p : tnode) : tnode;
 
     { excludes the flags passed in nf from the node tree passed }
-    procedure node_reset_flags(p : tnode;nf : tnodeflags);
+    procedure node_reset_flags(p : tnode;nf : TNodeFlags; tnf : TTransientNodeFlags);
 
     { include or exclude cs from p.localswitches }
     procedure node_change_local_switch(p : tnode;cs : tlocalswitch;enable : boolean);
@@ -1565,17 +1565,28 @@ implementation
           result:=get_open_const_array(taddrnode(tderefnode(result).left).left);
       end;
 
+    type
+      TFlagSet = record
+        nf : TNodeFlags;
+        tnf : TTransientNodeFlags;
+      end;
+
 
     function do_node_reset_flags(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         result:=fen_false;
-        n.flags:=n.flags-tnodeflags(arg^);
+        n.flags:=n.flags-TFlagSet(arg^).nf;
+        n.transientflags:=n.transientflags-TFlagSet(arg^).tnf;
       end;
 
 
-    procedure node_reset_flags(p : tnode; nf : tnodeflags);
+    procedure node_reset_flags(p : tnode; nf : TNodeFlags; tnf : TTransientNodeFlags);
+      var
+        FlagSet: TFlagSet;
       begin
-        foreachnodestatic(p,@do_node_reset_flags,@nf);
+        FlagSet.nf:=nf;
+        FlagSet.tnf:=tnf;
+        foreachnodestatic(p,@do_node_reset_flags,@FlagSet);
       end;
 
     type
@@ -1709,7 +1720,8 @@ implementation
      function _node_reset_pass1_write(var n: tnode; arg: pointer): foreachnoderesult;
        begin
          Result := fen_false;
-         n.flags := n.flags - [nf_pass1_done,nf_write,nf_modify];
+         n.flags := n.flags - [nf_write,nf_modify];
+         n.transientflags := n.transientflags - [tnf_pass1_done];
          if n.nodetype = assignn then
            begin
              { Force re-evaluation of assignments so nf_modify and nf_write

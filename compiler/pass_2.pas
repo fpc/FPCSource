@@ -187,11 +187,11 @@ implementation
       begin
          if not assigned(p) then
           internalerror(200208221);
-         if not(nf_error in p.flags) then
+         if not(tnf_error in p.transientflags) then
           begin
             { The error flag takes precedence over the 'do not execute' flag,
-              as its assumed the node tree isn't tenable beyond this point }
-            if (nf_do_not_execute in p.flags) then
+              as it's assumed the node tree isn't tenable beyond this point }
+            if (tnf_do_not_execute in p.transientflags) then
               InternalError(2022112402);
 
             oldcodegenerror:=codegenerror;
@@ -237,7 +237,7 @@ implementation
              end;
 {$endif EXTDEBUG}
             if codegenerror then
-              include(p.flags,nf_error);
+              include(p.transientflags,tnf_error);
             codegenerror:=codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
@@ -256,7 +256,7 @@ implementation
 
          { clear errors before starting }
          codegenerror:=false;
-         if not(nf_error in p.flags) then
+         if not(tnf_error in p.transientflags) then
            secondpass(p);
          do_secondpass:=codegenerror;
       end;

@@ -471,7 +471,7 @@ implementation
     function terrornode.pass_typecheck:tnode;
       begin
          result:=nil;
-         include(flags,nf_error);
+         include(transientflags,tnf_error);
          codegenerror:=true;
          resultdef:=generrordef;
       end;

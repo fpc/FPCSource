@@ -1906,7 +1906,7 @@ implementation
                         else
                           nt:=equaln;
                         result:=caddnode.create(nt,t,cordconstnode.create(0,vl.resultdef,false));
-                        Include(flags, nf_do_not_execute);
+                        Include(transientflags,tnf_do_not_execute);
                         if t=left then
                           left:=nil
                         else

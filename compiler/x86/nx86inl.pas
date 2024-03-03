@@ -658,15 +658,15 @@ implementation
                        (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
                        begin
                          { Convert to the 32-bit type }
-                         indexnode.resultdef := loadnode.resultdef;
-                         node_reset_flags(indexnode,[nf_pass1_done]);
+                         indexnode.resultdef:=loadnode.resultdef;
+                         node_reset_flags(indexnode,[],[tnf_pass1_done]);
 
                          { We should't be getting any new errors }
                          if do_firstpass(indexnode) then
                            InternalError(2022110202);
 
                          { Keep things internally consistent in case indexnode changed }
-                         tshlshrnode(taddnode(valuenode).left).right := indexnode;
+                         tshlshrnode(taddnode(valuenode).left).right:=indexnode;
                        end;
 {$endif x86_64}
                      secondpass(indexnode);

@@ -87,7 +87,7 @@ implementation
               assigned(hp.resultdef);
         if codegenerror then
           begin
-            include(p.flags,nf_error);
+            include(p.transientflags,tnf_error);
             { default to errortype if no type is set yet }
             if p.resultdef=nil then
               p.resultdef:=generrordef;
@@ -117,7 +117,7 @@ implementation
         else
           begin
             { update the codegenerror boolean with the previous result of this node }
-            if (nf_error in p.flags) then
+            if (tnf_error in p.transientflags) then
               codegenerror:=true;
           end;
       end;
@@ -156,10 +156,10 @@ implementation
          hp : tnode;
          nodechanged : boolean;
       begin
-         if (nf_pass1_done in p.flags) then
+         if (tnf_pass1_done in p.transientflags) then
            exit;
 
-         if not(nf_error in p.flags) then
+         if not(tnf_error in p.transientflags) then
            begin
              oldcodegenerror:=codegenerror;
              oldpos:=current_filepos;
@@ -168,8 +168,8 @@ implementation
              codegenerror:=false;
              repeat
                { The error flag takes precedence over the 'do not execute' flag,
-                 as its assumed the node tree isn't tenable beyond this point }
-               if (nf_do_not_execute in p.flags) then
+                 as it's assumed the node tree isn't tenable beyond this point }
+               if (tnf_do_not_execute in p.transientflags) then
                  InternalError(2022112401);
 
                { checks make always a call }
@@ -182,7 +182,7 @@ implementation
                  end;
 
                hp:=nil;
-               if not(nf_error in p.flags) then
+               if not(tnf_error in p.transientflags) then
                  begin
                    current_filepos:=p.fileinfo;
                    current_settings.localswitches:=p.localswitches;
@@ -201,11 +201,11 @@ implementation
                        p:=hp;
                      end;
                    if codegenerror then
-                     include(p.flags,nf_error);
+                     include(p.transientflags,tnf_error);
                  end;
              until not assigned(hp) or
-                   (nf_pass1_done in hp.flags);
-             include(p.flags,nf_pass1_done);
+                   (tnf_pass1_done in hp.transientflags);
+             include(p.transientflags,tnf_pass1_done);
 {$ifdef EXTDEBUG}
              if not(nf_error in p.flags) then
                begin
