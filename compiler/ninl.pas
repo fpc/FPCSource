@@ -4800,6 +4800,17 @@ implementation
         { first param must be a string or dynamic array ...}
         if isarray then
          begin
+           { SetLength(Arr, 0), Arr := nil, Arr := [] }
+           if (dims=1) and is_constintvalue(tcallparanode(paras).left, 0) then
+             begin
+               ppn.left:=nil; { unlink destppn }
+               result:=ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil);
+               result:=ccallnode.createintern('fpc_dynarray_clear',
+                 ccallparanode.create(caddrnode.create_internal(
+                   crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
+                 result));
+               exit;
+             end;
            { create statements with call initialize the arguments and
              call fpc_dynarr_setlength }
            newblock:=internalstatements(newstatement);
