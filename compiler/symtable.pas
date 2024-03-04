@@ -78,8 +78,8 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean; virtual;
           function  has_non_trivial_init:boolean;virtual;
-          function is_derefimpl_built: Boolean;
-          function is_deref_built: Boolean;
+          function is_derefimpl_built: boolean;
+          function is_deref_built: boolean;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
           procedure register_children;
        end;
@@ -704,12 +704,12 @@ implementation
         ppufile.writeentry(ibendsyms);
       end;
 
-    function tstoredsymtable.is_deref_built: Boolean;
+    function tstoredsymtable.is_deref_built: boolean;
     begin
       Result:=deref_built;
     end;
 
-    function tstoredsymtable.is_derefimpl_built: Boolean;
+    function tstoredsymtable.is_derefimpl_built: boolean;
     begin
       Result:=derefimpl_built;
     end;

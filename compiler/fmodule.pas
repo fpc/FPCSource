@@ -965,23 +965,23 @@ implementation
 
     procedure tmodule.loadlocalnamespacelist;
 
-    var
-      nsitem : TCmdStrListItem;
+      var
+        nsitem : TCmdStrListItem;
 
-    begin
-      // Copying local namespace list
-      if premodule_namespacelist.Count>0 then
-        begin
-        nsitem:=TCmdStrListItem(premodule_namespacelist.First);
-        while assigned(nsItem) do
+      begin
+        // Copying local namespace list
+        if premodule_namespacelist.Count>0 then
           begin
-          localnamespacelist.Concat(nsitem.Str);
-          nsItem:=TCmdStrListItem(nsitem.Next);
+          nsitem:=TCmdStrListItem(premodule_namespacelist.First);
+          while assigned(nsItem) do
+            begin
+            localnamespacelist.Concat(nsitem.Str);
+            nsItem:=TCmdStrListItem(nsitem.Next);
+            end;
+          premodule_namespacelist.Clear;
           end;
-        premodule_namespacelist.Clear;
-        end;
-      current_namespacelist:=localnamespacelist;
-    end;
+        current_namespacelist:=localnamespacelist;
+      end;
 
 
     procedure tmodule.adddependency(callermodule: tmodule; frominterface: boolean);
@@ -1039,53 +1039,53 @@ implementation
 
     function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
 
-    const
-      statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
-                                                        [ms_processed, ms_compiled,ms_compiling_waitimpl]);
+      const
+        statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
+                                                          [ms_processed, ms_compiled,ms_compiling_waitimpl]);
 
-    var
-      itm : TLinkedListItem;
-      states : set of tmodulestate;
+      var
+        itm : TLinkedListItem;
+        states : set of tmodulestate;
 
-    begin
-      Result:=True;
-      States:=statesneeded[interface_units];
-      itm:=self.used_units.First;
-      firstwaiting:=Nil;
-      while Result and assigned(itm) do
-        begin
-        result:=tused_unit(itm).u.state in states;
-        {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
-        if not result then
-           begin
-           if firstwaiting=Nil then
-              firstwaiting:=tused_unit(itm).u;
-           end;
-        itm:=itm.Next;
-        end;
-    end;
+      begin
+        Result:=True;
+        States:=statesneeded[interface_units];
+        itm:=self.used_units.First;
+        firstwaiting:=Nil;
+        while Result and assigned(itm) do
+          begin
+          result:=tused_unit(itm).u.state in states;
+          {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
+          if not result then
+             begin
+             if firstwaiting=Nil then
+                firstwaiting:=tused_unit(itm).u;
+             end;
+          itm:=itm.Next;
+          end;
+      end;
 
     function tmodule.nowaitingforunits: Boolean;
 
-    begin
-      Result:=waitingforunit.count=0;
-    end;
+      begin
+        Result:=waitingforunit.count=0;
+      end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
 
-    var
-      u : tused_unit;
+      var
+        u : tused_unit;
 
-    begin
-      result:=False;
-      u:=tused_unit(used_units.First);
-      while assigned(u) do
-        begin
-        if (u.u=m) then
-          exit(u.in_interface) ;
-        u:=tused_unit(u.next);
-        end;
-    end;
+      begin
+        result:=False;
+        u:=tused_unit(used_units.First);
+        while assigned(u) do
+          begin
+          if (u.u=m) then
+            exit(u.in_interface) ;
+          u:=tused_unit(u.next);
+          end;
+      end;
 
     procedure tmodule.updatemaps;
       var
@@ -1271,7 +1271,7 @@ implementation
       end;
 
 
-        procedure tmodule.AddExternalImport(const libname, symname, symmangledname: string; OrdNr: longint; isvar: boolean;
+    procedure tmodule.AddExternalImport(const libname, symname, symmangledname: string; OrdNr: longint; isvar: boolean;
       ImportByOrdinalOnly: boolean);
       var
         ImportLibrary,OtherIL : TImportLibrary;

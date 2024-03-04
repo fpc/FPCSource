@@ -1049,11 +1049,8 @@ implementation
                  entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
                else
                  entry^.finifunc:='';
-               { Writeln('Adding Init/final for: ',hp.u.modulename^); }
                result.add(entry);
-             end
-           {else
-              Writeln('NOT Adding Init/final for: ',hp.u.modulename^);}
+             end;
            end;
          hp:=tused_unit(hp.next);
        end;
