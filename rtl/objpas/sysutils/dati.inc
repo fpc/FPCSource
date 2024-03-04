@@ -1294,7 +1294,11 @@ begin
   else
     StoreFormat('C', 0, False);
   ResultBuffer[ResultLen] := #0;
-  result := StrPas(@ResultBuffer);
+  {$IF SIZEOF(CHAR)=1}
+    result := StrPas(PAnsiChar(@ResultBuffer));
+  {$ELSE}
+    result := StrPas(PWideChar(@ResultBuffer));
+  {$ENDIF}
   if (DateTime < 0) and (fdoInterval in Options) then
     result := '-' + result;
 end ;
