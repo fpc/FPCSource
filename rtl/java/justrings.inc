@@ -624,6 +624,28 @@ function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : 
     result:=Dest;
   end;
 
+{$define FPC_HAS_UNICODEFROMLOCALECHARS}
+function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
+  LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
+
+var
+  temp: widestring;
+  Len: SizeInt;
+begin
+  widestringmanager.Ansi2WideMoveProc(LocaleStr,CodePage,temp,LocaleStrLen);
+  Len:=Length(temp);
+  // Only move when we have room.
+  if (UnicodeStrLen>0) then
+    begin
+    if UnicodeStrLen<=Len then
+      Len:=UnicodeStrLen-1;
+    JLString(temp).getChars(0,Len,TJCharArray(UnicodeStr),0);
+    UniCodeStr[Len]:=#0;
+    end;
+  // Return length
+  result:=len;
+end;
+
 
 {$define FPC_HAS_UNICODECHAR_LEN_TO_STRING}
 function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : UnicodeString;

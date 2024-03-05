@@ -1047,6 +1047,8 @@ function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : 
   end;
 {$endif FPC_HAS_STRING_LEN_TO_WIDECHAR}
 
+{$ifndef FPC_HAS_UNICODEFROMLOCALECHARS}
+{$define FPC_HAS_UNICODEFROMLOCALECHARS}
 function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
   LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
 
@@ -1067,6 +1069,7 @@ begin
   // Return length  
   result:=len;
 end;
+{$endif ndef FPC_HAS_UNICODEFROMLOCALECHARS}
 
 function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
   LocaleStr: PAnsiChar; LocaleStrLen: Integer; UnicodeStr: PWideChar;
