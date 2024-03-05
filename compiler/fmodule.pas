@@ -57,6 +57,10 @@ interface
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
       );
 
+{$ifdef VER3_2}
+      RTLString = ansistring;
+{$endif VER3_2}
+
       { unit options }
       tmoduleoption = (mo_none,
         mo_hint_deprecated,
