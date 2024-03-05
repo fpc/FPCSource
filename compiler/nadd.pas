@@ -932,6 +932,13 @@ implementation
                 left:=nil;
                 tmoddivnode(right).right:=nil;
                 exit;
+              end
+
+            { transform -x-1 into not(x) }
+            else if is_signed(ld) and is_constintnode(right) and (tordconstnode(right).value=1) and (left.nodetype=unaryminusn) then
+              begin
+                result:=cnotnode.create(tunaryminusnode(left).left.getcopy);
+                exit;
               end;
           end;
 
