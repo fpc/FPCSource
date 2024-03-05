@@ -5965,16 +5965,19 @@ begin
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
-      Fld:=TRttiField.Create(Self);
+      Fld:=TRttiField(Ctx.GetByHandle(aData));
+      if Fld=Nil then
+        begin
+        Fld:=TRttiField.Create(Self);
+        Fld.FHandle:=aData;
+        Fld.FName:=aData^.Name^;
+        Fld.FOffset:=aData^.FieldOffset;
+        Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
+        Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
+        Fld.FStrictVisibility:=aData^.StrictVisibility;
+        Ctx.AddObject(Fld);
+        end;
       FFields[I]:=Fld;
-      Fld.FName:=aData^.Name^;
-      Fld.FOffset:=aData^.FieldOffset;
-      Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
-      Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
-      Fld.FStrictVisibility:=aData^.StrictVisibility;
-      Fld.FHandle:=aData;
-      // Some way to set the attributes is needed.
-      Ctx.AddObject(Fld);
       end;
   finally
     if Assigned(Tbl) then
