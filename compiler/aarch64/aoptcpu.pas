@@ -63,8 +63,10 @@ Interface
         function OptPass1B(var p: tai): boolean;
         function OptPass1SXTW(var p: tai): Boolean;
 
+        function OptPass2CSEL(var p: tai): Boolean;
         function OptPass2B(var p: tai): Boolean;
         function OptPass2LDRSTR(var p: tai): boolean;
+        function OptPass2MOV(var p: tai): Boolean;
 
         function PostPeepholeOptAND(var p: tai): Boolean;
         function PostPeepholeOptCMP(var p: tai): boolean;
@@ -1028,6 +1030,22 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass2CSEL(var p: tai): Boolean;
+    begin
+      Result := False;
+
+      { Csel r0,r1,r1,cond -> mov r0,r1 }
+      if (taicpu(p).oper[1]^.reg = taicpu(p).oper[2]^.reg) then
+        begin
+          DebugMsg(SPeepholeOptimization + 'CSel2Mov (identical true/false registers)', p);
+          taicpu(p).opcode := A_MOV;
+          taicpu(p).ops := 2;
+          Result := True;
+          Exit;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPass2LDRSTR(var p: tai): boolean;
     var
       hp1, hp1_last: tai;
@@ -1179,6 +1197,54 @@ Implementation
 
                 hp1_last := hp1;
               end;
+        end;
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass2MOV(var p: tai): Boolean;
+    var
+      hp1: tai;
+      X: Integer;
+    begin
+      Result := False;
+
+      { Merge MOV and CSEL instructions left behind by OptPass2B - that is,
+        change:
+
+          mov  r0,r1
+          csel r0,r2,r0,cond
+
+        To:
+          csel r0,r2,r1,cond
+
+        (Also if r0 is the second operand)
+      }
+      if (taicpu(p).oper[1]^.typ = top_reg) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        (hp1.typ = ait_instruction) and
+        (taicpu(hp1).opcode = A_CSEL) and
+        (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+        not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1) then
+        begin
+          { Use "Result" to note if a change was made so we only have to do
+            expensive register allocation once }
+          for X := 1 to 2 do
+            if (taicpu(hp1).oper[X]^.reg = taicpu(p).oper[0]^.reg) then
+              begin
+                taicpu(hp1).oper[X]^.reg := taicpu(p).oper[1]^.reg;
+                Result := True;
+              end;
+
+          if Result then
+            begin
+              DebugMSg(SPeepholeOptimization + 'MovCSel2CSel', p);
+              { Don't need to allocate the zero register - so save time by
+                skipping it in this case }
+              if getsupreg(taicpu(p).oper[1]^.reg) <> RS_XZR then
+                AllocRegBetween(taicpu(p).oper[1]^.reg, p, hp1, UsedRegs);
+              RemoveCurrentP(p);
+              Exit;
+            end;
         end;
     end;
 
@@ -1410,10 +1476,14 @@ Implementation
             A_AND:
               Result := OptPass2AND(p);
             A_B:
-              Result:=OptPass2B(p);
+              Result := OptPass2B(p);
+            A_CSEL:
+              Result := OptPass2CSEL(p);
+            A_MOV:
+              Result := OptPass2MOV(p);
             A_LDR,
             A_STR:
-              Result:=OptPass2LDRSTR(p);
+              Result := OptPass2LDRSTR(p);
             A_TST:
               Result := OptPass2TST(p);
             else
