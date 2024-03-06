@@ -1092,6 +1092,20 @@ implementation
                 result:=tunarynode(left).left.getcopy;
                 exit;
               end;
+          end
+        { transform -(x+1) or -(1+x) into not(x) }
+        else if is_integer(left.resultdef) and is_signed(left.resultdef) and (left.nodetype=addn) and ((localswitches*[cs_check_overflow,cs_check_range])=[]) then
+          begin
+            if is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value=1) then
+              begin
+                result:=cnotnode.create(taddnode(left).left.getcopy);
+                exit;
+              end
+            else if is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value=1) then
+              begin
+                result:=cnotnode.create(taddnode(left).right.getcopy);
+                exit;
+              end;
           end;
       end;
 
