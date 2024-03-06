@@ -70,7 +70,7 @@ interface
           procedure getppucrc;
           procedure writeppu;
           function loadppu(from_module : tmodule) : boolean;
-          procedure post_load_or_compile(second_time: boolean);
+          procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
           procedure discardppu;
           function  needrecompile:boolean;
           procedure setdefgeneration;
@@ -2260,7 +2260,7 @@ var
         setdefgeneration;
       end;
 
-    procedure tppumodule.post_load_or_compile(second_time : boolean);
+    procedure tppumodule.post_load_or_compile(from_module : tmodule; second_time : boolean);
 
     begin
       if current_module<>self then
@@ -2276,9 +2276,9 @@ var
 
       { reopen the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
-      if old_current_module.is_unit and
-          assigned(tppumodule(old_current_module).ppufile) then
-         tppumodule(old_current_module).ppufile.tempopen;
+      if from_module.is_unit and
+          assigned(tppumodule(from_module).ppufile) then
+         tppumodule(from_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
       state:=ms_processed;
     end;
@@ -2331,9 +2331,9 @@ var
         { close old_current_ppu on system that are
           short on file handles like DOS PM }
 {$ifdef SHORT_ON_FILE_HANDLES}
-        if old_current_module.is_unit and
-           assigned(tppumodule(old_current_module).ppufile) then
-          tppumodule(old_current_module).ppufile.tempclose;
+        if from_module.is_unit and
+           assigned(tppumodule(from_module).ppufile) then
+          tppumodule(from_module).ppufile.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
 
         { try to opening ppu, skip this when we already
@@ -2354,7 +2354,7 @@ var
         //   usedunits.concat(tused_unit.create(self,true,false,nil));
 
         if result then
-          post_load_or_compile(second_time);
+          post_load_or_compile(from_module,second_time);
 
         { we are back, restore current_module }
         set_current_module(from_module);

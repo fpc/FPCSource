@@ -265,7 +265,7 @@ begin
     ms_registered : parser.compile_module(m);
     ms_compile : parser.compile_module(m);
     ms_compiled : if (not m.is_initial) or m.is_unit  then
-                   (m as tppumodule).post_load_or_compile(m.compilecount>1);
+                   (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
     ms_compiling_waitfinish : pmodules.finish_unit(m);
