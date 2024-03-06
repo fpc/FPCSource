@@ -1651,7 +1651,7 @@ type
          store_interface_crc:=module.interface_crc;
          store_indirect_crc:=module.indirect_crc;
 {$ifdef EXTDEBUG}
-         store_crc:=curr.crc;
+         store_crc:=module.crc;
 {$endif EXTDEBUG}
          if (Errorcount=0) then
            tppumodule(module).writeppu;
@@ -1665,8 +1665,8 @@ type
            end;
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in current_settings.moduleswitches) then
-           if (store_crc<>curr.crc) then
-             Message1(unit_u_implementation_crc_changed,curr.ppufilename);
+           if (store_crc<>module.crc) then
+             Message1(unit_u_implementation_crc_changed,module.ppufilename);
 {$endif EXTDEBUG}
 
          { release unregistered defs/syms from the localsymtable }
