@@ -260,7 +260,7 @@ interface
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
         function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
-        function nowaitingforunits : Boolean;
+        function nowaitingforunits(out firstwaiting : tmodule) : Boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -1045,7 +1045,7 @@ implementation
 
       const
         statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
-                                                          [ms_processed, ms_compiled,ms_compiling_waitimpl]);
+                                                          [ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish]);
 
       var
         itm : TLinkedListItem;
@@ -1069,10 +1069,12 @@ implementation
           end;
       end;
 
-    function tmodule.nowaitingforunits: Boolean;
+    function tmodule.nowaitingforunits(out firstwaiting : tmodule): Boolean;
 
       begin
         Result:=waitingforunit.count=0;
+        If not Result then
+          firstwaiting:=tmodule(waitingforunit[0]);
       end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;

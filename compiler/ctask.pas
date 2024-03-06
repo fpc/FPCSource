@@ -215,7 +215,7 @@ begin
     ms_registered : cancontinue:=true;
     ms_compile : cancontinue:=true;
     ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
-    ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits;
+    ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits(firstwaiting);
     ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiled : cancontinue:=true;
