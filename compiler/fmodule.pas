@@ -1072,6 +1072,7 @@ implementation
     function tmodule.nowaitingforunits(out firstwaiting : tmodule): Boolean;
 
       begin
+        firstwaiting:=nil;
         Result:=waitingforunit.count=0;
         If not Result then
           firstwaiting:=tmodule(waitingforunit[0]);
