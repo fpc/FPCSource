@@ -1689,13 +1689,13 @@ type
 
 {$ifdef debug_devirt}
          { print out all instantiated class/object types }
-         writeln('constructed object/class/classreftypes in ',curr.realmodulename^);
-         for i := 0 to curr.wpoinfo.createdobjtypes.count-1 do
+         writeln('constructed object/class/classreftypes in ',module.realmodulename^);
+         for i := 0 to module.wpoinfo.createdobjtypes.count-1 do
            begin
-             write('  ',tdef(curr.wpoinfo.createdobjtypes[i]).GetTypeName);
-             case tdef(curr.wpoinfo.createdobjtypes[i]).typ of
+             write('  ',tdef(module.wpoinfo.createdobjtypes[i]).GetTypeName);
+             case tdef(module.wpoinfo.createdobjtypes[i]).typ of
                objectdef:
-                 case tobjectdef(curr.wpoinfo.createdobjtypes[i]).objecttype of
+                 case tobjectdef(module.wpoinfo.createdobjtypes[i]).objecttype of
                    odt_object:
                      writeln(' (object)');
                    odt_class:
@@ -1708,12 +1708,12 @@ type
              end;
            end;
 
-         for i := 0 to curr.wpoinfo.createdclassrefobjtypes.count-1 do
+         for i := 0 to module.wpoinfo.createdclassrefobjtypes.count-1 do
            begin
-             write('  Class Of ',tdef(curr.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
-             case tdef(curr.wpoinfo.createdclassrefobjtypes[i]).typ of
+             write('  Class Of ',tdef(module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
+             case tdef(module.wpoinfo.createdclassrefobjtypes[i]).typ of
                objectdef:
-                 case tobjectdef(curr.wpoinfo.createdclassrefobjtypes[i]).objecttype of
+                 case tobjectdef(module.wpoinfo.createdclassrefobjtypes[i]).objecttype of
                    odt_class:
                      writeln(' (classrefdef)');
                    else
