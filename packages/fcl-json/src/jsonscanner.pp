@@ -65,20 +65,20 @@ Const
 
 Type
 
-  { TJSONScanner }
-
   TJSONScanner = class
   private
     FCurPos, FSourceStart: PAnsiChar;
     FCurRow: Integer;
     FCurToken: TJSONToken;
-    FCurTokenString: AnsiString; // Calculated lazily from FParts. FNParts = -1 if ready.
+    FCurTokenString: AnsiString; // Calculated lazily from FParts. FPartsBytes = -1 if ready.
 
-    // Describes how to build FCurTokenString if asked.
-    // FParts[i] >= 0: piece with start = FSourceStart + FParts[i] and length = FParts[i + 1].
-    // FParts[i] = -1 - N: Unicode codepoint N.
-    FParts: array of SizeInt;
-    FNParts: SizeInt; // -1 if FCurTokenString is ready.
+    // Sequence of varints that describes how to build FCurTokenString if asked.
+    // Number X with lowest bit 0 means piece with start = FPartsSrcPos + X shr 1, length = next number; FPartsSrcPos advances to start + length.
+    //   I.e. offsets are relative to the previous piece, so AAA\nBBB\nCCC results in tiny 1-byte offsets (and lengths) no matter how long the entire string is.
+    // Number X with lowest bit 1 means Unicode codepoint X shr 1.
+    FParts: array of uint8;
+    FPartsBytes: SizeInt; // -1 if FCurTokenString is ready.
+    FPartsSrcPos: PAnsiChar; // Used during FetchToken to form FParts with relative offsets, and then during BuildCurTokenString to interpret them.
 
     FOptions : TJSONOptions;
     FCurLine, FCurLineEnd: PAnsiChar; // FCurLineEnd = nil if needs to be calculated.
@@ -92,9 +92,14 @@ Type
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
     function CountChars(start, ed: PAnsiChar): SizeInt;
 
-    function GrowParts(by: SizeInt): PSizeInt;
-    procedure AddPiece(start, ed: PAnsiChar);
+  const
+    MaxViLen = 1 + sizeof(SizeUint);
+    class function ViRead(p: PUint8; out v: SizeUint): SizeUint; static;
+    class function ViWrite(p: PUint8; v: SizeUint): SizeUint; static;
+
+    function EnsurePartsSpace(nBytes: SizeInt): PUint8;
     procedure AddCodepoint(cp: uint32);
+    procedure AddPiece(start, ed: PAnsiChar);
     function GetCurTokenString: ansistring;
     procedure BuildCurTokenString;
     class function CodepointToASCII(cp: uint32; Rp: PAnsiChar): SizeInt; static;
@@ -222,11 +227,13 @@ function TJSONScanner.FetchToken: TJSONToken;
 var
   Sp, Start: PAnsiChar;
 begin
-  FNParts := 0;
+  FPartsBytes := 0;
   Sp := FCurPos;
   // Don't consider such newline a tkWhitespace.
   if Sp^ in [#13, #10] then
     Sp := ScanNewline(Sp);
+  Start := Sp;
+  FPartsSrcPos := Sp; // AddPiece uses it to write relative offsets to FParts.
   case Sp^ of
     #0: Result := tkEOF;
     #9, ' ', #13, #10:
@@ -289,7 +296,6 @@ begin
       end;
     'a'..'z','A'..'Z','_':
       begin
-        Start := Sp;
         repeat
           Inc(Sp);
         until not (Sp^ in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
@@ -299,6 +305,7 @@ begin
     else
       InvalidCharacter(Sp);
   end;
+  FPartsSrcPos := Start; // BuildCurTokenString uses it to read relative offsets from FParts.
   FCurPos := Sp;
   FCurToken := Result;
 end;
@@ -348,36 +355,88 @@ begin
     Result := ed - start;
 end;
 
-function TJSONScanner.GrowParts(by: SizeInt): PSizeInt;
+// Varint uses: 1 byte for 0..127, 2 bytes for 128..16511, 3 bytes for 16512..2113663, otherwise 1 + sizeof(SizeUint) bytes for full SizeUint (very rare).
+class function TJSONScanner.ViRead(p: PUint8; out v: SizeUint): SizeUint;
 var
-  newNParts: SizeInt;
+  val: SizeUint;
 begin
-  newNParts := FNParts + by;
-  if newNParts > length(FParts) then
-    SetLength(FParts, 4 + newNParts + SizeUint(newNParts) div 4);
-  Result := @FParts[FNParts];
-  FNParts := newNParts;
+  val := p^;
+  if val < %10000000 then
+    result := 1
+  else if val < %11000000 then
+  begin
+    val := 128 + (val and %111111 shl 8 or p[1]);
+    result := 2;
+  end
+  else if val < %11100000 then
+  begin
+    val := (128 + 16384) + (val and %11111 shl 16 or unaligned(PUint16(p + 1)^));
+    result := 3;
+  end else
+  begin
+    val := unaligned(PSizeUint(p + 1)^);
+    result := 1 + sizeof(SizeUint);
+  end;
+  v := val;
 end;
 
-procedure TJSONScanner.AddPiece(start, ed: PAnsiChar);
-var
-  pp: PSizeInt;
+class function TJSONScanner.ViWrite(p: PUint8; v: SizeUint): SizeUint;
 begin
-  if start = ed then
-    exit;
-  pp := GrowParts(2);
-  pp[0] := start - FSourceStart;
-  pp[1] := ed - start;
+  if v <= 127 then
+  begin
+    p[0] := v;
+    result := 1;
+  end
+  else if v <= 16511 then
+  begin
+    v := v - 128;
+    p[0] := %10000000 or v shr 8;
+    p[1] := byte(v);
+    result := 2;
+  end
+  else if v <= 2113663 then
+  begin
+    v := v - (128 + 16384);
+    p[0] := %11000000 or v shr 16;
+    unaligned(PUint16(p + 1)^) := uint16(v);
+    result := 3;
+  end else
+  begin
+    p[0] := 255;
+    unaligned(PSizeUint(p + 1)^) := v;
+    result := 1 + sizeof(SizeUint);
+  end;
+end;
+
+function TJSONScanner.EnsurePartsSpace(nBytes: SizeInt): PUint8;
+begin
+  if FPartsBytes + nBytes > length(FParts) then
+    SetLength(FParts, 4 + FPartsBytes + nBytes + SizeUint(FPartsBytes + nBytes) div 4);
+  Result := @FParts[FPartsBytes];
 end;
 
 procedure TJSONScanner.AddCodepoint(cp: uint32);
 begin
-  GrowParts(1)^ := -1 - SizeInt(cp);
+  inc(FPartsBytes, ViWrite(EnsurePartsSpace(MaxViLen), cp shl 1 or 1));
+end;
+
+procedure TJSONScanner.AddPiece(start, ed: PAnsiChar);
+var
+  pp: PUint8;
+  n: SizeUint;
+begin
+  if start = ed then
+    exit;
+  // Can also store a piece consisting of a single ASCII character as a codepoint, but savings are very minor; often both variants require 2 bytes.
+  pp := EnsurePartsSpace(2 * MaxViLen);
+  n := ViWrite(pp, (start - FPartsSrcPos) shl 1);
+  inc(FPartsBytes, n + ViWrite(pp + n, ed - start));
+  FPartsSrcPos := ed;
 end;
 
 function TJSONScanner.GetCurTokenString: ansistring;
 begin
-  if FNParts >= 0 then
+  if FPartsBytes >= 0 then
     BuildCurTokenString;
   result := FCurTokenString;
 end;
@@ -385,44 +444,50 @@ end;
 procedure TJSONScanner.BuildCurTokenString;
 var
   utf8: boolean;
-  iPart, len: SizeInt;
+  partp, parte: PUint8;
+  len: SizeInt;
+  v, v2: SizeUint;
   cp: uint32;
-  Rp: PAnsiChar;
+  Srcp, Rp: PAnsiChar;
 begin
   utf8 := (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8);
   len := 0;
   // Prepass for length. Exact if utf8, otherwise ceiling.
-  iPart := 0;
-  while iPart < FNParts do
+  partp := PUint8(FParts);
+  parte := partp + FPartsBytes;
+  while partp < parte do
   begin
-    if FParts[iPart] >= 0 then
+    inc(partp, ViRead(partp, v));
+    if v and 1 = 0 then
     begin
-      inc(len, FParts[iPart + 1]);
-      inc(iPart, 2);
+      inc(partp, ViRead(partp, v));
+      inc(len, v);
     end else
     begin
-      cp := -(FParts[iPart] + 1);
+      cp := v shr 1;
       if cp <= $7F then inc(len) // First 128 characters use 1 byte both in UTF-8 or ANSI encodings.
       // Use 2 in non-utf8 mode as ceiling value, assuming ANSI encodings use at most 2 bytes per codepoint. (Eg: Shift JIS uses 1 or 2.)
       else if (cp <= $7FF) or not utf8 then inc(len, 2)
       else if cp <= $FFFF then inc(len, 3)
       else inc(len, 4);
-      inc(iPart);
     end;
   end;
   SetLength(FCurTokenString, len);
+  Srcp := FPartsSrcPos;
   Rp := PAnsiChar(Pointer(FCurTokenString));
-  iPart := 0;
-  while iPart < FNParts do
+  partp := PUint8(FParts);
+  while partp < parte do
   begin
-    if FParts[iPart] >= 0 then
+    inc(partp, ViRead(partp, v));
+    if v and 1 = 0 then
     begin
-      Move(FSourceStart[FParts[iPart]], Rp^, FParts[iPart + 1]);
-      inc(Rp, FParts[iPart + 1]);
-      inc(iPart, 2);
+      inc(partp, ViRead(partp, v2));
+      Move(Srcp[v shr 1], Rp^, v2);
+      inc(Rp, v2);
+      inc(Srcp, v shr 1 + v2);
     end else
     begin
-      cp := -(FParts[iPart] + 1);
+      cp := v shr 1;
       if cp <= $7F then
       begin
         byte(Rp^) := cp;
@@ -451,11 +516,11 @@ begin
           end
         else
           Inc(Rp, CodepointToASCII(cp, Rp));
-      inc(iPart);
     end;
   end;
-  SetLength(FCurTokenString, Rp - PAnsiChar(Pointer(FCurTokenString)));
-  FNParts := -1;
+  if not utf8 then
+    SetLength(FCurTokenString, Rp - PAnsiChar(Pointer(FCurTokenString)));
+  FPartsBytes := -1;
 end;
 
 class function TJSONScanner.CodepointToASCII(cp: uint32; Rp: PAnsiChar): SizeInt;
@@ -480,8 +545,8 @@ end;
 
 function TJSONScanner.ScanString(Sp: PAnsiChar): PAnsiChar;
 const
-  SimpleEscapes_Spell: array[0 .. 8] of ansichar = 'tbnrf"''\/';
-  SimpleEscapes_Meant: array[0 .. High(SimpleEscapes_Spell)] of ansichar = #9#8#10#13#12'"''\/';
+  SimpleEscapes_Spell: array[0 .. 8] of ansichar = 'tbnrf"''\/'; // Symbols starting from length(SimpleEscapes_Meant) are mapped to themselves.
+  SimpleEscapes_Meant: array[0 .. 4] of ansichar = #9#8#10#13#12;
 var
   StartChar: AnsiChar;
   LiteralStart: PAnsiChar;
@@ -498,6 +563,9 @@ begin
     // Loop starts with an increment to improve this common case further at the cost of a bit of comprehensibility in other cases.
     if not (Sp^ in [#0 .. #31, '\', '''', '"']) then
       continue;
+
+    if Sp^ = StartChar then
+      break;
 
     if Sp^ = '\' then
     begin
@@ -528,10 +596,10 @@ begin
       begin
         Inc(Sp);
         LiteralStart := Sp + 1;
-        if SimpleEscapes_Meant[iEsc] = SimpleEscapes_Spell[iEsc] then
-          dec(LiteralStart) // Just start next literal from this very character instead of handling it explicitly somehow.
+        if iEsc < length(SimpleEscapes_Meant) then // Escaped character maps to something else?
+          AddCodepoint(ord(SimpleEscapes_Meant[iEsc]))
         else
-          GrowParts(1)^ := -1 - ord(SimpleEscapes_Meant[iEsc]);
+          dec(LiteralStart); // Just start next literal from this very character instead of handling it explicitly somehow.
         continue;
       end;
 
@@ -540,9 +608,6 @@ begin
       else
         InvalidCharacter(Sp + 1);
     end;
-
-    if Sp^ = StartChar then
-      break;
 
     if Sp^ < #20 then
       if Sp^ = #0 then
@@ -615,7 +680,7 @@ begin
   if not (Sp^ in [#13, #10, #0, '}', ']', ',', #9, ' ']) then
     InvalidCharacter(Sp);
   if Start^ = '.' then
-    GrowParts(1)^ := -1 - ord('0');
+    AddCodepoint(ord('0'));
   AddPiece(Start, Sp);
   Result := Sp;
 end;
