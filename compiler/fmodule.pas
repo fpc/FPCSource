@@ -272,6 +272,7 @@ interface
         procedure add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         procedure add_extern_asmsym(sym:TAsmSymbol);
         procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+        procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
       end;
@@ -1358,6 +1359,13 @@ implementation
           end;
         tasmsymbol.create(externasmsyms,name,bind,typ);
       end;
+
+    procedure tmodule.remove_from_waitingforunits(amodule: tmodule);
+    begin
+      // It can be nil after when this is called after end_of_parsing was called.
+      if assigned(waitingforunit) then
+        waitingforunit.remove(amodule);
+    end;
 
     function tmodule.ToString: RTLString;
       begin

@@ -2865,8 +2865,11 @@ uses
                   ) and
                   { may not be assigned in case it's a synthetic procdef that
                     still needs to be generated }
-                  assigned(tprocdef(hp).genericdef) and
-                  tprocdef(tprocdef(hp).genericdef).forwarddef then
+                  (assigned(tprocdef(hp).genericdef) and
+                  tprocdef(tprocdef(hp).genericdef).forwarddef)
+                  { when the implementation of the module was not yet parsed, it will not yet have a generictokenbuf }
+                  or not assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+
                  begin
                    result:=false;
                    continue;

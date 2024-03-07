@@ -1733,7 +1733,7 @@ type
         for i:=0 to module.waitingunits.count-1 do
           begin
             waitingmodule:=tmodule(module.waitingunits[i]);
-            waitingmodule.waitingforunit.remove(module);
+            waitingmodule.remove_from_waitingforunits(module);
           end;
 
 {$ifdef DEBUG_NODE_XML}
