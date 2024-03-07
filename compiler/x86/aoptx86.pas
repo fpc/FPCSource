@@ -9691,6 +9691,7 @@ unit aoptx86;
   function TX86AsmOptimizer.OptPass2CMOVcc(var p: tai): Boolean;
     var
       hp1, hp2: tai;
+      FoundComparison: Boolean;
     begin
       Result := False;
       { Sometimes, the CMOV optimisations in OptPass2Jcc are a bit overzealous
@@ -9731,6 +9732,51 @@ unit aoptx86;
               RegLoadedWithNewValue(taicpu(p).oper[1]^.reg, hp2)
             ) then
             begin
+
+              if (taicpu(p).oper[0]^.typ = top_reg) then
+                begin
+                  { Search backwards to see if the source register is set to a
+                    constant }
+                  FoundComparison := False;
+                  hp1 := p;
+                  while GetLastInstruction(hp1, hp1) and (hp1.typ = ait_instruction) do
+                    begin
+                      if RegModifiedByInstruction(NR_DEFAULTFLAGS, hp1) then
+                        begin
+                          FoundComparison := True;
+                          Continue;
+                        end;
+
+                      { Once we find the CMP, TEST or similar instruction, we
+                        have to stop if we find anything other than a MOV }
+                      if FoundComparison and (taicpu(hp1).opcode <> A_MOV) then
+                        Break;
+
+                      if RegModifiedByInstruction(taicpu(p).oper[1]^.reg, hp1) then
+                        { Destination register was modified }
+                        Break;
+
+                      if (taicpu(hp1).opcode = A_MOV) and MatchOpType(taicpu(hp1), top_const, toP_reg)
+                        and (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
+                        begin
+                          { Found a constant! }
+                          taicpu(p).loadconst(0, taicpu(hp1).oper[0]^.val);
+
+                          if not RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg, p, UsedRegs) then
+                            { The source register is no longer in use }
+                            RemoveInstruction(hp1);
+
+                          Break;
+                        end;
+
+                      if RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1) then
+                        { Some other instruction has modified the source register }
+                        Break;
+                    end;
+
+
+                end;
+
               DebugMsg(SPeepholeOptimization + 'CMOVcc/Jcc -> MOV/Jcc since register is not used if not branching', p);
               taicpu(p).opcode := A_MOV;
               taicpu(p).condition := C_None;
