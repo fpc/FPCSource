@@ -229,6 +229,8 @@ uses
                   Result:=OptPass2SUB(p);
                 A_ADD:
                   Result:=OptPass2ADD(p);
+                A_CMOVcc:
+                  Result:=OptPass2CMOVcc(p);
                 A_SETcc:
                   result:=OptPass2SETcc(p);
                 A_CMP:

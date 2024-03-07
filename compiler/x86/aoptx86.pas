@@ -190,6 +190,7 @@ unit aoptx86;
         function OptPass1STCCLC(var p: tai): Boolean;
 
         function OptPass2STCCLC(var p: tai): Boolean;
+        function OptPass2CMOVcc(var p: tai): Boolean;
         function OptPass2Movx(var p : tai): Boolean;
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -9684,6 +9685,63 @@ unit aoptx86;
     begin
       { This generally only executes under -O3 and above }
       Result := (aoc_DoPass2JccOpts in OptsToCheck) and OptPass1STCCLC(p);
+    end;
+
+
+  function TX86AsmOptimizer.OptPass2CMOVcc(var p: tai): Boolean;
+    var
+      hp1, hp2: tai;
+    begin
+      Result := False;
+      { Sometimes, the CMOV optimisations in OptPass2Jcc are a bit overzealous
+        and make a slightly inefficent result on branching-type blocks, notably
+        when setting a function result then jumping to the function epilogue.
+
+        In this case, change:
+
+        cmov(c) %reg1,%reg2
+        j(c) @lbl
+        (%reg2 deallocated)
+
+        To:
+
+        mov %reg11,%reg2
+        j(c) @lbl
+
+        Note, we can't use GetNextInstructionUsingReg to find the conditional
+        jump because if it's not present, we may end up with a jump that's
+        completely unrelated.
+      }
+      hp1 := p;
+      while GetNextInstruction(hp1, hp1) and
+        MatchInstruction(hp1, A_MOV, A_CMOVcc, []) do { loop };
+
+      if (hp1.typ = ait_instruction) and
+        (taicpu(hp1).opcode = A_Jcc) and
+        condition_in(taicpu(hp1).condition, taicpu(p).condition) then
+        begin
+          TransferUsedRegs(TmpUsedRegs);
+          UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
+          if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) or
+            (
+              { See if we can find a more distant instruction that overwrites
+                the destination register }
+              (cs_opt_level3 in current_settings.optimizerswitches) and
+              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
+              RegLoadedWithNewValue(taicpu(p).oper[1]^.reg, hp2)
+            ) then
+            begin
+              DebugMsg(SPeepholeOptimization + 'CMOVcc/Jcc -> MOV/Jcc since register is not used if not branching', p);
+              taicpu(p).opcode := A_MOV;
+              taicpu(p).condition := C_None;
+
+              { Rely on the post peephole stage to put the MOV before the
+                CMP/TEST instruction that appears prior }
+
+              Result := True;
+              Exit;
+            end;
+        end;
     end;
 
 
