@@ -56,6 +56,7 @@ type
     list : ttasklinkedlist;
     hash : TFPHashList;
     main : tmodule;
+    procedure rebuild_hash;
   public
     constructor create;
     destructor destroy; override;
@@ -255,9 +256,11 @@ function ttask_handler.continue(t : ttask_list) : Boolean;
 
 var
   m : tmodule;
+  orgname : shortstring;
 
 begin
   m:=t.module;
+  orgname:=m.modulename^;
   {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' Continues. State: ',m.state);{$ENDIF}
   if Assigned(t.state) then
     t.RestoreState;
@@ -291,6 +294,27 @@ begin
   if not result then
     // Not done, save state
     t.SaveState;
+  {
+    the name can change as a result of processing, e.g. PROGRAM -> TB0406
+    Normally only for the initial module, but we'll do a generic check.
+  }
+  if m.modulename^<>orgname then
+    rebuild_hash;
+end;
+
+procedure ttask_handler.rebuild_hash;
+
+var
+  t : ttask_list;
+
+begin
+  Hash.Clear;
+  t:=list.firsttask;
+  While assigned(t) do
+    begin
+    Hash.Add(t.module.modulename^,t);
+    t:=t.nexttask;
+    end;
 end;
 
 procedure ttask_handler.processqueue;
@@ -336,13 +360,12 @@ procedure ttask_handler.addmodule(m: tmodule);
 
 var
   n : TSymStr;
-  e : tmodule;
-  t : ttask_list;
+  e, t : ttask_list;
 
 begin
   {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' added to task scheduler. State: ',m.state);{$ENDIF}
   n:=m.modulename^;
-  e:=tmodule(Hash.Find(n));
+  e:=ttask_list(Hash.Find(n));
   if e=nil then
     begin
     t:=ttask_list.create(m);
