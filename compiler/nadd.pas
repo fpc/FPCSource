@@ -916,8 +916,15 @@ implementation
         { Deal with anti-commutative subtraction }
         if (nodetype = subn) then
           begin
+            { transform -1-x into not(x) }
+            if is_signed(rd) and is_constintnode(left) and (tordconstnode(left).value=-1)  then
+              begin
+                result:=cnotnode.create(right.getcopy);
+                exit;
+              end
+
             { change "0 - val" to "-val" }
-            if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
+            else if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
               begin
                 if (tordconstnode(left).value = 0) then
                   result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);

@@ -1,3 +1,4 @@
+{ %opt=-O- -O1 }
 var
   l : longint;
 
@@ -11,5 +12,8 @@ begin
     halt(2);
 
   if -(1+l)<>-1235 then
-    halt(2);
+    halt(3);
+
+  if -1-l<>-1235 then
+    halt(4);
 end.
