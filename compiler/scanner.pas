@@ -628,10 +628,17 @@ implementation
                current_settings.setalloc:=1;
              end
            else if (m_mac in current_settings.modeswitches) then
-             { compatible with Metrowerks Pascal }
-             current_settings.packenum:=2
+             begin
+               { compatible with Metrowerks Pascal }
+               current_settings.packenum:=2;
+               current_settings.setalloc:=default_settings.setalloc;
+             end
            else
-             current_settings.packenum:=4;
+             begin
+               current_settings.packenum:=default_settings.packenum;
+               current_settings.setalloc:=default_settings.setalloc;
+             end;
+
            if changeinit then
              begin
                init_settings.packenum:=current_settings.packenum;
