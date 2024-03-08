@@ -2791,7 +2791,10 @@ begin
     Exit;
   aRes:=TObject(AsObject).GetInterface(aGUID,P);
   if aRes then
+    begin
     TValue.Make(@P,aDestType,aDest);
+    IUnknown(P)._Release;
+    end;
 end;
 
 Procedure TValue.CastInterfaceToInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
