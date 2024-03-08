@@ -537,7 +537,9 @@ begin
         stInteger: FT:=ftLargeInt;
         stFloat:   FT:=ftFloat;
         stBlob:    FT:=ftBlob;
-        else       FT:=ftString;
+        stText:    FT:=ftMemo; 
+      else       
+        FT:=ftString;
       end;
     // handle some specials.
     size1:=0;
