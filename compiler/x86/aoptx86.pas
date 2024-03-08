@@ -10003,13 +10003,64 @@ unit aoptx86;
         if not GetNextInstruction(p, hp1) then
           Exit;
 
-        if MatchInstruction(hp1, A_CMP, A_TEST, [taicpu(p).opsize])
-          and DoMovCmpMemOpt(p, hp1) then
+        if MatchInstruction(hp1, A_CMP, A_TEST, []) then
           begin
-            Result := True;
-            Exit;
-          end
-        else if MatchInstruction(hp1, A_JMP, [S_NO]) then
+            if (taicpu(hp1).opsize = taicpu(p).opsize) and DoMovCmpMemOpt(p, hp1) then
+              begin
+                Result := True;
+                Exit;
+              end;
+
+            { This optimisation is only effective on a second run of Pass 2,
+              hence -O3 or above.
+
+              Change:
+                mov      %reg1,%reg2
+                cmp/test (contains %reg1)
+                mov      x,    %reg1
+                (another mov or a j(c))
+
+              To:
+                mov      %reg1,%reg2
+                mov      x,    %reg1
+                cmp      (%reg1 replaced with %reg2)
+                (another mov or a j(c))
+
+              The requirement of an additional MOV or a jump ensures there
+              isn't performance loss, since a j(c) will permit macro-fusion
+              with the cmp instruction, while another MOV likely means it's
+              not all being executed in a single cycle due to parallelisation.
+            }
+            if (cs_opt_level3 in current_settings.optimizerswitches) and
+              MatchOpType(taicpu(p), top_reg, top_reg) and
+              RegInInstruction(taicpu(p).oper[0]^.reg, taicpu(hp1)) and
+              GetNextInstruction(hp1, hp2) and
+              MatchInstruction(hp2, A_MOV, []) and
+              (taicpu(hp2).oper[1]^.typ = top_reg) and
+              { Registers don't have to be the same size in this case }
+              SuperRegistersEqual(taicpu(hp2).oper[1]^.reg, taicpu(p).oper[0]^.reg) and
+              GetNextInstruction(hp2, hp3) and
+              MatchInstruction(hp3, A_MOV, A_Jcc, []) and
+              { Make sure the operands in the camparison can be safely replaced }
+              (
+                not RegInOp(taicpu(p).oper[0]^.reg, taicpu(hp1).oper[0]^) or
+                ReplaceRegisterInOper(taicpu(hp1), 0, taicpu(p).oper[0]^.reg, taicpu(p).oper[1]^.reg)
+              ) and
+              (
+                not RegInOp(taicpu(p).oper[0]^.reg, taicpu(hp1).oper[1]^) or
+                ReplaceRegisterInOper(taicpu(hp1), 1, taicpu(p).oper[0]^.reg, taicpu(p).oper[1]^.reg)
+              ) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'MOV/CMP/MOV -> MOV/MOV/CMP', p);
+                AsmL.Remove(hp2);
+                AsmL.InsertAfter(hp2, p);
+
+                Result := True;
+                Exit;
+              end;
+          end;
+
+        if MatchInstruction(hp1, A_JMP, [S_NO]) then
           begin
             { Sometimes the MOVs that OptPass2JMP produces can be improved
               further, but we can't just put this jump optimisation in pass 1
@@ -10019,21 +10070,30 @@ unit aoptx86;
             UpdateUsedRegs(tai(p.Next));
 
             if OptPass2JMP(hp1) then
-              { call OptPass1MOV once to potentially merge any MOVs that were created }
-              Result := OptPass1MOV(p);
-              { OptPass2MOV will now exit but will be called again if OptPass1MOV
-                returned True and the instruction is still a MOV, thus checking
-                the optimisations below }
+              begin
+                { Restore register state }
+                RestoreUsedRegs(TempTracking);
+                ReleaseUsedRegs(TempTracking);
+
+                { call OptPass1MOV once to potentially merge any MOVs that were created }
+                OptPass1MOV(p);
+                Result := True;
+                Exit;
+              end;
 
             { If OptPass2JMP returned False, no optimisations were done to
               the jump and there are no further optimisations that can be done
-              to the MOV instruction on this pass }
+              to the MOV instruction on this pass other than FuncMov2Func }
 
             { Restore register state }
             RestoreUsedRegs(TempTracking);
             ReleaseUsedRegs(TempTracking);
-          end
-        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+
+            Result := FuncMov2Func(p, hp1);
+            Exit;
+          end;
+
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
           (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
           MatchInstruction(hp1,A_ADD,A_SUB,[taicpu(p).opsize]) and
           (taicpu(hp1).oper[1]^.typ = top_reg) and
@@ -10076,8 +10136,9 @@ unit aoptx86;
                     Exit;
                   end;
               end;
-          end
-        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+          end;
+
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
 {$ifdef x86_64}
           MatchInstruction(hp1,A_MOVZX,A_MOVSX,A_MOVSXD,[]) and
 {$else x86_64}
@@ -10105,11 +10166,12 @@ unit aoptx86;
                 Result:=true;
               end;
 
-            exit;
-          end
-        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+            Exit;
+          end;
+
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
           IsXCHGAcceptable and
-          { XCHG doesn't support 8-byte registers }
+          { XCHG doesn't support 8-bit registers }
           (taicpu(p).opsize <> S_B) and
           MatchInstruction(hp1, A_MOV, []) and
           MatchOpType(taicpu(hp1),top_reg,top_reg) and
@@ -10146,8 +10208,9 @@ unit aoptx86;
                 Result := True;
                 Exit;
               end;
-          end
-        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+          end;
+
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
           MatchInstruction(hp1, A_SAR, []) then
           begin
             if MatchOperand(taicpu(hp1).oper[0]^, 31) then
@@ -10172,7 +10235,9 @@ unit aoptx86;
                         taicpu(p).clearop(1);
                         taicpu(p).clearop(0);
                         taicpu(p).ops:=0;
+
                         Result := True;
+                        Exit;
                       end
                     else if (cs_opt_size in current_settings.optimizerswitches) and
                       (taicpu(p).oper[0]^.reg = NR_EDX) and
@@ -10194,6 +10259,9 @@ unit aoptx86;
                         taicpu(hp1).clearop(1);
                         taicpu(hp1).clearop(0);
                         taicpu(hp1).ops:=0;
+
+                        Include(OptsToCheck, aoc_ForceNewIteration);
+                        Exit;
                       end;
 {$ifndef x86_64}
                   end
@@ -10273,6 +10341,9 @@ unit aoptx86;
                                   else
                                     ;
                                 end;
+
+                            Result := True;
+                            Exit;
                           end;
                       end;
 {$else x86_64}
@@ -10299,7 +10370,9 @@ unit aoptx86;
                     taicpu(p).clearop(1);
                     taicpu(p).clearop(0);
                     taicpu(p).ops:=0;
+
                     Result := True;
+                    Exit;
                   end
                 else if (cs_opt_size in current_settings.optimizerswitches) and
                   (taicpu(p).oper[0]^.reg = NR_RDX) and
@@ -10321,11 +10394,15 @@ unit aoptx86;
                     taicpu(hp1).clearop(1);
                     taicpu(hp1).clearop(0);
                     taicpu(hp1).ops:=0;
+
+                    Include(OptsToCheck, aoc_ForceNewIteration);
+                    Exit;
 {$endif x86_64}
                   end;
               end;
-          end
-        else if MatchInstruction(hp1, A_MOV, []) and
+          end;
+
+        if MatchInstruction(hp1, A_MOV, []) and
           (taicpu(hp1).oper[1]^.typ = top_reg) then
           { Though "GetNextInstruction" could be factored out, along with
             the instructions that depend on hp2, it is an expensive call that
@@ -10376,6 +10453,8 @@ unit aoptx86;
                     taicpu(hp1).ops:=0;
 
                     RemoveInstruction(hp2);
+
+                    Include(OptsToCheck, aoc_ForceNewIteration);
 (*
 {$ifdef x86_64}
                   end
@@ -10423,13 +10502,16 @@ unit aoptx86;
                     taicpu(hp1).ops:=0;
 
                     RemoveInstruction(hp2);
+
+                    Include(OptsToCheck, aoc_ForceNewIteration);
 {$endif x86_64}
 *)
                   end;
               end;
 {$ifdef x86_64}
-          end
-        else if (taicpu(p).opsize = S_L) and
+          end;
+
+        if (taicpu(p).opsize = S_L) and
           (taicpu(p).oper[1]^.typ = top_reg) and
           (
             MatchInstruction(hp1, A_MOV,[]) and
@@ -10502,10 +10584,17 @@ unit aoptx86;
             DebugMsg(SPeepholeOptimization + 'MovMov*Shr2MovMov*Rcr', p);
 
             if (getsupreg(taicpu(hp2).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg)) then
-              { Change first MOV command to have the same register as the final output }
-              taicpu(p).oper[1]^.reg := taicpu(hp1).oper[1]^.reg
+              begin
+                { Change first MOV command to have the same register as the final output }
+                taicpu(p).oper[1]^.reg := taicpu(hp1).oper[1]^.reg;
+                AllocRegBetween(taicpu(hp1).oper[1]^.reg, p, hp1, UsedRegs);
+                Result := True;
+              end
             else
-              taicpu(hp1).oper[1]^.reg := taicpu(p).oper[1]^.reg;
+              begin
+                taicpu(hp1).oper[1]^.reg := taicpu(p).oper[1]^.reg;
+                Include(OptsToCheck, aoc_ForceNewIteration);
+              end;
 
             { Change second MOV command to an ADD command. This is easier than
               converting the existing command because it means we don't have to
@@ -10520,6 +10609,8 @@ unit aoptx86;
             taicpu(hp3).opcode := A_RCR;
             taicpu(hp3).changeopsize(S_L);
             setsubreg(taicpu(hp3).oper[1]^.reg, R_SUBD);
+            { Don't need to Exit yet as p is still a MOV and hp1 hasn't been
+              called, so FuncMov2Func below is safe to call }
 {$endif x86_64}
           end;
 
