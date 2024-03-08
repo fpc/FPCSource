@@ -1078,14 +1078,19 @@ type
         { All units are read, now give them a number }
         curr.updatemaps;
 
+        { Consume the semicolon if needed.
+          At this point the units in the uses clause have at least been parsed
+          and are connected, and conditional compilation expressions can
+          use the symbols from those units }
+        if curr.consume_semicolon_after_uses then
+          consume(_SEMICOLON);
+
         { further, changing the globalsymtable is not allowed anymore }
         curr.globalsymtable.sealed:=true;
         symtablestack.push(curr.localsymtable);
 
         if not curr.interface_only then
           begin
-            if (curr.modulename^='FMX.UTILS') then
-              Writeln('Here');
             Message1(parser_u_parsing_implementation,curr.modulename^);
             if curr.in_interface then
               internalerror(200212285);
@@ -1226,8 +1231,13 @@ type
               parseusesclause(curr);
               if not loadunits(curr,false) then
                  curr.state:=ms_compiling_waitimpl;
-               consume(_SEMICOLON);
-              end;
+              { do not consume the semicolon yet, because the units in the uses clause
+                may not yet be loaded and conditional compilation expressions may
+                depend on symbols from those units }
+              curr.consume_semicolon_after_uses:=True;
+              end
+            else
+              curr.consume_semicolon_after_uses:=False;
           end;
 
         if curr.state in [ms_compiled,ms_processed] then
@@ -2432,12 +2442,12 @@ type
         { All units are read, now give them a number }
         curr.updatemaps;
 
+        connect_loaded_units(curr,nil);
+
         { consume the semicolon after maps have been updated else conditional compiling expressions
           might cause internal errors, see tw8611 }
         if curr.consume_semicolon_after_uses then
           consume(_SEMICOLON);
-
-        connect_loaded_units(curr,nil);
 
         {Insert the name of the main program into the symbol table.}
         if curr.realmodulename^<>'' then
