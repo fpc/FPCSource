@@ -196,6 +196,9 @@ begin
     end
   else
     writeln('no');
+
+{$ifndef cpui386}
+  { makes no sense on i386, the instruction is not available in 32 bit mode }
   write('CMPXCHG16B support: ');
   if CMPXCHG16BSupport then
     begin
@@ -210,5 +213,6 @@ begin
     end
   else
     writeln('no');
+{$endif cpui386}    
 end.
 
