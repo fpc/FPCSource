@@ -122,6 +122,8 @@ begin
           AddUnit('xmltestreport');
           AddUnit('latextestreport');
           AddUnit('plaintestreport');
+          AddUnit('junittestreport');
+          AddUnit('testregistry');
         end;
     T:=P.Targets.AddUnit('simpletestrunner.pas');
       with T.Dependencies do
