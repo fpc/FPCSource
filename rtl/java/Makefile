@@ -887,7 +887,7 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-OBJPASDIR=../objpas
+OBJPASDIR=.
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
