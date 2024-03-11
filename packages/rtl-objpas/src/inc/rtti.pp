@@ -346,6 +346,7 @@ type
     FAttributesResolved: boolean;
     FAttributes: TCustomAttributeArray;
     FMethods: TRttiMethodArray;
+    FFields : TRttiFieldArray;
     function GetAsInstance: TRttiInstanceType;
   protected
     FTypeData: PTypeData;
@@ -367,6 +368,7 @@ type
     function GetFields: TRttiFieldArray; virtual;
     function GetField(const aName: String): TRttiField; virtual;
     function GetDeclaredMethods: TRttiMethodArray; virtual;
+    function GetDeclaredFields: TRttiFieldArray; virtual;
     function GetProperties: TRttiPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: TRttiMethodArray; virtual;
@@ -762,8 +764,8 @@ type
     function GetMetaClassType: TClass;
     procedure ResolveClassicProperties;
     procedure ResolveExtendedProperties;
-    procedure ResolveFields;
-    procedure ResolveMethods;
+    procedure ResolveDeclaredFields;
+    procedure ResolveDeclaredMethods;
   protected
     function GetIsInstance: boolean; override;
     function GetTypeSize: integer; override;
@@ -785,7 +787,7 @@ type
     FPropertiesResolved: Boolean;
     FProperties: TRttiPropertyArray;
     FFieldsResolved: Boolean;
-    FFields: TRttiFieldArray;
+    FDeclaredFields: TRttiFieldArray;
     FDeclaredMethods : TRttiMethodArray;
     FMethodsResolved : Boolean;
   protected
@@ -795,7 +797,7 @@ type
     function GetTypeSize: Integer; override;
   public
     function GetProperties: TRttiPropertyArray; override;
-    function GetFields: TRttiFieldArray; override;
+    function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray;
     function GetAttributes: TCustomAttributeArray;
 //    property ManagedFields: TRttiManagedFieldArray read GetManagedFields;
@@ -5942,7 +5944,7 @@ begin
   result := FProperties;
 end;
 
-procedure TRttiInstanceType.ResolveFields;
+procedure TRttiInstanceType.ResolveDeclaredFields;
 
 Var
   Tbl : PExtendedFieldInfoTable;
@@ -5953,8 +5955,8 @@ Var
 
 begin
   Tbl:=Nil;
-  Len:=GetFieldList(FTypeInfo,Tbl,False);
-  SetLength(FFields,Len);
+  Len:=GetFieldList(FTypeInfo,Tbl,[],False);
+  SetLength(FDeclaredFields,Len);
   FFieldsResolved:=True;
   if Len=0 then
     begin
@@ -5989,7 +5991,7 @@ begin
   end;
 end;
 
-procedure TRttiInstanceType.ResolveMethods;
+procedure TRttiInstanceType.ResolveDeclaredMethods;
 
 Var
   Tbl : PExtendedMethodInfoTable;
@@ -6044,14 +6046,14 @@ end;
 function TRttiInstanceType.GetDeclaredFields: TRttiFieldArray;
 begin
   if not FFieldsResolved then
-    ResolveFields;
-  Result:=FFields;
+    ResolveDeclaredFields;
+  Result:=FDeclaredFields;
 end;
 
 function TRttiInstanceType.GetDeclaredMethods: TRttiMethodArray;
 begin
   if not FMethodsResolved then
-    ResolveMethods;
+    ResolveDeclaredMethods;
   Result:=FDeclaredMethods;
 end;
 
@@ -6199,11 +6201,11 @@ begin
   Result:=FProperties;
 end;
 
-function TRttiRecordType.GetFields: TRttiFieldArray;
+function TRttiRecordType.GetDeclaredFields: TRttiFieldArray;
 begin
   If not FFieldsResolved then
     ResolveFields;
-  Result:=FFields;
+  Result:=FDeclaredFields;
 end;
 
 function TRttiRecordType.GetDeclaredMethods: TRttiMethodArray;
@@ -6718,8 +6720,24 @@ end;
 
 function TRttiType.GetFields: TRttiFieldArray;
 
+var
+  parentfields, selffields: TRttiFieldArray;
+  parent: TRttiType;
+
 begin
-  Result:=Nil;
+  if Assigned(fFields) then
+    Exit(fFields);
+
+  selffields := GetDeclaredFields;
+
+  parent := GetBaseType;
+  if Assigned(parent) then begin
+    parentfields := parent.GetFields;
+  end;
+
+  fFields := Concat(parentfields, selffields);
+
+  Result := fFields;
 end;
 
 function TRttiType.GetField(const aName: String): TRttiField;
@@ -6810,6 +6828,11 @@ end;
 function TRttiType.GetDeclaredMethods: TRttiMethodArray;
 begin
   Result := Nil;
+end;
+
+function TRttiType.GetDeclaredFields: TRttiFieldArray;
+begin
+  Result:=Nil;
 end;
 
 { TRttiNamedObject }
