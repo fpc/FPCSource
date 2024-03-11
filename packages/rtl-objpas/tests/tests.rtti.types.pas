@@ -210,6 +210,11 @@ Type
     Property PublishedB : Integer Read FPublishedA Write FPublishedB;
   end;
 
+  TFieldRTTIChild = class(TFieldRTTI)
+  Public
+    FPublicC : Integer;
+  end;
+
   { TMethodClassRTTI }
 
   TMethodClassRTTI = Class (TObject)

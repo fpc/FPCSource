@@ -755,7 +755,7 @@ type
     FPropertiesResolved: Boolean;
     FProperties: TRttiPropertyArray;
     FFieldsResolved: Boolean;
-    FFields: TRttiFieldArray;
+    FDeclaredFields: TRttiFieldArray;
     FDeclaredMethods : TRttiMethodArray;
     FMethodsResolved : Boolean;
     function GetDeclaringUnitName: string;
@@ -770,7 +770,7 @@ type
     function GetBaseType: TRttiType; override;
   public
     function GetProperties: TRttiPropertyArray; override;
-    function GetFields: TRttiFieldArray; override;
+    function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray; override;
     property MetaClassType: TClass read GetMetaClassType;
     property DeclaringUnitName: string read GetDeclaringUnitName;
@@ -5953,7 +5953,7 @@ Var
 
 begin
   Tbl:=Nil;
-  Len:=GetFieldList(FTypeInfo,Tbl);
+  Len:=GetFieldList(FTypeInfo,Tbl,False);
   SetLength(FFields,Len);
   FFieldsResolved:=True;
   if Len=0 then
@@ -5980,7 +5980,7 @@ begin
         Fld.FStrictVisibility:=aData^.StrictVisibility;
         Ctx.AddObject(Fld);
         end;
-      FFields[I]:=Fld;
+      FDeclaredFields[I]:=Fld;
       end;
   finally
     if Assigned(Tbl) then
@@ -6041,7 +6041,7 @@ begin
   end;
 end;
 
-function TRttiInstanceType.GetFields: TRttiFieldArray;
+function TRttiInstanceType.GetDeclaredFields: TRttiFieldArray;
 begin
   if not FFieldsResolved then
     ResolveFields;

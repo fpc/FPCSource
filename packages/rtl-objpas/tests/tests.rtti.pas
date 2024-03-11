@@ -105,9 +105,11 @@ type
   TTestClassExtendedRTTI = class(TTestExtendedRtti)
   published
     Procedure TestFields;
+    Procedure TestDeclaredFields;
     Procedure TestProperties;
     Procedure TestDeclaredMethods;
     Procedure TestMethods;
+    Procedure TestMethodsInherited;
     Procedure TestPrivateFieldAttributes;
     Procedure TestProtectedFieldAttributes;
     Procedure TestPublicFieldAttributes;
@@ -1719,6 +1721,30 @@ begin
   T.Free;
 end;
 
+procedure TTestClassExtendedRTTI.TestDeclaredFields;
+
+Var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Obj2 : TRttiObject;
+  RttiData2 : TRttiInstanceType absolute obj2;
+  A : TRttiFieldArray;
+  I : Integer;
+
+begin
+  Obj:=FCtx.GetType(TFieldRTTIChild.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Obj2:=FCtx.GetType(TFieldRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj2.ClassType);
+  A:=RttiData.GetFields;
+  AssertEquals('Class field Count',11,Length(A));
+  For I:=0 to 9 do
+    AssertSame('Field parent'+IntToStr(i)+' is parent class', Obj2,A[I].Parent);
+  A:=RttiData.GetDeclaredFields;
+  AssertEquals('Class declared field Count',1,Length(A));
+  AssertSame('Declared Field parent is sels', Obj,A[0].Parent);
+end;
+
 procedure TTestClassExtendedRTTI.TestProperties;
 
 Var
@@ -1774,7 +1800,6 @@ begin
   Parms:=A[9].GetParameters;
   AssertEquals('Parameter length',1,Length(Parms));
   AssertEquals('Parameter name','a',Parms[0].Name);
-
 end;
 
 procedure TTestClassExtendedRTTI.TestMethods;
@@ -1791,7 +1816,35 @@ begin
   aCount:=Length(A);
   AssertEquals('Full Count',13,aCount);
   CheckMethod('Full',12, A[12],'PublicAdditionalMethod',mvPublic);
+  A:=RttiData.GetDeclaredMethods;
+  aCount:=Length(A);
+  AssertEquals('Full declared Count',1,aCount);
+  CheckMethod('Full declared',1, A[0],'PublicAdditionalMethod',mvPublic);
+end;
 
+procedure TTestClassExtendedRTTI.TestMethodsInherited;
+Var
+  A : TRttiMethodArray;
+  Obj,Obj2 : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  RttiData2 : TRttiInstanceType absolute obj2;
+  i,aCount : Integer;
+
+begin
+  Obj:=FCtx.GetType(TAdditionalMethodClassRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  Obj2:=FCtx.GetType(TMethodClassRTTI.ClassInfo);
+  AssertEquals('Correct class type',TRttiInstanceType,Obj.ClassType);
+  A:=RttiData.GetMethods;
+  aCount:=Length(A);
+  AssertEquals('Full Count',13,aCount);
+  For I:=0 to 11 do
+    AssertSame('Parent is RTTI of parent class',Obj2,A[I].Parent);
+  A:=RttiData.GetDeclaredMethods;
+  aCount:=Length(A);
+  AssertEquals('Full declared Count',1,aCount);
+  CheckMethod('Full declared',1, A[0],'PublicAdditionalMethod',mvPublic);
+  AssertSame('Parent is RTTI of parent class',Obj,A[0].Parent);
 end;
 
 procedure TTestClassExtendedRTTI.TestPrivateFieldAttributes;
@@ -1846,7 +1899,7 @@ begin
   AssertEquals('Attribute value ',3,M2.Int);
 end;
 
-Procedure TTestClassExtendedRTTI.TestPublicFieldAttributes;
+procedure TTestClassExtendedRTTI.TestPublicFieldAttributes;
 
 var
   Obj : TRttiObject;
@@ -1900,7 +1953,7 @@ begin
   AssertEquals('B: Attribute value ',4,M3.Int);
 end;
 
-Procedure TTestClassExtendedRTTI.TestPrivatePropertyAttributes;
+procedure TTestClassExtendedRTTI.TestPrivatePropertyAttributes;
 
 var
   Obj : TRttiObject;
@@ -1929,7 +1982,7 @@ begin
   AssertEquals('Attribute value ',2,M2.Int);
 end;
 
-Procedure TTestClassExtendedRTTI.TestProtectedPropertyAttributes;
+procedure TTestClassExtendedRTTI.TestProtectedPropertyAttributes;
 
 var
   Obj : TRttiObject;
@@ -1954,7 +2007,7 @@ begin
   AssertEquals('Attribute value ',3,M2.Int);
 end;
 
-Procedure TTestClassExtendedRTTI.TestPublicPropertyAttributes;
+procedure TTestClassExtendedRTTI.TestPublicPropertyAttributes;
 
 var
   Obj : TRttiObject;
@@ -1979,7 +2032,7 @@ begin
   AssertEquals('Attribute value ',4,M3.Int);
 end;
 
-Procedure TTestClassExtendedRTTI.TestPublishedPropertyAttributes ;
+procedure TTestClassExtendedRTTI.TestPublishedPropertyAttributes;
 
 var
   Obj : TRttiObject;
