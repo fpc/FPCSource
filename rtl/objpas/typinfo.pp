@@ -1201,14 +1201,14 @@ Function GetPropListEx(TypeInfo: PTypeInfo; out PropList: PPropListEx; Visibilit
 Function GetPropListEx(AClass: TClass; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
 Function GetPropListEx(Instance: TObject; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
 
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
 Function GetFieldInfos(aRecord: PRecordData; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-Function GetFieldList(TypeInfo: PTypeInfo; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): SizeInt;
+Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
+Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetFieldList(TypeInfo: PTypeInfo; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): SizeInt;
 Function GetRecordFieldList(aRecord: PRecordData; Out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
-Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
+Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
 
 // Infos require initialized memory or nil to count
 Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
@@ -2287,7 +2287,7 @@ end;
 
 
 
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 var
   vmt: PVmt;
@@ -2328,18 +2328,21 @@ begin
         end;
       end;
     { Go to parent type }
-    vmt:=vmt^.vParent;
+    if IncludeInherited then
+      vmt:=vmt^.vParent
+    else
+      vmt:=Nil;
     end;
 end;
 
 
-Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
   if TypeInfo^.Kind=tkRecord then
     Result:=GetFieldInfos(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
   else if TypeInfo^.Kind=tkClass then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
+    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities,IncludeInherited)
   else
     Result:=0
 end;
@@ -2367,7 +2370,7 @@ begin
 end;
 
 Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean;
-  Visibilities: TVisibilityClasses): longint;
+  Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): longint;
 
 Type
    TInsertField = Procedure (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
@@ -2389,7 +2392,7 @@ begin
   else
     DoInsertField:=@InsertFieldEntryNoSort;
   Result:=0;
-  Count:=GetFieldList(TypeInfo,TempList,Visibilities);
+  Count:=GetFieldList(TypeInfo,TempList,Visibilities,IncludeInherited);
   Try
      For I:=0 to Count-1 do
        begin
@@ -2426,37 +2429,37 @@ begin
 end;
 
 
-Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetFieldInfos(aClass,Nil,Visibilities);
+  aCount:=GetFieldInfos(aClass,Nil,Visibilities,IncludeInherited);
   FieldList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetFieldInfos(aClass,FieldList,Visibilities);
+    Result:=GetFieldInfos(aClass,FieldList,Visibilities,IncludeInherited);
   except
     FreeMem(FieldList);
     Raise;
   end;
 end;
 
-Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities);
+  Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities,IncludeInherited);
 end;
 
 
-Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): SizeInt;
+Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): SizeInt;
 
 begin
   if TypeInfo^.Kind=tkRecord then
     Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
   else if TypeInfo^.Kind=tkClass then
-    Result:=GetFieldList(GetTypeData(TypeInfo)^.ClassType,FieldList,Visibilities)
+    Result:=GetFieldList(GetTypeData(TypeInfo)^.ClassType,FieldList,Visibilities,IncludeInherited)
   else
     Result:=0
 end;
