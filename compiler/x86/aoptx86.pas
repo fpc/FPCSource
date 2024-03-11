@@ -12506,10 +12506,82 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass2Test(var p: tai): Boolean;
       var
         hp1, hp2, pCond: tai;
+        SourceReg, TargetReg: TRegister;
       begin
         Result := False;
 
-        { Search ahead for CMOV instructions }
+        { In some situations, we end up with an inefficient arrangement of
+          instructions in the form of:
+
+          or   %reg1,%reg2
+          (%reg1 deallocated)
+          test %reg2,%reg2
+          mov  x,%reg2
+
+          we may be able to swap and rearrange the registers to produce:
+
+          or   %reg2,%reg1
+          mov  x,%reg2
+          test %reg1,%reg1
+          (%reg1 deallocated)
+        }
+        if (cs_opt_level3 in current_settings.optimizerswitches) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          (
+            MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^.reg) or
+            MatchOperand(taicpu(p).oper[0]^, -1)
+          ) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1, A_MOV, []) and
+          (taicpu(hp1).oper[1]^.typ = top_reg) and
+          SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, taicpu(p).oper[1]^.reg) then
+          begin
+            TargetReg := taicpu(p).oper[1]^.reg;
+
+            { Now look backwards to find a simple commutative operation: ADD,
+              IMUL (2-register version), OR, AND or XOR - whose destination
+              register is the same as TEST }
+            hp2 := p;
+            while GetLastInstruction(hp2, hp2) and (hp2.typ = ait_instruction) do
+              if RegInInstruction(TargetReg, hp2) then
+                begin
+                  if MatchInstruction(hp2, [A_ADD, A_IMUL, A_OR, A_AND, A_XOR], [taicpu(p).opsize]) and
+                    MatchOpType(taicpu(hp2), top_reg, top_reg) and
+                    (taicpu(hp2).oper[1]^.reg = TargetReg) and
+                    (taicpu(hp2).oper[0]^.reg <> TargetReg) then
+                    begin
+                      SourceReg := taicpu(hp2).oper[0]^.reg;
+
+                      if
+                        { Make sure the MOV doesn't use the other register }
+                        not RegInOp(SourceReg, taicpu(hp1).oper[0]^) and
+                        { And make sure the source register is not used afterwards }
+                        not RegInUsedRegs(SourceReg, UsedRegs) then
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'OpTest2OpTest (register swap) done', hp2);
+
+                          taicpu(hp2).oper[0]^.reg := TargetReg;
+                          taicpu(hp2).oper[1]^.reg := SourceReg;
+
+                          if taicpu(p).oper[0]^.typ = top_reg then
+                            taicpu(p).oper[0]^.reg := SourceReg;
+
+                          taicpu(p).oper[1]^.reg := SourceReg;
+
+                          IncludeRegInUsedRegs(SourceReg, UsedRegs);
+                          AllocRegBetween(SourceReg, hp2, p, UsedRegs);
+
+                          Include(OptsToCheck, aoc_ForceNewIteration);
+                          { We can still check the following optimisations since
+                            the instruction is still a TEST }
+                        end;
+                    end;
+
+                  Break;
+                end;
+          end;
+
+        { Search ahead3 for CMOV instructions }
         if (cs_opt_level2 in current_settings.optimizerswitches) then
           begin
             hp1 := p;
