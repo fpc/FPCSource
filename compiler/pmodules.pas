@@ -1083,7 +1083,10 @@ type
           and are connected, and conditional compilation expressions can
           use the symbols from those units }
         if curr.consume_semicolon_after_uses then
-          consume(_SEMICOLON);
+          begin
+            consume(_SEMICOLON);
+            curr.consume_semicolon_after_uses:=false;
+          end;
 
         { further, changing the globalsymtable is not allowed anymore }
         curr.globalsymtable.sealed:=true;
@@ -1153,8 +1156,10 @@ type
           might cause internal errors, see tw8611 }
 
         if curr.consume_semicolon_after_uses then
-          consume(_SEMICOLON);
-
+          begin
+            consume(_SEMICOLON);
+            curr.consume_semicolon_after_uses:=false;
+          end;
         { now push our own symtable }
         symtablestack.push(curr.globalsymtable);
         { Dump stack
@@ -1258,7 +1263,6 @@ type
          s1,s2  : ^string; {Saves stack space}
          unitname : ansistring;
          unitname8 : string[8];
-         consume_semicolon_after_uses:boolean;
          feature : tfeature;
          load_ok : boolean;
 
@@ -1391,13 +1395,10 @@ type
                  exit;
                end;
 
-             consume_semicolon_after_uses:=true;
+             curr.consume_semicolon_after_uses:=true;
            end
          else
-           consume_semicolon_after_uses:=false;
-
-         { we need to store this in case compilation is transferred to another unit }
-         curr.consume_semicolon_after_uses:=consume_semicolon_after_uses;
+           curr.consume_semicolon_after_uses:=false;
 
          { move the global symtable from the temporary local to global }
          current_module.globalsymtable:=current_module.localsymtable;
@@ -2447,7 +2448,10 @@ type
         { consume the semicolon after maps have been updated else conditional compiling expressions
           might cause internal errors, see tw8611 }
         if curr.consume_semicolon_after_uses then
-          consume(_SEMICOLON);
+          begin
+            consume(_SEMICOLON);
+            curr.consume_semicolon_after_uses:=false;
+          end;
 
         {Insert the name of the main program into the symbol table.}
         if curr.realmodulename^<>'' then
@@ -2723,7 +2727,6 @@ type
 
       var
          main_file : tinputfile;
-         consume_semicolon_after_uses,
          consume_semicolon_after_loaded : boolean;
          ps : tprogramparasym;
          textsym : ttypesym;
@@ -2856,12 +2859,10 @@ type
                current_namespacelist:=Nil;
              parseusesclause(curr);
              load_ok:=loadunits(curr,false) and load_ok;
-             consume_semicolon_after_uses:=true;
+             curr.consume_semicolon_after_uses:=true;
            end
          else
-           consume_semicolon_after_uses:=false;
-
-         Curr.consume_semicolon_after_uses:=consume_semicolon_after_uses;
+           curr.consume_semicolon_after_uses:=false;
 
          if not load_ok then
            curr.state:=ms_compiling_wait;
