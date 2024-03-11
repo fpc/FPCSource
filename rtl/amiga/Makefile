@@ -2295,7 +2295,7 @@ uachar$(PPUEXT): $(UACHAR_DEPS)
 	$(COMPILER) $(UACHAR_OPT) $<
 OBJPAS_DEPS= $(OBJPASDIR)/objpas.pp $(INC)/except.inc \
 	     $(SYSTEMUNIT)$(PPUEXT) \
-	     $(OBJPAS_DEPS_OS) $(OBJPAS_DEPS_SPU)
+	     $(OBJPAS_DEPS_OS) $(OBJPAS_DEPS_CPU)
 objpas$(PPUEXT): $(OBJPAS_DEPS)
 	$(COMPILER) $(OBJPAS_OPT) -Fi$(OBJPASDIR) $<
 MACPAS_DEPS=$(INC)/macpas.pp \
