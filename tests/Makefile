@@ -2637,7 +2637,7 @@ endif
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
-	$(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
+	$(ECHOREDIR) $(TEST_DATETIME) > testprep-stamp.$(TEST_FULL_TARGET)
 ifneq ($(TEST_FPC),ppc386$(EXEEXT))
 ifeq ($(findstring -c$(TEST_FPC),$(DOTESTOPT)),)
 override DOTESTOPT+=-c$(TEST_FPC)

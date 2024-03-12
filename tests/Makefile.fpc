@@ -296,7 +296,7 @@ endif
 
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
-        $(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
+        $(ECHOREDIR) $(TEST_DATETIME) > testprep-stamp.$(TEST_FULL_TARGET)
 
 ################################
 # Dotest options
