@@ -119,7 +119,7 @@ interface
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
 {$ifdef DEBUG_NODE_XML}
-          procedure XMLPrintNodeInfo(var T: Text);
+          procedure XMLPrintNodeInfo(var T: Text); override;
 {$endif DEBUG_NODE_XML}
        end;
        tderefnodeclass = class of tderefnode;
