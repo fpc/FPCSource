@@ -407,10 +407,12 @@ implementation
       function is_range_test(nodel, noder: taddnode; out value: tnode; var cl,cr: Tconstexprint): boolean;
         const
           is_upper_test: array[ltn..gten] of boolean = (true,true,false,false);
-          inclusive_adjust: array[boolean,ltn..gten] of integer = ((-1,0,1,0),
-                                                                   (1,0,-1,0));
+          inclusive_adjust: array[boolean,boolean,ltn..gten] of integer = (((-1,0,1,0),
+                                                                            (1,0,-1,0)),
+                                                                           ((0,-1,0,1),
+                                                                            (0,1,0,-1)));
         var
-          swapl, swapr: Boolean;
+          swapl, swapr, inverted_range: Boolean;
           valuer: tnode;
           t: Tconstexprint;
         begin
@@ -449,12 +451,21 @@ implementation
           if not value.isequal(valuer) then
             exit;
 
+          { This is based on De Morgan's theorem, namely that
+            "A and B" = "not ((not A) or (not B))" }
+          inverted_range:=(nodetype=orn);
+          if inverted_range then
+            begin
+              swapl:=not swapl;
+              swapr:=not swapr;
+            end;
+
           { this could be simplified too, but probably never happens }
           if (is_upper_test[nodel.nodetype] xor swapl)=(is_upper_test[noder.nodetype] xor swapr) then
             exit;
 
-          cl:=cl+inclusive_adjust[swapl,nodel.nodetype];
-          cr:=cr+inclusive_adjust[swapr,noder.nodetype];
+          cl:=cl+inclusive_adjust[inverted_range,swapl,nodel.nodetype];
+          cr:=cr+inclusive_adjust[inverted_range,swapr,noder.nodetype];
 
           if is_upper_test[nodel.nodetype] xor swapl then
             begin
@@ -1569,7 +1580,7 @@ implementation
                 { transform unsigned comparisons of (v>=x) and (v<=y)
                   into (v-x)<=(y-x)
                 }
-                if (nodetype=andn) and
+                if (nodetype in [andn,orn]) and
                    (left.nodetype in [ltn,lten,gtn,gten]) and
                    (right.nodetype in [ltn,lten,gtn,gten]) and
                    (not might_have_sideeffects(left)) and
@@ -1581,9 +1592,19 @@ implementation
                     hdef:=get_unsigned_inttype(vl.resultdef);
                     vl:=ctypeconvnode.create_internal(vl.getcopy,hdef);
 
-                    result:=caddnode.create_internal(lten,
+                    { If the condition is of the inverted form (v<x) or (v>y),
+                      we have to invert the conditional result as well, since
+                      the above nodes return True for if v is within the range
+                      (we're merging "not ((v-x)<=(y-x))" into "(v-x)>(y-x)") }
+                    if (nodetype=orn) then
+                      nt:=gtn
+                    else
+                      nt:=lten;
+
+                    result:=caddnode.create_internal(nt,
                               ctypeconvnode.create_internal(caddnode.create_internal(subn,vl,cordconstnode.create(cl,hdef,false)),hdef),
                               cordconstnode.create(cr-cl,hdef,false));
+
                     exit;
                   end;
 
