@@ -120,7 +120,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
 procedure fpc_varset_symdif_sets(const set1,set2; var dest;size : ptrint); compilerproc; assembler; nostackframe;
-{ Same as fpc_varset_mul_sets but with 'xor' instead of 'and not'.
+{ Same as fpc_varset_sub_sets but with 'xor' instead of 'and not'.
 
   Windows: rcx = set1, rdx = set2, r8 = dest, r9 = size
   Linux:   rdi = set1, rsi = set2, rdx = dest, rcx = size }
@@ -172,7 +172,6 @@ asm
     add    set2, size
     neg    size { Now "size" = -(orig.size - 16), "set1" points to orig.set1 + orig.size - 16, "set2" points to orig.set2 + orig.size - 16.
                   Loop ends on "size" >= 0, leaving up to 16 tail bytes. }
-
 @16x_Loop:
     movdqu xmm1, xmmword ptr [set1 + size]
     movdqu xmm0, xmmword ptr [set2 + size]
