@@ -247,6 +247,36 @@ type
     RecSizeMarker = SizeInt($80000000);
   end;
 
+  ITestMethodCall = interface
+    Function Test : String;
+  end;
+
+{$RTTI EXPLICIT METHODS[vcPrivate,vcProtected,vcPublic,vcPublished]}
+
+  { TTestParent }
+
+  TTestParent = class
+    function DoTest : String; virtual;
+  end;
+
+  TTest = Class(TInterfacedObject,ITestMethodCall)
+    FTestCalled : Boolean;
+    Function Test : String;
+  end;
+
+  { TTestConstructorCall }
+
+  TTestConstructorCall = class(TTestParent)
+  Private
+    FTest : ITestMethodCall;
+  Public
+    constructor Create({[QueryParam]} aTest: ITestMethodCall);
+    function DoTest : String; override;
+  end;
+
+
+
+
   TMethodTest1 = procedure of object;
   TMethodTest2 = function: SizeInt of object;
   TMethodTest3 = function(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: SizeInt): SizeInt of object;
@@ -924,6 +954,13 @@ begin
   inherited Destroy;
 end;
 
+{ TTestParent }
+
+function TTestParent.DoTest: String;
+begin
+  Result:='Parent';
+end;
+
 procedure ProcTest1;
 begin
   TTestInterfaceClass.ProcVarInst.Test1;
@@ -1089,6 +1126,24 @@ begin
   TTestInterfaceClass.ProcVarInst.TestUntyped(aArg1, aArg2, aArg3, aArg4);
 end;
 
+
+constructor TTestConstructorCall.Create(aTest: ITestMethodCall);
+begin
+  FTest:=aTest;
+end;
+
+function TTestConstructorCall.DoTest : string;
+begin
+  Result:=FTest.Test;
+end;
+
+{ TTest }
+
+function TTest.Test : string;
+begin
+  FTestCalled:=True;
+  Result:='In test';
+end;
 
 
 end.

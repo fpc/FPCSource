@@ -1209,12 +1209,15 @@ type
   { TRttiInstanceMethod }
 
   TRttiInstanceMethod = class(TRttiMethod)
+  Type
+    TStaticMethod = (smCalc, smFalse, smTrue);
   private
     FHandle: PVmtMethodExEntry;
     // False: without hidden, true: with hidden
     FParams : Array [Boolean] of TRttiParameterArray;
     FAttributesResolved: boolean;
     FAttributes: TCustomAttributeArray;
+    FStaticCalculated : TStaticMethod;
     procedure ResolveParams;
     procedure ResolveAttributes;
   protected
@@ -1784,7 +1787,7 @@ end;
 
 function TRttiInstanceMethod.GetHasExtendedInfo: Boolean;
 begin
-  Result:=inherited GetHasExtendedInfo;
+  Result:=True;
 end;
 
 function TRttiInstanceMethod.GetIsClassMethod: Boolean;
@@ -1803,9 +1806,23 @@ begin
 end;
 
 function TRttiInstanceMethod.GetIsStatic: Boolean;
+
+var
+  I : integer;
+
 begin
-  // ?
-  Result:=False;
+  if FStaticCalculated=smCalc then
+    begin
+    FStaticCalculated:=smTrue;
+    I:=0;
+    While (FStaticCalculated=smTrue) and (I<FHandle^.ParamCount) do
+      begin
+      if ((FHandle^.Param[i]^.Flags * [pfSelf,pfVmt])<>[]) then
+        FStaticCalculated:=smFalse;
+      Inc(I);
+      end;
+    end;
+  Result:=(FStaticCalculated=smTrue);
 end;
 
 function TRttiInstanceMethod.GetMethodKind: TMethodKind;
@@ -4290,6 +4307,9 @@ var
   resptr: Pointer;
   mgr: TFunctionCallManager;
   flags: TFunctionCallFlags;
+  hiddenVmt : Pointer;
+  S : String;
+
 begin
   mgr := FuncCallMgr[aCallConv];
   if not Assigned(mgr.Invoke) then
@@ -4301,6 +4321,8 @@ begin
   unhidden := 0;
   highs := 0;
   for param in aParams do begin
+    S:=Param.Name;
+    Writeln(S);
     if unhidden < Length(aArgs) then begin
       if pfArray in param.Flags then begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
@@ -4348,6 +4370,14 @@ begin
     if pfHidden in param.Flags then begin
       if pfSelf in param.Flags then
         args[i].ValueRef := aInstance.GetReferenceToRawData
+      else if pfVmt in param.Flags then
+        begin
+        if aInstance.Kind=tkClassRef then
+          hiddenVmt:=aInstance.AsClass
+        else if aInstance.Kind=tkClass then
+          hiddenVmt:=aInstance.AsObject.ClassType;
+        args[i].ValueRef := @HiddenVmt;
+        end
       else if pfResult in param.Flags then begin
         if not Assigned(restype) then
           raise EInvocationError.CreateFmt(SErrInvokeRttiDataError, [aName]);
@@ -4646,7 +4676,7 @@ begin
   if not Assigned(FVmtMethodParam^.ParamType) then
     Exit(Nil);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(FVmtMethodParam^.ParamType^);
   finally
@@ -4686,7 +4716,7 @@ function TRttiMethodTypeParameter.GetParamType: TRttiType;
 var
   context: TRttiContext;
 begin
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(FType);
   finally
@@ -5256,9 +5286,10 @@ begin
     raise EInvocationError.CreateFmt(SErrInvokeClassMethodClassSelf, [Name]);
 
   addr := Nil;
-  if IsStatic then
+  if IsStatic or (GetVirtualIndex=-1) then
     addr := CodeAddress
-  else begin
+  else
+    begin
     vmt := Nil;
     if aInstance.Kind in [tkInterface, tkInterfaceRaw] then
       vmt := PCodePointer(PPPointer(aInstance.GetReferenceToRawData)^^);
@@ -5622,7 +5653,7 @@ begin
   SetLength(FParamsAll, FTypeData^.ProcSig.ParamCount);
   SetLength(FParams, FTypeData^.ProcSig.ParamCount);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
     visible := 0;
@@ -6002,9 +6033,8 @@ Var
 
 begin
   tbl:=Nil;
-  Ctx:=TRttiContext.Create;
+  Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
-    Ctx.UsePublishedOnly:=False;
     FMethodsResolved:=True;
     Len:=GetMethodList(FTypeInfo,Tbl,[],False);
     if not FUsePublishedOnly then

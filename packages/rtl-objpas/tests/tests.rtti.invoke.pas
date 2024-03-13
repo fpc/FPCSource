@@ -274,6 +274,19 @@ type
     Procedure Test9;
   end;
 
+  { TTestInvokeInstanceMethods }
+
+  TTestInvokeInstanceMethods = Class(TTestInvokeBase)
+  private
+    Fctx: TRttiContext;
+    function CreateClass(C: TClass): TObject;
+  Protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  Published
+    Procedure TestInvokeConstructor;
+  end;
+
 implementation
 
 { ----------------------------------------------------------------------
@@ -2703,7 +2716,60 @@ begin
     ]);
 end;
 
+{ TTestInvokeInstanceMethods }
 
+
+
+function TTestInvokeInstanceMethods.CreateClass(C : TClass) : TObject;
+
+var
+  t: TRttiType;
+  m: TRttiMethod;
+  V : TValue;
+  IT : ITestMethodCall;
+
+begin
+  t := FCtx.GetType(C);
+  CheckNotNull(T,'No type info');
+  M := T.GetMethod('create');
+  CheckNotNull(M,'No method info');
+  IT:=TTest.Create;
+  Result:=C.NewInstance;
+  {$IFDEF FPC}
+  TValue.Make(@IT,TypeInfo(ITestMethodCall),V);
+  {$ELSE}
+  TValue.Make<ITestMethodCall>(IT,V);
+  {$ENDIF}
+  M.Invoke(Result,[V]);
+end;
+
+procedure TTestInvokeInstanceMethods.SetUp;
+begin
+  inherited SetUp;
+  FCtx:=TRttiContext.Create(False);
+end;
+
+procedure TTestInvokeInstanceMethods.TearDown;
+begin
+  FCtx.Free;
+  inherited TearDown;
+end;
+
+procedure TTestInvokeInstanceMethods.TestInvokeConstructor;
+
+var
+  O : TObject;
+  P : TTestParent;
+  S : TTestConstructorCall;
+
+begin
+  O:=CreateClass(TTestConstructorCall);
+  CheckEquals(TTestConstructorCall,O.ClassType,'Correct class');
+  S:=O as TTestConstructorCall;
+  CheckEquals('In test',S.DoTest,'Correct result when called as correctly typed class');
+  P:=O as TTestParent;
+  CheckEquals('In test',P.DoTest,'Correct result when called as parent class');
+end;
 
 begin
 {$ifdef fpc}
@@ -2717,7 +2783,7 @@ begin
   RegisterTest(TTestInvokeTestProc);
   RegisterTest(TTestInvokeTestProcRecs);
   RegisterTest(TTestInvokeUntyped);
-
+  RegisterTest(TTestInvokeInstanceMethods);
 {$else fpc}
   RegisterTest(TTestInvoke.Suite);
   RegisterTest(TTestInvokeIntfMethods.Suite);
@@ -2729,6 +2795,7 @@ begin
   RegisterTest(TTestInvokeTestProc.Suite);
   RegisterTest(TTestInvokeTestProcRecs.Suite);
   RegisterTest(TTestInvokeUntyped.Suite);
+  RegisterTest(TTestInvokeInstanceMethods.Suite);
 {$endif fpc}
 end.
 
