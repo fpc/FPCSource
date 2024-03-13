@@ -76,7 +76,8 @@ unit optcse;
                with more than one parameter }
              in_fma_single,in_fma_double,in_fma_extended,in_fma_float128,
              in_min_single,in_min_double,in_max_single,in_max_double,
-             in_max_longint,in_max_dword,in_min_longint,in_min_dword
+             in_max_longint,in_max_dword,in_min_longint,in_min_dword,
+             in_max_int64,in_max_qword,in_min_int64,in_min_qword
              ])
           ) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or

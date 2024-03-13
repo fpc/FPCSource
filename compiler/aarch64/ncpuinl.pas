@@ -384,7 +384,7 @@ implementation
             if needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
           end
-        else if is_32bitint(resultdef) then
+        else if is_32bitint(resultdef) or is_64bitint(resultdef) then
           begin
             expectloc:=LOC_REGISTER;
             Result:=nil;
@@ -438,7 +438,7 @@ implementation
 
              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
-         else if is_32bitint(resultdef) then
+         else if is_32bitint(resultdef) or is_64bitint(resultdef) then
            begin
              { no memory operand is allowed }
              for i:=low(paraarray) to high(paraarray) do
@@ -456,11 +456,15 @@ implementation
 
              case inlinenumber of
                in_min_dword,
-               in_min_longint:
+               in_min_longint,
+               in_min_qword,
+               in_min_int64:
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
                   location.register,paraarray[1].location.register,paraarray[2].location.register,C_LT));
                in_max_dword,
-               in_max_longint:
+               in_max_longint,
+               in_max_qword,
+               in_max_int64:
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
                   location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
                else
