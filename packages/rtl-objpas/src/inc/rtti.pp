@@ -4308,7 +4308,6 @@ var
   mgr: TFunctionCallManager;
   flags: TFunctionCallFlags;
   hiddenVmt : Pointer;
-  S : String;
 
 begin
   mgr := FuncCallMgr[aCallConv];
@@ -4321,8 +4320,6 @@ begin
   unhidden := 0;
   highs := 0;
   for param in aParams do begin
-    S:=Param.Name;
-    Writeln(S);
     if unhidden < Length(aArgs) then begin
       if pfArray in param.Flags then begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
