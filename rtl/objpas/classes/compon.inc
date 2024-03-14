@@ -482,7 +482,8 @@ end;
 Procedure TComponent.ValidateContainer(AComponent: TComponent);
 
 begin
-  AComponent.ValidateInsert(Self);
+  if Assigned(aComponent) then
+    AComponent.ValidateInsert(Self);
 end;
 
 
