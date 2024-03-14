@@ -1621,10 +1621,15 @@ implementation
 {$if defined(i386) or defined(x86_64)}
 {$ifdef i386}
           (((current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
-           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef))
+           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
           ) and
 {$else i386}
-          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or
+           is_double(tassignmentnode(thenstmnt).left.resultdef) or
+           is_32bitint(tassignmentnode(thenstmnt).left.resultdef) or
+           is_64bitint(tassignmentnode(thenstmnt).left.resultdef)
+          ) and
 {$endif i386}
 {$endif defined(i386) or defined(x86_64)}
 {$if defined(xtensa)}

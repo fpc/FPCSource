@@ -101,7 +101,7 @@ implementation
       cpuinfo,cpubase,nutils,
       ncal,ncgutil,nld,ncon,nadd,nmat,constexp,
       tgobj,
-      cga,cgutils,cgx86,cgobj,hlcgobj;
+      cga,cgutils,cgx86,cgobj,hlcgobj,cutils;
 
 
 {*****************************************************************************
@@ -409,6 +409,21 @@ implementation
            end
          else
 {$endif i8086}
+         if
+{$ifndef x86_64}
+           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+{$endif x86_64}
+           (
+{$ifdef x86_64}
+             is_64bitint(resultdef) or
+{$endif x86_64}
+             is_32bitint(resultdef)
+           ) then
+           begin
+             expectloc:=LOC_REGISTER;
+             Result:=nil;
+           end
+         else
            Result:=inherited first_minmax;
        end;
 
@@ -1573,13 +1588,18 @@ implementation
            )
           );
 
+{$endif i8086}
       var
-        paraarray : array[1..2] of tnode;
+{$ifndef i8086}
         memop,
-        i : integer;
         gotmem : boolean;
         op: TAsmOp;
 {$endif i8086}
+        i : integer;
+        paraarray : array[1..2] of tnode;
+        instr: TAiCpu;
+        opsize: topsize;
+        finalval: TCgInt;
       begin
 {$ifndef i8086}
          if
@@ -1676,6 +1696,138 @@ implementation
            end
          else
 {$endif i8086}
+         if
+{$ifndef x86_64}
+           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+{$endif x86_64}
+           (
+{$ifdef x86_64}
+             is_64bitint(resultdef) or
+{$endif x86_64}
+             is_32bitint(resultdef)
+           ) then
+           begin
+             { paraarray[1] is the right-hand side }
+             paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+             paraarray[2]:=tcallparanode(parameters).paravalue;
+
+             for i:=low(paraarray) to high(paraarray) do
+               secondpass(paraarray[i]);
+
+             if paraarray[2].location.loc = LOC_CONSTANT then
+               begin
+                 { Swap the parameters so the constant is on the right }
+                 paraarray[2]:=paraarray[1];
+                 paraarray[1]:=tcallparanode(parameters).paravalue;
+               end;
+
+             location_reset(location,LOC_REGISTER,paraarray[1].location.size);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,paraarray[1].location,location.register);
+             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
+{$ifdef x86_64}
+             if is_64bitint(resultdef) then
+               opsize := S_Q
+             else
+{$endif x86_64}
+               opsize := S_L;
+
+             { Try to use references as is, unless they would trigger internal
+               error 200502052 }
+             if (cs_create_pic in current_settings.moduleswitches) and
+               Assigned(paraarray[2].location.reference.symbol) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,
+                 paraarray[2].resultdef,paraarray[2].resultdef,true);
+
+             case paraarray[1].location.loc of
+               LOC_CONSTANT:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
+                         paraarray[1].location.value,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
+                         paraarray[1].location.value,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121907);
+                 end;
+
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       { The reference has already been stored at location.register, so use that }
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                         location.register,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,
+                         paraarray[1].location.reference,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121906);
+                 end;
+
+               LOC_REGISTER,LOC_CREGISTER:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                         paraarray[1].location.register,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+                         paraarray[1].location.register,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121905);
+                 end;
+
+               else
+                 InternalError(2021121904);
+             end;
+
+             case inlinenumber of
+               in_min_longint,
+               in_min_int64:
+                 instr.condition := C_L;
+               in_min_dword,
+               in_min_qword:
+                 instr.condition := C_B;
+               in_max_longint,
+               in_max_int64:
+                 instr.condition := C_G;
+               in_max_dword,
+               in_max_qword:
+                 instr.condition := C_A;
+               else
+                 Internalerror(2021121903);
+             end;
+
+             current_asmdata.CurrAsmList.concat(instr);
+             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+           end
+         else
            internalerror(2020120503);
       end;
 
