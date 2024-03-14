@@ -636,10 +636,12 @@ implementation
 
 
      procedure tx86inlinenode.second_AndOrXorShiftRot_assign;
+{$ifndef i8086}
        var
          opsize : tcgsize;
          valuenode, indexnode, loadnode: TNode;
          DestReg: TRegister;
+{$endif i8086}
        begin
 {$ifndef i8086}
          if (cs_opt_level2 in current_settings.optimizerswitches) then
