@@ -218,6 +218,8 @@ procedure TDeque.ClearData;
 var
   i: SizeInt;
 begin
+  if Length(FData)=0 then
+    exit;
   if IsManagedType(T) then
     for i := Low(FData) to High(FData) do
       Finalize(FData[i]);
