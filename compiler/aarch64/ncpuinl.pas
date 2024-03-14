@@ -400,6 +400,7 @@ implementation
         i: Integer;
         ai: taicpu;
         op: TAsmOp;
+        cond: TAsmCond;
       begin
         paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
           paraarray[2]:=tcallparanode(parameters).paravalue;
@@ -455,21 +456,23 @@ implementation
                paraarray[1].location.register,paraarray[2].location.register));
 
              case inlinenumber of
-               in_min_dword,
                in_min_longint,
-               in_min_qword,
                in_min_int64:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
-                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_LT));
-               in_max_dword,
+                 cond := C_LT;
+               in_min_dword,
+               in_min_qword:
+                 cond := C_LO;
                in_max_longint,
-               in_max_qword,
                in_max_int64:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
-                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
+                 cond := C_GT;
+               in_max_dword,
+               in_max_qword:
+                 cond := C_HI;
                else
                  Internalerror(2021121901);
              end;
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+               location.register,paraarray[1].location.register,paraarray[2].location.register,cond));
            end
          else
            internalerror(2021121801);
