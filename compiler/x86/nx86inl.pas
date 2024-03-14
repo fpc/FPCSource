@@ -1074,6 +1074,7 @@ implementation
         hregister : tregister;
         opsize : tcgsize;
         hp : taicpu;
+        hl: TAsmLabel;
       begin
 {$if defined(i8086) or defined(i386)}
         if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
@@ -1099,9 +1100,19 @@ implementation
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hregister);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
+
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             emit_reg(A_NEG,tcgsize2opsize[opsize],hregister);
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
             hp:=taicpu.op_reg_reg(A_CMOVcc,tcgsize2opsize[opsize],hregister,location.register);
             hp.condition:=C_NS;
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
