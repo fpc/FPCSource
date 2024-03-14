@@ -94,6 +94,8 @@ uses
                   Result:=OptPass1ADD(p);
                 A_AND:
                   Result:=OptPass1AND(p);
+                A_CMOVcc:
+                  Result:=OptPass1CMOVcc(p);
                 A_IMUL:
                   Result:=OptPass1Imul(p);
                 A_MOV:

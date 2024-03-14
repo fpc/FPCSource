@@ -161,6 +161,8 @@ unit aoptcpu;
                   Result:=OptPass1ADD(p);
                 A_AND:
                   Result:=OptPass1And(p);
+                A_CMOVcc:
+                  Result:=OptPass1CMOVcc(p);
                 A_IMUL:
                   Result:=OptPass1Imul(p);
                 A_CMP:

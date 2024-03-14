@@ -1591,7 +1591,7 @@ implementation
 {$endif i8086}
       var
 {$ifndef i8086}
-        memop,
+        memop : integer;
         gotmem : boolean;
         op: TAsmOp;
 {$endif i8086}

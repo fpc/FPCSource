@@ -167,6 +167,7 @@ unit aoptx86;
         function OptPass1Test(var p: tai): boolean;
         function OptPass1Add(var p: tai): boolean;
         function OptPass1AND(var p : tai) : boolean;
+        function OptPass1CMOVcc(var p: tai): Boolean;
         function OptPass1_V_MOVAP(var p : tai) : boolean;
         function OptPass1VOP(var p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
@@ -2296,6 +2297,57 @@ unit aoptx86;
             else
               ;
           end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1CMOVcc(var p: tai): Boolean;
+      var
+        hp1: tai;
+        operswap: poper;
+      begin
+        Result := False;
+
+        { Optimise:
+            cmov(c)  %reg1,%reg2
+            mov      %reg2,%reg1
+            (%reg2 dealloc.)
+
+          To:
+            cmov(~c) %reg2,%reg1
+        }
+        if (taicpu(p).oper[0]^.typ = top_reg) then
+          while GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.reg) and
+            MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
+            MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
+            MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) do
+            begin
+              TransferUsedRegs(TmpUsedRegs);
+              UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
+              if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'CMOV(c) %reg1,%reg2; MOV %reg2,%reg1 -> CMOV(~c) %reg2,%reg1 (CMovMov2CMov)', p);
+
+                  { Save time by swapping the pointers (they're both registers, so
+                    we don't need to worry about reference counts) }
+                  operswap := taicpu(p).oper[0];
+                  taicpu(p).oper[0] := taicpu(p).oper[1];
+                  taicpu(p).oper[1] := operswap;
+
+                  taicpu(p).condition := inverse_cond(taicpu(p).condition);
+
+                  RemoveInstruction(hp1);
+
+                  { It's still a CMOV, so we can look further ahead }
+                  Include(OptsToCheck, aoc_ForceNewIteration);
+
+                  { But first, let's see if this will get optimised again
+                    (probably won't happen, but best to be sure) }
+                  Continue;
+                end;
+
+              Break;
+            end;
+
       end;
 
 
@@ -9693,7 +9745,13 @@ unit aoptx86;
       hp1, hp2: tai;
       FoundComparison: Boolean;
     begin
+      { Run the pass 1 optimisations as well, since they may have some effect
+        after the CMOV blocks are created in OptPass2Jcc }
       Result := False;
+{      Result := OptPass1CMOVcc(p);
+      if Result then
+        Exit;}
+
       { Sometimes, the CMOV optimisations in OptPass2Jcc are a bit overzealous
         and make a slightly inefficent result on branching-type blocks, notably
         when setting a function result then jumping to the function epilogue.
