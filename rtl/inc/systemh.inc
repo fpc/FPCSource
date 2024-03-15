@@ -919,7 +919,7 @@ function  IndexChar(const buf;len:SizeInt;b:widechar):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386)} inline; {$endif}
-function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
+function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt; {$if defined(cpui386) or defined(cpux86_64)} inline; {$endif}
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}

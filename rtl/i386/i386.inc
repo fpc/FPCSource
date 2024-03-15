@@ -26,6 +26,7 @@ var
   { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
   sse_check : boolean;
   fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
+  has_sse41_support : boolean;
   fpc_cpucodeinit_performed : boolean; { Code before fpc_cpucodeinit can call certain dispatched functions, such as Move. }
 
 {$asmmode ATT}
@@ -1074,7 +1075,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXQWORD}
 {$define FPC_SYSTEM_HAS_INDEXQWORD}
-function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+function IndexQWord_Plain(const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
 { eax = buf, edx = len, [esp+4] = b }
 asm
         push    %ebx
@@ -1100,6 +1101,74 @@ asm
 .LNotFound:
         pop     %ebx
         mov     $-1, %eax
+end;
+
+function IndexQWord_SSE41(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+{ eax = buf, edx = len, [esp+4] = b }
+asm
+    cmp      $6, len
+    jle      IndexQWord_Plain
+    movddup  4(%esp), %xmm0 { xmm0 = pattern of 'b's. }
+    mov      %eax, %ecx { ecx = original buf }
+    sub      $6, len
+.balign 16
+.L6x_Loop:
+    movdqu   (%eax), %xmm1
+    pcmpeqq  %xmm0, %xmm1 { xmm1 = cmpeq(vec 0, pattern) }
+    movdqu   16(%eax), %xmm2
+    pcmpeqq  %xmm0, %xmm2
+    por      %xmm1, %xmm2 { xmm2 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) }
+    movdqu   32(%eax), %xmm3
+    pcmpeqq  %xmm0, %xmm3
+    por      %xmm2, %xmm3 { xmm3 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) or cmpeq(vec 2, pattern) }
+    ptest    %xmm3, %xmm3
+    jnz      .LFound
+    add      $48, %eax
+    sub      $6, len
+    jge      .L6x_Loop
+    lea      (%eax,%edx,8), %eax { Point to last 3 vectors. }
+    cmp      $-5, len
+    jge      .L6x_Loop { Reuse .L6x_Loop to compare last 3 vectors, if not compared already. }
+    mov      $-1, %eax
+    ret      $8
+
+.LFound:
+    sub      %ecx, %eax
+    ptest    %xmm1, %xmm1
+    jnz      .LFoundAtXmm1
+    ptest    %xmm2, %xmm2
+    jnz      .LFoundAtXmm2
+    add      $16, %eax
+    movdqa   %xmm3, %xmm2
+.LFoundAtXmm2:
+    add      $16, %eax
+    movdqa   %xmm2, %xmm1
+.LFoundAtXmm1:
+    pmovmskb %xmm1, %ecx
+    bsf      %ecx, %ecx
+    add      %ecx, %eax
+    shr      $3, %eax
+end;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt; forward;
+
+var
+  IndexQWord_Impl: function(const buf;len:SizeInt;b:QWord):SizeInt = @IndexQWord_Dispatch;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  if not fpc_cpucodeinit_performed then
+    exit(IndexQWord_Plain(buf,len,b));
+  if has_sse41_support then
+    IndexQWord_Impl:=@IndexQWord_SSE41
+  else
+    IndexQWord_Impl:=@IndexQWord_Plain;
+  result:=IndexQWord_Impl(buf,len,b);
+end;
+
+function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  result:=IndexQWord_Impl(buf,len,b);
 end;
 {$endif FPC_SYSTEM_HAS_INDEXQWORD}
 
@@ -2420,6 +2489,7 @@ procedure fpc_cpucodeinit;
           begin
             has_sse2_support:=((_edx_cpuid1 and $4000000)<>0);
             has_sse3_support:=((_ecx_cpuid1 and $200)<>0);
+            has_sse41_support:=boolean(_ecx_cpuid1 shr 19 and 1);
 
             { now avx }
             asm

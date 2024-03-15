@@ -29,6 +29,8 @@
 var
   fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
 {$endif}
+var
+  has_sse41_support,fpc_cpuinit_performed : boolean;
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
@@ -554,7 +556,7 @@ procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
     jle    .L3to6
 
     movq   %rax, %xmm0
-    pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
     movdqu %xmm0, -16(%rcx,%rdx,8)
 
@@ -564,7 +566,7 @@ procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
     rol    %cl, %rax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
     movq   %rax, %xmm0
-    pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L3to6:
@@ -799,25 +801,95 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXQWORD}
 {$define FPC_SYSTEM_HAS_INDEXQWORD}
-function IndexQWord(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+function IndexQWord_Plain(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
 { win64: rcx=buf, rdx=len, r8=b
   else:  rdi=buf, rsi=len, rdx=b }
 asm
-    mov      {$ifdef win64} %rcx {$else} %rdi {$endif}, %rax
+    mov      buf, %rax
     sub      $8, %rax
 .balign 16
 .LQwordwise_Next:
     add      $8, %rax
-    sub      $1, {$ifdef win64} %rdx {$else} %rsi {$endif}
+    sub      $1, len
     jb       .LNothing
-    cmp      {$ifdef win64} %r8 {$else} %rdx {$endif}, (%rax)
+    cmpq     b, (%rax)
     jne      .LQwordwise_Next
-    sub      {$ifdef win64} %rcx {$else} %rdi {$endif}, %rax
+    sub      buf, %rax
     shr      $3, %rax
     ret
 
 .LNothing:
     mov      $-1, %rax
+end;
+
+function IndexQWord_SSE41(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+{ win64: rcx=buf, rdx=len, r8=b
+  else:  rdi=buf, rsi=len, rdx=b }
+asm
+    cmp      $6, len
+    jle      IndexQWord_Plain
+    mov      buf, %rax
+    movq     {$ifdef win64} %r8 {$else} %rdx {$endif}, %xmm0
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern of 'b's. }
+    sub      $6, len
+.balign 16
+.L6x_Loop:
+    movdqu   (%rax), %xmm1
+    pcmpeqq  %xmm0, %xmm1 { xmm1 = cmpeq(vec 0, pattern) }
+    movdqu   16(%rax), %xmm2
+    pcmpeqq  %xmm0, %xmm2
+    por      %xmm1, %xmm2 { xmm2 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) }
+    movdqu   32(%rax), %xmm3
+    pcmpeqq  %xmm0, %xmm3
+    por      %xmm2, %xmm3 { xmm3 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) or cmpeq(vec 2, pattern) }
+    ptest    %xmm3, %xmm3
+    jnz      .LFound
+    add      $48, %rax
+    sub      $6, len
+    jge      .L6x_Loop
+    lea      (%rax,{$ifdef win64} %rdx {$else} %rsi {$endif},8), %rax { Point to last 3 vectors. }
+    cmp      $-5, len
+    jge      .L6x_Loop { Reuse .L6x_Loop to compare last 3 vectors, if not compared already. }
+    mov      $-1, %rax
+    ret
+
+.LFound:
+    sub      buf, %rax
+    ptest    %xmm1, %xmm1
+    jnz      .LFoundAtXmm1
+    ptest    %xmm2, %xmm2
+    jnz      .LFoundAtXmm2
+    add      $16, %rax
+    movdqa   %xmm3, %xmm2
+.LFoundAtXmm2:
+    add      $16, %rax
+    movdqa   %xmm2, %xmm1
+.LFoundAtXmm1:
+    pmovmskb %xmm1, %ecx
+    bsf      %ecx, %ecx
+    add      %rcx, %rax
+    shr      $3, %rax
+end;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt; forward;
+
+var
+  IndexQWord_Impl: function(const buf;len:SizeInt;b:QWord):SizeInt = @IndexQWord_Dispatch;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  if not fpc_cpuinit_performed then
+    exit(IndexQWord_Plain(buf,len,b));
+  if has_sse41_support then
+    IndexQWord_Impl:=@IndexQWord_SSE41
+  else
+    IndexQWord_Impl:=@IndexQWord_Plain;
+  result:=IndexQWord_Impl(buf,len,b);
+end;
+
+function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  result:=IndexQWord_Impl(buf,len,b);
 end;
 {$endif FPC_SYSTEM_HAS_INDEXQWORD}
 
@@ -1472,14 +1544,15 @@ procedure fpc_cpuinit;
       xorl %eax,%eax
       cpuid
       movl %eax,_eax
+      movl $1,%eax
+      xorl %ecx,%ecx
+      cpuid
+      movl %ecx,cpuid1_ecx
     end;
+    has_sse41_support:=boolean(cpuid1_ecx shr 19 and 1);
     if _eax>=7 then
       begin
         asm
-          movl $1,%eax
-          xorl %ecx,%ecx
-          cpuid
-          movl %ecx,cpuid1_ecx
           movl $7,%eax
           xorl %ecx,%ecx
           cpuid
@@ -1503,6 +1576,7 @@ procedure fpc_cpuinit;
               end;
           end;
       end;
+    fpc_cpuinit_performed:=true;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
