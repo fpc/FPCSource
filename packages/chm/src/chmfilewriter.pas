@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
-  {for html scanning } dom,SAX_HTML,dom_html;
+  {for html scanning } dom,SAX_HTML,dom_html,strutils;
 
 type
   TChmProject = class;
@@ -825,6 +825,8 @@ var
     val : String;
 begin
   val := findattribute(node,attributename);
+  if startstext('data:',val) then // skip embedded base64 or uuencoded images.
+     exit;
   if sanitizeurl(fbasepath,val,localpath,localname,fn) then
     if (Length(fn) > 0) { Skip links to self using named anchors }
         and not FileInTotalList(uppercase(fn)) then
