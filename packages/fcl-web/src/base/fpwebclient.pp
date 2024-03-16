@@ -278,7 +278,7 @@ begin
   if Assigned(FLogStream) then
     begin
     S:=Str+sLineBreak;
-    FlogStream.Write(S[1],length(str));
+    FlogStream.Write(S[1],length(S));
     end;
 end;
 
