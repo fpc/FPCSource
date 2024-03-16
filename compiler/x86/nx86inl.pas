@@ -1088,6 +1088,13 @@ implementation
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,tcgsize2size[opsize]*8-1,left.location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,opsize,left.location.register,location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,left.location.register,location.register);
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
           end
         else
 {$endif i8086 or i386}
