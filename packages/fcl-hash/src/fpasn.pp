@@ -58,6 +58,10 @@ const
   // ASN_stateOrProvince Name = '2.5.4.8';
   // ASN_localityName = '2.5.4.7';
   ASN_ecPublicKey = '1.2.840.10045.2.1';
+  ASN_RSADSI = '1.2.840.113549';
+  ASN_PKCS = '1.2.840.113549.1';
+  ASN_PKCS_1 = '1.2.840.113549.1.1';
+  ASN_RSA_ENCRYPTION = '1.2.840.113549.1.1.1';
   // ASN_prime256v1 = '1.2.840.10045.3.1.7';
   ASN_secp256r1 = '1.2.840.10045.3.1.7';
   ASN_ecdsa_with_SHA256 = '1.2.840.10045.4.3.2';
@@ -96,6 +100,8 @@ procedure MibToId(Mib: AnsiString; var Result: AnsiString);
 procedure IdToMib(const Id: AnsiString; var Result: AnsiString); overload;
 function IdToMib(Buffer, BufferEnd: PByte): string; overload;
 
+procedure ASNDebugItem(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Integer; var Output: TBytes);
+function ASNDebug(const Buffer: TBytes) : String;
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
 procedure ASNDebugList(const Prefix: string; List: TStrings);
 procedure ASNParse(const Buffer: TBytes; List: TStrings);
@@ -105,7 +111,38 @@ function ASNFetch(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Int
 function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: UnicodeString): Boolean; overload;
 function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: AnsiString): Boolean; overload;
 
+Function ASNtypeToString(aType : Byte) : String;
+
 implementation
+
+Function ASNTypeToString(aType : Byte) : String;
+
+begin
+  Case aType of
+    ASN1_BOOL       : Result:='Boolean';
+    ASN1_INT        : Result:='INT';
+    ASN1_BITSTR     : Result:='BITSTR';
+    ASN1_OCTSTR     : Result:='OCTSTR';
+    ASN1_NULL       : Result:='NULL';
+    ASN1_OBJID      : Result:='ObjID';
+    ASN1_ENUM       : Result:='Enum';
+    ASN1_UTF8STRING : Result:='UTF8String';
+    ASN1_PRINTABLESTRING
+                    : Result:='PrintableString';
+    ASN1_IA5STRING  : Result:='IA5String';
+    ASN1_UTCTIME    : Result:='UTCTIME';
+    ASN1_SEQ        : Result:='Sequence';
+    ASN1_SETOF      : Result:='SET';
+    ASN1_IPADDR     : Result:='IPAddress';
+    ASN1_COUNTER    : Result:='Counter';
+    ASN1_GAUGE      : Result:='Gauge';
+    ASN1_TIMETICKS  : Result:='TimeTicks';
+    ASN1_OPAQUE     : Result:='Opaque';
+    ASN1_COUNTER64  : Result:='Counter64';
+  else
+    Result:=Format('Unknown(%d)',[aType]);
+  end;
+end;
 
 //------------------------------------------------------------------------------
 // ASN
@@ -710,6 +747,15 @@ begin
 end;
 
 // Convert ASN.1 DER encoded buffer to human readable form for debugging
+function ASNDebug(const Buffer: TBytes) : String;
+
+var
+  aOUtput : TBytes;
+begin
+  ASNDebug(Buffer,aOutput);
+  Result:=TEncoding.UTF8.GetAnsiString(aOutput);
+end;
+
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
 
 const
@@ -730,7 +776,7 @@ begin
   EndP:=StartP+length(Buffer);
   while p<EndP do
   begin
-    writeln('ASNDebug p=',p-StartP,' Type=',hexstr(p^,2),' Indent=',length(IndentList));
+    // writeln('ASNDebug p=',p-StartP,' Type=',hexstr(p^,2),' Indent=',length(IndentList));
     // check if any sequence/set has ended and unindent
     for n := Length(IndentList)-1 downto 0 do
     begin
