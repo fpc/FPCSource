@@ -2230,7 +2230,7 @@ type
     FReturnValue: Integer;
     FOnTerminate: TNotifyEvent;
     FFatalException: TObject;
-    FExternalThread: Boolean;
+    FExternalThread, FThreadQueueLockCounted: Boolean;
     FSynchronizeEntry: PThreadQueueEntry;
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
