@@ -229,6 +229,7 @@ begin
   inherited Create;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     InterlockedIncrement(ThreadQueueLockCounter);
+    FThreadQueueLockCounted := true; { Guard against exception in descendant’s Create. }
 {$endif}
   if FExternalThread then
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -253,7 +254,7 @@ begin
   RemoveQueuedEvents(Self);
   DoneSynchronizeEvent;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  if InterlockedDecrement(ThreadQueueLockCounter)=0 then
+  if FThreadQueueLockCounted and (InterlockedDecrement(ThreadQueueLockCounter)=0) then
     DoneCriticalSection(ThreadQueueLock);
 {$endif}
   { set CurrentThreadVar to Nil? }
