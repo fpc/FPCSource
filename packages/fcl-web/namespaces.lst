@@ -100,3 +100,6 @@ src/jwt/fpjwaes256.pp=namespaced/Jwt.Jwa.Es256.pp
 src/jwt/fpjwasha256.pp=namespaced/Jwt.Jwa.Sha256.pp
 src/jwt/fpjwt.pp=namespaced/Jwt.Types.pp
 src/jwt/fpoauth2.pp=namespaced/Jwt.Oauth2.pp
+src/fcm/fpfcmsender.pp=Fcm.Sender.pp
+src/fcm/fpfcmstrings.pp=Fcm.Strings.pp
+src/fcm/fpfcmtypes.pp=Fcm.Types.pp

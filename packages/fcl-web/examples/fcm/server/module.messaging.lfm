@@ -1,0 +1,24 @@
+object dmMessaging: TdmMessaging
+  OldCreateOrder = False
+  Height = 263
+  HorizontalOffset = 561
+  VerticalOffset = 273
+  Width = 439
+  object RegisterSubscription: TJSONRPCHandler
+    OnExecute = RegisterSubscriptionExecute
+    Options = []
+    ParamDefs = <    
+      item
+        Name = 'Token'
+      end>
+    Left = 98
+    Top = 128
+  end
+  object SendNotification: TJSONRPCHandler
+    OnExecute = SendNotificationExecute
+    Options = []
+    ParamDefs = <>
+    Left = 96
+    Top = 63
+  end
+end

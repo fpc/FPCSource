@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FCM Push notification demo</title>
+  <link href="bulma.min.css" rel="stylesheet">
+  <script src="firebase-app-compat.js"></script>
+  <script src="firebase-messaging-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="webclient.js"></script>
+
+</head>
+<body>
+  <div class="container">
+    <div class="box">
+      <h3 class="title is-3">FCM Push notification demo</h3>
+      <div class="field">
+        <label class="label">Message to send:</label>
+        <div class="control">
+          <input id="edtMessage" class="input" type="text" placeholder="Message to send">
+        </div>
+      </div>  <!-- .field -->
+
+      <div class="field is-grouped">
+        <div class="control">
+          <button id="btnSend" class="button is-link" disabled>Send</button>
+        </div>
+        <div class="control">
+          <button id="btnRegister" class="button is-link is-light">Register</button>
+        </div>
+      </div> <!-- .field -->
+    </div> <!-- .box -->
+    <div id="pnlToken" class="box is-hidden">
+      <p>Your token: <span id="lblToken">?</span> <p>
+    </div> <!-- .box -->
+
+  </div> <!-- .container -->
+  <script>
+    rtl.run();
+  </script>
+  <div id="pasjsconsole"></div>
+</body>
+</html>
