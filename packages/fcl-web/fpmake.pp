@@ -527,7 +527,7 @@ begin
       AddUnit('fpjwt');
       AddUnit('fpfcmstrings');
       end;
-    T:=P.Targets.AddUnit('fpfcmsender.pp');
+    T:=P.Targets.AddUnit('fpfcmclient.pp');
     With T.Dependencies do
       begin
       AddUnit('fpfcmstrings');

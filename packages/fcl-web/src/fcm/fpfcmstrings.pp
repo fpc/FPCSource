@@ -13,8 +13,9 @@
 
  **********************************************************************}
 
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpfcmstrings;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 

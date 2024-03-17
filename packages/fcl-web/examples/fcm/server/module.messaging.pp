@@ -20,7 +20,7 @@ unit module.messaging;
 interface
 
 uses
-  Classes, SysUtils, fpjsonrpc, fpjson, fpfcmtypes, fpfcmsender;
+  Classes, SysUtils, fpjsonrpc, fpjson, fpfcmtypes, fpfcmclient;
 
 type
 

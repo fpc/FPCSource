@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpfcmtypes;
+{$ENDIF}
 
 {$mode ObjFPC}
 {$H+}
@@ -22,7 +24,11 @@ unit fpfcmtypes;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpJson.Data, Jwt.Types;
+{$ELSE}
   Classes, SysUtils, fpjson, fpjwt;
+{$ENDIF}
 
 Type
   EFCM = Class(Exception)
@@ -441,8 +447,12 @@ Type
 
 implementation
 
-uses dateutils, fpfcmstrings;
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils, FCM.Strings;
+{$ELSE}
+uses dateutils, fpfcmstrings;
+{$ENDIF}
 { TServiceAccountData }
 
 function TServiceAccountData.Parse(const AJSON: string): Boolean;
