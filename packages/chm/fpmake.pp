@@ -33,6 +33,7 @@ begin
     D:=P.Dependencies.Add('fcl-base');
     D.Version:='3.2.4-rc1';
     D:=P.Dependencies.Add('rtl-generics');
+    D:=P.Dependencies.Add('rtl-objpas');
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
