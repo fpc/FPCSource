@@ -190,6 +190,7 @@ PROFILEUNIT=DOSApi.Profile
 RASPI2UNIT=EmbeddedApi.raspi2
 RASPI3UNIT=EmbeddedApi.raspi3
 RASPIUARTUNIT=EmbeddedApi.raspiuart
+RP2040UNIT=EmbeddedApi.rp2040
 RTLCONSTSUNIT=System.RtlConsts
 SAM3X8EUNIT=EmbeddedApi.sam3x8e
 SAMD51P19AUNIT=EmbeddedApi.samd51p19a
