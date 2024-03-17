@@ -123,6 +123,8 @@ implementation
 
 
   procedure ti386inlinenode.second_abs_long;
+    var
+      hl: TAsmLabel;
     begin
       if is_64bitint(left.resultdef) then
         begin
@@ -137,6 +139,13 @@ implementation
           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,left.location.register64.reghi,location.register64.reghi);
           emit_reg_reg(A_SUB,S_L,left.location.register64.reghi,location.register64.reglo);
           emit_reg_reg(A_SBB,S_L,left.location.register64.reghi,location.register64.reghi);
+          if cs_check_overflow in current_settings.localswitches then
+            begin
+              current_asmdata.getjumplabel(hl);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+              cg.a_label(current_asmdata.CurrAsmList,hl);
+            end;
         end
       else
         inherited second_abs_long;
