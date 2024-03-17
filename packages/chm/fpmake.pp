@@ -32,6 +32,7 @@ begin
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');
     D:=P.Dependencies.Add('rtl-generics');
+    D:=P.Dependencies.Add('rtl-objpas');
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
