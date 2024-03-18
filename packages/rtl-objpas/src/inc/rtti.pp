@@ -1893,9 +1893,19 @@ begin
 end;
 
 procedure TRttiInstanceMethod.ResolveAttributes;
+
+var
+  tbl : PAttributeTable;
+  i : Integer;
+
 begin
   FAttributesResolved:=True;
-  // Todo !!
+  tbl:=FHandle^.AttributeTable;
+  if not (assigned(Tbl) and (Tbl^.AttributeCount>0)) then
+    exit;
+  SetLength(FAttributes,Tbl^.AttributeCount);
+  For I:=0 to Length(FAttributes)-1 do
+    FAttributes[I]:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetAttribute(Tbl,I);
 end;
 
 function TRttiInstanceMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
