@@ -5957,8 +5957,10 @@ begin
             FProperties[TP^.NameIndex] := obj as TRttiProperty
           else
             begin
-            FProperties[TP^.NameIndex] := TRttiProperty.Create(TypeRttiType, TP);
-            GRttiPool[FUsePublishedOnly].AddObject(FProperties[TP^.NameIndex]);
+            Obj:=TRttiProperty.Create(TypeRttiType, TP);
+            Obj.FUsePublishedOnly:=Self.FUsePublishedOnly;
+            FProperties[TP^.NameIndex] := TRttiProperty(Obj);
+            GRttiPool[FUsePublishedOnly].AddObject(Obj);
             end;
           end;
         // Point to TP next propinfo record.
@@ -5967,7 +5969,8 @@ begin
         Dec(Count);
       end;
     lTypeInfo:=TD^.Parentinfo;
-    TypeRttiType:= GRttiPool[FUsePublishedOnly].GetType(lTypeInfo);
+    if lTypeInfo<>Nil then
+      TypeRttiType:= GRttiPool[FUsePublishedOnly].GetType(lTypeInfo);
   until lTypeInfo=nil;
   FPropertiesResolved:=True;
 end;
