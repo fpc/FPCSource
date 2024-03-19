@@ -445,21 +445,8 @@ implementation
          { Load current state from the init values }
          current_settings:=init_settings;
 
-       { reset the unit or create a new program }
-         { a unit compiled at command line must be inside the loaded_unit list }
-         if (module.is_initial) then
-           begin
-             if assigned(current_module) then
-               internalerror(200501158);
-             set_current_module(module);
-             addloadedunit(module);
-             main_module:=module;
-             module.state:=ms_compile;
-           end
-         else
-           set_current_module(module);
-         if not(assigned(current_module) and
-                (current_module.state in [ms_compile])) then
+         set_current_module(module);
+         if not (module.state in [ms_compile]) then
            internalerror(200212281);
 
          { load current asmdata from current_module }
