@@ -49,14 +49,14 @@ type
     count    : integer;
     donotpage: boolean;
     nameonly : boolean;
-    procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
+    procedure OnFileEntry(Name: RTLString; Offset, UncompressedSize, ASection: Integer);
   end;
 
    TExtractAllObject = class
     basedir : string;
     r       : TChmReader;
     lastone_was_point : boolean;
-    procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
+    procedure OnFileEntry(Name: RTLString; Offset, UncompressedSize, ASection: Integer);
   end;
 
 Type
@@ -197,7 +197,7 @@ end;
 
 var donotshowoffset : boolean=false;
 
-procedure TListObject.OnFileEntry(Name: String; Offset, UncompressedSize,
+procedure TListObject.OnFileEntry(Name: RTLString; Offset, UncompressedSize,
   ASection: Integer);
 begin
   Inc(Count);
@@ -225,7 +225,7 @@ begin
   WriteLn(Name);
 end;
 
-procedure TExtractAllObject.OnFileEntry(Name: String; Offset, UncompressedSize,
+procedure TExtractAllObject.OnFileEntry(Name: RTLString; Offset, UncompressedSize,
   ASection: Integer);
 var mem : TMemoryStream;
     s   : String;
