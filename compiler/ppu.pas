@@ -174,6 +174,7 @@ implementation
   uses
 {$ifdef Test_Double_checksum}
     comphook,
+    globals,
 {$endif def Test_Double_checksum}
     fpchash;
 
