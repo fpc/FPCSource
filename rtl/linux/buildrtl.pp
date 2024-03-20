@@ -1,29 +1,49 @@
-{ This unit is only used to edit the rtl with lazarus }
 unit buildrtl;
 
   interface
-
+{$IFDEF FPC_DOTTEDUNITS}
     uses
-      { those units are directly build using make:
-        system uuchar objpas macpas iso7185 cpall lineinfo lnfodwrf
-      }
-      macpas, iso7185,
-      fpintres, // $(SYSINIT_UNITS) \
-      si_prc, si_c, si_g, si_dll,
-      unixtype, ctypes, baseunix, strings, extpas, syscall, unixutil,
-      heaptrc,
-      termio, unix, linux, initc, cmem,
-{$ifdef CPUI386}
-      mmx,
-{$endif CPUI386}
-      linuxvcs,
-      sysutils, typinfo, math,
-      charset, cpall, character, unixcp, getopts,
-      errors, dl, dynlibs,
-      types, sysconst, fpwidestring,
-      cthreads, sortbase, classes, fgl, rtlconsts, dos, cwstring, fpcylix,
-      softfpu, sfpux80, ufloatx80, sfpu128, ufloat128;
+      si_prc,
+      Unix.CThreads, TP.DOS, System.SysUtils,
 
+      System.ExeInfo,
+
+      System.CTypes, System.Strings,
+      System.RtlConsts, System.SysConst, System.Math, System.Types,
+
+{$ifdef cpui386}
+      System.CPU, System.CPU.MMX, System.LineInfo,
+{$endif}
+{$ifdef cpux86_64}
+      System.CPU,
+{$endif}
+
+      System.TypInfo, System.SortBase, System.FGL, System.Classes,
+      System.CharSet, System.Character, System.GetOpts,
+      System.FPWideString, fpintres, System.CodePages.All,
+      System.SoftFPU, System.SoftFpuX80, System.SoftFpu128, System.UFloatX80, System.UFloat128;
+{$ELSE FPC_DOTTEDUNITS}
+    uses
+      si_prc,
+      cthreads, dos, sysutils,
+
+      ctypes, strings,
+      rtlconsts, sysconst, math, types,
+
+      exeinfo,
+{$ifdef cpui386}
+      cpu, mmx, lineinfo,
+{$endif}
+{$ifdef cpux86_64}
+      cpu,
+{$endif}
+
+      typinfo, sortbase, fgl, classes,
+      charset, character, getopts,
+      fpwidestring, fpintres,
+      softfpu, sfpux80, ufloatx80, sfpu128, ufloat128;
+{$ENDIF FPC_DOTTEDUNITS}
   implementation
 
 end.
+
