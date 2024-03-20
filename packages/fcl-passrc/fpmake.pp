@@ -84,6 +84,13 @@ begin
           AddUnit('pastree');
           AddUnit('pasresolver');
         end;
+    T:=P.Targets.AddUnit('dpktolpk.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+          AddUnit('pscanner');
+          AddUnit('pparser');
+        end;
 
 
     P.NamespaceMap:='namespaces.lst';

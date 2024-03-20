@@ -34,8 +34,10 @@ resourcestring
   SPasTreeSection = 'unit section';
   SPasTreeProgramSection = 'program section';
   SPasTreeLibrarySection = 'library section';
+  SPasTreePackageSection = 'package section';
   SPasTreeInterfaceSection = 'interface section';
   SPasTreeImplementationSection = 'implementation section';
+  SPasTreeRequiredPackage = 'Required package';
   SPasTreeUsesUnit = 'uses unit';
   SPasTreeModule = 'module';
   SPasTreeUnit = 'unit';
@@ -420,6 +422,20 @@ type
     function ElementTypeName: TPasTreeString; override;
   end;
 
+  { TPackageSection }
+
+  TPasPackageSection = class(TInterfaceSection)
+  public
+    Requires : TFPList; // Array of TRequiredPackage;
+  Public
+    Constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
+    Destructor Destroy; override;
+    Procedure FreeChildren(Prepare: boolean); override;
+    function ElementTypeName: TPasTreeString; override;
+
+  end;
+
+
   TPasImplCommandBase = class;
   TInitializationSection = class;
   TFinalizationSection = class;
@@ -490,6 +506,23 @@ type
   public
     Modules: TFPList;     // List of TPasModule objects
   end;
+
+  { TRequiredPackage }
+
+  TPasRequiredPackage = Class(TPasElement)
+    function ElementTypeName: TPasTreeString; override;
+  end;
+
+  { TPasDynamicPackage }
+
+  TPasDynamicPackage = class(TPasModule)
+  Public
+    PackageSection : TPasPackageSection;
+    procedure FreeChildren(Prepare: boolean); override;
+    constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
+    destructor Destroy; override;
+  end;
+
 
   { TPasResString }
 
@@ -2334,6 +2367,31 @@ begin
   Result:=SPasTreeLibrarySection;
 end;
 
+{ TPasPackageSection }
+
+constructor TPasPackageSection.Create(const AName: TPasTreeString; AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  Requires:=TFPList.Create;
+end;
+
+destructor TPasPackageSection.Destroy;
+begin
+  FreeandNil(Requires);
+  inherited Destroy;
+end;
+
+procedure TPasPackageSection.FreeChildren(Prepare: boolean);
+begin
+  FreeChildList(Requires,Prepare);
+  inherited FreeChildren(Prepare);
+end;
+
+function TPasPackageSection.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreePackageSection;
+end;
+
 { TProgramSection }
 
 function TProgramSection.ElementTypeName: TPasTreeString;
@@ -3199,6 +3257,33 @@ procedure TPasPackage.FreeChildren(Prepare: boolean);
 begin
   FreeChildList(Modules,Prepare);
   inherited FreeChildren(Prepare);
+end;
+
+{ TPasRequiredPackage }
+
+function TPasRequiredPackage.ElementTypeName: TPasTreeString;
+begin
+  Result:=SPasTreeRequiredPackage;
+end;
+
+{ TPasDynamicPackage }
+
+procedure TPasDynamicPackage.FreeChildren(Prepare: boolean);
+begin
+  PackageSection:=TPasPackageSection(FreeChild(PackageSection,Prepare));
+  inherited FreeChildren(Prepare);
+end;
+
+constructor TPasDynamicPackage.Create(const AName: TPasTreeString; AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  PackageSection:=TPasPackageSection.Create(aName,Self);
+end;
+
+destructor TPasDynamicPackage.Destroy;
+begin
+  FreeAndNil(PackageSection);
+  inherited Destroy;
 end;
 
 procedure TPasPointerType.FreeChildren(Prepare: boolean);

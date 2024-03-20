@@ -217,6 +217,7 @@ type
     tkconst,
     tkconstref,
     tkconstructor,
+    tkcontains,
     tkdestructor,
     tkdispinterface,
     tkdiv,
@@ -256,12 +257,14 @@ type
     tkor,
     tkotherwise,
     tkpacked,
+    tkPackage,
     tkprocedure,
     tkprogram,
     tkproperty,
     tkraise,
     tkrecord,
     tkrepeat,
+    tkrequires,
     tkResourceString,
     tkself,
     tkset,
@@ -933,6 +936,7 @@ type
     procedure OpenFile(AFilename: TPasScannerString);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: String): String; virtual;
+    Procedure DisablePackageTokens;
     procedure SetNonToken(aToken : TToken);
     procedure UnsetNonToken(aToken : TToken);
     procedure SetTokenOption(aOption : TTokenoption);
@@ -1063,6 +1067,7 @@ const
     'const',
     'constref',
     'constructor',
+    'contains',
     'destructor',
     'dispinterface',
     'div',
@@ -1102,12 +1107,14 @@ const
     'or',
     'otherwise',
     'packed',
+    'package',
     'procedure',
     'program',
     'property',
     'raise',
     'record',
     'repeat',
+    'requires',
     'resourcestring',
     'self',
     'set',
@@ -3485,6 +3492,11 @@ begin
     Result:=OnFormatPath(aFilename)
   else
     Result:=aFilename;
+end;
+
+procedure TPascalScanner.DisablePackageTokens;
+begin
+  FNonTokens:=FNonTokens+[tkContains,tkPackage,tkrequires];
 end;
 
 procedure TPascalScanner.SetNonToken(aToken: TToken);
