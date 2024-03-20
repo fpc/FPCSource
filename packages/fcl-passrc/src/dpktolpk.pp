@@ -1,11 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dpktolpk;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, Pascal.Tree, Pascal.Parser, Xml.Dom, Xml.Writer;
+{$ELSE}
   Classes, SysUtils, pastree, pparser, dom, XMLWrite;
+{$ENDIF}
 
 Type
   { TPackageContainer }
@@ -49,7 +55,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Pascal.Scanner;
+{$ELSE}
 uses pscanner;
+{$ENDIF}
 
 function TSimpleParser.ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine : Array of String;

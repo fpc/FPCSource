@@ -9,3 +9,4 @@ src/pscanner.pp=namespaced/Pascal.Scanner.pp
 src/pastree.pp=namespaced/Pascal.Tree.pp
 src/pasuseanalyzer.pas=namespaced/Pascal.UseAnalyzer.pp
 src/paswrite.pp=namespaced/Pascal.Writer.pp
+src/dpktolpk.pp=namespaced/Pascal.DpkToLpk.pp
