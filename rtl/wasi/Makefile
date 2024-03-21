@@ -2899,6 +2899,7 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
+SYSUTILS_DEPS_OS=$(WASIUTILUNIT)$(PPUEXT)
 si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
