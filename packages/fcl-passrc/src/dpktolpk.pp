@@ -365,6 +365,7 @@ Var
 
 begin
   Parser:=nil;
+  El:=Nil;
   C:=TPackageContainer.Create;
   try
     Parser:=TSimpleParser.Create;

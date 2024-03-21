@@ -11,7 +11,10 @@ type
   { TDPK2LPKApplication }
 
   TDPK2LPKApplication = class(TCustomApplication)
+  private
+    procedure WriteLog(const Msg: String);
   protected
+    FQuiet : Boolean;
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
@@ -22,11 +25,18 @@ type
 
 { TDPK2LPKApplication }
 
+procedure TDPK2LPKApplication.WriteLog(Const Msg : String);
+
+begin
+  if FQuiet then Exit;
+  Writeln(StdErr,Msg);
+end;
+
 procedure TDPK2LPKApplication.DoRun;
 
 const
-  Short = 'ho:k:u';
-  Long : Array of string = ('help','output:','known:','update');
+  Short = 'ho:k:uq';
+  Long : Array of string = ('help','output:','known:','update','quiet');
 
 var
   ErrorMsg: String;
@@ -48,7 +58,9 @@ begin
     Usage('Need one or more input files');
     exit;
     end;
+  FQuiet:=HasOption('q','quiet');
   OFN:=GetOptionValue('o','output');
+
   if (OFN<>'') and (Length(FNS)>1) then
     begin
     Usage('Cannot specify output file with more than one input file');
@@ -64,7 +76,13 @@ begin
       if (OFN='') then
         OFN:=ChangeFileExt(PFN,'.lpk');
       CNV.UpdateKnown:=HasOption('u','update');
-      CNV.Convert(PFN,OFN);
+      WriteLog(Format('Converting %s to %s',[PFN,OFN]));
+      try
+        CNV.Convert(PFN,OFN);
+      except
+        On E : Exception do
+          WriteLog(Format('Error %s Converting %s to %s : %s',[E.ClassName,PFN,OFN,E.MEssage]));
+      end;
       OFN:='';
       end;
     if HasOption('u','update') and (KFN<>'') then
@@ -87,10 +105,16 @@ begin
 end;
 
 procedure TDPK2LPKApplication.Usage(Const Msg : String);
+
 begin
   if Msg<>'' then
     Writeln('Error: ',Msg);
   Writeln('Usage: ',ExeName, ' [options] File1 [File2]');
+  Writeln('Where [options] is one or more of:');
+  Writeln('-h --help        this help');
+  Writeln('-k --known=FILE  File with known packages, which can be added to requires if encountered');
+  Writeln('-q --quiet       Produce less output');
+  Writeln('-u --update      Add processed packages to known packages file');
   ExitCode:=Ord(Msg<>'');
 end;
 
