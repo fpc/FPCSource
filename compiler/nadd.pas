@@ -3704,16 +3704,16 @@ implementation
                 begin
                   if right.nodetype=setelementn then
                     begin
-                      { adjust for set base }
-                      tsetelementnode(right).left:=caddnode.create(subn,
-                        ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
-                        cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false));
-
                       if no_temp then
                         begin
                           { add a range or a single element? }
                           if assigned(tsetelementnode(right).right) then
                             begin
+                              { adjust for set base }
+                              tsetelementnode(right).left:=caddnode.create(subn,
+                                ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false));
+
                               { adjust for set base }
                               tsetelementnode(right).right:=caddnode.create(subn,
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype),
@@ -3727,15 +3727,35 @@ implementation
                                 ccallparanode.create(left,nil))))));
                             end
                           else
-                            result:=ccallnode.createintern('fpc_varset_set',
-                              ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
-                              ccallparanode.create(aktassignmentnode.left.getcopy,
-                              ccallparanode.create(left,nil)))));
+                            begin
+                              { s:=s+[element]; ? }
+                              if left.isequal(aktassignmentnode.left) then
+                                result:=cinlinenode.createintern(in_include_x_y,false,ccallparanode.create(aktassignmentnode.left.getcopy,
+                                  ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef),nil)))
+                              else
+                                begin
+                                  { adjust for set base }
+                                  tsetelementnode(right).left:=caddnode.create(subn,
+                                    ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false));
+
+                                  result:=ccallnode.createintern('fpc_varset_set',
+                                    ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+                                    ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                                    ccallparanode.create(aktassignmentnode.left.getcopy,
+                                    ccallparanode.create(left,nil)))));
+                                end;
+                            end;
+
                           include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                         end
                       else
                         begin
+                          { adjust for set base }
+                          tsetelementnode(right).left:=caddnode.create(subn,
+                            ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                            cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false));
+
                           result:=internalstatements(newstatement);
 
                           { create temp for result }
