@@ -968,7 +968,7 @@ implementation
                                unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
                                if srsym=nil then
                                  begin
-                                   identifier_not_found(orgpattern);
+                                   identifier_not_found(objrealname);
                                    srsym:=generrorsym;
                                  end;
                                if unit_found then
