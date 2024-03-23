@@ -994,9 +994,45 @@ Implementation
   function TCpuAsmOptimizer.OptPass2B(var p: tai): Boolean;
     var
       hp1: tai;
+      LabelSym: TAsmLabel;
       CSELTracking: PCSELTracking;
     begin
       Result := False;
+      if (taicpu(p).condition = C_None) and
+        IsJumpToLabel(taicpu(p)) then
+        begin
+          { Check for:
+                B   @lbl
+                ...
+              @Lbl:
+                RET
+
+            Change to:
+                RET (and reduce reference count on label)
+          }
+
+          LabelSym := TAsmLabel(JumpTargetOp(taicpu(p))^.ref^.symbol);
+          hp1 := GetLabelWithSym(LabelSym);
+          if Assigned(hp1) and
+            GetNextInstruction(hp1, hp1) and
+            (hp1.typ = ait_instruction) and
+            (taicpu(hp1).opcode = A_RET) then
+            begin
+              DebugMsg(SPeepholeOptimization + 'B -> RET since a RET immediately follows the destination label (B2Ret)', p);
+              taicpu(p).ops := 0;
+              taicpu(p).clearop(0);
+              taicpu(p).is_jmp := false;
+              taicpu(p).opcode := A_RET;
+
+              { Make sure the label is dereferenced now }
+              LabelSym.decrefs;
+
+              Result := True;
+              Exit;
+            end;
+        end;
+
+
       if (taicpu(p).condition <> C_None) and
         IsJumpToLabel(taicpu(p)) and
         GetNextInstruction(p, hp1) and
