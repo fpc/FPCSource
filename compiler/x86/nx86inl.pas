@@ -1143,11 +1143,16 @@ implementation
 {$ifdef i8086}
           { BTS and BTR are 386+ }
           if current_settings.cputype < cpu_386 then
+{$else i8086}
+          { bts on memory locations is very slow, so even the default code is faster }
+          if not(cs_opt_size in current_settings.optimizerswitches) and (tcallparanode(tcallparanode(left).right).left.expectloc<>LOC_CONSTANT) and
+            (tcallparanode(left).left.expectloc=LOC_REFERENCE) then
+{$endif i8086}
             begin
               inherited;
               exit;
             end;
-{$endif i8086}
+
           if is_smallset(tcallparanode(left).resultdef) then
             begin
               opdef:=tcallparanode(left).resultdef;
@@ -1206,7 +1211,7 @@ implementation
               hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,opdef,true);
               register_maybe_adjust_setbase(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.resultdef,tcallparanode(tcallparanode(left).right).left.location,setbase);
               hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
+              if tcallparanode(left).left.location.loc=LOC_REFERENCE then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
                 begin

@@ -31,20 +31,19 @@ interface
   uses
     globtype,
     aasmdata,
+    cgbase,
     symtype,symdef,
     parabase,
     hlcgobj, hlcg2ll;
 
   type
-
-    { thlcgx86 }
-
     thlcgx86 = class(thlcg2ll)
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
       procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
      public
       procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
+      procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
     end;
 
 implementation
@@ -52,7 +51,7 @@ implementation
   uses
     globals,systems,
     aasmbase,
-    cgbase,cgutils,
+    cgutils,
     cpubase,aasmcpu;
 
 { thlcgx86 }
@@ -100,5 +99,13 @@ implementation
       else
         inherited;
     end;
+
+  procedure thlcgx86.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
+    const
+      bit_set_clr_instr: array[boolean] of tasmop = (A_BTR,A_BTS);
+    begin
+      list.concat(taicpu.op_reg_reg(bit_set_clr_instr[doset],S_NO,bitnumber,dest));
+    end;
+
 
 end.
