@@ -61,7 +61,7 @@ implementation
     uses
       globtype,verbose,globals,
       compinnr,
-      cpuinfo, defutil,symdef,aasmdata,aasmcpu,
+      cpuinfo, defutil,symdef,aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
       procinfo,
       ncal,nutils,
@@ -183,12 +183,22 @@ implementation
     procedure taarch64inlinenode.second_abs_long;
       var
         opsize : tcgsize;
+        hl: TAsmLabel;
       begin
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+
+        if cs_check_overflow in current_settings.localswitches then
+          begin
+            current_asmdata.getjumplabel(hl);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
+            hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
 
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_NEG,location.register,left.location.register),PF_S));
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,location.register,location.register,left.location.register,C_GE));

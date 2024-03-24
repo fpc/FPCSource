@@ -167,8 +167,6 @@ procedure fail;
     except
       on EIntOverflow do
         ; // no error, result is -2147483648
-      on ERangeError do
-        ; // no error, result is -2147483648
       on Exception do
         _result := false;
     end;
@@ -256,16 +254,12 @@ procedure fail;
    { test overflow checking }
 {$PUSH}
 {$Q+}
-{ allow also range check errors as 64 bit CPUs might have only an abs(<int64>) }
-{$R+}
     value := Longint.MinValue+Random(0);
     try
       value := Abs(value);
       _result := false;
     except
       on EIntOverflow do
-        ; // no error, result is -2147483648
-      on ERangeError do
         ; // no error, result is -2147483648
       on Exception do
         _result := false;
