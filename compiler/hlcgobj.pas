@@ -2278,6 +2278,18 @@ implementation
                   tmpreg:=getintregister(list,osuinttype);
                   if (slopt<>SL_SETMAX) then
                     a_load_reg_reg(list,fromsize,osuinttype,fromreg,tmpreg)
+                  { setting of a single bit?
+                    then we might take advantage of the CPU's bit set instruction }
+                  else if (sref.bitlen=1) and (target_info.endian=endian_little) then
+                    begin
+                      a_bit_set_reg_reg(list,true,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+
+                      { store back to memory }
+                      tmpreg:=getintregister(list,loadsize);
+                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
+                      exit;
+                    end
                   else if (sref.bitlen<>AIntBits) then
                     a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1), tmpreg)
                   else
