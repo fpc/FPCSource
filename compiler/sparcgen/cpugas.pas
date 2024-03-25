@@ -246,7 +246,7 @@ implementation
            id     : as_ggas;
            idtxt  : 'GAS';
            asmbin : 'gas';
-           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
+           asmcmd : '$ARCH $PIC -32 -o $OBJ $EXTRAOPT $ASM';
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
@@ -263,7 +263,7 @@ implementation
 {$ifdef FPC_SPARC_V8_ONLY}
            asmcmd : '$PIC -o $OBJ $EXTRAOPT $ASM';
 {$else}
-           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
+           asmcmd : '$ARCH $PIC -64 -o $OBJ $EXTRAOPT $ASM';
 {$endif}
            supported_targets : [system_sparc64_linux];
            flags : [af_needar,af_smartlink_sections];
@@ -278,7 +278,7 @@ implementation
            id     : as_ggas;
            idtxt  : 'GAS';
            asmbin : 'gas';
-           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
+           asmcmd : '$ARCH $PIC -64 -o $OBJ $EXTRAOPT $ASM';
            supported_targets : [system_sparc64_linux];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
