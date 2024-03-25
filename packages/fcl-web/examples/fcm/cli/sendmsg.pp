@@ -64,6 +64,7 @@ Var
   Obj : TJSONObject absolute D;
 
 begin
+  D:=Nil;
   F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
   try
     D:=GetJSON(F);
@@ -73,13 +74,13 @@ begin
     Msg.Body:=Obj.Get('body',Msg.Body);
     Msg.Image:=Obj.Get('image',Msg.Image);
   finally
+    D.Free;
     F.Free;
   end;
 end;
 
 
 procedure TFCMApplication.ConfigureMessage(Msg : TNotificationMessage);
-
 
 begin
   if HasOption('m','message') then
@@ -90,7 +91,6 @@ begin
     Msg.Body:=GetoptionValue('b','body');
   if HasOption('i','image') then
     Msg.Body:=GetoptionValue('i','image');
-
 end;
 
 procedure TFCMApplication.DoHandleNewToken(Sender: TObject; const aToken: TBearerToken);
