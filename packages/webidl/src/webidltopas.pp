@@ -274,6 +274,7 @@ Var
 
 begin
   P:=Nil;
+  S:=Nil;
   ms:=TMemoryStream.Create;
   try
     if InputStream<>nil then
@@ -291,6 +292,7 @@ begin
     ms.Free;
   end;
 end;
+
 
 function TBaseWebIDLToPas.GetName(ADef: TIDLDefinition): String;
 

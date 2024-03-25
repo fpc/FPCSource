@@ -162,11 +162,9 @@ begin
     ]);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
+    ErrorMsg:='Missing input filename';
     WriteHelp(ErrorMsg);
-    if ErrorMsg<>'' then
-      Halt(1)
-    else
-      Exit;
+    Exit();
     end;
 
   // first read outputformat and create FWebIDLToPas
@@ -210,6 +208,11 @@ begin
     FWebIDLToPas.GlobalVars.CommaText:=A;
 
   InputFileName:=GetOptionValue('i','input');
+  if (InputFileName='') then
+  begin
+    WriteHelp('Missing input filename');
+    Exit();
+  end;
 
   if HasOption('m','implementation') then
     FWebIDLToPas.IncludeImplementationCode.LoadFromFile(GetOptionValue('m','implementation'));
