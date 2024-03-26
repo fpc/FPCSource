@@ -368,6 +368,9 @@ begin
   e:=ttask_list(Hash.Find(n));
   if e=nil then
     begin
+    // Clear reset flag.
+    // This can happen when during load, reset is done and unit is added to task list.
+    m.is_reset:=false;
     t:=ttask_list.create(m);
     list.insert(t);
     hash.Add(n,t);
@@ -379,6 +382,7 @@ begin
     // We have a task, if it was reset, then clear the state and move the task to the start.
     if m.is_reset then
       begin
+      {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' was reset, resetting flag. State: ',m.state);{$ENDIF}
       m.is_reset:=false;
       t:=findtask(m);
       if assigned(t) then

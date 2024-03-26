@@ -559,6 +559,7 @@ implementation
          filepos : tfileposinfo;
          isnew : boolean;
 
+
       begin
         consume(_USES);
         repeat
@@ -640,6 +641,7 @@ implementation
          state: tglobalstate;
          isLoaded : Boolean;
          mwait : tmodule;
+         lu : tmodule;
 
          procedure restorestate;
 
@@ -650,7 +652,6 @@ implementation
               if assigned(current_scanner.inputfile) then
                 current_scanner.tempopeninputfile;
               end;
-
            state.free;
          end;
 
@@ -663,35 +664,37 @@ implementation
          pu:=tused_unit(curr.used_units.first);
          while assigned(pu) do
           begin
+            lu:=pu.u;
             { Only load the units that are in the current
               (interface/implementation) uses clause }
             if pu.in_uses and
                (pu.in_interface=frominterface) then
              begin
-               if (pu.u.state in [ms_processed, ms_compiled,ms_compiling_waitimpl]) then
+               if (lu.state in [ms_processed, ms_compiled,ms_compiling_waitimpl]) then
                  isLoaded:=true
-               else if (pu.u.state=ms_registered) then
+               else if (lu.state=ms_registered) then
                   // try to load
-                 isLoaded:=tppumodule(pu.u).loadppu(curr)
+                 isLoaded:=tppumodule(lu).loadppu(curr)
                else
                  isLoaded:=False;
-               isLoaded:=IsLoaded and not pu.u.is_reset;
+               isLoaded:=IsLoaded and not lu.is_reset ;
                if not IsLoaded then
                  begin
                    if mwait=nil then
-                     mwait:=pu.u;
+                     mwait:=lu;
                    // In case of is_reset, the task handler will discard the state if the module was already there
-                   task_handler.addmodule(pu.u);
+                   task_handler.addmodule(lu);
                  end;
+               IsLoaded:=Isloaded and not curr.is_reset;
                Result:=Result and IsLoaded;
+               { If we were reset, then used_units is no longer correct, and we must exit at once. }
+               if curr.is_reset then
+                 break;
                { is our module compiled? then we can stop }
                if curr.state in [ms_compiled,ms_processed] then
-                 begin
-                 Restorestate;
-                 exit;
-                 end;
+                 break;
                { add this unit to the dependencies }
-               pu.u.adddependency(curr,frominterface);
+               lu.adddependency(curr,frominterface);
                { check hints }
                pu.check_hints;
              end;

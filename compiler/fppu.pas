@@ -2174,6 +2174,12 @@ var
 
       procedure tppumodule.prepare_second_load(from_module: tmodule);
 
+      const
+         CompileStates  = [ms_compile, ms_compiling_waitintf, ms_compiling_waitimpl,
+                           ms_compiling_waitfinish, ms_compiling_wait, ms_compiled,
+                           ms_processed];
+
+
         begin
           { try to load the unit a second time first }
           Message1(unit_u_second_load_unit,modulename^);
@@ -2182,7 +2188,7 @@ var
           flagdependent(from_module);
           { Reset the module }
           reset;
-          if state in [ms_compile] then
+          if state in CompileStates then
             begin
               Message1(unit_u_second_compile_unit,modulename^);
               state:=ms_compile;
@@ -2253,7 +2259,6 @@ var
         flagdependent(from_module);
         { Reset the module }
         reset;
-        is_reset:=false;
         { mark this module for recompilation }
         if not (state in [ms_compile]) then
           state:=ms_compile;
