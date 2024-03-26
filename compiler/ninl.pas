@@ -2980,8 +2980,8 @@ implementation
                           else if (hp2.nodetype=realconstn) then
                             begin
                               { Both actual parameters are constants, so take
-                                the smaller of the two right now }
-                              if (trealconstnode(hp).value_real < trealconstnode(hp2).value_real) then
+                                the larger of the two right now }
+                              if (trealconstnode(hp).value_real > trealconstnode(hp2).value_real) then
                                 result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef)
                               else
                                 result:=crealconstnode.create(trealconstnode(hp2).value_real,resultdef)
