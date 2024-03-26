@@ -2257,19 +2257,32 @@ implementation
               { zero the bits we have to insert }
               if (slopt<>SL_SETMAX) then
                 begin
-                  maskreg:=getintregister(list,osuinttype);
-                  if (target_info.endian = endian_big) then
+                  if (slopt=SL_SETZERO) and (sref.bitlen=1) and (target_info.endian=endian_little) then
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                      a_bit_set_reg_reg(list,false,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+
+                      { store back to memory }
+                      tmpreg:=getintregister(list,loadsize);
+                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
+                      exit;
                     end
                   else
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                      maskreg:=getintregister(list,osuinttype);
+                      if (target_info.endian = endian_big) then
+                        begin
+                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
+                          a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                        end
+                      else
+                        begin
+                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                          a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                        end;
+                      a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
+                      a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
                     end;
-                  a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
-                  a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
                 end;
 
               { insert the value }
