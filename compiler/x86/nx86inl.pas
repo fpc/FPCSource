@@ -1749,6 +1749,7 @@ implementation
                  case paraarray[2].location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
+{$ifdef x86_64}
                        { x86_64 only supports signed 32 bits constants directly }
                        if (opsize=S_Q) and
                            ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
@@ -1759,6 +1760,7 @@ implementation
                              tmpreg,paraarray[2].location.reference));
                          end
                        else
+{$endif x86_64}
                          current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
                            paraarray[1].location.value,paraarray[2].location.reference));
 
@@ -1766,6 +1768,7 @@ implementation
                      end;
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
+{$ifdef x86_64}
                        { x86_64 only supports signed 32 bits constants directly }
                        if (opsize=S_Q) and
                            ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
@@ -1776,6 +1779,7 @@ implementation
                              tmpreg,paraarray[2].location.register));
                          end
                        else
+{$endif x86_64}
                          current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
                            paraarray[1].location.value,paraarray[2].location.register));
 
