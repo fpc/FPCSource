@@ -1219,15 +1219,16 @@ var
 begin
   MustReleaseDbfFile := false;
   with FieldDefs do
-  begin
+  try
     if FDbfFile = nil then
     begin
+      MustReleaseDbfFile := true;
       // do not AutoCreate file
       InitDbfFile(pfReadOnly);
       FDbfFile.Open;
-      MustReleaseDbfFile := true;
     end;
     GetFieldDefsFromDbfFieldDefs;
+  finally
     if MustReleaseDbfFile then
       FreeAndNil(FDbfFile);
   end;
