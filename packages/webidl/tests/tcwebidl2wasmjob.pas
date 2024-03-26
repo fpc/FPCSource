@@ -24,7 +24,7 @@ type
     procedure TestWebIDL(const WebIDLSrc, ExpectedPascalSrc: array of string); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     property WebIDLToPas: TWebIDLToPasWasmJob read FWebIDLToPas;
-    property HeaderSrc: String read FHeaderSrc write FHeaderSrc;
+    property HeaderSrc: TIDLString read FHeaderSrc write FHeaderSrc;
   end;
 
   { TTestWebIDL2WasmJob }
@@ -48,7 +48,7 @@ type
     procedure TestWJ_IntfFunction_ArgAny;
   end;
 
-function LinesToStr(Args: array of const): string;
+function LinesToStr(Args: array of const): TIDLString;
 function CheckSrcDiff(Expected, Actual: string; out Msg: string): boolean;
 
 implementation
