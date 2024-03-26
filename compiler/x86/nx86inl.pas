@@ -1602,6 +1602,7 @@ implementation
         instr: TAiCpu;
         opsize: topsize;
         finalval: TCgInt;
+        tmpreg: TRegister;
       begin
 {$ifndef i8086}
          if
@@ -1748,15 +1749,35 @@ implementation
                  case paraarray[2].location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
-                       current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
-                         paraarray[1].location.value,paraarray[2].location.reference));
+                       { x86_64 only supports signed 32 bits constants directly }
+                       if (opsize=S_Q) and
+                           ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
+                         begin
+                           tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                             tmpreg,paraarray[2].location.reference));
+                         end
+                       else
+                         current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
+                           paraarray[1].location.value,paraarray[2].location.reference));
 
                        instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
                      end;
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
-                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
-                         paraarray[1].location.value,paraarray[2].location.register));
+                       { x86_64 only supports signed 32 bits constants directly }
+                       if (opsize=S_Q) and
+                           ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
+                         begin
+                           tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+                             tmpreg,paraarray[2].location.register));
+                         end
+                       else
+                         current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
+                           paraarray[1].location.value,paraarray[2].location.register));
 
                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
                      end;
