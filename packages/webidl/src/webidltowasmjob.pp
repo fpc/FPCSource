@@ -160,7 +160,10 @@ begin
     Result:=copy(Result,length(ClassPrefix)+1,length(Result)-length(ClassPrefix)-length(ClassSuffix));
   if Result='' then
     raise EConvertError.Create('[20220725184518]');
-  Result:=PasInterfacePrefix+Result+PasInterfaceSuffix;
+  if LeftStr(Result,length(PasInterfacePrefix)) <> PasInterfacePrefix then
+    Result:=PasInterfacePrefix+Result;
+  if RightStr(Result,length(PasInterfaceSuffix)) <> PasInterfaceSuffix then
+    Result:=Result+PasInterfaceSuffix;
 end;
 
 function TWebIDLToPasWasmJob.IntfToPasClassName(const aName: TIDLString): TIDLString;
