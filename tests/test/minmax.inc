@@ -1,5 +1,3 @@
-{ %opt=-Oonofastmath }  { with fast math, the operands of min/max might be swapped and this breaks the tests using NaN }
-
 {$mode objfpc}
 uses
   Math;
