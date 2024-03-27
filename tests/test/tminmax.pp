@@ -4,6 +4,12 @@
 uses
   Math;
 
+procedure TestFail(ErrCode: LongInt); noreturn;
+  begin
+    WriteLn('FAIL on test ', ErrCode);
+    Halt(ErrCode);
+  end;
+
 procedure TestSingle;
 
   function Min1(a, b: Single): Single; inline;
@@ -80,103 +86,103 @@ procedure TestSingle;
     v1:=1;
     v3:=3;
     if Min1(1,3)<>1 then
-      halt(1);
+      TestFail(1);
     if Max1(1,3)<>3 then
-      halt(2);
+      TestFail(2);
     if Min2(1,3)<>1 then
-      halt(3);
+      TestFail(3);
     if Max2(1,3)<>3 then
-      halt(4);
+      TestFail(4);
     if Min3(1,3)<>1 then
-      halt(5);
+      TestFail(5);
     if Max3(1,3)<>3 then
-      halt(6);
+      TestFail(6);
     if Min3(1,3)<>1 then
-      halt(7);
+      TestFail(7);
     if Max3(1,3)<>3 then
-      halt(8);
+      TestFail(8);
     if Min1(1,v3)<>1 then
-      halt(11);
+      TestFail(11);
     if Max1(1,v3)<>3 then
-      halt(12);
+      TestFail(12);
     if Min2(1,v3)<>1 then
-      halt(13);
+      TestFail(13);
     if Max2(1,v3)<>3 then
-      halt(14);
+      TestFail(14);
     if Min3(1,v3)<>1 then
-      halt(15);
+      TestFail(15);
     if Max3(1,v3)<>3 then
-      halt(16);
+      TestFail(16);
     if Min4(1,v3)<>1 then
-      halt(17);
+      TestFail(17);
     if Max4(1,v3)<>3 then
-      halt(18);
+      TestFail(18);
     if Min1(1,v3)<>1 then
-      halt(21);
+      TestFail(21);
     if Max1(1,v3)<>v3 then
-      halt(22);
+      TestFail(22);
     if Min2(1,v3)<>1 then
-      halt(23);
+      TestFail(23);
     if Max2(1,v3)<>v3 then
-      halt(24);
+      TestFail(24);
     if Min3(1,v3)<>1 then
-      halt(25);
+      TestFail(25);
     if Max3(1,v3)<>v3 then
-      halt(26);
+      TestFail(26);
     if Min4(1,v3)<>1 then
-      halt(27);
+      TestFail(27);
     if Max4(1,v3)<>v3 then
-      halt(28);
+      TestFail(28);
     if Min1(v1,v3)<>v1 then
-      halt(31);
+      TestFail(31);
     if Max1(v1,v3)<>v3 then
-      halt(32);
+      TestFail(32);
     if Min2(v1,v3)<>v1 then
-      halt(33);
+      TestFail(33);
     if Max2(v1,v3)<>v3 then
-      halt(34);
+      TestFail(34);
     if Min3(v1,v3)<>v1 then
-      halt(35);
+      TestFail(35);
     if Max3(v1,v3)<>v3 then
-      halt(36);
+      TestFail(36);
     if Min4(v1,v3)<>v1 then
-      halt(37);
+      TestFail(37);
     if Max4(v1,v3)<>v3 then
-      halt(38);
+      TestFail(38);
     SetExceptionMask([exInvalidOp]);
     vNaN:=NaN;
     if not(IsNaN(Min1(v1,vNaN))) then
-      halt(41);
+      TestFail(41);
     if Min1(NaN,v1)<>v1 then
-      halt(42);
+      TestFail(42);
     if not(IsNaN(Max1(v1,vNaN))) then
-      halt(43);
+      TestFail(43);
     if Max1(vNaN,v3)<>v3 then
-      halt(44);
+      TestFail(44);
     if not(IsNaN(Min2(v1,vNaN))) then
-      halt(45);
+      TestFail(45);
     if Min2(vNaN,v3)<>v3 then
-      halt(46);
+      TestFail(46);
     if not(IsNaN(Max2(v1,vNaN))) then
-      halt(47);
+      TestFail(47);
     if Max2(vNaN,v3)<>v3 then
-      halt(48);
+      TestFail(48);
     if not(IsNaN(Min3(v1,vNaN))) then
-      halt(49);
+      TestFail(49);
     if Min3(NaN,v1)<>v1 then
-      halt(50);
+      TestFail(50);
     if not(IsNaN(Max3(v1,vNaN))) then
-      halt(51);
+      TestFail(51);
     if Max3(vNaN,v3)<>v3 then
-      halt(52);
+      TestFail(52);
     if not(IsNaN(Min4(v1,vNaN))) then
-      halt(53);
+      TestFail(53);
     if Min4(vNaN,v3)<>v3 then
-      halt(54);
+      TestFail(54);
     if not(IsNaN(Max4(v1,vNaN))) then
-      halt(55);
+      TestFail(55);
     if Max4(vNaN,v3)<>v3 then
-      halt(56);
+      TestFail(56);
     SetExceptionMask([]);
   end;
 
@@ -256,103 +262,103 @@ procedure TestDouble;
     v1:=1;
     v3:=3;
     if Min1(1,3)<>1 then
-      halt(101);
+      TestFail(101);
     if Max1(1,3)<>3 then
-      halt(102);
+      TestFail(102);
     if Min2(1,3)<>1 then
-      halt(103);
+      TestFail(103);
     if Max2(1,3)<>3 then
-      halt(104);
+      TestFail(104);
     if Min3(1,3)<>1 then
-      halt(105);
+      TestFail(105);
     if Max3(1,3)<>3 then
-      halt(106);
+      TestFail(106);
     if Min3(1,3)<>1 then
-      halt(107);
+      TestFail(107);
     if Max3(1,3)<>3 then
-      halt(108);
+      TestFail(108);
     if Min1(1,v3)<>1 then
-      halt(111);
+      TestFail(111);
     if Max1(1,v3)<>3 then
-      halt(112);
+      TestFail(112);
     if Min2(1,v3)<>1 then
-      halt(113);
+      TestFail(113);
     if Max2(1,v3)<>3 then
-      halt(114);
+      TestFail(114);
     if Min3(1,v3)<>1 then
-      halt(115);
+      TestFail(115);
     if Max3(1,v3)<>3 then
-      halt(116);
+      TestFail(116);
     if Min4(1,v3)<>1 then
-      halt(117);
+      TestFail(117);
     if Max4(1,v3)<>3 then
-      halt(118);
+      TestFail(118);
     if Min1(1,v3)<>1 then
-      halt(121);
+      TestFail(121);
     if Max1(1,v3)<>v3 then
-      halt(122);
+      TestFail(122);
     if Min2(1,v3)<>1 then
-      halt(123);
+      TestFail(123);
     if Max2(1,v3)<>v3 then
-      halt(124);
+      TestFail(124);
     if Min3(1,v3)<>1 then
-      halt(125);
+      TestFail(125);
     if Max3(1,v3)<>v3 then
-      halt(126);
+      TestFail(126);
     if Min4(1,v3)<>1 then
-      halt(127);
+      TestFail(127);
     if Max4(1,v3)<>v3 then
-      halt(128);
+      TestFail(128);
     if Min1(v1,v3)<>v1 then
-      halt(131);
+      TestFail(131);
     if Max1(v1,v3)<>v3 then
-      halt(132);
+      TestFail(132);
     if Min2(v1,v3)<>v1 then
-      halt(133);
+      TestFail(133);
     if Max2(v1,v3)<>v3 then
-      halt(134);
+      TestFail(134);
     if Min3(v1,v3)<>v1 then
-      halt(135);
+      TestFail(135);
     if Max3(v1,v3)<>v3 then
-      halt(136);
+      TestFail(136);
     if Min4(v1,v3)<>v1 then
-      halt(137);
+      TestFail(137);
     if Max4(v1,v3)<>v3 then
-      halt(138);
+      TestFail(138);
     SetExceptionMask([exInvalidOp]);
     vNaN:=NaN;
     if not(IsNaN(Min1(v1,vNaN))) then
-      halt(141);
+      TestFail(141);
     if Min1(NaN,v1)<>v1 then
-      halt(142);
+      TestFail(142);
     if not(IsNaN(Max1(v1,vNaN))) then
-      halt(143);
+      TestFail(143);
     if Max1(vNaN,v3)<>v3 then
-      halt(144);
+      TestFail(144);
     if not(IsNaN(Min2(v1,vNaN))) then
-      halt(145);
+      TestFail(145);
     if Min2(vNaN,v3)<>v3 then
-      halt(146);
+      TestFail(146);
     if not(IsNaN(Max2(v1,vNaN))) then
-      halt(147);
+      TestFail(147);
     if Max2(vNaN,v3)<>v3 then
-      halt(148);
+      TestFail(148);
     if not(IsNaN(Min3(v1,vNaN))) then
-      halt(149);
+      TestFail(149);
     if Min3(NaN,v1)<>v1 then
-      halt(150);
+      TestFail(150);
     if not(IsNaN(Max3(v1,vNaN))) then
-      halt(151);
+      TestFail(151);
     if Max3(vNaN,v3)<>v3 then
-      halt(152);
+      TestFail(152);
     if not(IsNaN(Min4(v1,vNaN))) then
-      halt(153);
+      TestFail(153);
     if Min4(vNaN,v3)<>v3 then
-      halt(154);
+      TestFail(154);
     if not(IsNaN(Max4(v1,vNaN))) then
-      halt(155);
+      TestFail(155);
     if Max4(vNaN,v3)<>v3 then
-      halt(156);
+      TestFail(156);
     SetExceptionMask([]);
   end;
 
@@ -433,69 +439,69 @@ procedure TestDWord;
     v1:=1;
     v3:=3;
     if Min1(1,3)<>1 then
-      halt(201);
+      TestFail(201);
     if Max1(1,3)<>3 then
-      halt(202);
+      TestFail(202);
     if Min2(1,3)<>1 then
-      halt(203);
+      TestFail(203);
     if Max2(1,3)<>3 then
-      halt(204);
+      TestFail(204);
     if Min3(1,3)<>1 then
-      halt(205);
+      TestFail(205);
     if Max3(1,3)<>3 then
-      halt(206);
+      TestFail(206);
     if Min3(1,3)<>1 then
-      halt(207);
+      TestFail(207);
     if Max3(1,3)<>3 then
-      halt(208);
+      TestFail(208);
     if Min1(1,v3)<>1 then
-      halt(211);
+      TestFail(211);
     if Max1(1,v3)<>3 then
-      halt(212);
+      TestFail(212);
     if Min2(1,v3)<>1 then
-      halt(213);
+      TestFail(213);
     if Max2(1,v3)<>3 then
-      halt(214);
+      TestFail(214);
     if Min3(1,v3)<>1 then
-      halt(215);
+      TestFail(215);
     if Max3(1,v3)<>3 then
-      halt(216);
+      TestFail(216);
     if Min4(1,v3)<>1 then
-      halt(217);
+      TestFail(217);
     if Max4(1,v3)<>3 then
-      halt(218);
+      TestFail(218);
     if Min1(1,v3)<>1 then
-      halt(221);
+      TestFail(221);
     if Max1(1,v3)<>v3 then
-      halt(222);
+      TestFail(222);
     if Min2(1,v3)<>1 then
-      halt(223);
+      TestFail(223);
     if Max2(1,v3)<>v3 then
-      halt(224);
+      TestFail(224);
     if Min3(1,v3)<>1 then
-      halt(225);
+      TestFail(225);
     if Max3(1,v3)<>v3 then
-      halt(226);
+      TestFail(226);
     if Min4(1,v3)<>1 then
-      halt(227);
+      TestFail(227);
     if Max4(1,v3)<>v3 then
-      halt(228);
+      TestFail(228);
     if Min1(v1,v3)<>v1 then
-      halt(231);
+      TestFail(231);
     if Max1(v1,v3)<>v3 then
-      halt(232);
+      TestFail(232);
     if Min2(v1,v3)<>v1 then
-      halt(233);
+      TestFail(233);
     if Max2(v1,v3)<>v3 then
-      halt(234);
+      TestFail(234);
     if Min3(v1,v3)<>v1 then
-      halt(235);
+      TestFail(235);
     if Max3(v1,v3)<>v3 then
-      halt(236);
+      TestFail(236);
     if Min4(v1,v3)<>v1 then
-      halt(237);
+      TestFail(237);
     if Max4(v1,v3)<>v3 then
-      halt(238);
+      TestFail(238);
   end;
 
 procedure TestLongint;
@@ -573,69 +579,69 @@ procedure TestLongint;
     v1:=1;
     v3:=3;
     if Min1(1,3)<>1 then
-      halt(301);
+      TestFail(301);
     if Max1(1,3)<>3 then
-      halt(302);
+      TestFail(302);
     if Min2(1,3)<>1 then
-      halt(303);
+      TestFail(303);
     if Max2(1,3)<>3 then
-      halt(304);
+      TestFail(304);
     if Min3(1,3)<>1 then
-      halt(305);
+      TestFail(305);
     if Max3(1,3)<>3 then
-      halt(306);
+      TestFail(306);
     if Min3(1,3)<>1 then
-      halt(307);
+      TestFail(307);
     if Max3(1,3)<>3 then
-      halt(308);
+      TestFail(308);
     if Min1(1,v3)<>1 then
-      halt(311);
+      TestFail(311);
     if Max1(1,v3)<>3 then
-      halt(312);
+      TestFail(312);
     if Min2(1,v3)<>1 then
-      halt(313);
+      TestFail(313);
     if Max2(1,v3)<>3 then
-      halt(314);
+      TestFail(314);
     if Min3(1,v3)<>1 then
-      halt(315);
+      TestFail(315);
     if Max3(1,v3)<>3 then
-      halt(316);
+      TestFail(316);
     if Min4(1,v3)<>1 then
-      halt(317);
+      TestFail(317);
     if Max4(1,v3)<>3 then
-      halt(318);
+      TestFail(318);
     if Min1(1,v3)<>1 then
-      halt(321);
+      TestFail(321);
     if Max1(1,v3)<>v3 then
-      halt(322);
+      TestFail(322);
     if Min2(1,v3)<>1 then
-      halt(323);
+      TestFail(323);
     if Max2(1,v3)<>v3 then
-      halt(324);
+      TestFail(324);
     if Min3(1,v3)<>1 then
-      halt(325);
+      TestFail(325);
     if Max3(1,v3)<>v3 then
-      halt(326);
+      TestFail(326);
     if Min4(1,v3)<>1 then
-      halt(327);
+      TestFail(327);
     if Max4(1,v3)<>v3 then
-      halt(328);
+      TestFail(328);
     if Min1(v1,v3)<>v1 then
-      halt(331);
+      TestFail(331);
     if Max1(v1,v3)<>v3 then
-      halt(332);
+      TestFail(332);
     if Min2(v1,v3)<>v1 then
-      halt(333);
+      TestFail(333);
     if Max2(v1,v3)<>v3 then
-      halt(334);
+      TestFail(334);
     if Min3(v1,v3)<>v1 then
-      halt(335);
+      TestFail(335);
     if Max3(v1,v3)<>v3 then
-      halt(336);
+      TestFail(336);
     if Min4(v1,v3)<>v1 then
-      halt(337);
+      TestFail(337);
     if Max4(v1,v3)<>v3 then
-      halt(338);
+      TestFail(338);
   end;
 
 begin
@@ -643,4 +649,5 @@ begin
   TestDouble;
   TestDWord;
   TestLongint;
+  WriteLn('ok');
 end.
