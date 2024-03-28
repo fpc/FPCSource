@@ -207,7 +207,7 @@ implementation
                    (tnf_pass1_done in hp.transientflags);
              include(p.transientflags,tnf_pass1_done);
 {$ifdef EXTDEBUG}
-             if not(nf_error in p.flags) then
+             if not(tnf_error in p.transientflags) then
                begin
                  if (p.expectloc=LOC_INVALID) then
                    Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
