@@ -387,6 +387,7 @@ implementation
      procedure ti8086inlinenode.second_abs_long;
        var
          opsize: TCgSize;
+         hl: TAsmLabel;
        begin
          opsize:=def_cgsize(left.resultdef);
          if opsize in [OS_64,OS_S64] then
@@ -406,6 +407,13 @@ implementation
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(location.register64.reglo));
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(location.register64.reghi));
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
            end
          else if opsize in [OS_32,OS_S32] then
            begin
@@ -419,6 +427,13 @@ implementation
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
             emit_reg_reg(A_SUB,S_W,cg.GetNextReg(left.location.register),location.register);
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
            end
          else
            inherited second_abs_long;
