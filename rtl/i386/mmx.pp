@@ -87,7 +87,7 @@ unit mmx;
 
       begin
          { a cpu with without cpuid instruction supports never mmx }
-         mmx_support:=cpuid_support and (CPUID(1).edx and (1 shl 23)<>0);
+         mmx_support:=MMXSupport;
       end;
 
     function amd_3d_support : boolean;

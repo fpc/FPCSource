@@ -46,19 +46,20 @@ type
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
-    function CMOVSupport : boolean;inline;
-    function InterlockedCompareExchange128Support : boolean;
-    function AESSupport : boolean;inline;
+    function MMXSupport: boolean;inline;
+    function CMOVSupport: boolean;inline;
+    function InterlockedCompareExchange128Support: boolean;
+    function AESSupport: boolean;inline;
     function AVXSupport: boolean;inline;
     function AVX2Support: boolean;inline;
-    function AVX512FSupport: boolean;inline;    
-    function AVX512DQSupport: boolean;inline;    
-    function AVX512IFMASupport: boolean;inline;    
-    function AVX512PFSupport: boolean;inline;    
-    function AVX512ERSupport: boolean;inline;    
-    function AVX512CDSupport: boolean;inline;    
-    function AVX512BWSupport: boolean;inline;    
-    function AVX512VLSupport: boolean;inline;    
+    function AVX512FSupport: boolean;inline;
+    function AVX512DQSupport: boolean;inline;
+    function AVX512IFMASupport: boolean;inline;
+    function AVX512PFSupport: boolean;inline;
+    function AVX512ERSupport: boolean;inline;
+    function AVX512CDSupport: boolean;inline;
+    function AVX512BWSupport: boolean;inline;
+    function AVX512VLSupport: boolean;inline;
     function AVX512VBMISupport: boolean;inline;
     function AVX512VBMI2Support: boolean;inline;
     function AVX512VNNISupport: boolean;inline;
@@ -67,7 +68,7 @@ type
     function AVX512BITALGSupport: boolean;inline;
     function RDSEEDSupport: boolean;inline;
     function ADXSupport: boolean;inline;
-    function SHASupport: boolean;inline;    
+    function SHASupport: boolean;inline;
     function FMASupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
     function LZCNTSupport: boolean;inline;
@@ -91,6 +92,7 @@ type
 
 {$ASMMODE INTEL}
     var
+      _MMXSupport,
       _CMOVSupport,
       _AESSupport,
       _AVXSupport,
@@ -267,6 +269,7 @@ type
            begin
               maxcpuidvalue:=CPUID(0).eax;
               cpuid1:=CPUID(1);
+              _MMXSupport:=(cpuid1.edx and $800000)<>0;
               _CMOVSupport:=(cpuid1.edx and $8000)<>0;
               _AESSupport:=(cpuid1.ecx and $2000000)<>0;
               _POPCNTSupport:=(cpuid1.ecx and $800000)<>0;
@@ -330,6 +333,12 @@ type
       end;
 
 
+    function MMXSupport: boolean;
+      begin
+        result:=_MMXSupport;
+      end;
+
+
     function CMOVSupport : boolean;
       begin
         result:=_CMOVSupport;
@@ -366,37 +375,37 @@ type
       end;
 
 
-    function AVX512IFMASupport: boolean;inline;    
+    function AVX512IFMASupport: boolean;inline;
       begin
         result:=_AVX512IFMASupport;
       end;
 
 
-    function AVX512PFSupport: boolean;inline;    
+    function AVX512PFSupport: boolean;inline;
       begin
         result:=_AVX512PFSupport;
       end;
 
 
-    function AVX512ERSupport: boolean;inline;    
+    function AVX512ERSupport: boolean;inline;
       begin
         result:=_AVX512ERSupport;
       end;
 
 
-    function AVX512CDSupport: boolean;inline;    
+    function AVX512CDSupport: boolean;inline;
       begin
         result:=_AVX512CDSupport;
       end;
 
 
-    function AVX512BWSupport: boolean;inline;    
+    function AVX512BWSupport: boolean;inline;
       begin
         result:=_AVX512BWSupport;
       end;
 
 
-    function AVX512VLSupport: boolean;inline;    
+    function AVX512VLSupport: boolean;inline;
       begin
         result:=_AVX512VLSupport;
       end;
@@ -426,13 +435,13 @@ type
       end;
 
 
-    function AVX512VNNISupport: boolean;inline;    
+    function AVX512VNNISupport: boolean;inline;
       begin
         result:=_AVX512VNNISupport;
       end;
 
 
-    function AVX512BITALGSupport: boolean;inline;    
+    function AVX512BITALGSupport: boolean;inline;
       begin
         result:=_AVX512BITALGSupport;
       end;
@@ -450,7 +459,7 @@ type
       end;
 
 
-     function SHASupport: boolean;inline;    
+     function SHASupport: boolean;inline;
       begin
         result:=_SHASupport;
       end;
