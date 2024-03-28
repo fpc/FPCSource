@@ -412,6 +412,7 @@ implementation
     procedure tarminlinenode.second_abs_long;
       var
         opsize : tcgsize;
+        ovloc: tlocation;
       begin
         if GenerateThumbCode then
           begin
@@ -420,18 +421,36 @@ implementation
           end;
 
         secondpass(left);
-        opsize:=def_cgsize(left.resultdef);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-        location:=left.location;
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+        if is_64bitint(left.resultdef) then
+          begin
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            location:=left.location;
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,left.location.register64.reghi,location.register64.reglo);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,left.location.register64.reghi,location.register64.reghi);
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,location.register64.reglo,location.register64.reglo,left.location.register64.reghi), PF_S));
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,location.register64.reghi,location.register64.reghi,left.location.register64.reghi), PF_S));
+          end
+        else
+          begin
+            opsize:=def_cgsize(left.resultdef);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            location:=left.location;
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
-        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
 
-        if GenerateThumb2Code then
-          current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
+            if GenerateThumb2Code then
+              current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
 
-        current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
+            current_asmdata.CurrAsmList.concat(setoppostfix(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI),PF_S));
+          end;
+        location_reset(ovloc,LOC_VOID,opsize);
+        cg.g_overflowCheck_loc(current_asmdata.CurrAsmList,ovloc,resultdef,ovloc);
 
         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
       end;
