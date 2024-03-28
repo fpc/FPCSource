@@ -750,7 +750,7 @@ fpintres$(PPUEXT) : $(FPINTRES_DEPS)
 # fpextres
 
 FPEXTRES_DEPS= $(INC)/fpextres.pp $(SYSTEMUNIT)$(PPUEXT) \
-               $(FPEXTRES_DEPS_OS) $(FPEXTRES_DEPS_CPU)              
+               $(FPEXTRES_DEPS_OS) $(FPEXTRES_DEPS_CPU)
 
 fpextres$(PPUEXT) : $(FPEXTRES_DEPS)
         $(COMPILER) -Sg $(FPEXTRES_OPT) $<
@@ -770,17 +770,17 @@ SOFTFPU_DEPS=$(INC)/softfpu.pp \
              $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
              $(SOFTFPU_DEPS_OS) $(SOFTFPU_DEPS_CPU)
 
-softfpu$(PPUEXT) : $(SOFTFPU_DEPS) 
+softfpu$(PPUEXT) : $(SOFTFPU_DEPS)
 	$(COMPILER) -Sg $(SOFTFPU_OPT) $<
 
-System.SoftFPU$(PPUEXT) : $(NSINC)/System.SoftFPU.pp $(SOFTFPU_DEPS) 
+System.SoftFPU$(PPUEXT) : $(NSINC)/System.SoftFPU.pp $(SOFTFPU_DEPS)
         $(COMPILER) -Sg $(SOFTFPU_OPT) $<
 
 # sfpux80
 SFPUX80_DEPS=$(INC)/sfpux80.pp $(INC)/softfpu.pp \
              $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
-             $(SFPUX80_DEPS_OS) $(SFPUX80_DEPS_CPU) 
- 
+             $(SFPUX80_DEPS_OS) $(SFPUX80_DEPS_CPU)
+
 sfpux80$(PPUEXT) : $(SFPUX80_DEPS)
 	$(COMPILER) -Sg $(SFPUX80_OPT) $<
 
@@ -791,7 +791,7 @@ System.SoftFpuX80$(PPUEXT) : $(NSINC)/System.SoftFpuX80.pp  $(SFPUX80_DEPS)
 SFPU128_DEPS=$(INC)/sfpu128.pp $(INC)/softfpu.pp \
              $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
              $(SFPU128_DEPS_OS) $(SFPU128_DEPS_CPU)
- 
+
 
 sfpu128$(PPUEXT) : $(SFPU128_DEPS)
 	$(COMPILER) -Sg $(SFPUX128_OPT) $<
@@ -803,7 +803,7 @@ System.SoftFpu128$(PPUEXT) : $(NSINC)/System.SoftFpu128.pp $(SFPU128_DEPS)
 UFLOATX80_DEPS=$(INC)/ufloatx80.pp \
                $(SFPUX80UNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                $(UFLOATX80_DEPS_OS) $(UFLOATX80_DEPS_CPU)
-               
+
 ufloatx80$(PPUEXT) : $(UFLOATX80_DEPS)
 	$(COMPILER) $(UFLOATX80_OPT) $<
 
@@ -849,7 +849,7 @@ PORTS_DEPS=$(PORTSDIR)/ports.$(PORTSUNITEXT) \
            $(SYSTEMUNIT)$(PPUEXT) \
            $(PORTS_DEPS_OS) $(PORTS_DEPS_CPU)
 
-ports$(PPUEXT) : $(PORTS_DEPS) 
+ports$(PPUEXT) : $(PORTS_DEPS)
 	$(COMPILER) $(PORTS_OPT) $<
 
 System.Ports$(PPUEXT) :  $(NSINC)/System.Ports.$(PORTSUNITEXT) $(PORTS_DEPS)
@@ -916,7 +916,7 @@ LINUX_DEPS=$(OSDIR)/linux.pp \
 linux$(PPUEXT): $(LINUX_DEPS)
         $(COMPILER) $<
 
-LinuxApi$(PPUEXT): $(NSOSDIR)/LinuxApi.pp $(LINUX_DEPS) 
+LinuxApi$(PPUEXT): $(NSOSDIR)/LinuxApi.pp $(LINUX_DEPS)
         $(COMPILER) $(LINUX_OPT) $<
 #
 # linuxvcs
@@ -1026,11 +1026,11 @@ CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(
              $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
              $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
              $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
- 
+
 classes$(PPUEXT) : $(CLASSES_DEPS)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(CLASSES_OPT) $<
 
-System.Classes$(PPUEXT) : $(NSINC)/System.Classes.pp $(CLASSES_DEPS) 
+System.Classes$(PPUEXT) : $(NSINC)/System.Classes.pp $(CLASSES_DEPS)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(CLASSES_OPT) $<
 
 #
@@ -1063,7 +1063,7 @@ System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 #
 # BaseMath
 #
-BASEMATH_DEPS= $(OBJPASDIR)/basemath.pp $(PROCINC)/basemath.inc \
+BASEMATH_DEPS= $(INC)/basemath.pp $(PROCINC)/basemath.inc \
            $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
            $(BASEMATH_DEPS_OS) $(BASEMATH_DEPS_CPU)
 
@@ -1094,7 +1094,7 @@ FGL_DEPS=$(OBJPASDIR)/fgl.pp \
           $(SYSUTILSUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	  $(RTLCONSTSUNIT)$(PPUEXT) \
           $(FGL_DEPS_OS) $(FGL_DEPS_CPU)
- 
+
 fgl$(PPUEXT) : $(FGL_DEPS)
         $(COMPILER) $(FGL_OPT) $<
 
@@ -1107,7 +1107,7 @@ System.FGL$(PPUEXT) : $(NSINC)/System.FGL.pp $(FGL_DEPS)
 TYPES_DEPS=$(OBJPASDIR)/types.pp \
            $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
            $(TYPES_DEPS_OS) $(TYPES_DEPS_CPU)
- 
+
 types$(PPUEXT) : $(TYPES_DEPS)
         $(COMPILER) $(TYPES_OPT) $<
 
@@ -1120,7 +1120,7 @@ System.Types$(PPUEXT) :  $(NSINC)/System.Types.pp $(TYPES_DEPS)
 SYSCONST_DEPS=$(OBJPASDIR)/sysconst.pp \
               $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
               $(SYSCONST_DEPS_OS) $(SYSCONST_DEPS_CPU)
-            
+
 sysconst$(PPUEXT) : $(SYSCONST_DEPS)
         $(COMPILER) $(SYSCONST_OPT) $<
 
@@ -1177,7 +1177,7 @@ System.CPU$(PPUEXT) : $(NSINC)/System.CPU.pp $(CPU_DEPS)
 #
 MMX_DEPS=$(PROCINC)/mmx.pp \
          $(CPUUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-         $(MMX_DEPS_OS) $(MMX_DEPS_CPU) 
+         $(MMX_DEPS_OS) $(MMX_DEPS_CPU)
 
 mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
@@ -1248,7 +1248,7 @@ LNFODWRF_DEPS=$(INC)/lnfodwrf.pp \
               $(SYSTEMUNIT)$(PPUEXT) $(STRINGSUNIT)$(PPUEXT) \
               $(SYSUTILSUNIT)$(PPUEXT) $(EXEINFOUNIT)$(PPUEXT) \
               $(LNFODWRF_DEPS_OS) $(LNFODWRF_DEPS_CPU)
-              
+
 lnfodwrf$(PPUEXT) : $(LNFODWRF_DEPS)
 	$(COMPILER) $(LNFODWRF_OPT) $<
 
@@ -1262,7 +1262,7 @@ LNFOGDB_DEPS=$(UNIXINC)/lnfogdb.pp \
               $(SYSTEMUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
 	      $(BASEUNIXUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
               $(LNFOGDB_DEPS_OS) $(LNFOGDB_DEPS_CPU)
-              
+
 lnfogdb$(PPUEXT) : $(LNFOGDB_DEPS)
 	$(COMPILER) $(LNFOGDB_OPT) $<
 
@@ -1281,7 +1281,7 @@ charset$(PPUEXT) : $(CHARSET_DEPS)
 	$(COMPILER) $(CHARSET_OPT) $<
 
 System.CharSet$(PPUEXT) : $(NSINC)/System.CharSet.pp $(CHARSET_DEPS)
-	$(COMPILER) $(CHARSET_OPT) $< 
+	$(COMPILER) $(CHARSET_OPT) $<
 
 #
 # unicodedata
@@ -1298,14 +1298,14 @@ System.CodePages.unicodedata$(PPUEXT) : $(NSINC)/System.CodePages.unicodedata.pa
         $(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
 
 #
-# cpall (in fact a build unit for all CP_) 
+# cpall (in fact a build unit for all CP_)
 #
 
 CPALL_DEPS=$(RTL)/charmaps/cpall.pas $(CP_UNITS_SRC) \
           system$(PPUEXT) $(CHARSETUNIT)$(PPUEXT) \
           $(CPALL_DEPS_OS) $(CPALL_DEPS_CPU)
 
-cpall$(PPUEXT): $(CPALL_DEPS)  
+cpall$(PPUEXT): $(CPALL_DEPS)
         $(COMPILER) $(CPALL_OPT) -Fu$(INC) -Fi$(RTL)/charmaps $<
 
 System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
@@ -1313,7 +1313,7 @@ System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
 
 #
 # fpwidestring
-# 
+#
 
 ifneq ($(UNIXINC),)
   FPWIDESTRING_DEPS_OS:=$(FPWIDESTRING_DEPS_OS) $(UNIXCPUNIT)$(PPUEXT)
@@ -1347,7 +1347,7 @@ System.FPWideString$(PPUEXT): $(NSINC)/System.FPWideString.pp $(FPWIDESTRING_DEP
 #
 
 SORTBASE_DEPS=$(INC)/sortbase.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-              $(SORTBASE_DEPS_OS) $(SORTBASE_DEPS_CPU) 
+              $(SORTBASE_DEPS_OS) $(SORTBASE_DEPS_CPU)
 
 sortbase$(PPUEXT) : $(SORTBASE_DEPS)
 	$(COMPILER) $(SORTBASE_OPT) $<
@@ -1361,7 +1361,7 @@ System.SortBase$(PPUEXT) : $(NSINC)/System.SortBase.pp $(SORTBASE_DEPS)
 
 CALLSPEC_DEPS=$(INC)/callspec.pp \
               $(SYSTEMUNIT)$(PPUEXT) \
-              $(CALLSPEC_DEPS_OS) $(CALLSPEC_DEPS_CPU) 
+              $(CALLSPEC_DEPS_OS) $(CALLSPEC_DEPS_CPU)
 
 callspec$(PPUEXT) : $(CALLSPEC_DEPS)
 	$(COMPILER) $(CALLSPEC_OPT) $<
@@ -1393,17 +1393,17 @@ System.CMem$(PPUEXT) : $(NSINC)/System.CMem.pp $(CMEM_DEPS)
 BASEUNIX_DEPS=$(BASEUNIXDIR)/baseunix.pp  $(UNIXINC)/ctypes.inc  \
               $(UNIXINC)/bunxh.inc $(UNIXINC)/gensigset.inc $(OSDIR)/ptypes.inc $(OSDIR)/errno.inc \
               $(UNIXTYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-              $(BASEUNIX_DEPS_OS) $(BASEUNIX_DEPS_CPU) 
-          
+              $(BASEUNIX_DEPS_OS) $(BASEUNIX_DEPS_CPU)
+
 baseunix$(PPUEXT): $(BASEUNIX_DEPS)
 	$(COMPILER) $(BASEUNIX_OPT) $<
 
-UnixApi.Base$(PPUEXT): $(NSINC)/UnixApi.Base.pp $(BASEUNIX_DEPS) 
+UnixApi.Base$(PPUEXT): $(NSINC)/UnixApi.Base.pp $(BASEUNIX_DEPS)
 	$(COMPILER) $(BASEUNIX_OPT) $<
 
 #
 # Unix
-# 
+#
 
 UNIX_DEPS=$(UNIXINC)/unix.pp \
          $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
@@ -1411,7 +1411,7 @@ UNIX_DEPS=$(UNIXINC)/unix.pp \
          $(INC)/textrec.inc $(INC)/filerec.inc  $(UNIXINC)/timezone.inc \
          $(OSDIR)/unxconst.inc $(OSDIR)/unxfunc.inc \
          $(UNIX_DEPS_OS) $(UNIX_DEPS_CPU)
-         
+
 unix$(PPUEXT): $(UNIX_DEPS)
 	$(COMPILER) $(UNIX_OPT) $<
 
@@ -1428,7 +1428,7 @@ SYSCALL_DEPS=$(UNIXINC)/syscall.pp \
 syscall$(PPUEXT) : $(SYSCALL_DEPS)
 	$(COMPILER) $(SYSCALL_OPT) $<
 
-UnixApi.SysCall$(PPUEXT) : $(NSINC)/UnixApi.SysCall.pp $(SYSCALL_DEPS) 
+UnixApi.SysCall$(PPUEXT) : $(NSINC)/UnixApi.SysCall.pp $(SYSCALL_DEPS)
 	$(COMPILER) $(SYSCALL_OPT) $<
 
 #
@@ -1443,7 +1443,7 @@ UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc \
 unixutil$(PPUEXT) : $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
 
-UnixApi.Utils$(PPUEXT) : $(NSINC)/UnixApi.Utils.pp $(UNIXUTIL_DEPS) 
+UnixApi.Utils$(PPUEXT) : $(NSINC)/UnixApi.Utils.pp $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
 
 #
@@ -1456,7 +1456,7 @@ endif
 UNIXTYPE_DEPS=$(UNIXINC)/unixtype.pp \
               $(SYSTEMUNIT)$(PPUEXT) $(PTYPESINCDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
               $(UNIXTYPE_DEPS_OS) $(UNIXTYPE_DEPS_CPU)
-               
+
 unixtype$(PPUEXT) : $(UNIXTYPE_DEPS)
 	$(COMPILER) $(UNIXTYPE_OPT) $(UNIXINC)/unixtype.pp
 
@@ -1519,7 +1519,7 @@ CWSTRING_DEPS=$(CWSTRINGDIR)/cwstring.pp $(CWSTRING_INC) \
               $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
               $(UNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
               $(DYNLIBSUNIT)$(PPUEXT) $(UNIXCPUNIT)$(PPUEXT) \
-              $(CWSTRING_DEPS_OS) $(CWSTRING_DEPS_CPU) 
+              $(CWSTRING_DEPS_OS) $(CWSTRING_DEPS_CPU)
 
 cwstring$(PPUEXT) : $(CWSTRING_DEPS)
 	$(COMPILER) $(CWSTRING_OPT) $<
@@ -1541,10 +1541,10 @@ CTYPES_DEPS=$(INC)/ctypes.pp \
             $(SYSTEMUNIT)$(PPUEXT) \
             $(CTYPES_DEPS_OS) $(CTYPES_DEPS_CPU)
 
-ctypes$(PPUEXT) : $(CTYPES_DEPS) 
+ctypes$(PPUEXT) : $(CTYPES_DEPS)
 	$(COMPILER) $(CTYPES_OPT) $<
 
-System.CTypes$(PPUEXT) : $(NSINC)/System.CTypes.pp $(CTYPES_DEPS) 
+System.CTypes$(PPUEXT) : $(NSINC)/System.CTypes.pp $(CTYPES_DEPS)
 	$(COMPILER) $(CTYPES_OPT) $<
 
 #
@@ -1559,7 +1559,7 @@ objc$(PPUEXT) : $(OBJC_DEPS)
 
 #
 # ObjCBase
-# 
+#
 
 OBJCBASE_DEPS=$(INC)/objcbase.pp \
               $(SYSTEMUNIT)$(PPUEXT) $(OBJCUNIT)$(PPUEXT) \
@@ -1777,7 +1777,7 @@ OS2Api.doscall2$(PPUEXT) : $(NSOS2DIR)/OS2Api.doscall2.pas $(DOSCALL2_DEPS)
 PMWIN_DEPS = $(OS2DIR)/pmwin.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMWIN_DEPS_OS) $(PMWIN_DEPS_CPU)
 
-pmwin$(PPUEXT) : $(PMWIN_DEPS) 
+pmwin$(PPUEXT) : $(PMWIN_DEPS)
         $(COMPILER) $<
 
 OS2Api.pmwin$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmwin.pas $(PMWIN_DEPS)
@@ -1786,7 +1786,7 @@ OS2Api.pmwin$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmwin.pas $(PMWIN_DEPS)
 PMBITMAP_DEPS = $(OS2DIR)/pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(PMBITMAP_DEPS_OS) $(PMBITMAP_DEPS_CPU)
 
-pmbitmap$(PPUEXT) : $(PMBITMAP_DEPS) 
+pmbitmap$(PPUEXT) : $(PMBITMAP_DEPS)
         $(COMPILER) $<
 
 OS2Api.pmbitmap$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmbitmap.pas $(PMBITMAP_DEPS)
