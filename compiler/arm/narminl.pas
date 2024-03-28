@@ -421,6 +421,7 @@ implementation
           end;
 
         secondpass(left);
+        opsize:=def_cgsize(left.resultdef);
         if is_64bitint(left.resultdef) then
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
@@ -436,7 +437,6 @@ implementation
           end
         else
           begin
-            opsize:=def_cgsize(left.resultdef);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);

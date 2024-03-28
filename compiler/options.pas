@@ -4760,7 +4760,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
       {$if defined(i8086) or defined(i386) or defined(x86_64) or defined(powerpc64) or defined(aarch64) or defined(arm)}
         def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-      {$endif i8086 or i386 or x86_64 or powerpc64 or aarch64}
+      {$endif i8086 or i386 or x86_64 or powerpc64 or aarch64 or arm}
 
         def_system_macro('FPC_HAS_UNICODESTRING');
         def_system_macro('FPC_RTTI_PACKSET1');
