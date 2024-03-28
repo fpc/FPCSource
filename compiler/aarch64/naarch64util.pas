@@ -26,12 +26,12 @@ unit naarch64util;
 interface
 
 uses
-    cclasses, ngenutil;
+    cclasses, ngenutil, fmodule;
 
 type
     TAArch64NodeUtils = class(TNodeUtils)
         class procedure InsertObjectInfo; override;
-        class procedure Insert_Init_Final_Table(Entries: TFPList); override;
+        class procedure Insert_Init_Final_Table(main: tmodule; Entries: TFPList); override;
     end;
 
 implementation
@@ -54,7 +54,7 @@ end;
     TODO: This is a simple skeleton, not nearly as complex as the
     ARM (32-bit) version in compiler/arm/narmutil.pas
 }
-class procedure TAArch64NodeUtils.Insert_Init_Final_Table(Entries: TFPList);
+class procedure TAArch64NodeUtils.Insert_Init_Final_Table(main: tmodule; Entries: TFPList);
 
     procedure GenEntry(List: TAsmList);
     var
@@ -113,7 +113,7 @@ var
 begin
     if not(tf_init_final_units_by_calls in target_info.flags) then
     begin
-        inherited insert_init_final_table(Entries);
+        inherited insert_init_final_table(main,Entries);
         exit;
     end;
 
@@ -156,7 +156,7 @@ begin
     InitList.Free;
     FinalList.Free;
 
-    inherited Insert_Init_Final_Table(entries);
+    inherited Insert_Init_Final_Table(main,entries);
 end;
 
 begin

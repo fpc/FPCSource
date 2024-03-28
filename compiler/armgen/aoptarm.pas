@@ -57,6 +57,9 @@ Type
     function OptPass1LDR(var p: tai): Boolean; virtual;
     function OptPass1STR(var p: tai): Boolean; virtual;
     function OptPass1And(var p: tai): Boolean; virtual;
+
+    function OptPass2AND(var p: tai): Boolean;
+    function OptPass2TST(var p: tai): Boolean;
   End;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
@@ -538,6 +541,22 @@ Implementation
                     begin
                       if MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[0]^.reg) then
                         begin
+                          { mov r0,r1; mov r1,r1 - remove second MOV here so
+                            so "RedundantMovProcess 2b" doesn't get erroneously
+                            applied }
+                          if MatchOperand(taicpu(next_hp).oper[0]^, taicpu(next_hp).oper[1]^.reg) then
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'Mov2None 2a done', next_hp);
+
+                              if (next_hp = hp1) then
+                                { Don't let hp1 become a dangling pointer }
+                                hp1 := nil;
+
+                              asml.Remove(next_hp);
+                              next_hp.Free;
+                              Continue;
+                            end;
+
                           { Found another mov that writes entirely to the register }
                           if RegUsedBetween(taicpu(p).oper[0]^.reg, p, next_hp) then
                             begin
@@ -1582,6 +1601,7 @@ Implementation
                 end
             end;
         end;
+
       {
         change
         and reg1, ...
@@ -1593,6 +1613,233 @@ Implementation
          (taicpu(p).ops>=3) and
          RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
         Result:=true;
+    end;
+
+
+  function TARMAsmOptimizer.OptPass2AND(var p: tai): Boolean;
+    var
+      hp1, hp2: tai;
+      WorkingReg: TRegister;
+    begin
+      Result := False;
+      {
+        change
+        and  reg1, ...
+        ...
+        cmp  reg1, #0
+        b<ne/eq> @Lbl
+        to
+        ands reg1, ...
+
+        Also:
+
+        and  reg1, ...
+        ...
+        cmp  reg1, #0
+        (reg1 end of life)
+        b<ne/eq> @Lbl
+        to
+        tst  reg1, ...
+      }
+      if (taicpu(p).condition = C_None) and
+        (taicpu(p).ops>=3) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        MatchInstruction(hp1, A_CMP, [C_None], [PF_None]) and
+        MatchOperand(taicpu(hp1).oper[1]^, 0) and
+{$ifdef AARCH64}
+        (SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(p).oper[0]^.reg)) and
+        (
+          (getsubreg(taicpu(hp1).oper[0]^.reg) = getsubreg(taicpu(p).oper[0]^.reg))
+          or
+          (
+            (taicpu(p).oper[2]^.typ = top_const) and
+            (taicpu(p).oper[2]^.val >= 0) and
+            (taicpu(p).oper[2]^.val <= $FFFFFFFF)
+          )
+        ) and
+{$else AARCH64}
+        (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+{$endif AARCH64}
+
+        not RegModifiedBetween(NR_DEFAULTFLAGS, p, hp1) and
+        GetNextInstruction(hp1, hp2) then
+        begin
+          if MatchInstruction(hp2, [A_B, A_CMP, A_CMN, A_TST{$ifndef AARCH64}, A_TEQ{$endif not AARCH64}], [C_EQ, C_NE], [PF_None]) then
+            begin
+              AllocRegBetween(NR_DEFAULTFLAGS, p, hp1, UsedRegs);
+
+              WorkingReg := taicpu(p).oper[0]^.reg;
+
+              if RegEndOfLife(WorkingReg, taicpu(hp1)) then
+                begin
+                  taicpu(p).opcode := A_TST;
+                  taicpu(p).oppostfix := PF_None;
+                  taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+                  taicpu(p).loadoper(1, taicpu(p).oper[2]^);
+                  if (taicpu(p).ops = 4) then
+                    begin
+                      { Make sure any shifter operator is also transferred }
+                      taicpu(p).loadshifterop(2, taicpu(p).oper[3]^.shifterop^);
+                      taicpu(p).ops := 3;
+                    end
+                  else
+                    taicpu(p).ops := 2;
+
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+                end
+              else
+                begin
+                  taicpu(p).oppostfix := PF_S;
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> ANDS', p);
+                end;
+
+              RemoveInstruction(hp1);
+
+              { If a temporary register was used for and/cmp before, we might be
+                able to deallocate the register so it can be used for other
+                optimisations later }
+              if (taicpu(p).opcode = A_TST) and TryRemoveRegAlloc(WorkingReg, p, p) then
+                ExcludeRegFromUsedRegs(WorkingReg, UsedRegs);
+
+              Result := True;
+              Exit;
+            end
+          else if
+            (hp2.typ = ait_label) or
+            { Conditional comparison instructions have already been covered }
+            RegModifiedByInstruction(NR_DEFAULTFLAGS, hp2) then
+            begin
+              { The comparison is a null operation }
+              if RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> nop', p);
+                  RemoveInstruction(hp1);
+                  RemoveCurrentP(p);
+                end
+              else
+                begin
+                  DebugMsg(SPeepholeOptimization + 'CMP -> nop', hp1);
+                  RemoveInstruction(hp1);
+                end;
+              Result := True;
+              Exit;
+            end;
+        end;
+    end;
+
+
+  function TARMAsmOptimizer.OptPass2TST(var p: tai): Boolean;
+    var
+      hp1, hp2: tai;
+    begin
+      Result := False;
+      if
+{$ifndef AARCH64}
+        (taicpu(p).condition = C_None) and
+{$endif AARCH64}
+        GetNextInstruction(p, hp1) and
+        MatchInstruction(hp1, A_B, [C_EQ, C_NE], [PF_None]) and
+        GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[0]^.reg) then
+        begin
+          case taicpu(hp2).opcode of
+            A_AND:
+              { Change:
+                 tst  r1,##
+                 (r2 not in use, or r2 = r1)
+                 b.c  .Lbl
+                 ...
+                 and  r2,r1,##
+
+               Optimise to:
+                 ands r2,r1,##
+                 b.c  .Lbl
+                 ...
+              }
+              if (taicpu(hp2).oppostfix in [PF_None, PF_S]) and
+{$ifndef AARCH64}
+                (taicpu(hp2).condition = C_None) and
+{$endif AARCH64}
+                (taicpu(hp2).ops = taicpu(p).ops + 1) and
+                  not RegInUsedRegs(taicpu(hp2).oper[0]^.reg, UsedRegs) and
+                  MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^.reg) and
+                  MatchOperand(taicpu(hp2).oper[2]^, taicpu(p).oper[1]^) and
+                  (
+                    (taicpu(hp2).ops = 3) or
+                    MatchOperand(taicpu(hp2).oper[3]^, taicpu(p).oper[2]^)
+                  ) and
+                  (
+                    not (cs_opt_level3 in current_settings.optimizerswitches) or
+                    (
+                      { Make sure the target register isn't used in between }
+                      not RegUsedBetween(taicpu(hp2).oper[0]^.reg, hp1, hp2) and
+                      (
+                        { If the second operand is a register, make sure it isn't modified in between }
+                        (taicpu(p).oper[1]^.typ <> top_reg) or
+                        not RegModifiedBetween(taicpu(p).oper[1]^.reg, hp1, hp2)
+                      )
+                    )
+                  ) then
+                  begin
+                    AllocRegBetween(taicpu(hp2).oper[0]^.reg, p, hp2, UsedRegs);
+
+                    if (taicpu(hp2).oppostfix = PF_S) then
+                      AllocRegBetween(NR_DEFAULTFLAGS, p, hp2, UsedRegs);
+
+                    DebugMsg(SPeepholeOptimization + 'TST; B.c; AND -> ANDS; B.c (TstBcAnd2AndsBc)', p);
+                    taicpu(hp2).oppostfix := PF_S;
+
+                    Asml.Remove(hp2);
+                    Asml.InsertAfter(hp2, p);
+
+                    RemoveCurrentP(p, hp2);
+                    Result := True;
+
+                    Exit;
+                  end;
+            A_TST:
+              { Change:
+                 tst  r1,##
+                 b.c  .Lbl
+                 ... (flags not modified)
+                 tst  r1,##
+
+                Remove second tst
+              }
+              if
+{$ifndef AARCH64}
+                (taicpu(hp2).condition = C_None) and
+{$endif AARCH64}
+                (taicpu(hp2).ops = taicpu(p).ops) and
+                MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^.reg) and
+                MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) and
+                (
+                  (taicpu(hp2).ops = 2) or
+                  MatchOperand(taicpu(hp2).oper[2]^, taicpu(p).oper[2]^)
+                ) and
+                (
+                  not (cs_opt_level3 in current_settings.optimizerswitches) or
+                  (
+                    { Make sure the flags aren't modified in between }
+                    not RegModifiedBetween(NR_DEFAULTFLAGS, hp1, hp2) and
+                    (
+                      { If the second operand is a register, make sure it isn't modified in between }
+                      (taicpu(p).oper[1]^.typ <> top_reg) or
+                      not RegModifiedBetween(taicpu(p).oper[1]^.reg, hp1, hp2)
+                    )
+                  )
+                ) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'TST; B.c; TST -> TST; B.c (TstBcTst2TstBc)', p);
+
+                  AllocRegBetween(NR_DEFAULTFLAGS, hp1, hp2, UsedRegs);
+                  RemoveInstruction(hp2);
+                  Result := True;
+                  Exit;
+                end;
+            else
+              ;
+          end;
+        end;
     end;
 
 end.

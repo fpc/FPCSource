@@ -76,7 +76,8 @@ unit optcse;
                with more than one parameter }
              in_fma_single,in_fma_double,in_fma_extended,in_fma_float128,
              in_min_single,in_min_double,in_max_single,in_max_double,
-             in_max_longint,in_max_dword,in_min_longint,in_min_dword
+             in_max_longint,in_max_dword,in_min_longint,in_min_dword,
+             in_max_int64,in_max_qword,in_min_int64,in_min_qword
              ])
           ) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
@@ -380,8 +381,14 @@ unit optcse;
                                 begin
                                   n.localswitches:=n.localswitches+(tbinarynode(n).left.localswitches*[cs_full_boolean_eval]);
                                   exclude(tbinarynode(n).left.localswitches,cs_full_boolean_eval);
-                                  tbinarynode(n).left.flags:=tbinarynode(n).left.flags+(n.flags*[nf_short_bool]);
-                                  exclude(n.Flags,nf_short_bool);
+                                  if (n.nodetype in [orn,andn]) then
+                                    begin
+                                      if (tbinarynode(n).left.nodetype in [orn,andn]) then
+                                        taddnode(tbinarynode(n).left).addnodeflags:=taddnode(tbinarynode(n).left).addnodeflags+
+                                          (taddnode(n).addnodeflags*[anf_short_bool]);
+
+                                      exclude(taddnode(n).addnodeflags,anf_short_bool);
+                                    end;
                                 end;
 
                               hp2:=tbinarynode(tbinarynode(n).left).left;
@@ -392,7 +399,7 @@ unit optcse;
 
                               { the transformed tree could result in new possibilities to fold constants
                                 so force a firstpass on the root node }
-                              exclude(tbinarynode(n).right.flags,nf_pass1_done);
+                              exclude(tbinarynode(n).right.transientflags,tnf_pass1_done);
                               do_firstpass(tbinarynode(n).right);
                             end
                           else

@@ -101,7 +101,7 @@ implementation
       cpuinfo,cpubase,nutils,
       ncal,ncgutil,nld,ncon,nadd,nmat,constexp,
       tgobj,
-      cga,cgutils,cgx86,cgobj,hlcgobj;
+      cga,cgutils,cgx86,cgobj,hlcgobj,cutils;
 
 
 {*****************************************************************************
@@ -409,6 +409,21 @@ implementation
            end
          else
 {$endif i8086}
+         if
+{$ifndef x86_64}
+           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+{$endif x86_64}
+           (
+{$ifdef x86_64}
+             is_64bitint(resultdef) or
+{$endif x86_64}
+             is_32bitint(resultdef)
+           ) then
+           begin
+             expectloc:=LOC_REGISTER;
+             Result:=nil;
+           end
+         else
            Result:=inherited first_minmax;
        end;
 
@@ -621,10 +636,12 @@ implementation
 
 
      procedure tx86inlinenode.second_AndOrXorShiftRot_assign;
+{$ifndef i8086}
        var
          opsize : tcgsize;
          valuenode, indexnode, loadnode: TNode;
          DestReg: TRegister;
+{$endif i8086}
        begin
 {$ifndef i8086}
          if (cs_opt_level2 in current_settings.optimizerswitches) then
@@ -658,15 +675,15 @@ implementation
                        (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
                        begin
                          { Convert to the 32-bit type }
-                         indexnode.resultdef := loadnode.resultdef;
-                         node_reset_flags(indexnode,[nf_pass1_done]);
+                         indexnode.resultdef:=loadnode.resultdef;
+                         node_reset_flags(indexnode,[],[tnf_pass1_done]);
 
                          { We should't be getting any new errors }
                          if do_firstpass(indexnode) then
                            InternalError(2022110202);
 
                          { Keep things internally consistent in case indexnode changed }
-                         tshlshrnode(taddnode(valuenode).left).right := indexnode;
+                         tshlshrnode(taddnode(valuenode).left).right:=indexnode;
                        end;
 {$endif x86_64}
                      secondpass(indexnode);
@@ -1074,6 +1091,7 @@ implementation
         hregister : tregister;
         opsize : tcgsize;
         hp : taicpu;
+        hl: TAsmLabel;
       begin
 {$if defined(i8086) or defined(i386)}
         if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
@@ -1087,6 +1105,13 @@ implementation
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,tcgsize2size[opsize]*8-1,left.location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,opsize,left.location.register,location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,left.location.register,location.register);
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
           end
         else
 {$endif i8086 or i386}
@@ -1099,9 +1124,19 @@ implementation
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hregister);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
+
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             emit_reg(A_NEG,tcgsize2opsize[opsize],hregister);
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                current_asmdata.getjumplabel(hl);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+                cg.a_label(current_asmdata.CurrAsmList,hl);
+              end;
             hp:=taicpu.op_reg_reg(A_CMOVcc,tcgsize2opsize[opsize],hregister,location.register);
             hp.condition:=C_NS;
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
@@ -1125,11 +1160,16 @@ implementation
 {$ifdef i8086}
           { BTS and BTR are 386+ }
           if current_settings.cputype < cpu_386 then
+{$else i8086}
+          { bts on memory locations is very slow, so even the default code is faster }
+          if not(cs_opt_size in current_settings.optimizerswitches) and (tcallparanode(tcallparanode(left).right).left.expectloc<>LOC_CONSTANT) and
+            (tcallparanode(left).left.expectloc=LOC_REFERENCE) then
+{$endif i8086}
             begin
               inherited;
               exit;
             end;
-{$endif i8086}
+
           if is_smallset(tcallparanode(left).resultdef) then
             begin
               opdef:=tcallparanode(left).resultdef;
@@ -1188,7 +1228,7 @@ implementation
               hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,opdef,true);
               register_maybe_adjust_setbase(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.resultdef,tcallparanode(tcallparanode(left).right).left.location,setbase);
               hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
+              if tcallparanode(left).left.location.loc=LOC_REFERENCE then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
                 begin
@@ -1550,13 +1590,19 @@ implementation
            )
           );
 
+{$endif i8086}
       var
-        paraarray : array[1..2] of tnode;
-        memop,
-        i : integer;
+{$ifndef i8086}
+        memop : integer;
         gotmem : boolean;
         op: TAsmOp;
 {$endif i8086}
+        i : integer;
+        paraarray : array[1..2] of tnode;
+        instr: TAiCpu;
+        opsize: topsize;
+        finalval: TCgInt;
+        tmpreg: TRegister;
       begin
 {$ifndef i8086}
          if
@@ -1653,6 +1699,162 @@ implementation
            end
          else
 {$endif i8086}
+         if
+{$ifndef x86_64}
+           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+{$endif x86_64}
+           (
+{$ifdef x86_64}
+             is_64bitint(resultdef) or
+{$endif x86_64}
+             is_32bitint(resultdef)
+           ) then
+           begin
+             { paraarray[1] is the right-hand side }
+             paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+             paraarray[2]:=tcallparanode(parameters).paravalue;
+
+             for i:=low(paraarray) to high(paraarray) do
+               secondpass(paraarray[i]);
+
+             if paraarray[2].location.loc = LOC_CONSTANT then
+               begin
+                 { Swap the parameters so the constant is on the right }
+                 paraarray[2]:=paraarray[1];
+                 paraarray[1]:=tcallparanode(parameters).paravalue;
+               end;
+
+             location_reset(location,LOC_REGISTER,paraarray[1].location.size);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,paraarray[1].location,location.register);
+             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
+{$ifdef x86_64}
+             if is_64bitint(resultdef) then
+               opsize := S_Q
+             else
+{$endif x86_64}
+               opsize := S_L;
+
+             { Try to use references as is, unless they would trigger internal
+               error 200502052 }
+             if (cs_create_pic in current_settings.moduleswitches) and
+               Assigned(paraarray[2].location.reference.symbol) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,
+                 paraarray[2].resultdef,paraarray[2].resultdef,true);
+
+             case paraarray[1].location.loc of
+               LOC_CONSTANT:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+{$ifdef x86_64}
+                       { x86_64 only supports signed 32 bits constants directly }
+                       if (opsize=S_Q) and
+                           ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
+                         begin
+                           tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                             tmpreg,paraarray[2].location.reference));
+                         end
+                       else
+{$endif x86_64}
+                         current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
+                           paraarray[1].location.value,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+{$ifdef x86_64}
+                       { x86_64 only supports signed 32 bits constants directly }
+                       if (opsize=S_Q) and
+                           ((paraarray[1].location.value<low(longint)) or (paraarray[1].location.value>high(longint))) then
+                         begin
+                           tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                           hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
+                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+                             tmpreg,paraarray[2].location.register));
+                         end
+                       else
+{$endif x86_64}
+                         current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
+                           paraarray[1].location.value,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121907);
+                 end;
+
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       { The reference has already been stored at location.register, so use that }
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                         location.register,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,
+                         paraarray[1].location.reference,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121906);
+                 end;
+
+               LOC_REGISTER,LOC_CREGISTER:
+                 case paraarray[2].location.loc of
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
+                         paraarray[1].location.register,paraarray[2].location.reference));
+
+                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                     end;
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+                         paraarray[1].location.register,paraarray[2].location.register));
+
+                       instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                     end;
+                   else
+                     InternalError(2021121905);
+                 end;
+
+               else
+                 InternalError(2021121904);
+             end;
+
+             case inlinenumber of
+               in_min_longint,
+               in_min_int64:
+                 instr.condition := C_L;
+               in_min_dword,
+               in_min_qword:
+                 instr.condition := C_B;
+               in_max_longint,
+               in_max_int64:
+                 instr.condition := C_G;
+               in_max_dword,
+               in_max_qword:
+                 instr.condition := C_A;
+               else
+                 Internalerror(2021121903);
+             end;
+
+             current_asmdata.CurrAsmList.concat(instr);
+             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+           end
+         else
            internalerror(2020120503);
       end;
 

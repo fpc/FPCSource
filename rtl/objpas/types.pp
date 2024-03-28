@@ -38,7 +38,9 @@ const
 Const
   Epsilon: Single = 1E-40;
   Epsilon2: Single = 1E-30;
-
+  
+  CurveKappa = 0.5522847498; 
+  CurveKappaInv = 1 - CurveKappa;
 
 type
   TEndian =  Objpas.TEndian;
@@ -145,7 +147,8 @@ type
           procedure Offset(const apt :TPointF);
           procedure Offset(const apt :TPoint);
           procedure Offset(dx,dy : Single);
-          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean;
+          function EqualsTo(const apt: TPointF; const aEpsilon : Single): Boolean; overload;
+          function EqualsTo(const apt: TPointF): Boolean; overload;
 
           function  Scale (afactor:Single)  : TPointF;
           function  Ceiling : TPoint;
@@ -492,6 +495,8 @@ function RectCenter(var R: TRect; const Bounds: TRect): TRect;
 function RectCenter(var R: TRectF; const Bounds: TRectF): TRectF;
 function RectHeight(const Rect: TRect): Integer; inline; 
 function RectHeight(const Rect: TRectF): Single; inline; 
+function RectWidth(const Rect: TRect): Integer; inline; 
+function RectWidth(const Rect: TRectF): Single; inline; 
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function UnionRect(var Rect : TRectF; const R1,R2 : TRectF) : Boolean;
 function UnionRect(const R1,R2 : TRect) : TRect;
@@ -809,6 +814,8 @@ begin
   Result:=Rect.Height
 end;
 
+
+
 function RectCenter(var R: TRect; const Bounds: TRect): TRect;
 
 var
@@ -1048,6 +1055,12 @@ procedure TPointF.Offset(dx,dy : Single);
 begin
   x:=x+dx;
   y:=y+dy;
+end;
+
+function TPointF.EqualsTo(const apt: TPointF): Boolean;
+
+begin
+  Result:=EqualsTo(apt,0);
 end;
 
 function TPointF.EqualsTo(const apt: TPointF; const aEpsilon: Single): Boolean;

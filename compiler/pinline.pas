@@ -277,7 +277,7 @@ implementation
                 if is_new then
                   begin
                     p2:=cderefnode.create(p.getcopy);
-                    include(p2.flags,nf_no_checkpointer);
+                    include(TDerefNode(p2).derefnodeflags,drnf_no_checkpointer);
                   end
                 else
                   p2:=cderefnode.create(p);

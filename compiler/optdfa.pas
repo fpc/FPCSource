@@ -148,7 +148,7 @@ unit optdfa;
 
     function ResetProcessing(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        exclude(n.flags,nf_processing);
+        exclude(n.transientflags,tnf_processing);
         { dfa works only on normalized trees, so do not recurse into expressions, because
           ResetProcessing eats a signififcant amount of time of CheckAndWarn
 
@@ -188,12 +188,11 @@ unit optdfa;
           life info for the node
         }
         procedure updatelifeinfo(n : tnode;const l : TDFASet);
-          var
-            b : boolean;
           begin
-            b:=DFASetNotEqual(l,n.optinfo^.life);
+            if not DFASetNotEqual(l,n.optinfo^.life) then
+              exit;
 {$ifdef DEBUG_DFA}
-            if not(changed) and b then
+            if not(changed) then
               begin
                 writeln('Another DFA pass caused by: ',nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,')');
                 write('  Life info set was:     ');PrintDFASet(Output,n.optinfo^.life);writeln;
@@ -201,7 +200,7 @@ unit optdfa;
               end;
 {$endif DEBUG_DFA}
 
-            changed:=changed or b;
+            changed:=true;
             n.optinfo^.life:=l;
           end;
 
@@ -238,9 +237,9 @@ unit optdfa;
           { ensure we've already optinfo set }
           node.allocoptinfo;
 
-          if nf_processing in node.flags then
+          if tnf_processing in node.transientflags then
             exit;
-          include(node.flags,nf_processing);
+          include(node.transientflags,tnf_processing);
 
           if assigned(node.successor) then
             CreateInfo(node.successor);
@@ -610,7 +609,7 @@ unit optdfa;
           CreateInfo(node);
           foreachnodestatic(pm_postprocess,node,@ResetProcessing,nil);
           { the result node is not reached by foreachnodestatic }
-          exclude(resultnode.flags,nf_processing);
+          exclude(resultnode.transientflags,tnf_processing);
 {$ifdef DEBUG_DFA}
           PrintIndexedNodeSet(output,map);
           PrintDFAInfo(output,node);
@@ -896,9 +895,9 @@ unit optdfa;
           if node=nil then
             exit;
 
-          if nf_processing in node.flags then
+          if tnf_processing in node.transientflags then
             exit;
-          include(node.flags,nf_processing);
+          include(node.transientflags,tnf_processing);
 
           if not(assigned(node.optinfo)) or not(DFASetIn(node.optinfo^.life,nodetosearch.optinfo^.index)) then
             exit;

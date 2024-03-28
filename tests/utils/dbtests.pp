@@ -401,7 +401,7 @@ begin
         Verbose(V_WARNING,'Could not find newly added test!')
       else
         If AddSource then
-          UpdateTest(Result,Info,GetFileContents(Name))
+          UpdateTest(Result,Info,testu.GetFileContents(Name))
         else
           UpdateTest(Result,Info,'');
       end

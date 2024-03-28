@@ -115,11 +115,12 @@
     Function Replace(const OldValue, NewValue: SBRawString; StartIndex: Integer; Count: Integer): TGenericStringBuilder;
 {$IFDEF UNICODERTL}
     Function ToString: RTLString; override;
+    function ToString(UpdateCapacity: Boolean): RTLString; overload;
 {$ELSE}    
     Function ToString: SBString; {$IFNDEF SBUNICODE} override; {$ELSE}  reintroduce; {$ENDIF}
+    function ToString(UpdateCapacity: Boolean): SBString; overload;
 {$ENDIF}
     Function ToString(aStartIndex: Integer; aLength: Integer): SBString; reintroduce;
-
     property Chars[index: Integer]: SBChar read GetC write SetC; default;
     property Length: Integer read GetLength write SetLength;
     property Capacity: Integer read GetCapacity write SetCapacity;

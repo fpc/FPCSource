@@ -27,6 +27,7 @@ interface
 
   uses
     cclasses,
+    fmodule,
     node,nbas,
     ngenutil,
     symtype,symconst,symsym,symdef;
@@ -35,13 +36,13 @@ interface
   type
     tavrnodeutils = class(tnodeutils)
     protected
-      class procedure insert_init_final_table(entries:tfplist); override;
+      class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     end;
 
 implementation
 
     uses
-      verbose,cutils,globtype,globals,constexp,fmodule,
+      verbose,cutils,globtype,globals,constexp,
       aasmdata,aasmtai,aasmcpu,aasmcnst,aasmbase,
       cpubase,
       symbase,symcpu,symtable,defutil,
@@ -52,7 +53,7 @@ implementation
       pass_1;
 
 
-  class procedure tavrnodeutils.insert_init_final_table(entries:tfplist);
+  class procedure tavrnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
     var
       op : TAsmOp;
       initList, finalList, header: TAsmList;
@@ -104,7 +105,7 @@ implementation
       initList.Free;
       finalList.Free;
 
-      inherited insert_init_final_table(entries);
+      inherited insert_init_final_table(main,entries);
     end;
 
 begin

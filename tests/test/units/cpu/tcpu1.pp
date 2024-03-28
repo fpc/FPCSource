@@ -3,6 +3,9 @@
 uses
   cpu;
 
+var
+  dummy16b : array[0..15] of byte;
+  
 begin
   write('CMOV support: ');
   if CMOVSupport then
@@ -193,5 +196,23 @@ begin
     end
   else
     writeln('no');
+
+{$ifndef cpui386}
+  { makes no sense on i386, the instruction is not available in 32 bit mode }
+  write('CMPXCHG16B support: ');
+  if CMPXCHG16BSupport then
+    begin
+      writeln('yes');
+      asm
+{$ifdef FPC_PIC}
+        cmpxchg16b       Dummy16b@GOTPCREL(%rip)
+{$else FPC_PIC}
+        cmpxchg16b       Dummy16b(%rip)
+{$endif FPC_PIC}
+      end;
+    end
+  else
+    writeln('no');
+{$endif cpui386}    
 end.
 

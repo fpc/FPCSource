@@ -21,8 +21,10 @@ interface
 {$define FPC_IS_SYSTEM}
 {$define FPC_STDOUT_TRUE_ALIAS}
 {$define FPC_ANSI_TEXTFILEREC}
-{.$define FPC_ATARI_USE_TINYHEAP}
+{$define FPC_SYSTEM_EXIT_NO_RETURN}
+{$define FPC_SYSTEM_NO_VERBOSE_UNICODEERROR}
 
+{.$define FPC_ATARI_USE_TINYHEAP}
 {$ifdef FPC_ATARI_USE_TINYHEAP}
 {$define HAS_MEMORYMANAGER}
 {$endif FPC_ATARI_USE_TINYHEAP}
@@ -158,9 +160,9 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-procedure haltproc(e:longint); cdecl; external name 'haltproc';
+procedure haltproc(e:longint); cdecl; external name 'haltproc'; noreturn;
 
-Procedure system_exit;
+Procedure system_exit; noreturn;
 begin
   haltproc(ExitCode);
 end;

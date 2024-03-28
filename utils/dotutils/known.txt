@@ -2554,6 +2554,7 @@ profile=DOSApi
 raspi2=EmbeddedApi
 raspi3=EmbeddedApi
 raspiuart=EmbeddedApi
+rp2040=EmbeddedApi
 RtlConsts=System
 sam3x8e=EmbeddedApi
 samd51p19a=EmbeddedApi

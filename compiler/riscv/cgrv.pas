@@ -1040,7 +1040,7 @@ unit cgrv;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if cs_check_fpu_exceptions in current_settings.localswitches then
+        if needs_check_for_fpu_exceptions then
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg(A_FRFLAGS,r));

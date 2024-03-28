@@ -305,7 +305,7 @@ implementation
       begin
         is_constresourcestringnode:=(p.nodetype=loadn) and
           (tloadnode(p).symtableentry.typ=constsym) and
-          (tconstsym(tloadnode(p).symtableentry).consttyp=constresourcestring);
+          (tconstsym(tloadnode(p).symtableentry).consttyp in [constresourcestring,constwresourcestring]);
       end;
 
 

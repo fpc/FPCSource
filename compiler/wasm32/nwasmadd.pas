@@ -293,7 +293,7 @@ interface
       begin
         if (nodetype in [orn,andn]) and
            (not(cs_full_boolean_eval in current_settings.localswitches) or
-            (nf_short_bool in flags)) then
+            (anf_short_bool in addnodeflags)) then
         begin
           secondpass(left);
           thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);

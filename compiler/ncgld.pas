@@ -441,7 +441,7 @@ implementation
               end;
            constsym:
              begin
-                if tconstsym(symtableentry).consttyp=constresourcestring then
+                if tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring] then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
                      indirect:=(tf_supports_packages in target_info.flags) and
@@ -807,7 +807,7 @@ implementation
                (right.nodetype in [blockn,calln]) then
               begin
                 { verify that we indeed have nothing to do }
-                if not(nf_assign_done_in_right in flags) then
+                if not(anf_assign_done_in_right in assignmentnodeflags) then
                   internalerror(2015042201);
               end
             { empty constant string }
@@ -1289,7 +1289,7 @@ implementation
         if is_packed_array(resultdef) then
           internalerror(200608042);
         dovariant:=
-          ((nf_forcevaria in flags) or is_variant_array(resultdef)) and
+          ((acnf_forcevaria in arrayconstructornodeflags) or is_variant_array(resultdef)) and
           not(target_info.system in systems_managed_vm);
         eledef:=tarraydef(resultdef).elementdef;
         elesize:=eledef.size;

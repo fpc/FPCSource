@@ -17,6 +17,7 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
 
 {$linklib m}
 

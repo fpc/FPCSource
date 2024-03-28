@@ -88,6 +88,7 @@ interface
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
+         function  OwnerHierarchyPrettyName: string; virtual; abstract;
          function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;virtual;abstract;
          function  unique_id_str: string;
          function  size:asizeint;virtual;abstract;
@@ -434,7 +435,7 @@ implementation
 
     function tdef.typesymbolprettyname:string;
       begin
-        result:=OwnerHierarchyName;
+        result:=OwnerHierarchyPrettyName;
         if assigned(typesym) then
           result:=result+typesym.prettyname
         else
@@ -676,8 +677,14 @@ implementation
 
 
     function tsym.prettyname : string;
+      var
+       i: SizeInt;
       begin
         result:=realname;
+        { strip type parameters in the name separated by '$' }
+        i:=pos('$',result);
+        if i>0 then
+          delete(result,i,MaxInt);
       end;
 
 

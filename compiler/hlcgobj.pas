@@ -2257,19 +2257,32 @@ implementation
               { zero the bits we have to insert }
               if (slopt<>SL_SETMAX) then
                 begin
-                  maskreg:=getintregister(list,osuinttype);
-                  if (target_info.endian = endian_big) then
+                  if (slopt=SL_SETZERO) and (sref.bitlen=1) and (target_info.endian=endian_little) then
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                      a_bit_set_reg_reg(list,false,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+
+                      { store back to memory }
+                      tmpreg:=getintregister(list,loadsize);
+                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
+                      exit;
                     end
                   else
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                      maskreg:=getintregister(list,osuinttype);
+                      if (target_info.endian = endian_big) then
+                        begin
+                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
+                          a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                        end
+                      else
+                        begin
+                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                          a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                        end;
+                      a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
+                      a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
                     end;
-                  a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
-                  a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
                 end;
 
               { insert the value }
@@ -2278,6 +2291,18 @@ implementation
                   tmpreg:=getintregister(list,osuinttype);
                   if (slopt<>SL_SETMAX) then
                     a_load_reg_reg(list,fromsize,osuinttype,fromreg,tmpreg)
+                  { setting of a single bit?
+                    then we might take advantage of the CPU's bit set instruction }
+                  else if (sref.bitlen=1) and (target_info.endian=endian_little) then
+                    begin
+                      a_bit_set_reg_reg(list,true,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+
+                      { store back to memory }
+                      tmpreg:=getintregister(list,loadsize);
+                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
+                      exit;
+                    end
                   else if (sref.bitlen<>AIntBits) then
                     a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1), tmpreg)
                   else
@@ -4298,6 +4323,7 @@ implementation
       r : treference;
       forcesize: aint;
       hregister: TRegister;
+      hl: TAsmLabel;
     begin
       case l.loc of
         LOC_FPUREGISTER,
@@ -4331,6 +4357,23 @@ implementation
             l.reference:=r;
           end;
 {$endif cpuflags}
+        LOC_JUMP :
+          begin
+            a_label(list,l.truelabel);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
+            if is_cbool(size) then
+              a_load_const_ref(list,size,-1,r)
+            else
+              a_load_const_ref(list,size,1,r);
+            current_asmdata.getjumplabel(hl);
+            a_jmp_always(list,hl);
+            a_label(list,l.falselabel);
+            a_load_const_ref(list,size,0,r);
+            a_label(list,hl);
+
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
+            l.reference:=r;
+          end;
         LOC_CONSTANT,
         LOC_REGISTER,
         LOC_CREGISTER,
@@ -4460,7 +4503,7 @@ implementation
     var
       storepos : tfileposinfo;
     begin
-       if nf_error in p.flags then
+       if tnf_error in p.transientflags then
          exit;
        storepos:=current_filepos;
        current_filepos:=p.fileinfo;

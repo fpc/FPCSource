@@ -28,7 +28,7 @@ interface
 
 uses
   globtype,
-  aasmbase,aasmdata,
+  aasmbase,aasmdata,aasmcpu,
   symbase,symconst,symtype,symdef,symsym,
   node,
   cpubase, hlcgobj, cgbase, cgutils, parabase, wasmdef;
@@ -55,6 +55,7 @@ uses
                               (check d.size to determine which one of the two)
         }
       function is_methodptr_like_type(d:tdef): boolean;
+      function RefStackPointerSym: TWasmGlobalAsmSymbol;
      public
       fntypelookup : TWasmProcTypeLookup;
 
@@ -257,7 +258,7 @@ implementation
   uses
     verbose,cutils,globals,fmodule,constexp,
     defutil,cpupi,
-    aasmtai,aasmcpu,
+    aasmtai,
     symtable,symcpu,
     procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr;
 
@@ -315,6 +316,12 @@ implementation
         and is_nested_pd(tprocvardef(d))
         and not(po_addressonly in tprocvardef(d).procoptions);
       result:=is_8byterecord or is_methodptr or is_nestedprocptr;
+    end;
+
+  function thlcgwasm.RefStackPointerSym: TWasmGlobalAsmSymbol;
+    begin
+      result:=TWasmGlobalAsmSymbol(current_asmdata.RefAsmSymbolByClass(TWasmGlobalAsmSymbol,STACK_POINTER_SYM,AT_WASM_GLOBAL));
+      result.WasmGlobalType:=wbt_i32;
     end;
 
   constructor thlcgwasm.create;
@@ -412,7 +419,7 @@ implementation
 
   function thlcgwasm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
-      list.concat(taicpu.op_sym(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
+      list.concat(taicpu.op_sym_functype(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),tcpuprocdef(pd).create_functype));
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
@@ -1863,21 +1870,21 @@ implementation
                   //todo: any operands needed?
                   list.concat(taicpu.op_none(a_i32_wrap_i64));
                 end;
+              a_load_stack_reg(list,s32inttype,ovloc.register);
             end
           else
             begin
-              a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
               current_asmdata.getjumplabel(lab);
               { can be optimized by removing duplicate xor'ing to convert dst from
                 signed to unsigned quadrant }
               list.concat(taicpu.op_none(a_block));
+              a_load_const_reg(list,s32inttype,0,ovloc.register);
               a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
               a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
-              a_op_const_stack(list,OP_XOR,s32inttype,1);
+              a_load_const_reg(list,s32inttype,1,ovloc.register);
               list.concat(taicpu.op_none(a_end_block));
               a_label(list,lab);
             end;
-          a_load_stack_reg(list,s32inttype,ovloc.register);
         end
       else
         ovloc.loc:=LOC_VOID;
@@ -2049,7 +2056,7 @@ implementation
 
       g_fingerprint(list);
 
-      list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
       incstack(list,1);
       list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
       decstack(list,1);
@@ -2065,7 +2072,7 @@ implementation
         decstack(list,1);
         list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
         incstack(list,1);
-        list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+        list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
         decstack(list,1);
       end;
     end;
@@ -2077,7 +2084,7 @@ implementation
       pd:=tcpuprocdef(current_procinfo.procdef);
       list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
       incstack(list,1);
-      list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_WASM_GLOBAL)));
+      list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
       decstack(list,1);
 
       list.concat(taicpu.op_none(a_return));

@@ -700,6 +700,19 @@ begin
     end;
 end;
 
+{$IFDEF UNICODERTL}
+function TGenericStringBuilder.ToString(UpdateCapacity: Boolean): RTLString;
+{$ELSE}
+function TGenericStringBuilder.ToString(UpdateCapacity: Boolean): SBString;
+{$ENDIF}
+
+begin
+  if (Length<>Capacity) and UpdateCapacity then
+    SetCapacity(Length);
+  Result:=ToString;
+end;
+
+
 procedure TGenericStringBuilder.DoReplace(Index: Integer; const Old, New: SBString);
 
 var

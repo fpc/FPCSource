@@ -49,6 +49,8 @@ Type
      FAfterAllocateHandle: TAfterAllocateHandleEvent;
      FCloseHandleOnExecute: Boolean;
      FCustomHandle: THandle;
+     FAutoCloseCustomHandle: Boolean;
+     FCustomHandleIsInheritable: Boolean;
      FFileWriteMode: TFileWriteMode;
      FHandleType: TProcessHandleType;
      FFileName: TFileName;
@@ -97,6 +99,8 @@ Type
      Destructor Destroy; override;
      Property ProcessHandleType : TProcessHandleType Read FHandleType;
      Property CustomHandle : THandle Read FCustomHandle Write FCustomHandle;
+     Property AutoCloseCustomHandle: Boolean Read FAutoCloseCustomHandle Write FAutoCloseCustomHandle;
+     Property CustomHandleIsInheritable: Boolean Read FCustomHandleIsInheritable Write FCustomHandleIsInheritable; platform;
 
    Published
      Property IOType : TIOType Read FIOType Write SetIOType;
@@ -1181,6 +1185,8 @@ begin
     FTheirHandleIOType := IOType;
     FOurHandle:=THAndle(INVALID_HANDLE_VALUE);
     FCloseHandleOnExecute:=(IOType<>iotDefault);
+    if IOType = iotHandle then
+      FCloseHandleOnExecute:=FAutoCloseCustomHandle;
     Case IOType of
       iotDefault : H:=CreateStandardHandle;
       iotPipe : H:=CreatePipeHandle;
@@ -1205,6 +1211,7 @@ begin
   FTheirHandle:=THandle(INVALID_HANDLE_VALUE);
   FOurHandle:=THandle(INVALID_HANDLE_VALUE);
   FPipeBufferSize := 1024;
+  FAutoCloseCustomHandle := True;
 end;
 
 destructor TIODescriptor.Destroy;

@@ -117,17 +117,31 @@ interface
      type
         tmodulestate = (ms_unknown,
           ms_registered,
-          ms_load,ms_compile,
-          ms_second_load,ms_second_compile,
-          ms_compiled
+          ms_load,
+          ms_compile,
+          ms_compiling_waitintf,
+          ms_compiling_waitimpl,
+          ms_compiling_waitfinish,
+          ms_compiling_wait,
+          ms_compiled,
+          ms_processed,
+          ms_moduleerror
         );
+        tmodulestates = set of tmodulestate;
+
      const
-        ModuleStateStr : array[TModuleState] of string[20] = (
+        ModuleStateStr : array[TModuleState] of string[32] = (
           'Unknown',
           'Registered',
-          'Load','Compile',
-          'Second_Load','Second_Compile',
-          'Compiled'
+          'Load',
+          'Compile',
+          'Compiling_Waiting_interface',
+          'Compiling_Waiting_implementation',
+          'Compiling_Waiting_finish',
+          'Compiling_Waiting',
+          'Compiled',
+          'Processed',
+          'Error'
         );
 
      type
@@ -162,6 +176,7 @@ interface
 {$ifdef DEBUG_NODE_XML}
           ppxfilefail: Boolean;     { If the ppxfile could not be accessed, flag it }
 {$endif DEBUG_NODE_XML}
+          is_initial : boolean;     { is this the initial module, i.e. the one specified on the command-line ?}
           constructor create(const s:string);
           destructor destroy;override;
           procedure setfilename(const fn:TPathStr;allowoutput:boolean);
@@ -627,8 +642,7 @@ uses
            p:=path;
 
          { lib and exe could be loaded with a file specified with -o }
-         if AllowOutput and
-            (compile_level=1) and
+         if AllowOutput and is_initial and
             (OutputFileName<>'')then
            begin
              exefilename:=p+OutputFileName;

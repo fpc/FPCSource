@@ -39,6 +39,7 @@ interface
 {$linklib libg,static}
 {$linklib c,static}
 {$linklib esp_event,static}
+{$linklib efuse, static}
 
 implementation
 

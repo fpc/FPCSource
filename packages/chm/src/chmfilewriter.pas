@@ -29,11 +29,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, Chm.Writer, System.IniFiles, System.Contnrs, Chm.Sitemap, Fcl.AVLTree,
-  {for html scanning } Xml.Dom, Html.Sax, Html.Dom;
+  {for html scanning } Xml.Dom, Html.Sax, Html.Dom, System.StrUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
-  {for html scanning } dom,SAX_HTML,dom_html;
+  {for html scanning } dom,SAX_HTML,dom_html,strutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -837,6 +837,8 @@ var
     val : String;
 begin
   val := findattribute(node,attributename);
+  if startstext('data:',val) then // skip embedded base64 or uuencoded images.
+     exit;
   if sanitizeurl(fbasepath,val,localpath,localname,fn) then
     if (Length(fn) > 0) { Skip links to self using named anchors }
         and not FileInTotalList(uppercase(fn)) then

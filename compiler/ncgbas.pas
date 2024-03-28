@@ -288,7 +288,7 @@ interface
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         if (nf_get_asm_position in flags) then
+         if (asmnf_get_asm_position in asmnodeflags) then
            begin
              { Add a marker, to be sure the list is not empty }
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_Position));
@@ -299,8 +299,8 @@ interface
          current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[current_settings.asmcputype]));
 
          { Allocate registers used in the assembler block }
-         { has_registerlist=true means that registers are specified and already allocated }
-         if (not has_registerlist) then
+         { asmnf_has_registerlist means that registers are specified and already allocated }
+         if not (asmnf_has_registerlist in asmnodeflags) then
            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
 
          if (po_inline in current_procinfo.procdef.procoptions) then
@@ -431,7 +431,7 @@ interface
            end;
 
          { Release register used in the assembler block }
-         if (not has_registerlist) then
+         if not (asmnf_has_registerlist in asmnodeflags) then
            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
 
          { Switch back to the CPU instruction set of the target CPU }

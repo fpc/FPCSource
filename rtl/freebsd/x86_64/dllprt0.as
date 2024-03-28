@@ -37,7 +37,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	900044
+	.long	1400097
 
 	.text
 #APP
@@ -72,4 +72,6 @@ _haltproc:
 	.weak   operatingsystem_parameter_argc
 	.weak   operatingsystem_parameter_argv
 	.weak   operatingsystem_parameter_envp
+
+.section .note.GNU-stack,"",@progbits
 

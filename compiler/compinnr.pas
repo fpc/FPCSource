@@ -172,6 +172,10 @@ type
      in_min_longint      = 142,
      in_max_dword        = 143,
      in_max_longint      = 144,
+     in_min_qword        = 145,
+     in_min_int64        = 146,
+     in_max_qword        = 147,
+     in_max_int64        = 148,
 
 { MMX functions }
 { these contants are used by the mmx unit }

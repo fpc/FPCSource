@@ -45,12 +45,13 @@ interface
           procedure second_cmp64bit; override;
        public
           function use_generic_mul32to64: boolean; override;
+          function pass_1 : tnode;override;
        end;
 
   implementation
 
     uses
-      systems,symtype,symdef,
+      systems,symconst,symtype,symdef,
       globals,globtype,
       cutils,verbose,
       paramgr,procinfo,
@@ -414,7 +415,7 @@ interface
                 secondpass(left);
 
                 { Skip the not node completely }
-                Include(right.flags, nf_do_not_execute);
+                Include(right.transientflags, tnf_do_not_execute);
                 secondpass(tnotnode(right).left);
 
                 { allocate registers }
@@ -483,6 +484,18 @@ interface
     function taarch64addnode.use_generic_mul32to64: boolean;
       begin
         result:=false;
+      end;
+
+    function taarch64addnode.pass_1: tnode;
+      begin
+        Result:=inherited pass_1;
+        { if the result is not nil, a new node has been generated and the current node will be discarted }
+        if Result=nil then
+          begin
+            if left.resultdef.typ=floatdef then
+              if needs_check_for_fpu_exceptions then
+                Include(current_procinfo.flags,pi_do_call);
+          end;
       end;
 
 

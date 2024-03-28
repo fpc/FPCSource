@@ -65,6 +65,8 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
 
+SYSUTILS_DEPS_OS=$(WASIUTILUNIT)$(PPUEXT)
+
 #
 # $(SYSINIT_UNITS) Units
 #

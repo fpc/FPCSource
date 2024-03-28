@@ -1436,7 +1436,9 @@ implementation
       begin
         { add/sub instructions have only positive immediate operands }
         if (op in [OP_ADD,OP_SUB]) and
-           (a<0) then
+           (a<0) and
+           { this might result in a false positive overflow in case of a+0 }
+           (a<>$8000000000000000) then
           begin
             if op=OP_ADD then
               op:=op_SUB

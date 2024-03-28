@@ -1621,10 +1621,15 @@ implementation
 {$if defined(i386) or defined(x86_64)}
 {$ifdef i386}
           (((current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
-           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef))
+           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
           ) and
 {$else i386}
-          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or
+           is_double(tassignmentnode(thenstmnt).left.resultdef) or
+           is_32bitint(tassignmentnode(thenstmnt).left.resultdef) or
+           is_64bitint(tassignmentnode(thenstmnt).left.resultdef)
+          ) and
 {$endif i386}
 {$endif defined(i386) or defined(x86_64)}
 {$if defined(xtensa)}
@@ -1632,7 +1637,7 @@ implementation
 {$endif defined(xtensa)}
 {$if defined(aarch64)}
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef) or
-           is_32bitint(tassignmentnode(thenstmnt).right.resultdef)) and
+           is_32bitint(tassignmentnode(thenstmnt).left.resultdef) or is_64bitint(tassignmentnode(thenstmnt).left.resultdef)) and
 {$endif defined(aarch64)}
           (
           { the right size of the assignment in the then clause must either }
@@ -1679,7 +1684,11 @@ implementation
                 else if is_u32bitint(paratype) then
                   in_nr:=in_max_dword
                 else if is_s32bitint(paratype) then
-                  in_nr:=in_max_longint;
+                  in_nr:=in_max_longint
+                else if is_u64bitint(paratype) then
+                  in_nr:=in_max_qword
+                else if is_s64bitint(paratype) then
+                  in_nr:=in_max_int64;
               end
             else
               begin
@@ -1690,7 +1699,11 @@ implementation
                 else if is_u32bitint(paratype) then
                   in_nr:=in_min_dword
                 else if is_s32bitint(paratype) then
-                  in_nr:=in_min_longint;
+                  in_nr:=in_min_longint
+                else if is_u64bitint(paratype) then
+                  in_nr:=in_min_qword
+                else if is_s64bitint(paratype) then
+                  in_nr:=in_min_int64;
               end;
             { for inline nodes, the first parameter is the last one in the linked list
 
@@ -1860,7 +1873,7 @@ implementation
            (cs_opt_loopunroll in current_settings.optimizerswitches) and
            assigned(t2) and
            { statements must be error free }
-           not(nf_error in t2.flags) then
+           not(tnf_error in t2.transientflags) then
            begin
              typecheckpass(t2);
              res:=t2.simplify(false);
@@ -1925,7 +1938,7 @@ implementation
         begin
           { get rid of nf_write etc. as the left node is now only read }
           leftcopy:=left.getcopy;
-          node_reset_flags(leftcopy,[nf_pass1_done,nf_modify,nf_write]);
+          node_reset_flags(leftcopy,[nf_modify,nf_write],[tnf_pass1_done]);
 
           if fw then
             addstatement(s,
@@ -2079,7 +2092,7 @@ implementation
 
         { get rid of nf_write etc. as the left node is now only read }
         leftcopy:=left.getcopy;
-        node_reset_flags(leftcopy,[nf_pass1_done,nf_modify,nf_write]);
+        node_reset_flags(leftcopy,[nf_modify,nf_write],[tnf_pass1_done]);
 
         if needsifblock then
           begin

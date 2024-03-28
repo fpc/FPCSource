@@ -7,7 +7,7 @@ uses
   Classes, consoletestrunner, tcnetencoding, tciotuils, 
   utmessagemanager, utcdevices, utcanalytics, utcimagelist, 
   utcnotifications, utcjson, utcpush, utchash, utcregex, 
-  utcregexapi, utthreading;
+  utcregexapi, utthreading, utccredentials;
 
 type
 

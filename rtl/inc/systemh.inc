@@ -570,7 +570,7 @@ Type
   UTF8Char = AnsiChar;
   PUTF8Char = PAnsiChar;
 
-  UCS4Char            = type 0..$10ffff;
+  UCS4Char            = 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
 {$ifdef CPU16}
   TUCS4CharArray      = array[0..32767 div sizeof(UCS4Char)-1] of UCS4Char;

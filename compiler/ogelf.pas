@@ -623,8 +623,20 @@ implementation
 
 
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
+      type 
+        multi = record
+          case integer of
+          0 : (ba : array[0..sizeof(aint)-1] of byte);
+          1 : (b : byte);
+          2 : (w : word);
+          4 : (d : dword);
+          8 : (q : qword);
+        end;
+
       var
         symaddr : aint;
+        ba : multi;
+        b : byte;
         objreloc: TObjRelocation;
       begin
         if CurrObjSec=nil then
@@ -683,7 +695,31 @@ implementation
                 data:=0;
               end;
           end;
-        CurrObjSec.write(data,len);
+        if target_info.endian<>source_info.endian then
+          begin
+            ba.q:=0;
+            if (len<=sizeof(data)) then
+              case len of
+                1 : ba.b:=byte(data);
+                2 : begin
+                      ba.w:=word(data);
+                      ba.w:=swapendian(ba.w);
+                    end;
+                4 : begin
+                      ba.d:=dword(data);
+                      ba.d:=swapendian(ba.d);
+                    end;
+                8 : begin
+                      ba.q:=qword(data);
+                      ba.q:=swapendian(ba.q);
+                    end;
+              else
+                internalerror(2024012501);
+              end;
+            CurrObjSec.write(ba,len);
+          end
+        else
+          CurrObjSec.write(data,len);
       end;
 
 

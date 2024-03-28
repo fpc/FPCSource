@@ -1,16 +1,18 @@
 { Part of System unit testsuit        }
 { Carl Eric Codere Copyright (c) 2002 }
-program tabs;
 
-{$ifdef VER1_0}
-  {$define SKIP_CURRENCY_TEST}
-{$endif }
+{ exceptions are needed for testing overflow checking }
+{$MODE OBJFPC}
+program tabs;
 
 {$ifndef MACOS}
 {$APPTYPE CONSOLE}
 {$else}
 {$APPTYPE TOOL}
 {$endif}
+
+uses
+  Sysutils;
 
 {$R+}
 {$Q+}
@@ -118,7 +120,7 @@ procedure fail;
     Write('Abs() test with int64 type...');
     _result := true;
 
-   value := VALUE_ONE_INT;
+    value := VALUE_ONE_INT;
     if (abs(value) <> (RESULT_CONST_ONE_INT))  then
        _result := false;
 
@@ -154,6 +156,29 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_FOUR_INT) then
        _result := false;
+
+    { test overflow checking }
+{$PUSH}
+{$Q+}
+    value := Int64.MinValue+Random(0);
+    try
+      value := Abs(value);
+      _result := false;
+    except
+      on EIntOverflow do
+        ; // no error, result is -2147483648
+      on Exception do
+        _result := false;
+    end;
+
+    value := -Int64.MaxValue+Random(0);
+    try
+      value := Abs(value);
+    except
+      on Exception do
+        _result := false;
+    end;
+{$POP}
 
     if not _result then
       fail
@@ -225,6 +250,28 @@ procedure fail;
     vextended := abs(value);
     if (round(vextended) <> RESULT_ONE_INT) then
       _result := false;
+
+   { test overflow checking }
+{$PUSH}
+{$Q+}
+    value := Longint.MinValue+Random(0);
+    try
+      value := Abs(value);
+      _result := false;
+    except
+      on EIntOverflow do
+        ; // no error, result is -2147483648
+      on Exception do
+        _result := false;
+    end;
+    value := -Longint.MaxValue+Random(0);
+    try
+      value := Abs(value);
+    except
+      on Exception do
+        _result := false;
+    end;
+{$POP}
 
     if not _result then
       fail

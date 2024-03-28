@@ -323,6 +323,10 @@ implementation
                             maybe_add_comment(tcb,#9'VMT index');
                             tcb.emit_ord_const(def.extnumber,u16inttype);
                           end;
+                        maybe_add_comment(tcb,#9'Code Address');
+                        tcb.emit_procdef_const(def);
+                        maybe_add_comment(tcb,#9'Attribute table');
+                        write_attribute_data(tcb,def.rtti_attribute_list);
                       end;
 
                     for k:=0 to def.paras.count-1 do
@@ -810,19 +814,20 @@ implementation
 
     procedure TRTTIWriter.write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;packrecords:longint);
       var
-        i: integer;
-        sym: tsym;
+        i,cnt: integer;
+        asym: tsym;
+        fldsym : tfieldvarsym;
         list: TFPList;
       begin
         list:=TFPList.Create;
         { build list of visible fields }
         for i:=0 to def.symtable.symlist.Count-1 do
           begin
-            sym:=tsym(def.symtable.symlist[i]);
-            if (sym.typ=fieldvarsym) and
-               not(sp_static in sym.symoptions) and
-               def.is_visible_for_rtti(ro_fields, sym.visibility) then
-              list.add(sym);
+            asym:=tsym(def.symtable.symlist[i]);
+            if (asym.typ=fieldvarsym) and
+               not(sp_static in asym.symoptions) and
+               def.is_visible_for_rtti(ro_fields, asym.visibility) then
+              list.add(asym);
           end;
         {
           TExtendedFieldTable = record
@@ -834,24 +839,31 @@ implementation
         tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin
-            sym:=tsym(list[i]);
+            fldsym:=tfieldvarsym(list[i]);
             {
               TExtendedFieldInfo = record
                 FieldOffset: SizeUInt;
                 FieldType: Pointer;
                 FieldVisibility: Byte;
                 Name: PShortString;
+                Attributes :
               end;
             }
-            tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_field]+tostr(tfieldvarsym(sym).fieldoffset),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[target_info.system]^.alignment.recordalignmin);
+            tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_field]+tostr(fldsym.fieldoffset),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[target_info.system]^.alignment.recordalignmin);
             { FieldOffset }
-            tcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
+            tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
-            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(tfieldvarsym(sym).vardef,fullrtti,true)),voidpointertype);
+            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
             { FieldVisibility }
-            tcb.emit_ord_const(visibility_to_rtti_flags(tfieldvarsym(sym).visibility),u8inttype);
+            tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),u8inttype);
             { Name }
-            tcb.emit_pooled_shortstring_const_ref(sym.realname);
+            tcb.emit_pooled_shortstring_const_ref(fldsym.realname);
+            { Attribute table }
+            if assigned(fldsym.rtti_attribute_list) and assigned(fldsym.rtti_attribute_list.rtti_attributes) then
+              cnt:=fldsym.rtti_attribute_list.rtti_attributes.count
+            else
+              cnt:=0;
+            write_attribute_data(tcb,fldsym.rtti_attribute_list);
             tcb.end_anonymous_record;
           end;
         tcb.end_anonymous_record;

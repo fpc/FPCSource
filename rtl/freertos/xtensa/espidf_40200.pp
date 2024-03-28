@@ -48,6 +48,7 @@ interface
 {$linklib driver, static}
 {$linklib esp_ipc, static}
 {$linklib xt_hal, static}
+{$linklib efuse, static}
 
 implementation
 

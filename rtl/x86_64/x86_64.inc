@@ -86,6 +86,9 @@ end;
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 { Linux: rdi source, rsi dest, rdx count
   win64: rcx source, rdx dest, r8 count }
+const
+  NtThreshold = 256 * 1024; { this limit must be processor-specific (1/2 L2 cache size) }
+  PrefetchDistance = 512;
 asm
 {$ifndef win64}
     mov    %rdx, %r8
@@ -99,12 +102,12 @@ asm
     jle    .L4to8
     cmp    $16, %r8
     jle    .L9to16
-    movdqu (%rcx), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17–32 branch. }
-    movdqu -16(%rcx,%r8), %xmm5
+    movups (%rcx), %xmm4         { First and last 16 bytes, used both in .L33OrMore and 17–32 branch. }
+    movups -16(%rcx,%r8), %xmm5
     cmp    $32, %r8
     jg     .L33OrMore
-    movdqu %xmm4, (%rdx)         { 17–32 bytes }
-    movdqu %xmm5, -16(%rdx,%r8)
+    movups %xmm4, (%rdx)         { 17–32 bytes }
+    movups %xmm5, -16(%rdx,%r8)
     ret
 
     .balign 16
@@ -134,18 +137,20 @@ asm
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
     ret
-    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32f into a no-op. }
+    .byte  102,102,102,102,102,102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32f into a no-op. }
 
 .L33OrMore:
+    movups -32(%rcx,%r8), %xmm3  { Second vector from the end. Wasted read if .Lback branch is taken (it uses second vector from the start instead), }
+                                 { but -32(%rcx,%r8) is about to become not accessible so easily, .Lback is rare, and small .Lback is even rarer / matters even less. }
+
     sub    %rdx, %rcx            { rcx = src - dest }
     jz     .Lquit                { exit if src=dest }
-    jnb    .LForward             { src>dest => forward move }
 
-    mov    %r8, %rax
-    add    %rcx, %rax            { rcx is negative => r8+rcx > 0 if regions overlap }
-    jb     .Lback                { if no overlap, still do forward move }
+    mov    %rcx, %rax
+    neg    %rax
+    cmp    %rax, %r8
+    ja     .Lback                { count (r8) > unsigned(dest - src) (rax) if regions overlap }
 
-.LForward:
     mov    %rdx, %r9             { remember original dest to write first 16 bytes }
     add    %rdx, %r8             { Move dest to the next 16-byte boundary. +16 if already aligned, as first 16 bytes will be writen separately anyway. }
     add    $16, %rdx
@@ -155,72 +160,54 @@ asm
 .LRestAfterNTf:
     sub    $32, %r8              { During the N× loop, r8 is N bytes less than actually remained to allow sub N+jae .LLoop instead of sub N+cmp N+jae .LLoop. }
     jbe    .LPost32f
-    cmp    $0x40000, %r8         { this limit must be processor-specific (1/2 L2 cache size) }
+    cmp    $NtThreshold-32, %r8
     jae    .Lntf                 { might jump back right away after more checks, but the branch is taken only on huge moves so it's better to take these checks out of here... }
 
     .balign 16                   { no-op }
 .Lloop32f:
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
-    movdqu 16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, 16(%rdx)
+    movups (%rcx,%rdx), %xmm0
+    movaps %xmm0, (%rdx)
+    movups 16(%rcx,%rdx), %xmm0
+    movaps %xmm0, 16(%rdx)
     add    $32, %rdx
     sub    $32, %r8
     ja     .Lloop32f
 
 .LPost32f:                       { +32 fixup not applied after 32× loop, r8 = remaining - 32 here. }
-    cmp    $-16, %r8
-    jle    .LFirstAndLast16f
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
-.LFirstAndLast16f:
-    movdqu %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
-    movdqu %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
+    movups %xmm3, (%rdx, %r8)
+    movups %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
+    movups %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
     ret
 
+    .balign 16
 .Lntf:
-    cmp    $0x1000, %rcx         { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
+    cmp    $NtThreshold, %rcx    { Maybe change mind: don't bother bypassing cache if src and dest are close to each other }
     jb     .Lloop32f             { (this check is performed here to not stand in the way of smaller counts) }
-    sub    $0xFE0, %r8           { r8 = remaining - 0x1000, but 32 was subtracted already, so must subtract only (0x1000 - 32) = 0xFE0. }
+    sub    $PrefetchDistance+32, %r8 { r8 = remaining - prefetch distance - bytes per loop (64), but 32 was subtracted already. }
 
-.Lntloopf:
-    mov    $32, %eax
-
-    .balign 16
-.Lpref:
-    prefetchnta (%rcx,%rdx,1)
-    prefetchnta 0x40(%rcx,%rdx,1)
-    add    $0x80, %rdx
-    dec    %eax
-    jnz    .Lpref
-
-    sub    $0x1000, %rdx
-    mov    $64, %eax
-
-    .balign 16
+    .balign 16                   { no-op }
 .Lntloop64f:
+    prefetchnta 0+PrefetchDistance(%rcx,%rdx,1)
+    movups (%rcx,%rdx,1), %xmm0
+    movntps %xmm0, (%rdx)
+    movups 16(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 16(%rdx)
+    movups 32(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 32(%rdx)
+    movups 48(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 48(%rdx)
     add    $64, %rdx
-    movdqu -64(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -64(%rdx)
-    movdqu -48(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -48(%rdx)
-    movdqu -32(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -32(%rdx)
-    movdqu -16(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, -16(%rdx)
-    dec    %eax
-    jnz    .Lntloop64f
+    sub    $64, %r8
+    jae    .Lntloop64f
 
-    sub    $0x1000, %r8
-    jae    .Lntloopf
-
-    mfence
-    add    $0x1000, %r8
+    sfence
+    add    $PrefetchDistance+64, %r8
     jmpq   .LRestAfterNTf        { go handle remaining bytes }
-    .byte  0x90,0x90,0x90        { Turns .balign 16 before .Lloop32b into a no-op. }
+    .byte  102,102,102,102,102,102,144 { Turns .balign 16 before .Lloop32b into a no-op. }
 
 { backwards move }
 .Lback:
+    movups 16(%rcx,%rdx), %xmm3  { Second vector from the start. }
     lea    (%rdx,%r8), %r9       { points to the end of dest; remember to write last 16 bytes }
     lea    -1(%r9), %r8          { move dest to the previous 16-byte boundary... }
     and    $-16, %r8
@@ -230,68 +217,49 @@ asm
 .LRestAfterNTb:
     sub    $32, %r8
     jbe    .LPost32b
-    cmp    $0x40000, %r8
+    cmp    $NtThreshold-32, %r8
     jae    .Lntb
 
     .balign 16                   { no-op }
 .Lloop32b:
     sub    $32, %rdx
-    movdqu 16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, 16(%rdx)
-    movdqu (%rcx,%rdx), %xmm0
-    movdqa %xmm0, (%rdx)
+    movups 16(%rcx,%rdx), %xmm0
+    movaps %xmm0, 16(%rdx)
+    movups (%rcx,%rdx), %xmm0
+    movaps %xmm0, (%rdx)
     sub    $32, %r8
     ja     .Lloop32b
 
 .LPost32b:
-    cmp    $-16, %r8
-    jle    .LFirstAndLast16b
-    movdqu -16(%rcx,%rdx), %xmm0
-    movdqa %xmm0, -16(%rdx)
-.LFirstAndLast16b:
     sub    %r8, %rdx
-    movdqu %xmm4, -32(%rdx)
-    movdqu %xmm5, -16(%r9)
+    movups %xmm3, -16(%rdx)
+    movups %xmm4, -32(%rdx)
+    movups %xmm5, -16(%r9)
     ret
 
+    .balign 16
 .Lntb:
-    cmp    $0xfffffffffffff000,%rcx
+    cmp    $-NtThreshold,%rcx
     jnb    .Lloop32b
-    sub    $0xFE0, %r8
+    sub    $PrefetchDistance+32, %r8
 
-.Lntloopb:
-    mov    $32, %eax
-
-    .balign 16
-.Lprefb:
-    sub    $0x80, %rdx
-    prefetchnta (%rcx,%rdx,1)
-    prefetchnta 0x40(%rcx,%rdx,1)
-    dec    %eax
-    jnz    .Lprefb
-
-    add    $0x1000, %rdx
-    mov    $0x40, %eax
-
-    .balign 16
+    .balign 16                   { no-op }
 .Lntloop64b:
+    prefetchnta -PrefetchDistance(%rcx,%rdx,1)
     sub    $64, %rdx
-    movdqu 48(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 48(%rdx)
-    movdqu 32(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 32(%rdx)
-    movdqu 16(%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, 16(%rdx)
-    movdqu (%rcx,%rdx,1), %xmm0
-    movntdq %xmm0, (%rdx)
-    dec    %eax
-    jnz    .Lntloop64b
+    movups 48(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 48(%rdx)
+    movups 32(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 32(%rdx)
+    movups 16(%rcx,%rdx,1), %xmm0
+    movntps %xmm0, 16(%rdx)
+    movups (%rcx,%rdx,1), %xmm0
+    movntps %xmm0, (%rdx)
+    sub    $64, %r8
+    jae    .Lntloop64b
 
-    sub    $0x1000, %r8
-    jae    .Lntloopb
-
-    mfence
-    add    $0x1000, %r8
+    sfence
+    add    $PrefetchDistance+64, %r8
     jmpq   .LRestAfterNTb
 end;
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -627,23 +595,21 @@ function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
-    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    test   len, len
     jz     .Lnotfound                  { exit if len=0 }
+    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
 {$ifdef win64}
-    movd   %r8d, %xmm1
+    mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
+    add    $16, %rcx
 {$else}
-    movd   %edx, %xmm1
-    movq   %rdi, %rcx
-    movq   %rsi, %rdx
+    lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
-    mov    %rcx, %r8
     punpcklbw  %xmm1, %xmm1
-    and    $-0x10, %rcx                { highest aligned address before buf }
+    and    $-0x10, %rcx                { first aligned address after buf }
     punpcklbw  %xmm1, %xmm1
-    add    $16, %rcx                   { first aligned address after buf }
     pshufd $0, %xmm1, %xmm1
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
-    sub    %r8, %rcx                   { rcx=number of valid bytes, r8=original ptr }
+    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
 
     pcmpeqb %xmm1, %xmm0               { compare with pattern and get bitmask }
     pmovmskb %xmm0, %eax
@@ -651,28 +617,27 @@ asm
     shl    %cl, %eax                   { shift valid bits into high word }
     and    $0xffff0000, %eax           { clear low word containing invalid bits }
     shr    %cl, %eax                   { shift back }
-    jmp   .Lcontinue
-
-    .balign 16
-.Lloop:
-    movdqa (%r8,%rcx), %xmm0           { r8 and rcx may have any values, }
-    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
-    pcmpeqb %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-.Lcontinue:
-    test   %eax, %eax
-    jnz    .Lmatch
-    cmp    %rcx, %rdx
-    ja     .Lloop
-.Lnotfound:
-    or     $-1, %rax
-    retq
-
+    jz     .Lcontinue
 .Lmatch:
     bsf    %eax, %eax
     lea    -16(%rcx,%rax), %rax
-    cmp    %rax, %rdx                  { check against the buffer length }
+    cmp    %rax, len                   { check against the buffer length }
     jbe    .Lnotfound
+    ret
+
+    .balign 16
+.Lloop:
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
+    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
+    pcmpeqb %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    test   %eax, %eax
+    jnz    .Lmatch
+.Lcontinue:
+    cmp    %rcx, len
+    ja     .Lloop
+.Lnotfound:
+    or     $-1, %rax
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
@@ -682,24 +647,22 @@ function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackfram
 { win64: rcx buf, rdx len, r8b word
   linux: rdi buf, rsi len, rdx word }
 asm
-    test   {$ifdef win64} %rdx, %rdx {$else} %rsi, %rsi {$endif}
+    test   len, len
     jz     .Lnotfound                  { exit if len=0 }
+    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
 {$ifdef win64}
-    movd   %r8d, %xmm1
+    mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
+    add    $16, %rcx
 {$else}
-    movd   %edx, %xmm1
-    movq   %rdi, %rcx
-    movq   %rsi, %rdx
+    lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
-    mov    %rcx, %r8
     punpcklwd  %xmm1, %xmm1
     and    $-0x10, %rcx
     pshufd $0, %xmm1, %xmm1
-    add    $16, %rcx
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 14 bytes before target) }
-    sub    %r8, %rcx                   { rcx=number of valid bytes }
+    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes }
 
-    test   $1, %r8b                    { if buffer isn't aligned to word boundary, }
+    test   $1, {$ifdef win64} %r8b {$else} %dil {$endif} { if buffer isn't aligned to word boundary, }
     jnz    .Lunaligned                 { use a different algorithm }
 
     pcmpeqw  %xmm1, %xmm0
@@ -709,30 +672,30 @@ asm
     and    $0xffff0000, %eax
     shr    %cl, %eax
     shr    $1, %ecx                    { bytes->words }
-    jmp    .Lcontinue
-
-    .balign 16
-.Lloop:
-    movdqa (%r8,%rcx,2), %xmm0
-    add    $8, %rcx
-    pcmpeqw  %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-.Lcontinue:
     test   %eax, %eax
-    jnz    .Lmatch
-    cmp    %rcx, %rdx
-    ja     .Lloop
-
-.Lnotfound:
-    or    $-1, %rax
-    retq
-
+    jz     .Lcontinue
 .Lmatch:
     bsf    %eax, %eax
     shr    $1, %eax                    { in words }
     lea    -8(%rcx,%rax), %rax
-    cmp    %rax, %rdx
+    cmp    %rax, len
     jbe    .Lnotfound                  { if match is after the specified length, ignore it }
+    retq
+
+    .balign 16
+.Lloop:
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx,2), %xmm0
+    add    $8, %rcx
+    pcmpeqw  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    test   %eax, %eax
+    jnz    .Lmatch
+.Lcontinue:
+    cmp    %rcx, len
+    ja     .Lloop
+
+.Lnotfound:
+    or    $-1, %rax
     retq
 
 .Lunaligned:
@@ -748,13 +711,13 @@ asm
     and    $0xffff0000, %eax
     shr    %cl, %eax
 
-    add    %rdx, %rdx                  { length words -> bytes }
+    add    len, len                    { length words -> bytes }
     xor    %r10d, %r10d                { nothing to merge yet }
     jmp    .Lcontinue_u
 
     .balign 16
 .Lloop_u:
-    movdqa (%r8,%rcx), %xmm0
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0
     add    $16, %rcx
     pcmpeqb %xmm1, %xmm0               { compare by bytes }
     shr    $16, %r10d                  { bit 16 shifts into 0 }
@@ -767,7 +730,7 @@ asm
     and    %r10d, %eax
     and    $0x5555, %eax               { also reset odd bits }
     jnz    .Lmatch_u
-    cmpq   %rcx, %rdx
+    cmpq   %rcx, len
     ja     .Lloop_u
 
 .Lnotfound_u:
@@ -776,7 +739,7 @@ asm
 .Lmatch_u:
     bsf    %eax, %eax
     lea    -16(%rcx,%rax), %rax
-    cmp    %rax, %rdx
+    cmp    %rax, len
     jbe    .Lnotfound_u                { if match is after the specified length, ignore it }
     sar    $1, %rax                    { in words }
 end;

@@ -14,3 +14,5 @@ src/inc/rtti.pp=namespaced/System.Rtti.pp
 src/inc/widestrutils.pp=namespaced/System.WideStrUtils.pp
 src/inc/syshelpers.pp=namespaced/System.Syshelpers.pp
 src/inc/fmtbcd.pp=namespaced/Data.FMTBcd.pp
+src/inc/fpmonitor.pp=namespaced/System.MonitorSupport.pp
+src/win/fpwinmonitor.pp=namespaced/System.WindowsMonitorSupport.pp

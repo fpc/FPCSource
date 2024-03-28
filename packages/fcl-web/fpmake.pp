@@ -62,6 +62,7 @@ begin
     P.SourcePath.Add('src/hpack');
     P.SourcePath.Add('src/restbridge');
     P.SourcePath.Add('src/websocket');
+    P.SourcePath.Add('src/fcm');
     T:=P.Targets.addUnit('fpmimetypes.pp');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
@@ -518,6 +519,20 @@ begin
       AddUnit('fphttpclientpool');
       end;
     P.NamespaceMap:='namespaces.lst';
+
+    T:=P.Targets.AddUnit('fpfcmstrings.pp');
+    T:=P.Targets.AddUnit('fpfcmtypes.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpjwt');
+      AddUnit('fpfcmstrings');
+      end;
+    T:=P.Targets.AddUnit('fpfcmclient.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpfcmstrings');
+      AddUnit('fpfcmtypes');
+      end;
       
 end;
     

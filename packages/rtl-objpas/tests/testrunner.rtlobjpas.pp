@@ -4,8 +4,12 @@
 program testrunner.rtlobjpas;
 
 {$mode objfpc}{$H+}
+
 { Invoke needs a function call manager }
-{.$define useffi}
+{$ifdef linux}
+{$define useffi}
+{$endif}
+
 {$if defined(CPUX64) and defined(WINDOWS)}
 {$define testinvoke}
 {$define testimpl}
@@ -19,8 +23,13 @@ program testrunner.rtlobjpas;
 {$endif}
 {$endif}
 
+{$IF DEFINED(WINDOWS) or DEFINED(UNIX)}
+{$DEFINE HAS_MONITOR}
+{$ENDIF}
+
 uses
-{$ifdef unix} 
+{$ifdef unix}
+  cthreads,
   cwstring,
 {$endif}
 {$ifdef useffi}
@@ -41,7 +50,13 @@ uses
   utcmatrix,
   utcpoint,
   utcvector,
-  utcquaternion;
+  utcquaternion,
+{$IFDEF HAS_MONITOR}
+  utcfpmonitor, tests.rtti.attrtypes
+{$ENDIF}
+
+;
+
 
 var
   Application: TTestRunner;

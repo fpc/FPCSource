@@ -416,6 +416,17 @@ begin
     end;
 end;
 
+procedure TCollection.Sort(Const Compare : TCollectionSortCompare_Context; Context : Pointer);
+
+begin
+  BeginUpdate;
+  try
+    FItems.Sort(TListSortComparer_Context(Compare),Context);
+  Finally
+    EndUpdate;
+  end;
+end;
+
 procedure TCollection.Sort(Const Compare : TCollectionSortCompare);
 
 begin

@@ -590,7 +590,7 @@ unit optvirt;
         objparentsymtab:=objdef.symtable;
         mainsymtab:=objparentsymtab.defowner.owner;
         classprefix:='';
-        while mainsymtab.symtabletype in [recordsymtable,objectsymtable] do
+        while mainsymtab.symtabletype in [recordsymtable,objectsymtable,localsymtable] do
           begin
             classprefix:=mainsymtab.name^+'.'+classprefix;
             mainsymtab:=mainsymtab.defowner.owner;

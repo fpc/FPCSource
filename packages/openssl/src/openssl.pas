@@ -5859,7 +5859,7 @@ begin
   EnterCriticalSection(SSLCS);
   try
     if SSLloaded then
-      Exit;
+      Exit(True);
     Result:=LoadLibraries(aSSLName,aCryptoName);
     if Not Result then
       begin

@@ -85,6 +85,7 @@ const
   nErrInvalidMultiLineLineEnding = 1035;
   nWarnIgnoringLinkLib = 1036;
   nErrInvalidIndent = 1037;
+  nErrMultilineNonWhiteSpaceBeforeClosing = 1038;
 
 // resourcestring patterns of messages
 resourcestring
@@ -127,6 +128,7 @@ resourcestring
   SErrInvalidMultiLineLineEnding = 'Invalid multilinestring line ending type: use one of CR/LF/CRLF/SOURCE/PLATFORM' ;
   SWarnIgnoringLinkLib = 'Ignoring LINKLIB directive %s -> %s (Options: %s)';
   SErrInvalidIndent = ' Inconsistent indent characters';
+  SErrMultilineNonWhiteSpaceBeforeClosing = 'There should be no white-space characters before closing quotes of the text block';
 
 type
   {$IFDEF PAS2JS}
@@ -164,7 +166,8 @@ type
     tkWhitespace,
     tkComment,
     tkIdentifier,
-    tkString,
+    tkString, // string literal including quotes, e.g. 'a'#13^M''''
+    tkStringMultiLine, // string literal in raw format
     tkNumber,
     tkChar, // ^A .. ^Z
     // Simple (one-character) tokens
@@ -214,6 +217,7 @@ type
     tkconst,
     tkconstref,
     tkconstructor,
+    tkcontains,
     tkdestructor,
     tkdispinterface,
     tkdiv,
@@ -253,12 +257,14 @@ type
     tkor,
     tkotherwise,
     tkpacked,
+    tkPackage,
     tkprocedure,
     tkprogram,
     tkproperty,
     tkraise,
     tkrecord,
     tkrepeat,
+    tkrequires,
     tkResourceString,
     tkself,
     tkset,
@@ -908,7 +914,7 @@ type
     procedure PopStackItem; virtual;
     function DoFetchTextToken: TToken; // including quotes
     function DoFetchMultilineTextToken: TToken; // back ticks are converted to apostrophs, unindented
-    function DoFetchDelphiMultiLineTextToken(quotelen: Integer): TToken;
+    function DoFetchDelphiMultiLineTextToken(QuoteLen: Integer): TToken;
     function DoFetchToken: TToken;
     procedure ClearFiles;
     Procedure ClearMacros;
@@ -930,6 +936,7 @@ type
     procedure OpenFile(AFilename: TPasScannerString);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: String): String; virtual;
+    Procedure DisablePackageTokens;
     procedure SetNonToken(aToken : TToken);
     procedure UnsetNonToken(aToken : TToken);
     procedure SetTokenOption(aOption : TTokenoption);
@@ -1012,7 +1019,8 @@ const
     'Whitespace',
     'Comment',
     'Identifier',
-    'TPasScannerString',
+    'String',
+    'StringMultiLine',
     'Number',
     'Character',
     '(',
@@ -1059,6 +1067,7 @@ const
     'const',
     'constref',
     'constructor',
+    'contains',
     'destructor',
     'dispinterface',
     'div',
@@ -1098,12 +1107,14 @@ const
     'or',
     'otherwise',
     'packed',
+    'package',
     'procedure',
     'program',
     'property',
     'raise',
     'record',
     'repeat',
+    'requires',
     'resourcestring',
     'self',
     'set',
@@ -3483,6 +3494,11 @@ begin
     Result:=aFilename;
 end;
 
+procedure TPascalScanner.DisablePackageTokens;
+begin
+  FNonTokens:=FNonTokens+[tkContains,tkPackage,tkrequires];
+end;
+
 procedure TPascalScanner.SetNonToken(aToken: TToken);
 begin
   Include(FNonTokens,aToken);
@@ -4145,18 +4161,15 @@ begin
   until false;
 end;
 
-function TPascalScanner.DoFetchDelphiMultiLineTextToken(quotelen : Integer): TToken;
+function TPascalScanner.DoFetchDelphiMultiLineTextToken(QuoteLen : Integer): TToken;
 // works similar to DoFetchTextToken, except changes indentation
 
 var
-  TokenStart: {$ifdef UsePChar}PAnsiChar{$else}integer{$endif};
-  {$ifndef UsePChar}
   s: TPasScannerString;
-  l: integer;
-  {$endif}
   CurLF : TPasScannerString;
   Lines : Array of String;
-  I,SpaceCount,QuoteCount,WhiteSpaces,CurLines : Integer;
+  l, I, SpaceCount, QuoteCount, WhiteSpaces, CurLineCount , Cnt: Integer;
+  HasNonWhiteSpace: Boolean;
 
   Procedure AddToLines;
 
@@ -4165,10 +4178,10 @@ var
 
   begin
     L:=Length(Lines);
-    if CurLines=L then
-      SetLength(Lines,L+10);
-    Lines[CurLines]:=FCurLine;
-    Inc(CurLines);
+    if CurLineCount=L then
+      SetLength(Lines,L*2+10);
+    Lines[CurLineCount]:=FCurLine;
+    Inc(CurLineCount);
   end;
 
   Function LocalFetchLine : Boolean;
@@ -4185,12 +4198,11 @@ var
     s:=FCurLine;
     l:=length(s);
     {$ENDIF}
-    TokenStart:=FTokenPos;
   end;
 
 begin
   Lines:=[];
-  CurLines:=0;
+  CurLineCount:=0;
   Result:=tkEOF;
   FCurTokenString := '';
   // On entry, we know that the current position is the start of the multiline quoted string.
@@ -4200,7 +4212,7 @@ begin
     WhiteSpaces:=0;
     if not LocalFetchLine then
       exit(tkEOF);
-    // Skip whitespace, but count.
+    // Skip whitespace, but count, as the last line defines the unindented WhiteSpaces.
     {$IFDEF USEPCHAR}
     While (FTokenPos[0]=' ') do
     {$ELSE}
@@ -4210,49 +4222,95 @@ begin
       Inc(FTokenPos);
       Inc(WhiteSpaces);
       end;
-    // Count quotes
-    {$IFDEF USEPCHAR}
-    While (FTokenPos[0]=SingleQuote) and (QuoteCount<QuoteLen) do
-    {$ELSE}
-    While  (QuoteCount<QuoteLen) and (FTokenPos<=l) and (s[FTokenPos]=SingleQuote) do
-    {$ENDIF}
-      begin
-      Inc(FTokenPos);
-      Inc(QuoteCount);
-      end;
-    // End of multiline detected ?
-    if QuoteCount<>QuoteLen then
-      AddToLines;
-  Until QuoteCount=QuoteLen;
-  if (QuoteCount=0) then
-    Exit(tkEOF);
-  // Final string Construction
-  FCurTokenString:=SingleQuote;
-  CurLF:=GetMultiLineStringLineEnd(FCurSourceFile);
-  For I:=0 to CurLines-1 do
-    begin
-    if I>0 then
-      FCurTokenString:=FCurTokenString+CurLf;
-    If Lines[I]<>'' then
-      begin
+    // check for the end sequence of quotes
+    HasNonWhiteSpace:=false;
+    repeat
       {$IFDEF USEPCHAR}
-      TokenStart:=@Lines[I][1];
-      SpaceCount:=0;
-      While (TokenStart[0]=' ') and (SpaceCount<WhiteSpaces) do
+      case FTokenPos[0] of
+      #0:
+        break;
       {$ELSE}
-      While (S[TokenStart]=' ') and (SpaceCount<WhiteSpaces) do
+      if FTokenPos>l then
+        break;
+      case s[FTokenPos] of
       {$ENDIF}
+      SingleQuote:
         begin
-        Inc(SpaceCount);
-        Inc(TokenStart);
+          repeat
+            inc(FTokenPos);
+            inc(QuoteCount);
+          {$IFDEF UsePChar}
+          until (FTokenPos[0]<>SingleQuote) or (QuoteCount=QuoteLen);
+          {$ELSE}
+          until (FTokenPos>l) or (s[FTokenPos]<>SingleQuote) or (QuoteCount=QuoteLen);
+          {$ENDIF}
+          if QuoteCount=QuoteLen then
+            begin
+            if HasNonWhiteSpace then
+              Error(nErrMultilineNonWhiteSpaceBeforeClosing,sErrMultilineNonWhiteSpaceBeforeClosing);
+            break;
+            end;
+          HasNonWhiteSpace:=true;
         end;
-      if SpaceCount<WhiteSpaces then
-        ErrorAt(nErrInvalidIndent,SErrInvalidIndent,CurRow-CurLines+I,SpaceCount);
-      FCurTokenString:=FCurTokenString+Copy(Lines[i],SpaceCount+1,Length(Lines[i])-SpaceCount);
+      else
+        HasNonWhiteSpace:=true;
+        inc(FTokenPos);
+      end;
+    until false;
+    if QuoteCount<>QuoteLen then
+      AddToLines // another multiline
+    else
+      break;
+  Until false;
+  // Note: the last line defines the needed whitespaces of all lines
+
+  CurLF:=GetMultiLineStringLineEnd(FCurSourceFile);
+
+  // unindent
+  Cnt:=0;
+  For I:=0 to CurLineCount-1 do
+    begin
+    // cut whitespaces
+    s:=Lines[I];
+    SpaceCount:=0;
+    l:=length(s);
+    while (SpaceCount<l) and (s[SpaceCount+1]=' ') do
+      inc(SpaceCount);
+    if SpaceCount=l then
+      begin
+      // empty line
+      s:='';
+      end
+    else if SpaceCount<WhiteSpaces then
+      ErrorAt(nErrInvalidIndent,SErrInvalidIndent,CurRow-CurLineCount+I,SpaceCount)
+    else
+      s:=copy(s,WhiteSpaces+1,l);
+    Lines[I]:=s;
+    if I>0 then
+      inc(Cnt,length(CurLF));
+    inc(Cnt,length(s));
+    end;
+
+  // build final string
+  SetLength(FCurTokenString,Cnt);
+  Cnt:=0;
+  For I:=0 to CurLineCount-1 do
+    begin
+    s:=Lines[I];
+    l:=length(s);
+    if l>0 then
+      begin
+      System.Move(s[1],FCurTokenString[Cnt+1],l);
+      inc(Cnt,l);
+      end;
+    if I<CurLineCount-1 then
+      begin
+      l:=length(CurLF);
+      System.Move(CurLF[1],FCurTokenString[Cnt+1],l);
+      inc(Cnt,l);
       end;
     end;
-  FCurTokenString:=FCurTokenString+SingleQuote;
-  Result:=tkString;
+  Result:=tkStringMultiLine;
 end;
 
 procedure TPascalScanner.PushStackItem;

@@ -369,6 +369,8 @@ implementation
                  hs:=pd.resultname^
                else
                  hs:=pd.procsym.name;
+               if (hs='') then
+                 hs:='$_result';
                sl:=tpropaccesslist.create;
                sl.addsym(sl_load,pd.funcretsym);
                aliasvs:=cabsolutevarsym.create_ref(hs,pd.returndef,sl);

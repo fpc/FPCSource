@@ -62,6 +62,8 @@ begin
     T.Dependencies.AddUnit('system.json');
     T:=P.Targets.AddUnit('system.hash.pp');
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('system.credentials.pp');
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp',[Win64,Linux,darwin]);
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.regularexpressionscore.pp',[Win64,Linux,darwin]);

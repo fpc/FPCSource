@@ -581,6 +581,7 @@ ResourceString
   SArgumentOutOfRange = 'Argument out of range';
   StrNoClientClass = 'The client cannot be an instance of the class %s';  
   SListIndexErrorExt = 'List index out of bounds (%0:d).  %2:s object range is 0..%1:d';
+  StrEActionNoSuported = 'Class %s does not support the action';
   
   { Classes observer support }
   SErrNotIObserverInterface = 'Interface is not an IObserver interface';
@@ -589,6 +590,7 @@ ResourceString
   SErrObserverNoSinglecast = 'No singlecast observer interface found';
   SerrObserverNoMulticastFound = 'No multicast observer interface (%d) found';
   SErrObserverNotAvailable = 'Observer type (%d) not available';
+  
 implementation
 
 end.

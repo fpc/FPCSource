@@ -21,7 +21,9 @@ const
    INVALID_HANDLE_VALUE = THandle(-1);
 
    IGNORE = 0;               { Ignore signal }
+{$IF NOT DECLARED(INFINITE)}   
    INFINITE = longint($FFFFFFFF);     { Infinite timeout }
+{$ENDIF}   
 
    { flags for CreateFile }
    GENERIC_READ=$80000000;
@@ -365,9 +367,9 @@ var
 
 var
    OleAut32Dll: THandle = 0; { Unloaded at win32 & win64 system_exit. }
-   SysAllocStringLen: function(psz:pointer;len:dword):pointer; stdcall; = @FirstSysAllocStringLen;
-   SysFreeString: procedure(bstr:pointer); stdcall; = @FirstSysFreeString;
-   SysReAllocStringLen: function(var bstr:pointer;psz: pointer;len:dword): Integer; stdcall; = @FirstSysReAllocStringLen;
+   SysAllocStringLen: function(psz:pointer;len:dword):pointer; stdcall = @FirstSysAllocStringLen;
+   SysFreeString: procedure(bstr:pointer); stdcall = @FirstSysFreeString;
+   SysReAllocStringLen: function(var bstr:pointer;psz: pointer;len:dword): Integer; stdcall = @FirstSysReAllocStringLen;
 
    function EnsureOleAut32Dll: THandle;
    begin

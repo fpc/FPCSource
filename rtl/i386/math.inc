@@ -293,39 +293,90 @@ const
 
 
     {$define FPC_SYSTEM_HAS_FRAC}
-    function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
+    function fpc_frac_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
+      { [esp + 4 .. esp + 13] = d. }
       asm
-        subl $4,%esp
-        fnstcw (%esp)
-        fwait
-        movw (%esp),%cx
-        orw $0x0f00,(%esp)
-        fldcw (%esp)
-        fldt d
-        frndint
-        fldt d
-        fsub %st(1),%st
-        fstp %st(1)
-        movw %cx,(%esp)
-        fldcw (%esp)
+        { Extended exponent bias is 16383 and mantissa is 63 bits not counting explicit 1. In memory:
+
+          bit 0, byte 0       bit 64, byte 8
+          ↓                   ↓
+          M0 M1 ... M61 M62 1 E14 E13 ... E1 E0 S
+                              └───────────────┘
+                              E = 16383 + exponent
+
+          Numbers with E < 16383 have abs < 1 so frac = itself;
+          Numbers with E ≥ 16383 + 63 = 16446 have frac = 0, except for E = 32767 (Inf, NaN) that have frac = NaN.
+
+          Numbers with 16383 ≤ E < 16383 + 63 have (16383 + 63 - E) mantissa bits after the point.
+          Zero them manually instead of changing and restoring the control word.
+          FISTTP + FILD is faster but FISTTP is a SSE3 instruction despite its appearance. :( }
+
+        movzwl  12(%esp), %ecx
+        and     $0x7FFF, %ecx { ecx = E }
+        sub     $16383, %ecx { ecx = E - 16383 = exponent. }
+        jb      .LLoad { exponent < 0 ⇒ abs(number) < 1 ⇒ frac is the number itself. }
+        sub     $63, %ecx
+        jae     .LZeroOrSpecial
+
+        fldt    4(%esp)
+        neg     %ecx { ecx = 63 - exponent = number of mantissa bits after point = number of bottom mantissa bits that must be zeroed. }
+        or      $-1, %eax { eax = all ones, so “eax shl N” will have N bottom zeros. }
+        shl     %cl, %eax { This shifts by ecx mod 32. }
+        shr     $5, %ecx { 0 if first 32 bits must be masked by eax, 1 if second 32 bits must be masked by eax and first 32 bits must be zeroed. }
+        and     4(%esp,%ecx,4), %eax
+        movl    $0, 4(%esp) { If ecx = 0, gets instantly overwritten instead of branching. }
+        mov     %eax, 4(%esp,%ecx,4)
+        fldt    4(%esp)
+        fsubrp  %st(0), %st(1) { For some reason this matches fsubP st(1), st(0) in Intel syntax. o_O }
+        ret     $12
+
+.LLoad:
+        fldt    4(%esp)
+        ret     $12
+
+.LZeroOrSpecial:
+        cmp     $(16384 - 63), %ecx { E = MAX, number is Inf/NaN? }
+        je      .LInfNaN
+        fldz
+        ret     $12
+
+.LInfNaN:
+        { Bother a bit to explicitly handle infinity instead of jumping to fldt + fsubrp + ret that would conveniently substract Inf/NaN from itself and give NaN.
+          Such subtracting is likely to be very slow even on newer CPUs whose SSE units handle infinities/NaNs at full speed.
+          I’d prefer frac(Inf) = 0, but x86-64 version returns NaN too. }
+        mov     8(%esp), %eax { Check if mantissa bits 0:62 are all zeros. }
+        shl     $1, %eax { Ignore bit 63. }
+        or      4(%esp), %eax
+        jnz     .LLoad { Not all zeros, NaN; return itself. }
+        movl    $0xFFC00000, 4(%esp) { 32-bit qNaN that, when loaded with flds on my CPU, produces the same bitpattern as actual subtraction of two infinities. ^^" }
+        flds    4(%esp)
       end;
 
 
     {$define FPC_SYSTEM_HAS_INT}
-    function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
+    function fpc_int_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
+      { [esp + 4 .. esp + 13] = d. }
       asm
-        subl $4,%esp
-        fnstcw (%esp)
-        fwait
-        movw (%esp),%cx
-        orw $0x0f00,(%esp)
-        fldcw (%esp)
-        fwait
-        fldt d
-        frndint
-        fwait
-        movw %cx,(%esp)
-        fldcw (%esp)
+        { See fpc_frac_real. }
+        movzwl  12(%esp), %ecx
+        and     $0x7FFF, %ecx { ecx = E }
+        sub     $16383, %ecx { ecx = E - 16383 = exponent. }
+        jb      .LZero { exponent < 0 ⇒ abs(number) < 1 ⇒ int is 0 (assuming its sign is not important). }
+        sub     $63, %ecx
+        jae     .LReload { exponent > 63 ⇒ the number is either too large to have a fraction or an Inf/NaN ⇒ int is the number itself. }
+
+        neg     %ecx { ecx = 63 - exponent = number of mantissa bits after point = number of bottom mantissa bits that must be zeroed. }
+        or      $-1, %eax { eax = all ones, so “eax shl N” will have N bottom zeros. }
+        shl     %cl, %eax { This shifts by ecx mod 32. }
+        shr     $5, %ecx { 0 if first 32 bits must be masked by eax, 1 if second 32 bits must be masked by eax and first 32 bits must be zeroed. }
+        and     4(%esp,%ecx,4), %eax
+        movl    $0, 4(%esp) { If ecx = 0, gets instantly overwritten instead of branching. }
+        mov     %eax, 4(%esp,%ecx,4)
+.LReload:
+        fldt    4(%esp)
+        ret     $12
+.LZero:
+        fldz
       end;
 
 

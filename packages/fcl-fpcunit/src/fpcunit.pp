@@ -100,6 +100,14 @@ type
   protected
     Class var AssertCount : Integer;
   public
+    type
+      TStatusHook = Procedure(const msg : string);
+      TStatusEvent = Procedure(const msg : string) of object;
+    class var StatusHook : TStatusHook;
+    class var StatusEvent : TStatusEvent;
+  public
+    class procedure Status(const aMsg: String); inline;
+    class procedure Status(const aMsg: String; const aArgs: array of const); inline;
     class procedure Fail(const AMessage: string; AErrorAddrs: Pointer = nil);
     class procedure Fail(const AFmt: string; Args : Array of const;  AErrorAddrs: Pointer = nil);
     class procedure FailEquals(const expected, actual: string; const ErrorMsg: string = ''; AErrorAddrs: Pointer = nil);
@@ -646,6 +654,19 @@ begin
 end;
 
 { TAssert }
+
+class procedure TAssert.Status(const aMsg: String);
+begin
+  If Assigned(StatusHook) then
+    StatusHook(aMsg);
+  if Assigned(StatusEvent) then
+    StatusEvent(aMsg);
+end;
+
+class procedure TAssert.Status(const aMsg: String; const aArgs: array of const);
+begin
+  Status(SafeFormat(aMsg,aArgs));
+end;
 
 class procedure TAssert.Fail(const AMessage: string; AErrorAddrs: Pointer);
 begin

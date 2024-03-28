@@ -347,7 +347,8 @@ Var
 begin
   FDescriptors[phtInput].PrepareHandles;
   FDescriptors[phtOutput].PrepareHandles;
-  FDescriptors[phtError].PrepareHandles;
+  if not (poStderrToOutPut in Options) then
+    FDescriptors[phtError].PrepareHandles;
   Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
@@ -462,7 +463,8 @@ begin
     // Writeln(system.StdErr,'fork closing our handles');
     FDescriptors[phtInput].CloseTheirHandle;
     FDescriptors[phtOutput].CloseTheirHandle;
-    FDescriptors[phtError].CloseTheirHandle;
+    if not (poStderrToOutPut in Options) then
+      FDescriptors[phtError].CloseTheirHandle;
   end;
   FRunning:=True;
   if not (csDesigning in ComponentState) and // This would hang the IDE !

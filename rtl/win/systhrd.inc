@@ -375,12 +375,12 @@ var
     var
       thrdinfo: THREADNAME_INFO;
     begin
+      thrdinfo:=Default(THREADNAME_INFO);
       thrdinfo.dwType:=$1000;
       thrdinfo.szName:=@ThreadName[1];
       thrdinfo.dwThreadID:=threadHandle;
-      thrdinfo.dwFlags:=0;
       try
-        RaiseException(MS_VC_EXCEPTION, 0, SizeOf(thrdinfo) div SizeOf(DWord), @thrdinfo);
+        RaiseException(MS_VC_EXCEPTION, 0, SizeOf(thrdinfo) div SizeOf(PtrUInt), @thrdinfo);
       except
         {do nothing}
       end;

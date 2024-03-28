@@ -137,7 +137,7 @@ interface
                     { pointer-pointer results in an integer }
                     if (rt=pointerconstn) then
                       begin
-                        if not(nf_has_pointerdiv in flags) then
+                        if not(anf_has_pointerdiv in addnodeflags) then
                           internalerror(2008030102);
                         { todo: implement pointer-pointer as well }
                         internalerror(2014040607);

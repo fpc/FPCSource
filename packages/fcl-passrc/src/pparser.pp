@@ -545,7 +545,10 @@ type
     procedure ParseContinue; virtual;
     procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
     procedure ParseLibrary(var Module: TPasModule);
+    procedure ParsePackage(var Module: TPasModule);
     procedure ParseOptionalUsesList(ASection: TPasSection);
+    procedure ParseContains(ASection: TPasSection);
+    procedure ParseRequires(ASection: TPasPackageSection);
     procedure ParseUsesList(ASection: TPasSection);
     procedure ParseInterface;
     procedure ParseImplementation;
@@ -1284,7 +1287,7 @@ end;
 function TPasParser.CurTokenText: String;
 begin
   case CurToken of
-    tkIdentifier, tkString, tkNumber, tkChar:
+    tkIdentifier, tkString, tkStringMultiLine, tkNumber, tkChar:
       Result := FCurTokenString;
     else
       Result := TokenInfos[CurToken];
@@ -1707,7 +1710,7 @@ begin
       if (h=hDeprecated) then
         begin
         NextToken;
-        if (Curtoken<>tkString) then
+        if (CurToken<>tkString) then
           UnGetToken
         else if assigned(Element) then
           Element.HintMessage:=CurTokenString;
@@ -2647,8 +2650,9 @@ begin
   CanSpecialize:=aCannot;
   aName:='';
   case CurToken of
+    tkChar:   Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
     tkString: Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
-    tkChar:   Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
+    tkStringMultiLine: Last:=CreatePrimitiveExpr(AParent,pekStringMultiLine,CurTokenString);
     tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
@@ -2872,9 +2876,9 @@ begin
   case t of
   //  tkDot:
   //    Result:=5;
-    tknot,tkAt,tkAtAt:
+    tknot, tkAt, tkAtAt, tkPower:
       Result:=4;
-    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower, tkis:
+    tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkis:
       // Note that "is" has same precedence as "and" in Delphi and fpc, even though
       // some docs say otherwise. e.g. "Obj is TObj and aBool"
       Result:=3;
@@ -3283,6 +3287,8 @@ begin
       ParseProgram(Module);
     tkLibrary:
       ParseLibrary(Module);
+    tkPackage:
+      ParsePackage(Module);
     tkEOF:
       CheckToken(tkprogram);
   else
@@ -3306,6 +3312,7 @@ var
   StartPos: TPasSourcePos;
   HasFinished: Boolean;
 begin
+  Scanner.DisablePackageTokens;
   StartPos:=CurTokenPos;
   Module := nil;
   AUnitName := ExpectIdentifier;
@@ -3471,6 +3478,7 @@ Var
   aSection: TPasSection;
   {$ENDIF}
 begin
+  Scanner.DisablePackageTokens;
   StartPos:=CurTokenPos;
   if SkipHeader then
     N:=ChangeFileExt(Scanner.CurFilename,RTLString(''))
@@ -3551,6 +3559,7 @@ Var
   HasFinished: Boolean;
 
 begin
+  Scanner.DisablePackageTokens;
   StartPos:=CurTokenPos;
   N:=ExpectIdentifier;
   NextToken;
@@ -3587,6 +3596,51 @@ begin
   finally
     if HasFinished then
       FCurModule:=nil; // clear module if there is an error or finished parsing
+  end;
+end;
+
+procedure TPasParser.ParsePackage(var Module: TPasModule);
+
+var
+  PP : TPasDynamicPackage;
+  StartPos: TPasSourcePos;
+  N : String;
+
+begin
+  StartPos:=CurTokenPos;
+  N:=ExpectIdentifier;
+  NextToken;
+  while CurToken = tkDot do
+    begin
+    ExpectIdentifier;
+    N := N + '.' + CurTokenString;
+    NextToken;
+    end;
+  UngetToken;
+  ExpectToken(tkSemiColon);
+  NextToken;
+  Module := nil;
+  PP:=TPasDynamicPackage(CreateElement(TPasDynamicPackage, N, Engine.Package, StartPos));
+  Module :=PP;
+  FCurModule:=Module;
+  try
+    While Not (CurToken=tkDot) do
+      begin
+      Case CurToken of
+        tkcontains : ParseContains(PP.PackageSection);
+        tkrequires : ParseRequires(PP.PackageSection);
+        tkEnd : begin
+                ExpectToken(tkDot);
+                UngetToken; // Next token will get it again
+                end;
+      else
+        ParseExcSyntaxError;
+      end;
+      NextToken;
+      end;
+    FinishedModule;
+  finally
+    FCurModule:=nil;
   end;
 end;
 
@@ -4155,6 +4209,33 @@ begin
   if Scanner<>nil then
     Scanner.FinishedModule;
   Engine.FinishScope(stModule,CurModule);
+end;
+
+// On Entry, current token is requires
+// On exit, current token is semicolon
+procedure TPasParser.ParseRequires(ASection: TPasPackageSection);
+
+var
+  Pck : TPasRequiredPackage;
+  PckPos : TPasSourcePos;
+
+begin
+  repeat
+    ExpectIdentifier();
+    PckPos:=CurSourcePos;
+    Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,CurtokenString,aSection,visPublic,PckPos));
+    aSection.Requires.Add(Pck);
+    NextToken;
+  until CurToken=tkSemicolon;
+end;
+
+// On Entry, current token is contains.
+// On exit, current token is semicolon
+procedure TPasParser.ParseContains(ASection: TPasSection);
+
+begin
+  // We can simply call parseuseslist
+  ParseUsesList(aSection);
 end;
 
 // Starts after the "uses" token

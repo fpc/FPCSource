@@ -115,21 +115,21 @@ begin
   CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
-Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
+Procedure InitProcessAttributes(P : TProcess; Out PA : TSecurityAttributes);
 
 begin
   FillChar(PA,SizeOf(PA),0);
   PA.nLength := SizeOf(PA);
 end;
 
-Procedure InitThreadAttributes(P : TProcess; Var TA : TSecurityAttributes);
+Procedure InitThreadAttributes(P : TProcess; Out TA : TSecurityAttributes);
 
 begin
   FillChar(TA,SizeOf(TA),0);
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; AllDescriptorsDefault: Boolean; Var SI : STARTUPINFOW);
+Procedure InitStartupInfo(P : TProcess; AllDescriptorsDefault: Boolean; Out SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -180,18 +180,20 @@ Var
   FThreadAttributes : TSecurityAttributes;
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFOW;
-  HI,HO,HE : THandle;
   Cmd : TProcessString;
   AllDescriptorsDefault: Boolean;
 
  begin
+  fProcessInformation:=default(TProcessInformation);
   AllDescriptorsDefault :=
     (FDescriptors[phtInput].IOType = iotDefault) and
     (FDescriptors[phtOutput].IOType = iotDefault) and
-    (FDescriptors[phtError].IOType = iotDefault);
+    (FDescriptors[phtError].IOType = iotDefault) and 
+    not (poStdErrToOutput in Options);
   FDescriptors[phtInput].PrepareHandles;
   FDescriptors[phtOutput].PrepareHandles;
-  FDescriptors[phtError].PrepareHandles;
+  if not (poStdErrToOutput in Options) then
+    FDescriptors[phtError].PrepareHandles;
   WName:='';
   WCommandLine:='';
   WDir:='';
@@ -248,7 +250,8 @@ Var
     Finally
       FDescriptors[phtInput].CloseTheirHandle;
       FDescriptors[phtOutput].CloseTheirHandle;
-      FDescriptors[phtError].CloseTheirHandle;
+      if Not(poStdErrToOutPut in Options) then
+        FDescriptors[phtError].CloseTheirHandle;
     end;
     FRunning:=True;
   Finally
@@ -314,17 +317,15 @@ end;
 Function TIODescriptor.SysCreateFileNameHandle(const aFileName: string) : THandle;
 
 const
-  DefaultRights = 438; // 438 = 666 octal which is rw rw rw
   ModeNames : Array[Boolean] of String = ('Reading','Writing');
 
 var
-  FM :  Integer;
   Sec: SECURITY_ATTRIBUTES;
 
 begin
   if (aFileName='') then
     Raise EProcess.Create('No filename set');
-  FillByte(sec, SizeOf(sec), 0);
+  Sec:=Default(SECURITY_ATTRIBUTES);
   sec.nLength := SizeOf(Sec);
   sec.bInheritHandle := True;
   case ProcessHandleType of
@@ -352,10 +353,11 @@ var
   Res : Boolean;
   
 begin
-  if IOType in [iotDefault,iotFile] then begin
+  if (IOType in [iotDefault,iotFile]) or ((IOType=iotHandle) and FCustomHandleIsInheritable) then
+    begin
     Result:=aHandle;
     exit;
-  end;
+    end;
   oldHandle := ahandle;
   ahandle:=THandle(INVALID_HANDLE_VALUE); 
   Res := DuplicateHandle
@@ -367,8 +369,13 @@ begin
     true,
     DUPLICATE_SAME_ACCESS
   );
-  if Res then
-    Res:=CloseHandle(oldHandle);
+  if Res then begin
+    // Either AutoCloseCustomHandle or set in OnGetHandle
+    if (IOType=iotHandle) and not FCloseHandleOnExecute then
+      FCloseHandleOnExecute:=True // the original CustomHandle is kept open / Set True for the duplicate handle
+    else
+      Res:=CloseHandle(oldHandle);
+  end;
   if not Res then
     begin
     FileClose(aHandle);

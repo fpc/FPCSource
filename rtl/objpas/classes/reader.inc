@@ -142,12 +142,24 @@ var
   b: byte;
 begin
   Read(b, 1);
-  Result := TValueType(b);
+  FCurrentValue:=TValueType(b);
+  Result := FCurrentValue;
+end;
+
+function TBinaryObjectReader.CurrentValue: TValueType;
+
+begin
+  Result:=FCurrentValue;
 end;
 
 function TBinaryObjectReader.NextValue: TValueType;
+
+var
+  b: byte;
+
 begin
-  Result := ReadValue;
+  Read(b,1);
+  Result:=TValueType(b);
   { We only 'peek' at the next value, so seek back to unget the read value: }
   Dec(FBufPos);
 end;
@@ -243,6 +255,19 @@ var
 begin
   r.d:=ReadDWord;
   Result:=r.s;
+end;
+
+function TBinaryObjectReader.ReadDouble: Double;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (d: double);
+  end;
+
+begin
+  r.q:=ReadQWord;
+  Result:=R.d;
 end;
 {$endif}
 
@@ -363,6 +388,7 @@ begin
   if i > 0 then
     Read(Pointer(@Result[1])^, i);
 end;
+
 
 function TBinaryObjectReader.ReadString(StringType: TValueType): RawByteString;
 var
@@ -923,6 +949,14 @@ begin
   ReadListEnd;
 end;
 
+procedure TReader.SetName(aComponent: TComponent; var aName : string);
+
+begin
+  if Assigned(FOnSetName) then 
+    FOnSetName(Self,aComponent,aName);
+  aComponent.Name:=aName;
+end;
+
 function TReader.ReadComponent(Component: TComponent): TComponent;
 var
   Flags: TFilerFlags;
@@ -1022,9 +1056,7 @@ begin
         if not (ffInherited in Flags) then
           try
             Result.SetParentComponent(Parent);
-            if Assigned(FOnSetName) then
-              FOnSetName(Self, Result, Name);
-            Result.Name := Name;
+            SetName(Result,Name);
             if FindGlobalComponent(Name) = Result then
               Include(Result.FComponentState, csInline);
           except
@@ -1133,6 +1165,11 @@ begin
     ReadValue;
     Result := FDriver.ReadSingle
     end;
+  vaDouble:
+    begin
+    ReadValue;
+    Result := FDriver.ReadDouble
+    end;
   else
     Result := ReadInt64;
   end
@@ -1152,6 +1189,7 @@ begin
   end else
     Result := ReadInteger;
 end;
+
 {$endif}
 
 function TReader.ReadCurrency: Currency;
@@ -1663,24 +1701,35 @@ begin
 end;
 
 
-function TReader.ReadString: rawbytestring;
+function TReader.ReadStr : rawbytestring;
 
-var
-  StringType: TValueType;
 begin
-  StringType := FDriver.ReadValue;
-  if StringType in [vaString, vaLString,vaUTF8String] then
-    begin
-      Result := FDriver.ReadString(StringType);
-      if (StringType=vaUTF8String) then
+  Result:=DoReadString(Driver.CurrentValue)
+end;
+
+function TReader.DoReadString(aType : TValueType): rawbytestring;
+
+begin
+  Case aType of
+    vaString, vaLString,vaUTF8String:
+      begin
+      Result := FDriver.ReadString(aType);
+      if (aType=vaUTF8String) then
         Result:=rawbytestring(utf8Decode(Result));
-    end
-  else if StringType in [vaWString] then
-    Result:= rawbytestring(FDriver.ReadWidestring)
-  else if StringType in [vaUString] then
-    Result:= rawbytestring(FDriver.ReadUnicodeString)
+      end;
+    vaWString:
+      Result:= rawbytestring(FDriver.ReadWidestring);
+    vaUString:
+    Result:= rawbytestring(FDriver.ReadUnicodeString);
   else
     raise EReadError.Create(SInvalidPropertyValue);
+  end;
+end;
+
+function TReader.ReadString: rawbytestring;
+
+begin
+  Result:=DoReadString(FDriver.ReadValue);
 end;
 
 

@@ -697,6 +697,17 @@ implementation
         fields_allowed, is_classdef, classfields, threadvarfields: boolean;
         vdoptions: tvar_dec_options;
         rtti_attrs_def: trtti_attribute_list;
+        fldCount : Integer;
+        attr_element_count : Integer;
+
+      procedure check_unbound_attributes;
+        begin
+          if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
+            Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+          rtti_attrs_def.free;
+          rtti_attrs_def:=nil;
+        end;
+
       begin
         { empty record declaration ? }
         if (token=_SEMICOLON) then
@@ -722,6 +733,7 @@ implementation
           case token of
             _TYPE :
               begin
+                check_unbound_attributes;
                 consume(_TYPE);
                 member_blocktype:=bt_type;
 
@@ -731,6 +743,7 @@ implementation
               end;
             _VAR :
               begin
+                check_unbound_attributes;
                 consume(_VAR);
                 fields_allowed:=true;
                 member_blocktype:=bt_general;
@@ -740,6 +753,7 @@ implementation
               end;
             _THREADVAR :
               begin
+                check_unbound_attributes;
                 if not is_classdef then
                   begin
                     message(parser_e_threadvar_must_be_class);
@@ -755,6 +769,7 @@ implementation
               end;
             _CONST:
               begin
+                check_unbound_attributes;
                 consume(_CONST);
                 member_blocktype:=bt_const;
 
@@ -767,6 +782,7 @@ implementation
                 case idtoken of
                   _PRIVATE :
                     begin
+                      check_unbound_attributes;
                        consume(_PRIVATE);
                        current_structdef.symtable.currentvisibility:=vis_private;
                        include(current_structdef.objectoptions,oo_has_private);
@@ -778,6 +794,7 @@ implementation
                      end;
                    _PROTECTED :
                      begin
+                       check_unbound_attributes;
                        Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
                        consume(_PROTECTED);
                        current_structdef.symtable.currentvisibility:=vis_protected;
@@ -790,6 +807,7 @@ implementation
                      end;
                    _PUBLIC :
                      begin
+                       check_unbound_attributes;
                        consume(_PUBLIC);
                        current_structdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
@@ -800,6 +818,7 @@ implementation
                      end;
                    _PUBLISHED :
                      begin
+                       check_unbound_attributes;
                        Message(parser_e_no_record_published);
                        consume(_PUBLISHED);
                        current_structdef.symtable.currentvisibility:=vis_published;
@@ -844,6 +863,7 @@ implementation
                     else
                     if is_classdef and (idtoken=_OPERATOR) then
                       begin
+                        check_unbound_attributes;
                         pd:=parse_record_method_dec(current_structdef,is_classdef,false);
                         fields_allowed:=false;
                         is_classdef:=false;
@@ -874,7 +894,31 @@ implementation
                                   include(vdoptions,vd_check_generic);
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
-                                read_record_fields(vdoptions,nil,nil,hadgeneric);
+                                fldCount:=current_structdef.symtable.SymList.Count;
+                                read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                {
+                                  attr_element_count returns the number of fields to which the attribute must be applied.
+                                  For
+                                  [someattr]
+                                  a : integer;
+                                  b : integer;
+                                  attr_element_count returns 1. For
+                                  [someattr]
+                                  a, b : integer;
+                                  it returns 2.
+                                  Basically the number of variables before the first colon.
+                                }
+                                if assigned(rtti_attrs_def) then
+                                  begin
+                                  While (attr_element_count>1) do
+                                    begin
+                                    trtti_attribute_list.copyandbind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
+                                    inc(fldcount);
+                                    dec(attr_element_count);
+                                    end;
+                                  if fldCount<current_structdef.symtable.SymList.Count then
+                                    trtti_attribute_list.bind(rtti_attrs_def,(current_structdef.symtable.SymList[fldCount] as tfieldvarsym).rtti_attribute_list);
+                                  end;
                               end;
                           end
                         else if member_blocktype=bt_type then
@@ -896,6 +940,7 @@ implementation
               end;
             _CLASS:
               begin
+                check_unbound_attributes;
                 is_classdef:=false;
                 { read class method/field/property }
                 consume(_CLASS);
@@ -917,12 +962,18 @@ implementation
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
                 pd:=parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                if assigned(rtti_attrs_def) then
+                  begin
+                  trtti_attribute_list.bind(rtti_attrs_def,pd.rtti_attribute_list);
+                  rtti_attrs_def:=Nil;
+                  end;
                 hadgeneric:=false;
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _CONSTRUCTOR :
               begin
+                check_unbound_attributes;
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
@@ -949,6 +1000,7 @@ implementation
               end;
             _DESTRUCTOR :
               begin
+                check_unbound_attributes;
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef then
@@ -968,6 +1020,13 @@ implementation
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
                 is_classdef:=false;
+              end;
+            _LECKKLAMMER:
+              begin
+                if m_prefixed_attributes in current_settings.modeswitches then
+                  parse_rttiattributes(rtti_attrs_def)
+                else
+                  consume(_ID);
               end;
             _END :
               begin
@@ -996,6 +1055,7 @@ implementation
          recst: trecordsymtable;
          hadgendummy : boolean;
          alignment: Integer;
+         dummyattrelcount : Integer;
       begin
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
@@ -1060,7 +1120,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record],nil,nil,hadgendummy);
+             read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));
@@ -1725,10 +1785,24 @@ implementation
            name:=newsym.RealName
          else
            name:='';
+         { type a = type ..,; syntax is allowed only with type syms and apparently helpers, see below }
+         if hadtypetoken and
+             (
+               (token<>_ID) or
+               (
+                 (m_function_references in current_settings.modeswitches) and
+                 (idtoken=_REFERENCE)
+               )
+             ) and
+             (token<>_STRING) and (token<>_FILE) then
+           consume(_ID);
          case token of
             _STRING,_FILE:
               begin
-                single_type(def,[stoAllowTypeDef]);
+                if hadtypetoken then
+                  single_type(def,[])
+                else
+                  single_type(def,[stoAllowTypeDef]);
               end;
            _LKLAMMER:
               begin

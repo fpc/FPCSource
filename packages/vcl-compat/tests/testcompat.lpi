@@ -41,7 +41,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="utcdevices.pp"/>
+        <Filename Value="utcdevices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -69,15 +69,19 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="utregex.pas"/>
+        <Filename Value="utcregex.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="utregexapi.pas"/>
+        <Filename Value="utcregexapi.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="utthreading.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utccredentials.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

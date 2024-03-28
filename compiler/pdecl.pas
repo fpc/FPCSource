@@ -781,7 +781,6 @@ implementation
                genorgtypename:=orgtypename;
              end;
 
-
            consume(_EQ);
 
            { support 'ttype=type word' syntax }
@@ -1362,7 +1361,7 @@ implementation
                                  changestringtype(cunicodestringtype);
                                initwidestring(pw);
                                copywidestring(pcompilerwidestring(value_str),pw);
-                               sym:=cconstsym.create_wstring(orgname,constresourcestring,pw);
+                               sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
                                end;
                           end;
                       else

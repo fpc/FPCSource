@@ -521,7 +521,7 @@ type
   TAbstractTask = class(TThreadPool.TAbstractWorkerData)
   protected
     type
-    IInternalTask = interface(ITask)
+    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']  
       procedure AddCompleteEvent(const aProc: TITaskProc);
       procedure HandleChildCompletion(const aTask: IInternalTask);
       procedure HandleChildCompletion(const aTask: TTask);
@@ -3950,7 +3950,7 @@ begin
     aLoop.Stride:=1;
   ControlFlag:=Nil;
   if TTask.CurrentTask <> nil then
-    ControlFlag:=TAbstractTask.IInternalTask(TTask.CurrentTask).GetControlFlag;
+    ControlFlag:=(TTask.CurrentTask as TAbstractTask.IInternalTask).GetControlFlag;
   LoopParams:=TInt32LoopParams.Create(aLoop);
   LoopI:=LoopParams;
   try
@@ -4128,7 +4128,7 @@ begin
     aLoop.Stride:=1;
   ControlFlag:=Nil;
   if TTask.CurrentTask <> nil then
-    ControlFlag:=TAbstractTask.IInternalTask(TTask.CurrentTask).GetControlFlag;
+    ControlFlag:=(TTask.CurrentTask as TAbstractTask.IInternalTask).GetControlFlag;
   LoopParams:=TInt64LoopParams.Create(aLoop);
   LoopI:=LoopParams;
   try

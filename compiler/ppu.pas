@@ -48,7 +48,7 @@ const
   CurrentPPUVersion = 208;
   { for any other changes to the ppu format, increase this version number
     (it's a cardinal) }
-  CurrentPPULongVersion = 21;
+  CurrentPPULongVersion = 24;
 
 { unit flags }
   uf_big_endian          = $000004;
@@ -174,6 +174,7 @@ implementation
   uses
 {$ifdef Test_Double_checksum}
     comphook,
+    globals,
 {$endif def Test_Double_checksum}
     fpchash;
 

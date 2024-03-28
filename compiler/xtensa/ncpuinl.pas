@@ -52,6 +52,7 @@ unit ncpuinl;
       defutil,
       hlcgobj,
       pass_2,
+      procinfo,
       cgbase, cgobj, cgutils,
       ncal,nutils,
       cpubase;
@@ -96,6 +97,8 @@ unit ncpuinl;
           begin
             expectloc:=LOC_FPUREGISTER;
             Result:=nil;
+            if needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
           end
         else
           Result:=inherited first_fma;
@@ -177,6 +180,8 @@ unit ncpuinl;
           begin
             expectloc:=LOC_REGISTER;
             Result:=nil;
+            if needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
           end
         else
           Result:=inherited first_minmax;

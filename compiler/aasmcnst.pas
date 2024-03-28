@@ -2208,12 +2208,13 @@ implementation
      var
        resourcestrrec: trecorddef;
      begin
-       if cs.consttyp<>constresourcestring then
+       if not (cs.consttyp in [constresourcestring,constwresourcestring]) then
          internalerror(2014062102);
        if fqueue_offset<>0 then
          internalerror(2014062103);
        { warning: update if/when the type of resource strings changes }
        case cs.consttyp of
+         constwresourcestring,
          constresourcestring:
            begin
              resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);

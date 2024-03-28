@@ -4217,7 +4217,7 @@ implementation
                 if assigned(currsym) then
                   objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
-                  objdata.writebytes(currval,1);
+                  objdata.writeint8(shortint(currval));
               end;
             &20,&21,&22 :
               begin
@@ -4227,7 +4227,7 @@ implementation
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
-                 objdata.writebytes(currval,1);
+                 objdata.writeuint8(byte(currval));
               end;
             &23 :
               begin
@@ -4254,7 +4254,7 @@ implementation
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
-                 objdata.writebytes(currval,1);
+                 objdata.writeuint8(byte(currval));
               end;
             &30,&31,&32 :     // 030..032
               begin
@@ -4343,7 +4343,7 @@ implementation
 {$pop}
                 if (data>127) or (data<-128) then
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
-                objdata.writebytes(data,1);
+                objdata.writeint8(shortint(data));
               end;
             &54,&55,&56:   // 054..056 - qword immediate operand
               begin

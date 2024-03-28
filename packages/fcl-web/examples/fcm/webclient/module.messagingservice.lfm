@@ -1,0 +1,16 @@
+object RPCModule: TRPCModule
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  Height = 150
+  HorizontalOffset = 442
+  VerticalOffset = 209
+  Width = 150
+  object Client: TPas2jsRPCClient
+    URL = 'http://localhost:8910/RPC'
+    Options = []
+    BatchTimeout = 100
+    JSONRPCversion = '2.0'
+    Left = 56
+    Top = 48
+  end
+end

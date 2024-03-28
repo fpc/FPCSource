@@ -1780,9 +1780,8 @@ unit cgcpu;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
-            not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]) and
-            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+        if needs_check_for_fpu_exceptions and
+          (force or current_procinfo.FPUExceptionCheckNeeded) then
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));

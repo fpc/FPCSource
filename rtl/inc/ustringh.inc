@@ -50,6 +50,14 @@ procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : Uni
 procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : AnsiString);
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 
+function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
+  LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
+
+function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
+  LocaleStr: PAnsiChar; LocaleStrLen: Integer; UnicodeStr: PWideChar;
+  UnicodeStrLen: Integer): Integer; overload;
+
+
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 procedure DefaultAnsi2UnicodeMove(source:pansichar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
@@ -177,3 +185,12 @@ function StringCodePage(const S : UnicodeString): TSystemCodePage; overload;
 Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
 Function ToSingleByteFileSystemEncodedFileName(const arr: array of widechar): RawByteString;
 Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByteString;
+
+Type
+  TLocaleNameToCodePageCallBack = Procedure (const localename : shortstring; out codepage : TSystemCodePage; aHandled : Boolean);
+  
+
+Var
+  LocaleNameToCodePageCallBack : TLocaleNameToCodePageCallBack;
+  
+Function LocaleNameToCodePage(const localename : shortstring; out codepage : TSystemCodePage) : Boolean;

@@ -69,7 +69,7 @@ begin
     end;
 end;
 
-procedure _FPC_proc_halt(_ExitCode: longint); cdecl; public name '_haltproc';
+procedure _FPC_proc_halt(_ExitCode: longint); cdecl; public name '_haltproc'; noreturn;
 begin
   gemdos_pterm(_ExitCode);
 end;

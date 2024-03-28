@@ -1075,11 +1075,7 @@ end;
 
 function SysGetMem(size : ptruint):pointer;
 begin
-{ Something to allocate ? }
-  if size=0 then
-    { we always need to allocate something, using heapend is not possible,
-      because heappend can be changed by growheap (PFV) }
-    size := 1;
+{ SysGetMem(0) is expected to return something freeable and non-nil. No need in explicit handling, presently. }
 { calc to multiple of 16 after adding the needed bytes for memchunk header }
   if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
     begin

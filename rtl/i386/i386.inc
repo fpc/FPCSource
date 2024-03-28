@@ -199,10 +199,8 @@ asm
 end;
 {$endif FillChar/Word/DWord required.}
 
-{$if not defined(FPC_SYSTEM_HAS_FILLQWORD)}
 label
   FillXxxx_MoreThanTwoXMMs;
-{$endif FillQWord required.}
 
 procedure FillXxxx_U32Pattern_SSE2_16OrMore; assembler; nostackframe;
 { eax — x, ecx — uint32 pattern, edx — byte count >= 16 (preferably > 16). }
@@ -212,11 +210,11 @@ asm
         movd   %ecx, %xmm0
         pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
         movdqu %xmm0, (%eax)
+        movdqu %xmm0, -16(%eax,%edx)
         cmp    $32, %edx
         ja     .LMoreThanTwoVectors
-        movdqu %xmm0, -16(%eax,%edx)
         ret
-        .byte  102,102,102,144 { Turn .balign 16 before .L64x_Body into a no-op. }
+        .byte  102,102,102,102,144 { Turn .balign 16 before .L64x_Body into a no-op. }
 
       { x can start and end misaligned on the vector boundary:
         x = ~~][H1][H2][...][T2][T1]~
@@ -228,22 +226,18 @@ asm
         mov    %ecx, %esi { esi = pattern }
         mov    %eax, %ecx
         shl    $3, %ecx { ecx = misalignment of x in bits }
-        rol    %cl, %esi { misalign the pattern; no-op for FillChar, but handles misaligned cases of FillWord+. }
+        rol    %cl, %esi { misalign the pattern }
         movd   %esi, %xmm1
         pshufd $0, %xmm1, %xmm1
+        pop    %esi
 
-{$if not defined(FPC_SYSTEM_HAS_FILLQWORD)}
-{ FillQWord jumps here.
-  eax — x, edx — byte count > 32, xmm0 = pattern for unaligned writes, xmm1 = pattern for aligned writes.
-  Expects first 16 bytes written...
-  ...and ESI pushed! }
+{ FillChar (to skip the misaligning above) and FillQWord jump here.
+  eax — x, edx — byte count > 32, xmm0 = pattern for unaligned writes, xmm1 = pattern for aligned writes, first and last 16 bytes written. }
 FillXxxx_MoreThanTwoXMMs:
-{$endif FillQWord required.}
-        lea    -65(%eax,%edx), %ecx { ecx = end of x - 65, to get the loop bound and to write UT later (why not write it right away though...). }
+        lea    -65(%eax,%edx), %ecx
+        and    $-16, %ecx { ecx = “T4” (possibly fictive) = loop bound. }
         and    $-16, %eax { align eax to the LEFT (so needs to be offset by an additional +16 for a while). }
         movdqa %xmm1, 16(%eax) { Write H1. }
-        mov    %ecx, %esi
-        and    $-16, %esi { esi = “T4” (possibly fictive) = aligned ecx = loop bound. }
         cmp    $49, %edx { 33~49 bytes might contain 1~2 heads+tails; write as H1 and T1. }
         jle    .LOneAlignedTailWrite
         movdqa %xmm1, 32(%eax) { Write H2. }
@@ -256,24 +250,22 @@ FillXxxx_MoreThanTwoXMMs:
         cmp    $NtThreshold, %edx
         jae    .L64xNT_Body
 
-.balign 16
+.balign 16 { no-op }
 .L64x_Body:
         movdqa %xmm1, (%eax)
         movdqa %xmm1, 16(%eax)
         movdqa %xmm1, 32(%eax)
         movdqa %xmm1, 48(%eax)
         add    $64,  %eax
-        cmp    %esi, %eax
+        cmp    %ecx, %eax
         jb     .L64x_Body
 .LFourAlignedTailWrites:
-        movdqa %xmm1, (%esi) { T4 }
-        movdqa %xmm1, 16(%esi) { T3 }
+        movdqa %xmm1, (%ecx) { T4 }
+        movdqa %xmm1, 16(%ecx) { T3 }
 .LTwoAlignedTailWrites:
-        movdqa %xmm1, 32(%esi) { T2 }
+        movdqa %xmm1, 32(%ecx) { T2 }
 .LOneAlignedTailWrite:
-        movdqa %xmm1, 48(%esi) { T1 }
-        movdqu %xmm0, 49(%ecx) { UT }
-        pop    %esi
+        movdqa %xmm1, 48(%ecx) { T1 }
         ret
 
 .balign 16
@@ -283,7 +275,7 @@ FillXxxx_MoreThanTwoXMMs:
         movntdq %xmm1, 32(%eax)
         movntdq %xmm1, 48(%eax)
         add    $64, %eax
-        cmp    %esi, %eax
+        cmp    %ecx, %eax
         jb     .L64xNT_Body
         sfence
         jmp    .LFourAlignedTailWrites
@@ -369,8 +361,15 @@ asm
         cmp     $16, %edx
         jbe     FillXxxx_U32Pattern_Ladder_4to16
         cmp     $FillXxxx_RepStosThreshold_NoERMS, %edx
-        jb      FillXxxx_U32Pattern_SSE2_16OrMore
-        jmp     FillXxxx_U32Pattern_RepStos_8OrMore
+        jae     FillXxxx_U32Pattern_RepStos_8OrMore
+
+        movd   %ecx, %xmm0
+        pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+        movdqu %xmm0, (%eax)
+        movdqu %xmm0, -16(%eax,%edx)
+        movdqa %xmm0, %xmm1
+        cmp    $32, %edx
+        ja     FillXxxx_MoreThanTwoXMMs
 end;
 
 procedure FillChar_SSE2_ERMS(var x;count:SizeInt;value:byte);assembler;nostackframe;
@@ -383,8 +382,15 @@ asm
         cmp     $16, %edx
         jbe     FillXxxx_U32Pattern_Ladder_4to16
         cmp     $FillXxxx_RepStosThreshold_ERMS, %edx
-        jb      FillXxxx_U32Pattern_SSE2_16OrMore
-        jmp     FillXxxx_U32Pattern_RepStos_8OrMore
+        jae     FillXxxx_U32Pattern_RepStos_8OrMore
+
+        movd   %ecx, %xmm0
+        pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+        movdqu %xmm0, (%eax)
+        movdqu %xmm0, -16(%eax,%edx)
+        movdqa %xmm0, %xmm1
+        cmp    $32, %edx
+        ja     FillXxxx_MoreThanTwoXMMs
 end;
 
 procedure FillChar_Dispatch(var x;count:SizeInt;value:byte); forward;
@@ -599,14 +605,14 @@ asm
         punpcklqdq %xmm0, %xmm0
         { Stack is 12 bytes:
           [esp] = return address, [esp + 4] = value (not required anymore).
-          Convert to 8 bytes expected by FillXxxx_MoreThanTwoXMMs:
-          [esp] = esi, [esp + 4] = return address. }
+          Convert to 4 bytes expected by FillXxxx_MoreThanTwoXMMs:
+          [esp] = return address. }
         mov     (%esp), %ecx
-        add     $4, %esp
-        mov     %esi, (%esp)
-        mov     %ecx, 4(%esp)
+        add     $8, %esp
+        mov     %ecx, (%esp)
         shl     $3, %edx
         movdqu  %xmm0, (%eax)
+        movdqu  %xmm0, -16(%eax,%edx)
         movdqa  %xmm0, %xmm1
         test    $7, %eax { Since misaligning the pattern is not very trivial, shortcut if x is aligned. }
         jz      FillXxxx_MoreThanTwoXMMs
@@ -2296,42 +2302,40 @@ end;
 
 
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
         movl    $-1,%edx
-        xchgl   %edx,%eax
         lock
-        xaddl   %eax, (%edx)
-        decl    %eax
+        xaddl   %edx, (%eax)
+        lea     -1(%edx),%eax
 end;
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
         movl    $1,%edx
-        xchgl   %edx,%eax
         lock
-        xaddl   %eax, (%edx)
-        incl    %eax
+        xaddl   %edx, (%eax)
+        lea     1(%edx),%eax
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
         xchgl   (%eax),%edx
         movl    %edx,%eax
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-        xchgl   %eax,%edx
         lock
-        xaddl   %eax, (%edx)
+        xaddl   %edx, (%eax)
+        movl    %edx,%eax
 end;
 
 
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
         xchgl   %eax,%ecx
         lock
@@ -2629,14 +2633,15 @@ end;
 function BsfQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
      bsfl    4(%esp),%eax
-     jnz     .L2
+     jz     .L1
+     ret     $8
 .L1:
      bsfl    8(%esp),%eax
-     jnz     .L3
-     movl    $223,%eax
-.L3:
-     addl    $32,%eax
+     jz      .L2
+     add     $32,%eax
+     ret     $8
 .L2:
+     movl    $255,%eax
 end;
 {$endif FPC_SYSTEM_HAS_BSF_QWORD}
 
@@ -2648,12 +2653,13 @@ asm
      bsrl    8(%esp),%eax
      jz     .L1
      add     $32,%eax
-     jmp     .L2
+     ret     $8
 .L1:
      bsrl    4(%esp),%eax
-     jnz     .L2
-     movl    $255,%eax
+     jz      .L2
+     ret     $8
 .L2:
+     movl    $255,%eax
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}
 
@@ -2661,20 +2667,17 @@ end;
 {$define FPC_SYSTEM_HAS_SAR_QWORD}
 function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
 asm
-        movb   %al,%cl
         movl   8(%esp),%edx
-        movl   4(%esp),%eax
-        andb   $63,%cl
-        cmpb   $32,%cl
+        movzbl %al,%ecx
+        cmpb   $32,%al
         jnb    .L1
+        movl   4(%esp),%eax
         shrdl  %cl,%edx,%eax
         sarl   %cl,%edx
-        jmp    .Lexit
+        ret    $8
 .L1:
         movl   %edx,%eax
         sarl   $31,%edx
-        andb   $31,%cl
-        sarl   %cl,%eax
-.Lexit:
+        sarl   %cl,%eax // uses 5 lower bits of cl.
 end;
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}

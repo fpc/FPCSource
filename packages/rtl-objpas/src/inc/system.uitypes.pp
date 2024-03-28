@@ -25,9 +25,9 @@ interface
 Type  
     TColor      = -$7FFFFFFF-1..$7FFFFFFF;
     PColor      = ^TColor;
-    TColorRef   = Cardinal;
+    TColorRef   = Type Cardinal;
     PColorRef   = ^TColorRef;
-    TAlphaColor = Cardinal;
+    TAlphaColor = Type Cardinal;
     PAlphaColor = ^TAlphaColor;
     TImageIndex = type Integer;
 
@@ -656,11 +656,205 @@ const
   igiLongTap       = igiFirst + 8;
   igiDoubleTap     = igiFirst + 9;
 
+const
+  { Virtual keys }
+  vkLButton          = $01;  
+  vkRButton          = $02;  
+  vkCancel           = $03;  
+  vkMButton          = $04;  
+  vkXButton1         = $05;  
+  vkXButton2         = $06;  
+  vkBack             = $08;  
+  vkTab              = $09;  
+  vkLineFeed         = $0A;  
+  vkClear            = $0C;  
+  vkReturn           = $0D;  
+  vkShift            = $10;  
+  vkControl          = $11;  
+  vkMenu             = $12;  
+  vkPause            = $13;  
+  vkCapital          = $14;  
+  vkKana             = $15;  
+  vkHangul           = $15;  
+  vkJunja            = $17;  
+  vkFinal            = $18;  
+  vkHanja            = $19;  
+  vkKanji            = $19;  
+  vkConvert          = $1C;  
+  vkNonConvert       = $1D;  
+  vkAccept           = $1E;  
+  vkModeChange       = $1F;  
+  vkEscape           = $1B;  
+  vkSpace            = $20;  
+  vkPrior            = $21;  
+  vkNext             = $22;  
+  vkEnd              = $23;  
+  vkHome             = $24;  
+  vkLeft             = $25;  
+  vkUp               = $26;  
+  vkRight            = $27;  
+  vkDown             = $28;  
+  vkSelect           = $29;  
+  vkPrint            = $2A;  
+  vkExecute          = $2B;  
+  vkSnapshot         = $2C;  
+  vkInsert           = $2D;  
+  vkDelete           = $2E;  
+  vkHelp             = $2F;  
+
+  vk0                = $30;  
+  vk1                = $31;  
+  vk2                = $32;  
+  vk3                = $33;  
+  vk4                = $34;  
+  vk5                = $35;  
+  vk6                = $36;  
+  vk7                = $37;  
+  vk8                = $38;  
+  vk9                = $39;  
+  vkLCommand         = $3D;  
+  vkRCommand         = $3E;  
+  vkFunction         = $3F;  
+
+  vkA                = $41;  
+  vkB                = $42;  
+  vkC                = $43;  
+  vkD                = $44;  
+  vkE                = $45;  
+  vkF                = $46;  
+  vkG                = $47;  
+  vkH                = $48;  
+  vkI                = $49;  
+  vkJ                = $4A;  
+  vkK                = $4B;  
+  vkL                = $4C;  
+  vkM                = $4D;  
+  vkN                = $4E;  
+  vkO                = $4F;  
+  vkP                = $50;  
+  vkQ                = $51;  
+  vkR                = $52;  
+  vkS                = $53;  
+  vkT                = $54;  
+  vkU                = $55;  
+  vkV                = $56;  
+  vkW                = $57;  
+  vkX                = $58;  
+  vkY                = $59;  
+  vkZ                = $5A;  
+  vkLWin             = $5B;  
+  vkRWin             = $5C;  
+  vkApps             = $5D;  
+  vkSleep            = $5F;  
+  vkNumpad0          = $60;  
+  vkNumpad1          = $61;  
+  vkNumpad2          = $62;  
+  vkNumpad3          = $63;  
+  vkNumpad4          = $64;  
+  vkNumpad5          = $65;  
+  vkNumpad6          = $66;  
+  vkNumpad7          = $67;  
+  vkNumpad8          = $68;  
+  vkNumpad9          = $69;  
+  vkMultiply         = $6A;  
+  vkAdd              = $6B;  
+  vkSeparator        = $6C;  
+  vkSubtract         = $6D;  
+  vkDecimal          = $6E;  
+  vkDivide           = $6F;  
+  vkF1               = $70;  
+  vkF2               = $71;  
+  vkF3               = $72;  
+  vkF4               = $73;  
+  vkF5               = $74;  
+  vkF6               = $75;  
+  vkF7               = $76;  
+  vkF8               = $77;  
+  vkF9               = $78;  
+  vkF10              = $79;  
+  vkF11              = $7A;  
+  vkF12              = $7B;  
+  vkF13              = $7C;  
+  vkF14              = $7D;  
+  vkF15              = $7E;  
+  vkF16              = $7F;  
+  vkF17              = $80;  
+  vkF18              = $81;  
+  vkF19              = $82;  
+  vkF20              = $83;  
+  vkF21              = $84;  
+  vkF22              = $85;  
+  vkF23              = $86;  
+  vkF24              = $87;  
+
+  vkCamera           = $88;  
+  vkHardwareBack     = $89;  
+
+  vkNumLock          = $90;  
+  vkScroll           = $91;  
+  vkLShift           = $A0;  
+  vkRShift           = $A1;  
+  vkLControl         = $A2;  
+  vkRControl         = $A3;  
+  vkLMenu            = $A4;  
+  vkRMenu            = $A5;  
+
+  vkBrowserBack      = $A6;  
+  vkBrowserForward   = $A7;  
+  vkBrowserRefresh   = $A8;  
+  vkBrowserStop      = $A9;  
+  vkBrowserSearch    = $AA;  
+  vkBrowserFavorites = $AB;  
+  vkBrowserHome      = $AC;  
+  vkVolumeMute       = $AD;  
+  vkVolumeDown       = $AE;  
+  vkVolumeUp         = $AF;  
+  vkMediaNextTrack   = $B0;  
+  vkMediaPrevTrack   = $B1;  
+  vkMediaStop        = $B2;  
+  vkMediaPlayPause   = $B3;  
+  vkLaunchMail       = $B4;  
+  vkLaunchMediaSelect= $B5;  
+  vkLaunchApp1       = $B6;  
+  vkLaunchApp2       = $B7;  
+
+  vkSemicolon        = $BA;  
+  vkEqual            = $BB;  
+  vkComma            = $BC;  
+  vkMinus            = $BD;  
+  vkPeriod           = $BE;  
+  vkSlash            = $BF;  
+  vkTilde            = $C0;  
+  vkLeftBracket      = $DB;  
+  vkBackslash        = $DC;  
+  vkRightBracket     = $DD;  
+  vkQuote            = $DE;  
+  vkPara             = $DF;  
+
+  vkOem102           = $E2;  
+  vkIcoHelp          = $E3;  
+  vkIco00            = $E4;  
+  vkProcessKey       = $E5;  
+  vkIcoClear         = $E6;  
+  vkPacket           = $E7;  
+  vkAttn             = $F6;  
+  vkCrsel            = $F7;  
+  vkExsel            = $F8;  
+  vkErEof            = $F9;  
+  vkPlay             = $FA;  
+  vkZoom             = $FB;  
+  vkNoname           = $FC;  
+  vkPA1              = $FD;  
+  vkOemClear         = $FE;  
+  vkNone             = $FF;  
+
 // Edit controls
 
 Type
   TEditCharCase = (ecNormal, ecUpperCase, ecLowerCase);
-
+  
+  TTouchTracking = set of (ttVertical, ttHorizontal);
+  
   // Forms
   
   TWindowState = (wsNormal, wsMinimized, wsMaximized, wsFullScreen);
@@ -687,6 +881,8 @@ Type
   TPrintDialogOption = (poPrintToFile, poPageNums, poSelection, poWarning,
     poHelp, poDisablePrintToFile);
   TPrintDialogOptions = set of TPrintDialogOption;
+  TPageType = (ptEnvelope, ptPaper);
+  TPageTypes = set of TPageType;
 
   TPageSetupDialogOption = (psoDefaultMinMargins, psoDisableMargins,
       psoDisableOrientation, psoDisablePagePainting, psoDisablePaper, psoDisablePrinter,

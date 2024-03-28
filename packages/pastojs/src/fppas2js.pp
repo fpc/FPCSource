@@ -8815,7 +8815,7 @@ begin
     Case El.Kind of
       pekIdent : Result:=GetPasIdentValueType(El.Name,AContext);
       pekNumber : Result:=jstNumber;
-      pekString : Result:=jstString;
+      pekString,pekStringMultiLine : Result:=jstString;
       pekSet : Result:=jstUNDEFINED;
       pekNil : Result:=jstNull;
       pekBoolConst : Result:=jstBoolean;
@@ -8862,10 +8862,15 @@ begin
     if Expr is TPrimitiveExpr then
       begin
       Prim:=TPrimitiveExpr(Expr);
-      if Prim.Kind=pekString then
-        Result:=Prim.Value
+      case Prim.Kind of
+      pekString:
+        begin
+        Result:=Prim.Value;
+        Result:={$IFDEF pas2js}DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(Result,'''');
+        end;
       else
         RaiseNotSupported(Prim,AContext,20170215124733);
+      end;
       end
     else
       RaiseNotSupported(Expr,AContext,20170322121331);
@@ -9243,13 +9248,8 @@ begin
           C:=TJSBitwiseXOrExpression; // no logical xor in JS. bitwise works for boolean too
         end;
       eopPower:
-        begin
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreatePrimitiveDotExpr('Math.pow',El);
-        Call.AddArg(A);
-        Call.AddArg(B);
-        Result:=Call;
-        end;
+        // convert pascal ** to js **
+        C:=TJSPowerExpression;
       else
         if C=nil then
           DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
@@ -10350,6 +10350,11 @@ begin
         S:={$IFDEF pas2js}DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(El.Value,'''');
         Result:=CreateLiteralString(El,S);
         end;
+      //writeln('TPasToJSConverter.ConvertPrimitiveExpression Result="',TJSLiteral(Result).Value.AsString,'" ',GetObjName(AContext.Resolver));
+      end;
+    pekStringMultiLine:
+      begin
+      Result:=CreateLiteralJSString(El,StrToJSString(El.Value));
       //writeln('TPasToJSConverter.ConvertPrimitiveExpression Result="',TJSLiteral(Result).Value.AsString,'" ',GetObjName(AContext.Resolver));
       end;
     pekNumber:

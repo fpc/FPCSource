@@ -29,7 +29,14 @@ interface
        node,htypechk,symtype,compinnr;
 
     type
+       TInlineNodeFlag = (
+         inf_inlineconst
+       );
+
+       TInlineNodeFlags = set of TInlineNodeFlag;
+
        tinlinenode = class(tunarynode)
+          inlinenodeflags : TInlineNodeFlags;
           inlinenumber : tinlinenumber;
           constructor create(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
           constructor createintern(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
@@ -137,7 +144,7 @@ implementation
       globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
       cpuinfo,cpubase,
-      pass_1,
+      pass_1,ppu,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
       cgbase,procinfo;
@@ -153,11 +160,12 @@ implementation
 *****************************************************************************}
 
     constructor tinlinenode.create(number : tinlinenumber;is_const:boolean;l : tnode);
-
       begin
          inherited create(inlinen,l);
          if is_const then
-           include(flags,nf_inlineconst);
+           inlinenodeflags:=[inf_inlineconst]
+         else
+           inlinenodeflags:=[];
          inlinenumber:=number;
       end;
 
@@ -166,6 +174,7 @@ implementation
      l : tnode);
       begin
          create(number,is_const,l);
+         inlinenodeflags:=[];
          include(flags,nf_internal);
       end;
 
@@ -173,6 +182,7 @@ implementation
     constructor tinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        ppufile.getset(tppuset1(inlinenodeflags));
         inlinenumber:=tinlinenumber(ppufile.getlongint);
       end;
 
@@ -180,6 +190,7 @@ implementation
     procedure tinlinenode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(inlinenodeflags));
         ppufile.putlongint(longint(inlinenumber));
       end;
 
@@ -189,6 +200,7 @@ implementation
          n : tinlinenode;
       begin
          n:=tinlinenode(inherited dogetcopy);
+         n.inlinenodeflags:=inlinenodeflags;
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
@@ -202,8 +214,25 @@ implementation
 
 {$ifdef DEBUG_NODE_XML}
     procedure TInlineNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TInlineNodeFlag;
+        First: Boolean;
       begin
-        inherited;
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in inlinenodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' inlinenodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+
         Write(T, ' inlinenumber="', inlinenumber, '"');
       end;
 {$endif DEBUG_NODE_XML}
@@ -2330,15 +2359,34 @@ implementation
             end;
         end;
 
+      function is_minmax_deterministic(var node: tordconstnode; const DoMax: Boolean; out res: Boolean): Boolean;
+        begin
+          Result := False;
+          if not is_integer(resultdef) then
+            InternalError(2024031501);
+
+          if (node.value <= torddef(resultdef).low) then
+            begin
+              res := not DoMax;
+              Exit(True);
+            end
+          else if (node.value >= torddef(resultdef).high) then
+            begin
+              res := DoMax;
+              Exit(True);
+            end
+        end;
+
       var
-        hp        : tnode;
+        hp,hp2    : tnode;
         vl,vl2    : TConstExprInt;
         vr        : bestreal;
+        helperres : Boolean;
 
       begin { simplify }
          result:=nil;
          { handle intern constant functions in separate case }
-         if nf_inlineconst in flags then
+         if inf_inlineconst in inlinenodeflags then
           begin
             { no parameters? }
             if not assigned(left) then
@@ -2862,6 +2910,262 @@ implementation
                       result:=cordconstnode.create(PopCnt(tordconstnode(left).value),resultdef,false);
                     end;
                 end;
+              in_min_single,
+              in_min_double:
+                begin
+                  { Check to see if the result is deterministic }
+                  if left.nodetype=callparan then
+                    begin
+                      hp:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+                      hp2:=tcallparanode(left).paravalue;
+
+                      if (hp.nodetype=realconstn) then
+                        begin
+                          if (trealconstnode(hp).value_real = MathQNaN.value) then
+                            { If one of the inputs is NaN, the second parameter
+                              is taken }
+                            result:=hp2.getcopy()
+                          else if (trealconstnode(hp).value_real = MathNegInf.value) then
+                            { Nothing is less than than -oo }
+                            result:=crealconstnode.create(MathNegInf.value,resultdef)
+                          else if (trealconstnode(hp).value_real = MathInf.value) then
+                            { Everything is less than +oo }
+                            result:=hp2.getcopy()
+                          else if (hp2.nodetype=realconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the smaller of the two right now }
+                              if (trealconstnode(hp).value_real < trealconstnode(hp2).value_real) then
+                                result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef)
+                              else
+                                result:=crealconstnode.create(trealconstnode(hp2).value_real,resultdef);
+                            end;
+                        end
+                      else if (hp2.nodetype=realconstn) then
+                        begin
+                          if (trealconstnode(hp2).value_real = MathQNaN.value) then
+                            { If one of the inputs is NaN, the second parameter
+                              is taken (even if it is NaN) }
+                            result:=crealconstnode.create(MathQNaN.value,resultdef)
+                          else if (trealconstnode(hp2).value_real = MathNegInf.value) then
+                            { Nothing is less than than -oo }
+                            result:=crealconstnode.create(MathNegInf.value,resultdef)
+                          else if (trealconstnode(hp2).value_real = MathInf.value) then
+                            { Everything is less than +oo }
+                            result:=hp.getcopy();
+                        end;
+                    end;
+                end;
+              in_max_single,
+              in_max_double:
+                begin
+                  { Check to see if the result is deterministic }
+                  if left.nodetype=callparan then
+                    begin
+                      hp:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+                      hp2:=tcallparanode(left).paravalue;
+
+                      if (hp.nodetype=realconstn) then
+                        begin
+                          if (trealconstnode(hp).value_real = MathQNaN.value) then
+                            { If one of the inputs is NaN, the second parameter
+                              is taken }
+                            result:=hp2.getcopy()
+                          else if (trealconstnode(hp).value_real = MathNegInf.value) then
+                            { Everything is greater than than -oo }
+                            result:=hp2.getcopy()
+                          else if (trealconstnode(hp).value_real = MathInf.value) then
+                            { Nothing is greater than +oo }
+                            result:=crealconstnode.create(MathInf.value,resultdef)
+                          else if (hp2.nodetype=realconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the larger of the two right now }
+                              if (trealconstnode(hp).value_real > trealconstnode(hp2).value_real) then
+                                result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef)
+                              else
+                                result:=crealconstnode.create(trealconstnode(hp2).value_real,resultdef)
+                            end;
+                        end
+                      else if (hp2.nodetype=realconstn) then
+                        begin
+                          if (trealconstnode(hp2).value_real = MathQNaN.value) then
+                            { If one of the inputs is NaN, the second parameter
+                              is taken (even if it is NaN) }
+                            result:=crealconstnode.create(MathQNaN.value,resultdef)
+                          else if (trealconstnode(hp2).value_real = MathNegInf.value) then
+                            { Everything is greater than than -oo }
+                            result:=hp.getcopy()
+                          else if (trealconstnode(hp2).value_real = MathInf.value) then
+                            { Nothing is greater than +oo }
+                            result:=crealconstnode.create(MathInf.value,resultdef);
+                        end;
+                    end;
+                end;
+              in_min_longint,
+              in_min_int64:
+                begin
+                  if left.nodetype=callparan then
+                    begin
+                      { Check to see if the result is deterministic }
+                      hp:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+                      hp2:=tcallparanode(left).paravalue;
+
+                      if (hp.nodetype=ordconstn) then
+                        begin
+                          if (hp2.nodetype=ordconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the smaller of the two right now }
+                              if inlinenumber=in_min_longint then
+                                result:=cordconstnode.create(min(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
+                              else
+                                result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
+                            end;
+
+                          if is_minmax_deterministic(tordconstnode(hp), False, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false)
+                              else
+                                result:=hp2.getcopy();
+                            end;
+                        end
+                      else if (hp2.nodetype=ordconstn) then
+                        begin
+                          if is_minmax_deterministic(tordconstnode(hp2), False, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false)
+                              else
+                                result:=hp.getcopy();
+                            end;
+                        end;
+                    end;
+                end;
+              in_max_longint,
+              in_max_int64:
+                begin
+                  if left.nodetype=callparan then
+                    begin
+                      { Check to see if the result is deterministic }
+                      hp:=tcallparanode(left).paravalue;
+                      hp2:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+
+                      if (hp.nodetype=ordconstn) then
+                        begin
+                          if (hp2.nodetype=ordconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the larger of the two right now }
+                              if inlinenumber=in_max_longint then
+                                result:=cordconstnode.create(max(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
+                              else
+                                result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
+                            end;
+
+                          if is_minmax_deterministic(tordconstnode(hp), True, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false)
+                              else
+                                result:=hp2.getcopy();
+                            end;
+                        end
+                      else if (hp2.nodetype=ordconstn) then
+                        begin
+                          if is_minmax_deterministic(tordconstnode(hp2), True, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false)
+                              else
+                                result:=hp.getcopy();
+                            end;
+                        end;
+                    end;
+                end;
+              in_min_dword,
+              in_min_qword:
+                begin
+                  if left.nodetype=callparan then
+                    begin
+                      { Check to see if the result is deterministic }
+                      hp:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+                      hp2:=tcallparanode(left).paravalue;
+
+                      if (hp.nodetype=ordconstn) then
+                        begin
+                          if (hp2.nodetype=ordconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the smaller of the two right now }
+                              if inlinenumber=in_min_dword then
+                                result:=cordconstnode.create(min(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
+                              else
+                                result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
+                            end;
+
+                          if is_minmax_deterministic(tordconstnode(hp), False, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false)
+                              else
+                                result:=hp2.getcopy();
+                            end;
+                        end
+                      else if (hp2.nodetype=ordconstn) then
+                        begin
+                          if is_minmax_deterministic(tordconstnode(hp2), False, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false)
+                              else
+                                result:=hp.getcopy();
+                            end;
+                        end;
+                    end;
+                end;
+              in_max_dword,
+              in_max_qword:
+                begin
+                  if left.nodetype=callparan then
+                    begin
+                      { Check to see if the result is deterministic }
+                      hp:=tcallparanode(left).paravalue;
+                      hp2:=tcallparanode(tcallparanode(left).nextpara).paravalue;
+
+                      if (hp.nodetype=ordconstn) then
+                        begin
+                          if (hp2.nodetype=ordconstn) then
+                            begin
+                              { Both actual parameters are constants, so take
+                                the larger of the two right now }
+                              if inlinenumber=in_max_dword then
+                                result:=cordconstnode.create(max(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
+                              else
+                                result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
+                            end;
+
+                          if is_minmax_deterministic(tordconstnode(hp), True, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false)
+                              else
+                                result:=hp2.getcopy();
+                            end;
+                        end
+                      else if (hp2.nodetype=ordconstn) then
+                        begin
+                          if is_minmax_deterministic(tordconstnode(hp2), True, helperres) then
+                            begin
+                              if helperres then
+                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false)
+                              else
+                                result:=hp.getcopy();
+                            end;
+                        end;
+                    end;
+                end;
               else
                 ;
             end;
@@ -3040,7 +3344,7 @@ implementation
               typecheckpass(left);
           end;
 
-        if not(nf_inlineconst in flags) then
+        if not(inf_inlineconst in inlinenodeflags) then
           begin
             case inlinenumber of
               in_lo_long,
@@ -3860,6 +4164,10 @@ implementation
               in_max_dword,
               in_min_longint,
               in_min_dword,
+              in_max_int64,
+              in_max_qword,
+              in_min_int64,
+              in_min_qword,
               in_max_single,
               in_max_double,
               in_min_single,
@@ -3918,7 +4226,7 @@ implementation
            end;
 
          { intern const should already be handled }
-         if nf_inlineconst in flags then
+         if inf_inlineconst in inlinenodeflags then
           internalerror(200104044);
          case inlinenumber of
           in_lo_qword,
@@ -4316,6 +4624,10 @@ implementation
          in_max_dword,
          in_min_longint,
          in_min_dword,
+         in_max_int64,
+         in_max_qword,
+         in_min_int64,
+         in_min_qword,
          in_min_single,
          in_min_double,
          in_max_single,
@@ -4771,6 +5083,17 @@ implementation
         { first param must be a string or dynamic array ...}
         if isarray then
          begin
+           { SetLength(Arr, 0), Arr := nil, Arr := [] }
+           if (dims=1) and is_constintvalue(tcallparanode(paras).left, 0) then
+             begin
+               ppn.left:=nil; { unlink destppn }
+               result:=ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil);
+               result:=ccallnode.createintern('fpc_dynarray_clear',
+                 ccallparanode.create(caddrnode.create_internal(
+                   crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
+                 result));
+               exit;
+             end;
            { create statements with call initialize the arguments and
              call fpc_dynarr_setlength }
            newblock:=internalstatements(newstatement);
@@ -5436,7 +5759,7 @@ implementation
                      inserttypeconv_internal(n,voidpointertype);
                      arrconstr:=carrayconstructornode.create(n,arrconstr);
                    end;
-                 arrconstr.allow_array_constructor:=true;
+                 Include(arrconstr.arrayconstructornodeflags,acnf_allow_array_constructor);
 
                  { based on the code from nopt.genmultistringadd() }
                  tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);

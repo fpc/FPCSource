@@ -123,7 +123,7 @@ type
       AIndex, ACount: SizeInt): Boolean; override; overload;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
-  TCollectionNotification = (cnAdded, cnRemoved, cnExtracted);
+  TCollectionNotification = (cnAdding, cnAdded, cnDeleting, cnRemoved, cnExtracting,  cnExtracted);
   TCollectionNotifyEvent<T> = procedure(ASender: TObject; const AItem: T; AAction: TCollectionNotification)
     of object;
 
@@ -186,12 +186,13 @@ type
   protected
     type // bug #24282
       TArrayHelperBugHack = TArrayHelper<T>;
+      TArrayOfT = array of T;
   private
     FOnNotify: TCollectionNotifyEvent<T>;
     function GetCapacity: SizeInt; inline;
   protected
     FLength: SizeInt;
-    FItems: array of T;
+    FItems: TArrayOfT;
 
     function PrepareAddingItem: SizeInt; virtual;
     function PrepareAddingRange(ACount: SizeInt): SizeInt; virtual;
@@ -204,6 +205,7 @@ type
 
     property Count: SizeInt read GetCount;
     property Capacity: SizeInt read GetCapacity write SetCapacity;
+    property List: TArrayOfT read FItems;
     property OnNotify: TCollectionNotifyEvent<T> read FOnNotify write FOnNotify;
 
     procedure TrimExcess; virtual; abstract;
@@ -288,6 +290,7 @@ type
     procedure Delete(AIndex: SizeInt); inline;
     procedure DeleteRange(AIndex, ACount: SizeInt);
     function ExtractIndex(const AIndex: SizeInt): T; overload;
+    Function ExtractAt(const AIndex: SizeInt): T; inline;
     function Extract(const AValue: T): T; overload;
 
     procedure Exchange(AIndex1, AIndex2: SizeInt); virtual;
@@ -1746,6 +1749,14 @@ function TList<T>.ExtractIndex(const AIndex: SizeInt): T;
 begin
   Result := DoRemove(AIndex, cnExtracted);
 end;
+
+
+function TList<T>.ExtractAt(const AIndex: SizeInt): T;
+begin
+  Result:=ExtractIndex(AIndex);
+end;
+
+
 
 function TList<T>.Extract(const AValue: T): T;
 var

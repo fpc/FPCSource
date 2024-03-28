@@ -2349,8 +2349,8 @@ implementation
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
                                     p2:=crangenode.create(p2,caddnode.create(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=cvecnode.create(p1,p2);
-                                  include(tvecnode(p1).flags,nf_memseg);
-                                  include(tvecnode(p1).flags,nf_memindex);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memseg);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end
                                else
                                 begin
@@ -2358,7 +2358,7 @@ implementation
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
                                     p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                                   p1:=cvecnode.create(p1,p2);
-                                  include(tvecnode(p1).flags,nf_memindex);
+                                  include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end;
 {$else}
                                internalerror(2013053105);
@@ -3121,7 +3121,7 @@ implementation
 
           constsym :
             begin
-              if tconstsym(srsym).consttyp=constresourcestring then
+              if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring]then
                 begin
                   result:=cloadnode.create(srsym,srsymtable);
                   do_typecheckpass(result);
@@ -3639,7 +3639,8 @@ implementation
                end;
            { there could be more elements }
            until not try_to_consume(_COMMA);
-           buildp.allow_array_constructor:=block_type in [bt_body,bt_except];
+           if block_type in [bt_body,bt_except] then
+             Include(buildp.arrayconstructornodeflags, acnf_allow_array_constructor);
            factor_read_set:=buildp;
          end;
 
@@ -4829,14 +4830,14 @@ implementation
                  begin
                    p1:=caddnode.create(orn,p1,p2);
                    if (oldt = _PIPE) then
-                     include(p1.flags,nf_short_bool);
+                     include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_AND,
                _AMPERSAND {macpas only} :
                  begin
                    p1:=caddnode.create(andn,p1,p2);
                    if (oldt = _AMPERSAND) then
-                     include(p1.flags,nf_short_bool);
+                     include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_DIV :
                  p1:=cmoddivnode.create(divn,p1,p2);
@@ -4846,7 +4847,7 @@ implementation
                  begin
                    p1:=cmoddivnode.create(modn,p1,p2);
                    if m_isolike_mod in current_settings.modeswitches then
-                     include(p1.flags,nf_isomod);
+                     include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;
                _OP_SHL :
                  p1:=cshlshrnode.create(shln,p1,p2);
@@ -4952,24 +4953,32 @@ implementation
              end;
            _PLUSASN :
              begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_PLUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_MINUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_STARASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
+               if not(cs_support_c_operators in current_settings.moduleswitches) then
+                 Message(parser_e_coperators_off);
                consume(_SLASHASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);

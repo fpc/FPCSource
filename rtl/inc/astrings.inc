@@ -116,21 +116,17 @@ Function NewAnsiString(Len : SizeInt) : Pointer;
   Allocate a new AnsiString on the heap.
   initialize it to zero length and reference count 1.
 }
-Var
-  P : Pointer;
 begin
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  GetMem(P,Len+(AnsiFirstOff+sizeof(AnsiChar)));
-  If P<>Nil then
-   begin
-     PAnsiRec(P)^.Ref:=1;         { Set reference count }
-     PAnsiRec(P)^.Len:=0;         { Initial length }
-     PAnsiRec(P)^.CodePage:=DefaultSystemCodePage;
-     PAnsiRec(P)^.ElementSize:=SizeOf(AnsiChar);
-     inc(p,AnsiFirstOff);         { Points to string now }
-     PAnsiChar(P)^:=#0;           { Terminating #0 }
-   end;
-  NewAnsiString:=P;
+  Result:=GetMem(Len+(AnsiFirstOff+sizeof(AnsiChar)));
+  If Result=Nil then
+    Exit;
+  PAnsiRec(Result)^.Ref:=1;    { Set reference count }
+  PAnsiRec(Result)^.Len:=0;    { Initial length }
+  PAnsiRec(Result)^.CodePage:=DefaultSystemCodePage;
+  PAnsiRec(Result)^.ElementSize:=SizeOf(AnsiChar);
+  inc(Result,AnsiFirstOff);    { Points to string now }
+  PAnsiChar(Result)^:=#0;      { Terminating #0 }
 end;
 {$endif FPC_HAS_NEWANSISTR}
 
@@ -650,44 +646,20 @@ Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt;[Public,Alias
    >0 if S1>S2
 }
 Var
-  MaxI,Temp : SizeInt;
-  cp1,cp2 : TSystemCodePage;
-  r1,r2 : RawByteString;
+  Len1,Len2,CmpLen : SizeInt;
 begin
-  if pointer(S1)=pointer(S2) then
-    begin
-      result:=0;
-      exit;
-    end;
-  if (pointer(S1)=nil) then
-    begin
-      result:=-Length(S2);
-      exit;
-    end;
-  if (pointer(S2)=nil) then
-    begin
-      result:=Length(S1);
-      exit;
-    end;
-  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
-  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
-  if cp1=cp2 then
-    begin
-      Maxi:=Length(S1);
-      temp:=Length(S2);
-      If MaxI>Temp then
-        MaxI:=Temp;
-      if MaxI>0 then
-        begin
-          result:=CompareByte(S1[1],S2[1],MaxI);
-          if result=0 then
-            result:=Length(S1)-Length(S2);
-        end
-      else
-        result:=Length(S1)-Length(S2);
-    end
-  else
-    Result:=fpc_utf8_compare(s1,s2);
+  if (pointer(S1)=pointer(S2)) or (pointer(S1)=nil) or (pointer(S2)=nil) then
+    exit(ord(pointer(S1)<>nil)-ord(pointer(S2)<>nil));
+  if TranslatePlaceholderCP(PAnsiRec(Pointer(S1)-AnsiFirstOff)^.CodePage)<>TranslatePlaceholderCP(PAnsiRec(Pointer(S2)-AnsiFirstOff)^.CodePage) then
+    exit(fpc_utf8_compare(s1,s2));
+  Len1:=PAnsiRec(Pointer(S1)-AnsiFirstOff)^.Len;
+  Len2:=PAnsiRec(Pointer(S2)-AnsiFirstOff)^.Len;
+  CmpLen:=Len1;
+  If Len1>Len2 then
+    CmpLen:=Len2;
+  result:=CompareByte(S1[1],S2[1],CmpLen);
+  if result=0 then
+    result:=Len1-Len2;
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE}
 
@@ -722,29 +694,17 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt;[Public
    <>0 if S1<>S2
 }
 Var
-  MaxI,Temp : SizeInt;
-  cp1,cp2 : TSystemCodePage;
+  MaxI : SizeInt;
 begin
-  if pointer(S1)=pointer(S2) then
-    Exit(0);
   { don't compare strings if one of them is empty }
-  if (pointer(S1)=nil) or (pointer(S2)=Nil) then
-    Exit(-1);
-  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
-  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
-  if cp1=cp2 then
-    begin
-      Maxi:=Length(S1);
-      temp:=Length(S2);
-      Result := Maxi - temp;
-      if Result = 0 then
-        if MaxI>0 then
-          result:=CompareByte(S1[1],S2[1],MaxI);
-    end
-  else
-    begin
-    Result:=fpc_utf8_Compare_equal(S1,S2);
-    end;
+  if (pointer(S1)=pointer(S2)) or (pointer(S1)=nil) or (pointer(S2)=nil) then
+    Exit(ord(pointer(S1)<>pointer(S2)));
+  if TranslatePlaceholderCP(PAnsiRec(Pointer(S1)-AnsiFirstOff)^.CodePage)<>TranslatePlaceholderCP(PAnsiRec(Pointer(S2)-AnsiFirstOff)^.CodePage) then
+    Exit(fpc_utf8_Compare_equal(S1,S2));
+  Maxi:=PAnsiRec(Pointer(S1)-AnsiFirstOff)^.Len;
+  Result:=Maxi-PAnsiRec(Pointer(S2)-AnsiFirstOff)^.Len;
+  if Result=0 then
+    result:=CompareByte(S1[1],S2[1],MaxI);
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE_EQUAL}
 
@@ -792,24 +752,19 @@ begin
           lens:=MemSize(Temp);
           lena:=AnsiFirstOff+L+sizeof(AnsiChar);
           { allow shrinking string if that saves at least half of current size }
-          if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-            begin
-              reallocmem(Temp,lena);
-              Pointer(S):=Temp+AnsiFirstOff;
-            end;
+          if (lena>lens) or ((lens>32) and (lena<=SizeInt(SizeUint(lens) div 2))) then
+            Pointer(S):=reallocmem(Temp,lena)+AnsiFirstOff;
         end
       else
         begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
           PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-          lens:=length(s);
-          if l<=lens then
-            lens:=l
-          else
-            { Also copy a trailing implicit #0 of the original string
-              to the new larger string }
-            Inc(lens);
+          { Also copy a trailing implicit #0 of the original string
+            to the new larger string }
+          lens:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len+1;
+          if l<lens then
+            lens:=l;
           Move(Pointer(S)^,Temp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
@@ -894,9 +849,7 @@ Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSI
 }
 begin
   pointer(result) := pointer(s);
-  If Pointer(S)=Nil then
-    exit;
-  if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref<>1 then
+  if (result<>Nil) and (PAnsiRec(result-AnsiFirstOff)^.Ref<>1) then
     result:=fpc_truely_ansistr_unique(s);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
@@ -905,17 +858,16 @@ end;
 {$define FPC_HAS_ANSISTR_COPY}
 Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 var
+  Lim : SizeInt;
   ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
   dec(index);
   if Index < 0 then
     Index := 0;
-  { Check Size. Accounts for Zero-length S, the double check is needed because
-    Size can be maxint and will get <0 when adding index }
-  if (Size>Length(S)) or
-     (Index+Size>Length(S)) then
-   Size:=Length(S)-Index;
+  Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
+  if Size>Lim then
+    Size:=Lim;
   If Size>0 then
    begin
      ResultAddress:=NewAnsiString(Size);
@@ -927,7 +879,7 @@ begin
         PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
       end;
    end;
-   fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
+  fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 {$endif FPC_HAS_ANSISTR_COPY}

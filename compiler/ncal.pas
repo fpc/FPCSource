@@ -1224,11 +1224,11 @@ implementation
                     if is_array_of_const(parasym.vardef) then
                      begin
                        { force variant array }
-                       include(left.flags,nf_forcevaria);
+                       include(tarrayconstructornode(left).arrayconstructornodeflags,acnf_forcevaria);
                      end
                     else
                      begin
-                       include(left.flags,nf_novariaallowed);
+                       include(tarrayconstructornode(left).arrayconstructornodeflags,acnf_novariaallowed);
                        { now that the resultting type is know we can insert the required
                          typeconvs for the array constructor }
                        if parasym.vardef.typ=arraydef then
@@ -3466,7 +3466,7 @@ implementation
                 funcretnode:=aktassignmentnode.left.getcopy;
                 include(funcretnode.flags,nf_is_funcret);
                 { notify the assignment node that the assignment can be removed }
-                include(aktassignmentnode.flags,nf_assign_done_in_right);
+                include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
               end
             else
               begin
@@ -5511,7 +5511,7 @@ implementation
                 if FindUnitSymtable(tloadnode(n).symtable).moduleid<>current_module.moduleid then
                   current_module.addimportedsym(sym);
               end
-            else if (sym.typ=constsym) and (tconstsym(sym).consttyp=constresourcestring) then
+            else if (sym.typ=constsym) and (tconstsym(sym).consttyp in [constwresourcestring,constresourcestring]) then
               begin
                 if tloadnode(n).symtableentry.owner.moduleid<>current_module.moduleid then
                   current_module.addimportedsym(sym);
@@ -5602,7 +5602,7 @@ implementation
 
         typecheckpass(tnode(inlineblock));
         doinlinesimplify(tnode(inlineblock));
-        node_reset_flags(tnode(inlineblock),[nf_pass1_done]);
+        node_reset_flags(tnode(inlineblock),[],[tnf_pass1_done]);
         firstpass(tnode(inlineblock));
         result:=inlineblock;
 

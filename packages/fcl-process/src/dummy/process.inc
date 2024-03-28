@@ -195,5 +195,5 @@ end;
 
 function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
 begin
-  Result:=aValue in [ioType,iotNone];
+  Result:=aValue in [ioType,iotDefault];
 end;

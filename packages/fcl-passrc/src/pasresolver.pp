@@ -10213,7 +10213,7 @@ begin
     case Primitive.Kind of
     pekIdent: ResolveNameExpr(El,Primitive.Value,Access);
     pekNumber: ;
-    pekString: ;
+    pekString,pekStringMultiLine: ;
     pekNil,pekBoolConst: ;
     else
       RaiseNotYetImplemented(20160922163451,El);
@@ -28016,6 +28016,15 @@ begin
                                FBaseTypes[btString],FBaseTypes[btString],
                                TPrimitiveExpr(El),[rrfReadable]);
         end;
+      pekStringMultiLine:
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ComputeElement pekStringMultiLine Value="',LeftStr(TPrimitiveExpr(El).Value,1,500),'"');
+        {$ENDIF}
+        SetResolverValueExpr(ResolvedEl,btString,
+                             FBaseTypes[btString],FBaseTypes[btString],
+                             TPrimitiveExpr(El),[rrfReadable]);
+        end;
       pekNil:
         SetResolverValueExpr(ResolvedEl,btNil,FBaseTypes[btNil],FBaseTypes[btNil],
                              TPrimitiveExpr(El),[rrfReadable]);
@@ -28458,7 +28467,7 @@ begin
   Expr:=ResolvedEl.ExprEl;
   if Expr<>nil then
     begin
-    if Expr.Kind in [pekNumber,pekString,pekNil,pekBoolConst] then
+    if Expr.Kind in [pekNumber,pekString,pekStringMultiLine,pekNil,pekBoolConst] then
       exit(true)
     else
       exit(false);

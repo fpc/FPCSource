@@ -61,10 +61,11 @@ implementation
     uses
       globtype,verbose,globals,
       compinnr,
-      cpuinfo, defutil,symdef,aasmdata,aasmcpu,
+      cpuinfo, defutil,symdef,aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
+      procinfo,
       ncal,nutils,
-      cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
+      cpubase,ncgutil,cgobj,cgcpu,hlcgobj;
 
 {*****************************************************************************
                               taarch64inlinenode
@@ -84,6 +85,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -91,6 +94,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -98,6 +103,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -105,6 +112,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -112,6 +121,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -119,6 +130,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -126,6 +139,8 @@ implementation
       begin
         expectloc:=LOC_MMREGISTER;
         result:=nil;
+        if needs_check_for_fpu_exceptions then
+          Include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -168,12 +183,22 @@ implementation
     procedure taarch64inlinenode.second_abs_long;
       var
         opsize : tcgsize;
+        hl: TAsmLabel;
       begin
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+
+        if cs_check_overflow in current_settings.localswitches then
+          begin
+            current_asmdata.getjumplabel(hl);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
+            hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
 
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_NEG,location.register,left.location.register),PF_S));
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,location.register,location.register,left.location.register,C_GE));
@@ -356,8 +381,10 @@ implementation
           begin
             expectloc:=LOC_MMREGISTER;
             Result:=nil;
+            if needs_check_for_fpu_exceptions then
+              Include(current_procinfo.flags,pi_do_call);
           end
-        else if is_32bitint(resultdef) then
+        else if is_32bitint(resultdef) or is_64bitint(resultdef) then
           begin
             expectloc:=LOC_REGISTER;
             Result:=nil;
@@ -373,6 +400,7 @@ implementation
         i: Integer;
         ai: taicpu;
         op: TAsmOp;
+        cond: TAsmCond;
       begin
         paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
           paraarray[2]:=tcallparanode(parameters).paravalue;
@@ -411,7 +439,7 @@ implementation
 
              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
-         else if is_32bitint(resultdef) then
+         else if is_32bitint(resultdef) or is_64bitint(resultdef) then
            begin
              { no memory operand is allowed }
              for i:=low(paraarray) to high(paraarray) do
@@ -428,17 +456,23 @@ implementation
                paraarray[1].location.register,paraarray[2].location.register));
 
              case inlinenumber of
+               in_min_longint,
+               in_min_int64:
+                 cond := C_LT;
                in_min_dword,
-               in_min_longint:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
-                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_LT));
+               in_min_qword:
+                 cond := C_LO;
+               in_max_longint,
+               in_max_int64:
+                 cond := C_GT;
                in_max_dword,
-               in_max_longint:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
-                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
+               in_max_qword:
+                 cond := C_HI;
                else
                  Internalerror(2021121901);
              end;
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+               location.register,paraarray[1].location.register,paraarray[2].location.register,cond));
            end
          else
            internalerror(2021121801);

@@ -2548,7 +2548,7 @@ TESTDIRECTDIRS=
 TESTSUBDIRS=cg cg/variants cg/cdecl cpu8/avr cpu16 cpu16/i8086 library opt wasm $(addprefix units/,$(TESTUNITDIRS))
 TESTPACKAGESDIRS=win-base webtbs hash fcl-registry fcl-process zlib fcl-db fcl-xml cocoaint bzip2 fcl-net
 TESTPACKAGESUBDIRS=$(addprefix packages/,$(TESTPACKAGESDIRS))
-TESTPACKAGESDIRECTDIRS=rtl-objpas rtl-generics hash regexpr fcl-registry fcl-passrc fcl-json fcl-image pastojs
+TESTPACKAGESDIRECTDIRS=rtl-objpas rtl-generics hash regexpr fcl-registry fcl-passrc fcl-json fcl-image pastojs fcl-process
 TESTPACKAGESDIRECTSUBDIRS=$(addprefix ../packages/,$(addsuffix /tests,$(TESTPACKAGESDIRECTDIRS)))
 ifdef QUICKTEST
 export QUICKTEST
@@ -2637,7 +2637,7 @@ endif
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
-	$(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
+	$(ECHOREDIR) $(TEST_DATETIME) > testprep-stamp.$(TEST_FULL_TARGET)
 ifneq ($(TEST_FPC),ppc386$(EXEEXT))
 ifeq ($(findstring -c$(TEST_FPC),$(DOTESTOPT)),)
 override DOTESTOPT+=-c$(TEST_FPC)

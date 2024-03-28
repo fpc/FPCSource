@@ -1880,6 +1880,12 @@ procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType
     SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
+constructor TResourceStream.Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PWideChar);
+
+begin
+  Create(Instance,ResName,PAnsichar(ResType));
+end;
+
 constructor TResourceStream.Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PAnsiChar);
 
 Var
@@ -1891,10 +1897,16 @@ begin
   {$IF SIZEOF(CHAR)=2}S:=ResName;{$endif}
   Initialize(Instance,PAnsiChar(S),ResType,False);
 end;
+
 constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PAnsiChar);
   begin
     inherited create;
     Initialize(Instance,PAnsiChar(PtrInt(ResID)),ResType,True);
+  end;
+
+constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PWideChar);
+  begin
+    CreateFromID(Instance,ResID,PAnsiChar(ResType));
   end;
 {$endif FPC_OS_UNICODE}
 

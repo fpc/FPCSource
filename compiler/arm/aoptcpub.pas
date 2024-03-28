@@ -119,6 +119,24 @@ Implementation
       i : Longint;
     begin
       result:=false;
+      if (p1.typ <> ait_instruction) then
+        Exit;
+
+      if SuperRegistersEqual(Reg, NR_DEFAULTFLAGS) then
+        begin
+          { Comparison instructions (and procedural jump) }
+          if (taicpu(p1).opcode in [A_BL, A_CMP, A_CMN, A_TST, A_TEQ]) then
+            Exit(True);
+
+          { Instruction sets CPSR register due to S suffix (floating-point
+            instructios won't raise false positives) }
+          if (taicpu(p1).oppostfix = PF_S) then
+            Exit(True);
+
+          { Everything else (conditional instructions only read CPSR) }
+          Exit;
+        end;
+
       case taicpu(p1).opcode of
         A_LDR:
           begin

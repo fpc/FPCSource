@@ -675,7 +675,7 @@ unit optloop;
                   cordconstnode.create(1,tfornode(n).left.resultdef,false));
                 tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
-                exclude(n.flags,nf_pass1_done);
+                exclude(n.transientflags,tnf_pass1_done);
                 do_firstpass(n);
 {$ifdef DEBUG_OPTFORLOOP}
                 writeln('Loop reverted: ');

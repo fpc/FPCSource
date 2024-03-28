@@ -174,10 +174,12 @@ begin
    begin
      case typesw of
        alignsw:
-         if state='+' then
-           current_settings.packrecords:=4
-         else
-           current_settings.packrecords:=1;
+         begin
+           if state='+' then
+             recordpendingpackrecords(4)
+           else
+             recordpendingpackrecords(1);
+         end;
        optimizersw :
          begin
            if state='+' then

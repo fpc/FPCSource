@@ -112,6 +112,7 @@ type
     Procedure TestBinaryGreater;
     Procedure TestBinaryGreaterThanEqual;
     Procedure TestBinaryIs;
+    Procedure TestBinaryPower;
     Procedure TestCallExpressionNone;
     Procedure TestCallExpressionOne;
     Procedure TestCallExpressionTwo;
@@ -1165,6 +1166,20 @@ begin
   E:=TJSRelationalExpressionInstanceOf(TestBinaryExpression(B,TJSRelationalExpressionInstanceOf));
   AssertIdentifier('Correct left literal for is',E.A,'a');
   AssertIdentifier('Correct right literal for is',E.B,'b');
+end;
+
+procedure TTestExpressionConverter.TestBinaryPower;
+Var
+  B : TBinaryExpr;
+  E : TJSPowerExpression;
+
+begin
+  B:=CreateBinary(eopPower);
+  B.left:=CreateIdent('a');
+  B.Right:=CreateIdent('b');
+  E:=TJSPowerExpression(TestBinaryExpression(B,TJSPowerExpression));
+  AssertIdentifier('Correct left literal for power',E.A,'a');
+  AssertIdentifier('Correct right literal for power',E.B,'b');
 end;
 
 procedure TTestExpressionConverter.TestCallExpressionNone;

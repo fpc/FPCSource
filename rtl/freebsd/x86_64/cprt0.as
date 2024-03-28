@@ -41,7 +41,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	1201000
+	.long	1400097
         .long   8
         .long   4
         .long   1
@@ -201,3 +201,5 @@ operatingsystem_parameters:
 	.align 8
 .LEFDE1:
 	.ident	"GCC: (GNU) 4.2.1 20070719  [FreeBSD]"
+
+.section .note.GNU-stack,"",@progbits

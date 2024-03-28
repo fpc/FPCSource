@@ -94,7 +94,8 @@ procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
   type
     tbsetarray = bitpacked array[0..high(sizeint)-1] of 0..1;
   begin
-    move(source,dest,size);
+    if @source<>@dest then
+      move(source,dest,size);
     tbsetarray(dest)[b]:=1;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_BYTE}
@@ -109,7 +110,8 @@ procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc
   type
     tbsetarray = bitpacked array[0..high(sizeint)-1] of 0..1;
   begin
-    move(source,dest,size);
+    if @source<>@dest then
+      move(source,dest,size);
     tbsetarray(dest)[b]:=0;
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_UNSET_BYTE}

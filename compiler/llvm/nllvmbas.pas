@@ -201,7 +201,7 @@ interface
       begin
         oldasmlist:=nil;
         if not(po_assembler in current_procinfo.procdef.procoptions) and
-           not(nf_get_asm_position in flags) then
+           not(asmnf_get_asm_position in asmnodeflags) then
           begin
             { store the assembler code in a separate list, so we can make it
               the argument of an asmblock instruction }
@@ -214,7 +214,7 @@ interface
           end;
         inherited;
         if not(po_assembler in current_procinfo.procdef.procoptions) and
-           not(nf_get_asm_position in flags) then
+           not(asmnf_get_asm_position in asmnodeflags) then
           begin
             asmai:=taillvm.asm_paras(current_asmdata.CurrAsmList,fsymboldata);
             fsymboldata:=nil;

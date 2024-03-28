@@ -113,14 +113,14 @@ interface
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
-      class procedure InsertInitFinalTable;
+      class procedure InsertInitFinalTable(main : tmodule);
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
-      class procedure insert_init_final_table(entries:tfplist); virtual;
+      class procedure insert_init_final_table(main: tmodule; entries:tfplist); virtual;
 
-      class function get_init_final_list: tfplist;
+      class function get_init_final_list(main : tmodule): tfplist;
       class procedure release_init_final_list(list:tfplist);
      public
       class procedure InsertThreadvarTablesTable; virtual;
@@ -1020,37 +1020,53 @@ implementation
     end;
 
 
-  class function tnodeutils.get_init_final_list:tfplist;
+  class function tnodeutils.get_init_final_list(main : tmodule):tfplist;
+
+    procedure addusedunits(m : tmodule);
+
     var
       hp : tused_unit;
       entry : pinitfinalentry;
     begin
-      result:=tfplist.create;
-      { Insert initialization/finalization of the used units }
-      hp:=tused_unit(usedunits.first);
+      hp:=tused_unit(m.used_units.first);
       while assigned(hp) do
        begin
-         if (hp.u.moduleflags * [mf_init,mf_finalize])<>[] then
+         if (not hp.u.initfinalchecked) then
            begin
-             new(entry);
-             entry^.module:=hp.u;
-             entry^.initpd:=nil;
-             entry^.finipd:=nil;
-             if mf_init in hp.u.moduleflags then
-               entry^.initfunc:=make_mangledname('INIT$',hp.u.globalsymtable,'')
-             else
-               entry^.initfunc:='';
-             if mf_finalize in hp.u.moduleflags then
-               entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
-             else
-               entry^.finifunc:='';
-             result.add(entry);
+           hp.u.initfinalchecked:=True;
+           addusedunits(hp.u);
+           if ((hp.u.moduleflags * [mf_init,mf_finalize])<>[]) then
+             begin
+               new(entry);
+               entry^.module:=hp.u;
+               entry^.initpd:=nil;
+               entry^.finipd:=nil;
+               if mf_init in hp.u.moduleflags then
+                 entry^.initfunc:=make_mangledname('INIT$',hp.u.globalsymtable,'')
+               else
+                 entry^.initfunc:='';
+               if mf_finalize in hp.u.moduleflags then
+                 entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
+               else
+                 entry^.finifunc:='';
+               result.add(entry);
+             end;
            end;
          hp:=tused_unit(hp.next);
        end;
 
+    end;
+
+    var
+      entry : pinitfinalentry;
+    begin
+      result:=tfplist.create;
+
+      { Insert initialization/finalization of the used units }
+      addusedunits(main);
+
       { Insert initialization/finalization of the program }
-      if (current_module.moduleflags * [mf_init,mf_finalize])<>[] then
+      if (main.moduleflags * [mf_init,mf_finalize])<>[] then
         begin
           new(entry);
           entry^.module:=current_module;
@@ -1081,19 +1097,19 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertInitFinalTable;
+  class procedure tnodeutils.InsertInitFinalTable(main : tmodule);
     var
       entries : tfplist;
     begin
-      entries := get_init_final_list;
+      entries := get_init_final_list(main);
 
-      insert_init_final_table(entries);
+      insert_init_final_table(main,entries);
 
       release_init_final_list(entries);
     end;
 
 
-  class procedure tnodeutils.insert_init_final_table(entries:tfplist);
+  class procedure tnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
     var
       i : longint;
       unitinits : ttai_typedconstbuilder;

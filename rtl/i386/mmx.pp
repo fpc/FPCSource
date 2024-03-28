@@ -76,155 +76,39 @@ unit mmx;
       begin
         getdevel:=0;
         if cpuid_support then
-        begin
-            asm
-                pushl %ebx
-                movl $0,%eax
-                cpuid
-                movl %ebx,_ebx
-                movl %ecx,_ecx
-                movl %edx,_edx
-                popl %ebx
-            end;
-            if ((_ebx=$68747541) and (_ecx=$444D4163) and (_edx=$69746E65)) then getdevel:=10;
-            if ((_ebx=$756E6547) and (_ecx=$6C65746E) and (_edx=$49656E69)) then getdevel:=20;
-            if ((_ebx=$6f677948) and (_ecx=$656e6975) and (_edx=$6e65476e)) then getdevel:=30;	
-        end
-    end;
-
+            with CPUID(0) do
+                if ((ebx=$68747541) and (ecx=$444D4163) and (edx=$69746E65)) then getdevel:=10 else
+                if ((ebx=$756E6547) and (ecx=$6C65746E) and (edx=$49656E69)) then getdevel:=20 else
+                if ((ebx=$6f677948) and (ecx=$656e6975) and (edx=$6e65476e)) then getdevel:=30;
+      end;
 
     { returns true, if the processor supports the mmx instructions }
     function mmx_support : boolean;
 
-      var
-         _edx : longint;
-
       begin
-         if cpuid_support then
-           begin
-              asm
-                 pushl %ebx
-                 movl $1,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              mmx_support:=(_edx and $800000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never mmx }
-           mmx_support:=false;
+         { a cpu with without cpuid instruction supports never mmx }
+         mmx_support:=MMXSupport;
       end;
 
     function amd_3d_support : boolean;
 
-      var
-         _edx : longint;
-
       begin
-         { are there third party cpus supporting amd 3d instructions? }
-         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
-           begin
-              asm
-                 pushl %ebx
-                 movl $0x80000001,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              amd_3d_support:=(_edx and $80000000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never mmx }
-           amd_3d_support:=false;
+         { getdevel returns 0 if no cpuid_support; are there third party cpus supporting amd 3d instructions? }
+         amd_3d_support:=(getdevel in [10,30]) and (CPUID($80000001).edx and (1 shl 31)<>0);
       end;
 
     function amd_3d_dsp_support : boolean;
 
-      var
-         _edx : longint;
-
       begin
-         { are there third party cpus supporting amd dsp instructions? }
-         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
-           begin
-              asm
-                 pushl %ebx
-                 movl $0x80000001,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              amd_3d_dsp_support:=(_edx and $40000000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never mmx }
-           amd_3d_dsp_support:=false;
+         { getdevel returns 0 if no cpuid_support; are there third party cpus supporting amd dsp instructions? }
+         amd_3d_dsp_support:=(getdevel in [10,30]) and (CPUID($80000001).edx and (1 shl 30)<>0);
       end;
 
     function amd_3d_mmx_support : boolean;
 
-      var
-         _edx : longint;
-
       begin
-         { are there third party cpus supporting amd mmx instructions? }
-         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
-           begin
-              asm
-                 pushl %ebx
-                 movl $0x80000001,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              amd_3d_mmx_support:=(_edx and $400000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never mmx }
-           amd_3d_mmx_support:=false;
-      end;
-
-    function sse_support : boolean;
-
-      var
-         _edx : longint;
-
-      begin
-         if cpuid_support then
-           begin
-              asm
-                 pushl %ebx
-                 movl $1,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              sse_support:=(_edx and $2000000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never sse }
-           sse_support:=false;
-      end;
-
-    function sse2_support : boolean;
-      var
-         _edx : longint;
-      begin
-         if cpuid_support then
-           begin
-              asm
-                 pushl %ebx
-                 movl $1,%eax
-                 cpuid
-                 movl %edx,_edx
-                 popl %ebx
-              end;
-              sse2_support:=(_edx and $4000000)<>0;
-           end
-         else
-           { a cpu with without cpuid instruction supports never sse2 }
-           sse2_support:=false;
+         { getdevel returns 0 if no cpuid_support; are there third party cpus supporting amd mmx instructions? }
+         amd_3d_mmx_support:=(getdevel in [10,30]) and (CPUID($80000001).edx and (1 shl 22)<>0);
       end;
 
 
@@ -264,8 +148,8 @@ begin
              is_amd_3d_dsp_cpu:=amd_3d_dsp_support;
              is_amd_3d_mmx_cpu:=amd_3d_mmx_support;
           end;
-        is_sse_cpu:=sse_support;
-        is_sse2_cpu:=sse2_support;
+        is_sse_cpu:=has_sse_support;
+        is_sse2_cpu:=has_sse2_support;
         { the exit code sets the fpu stack to empty }
         oldexitproc:=exitproc;
         exitproc:=@mmxexitproc;

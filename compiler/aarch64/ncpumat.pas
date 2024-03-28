@@ -39,6 +39,7 @@ interface
       end;
 
       taarch64unaryminusnode = class(tcgunaryminusnode)
+         function pass_1: tnode; override;
          procedure second_float; override;
       end;
 
@@ -481,6 +482,15 @@ implementation
 {*****************************************************************************
                                    taarch64unaryminusnode
 *****************************************************************************}
+
+    function taarch64unaryminusnode.pass_1: tnode;
+      begin
+        Result:=inherited pass_1;
+        if Result=nil then
+          if needs_check_for_fpu_exceptions then
+            Include(current_procinfo.flags,pi_do_call);
+      end;
+
 
     procedure taarch64unaryminusnode.second_float;
       begin

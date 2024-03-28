@@ -505,6 +505,10 @@ unit TypInfo;
         NamePtr: PShortString;
         Flags: Byte;
         VmtIndex: Smallint;
+        {$IFNDEF VER3_2}
+        CodeAddress : CodePointer;
+        AttributeTable : PAttributeTable;
+        {$ENDIF}
         property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
         property ResultLocs: PParameterLocations read GetResultLocs;
@@ -556,6 +560,9 @@ unit TypInfo;
         FieldType: PPTypeInfo;
         Flags: Byte;
         Name: PShortString;
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
         property FieldVisibility: TVisibilityClass read GetVisibility;
         property StrictVisibility: Boolean read GetStrictVisibility;
         property Tail: Pointer read GetTail;
@@ -658,6 +665,10 @@ unit TypInfo;
         {$ENDIF}
         NamePtr: PShortString;
         Flags: Byte;
+        {$IFNDEF VER3_2}
+        CodeAddress : CodePointer;
+        AttributeTable : PAttributeTable;
+        {$ENDIF}
         { Params: array[0..ParamCount - 1] of TRecMethodParam }
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
@@ -1190,26 +1201,26 @@ Function GetPropListEx(TypeInfo: PTypeInfo; out PropList: PPropListEx; Visibilit
 Function GetPropListEx(AClass: TClass; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
 Function GetPropListEx(Instance: TObject; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
 
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
 Function GetFieldInfos(aRecord: PRecordData; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-Function GetFieldList(TypeInfo: PTypeInfo; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): SizeInt;
+Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
+Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetFieldList(TypeInfo: PTypeInfo; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): SizeInt;
 Function GetRecordFieldList(aRecord: PRecordData; Out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
-Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
+Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
 
 // Infos require initialized memory or nil to count
-Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
+Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True) : Integer;
 Function GetRecordMethodInfos(aRecordData: PRecordData; MethodList: PRecordMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 Function GetMethodInfos(aRecord: PRecordData; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 // List will initialize the memory
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
-Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
-Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
+Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
+Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): Integer;
 
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PRecordMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
@@ -1479,7 +1490,7 @@ begin
           Result:='';
       end;
     end
- else
+ else if TypeInfo^.Kind=tkEnumeration then
    begin
      PS:=@PT^.NameList;
      dec(Value,PT^.MinValue);
@@ -1489,7 +1500,11 @@ begin
          Dec(Value);
        end;
      Result:=PS^;
-   end;
+   end
+ else if TypeInfo^.Kind=tkInteger then
+   Result:=IntToStr(Value)
+ else
+   Result:='';  
 end;
 
 
@@ -2094,11 +2109,8 @@ Var
 
 begin
   Result:=0;
-  // Clear list
   repeat
     TD:=PClassData(GetTypeData(TypeInfo))^.ExRTTITable;
-    if PropList<>Nil then
-      FillChar(PropList^,TD^.PropCount*sizeof(PPropInfoEx),0);
     Count:=TD^.PropCount;
     // Now point TP to first propinfo record.
     For I:=0 to Count-1 do
@@ -2261,8 +2273,6 @@ begin
   if aRecord=Nil then exit;
   FieldTable:=aRecord^.ExtendedFields;
   if FieldTable=Nil then exit;
-  if FieldList<>Nil then
-    FillChar(FieldList^[Result],FieldTable^.FieldCount*sizeof(Pointer),0);
   For I:=0 to FieldTable^.FieldCount-1 do
     begin
     FieldEntry:=FieldTable^.Field[i];
@@ -2277,7 +2287,7 @@ end;
 
 
 
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 var
   vmt: PVmt;
@@ -2318,18 +2328,21 @@ begin
         end;
       end;
     { Go to parent type }
-    vmt:=vmt^.vParent;
+    if IncludeInherited then
+      vmt:=vmt^.vParent
+    else
+      vmt:=Nil;
     end;
 end;
 
 
-Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
   if TypeInfo^.Kind=tkRecord then
     Result:=GetFieldInfos(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
   else if TypeInfo^.Kind=tkClass then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
+    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities,IncludeInherited)
   else
     Result:=0
 end;
@@ -2357,7 +2370,7 @@ begin
 end;
 
 Function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean;
-  Visibilities: TVisibilityClasses): longint;
+  Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): longint;
 
 Type
    TInsertField = Procedure (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
@@ -2379,7 +2392,7 @@ begin
   else
     DoInsertField:=@InsertFieldEntryNoSort;
   Result:=0;
-  Count:=GetFieldList(TypeInfo,TempList,Visibilities);
+  Count:=GetFieldList(TypeInfo,TempList,Visibilities,IncludeInherited);
   Try
      For I:=0 to Count-1 do
        begin
@@ -2416,40 +2429,39 @@ begin
 end;
 
 
-Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): SizeInt;
-
-begin
-  if TypeInfo^.Kind=tkRecord then
-    Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
-  else if TypeInfo^.Kind=tkClass then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
-  else
-    Result:=0
-end;
-
-
-Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetFieldInfos(aClass,Nil,Visibilities);
+  aCount:=GetFieldInfos(aClass,Nil,Visibilities,IncludeInherited);
   FieldList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetFieldInfos(aClass,FieldList,Visibilities);
+    Result:=GetFieldInfos(aClass,FieldList,Visibilities,IncludeInherited);
   except
     FreeMem(FieldList);
     Raise;
   end;
 end;
 
-
-Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities);
+  Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities,IncludeInherited);
+end;
+
+
+Function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): SizeInt;
+
+begin
+  if TypeInfo^.Kind=tkRecord then
+    Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
+  else if TypeInfo^.Kind=tkClass then
+    Result:=GetFieldList(GetTypeData(TypeInfo)^.ClassType,FieldList,Visibilities,IncludeInherited)
+  else
+    Result:=0
 end;
 
 { -- Methods -- }
@@ -2460,7 +2472,7 @@ begin
   Result:=GetRecordMethodInfos(aRecord,MethodList,Visibilities)
 end;
 
-Function GetClassMethodInfos(aClassData: PClassData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetClassMethodInfos(aClassData: PClassData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean): Integer;
 
 
 var
@@ -2488,7 +2500,7 @@ begin
         end;
       end;
     { Go to parent type }
-    if aClassData^.Parent=Nil then
+    if (aClassData^.Parent=Nil) or Not IncludeInherited then
       aClassData:=Nil
     else
       aClassData:=PClassData(GetTypeData(aClassData^.Parent^)); ;
@@ -2496,10 +2508,10 @@ begin
 
 end;
 
-Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetMethodInfos(PTypeInfo(aClass.ClassInfo),MethodList,Visibilities);
+  Result:=GetMethodInfos(PTypeInfo(aClass.ClassInfo),MethodList,Visibilities,IncludeInherited);
 end;
 
 Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PRecordMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
@@ -2511,11 +2523,11 @@ begin
     Result:=0
 end;
 
-Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
   if TypeInfo^.Kind=tkClass then
-    Result:=GetClassMethodInfos(PClassData(GetTypeData(TypeInfo)),MethodList,Visibilities)
+    Result:=GetClassMethodInfos(PClassData(GetTypeData(TypeInfo)),MethodList,Visibilities,IncludeInherited)
   else
     Result:=0
 end;
@@ -2544,7 +2556,7 @@ end;
 
 
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean;
-  Visibilities: TVisibilityClasses): longint;
+  Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): longint;
 
 Type
    TInsertMethod = Procedure (PL : PExtendedMethodInfoTable;PI : PVmtMethodExEntry; Count : longint);
@@ -2562,7 +2574,7 @@ Var
 begin
   MethodList:=nil;
   Result:=0;
-  aCount:=GetMethodList(TypeInfo,TempList,Visibilities);
+  aCount:=GetMethodList(TypeInfo,TempList,Visibilities,IncludeInherited);
   if aCount=0 then
     exit;
   if sorted then
@@ -2706,34 +2718,34 @@ begin
   end;
 end;
 
-Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []; IncludeInherited : Boolean = True): longint;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetMethodInfos(TypeInfo,PExtendedMethodInfoTable(Nil),Visibilities);
+  aCount:=GetMethodInfos(TypeInfo,PExtendedMethodInfoTable(Nil),Visibilities,IncludeInherited);
   MethodList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetMethodInfos(TypeInfo,MethodList,Visibilities);
+    Result:=GetMethodInfos(TypeInfo,MethodList,Visibilities,IncludeInherited);
   except
     FreeMem(MethodList);
     Raise;
   end;
 end;
 
-Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetMethodInfos(aClass,Nil,[]);
+  aCount:=GetMethodInfos(aClass,Nil,[],IncludeInherited);
   MethodList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetMethodInfos(aClass,MethodList,Visibilities);
+    Result:=GetMethodInfos(aClass,MethodList,Visibilities,IncludeInherited);
   except
     FreeMem(MethodList);
     Raise;
@@ -2741,10 +2753,10 @@ begin
 end;
 
 
-Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+Function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses; IncludeInherited : Boolean = True): Integer;
 
 begin
-  Result:=GetMethodList(Instance.ClassType,MethodList,Visibilities);
+  Result:=GetMethodList(Instance.ClassType,MethodList,Visibilities,IncludeInherited);
 end;
 
 
@@ -4393,7 +4405,11 @@ end;
 
 function TExtendedVmtFieldEntry.GetTail: Pointer;
 begin
-  Result := PByte(@Name) + SizeOf(Pointer);
+
+  Result := PByte(@Name) + SizeOf(Pointer) ;
+  {$ifdef PROVIDE_ATTR_TABLE}
+  Result := Result + SizeOf(Pointer) ;
+  {$ENDIF}
 end;
 
 function TExtendedVmtFieldEntry.GetVisibility: TVisibilityClass;
@@ -4645,7 +4661,11 @@ var
 
 begin
   if ParamCount = 0 then
+{$IFNDEF VER3_2}
+    Result := PByte(@CodeAddress) + SizeOf(CodePointer)+SizeOf(AttributeTable)
+{$ELSE}
     Result := PByte(@VmtIndex) + SizeOf(VmtIndex)
+{$ENDIF}
   else
     Result:=Param[ParamCount-1]^.GetTail;
   if Assigned(ResultType) then
@@ -4667,6 +4687,9 @@ end;
 function TRecMethodExEntry.GetParamsStart: PByte;
 begin
   Result:=PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)+SizeOf(FLags)));
+  {$IFNDEF VER3_2}
+  Result:=Result+SizeOf(CodeAddress)+SizeOf(AttributeTable);
+  {$ENDIF}
 end;
 
 function TRecMethodExEntry.GetMethodVisibility: TVisibilityClass;
@@ -4697,7 +4720,7 @@ end;
 
 function TRecMethodExEntry.GetTail: Pointer;
 begin
-  Result := PByte(@Flags) + SizeOf(Flags);
+  Result := GetParamsStart;
   if ParamCount > 0 then
     Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TRecMethodParam))));
   if Assigned(ResultType) then

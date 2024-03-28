@@ -26,13 +26,27 @@ unit nmat;
 interface
 
     uses
-       node;
+       node,symtype;
 
     type
+       TModDivNodeFlag = (
+         mdnf_isomod
+       );
+
+       TModDivNodeFlags = set of TModDivNodeFlag;
+
        tmoddivnode = class(tbinopnode)
+          moddivnodeflags : TModDivNodeFlags;
+          constructor create(t:tnodetype;l,r : tnode); override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
+          function dogetcopy : tnode;override;
+    {$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+    {$endif DEBUG_NODE_XML}
          protected
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
@@ -97,16 +111,38 @@ implementation
       systems,
       verbose,globals,cutils,compinnr,
       globtype,constexp,
-      symconst,symtype,symdef,symcpu,
+      symconst,symdef,symcpu,
       defcmp,defutil,
       htypechk,pass_1,
       cgbase,
       ncon,ncnv,ncal,nadd,nld,nbas,nflw,ninl,
-      nutils;
+      nutils,ppu;
 
 {****************************************************************************
                               TMODDIVNODE
  ****************************************************************************}
+
+
+    constructor tmoddivnode.create(t:tnodetype;l,r : tnode);
+      begin
+        inherited create(t, l, r);
+        moddivnodeflags:=[];
+      end;
+
+
+    constructor tmoddivnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        ppufile.getset(tppuset1(moddivnodeflags));
+      end;
+
+
+    procedure tmoddivnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putset(tppuset1(moddivnodeflags));
+      end;
+
 
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
@@ -149,7 +185,7 @@ implementation
                 left:=nil;
                 exit;
               end;
-            if (nf_isomod in flags) and
+            if (mdnf_isomod in moddivnodeflags) and
               (rv<=0) then
                begin
                  Message(cg_e_mod_only_defined_for_pos_quotient);
@@ -186,7 +222,7 @@ implementation
 
                 case nodetype of
                   modn:
-                    if nf_isomod in flags then
+                    if mdnf_isomod in moddivnodeflags then
                       begin
                         if lv>=0 then
                           result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
@@ -205,6 +241,16 @@ implementation
                 end;
              end;
           end;
+      end;
+
+
+    function tmoddivnode.dogetcopy: tnode;
+      var
+        n: tmoddivnode;
+      begin
+        n:=tmoddivnode(inherited dogetcopy);
+        n.moddivnodeflags:=moddivnodeflags;
+        result:=n;
       end;
 
 
@@ -412,7 +458,7 @@ implementation
             result:=hp;
           end;
 
-         if (nodetype=modn) and (nf_isomod in flags) then
+         if (nodetype=modn) and (mdnf_isomod in moddivnodeflags) then
            begin
              result:=internalstatements(statements);
              else_block:=internalstatements(else_statements);
@@ -722,7 +768,28 @@ implementation
          expectloc:=LOC_REGISTER;
       end;
 
-
+{$ifdef DEBUG_NODE_XML}
+    procedure TModDivNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TModDivNodeFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+        First := True;
+        for i in moddivnodeflags do
+          begin
+            if First then
+              begin
+                Write(T, ' moddivnodeflags="', i);
+                First := False;
+              end
+            else
+              Write(T, ',', i)
+          end;
+        if not First then
+          Write(T, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {****************************************************************************
                               TSHLSHRNODE
@@ -1023,6 +1090,20 @@ implementation
             if left.nodetype=unaryminusn then
               begin
                 result:=tunarynode(left).left.getcopy;
+                exit;
+              end;
+          end
+        { transform -(x+1) or -(1+x) into not(x) }
+        else if is_integer(left.resultdef) and is_signed(left.resultdef) and (left.nodetype=addn) and ((localswitches*[cs_check_overflow,cs_check_range])=[]) then
+          begin
+            if is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value=1) then
+              begin
+                result:=cnotnode.create(taddnode(left).left.getcopy);
+                exit;
+              end
+            else if is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value=1) then
+              begin
+                result:=cnotnode.create(taddnode(left).right.getcopy);
                 exit;
               end;
           end;

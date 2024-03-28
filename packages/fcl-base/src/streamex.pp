@@ -102,6 +102,7 @@ type
      procedure ReadLine(out AString: AnsiString); virtual; abstract; overload;
      function ReadLine: AnsiString; overload;
      property Eof: Boolean read IsEof;
+     property EndOfStream : boolean read IsEof;
    end;
 
    { TStreamReader }
@@ -371,23 +372,22 @@ end;
 
 procedure TStreamWriter.WriteBytes(Bytes: TBytes);
 var
-  ByteLen,Count,WritePos,ToWrite: Integer;
+  BufLen,Count,ToWrite: Integer;
   P : PByte;
 begin
-  ByteLen:=Length(Bytes);
-  ToWrite:=ByteLen;
-  WritePos:=0;
+  BufLen:=Length(FBuffer);
+  ToWrite:=Length(Bytes);
   P:=PByte(Bytes);
   while ToWrite>0 do
     begin
     Count:=ToWrite;
-    if Count>ByteLen-WritePos then
-      Count:=ByteLen-WritePos;
-    Move(P^, FBuffer[FBufferIndex], Count);
-    Inc(WritePos,Count);
+    if Count>BufLen-FBufferIndex then
+      Count:=BufLen-FBufferIndex;
+    Move(P^,FBuffer[FBufferIndex],Count);
     Inc(P,Count);
     Dec(ToWrite,Count);
-    if FBufferIndex >= Length(FBuffer) then
+    Inc(FBufferIndex,Count);
+    if FBufferIndex>=BufLen  then
       Flush;
     end;
   if FAutoFlush then

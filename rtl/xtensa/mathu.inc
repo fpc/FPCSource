@@ -54,5 +54,3 @@ procedure ClearExceptions(RaisePending: Boolean = true);
   begin
     softfloat_exception_flags:=[];
   end;
-
-

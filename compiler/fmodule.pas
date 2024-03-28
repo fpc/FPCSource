@@ -57,6 +57,10 @@ interface
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
       );
 
+{$ifdef VER3_2}
+      RTLString = ansistring;
+{$endif VER3_2}
+
       { unit options }
       tmoduleoption = (mo_none,
         mo_hint_deprecated,
@@ -107,6 +111,7 @@ interface
       private
         FImportLibraryList : TFPHashObjectList;
       public
+        is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
@@ -163,6 +168,7 @@ interface
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
         localmacrosymtable : TSymtable;{ pointer to the local macro symtable of this unit }
+        mainscanner   : TObject;  { scanner object used }
         scanner       : TObject;  { scanner object used }
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
@@ -171,7 +177,6 @@ interface
         externasmsyms : TFPHashObjectList; { contains the assembler symbols which are imported from another unit }
         unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
-        loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
         localnamespacelist,
@@ -198,6 +203,10 @@ interface
 
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
+        loadcount : integer;
+        compilecount : integer;
+        consume_semicolon_after_uses : Boolean;
+        initfinalchecked : boolean;
 
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of
@@ -224,7 +233,6 @@ interface
         waitingunits: tfpobjectlist;
 
         finishstate: pointer;
-        globalstate: pointer;
 
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 
@@ -246,10 +254,13 @@ interface
         destructor destroy;override;
         procedure reset;virtual;
         procedure loadlocalnamespacelist;
-        procedure adddependency(callermodule:tmodule);
+        procedure adddependency(callermodule:tmodule; frominterface : boolean);
         procedure flagdependent(callermodule:tmodule);
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
+        function  usesmodule_in_interface(m : tmodule) : boolean;
+        function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
+        function nowaitingforunits(out firstwaiting : tmodule) : Boolean;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -261,7 +272,9 @@ interface
         procedure add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         procedure add_extern_asmsym(sym:TAsmSymbol);
         procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+        procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
+        function ToString: RTLString; override;
       end;
 
        tused_unit = class(tlinkedlistitem)
@@ -278,7 +291,8 @@ interface
 
        tdependent_unit = class(tlinkedlistitem)
           u : tmodule;
-          constructor create(_u : tmodule);
+          in_interface : boolean;
+          constructor create(_u : tmodule; frominterface : boolean);
        end;
 
     var
@@ -334,6 +348,7 @@ implementation
       end;
 
     procedure set_current_module(p:tmodule);
+
       begin
         { save the state of the scanner }
         if assigned(current_scanner) then
@@ -347,7 +362,7 @@ implementation
             current_asmdata:=tasmdata(current_module.asmdata);
             current_debuginfo:=tdebuginfo(current_module.debuginfo);
             { restore scanner and file positions }
-            current_scanner:=tscannerfile(current_module.scanner);
+            set_current_scanner(tscannerfile(current_module.scanner));
             if assigned(current_scanner) then
               begin
                 current_scanner.tempopeninputfile;
@@ -363,7 +378,7 @@ implementation
         else
           begin
             current_asmdata:=nil;
-            current_scanner:=nil;
+            set_current_scanner(nil);
             current_debuginfo:=nil;
           end;
       end;
@@ -494,7 +509,7 @@ implementation
         in_interface:=intface;
         in_uses:=inuses;
         unitsym:=usym;
-        if _u.state=ms_compiled then
+        if _u.state in [ms_compiled,ms_processed] then
          begin
            checksum:=u.crc;
            interface_checksum:=u.interface_crc;
@@ -534,9 +549,10 @@ implementation
                             TDENPENDENT_UNIT
  ****************************************************************************}
 
-    constructor tdependent_unit.create(_u : tmodule);
+    constructor tdependent_unit.create(_u: tmodule; frominterface: boolean);
       begin
          u:=_u;
+         in_interface:=frominterface;
       end;
 
 
@@ -630,7 +646,6 @@ implementation
         localsymtable:=nil;
         globalmacrosymtable:=nil;
         localmacrosymtable:=nil;
-        loaded_from:=LoadedFrom;
         do_reload:=false;
         do_compile:=false;
         sources_avail:=true;
@@ -660,7 +675,7 @@ implementation
       end;
 
 
-    destructor tmodule.Destroy;
+    destructor tmodule.destroy;
       var
         i : longint;
         current_debuginfo_reset : boolean;
@@ -682,8 +697,9 @@ implementation
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-             current_scanner:=nil;
-            tscannerfile(scanner).free;
+              set_current_scanner(nil);
+            freeandnil(scanner);
+
          end;
         if assigned(asmdata) then
           begin
@@ -779,14 +795,14 @@ implementation
         i   : longint;
         current_debuginfo_reset : boolean;
       begin
+        is_reset:=true;
         if assigned(scanner) then
           begin
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
-             current_scanner:=nil;
-            tscannerfile(scanner).free;
-            scanner:=nil;
+              set_current_scanner(nil);
+            freeandnil(scanner);
           end;
         if assigned(procinfo) then
           begin
@@ -954,32 +970,32 @@ implementation
 
     procedure tmodule.loadlocalnamespacelist;
 
-    var
-      nsitem : TCmdStrListItem;
+      var
+        nsitem : TCmdStrListItem;
 
-    begin
-      // Copying local namespace list
-      if premodule_namespacelist.Count>0 then
-        begin
-        nsitem:=TCmdStrListItem(premodule_namespacelist.First);
-        while assigned(nsItem) do
+      begin
+        // Copying local namespace list
+        if premodule_namespacelist.Count>0 then
           begin
-          localnamespacelist.Concat(nsitem.Str);
-          nsItem:=TCmdStrListItem(nsitem.Next);
+          nsitem:=TCmdStrListItem(premodule_namespacelist.First);
+          while assigned(nsItem) do
+            begin
+            localnamespacelist.Concat(nsitem.Str);
+            nsItem:=TCmdStrListItem(nsitem.Next);
+            end;
+          premodule_namespacelist.Clear;
           end;
-        premodule_namespacelist.Clear;
-        end;
-      current_namespacelist:=localnamespacelist;
-    end;
+        current_namespacelist:=localnamespacelist;
+      end;
 
 
-    procedure tmodule.adddependency(callermodule:tmodule);
+    procedure tmodule.adddependency(callermodule: tmodule; frominterface: boolean);
       begin
         { This is not needed for programs }
         if not callermodule.is_unit then
           exit;
         Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
-        dependent_units.concat(tdependent_unit.create(callermodule));
+        dependent_units.concat(tdependent_unit.create(callermodule,frominterface));
       end;
 
 
@@ -995,10 +1011,10 @@ implementation
              this unit, unless this unit is already compiled during
              the loading }
            if (pm.u=callermodule) and
-              (pm.u.state<>ms_compiled) then
+              (pm.u.state<ms_compiled) then
              Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
            else
-            if pm.u.state=ms_second_compile then
+            if (pm.u.state=ms_compile) and (pm.u.compilecount>1) then
               Message1(unit_u_no_reload_in_second_compile,pm.u.modulename^)
            else
             begin
@@ -1025,6 +1041,59 @@ implementation
         addusedunit:=pu;
       end;
 
+
+    function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
+
+      const
+        statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
+                                                          [ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish]);
+
+      var
+        itm : TLinkedListItem;
+        states : set of tmodulestate;
+
+      begin
+        Result:=True;
+        States:=statesneeded[interface_units];
+        itm:=self.used_units.First;
+        firstwaiting:=Nil;
+        while Result and assigned(itm) do
+          begin
+          result:=tused_unit(itm).u.state in states;
+          {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
+          if not result then
+             begin
+             if firstwaiting=Nil then
+                firstwaiting:=tused_unit(itm).u;
+             end;
+          itm:=itm.Next;
+          end;
+      end;
+
+    function tmodule.nowaitingforunits(out firstwaiting : tmodule): Boolean;
+
+      begin
+        firstwaiting:=nil;
+        Result:=waitingforunit.count=0;
+        If not Result then
+          firstwaiting:=tmodule(waitingforunit[0]);
+      end;
+
+    function tmodule.usesmodule_in_interface(m: tmodule): boolean;
+
+      var
+        u : tused_unit;
+
+      begin
+        result:=False;
+        u:=tused_unit(used_units.First);
+        while assigned(u) do
+          begin
+          if (u.u=m) then
+            exit(u.in_interface) ;
+          u:=tused_unit(u.next);
+          end;
+      end;
 
     procedure tmodule.updatemaps;
       var
@@ -1152,8 +1221,8 @@ implementation
         if assigned(scanner) then
           begin
             if current_scanner=tscannerfile(scanner) then
-              current_scanner:=nil;
-            tscannerfile(scanner).free;
+              set_current_scanner(nil);
+            FreeAndNil(scanner);
             scanner:=nil;
           end;
 
@@ -1210,8 +1279,8 @@ implementation
       end;
 
 
-    procedure TModule.AddExternalImport(const libname,symname,symmangledname:string;
-              OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+    procedure tmodule.AddExternalImport(const libname, symname, symmangledname: string; OrdNr: longint; isvar: boolean;
+      ImportByOrdinalOnly: boolean);
       var
         ImportLibrary,OtherIL : TImportLibrary;
         ImportSymbol  : TImportSymbol;
@@ -1289,6 +1358,23 @@ implementation
             exit;
           end;
         tasmsymbol.create(externasmsyms,name,bind,typ);
+      end;
+
+    procedure tmodule.remove_from_waitingforunits(amodule: tmodule);
+    begin
+      // It can be nil after when this is called after end_of_parsing was called.
+      if assigned(waitingforunit) then
+        waitingforunit.remove(amodule);
+    end;
+
+    function tmodule.ToString: RTLString;
+      begin
+        // Assigned self so we can detect nil.
+        if assigned(modulename) then
+          Result:='('+ModuleName^+')'
+        else
+         Result:='(<'+inttostr(ptrint(self))+'>)';
+        // Possibly add some state ?
       end;
 
 

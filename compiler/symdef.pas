@@ -85,6 +85,7 @@ interface
           { if the attribute list is bound to a def or symbol }
           is_bound : Boolean;
           class procedure bind(var dangling,owned:trtti_attribute_list);
+          class procedure copyandbind(alist :trtti_attribute_list; var owned : trtti_attribute_list);
           procedure addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
           procedure addattribute(attr:trtti_attribute);
           destructor destroy; override;
@@ -162,6 +163,7 @@ interface
           function  has_non_trivial_init_child(check_parent:boolean):boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
+          function  OwnerHierarchyPrettyName: string; override;
           function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
@@ -2222,6 +2224,25 @@ implementation
         until tmp=nil;
       end;
 
+
+    function tstoreddef.OwnerHierarchyPrettyName: string;
+      var
+        tmp: tdef;
+      begin
+        tmp:=self;
+        result:='';
+        repeat
+          { can be not assigned in case of a forwarddef }
+          if assigned(tmp.owner) and
+             (tmp.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+            tmp:=tdef(tmp.owner.defowner)
+          else
+            break;
+          result:=tabstractrecorddef(tmp).typesymbolprettyname+'.'+result;
+        until tmp=nil;
+      end;
+
+
     function tstoreddef.fullownerhierarchyname(skipprocparams:boolean): TSymStr;
       var
         lastowner: tsymtable;
@@ -3292,6 +3313,29 @@ implementation
         owned:=dangling;
         dangling:=nil;
       end;
+
+    class procedure trtti_attribute_list.copyandbind(alist : trtti_attribute_list; var owned: trtti_attribute_list);
+    var
+      i,j : Integer;
+      attr,newattribute : trtti_attribute;
+    begin
+      if owned=Nil then
+        owned:=trtti_attribute_list.Create;
+      owned.is_bound:=True;
+      for i:=0 to aList.rtti_attributes.Count-1 do
+        begin
+        attr:=trtti_attribute(alist.rtti_attributes[i]);
+        newattribute:=trtti_attribute.Create;
+        newattribute.typesym:=attr.typesym;
+        newattribute.typeconstr:=attr.typeconstr;
+        newattribute.constructorcall:=attr.constructorcall.getcopy;
+        setlength(newattribute.paras,length(attr.paras));
+        for j:=0 to length(attr.paras)-1 do
+          newattribute.paras[j]:=attr.paras[j].getcopy;
+        owned.AddAttribute(newattribute);
+        end;
+      current_module.used_rtti_attrs.concatlistcopy(owned.rtti_attributes);
+    end;
 
 
     procedure trtti_attribute_list.addattribute(atypesym:tsym;typeconstr:tdef;constructorcall:tnode;constref paras:array of tnode);
@@ -5892,6 +5936,7 @@ implementation
                   hpc:=tconstsym(hp.defaultconstsym);
                   hs:='';
                   case hpc.consttyp of
+                    constwresourcestring,
                     constwstring:
                       begin
                         if pcompilerwidestring(hpc.value.valueptr)^.len>0 then

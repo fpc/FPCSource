@@ -108,10 +108,23 @@ end;
 function TComponent.GetObservers: TObservers;
 begin
   if FDObservers=Nil then
+    begin
     FDObservers:=TObservers.Create;
+    FDObservers.OnCanObserve:=@CanObserve;
+    FDObservers.OnObserverAdded:=@ObserverAdded;
+    end;
   Result:=FDObservers;
 end;
 
+function TComponent.CanObserve(const ID: Integer): Boolean; 
+begin
+  Result:=False;
+end;
+
+procedure TComponent.ObserverAdded(const ID: Integer; const Observer: IObserver); 
+begin
+  // Do nothing, can be used in descendants
+end;
 
 Procedure TComponent.Insert(AComponent: TComponent);
 
@@ -329,6 +342,30 @@ begin
   Reader.ReadData(Self);
 end;
 
+procedure TComponent.RemoveFreeNotifications;
+var
+  I: Integer;
+  C: TComponent;
+begin
+  If Assigned(FFreeNotifies) then
+  begin
+    I := FFreeNotifies.Count - 1;
+    while I >= 0 do
+    begin
+      C := TComponent(FFreeNotifies.Items[I]);
+      // Delete, so one component is not notified twice, if it is owned.
+      FFreeNotifies.Delete(I);
+      C.Notification (Self, opRemove);
+      If FFreeNotifies = nil then
+        I := 0
+      else
+        if I > FFreeNotifies.Count then
+          I := FFreeNotifies.Count;
+      Dec(I);
+    end;
+    FreeAndNil(FFreeNotifies);
+  end;
+end;
 
 Procedure TComponent.SetAncestor(Value: Boolean);
 
@@ -445,7 +482,8 @@ end;
 Procedure TComponent.ValidateContainer(AComponent: TComponent);
 
 begin
-  AComponent.ValidateInsert(Self);
+  if Assigned(aComponent) then
+    AComponent.ValidateInsert(Self);
 end;
 
 
@@ -472,31 +510,10 @@ end;
 
 
 Destructor TComponent.Destroy;
-
-Var
-  I : Integer;
-  C : TComponent;
-
 begin
   Destroying;
   FreeAndNil(FObservers);
-  If Assigned(FFreeNotifies) then
-    begin
-    I:=FFreeNotifies.Count-1;
-    While (I>=0) do
-      begin
-      C:=TComponent(FFreeNotifies.Items[I]);
-      // Delete, so one component is not notified twice, if it is owned.
-      FFreeNotifies.Delete(I);
-      C.Notification (self,opRemove);
-      If (FFreeNotifies=Nil) then
-        I:=0
-      else if (I>FFreeNotifies.Count) then
-        I:=FFreeNotifies.Count;
-      dec(i);
-      end;
-    FreeAndNil(FFreeNotifies);
-    end;
+  RemoveFreeNotifications;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
   inherited destroy;

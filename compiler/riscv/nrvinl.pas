@@ -65,6 +65,7 @@ implementation
       aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
+      procinfo,
       cgbase,pass_2,
       cpuinfo,ncgutil,
       hlcgobj,cgutils,cgobj,rgobj,tgobj;
@@ -80,6 +81,8 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqrt_real := nil;
+             if needs_check_for_fpu_exceptions then
+               Include(current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_sqrt_real;
@@ -104,6 +107,8 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqr_real := nil;
+             if needs_check_for_fpu_exceptions then
+               Include(current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_sqr_real;
@@ -116,6 +121,8 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_round_real := nil;
+             if needs_check_for_fpu_exceptions then
+               Include(current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_round_real;
@@ -128,6 +135,8 @@ implementation
            begin
              expectloc:=LOC_FPUREGISTER;
              first_trunc_real := nil;
+             if needs_check_for_fpu_exceptions then
+               Include(current_procinfo.flags,pi_do_call);
            end
          else
            result:=inherited first_trunc_real;
@@ -136,6 +145,8 @@ implementation
 
      function trvinlinenode.first_fma: tnode;
        begin
+         if needs_check_for_fpu_exceptions then
+           Include(current_procinfo.flags,pi_do_call);
          Result:=nil;
        end;
 

@@ -283,6 +283,9 @@ interface
     {# Returns true, if def is a 64 bit signed integer type }
     function is_s64bitint(def : tdef) : boolean;
 
+    {# Returns true, if def is a qword type }
+    function is_u64bitint(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit ordinal type }
     function is_64bit(def : tdef) : boolean;
 
@@ -1146,6 +1149,12 @@ implementation
     function is_s64bitint(def: tdef): boolean;
       begin
         is_s64bitint:=(def.typ=orddef) and (torddef(def).ordtype=s64bit)
+      end;
+
+
+    function is_u64bitint(def: tdef): boolean;
+      begin
+        is_u64bitint:=(def.typ=orddef) and (torddef(def).ordtype=u64bit)
       end;
 
 

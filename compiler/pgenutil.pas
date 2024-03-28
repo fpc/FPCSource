@@ -269,7 +269,7 @@ uses
         if hmodule=current_module then
           exit;
 
-        if hmodule.state<>ms_compiled then
+        if not (hmodule.state in [ms_compiled,ms_processed]) then
           begin
 {$ifdef DEBUG_UNITWAITING}
             Writeln('Unit ', current_module.modulename^,
@@ -2001,11 +2001,17 @@ uses
                     else
                       begin
                         hadtypetoken:=false;
+
+                        { ensure a pretty name for error messages, might be chanced below }
+                        if _prettyname<>'' then
+                          ttypesym(srsym).fprettyname:=_prettyname
+                        else
+                          ttypesym(srsym).fprettyname:=prettyname;
+
                         read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
                         ttypesym(srsym).typedef:=result;
                         result.typesym:=srsym;
                       end;
-
 
                     if _prettyname<>'' then
                       ttypesym(result.typesym).fprettyname:=_prettyname
@@ -2859,8 +2865,11 @@ uses
                   ) and
                   { may not be assigned in case it's a synthetic procdef that
                     still needs to be generated }
-                  assigned(tprocdef(hp).genericdef) and
-                  tprocdef(tprocdef(hp).genericdef).forwarddef then
+                  (assigned(tprocdef(hp).genericdef) and
+                  tprocdef(tprocdef(hp).genericdef).forwarddef)
+                  { when the implementation of the module was not yet parsed, it will not yet have a generictokenbuf }
+                  or not assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+
                  begin
                    result:=false;
                    continue;
@@ -2883,6 +2892,8 @@ uses
         def : tstoreddef;
         state : tspecializationstate;
         hmodule : tmodule;
+        mstate : tmodulestate;
+
       begin
         { first copy all entries and then work with that list to ensure that
           we don't get an infinite recursion }
@@ -2914,7 +2925,8 @@ uses
                   { we need to check for a forward declaration only if the
                     generic was declared in the same unit (otherwise there
                     should be one) }
-                  if ((hmodule=current_module) or (hmodule.state=ms_compile)) and tprocdef(def.genericdef).forwarddef then
+                  mstate:=hmodule.state;
+                  if ((hmodule=current_module) or (hmodule.state<ms_compiling_waitfinish)) and tprocdef(def.genericdef).forwarddef then
                     begin
                       readdlist.add(def);
                       continue;

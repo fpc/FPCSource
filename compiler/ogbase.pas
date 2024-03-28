@@ -343,12 +343,14 @@ interface
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:TObjSectionOfs):TObjSectionOfs;
+       procedure writeInt8(v: int8);
        procedure writeInt16LE(v: int16);
        procedure writeInt16BE(v: int16);
        procedure writeInt32LE(v: int32);
        procedure writeInt32BE(v: int32);
        procedure writeInt64LE(v: int64);
        procedure writeInt64BE(v: int64);
+       procedure writeUInt8(v: uint8);
        procedure writeUInt16LE(v: uint16);
        procedure writeUInt16BE(v: uint16);
        procedure writeUInt32LE(v: uint32);
@@ -456,12 +458,14 @@ interface
        procedure alloc(len:TObjSectionOfs);
        procedure allocalign(len:longint);
        procedure writebytes(const Data;len:TObjSectionOfs);
+       procedure writeInt8(v: int8);
        procedure writeInt16LE(v: int16);
        procedure writeInt16BE(v: int16);
        procedure writeInt32LE(v: int32);
        procedure writeInt32BE(v: int32);
        procedure writeInt64LE(v: int64);
        procedure writeInt64BE(v: int64);
+       procedure writeUInt8(v: uint8);
        procedure writeUInt16LE(v: uint16);
        procedure writeUInt16BE(v: uint16);
        procedure writeUInt32LE(v: uint32);
@@ -1075,6 +1079,12 @@ implementation
       end;
 
 
+    procedure TObjSection.writeInt8(v: int8);
+      begin
+        write(v,1);
+      end;
+
+
     procedure TObjSection.writeInt16LE(v: int16);
       begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -1126,6 +1136,12 @@ implementation
         v:=SwapEndian(v);
 {$endif FPC_LITTLE_ENDIAN}
         write(v,8);
+      end;
+
+
+    procedure TObjSection.writeUInt8(v: uint8);
+      begin
+        write(v,1);
       end;
 
 
@@ -1709,6 +1725,12 @@ implementation
       end;
 
 
+    procedure TObjData.writeInt8(v: int8);
+      begin
+        writebytes(v,1);
+      end;
+
+
     procedure TObjData.writeInt16LE(v: int16);
       begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -1760,6 +1782,12 @@ implementation
         v:=SwapEndian(v);
 {$endif FPC_LITTLE_ENDIAN}
         writebytes(v,8);
+      end;
+
+
+    procedure TObjData.writeUInt8(v: uint8);
+      begin
+        writebytes(v,1);
       end;
 
 

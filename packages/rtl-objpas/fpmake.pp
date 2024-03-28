@@ -29,7 +29,7 @@ Const
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
-
+  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku];
   CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,freertos,wasi]+UnixLikes+AllAmigaLikeOSes;
 
 Var
@@ -142,6 +142,9 @@ begin
          AddInclude('invoke.inc',[x86_64],RttiOSes);
        end;
     T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpmonitor.pp',MonitorOSes);
+    T:=P.Targets.AddUnit('fpwinmonitor.pp',[Win32,win64]);
+      T.Dependencies.AddUnit('fpmonitor');
 
     P.NamespaceMap:='namespaces.lst';
     

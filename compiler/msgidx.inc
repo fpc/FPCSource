@@ -490,6 +490,7 @@ const
   parser_e_suspending_externals_not_supported_on_current_platform=03368;
   parser_w_widechar_set_reduced=03369;
   parser_e_nostringaliasinsystem=03370;
+  parser_e_coperators_off=03371;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -1177,9 +1178,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 92723;
+  MsgTxtSize = 92776;
 
   MsgIdxMax : array[1..20] of longint=(
-    29,114,371,134,102,63,148,38,224,71,
+    29,114,372,134,102,63,148,38,224,71,
     69,20,30,1,1,1,1,1,1,1
   );

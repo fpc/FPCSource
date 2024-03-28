@@ -256,6 +256,9 @@ interface
           function  readpreprocint(var value:int64;const place:string):boolean;
           function  readpreprocset(conform_to:tsetdef;var value:tnormalset;const place:string):boolean;
           function  asmgetchar:char;
+{$ifdef EXTDEBUG}
+          function DumpPointer : string;
+{$endif EXTDEBUG}
        end;
 
 {$ifdef PREPROCWRITE}
@@ -283,8 +286,6 @@ interface
         token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
 
-        current_scanner : tscannerfile;  { current scanner in use }
-
         current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
@@ -299,10 +300,16 @@ interface
     procedure InitScanner;
     procedure DoneScanner;
 
+    function current_scanner : tscannerfile;  { current scanner in use }
+    procedure set_current_scanner(avalue : tscannerfile);  { current scanner in use }
+
     { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
     procedure SetAppType(NewAppType:tapptype);
+
+    var
+      onfreescanner : procedure(s : tscannerfile) = nil;
 
 implementation
 
@@ -322,7 +329,24 @@ implementation
       { dictionaries with the supported directives }
       turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
       mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
+      {
+        By default the current_scanner is current_module.scanner.
+        set_current_scanner sets the _temp_scanner variable.
+        If _temp_scanner is set, it is returned as the current scanner
+      }
+      _temp_scanner : tscannerfile;
 
+      function current_scanner : tscannerfile;  { current scanner in use }
+
+      begin
+        Result:=_temp_scanner;
+        if result<>nil then
+          exit;
+        if assigned(current_module) then
+          Result:=Tscannerfile(current_module.scanner)
+        else
+          Result:=Nil;
+      end;
 
 {*****************************************************************************
                               Helper routines
@@ -495,6 +519,10 @@ implementation
 {$endif i8086}
       end;
 
+    procedure set_current_scanner(avalue: tscannerfile);
+    begin
+      _temp_scanner:=avalue;
+    end;
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
@@ -600,10 +628,17 @@ implementation
                current_settings.setalloc:=1;
              end
            else if (m_mac in current_settings.modeswitches) then
-             { compatible with Metrowerks Pascal }
-             current_settings.packenum:=2
+             begin
+               { compatible with Metrowerks Pascal }
+               current_settings.packenum:=2;
+               current_settings.setalloc:=default_settings.setalloc;
+             end
            else
-             current_settings.packenum:=4;
+             begin
+               current_settings.packenum:=default_settings.packenum;
+               current_settings.setalloc:=default_settings.setalloc;
+             end;
+
            if changeinit then
              begin
                init_settings.packenum:=current_settings.packenum;
@@ -1064,7 +1099,8 @@ type
             getmem(value.valueptr,value.len+1);
             move(c.value.valueptr^,value.valueptr^,value.len+1);
           end;
-        constwstring:
+        constwstring,
+        constwresourcestring:
           begin
             initwidestring(value.valueptr);
             copywidestring(c.value.valueptr,value.valueptr);
@@ -1519,7 +1555,8 @@ type
         conststring,
         constresourcestring :
           freemem(value.valueptr,value.len+1);
-        constwstring :
+        constwstring,
+        constwresourcestring:
           donewidestring(pcompilerwidestring(value.valueptr));
         constreal :
           dispose(pbestreal(value.valueptr));
@@ -2951,7 +2988,7 @@ type
                                 TSCANNERFILE
  ****************************************************************************}
 
-    constructor tscannerfile.create(const fn:string; is_macro: boolean = false);
+    constructor tscannerfile.Create(const fn: string; is_macro: boolean);
       begin
         inputfile:=do_openinputfile(fn);
         if is_macro then
@@ -2994,10 +3031,12 @@ type
       end;
 
 
-    destructor tscannerfile.destroy;
+    destructor tscannerfile.Destroy;
       begin
+        if assigned(onfreescanner) then
+          onfreescanner(self);
         if assigned(current_module) and
-           (current_module.state=ms_compiled) and
+           (current_module.state in [ms_processed,ms_compiled]) and
            (status.errorcount=0) then
           checkpreprocstack
         else
@@ -5438,7 +5477,7 @@ type
              '+' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_PLUSASN;
@@ -5451,7 +5490,7 @@ type
              '-' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_MINUSASN;
@@ -5477,7 +5516,7 @@ type
              '*' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
+                 if c='=' then
                   begin
                     readchar;
                     token:=_STARASN;
@@ -5499,12 +5538,9 @@ type
                  case c of
                    '=' :
                      begin
-                       if (cs_support_c_operators in current_settings.moduleswitches) then
-                        begin
-                          readchar;
-                          token:=_SLASHASN;
-                          goto exit_label;
-                        end;
+                       readchar;
+                       token:=_SLASHASN;
+                       goto exit_label;
                      end;
                    '/' :
                      begin
@@ -6198,6 +6234,22 @@ exit_label:
          until false;
       end;
 
+{$ifdef EXTDEBUG}
+    function tscannerfile.DumpPointer: string;
+      var
+        i: Integer;
+
+      begin
+        Result:='';
+        if inputpointer=nil then exit;
+        i:=0;
+        While (inputpointer[I]<>#0) and (i<200) do
+          inc(i);
+        Setlength(result,I);
+        move(inputpointer^,Result[1],I);
+        result:='<'+inttostr(inputstart)+'>'+result;
+      end;
+{$endif EXTDEBUG}
 
 {*****************************************************************************
                                    Helpers

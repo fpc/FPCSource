@@ -348,13 +348,14 @@ implementation
       if cpu.ops<>0 then
         begin
           for i:=0 to cpu.ops-1 do
-            begin
-              writer.AsmWrite(#9);
-              if cpu.oper[i]^.typ=top_functype then
-                owner.WriteFuncType(cpu.oper[i]^.functype)
-              else
-                writer.AsmWrite(getopstr(cpu.oper[i]^));
-            end;
+            if not ((cpu.opcode=a_call) and (i=1) and (cpu.oper[i]^.typ=top_functype)) then
+              begin
+                writer.AsmWrite(#9);
+                if cpu.oper[i]^.typ=top_functype then
+                  owner.WriteFuncType(cpu.oper[i]^.functype)
+                else
+                  writer.AsmWrite(getopstr(cpu.oper[i]^));
+              end;
         end;
       writer.AsmLn;
     end;

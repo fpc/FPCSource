@@ -5,13 +5,19 @@
 	.section	.note.ABI-tag,"a",@progbits
 	.p2align 2
 	.type	abitag, @object
-	.size	abitag, 24
+	.size	abitag, 48
 abitag:
 	.long	8
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	900044
+	.long	1400097
+        .long   8
+        .long   4
+        .long   1
+	.string	"FreeBSD"
+        .long   0
+
 	.section	.rodata
 .LC0:
 	.string	""
@@ -139,3 +145,5 @@ _start:
 	.p2align 3
 .LEFDE1:
 	.ident	"GCC: (GNU) 3.3.3 [FreeBSD] 20031106"
+
+.section .note.GNU-stack,"",@progbits

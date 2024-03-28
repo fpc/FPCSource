@@ -210,6 +210,13 @@
        TMethod = record
          Code : CodePointer;
          Data : Pointer;
+       public
+         class operator =(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <>(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator >(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator >=(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <(const aLeft, aRight: TMethod): Boolean; inline;
+         class operator <=(const aLeft, aRight: TMethod): Boolean; inline;
        end;
 
        // "Maximum" available stringtype : Shortstring, AnsiString or WideString
@@ -226,8 +233,21 @@
        RTLString = shortstring;
 
        {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+       
+       // Dispatch needs a DWord as the first 4 bytes in its untyped parameter.
+       // Note that this is different from Delphi, which uses only a word.
+       TDispatchMessage = record
+         MsgID: DWord;
+       end;  
 
        TObject = class
+       {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+       strict private
+          _MonitorData : Pointer;
+       private
+          function SetMonitorData(aData,aCheckOld : Pointer) : Pointer; inline;
+          function GetMonitorData: Pointer; inline;
+       {$ENDIF}
        protected
           function GetDisposed : Boolean; inline;
        public
@@ -251,7 +271,7 @@
           class function ClassName : shortstring;
           class function ClassNameIs(const name : RTLString) : boolean;
           class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
-          class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+          class function InstanceSize : SizeInt;// {$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
 
@@ -403,6 +423,10 @@
        PPDispatch = ^PDispatch;
        PInterface = PUnknown;
 
+       {*****************************************************************************
+                                     Exception support
+        *****************************************************************************}
+
 {$ifdef FPC_USE_PSABIEH}
 
 {$if (defined(CPUARMEL) or defined(CPUARMHF)) and not defined(darwin)}
@@ -492,39 +516,6 @@
 {$endif FPC_USE_PSABIEH}
        end;
 
-       {$PUSH}
-       { disable the warning that the constructor should be public }
-       {$WARN 3018 OFF}
-       TCustomAttribute = class(TObject)
-       private
-         { if the user wants to use a parameterless constructor they need to
-           explicitely declare it in their type }
-         constructor Create;
-       end;
-       {$POP}
-
-       TUnimplementedAttribute = class(TCustomAttribute)
-       public
-         constructor Create; unimplemented;
-       end;
-
-       WeakAttribute = class(TUnimplementedAttribute);
-       UnsafeAttribute = class(TUnimplementedAttribute);
-       RefAttribute = class(TUnimplementedAttribute);
-       VolatileAttribute = class(TUnimplementedAttribute);
-
-       StoredAttribute = Class(TCustomAttribute)
-       Private
-          FFlag : Boolean;
-          FName : ShortString;
-       Public
-         Constructor Create;
-         Constructor Create(Const aFlag : Boolean);
-         Constructor Create(Const aName : ShortString);
-         Property Flag : Boolean Read FFlag;
-         Property Name : ShortString Read FName;
-       end;
-
 
     Const
        ExceptProc : TExceptProc = Nil;
@@ -557,6 +548,114 @@
   const
     { for safe as operator support }
     IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+
+    {*****************************************************************************
+                                  Attribute support
+     *****************************************************************************}
+  Type
+  {$PUSH}
+  { disable the warning that the constructor should be public }
+  {$WARN 3018 OFF}
+  TCustomAttribute = class(TObject)
+  private
+    { if the user wants to use a parameterless constructor they need to
+      explicitely declare it in their type }
+    constructor Create;
+  end;
+  {$POP}
+
+  TUnimplementedAttribute = class(TCustomAttribute)
+  public
+    constructor Create; unimplemented;
+  end;
+
+  WeakAttribute = class(TUnimplementedAttribute);
+  UnsafeAttribute = class(TUnimplementedAttribute);
+  RefAttribute = class(TUnimplementedAttribute);
+  VolatileAttribute = class(TUnimplementedAttribute);
+
+  StoredAttribute = Class(TCustomAttribute)
+  Private
+     FFlag : Boolean;
+     FName : ShortString;
+  Public
+    Constructor Create;
+    Constructor Create(Const aFlag : Boolean);
+    Constructor Create(Const aName : ShortString);
+    Property Flag : Boolean Read FFlag;
+    Property Name : ShortString Read FName;
+  end;
+
+  {*****************************************************************************
+                                TMonitor support
+   *****************************************************************************}
+  {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+  Type
+
+  PPMonitor = ^PMonitor;
+  PMonitor = ^TMonitor;
+  TMonitor = record
+  Private
+    class procedure FreeMonitorData(aData : Pointer); static;
+  public
+    class procedure SetDefaultSpinCount(const aSpinCount: Longint); static;
+    class function GetDefaultSpinCount : Longint; static;
+    class procedure Enter(Const aObject: TObject); overload; static; inline;
+    class function Enter(Const aObject: TObject; aTimeout: Cardinal): Boolean; overload; static;
+    class procedure Exit(Const aObject: TObject); overload; static;
+    class function TryEnter(Const aObject: TObject): Boolean; overload; static;
+    class function Wait(Const aObject: TObject; aTimeout: Cardinal): Boolean; overload; static;
+    class function Wait(Const aObject, aLock: TObject; aTimeout: Cardinal): Boolean; overload; static;
+    class procedure Pulse(Const aObject: TObject); overload; static;
+    class procedure PulseAll(Const aObject: TObject); overload; static;
+    class property DefaultSpinCount: Longint read GetDefaultSpinCount write SetDefaultSpinCount;
+  end;
+
+
+  TMonitorManager = record
+  Public type
+    TMonitorSetSpinCountProc = Procedure(const aSpinCount : LongInt);
+    TMonitorGetSpinCountProc = Function : LongInt;
+    TMonitorProc = Procedure(const aObject : TObject);
+    TMonitorFunc = function(const aObject : TObject) : Boolean;
+    TMonitorTimeoutFunc = function(const aObject : TObject; aTimeout : Cardinal) : Boolean;
+    TMonitorLockTimeoutFunc = function(const aObject,aLock : TObject; aTimeout : Cardinal) : Boolean;
+    TMonitorSetObjectDataProc = function (const aObject : TObject; aData,aComparand : Pointer) : Pointer;
+    TMonitorGetObjectDataFunc = function (const aObject : TObject): Pointer;
+    TMonitorFreeDataProc = procedure (aData : Pointer);
+  Public
+    DoSetDefaultSpinCount : TMonitorSetSpinCountProc;
+    DoGetDefaultSpinCount : TMonitorGetSpinCountProc;
+    DoEnter : TMonitorProc;
+    DoEnterTimeout : TMonitorTimeoutFunc;
+    DoExit : TMonitorProc;
+    DoTryEnter : TMonitorFunc;
+    DoWait : TMonitorTimeoutFunc;
+    DoWaitLock : TMonitorLockTimeoutFunc;
+    DoPulse : TMonitorProc;
+    DoPulseAll : TMonitorProc;
+    DoFreeMonitorData : TMonitorFreeDataProc;
+    // Will be set by SetMonitorManager
+    DoGetMonitorObjectData : TMonitorGetObjectDataFunc;
+    DoSetMonitorObjectData : TMonitorSetObjectDataProc;
+  end;
+
+  const
+    INFINITE = CARDINAL($FFFFFFFF);
+
+  function MonitorEnter(Const aObject: TObject; aTimeout: Cardinal = INFINITE): Boolean; inline;
+  function MonitorTryEnter(Const aObject: TObject): Boolean; inline;
+  procedure MonitorExit(Const aObject: TObject); inline;
+  function MonitorWait(Const aObject: TObject; aTimeout: Cardinal): Boolean; inline; overload;
+  function MonitorWait(Const aObject, ALock: TObject; aTimeout: Cardinal): Boolean; inline; overload;
+  procedure MonitorPulse(Const aObject: TObject); inline;
+  procedure MonitorPulseAll(Const aObject: TObject); inline;
+
+  // Will set Do(S|G)etMonitorObjectData fields on aNew, and returns the old manager
+  function SetMonitorManager (var aNew : TMonitorManager) : TMonitorManager;
+  function GetMonitorManager : TMonitorManager;
+  {$ENDIF}
+
 {$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************

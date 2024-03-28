@@ -372,3 +372,8 @@ SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT
 
 si_g$(PPUEXT) : $(SI_G_DEPS)
 	$(COMPILER) $<
+
+
+
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(UNIXINC) -Fu$(RTL)/charmaps -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl

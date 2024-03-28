@@ -24,7 +24,7 @@ Unit System;
 
 Interface
 
-
+{$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
 {$define FPC_USE_SIGPROCMASK}
 {$define FPC_USE_SIGALTSTACK}
 

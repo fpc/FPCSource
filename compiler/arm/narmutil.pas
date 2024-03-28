@@ -26,12 +26,12 @@ unit narmutil;
 interface
 
   uses
-    cclasses,ngenutil;
+    cclasses,ngenutil,fmodule;
 
   type
     tarmnodeutils = class(tnodeutils)
       class procedure InsertObjectInfo; override;
-      class procedure insert_init_final_table(entries: tfplist); override;
+      class procedure insert_init_final_table(main : tmodule; entries: tfplist); override;
     end;
 
 
@@ -251,7 +251,7 @@ interface
           end;
       end;
 
-    class procedure tarmnodeutils.insert_init_final_table(entries:tfplist);
+    class procedure tarmnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
 
       procedure genentry(list : TAsmList);
         var
@@ -290,7 +290,7 @@ interface
       begin
         if not(tf_init_final_units_by_calls in target_info.flags) then
           begin
-            inherited insert_init_final_table(entries);
+            inherited insert_init_final_table(main,entries);
             exit;
           end;
         initList:=TAsmList.create;
@@ -332,7 +332,7 @@ interface
         initList.Free;
         finalList.Free;
 
-        inherited insert_init_final_table(entries);
+        inherited insert_init_final_table(main,entries);
       end;
 
   begin

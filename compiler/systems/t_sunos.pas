@@ -95,8 +95,11 @@ const
 {$endif }
 {$ifdef sparc}
 const
-  { no emulation specification needed, as long as only 32-bit is supported }
-  gnu_emul = '';
+  gnu_emul = '-m elf32_sparc_sol2';
+{$endif}
+{$ifdef sparc64}
+const
+  gnu_emul = '-m elf64_sparc_sol2';
 {$endif}
 
 Constructor TLinkersolaris.Create;
@@ -136,8 +139,13 @@ const
 {$endif }
 {$ifdef sparc}
 const
-  gld = 'gld ';
-  solaris_ld = 'ld ';
+  gld = 'gld $EMUL';
+  solaris_ld = 'ld -m32';
+{$endif}
+{$ifdef sparc64}
+const
+  gld = 'gld $EMUL';
+  solaris_ld = 'ld -m64';
 {$endif}
 begin
   Glibc2:=false;
