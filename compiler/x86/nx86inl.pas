@@ -1094,7 +1094,9 @@ implementation
         hl: TAsmLabel;
       begin
 {$if defined(i8086) or defined(i386)}
-        if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+        if is_64bitint(resultdef) then
+          inherited
+        else if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
