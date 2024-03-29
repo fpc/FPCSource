@@ -757,18 +757,38 @@ implementation
     procedure tcginlinenode.second_abs_long;
       var
         tempreg1, tempreg2: tregister;
+{$if not(defined(cpu64bitalu))}
+        tempreg64: tregister64;
+{$endif not(defined(cpu64bitalu))}
       begin
         secondpass(left);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location:=left.location;
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+{$if not(defined(cpu64bitalu))}
+        if is_64bitint(left.resultdef) then
+          begin
+            location:=left.location;
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
+            tempreg64.reghi:=left.location.register64.reghi;
+            tempreg64.reglo:=left.location.register64.reghi;
+            cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_64,tempreg64,location.register64);
+            cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_64,tempreg64,location.register64,location.register64);
+          end
+        else
+{$endif not(defined(cpu64bitalu))}
+          begin
+            location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
-        tempreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
-        tempreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+            tempreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+            tempreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
-        hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
-        hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
-        hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,left.resultdef,tempreg1,tempreg2,location.register);
+            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
+            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
+            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,left.resultdef,tempreg1,tempreg2,location.register);
+          end;
       end;
 
 
