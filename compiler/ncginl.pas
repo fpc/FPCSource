@@ -759,8 +759,8 @@ implementation
         tempreg1, tempreg2: tregister;
 {$if not(defined(cpu64bitalu))}
         tempreg64: tregister64;
-        ovloc: tlocation;
 {$endif not(defined(cpu64bitalu))}
+        ovloc: tlocation;
       begin
         secondpass(left);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
