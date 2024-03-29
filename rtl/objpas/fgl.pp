@@ -607,7 +607,7 @@ begin
     there. Otherwise, we could accidentally have there a copy of some item
     on the list, and accidentally Deref it too soon.
     See http://bugs.freepascal.org/view.php?id=20005. }
-  FillChar(InternalItems[FCount]^, (FCapacity+1-FCount) * FItemSize, #0);
+  FillChar(InternalItems[FCount]^, FItemSize, #0);
 end;
 
 procedure TFPSList.DeleteRange(IndexFrom, IndexTo : Integer);
