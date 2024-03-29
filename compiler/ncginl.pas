@@ -794,7 +794,14 @@ implementation
 
             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
-            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,left.resultdef,tempreg1,tempreg2,location.register);
+
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmlist,OP_SUB,resultdef,tempreg1,tempreg2,location.register,true,ovloc);
+                hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
+              end
+            else
+              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,resultdef,tempreg1,tempreg2,location.register);
           end;
       end;
 
