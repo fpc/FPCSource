@@ -3663,10 +3663,10 @@ unit cgcpu;
               else
                 internalerror(2003083102);
             end;
+            ovloc.loc:=LOC_FLAGS;
             if size=OS_64 then
               begin
-                { the arm has an weired opinion how flags for SUB/ADD are handled }
-                ovloc.loc:=LOC_FLAGS;
+                { arm has a weired opinion how flags for SUB/ADD are handled }
                 case op of
                   OP_ADD:
                     ovloc.resflags:=F_CS;
@@ -3675,7 +3675,9 @@ unit cgcpu;
                   else
                     internalerror(2019050917);
                 end;
-              end;
+              end
+            else
+              ovloc.resflags:=F_VS;
           end
         else
           begin

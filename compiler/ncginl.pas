@@ -759,6 +759,7 @@ implementation
         tempreg1, tempreg2: tregister;
 {$if not(defined(cpu64bitalu))}
         tempreg64: tregister64;
+        ovloc: tlocation;
 {$endif not(defined(cpu64bitalu))}
       begin
         secondpass(left);
@@ -774,8 +775,14 @@ implementation
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
             tempreg64.reghi:=left.location.register64.reghi;
             tempreg64.reglo:=left.location.register64.reghi;
-            cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_64,tempreg64,location.register64);
-            cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_64,tempreg64,location.register64,location.register64);
+            cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),tempreg64,location.register64);
+            if cs_check_overflow in current_settings.localswitches then
+              begin
+                cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64,true,ovloc);
+                hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
+              end
+            else
+              cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64);
           end
         else
 {$endif not(defined(cpu64bitalu))}
