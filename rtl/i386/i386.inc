@@ -2559,31 +2559,13 @@ function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;
 {$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; nostackframe;assembler;
 asm
-// Var S located in register
-// Var $result located in register
-        movl    %eax,%edx
-// [437] pointer(result) := pointer(s);
-        movl    (%eax),%eax
-// [438] If Pointer(S)=Nil then
-        testl   %eax,%eax
-        je      .Lj4031
-.Lj4036:
-// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-        movl    -8(%eax),%ecx
-        cmpl    $1,%ecx
-        je      .Lj4038
-// [441] result:=fpc_truely_ansistr_unique(s);
+        movl    (%eax),%edx
+        testl   %edx,%edx
+        jz      .Lunchanged
+        cmpl    $1,-8(%edx)
+        jne     fpc_truely_ansistr_unique
+.Lunchanged:
         movl    %edx,%eax
-{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
-        leal    -12(%esp),%esp
-{$endif FPC_SYSTEM_STACKALIGNMENT16}
-        call    fpc_truely_ansistr_unique
-{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
-        leal    12(%esp),%esp
-{$endif FPC_SYSTEM_STACKALIGNMENT16}
-.Lj4038:
-.Lj4031:
-// [442] end;
 end;
 
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
