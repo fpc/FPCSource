@@ -680,12 +680,14 @@ var
   IncSize : Longint;
 begin
   if FCount < FCapacity then exit;
-  IncSize := 4;
-  if FCapacity > 3 then IncSize := IncSize + 4;
-  if FCapacity > 8 then IncSize := IncSize + 8;
-  if FCapacity > 127 then Inc(IncSize, FCapacity shr 2);
-  if FCapacity+IncSize>MaxListSize then
-    IncSize:=MaxListSize-FCapacity;
+  if FCapacity > 127 then 
+    IncSize:=FCapacity shr 2
+  else if FCapacity > 8 then 
+    IncSize := 16
+  else if FCapacity > 3 then 
+    IncSize := 8
+  else
+    IncSize := 4;  
   // If we were at max capacity already, force error.
   If IncSize<=0 then
     IncSize:=1; // Will trigger error 
