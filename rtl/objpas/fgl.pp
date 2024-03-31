@@ -679,7 +679,9 @@ function TFPSList.Expand: TFPSList;
 var
   IncSize : Longint;
 begin
-  if FCount < FCapacity then exit;
+  Result := Self;
+  if FCount < FCapacity then 
+    exit;
   if FCapacity > 127 then 
     IncSize:=FCapacity shr 2
   else if FCapacity > 8 then 
@@ -692,7 +694,6 @@ begin
   If IncSize<=0 then
     IncSize:=1; // Will trigger error 
   SetCapacity(FCapacity + IncSize);
-  Result := Self;
 end;
 
 function TFPSList.GetFirst: Pointer;
