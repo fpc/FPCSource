@@ -2189,6 +2189,7 @@ var
 begin
   Result:=false;
   CurSrcDir:=ExpandFileName(DirectoryName);
+  CurSrcDir:=IncludTrailingPathDelimiter(CurSrcDir);
   if FindFirst(CurSrcDir+AllFilesMask,DeleteMask,FileInfo)=0 then
     Try
       repeat
