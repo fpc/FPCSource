@@ -1934,7 +1934,7 @@ Unit AoptObj;
                           repeat
                             with tai_label(tmp).labsym do
                               begin
-                                if (labeltype <> alt_jump) then
+                                if not(labeltype in [alt_addr,alt_jump]) then
                                   begin
                                     { Non-jump label - skip over }
                                     tmp := tai(tmp.Next);
