@@ -1934,6 +1934,8 @@ Unit AoptObj;
                           repeat
                             with tai_label(tmp).labsym do
                               begin
+                                { alt_addr is needed so alignment directives before
+                                  jump tables e.g. for arm thumb are not removed }
                                 if not(labeltype in [alt_addr,alt_jump]) then
                                   begin
                                     { Non-jump label - skip over }
