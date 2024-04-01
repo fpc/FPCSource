@@ -1726,8 +1726,13 @@ implementation
                  paraarray[1]:=tcallparanode(parameters).paravalue;
                end;
 
+             if not(paraarray[1].location.loc in [LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[1].location,
+                 paraarray[1].resultdef,paraarray[1].resultdef,true);
+
              location_reset(location,LOC_REGISTER,paraarray[1].location.size);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
 
              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,paraarray[1].location,location.register);
              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
