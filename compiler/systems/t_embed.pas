@@ -867,6 +867,8 @@ begin
       Add('    {');
       Add('    _data = .;');
       Add('    *(.data .data.*)');
+      // Special Section for the Raspberry Pico, needed for linking to spi
+      Add('    *(.time_critical*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
