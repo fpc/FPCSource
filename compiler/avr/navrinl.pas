@@ -40,7 +40,7 @@ unit navrinl;
   implementation
 
     uses
-      verbose,
+      verbose,globtype,globals,
       constexp,
       compinnr,
       aasmdata,
@@ -57,18 +57,22 @@ unit navrinl;
       var
         hl: TAsmLabel;
         size: TCgSize;
+        dummyloc: tlocation;
       begin
         secondpass(left);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
-        size:=def_cgsize(left.resultdef);
+        size:=def_cgsize(resultdef);
 
         current_asmdata.getjumplabel(hl);
         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,size,left.location.register,location.register);
+
+        if cs_check_overflow in current_settings.localswitches then
+          cg.g_overflowcheck(current_asmdata.CurrAsmList,dummyloc,resultdef);
 
         cg.a_label(current_asmdata.CurrAsmList,hl);
       end;
