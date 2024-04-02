@@ -375,10 +375,6 @@ procedure fail;
       WriteLn('Success!');
   end;
 
-var
- r: longint;
- _success : boolean;
- l: boolean;
 Begin
 {$ifdef SKIP_CURRENCY_TEST}
   Writeln('Skipping currency test because its not supported by theis compiler');
