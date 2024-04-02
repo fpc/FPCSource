@@ -273,6 +273,14 @@ interface
           tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,tcgint(lo(value)),regdst.reglo);
           tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,tcgint(hi(value)),regdst.reghi);
         end;
+
+        if setflags then
+          begin
+            ovloc.loc:=LOC_FLAGS;
+            ovloc.resflags.Init(NR_ICC,F_VS);
+          end
+        else
+          ovloc.loc:=LOC_INVALID;
       end;
 
 
@@ -290,6 +298,14 @@ interface
         get_64bit_ops(op,op1,op2,setflags);
         list.concat(taicpu.op_reg_reg_reg(op1,regsrc2.reglo,regsrc1.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(op2,regsrc2.reghi,regsrc1.reghi,regdst.reghi));
+
+        if setflags then
+          begin
+            ovloc.loc:=LOC_FLAGS;
+            ovloc.resflags.Init(NR_ICC,F_VS);
+          end
+        else
+          ovloc.loc:=LOC_INVALID;
       end;
 
 
