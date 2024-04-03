@@ -2210,7 +2210,7 @@ const
 //
 
 type
-  _DSKTLSYSTEMTIME = packed record
+  _DSKTLSYSTEMTIME = record
     wYear: WORD;
     wMonth: WORD;
     wDayOfWeek: WORD;

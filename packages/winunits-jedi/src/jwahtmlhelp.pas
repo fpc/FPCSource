@@ -384,7 +384,7 @@ const
 
 type
   PHHLastError = ^THHLastError;
-  tagHH_LAST_ERROR = packed record
+  tagHH_LAST_ERROR = record
     cbStruct: INT;          // size of this structure
     hr: HRESULT;            // the last error code.
     description: LPWSTR;    // a description of the error (unicode string - BSTR).
@@ -392,7 +392,7 @@ type
   THHLastError = tagHH_LAST_ERROR;
 
   PHHNNotify = ^THHNNotify;
-  tagHHN_NOTIFY = packed record
+  tagHHN_NOTIFY = record
     hdr: NMHDR;
     pszUrl: PCSTR;                         // multibyte null-terminated string
   end;
@@ -402,7 +402,7 @@ type
   THHNNotify = tagHHN_NOTIFY;
 
   PHHPopup = ^THHPopup;
-  tagHH_POPUP = packed record
+  tagHH_POPUP = record
     cbStruct: Integer;                     // sizeof this structure
     hinst_: HINST;                     // instance handle for string resource
     idString: UINT;                        // string resource id, or text id if pszFile is specified in HtmlHelp call
@@ -419,7 +419,7 @@ type
   THHPopup = tagHH_POPUP;
 
   PHHAKLink = ^THHAKLink;
-  tagHH_AKLINK = packed record
+  tagHH_AKLINK = record
     cbStruct: Integer;                     // sizeof this structure
     fReserved: BOOL;                       // must be FALSE (really!)
     pszKeywords: LPCTSTR;                  // semi-colon separated keywords
@@ -467,7 +467,7 @@ const
 
 type
   PHHEnumIT = ^THHEnumIT;
-  tagHH_ENUM_IT = packed record
+  tagHH_ENUM_IT = record
     cbStruct: Integer;        // size of this structure
     iType: Integer;           // the type of the information type ie. Inclusive, Exclusive, or Hidden
     pszCatName: LPCSTR;       // Set to the name of the Category to enumerate the info types in a category; else NULL
@@ -482,7 +482,7 @@ type
   THHEnumIT = tagHH_ENUM_IT;
 
   PHHEnumCat = ^THHEnumCat;
-  tagHH_ENUM_CAT = packed record
+  tagHH_ENUM_CAT = record
     cbStruct: Integer;         // size of this structure
     pszCatName: LPCSTR;        // volitile pointer to the category name
     pszCatDescription: LPCSTR; // volitile pointer to the category description
@@ -495,7 +495,7 @@ type
   THHEnumCat = tagHH_ENUM_CAT;
 
   PHHSetInfoType = ^THHSetInfoType;
-  tagHH_SET_INFOTYPE = packed record
+  tagHH_SET_INFOTYPE = record
     cbStruct: Integer;        // the size of this structure
     pszCatName: LPCSTR;       // the name of the category, if any, the InfoType is a member of.
     pszInfoTypeName: LPCSTR;  // the name of the info type to add to the filter
@@ -561,7 +561,7 @@ const
 
 type
   PHHFtsQuery = ^THHFtsQuery;
-  tagHH_FTS_QUERY = packed record
+  tagHH_FTS_QUERY = record
     cbStruct: Integer;         // Sizeof structure in bytes.
     fUniCodeStrings: BOOL;     // TRUE if all strings are unicode.
     pszSearchQuery: LPCTSTR;   // String containing the search query.
@@ -577,7 +577,7 @@ type
   THHFtsQuery = tagHH_FTS_QUERY;
 
   PHHWinType = ^THHWinType;
-  tagHH_WINTYPE = packed record
+  tagHH_WINTYPE = record
     cbStruct: Integer;      // IN: size of this structure including all Information Types
     fUniCodeStrings: BOOL;  // IN/OUT: TRUE if all strings are in UNICODE
     pszType: LPCTSTR;       // IN/OUT: Name of a type of window
@@ -683,7 +683,7 @@ const
 
 type
   PHHNTrack = ^THHNTrack;
-  tagHHNTRACK = packed record
+  tagHHNTRACK = record
     hdr: NMHDR;
     pszCurUrl: PCSTR;        // Multi-byte, null-terminated string
     idAction: Integer;       // HHACT_ value

@@ -65,7 +65,7 @@ type
   // Used by command HH_GET_LAST_ERROR
   // You must call SysFreeString(xx.description) to free BSTR
 
-  tagHH_LAST_ERROR = packed record
+  tagHH_LAST_ERROR = record
     cbStruct: Integer;      // sizeof this structure
     hr: HRESULT;            // Specifies the last error code.
     description: PWideChar; // (BSTR) Specifies a Unicode string containing a description of the error.

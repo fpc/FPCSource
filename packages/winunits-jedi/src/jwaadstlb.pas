@@ -955,14 +955,14 @@ type
 
   ADSTYPEENUM = __MIDL___MIDL_itf_ads_0000_0001;
 
-  __MIDL___MIDL_itf_ads_0000_0002 = packed record
+  __MIDL___MIDL_itf_ads_0000_0002 = record
     dwLength: LongWord;
     lpValue: ^Byte;
   end;
 
   ADS_OCTET_STRING = __MIDL___MIDL_itf_ads_0000_0002;
 
-  __MIDL___MIDL_itf_ads_0000_0003 = packed record
+  __MIDL___MIDL_itf_ads_0000_0003 = record
     dwLength: LongWord;
     lpValue: ^Byte;
   end;
@@ -972,7 +972,7 @@ type
 
   {$IFNDEF JWA_INCLUDEMODE}
 
-  _SYSTEMTIME = packed record
+  _SYSTEMTIME = record
     wYear: Word;
     wMonth: Word;
     wDayOfWeek: Word;
@@ -983,20 +983,20 @@ type
     wMilliseconds: Word;
   end;
 
-  _LARGE_INTEGER = packed record
+  _LARGE_INTEGER = record
     QuadPart: Int64;
   end;
 
   {$ENDIF JWA_INCLUDEMODE}
 
-  __MIDL___MIDL_itf_ads_0000_0004 = packed record
+  __MIDL___MIDL_itf_ads_0000_0004 = record
     dwLength: LongWord;
     lpValue: ^Byte;
   end;
 
   ADS_PROV_SPECIFIC = __MIDL___MIDL_itf_ads_0000_0004;
 
-  __MIDL___MIDL_itf_ads_0000_0005 = packed record
+  __MIDL___MIDL_itf_ads_0000_0005 = record
     Type_: LongWord;
     VolumeName: PWideChar;
     Path: PWideChar;
@@ -1004,27 +1004,27 @@ type
 
   ADS_PATH = __MIDL___MIDL_itf_ads_0000_0005;
 
-  __MIDL___MIDL_itf_ads_0000_0006 = packed record
+  __MIDL___MIDL_itf_ads_0000_0006 = record
     PostalAddress: array[0..5] of PWideChar;
   end;
 
   ADS_POSTALADDRESS = __MIDL___MIDL_itf_ads_0000_0006;
 
-  __MIDL___MIDL_itf_ads_0000_0007 = packed record
+  __MIDL___MIDL_itf_ads_0000_0007 = record
     WholeSeconds: LongWord;
     EventID: LongWord;
   end;
 
   ADS_TIMESTAMP = __MIDL___MIDL_itf_ads_0000_0007;
 
-  __MIDL___MIDL_itf_ads_0000_0008 = packed record
+  __MIDL___MIDL_itf_ads_0000_0008 = record
     RemoteID: LongWord;
     ObjectName: PWideChar;
   end;
 
   ADS_BACKLINK = __MIDL___MIDL_itf_ads_0000_0008;
 
-  __MIDL___MIDL_itf_ads_0000_0009 = packed record
+  __MIDL___MIDL_itf_ads_0000_0009 = record
     ObjectName: PWideChar;
     Level: LongWord;
     Interval: LongWord;
@@ -1032,14 +1032,14 @@ type
 
   ADS_TYPEDNAME = __MIDL___MIDL_itf_ads_0000_0009;
 
-  __MIDL___MIDL_itf_ads_0000_0010 = packed record
+  __MIDL___MIDL_itf_ads_0000_0010 = record
     ObjectName: PWideChar;
     Amount: LongWord;
   end;
 
   ADS_HOLD = __MIDL___MIDL_itf_ads_0000_0010;
 
-  __MIDL___MIDL_itf_ads_0000_0011 = packed record
+  __MIDL___MIDL_itf_ads_0000_0011 = record
     AddressType: LongWord;
     AddressLength: LongWord;
     Address: ^Byte;
@@ -1047,7 +1047,7 @@ type
 
   ADS_NETADDRESS = __MIDL___MIDL_itf_ads_0000_0011;
 
-  __MIDL___MIDL_itf_ads_0000_0012 = packed record
+  __MIDL___MIDL_itf_ads_0000_0012 = record
     ServerName: PWideChar;
     ReplicaType: LongWord;
     ReplicaNumber: LongWord;
@@ -1057,7 +1057,7 @@ type
 
   ADS_REPLICAPOINTER = __MIDL___MIDL_itf_ads_0000_0012;
 
-  __MIDL___MIDL_itf_ads_0000_0013 = packed record
+  __MIDL___MIDL_itf_ads_0000_0013 = record
     TelephoneNumber: PWideChar;
     NumberOfBits: LongWord;
     Parameters: ^Byte;
@@ -1065,14 +1065,14 @@ type
 
   ADS_FAXNUMBER = __MIDL___MIDL_itf_ads_0000_0013;
 
-  __MIDL___MIDL_itf_ads_0000_0014 = packed record
+  __MIDL___MIDL_itf_ads_0000_0014 = record
     Address: PWideChar;
     Type_: LongWord;
   end;
 
   ADS_EMAIL = __MIDL___MIDL_itf_ads_0000_0014;
 
-  __MIDL___MIDL_itf_ads_0000_0015 = packed record
+  __MIDL___MIDL_itf_ads_0000_0015 = record
     dwLength: LongWord;
     lpBinaryValue: ^Byte;
     pszDNString: PWideChar;
@@ -1080,19 +1080,19 @@ type
 
   ADS_DN_WITH_BINARY = __MIDL___MIDL_itf_ads_0000_0015;
 
-  __MIDL___MIDL_itf_ads_0000_0016 = packed record
+  __MIDL___MIDL_itf_ads_0000_0016 = record
     pszStringValue: PWideChar;
     pszDNString: PWideChar;
   end;
 
   ADS_DN_WITH_STRING = __MIDL___MIDL_itf_ads_0000_0016;
 
-  _ADS_CASEIGNORE_LIST = packed record
+  _ADS_CASEIGNORE_LIST = record
     Next: PUserType1;
     String_: PWideChar;
   end;
 
-  _ADS_OCTET_LIST = packed record
+  _ADS_OCTET_LIST = record
     Next: PUserType2;
     Length: LongWord;
     Data: ^Byte;
@@ -1131,7 +1131,7 @@ type
 
   ADS_AUTHENTICATION_ENUM = __MIDL___MIDL_itf_ads_0000_0018;
 
-  _ads_object_info = packed record
+  _ads_object_info = record
     pszRDN: PWideChar;
     pszObjectDN: PWideChar;
     pszParentDN: PWideChar;
@@ -1147,12 +1147,12 @@ type
   ADS_CHASE_REFERRALS_ENUM = __MIDL___MIDL_itf_ads_0000_0024;
   ADS_SEARCHPREF_ENUM = __MIDL___MIDL_itf_ads_0000_0025;
 
-  _adsvalue = packed record
+  _adsvalue = record
     dwType: ADSTYPEENUM;
     __MIDL_0010: __MIDL___MIDL_itf_ads_0000_0017;
   end;
 
-  ads_search_column = packed record
+  ads_search_column = record
     pszAttrName: PWideChar;
     dwADsType: ADSTYPEENUM;
     pADsValues: ^_adsvalue;
@@ -1160,7 +1160,7 @@ type
     hReserved: Pointer;
   end;
 
-  _ads_attr_def = packed record
+  _ads_attr_def = record
     pszAttrName: PWideChar;
     dwADsType: ADSTYPEENUM;
     dwMinRange: LongWord;
@@ -1168,7 +1168,7 @@ type
     fMultiValued: Integer;
   end;
 
-  _ads_sortkey = packed record
+  _ads_sortkey = record
     pszAttrType: PWideChar;
     pszReserved: PWideChar;
     fReverseorder: Shortint;
@@ -1183,12 +1183,12 @@ type
       2: (hreftype: LongWord);
   end;
 
-  tagTYPEDESC = packed record
+  tagTYPEDESC = record
     __MIDL_0008: __MIDL_IOleAutomationTypes_0005;
     vt: Word;
   end;
 
-  tagSAFEARRAYBOUND = packed record
+  tagSAFEARRAYBOUND = record
     cElements: LongWord;
     lLbound: Integer;
   end;
@@ -1197,7 +1197,7 @@ type
   ULONG_PTR = PtrUint;
   {$ENDIF JWA_INCLUDEMODE}
 
-  tagIDLDESC = packed record
+  tagIDLDESC = record
     dwReserved: ULONG_PTR;
     wIDLFlags: Word;
   end;
@@ -1206,22 +1206,22 @@ type
   DWORD = LongWord;
   {$ENDIF JWA_INCLUDEMODE}
 
-  tagPARAMDESCEX = packed record
+  tagPARAMDESCEX = record
     cBytes: LongWord;
     varDefaultValue: OleVariant;
   end;
 
-  tagPARAMDESC = packed record
+  tagPARAMDESC = record
     pparamdescex: ^tagPARAMDESCEX;
     wParamFlags: Word;
   end;
 
-  tagELEMDESC = packed record
+  tagELEMDESC = record
     tdesc: tagTYPEDESC;
     paramdesc: tagPARAMDESC;
   end;
 
-  tagFUNCDESC = packed record
+  tagFUNCDESC = record
     memid: Integer;
     lprgscode: ^SCODE;
     lprgelemdescParam: ^tagELEMDESC;
@@ -1242,7 +1242,7 @@ type
       1: (lpvarValue: ^OleVariant);
   end;
 
-  tagVARDESC = packed record
+  tagVARDESC = record
     memid: Integer;
     lpstrSchema: PWideChar;
     __MIDL_0009: __MIDL_IOleAutomationTypes_0006;
@@ -1251,7 +1251,7 @@ type
     varkind: tagVARKIND;
   end;
 
-  tagTLIBATTR = packed record
+  tagTLIBATTR = record
     GUID: TGUID;
     lcid: LongWord;
     syskind: tagSYSKIND;
@@ -1277,7 +1277,7 @@ type
   ADS_DISPLAY_ENUM = __MIDL___MIDL_itf_ads_0164_0003;
   ADS_ESCAPE_MODE_ENUM = __MIDL___MIDL_itf_ads_0164_0004;
 
-  _ads_attr_info = packed record
+  _ads_attr_info = record
     pszAttrName: PWideChar;
     dwControlCode: LongWord;
     dwADsType: ADSTYPEENUM;
@@ -1285,13 +1285,13 @@ type
     dwNumValues: LongWord;
   end;
 
-  ads_searchpref_info = packed record
+  ads_searchpref_info = record
     dwSearchPref: ADS_SEARCHPREF_ENUM;
     vValue: _adsvalue;
     dwStatus: ADS_STATUSENUM;
   end;
 
-  _ads_class_def = packed record
+  _ads_class_def = record
     pszClassName: PWideChar;
     dwMandatoryAttrs: LongWord;
     ppszMandatoryAttrs: ^PWideChar;
@@ -1304,7 +1304,7 @@ type
     fIsContainer: Integer;
   end;
 
-  tagTYPEATTR = packed record
+  tagTYPEATTR = record
     GUID: TGUID;
     lcid: LongWord;
     dwReserved: LongWord;
@@ -1325,7 +1325,7 @@ type
     idldescType: tagIDLDESC;
   end;
 
-  tagARRAYDESC = packed record
+  tagARRAYDESC = record
     tdescElem: tagTYPEDESC;
     cDims: Word;
     rgbounds: ^tagSAFEARRAYBOUND;

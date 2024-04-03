@@ -176,7 +176,7 @@ type
 
   POBJECTS_AND_SID = ^OBJECTS_AND_SID;
   {$EXTERNALSYM POBJECTS_AND_SID}
-  _OBJECTS_AND_SID = packed record
+  _OBJECTS_AND_SID = record
     ObjectsPresent: DWORD;
     ObjectTypeGuid: GUID;
     InheritedObjectTypeGuid: GUID;
@@ -190,7 +190,7 @@ type
 
   POBJECTS_AND_NAME_A = ^OBJECTS_AND_NAME_A;
   {$EXTERNALSYM POBJECTS_AND_NAME_A}
-  _OBJECTS_AND_NAME_A = packed record
+  _OBJECTS_AND_NAME_A = record
     ObjectsPresent: DWORD;
     ObjectType: SE_OBJECT_TYPE;
     ObjectTypeName: LPSTR;
@@ -205,7 +205,7 @@ type
 
   POBJECTS_AND_NAME_W = ^OBJECTS_AND_NAME_W;
   {$EXTERNALSYM POBJECTS_AND_NAME_W}
-  _OBJECTS_AND_NAME_W = packed record
+  _OBJECTS_AND_NAME_W = record
     ObjectsPresent: DWORD;
     ObjectType: SE_OBJECT_TYPE;
     ObjectTypeName: LPWSTR;
@@ -248,7 +248,7 @@ type
 
   PTRUSTEE_A = ^TRUSTEE_A;
   {$EXTERNALSYM PTRUSTEE_A}
-  _TRUSTEE_A = packed record
+  _TRUSTEE_A = record
     pMultipleTrustee: PTRUSTEE_A;
     MultipleTrusteeOperation: MULTIPLE_TRUSTEE_OPERATION;
     TrusteeForm: TRUSTEE_FORM;
@@ -267,7 +267,7 @@ type
 
   PTRUSTEE_W = ^TRUSTEE_W;
   {$EXTERNALSYM PTRUSTEE_W}
-  _TRUSTEE_W = packed record
+  _TRUSTEE_W = record
     pMultipleTrustee: PTRUSTEE_W;
     MultipleTrusteeOperation: MULTIPLE_TRUSTEE_OPERATION;
     TrusteeForm: TRUSTEE_FORM;
@@ -414,7 +414,7 @@ const
 type
   PEXPLICIT_ACCESS_A = ^EXPLICIT_ACCESS_A;
   {$EXTERNALSYM PEXPLICIT_ACCESS_A}
-  _EXPLICIT_ACCESS_A = packed record
+  _EXPLICIT_ACCESS_A = record
     grfAccessPermissions: DWORD;
     grfAccessMode: ACCESS_MODE;
     grfInheritance: DWORD;
@@ -432,7 +432,7 @@ type
 
   PEXPLICIT_ACCESS_W = ^EXPLICIT_ACCESS_W;
   {$EXTERNALSYM PEXPLICIT_ACCESS_W}
-  _EXPLICIT_ACCESS_W = packed record
+  _EXPLICIT_ACCESS_W = record
     grfAccessPermissions: DWORD;
     grfAccessMode: ACCESS_MODE;
     grfInheritance: DWORD;
@@ -519,7 +519,7 @@ type
 
   PACTRL_ACCESS_ENTRYA = ^ACTRL_ACCESS_ENTRYA;
   {$EXTERNALSYM PACTRL_ACCESS_ENTRYA}
-  _ACTRL_ACCESS_ENTRYA = packed record
+  _ACTRL_ACCESS_ENTRYA = record
     Trustee: TRUSTEE_A;
     fAccessFlags: ULONG;
     Access: ACCESS_RIGHTS;
@@ -539,7 +539,7 @@ type
 
   PACTRL_ACCESS_ENTRYW = ^ACTRL_ACCESS_ENTRYW;
   {$EXTERNALSYM PACTRL_ACCESS_ENTRYW}
-  _ACTRL_ACCESS_ENTRYW = packed record
+  _ACTRL_ACCESS_ENTRYW = record
     Trustee: TRUSTEE_W;
     fAccessFlags: ULONG;
     Access: ACCESS_RIGHTS;
@@ -571,7 +571,7 @@ type
 
   PACTRL_ACCESS_ENTRY_LISTA = ^ACTRL_ACCESS_ENTRY_LISTA;
   {$EXTERNALSYM PACTRL_ACCESS_ENTRY_LISTA}
-  _ACTRL_ACCESS_ENTRY_LISTA = packed record
+  _ACTRL_ACCESS_ENTRY_LISTA = record
     cEntries: ULONG;
     pAccessList: PACTRL_ACCESS_ENTRYA;
   end;
@@ -583,7 +583,7 @@ type
 
   PACTRL_ACCESS_ENTRY_LISTW = ^ACTRL_ACCESS_ENTRY_LISTW;
   {$EXTERNALSYM PACTRL_ACCESS_ENTRY_LISTW}
-  _ACTRL_ACCESS_ENTRY_LISTW = packed record
+  _ACTRL_ACCESS_ENTRY_LISTW = record
     cEntries: ULONG;
     pAccessList: PACTRL_ACCESS_ENTRYW;
   end;
@@ -611,7 +611,7 @@ type
 
   PACTRL_PROPERTY_ENTRYA = ^ACTRL_PROPERTY_ENTRYA;
   {$EXTERNALSYM PACTRL_PROPERTY_ENTRYA}
-  _ACTRL_PROPERTY_ENTRYA = packed record
+  _ACTRL_PROPERTY_ENTRYA = record
     lpProperty: LPSTR;
     pAccessEntryList: PACTRL_ACCESS_ENTRY_LISTA;
     fListFlags: ULONG;
@@ -624,7 +624,7 @@ type
 
   PACTRL_PROPERTY_ENTRYW = ^ACTRL_PROPERTY_ENTRYW;
   {$EXTERNALSYM PACTRL_PROPERTY_ENTRYW}
-  _ACTRL_PROPERTY_ENTRYW = packed record
+  _ACTRL_PROPERTY_ENTRYW = record
     lpProperty: LPWSTR;
     pAccessEntryList: PACTRL_ACCESS_ENTRY_LISTW;
     fListFlags: ULONG;
@@ -652,7 +652,7 @@ type
   {$ENDIF UNICODE}
 
   PActrlAlistA = ^TActrlAlistA;
-  _ACTRL_ALISTA = packed record
+  _ACTRL_ALISTA = record
     cEntries: ULONG;
     pPropertyAccessList: PACTRL_PROPERTY_ENTRYA;
   end;
@@ -668,7 +668,7 @@ type
   TActrlAlistA = _ACTRL_ALISTA;
 
   PActrlAlistW = ^TActrlAlistW;
-  _ACTRL_ALISTW = packed record
+  _ACTRL_ALISTW = record
     cEntries: ULONG;
     pPropertyAccessList: PACTRL_PROPERTY_ENTRYW;
   end;
@@ -730,7 +730,7 @@ const
 type
   PTRUSTEE_ACCESSA = ^TRUSTEE_ACCESSA;
   {$EXTERNALSYM PTRUSTEE_ACCESSA}
-  _TRUSTEE_ACCESSA = packed record
+  _TRUSTEE_ACCESSA = record
     lpProperty: LPSTR;
     Access: ACCESS_RIGHTS;
     fAccessFlags: ULONG;
@@ -744,7 +744,7 @@ type
 
   PTRUSTEE_ACCESSW = ^TRUSTEE_ACCESSW;
   {$EXTERNALSYM PTRUSTEE_ACCESSW}
-  _TRUSTEE_ACCESSW = packed record
+  _TRUSTEE_ACCESSW = record
     lpProperty: LPWSTR;
     Access: ACCESS_RIGHTS;
     fAccessFlags: ULONG;
@@ -1004,7 +1004,7 @@ const
 type
   PACTRL_OVERLAPPED = ^ACTRL_OVERLAPPED;
   {$EXTERNALSYM PACTRL_OVERLAPPED}
-  _ACTRL_OVERLAPPED = packed record
+  _ACTRL_OVERLAPPED = record
     //union {
     Provider: PVOID;
     //    ULONG Reserved1;
@@ -1020,7 +1020,7 @@ type
 
   PACTRL_ACCESS_INFOA = ^ACTRL_ACCESS_INFOA;
   {$EXTERNALSYM PACTRL_ACCESS_INFOA}
-  _ACTRL_ACCESS_INFOA = packed record
+  _ACTRL_ACCESS_INFOA = record
     fAccessPermission: ULONG;
     lpAccessPermissionName: LPSTR;
   end;
@@ -1032,7 +1032,7 @@ type
 
   PACTRL_ACCESS_INFOW = ^ACTRL_ACCESS_INFOW;
   {$EXTERNALSYM PACTRL_ACCESS_INFOW}
-  _ACTRL_ACCESS_INFOW = packed record
+  _ACTRL_ACCESS_INFOW = record
     fAccessPermission: ULONG;
     lpAccessPermissionName: LPWSTR;
   end;
@@ -1060,7 +1060,7 @@ type
 
   PACTRL_CONTROL_INFOA = ^ACTRL_CONTROL_INFOA;
   {$EXTERNALSYM PACTRL_CONTROL_INFOA}
-  _ACTRL_CONTROL_INFOA = packed record
+  _ACTRL_CONTROL_INFOA = record
     lpControlId: LPSTR;
     lpControlName: LPSTR;
   end;
@@ -1072,7 +1072,7 @@ type
 
   PACTRL_CONTROL_INFOW = ^ACTRL_CONTROL_INFOW;
   {$EXTERNALSYM PACTRL_CONTROL_INFOW}
-  _ACTRL_CONTROL_INFOW = packed record
+  _ACTRL_CONTROL_INFOW = record
     lpControlId: LPWSTR;
     lpControlName: LPWSTR;
   end;
