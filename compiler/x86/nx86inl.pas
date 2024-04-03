@@ -1730,6 +1730,10 @@ implementation
                hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[1].location,
                  paraarray[1].resultdef,paraarray[1].resultdef,true);
 
+             if not(paraarray[2].location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,
+                 paraarray[2].resultdef,paraarray[2].resultdef,true);
+
              location_reset(location,LOC_REGISTER,paraarray[1].location.size);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
