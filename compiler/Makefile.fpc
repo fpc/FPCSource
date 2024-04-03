@@ -1318,7 +1318,8 @@ cleanrtlppulogs :
 	-$(RMPROG) $(RTLPPULOGLIST)
 
 testppudump :
-	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
+	$(MAKE) cleanrtlppulogs cleanppulogs
+	$(MAKE) ppulogs rtlppulogs
 
 #####################################################################
 # local user configurable file
