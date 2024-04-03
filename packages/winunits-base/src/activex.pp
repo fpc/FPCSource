@@ -2639,7 +2639,7 @@ TYPE
       Function IsRunning(Const bc:IBindCtx;Const MkToLeft:IMoniker;Const mknewlyRunning:IMoniker):HResult;StdCall;
       Function GetTimeOfLastChange(Const bc:IBindCtx;Const mkToLeft:IMoniker; out ft : FileTime):HResult; StdCall;
       Function Inverse(out mk : IMoniker):HResult; StdCall;
-      Function CommonPrefixWith (Const mkOther:IMoniker):HResult; StdCall;
+      Function CommonPrefixWith (Const mkOther:IMoniker;Out mkPrefix : IMoniker):HResult; StdCall;
       Function RelativePathTo(Const mkother:IMoniker; Out mkRelPath : IMoniker):HResult;StdCall;
       Function GetDisplayName(Const bc:IBindCtx;const mktoleft:IMoniker;Out szDisplayName: pOleStr):HResult; StdCall;
       Function ParseDisplayName(Const bc:IBindCtx;Const mkToLeft:IMoniker;szDisplayName:POleStr;out cheaten:ULong;out mkOut:IMoniker):HResult; StdCall;
