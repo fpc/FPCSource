@@ -154,5 +154,6 @@ ppuinfo :
 cleanppulogs : $(RMPPULOGLIST)
 
 testppudump :
-        $(MAKE) cleanppulogs ppulogs
+	$(MAKE) cleanppulogs
+	$(MAKE) ppulogs
 

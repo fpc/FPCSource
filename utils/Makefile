@@ -2546,4 +2546,5 @@ ppuinfo :
 	echo PPULOG list is "$(PPULOGLIST)"
 cleanppulogs : $(RMPPULOGLIST)
 testppudump :
-	$(MAKE) cleanppulogs ppulogs
+	$(MAKE) cleanppulogs
+	$(MAKE) ppulogs
