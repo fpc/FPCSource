@@ -2567,7 +2567,7 @@ TYPE
 //     Function RemoteNext(Celt:ULong; Out rgelt;out celtfetched :ULong):Hresult; StdCall;
        Function Skip(celt:Ulong):HResult; StdCall;
        Function Reset:HResult; StdCall;
-       Function Close(out penum:IEnumMoniker):HResult;StdCall;
+       Function Clone(out penum:IEnumMoniker):HResult;StdCall;
        End;
 
 
