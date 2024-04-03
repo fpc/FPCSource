@@ -258,6 +258,7 @@ interface
     procedure tcg64sparc.a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         op1,op2:TAsmOp;
+	fl:TSparcFlags;
       begin
         case op of
           OP_NEG,
@@ -277,7 +278,13 @@ interface
         if setflags then
           begin
             ovloc.loc:=LOC_FLAGS;
-            ovloc.resflags.Init(NR_ICC,F_VS);
+            if size=OS_S64 then
+              fl:=F_VS
+            else if size=OS_64 then
+              fl:=F_B
+            else
+              internalerror(2024040301);
+            ovloc.resflags.Init(NR_ICC,fl);
           end
         else
           ovloc.loc:=LOC_INVALID;
@@ -287,6 +294,7 @@ interface
     procedure tcg64sparc.a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         op1,op2:TAsmOp;
+	fl:TSparcFlags;
       begin
         case op of
           OP_NEG,
@@ -302,7 +310,13 @@ interface
         if setflags then
           begin
             ovloc.loc:=LOC_FLAGS;
-            ovloc.resflags.Init(NR_ICC,F_VS);
+            if size=OS_S64 then
+              fl:=F_VS
+            else if size=OS_64 then
+              fl:=F_B
+            else
+              internalerror(2024040301);
+            ovloc.resflags.Init(NR_ICC,fl);
           end
         else
           ovloc.loc:=LOC_INVALID;
