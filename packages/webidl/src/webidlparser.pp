@@ -399,7 +399,7 @@ Const
   OtherTokens = [tkNumberInteger,tkNumberFloat,tkIdentifier,tkString, {tkOther, tkMinus,}tkNegInfinity,
                  tkDot,tkEllipsis,tkColon,tkSemicolon,tkLess,tkEqual,tkLarger,tkQuestionmark,tkStar,tkByteString,
                  tkDOMString,tkInfinity,tkNan,tkUSVString,tkAny,tkboolean,tkbyte,tkDouble,tkFalse,tkFloat,tkComma,
-                 tkLong,tkNull,tkObject,tkOctet,tkOr,tkOptional,tkSequence,tkShort,tkTrue,tkUnsigned,tkVoid];
+                 tkLong,tkNull,tkObject,tkOctet,tkOr,tkOptional,tkUnrestricted, tkSequence,tkShort,tkTrue,tkUnsigned,tkVoid];
 
 Var
   tk : TIDLToken;
@@ -413,7 +413,7 @@ begin
     ValidTokens:=ValidTokens + [tkInherit,tkGetter];
   tk:=GetToken;
   S:='';
-  While Not (tk=aTerminator) do
+  While Not (tk in [tkEof,aTerminator]) do
     begin
     WasSub:=True;
     Case tk of
@@ -427,14 +427,12 @@ begin
         S:=S+AddSub(tkCurlyBraceClose);
       else
         WasSub:=False;
-        // Check
-        While (tk in ValidTokens) do
-          begin
-          AddToCurrent(S,CurrentTokenString);
-          if tk=tkComma then
-            AddToList(S);
-          tk:=GetToken;
-          end;
+        // We don't do a check any more, too many possible cases
+        if tk<>tkComma then
+          AddToCurrent(S,CurrentTokenString)
+        else
+          AddToList(S);
+        tk:=GetToken;
       end;
     if WasSub then
       tk:=GetToken;
@@ -554,7 +552,7 @@ Var
 begin
   CheckCurrentToken(tkBracketOpen);
   GetToken;
-  While (CurrentToken<>tkBracketClose) do
+  While not (CurrentToken in [tkEOF,tkBracketClose]) do
     begin
     A:=ParseArgument(aParent);
     ExpectTokens([tkEqual,tkComma,tkBracketClose]);
@@ -1032,7 +1030,7 @@ begin
       end;
     CheckCurrentToken(tkCurlyBraceOpen);
     tk:=GetToken;
-    While (tk<>tkCurlyBraceClose) do
+    While not (tk in [tkCurlyBraceClose,tkEof]) do
       begin
       SemicolonSeen:=False;
       Attrs:=nil;
@@ -1219,7 +1217,7 @@ begin
 end;
 
 function TWebIDLParser.ParseDictionary(aParent : TIDLBaseObject; AllowInheritance : Boolean = True): TIDLDictionaryDefinition;
-(* On entry, we're on dictionary, on eexit, we're on { *)
+(* On entry, we're on dictionary, on eexit, we're on } *)
 
 Var
   Name,ParentName : UTF8String;
@@ -1241,7 +1239,7 @@ begin
   Result:=TIDLDictionaryDefinition(AddDefinition(aParent,TIDLDictionaryDefinition,Name));
   Result.ParentName:=ParentName;
   GetToken;
-  While (CurrentToken<>tkCurlyBraceClose) do
+  While not (CurrentToken in [tkCurlyBraceClose,tkEOF]) do
      begin
      ParseDictionaryMember(Result.Members);
      CheckCurrentTokens([tkSemicolon,tkCurlyBraceClose]);
