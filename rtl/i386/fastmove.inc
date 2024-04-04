@@ -40,6 +40,8 @@ asm
     pop    %ebx
 end;
 
+{$if not defined(CPUX86_HAS_SSEUNIT) or defined(FASTMOVE_DISABLE_SSE)}
+{$define fastmove_has_ia32_and_mmx}
 procedure Move_8OrMore_IA32; assembler; nostackframe;
 { eax = source, edx = dest, ecx = count (ecx >= 8).
   If FPC_PIC: ebx pushed. }
@@ -217,6 +219,7 @@ asm
     emms
     pop    %ebx
 end;
+{$endif need IA32 and MMX versions}
 
 {$ifndef FASTMOVE_DISABLE_SSE}
 label
@@ -564,13 +567,15 @@ begin
 {$ifndef FASTMOVE_DISABLE_SSE}
   else if fast_large_repmovstosb then
     result:=@Move_8OrMore_SSE_ERMS
-  else if has_sse_support then
+  else {$ifdef fastmove_has_ia32_and_mmx} if has_sse_support then {$endif}
     result:=@Move_8OrMore_SSE
 {$endif ndef FASTMOVE_DISABLE_SSE}
+{$ifdef fastmove_has_ia32_and_mmx}
   else if has_mmx_support then
     result:=@Move_8OrMore_MMX
   else
-    result:=@Move_8OrMore_IA32;
+    result:=@Move_8OrMore_IA32
+{$endif fastmove_has_ia32_and_mmx};
   if fpc_cpucodeinit_performed then
     fastmoveproc:=result;
 end;
