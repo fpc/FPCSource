@@ -1363,26 +1363,7 @@ asm
         pop      %ebx
         ret
 
-.LNothing:
-        pop      %ebx
-        xor      %eax, %eax
-        ret
-
-.LAligned32xLoop_TwoVectorsDiffer:
-        add      %eax, %edx { restore edx = buf2 }
-        pmovmskb %xmm0, %ecx { Is there a difference in the first vector? }
-        inc      %cx
-        jz       .LVec1Differs { No difference in the first vector, xmm0 is all ones, ebx = pmovmskb(pcmpeqb(buf1 + 16, buf2 + 16)) from the loop body. }
-        mov      %ecx, %ebx
-.LVec0Differs:
-        bsf      %ebx, %ebx
-        movzbl   (%eax,%ebx), %eax
-        movzbl   (%edx,%ebx), %edx
-        sub      %edx, %eax
-        pop      %ebx
-        ret
-
-        .byte    144 { Turn .balign 16 before .LAligned32xLoop_Body into a no-op. }
+        .byte    102,102,102,102,102,144 { Turn .balign 16 before .LAligned32xLoop_Body into a no-op. }
 CompareByte_CantOverReadBoth_AVX2:
         cmp      $16, %ecx
         jb       .LCantOverReadBoth
@@ -1410,8 +1391,9 @@ CompareByte_CantOverReadBoth_AVX2:
         jbe      .LLastTwoVectors
 
         { More than four vectors: aligned loop. }
-        lea      -32(%eax,%ecx), %ecx { buffer end - last two vectors handled separately - first two vectors already analyzed (by the fact ecx was still len - 32) }
         sub      %eax, %edx { edx = buf2 - buf1 }
+        jz       .LNothing { Exit if buf1 = buf2. }
+        lea      -32(%eax,%ecx), %ecx { buffer end - last two vectors handled separately - first two vectors already analyzed (by the fact ecx was still len - 32) }
         and      $-16, %eax { Align buf1. First two vectors already analyzed are skipped by +32 on the first loop iteration. }
         sub      %eax, %ecx { ecx = count to be handled with loop }
 .balign 16 { No-op. }
@@ -1444,8 +1426,23 @@ CompareByte_CantOverReadBoth_AVX2:
         pmovmskb %xmm0, %ebx
         inc      %bx
         jnz      .LVecEm1Differs
+.LNothing:
         pop      %ebx
         xor      %eax, %eax
+        ret
+
+.LAligned32xLoop_TwoVectorsDiffer:
+        add      %eax, %edx { restore edx = buf2 }
+        pmovmskb %xmm0, %ecx { Is there a difference in the first vector? }
+        inc      %cx
+        jz       .LVec1Differs { No difference in the first vector, xmm0 is all ones, ebx = pmovmskb(pcmpeqb(buf1 + 16, buf2 + 16)) from the loop body. }
+        mov      %ecx, %ebx
+.LVec0Differs:
+        bsf      %ebx, %ebx
+        movzbl   (%eax,%ebx), %eax
+        movzbl   (%edx,%ebx), %edx
+        sub      %edx, %eax
+        pop      %ebx
         ret
 
 .LVec1Differs:
@@ -1563,6 +1560,7 @@ asm
         { bzhi      %ecx, %ebx, %ecx }
         .byte     0xc4,0xe2,0x70,0xf5,0xcb { bootstrap compiler doesn't know bzhi }
         jnz       .LVec0Differs
+.LNothing:
         vzeroupper
         pop       %ebx
         xor       %eax, %eax
@@ -1582,6 +1580,20 @@ asm
         movzbl    (%edx,%ebx), %edx
         sub       %edx, %eax
         pop       %ebx
+        ret
+
+.LVec1Differs:
+        xor      %ecx, %ecx
+.LVecEm1Differs:
+        add      $32, %ecx
+.LVecEm2Differs:
+        vzeroupper
+        tzcnt    %ebx, %ebx
+        add      %ecx, %ebx
+        movzbl   (%eax,%ebx), %eax
+        movzbl   (%edx,%ebx), %edx
+        sub      %edx, %eax
+        pop      %ebx
         ret
 
 .LVecOrMore:
@@ -1606,8 +1618,9 @@ asm
         jbe       .LLastTwoVectors
 
         { More than four vectors: aligned loop. }
-        lea       -64(%eax,%ecx), %ecx { buffer end - last two vectors handled separately - first two vectors already analyzed (by the fact ecx was still len - 64) }
         sub       %eax, %edx { edx = buf2 - buf1 }
+        jz        .LNothing { Exit if buf1 = buf2. }
+        lea       -64(%eax,%ecx), %ecx { buffer end - last two vectors handled separately - first two vectors already analyzed (by the fact ecx was still len - 64) }
         and       $-32, %eax { Align buf1. First two vectors already analyzed are skipped by +64 on the first loop iteration. }
         sub       %eax, %ecx { ecx = count to be handled with loop }
 .balign 16 { No-op. }
@@ -1641,20 +1654,6 @@ asm
         vzeroupper
         pop       %ebx
         xor       %eax, %eax
-        ret
-
-.LVec1Differs:
-        xor      %ecx, %ecx
-.LVecEm1Differs:
-        add      $32, %ecx
-.LVecEm2Differs:
-        vzeroupper
-        tzcnt    %ebx, %ebx
-        add      %ecx, %ebx
-        movzbl   (%eax,%ebx), %eax
-        movzbl   (%edx,%ebx), %edx
-        sub      %edx, %eax
-        pop      %ebx
 end;
 
 {$ifndef CPUX86_HAS_BMI2}
@@ -1795,6 +1794,7 @@ asm
         pop     %ebx
         ret
 
+        .byte    102,102,102,102,102,102,102,102,102,102,102,144
 .LVecOrMore:
         movdqu   (%edx,%eax), %xmm0 { Compare first vectors. }
         movdqu   (%eax), %xmm1
@@ -1807,6 +1807,8 @@ asm
         sub      $32, %ecx { first 16 bytes already analyzed + last 16 bytes analyzed separately }
         jle      .LLastVec
 
+        test     %edx, %edx
+        jz       .LNothing { Exit if buf1 = buf2. }
         push     %eax { save original buf1 to recover word position if byte mismatch found (aligned loop works in bytes to support misaligned buf1). }
         add      %eax, %ecx
         and      $-16, %eax { align buf1; +16 is performed by the loop. }
@@ -1931,6 +1933,8 @@ asm
         sub      $32, %ecx { first 16 bytes already analyzed + last 16 bytes analyzed separately }
         jle      .LLastVec
 
+        test     %edx, %edx
+        jz       .LNothing { Exit if buf1 = buf2. }
         push     %eax { save original buf1 to recover uint32 position if byte mismatch found (aligned loop works in bytes to support misaligned buf1). }
         add      %eax, %ecx
         and      $-16, %eax { align buf1; +16 is performed by the loop. }
@@ -1955,6 +1959,7 @@ asm
         pmovmskb %xmm0, %ebx
         inc      %bx
         jnz      .LVec0Differs
+.LNothing:
         pop      %ebx
         xor      %eax, %eax
         ret
