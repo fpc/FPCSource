@@ -67,7 +67,10 @@ Type
     Procedure TestSimpleInt;
     procedure TestSimpleIntNull;
     Procedure TestSimpleLongint;
+    Procedure TestSimpleint64;
+    procedure TestSimpleQWord;
     Procedure TestSimpleAttrLong;
+    Procedure TestSimpleAttrLongLong;
     procedure TestSimpleLongintNull;
     Procedure TestSimpleLongLongint;
     Procedure TestSimpleLongLongintNull;
@@ -1074,9 +1077,24 @@ begin
   TestTypeDef('long A','A','long');
 end;
 
+procedure TTestTypeDefParser.TestSimpleint64;
+begin
+  TestTypeDef('long long A','A','long long');
+end;
+
+procedure TTestTypeDefParser.TestSimpleQWord;
+begin
+  TestTypeDef('unsigned long long A','A','unsigned long long');
+end;
+
 procedure TTestTypeDefParser.TestSimpleAttrLong;
 begin
-  TestTypeDef('typedef [EnforceRange] long A','A','long')
+  TestTypeDef('[EnforceRange] long A','A','long')
+end;
+
+procedure TTestTypeDefParser.TestSimpleAttrLongLong;
+begin
+  TestTypeDef('[EnforceRange] long long A','A','long long')
 end;
 
 procedure TTestTypeDefParser.TestSimpleLongintNull;

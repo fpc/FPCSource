@@ -1335,7 +1335,7 @@ function TWebIDLParser.ParseType(aParent : TIDLBaseObject; FetchFirst : Boolean 
 
 (* On Entry
    if FetchFirst = true we're on "typedef", "(", "or" or "<" tokens.
-   if FetchFirst = true we're on the first actual token
+   if FetchFirst = false we're on the first actual token
    On exit, we're on the first token after the type
 
    *)
@@ -1353,7 +1353,7 @@ Const
   LegacyDOMString = 'LegacyNullToEmptyString';
 
 Var
-  isNull,isUnsigned, ok: Boolean;
+  haveID,isNull,isUnsigned, isDoubleLong, ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
   tk : TIDLToken;
@@ -1367,21 +1367,28 @@ begin
       tk:=GetToken
     else
       tk:=CurrentToken;
+    HaveID:=False;
     if tk=tkSquaredBraceOpen then
       begin
       ExpectToken(tkIdentifier);
       case CurrentTokenString of
       EnforceRange:
         begin
-        // special: [EnforceRange] unsigned long
+        // special: [EnforceRange] [unsigned] long [long]
         ExpectToken(tkSquaredBraceClose);
         tk:=GetToken;
         isUnsigned:=(tk=tkUnsigned);
         if IsUnSigned then
           tk:=GetToken;
         CheckCurrentToken(tkLong);
+        tk:=GetToken;
+        isDoubleLong:=(tk=tkLong);
+        haveID:=(tk=tkIdentifier);
         Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-        Result.TypeName:='long';
+        if IsDoubleLong then
+          Result.TypeName:='long long'
+        else
+          Result.TypeName:='long';
         if IsUnsigned then
           Result.Name:='unsigned '+Result.Name;
         Result.Attributes.Add(EnforceRange);
@@ -1398,7 +1405,8 @@ begin
       else
         Error(SErrInvalidToken,[LegacyDOMString,CurrentTokenString]);
       end;
-      GetToken;
+      if not HaveID then
+        GetToken;
       ok:=true;
       exit;
       end;
