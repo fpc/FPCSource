@@ -489,7 +489,7 @@ begin
       Result.HasEllipsis:=True;
       GetToken;
       end;
-    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback,tkInterface]);
+    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback,tkInterface,tkConstructor,tkAttribute]);
     Result.Name:=CurrentTokenString;
     ok:=true;
   finally

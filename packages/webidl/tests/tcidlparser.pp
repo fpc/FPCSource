@@ -244,6 +244,7 @@ Type
     Procedure TestOptionalDefaultArgFunction;
     Procedure TestFunction_ClampArg;
     Procedure TestFunction_ArgNameCallback;
+    procedure TestFunction_ArgNameConstructor;
   end;
 
   { TTestDictionaryParser }
@@ -523,6 +524,12 @@ procedure TTestOperationInterfaceParser.TestFunction_ArgNameCallback;
 begin
   ParseFunction('void getAsString(FunctionStringCallback? callback)','getAsString','void',['FunctionStringCallback','callback']);
 end;
+
+procedure TTestOperationInterfaceParser.TestFunction_ArgNameConstructor;
+begin
+  ParseFunction('void getAsString(FunctionStringCallback? constructor)','getAsString','void',['FunctionStringCallback','constructor']);
+end;
+
 
 { TTestSerializerInterfaceParser }
 
