@@ -67,6 +67,7 @@ Type
     Procedure TestSimpleInt;
     procedure TestSimpleIntNull;
     Procedure TestSimpleLongint;
+    Procedure TestSimpleAttrLong;
     procedure TestSimpleLongintNull;
     Procedure TestSimpleLongLongint;
     Procedure TestSimpleLongLongintNull;
@@ -1071,6 +1072,11 @@ end;
 procedure TTestTypeDefParser.TestSimpleLongint;
 begin
   TestTypeDef('long A','A','long');
+end;
+
+procedure TTestTypeDefParser.TestSimpleAttrLong;
+begin
+  TestTypeDef('typedef [EnforceRange] long A','A','long')
 end;
 
 procedure TTestTypeDefParser.TestSimpleLongintNull;

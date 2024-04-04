@@ -1353,7 +1353,7 @@ Const
   LegacyDOMString = 'LegacyNullToEmptyString';
 
 Var
-  isNull , ok: Boolean;
+  isNull,isUnsigned, ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
   tk : TIDLToken;
@@ -1375,10 +1375,15 @@ begin
         begin
         // special: [EnforceRange] unsigned long
         ExpectToken(tkSquaredBraceClose);
-        ExpectToken(tkunsigned);
-        ExpectToken(tklong);
+        tk:=GetToken;
+        isUnsigned:=(tk=tkUnsigned);
+        if IsUnSigned then
+          tk:=GetToken;
+        CheckCurrentToken(tkLong);
         Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-        Result.TypeName:='unsigned long';
+        Result.TypeName:='long';
+        if IsUnsigned then
+          Result.Name:='unsigned '+Result.Name;
         Result.Attributes.Add(EnforceRange);
         end;
       LegacyDOMString:
