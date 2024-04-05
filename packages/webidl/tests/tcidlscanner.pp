@@ -73,6 +73,7 @@ type
     Procedure TestSetLike;
     Procedure TestRecord;
     Procedure TestInfinity;
+    Procedure TestIncludes;
     Procedure TestInherit;
     Procedure TestInterface;
     Procedure TestIterable;
@@ -102,6 +103,10 @@ type
     Procedure Testoctet;
     Procedure Testunsigned;
     Procedure Testvoid;
+    Procedure TestConstructor;
+    Procedure TestObservableArray;
+    Procedure TestFrozenArray;
+    Procedure TestNamespace;
   end;
 
 implementation
@@ -336,6 +341,14 @@ begin
   TestSingle('Infinity',tkinfinity);
 end;
 
+procedure TTestScanner.TestIncludes;
+begin
+  Version:=v2;
+  TestSingle('includes',tkincludes);
+  Version:=v1;
+  TestSingle('includes',tkIdentifier);
+end;
+
 procedure TTestScanner.TestInherit;
 begin
   TestSingle('inherit',tkinherit);
@@ -479,6 +492,38 @@ end;
 procedure TTestScanner.Testvoid;
 begin
   TestSingle('void',tkVoid);
+end;
+
+procedure TTestScanner.TestConstructor;
+begin
+  Version:=v2;
+  TestSingle('constructor',tkConstructor);
+  Version:=v1;
+  TestSingle('constructor',tkIdentifier);
+end;
+
+procedure TTestScanner.TestObservableArray;
+begin
+  Version:=v2;
+  TestSingle('ObservableArray',tkObservableArray);
+  Version:=v1;
+  TestSingle('ObservableArray',tkIdentifier);
+end;
+
+procedure TTestScanner.TestFrozenArray;
+begin
+  Version:=v2;
+  TestSingle('FrozenArray',tkFrozenArray);
+  Version:=v1;
+  TestSingle('FrozenArray',tkIdentifier);
+end;
+
+procedure TTestScanner.TestNamespace;
+begin
+  Version:=v2;
+  TestSingle('namespace',tkNamespace);
+  Version:=v1;
+  TestSingle('namespace',tkIdentifier);
 end;
 
 procedure TTestScanner.SetVersion(AValue: TWEbIDLversion);

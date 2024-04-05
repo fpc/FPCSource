@@ -314,6 +314,13 @@ type
     Property IsForward: Boolean read FIsForward write FIsForward;
   end;
 
+  { TIDLNamespaceDefinition }
+
+  TIDLNamespaceDefinition = class(TIDLStructuredDefinition)
+  Public
+    Function AsString (aFull : Boolean) : UTF8String; override;
+  end;
+
   { TIDLArgumentDefinition }
 
   TIDLArgumentDefinition = Class(TIDLDefinition)
@@ -718,6 +725,22 @@ begin
   else
     Result:=Result+' '+Members.AsString(true);
 
+  if aFull and HasAttributes then
+    Result:=Attributes.AsString(true)+' '+Result;
+end;
+
+{ TIDLNamespaceDefinition }
+
+function TIDLNamespaceDefinition.AsString(aFull: Boolean): UTF8String;
+
+begin
+  Result:='namespace '+Name;
+  if IsPartial then
+    Result:='partial '+Result;
+  if Not HasMembers then
+    Result:=Result+' {'+sLineBreak+'}'
+  else
+    Result:=Result+' '+Members.AsString(true);
   if aFull and HasAttributes then
     Result:=Attributes.AsString(true)+' '+Result;
 end;

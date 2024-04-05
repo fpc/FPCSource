@@ -39,15 +39,20 @@ Type
 
   TWebIDLContext = Class (TIDLBaseObject)
   private
+    Type TCalcBool = (cbCalc,cbFalse,cbTrue);
+  private
+    FHaveNameSpaces : TCalcBool;
     FAliases: TStrings;
     FDefinitions: TIDLDefinitionList;
     FHash : TFPObjectHashTable;
   Protected
     function FindDictionary(aName: UTF8String): TIDLDictionaryDefinition; virtual;
     function FindInterface(aName: UTF8String): TIDLInterfaceDefinition; virtual;
+    function FindNamespace(aName: UTF8String): TIDLNamespaceDefinition; virtual;
     procedure AppendDictionaryPartials; virtual;
     procedure AppendInterfacePartials; virtual;
     procedure AppendInterfaceIncludes; virtual;
+    procedure AppendNamespacePartials; virtual;
     procedure ResolveParentTypes; virtual;
   Public
     Constructor Create(OwnsDefinitions : Boolean = True);
@@ -62,6 +67,7 @@ Type
     Function AsString(Full: Boolean): UTF8String; override;
     Function Add(aClass : TIDLDefinitionClass; const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Function Add(aParent : TIDLBaseObject; aClass : TIDLDefinitionClass; const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; virtual;
+    Function HaveNamespaces : boolean;
     Property Definitions : TIDLDefinitionList Read FDefinitions;
     Property Aliases : TStrings Read FAliases Write FAliases;
   end;
@@ -116,11 +122,12 @@ Type
     function ParseConst(aParent: TIDLBaseObject ): TIDLConstDefinition; virtual;
     function ParseCallBack(aParent : TIDLBaseObject): TIDLDefinition; virtual;
     function ParseStringifier(aParent : TIDLBaseObject): TIDLDefinition; virtual;
-    function ParseOperation(aParent: TIDLBaseObject): TIDLFunctionDefinition; virtual;
+    function ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True): TIDLFunctionDefinition; virtual;
     function ParseSerializer(aParent: TIDLBaseObject): TIDLSerializerDefinition; virtual;
     function ParseStatic(aParent: TIDLBaseObject): TIDLDefinition;virtual;
     function ParseIterable(aParent : TIDLBaseObject): TIDLIterableDefinition; virtual;
     function ParseInterface(aParent : TIDLBaseObject): TIDLInterfaceDefinition; virtual;
+    function ParseNamespace(aParent : TIDLBaseObject): TIDLNamespaceDefinition; virtual;
     function ParseDictionary(aParent : TIDLBaseObject; AllowInheritance : Boolean = True): TIDLDictionaryDefinition; virtual;
     function ParseEnum(aParent : TIDLBaseObject): TIDLEnumDefinition; virtual;
     function ParseTypeDef(aParent : TIDLBaseObject): TIDLTypeDefDefinition; virtual;
@@ -569,7 +576,7 @@ begin
     end;
 end;
 
-function TWebIDLParser.ParseOperation(aParent: TIDLBaseObject): TIDLFunctionDefinition;
+function TWebIDLParser.ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True): TIDLFunctionDefinition;
 { On entry, we're on the type definition or on one of getter,setter,deleter,legacycaller,
   on exit, we're on the final ) }
 
@@ -586,18 +593,19 @@ Var
 
 begin
   Opts:=[];
-  While CurrentToken in Specials do
-    begin
-    Case CurrentToken of
-      tkGetter : FO:=foGetter;
-      tkSetter : FO:=foSetter;
-      tkDeleter : FO:=foDeleter;
-      tkLegacyCaller : FO:=foLegacyCaller;
-      tkConstructor : fo:=foConstructor;
-    end;
-    Include(Opts,FO);
-    GetToken;
-    end;
+  if AllowSpecials then
+    While CurrentToken in Specials do
+      begin
+      Case CurrentToken of
+        tkGetter : FO:=foGetter;
+        tkSetter : FO:=foSetter;
+        tkDeleter : FO:=foDeleter;
+        tkLegacyCaller : FO:=foLegacyCaller;
+        tkConstructor : fo:=foConstructor;
+      end;
+      Include(Opts,FO);
+      GetToken;
+      end;
   Result:=TIDLFunctionDefinition(AddDefinition(aParent,TIDLFunctionDefinition,''));
   ok:=false;
   try
@@ -1111,12 +1119,82 @@ begin
   end;
 end;
 
+function TWebIDLParser.ParseNamespace(aParent: TIDLBaseObject): TIDLNamespaceDefinition;
+(*
+  On Entry we're on interface. On exit, we're on the } character or the ; if it is an empty forward definition
+*)
+
+Var
+  tk : TIDLToken;
+  Attrs : TExtAttributeList;
+  M : TIDLDefinition;
+  SemicolonSeen , ok: Boolean;
+
+begin
+  Attrs:=nil;
+  ExpectToken(tkIdentifier);
+  Result:=TIDLNamespaceDefinition(AddDefinition(aParent,TIDLNamespaceDefinition,CurrentTokenString));
+  ok:=false;
+  try
+    tk:=GetToken;
+    if tk=tkSemiColon then
+      // empty interface
+      exit;
+    CheckCurrentToken(tkCurlyBraceOpen);
+    tk:=GetToken;
+    While not (tk in [tkCurlyBraceClose,tkEof]) do
+      begin
+      SemicolonSeen:=False;
+      Attrs:=nil;
+      M:=Nil;
+      if tk=tkSquaredBraceOpen then
+        begin
+        Attrs:=ParseExtAttributes;
+        tk:=GetToken;
+        end;
+      Case tk of
+        tkConst : M:=ParseConst(Result.Members);
+        tkReadOnly :
+          begin
+          ExpectToken(tkAttribute);
+          M:=ParseAttribute(Result.Members);
+          With TIDLAttributeDefinition(M) do
+            Options:=Options+[aoReadOnly];
+          end;
+        tkStatic : M:=ParseStatic(Result.Members);
+      else
+        {
+        tkGetter, tkSetter, tkDeleter, tkLegacyCaller
+        }
+        M:=ParseOperation(Result.Members);
+      end;
+      IF Assigned(M) then
+        begin
+        M.Attributes:=Attrs;
+        Attrs:=Nil; // So it does not get freed in except
+        end;
+      if not SemicolonSeen then
+        GetToken;
+      CheckCurrentToken(tkSemicolon);
+      tk:=GetToken;
+      end;
+    ok:=true;
+  finally
+    if not ok then
+      begin
+      FreeAndNil(Attrs);
+      MaybeFree(Result,aParent);
+      end;
+  end;
+end;
+
 function TWebIDLParser.ParsePartial(aParent : TIDLBaseObject): TIDLStructuredDefinition;
 
 (* On entry, we're on Partial. On exit, we're on the } character *)
 
 begin
   Case GetToken of
+    tkNamespace : Result:=ParseNamespace(aParent);
     tkInterface : Result:=ParseInterface(aParent);
     tkDictionary : Result:=ParseDictionary(aParent);
   else
@@ -1534,6 +1612,7 @@ begin
       tkPartial : Result:=ParsePartial(aParent);
       tkEnum : Result:=ParseEnum(aParent);
       tkTypeDef : Result:=ParseTypeDef(aParent);
+      tkNamespace : Result:=ParseNameSpace(aParent);
       tkIdentifier :
         Result:=ParseImplementsOrIncludes(aParent);
       tkEOF : exit;
@@ -1629,6 +1708,25 @@ begin
     end;
 end;
 
+function TWebIDLContext.FindNamespace(aName: UTF8String): TIDLNamespaceDefinition;
+Var
+  I : Integer;
+
+begin
+  I:=0;
+  Result:=Nil;
+  While (Result=Nil) and (I<FDefinitions.Count) do
+    begin
+    if (FDefinitions[i] is TIDLNamespaceDefinition) then
+      begin
+      Result:=TIDLNamespaceDefinition(FDefinitions[i]);
+      if (Result.Name<>aName) or (Result.IsPartial) then
+        Result:=nil;
+      end;
+    Inc(I);
+    end;
+end;
+
 procedure TWebIDLContext.AppendDictionaryPartials;
 
 Var
@@ -1711,11 +1809,29 @@ begin
       end;
 end;
 
+procedure TWebIDLContext.AppendNamespacePartials;
+
+Var
+  D : TIDLDefinition;
+  ID : TIDLNamespaceDefinition absolute D;
+  OD : TIDLNamespaceDefinition;
+
+begin
+  For D in FDefinitions do
+    if (D is TIDLNamespaceDefinition) and (ID.IsPartial) then
+      begin
+      OD:=FindNamespace(ID.Name);
+      If (OD<>Nil) then
+        OD.Partials.Add(ID);
+      end;
+end;
+
 procedure TWebIDLContext.AppendPartials;
 
 begin
   AppendDictionaryPartials;
   AppendInterfacePartials;
+  AppendNamespacePartials;
 end;
 
 procedure TWebIDLContext.AppendIncludes;
@@ -1931,6 +2047,24 @@ begin
     Result:=aParent.Add(aClass,aName,aFile,aLine,aCol)
   else
     Result:=aClass.Create(Nil,aName,aFile,aLine,aCol);
+end;
+
+function TWebIDLContext.HaveNamespaces: boolean;
+var
+  I : Integer;
+begin
+  if FHaveNameSpaces=cbCalc then
+    begin
+    FHaveNameSpaces:=cbFalse;
+    I:=0;
+    While (FHaveNameSpaces=cbFalse) and (I<FDefinitions.Count) do
+      begin
+      if FDefinitions[i] is TIDLNamespaceDefinition then
+        FHaveNameSpaces:=cbTrue;
+      Inc(I);
+      end;
+    end;
+  Result:=(FHaveNameSpaces=cbtrue);
 end;
 
 end.

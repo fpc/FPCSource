@@ -90,26 +90,23 @@ type
     function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
       aResolvedTypename: TIDLString): TIDLDefinition; overload; 
 {$ENDIF}      
-    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
-      override;
+    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; override;
+    function GetNamespaceDefHead(aNamespace: TIDLNamespaceDefinition): String; override;
     function GetDictionaryDefHead(const CurClassName: String;
       Dict: TIDLDictionaryDefinition): String; override;
-    function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
-      override;
+    function WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer; override;
     // Code generation routines. Return the number of actually written defs.
     function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
     function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; override;
-    function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
+    function WriteUtilityMethods(Intf: TIDLStructuredDefinition): Integer;
       override;
     // Definitions. Return true if a definition was written.
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; override;
     function WriteDictionaryField(aDict: TIDLDictionaryDefinition;
       aField: TIDLDictionaryMemberDefinition): Boolean; override;
-    function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
-      override;
-    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
-      override;
+    function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; override;
+    function WriteFunctionDefinition(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean; override;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition
       ): Boolean; override;
     function WritePrivateGetter(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
@@ -118,7 +115,8 @@ type
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); override;
     // Extra interface/Implementation code.
-    procedure WriteGlobalVars; override;
+    procedure WriteNamespaceVars; override;
+    procedure WriteGlobalVar(aDef : String); override;
     procedure WriteImplementation; override;
   Public
     constructor Create(ThOwner: TComponent); override;
@@ -324,6 +322,16 @@ begin
   Result:=Result+','+aPasIntfName+')';
 end;
 
+function TWebIDLToPasWasmJob.GetNamespaceDefHead(aNamespace: TIDLNamespaceDefinition): String;
+
+var
+  aPasIntfName: TIDLString;
+begin
+  Result:='class('+ClassPrefix+'Object'+ClassSuffix;
+  aPasIntfName:=GetPasIntfName(aNameSpace);
+  Result:=Result+','+aPasIntfName+')';
+end;
+
 function TWebIDLToPasWasmJob.GetDictionaryDefHead(const CurClassName: String;
   Dict: TIDLDictionaryDefinition): String;
 begin
@@ -331,12 +339,15 @@ begin
   if Dict=nil then ;
 end;
 
-function TWebIDLToPasWasmJob.WriteOtherImplicitTypes(
-  Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
+function TWebIDLToPasWasmJob.WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer;
 var
+  iIntf : TIDLInterfaceDefinition absolute Intf;
   aPasIntfName, Decl, ParentName: TIDLString;
+  isNamespace : Boolean;
 begin
   Result:=1;
+  isNameSpace:=Intf is TIDLNamespaceDefinition;
+  ParentName:='';
 
   FWritingPasInterface:=true;
   try
@@ -345,10 +356,11 @@ begin
     aPasIntfName:=GetPasIntfName(Intf);
 
     Decl:=aPasIntfName+' = interface';
-    if Assigned(Intf.ParentInterface) then
-      ParentName:=GetPasIntfName(Intf.ParentInterface as TIDLInterfaceDefinition)
-    else
-      ParentName:=GetTypeName(Intf.ParentName);
+    if (not IsNamespace) then
+      if Assigned(iIntf.ParentInterface) then
+        ParentName:=GetPasIntfName(iIntf.ParentInterface as TIDLInterfaceDefinition)
+      else
+        ParentName:=GetTypeName(Intf.ParentName);
     if ParentName='' then
       ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
     if ParentName<>'' then
@@ -412,7 +424,7 @@ begin
         inc(Result);
 end;
 
-function TWebIDLToPasWasmJob.WriteUtilityMethods(Intf: TIDLInterfaceDefinition
+function TWebIDLToPasWasmJob.WriteUtilityMethods(Intf: TIDLStructuredDefinition
   ): Integer;
 var
   aClassName, aPasIntfName, Code: TIDLString;
@@ -456,14 +468,14 @@ begin
     AddLn(GetName(D)+' = '+JOB_JSValueTypeNames[jjvkDictionary]+';')
   else
     begin
-    if (not D.IsPartial) and (D is TIDLInterfaceDefinition) then
+    if (not D.IsPartial) and ((D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition)) then
       AddLn(GetPasIntfName(D)+' = interface;');
     Result:=inherited WriteForwardClassDef(D);
     end;
 end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
-  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
+  aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean;
 var
   ArgNames: TStringList;
 
@@ -976,26 +988,33 @@ begin
   Addln(GetName(aDef)+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetTypeName(aDef.ElementType));
 end;
 
-procedure TWebIDLToPasWasmJob.WriteGlobalVars;
+procedure TWebIDLToPasWasmJob.WriteNamespaceVars;
+
 var
   i: Integer;
-  PasVarName, JSClassName, JOBRegisterName: TIDLString;
-  aDef: TIDLDefinition;
+  VarName, VarType: String;
+
 begin
-  if GlobalVars.Count=0 then exit;
-  AddLn('');
-  AddLn('var');
-  Indent;
-  for i:=0 to GlobalVars.Count-1 do
-    begin
-    if not SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName) then
-      raise EConvertError.Create('invalid global var "'+GlobalVars[i]+'"');
-    aDef:=FindGlobalDef(JSClassName);
-    if aDef=nil then
-      raise EConvertError.Create('missing global var "'+PasVarName+'" type "'+JSClassName+'"');
-    AddLn(PasVarName+': '+GetName(aDef)+';');
-    end;
-  Undent;
+  for I:=0 to Context.Definitions.Count-1 do
+    if Context.Definitions[i] is TIDLNamespaceDefinition then
+      begin
+      VarName:=Context.Definitions[i].Name;
+      VarType:=GetPasIntfName(Context.Definitions[i]);
+      AddLn(VarName+': '+VarType+';');
+      end;
+end;
+
+procedure TWebIDLToPasWasmJob.WriteGlobalVar(aDef : String);
+var
+  PasVarName, JSClassName, JOBRegisterName: TIDLString;
+  iDef: TIDLDefinition;
+begin
+  if not SplitGlobalVar(aDef,PasVarName,JSClassName,JOBRegisterName) then
+    raise EConvertError.Create('invalid global var "'+aDef+'"');
+  iDef:=FindGlobalDef(JSClassName);
+  if iDef=nil then
+    raise EConvertError.Create('missing global var "'+PasVarName+'" type "'+JSClassName+'"');
+  AddLn(PasVarName+': '+GetName(iDef)+';');
 end;
 
 procedure TWebIDLToPasWasmJob.WriteImplementation;
@@ -1005,7 +1024,7 @@ var
   PasVarName, JSClassName, JOBRegisterName: TIDLString;
 begin
   inherited WriteImplementation;
-  if GlobalVars.Count>0 then
+  if (GlobalVars.Count>0) or Context.HaveNameSpaces then
     begin
     AddLn('initialization');
     Indent;
@@ -1015,6 +1034,15 @@ begin
       aDef:=FindGlobalDef(JSClassName);
       AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
       end;
+    for I:=0 to Context.Definitions.Count-1 do
+      begin
+      aDef:=Context.Definitions[i];
+      if aDef is TIDLNamespaceDefinition then
+        begin
+        PasVarName:=Context.Definitions[i].Name;
+        AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
+        end;
+      end;
     Undent;
 
     AddLn('finalization');
@@ -1023,6 +1051,15 @@ begin
       begin
       SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
       AddLn(PasVarName+'.Free;');
+      end;
+    for I:=0 to Context.Definitions.Count-1 do
+      begin
+      aDef:=Context.Definitions[i];
+      if aDef is TIDLNamespaceDefinition then
+        begin
+        PasVarName:=Context.Definitions[i].Name;
+        AddLn(PasVarName+':=Nil;');
+        end;
       end;
     Undent;
     end;

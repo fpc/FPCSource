@@ -134,15 +134,20 @@ type
     tkSetLike,
     tkOther,
     tkConstructor,
-    tkObservableArray
+    tkObservableArray,
+    tkNamespace
     );
   TIDLTokens = Set of TIDLToken;
   EWebIDLScanner = class(EParserError);
 
 Const
-  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor];
+  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor,tkNamespace];
   V1Tokens = [tkImplements];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
+
+  V1NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise];
+  V2NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray,tkObservableArray];
+  VersionNameTokens : Array[TWebIDLVersion] of TIDLTokens = (V1NameTokens,V2NameTokens);
 
   nErrXExpectedButYFound = 1001;
   nErrRangeCheck = 1002;
@@ -402,7 +407,8 @@ const
   'setlike',
   'other',
   'constructor',
-  'ObservableArray'
+  'ObservableArray',
+  'namespace'
   );
 
 Function GetTokenName(aToken : TIDLToken) : String;
@@ -1463,11 +1469,9 @@ end;
 
 function TWebIDLScanner.DetermineToken2 : TIDLToken;
 
-Const
-  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray,tkObservableArray];
 
 begin
-  For Result in InfTokens do
+  For Result in VersionNameTokens[Version] do
     if (TokenInfos[result]=FCurTokenString) then exit;
   Result:=tkIdentifier;
 end;

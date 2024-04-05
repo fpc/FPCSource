@@ -183,6 +183,25 @@ Type
     Procedure ParseConstIdentifier;
   end;
 
+  { TTestNamespaceParser }
+
+  TTestNamespaceParser = Class(TTestParser)
+  Private
+    FCustAttributes : string;
+  Public
+    Procedure Setup; override;
+    function ParseNamespace(aName : UTF8String;aMembers : Array of UTF8String) : TIDLNamespaceDefinition;
+    Property ExtAttributes : String Read FCustAttributes Write FCustAttributes;
+  Published
+    Procedure ParseEmpty;
+    Procedure ParseEmptyNoBrackets;
+    Procedure ParseConst;
+    Procedure ParseReadonlyAttribute;
+    Procedure ParseMethod;
+  end;
+
+
+
   { TTestAttributeInterfaceParser }
 
   TTestAttributeInterfaceParser = Class(TTestBaseInterfaceParser)
@@ -1296,11 +1315,13 @@ end;
 
 procedure TTestTypeDefParser.TestFrozenArray;
 begin
+  Version:=v2;
   DoTestSequence('FrozenArray<byte> A',stFrozenArray);
 end;
 
 procedure TTestTypeDefParser.TestObservableArray;
 begin
+  Version:=v2;
   DoTestSequence('ObservableArray<byte> A',stObservableArray);
 end;
 
@@ -1372,9 +1393,10 @@ Var
 
 begin
   if IsMixin then
-    Src:='interface mixin '+aName+' '
+    Src:='interface mixin'
   else
-    Src:='interface '+aName+' ';
+    Src:='interface';
+  Src:=Src+' '+aName+' ';
   if (FCustAttributes<>'') then
     Src:=FCustAttributes+' '+Src;
   if (aInheritance<>'') then
@@ -1619,6 +1641,103 @@ begin
   ParseConst('A','Zaza','false',ctBoolean);
 end;
 
+{ TTestNamespaceParser }
+
+procedure TTestNamespaceParser.Setup;
+begin
+  inherited Setup;
+  Version:=v2;
+end;
+
+function TTestNamespaceParser.ParseNamespace(aName: UTF8String; aMembers: array of UTF8String): TIDLNamespaceDefinition;
+
+Var
+  Src : UTF8String;
+  I : integer;
+
+begin
+  Src:='namespace '+aName+' ';
+  if (FCustAttributes<>'') then
+    Src:=FCustAttributes+' '+Src;
+  Src:=Src+'{'+sLineBreak;
+  For I:=0 to Length(AMembers)-1 do
+    Src:=Src+'  '+AMembers[I]+';'+sLineBreak;
+  Src:=Src+'};'+sLineBreak;
+  InitSource(Src);
+  Parser.Parse;
+  AssertEquals('Correct class',TIDLNamespaceDefinition,Definitions[0].ClassType);
+  Result:=Definitions[0] as TIDLNamespaceDefinition;
+  AssertEquals('Name',AName,Result.Name);
+  AssertEquals('Member count',Length(AMembers),Result.Members.Count);
+end;
+
+procedure TTestNamespaceParser.ParseEmpty;
+begin
+  ParseNameSpace('A',[]);
+end;
+
+procedure TTestNamespaceParser.ParseEmptyNoBrackets;
+
+var
+  d : TIDLNamespaceDefinition;
+
+begin
+  InitSource('namespace A;'+sLineBreak);
+  Parser.Parse;
+  AssertEquals('Correct class',TIDLNamespaceDefinition,Definitions[0].ClassType);
+  d:=Definitions[0] as TIDLNamespaceDefinition;
+  AssertEquals('Name','A',d.Name);
+  AssertEquals('Member count',0,d.Members.Count);
+end;
+
+procedure TTestNamespaceParser.ParseConst;
+
+var
+  d : TIDLNamespaceDefinition;
+  c : TIDLConstDefinition;
+
+begin
+  ParseNamespace('A',['const short q = 1']);
+  D:=Definitions[0] as TIDLNamespaceDefinition;
+  AssertEquals('Member count',1,d.Members.Count);
+  AssertEquals('Member class',TIDLConstDefinition,D.Member[0].ClassType);
+  c:=TIDLConstDefinition(D.Member[0]);
+  AssertEquals('Member name','q',C.Name);
+  AssertEquals('Member const type',ctInteger,C.ConstType);
+end;
+
+procedure TTestNamespaceParser.ParseReadonlyAttribute;
+
+var
+  d : TIDLNamespaceDefinition;
+  a : TIDLAttributeDefinition;
+
+begin
+  ParseNamespace('A',['readonly attribute short q']);
+  D:=Definitions[0] as TIDLNamespaceDefinition;
+  AssertEquals('Member count',1,d.Members.Count);
+  AssertEquals('Member class',TIDLAttributeDefinition,D.Member[0].ClassType);
+  a:=TIDLAttributeDefinition(D.Member[0]);
+  AssertEquals('Member name','q',a.Name);
+  AssertTrue('Is readonly',aoReadOnly in a.Options);
+end;
+
+procedure TTestNamespaceParser.ParseMethod;
+var
+  d : TIDLNamespaceDefinition;
+  f : TIDLFunctionDefinition;
+
+begin
+  ParseNamespace('A',['short q()']);
+  D:=Definitions[0] as TIDLNamespaceDefinition;
+  AssertEquals('Member count',1,d.Members.Count);
+  AssertEquals('Member class',TIDLFunctionDefinition,D.Member[0].ClassType);
+  f:=TIDLFunctionDefinition(D.Member[0]);
+  AssertEquals('Member name','q',f.Name);
+  AssertNotNull('Have return',f.ReturnType);
+  AssertEquals('Have return name','short',f.ReturnType.TypeName);
+end;
+
 
 { TTestEnumParser }
 
@@ -1765,6 +1884,7 @@ initialization
                  TTestSerializerInterfaceParser,
                  TTestOperationInterfaceParser,
                  TTestMapLikeInterfaceParser,
-                 TTestSetLikeInterfaceParser]);
+                 TTestSetLikeInterfaceParser,
+                 TTestNamespaceParser]);
 end.
 

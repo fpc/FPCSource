@@ -46,6 +46,8 @@ type
     procedure TestWJ_IntfFunction_SetEventHandler;
     procedure TestWJ_IntfFunction_Promise;
     procedure TestWJ_IntfFunction_ArgAny;
+    // Namespace attribute
+    procedure TestWJ_NamespaceAttribute_Boolean;
   end;
 
 function LinesToStr(Args: array of const): TIDLString;
@@ -682,6 +684,61 @@ begin
   '',
   'end.',
   '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_NamespaceAttribute_Boolean;
+begin
+  TestWebIDL([
+  'namespace Attr {',
+  '  readonly attribute boolean aBoolean;',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-7955-3EBA-B086-85B24440AF2A}'']',
+  '    function _GetaBoolean: Boolean;',
+  '    property aBoolean: Boolean read _GetaBoolean;',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '    function _GetaBoolean: Boolean;',
+  '  Public',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
+  '    property aBoolean: Boolean read _GetaBoolean;',
+  '  end;',
+  '',
+  'var ',
+  '  Attr : IJSAttr;',
+  '',
+  'implementation',
+  '',
+  'function TJSAttr._GetaBoolean: Boolean;',
+  'begin',
+  '  Result:=ReadJSPropertyBoolean(''aBoolean'');',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'initialization',
+  '  Attr:=TJSAttr.JOBCreateGlobal(''Attr'');',
+  '',
+  'finalization',
+  '  Attr:=Nil;',
+  '',
+  'end.',
+  '']);
+
 end;
 
 initialization

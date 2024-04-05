@@ -120,7 +120,7 @@ type
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function GetPasDataPos(D: TPasData; WithoutFile: boolean = false): string; virtual;
     procedure EnsureUniqueNames(ML: TIDLDefinitionList); virtual;
-    procedure EnsureUniqueArgNames(Intf: TIDLInterfaceDefinition); virtual;
+    procedure EnsureUniqueArgNames(Intf: TIDLStructuredDefinition); virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String; virtual;
     function GetPasClassName(const aName: string): string; overload; virtual;
@@ -129,6 +129,7 @@ type
     function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: string): TIDLDefinition; overload; virtual;
     function GetSequenceTypeName(Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean=False): string; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
+    function GetNamespaceDefHead(Intf: TIDLNamespaceDefinition): String; virtual;
     function GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String; virtual;
     function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
     Function CloneArgument(Arg: TIDLArgumentDefinition): TIDLArgumentDefinition; virtual;
@@ -143,13 +144,14 @@ type
     // Code generation routines. Return the number of actually written defs.
     function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer; virtual;
+    function WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryMemberImplicitTypes(aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteInterfaceDefs(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteMethodDefs(aParent: TIDLInterfaceDefinition; aList: TIDLDefinitionList): Integer; virtual;
-    function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer; virtual;
+    function WriteNamespaceDefs(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteMethodDefs(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteUtilityMethods(Intf: TIDLStructuredDefinition): Integer; virtual;
     function WriteTypeDefsAndCallbacks(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteConsts(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
@@ -162,7 +164,7 @@ type
     // Definitions. Return true if a definition was written.
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; virtual;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
-    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean; virtual;
+    function WriteFunctionDefinition(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean; virtual;
     function WriteTypeDef(aDef: TIDLTypeDefDefinition): Boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; virtual;
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; virtual;
@@ -170,6 +172,7 @@ type
     function WriteField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
     function WriteConst(aConst: TIDLConstDefinition): Boolean ; virtual;
     function WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean; virtual;
+    function WriteNamespaceDef(aNamespace: TIDLNamespaceDefinition): Boolean; virtual;
     function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean; virtual;
     // Additional
     procedure WriteAliasTypeDef(aDef: TIDLTypeDefDefinition); virtual;
@@ -177,7 +180,9 @@ type
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); virtual;
     procedure WriteUnionDef(aDef: TIDLUnionTypeDefDefinition); virtual;
     // Extra interface/Implementation code.
-    procedure WriteGlobalVars; virtual;
+    procedure WriteGlobalVar(aDef: String); virtual;
+    procedure WriteNamespaceVars; virtual;
+    procedure WriteGlobalVars;
     procedure WriteImplementation; virtual;
     procedure WriteIncludeInterfaceCode; virtual;
     Property Context: TWebIDLContext Read FContext;
@@ -375,7 +380,7 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteOtherImplicitTypes(
-  Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
+  Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
   if Intf=nil then ;
@@ -516,7 +521,7 @@ begin
   Undent;
 end;
 
-function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLInterfaceDefinition;
+function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLStructuredDefinition;
   aList: TIDLDefinitionList): Integer;
 
 Var
@@ -532,7 +537,7 @@ begin
            Inc(Result);
 end;
 
-function TBaseWebIDLToPas.WriteUtilityMethods(Intf: TIDLInterfaceDefinition
+function TBaseWebIDLToPas.WriteUtilityMethods(Intf: TIDLStructuredDefinition
   ): Integer;
 begin
   Result:=0;
@@ -622,7 +627,7 @@ begin
   end;
 end;
 
-procedure TBaseWebIDLToPas.EnsureUniqueArgNames(Intf: TIDLInterfaceDefinition);
+procedure TBaseWebIDLToPas.EnsureUniqueArgNames(Intf: TIDLStructuredDefinition);
 var
   Names: TFPObjectHashTable;
 
@@ -654,7 +659,7 @@ var
 
 var
   Members, MembersWithParents: TIDLDefinitionList;
-  CurIntf: TIDLInterfaceDefinition;
+  CurIntf: TIDLStructuredDefinition;
   D: TIDLDefinition;
   CurName: String;
 begin
@@ -667,7 +672,10 @@ begin
     while CurIntf<>nil do
       begin
       CurIntf.GetFullMemberList(MembersWithParents);
-      CurIntf:=CurIntf.ParentInterface;
+      if CurIntf is TIDLInterfaceDefinition then
+        CurIntf:=TIDLInterfaceDefinition(CurIntf).ParentInterface
+      else
+        CurIntf:=nil;
       end;
     For D in MembersWithParents Do
       begin
@@ -732,6 +740,59 @@ begin
     WriteMethodDefs(Intf,ML);
     WriteUtilityMethods(Intf);
     WriteProperties(Intf,ML);
+    Undent;
+    AddLn('end;');
+  finally
+    ML.Free;
+  end;
+end;
+
+function TBaseWebIDLToPas.WriteNamespaceDef(aNamespace: TIDLNamespaceDefinition): Boolean;
+
+Var
+  aClassName: String;
+  Decl: String;
+  ML: TIDLDefinitionList;
+
+begin
+  Result:=True;
+  ML:=TIDLDefinitionList.Create(Nil,False);
+  try
+    aNamespace.GetFullMemberList(ML);
+    EnsureUniqueNames(ML);
+    EnsureUniqueArgNames(aNamespace);
+    aClassName:=GetName(aNamespace);
+    // class comment
+    ClassComment(aClassName);
+    // sub types
+    WriteFunctionImplicitTypes(ML);
+    WriteAttributeImplicitTypes(ML);
+    WriteOtherImplicitTypes(aNameSpace,ML);
+    // class and ancestor
+    Decl:=aClassName+' = '+GetNamespaceDefHead(aNamespace);
+    AddLn(Decl);
+    // private section
+    AddLn('Private');
+    Indent;
+    WritePrivateReadOnlyFields(aNamespace,ML);
+    WritePrivateGetters(aNamespace,ML);
+    WritePrivateSetters(aNamespace,ML);
+    Undent;
+    // write public section
+    AddLn('Public');
+    if HaveConsts(ML) then
+      begin
+      Indent;
+      PushSection(csUnknown);
+      WriteConsts(aNamespace,ML);
+      PopSection;
+      Undent;
+      AddLn('Public');
+      end;
+    Indent;
+    WriteMethodDefs(aNamespace,ML);
+    WriteUtilityMethods(aNamespace);
+    WriteProperties(aNamespace,ML);
     Undent;
     AddLn('end;');
   finally
@@ -878,6 +939,12 @@ begin
   if Intf=nil then ;
 end;
 
+function TBaseWebIDLToPas.GetNamespaceDefHead(Intf: TIDLNamespaceDefinition): String;
+begin
+  Result:='class';
+  if Intf=nil then ;
+end;
+
 function TBaseWebIDLToPas.GetDictionaryDefHead(const CurClassName: string;
   Dict: TIDLDictionaryDefinition): String;
 var
@@ -986,9 +1053,11 @@ begin
   Result:=0;
   Comment('Forward class definitions');
   For D in aList do
-    if D is TIDLInterfaceDefinition then
-      if WriteForwardClassDef(D as TIDLInterfaceDefinition) then
+    if (D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition) then
+      begin
+      if WriteForwardClassDef(D as TIDLStructuredDefinition) then
         Inc(Result);
+      end;
   if coDictionaryAsClass in BaseOptions then
     For D in aList do
       if D is TIDLDictionaryDefinition then
@@ -1020,21 +1089,50 @@ begin
   AddLn(GetName(aDef)+' = '+GetTypeName('any')+';');
 end;
 
+
+procedure TBaseWebIDLToPas.WriteGlobalVar(aDef : String);
+
+var
+  P : Integer;
+  VarName, VarType: String;
+
+begin
+  P:=Pos('=',aDef);
+  VarName:=Trim(Copy(aDef,1,P-1));
+  VarType:=Trim(Copy(aDef,P+1));
+  AddLn(VarName+': '+VarType+';');
+end;
+
 procedure TBaseWebIDLToPas.WriteGlobalVars;
 var
   i: Integer;
-  VarName, VarType: String;
 begin
-  if GlobalVars.Count=0 then exit;
+  if (GlobalVars.Count=0) and Not Context.HaveNamespaces  then
+    exit;
   AddLn('var');
   Indent;
   for i:=0 to GlobalVars.Count-1 do
     begin
-    VarName:=GlobalVars.Names[i];
-    VarType:=GlobalVars.ValueFromIndex[i];
-    AddLn(VarName+': '+VarType+';');
+    WriteGlobalvar(GlobalVars[i]);
     end;
+  WriteNamespaceVars;
   Undent;
+end;
+
+procedure TBaseWebIDLToPas.WriteNamespaceVars;
+
+var
+  i: Integer;
+  VarName, VarType: String;
+
+begin
+  for I:=0 to Context.Definitions.Count-1 do
+    if Context.Definitions[i] is TIDLNamespaceDefinition then
+      begin
+      VarName:=Context.Definitions[i].Name;
+      VarType:=GetName(Context.Definitions[i]);
+      AddLn(VarName+': '+VarType+';');
+      end;
 end;
 
 procedure TBaseWebIDLToPas.WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);
@@ -1393,7 +1491,7 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteFunctionDefinition(
-  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
+  aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean;
 begin
   Result:=true;
   if aDef=nil then exit;
@@ -1427,8 +1525,23 @@ begin
   EnsureSection(csType);
   for D in aList do
     if D is TIDLInterfaceDefinition then
-      if not TIDLInterfaceDefinition(D).IsPartial then
+      if not ID.IsPartial then
         if WriteInterfaceDef(ID) then
+          Inc(Result);
+end;
+
+function TBaseWebIDLToPas.WriteNamespaceDefs(aList: TIDLDefinitionList): Integer;
+Var
+  D: TIDLDefinition;
+  ND: TIDLNamespaceDefinition absolute D;
+
+begin
+  Result:=0;
+  EnsureSection(csType);
+  for D in aList do
+    if D is TIDLNamespaceDefinition then
+      if not ND.IsPartial then
+        if WriteNamespaceDef(ND) then
           Inc(Result);
 end;
 
@@ -1554,6 +1667,7 @@ begin
   WriteTypeDefsAndCallbacks(Context.Definitions);
   WriteDictionaryDefs(Context.Definitions);
   WriteInterfaceDefs(Context.GetInterfacesTopologically);
+  WriteNamespaceDefs(Context.Definitions);
   Undent;
   WriteGlobalVars;
   WriteIncludeInterfaceCode;
@@ -1609,6 +1723,17 @@ begin
     Result:=CreatePasData(CN,D,true);
     D.Data:=Result;
     AllocatePasNames((D as TIDLInterfaceDefinition).Members,D.Name);
+    end
+  else if D Is TIDLNamespaceDefinition then
+    begin
+    if CN='' then
+      raise EConvertError.Create('[20240405142524] at '+GetDefPos(D));
+    if not TIDLNamespaceDefinition(D).IsPartial then
+      AddJSIdentifier(D);
+    CN:=ClassPrefix+CN+ClassSuffix;
+    Result:=CreatePasData(CN,D,true);
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLNamespaceDefinition).Members,D.Name);
     end
   else if D Is TIDLDictionaryDefinition then
     begin
@@ -1732,6 +1857,8 @@ begin
   //writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D),' D=',hexstr(ptruint(D),sizeof(ptruint)*2));
   if D Is TIDLInterfaceDefinition then
     ResolveTypeDefs(TIDLInterfaceDefinition(D).Members)
+  else if D Is TIDLNamespaceDefinition then
+    ResolveTypeDefs(TIDLNamespaceDefinition(D).Members)
   else if D Is TIDLDictionaryDefinition then
     ResolveTypeDefs(TIDLDictionaryDefinition(D).Members)
   else if D is TIDLIncludesDefinition then
