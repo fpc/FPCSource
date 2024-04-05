@@ -176,13 +176,13 @@ const
        { cpu_armv8a    } [],
        { cpu_armv81a   } [CPUAARCH64_HAS_LSE],
        { cpu_armv82a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv83a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv84a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv85a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv86a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv87a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv88a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv89a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_CSSC]
+       { cpu_armv83a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv84a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv85a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv86a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv87a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv88a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH],
+       { cpu_armv89a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_DOTPROD,CPUAARCH64_HAS_PAUTH,CPUAARCH64_HAS_CSSC]
      );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags =
