@@ -429,5 +429,7 @@
 'sha512h',
 'sha512h2',
 'sha512su0',
-'sha512su1'
+'sha512su1',
+'abs',
+'ctz'
 );
