@@ -120,6 +120,7 @@ type
                      varbyte : (vbyte : byte);
                      varword : (vword : word);
                      varlongword : (vlongword : dword);
+                     varuint32 : (vuint32 : dword);
                      varint64 : (vint64 : int64);
                      varqword : (vqword : qword);
                      varword64 : (vword64 : qword);
