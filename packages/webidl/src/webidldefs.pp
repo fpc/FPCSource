@@ -557,14 +557,20 @@ type
 
   TIDLIterableDefinition = Class(TIDLDefinition)
   private
+    FIsAsync: Boolean;
     FValueType: TIDLTypeDefDefinition;
     FKeyType: TIDLTypeDefDefinition;
+    FArguments: TIDLDefinitionList;
+    function GetArguments: TIDLDefinitionList;
     procedure SetKeyType(AValue: TIDLTypeDefDefinition);
     procedure SetValueType(AValue: TIDLTypeDefDefinition);
   Public
     Destructor Destroy; override;
+    Function HaveArguments : Boolean;
     property ValueType : TIDLTypeDefDefinition Read FValueType Write SetValueType;
     property KeyType : TIDLTypeDefDefinition Read FKeyType Write SetKeyType;
+    Property IsAsync : Boolean Read FIsAsync Write FIsAsync;
+    Property Arguments : TIDLDefinitionList Read GetArguments;
   end;
 
 function NameToWebIDLBaseType(const s: string): TWebIDLBaseType;
@@ -842,6 +848,13 @@ begin
   FKeyType:=AValue;
 end;
 
+function TIDLIterableDefinition.GetArguments: TIDLDefinitionList;
+begin
+  if FArguments=nil then
+    FArguments:=TIDLDefinitionList.Create(Self,True);
+  Result:=FArguments;
+end;
+
 procedure TIDLIterableDefinition.SetValueType(AValue: TIDLTypeDefDefinition);
 begin
   if (AValue=FValueType) then exit;
@@ -853,7 +866,13 @@ destructor TIDLIterableDefinition.Destroy;
 begin
   ValueType:=Nil;
   KeyType:=Nil;
+  FreeAndNil(FArguments);
   inherited Destroy;
+end;
+
+function TIDLIterableDefinition.HaveArguments: Boolean;
+begin
+  Result:=Assigned(FArguments);
 end;
 
 { TIDLAttributeDefinition }

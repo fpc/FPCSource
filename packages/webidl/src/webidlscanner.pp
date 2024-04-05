@@ -115,6 +115,7 @@ type
     tkByteString,
     tkDOMString,
     tkUSVString,
+    tkUTF8String,
     tkboolean,
     tkbyte,
     tkdouble,
@@ -135,18 +136,19 @@ type
     tkOther,
     tkConstructor,
     tkObservableArray,
-    tkNamespace
+    tkNamespace,
+    tkAsync
     );
   TIDLTokens = Set of TIDLToken;
   EWebIDLScanner = class(EParserError);
 
 Const
-  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor,tkNamespace];
+  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor,tkNamespace,tkAsync];
   V1Tokens = [tkImplements];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
 
   V1NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise];
-  V2NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray,tkObservableArray];
+  V2NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkUTF8String,tkPromise,tkFrozenArray,tkObservableArray,tkAsync];
   VersionNameTokens : Array[TWebIDLVersion] of TIDLTokens = (V1NameTokens,V2NameTokens);
 
   nErrXExpectedButYFound = 1001;
@@ -388,6 +390,7 @@ const
   'ByteString',
   'DOMString',
   'USVString',
+  'UTF8String',
   'boolean',
   'byte',
   'double',
@@ -408,7 +411,8 @@ const
   'other',
   'constructor',
   'ObservableArray',
-  'namespace'
+  'namespace',
+  'async'
   );
 
 Function GetTokenName(aToken : TIDLToken) : String;
@@ -1298,7 +1302,7 @@ begin
   TokenStart := TokenStr;
   repeat
     Inc(TokenStr);
-  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
+  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_', '-']);
   SectionLength := TokenStr - TokenStart;
 
   SetString(Result, TokenStart, SectionLength);

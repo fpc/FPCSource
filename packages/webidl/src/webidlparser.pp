@@ -122,10 +122,10 @@ Type
     function ParseConst(aParent: TIDLBaseObject ): TIDLConstDefinition; virtual;
     function ParseCallBack(aParent : TIDLBaseObject): TIDLDefinition; virtual;
     function ParseStringifier(aParent : TIDLBaseObject): TIDLDefinition; virtual;
-    function ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True): TIDLFunctionDefinition; virtual;
+    function ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True; Opts : TFunctionOptions = []): TIDLFunctionDefinition; virtual;
     function ParseSerializer(aParent: TIDLBaseObject): TIDLSerializerDefinition; virtual;
     function ParseStatic(aParent: TIDLBaseObject): TIDLDefinition;virtual;
-    function ParseIterable(aParent : TIDLBaseObject): TIDLIterableDefinition; virtual;
+    function ParseIterable(aParent: TIDLBaseObject; out SemicolonSeen: Boolean): TIDLIterableDefinition; virtual;
     function ParseInterface(aParent : TIDLBaseObject): TIDLInterfaceDefinition; virtual;
     function ParseNamespace(aParent : TIDLBaseObject): TIDLNamespaceDefinition; virtual;
     function ParseDictionary(aParent : TIDLBaseObject; AllowInheritance : Boolean = True): TIDLDictionaryDefinition; virtual;
@@ -497,7 +497,7 @@ begin
       Result.HasEllipsis:=True;
       GetToken;
       end;
-    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback,tkInterface,tkConstructor,tkAttribute]);
+    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback,tkInterface,tkConstructor,tkAttribute,tkNamespace,tkAsync]);
     Result.Name:=CurrentTokenString;
     ok:=true;
   finally
@@ -531,9 +531,13 @@ function TWebIDLParser.ParseCallBack(aParent : TIDLBaseObject): TIDLDefinition;
 
 var
   tk : TIDLToken;
+  isConstructor : Boolean;
 
 begin
   tk:=GetToken;
+  isConstructor:=tk=tkConstructor;
+  if isConstructor then
+    tk:=GetToken;
   Case tk of
     tkInterface :
        begin
@@ -544,7 +548,11 @@ begin
        begin
        Result:=ParseFunction(aParent);
        With TIDLFunctionDefinition(Result) do
+         begin
          Options:=Options+[foCallBack];
+         if isConstructor then
+           Options:=Options+[foConstructor];
+         end;
        end;
   else
     Error('[20220725174529] '+SErrInvalidTokenList,[GetTokenNames([tkInterface,tkIdentifier]),CurrentTokenString]);
@@ -576,23 +584,24 @@ begin
     end;
 end;
 
-function TWebIDLParser.ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True): TIDLFunctionDefinition;
+function TWebIDLParser.ParseOperation(aParent: TIDLBaseObject; allowSpecials : Boolean = True; Opts : TFunctionOptions = []): TIDLFunctionDefinition;
 { On entry, we're on the type definition or on one of getter,setter,deleter,legacycaller,
   on exit, we're on the final ) }
 
 Const
-  Specials = [tkGetter, tkSetter, tkDeleter, tkLegacyCaller, tkConstructor];
+  Specials = [tkGetter, tkSetter, tkDeleter, tkLegacyCaller, tkConstructor,tkStringifier];
   OnlyGetter = [foGetter];
   OnlySetter = [foSetter];
   OnlyDeleter = [foDeleter];
+  OnlyLegacyCaller = [foLegacyCaller];
+  OnlyStringifier = [foStringifier];
 
 Var
-  Opts : TFunctionOptions;
+
   FO : TFunctionOption;
   ok: Boolean;
 
 begin
-  Opts:=[];
   if AllowSpecials then
     While CurrentToken in Specials do
       begin
@@ -624,6 +633,10 @@ begin
         if (Opts=OnlyGetter) or (Opts=OnlySetter) then
           // using default name getProperty/setProperty
         else if (Opts=OnlyDeleter) then
+          // using default name
+        else if (Opts=OnlyLegacyCaller) then
+          // using default name
+        else if (Opts=OnlyStringifier) then
           // using default name
         else
           CheckCurrentToken(tkIdentifier);
@@ -665,26 +678,29 @@ begin
     end;
   else
     begin
-    Result:=ParseOperation(aParent);
-    With TIDLFunctionDefinition(Result) do
-      Options:=Options+[foStringifier];
+    Result:=ParseOperation(aParent,True,[foStringifier]);
     end;
   end;
 end;
 
-function TWebIDLParser.ParseIterable(aParent: TIDLBaseObject): TIDLIterableDefinition;
-
+function TWebIDLParser.ParseIterable(aParent: TIDLBaseObject; out SemicolonSeen : Boolean): TIDLIterableDefinition;
+// On entry, we are on async or iterable.
+// On exit, we are at the token after the definition
 Var
   T1,T2 : TIDLTypeDefDefinition;
-  ok: Boolean;
+  isASync, ok: Boolean;
 
 begin
+  isAsync:=CurrentToken=tkaSync;
+  if isAsync then
+    expectToken(tkIterable);
   ExpectToken(tkLess);
   T1:=Nil;
   T2:=nil;
   Result:=TIDLIterableDefinition(AddDefinition(aParent,TIDLIterableDefinition,''));
   ok:=false;
   try
+    Result.isAsync:=isAsync;
     T1:=ParseType(Result,True,True);
     if (CurrentToken=tkComma) then
       T2:=ParseType(Result,True,True);
@@ -696,6 +712,12 @@ begin
       Result.ValueType:=T2;
       T2:=Nil;
       Result.KeyType:=T1;
+      end;
+    SemiColonSeen:=(GetToken=tkSemiColon);
+    if not SemicolonSeen then
+      begin
+      CheckCurrentToken(tkBracketOpen);
+      ParseArguments(Result.Arguments);
       end;
     T1:=nil;
     ok:=true;
@@ -903,6 +925,7 @@ function TWebIDLParser.ParseAttribute(aParent : TIDLBaseObject): TIDLAttributeDe
   On Entry we're on readonly, inherit or attribute.
   On Exit, we're on the last token of the attribute definition, the name
 *)
+
 Var
   Options : TAttributeOptions;
   ok: Boolean;
@@ -924,7 +947,7 @@ begin
   ok:=false;
   try
     Result.AttributeType:=ParseType(Result,True,True);
-    CheckCurrentTokens([tkIdentifier,tkRequired]);
+    CheckCurrentTokens([tkIdentifier,tkRequired,tkasync]);
     Result.Name:=CurrentTokenString;
     Result.Options:=Options;
     ok:=true;
@@ -1092,7 +1115,9 @@ begin
           if CurrentToken=tkSemiColon then
             SemicolonSeen:=true;
           end;
-        tkIterable : ParseIterable(Result.Members);
+        tkAsync,
+        tkIterable :
+          ParseIterable(Result.Members,SemiColonSeen);
       else
         {
         tkGetter, tkSetter, tkDeleter, tkLegacyCaller
@@ -1154,6 +1179,10 @@ begin
         end;
       Case tk of
         tkConst : M:=ParseConst(Result.Members);
+        tkAttribute:
+          begin
+          M:=ParseAttribute(Result.Members);
+          end;
         tkReadOnly :
           begin
           ExpectToken(tkAttribute);
@@ -1425,15 +1454,16 @@ Const
   ComplexPrefixTokens = [tkSequence,tkPromise,tkBracketOpen,tkRecord,tkFrozenArray,tkObservableArray];
   PrefixTokens  = ComplexPrefixTokens+SimplePrefixTokens;
   PrimitiveTokens = [tkBoolean,tkByte,tkOctet,tkFloat,tkDouble,tkShort,tkAny,tkObject];
-  IdentifierTokens = [tkIdentifier,tkByteString,tkUSVString,tkDOMString];
+  IdentifierTokens = [tkIdentifier,tkByteString,tkUSVString,tkDOMString,tkUTF8String];
   SimpleTypeTokens = PrimitiveTokens+IdentifierTokens;
   TypeTokens = PrefixTokens+SimpleTypeTokens;
   ExtraTypeTokens = TypeTokens +[{tkStringToken,}tkVoid];
   EnforceRange = 'EnforceRange';
   LegacyDOMString = 'LegacyNullToEmptyString';
+  Clamp = 'Clamp';
 
 Var
-  haveID,isNull,isUnsigned, isDoubleLong, ok: Boolean;
+  isClamp, haveID,isNull,isUnsigned, isDoubleLong, ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
   tk : TIDLToken;
@@ -1448,47 +1478,12 @@ begin
     else
       tk:=CurrentToken;
     HaveID:=False;
+    isClamp:=False;
     if tk=tkSquaredBraceOpen then
       begin
-      ExpectToken(tkIdentifier);
-      case CurrentTokenString of
-      EnforceRange:
-        begin
-        // special: [EnforceRange] [unsigned] long [long]
-        ExpectToken(tkSquaredBraceClose);
-        tk:=GetToken;
-        isUnsigned:=(tk=tkUnsigned);
-        if IsUnSigned then
-          tk:=GetToken;
-        CheckCurrentToken(tkLong);
-        tk:=GetToken;
-        isDoubleLong:=(tk=tkLong);
-        haveID:=(tk=tkIdentifier);
-        Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-        if IsDoubleLong then
-          Result.TypeName:='long long'
-        else
-          Result.TypeName:='long';
-        if IsUnsigned then
-          Result.Name:='unsigned '+Result.Name;
-        Result.Attributes.Add(EnforceRange);
-        end;
-      LegacyDOMString:
-        begin
-        // special: [LegacyNullToEmptyString] DOMString
-        ExpectToken(tkSquaredBraceClose);
-        ExpectToken(tkDOMString);
-        Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-        Result.TypeName:='DOMString';
-        Result.Attributes.Add(LegacyDOMString);
-        end
-      else
-        Error(SErrInvalidToken,[LegacyDOMString,CurrentTokenString]);
-      end;
-      if not HaveID then
-        GetToken;
-      ok:=true;
-      exit;
+      Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
+      ParseExtAttributes(Result.Attributes,tkSquaredBraceClose,False);
+      tk:=GetToken;
       end;
     if AllowExtraTypes then
       Allowed:=ExtraTypeTokens

@@ -7,6 +7,9 @@ interface
 uses
   Classes, SysUtils, fpcunit, testregistry, webidldefs, webidlparser, webidlscanner;
 
+Const
+  BrowserFile = 'browser.webidl';
+
 Type
 
   { TTestParser }
@@ -226,6 +229,7 @@ Type
     Procedure ParseSimpleAttributeRequired;
     Procedure ParseIdentifierAttribute;
     Procedure Parse2IdentifierAttributes;
+    Procedure ParseSimpleClampAttribute;
   end;
 
   { TTestSerializerInterfaceParser }
@@ -266,6 +270,8 @@ Type
     Procedure TestFunction_ClampArg;
     Procedure TestFunction_ArgNameCallback;
     procedure TestFunction_ArgNameConstructor;
+    procedure TestFunctionCallable;
+    procedure TestStringifierCallable;
   end;
 
   { TTestDictionaryParser }
@@ -301,11 +307,14 @@ Type
   TTestFunctionCallbackParser = Class(TTestParser)
   private
     FFunction: TIDLFunctionDefinition;
+    FIsConstructor : Boolean;
   Public
+    Procedure Setup; override;
     function ParseCallback(Const AName, aReturnType: UTF8String; AArguments: array of UTF8String): TIDLFunctionDefinition;
     Property Func : TIDLFunctionDefinition Read FFunction;
   Published
     Procedure ParseNoArgumentsReturnVoid;
+    Procedure ParseConstructorNoArgumentsReturnVoid;
     Procedure ParseOneArgumentReturnVoid;
     Procedure ParseOneUnsignedLongLongArgumentReturnVoid;
     Procedure ParseOneUnsignedLongLongArgumentReturnUnsignedLongLong;
@@ -347,12 +356,20 @@ Type
   private
     Fiter: TIDLIterableDefinition;
   Public
-    Function ParseIterable(Const AValueTypeName,AKeyTypeName : UTF8String) : TIDLIterableDefinition;
+    Function ParseIterable(Const AValueTypeName,AKeyTypeName : UTF8String; isAsync : Boolean = false) : TIDLIterableDefinition;
     Property Iter : TIDLIterableDefinition Read FIter;
   Published
     Procedure ParseSimpleIter;
     Procedure ParseKeyValueIter;
+    Procedure ParseArgumentsIter;
   end;
+
+   { TTestTotalParser }
+
+   TTestTotalParser = class(TTestParser)
+   Published
+     Procedure TestFile;
+   end;
 
 implementation
 
@@ -551,6 +568,18 @@ begin
   ParseFunction('void getAsString(FunctionStringCallback? constructor)','getAsString','void',['FunctionStringCallback','constructor']);
 end;
 
+procedure TTestOperationInterfaceParser.TestFunctionCallable;
+begin
+  ParseFunction('legacycaller (HTMLCollection or Element)? (optional DOMString nameOrIndex)','','union',['DOMString','nameOrIndex']);
+  ;
+end;
+
+procedure TTestOperationInterfaceParser.TestStringifierCallable;
+begin
+  ParseFunction('stringifier DOMString ()','','DOMString',[]);
+
+end;
+
 
 { TTestSerializerInterfaceParser }
 
@@ -624,8 +653,8 @@ end;
 
 { TTestIterableInterfaceParser }
 
-function TTestIterableInterfaceParser.ParseIterable(const AValueTypeName,
-  AKeyTypeName: UTF8String): TIDLIterableDefinition;
+function TTestIterableInterfaceParser.ParseIterable(const AValueTypeName, AKeyTypeName: UTF8String; isAsync: Boolean
+  ): TIDLIterableDefinition;
 
 Var
   Id : TIDLInterfaceDefinition;
@@ -633,6 +662,8 @@ Var
 
 begin
   Src:='iterable <';
+  if isAsync then
+    Src:='async '+Src;
   if AKeyTypeName<>'' then
     Src:=Src+aKeyTypeName+',';
   Src:=Src+aValueTypeName+'>';
@@ -659,6 +690,59 @@ end;
 procedure TTestIterableInterfaceParser.ParseKeyValueIter;
 begin
   ParseIterable('short','long');
+end;
+
+procedure TTestIterableInterfaceParser.ParseArgumentsIter;
+
+var
+  Src : string;
+  Id : TIDLInterfaceDefinition;
+  Res : TIDLIterableDefinition;
+
+begin
+  Version:=v2;
+  Src:='async iterable<any>(optional ReadableStreamIteratorOptions options = {})';
+  Id:=ParseInterFace('IA','',[Src]);
+  AssertEquals('Correct class',TIDLIterableDefinition,Id.Members[0].ClassType);
+  Res:=Id.Members[0] as TIDLIterableDefinition;
+  AssertNotNull('Have value type',Res.ValueType);
+  AssertEquals('value type name','any',Res.ValueType.TypeName);
+  AssertNull('Have key type',Res.KeyType);
+//  AssertEquals('key type','any',Res.KeyType.TypeName);
+  AssertTrue('Arguments',Res.HaveArguments);
+
+end;
+
+{ TTestTotalParser }
+
+procedure TTestTotalParser.TestFile;
+
+  Function GetSource(const aFileName : string) : string;
+
+  begin
+    With TStringList.Create do
+      try
+        LoadFromFile(aFileName);
+        Result:=Text;
+      finally
+        Free;
+      end;
+  end;
+
+var
+  FN,Src : UTF8String;
+
+begin
+  FN:=BrowserFile;
+  if not FileExists(FN) then
+    begin
+    FN:=ExtractFilePath(Paramstr(0))+BrowserFile;
+    AssertTrue('Have '+BrowserFile,FileExists(FN));
+    end;
+  Src:=GetSource(FN);
+  Version:=v2;
+  InitSource(Src);
+  Parser.Parse;
 end;
 
 { TTestAttributeInterfaceParser }
@@ -704,6 +788,7 @@ end;
 procedure TTestAttributeInterfaceParser.ParseSimpleStringifierAttribute;
 begin
   ParseAttribute('stringifier attribute short A','A','short',[aoStringifier]);
+
 end;
 
 procedure TTestAttributeInterfaceParser.ParseStringifierNoAttribute;
@@ -779,6 +864,11 @@ begin
   AssertEquals('Attr options',[aoReadonly],FAttr.Options);
 end;
 
+procedure TTestAttributeInterfaceParser.ParseSimpleClampAttribute;
+begin
+  ParseAttribute('attribute [Clamp] octet? A','A','octet',[]);
+end;
+
 { TTestImplementsParser }
 
 function TTestImplementsParser.ParseImplements(const AName,
@@ -804,6 +894,12 @@ end;
 
 { TTestFunctionCallbackParser }
 
+procedure TTestFunctionCallbackParser.Setup;
+begin
+  FIsConstructor:=False;
+  inherited Setup;
+end;
+
 function TTestFunctionCallbackParser.ParseCallback(const AName,
   aReturnType: UTF8String; AArguments: array of UTF8String
   ): TIDLFunctionDefinition;
@@ -813,7 +909,10 @@ Var
   Arg : TIDLArgumentDefinition;
 
 begin
-  Src:='callback '+aName+' = '+AReturnType+' (';
+  Src:='callback ';
+  if FIsConstructor then
+    Src:=Src+'constructor ';
+  Src:=Src+aName+' = '+AReturnType+' (';
   I:=0;
   While I<Length(aArguments) do
     begin
@@ -854,6 +953,14 @@ end;
 procedure TTestFunctionCallbackParser.ParseNoArgumentsReturnVoid;
 begin
   ParseCallback('A','void',[]);
+end;
+
+procedure TTestFunctionCallbackParser.ParseConstructorNoArgumentsReturnVoid;
+begin
+  FIsConstructor:=True;
+  Version:=v2;
+  AssertTrue('is constructor',foConstructor in ParseCallback('A','void',[]).Options);
+
 end;
 
 procedure TTestFunctionCallbackParser.ParseOneArgumentReturnVoid;
@@ -1886,5 +1993,7 @@ initialization
                  TTestMapLikeInterfaceParser,
                  TTestSetLikeInterfaceParser,
                  TTestNamespaceParser]);
+  if FileExists(BrowserFile) or FileExists(ExtractFilePath(Paramstr(0))+BrowserFile) then
+    RegisterTest(TTestTotalParser);
 end.
 

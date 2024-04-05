@@ -107,7 +107,9 @@ type
     Procedure TestObservableArray;
     Procedure TestFrozenArray;
     Procedure TestNamespace;
+    Procedure TestAync;
   end;
+
 
 implementation
 
@@ -198,6 +200,7 @@ end;
 procedure TTestScanner.TestIdentifier;
 begin
   TestSingle('A',tkIdentifier,'A');
+  TestSingle('a-b',tkIdentifier,'a-b');
 end;
 
 procedure TTestScanner.TestDot;
@@ -524,6 +527,15 @@ begin
   TestSingle('namespace',tkNamespace);
   Version:=v1;
   TestSingle('namespace',tkIdentifier);
+end;
+
+procedure TTestScanner.TestAync;
+begin
+  Version:=v2;
+  TestSingle('async',tkAsync);
+  Version:=v1;
+  TestSingle('async',tkIdentifier);
+
 end;
 
 procedure TTestScanner.SetVersion(AValue: TWEbIDLversion);

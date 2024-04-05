@@ -717,6 +717,7 @@ begin
     // class and ancestor
     Decl:=aClassName+' = '+GetInterfaceDefHead(Intf);
     AddLn(Decl);
+    PushSection(csUnknown);
     // private section
     AddLn('Private');
     Indent;
@@ -729,9 +730,7 @@ begin
     if HaveConsts(ML) then
       begin
       Indent;
-      PushSection(csUnknown);
       WriteConsts(Intf,ML);
-      PopSection;
       Undent;
       AddLn('Public');
       end;
@@ -740,6 +739,7 @@ begin
     WriteMethodDefs(Intf,ML);
     WriteUtilityMethods(Intf);
     WriteProperties(Intf,ML);
+    PopSection;
     Undent;
     AddLn('end;');
   finally
