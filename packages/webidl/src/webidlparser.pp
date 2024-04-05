@@ -1466,10 +1466,12 @@ Var
   isClamp, haveID,isNull,isUnsigned, isDoubleLong, ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
+  Attrs : TExtAttributeList;
   tk : TIDLToken;
 
 begin
   Result:=Nil;
+  Attrs:=nil;
   ok:=false;
   try
     isNull:=False;
@@ -1481,8 +1483,8 @@ begin
     isClamp:=False;
     if tk=tkSquaredBraceOpen then
       begin
-      Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-      ParseExtAttributes(Result.Attributes,tkSquaredBraceClose,False);
+      Attrs:=TExtAttributeList.Create;
+      ParseExtAttributes(Attrs,tkSquaredBraceClose,False);
       tk:=GetToken;
       end;
     if AllowExtraTypes then
@@ -1519,10 +1521,16 @@ begin
       isNull:=True;
       end;
     Result.AllowNull:=isNull;
+    if Assigned(Attrs) then
+      Result.Attributes:=Attrs;
+    Attrs:=nil;
     ok:=true;
   finally
     if not ok then
+      begin
       MaybeFree(Result,aParent);
+      Attrs.Free;
+      end;
   end;
 end;
 
