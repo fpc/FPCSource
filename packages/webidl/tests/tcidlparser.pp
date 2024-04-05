@@ -55,7 +55,7 @@ Type
   TTestTypeDefParser = Class(TTestParser)
   private
     function DoTestPromise(aDef: UTF8String; AReturnType: String=''): TIDLPromiseTypeDefDefinition;
-    function DoTestSequence(aDef: UTF8String): TIDLSequenceTypeDefDefinition;
+    function DoTestSequence(aDef: UTF8String; aType : TSequenceType): TIDLSequenceTypeDefDefinition;
     function DoTestRecord(aDef: UTF8String; const aKeyTypeName,
       aValueTypeName: String): TIDLRecordDefinition;
     function DoTestUnion(aDef: String): TIDLUnionTypeDefDefinition;
@@ -96,6 +96,8 @@ Type
     Procedure TestUnion;
     Procedure TestUnionNull;
     Procedure TestSequence;
+    Procedure TestFrozenArray;
+    Procedure TestObservableArray;
     Procedure TestSequenceNull;
     Procedure TestPromise;
     Procedure TestPromiseVoid;
@@ -425,7 +427,7 @@ end;
 
 procedure TTestIncludesParser.ParseIncludesSimple;
 begin
-
+  AssertNotNull(ParseIncludes('Window','TouchEventHandlers'));
 end;
 
 { TTestOperationInterfaceParser }
@@ -1248,8 +1250,7 @@ begin
   AssertTrue('Is null',DoTestUnion('(byte or octet) ? A').AllowNull);
 end;
 
-function TTestTypeDefParser.DoTestSequence(aDef: UTF8String
-  ): TIDLSequenceTypeDefDefinition;
+function TTestTypeDefParser.DoTestSequence(aDef: UTF8String; aType: TSequenceType): TIDLSequenceTypeDefDefinition;
 
 Var
   D : TIDLTypeDefDefinition;
@@ -1263,6 +1264,7 @@ begin
   D:=TIDLTypeDefDefinition(S.ElementType);
   AssertEquals('1: Correct type name','byte',D.TypeName);
   Result:=S;
+  AssertTrue('Correct sequence type',S.SequenceType=aType);
 end;
 
 function TTestTypeDefParser.DoTestRecord(aDef: UTF8String; const aKeyTypeName,
@@ -1289,13 +1291,23 @@ end;
 procedure TTestTypeDefParser.TestSequence;
 
 begin
-  DoTestSequence('sequence<byte> A');
+  DoTestSequence('sequence<byte> A',stSequence);
+end;
+
+procedure TTestTypeDefParser.TestFrozenArray;
+begin
+  DoTestSequence('FrozenArray<byte> A',stFrozenArray);
+end;
+
+procedure TTestTypeDefParser.TestObservableArray;
+begin
+  DoTestSequence('ObservableArray<byte> A',stObservableArray);
 end;
 
 procedure TTestTypeDefParser.TestSequenceNull;
 
 begin
-  AssertTrue('Is Null ',DoTestSequence('sequence<byte> ? A').AllowNull);
+  AssertTrue('Is Null ',DoTestSequence('sequence<byte> ? A',stSequence).AllowNull);
 end;
 
 function TTestTypeDefParser.DoTestPromise(aDef: UTF8String; AReturnType : String = ''): TIDLPromiseTypeDefDefinition;

@@ -135,6 +135,7 @@ Type
     Constructor Create(aContext : TWEBIDLContext; aSource : UTF8String);overload;
     Destructor Destroy; override;
     Procedure Parse;
+    class function TokenTypeToSequenceType(aToken : TIDLToken) : TSequenceType;
     Property Scanner : TWebIDLScanner Read FScanner;
     Property Context : TWebIDLContext Read FContext;
     Property Version : TWebIDLVersion Read FVersion Write SetVersion;
@@ -1249,7 +1250,7 @@ begin
 end;
 
 function TWebIDLParser.ParseSequenceTypeDef(aParent : TIDLBaseObject): TIDLSequenceTypeDefDefinition;
-(* On Entry we're on sequence. On exit, we're on the > token *)
+(* On Entry we're on sequence|FrozenArray|ObservableArray. On exit, we're on the > token *)
 
 var
   ok: Boolean;
@@ -1257,6 +1258,7 @@ begin
   Result:=TIDLSequenceTypeDefDefinition(AddDefinition(aParent,TIDLSequenceTypeDefDefinition,''));
   ok:=false;
   try
+    Result.SequenceType:=TokenTypeToSequenceType(CurrentToken);
     Result.TypeName:='sequence';
     ExpectToken(tkLess);
     Result.ElementType:=ParseType(Result);
@@ -1342,7 +1344,7 @@ function TWebIDLParser.ParseType(aParent : TIDLBaseObject; FetchFirst : Boolean 
 
 Const
   SimplePrefixTokens = [tkUnsigned,tkLong,tkUnrestricted];
-  ComplexPrefixTokens = [tkSequence,tkPromise,tkBracketOpen,tkRecord,tkFrozenArray];
+  ComplexPrefixTokens = [tkSequence,tkPromise,tkBracketOpen,tkRecord,tkFrozenArray,tkObservableArray];
   PrefixTokens  = ComplexPrefixTokens+SimplePrefixTokens;
   PrimitiveTokens = [tkBoolean,tkByte,tkOctet,tkFloat,tkDouble,tkShort,tkAny,tkObject];
   IdentifierTokens = [tkIdentifier,tkByteString,tkUSVString,tkDOMString];
@@ -1426,6 +1428,7 @@ begin
       Case tk of
         tkRecord : Result:=ParseRecordTypeDef(aParent);
         tkFrozenArray,
+        tkObservableArray,
         tkSequence : Result:=ParseSequenceTypeDef(aParent);
         tkPromise : Result:=ParsePromiseTypeDef(aParent);
         tkBracketOpen : Result:=ParseUnionTypeDef(aParent);
@@ -1560,6 +1563,15 @@ end;
 procedure TWebIDLParser.Parse;
 begin
   ParseDefinitions(Context.Definitions);
+end;
+
+class function TWebIDLParser.TokenTypeToSequenceType(aToken: TIDLToken): TSequenceType;
+begin
+  case aToken of
+   tkObservableArray : Result:=stObservableArray;
+   tkFrozenArray : Result:=stFrozenArray;
+   tkSequence : Result:=stSequence;
+  end;
 end;
 
 { TWebIDLContext }

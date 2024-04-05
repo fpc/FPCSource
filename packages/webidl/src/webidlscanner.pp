@@ -133,13 +133,14 @@ type
     tkRecord,
     tkSetLike,
     tkOther,
-    tkConstructor
+    tkConstructor,
+    tkObservableArray
     );
   TIDLTokens = Set of TIDLToken;
   EWebIDLScanner = class(EParserError);
 
 Const
-  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkConstructor];
+  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor];
   V1Tokens = [tkImplements];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
 
@@ -400,7 +401,8 @@ const
   'record',
   'setlike',
   'other',
-  'constructor'
+  'constructor',
+  'ObservableArray'
   );
 
 Function GetTokenName(aToken : TIDLToken) : String;
@@ -1462,7 +1464,7 @@ end;
 function TWebIDLScanner.DetermineToken2 : TIDLToken;
 
 Const
-  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray];
+  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray,tkObservableArray];
 
 begin
   For Result in InfTokens do

@@ -482,16 +482,18 @@ type
   end;
 
   { TIDLSequenceTypeDefDefinition }
-
+  TSequenceType = (stSequence,stFrozenArray,stObservableArray);
   TIDLSequenceTypeDefDefinition = Class(TIDLTypeDefDefinition)
   private
     FElementType: TIDLTypeDefDefinition;
+    FSequenceType: TSequenceType;
     procedure SetElementType(AValue: TIDLTypeDefDefinition);
   Public
     Function AsString(Full: Boolean): UTF8String; override;
     Function Clone (aParent : TIDLDefinition) : TIDLTypeDefDefinition; override;
     Destructor Destroy; override;
     property ElementType : TIDLTypeDefDefinition Read FElementType Write SetElementType;
+    Property SequenceType : TSequenceType Read FSequenceType Write FSequenceType;
   end;
 
   { TIDLSetlikeDefinition }
@@ -1020,11 +1022,19 @@ begin
 end;
 
 function TIDLSequenceTypeDefDefinition.AsString(Full: Boolean): UTF8String;
+
+var
+  TT : String;
+
 begin
+  Case SequenceType of
+    stSequence : TT:='sequence';
+    stFrozenArray : TT:='FrozenArray';
+    stObservableArray : TT:='ObservableArray';
+  end;
+  Result:=TT+' <'+ElementType.TypeName+'>';
   if Full then
-    Result:='typedef sequence <'+ElementType.TypeName+'> '+Name
-  else
-    Result:='sequence <'+ElementType.TypeName+'>';
+    Result:='typedef '+Result+' '+Name;
   if full and HasAttributes then
     Result:=Attributes.AsString(True)+' '+Result;
 end;
