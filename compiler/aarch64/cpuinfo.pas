@@ -42,7 +42,10 @@ Type
        cpu_armv83a,
        cpu_armv84a,
        cpu_armv85a,
-       cpu_armv86a
+       cpu_armv86a,
+       cpu_armv87a,
+       cpu_armv88a,
+       cpu_armv89a
       );
 
 Type
@@ -120,7 +123,10 @@ Const
      'ARMV8.3-A',
      'ARMV8.4-A',
      'ARMV8.5-A',
-     'ARMV8.6-A'
+     'ARMV8.6-A',
+     'ARMV8.7-A',
+     'ARMV8.8-A',
+     'ARMV8.9-A'
    );
 
    fputypestr : array[tfputype] of string[9] = ('',
@@ -155,7 +161,8 @@ type
       CPUAARCH64_HAS_PROFILE, { CPU supports the profile extension }
       CPUAARCH64_HAS_MEMTAG,  { CPU supports the memtag extension }
       CPUAARCH64_HAS_TME,     { CPU supports the tme extension }
-      CPUAARCH64_HAS_PAUTH    { CPU supports the pauth extension }
+      CPUAARCH64_HAS_PAUTH,   { CPU supports the pauth extension }
+      CPUAARCH64_HAS_CSSC     { CPU supports the Common Short Sequence Compression (CSSC) extension }
      );
 
    tfpuflags =
@@ -172,7 +179,10 @@ const
        { cpu_armv83a   } [CPUAARCH64_HAS_LSE],
        { cpu_armv84a   } [CPUAARCH64_HAS_LSE],
        { cpu_armv85a   } [CPUAARCH64_HAS_LSE],
-       { cpu_armv86a   } [CPUAARCH64_HAS_LSE]
+       { cpu_armv86a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv87a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv88a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv89a   } [CPUAARCH64_HAS_LSE,CPUAARCH64_HAS_CSSC]
      );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags =

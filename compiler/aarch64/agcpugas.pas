@@ -75,7 +75,10 @@ unit agcpugas;
         'armv8.3-a',
         'armv8.4-a',
         'armv8.5-a',
-        'armv8.6-a'
+        'armv8.6-a',
+        'armv8.7-a',
+        'armv8.8-a',
+        'armv8.9-a'
       );
 
       cputype_to_clang_march : array[tcputype] of string = (
@@ -87,7 +90,10 @@ unit agcpugas;
         'armv8.3-a',
         'armv8.4-a',
         'armv8.5-a',
-        'armv8.6-a'
+        'armv8.6-a',
+        'armv8.7-a',
+        'armv8.8-a',
+        'armv8.9-a'
       );
 
   implementation
@@ -131,6 +137,8 @@ unit agcpugas;
                 Result:=Result+'+tme';
               CPUAARCH64_HAS_PROFILE:
                 Result:=Result+'+profile';
+              CPUAARCH64_HAS_CSSC:
+                Result:=Result+'+cssc';
               else
                 ;
             end
