@@ -43,7 +43,7 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TAsmOp=(A_None);//{$i mos6502op.inc}
+      TAsmOp={$i mos6502op.inc}
 
 
       { This should define the array of instructions as string }
@@ -55,7 +55,7 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      std_op2str:op2strtable=('None');//{$i mos6502stdopnames.inc}
+      std_op2str:op2strtable={$i mos6502stdopnames.inc}
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }
