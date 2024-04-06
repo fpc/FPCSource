@@ -407,6 +407,25 @@ Type
   FarPointer = Pointer;
 {$endif CPUZ80}
 
+{$ifdef CPUMOS6502}
+  {$define DEFAULT_SINGLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+    ValReal = Real;
+  {$endif}
+
+  FarPointer = Pointer;
+{$endif CPUMOS6502}
+
 {$ifdef CPUWASM32}
   {$define DEFAULT_DOUBLE}
 
