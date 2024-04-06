@@ -163,11 +163,10 @@ end;
 var
   InsDatFile: TextFile;
   OutputFiles: TMOS6502InsDatOutputFiles=nil;
-  S, op, ParamsStr: string;
+  S, op, ParamsStr, S_AddrMode: string;
   FirstIns: Boolean=true;
   OpCount: Integer=0;
-  S_Split, S_Params: TStringArray;
-  ParamIdx: Integer;
+  S_Split: TStringArray;
 begin
   writeln('FPC 6502 Instruction Table Converter Version ',Version);
   AssignFile(InsDatFile,'../mos6502/mos6502ins.dat');
@@ -198,26 +197,11 @@ begin
             if OpCount<>1 then
               Writeln(OutputFiles.InsTabFile,',');
             S_Split:=S.Split(' ',TStringSplitOptions.ExcludeEmpty);
-            S_Params:=S_Split[0].Split('!',TStringSplitOptions.ExcludeEmpty);
-            if (Length(S_Params)=1) and (S_Params[0]='void') then
-              SetLength(S_Params,0);
+            S_AddrMode:=S_Split[0];
             Writeln(OutputFiles.InsTabFile,'  (');
             Writeln(OutputFiles.InsTabFile,'    opcode  : A_',op,';');
-            Writeln(OutputFiles.InsTabFile,'    ops     : ',Length(S_Params),';');
-            Write(OutputFiles.InsTabFile,  '    optypes : (');
-            if Length(S_Params)>max_operands then
-              raise Exception.Create('Too many operands');
-            for ParamIdx:=0 to max_operands-1 do
-              begin
-                if ParamIdx<>0 then
-                  Write(OutputFiles.InsTabFile,',');
-                if ParamIdx<=High(S_Params) then
-                  Write(OutputFiles.InsTabFile,ParamTypes[FindParamType(S_Params[ParamIdx]),1])
-                else
-                  Write(OutputFiles.InsTabFile,'OT_NONE');
-              end;
-            Writeln(OutputFiles.InsTabFile, ');');
-            Writeln(OutputFiles.InsTabFile,  '    code    : ',PasEncode(S_Split[1]),';');
+            Writeln(OutputFiles.InsTabFile,  '    adrmode : ',ParamTypes[FindParamType(S_AddrMode),1],';');
+            Writeln(OutputFiles.InsTabFile,  '    code    : ',S_Split[1],';');
             Writeln(OutputFiles.InsTabFile,  '    flags   : 0');
             Write(OutputFiles.InsTabFile,  '  )');
           end;

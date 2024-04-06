@@ -1,5 +1,5 @@
 [None]
-void                  void
+void                  0
 
 [ADC]
 (ind,X)               $61

@@ -2,1066 +2,914 @@
 (
   (
     opcode  : A_None;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : 'void';
+    adrmode : AM_IMPLICIT;
+    code    : 0;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$61';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $61;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$65';
+    adrmode : AM_ZERO_PAGE;
+    code    : $65;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$69';
+    adrmode : AM_IMMEDIATE;
+    code    : $69;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$6D';
+    adrmode : AM_ABSOLUTE;
+    code    : $6D;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$71';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $71;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$75';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $75;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$79';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $79;
     flags   : 0
   ),
   (
     opcode  : A_ADC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$7D';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $7D;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$21';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $21;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$25';
+    adrmode : AM_ZERO_PAGE;
+    code    : $25;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$29';
+    adrmode : AM_IMMEDIATE;
+    code    : $29;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$2D';
+    adrmode : AM_ABSOLUTE;
+    code    : $2D;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$31';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $31;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$35';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $35;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$39';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $39;
     flags   : 0
   ),
   (
     opcode  : A_AND;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$3D';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $3D;
     flags   : 0
   ),
   (
     opcode  : A_ASL;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$06';
+    adrmode : AM_ZERO_PAGE;
+    code    : $06;
     flags   : 0
   ),
   (
     opcode  : A_ASL;
-    ops     : 1;
-    optypes : (OT_ACCUMULATOR,OT_NONE);
-    code    : '$0A';
+    adrmode : AM_ACCUMULATOR;
+    code    : $0A;
     flags   : 0
   ),
   (
     opcode  : A_ASL;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$0E';
+    adrmode : AM_ABSOLUTE;
+    code    : $0E;
     flags   : 0
   ),
   (
     opcode  : A_ASL;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$16';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $16;
     flags   : 0
   ),
   (
     opcode  : A_ASL;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$1E';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $1E;
     flags   : 0
   ),
   (
     opcode  : A_BCC;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$90';
+    adrmode : AM_RELATIVE;
+    code    : $90;
     flags   : 0
   ),
   (
     opcode  : A_BCS;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$B0';
+    adrmode : AM_RELATIVE;
+    code    : $B0;
     flags   : 0
   ),
   (
     opcode  : A_BEQ;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$F0';
+    adrmode : AM_RELATIVE;
+    code    : $F0;
     flags   : 0
   ),
   (
     opcode  : A_BIT;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$24';
+    adrmode : AM_ZERO_PAGE;
+    code    : $24;
     flags   : 0
   ),
   (
     opcode  : A_BIT;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$2C';
+    adrmode : AM_ABSOLUTE;
+    code    : $2C;
     flags   : 0
   ),
   (
     opcode  : A_BMI;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$30';
+    adrmode : AM_RELATIVE;
+    code    : $30;
     flags   : 0
   ),
   (
     opcode  : A_BNE;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$D0';
+    adrmode : AM_RELATIVE;
+    code    : $D0;
     flags   : 0
   ),
   (
     opcode  : A_BPL;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$10';
+    adrmode : AM_RELATIVE;
+    code    : $10;
     flags   : 0
   ),
   (
     opcode  : A_BRK;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$00';
+    adrmode : AM_IMPLICIT;
+    code    : $00;
     flags   : 0
   ),
   (
     opcode  : A_BVC;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$50';
+    adrmode : AM_RELATIVE;
+    code    : $50;
     flags   : 0
   ),
   (
     opcode  : A_BVS;
-    ops     : 1;
-    optypes : (OT_RELATIVE,OT_NONE);
-    code    : '$70';
+    adrmode : AM_RELATIVE;
+    code    : $70;
     flags   : 0
   ),
   (
     opcode  : A_CLC;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$18';
+    adrmode : AM_IMPLICIT;
+    code    : $18;
     flags   : 0
   ),
   (
     opcode  : A_CLD;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$D8';
+    adrmode : AM_IMPLICIT;
+    code    : $D8;
     flags   : 0
   ),
   (
     opcode  : A_CLI;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$58';
+    adrmode : AM_IMPLICIT;
+    code    : $58;
     flags   : 0
   ),
   (
     opcode  : A_CLV;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$B8';
+    adrmode : AM_IMPLICIT;
+    code    : $B8;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$C1';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $C1;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$C5';
+    adrmode : AM_ZERO_PAGE;
+    code    : $C5;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$C9';
+    adrmode : AM_IMMEDIATE;
+    code    : $C9;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$CD';
+    adrmode : AM_ABSOLUTE;
+    code    : $CD;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$D1';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $D1;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$D5';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $D5;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$D9';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $D9;
     flags   : 0
   ),
   (
     opcode  : A_CMP;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$DD';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $DD;
     flags   : 0
   ),
   (
     opcode  : A_CPX;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$E0';
+    adrmode : AM_IMMEDIATE;
+    code    : $E0;
     flags   : 0
   ),
   (
     opcode  : A_CPX;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$E4';
+    adrmode : AM_ZERO_PAGE;
+    code    : $E4;
     flags   : 0
   ),
   (
     opcode  : A_CPX;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$EC';
+    adrmode : AM_ABSOLUTE;
+    code    : $EC;
     flags   : 0
   ),
   (
     opcode  : A_CPY;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$C0';
+    adrmode : AM_IMMEDIATE;
+    code    : $C0;
     flags   : 0
   ),
   (
     opcode  : A_CPY;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$C4';
+    adrmode : AM_ZERO_PAGE;
+    code    : $C4;
     flags   : 0
   ),
   (
     opcode  : A_CPY;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$CC';
+    adrmode : AM_ABSOLUTE;
+    code    : $CC;
     flags   : 0
   ),
   (
     opcode  : A_DEC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$C6';
+    adrmode : AM_ZERO_PAGE;
+    code    : $C6;
     flags   : 0
   ),
   (
     opcode  : A_DEC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$CE';
+    adrmode : AM_ABSOLUTE;
+    code    : $CE;
     flags   : 0
   ),
   (
     opcode  : A_DEC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$D6';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $D6;
     flags   : 0
   ),
   (
     opcode  : A_DEC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$DE';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $DE;
     flags   : 0
   ),
   (
     opcode  : A_DEX;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$CA';
+    adrmode : AM_IMPLICIT;
+    code    : $CA;
     flags   : 0
   ),
   (
     opcode  : A_DEY;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$88';
+    adrmode : AM_IMPLICIT;
+    code    : $88;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$41';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $41;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$45';
+    adrmode : AM_ZERO_PAGE;
+    code    : $45;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$49';
+    adrmode : AM_IMMEDIATE;
+    code    : $49;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$4D';
+    adrmode : AM_ABSOLUTE;
+    code    : $4D;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$51';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $51;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$55';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $55;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$59';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $59;
     flags   : 0
   ),
   (
     opcode  : A_EOR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$5D';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $5D;
     flags   : 0
   ),
   (
     opcode  : A_INC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$E6';
+    adrmode : AM_ZERO_PAGE;
+    code    : $E6;
     flags   : 0
   ),
   (
     opcode  : A_INC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$EE';
+    adrmode : AM_ABSOLUTE;
+    code    : $EE;
     flags   : 0
   ),
   (
     opcode  : A_INC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$F6';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $F6;
     flags   : 0
   ),
   (
     opcode  : A_INC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$FE';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $FE;
     flags   : 0
   ),
   (
     opcode  : A_INX;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$E8';
+    adrmode : AM_IMPLICIT;
+    code    : $E8;
     flags   : 0
   ),
   (
     opcode  : A_INY;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$C8';
+    adrmode : AM_IMPLICIT;
+    code    : $C8;
     flags   : 0
   ),
   (
     opcode  : A_JMP;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$4C';
+    adrmode : AM_ABSOLUTE;
+    code    : $4C;
     flags   : 0
   ),
   (
     opcode  : A_JMP;
-    ops     : 1;
-    optypes : (OT_INDIRECT,OT_NONE);
-    code    : '$6C';
+    adrmode : AM_INDIRECT;
+    code    : $6C;
     flags   : 0
   ),
   (
     opcode  : A_JSR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$20';
+    adrmode : AM_ABSOLUTE;
+    code    : $20;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$A1';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $A1;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$A5';
+    adrmode : AM_ZERO_PAGE;
+    code    : $A5;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$A9';
+    adrmode : AM_IMMEDIATE;
+    code    : $A9;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$AD';
+    adrmode : AM_ABSOLUTE;
+    code    : $AD;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$B1';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $B1;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$B5';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $B5;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$B9';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $B9;
     flags   : 0
   ),
   (
     opcode  : A_LDA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$BD';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $BD;
     flags   : 0
   ),
   (
     opcode  : A_LDX;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$A2';
+    adrmode : AM_IMMEDIATE;
+    code    : $A2;
     flags   : 0
   ),
   (
     opcode  : A_LDX;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$A6';
+    adrmode : AM_ZERO_PAGE;
+    code    : $A6;
     flags   : 0
   ),
   (
     opcode  : A_LDX;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$AE';
+    adrmode : AM_ABSOLUTE;
+    code    : $AE;
     flags   : 0
   ),
   (
     opcode  : A_LDX;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_Y,OT_NONE);
-    code    : '$B6';
+    adrmode : AM_ZERO_PAGE_Y;
+    code    : $B6;
     flags   : 0
   ),
   (
     opcode  : A_LDX;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$BE';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $BE;
     flags   : 0
   ),
   (
     opcode  : A_LDY;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$A0';
+    adrmode : AM_IMMEDIATE;
+    code    : $A0;
     flags   : 0
   ),
   (
     opcode  : A_LDY;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$A4';
+    adrmode : AM_ZERO_PAGE;
+    code    : $A4;
     flags   : 0
   ),
   (
     opcode  : A_LDY;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$AC';
+    adrmode : AM_ABSOLUTE;
+    code    : $AC;
     flags   : 0
   ),
   (
     opcode  : A_LDY;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$B4';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $B4;
     flags   : 0
   ),
   (
     opcode  : A_LDY;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$BC';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $BC;
     flags   : 0
   ),
   (
     opcode  : A_LSR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$46';
+    adrmode : AM_ZERO_PAGE;
+    code    : $46;
     flags   : 0
   ),
   (
     opcode  : A_LSR;
-    ops     : 1;
-    optypes : (OT_ACCUMULATOR,OT_NONE);
-    code    : '$4A';
+    adrmode : AM_ACCUMULATOR;
+    code    : $4A;
     flags   : 0
   ),
   (
     opcode  : A_LSR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$4E';
+    adrmode : AM_ABSOLUTE;
+    code    : $4E;
     flags   : 0
   ),
   (
     opcode  : A_LSR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$56';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $56;
     flags   : 0
   ),
   (
     opcode  : A_LSR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$5E';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $5E;
     flags   : 0
   ),
   (
     opcode  : A_NOP;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$EA';
+    adrmode : AM_IMPLICIT;
+    code    : $EA;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$01';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $01;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$05';
+    adrmode : AM_ZERO_PAGE;
+    code    : $05;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$09';
+    adrmode : AM_IMMEDIATE;
+    code    : $09;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$0D';
+    adrmode : AM_ABSOLUTE;
+    code    : $0D;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$11';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $11;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$15';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $15;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$19';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $19;
     flags   : 0
   ),
   (
     opcode  : A_ORA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$1D';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $1D;
     flags   : 0
   ),
   (
     opcode  : A_PHA;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$48';
+    adrmode : AM_IMPLICIT;
+    code    : $48;
     flags   : 0
   ),
   (
     opcode  : A_PHP;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$08';
+    adrmode : AM_IMPLICIT;
+    code    : $08;
     flags   : 0
   ),
   (
     opcode  : A_PLA;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$68';
+    adrmode : AM_IMPLICIT;
+    code    : $68;
     flags   : 0
   ),
   (
     opcode  : A_PLP;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$28';
+    adrmode : AM_IMPLICIT;
+    code    : $28;
     flags   : 0
   ),
   (
     opcode  : A_ROL;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$26';
+    adrmode : AM_ZERO_PAGE;
+    code    : $26;
     flags   : 0
   ),
   (
     opcode  : A_ROL;
-    ops     : 1;
-    optypes : (OT_ACCUMULATOR,OT_NONE);
-    code    : '$2A';
+    adrmode : AM_ACCUMULATOR;
+    code    : $2A;
     flags   : 0
   ),
   (
     opcode  : A_ROL;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$2E';
+    adrmode : AM_ABSOLUTE;
+    code    : $2E;
     flags   : 0
   ),
   (
     opcode  : A_ROL;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$36';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $36;
     flags   : 0
   ),
   (
     opcode  : A_ROL;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$3E';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $3E;
     flags   : 0
   ),
   (
     opcode  : A_ROR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$66';
+    adrmode : AM_ZERO_PAGE;
+    code    : $66;
     flags   : 0
   ),
   (
     opcode  : A_ROR;
-    ops     : 1;
-    optypes : (OT_ACCUMULATOR,OT_NONE);
-    code    : '$6A';
+    adrmode : AM_ACCUMULATOR;
+    code    : $6A;
     flags   : 0
   ),
   (
     opcode  : A_ROR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$6E';
+    adrmode : AM_ABSOLUTE;
+    code    : $6E;
     flags   : 0
   ),
   (
     opcode  : A_ROR;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$76';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $76;
     flags   : 0
   ),
   (
     opcode  : A_ROR;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$7E';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $7E;
     flags   : 0
   ),
   (
     opcode  : A_RTI;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$40';
+    adrmode : AM_IMPLICIT;
+    code    : $40;
     flags   : 0
   ),
   (
     opcode  : A_RTS;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$60';
+    adrmode : AM_IMPLICIT;
+    code    : $60;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$E1';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $E1;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$E5';
+    adrmode : AM_ZERO_PAGE;
+    code    : $E5;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_IMMEDIATE,OT_NONE);
-    code    : '$E9';
+    adrmode : AM_IMMEDIATE;
+    code    : $E9;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$ED';
+    adrmode : AM_ABSOLUTE;
+    code    : $ED;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$F1';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $F1;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$F5';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $F5;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$F9';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $F9;
     flags   : 0
   ),
   (
     opcode  : A_SBC;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$FD';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $FD;
     flags   : 0
   ),
   (
     opcode  : A_SEC;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$38';
+    adrmode : AM_IMPLICIT;
+    code    : $38;
     flags   : 0
   ),
   (
     opcode  : A_SED;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$F8';
+    adrmode : AM_IMPLICIT;
+    code    : $F8;
     flags   : 0
   ),
   (
     opcode  : A_SEI;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$78';
+    adrmode : AM_IMPLICIT;
+    code    : $78;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_INDEXED_INDIRECT,OT_NONE);
-    code    : '$81';
+    adrmode : AM_INDEXED_INDIRECT;
+    code    : $81;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$85';
+    adrmode : AM_ZERO_PAGE;
+    code    : $85;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$8D';
+    adrmode : AM_ABSOLUTE;
+    code    : $8D;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_INDIRECT_INDEXED,OT_NONE);
-    code    : '$91';
+    adrmode : AM_INDIRECT_INDEXED;
+    code    : $91;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$95';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $95;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_Y,OT_NONE);
-    code    : '$99';
+    adrmode : AM_ABSOLUTE_Y;
+    code    : $99;
     flags   : 0
   ),
   (
     opcode  : A_STA;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE_X,OT_NONE);
-    code    : '$9D';
+    adrmode : AM_ABSOLUTE_X;
+    code    : $9D;
     flags   : 0
   ),
   (
     opcode  : A_STX;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$86';
+    adrmode : AM_ZERO_PAGE;
+    code    : $86;
     flags   : 0
   ),
   (
     opcode  : A_STX;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$8E';
+    adrmode : AM_ABSOLUTE;
+    code    : $8E;
     flags   : 0
   ),
   (
     opcode  : A_STX;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_Y,OT_NONE);
-    code    : '$96';
+    adrmode : AM_ZERO_PAGE_Y;
+    code    : $96;
     flags   : 0
   ),
   (
     opcode  : A_STY;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE,OT_NONE);
-    code    : '$84';
+    adrmode : AM_ZERO_PAGE;
+    code    : $84;
     flags   : 0
   ),
   (
     opcode  : A_STY;
-    ops     : 1;
-    optypes : (OT_ABSOLUTE,OT_NONE);
-    code    : '$8C';
+    adrmode : AM_ABSOLUTE;
+    code    : $8C;
     flags   : 0
   ),
   (
     opcode  : A_STY;
-    ops     : 1;
-    optypes : (OT_ZERO_PAGE_X,OT_NONE);
-    code    : '$94';
+    adrmode : AM_ZERO_PAGE_X;
+    code    : $94;
     flags   : 0
   ),
   (
     opcode  : A_TAX;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$AA';
+    adrmode : AM_IMPLICIT;
+    code    : $AA;
     flags   : 0
   ),
   (
     opcode  : A_TAY;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$A8';
+    adrmode : AM_IMPLICIT;
+    code    : $A8;
     flags   : 0
   ),
   (
     opcode  : A_TSX;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$BA';
+    adrmode : AM_IMPLICIT;
+    code    : $BA;
     flags   : 0
   ),
   (
     opcode  : A_TXA;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$8A';
+    adrmode : AM_IMPLICIT;
+    code    : $8A;
     flags   : 0
   ),
   (
     opcode  : A_TXS;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$9A';
+    adrmode : AM_IMPLICIT;
+    code    : $9A;
     flags   : 0
   ),
   (
     opcode  : A_TYA;
-    ops     : 0;
-    optypes : (OT_NONE,OT_NONE);
-    code    : '$98';
+    adrmode : AM_IMPLICIT;
+    code    : $98;
     flags   : 0
   )
 );
