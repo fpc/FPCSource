@@ -109,7 +109,7 @@ unit cgcpu;
         procedure g_restore_registers(list : TAsmList);override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-        function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
+        //function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
         procedure adjust_normalized_ref(list: TAsmList;var ref: treference; value: longint);
 
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
@@ -129,10 +129,10 @@ unit cgcpu;
 
     procedure create_codegen;
 
-    const
-      TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_LD,A_ADD,A_AND,A_NONE,
-                            A_NONE,A_NONE,A_NONE,A_NEG,A_CPL,A_OR,
-                            A_SRA,A_SLA,A_SRL,A_SUB,A_XOR,A_RLCA,A_RRCA);
+    //const
+    //  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_LD,A_ADD,A_AND,A_NONE,
+    //                        A_NONE,A_NONE,A_NONE,A_NEG,A_CPL,A_OR,
+    //                        A_SRA,A_SLA,A_SRL,A_SUB,A_XOR,A_RLCA,A_RRCA);
   implementation
 
     uses
