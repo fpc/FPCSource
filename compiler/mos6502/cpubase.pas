@@ -138,7 +138,7 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TResFlags = (F_NotPossible,F_NE,F_E,F_NC,F_C,F_PO,F_PE,F_P,F_M);
+      TResFlags = (F_NotPossible,F_PL,F_MI,F_VC,F_VS,F_CC,F_CS,F_NE,F_EQ);
 
 
 {*****************************************************************************
@@ -351,23 +351,22 @@ unit cpubase;
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NotPossible,F_E,F_NE,F_C,F_NC,F_PE,F_PO,F_M,F_P);
+          (F_NotPossible,F_MI,F_PL,F_VS,F_VC,F_CS,F_CC,F_EQ,F_NE);
       begin
         f:=inv_flags[f];
       end;
 
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
-      //const
-      //  flag_2_cond: array[F_NE..F_M] of TAsmCond =
-      //    (C_NZ,C_Z,C_NC,C_C,C_PO,C_PE,C_P,C_M);
+      const
+        flag_2_cond: array[F_PL..F_EQ] of TAsmCond =
+          (C_PL,C_MI,C_VC,C_VS,C_CC,C_CS,C_NE,C_EQ);
       begin
-        internalerror(2024040601);
-        //if f=F_NotPossible then
-        //  internalerror(2011022101);
-        //if f>high(flag_2_cond) then
-        //  internalerror(200112301);
-        //result:=flag_2_cond[f];
+        if f=F_NotPossible then
+          internalerror(2011022101);
+        if f>high(flag_2_cond) then
+          internalerror(200112301);
+        result:=flag_2_cond[f];
       end;
 
 
