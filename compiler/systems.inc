@@ -295,6 +295,7 @@
              ,as_clang_llvm_darwin
              ,as_m68k_elf32
              ,as_win64_gas
+             ,as_sdcc_sdas6500
        );
 
        tlink = (ld_none,

@@ -112,6 +112,10 @@ interface
          RELOC_ABSOLUTE_HI8,
          RELOC_ABSOLUTE_LO8,
 {$endif z80}
+{$ifdef mos6502}
+         RELOC_ABSOLUTE_HI8,
+         RELOC_ABSOLUTE_LO8,
+{$endif mos6502}
 {$ifdef WASM32}
          RELOC_FUNCTION_INDEX_LEB,
          RELOC_MEMORY_ADDR_LEB,
