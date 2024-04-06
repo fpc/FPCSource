@@ -40,7 +40,8 @@ Type
 
    tfputype =
      (fpu_none,
-      fpu_soft
+      fpu_soft,
+      fpu_libgcc
      );
 
    tcontrollertype =
@@ -91,7 +92,8 @@ Const
 
    fputypestr : array[tfputype] of string[6] = (
      'NONE',
-     'SOFT'
+     'SOFT',
+     'LIBGCC'
    );
 
    { Supported optimizations, only used for information }
