@@ -461,31 +461,6 @@ unit cpupara;
         else
           begin
             case retcgsize of
-              //OS_32,OS_S32:
-              //  begin
-              //    paraloc^.loc:=LOC_REGISTER;
-              //    paraloc^.register:=NR_L;
-              //    paraloc^.size:=OS_8;
-              //    paraloc^.def:=u8inttype;
-              //
-              //    paraloc:=result.add_location;
-              //    paraloc^.loc:=LOC_REGISTER;
-              //    paraloc^.register:=NR_H;
-              //    paraloc^.size:=OS_8;
-              //    paraloc^.def:=u8inttype;
-              //
-              //    paraloc:=result.add_location;
-              //    paraloc^.loc:=LOC_REGISTER;
-              //    paraloc^.register:=NR_E;
-              //    paraloc^.size:=OS_8;
-              //    paraloc^.def:=u8inttype;
-              //
-              //    paraloc:=result.add_location;
-              //    paraloc^.loc:=LOC_REGISTER;
-              //    paraloc^.register:=NR_D;
-              //    paraloc^.size:=OS_8;
-              //    paraloc^.def:=u8inttype;
-              //  end;
               OS_16,OS_S16:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
