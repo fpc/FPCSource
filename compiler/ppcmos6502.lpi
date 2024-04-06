@@ -40,7 +40,7 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="z80\aasmcpu.pas"/>
+        <Filename Value="mos6502\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
     </Units>
