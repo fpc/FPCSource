@@ -167,7 +167,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if def.size>4 then
+            if def.size>2 then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
