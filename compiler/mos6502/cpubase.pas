@@ -572,7 +572,7 @@ unit cpubase;
     { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
     function condition_in(const Subset, c: TAsmCond): Boolean;
       begin
-        { Z80 has no condition subsets }
+        { 6502 has no condition subsets }
         Result := {(c.cond = C_None) or} conditions_equal(Subset, c);
       end;
 
