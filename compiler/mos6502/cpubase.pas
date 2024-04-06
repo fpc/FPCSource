@@ -202,8 +202,8 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_S;
       RS_STACK_POINTER_REG = RS_S;
       { Frame pointer register }
-      //RS_FRAME_POINTER_REG = RS_IX;
-      //NR_FRAME_POINTER_REG = NR_IX;
+      RS_FRAME_POINTER_REG = RS_INVALID;
+      NR_FRAME_POINTER_REG = NR_INVALID;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
