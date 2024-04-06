@@ -26,19 +26,19 @@ const
   max_operands = 2;
 
   ParamTypes: array [0..12,0..1] of string = (
-    ('void',    'OT_IMPLICIT'),
-    ('A',       'OT_ACCUMULATOR'),
-    ('#',       'OT_IMMEDIATE'),
-    ('zpg',     'OT_ZERO_PAGE'),
-    ('zpg,X',   'OT_ZERO_PAGE_X'),
-    ('zpg,Y',   'OT_ZERO_PAGE_Y'),
-    ('rel',     'OT_RELATIVE'),
-    ('abs',     'OT_ABSOLUTE'),
-    ('abs,X',   'OT_ABSOLUTE_X'),
-    ('abs,Y',   'OT_ABSOLUTE_Y'),
-    ('(ind)',   'OT_INDIRECT'),
-    ('(ind,X)', 'OT_INDEXED_INDIRECT'),
-    ('(ind),Y', 'OT_INDIRECT_INDEXED')
+    ('void',    'AM_IMPLICIT'),
+    ('A',       'AM_ACCUMULATOR'),
+    ('#',       'AM_IMMEDIATE'),
+    ('zpg',     'AM_ZERO_PAGE'),
+    ('zpg,X',   'AM_ZERO_PAGE_X'),
+    ('zpg,Y',   'AM_ZERO_PAGE_Y'),
+    ('rel',     'AM_RELATIVE'),
+    ('abs',     'AM_ABSOLUTE'),
+    ('abs,X',   'AM_ABSOLUTE_X'),
+    ('abs,Y',   'AM_ABSOLUTE_Y'),
+    ('(ind)',   'AM_INDIRECT'),
+    ('(ind,X)', 'AM_INDEXED_INDIRECT'),
+    ('(ind),Y', 'AM_INDIRECT_INDEXED')
   );
 
 type
