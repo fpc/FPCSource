@@ -4799,6 +4799,13 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
       {$endif z80}
 
+      {$ifdef mos6502}
+        def_system_macro('CPUMOS6502');
+        def_system_macro('CPU16');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif mos6502}
+
       {$ifdef wasm32}
         def_system_macro('CPUWASM');
         def_system_macro('CPUWASM32');
