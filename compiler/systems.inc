@@ -59,7 +59,8 @@
              cpu_z80,                      { 22 }
              cpu_mips64,                   { 23 }
              cpu_mips64el,                 { 24 }
-             cpu_loongarch64               { 25 }
+             cpu_loongarch64,              { 25 }
+             cpu_mos6502                   { 26 }
        );
 
        tasmmode= (asmmode_none
@@ -217,7 +218,8 @@
              system_m68k_human68k,      { 122 }
              system_mipsel_ps1,         { 123 }
              system_wasm32_wasip1threads,{ 124 }
-             system_wasm32_wasip2       { 125 }
+             system_wasm32_wasip2,      { 125 }
+             system_mos6502_embedded    { 126 }
        );
 
      type

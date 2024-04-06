@@ -851,6 +851,74 @@ unit i_embed;
             llvmdatalayout : 'todo';
           );
 
+       system_mos6502_embedded_info : tsysteminfo =
+          (
+            system       : system_mos6502_embedded;
+            name         : 'Embedded';
+            shortname    : 'Embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking];
+            cpu          : cpu_mos6502;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.rel';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_sdcc_sdas6500;
+            assemextern  : as_sdcc_sdas6500;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_sdcc_sdar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign            : 1;
+                loopalign            : 1;
+                jumpalign            : 0;
+                jumpalignskipmax     : 0;
+                coalescealign        : 0;
+                coalescealignskipmax : 0;
+                constalignmin        : 0;
+                constalignmax        : 1;
+                varalignmin          : 0;
+                varalignmax          : 1;
+                localalignmin        : 0;
+                localalignmax        : 1;
+                recordalignmin       : 0;
+                recordalignmax       : 1;
+                maxCrecordalign      : 1
+              );
+            first_parm_offset : 4;
+            stacksize    : 1024;
+            stackalign   : 1;
+            abi : abi_default;
+            llvmdatalayout : 'todo';
+          );
+
        system_wasm32_embedded_info : tsysteminfo =
           (
             system       : system_wasm32_embedded;
@@ -985,5 +1053,10 @@ initialization
     set_source_info(system_z80_embedded_info);
   {$endif embedded}
 {$endif CPUZ80}
+{$ifdef CPUMOS6502}
+  {$ifdef embedded}
+    set_source_info(system_mos6502_embedded_info);
+  {$endif embedded}
+{$endif CPUMOS6502}
 end.
 

@@ -491,7 +491,7 @@ interface
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
              'aarch64', 'wasm32', 'sparc64', 'riscv32', 'riscv64', 'xtensa',
-             'z80', 'mips64', 'mips64el', 'loongarch64');
+             'z80', 'mips64', 'mips64el', 'loongarch64', 'mos6502');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -1231,6 +1231,10 @@ begin
 {$ifdef loongarch64}
   default_target(system_loongarch64_linux);
 {$endif loongarch64}
+
+{$ifdef mos6502}
+  default_target(system_mos6502_embedded);
+{$endif mos6502}
 end;
 
 

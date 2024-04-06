@@ -2379,4 +2379,9 @@ initialization
   RegisterExport(system_wasm32_embedded, texportlibwasi);
   RegisterLinker(ld_embedded, TLinkerEmbedded_Wasm);
 {$endif wasm32}
+
+{$ifdef mos6502}
+  RegisterLinker(ld_embedded,TlinkerEmbedded_SdccSdld);
+  RegisterTarget(system_mos6502_embedded_info);
+{$endif mos6502}
 end.
