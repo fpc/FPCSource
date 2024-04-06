@@ -1,0 +1,15 @@
+{ don't edit, this file is generated from mos6502reg.dat }
+0,
+1,
+9,
+5,
+8,
+7,
+11,
+10,
+4,
+13,
+12,
+2,
+3,
+6

@@ -665,6 +665,12 @@ Const
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif loongarch64}
+  {$ifdef mos6502}
+        cputype : cpu_mos_6502;
+        optimizecputype : cpu_mos_6502;
+        asmcputype : cpu_none;
+        fputype : fpu_soft;
+  {$endif mos6502}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

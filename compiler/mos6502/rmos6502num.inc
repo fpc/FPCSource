@@ -1,0 +1,15 @@
+{ don't edit, this file is generated from mos6502reg.dat }
+tregister($00000000),
+tregister($01010000),
+tregister($01010001),
+tregister($01010002),
+tregister($05010000),
+tregister($050f0000),
+tregister($05100000),
+tregister($05110000),
+tregister($05120000),
+tregister($05130000),
+tregister($05150000),
+tregister($05160000),
+tregister($05010001),
+tregister($05030002)

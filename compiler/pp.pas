@@ -36,6 +36,7 @@ program pp;
   M68K                generate a compiler for the M68000
   MIPS                generate a compiler for the MIPS (Big Endian)
   MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
+  MOS6502             generate a compiler for the MOS Technology 6502
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
   RISCV32             generate a compiler for the RiscV32 architecture
@@ -208,6 +209,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif LOONGARCH64}
+{$ifdef MOS6502}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif MOS6502}
 
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}

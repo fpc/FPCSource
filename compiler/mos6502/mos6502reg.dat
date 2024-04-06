@@ -1,0 +1,28 @@
+;
+; MOS Technology 6502 registers
+;
+; layout
+; <name>,<value>,<stdname>,<stabidx>,<dwarfidx>
+;
+NO,$00000000,INVALID,0,0
+
+; Main registers
+A,$01010000,a,1,1
+X,$01010001,x,2,2
+Y,$01010002,y,3,3
+
+; Flags
+P,$05010000,p,4,4
+CARRYFLAG,$050f0000,carryflag,-1,-1
+ZEROFLAG,$05100000,zeroflag,-1,-1
+IRQDISABLEFLAG,$05110000,irqdisableflag,-1,-1
+DECIMALMODEFLAG,$05120000,decimalmodeflag,-1,-1
+BRKCOMMANDFLAG,$05130000,brkcommandflag,-1,-1
+OVERFLOWFLAG,$05150000,overflowflag,-1,-1
+NEGATIVEFLAG,$05160000,negativeflag,-1,-1
+
+; Stack pointer
+S,$05010001,s,5,5
+
+; Program counter
+PC,$05030002,pc,6,6

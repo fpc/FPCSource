@@ -1,0 +1,15 @@
+{ don't edit, this file is generated from mos6502reg.dat }
+'INVALID',
+'a',
+'x',
+'y',
+'p',
+'carryflag',
+'zeroflag',
+'irqdisableflag',
+'decimalmodeflag',
+'brkcommandflag',
+'overflowflag',
+'negativeflag',
+'s',
+'pc'

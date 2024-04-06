@@ -408,6 +408,19 @@
   {$define SUPPORT_SAFECALL}
 {$endif loongarch64}
 
+{$ifdef mos6502}
+  {$define cpu8bit}
+  {$define cpu16bitaddr}
+  {$define cpu8bitalu}
+  {$define cpufpemu}
+  {$define cpuflags}
+  {$define cpunofpu}
+  {$define cpunodefaultint}
+  {$define cpuneedsdivhelper}
+  {$define cpuneedsmulhelper}
+  {$define cpucapabilities}
+{$endif mos6502}
+
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
 }

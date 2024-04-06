@@ -1,0 +1,265 @@
+[None]
+void                  void
+
+[ADC]
+(ind,X)               $61
+zpg                   $65
+#                     $69
+abs                   $6D
+(ind),Y               $71
+zpg,X                 $75
+abs,Y                 $79
+abs,X                 $7D
+
+[AND]
+(ind,X)               $21
+zpg                   $25
+#                     $29
+abs                   $2D
+(ind),Y               $31
+zpg,X                 $35
+abs,Y                 $39
+abs,X                 $3D
+
+[ASL]
+zpg                   $06
+A                     $0A
+abs                   $0E
+zpg,X                 $16
+abs,X                 $1E
+
+[BCC]
+rel                   $90
+
+[BCS]
+rel                   $B0
+
+[BEQ]
+rel                   $F0
+
+[BIT]
+zpg                   $24
+abs                   $2C
+
+[BMI]
+rel                   $30
+
+[BNE]
+rel                   $D0
+
+[BPL]
+rel                   $10
+
+[BRK]
+void                  $00
+
+[BVC]
+rel                   $50
+
+[BVS]
+rel                   $70
+
+[CLC]
+void                  $18
+
+[CLD]
+void                  $D8
+
+[CLI]
+void                  $58
+
+[CLV]
+void                  $B8
+
+[CMP]
+(ind,X)               $C1
+zpg                   $C5
+#                     $C9
+abs                   $CD
+(ind),Y               $D1
+zpg,X                 $D5
+abs,Y                 $D9
+abs,X                 $DD
+
+[CPX]
+#                     $E0
+zpg                   $E4
+abs                   $EC
+
+[CPY]
+#                     $C0
+zpg                   $C4
+abs                   $CC
+
+[DEC]
+zpg                   $C6
+abs                   $CE
+zpg,X                 $D6
+abs,X                 $DE
+
+[DEX]
+void                  $CA
+
+[DEY]
+void                  $88
+
+[EOR]
+(ind,X)               $41
+zpg                   $45
+#                     $49
+abs                   $4D
+(ind),Y               $51
+zpg,X                 $55
+abs,Y                 $59
+abs,X                 $5D
+
+[INC]
+zpg                   $E6
+abs                   $EE
+zpg,X                 $F6
+abs,X                 $FE
+
+[INX]
+void                  $E8
+
+[INY]
+void                  $C8
+
+[JMP]
+abs                   $4C
+(ind)                 $6C
+
+[JSR]
+abs                   $20
+
+[LDA]
+(ind,X)               $A1
+zpg                   $A5
+#                     $A9
+abs                   $AD
+(ind),Y               $B1
+zpg,X                 $B5
+abs,Y                 $B9
+abs,X                 $BD
+
+[LDX]
+#                     $A2
+zpg                   $A6
+abs                   $AE
+zpg,Y                 $B6
+abs,Y                 $BE
+
+[LDY]
+#                     $A0
+zpg                   $A4
+abs                   $AC
+zpg,X                 $B4
+abs,X                 $BC
+
+[LSR]
+zpg                   $46
+A                     $4A
+abs                   $4E
+zpg,X                 $56
+abs,X                 $5E
+
+[NOP]
+void                  $EA
+
+[ORA]
+(ind,X)               $01
+zpg                   $05
+#                     $09
+abs                   $0D
+(ind),Y               $11
+zpg,X                 $15
+abs,Y                 $19
+abs,X                 $1D
+
+[PHA]
+void                  $48
+
+[PHP]
+void                  $08
+
+[PLA]
+void                  $68
+
+[PLP]
+void                  $28
+
+[ROL]
+zpg                   $26
+A                     $2A
+abs                   $2E
+zpg,X                 $36
+abs,X                 $3E
+
+[ROR]
+zpg                   $66
+A                     $6A
+abs                   $6E
+zpg,X                 $76
+abs,X                 $7E
+
+[RTI]
+void                  $40
+
+[RTS]
+void                  $60
+
+[SBC]
+(ind,X)               $E1
+zpg                   $E5
+#                     $E9
+abs                   $ED
+(ind),Y               $F1
+zpg,X                 $F5
+abs,Y                 $F9
+abs,X                 $FD
+
+[SEC]
+void                  $38
+
+[SED]
+void                  $F8
+
+[SEI]
+void                  $78
+
+[STA]
+(ind,X)               $81
+zpg                   $85
+abs                   $8D
+(ind),Y               $91
+zpg,X                 $95
+abs,Y                 $99
+abs,X                 $9D
+
+[STX]
+zpg                   $86
+abs                   $8E
+zpg,Y                 $96
+
+[STY]
+zpg                   $84
+abs                   $8C
+zpg,X                 $94
+
+[TAX]
+void                  $AA
+
+[TAY]
+void                  $A8
+
+[TSX]
+void                  $BA
+
+[TXA]
+void                  $8A
+
+[TXS]
+void                  $9A
+
+[TYA]
+void                  $98
