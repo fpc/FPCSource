@@ -121,16 +121,16 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_CC,C_CS,C_EQ,C_MI,C_NE,C_PL,C_VC,C_VS
+        C_PL,C_MI,C_VC,C_VS,C_CC,C_CS,C_NE,C_EQ
       );
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
-        'cc','cs','eq','mi','ne','pl','vc','vs'
+        'pl','mi','vc','vs','cc','cs','ne','eq'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'CC','CS','EQ','MI','NE','PL','VC','VS'
+        'PL','MI','VC','VS','CC','CS','NE','EQ'
       );
 
 {*****************************************************************************
@@ -557,7 +557,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_CS,C_CC,C_NE,C_PL,C_EQ,C_MI,C_VS,C_VC);
+          C_MI,C_PL,C_VS,C_VC,C_CS,C_CC,C_EQ,C_NE);
       begin
         result := inverse[c];
       end;
