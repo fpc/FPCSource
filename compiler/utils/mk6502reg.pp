@@ -19,19 +19,19 @@ uses
   sysutils;
 
 const Version = '1.00';
-      max_regcount = 200;
+      max_regcount = 2048;
 
 var s : string;
     i : longint;
     line : longint;
-    regcount:byte;
-    regcount_bsstart:byte;
+    regcount:longint;
+    regcount_bsstart:longint;
     names,
     numbers,
     stdnames,
     stabs,dwarf : array[0..max_regcount-1] of string[63];
     regnumber_index,
-    std_regname_index : array[0..max_regcount-1] of byte;
+    std_regname_index : array[0..max_regcount-1] of longint;
 
 function tostr(l : longint) : string;
 
@@ -87,7 +87,7 @@ end;
 
 procedure build_regnum_index;
 
-var h,i,j,p,t:byte;
+var h,i,j,p,t:longint;
 
 begin
   {Build the registernumber2regindex index.
@@ -118,7 +118,7 @@ end;
 
 procedure build_std_regname_index;
 
-var h,i,j,p,t:byte;
+var h,i,j,p,t:longint;
 
 begin
   {Build the registernumber2regindex index.

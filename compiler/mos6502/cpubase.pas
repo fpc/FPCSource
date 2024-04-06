@@ -112,8 +112,8 @@ unit cpubase;
       VOLATILE_INTREGISTERS = [RS_A,RS_X,RS_Y];
       VOLATILE_FPUREGISTERS = [];
 
-    type
-      totherregisterset = set of tregisterindex;
+    //type
+    //  totherregisterset = set of tregisterindex;
 
 {*****************************************************************************
                                 Conditions
