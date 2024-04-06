@@ -608,8 +608,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
-        internalerror(2024040601);
-        //is_calljmp:= o in call_jmp_instructions;
+        is_calljmp:= o in call_jmp_instructions;
       end;
 
 
