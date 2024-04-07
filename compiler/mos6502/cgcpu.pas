@@ -2550,6 +2550,7 @@ unit cgcpu;
 
     procedure tcg64fmos6502.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
+        list.Concat(tai_comment.Create(strpnew('TODO: a_op64_reg_reg '+topcg2str(Op)+' '+tcgsize2str(size)+' '+std_regname(regsrc.reghi)+':'+std_regname(regsrc.reglo)+' '+std_regname(regdst.reghi)+':'+std_regname(regdst.reglo))));
          if not(size in [OS_S64,OS_64]) then
            internalerror(2012102402);
          //tcgmos6502(cg).a_op_reg_reg_internal(list,Op,size,regsrc.reglo,regsrc.reghi,regdst.reglo,regdst.reghi);
@@ -2558,6 +2559,7 @@ unit cgcpu;
 
     procedure tcg64fmos6502.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
+        list.Concat(tai_comment.Create(strpnew('TODO: a_op64_const_reg '+topcg2str(Op)+' '+tcgsize2str(size)+' '+tostr(value)+' '+std_regname(reg.reghi)+':'+std_regname(reg.reglo))));
         //tcgmos6502(cg).a_op_const_reg_internal(list,Op,size,value,reg.reglo,reg.reghi);
       end;
 
