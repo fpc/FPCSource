@@ -99,7 +99,7 @@ Const
   StoreDst = 0;
 
   aopt_uncondjmp = A_JMP;
-  aopt_condjmp = [A_BPL,A_BMI,A_BVC,A_BVS,A_BCC,A_BCS,A_BNE,A_BEQ];
+  aopt_condjmp = A_Bxx;
 
 Implementation
 

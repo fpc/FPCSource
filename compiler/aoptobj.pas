@@ -2396,7 +2396,7 @@ Unit AoptObj;
                         stoploop := False;
                     end
 {$ifdef CPU_SUPPORTS_OPT_COND_JUMP}
-                  else if (taicpu(p).opcode {$if defined(z80) or defined(mos6502)}in{$else}={$endif} aopt_condjmp) then
+                  else if (taicpu(p).opcode {$if defined(z80)}in{$else}={$endif} aopt_condjmp) then
                     ThisPassResult := OptimizeConditionalJump(ThisLabel, p, hp1, stoploop)
 {$endif CPU_SUPPORTS_OPT_COND_JUMP}
                     ;

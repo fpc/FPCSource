@@ -59,7 +59,7 @@ unit cpubase;
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }
-      jmp_instructions = [A_JMP,A_BPL,A_BMI,A_BVC,A_BVS,A_BCC,A_BCS,A_BNE,A_BEQ];
+      jmp_instructions = [A_JMP,A_Bxx];
       call_jmp_instructions = [A_JSR]+jmp_instructions;
 
       { instructions that can have a condition }

@@ -43,36 +43,15 @@ abs                   $0E
 zpg,X                 $16
 abs,X                 $1E
 
-[BCC]
-rel                   $90
-
-[BCS]
-rel                   $B0
-
-[BEQ]
-rel                   $F0
-
 [BIT]
 zpg                   $24
 abs                   $2C
 
-[BMI]
-rel                   $30
-
-[BNE]
-rel                   $D0
-
-[BPL]
-rel                   $10
-
 [BRK]
 void                  $00
 
-[BVC]
-rel                   $50
-
-[BVS]
-rel                   $70
+[Bxx]
+rel                   $10
 
 [CLC]
 void                  $18

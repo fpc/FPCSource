@@ -133,24 +133,6 @@
     flags   : 0
   ),
   (
-    opcode  : A_BCC;
-    adrmode : AM_RELATIVE;
-    code    : $90;
-    flags   : 0
-  ),
-  (
-    opcode  : A_BCS;
-    adrmode : AM_RELATIVE;
-    code    : $B0;
-    flags   : 0
-  ),
-  (
-    opcode  : A_BEQ;
-    adrmode : AM_RELATIVE;
-    code    : $F0;
-    flags   : 0
-  ),
-  (
     opcode  : A_BIT;
     adrmode : AM_ZERO_PAGE;
     code    : $24;
@@ -163,39 +145,15 @@
     flags   : 0
   ),
   (
-    opcode  : A_BMI;
-    adrmode : AM_RELATIVE;
-    code    : $30;
-    flags   : 0
-  ),
-  (
-    opcode  : A_BNE;
-    adrmode : AM_RELATIVE;
-    code    : $D0;
-    flags   : 0
-  ),
-  (
-    opcode  : A_BPL;
-    adrmode : AM_RELATIVE;
-    code    : $10;
-    flags   : 0
-  ),
-  (
     opcode  : A_BRK;
     adrmode : AM_IMPLICIT;
     code    : $00;
     flags   : 0
   ),
   (
-    opcode  : A_BVC;
+    opcode  : A_Bxx;
     adrmode : AM_RELATIVE;
-    code    : $50;
-    flags   : 0
-  ),
-  (
-    opcode  : A_BVS;
-    adrmode : AM_RELATIVE;
-    code    : $70;
+    code    : $10;
     flags   : 0
   ),
   (
