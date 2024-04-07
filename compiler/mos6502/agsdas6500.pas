@@ -353,93 +353,91 @@ unit agsdas6500;
             end;
           top_ref:
             begin
-              //if assigned(o.ref^.symbol) and (o.ref^.refaddr in [addr_lo8,addr_hi8,addr_full]) then
-              //  begin
-              //    {if SmartAsm then
-              //      AddSymbol(o.ref^.symbol.name,false);}
-              //    if (o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO) then
-              //      internalerror(2020041101);
-              //    writer.AsmWrite('#');
-              //    case o.ref^.refaddr of
-              //      addr_lo8:
-              //        writer.AsmWrite('<');
-              //      addr_hi8:
-              //        writer.AsmWrite('>');
-              //      addr_full:
-              //        {nothing};
-              //      else
-              //        ;
-              //    end;
-              //    if o.ref^.offset<>0 then
-              //      writer.AsmWrite('('+ApplyAsmSymbolRestrictions(o.ref^.symbol.name)+'+'+tostr(o.ref^.offset)+')')
-              //    else
-              //      writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
-              //  end
-              //else if not assigned(o.ref^.symbol) and
-              //   ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
-              //   (o.ref^.offset<>0) then
-              //  begin
-              //    { sdasz80 doesn't range check the offset d in the (IX+d) and
-              //      (IY+d) addressing modes, but instead truncates it to
-              //      shortint, introducing silent bugs, and prevents us from
-              //      catching bugs in the code generator during compilation }
-              //    if ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
-              //       ((o.ref^.offset<-128) or (o.ref^.offset>127)) then
-              //      internalerror(2020042805);
-              //    writer.AsmWrite(tostr(o.ref^.offset));
-              //    writer.AsmWrite(' (');
-              //    if o.ref^.base<>NR_NO then
-              //      begin
-              //        if o.ref^.index<>NR_NO then
-              //          internalerror(2020040201);
-              //        writer.AsmWrite(std_regname(o.ref^.base));
-              //      end
-              //    else if o.ref^.index<>NR_NO then
-              //      begin
-              //        if o.ref^.scalefactor>1 then
-              //          internalerror(2020040202);
-              //        writer.AsmWrite(std_regname(o.ref^.index));
-              //      end;
-              //    writer.AsmWrite(')');
-              //  end
-              //else
-              //  begin
-              //    writer.AsmWrite('(');
-              //    need_plus:=false;
-              //    if o.ref^.base<>NR_NO then
-              //      begin
-              //        if o.ref^.index<>NR_NO then
-              //          internalerror(2020040203);
-              //        writer.AsmWrite(std_regname(o.ref^.base));
-              //        need_plus:=true;
-              //      end
-              //    else if o.ref^.index<>NR_NO then
-              //      begin
-              //        if o.ref^.scalefactor>1 then
-              //          internalerror(2020040206);
-              //        writer.AsmWrite(std_regname(o.ref^.index));
-              //        need_plus:=true;
-              //      end;
-              //    if assigned(o.ref^.symbol) then
-              //      begin
-              //        {if SmartAsm then
-              //          AddSymbol(o.ref^.symbol.name,false);}
-              //        if need_plus then
-              //          writer.AsmWrite('+');
-              //        writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
-              //        need_plus:=true;
-              //      end;
-              //    if o.ref^.offset<>0 then
-              //      begin
-              //        if need_plus and (o.ref^.offset>0) then
-              //          writer.AsmWrite('+');
-              //        writer.AsmWrite(tostr(o.ref^.offset));
-              //        need_plus:=true;
-              //      end;
-              //    if not need_plus then
-              //      writer.AsmWrite('0');
-              //    writer.AsmWrite(')');
-              //  end;
+              if assigned(o.ref^.symbol) and (o.ref^.refaddr in [addr_lo8,addr_hi8,addr_full]) then
+                begin
+                  {if SmartAsm then
+                    AddSymbol(o.ref^.symbol.name,false);}
+                  if (o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO) then
+                    internalerror(2020041101);
+                  writer.AsmWrite('#');
+                  case o.ref^.refaddr of
+                    addr_lo8:
+                      writer.AsmWrite('<');
+                    addr_hi8:
+                      writer.AsmWrite('>');
+                    addr_full:
+                      {nothing};
+                    else
+                      ;
+                  end;
+                  if o.ref^.offset<>0 then
+                    writer.AsmWrite('('+ApplyAsmSymbolRestrictions(o.ref^.symbol.name)+'+'+tostr(o.ref^.offset)+')')
+                  else
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
+                end
+              else if not assigned(o.ref^.symbol) and
+                 ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
+                 (o.ref^.offset<>0) then
+                begin
+                  { sdasz80 doesn't range check the offset d in the (IX+d) and
+                    (IY+d) addressing modes, but instead truncates it to
+                    shortint, introducing silent bugs, and prevents us from
+                    catching bugs in the code generator during compilation }
+                  if ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
+                     ((o.ref^.offset<-128) or (o.ref^.offset>127)) then
+                    internalerror(2020042805);
+                  writer.AsmWrite(tostr(o.ref^.offset));
+                  writer.AsmWrite(' (');
+                  if o.ref^.base<>NR_NO then
+                    begin
+                      if o.ref^.index<>NR_NO then
+                        internalerror(2020040201);
+                      writer.AsmWrite(std_regname(o.ref^.base));
+                    end
+                  else if o.ref^.index<>NR_NO then
+                    begin
+                      if o.ref^.scalefactor>1 then
+                        internalerror(2020040202);
+                      writer.AsmWrite(std_regname(o.ref^.index));
+                    end;
+                  writer.AsmWrite(')');
+                end
+              else
+                begin
+                  need_plus:=false;
+                  if assigned(o.ref^.symbol) then
+                    begin
+                      {if SmartAsm then
+                        AddSymbol(o.ref^.symbol.name,false);}
+                      if need_plus then
+                        writer.AsmWrite('+');
+                      writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
+                      need_plus:=true;
+                    end;
+                  if o.ref^.offset<>0 then
+                    begin
+                      if need_plus and (o.ref^.offset>0) then
+                        writer.AsmWrite('+');
+                      writer.AsmWrite(tostr(o.ref^.offset));
+                      need_plus:=true;
+                    end;
+                  if not need_plus then
+                    writer.AsmWrite('0');
+                  if o.ref^.base<>NR_NO then
+                    begin
+                      if o.ref^.index<>NR_NO then
+                        internalerror(2020040203);
+                      writer.AsmWrite(','+std_regname(o.ref^.base));
+                      need_plus:=true;
+                    end
+                  else if o.ref^.index<>NR_NO then
+                    begin
+                      if o.ref^.scalefactor>1 then
+                        internalerror(2020040206);
+                      writer.AsmWrite(','+std_regname(o.ref^.index));
+                      need_plus:=true;
+                    end;
+                end;
             end;
           else
             internalerror(2020100803);
