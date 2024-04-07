@@ -1292,24 +1292,43 @@ unit cgcpu;
 
 
      procedure tcgmos6502.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
-       //var
-       //  mask : qword;
-       //  shift : byte;
-       //  i : byte;
+       var
+         mask : qword;
+         shift : byte;
+         i : byte;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_reg')));
-         //mask:=$ff;
-         //shift:=0;
-         //for i:=tcgsize2size[size] downto 1 do
-         //  begin
-         //    list.Concat(taicpu.op_reg_const(A_LD,reg,(qword(a) and mask) shr shift));
-         //    if i<>1 then
-         //      begin
-         //        mask:=mask shl 8;
-         //        inc(shift,8);
-         //        reg:=GetNextReg(reg);
-         //      end;
-         //  end;
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_reg '+tcgsize2str(size)+' '+tostr(a)+' '+std_regname(reg))));
+         if is_6502_general_purpose_register(reg) then
+           begin
+             if not (size in [OS_8,OS_S8]) then
+               internalerror(2024040704);
+             if reg=NR_A then
+               taicpu.op_const(A_LDA,byte(a))
+             else if reg=NR_X then
+               taicpu.op_const(A_LDX,byte(a))
+             else if reg=NR_Y then
+               taicpu.op_const(A_LDY,byte(a))
+             else
+               internalerror(2024040705);
+           end
+         else
+           begin
+             getcpuregister(list,NR_A);
+             mask:=$ff;
+             shift:=0;
+             for i:=tcgsize2size[size] downto 1 do
+               begin
+                 list.Concat(taicpu.op_const(A_LDA,(qword(a) and mask) shr shift));
+                 list.Concat(taicpu.op_reg(A_STA,reg));
+                 if i<>1 then
+                   begin
+                     mask:=mask shl 8;
+                     inc(shift,8);
+                     reg:=GetNextReg(reg);
+                   end;
+               end;
+             ungetcpuregister(list,NR_A);
+           end;
        end;
 
 
