@@ -886,7 +886,7 @@ unit agsdas6500;
             idtxt  : 'SDCC-SDAS6500';
             asmbin : 'sdasz80';
             asmcmd : '-g -o $EXTRAOPT $OBJ $ASM';
-            supported_targets : [system_Z80_embedded];
+            supported_targets : [system_mos6502_embedded];
             flags : [af_needar];
             labelprefix : '.L';
             labelmaxlen : 79;
