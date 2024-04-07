@@ -257,7 +257,8 @@ unit cpupara;
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
                 paradef:=cpointerdef.getreusable_no_free(paradef);
-                loc:=LOC_REGISTER;
+                //loc:=LOC_REGISTER;
+                loc:=LOC_REFERENCE;
                 paracgsize:=OS_ADDR;
                 paralen:=tcgsize2size[OS_ADDR];
               end
