@@ -729,44 +729,46 @@ unit cgcpu;
 
        begin
          case op of
-         //  OP_ADD:
-         //    begin
-         //      getcpuregister(list,NR_A);
-         //      a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
-         //      list.concat(taicpu.op_reg_reg(A_ADD,NR_A,src));
-         //      a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-         //      if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-         //        begin
-         //          for i:=2 to tcgsize2size[size] do
-         //            begin
-         //              NextSrcDst;
-         //              a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
-         //              list.concat(taicpu.op_reg_reg(A_ADC,NR_A,src));
-         //              a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-         //            end;
-         //        end;
-         //      ungetcpuregister(list,NR_A);
-         //    end;
-         //
-         //  OP_SUB:
-         //    begin
-         //      getcpuregister(list,NR_A);
-         //      a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
-         //      list.concat(taicpu.op_reg_reg(A_SUB,NR_A,src));
-         //      a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-         //      if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-         //        begin
-         //          for i:=2 to tcgsize2size[size] do
-         //            begin
-         //              NextSrcDst;
-         //              a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
-         //              list.concat(taicpu.op_reg_reg(A_SBC,NR_A,src));
-         //              a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-         //            end;
-         //        end;
-         //      ungetcpuregister(list,NR_A);
-         //    end;
-         //
+           OP_ADD:
+             begin
+               getcpuregister(list,NR_A);
+               a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+               list.concat(taicpu.op_none(A_CLC));
+               list.concat(taicpu.op_reg(A_ADC,src));
+               a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextSrcDst;
+                       a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+                       list.concat(taicpu.op_reg(A_ADC,src));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                     end;
+                 end;
+               ungetcpuregister(list,NR_A);
+             end;
+
+           OP_SUB:
+             begin
+               getcpuregister(list,NR_A);
+               a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+               list.concat(taicpu.op_none(A_SEC));
+               list.concat(taicpu.op_reg(A_SBC,src));
+               a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextSrcDst;
+                       a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+                       list.concat(taicpu.op_reg(A_SBC,src));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                     end;
+                 end;
+               ungetcpuregister(list,NR_A);
+             end;
+
          //  OP_NEG:
          //    begin
          //      getcpuregister(list,NR_A);

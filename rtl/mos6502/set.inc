@@ -27,4 +27,8 @@ begin
   globaldw := $12345678;
   globalqw := $123456789ABCDEF0;
   ga := gb + gc;
+  ga := gb - gc;
+  ga := gb and gc;
+  ga := gb or gc;
+  ga := gb xor gc;
 end;
