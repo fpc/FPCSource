@@ -511,6 +511,8 @@ interface
     function double_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
 
     function tcgsize2str(cgsize: tcgsize):string;
+    function topcg2str(opcg: topcg):string;
+    function topcmp2str(opcmp: topcmp):string;
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -870,6 +872,18 @@ implementation
     function tcgsize2str(cgsize: tcgsize):string;
       begin
         Str(cgsize, Result);
+      end;
+
+
+    function topcg2str(opcg: topcg):string;
+      begin
+        Str(opcg, Result);
+      end;
+
+
+    function topcmp2str(opcmp: topcmp):string;
+      begin
+        Str(opcmp, Result);
       end;
 
 
