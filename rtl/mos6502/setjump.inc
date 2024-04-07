@@ -14,11 +14,11 @@
 
  **********************************************************************}
 
-function fpc_setjmp(var S : jmp_buf) : shortint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;compilerproc;
-  asm
+function fpc_setjmp(var S : jmp_buf) : shortint;[Public, alias : 'FPC_SETJMP'];nostackframe;compilerproc;
+  begin
   end;
 
 
-procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias : 'FPC_LONGJMP'];nostackframe;compilerproc;
-  asm
+procedure fpc_longjmp(var S : jmp_buf;value : shortint);[Public, alias : 'FPC_LONGJMP'];nostackframe;compilerproc;
+  begin
   end;
