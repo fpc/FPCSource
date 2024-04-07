@@ -12,3 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+var
+  globala: byte;
+  globalw: word;
+  globaldw: longword;
+  globalqw: qword;
+  ga, gb, gc: byte;
+
+procedure Test6502;
+begin
+  globala := 5;
+  globalw := $1234;
+  globaldw := $12345678;
+  globalqw := $123456789ABCDEF0;
+  ga := gb + gc;
+end;

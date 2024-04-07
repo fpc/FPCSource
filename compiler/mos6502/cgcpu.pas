@@ -142,6 +142,13 @@ unit cgcpu;
        procinfo,cpupi,
        paramgr;
 
+    function ref2string(const ref : treference) : string;
+      begin
+        result:='[base:'+std_regname(ref.base)+' index:'+std_regname(ref.index)+' refaddr:' + tostr(ord(ref.refaddr)) + ' offset:' + tostr(ref.offset) + ' symbol:';
+        if (assigned(ref.symbol)) then
+          result := result + ref.symbol.name;
+        result:=result+']';
+      end;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -1313,7 +1320,7 @@ unit cgcpu;
          href: treference;
          i: Integer;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref '+tcgsize2str(size) + ' '+tostr(a))));
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref '+tcgsize2str(size) + ' '+tostr(a)+' '+ref2string(ref))));
          mask:=$ff;
          shift:=0;
          href:=ref;
@@ -1518,7 +1525,7 @@ unit cgcpu;
        //  i : integer;
        //  regsused: tregisterlist;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_ref')));
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_ref '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg)+' '+ref2string(ref))));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021307);
          //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
@@ -1586,7 +1593,7 @@ unit cgcpu;
        //  i : integer;
        //  regsused: tregisterlist;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_ref_reg')));
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_ref_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+ref2string(Ref)+' '+std_regname(reg))));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021301);
          //if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
@@ -1648,7 +1655,7 @@ unit cgcpu;
        //  tmpreg : tregister;
        //  i : integer;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg')));
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2))));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021310);
          //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
