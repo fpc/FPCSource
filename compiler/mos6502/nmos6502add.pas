@@ -33,8 +33,8 @@ interface
        { TMOS6502AddNode }
 
        TMOS6502AddNode = class(tcgaddnode)
-       //private
-       //  function GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
+       private
+         function GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
        protected
          function use_mul_helper: boolean;override;
          function first_cmppointer: tnode;override;
@@ -65,76 +65,76 @@ interface
 *****************************************************************************}
 
 
-    //function TMOS6502AddNode.GetResFlags(unsigned: Boolean; anodetype: tnodetype): TResFlags;
-    //  begin
-    //    case anodetype of
-    //      equaln:
-    //        GetResFlags:=F_E;
-    //      unequaln:
-    //        GetResFlags:=F_NE;
-    //      else
-    //        if not(unsigned) then
-    //          begin
-    //            { signed }
-    //            if nf_swapped in flags then
-    //              case anodetype of
-    //                ltn:
-    //                  GetResFlags:=F_NotPossible;
-    //                lten:
-    //                  GetResFlags:=F_P;
-    //                gtn:
-    //                  GetResFlags:=F_M;
-    //                gten:
-    //                  GetResFlags:=F_NotPossible;
-    //                else
-    //                  internalerror(2014082020);
-    //              end
-    //            else
-    //              case anodetype of
-    //                ltn:
-    //                  GetResFlags:=F_M;
-    //                lten:
-    //                  GetResFlags:=F_NotPossible;
-    //                gtn:
-    //                  GetResFlags:=F_NotPossible;
-    //                gten:
-    //                  GetResFlags:=F_P;
-    //                else
-    //                  internalerror(2014082021);
-    //              end;
-    //          end
-    //        else
-    //          begin
-    //            { unsigned }
-    //            if nf_swapped in Flags then
-    //              case anodetype of
-    //                ltn:
-    //                  GetResFlags:=F_NotPossible;
-    //                lten:
-    //                  GetResFlags:=F_NC;
-    //                gtn:
-    //                  GetResFlags:=F_C;
-    //                gten:
-    //                  GetResFlags:=F_NotPossible;
-    //                else
-    //                  internalerror(2014082022);
-    //              end
-    //            else
-    //              case anodetype of
-    //                ltn:
-    //                  GetResFlags:=F_C;
-    //                lten:
-    //                  GetResFlags:=F_NotPossible;
-    //                gtn:
-    //                  GetResFlags:=F_NotPossible;
-    //                gten:
-    //                  GetResFlags:=F_NC;
-    //                else
-    //                  internalerror(2014082023);
-    //              end;
-    //          end;
-    //    end;
-    //  end;
+    function TMOS6502AddNode.GetResFlags(unsigned: Boolean; anodetype: tnodetype): TResFlags;
+      begin
+        case anodetype of
+          equaln:
+            GetResFlags:=F_EQ;
+          unequaln:
+            GetResFlags:=F_NE;
+          else
+            if not(unsigned) then
+              begin
+                { signed }
+                if nf_swapped in flags then
+                  case anodetype of
+                    ltn:
+                      GetResFlags:=F_NotPossible;
+                    lten:
+                      GetResFlags:=F_PL;
+                    gtn:
+                      GetResFlags:=F_MI;
+                    gten:
+                      GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082020);
+                  end
+                else
+                  case anodetype of
+                    ltn:
+                      GetResFlags:=F_MI;
+                    lten:
+                      GetResFlags:=F_NotPossible;
+                    gtn:
+                      GetResFlags:=F_NotPossible;
+                    gten:
+                      GetResFlags:=F_PL;
+                    else
+                      internalerror(2014082021);
+                  end;
+              end
+            else
+              begin
+                { unsigned }
+                if nf_swapped in Flags then
+                  case anodetype of
+                    ltn:
+                      GetResFlags:=F_NotPossible;
+                    lten:
+                      GetResFlags:=F_CS;
+                    gtn:
+                      GetResFlags:=F_CC;
+                    gten:
+                      GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082022);
+                  end
+                else
+                  case anodetype of
+                    ltn:
+                      GetResFlags:=F_CC;
+                    lten:
+                      GetResFlags:=F_NotPossible;
+                    gtn:
+                      GetResFlags:=F_NotPossible;
+                    gten:
+                      GetResFlags:=F_CS;
+                    else
+                      internalerror(2014082023);
+                  end;
+              end;
+        end;
+      end;
 
 
     function TMOS6502AddNode.use_mul_helper: boolean;
@@ -221,117 +221,66 @@ interface
 
 
     procedure TMOS6502AddNode.second_cmp;
-      //var
-      //  unsigned : boolean;
-      //  tmpreg1,tmpreg2 : tregister;
-      //  i : longint;
-      //  opdef: tdef;
-      //  opsize: TCgSize;
-      //  l: TAsmLabel;
+      var
+        unsigned : boolean;
+        tmpreg1,tmpreg2 : tregister;
+        i : longint;
+        opdef: tdef;
+        opsize: TCgSize;
+        l: TAsmLabel;
       begin
-        //unsigned:=not(is_signed(left.resultdef)) or
-        //          not(is_signed(right.resultdef));
-        //opdef:=left.resultdef;
-        //opsize:=def_cgsize(opdef);
-        //
-        //pass_left_right;
-        //
-        //if (opsize=OS_8) or ((opsize=OS_S8) and (NodeType in [equaln,unequaln])) then
-        //  begin
-        //    if getresflags(unsigned,NodeType)=F_NotPossible then
-        //      swapleftright;
-        //
-        //    if left.location.loc<>LOC_REGISTER then
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        //
-        //    if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-        //      begin
-        //        if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
-        //          begin
-        //            cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //            cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
-        //            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //          end
-        //        else
-        //          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-        //      end;
-        //    case right.location.loc of
-        //      LOC_CONSTANT:
-        //        begin
-        //          cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //          cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //          current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,right.location.value));
-        //          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //        end;
-        //      LOC_REGISTER,LOC_CREGISTER:
-        //        begin
-        //          cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //          cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //          current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
-        //          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //        end;
-        //      LOC_REFERENCE,LOC_CREFERENCE:
-        //        begin
-        //          { Already handled before the case statement. Nothing to do here. }
-        //        end;
-        //      else
-        //        internalerror(2020040402);
-        //    end;
-        //
-        //    location_reset(location,LOC_FLAGS,OS_NO);
-        //    location.resflags:=getresflags(unsigned,NodeType);
-        //  end
-        //else if opsize=OS_S8 then
-        //  begin
-        //    if getresflags(unsigned,NodeType)=F_NotPossible then
-        //      swapleftright;
-        //
-        //    if left.location.loc<>LOC_REGISTER then
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        //
-        //    if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-        //      begin
-        //        if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
-        //          begin
-        //            cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //            cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_SUB,NR_A,right.location.reference));
-        //          end
-        //        else
-        //          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-        //      end;
-        //    case right.location.loc of
-        //      LOC_CONSTANT:
-        //        begin
-        //          cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //          cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //          current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SUB,NR_A,right.location.value));
-        //        end;
-        //      LOC_REGISTER,LOC_CREGISTER:
-        //        begin
-        //          cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //          cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-        //          current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_SUB,NR_A,right.location.register));
-        //        end;
-        //      LOC_REFERENCE,LOC_CREFERENCE:
-        //        begin
-        //          { Already handled before the case statement. Nothing to do here. }
-        //        end;
-        //      else
-        //        internalerror(2020040403);
-        //    end;
-        //    current_asmdata.getjumplabel(l);
-        //    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_PO,l);
-        //    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-        //    cg.a_label(current_asmdata.CurrAsmList,l);
-        //    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-        //
-        //    location_reset(location,LOC_FLAGS,OS_NO);
-        //    location.resflags:=getresflags(unsigned,NodeType);
-        //  end
-        //else
-        //  internalerror(2020040401);
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+        opdef:=left.resultdef;
+        opsize:=def_cgsize(opdef);
+        if not (opsize in [OS_8,OS_S8]) then
+          internalerror(2024040701);
+
+        pass_left_right;
+
+        if getresflags(unsigned,NodeType)=F_NotPossible then
+          swapleftright;
+
+        if left.location.loc<>LOC_REGISTER then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+        if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+          begin
+            //if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
+            //  begin
+            //    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+            //    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+            //    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
+            //    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            //  end
+            //else
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+          end;
+        case right.location.loc of
+          LOC_CONSTANT:
+            begin
+              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+              cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+              current_asmdata.CurrAsmList.Concat(taicpu.op_const(A_CMP,right.location.value));
+              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            begin
+              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+              cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+              current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_CMP,right.location.register));
+              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            end;
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              { Already handled before the case statement. Nothing to do here. }
+            end;
+          else
+            internalerror(2020040402);
+        end;
+
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(unsigned,NodeType);
       end;
 
 
