@@ -1290,6 +1290,7 @@ unit cgcpu;
        //  shift : byte;
        //  i : byte;
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_reg')));
          //mask:=$ff;
          //shift:=0;
          //for i:=tcgsize2size[size] downto 1 do
@@ -1312,6 +1313,7 @@ unit cgcpu;
        //  href: treference;
        //  i: Integer;
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref')));
          //mask:=$ff;
          //shift:=0;
          //href:=ref;
@@ -1501,6 +1503,7 @@ unit cgcpu;
        //  i : integer;
        //  regsused: tregisterlist;
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_ref')));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021307);
          //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
@@ -1568,6 +1571,7 @@ unit cgcpu;
        //  i : integer;
        //  regsused: tregisterlist;
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_ref_reg')));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021301);
          //if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
@@ -1629,6 +1633,7 @@ unit cgcpu;
        //  tmpreg : tregister;
        //  i : integer;
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg')));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021310);
          //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
