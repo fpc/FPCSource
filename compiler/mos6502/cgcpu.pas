@@ -109,7 +109,7 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         //function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
-        //procedure adjust_normalized_ref(list: TAsmList;var ref: treference; value: longint);
+        procedure adjust_normalized_ref(list: TAsmList;var ref: treference; value: longint);
 
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
@@ -1491,91 +1491,94 @@ unit cgcpu;
     //  end;
 
 
-    //procedure tcgmos6502.adjust_normalized_ref(list: TAsmList; var ref: treference; value: longint);
-    //  var
-    //    i: Integer;
-    //  begin
-    //    if is_ref_addr16(ref) then
-    //      Inc(ref.offset,value)
-    //    else if is_ref_hl(ref) then
-    //      begin
-    //        if value>0 then
-    //          for i:=1 to value do
-    //            list.concat(taicpu.op_reg(A_INC,NR_HL))
-    //        else
-    //          for i:=-1 downto value do
-    //            list.concat(taicpu.op_reg(A_DEC,NR_HL));
-    //      end
-    //    else if is_ref_ix_d(ref) then
-    //      begin
-    //        if ((ref.offset+value)<=127) and ((ref.offset+value)>=-128) then
-    //          inc(ref.offset,value)
-    //        else
-    //          begin
-    //            { todo: IX is the frame pointer, we cannot change it, so we }
-    //            {       think of another mechanism to deal with this situation }
-    //            internalerror(2020042101);
-    //            //if value>0 then
-    //            //  for i:=1 to value do
-    //            //    list.concat(taicpu.op_reg(A_INC,NR_IX))
-    //            //else
-    //            //  for i:=-1 downto value do
-    //            //    list.concat(taicpu.op_reg(A_DEC,NR_IX));
-    //          end;
-    //      end
-    //    else if is_ref_iy_d(ref) then
-    //      begin
-    //        if ((ref.offset+value)<=127) and ((ref.offset+value)>=-128) then
-    //          inc(ref.offset,value)
-    //        else
-    //          if value>0 then
-    //            for i:=1 to value do
-    //              list.concat(taicpu.op_reg(A_INC,NR_IY))
-    //          else
-    //            for i:=-1 downto value do
-    //              list.concat(taicpu.op_reg(A_DEC,NR_IY));
-    //      end;
-    //  end;
+    procedure tcgmos6502.adjust_normalized_ref(list: TAsmList; var ref: treference; value: longint);
+      //var
+      //  i: Integer;
+      begin
+        inc(ref.offset,value);
+        //if is_ref_addr16(ref) then
+        //  Inc(ref.offset,value)
+        //else if is_ref_hl(ref) then
+        //  begin
+        //    if value>0 then
+        //      for i:=1 to value do
+        //        list.concat(taicpu.op_reg(A_INC,NR_HL))
+        //    else
+        //      for i:=-1 downto value do
+        //        list.concat(taicpu.op_reg(A_DEC,NR_HL));
+        //  end
+        //else if is_ref_ix_d(ref) then
+        //  begin
+        //    if ((ref.offset+value)<=127) and ((ref.offset+value)>=-128) then
+        //      inc(ref.offset,value)
+        //    else
+        //      begin
+        //        { todo: IX is the frame pointer, we cannot change it, so we }
+        //        {       think of another mechanism to deal with this situation }
+        //        internalerror(2020042101);
+        //        //if value>0 then
+        //        //  for i:=1 to value do
+        //        //    list.concat(taicpu.op_reg(A_INC,NR_IX))
+        //        //else
+        //        //  for i:=-1 downto value do
+        //        //    list.concat(taicpu.op_reg(A_DEC,NR_IX));
+        //      end;
+        //  end
+        //else if is_ref_iy_d(ref) then
+        //  begin
+        //    if ((ref.offset+value)<=127) and ((ref.offset+value)>=-128) then
+        //      inc(ref.offset,value)
+        //    else
+        //      if value>0 then
+        //        for i:=1 to value do
+        //          list.concat(taicpu.op_reg(A_INC,NR_IY))
+        //      else
+        //        for i:=-1 downto value do
+        //          list.concat(taicpu.op_reg(A_DEC,NR_IY));
+        //  end;
+      end;
 
 
      procedure tcgmos6502.a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);
-       //var
-       //  href : treference;
-       //  i : integer;
+       var
+         href : treference;
+         i : integer;
        //  regsused: tregisterlist;
        begin
          list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_ref '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg)+' '+ref2string(ref))));
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021307);
-         //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
-         //  internalerror(2020040802);
-         //
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021307);
+         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+           internalerror(2020040802);
+
          //href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
-         //if (tcgsize2size[fromsize]=tcgsize2size[tosize]) or (fromsize in [OS_8,OS_16,OS_32]) then
-         //  begin
-         //    getcpuregister(list,NR_A);
-         //    for i:=1 to tcgsize2size[fromsize] do
-         //      begin
-         //        a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
-         //        list.concat(taicpu.op_ref_reg(A_LD,href,NR_A));
-         //        if i<>tcgsize2size[fromsize] then
-         //          reg:=GetNextReg(reg);
-         //        if i<>tcgsize2size[tosize] then
-         //          adjust_normalized_ref(list,href,1);
-         //      end;
-         //    for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
-         //      begin
-         //        if i=(tcgsize2size[fromsize]+1) then
-         //          list.concat(taicpu.op_reg_const(A_LD,NR_A,0));
-         //        list.concat(taicpu.op_ref_reg(A_LD,href,NR_A));
-         //        if i<>tcgsize2size[tosize] then
-         //          begin
-         //            adjust_normalized_ref(list,href,1);
-         //            reg:=GetNextReg(reg);
-         //          end;
-         //      end;
-         //    ungetcpuregister(list,NR_A);
-         //  end
+         href:=ref;
+         if (href.base=NR_NO) and (href.index=NR_NO) and
+            ((tcgsize2size[fromsize]=tcgsize2size[tosize]) or (fromsize in [OS_8,OS_16,OS_32])) then
+           begin
+             getcpuregister(list,NR_A);
+             for i:=1 to tcgsize2size[fromsize] do
+               begin
+                 a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                 list.concat(taicpu.op_ref(A_STA,href));
+                 if i<>tcgsize2size[fromsize] then
+                   reg:=GetNextReg(reg);
+                 if i<>tcgsize2size[tosize] then
+                   adjust_normalized_ref(list,href,1);
+               end;
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 if i=(tcgsize2size[fromsize]+1) then
+                   list.concat(taicpu.op_const(A_LDA,0));
+                 list.concat(taicpu.op_ref(A_STA,href));
+                 if i<>tcgsize2size[tosize] then
+                   begin
+                     adjust_normalized_ref(list,href,1);
+                     reg:=GetNextReg(reg);
+                   end;
+               end;
+             ungetcpuregister(list,NR_A);
+           end
          //else
          //  begin
          //    getcpuregister(list,NR_A);
