@@ -31,4 +31,5 @@ begin
   ga := gb and gc;
   ga := gb or gc;
   ga := gb xor gc;
+  ga := not gb;
 end;
