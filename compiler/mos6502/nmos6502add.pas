@@ -42,7 +42,7 @@ interface
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
-         //procedure second_cmp16_32_64bit;
+         procedure second_cmp16_32_64bit;
          procedure second_cmp;
        end;
 
@@ -337,311 +337,311 @@ interface
 
     procedure TMOS6502AddNode.second_cmp64bit;
       begin
-        //second_cmp16_32_64bit;
+        second_cmp16_32_64bit;
       end;
 
 
-    //procedure TMOS6502AddNode.second_cmp16_32_64bit;
-    //  var
-    //    truelabel,
-    //    falselabel: tasmlabel;
-    //    unsigned  : boolean;
-    //    i, size: Integer;
-    //    tmpref: treference;
-    //    op: TAsmOp;
-    //    actualnodetype: tnodetype;
-    //  begin
-    //    truelabel:=nil;
-    //    falselabel:=nil;
-    //    pass_left_right;
-    //
-    //    unsigned:=not(is_signed(left.resultdef)) or
-    //              not(is_signed(right.resultdef));
-    //
-    //    { we have LOC_JUMP as result }
-    //    current_asmdata.getjumplabel(truelabel);
-    //    current_asmdata.getjumplabel(falselabel);
-    //    location_reset_jump(location,truelabel,falselabel);
-    //
-    //    size:=tcgsize2size[def_cgsize(left.resultdef)];
-    //
-    //    if NodeType in [equaln,unequaln] then
-    //      begin
-    //        if left.location.loc<>LOC_REGISTER then
-    //          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-    //
-    //        if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-    //          begin
-    //            if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
-    //              begin
-    //                cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //                tmpref:=right.location.reference;
-    //                for i:=0 to size-1 do
-    //                  begin
-    //                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,tmpref));
-    //                    case NodeType of
-    //                      equaln:
-    //                        if i<>(size-1) then
-    //                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
-    //                        else
-    //                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
-    //                      unequaln:
-    //                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
-    //                      else
-    //                        internalerror(2020042102);
-    //                    end;
-    //                    if i<>(size-1) then
-    //                      tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,1);
-    //                  end;
-    //                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //                cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-    //              end
-    //            else
-    //              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-    //          end;
-    //        case right.location.loc of
-    //          LOC_CONSTANT:
-    //            begin
-    //              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              for i:=0 to size-1 do
-    //                begin
-    //                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,byte(right.location.value shr (i*8))));
-    //                  case NodeType of
-    //                    equaln:
-    //                      if i<>(size-1) then
-    //                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
-    //                      else
-    //                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
-    //                    unequaln:
-    //                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
-    //                    else
-    //                      internalerror(2020042104);
-    //                  end;
-    //                end;
-    //              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-    //            end;
-    //          LOC_REGISTER,LOC_CREGISTER:
-    //            begin
-    //              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              for i:=0 to size-1 do
-    //                begin
-    //                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
-    //                  case NodeType of
-    //                    equaln:
-    //                      if i<>(size-1) then
-    //                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
-    //                      else
-    //                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
-    //                    unequaln:
-    //                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
-    //                    else
-    //                      internalerror(2020042105);
-    //                  end;
-    //                end;
-    //              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
-    //            end;
-    //          LOC_REFERENCE,LOC_CREFERENCE:
-    //            begin
-    //              { Already handled before the case statement. Nothing to do here. }
-    //            end;
-    //          else
-    //            internalerror(2020042103);
-    //        end;
-    //      end
-    //    else
-    //      begin
-    //        if nf_swapped in Flags then
-    //          begin
-    //            case NodeType of
-    //              ltn:
-    //                actualnodetype:=gtn;
-    //              lten:
-    //                actualnodetype:=gten;
-    //              gtn:
-    //                actualnodetype:=ltn;
-    //              gten:
-    //                actualnodetype:=lten;
-    //              else
-    //                internalerror(2020042701);
-    //            end;
-    //          end
-    //        else
-    //          actualnodetype:=NodeType;
-    //
-    //        if left.location.loc<>LOC_REGISTER then
-    //          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-    //
-    //        if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-    //          begin
-    //            if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
-    //              begin
-    //                cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //                tmpref:=right.location.reference;
-    //                tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,size-1);
-    //                for i:=size-1 downto 0 do
-    //                  begin
-    //                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                    if (i=(size-1)) and (not unsigned) then
-    //                      op:=A_SUB
-    //                    else
-    //                      op:=A_CP;
-    //                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(op,NR_A,tmpref));
-    //                    if (i=(size-1)) and (not unsigned) then
-    //                      case actualnodetype of
-    //                        ltn,
-    //                        lten:
-    //                          tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                        gtn,
-    //                        gten:
-    //                          tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                        else
-    //                          internalerror(2020042202);
-    //                      end
-    //                    else if i<>0 then
-    //                      case actualnodetype of
-    //                        ltn,
-    //                        lten:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                        gtn,
-    //                        gten:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                        else
-    //                          internalerror(2020042207);
-    //                      end
-    //                    else
-    //                      case actualnodetype of
-    //                        ltn:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
-    //                        lten:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
-    //                        gtn:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
-    //                        gten:
-    //                          tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
-    //                        else
-    //                          internalerror(2020042203);
-    //                      end;
-    //                    if i<>0 then
-    //                      tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
-    //                  end;
-    //                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              end
-    //            else
-    //              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-    //          end;
-    //        case right.location.loc of
-    //          LOC_CONSTANT:
-    //            begin
-    //              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              for i:=size-1 downto 0 do
-    //                begin
-    //                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                  if (i=(size-1)) and (not unsigned) then
-    //                    op:=A_SUB
-    //                  else
-    //                    op:=A_CP;
-    //                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(op,NR_A,byte(right.location.value shr (i*8))));
-    //                  if (i=(size-1)) and (not unsigned) then
-    //                    case actualnodetype of
-    //                      ltn,
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                      gtn,
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                      else
-    //                        internalerror(2020042210);
-    //                    end
-    //                  else if i<>0 then
-    //                    case actualnodetype of
-    //                      ltn,
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                      gtn,
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                      else
-    //                        internalerror(2020042211);
-    //                    end
-    //                  else
-    //                    case actualnodetype of
-    //                      ltn:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
-    //                      gtn:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
-    //                      else
-    //                        internalerror(2020042215);
-    //                    end;
-    //                end;
-    //              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //            end;
-    //          LOC_REGISTER,LOC_CREGISTER:
-    //            begin
-    //              cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //              for i:=size-1 downto 0 do
-    //                begin
-    //                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
-    //                  if (i=(size-1)) and (not unsigned) then
-    //                    op:=A_SUB
-    //                  else
-    //                    op:=A_CP;
-    //                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(op,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
-    //                  if (i=(size-1)) and (not unsigned) then
-    //                    case actualnodetype of
-    //                      ltn,
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                      gtn,
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                      else
-    //                        internalerror(2020042212);
-    //                    end
-    //                  else if i<>0 then
-    //                    case actualnodetype of
-    //                      ltn,
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
-    //                      gtn,
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
-    //                      else
-    //                        internalerror(2020042213);
-    //                    end
-    //                  else
-    //                    case actualnodetype of
-    //                      ltn:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
-    //                      lten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
-    //                      gtn:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
-    //                      gten:
-    //                        tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
-    //                      else
-    //                        internalerror(2020042216);
-    //                    end;
-    //                end;
-    //              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-    //            end;
-    //          LOC_REFERENCE,LOC_CREFERENCE:
-    //            begin
-    //              { Already handled before the case statement. Nothing to do here. }
-    //            end;
-    //          else
-    //            internalerror(2020042106);
-    //        end;
-    //      end;
-    //  end;
+    procedure TMOS6502AddNode.second_cmp16_32_64bit;
+      var
+        truelabel,
+        falselabel: tasmlabel;
+        unsigned  : boolean;
+        i, size: Integer;
+        tmpref: treference;
+        //op: TAsmOp;
+        actualnodetype: tnodetype;
+      begin
+        truelabel:=nil;
+        falselabel:=nil;
+        pass_left_right;
+
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        { we have LOC_JUMP as result }
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
+
+        size:=tcgsize2size[def_cgsize(left.resultdef)];
+
+        if NodeType in [equaln,unequaln] then
+          begin
+            if left.location.loc<>LOC_REGISTER then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              begin
+                //if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
+                //  begin
+                //    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                //    tmpref:=right.location.reference;
+                //    for i:=0 to size-1 do
+                //      begin
+                //        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,tmpref));
+                //        case NodeType of
+                //          equaln:
+                //            if i<>(size-1) then
+                //              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                //            else
+                //              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
+                //          unequaln:
+                //            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                //          else
+                //            internalerror(2020042102);
+                //        end;
+                //        if i<>(size-1) then
+                //          tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,1);
+                //      end;
+                //    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                //    cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                //  end
+                //else
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              end;
+            case right.location.loc of
+              LOC_CONSTANT:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=0 to size-1 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgmos6502(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_const(A_CMP,byte(right.location.value shr (i*8))));
+                      case NodeType of
+                        equaln:
+                          if i<>(size-1) then
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                          else
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,truelabel);
+                        unequaln:
+                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                        else
+                          internalerror(2020042104);
+                      end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                end;
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=0 to size-1 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgmos6502(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_CMP,tcgmos6502(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
+                      case NodeType of
+                        equaln:
+                          if i<>(size-1) then
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                          else
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,truelabel);
+                        unequaln:
+                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
+                        else
+                          internalerror(2020042105);
+                      end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  { Already handled before the case statement. Nothing to do here. }
+                end;
+              else
+                internalerror(2020042103);
+            end;
+          end
+        else
+          begin
+            if nf_swapped in Flags then
+              begin
+                case NodeType of
+                  ltn:
+                    actualnodetype:=gtn;
+                  lten:
+                    actualnodetype:=gten;
+                  gtn:
+                    actualnodetype:=ltn;
+                  gten:
+                    actualnodetype:=lten;
+                  else
+                    internalerror(2020042701);
+                end;
+              end
+            else
+              actualnodetype:=NodeType;
+
+            if left.location.loc<>LOC_REGISTER then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              begin
+                //if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
+                //  begin
+                //    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                //    tmpref:=right.location.reference;
+                //    tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,size-1);
+                //    for i:=size-1 downto 0 do
+                //      begin
+                //        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                //        if (i=(size-1)) and (not unsigned) then
+                //          op:=A_SUB
+                //        else
+                //          op:=A_CP;
+                //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(op,NR_A,tmpref));
+                //        if (i=(size-1)) and (not unsigned) then
+                //          case actualnodetype of
+                //            ltn,
+                //            lten:
+                //              tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                //            gtn,
+                //            gten:
+                //              tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                //            else
+                //              internalerror(2020042202);
+                //          end
+                //        else if i<>0 then
+                //          case actualnodetype of
+                //            ltn,
+                //            lten:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                //            gtn,
+                //            gten:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                //            else
+                //              internalerror(2020042207);
+                //          end
+                //        else
+                //          case actualnodetype of
+                //            ltn:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                //            lten:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                //            gtn:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                //            gten:
+                //              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                //            else
+                //              internalerror(2020042203);
+                //          end;
+                //        if i<>0 then
+                //          tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
+                //      end;
+                //    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                //  end
+                //else
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              end;
+            case right.location.loc of
+              LOC_CONSTANT:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=size-1 downto 0 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgmos6502(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      //if (i=(size-1)) and (not unsigned) then
+                      //  op:=A_SUB
+                      //else
+                      //  op:=A_CP;
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_const(A_CMP,byte(right.location.value shr (i*8))));
+                      if (i=(size-1)) and (not unsigned) then
+                        case actualnodetype of
+                          ltn,
+                          lten:
+                            tcgmos6502(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgmos6502(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042210);
+                        end
+                      else if i<>0 then
+                        case actualnodetype of
+                          ltn,
+                          lten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042211);
+                        end
+                      else
+                        case actualnodetype of
+                          ltn:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                          lten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                          gtn:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                          gten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                          else
+                            internalerror(2020042215);
+                        end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=size-1 downto 0 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgmos6502(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      //if (i=(size-1)) and (not unsigned) then
+                      //  op:=A_SUB
+                      //else
+                      //  op:=A_CP;
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_CMP,tcgmos6502(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
+                      if (i=(size-1)) and (not unsigned) then
+                        case actualnodetype of
+                          ltn,
+                          lten:
+                            tcgmos6502(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgmos6502(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042212);
+                        end
+                      else if i<>0 then
+                        case actualnodetype of
+                          ltn,
+                          lten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042213);
+                        end
+                      else
+                        case actualnodetype of
+                          ltn:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                          lten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                          gtn:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                          gten:
+                            tcgmos6502(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                          else
+                            internalerror(2020042216);
+                        end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  { Already handled before the case statement. Nothing to do here. }
+                end;
+              else
+                internalerror(2020042106);
+            end;
+          end;
+      end;
 
 
     function TMOS6502AddNode.pass_1 : tnode;
@@ -673,10 +673,10 @@ interface
 
     procedure TMOS6502AddNode.second_cmpordinal;
       begin
-        //if left.resultdef.size>=2 then
-        //  second_cmp16_32_64bit
-        //else
-        //  second_cmp;
+        if left.resultdef.size>=2 then
+          second_cmp16_32_64bit
+        else
+          second_cmp;
       end;
 
 begin
