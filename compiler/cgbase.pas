@@ -135,6 +135,10 @@ interface
          ,addr_lo8
          ,addr_hi8
          {$ENDIF}
+         {$IFDEF MOS6502}
+         ,addr_lo8
+         ,addr_hi8
+         {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
          ,addr_fardataseg  // the far data segment of the current pascal module (unit or program)
