@@ -1588,40 +1588,43 @@ unit cgcpu;
 
      procedure tcgmos6502.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;
        const Ref : treference;reg : tregister);
-       //var
-       //  href : treference;
-       //  i : integer;
+       var
+         href : treference;
+         i : integer;
        //  regsused: tregisterlist;
        begin
          list.Concat(tai_comment.Create(strpnew('TODO: a_load_ref_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+ref2string(Ref)+' '+std_regname(reg))));
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021301);
-         //if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
-         //  fromsize:=tosize;
-         //
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021301);
+         if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
+           fromsize:=tosize;
+
          //href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
-         //if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
-         //  begin
-         //    getcpuregister(list,NR_A);
-         //    for i:=1 to tcgsize2size[fromsize] do
-         //      begin
-         //        list.concat(taicpu.op_reg_ref(A_LD,NR_A,href));
-         //        a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
-         //
-         //        if i<>tcgsize2size[fromsize] then
-         //          adjust_normalized_ref(list,href,1);
-         //        if i<>tcgsize2size[tosize] then
-         //          reg:=GetNextReg(reg);
-         //      end;
-         //    ungetcpuregisters(list,regsused);
-         //    ungetcpuregister(list,NR_A);
-         //    for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
-         //      begin
-         //        list.concat(taicpu.op_reg_const(A_LD,reg,0));
-         //        if i<>tcgsize2size[tosize] then
-         //          reg:=GetNextReg(reg);
-         //      end;
-         //  end
+         href:=Ref;
+         if (href.base=NR_NO) and (href.index=NR_NO) and
+            ((tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32])) then
+           begin
+             getcpuregister(list,NR_A);
+             for i:=1 to tcgsize2size[fromsize] do
+               begin
+                 list.concat(taicpu.op_ref(A_LDA,href));
+                 list.concat(taicpu.op_reg(A_STA,reg));
+                 //a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+
+                 //if i<>tcgsize2size[fromsize] then
+                 //  adjust_normalized_ref(list,href,1);
+                 if i<>tcgsize2size[tosize] then
+                   reg:=GetNextReg(reg);
+               end;
+             //ungetcpuregisters(list,regsused);
+             ungetcpuregister(list,NR_A);
+             //for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+             //  begin
+             //    list.concat(taicpu.op_reg_const(A_LD,reg,0));
+             //    if i<>tcgsize2size[tosize] then
+             //      reg:=GetNextReg(reg);
+             //  end;
+           end
          //else
          //  begin
          //    getcpuregister(list,NR_A);
