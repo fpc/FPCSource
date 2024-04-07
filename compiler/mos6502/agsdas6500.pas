@@ -884,7 +884,7 @@ unit agsdas6500;
             id     : as_sdcc_sdas6500;
 
             idtxt  : 'SDCC-SDAS6500';
-            asmbin : 'sdasz80';
+            asmbin : 'sdas6500';
             asmcmd : '-g -o $EXTRAOPT $OBJ $ASM';
             supported_targets : [system_mos6502_embedded];
             flags : [af_needar];
