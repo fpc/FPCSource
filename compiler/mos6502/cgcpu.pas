@@ -87,8 +87,8 @@ unit cgcpu;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
 
-        { Z80-specific unsigned comparison code generation jmp helper }
-        //procedure a_jmp_unsigned_cmp_3way(list : TAsmList;onbelow,onequal,onabove: tasmlabel);
+        { 6502-specific unsigned comparison code generation jmp helper }
+        procedure a_jmp_unsigned_cmp_3way(list : TAsmList;onbelow,onequal,onabove: tasmlabel);
         { Z80-specific signed comparison code generation jmp helper. Should follow a SUB instruction,
           and the A register must still contain the result. }
         //procedure a_jmp_signed_cmp_3way(list : TAsmList;onless,onequal,ongreater: tasmlabel);
@@ -1908,75 +1908,75 @@ unit cgcpu;
       end;
 
 
-    //procedure tcgmos6502.a_jmp_unsigned_cmp_3way(list: TAsmList; onbelow, onequal, onabove: tasmlabel);
-    //  var
-    //    skiplabel: TAsmLabel;
-    //  begin
-    //    if      (onbelow= nil) and (onequal= nil) and (onabove= nil) then
-    //      {nothing}
-    //    else if (onbelow= nil) and (onequal= nil) and (onabove<>nil) then
-    //      begin
-    //        current_asmdata.getjumplabel(skiplabel);
-    //        a_jmp_flags(list,F_E,skiplabel);
-    //        a_jmp_flags(list,F_NC,onabove);
-    //        cg.a_label(list,skiplabel);
-    //      end
-    //    else if (onbelow= nil) and (onequal<>nil) and (onabove= nil) then
-    //      a_jmp_flags(list,F_E,onequal)
-    //    else if (onbelow= nil) and (onequal<>nil) and (onabove<>nil) then
-    //      begin
-    //        if onequal<>onabove then
-    //          a_jmp_flags(list,F_E,onequal);
-    //        a_jmp_flags(list,F_NC,onabove);
-    //      end
-    //    else if (onbelow<>nil) and (onequal= nil) and (onabove= nil) then
-    //      a_jmp_flags(list,F_C,onbelow)
-    //    else if (onbelow<>nil) and (onequal= nil) and (onabove<>nil) then
-    //      begin
-    //        if onbelow<>onabove then
-    //          a_jmp_flags(list,F_C,onbelow);
-    //        a_jmp_flags(list,F_NE,onabove);
-    //      end
-    //    else if (onbelow<>nil) and (onequal<>nil) and (onabove= nil) then
-    //      begin
-    //        a_jmp_flags(list,F_C,onbelow);
-    //        a_jmp_flags(list,F_E,onequal);
-    //      end
-    //    else if (onbelow<>nil) and (onequal<>nil) and (onabove<>nil) then
-    //      begin
-    //        if (onbelow=onequal) and (onequal=onabove) then
-    //          a_jmp_always(list,onbelow)
-    //        else if onequal=onabove then
-    //          begin
-    //            a_jmp_flags(list,F_C,onbelow);
-    //            a_jmp_always(list,onabove);
-    //          end
-    //        else if onbelow=onequal then
-    //          begin
-    //            a_jmp_flags(list,F_C,onbelow);
-    //            a_jmp_flags(list,F_E,onequal);
-    //            a_jmp_always(list,onabove);
-    //          end
-    //        else if onbelow=onabove then
-    //          begin
-    //            a_jmp_flags(list,F_E,onequal);
-    //            a_jmp_always(list,onabove);
-    //          end
-    //        else
-    //          begin
-    //            { the generic case - all 3 are different labels }
-    //            a_jmp_flags(list,F_C,onbelow);
-    //            a_jmp_flags(list,F_E,onequal);
-    //            a_jmp_always(list,onabove);
-    //          end;
-    //      end
-    //    else
-    //      begin
-    //        { Shouldn't happen! All possible combinations are handled by the above code. }
-    //        internalerror(2020042201);
-    //      end;
-    //  end;
-    //
+    procedure tcgmos6502.a_jmp_unsigned_cmp_3way(list: TAsmList; onbelow, onequal, onabove: tasmlabel);
+      var
+        skiplabel: TAsmLabel;
+      begin
+        if      (onbelow= nil) and (onequal= nil) and (onabove= nil) then
+          {nothing}
+        else if (onbelow= nil) and (onequal= nil) and (onabove<>nil) then
+          begin
+            current_asmdata.getjumplabel(skiplabel);
+            a_jmp_flags(list,F_EQ,skiplabel);
+            a_jmp_flags(list,F_CS,onabove);
+            cg.a_label(list,skiplabel);
+          end
+        else if (onbelow= nil) and (onequal<>nil) and (onabove= nil) then
+          a_jmp_flags(list,F_EQ,onequal)
+        else if (onbelow= nil) and (onequal<>nil) and (onabove<>nil) then
+          begin
+            if onequal<>onabove then
+              a_jmp_flags(list,F_EQ,onequal);
+            a_jmp_flags(list,F_CS,onabove);
+          end
+        else if (onbelow<>nil) and (onequal= nil) and (onabove= nil) then
+          a_jmp_flags(list,F_CC,onbelow)
+        else if (onbelow<>nil) and (onequal= nil) and (onabove<>nil) then
+          begin
+            if onbelow<>onabove then
+              a_jmp_flags(list,F_CC,onbelow);
+            a_jmp_flags(list,F_NE,onabove);
+          end
+        else if (onbelow<>nil) and (onequal<>nil) and (onabove= nil) then
+          begin
+            a_jmp_flags(list,F_CC,onbelow);
+            a_jmp_flags(list,F_EQ,onequal);
+          end
+        else if (onbelow<>nil) and (onequal<>nil) and (onabove<>nil) then
+          begin
+            if (onbelow=onequal) and (onequal=onabove) then
+              a_jmp_always(list,onbelow)
+            else if onequal=onabove then
+              begin
+                a_jmp_flags(list,F_CC,onbelow);
+                a_jmp_always(list,onabove);
+              end
+            else if onbelow=onequal then
+              begin
+                a_jmp_flags(list,F_CC,onbelow);
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,onabove);
+              end
+            else if onbelow=onabove then
+              begin
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,onabove);
+              end
+            else
+              begin
+                { the generic case - all 3 are different labels }
+                a_jmp_flags(list,F_CC,onbelow);
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,onabove);
+              end;
+          end
+        else
+          begin
+            { Shouldn't happen! All possible combinations are handled by the above code. }
+            internalerror(2020042201);
+          end;
+      end;
+
     //procedure tcgmos6502.a_jmp_signed_cmp_3way(list: TAsmList; onless, onequal, ongreater: tasmlabel);
     //  var
     //    l, skiplabel: TAsmLabel;
