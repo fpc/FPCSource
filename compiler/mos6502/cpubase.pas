@@ -85,7 +85,7 @@ unit cpubase;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_A;
-      first_int_imreg = 256;
+      first_int_imreg = 2048;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_INVALID;

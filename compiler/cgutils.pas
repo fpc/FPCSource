@@ -33,11 +33,16 @@ unit cgutils;
       cpubase,cgbase;
 
     const
+{$ifdef MOS6502}
+      { temporary hack, due to the lack of large sets support }
+      maxcpuregister = 255;
+{$else MOS6502}
       { implementation of max function using only functionality that can be
         evaluated as a constant expression by the compiler -- this is
         basically maxcpureg = max(max(first_int_imreg,first_fpu_imreg),first_mm_imreg)-1 }
       tmpmaxcpufpuintreg = first_int_imreg + ((first_fpu_imreg - first_int_imreg) * ord(first_int_imreg < first_fpu_imreg));
       maxcpuregister = (tmpmaxcpufpuintreg + ((first_mm_imreg - tmpmaxcpufpuintreg) * ord(tmpmaxcpufpuintreg < first_mm_imreg)))-1;
+{$endif MOS6502}
 
     type
       { Set type definition for cpuregisters }
