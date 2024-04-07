@@ -416,40 +416,40 @@ unit cpupara;
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            //if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
-            //  begin
-            //    case retcgsize of
-            //      OS_32,
-            //      OS_F32:
-            //        begin
-            //          paraloc^.loc:=LOC_REGISTER;
-            //          paraloc^.register:=NR_L;
-            //          paraloc^.size:=OS_8;
-            //          paraloc^.def:=u8inttype;
-            //
-            //          paraloc:=result.add_location;
-            //          paraloc^.loc:=LOC_REGISTER;
-            //          paraloc^.register:=NR_H;
-            //          paraloc^.size:=OS_8;
-            //          paraloc^.def:=u8inttype;
-            //
-            //          paraloc:=result.add_location;
-            //          paraloc^.loc:=LOC_REGISTER;
-            //          paraloc^.register:=NR_E;
-            //          paraloc^.size:=OS_8;
-            //          paraloc^.def:=u8inttype;
-            //
-            //          paraloc:=result.add_location;
-            //          paraloc^.loc:=LOC_REGISTER;
-            //          paraloc^.register:=NR_D;
-            //          paraloc^.size:=OS_8;
-            //          paraloc^.def:=u8inttype;
-            //        end;
-            //      else
-            //        internalerror(2005082603);
-            //    end;
-            //  end
-            //else
+            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+              begin
+                case retcgsize of
+                  OS_32,
+                  OS_F32:
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_RZB0;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+
+                      paraloc:=result.add_location;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_RZB1;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+
+                      paraloc:=result.add_location;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_RZB2;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+
+                      paraloc:=result.add_location;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_RZB3;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+                    end;
+                  else
+                    internalerror(2005082603);
+                end;
+              end
+            else
               begin
                 paraloc^.loc:=LOC_FPUREGISTER;
                 paraloc^.register:=NR_FPU_RESULT_REG;
