@@ -1659,11 +1659,26 @@ unit cgcpu;
        //  i : integer;
        begin
          list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2))));
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021310);
-         //if tcgsize2size[fromsize]>tcgsize2size[tosize] then
-         //  fromsize:=tosize;
-         //
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021310);
+         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+           fromsize:=tosize;
+
+         if is_6502_general_purpose_register(reg1) and is_6502_general_purpose_register(reg2) then
+           begin
+             if not (fromsize in [OS_8,OS_S8]) or not (tosize in [OS_8,OS_S8]) then
+               internalerror(2024040704);
+             if (reg1=NR_A) and (reg2=NR_X) then
+               list.Concat(taicpu.op_none(A_TAX))
+             else if (reg1=NR_A) and (reg2=NR_Y) then
+               list.Concat(taicpu.op_none(A_TAY))
+             else if (reg1=NR_X) and (reg2=NR_A) then
+               list.Concat(taicpu.op_none(A_TXA))
+             else if (reg1=NR_Y) and (reg2=NR_A) then
+               list.Concat(taicpu.op_none(A_TYA))
+             else
+               internalerror(2024040705);
+           end;
          //if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
          //  begin
          //    if reg1<>reg2 then
