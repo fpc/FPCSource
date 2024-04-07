@@ -280,6 +280,8 @@ unit cpubase;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
+    function is_6502_general_purpose_register(r:TRegister):boolean;
+    function is_6502_index_register(r:TRegister):boolean;
     function is_regpair(r:Tregister):boolean;
     procedure split_regpair(regpair:Tregister;out reglo,reghi:Tregister);
     { Checks if sreg is a subset of reg (e.g. NR_H is a subset of NR_HL }
@@ -391,6 +393,18 @@ unit cpubase;
           result:=std_regname_table[p]
         else
           result:=generic_regname(r);
+      end;
+
+
+    function is_6502_general_purpose_register(r:TRegister):boolean;
+      begin
+        result:=(r=NR_A) or (r=NR_X) or (r=NR_Y);
+      end;
+
+
+    function is_6502_index_register(r:TRegister):boolean;
+      begin
+        result:=(r=NR_X) or (r=NR_Y);
       end;
 
 
