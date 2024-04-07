@@ -128,10 +128,46 @@ unit cgcpu;
 
     procedure create_codegen;
 
-    //const
-    //  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_LD,A_ADD,A_AND,A_NONE,
-    //                        A_NONE,A_NONE,A_NONE,A_NEG,A_CPL,A_OR,
-    //                        A_SRA,A_SLA,A_SRL,A_SUB,A_XOR,A_RLCA,A_RRCA);
+    {     OP_NONE,
+          OP_MOVE,      { replaced operation with direct load }
+          OP_ADD,       { simple addition          }
+          OP_AND,       { simple logical and       }
+          OP_DIV,       { simple unsigned division }
+          OP_IDIV,      { simple signed division   }
+          OP_IMUL,      { simple signed multiply   }
+          OP_MUL,       { simple unsigned multiply }
+          OP_NEG,       { simple negate            }
+          OP_NOT,       { simple logical not       }
+          OP_OR,        { simple logical or        }
+          OP_SAR,       { arithmetic shift-right   }
+          OP_SHL,       { logical shift left       }
+          OP_SHR,       { logical shift right      }
+          OP_SUB,       { simple subtraction       }
+          OP_XOR,       { simple exclusive or      }
+          OP_ROL,       { rotate left              }
+          OP_ROR        { rotate right             }
+}
+    const
+      TOpCG2AsmOp: Array[topcg] of TAsmOp = (
+        A_NONE,   { OP_NONE }
+        A_NONE,   { OP_MOVE }
+        A_NONE,   { OP_ADD  }
+        A_AND,    { OP_AND  }
+        A_NONE,   { OP_DIV  }
+        A_NONE,   { OP_IDIV }
+        A_NONE,   { OP_IMUL }
+        A_NONE,   { OP_MUL  }
+        A_NONE,   { OP_NEG  }
+        A_NONE,   { OP_NOT  }
+        A_ORA,    { OP_OR   }
+        A_NONE,   { OP_SAR  }
+        A_NONE,   { OP_SHL  }
+        A_NONE,   { OP_SHR  }
+        A_NONE,   { OP_SUB  }
+        A_EOR,    { OP_XOR  }
+        A_NONE,   { OP_ROL  }
+        A_NONE);  { OP_ROR  }
+
   implementation
 
     uses
@@ -692,7 +728,7 @@ unit cgcpu;
        //  l1,l2 : tasmlabel;
 
        begin
-         //case op of
+         case op of
          //  OP_ADD:
          //    begin
          //      getcpuregister(list,NR_A);
@@ -883,23 +919,26 @@ unit cgcpu;
          //      ungetcpuregister(list,NR_B);
          //      cg.a_label(list,l2);
          //    end;
-         //
-         //  OP_AND,OP_OR,OP_XOR:
-         //    begin
-         //      getcpuregister(list,NR_A);
-         //      for i:=1 to tcgsize2size[size] do
-         //        begin
-         //          if i<>1 then
-         //            NextSrcDst;
-         //          a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
-         //          list.concat(taicpu.op_reg_reg(topcg2asmop[op],NR_A,src));
-         //          a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-         //        end;
-         //      ungetcpuregister(list,NR_A);
-         //    end;
-         //  else
-         //    internalerror(2011022004);
-         //end;
+
+           OP_AND,OP_OR,OP_XOR:
+             begin
+               getcpuregister(list,NR_A);
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   if i<>1 then
+                     NextSrcDst;
+                   a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+                   list.concat(taicpu.op_reg(topcg2asmop[op],src));
+                   a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                 end;
+               ungetcpuregister(list,NR_A);
+             end;
+           else
+             begin
+               list.Concat(tai_comment.Create(strpnew('TODO: a_op_reg_reg_internal '+topcg2str(Op))));
+               //internalerror(2011022004);
+             end;
+         end;
        end;
 
      procedure tcgmos6502.a_op_const_reg_internal(list: TAsmList; Op: TOpCG;
