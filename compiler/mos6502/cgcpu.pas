@@ -1899,12 +1899,12 @@ unit cgcpu;
 
 
     procedure tcgmos6502.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
-      //var
-      //  ai : taicpu;
+      var
+        ai : taicpu;
       begin
-        //ai:=taicpu.op_cond_sym(A_Bxx,flags_to_cond(f),l);
-        //ai.is_jmp:=true;
-        //list.concat(ai);
+        ai:=taicpu.op_cond_sym(A_Bxx,flags_to_cond(f),l);
+        ai.is_jmp:=true;
+        list.concat(ai);
       end;
 
 
