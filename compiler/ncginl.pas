@@ -757,15 +757,15 @@ implementation
     procedure tcginlinenode.second_abs_long;
       var
         tempreg1, tempreg2: tregister;
-{$if not(defined(cpu64bitalu))}
+{$if not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
         tempreg64: tregister64;
-{$endif not(defined(cpu64bitalu))}
+{$endif not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
         ovloc: tlocation;
       begin
         secondpass(left);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location:=left.location;
-{$if not(defined(cpu64bitalu))}
+{$if not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
         if is_64bitint(left.resultdef) then
           begin
             location:=left.location;
@@ -785,7 +785,7 @@ implementation
               cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64);
           end
         else
-{$endif not(defined(cpu64bitalu))}
+{$endif not(defined(cpu64bitalu)) and not defined(cpuhighleveltarget)}
           begin
             location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
