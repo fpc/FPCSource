@@ -167,7 +167,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if def.size>2 then
+            if def.size>4 then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
@@ -461,6 +461,31 @@ unit cpupara;
         else
           begin
             case retcgsize of
+              OS_32,OS_S32:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_RZB0;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_RZB1;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_RZB2;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_RZB3;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
               OS_16,OS_S16:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
