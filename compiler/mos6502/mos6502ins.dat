@@ -1,3 +1,18 @@
+; Addressing Modes:
+; void      - Implicit
+; A         - Accumulator
+; #         - Immediate
+; zpg       - Zero Page
+; zpg,X     - Zero Page,X
+; zpg,Y     - Zero Page,Y
+; rel       - Relative
+; abs       - Absolute
+; abs,X     - Absolute,X
+; abs,Y     - Absolute,Y
+; (ind)     - Indirect
+; (ind,X)   - Indexed Indirect
+; (ind),Y   - Indirect Indexed
+
 [None]
 void                  0
 
