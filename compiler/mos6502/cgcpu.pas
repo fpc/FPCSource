@@ -1307,16 +1307,31 @@ unit cgcpu;
 
 
      procedure tcgmos6502.a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference);
-       //var
-       //  mask : qword;
-       //  shift : byte;
-       //  href: treference;
-       //  i: Integer;
+       var
+         mask : qword;
+         shift : byte;
+         href: treference;
+         i: Integer;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref')));
-         //mask:=$ff;
-         //shift:=0;
-         //href:=ref;
+         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref '+tcgsize2str(size) + ' '+tostr(a))));
+         mask:=$ff;
+         shift:=0;
+         href:=ref;
+         if (href.base=NR_NO) and (href.index=NR_NO) then
+           begin
+             { TODO: get/unget register A }
+             for i:=tcgsize2size[size] downto 1 do
+               begin
+                 list.Concat(taicpu.op_const(A_LDA,(qword(a) and mask) shr shift));
+                 list.Concat(taicpu.op_ref(A_STA,href));
+                 if i<>1 then
+                   begin
+                     mask:=mask shl 8;
+                     inc(shift,8);
+                     inc(href.offset);
+                   end;
+               end;
+           end;
          //if (href.base=NR_NO) and (href.index<>NR_NO) then
          //  begin
          //    href.base:=href.index;
