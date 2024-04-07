@@ -652,6 +652,7 @@ unit cgcpu;
 
      procedure tcgmos6502.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_op_const_reg '+topcg2str(Op)+' '+tcgsize2str(size)+' '+tostr(a)+' '+std_regname(reg))));
          if not(size in [OS_S8,OS_8,OS_S16,OS_16,OS_S32,OS_32]) then
            internalerror(2012102403);
          //a_op_const_reg_internal(list,Op,size,a,reg,NR_NO);
@@ -660,6 +661,7 @@ unit cgcpu;
 
      procedure tcgmos6502.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister);
        begin
+         list.Concat(tai_comment.Create(strpnew('TODO: a_op_reg_reg '+topcg2str(Op)+' '+tcgsize2str(size)+' '+std_regname(src)+' '+std_regname(dst))));
          if not(size in [OS_S8,OS_8,OS_S16,OS_16,OS_S32,OS_32]) then
            internalerror(2012102401);
          //a_op_reg_reg_internal(list,Op,size,src,NR_NO,dst,NR_NO);
