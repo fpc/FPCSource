@@ -2477,13 +2477,65 @@ unit cgcpu;
 
     procedure tcgmos6502.emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
       //var
-      //   instr: taicpu;
+      //  instr: taicpu;
       begin
-       //instr:=taicpu.op_reg_reg(A_LD,reg2,reg1);
-       //list.Concat(instr);
-       //{ Notify the register allocator that we have written a move instruction so
-       //  it can try to eliminate it. }
-       //add_move_instruction(instr);
+        if reg1=reg2 then
+          exit;
+        if reg1=NR_A then
+          begin
+            if reg2=NR_X then
+              list.Concat(taicpu.op_none(A_TAX))
+            else if reg2=NR_Y then
+              list.Concat(taicpu.op_none(A_TAY))
+            else
+              list.Concat(taicpu.op_reg(A_STA,reg2));
+          end
+        else if reg1=NR_X then
+          begin
+            if reg2=NR_A then
+              list.Concat(taicpu.op_none(A_TXA))
+            else if reg2=NR_Y then
+              begin
+                getcpuregister(list,NR_A);
+                list.Concat(taicpu.op_none(A_TXA));
+                list.Concat(taicpu.op_none(A_TAY));
+                ungetcpuregister(list,NR_A);
+              end
+            else
+              list.Concat(taicpu.op_reg(A_STX,reg2));
+          end
+        else if reg1=NR_Y then
+          begin
+            if reg2=NR_A then
+              list.Concat(taicpu.op_none(A_TYA))
+            else if reg2=NR_Y then
+              begin
+                getcpuregister(list,NR_A);
+                list.Concat(taicpu.op_none(A_TYA));
+                list.Concat(taicpu.op_none(A_TAX));
+                ungetcpuregister(list,NR_A);
+              end
+            else
+              list.Concat(taicpu.op_reg(A_STY,reg2));
+          end
+        else if reg2=NR_A then
+          list.Concat(taicpu.op_reg(A_LDA,reg1))
+        else if reg2=NR_X then
+          list.Concat(taicpu.op_reg(A_LDX,reg1))
+        else if reg2=NR_Y then
+          list.Concat(taicpu.op_reg(A_LDY,reg1))
+        else
+          begin
+            getcpuregister(list,NR_A);
+            list.Concat(taicpu.op_reg(A_LDA,reg1));
+            list.Concat(taicpu.op_reg(A_STA,reg2));
+            ungetcpuregister(list,NR_A);
+          end;
+        //instr:=taicpu.op_reg_reg(A_LD,reg2,reg1);
+        //list.Concat(instr);
+        { Notify the register allocator that we have written a move instruction so
+          it can try to eliminate it. }
+        //add_move_instruction(instr);
       end;
 
 
