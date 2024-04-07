@@ -232,7 +232,7 @@ begin
         end
       else
         first:=false;
-      writeln(supfile,'RS_',names[i],' = ',StrToInt(numbers[i]) and $ff,';');
+      writeln(supfile,'RS_',names[i],' = ',StrToInt(numbers[i]) and $ffff,';');
       writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
       write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
