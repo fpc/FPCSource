@@ -1653,12 +1653,24 @@ unit cgcpu;
 
 
      procedure tcgmos6502.a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);
-       //var
+       var
        //  conv_done: boolean;
        //  tmpreg : tregister;
-       //  i : integer;
+         i : integer;
        begin
+         { sign extend
+
+           AND #$80
+           ASL A -> sign bit goes to the Carry flag
+
+           SBC #$01
+
+           ADC #$FF
+           EOR #$FF
+
+         }
          list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2))));
+         Writeln('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2));
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021310);
          if tcgsize2size[fromsize]>tcgsize2size[tosize] then
@@ -1678,29 +1690,35 @@ unit cgcpu;
                list.Concat(taicpu.op_none(A_TYA))
              else
                internalerror(2024040705);
-           end;
-         //if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
-         //  begin
-         //    if reg1<>reg2 then
-         //      for i:=1 to tcgsize2size[fromsize] do
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //          if i<>tcgsize2size[fromsize] then
-         //            reg1:=GetNextReg(reg1);
-         //          if i<>tcgsize2size[tosize] then
-         //            reg2:=GetNextReg(reg2);
-         //        end
-         //    else
-         //      for i:=1 to tcgsize2size[fromsize] do
-         //        if i<>tcgsize2size[tosize] then
-         //          reg2:=GetNextReg(reg2);
-         //    for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
-         //      begin
-         //        list.Concat(taicpu.op_reg_const(A_LD,reg2,0));
-         //        if i<>tcgsize2size[tosize] then
-         //          reg2:=GetNextReg(reg2);
-         //      end
-         //  end
+           end
+         else if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
+           begin
+             if reg1<>reg2 then
+               for i:=1 to tcgsize2size[fromsize] do
+                 begin
+                   emit_mov(list,reg2,reg1);
+                   if i<>tcgsize2size[fromsize] then
+                     reg1:=GetNextReg(reg1);
+                   if i<>tcgsize2size[tosize] then
+                     reg2:=GetNextReg(reg2);
+                 end
+             else
+               for i:=1 to tcgsize2size[fromsize] do
+                 if i<>tcgsize2size[tosize] then
+                   reg2:=GetNextReg(reg2);
+             if tcgsize2size[tosize]>tcgsize2size[fromsize] then
+               begin
+                 getcpuregister(list,NR_A);
+                 list.Concat(taicpu.op_const(A_LDA,0));
+                 for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+                   begin
+                     list.Concat(taicpu.op_reg(A_STA,reg2));
+                     if i<>tcgsize2size[tosize] then
+                       reg2:=GetNextReg(reg2);
+                   end;
+                 ungetcpuregister(list,NR_A);
+               end;
+           end
          //else
          //  begin
          //    if reg1<>reg2 then
