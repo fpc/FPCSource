@@ -89,9 +89,8 @@ unit cgcpu;
 
         { 6502-specific unsigned comparison code generation jmp helper }
         procedure a_jmp_unsigned_cmp_3way(list : TAsmList;onbelow,onequal,onabove: tasmlabel);
-        { Z80-specific signed comparison code generation jmp helper. Should follow a SUB instruction,
-          and the A register must still contain the result. }
-        //procedure a_jmp_signed_cmp_3way(list : TAsmList;onless,onequal,ongreater: tasmlabel);
+        { 6502-specific signed comparison code generation jmp helper }
+        procedure a_jmp_signed_cmp_3way(list : TAsmList;onless,onequal,ongreater: tasmlabel);
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
@@ -1977,115 +1976,74 @@ unit cgcpu;
           end;
       end;
 
-    //procedure tcgmos6502.a_jmp_signed_cmp_3way(list: TAsmList; onless, onequal, ongreater: tasmlabel);
-    //  var
-    //    l, skiplabel: TAsmLabel;
-    //  begin
-    //    if      (onless= nil) and (onequal= nil) and (ongreater= nil) then
-    //      {nothing}
-    //    else if (onless= nil) and (onequal= nil) and (ongreater<>nil) then
-    //      begin
-    //        current_asmdata.getjumplabel(skiplabel);
-    //        a_jmp_flags(list,F_E,skiplabel);
-    //        current_asmdata.getjumplabel(l);
-    //        a_jmp_flags(list,F_PO,l);
-    //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //        cg.a_label(current_asmdata.CurrAsmList,l);
-    //        a_jmp_flags(list,F_P,ongreater);
-    //        cg.a_label(list,skiplabel);
-    //      end
-    //    else if (onless= nil) and (onequal<>nil) and (ongreater= nil) then
-    //      a_jmp_flags(list,F_E,onequal)
-    //    else if (onless= nil) and (onequal<>nil) and (ongreater<>nil) then
-    //      begin
-    //        if onequal<>ongreater then
-    //          a_jmp_flags(list,F_E,onequal);
-    //        current_asmdata.getjumplabel(l);
-    //        a_jmp_flags(list,F_PO,l);
-    //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //        cg.a_label(current_asmdata.CurrAsmList,l);
-    //        a_jmp_flags(list,F_P,ongreater);
-    //      end
-    //    else if (onless<>nil) and (onequal= nil) and (ongreater= nil) then
-    //      begin
-    //        current_asmdata.getjumplabel(l);
-    //        a_jmp_flags(list,F_PO,l);
-    //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //        cg.a_label(current_asmdata.CurrAsmList,l);
-    //        a_jmp_flags(list,F_M,onless);
-    //      end
-    //    else if (onless<>nil) and (onequal= nil) and (ongreater<>nil) then
-    //      begin
-    //        if onless=ongreater then
-    //          a_jmp_flags(list,F_NE,onless)
-    //        else
-    //          begin
-    //            current_asmdata.getjumplabel(skiplabel);
-    //            a_jmp_flags(list,F_E,skiplabel);
-    //            current_asmdata.getjumplabel(l);
-    //            a_jmp_flags(list,F_PO,l);
-    //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //            cg.a_label(current_asmdata.CurrAsmList,l);
-    //            a_jmp_flags(list,F_M,onless);
-    //            a_jmp_always(list,ongreater);
-    //            cg.a_label(list,skiplabel);
-    //          end;
-    //      end
-    //    else if (onless<>nil) and (onequal<>nil) and (ongreater= nil) then
-    //      begin
-    //        a_jmp_flags(list,F_E,onequal);
-    //        current_asmdata.getjumplabel(l);
-    //        a_jmp_flags(list,F_PO,l);
-    //        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //        cg.a_label(current_asmdata.CurrAsmList,l);
-    //        a_jmp_flags(list,F_M,onless);
-    //      end
-    //    else if (onless<>nil) and (onequal<>nil) and (ongreater<>nil) then
-    //      begin
-    //        if (onless=onequal) and (onequal=ongreater) then
-    //          a_jmp_always(list,onless)
-    //        else if onequal=ongreater then
-    //          begin
-    //            current_asmdata.getjumplabel(l);
-    //            a_jmp_flags(list,F_PO,l);
-    //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //            cg.a_label(current_asmdata.CurrAsmList,l);
-    //            a_jmp_flags(list,F_M,onless);
-    //            a_jmp_always(list,ongreater);
-    //          end
-    //        else if onless=onequal then
-    //          begin
-    //            a_jmp_flags(list,F_E,onequal);
-    //            current_asmdata.getjumplabel(l);
-    //            a_jmp_flags(list,F_PO,l);
-    //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //            cg.a_label(current_asmdata.CurrAsmList,l);
-    //            a_jmp_flags(list,F_M,onless);
-    //            a_jmp_always(list,ongreater);
-    //          end
-    //        else if onless=ongreater then
-    //          begin
-    //            a_jmp_flags(list,F_E,onequal);
-    //            a_jmp_always(list,ongreater);
-    //          end
-    //        else
-    //          begin
-    //            { the generic case - all 3 are different labels }
-    //            a_jmp_flags(list,F_E,onequal);
-    //            current_asmdata.getjumplabel(l);
-    //            a_jmp_flags(list,F_PO,l);
-    //            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-    //            cg.a_label(current_asmdata.CurrAsmList,l);
-    //            a_jmp_flags(list,F_M,onless);
-    //            a_jmp_always(list,ongreater);
-    //          end;
-    //      end
-    //    else
-    //      begin
-    //        { Shouldn't happen! All possible combinations are handled by the above code. }
-    //        internalerror(2020042204);
-    //      end;
-    //  end;
+    procedure tcgmos6502.a_jmp_signed_cmp_3way(list: TAsmList; onless, onequal, ongreater: tasmlabel);
+      var
+        skiplabel: TAsmLabel;
+      begin
+        if      (onless= nil) and (onequal= nil) and (ongreater= nil) then
+          {nothing}
+        else if (onless= nil) and (onequal= nil) and (ongreater<>nil) then
+          begin
+            current_asmdata.getjumplabel(skiplabel);
+            a_jmp_flags(list,F_EQ,skiplabel);
+            a_jmp_flags(list,F_PL,ongreater);
+            cg.a_label(list,skiplabel);
+          end
+        else if (onless= nil) and (onequal<>nil) and (ongreater= nil) then
+          a_jmp_flags(list,F_EQ,onequal)
+        else if (onless= nil) and (onequal<>nil) and (ongreater<>nil) then
+          begin
+            if onequal<>ongreater then
+              a_jmp_flags(list,F_EQ,onequal);
+            a_jmp_flags(list,F_PL,ongreater);
+          end
+        else if (onless<>nil) and (onequal= nil) and (ongreater= nil) then
+          a_jmp_flags(list,F_MI,onless)
+        else if (onless<>nil) and (onequal= nil) and (ongreater<>nil) then
+          begin
+            if onless<>ongreater then
+              a_jmp_flags(list,F_MI,onless);
+            a_jmp_flags(list,F_NE,ongreater);
+          end
+        else if (onless<>nil) and (onequal<>nil) and (ongreater= nil) then
+          begin
+            a_jmp_flags(list,F_MI,onless);
+            a_jmp_flags(list,F_EQ,onequal);
+          end
+        else if (onless<>nil) and (onequal<>nil) and (ongreater<>nil) then
+          begin
+            if (onless=onequal) and (onequal=ongreater) then
+              a_jmp_always(list,onless)
+            else if onequal=ongreater then
+              begin
+                a_jmp_flags(list,F_MI,onless);
+                a_jmp_always(list,ongreater);
+              end
+            else if onless=onequal then
+              begin
+                a_jmp_flags(list,F_MI,onless);
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,ongreater);
+              end
+            else if onless=ongreater then
+              begin
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,ongreater);
+              end
+            else
+              begin
+                { the generic case - all 3 are different labels }
+                a_jmp_flags(list,F_MI,onless);
+                a_jmp_flags(list,F_EQ,onequal);
+                a_jmp_always(list,ongreater);
+              end;
+          end
+        else
+          begin
+            { Shouldn't happen! All possible combinations are handled by the above code. }
+            internalerror(2020042204);
+          end;
+      end;
 
 
     procedure tcgmos6502.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
