@@ -14,11 +14,11 @@
 
  **********************************************************************}
 
-function fpc_setjmp(var S : jmp_buf) : shortint;[Public, alias : 'FPC_SETJMP'];nostackframe;compilerproc;
+function fpc_setjmp(var S : jmp_buf) : shortint;[Public, alias : 'FPC_SETJMP'];compilerproc;
   begin
   end;
 
 
-procedure fpc_longjmp(var S : jmp_buf;value : shortint);[Public, alias : 'FPC_LONGJMP'];nostackframe;compilerproc;
+procedure fpc_longjmp(var S : jmp_buf;value : shortint);[Public, alias : 'FPC_LONGJMP'];compilerproc;
   begin
   end;
