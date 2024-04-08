@@ -19,6 +19,7 @@ var
   globaldw: longword;
   globalqw: qword;
   ga, gb, gc: byte;
+  gwa, gwb, gwc: word;
 
 procedure Test6502;
 begin
@@ -32,4 +33,6 @@ begin
   ga := gb or gc;
   ga := gb xor gc;
   ga := not gb;
+  ga := -gb;
+  gwa := -gwb;
 end;
