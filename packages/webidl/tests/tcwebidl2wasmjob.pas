@@ -48,6 +48,8 @@ type
     procedure TestWJ_IntfFunction_ArgAny;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
+    // maplike
+    procedure TestWJ_MaplikeInterface;
   end;
 
 function LinesToStr(Args: array of const): TIDLString;
@@ -739,6 +741,87 @@ begin
   'end.',
   '']);
 
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_MaplikeInterface;
+begin
+  TestWebIDL([
+  '  interface PM {',
+  '    readonly maplike<DOMString, boolean>;',
+  '  };'
+  ],[
+  'Type',
+    '  // Forward class definitions',
+    '  IJSPM = interface;',
+    '  TJSPM = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSPM',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSPM = interface(IJSObject)',
+    '    [''{04D12607-C063-3E89-A483-3296C9C8AA41}'']',
+    '    function _Getsize: LongInt;',
+    '    function get(key: UnicodeString) : Boolean;',
+    '    function has(key: UnicodeString) : Boolean;',
+    '    function entries : IJSIterator;',
+    '    function keys : IJSIterator;',
+    '    function values : IJSIterator;',
+    '    property size : LongInt read _Getsize;',
+    '  end;',
+    '',
+    '  TJSPM = class(TJSObject,IJSPM)',
+    '  Private',
+    '    function _Getsize: LongInt;',
+    '  Public',
+    '    function get(key: UnicodeString) : Boolean;',
+    '    function has(key: UnicodeString) : Boolean;',
+    '    function entries : IJSIterator;',
+    '    function keys : IJSIterator;',
+    '    function values : IJSIterator;',
+    '    class function Cast(const Intf: IJSObject): IJSPM;',
+    '    property size : LongInt read _Getsize;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'function TJSPM._Getsize: LongInt;',
+    'begin',
+    '  Result:=ReadJSPropertyLongInt(''size'');',
+    'end;',
+    '',
+    'function TJSPM.get(key: UnicodeString) : Boolean;',
+    'begin',
+    '  Result:=InvokeJSBooleanResult(''get'',[key]);',
+    'end;',
+    '',
+    'function TJSPM.has(key: UnicodeString) : Boolean;',
+    'begin',
+    '  Result:=InvokeJSBooleanResult(''has'',[key]);',
+    'end;',
+    '',
+    'function TJSPM.entries : IJSIterator;',
+    'begin',
+    '  Result:=InvokeJSObjectResult(''entries'',[],TJSIterator) as IJSIterator;',
+    'end;',
+    '',
+    'function TJSPM.keys : IJSIterator;',
+    'begin',
+    '  Result:=InvokeJSObjectResult(''keys'',[],TJSIterator) as IJSIterator;',
+    'end;',
+    '',
+    'function TJSPM.values : IJSIterator;',
+    'begin',
+    '  Result:=InvokeJSObjectResult(''values'',[],TJSIterator) as IJSIterator;',
+    'end;',
+    '',
+    'class function TJSPM.Cast(const Intf: IJSObject): IJSPM;',
+    'begin',
+    '  Result:=TJSPM.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''
+  ]);
 end;
 
 initialization

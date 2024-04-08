@@ -161,6 +161,14 @@ type
     function WritePrivateReadOnlyFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    // Maplike-specific methods
+    function WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
+    function WriteMapLikeMethodDefinitions(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): integer; virtual;
+    function WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
+    function WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
+    // Implementations. For webidl2pas, these are empty
+    procedure WriteDefinitionImplementation(D: TIDLDefinition); virtual;
+    procedure WriteTypeDefsAndCallbackImplementations(aList: TIDLDefinitionList); virtual;
     // Definitions. Return true if a definition was written.
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; virtual;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
@@ -406,18 +414,32 @@ end;
 
 function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aParent: TIDLDefinition;
   aList: TIDLDefinitionList): Integer;
+var
+  D : TIDLDefinition;
+  MD : TIDLMapLikeDefinition absolute D;
+
 begin
   Result:=0;
   if aParent=nil then ;
   if aList=nil then ;
+  for D in aList do
+    if D is TIDLMapLikeDefinition then
+      Result:=Result+WriteMapLikePrivateReadOnlyFields(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WritePrivateGetters(
   aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
+var
+  D : TIDLDefinition;
+  MD : TIDLMapLikeDefinition absolute D;
+
 begin
   Result:=0;
   if aParent=nil then ;
   if aList=nil then ;
+  for D in aList do
+    if D is TIDLMapLikeDefinition then
+      Result:=Result+WriteMapLikePrivateGetters(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WritePrivateSetters(
@@ -428,12 +450,40 @@ begin
   if aList=nil then ;
 end;
 
+function TBaseWebIDLToPas.WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
+begin
+  Result:=1;
+  AddLn('fsize : NativeInt; external name ''size'';');
+end;
+
 function TBaseWebIDLToPas.WriteProperties(aParent: TIDLDefinition;
   aList: TIDLDefinitionList): Integer;
+
+var
+  D : TIDLDefinition;
+  MD : TIDLMapLikeDefinition absolute D;
+
 begin
   Result:=0;
   if aParent=nil then ;
   if aList=nil then ;
+  for D in aList do
+    if D is TIDLMapLikeDefinition then
+      Result:=Result+WriteMapLikeProperties(aParent,MD);
+end;
+
+function TBaseWebIDLToPas.WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
+
+begin
+  AddLn('property size : NativeInt read fsize;');
+  Result:=1;
+end;
+
+function TBaseWebIDLToPas.WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
+begin
+  Result:=0;
+  // AddLn('function _Getsize: NativeInt;');
+  Result:=1;
 end;
 
 function TBaseWebIDLToPas.WriteConst(aConst: TIDLConstDefinition): Boolean;
@@ -527,14 +577,47 @@ function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLStructuredDefinition;
 Var
   D: TIDLDefinition;
   FD: TIDLFunctionDefinition absolute D;
+  MD: TIDLMapLikeDefinition absolute D;
 
 begin
   Result:=0;
   for D in aList do
     if D is TIDLFunctionDefinition then
+      begin
       if Not (foCallBack in FD.Options) then
          if WriteFunctionDefinition(aParent,FD) then
            Inc(Result);
+      end
+    else if D is TIDLMaplikeDefinition then
+      Result:=Result+WriteMapLikeMethodDefinitions(aParent,MD);
+end;
+
+function TBaseWebIDLToPas.WriteMapLikeMethodDefinitions(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): integer;
+
+var
+  D1,KeyType,ValueType : String;
+  lReadOnly : Boolean;
+
+begin
+  Result:=0;
+  GetResolvedType(aMap.KeyType,D1,KeyType);
+  GetResolvedType(aMap.ValueType,D1,ValueType);
+//  KeyType:=GetResolName();
+//  ValueType:=GetName(aMap.ValueType);
+  lReadOnly:=aMap.IsReadonly;
+  AddLn('function get(key: %s) : %s;',[KeyType,ValueType]);
+  AddLn('function has(key: %s) : Boolean;',[KeyType]);
+  AddLn('function entries : IJSIterator;');
+  AddLn('function keys : IJSIterator;');
+  AddLn('function values : IJSIterator;');
+  Inc(Result,5);
+  if not lReadOnly then
+    begin
+    AddLn('procedure set_(key: %s; value : %s);',[KeyType,ValueType]);
+    AddLn('procedure clear;');
+    AddLn('procedure delete(key: %s);');
+    Inc(Result,3);
+    end;
 end;
 
 function TBaseWebIDLToPas.WriteUtilityMethods(Intf: TIDLStructuredDefinition
@@ -866,16 +949,32 @@ begin
   inherited Destroy;
 end;
 
+procedure TBaseWebIDLToPas.WriteTypeDefsAndCallbackImplementations(aList : TIDLDefinitionList);
+
+begin
+  // Do nothing
+end;
+
 procedure TBaseWebIDLToPas.WriteImplementation;
 
 Var
   S: String;
+  D : TIDLDefinition;
 
 begin
   Addln('');
   For S in FIncludeImplementationCode do
     Addln(S);
   Addln('');
+  WriteTypeDefsAndCallbackImplementations(Context.Definitions);
+  For D in Context.Definitions do
+    WriteDefinitionImplementation(D);
+end;
+
+Procedure TBaseWebIDLToPas.WriteDefinitionImplementation(D : TIDLDefinition);
+
+begin
+  if Assigned(D) then;
 end;
 
 function TBaseWebIDLToPas.GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean = False): String;
@@ -1876,6 +1975,11 @@ begin
     ResolveTypeDef(TIDLSequenceTypeDefDefinition(D).ElementType)
   else if D is TIDLPromiseTypeDefDefinition then
     ResolveTypeDef(TIDLPromiseTypeDefDefinition(D).ReturnType)
+  else if D is TIDLMapLikeDefinition then
+    begin
+    ResolveTypeDef(TIDLMapLikeDefinition(D).KeyType);
+    ResolveTypeDef(TIDLMapLikeDefinition(D).ValueType);
+    end
   else if D is TIDLTypeDefDefinition then
     ResolveTypeName(TIDLTypeDefDefinition(D).TypeName)
   else if D is TIDLConstDefinition then

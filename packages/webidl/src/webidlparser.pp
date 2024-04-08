@@ -1458,12 +1458,15 @@ Const
   SimpleTypeTokens = PrimitiveTokens+IdentifierTokens;
   TypeTokens = PrefixTokens+SimpleTypeTokens;
   ExtraTypeTokens = TypeTokens +[{tkStringToken,}tkVoid];
+{
   EnforceRange = 'EnforceRange';
   LegacyDOMString = 'LegacyNullToEmptyString';
   Clamp = 'Clamp';
+}
 
 Var
-  isClamp, haveID,isNull,isUnsigned, isDoubleLong, ok: Boolean;
+//  isClamp, haveID,isUnsigned, isDoubleLong,
+  isNull,ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
   Attrs : TExtAttributeList;
@@ -1479,8 +1482,8 @@ begin
       tk:=GetToken
     else
       tk:=CurrentToken;
-    HaveID:=False;
-    isClamp:=False;
+//    HaveID:=False;
+//    isClamp:=False;
     if tk=tkSquaredBraceOpen then
       begin
       Attrs:=TExtAttributeList.Create;
