@@ -666,8 +666,8 @@ Const
         fputype : fpu_fd;
   {$endif loongarch64}
   {$ifdef mos6502}
-        cputype : cpu_mos_6502;
-        optimizecputype : cpu_mos_6502;
+        cputype : cpu_mos_6502_rev_a;
+        optimizecputype : cpu_mos_6502_rev_a;
         asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif mos6502}

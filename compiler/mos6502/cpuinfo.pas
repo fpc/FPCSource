@@ -35,7 +35,8 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_mos_6502
+       cpu_mos_6502_rev_a,
+       cpu_mos_6502_rev_b
       );
 
    tfputype =
@@ -86,8 +87,9 @@ Const
      pocall_softfloat
    ];
 
-   cputypestr : array[tcputype] of string[5] = ('',
-     'MOS6502'
+   cputypestr : array[tcputype] of string[13] = ('',
+     'MOS6502 rev.A',
+     'MOS6502 rev.B'
    );
 
    fputypestr : array[tfputype] of string[6] = (
@@ -118,8 +120,9 @@ Const
 
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
-     ( { cpu_none  } [],
-       { cpu_mos_6502  } []
+     ( { cpu_none  }          [],
+       { cpu_mos_6502_rev_a } [],
+       { cpu_mos_6502_rev_b } [CPU6502_HAS_ROR]
      );
 
 Implementation
