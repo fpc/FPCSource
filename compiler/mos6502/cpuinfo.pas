@@ -88,8 +88,8 @@ Const
    ];
 
    cputypestr : array[tcputype] of string[13] = ('',
-     'MOS6502 rev.A',
-     'MOS6502 rev.B'
+     'MOS6502 rev.A',  { Pre-June 1976, doesn't support the ROR instruction }
+     'MOS6502 rev.B'   { After June 1976, the ROR instruction is added }
    );
 
    fputypestr : array[tfputype] of string[6] = (
