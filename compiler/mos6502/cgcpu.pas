@@ -1306,11 +1306,11 @@ unit cgcpu;
              if not (size in [OS_8,OS_S8]) then
                internalerror(2024040704);
              if reg=NR_A then
-               taicpu.op_const(A_LDA,byte(a))
+               list.Concat(taicpu.op_const(A_LDA,byte(a)))
              else if reg=NR_X then
-               taicpu.op_const(A_LDX,byte(a))
+               list.Concat(taicpu.op_const(A_LDX,byte(a)))
              else if reg=NR_Y then
-               taicpu.op_const(A_LDY,byte(a))
+               list.Concat(taicpu.op_const(A_LDY,byte(a)))
              else
                internalerror(2024040705);
            end
