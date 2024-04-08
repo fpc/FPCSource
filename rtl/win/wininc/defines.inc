@@ -1867,6 +1867,9 @@
      SYSTEM_FONT = 13;
      SYSTEM_FIXED_FONT = 16;
      DEFAULT_PALETTE = 15;
+     DC_BRUSH   = 18;
+     DC_PEN     = 19;
+
   { GetStringTypeA  }
      CT_CTYPE1 = 1;
      CT_CTYPE2 = 2;
