@@ -73,6 +73,7 @@ type
   private
     FPasInterfacePrefix: TIDLString;
     FPasInterfaceSuffix: TIDLString;
+    FGeneratingInterface : Boolean;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
     function GetInvokeNameFromTypeName(aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
@@ -381,6 +382,7 @@ var
   iIntf : TIDLInterfaceDefinition absolute Intf;
   aPasIntfName, Decl, ParentName: TIDLString;
   isNamespace : Boolean;
+
 begin
   Result:=1;
   isNameSpace:=Intf is TIDLNamespaceDefinition;
@@ -388,35 +390,40 @@ begin
 
   // Pascal interface and ancestor
   aPasIntfName:=GetPasIntfName(Intf);
+  FGeneratingInterface:=True;
+  try
+    Decl:=aPasIntfName+' = interface';
+    if (not IsNamespace) then
+      if Assigned(iIntf.ParentInterface) then
+        ParentName:=GetPasIntfName(iIntf.ParentInterface as TIDLInterfaceDefinition)
+      else
+        ParentName:=GetTypeName(Intf.ParentName);
+    if ParentName='' then
+      ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
+    if ParentName<>'' then
+      Decl:=Decl+'('+ParentName+')';
+    AddLn(Decl);
 
-  Decl:=aPasIntfName+' = interface';
-  if (not IsNamespace) then
-    if Assigned(iIntf.ParentInterface) then
-      ParentName:=GetPasIntfName(iIntf.ParentInterface as TIDLInterfaceDefinition)
-    else
-      ParentName:=GetTypeName(Intf.ParentName);
-  if ParentName='' then
-    ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
-  if ParentName<>'' then
-    Decl:=Decl+'('+ParentName+')';
-  AddLn(Decl);
+    Indent;
 
-  Indent;
+    // GUID
+    AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
 
-  // GUID
-  AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
+    // private members
+    WritePrivateGetters(Intf,aMemberList);
+    WritePrivateSetters(Intf,aMemberList);
 
-  // private members
-  WritePrivateGetters(Intf,aMemberList);
-  WritePrivateSetters(Intf,aMemberList);
+    // public members
+    WriteMethodDefs(Intf,aMemberList);
+    WriteProperties(Intf,aMemberList);
 
-  // public members
-  WriteMethodDefs(Intf,aMemberList);
-  WriteProperties(Intf,aMemberList);
+    Undent;
+    AddLn('end;');
+    AddLn('');
 
-  Undent;
-  AddLn('end;');
-  AddLn('');
+  finally
+    FGeneratingInterface:=False;
+  end;
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetters(aParent: TIDLStructuredDefinition;
@@ -588,7 +595,9 @@ begin
   if (foConstructor in aDef.Options) then
     begin
     FuncName:='New';
-    writeln('Note: skipping constructor of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
+    InvokeName:= 'InvokeJSObjectResult';
+    ResolvedReturnTypeName:=aParent.Name;
+    ReturnTypeName:=GetName(aParent);
     exit(Nil);
     end
   else
@@ -617,12 +626,14 @@ var
 begin
   Result:='';
   Args:=GetArguments(ArgDefList,False);
-  if (aReturnTypeName='') then
+  if (foConstructor in aDef.Options) then
     begin
-    if not (foConstructor in aDef.Options) then
-      ProcKind:='procedure'
-    else
-      ProcKind:='constructor';
+    ProcKind:='class function';
+    Result:='Create'+Args+' : '+aReturnTypeName;
+    end
+  else if (aReturnTypeName='') then
+    begin
+    ProcKind:='procedure';
     Result:=aFuncName+Args;
     end
   else
@@ -727,7 +738,10 @@ begin
           end;
         Args:=',['+Args+']';
 
-        InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args;
+        if foConstructor in aDef.Options then
+          InvokeCode:=InvokeCode+InvokeName+'('''+ResolvedReturnTypeName+''''+Args+','+ReturnTypeName
+        else
+          InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args;
         if InvokeClassName<>'' then
           InvokeCode:=InvokeCode+','+InvokeClassName+') as '+ReturnTypeName
         else
@@ -798,6 +812,9 @@ begin
     writeln('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
     exit(false);
     end;
+  if (foConstructor in aDef.Options) then
+    if FGeneratingInterface then
+      exit;
   Suff:='';
   ReturnDef:=GetMethodInfo(aParent,aDef,FuncName,ReturnTypeName,ResolvedReturnTypeName,InvokeName,InvokeClassName);
   Overloads:=GetOverloads(ADef);

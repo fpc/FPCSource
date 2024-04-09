@@ -48,6 +48,8 @@ type
     procedure TestWJ_IntfFunction_Promise;
     procedure TestWJ_IntfFunction_ArgAny;
     procedure TestWJ_IntfFunction_EnumResult;
+    procedure TestWJ_IntfFunction_SequenceArg;
+    procedure TestWJ_IntfFunction_Constructor;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -773,6 +775,61 @@ begin
     'end.'
   ]);
 end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_SequenceArg;
+begin
+  TestWebIDL([
+  'namespace Attr {',
+  '    boolean vibrate(sequence<long> pattern);',
+  '};',
+  ''],
+
+  []);
+
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Constructor;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  constructor(long options); ',
+  '};'
+  ],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-EA1E-381A-A2A6-208CA4B2AF2A}'']',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    class function Create(aOptions : Integer) : TJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'class function TJSAttr.Create(aOptions: Integer) : TJSAttr;',
+  'begin',
+  '  Result:=InvokeJSObjectResult(''Attr'',[aOptions],TJSAttr);',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+end;
+
 
 procedure TTestWebIDL2WasmJob.TestWJ_NamespaceAttribute_Boolean;
 begin
