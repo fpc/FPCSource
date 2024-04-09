@@ -39,6 +39,7 @@ type
 
     // attributes
     procedure TestWJ_IntfAttribute_Boolean;
+    procedure TestWJ_IntfStringifier;
     // todo procedure TestWJ_IntfAttribute_Any;
 
     // functions
@@ -476,6 +477,43 @@ begin
   '',
   'end.',
   '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfStringifier;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  stringifier;',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F45E-60F0-381A-A2A6-208CA4B2AF2A}'']',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Void;

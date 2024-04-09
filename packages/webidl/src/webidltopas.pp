@@ -310,10 +310,11 @@ end;
 function TBaseWebIDLToPas.GetName(ADef: TIDLDefinition): String;
 
 begin
-  If Assigned(ADef) and (ADef.Data is TPasData) then
-    Result:=TPasData(ADef.Data).PasName
-  else
-    Result:=ADef.Name;
+  If Assigned(ADef) then
+    if (ADef.Data is TPasData) then
+      Result:=TPasData(ADef.Data).PasName
+    else
+      Result:=ADef.Name;
 end;
 
 function TBaseWebIDLToPas.GetPasClassName(const aName: string): string;

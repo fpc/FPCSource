@@ -1075,11 +1075,17 @@ var
 
 begin
   aClassName:=GetName(aParent);
+  // case
+  // stringifier ;
+  // is equivalent to toString : DOMString
+  // no n
+  if (Attr.Name='') and (aoStringifier in Attr.Options) then
+    Exit;
+  if Attr.AttributeType=nil then
+    Exit;
 
   AttrType:=GetPrivateGetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
-
   Call:=GetReadPropertyCall(AttrResolvedTypeName, AttrTypeName, Attr.Name, AttrType);
-
   Addln('function '+aClassName+'.'+FuncName+': '+AttrTypeName+';');
   Addln('begin');
   Addln('  Result:='+Call+';');
@@ -1095,6 +1101,8 @@ var
 
 begin
   Result:=true;
+  if (Attr.Name='') and (aoStringifier in Attr.Options) then
+    Exit;
   if Attr.AttributeType=nil then
     exit;
   AttrType:=GetPrivateGetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
@@ -1105,6 +1113,8 @@ function TWebIDLToPasWasmJob.GetPrivateSetterInfo(Attr: TIDLAttributeDefinition;
 
 begin
   Result:=nil;
+  if (Attr.Name='') and (aoStringifier in Attr.Options) then
+    Exit;
   if Attr.AttributeType=nil then
     exit;
   FuncName:=SetterPrefix+GetName(Attr);
