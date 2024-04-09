@@ -807,12 +807,12 @@ unit cgcpu;
          //        end;
          //      gen_multiply(list,op,size,src,tmpreg,dst,false);
          //    end;
-         //
-         //  OP_DIV,OP_IDIV:
-         //    { special stuff, needs separate handling inside code
-         //      generator                                          }
-         //    internalerror(2017032604);
-         //
+
+           OP_DIV,OP_IDIV:
+             { special stuff, needs separate handling inside code
+               generator                                          }
+             internalerror(2017032604);
+
          //  OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
          //    begin
          //      current_asmdata.getjumplabel(l1);
