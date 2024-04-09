@@ -74,6 +74,7 @@ type
     FPasInterfacePrefix: TIDLString;
     FPasInterfaceSuffix: TIDLString;
     FGeneratingInterface : Boolean;
+    function GetArgName(d: TIDLDefinition): string;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
     function GetInvokeNameFromTypeName(aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
@@ -515,11 +516,13 @@ end;
 function TWebIDLToPasWasmJob.WriteForwardClassDef(D: TIDLStructuredDefinition
   ): Boolean;
 begin
+  if D.IsPartial then
+    exit;
   if D is TIDLDictionaryDefinition then
     AddLn(GetName(D)+' = '+JOB_JSValueTypeNames[jjvkDictionary]+';')
   else
     begin
-    if (not D.IsPartial) and ((D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition)) then
+    if ((D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition)) then
       AddLn(GetPasIntfName(D)+' = interface;');
     Result:=inherited WriteForwardClassDef(D);
     end;
@@ -535,6 +538,7 @@ begin
   'SmallInt',
   'Word',
   'Integer': Result:='InvokeJSLongIntResult';
+  'DOMHighResTimeStamp',
   'LongWord',
   'Int64',
   'QWord': Result:='InvokeJSMaxIntResult';
@@ -647,6 +651,13 @@ begin
     Result:=Result+' // Promise<'+TIDLPromiseTypeDefDefinition(aReturnDef).ReturnType.TypeName+'>';
 end;
 
+function TWebIDLToPasWasmJob.GetArgName(d : TIDLDefinition) : string;
+begin
+  Result:=GetName(d);
+  if IsKeyWord(Result) then
+    Result:=Result+'_';
+end;
+
 procedure TWebIDLToPasWasmJob.WriteFunctionImplementation(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition);
 
 var
@@ -665,6 +676,7 @@ var
       end;
     ArgNames.Add(Result);
   end;
+
 
 Var
   Data: TPasDataWasmJob;
@@ -701,7 +713,7 @@ begin
       ArgNames:=TStringList.Create;
       try
         for CurDef in ArgDefList do
-          ArgNames.Add(GetName(ArgDef));
+          ArgNames.Add(GetArgName(ArgDef));
 
         AddLn(ProcKind+' '+aClassName+'.'+Sig);
 
@@ -716,7 +728,7 @@ begin
           begin
           if Args<>'' then
             Args:=Args+',';
-          ArgName:=GetName(ArgDef);
+          ArgName:=GetArgName(ArgDef);
           ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypeName);
           //writeln('TWebIDLToPasWasmJob.WriteFunctionDefinition ',ArgType.Name,':',ArgType.ClassName,' ',ArgResolvedTypeName,' ArgType=',hexstr(ptruint(ArgType),sizeof(ptruint)*2));
           if ArgType is TIDLSequenceTypeDefDefinition then
@@ -871,7 +883,6 @@ Var
   FD: TIDLFunctionDefinition absolute D;
 
 begin
-
   for D in aList do
     if D is TIDLFunctionDefinition then
       begin
@@ -1020,6 +1031,7 @@ begin
         end;
     end;
     AddLn(GetFunc);
+    undent;
     AddLn('end;');
   finally
   end;

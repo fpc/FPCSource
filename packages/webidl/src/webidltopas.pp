@@ -1350,6 +1350,8 @@ begin
   For I in aList do
     begin
     ArgName:=GetName(Arg);
+    if IsKeyWord(ArgName) then
+      ArgName:=ArgName+'_';
     ArgType:=GetResolvedType(Arg.ArgumentType,ArgTypeName,ArgResolvedTypeName);
     ArgName:=ArgName+': '+ArgTypeName;
     //writeln('TBaseWebIDLToPas.GetArguments Arg="',ArgName,'" A.ArgumentType.TypeName=',Arg.ArgumentType.TypeName,' ',Def<>nil);
