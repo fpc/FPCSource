@@ -75,7 +75,7 @@ type
     FPasInterfaceSuffix: TIDLString;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
-    function GetInvokeNameFromTypeName(aTypeName: TIDLString): TIDLString;
+    function GetInvokeNameFromTypeName(aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
 
   Protected
     function BaseUnits: String; override;
@@ -518,7 +518,7 @@ begin
     end;
 end;
 
-function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(aTypeName : TIDLString):  TIDLString;
+function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(aTypeName : TIDLString; aType : TIDLDefinition):  TIDLString;
 
 begin
   case aTypeName of
@@ -543,7 +543,10 @@ begin
     Result:='InvokeJSNoResult';
     end;
   else
-    Result:='InvokeJSObjectResult';
+    if aType is TIDLEnumDefinition then
+      Result:='InvokeJSUnicodeStringResult'
+    else
+      Result:='InvokeJSObjectResult';
   end;
 end;
 
@@ -591,7 +594,7 @@ begin
   else
     begin
     FuncName:=GetName(aDef);
-    InvokeName:=GetInvokeNameFromTypeName(ResolvedReturnTypeName);
+    InvokeName:=GetInvokeNameFromTypeName(ResolvedReturnTypeName,Result);
     case InvokeName of
     'InvokeJSNoResult' :
        begin

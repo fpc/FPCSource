@@ -46,6 +46,7 @@ type
     procedure TestWJ_IntfFunction_SetEventHandler;
     procedure TestWJ_IntfFunction_Promise;
     procedure TestWJ_IntfFunction_ArgAny;
+    procedure TestWJ_IntfFunction_EnumResult;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -686,6 +687,53 @@ begin
   '',
   'end.',
   '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_EnumResult;
+begin
+  TestWebIDL([
+  'enum E { ',
+  '  "allowed", ',
+  '  "disallowed" ',
+  '}; ',
+  'interface IE { ',
+  '   E get(long a); ',
+  '};'
+  ],[
+  'Type',
+    '  // Forward class definitions',
+    '  IJSIE = interface;',
+    '  TJSIE = class;',
+    '  TE = UnicodeString;',
+    '  { --------------------------------------------------------------------',
+    '    TJSIE',
+    '    --------------------------------------------------------------------}',
+    '  IJSIE = interface(IJSObject)',
+    '    [''{04D06E4C-6063-3E89-A483-3296C9C8AA41}'']',
+    '    function get(a: Integer) : TE;',
+    '  end;',
+    '',
+    '  TJSIE = class(TJSObject,IJSIE)',
+    '  Private',
+    '  Public',
+    '    function get(a: Integer) : TE;',
+    '    class function Cast(const Intf: IJSObject): IJSIE;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'function TJSIE.get(a: Integer) : TE;',
+    'begin',
+    '  Result:=InvokeJSUnicodeStringResult(''get'',[a]);',
+    'end;',
+    '',
+    'class function TJSIE.Cast(const Intf: IJSObject): IJSIE;',
+    'begin',
+    '  Result:=TJSIE.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.'
+  ]);
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_NamespaceAttribute_Boolean;
