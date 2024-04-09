@@ -917,31 +917,31 @@ unit cgcpu;
              reg:=GetNextReg(reg);
          end;
 
-       //var
+       var
        //  mask : qword;
        //  shift : byte;
        //  curvalue : byte;
        //  tmpop: TAsmOp;
        //  l1: TAsmLabel;
        //  instr: taicpu;
-       //  tmpreg : tregister;
-       //  tmpreg64 : tregister64;
+         tmpreg : tregister;
+         tmpreg64 : tregister64;
 
        begin
-       //  optimize_op_const(size,op,a);
+         optimize_op_const(size,op,a);
        //  mask:=$ff;
        //  shift:=0;
        //  l1:=nil;
-       //  case op of
-       //    OP_NONE:
-       //      begin
-       //        { Opcode is optimized away }
-       //      end;
-       //    OP_MOVE:
-       //      begin
-       //        { Optimized, replaced with a simple load }
-       //        a_load_const_reg(list,size,a,reg);
-       //      end;
+         case op of
+           OP_NONE:
+             begin
+               { Opcode is optimized away }
+             end;
+           OP_MOVE:
+             begin
+               { Optimized, replaced with a simple load }
+               a_load_const_reg(list,size,a,reg);
+             end;
        //    OP_AND:
        //      begin
        //        curvalue:=a and mask;
@@ -1187,38 +1187,38 @@ unit cgcpu;
        //              end;
        //          end;
        //      end;
-       //  else
-       //    begin
-       //      if size in [OS_64,OS_S64] then
-       //        begin
-       //          tmpreg64.reglo:=getintregister(list,OS_32);
-       //          tmpreg64.reghi:=getintregister(list,OS_32);
-       //          cg64.a_load64_const_reg(list,a,tmpreg64);
-       //          cg64.a_op64_reg_reg(list,op,size,tmpreg64,joinreg64(reg,reghi));
-       //        end
-       //      else
-       //        begin
-{$if 0}//
-       //          { code not working yet }
-       //          if (op=OP_SAR) and (a=31) and (size in [OS_32,OS_S32]) then
-       //            begin
-       //              tmpreg:=reg;
-       //              for i:=1 to 4 do
-       //                begin
-       //                  list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_R1));
-       //                  tmpreg:=GetNextReg(tmpreg);
-       //                end;
-       //            end
-       //          else
-{$endif//}
-       //            begin
-       //              tmpreg:=getintregister(list,size);
-       //              a_load_const_reg(list,size,a,tmpreg);
-       //              a_op_reg_reg(list,op,size,tmpreg,reg);
-       //            end;
-       //        end;
-       //    end;
-       //end;
+         else
+           begin
+             if size in [OS_64,OS_S64] then
+               begin
+                 tmpreg64.reglo:=getintregister(list,OS_32);
+                 tmpreg64.reghi:=getintregister(list,OS_32);
+                 cg64.a_load64_const_reg(list,a,tmpreg64);
+                 cg64.a_op64_reg_reg(list,op,size,tmpreg64,joinreg64(reg,reghi));
+               end
+             else
+               begin
+{$if 0}
+                 { code not working yet }
+                 if (op=OP_SAR) and (a=31) and (size in [OS_32,OS_S32]) then
+                   begin
+                     tmpreg:=reg;
+                     for i:=1 to 4 do
+                       begin
+                         list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_R1));
+                         tmpreg:=GetNextReg(tmpreg);
+                       end;
+                   end
+                 else
+{$endif}
+                   begin
+                     tmpreg:=getintregister(list,size);
+                     a_load_const_reg(list,size,a,tmpreg);
+                     a_op_reg_reg(list,op,size,tmpreg,reg);
+                   end;
+               end;
+           end;
+       end;
      end;
 
 
