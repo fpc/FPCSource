@@ -598,6 +598,7 @@ begin
     InvokeName:= 'InvokeJSObjectResult';
     ResolvedReturnTypeName:=aParent.Name;
     ReturnTypeName:=GetName(aParent);
+    InvokeClassName:=ReturnTypeName;
     exit(Nil);
     end
   else
@@ -739,7 +740,7 @@ begin
         Args:=',['+Args+']';
 
         if foConstructor in aDef.Options then
-          InvokeCode:=InvokeCode+InvokeName+'('''+ResolvedReturnTypeName+''''+Args+','+ReturnTypeName
+          InvokeCode:=InvokeCode+InvokeName+'('''+ResolvedReturnTypeName+''''+Args
         else
           InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args;
         if InvokeClassName<>'' then

@@ -818,7 +818,7 @@ begin
   '',
   'class function TJSAttr.Create(aOptions: Integer) : TJSAttr;',
   'begin',
-  '  Result:=InvokeJSObjectResult(''Attr'',[aOptions],TJSAttr);',
+  '  Result:=InvokeJSObjectResult(''Attr'',[aOptions],TJSAttr) as TJSAttr;',
   'end;',
   '',
   'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
