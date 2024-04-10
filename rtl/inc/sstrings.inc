@@ -19,8 +19,10 @@
 {$define FPC_HAS_SHORTSTR_SETLENGTH}
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; compilerproc;
 begin
-  if Len>255 then
-   Len:=255;
+  if len<0 then
+    len:=0;
+  if len>high(s) then
+    len:=high(s);
   s[0]:=chr(len);
 end;
 {$endif FPC_HAS_SHORTSTR_SETLENGTH}
