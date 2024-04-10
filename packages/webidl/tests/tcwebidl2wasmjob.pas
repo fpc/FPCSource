@@ -57,6 +57,7 @@ type
     procedure TestWJ_IntfFunction_Constructor;
     procedure TestWJ_IntfFunction_ArrayBufferArg;
     procedure TestWJ_IntfFunction_ArrayBufferViewArg;
+    procedure TestWJ_IntfFunction_SequenceResult;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -1126,6 +1127,54 @@ begin
     '',
     'end.',
     ''  ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_SequenceResult;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  sequence<long> vibrate();',
+  '};',
+  ''],
+  [
+   'Type',
+   '',
+   '  // Forward class definitions',
+   '  IJSAttr = interface;',
+   '  TJSAttr = class;',
+   '',
+   '  { --------------------------------------------------------------------',
+   '    TJSAttr',
+   '    --------------------------------------------------------------------}',
+   '',
+   '  TIntegerDynArray = IJSArray; // array of Integer',
+   '',
+   '  IJSAttr = interface(IJSObject)',
+   '    [''{AA94F48A-2BFB-3877-82A6-208CA4B2AF2A}'']',
+   '    function vibrate: TIntegerDynArray;',
+   '  end;',
+   '',
+   '  TJSAttr = class(TJSObject,IJSAttr)',
+   '  Private',
+   '  Public',
+   '    function vibrate: TIntegerDynArray;',
+   '    class function Cast(const Intf: IJSObject): IJSAttr;',
+   '  end;',
+   '',
+   'implementation',
+   '',
+   'function TJSAttr.vibrate: TIntegerDynArray;',
+   'begin',
+   '  Result:=InvokeJSObjectResult(''vibrate'',[],TJSArray) as TIntegerDynArray;',
+   'end;',
+   '',
+   'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+   'begin',
+   '  Result:=TJSAttr.JOBCast(Intf);',
+   'end;',
+   '',
+   'end.'
+    ]);
 end;
 
 
