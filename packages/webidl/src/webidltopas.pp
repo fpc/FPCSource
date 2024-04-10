@@ -1876,7 +1876,10 @@ begin
     CN:=GetTypeName(TIDLSequenceTypeDefDefinition(D));
     sDef:=FindGlobalDef(CN);
     if (SDef=Nil) or (sDef.Data=Nil) then
-      Result:=CreatePasData(EscapeKeyWord(CN),D,true)
+      begin
+      Result:=CreatePasData(EscapeKeyWord(CN),D,true);
+      AddJSIdentifier(D);
+      end
     else
       Result:=ClonePasData(TPasData(sDef.Data),D);
     D.Data:=Result;
