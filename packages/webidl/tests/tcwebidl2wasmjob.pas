@@ -53,6 +53,7 @@ type
     procedure TestWJ_IntfFunction_ArgAny;
     procedure TestWJ_IntfFunction_EnumResult;
     procedure TestWJ_IntfFunction_SequenceArg;
+    procedure TestWJ_IntfFunction_2SequenceArg;
     procedure TestWJ_IntfFunction_Constructor;
     procedure TestWJ_IntfFunction_ArrayBufferArg;
     procedure TestWJ_IntfFunction_ArrayBufferViewArg;
@@ -897,13 +898,105 @@ end;
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_SequenceArg;
 begin
   TestWebIDL([
-  'namespace Attr {',
-  '    boolean vibrate(sequence<long> pattern);',
+  'interface Attr {',
+  '  boolean vibrate(sequence<long> pattern);',
   '};',
   ''],
+  [
+   'Type',
+   '',
+   '  // Forward class definitions',
+   '  IJSAttr = interface;',
+   '  TJSAttr = class;',
+   '',
+   '  { --------------------------------------------------------------------',
+   '    TJSAttr',
+   '    --------------------------------------------------------------------}',
+   '',
+   '  TIntegerDynArray = IJSArray; // array of Integer',
+   '',
+   '  IJSAttr = interface(IJSObject)',
+   '    [''{AA94F48A-2BFB-3877-82A6-208CA4B2AF2A}'']',
+   '    function vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   '  end;',
+   '',
+   '  TJSAttr = class(TJSObject,IJSAttr)',
+   '  Private',
+   '  Public',
+   '     function vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   '     class function Cast(const Intf: IJSObject): IJSAttr;',
+   '  end;',
+   '',
+   'implementation',
+   '',
+   'function TJSAttr.vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   'begin',
+   '  Result:=InvokeJSBooleanResult(''vibrate'',[aPattern]);',
+   'end;',
+   '',
+   'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+   'begin',
+   '  Result:=TJSAttr.JOBCast(Intf);',
+   'end;',
+   '',
+   'end.'
+    ]);
+end;
 
-  []);
-
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_2SequenceArg;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  boolean vibrate(sequence<long> pattern);',
+  '  boolean beep(sequence<long> pattern);',
+  '};',
+  ''],
+  [
+   'Type',
+   '',
+   '  // Forward class definitions',
+   '  IJSAttr = interface;',
+   '  TJSAttr = class;',
+   '',
+   '  { --------------------------------------------------------------------',
+   '    TJSAttr',
+   '    --------------------------------------------------------------------}',
+   '',
+   '  TIntegerDynArray = IJSArray; // array of Integer',
+   '',
+   '  IJSAttr = interface(IJSObject)',
+   '    [''{AA94F48A-8A01-3EFF-A44E-4EDCA4B2AF2A}'']',
+   '    function vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   '    function beep(const aPattern: TIntegerDynArray): Boolean;',
+   '  end;',
+   '',
+   '  TJSAttr = class(TJSObject,IJSAttr)',
+   '  Private',
+   '  Public',
+   '     function vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   '     function beep(const aPattern: TIntegerDynArray): Boolean;',
+   '     class function Cast(const Intf: IJSObject): IJSAttr;',
+   '  end;',
+   '',
+   'implementation',
+   '',
+   'function TJSAttr.vibrate(const aPattern: TIntegerDynArray): Boolean;',
+   'begin',
+   '  Result:=InvokeJSBooleanResult(''vibrate'',[aPattern]);',
+   'end;',
+   '',
+   'function TJSAttr.beep(const aPattern: TIntegerDynArray): Boolean;',
+   'begin',
+   '  Result:=InvokeJSBooleanResult(''beep'',[aPattern]);',
+   'end;',
+   '',
+   'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+   'begin',
+   '  Result:=TJSAttr.JOBCast(Intf);',
+   'end;',
+   '',
+   'end.'
+    ]);
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Constructor;

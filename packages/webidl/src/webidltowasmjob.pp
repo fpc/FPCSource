@@ -425,6 +425,7 @@ begin
   finally
     FGeneratingInterface:=False;
   end;
+
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetters(aParent: TIDLStructuredDefinition;
@@ -730,15 +731,7 @@ begin
             Args:=Args+',';
           ArgName:=GetArgName(ArgDef);
           ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypeName);
-          //writeln('TWebIDLToPasWasmJob.WriteFunctionDefinition ',ArgType.Name,':',ArgType.ClassName,' ',ArgResolvedTypeName,' ArgType=',hexstr(ptruint(ArgType),sizeof(ptruint)*2));
-          if ArgType is TIDLSequenceTypeDefDefinition then
-            begin
-            ArgTypeName:=TIDLSequenceTypeDefDefinition(ArgType).ElementType.TypeName;
-            if Verbose then
-              writeln('Hint: TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName);
-            raise EConvertError.Create('[20220725172246] not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
-            end
-          else if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+          if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
             begin
             LocalName:=CreateLocal('m');
             VarSection:=Concat(VarSection,[ (LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';')]);
@@ -1283,8 +1276,13 @@ end;
 
 procedure TWebIDLToPasWasmJob.WriteSequenceDef(
   aDef: TIDLSequenceTypeDefDefinition);
+
+var
+  aLine : String;
+
 begin
-  Addln(GetName(aDef)+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetTypeName(aDef.ElementType));
+  aLine:=GetName(aDef)+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetTypeName(aDef.ElementType);
+  Addln(aLine);
 end;
 
 procedure TWebIDLToPasWasmJob.WriteNamespaceVars;

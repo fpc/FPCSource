@@ -634,13 +634,18 @@ function TBaseWebIDLToPas.AddSequenceDef(ST: TIDLSequenceTypeDefDefinition
 var
   TN: String;
 begin
-  TN:=GetTypeName(ST);
+  if ST.Data=Nil then
+    begin
+    TN:=GetTypeName(ST);
+    ST.Data:=CreatePasData(TN,ST,true);
+    end
+  else
+    TN:=TPasData(ST.Data).PasName;
   Result:=FAutoTypes.IndexOf(TN)=-1;
   if Result then
     begin
     FAutoTypes.Add(TN);
     DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(ST)]);
-    ST.Data:=CreatePasData(TN,ST,true);
     WriteSequenceDef(ST);
     end;
 end;
@@ -1827,6 +1832,7 @@ function TBaseWebIDLToPas.AllocatePasName(D: TIDLDefinition; ParentName: String)
 Var
   CN: String;
   aData: TPasData;
+  sDef : TIDLDefinition;
 
 begin
   //writeln('TBaseWebIDLToPas.AllocatePasName ',ParentName,'.',D.Name,':',D.ClassName);
@@ -1865,6 +1871,22 @@ begin
     D.Data:=Result;
     AllocatePasNames((D as TIDLDictionaryDefinition).Members,D.Name);
     end
+  else if D Is TIDLSequenceTypeDefDefinition then
+    begin
+    CN:=GetTypeName(TIDLSequenceTypeDefDefinition(D));
+    sDef:=FindGlobalDef(CN);
+    if (SDef=Nil) or (sDef.Data=Nil) then
+      Result:=CreatePasData(EscapeKeyWord(CN),D,true)
+    else
+      Result:=ClonePasData(TPasData(sDef.Data),D);
+    D.Data:=Result;
+    end
+  else if D Is TIDLArgumentDefinition then
+    begin
+    Result:=CreatePasData(CN,D,true);
+    D.Data:=Result;
+    AllocatePasName(TIDLArgumentDefinition(D).ArgumentType,ParentName+'_'+D.Name);
+    end
   else
     begin
     if (D is TIDLTypeDefDefinition)
@@ -1877,7 +1899,7 @@ begin
     Result:=CreatePasData(CN,D,true);
     D.Data:=Result;
     if D Is TIDLFunctionDefinition then
-      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
+      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name)
     end;
   aData:=TPasData(D.Data);
   if Verbose and (aData.PasName<>D.Name) then
