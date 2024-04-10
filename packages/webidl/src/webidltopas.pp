@@ -1267,7 +1267,10 @@ end;
 function TBaseWebIDLToPas.WriteTypeDef(aDef: TIDLTypeDefDefinition): Boolean;
 
 begin
-  Result:=True;
+  Result:=(TypeAliases.IndexOfName(aDef.Name)=-1);
+  if not Result then
+    exit;
+
   if ADef is TIDLSequenceTypeDefDefinition then
     WriteSequenceDef(aDef as TIDLSequenceTypeDefDefinition)
   else if ADef is TIDLUnionTypeDefDefinition then
@@ -1316,7 +1319,7 @@ begin
     begin
     if D is TIDLTypeDefDefinition then
       begin
-      if WriteTypeDef(TD) then
+      if WriteTypeDef(TD)  then
         Inc(Result);
       end
     else if D is TIDLFunctionDefinition then

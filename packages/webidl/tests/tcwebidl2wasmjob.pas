@@ -36,6 +36,7 @@ type
     // typedefs
     procedure TestWJ_Typedef_Boolean;
     procedure TestWJ_Typedef_Sequence;
+    procedure TestWJ_Typedef_Aliased;
 
     // attributes
     procedure TestWJ_IntfAttribute_Boolean;
@@ -432,6 +433,22 @@ begin
   'implementation',
   'end.',
   '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_Typedef_Aliased;
+begin
+  WebIDLToPas.TypeAliases.Add('Float32List=IJSFloat32Array');
+  TestWebIDL([
+  '  typedef ([AllowShared] Float32Array or sequence<GLfloat>) Float32List;',
+  ''],
+  ['',
+  'Type',
+  '  // Forward class definitions',
+  'implementation',
+  '',
+  'end.',
+  ''
+  ]);
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_IntfAttribute_Boolean;
