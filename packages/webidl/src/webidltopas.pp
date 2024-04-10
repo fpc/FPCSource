@@ -1111,6 +1111,7 @@ begin
     'DOMException': Result:=GetPasClassName('Error');
 
     'ArrayBuffer',
+    'ArrayBufferView',
     'DataView',
     'Int8Array',
     'Int16Array',

@@ -40,6 +40,9 @@ type
     // attributes
     procedure TestWJ_IntfAttribute_Boolean;
     procedure TestWJ_IntfStringifier;
+    procedure TestWJ_IntfAttribute_ArrayBuffer;
+    procedure TestWJ_IntfAttribute_ArrayBufferView;
+
     // todo procedure TestWJ_IntfAttribute_Any;
 
     // functions
@@ -50,6 +53,8 @@ type
     procedure TestWJ_IntfFunction_EnumResult;
     procedure TestWJ_IntfFunction_SequenceArg;
     procedure TestWJ_IntfFunction_Constructor;
+    procedure TestWJ_IntfFunction_ArrayBufferArg;
+    procedure TestWJ_IntfFunction_ArrayBufferViewArg;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -518,6 +523,102 @@ begin
 
 end;
 
+procedure TTestWebIDL2WasmJob.TestWJ_IntfAttribute_ArrayBuffer;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  [SameObject, Throws] readonly attribute ArrayBuffer signature;',
+  '};',
+  ''],
+  [
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{2D39068A-1305-3879-B4DC-37563664D5F5}'']',
+    '    function _Getsignature: IJSArrayBuffer;',
+    '    property signature: IJSArrayBuffer read _Getsignature;',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '    function _Getsignature: IJSArrayBuffer;',
+    '  Public',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '    property signature: IJSArrayBuffer read _Getsignature;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'function TJSAttr._Getsignature: IJSArrayBuffer;',
+    'begin',
+    '  Result:=ReadJSPropertyObject(''signature'',TJSArrayBuffer) as IJSArrayBuffer;',
+    'end;',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''
+  ]);
+
+
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfAttribute_ArrayBufferView;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  [SameObject, Throws] readonly attribute ArrayBufferView signature;',
+  '};',
+  ''],
+  [
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{2D390654-2475-3879-B4DC-37563664D5F5}'']',
+    '    function _Getsignature: IJSArrayBufferView;',
+    '    property signature: IJSArrayBufferView read _Getsignature;',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '    function _Getsignature: IJSArrayBufferView;',
+    '  Public',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '    property signature: IJSArrayBufferView read _Getsignature;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'function TJSAttr._Getsignature: IJSArrayBufferView;',
+    'begin',
+    '  Result:=ReadJSPropertyObject(''signature'',TJSArrayBufferView) as IJSArrayBufferView;',
+    'end;',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''
+  ]);
+end;
+
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Void;
 begin
   TestWebIDL([
@@ -828,6 +929,93 @@ begin
   '',
   'end.',
   '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_ArrayBufferArg;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  undefined appendBuffer(ArrayBuffer data);',
+  '};'
+  ],[
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{AA94F48A-84D7-3FB2-97EF-71ACA4B2AF2A}'']',
+    '    procedure appendBuffer(aData: IJSArrayBuffer);',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '  Public',
+    '    procedure appendBuffer(aData: IJSArrayBuffer);',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TJSAttr.appendBuffer(aData: IJSArrayBuffer);',
+    'begin',
+    '  InvokeJSNoResult(''appendBuffer'',[aData]);',
+    'end;',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''  ]);
+
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_ArrayBufferViewArg;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  undefined appendBuffer(ArrayBufferView data);',
+  '};'
+  ],[
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{AA94F48A-84D7-3FB2-97EF-71ACA4B2AF2A}'']',
+    '    procedure appendBuffer(aData: IJSArrayBufferView);',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '  Public',
+    '    procedure appendBuffer(aData: IJSArrayBufferView);',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'procedure TJSAttr.appendBuffer(aData: IJSArrayBufferView);',
+    'begin',
+    '  InvokeJSNoResult(''appendBuffer'',[aData]);',
+    'end;',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''  ]);
 end;
 
 

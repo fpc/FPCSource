@@ -65,6 +65,7 @@ Type
     wibtDOMException,
     // arrays
     wibtArrayBuffer,
+    wibtArrayBufferView,
     wibtDataView,
     wibtInt8Array,
     wibtInt16Array,
@@ -111,6 +112,7 @@ const
     'Error',
     'DOMException',
     'ArrayBuffer',
+    'ArrayBufferView',
     'DataView',
     'Int8Array',
     'Int16Array',
