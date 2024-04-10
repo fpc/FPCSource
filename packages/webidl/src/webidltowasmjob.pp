@@ -1254,9 +1254,10 @@ var
   AttrType: TIDLDefinition;
 begin
   if aParent=nil then ;
-  if Attr.AttributeType=nil then
+  if (Attr.AttributeType=nil) then
     begin
-    writeln('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
+    if not (aoStringifier in Attr.Options) then
+      writeln('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
     exit;
     end;
   PropName:=GetName(Attr);

@@ -650,6 +650,18 @@ procedure TBaseWebIDLToPas.EnsureUniqueNames(ML: TIDLDefinitionList);
 Var
   L: TFPObjectHashTable;
 
+  Function CanRename(Def: TIDLDefinition) : Boolean;
+
+  var
+    isStringifier : Boolean;
+    IsIterable : Boolean;
+
+  begin
+    IsStringifier:=(Def.Name='') and (Def is TIDLAttributeDefinition) and (aoStringifier in TIDLAttributeDefinition(Def).Options);
+    isIterable:=(Def is TIDLIterableDefinition);
+    Result:=not (IsStringifier or isIterable);
+  end;
+
   Procedure CheckRename(Def: TIDLDefinition);
 
   var
@@ -701,10 +713,10 @@ begin
   L:=TFPObjectHashTable.Create(False);
   try
     For D in ML Do
-      if not (D is TIDLConstDefinition) then
+      if CanRename(D) and not (D is TIDLConstDefinition) then
         CheckRename(D);
     For D in ML Do
-      if (D is TIDLConstDefinition) then
+      if CanRename(D) and(D is TIDLConstDefinition) then
         CheckRename(D);
   finally
     L.Free;
