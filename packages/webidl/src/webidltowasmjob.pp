@@ -540,9 +540,7 @@ function TWebIDLToPasWasmJob.GetInvokeNameFromAliasName(const aTypeName : TIDLSt
 var
   aLower : String;
 begin
-  Writeln('Checking invoke for alias ',aTypeName,'(prefix : ',PasInterfacePrefix+')');
   aLower:=LowerCase(aTypeName);
-  Writeln('Pos(LowerCase(',PasInterfacePrefix,'),',aLower,') := ',Pos(LowerCase(PasInterfacePrefix),aLower));
   if Pos('bool',aLower)>0 then
     Result:='InvokeJSBooleanResult'
   else if Pos('array',aLower)>0 then
@@ -644,7 +642,6 @@ begin
   else if aResultDef is TIDLTypeDefDefinition then
     begin
     aTypeName:=(aResultDef as TIDLTypeDefDefinition).TypeName;
-    Writeln('Looking for alias ',aTypeName,' name ',aName,'  in ',TypeAliases.Text);
     if TypeAliases.IndexOfName(aTypeName)=-1 then
       begin
       Msg:=GetName(aDef);
@@ -1328,7 +1325,7 @@ begin
   if (Attr.AttributeType=nil) then
     begin
     if not (aoStringifier in Attr.Options) then
-      writeln('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
+      DoLog('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
     exit;
     end;
   PropName:=GetName(Attr);
