@@ -579,6 +579,8 @@ begin
     Result:=ClassPrefix+'Promise'+ClassSuffix
   else if aResultDef is TIDLInterfaceDefinition then
     Result:=GetName(aResultDef)
+  else if aResultDef is TIDLDictionaryDefinition then
+    Result:=GetName(aResultDef)
   else if aName=PasInterfacePrefix+'Object'+PasInterfaceSuffix then
     begin
     Result:=ClassPrefix+'Object'+ClassSuffix;

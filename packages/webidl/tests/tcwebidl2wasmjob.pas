@@ -5,7 +5,7 @@ unit tcwebidl2wasmjob;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, webidlscanner, webidltowasmjob, pascodegen;
+  Classes, SysUtils, fpcunit, testregistry, webidlscanner, webidltopas, webidltowasmjob, pascodegen;
 
 type
 
@@ -62,6 +62,7 @@ type
     procedure TestWJ_IntfFunction_GlobalSequenceResult;
     procedure TestWJ_IntfFunction_ChromeOnly;
     procedure TestWJ_IntfFunction_ChromeOnlyNewObject;
+    procedure TestWJ_IntfFunction_DictionaryResult;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -1344,6 +1345,64 @@ begin
       '',
       'end.',
       ''
+    ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_DictionaryResult;
+begin
+  WebIDLToPas.BaseOptions:=WebIDLToPas.BaseOptions+[coDictionaryAsClass];
+  TestWebIDL([
+  'dictionary MyDict { long a = 0; };',
+  'interface Attr {',
+  '  MyDict get();',
+  '};',
+  ''],
+  [
+   'Type',
+   '',
+   '  // Forward class definitions',
+   '  IJSAttr = interface;',
+   '  TJSAttr = class;',
+//   '',
+   '  TJSMyDict = TJOB_Dictionary;',
+   '',
+   '  { --------------------------------------------------------------------',
+   '    TJSMyDict',
+   '    --------------------------------------------------------------------}',
+   '',
+   '  TJSMyDictRec = record',
+   '     a: Integer;',
+   '   end;',
+   '  { --------------------------------------------------------------------',
+   '    TJSAttr',
+   '    --------------------------------------------------------------------}',
+   '',
+   '',
+   '  IJSAttr = interface(IJSObject)',
+   '    [''{AA94F48A-B218-381A-A2A6-208CA4B2AF2A}'']',
+   '    function get: TJSMyDict;',
+   '  end;',
+   '',
+   '  TJSAttr = class(TJSObject,IJSAttr)',
+   '  Private',
+   '  Public',
+   '    function get: TJSMyDict;',
+   '    class function Cast(const Intf: IJSObject): IJSAttr;',
+   '  end;',
+   '',
+   'implementation',
+   '',
+   'function TJSAttr.get: TJSMyDict;',
+   'begin',
+   '  Result:=InvokeJSObjectResult(''get'',[],TJSMyDict) as TJSMyDict;',
+   'end;',
+   '',
+   'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+   'begin',
+   '  Result:=TJSAttr.JOBCast(Intf);',
+   'end;',
+   '',
+   'end.'
     ]);
 end;
 
