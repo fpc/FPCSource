@@ -320,7 +320,7 @@ procedure TCustomTestWebIDL2WasmJob.OnLog(Sender: TObject;
 begin
   if LogType=cltInfo then ;
   if Sender=nil then ;
-  writeln('TCustomTestWebIDL2WasmJob.OnLog ',Msg);
+  Status('TCustomTestWebIDL2WasmJob.OnLog '+Msg);
 end;
 
 procedure TCustomTestWebIDL2WasmJob.Setup;
@@ -1460,7 +1460,7 @@ procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_NestedUnionSequence;
 begin
   TestWebIDL([
   'interface Attr {',
-  '  long roundRect((unrestricted double or DOMPointInit or sequence<(unrestricted double or DOMPointInit)>) radii);',
+  '  long roundRect((double or sequence<(double or long)>) radii);',
   '};',
   ''],
 [
@@ -1474,23 +1474,31 @@ begin
  '    TJSAttr',
  '    --------------------------------------------------------------------}',
  '',
+ '   TVariantDynArray = IJSArray; // array of Variant',
  '  IJSAttr = interface(IJSObject)',
- '    [''{AA94F48A-2BFB-3877-82A6-208CA4B2AF2A}'']',
- '    function vibrate: IJSFloat32Array;',
+ '    [''{AA94F48A-0CA1-3A6F-A546-208CA4B2AF2A}'']',
+ '    function roundRect(aRadii: Double): Integer; overload;',
+ '    function roundRect(const aRadii: TVariantDynArray): Integer; overload;',
  '  end;',
  '',
  '  TJSAttr = class(TJSObject,IJSAttr)',
  '  Private',
  '  Public',
- '    function vibrate: IJSFloat32Array;',
+ '    function roundRect(aRadii: Double): Integer; overload;',
+ '    function roundRect(const aRadii: TVariantDynArray): Integer; overload;',
  '    class function Cast(const Intf: IJSObject): IJSAttr;',
  '  end;',
  '',
  'implementation',
  '',
- 'function TJSAttr.vibrate: IJSFloat32Array;',
+ 'function TJSAttr.roundRect(aRadii: Double): Integer; overload;',
  'begin',
- '  Result:=InvokeJSObjectResult(''vibrate'',[],TJSArray) as IJSFloat32Array;',
+ '  Result:=InvokeJSLongIntResult(''roundRect'',[aRadii]);',
+ 'end;',
+ '',
+ 'function TJSAttr.roundRect(const aRadii: TVariantDynArray): Integer; overload;',
+ 'begin',
+ '  Result:=InvokeJSLongIntResult(''roundRect'',[aRadii]);',
  'end;',
  '',
  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',

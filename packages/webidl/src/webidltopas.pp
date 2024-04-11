@@ -1465,6 +1465,7 @@ Var
   I: Integer;
   CD: TIDLArgumentDefinition;
   DL: TIDLDefinitionList;
+  ODef : TIDLDefinition absolute posEl;
 
 begin
   For I:=0 to aList.Count-1 do
@@ -1473,8 +1474,13 @@ begin
     if Not (DL is TIDLPartialDefinitionList) then
       begin
       CD:=TIDLArgumentDefinition.Create(Nil,aName,PosEl.SrcFile,PosEl.Line,PosEl.Column);
-      CD.ArgumentType:=TIDLTypeDefDefinition.Create(CD,'',PosEl.SrcFile,PosEl.Line,PosEl.Column);
+      if PosEl is TIDLTypeDefDefinition then
+        CD.ArgumentType:=TIDLTypeDefDefinitionClass(Posel.ClassType).Create(CD,'',PosEl.SrcFile,PosEl.Line,PosEl.Column)
+      else
+        CD.ArgumentType:=TIDLTypeDefDefinition.Create(CD,'',PosEl.SrcFile,PosEl.Line,PosEl.Column);
       CD.ArgumentType.TypeName:=aTypeName;
+      if (PosEl is TIDLDefinition) and (ODef.Data is TPasData) then
+        CD.ArgumentType.Data:=ClonePasData(ODef.Data as TPasData,CD.ArgumentType);
       DL.Add(CD);
       CD.Data:=CreatePasData(aPasName,CD,false);
       ResolveTypeDef(CD.ArgumentType);
@@ -2054,6 +2060,7 @@ begin
   else if D Is TIDLDictionaryDefinition then
     ResolveTypeDefs(TIDLDictionaryDefinition(D).Members)
   else if D is TIDLIncludesDefinition then
+    //
   else if D Is TIDLFunctionDefinition then
     begin
     FD:=TIDLFunctionDefinition(D);
@@ -2092,9 +2099,11 @@ begin
     ResolveTypeDef(DMD.DefaultValue);
     end
   else if D is TIDLEnumDefinition then
+    //
   else if D is TIDLSetlikeDefinition then
     ResolveTypeDef(TIDLSetlikeDefinition(D).ElementType)
   else if D is TIDLImplementsOrIncludesDefinition then
+    //
   else if D is TIDLIterableDefinition then
     begin
     IT:=TIDLIterableDefinition(D);
