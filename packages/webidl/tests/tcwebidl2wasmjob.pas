@@ -43,6 +43,7 @@ type
     procedure TestWJ_IntfStringifier;
     procedure TestWJ_IntfAttribute_ArrayBuffer;
     procedure TestWJ_IntfAttribute_ArrayBufferView;
+    procedure TestWJ_IntfAttribute_ChromeOnly;
 
     // todo procedure TestWJ_IntfAttribute_Any;
 
@@ -59,6 +60,7 @@ type
     procedure TestWJ_IntfFunction_ArrayBufferViewArg;
     procedure TestWJ_IntfFunction_SequenceResult;
     procedure TestWJ_IntfFunction_GlobalSequenceResult;
+    procedure TestWJ_IntfFunction_ChromeOnly;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -432,7 +434,7 @@ begin
   ['Type',
   '  // Forward class definitions',
   '  TPerformanceEntry = Boolean;',
-  '  TPerformanceEntryList = IJSArray; // array of TPerformanceEntry',
+  '  TPerformanceEntryDynArray = IJSArray; // array of TPerformanceEntry',
   'implementation',
   'end.',
   '']);
@@ -628,6 +630,45 @@ begin
     'begin',
     '  Result:=ReadJSPropertyObject(''signature'',TJSArrayBufferView) as IJSArrayBufferView;',
     'end;',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''
+  ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfAttribute_ChromeOnly;
+
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  [ChromeOnly, Throws] readonly attribute long soso;',
+  '};',
+  ''],
+  [
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{AA94F48A-149D-354C-96E7-B1ACA4B2AF2A}'']',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '  Public',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '  end;',
+    '',
+    'implementation',
     '',
     'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
     'begin',
@@ -1225,6 +1266,44 @@ begin
    'end.'
  ]);
 
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_ChromeOnly;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  [ChromeOnly, Throws] long soso();',
+  '};',
+  ''],
+  [
+  'Type',
+    '  // Forward class definitions',
+    '  IJSAttr = interface;',
+    '  TJSAttr = class;',
+    '  { --------------------------------------------------------------------',
+    '    TJSAttr',
+    '    --------------------------------------------------------------------}',
+    '',
+    '  IJSAttr = interface(IJSObject)',
+    '    [''{AA94F48A-149D-381A-A2A6-208CA4B2AF2A}'']',
+    '  end;',
+    '',
+    '  TJSAttr = class(TJSObject,IJSAttr)',
+    '  Private',
+    '  Public',
+    '    class function Cast(const Intf: IJSObject): IJSAttr;',
+    '  end;',
+    '',
+    'implementation',
+    '',
+    'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+    'begin',
+    '  Result:=TJSAttr.JOBCast(Intf);',
+    'end;',
+    '',
+    'end.',
+    ''
+  ]);
 end;
 
 

@@ -436,8 +436,9 @@ begin
   Result:=Inherited WritePrivateGetters(aParent,aList);
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WritePrivateGetter(aParent,TIDLAttributeDefinition(D)) then
-        inc(Result);
+      if ConvertDef(D) then
+        if WritePrivateGetter(aParent,TIDLAttributeDefinition(D)) then
+          inc(Result);
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateSetters(
@@ -448,8 +449,9 @@ begin
   Result:=Inherited WritePrivateSetters(aParent,aList);
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WritePrivateSetter(aParent,TIDLAttributeDefinition(D)) then
-        inc(Result);
+      if ConvertDef(D) then
+        if WritePrivateSetter(aParent,TIDLAttributeDefinition(D)) then
+          inc(Result);
 end;
 
 function TWebIDLToPasWasmJob.WriteProperties(aParent: TIDLDefinition;
@@ -461,8 +463,9 @@ begin
   Result:=0;
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WriteProperty(aParent,TIDLAttributeDefinition(D)) then
-        inc(Result);
+      if ConvertDef(D) then
+        if WriteProperty(aParent,TIDLAttributeDefinition(D)) then
+          inc(Result);
 end;
 
 function TWebIDLToPasWasmJob.WriteUtilityMethods(Intf: TIDLStructuredDefinition
@@ -880,7 +883,8 @@ begin
     if D is TIDLFunctionDefinition then
       begin
       if (foCallBack in FD.Options) then
-         WriteFunctionTypeCallback(FD);
+        if ConvertDef(FD) then
+          WriteFunctionTypeCallback(FD);
       end;
 end;
 
@@ -1333,12 +1337,13 @@ var
 
 begin
   for D in ML do
-    begin
-    if D is TIDLAttributeDefinition then
-      WritePrivateGetterImplementation(aDef,AD)
-    else if D is TIDLMapLikeDefinition then
-      WriteMapLikePrivateGetterImplementation(aDef,MD);
-    end;
+    if ConvertDef(D) then
+      begin
+      if D is TIDLAttributeDefinition then
+        WritePrivateGetterImplementation(aDef,AD)
+      else if D is TIDLMapLikeDefinition then
+        WriteMapLikePrivateGetterImplementation(aDef,MD);
+      end;
 end;
 
 procedure TWebIDLToPasWasmJob.WritePrivateSetterImplementations(aDef : TIDLStructuredDefinition; ML : TIDLDefinitionList);
@@ -1350,12 +1355,13 @@ var
 
 begin
   for D in ML do
-    begin
-    if D is TIDLAttributeDefinition then
-      WritePrivateSetterImplementation(aDef,AD)
-    else if D is TIDLMapLikeDefinition then
-      WriteMapLikePrivateSetterImplementation(aDef,MD);
-    end;
+    if ConvertDef(D) then
+      begin
+      if D is TIDLAttributeDefinition then
+        WritePrivateSetterImplementation(aDef,AD)
+      else if D is TIDLMapLikeDefinition then
+        WriteMapLikePrivateSetterImplementation(aDef,MD);
+      end;
 end;
 
 procedure TWebIDLToPasWasmJob.WriteMethodImplementations(aDef : TIDLStructuredDefinition; ML : TIDLDefinitionList);
@@ -1367,10 +1373,11 @@ var
 
 begin
   For D in ML do
-    If D Is TIDLFunctionDefinition then
-      WriteFunctionImplementation(aDef,DF)
-    else If D Is TIDLMapLikeDefinition then
-      WriteMapLikeFunctionImplementations(aDef,DM);
+    if ConvertDef(D) then
+      if D Is TIDLFunctionDefinition then
+        WriteFunctionImplementation(aDef,DF)
+      else If D Is TIDLMapLikeDefinition then
+        WriteMapLikeFunctionImplementations(aDef,DM);
 end;
 
 procedure TWebIDLToPasWasmJob.WriteMapLikeGetFunctionImplementation(aDef : TIDLStructuredDefinition; ML : TIDLMapLikeDefinition);

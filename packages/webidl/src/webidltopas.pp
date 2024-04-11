@@ -48,7 +48,8 @@ Type
   TBaseConversionOption = (
     coAddOptionsToHeader,
     coExpandUnionTypeArgs,
-    coDictionaryAsClass
+    coDictionaryAsClass,
+    coChromeWindow
     );
   TBaseConversionOptions = Set of TBaseConversionOption;
 
@@ -56,7 +57,8 @@ const
   BaseConversionOptionName: array[TBaseConversionOption] of string = (
     'AddOptionsToHeader',
     'ExpandUnionTypeArgs',
-    'DictionaryAsClass'
+    'DictionaryAsClass',
+    'ChromeWindow'
     );
 
 type
@@ -116,6 +118,7 @@ type
     procedure ResolveTypeDefs(aList: TIDLDefinitionList); virtual;
     procedure ResolveTypeDef(D: TIDLDefinition); virtual;
     procedure RemoveInterfaceForwards(aList: TIDLDefinitionList); virtual;
+    Function ConvertDef(D : TIDLDefinition) : Boolean;
     function FindGlobalDef(const aName: UTF8String): TIDLDefinition; virtual;
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function GetPasDataPos(D: TPasData; WithoutFile: boolean = false): string; virtual;
@@ -347,28 +350,29 @@ Var
 begin
   Result:=0;
   for D in aList do
-    if D is TIDLFunctionDefinition then
-      if Not (foCallBack in FD.Options) then
-        begin
-        if (FD.ReturnType is TIDLSequenceTypeDefDefinition) then
-          if AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition) then
-            Inc(Result);
-        For D2 in FD.Arguments do
-          if (DA.ArgumentType is TIDLSequenceTypeDefDefinition) then
-            begin
-            if AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition) then
+    if ConvertDef(D) then
+      if D is TIDLFunctionDefinition then
+        if Not (foCallBack in FD.Options) then
+          begin
+          if (FD.ReturnType is TIDLSequenceTypeDefDefinition) then
+            if AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition) then
               Inc(Result);
-            end
-          else
-            begin
-            UT:=CheckUnionTypeDefinition(DA.ArgumentType);
-            if Assigned(UT) then
-              For D3 in UT.Union do
-                if (D3 is TIDLSequenceTypeDefDefinition) then
-                  if AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition) then
-                    Inc(Result);
-            end;
-        end;
+          For D2 in FD.Arguments do
+            if (DA.ArgumentType is TIDLSequenceTypeDefDefinition) then
+              begin
+              if AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition) then
+                Inc(Result);
+              end
+            else
+              begin
+              UT:=CheckUnionTypeDefinition(DA.ArgumentType);
+              if Assigned(UT) then
+                For D3 in UT.Union do
+                  if (D3 is TIDLSequenceTypeDefDefinition) then
+                    if AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition) then
+                      Inc(Result);
+              end;
+          end;
   if Result>0 then
     AddLn('');
 end;
@@ -383,9 +387,10 @@ begin
   Result:=0;
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if (FA.AttributeType is TIDLSequenceTypeDefDefinition) then
-        if AddSequenceDef(FA.AttributeType as TIDLSequenceTypeDefDefinition) then
-          Inc(Result);
+      if ConvertDef(D) then
+        if (FA.AttributeType is TIDLSequenceTypeDefDefinition) then
+          if AddSequenceDef(FA.AttributeType as TIDLSequenceTypeDefDefinition) then
+            Inc(Result);
 end;
 
 function TBaseWebIDLToPas.WriteOtherImplicitTypes(
@@ -408,9 +413,10 @@ begin
   if aDict=nil then ;
   for D in aList do
     if D is TIDLDictionaryMemberDefinition then
-      if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
-        if AddSequenceDef(FD.MemberType as TIDLSequenceTypeDefDefinition) then
-          Inc(Result);
+      if ConvertDef(D) then
+        if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
+          if AddSequenceDef(FD.MemberType as TIDLSequenceTypeDefDefinition) then
+            Inc(Result);
 end;
 
 function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aParent: TIDLDefinition;
@@ -425,7 +431,8 @@ begin
   if aList=nil then ;
   for D in aList do
     if D is TIDLMapLikeDefinition then
-      Result:=Result+WriteMapLikePrivateReadOnlyFields(aParent,MD);
+      if ConvertDef(D) then
+        Result:=Result+WriteMapLikePrivateReadOnlyFields(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WritePrivateGetters(
@@ -440,7 +447,8 @@ begin
   if aList=nil then ;
   for D in aList do
     if D is TIDLMapLikeDefinition then
-      Result:=Result+WriteMapLikePrivateGetters(aParent,MD);
+      if ConvertDef(D) then
+        Result:=Result+WriteMapLikePrivateGetters(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WritePrivateSetters(
@@ -470,7 +478,8 @@ begin
   if aList=nil then ;
   for D in aList do
     if D is TIDLMapLikeDefinition then
-      Result:=Result+WriteMapLikeProperties(aParent,MD);
+      if ConvertDef(D) then
+        Result:=Result+WriteMapLikeProperties(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
@@ -484,7 +493,7 @@ function TBaseWebIDLToPas.WriteMapLikePrivateGetters(aParent: TIDLStructuredDefi
 begin
   Result:=0;
   // AddLn('function _Getsize: NativeInt;');
-  Result:=1;
+  // Result:=1;
 end;
 
 function TBaseWebIDLToPas.WriteConst(aConst: TIDLConstDefinition): Boolean;
@@ -511,8 +520,9 @@ begin
   Result:=0;
   For D in aList do
     if D is TIDLConstDefinition then
-      if WriteConst(D as TIDLConstDefinition) then
-        Inc(Result);
+      if ConvertDef(D) then
+        if WriteConst(D as TIDLConstDefinition) then
+          Inc(Result);
   Undent;
 end;
 
@@ -529,9 +539,10 @@ begin
   Result:=0;
   For D in aList do
     if D is TIDLAttributeDefinition then
-      if Not (aoReadOnly in A.Options) then
-        if WriteField(A) then
-          Inc(Result);
+      if ConvertDef(D) then
+        if Not (aoReadOnly in A.Options) then
+          if WriteField(A) then
+            Inc(Result);
 end;
 
 function TBaseWebIDLToPas.WriteDictionaryField(aDict: TIDLDictionaryDefinition;
@@ -567,8 +578,9 @@ begin
   Result:=0;
   For D in aList do
     if D is TIDLDictionaryMemberDefinition then
-      if WriteDictionaryField(aDict,M) then
-        Inc(Result);
+      if ConvertDef(D) then
+        if WriteDictionaryField(aDict,M) then
+          Inc(Result);
   Undent;
 end;
 
@@ -583,14 +595,15 @@ Var
 begin
   Result:=0;
   for D in aList do
-    if D is TIDLFunctionDefinition then
-      begin
-      if Not (foCallBack in FD.Options) then
-         if WriteFunctionDefinition(aParent,FD) then
-           Inc(Result);
-      end
-    else if D is TIDLMaplikeDefinition then
-      Result:=Result+WriteMapLikeMethodDefinitions(aParent,MD);
+    if ConvertDef(D) then
+      if D is TIDLFunctionDefinition then
+        begin
+        if Not (foCallBack in FD.Options) then
+           if WriteFunctionDefinition(aParent,FD) then
+             Inc(Result);
+        end
+      else if D is TIDLMaplikeDefinition then
+        Result:=Result+WriteMapLikeMethodDefinitions(aParent,MD);
 end;
 
 function TBaseWebIDLToPas.WriteMapLikeMethodDefinitions(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): integer;
@@ -718,11 +731,13 @@ begin
   L:=TFPObjectHashTable.Create(False);
   try
     For D in ML Do
-      if CanRename(D) and not (D is TIDLConstDefinition) then
-        CheckRename(D);
+      if ConvertDef(D) then
+        if CanRename(D) and not (D is TIDLConstDefinition) then
+          CheckRename(D);
     For D in ML Do
-      if CanRename(D) and(D is TIDLConstDefinition) then
-        CheckRename(D);
+      if ConvertDef(D) then
+        if CanRename(D) and(D is TIDLConstDefinition) then
+          CheckRename(D);
   finally
     L.Free;
   end;
@@ -779,14 +794,16 @@ begin
         CurIntf:=nil;
       end;
     For D in MembersWithParents Do
-      begin
-      CurName:=GetName(D);
-      if Names.Items[CurName]=nil then
-        Names.Add(CurName,D);
-      end;
+      if ConvertDef(D) then
+        begin
+        CurName:=GetName(D);
+        if Names.Items[CurName]=nil then
+          Names.Add(CurName,D);
+        end;
     For D in Members Do
       if D is TIDLFunctionDefinition then
-        CheckRenameArgs(TIDLFunctionDefinition(D));
+        if ConvertDef(D) then
+          CheckRenameArgs(TIDLFunctionDefinition(D));
   finally
     MembersWithParents.Free;
     Members.Free;
@@ -986,10 +1003,11 @@ begin
   Addln('');
   WriteTypeDefsAndCallbackImplementations(Context.Definitions);
   For D in Context.Definitions do
-    WriteDefinitionImplementation(D);
+    if ConvertDef(D) then
+      WriteDefinitionImplementation(D);
 end;
 
-Procedure TBaseWebIDLToPas.WriteDefinitionImplementation(D : TIDLDefinition);
+procedure TBaseWebIDLToPas.WriteDefinitionImplementation(D: TIDLDefinition);
 
 begin
   if Assigned(D) then;
@@ -1172,15 +1190,17 @@ begin
   Comment('Forward class definitions');
   For D in aList do
     if (D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition) then
-      begin
-      if WriteForwardClassDef(D as TIDLStructuredDefinition) then
-        Inc(Result);
-      end;
+      if ConvertDef(D) then
+        begin
+        if WriteForwardClassDef(D as TIDLStructuredDefinition) then
+          Inc(Result);
+        end;
   if coDictionaryAsClass in BaseOptions then
     For D in aList do
       if D is TIDLDictionaryDefinition then
-        if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
-          Inc(Result);
+        if ConvertDef(D) then
+          if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
+            Inc(Result);
 end;
 
 procedure TBaseWebIDLToPas.WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition);
@@ -1275,7 +1295,6 @@ begin
   Result:=(TypeAliases.IndexOfName(aDef.Name)=-1);
   if not Result then
     exit;
-
   if ADef is TIDLSequenceTypeDefDefinition then
     WriteSequenceDef(aDef as TIDLSequenceTypeDefDefinition)
   else if ADef is TIDLUnionTypeDefDefinition then
@@ -1324,13 +1343,15 @@ begin
     begin
     if D is TIDLTypeDefDefinition then
       begin
-      if WriteTypeDef(TD)  then
-        Inc(Result);
+      if ConvertDef(D) then
+        if WriteTypeDef(TD)  then
+          Inc(Result);
       end
     else if D is TIDLFunctionDefinition then
       begin
       if (foCallBack in FD.Options) then
-         if WriteFunctionTypeDefinition(FD) then
+        if ConvertDef(D) then
+          if WriteFunctionTypeDefinition(FD) then
            Inc(Result);
       end;
     end;
@@ -1354,8 +1375,9 @@ begin
   EnsureSection(csType);
   for D in aList do
     if D is TIDLEnumDefinition then
-      if WriteEnumDef(ED) then
-        Inc(Result);
+      if ConvertDef(D) then
+        if WriteEnumDef(ED) then
+          Inc(Result);
 end;
 
 function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList;
@@ -1633,8 +1655,9 @@ begin
   for D in aList do
     if D is TIDLDictionaryDefinition then
       if not TIDLDictionaryDefinition(D).IsPartial then
-        if WriteDictionaryDef(DD) then
-          Inc(Result);
+        if ConvertDef(D) then
+          if WriteDictionaryDef(DD) then
+            Inc(Result);
 end;
 
 function TBaseWebIDLToPas.WriteInterfaceDefs(aList: TIDLDefinitionList): Integer;
@@ -1649,8 +1672,9 @@ begin
   for D in aList do
     if D is TIDLInterfaceDefinition then
       if not ID.IsPartial then
-        if WriteInterfaceDef(ID) then
-          Inc(Result);
+        if ConvertDef(D) then
+          if WriteInterfaceDef(ID) then
+            Inc(Result);
 end;
 
 function TBaseWebIDLToPas.WriteNamespaceDefs(aList: TIDLDefinitionList): Integer;
@@ -1664,8 +1688,9 @@ begin
   for D in aList do
     if D is TIDLNamespaceDefinition then
       if not ND.IsPartial then
-        if WriteNamespaceDef(ND) then
-          Inc(Result);
+        if ConvertDef(D) then
+          if WriteNamespaceDef(ND) then
+            Inc(Result);
 end;
 
 procedure TBaseWebIDLToPas.GetOptions(L: TStrings; Full: boolean);
@@ -2104,6 +2129,11 @@ begin
   finally
     L.Free;
   end;
+end;
+
+function TBaseWebIDLToPas.ConvertDef(D: TIDLDefinition): Boolean;
+begin
+  Result:=(coChromeWindow in BaseOptions) or Not D.HasSimpleAttribute('ChromeOnly');
 end;
 
 function TBaseWebIDLToPas.FindGlobalDef(const aName: UTF8String
