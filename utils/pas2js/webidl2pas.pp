@@ -142,7 +142,7 @@ var
 begin
   Terminate;
   // quick check parameters
-  ErrorMsg:=CheckOptions('ced::f:g:hi:m:n:o:pt:u:vw:x:', [
+  ErrorMsg:=CheckOptions('ced::f:g:hi:m:n:o:pt:u:vw:x:r', [
     'help',
     'constexternal',
     'dicttoclass::',
@@ -158,7 +158,8 @@ begin
     'unitname:',
     'verbose',
     'webidlversion:',
-    'extra:'
+    'extra:',
+    'chrome'
     ]);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
@@ -195,7 +196,7 @@ begin
     TWebIDLToPas2js(FWebIDLToPas).DictionaryClassParent:=GetOptionValue('d','dicttoclass');
 
   CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');
-
+  CheckBaseOption(coChromeWindow,'r','chrome');
   // -f ?
 
   A:=GetOptionValue('g','globals');
