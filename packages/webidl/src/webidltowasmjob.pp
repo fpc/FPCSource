@@ -540,14 +540,16 @@ function TWebIDLToPasWasmJob.GetInvokeNameFromAliasName(const aTypeName : TIDLSt
 var
   aLower : String;
 begin
+  Writeln('Checking invoke for alias ',aTypeName,'(prefix : ',PasInterfacePrefix+')');
   aLower:=LowerCase(aTypeName);
+  Writeln('Pos(LowerCase(',PasInterfacePrefix,'),',aLower,') := ',Pos(LowerCase(PasInterfacePrefix),aLower));
   if Pos('bool',aLower)>0 then
     Result:='InvokeJSBooleanResult'
   else if Pos('array',aLower)>0 then
     Result:='InvokeJSObjectResult'
   else if Pos('string',aLower)>0 then
     Result:='InvokeJSUnicodeStringResult'
-  else if Pos(PasInterfacePrefix,aLower)=1 then
+  else if Pos(LowerCase(PasInterfacePrefix),aLower)=1 then
     Result:='InvokeJSObjectResult'
   else
     Result:='';
@@ -584,12 +586,13 @@ begin
   else
     if (aType is TIDLTypeDefDefinition) then
       begin
+
       if (TypeAliases.IndexOfName(aTypeName)<>-1) then
-        Result:=GetInvokeNameFromAliasName(aTypeName,aType)
-      else if (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
-        Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType)
-      else if TypeAliases.IndexOfName(GetName(aType))<>-1 then
-        Result:=GetInvokeNameFromAliasName(aTypeName,aType)
+        Result:=GetInvokeNameFromAliasName(aTypeName,aType);
+      if (Result='') and (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
+        Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType);
+      if (Result='') and (TypeAliases.IndexOfName(GetName(aType))<>-1) then
+        Result:=GetInvokeNameFromAliasName(GetName(aType),aType)
       else
         Result:='InvokeJSObjectResult';
       if Result='' then
@@ -641,8 +644,10 @@ begin
   else if aResultDef is TIDLTypeDefDefinition then
     begin
     aTypeName:=(aResultDef as TIDLTypeDefDefinition).TypeName;
+    Writeln('Looking for alias ',aTypeName,' name ',aName,'  in ',TypeAliases.Text);
     if TypeAliases.IndexOfName(aTypeName)=-1 then
       begin
+      Msg:=GetName(aDef);
       Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
       if assigned(aDef) then
         Msg:=Msg+' at '+GetDefPos(aDef);
