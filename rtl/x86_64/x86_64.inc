@@ -272,8 +272,8 @@ procedure FillXxxx_MoreThanTwoXmms; assembler; nostackframe;
 { Input:
   rcx = 'x'
   rdx = byte count
-  xmm0 = pattern for unaligned writes
-  xmm1 = pattern for aligned writes }
+  xmm0 = pattern for ALIGNED writes
+  First and last 16 bytes are written. }
 const
 {$ifdef use_fast_repmovstos}
   ErmsThreshold = 1536;
@@ -291,56 +291,56 @@ asm
       H1 and so on are called “aligned heads” or just “heads”.
       T1 and so on are called “aligned tails” or just “tails”.
 
-      UT (“unaligned tail”) is written with another 'movdqu' after the loop.
+      UT (“unaligned tail”) is written by the caller as well.
       At least 1 of its bytes is exclusive to it as well, that’s why 65 is subtracted below instead of 64. }
 
-    lea    -65(%rcx,%rdx), %r8 { r8 = end of x - 65, to get the loop bound and to write UT later (why not write it right away though...). }
-    and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
-    movdqa %xmm1, 16(%rcx) { Write H1. }
-    mov    %r8, %rax
-    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8 = loop bound. }
-    cmp    $49, %rdx { 33~49 bytes might contain 1~2 heads+tails; write as H1 and T1. }
+    lea    -65(%rcx,%rdx), %rax
+    and    $-16, %rax { rax = “T4” (possibly fictive). }
+    mov    %rax, %rdx { Remember T4 to rdx. }
+    and    $-16, %rcx { rcx = H1 − 16. }
+    sub    %rcx, %rax { rax = aligned byte count − 48. }
+    movdqa %xmm0, 16(%rcx) { Write H1. }
+    cmp    $32-48, %rax
     jle    .LOneAlignedTailWrite
-    movdqa %xmm1, 32(%rcx) { Write H2. }
-    cmp    $81, %rdx  { 50~81 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    movdqa %xmm0, 32(%rcx) { Write H2. }
+    cmp    $64-48, %rax
     jle    .LTwoAlignedTailWrites
-    cmp    $113, %rdx  { 82~113 bytes might contain 4~6 heads+tails; write as H1–2 and T4–1. }
+    sub    $48, %rax { rax = aligned byte count − 96 (32 bytes already written + 64 bytes written after loop). }
     jle    .LFourAlignedTailWrites
 
-    add    $48, %rcx
+    add    $48, %rcx { rcx = H3. }
 {$ifdef use_fast_repmovstos}
-    cmp    $ErmsThreshold, %rdx
+    cmp    $ErmsThreshold-64, %rax { Need to write aligned byte count − 32 bytes already written. rax = aligned byte count − 96, so compare rax + 64 to ErmsThreshold, or rax to ErmsThreshold − 64. }
     jae    .LRepStos
 {$else}
-    cmp    $NtThreshold, %rdx
+    cmp    $NtThreshold, %rax
     jae    .L64xNT_Body
 {$endif}
 
 .balign 16
 .L64x_Body:
-    movdqa %xmm1, (%rcx)
-    movdqa %xmm1, 16(%rcx)
-    movdqa %xmm1, 32(%rcx)
-    movdqa %xmm1, 48(%rcx)
+    movdqa %xmm0, (%rcx)
+    movdqa %xmm0, 16(%rcx)
+    movdqa %xmm0, 32(%rcx)
+    movdqa %xmm0, 48(%rcx)
     add    $64, %rcx
-    cmp    %rax, %rcx
-    jb     .L64x_Body
+    sub    $64, %rax
+    ja     .L64x_Body
 
 .LFourAlignedTailWrites:
-    movdqa %xmm1, (%rax) { T4 }
-    movdqa %xmm1, 16(%rax) { T3 }
+    movdqa %xmm0, (%rdx) { T4 }
+    movdqa %xmm0, 16(%rdx) { T3 }
 .LTwoAlignedTailWrites:
-    movdqa %xmm1, 32(%rax) { T2 }
+    movdqa %xmm0, 32(%rdx) { T2 }
 .LOneAlignedTailWrite:
-    movdqa %xmm1, 48(%rax) { T1 }
-    movdqu %xmm0, 65-16(%r8) { UT }
+    movdqa %xmm0, 48(%rdx) { T1 }
     ret
 
 {$ifdef use_fast_repmovstos}
 .LRepStos:
 {$ifdef FPC_PIC}
-    movq   fast_large_repmovstosb@GOTPCREL(%rip), %r9
-    cmpb   $1, (%r9)
+    movq   fast_large_repmovstosb@GOTPCREL(%rip), %r8
+    cmpb   $1, (%r8)
 {$else FPC_PIC}
     cmpb   $1, fast_large_repmovstosb(%rip)
 {$endif FPC_PIC}
@@ -349,12 +349,10 @@ asm
     push   %rdi { For tests on Windows; however this is SEH incompliant so the entire use_fast_repmovstos branch is disabled by default! }
 {$endif}
     mov    %rcx, %rdi { rdi = REP STOS destination. }
-    lea    65-16+8-1(%r8), %rcx
-    sub    %rdi, %rcx
-    shr    $3, %rcx { rcx = count of REP STOSQ blocks before UT. }
-    movq   %xmm1, %rax { recover pattern for aligned writes back to GPR :) }
+    lea    64(%rax), %rcx
+    shr    $3, %rcx { rcx = count of REP STOSQ blocks up to T1 (might be 1 more than strictly required if T1 and UT overlap is 8 or more, don’t care). }
+    movq   %xmm0, %rax { recover pattern for aligned writes back to GPR :) }
     rep stosq
-    movdqu %xmm0, 65-16(%r8) { UT }
 {$ifdef win64}
     pop    %rdi
 {$endif}
@@ -362,18 +360,18 @@ asm
 {$endif}
 
 .LRepStosIsNotBetter:
-    cmp    $NtThreshold, %rdx
+    cmp    $NtThreshold-64, %rax
     jb     .L64x_Body
 
 .balign 16
 .L64xNT_Body:
-    movntdq %xmm1, (%rcx)
-    movntdq %xmm1, 16(%rcx)
-    movntdq %xmm1, 32(%rcx)
-    movntdq %xmm1, 48(%rcx)
+    movntdq %xmm0, (%rcx)
+    movntdq %xmm0, 16(%rcx)
+    movntdq %xmm0, 32(%rcx)
+    movntdq %xmm0, 48(%rcx)
     add    $64, %rcx
-    cmp    %rax, %rcx
-    jb     .L64xNT_Body
+    sub    $64, %rax
+    ja     .L64xNT_Body
     sfence
     jmp    .LFourAlignedTailWrites
 end;
@@ -400,11 +398,9 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0
     movdqu %xmm0, (%rcx)
-    movdqa %xmm0, %xmm1
-
+    movdqu %xmm0, -16(%rcx,%rdx)
     cmp    $32, %rdx
     jg     FillXxxx_MoreThanTwoXmms
-    movdqu %xmm0, -16(%rcx,%rdx)
     ret
 
 .L4to15:
@@ -452,22 +448,20 @@ procedure FillWord(var x;count:SizeInt;value:word);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
-
+    movdqu %xmm0, -16(%rcx,%rdx,2)
     cmp    $16, %rdx
-    jle    .LTail
+    jg     .LMoreThanTwoXMMs
+    ret
 
+.LMoreThanTwoXMMs:
     shl    $1, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %eax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movd   %eax, %xmm1
-    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
-
-.LTail:
-    movdqu %xmm0, -16(%rcx,%rdx,2)
-    ret
 
 .L4to8:
     mov    %eax, %r8d
@@ -508,14 +502,15 @@ procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
+    movdqu %xmm0, -16(%rcx,%rdx,4)
 
     shl    $2, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %eax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movd   %eax, %xmm1
-    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L4to8:
@@ -561,14 +556,15 @@ procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
     movq   %rax, %xmm0
     pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
+    movdqu %xmm0, -16(%rcx,%rdx,8)
 
     shl    $3, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %rax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movq   %rax, %xmm1
-    pshufd $0b01000100, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movq   %rax, %xmm0
+    pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L3to6:

@@ -214,7 +214,7 @@ asm
         cmp    $32, %edx
         ja     .LMoreThanTwoVectors
         ret
-        .byte  102,102,102,102,144 { Turn .balign 16 before .L64x_Body into a no-op. }
+        .byte  144 { Turn .balign 16 before .L64x_Body into a no-op. }
 
       { x can start and end misaligned on the vector boundary:
         x = ~~][H1][H2][...][T2][T1]~
@@ -227,56 +227,58 @@ asm
         mov    %eax, %ecx
         shl    $3, %ecx { ecx = misalignment of x in bits }
         rol    %cl, %esi { misalign the pattern }
-        movd   %esi, %xmm1
-        pshufd $0, %xmm1, %xmm1
+        movd   %esi, %xmm0
+        pshufd $0, %xmm0, %xmm0
         pop    %esi
 
 { FillChar (to skip the misaligning above) and FillQWord jump here.
-  eax — x, edx — byte count > 32, xmm0 = pattern for unaligned writes, xmm1 = pattern for aligned writes, first and last 16 bytes written. }
+  eax — x, edx — byte count > 32, xmm0 = pattern for ALIGNED writes, first and last 16 bytes written. }
 FillXxxx_MoreThanTwoXMMs:
         lea    -65(%eax,%edx), %ecx
         and    $-16, %ecx { ecx = “T4” (possibly fictive) = loop bound. }
-        and    $-16, %eax { align eax to the LEFT (so needs to be offset by an additional +16 for a while). }
-        movdqa %xmm1, 16(%eax) { Write H1. }
-        cmp    $49, %edx { 33~49 bytes might contain 1~2 heads+tails; write as H1 and T1. }
+        mov    %ecx, %edx { Remember T4 to edx. }
+        and    $-16, %eax { eax = H1 − 16. }
+        sub    %eax, %ecx { ecx = aligned byte count − 48. }
+        movdqa %xmm0, 16(%eax) { Write H1. }
+        cmp    $32-48, %ecx
         jle    .LOneAlignedTailWrite
-        movdqa %xmm1, 32(%eax) { Write H2. }
-        cmp    $81, %edx  { 50~81 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+        movdqa %xmm0, 32(%eax) { Write H2. }
+        cmp    $64-48, %ecx
         jle    .LTwoAlignedTailWrites
-        cmp    $113, %edx  { 82~113 bytes might contain 4~6 heads+tails; write as H1–2 and T4–1. }
-        jle    .LFourAlignedTailWrites
+        sub    $48, %ecx { ecx = aligned byte count − 96 (32 bytes already written + 64 bytes written after loop). }
+        jle    .LFourAlignedTailWrites { ecx was ≤ 96−48 }
 
-        add    $48, %eax
-        cmp    $NtThreshold, %edx
+        add    $48, %eax { eax = H3. }
+        cmp    $NtThreshold, %ecx
         jae    .L64xNT_Body
 
 .balign 16 { no-op }
 .L64x_Body:
-        movdqa %xmm1, (%eax)
-        movdqa %xmm1, 16(%eax)
-        movdqa %xmm1, 32(%eax)
-        movdqa %xmm1, 48(%eax)
-        add    $64,  %eax
-        cmp    %ecx, %eax
-        jb     .L64x_Body
+        movdqa %xmm0, (%eax)
+        movdqa %xmm0, 16(%eax)
+        movdqa %xmm0, 32(%eax)
+        movdqa %xmm0, 48(%eax)
+        add    $64, %eax
+        sub    $64, %ecx
+        ja     .L64x_Body
 .LFourAlignedTailWrites:
-        movdqa %xmm1, (%ecx) { T4 }
-        movdqa %xmm1, 16(%ecx) { T3 }
+        movdqa %xmm0, (%edx) { T4 }
+        movdqa %xmm0, 16(%edx) { T3 }
 .LTwoAlignedTailWrites:
-        movdqa %xmm1, 32(%ecx) { T2 }
+        movdqa %xmm0, 32(%edx) { T2 }
 .LOneAlignedTailWrite:
-        movdqa %xmm1, 48(%ecx) { T1 }
+        movdqa %xmm0, 48(%edx) { T1 }
         ret
 
 .balign 16
 .L64xNT_Body:
-        movntdq %xmm1, (%eax)
-        movntdq %xmm1, 16(%eax)
-        movntdq %xmm1, 32(%eax)
-        movntdq %xmm1, 48(%eax)
+        movntdq %xmm0, (%eax)
+        movntdq %xmm0, 16(%eax)
+        movntdq %xmm0, 32(%eax)
+        movntdq %xmm0, 48(%eax)
         add    $64, %eax
-        cmp    %ecx, %eax
-        jb     .L64xNT_Body
+        sub    $64, %ecx
+        ja     .L64xNT_Body
         sfence
         jmp    .LFourAlignedTailWrites
 end;
@@ -367,7 +369,6 @@ asm
         pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
         movdqu %xmm0, (%eax)
         movdqu %xmm0, -16(%eax,%edx)
-        movdqa %xmm0, %xmm1
         cmp    $32, %edx
         ja     FillXxxx_MoreThanTwoXMMs
 end;
@@ -388,7 +389,6 @@ asm
         pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
         movdqu %xmm0, (%eax)
         movdqu %xmm0, -16(%eax,%edx)
-        movdqa %xmm0, %xmm1
         cmp    $32, %edx
         ja     FillXxxx_MoreThanTwoXMMs
 end;
@@ -613,20 +613,19 @@ asm
         shl     $3, %edx
         movdqu  %xmm0, (%eax)
         movdqu  %xmm0, -16(%eax,%edx)
-        movdqa  %xmm0, %xmm1
         test    $7, %eax { Since misaligning the pattern is not very trivial, shortcut if x is aligned. }
         jz      FillXxxx_MoreThanTwoXMMs
-        mov     %eax, %ecx { Misalign uint64s in xmm0 by the misalignment of x into xmm1. }
+        mov     %eax, %ecx { Misalign uint64s in xmm0 by the misalignment of x. }
         shl     $3, %ecx
         and     $63, %ecx
-        movd    %ecx, %xmm3
-        psllq   %xmm3, %xmm1
+        movd    %ecx, %xmm2
+        movdqa  %xmm0, %xmm1
+        psllq   %xmm2, %xmm1
         neg     %ecx      { Can also do not ecx; and $63, %ecx; inc ecx to support ecx = 0, as SSE shifts correctly handle count >= bitsizeof.  }
         and     $63, %ecx { But in the definitely unaligned case, ecx = 0 is impossible. }
-        movd    %ecx, %xmm3
-        movdqa  %xmm0, %xmm2
-        psrlq   %xmm3, %xmm2
-        por     %xmm2, %xmm1
+        movd    %ecx, %xmm2
+        psrlq   %xmm2, %xmm0
+        por     %xmm1, %xmm0
         jmp     FillXxxx_MoreThanTwoXMMs
 
 .L4OrLess: { Doing this with 64-bit half-XMM MOVQs is a lot simpler but 2x slower (Coffee Lake). :\ }
