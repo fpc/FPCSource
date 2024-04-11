@@ -2022,6 +2022,8 @@ var
   FD: TIDLFunctionDefinition;
 begin
   if D=nil then exit;
+  if not ConvertDef(D) then
+    exit;
   //writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D),' D=',hexstr(ptruint(D),sizeof(ptruint)*2));
   if D Is TIDLInterfaceDefinition then
     ResolveTypeDefs(TIDLInterfaceDefinition(D).Members)

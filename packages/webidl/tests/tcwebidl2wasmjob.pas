@@ -61,6 +61,7 @@ type
     procedure TestWJ_IntfFunction_SequenceResult;
     procedure TestWJ_IntfFunction_GlobalSequenceResult;
     procedure TestWJ_IntfFunction_ChromeOnly;
+    procedure TestWJ_IntfFunction_ChromeOnlyNewObject;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -1304,6 +1305,46 @@ begin
     'end.',
     ''
   ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_ChromeOnlyNewObject;
+begin
+
+    TestWebIDL([
+    'interface Attr {',
+    '  [ChromeOnly, NewObject] ',
+    '  ConsoleInstance createInstance(optional ConsoleInstanceOptions options = {});',
+    '};'
+    ],
+    [
+    'Type',
+      '  // Forward class definitions',
+      '  IJSAttr = interface;',
+      '  TJSAttr = class;',
+      '  { --------------------------------------------------------------------',
+      '    TJSAttr',
+      '    --------------------------------------------------------------------}',
+      '',
+      '  IJSAttr = interface(IJSObject)',
+      '    [''{AA94F48A-9540-32B7-B05B-E99EB8B2AF2A}'']',
+      '  end;',
+      '',
+      '  TJSAttr = class(TJSObject,IJSAttr)',
+      '  Private',
+      '  Public',
+      '    class function Cast(const Intf: IJSObject): IJSAttr;',
+      '  end;',
+      '',
+      'implementation',
+      '',
+      'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+      'begin',
+      '  Result:=TJSAttr.JOBCast(Intf);',
+      'end;',
+      '',
+      'end.',
+      ''
+    ]);
 end;
 
 
