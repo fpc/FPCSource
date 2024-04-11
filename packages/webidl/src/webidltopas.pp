@@ -1103,6 +1103,7 @@ function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boole
 Var
   A: UTF8String;
   D: TIDLDefinition;
+  P: Integer;
 begin
   Case aTypeName of
     'boolean': Result:='Boolean';
@@ -1161,7 +1162,12 @@ begin
       begin
       A:=FTypeAliases.Values[Result];
       If (A<>'') then
+        begin
         Result:=A;
+        P:=Pos(',',A);
+        if P>0 then
+          SetLength(Result,P-1);
+        end;
       end;
   end;
 end;

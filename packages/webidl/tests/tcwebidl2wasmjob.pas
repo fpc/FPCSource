@@ -63,6 +63,7 @@ type
     procedure TestWJ_IntfFunction_ChromeOnly;
     procedure TestWJ_IntfFunction_ChromeOnlyNewObject;
     procedure TestWJ_IntfFunction_DictionaryResult;
+    procedure TestWJ_IntfFunction_AliasResult;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -1404,6 +1405,54 @@ begin
    '',
    'end.'
     ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_AliasResult;
+
+begin
+  WebIDLToPas.TypeAliases.Add('Float32Array=IJSFloat32Array');
+  TestWebIDL([
+  'interface Attr {',
+  '  Float32Array vibrate();',
+  '};',
+  ''],
+[
+ 'Type',
+ '',
+ '  // Forward class definitions',
+ '  IJSAttr = interface;',
+ '  TJSAttr = class;',
+ '',
+ '  { --------------------------------------------------------------------',
+ '    TJSAttr',
+ '    --------------------------------------------------------------------}',
+ '',
+ '  IJSAttr = interface(IJSObject)',
+ '    [''{AA94F48A-2BFB-3877-82A6-208CA4B2AF2A}'']',
+ '    function vibrate: IJSFloat32Array;',
+ '  end;',
+ '',
+ '  TJSAttr = class(TJSObject,IJSAttr)',
+ '  Private',
+ '  Public',
+ '    function vibrate: IJSFloat32Array;',
+ '    class function Cast(const Intf: IJSObject): IJSAttr;',
+ '  end;',
+ '',
+ 'implementation',
+ '',
+ 'function TJSAttr.vibrate: IJSFloat32Array;',
+ 'begin',
+ '  Result:=InvokeJSObjectResult(''vibrate'',[],TJSArray) as IJSFloat32Array;',
+ 'end;',
+ '',
+ 'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+ 'begin',
+ '  Result:=TJSAttr.JOBCast(Intf);',
+ 'end;',
+ '',
+ 'end.'
+]);
 end;
 
 

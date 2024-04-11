@@ -77,7 +77,9 @@ type
     function GetArgName(d: TIDLDefinition): string;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
-    function GetInvokeNameFromTypeName(aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
+    function GetInvokeClassNameFromTypeAlias(aName: TIDLString; aDef: TIDLDefinition): TIDLString;
+    function GetInvokeNameFromAliasName(const aTypeName: TIDLString; aType: TIDLDefinition): string;
+    function GetInvokeNameFromTypeName(const aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
 
   Protected
     function BaseUnits: String; override;
@@ -532,7 +534,28 @@ begin
     end;
 end;
 
-function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(aTypeName : TIDLString; aType : TIDLDefinition):  TIDLString;
+function TWebIDLToPasWasmJob.GetInvokeNameFromAliasName(const aTypeName : TIDLString; aType : TIDLDefinition) : string;
+// Heuristic to determine what the base type of an aliased type is.
+// We could enhance this by having support for aType=aAlias,InvokeType:InvokeClass
+var
+  aLower : String;
+begin
+  aLower:=LowerCase(aTypeName);
+  if Pos('bool',aLower)>0 then
+    Result:='InvokeJSBooleanResult'
+  else if Pos('array',aLower)>0 then
+    Result:='InvokeJSObjectResult'
+  else if Pos('string',aLower)>0 then
+    Result:='InvokeJSUnicodeStringResult'
+  else if Pos(PasInterfacePrefix,aLower)=1 then
+    Result:='InvokeJSObjectResult'
+  else
+    Result:='';
+end;
+
+function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(const aTypeName : TIDLString; aType : TIDLDefinition):  TIDLString;
+
+
 
 begin
   case aTypeName of
@@ -558,17 +581,42 @@ begin
     Result:='InvokeJSNoResult';
     end;
   else
-    if aType is TIDLEnumDefinition then
+    if (aType is TIDLTypeDefDefinition) then
+      begin
+      if (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
+        Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType)
+      else if TypeAliases.IndexOfName(GetName(aType))<>-1 then
+        Result:=GetInvokeNameFromAliasName(aTypeName,aType);
+      if Result='' then
+        Raise EConvertError.CreateFmt('Unable to determine invoke name from alias type %s',[aTypeName]);
+      end
+    else if aType is TIDLEnumDefinition then
       Result:='InvokeJSUnicodeStringResult'
     else
       Result:='InvokeJSObjectResult';
   end;
 end;
 
+function TWebIDLToPasWasmJob.GetInvokeClassNameFromTypeAlias(aName : TIDLString; aDef : TIDLDefinition): TIDLString;
+
+// Heuristic to determine what the base type of an aliased type is.
+// We could enhance this by having support for aType=aAlias,InvokeType:InvokeClass
+var
+  aLower : String;
+begin
+  aLower:=LowerCase(aName);
+  if Pos('array',aLower)>0 then
+    Result:='TJSArray'
+  else if Pos(PasInterfacePrefix,aLower)=1 then
+    Result:='TJSObject'
+  else
+    Result:='';
+end;
+
 function TWebIDLToPasWasmJob.GetInvokeClassName(aResultDef : TIDLDefinition; aName : TIDLString; aDef : TIDLFunctionDefinition = Nil): TIDLString;
 
 var
-  Msg : String;
+  aTypeName, Msg : String;
 
 begin
 //  ResolvedReturnTypeName
@@ -585,14 +633,28 @@ begin
     begin
     Result:=ClassPrefix+'Object'+ClassSuffix;
     end
+  else if aResultDef is TIDLTypeDefDefinition then
+    begin
+    aTypeName:=(aResultDef as TIDLTypeDefDefinition).TypeName;
+    if TypeAliases.IndexOfName(aTypeName)=-1 then
+      begin
+      Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
+      if assigned(aDef) then
+        Msg:=Msg+' at '+GetDefPos(aDef);
+      raise EConvertError.Create(Msg);
+      end
+    else
+     begin
+     Result:=GetInvokeClassNameFromTypeAlias(aTypeName,aResultDef);
+     end;
+    end
   else
     begin
     Msg:=GetName(aDef);
-    Msg:='[20220725172242] not yet supported: function return type '+aName+' '+Msg;
+    Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
     if assigned(aDef) then
       Msg:=Msg+' at '+GetDefPos(aDef);
     raise EConvertError.Create(Msg);
-
     end;
 end;
 
