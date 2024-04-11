@@ -558,6 +558,7 @@ function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(const aTypeName : TIDLStr
 
 
 begin
+  Result:='';
   case aTypeName of
   'Boolean': Result:='InvokeJSBooleanResult';
   'ShortInt',
@@ -583,10 +584,14 @@ begin
   else
     if (aType is TIDLTypeDefDefinition) then
       begin
-      if (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
+      if (TypeAliases.IndexOfName(aTypeName)<>-1) then
+        Result:=GetInvokeNameFromAliasName(aTypeName,aType)
+      else if (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
         Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType)
       else if TypeAliases.IndexOfName(GetName(aType))<>-1 then
-        Result:=GetInvokeNameFromAliasName(aTypeName,aType);
+        Result:=GetInvokeNameFromAliasName(aTypeName,aType)
+      else
+        Result:='InvokeJSObjectResult';
       if Result='' then
         Raise EConvertError.CreateFmt('Unable to determine invoke name from alias type %s',[aTypeName]);
       end

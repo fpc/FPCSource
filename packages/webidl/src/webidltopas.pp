@@ -1921,12 +1921,28 @@ begin
     D.Data:=Result;
     AllocatePasName(TIDLArgumentDefinition(D).ArgumentType,ParentName+'_'+D.Name);
     end
+  else if D Is TIDLUnionTypeDefDefinition then
+    begin
+    CN:=GetTypeName(TIDLUnionTypeDefDefinition(D));
+    sDef:=FindGlobalDef(CN);
+    if (SDef=Nil) or (sDef.Data=Nil) then
+      begin
+      Result:=CreatePasData(EscapeKeyWord(CN),D,true);
+      AddJSIdentifier(D);
+      end
+    else
+      Result:=ClonePasData(TPasData(sDef.Data),D);
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLUnionTypeDefDefinition).Union,D.Name)
+    end
   else
     begin
     if (D is TIDLTypeDefDefinition)
         or (D is TIDLEnumDefinition)
         or ((D Is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(D).Options)) then
       begin
+      if CN='' then
+        CN:=ParentName+'Type';
       CN:=TypePrefix+CN;
       AddJSIdentifier(D);
       end;
