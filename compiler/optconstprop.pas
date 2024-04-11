@@ -350,6 +350,7 @@ unit optconstprop;
                          )) or
                         (l.nodetype = temprefn)) and
                        (is_constintnode(a.right) or
+                        is_constrealnode(a.right) or
                         is_constboolnode(a.right) or
                         is_constcharnode(a.right) or
                         is_constwidecharnode(a.right) or
