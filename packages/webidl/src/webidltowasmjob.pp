@@ -80,6 +80,8 @@ type
     function GetInvokeClassNameFromTypeAlias(aName: TIDLString; aDef: TIDLDefinition): TIDLString;
     function GetInvokeNameFromAliasName(const aTypeName: TIDLString; aType: TIDLDefinition): string;
     function GetInvokeNameFromTypeName(const aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
+    function GetKnownArgumentGetter(aDef: TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename: String): string;
+    function GetKnownResultAllocator(aDef: TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename: String): string;
 
   Protected
     function BaseUnits: String; override;
@@ -955,9 +957,25 @@ begin
         WriteFunctionTypeCallback(CD.FunctionDef);
 end;
 
+function TWebIDLToPasWasmJob.GetKnownArgumentGetter(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
 
+begin
+  Result:='';
+  if Pos('IJS',ArgTypeName)=1 then
+    Result:='GetObject('+GetName(aDef)+' as '+ArgTypeName
+  else if Pos('Array',ArgTypeName)>0 then
+    Result:='GetObject('+GetName(aDef)+' as IJSArray';
+end;
 
+function TWebIDLToPasWasmJob.GetKnownResultAllocator(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
 
+begin
+  Result:='';
+  if Pos('IJS',ArgTypeName)=1 then
+    Result:='Result:=AllocIntf('+GetName(aDef)+' as '+ArgTypeName
+  else if Pos('Array',ArgTypeName)>0 then
+    Result:='Result:=AllocIntf('+GetName(aDef)+' as IJSArray';
+end;
 
 Procedure TWebIDLToPasWasmJob.WriteFunctionTypeCallBack(aDef: TIDLFunctionDefinition);
 
@@ -1012,6 +1030,7 @@ begin
         ArgName:=ArgName+IntToStr(j);
         end;
       ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypename);
+
       case ArgResolvedTypename of
       '': raise EWebIDLParser.Create('[20220725181726] not yet supported: function type arg['+IntToStr(I)+'] type void/undefined at '+GetDefPos(ArgDef));
       'Boolean': GetFunc:='GetBoolean';
@@ -1033,6 +1052,22 @@ begin
       else
         if (ArgType is TIDLInterfaceDefinition) or (ArgType is TIDLDictionaryDefinition) then
           GetFunc:='GetObject('+GetName(ArgType)+') as '+ArgTypeName
+        else if (ArgType is TIDLEnumDefinition)  then
+          GetFunc:='GetString'
+        else if (ArgType is TIDLSequenceTypeDefDefinition)  then
+          GetFunc:='GetArray'
+        else if argType is TIDLTypeDefinition then
+          begin
+          GetFunc:=GetKnownArgumentGetter(argType as TIDLTypeDefinition, ArgTypeName, ArgResolvedTypename);
+          if GetFunc='' then
+            begin
+            if ArgType<>nil then
+              Msg:=Format('%s (%s)',[ArgDef.ArgumentType.TypeName,ArgType.ClassName])
+            else
+              Msg:='No type';
+            raise EWebIDLParser.Create('[20220725181732] not yet supported: function type arg['+IntToStr(I)+'] type '+Msg+' at '+GetDefPos(ArgDef));
+            end;
+          end
         else
           begin
           if ArgType<>nil then
@@ -1089,10 +1124,17 @@ begin
     'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
     'Variant': GetFunc:='Result:=H.AllocVariant('+Call+');';
     'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
-    'IJSObject' : GetFunc:='Result:=H.AllocIntf('+Call+');'
+    'IJSObject' : GetFunc:='Result:=H.AllocIntf('+Call+');';
+    'IJSPromise' : GetFunc:='Result:=H.AllocIntf('+Call+');';
     else
       if ReturnDef is TIDLInterfaceDefinition then
         GetFunc:='Result:=H.AllocIntf('+Call+');'
+      else if ReturnDef is TIDLTypeDefinition then
+        begin
+        GetFunc:=GetKnownResultAllocator(ReturnDef as TIDLTypeDefinition,ReturnTypeName,ResolvedReturnTypeName);
+        if GetFunc='' then
+          raise EWebIDLParser.Create('[20220725181735] not yet supported: function type result type "'+ResolvedReturnTypeName+'" at '+GetDefPos(aDef));
+        end
       else
         begin
         if ReturnDef<>nil then

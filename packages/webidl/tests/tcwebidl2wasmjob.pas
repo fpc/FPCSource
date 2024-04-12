@@ -45,7 +45,10 @@ type
     procedure TestWJ_IntfAttribute_ArrayBufferView;
     procedure TestWJ_IntfAttribute_ChromeOnly;
 
-    procedure TestWJ_CallBackObject;
+    procedure TestWJ_CallBackObjectArg;
+    procedure TestWJ_CallBackEnumArg;
+    procedure TestWJ_CallBackSequenceArg;
+
 
     // todo procedure TestWJ_IntfAttribute_Any;
 
@@ -686,7 +689,7 @@ begin
   ]);
 end;
 
-procedure TTestWebIDL2WasmJob.TestWJ_CallBackObject;
+procedure TTestWebIDL2WasmJob.TestWJ_CallBackObjectArg;
 
 begin
   WebIDLToPas.TypeAliases.Add('AudioWorkletProcessor=IJSObject');
@@ -711,6 +714,60 @@ begin
   'end.'
   ]);
 
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_CallBackEnumArg;
+begin
+  TestWebIDL([
+  'enum E { ',
+  '  "allowed", ',
+  '  "disallowed" ',
+  '}; ',
+  'callback getit = long (E a);'
+  ],[
+  'Type',
+  '// Forward class definitions',
+  '  TE = UnicodeString;',
+  '  Tgetit = function (a: TE): Integer of object;',
+  '',
+  'implementation',
+  '',
+  'function JOBCallTgetit(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte; ',
+  'var',
+  '  a: TE;',
+  'begin',
+  '  a:=H.GetString;',
+  '  Result:=H.AllocLongint(Tgetit(aMethod)(a));',
+  'end;',
+  '',
+  'end.'
+  ]);
+
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_CallBackSequenceArg;
+begin
+  TestWebIDL([
+  'typedef sequence<long> E;',
+  'callback getit = long (E a);'
+  ],[
+  'Type',
+  '// Forward class definitions',
+  '  TIntegerDynArray = IJSArray; // array of Integer',
+  '  Tgetit = function (const a: TIntegerDynArray): Integer of object;',
+  '',
+  'implementation',
+  '',
+  'function JOBCallTgetit(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte; ',
+  'var',
+  '  a: TIntegerDynArray;',
+  'begin',
+  '  a:=H.GetArray;',
+  '  Result:=H.AllocLongint(Tgetit(aMethod)(a));',
+  'end;',
+  '',
+  'end.'
+  ]);
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Void;
