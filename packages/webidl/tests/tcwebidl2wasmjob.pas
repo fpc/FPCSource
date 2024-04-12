@@ -45,6 +45,8 @@ type
     procedure TestWJ_IntfAttribute_ArrayBufferView;
     procedure TestWJ_IntfAttribute_ChromeOnly;
 
+    procedure TestWJ_CallBackObject;
+
     // todo procedure TestWJ_IntfAttribute_Any;
 
     // functions
@@ -682,6 +684,33 @@ begin
     'end.',
     ''
   ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_CallBackObject;
+
+begin
+  WebIDLToPas.TypeAliases.Add('AudioWorkletProcessor=IJSObject');
+  TestWebIDL([
+  '  callback constructor AudioWorkletProcessorConstructor = AudioWorkletProcessor (object options);'
+  ],
+  [
+  'Type',
+  '  // Forward class definitions',
+  '  TAudioWorkletProcessorConstructor = function (options: IJSObject): IJSObject of object;',
+  '',
+  'implementation',
+  '',
+  'function JOBCallTAudioWorkletProcessorConstructor(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;',
+  ' var',
+  '   options: IJSObject;',
+  'begin',
+  '  options:=H.GetObject;',
+  '  Result:=H.AllocIntf(TAudioWorkletProcessorConstructor(aMethod)(options));',
+  'end;',
+  '',
+  'end.'
+  ]);
+
 end;
 
 procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Void;

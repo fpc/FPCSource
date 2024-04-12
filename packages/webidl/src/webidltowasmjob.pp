@@ -1029,6 +1029,7 @@ begin
       'UnicodeString': GetFunc:='GetString';
       'Variant': GetFunc:='GetVariant';
       'TJOB_JSValue': GetFunc:='GetValue';
+      'IJSObject': GetFunc:='GetObject';
       else
         if (ArgType is TIDLInterfaceDefinition) or (ArgType is TIDLDictionaryDefinition) then
           GetFunc:='GetObject('+GetName(ArgType)+') as '+ArgTypeName
@@ -1088,6 +1089,7 @@ begin
     'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
     'Variant': GetFunc:='Result:=H.AllocVariant('+Call+');';
     'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
+    'IJSObject' : GetFunc:='Result:=H.AllocIntf('+Call+');'
     else
       if ReturnDef is TIDLInterfaceDefinition then
         GetFunc:='Result:=H.AllocIntf('+Call+');'
