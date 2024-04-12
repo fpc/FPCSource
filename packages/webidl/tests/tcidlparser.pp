@@ -306,7 +306,8 @@ Type
 
   TTestFunctionCallbackParser = Class(TTestParser)
   private
-    FFunction: TIDLFunctionDefinition;
+    FCallBack: TIDLCallbackDefinition;
+    FFunction : TIDLFunctionDefinition;
     FIsConstructor : Boolean;
   Public
     Procedure Setup; override;
@@ -924,8 +925,9 @@ begin
   Src:=Src+');'+sLineBreak;
   InitSource(Src);
   Parser.Parse;
-  AssertEquals('Correct class',TIDLFunctionDefinition,Definitions[0].ClassType);
-  Result:=Definitions[0] as TIDLFunctionDefinition;
+  AssertEquals('Correct class',TIDLCallbackDefinition,Definitions[0].ClassType);
+  Result:=(Definitions[0] as TIDLCallbackDefinition).FunctionDef;
+  AssertNotNull('Have callback function definition',Result);
   AssertEquals('Name',AName,Result.Name);
   AssertNotNull('Have return type',Result.ReturnType);
   AssertEquals('Return type name',aReturnType,Result.ReturnType.TypeName);

@@ -264,9 +264,19 @@ type
     Property Options : TAttributeOptions Read FOptions Write FOptions;
   end;
 
+
+  { TIDLTypeDefinition }
+  // Everything that defines a named type descends from this:
+  // function, typedef, enum, interface, dictionary, namespace, callback
+  TIDLTypeDefinition = class(TIDLDefinition)
+  Public
+    // Type name in Javascript
+    Function GetJSTypeName : String; virtual; abstract;
+  end;
+
   { TIDLStructuredDefinition }
 
-  TIDLStructuredDefinition = Class(TIDLDefinition)
+  TIDLStructuredDefinition = Class(TIDLTypeDefinition)
   Private
     FIsCallBack: Boolean;
     FPartials,
@@ -278,6 +288,7 @@ type
     function GetPartial(Aindex : Integer): TIDLStructuredDefinition;
     function GetPartials: TIDLDefinitionList;
   Public
+    Function GetJSTypeName : String; override;
     Destructor Destroy; override;
     Function IsExtension : Boolean; override;
     Function GetFullMemberList(aList : TIDLDefinitionList) : Integer;
@@ -371,6 +382,18 @@ type
     Property Options : TFunctionOptions Read FOptions Write FOptions;
   end;
 
+  { TIDLCallBackDefinition }
+
+  TIDLCallBackDefinition = Class(TIDLTypeDefinition)
+  private
+    FFunctionDef: TIDLFunctionDefinition;
+  Public
+    Destructor Destroy; override;
+    Function GetJSTypeName: String; override;
+    Property FunctionDef : TIDLFunctionDefinition Read FFunctionDef Write FFunctionDef;
+  end;
+
+
   TSerializerKind = (skObject,skArray,skSingle,skFunction);
 
   { TIDLSerializerDefinition }
@@ -422,24 +445,26 @@ type
 
   { TIDLEnumDefinition }
 
-  TIDLEnumDefinition = Class(TIDLDefinition)
+  TIDLEnumDefinition = Class(TIDLTypeDefinition)
   private
     FValues: TStrings;
   Public
     Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String; const aFile: string; aLine, aCol: integer); override;
     Destructor Destroy; override;
+    Function GetJSTypeName : String; override;
     Procedure AddValue(Const aValue : String);
     Property Values : TStrings Read FValues;
   end;
 
   { TIDLTypeDefDefinition }
 
-  TIDLTypeDefDefinition = Class(TIDLDefinition)
+  TIDLTypeDefDefinition = Class(TIDLTypeDefinition)
   private
     FNull: Boolean;
     FTypeName: String;
   Public
     Function Clone (aParent : TIDLDefinition) : TIDLTypeDefDefinition; virtual;
+    Function GetJSTypeName : String; override;
     Function AsString(Full: Boolean): UTF8String; override;
     Property TypeName : String Read FTypeName Write FTypeName;
     Property AllowNull : Boolean Read FNull Write FNull;
@@ -509,7 +534,7 @@ type
 
   { TIDLSetlikeDefinition }
 
-  TIDLSetlikeDefinition = Class(TIDLDefinition)
+  TIDLSetlikeDefinition = Class(TIDLTypeDefinition)
   private
     FElementType: TIDLTypeDefDefinition;
     FIsReadonly: Boolean;
@@ -763,6 +788,11 @@ begin
   Result.TypeName:=Self.TypeName;
 end;
 
+function TIDLTypeDefDefinition.GetJSTypeName: String;
+begin
+  Result:=FTypeName;
+end;
+
 function TIDLTypeDefDefinition.AsString(Full: Boolean): UTF8String;
 begin
   Result:=TypeName;
@@ -1014,6 +1044,19 @@ begin
     Result:=Attributes.AsString(Full)+' '+Result;
 end;
 
+{ TIDLCallBackDefinition }
+
+destructor TIDLCallBackDefinition.Destroy;
+begin
+  FreeAndNil(FFunctionDef);
+  inherited Destroy;
+end;
+
+function TIDLCallBackDefinition.GetJSTypeName: String;
+begin
+  Result:=Name;
+end;
+
 { TIDLDictionaryDefinition }
 
 function TIDLDictionaryDefinition.GetDM(AIndex : Integer
@@ -1189,6 +1232,11 @@ begin
   inherited Destroy;
 end;
 
+function TIDLEnumDefinition.GetJSTypeName: String;
+begin
+  Result:=Name;
+end;
+
 procedure TIDLEnumDefinition.AddValue(const aValue: String);
 begin
   FValues.Add(aValue);
@@ -1219,6 +1267,11 @@ begin
   if Not Assigned(FPartials) then
     FPartials:=TIDLDefinitionList.Create(Self,False);
   Result:=FPartials;
+end;
+
+function TIDLStructuredDefinition.GetJSTypeName: String;
+begin
+  Result:=Name;
 end;
 
 destructor TIDLStructuredDefinition.Destroy;

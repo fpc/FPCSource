@@ -103,12 +103,12 @@ Type
     function ParseExtAttributes: TExtAttributeList;
     procedure ParseExtAttributes(aList: TExtAttributeList; aTerminator: TIDLToken; ForSerializer: Boolean=False); virtual;
     // Definitions
-    // Type is a type without name of the type
     function AddDefinition(aParent : TIDLBaseObject; aClass : TIDLDefinitionClass; const AName : UTF8String) : TIDLDefinition; virtual;
     function ParseAttribute(aParent: TIDLBaseObject): TIDLAttributeDefinition; virtual;
     function ParseArgument(aParent: TIDLBaseObject): TIDLArgumentDefinition; virtual;
     procedure ParseArguments(aParent: TIDLBaseObject);virtual;
     function ParseFunction(aParent: TIDLBaseObject): TIDLFunctionDefinition; virtual;
+    // Type is a type without name of the type
     function ParseType(aParent: TIDLBaseObject; FetchFirst: Boolean=True; AllowExtraTypes : Boolean = False): TIDLTypeDefDefinition; virtual;
     function ParseDictionaryMember(aParent: TIDLBaseObject): TIDLDictionaryMemberDefinition; virtual;
     function CompleteSimpleType(tk: TIDLToken; Var S: UTF8String; out IsNull: Boolean): TIDLToken; virtual;
@@ -532,6 +532,7 @@ function TWebIDLParser.ParseCallBack(aParent : TIDLBaseObject): TIDLDefinition;
 var
   tk : TIDLToken;
   isConstructor : Boolean;
+  CB : TIDLCallBackDefinition;
 
 begin
   tk:=GetToken;
@@ -546,13 +547,21 @@ begin
        end;
     tkIdentifier :
        begin
-       Result:=ParseFunction(aParent);
-       With TIDLFunctionDefinition(Result) do
-         begin
-         Options:=Options+[foCallBack];
-         if isConstructor then
-           Options:=Options+[foConstructor];
-         end;
+       CB:=TIDLCallBackDefinition(AddDefinition(aParent,TIDLCallBackDefinition,''));
+       try
+         Result:=CB;
+         CB.FunctionDef:=ParseFunction(CB);
+         CB.Name:=CB.FunctionDef.Name;
+         With CB.FunctionDef do
+           begin
+           Options:=Options+[foCallBack];
+           if isConstructor then
+             Options:=Options+[foConstructor];
+           end;
+       except
+         CB.Free;
+         Raise;
+       end;
        end;
   else
     Error('[20220725174529] '+SErrInvalidTokenList,[GetTokenNames([tkInterface,tkIdentifier]),CurrentTokenString]);

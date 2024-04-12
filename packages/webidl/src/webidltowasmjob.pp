@@ -84,18 +84,15 @@ type
   Protected
     function BaseUnits: String; override;
     // Auxiliary routines
-    function GetPasClassName(const aName: String): String; overload; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
-      override;
+    function GetPasClassName(const aName: String): String; overload; override; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
     function IntfToPasClassName(const aName: TIDLString): TIDLString; virtual;
     function ComputeGUID(const Prefix: TIDLString; aList: TIDLDefinitionList): TIDLString; virtual;
     procedure GetOptions(L: TStrings; Full: boolean); override;
-    function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False): String; override;
+    function GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean=False): String; override;
     function GetPasIntfName(Intf: TIDLDefinition): TIDLString;
-    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
-      aResolvedTypename: String): TIDLDefinition; overload; override;
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: String): TIDLTypeDefinition; overload; override;
 {$IF SIZEOF(CHAR)=1}      
-    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
-      aResolvedTypename: TIDLString): TIDLDefinition; overload; 
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: TIDLString): TIDLDefinition; overload;
 {$ENDIF}      
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; override;
     function GetNamespaceDefHead(aNamespace: TIDLNamespaceDefinition): String; override;
@@ -291,7 +288,7 @@ begin
   inherited GetOptions(L, Full);
 end;
 
-function TWebIDLToPasWasmJob.GetTypeName(const aTypeName: String;
+function TWebIDLToPasWasmJob.GetPascalTypeName(const aTypeName: String;
   ForTypeDef: Boolean): String;
 begin
   Case aTypeName of
@@ -300,7 +297,7 @@ begin
     'void','undefined': Result:=aTypeName;
   else
     //writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
-    Result:=inherited GetTypeName(aTypeName,ForTypeDef);
+    Result:=inherited GetPascalTypeName(aTypeName,ForTypeDef);
     if (Result=aTypeName)
     and (LeftStr(Result,length(PasInterfacePrefix))<>PasInterfacePrefix)
     and (RightStr(Result,length(PasInterfaceSuffix))<>PasInterfaceSuffix)
@@ -336,7 +333,7 @@ end;
 {$ENDIF}
 
 function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
-  aTypeName, aResolvedTypename: String): TIDLDefinition;
+  aTypeName, aResolvedTypename: String): TIDLTypeDefinition;
 begin
   Result:=inherited GetResolvedType(aDef, aTypeName, aResolvedTypename);
   if Result is TIDLInterfaceDefinition then
@@ -354,7 +351,7 @@ begin
   if Assigned(Intf.ParentInterface) then
     aParentName:=GetName(Intf.ParentInterface)
   else
-    aParentName:=GetTypeName(Intf.ParentName);
+    aParentName:=GetPascalTypeName(Intf.ParentName);
   if aParentName='' then
     aParentName:=ClassPrefix+'Object'+ClassSuffix;
   if aParentName<>'' then
@@ -400,7 +397,7 @@ begin
       if Assigned(iIntf.ParentInterface) then
         ParentName:=GetPasIntfName(iIntf.ParentInterface as TIDLInterfaceDefinition)
       else
-        ParentName:=GetTypeName(Intf.ParentName);
+        ParentName:=GetPascalTypeName(Intf.ParentName);
     if ParentName='' then
       ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
     if ParentName<>'' then
@@ -805,11 +802,13 @@ begin
             Args:=Args+',';
           ArgName:=GetArgName(ArgDef);
           ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypeName);
-          if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+          if (ArgType is TIDLCallbackDefinition)  then
             begin
+            if not (Assigned(TIDLCallbackDefinition(ArgType).FunctionDef)) then
+              Raise EWebIDLParser.Create('[20220725181726] callback definition in '+GetName(aDef)+'without function signature type '+GetDefPos(ArgType));
             LocalName:=CreateLocal('m');
             VarSection:=Concat(VarSection,[ (LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';')]);
-            WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
+            WrapperFn:='JOBCall'+GetName(TIDLCallbackDefinition(ArgType).FunctionDef);
             TryCode:=Concat(TryCode,[LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');']);
             FinallyCode:=Concat(FinallyCode,[LocalName+'.free;']);
             ArgName:=LocalName;
@@ -947,16 +946,13 @@ procedure TWebIDLToPasWasmJob.WriteTypeDefsAndCallbackImplementations(aList: TID
 
 Var
   D: TIDLDefinition;
-  FD: TIDLFunctionDefinition absolute D;
+  CD: TIDLCallbackDefinition absolute D;
 
 begin
   for D in aList do
-    if D is TIDLFunctionDefinition then
-      begin
-      if (foCallBack in FD.Options) then
-        if ConvertDef(FD) then
-          WriteFunctionTypeCallback(FD);
-      end;
+    if D is TIDLCallbackDefinition then
+      if ConvertDef(D) then
+        WriteFunctionTypeCallback(CD.FunctionDef);
 end;
 
 
@@ -970,11 +966,13 @@ var
   ArgName, ArgTypeName, ArgResolvedTypename: TIDLString;
   Params, Call, GetFunc: TIDLString;
   FetchArgs, VarSection : Array of string;
+  Msg : String;
   Args: TIDLDefinitionList;
   ArgDef: TIDLArgumentDefinition;
   ArgNames: TStringList;
   j, i: Integer;
   ReturnDef, ArgType: TIDLDefinition;
+
 begin
   FuncName:=GetName(aDef);
 
@@ -1032,13 +1030,15 @@ begin
       'Variant': GetFunc:='GetVariant';
       'TJOB_JSValue': GetFunc:='GetValue';
       else
-        if ArgType is TIDLInterfaceDefinition then
+        if (ArgType is TIDLInterfaceDefinition) or (ArgType is TIDLDictionaryDefinition) then
           GetFunc:='GetObject('+GetName(ArgType)+') as '+ArgTypeName
         else
           begin
           if ArgType<>nil then
-            writeln('TWebIDLToPasWasmJob.WriteFunctionTypeCallBack ArgType=',ArgType.ClassName);
-          raise EWebIDLParser.Create('[20220725181732] not yet supported: function type arg['+IntToStr(I)+'] type '+ArgDef.ArgumentType.TypeName+' at '+GetDefPos(ArgDef));
+            Msg:=Format('%s (%s)',[ArgDef.ArgumentType.TypeName,ArgType.ClassName])
+          else
+            Msg:='No type';
+          raise EWebIDLParser.Create('[20220725181732] not yet supported: function type arg['+IntToStr(I)+'] type '+Msg+' at '+GetDefPos(ArgDef));
           end;
       end;
 
@@ -1630,10 +1630,11 @@ begin
       begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
-        begin
-        PasVarName:=Context.Definitions[i].Name;
-        AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
-        end;
+        if not TIDLNamespaceDefinition(aDef).IsPartial then
+          begin
+          PasVarName:=Context.Definitions[i].Name;
+          AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
+          end;
       end;
     Undent;
 
@@ -1648,10 +1649,11 @@ begin
       begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
-        begin
-        PasVarName:=Context.Definitions[i].Name;
-        AddLn(PasVarName+':=Nil;');
-        end;
+        if not TIDLNamespaceDefinition(aDef).IsPartial then
+          begin
+          PasVarName:=Context.Definitions[i].Name;
+          AddLn(PasVarName+':=Nil;');
+          end;
       end;
     Undent;
     end;
