@@ -1225,7 +1225,7 @@ end;
 procedure TBaseWebIDLToPas.WriteUnionDef(aDef: TIDLUnionTypeDefDefinition);
 
 Var
-  S: UTF8String;
+  aLine,S: UTF8String;
   D: TIDLDefinition;
 begin
   S:='';
@@ -1236,7 +1236,10 @@ begin
     S:=S+(D as TIDLTypeDefDefinition).TypeName;
     end;
   Comment('Union of '+S);
-  AddLn(GetName(aDef)+' = '+GetPascalTypeName('any')+';');
+  aLine:=GetName(aDef)+' = '+GetPascalTypeName('any')+';';
+  if aLine = 'Variant = Variant;' then
+    Writeln('Oh-oh');
+  AddLn(aLine);
 end;
 
 
@@ -1918,6 +1921,14 @@ begin
     D.Data:=Result;
     AllocatePasNames((D as TIDLDictionaryDefinition).Members,D.Name);
     end
+  else if D Is TIDLDictionaryMemberDefinition then
+    begin
+    CN:=StringReplace(CN,'-','_',[rfReplaceAll]);
+    Result:=CreatePasData(EscapeKeyWord(CN),D,true);
+    D.Data:=Result;
+    AllocatePasName((D as TIDLDictionaryMemberDefinition).MemberType,ParentName+'_'+D.Name);
+
+    end
   else if D Is TIDLSequenceTypeDefDefinition then
     begin
     CN:=GetTypeName(TIDLSequenceTypeDefDefinition(D));
@@ -1939,7 +1950,11 @@ begin
     end
   else if D Is TIDLUnionTypeDefDefinition then
     begin
-    CN:=GetTypeName(TIDLUnionTypeDefDefinition(D));
+    // This happens when there is an inline type declaration in a function definition.
+    if CN='' then
+      CN:=TypePrefix+ParentName+'_Type'
+    else
+      CN:=TypePrefix+CN;
     sDef:=FindGlobalDef(CN);
     if (SDef=Nil) or (sDef.Data=Nil) then
       begin
