@@ -347,7 +347,8 @@ unit optconstprop;
                         is_constboolnode(a.right) or
                         is_constcharnode(a.right) or
                         is_constenumnode(a.right) or
-                        is_conststringnode(a.right)) then
+                        is_conststringnode(a.right) or
+                        is_constpointernode(a.right)) then
                       begin
 {$ifdef DEBUG_CONSTPROP}
                         writeln('******************************* propagating ***********************************');
