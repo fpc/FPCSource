@@ -70,6 +70,7 @@ type
     procedure TestWJ_IntfFunction_DictionaryResult;
     procedure TestWJ_IntfFunction_AliasResult;
     procedure TestWJ_IntfFunction_NestedUnionSequence;
+    procedure TestWJ_intfFunction_UnionOptional;
     // Namespace attribute
     procedure TestWJ_NamespaceAttribute_Boolean;
     // maplike
@@ -1594,6 +1595,72 @@ begin
  '',
  'end.'
 ]);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_intfFunction_UnionOptional;
+begin
+  TestwebIDL(
+  ['interface Attr {',
+  '  void roundRect((DOMString or sequence<DOMString>) a, optional long b);',
+  '};'
+  ],[
+  'Type',
+  '',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '  TUnicodeStringDynArray = IJSArray; // array of UnicodeString',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-0CA1-3A6F-A546-208CA4B2AF2A}'']',
+  '    procedure roundRect(const a: UnicodeString; aB: Integer); overload;',
+  '    procedure roundRect(const a: TUnicodeStringDynArray; aB: Integer); overload;',
+  '    procedure roundRect(const a: TUnicodeStringDynArray); overload;',
+  '    procedure roundRect(const a: UnicodeString); overload;',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    procedure roundRect(const a: UnicodeString; aB: Integer); overload;',
+  '    procedure roundRect(const a: TUnicodeStringDynArray; aB: Integer); overload;',
+  '    procedure roundRect(const a: TUnicodeStringDynArray); overload;',
+  '    procedure roundRect(const a: UnicodeString); overload;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'procedure TJSAttr.roundRect(const a: UnicodeString; aB: Integer); overload;',
+  'begin',
+  '  InvokeJSNoResult(''roundRect'',[a,aB]);',
+  'end;',
+  '',
+  'procedure TJSAttr.roundRect(const a: TUnicodeStringDynArray; aB: Integer); overload;',
+  'begin',
+  '  InvokeJSNoResult(''roundRect'',[a,aB]);',
+  'end;',
+  '',
+  'procedure TJSAttr.roundRect(const a: TUnicodeStringDynArray); overload;',
+  'begin',
+  '  InvokeJSNoResult(''roundRect'',[a]);',
+  'end;',
+  '',
+  'procedure TJSAttr.roundRect(const a: UnicodeString); overload;',
+  'begin',
+  '  InvokeJSNoResult(''roundRect'',[a]);',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.'
+ ]);
 end;
 
 

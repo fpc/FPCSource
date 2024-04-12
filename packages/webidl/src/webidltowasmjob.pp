@@ -1413,11 +1413,12 @@ var
 begin
   for I:=0 to Context.Definitions.Count-1 do
     if Context.Definitions[i] is TIDLNamespaceDefinition then
-      begin
-      VarName:=Context.Definitions[i].Name;
-      VarType:=GetPasIntfName(Context.Definitions[i]);
-      AddLn(VarName+': '+VarType+';');
-      end;
+      if ConvertDef(Context.Definitions[i]) then
+        begin
+        VarName:=Context.Definitions[i].Name;
+        VarType:=GetPasIntfName(Context.Definitions[i]);
+        AddLn(VarName+': '+VarType+';');
+        end;
 end;
 
 procedure TWebIDLToPasWasmJob.WriteGlobalVar(aDef : String);
@@ -1578,12 +1579,26 @@ end;
 
 procedure TWebIDLToPasWasmJob.WriteMapLikeFunctionImplementations(aDef : TIDLStructuredDefinition; MD : TIDLMapLikeDefinition);
 
+Var
+  L : TIDLDefinitionList;
+
 begin
-  WriteMapLikeGetFunctionImplementation(aDef,MD);
-  WriteMapLikeHasFunctionImplementation(aDef,MD);
-  WriteMapLikeEntriesFunctionImplementation(aDef,MD);
-  WriteMapLikeKeysFunctionImplementation(aDef,MD);
-  WriteMapLikeValuesFunctionImplementation(aDef,MD);
+  L:=TIDLDefinitionList.Create(Nil,False);
+  try
+    aDef.GetFullMemberList(L);
+    if not L.HasName('get') then
+      WriteMapLikeGetFunctionImplementation(aDef,MD);
+    if not L.HasName('has') then
+      WriteMapLikeHasFunctionImplementation(aDef,MD);
+    if not L.HasName('entries') then
+      WriteMapLikeEntriesFunctionImplementation(aDef,MD);
+    if not L.HasName('keys') then
+      WriteMapLikeKeysFunctionImplementation(aDef,MD);
+    if not L.HasName('values') then
+      WriteMapLikeValuesFunctionImplementation(aDef,MD);
+  finally
+    L.Free;
+  end;
 end;
 
 procedure TWebIDLToPasWasmJob.WriteUtilityMethodImplementations(aDef : TIDLStructuredDefinition; ML : TIDLDefinitionList);

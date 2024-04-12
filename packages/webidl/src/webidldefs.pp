@@ -223,6 +223,8 @@ type
     Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Function Add(aItem : TIDLDefinition) : Integer;
     Function Delete(aItem : TIDLDefinition) : boolean; // true if found and deleted
+    Function IndexOfName(aName : UTF8String) : Integer;
+    Function HasName(aName : UTF8String) : Boolean;
     function GetEnumerator: TIDLDefinitionEnumerator;
     Property Parent : TIDLDefinition Read FParent;
     Property Definitions[aIndex : Integer] : TIDLDefinition Read GetD;default;
@@ -1461,6 +1463,18 @@ begin
       exit(true);
       end;
   Result:=false;
+end;
+
+function TIDLDefinitionList.IndexOfName(aName: UTF8String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and (Definitions[Result].Name<>aName) do
+    Dec(Result);
+end;
+
+function TIDLDefinitionList.HasName(aName: UTF8String): Boolean;
+begin
+  Result:=IndexOfName(aName)<>-1;
 end;
 
 function TIDLDefinitionList.GetEnumerator: TIDLDefinitionEnumerator;
