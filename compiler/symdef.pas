@@ -1845,7 +1845,8 @@ implementation
                 { add nested helpers as well }
                 if assigned(def) and
                     (def.typ in [recorddef,objectdef]) and
-                    (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) then
+                    (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) and
+                    not is_owned_by(def,tdef(st.defowner)) then
                   add_helpers_and_generics(tabstractrecorddef(def).symtable,false);
               end;
           end;
