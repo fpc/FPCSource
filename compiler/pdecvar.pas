@@ -1454,7 +1454,7 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             read_anon_type(hdef,false);
+             read_anon_type(hdef,false,nil);
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              for i:=0 to sc.count-1 do
                begin
@@ -1782,7 +1782,7 @@ implementation
 
              typepos:=current_filepos;
 
-             read_anon_type(hdef,false);
+             read_anon_type(hdef,false,nil);
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
@@ -2001,7 +2001,7 @@ implementation
                       symtablestack.top.insertsym(fieldvs);
                     end;
                 end;
-              read_anon_type(casetype,true);
+              read_anon_type(casetype,true,nil);
               block_type:=bt_var;
               if assigned(fieldvs) then
                 begin

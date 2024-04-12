@@ -289,7 +289,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;
                    consume(_COLON);
-                   read_anon_type(hdef,false);
+                   read_anon_type(hdef,false,nil);
                    block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=current_tokenpos;
