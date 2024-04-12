@@ -3370,6 +3370,8 @@ implementation
           specialization }
         if df_specialization in symownerdef.defoptions then
           begin
+            if not assigned(symownerdef.genericdef) then
+              internalerror(2024041201);
             if not (symownerdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020901);
             orgsymownerdef:=symownerdef;
@@ -3377,6 +3379,8 @@ implementation
           end;
         if assigned(contextobjdef) and (df_specialization in contextobjdef.defoptions) then
           begin
+            if not assigned(contextobjdef.genericdef) then
+              internalerror(2024041202);
             if not (contextobjdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020902);
             orgcontextobjdef:=contextobjdef;
@@ -3384,6 +3388,8 @@ implementation
           end;
         if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
           begin
+            if not assigned(current_structdef.genericdef) then
+              internalerror(2024041203);
             if not (current_structdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024030903);
             curstruct:=tabstractrecorddef(current_structdef.genericdef)
