@@ -125,14 +125,6 @@ end;
 
 procedure TWebIDLToPasApplication.DoRun;
 
-  procedure E(const Msg: string);
-  begin
-    {AllowWriteln}
-    writeln('Error: ',Msg);
-    {AllowWriteln-}
-    Halt(1);
-  end;
-
 var
   A,ErrorMsg: String;
   I : Integer;
@@ -182,7 +174,10 @@ begin
         end;
       end;
     if not ok then
-      E('unknown outputformat "'+A+'"');
+      begin
+      WriteHelp('unknown outputformat "'+A+'"');
+      exit;
+      end;
     end;
   InitWebIDLToPas;
 
@@ -250,14 +245,15 @@ begin
     if (I<>-1) then
       FWebIDLToPas.WebIDLVersion:=TWebIDLVersion(I)
     else
-      E('Invalid webidl version: "'+A+'"');
+      begin
+      WriteHelp('Invalid webidl version: "'+A+'"');
+      exit;
+      end;
     end;
 
   FWebIDLToPas.ExtraUnits:=GetOptionValue('x','extra');
 
   FWebIDLToPas.Execute;
-  // stop program loop
-  Terminate;
 end;
 
 procedure TWebIDLToPasApplication.InitWebIDLToPas;
