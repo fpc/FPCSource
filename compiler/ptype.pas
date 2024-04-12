@@ -1623,6 +1623,10 @@ implementation
                       symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
                       symtablestack.push(arrdef.symtable);
+                      { correctly update the generic information of the new array def }
+                      insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+                      if old_parse_generic then
+                        include(arrdef.defoptions,df_generic);
                     end
                   else
                     begin
