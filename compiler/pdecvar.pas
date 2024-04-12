@@ -1684,7 +1684,7 @@ implementation
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype : tdef;
+         gendef,hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : asizeint;
@@ -1782,7 +1782,23 @@ implementation
 
              typepos:=current_filepos;
 
-             read_anon_type(hdef,false,nil);
+             { make sure that the correct genericdef is set up, especially if
+               we're dealing with anonymous type declarations }
+             gendef:=nil;
+             if df_specialization in current_structdef.defoptions then
+               begin
+                 srsymtable:=current_structdef.genericdef.getsymtable(gs_record);
+                 if not assigned(srsymtable) then
+                   internalerror(2024041204);
+                 srsym:=tsym(srsymtable.find(tabstractvarsym(sc[0]).name));
+                 if not assigned(srsym) then
+                   internalerror(2024041205);
+                 if srsym.typ<>fieldvarsym then
+                   internalerror(2024041206);
+                 gendef:=tfieldvarsym(srsym).vardef;
+               end;
+
+             read_anon_type(hdef,false,tstoreddef(gendef));
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
