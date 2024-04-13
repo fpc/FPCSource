@@ -167,7 +167,9 @@ uses
           result:=true
         { sets require stricter checks }
         else if is_set(param2) then
-          result:=equal_defs(param1,param2)
+          result:=equal_defs(param1,param2) or
+            { constant could be empty set }
+            not(assigned(tsetdef(param1).elementdef))
         else
           result:=param1.typ=param2.typ;
       end;
