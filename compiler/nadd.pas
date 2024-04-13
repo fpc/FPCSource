@@ -687,12 +687,12 @@ implementation
              (allowenumop(nodetype) or (nf_internal in flags))
             ) or
             (
-             (lt = pointerconstn) and
+             (lt in [pointerconstn,niln]) and
              is_constintnode(right) and
              (nodetype in [addn,subn])
             ) or
             (
-             (rt = pointerconstn) and
+             (rt in [pointerconstn,niln]) and
              is_constintnode(left) and
              (nodetype=addn)
             ) or
