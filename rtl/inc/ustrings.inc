@@ -1805,239 +1805,128 @@ begin
   runerror(217);
 end;
 {$else EXCLUDE_COMPLEX_PROCS}
-  const
-    UNICODE_INVALID=63;
   var
-    InputUTF8: SizeUInt;
-    IBYTE: BYTE;
-    OutputUnicode: SizeUInt;
-    PRECHAR: SizeUInt;
-    TempBYTE: BYTE;
-    CharLen: SizeUint;
-    LookAhead: SizeUInt;
-    UC: SizeUInt;
+    SourcePos,DestPos: SizeUint;
+    UC: int32;
   begin
-    if not assigned(Source) then
+    if not Assigned(Source) then
+      exit(0);
+    SourcePos:=0;
+    DestPos:=0;
+
+    if Assigned(Dest) then
       begin
-        result:=0;
-        exit;
-      end;
-    result:=SizeUInt(-1);
-    InputUTF8:=0;
-    OutputUnicode:=0;
-    PreChar:=0;
-    if Assigned(Dest) Then
-      begin
-        while (OutputUnicode<MaxDestChars) and (InputUTF8<SourceBytes) do
-          begin
-            IBYTE:=byte(Source[InputUTF8]);
-            if (IBYTE and $80) = 0 then
-              begin
-              // One character US-ASCII, convert it to unicode
-              // Commented code to convert LF to CRLF has been removed
-              Dest[OutputUnicode]:=WideChar(IBYTE);
-              inc(OutputUnicode);
-              PreChar:=IBYTE;
-              inc(InputUTF8);
-              end
-            else
-              begin
-                TempByte:=IBYTE;
-                CharLen:=0;
-                while (TempBYTE and $80)<>0 do
-                  begin
-                    TempBYTE:=(TempBYTE shl 1) and $FE;
-                    inc(CharLen);
-                  end;
-                //Test for the "CharLen" conforms UTF-8 string
-                //This means the 10xxxxxx pattern.
-                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
-                  begin
-                    //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single AnsiChar.
-                    CharLen:= 1;
-                  end;
-                for LookAhead := 1 to CharLen-1 do
-                  begin
-                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
-                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
-                      begin
-                        //Invalid UTF-8 sequence, fallback.
-                        CharLen:= LookAhead;
-                        break;
-                      end;
-                  end;
-                UC:=$FFFF;
-                case CharLen of
-                  1:  begin
-                        //Not valid UTF-8 sequence
-                        UC:=UNICODE_INVALID;
-                      end;
-                  2:  begin
-                        //Two bytes UTF, convert it
-                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
-                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
-                        if UC <= $7F then
-                          begin
-                            //Invalid UTF sequence.
-                            UC:=UNICODE_INVALID;
-                          end;
-                      end;
-                  3:  begin
-                        //Three bytes, convert it to unicode
-                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
-                        if (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
-                          begin
-                            //Invalid UTF-8 sequence
-                            UC:= UNICODE_INVALID;
-                          End;
-                      end;
-                  4:  begin
-                        //Four bytes, convert it to two unicode characters
-                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
-                        if (UC < $10000) or (UC > $10FFFF) then
-                          begin
-                            UC:= UNICODE_INVALID;
-                          end
-                        else
-                          begin
-                            { only store pair if room }
-                            dec(UC,$10000);
-                            if (OutputUnicode<MaxDestChars-1) then
-                              begin
-                                Dest[OutputUnicode]:=WideChar(UC shr 10 + $D800);
-                                inc(OutputUnicode);
-                                UC:=(UC and $3ff) + $DC00;
-                              end
-                            else
-                              begin
-                                InputUTF8:= InputUTF8 + CharLen;
-                                { don't store anything }
-                                CharLen:=0;
-                              end;
-                          end;
-                      end;
-                  5,6,7:  begin
-                            //Invalid UTF8 to unicode conversion,
-                            //mask it as invalid UNICODE too.
-                            UC:=UNICODE_INVALID;
-                          end;
+        if SourcePos<SourceBytes then { “repeat until false” + “if C then continue else break” is used instead of “while C” + “continue” for better codegen. }
+          repeat
+            { See generic.inc:Utf8CodePointLen for explanations. Not continuing = invalid or incomplete character. }
+            if DestPos>=MaxDestChars then { Speculate 1 unicodechar. }
+              break;
+            inc(DestPos);
+            UC:=ord(Source[SourcePos]);
+            case uint32(UC) of
+              0..$7F:
+                begin
+                  Dest[DestPos-1]:=unicodechar(UC);
+                  inc(SourcePos);
+                  if SourcePos<SourceBytes then continue else break;
                 end;
-                if CharLen > 0 then
+              $C2..$DF:
+                if (SourcePos+1<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) then
                   begin
-                    if (UC=UNICODE_INVALID) and Not IgnoreInvalid then
-                      HandleError(231); // Will be converted to EConversionError in sysutils
-                    PreChar:=UC;
-                    Dest[OutputUnicode]:=WideChar(UC);
-                    inc(OutputUnicode);
+                    Dest[DestPos-1]:=unicodechar(UC and $1F shl 6 or ord(Source[SourcePos+1]) and $3F);
+                    inc(SourcePos,2);
+                    if SourcePos<SourceBytes then continue else break;
                   end;
-                InputUTF8:= InputUTF8 + CharLen;
-              end;
-          end;
-        Result:=OutputUnicode+1;
+              $E0..$EF:
+                if (SourcePos+2<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) and (ord(Source[SourcePos+2]) and $C0=$80) then
+                  begin
+                    UC:=UC and $F shl 12 or ord(Source[SourcePos+1]) and $3F shl 6 or ord(Source[SourcePos+2]) and $3F;
+                    if (UC>=$800) and (UC<=$FFFD) and not ((UC>=$D800) and (UC<=$DFFF)) then
+                      begin
+                        Dest[DestPos-1]:=unicodechar(UC);
+                        inc(SourcePos,3);
+                        if SourcePos<SourceBytes then continue else break;
+                      end;
+                  end;
+              $F0..$F4:
+                if (SourcePos+3<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) and (ord(Source[SourcePos+2]) and $C0=$80) and (ord(Source[SourcePos+3]) and $C0=$80) then
+                  begin
+                    UC:=UC and $7 shl 18 or ord(Source[SourcePos+1]) and $3F shl 12 or ord(Source[SourcePos+2]) and $3F shl 6 or ord(Source[SourcePos+3]) and $3F-$10000;
+                    if Cardinal(UC)<=$10FFFF-$10000 then
+                      begin
+                        dec(DestPos);
+                        if DestPos+1>=MaxDestChars then { 2 unicodechars. }
+                          break;
+                        Dest[DestPos]:=unicodechar($D800+UC shr 10);
+                        Dest[DestPos+1]:=unicodechar($DC00+UC and $3ff);
+                        inc(SourcePos,4);
+                        inc(DestPos,2);
+                        if SourcePos<SourceBytes then continue else break;
+                      end;
+                  end;
+            end;
+            { Invalid or incomplete character. }
+            if not IgnoreInvalid then
+              HandleError(231); // Will be converted to EConversionError in sysutils
+            inc(SourcePos); { Skip first byte. }
+            if ord(Source[SourcePos-1]) and $C0<>$80 then { If first byte is not a continuation byte... }
+              while (SourcePos<SourceBytes) and (ord(Source[SourcePos]) and $C0=$80) do { ..Then skip continuation bytes. }
+                inc(SourcePos);
+            Dest[DestPos-1]:='?';
+            if SourcePos>=SourceBytes then break; { Do not add a condition to the loop, or “continue”s will jump to it instead of the beginning! }
+          until false;
+        if DestPos<MaxDestChars then { Null-terminate... if there is space. Count in result in either case. }
+          Dest[DestPos]:=#0;
       end
     else
-      begin
-        while (InputUTF8<SourceBytes) do
-          begin
-            IBYTE:=byte(Source[InputUTF8]);
-            if (IBYTE and $80) = 0 then
+      { Same as above but without writing Dest. }
+      if SourcePos<SourceBytes then
+        repeat
+          UC:=ord(Source[SourcePos]);
+          inc(DestPos); { Speculate 1 unicodechar. }
+          case uint32(UC) of
+            0..$7F:
               begin
-              // One character US-ASCII, convert it to unicode
-              // Commented code to convert LF to CRLF has been removed
-              inc(OutputUnicode);
-              PreChar:=IBYTE;
-              inc(InputUTF8);
-              end
-            else
-              begin
-                TempByte:=IBYTE;
-                CharLen:=0;
-                while (TempBYTE and $80)<>0 do
-                  begin
-                    TempBYTE:=(TempBYTE shl 1) and $FE;
-                    inc(CharLen);
-                  end;
-                //Test for the "CharLen" conforms UTF-8 string
-                //This means the 10xxxxxx pattern.
-                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
-                  begin
-                    //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single AnsiChar.
-                    CharLen:= 1;
-                  end;
-                for LookAhead := 1 to CharLen-1 do
-                  begin
-                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
-                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
-                      begin
-                        //Invalid UTF-8 sequence, fallback.
-                        CharLen:= LookAhead;
-                        break;
-                      end;
-                  end;
-                UC:=$FFFF;
-                case CharLen of
-                  1:  begin
-                        //Not valid UTF-8 sequence
-                        UC:=UNICODE_INVALID;
-                      end;
-                  2:  begin
-                        //Two bytes UTF, convert it
-                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
-                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
-                        if UC <= $7F then
-                          begin
-                            //Invalid UTF sequence.
-                            UC:=UNICODE_INVALID;
-                          end;
-                      end;
-                  3:  begin
-                        //Three bytes, convert it to unicode
-                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
-                        If (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
-                          begin
-                            //Invalid UTF-8 sequence
-                            UC:= UNICODE_INVALID;
-                          end;
-                      end;
-                  4:  begin
-                        //Four bytes, convert it to two unicode characters
-                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
-                        if (UC < $10000) or (UC > $10FFFF) then
-                          UC:= UNICODE_INVALID
-                        else
-                          { extra character character }
-                          inc(OutputUnicode);
-                      end;
-                  5,6,7:  begin
-                            //Invalid UTF8 to unicode conversion,
-                            //mask it as invalid UNICODE too.
-                            UC:=UNICODE_INVALID;
-                          end;
-                end;
-                if CharLen > 0 then
-                  begin
-                    if (UC=UNICODE_INVALID) and Not IgnoreInvalid then
-                      HandleError(231); // Will be converted to EConversionError in sysutils
-                    PreChar:=UC;
-                    inc(OutputUnicode);
-                  end;
-                InputUTF8:= InputUTF8 + CharLen;
+                inc(SourcePos);
+                if SourcePos<SourceBytes then continue else break;
               end;
+            $C2..$DF:
+              if (SourcePos+1<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) then
+                begin
+                  inc(SourcePos,2);
+                  if SourcePos<SourceBytes then continue else break;
+                end;
+            $E0..$EF:
+              if (SourcePos+2<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) and (ord(Source[SourcePos+2]) and $C0=$80) then
+                begin
+                  UC:=UC and $F shl 12 or ord(Source[SourcePos+1]) and $3F shl 6 or ord(Source[SourcePos+2]) and $3F;
+                  if (UC>=$800) and (UC<=$FFFD) and not ((UC>=$D800) and (UC<=$DFFF)) then
+                    begin
+                      inc(SourcePos,3);
+                      if SourcePos<SourceBytes then continue else break;
+                    end;
+                end;
+            $F0..$F4:
+              if (SourcePos+3<SourceBytes) and (ord(Source[SourcePos+1]) and $C0=$80) and (ord(Source[SourcePos+2]) and $C0=$80) and (ord(Source[SourcePos+3]) and $C0=$80) then
+                begin
+                  UC:=UC and $7 shl 18 or ord(Source[SourcePos+1]) and $3F shl 12 or ord(Source[SourcePos+2]) and $3F shl 6 or ord(Source[SourcePos+3]) and $3F-$10000;
+                  if Cardinal(UC)<=$10FFFF-$10000 then
+                    begin
+                      inc(SourcePos,4);
+                      inc(DestPos); { To 2 unicodechars in total. }
+                      if SourcePos<SourceBytes then continue else break;
+                    end;
+                end;
           end;
-        Result:=OutputUnicode+1;
-      end;
+          if not IgnoreInvalid then
+            HandleError(231);
+          inc(SourcePos);
+          if ord(Source[SourcePos-1]) and $C0<>$80 then
+            while (SourcePos<SourceBytes) and (ord(Source[SourcePos]) and $C0=$80) do
+              inc(SourcePos);
+          if SourcePos>=SourceBytes then break;
+        until false;
+    Result:=DestPos+1 {null terminator, in both branches};
   end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
