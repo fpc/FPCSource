@@ -595,7 +595,21 @@ implementation
            or
            (
             (tfloatdef(typedef).floattype<>s64currency) and
-            (value_real = trealconstnode(p).value_real) and
+            (value_real=trealconstnode(p).value_real) and
+            (
+              { Make sure 0.0 and -0.0 are not equated unless fastmath is enabled }
+              (cs_opt_fastmath in current_settings.optimizerswitches) or
+              not (
+                (
+                  IsPosZero(value_real) and
+                  IsNegZero(trealconstnode(p).value_real)
+                ) or
+                (
+                  IsNegZero(value_real) and
+                  IsPosZero(trealconstnode(p).value_real)
+                )
+              )
+            ) and
             { floating point compares for non-numbers give strange results usually }
             is_number_float(value_real) and
             is_number_float(trealconstnode(p).value_real)
