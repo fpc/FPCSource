@@ -1044,7 +1044,7 @@ function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : 
 {$ifndef FPC_HAS_UNICODEFROMLOCALECHARS}
 {$define FPC_HAS_UNICODEFROMLOCALECHARS}
 function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
-  LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
+  LocaleStrLen: SizeInt; UnicodeStr: PWideChar; UnicodeStrLen: SizeInt): SizeInt; overload;
 
 var
   temp: widestring;
@@ -1066,8 +1066,8 @@ end;
 {$endif ndef FPC_HAS_UNICODEFROMLOCALECHARS}
 
 function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
-  LocaleStr: PAnsiChar; LocaleStrLen: Integer; UnicodeStr: PWideChar;
-  UnicodeStrLen: Integer): Integer; overload;
+  LocaleStr: PAnsiChar; LocaleStrLen: SizeInt; UnicodeStr: PWideChar;
+  UnicodeStrLen: SizeInt): SizeInt; overload;
 
 var
   CP : TSystemCodePage;
@@ -2405,7 +2405,7 @@ end;
 function UTF8ToString(const S: PAnsiChar): UnicodeString;
 var
   rs: RawByteString;
-  Count: Integer;
+  Count: SizeInt;
 begin
   Count := length(S);
   SetLength(rs, Count);
@@ -2426,7 +2426,7 @@ end;
 function UTF8ToString(const S: array of AnsiChar): UnicodeString;
 var
   rs: RawByteString;
-  Count: Integer;
+  Count: SizeInt;
 begin
   Count := Length(S);
   SetLength(rs, Count);
@@ -2438,7 +2438,7 @@ end;
 function UTF8ToString(const S: array of Byte): UnicodeString;
 var
   rs: RawByteString;
-  Count: Integer;
+  Count: SizeInt;
 begin
   Count := Length(S);
   SetLength(rs, Count);

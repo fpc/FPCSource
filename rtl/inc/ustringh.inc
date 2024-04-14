@@ -51,11 +51,11 @@ procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : Ans
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 
 function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
-  LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
+  LocaleStrLen: SizeInt; UnicodeStr: PWideChar; UnicodeStrLen: SizeInt): SizeInt; overload;
 
 function UnicodeFromLocaleChars(const LocaleName: AnsiString; Flags: Cardinal;
-  LocaleStr: PAnsiChar; LocaleStrLen: Integer; UnicodeStr: PWideChar;
-  UnicodeStrLen: Integer): Integer; overload;
+  LocaleStr: PAnsiChar; LocaleStrLen: SizeInt; UnicodeStr: PWideChar;
+  UnicodeStrLen: SizeInt): SizeInt; overload;
 
 
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
