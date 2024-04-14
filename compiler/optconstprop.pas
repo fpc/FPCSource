@@ -346,6 +346,8 @@ unit optconstprop;
                        (is_constintnode(a.right) or
                         is_constboolnode(a.right) or
                         is_constcharnode(a.right) or
+                        is_constwidecharnode(a.right) or
+                        is_constwidestringnode(a.right) or
                         is_constenumnode(a.right) or
                         is_conststringnode(a.right) or
                         is_constpointernode(a.right)) then
