@@ -215,10 +215,30 @@ implementation
                 exit;
               end;
 
-            if is_constintnode(left) then
+            { pointer subtractions generate nodes dividing pointer (constants) }
+            if is_constintnode(left) or is_constpointernode(left) then
               begin
-                rv:=tordconstnode(right).value;
-                lv:=tordconstnode(left).value;
+                { load values }
+                case left.nodetype of
+                  ordconstn:
+                    lv:=tordconstnode(left).value;
+                  pointerconstn:
+                    lv:=tpointerconstnode(left).value;
+                  niln:
+                    lv:=0;
+                  else
+                    internalerror(2024041501);
+                end;
+                case right.nodetype of
+                  ordconstn:
+                    rv:=tordconstnode(right).value;
+                  pointerconstn:
+                    rv:=tpointerconstnode(right).value;
+                  niln:
+                    rv:=0;
+                  else
+                    internalerror(2024041502);
+                end;
 
                 case nodetype of
                   modn:
