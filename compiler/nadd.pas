@@ -741,7 +741,7 @@ implementation
                        { Recover }
                        t:=genintconstnode(0)
                      end
-                   else if (lt=pointerconstn) or (rt=pointerconstn) then
+                   else if is_constpointernode(left) or is_constpointernode(right) then
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
