@@ -3633,6 +3633,280 @@ unit aoptx86;
                                   end;
                               end;
                           end;
+                      end
+                    else if taicpu(p).oper[0]^.typ = top_const then
+                      begin
+
+                        if (taicpu(hp1).opcode = A_OR) and
+                          (taicpu(p).oper[1]^.typ = top_reg) and
+                          MatchOperand(taicpu(p).oper[0]^, 0) and
+                          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) then
+                          begin
+                            {   mov 0,  %reg
+                                or  ###,%reg
+                              Change to (only if the flags are not used):
+                                mov ###,%reg
+                            }
+                            TransferUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+                            DoOptimisation := True;
+
+                            { Even if the flags are used, we might be able to do the optimisation
+                              if the conditions are predictable }
+                            if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                              begin
+                                { Only perform if ### = %reg (the same register) or equal to 0,
+                                  so %reg is guaranteed to still have a value of zero }
+                                if MatchOperand(taicpu(hp1).oper[0]^, 0) or
+                                  MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^.reg) then
+                                  begin
+                                    hp2 := hp1;
+                                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                                    while RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                                      GetNextInstruction(hp2, hp3) do
+                                      begin
+                                        { Don't continue modifying if the flags state is getting changed }
+                                        if RegModifiedByInstruction(NR_DEFAULTFLAGS, hp3) then
+                                          Break;
+
+                                        UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                                        if MatchInstruction(hp3, A_Jcc, A_SETcc, A_CMOVcc, []) then
+                                          begin
+
+                                            if condition_in(C_E, taicpu(hp3).condition) or (taicpu(hp3).condition in [C_NC, C_NS, C_NO]) then
+                                              begin
+                                                { Condition is always true }
+                                                case taicpu(hp3).opcode of
+                                                  A_Jcc:
+                                                    begin
+                                                      { Check for jump shortcuts before we destroy the condition }
+                                                      hp4 := hp3;
+                                                      DoJumpOptimizations(hp3, TempBool);
+                                                      { Make sure hp3 hasn't changed }
+                                                      if (hp4 = hp3) then
+                                                        begin
+                                                          DebugMsg(SPeepholeOptimization + 'Condition is always true (jump made unconditional)', hp3);
+                                                          MakeUnconditional(taicpu(hp3));
+                                                        end;
+                                                      Result := True;
+                                                    end;
+                                                  A_CMOVcc:
+                                                    begin
+                                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (CMOVcc -> MOV)', hp3);
+                                                      taicpu(hp3).opcode := A_MOV;
+                                                      taicpu(hp3).condition := C_None;
+                                                      Result := True;
+                                                    end;
+                                                  A_SETcc:
+                                                    begin
+                                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (changed to MOV 1)', hp3);
+                                                      { Convert "set(c) %reg" instruction to "movb 1,%reg" }
+                                                      taicpu(hp3).opcode := A_MOV;
+                                                      taicpu(hp3).ops := 2;
+                                                      taicpu(hp3).condition := C_None;
+                                                      taicpu(hp3).opsize := S_B;
+                                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
+                                                      taicpu(hp3).loadconst(0, 1);
+                                                      Result := True;
+                                                    end;
+                                                  else
+                                                    InternalError(2021090701);
+                                                end;
+                                              end
+                                            else if (taicpu(hp3).condition in [C_A, C_B, C_C, C_G, C_L, C_NE, C_NZ, C_O, C_S]) then
+                                              begin
+                                                { Condition is always false }
+                                                case taicpu(hp3).opcode of
+                                                  A_Jcc:
+                                                    begin
+                                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (jump removed)', hp3);
+                                                      TAsmLabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
+                                                      RemoveInstruction(hp3);
+                                                      Result := True;
+                                                      { Since hp3 was deleted, hp2 must not be updated }
+                                                      Continue;
+                                                    end;
+                                                  A_CMOVcc:
+                                                    begin
+                                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (conditional load removed)', hp3);
+                                                      RemoveInstruction(hp3);
+                                                      Result := True;
+                                                      { Since hp3 was deleted, hp2 must not be updated }
+                                                      Continue;
+                                                    end;
+                                                  A_SETcc:
+                                                    begin
+                                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (changed to MOV 0)', hp3);
+                                                      { Convert "set(c) %reg" instruction to "movb 0,%reg" }
+                                                      taicpu(hp3).opcode := A_MOV;
+                                                      taicpu(hp3).ops := 2;
+                                                      taicpu(hp3).condition := C_None;
+                                                      taicpu(hp3).opsize := S_B;
+                                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
+                                                      taicpu(hp3).loadconst(0, 0);
+                                                      Result := True;
+                                                    end;
+                                                  else
+                                                    InternalError(2021090702);
+                                                end;
+                                              end
+                                            else
+                                              { Uncertain what to do - don't optimise (although optimise other conditional statements if present) }
+                                              DoOptimisation := False;
+                                          end;
+
+                                        hp2 := hp3;
+                                      end;
+
+                                    if DoOptimisation then
+                                      begin
+                                        UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                                        if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                                          { Flags are still in use - don't optimise }
+                                          DoOptimisation := False;
+                                      end;
+                                  end
+                                else
+                                  DoOptimisation := False;
+                              end;
+
+                            if DoOptimisation then
+                              begin
+{$ifdef x86_64}
+                                { OR only supports 32-bit sign-extended constants for 64-bit
+                                  instructions, so compensate for this if the constant is
+                                  encoded as a value greater than or equal to 2^31 }
+                                if (taicpu(hp1).opsize = S_Q) and
+                                  (taicpu(hp1).oper[0]^.typ = top_const) and
+                                  (taicpu(hp1).oper[0]^.val >= $80000000) then
+                                  taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val or $FFFFFFFF00000000;
+{$endif x86_64}
+                                DebugMsg(SPeepholeOptimization + 'MOV 0 / OR -> MOV', p);
+                                taicpu(hp1).opcode := A_MOV;
+                                RemoveCurrentP(p);
+                                Result := True;
+                                Exit;
+                              end;
+                          end;
+                      end;
+                  end;
+
+                { Depending on the DeepMOVOpt above, it may turn out that hp1 completely
+                  overwrites the original destination register.  e.g.
+
+                  movl   ###,%reg2d
+                  movslq ###,%reg2q (### doesn't have to be the same as the first one)
+
+                  In this case, we can remove the MOV (Go to "Mov2Nop 5" below)
+                }
+                if (taicpu(p).oper[1]^.typ = top_reg) and
+                  MatchInstruction(hp1, [A_LEA, A_MOV, A_MOVSX, A_MOVZX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}], []) and
+                  (taicpu(hp1).oper[1]^.typ = top_reg) and
+                  Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, taicpu(p).oper[1]^.reg) then
+                  begin
+                    if RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^) then
+                      begin
+                        if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                          case taicpu(p).oper[0]^.typ of
+                            top_const:
+                              { We have something like:
+
+                                movb   $x,   %regb
+                                movzbl %regb,%regd
+
+                                Change to:
+
+                                movl   $x,   %regd
+                              }
+                              begin
+                                case taicpu(hp1).opsize of
+                                  S_BW:
+                                    begin
+                                      convert_mov_value(A_MOVSX, $FF);
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBW);
+                                      taicpu(p).opsize := S_W;
+                                    end;
+                                  S_BL:
+                                    begin
+                                      convert_mov_value(A_MOVSX, $FF);
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                                      taicpu(p).opsize := S_L;
+                                    end;
+                                  S_WL:
+                                    begin
+                                      convert_mov_value(A_MOVSX, $FFFF);
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                                      taicpu(p).opsize := S_L;
+                                    end;
+{$ifdef x86_64}
+                                  S_BQ:
+                                    begin
+                                      convert_mov_value(A_MOVSX, $FF);
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
+                                      taicpu(p).opsize := S_Q;
+                                    end;
+                                  S_WQ:
+                                    begin
+                                      convert_mov_value(A_MOVSX, $FFFF);
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
+                                      taicpu(p).opsize := S_Q;
+                                    end;
+                                  S_LQ:
+                                    begin
+                                      convert_mov_value(A_MOVSXD, $FFFFFFFF);  { Note it's MOVSXD, not MOVSX }
+                                      setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
+                                      taicpu(p).opsize := S_Q;
+                                    end;
+{$endif x86_64}
+                                  else
+                                    { If hp1 was a MOV instruction, it should have been
+                                      optimised already }
+                                    InternalError(2020021001);
+                                end;
+                                DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 2 done',p);
+                                RemoveInstruction(hp1);
+                                Result := True;
+                                Exit;
+                              end;
+                            top_ref:
+                              begin
+                                { We have something like:
+
+                                  movb   mem,  %regb
+                                  movzbl %regb,%regd
+
+                                  Change to:
+
+                                  movzbl mem,  %regd
+                                }
+                                if (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
+                                  begin
+                                    DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
+
+                                    taicpu(p).opcode := taicpu(hp1).opcode;
+                                    taicpu(p).opsize := taicpu(hp1).opsize;
+                                    taicpu(p).oper[1]^.reg := taicpu(hp1).oper[1]^.reg;
+
+                                    RemoveInstruction(hp1);
+                                    Result := True;
+                                    Exit;
+                                  end;
+                              end;
+                            else
+                              if (taicpu(hp1).opcode <> A_MOV) and (taicpu(hp1).opcode <> A_LEA) then
+                                { Just to make a saving, since there are no more optimisations with MOVZX and MOVSX/D }
+                                Exit;
+                          end;
+                      end
+                   { The RegInOp check makes sure that movl r/m,%reg1l; movzbl (%reg1l),%reg1l"
+                     and "movl r/m,%reg1; leal $1(%reg1,%reg2),%reg1" etc. are not incorrectly
+                     optimised }
+                    else
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Mov2Nop 5 done',p);
+                        RemoveCurrentP(p);
+                        Result := True;
+                        Exit;
                       end;
                   end;
               end;
@@ -3643,280 +3917,6 @@ unit aoptx86;
         { All the next optimisations require a next instruction }
         if not GetNextInstruction_p or (hp1.typ <> ait_instruction) then
           Exit;
-
-        { Depending on the DeepMOVOpt above, it may turn out that hp1 completely
-          overwrites the original destination register.  e.g.
-
-          movl   ###,%reg2d
-          movslq ###,%reg2q (### doesn't have to be the same as the first one)
-
-          In this case, we can remove the MOV (Go to "Mov2Nop 5" below)
-        }
-        if (taicpu(p).oper[1]^.typ = top_reg) and
-          MatchInstruction(hp1, [A_LEA, A_MOV, A_MOVSX, A_MOVZX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}], []) and
-          (taicpu(hp1).oper[1]^.typ = top_reg) and
-          Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, taicpu(p).oper[1]^.reg) then
-            begin
-              if RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^) then
-                begin
-                  if (taicpu(hp1).oper[0]^.typ = top_reg) then
-                    case taicpu(p).oper[0]^.typ of
-                      top_const:
-                        { We have something like:
-
-                          movb   $x,   %regb
-                          movzbl %regb,%regd
-
-                          Change to:
-
-                          movl   $x,   %regd
-                        }
-                        begin
-                          case taicpu(hp1).opsize of
-                            S_BW:
-                              begin
-                                convert_mov_value(A_MOVSX, $FF);
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBW);
-                                taicpu(p).opsize := S_W;
-                              end;
-                            S_BL:
-                              begin
-                                convert_mov_value(A_MOVSX, $FF);
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-                                taicpu(p).opsize := S_L;
-                              end;
-                            S_WL:
-                              begin
-                                convert_mov_value(A_MOVSX, $FFFF);
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-                                taicpu(p).opsize := S_L;
-                              end;
-{$ifdef x86_64}
-                            S_BQ:
-                              begin
-                                convert_mov_value(A_MOVSX, $FF);
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
-                                taicpu(p).opsize := S_Q;
-                              end;
-                            S_WQ:
-                              begin
-                                convert_mov_value(A_MOVSX, $FFFF);
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
-                                taicpu(p).opsize := S_Q;
-                              end;
-                            S_LQ:
-                              begin
-                                convert_mov_value(A_MOVSXD, $FFFFFFFF);  { Note it's MOVSXD, not MOVSX }
-                                setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
-                                taicpu(p).opsize := S_Q;
-                              end;
-{$endif x86_64}
-                            else
-                              { If hp1 was a MOV instruction, it should have been
-                                optimised already }
-                              InternalError(2020021001);
-                          end;
-                          DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 2 done',p);
-                          RemoveInstruction(hp1);
-                          Result := True;
-                          Exit;
-                        end;
-                      top_ref:
-                        begin
-                          { We have something like:
-
-                            movb   mem,  %regb
-                            movzbl %regb,%regd
-
-                            Change to:
-
-                            movzbl mem,  %regd
-                          }
-                          ThisRef := taicpu(p).oper[0]^.ref^;
-                          if (ThisRef.refaddr<>addr_full) and (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
-                            begin
-                              DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
-                              taicpu(hp1).loadref(0, ThisRef);
-
-                              { Make sure any registers in the references are properly tracked }
-                              if (ThisRef.base <> NR_NO){$ifdef x86_64} and (ThisRef.base <> NR_RIP){$endif x86_64} then
-                                AllocRegBetween(ThisRef.base, p, hp1, UsedRegs);
-
-                              if (ThisRef.index <> NR_NO) then
-                                AllocRegBetween(ThisRef.index, p, hp1, UsedRegs);
-
-                              RemoveCurrentP(p, hp1);
-                              Result := True;
-                              Exit;
-                            end;
-                        end;
-                      else
-                        if (taicpu(hp1).opcode <> A_MOV) and (taicpu(hp1).opcode <> A_LEA) then
-                          { Just to make a saving, since there are no more optimisations with MOVZX and MOVSX/D }
-                          Exit;
-                    end;
-                end
-             { The RegInOp check makes sure that movl r/m,%reg1l; movzbl (%reg1l),%reg1l"
-               and "movl r/m,%reg1; leal $1(%reg1,%reg2),%reg1" etc. are not incorrectly
-               optimised }
-              else
-                begin
-                  DebugMsg(SPeepholeOptimization + 'Mov2Nop 5 done',p);
-                  RemoveCurrentP(p, hp1);
-                  Result := True;
-                  Exit;
-                end;
-            end;
-
-        if (taicpu(hp1).opcode = A_OR) and
-          (taicpu(p).oper[1]^.typ = top_reg) and
-          MatchOperand(taicpu(p).oper[0]^, 0) and
-          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) then
-          begin
-            {   mov 0,  %reg
-                or  ###,%reg
-              Change to (only if the flags are not used):
-                mov ###,%reg
-            }
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-            DoOptimisation := True;
-
-            { Even if the flags are used, we might be able to do the optimisation
-              if the conditions are predictable }
-            if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
-              begin
-                { Only perform if ### = %reg (the same register) or equal to 0,
-                  so %reg is guaranteed to still have a value of zero }
-                if MatchOperand(taicpu(hp1).oper[0]^, 0) or
-                  MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^.reg) then
-                  begin
-                    hp2 := hp1;
-                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                    while RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
-                      GetNextInstruction(hp2, hp3) do
-                      begin
-                        { Don't continue modifying if the flags state is getting changed }
-                        if RegModifiedByInstruction(NR_DEFAULTFLAGS, hp3) then
-                          Break;
-
-                        UpdateUsedRegs(TmpUsedRegs, tai(hp3.Next));
-                        if MatchInstruction(hp3, A_Jcc, A_SETcc, A_CMOVcc, []) then
-                          begin
-
-                            if condition_in(C_E, taicpu(hp3).condition) or (taicpu(hp3).condition in [C_NC, C_NS, C_NO]) then
-                              begin
-                                { Condition is always true }
-                                case taicpu(hp3).opcode of
-                                  A_Jcc:
-                                    begin
-                                      { Check for jump shortcuts before we destroy the condition }
-                                      hp4 := hp3;
-                                      DoJumpOptimizations(hp3, TempBool);
-                                      { Make sure hp3 hasn't changed }
-                                      if (hp4 = hp3) then
-                                        begin
-                                          DebugMsg(SPeepholeOptimization + 'Condition is always true (jump made unconditional)', hp3);
-                                          MakeUnconditional(taicpu(hp3));
-                                        end;
-                                      Result := True;
-                                    end;
-                                  A_CMOVcc:
-                                    begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (CMOVcc -> MOV)', hp3);
-                                      taicpu(hp3).opcode := A_MOV;
-                                      taicpu(hp3).condition := C_None;
-                                      Result := True;
-                                    end;
-                                  A_SETcc:
-                                    begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (changed to MOV 1)', hp3);
-                                      { Convert "set(c) %reg" instruction to "movb 1,%reg" }
-                                      taicpu(hp3).opcode := A_MOV;
-                                      taicpu(hp3).ops := 2;
-                                      taicpu(hp3).condition := C_None;
-                                      taicpu(hp3).opsize := S_B;
-                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
-                                      taicpu(hp3).loadconst(0, 1);
-                                      Result := True;
-                                    end;
-                                  else
-                                    InternalError(2021090701);
-                                end;
-                              end
-                            else if (taicpu(hp3).condition in [C_A, C_B, C_C, C_G, C_L, C_NE, C_NZ, C_O, C_S]) then
-                              begin
-                                { Condition is always false }
-                                case taicpu(hp3).opcode of
-                                  A_Jcc:
-                                    begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (jump removed)', hp3);
-                                      TAsmLabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
-                                      RemoveInstruction(hp3);
-                                      Result := True;
-                                      { Since hp3 was deleted, hp2 must not be updated }
-                                      Continue;
-                                    end;
-                                  A_CMOVcc:
-                                    begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (conditional load removed)', hp3);
-                                      RemoveInstruction(hp3);
-                                      Result := True;
-                                      { Since hp3 was deleted, hp2 must not be updated }
-                                      Continue;
-                                    end;
-                                  A_SETcc:
-                                    begin
-                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (changed to MOV 0)', hp3);
-                                      { Convert "set(c) %reg" instruction to "movb 0,%reg" }
-                                      taicpu(hp3).opcode := A_MOV;
-                                      taicpu(hp3).ops := 2;
-                                      taicpu(hp3).condition := C_None;
-                                      taicpu(hp3).opsize := S_B;
-                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
-                                      taicpu(hp3).loadconst(0, 0);
-                                      Result := True;
-                                    end;
-                                  else
-                                    InternalError(2021090702);
-                                end;
-                              end
-                            else
-                              { Uncertain what to do - don't optimise (although optimise other conditional statements if present) }
-                              DoOptimisation := False;
-                          end;
-
-                        hp2 := hp3;
-                      end;
-
-                    { Flags are still in use - don't optimise }
-                    if DoOptimisation and RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
-                      DoOptimisation := False;
-
-                  end
-                else
-                  DoOptimisation := False;
-              end;
-
-            if DoOptimisation then
-              begin
-{$ifdef x86_64}
-                { OR only supports 32-bit sign-extended constants for 64-bit
-                  instructions, so compensate for this if the constant is
-                  encoded as a value greater than or equal to 2^31 }
-                if (taicpu(hp1).opsize = S_Q) and
-                  (taicpu(hp1).oper[0]^.typ = top_const) and
-                  (taicpu(hp1).oper[0]^.val >= $80000000) then
-                  taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val or $FFFFFFFF00000000;
-{$endif x86_64}
-
-                DebugMsg(SPeepholeOptimization + 'MOV 0 / OR -> MOV', p);
-                taicpu(hp1).opcode := A_MOV;
-                RemoveCurrentP(p, hp1);
-                Result := True;
-                Exit;
-              end;
-          end;
 
         { Next instruction is also a MOV ? }
         if MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
