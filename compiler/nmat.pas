@@ -219,26 +219,8 @@ implementation
             if is_constintnode(left) or is_constpointernode(left) then
               begin
                 { load values }
-                case left.nodetype of
-                  ordconstn:
-                    lv:=tordconstnode(left).value;
-                  pointerconstn:
-                    lv:=tpointerconstnode(left).value;
-                  niln:
-                    lv:=0;
-                  else
-                    internalerror(2024041501);
-                end;
-                case right.nodetype of
-                  ordconstn:
-                    rv:=tordconstnode(right).value;
-                  pointerconstn:
-                    rv:=tpointerconstnode(right).value;
-                  niln:
-                    rv:=0;
-                  else
-                    internalerror(2024041502);
-                end;
+                lv:=get_int_value(left);
+                rv:=get_int_value(right);
 
                 case nodetype of
                   modn:

@@ -98,26 +98,8 @@ interface
             t:=nil;
 
             { load values }
-            case lt of
-              ordconstn:
-                lv:=tordconstnode(left).value;
-              pointerconstn:
-                lv:=tpointerconstnode(left).value;
-              niln:
-                lv:=0;
-              else
-                internalerror(2002080201);
-            end;
-            case rt of
-              ordconstn:
-                rv:=tordconstnode(right).value;
-              pointerconstn:
-                rv:=tpointerconstnode(right).value;
-              niln:
-                rv:=0;
-              else
-                internalerror(2002080204);
-            end;
+            lv:=get_int_value(left);
+            rv:=get_int_value(right);
 
             case nodetype of
               addn:

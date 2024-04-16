@@ -709,26 +709,9 @@ implementation
              t:=nil;
 
              { load values }
-             case lt of
-               ordconstn:
-                 lv:=tordconstnode(left).value;
-               pointerconstn:
-                 lv:=tpointerconstnode(left).value;
-               niln:
-                 lv:=0;
-               else
-                 internalerror(2002080202);
-             end;
-             case rt of
-               ordconstn:
-                 rv:=tordconstnode(right).value;
-               pointerconstn:
-                 rv:=tpointerconstnode(right).value;
-               niln:
-                 rv:=0;
-               else
-                 internalerror(2002080203);
-             end;
+             lv:=get_int_value(left);
+             rv:=get_int_value(right);
+
              { type checking already took care of multiplying      }
              { integer constants with pointeddef.size if necessary }
              case nodetype of
