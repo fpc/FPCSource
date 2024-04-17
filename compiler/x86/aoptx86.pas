@@ -3618,10 +3618,67 @@ unit aoptx86;
                               end;
                           end;
                       end;
+{$ifdef x86_64}
+                    { Change:
+                        movl %reg1l,%reg2l
+                        movq %reg2q,%reg3q  (%reg1 <> %reg3)
+
+                      To:
+                        movl %reg1l,%reg2l
+                        movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
+
+                      If %reg1 = %reg3, convert to:
+                        movl %reg1l,%reg2l
+                        andl %reg1l,%reg1l
+                    }
+                    if (taicpu(p).opsize = S_L) and MatchInstruction(hp1,A_MOV,[S_Q]) and
+                      not RegModifiedBetween(p_SourceReg, p, hp1) and
+                      MatchOpType(taicpu(hp1), top_reg, top_reg) and
+                      SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[0]^.reg) then
+                      begin
+                        TransferUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+
+                        taicpu(hp1).opsize := S_L;
+                        taicpu(hp1).loadreg(0, p_SourceReg);
+                        setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+
+                        AllocRegBetween(p_SourceReg, p, hp1, UsedRegs);
+
+                        if (p_SourceReg = taicpu(hp1).oper[1]^.reg) then
+                          begin
+                            { %reg1 = %reg3 }
+                            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
+                            taicpu(hp1).opcode := A_AND;
+                          end
+                        else
+                          begin
+                            { %reg1 <> %reg3 }
+                            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
+                          end;
+
+                        if not RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
+                            RemoveCurrentP(p);
+                            Result := True;
+                            Exit;
+                          end
+                        else
+                          begin
+                            { Initial instruction wasn't actually changed }
+                            Include(OptsToCheck, aoc_ForceNewIteration);
+
+                            { if %reg1 = %reg3, don't do the long-distance lookahead that
+                              appears below since %reg1 has technically changed }
+                            if taicpu(hp1).opcode = A_AND then
+                              Exit;
+                          end;
+                      end;
+{$endif x86_64}
                   end
                 else if taicpu(p).oper[0]^.typ = top_const then
                   begin
-
                     if (taicpu(hp1).opcode = A_OR) and
                       (taicpu(p).oper[1]^.typ = top_reg) and
                       MatchOperand(taicpu(p).oper[0]^, 0) and
@@ -3862,7 +3919,7 @@ unit aoptx86;
 
                                   movzbl mem,  %regd
                                 }
-                                if (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
+                                if (taicpu(p).oper[0]^.ref^.refaddr<>addr_full) and (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
                                   begin
                                     DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
 
@@ -4459,65 +4516,6 @@ unit aoptx86;
                   end;
               end;
           end;
-
-{$ifdef x86_64}
-        { Change:
-            movl %reg1l,%reg2l
-            movq %reg2q,%reg3q  (%reg1 <> %reg3)
-
-          To:
-            movl %reg1l,%reg2l
-            movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
-
-          If %reg1 = %reg3, convert to:
-            movl %reg1l,%reg2l
-            andl %reg1l,%reg1l
-        }
-        if (taicpu(p).opsize = S_L) and MatchInstruction(hp1,A_MOV,[S_Q]) and
-          MatchOpType(taicpu(p), top_reg, top_reg) and
-          MatchOpType(taicpu(hp1), top_reg, top_reg) and
-          SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
-          begin
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-
-            taicpu(hp1).opsize := S_L;
-            taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
-            setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
-
-            AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
-
-            if (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
-              begin
-                { %reg1 = %reg3 }
-                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
-                taicpu(hp1).opcode := A_AND;
-              end
-            else
-              begin
-                { %reg1 <> %reg3 }
-                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
-              end;
-
-            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
-              begin
-                DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
-                RemoveCurrentP(p, hp1);
-                Result := True;
-                Exit;
-              end
-            else
-              begin
-                { Initial instruction wasn't actually changed }
-                Include(OptsToCheck, aoc_ForceNewIteration);
-
-                { if %reg1 = %reg3, don't do the long-distance lookahead that
-                  appears below since %reg1 has technically changed }
-                if taicpu(hp1).opcode = A_AND then
-                  Exit;
-              end;
-          end;
-{$endif x86_64}
 
         { search further than the next instruction for a mov (as long as it's not a jump) }
         if not is_calljmpuncondret(taicpu(hp1).opcode) and
