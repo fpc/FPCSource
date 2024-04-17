@@ -57,7 +57,7 @@ interface
       cutils,verbose,globals,constexp,pass_1,
       symconst,symdef,symtype,symcpu,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,procinfo,
+      nutils,cgbase,procinfo,
       ncal,ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
