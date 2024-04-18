@@ -91,6 +91,11 @@ unit aoptx86;
         }
         function GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
+
+        { returns true if any of the registers in ref are modified by any
+          instruction between p1 and p2, or if those instructions write to the
+          reference }
+        function RefModifiedBetween(Ref: TReference; RefSize: ASizeInt; p1, p2: tai): Boolean;
       private
         function SkipSimpleInstructions(var hp1: tai): Boolean;
 
@@ -245,6 +250,9 @@ unit aoptx86;
 {$endif max_operands>2}
 
     function RefsEqual(const r1, r2: treference): boolean;
+
+    { Like RefsEqual, but doesn't compare the offsets }
+    function RefsAlmostEqual(const r1, r2: treference): boolean;
 
     { Note that Result is set to True if the references COULD overlap but the
       compiler cannot be sure (e.g. "(%reg1)" and "4(%reg2)" with a range of 4
@@ -477,6 +485,18 @@ unit aoptx86;
           (r1.segment = r2.segment) and (r1.base = r2.base) and
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.offset = r2.offset) and
+          (r1.volatility + r2.volatility = []);
+      end;
+
+
+    function RefsAlmostEqual(const r1, r2: treference): boolean;
+      begin
+        RefsAlmostEqual :=
+          (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+          (r1.relsymbol = r2.relsymbol) and
+          (r1.segment = r2.segment) and (r1.base = r2.base) and
+          (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+          { Don't compare the offsets }
           (r1.volatility + r2.volatility = []);
       end;
 
@@ -1315,6 +1335,63 @@ unit aoptx86;
           end;
       end;
 
+
+    function TX86AsmOptimizer.RefModifiedBetween(Ref: TReference; RefSize: ASizeInt; p1, p2: tai): Boolean;
+      const
+        WriteOps: array[0..3] of set of TInsChange =
+          ([CH_RWOP1,CH_WOP1,CH_MOP1],
+           [Ch_RWOP2,Ch_WOP2,Ch_MOP2],
+           [Ch_RWOP3,Ch_WOP3,Ch_MOP3],
+           [Ch_RWOP4,Ch_WOP4,Ch_MOP4]);
+      var
+        X: Integer;
+        CurrentP1Size: asizeint;
+      begin
+        Result := (
+          (Ref.base <> NR_NO) and
+{$ifdef x86_64}
+          (Ref.base <> NR_RIP) and
+{$endif x86_64}
+          RegModifiedBetween(Ref.base, p1, p2)
+        ) or
+        (
+          (Ref.index <> NR_NO) and
+          (Ref.index <> Ref.base) and
+          RegModifiedBetween(Ref.index, p1, p2)
+        );
+
+        { Now check to see if the memory itself is written to }
+        if not Result then
+          begin
+            while assigned(p1) and assigned(p2) and GetNextInstruction(p1,p1) and (p1<>p2) do
+              if p1.typ = ait_instruction then
+                begin
+                  CurrentP1Size := topsize2memsize[taicpu(p1).opsize] shr 3; { Convert to bytes }
+                  with insprop[taicpu(p1).opcode] do
+                    for X := 0 to taicpu(p1).ops - 1 do
+                      if (taicpu(p1).oper[X]^.typ = top_ref) and
+                        RefsAlmostEqual(Ref, taicpu(p1).oper[X]^.ref^) and
+                        { Catch any potential overlaps }
+                        (
+                          (RefSize = 0) or
+                          ((taicpu(p1).oper[X]^.ref^.offset - Ref.offset) < RefSize)
+                        ) and
+                        (
+                          (CurrentP1Size = 0) or
+                          ((Ref.offset - taicpu(p1).oper[X]^.ref^.offset) < CurrentP1Size)
+                        ) and
+                        { Reference is used, but does the instruction write to it? }
+                        (
+                          (Ch_All in Ch) or
+                          ((WriteOps[X] * Ch) <> [])
+                        ) then
+                        begin
+                          Result := True;
+                          Break;
+                        end;
+                end;
+          end;
+      end;
 
 {$ifdef DEBUG_AOPTCPU}
     procedure TX86AsmOptimizer.DebugMsg(const s: string;p : tai);
