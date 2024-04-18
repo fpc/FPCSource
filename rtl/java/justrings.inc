@@ -626,7 +626,7 @@ function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : 
 
 {$define FPC_HAS_UNICODEFROMLOCALECHARS}
 function UnicodeFromLocaleChars(CodePage, Flags: Cardinal; LocaleStr: PAnsiChar;
-  LocaleStrLen: Integer; UnicodeStr: PWideChar; UnicodeStrLen: Integer): Integer; overload;
+  LocaleStrLen: SizeInt; UnicodeStr: PWideChar; UnicodeStrLen: SizeInt): SizeInt; overload;
 
 var
   temp: widestring;
