@@ -3028,6 +3028,7 @@ unit aoptx86;
             DebugMsg(SPeepholeOptimization + 'MovMov2MovMov 2',p);
             taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
             Result := True;
+            Include(OptsToCheck, aoc_ForceNewIteration);
           end;
       end;
 
