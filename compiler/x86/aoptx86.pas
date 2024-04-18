@@ -3830,6 +3830,52 @@ unit aoptx86;
                             Exit;
                           end;
                       end;
+                  end
+                else if
+                  { oper[0] is a reference }
+                  (taicpu(p).oper[0]^.ref^.refaddr <> addr_full) then
+                  begin
+                    if MatchInstruction(hp1,A_LEA,[S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
+                      begin
+                        if ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
+                             (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
+                            ) or
+                            (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
+                             (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
+                            )
+                           ) and
+                          not RegModifiedBetween(Taicpu(hp1).oper[1]^.reg, p, hp1) then
+                           { mov ref,reg1
+                             lea (reg1,reg2),reg2
+
+                             to
+
+                             add ref,reg2 }
+                          begin
+                            TransferUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+
+                            { If the flags register is in use, don't change the instruction to an
+                              ADD otherwise this will scramble the flags. [Kit] }
+                            if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                              { reg1 may not be used afterwards }
+                              not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+                              begin
+                                Taicpu(hp1).opcode:=A_ADD;
+                                Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
+                                DebugMsg(SPeepholeOptimization + 'MovLea2Add done',hp1);
+                                RemoveCurrentp(p);
+                                result:=true;
+                                exit;
+                              end;
+                          end;
+
+                        { If the LEA instruction can be converted into an arithmetic instruction,
+                          it may be possible to then fold it in the next optimisation. }
+                        if ConvertLEA(taicpu(hp1)) then
+                          Include(OptsToCheck, aoc_ForceNewIteration);
+
+                      end;
                   end;
 
                 { Depending on the DeepMOVOpt above, it may turn out that hp1 completely
@@ -5014,47 +5060,6 @@ unit aoptx86;
                 Result := True;
                 Exit;
               end;
-          end;
-
-        if MatchInstruction(hp1,A_LEA,[S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
-          { If the flags register is in use, don't change the instruction to an
-            ADD otherwise this will scramble the flags. [Kit] }
-          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
-          begin
-            if MatchOpType(Taicpu(p),top_ref,top_reg) and
-               ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
-                 (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
-                ) or
-                (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
-                 (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
-                )
-               ) then
-               { mov reg1,ref
-                 lea reg2,[reg1,reg2]
-
-                 to
-
-                 add reg2,ref}
-              begin
-                TransferUsedRegs(TmpUsedRegs);
-                { reg1 may not be used afterwards }
-                if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
-                  begin
-                    Taicpu(hp1).opcode:=A_ADD;
-                    Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
-                    DebugMsg(SPeepholeOptimization + 'MovLea2Add done',hp1);
-                    RemoveCurrentp(p, hp1);
-                    result:=true;
-                    exit;
-                  end;
-              end;
-
-            { If the LEA instruction can be converted into an arithmetic instruction,
-              it may be possible to then fold it in the next optimisation, otherwise
-              there's nothing more that can be optimised here. }
-            if not ConvertLEA(taicpu(hp1)) then
-              Exit;
-
           end;
 
         if (taicpu(p).oper[1]^.typ = top_reg) and
