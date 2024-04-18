@@ -4218,6 +4218,97 @@ unit aoptx86;
               end;
           end;
 
+        if taicpu(p).oper[0]^.typ = top_reg then
+          begin
+            { oper[1] is a reference }
+
+            { Saves on a large number of dereferences }
+            p_SourceReg := taicpu(p).oper[0]^.reg;
+
+            if NotFirstIteration and (cs_opt_level3 in current_settings.optimizerswitches) then
+              GetNextInstruction_p := GetNextInstructionUsingReg(p, hp1, p_SourceReg)
+            else
+              GetNextInstruction_p := GetNextInstruction(p, hp1);
+
+            if GetNextInstruction_p and (hp1.typ = ait_instruction) then
+              begin
+
+                if taicpu(p).oper[1]^.typ = top_reg then
+                  begin
+                    p_TargetReg := taicpu(p).oper[1]^.reg;
+
+                    { Change:
+                        movl %reg1,%reg2
+                        ...
+                        movl x(%reg1),%reg1  (If something other than %reg1 is written to, DeepMOVOpt would have caught it)
+                        ...
+                        movl x(%reg2),%regX  (%regX can be %reg2 or something else)
+                      To:
+                        movl %reg1,%reg2 (if %regX = %reg2, then remove this instruction)
+                        ...
+                        movl x(%reg1),%reg1
+                        ...
+                        movl %reg1,%regX
+                    }
+                    if MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
+                      (taicpu(hp1).oper[0]^.typ = top_ref) { The other operand will be a register } and
+                      (taicpu(hp1).oper[1]^.reg = p_SourceReg) and
+                      RegInRef(p_SourceReg, taicpu(hp1).oper[0]^.ref^) and
+                      not RegModifiedBetween(p_TargetReg, p, hp1) and
+                      GetNextInstructionUsingReg(hp1, hp2, p_TargetReg) and
+                      MatchInstruction(hp2, A_MOV, [taicpu(p).opsize]) and
+                      (taicpu(hp2).oper[0]^.typ = top_ref) { The other operand will be a register } and
+                      not RegModifiedBetween(p_SourceReg, hp1, hp2) then
+                      begin
+                        SourceRef := taicpu(hp2).oper[0]^.ref^;
+                        if RegInRef(p_TargetReg, SourceRef) and
+                          { If %reg1 also appears in the second reference, then it will
+                            not refer to the same memory block as the first reference }
+                          not RegInRef(p_SourceReg, SourceRef) then
+                          begin
+                            { Check to see if the references match if %reg2 is changed to %reg1 }
+                            if SourceRef.base = p_TargetReg then
+                              SourceRef.base := p_SourceReg;
+
+                            if SourceRef.index = p_TargetReg then
+                              SourceRef.index := p_SourceReg;
+
+                            { RefsEqual also checks to ensure both references are non-volatile }
+                            if RefsEqual(taicpu(hp1).oper[0]^.ref^, SourceRef) then
+                              begin
+                                taicpu(hp2).loadreg(0, p_SourceReg);
+
+                                DebugMsg(SPeepholeOptimization + 'Optimised register duplication and memory read (MovMovMov2MovMovMov)', p);
+                                Result := True;
+                                if taicpu(hp2).oper[1]^.reg = p_TargetReg then
+                                  begin
+                                    DebugMsg(SPeepholeOptimization + 'Mov2Nop 5a done', p);
+                                    RemoveCurrentP(p);
+                                    Exit;
+                                  end
+                                else
+                                  begin
+                                    { Check to see if %reg2 is no longer in use }
+                                    TransferUsedRegs(TmpUsedRegs);
+                                    UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+                                    UpdateUsedRegsBetween(TmpUsedRegs, tai(hp1.Next), hp2);
+
+                                    if not RegUsedAfterInstruction(p_TargetReg, hp2, TmpUsedRegs) then
+                                      begin
+                                        DebugMsg(SPeepholeOptimization + 'Mov2Nop 5b done', p);
+                                        RemoveCurrentP(p);
+                                        Exit;
+                                      end;
+                                  end;
+                                { If we reach this point, p and hp1 weren't actually modified,
+                                  so we can do a bit more work on this pass }
+                              end;
+                          end;
+                      end;
+                  end;
+              end;
+          end;
+
         GetNextInstruction_p:=GetNextInstruction(p, hp1);
 
         { All the next optimisations require a next instruction }
@@ -4447,74 +4538,6 @@ unit aoptx86;
               end;
 
               { mov x,reg1; mov y,reg1 -> mov y,reg1 is handled by the Mov2Nop 5 optimisation }
-
-            { Change:
-                movl %reg1,%reg2
-                movl x(%reg1),%reg1  (If something other than %reg1 is written to, DeepMOVOpt would have caught it)
-                movl x(%reg2),%regX  (%regX can be %reg2 or something else)
-              To:
-                movl %reg1,%reg2 (if %regX = %reg2, then remove this instruction)
-                movl x(%reg1),%reg1
-                movl %reg1,%regX
-            }
-            if MatchOpType(taicpu(p), top_reg, top_reg) then
-              begin
-                p_SourceReg := taicpu(p).oper[0]^.reg;
-                { Remember that p_TargetReg contains taicpu(p).oper[1]^.reg }
-
-                if (taicpu(hp1).oper[0]^.typ = top_ref) { The other operand will be a register } and
-                  (taicpu(hp1).oper[1]^.reg = p_SourceReg) and
-                  RegInRef(p_SourceReg, taicpu(hp1).oper[0]^.ref^) and
-                  GetNextInstruction(hp1, hp2) and
-                  MatchInstruction(hp2, A_MOV, [taicpu(p).opsize]) and
-                  (taicpu(hp2).oper[0]^.typ = top_ref) { The other operand will be a register } then
-                  begin
-                    SourceRef := taicpu(hp2).oper[0]^.ref^;
-                    if RegInRef(p_TargetReg, SourceRef) and
-                      { If %reg1 also appears in the second reference, then it will
-                        not refer to the same memory block as the first reference }
-                      not RegInRef(p_SourceReg, SourceRef) then
-                      begin
-                        { Check to see if the references match if %reg2 is changed to %reg1 }
-                        if SourceRef.base = p_TargetReg then
-                          SourceRef.base := p_SourceReg;
-
-                        if SourceRef.index = p_TargetReg then
-                          SourceRef.index := p_SourceReg;
-
-                        { RefsEqual also checks to ensure both references are non-volatile }
-                        if RefsEqual(taicpu(hp1).oper[0]^.ref^, SourceRef) then
-                          begin
-                            taicpu(hp2).loadreg(0, p_SourceReg);
-
-                            DebugMsg(SPeepholeOptimization + 'Optimised register duplication and memory read (MovMovMov2MovMovMov)', p);
-                            Result := True;
-                            if taicpu(hp2).oper[1]^.reg = p_TargetReg then
-                              begin
-                                DebugMsg(SPeepholeOptimization + 'Mov2Nop 5a done', p);
-                                RemoveCurrentP(p, hp1);
-                                Exit;
-                              end
-                            else
-                              begin
-                                { Check to see if %reg2 is no longer in use }
-                                TransferUsedRegs(TmpUsedRegs);
-                                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                                UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-
-                                if not RegUsedAfterInstruction(p_TargetReg, hp2, TmpUsedRegs) then
-                                  begin
-                                    DebugMsg(SPeepholeOptimization + 'Mov2Nop 5b done', p);
-                                    RemoveCurrentP(p, hp1);
-                                    Exit;
-                                  end;
-                              end;
-                            { If we reach this point, p and hp1 weren't actually modified,
-                              so we can do a bit more work on this pass }
-                          end;
-                      end;
-                  end;
-              end;
           end;
 
         { search further than the next instruction for a mov (as long as it's not a jump) }
