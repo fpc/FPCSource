@@ -3874,7 +3874,45 @@ unit aoptx86;
                           it may be possible to then fold it in the next optimisation. }
                         if ConvertLEA(taicpu(hp1)) then
                           Include(OptsToCheck, aoc_ForceNewIteration);
+                      end;
 
+                    {
+                      mov ref,reg0
+                      <op> reg0,reg1
+                      dealloc reg0
+
+                      to
+
+                      <op> ref,reg1
+                    }
+                    if MatchOpType(taicpu(hp1),top_reg,top_reg) and
+                      (taicpu(hp1).oper[0]^.reg = p_TargetReg) and
+                      MatchInstruction(hp1, [A_AND, A_OR, A_XOR, A_ADD, A_SUB, A_CMP, A_TEST, A_CMOVcc, A_BSR, A_BSF, A_POPCNT, A_LZCNT], [taicpu(p).opsize]) and
+                      not SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, p_TargetReg) and
+                      not RefModifiedBetween(taicpu(p).oper[0]^.ref^, topsize2memsize[taicpu(p).opsize] shr 3, p, hp1) then
+                      begin
+                        TransferUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+                        if not RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
+                          begin
+                            taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+
+                            { loadref increases the reference count, so decrement it again }
+                            if Assigned(taicpu(p).oper[0]^.ref^.symbol) then
+                              taicpu(p).oper[0]^.ref^.symbol.decrefs;
+                            if Assigned(taicpu(p).oper[0]^.ref^.relsymbol) then
+                              taicpu(p).oper[0]^.ref^.relsymbol.decrefs;
+
+                            DebugMsg(SPeepholeOptimization + 'MovOp2Op done',hp1);
+
+                            { See if we can remove the allocation of reg0 }
+                            if not RegInRef(p_TargetReg, taicpu(p).oper[0]^.ref^) then
+                              TryRemoveRegAlloc(p_TargetReg, p, hp1);
+
+                            RemoveCurrentp(p);
+                            Result:=true;
+                            exit;
+                          end;
                       end;
                   end;
 
@@ -5282,29 +5320,6 @@ unit aoptx86;
           begin
             DebugMsg(SPeepholeOptimization + 'MovSubCmp2MovSub done',p);
             RemoveInstruction(hp2);
-            Result:=true;
-            exit;
-          end;
-
-        {
-          mov ref,reg0
-          <op> reg0,reg1
-          dealloc reg0
-
-          to
-
-          <op> ref,reg1
-        }
-        if MatchOpType(taicpu(p),top_ref,top_reg) and
-          MatchOpType(taicpu(hp1),top_reg,top_reg) and
-          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
-          MatchInstruction(hp1,[A_AND,A_OR,A_XOR,A_ADD,A_SUB,A_CMP],[Taicpu(p).opsize]) and
-          not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) and
-          RegEndOfLife(taicpu(p).oper[1]^.reg,taicpu(hp1)) then
-          begin
-            taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
-            DebugMsg(SPeepholeOptimization + 'MovOp2Op done',hp1);
-            RemoveCurrentp(p, hp1);
             Result:=true;
             exit;
           end;
