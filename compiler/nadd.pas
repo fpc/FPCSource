@@ -1764,6 +1764,31 @@ implementation
                 exit;
               end;
 
+            {
+              compile length(arr) > x as high(arr) >= x
+              compile length(arr) <= x as high(arr) < x
+
+              tested by tests/webtbs/tw40292.pp
+            }
+            if (nodetype in [lten,gtn]) and
+              (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_length_x) and
+              ((is_dynamic_array(tinlinenode(left).left.resultdef)) or
+               (is_open_array(tinlinenode(left).left.resultdef))
+              ) then
+              begin
+                case nodetype of
+                  gtn:
+                    result:=caddnode.create(gten,cinlinenode.create(in_high_x,false,tinlinenode(left).left),right);
+                  lten:
+                    result:=caddnode.create(ltn,cinlinenode.create(in_high_x,false,tinlinenode(left).left),right);
+                  else
+                    Internalerror(2024041701);
+                end;
+                right:=nil;
+                tinlinenode(left).left:=nil;
+                exit;
+              end;
+
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
             if
