@@ -4622,7 +4622,7 @@ unit aoptx86;
                       (taicpu(p).oper[0]^.typ = top_reg) and
                       MatchOpType(taicpu(hp2), top_reg, top_reg) and
                       SuperRegistersEqual(p_TargetReg, taicpu(hp2).oper[0]^.reg) and
-                      not RegModifiedBetween(p_TargetReg, p, hp2) then
+                      not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp2) then
                       begin
                         TempRegUsed :=
                           CrossJump { Assume the register is in use if it crossed a conditional jump } or
