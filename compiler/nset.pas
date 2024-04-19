@@ -350,6 +350,7 @@ implementation
         t : tnode;
       begin
          result:=nil;
+
          { constant evaluation }
          if (left.nodetype=ordconstn) then
            begin
@@ -397,6 +398,15 @@ implementation
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
              t:=cordconstnode.create(1, pasbool1type, true);
+             typecheckpass(t);
+             result:=t;
+             exit;
+           end
+         { ... in [] is always false }
+         else if is_emptyset(right) and
+           not(might_have_sideeffects(left,[mhs_exceptions])) then
+           begin
+             t:=cordconstnode.create(1, pasbool1type, false);
              typecheckpass(t);
              result:=t;
              exit;
