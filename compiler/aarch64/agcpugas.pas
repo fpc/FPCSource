@@ -122,7 +122,11 @@ unit agcpugas;
               CPUAARCH64_HAS_MEMTAG:
                 Result:=Result+'+memtag';
               CPUAARCH64_HAS_PAUTH:
-                Result:=Result+'+pauth';
+                { currently, clang on aarch64-darwin does not support pauth and as
+                  it is actually part of -march==armv8.4-a (and higher) we actually don't need it,
+                  so ignore it at this point }
+                if not(current_settings.cputype>=cpu_armv84a) then
+                  Result:=Result+'+pauth';
               CPUAARCH64_HAS_TME:
                 Result:=Result+'+tme';
               CPUAARCH64_HAS_PROFILE:
