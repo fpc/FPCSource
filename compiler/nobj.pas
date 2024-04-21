@@ -680,6 +680,8 @@ implementation
         cji: boolean;
       begin
         ImplIntfCount:=_class.ImplementedInterfaces.count;
+        if ImplIntfCount=0 then
+          exit;
         SetLength(compats,ImplIntfCount);
         SetLength(aequals,ImplIntfCount);
         SetLength(impls,ImplIntfCount);
