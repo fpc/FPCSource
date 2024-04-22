@@ -1644,6 +1644,8 @@ type
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     procedure BI_AWait_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
+
+    function IsPromiseClass(aClass: TPasClassType): Boolean;
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -5861,7 +5863,7 @@ begin
       if (rrfReadable in ParamResolved.Flags)
           and (ParamResolved.BaseType=btContext)
           and (ParamResolved.LoTypeEl is TPasClassType)
-          and IsExternalClass_Name(TPasClassType(ParamResolved.LoTypeEl),'Promise') then
+          and IsPromiseClass(TPasClassType(ParamResolved.LoTypeEl)) then
         begin
         // "exit(aPromise)"  inside async proc
         exit(cCompatible);
@@ -6131,12 +6133,34 @@ function TPas2JSResolver.BI_AWait_OnGetCallCompatibility(
 // await(T; jsvalue): T
 // await(AsyncFuncWithResultT): T
 // await(AsyncProc);
+
 var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved, Param2Resolved: TPasResolverResult;
   ParentProc: TPasProcedure;
   TypeEl: TPasType;
+
+  function CheckProcedureAsync(const Proc: TPasProcedureType): Boolean;
+  var
+    FunctionType: TPasFunctionType absolute Proc;
+
+  begin
+    Result := Proc.IsAsync or ((Proc is TPasFunctionType)
+      and ((FunctionType.ResultEl.ResultType is TPasClassType) and IsPromiseClass(FunctionType.ResultEl.ResultType as TPasClassType))
+        or (FunctionType.ResultEl.ResultType is TPasSpecializeType) and (IsPromiseClass(TPasSpecializeType(FunctionType.ResultEl.ResultType).DestType as TPasClassType)));
+
+    if not Result then
+    begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPas2JSResolver.BI_AWait_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
+      {$ENDIF}
+
+      if RaiseOnError then
+        RaiseMsg(20201229232446,nXExpectedButYFound,sXExpectedButYFound,['async function or a promise',GetResolverResultDescription(ParamResolved)],Expr);
+    end;
+  end;
+
 begin
   Result:=cIncompatible;
 
@@ -6165,31 +6189,15 @@ begin
     if (ParamResolved.IdentEl is TPasResultElement) then
       begin
       // await(AsyncFuncCall)
-      if not TPasFunctionType(ParamResolved.IdentEl.Parent).IsAsync then
-        begin
-        {$IFDEF VerbosePas2JS}
-        writeln('TPas2JSResolver.BI_AWait_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
-        {$ENDIF}
-        if RaiseOnError then
-          RaiseMsg(20201229232446,nXExpectedButYFound,sXExpectedButYFound,['async function',GetResolverResultDescription(ParamResolved)],Expr)
-        else
-          exit(cIncompatible);
-        end;
+      if not CheckProcedureAsync(TPasProcedureType(ParamResolved.IdentEl.Parent)) then
+        Exit(cIncompatible);
       end
     else if (ParamResolved.BaseType=btContext)
         and (TypeEl is TPasProcedureType) then
       begin
       // await(AsyncFuncTypeVar)
-      if not TPasProcedureType(TypeEl).IsAsync then
-        begin
-        {$IFDEF VerbosePas2JS}
-        writeln('TPas2JSResolver.BI_AWait_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
-        {$ENDIF}
-        if RaiseOnError then
-          RaiseMsg(20201229232541,nXExpectedButYFound,sXExpectedButYFound,['async function',GetResolverResultDescription(ParamResolved)],Expr)
-        else
-          exit(cIncompatible);
-        end;
+      if not CheckProcedureAsync(TPasProcedureType(TypeEl)) then
+        Exit(cIncompatible);
       end
     else
       begin
@@ -6225,7 +6233,7 @@ begin
       // custom type
       if (ParamResolved.BaseType=btContext)
           and (ParamResolved.LoTypeEl is TPasClassType)
-          and IsExternalClass_Name(TPasClassType(ParamResolved.LoTypeEl),'Promise') then
+          and IsPromiseClass(TPasClassType(ParamResolved.LoTypeEl)) then
         begin
         // awit(TJSPromise,x) ->  await resolves all promises
         exit(CheckRaiseTypeArgNo(20201120001741,1,Param,ParamResolved,'non Promise type',RaiseOnError));
@@ -6250,7 +6258,7 @@ begin
       // await(T,CallAsyncFuncResultS)
       if (Param2Resolved.BaseType=btContext)
           and (Param2Resolved.LoTypeEl is TPasClassType)
-          and IsExternalClass_Name(TPasClassType(Param2Resolved.LoTypeEl),'Promise') then
+          and IsPromiseClass(TPasClassType(Param2Resolved.LoTypeEl)) then
         begin
         // await(T,CallAsyncFuncReturningPromise) -> good
         end
@@ -6275,7 +6283,7 @@ begin
 
       if (Param2Resolved.BaseType=btContext)
           and (Param2Resolved.LoTypeEl is TPasClassType)
-          and IsExternalClass_Name(TPasClassType(Param2Resolved.LoTypeEl),'Promise') then
+          and IsPromiseClass(TPasClassType(Param2Resolved.LoTypeEl)) then
         // await(T,aPromise)
       else if IsJSBaseType(Param2Resolved,pbtJSValue) then
         // await(T,jsvalue)
@@ -6308,7 +6316,7 @@ begin
       // await(CallAsynFuncResultT): T
       if (ResolvedEl.BaseType=btContext)
           and (ResolvedEl.LoTypeEl is TPasClassType)
-          and IsExternalClass_Name(TPasClassType(ResolvedEl.LoTypeEl),'Promise') then
+          and IsPromiseClass(TPasClassType(ResolvedEl.LoTypeEl)) then
         // async function returns a promise, await resolve all promises -> need final type as first param
         RaiseMsg(20201229235932,nWrongNumberOfParametersForCallTo,
           sWrongNumberOfParametersForCallTo,[AwaitSignature2],Param);
@@ -6388,7 +6396,7 @@ begin
       TypeEl:=ParamResolved.LoTypeEl;
       IdentEl:=ParamResolved.IdentEl;
       if TypeEl.ClassType=TPasClassType then
-        IsPromise:=IsExternalClass_Name(TPasClassType(TypeEl),'Promise')
+        IsPromise:=IsPromiseClass(TPasClassType(TypeEl))
       else if (ParamResolved.BaseType=btProc) and (IdentEl=nil)
           and (TypeEl is TPasProcedureType) then
         IsPromise:=TPasProcedureType(TypeEl).IsAsync
@@ -6487,6 +6495,11 @@ begin
   if HasValue and not (rrfReadable in TypeResolved.Flags) then
     exit(false);
   Result:=true;
+end;
+
+function TPas2JSResolver.IsPromiseClass(aClass: TPasClassType): Boolean;
+begin
+  Result := IsExternalClass_Name(aClass, 'Promise');
 end;
 
 procedure TPas2JSResolver.AddObjFPCBuiltInIdentifiers(
