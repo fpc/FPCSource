@@ -6199,6 +6199,12 @@ begin
       if not CheckProcedureAsync(TPasProcedureType(TypeEl)) then
         Exit(cIncompatible);
       end
+    else if (ParamResolved.BaseType=btContext)
+        and (ParamResolved.IdentEl is TPasProcedure) then
+      begin
+      if not CheckProcedureAsync(TPasProcedure(ParamResolved.IdentEl).ProcType) then
+        Exit(cIncompatible)
+      end
     else
       begin
       {$IFDEF VerbosePas2JS}
