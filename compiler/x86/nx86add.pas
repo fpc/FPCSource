@@ -2130,7 +2130,7 @@ unit nx86add;
          ((nodetype=addn) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT]) and (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT])) then
          begin
            { allocate registers }
-           force_reg_left_right(false,true);
+           force_reg_left_right(nodetype<>subn,true);
            set_result_location_reg;
            if nodetype<>subn then
             begin
