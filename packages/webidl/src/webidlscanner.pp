@@ -1094,7 +1094,6 @@ function TDirectiveEvaluator.GetStringLiteralValue: TIDLString;
 var
   p, StartP: PChar;
   s: TIDLString;
-  len : Integer;
 
 begin
   S:='';
