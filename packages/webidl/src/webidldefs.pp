@@ -183,6 +183,7 @@ type
     Function AsString(Full : Boolean): UTF8String; override;
     Function HasAttributes : Boolean;
     Function HasSimpleAttribute(Const AName : UTF8String) : Boolean;
+    Function GetNamePath : String;
     Property Name : UTF8String Read FName Write FName;
     Property Data : TObject Read FData Write FData;
     Property Parent : TIDLDefinition Read FParent Write FParent;
@@ -462,6 +463,7 @@ type
 
   TIDLTypeDefDefinition = Class(TIDLTypeDefinition)
   private
+    FIsTypeDef: Boolean;
     FNull: Boolean;
     FTypeName: String;
   Public
@@ -470,6 +472,7 @@ type
     Function AsString(Full: Boolean): UTF8String; override;
     Property TypeName : String Read FTypeName Write FTypeName;
     Property AllowNull : Boolean Read FNull Write FNull;
+    Property IsTypeDef : Boolean Read FIsTypeDef Write FIsTypeDef;
   end;
   TIDLTypeDefDefinitionClass = Class of TIDLTypeDefDefinition;
 
@@ -542,6 +545,7 @@ type
     FIsReadonly: Boolean;
     procedure SetElementType(AValue: TIDLTypeDefDefinition);
   Public
+    Function GetJSTypeName: String; override;
     Function AsString(Full: Boolean): UTF8String; override;
     Destructor Destroy; override;
     property ElementType : TIDLTypeDefDefinition Read FElementType Write SetElementType;
@@ -626,6 +630,11 @@ begin
   FElementType:=AValue;
   if Assigned(FElementType) then
     FElementType.Parent:=Self
+end;
+
+function TIDLSetlikeDefinition.GetJSTypeName: String;
+begin
+  Result:=Name;
 end;
 
 function TIDLSetlikeDefinition.AsString(Full: Boolean): UTF8String;
@@ -1540,6 +1549,45 @@ end;
 function TIDLDefinition.HasSimpleAttribute(const AName : UTF8String): Boolean;
 begin
   Result:=HasAttributes and (FAttributes.IndexOf(aName)<>-1);
+end;
+
+function TIDLDefinition.GetNamePath: String;
+
+  Function GetName(Def : TIDLDefinition) : string;
+
+  var
+    Loc : String;
+
+  begin
+    if Def=Nil then
+      Result:='[Nil]'
+    else
+      begin
+      Result:=Def.Name;
+      if (Result='') then
+        begin
+        Result:=Def.ClassName;
+        if Self.Line<>0 then
+          Loc:=Format('at (%d,%d)',[line,Column])
+        else
+          Loc:='';
+        Result:=Format('<anonymous(%s)%s>',[Result,Loc]);
+        end;
+      end;
+  end;
+
+
+var
+  P : TIDLDefinition;
+
+begin
+  Result:=GetName(Self);
+  P:=Self.Parent;
+  While Assigned(P) do
+    begin
+    Result:=GetName(P)+'.'+Result;
+    P:=P.Parent;
+    end;
 end;
 
 end.

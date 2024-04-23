@@ -20,6 +20,8 @@ unit webidlparser;
 {$IF FPC_FULLVERSION>=30301}
 {$WARN 6060 off : }
 {$ENDIF}
+
+{.$DEFINE VerboseWebIDLParser}
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -1379,6 +1381,8 @@ begin
     ExpectToken(tkLess);
     Result.ElementType:=ParseType(Result);
     Result.ElementType.Parent:=Result;
+    if (Result.ElementType.Name='') then
+      Result.ElementType.Name:=Result.ElementType.TypeName;
     CheckCurrentToken(tkLarger);
     ok:=true;
   finally
@@ -1558,6 +1562,7 @@ begin
   try
     CheckCurrentToken(tkIdentifier);
     Result.Name:=CurrentTokenString;
+    Result.IsTypeDef:=True;
     ok:=true;
   finally
     if not ok then
@@ -1923,9 +1928,13 @@ var
   function GetTopologicalLevel(Top: TTopologicalIntf): integer;
   var
     ParentTop: TTopologicalIntf;
+    {$IFDEF VerboseWebIDLParser}
     IntfDef: TIDLInterfaceDefinition;
+    {$ENDIF}
   begin
+    {$IFDEF VerboseWebIDLParser}
     IntfDef:=Top.Intf;
+    {$ENDIF}
     if Top.Level<0 then
       begin
       if Top.Parent=nil then
@@ -1935,7 +1944,9 @@ var
         ParentTop:=FindIntf(Top.Parent);
         if ParentTop=nil then
           begin
-          writeln('Warning: [20220725182101] [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
+          {$IFDEF VerboseWebIDLParser}
+          Log('Warning: [20220725182101] [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
+          {$ENDIF}
           Top.Level:=0;
           end
         else

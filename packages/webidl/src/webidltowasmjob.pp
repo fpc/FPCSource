@@ -62,9 +62,10 @@ const
     'TJOB_Dictionary',
     'TJOB_Array'
     );
+
 type
+
   TPasDataWasmJob = class(TPasData)
-  public
   end;
 
   { TWebIDLToPasWasmJob }
@@ -79,22 +80,26 @@ type
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
     function GetInvokeClassNameFromTypeAlias(aName: TIDLString; aDef: TIDLDefinition): TIDLString;
     function GetInvokeNameFromAliasName(const aTypeName: TIDLString; aType: TIDLDefinition): string;
+    function GetInvokeNameFromNativeType(aNativeType: TPascalNativeType): String;
     function GetInvokeNameFromTypeName(const aTypeName: TIDLString; aType: TIDLDefinition): TIDLString;
     function GetKnownArgumentGetter(aDef: TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename: String): string;
     function GetKnownResultAllocator(aDef: TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename: String): string;
+    function GetNativeTypeHelperAllocatorName(aNativeType: TPascalNativeType): string;
+    function GetNativeTypeHelperGetterName(aNativeType: TPascalNativeType): string;
 
   Protected
     function BaseUnits: String; override;
     // Auxiliary routines
+    function GetAliasPascalType(D: TIDLDefinition; out PascalTypeName : string): TPascalNativeType; override;
     function GetPasClassName(const aName: String): String; overload; override; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
     function IntfToPasClassName(const aName: TIDLString): TIDLString; virtual;
     function ComputeGUID(const Prefix: TIDLString; aList: TIDLDefinitionList): TIDLString; virtual;
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean=False): String; override;
     function GetPasIntfName(Intf: TIDLDefinition): TIDLString;
-    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: String): TIDLTypeDefinition; overload; override;
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; Out PascalNativeType : TPascalNativeType; out aTypeName, aResolvedTypename: String): TIDLTypeDefinition; overload; override;
 {$IF SIZEOF(CHAR)=1}      
-    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: TIDLString): TIDLDefinition; overload;
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; Out PascalNativeType : TPascalNativeType; out aTypeName, aResolvedTypename: TIDLString): TIDLDefinition; overload;
 {$ENDIF}      
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; override;
     function GetNamespaceDefHead(aNamespace: TIDLNamespaceDefinition): String; override;
@@ -114,17 +119,18 @@ type
     function WriteDictionaryField(aDict: TIDLDictionaryDefinition;  aField: TIDLDictionaryMemberDefinition): Boolean; override;
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; override;
     function WriteFunctionDefinition(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean; override;
-    function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; override;
+    function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition; aName : string = ''): Boolean; override;
     function WritePrivateGetter(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
     function WritePrivateSetter(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteProperty(aParent: TIDLDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); override;
     // Extra interface/Implementation code.
-    function GetPrivateGetterInfo(Attr: TIDLAttributeDefinition; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
-    function GetPrivateSetterInfo(Attr: TIDLAttributeDefinition; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
-    function GetReadPropertyCall(AttrResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
-    function GetWritePropertyCall(AttrResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
+    function GetPrivateGetterInfo(Attr: TIDLAttributeDefinition; out aNativeType: TPascalNativeType; out AttrTypeName,
+      AttrResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
+    function GetPrivateSetterInfo(Attr: TIDLAttributeDefinition; out aNativeType: TPascalNativeType; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
+    function GetReadPropertyCall(aNativeType : TPascalnativeType; AttrResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
+    function GetWritePropertyCall(aNativeType : TPascalnativeType; AttrResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
     function GetFunctionSignature(aDef: TIDLFunctionDefinition; aReturnDef: TIDLDefinition; aFuncname, aReturnTypeName,
       aSuffix: TIDLString; ArgDefList: TIDLDefinitionList; out ProcKind: TIDLString): String;
     function GetMethodInfo(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; out FuncName, ReturnTypeName, ResolvedReturnTypeName, InvokeName, InvokeClassName: TIDLString): TIDLDefinition;
@@ -137,7 +143,7 @@ type
     procedure WriteInterfaceImplemention(aDef: TIDLInterfaceDefinition); virtual;
     procedure WriteNamespaceImplemention(aDef: TIDLNamespaceDefinition); virtual;
     procedure WriteTypeDefsAndCallbackImplementations(aList: TIDLDefinitionList); override;
-    Procedure WriteFunctionTypeCallBack(aDef: TIDLFunctionDefinition);
+    Procedure WriteFunctionTypeCallBackImplementation(aDef: TIDLCallBackDefinition);
     // Implementation, per member
     procedure WriteMethodImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList); virtual;
     Procedure WriteFunctionImplementation(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition); virtual;
@@ -184,10 +190,32 @@ implementation
 
 { TWebIDLToPasWasmJob }
 
+
 function TWebIDLToPasWasmJob.BaseUnits: String;
 begin
   Result:='SysUtils, JOB_JS';
 end;
+
+function TWebIDLToPasWasmJob.GetAliasPascalType(D: TIDLDefinition; out PascalTypeName: string): TPascalNativeType;
+
+var
+  S : String;
+
+begin
+  Result:=inherited GetAliasPascalType(D,PascalTypeName);
+  if Result<>ntUnknown then
+    exit;
+  S:=LowerCase(PascalTypeName);
+  if pos('array',S)>0 then
+    Result:=ntArray
+  else if pos(FPasInterfaceSuffix,S)=1 then
+    Result:=ntObject
+  else if pos('string',S)>0 then
+    Result:=ntUnicodeString;
+end;
+
+
+
 
 function TWebIDLToPasWasmJob.GetPasClassName(const aName: String): String;
 begin
@@ -212,8 +240,9 @@ begin
   then
     Result:=copy(Result,length(PasInterfacePrefix)+1,length(Result)-length(PasInterfacePrefix)-length(PasInterfaceSuffix));
   if Result='' then
-    raise EConvertError.Create('[20220725184440]');
-  Result:=ClassPrefix+Result+ClassSuffix;
+    raise EConvertError.Create('[20220725184440] cannot convert interface name '+aName+' to class name');
+  if LeftStr(Result,Length(ClassPrefix))<>ClassPrefix then
+    Result:=ClassPrefix+Result+ClassSuffix;
 end;
 
 function TWebIDLToPasWasmJob.ComputeGUID(const Prefix: TIDLString;
@@ -235,7 +264,7 @@ begin
       begin
       Attr:=TIDLAttributeDefinition(D);
       if Attr.AttributeType<>nil then
-        aTypeName:=GetTypeName(Attr.AttributeType);
+        aTypeName:=GetJSTypeName(Attr.AttributeType);
         GUIDSrc:=GUIDSrc+':'+aTypeName;
       end;
     List.Add(GUIDSrc);
@@ -290,15 +319,15 @@ begin
   inherited GetOptions(L, Full);
 end;
 
-function TWebIDLToPasWasmJob.GetPascalTypeName(const aTypeName: String;
-  ForTypeDef: Boolean): String;
+function TWebIDLToPasWasmJob.GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean): String;
 begin
   Case aTypeName of
     'union',
     'any': Result:='Variant';
-    'void','undefined': Result:=aTypeName;
+    'void',
+    'undefined': Result:=aTypeName;
   else
-    //writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
+    //writeln('TWebIDLToPasWasmJob.GetJSTypeName ',aTypeName,' ',Def<>nil);
     Result:=inherited GetPascalTypeName(aTypeName,ForTypeDef);
     if (Result=aTypeName)
     and (LeftStr(Result,length(PasInterfacePrefix))<>PasInterfacePrefix)
@@ -314,30 +343,30 @@ end;
 
 function TWebIDLToPasWasmJob.GetPasIntfName(Intf: TIDLDefinition): TIDLString;
 begin
-  Result:=GetName(Intf);
+  Result:=GetPasName(Intf);
   if Result='' then
     raise EConvertError.Create('[20220725184653] missing name at '+GetDefPos(Intf));
   Result:=GetPasClassName(Result);
 end;
 
 {$IF SIZEOF(CHAR)=1}
-function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
-  aTypeName, aResolvedTypename: TIDLString): TIDLDefinition;
+function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out PascalNativeType: TPascalNativeType; out aTypeName,
+  aResolvedTypename: TIDLString): TIDLDefinition;
 
 Var
   TN,RTN : String;
   
 begin
-  Result:=GetResolvedType(aDef,TN,RTN);
+  Result:=GetResolvedType(aDef,PascalNativeType,TN,RTN);
   aTypeName:=TN;
   aResolvedTypeName:=RTN;
 end;
 {$ENDIF}
 
-function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
-  aTypeName, aResolvedTypename: String): TIDLTypeDefinition;
+function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out PascalNativeType: TPascalNativeType; out aTypeName,
+  aResolvedTypename: String): TIDLTypeDefinition;
 begin
-  Result:=inherited GetResolvedType(aDef, aTypeName, aResolvedTypename);
+  Result:=inherited GetResolvedType(aDef, PascalNativeType, aTypeName, aResolvedTypename);
   if Result is TIDLInterfaceDefinition then
     aTypeName:=GetPasClassName(aTypeName)
   else if Result is TIDLPromiseTypeDefDefinition then
@@ -351,7 +380,7 @@ var
 begin
   Result:='class(';
   if Assigned(Intf.ParentInterface) then
-    aParentName:=GetName(Intf.ParentInterface)
+    aParentName:=GetPasName(Intf.ParentInterface)
   else
     aParentName:=GetPascalTypeName(Intf.ParentName);
   if aParentName='' then
@@ -500,7 +529,7 @@ end;
 function TWebIDLToPasWasmJob.WriteEnumDef(aDef: TIDLEnumDefinition): Boolean;
 begin
   Result:=True;
-  AddLn(GetName(aDef)+' = UnicodeString;');
+  AddLn(GetPasName(aDef)+' = UnicodeString;');
 end;
 
 function TWebIDLToPasWasmJob.WriteDictionaryField(
@@ -509,10 +538,9 @@ function TWebIDLToPasWasmJob.WriteDictionaryField(
 var
   N, TN: TIDLString;
 begin
-  if aDict<>nil then ;
   Result:=True;
-  N:=GetName(aField);
-  TN:=GetTypeName(aField.MemberType);
+  N:=GetPasName(aField);
+  TN:=GetPasName(aField.MemberType);
   if SameText(N,TN) then
     N:='_'+N;
   AddLn(N+': '+TN+';');
@@ -524,7 +552,7 @@ begin
   if D.IsPartial then
     exit;
   if D is TIDLDictionaryDefinition then
-    AddLn(GetName(D)+' = '+JOB_JSValueTypeNames[jjvkDictionary]+';')
+    AddLn(GetPasName(D)+' = IJSObject; //'+JOB_JSValueTypeNames[jjvkDictionary]+';')
   else
     begin
     if ((D is TIDLInterfaceDefinition) or (D is TIDLNamespaceDefinition)) then
@@ -552,54 +580,64 @@ begin
     Result:='';
 end;
 
+function TWebIDLToPasWasmJob.GetInvokeNameFromNativeType(aNativeType : TPascalNativeType) : String;
+
+begin
+  case aNativeType of
+    ntBoolean : Result:='InvokeJSBooleanResult';
+    ntShortInt,
+    ntByte,
+    ntSmallInt,
+    ntWord,
+    ntCardinal,
+    ntLongint: Result:='InvokeJSLongIntResult';
+    ntInt64,
+    ntQWord : Result:='InvokeJSMaxIntResult';
+    ntSingle,
+    ntDouble : Result:='InvokeJSDoubleResult';
+    ntUTF8String : Result:='InvokeJSUTF8StringResult';
+    ntUnicodeString : Result:='InvokeJSUnicodeStringResult';
+    ntVariant: Result:='InvokeJSVariantResult';
+    ntNone: Result:='InvokeJSNoResult';
+  else
+    Result:='';
+  end;
+end;
+
 function TWebIDLToPasWasmJob.GetInvokeNameFromTypeName(const aTypeName : TIDLString; aType : TIDLDefinition):  TIDLString;
 
-
+var
+  aPascaltypeName : String;
+  NT : TPascalNativeType;
 
 begin
   Result:='';
-  case aTypeName of
-  'Boolean': Result:='InvokeJSBooleanResult';
-  'ShortInt',
-  'Byte',
-  'SmallInt',
-  'Word',
-  'Integer': Result:='InvokeJSLongIntResult';
-  'DOMHighResTimeStamp',
-  'LongWord',
-  'Int64',
-  'QWord': Result:='InvokeJSMaxIntResult';
-  'Single',
-  'Double': Result:='InvokeJSDoubleResult';
-  'UTF8String': Result:='InvokeJSUTF8StringResult';
-  'UnicodeString': Result:='InvokeJSUnicodeStringResult';
-  'Variant': Result:='InvokeJSVariantResult';
-  'TJOB_JSValue': Result:='InvokeJSValueResult';
-  'void',
-  'undefined':
+  NT:=GetPasNativeTypeAndName(aType,aPascaltypeName);
+  Result:=GetInvokeNameFromNativeType(NT);
+  if Result<>'' then
+    exit;
+  if (aPascalTypeName='TJOB_JSValue') then
+    Result:='InvokeJSValueResult'
+  else if (aTypeName='undefined') then
+    Result:='InvokeJSNoResult'
+  else if (aType is TIDLTypeDefDefinition) then
     begin
-    Result:='InvokeJSNoResult';
-    end;
-  else
-    if (aType is TIDLTypeDefDefinition) then
-      begin
-
-      if (TypeAliases.IndexOfName(aTypeName)<>-1) then
-        Result:=GetInvokeNameFromAliasName(aTypeName,aType);
-      if (Result='') and (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
-        Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType);
-      if (Result='') and (TypeAliases.IndexOfName(GetName(aType))<>-1) then
-        Result:=GetInvokeNameFromAliasName(GetName(aType),aType)
-      else
-        Result:='InvokeJSObjectResult';
-      if Result='' then
-        Raise EConvertError.CreateFmt('Unable to determine invoke name from alias type %s',[aTypeName]);
-      end
-    else if aType is TIDLEnumDefinition then
-      Result:='InvokeJSUnicodeStringResult'
+    if (TypeAliases.IndexOfName(aTypeName)<>-1) then
+      Result:=GetInvokeNameFromAliasName(aTypeName,aType);
+    if (Result='') and (TypeAliases.IndexOfName((aType as TIDLTypeDefDefinition).TypeName)<>-1) then
+      Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType);
+    if (Result='') and (TypeAliases.IndexOfName(GetPasName(aType))<>-1) then
+      Result:=GetInvokeNameFromAliasName(GetPasName(aType),aType)
     else
       Result:='InvokeJSObjectResult';
-  end;
+    if Result='' then
+      Raise EConvertError.CreateFmt('Unable to determine invoke name from alias type %s',[aTypeName]);
+    end
+  else if aType is TIDLEnumDefinition then
+    Result:='InvokeJSUnicodeStringResult'
+  else
+    Result:='InvokeJSObjectResult';
+
 end;
 
 function TWebIDLToPasWasmJob.GetInvokeClassNameFromTypeAlias(aName : TIDLString; aDef : TIDLDefinition): TIDLString;
@@ -620,8 +658,22 @@ end;
 
 function TWebIDLToPasWasmJob.GetInvokeClassName(aResultDef : TIDLDefinition; aName : TIDLString; aDef : TIDLFunctionDefinition = Nil): TIDLString;
 
+  Procedure UnsupportedReturnType;
+
+  var
+    Msg : string;
+
+  begin
+    Msg:=GetPasName(aDef);
+    Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
+    if assigned(aDef) then
+      Msg:=Msg+' at '+GetDefPos(aDef);
+    raise EConvertError.Create(Msg);
+  end;
+
 var
-  aTypeName, Msg : String;
+  aTypeName : String;
+  sDef : TIDLDefinition;
 
 begin
 //  ResolvedReturnTypeName
@@ -631,43 +683,38 @@ begin
   else if aResultDef is TIDLPromiseTypeDefDefinition then
     Result:=ClassPrefix+'Promise'+ClassSuffix
   else if aResultDef is TIDLInterfaceDefinition then
-    Result:=GetName(aResultDef)
+    Result:=GetPasName(aResultDef)
   else if aResultDef is TIDLDictionaryDefinition then
-    Result:=GetName(aResultDef)
+    Result:='TJSObject'
   else if aName=PasInterfacePrefix+'Object'+PasInterfaceSuffix then
     begin
     Result:=ClassPrefix+'Object'+ClassSuffix;
     end
   else if aResultDef is TIDLTypeDefDefinition then
     begin
-    aTypeName:=(aResultDef as TIDLTypeDefDefinition).TypeName;
-    if TypeAliases.IndexOfName(aTypeName)=-1 then
-      begin
-      Msg:=GetName(aDef);
-      Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
-      if assigned(aDef) then
-        Msg:=Msg+' at '+GetDefPos(aDef);
-      raise EConvertError.Create(Msg);
-      end
-    else
-     begin
-     Result:=GetInvokeClassNameFromTypeAlias(aTypeName,aResultDef);
-     end;
+      aTypeName:=GetJSTypeName(TIDLTypeDefDefinition(aResultDef));
+      sDef:=FindGlobalDef(aTypeName);
+      if assigned(sDef) then
+        Result:=GetPasName(sDef)
+      else
+        begin
+        if TypeAliases.IndexOfName(aTypeName)=-1 then
+          UnsupportedReturnType
+        else
+          Result:=GetInvokeClassNameFromTypeAlias(aTypeName,aResultDef);
+        end;
     end
   else
-    begin
-    Msg:=GetName(aDef);
-    Msg:='[20220725172242] not yet supported: function "'+Msg+'" return type: '+aName;
-    if assigned(aDef) then
-      Msg:=Msg+' at '+GetDefPos(aDef);
-    raise EConvertError.Create(Msg);
-    end;
+    UnsupportedReturnType
 end;
 
 function TWebIDLToPasWasmJob.GetMethodInfo(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; out FuncName,ReturnTypeName,ResolvedReturnTypeName,InvokeName,InvokeClassName : TIDLString): TIDLDefinition;
 
+var
+  RNT : TPascalNativeType;
+
 begin
-  Result:=GetResolvedType(aDef.ReturnType,ReturnTypeName,ResolvedReturnTypeName);
+  Result:=GetResolvedType(aDef.ReturnType,RNT,ReturnTypeName,ResolvedReturnTypeName);
   InvokeName:='';
   InvokeClassName:='';
   if (foConstructor in aDef.Options) then
@@ -675,13 +722,14 @@ begin
     FuncName:='New';
     InvokeName:= 'InvokeJSObjectResult';
     ResolvedReturnTypeName:=aParent.Name;
-    ReturnTypeName:=GetName(aParent);
+    ReturnTypeName:=GetPasName(aParent);
     InvokeClassName:=ReturnTypeName;
     exit(Nil);
     end
   else
     begin
-    FuncName:=GetName(aDef);
+
+    FuncName:=GetPasName(aDef);
     InvokeName:=GetInvokeNameFromTypeName(ResolvedReturnTypeName,Result);
     case InvokeName of
     'InvokeJSNoResult' :
@@ -697,7 +745,8 @@ begin
     end;
 end;
 
-function TWebIDLToPasWasmJob.GetFunctionSignature(aDef: TIDLFunctionDefinition; aReturnDef : TIDLDefinition; aFuncname,aReturnTypeName,aSuffix : TIDLString; ArgDefList : TIDLDefinitionList; Out ProcKind : TIDLString): String;
+function TWebIDLToPasWasmJob.GetFunctionSignature(aDef: TIDLFunctionDefinition; aReturnDef: TIDLDefinition; aFuncname,
+  aReturnTypeName, aSuffix: TIDLString; ArgDefList: TIDLDefinitionList; out ProcKind: TIDLString): String;
 
 var
   Args : String;
@@ -727,7 +776,7 @@ end;
 
 function TWebIDLToPasWasmJob.GetArgName(d : TIDLDefinition) : string;
 begin
-  Result:=GetName(d);
+  Result:=GetPasName(d);
   if IsKeyWord(Result) then
     Result:=Result+'_';
 end;
@@ -764,17 +813,18 @@ Var
   CurDef, ArgType, ReturnDef: TIDLDefinition;
   ArgDef: TIDLArgumentDefinition absolute CurDef;
   FinallyCode, TryCode,VarSection : Array of string;
+  ANT : TPascalNativeType;
 
 begin
   Data:=aDef.Data as TPasDataWasmJob;
   if Data.PasName='' then
     begin
-    writeln('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
+    DoLog('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
     exit;
     end;
   Suff:='';
   ReturnDef:=GetMethodInfo(aParent,aDef,FuncName,ReturnTypeName,ResolvedReturnTypeName,InvokeName,InvokeClassName);
-  aClassName:=GetName(aParent);
+  aClassName:=GetPasName(aParent);
 
   Overloads:=GetOverloads(ADef);
   try
@@ -794,6 +844,9 @@ begin
         InvokeCode:='';
         if ReturnTypeName<>'' then
           InvokeCode:='Result:=';
+        if foConstructor in aDef.Options then
+          InvokeCode:=InvokeCode+'Nil; // ';
+
         VarSection:=[];
         TryCode:=[];
         FinallyCode:=[];
@@ -803,14 +856,14 @@ begin
           if Args<>'' then
             Args:=Args+',';
           ArgName:=GetArgName(ArgDef);
-          ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypeName);
+          ArgType:=GetResolvedType(ArgDef.ArgumentType,ANT,ArgTypeName,ArgResolvedTypeName);
           if (ArgType is TIDLCallbackDefinition)  then
             begin
             if not (Assigned(TIDLCallbackDefinition(ArgType).FunctionDef)) then
-              Raise EWebIDLParser.Create('[20220725181726] callback definition in '+GetName(aDef)+'without function signature type '+GetDefPos(ArgType));
+              Raise EWebIDLParser.Create('[20220725181726] callback definition in '+GetPasName(aDef)+'without function signature type '+GetDefPos(ArgType));
             LocalName:=CreateLocal('m');
             VarSection:=Concat(VarSection,[ (LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';')]);
-            WrapperFn:='JOBCall'+GetName(TIDLCallbackDefinition(ArgType).FunctionDef);
+            WrapperFn:='JOBCall'+GetPasName(TIDLCallbackDefinition(ArgType).FunctionDef);
             TryCode:=Concat(TryCode,[LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');']);
             FinallyCode:=Concat(FinallyCode,[LocalName+'.free;']);
             ArgName:=LocalName;
@@ -890,12 +943,11 @@ begin
   Data:=aDef.Data as TPasDataWasmJob;
   if Data.PasName='' then
     begin
-    writeln('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
+    DoLog('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
     exit(false);
     end;
-  if (foConstructor in aDef.Options) then
-    if FGeneratingInterface then
-      exit;
+  if FGeneratingInterface and (([foConstructor, foStatic] * aDef.Options)<>[]) then
+    exit;
   Suff:='';
   ReturnDef:=GetMethodInfo(aParent,aDef,FuncName,ReturnTypeName,ResolvedReturnTypeName,InvokeName,InvokeClassName);
   Overloads:=GetOverloads(ADef);
@@ -905,6 +957,8 @@ begin
       begin
       ArgDefList:=TIDLDefinitionList(Overloads[i]);
       Sig:=GetFunctionSignature(aDef,ReturnDef,FuncName,ReturnTypeName,Suff,ArgDefList,ProcKind);
+      if not FGeneratingInterface then
+        Sig:=Sig+' overload;';
       AddLn(ProcKind+' '+Sig);
       end;
   finally
@@ -912,25 +966,24 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.WriteFunctionTypeDefinition(
-  aDef: TIDLFunctionDefinition): Boolean;
+function TWebIDLToPasWasmJob.WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition; aName: string): Boolean;
 var
   FuncName, ReturnTypeName, ResolvedReturnTypeName: TIDLString;
   Params: TIDLString;
   ReturnDef: TIDLDefinition;
+  ANT : TPascalNativeType;
 
 begin
   Result:=True;
-  FuncName:=GetName(aDef);
-
-  ReturnDef:=GetResolvedType(aDef.ReturnType,ReturnTypeName,ResolvedReturnTypeName);
-  case ResolvedReturnTypeName of
-  'void','undefined':
+  FuncName:=aName;
+  if FuncName='' then
+    FuncName:=GetPasName(aDef);
+  ReturnDef:=GetResolvedType(aDef.ReturnType,ANT,ReturnTypeName,ResolvedReturnTypeName);
+  if ANT in [ntNone,ntUnknown] then
     begin
     ReturnTypeName:='';
     ResolvedReturnTypeName:='';
     end;
-  end;
   if ReturnDef is TIDLSequenceTypeDefDefinition then
     ReturnTypeName:=PasInterfacePrefix+'Array'+PasInterfaceSuffix
   else if ReturnDef is TIDLPromiseTypeDefDefinition then
@@ -949,12 +1002,33 @@ procedure TWebIDLToPasWasmJob.WriteTypeDefsAndCallbackImplementations(aList: TID
 Var
   D: TIDLDefinition;
   CD: TIDLCallbackDefinition absolute D;
+  cnt,total : integer;
+  OK : Boolean;
+  Msg : string;
 
 begin
+  Msg:='';
+  Total:=0;
   for D in aList do
     if D is TIDLCallbackDefinition then
       if ConvertDef(D) then
-        WriteFunctionTypeCallback(CD.FunctionDef);
+        inc(Total);
+  try
+    OK:=False;
+    Cnt:=0;
+    for D in aList do
+      if D is TIDLCallbackDefinition then
+        if ConvertDef(D) then
+          begin
+          Inc(Cnt);
+          WriteFunctionTypeCallbackImplementation(CD);
+          end;
+    OK:=True;
+  finally
+    if not OK then
+      Msg:=SErrBeforeException;
+    DoLog('Wrote %d of %d callback implementations%s.',[Cnt,Total,Msg]);
+  end;
 end;
 
 function TWebIDLToPasWasmJob.GetKnownArgumentGetter(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
@@ -962,9 +1036,9 @@ function TWebIDLToPasWasmJob.GetKnownArgumentGetter(aDef : TIDLTypeDefinition; A
 begin
   Result:='';
   if Pos('IJS',ArgTypeName)=1 then
-    Result:='GetObject('+GetName(aDef)+' as '+ArgTypeName
+    Result:='GetObject('+GetPasName(aDef)+') as '+ArgTypeName
   else if Pos('Array',ArgTypeName)>0 then
-    Result:='GetObject('+GetName(aDef)+' as IJSArray';
+    Result:='GetObject('+GetPasName(aDef)+') as IJSArray';
 end;
 
 function TWebIDLToPasWasmJob.GetKnownResultAllocator(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
@@ -972,15 +1046,68 @@ function TWebIDLToPasWasmJob.GetKnownResultAllocator(aDef : TIDLTypeDefinition; 
 begin
   Result:='';
   if Pos('IJS',ArgTypeName)=1 then
-    Result:='Result:=AllocIntf('+GetName(aDef)+' as '+ArgTypeName
+    Result:='Result:=AllocIntf('+GetPasName(aDef)+' as '+ArgTypeName
   else if Pos('Array',ArgTypeName)>0 then
-    Result:='Result:=AllocIntf('+GetName(aDef)+' as IJSArray';
+    Result:='Result:=AllocIntf('+GetPasName(aDef)+' as IJSArray';
 end;
 
-Procedure TWebIDLToPasWasmJob.WriteFunctionTypeCallBack(aDef: TIDLFunctionDefinition);
+function TWebIDLToPasWasmJob.GetNativeTypeHelperGetterName(aNativeType : TPascalNativeType) : string;
+
+begin
+  Result:='';
+  case aNativeType of
+    ntBoolean: Result:='GetBoolean';
+    ntShortInt,
+    ntByte,
+    ntSmallInt,
+    ntWord,
+    ntLongInt: Result:='GetLongInt';
+    ntCardinal,
+    ntInt64,
+    ntQWord: Result:='GetMaxInt';
+    ntSingle,
+    ntDouble: Result:='GetDouble';
+    ntUTF8String,
+    ntUnicodeString: Result:='GetString';
+    ntObject,
+    ntArray : Result:='GetObject';
+    ntVariant: Result:='GetVariant';
+  else
+    Result:='';
+  end;
+end;
+
+function TWebIDLToPasWasmJob.GetNativeTypeHelperAllocatorName(aNativeType : TPascalNativeType) : string;
+
+begin
+  Result:='';
+  case aNativeType of
+    ntNone : Result:='AllocUndefined';
+    ntBoolean: Result:='AllocBool';
+    ntShortInt,
+    ntByte,
+    ntSmallInt,
+    ntWord,
+    ntLongInt: Result:='AllocLongInt';
+    ntCardinal,
+    ntInt64,
+    ntQWord,
+    ntSingle,
+    ntDouble: Result:='AllocDouble';
+    ntUTF8String,
+    ntUnicodeString: Result:='AllocString';
+    ntObject,
+    ntArray : Result:='AllocIntf';
+    ntVariant: Result:='AllocVariant';
+  else
+    Result:='';
+  end;
+end;
+
+procedure TWebIDLToPasWasmJob.WriteFunctionTypeCallBackImplementation(aDef: TIDLCallBackDefinition);
 
 var
-  FuncName, ReturnTypeName, ResolvedReturnTypeName: TIDLString;
+  CallbackTypeName,FuncName, ReturnTypeName, ResolvedReturnTypeName: TIDLString;
   ArgName, ArgTypeName, ArgResolvedTypename: TIDLString;
   Params, Call, GetFunc: TIDLString;
   FetchArgs, VarSection : Array of string;
@@ -990,13 +1117,17 @@ var
   ArgNames: TStringList;
   j, i: Integer;
   ReturnDef, ArgType: TIDLDefinition;
+  RNT,ANT : TPascalNativeType;
+  FD : TIDLFunctionDefinition;
 
 begin
-  FuncName:=GetName(aDef);
-
-  ReturnDef:=GetResolvedType(aDef.ReturnType,ReturnTypeName,ResolvedReturnTypeName);
-  case ResolvedReturnTypeName of
-  'void','undefined':
+  FD:=aDef.FunctionDef;
+  FuncName:=GetPasName(FD);
+  CallbackTypeName:=GetPasName(aDef);
+  ReturnDef:=GetResolvedType(FD.ReturnType,RNT,ReturnTypeName,ResolvedReturnTypeName);
+  case RNT of
+  ntNone,
+  ntUnknown:
     begin
     ReturnTypeName:='';
     ResolvedReturnTypeName:='';
@@ -1007,9 +1138,9 @@ begin
   else if ReturnDef is TIDLPromiseTypeDefDefinition then
     ReturnTypeName:=PasInterfacePrefix+'Promise'+PasInterfaceSuffix;
 
-  Args:=aDef.Arguments;
+  Args:=FD.Arguments;
 
-  Params:=GetArguments(aDef.Arguments,False);
+  Params:=GetArguments(Args,False);
   ArgNames:=TStringList.Create;
   try
     // create wrapper callback
@@ -1022,36 +1153,29 @@ begin
     for i:=0 to Args.Count-1 do
       begin
       ArgDef:=Args[i] as TIDLArgumentDefinition;
-      ArgName:=GetName(ArgDef);
+      ArgName:=GetPasName(ArgDef);
       if ArgNames.IndexOf(ArgName)>=0 then
         begin
         j:=2;
         while ArgNames.IndexOf(ArgName+IntToStr(j))>=0 do inc(j);
         ArgName:=ArgName+IntToStr(j);
         end;
-      ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypename);
-
-      case ArgResolvedTypename of
-      '': raise EWebIDLParser.Create('[20220725181726] not yet supported: function type arg['+IntToStr(I)+'] type void/undefined at '+GetDefPos(ArgDef));
-      'Boolean': GetFunc:='GetBoolean';
-      'ShortInt',
-      'Byte',
-      'SmallInt',
-      'Word',
-      'Integer': GetFunc:='GetLongInt';
-      'LongWord',
-      'Int64',
-      'QWord': GetFunc:='GetMaxInt';
-      'Single',
-      'Double': GetFunc:='GetDouble';
-      'UTF8String',
-      'UnicodeString': GetFunc:='GetString';
-      'Variant': GetFunc:='GetVariant';
-      'TJOB_JSValue': GetFunc:='GetValue';
-      'IJSObject': GetFunc:='GetObject';
-      else
-        if (ArgType is TIDLInterfaceDefinition) or (ArgType is TIDLDictionaryDefinition) then
-          GetFunc:='GetObject('+GetName(ArgType)+') as '+ArgTypeName
+      ArgType:=GetResolvedType(ArgDef.ArgumentType,aNT,ArgTypeName,ArgResolvedTypename);
+      GetFunc:=GetNativeTypeHelperGetterName(ANT);
+      if aNt=ntObject then
+        begin
+        if argType is TIDLDictionaryDefinition then
+          ArgResolvedTypename:='TJSObject'
+        else
+          ArgResolvedTypename:=IntfToPasClassName(ArgResolvedTypename);
+        GetFunc:='GetObject('+ArgResolvedTypename+') as '+ArgTypeName
+        end
+      else if aNt=ntArray then
+        GetFunc:='GetObject(TJSArray) as IJSArray'
+      else if GetFunc='' then
+        begin
+        if argResolvedTypeName='TJOB_JSValue' then
+          GetFunc:='GetValue'
         else if (ArgType is TIDLEnumDefinition)  then
           GetFunc:='GetString'
         else if (ArgType is TIDLSequenceTypeDefDefinition)  then
@@ -1076,8 +1200,7 @@ begin
             Msg:='No type';
           raise EWebIDLParser.Create('[20220725181732] not yet supported: function type arg['+IntToStr(I)+'] type '+Msg+' at '+GetDefPos(ArgDef));
           end;
-      end;
-
+        end;
       // declare: var ArgName: ArgTypeName;
       VarSection:=Concat(VarSection,[ArgName+': '+ArgTypeName+';']);
 
@@ -1088,7 +1211,6 @@ begin
       if Params<>'' then
         Params:=Params+',';
       Params:=Params+ArgName;
-
       end;
     if Length(VarSection)>0 then
       begin
@@ -1102,30 +1224,15 @@ begin
     Indent;
     if Length(FetchArgs)>0 then
       AddLn(FetchArgs);
-    Call:=FuncName+'(aMethod)('+Params+')';
-    case ResolvedReturnTypeName of
-    '':
+    Call:=CallBackTypeName+'(aMethod)('+Params+')';
+    GetFunc:=GetNativeTypeHelperAllocatorName(RNT);
+    if RNT=ntNone then
       begin
       AddLn(Call+';');
-      GetFunc:='Result:=H.AllocUndefined;';
-      end;
-    'Boolean': GetFunc:='Result:=H.AllocBool('+Call+');';
-    'ShortInt',
-    'Byte',
-    'SmallInt',
-    'Word',
-    'Integer': GetFunc:='Result:=H.AllocLongint('+Call+');';
-    'LongWord',
-    'Int64',
-    'QWord',
-    'Single',
-    'Double': GetFunc:='Result:=H.AllocDouble('+Call+');';
-    'UTF8String': GetFunc:='Result:=H.AllocString('+Call+');';
-    'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
-    'Variant': GetFunc:='Result:=H.AllocVariant('+Call+');';
-    'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
-    'IJSObject' : GetFunc:='Result:=H.AllocIntf('+Call+');';
-    'IJSPromise' : GetFunc:='Result:=H.AllocIntf('+Call+');';
+      GetFunc:='Result:=H.'+GetFunc+';';
+      end
+    else if GetFunc<>'' then
+      GetFunc:='Result:=H.'+GetFunc+'('+Call+');'
     else
       if ReturnDef is TIDLInterfaceDefinition then
         GetFunc:='Result:=H.AllocIntf('+Call+');'
@@ -1136,12 +1243,7 @@ begin
           raise EWebIDLParser.Create('[20220725181735] not yet supported: function type result type "'+ResolvedReturnTypeName+'" at '+GetDefPos(aDef));
         end
       else
-        begin
-        if ReturnDef<>nil then
-          writeln('TWebIDLToPasWasmJob.WriteFunctionTypeDefinition ReturnDef=',ReturnDef.ClassName);
         raise EWebIDLParser.Create('[20220725181735] not yet supported: function type result type "'+ResolvedReturnTypeName+'" at '+GetDefPos(aDef));
-        end;
-    end;
     AddLn(GetFunc);
     undent;
     AddLn('end;');
@@ -1149,7 +1251,8 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.GetReadPropertyCall(AttrResolvedTypeName,aNativeTypeName : TIDLString;  aMemberName: String; aType :TIDLDefinition) : string;
+function TWebIDLToPasWasmJob.GetReadPropertyCall(aNativeType: TPascalnativeType; AttrResolvedTypeName, aNativeTypeName: TIDLString;
+  aMemberName: String; aType: TIDLDefinition): string;
 
 var
   ObjClassName,
@@ -1157,32 +1260,36 @@ var
 
 begin
   Result:='';
-  case AttrResolvedTypeName of
-  'Boolean': ReadFuncName:='ReadJSPropertyBoolean';
-  'ShortInt',
-  'Byte',
-  'SmallInt',
-  'Word',
-  'Integer': ReadFuncName:='ReadJSPropertyLongInt';
-  'LongWord',
-  'Int64',
-  'QWord': ReadFuncName:='ReadJSPropertyInt64';
-  'Single',
-  'Double': ReadFuncName:='ReadJSPropertyDouble';
-  'UTF8String': ReadFuncName:='ReadJSPropertyUTF8String';
-  'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
-  'Variant': ReadFuncName:='ReadJSPropertyVariant';
-  'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
+  Case aNativeType of
+
+
+  ntBoolean: ReadFuncName:='ReadJSPropertyBoolean';
+  ntShortInt,
+  ntByte,
+  ntSmallInt,
+  ntWord,
+  ntLongInt: ReadFuncName:='ReadJSPropertyLongInt';
+  ntCardinal,
+  ntInt64,
+  ntQWord: ReadFuncName:='ReadJSPropertyInt64';
+  ntSingle,
+  ntDouble: ReadFuncName:='ReadJSPropertyDouble';
+  ntUTF8String: ReadFuncName:='ReadJSPropertyUTF8String';
+  ntUnicodeString: ReadFuncName:='ReadJSPropertyUnicodeString';
+  ntVariant: ReadFuncName:='ReadJSPropertyVariant';
+  ntMethod:  Result:='('+AttrResolvedTypeName+'(ReadJSPropertyMethod('''+aMemberName+''')))';
   else
-    if aType is TIDLSequenceTypeDefDefinition then
+    if AttrResolvedTypeName = 'TJOB_JSValue' then
+      ReadFuncName:='ReadJSPropertyValue'
+    else if aType is TIDLSequenceTypeDefDefinition then
       ObjClassName:=ClassPrefix+'Array'+ClassSuffix
     else if aType is TIDLPromiseTypeDefDefinition then
       ObjClassName:=ClassPrefix+'Promise'+ClassSuffix
     else
       begin
-      ObjClassName:=GetName(aType);
-      if ObjClassName='' then
-        ObjClassName:=IntfToPasClassName(aNativeTypeName);
+      ObjClassName:=GetPasName(aType);
+      if (ObjClassName='') or (Pos(PasInterfacePrefix,ObjClassName)=1) then
+        ObjClassName:=IntfToPasClassName(ObjClassName);
       end;
     Result:='ReadJSPropertyObject('''+aMemberName+''','+ObjClassName+') as '+aNativeTypeName;
   end;
@@ -1192,14 +1299,14 @@ begin
 end;
 
 
-function TWebIDLToPasWasmJob.GetPrivateGetterInfo(Attr: TIDLAttributeDefinition; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
+function TWebIDLToPasWasmJob.GetPrivateGetterInfo(Attr: TIDLAttributeDefinition;out  aNativeType : TPascalNativeType; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
 
 begin
   Result:=nil;
   if Attr.AttributeType=nil then
     exit;
-  FuncName:=GetterPrefix+GetName(Attr);
-  Result:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
+  FuncName:=GetterPrefix+GetPasName(Attr);
+  Result:=GetResolvedType(Attr.AttributeType,aNativeType, AttrTypeName,AttrResolvedTypeName);
   if Result is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(Result)
   else if Result is TIDLFunctionDefinition then
@@ -1214,9 +1321,10 @@ var
   FuncName, aClassName, Call,
   AttrTypeName, AttrResolvedTypeName: TIDLString;
   AttrType: TIDLDefinition;
+  aNT : TPascalNativeType;
 
 begin
-  aClassName:=GetName(aParent);
+  aClassName:=GetPasName(aParent);
   // case
   // stringifier ;
   // is equivalent to toString : DOMString
@@ -1226,8 +1334,8 @@ begin
   if Attr.AttributeType=nil then
     Exit;
 
-  AttrType:=GetPrivateGetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
-  Call:=GetReadPropertyCall(AttrResolvedTypeName, AttrTypeName, Attr.Name, AttrType);
+  AttrType:=GetPrivateGetterInfo(Attr,aNT,AttrTypeName,AttrResolvedTypeName,FuncName);
+  Call:=GetReadPropertyCall(aNT,AttrResolvedTypeName, AttrTypeName, Attr.Name, AttrType);
   Addln('function '+aClassName+'.'+FuncName+': '+AttrTypeName+';');
   Addln('begin');
   Addln('  Result:='+Call+';');
@@ -1240,6 +1348,7 @@ var
   FuncName,
   AttrTypeName, AttrResolvedTypeName: TIDLString;
   AttrType: TIDLDefinition;
+  aNT : TPascalNativeType;
 
 begin
   Result:=true;
@@ -1247,11 +1356,11 @@ begin
     Exit;
   if Attr.AttributeType=nil then
     exit;
-  AttrType:=GetPrivateGetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
-  AddLn('function '+FuncName+': '+AttrTypeName+';');
+  AttrType:=GetPrivateGetterInfo(Attr,ant,AttrTypeName,AttrResolvedTypeName,FuncName);
+  AddLn('function '+FuncName+': '+AttrTypeName+'; overload;');
 end;
 
-function TWebIDLToPasWasmJob.GetPrivateSetterInfo(Attr: TIDLAttributeDefinition; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
+function TWebIDLToPasWasmJob.GetPrivateSetterInfo(Attr: TIDLAttributeDefinition; out aNativeType: TPascalNativeType; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
 
 begin
   Result:=nil;
@@ -1259,8 +1368,8 @@ begin
     Exit;
   if Attr.AttributeType=nil then
     exit;
-  FuncName:=SetterPrefix+GetName(Attr);
-  Result:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
+  FuncName:=SetterPrefix+GetPasName(Attr);
+  Result:=GetResolvedType(Attr.AttributeType,aNativeType,AttrTypeName,AttrResolvedTypeName);
   if Result is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(Result)
   else if Result is TIDLFunctionDefinition then
@@ -1269,33 +1378,37 @@ begin
     AttrResolvedTypeName:='UnicodeString';
 end;
 
-function TWebIDLToPasWasmJob.GetWritePropertyCall(AttrResolvedTypeName,aNativeTypeName : TIDLString;  aMemberName: String; aType :TIDLDefinition) : string;
+function TWebIDLToPasWasmJob.GetWritePropertyCall(aNativeType : TPascalnativeType; AttrResolvedTypeName,aNativeTypeName : TIDLString;  aMemberName: String; aType :TIDLDefinition) : string;
 
 var
   WriteFuncName : String;
 
 begin
   Result:='';
-  case AttrResolvedTypeName of
-  'Boolean': WriteFuncName:='WriteJSPropertyBoolean';
-  'ShortInt',
-  'Byte',
-  'SmallInt',
-  'Word',
-  'Integer': WriteFuncName:='WriteJSPropertyLongInt';
-  'LongWord',
-  'Int64',
-  'QWord': WriteFuncName:='WriteJSPropertyDouble';
-  'Single',
-  'Double': WriteFuncName:='WriteJSPropertyDouble';
-  'UTF8String': WriteFuncName:='WriteJSPropertyUTF8String';
-  'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
-  'Variant': WriteFuncName:='WriteJSPropertyVariant';
-  'TJOB_JSValue': WriteFuncName:='WriteJSPropertyValue';
+  case aNativeType of
+  ntBoolean: WriteFuncName:='WriteJSPropertyBoolean';
+  ntShortInt,
+  ntByte,
+  ntSmallInt,
+  ntWord,
+  ntLongInt: WriteFuncName:='WriteJSPropertyLongInt';
+  ntCardinal,
+  ntInt64,
+  ntQWord: WriteFuncName:='WriteJSPropertyDouble';
+  ntSingle,
+  ntDouble: WriteFuncName:='WriteJSPropertyDouble';
+  ntUTF8String: WriteFuncName:='WriteJSPropertyUTF8String';
+  ntUnicodeString: WriteFuncName:='WriteJSPropertyUnicodeString';
+  ntVariant: WriteFuncName:='WriteJSPropertyVariant';
+  ntMethod:  Result:='WriteJSPropertyMethod('''+aMemberName+''',TMethod(aValue))';
   else
-    WriteFuncName:='WriteJSPropertyObject';
+    if AttrResolvedTypeName='TJOB_JSValue' then
+      WriteFuncName:='WriteJSPropertyValue'
+    else
+      WriteFuncName:='WriteJSPropertyObject';
   end;
-  Result:=Format('%s(''%s'',aValue)',[WriteFuncName,aMemberName]);
+  if Result='' then
+    Result:=Format('%s(''%s'',aValue)',[WriteFuncName,aMemberName]);
 end;
 
 procedure TWebIDLToPasWasmJob.WritePrivateSetterImplementation(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition);
@@ -1304,15 +1417,16 @@ var
   FuncName, aClassName, Call,
   AttrTypeName, AttrResolvedTypeName : TIDLString;
   AttrType: TIDLDefinition;
+  aNT: TPascalNativeType;
 
 begin
   if aoReadOnly in Attr.Options then
     exit;
   if Attr.AttributeType=nil then
     exit;
-  aClassName:=GetName(aParent);
-  AttrType:=GetPrivateSetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
-  Call:=GetWritePropertyCall(AttrResolvedTypeName, AttrTypeName, Attr.Name, AttrType);
+  aClassName:=GetPasName(aParent);
+  AttrType:=GetPrivateSetterInfo(Attr,aNT,AttrTypeName,AttrResolvedTypeName,FuncName);
+  Call:=GetWritePropertyCall(aNt,AttrResolvedTypeName, AttrTypeName, Attr.Name, AttrType);
 
   Addln('procedure %s.%s(const aValue : %s);',[aClassName,FuncName,AttrTypeName]);
   Addln('begin');
@@ -1336,8 +1450,8 @@ var
   call, aClassName : string;
 
 begin
-  aClassName:=GetName(aParent);
-  Call:=GetReadPropertyCall('Integer', 'LongInt', 'size', Nil);
+  aClassName:=GetPasName(aParent);
+  Call:=GetReadPropertyCall(ntLongint,'Integer', 'LongInt', 'size', Nil);
   Addln('function '+aClassName+'._Getsize: LongInt;');
   Addln('begin');
   Addln('  Result:='+Call+';');
@@ -1349,14 +1463,15 @@ function TWebIDLToPasWasmJob.WritePrivateSetter(aParent: TIDLStructuredDefinitio
 
 var
   FuncName, AttrTypeName, AttrResolvedTypeName: TIDLString;
+  aNT : TPascalNativeType;
 
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
   if Attr.AttributeType=nil then
     exit;
-  GetPrivateSetterInfo(Attr,AttrTypeName,AttrResolvedTypeName,FuncName);
-  AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');');
+  GetPrivateSetterInfo(Attr,aNT,AttrTypeName,AttrResolvedTypeName,FuncName);
+  AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');overload;');
 end;
 
 function TWebIDLToPasWasmJob.WriteProperty(aParent: TIDLDefinition;
@@ -1364,6 +1479,8 @@ function TWebIDLToPasWasmJob.WriteProperty(aParent: TIDLDefinition;
 var
   PropName, Code, AttrTypeName, AttrResolvedTypeName: TIDLString;
   AttrType: TIDLDefinition;
+  ANT : TPascalNativeType;
+
 begin
   if aParent=nil then ;
   if (Attr.AttributeType=nil) then
@@ -1372,8 +1489,8 @@ begin
       DoLog('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
     exit;
     end;
-  PropName:=GetName(Attr);
-  AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
+  PropName:=GetPasName(Attr);
+  AttrType:=GetResolvedType(Attr.AttributeType,ANT,AttrTypeName,AttrResolvedTypeName);
   if AttrType is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(AttrType);
   Code:='property '+PropName+': '+AttrTypeName+' read '+GetterPrefix+PropName;
@@ -1390,17 +1507,18 @@ function TWebIDLToPasWasmJob.WriteRecordDef(aDef: TIDLRecordDefinition
   ): Boolean;
 begin
   Result:=true;
-  AddLn(GetName(aDef)+' = '+ClassPrefix+'Object'+ClassSuffix+';');
+  AddLn(GetPasName(aDef)+' = '+ClassPrefix+'Object'+ClassSuffix+';');
 end;
 
 procedure TWebIDLToPasWasmJob.WriteSequenceDef(
   aDef: TIDLSequenceTypeDefDefinition);
 
 var
-  aLine : String;
+  N,aLine : String;
 
 begin
-  aLine:=GetName(aDef)+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetTypeName(aDef.ElementType);
+  N:=GetPasName(aDef);
+  aLine:=N+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetJSTypeName(aDef.ElementType);
   Addln(aLine);
 end;
 
@@ -1409,16 +1527,20 @@ procedure TWebIDLToPasWasmJob.WriteNamespaceVars;
 var
   i: Integer;
   VarName, VarType: String;
+  NS : TIDLNamespaceDefinition;
 
 begin
   for I:=0 to Context.Definitions.Count-1 do
     if Context.Definitions[i] is TIDLNamespaceDefinition then
-      if ConvertDef(Context.Definitions[i]) then
+      begin
+      NS:=Context.Definitions[i] as TIDLNamespaceDefinition;
+      if (not NS.IsPartial) and ConvertDef(NS) then
         begin
         VarName:=Context.Definitions[i].Name;
         VarType:=GetPasIntfName(Context.Definitions[i]);
         AddLn(VarName+': '+VarType+';');
         end;
+      end;
 end;
 
 procedure TWebIDLToPasWasmJob.WriteGlobalVar(aDef : String);
@@ -1431,7 +1553,7 @@ begin
   iDef:=FindGlobalDef(JSClassName);
   if iDef=nil then
     raise EConvertError.Create('missing global var "'+PasVarName+'" type "'+JSClassName+'"');
-  AddLn(PasVarName+': '+GetName(iDef)+';');
+  AddLn(PasVarName+': '+GetPasName(iDef)+';');
 end;
 
 procedure TWebIDLToPasWasmJob.WriteEnumImplementation(aDef : TIDLEnumDefinition);
@@ -1500,16 +1622,23 @@ procedure TWebIDLToPasWasmJob.WriteMapLikeGetFunctionImplementation(aDef : TIDLS
 
 var
   D,aResolvedKeyTypeName,aResolvedValueTypeName: String;
-  aClassName : string;
+  func,InvokeClass,aClassName : string;
+  KNT,VNT : TPascalNativeTYpe;
 
 begin
-  aClassName:=GetName(aDef);
-  GetResolvedType(ML.KeyType,D,aResolvedKeyTypeName);
-  GetResolvedType(ML.ValueType,D,aResolvedValueTypeName);
+  aClassName:=GetPasName(aDef);
+  GetResolvedType(ML.KeyType,KNT,D,aResolvedKeyTypeName);
+  GetResolvedType(ML.ValueType,VNT,D,aResolvedValueTypeName);
+  Func:=GetInvokeNameFromTypeName(aResolvedValueTypeName,ML.ValueType);
+  if VNT=ntObject then
+    InvokeClass:=GetInvokeClassName(ML.ValueType,aResolvedValueTypeName,Nil);
   AddLn('function %s.get(key: %s) : %s;',[aClassName,aResolvedKeyTypeName,aResolvedValueTypeName]);
   AddLn('begin');
   Indent;
-  AddLn('Result:=InvokeJSBooleanResult(''get'',[key]);');
+  if VNT=ntObject then
+    AddLn('Result:='+Func+'(''get'',[key],'+InvokeClass+') as '+aResolvedValueTypeName+';')
+  else
+    AddLn('Result:='+Func+'(''get'',[key]);');
   Undent;
   AddLn('end;');
 end;
@@ -1519,10 +1648,11 @@ procedure TWebIDLToPasWasmJob.WriteMapLikeHasFunctionImplementation(aDef : TIDLS
 var
   D,aResolvedKeyTypeName: String;
   aClassName : string;
+  KNT : TPascalNativeTYpe;
 
 begin
-  aClassName:=GetName(aDef);
-  GetResolvedType(ML.KeyType,D,aResolvedKeyTypeName);
+  aClassName:=GetPasName(aDef);
+  GetResolvedType(ML.KeyType,KNT,D,aResolvedKeyTypeName);
   AddLn('function %s.has(key: %s) : Boolean;',[aClassName,aResolvedKeyTypeName]);
   AddLn('begin');
   Indent;
@@ -1537,7 +1667,7 @@ var
   aClassName : string;
 
 begin
-  aClassName:=GetName(aDef);
+  aClassName:=GetPasName(aDef);
   AddLn('function %s.entries : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
@@ -1553,7 +1683,7 @@ var
   aClassName : string;
 
 begin
-  aClassName:=GetName(aDef);
+  aClassName:=GetPasName(aDef);
   AddLn('function %s.keys : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
@@ -1568,7 +1698,7 @@ var
   aClassName : string;
 
 begin
-  aClassName:=GetName(aDef);
+  aClassName:=GetPasName(aDef);
   AddLn('function %s.values : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
@@ -1607,7 +1737,7 @@ var
   aClassName, aPasIntfName: TIDLString;
 
 begin
-  aClassName:=GetName(aDef);
+  aClassName:=GetPasName(aDef);
   aPasIntfName:=GetPasIntfName(aDef);
   AddLn('class function %s.Cast(const Intf: IJSObject): %s;',[aClassName,aPasIntfName]);
   AddLn('begin');
@@ -1672,6 +1802,7 @@ procedure TWebIDLToPasWasmJob.WriteImplementation;
 var
   i: Integer;
   aDef: TIDLDefinition;
+  nsDef : TIDLNamespaceDefinition absolute aDef;
   PasVarName, JSClassName, JOBRegisterName: TIDLString;
 begin
   inherited WriteImplementation;
@@ -1683,16 +1814,16 @@ begin
       begin
       SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
       aDef:=FindGlobalDef(JSClassName);
-      AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
+      AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
       end;
     for I:=0 to Context.Definitions.Count-1 do
       begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
-        if not TIDLNamespaceDefinition(aDef).IsPartial then
+        if not NSDef.IsPartial and ConvertDef(aDef) then
           begin
           PasVarName:=Context.Definitions[i].Name;
-          AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
+          AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
           end;
       end;
     Undent;
@@ -1708,7 +1839,7 @@ begin
       begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
-        if not TIDLNamespaceDefinition(aDef).IsPartial then
+        if not NSDef.IsPartial and ConvertDef(aDef) then
           begin
           PasVarName:=Context.Definitions[i].Name;
           AddLn(PasVarName+':=Nil;');
