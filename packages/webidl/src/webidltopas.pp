@@ -71,7 +71,8 @@ Type
     Resolved: TIDLTypeDefinition;
     NativeType : TPascalNativeType;
     NameChecked : Boolean;
-    FullmemberList : TIDLDefinitionList;
+    FullMemberList : TIDLDefinitionList;
+    ParentsMemberList : TIDLDefinitionList;
     Constructor Create(APasName: String; D: TIDLBaseObject);
     Destructor Destroy; override;
     Property PasName: String read FPasName write FPasName;
@@ -147,17 +148,15 @@ type
     FTypeAliases: TStrings; // user defined type maping name to name
     FVerbose: Boolean;
     FWebIDLVersion: TWebIDLVersion;
-    procedure AddFullMemberList(aParent: TIDLStructuredDefinition; AddToList: TIDLDefinitionList);
-    function CheckExistingSequence(ST: TIDLSequenceTypeDefDefinition; out TN: TIDLString): Boolean;
-    function CheckExistingUnion(UT: TIDLUnionTypeDefDefinition; out TN: TIDLString): Boolean;
-    function GetAliasPascalType(aNativeTypeName: String; out PascalTypeName: string): TPascalNativeType;
-    function GetFullMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
     procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
     procedure SetOutputFileName(const AValue: String);
     procedure SetTypeAliases(AValue: TStrings);
   Protected
+    function CheckExistingSequence(ST: TIDLSequenceTypeDefDefinition; out TN: TIDLString): Boolean;
+    function CheckExistingUnion(UT: TIDLUnionTypeDefDefinition; out TN: TIDLString): Boolean;
+    function GetAliasPascalType(aNativeTypeName: String; out PascalTypeName: string): TPascalNativeType;
     procedure TrimList(List: TStrings); virtual;
     procedure AddOptionsToHeader;
     Procedure Parse; virtual;
@@ -166,6 +165,9 @@ type
     function CreateScanner(S: TStream): TWebIDLScanner; virtual;
     Function CreateContext: TWebIDLContext; virtual;
     // Auxiliary routines
+    procedure AddFullMemberList(aParent: TIDLStructuredDefinition; AddToList: TIDLDefinitionList);
+    function GetFullMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
+    function GetParentsMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
     procedure GetOptions(L: TStrings; Full: boolean); virtual;
     procedure ProcessDefinitions; virtual;
     function CreatePasData(aName: String; aNativetype : TPascalNativeType; D: TIDLBaseObject; Escape: boolean): TPasData; virtual;
@@ -183,25 +185,25 @@ type
     // Pascal Name allocation/retrieval
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function AddUnionDef(UT: TIDLUnionTypeDefDefinition): Boolean; virtual;
-    procedure EnsureUniqueNames(ML: TIDLDefinitionList; const aParentName: String); virtual;
+    procedure EnsureUniqueNames(aParent : TIDLStructuredDefinition; ML: TIDLDefinitionList; const aParentName: String); virtual;
     procedure EnsureUniqueArgNames(Intf: TIDLStructuredDefinition); virtual;
     procedure AllocatePasNames(aList: TIDLDefinitionList; ParentName: String=''); virtual;
     function AllocatePasName(D: TIDLDefinition; ParentName: String; Recurse : Boolean): TPasData; virtual;
     function GetAliasPascalType(D: TIDLDefinition; out PascalTypeName : string): TPascalNativeType; virtual;
-    function AllocateArgumentPasName(D: TIDLArgumentDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateAttributePasName(D: TIDLAttributeDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateCallbackPasName(D: TIDLCallBackDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateDefaultPasName(D: TIDLDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateDictionaryMemberPasName(D: TIDLDictionaryMemberDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateDictionaryPasName(D: TIDLDictionaryDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateFunctionPasName(D: TIDLFunctionDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateInterfacePasName(D: TIDLInterfaceDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateNamespacePasName(D: TIDLNameSpaceDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateSequencePasName(D: TIDLSequenceTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateUnionPasName(D: TIDLUnionTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateMapLikePasName(D: TIDLMapLikeDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateEnumeratedPasName(D: TIDLEnumDefinition; ParentName: String; Recurse: Boolean): TPasData;
-    function AllocateConstPasName(D: TIDLConstDefinition; ParentName: String; Recurse: Boolean): TPasData;
+    function AllocateArgumentPasName(D: TIDLArgumentDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateAttributePasName(aParent : TIDLStructuredDefinition; D: TIDLAttributeDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateCallbackPasName(D: TIDLCallBackDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateDefaultPasName(D: TIDLDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateDictionaryMemberPasName(D: TIDLDictionaryMemberDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateDictionaryPasName(D: TIDLDictionaryDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateFunctionPasName(D: TIDLFunctionDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateInterfacePasName(D: TIDLInterfaceDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateNamespacePasName(D: TIDLNameSpaceDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateSequencePasName(D: TIDLSequenceTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateUnionPasName(D: TIDLUnionTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateMapLikePasName(D: TIDLMapLikeDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateEnumeratedPasName(D: TIDLEnumDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocateConstPasName(D: TIDLConstDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
 
     function GetPasName(ADef: TIDLDefinition): String; virtual;
     function GetPasNativeType(ADef: TIDLDefinition): TPascalNativeType; virtual;
@@ -352,6 +354,8 @@ end;
 destructor TPasData.Destroy;
 begin
   FreeAndNil(FullmemberList);
+  FreeAndNil(ParentsMemberList);
+
   inherited Destroy;
 end;
 
@@ -549,7 +553,7 @@ function TBaseWebIDLToPas.WriteDictionaryMemberImplicitTypes(
   aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer;
 
 Var
-  MT,D: TIDLDefinition;
+  D: TIDLDefinition;
   FD: TIDLDictionaryMemberDefinition absolute D;
 
 
@@ -750,6 +754,32 @@ begin
         Result:=Result+WriteMapLikeMethodDefinitions(aParent,MD);
 end;
 
+function TBaseWebIDLToPas.GetParentsMemberList(aParent: TIDLStructuredDefinition) : TIDLDefinitionList;
+
+var
+  D : TPasData;
+
+begin
+  D:=TPasData(aParent.Data);
+  if Not Assigned(D) then
+    Raise EWebIDLError.CreateFmt('%s does not have data assigned to it',[aParent]);
+  if Not Assigned(D.ParentsMemberList) then
+    begin
+    D.ParentsMemberList:=TIDLDefinitionList.Create(aParent,False);
+    While aParent<>Nil do
+      begin
+      AddFullMemberList(aParent,D.ParentsmemberList);
+      if aParent is TIDLInterfaceDefinition then
+        aParent:=TIDLInterfaceDefinition(aParent).ParentInterface
+      else if aParent is TIDLDictionaryDefinition then
+        aParent:=TIDLDictionaryDefinition(aParent).ParentDictionary
+      else
+        aParent:=Nil;
+      end;
+    end;
+  Result:=D.ParentsmemberList;
+end;
+
 procedure TBaseWebIDLToPas.AddFullMemberList(aParent: TIDLStructuredDefinition; AddToList : TIDLDefinitionList);
 
 Var
@@ -828,12 +858,11 @@ end;
 function TBaseWebIDLToPas.CheckExistingSequence(ST: TIDLSequenceTypeDefDefinition; out TN: TIDLString): Boolean;
 
 var
-  ArgType : TIDLTypeDefinition;
   ArgTypeName,ArgResolvedTypeName : String;
   NT : TPascalNativeType;
 
 begin
-  ArgType:=GetResolvedType(ST,NT,ArgTypeName,ArgResolvedTypeName);
+  GetResolvedType(ST,NT,ArgTypeName,ArgResolvedTypeName);
   TN:=ArgTypeName;
   Result:=FAutoTypes.IndexOf(TN)<>-1;
 end;
@@ -841,12 +870,11 @@ end;
 function TBaseWebIDLToPas.CheckExistingUnion(UT: TIDLUnionTypeDefDefinition; out TN: TIDLString): Boolean;
 
 var
-  ArgType : TIDLTypeDefinition;
   ArgTypeName,ArgResolvedTypeName : String;
   NT : TPascalNativeType;
 
 begin
-  ArgType:=GetResolvedType(UT,NT,ArgTypeName,ArgResolvedTypeName);
+  GetResolvedType(UT,NT,ArgTypeName,ArgResolvedTypeName);
   TN:=ArgTypeName;
   Result:=FAutoTypes.IndexOf(TN)<>-1;
 end;
@@ -879,7 +907,7 @@ begin
     end;
 end;
 
-procedure TBaseWebIDLToPas.EnsureUniqueNames(ML: TIDLDefinitionList;const aParentName : String);
+procedure TBaseWebIDLToPas.EnsureUniqueNames(aParent : TIDLStructuredDefinition;ML: TIDLDefinitionList;const aParentName : String);
 
 Var
   L: TFPObjectHashTable;
@@ -998,24 +1026,13 @@ var
 
 var
   Members, MembersWithParents: TIDLDefinitionList;
-  CurIntf: TIDLStructuredDefinition;
   D: TIDLDefinition;
   CurName: String;
 begin
-  Members:=Nil;
+  Members:=GetFullMemberList(Intf);
+  MembersWithParents:=GetParentsMemberList(Intf);
   Names:=TFPObjectHashTable.Create(False);
-  MembersWithParents:=TIDLDefinitionList.Create(Nil,False);
   try
-    Members:=GetFullMemberList(Intf);
-    CurIntf:=Intf;
-    while CurIntf<>nil do
-      begin
-      AddFullMemberList(CurIntf,MembersWithParents);
-      if CurIntf is TIDLInterfaceDefinition then
-        CurIntf:=TIDLInterfaceDefinition(CurIntf).ParentInterface
-      else
-        CurIntf:=nil;
-      end;
     For D in MembersWithParents Do
       if ConvertDef(D) then
         begin
@@ -1028,7 +1045,6 @@ begin
         if ConvertDef(D) then
           CheckRenameArgs(TIDLFunctionDefinition(D));
   finally
-    MembersWithParents.Free;
     Names.Free;
   end;
 end;
@@ -1043,7 +1059,7 @@ Var
 begin
   Result:=True;
   ML:=GetFullMemberList(Intf);
-  EnsureUniqueNames(ML,Intf.Name);
+  EnsureUniqueNames(Intf,ML,Intf.Name);
   EnsureUniqueArgNames(Intf);
   aClassName:=GetPasName(Intf);
   // class comment
@@ -1092,7 +1108,7 @@ Var
 begin
   Result:=True;
   ML:=GetFullMemberList(aNamespace);
-  EnsureUniqueNames(ML,aNameSpace.name);
+  EnsureUniqueNames(aNameSpace,ML,aNameSpace.name);
   EnsureUniqueArgNames(aNamespace);
   aClassName:=GetPasName(aNamespace);
   // class comment
@@ -1130,35 +1146,22 @@ begin
   AddLn('end;');
 end;
 
-function TBaseWebIDLToPas.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
-  ): Boolean;
+function TBaseWebIDLToPas.WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean;
 
 Var
   CurClassName, Decl: String;
   DefList: TIDLDefinitionList;
-  CurDefs: TIDLDictionaryDefinition;
-
 begin
   Result:=True;
-  DefList:=TIDLDefinitionList.Create(Nil,False);
-  try
-    CurDefs:=aDict;
-    While CurDefs<>Nil do
-      begin
-      AddFullMemberList(CurDefs,DefList);
-      CurDefs:=CurDefs.ParentDictionary;
-      end;
-    CurClassName:=GetPasName(aDict);
-    ClassComment(CurClassName);
-    WriteDictionaryMemberImplicitTypes(aDict, DefList);
-    // class and ancestor
-    Decl:=GetDictionaryDefHead(CurClassName,aDict);
-    AddLn(Decl);
-    WriteDictionaryFields(aDict,DefList);
-    AddLn('end;');
-  finally
-    DefList.Free;
-  end;
+  DefList:=GetParentsMemberList(aDict);
+  CurClassName:=GetPasName(aDict);
+  ClassComment(CurClassName);
+  WriteDictionaryMemberImplicitTypes(aDict, DefList);
+  // class and ancestor
+  Decl:=GetDictionaryDefHead(CurClassName,aDict);
+  AddLn(Decl);
+  WriteDictionaryFields(aDict,DefList);
+  AddLn('end;');
 end;
 
 constructor TBaseWebIDLToPas.Create(TheOwner: TComponent);
@@ -1647,8 +1650,6 @@ Var
   D: TIDLDefinition;
   TD: TIDLTypeDefDefinition absolute D;
   CD: TIDLCallbackDefinition absolute D;
-  N : String;
-
 begin
   Result:=0;
   EnsureSection(csType);
@@ -2294,8 +2295,6 @@ function TBaseWebIDLToPas.AllocateSequencePasName(D: TIDLSequenceTypeDefDefiniti
 var
   CN : String;
   sDef : TIDLDefinition;
-  TN,RTN : String;
-
 begin
   Result:=Nil;
   CN:=D.Name;
@@ -2425,7 +2424,8 @@ begin
     AllocatePasName(D.FunctionDef,'',True)
 end;
 
-function TBaseWebIDLToPas.AllocateAttributePasName(D: TIDLAttributeDefinition; ParentName: String; Recurse : Boolean): TPasData;
+function TBaseWebIDLToPas.AllocateAttributePasName(aParent: TIDLStructuredDefinition; D: TIDLAttributeDefinition;
+  ParentName: String; Recurse: Boolean): TPasData;
 
 Var
   CN: String;
@@ -2623,7 +2623,7 @@ begin
   else if D Is TIDLCallBackDefinition then
     Result:=AllocateCallBackPasName(TIDLCallBackDefinition(D),ParentName,Recurse)
   else if D is TIDLAttributeDefinition then
-    Result:=AllocateAttributePasName(TIDLAttributeDefinition(D),ParentName,Recurse)
+    Result:=AllocateAttributePasName(D.Parent as TIDLStructuredDefinition,TIDLAttributeDefinition(D),ParentName,Recurse)
   else if D is TIDLFunctionDefinition then
     Result:=AllocateFunctionPasName(TIDLFunctionDefinition(D),ParentName,Recurse)
   else if D is TIDLEnumDefinition then
@@ -3014,6 +3014,7 @@ begin
 end;
 
 procedure TBaseWebIDLToPas.AllocatePasNames(aList: TIDLDefinitionList; ParentName: String = '');
+
 
 var
   D: TIDLDefinition;

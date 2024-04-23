@@ -66,6 +66,8 @@ const
 type
 
   TPasDataWasmJob = class(TPasData)
+    PropertyGetterName : String;
+    PropertySetterName : String;
   end;
 
   { TWebIDLToPasWasmJob }
@@ -75,6 +77,9 @@ type
     FPasInterfacePrefix: TIDLString;
     FPasInterfaceSuffix: TIDLString;
     FGeneratingInterface : Boolean;
+    procedure AllocateAttributeGetterSetter(aParent: TIDLStructuredDefinition; aAttr: TIDLAttributeDefinition);
+    procedure AllocateAttributeGetterSetters;
+    function GetAccessorNames(Attr: TIDLAttributeDefinition; out aGetter, aSetter: TIDLString): Boolean;
     function GetArgName(d: TIDLDefinition): string;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
@@ -134,6 +139,8 @@ type
     function GetFunctionSignature(aDef: TIDLFunctionDefinition; aReturnDef: TIDLDefinition; aFuncname, aReturnTypeName,
       aSuffix: TIDLString; ArgDefList: TIDLDefinitionList; out ProcKind: TIDLString): String;
     function GetMethodInfo(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; out FuncName, ReturnTypeName, ResolvedReturnTypeName, InvokeName, InvokeClassName: TIDLString): TIDLDefinition;
+    function AllocateAttributePasName(aParent : TIDLStructuredDefinition; D: TIDLAttributeDefinition; ParentName: String; Recurse: Boolean): TPasData; override;
+    Procedure ProcessDefinitions; override;
     // Implementation writing
     procedure WriteImplementation; override;
     // Implementation, per type
@@ -158,7 +165,10 @@ type
     procedure WriteMapLikeFunctionImplementations(aDef: TIDLStructuredDefinition; MD: TIDLMapLikeDefinition);
     procedure WriteMapLikeEntriesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
     procedure WriteMapLikeGetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+    procedure WriteMapLikeSetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+    procedure WriteMapLikeClearFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
     procedure WriteMapLikeHasFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+    procedure WriteMapLikeDeleteFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
     procedure WriteMapLikeKeysFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
     procedure WriteMapLikeValuesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
 
@@ -745,6 +755,61 @@ begin
     end;
 end;
 
+function TWebIDLToPasWasmJob.AllocateAttributePasName(aParent: TIDLStructuredDefinition; D: TIDLAttributeDefinition;
+  ParentName: String; Recurse: Boolean): TPasData;
+
+begin
+  Result:=inherited AllocateAttributePasName(aParent, D, ParentName, Recurse);
+end;
+
+procedure TWebIDLToPasWasmJob.AllocateAttributeGetterSetter(aParent : TIDLStructuredDefinition; aAttr : TIDLAttributeDefinition);
+
+var
+  Full : TIDLDefinitionList;
+  aDef : TIDLDefinition;
+  aCount : integer;
+  DJob : TPasDataWasmJob;
+  BaseName : string;
+begin
+  if not (aAttr.Data is TPasDataWasmJob) then
+    Raise EWebIDLError.CreateFmt('No data assigned for attribute %s of %s',[aAttr.Name,aParent.Name]);
+  DJob:=TPasDataWasmJob(aAttr.Data);
+  Full:=GetParentsMemberList(aParent);
+  aCount:=1;
+  BaseName:=GetPasName(aAttr);
+  For aDef in Full do
+    if (aDef is TIDLAttributeDefinition) and ConvertDef(aDef) then
+      if (aAttr<>aDef) and (BaseName=GetPasName(aDef)) then
+        inc(aCount);
+  if aCount>1 then
+    BaseName:=BaseName+IntToStr(aCount);
+  DJob.PropertyGetterName:=GetterPrefix+BaseName;
+  DJob.PropertySetterName:=SetterPrefix+BaseName;
+end;
+
+procedure TWebIDLToPasWasmJob.AllocateAttributeGetterSetters;
+
+
+var
+  D,MD : TIDLDefinition;
+  SD : TIDLStructuredDefinition absolute D;
+  AD : TIDLAttributeDefinition absolute MD;
+
+begin
+  For D in Context.Definitions do
+    if D is TIDLStructuredDefinition then
+      For MD in GetFullMemberList(SD) do
+        if MD is TIDLAttributeDefinition then
+          AllocateAttributeGetterSetter(SD,AD);
+end;
+
+procedure TWebIDLToPasWasmJob.ProcessDefinitions;
+begin
+  Inherited ProcessDefinitions;
+  AllocateAttributeGetterSetters;
+end;
+
+
 function TWebIDLToPasWasmJob.GetFunctionSignature(aDef: TIDLFunctionDefinition; aReturnDef: TIDLDefinition; aFuncname,
   aReturnTypeName, aSuffix: TIDLString; ArgDefList: TIDLDefinitionList; out ProcKind: TIDLString): String;
 
@@ -1125,14 +1190,11 @@ begin
   FuncName:=GetPasName(FD);
   CallbackTypeName:=GetPasName(aDef);
   ReturnDef:=GetResolvedType(FD.ReturnType,RNT,ReturnTypeName,ResolvedReturnTypeName);
-  case RNT of
-  ntNone,
-  ntUnknown:
+  if RNT in [ntNone,ntUnknown] then
     begin
     ReturnTypeName:='';
     ResolvedReturnTypeName:='';
     end;
-  end;
   if ReturnDef is TIDLSequenceTypeDefDefinition then
     ReturnTypeName:=PasInterfacePrefix+'Array'+PasInterfaceSuffix
   else if ReturnDef is TIDLPromiseTypeDefDefinition then
@@ -1301,11 +1363,14 @@ end;
 
 function TWebIDLToPasWasmJob.GetPrivateGetterInfo(Attr: TIDLAttributeDefinition;out  aNativeType : TPascalNativeType; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
 
+var
+  D : TIDLString;
+
 begin
   Result:=nil;
   if Attr.AttributeType=nil then
     exit;
-  FuncName:=GetterPrefix+GetPasName(Attr);
+  GetAccessorNames(Attr,FuncName,D);
   Result:=GetResolvedType(Attr.AttributeType,aNativeType, AttrTypeName,AttrResolvedTypeName);
   if Result is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(Result)
@@ -1347,7 +1412,6 @@ function TWebIDLToPasWasmJob.WritePrivateGetter(aParent: TIDLStructuredDefinitio
 var
   FuncName,
   AttrTypeName, AttrResolvedTypeName: TIDLString;
-  AttrType: TIDLDefinition;
   aNT : TPascalNativeType;
 
 begin
@@ -1356,11 +1420,28 @@ begin
     Exit;
   if Attr.AttributeType=nil then
     exit;
-  AttrType:=GetPrivateGetterInfo(Attr,ant,AttrTypeName,AttrResolvedTypeName,FuncName);
+  GetPrivateGetterInfo(Attr,ant,AttrTypeName,AttrResolvedTypeName,FuncName);
   AddLn('function '+FuncName+': '+AttrTypeName+'; overload;');
 end;
 
+function TWebIDLToPasWasmJob.GetAccessorNames(Attr: TIDLAttributeDefinition; out aGetter, aSetter: TIDLString): Boolean;
+
+var
+  D : TPasDataWasmJob;
+begin
+  Result:=Attr.Data is TPasDataWasmJob;
+  if Result then
+    begin
+    D:=Attr.Data as TPasDataWasmJob;
+    aGetter:=D.PropertyGetterName;
+    aSetter:=D.PropertySetterName;
+    end;
+end;
+
 function TWebIDLToPasWasmJob.GetPrivateSetterInfo(Attr: TIDLAttributeDefinition; out aNativeType: TPascalNativeType; out AttrTypeName, AttrResolvedTypeName, FuncName: TIDLString) : TIDLDefinition;
+
+var
+  D : TIDLString;
 
 begin
   Result:=nil;
@@ -1368,7 +1449,7 @@ begin
     Exit;
   if Attr.AttributeType=nil then
     exit;
-  FuncName:=SetterPrefix+GetPasName(Attr);
+  GetAccessorNames(Attr,D,FuncName);
   Result:=GetResolvedType(Attr.AttributeType,aNativeType,AttrTypeName,AttrResolvedTypeName);
   if Result is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(Result)
@@ -1480,6 +1561,7 @@ var
   PropName, Code, AttrTypeName, AttrResolvedTypeName: TIDLString;
   AttrType: TIDLDefinition;
   ANT : TPascalNativeType;
+  GetterName,SetterName : TIDLString;
 
 begin
   if aParent=nil then ;
@@ -1493,9 +1575,10 @@ begin
   AttrType:=GetResolvedType(Attr.AttributeType,ANT,AttrTypeName,AttrResolvedTypeName);
   if AttrType is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(AttrType);
-  Code:='property '+PropName+': '+AttrTypeName+' read '+GetterPrefix+PropName;
+  GetAccessorNames(Attr,GetterName,SetterName);
+  Code:='property '+PropName+': '+AttrTypeName+' read '+GetterName;
   if not (aoReadOnly in Attr.Options) then
-    Code:=Code+' write '+SetterPrefix+PropName;
+    Code:=Code+' write '+SetterName;
   Code:=Code+';';
   if AttrType is TIDLFunctionDefinition then
     Code:='// '+Code;
@@ -1643,6 +1726,57 @@ begin
   AddLn('end;');
 end;
 
+procedure TWebIDLToPasWasmJob.WriteMapLikeDeleteFunctionImplementation(aDef : TIDLStructuredDefinition; ML : TIDLMapLikeDefinition);
+
+var
+  D,aResolvedKeyTypeName,aResolvedValueTypeName: String;
+  aClassName : string;
+  KNT,VNT : TPascalNativeTYpe;
+
+begin
+  aClassName:=GetPasName(aDef);
+  GetResolvedType(ML.KeyType,KNT,D,aResolvedKeyTypeName);
+  GetResolvedType(ML.ValueType,VNT,D,aResolvedValueTypeName);
+  AddLn('Procedure %s.delete(key: %s);',[aClassName,aResolvedKeyTypeName]);
+  AddLn('begin');
+  Indent;
+  AddLn('InvokeJSNoResult(''delete'',[key]);');
+  Undent;
+  AddLn('end;');
+end;
+
+
+procedure TWebIDLToPasWasmJob.WriteMapLikeSetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+var
+  D,aResolvedKeyTypeName,aResolvedValueTypeName: String;
+  aClassName : string;
+  KNT,VNT : TPascalNativeTYpe;
+
+begin
+  aClassName:=GetPasName(aDef);
+  GetResolvedType(ML.KeyType,KNT,D,aResolvedKeyTypeName);
+  GetResolvedType(ML.ValueType,VNT,D,aResolvedValueTypeName);
+  AddLn('Procedure %s.set_(key: %s; value : %s);',[aClassName,aResolvedKeyTypeName,aResolvedValueTypeName]);
+  AddLn('begin');
+  Indent;
+  AddLn('InvokeJSNoResult(''set'',[key,Value]);');
+  Undent;
+  AddLn('end;');
+end;
+
+procedure TWebIDLToPasWasmJob.WriteMapLikeClearFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+var
+  aClassName : string;
+begin
+  aClassName:=GetPasName(aDef);
+  AddLn('Procedure %s.clear;',[aClassName]);
+  AddLn('begin');
+  Indent;
+  AddLn('InvokeJSNoResult(''clear'',[]);');
+  Undent;
+  AddLn('end;');
+end;
+
 procedure TWebIDLToPasWasmJob.WriteMapLikeHasFunctionImplementation(aDef : TIDLStructuredDefinition; ML : TIDLMapLikeDefinition);
 
 var
@@ -1711,8 +1845,10 @@ procedure TWebIDLToPasWasmJob.WriteMapLikeFunctionImplementations(aDef : TIDLStr
 
 Var
   L : TIDLDefinitionList;
+  lReadOnly : Boolean;
 
 begin
+  lReadOnly:=MD.IsReadonly;
   L:=TIDLDefinitionList.Create(Nil,False);
   try
     aDef.GetFullMemberList(L);
@@ -1726,6 +1862,15 @@ begin
       WriteMapLikeKeysFunctionImplementation(aDef,MD);
     if not L.HasName('values') then
       WriteMapLikeValuesFunctionImplementation(aDef,MD);
+    if not lReadOnly then
+      begin
+      if Not L.HasName('set') then
+        WriteMapLikeSetFunctionImplementation(aDef,MD);
+      if Not L.HasName('clear') then
+        WriteMapLikeClearFunctionImplementation(aDef,MD);
+      if Not L.HasName('delete') then
+        WriteMapLikeDeleteFunctionImplementation(aDef,MD);
+      end;
   finally
     L.Free;
   end;
