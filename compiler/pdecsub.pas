@@ -410,9 +410,10 @@ implementation
                 if (m_mac in current_settings.modeswitches) then
                   is_univ:=try_to_consume(_UNIV);
 
+                { this is not really working and generates internal errors
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
-                else
+                else }
                   begin
                     block_type:=bt_var_type;
                     single_type(hdef,[stoAllowSpecialization]);
