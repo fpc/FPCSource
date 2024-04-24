@@ -5541,7 +5541,11 @@ implementation
                      datan:=caddrnode.create_internal(ctemprefnode.create(datatemp));
                    end
                  else
-                   datan:=caddrnode.create_internal(ctypeconvnode.create_internal(firstn,tarraydef(second).elementdef));
+                   begin
+                     datan:=firstn;
+                     inserttypeconv(datan,tarraydef(second).elementdef);
+                     datan:=caddrnode.create_internal(datan);
+                   end;
                  datacountn:=cordconstnode.create(1,sizesinttype,false);
                end;
              procname:='fpc_dynarray_insert';
