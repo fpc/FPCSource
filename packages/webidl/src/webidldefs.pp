@@ -224,6 +224,7 @@ type
     Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Function Add(aItem : TIDLDefinition) : Integer;
     Function Delete(aItem : TIDLDefinition) : boolean; // true if found and deleted
+    Function Extract(aItem : TIDLDefinition) : TIDLDefinition;
     Function IndexOfName(aName : UTF8String) : Integer;
     Function HasName(aName : UTF8String) : Boolean;
     function GetEnumerator: TIDLDefinitionEnumerator;
@@ -1472,6 +1473,12 @@ begin
       exit(true);
       end;
   Result:=false;
+end;
+
+function TIDLDefinitionList.Extract(aItem: TIDLDefinition): TIDLDefinition;
+
+begin
+  Result:=TIDLDefinition(FList.Extract(aItem));
 end;
 
 function TIDLDefinitionList.IndexOfName(aName: UTF8String): Integer;

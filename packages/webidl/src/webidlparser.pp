@@ -51,6 +51,7 @@ Type
     function FindDictionary(aName: UTF8String): TIDLDictionaryDefinition; virtual;
     function FindInterface(aName: UTF8String): TIDLInterfaceDefinition; virtual;
     function FindNamespace(aName: UTF8String): TIDLNamespaceDefinition; virtual;
+
     procedure AppendDictionaryPartials; virtual;
     procedure AppendInterfacePartials; virtual;
     procedure AppendInterfaceIncludes; virtual;
@@ -63,6 +64,8 @@ Type
     Procedure AppendIncludes; virtual;
     Function GetInterfacesTopologically: TIDLDefinitionList; virtual;
     Procedure ResolveTypes; virtual;
+    procedure ResolveCallbackInterfaces; virtual;
+    function CreateCallBackFromInterface(aDef: TIDLInterfaceDefinition): TIDLCallBackDefinition;
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function IndexOfDefinition(const AName: String): Integer;
     Function FindDefinition(const AName : String) : TIDLDefinition;
@@ -2016,8 +2019,37 @@ begin
         DD.ParentDictionary:=FindDictionary(DD.ParentName);
 end;
 
+Function TWebIDLContext.CreateCallBackFromInterface(aDef : TIDLInterfaceDefinition) : TIDLCallBackDefinition;
+
+begin
+  if (aDef.Members.Count<>1)  then
+    Raise EWebIDLParser.CreateFmt('Callback Interface %s has wrong member count',[aDef.Name]);
+  if (aDef.Member[0] is TIDLFunctionDefinition) then
+    Raise EWebIDLParser.CreateFmt('Callback Interface %s member %s is not a function',[aDef.Name,aDef.Members[0].Name]);
+  Result:=TIDLCallBackDefinition(FDefinitions.Add(TIDLCallBackDefinition,aDef.Name,aDef.SrcFile,aDef.Line,aDef.Column));
+  Result.FunctionDef:=TIDLFunctionDefinition(aDef.Members.Extract(aDef.Member[0]));
+end;
+
+procedure TWebIDLContext.ResolveCallbackInterfaces;
+
+var
+  D : TIDLDefinition;
+  DI : TIDLInterfaceDefinition absolute D;
+
+begin
+  For D In FDefinitions do
+    if (D is TIDLInterfaceDefinition) and DI.IsCallBack then
+      begin
+      CreateCallBackFromInterface(DI);
+      FDefinitions.Delete(D);
+      FreeAndNil(FHash);
+      end;
+
+end;
+
 procedure TWebIDLContext.ResolveTypes;
 begin
+  ResolveCallbackInterfaces;
   ResolveParentTypes;
 end;
 

@@ -148,6 +148,8 @@ type
     FTypeAliases: TStrings; // user defined type maping name to name
     FVerbose: Boolean;
     FWebIDLVersion: TWebIDLVersion;
+    function CreateCallBackFromInterface(aDef: TIDLInterfaceDefinition): TIDLCallBackDefinition;
+    procedure ResolveCallbackInterfaces;
     procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
@@ -3026,21 +3028,63 @@ begin
     AllocatePasName(D,ParentName,True);
 end;
 
+
+Function TBaseWebIDLToPas.CreateCallBackFromInterface(aDef : TIDLInterfaceDefinition) : TIDLCallBackDefinition;
+
+var
+  I,Idx,Count : Integer;
+
+begin
+  DoLog('Converting callback interface %s to callback',[aDef.Name]);
+  Count:=0;
+  For I:=0 to aDef.Members.Count-1 do
+    if (aDef.Member[I] is TIDLFunctionDefinition) then
+      begin
+      Idx:=I;
+      Inc(Count);
+      end;
+  if (Count<>1)  then
+    Raise EWebIDLParser.CreateFmt('Callback Interface %s has wrong function member count',[aDef.Name]);
+  if not (aDef.Member[Idx] is TIDLFunctionDefinition) then
+    Raise EWebIDLParser.CreateFmt('Callback Interface %s member %s is not a function',[aDef.Name,aDef.Members[Idx].Name]);
+  Result:=TIDLCallBackDefinition(FContext.Add(TIDLCallBackDefinition,aDef.Name,aDef.SrcFile,aDef.Line,aDef.Column));
+  Result.FunctionDef:=TIDLFunctionDefinition(aDef.Members.Extract(aDef.Member[Idx]));
+  Result.FunctionDef.Name:=Result.Name;
+end;
+
+procedure TBaseWebIDLToPas.ResolveCallbackInterfaces;
+
+var
+  D : TIDLDefinition;
+  DI : TIDLInterfaceDefinition absolute D;
+
+begin
+  For D In FContext.Definitions do
+    if (D is TIDLInterfaceDefinition) and DI.IsCallBack then
+      begin
+      CreateCallBackFromInterface(DI);
+      FContext.Definitions.Delete(D);
+      end;
+
+end;
+
 procedure TBaseWebIDLToPas.ProcessDefinitions;
 
 var
   D : TIDLDefinition;
 
 begin
+  ResolveCallbackInterfaces;
   RemoveInterfaceForwards(FContext.Definitions);
   FContext.AppendPartials;
   FContext.AppendIncludes;
   For D in FContext.Definitions do
     if D.Name<>'' then
-      AddGlobalJSIdentifier(D);
+    AddGlobalJSIdentifier(D);
   AllocatePasNames(FContext.Definitions);
   ResolveParentInterfaces(FContext.Definitions);
   ResolveTypeDefs(FContext.Definitions);
+
 end;
 
 procedure TBaseWebIDLToPas.Execute;
