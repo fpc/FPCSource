@@ -2021,7 +2021,7 @@ implementation
             end;
 
           var
-            constr : tnode;
+            elem : tnode;
             para : tcallparanode;
             isarrconstrl,
             isarrconstrr : boolean;
@@ -2050,14 +2050,14 @@ implementation
             if isarrconstrl then
               begin
                 index:=0;
-                constr:=left;
-                left:=nil;
+                elem:=tarrayconstructornode(left).left;
+                tarrayconstructornode(left).left:=nil;
               end
             else
               begin
                 index:=high(asizeint);
-                constr:=right;
-                right:=nil;
+                elem:=tarrayconstructornode(right).left;
+                tarrayconstructornode(right).left:=nil;
               end;
 
             { we use the fact that insert() caps the index to avoid a copy }
@@ -2066,7 +2066,7 @@ implementation
                     ccallparanode.create(
                       aktassignmentnode.left.getcopy,
                       ccallparanode.create(
-                        constr,nil)));
+                        elem,nil)));
 
             result:=cinlinenode.create(in_insert_x_y_z,false,para);
             include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
