@@ -444,7 +444,7 @@ begin
 
   if Length(DriveSeparator)>0 then
   begin
-    {$ifdef UNIX}
+    {$if defined(UNIX) or defined(WASI)}
     FVolumeSeparatorChar     := DriveSeparator[1]
     {$else}
     FVolumeSeparatorChar     := DriveSeparator
@@ -906,19 +906,20 @@ begin
   Result:=Combine([Path1,Path2,Path3,Path4],ValidateParams);
 end;
 
+function AppendPathDelim(const Path: string): string;
+begin
+  if (Path = '') or (Path[Length(Path)] in AllowDirectorySeparators)
+  {$ifdef mswindows}
+    //don't add a PathDelim to e.g. 'C:'
+    or ((Length(Path) = 2) and (Path[2] = ':') and (UpCase(Path[1]) in ['A'..'Z']))
+  {$endif}
+  then
+    Result:=Path
+  else
+    Result:=Path + DirectorySeparator;
+end;
+
 class function TPath.Combine(const Paths: array of string; const ValidateParams: Boolean = True): string;
-  function AppendPathDelim(const Path: string): string;
-  begin
-    if (Path = '') or (Path[Length(Path)] in AllowDirectorySeparators)
-    {$ifdef mswindows}
-      //don't add a PathDelim to e.g. 'C:'
-      or ((Length(Path) = 2) and (Path[2] = ':') and (UpCase(Path[1]) in ['A'..'Z']))
-    {$endif}
-    then
-      Result:=Path
-    else
-      Result:=Path + DirectorySeparator;
-  end;
 var
   i: Integer;
   Path: String;
