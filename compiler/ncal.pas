@@ -3897,6 +3897,7 @@ implementation
         converted_result_data : ttempcreatenode;
         calltype: tdispcalltype;
         invokesym : tsym;
+        myparasym: tparavarsym;
       begin
          result:=nil;
          candidates:=nil;
@@ -4171,6 +4172,7 @@ implementation
                   addsymref(tprocdef(tprocdef(procdefinition).genericdef).procsym);
               end;
 
+            printnode(self);
             { add needed default parameters }
             if (paralength<procdefinition.maxparacount) then
              begin
@@ -4186,6 +4188,7 @@ implementation
                 end;
                while (paraidx<procdefinition.paras.count) and (vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions) do
                  inc(paraidx);
+               myparasym:=tparavarsym(procdefinition.paras[paraidx]);
                while (paraidx<procdefinition.paras.count) do
                 begin
                   if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then

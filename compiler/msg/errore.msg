@@ -147,6 +147,8 @@ general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppe
 % When the \var{-Ft} switch is used, this line informs you that the compiler
 % will not look for uppercased filenames or 8.3 conforming filenames.
 % \end{description}
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
 #
 # Scanner
 #

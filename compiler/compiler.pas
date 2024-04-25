@@ -269,6 +269,7 @@ var
   m : tppumodule;
 
 begin
+  m:=nil;
   try
     try
        ExceptionMask:=GetExceptionMask;
@@ -349,7 +350,10 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          Message(general_f_compilation_aborted);
+          if assigned(m) then
+            Message(general_f_compilation_aborted)
+          else
+            Message(general_f_compiler_aborted);
         except
           on ECompilerAbort do
             ;
