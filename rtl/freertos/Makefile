@@ -908,20 +908,8 @@ ifeq ($(SUBARCH),armv7em)
 CPU_UNITS=stm32f401xe cortexm3 cortexm4 cortexm7 # thumb2_bare
 CPU_UNITS_DEFINED=1
 endif
-ifeq ($(SUBARCH),armv4t)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
-CPU_UNITS_DEFINED=1
-endif
-ifeq ($(SUBARCH),armv4)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
-CPU_UNITS_DEFINED=1
-endif
 ifeq ($(SUBARCH),armv6m)
 CPU_UNITS=stm32g071xx cortexm0
-CPU_UNITS_DEFINED=1
-endif
-ifeq ($(SUBARCH),armv7a)
-CPU_UNITS=allwinner_a20 raspi2
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
