@@ -3130,14 +3130,10 @@ consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 define CPU_UNITS_RULE
-ifeq ($(ARCH),avr)
-$(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-else
-ifeq ($(ARCH),xtensa)
+ifneq ($(filter $(ARCH),arm riscv32 xtensa),)
 $(1)$(PPUEXT): $(ARCH)/$(1).pp consoleio$(PPUEXT) heapmgr$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 else
 $(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
-endif
 endif
 endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
