@@ -39,6 +39,13 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
 
 function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; forward;
 
+procedure _csu_abort; cdecl; external name '_csu_abort';
+begin
+  asm
+    int3
+ 	end;
+end;
+
 procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
   var
     I: SizeUInt;
