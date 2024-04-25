@@ -4172,7 +4172,6 @@ implementation
                   addsymref(tprocdef(tprocdef(procdefinition).genericdef).procsym);
               end;
 
-            printnode(self);
             { add needed default parameters }
             if (paralength<procdefinition.maxparacount) then
              begin
