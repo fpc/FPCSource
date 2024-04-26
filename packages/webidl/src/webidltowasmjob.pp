@@ -1023,7 +1023,7 @@ begin
       ArgDefList:=TIDLDefinitionList(Overloads[i]);
       Sig:=GetFunctionSignature(aDef,ReturnDef,FuncName,ReturnTypeName,Suff,ArgDefList,ProcKind);
       if not FGeneratingInterface then
-        Sig:=Sig+' overload;';
+        Sig:=Sig; // +' overload;';
       AddLn(ProcKind+' '+Sig);
       end;
   finally
@@ -1421,7 +1421,7 @@ begin
   if Attr.AttributeType=nil then
     exit;
   GetPrivateGetterInfo(Attr,ant,AttrTypeName,AttrResolvedTypeName,FuncName);
-  AddLn('function '+FuncName+': '+AttrTypeName+'; overload;');
+  AddLn('function '+FuncName+': '+AttrTypeName+'; '{overload;'});
 end;
 
 function TWebIDLToPasWasmJob.GetAccessorNames(Attr: TIDLAttributeDefinition; out aGetter, aSetter: TIDLString): Boolean;
@@ -1552,7 +1552,7 @@ begin
   if Attr.AttributeType=nil then
     exit;
   GetPrivateSetterInfo(Attr,aNT,AttrTypeName,AttrResolvedTypeName,FuncName);
-  AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');overload;');
+  AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');' {overload;'});
 end;
 
 function TWebIDLToPasWasmJob.WriteProperty(aParent: TIDLDefinition;

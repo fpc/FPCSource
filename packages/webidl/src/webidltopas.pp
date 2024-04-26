@@ -103,7 +103,7 @@ const
     'Byte',
     'SmallInt',
     'Word',
-    'Longint',
+    'LongInt',
     'Cardinal',
     'Int64',
     'QWord',
@@ -2303,10 +2303,11 @@ begin
   if Recurse then
     begin
     // Should be passed in first
-
     AllocatePasName(D.ElementType,ConcatNames(ParentName,CN),True);
     if CN='' then
-      CN:=ConstructSequenceTypeName(TIDLSequenceTypeDefDefinition(D),False);
+      CN:=ConstructSequenceTypeName(TIDLSequenceTypeDefDefinition(D),False)
+    else
+      CN:=ArrayPrefix+CN+ArraySuffix;
     if D.Data=Nil then
       begin
       sDef:=FindGlobalDef(CN);
