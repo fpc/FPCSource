@@ -13,7 +13,7 @@ unit JOB.Js;
 {$H+}
 {$ModeSwitch advancedrecords}
 
-{$define VerboseJOB}
+{off $define VerboseJOB}
 
 interface
 
@@ -319,6 +319,8 @@ type
     constructor JOBCast(const Intf: IJSObject); overload;
     constructor JOBCreateFromID(aID: TJOBObjectID); virtual; // use this only for the owner (it will release it on free)
     constructor JOBCreateGlobal(const aID: UnicodeString); virtual;
+    constructor JOBCreate(Args : Array of const);
+    class function JSClassName : UnicodeString; virtual;
     class function Cast(const Intf: IJSObject): IJSObject; overload;
     destructor Destroy; override;
     property JOBObjectID: TJOBObjectID read FJOBObjectID;
@@ -1024,6 +1026,12 @@ function __job_get_global(
   NameLen: longint
   ): TJOBObjectID; external JOBExportName name JOBFn_GetGlobal;
 
+function __job_create_object(
+  NameP: PWideChar;
+  NameLen: longint;
+  ArgP: PByte
+  ): TJOBObjectID; external JOBExportName name JOBFn_CreateObject;
+
 function JOBCallback(const Func: TJOBCallback; Data, Code: Pointer; Args: PByte): PByte;
 function VarRecToJSValue(const V: TVarRec): TJOB_JSValue;
 
@@ -1071,7 +1079,9 @@ end;
 
 function __job_callback(w: NativeInt): boolean;
 begin
+  {$IFDEF VERBOSEJOB}
   writeln('__job_callback w=',w);
+  {$ENDIF}
   Result:=true;
 end;
 
@@ -2714,7 +2724,9 @@ var
   begin
     v:=Args[Index].VVariant^;
     t:=VarType(v);
+    {$IFDEF VERBOSEJOB}
     writeln('AddVariant Index=',Index,' VarType=',t);
+    {$ENDIF}
     case t of
     varEmpty:
       Prep(1,JOBArgUndefined);
@@ -2920,10 +2932,37 @@ begin
   FJOBObjectIDOwner:=true;
 end;
 
+constructor TJSObject.JOBCreate(Args : Array of const);
+
+var
+  N : Unicodestring;
+  InvokeArgs: PByte;
+
+begin
+  N:=JSClassName;
+  if Length(Args)>0 then
+    InvokeArgs:=CreateInvokeJSArgs(Args)
+  else
+    InvokeArgs:=Nil;
+  FJobObjectID:=__job_create_object(PWideChar(N),Length(N),InvokeArgs);
+  {$IFDEF VERBOSEJOB}
+  Writeln('[',ClassName,'] Created new object with ID: ',FJobObjectID);
+  {$ENDIF}
+end;
+
+
 class function TJSObject.Cast(const Intf: IJSObject): IJSObject;
 begin
   Result:=JOBCast(Intf);
 end;
+
+class function TJSObject.JSClassName : UnicodeString;
+
+begin
+  Result:='Object';
+end;
+
+
 
 destructor TJSObject.Destroy;
 begin
