@@ -678,132 +678,87 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte_Plain(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+{ eax = buf, edx = len, cl = b }
 asm
-        push  %esi
-        push  %edi
+        test  %edx,%edx
+        jz    .Lnothing0
         push  %eax                  { save initial value of 'buf' }
 
-        cmp   $4,%edx               { less than 4 bytes, just test byte by byte. }
-        jb    .Ltail
+        test  $3,%al
+        jz    .Laligned4
+.Lalignloop:                        { align to 4 bytes }
+        cmp   %cl,(%eax)
+        je    .Lfoundateax
+        inc   %eax
+        dec   %edx
+        jz    .Lnothing1
+        test  $3,%al
+        jnz   .Lalignloop
+
+.Laligned4:                         { align to 8 bytes }
+        push  %esi
+        push  %edi
 
         mov    %cl,%ch              { prepare pattern }
         movzwl %cx,%esi
         shl    $16,%ecx
         or     %esi,%ecx
 
-.Lalignloop:
-        test  $3,%al                { align to 4 bytes if necessary }
-        je    .Laligned
-        cmp   %cl,(%eax)
-        je    .Lexit
-        inc   %eax
-        dec   %edx
-        jmp   .Lalignloop
+        test  $7,%al
+        jz    .Lloop
+        test  %edx,%edx             { Adjust buf+len and reuse the second unroll from the loop body. Careful with len < 0 (esp. len = −1). }
+        jl    .Ldontfixuplen
+        add   $4,%edx
+.Ldontfixuplen:
+        sub   $4,%eax
+        jmp   .Lalignfrom4to8
 
-.balign 16                      { Main loop, unrolled 4 times for speed }
-
-.Lloop:
+.balign 16
+.Lloop:                             { Requires 8-byte alignment of eax, to safely over-read up to 7 bytes on last iteration. }
         mov   (%eax),%esi           { load dword }
         xor   %ecx,%esi             { XOR with pattern, bytes equal to target are now 0 }
         lea   -0x01010101(%esi),%edi
-        xor   %esi,%edi             { (x-0x01010101) xor x }
         not   %esi
         and   $0x80808080,%esi
-        and   %edi,%esi             { ((x-0x01010101) xor x) and (not x) and 0x80808080 }
-        jnz   .Lfound               { one of the bytes matches }
+        and   %edi,%esi             { (x-0x01010101) and (not x) and 0x80808080 }
+        jnz   .Lfound0              { one of the bytes matches }
 
+.Lalignfrom4to8:
         mov   4(%eax),%esi
         xor   %ecx,%esi
         lea   -0x01010101(%esi),%edi
-        xor   %esi,%edi
         not   %esi
         and   $0x80808080,%esi
         and   %edi,%esi
-        jnz   .Lfound4
+        jnz   .Lfound1
 
-        mov   8(%eax),%esi
-        xor   %ecx,%esi
-        lea   -0x01010101(%esi),%edi
-        xor   %esi,%edi
-        not   %esi
-        and   $0x80808080,%esi
-        and   %edi,%esi
-        jnz   .Lfound8
-
-        mov   12(%eax),%esi
-        xor   %ecx,%esi
-        lea   -0x01010101(%esi),%edi
-        xor   %esi,%edi
-        not   %esi
-        and   $0x80808080,%esi
-        and   %edi,%esi
-        jnz   .Lfound12
-
-        add   $16,%eax
-.Laligned:
-        sub   $16,%edx
-        jae   .Lloop                { Still more than 16 bytes remaining }
-
-{ Process remaining bytes (<16 left at this point) }
-{ length is offset by -16 at this point }
-.Lloop2:
-        cmp   $4-16,%edx            { < 4 bytes left? }
-        jb    .Ltail
-
-        mov   (%eax),%esi
-        xor   %ecx,%esi
-        lea   -0x01010101(%esi),%edi
-        xor   %esi,%edi
-        not   %esi
-        and   $0x80808080,%esi
-        and   %edi,%esi
-        jne   .Lfound
-
-        add   $4,%eax
-        sub   $4,%edx
-        jmp   .Lloop2
-
-.Ltail:                         { Less than 4 bytes remaining, check one by one }
-        and   $3, %edx
-        jz    .Lnotfound
-.Lloop3:
-        cmp   %cl,(%eax)
-        je    .Lexit
-        inc   %eax
-        dec   %edx
-        jnz   .Lloop3
-
-.Lnotfound:
-        or    $-1,%eax
-        jmp   .Lexit1
-
-{ add missing source pointer increments }
-.Lfound12:
-        add   $4,%eax
-.Lfound8:
-        add   $4,%eax
-.Lfound4:
-        add   $4,%eax
-
-.Lfound:
-        test  $0xff,%esi
-        jnz   .Lexit
-        inc   %eax
-
-        test  $0xff00,%esi
-        jnz   .Lexit
-        inc   %eax
-
-        test  $0xff0000,%esi
-        jnz   .Lexit
-        inc   %eax
-
-.Lexit:
-        sub   (%esp),%eax
-.Lexit1:
-        pop   %ecx               { removes initial 'buf' value }
+        add   $8,%eax
+        sub   $8,%edx
+        ja    .Lloop
+.Lnothing3:
         pop   %edi
         pop   %esi
+.Lnothing1:
+        pop   %edx
+.Lnothing0:
+        or    $-1,%eax
+        ret
+
+.Lfound1:
+        sub   $4,%edx
+        jbe   .Lnothing3
+        add   $4,%eax
+.Lfound0:
+        bsf   %esi,%esi
+        shr   $3,%esi
+        cmp   %edx,%esi             { Garbage after remaining length? }
+        jae   .Lnothing3
+        add   %esi,%eax
+        pop   %edi
+        pop   %esi
+.Lfoundateax:
+        pop   %ecx
+        sub   %ecx,%eax
 end;
 
 function IndexByte_SSE2(const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
