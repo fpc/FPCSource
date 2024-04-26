@@ -908,6 +908,8 @@ implementation
           an try...finally...end wrapper }
         current_filepos:=entrypos;
         newblock:=internalstatements(newstatement);
+        { Note - this is not strippable since it wraps the entire procedure }
+        Exclude(TBlockNode(newblock).blocknodeflags, bnf_strippable);
         { initialization is common for all cases }
         addstatement(newstatement,loadpara_asmnode);
         addstatement(newstatement,stackcheck_asmnode);

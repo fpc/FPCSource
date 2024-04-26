@@ -383,7 +383,8 @@ implementation
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
-        internalstatements := cblocknode.create(laststatement);
+        result := cblocknode.create(laststatement);
+        Include(result.blocknodeflags, bnf_strippable);
       end;
 
 
