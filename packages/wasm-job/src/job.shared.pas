@@ -63,6 +63,7 @@ const
   JOBFn_InvokeArrayStringResult = 'invoke_arraystringresult';
   JOBFn_ReleaseStringResult = 'release_stringresult';
   JOBFn_InvokeObjectResult = 'invoke_objectresult';
+  JOBFn_CreateObject = 'create_object';
   JOBFn_ReleaseObject = 'release_object';
   JOBFn_InvokeJSValueResult = 'invoke_jsvalueresult';
   JOBFn_CallbackHandler = 'JOBCallback';
