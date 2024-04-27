@@ -50,7 +50,7 @@ unit optconstprop;
 
       will not result in any constant propagation.
     }
-    function do_optconstpropagate(var rootnode : tnode;var changed: boolean) : tnode;
+    function do_optconstpropagate(var rootnode : tnode;out changed: boolean) : tnode;
 
   implementation
 
@@ -395,23 +395,27 @@ unit optconstprop;
       end;
 
 
-    function do_optconstpropagate(var rootnode: tnode;var changed: boolean): tnode;
+    function do_optconstpropagate(var rootnode: tnode;out changed: boolean): tnode;
+      var
+        iteration_changed: Boolean;
       begin
+        changed:=false;
         repeat
+          iteration_changed:=false;
 {$ifdef DEBUG_CONSTPROP}
           writeln('************************ before constant propagation ***************************');
           printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
-          changed:=false;
-          foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
-          if changed then
+          foreachnodestatic(pm_postandagain, rootnode, @propagate, @iteration_changed);
+          changed:=changed or iteration_changed;
+          if iteration_changed then
             doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
           writeln('************************ after constant propagation ***************************');
           printnode(rootnode);
           writeln('*******************************************************************************');
 {$endif DEBUG_CONSTPROP}
-        until not(cs_opt_level3 in current_settings.optimizerswitches) or not(changed);
+        until not(cs_opt_level3 in current_settings.optimizerswitches) or not(iteration_changed);
         result:=rootnode;
       end;
 

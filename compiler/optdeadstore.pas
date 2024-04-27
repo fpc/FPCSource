@@ -31,7 +31,7 @@ unit optdeadstore;
     uses
       node;
 
-    function do_optdeadstoreelim(var rootnode : tnode;var changed: boolean) : tnode;
+    function do_optdeadstoreelim(var rootnode : tnode;out changed: boolean) : tnode;
 
   implementation
 
@@ -105,8 +105,9 @@ unit optdeadstore;
       end;
 
 
-    function do_optdeadstoreelim(var rootnode: tnode;var changed: boolean): tnode;
+    function do_optdeadstoreelim(var rootnode: tnode;out changed: boolean): tnode;
       begin
+        changed:=false;
 {$ifdef EXTDEBUG_DEADSTORE}
         writeln('******************* Tree before deadstore elimination **********************');
         printnode(rootnode);
@@ -114,7 +115,6 @@ unit optdeadstore;
 {$endif EXTDEBUG_DEADSTORE}
         if not(pi_dfaavailable in current_procinfo.flags) then
           internalerror(2013110201);
-        changed:=false;
         if not current_procinfo.has_nestedprocs then
           foreachnodestatic(pm_postprocess, rootnode, @deadstoreelim, @changed);
 {$ifdef DEBUG_DEADSTORE}

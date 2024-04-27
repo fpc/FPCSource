@@ -1179,8 +1179,7 @@ implementation
       var
         i : integer;
         UserCode : TNode;
-        RedoDFA, changed : Boolean;
-        {RedoDFA : boolean;}
+        RedoDFA : boolean;
       begin
        { do this before adding the entry code else the tail recursion recognition won't work,
          if this causes troubles, it must be if'ed
@@ -1191,10 +1190,9 @@ implementation
 
        if cs_opt_constant_propagate in current_settings.optimizerswitches then
          begin
-           changed:=false;
-           repeat
-             do_optconstpropagate(code,changed);
-           until not(changed);
+           do_optconstpropagate(code,RedoDFA);
+           { RedoDFA value not used here }
+           RedoDFA:=false;
          end;
 
        if (cs_opt_nodedfa in current_settings.optimizerswitches) and
@@ -1208,12 +1206,14 @@ implementation
 
            if cs_opt_constant_propagate in current_settings.optimizerswitches then
              begin
-               changed:=false;
-               repeat
-                 do_optconstpropagate(code,changed);
-                 if changed then
+               do_optconstpropagate(code,RedoDFA);
+               if RedoDFA then
+                 begin
                    dfabuilder.redodfainfo(code);
-               until not(changed);
+                   RedoDFA:=false; { Don't redo it again unless necessary }
+                 end;
+               { Don't re-run constant propagation as redoing DFA info didn't
+                 actually change any nodes }
              end;
 
            if (cs_opt_loopstrength in current_settings.optimizerswitches)
@@ -1225,7 +1225,10 @@ implementation
              end;
 
            if RedoDFA then
-             dfabuilder.redodfainfo(code);
+             begin
+               dfabuilder.redodfainfo(code);
+               RedoDFA:=false; { Don't redo it again unless necessary }
+             end;
 
            if cs_opt_forloop in current_settings.optimizerswitches then
              RedoDFA:=OptimizeForLoop(code);
@@ -1266,12 +1269,9 @@ implementation
 
            if cs_opt_dead_store_eliminate in current_settings.optimizerswitches then
              begin
-               changed:=false;
-               repeat
-                 do_optdeadstoreelim(code,changed);
-                 if changed then
-                   dfabuilder.redodfainfo(code);
-               until not(changed);
+               do_optdeadstoreelim(code,RedoDFA);
+               if RedoDFA then
+                 dfabuilder.redodfainfo(code);
              end;
          end
        else
