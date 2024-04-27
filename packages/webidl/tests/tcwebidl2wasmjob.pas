@@ -112,22 +112,22 @@ begin
       vtPChar:        A:=Args[i].VPChar;
       vtWideChar:     begin
                       U:=Args[i].VWideChar;
-                      A:=U;
+                      A:=UTF8Encode(U);
                       end;
       vtPWideChar:    begin
                       U:=Args[i].VPWideChar;
-                      A:=U;
+                      A:=UTF8Encode(U);
                       end;
       vtAnsiString:   begin
                       A:=AnsiString(Args[i].VAnsiString);
                       end;
       vtWidestring:   begin
                       U:=WideString(Args[i].VWideString);
-                      A:=U;
+                      A:=UTF8Encode(U);
                       end;
       vtUnicodeString: begin
                        U:=UnicodeString(Args[i].VUnicodeString);
-                       A:=U;
+                       A:=UTF8Encode(U);
                        end;
     end;
     S:=S+A+LineEnding;
@@ -387,7 +387,7 @@ procedure TCustomTestWebIDL2WasmJob.TestWebIDL(const WebIDLSrc,
 var
   i: Integer;
   Line, ExpectedSrc, InputSrc, OutputSrc: String;
-  InputMS: TMemoryStream;
+
 begin
   {$IFDEF VerboseWebidl2WasmJob}
   writeln('TCustomTestWebIDL2WasmJob.TestWebIDL WebIDL:----------------------');

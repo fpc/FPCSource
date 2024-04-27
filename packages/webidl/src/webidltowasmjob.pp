@@ -74,6 +74,14 @@ type
     ProcKind : String;
   end;
 
+  TAccessorInfo = Record
+    PropType : TIDLDefinition;
+    NativeType: TPascalNativeType;
+    NativeTypeName,
+    ResolvedTypeName,
+    FuncName: TIDLString;
+  end;
+
   TPasDataWasmJob = class(TPasData)
     PropertyGetterName : String;
     PropertySetterName : String;
@@ -89,7 +97,6 @@ type
     procedure AllocatePropertyGetterSetter(aParent: TIDLStructuredDefinition; aAttr: TIDLPropertyDefinition);
     procedure AllocatePropertyGetterSetters;
     function GetAccessorNames(Attr: TIDLPropertyDefinition; out aGetter, aSetter: TIDLString): Boolean;
-    function GetAccessorNames(Member: TIDLDictionaryMemberDefinition; out aGetter, aSetter: TIDLString): Boolean;
     function GetArgName(d: TIDLDefinition): string;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
     function GetInvokeClassName(aMethodInfo : TMethodCallInfo; aDef: TIDLFunctionDefinition=nil): TIDLString;
@@ -146,10 +153,10 @@ type
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); override;
     // Extra interface/Implementation code.
-    function GetPrivateGetterInfo(aProp: TIDLPropertyDefinition; out aNativeType: TPascalNativeType; out aTypeName, aResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
-    function GetPrivateSetterInfo(aProp: TIDLPropertyDefinition; out aNativeType: TPascalNativeType; out aTypeName, aResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
-    function GetReadPropertyCall(aNativeType : TPascalnativeType; aResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
-    function GetWritePropertyCall(aNativeType : TPascalnativeType; aResolvedTypeName, aNativeTypeName: TIDLString; aMemberName: String; aType: TIDLDefinition): string;
+    function GetPrivateGetterInfo(aProp: TIDLPropertyDefinition; out aAccessInfo : TAccessorInfo): Boolean;
+    function GetPrivateSetterInfo(aProp: TIDLPropertyDefinition; out aAccessInfo : TAccessorInfo): Boolean;
+    function GetReadPropertyCall(aInfo : TAccessorInfo; aMemberName: String): string;
+    function GetWritePropertyCall(aInfo : TAccessorInfo; aMemberName: String): string;
     function GetFunctionSignature(aDef: TIDLFunctionDefinition; aInfo: TMethodCallInfo; aSuffix: TIDLString; ArgDefList: TIDLDefinitionList; out ProcKind: TIDLString): String;
     function GetMethodInfo(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; out MethodInfo: TMethodCallInfo): Boolean;
     function AllocateAttributePasName(aParent : TIDLStructuredDefinition; D: TIDLAttributeDefinition; ParentName: String; Recurse: Boolean): TPasData; override;
@@ -430,6 +437,7 @@ var
   CurParent: String;
 
 begin
+  if CurClassName='' then ; // Silence compiler warning
   CurParent:='';
   if Assigned(Dict.ParentDictionary) then
     CurParent:= GetPasIntfName(Dict.ParentDictionary);
@@ -456,7 +464,9 @@ end;
 
 function TWebIDLToPasWasmJob.GetDictionaryDefHead(const CurClassName: String; Dict: TIDLDictionaryDefinition): String;
 begin
-   Result:=CurClassName+'Rec = record';
+  Result:='';
+  if Dict<>nil then
+    Result:=CurClassName+'Rec = record'
 end;
 
 function TWebIDLToPasWasmJob.WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer;
@@ -572,18 +582,21 @@ end;
 
 function TWebIDLToPasWasmJob.WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
 begin
+  if (aParent=Nil) and (aMap=Nil) then ; // Silence compiler warning
   AddLn('property size : LongInt read _Getsize;');
   Result:=1;
 end;
 
 function TWebIDLToPasWasmJob.WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
 begin
+  if (aParent=Nil) and (aMap=Nil) then ; // Silence compiler warning
   Result:=0;
 end;
 
 function TWebIDLToPasWasmJob.WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
 
 begin
+  if (aParent=Nil) and (aMap=Nil) then ; // Silence compiler warning
   Result:=1;
   AddLn('function _Getsize : LongInt;');
 end;
@@ -628,6 +641,7 @@ function TWebIDLToPasWasmJob.WriteDictionaryField(aDict: TIDLDictionaryDefinitio
 var
   N, TN: TIDLString;
 begin
+  if (aDict=Nil) then ; // Silence compiler warning
   Result:=True;
   N:=GetPasName(aField);
   TN:=GetPasName(aField.MemberType);
@@ -660,6 +674,7 @@ function TWebIDLToPasWasmJob.GetInvokeNameFromAliasName(const aTypeName : TIDLSt
 var
   aLower : String;
 begin
+  if aType=nil then ; // Silence compiler warning;
   aLower:=LowerCase(aTypeName);
   if Pos('bool',aLower)>0 then
     Result:='InvokeJSBooleanResult'
@@ -746,6 +761,7 @@ function TWebIDLToPasWasmJob.GetInvokeClassNameFromTypeAlias(aName : TIDLString;
 var
   aLower : String;
 begin
+  if aDef<>Nil then ; // Silence compiler warning
   aLower:=LowerCase(aName);
   if Pos('array',aLower)>0 then
     Result:='TJSArray'
@@ -819,6 +835,7 @@ var
   RNT : TPascalNativeType;
 
 begin
+  if (aParent=Nil) then ; // Silence compiler warning
   Result:=True;
   MethodInfo.ReturnDef:=GetResolvedType(aDef.ReturnType,RNT,MethodInfo.ReturnTypeName,MethodInfo.ResolvedReturnTypeName);
   MethodInfo.InvokeName:='';
@@ -1192,6 +1209,7 @@ end;
 function TWebIDLToPasWasmJob.GetKnownArgumentGetter(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
 
 begin
+  if ArgResolvedTypeName='' then ; // Silence compiler warning;
   Result:='';
   if Pos('IJS',ArgTypeName)=1 then
     Result:='GetObject('+GetPasName(aDef)+') as '+ArgTypeName
@@ -1202,6 +1220,7 @@ end;
 function TWebIDLToPasWasmJob.GetKnownResultAllocator(aDef : TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename : String) : string;
 
 begin
+  if ArgResolvedTypeName='' then ; // Silence compiler warning;
   Result:='';
   if Pos('IJS',ArgTypeName)=1 then
     Result:='Result:=AllocIntf('+GetPasName(aDef)+' as '+ArgTypeName
@@ -1406,8 +1425,7 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.GetReadPropertyCall(aNativeType: TPascalnativeType; aResolvedTypeName, aNativeTypeName: TIDLString;
-  aMemberName: String; aType: TIDLDefinition): string;
+function TWebIDLToPasWasmJob.GetReadPropertyCall(aInfo : TAccessorInfo; aMemberName: String): string;
 
 var
   ObjClassName,
@@ -1415,7 +1433,7 @@ var
 
 begin
   Result:='';
-  Case aNativeType of
+  Case aInfo.NativeType of
 
 
   ntBoolean: ReadFuncName:='ReadJSPropertyBoolean';
@@ -1432,21 +1450,21 @@ begin
   ntUTF8String: ReadFuncName:='ReadJSPropertyUTF8String';
   ntUnicodeString: ReadFuncName:='ReadJSPropertyUnicodeString';
   ntVariant: ReadFuncName:='ReadJSPropertyVariant';
-  ntMethod:  Result:='('+aResolvedTypeName+'(ReadJSPropertyMethod('''+aMemberName+''')))';
+  ntMethod:  Result:='('+aInfo.ResolvedTypeName+'(ReadJSPropertyMethod('''+aMemberName+''')))';
   else
-    if aResolvedTypeName = 'TJOB_JSValue' then
+    if aInfo.ResolvedTypeName = 'TJOB_JSValue' then
       ReadFuncName:='ReadJSPropertyValue'
-    else if aType is TIDLSequenceTypeDefDefinition then
+    else if aInfo.PropType is TIDLSequenceTypeDefDefinition then
       ObjClassName:=ClassPrefix+'Array'+ClassSuffix
-    else if aType is TIDLPromiseTypeDefDefinition then
+    else if aInfo.PropType is TIDLPromiseTypeDefDefinition then
       ObjClassName:=ClassPrefix+'Promise'+ClassSuffix
     else
       begin
-      ObjClassName:=GetPasName(aType);
+      ObjClassName:=GetPasName(aInfo.PropType);
       if (ObjClassName='') or (Pos(PasInterfacePrefix,ObjClassName)=1) then
         ObjClassName:=IntfToPasClassName(ObjClassName);
       end;
-    Result:='ReadJSPropertyObject('''+aMemberName+''','+ObjClassName+') as '+aNativeTypeName;
+    Result:='ReadJSPropertyObject('''+aMemberName+''','+ObjClassName+') as '+aInfo.NativeTypeName;
   end;
 
   if Result='' then
@@ -1455,33 +1473,34 @@ end;
 
 
 
-function TWebIDLToPasWasmJob.GetPrivateGetterInfo(aProp: TIDLPropertyDefinition; out aNativeType: TPascalNativeType; out
-  aTypeName, aResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
+function TWebIDLToPasWasmJob.GetPrivateGetterInfo(aProp: TIDLPropertyDefinition; out aAccessInfo : TAccessorInfo): Boolean;
 
 var
   D : TIDLString;
+  aType : TIDLDefinition;
 
 begin
-  Result:=nil;
+  Result:=False;
+  aAccessInfo:=Default(TAccessorInfo);
   if aProp.PropertyType=nil then
     exit;
-  GetAccessorNames(aProp,FuncName,D);
-  Result:=GetResolvedType(aProp.PropertyType,aNativeType, aTypeName,aResolvedTypeName);
-  if Result is TIDLInterfaceDefinition then
-    aTypeName:=GetPasIntfName(Result)
-  else if Result is TIDLFunctionDefinition then
+  GetAccessorNames(aProp,aAccessinfo.FuncName,D);
+  aType:=GetResolvedType(aProp.PropertyType,aAccessinfo.NativeType, aAccessinfo.NativeTypeName,aAccessinfo.ResolvedTypeName);
+  aAccessInfo.PropType:=aType;
+  if aType is TIDLInterfaceDefinition then
+    aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
+  else if aType is TIDLFunctionDefinition then
     // exit // not supported yet
-  else if Result is TIDLEnumDefinition then
-    aResolvedTypeName:='UnicodeString';
+  else if aType is TIDLEnumDefinition then
+    aAccessInfo.ResolvedTypeName:='UnicodeString';
+  Result:=True;
 end;
 
 procedure TWebIDLToPasWasmJob.WritePrivateGetterImplementation(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition);
 
 var
-  FuncName, aClassName, Call,
-  aTypeName, aResolvedTypeName: TIDLString;
-  aType: TIDLDefinition;
-  aNT : TPascalNativeType;
+  aClassName, Call : String;
+  Info : TAccessorInfo;
 
 begin
   aClassName:=GetPasName(aParent);
@@ -1494,9 +1513,10 @@ begin
   if (aProp.Name='') and (paStringifier in aProp.PropertyAccess) then
     Exit;
 
-  aType:=GetPrivateGetterInfo(aProp,aNT,aTypeName,aResolvedTypeName,FuncName);
-  Call:=GetReadPropertyCall(aNT,aResolvedTypeName, aTypeName, aProp.Name, aType);
-  Addln('function '+aClassName+'.'+FuncName+': '+aTypeName+';');
+  if not GetPrivateGetterInfo(aProp,Info) then
+    exit;
+  Call:=GetReadPropertyCall(Info,aProp.Name);
+  Addln('function '+aClassName+'.'+info.FuncName+': '+Info.NativeTypeName+';');
   Addln('begin');
   Addln('  Result:='+Call+';');
   Addln('end;');
@@ -1505,18 +1525,17 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateGetter(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition): boolean;
 
 var
-  FuncName,
-  aTypeName, aResolvedTypeName: TIDLString;
-  aNT : TPascalNativeType;
+  Info : TAccessorInfo;
 
 begin
+  if (aParent=Nil) then ; // Silence compiler warning
   Result:=true;
   if (aProp.Name='') and not (paWrite in aProp.PropertyAccess) then
     Exit;
   if aProp.PropertyType=nil then
     exit;
-  GetPrivateGetterInfo(aProp,ant,aTypeName,aResolvedTypeName,FuncName);
-  AddLn('function '+FuncName+': '+aTypeName+'; '{overload;'});
+  GetPrivateGetterInfo(aProp,Info);
+  AddLn('function '+Info.FuncName+': '+Info.NativeTypeName+'; '{overload;'});
 end;
 
 function TWebIDLToPasWasmJob.GetAccessorNames(Attr: TIDLPropertyDefinition; out aGetter, aSetter: TIDLString): Boolean;
@@ -1533,52 +1552,40 @@ begin
     end;
 end;
 
-function TWebIDLToPasWasmJob.GetAccessorNames(Member: TIDLDictionaryMemberDefinition; out aGetter, aSetter: TIDLString): Boolean;
-
-var
-  D : TPasDataWasmJob;
-begin
-  Result:=Member.Data is TPasDataWasmJob;
-  if Result then
-    begin
-    D:=Member.Data as TPasDataWasmJob;
-    aGetter:=D.PropertyGetterName;
-    aSetter:=D.PropertySetterName;
-    end;
-end;
-
-
-function TWebIDLToPasWasmJob.GetPrivateSetterInfo(aProp : TIDLPropertyDefinition; out aNativeType: TPascalNativeType; out aTypeName, aResolvedTypeName, FuncName: TIDLString): TIDLDefinition;
+function TWebIDLToPasWasmJob.GetPrivateSetterInfo(aProp: TIDLPropertyDefinition; out aAccessInfo: TAccessorInfo): Boolean;
 
 var
   D : TIDLString;
+  aType : TIDLDefinition;
 
 begin
-  Result:=nil;
+  Result:=False;
   if (aProp.PropertyType=nil) then
     exit;
   if (aProp.Name='') and not (paWrite in aProp.PropertyAccess) then
     Exit;
-  GetAccessorNames(aProp,D,FuncName);
-  Result:=GetResolvedType(aProp.PropertyType,aNativeType,aTypeName,aResolvedTypeName);
-  if Result is TIDLInterfaceDefinition then
-    aTypeName:=GetPasIntfName(Result)
-  else if Result is TIDLFunctionDefinition then
+  GetAccessorNames(aProp,D,aAccessInfo.FuncName);
+  aType:=GetResolvedType(aProp.PropertyType,aAccessInfo.NativeType,aAccessInfo.NativeTypeName,aAccessInfo.ResolvedTypeName);
+  aAccessInfo.PropType:=aType;
+  if aType is TIDLInterfaceDefinition then
+    aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
+  else if aType is TIDLFunctionDefinition then
     // exit // not supported yet
-  else if Result is TIDLEnumDefinition then
-    aResolvedTypeName:='UnicodeString';
+  else if aType is TIDLEnumDefinition then
+    aAccessInfo.ResolvedTypeName:='UnicodeString';
+  Result:=True;
 end;
 
 
 
-function TWebIDLToPasWasmJob.GetWritePropertyCall(aNativeType : TPascalnativeType; aResolvedTypeName,aNativeTypeName : TIDLString;  aMemberName: String; aType :TIDLDefinition) : string;
+function TWebIDLToPasWasmJob.GetWritePropertyCall(aInfo: TAccessorInfo; aMemberName: String): string;
 
 var
   WriteFuncName : String;
 
 begin
   Result:='';
-  case aNativeType of
+  case aInfo.NativeType of
   ntBoolean: WriteFuncName:='WriteJSPropertyBoolean';
   ntShortInt,
   ntByte,
@@ -1595,7 +1602,7 @@ begin
   ntVariant: WriteFuncName:='WriteJSPropertyVariant';
   ntMethod:  Result:='WriteJSPropertyMethod('''+aMemberName+''',TMethod(aValue))';
   else
-    if aResolvedTypeName='TJOB_JSValue' then
+    if aInfo.ResolvedTypeName='TJOB_JSValue' then
       WriteFuncName:='WriteJSPropertyValue'
     else
       WriteFuncName:='WriteJSPropertyObject';
@@ -1607,10 +1614,8 @@ end;
 procedure TWebIDLToPasWasmJob.WritePrivateSetterImplementation(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition);
 
 var
-  FuncName, aClassName, Call,
-  aTypeName, aResolvedTypeName : TIDLString;
-  aType: TIDLDefinition;
-  aNT: TPascalNativeType;
+  aClassName, Call : String;
+  Info : TAccessorInfo;
 
 begin
   if Not (paWrite in aProp.PropertyAccess) then
@@ -1618,10 +1623,10 @@ begin
   if aProp.PropertyType=nil then
     exit;
   aClassName:=GetPasName(aParent);
-  aType:=GetPrivateSetterInfo(aProp,aNT,aTypeName,aResolvedTypeName,FuncName);
-  Call:=GetWritePropertyCall(aNt,aResolvedTypeName, aTypeName, aProp.Name, aType);
-
-  Addln('procedure %s.%s(const aValue : %s);',[aClassName,FuncName,aTypeName]);
+  if not GetPrivateSetterInfo(aProp,Info) then
+    exit;
+  Call:=GetWritePropertyCall(Info, aProp.Name);
+  Addln('procedure %s.%s(const aValue : %s);',[aClassName,info.FuncName,Info.NativeTypeName]);
   Addln('begin');
   indent;
   Addln(Call+';');
@@ -1635,6 +1640,7 @@ procedure TWebIDLToPasWasmJob.WriteMapLikePrivateSetterImplementation(aParent: T
 
 
 begin
+  if (aMap=Nil) and (aParent=Nil) then ; // Silence compiler warning
   // None
 end;
 
@@ -1642,10 +1648,16 @@ procedure TWebIDLToPasWasmJob.WriteMapLikePrivateGetterImplementation(aParent: T
   );
 var
   call, aClassName : string;
+  Info : TAccessorInfo;
 
 begin
+  if (aMap=Nil) and (aParent=Nil) then ; // Silence compiler warning
   aClassName:=GetPasName(aParent);
-  Call:=GetReadPropertyCall(ntLongint,'Integer', 'LongInt', 'size', Nil);
+  Info:=Default(TAccessorInfo);
+  Info.NativeTypeName:='Integer';
+  Info.ResolvedTypeName:='LongInt';
+  Info.NativeType:=ntLongint;
+  Call:=GetReadPropertyCall(Info,'size');
   Addln('function '+aClassName+'._Getsize: LongInt;');
   Addln('begin');
   Addln('  Result:='+Call+';');
@@ -1656,16 +1668,16 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateSetter(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition): boolean;
 
 var
-  FuncName, aTypeName, aResolvedTypeName: TIDLString;
-  aNT : TPascalNativeType;
+  Info : TAccessorInfo;
 
 begin
+  if (aParent=Nil) then ; // Silence compiler warning
   if aProp.PropertyType=nil then
     exit;
   if not (paWrite  in aProp.PropertyAccess) then
     exit(false);
-  GetPrivateSetterInfo(aProp,aNT,aTypeName,aResolvedTypeName,FuncName);
-  AddLn('procedure '+FuncName+'(const aValue: '+aTypeName+');' {overload;'});
+  if not GetPrivateSetterInfo(aProp,Info) then exit;
+  AddLn('procedure '+Info.FuncName+'(const aValue: '+Info.NativeTypeName+');' {overload;'});
 end;
 
 function TWebIDLToPasWasmJob.WriteProperty(aParent: TIDLDefinition; aProp: TIDLPropertyDefinition): boolean;
@@ -1753,6 +1765,7 @@ end;
 procedure TWebIDLToPasWasmJob.WriteEnumImplementation(aDef : TIDLEnumDefinition);
 
 begin
+  if (aDef=Nil) then ; // Silence compiler warning
 end;
 
 procedure TWebIDLToPasWasmJob.WriteDictionaryImplemention(aDef : TIDLDictionaryDefinition);
@@ -1892,6 +1905,7 @@ procedure TWebIDLToPasWasmJob.WriteMapLikeClearFunctionImplementation(aDef: TIDL
 var
   aClassName : string;
 begin
+  if (ML=Nil)  then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   AddLn('Procedure %s.clear;',[aClassName]);
   AddLn('begin');
@@ -1925,6 +1939,7 @@ var
   aClassName : string;
 
 begin
+  if (ML=Nil) then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   AddLn('function %s.entries : IJSIterator;',[aClassName]);
   AddLn('begin');
@@ -1941,6 +1956,7 @@ var
   aClassName : string;
 
 begin
+  if (ML=Nil) then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   AddLn('function %s.keys : IJSIterator;',[aClassName]);
   AddLn('begin');
@@ -1956,6 +1972,7 @@ var
   aClassName : string;
 
 begin
+  if (ML=Nil)  then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   AddLn('function %s.values : IJSIterator;',[aClassName]);
   AddLn('begin');
@@ -2006,6 +2023,7 @@ var
   aClassName, aPasIntfName: TIDLString;
 
 begin
+  if (ML=Nil) then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   aPasIntfName:=GetPasIntfName(aDef);
   AddLn('class function %s.Cast(const Intf: IJSObject): %s;',[aClassName,aPasIntfName]);

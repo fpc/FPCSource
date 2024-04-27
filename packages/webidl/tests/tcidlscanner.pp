@@ -609,7 +609,8 @@ begin
       If I>High(AToken) then
         Fail(Format('"%s": Too many tokens in source (got: %d, expected: %d)',[aSource,I+1,High(aToken)+1]));
       AssertEquals('"'+ASource+'": token '+IntToStr(I),AToken[I],T);
-      AssertEquals('"'+ASource+'": String '+IntToStr(I),AValues[I],FScanner.CurTokenString);
+      if I<Length(aValues) then
+        AssertEquals('"'+ASource+'": String '+IntToStr(I),AValues[I],FScanner.CurTokenString);
       Inc(I);
       end
   Until (t=tkEOF);

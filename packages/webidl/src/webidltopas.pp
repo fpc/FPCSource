@@ -610,6 +610,7 @@ end;
 
 function TBaseWebIDLToPas.WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
 begin
+  if (aParent=Nil) and (aMap=Nil) then ; // Silence compiler warning
   Result:=1;
   AddLn('fsize : NativeInt; external name ''size'';');
 end;
@@ -634,6 +635,7 @@ end;
 function TBaseWebIDLToPas.WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
 
 begin
+  if (aParent=Nil) and (aMap=nil) then ; // Silence compiler warning
   AddLn('property size : NativeInt read fsize;');
   Result:=1;
 end;
@@ -976,6 +978,7 @@ Var
 var
   D: TIDLDefinition;
 begin
+  if (aParent=Nil) and (aParentname='') then ; // Silence compiler warning
   L:=TFPObjectHashTable.Create(False);
   try
     For D in ML Do
@@ -1463,6 +1466,7 @@ end;
 function TBaseWebIDLToPas.GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean): String;
 
 begin
+  if ForTypeDef then; // Silence compiler warning
   GetPascalTypeAndName(aTypeName,Result);
 end;
 
@@ -2236,6 +2240,7 @@ var
   CN : String;
 
 begin
+  if (ParentName='') then ; // Silence compiler warning
   CN:=D.Name;
   if CN='' then
     raise EConvertError.Create('[20220725184324] at '+GetDefPos(D));
@@ -2253,6 +2258,7 @@ var
   CN : String;
 
 begin
+  if (ParentName='') then ; // Silence compiler warning
   CN:=D.Name;
   if CN='' then
     raise EConvertError.Create('[20220725184324] at '+GetDefPos(D));
@@ -2270,6 +2276,7 @@ var
   CN : String;
 
 begin
+  if (ParentName='') then ; // Silence compiler warning
   CN:=D.Name;
   if CN='' then
     raise EConvertError.Create('[20220725184410] at '+GetDefPos(D));
@@ -2399,6 +2406,7 @@ var
   CN : String;
 
 begin
+  if (ParentName='') and Recurse then ; // Silence compiler warning
   CN:=D.Name;
   Result:=TPasData(D.Data);
   if Result=Nil then
@@ -2433,6 +2441,7 @@ Var
   CN: String;
 
 begin
+  if (aParent=Nil) then ; // Silence compiler warning
   CN:=D.Name;
   if CN='' then
     CN:=ParentName+'Type';
@@ -2521,6 +2530,7 @@ var
   aNativeType : TPascalNativeType;
 
 begin
+  if (ParentName='') and Recurse then ; // Silence compiler warning
   CN:=D.Name;
   TN:=D.TypeName;
   aNativeType:=GetPascalTypeAndName(TN,PN);
@@ -2541,6 +2551,7 @@ var
   gDef : TIDLDefinition;
 
 begin
+  if (ParentName='') and Recurse then ; // Silence compiler warning
   {
     We are actually doing 2 things. We allocate a pascal name for an identifier,
     and we determine the native pascal type of the identifier, if possible.
