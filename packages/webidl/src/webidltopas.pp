@@ -533,14 +533,14 @@ end;
 function TBaseWebIDLToPas.WriteDictionaryImplicitTypes(aList: TIDLDefinitionList): Integer;
 Var
   D: TIDLDefinition;
-  FA: TIDLAttributeDefinition absolute D;
+  MD : TIDLDictionaryMemberDefinition absolute D;
 
 begin
   Result:=0;
   for D in aList do
     if D is TIDLDictionaryDefinition then
       if ConvertDef(D) then
-        Result:=Result+WriteImplicitAutoType(FA.AttributeType);
+        Result:=Result+WriteImplicitAutoType(MD.MemberType);
 end;
 
 function TBaseWebIDLToPas.WriteOtherImplicitTypes(
@@ -1320,8 +1320,7 @@ begin
   if Intf=nil then ;
 end;
 
-function TBaseWebIDLToPas.GetDictionaryDefHead(const CurClassName: string;
-  Dict: TIDLDictionaryDefinition): String;
+function TBaseWebIDLToPas.GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String;
 var
   CurParent: String;
 begin
@@ -3030,7 +3029,7 @@ begin
 end;
 
 
-Function TBaseWebIDLToPas.CreateCallBackFromInterface(aDef : TIDLInterfaceDefinition) : TIDLCallBackDefinition;
+function TBaseWebIDLToPas.CreateCallBackFromInterface(aDef: TIDLInterfaceDefinition): TIDLCallBackDefinition;
 
 var
   I,Idx,Count : Integer;

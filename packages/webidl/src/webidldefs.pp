@@ -250,16 +250,33 @@ type
     Property ConstType : TConstType Read FConstType Write FConstType;
   end;
 
+  { TIDLPropertyDefinition }
+  TIDLPropertyAccess = (paRead,paWrite,paStringifier);
+  TIDLPropertyAccesses = Set of TIDLPropertyAccess;
+
+  TIDLPropertyDefinition = Class(TIDLDefinition)
+  protected
+    function GetType: TIDLTypeDefDefinition; virtual; abstract;
+    Function GetPropertyAccess : TIDLPropertyAccesses; virtual;
+  Public
+    Property PropertyType : TIDLTypeDefDefinition Read GetType;
+    Property PropertyAccess :  TIDLPropertyAccesses Read GetPropertyAccess;
+  end;
+
   TAttributeOption = (aoStatic,aoInherit,aoReadOnly,aoStringifier);
   TAttributeOptions = set of TAttributeOption;
 
+
   { TIDLAttributeDefinition }
 
-  TIDLAttributeDefinition = Class(TIDLDefinition)
+  TIDLAttributeDefinition = Class(TIDLPropertyDefinition)
   private
     FOptions : TAttributeOptions;
     FType: TIDLTypeDefDefinition;
     procedure SetType(AValue: TIDLTypeDefDefinition);
+  protected
+    function GetType: TIDLTypeDefDefinition; override;
+    Function GetPropertyAccess : TIDLPropertyAccesses; override;
   Public
     Destructor Destroy; override;
     Function AsString(Full : Boolean): UTF8String; override;
@@ -279,6 +296,7 @@ type
   end;
 
   { TIDLStructuredDefinition }
+  TStructuredDefinitionType = (sdUnknown,sdInterface,sdNamespace,sdDictionary);
 
   TIDLStructuredDefinition = Class(TIDLTypeDefinition)
   Private
@@ -294,6 +312,7 @@ type
   Public
     Function GetJSTypeName : String; override;
     Destructor Destroy; override;
+    class Function StructuredType : TStructuredDefinitionType; virtual;
     Function IsExtension : Boolean; override;
     Function GetFullMemberList(aList : TIDLDefinitionList) : Integer;
     Function HasMembers : Boolean;
@@ -324,6 +343,7 @@ type
     FParentInterface: TIDLInterfaceDefinition;
   Public
     Function AsString (aFull : Boolean) : UTF8String; override;
+    class Function StructuredType : TStructuredDefinitionType; override;
     Property ParentInterface : TIDLInterfaceDefinition Read FParentInterface Write FParentInterface;
     Property HasSerializer : Boolean Read FHasSerializer Write FHasSerializer;
     Property HasStringifier : Boolean Read FHasStringifier Write FHasStringifier;
@@ -337,6 +357,7 @@ type
 
   TIDLNamespaceDefinition = class(TIDLStructuredDefinition)
   Public
+    class Function StructuredType : TStructuredDefinitionType; override;
     Function AsString (aFull : Boolean) : UTF8String; override;
   end;
 
@@ -421,11 +442,13 @@ type
 
   { TIDLDictionaryMemberDefinition }
 
-  TIDLDictionaryMemberDefinition = Class(TIDLDefinition)
+  TIDLDictionaryMemberDefinition = Class(TIDLPropertyDefinition)
   private
     FDefaultValue: TIDLConstDefinition;
     FMemberType: TIDLTypeDefDefinition;
     FRequired: Boolean;
+  protected
+    Function GetType: TIDLTypeDefDefinition; override;
   Public
     Destructor Destroy; override;
     Function AsString(Full : Boolean) : UTF8String;  override;
@@ -442,6 +465,7 @@ type
     FParentDictionary: TIDLDictionaryDefinition;
     function GetDM(AIndex : Integer): TIDLDictionaryMemberDefinition;
   Public
+    class Function StructuredType : TStructuredDefinitionType; override;
     Function AsString(Full : Boolean) : UTF8String; override;
     Property ParentDictionary : TIDLDictionaryDefinition Read FParentDictionary Write FParentDictionary;
     Property DictionaryMembers[AIndex : Integer] : TIDLDictionaryMemberDefinition Read GetDM; default;
@@ -776,7 +800,17 @@ begin
     Result:=Attributes.AsString(true)+' '+Result;
 end;
 
+class function TIDLInterfaceDefinition.StructuredType: TStructuredDefinitionType;
+begin
+  Result:=sdInterface;
+end;
+
 { TIDLNamespaceDefinition }
+
+class function TIDLNamespaceDefinition.StructuredType: TStructuredDefinitionType;
+begin
+  Result:=sdNamespace;
+end;
 
 function TIDLNamespaceDefinition.AsString(aFull: Boolean): UTF8String;
 
@@ -844,6 +878,14 @@ begin
       Result:=Attributes.AsString(True)+' '+Result;
     end;
 end;
+
+{ TIDLPropertyDefinition }
+
+function TIDLPropertyDefinition.GetPropertyAccess: TIDLPropertyAccesses;
+begin
+  Result:=[paRead,paWrite];
+end;
+
 
 { TIDLSerializerDefinition }
 
@@ -928,6 +970,20 @@ begin
   If (AValue=FType) then exit;
   FreeAndNil(FType);
   FType:=AValue;
+end;
+
+function TIDLAttributeDefinition.GetType: TIDLTypeDefDefinition;
+begin
+  Result:=FType;
+end;
+
+function TIDLAttributeDefinition.GetPropertyAccess: TIDLPropertyAccesses;
+begin
+  Result:=inherited GetPropertyAccess;
+  if ([aoReadOnly,aoStringifier] * Options) <> [] then
+    Exclude(Result,paWrite);
+  if aoStringifier in Options then
+    Include(Result,paStringifier);
 end;
 
 destructor TIDLAttributeDefinition.Destroy;
@@ -1077,6 +1133,11 @@ begin
   Result:=Members[aIndex] as TIDLDictionaryMemberDefinition;
 end;
 
+class function TIDLDictionaryDefinition.StructuredType: TStructuredDefinitionType;
+begin
+  Result:=sdDictionary;
+end;
+
 function TIDLDictionaryDefinition.AsString(Full: Boolean): UTF8String;
 begin
   Result:='dictionary '+Name;
@@ -1091,6 +1152,11 @@ begin
 end;
 
 { TIDLDictionaryMemberDefinition }
+
+function TIDLDictionaryMemberDefinition.GetType: TIDLTypeDefDefinition;
+begin
+  Result:=FMemberType
+end;
 
 destructor TIDLDictionaryMemberDefinition.Destroy;
 begin
@@ -1291,6 +1357,11 @@ begin
   FreeAndNil(FMembers);
   FreeAndNil(FPartials);
   inherited Destroy;
+end;
+
+class function TIDLStructuredDefinition.StructuredType: TStructuredDefinitionType;
+begin
+  result:=sdUnknown;
 end;
 
 function TIDLStructuredDefinition.IsExtension: Boolean;

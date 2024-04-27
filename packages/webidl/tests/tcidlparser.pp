@@ -313,6 +313,7 @@ Type
     Procedure Setup; override;
     function ParseCallback(Const AName, aReturnType: UTF8String; AArguments: array of UTF8String): TIDLFunctionDefinition;
     Property Func : TIDLFunctionDefinition Read FFunction;
+    Property Callback  : TIDLCallbackDefinition Read FCallBack;
   Published
     Procedure ParseNoArgumentsReturnVoid;
     Procedure ParseConstructorNoArgumentsReturnVoid;
@@ -926,6 +927,7 @@ begin
   InitSource(Src);
   Parser.Parse;
   AssertEquals('Correct class',TIDLCallbackDefinition,Definitions[0].ClassType);
+  FCallBack:=TIDLCallbackDefinition(Definitions[0]);
   Result:=(Definitions[0] as TIDLCallbackDefinition).FunctionDef;
   AssertNotNull('Have callback function definition',Result);
   AssertEquals('Name',AName,Result.Name);
