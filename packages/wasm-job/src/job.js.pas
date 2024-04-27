@@ -322,6 +322,7 @@ type
     constructor JOBCreate(Args : Array of const);
     class function JSClassName : UnicodeString; virtual;
     class function Cast(const Intf: IJSObject): IJSObject; overload;
+    constructor Create; virtual;
     destructor Destroy; override;
     property JOBObjectID: TJOBObjectID read FJOBObjectID;
     property JOBObjectIDOwner: boolean read FJOBObjectIDOwner write FJOBObjectIDOwner;
@@ -2962,7 +2963,11 @@ begin
   Result:='Object';
 end;
 
+constructor TJSObject.Create;
 
+begin
+  JOBCreate([]);
+end;
 
 destructor TJSObject.Destroy;
 begin
