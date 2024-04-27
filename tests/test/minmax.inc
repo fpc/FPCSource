@@ -1,4 +1,3 @@
-{$mode objfpc}
 uses
   Math;
 
@@ -642,10 +641,70 @@ procedure TestLongint;
       TestFail(338);
   end;
 
+  var
+    v1,v3 : Longint;
+
+  function Min1: Longint; inline;
+    begin
+      if v1 < v3 then
+        Result := v1
+      else
+        Result := v3;
+    end;
+
+
+  function Max1: Longint; inline;
+    begin
+      if v1 > v3 then
+        Result := v1
+      else
+        Result := v3;
+    end;
+
+var
+    c1 : Longint = 1;
+    c3 : Longint = 3;
+
+  function Min11: Longint; inline;
+    begin
+      if c1 < c3 then
+        Result := c1
+      else
+        Result := c3;
+    end;
+
+
+  function Max11: Longint; inline;
+    begin
+      if c1 > c3 then
+        Result := c1
+      else
+        Result := c3;
+    end;
+
+
+procedure TestLongintGlobal;
+
+  begin
+    v1:=1;
+    v3:=3;
+    if Min1<>1 then
+      TestFail(1301);
+    if Max1<>3 then
+      TestFail(1302);
+
+    if Min11<>1 then
+      TestFail(1311);
+    if Max11<>3 then
+      TestFail(1312);
+  end;
+
+
 begin
   TestSingle;
   TestDouble;
   TestDWord;
   TestLongint;
+  TestLongintGlobal;
   WriteLn('ok');
 end.
