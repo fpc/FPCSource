@@ -177,6 +177,7 @@ type
     procedure AddGlobalJSIdentifier(D: TIDLDefinition); virtual;
     procedure ResolveParentInterfaces(aList: TIDLDefinitionList); virtual;
     procedure ResolveParentInterface(Intf: TIDLInterfaceDefinition); virtual;
+    procedure ResolveParentInterface(Intf: TIDLDictionaryDefinition); virtual;
     procedure ResolveTypeDefs(aList: TIDLDefinitionList); virtual;
     procedure ResolveTypeDef(D: TIDLDefinition); virtual;
     procedure RemoveInterfaceForwards(aList: TIDLDefinitionList); virtual;
@@ -2689,7 +2690,9 @@ var
 begin
   For D in aList do
     if D is TIDLInterfaceDefinition then
-      ResolveParentInterface(TIDLInterfaceDefinition(D));
+      ResolveParentInterface(TIDLInterfaceDefinition(D))
+    else if D is TIDLDictionaryDefinition then
+      ResolveParentInterface(TIDLDictionaryDefinition(D));
 end;
 
 procedure TBaseWebIDLToPas.ResolveParentInterface(Intf: TIDLInterfaceDefinition
@@ -2702,6 +2705,18 @@ begin
   aDef:=FindGlobalDef(Intf.ParentName);
   if aDef is TIDLInterfaceDefinition then
     Intf.ParentInterface:=TIDLInterfaceDefinition(aDef);
+end;
+
+procedure TBaseWebIDLToPas.ResolveParentInterface(Intf: TIDLDictionaryDefinition
+  );
+var
+  aDef: TIDLDefinition;
+begin
+  if Intf.ParentDictionary<>nil then exit;
+  if Intf.ParentName='' then exit;
+  aDef:=FindGlobalDef(Intf.ParentName);
+  if aDef is TIDLDictionaryDefinition then
+    Intf.ParentDictionary:=TIDLDictionaryDefinition(aDef);
 end;
 
 procedure TBaseWebIDLToPas.ResolveTypeDefs(aList: TIDLDefinitionList);

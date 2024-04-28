@@ -493,7 +493,7 @@ begin
       else
         ParentName:=GetPascalTypeName(Intf.ParentName);
     sdDictionary:
-      if Assigned(dDict.ParentDictionary) then
+       if Assigned(dDict.ParentDictionary) then
         ParentName:=GetPasIntfName(dDict.ParentDictionary as TIDLDictionaryDefinition)
        else
         ParentName:=GetPascalTypeName(dDict.ParentName);
