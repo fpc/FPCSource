@@ -37,14 +37,14 @@ begin
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-json');
-    P.Dependencies.Add('fcl-net');
-    P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-net',SocketsOSes);
+    P.Dependencies.Add('fcl-process',SocketsOSes); // FGI-gate
     P.Dependencies.Add('fcl-fpcunit');
     P.Dependencies.Add('fcl-hash');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('fcl-registry', AllWindowsOSes);
     P.Dependencies.Add('openssl', AllUnixOSes+AllWindowsOSes);
-    P.Dependencies.Add('fastcgi');
+    P.Dependencies.Add('fastcgi',SocketsOSes);
 {$ifndef ALLPACKAGES}
     P.Dependencies.Add('httpd20', ApacheOSes);
 {$endif ALLPACKAGES}    
@@ -362,7 +362,6 @@ begin
       AddUnit('httpdefs');
       end;
     T:=P.Targets.AddUnit('fpwebclient.pp');
-    T.OSes:=SocketsOSes;
     T:=P.Targets.AddUnit('fpjwt.pp');
     T:=P.Targets.AddUnit('fpoauth2.pp');
       T.ResourceStrings:=true;
