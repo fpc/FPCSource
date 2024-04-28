@@ -223,7 +223,7 @@ implementation
 
 function TWebIDLToPasWasmJob.BaseUnits: String;
 begin
-  Result:='SysUtils, JOB_JS';
+  Result:='SysUtils, Job.JS';
 end;
 
 function TWebIDLToPasWasmJob.GetAliasPascalType(D: TIDLDefinition; out PascalTypeName: string): TPascalNativeType;
@@ -910,11 +910,13 @@ var
   AD : TIDLPropertyDefinition absolute MD;
 
 begin
+  DoLog('Allocating property getters and setters');
   For D in Context.Definitions do
     if D is TIDLStructuredDefinition then
       For MD in GetFullMemberList(SD) do
         if MD is TIDLPropertyDefinition then
           AllocatePropertyGetterSetter(SD,AD);
+  DoLog('Done allocating property getters and setters');
 end;
 
 procedure TWebIDLToPasWasmJob.ProcessDefinitions;
@@ -1047,17 +1049,19 @@ begin
             end;
           Args:=Args+ArgName;
           end;
-        Args:=',['+Args+']';
+
 
         if foConstructor in aDef.Options then
-          InvokeCode:=InvokeCode+MethodInfo.InvokeName+'('''+aParent.Name+''''+Args
+          InvokeCode:=InvokeCode+MethodInfo.InvokeName+'(['+Args+'])'
         else
+          begin
+          Args:=',['+Args+']';
           InvokeCode:=InvokeCode+MethodInfo.InvokeName+'('''+aDef.Name+''''+Args;
-        if MethodInfo.InvokeClassName<>'' then
-          InvokeCode:=InvokeCode+','+MethodInfo.InvokeClassName+') as '+MethodInfo.ReturnTypeName
-        else
-          InvokeCode:=InvokeCode+')';
-
+          if MethodInfo.InvokeClassName<>'' then
+            InvokeCode:=InvokeCode+','+MethodInfo.InvokeClassName+') as '+MethodInfo.ReturnTypeName
+          else
+            InvokeCode:=InvokeCode+')';
+          end;
         if Length(VarSection)>0 then
           begin
           AddLn('var');
@@ -1100,7 +1104,7 @@ begin
   if (aDef.Arguments.Count>0)
       and aDef.Argument[aDef.Arguments.Count-1].HasEllipsis then
     Result:='{; ToDo:varargs}';
-  if Overloads.Count>1 then
+  if not (FGeneratingInterface or GeneratingImplementation)  then
     Result:=Result+'; overload';
 end;
 
@@ -1133,8 +1137,6 @@ begin
       begin
       ArgDefList:=TIDLDefinitionList(Overloads[i]);
       Sig:=GetFunctionSignature(aDef,MethodInfo,Suff,ArgDefList,ProcKind);
-      if not FGeneratingInterface then
-        Sig:=Sig; // +' overload;';
       AddLn(ProcKind+' '+Sig);
       end;
   finally
@@ -1423,17 +1425,21 @@ begin
     undent;
     AddLn('end;');
   finally
+    ArgNames.Free;
   end;
 end;
 
 function TWebIDLToPasWasmJob.GetReadPropertyCall(aInfo : TAccessorInfo; aMemberName: String): string;
 
 var
+  TypeName,
   ObjClassName,
   ReadFuncName : string;
 
 begin
   Result:='';
+  if aMemberName='publicExponent' then
+    Writeln('so');
   Case aInfo.NativeType of
 
 
@@ -1463,7 +1469,15 @@ begin
       begin
       ObjClassName:=GetPasName(aInfo.PropType);
       if (ObjClassName='') or (Pos(PasInterfacePrefix,ObjClassName)=1) then
-        ObjClassName:=IntfToPasClassName(ObjClassName);
+        ObjClassName:=IntfToPasClassName(ObjClassName)
+      else if (aInfo.PropType is TIDLTypeDefDefinition) then
+        begin
+        TypeName:=TIDLTypeDefDefinition(aInfo.PropType).TypeName;
+        TypeName:=TypeAliases.Values[TypeName];
+        if TypeName<>'' then
+          ObjClassName:=IntfToPasClassName(TypeName)
+        end;
+
       end;
     Result:='ReadJSPropertyObject('''+aMemberName+''','+ObjClassName+') as '+aInfo.NativeTypeName;
   end;

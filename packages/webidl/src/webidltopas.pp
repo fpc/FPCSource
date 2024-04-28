@@ -132,6 +132,7 @@ type
     FContext: TWebIDLContext;
     FDictionaryClassParent: String;
     FFieldPrefix: String;
+    FGeneratingImplementation: Boolean;
     FGlobalVars: TStrings;
     FInputStream: TStream;
     FOutputStream: TStream;
@@ -293,6 +294,7 @@ type
     procedure Execute; virtual;
     procedure WriteOptions; virtual;
     function IsKeyWord(const S: String): Boolean; override;
+    Property GeneratingImplementation : Boolean Read FGeneratingImplementation;
   Public
     Property InputFileName: String Read FInputFileName Write FInputFileName;
     Property InputStream: TStream Read FInputStream Write FInputStream;
@@ -1222,6 +1224,7 @@ Var
   Msg : String;
 
 begin
+  FGeneratingImplementation:=True;
   Msg:='';
   DoLog('Writing implementation section');
   Addln('');
@@ -1245,6 +1248,7 @@ begin
       Msg:=SErrBeforeException;
     DoLog('Wrote %d of %d definitions%s',[Cnt,Context.Definitions.Count,Msg]);
   end;
+  FGeneratingImplementation:=False;
 end;
 
 procedure TBaseWebIDLToPas.WriteDefinitionImplementation(D: TIDLDefinition);
@@ -1709,8 +1713,7 @@ begin
           Inc(Result);
 end;
 
-function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList;
-  ForceBrackets: Boolean): String;
+function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList; ForceBrackets: Boolean): String;
 
 Var
   I, ArgType: TIDLDefinition;
@@ -2173,6 +2176,8 @@ procedure TBaseWebIDLToPas.WritePascal;
 var
   i: Integer;
   Line: String;
+  aList : TIDLDefinitionList;
+
 begin
   CreateUnitClause;
   CreateHeader;
@@ -2191,9 +2196,19 @@ begin
   DoLog('Generating typedefs and callback definitions');
   WriteTypeDefsAndCallbacks(Context.Definitions);
   DoLog('Generating dictionary definitions');
-  WriteDictionaryDefs(Context.Definitions);
+  aList:=Context.GetDictionariesTopologically;
+  try
+    WriteDictionaryDefs(aList);
+  finally
+    aList.Free;
+  end;
   DoLog('Generating interface definitions');
-  WriteInterfaceDefs(Context.GetInterfacesTopologically);
+  aList:=Context.GetInterfacesTopologically;
+  try
+    WriteInterfaceDefs(aList);
+  finally
+    aList.Free;
+  end;
   DoLog('Generating namespace definitions');
   WriteNamespaceDefs(Context.Definitions);
   Undent;
@@ -3100,17 +3115,25 @@ var
   D : TIDLDefinition;
 
 begin
+  DoLog('Resolving callback interfaces.');
   ResolveCallbackInterfaces;
+  DoLog('Removing interface forwards.');
   RemoveInterfaceForwards(FContext.Definitions);
+  DoLog('Appending partials to interfaces.');
   FContext.AppendPartials;
+  DoLog('Appending includes to interfaces.');
   FContext.AppendIncludes;
+  DoLog('Adding global identifiers.');
   For D in FContext.Definitions do
     if D.Name<>'' then
     AddGlobalJSIdentifier(D);
+  DoLog('Allocating pascal names.');
   AllocatePasNames(FContext.Definitions);
+  DoLog('Resolving parent interfaces.');
   ResolveParentInterfaces(FContext.Definitions);
+  DoLog('Resolving type definitions.');
   ResolveTypeDefs(FContext.Definitions);
-
+  DoLog('Done processing definitions.');
 end;
 
 procedure TBaseWebIDLToPas.Execute;

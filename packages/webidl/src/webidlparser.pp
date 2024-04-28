@@ -63,6 +63,7 @@ Type
     Procedure AppendPartials; virtual;
     Procedure AppendIncludes; virtual;
     Function GetInterfacesTopologically: TIDLDefinitionList; virtual;
+    function GetDictionariesTopologically: TIDLDefinitionList; virtual;
     Procedure ResolveTypes; virtual;
     procedure ResolveCallbackInterfaces; virtual;
     function CreateCallBackFromInterface(aDef: TIDLInterfaceDefinition): TIDLCallBackDefinition;
@@ -1142,7 +1143,9 @@ begin
         begin
         M.Attributes:=Attrs;
         Attrs:=Nil; // So it does not get freed in except
-        end;
+        end
+      else
+        FreeAndNil(Attrs);
       if not SemicolonSeen then
         GetToken;
       CheckCurrentToken(tkSemicolon);
@@ -1863,17 +1866,25 @@ begin
 end;
 
 type
-  TTopologicalIntf = class
-    Intf: TIDLInterfaceDefinition;
-    Parent: TIDLInterfaceDefinition;
+  TTopologicalDef = class
     Level: integer;
     SrcPos: integer;
   end;
 
-function CompareTopologicalIntfWithLevelAndSrcPos(Data1, Data2: Pointer): integer;
+  TTopologicalIntf = class (TTopologicalDef)
+    Intf: TIDLInterfaceDefinition;
+    Parent: TIDLInterfaceDefinition;
+  end;
+
+  TTopologicalDict = class (TTopologicalDef)
+    Dict: TIDLDictionaryDefinition;
+    Parent: TIDLDictionaryDefinition;
+  end;
+
+function CompareTopologicalDefWithLevelAndSrcPos(Data1, Data2: Pointer): integer;
 var
-  A: TTopologicalIntf absolute Data1;
-  B: TTopologicalIntf absolute Data2;
+  A: TTopologicalDef absolute Data1;
+  B: TTopologicalDef absolute Data2;
 begin
   if A.Level<B.Level then
     Result:=-1
@@ -1965,6 +1976,7 @@ var
   Top: TTopologicalIntf;
   i: Integer;
 begin
+  Writeln('Getting interfaces topologically');
   Result:=nil;
   List:=TFPList.Create;
   try
@@ -1987,18 +1999,134 @@ begin
     // sort topologically (keeping source order)
     for i:=0 to List.Count-1 do
       GetTopologicalLevel(TTopologicalIntf(List[i]));
-    MergeSort(List,@CompareTopologicalIntfWithLevelAndSrcPos);
+    MergeSort(List,@CompareTopologicalDefWithLevelAndSrcPos);
 
     Result:=TIDLDefinitionList.Create(nil,false);
     for i:=0 to List.Count-1 do
       begin
       Top:=TTopologicalIntf(List[i]);
       Result.Add(Top.Intf);
+      Top.Free;
       end;
   finally
     List.Free;
   end;
 end;
+
+function TWebIDLContext.GetDictionariesTopologically: TIDLDefinitionList;
+var
+  List: TFPList; // list of TTopologicalIntf
+
+  function FindDict(Dict: TIDLDictionaryDefinition): TTopologicalDict;
+  var
+    i: Integer;
+  begin
+    for i:=0 to List.Count-1 do
+      if TTopologicalDict(List[i]).Dict=Dict then
+        exit(TTopologicalDict(List[i]));
+    Result:=nil;
+  end;
+
+  function FindParent(Top: TTopologicalDict): TIDLDictionaryDefinition;
+  var
+    ParentDict, DictDef: TIDLDictionaryDefinition;
+    Def: TIDLDefinition;
+  begin
+    DictDef:=Top.Dict;
+    if (Top.Parent=nil) and (DictDef.ParentName<>'') then
+      begin
+      ParentDict:=DictDef.ParentDictionary;
+      if ParentDict<>nil then
+        Top.Parent:=ParentDict
+      else
+        begin
+        Def:=FindDefinition(DictDef.ParentName);
+        if Def is TIDLDictionaryDefinition then
+          Top.Parent:=TIDLDictionaryDefinition(Def)
+        else if Def=nil then
+          begin
+          raise EConvertError.Create('[20220725182112] Dictionary "'+DictDef.Name+'" at '+GetDefPos(DictDef)+', parent "'+DictDef.ParentName+'" not found');
+          end
+        else
+          raise EConvertError.Create('[20220725182109] [TWebIDLContext.GetDictionarysTopologically] Dictionary "'+DictDef.Name+'" at '+GetDefPos(DictDef)+', parent "'+DictDef.ParentName+'" is not a Dictionary at '+GetDefPos(Def));
+        end;
+      end;
+    Result:=Top.Parent;
+  end;
+
+  function GetTopologicalLevel(Top: TTopologicalDict): integer;
+  var
+    ParentTop: TTopologicalDict;
+    {$IFDEF VerboseWebIDLParser}
+    IntfDef: TIDLDictionaryDefinition;
+    {$ENDIF}
+  begin
+    {$IFDEF VerboseWebIDLParser}
+    IntfDef:=Top.Intf;
+    {$ENDIF}
+    if Top.Level<0 then
+      begin
+      if Top.Parent=nil then
+        Top.Level:=0
+      else
+        begin
+        ParentTop:=FindDict(Top.Parent);
+        if ParentTop=nil then
+          begin
+          {$IFDEF VerboseWebIDLParser}
+          Log('Warning: [20220725182101] [TWebIDLContext.GetDictionarysTopologically] Dictionary "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
+          {$ENDIF}
+          Top.Level:=0;
+          end
+        else
+          Top.Level:=GetTopologicalLevel(ParentTop)+1;
+        end;
+      end;
+    Result:=Top.Level;
+  end;
+
+var
+  D: TIDLDefinition;
+  DictDef: TIDLDictionaryDefinition;
+  Top: TTopologicalDict;
+  i: Integer;
+begin
+  Result:=nil;
+  List:=TFPList.Create;
+  try
+    // collect all Dictionarys
+    for D in Definitions do
+      if D is TIDLDictionaryDefinition then
+        begin
+        DictDef:=TIDLDictionaryDefinition(D);
+        if DictDef.IsPartial then continue;
+        Top:=TTopologicalDict.Create;
+        Top.Dict:=DictDef;
+        Top.Level:=-1;
+        Top.SrcPos:=List.Count;
+        List.Add(Top);
+        end;
+    // set parent Dictionarys
+    for i:=0 to List.Count-1 do
+      FindParent(TTopologicalDict(List[i]));
+
+    // sort topologically (keeping source order)
+    for i:=0 to List.Count-1 do
+      GetTopologicalLevel(TTopologicalDict(List[i]));
+    MergeSort(List,@CompareTopologicalDefWithLevelAndSrcPos);
+
+    Result:=TIDLDefinitionList.Create(nil,false);
+    for i:=0 to List.Count-1 do
+      begin
+      Top:=TTopologicalDict(List[i]);
+      Result.Add(Top.Dict);
+      Top.Free;
+      end;
+  finally
+    List.Free;
+  end;
+end;
+
 
 procedure TWebIDLContext.ResolveParentTypes;
 
