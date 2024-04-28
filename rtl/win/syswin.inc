@@ -471,7 +471,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TE
                     Error Message writing using messageboxes
 ****************************************************************************}
 
-function MessageBox(w1:THandle;l1,l2:pointer;w2:longint):longint;
+function MessageBox(hWnd:THandle;lpText,lpCaption:PAnsiChar;uType:uint32):longint;
    stdcall;external 'user32' name 'MessageBoxA';
 
 const
@@ -480,43 +480,79 @@ var
   ErrorBuf : array[0..ErrorBufferLength] of AnsiChar;
   ErrorLen : SizeInt;
 
+procedure ShowError(final: boolean);
+const
+  IDCANCEL = 2;
+var
+  showStart, showEnd, tailStart, errLen: SizeInt;
+begin
+  errLen:=ErrorLen; { Local copy of ErrorLen, to soften (when multithreading) or avoid (with single thread) reenterancy issues. }
+  { See e.g. comment in ErrorOpen about why not set ErrorLen := 0 there. }
+  tailStart:=errLen;
+  if tailStart=0 then
+    exit;
+
+  { Search for last line ending to show prettier message.
+    line1 #13 #10 line2 #13 #10 line3
+                        ^       ^
+                   showEnd     tailStart
+    #0 is then written at showEnd (possibly overwriting EOL character). In the worst case of race, there always will be #0 at ErrorBufferLength. }
+  if not final then
+    begin
+      while (tailStart>ErrorBufferLength div 2) and not (ErrorBuf[tailStart-1] in [#13,#10]) do
+        dec(tailStart);
+      if tailStart=ErrorBufferLength div 2 then
+        tailStart:=errLen;
+    end;
+
+  if not NoErrMsg then
+    begin
+      { Strip trailing EOLs even if final. Required when not final (to have a spare character for #0), but even if final, they aren’t pretty and don’t add to anything. }
+      showEnd:=tailStart;
+      while (showEnd>0) and (ErrorBuf[showEnd-1] in [#13,#10]) do
+        dec(showEnd);
+
+      { Also strip starting EOLs. }
+      showStart:=0;
+      while (showStart<showEnd) and (ErrorBuf[showStart] in [#13,#10]) do
+        inc(showStart);
+
+      ErrorBuf[showEnd]:=#0;
+      NoErrMsg:=NoErrMsg or (MessageBox(0,@ErrorBuf[showStart],nil,ord(not final) {MB_OK is 0 and MB_OKCANCEL is 1})=IDCANCEL);
+    end;
+
+  dec(errLen,tailStart);
+  Move(ErrorBuf[tailStart],ErrorBuf[0],errLen*sizeof(ErrorBuf[0]));
+  ErrorLen:=errLen;
+end;
+
 procedure ErrorWrite(Var F: TextRec);
 {
   An error message should always end with #13#10#13#10
 }
 var
-  i : SizeInt;
+  i,errLen : SizeInt;
 Begin
   while F.BufPos>0 do
     begin
-      begin
-        if F.BufPos+ErrorLen>ErrorBufferLength then
-          i:=ErrorBufferLength-ErrorLen
-        else
-          i:=F.BufPos;
-        Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
-        inc(ErrorLen,i);
-        ErrorBuf[ErrorLen]:=#0;
-      end;
-      if ErrorLen=ErrorBufferLength then
-        begin
-          if not NoErrMsg then
-            MessageBox(0,@ErrorBuf,PAnsiChar('Error'),0);
-          ErrorLen:=0;
-        end;
+      errLen:=ErrorLen; { Not required for single thread unlike in ShowError, but still prevents crashes on races. }
+      i:=ErrorBufferLength-errLen;
+      if i>F.BufPos then
+        i:=F.BufPos;
+      Move(F.BufPtr^,ErrorBuf[errLen],i);
+      inc(errLen,i);
+      ErrorLen:=errLen;
+      if errLen=ErrorBufferLength then
+        ShowError(false);
       Dec(F.BufPos,i);
+      Move(PAnsiChar(F.BufPtr^)[i],F.BufPtr^[0],F.BufPos);
     end;
 End;
 
 
 procedure ErrorClose(Var F: TextRec);
 begin
-  if ErrorLen>0 then
-   begin
-     MessageBox(0,@ErrorBuf,PAnsiChar('Error'),0);
-     ErrorLen:=0;
-   end;
-  ErrorLen:=0;
+  ShowError(true);
 end;
 
 
@@ -525,7 +561,7 @@ Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
-  ErrorLen:=0;
+  { Better not to set ErrorLen := 0 here: MessageBox performed by ShowError might/will lead to TLS callbacks that might/will open their own stderrs... }
 End;
 
 
