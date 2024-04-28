@@ -1333,9 +1333,7 @@ implementation
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,const_align(sizeof(pint))));
            include(current_module.moduleflags,mf_threadvars);
            current_module.add_public_asmsym(sym);
-         end
-       else
-         s:='';
+         end;
        tcb.Free;
     end;
 
