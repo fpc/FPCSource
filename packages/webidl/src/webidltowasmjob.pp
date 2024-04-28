@@ -1472,6 +1472,8 @@ begin
         ObjClassName:=IntfToPasClassName(ObjClassName)
       else if (aInfo.PropType is TIDLTypeDefDefinition) then
         begin
+        // Check if we have a typedef for an aliased type. Example: BigInteger = Uint8Array
+        // must result in TJSUint8Array.
         TypeName:=TIDLTypeDefDefinition(aInfo.PropType).TypeName;
         TypeName:=TypeAliases.Values[TypeName];
         if TypeName<>'' then
