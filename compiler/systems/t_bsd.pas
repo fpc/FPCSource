@@ -127,7 +127,9 @@ procedure TLinkerBSD.SetDefaultInfo;
 var
   LdProgram: string='ld';
 begin
-  if cs_link_lld in current_settings.globalswitches then
+  { Force ld.lld usage for x86_64 openbsd system,
+    because GNU linker generates wrong executable's on x86_64 OpenBSD 7.5 }
+  if (cs_link_lld in current_settings.globalswitches) or (target_info.system = system_x86_64_openbsd) then
     LdProgram:='ld.lld'
   else if target_info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
     LdProgram:='ld.bfd';
