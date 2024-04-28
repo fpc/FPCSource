@@ -577,6 +577,7 @@ var
 begin
   Result:=0;
   aPasIntfName:=GetPasIntfName(Intf);
+  AddLn('class function JSClassName: UnicodeString; override;');
   AddLn('class function Cast(const Intf: IJSObject): '+aPasIntfName+';');
 end;
 
@@ -2020,12 +2021,23 @@ end;
 procedure TWebIDLToPasWasmJob.WriteUtilityMethodImplementations(aDef : TIDLStructuredDefinition; ML : TIDLDefinitionList);
 
 var
-  aClassName, aPasIntfName: TIDLString;
+  aJSClassName,aClassName, aPasIntfName: TIDLString;
 
 begin
   if (ML=Nil) then ; // Silence compiler warning
   aClassName:=GetPasName(aDef);
   aPasIntfName:=GetPasIntfName(aDef);
+  if aDef.StructuredType=sdDictionary then
+    aJSClassName:='Object'
+  else
+    aJSClassName:=aDef.Name;
+  AddLn('class function %s.JSClassName: UnicodeString;',[aClassName]);
+  AddLn('begin');
+  Indent;
+  AddLn('Result:=''%s'';',[aJSClassName]);
+  Undent;
+  AddLn('end;');
+  AddLn('');
   AddLn('class function %s.Cast(const Intf: IJSObject): %s;',[aClassName,aPasIntfName]);
   AddLn('begin');
   Indent;
