@@ -406,7 +406,9 @@ implementation
                 last:=0;
                 lastrange:=false;
                 first:=true;
+                cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                 genitem(hp);
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;

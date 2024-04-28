@@ -240,8 +240,10 @@ implementation
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
+                      cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
+                      cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     end;
                   last:=t^._low;
                   lastrange:=false;
@@ -252,6 +254,7 @@ implementation
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
                   { ELSE-label                                }
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   if first then
                     begin
                        { have we to ajust the first value ? }
@@ -287,6 +290,7 @@ implementation
                     cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range, hregister);
 
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   last:=t^._high;
                   lastrange:=true;
                end;

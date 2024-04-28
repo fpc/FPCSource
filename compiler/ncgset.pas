@@ -769,11 +769,13 @@ implementation
                   last:=0;
                   first:=true;
                   scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   genitem(hp);
                 end
               else
                 begin
                   { If only one label exists, we can greatly simplify the checks to a simple comparison }
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   if hp^._low=hp^._high then
                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                   else
@@ -783,6 +785,7 @@ implementation
                       hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
                     end;
                 end;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
            end;
       end;
@@ -1080,7 +1083,9 @@ implementation
       begin
          last:=0;
          lastwasrange:=false;
+         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
          genitem(hp);
+         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
          hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
       end;
 
