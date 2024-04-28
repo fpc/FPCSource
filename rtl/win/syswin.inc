@@ -227,13 +227,13 @@ type
 
 function ParseCommandLine(cmdLine: PWideChar; args: PPWideChar; chars: PWideChar): ParseCommandLineResult;
 var
-  argStartInCmdLine: PWideChar;
-  nArgChars, nArgCharsPlusQuotes, nachars: SizeInt;
+  argsStartInCmdLine: PWideChar;
+  nCharsUpToPrevArg, nCharsPlusQuotes: SizeInt;
   c, quote: WideChar;
   skippingFirstArg: boolean;
 begin
-  argStartInCmdLine:=cmdLine;
-  nArgChars:=0;
+  argsStartInCmdLine:=cmdLine;
+  nCharsUpToPrevArg:=0;
   FillChar(result,sizeof(result),0);
   skippingFirstArg:=true;
   quote:=' ';
@@ -244,26 +244,13 @@ begin
       #0..#32:
         if (quote=' ') or (c=#0) then
           begin
-            if (nArgChars<>0) then
+            if (result.nchars>nCharsUpToPrevArg) then
               begin
                 // End of an argument found
                 if Assigned(chars) then
-                  chars[result.nchars]:=#0
-                else
-                  begin
-                    { Number of widechars in the argument, including quotes: cmdLine - 1 - argStartInCmdLine. Avoid implicit signed div. }
-                    nArgCharsPlusQuotes:=SizeUint(pointer(cmdLine-1)-pointer(argStartInCmdLine)) div sizeof(widechar);
-                    nachars:=
-                      { Count of ANSI characters in the argument, including quotes. }
-                      WideCharToMultiByte(DefaultSystemCodePage, 0, argStartInCmdLine, nArgCharsPlusQuotes, nil, 0, nil, nil)
-                      { Assume each quote is 1 ANSI character. Subtract the amount of quotes. }
-                      -(nArgCharsPlusQuotes-nArgChars);
-                    if nachars<0 then
-                      nachars:=0; { Paranoia WideCharToMultiByte fail. }
-                    inc(result.nachars, nachars+1{null terminator});
-                  end;
+                  chars[result.nchars]:=#0;
                 inc(result.nchars); { Null terminator. }
-                nArgChars:=0;
+                nCharsUpToPrevArg:=result.nchars;
               end;
             skippingFirstArg:=false;
             if c = #0 then
@@ -285,18 +272,28 @@ begin
     end;
     if skippingFirstArg then
       continue;
-    if nArgChars=0 then
+    if result.nchars=nCharsUpToPrevArg then
       begin
         if Assigned(args) then
           args[result.nargs]:=chars+result.nchars;
         inc(result.nargs);
-        argStartInCmdLine:=cmdLine-1;
+        if result.nchars=0 then
+          argsStartInCmdLine:=cmdLine;
       end;
     if Assigned(chars) then
       chars[result.nchars]:=c;
-    inc(nArgChars);
     inc(result.nchars);
   until false;
+
+  if Assigned(chars) then
+    exit;
+  { Number of widechars in command line starting from argsStartInCmdLine, including markdown: cmdLine - 1 - argsStartInCmdLine. Avoid implicit signed div. }
+  nCharsPlusQuotes:=SizeUint(pointer(cmdLine-1)-pointer(argsStartInCmdLine)) div sizeof(widechar);
+  result.nachars:=
+    { Count of ANSI characters, including markdown. }
+    WideCharToMultiByte(DefaultSystemCodePage, 0, argsStartInCmdLine, nCharsPlusQuotes, nil, 0, nil, nil)
+    { Assume each markdown character (quote, space) is ANSI. Subtract markdown, add null terminators; result.nchars already includes null terminators. }
+    -(nCharsPlusQuotes-result.nchars);
 end;
 
 var
@@ -330,7 +327,7 @@ begin
     if Assigned(argvw) then
       break;
     argvw:=SysGetMem(PtrUint(achars+nArg0A+1+pc.nachars));
-  until false;
+  until not Assigned(argvw); { If ReturnNilIfGrowHeapFails was customized to true, let it crash on allocation failure instead of looping endlessly. }
 
   Move(PWideChar(buf)^, wchars^, nArg0W*sizeof(widechar));
   wchars[nArg0W]:=#0;
