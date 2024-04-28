@@ -6201,67 +6201,62 @@ unit aoptx86;
               MatchInstruction(hp1,A_ADD,A_SUB,[taicpu(p).opsize]) and
               (taicpu(hp1).oper[1]^.reg = ActiveReg) then
               begin
-                if taicpu(hp1).oper[0]^.typ = top_const then
+                { Make sure the flags aren't in use by the second operation }
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegsBetween(TmpUsedRegs, tai(p.next), hp1);
+
+                if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
                   begin
-                    { Merge add const1,%reg; add/sub const2,%reg to add const1+/-const2,%reg }
-                    if taicpu(hp1).opcode = A_ADD then
-                      ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val
-                    else
-                      ThisConst := taicpu(p).oper[0]^.val - taicpu(hp1).oper[0]^.val;
-
-                    Result := True;
-
-                    { Handle any overflows }
-                    case taicpu(p).opsize of
-                      S_B:
-                        taicpu(p).oper[0]^.val := ThisConst and $FF;
-                      S_W:
-                        taicpu(p).oper[0]^.val := ThisConst and $FFFF;
-                      S_L:
-                        taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
-{$ifdef x86_64}
-                      S_Q:
-                        if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
-                          { Overflow; abort }
-                          Result := False
-                        else
-                          taicpu(p).oper[0]^.val := ThisConst;
-{$endif x86_64}
-                      else
-                        InternalError(2021102610);
-                    end;
-
-                    { Result may get set to False again if the combined immediate overflows for S_Q sizes }
-                    if Result then
+                    if taicpu(hp1).oper[0]^.typ = top_const then
                       begin
-                        if (taicpu(p).oper[0]^.val < 0) and
-                          (
-                            ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
-                            ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
-                            ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
-                          ) then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> SUB',p);
-                            taicpu(p).opcode := A_SUB;
-                            taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
-                          end
+                        { Merge add const1,%reg; add/sub const2,%reg to add const1+/-const2,%reg }
+                        if taicpu(hp1).opcode = A_ADD then
+                          ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val
                         else
-                          DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> ADD',p);
-                        RemoveInstruction(hp1);
-                      end;
-                  end
-                else
-                  begin
-                    { Make doubly sure the flags aren't in use because the order of additions may affect them }
-                    TransferUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                    hp2 := p;
+                          ThisConst := taicpu(p).oper[0]^.val - taicpu(hp1).oper[0]^.val;
 
-                    while not (cs_opt_level3 in current_settings.optimizerswitches) and
-                      GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
-                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+                        Result := True;
 
-                    if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                        { Handle any overflows }
+                        case taicpu(p).opsize of
+                          S_B:
+                            taicpu(p).oper[0]^.val := ThisConst and $FF;
+                          S_W:
+                            taicpu(p).oper[0]^.val := ThisConst and $FFFF;
+                          S_L:
+                            taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
+{$ifdef x86_64}
+                          S_Q:
+                            if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
+                              { Overflow; abort }
+                              Result := False
+                            else
+                              taicpu(p).oper[0]^.val := ThisConst;
+{$endif x86_64}
+                          else
+                            InternalError(2021102610);
+                        end;
+
+                        { Result may get set to False again if the combined immediate overflows for S_Q sizes }
+                        if Result then
+                          begin
+                            if (taicpu(p).oper[0]^.val < 0) and
+                              (
+                                ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
+                                ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
+                                ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
+                              ) then
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> SUB',p);
+                                taicpu(p).opcode := A_SUB;
+                                taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
+                              end
+                            else
+                              DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> ADD',p);
+                            RemoveInstruction(hp1);
+                          end;
+                      end
+                    else
                       begin
                         { Move the constant addition to after the reg/ref addition to improve optimisation }
                         DebugMsg(SPeepholeOptimization + 'Add/sub swap 1a done',p);
@@ -7297,63 +7292,58 @@ unit aoptx86;
               MatchInstruction(hp1,A_SUB,[taicpu(p).opsize]) and
               (taicpu(hp1).oper[1]^.reg = ActiveReg) then
               begin
-                if taicpu(hp1).oper[0]^.typ = top_const then
+                { Make sure the flags aren't in use by the second operation }
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegsBetween(TmpUsedRegs, tai(p.next), hp1);
+
+                if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
                   begin
-                    { Merge add const1,%reg; add const2,%reg to add const1+const2,%reg }
-                    ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val;
-                    Result := True;
-
-                    { Handle any overflows }
-                    case taicpu(p).opsize of
-                      S_B:
-                        taicpu(p).oper[0]^.val := ThisConst and $FF;
-                      S_W:
-                        taicpu(p).oper[0]^.val := ThisConst and $FFFF;
-                      S_L:
-                        taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
-{$ifdef x86_64}
-                      S_Q:
-                        if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
-                          { Overflow; abort }
-                          Result := False
-                        else
-                          taicpu(p).oper[0]^.val := ThisConst;
-{$endif x86_64}
-                      else
-                        InternalError(2021102611);
-                    end;
-
-                    { Result may get set to False again if the combined immediate overflows for S_Q sizes }
-                    if Result then
+                    if (taicpu(hp1).oper[0]^.typ = top_const) then
                       begin
-                        if (taicpu(p).oper[0]^.val < 0) and
-                          (
-                            ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
-                            ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
-                            ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
-                          ) then
+                        { Merge add const1,%reg; add const2,%reg to add const1+const2,%reg }
+                        ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val;
+                        Result := True;
+
+                        { Handle any overflows }
+                        case taicpu(p).opsize of
+                          S_B:
+                            taicpu(p).oper[0]^.val := ThisConst and $FF;
+                          S_W:
+                            taicpu(p).oper[0]^.val := ThisConst and $FFFF;
+                          S_L:
+                            taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
+{$ifdef x86_64}
+                          S_Q:
+                            if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
+                              { Overflow; abort }
+                              Result := False
+                            else
+                              taicpu(p).oper[0]^.val := ThisConst;
+{$endif x86_64}
+                          else
+                            InternalError(2021102611);
+                        end;
+
+                        { Result may get set to False again if the combined immediate overflows for S_Q sizes }
+                        if Result then
                           begin
-                            DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> ADD',p);
-                            taicpu(p).opcode := A_SUB;
-                            taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
-                          end
-                        else
-                          DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> SUB',p);
-                        RemoveInstruction(hp1);
-                      end;
-                  end
-                else
-                  begin
-                    { Make doubly sure the flags aren't in use because the order of subtractions may affect them }
-                    TransferUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                    hp2 := p;
-
-                    while not (cs_opt_level3 in current_settings.optimizerswitches) and
-                      GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
-                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
-
-                    if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                            if (taicpu(p).oper[0]^.val < 0) and
+                              (
+                                ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
+                                ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
+                                ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
+                              ) then
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> ADD',p);
+                                taicpu(p).opcode := A_SUB;
+                                taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
+                              end
+                            else
+                              DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> SUB',p);
+                            RemoveInstruction(hp1);
+                          end;
+                      end
+                    else
                       begin
                         { Move the constant subtraction to after the reg/ref addition to improve optimisation }
                         DebugMsg(SPeepholeOptimization + 'Add/sub swap 1b done',p);
