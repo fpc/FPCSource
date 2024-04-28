@@ -6803,9 +6803,10 @@ unit aoptx86;
 
         SubInstr := (taicpu(p).opcode = A_SUB);
 
-        if GetLastInstruction(p, hp1) and
-           (hp1.typ = ait_instruction) and
-           (taicpu(hp1).opsize = taicpu(p).opsize) then
+        if not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
+          GetLastInstruction(p, hp1) and
+          (hp1.typ = ait_instruction) and
+          (taicpu(hp1).opsize = taicpu(p).opsize) then
           begin
             if not (taicpu(p).opsize in [S_B, S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
               { Bad size }
