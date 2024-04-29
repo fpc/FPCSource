@@ -29,17 +29,27 @@ uses
   Classes, SysUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
+const
+  DefaultDottedDefine = 'FPC_DOTTEDUNITS';
+
 Type
-  TCodegenLogType = (cltInfo);
+  TCodegenLogType = (cltInfo,cltWarning);
   TCodegenLogTypes = Set of TCodegenLogType;
   TCodeGeneratorLogEvent = Procedure (Sender : TObject; LogType : TCodegenLogType; Const Msg : String) of object;
   TCodeSection = (csUnknown, csConst, csType, csVar, csResourcestring, csDeclaration);
+  TDottedUnitsSupport = (dusNone,  // Do not enabled support dotted units
+                         dusUses,  // Split uses in dotted and non-dotted
+                         dusFull   // Split uses in dotted and non-dotted, allow unitname to be dotted as well
+                         );
 
   { TPascalCodeGenerator }
 
   TPascalCodeGenerator = Class(TComponent)
   Private
     FAddTimeStamp: Boolean;
+    FDottedDefine: String;
+    FDottedExtraUnits: String;
+    FDottedUnitsSupport: TDottedUnitsSupport;
     FExtraUnits: String;
     FKeywordPrefix: String;
     FKeywordSuffix: String;
@@ -51,6 +61,7 @@ Type
     FSections : Array of TCodeSection;
     FSectionCount : Integer;
     FSwitches: TStrings;
+    function GetDottedDefine: String;
     function GetSection: TCodeSection;
     procedure SetLicenseText(AValue: TStrings);
     procedure SetSection(AValue: TCodeSection);
@@ -60,6 +71,7 @@ Type
     Procedure DoLog(Const Msg : String; AType : TCodegenLogType = cltInfo);
     Procedure DoLog(Const Fmt : String; Args : Array of const; AType : TCodegenLogType = cltInfo);
     Function BaseUnits : String; virtual;
+    Function DottedBaseUnits : String; virtual;
   Public
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -93,6 +105,9 @@ Type
   Published
     Property OutputUnitName : String Read FOutputUnitName Write FOutputUnitName;
     Property ExtraUnits : String Read FExtraUnits Write FExtraUnits;
+    Property DottedExtraUnits : String Read FDottedExtraUnits Write FDottedExtraUnits;
+    Property DottedDefine : String Read GetDottedDefine Write FDottedDefine;
+    Property DottedUnitsSupport : TDottedUnitsSupport Read FDottedUnitsSupport Write FDottedUnitsSupport;
     Property LicenseText : TStrings Read FLicenseText Write SetLicenseText;
     Property Switches : TStrings Read FSwitches Write SetSwitches;
     Property OnLog : TCodeGeneratorLogEvent Read FOnLog Write FOnlog;
@@ -210,6 +225,7 @@ begin
   FSwitches:=TStringList.Create;
   FSwitches.Add('MODE ObjFPC');
   FSwitches.Add('H+');
+  FDottedDefine:=DefaultDottedDefine;
   SetLength(FSections,0);
   FSectionCount:=0;
   PushSection(csUnknown);
@@ -305,6 +321,13 @@ begin
   Result:=FSections[FSectionCount-1];
 end;
 
+function TPascalCodeGenerator.GetDottedDefine: String;
+begin
+  Result:=FDottedDefine;
+  if Result='' then
+    Result:=DefaultDottedDefine;
+end;
+
 procedure TPascalCodeGenerator.SetLicenseText(AValue: TStrings);
 begin
   if FLicenseText=AValue then Exit;
@@ -325,8 +348,23 @@ end;
 
 procedure TPascalCodeGenerator.CreateHeader;
 
+  Function Combine(B,S : String) : string;
+
+  begin
+    Result:=S;
+    if (B<>'') then
+      if (S<>'') then
+        begin
+        if (B[Length(B)]<>',') then
+          B:=B+',';
+        Result:=B+S;
+        end
+      else
+        Result:=B;
+  end;
+
 Var
-  B,S : String;
+  S : String;
 
 begin
   if LicenseText.Count>0 then
@@ -338,24 +376,26 @@ begin
   addln('');
   addln('interface');
   addln('');
-  S:=ExtraUnits;
-  B:=BaseUnits;
-  if (B<>'') then
-    if (S<>'') then
-      begin
-      if (B[Length(B)]<>',') then
-        B:=B+',';
-      S:=B+S;
-      end
-    else
-      S:=B;
-  addln('uses %s;',[S]);
+
+  if DottedUnitsSupport<>dusNone then
+    begin
+    addln('{$IFDEF %s}',[DottedDefine]);
+    addln('uses %s;',[Combine(DottedBaseUnits,DottedExtraUnits)]);
+    addln('{$ELSE %s}',[DottedDefine]);
+    end;
+  addln('uses %s;',[Combine(BaseUnits,ExtraUnits)]);
+  if DottedUnitsSupport<>dusNone then
+    addln('{$ENDIF %s}',[DottedDefine]);
   addln('');
 end;
 
 procedure TPascalCodeGenerator.CreateUnitClause;
 begin
+  if DottedUnitsSupport=dusFull then
+    addln('{$IFNDEF %s}',[DottedDefine]);
   AddLn('Unit %s;',[OutputUnitName]);
+  if DottedUnitsSupport=dusFull then
+    addln('{$ENDIF %s}',[DottedDefine]);
   AddLn('');
 end;
 
@@ -376,6 +416,11 @@ begin
 end;
 
 function TPascalCodeGenerator.BaseUnits: String;
+begin
+  Result:='';
+end;
+
+function TPascalCodeGenerator.DottedBaseUnits: String;
 begin
   Result:='';
 end;
