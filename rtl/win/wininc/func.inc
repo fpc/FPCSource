@@ -1343,8 +1343,9 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   // only in widechar variant.
   function GetDateFormatEx(LocaleName : pwidechar;Flags : DWORD;Date : PSYSTEMTIME; Format : pwidechar; DateBuffer : pwidechar; BufferLen  : longint; Calendar : pwidechar) : BOOL; stdcall; external 'kernel32' name 'GetDateFormatEx';
   function SetThreadExecutionState( esflags:EXECUTION_STATE ) : Cardinal; stdcall; external 'kernel32.dll' name 'SetThreadExecutionState';
-{$endif read_interface}
 
+
+  function GetGUIThreadInfo(InThreadId : DWORD;InoutGuiThreadInfo : PGUITHREADINFO): BOOL; stdcall; external 'user32.dll' name 'GetGUIThreadInfo';{$endif read_interface}
 
 {$ifdef read_implementation}
 
