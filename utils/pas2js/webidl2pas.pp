@@ -269,6 +269,7 @@ begin
   FWebIDLToPas.ClassSuffix:='';
   FWebIDLToPas.KeywordSuffix:='_';
   FWebIDLToPas.KeywordPrefix:='';
+  FWebIDLToPas.DottedUnitsSupport:=dusFull;
 end;
 
 constructor TWebIDLToPasApplication.Create(TheOwner: TComponent);
