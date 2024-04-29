@@ -485,7 +485,7 @@ initialization
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
-  SetThreadStackGuarantee(@StackMargin);
+  SetThreadStackGuaranteeTo(StackMargin);
   
   { get some helpful informations }
   GetStartupInfo(@startupinfo);

@@ -19,11 +19,6 @@
                            Local WINApi imports
 *****************************************************************************}
 
-const
-  { LocalAlloc flags  }
-  LMEM_FIXED = 0;
-  LMEM_ZEROINIT = 64;
-
 {$ifndef WINCE}
 function TlsAlloc : DWord;
   stdcall;external KernelDLL name 'TlsAlloc';
@@ -40,9 +35,6 @@ function CreateThread(lpThreadAttributes : pointer;
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ExitThread';
-function LocalAlloc(uFlags:DWord; dwBytes:SIZE_T):Pointer;
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalAlloc';
-function LocalFree(hMem : Pointer):Pointer; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalFree';
 procedure Sleep(dwMilliseconds: DWord); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'Sleep';
 function  WinSuspendThread (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SuspendThread';
 function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ResumeThread';
@@ -78,21 +70,10 @@ procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
 
 CONST
    WAIT_OBJECT_0 = 0;
-   WAIT_ABANDONED_0 = $80;
    WAIT_TIMEOUT = $102;
-   WAIT_IO_COMPLETION = $c0;
-   WAIT_ABANDONED = $80;
-   WAIT_FAILED = $ffffffff;
 
-{$ifndef SUPPORT_WIN95}
 function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TryEnterCriticalSection';
-{$else SUPPORT_WIN95}
-type
-  TTryEnterCriticalSection = function(var cs : TRTLCriticalSection):longint; stdcall;
-var
-  WinTryEnterCriticalSection : TTryEnterCriticalSection;
-{$endif SUPPORT_WIN95}
 
 {*****************************************************************************
                              Threadvar support
@@ -138,7 +119,7 @@ var
         dataindex:=TlsGetValue(tlskey^);
         if dataindex=nil then
           begin
-            dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
+            dataindex:=HeapAlloc(GetProcessHeap,HEAP_ZERO_MEMORY,threadvarblocksize);
             if dataindex=nil then
               RunError(226);
             TlsSetValue(tlskey^,dataindex);
@@ -194,8 +175,7 @@ var
         if TLSKey^<>$ffffffff then
           begin
             p:=TlsGetValue(tlskey^);
-            if Assigned(p) then
-              LocalFree(p);
+            HeapFree(GetProcessHeap,0,p); { HeapFree is OK with nil. }
             TlsSetValue(tlskey^, nil);
           end;
       end;
@@ -233,7 +213,7 @@ var
 {$ifdef win32}
             if Assigned(SetThreadStackGuarantee) then
 {$endif win32}
-              SetThreadStackGuarantee(@StackMargin);
+              SetThreadStackGuaranteeTo(StackMargin);
 {$endif wince}            
           end;
 
@@ -375,10 +355,10 @@ var
     var
       thrdinfo: THREADNAME_INFO;
     begin
-      thrdinfo:=Default(THREADNAME_INFO);
       thrdinfo.dwType:=$1000;
       thrdinfo.szName:=@ThreadName[1];
       thrdinfo.dwThreadID:=threadHandle;
+      thrdinfo.dwFlags:=0;
       try
         RaiseException(MS_VC_EXCEPTION, 0, SizeOf(thrdinfo) div SizeOf(PtrUInt), @thrdinfo);
       except
@@ -473,35 +453,6 @@ begin
   WinEnterCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
-{$ifdef SUPPORT_WIN95}
-function Win95TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;stdcall;
-var
-  MyThreadID : DWORD;
-begin
-  MyThreadId:=GetCurrentThreadId();
-  if InterlockedIncrement(cs.LockCount)=0 then
-    begin
-      cs.OwningThread:=MyThreadId;
-      cs.RecursionCount:=1;
-      result:=1;
-    end
-  else
-    begin
-      if cs.OwningThread=MyThreadId then
-        begin
-          InterlockedDecrement(cs.LockCount);
-          InterlockedIncrement(cs.RecursionCount);
-          result:=1;
-        end
-      else
-        begin
-          InterlockedDecrement(cs.LockCount);
-          result:=0;
-        end;
-    end;
-end;
-{$endif SUPPORT_WIN95}
-
 function SysTryEnterCriticalSection(var cs):longint;
 begin
   result:=WinTryEnterCriticalSection(PRTLCriticalSection(@cs)^);
@@ -521,14 +472,8 @@ Const
 
 function intBasicEventCreate(EventAttributes : Pointer;
 AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
-var
-  n : PAnsiChar;
 begin
-  if Length(Name) = 0 then
-    n := Nil
-  else
-    n := PAnsiChar(Name);
-  Result := PEventState(CreateEvent(EventAttributes, AManualReset, InitialState,n));
+  Result := PEventState(CreateEvent(EventAttributes, AManualReset, InitialState,Pointer(Name)));
 end;
 
 procedure intbasiceventdestroy(state:peventstate);
@@ -627,12 +572,10 @@ begin
 end;
 
 
-Var
-  WinThreadManager : TThreadManager;
-
 Procedure InitSystemThreads;public name '_FPC_InitSystemThreads';
-{$ifndef WINCE}
 var
+  WinThreadManager : TThreadManager;
+{$ifndef WINCE}
   KernelHandle : THandle;
 {$endif}
 begin
@@ -684,14 +627,6 @@ begin
 {$ifndef WINCE}
   KernelHandle:=GetModuleHandle(KernelDLL);
 {$endif}
-
-{$IFDEF SUPPORT_WIN95}
-  { Try to find TryEnterCriticalSection function }
-  if KernelHandle<>0 then
-    WinTryEnterCriticalSection:=TTryEnterCriticalSection(WinGetProcAddress(KernelHandle,'TryEnterCriticalSection'));
-  if not assigned(WinTryEnterCriticalSection) then
-    WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
-{$ENDIF SUPPORT_WIN95}
 
 {$ifndef WINCE}
   if KernelHandle<>0 then

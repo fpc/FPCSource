@@ -628,7 +628,7 @@ initialization
   StackBottom := StackTop - StackLength;
   CodePointer(SetThreadStackGuarantee) := WinGetProcAddress(WinGetModuleHandleW(KernelDLL), 'SetThreadStackGuarantee');
   if Assigned(SetThreadStackGuarantee) then
-    SetThreadStackGuarantee(@StackMargin);
+    SetThreadStackGuaranteeTo(StackMargin);
 
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap and threading, these may be already initialized from TLS callback }
