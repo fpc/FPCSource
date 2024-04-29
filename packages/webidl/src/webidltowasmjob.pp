@@ -110,9 +110,11 @@ type
     function GetKnownResultAllocator(aDef: TIDLTypeDefinition; ArgTypeName, ArgResolvedTypename: String): string;
     function GetNativeTypeHelperAllocatorName(aNativeType: TPascalNativeType): string;
     function GetNativeTypeHelperGetterName(aNativeType: TPascalNativeType): string;
+    function OnlyConstants(D: TIDLStructuredDefinition): Boolean;
 
   Protected
     function BaseUnits: String; override;
+    function DottedBaseUnits: String; override;
     // Auxiliary routines
     function GetAliasPascalType(D: TIDLDefinition; out PascalTypeName : string): TPascalNativeType; override;
     function GetPasClassName(const aName: String): String; overload; override; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
@@ -224,6 +226,11 @@ implementation
 function TWebIDLToPasWasmJob.BaseUnits: String;
 begin
   Result:='SysUtils, Job.JS';
+end;
+
+function TWebIDLToPasWasmJob.DottedBaseUnits: String;
+begin
+  Result:='System.SysUtils, Wasm.Job.Js';
 end;
 
 function TWebIDLToPasWasmJob.GetAliasPascalType(D: TIDLDefinition; out PascalTypeName: string): TPascalNativeType;
@@ -1438,11 +1445,7 @@ var
 
 begin
   Result:='';
-  if aMemberName='publicExponent' then
-    Writeln('so');
   Case aInfo.NativeType of
-
-
   ntBoolean: ReadFuncName:='ReadJSPropertyBoolean';
   ntShortInt,
   ntByte,
@@ -1751,8 +1754,18 @@ var
   i: Integer;
   VarName, VarType: String;
   NS : TIDLNamespaceDefinition;
+  HaveNamespaces : Boolean;
 
 begin
+  HaveNameSpaces:=False;
+  I:=0;
+  While (Not HaveNameSpaces) and (I<Context.Definitions.Count) do
+    begin
+    HaveNameSpaces:=Context.Definitions[i] is TIDLNamespaceDefinition;
+    Inc(I);
+    end;
+  if HaveNameSpaces then
+    Comment('Namespaces');
   for I:=0 to Context.Definitions.Count-1 do
     if Context.Definitions[i] is TIDLNamespaceDefinition then
       begin
@@ -2113,6 +2126,22 @@ begin
     WriteNamespaceImplemention(D as TIDLNamespaceDefinition);
 end;
 
+function  TWebIDLToPasWasmJob.OnlyConstants(D : TIDLStructuredDefinition) : Boolean;
+
+var
+  i,aCount : Integer;
+
+begin
+  Result:=True;
+  I:=0;
+  aCount:=D.Members.Count;
+  While Result and (I<aCount) do
+    begin
+    Result:=D.Members[i] is TIDLConstDefinition;
+    Inc(I);
+    end;
+end;
+
 procedure TWebIDLToPasWasmJob.WriteImplementation;
 var
   i: Integer;
@@ -2136,10 +2165,11 @@ begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
         if not NSDef.IsPartial and ConvertDef(aDef) then
-          begin
-          PasVarName:=Context.Definitions[i].Name;
-          AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
-          end;
+          if not (OnlyConstants(NSDef) or NSDef.HasPrefAttribute) then
+            begin
+            PasVarName:=Context.Definitions[i].Name;
+            AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
+            end;
       end;
     Undent;
 
@@ -2155,10 +2185,11 @@ begin
       aDef:=Context.Definitions[i];
       if aDef is TIDLNamespaceDefinition then
         if not NSDef.IsPartial and ConvertDef(aDef) then
-          begin
-          PasVarName:=Context.Definitions[i].Name;
-          AddLn(PasVarName+':=Nil;');
-          end;
+          if not (OnlyConstants(NSDef) or NSDef.HasPrefAttribute) then
+            begin
+            PasVarName:=Context.Definitions[i].Name;
+            AddLn(PasVarName+':=Nil;');
+            end;
       end;
     Undent;
     end;

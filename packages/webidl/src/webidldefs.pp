@@ -183,6 +183,8 @@ type
     Function AsString(Full : Boolean): UTF8String; override;
     Function HasAttributes : Boolean;
     Function HasSimpleAttribute(Const AName : UTF8String) : Boolean;
+    Function GetPrefAttribute : String;
+    Function HasPrefAttribute : Boolean;
     Function GetNamePath : String;
     Property Name : UTF8String Read FName Write FName;
     Property Data : TObject Read FData Write FData;
@@ -1627,6 +1629,43 @@ end;
 function TIDLDefinition.HasSimpleAttribute(const AName : UTF8String): Boolean;
 begin
   Result:=HasAttributes and (FAttributes.IndexOf(aName)<>-1);
+end;
+
+function TIDLDefinition.GetPrefAttribute: String;
+
+var
+  I,P : integer;
+  S : String;
+
+begin
+  Result:='';
+  if Not HasAttributes then exit;
+  For I:=0 to FAttributes.Count-1 do
+    begin
+    S:=FAttributes[i];
+    if (Pos('Pref',S)=1) then
+      begin
+      P:=Pos('=',S);
+      if P>0 then
+        Result:=Trim(Copy(FAttributes[i],P+1));
+      Exit;
+      end;
+    end;
+end;
+
+function TIDLDefinition.HasPrefAttribute: Boolean;
+var
+  I : integer;
+  S : String;
+begin
+  Result:=False;
+  if Not HasAttributes then exit;
+  For I:=0 to FAttributes.Count-1 do
+    begin
+    S:=FAttributes[i];
+    if (Pos('Pref',S)=1) and (Pos('=',S)>4) then
+      Exit(True);
+    end;
 end;
 
 function TIDLDefinition.GetNamePath: String;

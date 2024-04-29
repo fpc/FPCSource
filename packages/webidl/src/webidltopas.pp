@@ -459,7 +459,8 @@ begin
   Result:=False;
   For D in aList do
     if D is TIDLConstDefinition then
-      Exit(True);
+      if ConvertDef(D) then
+        Exit(True);
 end;
 
 function TBaseWebIDLToPas.WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;
