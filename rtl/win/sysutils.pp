@@ -157,33 +157,20 @@ function GetFileVersion(const AFileName:Ansistring):Cardinal;
     { useful only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
     bufp : pointer;
-    fn : string;
     valsize,
     size : DWORD;
-    h : DWORD;
     valrec : PVSFixedFileInfo;
   begin
     result:=$fffffff;
-    fn:=AFileName;
-    UniqueString(fn);
-    size:=GetFileVersionInfoSizeA(PAnsiChar(fn),@h);
+    size:=GetFileVersionInfoSizeA(PAnsiChar(AFileName),nil);
+    bufp:=@buf;
     if size>sizeof(buf) then
-      begin
-        getmem(bufp,size);
-        try
-          if GetFileVersionInfoA(PAnsiChar(fn),h,size,bufp) then
-            if VerQueryValue(bufp,'\',valrec,valsize) then
-              result:=valrec^.dwFileVersionMS;
-        finally
-          freemem(bufp);
-        end;
-      end
-    else
-      begin
-        if GetFileVersionInfoA(PAnsiChar(fn),h,size,@buf) then
-          if VerQueryValue(@buf,'\',valrec,valsize) then
-            result:=valrec^.dwFileVersionMS;
-      end;
+      bufp:=getmem(size);
+    if GetFileVersionInfoA(PAnsiChar(AFileName),0,size,bufp) then
+      if VerQueryValue(bufp,'\',valrec,valsize) then
+        result:=valrec^.dwFileVersionMS;
+    if bufp<>@buf then
+      freemem(bufp);
   end;
 
 function GetFileVersion(const AFileName:UnicodeString):Cardinal;
@@ -191,33 +178,20 @@ function GetFileVersion(const AFileName:UnicodeString):Cardinal;
     { useful only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
     bufp : pointer;
-    fn : unicodestring;
     valsize,
     size : DWORD;
-    h : DWORD;
     valrec : PVSFixedFileInfo;
   begin
     result:=$fffffff;
-    fn:=AFileName;
-    UniqueString(fn);
-    size:=GetFileVersionInfoSizeW(pwidechar(fn),@h);
+    size:=GetFileVersionInfoSizeW(PUnicodeChar(AFileName),nil);
+    bufp:=@buf;
     if size>sizeof(buf) then
-      begin
-        getmem(bufp,size);
-        try
-          if GetFileVersionInfoW(pwidechar(fn),h,size,bufp) then
-            if VerQueryValue(bufp,'\',valrec,valsize) then
-              result:=valrec^.dwFileVersionMS;
-        finally
-          freemem(bufp);
-        end;
-      end
-    else
-      begin
-        if GetFileVersionInfoW(pwidechar(fn),h,size,@buf) then
-          if VerQueryValueW(@buf,'\',valrec,valsize) then
-            result:=valrec^.dwFileVersionMS;
-      end;
+      bufp:=getmem(size);
+    if GetFileVersionInfoW(PUnicodeChar(AFileName),0,size,bufp) then
+      if VerQueryValue(bufp,'\',valrec,valsize) then
+        result:=valrec^.dwFileVersionMS;
+    if bufp<>@buf then
+      freemem(bufp);
   end;
 
 {$define HASCREATEGUID}
