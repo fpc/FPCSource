@@ -184,7 +184,7 @@ unit cgx86;
     function UseLeave: boolean;
 
     { Gets the byte alignment of a reference }
-    function GetRefAlignment(ref: treference): Byte;
+    function GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
 
   implementation
 

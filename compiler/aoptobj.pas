@@ -486,7 +486,7 @@ Unit AoptObj;
 {$endif DEBUG_AOPTOBJ}
 
 
-    function JumpTargetOp(ai: taicpu): poper; inline;
+    function JumpTargetOp(ai: taicpu): poper; {$IFDEF USEINLINE}inline;{$ENDIF}
       begin
 {$if defined(MIPS) or defined(riscv64) or defined(riscv32) or defined(xtensa) or defined(loongarch64)}
         { Branches of above archs can have 1,2 or 3 operands, target label is the last one. }
