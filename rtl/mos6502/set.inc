@@ -35,4 +35,8 @@ begin
   ga := not gb;
   ga := -gb;
   gwa := -gwb;
+  ga := gb shl gc;
+  ga := gb shr gc;
+  gwa := gwb shl gwc;
+  gwa := gwb shr gwc;
 end;

@@ -161,8 +161,8 @@ unit cgcpu;
         A_NONE,   { OP_NOT  }
         A_ORA,    { OP_OR   }
         A_NONE,   { OP_SAR  }
-        A_NONE,   { OP_SHL  }
-        A_NONE,   { OP_SHR  }
+        A_ASL,    { OP_SHL  }
+        A_LSR,    { OP_SHR  }
         A_NONE,   { OP_SUB  }
         A_EOR,    { OP_XOR  }
         A_NONE,   { OP_ROL  }
@@ -722,7 +722,12 @@ unit cgcpu;
              end;
          end;
 
-       //var
+       const
+         shiftcountreg = NR_X;
+         maskshiftcount = true;
+       var
+         skipshift, shiftloopstart, rornocarry: TAsmLabel;
+         shiftthruaccumulator: Boolean;
        //  tmpreg,tmpreg2: tregister;
        //  instr : taicpu;
        //  l1,l2 : tasmlabel;
@@ -813,74 +818,145 @@ unit cgcpu;
                generator                                          }
              internalerror(2017032604);
 
-         //  OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
-         //    begin
-         //      current_asmdata.getjumplabel(l1);
-         //      current_asmdata.getjumplabel(l2);
-         //      getcpuregister(list,NR_B);
-         //      emit_mov(list,NR_B,src);
-         //      list.concat(taicpu.op_reg(A_INC,NR_B));
-         //      list.concat(taicpu.op_reg(A_DEC,NR_B));
-         //      a_jmp_flags(list,F_E,l2);
-         //      if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-         //        case op of
-         //          OP_ROL:
-         //            begin
-         //              list.concat(taicpu.op_reg(A_RRC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-         //              list.concat(taicpu.op_reg(A_RLC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-         //            end;
-         //          OP_ROR:
-         //            begin
-         //              list.concat(taicpu.op_reg(A_RLC,dst));
-         //              list.concat(taicpu.op_reg(A_RRC,dst));
-         //            end;
-         //          else
-         //            ;
-         //        end;
-         //      cg.a_label(list,l1);
-         //      case op of
-         //        OP_SHL:
-         //          list.concat(taicpu.op_reg(A_SLA,dst));
-         //        OP_SHR:
-         //          list.concat(taicpu.op_reg(A_SRL,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-         //        OP_SAR:
-         //          list.concat(taicpu.op_reg(A_SRA,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-         //        OP_ROL:
-         //          if size in [OS_8,OS_S8] then
-         //            list.concat(taicpu.op_reg(A_RLC,dst))
-         //          else
-         //            list.concat(taicpu.op_reg(A_RL,dst));
-         //        OP_ROR:
-         //          if size in [OS_8,OS_S8] then
-         //            list.concat(taicpu.op_reg(A_RRC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)))
-         //          else
-         //            list.concat(taicpu.op_reg(A_RR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-         //        else
-         //          internalerror(2020040903);
-         //      end;
-         //      if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-         //        begin
-         //          for i:=2 to tcgsize2size[size] do
-         //            begin
-         //              case op of
-         //                OP_ROR,
-         //                OP_SHR,
-         //                OP_SAR:
-         //                  list.concat(taicpu.op_reg(A_RR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i)));
-         //                OP_ROL,
-         //                OP_SHL:
-         //                  list.concat(taicpu.op_reg(A_RL,GetOffsetReg64(dst,dsthi,i-1)));
-         //                else
-         //                  internalerror(2020040904);
-         //              end;
-         //          end;
-         //        end;
-         //      instr:=taicpu.op_sym(A_DJNZ,l1);
-         //      instr.is_jmp:=true;
-         //      list.concat(instr);
-         //      ungetcpuregister(list,NR_B);
-         //      cg.a_label(list,l2);
-         //    end;
+           OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
+             begin
+               current_asmdata.getjumplabel(skipshift);
+               current_asmdata.getjumplabel(shiftloopstart);
+               if maskshiftcount then
+                 begin
+                   getcpuregister(list,NR_A);
+                   a_load_reg_reg(list,OS_8,OS_8,src,NR_A);
+                   case size of
+                     OS_64,OS_S64:
+                       list.Concat(taicpu.op_const(A_AND,63));
+                     OS_32,OS_S32,OS_16,OS_S16,OS_8,OS_S8:
+                       list.Concat(taicpu.op_const(A_AND,31));
+                     else
+                       internalerror(2024050101);
+                   end;
+                   list.Concat(taicpu.op_cond_sym(A_Bxx,C_EQ,skipshift));
+                   getcpuregister(list,shiftcountreg);
+                   a_load_reg_reg(list,OS_8,OS_8,NR_A,shiftcountreg); { TAX/TAY }
+                   ungetcpuregister(list,NR_A);
+                 end
+               else
+                 begin
+                   getcpuregister(list,shiftcountreg);
+                   a_load_reg_reg(list,OS_8,OS_8,src,shiftcountreg);  { LDX/LDY }
+                   { BEQ skip (the zero flag has already been set by the LDX/LDY instruction) }
+                   list.Concat(taicpu.op_cond_sym(A_Bxx,C_EQ,skipshift));
+                 end;
+
+               shiftthruaccumulator:=(size in [OS_8,OS_S8]) and not(cs_opt_size in current_settings.optimizerswitches);
+
+               if shiftthruaccumulator then
+                 begin
+                   { mov dest to A }
+                   getcpuregister(list,NR_A);
+                   a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+                 end;
+
+               cg.a_label(list,shiftloopstart);
+
+               if shiftthruaccumulator then
+                 case op of
+                   OP_SHL,OP_SHR:
+                     list.concat(taicpu.op_reg(topcg2asmop[op],NR_A));
+                   OP_SAR:
+                     begin
+                       list.concat(taicpu.op_const(A_CMP,$80));
+                       list.concat(taicpu.op_reg(A_ROR,NR_A));
+                     end;
+                   OP_ROL:
+                     begin
+                       list.concat(taicpu.op_reg(A_ASL,NR_A));
+                       list.concat(taicpu.op_const(A_ADC,0));
+                     end;
+                   OP_ROR:
+                     begin
+                       list.concat(taicpu.op_reg(A_LSR,NR_A));
+                       current_asmdata.getjumplabel(rornocarry);
+                       list.concat(taicpu.op_cond_sym(A_Bxx,C_CC,rornocarry));
+                       list.concat(taicpu.op_const(A_ADC,$7F));
+                       cg.a_label(list,rornocarry);
+                     end;
+                   else
+                     internalerror(2024050102);
+                 end
+               else
+                 case op of
+                   OP_SHL:
+                     begin
+                       list.concat(taicpu.op_reg(A_ASL,dst));
+                       for i:=1 to tcgsize2size[size]-1 do
+                         list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(dst,dsthi,i)));
+                     end;
+                   OP_ROL:
+                     begin
+                       getcpuregister(list,NR_A);
+                       a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
+                       list.concat(taicpu.op_reg(A_ASL,NR_A));
+                       for i:=1 to tcgsize2size[size]-1 do
+                         list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(dst,dsthi,i)));
+                       list.concat(taicpu.op_const(A_ADC,0));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                       ungetcpuregister(list,NR_A);
+                     end;
+                   OP_SHR:
+                     begin
+                       list.concat(taicpu.op_reg(A_LSR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
+                       for i:=tcgsize2size[size]-2 downto 0 do
+                         list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,i)));
+                     end;
+                   OP_SAR:
+                     begin
+                       getcpuregister(list,NR_A);
+                       a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1),NR_A);
+                       list.concat(taicpu.op_const(A_CMP,$80));
+                       list.concat(taicpu.op_reg(A_ROR,NR_A));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1));
+                       ungetcpuregister(list,NR_A);
+                       for i:=tcgsize2size[size]-2 downto 0 do
+                         list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,i)));
+                     end;
+                   OP_ROR:
+                     begin
+                       getcpuregister(list,NR_A);
+                       a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1),NR_A);
+                       list.concat(taicpu.op_reg(A_LSR,NR_A));
+                       for i:=tcgsize2size[size]-2 downto 0 do
+                         list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,i)));
+                       current_asmdata.getjumplabel(rornocarry);
+                       list.concat(taicpu.op_cond_sym(A_Bxx,C_CC,rornocarry));
+                       list.concat(taicpu.op_const(A_ADC,$7F));
+                       cg.a_label(list,rornocarry);
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1));
+                       ungetcpuregister(list,NR_A);
+                     end;
+                   else
+                     internalerror(2024050104);
+                 end;
+
+               { DEX/DEY }
+               case shiftcountreg of
+                 NR_X:
+                   list.concat(taicpu.op_none(A_DEX));
+                 NR_Y:
+                   list.concat(taicpu.op_none(A_DEY));
+                 else
+                   internalerror(2024050103);
+               end;
+               list.concat(taicpu.op_cond_sym(A_Bxx,C_NE,shiftloopstart));
+
+               { mov A to dest }
+               if shiftthruaccumulator then
+                 begin
+                   a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                   ungetcpuregister(list,NR_A);
+                 end;
+
+               cg.a_label(list,skipshift);
+             end;
 
            OP_AND,OP_OR,OP_XOR:
              begin
