@@ -94,8 +94,8 @@ Const
     Simple trimming functions.
   ---------------------------------------------------------------------}
 
-Function DateOf(const AValue: TDateTime): TDateTime;
-Function TimeOf(const AValue: TDateTime): TDateTime;
+Function DateOf(const AValue: TDateTime): TDateTime; inline;
+Function TimeOf(const AValue: TDateTime): TDateTime; inline;
 
 { ---------------------------------------------------------------------
     Identification functions.
@@ -128,7 +128,7 @@ Function DaysInAMonth(const AYear, AMonth: Word): Word;
   ---------------------------------------------------------------------}
 
 
-Function Today: TDateTime;
+Function Today: TDateTime; inline;
 Function Yesterday: TDateTime;
 Function Tomorrow: TDateTime;
 Function IsToday(const AValue: TDateTime): Boolean;
@@ -142,7 +142,7 @@ Function PreviousDayOfWeek (DayOfWeek : Word) : Word;
 
 Function YearOf(const AValue: TDateTime): Word;
 Function MonthOf(const AValue: TDateTime): Word;
-Function WeekOf(const AValue: TDateTime): Word;
+Function WeekOf(const AValue: TDateTime): Word; inline;
 Function DayOf(const AValue: TDateTime): Word;
 Function HourOf(const AValue: TDateTime): Word;
 Function MinuteOf(const AValue: TDateTime): Word;
@@ -164,7 +164,7 @@ Function EndOfAYear(const AYear: Word): TDateTime;
 
 Function StartOfTheMonth(const AValue: TDateTime): TDateTime;
 Function EndOfTheMonth(const AValue: TDateTime): TDateTime;
-Function StartOfAMonth(const AYear, AMonth: Word): TDateTime;
+Function StartOfAMonth(const AYear, AMonth: Word): TDateTime; inline;
 Function EndOfAMonth(const AYear, AMonth: Word): TDateTime;
 
 { ---------------------------------------------------------------------
@@ -175,8 +175,8 @@ Function EndOfAMonth(const AYear, AMonth: Word): TDateTime;
 Function StartOfTheWeek(const AValue: TDateTime): TDateTime;
 Function EndOfTheWeek(const AValue: TDateTime): TDateTime;
 Function StartOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
-Function StartOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; // ADayOFWeek 1
-Function EndOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
+Function StartOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; inline; // ADayOFWeek 1
+Function EndOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime; inline;
 Function EndOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; // const ADayOfWeek: Word = 7
 
 
@@ -184,18 +184,18 @@ Function EndOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; // const ADayOfW
     Start/End of day functions.
   ---------------------------------------------------------------------}
 
-Function StartOfTheDay(const AValue: TDateTime): TDateTime;
+Function StartOfTheDay(const AValue: TDateTime): TDateTime; inline;
 Function EndOfTheDay(const AValue: TDateTime): TDateTime;
-Function StartOfADay(const AYear, AMonth, ADay: Word): TDateTime; overload;
+Function StartOfADay(const AYear, AMonth, ADay: Word): TDateTime; overload; inline;
 Function StartOfADay(const AYear, ADayOfYear: Word): TDateTime; overload;
-Function EndOfADay(const AYear, AMonth, ADay: Word): TDateTime; overload;
+Function EndOfADay(const AYear, AMonth, ADay: Word): TDateTime; overload; inline;
 Function EndOfADay(const AYear, ADayOfYear: Word): TDateTime; overload;
 
 { ---------------------------------------------------------------------
     Part of year functions.
   ---------------------------------------------------------------------}
 
-Function MonthOfTheYear(const AValue: TDateTime): Word;
+Function MonthOfTheYear(const AValue: TDateTime): Word; inline;
 Function WeekOfTheYear(const AValue: TDateTime): Word; overload;
 Function WeekOfTheYear(const AValue: TDateTime; out AYear: Word): Word; overload;
 Function DayOfTheYear(const AValue: TDateTime): Word;
@@ -230,7 +230,7 @@ Function MilliSecondOfTheWeek(const AValue: TDateTime): LongWord;
     Part of day functions.
   ---------------------------------------------------------------------}
 
-Function HourOfTheDay(const AValue: TDateTime): Word;
+Function HourOfTheDay(const AValue: TDateTime): Word; inline;
 Function MinuteOfTheDay(const AValue: TDateTime): Word;
 Function SecondOfTheDay(const AValue: TDateTime): LongWord;
 Function MilliSecondOfTheDay(const AValue: TDateTime): LongWord;
@@ -239,7 +239,7 @@ Function MilliSecondOfTheDay(const AValue: TDateTime): LongWord;
     Part of hour functions.
   ---------------------------------------------------------------------}
 
-Function MinuteOfTheHour(const AValue: TDateTime): Word;
+Function MinuteOfTheHour(const AValue: TDateTime): Word; inline;
 Function SecondOfTheHour(const AValue: TDateTime): Word;
 Function MilliSecondOfTheHour(const AValue: TDateTime): LongWord;
 
@@ -248,28 +248,28 @@ Function MilliSecondOfTheHour(const AValue: TDateTime): LongWord;
   ---------------------------------------------------------------------}
 
 
-Function SecondOfTheMinute(const AValue: TDateTime): Word;
+Function SecondOfTheMinute(const AValue: TDateTime): Word; inline;
 Function MilliSecondOfTheMinute(const AValue: TDateTime): LongWord;
 
 { ---------------------------------------------------------------------
     Part of second functions.
   ---------------------------------------------------------------------}
 
-Function MilliSecondOfTheSecond(const AValue: TDateTime): Word;
+Function MilliSecondOfTheSecond(const AValue: TDateTime): Word; inline;
 
 
 { ---------------------------------------------------------------------
     Range checking functions.
   ---------------------------------------------------------------------}
 
-Function WithinPastYears(const ANow, AThen: TDateTime; const AYears: Integer): Boolean;
-Function WithinPastMonths(const ANow, AThen: TDateTime; const AMonths: Integer): Boolean;
-Function WithinPastWeeks(const ANow, AThen: TDateTime; const AWeeks: Integer): Boolean;
-Function WithinPastDays(const ANow, AThen: TDateTime; const ADays: Integer): Boolean;
-Function WithinPastHours(const ANow, AThen: TDateTime; const AHours: Int64): Boolean;
-Function WithinPastMinutes(const ANow, AThen: TDateTime; const AMinutes: Int64): Boolean;
-Function WithinPastSeconds(const ANow, AThen: TDateTime; const ASeconds: Int64): Boolean;
-Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSeconds: Int64): Boolean;
+Function WithinPastYears(const ANow, AThen: TDateTime; const AYears: Integer): Boolean; inline;
+Function WithinPastMonths(const ANow, AThen: TDateTime; const AMonths: Integer): Boolean; inline;
+Function WithinPastWeeks(const ANow, AThen: TDateTime; const AWeeks: Integer): Boolean; inline;
+Function WithinPastDays(const ANow, AThen: TDateTime; const ADays: Integer): Boolean; inline;
+Function WithinPastHours(const ANow, AThen: TDateTime; const AHours: Int64): Boolean; inline;
+Function WithinPastMinutes(const ANow, AThen: TDateTime; const AMinutes: Int64): Boolean; inline;
+Function WithinPastSeconds(const ANow, AThen: TDateTime; const ASeconds: Int64): Boolean; inline;
+Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSeconds: Int64): Boolean; inline;
 
 { ---------------------------------------------------------------------
     Period functions.
@@ -384,7 +384,7 @@ Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
 Function CompareDate(const A, B: TDateTime): TValueRelationship;
 Function CompareTime(const A, B: TDateTime): TValueRelationship;
 Function SameDateTime(const A, B: TDateTime): Boolean;
-Function SameDate(const A, B: TDateTime): Boolean;
+Function SameDate(const A, B: TDateTime): Boolean; inline;
 Function SameTime(const A, B: TDateTime): Boolean;
 function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
 function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;

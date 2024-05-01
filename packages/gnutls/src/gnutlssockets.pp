@@ -71,8 +71,8 @@ Type
   TGNUTLSX509Certificate = class(TX509Certificate)
   private
     FMyFormat : tgnutls_x509_crt_fmt_t;
-    procedure Check(Aret: cint);
-    procedure Check(Aexp: Boolean; Aret: cint);
+    procedure Check(Aret: cint); inline;
+    procedure Check(Aexp: Boolean; Aret: cint); inline;
     function GenCACert(const Aca_priv_key: TBytes; const Acommon_name, Aserial: AnsiString; Adays: Word): TBytes;
     function GenPrivKey: TBytes;
     function GenSrvCert(const Aca_priv_key, Aca_pem, Asrv_priv_key: TBytes; const Acommon_name, Aorganization, Aserial: AnsiString;
