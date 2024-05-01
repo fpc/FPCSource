@@ -13,7 +13,7 @@ Const
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   
-  NoSocketsOSes       = [iphonesim,ios,amiga,aros,morphos,wasi];
+  NoSocketsOSes       = [amiga,aros,morphos,wasi];
   NoApacheOSes        = [amiga,aros,morphos,wasi];
   
   ApacheOSes          = AllOSes - NoApacheOSes;
