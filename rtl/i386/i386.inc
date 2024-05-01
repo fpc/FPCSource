@@ -2539,7 +2539,7 @@ asm
 {$endif CPUX86_HAS_SSE2}
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
   { reads imply barrier on earlier reads depended on }
 end;

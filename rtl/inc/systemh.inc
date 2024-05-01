@@ -928,10 +928,11 @@ procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:Ansichar):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
 procedure Prefetch(const mem);[internproc:fpc_in_prefetch_var];
-procedure ReadBarrier;
-procedure ReadDependencyBarrier;
-procedure ReadWriteBarrier;
-procedure WriteBarrier;
+
+procedure ReadBarrier; {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier; {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier; {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier; {$ifdef SYSTEMINLINE}inline;{$endif}
 {$ifdef cpui8086}
 procedure MoveData(srcseg,srcoff,destseg,destoff:Word;n:Word);
 {$endif cpui8086}
@@ -1029,8 +1030,8 @@ Function Odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLIN
 
 function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-function SwapEndian(const AValue: LongInt): LongInt;
-function SwapEndian(const AValue: DWord): DWord;
+function SwapEndian(const AValue: LongInt): LongInt{$ifdef SYSTEMINLINE}inline;{$endif}
+function SwapEndian(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: Int64): Int64;
 function SwapEndian(const AValue: QWord): QWord;
 

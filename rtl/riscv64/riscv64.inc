@@ -239,7 +239,7 @@ procedure ReadBarrier; assembler; nostackframe;
   end;
 
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
   begin
   end;
 

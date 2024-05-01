@@ -31,14 +31,14 @@ var
 {$endif}
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;
 asm
         movq    %rsp,%rax
 end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;
 asm
         movq    %rbp,%rax
 end;
@@ -51,7 +51,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
 begin
   get_caller_addr:=framebp;
   if assigned(framebp) then
@@ -60,7 +60,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
 begin
   get_caller_frame:=framebp;
   if assigned(framebp) then
@@ -1532,22 +1532,22 @@ Procedure SysResetFPU;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
   lfence
 end;
 
-procedure ReadDependencyBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;assembler;nostackframe;
 asm
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
   mfence
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
   sfence
 end;

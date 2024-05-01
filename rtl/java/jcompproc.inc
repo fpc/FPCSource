@@ -99,16 +99,16 @@ procedure fpc_ShortStr_Currency({$ifdef cpujvm}constref{$endif} c : currency; le
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a : array of AnsiChar); compilerproc;
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of AnsiChar); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$ifndef FPUNONE}
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$endif}
 {$ifndef FPC_STR_ENUM_INTERN}
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$endif FPC_STR_ENUM_INTERN}
-procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -125,8 +125,8 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
   procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of AnsiChar); compilerproc;
   procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of AnsiChar); compilerproc;
   {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-  procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-  procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+  procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
   {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}

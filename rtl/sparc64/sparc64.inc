@@ -486,7 +486,7 @@ const
 {$define CPUSPARC_HAS_MEMBAR}
 {$endif}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
 {$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1
@@ -495,12 +495,12 @@ asm
 {$endif}
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
 {$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1
@@ -509,7 +509,7 @@ asm
 {$endif}
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
 {$ifdef CPUSPARC_HAS_MEMBAR}
   ba,pt .L1

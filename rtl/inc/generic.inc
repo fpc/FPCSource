@@ -2971,19 +2971,19 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;
 begin
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
 end;
 
-procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;
 begin
 end;
 
-procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;
 begin
 end;
 

@@ -663,7 +663,7 @@ procedure SumsAndSquares(const data : PSingle; Const N : Integer;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SumOfSquares(const data : array of double) : float;
+function SumOfSquares(const data : array of double) : float;inline;
 function SumOfSquares(const data : PDouble; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
 procedure SumsAndSquares(const data : array of Double;
@@ -2239,7 +2239,7 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
   end;
 
 procedure sumsandsquares(const data : array of Double;
-  var sum,sumofsquares : float);
+  var sum,sumofsquares : float); inline;
 begin
   sumsandsquares (PDouble(@Data[0]),High(Data)+1,Sum,sumofsquares);
 end;
