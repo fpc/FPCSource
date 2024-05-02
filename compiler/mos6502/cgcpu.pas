@@ -997,11 +997,12 @@ unit cgcpu;
          mask : qword;
          shift : byte;
          curvalue : byte;
-       //  tmpop: TAsmOp;
+         tmpop: TAsmOp;
        //  l1: TAsmLabel;
        //  instr: taicpu;
          tmpreg : tregister;
          tmpreg64 : tregister64;
+         FirstADCSBC: Boolean;
 
        begin
          optimize_op_const(size,op,a);
@@ -1187,84 +1188,96 @@ unit cgcpu;
        //              end;
        //          end;
        //      end;
-       //    OP_ADD:
-       //      begin
-       //        curvalue:=a and mask;
-       //        tmpop:=A_NONE;
-       //        for i:=1 to tcgsize2size[size] do
-       //          begin
-       //            if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
-       //              tmpop:=A_INC
-       //            else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
-       //              tmpop:=A_DEC
-       //            else if (tmpop=A_NONE) and (curvalue<>0) then
-       //              tmpop:=A_ADD
-       //            else if tmpop=A_ADD then
-       //              tmpop:=A_ADC;
-       //            case tmpop of
-       //              A_NONE:
-       //                {nothing};
-       //              A_INC,A_DEC:
-       //                list.concat(taicpu.op_reg(tmpop,reg));
-       //              A_ADD,A_ADC:
-       //                begin
-       //                  getcpuregister(list,NR_A);
-       //                  emit_mov(list,NR_A,reg);
-       //                  list.concat(taicpu.op_reg_const(tmpop,NR_A,curvalue));
-       //                  emit_mov(list,reg,NR_A);
-       //                  ungetcpuregister(list,NR_A);
-       //                end;
-       //              else
-       //                internalerror(2020040901);
-       //            end;
-       //            if i<>tcgsize2size[size] then
-       //              begin
-       //                NextReg;
-       //                mask:=mask shl 8;
-       //                inc(shift,8);
-       //                curvalue:=(qword(a) and mask) shr shift;
-       //              end;
-       //          end;
-       //      end;
-       //    OP_SUB:
-       //      begin
-       //        curvalue:=a and mask;
-       //        tmpop:=A_NONE;
-       //        for i:=1 to tcgsize2size[size] do
-       //          begin
-       //            if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
-       //              tmpop:=A_DEC
-       //            else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
-       //              tmpop:=A_INC
-       //            else if (tmpop=A_NONE) and (curvalue<>0) then
-       //              tmpop:=A_SUB
-       //            else if tmpop=A_SUB then
-       //              tmpop:=A_SBC;
-       //            case tmpop of
-       //              A_NONE:
-       //                {nothing};
-       //              A_DEC,A_INC:
-       //                list.concat(taicpu.op_reg(tmpop,reg));
-       //              A_SUB,A_SBC:
-       //                begin
-       //                  getcpuregister(list,NR_A);
-       //                  emit_mov(list,NR_A,reg);
-       //                  list.concat(taicpu.op_reg_const(tmpop,NR_A,curvalue));
-       //                  emit_mov(list,reg,NR_A);
-       //                  ungetcpuregister(list,NR_A);
-       //                end;
-       //              else
-       //                internalerror(2020040902);
-       //            end;
-       //            if i<>tcgsize2size[size] then
-       //              begin
-       //                NextReg;
-       //                mask:=mask shl 8;
-       //                inc(shift,8);
-       //                curvalue:=(qword(a) and mask) shr shift;
-       //              end;
-       //          end;
-       //      end;
+           OP_ADD:
+             begin
+               curvalue:=a and mask;
+               tmpop:=A_NONE;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
+                     tmpop:=A_INC
+                   else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
+                     tmpop:=A_DEC
+                   else if (tmpop=A_NONE) and (curvalue<>0) then
+                     begin
+                       tmpop:=A_ADC;
+                       FirstADCSBC:=True;
+                     end;
+                   case tmpop of
+                     A_NONE:
+                       {nothing};
+                     A_INC,A_DEC:
+                       list.concat(taicpu.op_reg(tmpop,reg));
+                     A_ADC:
+                       begin
+                         getcpuregister(list,NR_A);
+                         a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                         if FirstADCSBC then
+                           begin
+                             list.concat(taicpu.op_none(A_CLC));
+                             FirstADCSBC:=False;
+                           end;
+                         list.concat(taicpu.op_const(tmpop,curvalue));
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     else
+                       internalerror(2020040901);
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
+           OP_SUB:
+             begin
+               curvalue:=a and mask;
+               tmpop:=A_NONE;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
+                     tmpop:=A_DEC
+                   else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
+                     tmpop:=A_INC
+                   else if (tmpop=A_NONE) and (curvalue<>0) then
+                     begin
+                       tmpop:=A_SBC;
+                       FirstADCSBC:=True;
+                     end;
+                   case tmpop of
+                     A_NONE:
+                       {nothing};
+                     A_DEC,A_INC:
+                       list.concat(taicpu.op_reg(tmpop,reg));
+                     A_SBC:
+                       begin
+                         getcpuregister(list,NR_A);
+                         a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                         if FirstADCSBC then
+                           begin
+                             list.concat(taicpu.op_none(A_SEC));
+                             FirstADCSBC:=False;
+                           end;
+                         list.concat(taicpu.op_const(tmpop,curvalue));
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     else
+                       internalerror(2020040902);
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
          else
            begin
              if size in [OS_64,OS_S64] then
