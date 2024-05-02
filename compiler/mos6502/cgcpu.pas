@@ -1051,34 +1051,39 @@ unit cgcpu;
                      end;
                  end;
              end;
-       //    OP_OR:
-       //      begin
-       //        curvalue:=a and mask;
-       //        for i:=1 to tcgsize2size[size] do
-       //          begin
-       //            case curvalue of
-       //              0:
-       //                {nothing};
-       //              $ff:
-       //                list.concat(taicpu.op_reg_const(A_LD,reg,$ff));
-       //              else
-       //                begin
-       //                  getcpuregister(list,NR_A);
-       //                  emit_mov(list,NR_A,reg);
-       //                  list.concat(taicpu.op_reg_const(A_OR,NR_A,curvalue));
-       //                  emit_mov(list,reg,NR_A);
-       //                  ungetcpuregister(list,NR_A);
-       //                end;
-       //            end;
-       //            if i<>tcgsize2size[size] then
-       //              begin
-       //                NextReg;
-       //                mask:=mask shl 8;
-       //                inc(shift,8);
-       //                curvalue:=(qword(a) and mask) shr shift;
-       //              end;
-       //          end;
-       //      end;
+           OP_OR:
+             begin
+               curvalue:=a and mask;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   case curvalue of
+                     0:
+                       {nothing};
+                     $ff:
+                       begin
+                         getcpuregister(list,NR_A);
+                         list.concat(taicpu.op_const(A_LDA,$ff));
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     else
+                       begin
+                         getcpuregister(list,NR_A);
+                         emit_mov(list,NR_A,reg);
+                         list.concat(taicpu.op_const(A_ORA,curvalue));
+                         emit_mov(list,reg,NR_A);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
        //    OP_XOR:
        //      begin
        //        curvalue:=a and mask;
