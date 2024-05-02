@@ -1069,9 +1069,9 @@ unit cgcpu;
                      else
                        begin
                          getcpuregister(list,NR_A);
-                         emit_mov(list,NR_A,reg);
+                         a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
                          list.concat(taicpu.op_const(A_ORA,curvalue));
-                         emit_mov(list,reg,NR_A);
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
                          ungetcpuregister(list,NR_A);
                        end;
                    end;
