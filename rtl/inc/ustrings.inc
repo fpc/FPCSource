@@ -1327,24 +1327,31 @@ end;
 {$define FPC_HAS_INSERT_UNICODESTR}
 Procedure {$ifdef VER3_0}Insert{$else}fpc_unicodestr_insert{$endif}(Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
 var
-  Temp : UnicodeString;
-  LS : SizeInt;
+  LS,LSource : SizeInt;
+  selfinsert : boolean;
+  srcp : PUnicodeChar;
 begin
-  If Length(Source)=0 then
+  If Source='' then
    exit;
-  if index <= 0 then
-   index := 1;
-  Ls:=Length(S);
-  if index > LS then
-   index := LS+1;
+  if S='' then
+    begin
+      S:=Source;
+      exit;
+    end;
+  LSource:=PUnicodeRec(Pointer(Source)-UnicodeFirstOff)^.Len;
+  LS:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len;
   Dec(Index);
-  SetLength(Temp,Length(Source)+LS);
-  If Index>0 then
-    move (PUnicodeChar(S)^,PUnicodeChar(Temp)^,Index*sizeof(UnicodeChar));
-  Move (PUnicodeChar(Source)^,PUnicodeChar(Temp)[Index],Length(Source)*sizeof(UnicodeChar));
-  If (LS-Index)>0 then
-    Move(PUnicodeChar(S)[Index],PUnicodeChar(temp)[Length(Source)+index],(LS-Index)*sizeof(UnicodeChar));
-  S:=Temp;
+  if index < 0 then
+   index := 0;
+  if index > LS then
+   index := LS;
+  selfinsert:=Pointer(Source)=Pointer(S);
+  SetLength(S,LSource+LS);
+  Move(PUnicodeChar(Pointer(S))[Index],PUnicodeChar(Pointer(S))[Index+LSource],(LS-Index)*sizeof(UnicodeChar));
+  srcp:=Pointer(Source);
+  if selfinsert then
+    srcp:=Pointer(S);
+  Move(srcp^,PUnicodeChar(Pointer(S))[Index],LSource*SizeOf(UnicodeChar));
 end;
 {$endif FPC_HAS_INSERT_UNICODESTR}
 

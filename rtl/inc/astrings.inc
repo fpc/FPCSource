@@ -1331,30 +1331,46 @@ end;
 
 Procedure {$ifdef VER3_0}Insert{$else}fpc_ansistr_insert{$endif}(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
 var
+  LS,LSource : SizeInt;
+{$ifdef jvm}
   Temp : RawByteString;
-  LS : SizeInt;
-  cp : TSystemCodePage;
+{$else}
+  selfinsert : boolean;
+  srcp : PAnsiChar;
+{$endif}
 begin
-  If Length(Source)=0 then
+  If Source='' then
    exit;
-  if index <= 0 then
-   index := 1;
-  Ls:=Length(S);
-  if index > LS then
-   index := LS+1;
+  if S='' then
+    begin
+      S:=Source;
+      exit;
+    end;
+  LSource:={$ifdef jvm}Length(Source){$else}PAnsiRec(Pointer(Source)-AnsiFirstOff)^.Len{$endif};
+  LS:={$ifdef jvm}Length(S){$else}PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len{$endif};
   Dec(Index);
-  SetLength(Temp,Length(Source)+LS);
-  if length(S)<>0 then
-    cp:=TranslatePlaceholderCP(StringCodePage(S))
-  else
-    cp:=TranslatePlaceholderCP(StringCodePage(Source));
-  SetCodePage(Temp,cp,false);
+  if index < 0 then
+   index := 0;
+  if index > LS then
+   index := LS;
+{$ifdef jvm}
+  SetLength(Temp,LSource+LS);
+  SetCodePage(Temp,StringCodePage(S),false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),0,Temp,0,Index);
-  fpc_pchar_ansistr_intern_charmove(PAnsiChar(Source),0,Temp,Index,Length(Source));
+  fpc_pchar_ansistr_intern_charmove(PAnsiChar(Source),0,Temp,Index,LSource);
   If (LS-Index)>0 then
-    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index,Temp,Length(Source)+Index,LS-Index);
+    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index,Temp,LSource+Index,LS-Index);
   S:=Temp;
+{$else}
+  selfinsert:=Pointer(Source)=Pointer(S);
+  SetLength(S,LS+LSource);
+  Move(PAnsiChar(Pointer(S))[Index],PAnsiChar(Pointer(S))[Index+LSource],(LS-Index)*SizeOf(AnsiChar));
+  srcp:=Pointer(Source);
+  if selfinsert then
+    srcp:=Pointer(S);
+  Move(srcp^,PAnsiChar(Pointer(S))[Index],LSource*SizeOf(AnsiChar));
+{$endif}
 end;
 
 
