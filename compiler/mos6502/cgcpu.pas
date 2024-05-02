@@ -994,9 +994,9 @@ unit cgcpu;
          end;
 
        var
-       //  mask : qword;
-       //  shift : byte;
-       //  curvalue : byte;
+         mask : qword;
+         shift : byte;
+         curvalue : byte;
        //  tmpop: TAsmOp;
        //  l1: TAsmLabel;
        //  instr: taicpu;
@@ -1005,8 +1005,8 @@ unit cgcpu;
 
        begin
          optimize_op_const(size,op,a);
-       //  mask:=$ff;
-       //  shift:=0;
+         mask:=$ff;
+         shift:=0;
        //  l1:=nil;
          case op of
            OP_NONE:
@@ -1018,34 +1018,39 @@ unit cgcpu;
                { Optimized, replaced with a simple load }
                a_load_const_reg(list,size,a,reg);
              end;
-       //    OP_AND:
-       //      begin
-       //        curvalue:=a and mask;
-       //        for i:=1 to tcgsize2size[size] do
-       //          begin
-       //            case curvalue of
-       //              0:
-       //                list.concat(taicpu.op_reg_const(A_LD,reg,0));
-       //              $ff:
-       //                {nothing};
-       //              else
-       //                begin
-       //                  getcpuregister(list,NR_A);
-       //                  emit_mov(list,NR_A,reg);
-       //                  list.concat(taicpu.op_reg_const(A_AND,NR_A,curvalue));
-       //                  emit_mov(list,reg,NR_A);
-       //                  ungetcpuregister(list,NR_A);
-       //                end;
-       //            end;
-       //            if i<>tcgsize2size[size] then
-       //              begin
-       //                NextReg;
-       //                mask:=mask shl 8;
-       //                inc(shift,8);
-       //                curvalue:=(qword(a) and mask) shr shift;
-       //              end;
-       //          end;
-       //      end;
+           OP_AND:
+             begin
+               curvalue:=a and mask;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   case curvalue of
+                     0:
+                       begin
+                         getcpuregister(list,NR_A);
+                         list.concat(taicpu.op_const(A_LDA,0));
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     $ff:
+                       {nothing};
+                     else
+                       begin
+                         getcpuregister(list,NR_A);
+                         a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                         list.concat(taicpu.op_const(A_AND,curvalue));
+                         a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
        //    OP_OR:
        //      begin
        //        curvalue:=a and mask;
