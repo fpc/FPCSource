@@ -4,6 +4,10 @@
 {$goto on}
 {$ifndef DISABLE_INLINE}
   {$inline on}
+  { Inline small functions, but not when EXTDEBUG is used }
+  {$ifndef EXTDEBUG}
+    {$define USEINLINE}
+  {$endif EXTDEBUG}
 {$endif}
 {$interfaces corba}
 
@@ -30,11 +34,6 @@
 {$if defined(win32) or defined(win64) or defined(unix)}
   {$define cpawaremessages}
 {$endif}
-
-{ Inline small functions, but not when EXTDEBUG is used }
-{$ifndef EXTDEBUG}
-  {$define USEINLINE}
-{$endif EXTDEBUG}
 
 {$ifdef DEBUG_ALL_OPT}
   { for aopt unit }
