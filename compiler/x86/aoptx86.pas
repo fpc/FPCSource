@@ -16870,7 +16870,8 @@ unit aoptx86;
                 case taicpu(hp1).condition of
                   C_None:
                     begin
-                      if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                      if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                        not RegLoadedWithNewValue(NR_DEFAULTFLAGS, hp1) then
                         { Something is not quite normal, so play safe and don't change }
                         IsValid := False;
 
