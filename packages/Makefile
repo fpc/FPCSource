@@ -1724,7 +1724,6 @@ FPMAKE_OPT+=-bu
 ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-scp
 endif
-.NOTPARALLEL:
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap
 fpmake$(SRCEXEEXT): fpmake.pp $(SUB_FPMAKE_SRCS) fpmake_add.inc fpmake_proc.inc
