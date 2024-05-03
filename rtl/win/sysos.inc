@@ -275,17 +275,6 @@ type
   function GetModuleHandle(p : PAnsiChar) : THandle;
     stdcall;external KernelDLL name 'GetModuleHandleA';
 
-  { memory functions }
-const
-  HEAP_ZERO_MEMORY = $8;
-
-  function GetProcessHeap : THandle;
-    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
-  function HeapAlloc(hHeap : THandle; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
-    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapAlloc';
-  function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
-    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapFree';
-
 {$ifdef win64}
   { all win64 versions have this function, including 64 bit XP }
   function SetThreadStackGuarantee(StackSizeInBytes : PUint32) : BOOL;
@@ -310,6 +299,17 @@ var
      cdecl;external KernelDLL name 'GetModuleHandleW';
 
 {$endif WINCE}
+  { memory functions }
+const
+  HEAP_ZERO_MEMORY = $8;
+
+  function GetProcessHeap : THandle;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
+  function HeapAlloc(hHeap : THandle; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapAlloc';
+  function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapFree';
+
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
