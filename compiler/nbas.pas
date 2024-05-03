@@ -124,6 +124,7 @@ interface
           destructor destroy; override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function dogetcopy : tnode;override;
           function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -731,6 +732,13 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putset(tppuset1(blocknodeflags));
+      end;
+
+
+    function tblocknode.dogetcopy : tnode;
+      begin
+        Result:=inherited dogetcopy;
+        TBlockNode(Result).blocknodeflags:=blocknodeflags;
       end;
 
 
