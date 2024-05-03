@@ -41,6 +41,8 @@ unit agsdas6500;
 
       TSdccSdas6500Assembler=class(TExternalAssembler)
       private
+        FSkipLabelNr: Integer;
+        function GetNextSkipLabelNr: Integer;
         procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
@@ -50,6 +52,8 @@ unit agsdas6500;
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteExternals;
       public
+        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
         function MakeCmdLine: TCmdStr; override;
@@ -76,6 +80,14 @@ unit agsdas6500;
         #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
         #9'.dw'#9,#9'FIXMEDD'#9,#9'FIXMEDQ'#9
       );
+
+
+    function TSdccSdas6500Assembler.GetNextSkipLabelNr: Integer;
+      begin
+        Inc(FSkipLabelNr);
+        Result:=FSkipLabelNr;
+      end;
+
 
     procedure TSdccSdas6500Assembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
       var
@@ -309,6 +321,22 @@ unit agsdas6500;
       end;
 
     procedure TSdccSdas6500Assembler.WriteInstruction(hp: taicpu);
+
+      procedure WriteInvertedBranchInstruction;
+        var
+          id: Integer;
+        begin
+          id:=GetNextSkipLabelNr;
+          writer.AsmWrite(#9#9'b'+cond2str[inverse_cond(hp.condition)]+#9);
+          WriteOper_jmp(taicpu(hp).oper[0]^,hp);
+          writer.AsmWriteln('_skip'+tostr(id));
+          writer.AsmWrite(#9#9'jmp'#9);
+          WriteOper_jmp(taicpu(hp).oper[0]^,hp);
+          writer.AsmLn;
+          WriteOper_jmp(taicpu(hp).oper[0]^,hp);
+          writer.AsmWriteln('_skip'+tostr(id)+':');
+        end;
+
       var
         i: Integer;
       begin
@@ -316,7 +344,12 @@ unit agsdas6500;
           begin
             if hp.condition=C_None then
               internalerror(2024040702);
+{$if 0}
             writer.AsmWrite(#9#9'b'+cond2str[hp.condition]);
+{$else}
+            WriteInvertedBranchInstruction;
+            exit;
+{$endif}
           end
         else
           begin
@@ -490,6 +523,12 @@ unit agsdas6500;
               writer.AsmWriteln(#9'.globl'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
         writer.AsmWriteln('; End externals');
+      end;
+
+    Constructor TSdccSdas6500Assembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+      begin
+        FSkipLabelNr:=-1;
+        inherited;
       end;
 
     procedure TSdccSdas6500Assembler.WriteTree(p: TAsmList);
