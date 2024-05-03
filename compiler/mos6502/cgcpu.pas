@@ -2255,27 +2255,61 @@ unit cgcpu;
 
 
     procedure tcgmos6502.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
-      //var
-      //  l : TAsmLabel;
-      //  tmpflags : TResFlags;
+      var
+        l1,l2 : TAsmLabel;
       begin
-        //if f in [F_C,F_NC] then
-        //  begin
-        //    a_load_const_reg(list,size,0,reg);
-        //    if f=F_NC then
-        //      list.concat(taicpu.op_none(A_CCF));
-        //    list.concat(taicpu.op_reg(A_RL,reg));
-        //  end
-        //else
-        //  begin
-        //    current_asmdata.getjumplabel(l);
-        //    a_load_const_reg(list,size,0,reg);
-        //    tmpflags:=f;
-        //    inverse_flags(tmpflags);
-        //    a_jmp_flags(list,tmpflags,l);
-        //    list.concat(taicpu.op_reg(A_INC,reg));
-        //    cg.a_label(list,l);
-        //  end;
+        if f=F_CS then
+          begin
+            if reg<>NR_A then
+              getcpuregister(list,NR_A);
+            list.concat(taicpu.op_const(A_LDA,0));
+            list.concat(taicpu.op_reg(A_ASL,NR_A));
+            if reg<>NR_A then
+              begin
+                a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                ungetcpuregister(list,NR_A);
+              end;
+          end
+        else if reg=NR_X then
+          begin
+            current_asmdata.getjumplabel(l1);
+            current_asmdata.getjumplabel(l2);
+            a_jmp_flags(list,f,l1);
+            list.concat(taicpu.op_const(A_LDX,0));
+            a_jmp_always(list,l2);
+            cg.a_label(list,l1);
+            list.concat(taicpu.op_const(A_LDX,1));
+            cg.a_label(list,l2);
+          end
+        else if reg=NR_Y then
+          begin
+            current_asmdata.getjumplabel(l1);
+            current_asmdata.getjumplabel(l2);
+            a_jmp_flags(list,f,l1);
+            list.concat(taicpu.op_const(A_LDY,0));
+            a_jmp_always(list,l2);
+            cg.a_label(list,l1);
+            list.concat(taicpu.op_const(A_LDY,1));
+            cg.a_label(list,l2);
+          end
+        else
+          begin
+            if reg<>NR_A then
+              getcpuregister(list,NR_A);
+            current_asmdata.getjumplabel(l1);
+            current_asmdata.getjumplabel(l2);
+            a_jmp_flags(list,f,l1);
+            list.concat(taicpu.op_const(A_LDA,0));
+            a_jmp_always(list,l2);
+            cg.a_label(list,l1);
+            list.concat(taicpu.op_const(A_LDA,1));
+            cg.a_label(list,l2);
+            if reg<>NR_A then
+              begin
+                a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+                ungetcpuregister(list,NR_A);
+              end;
+          end;
       end;
 
 
