@@ -1387,7 +1387,10 @@ implementation
                   end;
              end;
            _BEGIN :
-             code:=statement_block(_BEGIN);
+             begin
+               code:=statement_block(_BEGIN);
+               Include(TBlockNode(code).blocknodeflags, bnf_strippable);
+             end;
            _IF :
              code:=if_statement;
            _CASE :
