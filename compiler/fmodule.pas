@@ -113,7 +113,6 @@ interface
       public
         is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
-        do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded }
         is_dbginfo_written,
@@ -647,7 +646,6 @@ implementation
         globalmacrosymtable:=nil;
         localmacrosymtable:=nil;
         do_reload:=false;
-        do_compile:=false;
         sources_avail:=true;
         mainfilepos.line:=0;
         mainfilepos.column:=0;
@@ -794,6 +792,7 @@ implementation
       var
         i   : longint;
         current_debuginfo_reset : boolean;
+        m : tmodule;
       begin
         is_reset:=true;
         if assigned(scanner) then
@@ -906,7 +905,17 @@ implementation
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and
           (waitingforunit.count<>0) then
-          internalerror(2016070501);
+           begin
+           Write(Self.modulename^, ' is reset while still waiting for units: ');
+           for I:=0 to waitingforunit.Count-1 do
+             begin
+             M:=tmodule(waitingforunit.Items[i]);
+             write(m.modulename^,' (state:',M.state,') ');
+
+             end;
+           Writeln;
+           internalerror(2016070501);
+           end;
         waitingforunit.free;
         waitingforunit:=tfpobjectlist.create(false);
         linkunitofiles.Free;
@@ -926,7 +935,6 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         FImportLibraryList:=TFPHashObjectList.Create;
-        do_compile:=false;
         do_reload:=false;
         interface_compiled:=false;
         in_interface:=true;
@@ -1002,6 +1010,8 @@ implementation
     procedure tmodule.flagdependent(callermodule:tmodule);
       var
         pm : tdependent_unit;
+        m : tmodule;
+
       begin
         { flag all units that depend on this unit for reloading }
         pm:=tdependent_unit(current_module.dependent_units.first);
@@ -1010,16 +1020,16 @@ implementation
            { We do not have to reload the unit that wants to load
              this unit, unless this unit is already compiled during
              the loading }
-           if (pm.u=callermodule) and
-              (pm.u.state<ms_compiled) then
-             Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
+           m:=pm.u;
+           if (m=callermodule) and (m.state<ms_compiled) then
+             Message1(unit_u_no_reload_is_caller,m.modulename^)
            else
-            if (pm.u.state=ms_compile) and (pm.u.compilecount>1) then
-              Message1(unit_u_no_reload_in_second_compile,pm.u.modulename^)
+            if (m.state=ms_compile) {and (pm.u.compilecount>1)} then
+              Message1(unit_u_no_reload_in_second_compile,m.modulename^)
            else
             begin
-              pm.u.do_reload:=true;
-              Message1(unit_u_flag_for_reload,pm.u.modulename^);
+              m.do_reload:=true;
+              Message1(unit_u_flag_for_reload,m.modulename^);
             end;
            pm:=tdependent_unit(pm.next);
          end;

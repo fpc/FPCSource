@@ -44,6 +44,8 @@ interface
 
     type
        { tppumodule }
+       TAvailableUnitFile = (auPPU,auSrc);
+       TAvailableUnitFiles = set of TAvailableUnitFile;
 
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
@@ -90,8 +92,8 @@ interface
           function  openppu(ppufiletime:longint):boolean;
           procedure prepare_second_load(from_module: tmodule);
           procedure recompile_from_sources(from_module: tmodule);
-          function  search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
-          function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):boolean;
+          function  search_unit_files(loaded_from : tmodule; onlysource:boolean):TAvailableUnitFiles;
+          function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):TAvailableUnitFiles;
           function  loadfrompackage:boolean;
           procedure load_interface;
           procedure load_implementation;
@@ -438,28 +440,24 @@ var
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
         Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
         Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
-        do_compile:=false;
         openppu:=true;
       end;
 
 
-    function tppumodule.search_unit_files(loaded_from : tmodule; onlysource:boolean):boolean;
+    function tppumodule.search_unit_files(loaded_from : tmodule; onlysource:boolean):TAvailableUnitFiles;
       var
-        found : boolean;
+        found : TAvailableUnitFiles;
       begin
-        found:=false;
-        if search_unit(loaded_from,onlysource,false) then
-          found:=true;
-        if (not found) and
+        found:=search_unit(loaded_from,onlysource,false);
+        if (found=[]) and
            (ft83 in AllowedFilenameTransFormations) and
-           (length(modulename^)>8) and
-           search_unit(loaded_from,onlysource,true) then
-          found:=true;
+           (length(modulename^)>8) then
+           found:=search_unit(loaded_from,onlysource,true);
         search_unit_files:=found;
       end;
 
 
-    function tppumodule.search_unit(loaded_from : tmodule; onlysource,shortname:boolean):boolean;
+    function tppumodule.search_unit(loaded_from : tmodule; onlysource,shortname:boolean):TAvailableUnitFiles;
       var
          singlepathstring,
          filename : TCmdStr;
@@ -512,7 +510,6 @@ var
            singlepathstring:=FixPath(s,false);
          { Check for Sources }
            ppufile:=nil;
-           do_compile:=true;
            recompile_reason:=rr_noppu;
          {Check for .pp file}
            Found:=UnitExists(sourceext,hs,prefix);
@@ -549,30 +546,32 @@ var
            SourceSearchPath:=Found;
          end;
 
-         Function SearchPath(const s,prefix:TCmdStr):boolean;
+         Function SearchPath(const s,prefix:TCmdStr):TAvailableUnitFiles;
          var
-           found : boolean;
+           found : TAvailableUnitFiles;
          begin
            { First check for a ppu, then for the source }
-           found:=false;
+           found:=[];
            if not onlysource then
-            found:=PPUSearchPath(s,prefix);
-           if not found then
-            found:=SourceSearchPath(s,prefix);
+             if PPUSearchPath(s,prefix) then
+               Include(found,auPPU);
+           if found=[] then
+             if SourceSearchPath(s,prefix) then
+              Include(found,auSrc);
            SearchPath:=found;
          end;
 
-         Function SearchPathList(list:TSearchPathList;const prefix:TCmdStr):boolean;
+         Function SearchPathList(list:TSearchPathList;const prefix:TCmdStr):TAvailableUnitFiles;
          var
            hp : TCmdStrListItem;
-           found : boolean;
+           found : TAvailableUnitFiles;
          begin
-           found:=false;
+           found:=[];
            hp:=TCmdStrListItem(list.First);
            while assigned(hp) do
             begin
               found:=SearchPath(hp.Str,prefix);
-              if found then
+              if found<>[] then
                break;
               hp:=TCmdStrListItem(hp.next);
             end;
@@ -588,34 +587,38 @@ var
             result:=PPUSearchPath(main_module.Path,prefix);
          end;
 
-         function SearchSourcePaths(const prefix:TCmdStr):boolean;
+         function SearchSourcePaths(const prefix:TCmdStr):TAvailableUnitFiles;
          begin
-           result:=SourceSearchPath('.',prefix);
-           if (not result) and Assigned(main_module) and (main_module.Path<>'') then
-             result:=SourceSearchPath(main_module.Path,prefix);
-           if (not result) and Assigned(loaded_from) then
+           result:=[];
+           if SourceSearchPath('.',prefix) then
+              include(Result,auSrc);
+           if (result=[]) and Assigned(main_module) and (main_module.Path<>'') then
+             if SourceSearchPath(main_module.Path,prefix) then
+              include(Result,auSrc);
+           if (result=[]) and Assigned(loaded_from) then
              result:=SearchPathList(loaded_from.LocalUnitSearchPath,prefix);
-           if not result then
+           if (result=[]) then
              result:=SearchPathList(UnitSearchPath,prefix);
          end;
 
-         function SearchNamespaceList(const prefixes:TCmdStrList):boolean;
+         function SearchNamespaceList(const prefixes:TCmdStrList): TAvailableUnitFiles;
          var
            nsitem : TCmdStrListItem;
-           res : Boolean;
+           res : TAvailableUnitFiles;
          begin
-           res:=false;
+           res:=[];
            nsitem:=TCmdStrListItem(prefixes.first);
            while assigned(nsitem) do
              begin
                if not onlysource then
                  begin
-                   res:=SearchPPUPaths(nsitem.str);
-                   if res then
+                   if SearchPPUPaths(nsitem.str) then
+                     Include(res,auPPU);
+                   if res<>[] then
                      break;
                  end;
                res:=SearchSourcePaths(nsitem.str);
-               if res then
+               if res<>[] then
                  break;
                nsitem:=TCmdStrListItem(nsitem.next);
              end;
@@ -626,9 +629,10 @@ var
 
 
        var
-         fnd : boolean;
+         fnd : TAvailableUnitFiles;
          hs : TPathStr;
        begin
+         fnd:=[];
          if shortname then
           filename:=FixFileName(Copy(realmodulename^,1,8))
          else
@@ -644,46 +648,49 @@ var
             8. global unit pathlist
             9. for each default namespace:
                   repeat 1 - 3 and 5 - 8 with namespace as prefix }
-         fnd:=false;
          if not onlysource then
-            fnd:=SearchPPUPaths('');
-         if (not fnd) and (sourcefn<>'') then
+           if SearchPPUPaths('') then
+             include(fnd,auPPU);
+         if (fnd=[]) and (sourcefn<>'') then
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
             if CheckVerbosity(V_Tried) then
               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
-            fnd:=FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs);
-            if not fnd then
+            if FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs) then
+              include(fnd,auSrc);
+            if (fnd=[]) then
              begin
                if CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
-               fnd:=FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs);
+               if FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs) then
+                 include(fnd,auSrc);
              end;
-            if not fnd and
+            if (fnd=[]) and
                ((m_mac in current_settings.modeswitches) or
                 (tf_p_ext_support in target_info.flags)) then
              begin
                if CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
-               fnd:=FindFile(ChangeFileExt(sourcefn,pext),'',true,hs);
+               if FindFile(ChangeFileExt(sourcefn,pext),'',true,hs) then
+                include(fnd,auSrc)
              end;
-            if fnd then
+            if [auSrc]=fnd then
              begin
                sources_avail:=true;
-               do_compile:=true;
+               state:=ms_compile;
                recompile_reason:=rr_noppu;
                mainsource:=hs;
                SetFileName(hs,false);
              end;
           end;
-         if not fnd then
+         if fnd=[] then
            begin
              fnd:=SearchSourcePaths('');
              // current_namespacelist is set to the current module's namespacelist.
-             if not fnd and assigned(current_namespacelist) and (current_namespacelist.count>0) then
+             if (fnd=[]) and assigned(current_namespacelist) and (current_namespacelist.count>0) then
                fnd:=SearchNameSpaceList(current_namespacelist);
-             if not fnd and (namespacelist.count>0) then
+             if (fnd=[]) and (namespacelist.count>0) then
                fnd:=SearchNameSpaceList(namespacelist);
            end;
          search_unit:=fnd;
@@ -1256,7 +1263,7 @@ var
                       if (orgfiletime<>-1) and
                          (source_time<>orgfiletime) then
                         begin
-                          do_compile:=true;
+                          state:=ms_compile;
                           recompile_reason:=rr_sourcenewer;
                           Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
                           temp:=temp+' *';
@@ -1292,7 +1299,7 @@ var
         available }
         if do_build and sources_avail then
           begin
-             do_compile:=true;
+             state:=ms_compile;
              recompile_reason:=rr_build;
           end;
       end;
@@ -1572,7 +1579,7 @@ var
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
            { we can already stop when we know that we must recompile }
-           if do_compile then
+           if state=ms_compile then
              exit;
          until false;
       end;
@@ -1969,7 +1976,7 @@ var
                    Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                  recompile_reason:=rr_crcchanged;
-                 do_compile:=true;
+                 state:=ms_compile;
                  exit;
                end;
             end;
@@ -2022,7 +2029,7 @@ var
                     Comment(V_Normal,'  indcrc change (2): '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                   recompile_reason:=rr_crcchanged;
-                  do_compile:=true;
+                  state:=ms_compile;
                   exit;
                 end;
             end;
@@ -2192,7 +2199,6 @@ var
             begin
               Message1(unit_u_second_compile_unit,modulename^);
               state:=ms_compile;
-              do_compile:=true;
             end
           else
             state:=ms_load;
@@ -2202,15 +2208,18 @@ var
 
       begin
         Message1(unit_u_loading_unit,modulename^);
-        search_unit_files(from_module,false);
-        if not do_compile then
+        if auPPU in search_unit_files(from_module,false) then
+          state:=ms_load
+        else
+          state:=ms_compile;
+        if not (state=ms_compile) then
          begin
            load_interface;
            setdefgeneration;
-           if not do_compile then
+           if not (state=ms_compile) then
             begin
               load_usedunits;
-              if not do_compile then
+              if not (state=ms_compile) then
                 Message1(unit_u_finished_loading_unit,modulename^);
             end;
          end;
@@ -2296,6 +2305,7 @@ var
         second_time        : boolean;
 
       begin
+
         Result:=false;
         Message3(unit_u_load_unit,from_module.modulename^,
                  ImplIntf[from_module.in_interface],
@@ -2327,6 +2337,11 @@ var
         { loading the unit for a second time? }
         if state=ms_registered then
           state:=ms_load
+        else if (state in [ms_compile, ms_compiling_waitintf]) then
+          begin
+          { no use continuing if we must be compiled }
+          exit(false)
+          end
         else
           begin
             second_time:=true;
@@ -2343,11 +2358,11 @@ var
 
         { try to opening ppu, skip this when we already
           know that we need to compile the unit }
-        if not do_compile then
+        if not (state=ms_compile) then
           try_load_ppufile(from_module);
 
         { Do we need to recompile the unit }
-        if do_compile then
+        if (state=ms_compile) then
           recompile_from_sources(from_module)
         else
           state:=ms_compiled;
