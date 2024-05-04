@@ -1,5 +1,6 @@
 {$mode objfpc}
 {$asmmode default}
+{$modeswitch advancedrecords}
 {$H-}
 {$goto on}
 {$ifndef DISABLE_INLINE}

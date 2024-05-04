@@ -161,7 +161,7 @@ interface
                    TDeref
 ************************************************}
 
-      tderef = object
+      tderef = record
         dataidx : longint;
         procedure reset;
         procedure build(s:TObject);

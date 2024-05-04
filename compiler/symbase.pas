@@ -42,7 +42,7 @@ interface
 
        { THashedIDString }
 
-       THashedIDString=object
+       THashedIDString = record
        private
          FId   : TIDString;
          FHash : Longword;

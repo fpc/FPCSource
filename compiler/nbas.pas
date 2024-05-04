@@ -219,7 +219,7 @@ interface
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
        ptempinfo = ^ttempinfo;
-       ttempinfo = object
+       ttempinfo = record
         private
          flags                      : ttempinfoflags;
         public
