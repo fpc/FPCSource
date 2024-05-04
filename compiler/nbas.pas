@@ -796,12 +796,45 @@ implementation
             else if forinline or (cs_opt_level2 in current_settings.optimizerswitches) then
               begin
                 n := TStatementNode(left);
-                while Assigned(n) and Assigned(n.right) do
+                while Assigned(n) do
                   begin
+                    case n.left.nodetype of
+                      raisen, exitn, breakn, continuen, goton:
+                        { Remove all subsequent statements, stopping only at a
+                          label or asm block since code can theoretically jump
+                          to them.  Also, don't delete temp creates and deletes }
+                        begin
+                          last := n;
+                          p := TStatementNode(n.Next);
+                          while Assigned(p) do
+                            begin
+                              if (TStatementNode(p).left.nodetype in [labeln, asmn, tempcreaten, tempdeleten]) then
+                                Break;
+
+                              last := p;
+                              p := TStatementNode(p.Next);
+                            end;
+
+                          if (last <> n) then
+                            begin
+                              last.next := nil; { Make sure we stop one before p }
+                              n.next.Free;
+                              n.next := p;
+                              n := p;
+                              Continue;
+                            end;
+                        end;
+                      else
+                        ;
+                    end;
+
                     { Look one statement ahead in case it can be deleted - we
                       need the previous statement to stitch the tree correctly
                     }
                     p := TStatementNode(n.Next);
+                    if not Assigned(p) then
+                      Break;
+
                     if Assigned(p.left) then
                       begin
                         case p.left.nodetype of
