@@ -379,7 +379,10 @@ unit agsdas6500;
       begin
         case o.typ of
           top_reg :
-            writer.AsmWrite(std_regname(o.reg));
+            if is_6502_zero_page_register(o.reg) then
+              writer.AsmWrite('*'+tostr(get_6502_zero_page_register_address(o.reg)))
+            else
+              writer.AsmWrite(std_regname(o.reg));
           top_const :
             begin
               writer.AsmWrite('#'+tostr(longint(o.val)));

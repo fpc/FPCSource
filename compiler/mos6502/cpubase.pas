@@ -282,6 +282,8 @@ unit cpubase;
     function std_regname(r:Tregister):string;
     function is_6502_general_purpose_register(r:TRegister):boolean;
     function is_6502_index_register(r:TRegister):boolean;
+    function is_6502_zero_page_register(r:TRegister):boolean;
+    function get_6502_zero_page_register_address(r:TRegister): Byte;
     function is_regpair(r:Tregister):boolean;
     procedure split_regpair(regpair:Tregister;out reglo,reghi:Tregister);
     { Checks if sreg is a subset of reg (e.g. NR_H is a subset of NR_HL }
@@ -405,6 +407,34 @@ unit cpubase;
     function is_6502_index_register(r:TRegister):boolean;
       begin
         result:=(r=NR_X) or (r=NR_Y);
+      end;
+
+
+    function is_6502_zero_page_register(r:TRegister):boolean;
+      begin
+        result:=(getregtype(r)=R_INTREGISTER) and
+          (((getsupreg(r)>=RS_RZB0) and (getsupreg(r)<=RS_RZB255)) or
+           ((getsupreg(r)>=RS_RZW0) and (getsupreg(r)<=RS_RZW254)));
+      end;
+
+
+    function get_6502_zero_page_register_address(r:TRegister): Byte;
+      var
+        supreg: TSuperRegister;
+      begin
+        if getregtype(r)<>R_INTREGISTER then
+          internalerror(2024050401);
+        supreg:=getsupreg(r);
+        if (supreg>=RS_RZB0) and (supreg<=RS_RZB255) then
+          result:=supreg-RS_RZB0
+        else if (supreg>=RS_RZW0) and (supreg<=RS_RZW254) then
+          begin
+            result:=supreg-RS_RZW0;
+            if getsubreg(r)=R_SUBH then
+              Inc(result);
+          end
+        else
+          internalerror(2024050402);
       end;
 
 
