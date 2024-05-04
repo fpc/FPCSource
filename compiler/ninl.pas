@@ -4947,6 +4947,8 @@ implementation
            end;
 
          resultnode := hp.getcopy;
+         { Remove "modify" flag from what will be an assignment destination }
+         Exclude(resultnode.flags, nf_modify);
 
          { avoid type errors from the addn/subn }
          if not is_integer(resultnode.resultdef) then
@@ -4955,7 +4957,7 @@ implementation
              inserttypeconv_internal(hpp,sinttype);
            end;
 
-         { addition/substraction depending on inc/dec }
+         { addition/subtraction depending on inc/dec }
          if inlinenumber = in_inc_x then
            hpp := caddnode.create_internal(addn,hp,hpp)
          else
