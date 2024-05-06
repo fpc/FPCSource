@@ -200,8 +200,10 @@ implementation
         if not load_ok then
           { We must schedule a compile. }
           task_handler.addmodule(hp);
+
         { add to symtable stack }
-        symtablestack.push(hp.globalsymtable);
+        if assigned(hp.globalsymtable) then
+          symtablestack.push(hp.globalsymtable);
         if (m_mac in current_settings.modeswitches) and
             assigned(hp.globalmacrosymtable) then
            macrosymtablestack.push(hp.globalmacrosymtable);
@@ -383,6 +385,8 @@ implementation
         begin
           m:=AddUnit(curr,s,true);
           OK:=assigned(m) and (m.state in [ms_processed,ms_compiled]);
+          if not ok then
+            Message2(unit_f_cant_find_ppu,s,curr.realmodulename^);
           Result:=ok and Result;
         end;
 
