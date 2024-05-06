@@ -278,7 +278,7 @@ begin
           args[result.nargs]:=chars+result.nchars;
         inc(result.nargs);
         if result.nchars=0 then
-          argsStartInCmdLine:=cmdLine;
+          argsStartInCmdLine:=cmdLine-1;
       end;
     if Assigned(chars) then
       chars[result.nchars]:=c;
@@ -324,9 +324,10 @@ begin
     argv:=PPAnsiChar(argvw+argc);
     wchars:=PWideChar(argv+argc+1);
     achars:=PAnsiChar(wchars+nArg0W+1+pc.nchars);
+    acharse:=achars+nArg0A+1+pc.nachars;
     if Assigned(argvw) then
       break;
-    argvw:=SysGetMem(PtrUint(achars+nArg0A+1+pc.nachars));
+    argvw:=SysGetMem(PtrUint(acharse));
   until not Assigned(argvw); { If ReturnNilIfGrowHeapFails was customized to true, let it crash on allocation failure instead of looping endlessly. }
 
   Move(PWideChar(buf)^, wchars^, nArg0W*sizeof(widechar));
@@ -335,17 +336,15 @@ begin
   ParseCommandLine(CmdLineW, argvw+1, wchars+nArg0W+1);
 
   { Convert argvw to argv. }
-  acharse:=achars+nArg0A+1+pc.nachars;
   for iarg:=0 to pc.nargs do
     begin
       argv[iarg]:=achars;
-      inc(achars, WideCharToMultiByte(DefaultSystemCodePage, 0, argvw[iarg], length(argvw[iarg]), achars, acharse-achars, nil, nil)+1);
-      achars[-1]:=#0;
+      inc(achars, WideCharToMultiByte(DefaultSystemCodePage, 0, argvw[iarg], -1, achars, acharse-achars, nil, nil));
     end;
   argv[argc]:=nil;
 end;
 
-procedure finalize_arguments;
+procedure finalize_arguments; inline;
 begin
   SysFreeMem(argvw);
 end;
@@ -806,7 +805,7 @@ begin
   CtrlBreakHandler := Handler;
 end;
 
-procedure WinFinalizeSystem;
+procedure WinFinalizeSystem; inline;
 begin
   finalize_arguments;
 end;
