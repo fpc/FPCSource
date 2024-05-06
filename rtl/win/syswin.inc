@@ -545,14 +545,9 @@ begin
    end;
 end;
 
-{ ProcessID cached to avoid repeated calls to GetCurrentProcess. }
-
-var
-  ProcessID: SizeUInt;
-
 function GetProcessID: SizeUInt;
   begin
-    GetProcessID := ProcessID;
+    GetProcessID := GetCurrentProcessID;
   end;
 
 
