@@ -606,7 +606,8 @@ unit optcse;
     function CSEOnReference(n : tnode) : Boolean;
       begin
         Result:=(n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym)
-          and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
+          and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions) or
+            (cs_create_pic in current_settings.moduleswitches)
 {$if defined(aarch64)}
             or (not(tabstractvarsym(tloadnode(n).symtableentry).is_regvar(false)))
 {$endif defined(aarch64)}
