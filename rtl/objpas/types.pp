@@ -531,6 +531,13 @@ type
   end;
 {$endif}
 
+Const
+  cPI: Single = 3.141592654;
+  cPIdiv180: Single = 0.017453292;
+  cPIdiv2: Single = 1.570796326;
+  cPIdiv4: Single = 0.785398163;
+
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
