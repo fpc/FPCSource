@@ -1232,7 +1232,7 @@ implementation
   function str_parse_method(str: ansistring): tprocdef; forward;
 
 
-  procedure implement_invoke_helper(cn : string;pd: tprocdef);
+  procedure implement_invoke_helper(cn : string;pd: tprocdef; idx : integer);
 
     var
       sarg,str : ansistring;
@@ -1246,7 +1246,7 @@ implementation
     begin
       str:='procedure __invoke_helper__';
       pn:=pd.procsym.realname;
-      str:=str+cn+'__'+pn;
+      str:=str+cn+'__'+pn+'_'+tostr(idx);
       for I:=1 to length(str) do
         if str[i]='.' then
           str[i]:='_';
@@ -1412,7 +1412,7 @@ implementation
                   cn:=tobjectdef(def.owner.defowner).GetTypeName
                 else
                   internalerror(2023061107);
-                implement_invoke_helper(cn,pd);
+                implement_invoke_helper(cn,pd,i);
               end;
           end;
         end;
