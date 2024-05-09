@@ -808,7 +808,7 @@ implementation
                           p := TStatementNode(n.Next);
                           while Assigned(p) do
                             begin
-                              if (TStatementNode(p).left.nodetype in [labeln, asmn, tempcreaten, tempdeleten]) then
+                              if (TStatementNode(p).left.nodetype in [labeln, asmn, tempcreaten, tempdeleten, blockn]) then
                                 Break;
 
                               last := p;
