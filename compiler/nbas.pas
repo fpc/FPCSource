@@ -590,21 +590,6 @@ implementation
       end;
 
 
-    function is_exit_statement(var n: tnode; arg: pointer): foreachnoderesult;
-      begin
-        if (n.nodetype<>exitn) then
-          result:=fen_false
-        else
-          result:=fen_norecurse_true;
-      end;
-
-
-    function no_exit_statement_in_block(n: tnode): boolean;
-      begin
-        result:=not foreachnodestatic(n,@is_exit_statement,nil);
-      end;
-
-
     function tstatementnode.simplify(forinline: boolean) : tnode;
       begin
         result:=nil;
@@ -651,7 +636,7 @@ implementation
         }
         if (left.nodetype = blockn) and
            ((left.flags*[nf_block_with_exit,nf_usercode_entry]=[]) or
-            ((left.flags*[nf_block_with_exit,nf_usercode_entry]=[nf_block_with_exit]) and no_exit_statement_in_block(left))) and
+            ((left.flags*[nf_block_with_exit,nf_usercode_entry]=[nf_block_with_exit]) and not has_node_of_type(left, [exitn]))) and
            assigned(tblocknode(left).left) and
            not assigned(tstatementnode(tblocknode(left).left).right) then
           begin
@@ -854,7 +839,7 @@ implementation
                         case p.left.nodetype of
                           blockn:
                             if (bnf_strippable in TBlockNode(p.left).blocknodeflags) and
-                              ((p.left.flags * [nf_block_with_exit] = []) or no_exit_statement_in_block(p.left)) then
+                              ((p.left.flags * [nf_block_with_exit] = []) or not has_node_of_type(p.left, [exitn])) then
                               begin
                                 { Attempt to merge this block into the main statement
                                   set }
