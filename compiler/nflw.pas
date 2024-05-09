@@ -1916,15 +1916,6 @@ implementation
       end;
 
 
-    function checkcontinue(var n:tnode; arg: pointer): foreachnoderesult;
-      begin
-        if n.nodetype=continuen then
-          result:=fen_norecurse_true
-        else
-          result:=fen_false;
-      end;
-
-
     function tfornode.makewhileloop : tnode;
       var
         ifblock,loopblock : tblocknode;
@@ -2007,7 +1998,7 @@ implementation
           not((lnf_backward in loopflags) and (get_ordinal_value(t1)=countermin)) and
           { neither might the for loop contain a continue statement as continue in a while loop would skip the increment at the end
             of the loop, this could be overcome by replacing the continue statement with an pred/succ; continue sequence }
-          not(foreachnodestatic(t2,@checkcontinue,nil)) and
+          not(has_node_of_type(t2,[continuen])) and
           { if the loop is unrolled and there is a jump into the loop,
             then we can't do the trick with incrementing the loop var only at the
             end
