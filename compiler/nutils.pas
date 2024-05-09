@@ -210,6 +210,10 @@ interface
     }
     procedure node_reset_pass1_write(n: tnode);
 
+    { Returns True if n one of its children has a type that appears in TypeList }
+    function has_node_of_type(n: TNode; TypeList: TNodeTypeSet): Boolean; {$IFDEF USEINLINE}inline;{$ENDIF USEINLINE}
+
+
 implementation
 
     uses
@@ -1759,5 +1763,19 @@ implementation
          foreachnodestatic(n,@_node_reset_pass1_write,nil);
        end;
 
+
+     function node_in_list(var n: tnode; arg: pointer): foreachnoderesult;
+       begin
+         if (n.nodetype in PNodeTypeSet(arg)^) then
+           result := fen_norecurse_true
+         else
+           result := fen_false;
+       end;
+
+
+     function has_node_of_type(n: TNode; TypeList: TNodeTypeSet): Boolean;
+       begin
+         Result := foreachnodestatic(n, @node_in_list, @TypeList);
+       end;
 
 end.
