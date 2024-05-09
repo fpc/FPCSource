@@ -763,6 +763,9 @@ implementation
 
 
     function tblocknode.simplify(forinline : boolean): tnode;
+      const
+        NodeStripTerminators = [labeln, asmn, tempcreaten, tempdeleten];
+
       var
         n, p, first, last: tstatementnode;
 {$ifdef break_inlining}
@@ -819,7 +822,7 @@ implementation
                           p := TStatementNode(n.Next);
                           while Assigned(p) do
                             begin
-                              if (TStatementNode(p).left.nodetype in [labeln, asmn, tempcreaten, tempdeleten, blockn]) then
+                              if has_node_of_type(TStatementNode(p).left, NodeStripTerminators) then
                                 Break;
 
                               last := p;
