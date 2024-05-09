@@ -813,7 +813,7 @@ unit optcse;
                         createblock:=internalstatements(creates);
                         deleteblock:=internalstatements(deletes);
                       end;
-                     constentries[i].temp:=ctempcreatenode.create(voidpointertype,
+                     constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef),
                        voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
