@@ -2708,9 +2708,14 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
 {$define FPC_SYSTEM_HAS_BSF_QWORD}
-
 function BsfQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
+{$ifdef CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1}
+     mov     $255-32,%eax { On AMD, BSF/R are documented to not change the destination on zero input. }
+     bsfl    8(%esp),%eax { On Intel, destination is formally undefined on zero input, but in practice the behavior is the same. }
+     add     $32,%eax
+     bsfl    4(%esp),%eax
+{$else}
      bsfl    4(%esp),%eax
      jz     .L1
      ret     $8
@@ -2721,6 +2726,7 @@ asm
      ret     $8
 .L2:
      movl    $255,%eax
+{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_BSF_QWORD}
 
@@ -2729,16 +2735,26 @@ end;
 {$define FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal; assembler; nostackframe;
 asm
+{$ifdef CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1}
+     mov     $255,%eax
+     bsrl    4(%esp),%eax
+     sub     $32,%eax
      bsrl    8(%esp),%eax
-     jz     .L1
      add     $32,%eax
+{$else}
+     mov     8(%esp),%eax
+     test    %eax,%eax
+     jnz    .L1 { Speculate Hi(q) = 0. }
+     bsrl    4(%esp),%eax
+     jz     .L2
      ret     $8
 .L1:
-     bsrl    4(%esp),%eax
-     jz      .L2
+     bsrl    %eax,%eax
+     add     $32,%eax
      ret     $8
 .L2:
      movl    $255,%eax
+{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}
 

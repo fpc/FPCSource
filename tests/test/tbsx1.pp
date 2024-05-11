@@ -23,7 +23,7 @@ begin
       exit(false);
     end;
   end;
-  x8:=0;
+  x8:=random(0);
   f:=BsfByte(x8);
   if (f<>$ff) then
   begin
@@ -60,7 +60,7 @@ begin
       exit(false);
     end;
   end;
-  x16:=0;
+  x16:=random(0);
   f:=BsfWord(x16);
   if (f<>$ff) then
   begin
@@ -97,7 +97,7 @@ begin
       exit(false);
     end;
   end;
-  x32:=0;
+  x32:=random(0);
   f:=BsfDWord(x32);
   if (f<>$ff) then
   begin
@@ -132,7 +132,7 @@ begin
       exit(false);
     end;
   end;
-  x64:=0;
+  x64:=random(0);
   f:=BsfQWord(x64);
   if (f<>$ff) then
   begin
