@@ -41,6 +41,7 @@ Type
     FCaseSensitiveOptions : Boolean;
     FStopOnException : Boolean;
     FExceptionExitCode : Integer;
+    FRunAborted:Boolean;
     function GetEnvironmentVar(const VarName : String): String;
     function GetExeName: string;
     Function GetLocation : String;
@@ -53,6 +54,8 @@ Type
     procedure SetTitle(const AValue: string); Virtual;
     Function GetConsoleApplication : boolean; Virtual;
     Procedure DoRun; Virtual;
+    // Descendants can use this to stop the run loop without setting terminated.
+    procedure AbortRun; virtual;
     Function GetParams(Index : Integer) : String;virtual;
     function GetParamCount: Integer;Virtual;
     Procedure DoLog(EventType : TEventType; const Msg : String);  virtual;
@@ -262,6 +265,11 @@ begin
   // Override in descendent classes.
 end;
 
+procedure TCustomApplication.AbortRun;
+begin
+  FRunAborted:=True;
+end;
+
 procedure TCustomApplication.DoLog(EventType: TEventType; const Msg: String);
 
 begin
@@ -342,7 +350,8 @@ begin
     except
       HandleException(Self);
     end;
-  Until FTerminated;
+    Writeln('Main needs to terminate: ',FTerminated,' or ',FRunAborted);
+  Until FTerminated or FRunAborted;
 end;
 
 procedure TCustomApplication.SetSingleInstanceClass(
