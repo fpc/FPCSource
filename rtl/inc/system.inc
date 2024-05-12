@@ -786,8 +786,39 @@ end;
 
 {$ifndef FPUNONE}
 function random: extended;
+var
+  res: double;
+  r0, exponent: uint32;
 begin
-  random := xsr128_32_u32rand * (extended(1.0)/(int64(1) shl 32));
+  { There are
+
+    - 2⁵² floats uniformly distributed over the range [0.5; 1): exponent = 2⁻¹, mantissa = (1.)all 52-bit values from 00...0 to 11...1,
+    - another 2⁵² in the range [0.25; 0.5): exponent = 2⁻²,
+    - another 2⁵² in the range [0.125; 0.25): exponent = 2⁻³,
+
+    and so on. Each next range is 0.5× the size of the previous one ⇒ 0.5× probability.
+    So we determine the range by flipping a coin until we get heads (exponent = 2^(−1 − BSF(infinite stream of random bits)),
+    and select one of 2⁵² values in that range.
+
+    Compared to this, random_52_bits / 2⁵² value loses N bits of precision when it falls in the Nth range; as a consequence,
+    minimum of 2^N random values has around N trailing zeros in its mantissa. }
+
+  { 52 bits (double precision) go to mantissa: r0[0:19] + one_more_u32rand[0:31]. }
+  r0:=xsr128_32_u32rand;
+  PUint64(@res)^:=uint64(r0 and (1 shl 20-1)) shl 32 or xsr128_32_u32rand;
+
+  { Exponent = −1 − (count of zeros in the stream of random bits). There are 12 bits left in r0. }
+  exponent:=1023-1-31; { Biased exponent, - 31 for Bsr(r0). }
+  if r0 shr 20=0 then
+    begin
+      inc(exponent,20); { Subtract 12 bits the first time and 32 on subsequent iterations. }
+      repeat
+        dec(exponent,32);
+        r0:=xsr128_32_u32rand;
+      until r0<>0;
+    end;
+  PUint64(@res)^:=PUint64(@res)^ or uint64(exponent+BsrDWord(r0)) shl 52;
+  result:=res;
 end;
 {$endif}
 
