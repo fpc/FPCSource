@@ -2867,6 +2867,7 @@ function FindGlobalComponent(const Name: string): TComponent;
 function IsUniqueGlobalComponentName(const aName: string): Boolean;
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
+function ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of string; const Proc: TGetStreamProc): TComponent;
 function InitComponentRes(const ResName: string; Instance: TComponent): Boolean;
 function ReadComponentRes(const ResName: string; Instance: TComponent): TComponent;
 function ReadComponentResEx(HInstance: THandle; const ResName: string): TComponent;
@@ -2901,6 +2902,7 @@ type
 
 procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 procedure ObjectBinaryToText(Input, Output: TStream);
+procedure ObjectTextToBinary(Input, Output: TStream; var Format: TStreamOriginalFormat);
 procedure ObjectTextToBinary(Input, Output: TStream);
 
 procedure ObjectResourceToText(Input, Output: TStream);

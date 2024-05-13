@@ -1649,6 +1649,37 @@ begin
   end;
 end;
 
+function ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of string; const Proc: TGetStreamProc): TComponent;
+
+var
+  H:TFPResourceHandle;
+  HInst: THandle;
+  RootName, Delta, ResName: string;
+  S: TStream;
+  
+begin
+  S:=nil;
+  if (Instance=Nil) or (Proc=Nil) then
+    Raise EArgumentNilException.Create(SArgumentNil);
+  HInst:=HInstance;
+  Result:=Instance;
+  RootName:=Instance.ClassType.ClassName;
+  for Delta in DeltaCandidates do
+    begin
+    ResName:=RootName+'_'+Delta;
+    H:=System.FindResource(HInst,ResName,RT_RCDATA);
+    if PtrInt(H)<>0 then
+      try
+        S:=TResourceStream.Create(HInst,ResName,PChar(RT_RCDATA));
+        Proc(S);
+        Exit;
+      finally
+        S.Free;
+      end;
+    end;
+end;
+
+
 
 Function FindNestedComponent(Root : TComponent; APath : String; CStyle : Boolean = True) : TComponent;
 
@@ -1828,6 +1859,7 @@ begin
 end;
 
 procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
+
 var
   Version: TBinaryObjectReader.TBOVersion;
 
@@ -2285,6 +2317,16 @@ begin
 end;
 
 procedure ObjectTextToBinary(Input, Output: TStream);
+
+var
+  Fmt : TStreamOriginalFormat;
+
+begin
+  ObjectTextToBinary(Input,Output,Fmt);
+end;
+
+procedure ObjectTextToBinary(Input, Output: TStream; var Format: TStreamOriginalFormat);
+
 var
   parser: TParser;
   Version: TBinaryObjectReader.TBOVersion;
