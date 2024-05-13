@@ -23,27 +23,11 @@
 unit constexp;
 
 {$i fpcdefs.inc}
+{$modeswitch advancedrecords}
 
 interface
 
-type  Tconstexprint=record
-        overflow:boolean;
-        case signed:boolean of
-          false:
-            (uvalue:qword);
-          true:
-            (svalue:int64);
-      end;
-
-      errorproc=procedure (i:longint);
-
-{"Uses verbose" gives a dependency on cpuinfo through globals. This leads
- build trouble when compiling the directory utils, since the cpu directory
- isn't searched there. Therefore we use a procvar and make verbose install
- the errorhandler. A dependency from verbose on this unit is no problem.}
-var   internalerrorproc:errorproc;
-
-{Same issue, avoid dependency on cpuinfo because the cpu directory isn't
+{Avoid dependency on cpuinfo because the cpu directory isn't
  searched during utils building.}
 {$ifdef GENERIC_CPU}
 type  bestreal=extended;
@@ -55,6 +39,20 @@ type  bestreal=double;
 {$endif}
 {$endif}
 
+type  Tconstexprint=record
+        function is_negative: boolean; inline;
+        function extract_sign_abs(out abs: qword): boolean;
+        procedure div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
+        function tobestreal: bestreal;
+      var
+        overflow:boolean;
+        case signed:boolean of
+          false:
+            (uvalue:qword);
+          true:
+            (svalue:int64);
+      end;
+
 operator := (const u:qword):Tconstexprint;inline;
 operator := (const s:int64):Tconstexprint;inline;
 operator := (const c:Tconstexprint):qword;
@@ -65,15 +63,15 @@ operator + (const a,b:Tconstexprint):Tconstexprint;
 operator - (const a,b:Tconstexprint):Tconstexprint;
 operator - (const a:Tconstexprint):Tconstexprint;
 operator * (const a,b:Tconstexprint):Tconstexprint;
-operator div (const a,b:Tconstexprint):Tconstexprint;
-operator mod (const a,b:Tconstexprint):Tconstexprint;
+operator div (const a,b:Tconstexprint):Tconstexprint; inline;
+operator mod (const a,b:Tconstexprint):Tconstexprint; inline;
 operator / (const a,b:Tconstexprint):bestreal;
 
 operator = (const a,b:Tconstexprint):boolean;
-operator > (const a,b:Tconstexprint):boolean;
-operator >= (const a,b:Tconstexprint):boolean;
+operator > (const a,b:Tconstexprint):boolean; inline; { Are reformulated using <. }
+operator >= (const a,b:Tconstexprint):boolean; inline;
 operator < (const a,b:Tconstexprint):boolean;
-operator <= (const a,b:Tconstexprint):boolean;
+operator <= (const a,b:Tconstexprint):boolean; inline;
 
 operator and (const a,b:Tconstexprint):Tconstexprint;
 operator or (const a,b:Tconstexprint):Tconstexprint;
@@ -87,13 +85,60 @@ function tostr(const i:Tconstexprint):shortstring;overload;
 implementation
 {****************************************************************************}
 
-{ use a separate procedure here instead of calling internalerrorproc directly because
-  - procedure variables cannot have a noreturn directive
-  - having a procedure and a procedure variable with the same name in the interfaces of different units is confusing }
-procedure internalerror(i:longint);noreturn;
+uses
+  cutils;
 
+function Tconstexprint.is_negative: boolean;
 begin
-  internalerrorproc(i);
+  result:=signed and (svalue<0);
+end;
+
+{$push} {$q-,r-}
+function Tconstexprint.extract_sign_abs(out abs: qword): boolean;
+begin
+  result:=is_negative;
+  if result then
+    abs:=qword(-svalue)
+  else
+    abs:=uvalue;
+end;
+
+procedure Tconstexprint.div_or_mod(const by: Tconstexprint; isdiv: boolean; out r: Tconstexprint);
+var
+  aa, bb: qword;
+  negres: boolean;
+begin
+  if by.uvalue=0 then
+    begin
+      r:=qword(-int64(isdiv)); { Something. All ones if div, all zeros if mod. }
+      r.overflow:=true;
+      exit;
+    end;
+  { the sign of a modulo operation only depends on the sign of the
+    dividend }
+  negres:=self.extract_sign_abs(aa) xor by.extract_sign_abs(bb) and isdiv;
+  r.overflow:=self.overflow or by.overflow;
+  if isdiv then
+    r.uvalue:=aa div bb
+  else
+    r.uvalue:=aa mod bb;
+  r.signed:=negres or (r.svalue>=0);
+  if negres then
+    begin
+      r.svalue:=-r.svalue;
+      r.overflow:=r.overflow or (r.svalue>0); { Strictly > 0! }
+    end;
+end;
+{$pop}
+
+function Tconstexprint.tobestreal: bestreal;
+begin
+  if overflow then
+    internalerrorproc(200706095);
+  if signed then
+    result:=svalue
+  else
+    result:=uvalue;
 end;
 
 operator := (const u:qword):Tconstexprint;
@@ -116,423 +161,168 @@ operator := (const c:Tconstexprint):qword;
 
 begin
   if c.overflow then
-    internalerror(200706091)
-  else if not c.signed then
-    result:=c.uvalue
-  else if c.svalue<0 then
-    internalerror(200706092)
-  else
-    result:=qword(c.svalue);
+    internalerrorproc(200706091);
+  if c.is_negative then
+    internalerrorproc(200706092);
+  result:=c.uvalue;
 end;
 
 operator := (const c:Tconstexprint):int64;
 
 begin
   if c.overflow then
-    internalerror(200706093)
-  else if c.signed then
-    result:=c.svalue
-  else if c.uvalue>qword(high(int64)) then
-    internalerror(200706094)
-  else
-    result:=int64(c.uvalue);
+    internalerrorproc(200706093);
+  if not c.signed and (c.svalue<0) then
+    internalerrorproc(200706094);
+  result:=c.svalue;
 end;
 
 operator := (const c:Tconstexprint):bestreal;
 
 begin
   if c.overflow then
-    internalerror(200706095)
-  else if c.signed then
+    internalerrorproc(200706095);
+  if c.signed then
     result:=c.svalue
   else
     result:=c.uvalue;
 end;
 
-function add_to(const a:Tconstexprint;b:qword):Tconstexprint;
-
-var sspace,uspace:qword;
-
-label try_qword;
-
-begin
-  result.overflow:=false;
-
-  {Try if the result fits in an int64.}
-  if (a.signed) and (a.svalue<0) then
-    {$push}{$Q-}
-    sspace:=qword(high(int64))+qword(-a.svalue)
-    {$pop}
-  else if not a.signed and (a.uvalue>qword(high(int64))) then
-    goto try_qword
-  else
-    sspace:=qword(high(int64))-a.svalue;
-
-  if sspace>=b then
-    begin
-      result.signed:=true;
-      {$push} {$Q-}
-      result.svalue:=a.svalue+int64(b);
-      {$pop}
-      exit;
-    end;
-
-  {Try if the result fits in a qword.}
-try_qword:
-  if (a.signed) and (a.svalue<0) then
-    uspace:=high(qword)-qword(-a.svalue)
-{  else if not a.signed and (a.uvalue>qword(high(int64))) then
-    uspace:=high(qword)-a.uvalue}
-  else
-    uspace:=high(qword)-a.uvalue;
-  if uspace>=b then
-    begin
-      result.signed:=false;
-      {$push} {$Q-}
-      result.uvalue:=a.uvalue+b;
-      {$pop}
-      exit;
-    end;
-  result.overflow:=true;
-end;
-
-function sub_from(const a:Tconstexprint;b:qword):Tconstexprint;
-
-const abs_low_int64=qword(9223372036854775808);   {abs(low(int64)) -> overflow error}
-
-var sspace:qword;
-
-label try_qword,ov;
-
-begin
-  result.overflow:=false;
-
-  {Try if the result fits in an int64.}
-  if (a.signed) and (a.svalue<0) then
-    {$push} {$Q-}
-    sspace:=qword(a.svalue)+abs_low_int64
-    {$pop}
-  else if not a.signed and (a.uvalue>qword(high(int64))) then
-    goto try_qword
-  else
-    {$push} {$Q-}
-    sspace:=a.uvalue+abs_low_int64;
-    {$pop}
-  if sspace>=b then
-    begin
-      result.signed:=true;
-      {$push} {$Q-}
-      result.svalue:=a.svalue-int64(b);
-      {$pop}
-      exit;
-    end;
-
-  {Try if the result fits in a qword.}
-try_qword:
-  if not(a.signed and (a.svalue<0)) and (a.uvalue>=b) then
-    begin
-      result.signed:=false;
-      {$push} {$Q-}
-      result.uvalue:=a.uvalue-b;
-      {$pop}
-      exit;
-    end;
-ov:
-  result.overflow:=true;
-end;
-
+{$push} {$q-,r-}
 operator + (const a,b:Tconstexprint):Tconstexprint;
 
+var aneg:boolean;
+
 begin
-  if a.overflow or b.overflow then
+  result.overflow:=a.overflow or b.overflow;
+  result.uvalue:=a.uvalue+b.uvalue;
+  aneg:=a.is_negative;
+  if aneg<>b.is_negative then
+    { Negative + positive: cannot overflow, signed if fits (here and below: “fits” means “positive value that fits into svalue”) or if positive operand did fit. }
+    result.signed:=(result.svalue>=0) or (a.svalue xor b.svalue<0)
+  else if aneg then
     begin
-      result.overflow:=true;
-      exit;
-    end;
-  if b.signed and (b.svalue<0) then
-    {$push} {$Q-}
-    result:=sub_from(a,qword(-b.svalue))
-    {$pop}
+      { Negative + negative: overflow if positive, always signed. }
+      result.overflow:=result.overflow or (result.svalue>=0);
+      result.signed:=true;
+    end
   else
-    result:=add_to(a,b.uvalue);
+    begin
+      { Positive + positive: overflow if became less, signed if fits. }
+      result.overflow:=result.overflow or (result.uvalue<a.uvalue);
+      result.signed:=result.svalue>=0;
+    end;
 end;
 
 operator - (const a,b:Tconstexprint):Tconstexprint;
 
+var bneg:boolean;
+
 begin
-  if a.overflow or b.overflow then
+  result.overflow:=a.overflow or b.overflow;
+  result.uvalue:=a.uvalue-b.uvalue;
+  bneg:=b.is_negative;
+  if a.is_negative then
     begin
-      result.overflow:=true;
-      exit;
-    end;
-  if b.signed and (b.svalue<0) then
-    {$push} {$Q-}
-    result:=add_to(a,qword(-b.svalue))
-    {$pop}
+      { Negative − negative: cannot overflow, always signed.
+        Negative - positive: overflow if positive or b did not fit, always signed. }
+      result.signed:=true;
+      if not bneg then
+        result.overflow:=result.overflow or (b.svalue<0) or (result.svalue>=0);
+    end
+  else if bneg then
+    begin
+      { Positive - negative: overflow if became less, signed if fits. }
+      result.overflow:=result.overflow or (result.uvalue<a.uvalue);
+      result.signed:=result.svalue>=0;
+    end
   else
-    result:=sub_from(a,b.uvalue);
+    begin
+      { Positive − positive: overflow if a < b but result is positive, signed if a < b or fits. }
+      result.overflow:=result.overflow or (a.uvalue<b.uvalue) and (result.svalue>=0);
+      result.signed:=(a.uvalue<b.uvalue) or (result.svalue>=0);
+    end;
 end;
 
 operator - (const a:Tconstexprint):Tconstexprint;
 
-begin
-  if not a.signed and (a.uvalue>qword(high(int64))) then
-    result.overflow:=true
-  else
-    begin
-      result.overflow:=false;
-      result.signed:=true;
-      {$push} {$Q-}
-      result.svalue:=-a.svalue;
-      {$pop}
-    end;
-end;
+var aneg:boolean;
 
+begin
+  aneg:=a.is_negative;
+  result.svalue:=-a.svalue;
+  result.overflow:=a.overflow or not aneg and (result.svalue>0); { Will trigger on > -Low(int64). }
+  result.signed:=not (aneg and (a.svalue=Low(a.svalue))); { Unsigned only if negating Low(int64). }
+end;
 
 operator * (const a,b:Tconstexprint):Tconstexprint;
 
-var aa,bb,r:qword;
-    sa,sb:boolean;
+var aa,bb:qword;
+    negres:boolean;
 
 begin
-  if a.overflow or b.overflow then
+  negres:=a.extract_sign_abs(aa) xor b.extract_sign_abs(bb);
+  result.uvalue:=aa*bb;
+  result.overflow:=a.overflow or b.overflow or
+    (Hi(aa) or Hi(bb)<>0) and { Pretest to avoid division in small cases. Must be cheaper than two BsrQWords. }
+    (bb<>0) and (high(qword) div bb<aa);
+  result.signed:=negres or (result.svalue>=0);
+  if negres then
     begin
-      result.overflow:=true;
-      exit;
-    end;
-  result.overflow:=false;
-  sa:=a.signed and (a.svalue<0);
-  if sa then
-     aa:=qword(-a.svalue)
-  else
-    aa:=a.uvalue;
-  sb:=b.signed and (b.svalue<0);
-  if sb then
-    bb:=qword(-b.svalue)
-  else
-    bb:=b.uvalue;
-
-  if (bb<>0) and (high(qword) div bb<aa) then
-    result.overflow:=true
-  else
-    begin
-      r:=aa*bb;
-      if sa xor sb then
-        begin
-          result.signed:=true;
-          if r>qword(high(int64)) then
-            result.overflow:=true
-          else
-            result.svalue:=-int64(r);
-        end
-      else
-        begin
-          result.signed:=false;
-          result.uvalue:=r;
-        end;
+      result.overflow:=result.overflow or (result.svalue<0);
+      result.svalue:=-result.svalue;
     end;
 end;
+{$pop}
 
 operator div (const a,b:Tconstexprint):Tconstexprint;
 
-var aa,bb,r:qword;
-    sa,sb:boolean;
-
 begin
-  if a.overflow or b.overflow then
-    begin
-      result.overflow:=true;
-      exit;
-    end;
-  result.overflow:=false;
-  sa:=a.signed and (a.svalue<0);
-  if sa then
-    {$push} {$Q-}
-    aa:=qword(-a.svalue)
-    {$pop}
-  else
-    aa:=a.uvalue;
-  sb:=b.signed and (b.svalue<0);
-  if sb then
-    {$push} {$Q-}
-    bb:=qword(-b.svalue)
-    {$pop}
-  else
-    bb:=b.uvalue;
-
-  if bb=0 then
-    result.overflow:=true
-  else
-    begin
-      r:=aa div bb;
-      if sa xor sb then
-        begin
-          result.signed:=true;
-          if r>qword(high(int64)) then
-            result.overflow:=true
-          else
-            result.svalue:=-int64(r);
-        end
-      else
-        begin
-          result.signed:=false;
-          result.uvalue:=r;
-        end;
-    end;
+  a.div_or_mod(b,true,result);
 end;
 
 operator mod (const a,b:Tconstexprint):Tconstexprint;
 
-var aa,bb,r:qword;
-    sa,sb:boolean;
-
 begin
-  if a.overflow or b.overflow then
-    begin
-      result.overflow:=true;
-      exit;
-    end;
-  result.overflow:=false;
-  sa:=a.signed and (a.svalue<0);
-  if sa then
-    {$push} {$Q-}
-    aa:=qword(-a.svalue)
-    {$pop}
-  else
-    aa:=a.uvalue;
-  sb:=b.signed and (b.svalue<0);
-  if sb then
-    {$push} {$Q-}
-    bb:=qword(-b.svalue)
-    {$pop}
-  else
-    bb:=b.uvalue;
-  if bb=0 then
-    result.overflow:=true
-  else
-    begin
-      { the sign of a modulo operation only depends on the sign of the
-        dividend }
-      r:=aa mod bb;
-      result.signed:=sa;
-      if not sa then
-        result.uvalue:=r
-      else
-        result.svalue:=-int64(r);
-    end;
+  a.div_or_mod(b,false,result);
 end;
 
 operator / (const a,b:Tconstexprint):bestreal;
 
-var aa,bb:bestreal;
-
 begin
-  if a.overflow or b.overflow then
-    internalerror(200706096);
-  if a.signed then
-    aa:=a.svalue
-  else
-    aa:=a.uvalue;
-  if b.signed then
-    bb:=b.svalue
-  else
-    bb:=b.uvalue;
-  result:=aa/bb;
+  result:=a.tobestreal/b.tobestreal;
 end;
 
 operator = (const a,b:Tconstexprint):boolean;
 
 begin
-  if a.signed and (a.svalue<0) then
-    if b.signed and (b.svalue<0) then
-      result:=a.svalue=b.svalue
-    else if b.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue=b.svalue
-  else
-    if not (b.signed and (b.svalue<0)) then
-      result:=a.uvalue=b.uvalue
-    else if a.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue=b.svalue
+  result:=(a.uvalue=b.uvalue) and (a.is_negative=b.is_negative);
 end;
 
 operator > (const a,b:Tconstexprint):boolean;
 
 begin
-  if a.signed and (a.svalue<0) then
-    if b.signed and (b.svalue<0) then
-      result:=a.svalue>b.svalue
-    else if b.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue>b.svalue
-  else
-    if not (b.signed and (b.svalue<0)) then
-      result:=a.uvalue>b.uvalue
-    else if a.uvalue>qword(high(int64)) then
-      result:=true
-    else
-      result:=a.svalue>b.svalue
+  result:=b<a;
 end;
 
 operator >= (const a,b:Tconstexprint):boolean;
 
 begin
-  if a.signed and (a.svalue<0) then
-    if b.signed and (b.svalue<0) then
-      result:=a.svalue>=b.svalue
-    else if b.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue>=b.svalue
-  else
-    if not (b.signed and (b.svalue<0)) then
-      result:=a.uvalue>=b.uvalue
-    else if a.uvalue>qword(high(int64)) then
-      result:=true
-    else
-      result:=a.svalue>=b.svalue
+  result:=not(a<b);
 end;
 
 operator < (const a,b:Tconstexprint):boolean;
 
 begin
-  if a.signed and (a.svalue<0) then
-    if b.signed and (b.svalue<0) then
-      result:=a.svalue<b.svalue
-    else if b.uvalue>qword(high(int64)) then
-      result:=true
-    else
-      result:=a.svalue<b.svalue
-  else
-    if not (b.signed and (b.svalue<0)) then
-      result:=a.uvalue<b.uvalue
-    else if a.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue<b.svalue
+  result:=a.is_negative;
+  if result=b.is_negative then
+    result:=a.uvalue<b.uvalue; { Works both with positive < positive and unsigned(negative) < unsigned(negative). }
 end;
 
 operator <= (const a,b:Tconstexprint):boolean;
 
 begin
-  if a.signed and (a.svalue<0) then
-    if b.signed and (b.svalue<0) then
-      result:=a.svalue<=b.svalue
-    else if b.uvalue>qword(high(int64)) then
-      result:=true
-    else
-      result:=a.svalue<=b.svalue
-  else
-    if not (b.signed and (b.svalue<0)) then
-      result:=a.uvalue<=b.uvalue
-    else if a.uvalue>qword(high(int64)) then
-      result:=false
-    else
-      result:=a.svalue<=b.svalue
+  result:=not(b<a);
 end;
 
 operator and (const a,b:Tconstexprint):Tconstexprint;
@@ -562,14 +352,18 @@ end;
 operator shl (const a,b:Tconstexprint):Tconstexprint;
 
 begin
+  if b.uvalue>=bitsizeof(a.uvalue) then
+    exit(0);
   result.overflow:=false;
-  result.signed:=a.signed;
+  result.signed:=a.signed; { signed(1) shl 63 does not fit into signed }
   result.uvalue:=a.uvalue shl b.uvalue;
 end;
 
 operator shr (const a,b:Tconstexprint):Tconstexprint;
 
 begin
+  if b.uvalue>=bitsizeof(a.uvalue) then
+    exit(0);
   result.overflow:=false;
   result.signed:=a.signed;
   result.uvalue:=a.uvalue shr b.uvalue;

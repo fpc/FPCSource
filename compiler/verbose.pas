@@ -1369,8 +1369,6 @@ implementation
 {$endif DEBUG_NODE_XML}
 
 
-initialization
-  constexp.internalerrorproc:=@internalerror;
 finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;
