@@ -414,7 +414,7 @@ Type
   TAlphaColorRec = TAlphaColors;
   PAlphaColorRec = ^TAlphaColorRec;
 
-
+  PAlphaColorF = ^TAlphaColorF;
   TAlphaColorF = record
   Public
     R, G, B, A: Single;
