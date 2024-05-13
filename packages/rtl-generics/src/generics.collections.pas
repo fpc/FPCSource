@@ -44,7 +44,7 @@ interface
 
 uses
     RtlConsts, Classes, SysUtils, Generics.MemoryExpanders, Generics.Defaults,
-    Generics.Helpers, Generics.Strings;
+    Generics.Helpers, Generics.Strings, Types;
 
 {.$define EXTRA_WARNINGS}
 {.$define ENABLE_METHODS_WITH_TEnumerableWithPointers}
@@ -280,6 +280,7 @@ type
     {$ENDIF}
 
     function Remove(const AValue: T): SizeInt;
+    function RemoveItem(const Value: T; Direction: TDirection): SizeInt;
     procedure Delete(AIndex: SizeInt); inline;
     procedure DeleteRange(AIndex, ACount: SizeInt);
     function ExtractIndex(const AIndex: SizeInt): T; overload;
@@ -1730,6 +1731,19 @@ begin
   Result := IndexOf(AValue);
   if Result >= 0 then
     DoRemove(Result, cnRemoved);
+end;
+
+function TList<T>.RemoveItem(const Value: T; Direction: TDirection): SizeInt;
+
+begin
+  if Direction=TDirection.FromBeginning then
+    Result:=Remove(Value)
+  else
+    begin
+    Result:=LastIndexOf(Value);
+    if Result>=0 then
+      DoRemove(Result, cnRemoved);
+    end;
 end;
 
 procedure TList<T>.Delete(AIndex: SizeInt);
