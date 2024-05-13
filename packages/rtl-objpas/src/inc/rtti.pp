@@ -4028,6 +4028,10 @@ begin
 end;
 
 function TValue.ToString: String;
+
+var
+  Obj : TObject;
+
 begin
   if IsEmpty then
     Exit('(empty)');
@@ -4046,6 +4050,14 @@ begin
     tkEnumeration: Result := GetEnumName(TypeInfo, Integer(AsOrdinal));
     tkChar: Result := AnsiChar(FData.FAsUByte);
     tkWChar: Result := UTF8Encode(WideChar(FData.FAsUWord));
+    tkClass : 
+      begin
+      Obj:=AsObject;
+      if Assigned(Obj) then
+        Result:=Obj.ToString
+      else
+        Result:='<Nil>';  
+      end  
   else
     result := '<unknown kind>';
   end;
