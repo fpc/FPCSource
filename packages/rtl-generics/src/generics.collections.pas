@@ -46,11 +46,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
     System.RtlConsts, System.Classes, System.SysUtils, System.Generics.MemoryExpanders, System.Generics.Defaults,
-    System.Generics.Helpers, System.Generics.Strings;
+    System.Generics.Helpers, System.Generics.Strings, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses
     RtlConsts, Classes, SysUtils, Generics.MemoryExpanders, Generics.Defaults,
-    Generics.Helpers, Generics.Strings;
+    Generics.Helpers, Generics.Strings, Types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {.$define EXTRA_WARNINGS}
@@ -287,6 +287,7 @@ type
     {$ENDIF}
 
     function Remove(const AValue: T): SizeInt;
+    function RemoveItem(const Value: T; Direction: TDirection): SizeInt;
     procedure Delete(AIndex: SizeInt); inline;
     procedure DeleteRange(AIndex, ACount: SizeInt);
     function ExtractIndex(const AIndex: SizeInt): T; overload;
@@ -1706,6 +1707,19 @@ begin
   Result := IndexOf(AValue);
   if Result >= 0 then
     DoRemove(Result, cnRemoved);
+end;
+
+function TList<T>.RemoveItem(const Value: T; Direction: TDirection): SizeInt;
+
+begin
+  if Direction=TDirection.FromBeginning then
+    Result:=Remove(Value)
+  else
+    begin
+    Result:=LastIndexOf(Value);
+    if Result>=0 then
+      DoRemove(Result, cnRemoved);
+    end;
 end;
 
 procedure TList<T>.Delete(AIndex: SizeInt);
