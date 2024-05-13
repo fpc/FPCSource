@@ -361,7 +361,6 @@ begin
     except
       HandleException(Self);
     end;
-    Writeln('Main needs to terminate: ',FTerminated,' or ',FRunAborted);
   Until FTerminated or FRunAborted;
 end;
 
