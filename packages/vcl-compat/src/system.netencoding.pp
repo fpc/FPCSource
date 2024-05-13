@@ -140,10 +140,10 @@ end;
 
 function TBase64Encoding.DoEncode(const aInput, aOutput: TStream): Integer;
 Var
-  S : TBase64DecodingStream;
+  S : TBase64EncodingStream;
 
 begin
-  S:=TBase64DecodingStream.Create(aInput);
+  S:=TBase64EncodingStream.Create(aInput);
   try
     Result:=S.Size;
     aOutput.CopyFrom(S,Result);
