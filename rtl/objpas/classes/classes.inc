@@ -1670,7 +1670,7 @@ begin
     H:=System.FindResource(HInst,ResName,RT_RCDATA);
     if PtrInt(H)<>0 then
       try
-        S:=TResourceStream.Create(HInst,ResName,PChar(RT_RCDATA));
+        S:=TResourceStream.Create(HInst,ResName,RT_RCDATA);
         Proc(S);
         Exit;
       finally
