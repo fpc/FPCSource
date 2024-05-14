@@ -115,7 +115,9 @@ type
   Protected
     function BaseUnits: String; override;
     function DottedBaseUnits: String; override;
+    function IsStub : Boolean; virtual;
     // Auxiliary routines
+    function DefaultForNativeType(aNativeType: TPascalNativeType; aReturnTypeName: String): String;
     function GetAliasPascalType(D: TIDLDefinition; out PascalTypeName : string): TPascalNativeType; override;
     function GetPasClassName(const aName: String): String; overload; override; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
     function IntfToPasClassName(const aName: TIDLString): TIDLString; virtual;
@@ -134,6 +136,7 @@ type
     function GetDictionaryIntfHead(const CurClassName: String; Dict: TIDLDictionaryDefinition): String; virtual;
     function WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer; override;
     // Code generation routines. Return the number of actually written defs.
+    function WriteDictionaryPrivateFields(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
     function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; override;
@@ -176,6 +179,7 @@ type
     // Implementation, per member
     procedure WriteMethodImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList); virtual;
     Procedure WriteFunctionImplementation(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition); virtual;
+    Procedure WriteFunctionInvokeCodeStub(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; aInfo : TMethodCallInfo); virtual;
     procedure WritePrivateGetterImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList); virtual;
     procedure WritePrivateSetterImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList); virtual;
     procedure WriteUtilityMethodImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList);virtual;
@@ -185,14 +189,14 @@ type
     procedure WriteMapLikePrivateSetterImplementation(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition); virtual;
     procedure WriteMapLikePrivateGetterImplementation(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition); virtual;
     procedure WriteMapLikeFunctionImplementations(aDef: TIDLStructuredDefinition; MD: TIDLMapLikeDefinition);
-    procedure WriteMapLikeEntriesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeGetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeSetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeClearFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeHasFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeDeleteFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeKeysFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
-    procedure WriteMapLikeValuesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);
+    procedure WriteMapLikeEntriesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeGetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeSetFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeClearFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeHasFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeDeleteFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeKeysFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
+    procedure WriteMapLikeValuesFunctionImplementation(aDef: TIDLStructuredDefinition; ML: TIDLMapLikeDefinition);virtual;
 
     procedure WriteNamespaceVars; override;
     procedure WriteGlobalVar(aDef : String); override;
@@ -231,6 +235,11 @@ end;
 function TWebIDLToPasWasmJob.DottedBaseUnits: String;
 begin
   Result:='System.SysUtils, Wasm.Job.Js';
+end;
+
+function TWebIDLToPasWasmJob.IsStub: Boolean;
+begin
+  Result:=False;
 end;
 
 function TWebIDLToPasWasmJob.GetAliasPascalType(D: TIDLDefinition; out PascalTypeName: string): TPascalNativeType;
@@ -537,6 +546,14 @@ begin
 
 end;
 
+function TWebIDLToPasWasmJob.WriteDictionaryPrivateFields(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
+begin
+  Result:=0;
+  if Aparent=Nil then;
+  if Alist=Nil then;
+  // Do nothing, used in stub
+end;
+
 function TWebIDLToPasWasmJob.WritePrivateGetters(aParent: TIDLStructuredDefinition;
   aList: TIDLDefinitionList): Integer;
 var
@@ -633,6 +650,7 @@ begin
   AddLn(Decl);
   AddLn('Private');
   Indent;
+  WriteDictionaryPrivateFields(aDict,DefList);
   WritePrivateGetters(aDict,DefList);
   WritePrivateSetters(aDict,DefList);
   Undent;
@@ -1078,20 +1096,25 @@ begin
           end;
         AddLn('begin');
         Indent;
-        if Length(TryCode)=0 then
-          AddLn(InvokeCode+';')
+        if IsStub then
+          WriteFunctionInvokeCodeStub(aParent,aDef,MethodInfo)
         else
           begin
-          AddLn(TryCode);
-          AddLn('try');
-            Indent;
-            AddLn(InvokeCode+';');
-            Undent;
-          AddLn('finally');
-            Indent;
-            AddLn(FinallyCode);
-            Undent;
-          AddLn('end;');
+          if Length(TryCode)=0 then
+            AddLn(InvokeCode+';')
+          else
+            begin
+            AddLn(TryCode);
+            AddLn('try');
+              Indent;
+              AddLn(InvokeCode+';');
+              Undent;
+            AddLn('finally');
+              Indent;
+              AddLn(FinallyCode);
+              Undent;
+            AddLn('end;');
+            end;
           end;
         Undent;
         AddLn('end;');
@@ -1102,6 +1125,11 @@ begin
   finally
     Overloads.Free;
   end;
+end;
+
+procedure TWebIDLToPasWasmJob.WriteFunctionInvokeCodeStub(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition; aInfo : TMethodCallInfo);
+begin
+  //
 end;
 
 function TWebIDLToPasWasmJob.GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads : TFPObjectList): String;
@@ -1677,10 +1705,9 @@ begin
   Info.NativeTypeName:='Integer';
   Info.ResolvedTypeName:='LongInt';
   Info.NativeType:=ntLongint;
-  Call:=GetReadPropertyCall(Info,'size');
   Addln('function '+aClassName+'._Getsize: LongInt;');
   Addln('begin');
-  Addln('  Result:='+Call+';');
+  Addln('  Result:=0;');
   Addln('end;');
 end;
 
@@ -1868,6 +1895,45 @@ begin
         WriteMapLikeFunctionImplementations(aDef,DM);
 end;
 
+function TWebIDLToPasWasmJob.DefaultForNativeType(aNativeType : TPascalNativeType; aReturnTypeName: String) : String;
+var
+  S,N : string;
+
+begin
+  Case aNativeType of
+    ntUnknown, // unknown
+    ntNone,    // None -> void
+    ntError : Result:='';   // Special : error condition
+    ntBoolean : Result:='False';
+    ntShortInt,
+    ntByte,
+    ntSmallInt,
+    ntWord,
+    ntLongint,
+    ntCardinal,
+    ntInt64,
+    ntQWord : Result:='0';
+    ntSingle,
+    ntDouble : Result:='0.0';
+    ntUnicodeString,
+    ntUTF8String : Result:='''''';
+    ntVariant:  Result:='null';
+    ntObject :
+      Result:=StringReplace(aReturnTypeName,'IJS','TJS',[])+'.CreateEmpty()';
+    ntInterface : Result:='nil';
+    ntArray :
+      begin
+      S:=Copy(aReturnTypeName,1,Length(PasInterfacePrefix));
+      N:=Copy(aReturnTypeName,Length(PasInterfacePrefix)+1);
+      if (S=PasInterfacePrefix) and (TypeAliases.Values[N]<>'') then
+        Result:=IntfToPasClassName(aReturnTypeName)+'.CreateEmpty()'
+      else
+        Result:='TJSArray.CreateEmpty()';
+      end;
+    ntMethod : Result:='Nil';
+    end;
+end;
+
 procedure TWebIDLToPasWasmJob.WriteMapLikeGetFunctionImplementation(aDef : TIDLStructuredDefinition; ML : TIDLMapLikeDefinition);
 
 var
@@ -1885,7 +1951,9 @@ begin
   AddLn('function %s.get(key: %s) : %s;',[aClassName,aResolvedKeyTypeName,aResolvedValueTypeName]);
   AddLn('begin');
   Indent;
-  if VNT=ntObject then
+  if IsStub then
+    AddLn('Result:='+DefaultForNativeType(vnt,InvokeClass)+';')
+  else if VNT=ntObject then
     AddLn('Result:='+Func+'(''get'',[key],'+InvokeClass+') as '+aResolvedValueTypeName+';')
   else
     AddLn('Result:='+Func+'(''get'',[key]);');
@@ -1907,7 +1975,8 @@ begin
   AddLn('Procedure %s.delete(key: %s);',[aClassName,aResolvedKeyTypeName]);
   AddLn('begin');
   Indent;
-  AddLn('InvokeJSNoResult(''delete'',[key]);');
+  if not IsStub then
+    AddLn('InvokeJSNoResult(''delete'',[key]);');
   Undent;
   AddLn('end;');
 end;
@@ -1926,7 +1995,8 @@ begin
   AddLn('Procedure %s.set_(key: %s; value : %s);',[aClassName,aResolvedKeyTypeName,aResolvedValueTypeName]);
   AddLn('begin');
   Indent;
-  AddLn('InvokeJSNoResult(''set'',[key,Value]);');
+  if not IsStub then
+    AddLn('InvokeJSNoResult(''set'',[key,Value]);');
   Undent;
   AddLn('end;');
 end;
@@ -1940,7 +2010,8 @@ begin
   AddLn('Procedure %s.clear;',[aClassName]);
   AddLn('begin');
   Indent;
-  AddLn('InvokeJSNoResult(''clear'',[]);');
+  if not IsStub then
+    AddLn('InvokeJSNoResult(''clear'',[]);');
   Undent;
   AddLn('end;');
 end;
@@ -1958,7 +2029,10 @@ begin
   AddLn('function %s.has(key: %s) : Boolean;',[aClassName,aResolvedKeyTypeName]);
   AddLn('begin');
   Indent;
-  AddLn('Result:=InvokeJSBooleanResult(''has'',[key]);');
+  if IsStub then
+    AddLn('Result:=False;')
+  else
+    AddLn('Result:=InvokeJSBooleanResult(''has'',[key]);');
   Undent;
   AddLn('end;');
 end;
@@ -1974,7 +2048,10 @@ begin
   AddLn('function %s.entries : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
-  AddLn('Result:=InvokeJSObjectResult(''entries'',[],TJSIterator) as IJSIterator;');
+  if IsStub then
+    AddLn('Result:=TJSIterator.CreateEmpty;')
+  else
+    AddLn('Result:=InvokeJSObjectResult(''entries'',[],TJSIterator) as IJSIterator;');
   Undent;
   AddLn('end;');
 end;
@@ -1991,7 +2068,10 @@ begin
   AddLn('function %s.keys : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
-  AddLn('Result:=InvokeJSObjectResult(''keys'',[],TJSIterator) as IJSIterator;');
+  if IsStub then
+    AddLn('Result:=TJSIterator.CreateEmpty;')
+  else
+    AddLn('Result:=InvokeJSObjectResult(''keys'',[],TJSIterator) as IJSIterator;');
   Undent;
   AddLn('end;');
 end;
@@ -2007,7 +2087,10 @@ begin
   AddLn('function %s.values : IJSIterator;',[aClassName]);
   AddLn('begin');
   Indent;
-  AddLn('Result:=InvokeJSObjectResult(''values'',[],TJSIterator) as IJSIterator;');
+  if IsStub then
+    AddLn('Result:=TJSIterator.CreateEmpty;')
+  else
+    AddLn('Result:=InvokeJSObjectResult(''values'',[],TJSIterator) as IJSIterator;');
   Undent;
   AddLn('end;');
 end;
@@ -2158,7 +2241,10 @@ begin
       begin
       SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
       aDef:=FindGlobalDef(JSClassName);
-      AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
+      if IsStub then
+        AddLn(PasVarName+':='+GetPasName(aDef)+'.Create();')
+      else
+        AddLn(PasVarName+':='+GetPasName(aDef)+'.CreateGlobal('''+JOBRegisterName+''');');
       end;
     for I:=0 to Context.Definitions.Count-1 do
       begin
@@ -2168,7 +2254,10 @@ begin
           if not (OnlyConstants(NSDef) or NSDef.HasPrefAttribute) then
             begin
             PasVarName:=Context.Definitions[i].Name;
-            AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
+            if IsStub then
+              AddLn(PasVarName+':='+GetPasName(aDef)+'.Create();')
+            else
+              AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
             end;
       end;
     Undent;

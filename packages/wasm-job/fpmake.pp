@@ -21,13 +21,12 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.SourcePath.Add('src');
-    P.OSes := [wasi];
-    P.CPUs:=[wasm32];
     T:=P.Targets.AddUnit('job.shared.pas');
-    T:=P.Targets.AddUnit('job.js.pas');
+    T:=P.Targets.AddUnit('job.stub.pas',AllCPUs-[wasm32],AllOSes);
+    T.Dependencies.AddUnit('job.shared');
+    T:=P.Targets.AddUnit('job.js.pas',[wasm32],AllOSes);
     T.Dependencies.AddUnit('job.shared');
     P.NamespaceMap:='namespaces.lst';
-    
 {$ifndef ALLPACKAGES}
     Run;
     end;
