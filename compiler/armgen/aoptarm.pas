@@ -60,6 +60,9 @@ Type
 
     function OptPass2Bitwise(var p: tai): Boolean;
     function OptPass2TST(var p: tai): Boolean;
+
+  protected
+    function DoXTArithOp(var p: tai; hp1: tai): Boolean;
   End;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
@@ -675,6 +678,123 @@ Implementation
     end;
 
 
+  function TARMAsmOptimizer.DoXTArithOp(var p: tai; hp1: tai): Boolean;
+    var
+      hp2: tai;
+      ConstLimit: TCGInt;
+      ValidPostFixes: TOpPostFixes;
+      FirstCode, SecondCode, ThirdCode, FourthCode: TAsmOp;
+    begin
+      Result := False;
+      { Change:
+          uxtb/h reg1,reg1
+          (operation on reg1 with immediate operand where the upper 24/56
+          bits don't affect the state of the first 8 bits )
+          uxtb/h reg1,reg1
+
+        Remove first uxtb/h
+      }
+      case taicpu(p).opcode of
+        A_UXTB,
+        A_SXTB:
+          begin
+            ConstLimit := $FF;
+            ValidPostFixes := [PF_B];
+            FirstCode := A_UXTB;
+            SecondCode := A_SXTB;
+            ThirdCode := A_UXTB; { Used to indicate no other valid codes }
+            FourthCode := A_SXTB;
+          end;
+        A_UXTH,
+        A_SXTH:
+          begin
+            ConstLimit := $FFFF;
+            ValidPostFixes := [PF_B, PF_H];
+            FirstCode := A_UXTH;
+            SecondCode := A_SXTH;
+            ThirdCode := A_UXTB;
+            FourthCode := A_SXTB;
+          end;
+        else
+          InternalError(2024051401);
+      end;
+
+{$ifndef AARCH64}
+      { Regular ARM doesn't have the multi-instruction MatchInstruction available }
+      if (hp1.typ = ait_instruction) and (taicpu(hp1).oppostfix = PF_None) then
+        case taicpu(hp1).opcode of
+          A_ADD, A_SUB, A_MUL, A_LSL, A_AND, A_ORR, A_EOR, A_BIC, A_ORN:
+{$endif AARCH64}
+
+      if
+        (taicpu(p).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
+{$ifdef AARCH64}
+        MatchInstruction(hp1, [A_ADD, A_SUB, A_MUL, A_LSL, A_AND, A_ORR, A_EOR, A_BIC, A_ORN, A_EON], [PF_None]) and
+{$endif AARCH64}
+        (taicpu(hp1).condition = C_None) and
+        (taicpu(hp1).ops = 3) and
+        (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+        (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
+        (taicpu(hp1).oper[2]^.typ = top_const) and
+        (
+          (
+            { If the AND immediate is 8-bit, then this essentially performs
+              the functionality of the second UXTB and so its presence is
+              not required }
+            (taicpu(hp1).opcode = A_AND) and
+            (taicpu(hp1).oper[2]^.val >= 0) and
+            (taicpu(hp1).oper[2]^.val <= ConstLimit)
+          ) or
+          (
+            GetNextInstructionUsingReg(hp1,hp2,taicpu(p).oper[0]^.reg) and
+            (hp2.typ = ait_instruction) and
+            (taicpu(hp2).ops = 2) and
+            (taicpu(hp2).condition = C_None) and
+            (
+              (
+                (taicpu(hp2).opcode in [FirstCode, SecondCode, ThirdCode, FourthCode]) and
+                (taicpu(hp2).oppostfix = PF_None) and
+                (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[0]^.reg)
+                { Destination is allowed to be different in this case, but
+                  only if the source is no longer in use (it being the same as
+                  the source is covered by RegEndOfLife as well) }
+              ) or
+              (
+                { STRB essentially fills the same role as the second UXTB
+                  as long as the register is deallocated afterwards }
+                MatchInstruction(hp2, A_STR, [C_None], ValidPostFixes) and
+                (taicpu(hp2).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
+                not RegInOp(taicpu(p).oper[0]^.reg, taicpu(hp2).oper[1]^)
+              )
+            ) and
+            RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp2))
+          )
+        ) then
+        begin
+          DebugMsg(SPeepholeOptimization + 'S/Uxtb/hArithUxtb/h2ArithS/Uxtb/h done', p);
+          Result := RemoveCurrentP(p);
+
+          { Simplify bitwise constants if able }
+{$ifdef AARCH64}
+          if (taicpu(hp1).opcode in [A_AND, A_ORR, A_EOR, A_BIC, A_ORN, A_EON]) and
+            is_shifter_const(taicpu(hp1).oper[2]^.val and ConstLimit, OS_32) then
+{$else AARCH64}
+          if (
+              (ConstLimit = $FF) or
+              (taicpu(hp1).oper[2]^.val <= $100)
+            ) and
+            (taicpu(hp1).opcode in [A_AND, A_ORR, A_EOR, A_BIC, A_ORN]) then
+{$endif AARCH64}
+            taicpu(hp1).oper[2]^.val := taicpu(hp1).oper[2]^.val and ConstLimit;
+        end;
+{$ifndef AARCH64}
+          else
+            ;
+        end;
+{$endif not AARCH64}
+    end;
+
+
   function TARMAsmOptimizer.OptPass1UXTB(var p : tai) : Boolean;
     var
       hp1, hp2: tai;
@@ -773,6 +893,8 @@ Implementation
                   taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                   result:=RemoveCurrentP(p);
                 end
+              else if DoXTArithOp(p, hp1) then
+                Result:=true
 {$ifdef AARCH64}
               else if USxtOp2Op(p,hp1,SM_UXTB) then
                 Result:=true
@@ -862,6 +984,8 @@ Implementation
                   taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                   result:=RemoveCurrentP(p);
                 end
+              else if DoXTArithOp(p, hp1) then
+                Result:=true
 {$ifdef AARCH64}
               else if USxtOp2Op(p,hp1,SM_UXTH) then
                 Result:=true
@@ -974,6 +1098,8 @@ Implementation
                   taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                   result:=RemoveCurrentP(p);
                 end
+              else if DoXTArithOp(p, hp1) then
+                Result:=true
 {$ifdef AARCH64}
               else if USxtOp2Op(p,hp1,SM_SXTB) then
                 Result:=true
@@ -1094,6 +1220,8 @@ Implementation
                   taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
                   result:=RemoveCurrentP(p);
                 end
+              else if DoXTArithOp(p, hp1) then
+                Result:=true
 {$ifdef AARCH64}
               else if USxtOp2Op(p,hp1,SM_SXTH) then
                 Result:=true
