@@ -1085,10 +1085,10 @@ begin
   {$ifdef cpusparc64}
     default_target(source_info.system);
   {$else cpusparc64}
-   {$ifdef solaris}
-    {$define default_target_set}
-    default_target(system_sparc64_solaris);
-   {$endif}
+   // {$ifdef solaris}
+   // {$define default_target_set}
+   // default_target(system_sparc64_solaris);
+   // {$endif}
     {$ifndef default_target_set}
     default_target(system_sparc64_linux);
     {$endif ndef default_target_set}
