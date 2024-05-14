@@ -649,7 +649,7 @@ implementation
                   { both must be defined now }
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
+                     not(pd.proccalloption in cstylearrayofconst) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;
