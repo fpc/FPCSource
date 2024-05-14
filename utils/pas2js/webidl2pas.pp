@@ -18,17 +18,19 @@ program webidl2pas;
 
 uses
   Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo,
-  webidltopas2js, webidltowasmjob;
+  webidltopas2js, webidltowasmjob, webidltowasmstub;
 
 type
   TWebIDLToPasFormat = (
     wifPas2js,
-    wifWasmJob
+    wifWasmJob,
+    wifWasmJobStub
     );
 const
   WebIDLToPasFormatNames: array[TWebIDLToPasFormat] of string = (
     'pas2js',
-    'wasmjob'
+    'wasmjob',
+    'wasmjobstub'
     );
 
 type
@@ -261,6 +263,8 @@ begin
   case OutputFormat of
   wifWasmJob:
     FWebIDLToPas:=TWebIDLToPasWasmJob.Create(Self);
+  wifWasmJobStub:
+    FWebIDLToPas:=TWebIDLToPasWasmJobStub.Create(Self);
   else
     FWebIDLToPas:=TWebIDLToPas2js.Create(Self);
   end;
@@ -306,6 +310,7 @@ begin
   Writeln(StdErr,'-o  --output=FileName      output file. Defaults to unit name with .pas extension appended.');
   Writeln(StdErr,'-p  --optionsinheader      add options to header of generated file');
 
+  Writeln(StdErr,'-s  --stub                 Write a stub implementation for native compilation');
   Writeln(StdErr,'-t  --typealiases=alias    A comma separated list of type aliases in Alias=Name form');
   Writeln(StdErr,'                           use @filename to load the aliases from file.');
   Writeln(StdErr,'-u  --unitname=Name        name for unit. Defaults to input file without extension.');
