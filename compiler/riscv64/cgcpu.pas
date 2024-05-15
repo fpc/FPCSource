@@ -46,7 +46,6 @@ unit cgcpu;
 
         procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
 
-        procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: aint); override;
       end;
 
@@ -352,34 +351,6 @@ implementation
       begin
       end;
 
-
-    procedure tcgrv64.g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
-      var
-        paraloc1, paraloc2, paraloc3: TCGPara;
-        pd: tprocdef;
-      begin
-        pd:=search_system_proc('MOVE');
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
-        paramanager.getcgtempparaloc(list, pd, 2, paraloc2);
-        paramanager.getcgtempparaloc(list, pd, 3, paraloc3);
-        a_load_const_cgpara(list, OS_SINT, len, paraloc3);
-        a_loadaddr_ref_cgpara(list, dest, paraloc2);
-        a_loadaddr_ref_cgpara(list, Source, paraloc1);
-        paramanager.freecgpara(list, paraloc3);
-        paramanager.freecgpara(list, paraloc2);
-        paramanager.freecgpara(list, paraloc1);
-        alloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
-        alloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list, 'FPC_MOVE', false);
-        dealloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
-        dealloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
-      end;
 
     procedure tcgrv64.g_concatcopy(list: TAsmList; const source, dest: treference; len: aint);
       var
