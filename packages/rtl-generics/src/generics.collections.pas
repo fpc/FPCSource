@@ -3506,7 +3506,7 @@ begin
   if not Assigned(LNode) then
     begin
       K:=aKey;
-      TValue.Make(@K,TypeInfo(TKey),D);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.TValue.Make(@K,TypeInfo(TKey),D);
       raise EAVLTree.CreateFmt(SDictionaryKeyNNNDoesNotExist,[D.ToString]);
     end;
   result := LNode.Value;
