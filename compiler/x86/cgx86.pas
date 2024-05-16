@@ -3048,7 +3048,10 @@ unit cgx86;
             list.concatList(hlist);
             hlist.free;
           end
-        else {copy_string, should be a good fallback in case of unhandled}
+        else if (CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype]) or
+          { we can use the move variant only if the subroutine does another call }
+          not(pi_do_call in current_procinfo.flags) then
+          { copy_string, should be a good fallback in case of unhandled if short rep movs are fast }
           begin
             getcpuregister(list,REGDI);
             if (dstref.segment=NR_NO) and
@@ -3166,7 +3169,10 @@ unit cgx86;
               list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
             if saved_es then
               list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
-          end;
+          end
+        else
+          { copy by using move, should be a good fallback in all other cases }
+          g_concatcopy_move(list,source,dest,len);
         end;
     end;
 

@@ -249,17 +249,18 @@ type
 
    { Instruction optimisation hints }
    TCPUOptimizeFlags =
-      (CPUX86_HINT_FAST_BT_REG_IMM,  { BT instructions with register source and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BT_REG_REG,  { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BTX_REG_IMM, { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BTX_REG_REG, { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BT_MEM_IMM,  { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BT_MEM_REG,  { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BTX_MEM_IMM, { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BTX_MEM_REG, { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_XCHG,        { XCHG %reg,%reg executes in 2 cycles or fewer }
-       CPUX86_HINT_FAST_PDEP_PEXT,   { The BMI2 instructions PDEP and PEXT execute in a single cycle }
-       CPUX86_HINT_FAST_3COMP_ADDR   { A 3-component address (base, index and offset) has the same latency as the 2-component version (most notable with LEA instructions) }
+      (CPUX86_HINT_FAST_BT_REG_IMM,    { BT instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_REG_REG,    { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_IMM,   { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_REG,   { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_IMM,    { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_REG,    { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_IMM,   { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_REG,   { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_XCHG,          { XCHG %reg,%reg executes in 2 cycles or fewer }
+       CPUX86_HINT_FAST_PDEP_PEXT,     { The BMI2 instructions PDEP and PEXT execute in a single cycle }
+       CPUX86_HINT_FAST_3COMP_ADDR,    { A 3-component address (base, index and offset) has the same latency as the 2-component version (most notable with LEA instructions) }
+       CPUX86_HINT_FAST_SHORT_REP_MOVS { short rep movs instruction }
       );
 
  const
@@ -334,11 +335,11 @@ type
       { cpu_zen2      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_x86_64_v4 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
       { cpu_skylake-x } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_icelake   } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_icelake_client } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_icelake_server } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_zen3      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR],
-      { cpu_zen4      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR]
+      { cpu_icelake   } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_SHORT_REP_MOVS],
+      { cpu_icelake_client } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_SHORT_REP_MOVS],
+      { cpu_icelake_server } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_SHORT_REP_MOVS],
+      { cpu_zen3      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_SHORT_REP_MOVS],
+      { cpu_zen4      } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG,CPUX86_HINT_FAST_PDEP_PEXT,CPUX86_HINT_FAST_3COMP_ADDR,CPUX86_HINT_FAST_SHORT_REP_MOVS]
    );
 
 Implementation
