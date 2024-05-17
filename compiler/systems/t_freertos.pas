@@ -1446,7 +1446,7 @@ begin
       if idf_version>=40400 then
         cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32c3/memory.ld.in'
       else
-        cmdstr:=cmdstr+'$IDF_PATH/components/esp32/ld/esp32c3.ld';
+        cmdstr:=cmdstr+'$IDF_PATH/components/esp32c3/ld/esp32c3.ld';
     end;
   Replace(cmdstr,'$IDF_PATH',idfpath);
   Replace(cmdstr,'$OUTPUT',outputexedir);
@@ -1507,10 +1507,10 @@ var
   DynLinkStr,
   StripStr,
   FixedExeFileName: string;
-{$ifdef XTENSA}
+  {$if defined(XTENSA) or defined(RISCV32)}
   memory_script,
   sections_script: AnsiString;
- {$endif XTENSA}
+  {$endif defined(XTENSA) or defined(RISCV32)}
 begin
 {$if defined(XTENSA) or defined(RISCV32)}
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
@@ -1581,6 +1581,50 @@ begin
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
 {$endif XTENSA}
+
+{$ifdef RISCV32}
+  { Locate linker scripts.  If not found, generate defaults. }
+  { Cater for different script names in different esp-idf versions }
+
+  if (current_settings.controllertype = ct_esp32c3) then
+    begin
+      if idf_version >= 40400 then
+        begin
+          memory_script := 'memory.ld';
+          sections_script := 'sections.ld';
+        end
+      else
+      begin
+        memory_script := 'esp32c3_out.ld';
+        sections_script := 'esp32c3.project.ld';
+      end;
+    end;
+
+  if not (FindLibraryFile(memory_script,'','',memory_script) and
+         FindLibraryFile(sections_script,'','',sections_script)) then
+    GenerateDefaultLinkerScripts(memory_script,sections_script);
+
+  if (current_settings.controllertype = ct_esp32c3) then
+    begin
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
+       '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
+       '-L $IDF_PATH/components/esp_rom/esp32c3/ld '+
+       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld '+
+//       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld -T esp32c3.rom.newlib-data.ld -T esp32c3.rom.syscalls.ld -T esp32c3.rom.newlib-funcs.ld '+
+       '-T '+memory_script+' -T '+sections_script;
+
+      if idf_version<40400 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32c3/ld -T esp32c3.peripherals.ld'
+      else
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32c3/ld -T esp32c3.peripherals.ld';
+      if idf_version>=40300 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.api.ld';
+      if idf_version>=40400 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.newlib-time.ld';
+    end;
+
+  Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
+{$endif RISCV32}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 

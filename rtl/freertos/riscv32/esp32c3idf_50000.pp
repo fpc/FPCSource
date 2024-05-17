@@ -28,7 +28,7 @@ interface
 {$linklib efuse.a,static}
 {$linklib esp_adc.a,static}
 {$linklib esp_app_format.a,static}
-{$linklib esp_coex.a,static}
+//{$linklib esp_coex.a,static} v5.1
 {$linklib esp_common.a,static}
 {$linklib espcoredump.a,static}
 {$linklib esp_eth.a,static}
@@ -41,7 +41,7 @@ interface
 {$linklib esp_hw_support.a,static}
 {$linklib esp_lcd.a,static}
 {$linklib esp_local_ctrl.a,static}
-{$linklib esp_mm.a,static}
+//{$linklib esp_mm.a,static}  v5.1
 {$linklib esp_netif.a,static}
 {$linklib espnow.a,static}
 {$linklib esp_partition.a,static}
@@ -61,7 +61,7 @@ interface
 {$linklib json.a,static}
 {$linklib log.a,static}
 {$linklib lwip.a,static}
-{$linklib main.a,static}
+//{$linklib main.a,static}
 {$linklib mbedcrypto.a,static}
 {$linklib mbedtls.a,static}
 {$linklib mbedx509.a,static}

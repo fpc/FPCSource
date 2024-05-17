@@ -521,6 +521,13 @@ implementation
                 Comment(V_Warning, 'Unsupported esp-rtos version');
             end;
 {$endif XTENSA}
+{$ifdef RISCV32}
+        if not(curr.is_unit) and (target_info.system=system_riscv32_freertos) then
+          if (current_settings.controllertype=ct_esp32c3) then
+            begin
+              CheckAddUnit('esp32c3idf_50000')
+            end;
+{$endif XTENSA}
       end;
 
 

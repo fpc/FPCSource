@@ -125,7 +125,7 @@ Type
     processorstr: TCmdStr;
     function ParseMacVersionMin(out minversion, invalidateversion: tversion; const compvarname, value: string; ios: boolean): boolean;
     procedure MaybeSetDefaultMacVersionMacro;
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
     function ParseVersionStr(out ver: longint; const compvarname, value: string): boolean;
     procedure MaybeSetIdfVersionMacro;
 {$endif}
@@ -1293,7 +1293,7 @@ function TOption.ParseMacVersionMin(out minversion,
     result:=true;
   end;
 
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
 function TOption.ParseVersionStr(out ver: longint;
   const compvarname, value: string): boolean;
 
@@ -1372,7 +1372,7 @@ function TOption.ParseVersionStr(out ver: longint;
         result:=true;
       end;
 end;
-{$endif XTENSA}
+{$endif XTENSA or RISCV32}
 
 procedure TOption.MaybeSetDefaultMacVersionMacro;
 var
@@ -1495,15 +1495,16 @@ begin
 end;
 {$endif AVR}
 
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
 procedure TOption.MaybeSetIdfVersionMacro;
 begin
-  if not(target_info.system=system_xtensa_freertos) then
+  if not(target_info.system in [system_xtensa_freertos,system_riscv32_freertos]) then
     exit;
   if IdfVersionSet then
     exit;
   { nothing specified -> defaults }
   case current_settings.controllertype of
+{$ifdef XTENSA}
     ct_esp8266:
       begin
         set_system_compvar('IDF_VERSION','30300');
@@ -1514,6 +1515,14 @@ begin
         set_system_compvar('IDF_VERSION','40200');
         idf_version:=40200;
       end;
+{$endif}
+{$ifdef RISCV32}
+    ct_esp32c3:
+      begin
+        set_system_compvar('IDF_VERSION','40400');
+        idf_version:=40400;
+      end;
+{$endif RISCV32}
     else
       begin
         set_system_compvar('IDF_VERSION','00000');
@@ -1521,7 +1530,7 @@ begin
       end;
   end;
 end;
-{$endif XTENSA}
+{$endif XTENSA or RISCV32}
 
 procedure TOption.VerifyTargetProcessor;
   begin
@@ -3027,7 +3036,7 @@ begin
           else
             frameworksearchpath.AddPath(More,true)
 {$if defined(XTENSA) or defined(RISCV32)}
-        else if (target_info.system=system_xtensa_freertos) then
+        else if (target_info.system in [system_xtensa_freertos,system_riscv32_freertos]) then
           idfpath:=FixPath(More,true)
 {$endif defined(XTENSA) or defined(RISCV32)}
         else
@@ -4034,13 +4043,13 @@ begin
              begin
                break;
              end
-{$ifdef XTENSA}
-           else if (target_info.system in [system_xtensa_freertos]) and
+{$if defined(XTENSA) or defined(RISCV32)}
+           else if (target_info.system in [system_xtensa_freertos,system_riscv32_freertos]) and
               ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2)) then
              begin
                break;
              end
-{$endif XTENSA}
+{$endif XTENSA or RISCV32}
            else
              IllegalPara(opt);
          end;
@@ -5238,10 +5247,10 @@ begin
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
 
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
   { set ESP32 or ESP8266 default SDK versions }
   option.MaybeSetIdfVersionMacro;
-{$endif XTENSA}
+{$endif defined(XTENSA) or defined(RISCV32)}
 
 {$ifdef cpufpemu}
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds etc.
