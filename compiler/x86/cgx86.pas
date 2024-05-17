@@ -2759,14 +2759,14 @@ unit cgx86;
 {$endif}
 
     type
-      copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512);
+      tcopymode=(copy_mov,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512,copy_fpc_move);
 
     var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
         cgsize:Tcgsize;
-        cm:copymode;
+        cm:tcopymode;
         saved_ds,saved_es: Boolean;
         hlist: TAsmList;
 
@@ -2813,7 +2813,7 @@ unit cgx86;
            dstref.base:=r;
          end;
 {$endif x86_64}
-      cm:=copy_move;
+      cm:=copy_mov;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
         helpsize:=2*sizeof(aword);
@@ -2848,6 +2848,12 @@ unit cgx86;
       else
         if len>helpsize then
           cm:=copy_string;
+
+      if (cm=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype]) and
+        { we can use the move variant only if the subroutine does another call }
+        (pi_do_call in current_procinfo.flags) then
+        cm:=copy_fpc_move;
+
       if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm in [copy_mmx,copy_mm,copy_avx])) and
          not(len in copy_len_sizes) then
@@ -2859,7 +2865,7 @@ unit cgx86;
         cm:=copy_string;
 {$endif not i8086}
       case cm of
-        copy_move:
+        copy_mov:
           begin
             copysize:=sizeof(aint);
             cgsize:=int_cgsize(copysize);
@@ -3047,11 +3053,9 @@ unit cgx86;
               end;
             list.concatList(hlist);
             hlist.free;
-          end
-        else if (CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype]) or
-          { we can use the move variant only if the subroutine does another call }
-          not(pi_do_call in current_procinfo.flags) then
-          { copy_string, should be a good fallback in case of unhandled if short rep movs are fast }
+          end;
+
+        copy_string:
           begin
             getcpuregister(list,REGDI);
             if (dstref.segment=NR_NO) and
