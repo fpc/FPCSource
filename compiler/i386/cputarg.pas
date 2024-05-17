@@ -110,7 +110,7 @@ implementation
     {$ifndef NOOGCOFF}
       ,ogcoff
     {$endif}
-    {$ifndef NOOGCOFF}
+    {$ifndef NOOGELF}
       ,ogelf
       ,cpuelf
     {$endif}
