@@ -4487,6 +4487,7 @@ x*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
+R*2WP<x>_esp-idf version number: 4.4, 5.0.6, ... (esp32c3)
 x*2WP<x>_Esp8266-rtos-sdk or esp-idf version number: 3.3, 3.4 (esp8266) or 4.2, 4.3 (esp32)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
