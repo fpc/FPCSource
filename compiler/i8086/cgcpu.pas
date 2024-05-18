@@ -1569,7 +1569,7 @@ unit cgcpu;
                             a_loadaddr_ref_reg(list,r,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
                           end
-                        else if base=NR_BP then
+                        else if (base=NR_BP) or (base=NR_SP) then
                           begin
                             list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_SS));
                             tmpreg:=getaddressregister(list);
@@ -1577,7 +1577,12 @@ unit cgcpu;
                             list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
                           end
                         else
-                          internalerror(2014032403);
+                          begin
+                            list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end;
                       end;
                   end
                 else
