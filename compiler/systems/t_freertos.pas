@@ -1608,19 +1608,18 @@ begin
     begin
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
+       '-T '+memory_script+' -T '+sections_script+' '+
        '-L $IDF_PATH/components/esp_rom/esp32c3/ld '+
-       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld '+
-//       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld -T esp32c3.rom.newlib-data.ld -T esp32c3.rom.syscalls.ld -T esp32c3.rom.newlib-funcs.ld '+
-       '-T '+memory_script+' -T '+sections_script;
+       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld -T esp32c3.rom.newlib.ld -T esp32c3.rom.eco3.ld  -T esp32c3.rom.version.ld ';
 
-      if idf_version<40400 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32c3/ld -T esp32c3.peripherals.ld'
-      else
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32c3/ld -T esp32c3.peripherals.ld';
       if idf_version>=40300 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.api.ld';
       if idf_version>=40400 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.newlib-time.ld';
+      if idf_version<40400 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32c3/ld -T esp32c3.peripherals.ld'
+      else
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32c3/ld -T esp32c3.peripherals.ld';
     end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
