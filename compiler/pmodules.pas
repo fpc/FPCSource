@@ -525,7 +525,12 @@ implementation
         if not(curr.is_unit) and (target_info.system=system_riscv32_freertos) then
           if (current_settings.controllertype=ct_esp32c3) then
             begin
-              CheckAddUnit('esp32c3idf_50000')
+              if idf_version>=50000 then
+                CheckAddUnit('esp32c3idf_50000')
+              else if idf_version>=40400 then
+                CheckAddUnit('esp32c3idf_40400')
+              else
+                Comment(V_Warning, 'Unsupported esp-idf version');
             end;
 {$endif XTENSA}
       end;
