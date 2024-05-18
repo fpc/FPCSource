@@ -1991,7 +1991,7 @@ begin
   With OpenRead(aPath) do
     try
        SetLength(Result,Size);
-       ReadBuffer(Result,0);
+       ReadBuffer(Result,Size);
     finally
       Free;
     end;
