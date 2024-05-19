@@ -1614,8 +1614,7 @@ begin
 
       if idf_version>=40300 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.api.ld';
-      if idf_version>=40400 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.newlib-time.ld';
+
       if idf_version<40400 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32c3/ld -T esp32c3.peripherals.ld'
       else
