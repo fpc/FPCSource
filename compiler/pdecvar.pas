@@ -2273,8 +2273,7 @@ implementation
                )
              ) then
                begin
-                 { FIXME: Better error (only record not rec or object) }
-                 Message(sym_e_type_must_be_rec_or_object);
+                 Message(sym_e_type_must_be_record);
                  continue;
                end;
              { Composition of generic parameters will be deferred to when the
