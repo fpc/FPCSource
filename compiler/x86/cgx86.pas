@@ -36,8 +36,7 @@ unit cgx86;
        parabase;
 
     type
-
-      { tcgx86 }
+      tcopymode=(copy_mov,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512,copy_fpc_move);
 
       tcgx86 = class(tcg)
         rgfpu   : Trgx86fpu;
@@ -118,6 +117,9 @@ unit cgx86;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
         procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference); override;
 
+        { returns the copy mode g_concatcopy will use depending on the length of the data, however, there is one except when this might be wrong:
+          if the references contain a segment override g_concatcopy might use copy_string instead of other copying methods }
+        class function getcopymode(len: tcgint): tcopymode;
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
 
         { entry/exit code helpers }
@@ -2732,6 +2734,67 @@ unit cgx86;
       end;
 
 
+    class function tcgx86.getcopymode(len: tcgint): tcopymode;
+      const
+{$if defined(cpu64bitalu)}
+        copy_len_sizes = [1, 2, 4, 8];
+{$elseif defined(cpu32bitalu)}
+        copy_len_sizes = [1, 2, 4];
+{$elseif defined(cpu16bitalu)}
+        copy_len_sizes = [1, 2, 4]; { 4 is included here, because it's still more
+          efficient to use copy_move instead of copy_string for copying 4 bytes }
+{$endif}
+      var
+        helpsize: tcgint;
+      begin
+        result:=copy_mov;
+        helpsize:=3*sizeof(aword);
+        if cs_opt_size in current_settings.optimizerswitches then
+          helpsize:=2*sizeof(aword);
+  {$ifndef i8086}
+        { avx helps only to reduce size, using it in general does at least not help on
+          an i7-4770
+          but using the xmm registers reduces register pressure (FK) }
+        if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
+          ((len mod 4)=0) and (len<=48) {$ifndef i386}and (len>=16){$endif i386} then
+          result:=copy_avx
+        else if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
+          ((len mod 4)=0) and (len<=128) {$ifndef i386}and (len>=16){$endif i386} then
+          result:=copy_avx512
+        else
+        { I'am not sure what CPUs would benefit from using sse instructions for moves
+          but using the xmm registers reduces register pressure (FK) }
+        if
+  {$ifdef x86_64}
+          ((current_settings.fputype>=fpu_sse64)
+  {$else x86_64}
+          ((current_settings.fputype>=fpu_sse)
+  {$endif x86_64}
+            or (CPUX86_HAS_SSE2 in cpu_capabilities[current_settings.cputype])) and
+           ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
+           result:=copy_mm
+        else
+  {$endif i8086}
+        if (cs_mmx in current_settings.localswitches) and
+           not(pi_uses_fpu in current_procinfo.flags) and
+           ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32)) then
+          result:=copy_mmx
+        else
+          if len>helpsize then
+            result:=copy_string;
+
+        if (result=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype]) and
+          { we can use the move variant only if the subroutine does another call }
+          (pi_do_call in current_procinfo.flags) then
+          result:=copy_fpc_move;
+
+        if (cs_opt_size in current_settings.optimizerswitches) and
+           not((len<=16) and (result in [copy_mmx,copy_mm,copy_avx])) and
+           not(len in copy_len_sizes) then
+          result:=copy_string;
+      end;
+
+
 { ************* concatcopy ************ }
 
     procedure Tcgx86.g_concatcopy(list:TAsmList;const source,dest:Treference;len:tcgint);
@@ -2741,35 +2804,28 @@ unit cgx86;
         REGCX=NR_RCX;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
-        copy_len_sizes = [1, 2, 4, 8];
         push_segment_size = S_L;
 {$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
-        copy_len_sizes = [1, 2, 4];
         push_segment_size = S_L;
 {$elseif defined(cpu16bitalu)}
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
-        copy_len_sizes = [1, 2, 4]; { 4 is included here, because it's still more
-          efficient to use copy_move instead of copy_string for copying 4 bytes }
         push_segment_size = S_W;
 {$endif}
 
-    type
-      tcopymode=(copy_mov,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512,copy_fpc_move);
-
-    var srcref,dstref,tmpref:Treference;
-        r,r0,r1,r2,r3:Tregister;
-        helpsize:tcgint;
-        copysize:byte;
-        cgsize:Tcgsize;
-        cm:tcopymode;
-        saved_ds,saved_es: Boolean;
-        hlist: TAsmList;
-
+    var
+      srcref,dstref,tmpref:Treference;
+      r,r0,r1,r2,r3:Tregister;
+      copysize:byte;
+      cgsize:Tcgsize;
+      cm:tcopymode;
+      saved_ds,saved_es: Boolean;
+      hlist: TAsmList;
+      helpsize: tcgint;
     begin
       srcref:=source;
       dstref:=dest;
@@ -2813,51 +2869,7 @@ unit cgx86;
            dstref.base:=r;
          end;
 {$endif x86_64}
-      cm:=copy_mov;
-      helpsize:=3*sizeof(aword);
-      if cs_opt_size in current_settings.optimizerswitches then
-        helpsize:=2*sizeof(aword);
-{$ifndef i8086}
-      { avx helps only to reduce size, using it in general does at least not help on
-        an i7-4770
-        but using the xmm registers reduces register pressure (FK) }
-      if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
-        ((len mod 4)=0) and (len<=48) {$ifndef i386}and (len>=16){$endif i386} then
-        cm:=copy_avx
-      else if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
-        ((len mod 4)=0) and (len<=128) {$ifndef i386}and (len>=16){$endif i386} then
-        cm:=copy_avx512
-      else
-      { I'am not sure what CPUs would benefit from using sse instructions for moves
-        but using the xmm registers reduces register pressure (FK) }
-      if
-{$ifdef x86_64}
-        ((current_settings.fputype>=fpu_sse64)
-{$else x86_64}
-        ((current_settings.fputype>=fpu_sse)
-{$endif x86_64}
-          or (CPUX86_HAS_SSE2 in cpu_capabilities[current_settings.cputype])) and
-         ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
-         cm:=copy_mm
-      else
-{$endif i8086}
-      if (cs_mmx in current_settings.localswitches) and
-         not(pi_uses_fpu in current_procinfo.flags) and
-         ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32)) then
-        cm:=copy_mmx
-      else
-        if len>helpsize then
-          cm:=copy_string;
-
-      if (cm=copy_string) and not(CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype]) and
-        { we can use the move variant only if the subroutine does another call }
-        (pi_do_call in current_procinfo.flags) then
-        cm:=copy_fpc_move;
-
-      if (cs_opt_size in current_settings.optimizerswitches) and
-         not((len<=16) and (cm in [copy_mmx,copy_mm,copy_avx])) and
-         not(len in copy_len_sizes) then
-        cm:=copy_string;
+      cm:=getcopymode(len);
 {$ifndef i8086}
       { using %fs and %gs as segment prefixes is perfectly valid }
       if ((srcref.segment<>NR_NO) and (srcref.segment<>NR_FS) and (srcref.segment<>NR_GS)) or
