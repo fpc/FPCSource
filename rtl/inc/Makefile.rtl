@@ -259,6 +259,7 @@ WINSYSUTUNIT=WinApi.WinSysUt
 WINTYPESUNIT=WinApi.WinTypes
 X86UNIT=System.X86
 XMC4500UNIT=EmbeddedApi.xmc4500
+NOTHREADSUNIT=System.NoThreads
 #
 #
 #
@@ -513,6 +514,7 @@ WINSYSUTUNIT=winsysut
 WINTYPESUNIT=wintypes
 X86UNIT=x86
 XMC4500UNIT=xmc4500
+NOTHREADSUNIT=nothreads
 #
 #
 #
@@ -1491,6 +1493,18 @@ cthreads$(PPUEXT) : $(CTHREADS_DEPS)
 UnixApi.CThreads$(PPUEXT) : $(NSINC)/UnixApi.CThreads.pp $(CTHREADS_DEPS)
 	$(COMPILER) $(CTHREADS_OPT) $<
 
+#
+# Nothreads
+#
+
+NOTHREADS_DEPS=$(SYSTEMUNIT)$(PPUEXT)
+
+
+nothreads$(PPUEXT) : $(INC)/nothreads.pp $(NOTHREADS_DEPS)
+        $(COMPILER) $(NOTHREADS_OPT) $<
+
+System.NoThreads$(PPUEXT) :  $(NSINC)/System.NoThreads.pp $(NOTHREADS_DEPS)
+        $(COMPILER) $(NOTHREADS_OPT) $<
 #
 # CWString
 #
