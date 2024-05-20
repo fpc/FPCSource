@@ -6122,13 +6122,12 @@ Var
 begin
   Tbl:=Nil;
   Len:=GetFieldList(FTypeInfo,Tbl);
-  SetLength(FFields,Len);
+  SetLength(FDeclaredFields,Len);
   FFieldsResolved:=True;
   if Len=0 then
     exit;
-  Ctx:=TRttiContext.Create;
+  Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
   try
-    Ctx.UsePublishedOnly:=False;
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6144,8 +6143,9 @@ begin
         Fld.FHandle:=aData;
         Ctx.AddObject(Fld);
         end;
-      FFields[I]:=Fld;
+      FDeclaredFields[I]:=Fld;
       end;
+    FFields:=FDeclaredFields;
   finally
     if assigned(Tbl) then
       FreeMem(Tbl);
