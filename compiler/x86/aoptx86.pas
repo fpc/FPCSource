@@ -9927,8 +9927,8 @@ unit aoptx86;
 
             if not GetNextInstruction(InputInstr, NextInstr) or
               (
-              { The FLAGS register isn't always tracked properly, so do not
-                perform this optimisation if a conditional statement follows }
+                { The FLAGS register isn't always tracked properly, so do not
+                  perform this optimisation if a conditional statement follows }
                 not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
                 not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
               ) then
@@ -9950,6 +9950,10 @@ unit aoptx86;
 
                 taicpu(p).opcode := A_LEA;
                 taicpu(p).loadref(0, NewRef);
+
+                { For the sake of debugging, have the line info match the
+                  arithmetic instruction rather than the MOV instruction }
+                taicpu(p).fileinfo := taicpu(InputInstr).fileinfo;
 
                 RemoveInstruction(InputInstr);
 
