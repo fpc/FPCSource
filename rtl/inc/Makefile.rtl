@@ -1497,7 +1497,7 @@ UnixApi.CThreads$(PPUEXT) : $(NSINC)/UnixApi.CThreads.pp $(CTHREADS_DEPS)
 # Nothreads
 #
 
-NOTHREADS_DEPS=$(SYSTEMUNIT)$(PPUEXT)
+NOTHREADS_DEPS=$(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 
 
 nothreads$(PPUEXT) : $(INC)/nothreads.pp $(NOTHREADS_DEPS)
