@@ -183,7 +183,7 @@ begin
 end;
 
 type
-  TOutputColor = (oc_black,oc_red,oc_green,oc_orange,og_blue,oc_magenta,oc_cyan,oc_lightgray);
+  TOutputColor = (oc_black,oc_red,oc_green,oc_orange,oc_blue,oc_magenta,oc_cyan,oc_lightgray);
 
 procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiString);
   begin
@@ -198,7 +198,7 @@ procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiStrin
              write(t,#27'[1m'#27'[32m');
            oc_orange:
              write(t,#27'[1m'#27'[33m');
-           og_blue:
+           oc_blue:
              write(t,#27'[1m'#27'[34m');
            oc_magenta:
              write(t,#27'[1m'#27'[35m');
