@@ -168,24 +168,6 @@ end;
     LeadingZero := s;
   end;
 
-  function HexToStr(w: clong): string;
-  const
-    ByteToChar: array[0..$F] of AnsiChar = '0123456789ABCDEF';
-  var
-    s: string;
-    i: cint;
-    x: clong;
-  begin
-    s := '';
-    x := w;
-    for i := 0 to 3 do
-    begin
-      s := ByteToChar[byte(x) shr 4] + ByteToChar[byte(x) and $F] + s;
-      x := x shr 8;
-    end;
-    HexToStr := s;
-  end;
-
   function do_list(uf: unzFile): cint;
   var
     i:      longword;
@@ -239,7 +221,7 @@ end;
         LeadingZero(longword(file_info.tmu_date.tm_year mod 100)): 2, '  ',
         LeadingZero(longword(file_info.tmu_date.tm_hour)), ':',
         LeadingZero(longword(file_info.tmu_date.tm_min)), '  ',
-        HexToStr(longword(file_info.crc)), '  ',
+        HexStr(longword(file_info.crc),8), '  ',
         filename_inzip);
 
       if ((i + 1) < gi.number_entry) then
