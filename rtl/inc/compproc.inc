@@ -302,8 +302,15 @@ Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSIn
 {$endif CPU16 or CPU8}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc; inline;
-Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc; inline;
+{ There is a glitch in the compiler (present in FPC 3.2.2 and beyond) that
+  prevents these two subroutines from working properly with the inline
+  directive under ARM.  This is almost certainly related to the fact that the
+  implementation is a pure assembler routine.
+
+  TODO: Actually fix the compiler bug rather than avoid triggering it. [Kit]
+}
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc; {$ifndef arm}inline;{$endif not arm}
+Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc; {$ifndef arm}inline;{$endif not arm}
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Concat (Var DestS : RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Procedure fpc_AnsiStr_Concat_multi (Var DestS : RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
