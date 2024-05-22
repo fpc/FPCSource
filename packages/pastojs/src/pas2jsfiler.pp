@@ -154,7 +154,8 @@ const
     'AsyncProcs',
     'DisableResources',
     'po_AsmPascalComments',
-    'AllowMem' );
+    'AllowMem',
+    'WarnResourceNotFound');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
