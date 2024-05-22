@@ -3612,7 +3612,7 @@ begin
   NextToken;
   while CurToken = tkDot do
     begin
-    ExpectIdentifier;
+    ExpectIdentifier([tkPackage]);
     N := N + '.' + CurTokenString;
     NextToken;
     end;
@@ -4158,7 +4158,7 @@ begin
   {$IFDEF VerbosePasParserWriteln}
   writeln('TPasParser.AddUseUnit AUnitName=',AUnitName,' CurModule.Name=',CurModule.Name);
   {$ENDIF VerbosePasParserWriteln}
-  if CompareText(AUnitName,CurModule.Name)=0 then
+  if (CompareText(AUnitName,CurModule.Name)=0) and not CurModule.InheritsFrom(TPasDynamicPackage) then
     begin
     if CompareText(AUnitName,'System')=0 then
       exit; // for compatibility ignore implicit use of system in system
@@ -4221,7 +4221,7 @@ var
 
 begin
   repeat
-    ExpectIdentifier();
+    ExpectIdentifier([tkPackage]);
     PckPos:=CurSourcePos;
     Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,CurtokenString,aSection,visPublic,PckPos));
     aSection.Requires.Add(Pck);
