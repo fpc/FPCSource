@@ -1782,54 +1782,76 @@ implementation
              sc.clear;
              { Check for composition "contains" }
              if (m_record_composition in current_settings.modeswitches) and
+               { make sure only usable for records (in case this method is called for other types) }
+                (recst.symtabletype=recordsymtable) and
                 try_to_consume(_CONTAINS) then
                begin
                  sorg:='';
                  srsym:=nil;
+                 { Read alias composition for existing fields }
+                 if try_to_consume(_ALIAS) then
+                   begin
+                     sorg:=current_scanner.orgpattern;
+                     hs:=current_scanner.pattern;
+                     consume(_ID);
+                     searchsym(hs,srsym,srsymtable);
+                     if not assigned(srsym) or (srsym.typ<>fieldvarsym) then
+                       begin
+                         Message(parser_e_illegal_expression);
+                         { try to recover to find more errors }
+                         consume(_ID);
+                         consume(_SEMICOLON);
+                         continue;
+                       end;
+                     { check for duplicates }
+                     for i:=0 to cf.count-1 do
+                       if pcompositefield(cf[i])^.fieldvs=srsym then
+                         begin
+                           Message(sym_e_duplicate_id);
+                           consume(_SEMICOLON);
+                           continue;
+                         end;
+
+                     new(cfvs);
+                     cfvs^.visibility:=visibility;
+                     cfvs^.fieldvs:=tfieldvarsym(srsym);
+                     cf.add(cfvs);
+                     { because no new field is added, early "exit" and continue
+                       with the next field }
+                     consume(_SEMICOLON);
+                     continue;
+                   end;
                  { read field name if named composition }
                  if current_scanner.token=_ID then
                    begin
                      sorg:=current_scanner.orgpattern;
                      hs:=current_scanner.pattern;
                      searchsym(hs,srsym,srsymtable);
-                     if Assigned(srsym) then
+                     if assigned(srsym) then
                        case srsym.typ of
                        fieldvarsym:
                          begin
+                           { existing fields must be referenced with alias }
+                           Message1(sym_e_duplicate_id,srsym.realname);
+                           { this is just to allow to find additional errors,
+                             otherwise parsing stop could be forced with consume(_SEMICOLON) }
                            consume(_ID);
-                           { when composing with existing field, no type expected }
-                           if current_scanner.token=_COLON then
-                             begin
-                               Message1(sym_e_duplicate_id,srsym.realname);
-                               { this is just to allow to find additional errors,
-                                 otherwise parsing stop could be forced with consume(_SEMICOLON) }
-                               consume(_COLON);
-                               consume(_ID);
-                               consume(_SEMICOLON);
-                               continue;
-                             end;
-
-                           { check for duplicates }
-                           for i:=0 to cf.count-1 do
-                             if pcompositefield(cf[i])^.fieldvs=srsym then
-                               begin
-                                 Message(sym_e_duplicate_id);
-                                 srsym:=nil;
-                               end;
-                           if assigned(srsym) then
-                             begin
-                               new(cfvs);
-                               cfvs^.visibility:=visibility;
-                               cfvs^.fieldvs:=tfieldvarsym(srsym);
-                               cf.add(cfvs);
-                             end;
+                           consume(_COLON);
+                           consume(_ID);
                            consume(_SEMICOLON);
                            continue;
                          end;
                        typesym,unitsym:
+                           { unnamed field: create unique identifier }
                            sorg:='';
                        else
-                         Message(parser_e_illegal_expression);
+                         begin
+                           Message(parser_e_illegal_expression);
+                           { try to recover to find more errors }
+                           consume(_ID);
+                           consume(_SEMICOLON);
+                           continue;
+                         end;
                        end
                      else
                        begin
