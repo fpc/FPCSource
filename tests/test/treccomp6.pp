@@ -15,7 +15,7 @@ type
   public
     A: Integer;
     C: Integer;
-    contains child;
+    contains alias child;
   end;
 
 var

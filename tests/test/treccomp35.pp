@@ -12,7 +12,7 @@ type
     A: Integer;
     child: TChildRec;
     D: Integer;
-    contains child;
+    contains alias child;
   end;
 
 var
