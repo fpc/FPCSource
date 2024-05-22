@@ -97,6 +97,11 @@ interface
 {$ifdef DEBUG_NODE_XML}
           procedure XMLPrintNodeInfo(var T: Text); override;
           procedure XMLPrintNodeData(var T: Text); override;
+       protected
+          class procedure XMLPadString(var S: string; Len: Integer); static;
+
+          function XMLFormatOp(const Oper: POper): string; virtual;
+          procedure XMLProcessInstruction(var T: Text; p: tai); virtual;
 {$endif DEBUG_NODE_XML}
        end;
        tasmnodeclass = class of tasmnode;
@@ -361,7 +366,7 @@ implementation
     uses
       verbose,globals,systems,
       ppu,
-      symconst,symdef,defutil,defcmp,
+      symsym,symconst,symdef,defutil,defcmp,
       pass_1,
       nutils,nld,ncnv,
       procinfo
@@ -370,6 +375,12 @@ implementation
       ,
       cpubase,
       cutils,
+{$ifdef arm}
+      agarmgas, { Needed for gas_shiftmode2str }
+{$endif arm}
+{$ifdef aarch64}
+      agcpugas, { Needed for gas_shiftmode2str }
+{$endif aarch64}
       itcpugas
 {$endif jvm}
 {$endif DEBUG_NODE_XML}
@@ -1180,156 +1191,85 @@ implementation
       end;
 
 
-    procedure TAsmNode.XMLPrintNodeData(var T: Text);
-
-      procedure PadString(var S: string; Len: Integer);
-        var
-          X, C: Integer;
-        begin
-          C := Length(S);
-          if C < Len then
-            begin
-              SetLength(S, 7);
-              for X := C + 1 to Len do
-                S[X] := ' '
-            end;
-        end;
-
-{$ifndef jvm}
-      function FormatOp(const Oper: POper): string;
-        begin
-          case Oper^.typ of
-            top_const:
-              begin
-                case Oper^.val of
-                  -15..15:
-                    Result := '$' + tostr(Oper^.val);
-                  $10..$FF:
-                    Result := '$0x' + hexstr(Oper^.val, 2);
-                  $100..$FFFF:
-                    Result := '$0x' + hexstr(Oper^.val, 4);
-                  $10000..$FFFFFFFF:
-                    Result := '$0x' + hexstr(Oper^.val, 8);
-                  else
-                    Result := '$0x' + hexstr(Oper^.val, 16);
-                end;
-              end;
-            top_reg:
-              Result := gas_regname(Oper^.reg);
-            top_ref:
-              with Oper^.ref^ do
-                begin
-{$if defined(x86)}
-                  if segment <> NR_NO then
-                    Result := gas_regname(segment) + ':'
-                  else
-{$endif defined(x86)}
-                    Result := '';
-
-                  if Assigned(symbol) then
-                    begin
-                      Result := Result + symbol.Name;
-                      if offset > 0 then
-                        Result := Result + '+';
-                    end;
-
-                  if offset <> 0 then
-                    Result := Result + tostr(offset)
-                  else
-                    Result := Result;
-
-                  if (base <> NR_NO) or (index <> NR_NO) then
-                    begin
-                      Result := Result + '(';
-
-                      if base <> NR_NO then
-                        begin
-                          Result := Result + gas_regname(base);
-                          if index <> NR_NO then
-                            Result := Result + ',';
-                        end;
-
-                      if index <> NR_NO then
-                        Result := Result + gas_regname(index);
-
-                      if scalefactor <> 0 then
-                        Result := Result + ',' + tostr(scalefactor) + ')'
-                      else
-                        Result := Result + ')';
-                    end;
-                end;
-            top_bool:
-              begin
-                if Oper^.b then
-                  Result := 'TRUE'
-                else
-                  Result := 'FALSE';
-              end
-            else
-              Result := '';
-          end;
-        end;
-
-{$if defined(x86)}
-      procedure ProcessInstruction(p: tai); inline;
-        var
-          ThisOp, ThisOper: string;
-          X: Integer;
-        begin
-          case p.typ of
-            ait_label:
-              WriteLn(T, PrintNodeIndention, tai_label(p).labsym.name);
-
-            ait_instruction:
-              begin
-                ThisOp := gas_op2str[taicpu(p).opcode]+cond2str[taicpu(p).condition];
-                if gas_needsuffix[taicpu(p).opcode] <> AttSufNONE then
-                  ThisOp := ThisOp + gas_opsize2str[taicpu(p).opsize];
-
-                { Pad the opcode with spaces so the succeeding operands are aligned }
-                PadString(ThisOp, 7);
-
-                Write(T, PrintNodeIndention, '  ', ThisOp); { Extra indentation to account for label formatting }
-                for X := 0 to taicpu(p).ops - 1 do
-                  begin
-                    Write(T, ' ');
-
-                    ThisOper := FormatOp(taicpu(p).oper[X]);
-                    if X < taicpu(p).ops - 1 then
-                      begin
-                        ThisOper := ThisOper + ',';
-                        PadString(ThisOper, 7);
-                      end;
-
-                    Write(T, ThisOper);
-                  end;
-                WriteLn(T);
-              end;
-            else
-              { Do nothing };
-          end;
-        end;
-
+    procedure TAsmNode.XMLProcessInstruction(var T: Text; p: tai);
       var
-        hp: tai;
+        ThisOp, ThisOper: string;
+        X: Integer;
+      begin
+        case p.typ of
+          { Instructions are handled on a per-platform basis }
+
+          ait_label:
+            WriteLn(T, PrintNodeIndention, tai_label(p).labsym.name, ':');
+
+          ait_const:
+            begin
+              case tai_const(p).consttype of
+                aitconst_64bit:
+                  WriteLn(T, PrintNodeIndention, '.quad 0x', hexstr(tai_const(p).value, 16));
+                aitconst_32bit:
+                  WriteLn(T, PrintNodeIndention, '.long 0x', hexstr(tai_const(p).value, 8));
+                aitconst_16bit:
+                  WriteLn(T, PrintNodeIndention, '.word 0x', hexstr(tai_const(p).value, 4));
+                aitconst_8bit:
+                  WriteLn(T, PrintNodeIndention, '.byte 0x', hexstr(tai_const(p).value, 2));
+                else
+                  WriteLn(T, PrintNodeIndention, '; (Other constant)');
+              end;
+            end;
+
+          ait_realconst:
+            WriteLn(T, PrintNodeIndention, '; (Real constant)');
+
+          else
+            { Do nothing };
+        end;
+      end;
+
+
+    class procedure TAsmNode.XMLPadString(var S: string; Len: Integer);
+      var
+        X, C: Integer;
+      begin
+        C := Length(S);
+        if C < Len then
+          begin
+            SetLength(S, Len);
+            for X := C + 1 to Len do
+              S[X] := ' '
+          end;
+      end;
+
+
+    function TAsmNode.XMLFormatOp(const Oper: POper): string;
+      begin
+        case Oper^.typ of
+          top_reg:
+            Result := gas_regname(Oper^.reg);
+
+          top_local:
+            { Local variable }
+            Result := TSym(Oper^.localoper^.localsym).prettyname;
+
+          top_bool:
+            begin
+              if Oper^.b then
+                Result := 'TRUE'
+              else
+                Result := 'FALSE';
+            end;
+          else
+            Result := '(unk)';
+        end;
+      end;
+
+
+    procedure TAsmNode.XMLPrintNodeData(var T: Text);
       begin
         if not Assigned(p_asm) then
           Exit;
 
-        hp := tai(p_asm.First);
-        while Assigned(hp) do
-          begin
-            ProcessInstruction(hp);
-            hp := tai(hp.Next);
-          end;
-{$else defined(x86)}
-      begin
         WriteLn(T, PrintNodeIndention, '(Assembler output not currently supported on this platform)');
-{$endif defined(x86)}
-{$else jvm}
-      begin
-        WriteLn(T, PrintNodeIndention, '(Should assembly language even be possible under JVM?)');
-{$endif jvm}
       end;
 {$endif DEBUG_NODE_XML}
 
