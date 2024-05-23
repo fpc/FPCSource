@@ -134,6 +134,23 @@ begin
     AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
 end;
 
+const
+  VerbosePrefix : string = '';
+
+procedure Verbose(lvl:TVerboseLevel;const s:string);
+var
+  su : string;
+begin
+  if UniqueSuffix<>'' then
+    begin
+      if VerbosePrefix='' then
+        VerbosePrefix:='#'+UniqueSuffix+'# ';
+      su:=VerbosePrefix+s;
+      testu.Verbose(lvl,su);
+    end
+  else
+    testu.Verbose(lvl,s);
+end;
 
 function ToStr(l:longint):string;
 var
