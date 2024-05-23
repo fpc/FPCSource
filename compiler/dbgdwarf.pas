@@ -3293,6 +3293,10 @@ implementation
         { minimum_instruction_length }
         linelist.concat(tai_const.create_8bit(1));
 
+        { maximum ops per instruction }
+        if dwarf_version>=4 then
+          linelist.concat(tai_const.create_8bit(1));
+
         { default_is_stmt }
         linelist.concat(tai_const.create_8bit(1));
 
@@ -3387,8 +3391,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.inserttypeinfo;
-
-
       var
         storefilepos  : tfileposinfo;
         lenstartlabel,arangestartlabel: tasmlabel;
