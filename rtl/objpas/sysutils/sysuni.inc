@@ -12,42 +12,42 @@
     *********************************************************************
 }
 
-function Trim(const S: unicodestring): unicodestring;
-  var 
-    Ofs, Len: sizeint;
+function Trim(const S: unicodestring; mode: TTrimMode): unicodestring;
+  var
+    start, ed, ns: SizeInt;
   begin
-    len := Length(S);
-    while (Len>0) and (S[Len]<=' ') do
-     dec(Len);
-    Ofs := 1;
-    while (Ofs<=Len) and (S[Ofs]<=' ') do
-      Inc(Ofs);
-    result := Copy(S, Ofs, 1 + Len - Ofs);
+    start := 1;
+    ns := Length(S);
+    ed := ns;
+    if mode <> TTrimMode.Right then
+      while (start <= ed) and (S[start] <= ' ') do
+        inc(start);
+    if mode <> TTrimMode.Left then
+      while (start <= ed) and (S[ed] <= ' ') do
+        dec(ed);
+    if (start = 1) and (ed = ns) then
+      Result := S
+    else
+      Result := Copy(S, start, ed - start + 1);
+  end;
+
+function Trim(const S: unicodestring): unicodestring;
+  begin
+    result := Trim(S, TTrimMode.Both);
   end;
 	
 
 { TrimLeft returns a copy of S with all blank characters on the left stripped off  }
 function TrimLeft(const S: unicodestring): unicodestring;
-  var 
-    i,l:sizeint;
   begin
-    l := length(s);
-    i := 1;
-    while (i<=l) and (s[i]<=' ') do
-      inc(i);
-    Result := copy(s, i, l);
+    Result := Trim(S, TTrimMode.Left);
   end;
 	
 
 { TrimRight returns a copy of S with all blank characters on the right stripped off  }
 function TrimRight(const S: unicodestring): unicodestring;
-  var 
-	l:sizeint;
   begin
-    l := length(s);
-    while (l>0) and (s[l]<=' ') do
-      dec(l);
-    result := copy(s,1,l);
+    Result := Trim(S, TTrimMode.Right);
   end;
 
 

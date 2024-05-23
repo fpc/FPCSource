@@ -3,9 +3,12 @@
   TStringHelper
   ---------------------------------------------------------------------}
 
+{$ifdef IS_ANSISTRINGHELPER}
+type
+  TTrimMode = {$push} {$scopedenums on} (Left, Right, Both) {$pop};
+{$endif}
 
-{$IFNDEF IS_SHORTSTRINGHELPER}
-{$IFNDEF IS_UNICODESTRINGHELPER}
+{$IF not defined(IS_SHORTSTRINGHELPER) and not defined(IS_UNICODESTRINGHELPER)}
 // Doubles with (wide/ansi)string...
 Function HaveChar(AChar : TStringChar; const AList: array of TStringChar) : Boolean;
 
@@ -14,15 +17,32 @@ Var
 
 begin
   I:=0;
-  Result:=False;
-  While (Not Result) and (I<Length(AList)) do
-    begin
-    Result:=(AList[i]=AChar);
+  while (I<=High(AList)) and (AList[I]<>AChar) do
     Inc(I);
-    end;
+  Result:=I<=High(AList);
 end;
 {$ENDIF}
-{$ENDIF}
+
+function Trim(const S: TStringType; const ATrimChars: array of TStringChar; mode: TTrimMode): TStringType;
+
+var
+  start, ed, ns: SizeInt;
+
+begin
+  start := 1;
+  ns := System.Length(S);
+  ed := ns;
+  if mode <> TTrimMode.Right then
+    while (start <= ed) and HaveChar(S[start], ATrimChars) do
+      inc(start);
+  if mode <> TTrimMode.Left then
+    while (start <= ed) and HaveChar(S[ed], ATrimChars) do
+      dec(ed);
+  if (start = 1) and (ed = ns) then
+    Result := S
+  else
+    Result := Copy(S, start, ed - start + 1);
+end;
 
 function TStringHelper.GetChar(AIndex: SizeInt): TStringChar;
 begin
@@ -1339,7 +1359,10 @@ end;
 
 function TStringHelper.Substring(AStartIndex: SizeInt; ALen: SizeInt): TStringType;
 begin
-  Result:=system.Copy(Self,AStartIndex+1,ALen);
+  if (AStartIndex<=0) and (ALen>=System.Length(Self)) then
+    Result:=Self
+  else
+    Result:=system.Copy(Self,AStartIndex+1,ALen);
 end;
 
 
@@ -1443,43 +1466,19 @@ end;
 
 function TStringHelper.Trim(const ATrimChars: array of TStringChar): TStringType;
 begin
-  Result:=Self.TrimLeft(ATrimChars).TrimRight(ATrimChars);
+  Result:=SUT.Trim(Self, ATrimChars, TTrimMode.Both);
 end;
 
 
 function TStringHelper.TrimLeft(const ATrimChars: array of TStringChar): TStringType;
-
-Var
-  I,Len : SizeInt;
-
 begin
-  I:=1;
-  Len:=Self.Length;
-  While (I<=Len) and HaveChar(Self[i],ATrimChars) do Inc(I);
-  if I=1 then
-    Result:=Self
-  else if I>Len then
-    Result:=''
-  else
-    Result:=system.Copy(Self,I,Len-I+1);
+  Result:=SUT.Trim(Self, ATrimChars, TTrimMode.Left);
 end;
 
 
 function TStringHelper.TrimRight(const ATrimChars: array of TStringChar): TStringType;
-
-Var
-  I,Len : SizeInt;
-
 begin
-  Len:=Self.Length;
-  I:=Len;
-  While (I>=1) and HaveChar(Self[i],ATrimChars) do Dec(I);
-  if I<1 then
-    Result:=''
-  else if I=Len then
-    Result:=Self
-  else
-    Result:=system.Copy(Self,1,I);
+  Result:=SUT.Trim(Self, ATrimChars, TTrimMode.Right);
 end;
 
 
