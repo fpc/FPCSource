@@ -1824,7 +1824,8 @@ implementation
             sym:=tsym(recst.symlist[i]);
            { composition should only be used for directly addressible symbols }
            { so all invisible symbols will be ignored }
-            if not (sym.visibility in [vis_public,vis_published]) or
+            if (sym.visibility=vis_hidden) or
+               not is_visible_for_object(sym,tabstractrecorddef(defowner)) or
                (length(sym.RealName)=0) or (sym.RealName[1]='$') then
               continue;
             { It seems sensible to only restrict to actual accesses to the referenced object }
@@ -1850,7 +1851,10 @@ implementation
                 continue;
               end;
             refsym:=tsymrefsym.create(sym,fieldvs);
-            refsym.visibility:=visibility;
+            if visibility<sym.visibility then
+              refsym.visibility:=visibility
+            else
+              refsym.visibility:=sym.visibility;
             insertsym(refsym,false);
           end;
       end;

@@ -1,4 +1,3 @@
-{ %FAIL }
 program record_compose_test;
 
 {$Mode ObjFPC}{$H+}
