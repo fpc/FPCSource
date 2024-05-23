@@ -1608,6 +1608,46 @@ type
   end;
 {$endif FPC_OS_UNICODE}
 
+{ TProxyAggregateStream }
+
+  TProxyAggregateStream = class(TStream)
+  private type
+    TStreamEntry = record
+      Stream: TStream;
+      OwnsStream: Boolean;
+    end;
+  private
+    FStreams: array of TStreamEntry;
+    FCurrentStream: Integer;
+    FCurrentStreamPos: Int64;
+    FSize: Int64;
+    FPosition: Int64;
+    function GetCount: Integer;
+    function GetOwnsStream(AIndex: Integer): Boolean;
+    function GetStreams(AIndex: Integer): TStream;
+    procedure SetOwnsStream(AIndex: Integer; const aOwnsStream: Boolean);
+  protected
+    procedure SyncPosition;
+    function GetPosition: Int64; override;
+    function GetSize: Int64; override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Read(var Buffer; ACount: Longint): Longint; override;
+    function Write(const Buffer; ACount: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override; overload;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override; overload;
+
+    function AddStream(AStream: TStream; AOwnsStream: Boolean = False): Integer;
+    procedure RemoveStream(AStream: TStream); overload;
+    procedure RemoveStream(AIndex: Integer); overload;
+    procedure Clear;
+
+    property Count: Integer read GetCount;
+    property Streams[AIndex: Integer]: TStream read GetStreams;
+    property OwnsStream[AIndex: Integer]: Boolean read GetOwnsStream write SetOwnsStream;
+  end;
+
 { TStreamAdapter }
 
   TStreamOwnership = (soReference, soOwned);

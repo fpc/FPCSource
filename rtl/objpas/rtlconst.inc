@@ -282,6 +282,7 @@ ResourceString
   SStreamNoReading              = 'Reading from %s is not supported';
   SStreamNoWriting              = 'Writing to %s is not supported';
   SStreamSetSize                = 'Error setting stream size';
+  SCantWriteAggregateStreamError= 'Can''t write to a read-only aggregate stream';
   SStringExpected               = 'String expected';
   SSymbolExpected               = '%s expected';
   SThreadCreateError            = 'Thread creation error: %s';

@@ -1919,6 +1919,214 @@ destructor TResourceStream.Destroy;
   end;
 
 {****************************************************************************}
+{*                        TProxyAggregateStream                             *}
+{****************************************************************************}
+
+{ TProxyAggregateStream }
+
+function TProxyAggregateStream.AddStream(AStream: TStream; AOwnsStream: Boolean): Integer;
+begin
+  try
+    AStream.Position := 0;
+    Inc(FSize, AStream.Size);
+
+    SetLength(FStreams, Length(FStreams)+1);
+    Result := High(FStreams);
+    FStreams[Result].Stream := AStream;
+    FStreams[Result].OwnsStream := AOwnsStream;
+  except
+    if AOwnsStream then
+      AStream.Free;
+    raise;
+  end;
+end;
+
+procedure TProxyAggregateStream.Clear;
+var
+  I: Integer;
+begin
+  FSize := 0;
+  for I := 0 to High(FStreams) do
+    if FStreams[I].OwnsStream then
+      FStreams[I].Stream.Free;
+  FStreams := nil;
+  FPosition := 0;
+  FCurrentStream := -1;
+end;
+
+constructor TProxyAggregateStream.Create;
+begin
+  inherited Create;
+
+  FCurrentStream := -1;
+end;
+
+destructor TProxyAggregateStream.Destroy;
+begin
+  Clear;
+
+  inherited Destroy;
+end;
+
+function TProxyAggregateStream.GetCount: Integer;
+begin
+  Result := Length(FStreams);
+end;
+
+function TProxyAggregateStream.GetOwnsStream(AIndex: Integer): Boolean;
+begin
+  Result := FStreams[AIndex].OwnsStream;
+end;
+
+function TProxyAggregateStream.GetPosition: Int64;
+begin
+  Result := FPosition;
+end;
+
+function TProxyAggregateStream.GetSize: Int64;
+begin
+  Result := FSize;
+end;
+
+function TProxyAggregateStream.GetStreams(AIndex: Integer): TStream;
+begin
+  Result := FStreams[AIndex].Stream;
+end;
+
+function TProxyAggregateStream.Read(var Buffer; ACount: Longint): Longint;
+var
+  P: PByte;
+  LRemain, LStreamRead, LStreamRemain, LStreamSize: Int64;
+begin
+  if (FCurrentStream=-1) or (
+           (FCurrentStream<Self.Count)
+       and (FCurrentStreamPos<>FStreams[FCurrentStream].Stream.Position))
+  then
+    SyncPosition;
+
+  Result := 0;
+  if (FPosition=FSize) or (ACount=0) then
+    Exit;
+  P := @Buffer;
+  while (Result<ACount) and (FCurrentStream<Self.Count) do
+  begin
+    LRemain := Int64(ACount)-Int64(Result);
+    LStreamSize := FStreams[FCurrentStream].Stream.Size;
+    LStreamRemain := LStreamSize-FStreams[FCurrentStream].Stream.Position;
+    if LRemain<LStreamRemain then
+      LStreamRead := LRemain
+    else
+      LStreamRead := LStreamRemain;
+    LStreamRead := FStreams[FCurrentStream].Stream.Read(P[Result], LStreamRead);
+    FCurrentStreamPos := FStreams[FCurrentStream].Stream.Position;
+    Inc(FPosition, LStreamRead);
+    Inc(Result, LStreamRead);
+    if (Result<ACount) and (FCurrentStreamPos>=LStreamSize) then
+    begin
+      Inc(FCurrentStream);
+      if FCurrentStream<Self.Count then
+      begin
+        FStreams[FCurrentStream].Stream.Position := 0;
+        FCurrentStreamPos := 0;
+      end;
+    end;
+  end;
+end;
+
+procedure TProxyAggregateStream.RemoveStream(AIndex: Integer);
+begin
+  Dec(FSize, FStreams[AIndex].Stream.Size);
+  if FStreams[AIndex].OwnsStream then
+    FStreams[AIndex].Stream.Free;
+  Delete(FStreams, AIndex, 1);
+  FPosition := 0;
+  FCurrentStream := -1;
+end;
+
+procedure TProxyAggregateStream.RemoveStream(AStream: TStream);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FStreams) do
+    if FStreams[I].Stream=AStream then
+    begin
+      RemoveStream(I);
+      Exit;
+    end;
+end;
+
+function TProxyAggregateStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+var
+  LNewPos, LPrevPos: Int64;
+begin
+  LPrevPos := FPosition;
+  case Origin of
+    soBeginning: LNewPos := Offset;
+    soCurrent: LNewPos := FPosition + Offset;
+    soEnd: LNewPos := FSize + Offset;
+  end;
+  if LNewPos <= 0 then
+    FPosition := 0
+  else
+  if LNewPos > Size then
+    FPosition := Size
+  else
+    FPosition := LNewPos;
+  if LPrevPos <> FPosition then
+    FCurrentStream := -1; // we need SyncPosition
+  Result := FPosition;
+end;
+
+function TProxyAggregateStream.Seek(Offset: Longint; Origin: Word): Longint;
+begin
+  Result := Seek(Int64(Offset), TSeekOrigin(Origin)); // call Int64-Seek
+end;
+
+procedure TProxyAggregateStream.SetOwnsStream(AIndex: Integer; const aOwnsStream: Boolean);
+begin
+  FStreams[AIndex].OwnsStream := aOwnsStream;
+end;
+
+procedure TProxyAggregateStream.SyncPosition;
+  procedure _GoToEnd;
+  begin
+    FCurrentStream := Count-1;
+    if FCurrentStream>=0 then
+      FCurrentStreamPos := FStreams[FCurrentStream].Stream.Seek(0, soEnd);
+  end;
+var
+  LPosition, LStreamSize: Int64;
+  I: Integer;
+begin
+  if FPosition>=FSize then
+    _GoToEnd
+  else
+  begin
+    LPosition := 0;
+    for I := 0 to High(FStreams) do
+    begin
+      LStreamSize := FStreams[I].Stream.Size;
+      if FPosition<LPosition+LStreamSize then
+      begin
+        FCurrentStream := I;
+        FCurrentStreamPos := FStreams[FCurrentStream].Stream.Seek(FPosition-LPosition, soBeginning);
+        Exit;
+      end;
+      Inc(LPosition, LStreamSize);
+    end;
+  end;
+
+  // FPosition outside the size
+  _GoToEnd;
+end;
+
+function TProxyAggregateStream.Write(const Buffer; ACount: Longint): Longint;
+begin
+  Result := 0;
+  raise EStreamError.CreateRes(@SCantWriteAggregateStreamError);
+end;
+
+{****************************************************************************}
 {*                             TOwnerStream                                 *}
 {****************************************************************************}
 
