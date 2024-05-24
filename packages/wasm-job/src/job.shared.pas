@@ -83,8 +83,9 @@ const
   JOBArgDictionary = 12; // followed by count and pairs
   JOBArgArrayOfJSValue = 13; // followed by count and values
   JOBArgArrayOfDouble = 14; // followed by count and pointer
+  JOBArgArrayOfByte = 15; // followed by count and pointer
 
-  JOBArgNames: array[0..14] of string = (
+  JOBArgNames: array[0..15] of string = (
     'Undefined',
     'Longint',
     'Double',
@@ -99,7 +100,8 @@ const
     'Method',
     'Dictionary',
     'ArrayOfJSValue',
-    'ArrayOfDouble'
+    'ArrayOfJSDouble',
+    'ArrayOfByte'
     );
 
   JOBInvokeCall = 0; // call function
