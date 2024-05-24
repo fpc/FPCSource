@@ -249,18 +249,19 @@ type
 
    { Instruction optimisation hints }
    TCPUOptimizeFlags =
-      (CPUX86_HINT_FAST_BT_REG_IMM,    { BT instructions with register source and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BT_REG_REG,    { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BTX_REG_IMM,   { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BTX_REG_REG,   { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BT_MEM_IMM,    { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BT_MEM_REG,    { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_BTX_MEM_IMM,   { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
-       CPUX86_HINT_FAST_BTX_MEM_REG,   { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
-       CPUX86_HINT_FAST_XCHG,          { XCHG %reg,%reg executes in 2 cycles or fewer }
-       CPUX86_HINT_FAST_PDEP_PEXT,     { The BMI2 instructions PDEP and PEXT execute in a single cycle }
-       CPUX86_HINT_FAST_3COMP_ADDR,    { A 3-component address (base, index and offset) has the same latency as the 2-component version (most notable with LEA instructions) }
-       CPUX86_HINT_FAST_SHORT_REP_MOVS { short rep movs instruction }
+      (CPUX86_HINT_FAST_BT_REG_IMM,            { BT instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_REG_REG,            { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_IMM,           { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_REG,           { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_IMM,            { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_REG,            { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_IMM,           { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_REG,           { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_XCHG,                  { XCHG %reg,%reg executes in 2 cycles or fewer }
+       CPUX86_HINT_FAST_PDEP_PEXT,             { The BMI2 instructions PDEP and PEXT execute in a single cycle }
+       CPUX86_HINT_FAST_3COMP_ADDR,            { A 3-component address (base, index and offset) has the same latency as the 2-component version (most notable with LEA instructions) }
+       CPUX86_HINT_FAST_SHORT_REP_MOVS,        { short rep movs instruction }
+       CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1  { BSR/F does not change the destination if ZF is set }
       );
 
  const
