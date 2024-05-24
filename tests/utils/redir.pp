@@ -805,6 +805,7 @@ var
   P : TProcess;
 
 begin
+  Result:=false;
   P := TProcess.Create(nil);
   try
     P.CommandLine:=Progname + ' ' + ComLine;
