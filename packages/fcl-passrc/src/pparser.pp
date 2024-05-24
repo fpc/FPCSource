@@ -4218,15 +4218,22 @@ procedure TPasParser.ParseRequires(ASection: TPasPackageSection);
 var
   Pck : TPasRequiredPackage;
   PckPos : TPasSourcePos;
+  N : String;
 
 begin
   repeat
-    ExpectIdentifier([tkPackage]);
+    N:='';
     PckPos:=CurSourcePos;
-    Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,CurtokenString,aSection,visPublic,PckPos));
+    Repeat
+      ExpectIdentifier([tkPackage]);
+      if N<>'' then
+        N:=N+'.';
+      N:=N+CurtokenString;
+      NextToken;
+    until (CurToken in [tkSemicolon,tkComma]);
+    Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,N,aSection,visPublic,PckPos));
     aSection.Requires.Add(Pck);
-    NextToken;
-  until CurToken=tkSemicolon;
+  until (CurToken=tkSemicolon);
 end;
 
 // On Entry, current token is contains.
