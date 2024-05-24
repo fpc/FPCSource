@@ -38,6 +38,7 @@ unit aoptcpu;
         function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean; override;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
 
+        function TryToFoldDoubleAND(var p: tai): boolean;
         function TryToRemoveTST(var p: tai): boolean;
         function TryToOptimizeMove(var p: tai): boolean;
         function MaybeRealConstOperSimplify(var p: tai): boolean;
@@ -218,6 +219,26 @@ unit aoptcpu;
     begin
     end;
 {$endif DEBUG_AOPTCPU}
+
+  function TCpuAsmOptimizer.TryToFoldDoubleAND(var p: tai): boolean;
+    var
+      next, next2: tai;
+      opstr: string[15];
+    begin
+      result:=false;
+
+      if ((taicpu(p).oper[0]^.typ=top_const) and (taicpu(p).oper[1]^.typ=top_reg)) and
+        GetNextInstruction(p,next) and
+        MatchInstruction(next,A_AND,[taicpu(p).opsize]) and
+        (taicpu(next).oper[0]^.typ=top_const) and
+        MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[1]^) then
+       begin
+         DebugMsg('Optimizer: folding double AND',p);
+         taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and taicpu(next).oper[0]^.val;
+         RemoveInstruction(next);
+         result:=true;
+       end;
+    end;
 
   function TCpuAsmOptimizer.TryToRemoveTST(var p: tai): boolean;
     var
@@ -433,7 +454,18 @@ unit aoptcpu;
 
   function TCpuAsmOptimizer.OptPass1Bitwise(var p: tai): Boolean;
     begin
-      Result:=TryToRemoveTST(p);
+      result:=false;
+      case p.typ of
+        ait_instruction:
+          begin
+            if taicpu(p).opcode = A_AND then
+              result:=TryToFoldDoubleAND(p);
+            if not result then
+              result:=TryToRemoveTST(p);
+          end;
+        else
+          ;
+      end;
     end;
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
