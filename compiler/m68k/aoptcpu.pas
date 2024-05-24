@@ -231,7 +231,7 @@ unit aoptcpu;
         MatchInstruction(next,A_TST,[taicpu(p).opsize]) and
         MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[0]^) and
         GetNextInstruction(next,next2) and
-        MatchInstruction(next2,[A_BXX,A_SXX],[S_NO]) and
+        MatchInstruction(next2,[A_BXX,A_SXX],[S_NO,S_B]) and
         (taicpu(next2).condition in [C_NE,C_EQ,C_PL,C_MI]) then
         begin
           opstr:=opname(p);
