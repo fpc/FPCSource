@@ -50,7 +50,8 @@ Type
     jjvkMethod,
     jjvkDictionary,
     jjvkArrayOfJSValue,
-    jjvkArrayOfDouble
+    jjvkArrayOfDouble,
+    jjvkArrayOfByte
     );
   TJOB_JSValueKinds = set of TJOB_JSValueKind;
 
@@ -64,7 +65,8 @@ const
     'Method',
     'Dictionary',
     'ArrayOfJSValue',
-    'ArrayOfDouble'
+    'ArrayOfDouble',
+    'ArrayOfByte'
     );
 
   JOB_Undefined = Pointer(1);
@@ -109,6 +111,7 @@ type
     constructor Create(const aValue: UnicodeString);
     function AsString: UTF8string; override;
   end;
+
 
   IJSObject = interface;
 
@@ -216,6 +219,19 @@ type
     Values: TDoubleDynArray;
     constructor Create(const TheValues: TDoubleDynArray);
   end;
+
+  { TJOB_ArrayOfDouble }
+
+  { TJOB_ArrayOfByte }
+
+  TJOB_ArrayOfByte = class(TJOB_ArrayBase)
+  public
+    Values: PByte;
+    Len : NativeUInt;
+    constructor Create(const TheValues: PByte; TheLen : NativeUInt);
+    constructor Create(const TheValues: TBytes);
+  end;
+
 
   IJSArray = interface;
 
@@ -694,6 +710,8 @@ type
 
   TJSTypedArray = class(TJSObject,IJSTypedArray)
   public
+    constructor Create(aBytes : PByte; aLen : NativeUInt);
+    constructor Create(aBytes : TBytes);
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
   end;
 
@@ -707,6 +725,7 @@ type
 
   TJSInt8Array = class(TJSTypedArray,IJSInt8Array)
   public
+    class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSInt8Array; overload;
   end;
 
@@ -720,6 +739,7 @@ type
 
   TJSUint8Array = class(TJSTypedArray,IJSUint8Array)
   public
+    class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSUint8Array; overload;
   end;
 
@@ -733,6 +753,7 @@ type
 
   TJSUint8ClampedArray = class(TJSTypedArray,IJSUint8ClampedArray)
   public
+    class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSUint8ClampedArray; overload;
   end;
 
@@ -1405,13 +1426,23 @@ end;
 
 { TJSUint8ClampedArray }
 
+class function TJSUint8ClampedArray.JSClassName: UnicodeString;
+begin
+  Result:='Uint8ClampedArray';
+end;
+
 class function TJSUint8ClampedArray.Cast(const Intf: IJSObject
   ): IJSUint8ClampedArray;
 begin
-  Result:=TJSUint8ClampedArray.Cast(Intf);
+  Result:=TJSUint8ClampedArray.JobCast(Intf);
 end;
 
 { TJSUInt8Array }
+
+class function TJSUint8Array.JSClassName: UnicodeString;
+begin
+  Result:='Uint8Array';
+end;
 
 class function TJSUint8Array.Cast(const Intf: IJSObject): IJSUint8Array;
 begin
@@ -1420,12 +1451,35 @@ end;
 
 { TJSInt8Array }
 
+class function TJSInt8Array.JSClassName: UnicodeString;
+begin
+  Result:='Int8Array';
+end;
+
 class function TJSInt8Array.Cast(const Intf: IJSObject): IJSInt8Array;
 begin
-  Result:=TJSInt8Array.Cast(Intf);
+  Result:=TJSInt8Array.JobCast(Intf);
 end;
 
 { TJSTypedArray }
+
+constructor TJSTypedArray.Create(aBytes: PByte; aLen: NativeUInt);
+
+var
+  Data : TJOB_JSValue;
+
+begin
+  Data:=TJOB_ArrayOfByte.Create(aBytes,aLen);
+  JobCreate([Data]);
+end;
+
+constructor TJSTypedArray.Create(aBytes: TBytes);
+var
+  Data : TJOB_JSValue;
+begin
+  Data:=TJOB_ArrayOfByte.Create(aBytes);
+  JobCreate([Data]);
+end;
 
 class function TJSTypedArray.Cast(const Intf: IJSObject): IJSTypedArray;
 begin
@@ -2363,6 +2417,23 @@ begin
   Values:=TheValues;
 end;
 
+{ TJOB_ArrayOfByte }
+
+constructor TJOB_ArrayOfByte.Create(const TheValues: PByte; TheLen: NativeUInt);
+begin
+  inherited Create(jjvkArrayOfByte);
+  Writeln('A');
+  Values:=TheValues;
+  Writeln('B');
+  Len:=TheLen;
+  Writeln('C');
+end;
+
+constructor TJOB_ArrayOfByte.Create(const TheValues: TBytes);
+begin
+  Create(PByte(TheValues),length(TheValues))
+end;
+
 { TJSObject }
 
 function TJSObject.GetJSObjectID: TJOBObjectID;
@@ -2711,6 +2782,18 @@ var
             PPointer(p)^:=nil
           else
             PPointer(p)^:=@TJOB_ArrayOfDouble(aValue).Values[0];
+          inc(p,sizeof(Pointer));
+        end;
+      jjvkArrayOfByte:
+        begin
+          Prep(1+SizeOf(NativeInt)+SizeOf(Pointer),JOBArgArrayOfByte);
+          i:=TJOB_ArrayOfByte(aValue).Len;
+          PNativeInt(p)^:=i;
+          inc(p,SizeOf(NativeInt));
+          if i=0 then
+            PPointer(p)^:=nil
+          else
+            PPointer(p)^:=@TJOB_ArrayOfByte(aValue).Values[0];
           inc(p,sizeof(Pointer));
         end;
     end;
@@ -3350,7 +3433,9 @@ begin
 end;
 
 initialization
+  Writeln('x');
   JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
+  Writeln('y');
   JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
 
 end.
