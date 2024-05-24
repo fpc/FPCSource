@@ -38,8 +38,11 @@ interface
 
     type
       Tm68kAoutGNUAssembler=class(TAoutGNUAssembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-        function MakeCmdLine : TCmdStr; override;
+        protected
+          function sectionattrs(atype:TAsmSectiontype):string; override;
+        public
+          constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+          function MakeCmdLine : TCmdStr; override;
       end;
 
 
@@ -101,6 +104,10 @@ interface
      Replace(result,'$ARCH',GasMachineArg);
    end;
 
+  function tm68kAoutGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
+    begin
+      result:='';
+    end;
 
     function getreferencestring(var ref : treference) : string;
       var
@@ -364,7 +371,7 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_m68k_macosclassic,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_human68k,system_m68k_embedded];
+            supported_targets : [system_m68k_macosclassic,system_m68k_linux,system_m68k_netbsd,system_m68k_human68k,system_m68k_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             labelmaxlen : -1;
@@ -378,7 +385,7 @@ interface
             idtxt  : 'AS-AOUT';
             asmbin : 'as';
             asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_m68k_Amiga,system_m68k_Atari];
+            supported_targets : [system_m68k_Amiga,system_m68k_Atari,system_m68k_palmos];
             flags : [af_needar];
             labelprefix : '.L';
             labelmaxlen : -1;
