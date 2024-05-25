@@ -93,6 +93,11 @@ implementation
       i : longint;
       ref:treference;
     begin
+      if not(tf_init_final_units_by_calls in target_info.flags) then
+        begin
+          inherited insert_init_final_table(main,entries);
+          exit;
+        end;
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
