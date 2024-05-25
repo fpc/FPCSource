@@ -1,9 +1,9 @@
 {******************************************************************************
-Startup code for riscv32-esp32c3 using idf
+Startup code for xtensa-esp32s3 using idf
 
 ******************************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit esp32c3;
+unit esp32s3;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
@@ -28,8 +28,8 @@ unit esp32c3;
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
     procedure esp_deep_sleep_start;external;
-    procedure putchar(c : char);external;
-    function getchar : char;external;
+    procedure putchar(c : AnsiChar);external;
+    function getchar : AnsiChar;external;
     function __getreent : pointer;external;
     procedure fflush(f : pointer);external;
     procedure vTaskDelay(xTicksToDelay: uint32); external;
@@ -62,14 +62,14 @@ unit esp32c3;
       end;
 
 
-    function WriteChar(ACh: char; AUserData: pointer): boolean;
+    function WriteChar(ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         WriteChar:=true;
         putchar(ACh);
       end;
 
 
-    function ReadChar(var ACh: char; AUserData: pointer): boolean;
+    function ReadChar(var ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         ReadChar:=true;
         ACh:=getchar;

@@ -227,6 +227,12 @@ $(error When compiling for xtensa-freertos, a sub-architecture (e.g. SUBARCH=lx1
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
+ifeq ($(SUBARCH),)
+$(error When compiling for riscv32-freertos, a sub-architecture (e.g. SUBARCH=rv32imc or SUBARCH=rv32imac) must be defined)
+endif
+override FPCOPT+=-Cp$(SUBARCH)
+endif
 ifeq ($(CPU_OS_TARGET),arm-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m or SUBARCH=armv7em) must be defined)

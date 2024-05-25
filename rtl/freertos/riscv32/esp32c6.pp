@@ -1,10 +1,8 @@
 {******************************************************************************
-Startup code for riscv32-esp32c3 using idf
+Startup code for riscv32-esp32c6 using idf
 
 ******************************************************************************}
-{$IFNDEF FPC_DOTTEDUNITS}
-unit esp32c3;
-{$ENDIF FPC_DOTTEDUNITS}
+unit esp32c6;
 
 {$goto on}
 {$macro on}

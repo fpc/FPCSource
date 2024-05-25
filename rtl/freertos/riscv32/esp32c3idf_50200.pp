@@ -14,43 +14,45 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit espidf_40200;
+unit esp32c3idf_50200;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-{$linklib esp32,static}
-{$linklib coexist,static}
-{$linklib esp_wifi,static}
-{$linklib soc,static}
-{$linklib driver,static}
-{$linklib freertos,static}
-{$linklib log,static}
-{$linklib esp_common,static}
-{$linklib heap,static}
-{$linklib newlib,static}
-{$linklib vfs,static}
-{$linklib esp_ringbuf,static}
-{$linklib spi_flash,static}
 {$linklib app_update,static}
-{$linklib xtensa,static}
 {$linklib bootloader_support,static}
-{$linklib pthread,static}
+{$linklib coexist,static}
+{$linklib core,static}
+{$linklib driver,static}
+{$linklib efuse,static}
+{$linklib esp_app_format,static}
+{$linklib esp_coex,static}
+{$linklib esp_common,static}
+{$linklib esp_hw_support,static}
+{$linklib esp_mm,static}
+{$linklib esp_partition,static}
+{$linklib esp_phy,static}
+{$linklib esp_pm,static}
+{$linklib esp_ringbuf,static}
+{$linklib esp_rom,static}
+{$linklib esp_system,static}
+{$linklib esp_timer,static}
+{$linklib freertos,static}
 {$linklib hal,static}
-{$linklib libm,static}
-{$linklib libg,static}
+{$linklib heap,static}
+{$linklib log,static}
+{$linklib newlib,static}
+{$linklib pthread,static}
+{$linklib riscv,static}
+{$linklib soc,static}
+{$linklib spi_flash,static}
+{$linklib vfs,static}
 {$linklib c,static}
-{$linklib esp_event,static}
-{$linklib esp_system, static}
-{$linklib esp_hw_support, static}
-{$linklib esp_rom, static}
-{$linklib esp_timer, static}
-{$linklib bootloader_support, static}
-{$linklib esp_pm, static}
-{$linklib driver, static}
-{$linklib esp_ipc, static}
-{$linklib xt_hal, static}
-{$linklib efuse, static}
+{$linklib m,static}
+{$linklib gcc,static}
+
+{$linklib esp_gdbstub,static}
+{$linklib espcoredump,static}
 
 implementation
 

@@ -37,7 +37,9 @@ Type
    tcputype =
       (cpu_none,
        cpu_lx106,
-       cpu_lx6
+       cpu_lx6,
+       cpu_lx7,
+       cpu_lx7hf
       );
 
 
@@ -56,7 +58,9 @@ Type
       ct_esp32,
       ct_esp32_d0wd,
       ct_esp32_d2wd,
-      ct_esp32_sOwd
+      ct_esp32_sOwd,
+      ct_esp32s2,
+      ct_esp32s3
      );
 
    tcontrollerdatatype = record
@@ -92,7 +96,9 @@ Const
    cputypestr : array[tcputype] of string[8] = (
      '',
      'LX106',
-     'LX6'
+     'LX6',
+     'LX7',
+     'LX7HF'
    );
 
    fputypestr : array[tfputype] of string[10] = (
@@ -114,7 +120,9 @@ Const
       (controllertypestr:'ESP32';	controllerunitstr:'ESP32';	cputype:cpu_lx6; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:2*1024*1024),
       (controllertypestr:'ESP32_D0WD';	controllerunitstr:'ESP32_D0WD';	cputype:cpu_lx6; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
       (controllertypestr:'ESP32_D2WD';	controllerunitstr:'ESP32_D2WD';	cputype:cpu_lx6; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
-      (controllertypestr:'ESP32_S0WD';	controllerunitstr:'ESP32_S0WD';	cputype:cpu_lx6; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024)
+      (controllertypestr:'ESP32_S0WD';	controllerunitstr:'ESP32_S0WD';	cputype:cpu_lx6; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
+      (controllertypestr:'ESP32S2';	controllerunitstr:'ESP32S2';	cputype:cpu_lx7; fputype:fpu_soft; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:4*1024*1024),
+      (controllertypestr:'ESP32S3';	controllerunitstr:'ESP32S3';	cputype:cpu_lx7hf; fputype:fpu_hard; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:4*1024*1024)
    );
 
    { Supported optimizations, only used for information }
@@ -156,7 +164,9 @@ Const
      (
        { cpu_none     } [],
        { cpu_lx106    } [],
-       { cpu_lx6      } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_NSAx, CPUXTENSA_HAS_BOOLEAN_OPTION, CPUXTENSA_HAS_MUL32HIGH, CPUXTENSA_HAS_DIV, CPUXTENSA_HAS_LOOPS, CPUXTENSA_HAS_MINMAX]
+       { cpu_lx6      } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_NSAx, CPUXTENSA_HAS_BOOLEAN_OPTION, CPUXTENSA_HAS_MUL32HIGH, CPUXTENSA_HAS_DIV, CPUXTENSA_HAS_LOOPS, CPUXTENSA_HAS_MINMAX],
+       { cpu_lxf      } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_NSAx, CPUXTENSA_HAS_BOOLEAN_OPTION, CPUXTENSA_HAS_MUL32HIGH, CPUXTENSA_HAS_DIV, CPUXTENSA_HAS_MINMAX],
+       { cpu_lx7hf    } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_NSAx, CPUXTENSA_HAS_BOOLEAN_OPTION, CPUXTENSA_HAS_MUL32HIGH, CPUXTENSA_HAS_DIV, CPUXTENSA_HAS_MINMAX]
      );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags =

@@ -91,7 +91,6 @@ begin
   Info.ExeCmd[1]:='ld -g '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
 end;
 
-
 function TlinkerFreeRTOS.WriteResponseFile: Boolean;
 Var
   linkres  : TLinkRes;
@@ -168,7 +167,10 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if not(cs_link_on_target in current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName((maybequoted(s)));
+      if (idf_version>=50200) then
+        LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
+      else
+        LinkRes.AddFileName((maybequoted(s)));
      end;
    end;
 
@@ -180,7 +182,10 @@ begin
       while not StaticLibFiles.Empty do
         begin
           S:=StaticLibFiles.GetFirst;
-          LinkRes.AddFileName((maybequoted(s)));
+          if (idf_version>=50200) then
+            LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
+          else
+            LinkRes.AddFileName((maybequoted(s)));
         end;
     end;
 
@@ -1513,120 +1518,158 @@ var
   FixedExeFileName: string;
   {$if defined(XTENSA) or defined(RISCV32)}
   memory_script,
-  sections_script: AnsiString;
+  sections_script,
+  cntrlr,
+  extraopts: AnsiString;
   {$endif defined(XTENSA) or defined(RISCV32)}
 begin
-{$if defined(XTENSA) or defined(RISCV32)}
-  { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
-  if idfpath='' then
-    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
-  idfpath:=ExcludeTrailingBackslash(idfpath);
-{$endif defined(XTENSA) or defined(RISCV32)}
-
   { for future use }
   StaticStr:='';
   StripStr:='';
   mapstr:='';
   DynLinkStr:='';
-
   success:=true;
   Result:=false;
+  extraopts:='';
+
+{$if defined(XTENSA) or defined(RISCV32)}
+  { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
+  if idfpath='' then
+    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
+  idfpath:=ExcludeTrailingBackslash(idfpath);
 
 {$ifdef XTENSA}
+  case current_settings.controllertype of
+    ct_esp32: cntrlr:='esp32';
+    ct_esp32s2: cntrlr:='esp32s2';
+    ct_esp32s3: cntrlr:='esp32s3';
+    ct_esp8266: cntrlr:='esp8266';
+    else
+      cntrlr:='';
+  end;
+{$endif XTENSA}
+{$ifdef RISCV32}
+  case current_settings.controllertype of
+    ct_esp32c2: cntrlr:='esp32c2';
+    ct_esp32c3: cntrlr:='esp32c3';
+    ct_esp32c6:
+      begin
+        cntrlr:='esp32c6';
+        { Extra option required to generate bin file }
+        extraopts:=' --flash-mmu-page-size 32KB ';
+      end
+    else
+      cntrlr:='';
+    end;
+{$endif RISCV32}
+
   { Locate linker scripts.  If not found, generate defaults. }
   { Cater for different script names in different esp-idf versions }
-
-  if (current_settings.controllertype = ct_esp32) then
+  if idf_version >= 40400 then
     begin
-      if idf_version >= 40400 then
-        begin
-          memory_script := 'memory.ld';
-          sections_script := 'sections.ld';
-        end
-      else
-      begin
-        memory_script := 'esp32_out.ld';
-        sections_script := 'esp32.project.ld';
-      end;
-    end
-  else if (current_settings.controllertype = ct_esp8266) then
-    begin
-     memory_script := 'esp8266_out.ld';
-     sections_script := 'esp8266.project.ld';
-    end;
-
-  if not (FindLibraryFile(memory_script,'','',memory_script) and
-         FindLibraryFile(sections_script,'','',sections_script)) then
-    GenerateDefaultLinkerScripts(memory_script,sections_script);
-
-  if (current_settings.controllertype = ct_esp32) then
-    begin
-      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
-       '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
-       '-L $IDF_PATH/components/esp_rom/esp32/ld '+
-       '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
-       '-T '+memory_script+' -T '+sections_script;
-
-      if idf_version<40400 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
-      else
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32/ld -T esp32.peripherals.ld';
-      if idf_version>=40300 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32.rom.api.ld';
-      if idf_version>=40400 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32.rom.newlib-time.ld';
+      memory_script := 'memory.ld';
+      sections_script := 'sections.ld';
     end
   else
-    begin
-      Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
-        '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
-        '-T '+memory_script+' -T '+sections_script; { Project scripts }
-    end;
-
-  Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
-{$endif XTENSA}
-
-{$ifdef RISCV32}
-  { Locate linker scripts.  If not found, generate defaults. }
-  { Cater for different script names in different esp-idf versions }
-
-  if (current_settings.controllertype = ct_esp32c3) then
-    begin
-      if idf_version >= 40400 then
-        begin
-          memory_script := 'memory.ld';
-          sections_script := 'sections.ld';
-        end
-      else
-      begin
-        memory_script := 'esp32c3_out.ld';
-        sections_script := 'esp32c3.project.ld';
-      end;
-    end;
+  begin
+    memory_script := cntrlr+'_out.ld';
+    sections_script := cntrlr+'.project.ld';
+  end;
 
   if not (FindLibraryFile(memory_script,'','',memory_script) and
          FindLibraryFile(sections_script,'','',sections_script)) then
     GenerateDefaultLinkerScripts(memory_script,sections_script);
 
-  if (current_settings.controllertype = ct_esp32c3) then
+{$ifdef XTENSA}
+    if (current_settings.controllertype=ct_esp8266) then
+      begin
+       Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
+         '-L $IDF_PATH/components/'+cntrlr+'/ld -T '+cntrlr+'.peripherals.ld -T '+cntrlr+'.rom.ld '+ { SDK scripts }
+         '-T '+memory_script+' -T '+sections_script; { Project scripts }
+      end
+    else
+{$endif XTENSA}
     begin
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
-       '-T '+memory_script+' -T '+sections_script+' '+
-       '-L $IDF_PATH/components/esp_rom/esp32c3/ld '+
-       '-T esp32c3.rom.ld -T esp32c3.rom.libgcc.ld -T esp32c3.rom.newlib.ld -T esp32c3.rom.eco3.ld  -T esp32c3.rom.version.ld ';
-
-      if idf_version>=40300 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32c3.rom.api.ld';
-
+       '-L $IDF_PATH/components/esp_rom/'+cntrlr+'/ld ';
       if idf_version<40400 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32c3/ld -T esp32c3.peripherals.ld'
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/'+cntrlr+'/ld'
       else
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32c3/ld -T esp32c3.peripherals.ld';
-    end;
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/'+cntrlr+'/ld';
 
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+memory_script+' -T '+sections_script;
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.ld -T '+cntrlr+'.rom.api.ld';
+{$ifdef XTENSA}
+      if current_settings.controllertype = ct_esp32 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld'
+        else if idf_version>=50000 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld'
+        else if idf_version>=40400 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-time.ld'
+        else if idf_version>=40300 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-time.ld'
+        else
+          begin
+            //Currently not supported
+          end;
+      if current_settings.controllertype = ct_esp32s2 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld'
+        else if idf_version>=50000 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld'
+        else if idf_version>=40400 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld -T '+cntrlr+'.rom.newlib-time.ld'
+        else
+          begin
+            //Currently not supported
+          end;
+      if current_settings.controllertype = ct_esp32s3 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld'
+        else if idf_version>=50000 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld'
+        else if idf_version>=40400 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld'
+        else
+          begin
+            //Currently not supported
+          end;
+  {$endif XTENSA}
+  {$ifdef RISCV32}
+      if current_settings.controllertype=ct_esp32c2 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
+        else if idf_version>=50000 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
+        else 
+          begin
+            //Currently not supported
+          end;
+      if current_settings.controllertype=ct_esp32c3 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld'
+        else if idf_version>=50000 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld'
+        else if idf_version>=40400 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld  -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.eco3.ld'
+        else
+          begin
+            //Currently not supported
+          end;
+      if current_settings.controllertype=ct_esp32c6 then
+        if idf_version>=50200 then
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.phy.ld -T '+cntrlr+'.rom.coexist.ld -T '+cntrlr+'.rom.net80211.ld -T '+cntrlr+'.rom.pp.ld -T '+cntrlr+'.rom.wdt.ld -T '+cntrlr+'.rom.systimer.ld -T '+cntrlr+'.rom.newlib-normal.ld -T '+cntrlr+'.rom.heap.ld'
+        else
+          begin
+          //Currently not supported
+          end;
+  {$endif RISCV32}
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.peripherals.ld'
+    end;
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
-{$endif RISCV32}
+{$endif defined(XTENSA) or defined(RISCV32)}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
@@ -1673,61 +1716,47 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
+{$if defined(XTENSA) or defined(RISCV32)}
   if success then
-   begin
-{$ifndef ARM}
+    begin
 {$if defined(DARWIN)}
-     success:=FindFileInExeLocations('python',true,binstr);
-     cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+      success:=FindFileInExeLocations('python',true,binstr);
+      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$elseif defined(UNIX)}
-     binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
-     cmdstr:='';
+      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+      cmdstr:='';
 {$else}
-     binstr:='python';
-     cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+      binstr:='python';
+      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$endif UNIX}
-{$endif ARM}
 
-{$if defined(XTENSA)}
-     if source_info.exeext<>'' then
-       binstr:=binstr+source_info.exeext;
-     if (current_settings.controllertype = ct_esp32) then
-       begin
-         success:=DoExec(binstr,cmdstr+'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
-           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-           '--elf-sha256-offset 0xb0 '+
-           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-           FixedExeFileName,
-           true,false);
-       end
-     else if (current_settings.controllertype = ct_esp8266) then
-       begin
-         success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
-           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-           '--version=3 '+
-           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-           FixedExeFileName,
-           true,false);
-       end
-{$elseif defined(RISCV32)}
-     if source_info.exeext<>'' then
-       binstr:=binstr+source_info.exeext;
-     if (current_settings.controllertype = ct_esp32c3) then
-       begin
-         success:=DoExec(binstr,cmdstr+'--chip esp32c3 elf2image --flash_mode dio --flash_freq 80m '+
-           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-           '--elf-sha256-offset 0xb0 --min-rev 3 '+
-           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-           FixedExeFileName,
-           true,false);
-       end;
-{$endif defined(RISCV32)}
-   end
-  else
-    if success then
-      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-        FixedExeFileName+' '+
-        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+{$ifdef XTENSA}
+      if (current_settings.controllertype = ct_esp8266) then
+        begin
+          success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
+            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--version=3 '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            FixedExeFileName,
+            true,false);
+        end
+      else
+{$endif XTENSA}
+        begin
+          success:=DoExec(binstr,cmdstr+'--chip '+cntrlr+' elf2image '+
+            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--elf-sha256-offset 0xb0 '+extraopts+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            FixedExeFileName,
+            true,false);
+        end;
+    end;
+{$else}
+  if success then
+    success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+      FixedExeFileName+' '+
+      maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+{$endif defined(XTENSA) or defined(RISCV32)}
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

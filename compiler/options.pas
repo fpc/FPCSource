@@ -1515,12 +1515,27 @@ begin
         set_system_compvar('IDF_VERSION','40200');
         idf_version:=40200;
       end;
+    ct_esp32s2,ct_esp32s3:
+      begin
+        set_system_compvar('IDF_VERSION','50006');
+        idf_version:=40400;
+      end;
 {$endif}
 {$ifdef RISCV32}
+    ct_esp32c2:
+      begin
+        set_system_compvar('IDF_VERSION','50006');
+        idf_version:=40400;
+      end;
     ct_esp32c3:
       begin
-        set_system_compvar('IDF_VERSION','40400');
+        set_system_compvar('IDF_VERSION','50006');
         idf_version:=40400;
+      end;
+    ct_esp32c6:
+      begin
+        set_system_compvar('IDF_VERSION','50201');
+        idf_version:=50200;
       end;
 {$endif RISCV32}
     else

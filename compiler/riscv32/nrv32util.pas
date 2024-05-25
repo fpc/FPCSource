@@ -60,13 +60,13 @@ implementation
       var
         ref: treference;
       begin
-        // addi sp,sp,-4
-        list.Concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-4));
+        // addi sp,sp,-16
+        list.Concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-16));
 
-        // sw ra,0(sp)
+        // sw ra,12(sp)
         reference_reset(ref,4,[]);
         ref.base:=NR_STACK_POINTER_REG;
-        ref.offset:=0;
+        ref.offset:=12;
         list.Concat(taicpu.op_reg_ref(A_SW,NR_RETURN_ADDRESS_REG,ref));
       end;
 
@@ -74,14 +74,14 @@ implementation
       var
         ref: treference;
       begin
-        // lw ra,0(sp)
+        // lw ra,12(sp)
         reference_reset(ref,4,[]);
         ref.base:=NR_STACK_POINTER_REG;
-        ref.offset:=0;
+        ref.offset:=12;
         list.Concat(taicpu.op_reg_ref(A_LW,NR_RETURN_ADDRESS_REG,ref));
 
-        // addi sp,sp,4
-        list.Concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,4));
+        // addi sp,sp,16
+        list.Concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,16));
 
         // ret
         list.Concat(taicpu.op_none(A_RET));
