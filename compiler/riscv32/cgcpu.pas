@@ -116,8 +116,9 @@ unit cgcpu;
       var
         ai: taicpu;
       begin
+{$ifdef EXTDEBUG}
         list.concat(tai_comment.Create(strpnew('Move '+tcgsize2str(fromsize)+'->'+tcgsize2str(tosize))));
-
+{$endif EXTDEBUG}
         if (tosize=OS_S32) and (fromsize=OS_32) then
           begin
             ai:=taicpu.op_reg_reg_const(A_ADDI,reg2,reg1,0);

@@ -94,7 +94,9 @@ implementation
       var
         ai: taicpu;
       begin
+{$ifdef EXTDEBUG}
         list.concat(tai_comment.Create(strpnew('Move '+tcgsize2str(fromsize)+'->'+tcgsize2str(tosize))));
+{$endif EXTDEBUG}
 
         if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S32) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))

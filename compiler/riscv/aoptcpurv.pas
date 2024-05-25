@@ -27,7 +27,7 @@ interface
 
 {$I fpcdefs.inc}
 
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
 uses
   cpubase,
