@@ -22,7 +22,7 @@ type
   THandle = DWord;
   ULONG_PTR = DWord;
 {$endif CPU64}
-  TThreadID = DWord;
+  TThreadID = THandle;
   SIZE_T = ULONG_PTR;
   TOSTimestamp = Int64;
 
