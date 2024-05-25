@@ -9519,6 +9519,14 @@ type
     rcCaret          : TRECT;
   end;
 
+    PPROCESSOR_NUMBER = ^_PROCESSOR_NUMBER;
+    _PROCESSOR_NUMBER = record
+        Group :  WORD;
+        Number  : BYTE;
+        Reserved : BYTE;
+      end;
+   TPROCESSOR_NUMBER = _PROCESSOR_NUMBER;
+
 {$pop}
 {$endif read_interface}
 
