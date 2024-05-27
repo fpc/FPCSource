@@ -203,13 +203,19 @@ implementation
           i:=last.svalue+1;
           while i<=t^._low.svalue-1 do
             begin
-              list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
+              if target_info.system=system_aarch64_win64 then
+                list.concat(Tai_const.Create_sym(elselabel))
+              else
+                list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
               inc(i);
             end;
           i:=t^._low.svalue;
           while i<=t^._high.svalue do
             begin
-              list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,blocklabel(t^.blockid)));
+              if target_info.system=system_aarch64_win64 then
+                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)))
+              else
+                list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,blocklabel(t^.blockid)));
               inc(i);
             end;
           last:=t^._high;
@@ -243,25 +249,32 @@ implementation
         basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load table slot, 32-bit sign extended }
+        jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;
-        href.shiftimm:=2;
-        jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
-        { add table address }
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
+        if target_info.system=system_aarch64_win64 then
+          begin
+            { Use a 64-bit absolute table under aarch64-win64 }
+            href.shiftimm:=3;
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
+          end
+        else
+          begin
+            href.shiftimm:=2;
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
+            { add table address }
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,jumpreg);
+          end;
         { and finally jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
         { generate jump table }
         if target_info.system=system_aarch64_win64 then
           begin
-            { for Windows we need to make sure that the jump table is located in the
-              same section as the corresponding code as for one clang generates a
-              ABSOLUTE32 relocation that can not be handled correctly and armasm64
-              rejects the difference entries due to the symbols being located in
-              different sections }
-            sectype:=sec_code;
+            { For windows, it has to be in a data section otherwise an access violation
+              will occur, but also full 64-bit references to avoid problems with 
+              relative references }
+            sectype:=sec_rodata;
             new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),getprocalign);
           end
         else
