@@ -2,7 +2,7 @@ program test_random;
 
 const
   buckets = 1000000;
-  repeats = 20;
+  repeats = 50;
 var
   hist : array[1..buckets] of LongInt;
   i : longint;
@@ -31,8 +31,8 @@ begin
     chisquare:=chisquare+sqr(hist[i]-repeats)/repeats;
   writeln(chisquare);
 
-  { m=1000000; p=0.1 }
-  if chisquare>1001741 then
+  { m=1000000; p=0.000001 }
+  if chisquare>1006671 then
     halt(1)
   else
     writeln('ok');
