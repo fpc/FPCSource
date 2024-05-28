@@ -705,15 +705,24 @@ type
 
   IJSTypedArray = interface(IJSObject)
     ['{6A76602B-9555-4136-A7B7-2E683265EA82}']
+    function GetBuffer: IJSArrayBuffer;
+    procedure  set_(aArray : IJSTypedArray; TargetOffset : Integer);
+    procedure  set_(aArray : IJSTypedArray);
+    property Buffer : IJSArrayBuffer read GetBuffer;
   end;
 
   { TJSTypedArray }
 
   TJSTypedArray = class(TJSObject,IJSTypedArray)
+  private
+    function GetBuffer: IJSArrayBuffer;
   public
     constructor Create(aBytes : PByte; aLen : NativeUInt);
     constructor Create(aBytes : TBytes);
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
+    procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
+    procedure set_(aArray : IJSTypedArray);
+    property Buffer : IJSArrayBuffer read GetBuffer;
   end;
 
   { IJSInt8Array }
@@ -1464,6 +1473,11 @@ end;
 
 { TJSTypedArray }
 
+function TJSTypedArray.GetBuffer: IJSArrayBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
 constructor TJSTypedArray.Create(aBytes: PByte; aLen: NativeUInt);
 
 var
@@ -1485,6 +1499,16 @@ end;
 class function TJSTypedArray.Cast(const Intf: IJSObject): IJSTypedArray;
 begin
   Result:=TJSTypedArray.Cast(Intf);
+end;
+
+procedure TJSTypedArray.set_(aArray: IJSTypedArray; TargetOffset: Integer);
+begin
+  InvokeJSNoResult('set',[aArray,TargetOffset]);
+end;
+
+procedure TJSTypedArray.set_(aArray: IJSTypedArray);
+begin
+  InvokeJSNoResult('set',[aArray]);
 end;
 
 { TJSArrayBuffer }
