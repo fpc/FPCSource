@@ -168,13 +168,19 @@ begin
     if (XTermProgram='') then
       begin
       D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
-      If (Pos('kde',D)<>0) then
+      If (D='plasma') or (Pos('kde',D)<>0) then
         begin
         TestTerminal(konsole);
         end
       else if (D='gnome') then
         begin
         TestTerminal(gnometerm);
+        end
+      else if (D='fly') then
+        begin
+        // default `fly-term` has a bug!
+        If not TestTerminal(konsole) then
+          TestTerminal(xterm);
         end
       else if (D='windowmaker') then
         begin
