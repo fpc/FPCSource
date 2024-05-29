@@ -1664,8 +1664,9 @@ implementation
                   else
                   begin
                     { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
-                    { further, allow AAD and AAM with imm. operand }
+                    { further, allow ENTER, AAD and AAM with imm. operand }
                     if (opsize=S_NO) and not((i in [1,2,3])
+                      or ((i=0) and (opcode in [A_ENTER]))
 {$ifndef x86_64}
                       or ((i=0) and (opcode in [A_AAD,A_AAM]))
 {$endif x86_64}
