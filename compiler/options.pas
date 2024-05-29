@@ -1591,7 +1591,7 @@ begin
          (opt[1]='-') and
          (
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','t','u','n','x','X','l','U'])) or
-          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
+          ((length(opt)>3) and (opt[2]='F') and (opt[3] in ['e','f'])) or
           ((length(opt)>2) and (opt[2]='C') and (opt[3] in ['a','b','f','p'])) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
          )
