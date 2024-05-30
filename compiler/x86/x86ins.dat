@@ -1398,7 +1398,7 @@ mmxreg,mmxrm          \2\x0F\x52\110                  PENT,MMX,SM,CYRIX
 (Ch_All)
 mmxreg,mmxrm          \2\x0F\x5D\110                  PENT,MMX,SM,CYRIX
 
-[PMULHRWA]
+[PMULHRW]
 (Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\1\xB7            PENT,3DNOW,SM
 
@@ -3593,8 +3593,24 @@ mem16|32|64,reg16|32|64              \321\3\xf\x38\xf1\101           MOVBE,SM
 ;*******************************************************************************
 
 [PCLMULQDQ]
-(Ch_Mop3, Ch_Rop2)
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmrm,imm8                    \361\3\xf\x3A\x44\110\26        CLMUL,SANDYBRIDGE
+
+[PCLMULLQLQDQ]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                         \361\3\xf\x3A\x44\110\1\x00     CLMUL,SANDYBRIDGE
+
+[PCLMULHQLQDQ]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                         \361\3\xf\x3A\x44\110\1\x10     CLMUL,SANDYBRIDGE
+
+[PCLMULLQHQDQ]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                         \361\3\xf\x3A\x44\110\1\x01     CLMUL,SANDYBRIDGE
+
+[PCLMULHQHQDQ]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                         \361\3\xf\x3A\x44\110\1\x11     CLMUL,SANDYBRIDGE
 
 ;*******************************************************************************
 ;****** AVX I ******************************************************************
@@ -4867,9 +4883,32 @@ ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0E\75\120\27     AVX2
 [VPCLMULQDQ]
 (Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm,imm8                  \350\361\362\372\1\x44\75\120\27          AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm,imm8                  \350\361\364\372\1\x44\75\120\27          AVX512,TFV
+ymmreg,ymmreg,ymmrm,imm8                  \350\361\364\372\1\x44\75\120\27          AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
 zmmreg,zmmreg,zmmrm,imm8                  \350\351\361\372\1\x44\75\120\27          AVX512,TFV
 
+[VPCLMULLQLQDQ]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x00       AVX,SANDYBRIDGE,TFV
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x00       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x00       AVX512,TFV
+
+[VPCLMULHQLQDQ]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x10       AVX,SANDYBRIDGE,TFV
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x10       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x10       AVX512,TFV
+
+[VPCLMULLQHQDQ]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x01       AVX,SANDYBRIDGE,TFV
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x01       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x01       AVX512,TFV
+
+[VPCLMULHQHQDQ]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x11       AVX,SANDYBRIDGE,TFV
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x11       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x11       AVX512,TFV
 
 [VPCMPEQB]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
@@ -9148,7 +9187,7 @@ xmmreg,xmmrm                              \3\x0F\x38\xC9\110                    
 
 [SHA1MSG2]
 (Ch_Mop2, Ch_Rop1)
-xmmreg,xmmrm                              \3\x0F\x38\xC\110                        SHA
+xmmreg,xmmrm                              \3\x0F\x38\xCA\110                        SHA
 
 [SHA256RNDS2]
 ; reads also xmm0 !
