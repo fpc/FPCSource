@@ -402,7 +402,7 @@ end;
 procedure TCSSTreeAsStringTest.TestSTRING;
 begin
   TCSSStringElement(CreateElement(TCSSStringElement)).Value:='abc';
-  AssertEquals('Value','"abc"',Element.AsString);
+  AssertEquals('Value','abc',Element.AsString);
 end;
 
 procedure TCSSTreeAsStringTest.TestFLOAT;

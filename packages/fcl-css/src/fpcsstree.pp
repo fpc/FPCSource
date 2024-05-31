@@ -537,7 +537,6 @@ begin
     Inc(iIn);
     end;
   SetLength(Result,iOut);
-  Result:='"'+Result+'"';
 end;
 
 function StringToIdentifier(const S: TCSSString): TCSSString;
