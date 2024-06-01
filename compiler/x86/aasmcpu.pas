@@ -4747,6 +4747,29 @@ implementation
                 internalerror(200506055);
             end
           end
+        else if (opcode=VMOVHPD) or (opcode=VMOVHPS) or (opcode=VMOVLHPS) or (opcode=VMOVLPD) or (opcode=VMOVLPS) then
+          begin
+            if ops=2 then
+              case opnr of
+                0:
+                  result:=operand_read;
+                1:
+                  result:=operand_readwrite;
+                else
+                  internalerror(2024060101);
+              end
+            else if ops=3 then
+              case opnr of
+                0,1:
+                  result:=operand_read;
+                2:
+                  result:=operand_write;
+                else
+                  internalerror(̄2024060102);
+              end
+            else
+              internalerror(2024060103);
+          end
         { IMUL has 1, 2 and 3-operand forms }
         else if opcode=A_IMUL then
           begin

@@ -4530,31 +4530,34 @@ ymmrm,ymmreg                         \333\362\364\370\1\x7F\101           AVX,SA
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmreg                      \350\362\370\1\x12\75\120                 AVX,SANDYBRIDGE
 
+; 2/3 operands cannot be modeled here, it is corrected in taicpu.spilling_get_operation_type
 [VMOVHPD]
 (Ch_All)
 mem64,xmmreg                              \350\352\361\362\370\1\x17\101            AVX,SANDYBRIDGE,T1S
 xmmreg,xmmreg,mem64                       \350\352\361\362\370\1\x16\75\120         AVX,SANDYBRIDGE,T1S
 
+; 2/3 operands cannot be modeled here, it is corrected in taicpu.spilling_get_operation_type
 [VMOVHPS]
 (Ch_All)
 mem64,xmmreg                              \350\362\370\1\x17\101                    AVX,SANDYBRIDGE,T2
 xmmreg,xmmreg,mem64                       \350\362\370\1\x16\75\120                 AVX,SANDYBRIDGE,T2
 
+; 2/3 operands cannot be modeled here, it is corrected in taicpu.spilling_get_operation_type
 [VMOVLHPS]
 (Ch_All)
 xmmreg,xmmreg,xmmreg                      \350\362\370\1\x16\75\120                 AVX,SANDYBRIDGE
 
+; 2/3 operands cannot be modeled here, it is corrected in taicpu.spilling_get_operation_type
 [VMOVLPD]
 (Ch_All)
 mem64,xmmreg                              \350\352\361\362\370\1\x13\101            AVX,SANDYBRIDGE,T1S
 xmmreg,xmmreg,mem64                       \350\352\361\362\370\1\x12\75\120         AVX,SANDYBRIDGE,T1S
 
-
+; 2/3 operands cannot be modeled here, it is corrected in taicpu.spilling_get_operation_type
 [VMOVLPS]
 (Ch_All)
 mem64,xmmreg                              \350\362\370\1\x13\101                    AVX,SANDYBRIDGE,T2
 xmmreg,xmmreg,mem64                       \350\362\370\1\x12\75\120                 AVX,SANDYBRIDGE,T2
-
 
 [VMOVMSKPD]
 (Ch_Wop2, Ch_Rop1)
