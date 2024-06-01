@@ -4747,7 +4747,7 @@ implementation
                 internalerror(200506055);
             end
           end
-        else if (opcode=VMOVHPD) or (opcode=VMOVHPS) or (opcode=VMOVLHPS) or (opcode=VMOVLPD) or (opcode=VMOVLPS) then
+        else if (opcode=A_VMOVHPD) or (opcode=A_VMOVHPS) or (opcode=A_VMOVLHPS) or (opcode=A_VMOVLPD) or (opcode=A_VMOVLPS) then
           begin
             if ops=2 then
               case opnr of
@@ -4765,7 +4765,7 @@ implementation
                 2:
                   result:=operand_write;
                 else
-                  internalerror(̄2024060102);
+                  internalerror(2024060102);
               end
             else
               internalerror(2024060103);
