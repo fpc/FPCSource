@@ -4886,31 +4886,31 @@ ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0E\75\120\27     AVX2
 [VPCLMULQDQ]
 (Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm,imm8                  \350\361\362\372\1\x44\75\120\27          AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm,imm8                  \350\361\364\372\1\x44\75\120\27          AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+ymmreg,ymmreg,ymmrm,imm8                  \350\361\364\372\1\x44\75\120\27          AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit
 zmmreg,zmmreg,zmmrm,imm8                  \350\351\361\372\1\x44\75\120\27          AVX512,TFV
 
 [VPCLMULLQLQDQ]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x00       AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x00       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x00       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit
 zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x00       AVX512,TFV
 
 [VPCLMULHQLQDQ]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x10       AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x10       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x10       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit
 zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x10       AVX512,TFV
 
 [VPCLMULLQHQDQ]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x01       AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x01       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x01       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit
 zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x01       AVX512,TFV
 
 [VPCLMULHQHQDQ]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                       \350\361\362\372\1\x44\75\120\1\x11       AVX,SANDYBRIDGE,TFV
-ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x11       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit 
+ymmreg,ymmreg,ymmrm                       \350\361\364\372\1\x44\75\120\1\x11       AVX512,TFV  ;Use AVX512, but has special VPCLMULQD feature flag bit
 zmmreg,zmmreg,zmmrm                       \350\351\361\372\1\x44\75\120\1\x11       AVX512,TFV
 
 [VPCMPEQB]
@@ -9071,7 +9071,7 @@ ymmreg_mz,ymmrm                           \350\352\361\364\371\1\x54\110        
 zmmreg_mz,zmmrm                           \350\351\352\361\371\1\x54\110            AVX512,TFVM
 
 [VPSHLDD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\361\372\1\x71\75\120\27              AVX512,TFV
 xmmreg_mz,xmmreg,bmem32,imm8              \350\361\372\1\x71\75\120\27              AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\361\364\372\1\x71\75\120\27          AVX512,TFV
@@ -9080,7 +9080,7 @@ zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\361\372\1\x71\75\120\27      
 zmmreg_mz,zmmreg,bmem32,imm8              \350\351\361\372\1\x71\75\120\27          AVX512,TFV
 
 [VPSHLDQ]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\352\361\372\1\x71\75\120\27          AVX512,TFV
 xmmreg_mz,xmmreg,bmem64,imm8              \350\352\361\372\1\x71\75\120\27          AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x71\75\120\27      AVX512,TFV
@@ -9089,7 +9089,7 @@ zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\352\361\372\1\x71\75\120\27  
 zmmreg_mz,zmmreg,bmem64,imm8              \350\351\352\361\372\1\x71\75\120\27      AVX512,TFV
 
 [VPSHLDVD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x71\75\120                 AVX512,TFV
 xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x71\75\120                 AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x71\75\120             AVX512,TFV
@@ -9098,7 +9098,7 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x71\75\120         
 zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x71\75\120             AVX512,TFV
 
 [VPSHLDVQ]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x71\75\120             AVX512,TFV
 xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x71\75\120             AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x71\75\120         AVX512,TFV
@@ -9107,19 +9107,19 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x71\75\120     
 zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x71\75\120         AVX512,TFV
 
 [VPSHLDVW]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x70\75\120             AVX512,TFVM
 ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x70\75\120         AVX512,TFVM
 zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x70\75\120         AVX512,TFVM
 
 [VPSHLDW]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\352\361\372\1\x70\75\120\27          AVX512,TFVM
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x70\75\120\27      AVX512,TFVM
 zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\352\361\372\1\x70\75\120\27      AVX512,TFVM
 
 [VPSHRDD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\361\372\1\x73\75\120\27              AVX512,TFV
 xmmreg_mz,xmmreg,bmem32,imm8              \350\361\372\1\x73\75\120\27              AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\361\364\372\1\x73\75\120\27          AVX512,TFV
@@ -9128,7 +9128,7 @@ zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\361\372\1\x73\75\120\27      
 zmmreg_mz,zmmreg,bmem32,imm8              \350\351\361\372\1\x73\75\120\27          AVX512,TFV
 
 [VPSHRDQ]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\352\361\372\1\x73\75\120\27          AVX512,TFV
 xmmreg_mz,xmmreg,bmem64,imm8              \350\352\361\372\1\x73\75\120\27          AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x73\75\120\27      AVX512,TFV
@@ -9137,7 +9137,7 @@ zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\352\361\372\1\x73\75\120\27  
 zmmreg_mz,zmmreg,bmem64,imm8              \350\351\352\361\372\1\x73\75\120\27      AVX512,TFV
 
 [VPSHRDVD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x73\75\120                 AVX512,TFV
 xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x73\75\120                 AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x73\75\120             AVX512,TFV
@@ -9146,7 +9146,7 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\361\371\1\x73\75\120         
 zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x73\75\120             AVX512,TFV
 
 [VPSHRDVQ]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x73\75\120             AVX512,TFV
 xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x73\75\120             AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x73\75\120         AVX512,TFV
@@ -9155,13 +9155,13 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x73\75\120     
 zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x73\75\120         AVX512,TFV
 
 [VPSHRDVW]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x72\75\120             AVX512,TFVM
 ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x72\75\120         AVX512,TFVM
 zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\371\1\x72\75\120         AVX512,TFVM
 
 [VPSHRDW]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\352\361\372\1\x72\75\120\27          AVX512,TFVM
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x72\75\120\27      AVX512,TFVM
 zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\352\361\372\1\x72\75\120\27      AVX512,TFVM
