@@ -1077,6 +1077,7 @@ function TCSSFloatElement.GetAsString(aFormat: Boolean;
 begin
   Str(Value:5:2,Result);
   Result:=TrimLeft(Result); // Space for positive numbers
+  Result:=Result+CSSUnitNames[Units];
   if aFormat then
     Result:=aIndent+Result;
 end;

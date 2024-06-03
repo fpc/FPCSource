@@ -108,6 +108,7 @@ type
     Procedure TestDOT;
     Procedure TestINT;
     Procedure TestFLOAT;
+    Procedure TestFLOATNegDot;
     Procedure TestDOUBLE;
     Procedure TestHASH1;
     Procedure TestHASH2;
@@ -424,6 +425,11 @@ end;
 procedure TTestCSSScanner.TestFLOAT;
 begin
   DoTestFloat(123.3,'123.3');
+end;
+
+procedure TTestCSSScanner.TestFLOATNegDot;
+begin
+  DoTestFloat(-0.123,'-.123');
 end;
 
 procedure TTestCSSScanner.TestDOUBLE;

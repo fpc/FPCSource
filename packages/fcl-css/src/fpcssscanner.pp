@@ -202,7 +202,6 @@ Const
   AlNum = Alpha+Num;
   AlNumIden = Alpha+Num+['-'];
   WhiteSpace = [' ',#9];
-  WhiteSpaceEx = WhiteSpace+[#0];
 
 type
   TMessageArgs = array of string;
@@ -942,13 +941,18 @@ begin
     ']': CharToken(ctkRBRACKET);
     '=': CharToken(ctkEQUALS);
     '-':
-      begin
-      if (TokenStr[1] in ['0'..'9']) then
-        Result:=DoNumericLiteral
-      else if Not (TokenStr[1] in WhiteSpaceEx) then
-        Result:=DoIdentifierLike
-      else
+      case TokenStr[1] of
+      '0'..'9':
+        Result:=DoNumericLiteral;
+      '.':
+        if TokenStr[2] in ['0'..'9'] then
+          Result:=DoNumericLiteral
+        else
+          CharToken(ctkMINUS);
+      #9,' ',#0:
         CharToken(ctkMINUS);
+      else
+        Result:=DoIdentifierLike;
       end;
     '+': CharToken(ctkPLUS);
     '%': CharToken(ctkPERCENTAGE);
