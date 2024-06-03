@@ -6064,19 +6064,19 @@ reg64,rm64                            \333\326\3\xf\x38\xf6\110           ADX,X8
 ;*******************************************************************************
 
 [VBROADCASTI128]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 ymmreg,mem128                        \361\362\364\371\1\x5A\110           AVX2
 
 [VEXTRACTI128]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmrm,ymmreg,imm8                    \361\362\364\372\1\x39\101\26        AVX2
 
 [VINSERTI128]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 ymmreg,ymmreg,xmmrm,imm8             \361\362\364\372\1\x38\75\120\27     AVX2
 
 [VPBLENDD]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x02\75\120\27     AVX2
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x02\75\120\27         AVX2
 
@@ -6262,7 +6262,6 @@ xmmreg_m,xmem32                           \350\352\361\371\1\x92\110            
 ymmreg,xmem32,ymmreg                      \361\362\363\364\371\1\x92\76\110         AVX2        I
 ymmreg_m,xmem32                           \350\352\361\364\371\1\x92\110            AVX512,T1S
 zmmreg_m,ymem32                           \350\351\352\361\371\1\x92\110            AVX512,T1S
-
 
 
 [VGATHERDPS]
