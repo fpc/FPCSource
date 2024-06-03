@@ -71,8 +71,10 @@ Type
     Resolved: TIDLTypeDefinition;
     NativeType : TPascalNativeType;
     NameChecked : Boolean;
+    ChromeChecked : Boolean;
     FullMemberList : TIDLDefinitionList;
     ParentsMemberList : TIDLDefinitionList;
+    Used : Boolean;
     Constructor Create(APasName: String; D: TIDLBaseObject);
     Destructor Destroy; override;
     Property PasName: String read FPasName write FPasName;
@@ -83,7 +85,8 @@ Type
     coAddOptionsToHeader,
     coExpandUnionTypeArgs,
     coDictionaryAsClass,
-    coChromeWindow
+    coChromeWindow,
+    coOnlyUsed
     );
   TBaseConversionOptions = Set of TBaseConversionOption;
 
@@ -92,7 +95,8 @@ const
     'AddOptionsToHeader',
     'ExpandUnionTypeArgs',
     'DictionaryAsClass',
-    'ChromeWindow'
+    'ChromeWindow',
+    'OnlyUsed'
     );
   NativeTypeNames : Array [TPascalNativeType] of String = (
     '',
@@ -141,6 +145,7 @@ type
     FIncludeImplementationCode: TStrings;
     FIncludeInterfaceCode: TStrings;
     FInputFileName: String;
+    FUsedDefs,
     FGlobalDefs: TFPObjectHashTable;
     FOutputFileName: String;
     FPasDataClass: TPasDataClass;
@@ -150,6 +155,8 @@ type
     FVerbose: Boolean;
     FWebIDLVersion: TWebIDLVersion;
     function CreateCallBackFromInterface(aDef: TIDLInterfaceDefinition): TIDLCallBackDefinition;
+    function GetUsed(D: TIDLDefinition): Boolean;
+    function InUsedList(D: TIDLDefinition): Boolean;
     procedure ResolveCallbackInterfaces;
     procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
@@ -168,6 +175,10 @@ type
     function CreateScanner(S: TStream): TWebIDLScanner; virtual;
     Function CreateContext: TWebIDLContext; virtual;
     // Auxiliary routines
+    function CheckChromeOnly(D: TIDLDefinition): Boolean;
+    function MarkUsed(D: TIDLDefinition; ParentIsUsed: Boolean): Boolean;
+    procedure MarkUsedDefinitions(aList: TIDLDefinitionList; ParentIsUsed: Boolean);
+    procedure PropagateChromeOnly(aList: TIDLDefinitionList);
     procedure AddFullMemberList(aParent: TIDLStructuredDefinition; AddToList: TIDLDefinitionList);
     function GetFullMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
     function GetParentsMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
@@ -204,6 +215,7 @@ type
     function AllocateInterfacePasName(D: TIDLInterfaceDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
     function AllocateNamespacePasName(D: TIDLNameSpaceDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
     function AllocateSequencePasName(D: TIDLSequenceTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
+    function AllocatePromisePasName(D: TIDLPromiseTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
     function AllocateUnionPasName(D: TIDLUnionTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
     function AllocateMapLikePasName(D: TIDLMapLikeDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
     function AllocateEnumeratedPasName(D: TIDLEnumDefinition; ParentName: String; Recurse: Boolean): TPasData; virtual;
@@ -293,6 +305,7 @@ type
     destructor Destroy; override;
     procedure Execute; virtual;
     procedure WriteOptions; virtual;
+    procedure SetUsedList(aList : TStrings);
     function IsKeyWord(const S: String): Boolean; override;
     Property GeneratingImplementation : Boolean Read FGeneratingImplementation;
   Public
@@ -711,6 +724,8 @@ begin
   Result:=True;
   if aDict=nil then ;
   N:=GetPasName(aField);
+  if aDict.Name='PromiseRejectionEventInit' then
+    Writeln('here');
   TN:=GetPasName(aField.MemberType);
   if TN='record' then
     TN:='TJSObject';
@@ -731,6 +746,9 @@ Var
 
 begin
   Indent;
+  if aDict.Name='PromiseRejectionEventInit' then
+    Writeln('here');
+
   Result:=0;
   For D in aList do
     if D is TIDLDictionaryMemberDefinition then
@@ -1198,6 +1216,7 @@ end;
 
 destructor TBaseWebIDLToPas.Destroy;
 begin
+  FreeAndNil(FUsedDefs);
   FreeAndNil(FGlobalDefs);
   FreeAndNil(FIncludeInterfaceCode);
   FreeAndNil(FIncludeImplementationCode);
@@ -2343,6 +2362,28 @@ begin
   Result:=TPasData(D.Data);
 end;
 
+function TBaseWebIDLToPas.AllocatePromisePasName(D: TIDLPromiseTypeDefDefinition; ParentName: String; Recurse: Boolean): TPasData;
+var
+  CN : String;
+  sDef : TIDLDefinition;
+begin
+  Result:=Nil;
+  CN:=D.Name;
+  if CN='' then
+    CN:='IJSPromise';
+  if D.Data=Nil then
+    begin
+    sDef:=FindGlobalDef(CN);
+    if (SDef=Nil) or (sDef.Data=Nil) then
+      D.Data:=CreatePasData(EscapeKeyWord(CN),ntArray,D,true)
+    else
+      D.Data:=ClonePasData(TPasData(sDef.Data),D);
+    end;
+  if Recurse then
+    AllocatePasName(D.ReturnType,ConcatNames(ParentName,CN+'Result'),True);
+  Result:=TPasData(D.Data);
+end;
+
 function TBaseWebIDLToPas.AllocateDictionaryMemberPasName(D: TIDLDictionaryMemberDefinition; ParentName: String; Recurse : Boolean): TPasData;
 
 Var
@@ -2616,6 +2657,8 @@ begin
         end;
       end;
     end;
+  if (CN='') and not (aNativeType in [ntUnknown,ntNone, ntError]) then
+    Raise Exception.CreateFmt('No name for %s (TN: %s, Parent : %s)',[D.Name,TN,ParentName]);
   if D.Data=Nil then
     D.Data:=CreatePasData(CN,aNativeType,D,true);
   Result:=TPasData(D.Data);
@@ -2644,6 +2687,8 @@ begin
     Result:=AllocateDictionaryMemberPasName(TIDLDictionaryMemberDefinition(D),ParentName,Recurse)
   else if (D Is TIDLSequenceTypeDefDefinition) then
     Result:=AllocateSequencePasName(TIDLSequenceTypeDefDefinition(D),ParentName,Recurse)
+  else if (D Is TIDLPromiseTypeDefDefinition) then
+    Result:=AllocatePromisePasName(TIDLPromiseTypeDefDefinition(D),ParentName,Recurse)
   else if D Is TIDLArgumentDefinition then
     Result:=AllocateArgumentPasName(TIDLArgumentDefinition(D),ParentName,Recurse)
   else if D Is TIDLUnionTypeDefDefinition then
@@ -2916,12 +2961,6 @@ end;
 
 function TBaseWebIDLToPas.ConvertDef(D: TIDLDefinition): Boolean;
 
-  Procedure MarkChromeOnly (Fmt : string; Args : array of const);
-
-  begin
-    D.Attributes.Add('ChromeOnly');
-    DoLog(Fmt,Args);
-  end;
 
 var
   AD : TIDLAttributeDefinition absolute D;
@@ -2930,58 +2969,16 @@ var
   FAD : TIDLArgumentDefinition absolute A;
   RN,N : String;
   ANT : TPascalNativeType;
+  isChrome : Boolean;
 
 begin
+  isChrome:=False;
   Result:=(coChromeWindow in BaseOptions) or Not D.HasSimpleAttribute('ChromeOnly');
   if not Result then
     exit;
-  if (D is TIDLAttributeDefinition) and Assigned(AD.AttributeType) then
-    begin
-    ResolveTypeDef(AD.AttributeType);
-
-    RT:=GetResolvedType(AD.AttributeType,ANT,N,RN);
-    Result:=ConvertDef(RT);
-    if not Result then
-      MarkChromeOnly('Marking attribute %s as "ChromeOnly" because attribute type "%s" is marked "ChromeOnly"',[D.Name,N{AD.AttributeType.Name}]);
-    end
-  else if (D is TIDLFunctionDefinition) then
-    begin
-    FD:=TIDLFunctionDefinition(D);
-    RT:=GetResolvedType(FD.ReturnType,ANT,N,RN);
-    if assigned(RT) then
-      begin
-      Result:=ConvertDef(RT);
-      if not Result then
-        MarkChromeOnly('Marking function %s as "ChromeOnly" because return type %s is marked "ChromeOnly"',[D.Name, RT.Name])
-      end;
-    if Result then
-      For A in FD.Arguments do
-        begin
-        ResolveTypeDef(FAD.ArgumentType);
-        RT:=GetResolvedType(FAD.ArgumentType,ANT,N,RN);
-        Result:=ConvertDef(RT);
-        if not Result then
-          begin
-          DoLog('Marking function %s as "ChromeOnly" because argument %s type %s is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
-          break;
-          end;
-        end;
-    end
-  else if (D is TIDLCallbackDefinition) then
-    begin
-    FD:=TIDLCallbackDefinition(D).FunctionDef;
-    For A in FD.Arguments do
-      begin
-      ResolveTypeDef(FAD.ArgumentType);
-      RT:=GetResolvedType(FAD.ArgumentType,Ant,N,RN);
-      Result:=ConvertDef(RT);
-      if not Result then
-        begin
-        MarkChromeOnly('Marking callback function %s as "ChromeOnly" because argument %s type %s is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
-        break;
-        end;
-      end;
-    end;
+  if Result and (coOnlyUsed in BaseOptions) then
+    if (D.Data is TPasData) and not TPasData(D.Data).Used then
+      exit(False);
 end;
 
 function TBaseWebIDLToPas.FindGlobalDef(const aName: UTF8String
@@ -3110,6 +3107,342 @@ begin
 
 end;
 
+function TBaseWebIDLToPas.GetUsed(D: TIDLDefinition) : Boolean;
+
+begin
+  Result:=False;
+  Result:=(not (D.Data is TPasData)) or TPasData(D.Data).Used;
+end;
+
+function TBaseWebIDLToPas.InUsedList(D: TIDLDefinition) : Boolean;
+
+begin
+  Result:=FUsedDefs.Items[D.Name]<>Nil;
+end;
+
+function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean) : Boolean;
+
+  // Return true if the definition 'used' status was change to true
+  function DoMark : Boolean;
+
+  begin
+    Result:=False;
+    if D.Data=nil then
+      begin
+      DoLog('[202406021006] type "'+D.ClassName+'" of "'+D.Name+'" has no pascal name assigned, cannot check used');
+      Exit;
+      end;
+    if GetUsed(D) then
+      exit;
+    if ParentIsUsed or InUsedList(D) then
+      begin
+      TPasData(D.Data).Used:=True;
+      Result:=True;
+      end;
+  end;
+
+  function MarkAlias(const aTypeName: string) : Boolean;
+
+  var
+    lDef: TIDLDefinition;
+
+  begin
+    lDef:=FindGlobalDef(aTypeName);
+    Result:=(lDef<>nil) and MarkUsed(lDef,True);
+  end;
+
+var
+  DMD: TIDLDictionaryMemberDefinition;
+  IT: TIDLIterableDefinition;
+  SerializerD: TIDLSerializerDefinition;
+  FD: TIDLFunctionDefinition;
+begin
+  Result:=False;
+  if D=nil then exit;
+  if not DoMark then
+    exit;
+  // Mark sub-classes as used
+  if D Is TIDLInterfaceDefinition then
+    begin
+    MarkUsedDefinitions(TIDLInterfaceDefinition(D).Members,True);
+    MarkUsed(TIDLInterfaceDefinition(D).ParentInterface,True);
+    end
+  else if D Is TIDLNamespaceDefinition then
+    begin
+    MarkUsedDefinitions(TIDLNamespaceDefinition(D).Members,True);
+    MarkUsed(D.Parent,True);
+    end
+  else if D Is TIDLDictionaryDefinition then
+    begin
+    MarkUsedDefinitions(TIDLDictionaryDefinition(D).Members,True);
+    MarkUsed(TIDLDictionaryDefinition(D).ParentDictionary,True);
+    end
+  else if D is TIDLIncludesDefinition then
+    //
+  else if D Is TIDLFunctionDefinition then
+    begin
+    FD:=TIDLFunctionDefinition(D);
+    MarkUsedDefinitions(FD.Arguments,True);
+    MarkUsed(FD.ReturnType,True);
+    end
+  else if D Is TIDLUnionTypeDefDefinition then
+    MarkUsedDefinitions(TIDLUnionTypeDefDefinition(D).Union,True)
+  else if D is TIDLAttributeDefinition then
+    MarkUsed(TIDLAttributeDefinition(D).AttributeType,True)
+  else if D is TIDLArgumentDefinition then
+    MarkUsed(TIDLArgumentDefinition(D).ArgumentType,True)
+  else if D is TIDLSequenceTypeDefDefinition then
+    MarkUsed(TIDLSequenceTypeDefDefinition(D).ElementType,True)
+  else if D is TIDLPromiseTypeDefDefinition then
+    MarkUsed(TIDLPromiseTypeDefDefinition(D).ReturnType,True)
+  else if D is TIDLMapLikeDefinition then
+    begin
+    MarkUsed(TIDLMapLikeDefinition(D).KeyType,True);
+    MarkUsed(TIDLMapLikeDefinition(D).ValueType,True);
+    end
+  else if D is TIDLTypeDefDefinition then
+    begin
+    MarkAlias(TIDLTypeDefDefinition(D).TypeName)
+    end
+  else if D is TIDLConstDefinition then
+    begin
+    if TIDLConstDefinition(D).TypeName<>'' then
+      MarkAlias(TIDLConstDefinition(D).TypeName);
+    end
+  else if D is TIDLSerializerDefinition then
+    begin
+    SerializerD:=TIDLSerializerDefinition(D);
+    MarkUsed(SerializerD.SerializerFunction,True);
+    end
+  else if D is TIDLDictionaryMemberDefinition then
+    begin
+    DMD:=TIDLDictionaryMemberDefinition(D);
+    MarkUsed(DMD.MemberType,True);
+    MarkUsed(DMD.DefaultValue,True);
+    end
+  else if D is TIDLEnumDefinition then
+    //
+  else if D is TIDLCallBackDefinition then
+    MarkUsed(TIDLCallBackDefinition(D).FunctionDef,True)
+  else if D is TIDLSetlikeDefinition then
+    MarkUsed(TIDLSetlikeDefinition(D).ElementType,True)
+  else if D is TIDLImplementsOrIncludesDefinition then
+    //
+  else if D is TIDLIterableDefinition then
+    begin
+    IT:=TIDLIterableDefinition(D);
+    MarkUsed(IT.ValueType,True);
+    MarkUsed(IT.KeyType,True);
+    end
+  else {if Verbose then}
+    raise EConvertError.Create('[20220725172214] TBaseWebIDLToPas.ResolveTypeDef unknown '+D.Name+':'+D.ClassName+' at '+GetDefPos(D));
+
+end;
+
+procedure TBaseWebIDLToPas.MarkUsedDefinitions(aList : TIDLDefinitionList; ParentIsUsed : Boolean);
+
+var
+  D : TIDLDefinition;
+
+begin
+  For D In aList do
+    MarkUsed(D,ParentIsUsed);
+end;
+
+Function TBaseWebIDLToPas.CheckChromeOnly(D : TIDLDefinition) : Boolean;
+
+  Function IsChromeOnly(D : TIDLDefinition) : boolean; inline;
+
+  begin
+    Result:=Assigned(D) and D.HasSimpleAttribute('ChromeOnly');
+  end;
+
+  function CheckAlias(const aTypeName: string) : Boolean;
+
+  var
+    lDef: TIDLDefinition;
+
+  begin
+    lDef:=FindGlobalDef(aTypeName);
+    Result:=(lDef<>nil) and CheckChromeOnly(lDef);
+  end;
+
+
+var
+  AD : TIDLAttributeDefinition absolute D;
+  FD : TIDLFunctionDefinition;
+  A,RT : TIDLDefinition;
+  FAD : TIDLArgumentDefinition absolute A;
+  RN,N : String;
+  ANT : TPascalNativeType;
+  isChrome : Boolean;
+  SerializerD: TIDLSerializerDefinition;
+  DMD: TIDLDictionaryMemberDefinition;
+  IT : TIDLIterableDefinition;
+
+begin
+  Result:=False;
+  isChrome:=False;
+  if (D=Nil) then
+    exit;
+  Result:=IsChromeOnly(D);
+  if Result then
+    exit;
+  if (D.Data is TPasData) then
+    begin
+    if TPasData(D.Data).ChromeChecked then exit;
+    TPasData(D.Data).ChromeChecked:=True;
+    end;
+  // Check sub definitions
+  if D Is TIDLInterfaceDefinition then
+    PropagateChromeOnly(TIDLInterfaceDefinition(D).Members)
+  else if D Is TIDLNamespaceDefinition then
+    PropagateChromeOnly(TIDLNamespaceDefinition(D).Members)
+  else if D Is TIDLDictionaryDefinition then
+    PropagateChromeOnly(TIDLDictionaryDefinition(D).Members)
+  else if D is TIDLIncludesDefinition then
+    //
+  else if D is TIDLArgumentDefinition then
+    begin
+    IsChrome:=CheckChromeOnly(TIDLArgumentDefinition(D).ArgumentType);
+    if IsChrome then
+      DoLog('Marking argument %s as "ChromeOnly" because the argument type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLSequenceTypeDefDefinition then
+    begin
+    IsChrome:=CheckChromeOnly(TIDLSequenceTypeDefDefinition(D).ElementType);
+    if IsChrome then
+      DoLog('Marking sequence %s as "ChromeOnly" because the element type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLPromiseTypeDefDefinition then
+    begin
+    IsChrome:=CheckChromeOnly(TIDLPromiseTypeDefDefinition(D).ReturnType);
+    if IsChrome then
+      DoLog('Marking map %s as "ChromeOnly" because the promise result type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLMapLikeDefinition then
+    begin
+    isChrome:=CheckChromeOnly(TIDLMapLikeDefinition(D).KeyType);
+    isChrome:=CheckChromeOnly(TIDLMapLikeDefinition(D).ValueType) or IsChrome;
+    if IsChrome then
+      DoLog('Marking map %s as "ChromeOnly" because the map key or value type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLTypeDefDefinition then
+    begin
+    CheckAlias(TIDLTypeDefDefinition(D).TypeName)
+    end
+  else if D is TIDLConstDefinition then
+    begin
+    if TIDLConstDefinition(D).TypeName<>'' then
+      IsChrome:=CheckAlias(TIDLConstDefinition(D).TypeName);
+    if IsChrome then
+      DoLog('Marking const %s as "ChromeOnly" because the const type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLSerializerDefinition then
+    begin
+    SerializerD:=TIDLSerializerDefinition(D);
+    IsChrome:=CheckChromeOnly(SerializerD.SerializerFunction);
+    if IsChrome then
+      DoLog('Marking serializer %s as "ChromeOnly" because the function type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLDictionaryMemberDefinition then
+    begin
+    DMD:=TIDLDictionaryMemberDefinition(D);
+    IsChrome:=CheckChromeOnly(DMD.MemberType);
+    IsChrome:=CheckChromeOnly(DMD.DefaultValue) or IsChrome;
+    if IsChrome then
+      DoLog('Marking dictionary member %s as "ChromeOnly" because the member type or the default value is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLEnumDefinition then
+    //
+  else if D is TIDLCallBackDefinition then
+    begin
+    IsChrome:=CheckChromeOnly(TIDLCallBackDefinition(D).FunctionDef);
+    if IsChrome then
+      DoLog('Marking callback definition %s as "ChromeOnly" because the function type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLSetlikeDefinition then
+    begin
+    IsChrome:=CheckChromeOnly(TIDLSetlikeDefinition(D).ElementType);
+    if IsChrome then
+      DoLog('Marking set %s as "ChromeOnly" because the member type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if D is TIDLImplementsOrIncludesDefinition then
+    //
+  else if D is TIDLIterableDefinition then
+    begin
+    IT:=TIDLIterableDefinition(D);
+    IsChrome:=CheckChromeOnly(IT.ValueType);
+    IsChrome:=CheckChromeOnly(IT.KeyType) or IsChrome;
+    if IsChrome then
+      DoLog('Marking iterable %s as "ChromeOnly" because the key or value type is marked "ChromeOnly"',[D.Name]);
+    end
+  else if (D is TIDLAttributeDefinition) and Assigned(AD.AttributeType) then
+    begin
+
+    ResolveTypeDef(AD.AttributeType);
+    RT:=GetResolvedType(AD.AttributeType,ANT,N,RN);
+    if RT.Name='PrintCallback' then
+      Writeln('hiero');
+
+    isChrome:=CheckChromeOnly(RT);
+    if isChrome then
+      DoLog('Marking attribute %s as "ChromeOnly" because attribute type "%s" is marked "ChromeOnly"',[D.Name,N{AD.AttributeType.Name}]);
+    end
+  else if (D is TIDLFunctionDefinition) then
+    begin
+    FD:=TIDLFunctionDefinition(D);
+    RT:=GetResolvedType(FD.ReturnType,ANT,N,RN);
+    isChrome:=CheckChromeOnly(RT);
+    if isChrome then
+      DoLog('Marking function %s as "ChromeOnly" because return type %s is marked "ChromeOnly"',[D.Name, RT.Name]);
+    For A in FD.Arguments do
+      begin
+      ResolveTypeDef(FAD.ArgumentType);
+      RT:=GetResolvedType(FAD.ArgumentType,ANT,N,RN);
+      if CheckChromeOnly(RT) then
+        begin
+        IsChrome:=True;
+        DoLog('Marking function "%s" as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
+        end;
+      end;
+    end
+  else if (D is TIDLCallbackDefinition) then
+    begin
+    FD:=TIDLCallbackDefinition(D).FunctionDef;
+    RT:=GetResolvedType(FD.ReturnType,ANT,N,RN);
+    isChrome:=CheckChromeOnly(RT);
+    if isChrome then
+      DoLog('Marking callback function %s as "ChromeOnly" because return type %s is marked "ChromeOnly"',[D.Name, RT.Name]);
+    For A in FD.Arguments do
+      begin
+      ResolveTypeDef(FAD.ArgumentType);
+      RT:=GetResolvedType(FAD.ArgumentType,Ant,N,RN);
+      if CheckChromeOnly(RT) then
+        begin
+        IsChrome:=True;
+        DoLog('Marking callback function %s as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
+        end;
+      end;
+    end;
+  if IsChrome then
+    begin
+    D.Attributes.Add('ChromeOnly');
+    Result:=True;
+    end;
+end;
+
+procedure TBaseWebIDLToPas.PropagateChromeOnly(aList : TIDLDefinitionList);
+
+var
+  D : TIDLDefinition;
+
+begin
+  For D in aList do
+    CheckChromeOnly(D);
+end;
+
+
 procedure TBaseWebIDLToPas.ProcessDefinitions;
 
 var
@@ -3127,15 +3460,27 @@ begin
   DoLog('Adding global identifiers.');
   For D in FContext.Definitions do
     if D.Name<>'' then
-    AddGlobalJSIdentifier(D);
+      AddGlobalJSIdentifier(D);
   DoLog('Allocating pascal names.');
   AllocatePasNames(FContext.Definitions);
   DoLog('Resolving parent interfaces.');
   ResolveParentInterfaces(FContext.Definitions);
+  // We need to do this before ResolveTypeDefs, because ResolveTypeDefs uses ConvertDef()
+  if (coOnlyUsed in BaseOptions) then
+    begin
+    DoLog('Marking used type definitions.');
+    MarkUsedDefinitions(FContext.Definitions,False);
+    end;
+  if Not (coChromeWindow in BaseOptions) then
+    begin
+    DoLog('Propagating ChromeOnly attribute.');
+    PropagateChromeOnly(FContext.Definitions);
+    end;
   DoLog('Resolving type definitions.');
   ResolveTypeDefs(FContext.Definitions);
   DoLog('Done processing definitions.');
 end;
+
 
 procedure TBaseWebIDLToPas.Execute;
 
@@ -3174,6 +3519,24 @@ begin
   finally
     L.Free;
   end;
+end;
+
+procedure TBaseWebIDLToPas.SetUsedList(aList: TStrings);
+
+var
+  S : String;
+
+begin
+  if (aList=Nil) or (aList.Count=0) then
+    exit;
+  Include(FBaseOptions,coOnlyUsed);
+  if not Assigned(FUsedDefs) then
+    FUsedDefs:=TFPObjectHashTable.Create(False)
+  else
+    FUsedDefs.Clear;
+  // We just need to know if a name is in the list
+  For S in aList do
+    FUsedDefs.Add(S,Self);
 end;
 
 function TBaseWebIDLToPas.IsKeyWord(const S: String): Boolean;

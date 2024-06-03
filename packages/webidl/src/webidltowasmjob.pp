@@ -1816,7 +1816,8 @@ begin
   iDef:=FindGlobalDef(JSClassName);
   if iDef=nil then
     raise EConvertError.Create('missing global var "'+PasVarName+'" type "'+JSClassName+'"');
-  AddLn(PasVarName+': '+GetPasName(iDef)+';');
+  if ConvertDef(iDef) then
+    AddLn(PasVarName+': '+GetPasName(iDef)+';');
 end;
 
 procedure TWebIDLToPasWasmJob.WriteEnumImplementation(aDef : TIDLEnumDefinition);
@@ -2243,8 +2244,8 @@ begin
       aDef:=FindGlobalDef(JSClassName);
       if IsStub then
         AddLn(PasVarName+':='+GetPasName(aDef)+'.Create();')
-      else
-        AddLn(PasVarName+':='+GetPasName(aDef)+'.CreateGlobal('''+JOBRegisterName+''');');
+      else if ConvertDef(aDef) then
+        AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
       end;
     for I:=0 to Context.Definitions.Count-1 do
       begin
@@ -2256,7 +2257,7 @@ begin
             PasVarName:=Context.Definitions[i].Name;
             if IsStub then
               AddLn(PasVarName+':='+GetPasName(aDef)+'.Create();')
-            else
+            else if ConvertDef(aDef) then
               AddLn(PasVarName+':='+GetPasName(aDef)+'.JOBCreateGlobal('''+PasVarName+''');');
             end;
       end;
@@ -2267,7 +2268,9 @@ begin
     for i:=0 to GlobalVars.Count-1 do
       begin
       SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
-      AddLn(PasVarName+'.Free;');
+      aDef:=FindGlobalDef(JSClassName);
+      if ConvertDef(aDef) then
+        AddLn(PasVarName+'.Free;');
       end;
     for I:=0 to Context.Definitions.Count-1 do
       begin
