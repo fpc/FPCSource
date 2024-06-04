@@ -389,6 +389,10 @@
             ,abi_i386_dynalignedstack
             ,abi_xtensa_windowed
             ,abi_xtensa_call0
+            ,abi_mips_o32
+            ,abi_mips_n32
+            ,abi_mips_o64
+            ,abi_mips_n64
        );
 
        tcgbackend = (

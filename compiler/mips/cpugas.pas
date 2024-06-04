@@ -57,6 +57,26 @@ unit cpugas;
       globals, verbose, itcpugas, cgbase, cgutils;
 
 
+      { abi strings as accepted by
+        GNU assembler in -abi=XXX option }
+      function gas_abitype(abi : tabi) : string;
+        begin
+          case abi of
+            abi_eabi:
+              result:='eabi';
+            abi_mips_o32:
+              result:='32';
+            abi_mips_n32:
+              result:='n32';
+            abi_mips_o64:
+              result:='o64';
+            abi_mips_n64:
+              result:='64';
+            else
+              result:='32';
+          end;
+        end;
+
       function asm_regname(reg : TRegister) : string;
 
         begin
@@ -83,7 +103,7 @@ unit cpugas;
       begin
          result := Inherited MakeCmdLine;
          { ABI selection }
-         Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
+         Replace(result,'$ABI','-mabi='+gas_abitype(target_info.abi));
          { ARCH selection }
          Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
 //          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');      
