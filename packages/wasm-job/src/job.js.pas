@@ -6,7 +6,7 @@
   see https://wiki.freepascal.org/WebAssembly/DOM
 }
 {$IFNDEF FPC_DOTTEDUNITS}
-unit JOB.Js;
+unit job.js;
 {$ENDIF}
 
 {$mode ObjFPC}
@@ -753,6 +753,7 @@ type
 
   TJSUint8Array = class(TJSTypedArray,IJSUint8Array)
   public
+    Class function GetGlobal : TJSUint8Array;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSUint8Array; overload;
   end;
@@ -1484,6 +1485,13 @@ begin
 end;
 
 { TJSUInt8Array }
+
+class function TJSUint8Array.GetGlobal: TJSUint8Array;
+begin
+  // We must free it.
+  Result:=TJSUInt8Array.JOBCreateGlobal('InstanceMemory');
+  TJSUInt8Array(Result).FJOBObjectIDOwner:=True;
+end;
 
 class function TJSUint8Array.JSClassName: UnicodeString;
 begin
