@@ -706,9 +706,11 @@ type
   IJSTypedArray = interface(IJSObject)
     ['{6A76602B-9555-4136-A7B7-2E683265EA82}']
     function GetBuffer: IJSArrayBuffer;
+    function _GetLength: NativeInt;
     procedure  set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure  set_(aArray : IJSTypedArray);
     property Buffer : IJSArrayBuffer read GetBuffer;
+    Property Length: NativeInt Read _GetLength;
   end;
 
   { TJSTypedArray }
@@ -716,6 +718,7 @@ type
   TJSTypedArray = class(TJSObject,IJSTypedArray)
   private
     function GetBuffer: IJSArrayBuffer;
+    function _GetLength: NativeInt;
   public
     constructor Create(aBytes : PByte; aLen : NativeUInt);
     constructor Create(aBytes : TBytes);
@@ -723,6 +726,7 @@ type
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
     property Buffer : IJSArrayBuffer read GetBuffer;
+    Property Length: NativeInt Read _GetLength;
   end;
 
   { IJSInt8Array }
@@ -935,7 +939,7 @@ type
 
   TJSPromise = class(TJSObject,IJSPromise)
   public
-    //class function Create(const Executor: TJSPromiseExecutor): IJSPromise; overload;
+    constructor Create(const Executor: TJSPromiseExecutor); overload;
     function all(const arg: Variant): IJSPromise; overload;
     function allSettled(const arg: Variant): IJSPromise; overload;
     function race(const arg: Variant): IJSPromise; overload;
@@ -947,6 +951,7 @@ type
     function catch(const OnRejected: TJSPromiseResolver): IJSPromise; overload;
     function _finally(const Handler: TJSPromiseFinallyHandler): IJSPromise; overload;
     class function Cast(const Intf: IJSObject): IJSPromise; overload;
+    class function JSClassName: UnicodeString; override;
   end;
 
   { IJSTextDecoder }
@@ -1229,6 +1234,19 @@ begin
   TJSPromiseFinallyHandler(aMethod)();
 end;
 
+function JOBCallTJSPromiseExecutor(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+
+var
+  Resolve,Reject : TMethod;
+
+begin
+//  Resolve:=TJSPromiseResolver(H.GetMethod);
+//  Reject:=TJSPromiseResolver(H.GetMethod);
+//  TJSPromiseExecutor(aMethod)(Resolve, Reject);
+  Result:=H.AllocUndefined;
+end;
+
+
 { TJSTextEncoder }
 
 class function TJSTextEncoder.Cast(const Intf: IJSObject): IJSTextEncoder;
@@ -1244,6 +1262,19 @@ begin
 end;
 
 { TJSPromise }
+
+constructor TJSPromise.Create(const Executor: TJSPromiseExecutor);
+
+var
+  m: TJOB_Method;
+begin
+  m:=TJOB_Method.Create(TMethod(Executor),@JobCallTJSPromiseExecutor);
+  try
+    JOBCreate([m]);
+  finally
+    m.Free;
+  end;
+end;
 
 function TJSPromise.all(const arg: Variant): IJSPromise;
 begin
@@ -1330,6 +1361,11 @@ end;
 class function TJSPromise.Cast(const Intf: IJSObject): IJSPromise;
 begin
   Result:=TJSPromise.Cast(Intf);
+end;
+
+class function TJSPromise.JSClassName: UnicodeString;
+begin
+  Result:='Promise';
 end;
 
 { TJSError }
@@ -1476,6 +1512,12 @@ end;
 function TJSTypedArray.GetBuffer: IJSArrayBuffer;
 begin
   Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
+function TJSTypedArray._GetLength: NativeInt;
+begin
+  // For the time being
+  Result:=ReadJSPropertyLongInt('length');
 end;
 
 constructor TJSTypedArray.Create(aBytes: PByte; aLen: NativeUInt);
