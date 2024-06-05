@@ -2156,6 +2156,7 @@ begin
     Raise EWebIDLParser.CreateFmt('Callback Interface %s member %s is not a function',[aDef.Name,aDef.Members[0].Name]);
   Result:=TIDLCallBackDefinition(FDefinitions.Add(TIDLCallBackDefinition,aDef.Name,aDef.SrcFile,aDef.Line,aDef.Column));
   Result.FunctionDef:=TIDLFunctionDefinition(aDef.Members.Extract(aDef.Member[0]));
+  Result.FunctionDef.Parent:=Result;
 end;
 
 procedure TWebIDLContext.ResolveCallbackInterfaces;

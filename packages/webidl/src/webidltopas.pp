@@ -724,8 +724,6 @@ begin
   Result:=True;
   if aDict=nil then ;
   N:=GetPasName(aField);
-  if aDict.Name='PromiseRejectionEventInit' then
-    Writeln('here');
   TN:=GetPasName(aField.MemberType);
   if TN='record' then
     TN:='TJSObject';
@@ -746,9 +744,6 @@ Var
 
 begin
   Indent;
-  if aDict.Name='PromiseRejectionEventInit' then
-    Writeln('here');
-
   Result:=0;
   For D in aList do
     if D is TIDLDictionaryMemberDefinition then
@@ -915,7 +910,8 @@ begin
   if Result then
     begin
     FAutoTypes.Add(TN);
-    DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(ST)]);
+    if Verbose then
+      DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(ST)]);
     WriteSequenceDef(ST);
     end;
 end;
@@ -928,7 +924,8 @@ begin
   if Result then
     begin
     FAutoTypes.Add(TN);
-    DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(UT)]);
+    if Verbose then
+      DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(UT)]);
     WriteUnionDef(UT);
     end;
 end;
@@ -989,7 +986,8 @@ Var
     if (BaseName<>NewName) then
       begin
       BaseName:=GetPasName(Def);
-      DoLog('Renaming duplicate identifier (%s) %s at %s to %s, other at %s',[Def.ClassName,BaseName,GetDefPos(Def),OrigName,GetDefPos(ConflictDef)]);
+      if Verbose then
+        DoLog('Renaming duplicate identifier (%s) %s at %s to %s, other at %s',[Def.ClassName,BaseName,GetDefPos(Def),OrigName,GetDefPos(ConflictDef)]);
       // Original TPasName is in list, will be freed automatically
       Def.Data:=CreatePasData(OrigName,OrigType,Def,False);
       end;
@@ -1246,7 +1244,8 @@ Var
 begin
   FGeneratingImplementation:=True;
   Msg:='';
-  DoLog('Writing implementation section');
+  if Verbose then
+    DoLog('Writing implementation section');
   Addln('');
   For S in FIncludeImplementationCode do
     Addln(S);
@@ -1266,7 +1265,8 @@ begin
   finally
     if not OK then
       Msg:=SErrBeforeException;
-    DoLog('Wrote %d of %d definitions%s',[Cnt,Context.Definitions.Count,Msg]);
+    if Verbose then
+      DoLog('Wrote %d of %d definitions%s',[Cnt,Context.Definitions.Count,Msg]);
   end;
   FGeneratingImplementation:=False;
 end;
@@ -1834,7 +1834,10 @@ begin
         aType:=TPasData(CD.ArgumentType.Data).NativeType;
         end
       else
-        DoLog('Unknown native type for overload %s (%s -> %s)',[aName,aTypeName,aPasName]);
+        begin
+        if verbose then
+          DoLog('Unknown native type for overload %s (%s -> %s)',[aName,aTypeName,aPasName]);
+        end;
       DL.Add(CD);
 
       CD.Data:=CreatePasData(aPasName,aType,CD,false);
@@ -1941,12 +1944,12 @@ begin
   Result:=Arg.Clone(nil);
   if Arg.Data<>nil then
     Result.Data:=ClonePasData(TPasData(Arg.Data),Result)
-  else
+  else if verbose then
     DoLog('Warning : cloning argument "%s" without associated data',[Arg.GetNamePath]);
   Result.ArgumentType:=Arg.ArgumentType.Clone(Result);
   if Arg.ArgumentType.Data<>nil then
     Result.ArgumentType.Data:=ClonePasData(TPasData(Arg.ArgumentType.Data),Result)
-  else
+  else if verbose then
     DoLog('Warning : cloning argument "%s" type "%s" without associated data',[Arg.GetNamePath,Arg.ArgumentType.GetNamePath]);
 //  if Assigned(Result.ArgumentType)
 end;
@@ -2066,7 +2069,8 @@ begin
   finally
     if not OK then
       Msg:=SErrBeforeException;
-    DoLog('Wrote %d out of %d interface definitions%s.',[Result,Total,Msg]);
+    if verbose then
+      DoLog('Wrote %d out of %d interface definitions%s.',[Result,Total,Msg]);
   end;
 end;
 
@@ -2574,7 +2578,8 @@ begin
       Result:=TPascalNativeType(I)
     else
       begin
-      DoLog('Warning: unknown native type in alias %s: %s',[S,NT]);
+      if Verbose then
+        DoLog('Warning: unknown native type in alias %s: %s',[S,NT]);
       SetLength(S,P-1);
       end;
     end;
@@ -2714,7 +2719,8 @@ begin
       CN:='<anonymous>';
     if (ParentName<>'') then
       CN:=ParentName+'.'+CN;
-    DoLog('Renamed %s to %s at %s',[CN,Result.PasName,GetPasDataPos(Result)]);
+    if Verbose then
+      DoLog('Renamed %s to %s at %s',[CN,Result.PasName,GetPasDataPos(Result)]);
     end;
 end;
 
@@ -3074,7 +3080,8 @@ var
   I,Idx,Count : Integer;
 
 begin
-  DoLog('Converting callback interface %s to callback',[aDef.Name]);
+  if Verbose then
+    DoLog('Converting callback interface %s to callback',[aDef.Name]);
   Count:=0;
   For I:=0 to aDef.Members.Count-1 do
     if (aDef.Member[I] is TIDLFunctionDefinition) then
@@ -3089,6 +3096,7 @@ begin
   Result:=TIDLCallBackDefinition(FContext.Add(TIDLCallBackDefinition,aDef.Name,aDef.SrcFile,aDef.Line,aDef.Column));
   Result.FunctionDef:=TIDLFunctionDefinition(aDef.Members.Extract(aDef.Member[Idx]));
   Result.FunctionDef.Name:=Result.Name;
+  Result.FunctionDef.Parent:=Result;
 end;
 
 procedure TBaseWebIDLToPas.ResolveCallbackInterfaces;
@@ -3127,15 +3135,17 @@ function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean) : 
 
   begin
     Result:=False;
-    if D.Data=nil then
+    if (D.Data=nil) and not (D is TIDLTypeDefDefinition) then
       begin
-      DoLog('[202406021006] type "'+D.ClassName+'" of "'+D.Name+'" has no pascal name assigned, cannot check used');
+      if Verbose then
+        DoLog('[202406021006] type "'+D.ClassName+'" of "'+D.Name+'" has no pascal name assigned, cannot check used');
       Exit;
       end;
     if GetUsed(D) then
       exit;
     if ParentIsUsed or InUsedList(D) then
       begin
+      // Writeln('Marking ',D.GetNamePath,' as used');
       TPasData(D.Data).Used:=True;
       Result:=True;
       end;
@@ -3156,21 +3166,32 @@ var
   IT: TIDLIterableDefinition;
   SerializerD: TIDLSerializerDefinition;
   FD: TIDLFunctionDefinition;
+  P : TIDLInterfaceDefinition;
+  I : Integer;
+
 begin
   Result:=False;
   if D=nil then exit;
+  // Writeln('Checking ',D.GetNamePath,' for used');
   if not DoMark then
     exit;
   // Mark sub-classes as used
   if D Is TIDLInterfaceDefinition then
     begin
     MarkUsedDefinitions(TIDLInterfaceDefinition(D).Members,True);
-    MarkUsed(TIDLInterfaceDefinition(D).ParentInterface,True);
+    P:=TIDLInterfaceDefinition(D).ParentInterface;
+    While Assigned(P) do
+      begin
+      MarkUsed(P,True);
+      P:=P.ParentInterface;
+      end;
+    P:=TIDLInterfaceDefinition(D);
+    For I:=0 to P.Partials.Count-1 do
+      MarkUsed(P.Partial[i],True);
     end
   else if D Is TIDLNamespaceDefinition then
     begin
     MarkUsedDefinitions(TIDLNamespaceDefinition(D).Members,True);
-    MarkUsed(D.Parent,True);
     end
   else if D Is TIDLDictionaryDefinition then
     begin
@@ -3178,7 +3199,9 @@ begin
     MarkUsed(TIDLDictionaryDefinition(D).ParentDictionary,True);
     end
   else if D is TIDLIncludesDefinition then
+    begin
     //
+    end
   else if D Is TIDLFunctionDefinition then
     begin
     FD:=TIDLFunctionDefinition(D);
@@ -3218,7 +3241,7 @@ begin
     begin
     DMD:=TIDLDictionaryMemberDefinition(D);
     MarkUsed(DMD.MemberType,True);
-    MarkUsed(DMD.DefaultValue,True);
+    // MarkUsed(DMD.DefaultValue,True);
     end
   else if D is TIDLEnumDefinition then
     //
@@ -3246,7 +3269,9 @@ var
 
 begin
   For D In aList do
+    begin
     MarkUsed(D,ParentIsUsed);
+    end;
 end;
 
 Function TBaseWebIDLToPas.CheckChromeOnly(D : TIDLDefinition) : Boolean;
@@ -3305,26 +3330,26 @@ begin
   else if D is TIDLArgumentDefinition then
     begin
     IsChrome:=CheckChromeOnly(TIDLArgumentDefinition(D).ArgumentType);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking argument %s as "ChromeOnly" because the argument type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLSequenceTypeDefDefinition then
     begin
     IsChrome:=CheckChromeOnly(TIDLSequenceTypeDefDefinition(D).ElementType);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking sequence %s as "ChromeOnly" because the element type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLPromiseTypeDefDefinition then
     begin
     IsChrome:=CheckChromeOnly(TIDLPromiseTypeDefDefinition(D).ReturnType);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking map %s as "ChromeOnly" because the promise result type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLMapLikeDefinition then
     begin
     isChrome:=CheckChromeOnly(TIDLMapLikeDefinition(D).KeyType);
     isChrome:=CheckChromeOnly(TIDLMapLikeDefinition(D).ValueType) or IsChrome;
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking map %s as "ChromeOnly" because the map key or value type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLTypeDefDefinition then
@@ -3335,14 +3360,14 @@ begin
     begin
     if TIDLConstDefinition(D).TypeName<>'' then
       IsChrome:=CheckAlias(TIDLConstDefinition(D).TypeName);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking const %s as "ChromeOnly" because the const type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLSerializerDefinition then
     begin
     SerializerD:=TIDLSerializerDefinition(D);
     IsChrome:=CheckChromeOnly(SerializerD.SerializerFunction);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking serializer %s as "ChromeOnly" because the function type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLDictionaryMemberDefinition then
@@ -3350,7 +3375,7 @@ begin
     DMD:=TIDLDictionaryMemberDefinition(D);
     IsChrome:=CheckChromeOnly(DMD.MemberType);
     IsChrome:=CheckChromeOnly(DMD.DefaultValue) or IsChrome;
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking dictionary member %s as "ChromeOnly" because the member type or the default value is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLEnumDefinition then
@@ -3358,13 +3383,13 @@ begin
   else if D is TIDLCallBackDefinition then
     begin
     IsChrome:=CheckChromeOnly(TIDLCallBackDefinition(D).FunctionDef);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking callback definition %s as "ChromeOnly" because the function type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLSetlikeDefinition then
     begin
     IsChrome:=CheckChromeOnly(TIDLSetlikeDefinition(D).ElementType);
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking set %s as "ChromeOnly" because the member type is marked "ChromeOnly"',[D.Name]);
     end
   else if D is TIDLImplementsOrIncludesDefinition then
@@ -3374,7 +3399,7 @@ begin
     IT:=TIDLIterableDefinition(D);
     IsChrome:=CheckChromeOnly(IT.ValueType);
     IsChrome:=CheckChromeOnly(IT.KeyType) or IsChrome;
-    if IsChrome then
+    if IsChrome and Verbose then
       DoLog('Marking iterable %s as "ChromeOnly" because the key or value type is marked "ChromeOnly"',[D.Name]);
     end
   else if (D is TIDLAttributeDefinition) and Assigned(AD.AttributeType) then
@@ -3382,11 +3407,9 @@ begin
 
     ResolveTypeDef(AD.AttributeType);
     RT:=GetResolvedType(AD.AttributeType,ANT,N,RN);
-    if RT.Name='PrintCallback' then
-      Writeln('hiero');
 
     isChrome:=CheckChromeOnly(RT);
-    if isChrome then
+    if isChrome and Verbose then
       DoLog('Marking attribute %s as "ChromeOnly" because attribute type "%s" is marked "ChromeOnly"',[D.Name,N{AD.AttributeType.Name}]);
     end
   else if (D is TIDLFunctionDefinition) then
@@ -3394,7 +3417,7 @@ begin
     FD:=TIDLFunctionDefinition(D);
     RT:=GetResolvedType(FD.ReturnType,ANT,N,RN);
     isChrome:=CheckChromeOnly(RT);
-    if isChrome then
+    if isChrome and Verbose then
       DoLog('Marking function %s as "ChromeOnly" because return type %s is marked "ChromeOnly"',[D.Name, RT.Name]);
     For A in FD.Arguments do
       begin
@@ -3403,7 +3426,8 @@ begin
       if CheckChromeOnly(RT) then
         begin
         IsChrome:=True;
-        DoLog('Marking function "%s" as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
+        if Verbose then
+          DoLog('Marking function "%s" as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
         end;
       end;
     end
@@ -3412,7 +3436,7 @@ begin
     FD:=TIDLCallbackDefinition(D).FunctionDef;
     RT:=GetResolvedType(FD.ReturnType,ANT,N,RN);
     isChrome:=CheckChromeOnly(RT);
-    if isChrome then
+    if isChrome and Verbose then
       DoLog('Marking callback function %s as "ChromeOnly" because return type %s is marked "ChromeOnly"',[D.Name, RT.Name]);
     For A in FD.Arguments do
       begin
@@ -3421,7 +3445,8 @@ begin
       if CheckChromeOnly(RT) then
         begin
         IsChrome:=True;
-        DoLog('Marking callback function %s as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
+        if Verbose then
+          DoLog('Marking callback function %s as "ChromeOnly" because argument "%s" (type "%s") is marked "ChromeOnly"',[D.Name,A.Name, RT.Name]);
         end;
       end;
     end;
