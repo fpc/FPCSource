@@ -616,6 +616,7 @@ type
     procedure _SetElements(Index: NativeInt; const AValue: TJOB_JSValue);
     procedure _SetLength(const AValue: NativeInt);
   public
+    constructor Create(aArgs : Array of const); overload;
     function isArray(a: TJOB_JSValue): Boolean; overload;
     function concat(el: TJOB_JSValue): IJSArray; overload; {varargs;}
     //function copyWithin(aTarget: NativeInt): IJSArray;overload; // not in IE
@@ -1598,6 +1599,11 @@ end;
 procedure TJSArray._SetLength(const AValue: NativeInt);
 begin
   WriteJSPropertyLongInt('length',AValue);
+end;
+
+constructor TJSArray.Create(aArgs: array of const);
+begin
+  JOBCreate(aArgs);
 end;
 
 function TJSArray.isArray(a: TJOB_JSValue): Boolean;
