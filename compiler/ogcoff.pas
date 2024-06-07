@@ -2577,7 +2577,11 @@ const pemagic : array[0..3] of byte = (
                       comdatsel:=oscs_largest;
                     else begin
                       comdatsel:=oscs_none;
-                      Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
+                      { there are object files out here that have comdat symbols
+                        including an associative section, but with a comdat selection
+                        of 0; it seems that other linkers just ignore those... }
+                      if secrec.select<>0 then
+                        Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
                     end;
                   end;
 
