@@ -2583,9 +2583,9 @@ const pemagic : array[0..3] of byte = (
                     end;
                   end;
 
-                  if comdatsel in [oscs_associative,oscs_exact_match] then
+                  if comdatsel in [oscs_associative] then
                     { only temporary }
-                    Comment(V_Error,'Associative or exact match COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                    Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
                     Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
