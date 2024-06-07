@@ -2598,7 +2598,7 @@ const pemagic : array[0..3] of byte = (
 
                       if (secrec.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
                         begin
-                          objsym.objsection.AssociativeSection:=GetSection(secrec.assoc);
+                          objsym.objsection.AssociativeSection:=GetSection(secrec.assoc-1);
                           if not assigned(objsym.objsection.AssociativeSection) then
                             Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
                         end;
