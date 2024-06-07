@@ -2551,16 +2551,14 @@ const pemagic : array[0..3] of byte = (
                     begin
                       FCoffSyms.Read(boauxrec,sizeof(boauxrec));
                       psecrec:=pcoffsectionrec(@boauxrec[0]);
-		      secrec:=psecrec^;
-		      MaybeSwap(secrec);
                     end
                   else
                     begin
                       FCoffSyms.Read(auxrec,sizeof(auxrec));
                       psecrec:=pcoffsectionrec(@auxrec);
-		      secrec:=psecrec^;
-		      MaybeSwap(secrec);
                     end;
+                  secrec:=psecrec^;
+                  MaybeSwap(secrec);
 
                   case secrec.select of
                     IMAGE_COMDAT_SELECT_NODUPLICATES:
