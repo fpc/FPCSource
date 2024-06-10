@@ -124,9 +124,10 @@ endif
 # PPU testing targets
 #####################################################################
 
-PPULIST:=$(wildcard */units/*/*.ppu) $(wildcard units/*/*.ppu)
+PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu) $(wildcard units/$(TARGETSUFFIX)/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
 RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+ALLPPUDIRS:=$(wildcard units/*) $(wildcard */units/*)
 
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 
@@ -148,6 +149,7 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
 
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 
