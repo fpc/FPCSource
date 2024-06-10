@@ -2041,8 +2041,9 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
 endif
-PPULIST:=$(wildcard */units/*/*.ppu)
+PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+ALLPPUDIRS:=$(wildcard */units/*)
 RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 ppulogs : $(PPULOGLIST)
@@ -2056,6 +2057,7 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 ../compiler/utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 	echo RMPPULOG list is "$(RMPPULOGLIST)"
