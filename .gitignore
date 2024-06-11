@@ -67,6 +67,8 @@ symbol_order*.fpc
 !/compiler/ppc*.lpi
 !/compiler/ppc*.pas
 /compiler/*/pp
+/compiler/msgidx.inc
+/compiler/msgtxt.inc
 /compiler/revision.inc
 /compiler/utils/fpc
 /compiler/utils/msg2inc
