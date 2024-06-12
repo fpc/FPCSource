@@ -13,7 +13,7 @@ unit job.js;
 {$H+}
 {$ModeSwitch advancedrecords}
 
-{off $define VerboseJOB}
+{ $define VerboseJOB}
 
 interface
 
@@ -81,6 +81,7 @@ type
     Kind: TJOB_JSValueKind;
     constructor Create(aKind: TJOB_JSValueKind);
     function AsString: UTF8String; virtual;
+    function AsVariant : Variant; virtual;
   end;
   TJOB_JSValueClass = class of TJOB_JSValue;
   TJOB_JSValueArray = array of TJOB_JSValue;
@@ -92,6 +93,7 @@ type
     Value: Boolean;
     constructor Create(aValue: Boolean);
     function AsString: UTF8string; override;
+    function AsVariant : Variant; override;
   end;
 
   { TJOB_Double }
@@ -101,6 +103,7 @@ type
     Value: Double;
     constructor Create(const aValue: Double);
     function AsString: UTF8String; override;
+    function AsVariant : Variant; override;
   end;
 
   { TJOB_String }
@@ -110,6 +113,7 @@ type
     Value: UnicodeString;
     constructor Create(const aValue: UnicodeString);
     function AsString: UTF8string; override;
+    function AsVariant : Variant; override;
   end;
 
 
@@ -122,7 +126,20 @@ type
     Value: IJSObject;
     constructor Create(aValue: IJSObject);
     function AsString: UTF8String; override;
+    function AsVariant : Variant; override;
   end;
+
+  { TJOB_Function }
+  IJSFunction = interface;
+
+  TJOB_Function = class(TJOB_JSValue)
+  public
+    Value: IJSFunction;
+    constructor Create(aValue: IJSFunction);
+    function AsString: UTF8String; override;
+    function AsVariant : Variant; override;
+  end;
+
 
   TJOBInvokeType = (
     jiCall,  // call function
@@ -135,6 +152,7 @@ type
 
   TJSObject = class;
   TJSArray = class;
+  TJSFunction = class;
   TJSObjectClass = class of TJSObject;
 
   { TJOBCallbackHelper - parse callback arguments and create result }
@@ -155,6 +173,7 @@ type
     function GetLongInt: longint;
     function GetMaxInt: int64;
     function GetArray : TJSArray;
+    function GetFunction : TJSFunction;
 
     function AllocUndefined: PByte;
     function AllocBool(b: boolean): PByte;
@@ -210,6 +229,7 @@ type
     constructor Create(const TheValues: array of const);
     destructor Destroy; override;
     procedure Clear;
+    function AsVariant : Variant; override;
   end;
 
   { TJOB_ArrayOfDouble }
@@ -218,6 +238,7 @@ type
   public
     Values: TDoubleDynArray;
     constructor Create(const TheValues: TDoubleDynArray);
+    function AsVariant : Variant; override;
   end;
 
   { TJOB_ArrayOfDouble }
@@ -230,6 +251,7 @@ type
     Len : NativeUInt;
     constructor Create(const TheValues: PByte; TheLen : NativeUInt);
     constructor Create(const TheValues: TBytes);
+    function AsVariant : Variant; override;
   end;
 
 
@@ -431,7 +453,7 @@ type
     property name: UnicodeString read _GetName write _SetName;
     property prototyp: IJSFunction read _GetPrototyp;
     property length: NativeInt read _GetLength;
-    //function apply(thisArg: TJSObject; const ArgArray: TJSValueDynArray): JSValue; varargs;
+    function apply(thisArg: TJSObject; const ArgArray: Array of const): Variant;
     //function bind(thisArg: TJSObject): JSValue; varargs;
     //function call(thisArg: TJSObject): JSValue; varargs;
   end;
@@ -439,7 +461,11 @@ type
   { TJSFunction }
 
   TJSFunction = class(TJSObject,IJSFunction)
+  private
+    FThisID: TJOBObjectID;
   public
+    Constructor Create(aObjectID : TJOBObjectID);
+    Constructor Create(aObjectID,aThisID : TJOBObjectID);
     function _GetLength: NativeInt;
     function _GetName: UnicodeString;
     function _GetPrototyp: IJSFunction;
@@ -447,7 +473,10 @@ type
     property name: UnicodeString read _GetName write _SetName;
     property prototyp: IJSFunction read _GetPrototyp;
     property length: NativeInt read _GetLength;
+    function apply(thisArg: TJSObject; const ArgArray: Array of const): Variant;
+    function apply(const ArgArray: Array of const): Variant;
     class function Cast(const Intf: IJSObject): IJSFunction; overload;
+    Property ThisID : TJOBObjectID Read FThisID Write FThisID;
   end;
 
   { IJSDate }
@@ -672,6 +701,7 @@ type
     Property Length: NativeInt Read _GetLength Write _SetLength;
     property Elements[Index: NativeInt]: TJOB_JSValue read _GetElements write _SetElements; default;
     class function Cast(const Intf: IJSObject): IJSArray; overload;
+    class function JSClassName: UnicodeString; override;
   end;
 
   { IJSArrayBuffer }
@@ -1132,7 +1162,9 @@ var
 begin
   Result:=nil;
   try
-    //writeln('JOBCallback');
+    {$IFDEF VERBOSEJOB}
+    writeln('In JOBCallback');
+    {$ENDIF}
     m.Data:=Data;
     m.Code:=Code;
     h.Init(Args);
@@ -1236,16 +1268,71 @@ begin
   TJSPromiseFinallyHandler(aMethod)();
 end;
 
+Type
+
+  { TPromiseHelper }
+
+  TPromiseHelper = Class(TObject)
+    FResolveCallback : TJSFunction;
+    FRejectCallback : TJSFunction;
+    constructor create (aResolve,aReject : TJSFunction);
+    function HandleResolve(const aValue : Variant): variant;
+    function HandleReject(const aValue : Variant): variant;
+  end;
+
 function JOBCallTJSPromiseExecutor(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 
 var
-  Resolve,Reject : TMethod;
+  F1,F2 : TJSFunction;
+  Helper : TPromiseHelper;
 
 begin
-//  Resolve:=TJSPromiseResolver(H.GetMethod);
-//  Reject:=TJSPromiseResolver(H.GetMethod);
-//  TJSPromiseExecutor(aMethod)(Resolve, Reject);
+  F1:=H.GetFunction;
+  F2:=H.GetFunction;
+  Helper:=TPromiseHelper.Create(F1,F2);
+  try
+     TJSPromiseExecutor(aMethod)(@Helper.HandleResolve, @Helper.HandleReject);
+     Helper.Free;
+  except
+    on E : Exception do
+      begin
+      {$IFDEF VerboseJOB}
+      Writeln('Wasm error calling promise executor : ',E.Message);
+      {$ENDIF}
+      Helper.Free;
+      Raise;
+      end;
+    on O : TObject do
+      begin
+      {$IFDEF VerboseJOB}
+      Writeln('Wasm error calling promise executor : ',O.ClassName);
+      {$ENDIF}
+      Helper.Free;
+      Raise;
+      end;
+  end;
+  {$IFDEF VerboseJOB}
+  Writeln('Wasm: Making function result');
+  {$ENDIF}
   Result:=H.AllocUndefined;
+end;
+
+{ TPromiseHelper }
+
+constructor TPromiseHelper.create(aResolve, aReject: TJSFunction);
+begin
+  FResolveCallback:=aResolve;
+  FRejectCallback:=aReject;
+end;
+
+function TPromiseHelper.HandleResolve(const aValue: Variant): variant;
+begin
+  result:=FResolveCallback.apply([aValue]);
+end;
+
+function TPromiseHelper.HandleReject(const aValue: Variant): variant;
+begin
+  Result:=FRejectCallback.apply([aValue]);
 end;
 
 
@@ -1740,6 +1827,11 @@ begin
   Result:=TJSArray.Cast(Intf);
 end;
 
+class function TJSArray.JSClassName: UnicodeString;
+begin
+  Result:='Array';
+end;
+
 { TJSString }
 
 class function TJSString.Cast(const Intf: IJSObject): IJSString;
@@ -1826,6 +1918,17 @@ end;
 
 { TJSFunction }
 
+constructor TJSFunction.Create(aObjectID: TJOBObjectID);
+begin
+  Create(aObjectID,0);
+end;
+
+constructor TJSFunction.Create(aObjectID, aThisID: TJOBObjectID);
+begin
+  JOBCreateFromID(aObjectID);
+  FThisID:=aThisID;
+end;
+
 function TJSFunction._GetLength: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('length');
@@ -1844,6 +1947,59 @@ end;
 procedure TJSFunction._SetName(const AValue: UnicodeString);
 begin
   WriteJSPropertyUnicodeString('length',AValue);
+end;
+
+function TJSFunction.apply(thisArg: TJSObject; const ArgArray: array of const): Variant;
+
+Var
+  Arr : IJSArray;
+  J : TJOB_JSValue;
+
+begin
+  {$IFDEF VerboseJOB}
+  Writeln('Wasm: in TJSFunction.apply with this. Creating argument array');
+  {$ENDIF}
+  Arr:=TJSArray.Create(ArgArray);
+  {$IFDEF VerboseJOB}
+  Writeln('Wasm: invoking apply');
+  {$ENDIF}
+  J:=InvokeJSValueResult('apply',[thisArg,Arr]);
+  try
+    Result:=J.AsVariant;
+  finally
+    J.Free;
+  end;
+end;
+
+function TJSFunction.apply(const ArgArray: array of const): Variant;
+
+var
+  aThis : TJSObject;
+  iThis : IJSObject;
+
+begin
+  {$IFDEF VerboseJOB}
+  Writeln('Wasm: in TJSFunction.apply without this');
+  {$ENDIF}
+  if FThisID>0 then
+    begin
+    aThis:=TJSObject.JOBCreateFromID(FThisID);
+    iThis:=aThis
+    end
+  else
+    aThis:=Nil;
+  {$IFDEF VerboseJOB}
+  Writeln('Wasm: have this for apply: ',Assigned(aThis));
+  {$ENDIF}
+  aThis.FJOBObjectIDOwner:=False;
+  try
+    {$IFDEF VerboseJOB}
+    Writeln('Wasm: calling apply: ',Assigned(aThis));
+    {$ENDIF}
+    Result:=Apply(aThis,ArgArray);
+  finally
+    aThis.Free;
+  end;
 end;
 
 class function TJSFunction.Cast(const Intf: IJSObject): IJSFunction;
@@ -1898,6 +2054,7 @@ begin
   JOBArgFalse,
   JOBArgNil: inc(p);
   JOBArgDouble: inc(p,9);
+  JOBArgMethod: inc(p,3*SizeOf(Pointer));
   JOBArgUnicodeString:
     begin
       inc(p);
@@ -2026,6 +2183,32 @@ begin
     raise EJSArgParse.Create(JOBArgNames[p^]);
   end;
   inc(Index);
+end;
+
+function TJOBCallbackHelper.GetFunction: TJSFunction;
+var
+  aType : byte;
+  ObjId,ThisId: LongWord;
+
+begin
+  {$IFDEF VerboseJOB}
+  writeln('TJOBCallbackHelper.GetFunction ',Index,' Count=',Count);
+  {$ENDIF}
+  Result:=Nil;
+  aType:=p^;
+  if not (aType in [JOBArgObject,JOBArgFunction]) then
+    raise EJSArgParse.Create(JOBArgNames[aType]);
+  Inc(p);
+  ThisId:=0;
+  ObjId:=PLongWord(p)^;
+  inc(p,4);
+  if (aType=JOBArgFunction) then
+    begin
+    ThisId:=PLongWord(p)^;
+    inc(p,4);
+    end;
+  Result:=TJSFunction.Create(ObjId,ThisId);
+  Result.JOBObjectIDOwner:=false; // owned by caller (JS code in browser)
 end;
 
 function TJOBCallbackHelper.GetValue: TJOB_JSValue;
@@ -2315,6 +2498,11 @@ begin
   end;
 end;
 
+function TJOB_JSValue.AsVariant: Variant;
+begin
+  Result:=Unassigned;
+end;
+
 { TJOB_Boolean }
 
 constructor TJOB_Boolean.Create(aValue: Boolean);
@@ -2326,6 +2514,11 @@ end;
 function TJOB_Boolean.AsString: UTF8String;
 begin
   str(Value,Result);
+end;
+
+function TJOB_Boolean.AsVariant: Variant;
+begin
+  Result:=Value;
 end;
 
 { TJOB_Double }
@@ -2341,17 +2534,28 @@ begin
   str(Value,Result);
 end;
 
+function TJOB_Double.AsVariant: Variant;
+begin
+  Result:=Value;
+end;
+
 { TJOB_String }
 
 constructor TJOB_String.Create(const aValue: UnicodeString);
 begin
   Kind:=jjvkString;
   Value:=aValue;
+  Writeln('Creating unicode string : ',aValue);
 end;
 
 function TJOB_String.AsString: UTF8string;
 begin
   Result:=AnsiQuotedStr(String(Value),'"');
+end;
+
+function TJOB_String.AsVariant: Variant;
+begin
+  Result:=Value;
 end;
 
 { TJOB_Object }
@@ -2368,6 +2572,29 @@ begin
     Result:='nil'
   else
     Result:='['+IntToStr(Value.GetJSObjectID)+']:'+Value.GetPascalClassName;
+end;
+
+function TJOB_Object.AsVariant: Variant;
+begin
+  Result:=Value;
+end;
+
+{ TJOB_Function }
+
+constructor TJOB_Function.Create(aValue: IJSFunction);
+begin
+  Kind:=jjvkObject;
+  Value:=aValue;
+end;
+
+function TJOB_Function.AsString: UTF8String;
+begin
+  Result:=inherited AsString;
+end;
+
+function TJOB_Function.AsVariant: Variant;
+begin
+  Result:=Value;
 end;
 
 { TJOB_Method }
@@ -2490,12 +2717,34 @@ begin
   Values:=nil;
 end;
 
+function TJOB_ArrayOfJSValue.AsVariant: Variant;
+
+var
+  I : integer;
+
+begin
+  Result:=VarArrayCreate([0,Length(Values)-1],varVariant);
+  for i:=0 to Length(Values)-1 do
+    Result[i]:=Values[i].AsVariant;
+end;
+
 { TJOB_ArrayOfDouble }
 
 constructor TJOB_ArrayOfDouble.Create(const TheValues: TDoubleDynArray);
 begin
   inherited Create(jjvkArrayOfDouble);
   Values:=TheValues;
+end;
+
+function TJOB_ArrayOfDouble.AsVariant: Variant;
+
+var
+  I : integer;
+
+begin
+  Result:=VarArrayCreate([0,Length(Values)-1],varDouble);
+  for i:=0 to Length(Values)-1 do
+    Result[i]:=Values[i];
 end;
 
 { TJOB_ArrayOfByte }
@@ -2510,6 +2759,16 @@ end;
 constructor TJOB_ArrayOfByte.Create(const TheValues: TBytes);
 begin
   Create(PByte(TheValues),length(TheValues))
+end;
+
+function TJOB_ArrayOfByte.AsVariant: Variant;
+var
+  I : integer;
+
+begin
+  Result:=VarArrayCreate([0,Len-1],varByte);
+  for i:=0 to Len-1 do
+    Result[i]:=Values[i];
 end;
 
 { TJSObject }
@@ -2761,7 +3020,7 @@ var
     us: UnicodeString;
     l: SizeInt;
   begin
-    //writeln('AddUTF8String s="',s,'"');
+    // writeln('AddUTF8String s="',s,'"');
     if s='' then
     begin
       AddUnicodeString(nil,0);
@@ -2769,6 +3028,7 @@ var
     end;
     us:=UTF8Decode(s);
     l:=length(us);
+    // writeln('AddUTF8String us="',us,'"');
     if l=0 then
     begin
       AddUnicodeString(nil,0);
@@ -3260,6 +3520,8 @@ var
   p: PByte;
   r: TJOBResult;
   Obj: TJSObject;
+  func : TJSFunction;
+  objid,thisid : TJOBObjectID;
 begin
   FillByte(Buf[0],length(Buf),0);
   p:=@Buf[0];
@@ -3275,7 +3537,14 @@ begin
     Result:=PDouble(p)^;
   JOBResult_String:
     Result:=FetchString(PNativeInt(p)^);
-  JOBResult_Function,
+  JOBResult_Function:
+    begin
+    objId:=PJOBObjectID(p)^;
+    inc(P,4);
+    thisId:=PJOBObjectID(p)^;
+    func:=TJSFunction.Create(Objid,ThisId);
+    Result:=func as IJSFunction;
+    end;
   JOBResult_Object:
     begin
     Obj:=TJSObject.JOBCreateFromID(PJOBObjectID(p)^);
@@ -3508,11 +3777,10 @@ begin
   Result:=InvokeJSUnicodeStringResult('toLocaleDateString',[]);
 end;
 
-initialization
-  Writeln('x');
-  JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
-  Writeln('y');
-  JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
+exports JOBCallback;
 
+initialization
+  JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
+  JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
 end.
 

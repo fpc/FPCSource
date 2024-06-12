@@ -33,7 +33,7 @@ const
   JOBResult_Symbol = 13;
   JOBResult_ArrayOfString = 14;
 
-  JOBResultLast = 14;
+  JOBResultLast = JOBResult_ArrayOfString;
 
   JOBResult_Names: array[0..JOBResultLast] of string = (
     'None',
@@ -84,6 +84,7 @@ const
   JOBArgArrayOfJSValue = 13; // followed by count and values
   JOBArgArrayOfDouble = 14; // followed by count and pointer
   JOBArgArrayOfByte = 15; // followed by count and pointer
+  JOBArgFunction = 12; // followed by Callback, Data, Code
 
   JOBArgNames: array[0..15] of string = (
     'Undefined',
