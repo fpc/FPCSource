@@ -297,9 +297,7 @@ end;
 
 
 initialization
-  Writeln('Initializing unit fakethreads');
   SetFakeThreadManager;
-  Writeln('Done Initializing unit fakethreads');
   
 finalization
 
