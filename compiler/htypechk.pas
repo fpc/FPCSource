@@ -1828,7 +1828,7 @@ implementation
              blockn,
              calln :
                begin
-                 if (hp.nodetype=calln) or
+                 if ((hp.nodetype=calln) and not(is_void(hp.resultdef))) or
                     (nf_no_lvalue in hp.flags) then
                    begin
                      { Temp strings are stored in memory, for compatibility with
