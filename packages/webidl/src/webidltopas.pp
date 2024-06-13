@@ -86,7 +86,8 @@ Type
     coExpandUnionTypeArgs,
     coDictionaryAsClass,
     coChromeWindow,
-    coOnlyUsed
+    coOnlyUsed,
+    coPrivateMethods
     );
   TBaseConversionOptions = Set of TBaseConversionOption;
 
@@ -96,7 +97,8 @@ const
     'ExpandUnionTypeArgs',
     'DictionaryAsClass',
     'ChromeWindow',
-    'OnlyUsed'
+    'OnlyUsed',
+    'PrivateMethods'
     );
   NativeTypeNames : Array [TPascalNativeType] of String = (
     '',
@@ -265,13 +267,13 @@ type
     function WritePlainFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryFields(aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WritePrivateReadOnlyFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
     // Maplike-specific methods
     function WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
     function WriteMapLikeMethodDefinitions(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): integer; virtual;
     function WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
-    function WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
+    function WriteMapLikeGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer; virtual;
     // Implementations. For webidl2pas, these are empty
     procedure WriteDefinitionImplementation(D: TIDLDefinition); virtual;
     procedure WriteTypeDefsAndCallbackImplementations(aList: TIDLDefinitionList); virtual;
@@ -601,7 +603,7 @@ begin
         Result:=Result+WriteMapLikePrivateReadOnlyFields(aParent,MD);
 end;
 
-function TBaseWebIDLToPas.WritePrivateGetters(
+function TBaseWebIDLToPas.WriteGetters(
   aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 var
   D : TIDLDefinition;
@@ -614,10 +616,10 @@ begin
   for D in aList do
     if D is TIDLMapLikeDefinition then
       if ConvertDef(D) then
-        Result:=Result+WriteMapLikePrivateGetters(aParent,MD);
+        Result:=Result+WriteMapLikeGetters(aParent,MD);
 end;
 
-function TBaseWebIDLToPas.WritePrivateSetters(
+function TBaseWebIDLToPas.WriteSetters(
   aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
@@ -657,7 +659,7 @@ begin
   Result:=1;
 end;
 
-function TBaseWebIDLToPas.WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
+function TBaseWebIDLToPas.WriteMapLikeGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
 begin
   if (aParent<>Nil) and (aMap<>Nil) then;
   Result:=0;
@@ -1101,8 +1103,14 @@ begin
   AddLn('Private');
   Indent;
   WritePrivateReadOnlyFields(Intf,ML);
-  WritePrivateGetters(Intf,ML);
-  WritePrivateSetters(Intf,ML);
+  if Not (coPrivateMethods in BaseOptions) then
+    begin
+    Undent;
+    AddLn('Protected');
+    Indent;
+    end;
+  WriteGetters(Intf,ML);
+  WriteSetters(Intf,ML);
   Undent;
   // write public section
   AddLn('Public');
@@ -1149,8 +1157,14 @@ begin
   AddLn('Private');
   Indent;
   WritePrivateReadOnlyFields(aNamespace,ML);
-  WritePrivateGetters(aNamespace,ML);
-  WritePrivateSetters(aNamespace,ML);
+  if not (coPrivateMethods in BaseOptions) then
+    begin
+    Undent;
+    AddLn('Protected');
+    Indent;
+    end;
+  WriteGetters(aNamespace,ML);
+  WriteSetters(aNamespace,ML);
   Undent;
   // write public section
   AddLn('Public');

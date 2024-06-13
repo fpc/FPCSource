@@ -148,6 +148,7 @@ begin
 
   CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');
   CheckBaseOption(coChromeWindow,'r','chrome');
+  CheckBaseOption(coPrivateMethods,'a','private');
   // -f ?
 
   A:=GetOptionValue('g','globals');
@@ -230,7 +231,7 @@ end;
 procedure TWebIDLToPasApplication.DoRun;
 
 const
-  Short = 'ced::f:g:hi:m:n:o:pt:u:vw:x:rl:';
+  Short = 'ced::f:g:hi:m:n:o:pt:u:vw:x:rl:a';
   Long : Array of string = (
     'help',
     'constexternal',
@@ -249,7 +250,8 @@ const
     'webidlversion:',
     'extra:',
     'chrome',
-    'list:'
+    'list:',
+    'private'
     );
 
 
@@ -332,6 +334,7 @@ begin
   writeln(StdErr,'Usage: ', ExeName, ' [options]');
   Writeln(StdErr,'Where option is one or more of');
   Writeln(StdErr,'-h  --help                 This help text.');
+  Writeln(StdErr,'-a  --private              Write getters/setters as private methods. Default is protected.');
   Writeln(StdErr,'-c  --constexternal        Write consts as external const (no value).');
   Writeln(StdErr,'-d  --dicttoclass[=Parent] Write dictionaries as classes.');
   Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments.');

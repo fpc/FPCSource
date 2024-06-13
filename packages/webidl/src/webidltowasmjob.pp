@@ -137,14 +137,14 @@ type
     function WriteOtherImplicitTypes(Intf: TIDLStructuredDefinition; aMemberList: TIDLDefinitionList): Integer; override;
     // Code generation routines. Return the number of actually written defs.
     function WriteDictionaryPrivateFields(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
-    function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
+    function WriteGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
+    function WriteSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; override;
     function WriteUtilityMethods(Intf: TIDLStructuredDefinition): Integer;  override;
     // Maplike
     function WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; override;
     function WriteMapLikePrivateReadOnlyFields(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer; override;
-    function WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer; override;
+    function WriteMapLikeGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer; override;
     // Definitions. Return true if a definition was written.
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; override;
     function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean; override;
@@ -528,8 +528,8 @@ begin
     AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
 
     // private members
-    WritePrivateGetters(Intf,aMemberList);
-    WritePrivateSetters(Intf,aMemberList);
+    WriteGetters(Intf,aMemberList);
+    WriteSetters(Intf,aMemberList);
 
     // public members
     if StructType<>sdDictionary then
@@ -554,12 +554,12 @@ begin
   // Do nothing, used in stub
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateGetters(aParent: TIDLStructuredDefinition;
+function TWebIDLToPasWasmJob.WriteGetters(aParent: TIDLStructuredDefinition;
   aList: TIDLDefinitionList): Integer;
 var
   D: TIDLDefinition;
 begin
-  Result:=Inherited WritePrivateGetters(aParent,aList);
+  Result:=Inherited WriteGetters(aParent,aList);
   for D in aList do
     if D is TIDLPropertyDefinition then
       if ConvertDef(D) then
@@ -567,12 +567,12 @@ begin
           inc(Result);
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateSetters(
+function TWebIDLToPasWasmJob.WriteSetters(
   aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 var
   D: TIDLDefinition;
 begin
-  Result:=Inherited WritePrivateSetters(aParent,aList);
+  Result:=Inherited WriteSetters(aParent,aList);
   for D in aList do
     if D is TIDLPropertyDefinition then
       if ConvertDef(D) then
@@ -618,7 +618,7 @@ begin
   Result:=0;
 end;
 
-function TWebIDLToPasWasmJob.WriteMapLikePrivateGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
+function TWebIDLToPasWasmJob.WriteMapLikeGetters(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition): Integer;
 
 begin
   if (aParent=Nil) and (aMap=Nil) then ; // Silence compiler warning
@@ -651,8 +651,14 @@ begin
   AddLn('Private');
   Indent;
   WriteDictionaryPrivateFields(aDict,DefList);
-  WritePrivateGetters(aDict,DefList);
-  WritePrivateSetters(aDict,DefList);
+  if not (coPrivateMethods in BaseOptions) then
+    begin
+    Undent;
+    AddLn('Protected');
+    Indent;
+    end;
+  WriteGetters(aDict,DefList);
+  WriteSetters(aDict,DefList);
   Undent;
   AddLn('Public');
   Indent;
