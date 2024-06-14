@@ -436,7 +436,6 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
               if ((p1.nodetype<>typen) and
-
                  (
                   (is_object(p1.resultdef) and
                    (oo_has_constructor in tobjectdef(p1.resultdef).objectoptions)) or
