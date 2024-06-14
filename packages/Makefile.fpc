@@ -160,10 +160,6 @@ RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 
 ppulogs : $(PPULOGLIST)
 
-vpath %.ppu $(ALLPPUDIRS)
-vpath %.log-ppu $(ALLPPUDIRS)
-vpath %.rm-log-ppu $(ALLPPUDIRS)
-
 # Do not try to recompile ppudump, as this does not work if trying to test cross-compiled units
 %.log-ppu : %.ppu
 	ppudump -VA -M $< > $@
