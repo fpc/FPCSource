@@ -2959,9 +2959,6 @@ RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
 ALLPPUDIRS:=$(wildcard units/*) $(wildcard */units/*)
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 ppulogs : $(PPULOGLIST)
-vpath %.ppu $(ALLPPUDIRS)
-vpath %.log-ppu $(ALLPPUDIRS)
-vpath %.rm-log-ppu $(ALLPPUDIRS)
 %.log-ppu : %.ppu
 	ppudump -VA -M $< > $@
 %.rm-log-ppu : %.ppu ../compiler/utils/ppudump$(EXEEXT)
