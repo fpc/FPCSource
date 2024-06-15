@@ -2917,7 +2917,8 @@ Begin
     Try
       ReadZipDirectory;
       FTotPos := 0;
-      FTotSize := CalcTotalSize(AllFiles);
+      if Assigned(FOnProgressEx) and not Terminated then
+        FTotSize := CalcTotalSize(AllFiles);
       i:=0;
       While (I<FEntries.Count) and not Terminated do
         begin
