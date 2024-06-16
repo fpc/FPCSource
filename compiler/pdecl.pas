@@ -174,7 +174,7 @@ implementation
                  information about the final type yet, we need to use safe
                  values (mostly 0, except for (Bit)SizeOf()) }
                if not parse_generic then
-                 Message(parser_e_illegal_expression);
+                 Message(parser_e_cannot_evaluate_expression_at_compile_time);
                case tinlinenode(p).inlinenumber of
                  in_sizeof_x:
                    begin
