@@ -2914,7 +2914,7 @@ else
 clean:
 	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
 endif
-CLEAN_TARGET_DIRS=$(subst /Makefile.fpc, ,$(wildcard */Makefile.fpc))
+CLEAN_TARGET_DIRS=$(subst /Makefile, ,$(wildcard */Makefile))
 %_distclean:
 	$(MAKE) -C $* distclean
 ifeq ($(FPMAKE_BIN_CLEAN),)
