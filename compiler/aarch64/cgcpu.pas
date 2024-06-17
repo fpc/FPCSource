@@ -312,6 +312,9 @@ implementation
         { base + offset }
         if ref.base<>NR_NO then
           begin
+            if ref.offset=0 then
+              exit;
+
             { valid offset for LDUR/STUR -> use that }
             if (ref.addressmode=AM_OFFSET) and
                (op in [A_LDR,A_STR]) and
