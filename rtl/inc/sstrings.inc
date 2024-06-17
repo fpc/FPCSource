@@ -1624,37 +1624,6 @@ end;
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
 
-    function string_compare(const s1,s2:shortstring):sizeint;
-
-    {We cannot use the > and < operators to compare a string here, because we if the string is
-     not found in the enum, we need to return the position of error in "code". Code equals the
-     highest matching character of all string compares, which is only known inside the string
-     comparison.}
-
-    var i,l:byte;
-        c1,c2:AnsiChar;
-
-    begin
-      l:=length(s1);
-      if length(s1)>length(s2) then
-        l:=length(s2);
-      i:=1;
-      while i<=l do
-        begin
-          c1:=s1[i];
-          c2:=s2[i];
-          if c1<>c2 then
-            break;
-          inc(i);
-        end;
-      if i>code then
-        code:=i;
-      if i<=l then
-        string_compare:=byte(c1)-byte(c2)
-      else
-        string_compare:=length(s1)-length(s2);
-    end;
-
 type  Psorted_array=^Tsorted_array;
       Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         o:longint;
@@ -1667,43 +1636,79 @@ type  Psorted_array=^Tsorted_array;
         data:array[0..0] of Tsorted_array;
       end;
 
-var l,h,m:cardinal;
-    c:sizeint;
-    sorted_array:^Tsorted_array;
-    spaces:byte;
-    t:shortstring;
+var l,r,l2,r2,m,sp,isp:SizeInt;
+    c:char;
+    cs:Pstring;
 
 begin
   {Val for numbers accepts spaces at the start, so lets do the same
    for enums. Skip spaces at the start of the string.}
-  spaces:=1;
-  code:=1;
-  while (spaces<=length(s)) and (s[spaces]=' ')  do
-    inc(spaces);
-  t:=upcase(copy(s,spaces,255));
-  sorted_array:=pointer(@Pstring_to_ord(str2ordindex)^.data);
-  {Use a binary search to get the string.}
-  l:=1;
-  h:=Pstring_to_ord(str2ordindex)^.count;
+  sp:=1;
+  while (sp<=length(s)) and (s[sp]=' ')  do
+    inc(sp);
+
+  { Let input be “abd” and sorted names be: _hm a aa ab aba abb abc abd ac ad b c
+    Start:                                  L                                    ┘R (R points PAST the last item in the range.)
+    After iteration 0 (“a” analyzed):           L                            ┘R
+    After iteration 1 (“ab” analyzed):               L                 ┘R
+    After iteration 2 (“abd” analyzed):                             L  ┘R }
+  l:=0;
+  r:=Pstring_to_ord(str2ordindex)^.count;
+  dec(sp); { sp/isp are incremented at the beginning of the loop so that 'continue's advance sp/isp. }
+  isp:=0; { isp is the position without spaces. }
   repeat
-    m:=(l+h) div 2;
-    c:=string_compare(t,upcase(sorted_array[m-1].s^));
-    if c>0 then
-      l:=m+1
-    else if c<0 then
-      h:=m-1
-    else
+    inc(sp);
+    if sp>length(s) then
       break;
-    if l>h then
+    inc(isp);
+    c:=UpCase(s[sp]);
+    cs:=Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].s;
+    { Among all strings beginning with, say, ‘ab’, the ‘ab’ itself will be the first.
+      So after this check, “isp ≤ length(any string in the range)” is guaranteed. }
+    if isp>length(cs^) then
       begin
-        {Not found...}
-        inc(code,spaces-1); {Add skipped spaces again.}
-        {The result of val in case of error is undefined, don't assign a function result.}
-        exit;
+        inc(l);
+        if l=r then
+          break;
       end;
+    if UpCase(cs^[isp])=c then { Shortcut: L may be already correct (enums often have common prefixes). }
+      begin
+        if l+1=r then { Shortcut: the only string left (enums often have different suffixes). }
+          continue;
+      end
+    else
+      begin
+        r2:=r; { Search for new L. }
+        repeat
+          m:=SizeUint(l+r2) div 2;
+          if UpCase(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[m].s^[isp])<c then
+            l:=m+1
+          else
+            r2:=m;
+        until l=r2;
+        if l=r then
+          break;
+      end;
+    if UpCase(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[r-1].s^[isp])=c then { Shortcut: R−1 may be already correct. }
+      continue;
+    l2:=l; { Search for new R. }
+    repeat
+      m:=SizeUint(l2+r) div 2;
+      if UpCase(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[m].s^[isp])<=c then
+        l2:=m+1
+      else
+        r:=m;
+    until l2=r;
+    if l=r then { Better not to make it the loop condition, or ‘continue’s may jump to it instead of the beginning. }
+      break;
   until false;
-  code:=0;
-  fpc_val_enum_shortstr:=sorted_array[m-1].o;
+  if (l<r) and (isp=length(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].s^)) then
+    begin
+      code:=0;
+      exit(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].o);
+    end;
+  code:=sp;
+  result:=-1; { Formally undefined, but −1 is very likely the invalid value prone to crashing, which is better than accidentally working. }
 end;
 
 {Redeclare fpc_val_enum_shortstr for internal use in the system unit.}
