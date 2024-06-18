@@ -173,7 +173,7 @@ type
     function GetLongInt: longint;
     function GetMaxInt: int64;
     function GetArray : TJSArray;
-    function GetFunction : TJSFunction;
+    function GetFunction : IJSFunction;
 
     function AllocUndefined: PByte;
     function AllocBool(b: boolean): PByte;
@@ -466,6 +466,7 @@ type
   public
     Constructor Create(aObjectID : TJOBObjectID);
     Constructor Create(aObjectID,aThisID : TJOBObjectID);
+    destructor Destroy; override;
     function _GetLength: NativeInt;
     function _GetName: UnicodeString;
     function _GetPrototyp: IJSFunction;
@@ -970,6 +971,13 @@ type
   { TJSPromise }
 
   TJSPromise = class(TJSObject,IJSPromise)
+    FResolveCallback,
+    FRejectCallback : IJSFunction;
+    FExecutor : TJSPromiseExecutor;
+    function HandleResolve(const aValue : Variant): variant;
+    function HandleReject(const aValue : Variant): variant;
+  protected
+    Procedure DoExecutor(const OnResolve, OnReject: TJSPromiseResolver); virtual;
   public
     constructor Create(const Executor: TJSPromiseExecutor); overload;
     function all(const arg: Variant): IJSPromise; overload;
@@ -1268,38 +1276,23 @@ begin
   TJSPromiseFinallyHandler(aMethod)();
 end;
 
-Type
-
-  { TPromiseHelper }
-
-  TPromiseHelper = Class(TObject)
-    FResolveCallback : TJSFunction;
-    FRejectCallback : TJSFunction;
-    constructor create (aResolve,aReject : TJSFunction);
-    function HandleResolve(const aValue : Variant): variant;
-    function HandleReject(const aValue : Variant): variant;
-  end;
-
 function JOBCallTJSPromiseExecutor(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 
 var
-  F1,F2 : TJSFunction;
-  Helper : TPromiseHelper;
+  P : TJSPromise;
 
 begin
-  F1:=H.GetFunction;
-  F2:=H.GetFunction;
-  Helper:=TPromiseHelper.Create(F1,F2);
+  P:=TJSPromise(aMethod.Data);
+  P.FResolveCallback:=H.GetFunction;
+  P.FRejectCallBack:=H.GetFunction;
   try
-     TJSPromiseExecutor(aMethod)(@Helper.HandleResolve, @Helper.HandleReject);
-     Helper.Free;
+     TJSPromiseExecutor(aMethod)(@P.HandleResolve, @P.HandleReject);
   except
     on E : Exception do
       begin
       {$IFDEF VerboseJOB}
       Writeln('Wasm error calling promise executor : ',E.Message);
       {$ENDIF}
-      Helper.Free;
       Raise;
       end;
     on O : TObject do
@@ -1307,7 +1300,6 @@ begin
       {$IFDEF VerboseJOB}
       Writeln('Wasm error calling promise executor : ',O.ClassName);
       {$ENDIF}
-      Helper.Free;
       Raise;
       end;
   end;
@@ -1315,24 +1307,6 @@ begin
   Writeln('Wasm: Making function result');
   {$ENDIF}
   Result:=H.AllocUndefined;
-end;
-
-{ TPromiseHelper }
-
-constructor TPromiseHelper.create(aResolve, aReject: TJSFunction);
-begin
-  FResolveCallback:=aResolve;
-  FRejectCallback:=aReject;
-end;
-
-function TPromiseHelper.HandleResolve(const aValue: Variant): variant;
-begin
-  result:=FResolveCallback.apply([aValue]);
-end;
-
-function TPromiseHelper.HandleReject(const aValue: Variant): variant;
-begin
-  Result:=FRejectCallback.apply([aValue]);
 end;
 
 
@@ -1352,12 +1326,30 @@ end;
 
 { TJSPromise }
 
+
+
+function TJSPromise.HandleResolve(const aValue: Variant): variant;
+begin
+  result:=FResolveCallback.apply(Self,[aValue]);
+end;
+
+function TJSPromise.HandleReject(const aValue: Variant): variant;
+begin
+  Result:=FRejectCallback.apply(Self,[aValue]);
+end;
+
+procedure TJSPromise.DoExecutor(const OnResolve, OnReject: TJSPromiseResolver);
+begin
+  FExecutor(OnResolve,OnReject);
+end;
+
 constructor TJSPromise.Create(const Executor: TJSPromiseExecutor);
 
 var
   m: TJOB_Method;
 begin
-  m:=TJOB_Method.Create(TMethod(Executor),@JobCallTJSPromiseExecutor);
+  FExecutor:=Executor;
+  m:=TJOB_Method.Create(TMethod(@DoExecutor),@JobCallTJSPromiseExecutor);
   try
     JOBCreate([m]);
   finally
@@ -1929,6 +1921,11 @@ begin
   FThisID:=aThisID;
 end;
 
+destructor TJSFunction.destroy;
+begin
+  Inherited;
+end;
+
 function TJSFunction._GetLength: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('length');
@@ -2185,10 +2182,11 @@ begin
   inc(Index);
 end;
 
-function TJOBCallbackHelper.GetFunction: TJSFunction;
+function TJOBCallbackHelper.GetFunction: IJSFunction;
 var
   aType : byte;
   ObjId,ThisId: LongWord;
+  F : TJSFunction;
 
 begin
   {$IFDEF VerboseJOB}
@@ -2207,8 +2205,9 @@ begin
     ThisId:=PLongWord(p)^;
     inc(p,4);
     end;
-  Result:=TJSFunction.Create(ObjId,ThisId);
-  Result.JOBObjectIDOwner:=false; // owned by caller (JS code in browser)
+  F:=TJSFunction.Create(ObjId,ThisId);
+  F.JOBObjectIDOwner:=false; // owned by caller (JS code in browser)
+  Result:=F;
 end;
 
 function TJOBCallbackHelper.GetValue: TJOB_JSValue;
@@ -2545,7 +2544,6 @@ constructor TJOB_String.Create(const aValue: UnicodeString);
 begin
   Kind:=jjvkString;
   Value:=aValue;
-  Writeln('Creating unicode string : ',aValue);
 end;
 
 function TJOB_String.AsString: UTF8string;
