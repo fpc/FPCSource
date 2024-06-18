@@ -574,7 +574,6 @@ Type
     Procedure ReadZipDirectory;
     Procedure ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
     Procedure DoEndOfFile;
-    Procedure UnZipOneFile(Item : TFullZipFileEntry); virtual;
     Function  OpenOutput(OutFileName : RawByteString; Out OutStream: TStream; Item : TFullZipFileEntry) : Boolean;
     Procedure SetBufSize(Value : LongWord);
     Procedure SetFileName(Value : RawByteString);
@@ -583,6 +582,7 @@ Type
   Public
     Constructor Create;
     Destructor Destroy;override;
+    Procedure UnZipOneFile(Item : TFullZipFileEntry); virtual;
     Procedure UnZipAllFiles; virtual;
     Procedure UnZipFile(const aExtractFileName: RawByteString);
     Procedure UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
@@ -655,7 +655,7 @@ ResourceString
 const
   ZIPBITFLAG_ENCRYPTION       = 1;
   ZIPBITFLAG_SIZE_IN_DATADESC = 1 shl 3;
-  ZIPBITFLAG_PATCH_SET        = 1 shl 5;  
+  ZIPBITFLAG_PATCH_SET        = 1 shl 5;
 
 { ---------------------------------------------------------------------
     Auxiliary
@@ -1018,7 +1018,7 @@ begin
         Count:=FInFile.Read(Buf^,FBufferSize);
         For I:=0 to Count-1 do
           UpdC32(Buf[i]);
-        // Writebuffer will loop  
+        // Writebuffer will loop
         C.WriteBuffer(Buf^,Count);
         inc(BytesNow,Count);
         if BytesNow>NextMark Then
@@ -1558,7 +1558,7 @@ Begin
       {$ELSE}
         F.Attributes := faArchive;
       {$ENDIF}
-      end;	
+      end;
     end;
   end;
 end;
@@ -2250,7 +2250,7 @@ Begin
     for Windows compatibility: it allows both '/' and '\'
     as directory separator. We don't want that behavior
     here, since 'abc\' is a valid file name under Unix.
-	
+
     The zip standard appnote.txt says zip files must have '/' as path
     separator, even on Windows: 4.4.17.1:
     "The path stored MUST not contain a drive or device letter, or a leading
@@ -2279,9 +2279,9 @@ Begin
       ForceDirectories(Path);
     AllowDirectorySeparators:=OldDirectorySeparators;
     OutStream:=TFileStream.Create(OutFileName,fmCreate);
-	
+
     end;
-	
+
   AllowDirectorySeparators:=OldDirectorySeparators;
   Result:=True;
   If Assigned(FOnStartFile) then
@@ -2718,6 +2718,7 @@ Var
   FOutStream: TStream;
   IsLink: Boolean;
   IsCustomStream: Boolean;
+  IsOpenedHere: Boolean;
   U : UnicodeString;
 
   Procedure SetAttributes;
@@ -2816,6 +2817,10 @@ Var
   end;
 
 Begin
+  IsOpenedHere:=FZipStream = nil;
+  if IsOpenedHere then
+    OpenInput;
+
   ReadZipHeader(Item, ZMethod);
   if (Item.BitFlags and ZIPBITFLAG_ENCRYPTION)<>0 then
     Raise EZipError.CreateFmt(SErrEncryptionNotSupported,[Item.ArchiveFileName]);
@@ -2873,6 +2878,9 @@ Begin
       end;
     SetAttributes;
     end;
+
+  if IsOpenedHere then
+    CloseInput;
 end;
 
 Function TUnZipper.IsMatch(I : TFullZipFileEntry) : Boolean;
@@ -2887,16 +2895,22 @@ end;
 Function TUnZipper.CalcTotalSize(AllFiles : Boolean) : Int64;
 
 Var
-  I : Integer;
+  I,cnt : Integer;
   Item : TFullZipFileEntry;
 
 begin
   Result:=0;
+  cnt:=FFiles.Count;
+  if cnt=0 then cnt:=FEntries.Count;
   for i:=0 to FEntries.Count-1 do
     begin
     Item := FEntries[i];
     if AllFiles or IsMatch(Item) then
-      Result := Result + TZipFileEntry(Item).Size;
+      begin
+        Result := Result + TZipFileEntry(Item).Size;
+        dec(cnt);
+        if cnt=0 then break;
+      end;
     end;
 end;
 
@@ -2905,7 +2919,7 @@ procedure TUnZipper.UnZipAllFiles;
 
 Var
   Item : TFullZipFileEntry;
-  I : integer; //Really QWord but limited to FEntries.Count
+  I, cnt : integer;
   AllFiles : Boolean;
 
 Begin
@@ -2915,16 +2929,23 @@ Begin
     AllFiles:=(FFiles.Count=0);
     OpenInput;
     Try
+      if FEntries.Count=0 then
       ReadZipDirectory;
       FTotPos := 0;
       if Assigned(FOnProgressEx) and not Terminated then
         FTotSize := CalcTotalSize(AllFiles);
       i:=0;
+      cnt:=FFiles.Count;
+      if cnt=0 then cnt:=FEntries.Count;
       While (I<FEntries.Count) and not Terminated do
         begin
         Item:=FEntries[i];
         if AllFiles or IsMatch(Item) then
+        begin
           UnZipOneFile(Item);
+          dec(cnt);
+          if cnt=0 then break;
+        end;
         inc(I);
         end;
       if Assigned(FOnProgressEx) and not Terminated then
@@ -2937,6 +2958,49 @@ Begin
   end;
 end;
 
+
+procedure TUnZipper.UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
+var
+  I : integer;
+begin
+  FileName:=AZipFileName;
+
+  FTerminated:=False;
+  FUnZipping:=True;
+  Try
+    OpenInput;
+    Try
+      if FEntries.Count=0 then
+        ReadZipDirectory;
+
+      i:=0;
+      if UseUTF8 then
+      begin
+        While I<FEntries.Count do
+        begin
+          if CompareText(FEntries[I].UTF8ArchiveFileName,aExtractFileName)=0 then break;
+          inc(I);
+        end;
+      end
+      else
+      begin
+        While I<FEntries.Count do
+        begin
+          if CompareText(FEntries[I].ArchiveFileName,aExtractFileName)=0 then break;
+          inc(I);
+        end;
+      end;
+
+      if I<FEntries.Count then
+        UnZipOneFile(FEntries[I]);
+
+    Finally
+      CloseInput;
+    end;
+  finally
+    FUnZipping:=False;
+  end;
+end;
 
 procedure TUnZipper.SetBufSize(Value: LongWord);
 
@@ -2952,7 +3016,11 @@ procedure TUnZipper.SetFileName(Value: RawByteString);
 begin
   If FUnZipping then
     Raise EZipError.Create(SErrFileChange);
-  FFileName:=Value;
+  if CompareText(FFileName,Value)<>0 then
+  begin
+    FFileName:=Value;
+    FEntries.Clear;
+  end;
 end;
 
 procedure TUnZipper.SetOutputPath(Value: RawByteString);
@@ -2976,20 +3044,6 @@ end;
 procedure TUnZipper.UnZipFile(const aExtractFileName: RawByteString);
 begin
   UnzipFile(FFileName, aExtractFileName);
-end;
-
-procedure TUnZipper.UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
-var
-  L: TStrings;
-begin
-  FFileName := AZipFileName;
-  L := TStringList.Create;
-  try
-    L.Add(aExtractFileName);
-    UnzipFiles(L);
-  finally
-    L.Free;
-  end;
 end;
 
 procedure TUnZipper.UnZipFiles(const AZipFileName: RawByteString; FileList: TStrings);
