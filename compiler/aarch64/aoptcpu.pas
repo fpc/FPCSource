@@ -273,6 +273,8 @@ Implementation
         (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
         (taicpu(p).oper[1]^.ref^.index=NR_NO) and
         (taicpu(p).oper[1]^.ref^.offset=0) and
+        { no page offsets }
+        (taicpu(p).oper[1]^.ref^.refaddr=addr_no) and
         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.ref^.base) and
         { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
         MatchInstruction(hp1, [A_ADD, A_SUB], [PF_None]) and
@@ -1213,7 +1215,9 @@ Implementation
 
           { Look for nearby LDR/STR instructions }
           if (taicpu(p).oppostfix = PF_NONE) and
-            (taicpu(p).oper[1]^.ref^.addressmode = AM_OFFSET) then
+            (taicpu(p).oper[1]^.ref^.addressmode = AM_OFFSET) and
+            { LDP/STP do not support page offsets }
+            (taicpu(p).oper[1]^.ref^.refaddr = addr_no) then
             { If SkipGetNext is True, GextNextInstruction isn't called }
             while GetNextInstruction(hp1_last, hp1) do
               begin
@@ -1233,6 +1237,7 @@ Implementation
                         (ThisRegister <> taicpu(hp1).oper[0]^.reg)
                       ) and
                       (taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
+                      (taicpu(hp1).oper[1]^.ref^.refaddr = addr_no) and
                       (taicpu(p).oper[1]^.ref^.base = taicpu(hp1).oper[1]^.ref^.base) and
                       (taicpu(p).oper[1]^.ref^.index = taicpu(hp1).oper[1]^.ref^.index) and
                       { Make sure the address registers haven't changed }

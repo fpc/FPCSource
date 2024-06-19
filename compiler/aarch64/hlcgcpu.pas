@@ -192,7 +192,7 @@ implementation
           { jmp *vmtoffs(%eax) ; method offs }
           reference_reset_base(href,voidpointertype,NR_IP0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           op:=A_LDR;
-          tcgaarch64(cg).make_simple_ref(list,op,OS_ADDR,PF_None,href,NR_IP0);
+          tcgaarch64(cg).make_simple_ref(list,op,OS_ADDR,PF_None,href,NR_IP0,false);
           list.concat(taicpu.op_reg_ref(op,NR_IP0,href));
           ungetcpuregister(list,NR_IP0);
           list.concat(taicpu.op_reg(A_BR,NR_IP0));
