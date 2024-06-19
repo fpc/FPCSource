@@ -930,33 +930,33 @@ type
 
   TJSFloat32Array = class(TJSTypedArray,IJSFloat32Array)
   Protected
-    function _GetElement(aIndex : NativeInt) : SIngle;
-    procedure _SetElement(aIndex : NativeInt; aValue : SIngle);
+    function _GetElement(aIndex : NativeInt) : Single;
+    procedure _SetElement(aIndex : NativeInt; aValue : Single);
   public
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSFloat32Array; overload;
-    property Element[Index: NativeInt]: SIngle read _GetElement write _SetElement; default;
+    property Element[Index: NativeInt]: Single read _GetElement write _SetElement; default;
   end;
 
   { IJSFloat64Array }
 
   IJSFloat64Array = interface(IJSTypedArray)
     ['{A7876DC5-9549-4FDA-BE35-A641CE9D9F0B}']
-    function _GetElement(aIndex : NativeInt) : SIngle;
-    procedure _SetElement(aIndex : NativeInt; aValue : SIngle);
-    property Element[Index: NativeInt]: SIngle read _GetElement write _SetElement; default;
+    function _GetElement(aIndex : NativeInt) : Double;
+    procedure _SetElement(aIndex : NativeInt; aValue : Double);
+    property Element[Index: NativeInt]: Double read _GetElement write _SetElement; default;
   end;
 
   { TJSFloat64Array }
 
   TJSFloat64Array = class(TJSTypedArray,IJSFloat64Array)
   Protected
-    function _GetElement(aIndex : NativeInt) : SIngle;
-    procedure _SetElement(aIndex : NativeInt; aValue : SIngle);
+    function _GetElement(aIndex : NativeInt) : Double;
+    procedure _SetElement(aIndex : NativeInt; aValue : Double);
   public
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSFloat64Array; overload;
-    property Element[Index: NativeInt]: SIngle read _GetElement write _SetElement; default;
+    property Element[Index: NativeInt]: Double read _GetElement write _SetElement; default;
   end;
 
   { IJSBufferSource }
@@ -1588,12 +1588,12 @@ end;
 
 { TJSFloat64Array }
 
-function TJSFloat64Array._GetElement(aIndex: NativeInt): SIngle;
+function TJSFloat64Array._GetElement(aIndex: NativeInt): Double;
 begin
   Result:=InvokeJSDoubleResult(IntToStr(aIndex),[],jiGet);
 end;
 
-procedure TJSFloat64Array._SetElement(aIndex: NativeInt; aValue: SIngle);
+procedure TJSFloat64Array._SetElement(aIndex: NativeInt; aValue: Double);
 begin
   InvokeJSNoResult(IntToStr(aIndex),[aValue],jiSet);
 end;
