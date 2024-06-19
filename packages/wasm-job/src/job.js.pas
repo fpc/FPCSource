@@ -454,6 +454,7 @@ type
     property prototyp: IJSFunction read _GetPrototyp;
     property length: NativeInt read _GetLength;
     function apply(thisArg: TJSObject; const ArgArray: Array of const): Variant;
+    function apply(const ArgArray: Array of const): Variant;
     //function bind(thisArg: TJSObject): JSValue; varargs;
     //function call(thisArg: TJSObject): JSValue; varargs;
   end;
@@ -1407,12 +1408,12 @@ end;
 
 function TJSPromise.HandleResolve(const aValue: Variant): variant;
 begin
-  result:=FResolveCallback.apply(Self,[aValue]);
+  result:=FResolveCallback.apply([aValue]);
 end;
 
 function TJSPromise.HandleReject(const aValue: Variant): variant;
 begin
-  Result:=FRejectCallback.apply(Self,[aValue]);
+  Result:=FRejectCallback.apply([aValue]);
 end;
 
 procedure TJSPromise.DoExecutor(const OnResolve, OnReject: TJSPromiseResolver);
