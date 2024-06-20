@@ -716,6 +716,7 @@ implementation
               end;
             { release procinfo tree }
             tprocinfo(procinfo).destroy_tree;
+            procinfo := nil;
           end;
         DoneDebugInfo(self,current_debuginfo_reset);
         used_units.free;
@@ -855,6 +856,7 @@ implementation
         llvmmetadatastrings.free;
         llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
+        ansistrdef:=nil;
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;
@@ -903,6 +905,10 @@ implementation
         linkorderedsymbols:=TCmdStrList.Create;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
+        genericdummysyms.Free;
+        genericdummysyms := tfphashobjectlist.create(true);
+        extendeddefs.Free;
+        extendeddefs:=TFPHashObjectList.Create(true);
         if assigned(waitingforunit) and
           (waitingforunit.count<>0) then
            begin

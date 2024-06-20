@@ -2340,6 +2340,8 @@ var
         else if (state in [ms_compile, ms_compiling_waitintf]) then
           begin
           { no use continuing if we must be compiled }
+          // but we still need to restore current_module!
+          set_current_module(from_module);
           exit(false)
           end
         else

@@ -271,6 +271,9 @@ uses
         if hmodule=current_module then
           exit;
 
+        if (hmodule.state = ms_load) and hmodule.interface_compiled then
+           Exit;
+
         if not (hmodule.state in [ms_compiled,ms_processed]) then
           begin
 {$ifdef DEBUG_UNITWAITING}
