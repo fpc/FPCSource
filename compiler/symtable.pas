@@ -3295,6 +3295,31 @@ implementation
         end;
 
       function check_strict_protected:boolean;
+        function is_childof(child, potentialparent: tdef):boolean;
+          begin
+            result:=true;
+            if def_is_related(child, potentialparent) then
+              exit;
+            if (child.typ=objectdef) and
+               (potentialparent.typ=objectdef) and
+               (tobjectdef(potentialparent).defoptions*[df_generic,df_specialization]=[df_generic]) then
+              begin
+                 repeat
+                   if tobjectdef(child).genericdef<>nil then
+                     begin
+                       if tobjectdef(child).genericdef.typ<>objectdef then
+                         break;
+                       child:=tobjectdef(child).genericdef as tobjectdef
+                     end
+                   else
+                     child:=tobjectdef(child).childof;
+                   if (child<>nil) and equal_defs(child, potentialparent) then
+                     exit;
+                 until child=nil;
+              end;
+
+            result:=false;
+          end;
 
         function owner_hierarchy_related(nested,check:tabstractrecorddef):boolean;
           var
@@ -3302,7 +3327,7 @@ implementation
           begin
             result:=true;
             repeat
-              if def_is_related(nested,check) then
+              if is_childof(nested,check) then
                 exit;
               if nested.owner.symtabletype in [recordsymtable,objectsymtable] then
                 nested:=tabstractrecorddef(nested.owner.defowner)
@@ -3329,7 +3354,7 @@ implementation
                     assigned(contextobjdef) and
                     assigned(curstruct) and
                     owner_hierarchy_related(contextobjdef,symownerdef) and
-                    def_is_related(curstruct,contextobjdef)
+                    is_childof(curstruct,contextobjdef)
                   ) or
                   (
                     { access from child class (non-specialization case) }
@@ -3340,18 +3365,18 @@ implementation
                     ) and
                     assigned(curstruct) and
                     owner_hierarchy_related(orgcontextobjdef,orgsymownerdef) and
-                    def_is_related(curstruct,orgcontextobjdef)
+                    is_childof(curstruct,orgcontextobjdef)
                   ) or
                   (
                     { helpers can access strict protected symbols }
                     is_objectpascal_helper(contextobjdef) and
-                    def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
+                    is_childof(tobjectdef(contextobjdef).extendeddef,symownerdef)
                   ) or
                   (
                     { same as above, but from context of call node inside
                       helper method }
                     is_objectpascal_helper(curstruct) and
-                    def_is_related(tobjectdef(curstruct).extendeddef,symownerdef)
+                    is_childof(tobjectdef(curstruct).extendeddef,symownerdef)
                   );
         end;
 
