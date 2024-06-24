@@ -1136,7 +1136,7 @@ function libusb_init(var ctx:plibusb_context):integer;LIBUSB_CALL;external libus
 procedure libusb_exit(ctx:plibusb_context);LIBUSB_CALL;external libusb1;
 procedure libusb_set_debug(ctc:plibusb_context;level:integer);LIBUSB_CALL;external libusb1;
 
-function libusb_get_version():libusb_version;LIBUSB_CALL;external libusb1;
+function libusb_get_version():plibusb_version;LIBUSB_CALL;external libusb1;
 function libusb_has_capability(capability:uint32_t):integer;LIBUSB_CALL;external libusb1;
 
 function libusb_error_name(errcode:integer):pansichar;LIBUSB_CALL;external libusb1;
