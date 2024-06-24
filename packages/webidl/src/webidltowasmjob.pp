@@ -99,6 +99,9 @@ type
     function GetAccessorNames(Attr: TIDLPropertyDefinition; out aGetter, aSetter: TIDLString): Boolean;
     function GetArgName(d: TIDLDefinition): string;
     function GetFunctionSuffix(aDef: TIDLFunctionDefinition; Overloads: TFPObjectList): String;
+    function ExtractAliasName(aTypeName: string): String;
+    function ExtractAliasInvokeClass(aName: String): string;
+    function ExtractAliasInvokeFunction(aName: String): string;
     function GetInvokeClassName(aMethodInfo : TMethodCallInfo; aDef: TIDLFunctionDefinition=nil): TIDLString;
     function GetInvokeClassName(aResultDef: TIDLDefinition; aName: TIDLString; aDef: TIDLFunctionDefinition=nil): TIDLString;
     function GetInvokeClassNameFromTypeAlias(aName: TIDLString; aDef: TIDLDefinition): TIDLString;
@@ -702,11 +705,13 @@ end;
 
 function TWebIDLToPasWasmJob.GetInvokeNameFromAliasName(const aTypeName : TIDLString; aType : TIDLDefinition) : string;
 // Heuristic to determine what the base type of an aliased type is.
-// We could enhance this by having support for aType=aAlias,InvokeType:InvokeClass
 var
   aLower : String;
 begin
   if aType=nil then ; // Silence compiler warning;
+  Result:=ExtractAliasInvokeFunction(aTypeName);
+  if Result<>'' then
+    exit;
   aLower:=LowerCase(aTypeName);
   if Pos('bool',aLower)>0 then
     Result:='InvokeJSBooleanResult'
@@ -774,7 +779,7 @@ begin
       Result:=GetInvokeNameFromAliasName((aType as TIDLTypeDefDefinition).TypeName,aType);
     if (Result='') and (TypeAliases.IndexOfName(GetPasName(aType))<>-1) then
       Result:=GetInvokeNameFromAliasName(GetPasName(aType),aType)
-    else
+    else if Result='' then
       Result:='InvokeJSObjectResult';
     if Result='' then
       Raise EConvertError.CreateFmt('Unable to determine invoke name from alias type %s',[aTypeName]);
@@ -786,14 +791,66 @@ begin
 
 end;
 
-function TWebIDLToPasWasmJob.GetInvokeClassNameFromTypeAlias(aName : TIDLString; aDef : TIDLDefinition): TIDLString;
+function TWebIDLToPasWasmJob.ExtractAliasInvokeClass(aName :String) : string;
 
+// Alias is encoded as:
+// aType=aAlias[,InvokeClass[:InvokeFunctionName]]
+
+var
+  P : Integer;
+
+begin
+  Result:=TypeAliases.Values[aName];
+  P:=Pos(',',Result);
+  if P>0 then
+    begin
+    Result:=Copy(Result,P+1);
+    P:=Pos(':',Result);
+    if P>0 then
+      Result:=Copy(Result,1,P-1);
+    end
+  else
+    // if it is an interface, we can simply assume the class is the same but with IJS -> TJS
+    if (LeftStr(Result,length(PasInterfacePrefix))=PasInterfacePrefix) then
+      Result:=IntfToPasClassName(Result)
+    else
+      Result:='';
+end;
+
+function TWebIDLToPasWasmJob.ExtractAliasInvokeFunction(aName: String): string;
+// Alias is encoded as:
+// aType=aAlias[,InvokeClass[:InvokeFunctionName]]
+
+var
+  P : Integer;
+
+begin
+  Result:=TypeAliases.Values[aName];
+  P:=Pos(',',Result);
+  if P>0 then
+    begin
+    Result:=Copy(Result,P+1);
+    P:=Pos(':',Result);
+    if P>0 then
+      Result:=Copy(Result,P+1);
+    end
+  else
+    // if it is an interface, we can simply assume 'InvokeJSObjectResult'
+    if (LeftStr(Result,length(PasInterfacePrefix))=PasInterfacePrefix) then
+      Result:='InvokeJSObjectResult'
+    else
+      Result:='';
+end;
+
+function TWebIDLToPasWasmJob.GetInvokeClassNameFromTypeAlias(aName : TIDLString; aDef : TIDLDefinition): TIDLString;
 // Heuristic to determine what the base type of an aliased type is.
-// We could enhance this by having support for aType=aAlias,InvokeType:InvokeClass
 var
   aLower : String;
 begin
   if aDef<>Nil then ; // Silence compiler warning
+  Result:=ExtractAliasInvokeClass(aName);
+  if Result<>'' then
+    exit;
   aLower:=LowerCase(aName);
   if Pos('array',aLower)>0 then
     Result:='TJSArray'
@@ -1470,6 +1527,17 @@ begin
   end;
 end;
 
+function TWebIDLToPasWasmJob.ExtractAliasName(aTypeName : string) : String;
+
+var
+  P : Integer;
+
+begin
+  Result:=TypeAliases.Values[aTypeName];
+  P:=Pos(',',Result);
+  if P>0 then
+    Result:=Copy(Result,1,P-1);
+end;
 function TWebIDLToPasWasmJob.GetReadPropertyCall(aInfo : TAccessorInfo; aMemberName: String): string;
 
 var
@@ -1512,7 +1580,7 @@ begin
         // Check if we have a typedef for an aliased type. Example: BigInteger = Uint8Array
         // must result in TJSUint8Array.
         TypeName:=TIDLTypeDefDefinition(aInfo.PropType).TypeName;
-        TypeName:=TypeAliases.Values[TypeName];
+        TypeName:=ExtractAliasName(TypeName);
         if TypeName<>'' then
           ObjClassName:=IntfToPasClassName(TypeName)
         end;
