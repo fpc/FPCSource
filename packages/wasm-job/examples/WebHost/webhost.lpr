@@ -60,7 +60,7 @@ begin
   Terminate;
   WasmModule:=GetWasmModuleName;
   Writeln('Loading & starting webassembly module :' ,WasmModule);
-  StartWebAssembly('WasmModule.wasm',true);
+  StartWebAssembly(WasmModule,true);
 end;
 
 var
