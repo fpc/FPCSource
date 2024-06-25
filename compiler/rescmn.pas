@@ -54,6 +54,18 @@ uses
              resflags : [];
           );
 
+       res_wasm_info : tresinfo =
+          (
+             id     : res_wasm;
+             resbin : 'fpcres';
+             rescmd : '-o $OBJ -a $ARCH -of wasm $DBG';
+             { cross compiled windres can be used to compile .rc files on other platforms }
+             rcbin  : 'windres';
+             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
+             resourcefileclass : nil;
+             resflags : [];
+          );
+
        res_ext_info : tresinfo =
           (
              id     : res_ext;

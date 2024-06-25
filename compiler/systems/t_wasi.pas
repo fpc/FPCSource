@@ -90,7 +90,8 @@ implementation
 
 uses
   SysUtils,
-  verbose;
+  verbose,
+  comprsrc,rescmn;
 
 { timportlibwasi }
 
@@ -332,5 +333,5 @@ initialization
   RegisterExport(system_wasm32_wasi, texportlibwasi);
   RegisterLinker(ld_int_wasi,TInternalLinkerWasi);
   RegisterLinker(ld_wasi, tlinkerwasi);
-
+  RegisterRes(res_wasm_info,TWinLikeResourceFile);
 end.

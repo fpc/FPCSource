@@ -1503,7 +1503,7 @@ implementation
     var
       tcb: ttai_typedconstbuilder;
     begin
-      if (target_res.id in [res_elf,res_macho,res_xcoff]) or
+      if (target_res.id in [res_elf,res_macho,res_xcoff,res_wasm]) or
          { generate the FPC_RESLOCATION symbol even when using external resources,
            because in SysInit we can only reference it unconditionally }
          ((target_res.id=res_ext) and (target_info.system in systems_darwin)) then
