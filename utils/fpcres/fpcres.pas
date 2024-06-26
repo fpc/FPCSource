@@ -72,13 +72,14 @@ begin
   writeln('  --undefine, -U <sym> RC files: undefine a symbol');
   writeln('  --output, -o <x>     Set the output file name.');
   writeln('  -of <format>         Set the output file format. Supported formats:');
-  writeln('                         res, elf, coff, mach-o, external');
+  writeln('                         res, elf, coff, mach-o, wasm, external');
   writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
   writeln('                         riscv32, riscv64,');
   writeln('                         sparc, sparc64, alpha, ia64, mips, mipsel (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, aarch64 (mach-o)');
+  writeln('                         wasm32 (wasm)');
   writeln('                         bigendian, littleendian (external)');
   writeln('  --subarch, -s <name> Set object file sub-architecture. Supported values:');
   writeln('                         arm: all, v4t, v6, v5tej, xscale, v7');
