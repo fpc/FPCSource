@@ -710,29 +710,54 @@ type
 
   IJSArrayBuffer = interface(IJSObject)
     ['{A1612EED-4F05-46C0-90BE-ACD511B15E89}']
+    function Slice : IJSArrayBuffer;
+    function Slice (aStart : NativeInt): IJSArrayBuffer;
+    function Slice (aStart,aEndExclusive : NativeInt): IJSArrayBuffer;
+    function _getByteLength: Nativeint;
+    function _getDetached: Boolean;
+    function _getMaxByteLength: Nativeint;
+    function _getResizable: Boolean;
+    property byteLength : Nativeint Read _getByteLength;
+    property maxByteLength : Nativeint Read _getMaxByteLength;
+    property detached : Boolean Read _getDetached;
+    property resizable : Boolean Read _getResizable;
   end;
 
 
   { TJSArrayBuffer }
 
   TJSArrayBuffer = class(TJSObject,IJSArrayBuffer)
+  Protected
+    function _getByteLength: Nativeint;
+    function _getDetached: Boolean;
+    function _getMaxByteLength: Nativeint;
+    function _getResizable: Boolean;
   public
+    constructor create (aSize : integer);
+    class function GlobalMemory : TJSArrayBuffer;
+    function Slice : IJSArrayBuffer;
+    function Slice (aStart : NativeInt): IJSArrayBuffer;
+    function Slice (aStart,aEndExclusive : NativeInt): IJSArrayBuffer;
     class function Cast(const Intf: IJSObject): IJSArrayBuffer; overload;
+    class function JSClassName: UnicodeString; override;
+    property byteLength : Nativeint Read _getByteLength;
+    property maxByteLength : Nativeint Read _getMaxByteLength;
+    property detached : Boolean Read _getDetached;
+    property resizable : Boolean Read _getResizable;
+
   end;
 
   { IJSArrayBufferView }
-  
   IJSArrayBufferView = interface(IJSObject)
     ['{A1612EED-4F05-46C0-90BE-ACD511B1598E}']
   end;
-  
+
   { TJSArrayBufferView }
-  
+
   TJSArrayBufferView = class(TJSObject,IJSArrayBufferView)
   public
     class function Cast(const Intf: IJSObject): IJSArrayBufferView; overload;
   end;
-
 
   { IJSTypedArray }
 
@@ -761,6 +786,7 @@ type
   public
     constructor Create(aBytes : PByte; aLen : NativeUInt);
     constructor Create(aBytes : TBytes);
+    constructor create(aArray : IJSArrayBuffer);
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
@@ -1834,6 +1860,11 @@ begin
   JobCreate(True,[Data]);
 end;
 
+constructor TJSTypedArray.create(aArray: IJSArrayBuffer);
+begin
+  JobCreate(True,[aArray]);
+end;
+
 class function TJSTypedArray.Cast(const Intf: IJSObject): IJSTypedArray;
 begin
   Result:=TJSTypedArray.Cast(Intf);
@@ -1851,9 +1882,60 @@ end;
 
 { TJSArrayBuffer }
 
+function TJSArrayBuffer._getByteLength: Nativeint;
+begin
+  Result:=ReadJSPropertyInt64('byteLength');
+
+end;
+
+function TJSArrayBuffer._getDetached: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('detached');
+end;
+
+function TJSArrayBuffer._getMaxByteLength: Nativeint;
+begin
+  Result:=ReadJSPropertyInt64('maxByteLength');
+end;
+
+function TJSArrayBuffer._getResizable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('resizable');
+end;
+
+constructor TJSArrayBuffer.create(aSize: integer);
+begin
+  JobCreate(True,[aSize])
+end;
+
+class function TJSArrayBuffer.GlobalMemory: TJSArrayBuffer;
+begin
+  Result:=JOBCreateGlobal('InstanceBuffer');
+end;
+
+function TJSArrayBuffer.Slice: IJSArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[],TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
+function TJSArrayBuffer.Slice(aStart: NativeInt): IJSArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart],TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
+function TJSArrayBuffer.Slice(aStart, aEndExclusive: NativeInt): IJSArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEndExclusive],TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
 class function TJSArrayBuffer.Cast(const Intf: IJSObject): IJSArrayBuffer;
 begin
-  Result:=TJSArrayBuffer.Cast(Intf);
+  Result:=TJSArrayBuffer.JOBCast(Intf);
+end;
+
+class function TJSArrayBuffer.JSClassName: UnicodeString;
+begin
+  Result:='ArrayBuffer';
 end;
 
 { TJSArrayBufferView }
@@ -1862,9 +1944,6 @@ class function TJSArrayBufferView.Cast(const Intf: IJSObject): IJSArrayBufferVie
 begin
   Result:=TJSArrayBufferView.JOBCast(Intf);
 end;
-
-
-
 
 { TJSArray }
 
@@ -3982,6 +4061,7 @@ function TJSDate.toLocaleDateString: UnicodeString;
 begin
   Result:=InvokeJSUnicodeStringResult('toLocaleDateString',[]);
 end;
+
 
 exports JOBCallback;
 
