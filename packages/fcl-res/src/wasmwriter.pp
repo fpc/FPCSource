@@ -48,6 +48,10 @@ type
 
 implementation
 
+const
+  WasmModuleMagic: array [0..3] of byte = ($00,$61,$73,$6D);
+  WasmVersion: array [0..3] of byte = ($01,$00,$00,$00);
+
 { TWasmResourceWriter }
 
 function TWasmResourceWriter.GetExtensions: string;
@@ -62,7 +66,8 @@ end;
 
 procedure TWasmResourceWriter.Write(aResources: TResources; aStream: TStream);
 begin
-
+  aStream.WriteBuffer(WasmModuleMagic,SizeOf(WasmModuleMagic));
+  aStream.WriteBuffer(WasmVersion,SizeOf(WasmVersion));
 end;
 
 constructor TWasmResourceWriter.Create;
