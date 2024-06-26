@@ -25,7 +25,8 @@ uses
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
   externalreader, dfmreader, tlbreader, rcreader,
 //writers
-  reswriter, coffwriter, xcoffwriter, elfwriter, machowriter, externalwriter,
+  reswriter, coffwriter, xcoffwriter, elfwriter, machowriter, wasmwriter,
+  externalwriter,
 //misc
   elfconsts, cofftypes, machotypes, externaltypes;
   
@@ -335,6 +336,11 @@ begin
   Result.SubMachineType:=MachOSubMachineType;
 end;
 
+function SetUpWasmWriter : TWasmResourceWriter;
+begin
+  Result:=TWasmResourceWriter.Create;
+end;
+
 
 function SetUpExternalWriter : TExternalResourceWriter;
 begin
@@ -366,6 +372,7 @@ begin
       ofCoff  : aWriter:=SetUpCoffWriter;
       ofXCoff : aWriter:=SetUpXCoffWriter;
       ofMachO : aWriter:=SetUpMachOWriter;
+      ofWasm  : aWriter:=SetUpWasmWriter;
       ofExt   : aWriter:=SetUpExternalWriter;
     end;
     try

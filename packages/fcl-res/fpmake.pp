@@ -116,6 +116,11 @@ begin
           AddInclude('elfsubwriter.inc');
           AddInclude('elfdefaulttarget.inc');
         end;
+    T:=P.Targets.AddUnit('wasmwriter.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('resource');
+        end;
     T:=P.Targets.AddUnit('externaltypes.pp');
     T:=P.Targets.AddUnit('externalreader.pp');
       with T.Dependencies do
