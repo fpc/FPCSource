@@ -79,6 +79,7 @@ type
     procedure DefaultLinkScript;override;
 
     function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+    function GetBssSize(aExeOutput: TExeOutput): QWord;override;
   public
     constructor create;override;
 
@@ -311,6 +312,12 @@ begin
   Result:=aExeOutput.findexesection('.rodata').size +
           aExeOutput.findexesection('.data').size +
           aExeOutput.findexesection('fpc.resources').size;
+end;
+
+function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  Result:=aExeOutput.findexesection('.bss').size +
+          aExeOutput.findexesection('fpc.reshandles').size;
 end;
 
 constructor TInternalLinkerWasi.create;
