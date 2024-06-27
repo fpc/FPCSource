@@ -440,9 +440,11 @@ begin
   initunicodestringmanager;
   { Reset IO Error }
   InOutRes:=0;
-{$ifdef FPC_WASM_THREADS}
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
+{$ifdef FPC_WASM_THREADS}
   InitThreadVars(@WasiRelocateThreadVar);
+{$endif}
 {$endif}
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
