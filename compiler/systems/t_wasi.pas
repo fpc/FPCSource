@@ -304,7 +304,19 @@ begin
   LinkScript.Concat('  OBJSECTION .wasm_globals.*');
   LinkScript.Concat('ENDEXESECTION');
 
-  ScriptAddGenericSections('.wasm_tags,.text,.rodata,.data,fpc.resources,fpc.reshandles,.bss,.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
+  { WebAssembly is a Harvard architecture, with multiple address spaces, so it
+    is important to keep the sections grouped, and keep the first section in
+    each group intact (otherwise, TWasmExeOutput.MemPos_ExeSection in ogwasm.pas
+    needs to be updated) }
+  ScriptAddGenericSections(
+    { tags (used by WebAssembly native exceptions) }
+    '.wasm_tags,'+
+    { code }
+    '.text,'+
+    { data (initialized data first, uninitialized data later) }
+    '.rodata,.data,fpc.resources,fpc.reshandles,.bss,'+
+    { debug info }
+    '.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
 end;
 
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
