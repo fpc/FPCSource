@@ -54,6 +54,7 @@ type
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
     procedure AddDataRelocation(aTyp: TWasmRelocationType; aOffset: UInt32; aIndex: UInt32; aAddend: Int32 = 0);
+    procedure WriteRelocationDataTable(DataSectionIndex: Integer);
     procedure WriteResHeader(aResources : TResources);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
@@ -176,6 +177,30 @@ begin
   end;
 end;
 
+procedure TWasmResourceWriter.WriteRelocationDataTable(DataSectionIndex: Integer);
+var
+  i: Integer;
+begin
+  WriteUleb(FWasmCustomSections[wcstRelocData],DataSectionIndex);
+  WriteUleb(FWasmCustomSections[wcstRelocData],Length(FDataRelocations));
+  for i:=0 to Length(FDataRelocations)-1 do
+    with FDataRelocations[i] do
+    begin
+      FWasmCustomSections[wcstRelocData].WriteByte(Ord(Typ));
+      WriteUleb(FWasmCustomSections[wcstRelocData],Offset);
+      WriteUleb(FWasmCustomSections[wcstRelocData],Index);
+      if Typ in [R_WASM_MEMORY_ADDR_I32,
+                 R_WASM_MEMORY_ADDR_I64,
+                 R_WASM_MEMORY_ADDR_LEB,
+                 R_WASM_MEMORY_ADDR_LEB64,
+                 R_WASM_MEMORY_ADDR_SLEB,
+                 R_WASM_MEMORY_ADDR_SLEB64,
+                 R_WASM_FUNCTION_OFFSET_I32,
+                 R_WASM_SECTION_OFFSET_I32] then
+        WriteSleb(FWasmCustomSections[wcstRelocData],Addend);
+    end;
+end;
+
 procedure TWasmResourceWriter.WriteResHeader(aResources: TResources);
 var hdr : TResHdr32;
 begin
@@ -192,9 +217,9 @@ begin
   hdr.rootptr:=sizeof(hdr);
 
   //fRelocTable.Add(0,sizeof(hdr),RSRCSECT_IDX);
-  AddDataRelocation(R_WASM_SECTION_OFFSET_I32,0,Ord(wrdsResources),sizeof(hdr));
+  AddDataRelocation(R_WASM_MEMORY_ADDR_I32,0,Ord(wrdsResources),sizeof(hdr));
   //fRelocTable.Add(sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),0,HANDLESECT_IDX);
-  AddDataRelocation(R_WASM_SECTION_OFFSET_I32,sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),Ord(wrdsResHandles),0);
+  AddDataRelocation(R_WASM_MEMORY_ADDR_I32,sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),Ord(wrdsResHandles),0);
   if fOppositeEndianess then
   begin
     hdr.rootptr:=SwapEndian(hdr.rootptr);
@@ -327,6 +352,22 @@ begin
 
   Inc(FWasmSymbolTableEntriesCount);
   FWasmSymbolTable.WriteByte(Ord(SYMTAB_DATA));
+  WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);  { symbol flags }
+  WriteName(FWasmSymbolTable,WasmResourceDataSegmentNames[wrdsResources]);
+  WriteUleb(FWasmSymbolTable,0);  { segment index }
+  WriteUleb(FWasmSymbolTable,0);  { offset }
+  WriteUleb(FWasmSymbolTable,0);  { size }
+
+  Inc(FWasmSymbolTableEntriesCount);
+  FWasmSymbolTable.WriteByte(Ord(SYMTAB_DATA));
+  WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);  { symbol flags }
+  WriteName(FWasmSymbolTable,WasmResourceDataSegmentNames[wrdsResHandles]);
+  WriteUleb(FWasmSymbolTable,1);  { segment index }
+  WriteUleb(FWasmSymbolTable,0);  { offset }
+  WriteUleb(FWasmSymbolTable,0);  { size }
+
+  Inc(FWasmSymbolTableEntriesCount);
+  FWasmSymbolTable.WriteByte(Ord(SYMTAB_DATA));
   WriteUleb(FWasmSymbolTable,0);  { symbol flags }
   WriteName(FWasmSymbolTable,'FPC_RESSYMBOL');
   WriteUleb(FWasmSymbolTable,0);  { segment index }
@@ -342,7 +383,9 @@ begin
   WriteWasmSection(aStream,wsiImport);
   WriteWasmSection(aStream,wsiDataCount);
   WriteWasmSection(aStream,wsiData);
+  WriteRelocationDataTable(2);
   WriteWasmCustomSection(aStream,wcstLinking);
+  WriteWasmCustomSection(aStream,wcstRelocData);
 end;
 
 constructor TWasmResourceWriter.Create;
