@@ -52,6 +52,7 @@ type
     FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of TMemoryStream;
     FWasmSymbolTable: TMemoryStream;
     FWasmSymbolTableEntriesCount: Integer;
+    procedure Align(aBound : integer; aStream : TStream);
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
@@ -61,6 +62,7 @@ type
     procedure WriteNodeInfos;
     procedure WriteNodeInfo(aNode : TResourceTreeNode);
     procedure WriteSubNodes(aNode : TResourceTreeNode);
+    procedure WriteResStringTable;
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
@@ -117,6 +119,21 @@ begin
 end;
 
 { TWasmResourceWriter }
+
+procedure TWasmResourceWriter.Align(aBound: integer; aStream: TStream);
+var topad,tmp : integer;
+    qw : qword;
+begin
+  qw:=0;
+  topad:=aBound-(aStream.Position mod aBound);
+  if topad<>aBound then
+    while topad>0 do
+    begin
+      if topad>8 then tmp:=8 else tmp:=topad;
+      aStream.WriteBuffer(qw,tmp);
+      dec(topad,tmp);
+    end;
+end;
 
 function TWasmResourceWriter.NextAligned(aBound, aValue: longword): longword;
 var topad : longword;
@@ -307,6 +324,13 @@ begin
     WriteSubNodes(aNode.IDEntries[i]);
 end;
 
+procedure TWasmResourceWriter.WriteResStringTable;
+begin
+  if fResStringTable.Used then
+    fResStringTable.WriteToStream(FDataSegments[wrdsResources]);
+  Align(fDataAlignment,FDataSegments[wrdsResources]);
+end;
+
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
 var
@@ -424,6 +448,7 @@ begin
   PrescanResourceTree;
   WriteResHeader(aResources);
   WriteNodeInfos;
+  WriteResStringTable;
 
   WriteImportSection;
   WriteDataSegments;
