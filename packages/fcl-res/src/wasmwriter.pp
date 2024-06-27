@@ -24,10 +24,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Resources.Resource;
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.WebAssembly.Consts, System.Resources.WebAssembly.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, resource;
+  Classes, SysUtils, resource, wasmconsts, wasmtypes;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -47,10 +47,6 @@ type
   end;
 
 implementation
-
-const
-  WasmModuleMagic: array [0..3] of byte = ($00,$61,$73,$6D);
-  WasmVersion: array [0..3] of byte = ($01,$00,$00,$00);
 
 { TWasmResourceWriter }
 

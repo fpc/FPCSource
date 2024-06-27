@@ -41,3 +41,5 @@ src/machowriter.pp=namespaced/System.Resources.Macho.Writer.pp
 src/resource.pp=namespaced/System.Resources.Resource.pp
 src/resfactory.pp=namespaced/System.Resources.Factory.pp
 src/wasmwriter.pp=namespaced/System.Resources.WebAssembly.Writer.pp
+src/wasmconsts.pp=namespaced/System.Resources.WebAssembly.Consts.pp
+src/wasmtypes.pp=namespaced/System.Resources.WebAssembly.Types.pp
