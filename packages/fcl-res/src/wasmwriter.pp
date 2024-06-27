@@ -65,6 +65,7 @@ type
     procedure WriteResStringTable;
     procedure WriteRawData;
     procedure WriteResData(aStream : TStream; aNode : TResourceTreeNode);
+    procedure AddEmptySections(aResources : TResources);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
@@ -357,6 +358,14 @@ begin
     WriteResData(aStream,aNode.IDEntries[i]);
 end;
 
+procedure TWasmResourceWriter.AddEmptySections(aResources: TResources);
+begin
+  Align(fDataAlignment,FDataSegments[wrdsResources]);
+  //fSections.Add(HandlesSectName,SHT_NOBITS,SHF_ALLOC or SHF_WRITE,
+  //  aStream.Position,fDataAlignment*aResources.Count,fDataAlignment);
+  FDataSegments[wrdsResHandles].SetSize(fDataAlignment*aResources.Count);
+end;
+
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
 var
@@ -476,6 +485,7 @@ begin
   WriteNodeInfos;
   WriteResStringTable;
   WriteRawData;
+  AddEmptySections(aResources);
 
   WriteImportSection;
   WriteDataSegments;
