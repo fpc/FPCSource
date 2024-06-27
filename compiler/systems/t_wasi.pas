@@ -309,7 +309,8 @@ end;
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
   Result:=aExeOutput.findexesection('.rodata').size +
-          aExeOutput.findexesection('.data').size;
+          aExeOutput.findexesection('.data').size +
+          aExeOutput.findexesection('fpc.resources').size;
 end;
 
 constructor TInternalLinkerWasi.create;
