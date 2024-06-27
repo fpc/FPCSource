@@ -5,7 +5,7 @@ program restool;
 uses
   custapp, sysutils, classes, resource, elfreader, resreader, coffreader, machoreader, dfmreader,
   bitmapresource, stringtableresource, versionresource, groupiconresource, groupcursorresource,
-  acceleratorsresource;
+  acceleratorsresource, groupresource;
 
 Type
    TRunMode = (rmList,rmExtract);
@@ -20,8 +20,12 @@ Type
      FDestFile : String;
      FResName,FResType : String;
      FResIndex : integer;
+     FStructured : Boolean;
+     procedure DumpAllResources(var aDest: Text);
+     procedure DumpResource(var aDest: Text; Res: TAbstractResource; Idx: integer; const Prefix: String='');
      function ProcessOptions: Boolean;
      procedure Usage(const aErr: String);
+     procedure DumpOwnedResource(var aDest: Text; aOwner: TAbstractResource; const Prefix: String);
      procedure WriteResource(Res: TAbstractResource; const aDestFile: String);
    Protected
      procedure doRun; override;
@@ -112,25 +116,65 @@ begin
   end;
 end;
 
-procedure TRestool.dumpresourcefile(const aFileName: String; var aDest : Text);
+
+procedure TRestool.DumpResource(var aDest : Text; Res : TAbstractResource; Idx : integer; const Prefix : String = '');
+
+var
+  aType,aName : string;
+
+
+begin
+  aName:=Res.Name.Name;
+  if res.name.DescType=dtID then
+    aName:='#'+aName;
+  aType:=ResTypeName(res._Type.ID,True);
+  Writeln(aDest,Prefix,Idx:3,' : Type: ',aType,' name: ',aName);
+end;
+
+procedure TRestool.DumpOwnedResource(var aDest : Text; aOwner : TAbstractResource; const Prefix : String);
 
 Var
   res : TAbstractResource;
-  aType,aName : string;
   i : Integer;
+
+begin
+  For I:=0 to FResFile.Count-1 do
+    begin
+    Res:=FResFile.Items[i];
+    if Res.Owner=aOwner then
+      begin
+      DumpResource(aDest,Res,I,Prefix);
+      if Res is TGroupResource then
+        DumpOwnedResource(aDest,Res,'  '+Prefix);
+      end;
+    end;
+end;
+
+procedure TRestool.DumpAllResources(var aDest : Text);
+
+Var
+  res : TAbstractResource;
+  i : Integer;
+
+begin
+  For I:=0 to FResFile.Count-1 do
+    begin
+    Res:=FResFile.Items[i];
+    DumpResource(aDest,Res,I);
+    end;
+end;
+
+
+procedure TRestool.dumpresourcefile(const aFileName: String; var aDest : Text);
+
 
 begin
   FResFile.LoadFromFile(aFileName);
   Writeln(aDest,'File ',aFileName,' contains ',FResFile.Count,' resources:');
-  For I:=0 to FResFile.Count-1 do
-    begin
-    Res:=FResFile.Items[i];
-    aName:=Res.Name.Name;
-    if res.name.DescType=dtID then
-      aName:='#'+aName;
-    aType:=ResTypeName(res._Type.ID,True);
-    Writeln(aDest,I:3,' : Type: ',aType,' name: ',aName);
-    end;
+  if FStructured then
+    DumpOwnedResource(aDest,Nil,'')
+  else
+    DumpAllResources(aDest);
 end;
 
 procedure TRestool.WriteResource(Res : TAbstractResource; const aDestFile : String);
@@ -159,8 +203,8 @@ end;
 function TRestool.ProcessOptions: Boolean;
 
 const
-  Short = 'h:i:n:t:m:xlo:';
-  Long : Array of string = ('help','index:','name:','type:','mode:','extract','output:','list');
+  Short = 'h:i:n:t:m:xlo:s';
+  Long : Array of string = ('help','index:','name:','type:','mode:','extract','output:','list','structured');
 
 var
   RM,Idx,Err : String;
@@ -176,6 +220,7 @@ begin
     end;
   S:=GetNonOptions(Short,long);
   FDestFile:=GetOptionValue('o','output');
+  FStructured:=HasOption('s','structured');
   if Length(S)>0 then
     FinputFile:=S[0]
   else if Length(S)>1 then
@@ -243,16 +288,12 @@ begin
   Writeln('-i --index=IDX       Index of resource to extract.');
   Writeln('-n --name=NAME       Name of resource to extract');
   Writeln('-t --type=TYPE       Type of resource to extract. Known type names (RT_RCDATA etc.) can be used.');
-  Writeln('-l --list            List resources in file.');
-  Writeln('-x --extract         Extract a resource from file. Specify -i or -n and -t options');
+  Writeln('-l --list            List resources in file (equivalent to -m list).');
+  Writeln('-x --extract         Extract a resource from file. Specify -i or -n and -t options. (equivalent to -m extract)');
+  Writeln('-m --mode=MODE       set mode to extract or list.');
   Writeln('-o --output=FILE     Filename to extract a resource to (or specify the name as the second non-option argument.');
   Writeln('                     If no filename is given, a default name is constructed from either index or Filename to extract a resource to (or specify the name as the second non-option argument.');
-
-  (*
-  Short = 'h:i:n:t:m:xlo:';
-  Long : Array of string = ('help','index:','name:','type:','mode:','extract','output:','list');
-
-  *)
+  Writeln('-s --structured      List resources in structured form: resources are listed under their group.');
   ExitCode:=Ord(aErr<>'');
 end;
 
