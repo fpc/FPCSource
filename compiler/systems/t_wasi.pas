@@ -75,6 +75,8 @@ type
   { TInternalLinkerWasi }
 
   TInternalLinkerWasi=class(tinternallinker)
+  private
+    function GetExeSectionSize(aExeOutput: TExeOutput; const aname:string): QWord;
   protected
     procedure DefaultLinkScript;override;
 
@@ -288,6 +290,18 @@ end;
 
 { TInternalLinkerWasi }
 
+function TInternalLinkerWasi.GetExeSectionSize(aExeOutput: TExeOutput;
+  const aname: string): QWord;
+var
+  sec: TExeSection;
+begin
+  sec:=aExeOutput.findexesection(aname);
+  if assigned(sec) then
+    Result:=sec.size
+  else
+    Result:=0;
+end;
+
 procedure TInternalLinkerWasi.DefaultLinkScript;
 var
   s: TCmdStr;
@@ -321,15 +335,15 @@ end;
 
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  Result:=aExeOutput.findexesection('.rodata').size +
-          aExeOutput.findexesection('.data').size +
-          aExeOutput.findexesection('fpc.resources').size;
+  Result:=GetExeSectionSize(aExeOutput,'.rodata') +
+          GetExeSectionSize(aExeOutput,'.data') +
+          GetExeSectionSize(aExeOutput,'fpc.resources');
 end;
 
 function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
 begin
-  Result:=aExeOutput.findexesection('.bss').size +
-          aExeOutput.findexesection('fpc.reshandles').size;
+  Result:=GetExeSectionSize(aExeOutput,'.bss') +
+          GetExeSectionSize(aExeOutput,'fpc.reshandles');
 end;
 
 constructor TInternalLinkerWasi.create;
