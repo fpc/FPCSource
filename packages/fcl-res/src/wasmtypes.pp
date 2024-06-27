@@ -97,6 +97,8 @@ type
     SYMTAB_EVENT    = 4,
     SYMTAB_TABLE    = 5);
 
+  TWasmResourceDataSegment = (wrdsResources, wrdsResHandles);
+
 implementation
 
 end.

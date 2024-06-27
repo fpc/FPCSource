@@ -40,14 +40,19 @@ type
     fDescription : string;
     fRoot : TRootResTreeNode;
     fResStringTable : TResStringTable;
+    fOppositeEndianess : boolean;
     fDataAlignment : longword;
     fDataCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
+    FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
+    procedure WriteResHeader(aResources : TResources);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
+    procedure WriteImportSection;
+    procedure WriteDataSegments;
   protected
     function GetExtensions : string; override;
     function GetDescription : string; override;
@@ -58,6 +63,22 @@ type
   end;
 
 implementation
+
+procedure WriteSleb(aStream: TStream; v: int64);
+var
+  b: byte;
+  Done: Boolean=false;
+begin
+  repeat
+    b:=byte(v) and 127;
+    v:=SarInt64(v,7);
+    if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
+      Done:=true
+    else
+      b:=b or 128;
+    aStream.WriteByte(b);
+  until Done;
+end;
 
 procedure WriteUleb(aStream: TStream; v: uint64);
 var
@@ -70,6 +91,13 @@ begin
       b:=b or 128;
     aStream.WriteByte(b);
   until v=0;
+end;
+
+procedure WriteName(aStream: TStream; const s: string);
+begin
+  WriteUleb(aStream,Length(s));
+  if Length(s)>0 then
+    aStream.WriteBuffer(s[1],Length(s));
 end;
 
 { TWasmResourceWriter }
@@ -125,6 +153,33 @@ begin
   Result:=curofs;
 end;
 
+procedure TWasmResourceWriter.WriteResHeader(aResources: TResources);
+var hdr : TResHdr32;
+begin
+  hdr.count:=aResources.Count;
+  hdr.usedhandles:=0;
+  hdr.handles:=0;
+
+  //fSymbolTable.AddSection(RSRCSECT_IDX);
+  //fSymbolTable.AddSection(HANDLESECT_IDX);
+  //case fRelocInfo.SectionType of
+  //  SHT_REL  : hdr.rootptr:=sizeof(hdr);
+  //  SHT_RELA : hdr.rootptr:=0;
+  //end;
+
+  //fRelocTable.Add(0,sizeof(hdr),RSRCSECT_IDX);
+  //fRelocTable.Add(sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),0,HANDLESECT_IDX);
+  if fOppositeEndianess then
+  begin
+    hdr.rootptr:=SwapEndian(hdr.rootptr);
+    hdr.count:=SwapEndian(hdr.count);
+    //handles must be fixed later
+//    hdr.usedhandles:=SwapEndian(hdr.usedhandles);
+//    hdr.handles:=SwapEndian(hdr.handles);
+  end;
+  FDataSegments[wrdsResources].WriteBuffer(hdr,sizeof(hdr));
+end;
+
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
 var
@@ -143,6 +198,44 @@ begin
     WriteWasmSection(aStream,wsid);
 end;
 
+procedure TWasmResourceWriter.WriteImportSection;
+const
+  ImportsCount = 1;
+begin
+  WriteUleb(FWasmSections[wsiImport],ImportsCount);
+  { import memories }
+  WriteName(FWasmSections[wsiImport],'env');
+  WriteName(FWasmSections[wsiImport],'__linear_memory');
+  FWasmSections[wsiImport].WriteByte($02);  { mem }
+  FWasmSections[wsiImport].WriteByte($00);  { min }
+  WriteUleb(FWasmSections[wsiImport],1);    { 1 page }
+end;
+
+procedure TWasmResourceWriter.WriteDataSegments;
+const
+  DataSegmentCount = 2;
+var
+  ds: TMemoryStream;
+  ofs: int64;
+begin
+  WriteUleb(FWasmSections[wsiData],DataSegmentCount);
+  WriteUleb(FWasmSections[wsiDataCount],DataSegmentCount);
+  ofs:=0;
+  for ds in FDataSegments do
+  begin
+    FWasmSections[wsiData].WriteByte(0);
+    FWasmSections[wsiData].WriteByte($41);
+    WriteSleb(FWasmSections[wsiData],ofs);
+    FWasmSections[wsiData].WriteByte($0b);
+    WriteUleb(FWasmSections[wsiData],ds.Size);
+    if ds.Size>0 then
+    begin
+      FWasmSections[wsiData].CopyFrom(ds, 0);
+      Inc(ofs,ds.Size);
+    end;
+  end;
+end;
+
 function TWasmResourceWriter.GetExtensions: string;
 begin
   Result:=fExtensions;
@@ -154,17 +247,17 @@ begin
 end;
 
 procedure TWasmResourceWriter.Write(aResources: TResources; aStream: TStream);
-const
-  DataSegmentCount = 0;
 begin
   fRoot:=TRootResTreeNode(GetTree(aResources));
   PrescanResourceTree;
+  WriteResHeader(aResources);
 
-  WriteUleb(FWasmSections[wsiData],DataSegmentCount);
-  WriteUleb(FWasmSections[wsiDataCount],DataSegmentCount);
+  WriteImportSection;
+  WriteDataSegments;
 
   aStream.WriteBuffer(WasmModuleMagic,SizeOf(WasmModuleMagic));
   aStream.WriteBuffer(WasmVersion,SizeOf(WasmVersion));
+  WriteWasmSection(aStream,wsiImport);
   WriteWasmSection(aStream,wsiDataCount);
   WriteWasmSection(aStream,wsiData);
 end;
@@ -172,20 +265,31 @@ end;
 constructor TWasmResourceWriter.Create;
 var
   i: TWasmSectionID;
+  j: TWasmResourceDataSegment;
 begin
   fExtensions:='.o .or';
   fDescription:='WebAssembly resource writer';
   fResStringTable:=TResStringTable.Create;
   fDataCurOfs:=0;
   fDataAlignment:=4;
+{$IFDEF FPC_BIG_ENDIAN}
+  fOppositeEndianess := True;
+{$ELSE FPC_BIG_ENDIAN}
+  fOppositeEndianess := False;
+{$ENDIF FPC_BIG_ENDIAN}
   for i in TWasmSectionID do
     FWasmSections[i] := TMemoryStream.Create;
+  for j in TWasmResourceDataSegment do
+    FDataSegments[j] := TMemoryStream.Create;
 end;
 
 destructor TWasmResourceWriter.Destroy;
 var
   i: TWasmSectionID;
+  j: TWasmResourceDataSegment;
 begin
+  for j in TWasmResourceDataSegment do
+    FreeAndNil(FDataSegments[j]);
   for i in TWasmSectionID do
     FreeAndNil(FWasmSections[i]);
   FreeAndNil(fResStringTable);
