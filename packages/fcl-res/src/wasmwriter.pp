@@ -24,10 +24,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.WebAssembly.Consts, System.Resources.WebAssembly.Types;
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Tree, System.Resources.StringTable.Types, System.Resources.Types, System.Resources.WebAssembly.Consts, System.Resources.WebAssembly.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, resource, wasmconsts, wasmtypes;
+  Classes, SysUtils, resource, resourcetree, strtable, fpcrestypes, wasmconsts, wasmtypes;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -38,7 +38,14 @@ type
   private
     fExtensions : string;
     fDescription : string;
+    fRoot : TRootResTreeNode;
+    fResStringTable : TResStringTable;
+    fDataAlignment : longword;
+    fDataCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
+    function NextAligned(aBound, aValue : longword) : longword;
+    procedure PrescanResourceTree;
+    function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
   protected
@@ -66,6 +73,57 @@ begin
 end;
 
 { TWasmResourceWriter }
+
+function TWasmResourceWriter.NextAligned(aBound, aValue: longword): longword;
+var topad : longword;
+begin
+  Result:=aValue;
+  topad:=aBound-(aValue mod aBound);
+  if topad<>aBound then inc(Result,topad);
+end;
+
+procedure TWasmResourceWriter.PrescanResourceTree;
+begin
+  fResStringTable.Clear;
+  fRoot.SubDirRVA:=sizeof(TResHdr32)+sizeof(TResInfoNode32);
+  fResStringTable.StartOfs:=PrescanNode(fRoot,sizeof(TResInfoNode32));
+  if fResStringTable.Used then
+    fDataCurOfs:=NextAligned(fDataAlignment,fResStringTable.StartOfs+fResStringTable.Size)
+  else
+    fDataCurOfs:=fResStringTable.StartOfs;
+end;
+
+function TWasmResourceWriter.PrescanNode(aNode: TResourceTreeNode;
+  aNodeSize: longword): longword;
+var curofs : longword;
+    i : integer;
+    subnode : TResourceTreeNode;
+begin
+  if aNode.IsLeaf then
+  begin
+    Result:=aNode.SubDirRVA;
+    exit;
+  end;
+
+  if aNode.Desc.DescType=dtName then
+    aNode.NameRVA:=fResStringTable.Add(aNode.Desc.Name);
+
+  //first node subnodes begin at curofs (after all node headers)
+  curofs:=aNode.SubDirRva+(aNode.NamedCount+aNode.IDCount)*aNodeSize;
+  for i:=0 to aNode.NamedCount-1 do
+  begin
+    subnode:=aNode.NamedEntries[i];
+    subnode.SubDirRVA:=curofs;
+    curofs:=PrescanNode(subnode,aNodeSize);
+  end;
+  for i:=0 to aNode.IDCount-1 do
+  begin
+    subnode:=aNode.IDEntries[i];
+    subnode.SubDirRVA:=curofs;
+    curofs:=PrescanNode(subnode,aNodeSize);
+  end;
+  Result:=curofs;
+end;
 
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
@@ -99,6 +157,9 @@ procedure TWasmResourceWriter.Write(aResources: TResources; aStream: TStream);
 const
   DataSegmentCount = 0;
 begin
+  fRoot:=TRootResTreeNode(GetTree(aResources));
+  PrescanResourceTree;
+
   WriteUleb(FWasmSections[wsiData],DataSegmentCount);
   WriteUleb(FWasmSections[wsiDataCount],DataSegmentCount);
 
@@ -114,6 +175,9 @@ var
 begin
   fExtensions:='.o .or';
   fDescription:='WebAssembly resource writer';
+  fResStringTable:=TResStringTable.Create;
+  fDataCurOfs:=0;
+  fDataAlignment:=4;
   for i in TWasmSectionID do
     FWasmSections[i] := TMemoryStream.Create;
 end;
@@ -124,6 +188,7 @@ var
 begin
   for i in TWasmSectionID do
     FreeAndNil(FWasmSections[i]);
+  FreeAndNil(fResStringTable);
   inherited Destroy;
 end;
 

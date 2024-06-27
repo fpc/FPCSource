@@ -126,6 +126,9 @@ begin
       with T.Dependencies do
         begin
           AddUnit('resource');
+          AddUnit('resourcetree');
+          AddUnit('strtable');
+          AddUnit('fpcrestypes');
           AddUnit('wasmconsts');
           AddUnit('wasmtypes');
         end;
