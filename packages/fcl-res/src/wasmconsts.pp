@@ -70,6 +70,11 @@ const
   WASM_SYM_NO_STRIP          = $80;
   WASM_SYM_TLS               = $100;
 
+  WasmResourceDataSegmentNames: array [TWasmResourceDataSegment] of string = (
+    'fpc.resources',
+    'fpc.reshandles'
+  );
+
 implementation
 
 end.

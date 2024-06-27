@@ -46,6 +46,7 @@ type
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
     FWasmCustomSections: array [TWasmCustomSectionType] of TMemoryStream;
+    FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of TMemoryStream;
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
@@ -53,6 +54,7 @@ type
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
+    procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
     procedure WriteCustomSectionNames;
     procedure WriteImportSection;
     procedure WriteDataSegments;
@@ -209,6 +211,17 @@ begin
   aStream.CopyFrom(FWasmCustomSections[wcst],0);
 end;
 
+procedure TWasmResourceWriter.WriteLinkingSubsection(
+  wlst: TWasmLinkingSubsectionType);
+begin
+  if FWasmLinkingSubsections[wlst].size>0 then
+    begin
+      FWasmCustomSections[wcstLinking].WriteByte(Ord(wlst));
+      WriteUleb(FWasmCustomSections[wcstLinking],FWasmLinkingSubsections[wlst].size);
+      FWasmCustomSections[wcstLinking].CopyFrom(FWasmLinkingSubsections[wlst],0);
+    end;
+end;
+
 procedure TWasmResourceWriter.WriteCustomSectionNames;
 var
   cust_sec: TWasmCustomSectionType;
@@ -233,25 +246,31 @@ end;
 
 procedure TWasmResourceWriter.WriteDataSegments;
 const
-  DataSegmentCount = 2;
+  DataSegmentCount = Ord(High(FDataSegments)) - Ord(Low(FDataSegments)) + 1;
 var
-  ds: TMemoryStream;
   ofs: int64;
+  ds: TWasmResourceDataSegment;
 begin
   WriteUleb(FWasmSections[wsiData],DataSegmentCount);
   WriteUleb(FWasmSections[wsiDataCount],DataSegmentCount);
+  WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],DataSegmentCount);
+
   ofs:=0;
-  for ds in FDataSegments do
+  for ds:=Low(FDataSegments) to High(FDataSegments) do
   begin
+    WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],WasmResourceDataSegmentNames[ds]);
+    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(4));  { align }
+    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],0);  { flags }
+
     FWasmSections[wsiData].WriteByte(0);
     FWasmSections[wsiData].WriteByte($41);
     WriteSleb(FWasmSections[wsiData],ofs);
     FWasmSections[wsiData].WriteByte($0b);
-    WriteUleb(FWasmSections[wsiData],ds.Size);
-    if ds.Size>0 then
+    WriteUleb(FWasmSections[wsiData],FDataSegments[ds].Size);
+    if FDataSegments[ds].Size>0 then
     begin
-      FWasmSections[wsiData].CopyFrom(ds, 0);
-      Inc(ofs,ds.Size);
+      FWasmSections[wsiData].CopyFrom(FDataSegments[ds], 0);
+      Inc(ofs,FDataSegments[ds].Size);
     end;
   end;
 end;
@@ -279,6 +298,8 @@ begin
   WriteImportSection;
   WriteDataSegments;
 
+  WriteLinkingSubsection(WASM_SEGMENT_INFO);
+
   aStream.WriteBuffer(WasmModuleMagic,SizeOf(WasmModuleMagic));
   aStream.WriteBuffer(WasmVersion,SizeOf(WasmVersion));
   WriteWasmSection(aStream,wsiImport);
@@ -292,6 +313,7 @@ var
   i: TWasmSectionID;
   j: TWasmResourceDataSegment;
   k: TWasmCustomSectionType;
+  l: TWasmLinkingSubsectionType;
 begin
   fExtensions:='.o .or';
   fDescription:='WebAssembly resource writer';
@@ -309,6 +331,8 @@ begin
     FDataSegments[j] := TMemoryStream.Create;
   for k in TWasmCustomSectionType do
     FWasmCustomSections[k] := TMemoryStream.Create;
+  for l:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
+    FWasmLinkingSubsections[l] := TMemoryStream.Create;
 end;
 
 destructor TWasmResourceWriter.Destroy;
@@ -316,7 +340,10 @@ var
   i: TWasmSectionID;
   j: TWasmResourceDataSegment;
   k: TWasmCustomSectionType;
+  l: TWasmLinkingSubsectionType;
 begin
+  for l:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
+    FreeAndNil(FWasmLinkingSubsections[l]);
   for k in TWasmCustomSectionType do
     FreeAndNil(FWasmCustomSections[k]);
   for j in TWasmResourceDataSegment do
