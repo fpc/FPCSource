@@ -51,7 +51,7 @@ unit i_wasi;
             asmext       : '.wat';
             objext       : '.o';
             resext       : '';
-            resobjext    : '.o';
+            resobjext    : '.or';
             sharedlibext : ''; // keep it empty! The sharedlibext drives the export module name
                                // if this is populated, then the name should be cleared when generating import
             staticlibext : '.a';
