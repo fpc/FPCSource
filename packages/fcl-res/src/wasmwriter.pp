@@ -63,6 +63,8 @@ type
     procedure WriteNodeInfo(aNode : TResourceTreeNode);
     procedure WriteSubNodes(aNode : TResourceTreeNode);
     procedure WriteResStringTable;
+    procedure WriteRawData;
+    procedure WriteResData(aStream : TStream; aNode : TResourceTreeNode);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
@@ -331,6 +333,30 @@ begin
   Align(fDataAlignment,FDataSegments[wrdsResources]);
 end;
 
+procedure TWasmResourceWriter.WriteRawData;
+begin
+  WriteResData(FDataSegments[wrdsResources],fRoot);
+end;
+
+procedure TWasmResourceWriter.WriteResData(aStream: TStream;
+  aNode: TResourceTreeNode);
+var rawdata : TStream;
+    i : integer;
+begin
+  if aNode.IsLeaf then
+  begin
+    rawdata:=aNode.Data.RawData;
+    rawdata.Position:=0;
+    aStream.CopyFrom(rawdata,rawdata.Size);
+    Align(fDataAlignment,aStream);
+    exit;
+  end;
+  for i:=0 to aNode.NamedCount-1 do
+    WriteResData(aStream,aNode.NamedEntries[i]);
+  for i:=0 to aNode.IDCount-1 do
+    WriteResData(aStream,aNode.IDEntries[i]);
+end;
+
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
 var
@@ -449,6 +475,7 @@ begin
   WriteResHeader(aResources);
   WriteNodeInfos;
   WriteResStringTable;
+  WriteRawData;
 
   WriteImportSection;
   WriteDataSegments;
