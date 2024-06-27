@@ -1127,6 +1127,7 @@ type
 var
   JSObject: IJSObject; // singleton of JS 'Object'
   JSDate: IJSDate; // singleton of JS 'Date'
+  JSJSON: IJSJSON; // singleton of JS 'Date'
 
 // imported functions from browser
 function __job_invoke_noresult(
@@ -4068,5 +4069,6 @@ exports JOBCallback;
 initialization
   JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
   JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
+  JSJSON:=TJSJSON.JOBCreateGlobal('JSON') as IJSJSON;
 end.
 
