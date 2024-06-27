@@ -43,6 +43,7 @@ type
     fOppositeEndianess : boolean;
     fDataAlignment : longword;
     fDataCurOfs : longword;
+    fCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
     FDataSegmentFileSectionOfs: array [TWasmResourceDataSegment] of Int64;
@@ -57,6 +58,9 @@ type
     procedure AddDataRelocation(aTyp: TWasmRelocationType; aOffset: UInt32; aIndex: UInt32; aAddend: Int32 = 0);
     procedure WriteRelocationDataTable(DataSectionIndex: Integer);
     procedure WriteResHeader(aResources : TResources);
+    procedure WriteNodeInfos;
+    procedure WriteNodeInfo(aNode : TResourceTreeNode);
+    procedure WriteSubNodes(aNode : TResourceTreeNode);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
@@ -237,6 +241,72 @@ begin
   FDataSegments[wrdsResources].WriteBuffer(hdr,sizeof(hdr));
 end;
 
+procedure TWasmResourceWriter.WriteNodeInfos;
+begin
+  fCurOfs:=sizeof(TResHdr32);
+  WriteNodeInfo(fRoot);
+  WriteSubNodes(fRoot);
+end;
+
+procedure TWasmResourceWriter.WriteNodeInfo(aNode: TResourceTreeNode);
+var infonode : TResInfoNode32;
+begin
+  if aNode.Desc.DescType=dtID then
+    infonode.nameid:=aNode.Desc.ID
+  else
+  begin
+    infonode.nameid:=fResStringTable.StartOfs+aNode.NameRVA;
+    //fRelocTable.Add(fCurOfs,infonode.nameid,RSRCSECT_IDX);
+    AddDataRelocation(R_WASM_MEMORY_ADDR_I32,fCurOfs,Ord(wrdsResources),infonode.nameid);
+
+    //if fRelocInfo.SectionType=SHT_RELA then infonode.nameid:=0;
+  end;
+  infonode.ncount:=aNode.NamedCount;
+  if aNode.IsLeaf then
+  begin
+    infonode.idcountsize:=aNode.Data.RawData.Size;
+    infonode.subptr:=fDataCurOfs;
+    fDataCurOfs:=NextAligned(fDataAlignment,fDataCurOfs+infonode.idcountsize);
+  end
+  else
+  begin
+    infonode.idcountsize:=aNode.IDCount;
+    infonode.subptr:=aNode.SubDirRVA;
+  end;
+  //fRelocTable.Add(
+  //  fCurOfs+sizeof(infonode.nameid)+sizeof(infonode.ncount)+
+  //  sizeof(infonode.idcountsize),infonode.subptr,RSRCSECT_IDX);
+  AddDataRelocation(
+    R_WASM_MEMORY_ADDR_I32,
+    fCurOfs+sizeof(infonode.nameid)+sizeof(infonode.ncount)+sizeof(infonode.idcountsize),
+    Ord(wrdsResources),
+    infonode.subptr);
+//  if fRelocInfo.SectionType=SHT_RELA then infonode.subptr:=0;
+  if fOppositeEndianess then
+  begin
+    infonode.nameid:=SwapEndian(infonode.nameid);
+    infonode.ncount:=SwapEndian(infonode.ncount);
+    infonode.idcountsize:=SwapEndian(infonode.idcountsize);
+    infonode.subptr:=SwapEndian(infonode.subptr);
+  end;
+  FDataSegments[wrdsResources].WriteBuffer(infonode,sizeof(infonode));
+  inc(fCurOfs,sizeof(infonode));
+end;
+
+procedure TWasmResourceWriter.WriteSubNodes(aNode: TResourceTreeNode);
+var i : integer;
+begin
+  for i:=0 to aNode.NamedCount-1 do
+    WriteNodeInfo(aNode.NamedEntries[i]);
+  for i:=0 to aNode.IDCount-1 do
+    WriteNodeInfo(aNode.IDEntries[i]);
+
+  for i:=0 to aNode.NamedCount-1 do
+    WriteSubNodes(aNode.NamedEntries[i]);
+  for i:=0 to aNode.IDCount-1 do
+    WriteSubNodes(aNode.IDEntries[i]);
+end;
+
 procedure TWasmResourceWriter.WriteWasmSection(aStream: TStream;
   wsid: TWasmSectionID);
 var
@@ -353,6 +423,7 @@ begin
   fRoot:=TRootResTreeNode(GetTree(aResources));
   PrescanResourceTree;
   WriteResHeader(aResources);
+  WriteNodeInfos;
 
   WriteImportSection;
   WriteDataSegments;
