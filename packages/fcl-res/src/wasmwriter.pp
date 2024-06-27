@@ -47,6 +47,8 @@ type
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
     FWasmCustomSections: array [TWasmCustomSectionType] of TMemoryStream;
     FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of TMemoryStream;
+    FWasmSymbolTable: TMemoryStream;
+    FWasmSymbolTableEntriesCount: Integer;
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
@@ -58,6 +60,7 @@ type
     procedure WriteCustomSectionNames;
     procedure WriteImportSection;
     procedure WriteDataSegments;
+    procedure WriteSymbolTable;
   protected
     function GetExtensions : string; override;
     function GetDescription : string; override;
@@ -275,6 +278,12 @@ begin
   end;
 end;
 
+procedure TWasmResourceWriter.WriteSymbolTable;
+begin
+  WriteUleb(FWasmLinkingSubsections[WASM_SYMBOL_TABLE],FWasmSymbolTableEntriesCount);
+  FWasmLinkingSubsections[WASM_SYMBOL_TABLE].CopyFrom(FWasmSymbolTable,0);
+end;
+
 function TWasmResourceWriter.GetExtensions: string;
 begin
   Result:=fExtensions;
@@ -298,6 +307,8 @@ begin
   WriteImportSection;
   WriteDataSegments;
 
+  WriteSymbolTable;
+  WriteLinkingSubsection(WASM_SYMBOL_TABLE);
   WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
   aStream.WriteBuffer(WasmModuleMagic,SizeOf(WasmModuleMagic));
@@ -325,6 +336,8 @@ begin
 {$ELSE FPC_BIG_ENDIAN}
   fOppositeEndianess := False;
 {$ENDIF FPC_BIG_ENDIAN}
+  FWasmSymbolTable:=TMemoryStream.Create;
+  FWasmSymbolTableEntriesCount:=0;
   for i in TWasmSectionID do
     FWasmSections[i] := TMemoryStream.Create;
   for j in TWasmResourceDataSegment do
@@ -350,6 +363,7 @@ begin
     FreeAndNil(FDataSegments[j]);
   for i in TWasmSectionID do
     FreeAndNil(FWasmSections[i]);
+  FreeAndNil(FWasmSymbolTable);
   FreeAndNil(fResStringTable);
   inherited Destroy;
 end;
