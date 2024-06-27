@@ -45,12 +45,15 @@ type
     fDataCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
+    FWasmCustomSections: array [TWasmCustomSectionType] of TMemoryStream;
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
     procedure WriteResHeader(aResources : TResources);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
+    procedure WriteWasmCustomSection(aStream: TStream; wcst: TWasmCustomSectionType);
+    procedure WriteCustomSectionNames;
     procedure WriteImportSection;
     procedure WriteDataSegments;
   protected
@@ -198,6 +201,23 @@ begin
     WriteWasmSection(aStream,wsid);
 end;
 
+procedure TWasmResourceWriter.WriteWasmCustomSection(aStream: TStream;
+  wcst: TWasmCustomSectionType);
+begin
+  aStream.WriteByte(0);
+  WriteUleb(aStream,FWasmCustomSections[wcst].size);
+  aStream.CopyFrom(FWasmCustomSections[wcst],0);
+end;
+
+procedure TWasmResourceWriter.WriteCustomSectionNames;
+var
+  cust_sec: TWasmCustomSectionType;
+begin
+  { each custom sections starts with its name }
+  for cust_sec in TWasmCustomSectionType do
+    WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
+end;
+
 procedure TWasmResourceWriter.WriteImportSection;
 const
   ImportsCount = 1;
@@ -248,6 +268,10 @@ end;
 
 procedure TWasmResourceWriter.Write(aResources: TResources; aStream: TStream);
 begin
+  WriteCustomSectionNames;
+
+  WriteUleb(FWasmCustomSections[wcstLinking],2);  { linking metadata version }
+
   fRoot:=TRootResTreeNode(GetTree(aResources));
   PrescanResourceTree;
   WriteResHeader(aResources);
@@ -260,12 +284,14 @@ begin
   WriteWasmSection(aStream,wsiImport);
   WriteWasmSection(aStream,wsiDataCount);
   WriteWasmSection(aStream,wsiData);
+  WriteWasmCustomSection(aStream,wcstLinking);
 end;
 
 constructor TWasmResourceWriter.Create;
 var
   i: TWasmSectionID;
   j: TWasmResourceDataSegment;
+  k: TWasmCustomSectionType;
 begin
   fExtensions:='.o .or';
   fDescription:='WebAssembly resource writer';
@@ -281,13 +307,18 @@ begin
     FWasmSections[i] := TMemoryStream.Create;
   for j in TWasmResourceDataSegment do
     FDataSegments[j] := TMemoryStream.Create;
+  for k in TWasmCustomSectionType do
+    FWasmCustomSections[k] := TMemoryStream.Create;
 end;
 
 destructor TWasmResourceWriter.Destroy;
 var
   i: TWasmSectionID;
   j: TWasmResourceDataSegment;
+  k: TWasmCustomSectionType;
 begin
+  for k in TWasmCustomSectionType do
+    FreeAndNil(FWasmCustomSections[k]);
   for j in TWasmResourceDataSegment do
     FreeAndNil(FDataSegments[j]);
   for i in TWasmSectionID do
