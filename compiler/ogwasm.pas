@@ -4644,14 +4644,17 @@ implementation
         begin
           DataCount:=0;
           for DataSecName in DataSections do
-            if FindExeSection(DataSecName).Size>0 then
-              Inc(DataCount);
+            begin
+              ExeSec:=FindExeSection(DataSecName);
+              if Assigned(ExeSec) and (ExeSec.Size>0) then
+                Inc(DataCount);
+            end;
           WriteUleb(FWasmSections[wsiDataCount],DataCount);
           WriteUleb(FWasmSections[wsiData],DataCount);
           for DataSecName in DataSections do
             begin
               ExeSec:=FindExeSection(DataSecName);
-              if ExeSec.Size>0 then
+              if Assigned(ExeSec) and (ExeSec.Size>0) then
                 WriteExeSection(ExeSec);
             end;
         end;
