@@ -45,6 +45,7 @@ type
     fDataCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
+    FDataSegmentFileSectionOfs: array [TWasmResourceDataSegment] of Int64;
     FDataRelocations: array of TWasmRelocationEntry;
     FWasmCustomSections: array [TWasmCustomSectionType] of TMemoryStream;
     FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of TMemoryStream;
@@ -180,14 +181,19 @@ end;
 procedure TWasmResourceWriter.WriteRelocationDataTable(DataSectionIndex: Integer);
 var
   i: Integer;
+  s: TWasmResourceDataSegment;
 begin
   WriteUleb(FWasmCustomSections[wcstRelocData],DataSectionIndex);
   WriteUleb(FWasmCustomSections[wcstRelocData],Length(FDataRelocations));
   for i:=0 to Length(FDataRelocations)-1 do
     with FDataRelocations[i] do
     begin
+      if Offset<FDataSegments[wrdsResources].Size then
+        s:=wrdsResources
+      else
+        s:=wrdsResHandles;
       FWasmCustomSections[wcstRelocData].WriteByte(Ord(Typ));
-      WriteUleb(FWasmCustomSections[wcstRelocData],Offset);
+      WriteUleb(FWasmCustomSections[wcstRelocData],Offset+FDataSegmentFileSectionOfs[s]);
       WriteUleb(FWasmCustomSections[wcstRelocData],Index);
       if Typ in [R_WASM_MEMORY_ADDR_I32,
                  R_WASM_MEMORY_ADDR_I64,
@@ -313,6 +319,7 @@ begin
     WriteSleb(FWasmSections[wsiData],ofs);
     FWasmSections[wsiData].WriteByte($0b);
     WriteUleb(FWasmSections[wsiData],FDataSegments[ds].Size);
+    FDataSegmentFileSectionOfs[ds]:=FWasmSections[wsiData].size;
     if FDataSegments[ds].Size>0 then
     begin
       FWasmSections[wsiData].CopyFrom(FDataSegments[ds], 0);
