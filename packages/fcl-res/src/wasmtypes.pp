@@ -97,6 +97,14 @@ type
     SYMTAB_EVENT    = 4,
     SYMTAB_TABLE    = 5);
 
+  PWasmRelocationEntry = ^TWasmRelocationEntry;
+  TWasmRelocationEntry = record
+    Typ: TWasmRelocationType;
+    Offset: UInt32;
+    Index: UInt32;
+    Addend: Int32;
+  end;
+
   TWasmResourceDataSegment = (wrdsResources, wrdsResHandles);
 
 implementation

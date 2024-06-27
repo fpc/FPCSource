@@ -45,6 +45,7 @@ type
     fDataCurOfs : longword;
     FWasmSections: array [TWasmSectionID] of TMemoryStream;
     FDataSegments: array [TWasmResourceDataSegment] of TMemoryStream;
+    FDataRelocations: array of TWasmRelocationEntry;
     FWasmCustomSections: array [TWasmCustomSectionType] of TMemoryStream;
     FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of TMemoryStream;
     FWasmSymbolTable: TMemoryStream;
@@ -52,6 +53,7 @@ type
     function NextAligned(aBound, aValue : longword) : longword;
     procedure PrescanResourceTree;
     function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword;
+    procedure AddDataRelocation(aTyp: TWasmRelocationType; aOffset: UInt32; aIndex: UInt32; aAddend: Int32 = 0);
     procedure WriteResHeader(aResources : TResources);
     procedure WriteWasmSection(aStream: TStream; wsid: TWasmSectionID);
     procedure WriteWasmSectionIfNotEmpty(aStream: TStream; wsid: TWasmSectionID);
@@ -161,6 +163,19 @@ begin
   Result:=curofs;
 end;
 
+procedure TWasmResourceWriter.AddDataRelocation(aTyp: TWasmRelocationType;
+  aOffset: UInt32; aIndex: UInt32; aAddend: Int32);
+begin
+  SetLength(FDataRelocations,Length(FDataRelocations)+1);
+  with FDataRelocations[High(FDataRelocations)] do
+  begin
+    Typ:=aTyp;
+    Offset:=aOffset;
+    Index:=aIndex;
+    Addend:=aAddend;
+  end;
+end;
+
 procedure TWasmResourceWriter.WriteResHeader(aResources: TResources);
 var hdr : TResHdr32;
 begin
@@ -174,9 +189,12 @@ begin
   //  SHT_REL  : hdr.rootptr:=sizeof(hdr);
   //  SHT_RELA : hdr.rootptr:=0;
   //end;
+  hdr.rootptr:=sizeof(hdr);
 
   //fRelocTable.Add(0,sizeof(hdr),RSRCSECT_IDX);
+  AddDataRelocation(R_WASM_SECTION_OFFSET_I32,0,Ord(wrdsResources),sizeof(hdr));
   //fRelocTable.Add(sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),0,HANDLESECT_IDX);
+  AddDataRelocation(R_WASM_SECTION_OFFSET_I32,sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),Ord(wrdsResHandles),0);
   if fOppositeEndianess then
   begin
     hdr.rootptr:=SwapEndian(hdr.rootptr);
