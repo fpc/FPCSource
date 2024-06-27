@@ -307,6 +307,14 @@ begin
   WriteImportSection;
   WriteDataSegments;
 
+  Inc(FWasmSymbolTableEntriesCount);
+  FWasmSymbolTable.WriteByte(Ord(SYMTAB_DATA));
+  WriteUleb(FWasmSymbolTable,0);  { symbol flags }
+  WriteName(FWasmSymbolTable,'FPC_RESSYMBOL');
+  WriteUleb(FWasmSymbolTable,0);  { segment index }
+  WriteUleb(FWasmSymbolTable,0);  { offset }
+  WriteUleb(FWasmSymbolTable,0);  { size }
+
   WriteSymbolTable;
   WriteLinkingSubsection(WASM_SYMBOL_TABLE);
   WriteLinkingSubsection(WASM_SEGMENT_INFO);
