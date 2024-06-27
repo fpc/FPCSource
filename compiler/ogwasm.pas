@@ -4635,11 +4635,12 @@ implementation
         var
           DataCount: Integer;
         begin
-          DataCount:=2;
+          DataCount:=3;
           WriteUleb(FWasmSections[wsiDataCount],DataCount);
           WriteUleb(FWasmSections[wsiData],DataCount);
           WriteExeSection(FindExeSection('.rodata'));
           WriteExeSection(FindExeSection('.data'));
+          WriteExeSection(FindExeSection('fpc.resources'));
         end;
 
       procedure WriteTableAndElemSections;
