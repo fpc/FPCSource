@@ -229,7 +229,6 @@ type
     FEditRow : TJSONData;
     FRowType: TJSONRowType;
     FDeletedRows: TFPList;
-    procedure AddToRows(AValue: TJSONArray);
     procedure AppendToIndexes;
     procedure CreateIndexes;
     procedure SetMetaData(AValue: TJSONObject);
