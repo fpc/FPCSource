@@ -288,7 +288,7 @@ type
     function ReadJSPropertyInt64(const aName: UTF8String): Int64; virtual;
     function ReadJSPropertyValue(const aName: UTF8String): TJOB_JSValue; virtual;
     function ReadJSPropertyVariant(const aName: UTF8String): Variant; virtual;
-    function ReadJSPropertyMethod(const aName: UTF8String): IJSFunction; virtual;
+    function ReadJSPropertyMethod(const aName: UTF8String):  TMethod; virtual;
     // write a property
     procedure WriteJSPropertyBoolean(const aName: UTF8String; Value: Boolean); virtual;
     procedure WriteJSPropertyDouble(const aName: UTF8String; Value: Double); virtual;
@@ -389,7 +389,7 @@ type
     function ReadJSPropertyInt64(const aName: UTF8String): Int64; virtual;
     function ReadJSPropertyValue(const aName: UTF8String): TJOB_JSValue; virtual;
     function ReadJSPropertyVariant(const aName: UTF8String): Variant; virtual;
-    function ReadJSPropertyMethod(const aName: UTF8String): IJSFunction; virtual;
+    function ReadJSPropertyMethod(const aName: UTF8String): TMethod ; virtual;
     // write a property
     procedure WriteJSPropertyBoolean(const aName: UTF8String; Value: Boolean); virtual;
     procedure WriteJSPropertyDouble(const aName: UTF8String; Value: Double); virtual;
@@ -3949,9 +3949,11 @@ begin
   Result:=InvokeJSVariantResult(aName,[],jiGet);
 end;
 
-function TJSObject.ReadJSPropertyMethod(const aName: UTF8String): IJSFunction;
+function TJSObject.ReadJSPropertyMethod(const aName: UTF8String):  TMethod;
 begin
-  Result:=InvokeJSObjectResult(aName,[],TJSFunction,jiGet) as IJSFunction;
+  Result.Data:=nil;
+  Result.Code:=nil;
+//  Result:=InvokeJSObjectResult(aName,[],TJSFunction,jiGet) as IJSFunction;
 end;
 
 procedure TJSObject.WriteJSPropertyBoolean(const aName: UTF8String; Value: Boolean);
