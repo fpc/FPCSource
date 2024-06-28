@@ -8887,7 +8887,7 @@ xmmreg_mz,xmmreg,mem32                    \350\361\371\1\xCD\75\120             
 xmmreg_mz,xmmreg,xmmreg_sae               \350\361\371\1\xCD\75\120                 AVX512
 
 [VSCALEFPD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 xmmreg_mz,xmmreg,xmmrm                    \350\352\361\371\1\x2C\75\120             AVX512,TFV
 xmmreg_mz,xmmreg,bmem64                   \350\352\361\371\1\x2C\75\120             AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\352\361\364\371\1\x2C\75\120         AVX512,TFV
@@ -8897,7 +8897,7 @@ zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\371\1\x2C\75\120     
 zmmreg_mz,zmmreg,zmmreg_er                \350\351\352\361\371\1\x2C\75\120         AVX512
 
 [VSCALEFPS]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 xmmreg_mz,xmmreg,xmmrm                    \350\361\371\1\x2C\75\120                 AVX512,TFV
 xmmreg_mz,xmmreg,bmem32                   \350\361\371\1\x2C\75\120                 AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm                    \350\361\364\371\1\x2C\75\120             AVX512,TFV
@@ -8907,12 +8907,12 @@ zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x2C\75\120         
 zmmreg_mz,zmmreg,zmmreg_er                \350\351\361\371\1\x2C\75\120             AVX512
 
 [VSCALEFSD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x2D\75\120             AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\371\1\x2D\75\120             AVX512
 
 [VSCALEFSS]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x2D\75\120                 AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x2D\75\120                 AVX512
 
@@ -8968,10 +8968,6 @@ ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x43\75\120\27  
 ymmreg_mz,ymmreg,bmem64,imm8              \350\352\361\364\372\1\x43\75\120\27      AVX512,TFV
 zmmreg_mz,zmmreg,zmmrm,imm8               \350\351\352\361\372\1\x43\75\120\27      AVX512,TFV
 zmmreg_mz,zmmreg,bmem64,imm8              \350\351\352\361\372\1\x43\75\120\27      AVX512,TFV
-
-
-
-
 
 [VPCOMPRESSB]
 (Ch_All)
