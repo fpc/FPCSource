@@ -100,7 +100,19 @@ var i : integer;
     s : shortstring;
     code : word;
 begin
+{$if defined(CPUWASM)}
+  { Since WebAssembly is a Harvard architecture, the code is invisible in linear
+    memory and the data section starts at address 0. Resources reside after the
+    initialized data section, just before the bss (uninitialized data) section,
+    therefore it's perfectly possible that their data exist on a relatively low
+    address (less than 64KB). So, for WebAssembly we check whether the pointer
+    resides in the first 4KB of linear memory, instead of the first 64KB. Note
+    that the first 4KB of linear memory in WebAssembly aren't used by Free
+    Pascal. }
+  InternalIsIntResource:=((PtrUInt(aStr) shr 12)=0);
+{$else}
   InternalIsIntResource:=((PtrUInt(aStr) shr 16)=0);
+{$endif}
   if InternalIsIntResource then aInt:=PtrUInt(aStr)
   else
   begin
