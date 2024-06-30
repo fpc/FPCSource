@@ -17,7 +17,7 @@
 
     function div_qword_throwdivbyzero(n,z : qword) : qword;
       begin
-        HandleErrorFrame(210,get_frame);
+        HandleErrorFrame(200,get_frame);
       end;
 
 {$define FPC_SYSTEM_HAS_DIV_INT64}
