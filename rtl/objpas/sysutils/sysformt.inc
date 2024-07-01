@@ -411,13 +411,13 @@ begin
               end;
         '%': ToAdd:='%';
       end;
-      If Width<>-1 then
-        If Length(ToAdd)<Width then
+      If (Width<>-1) and (Length(ToAdd)<Width) then
           If not Left then
-            ToAdd:=TFormatString(Space(Width-Length(ToAdd)))+ToAdd
+            Result:=Result+TFormatString(Space(Width-Length(ToAdd)))+ToAdd
           else
-            ToAdd:=ToAdd+TFormatString(space(Width-Length(ToAdd)));
-      Result:=Result+ToAdd;
+            Result:=Result+ToAdd+TFormatString(space(Width-Length(ToAdd)))
+      else
+        Result:=Result+ToAdd;
       end;
     inc(ChPos);
     Oldpos:=ChPos;
