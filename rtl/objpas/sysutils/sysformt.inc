@@ -411,13 +411,21 @@ begin
               end;
         '%': ToAdd:='%';
       end;
-      If (Width<>-1) and (Length(ToAdd)<Width) then
-          If not Left then
-            Result:=Result+TFormatString(Space(Width-Length(ToAdd)))+ToAdd
-          else
-            Result:=Result+ToAdd+TFormatString(space(Width-Length(ToAdd)))
+      // Padding ?
+      If (Width=-1) or (Length(ToAdd)>=Width) then
+        // No width specified or the string to add has required width or greater
+        Result:=Result+ToAdd
       else
-        Result:=Result+ToAdd;
+        begin
+        // String to add is less than requested width. Calc padding string
+        hs:=TFormatString(space(Width-Length(ToAdd)));
+        if Left then
+          // Add left aligned
+          Result:=Result+ToAdd+hs
+        else
+          // Add right aligned
+          Result:=Result+hs+ToAdd;
+        end;
       end;
     inc(ChPos);
     Oldpos:=ChPos;
