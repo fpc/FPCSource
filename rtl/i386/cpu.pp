@@ -271,7 +271,7 @@ type
            begin
               maxcpuidvalue:=CPUID(0).eax;
               cpuid1:=CPUID(1);
-              _TSCSupport:=(cpuid1.edx and $20)<>0;
+              _TSCSupport:=(cpuid1.edx and $10)<>0;
               _MMXSupport:=(cpuid1.edx and $800000)<>0;
               _CMOVSupport:=(cpuid1.edx and $8000)<>0;
               _AESSupport:=(cpuid1.ecx and $2000000)<>0;
