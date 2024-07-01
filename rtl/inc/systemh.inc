@@ -1571,7 +1571,7 @@ Function IOResult:Word;
 Function SPtr:Pointer;[internconst:fpc_in_const_ptr];
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
-Function GetProcessID:SizeUInt;
+Function GetProcessID:SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_FEATURE_PROCESSES}
 
