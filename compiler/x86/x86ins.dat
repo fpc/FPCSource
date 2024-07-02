@@ -8697,7 +8697,7 @@ zmmreg_mz,zmmreg,zmmrm                    \350\351\352\361\370\1\xEF\75\120     
 zmmreg_mz,zmmreg,bmem64                   \350\351\352\361\370\1\xEF\75\120         AVX512,TFV
 
 [VRANGEPD]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\352\361\372\1\x50\75\120\27          AVX512,TFV
 xmmreg_mz,xmmreg,bmem64,imm8              \350\352\361\372\1\x50\75\120\27          AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\352\361\364\372\1\x50\75\120\27      AVX512,TFV
@@ -8707,7 +8707,7 @@ zmmreg_mz,zmmreg,bmem64,imm8              \350\351\352\361\372\1\x50\75\120\27  
 zmmreg_mz,zmmreg,zmmreg_sae,imm8          \350\351\352\361\372\1\x50\75\120\27      AVX512
 
 [VRANGEPS]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg_mz,xmmreg,xmmrm,imm8               \350\361\372\1\x50\75\120\27              AVX512,TFV
 xmmreg_mz,xmmreg,bmem32,imm8              \350\361\372\1\x50\75\120\27              AVX512,TFV
 ymmreg_mz,ymmreg,ymmrm,imm8               \350\361\364\372\1\x50\75\120\27          AVX512,TFV
@@ -8717,17 +8717,17 @@ zmmreg_mz,zmmreg,bmem32,imm8              \350\351\361\372\1\x50\75\120\27      
 zmmreg_mz,zmmreg,zmmreg_sae,imm8          \350\351\361\372\1\x50\75\120\27          AVX512
 
 [VRANGESD]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg_mz,xmmreg,mem64,imm8               \350\352\361\372\1\x51\75\120\27          AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg_sae,imm8          \350\352\361\372\1\x51\75\120\27          AVX512
 
 [VRANGESS]
-(Ch_All)
+(Ch_Wop4, Ch_Rop3, Ch_Rop2, Ch_Rop1)
 xmmreg_mz,xmmreg,mem32,imm8               \350\361\372\1\x51\75\120\27              AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg_sae,imm8          \350\361\372\1\x51\75\120\27              AVX512
 
 [VRCP14PD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\352\361\371\1\x4C\110                AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\371\1\x4C\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \350\352\361\364\371\1\x4C\110            AVX512,TFV
@@ -8736,7 +8736,7 @@ zmmreg_mz,zmmrm                           \350\351\352\361\371\1\x4C\110        
 zmmreg_mz,bmem64                          \350\351\352\361\371\1\x4C\110            AVX512,TFV
 
 [VRCP14PS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\361\371\1\x4C\110                    AVX512,TFV
 xmmreg_mz,bmem32                          \350\361\371\1\x4C\110                    AVX512,TFV
 ymmreg_mz,ymmrm                           \350\361\364\371\1\x4C\110                AVX512,TFV
@@ -8745,23 +8745,23 @@ zmmreg_mz,zmmrm                           \350\351\361\371\1\x4C\110            
 zmmreg_mz,bmem32                          \350\351\361\371\1\x4C\110                AVX512,TFV
 
 [VRCP14SD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg,mem64                    \350\352\361\371\1\x4D\75\120             AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg                   \350\352\361\371\1\x4D\75\120             AVX512
 
 [VRCP14SS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x4D\75\120                 AVX512,T1S
 xmmreg_mz,xmmreg,xmmreg                   \350\361\371\1\x4D\75\120                 AVX512
 
 [VRCP28PD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 zmmreg_mz,mem512                          \350\351\352\361\371\1\xCA\110            AVX512,TFV
 zmmreg_mz,bmem64                          \350\351\352\361\371\1\xCA\110            AVX512,TFV
 zmmreg_mz,zmmreg_sae                      \350\351\352\361\371\1\xCA\110            AVX512
 
 [VRCP28PS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 zmmreg_mz,mem512                          \350\351\361\371\1\xCA\110                AVX512,TFV
 zmmreg_mz,bmem32                          \350\351\361\371\1\xCA\110                AVX512,TFV
 zmmreg_mz,zmmreg_sae                      \350\351\361\371\1\xCA\110                AVX512
