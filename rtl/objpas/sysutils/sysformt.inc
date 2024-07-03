@@ -368,9 +368,8 @@ begin
                     hs:=Args[doarg].VVariant^;
                 Index:=Length(hs);
                 If (Prec<>-1) and (Index>Prec) then
-                  ToAdd:=Copy(hs,1,Prec)
-                else
-                  ToAdd:=hs;
+                  SetLength(hs,Prec);
+                ToAdd:=hs;
               end;
         'P' : Begin
               CheckArg(vtpointer,true);
