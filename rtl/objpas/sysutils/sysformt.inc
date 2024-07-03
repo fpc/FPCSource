@@ -275,7 +275,7 @@ begin
               If (Prec<>-1) and (Index>Prec) then
                 begin
                 Index:=Prec;
-                ToAdd:=Copy(ToAdd,1,Index);
+                SetLength(ToAdd,Index);
                 end;
               end;
         'D' : begin
