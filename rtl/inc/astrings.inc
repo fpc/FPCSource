@@ -404,7 +404,7 @@ end;
 {$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
 
 {$ifdef EXTRAANSISHORT}
-Procedure AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString);
+Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString);
 {
   Concatenates a Ansi with a short string; : S2 + S2
 }
