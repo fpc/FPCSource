@@ -52,7 +52,11 @@ type
 
   TMessageListener = reference to procedure(const Sender: TObject; const M: TMessageBase);
   TMessageListenerMethod = procedure (const Sender: TObject; const M: TMessageBase) of object;
-
+  {$IFNDEF CPU64}
+  TMessageSubscriptionId = LongInt;
+  {$ELSE}
+  TMessageSubscriptionId = Int64;
+  {$ENDIF}
   TBaseMessageManager = Class;
   TBaseMessageManagerClass = Class of TBaseMessageManager;
 
@@ -60,7 +64,7 @@ type
 
   TBaseMessageManager = class
   Private
-    FNextID : integer;
+    FNextID : TMessageSubscriptionId;
   Private
     class var _instance: TBaseMessageManager;
     class function GetInstance: TBaseMessageManager; static;
@@ -68,12 +72,12 @@ type
     Class Destructor Done;
     class var DefaultManagerClass: TBaseMessageManagerClass;
   Protected
-    Function GenerateClientID : Integer;
+    Function GenerateClientID : TMessageSubscriptionId;
   Public
     Constructor Create; virtual;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): Integer; virtual; abstract; overload;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): Integer; virtual; abstract; overload;
-    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: Integer; Immediate: Boolean = False); virtual; abstract; overload;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): TMessageSubscriptionId; virtual; abstract; overload;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId; virtual; abstract; overload;
+    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean = False); virtual; abstract; overload;
     procedure Unsubscribe(const aMessageClass: TClass; const aListener: TMessageListener; Immediate: Boolean = False); virtual; abstract; overload;
     procedure Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean = False); virtual; abstract; overload;
     procedure SendMessage(const Sender: TObject; AMessage: TMessageBase); overload;
@@ -91,34 +95,49 @@ type
 
     { TListenerWithId }
 
-    TListenerWithId = record
-      Id: Integer;
+    TListenerWithId = class
+      Id: TMessageSubscriptionId;
       Listener: TMessageListener;
       ListenerMethod: TMessageListenerMethod;
+      MarkedAsRemoved : Boolean;
+    Public
       Function Matches(aListener : TMessageListener) : Boolean; inline;
       Function Matches(aListener : TMessageListenerMethod) : Boolean; inline;
+      Function Matches(aID : TMessageSubscriptionId) : Boolean; inline;
+      constructor Create(const AId: TMessageSubscriptionId; const AListenerMethod: TMessageListenerMethod); overload;
+      constructor Create(const AId: TMessageSubscriptionId; const AListener: TMessageListener); overload;
+      procedure MarkAsRemoved;
     end;
     PListenerWithId = ^TListenerWithId;
+    TListenerWithIdList = specialize TObjectList<TListenerWithId>;
 
     { TListenerList }
 
-    TListenerList = class(specialize TList<TListenerWithId>)
+    TListenerList = class
     Private
+      FList : TListenerWithIdList;
       FUpdateCount : Integer;
       FUnSubscribeCount : Integer;
       Procedure BeginUpdate; inline;
       Procedure EndUpdate; inline;
       function Updating : Boolean; inline;
-    Protected
+      procedure DoUnsubscribe(Index: Integer);
+    Public
+      constructor Create;
+      destructor destroy; override;
       procedure RemoveEmpty;
       procedure CheckRemoveEmpty; inline;
-      procedure Unsubscribe(Index: Integer; Immediate: Boolean); inline;
-      procedure SendMessage(const Sender: TObject; const AMessage: TMessageBase); inline;
+      function Subscribe(const AId: TMessageSubscriptionId; const AListener: TMessageListener): TMessageSubscriptionId; overload;
+      function Subscribe(const AId: TMessageSubscriptionId; const AListenerMethod: TMessageListenerMethod): TMessageSubscriptionId; overload;
+      procedure Unsubscribe(Index: TMessageSubscriptionId);
+      procedure Unsubscribe(aListener: TMessageListener);
+      procedure Unsubscribe(aListener: TMessageListenerMethod);
+      procedure SendMessage(const Sender: TObject; const AMessage: TMessageBase);
     end;
 
     TListenerRegistry = specialize TObjectDictionary<TClass, TListenerList>;
-
   private
+  protected
     FListeners: TListenerRegistry;
     function Add(const aMessageClass: TClass;
       const aListener: TMessageListener; aListenerMethod: TMessageListenerMethod
@@ -127,13 +146,14 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): Integer; override;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): Integer; override;
-    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: Integer; Immediate: Boolean = False); override;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): TMessageSubscriptionId; override;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId; override;
+    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListener: TMessageListener; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean = False); override;
     procedure SendMessage(const Sender: TObject; AMessage: TMessageBase; ADispose: Boolean); override;
   end;
+  TMessageManagerClass = class of TMessageManager;
 
 { ---------------------------------------------------------------------
   TMessageClientList
@@ -148,9 +168,9 @@ type
   TMessageClient = class (TCollectionItem)
   Public
     Disabled : boolean; // Unsubscribed but not yet deleted...
-    ClientID : integer;
+    ClientID : TMessageSubscriptionId;
   Public
-    constructor Create(aCollection : TCollection; aClientID : Integer); overload;
+    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId); overload;
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); virtual; abstract;
   end;
 
@@ -162,7 +182,7 @@ type
   Protected
     Property Listener : TMessageListener Read FListener;
   Public
-    constructor Create(aCollection : TCollection; aClientID : Integer; aListener: TMessageListener); overload;
+    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId; aListener: TMessageListener); overload;
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); override;
   end;
 
@@ -174,7 +194,7 @@ type
   Protected
     Property Listener : TMessageListenerMethod Read FListener;
   Public
-    constructor Create(aCollection : TCollection; aClientID : Integer; aListener: TMessageListenerMethod); overload;
+    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId; aListener: TMessageListenerMethod); overload;
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); override;
   end;
 
@@ -193,7 +213,7 @@ type
     function Add(aId : Integer; const aListenerMethod: TMessageListenerMethod): TMessageClient; virtual;
     procedure NotifyClients(const Sender: TObject; const aMessage: TMessageBase);
     // These should be improved to be faster ?
-    function IndexOf(const aClientID: Integer) : integer; virtual; overload;
+    function IndexOf(const aClientID: TMessageSubscriptionId) : integer; virtual; overload;
     function IndexOf(const aListener: TMessageListener): integer; virtual; overload;
     function IndexOf(const aListenerMethod: TMessageListenerMethod): integer; virtual; overload;
     procedure Remove(aIndex : Integer);
@@ -215,10 +235,10 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): Integer; override;
-    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): Integer; override;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): TMessageSubscriptionId; override;
+    function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId; override;
     // Immediate not used, it will break during sending of message
-    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: Integer; Immediate: Boolean = False); override;
+    procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListener: TMessageListener; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean = False); override;
     procedure SendMessage(const Sender: TObject; aMessage: TMessageBase; aDispose: Boolean); override;
@@ -228,8 +248,7 @@ implementation
 
 { TMessageListenerMethodClient }
 
-constructor TMessageListenerMethodClient.Create(aCollection: TCollection;
-  aClientID: Integer; aListener: TMessageListenerMethod);
+constructor TMessageListenerMethodClient.Create(aCollection: TCollection;  aClientID: TMessageSubscriptionId; aListener: TMessageListenerMethod);
 begin
   Inherited Create(aCollection,aClientID);
   FListener:=aListener;
@@ -244,7 +263,7 @@ end;
 { TMessageListenerClient }
 
 constructor TMessageListenerClient.Create(aCollection: TCollection;
-  aClientID: Integer; aListener: TMessageListener);
+  aClientID: TMessageSubscriptionId; aListener: TMessageListener);
 begin
   Inherited Create(aCollection,aClientID);
   FListener:=aListener;
@@ -297,7 +316,7 @@ begin
 end;
 
 
-function TSimpleMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener) : Integer;
+function TSimpleMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener) : TMessageSubscriptionId;
 
 var
   Clients: TMessageClientList;
@@ -308,7 +327,7 @@ begin
   Clients.Add(Result,AListener);
 end;
 
-function TSimpleMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): Integer;
+function TSimpleMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId;
 
 var
   Clients: TMessageClientList;
@@ -347,7 +366,7 @@ begin
     Clients.Remove(Idx);
 end;
 
-procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; SubscriptionId: Integer; Immediate: Boolean);
+procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean);
 var
   Clients : TMessageClientList;
   Idx : Integer;
@@ -433,7 +452,7 @@ begin
   end;
 end;
 
-function TMessageClientList.IndexOf(const aClientID: Integer): integer;
+function TMessageClientList.IndexOf(const aClientID: TMessageSubscriptionId): integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (TMessageClient(Items[Result]).ClientID<>aClientID) do
@@ -516,7 +535,7 @@ end;
 { TClient }
 
 
-constructor TMessageClient.Create(aCollection: TCollection; aClientID: Integer);
+constructor TMessageClient.Create(aCollection: TCollection; aClientID: TMessageSubscriptionId);
 begin
   Disabled:=False; // Safety: set before inherited, make sure cleanup does not happen.
   Inherited Create(aCollection);
@@ -543,7 +562,7 @@ begin
   FreeAndNil(_Instance);
 end;
 
-function TBaseMessageManager.GenerateClientID: Integer;
+function TBaseMessageManager.GenerateClientID: TMessageSubscriptionId;
 begin
   Result:=AtomicIncrement(FNextID);
 end;
@@ -561,6 +580,25 @@ end;
 
 { TMessageManager.TListenerWithId }
 
+constructor TMessageManager.TListenerWithId.Create(const aId: TMessageSubscriptionId; const aListenerMethod: TMessageListenerMethod);
+
+begin
+  Id:=aID;
+  ListenerMethod:=aListenerMethod;
+end;
+
+constructor TMessageManager.TListenerWithId.Create(const AId: TMessageSubscriptionId; const AListener: TMessageListener); 
+
+begin
+  Id:=aId;
+  Listener:=aListener;
+end;
+
+Function TMessageManager.TListenerWithId.Matches(aID : TMessageSubscriptionId) : Boolean;
+begin
+  Result:=(aId=ID);
+end;
+
 function TMessageManager.TListenerWithId.Matches(aListener: TMessageListener): Boolean;
 begin
   Result:=(Pointer(aListener)=Pointer(Listener));
@@ -573,6 +611,15 @@ begin
   M1:=TMethod(aListener);
   M2:=TMethod(ListenerMethod);
   Result:=(M1.Code=M2.Code) and (M2.Data=M2.Data);
+end;
+
+procedure TMessageManager.TListenerWithId.MarkAsRemoved;
+
+begin
+  MarkedAsRemoved:=True;
+  Id:=0;
+  Listener:=Nil;
+  ListenerMethod:=Nil;
 end;
 
 { TMessageManager.TListenerList }
@@ -592,6 +639,17 @@ begin
   Result:=(FUpdateCount>0);
 end;
 
+constructor TMessageManager.TListenerList.Create;
+begin
+  FList:=TListenerWithIdList.Create(True);
+end;
+
+destructor TMessageManager.TListenerList.destroy;
+begin
+  FreeAndNil(Flist);
+  inherited destroy;
+end;
+
 procedure TMessageManager.TListenerList.SendMessage(const Sender: TObject; const AMessage: TMessageBase);
 
 var
@@ -601,9 +659,11 @@ var
 begin
   BeginUpdate;
   try
-    for I:=0 to Count-1 do
+    for I:=0 to FList.Count-1 do
     begin
-      L:=Items[I];
+      L:=FList[I];
+      if L.MarkedAsRemoved then
+        continue;
       if Assigned(L.Listener) then
         L.Listener(Sender, AMessage)
       else if Assigned(L.ListenerMethod) then
@@ -621,19 +681,72 @@ begin
     RemoveEmpty;
 end;
 
-procedure TMessageManager.TListenerList.Unsubscribe(Index: Integer; Immediate: Boolean);
+function TMessageManager.TListenerList.Subscribe(const AId: TMessageSubscriptionId; const AListener: TMessageListener): TMessageSubscriptionId;
+
+var
+  Obj : TListenerWithId;
 
 begin
-  if Immediate and not Updating then
-    Delete(Index)
-  else
-    begin
-    Items[Index]:=Default(TListenerWithId);
-    Inc(FUnSubscribeCount);
-    if Not Updating then
-      CheckRemoveEmpty;
-    end;
+  Obj:=TListenerWithId.Create(aId,aListener);
+  FList.Add(Obj);
+  Result:=Obj.Id;
+end;
 
+function TMessageManager.TListenerList.Subscribe(const AId: TMessageSubscriptionId; const AListenerMethod: TMessageListenerMethod): TMessageSubscriptionId;
+var
+  Obj : TListenerWithId;
+
+begin
+  Obj:=TListenerWithId.Create(aId,aListenerMethod);
+  FList.Add(Obj);
+  Result:=Obj.Id;
+end;
+
+procedure TMessageManager.TListenerList.Unsubscribe(Index: TMessageSubscriptionId);
+
+var
+  Idx : integer;
+
+begin
+  Idx:=FList.Count-1;
+  While (Idx>=0) and not FList[Idx].Matches(Index) do
+    Dec(Idx);
+  If Idx>0 then
+    DoUnsubscribe(Idx);
+end;
+
+procedure TMessageManager.TListenerList.Unsubscribe(aListener: TMessageListener);
+
+var
+  Idx : integer;
+
+begin
+  Idx:=FList.Count-1;
+  While (Idx>=0) and not FList[Idx].Matches(aListener) do
+    Dec(Idx);
+  If Idx>0 then
+    DoUnsubscribe(Idx);
+end;
+
+procedure TMessageManager.TListenerList.Unsubscribe(aListener: TMessageListenerMethod);
+var
+  Idx : integer;
+
+begin
+  Idx:=FList.Count-1;
+  While (Idx>=0) and not FList[Idx].Matches(aListener) do
+    Dec(Idx);
+  If Idx>0 then
+    DoUnsubscribe(Idx);
+end;
+
+procedure TMessageManager.TListenerList.DoUnsubscribe(Index: Integer);
+
+begin
+  FList[Index].MarkAsRemoved;
+  Inc(FUnSubscribeCount);
+  if Not Updating then
+    CheckRemoveEmpty;
 end;
 
 procedure TMessageManager.TListenerList.RemoveEmpty;
@@ -642,17 +755,17 @@ var
   L : TListenerWithId;
 begin
   N:=0;
-  for I:=0 to Count-1 do
+  for I:=0 to FList.Count-1 do
     begin
-    L:=Items[I];
-    if Assigned(L.Listener) or Assigned(L.ListenerMethod) then
+    L:=FList[I];
+    if Not L.MarkedAsRemoved then
       begin
       if N<I then
-        Items[N]:=L;
+        FList[N]:=L;
       Inc(N);
       end;
     end;
-  Count:=N;
+  FList.Count:=N;
   FUnSubscribeCount:=0;
 end;
 
@@ -680,7 +793,6 @@ end;
 function TMessageManager.Add(const aMessageClass: TClass; const aListener: TMessageListener; aListenerMethod: TMessageListenerMethod) : Integer;
 
 var
-  C: TListenerWithId;
   List: TListenerList;
 
 begin
@@ -689,18 +801,18 @@ begin
   if Not FListeners.TryGetValue(aMessageClass,List) then
     Exit;
   Result:=GenerateClientID;
-  C.Id:=Result;
-  C.Listener:=aListener;
-  C.ListenerMethod:=aListenerMethod;
-  List.Add(C);
+  If Assigned(aListener) then
+    List.Subscribe(Result,aListener)
+  else
+    List.SubScribe(Result,aListenerMethod);
 end;
 
-function TMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener) : Integer;
+function TMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener) : TMessageSubscriptionID;
 begin
   Result:=Add(aMessageClass,aListener,Nil);
 end;
 
-function TMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): Integer;
+function TMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionID;
 
 begin
   Result:=Add(aMessageClass,Nil,aListenerMethod);
@@ -710,51 +822,33 @@ procedure TMessageManager.Unsubscribe(const aMessageClass: TClass; const aListen
 
 var
   List : TListenerList;
-  Idx : Integer;
 
 begin
   if Not FListeners.TryGetValue(AMessageClass,List) then
     Exit;
-  Idx:=List.Count-1;
-  While (Idx>=0) and Not List[Idx].Matches(aListener) do
-    Dec(Idx);
-  if Idx<0 then
-    Exit;
-  List.Unsubscribe(Idx,Immediate);
+  List.Unsubscribe(AListener);
 end;
 
 procedure TMessageManager.Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean);
 
 var
   List : TListenerList;
-  Idx : Integer;
 
 begin
   if Not FListeners.TryGetValue(AMessageClass,List) then
     Exit;
-  Idx:=List.Count-1;
-  While (Idx>=0) and Not List[Idx].Matches(aListenerMethod) do
-    Dec(Idx);
-  if Idx<0 then
-    Exit;
-  List.Unsubscribe(Idx,Immediate);
+  List.Unsubscribe(aListenerMethod);
 end;
 
-procedure TMessageManager.Unsubscribe(const aMessageClass: TClass; SubscriptionId: Integer; Immediate: Boolean);
+procedure TMessageManager.Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean);
 
 var
-  idx: Integer;
   List: TListenerList;
 
 begin
   if not FListeners.TryGetValue(AMessageClass,List) then
     Exit;
-  Idx:=List.Count-1;
-  While (Idx>=0) and (List[Idx].Id<>SubScriptionID) do
-    Dec(Idx);
-  if Idx<0 then
-    Exit;
-  List.Unsubscribe(Idx,Immediate);
+  List.Unsubscribe(SubscriptionID);
 end;
 
 procedure TMessageManager.SendMessage(const Sender: TObject; AMessage: TMessageBase; ADispose: Boolean);
