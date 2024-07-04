@@ -875,19 +875,26 @@ function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
 var
   lRect: TRect;
 begin
-  lRect:=R1;
-  if R2.Left<R1.Left then
-    lRect.Left:=R2.Left;
-  if R2.Top<R1.Top then
-    lRect.Top:=R2.Top;
-  if R2.Right>R1.Right then
-    lRect.Right:=R2.Right;
-  if R2.Bottom>R1.Bottom then
-    lRect.Bottom:=R2.Bottom;
+  if IsRectEmpty(R1) then
+    lRect:=R2
+  else if IsRectEmpty(R2) then
+    lRect:=R1
+  else
+    begin
+      lRect:=R1;
+      if R2.Left<R1.Left then
+        lRect.Left:=R2.Left;
+      if R2.Top<R1.Top then
+        lRect.Top:=R2.Top;
+      if R2.Right>R1.Right then
+        lRect.Right:=R2.Right;
+      if R2.Bottom>R1.Bottom then
+        lRect.Bottom:=R2.Bottom;
+    end;
 
   Result:=not IsRectEmpty(lRect);
   if Result then
-    Rect := lRect
+    Rect:=lRect
   else
     FillChar(Rect,SizeOf(Rect),0);
 end;
