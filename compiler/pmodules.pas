@@ -840,6 +840,34 @@ implementation
 
 
     procedure free_unregistered_localsymtable_elements(curr : tmodule);
+      procedure remove_from_procdeflist(adef: tdef);
+        var
+          i: Integer;
+          childdef: tdef;
+        begin
+          if adef=nil then exit;
+          if (adef.typ in [objectdef, recorddef]) and (adef is tabstractrecorddef) then
+            begin
+              if tabstractrecorddef(adef).symtable<>nil then
+                for i:=0 to tabstractrecorddef(adef).symtable.DefList.Count-1 do
+                  begin
+                    childdef:=tdef(tabstractrecorddef(adef).symtable.DefList[i]);
+                    remove_from_procdeflist(childdef);
+                  end;
+            end
+          else
+            if adef.typ=procdef then
+              begin
+                tprocsym(tprocdef(adef).procsym).ProcdefList.Remove(adef);
+                if tprocdef(adef).localst<>nil then
+                  for i:=0 to tprocdef(adef).localst.DefList.Count-1 do
+                    begin
+                      childdef:=tdef(tprocdef(adef).localst.DefList[i]);
+                      remove_from_procdeflist(childdef);
+                    end;
+              end;
+        end;
+
       var
         i: longint;
         def: tdef;
@@ -859,9 +887,7 @@ implementation
                   unless that sym hasn't been registered either (it's possible
                   to have one overload in the interface and another in the
                   implementation) }
-                if (def.typ=procdef) and
-                   tprocdef(def).procsym.is_registered then
-                 tprocsym(tprocdef(def).procsym).ProcdefList.Remove(def);
+                remove_from_procdeflist(def);
                 curr.localsymtable.deletedef(def);
               end;
           end;
