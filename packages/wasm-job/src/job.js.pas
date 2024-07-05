@@ -578,8 +578,18 @@ type
 
   IJSArray = interface(IJSObject)
     ['{21E331BA-7B57-42DD-8DCE-B26FEA85C693}']
+    function _GetBooleans(Index: NativeInt): Boolean;
     function _GetElements(Index: NativeInt): TJOB_JSValue;
+    function _GetFloats(Index: NativeInt): Double;
     function _GetLength: NativeInt;
+    function _GetNativeInts(Index: NativeInt): NativeInt;
+    function _GetObjects(Index: NativeInt): IJSObject;
+    function _GetStrings(Index: NativeInt): UnicodeString;
+    procedure _SetBooleans(Index: NativeInt; aValue: Boolean);
+    procedure _SetFloats(Index: NativeInt; aValue: Double);
+    procedure _SetNativeInts(Index: NativeInt; aValue: NativeInt);
+    procedure _SetObjects(Index: NativeInt; aValue: IJSObject);
+    procedure _SetStrings(Index: NativeInt; aValue: UnicodeString);
     procedure _SetElements(Index: NativeInt; const AValue: TJOB_JSValue);
     procedure _SetLength(const AValue: NativeInt);
     function isArray(a: TJOB_JSValue): Boolean; overload;
@@ -636,14 +646,31 @@ type
     //function values: TJSIterator;
     Property Length: NativeInt Read _GetLength Write _SetLength;
     property Elements[Index: NativeInt]: TJOB_JSValue read _GetElements write _SetElements; default;
+    // Convenience properties
+    Property Floats[Index: NativeInt] : Double Read _GetFloats Write _SetFloats;
+    Property NativeInts[Index: NativeInt] : NativeInt Read _GetNativeInts Write _SetNativeInts;
+    Property Strings[Index: NativeInt] : UnicodeString Read _GetStrings Write _SetStrings;
+    Property Objects[Index: NativeInt] : IJSObject Read _GetObjects Write _SetObjects;
+    Property Booleans[Index: NativeInt] : Boolean Read _GetBooleans Write _SetBooleans;
   end;
 
   { TJSArray }
 
   TJSArray = class(TJSObject,IJSArray)
   private
+    function _GetBooleans(Index: NativeInt): Boolean;
     function _GetElements(Index: NativeInt): TJOB_JSValue;
+    function _GetFloats(Index: NativeInt): Double;
     function _GetLength: NativeInt;
+    function _GetNativeInts(Index: NativeInt): NativeInt;
+    function _GetObjects(Index: NativeInt): IJSObject;
+    function _GetStrings(Index: NativeInt): UnicodeString;
+    procedure _SetBooleans(Index: NativeInt; aValue: Boolean);
+    procedure _SetFloats(Index: NativeInt; aValue: Double);
+    procedure _SetNativeInts(Index: NativeInt; aValue: NativeInt);
+    procedure _SetObjects(Index: NativeInt; aValue: IJSObject);
+    procedure _SetStrings(Index: NativeInt; aValue: UnicodeString);
+
     procedure _SetElements(Index: NativeInt; const AValue: TJOB_JSValue);
     procedure _SetLength(const AValue: NativeInt);
   public
@@ -702,6 +729,14 @@ type
     //function values: TJSIterator;
     Property Length: NativeInt Read _GetLength Write _SetLength;
     property Elements[Index: NativeInt]: TJOB_JSValue read _GetElements write _SetElements; default;
+    // Convenience properties
+
+    Property Floats[Index: NativeInt] : Double Read _GetFloats;
+    Property NativeInts[Index: NativeInt] : NativeInt Read _GetNativeInts;
+    Property Strings[Index: NativeInt] : UnicodeString Read _GetStrings;
+    Property Objects[Index: NativeInt] : IJSObject Read _GetObjects;
+    Property Booleans[Index: NativeInt] : Boolean Read _GetBooleans;
+
     class function Cast(const Intf: IJSObject): IJSArray; overload;
     class function JSClassName: UnicodeString; override;
   end;
@@ -1960,14 +1995,183 @@ end;
 
 { TJSArray }
 
+function TJSArray._GetBooleans(Index: NativeInt): Boolean;
+var
+  V : TJOB_JSValue;
+
+begin
+  V:=Elements[Index];
+  try
+    if V is TJOB_Boolean then
+      Exit(TJOB_Boolean(V).Value);
+  finally
+    V.Free;
+  end;
+  Raise EConvertError.CreateFmt('Element %d is not a valid boolean',[Index]);
+end;
+
 function TJSArray._GetElements(Index: NativeInt): TJOB_JSValue;
 begin
   Result:=InvokeJSValueResult(IntToStr(Index),[],jiGet);
 end;
 
+function TJSArray._GetFloats(Index: NativeInt): Double;
+
+var
+  V : TJOB_JSValue;
+  Code : Integer;
+
+begin
+  V:=Elements[Index];
+  try
+    if V is TJOB_Double then
+      Exit(TJOB_Double(V).Value);
+    if V is TJOB_String then
+      begin
+      Val(TJOB_STRING(V).Value,Result,Code);
+      if Code=0 then
+        Exit
+      end;
+  finally
+    V.Free;
+  end;
+  Raise EConvertError.CreateFmt('Element %d is not a valid float',[Index]);
+end;
+
 function TJSArray._GetLength: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('length');
+end;
+
+function TJSArray._GetNativeInts(Index: NativeInt): NativeInt;
+
+var
+  V : TJOB_JSValue;
+
+begin
+  V:=Elements[Index];
+  try
+    if V is TJOB_Double then
+      if Frac(TJOB_Double(V).Value)=0 then
+        Exit(Round(TJOB_Double(V).Value));
+    if V is TJOB_String then
+      begin
+      if TryStrToInt(TJOB_STRING(V).Value,Result) then
+        Exit
+      end;
+  finally
+    V.Free;
+  end;
+  Raise EConvertError.CreateFmt('Element %d is not a valid integer value',[Index]);
+end;
+
+function TJSArray._GetObjects(Index: NativeInt): IJSObject;
+var
+  V : TJOB_JSValue;
+
+begin
+  V:=Elements[Index];
+  try
+    if V is TJOB_Object then
+      Exit(TJOB_Object(V).Value);
+  finally
+    V.Free;
+  end;
+  Raise EConvertError.CreateFmt('Element %d is not a valid object',[Index]);
+end;
+
+function TJSArray._GetStrings(Index: NativeInt): UnicodeString;
+
+var
+  V : TJOB_JSValue;
+  S : String;
+
+begin
+  V:=Elements[Index];
+  try
+    if V is TJOB_Double then
+      if Frac(TJOB_Double(V).Value)=0 then
+        Exit(IntToStr(Round(TJOB_Double(V).Value)))
+    else
+      begin
+      Str(TJOB_Double(V).Value,S);
+      Result:=S;
+      end;
+    if V is TJOB_String then
+      Result:=TJOB_STRING(V).Value;
+  finally
+    V.Free;
+  end;
+  Raise EConvertError.CreateFmt('Element %d is not a valid integer value',[Index]);
+end;
+
+procedure TJSArray._SetBooleans(Index: NativeInt; aValue: Boolean);
+
+Var
+  V : TJOB_Boolean;
+
+begin
+   V:=TJOB_Boolean.Create(aValue);
+   try
+     _SetElements(Index,V);
+   finally
+     V.Free;
+   end;
+end;
+
+procedure TJSArray._SetFloats(Index: NativeInt; aValue: Double);
+
+Var
+  V : TJOB_Double;
+
+begin
+   V:=TJOB_Double.Create(aValue);
+   try
+     _SetElements(Index,V);
+   finally
+     V.Free;
+   end;
+end;
+
+procedure TJSArray._SetNativeInts(Index: NativeInt; aValue: NativeInt);
+
+Var
+  V : TJOB_Double;
+
+begin
+   V:=TJOB_Double.Create(aValue);
+   try
+     _SetElements(Index,V);
+   finally
+     V.Free;
+   end;
+end;
+
+procedure TJSArray._SetObjects(Index: NativeInt; aValue: IJSObject);
+Var
+  V : TJOB_Object;
+
+begin
+   V:=TJOB_Object.Create(aValue);
+   try
+     _SetElements(Index,V);
+   finally
+     V.Free;
+   end;
+end;
+
+procedure TJSArray._SetStrings(Index: NativeInt; aValue: UnicodeString);
+
+Var
+  V : TJOB_String;
+
+begin
+   V:=TJOB_String.Create(aValue);
+   try
+     _SetElements(Index,V);
+   finally
+     V.Free;
+   end;
 end;
 
 procedure TJSArray._SetElements(Index: NativeInt; const AValue: TJOB_JSValue);
