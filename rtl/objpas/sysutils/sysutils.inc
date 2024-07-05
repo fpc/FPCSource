@@ -650,6 +650,29 @@ begin
   Raise OutOfMemory;
 end;
 
+function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
+
+begin
+  if aMaxIndex<0 then
+    Result:=Format(SListIndexErrorEmptyReason,[aListObjName])
+  else
+    Result:=Format(SListIndexErrorRangeReason,[aListObjName]);
+  Result:=Format(SListIndexError, [aIndex])+Result;
+end;
+
+function ListIndexErrorMsg(AIndex, AMaxIndex: SizeInt; AListObj: TObject): string; overload;
+
+Var
+  aName : string;
+
+begin
+  if Assigned(aListObj) then
+   Result:=aListObj.ClassName
+ else
+   Result:='<Nil>';
+  Result:=ListIndexErrorMsg(aIndex, aMaxIndex, aName);
+end;
+
 procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
 
 var

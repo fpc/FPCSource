@@ -272,7 +272,9 @@ type
    procedure Abort;
    procedure OutOfMemoryError;
    procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
-
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; aListObj: TObject): string; overload;
+    
 Type
    TBeepHandler = Procedure;
 
