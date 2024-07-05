@@ -1421,14 +1421,14 @@ end;
 
 class function TJSTextEncoder.Cast(const Intf: IJSObject): IJSTextEncoder;
 begin
-  Result:=TJSTextEncoder.Cast(Intf);
+  Result:=TJSTextEncoder.JOBCast(Intf);
 end;
 
 { TJSTextDecoder }
 
 class function TJSTextDecoder.Cast(const Intf: IJSObject): IJSTextDecoder;
 begin
-  Result:=TJSTextDecoder.Cast(Intf);
+  Result:=TJSTextDecoder.JOBCast(Intf);
 end;
 
 { TJSPromise }
@@ -1548,7 +1548,7 @@ end;
 
 class function TJSPromise.Cast(const Intf: IJSObject): IJSPromise;
 begin
-  Result:=TJSPromise.Cast(Intf);
+  Result:=TJSPromise.JOBCast(Intf);
 end;
 
 class function TJSPromise.JSClassName: UnicodeString;
@@ -1560,7 +1560,7 @@ end;
 
 class function TJSError.Cast(const Intf: IJSObject): IJSError;
 begin
-  Result:=TJSError.Cast(Intf);
+  Result:=TJSError.JOBCast(Intf);
 end;
 
 { TJSJSON }
@@ -1599,21 +1599,21 @@ end;
 
 class function TJSJSON.Cast(const Intf: IJSObject): IJSJSON;
 begin
-  Result:=TJSJSON.Cast(Intf);
+  Result:=TJSJSON.JOBCast(Intf);
 end;
 
 { TJSDataView }
 
 class function TJSDataView.Cast(const Intf: IJSObject): IJSDataView;
 begin
-  Result:=TJSDataView.Cast(Intf);
+  Result:=TJSDataView.JOBCast(Intf);
 end;
 
 { TJSBufferSource }
 
 class function TJSBufferSource.Cast(const Intf: IJSObject): IJSBufferSource;
 begin
-  Result:=TJSBufferSource.Cast(Intf);
+  Result:=TJSBufferSource.JOBCast(Intf);
 end;
 
 { TJSFloat64Array }
@@ -1635,7 +1635,7 @@ end;
 
 class function TJSFloat64Array.Cast(const Intf: IJSObject): IJSFloat64Array;
 begin
-  Result:=TJSFloat64Array.Cast(Intf);
+  Result:=TJSFloat64Array.JOBCast(Intf);
 end;
 
 { TJSFloat32Array }
@@ -1657,7 +1657,7 @@ end;
 
 class function TJSFloat32Array.Cast(const Intf: IJSObject): IJSFloat32Array;
 begin
-  Result:=TJSFloat32Array.Cast(Intf);
+  Result:=TJSFloat32Array.JOBCast(Intf);
 end;
 
 { TJSUint32Array }
@@ -1679,7 +1679,7 @@ end;
 
 class function TJSUint32Array.Cast(const Intf: IJSObject): IJSUint32Array;
 begin
-  Result:=TJSUint32Array.Cast(Intf);
+  Result:=TJSUint32Array.JOBCast(Intf);
 end;
 
 { TJSInt32Array }
@@ -1701,7 +1701,7 @@ end;
 
 class function TJSInt32Array.Cast(const Intf: IJSObject): IJSInt32Array;
 begin
-  Result:=TJSInt32Array.Cast(Intf);
+  Result:=TJSInt32Array.JOBCast(Intf);
 end;
 
 { TJSUint16Array }
@@ -1713,7 +1713,7 @@ end;
 
 class function TJSUint16Array.Cast(const Intf: IJSObject): IJSUint16Array;
 begin
-  Result:=TJSUint16Array.Cast(Intf);
+  Result:=TJSUint16Array.JOBCast(Intf);
 end;
 
 function TJSUint16Array._GetElement(aIndex: NativeInt): Word;
@@ -1740,7 +1740,7 @@ end;
 
 class function TJSInt16Array.Cast(const Intf: IJSObject): IJSInt16Array;
 begin
-  Result:=TJSInt16Array.Cast(Intf);
+  Result:=TJSInt16Array.JOBCast(Intf);
 end;
 
 class function TJSInt16Array.JSClassName: UnicodeString;
@@ -1797,7 +1797,7 @@ end;
 
 class function TJSUint8Array.Cast(const Intf: IJSObject): IJSUint8Array;
 begin
-  Result:=TJSUInt8Array.Cast(Intf);
+  Result:=TJSUInt8Array.JOBCast(Intf);
 end;
 
 { TJSInt8Array }
@@ -1880,7 +1880,7 @@ end;
 
 class function TJSTypedArray.Cast(const Intf: IJSObject): IJSTypedArray;
 begin
-  Result:=TJSTypedArray.Cast(Intf);
+  Result:=TJSTypedArray.JOBCast(Intf);
 end;
 
 procedure TJSTypedArray.set_(aArray: IJSTypedArray; TargetOffset: Integer);
@@ -2116,7 +2116,7 @@ end;
 
 class function TJSArray.Cast(const Intf: IJSObject): IJSArray;
 begin
-  Result:=TJSArray.Cast(Intf);
+  Result:=TJSArray.JOBCast(Intf);
 end;
 
 class function TJSArray.JSClassName: UnicodeString;
@@ -2128,7 +2128,7 @@ end;
 
 class function TJSString.Cast(const Intf: IJSObject): IJSString;
 begin
-  Result:=TJSString.Cast(Intf);
+  Result:=TJSString.JOBCast(Intf);
 end;
 
 { TJSRegExp }
@@ -2205,7 +2205,7 @@ end;
 
 class function TJSRegExp.Cast(const Intf: IJSObject): IJSRegExp;
 begin
-  Result:=TJSRegExp.Cast(Intf);
+  Result:=TJSRegExp.JOBCast(Intf);
 end;
 
 { TJSFunction }
@@ -2301,21 +2301,21 @@ end;
 
 class function TJSFunction.Cast(const Intf: IJSObject): IJSFunction;
 begin
-  Result:=TJSFunction.Cast(Intf);
+  Result:=TJSFunction.JOBCast(Intf);
 end;
 
 { TJSMap }
 
 class function TJSMap.Cast(const Intf: IJSObject): IJSMap;
 begin
-  Result:=TJSMap.Cast(Intf);
+  Result:=TJSMap.JOBCast(Intf);
 end;
 
 { TJSSet }
 
 class function TJSSet.Cast(const Intf: IJSObject): IJSSet;
 begin
-  Result:=TJSSet.Cast(Intf);
+  Result:=TJSSet.JOBCast(Intf);
 end;
 
 { TJOBCallbackHelper }
