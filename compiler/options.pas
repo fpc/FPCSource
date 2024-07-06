@@ -2669,7 +2669,34 @@ begin
            s:=upper(copy(more,j+1));
 {$ifdef cpucapabilities}
            { find first occurrence of + or - }
-           deletepos:=PosCharset(['+','-'],s);
+
+  {$ifdef x86_64}
+           { Workaround - don't remove the "-" signs from ICELAKE-CLIENT,
+             ICELAKE-SERVER, SKYLAKE-X, X86-64 and X86-64-V1 etc. }
+           if (Copy(s,1,8)='ICELAKE-') and
+             (
+               (Copy(s,9,6)='CLIENT') or
+               (Copy(s,9,6)='SERVER')
+             ) then
+             begin
+               extrasettings:=Copy(s,15,Length(s));
+               deletepos:=PosCharset(['+','-'],extrasettings);
+             end
+           else if (Copy(s,1,9)='SKYLAKE-X') or
+             ((Copy(s,1,8)='X86-64-V') and (s[9] in ['1','2','3','4'])) then
+             begin
+               extrasettings:=Copy(s,10,Length(s));
+               deletepos:=PosCharset(['+','-'],extrasettings);
+             end
+           else if (Copy(s,1,6)='X86-64') then
+             begin
+               extrasettings:=Copy(s,7,Length(s));
+               deletepos:=PosCharset(['+','-'],extrasettings);
+             end
+           else
+  {$endif x86_64}
+             deletepos:=PosCharset(['+','-'],s);
+
            if deletepos<>0 then
              begin
                extrasettings:=Copy(s,deletepos,Length(s));
