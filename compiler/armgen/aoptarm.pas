@@ -1519,6 +1519,7 @@ Implementation
               taicpu(hp1).opcode:=A_AND;
               taicpu(hp1).ops:=3;
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+              setsubreg(taicpu(hp1).oper[1]^.reg,getsubreg(taicpu(hp1).oper[0]^.reg));
               taicpu(hp1).loadconst(2,taicpu(p).oper[2]^.val);
               GetNextInstruction(p,hp1);
               asml.remove(p);
