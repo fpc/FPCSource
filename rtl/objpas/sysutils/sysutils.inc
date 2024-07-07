@@ -909,7 +909,7 @@ begin
 end;
 {$ENDIF}
 
-Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
+Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
 
 var
   i: Integer;
@@ -973,7 +973,7 @@ begin
     end;
 end;
 
-Function ArrayOfConstToStr(Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
+Function ArrayOfConstToStr(const Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
 
   Procedure Add(s: UTF8String);
 

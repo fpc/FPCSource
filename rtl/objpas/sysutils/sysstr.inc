@@ -1183,13 +1183,13 @@ begin
   Result:=Format(Fmt,Args,DefaultFormatSettings);
 end;
 
-function SafeFormat (const Fmt: AnsiString; Args: array of const): UTF8String;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const): UTF8String;
 
 begin
   Result:=SafeFormat(Fmt,Args,DefaultFormatSettings);
 end;
 
-function SafeFormat (const Fmt: AnsiString; Args: array of const; const FormatSettings: TFormatSettings): UTF8String;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const; const FormatSettings: TFormatSettings): UTF8String;
 
 begin
   try
