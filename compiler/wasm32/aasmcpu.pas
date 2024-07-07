@@ -147,6 +147,8 @@ uses
       taicpu = class(tai_cpu_abstract_sym)
          is_br_generated_by_goto: boolean;
 
+         constructor Create(op : tasmop);override;
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -1909,6 +1911,14 @@ uses
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
+
+    constructor taicpu.Create(op: tasmop);
+      begin
+        inherited Create(op);
+        if not (ts_wasm_threads in current_settings.targetswitches) and is_atomic_op(op) then
+          internalerror(2024070701);
+      end;
+
 
     constructor taicpu.op_none(op : tasmop);
       begin
