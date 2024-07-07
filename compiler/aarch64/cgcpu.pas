@@ -1057,7 +1057,22 @@ implementation
                 list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
               OS_64,
               OS_S64:
-                list.concat(taicpu.op_reg_reg(A_SXTW,reg2,makeregsize(reg1,OS_32)));
+                case fromsize of
+                  OS_8:
+                    list.concat(taicpu.op_reg_reg(A_UXTB,reg2,makeregsize(reg1,OS_64)));
+                  OS_S8:
+                    list.concat(taicpu.op_reg_reg(A_SXTB,reg2,makeregsize(reg1,OS_64)));
+                  OS_16:
+                    list.concat(taicpu.op_reg_reg(A_UXTH,reg2,makeregsize(reg1,OS_64)));
+                  OS_S16:
+                    list.concat(taicpu.op_reg_reg(A_SXTH,reg2,makeregsize(reg1,OS_64)));
+                  OS_32:
+                    list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
+                  OS_S32:
+                    list.concat(taicpu.op_reg_reg(A_SXTW,reg2,makeregsize(reg1,OS_64)));
+                  else
+                    internalerror(2024070701);
+                end;
               else
                 internalerror(2002090901);
             end;
