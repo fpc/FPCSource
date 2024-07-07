@@ -155,7 +155,7 @@ interface
           tvarrec for us (must only pass one element in the last parameter).  }
         procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
         procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
-        procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
+        procedure append_entry(tag : tdwarf_tag;has_children : boolean;const data : array of const);
         procedure append_block1(attr: tdwarf_attribute; size: aint);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_addr_ref(sym : tasmsymbol); virtual;
@@ -943,7 +943,7 @@ implementation
 
     { writing the data through a few simply procedures allows to create easily extra information
       for debugging of debug info }
-    procedure TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
+    procedure TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;const data : array of const);
       var
         i : longint;
       begin
