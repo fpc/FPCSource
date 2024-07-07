@@ -231,6 +231,8 @@ Implementation
           else
             opoffset:=1;
           taicpu(hp1).loadReg(opoffset+1,taicpu(p).oper[1]^.reg);
+          if not(shiftmode in [SM_SXTX,SM_UXTX,SM_LSL]) then
+            setsubreg(taicpu(hp1).oper[opoffset+1]^.reg,R_SUBD);
           taicpu(hp1).ops:=opoffset+3;
           shifterop_reset(so);
           so.shiftmode:=shiftmode;
