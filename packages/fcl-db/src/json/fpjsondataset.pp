@@ -1289,6 +1289,8 @@ begin
     FFieldMapper.SetJSONDataForField(Field,FRows[FCurrentIndex[FCurrent]],F)
   else
     FFieldMapper.SetJSONDataForField(Field,FEditRow,F);
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    DataEvent(deFieldChange, PtrInt(Field));
 end;
 
 procedure TBaseJSONDataSet.SetBookmarkFlag(Buffer: TRecordBuffer;
