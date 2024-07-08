@@ -2905,6 +2905,7 @@ uses
         list:=tfpobjectlist.create(false);
         readdlist:=tfpobjectlist.create(false);
 
+        list.Capacity:=current_module.pendingspecializations.Count;
         for i:=0 to current_module.pendingspecializations.Count-1 do
           list.add(current_module.pendingspecializations.Items[i]);
 
