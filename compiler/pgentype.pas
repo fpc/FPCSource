@@ -81,10 +81,12 @@ var
   i : longint;
 begin
   result:=tspecializationcontext.create;
+  result.paramlist.capacity:=paramlist.count;
   for i:=0 to paramlist.count-1 do
     begin
       result.paramlist.add(paramlist[i]);
     end;
+  result.poslist.capacity:=poslist.count;
   for i:=0 to poslist.count-1 do
     begin
       new(posinfo);

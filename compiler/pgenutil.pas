@@ -728,6 +728,8 @@ uses
           tmpparampos:=current_filepos;
           if genericparams.count<>genericdef.genericparas.count then
             internalerror(2021020901);
+          poslist.capacity:=poslist.count+genericparams.count;
+          context.paramlist.capacity:=context.paramlist.count+genericparams.count;
           for i:=0 to genericparams.count-1 do
             begin
               paramname:=generic_param_hash(ttypesym(genericdef.genericparas[i]).typedef);
@@ -2961,6 +2963,7 @@ uses
 
         { add those defs back to the pending list for which we don't yet have
           all method bodies }
+        current_module.pendingspecializations.capacity:=current_module.pendingspecializations.count+readdlist.count;
         for i:=0 to readdlist.count-1 do
           current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
 

@@ -1867,6 +1867,7 @@ implementation
         if assigned(varargsparas) then
          begin
            n.varargsparas:=tvarargsparalist.create(true);
+           n.varargsparas.capacity:=varargsparas.count;
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);

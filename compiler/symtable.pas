@@ -1784,6 +1784,7 @@ implementation
 
         sublist:=tfplist.create;
         tabstractrecordsymtable(tabstractrecorddef(fsym.vardef).symtable).get_managementoperator_offset_list(mop,sublist);
+        mop_list[mop].capacity:=mop_list[mop].count+sublist.count;
         for i:=0 to sublist.count-1 do
           begin
             entry:=pmanagementoperator_offset_entry(sublist[i]);

@@ -2014,6 +2014,7 @@ implementation
         intfderef : pderef;
         i : longint;
       begin
+        interfacesderef.capacity:=interfacesderef.count+interfaces.count;
         for i:=0 to interfaces.count-1 do
           begin
             new(intfderef);
@@ -2026,6 +2027,7 @@ implementation
       var
         i : longint;
       begin
+        interfaces.capacity:=interfaces.count+interfacesderef.count;
         for i:=0 to interfacesderef.count-1 do
           interfaces.add(pderef(interfacesderef[i])^.resolve);
       end;
@@ -2411,6 +2413,7 @@ implementation
           begin
             if not assigned(genericparaderefs) then
               genericparaderefs:=tfplist.create;
+            genericparaderefs.capacity:=genericparaderefs.count+genericparas.count;
             for i:=0 to genericparas.count-1 do
               begin
                 sym:=tsym(genericparas.items[i]);
@@ -8084,6 +8087,7 @@ implementation
         tobjectdef(result).abstractcnt:=abstractcnt;
         if assigned(ImplementedInterfaces) then
           begin
+            tobjectdef(result).ImplementedInterfaces.capacity:=tobjectdef(result).ImplementedInterfaces.count+ImplementedInterfaces.count;
             for i:=0 to ImplementedInterfaces.count-1 do
               tobjectdef(result).ImplementedInterfaces.Add(TImplementedInterface(ImplementedInterfaces[i]).Getcopy);
           end;

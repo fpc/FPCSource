@@ -791,6 +791,7 @@ var
         i : longint;
         deref : pderef;
       begin
+        unitimportsymsderefs.capacity:=unitimportsymsderefs.count+unitimportsyms.count;
         for i:=0 to unitimportsyms.count-1 do
           begin
             new(deref);
@@ -805,6 +806,7 @@ var
         i : longint;
         sym : tsym;
       begin
+        unitimportsyms.capacity:=unitimportsyms.count+unitimportsymsderefs.count;
         for i:=0 to unitimportsymsderefs.count-1 do
           begin
             sym:=tsym(pderef(unitimportsymsderefs[i])^.resolve);

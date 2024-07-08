@@ -1698,6 +1698,7 @@ implementation
                   tocapture.add(sym);
             end;
 
+          convertarg.mappings.capacity:=convertarg.mappings.count+tocapture.count;
           for i:=0 to tocapture.count-1 do
             begin
               new(mapping);
