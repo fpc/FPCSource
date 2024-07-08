@@ -547,7 +547,10 @@ begin
   if Not (csLoading in ComponentState) then
     begin
     if AValue then
-      DoRegisterRoutes
+      begin
+      if FListRoute=Nil then
+        RegisterRoutes;
+      end
     else
       UnRegisterRoutes;
     end;
@@ -2204,6 +2207,7 @@ procedure TSQLDBRestDispatcher.UnRegisterRoutes;
   end;
 
 begin
+  Un(FParamRoute);
   Un(FListRoute);
   Un(FItemRoute);
   Un(FConnectionItemRoute);
