@@ -137,6 +137,7 @@ begin
     with T.Dependencies do
        begin
          AddInclude('invoke.inc',[x86_64],RttiOSes);
+         AddUnit('variants');
        end;
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpmonitor.pp',MonitorOSes);
