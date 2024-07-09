@@ -49,7 +49,9 @@ FPMAKE_OPT+=--globalunitdir=../packages
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
+ifndef DISABLE_FPMAKE_BUILD_UNIT
 FPMAKE_OPT+=-bu
+endif
 ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-scp
 endif
