@@ -181,8 +181,11 @@ var
   https://devblogs.microsoft.com/oldnewthing/20220919-00/?p=107195
   TL;DR: even in Windows sources, TlsGetValue is written in relatively high-level manner and not overly optimized. }
 
+{$undef FPC_HAS_SYSRELOCATETHREADVAR_ASM}
+
 {$ifndef wince} { Don’t know a thing, maybe WinCE TEB is compatible... :D https://stackoverflow.com/questions/1099311/windows-ce-internals-teb-thread-environment-block }
 {$if defined(cpui386)}
+  {$define FPC_HAS_SYSRELOCATETHREADVAR_ASM}
     function TrulyRelocateThreadvar(offset : dword) : pointer; forward;
 
     function SysRelocateThreadvar(offset : dword) : pointer; assembler; nostackframe;
@@ -215,6 +218,7 @@ var
         add  %edx, %eax { result := TlsGetValue(TLSKey^) + offset. }
       end;
 {$elseif defined(cpux86_64)}
+  {$define FPC_HAS_SYSRELOCATETHREADVAR_ASM}
     function TrulyRelocateThreadvar(offset : dword) : pointer; forward;
 
     function SysRelocateThreadvar(offset : dword) : pointer; assembler; nostackframe;
@@ -250,7 +254,7 @@ var
 {$endif not wince}
 
 
-    function {$if declared(SysRelocateThreadvar)} TrulyRelocateThreadvar {$else} SysRelocateThreadvar {$endif} (offset : dword) : pointer;
+    function {$ifdef FPC_HAS_SYSRELOCATETHREADVAR_ASM} TrulyRelocateThreadvar {$else} SysRelocateThreadvar {$endif} (offset : dword) : pointer;
       var
         dataindex : pointer;
         errorsave : dword;
