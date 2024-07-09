@@ -30,7 +30,6 @@ Const
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
   MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku];
-  CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,freertos,wasi]+UnixLikes+AllAmigaLikeOSes;
 
 Var
   P : TPackage;
@@ -57,12 +56,10 @@ begin
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/win',[win32,win64]);
-    P.SourcePath.Add('src/common',CommonSrcOSes);
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/$(CPU)');
-    P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('system.uitypes.pp',uitypesOses);
     T:=P.Targets.AddUnit('system.uiconsts.pp',uitypesOses);
