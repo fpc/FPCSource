@@ -346,6 +346,8 @@ begin
       end;
     T:=P.Targets.AddUnit('fprpcclient.pp');
     T.OSes:=SocketsOSes;
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fphttpwebclient');
     T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
     T.OSes:=AllOSes-[wasi];
