@@ -2963,7 +2963,6 @@ uses
 
         { add those defs back to the pending list for which we don't yet have
           all method bodies }
-        current_module.pendingspecializations.capacity:=current_module.pendingspecializations.count+readdlist.count;
         for i:=0 to readdlist.count-1 do
           current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
 
