@@ -29,8 +29,8 @@ Const
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
-
   CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,symbian,watcom,wii]+UnixLikes+AllAmigaLikeOSes;
+  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku];
 
 Var
   P : TPackage;
@@ -57,12 +57,10 @@ begin
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/win',[win32,win64]);
-    P.SourcePath.Add('src/common',CommonSrcOSes);
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/$(CPU)');
-    P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('system.uitypes.pp',uitypesOses);
     T:=P.Targets.AddUnit('system.uiconsts.pp',uitypesOses);
