@@ -1972,7 +1972,9 @@ FPMAKE_OPT+=--localunitdir=..
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
+ifndef DISABLE_FPMAKE_BUILD_UNIT
 FPMAKE_OPT+=-bu
+endif
 ifdef FPC_DOTTEDUNITS
 FPMAKE_OPT+=-ns
 FPMAKE_OPT+=-ns -o -dFPC_DOTTEDUNITS
