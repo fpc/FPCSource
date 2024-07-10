@@ -1832,8 +1832,7 @@ implementation
                  case paraarray[2].location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
-                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
-                         paraarray[1].location.register,paraarray[2].location.reference));
+                       emit_reg_ref(A_CMP,opsize,paraarray[1].location.register,paraarray[2].location.reference);
 
                        emit_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
                        instr:=TAiCpu(current_asmdata.CurrAsmList.Last); { The instruction just inserted; we need to modify its condition below }
