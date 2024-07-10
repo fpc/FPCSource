@@ -1,42 +1,3 @@
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
-
-    Interface and OS-dependent part of variant support
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-
-{$MODE ObjFPC}
-
-{$ifndef NO_SMART_LINK}
-{$smartlink on}
-{$endif}
-
-{$IFNDEF FPC_DOTTEDUNITS}
-Unit VarUtils;
-{$ENDIF FPC_DOTTEDUNITS}
-
-Interface
-
-{$IFDEF FPC_DOTTEDUNITS}
-Uses System.SysUtils,System.Types;
-{$ELSE FPC_DOTTEDUNITS}
-Uses sysutils,Types;
-{$ENDIF FPC_DOTTEDUNITS}
-
-{$i varutilh.inc}
-
-Implementation
-
-{$i cvarutil.inc}
-
 { ---------------------------------------------------------------------
     Windows external definitions.
   ---------------------------------------------------------------------}
@@ -78,4 +39,4 @@ function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: Double): HRESULT; stdcall; external oleaut; overload;
 function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: TDateTime): HRESULT; stdcall; external oleaut; overload;
 
-end.
+

@@ -14,6 +14,15 @@
  **********************************************************************}
 
 {$MODE ObjFPC}
+
+{$ifndef NO_SMART_LINK}
+{$smartlink on}
+{$endif}
+
+{$if defined (win32) or defined (win64)}
+{$define USE_WINDOWS_OLE_FUNCTIONS}
+{$endif}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 Unit varutils;
 {$ENDIF}
@@ -21,9 +30,21 @@ Unit varutils;
 Interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-Uses System.SysUtils, System.Variants;
+Uses
+  System.SysUtils,
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
+  System.Types;
+{$else}
+  System.Variants;
+[$endif}
 {$ELSE}
-uses sysutils, variants;
+uses
+  sysutils,
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
+  Types;
+{$else}
+  variants;
+[$endif}
 {$ENDIF}
 // Read definitions.
 
@@ -35,8 +56,14 @@ Implementation
 
 {$i cvarutil.inc}
 
-// Code common to non-win32 platforms.
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
+// Code common to Windows OS platforms.
+
+{$i wvarutil.inc}
+{$else}
+// Code common to other platforms.
 
 {$i varutils.inc}
+{$endif}
 
 end.
