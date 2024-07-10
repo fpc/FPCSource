@@ -34,7 +34,6 @@ uses
 {$else}
   variants;
 {$endif}
-
 // Read definitions.
 
 {$i varutilh.inc}
