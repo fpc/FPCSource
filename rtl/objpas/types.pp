@@ -47,6 +47,12 @@ type
   TDirection = (FromBeginning, FromEnd);
   TValueRelationship = -1..1;
 
+const
+  LessThanValue = Low(TValueRelationship);
+  EqualsValue = 0;
+  GreaterThanValue = High(TValueRelationship);
+
+type
   DWORD = LongWord;
 
   PLongint = System.PLongint;

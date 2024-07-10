@@ -56,10 +56,10 @@ interface
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
     uses
-       System.SysUtils;
+       System.SysUtils, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
     uses
-       sysutils;
+       sysutils, types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPDOC_MATH}
@@ -144,13 +144,22 @@ Const
 
        EInvalidArgument = class(ematherror);
 
-       TValueRelationship = -1..1;
+{$IFDEF FPC_DOTTEDUNITS}
+       TValueRelationship = System.Types.TValueRelationship;
+{$ELSE FPC_DOTTEDUNITS}
+       TValueRelationship = types.TValueRelationship;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
-       EqualsValue = 0;
-       LessThanValue = Low(TValueRelationship);
-       GreaterThanValue = High(TValueRelationship);
-       
+{$IFDEF FPC_DOTTEDUNITS}
+       EqualsValue = System.Types.EqualsValue;
+       LessThanValue = System.Types.LessThanValue;
+       GreaterThanValue = System.Types.GreaterThanValue;
+{$ELSE FPC_DOTTEDUNITS}
+       EqualsValue = types.EqualsValue;
+       LessThanValue = types.LessThanValue;
+       GreaterThanValue = types.GreaterThanValue;
+{$ENDIF FPC_DOTTEDUNITS}
 
        
 {$push}
