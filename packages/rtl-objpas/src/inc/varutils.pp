@@ -36,7 +36,7 @@ Uses
   System.Types;
 {$else}
   System.Variants;
-[$endif}
+{$endif}
 {$ELSE}
 uses
   sysutils,
@@ -44,7 +44,7 @@ uses
   Types;
 {$else}
   variants;
-[$endif}
+{$endif}
 {$ENDIF}
 // Read definitions.
 
