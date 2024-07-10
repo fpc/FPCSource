@@ -60,6 +60,7 @@ begin
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/$(CPU)');
+    P.IncludePath.Add('src/win',[win32,win64]);
 
     T:=P.Targets.AddUnit('system.uitypes.pp',uitypesOses);
     T:=P.Targets.AddUnit('system.uiconsts.pp',uitypesOses);
