@@ -162,7 +162,7 @@ type
           function  Floor   : TPoint;
           function  Round   : TPoint;
           function  Length  : Single;
-
+ 
           function Rotate(angle: single): TPointF;
           function Reflect(const normal: TPointF): TPointF;
           function MidPoint(const b: TPointF): TPointF;
@@ -173,6 +173,8 @@ type
           function AngleCosine(const b: TPointF): single;
           function CrossProduct(const apt: TPointF): Single;
           function Normalize: TPointF;
+          function ToString(aSize,aDecimals : Byte) : RTLString; overload;
+          function ToString : RTLString; overload; inline;
 
           class function Create(const ax, ay: Single): TPointF; overload; static; inline;
           class function Create(const apt: TPoint): TPointF; overload; static; inline;
@@ -212,6 +214,8 @@ type
           function  Floor   : TSize;
           function  Round   : TSize;
           function  Length  : Single;
+          function ToString(aSize,aDecimals : Byte) : RTLString; overload;
+          function ToString : RTLString; overload; inline;
 
           class function Create(const ax, ay: Single): TSizeF; overload; static; inline;
           class function Create(const asz: TSize): TSizeF; overload; static; inline;
@@ -291,6 +295,8 @@ type
     procedure Offset (DP: TPointF); inline;
     procedure SetLocation(P: TPointF);
     procedure SetLocation(X, Y: Single);
+    function ToString(aSize,aDecimals : Byte; aUseSize : Boolean = False) : RTLString; overload;
+    function ToString(aUseSize : Boolean = False) : RTLString; overload; inline;
     procedure Union  (const r: TRectF); inline;
     property  Width  : Single read GetWidth write SetWidth;
     property  Height : Single read GetHeight write SetHeight;
@@ -314,6 +320,8 @@ type
      constructor Create(const ax,ay,az:single);
      procedure   Offset(const adeltax,adeltay,adeltaz:single); inline;
      procedure   Offset(const adelta:TPoint3D); inline;
+     function ToString(aSize,aDecimals : Byte) : RTLString; overload;
+     function ToString : RTLString; overload; inline;
    public
      case Integer of
       0: (data:TSingle3Array);
@@ -1018,7 +1026,41 @@ begin
 end;
 
 
+Function SingleToStr(aValue : Single; aSize,aDecimals : Byte) : ShortString; inline;
+
+var
+  S : ShortString;
+  Len,P : Byte;
+  
+begin
+  Str(aValue:aSize:aDecimals,S);
+  Len:=Length(S);
+  P:=1;
+  While (P<=Len) and (S[P]=' ') do
+    Inc(P);
+  if P>1 then
+    Delete(S,1,P-1);
+  Result:=S;
+end;
+
 { TPointF}
+
+function TPointF.ToString : RTLString;
+
+begin
+  Result:=ToString(8,2);
+end;
+
+function TPointF.ToString(aSize,aDecimals : Byte) : RTLString;
+
+var
+  Sx,Sy : shortstring;
+
+begin
+  Sx:=SingleToStr(X,aSize,aDecimals);
+  Sy:=SingleToStr(Y,aSize,aDecimals);
+  Result:='('+Sx+','+Sy+')';
+end;
 
 function TPointF.Add(const apt: TPoint): TPointF;
 begin
@@ -1289,6 +1331,25 @@ end;
 
 { TSizeF }
 
+function TSizeF.ToString(aSize,aDecimals : Byte) : RTLString; 
+
+var
+  Sx,Sy : shortstring;
+
+begin
+  Sx:=SingleToStr(cx,aSize,aDecimals);
+  Sy:=SingleToStr(cy,aSize,aDecimals);
+  Result:='('+Sx+'x'+Sy+')';
+end;
+
+function TSizeF.ToString : RTLString; 
+
+begin
+  Result:=ToString(8,2);
+end;
+
+
+
 function TSizeF.Add(const asz: TSize): TSizeF;
 begin
   result.cx:=cx+asz.cx;
@@ -1433,6 +1494,25 @@ begin
 end;
 
 { TRectF }
+
+function TRectF.ToString(aSize,aDecimals : Byte; aUseSize : Boolean = False) : RTLString; 
+
+var
+  S : RTLString;
+
+begin
+  if aUseSize then
+    S:=Size.ToString(aSize,aDecimals)
+  else  
+    S:=BottomRight.ToString(aSize,aDecimals);
+  Result:='['+TopLeft.ToString(aSize,aDecimals)+' - '+S+']';
+end;
+
+function TRectF.ToString(aUseSize: Boolean = False) : RTLString;
+
+begin
+  Result:=ToString(8,2,aUseSize);
+end;
 
 class operator TRectF. * (L, R: TRectF): TRectF;
 begin
@@ -1806,6 +1886,25 @@ begin
 end;
 
 { TPoint3D }
+
+function TPoint3D.ToString(aSize,aDecimals : Byte) : RTLString; 
+ 
+var
+  Sx,Sy,Sz : shortstring;
+  P : integer;
+
+begin
+  Sx:=SingleToStr(X,aSize,aDecimals);
+  Sy:=SingleToStr(Y,aSize,aDecimals);
+  Sz:=SingleToStr(Z,aSize,aDecimals);
+  Result:='('+Sx+','+Sy+','+Sz+')';
+end;
+ 
+function TPoint3D.ToString : RTLString;
+
+begin
+  Result:=ToString(8,2);
+end;
 
 constructor TPoint3D.Create(const ax,ay,az:single);
 begin
