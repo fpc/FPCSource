@@ -520,6 +520,23 @@ begin
 end;
 
 
+function TComponent.ToString : RTLString;
+
+begin
+  Case ToStringNameMode of
+    snmName :
+      Result:=Name;
+    snmClassName :
+      Result:=Inherited;
+    snmNameClassName :
+      begin
+      Result:=Inherited;
+      if (Name<>'') then
+       Result:=Name+' ('+Result+')';
+      end;
+  end;
+end;
+
 Procedure TComponent.BeforeDestruction;
 begin
   if not(csDestroying in FComponentstate) then

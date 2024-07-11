@@ -2525,6 +2525,10 @@ type
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
       Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
   public
+    Type
+       TToStringNameMode = (snmNameClassName,snmClassName,snmName);
+    class var ToStringNameMode : TToStringNameMode;
+  public
     //!! Moved temporary
     // fpdoc doesn't handle this yet :(
 {$ifndef fpdocsystem}
@@ -2554,6 +2558,7 @@ type
     property ComObject: IUnknown read GetComObject;
     function IsImplementorOf (const Intf:IInterface):boolean;
     procedure ReferenceInterface(const intf:IInterface;op:TOperation);
+    function ToString : RTLString; override;
     property Components[Index: Integer]: TComponent read GetComponent;
     property ComponentCount: Integer read GetComponentCount;
     property ComponentIndex: Integer read GetComponentIndex write SetComponentIndex;
