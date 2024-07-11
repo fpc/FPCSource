@@ -8,6 +8,7 @@
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
@@ -55,8 +56,8 @@
       <SyntaxOptions>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
-        <CPPInline Value="False"/>
         <UseAnsiStrings Value="False"/>
+        <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
     <Other>
@@ -67,8 +68,12 @@
       </Verbosity>
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
+        <WriteConfigFilePath Value="$(ProjOutDir)\fpclaz.cfg"/>
       </ConfigFile>
       <CustomOptions Value="-daarch64"/>
+      <ExecuteBefore>
+        <ScanForMakeMsgs Value="True"/>
+      </ExecuteBefore>
     </Other>
   </CompilerOptions>
 </CONFIG>
