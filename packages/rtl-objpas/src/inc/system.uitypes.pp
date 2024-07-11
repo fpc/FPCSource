@@ -31,10 +31,13 @@ Type
     PAlphaColor = ^TAlphaColor;
     TImageIndex = type Integer;
 
+    { TColorRec }
+
     TColorRec = record
      class var ColorToRGB: function (Color: TColor): Longint;
                  class operator := (AColor : TColor): TColorRec; inline;
                  class operator := (AColor : TColorRec): TColor; inline;
+      function ToString : RTLString;
       const
       // 140 HTML colors.
       AliceBlue          = TColor($FFF8F0);
@@ -239,6 +242,8 @@ Type
       TColors = TColorRec;
 
 
+  { TAlphaColors }
+
   TAlphaColors = record
     const
       Null                 = TAlphaColor(0);
@@ -399,6 +404,7 @@ Type
   public
     constructor Create(const Color: TAlphaColor);
     class var ColorToRGB: function (Color: TAlphaColor): Longint;
+    function ToString : RTLString;
     case Cardinal of
           0:
             (Color: TAlphaColor);
@@ -439,6 +445,12 @@ Type
 
     function Clamp: TAlphaColorF;
     function ToAlphaColor: TAlphaColor;
+  end;
+
+  { TColorHelper }
+
+  TColorHelper = record helper for TColor
+    Function ToString : RTLString;
   end;
 
 
@@ -957,9 +969,26 @@ begin
   result:=AColor.Color;
 end;
 
+function TColorRec.ToString: RTLString;
+
+var
+  S : string;
+
+begin
+  if (Self.Color and $FF000000)=$FF then
+    Result:='SYS '+HexStr(Self.Color and $00FFFFFF,6)
+  else
+    Result:='#'+HexStr(R,2)+HexStr(G,2)+HexStr(B,2)
+end;
+
 constructor TAlphaColors.Create(const Color: TAlphaColor);
 begin
   Self := TAlphaColors(Color);
+end;
+
+function TAlphaColors.ToString: RTLString;
+begin
+  Result:='#'+HexStr(R,2)+HexStr(G,2)+HexStr(B,2)+HexStr(A,2)
 end;
 
 
@@ -1177,6 +1206,13 @@ begin
   CR.R:=CC(R);
   CR.G:=CC(G);
   CR.B:=CC(B);
+end;
+
+{ TColorHelper }
+
+function TColorHelper.ToString: RTLString;
+begin
+  Result:=TColorRec(Self).ToString;
 end;
 
 function DefaultColorToRGB(Color: TColor): Longint;
