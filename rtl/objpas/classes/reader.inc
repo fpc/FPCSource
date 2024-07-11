@@ -69,6 +69,13 @@ begin
   BeginComponent(Flags,AChildPos,CompClassName, CompName);
 end;
 
+procedure TAbstractObjectReader.ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer);
+begin
+  // Do nothing
+  Flags:=[];
+  aChildPos:=0;
+end;
+
 function TBinaryObjectReader.ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
 begin
   Read(Result,2);
@@ -179,14 +186,13 @@ begin
   BeginComponent(Flags, AChildPos, CompUnitName, CompClassName, CompName);
 end;
 
-procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
-  var AChildPos: Integer; var CompUnitName, CompClassName, CompName: String);
+procedure TBinaryObjectReader.ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer);
+
 var
   Prefix: Byte;
   ValueType: TValueType;
-  p: SizeInt;
+
 begin
-  { Every component can start with a special prefix: }
   Flags := [];
   if (Byte(NextValue) and $f0) = $f0 then
   begin
@@ -207,6 +213,16 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
+  var AChildPos: Integer; var CompUnitName, CompClassName, CompName: String);
+var
+  ValueType: TValueType;
+  p: SizeInt;
+begin
+  { Every component can start with a special prefix: }
+  ReadPrefix(Flags,aChildPos);
 
   CompUnitName:='';
   if Version = TBOVersion.boVersion1 then
@@ -781,8 +797,7 @@ begin
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: RawBytestring
-  ): CodePointer;
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: rawbytestring): CodePointer;
 var
   ErrorResult: Boolean;
 begin
@@ -1591,7 +1606,10 @@ var
   CompUnitName, CompClassName, CompName : String;
   
 begin
-  Driver.BeginComponent(aFlags,aChildPos, CompUnitName, CompClassName, CompName);
+  if RawMode then
+    Driver.ReadPrefix(aFlags,aChildPos)
+  else
+    Driver.BeginComponent(aFlags,aChildPos, CompUnitName, CompClassName, CompName);
 end;
 
 function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
@@ -1701,10 +1719,16 @@ begin
 end;
 
 
-function TReader.ReadStr : rawbytestring;
+function TReader.ReadStr: RawByteString;
+
+Var
+  Curr : TValueType;
 
 begin
-  Result:=DoReadString(Driver.CurrentValue)
+  Curr:=Driver.CurrentValue;
+  if RawMode then
+    Curr:=vaString;
+  Result:=DoReadString(Curr);
 end;
 
 function TReader.DoReadString(aType : TValueType): rawbytestring;
@@ -1726,7 +1750,7 @@ begin
   end;
 end;
 
-function TReader.ReadString: rawbytestring;
+function TReader.ReadString: RawBytestring;
 
 begin
   Result:=DoReadString(FDriver.ReadValue);
