@@ -15,6 +15,7 @@
 {****************************************************************************}
 
 
+{$ifdef FPC_WASM_THREADS}
 procedure TThread.CallOnTerminate;
 
 begin
@@ -218,4 +219,67 @@ begin
   WaitFor:=WaitForThreadTerminate(FThreadID,0);
 end;
 
+{$else FPC_WASM_THREADS}
+procedure TThread.CallOnTerminate;
+
+begin
+end;
+
+
+function TThread.GetPriority: TThreadPriority;
+
+begin
+  GetPriority:=tpNormal;
+end;
+
+
+procedure TThread.SetPriority(Value: TThreadPriority);
+
+begin
+end;
+
+
+procedure TThread.SetSuspended(Value: Boolean);
+
+begin
+end;
+
+
+procedure TThread.DoTerminate;
+
+begin
+end;
+
+
+procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
+
+begin
+ {IsMultiThread := TRUE; }
+end;
+
+
+procedure TThread.SysDestroy;
+
+begin
+end;
+
+
+procedure TThread.Resume;
+
+begin
+end;
+
+
+procedure TThread.Suspend;
+
+begin
+end;
+
+
+function TThread.WaitFor: Integer;
+
+begin
+  WaitFor:=0;
+end;
+{$endif FPC_WASM_THREADS}
 
