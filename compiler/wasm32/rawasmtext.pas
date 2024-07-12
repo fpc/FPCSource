@@ -35,13 +35,14 @@ Unit rawasmtext;
     type
       tasmtoken = (
         AS_NONE,AS_LPAREN,AS_RPAREN,AS_ID,AS_END,AS_OPCODE,AS_INTNUM,
-        AS_REALNUM,AS_STRING
+        AS_REALNUM,AS_STRING,AS_PARAM,AS_RESULT,AS_THEN,AS_ELSE,AS_TYPE,AS_VALTYPE
       );
       tasmkeyword = string[10];
 
     const
       token2str : array[tasmtoken] of tasmkeyword=(
-        '','(',')','identifier','end','opcode','integer','float','string');
+        '','(',')','identifier','end','opcode','integer','float','string',
+        'param','result','then','else','type','valtype');
 
     type
 
@@ -49,6 +50,7 @@ Unit rawasmtext;
 
       twasmreader = class(tasmreader)
       private
+        actwasmbasictype: TWasmBasicType;
         actasmpattern_origcase: string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
@@ -56,6 +58,11 @@ Unit rawasmtext;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
         function is_asmopcode(const s: string):boolean;
+        function is_valtype(const s: string):boolean;
+        procedure HandleInstruction;
+        procedure HandleFoldedInstruction;
+        procedure HandlePlainInstruction;
+        procedure HandleBlockInstruction;virtual;abstract;
       public
         function Assemble: tlinkedlist;override;
       end;
@@ -185,10 +192,9 @@ Unit rawasmtext;
               actasmpattern_origcase:=actasmpattern;
               if actasmpattern[1]='$' then
                 actasmtoken:=AS_ID
-              else if is_asmopcode(actasmpattern) then
-                begin
-                  exit;
-                end
+              else if is_asmopcode(actasmpattern) or
+                      is_valtype(actasmpattern) then
+                exit
               else if upper(actasmpattern) = 'END' then
                 begin
                   uppervar(actasmpattern);
@@ -444,6 +450,269 @@ Unit rawasmtext;
           end
         else
           is_asmopcode:=false;
+      end;
+
+
+    function twasmreader.is_valtype(const s: string): boolean;
+      begin
+        actwasmbasictype:=wbt_Unknown;
+        case s of
+          'i32':
+             actwasmbasictype:=wbt_i32;
+          'i64':
+             actwasmbasictype:=wbt_i64;
+          'f32':
+             actwasmbasictype:=wbt_f32;
+          'f64':
+             actwasmbasictype:=wbt_f64;
+          'funcref':
+             actwasmbasictype:=wbt_funcref;
+          'externref':
+             actwasmbasictype:=wbt_externref;
+          'v128':
+             actwasmbasictype:=wbt_v128;
+        end;
+        if actwasmbasictype<>wbt_Unknown then
+          begin
+            actasmtoken:=AS_VALTYPE;
+            is_valtype:=true;
+          end
+        else
+          is_valtype:=false;
+      end;
+
+
+    procedure twasmreader.HandleInstruction;
+      begin
+        case actasmtoken of
+          AS_LPAREN:
+            begin
+              Consume(AS_LPAREN);
+              HandleFoldedInstruction;
+            end;
+          AS_OPCODE:
+            begin
+              case actopcode of
+                a_block,
+                a_loop,
+                a_if:
+                  HandleBlockInstruction;
+                else
+                  HandlePlainInstruction;
+              end;
+            end;
+          else
+            {error};
+        end;
+      end;
+
+
+    procedure twasmreader.HandleFoldedInstruction;
+      var
+        HasLabel, HasType, HasParam, HasResult, HasInstructions,
+          HasThen, HasElse: Boolean;
+        instr: TWasmInstruction;
+        tmpS: string;
+      begin
+        //Consume(AS_LPAREN);
+        case actasmtoken of
+          AS_OPCODE:
+            begin
+              case actopcode of
+                a_block,
+                a_loop,
+                a_if:
+                  begin
+                    Consume(AS_OPCODE);
+                    HasType:=False;
+                    HasParam:=False;
+                    HasResult:=False;
+                    HasInstructions:=False;
+                    HasThen:=False;
+                    HasElse:=False;
+                    instr:=TWasmInstruction.create(TWasmOperand);
+                    instr.opcode:=actopcode;
+                    HasLabel:=False;
+                    if actasmtoken=AS_ID then
+                      begin
+                        Consume(AS_ID);
+                        HasLabel:=True;
+                      end;
+                    repeat
+                      case actasmtoken of
+                        AS_LPAREN:
+                          begin
+                            Consume(AS_LPAREN);
+                            case actasmtoken of
+                              AS_TYPE:
+                                begin
+                                  if HasElse or HasThen or HasInstructions or HasResult or HasParam or HasType then
+                                    begin
+                                      {TODO: error}
+                                    end;
+                                  Consume(AS_TYPE);
+                                  //TODO: consume u32 or id
+                                  Consume(actasmtoken);
+                                  Consume(AS_RPAREN);
+                                end;
+                              AS_PARAM:
+                                begin
+                                  if HasElse or HasThen or HasInstructions or HasResult then
+                                    begin
+                                      {TODO: error}
+                                    end;
+                                  Consume(AS_PARAM);
+                                  if actasmtoken=AS_ID then
+                                    begin
+                                      tmpS:=actasmpattern;
+                                      Consume(AS_ID);
+                                      if actasmtoken=AS_VALTYPE then
+                                        instr.AddParam(actasmpattern,actwasmbasictype);
+                                      Consume(AS_VALTYPE);
+                                    end
+                                  else
+                                    begin
+                                      while actasmtoken<>AS_RPAREN do
+                                        begin
+                                          if actasmtoken=AS_VALTYPE then
+                                            instr.AddParam('',actwasmbasictype);
+                                          Consume(AS_VALTYPE);
+                                        end;
+                                    end;
+                                  Consume(AS_RPAREN);
+                                end;
+                              AS_RESULT:
+                                begin
+                                  if HasElse or HasThen or HasInstructions then
+                                    begin
+                                      {TODO: error}
+                                    end;
+                                  Consume(AS_RESULT);
+                                  while actasmtoken<>AS_RPAREN do
+                                    begin
+                                      if actasmtoken=AS_VALTYPE then
+                                        instr.AddResult(actwasmbasictype);
+                                      Consume(AS_VALTYPE);
+                                    end;
+                                  Consume(AS_RPAREN);
+                                end;
+                              AS_THEN:
+                                begin
+                                  if instr.opcode<>a_if then
+                                    {error!};
+                                  Consume(AS_THEN);
+                                  HasThen:=True;
+                                  while actasmtoken<>AS_RPAREN do
+                                    HandleInstruction;
+                                  Consume(AS_RPAREN);
+                                end;
+                              AS_ELSE:
+                                begin
+                                  if instr.opcode<>a_if then
+                                    {error!};
+                                  Consume(AS_ELSE);
+                                  HasElse:=True;
+                                  while actasmtoken<>AS_RPAREN do
+                                    HandleInstruction;
+                                  Consume(AS_RPAREN);
+                                end;
+                              else
+                                begin
+                                  HasInstructions:=True;
+                                  HandleFoldedInstruction;
+                                end;
+                            end;
+                          end;
+                      end;
+                    until false;
+                  end;
+                else
+                  begin
+                    HandlePlainInstruction;
+                    {todo: parse next folded instructions, insert plain instruction after these}
+                  end;
+              end;
+            end;
+          else
+            {error}
+        end;
+      end;
+
+
+    procedure twasmreader.HandlePlainInstruction;
+      var
+        instr: TWasmInstruction;
+      begin
+        case actasmtoken of
+          AS_OPCODE:
+            begin
+              instr:=TWasmInstruction.create(TWasmOperand);
+              instr.opcode:=actopcode;
+              case actopcode of
+                { instructions, which require 0 operands }
+                a_nop,
+                a_unreachable,
+                a_return,
+                a_ref_is_null,
+                a_drop,
+                a_memory_size,
+                a_memory_grow,
+                a_memory_fill,
+                a_memory_copy,
+                a_i32_clz,a_i32_ctz,a_i32_popcnt,a_i32_add,a_i32_sub,a_i32_mul,a_i32_div_s,a_i32_div_u,a_i32_rem_s,a_i32_rem_u,a_i32_and,a_i32_or,a_i32_xor,a_i32_shl,a_i32_shr_s,a_i32_shr_u,a_i32_rotl,a_i32_rotr,
+                a_i64_clz,a_i64_ctz,a_i64_popcnt,a_i64_add,a_i64_sub,a_i64_mul,a_i64_div_s,a_i64_div_u,a_i64_rem_s,a_i64_rem_u,a_i64_and,a_i64_or,a_i64_xor,a_i64_shl,a_i64_shr_s,a_i64_shr_u,a_i64_rotl,a_i64_rotr,
+                a_f32_abs,a_f32_neg,a_f32_ceil,a_f32_floor,a_f32_trunc,a_f32_nearest,a_f32_sqrt,a_f32_add,a_f32_sub,a_f32_mul,a_f32_div,a_f32_min,a_f32_max,a_f32_copysign,
+                a_f64_abs,a_f64_neg,a_f64_ceil,a_f64_floor,a_f64_trunc,a_f64_nearest,a_f64_sqrt,a_f64_add,a_f64_sub,a_f64_mul,a_f64_div,a_f64_min,a_f64_max,a_f64_copysign,
+                a_i32_eqz,a_i32_eq,a_i32_ne,a_i32_lt_s,a_i32_lt_u,a_i32_gt_s,a_i32_gt_u,a_i32_le_s,a_i32_le_u,a_i32_ge_s,a_i32_ge_u,
+                a_i64_eqz,a_i64_eq,a_i64_ne,a_i64_lt_s,a_i64_lt_u,a_i64_gt_s,a_i64_gt_u,a_i64_le_s,a_i64_le_u,a_i64_ge_s,a_i64_ge_u,
+                a_f32_eq,a_f32_ne,a_f32_lt,a_f32_gt,a_f32_le,a_f32_ge,
+                a_f64_eq,a_f64_ne,a_f64_lt,a_f64_gt,a_f64_le,a_f64_ge,
+
+                a_i32_wrap_i64,
+                a_i32_trunc_f32_s,
+                a_i32_trunc_f32_u,
+                a_i32_trunc_f64_s,
+                a_i32_trunc_f64_u,
+                a_i32_trunc_sat_f32_s,
+                a_i32_trunc_sat_f32_u,
+                a_i32_trunc_sat_f64_s,
+                a_i32_trunc_sat_f64_u,
+                a_i64_extend_i32_s,
+                a_i64_extend_i32_u,
+                a_i64_trunc_f32_s,
+                a_i64_trunc_f32_u,
+                a_i64_trunc_f64_s,
+                a_i64_trunc_f64_u,
+                a_i64_trunc_sat_f32_s,
+                a_i64_trunc_sat_f32_u,
+                a_i64_trunc_sat_f64_u,
+                a_i64_trunc_sat_f64_s,
+                a_f32_convert_i32_s,
+                a_f32_convert_i32_u,
+                a_f32_convert_i64_s,
+                a_f32_convert_i64_u,
+                a_f32_demote_f64,
+                a_f64_convert_i32_s,
+                a_f64_convert_i32_u,
+                a_f64_convert_i64_s,
+                a_f64_convert_i64_u,
+                a_f64_promote_f32,
+                a_i32_reinterpret_f32,
+                a_i64_reinterpret_f64,
+                a_f32_reinterpret_i32,
+                a_f64_reinterpret_i64,
+
+                a_i32_extend8_s,
+                a_i32_extend16_s,
+                a_i64_extend8_s,
+                a_i64_extend16_s,
+                a_i64_extend32_s:
+                  ;
+              end;
+            end;
+          else
+            {error};
+        end;
       end;
 
 

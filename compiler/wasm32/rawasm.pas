@@ -35,9 +35,23 @@ unit rawasm;
       TWasmOperand=class(TOperand)
       end;
 
+      { TWasmInstruction }
+
       TWasmInstruction=class(TInstruction)
+        procedure AddParam(const id: string; typ: TWasmBasicType);
+        procedure AddResult(typ: TWasmBasicType);
       end;
 
   implementation
+
+  { TWasmInstruction }
+
+    procedure TWasmInstruction.AddParam(const id: string; typ: TWasmBasicType);
+      begin
+      end;
+
+    procedure TWasmInstruction.AddResult(typ: TWasmBasicType);
+      begin
+      end;
 
 end.
