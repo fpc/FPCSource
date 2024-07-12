@@ -1680,6 +1680,17 @@ uses
               end;
           end;
 
+      function has_generic_paras(adef: tstoreddef): boolean;
+        var
+          i: Integer;
+        begin
+          result:=False;
+          if adef.genericparas<>nil then
+            for i:=0 to adef.genericparas.Count-1 do
+              if sp_generic_para in tsym(adef.genericparas[i]).symoptions then
+                exit(true);
+        end;
+
       var
         finalspecializename,
         ufinalspecializename : tidstring;
@@ -2151,7 +2162,7 @@ uses
                 tdef(item).ChangeOwner(specializest);
                 { for partial specializations we implicitely declare any methods as having their
                   implementations although we'll not specialize them in reality }
-                if parse_generic then
+                if parse_generic or has_generic_paras(tstoreddef(item)) then
                   unset_forwarddef(tdef(item));
               end;
 
@@ -2165,8 +2176,9 @@ uses
             specialization_done(state);
 
             { procdefs are only added once we know which overload we use }
-            if not parse_generic and (result.typ<>procdef) then
-              current_module.pendingspecializations.add(result.typename,result);
+            if not parse_generic and (result.typ<>procdef) and
+              not has_generic_paras(tstoreddef(result)) then
+                  current_module.pendingspecializations.add(result.typename,result);
           end;
 
         generictypelist.free;
