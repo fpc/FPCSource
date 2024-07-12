@@ -17,7 +17,10 @@ unit fpCSSParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
+{$IF FPC_FULLVERSION>30300}
 {$WARN 6060 off} // Case statement does not handle all possible cases
+{$WARN 6058 off} // Call to subroutine "$1" marked as inline is not inlined
+{$ENDIF}
 
 interface
 
@@ -73,12 +76,12 @@ Type
     function ParseAttributeSelector: TCSSElement; virtual;
     function ParseWQName: TCSSElement;
     function ParseDeclaration(aIsAt : Boolean = false): TCSSDeclarationElement; virtual;
-    function ParseCall(aName: TCSSString): TCSSElement; virtual;
+    function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; virtual;
     procedure ParseSelectorCommaList(aCall: TCSSCallElement); virtual;
     procedure ParseRelationalSelectorCommaList(aCall: TCSSCallElement); virtual;
     procedure ParseNthChildParams(aCall: TCSSCallElement); virtual;
     function ParseUnary: TCSSElement; virtual;
-    function ParseUnit: TCSSUnits; virtual;
+    function ParseUnit: TCSSUnit; virtual;
     function ParseIdentifier : TCSSIdentifierElement; virtual;
     function ParseHashIdentifier : TCSSHashIdentifierElement; virtual;
     function ParseClassName : TCSSClassNameElement; virtual;
@@ -114,7 +117,7 @@ Type
     CSSUnaryElementClass: TCSSUnaryElementClass;
     CSSUnicodeRangeElementClass: TCSSUnicodeRangeElementClass;
     CSSURLElementClass: TCSSURLElementClass;
-    Constructor Create(AInput: TStream; ExtraScannerOptions : TCSSScannerOptions = []); overload;
+    Constructor Create(AInput: TStream; ExtraScannerOptions : TCSSScannerOptions = []); overload; // AInput is not freed
     Constructor Create(AScanner : TCSSScanner); virtual; overload;
     Destructor Destroy; override;
     Function Parse : TCSSElement;
@@ -724,28 +727,33 @@ begin
   Result:=FPeekToken;
 end;
 
-function TCSSParser.ParseUnit : TCSSUnits;
+function TCSSParser.ParseUnit : TCSSUnit;
 
+var
+  p: PCSSChar;
+  U: TCSSUnit;
 begin
   Result:=cuNone;
-  if (CurrentToken in [ctkIDENTIFIER,ctkPERCENTAGE]) then
+  case CurrentToken of
+  ctkPERCENTAGE:
     begin
-    Case currentTokenString of
-    '%'   : Result:=cuPERCENT;
-    'px'  : Result:=cuPX;
-    'rem' : Result:=cuREM;
-    'em'  : Result:=cuEM;
-    'fr'  : Result:=cuFR;
-    'vw'  : Result:=cuVW;
-    'vh'  : Result:=cuVH;
-    'pt'  : Result:=cuPT;
-    'deg' : Result:=cuDEG;
-    else
-      // Ignore. For instance margin: 0 auto
+    Result:=cuPERCENT;
+    Consume(CurrentToken);
     end;
-    if Result<>cuNone then
-      Consume(CurrentToken);
+  ctkIDENTIFIER:
+    begin
+    p:=PCSSChar(CurrentTokenString);
+    for U:=Succ(cuNONE) to High(TCSSUnit) do
+      if CompareMem(p,PCSSChar(CSSUnitNames[U]),SizeOf(TCSSChar)*length(CSSUnitNames[U])) then
+        begin
+        Result:=U;
+        Consume(CurrentToken);
+        break;
+        end;
     end;
+  ctkWHITESPACE:
+    Consume(CurrentToken);
+  end;
 end;
 
 function TCSSParser.CreateElement(aClass : TCSSElementClass): TCSSElement;
@@ -795,20 +803,31 @@ end;
 function TCSSParser.ParseInteger: TCSSElement;
 
 Var
-  aValue : Integer;
+  aCode, aValue : Integer;
   aInt : TCSSIntegerElement;
+  OldReturnWhiteSpace: Boolean;
 
 begin
-  aValue:=StrToInt(CurrentTokenString);
+  Val(CurrentTokenString,aValue,aCode);
+  if aCode<>0 then
+    begin
+    DoError(SErrInvalidFloat,[CurrentTokenString]);
+    GetNextToken;
+    exit(nil);
+    end;
   aInt:=TCSSIntegerElement(CreateElement(CSSIntegerElementClass));
+  OldReturnWhiteSpace:=Scanner.ReturnWhiteSpace;
   try
     aInt.Value:=aValue;
+    Scanner.ReturnWhiteSpace:=true;
     Consume(ctkINTEGER);
     aInt.Units:=ParseUnit;
     Result:=aInt;
     aInt:=nil;
   finally
     aInt.Free;
+    Scanner.ReturnWhiteSpace:=OldReturnWhiteSpace;
+    SkipWhiteSpace;
   end;
 end;
 
@@ -817,19 +836,29 @@ Var
   aCode : Integer;
   aValue : Double;
   aFloat : TCSSFloatElement;
+  OldReturnWhiteSpace: Boolean;
 
 begin
   Val(CurrentTokenString,aValue,aCode);
   if aCode<>0 then
+    begin
     DoError(SErrInvalidFloat,[CurrentTokenString]);
+    GetNextToken;
+    exit(nil);
+    end;
   aFloat:=TCSSFloatElement(CreateElement(CSSFloatElementClass));
+  OldReturnWhiteSpace:=Scanner.ReturnWhiteSpace;
   try
-    Consume(ctkFloat);
     aFloat.Value:=aValue;
+    Scanner.ReturnWhiteSpace:=true;
+    Consume(ctkFloat);
     aFloat.Units:=ParseUnit;
+    if CurrentToken=ctkWHITESPACE then
+      GetNextToken;
     Result:=aFloat;
     aFloat:=nil;
   finally
+    Scanner.ReturnWhiteSpace:=OldReturnWhiteSpace;
     aFloat.Free;
   end;
 end;
@@ -903,6 +932,8 @@ Var
 
 begin
   aDecl:=nil;
+  while CurrentToken=ctkUNKNOWN do
+    GetNextToken;
   if not (CurrentToken in [ctkRBRACE,ctkSEMICOLON]) then
     begin
     aDecl:=ParseDeclaration(aIsAt);
@@ -994,22 +1025,22 @@ function TCSSParser.ParseUnary: TCSSElement;
 var
   Un : TCSSUnaryElement;
   Op : TCSSUnaryOperation;
+  El: TCSSElement;
 
 begin
   Result:=nil;
   if not (CurrentToken in [ctkDOUBLECOLON, ctkMinus, ctkPlus, ctkDiv, ctkGT, ctkTILDE]) then
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,[CurrentTokenString]);
+  op:=TokenToUnaryOperation(CurrentToken);
+  Consume(CurrentToken);
+  if CurrentToken=ctkWHITESPACE then
+    Raise ECSSParser.CreateFmt(SUnaryInvalidToken,['white space']);
+  El:=ParseComponentValue;
+
   Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
-  try
-    op:=TokenToUnaryOperation(CurrentToken);
-    Un.Operation:=op;
-    Consume(CurrentToken);
-    Un.Right:=ParseComponentValue;
-    Result:=Un;
-    Un:=nil;
-  finally
-    Un.Free;
-  end;
+  Un.Operation:=op;
+  Un.Right:=El;
+  Result:=Un;
 end;
 
 function TCSSParser.ParseComponentValueList(AllowRules : Boolean = True): TCSSElement;
@@ -1097,7 +1128,16 @@ var
 
 begin
   aToken:=CurrentToken;
+  if aToken=ctkUNKNOWN then
+    begin
+    DoError('invalid');
+    repeat
+      GetNextToken;
+    until CurrentToken<>ctkUNKNOWN;
+    aToken:=CurrentToken;
+    end;
   Case aToken of
+    ctkEOF: exit(nil);
     ctkLPARENTHESIS: Result:=ParseParenthesis;
     ctkURL: Result:=ParseURL;
     ctkPSEUDO: Result:=ParsePseudo;
@@ -1114,13 +1154,12 @@ begin
     ctkINTEGER: Result:=ParseInteger;
     ctkFloat : Result:=ParseFloat;
     ctkPSEUDOFUNCTION,
-    ctkFUNCTION : Result:=ParseCall('');
+    ctkFUNCTION : Result:=ParseCall('',false);
     ctkSTAR: Result:=ParseInvalidToken;
-    ctkIDENTIFIER: Result:=ParseIdentifier;
+    ctkIDENTIFIER,ctkPERCENTAGE: Result:=ParseIdentifier;
     ctkCLASSNAME : Result:=ParseClassName;
   else
     Result:=nil;
-//    Consume(aToken);// continue
   end;
   if aToken in FinalTokens then
     exit;
@@ -1140,7 +1179,7 @@ function TCSSParser.ParseSelector: TCSSElement;
       ctkCLASSNAME : Result:=ParseClassName;
       ctkLBRACKET: Result:=ParseAttributeSelector;
       ctkPSEUDO: Result:=ParsePseudo;
-      ctkPSEUDOFUNCTION: Result:=ParseCall('');
+      ctkPSEUDOFUNCTION: Result:=ParseCall('',true);
     else
       DoWarn(SErrUnexpectedToken ,[
                GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
@@ -1242,6 +1281,7 @@ begin
       Bin.Free;
       end;
   end;
+  SkipWhiteSpace;
 end;
 
 function TCSSParser.ParseAttributeSelector: TCSSElement;
@@ -1332,14 +1372,15 @@ function TCSSParser.ParseDeclaration(aIsAt: Boolean = false): TCSSDeclarationEle
 Var
   aDecl : TCSSDeclarationElement;
   aKey,aValue : TCSSElement;
-  aPrevDisablePseudo : Boolean;
   aList : TCSSListElement;
+  OldOptions: TCSSScannerOptions;
 
 begin
   aList:=nil;
-  aDecl:= TCSSDeclarationElement(CreateElement(CSSDeclarationElementClass));
+  OldOptions:=Scanner.Options;
+  aDecl:=TCSSDeclarationElement(CreateElement(CSSDeclarationElementClass));
   try
-    aPrevDisablePseudo:= Scanner.DisablePseudo;
+    // read attribute names
     Scanner.DisablePseudo:=True;
     aKey:=ParseComponentValue;
     aDecl.AddKey(aKey);
@@ -1348,7 +1389,7 @@ begin
       While (CurrentToken=ctkCOMMA) do
         begin
         while (CurrentToken=ctkCOMMA) do
-          Consume(ctkCOMMA);
+          GetNextToken;
         aKey:=ParseComponentValue;
         aDecl.AddKey(aKey);
         end;
@@ -1364,12 +1405,13 @@ begin
       if aDecl.Colon then
         Consume(ctkColon)
       end;
-    Scanner.DisablePseudo:=aPrevDisablePseudo;
     aValue:=ParseComponentValue;
     aList:=TCSSListElement(CreateElement(CSSListElementClass));
     aList.AddChild(aValue);
     if aDecl.Colon then
       begin
+      // read attribute value
+      // + and - must be enclosed in whitespace, +3 and -4 are values
       While not (CurrentToken in [ctkEOF,ctkSemicolon,ctkRBRACE,ctkImportant]) do
         begin
         While CurrentToken=ctkCOMMA do
@@ -1393,23 +1435,21 @@ begin
     Result:=aDecl;
     aDecl:=nil;
   finally
-    Scanner.DisablePseudo:=False;
+    Scanner.Options:=OldOptions;
     aDecl.Free;
     aList.Free;
   end;
 end;
 
-function TCSSParser.ParseCall(aName : TCSSString): TCSSElement;
-
+function TCSSParser.ParseCall(aName: TCSSString; IsSelector: boolean
+  ): TCSSCallElement;
 var
   aCall : TCSSCallElement;
   l : Integer;
-  OldReturnWhiteSpace: Boolean;
   aValue: TCSSElement;
 begin
-  OldReturnWhiteSpace:=Scanner.ReturnWhiteSpace;
-  Scanner.ReturnWhiteSpace:=false;
-  aCall:=TCSSCallElement(CreateELement(CSSCallElementClass));
+  if IsSelector then ;
+  aCall:=TCSSCallElement(CreateElement(CSSCallElementClass));
   try
     if (aName='') then
       aName:=CurrentTokenString;
@@ -1417,9 +1457,10 @@ begin
     if (L>0) and (aName[L]='(') then
       aName:=Copy(aName,1,L-1);
     aCall.Name:=aName;
-    if CurrentToken=ctkPSEUDOFUNCTION then
+    if IsSelector and (CurrentToken=ctkPSEUDOFUNCTION) then
       begin
       Consume(ctkPSEUDOFUNCTION);
+      SkipWhiteSpace;
       case aName of
       ':not',':is',':where':
         ParseSelectorCommaList(aCall);
@@ -1429,8 +1470,9 @@ begin
         ParseNthChildParams(aCall);
       end;
       end
-    else
+    else begin
       Consume(ctkFUNCTION);
+    end;
     // Call argument list can be empty: mask()
     While not (CurrentToken in [ctkRPARENTHESIS,ctkEOF]) do
       begin
@@ -1442,7 +1484,7 @@ begin
       end;
       aCall.AddArg(aValue);
       if (CurrentToken=ctkCOMMA) then
-        Consume(ctkCOMMA);
+        GetNextToken;
       end;
     if CurrentToken=ctkEOF then
       DoError(SErrUnexpectedEndOfFile,[aName]);
@@ -1450,7 +1492,6 @@ begin
     Result:=aCall;
     aCall:=nil;
   finally
-    Scanner.ReturnWhiteSpace:=OldReturnWhiteSpace;
     aCall.Free;
   end;
 end;
@@ -1462,12 +1503,12 @@ begin
   while not (CurrentToken in [ctkEOF,ctkRBRACKET,ctkRBRACE,ctkRPARENTHESIS]) do
     begin
     El:=ParseSelector;
-    if EL=nil then exit;
+    if El=nil then exit;
     aCall.AddArg(El);
-    SkipWhiteSpace;
     if CurrentToken<>ctkCOMMA then
       exit;
     GetNextToken;
+    SkipWhiteSpace;
   end;
 end;
 
@@ -1560,12 +1601,12 @@ begin
 
   if CurrentToken in [ctkMINUS,ctkPLUS] then
     aCall.AddArg(ParseUnary);
-  if CurrentToken=ctkINTEGER then
-    aCall.AddArg(ParseInteger);
   if (CurrentToken=ctkIDENTIFIER) and SameText(CurrentTokenString,'of') then
     begin
     aCall.AddArg(ParseIdentifier);
+    SkipWhiteSpace;
     aCall.AddArg(ParseSelector);
+    SkipWhiteSpace;
     end;
 end;
 

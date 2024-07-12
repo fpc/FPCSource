@@ -15,39 +15,64 @@
 unit tcCSSResolver;
 
 {$mode ObjFPC}{$H+}
-
+{$IF FPC_FULLVERSION>30300}
+{$WARN 6060 off : Case statement does not handle all possible cases}
+{$ENDIF}
 interface
 
 uses
-  Classes, SysUtils, Contnrs, fpcunit, testregistry, fpCSSParser, fpCSSTree,
-  fpCSSResolver;
+  Classes, SysUtils, Contnrs, fpcunit, testregistry, fpCSSTree,
+  fpCSSResParser, fpCSSResolver;
 
 type
   TDemoNodeAttribute = (
+    naNone,
     naLeft,
     naTop,
     naWidth,
     naHeight,
-    naBorder,
+    naBorderWidth,
+    naBorderColor,
+    naBorder, // shorthand after longhands
     naDisplay,
-    naColor
+    naColor,
+    naBackground,
+    naDirection
     );
   TDemoNodeAttributes = set of TDemoNodeAttribute;
 
 const
-  DemoAttributeNames: array[TDemoNodeAttribute] of string = (
+  DemoAttributeNames: array[TDemoNodeAttribute] of TCSSString = (
     // case sensitive!
+    '?',
     'left',
     'top',
     'width',
     'height',
+    'border-width',
+    'border-color',
     'border',
     'display',
-    'color'
+    'color',
+    'background',
+    'direction'
     );
-
-  DemoAttrIDBase = 100;
-  DemoPseudoClassIDBase = 100;
+  DemoAttributesInherited = [naBackground,naColor,naBorderColor];
+  DemoAttributesNotAll = [naDirection];
+  DemoAttributeInitialValues: array[TDemoNodeAttribute] of TCSSString = (
+    '?',
+    'auto', // left
+    'auto', // top
+    'auto', // width
+    'auto', // height
+    '0px', // border-width
+    'none', // border-color
+    'none', // border
+    'inline', // display
+    'none', // color
+    'none', // background
+    'auto' // direction
+    );
 
 type
   TDemoPseudoClass = (
@@ -57,54 +82,160 @@ type
   TDemoPseudoClasses = set of TDemoPseudoClass;
 
 const
-  DemoPseudoClassNames: array[TDemoPseudoClass] of string = (
+  DemoPseudoClassNames: array[TDemoPseudoClass] of TCSSString = (
     // case sensitive!
-    ':active',
-    ':hover'
+    'active',
+    'hover'
     );
 
 type
+  TDemoElementType = (
+    detNode,
+    detDiv,
+    detSpan,
+    detButton
+    );
+const
+  DemoElementTypeNames: array[TDemoElementType] of TCSSString = (
+    // case sensitive!
+    'node',
+    'div',
+    'span',
+    'button'
+    );
+
+type
+  TDemoNode = class;
+
+  { TDemoCSSAttributeDesc }
+
+  TDemoCSSAttributeDesc = class(TCSSAttributeDesc)
+  public
+    type
+      TComputeEvent = procedure(Resolver: TCSSResolver; Node: TDemoNode; Value: TCSSAttributeValue) of object;
+  public
+    DemoID: TDemoNodeAttribute;
+    OnCompute: TComputeEvent;
+  end;
+
+  { TDemoCSSPseudoClassDesc }
+
+  TDemoCSSPseudoClassDesc = class(TCSSPseudoClassDesc)
+  public
+    DemoID: TDemoPseudoClass;
+  end;
+
+  { TDemoCSSTypeDesc }
+
+  TDemoCSSTypeDesc = class(TCSSTypeDesc)
+  public
+    DemoID: TDemoElementType;
+  end;
+
+  { TDemoCSSRegistry }
+
+  TDemoCSSRegistry = class(TCSSRegistry)
+  private
+    // check attribute declarations for validity
+    procedure OnCheck_BorderColor(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    procedure OnCheck_BorderWidth(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    procedure OnCheck_Border(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    procedure OnCheck_Direction(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    procedure OnCheck_Display(Resolver: TCSSBaseResolver;
+      Data: TCSSAttributeKeyData);
+    procedure OnCheck_LeftTop(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    procedure OnCheck_WidthHeight(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    // clean up and normalize attribute values
+    procedure OnCompute_Direction(Resolver: TCSSResolver; Node: TDemoNode;
+      Value: TCSSAttributeValue);
+    procedure OnCompute_LeftTop(Resolver: TCSSResolver; Node: TDemoNode;
+      Value: TCSSAttributeValue);
+    procedure OnCompute_WidthHeight(Resolver: TCSSResolver; Node: TDemoNode;
+      Value: TCSSAttributeValue);
+    // split shorthands into longhands
+    procedure OnSplit_Border(Resolver: TCSSBaseResolver; {%H-}Desc: TCSSAttributeDesc;
+      const aValue: TCSSString; var AttrIDs: TCSSNumericalIDArray; var
+      Values: TCSSStringArray);
+  public
+    DemoAttrIDBase: TCSSNumericalID;
+    DemoPseudoClassIDBase: TCSSNumericalID;
+    DemoElementTypeIDBase: TCSSNumericalID;
+
+    DemoAttrs: array[TDemoNodeAttribute] of TDemoCSSAttributeDesc;
+    DemoPseudoClasses: array[TDemoPseudoClass] of TDemoCSSPseudoClassDesc;
+    DemoTypes: array[TDemoElementType] of TDemoCSSTypeDesc;
+
+    // keywords
+    kwFirstColor,
+    kwRed,
+    kwGreen,
+    kwBlue,
+    kwWhite,
+    kwBlack,
+    kwBlock,
+    kwLastColor,
+    kwInline_Block,
+    kwLTR,
+    kwRTL: TCSSNumericalID;
+
+    // check parameters
+    CheckParams_BorderWidth: TCSSCheckAttrParams_Float;
+    CheckParams_DirectionAllowedKeywordIDs: TCSSNumericalIDArray;
+    CheckParams_DisplayAllowedKeywordIDs: TCSSNumericalIDArray;
+    CheckParams_LeftTop: TCSSCheckAttrParams_Float;
+    CheckParams_WidthHeight: TCSSCheckAttrParams_Float;
+
+    constructor Create;
+    function AddDemoAttr(Attr: TDemoNodeAttribute): TDemoCSSAttributeDesc;
+    function AddDemoPseudoClass(PC: TDemoPseudoClass): TDemoCSSPseudoClassDesc;
+    function AddDemoType(aType: TDemoElementType): TDemoCSSTypeDesc;
+  end;
 
   { TDemoNode }
 
   TDemoNode = class(TComponent,ICSSNode)
   private
-    class var FAttributeInitialValues: array[TDemoNodeAttribute] of string;
+    class var CSSRegistry: TDemoCSSRegistry;
+    class var FDemoNodeTypeID: TCSSNumericalID;
   private
-    FActive: boolean;
-    FAttributeValues: array[TDemoNodeAttribute] of string;
-    FHover: boolean;
     FNodes: TFPObjectList; // list of TDemoNode
     FCSSClasses: TStrings;
     FParent: TDemoNode;
-    FStyleElements: TCSSElement;
-    FStyle: string;
-    function GetAttribute(AIndex: TDemoNodeAttribute): string;
+    FPseudoClasses: array [TDemoPseudoClass] of boolean;
+    FInlineStyleElements: TCSSRuleElement;
+    FInlineStyle: TCSSString;
+    function GetAttribute(DemoAttr: TDemoNodeAttribute): TCSSString;
     function GetNodeCount: integer;
     function GetNodes(Index: integer): TDemoNode;
-    procedure SetActive(const AValue: boolean);
-    procedure SetAttribute(AIndex: TDemoNodeAttribute; const AValue: string);
-    procedure SetHover(const AValue: boolean);
+    function GetPseudoClasses(PseudoClass: TDemoPseudoClass): boolean;
     procedure SetParent(const AValue: TDemoNode);
-    procedure SetStyleElements(const AValue: TCSSElement);
-    procedure SetStyle(const AValue: string);
+    procedure SetInlineStyleElements(const AValue: TCSSRuleElement);
+    procedure SetInlineStyle(const AValue: TCSSString);
+    procedure SetPseudoClasses(PseudoClass: TDemoPseudoClass; const AValue: boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
   public
+    // computed by resolver:
+    Rules: TCSSSharedRuleList; // owned by resolver
+    Values: TCSSAttributeValues;
+
+    ExplicitAttributes: array[TDemoNodeAttribute] of TCSSString;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
-    function GetCSSID: TCSSString; virtual;
+    procedure ApplyCSS(Resolver: TCSSResolver); virtual;
     class function CSSTypeName: TCSSString; virtual;
+    class function GetClassCSSTypeID: TCSSNumericalID; virtual;
+    class procedure SetClassCSSTypeID(aID: TCSSNumericalID); virtual;
+    class function GetCSSTypeStyle: TCSSString; virtual;
+
+    // ICSSNode interface:
+    function GetCSSID: TCSSString; virtual;
     function GetCSSTypeName: TCSSString;
-    class function CSSTypeID: TCSSNumericalID; virtual;
     function GetCSSTypeID: TCSSNumericalID;
-    class function GetAttributeInitialValue(Attr: TDemoNodeAttribute): string; virtual;
     function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
-    function CheckCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement
-      ): boolean; virtual;
-    procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); virtual;
     function GetCSSParent: ICSSNode; virtual;
     function GetCSSIndex: integer; virtual;
     function GetCSSNextSibling: ICSSNode; virtual;
@@ -114,97 +245,104 @@ type
     function GetCSSNextOfType: ICSSNode; virtual;
     function GetCSSPreviousOfType: ICSSNode; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
-    function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
-    function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
+    function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSEmpty: boolean; virtual;
     function GetCSSDepth: integer; virtual;
+
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
     property Nodes[Index: integer]: TDemoNode read GetNodes; default;
     property CSSClasses: TStrings read FCSSClasses;
-    property StyleElements: TCSSElement read FStyleElements write SetStyleElements;
-    property Style: string read FStyle write SetStyle;
+    property InlineStyleElement: TCSSRuleElement read FInlineStyleElements write SetInlineStyleElements;
+    property InlineStyle: TCSSString read FInlineStyle write SetInlineStyle;
     // CSS attributes
-    property Left: string index naLeft read GetAttribute write SetAttribute;
-    property Top: string index naTop read GetAttribute write SetAttribute;
-    property Width: string index naWidth read GetAttribute write SetAttribute;
-    property Height: string index naHeight read GetAttribute write SetAttribute;
-    property Border: string index naBorder read GetAttribute write SetAttribute;
-    property Display: string index naDisplay read GetAttribute write SetAttribute;
-    property Color: string index naColor read GetAttribute write SetAttribute;
-    property Attribute[Attr: TDemoNodeAttribute]: string read GetAttribute write SetAttribute;
+    property Left: TCSSString index naLeft read GetAttribute;
+    property Top: TCSSString index naTop read GetAttribute;
+    property Width: TCSSString index naWidth read GetAttribute;
+    property Height: TCSSString index naHeight read GetAttribute;
+    property Border: TCSSString index naBorder read GetAttribute;
+    property BorderWidth: TCSSString index naBorderWidth read GetAttribute;
+    property BorderColor: TCSSString index naBorderColor read GetAttribute;
+    property Display: TCSSString index naDisplay read GetAttribute;
+    property Color: TCSSString index naColor read GetAttribute;
+    property Background: TCSSString index naBackground read GetAttribute;
+    property Direction: TCSSString index naDirection read GetAttribute;
+    property Attribute[Attr: TDemoNodeAttribute]: TCSSString read GetAttribute;
     // CSS pseudo classes
-    property Active: boolean read FActive write SetActive;
-    property Hover: boolean read FHover write SetHover;
-    function HasPseudoClass(PseudoClass: TDemoPseudoClass): boolean;
+    property Active: boolean index pcActive read GetPseudoClasses write SetPseudoClasses;
+    property Hover: boolean index pcHover read GetPseudoClasses write SetPseudoClasses;
+    property HasPseudoClass[PseudoClass: TDemoPseudoClass]: boolean read GetPseudoClasses write SetPseudoClasses;
   end;
   TDemoNodeClass = class of TDemoNode;
 
   { TDemoDiv }
 
   TDemoDiv = class(TDemoNode)
+  private
+    class var FDemoDivTypeID: TCSSNumericalID;
   public
     class function CSSTypeName: TCSSString; override;
-    class function CSSTypeID: TCSSNumericalID; override;
+    class function GetClassCSSTypeID: TCSSNumericalID; override;
+    class procedure SetClassCSSTypeID(aID: TCSSNumericalID); override;
+    class function GetCSSTypeStyle: TCSSString; override;
   end;
 
   { TDemoSpan }
 
   TDemoSpan = class(TDemoNode)
+  private
+    class var FDemoSpanTypeID: TCSSNumericalID;
   public
     class function CSSTypeName: TCSSString; override;
-    class function CSSTypeID: TCSSNumericalID; override;
+    class function GetClassCSSTypeID: TCSSNumericalID; override;
+    class procedure SetClassCSSTypeID(aID: TCSSNumericalID); override;
+    class function GetCSSTypeStyle: TCSSString; override;
   end;
 
   { TDemoButton }
 
   TDemoButton = class(TDemoNode)
   private
-    FCaption: string;
-    procedure SetCaption(const AValue: string);
+    FCaption: TCSSString;
+    class var FDemoButtonTypeID: TCSSNumericalID;
+    procedure SetCaption(const AValue: TCSSString);
   public
+    ExplicitCaption: TCSSString;
     class var CSSCaptionID: TCSSNumericalID;
     class function CSSTypeName: TCSSString; override;
-    class function CSSTypeID: TCSSNumericalID; override;
-    function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; override;
-    function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
-      override;
-    procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); override;
-    property Caption: string read FCaption write SetCaption;
+    class function GetClassCSSTypeID: TCSSNumericalID; override;
+    class procedure SetClassCSSTypeID(aID: TCSSNumericalID); override;
+    class function GetCSSTypeStyle: TCSSString; override;
+    function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; override;
+    function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; override;
+    property Caption: TCSSString read FCaption write SetCaption;
   end;
 
   { TDemoDocument }
 
   TDemoDocument = class(TComponent)
   private
-    FNumericalIDs: array[TCSSNumericalIDKind] of TCSSNumericalIDs;
     FCSSResolver: TCSSResolver;
-    FStyle: string;
-    FStyleElements: TCSSElement;
-    function GetNumericalIDs(Kind: TCSSNumericalIDKind): TCSSNumericalIDs;
-    procedure SetNumericalIDs(Kind: TCSSNumericalIDKind;
-      const AValue: TCSSNumericalIDs);
-    procedure SetStyle(const AValue: string);
-    procedure SetStyleElements(const AValue: TCSSElement);
+    FStyle: TCSSString;
+  protected
+    procedure ApplyTypeStyles; virtual;
+    procedure SetStyle(const AValue: TCSSString); virtual;
   public
     Root: TDemoNode;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyStyle; virtual;
-    procedure ApplyStyleToNode(Node: TDemoNode); virtual;
 
-    property NumericalIDs[Kind: TCSSNumericalIDKind]: TCSSNumericalIDs read GetNumericalIDs write SetNumericalIDs;
-
-    property StyleElements: TCSSElement read FStyleElements write SetStyleElements;
-    property Style: string read FStyle write SetStyle;
+    property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
   end;
 
-  { TCustomTestCSSResolver }
+  { TCustomTestNewCSSResolver }
 
-  TCustomTestCSSResolver = class(TTestCase)
+  TCustomTestNewCSSResolver = class(TTestCase)
   Private
     FDoc: TDemoDocument;
   protected
@@ -214,13 +352,19 @@ type
     property Doc: TDemoDocument read FDoc;
   end;
 
-  { TTestCSSResolver }
+  { TTestNewCSSResolver }
 
-  TTestCSSResolver = class(TCustomTestCSSResolver)
+  TTestNewCSSResolver = class(TCustomTestNewCSSResolver)
   published
+    // invalid attributes while parsing stylesheet
+    procedure Test_ParseAttr_Keyword;
+    procedure Test_ParseAttr_Keyword_SkipInvalid;
+    procedure Test_ParseAttr_Float;
+    procedure Test_ParseAttr_Float_SkipInvalid; // todo
+
     procedure Test_Selector_Universal;
     procedure Test_Selector_Type;
-    // Test list spaces "div, button ,span {}"
+    procedure Test_Selector_Type_Spaces;
     procedure Test_Selector_Id;
     procedure Test_Selector_Class;
     procedure Test_Selector_ClassClass; // AND combinator
@@ -229,6 +373,8 @@ type
     procedure Test_Selector_ClassGTClass; // child combinator
     procedure Test_Selector_TypePlusType; // adjacent sibling combinator
     procedure Test_Selector_TypeTildeType; // general sibling combinator
+
+    // explicit attributes, e.g. set by HTML
     procedure Test_Selector_HasAttribute;
     procedure Test_Selector_AttributeEquals;
     procedure Test_Selector_AttributeEqualsI;
@@ -237,9 +383,10 @@ type
     procedure Test_Selector_AttributeBeginsWithHyphen;
     procedure Test_Selector_AttributeContainsWord;
     procedure Test_Selector_AttributeContainsSubstring;
-    // ToDo: "all"
 
-    // pseudo classes
+    // pseudo classes and functions
+    // test unknown pseudo class
+    // test unknown pseudo function
     procedure Test_Selector_Root;
     procedure Test_Selector_Empty;
     procedure Test_Selector_FirstChild;
@@ -255,68 +402,167 @@ type
     procedure Test_Selector_NthOfType;
     procedure Test_Selector_NthLastOfType;
     procedure Test_Selector_Is;
+    // ToDo: procedure Test_Selector_Is_Descendant;  :is(div button, .hawk .eagle)
     procedure Test_Selector_Where;
     // ToDo: div:has(>img)
     // ToDo: div:has(+img)
+
+    // custom pseudo classes and functions
+    procedure Test_Selector_Hover;
     // ToDo: :dir()
     // ToDo: :lang()
-
-    // custom pseudo classes
-    procedure Test_Selector_Hover;
 
     // inline style
     procedure Test_InlineStyle;
 
-    // ToDo: specifity
+    // specifity
+    procedure Test_Specifity_Id_Class;
+    procedure Test_Specifity_Important;
+    procedure Test_Specifity_Shorthand_OneRule;
+    procedure Test_Specifity_Shorthand_ClassClass;
+    // longhand, all, longhand
+    // shorthand, all, shorthand
+    // important longhand, shorthand
+    // important shorthand, longhand
 
-    // pseudo elements
+    // origin
+    // higher in specifity in user-agent is beaten by author style
+    // important in author is beaten by user-agent important
+
+    // var()
 
     // skipping for forward compatibility
     // ToDo: invalid token in selector makes selector invalid
+    // ToDo: invalid domain in attribute value is skipped
+    // ToDo: invalid keyword in attribute value is skipped
+    // ToDo: invalid keyword in attribute value is skipped
+    // test skip invalid value  color: 3 red;
+    // test skip invalid attribute  color: 3;
 
+    // pseudo elements
   end;
 
-function LinesToStr(const Args: array of const): string;
+function LinesToStr(const Args: array of const): TCSSString;
 
 implementation
 
-function LinesToStr(const Args: array of const): string;
+function LinesToStr(const Args: array of const): TCSSString;
 var
-  s: String;
+  s: TCSSString;
   i: Integer;
 begin
   s:='';
   for i:=Low(Args) to High(Args) do
+  begin
     case Args[i].VType of
       vtChar:         s += Args[i].VChar+LineEnding;
       vtString:       s += Args[i].VString^+LineEnding;
       vtPChar:        s += Args[i].VPChar+LineEnding;
-      vtWideChar:     s += AnsiString(Args[i].VWideChar)+LineEnding;
-      vtPWideChar:    s += AnsiString(Args[i].VPWideChar)+LineEnding;
-      vtAnsiString:   s += AnsiString(Args[i].VAnsiString)+LineEnding;
-      vtWidestring:   s += AnsiString(WideString(Args[i].VWideString))+LineEnding;
-      vtUnicodeString:s += AnsiString(UnicodeString(Args[i].VUnicodeString))+LineEnding;
+      vtWideChar:     s += TCSSString(Args[i].VWideChar)+LineEnding;
+      vtPWideChar:    s += TCSSString(Args[i].VPWideChar)+LineEnding;
+      vtAnsiString:   s += AnsiString(Args[i].VAnsiString)+LineEnding; // FPC uses encoding CP_UTF8 for TVarRec.VAnsiString
+      vtWidestring:   s += TCSSString(WideString(Args[i].VWideString))+LineEnding;
+      vtUnicodeString:s += TCSSString(UnicodeString(Args[i].VUnicodeString))+LineEnding;
     end;
+  end;
   Result:=s;
 end;
 
-{ TCustomTestCSSResolver }
+{ TCustomTestNewCSSResolver }
 
-procedure TCustomTestCSSResolver.SetUp;
+procedure TCustomTestNewCSSResolver.SetUp;
+var
+  AttrDesc: TCSSAttributeDesc;
 begin
   inherited SetUp;
+
+  TDemoNode.CSSRegistry:=TDemoCSSRegistry.Create();
+
+  // register button attribute 'caption'
+  AttrDesc:=TDemoNode.CSSRegistry.AddAttribute('caption');
+  TDemoButton.CSSCaptionID:=AttrDesc.Index;
+
   FDoc:=TDemoDocument.Create(nil);
 end;
 
-procedure TCustomTestCSSResolver.TearDown;
+procedure TCustomTestNewCSSResolver.TearDown;
 begin
   FreeAndNil(FDoc);
+  FreeAndNil(TDemoNode.CSSRegistry);
   inherited TearDown;
 end;
 
-{ TTestCSSResolver }
+{ TTestNewCSSResolver }
 
-procedure TTestCSSResolver.Test_Selector_Universal;
+procedure TTestNewCSSResolver.Test_ParseAttr_Keyword;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Style:='* { direction: ltr; }';
+  Doc.ApplyStyle;
+  AssertEquals('Root.direction','ltr',Doc.Root.Direction);
+end;
+
+procedure TTestNewCSSResolver.Test_ParseAttr_Keyword_SkipInvalid;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Style:='* { direction: something ltr; }';
+  Doc.ApplyStyle;
+  AssertEquals('Root.direction','ltr',Doc.Root.Direction);
+end;
+
+procedure TTestNewCSSResolver.Test_ParseAttr_Float;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Style:=
+     ':root {'
+    +'  left: 10px;'
+    +'  top: .1px;'
+    +'  width: 3e2em;'
+    +'  height: 3e-2px;'
+    +'}'
+    +'div {'
+    +'  left: -4mm;'
+    +'  top: -.5pc;'
+    +'  width: .6cm;'
+    +'  height: 6E+1rem;'
+    +'}';
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Parent:=Doc.Root;
+
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','10px',Doc.Root.Left);
+  AssertEquals('Root.Top','0.1px',Doc.Root.Top);
+  AssertEquals('Root.Width','300em',Doc.Root.Width);
+  AssertEquals('Root.Height','0.03px',Doc.Root.Height);
+  AssertEquals('Div1.Left','-4mm',Div1.Left);
+  AssertEquals('Div1.Top','-0.5pc',Div1.Top);
+  AssertEquals('Div1.Width','0.6cm',Div1.Width);
+  AssertEquals('Div1.Height','60rem',Div1.Height);
+end;
+
+procedure TTestNewCSSResolver.Test_ParseAttr_Float_SkipInvalid;
+begin
+  exit;
+
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Style:=
+     ':root {'
+    +'  left: something 10px;'
+    +'  top: 1 px;' // no space between number
+    +'  width: 0 px;' // the px is ignored because of the space, 0 without unit is allowed
+    +'  height: -4cm;' // no negative
+    +'}';
+
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','10px',Doc.Root.Left);
+  AssertEquals('Root.Top','invalid',Doc.Root.Top);
+  AssertEquals('Root.Width','0',Doc.Root.Width);
+  AssertEquals('Root.Height','invalid',Doc.Root.Height);
+end;
+
+procedure TTestNewCSSResolver.Test_Selector_Universal;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { left: 10px; }';
@@ -324,12 +570,12 @@ begin
   AssertEquals('Root.left','10px',Doc.Root.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Type;
+procedure TTestNewCSSResolver.Test_Selector_Type;
 var
   Button: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button:=TDemoButton.Create(Doc);
+  Button:=TDemoButton.Create(nil);
   Button.Parent:=Doc.Root;
   Doc.Style:='button { left: 11px; }';
   Doc.ApplyStyle;
@@ -337,12 +583,31 @@ begin
   AssertEquals('Button.left','11px',Button.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Id;
+procedure TTestNewCSSResolver.Test_Selector_Type_Spaces;
+var
+  Button1, Button2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Button1:=TDemoButton.Create(nil);
+  Button1.Parent:=Doc.Root;
+
+  Button2:=TDemoButton.Create(nil);
+  Button2.Parent:=Doc.Root;
+
+  Doc.Style:='div, button ,span { left: 11px; }';
+  Doc.ApplyStyle;
+  AssertEquals('Root.left','',Doc.Root.Left);
+  AssertEquals('Button1.left','11px',Button1.Left);
+  AssertEquals('Button2.left','11px',Button2.Left);
+end;
+
+procedure TTestNewCSSResolver.Test_Selector_Id;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
   Doc.Style:='#Button1 { left: 12px; }';
@@ -351,12 +616,12 @@ begin
   AssertEquals('Button1.left','12px',Button1.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Class;
+procedure TTestNewCSSResolver.Test_Selector_Class;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.CSSClasses.Add('west');
   Button1.Parent:=Doc.Root;
   Doc.Style:='.west { left: 13px; }';
@@ -365,17 +630,17 @@ begin
   AssertEquals('Button1.left','13px',Button1.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_ClassClass;
+procedure TTestNewCSSResolver.Test_Selector_ClassClass;
 var
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.CSSClasses.Add('west');
   Button1.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Button2:=TDemoButton.Create(nil);
   Button2.CSSClasses.DelimitedText:='west south';
   AssertEquals('Button2.CSSClasses.Count',2,Button2.CSSClasses.Count);
   Button2.Parent:=Doc.Root;
@@ -387,14 +652,14 @@ begin
   AssertEquals('Button2.left','10px',Button2.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_ClassSpaceClass;
+procedure TTestNewCSSResolver.Test_Selector_ClassSpaceClass;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.CSSClasses.Add('bird');
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.CSSClasses.Add('west');
   Button1.Parent:=Doc.Root;
 
@@ -404,17 +669,17 @@ begin
   AssertEquals('Button1.left','10px',Button1.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_TypeCommaType;
+procedure TTestNewCSSResolver.Test_Selector_TypeCommaType;
 var
   Button1: TDemoButton;
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
   Doc.Style:='div, button { left: 10px; }';
@@ -424,25 +689,28 @@ begin
   AssertEquals('Div1.left','10px',Div1.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_ClassGTClass;
+procedure TTestNewCSSResolver.Test_Selector_ClassGTClass;
 var
   Div1, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
   Doc.Root.CSSClasses.Add('lvl1');
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.CSSClasses.Add('lvl2');
   Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.CSSClasses.Add('lvl3');
   Div2.Parent:=Div1;
 
   Doc.Style:=LinesToStr([
-  '.lvl1>.lvl2 { left: 10px; }',
-  '.lvl1>.lvl3 { top: 11px; }',
-  '.lvl2>.lvl3 { width: 12px; }',
+  '.lvl1>.lvl2 { left: 10px; }', // set
+  '.lvl1>.lvl3 { top: 11px; }', // not set, not direct children
+  '.lvl2>.lvl3 { width: 12px; }', // set
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
@@ -456,26 +724,31 @@ begin
   AssertEquals('Div2.width','12px',Div2.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_TypePlusType;
+procedure TTestNewCSSResolver.Test_Selector_TypePlusType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Button2:=TDemoButton.Create(nil);
+  Button2.Name:='Button2';
   Button2.Parent:=Doc.Root;
 
-  Button3:=TDemoButton.Create(Doc);
+  Button3:=TDemoButton.Create(nil);
+  Button3.Name:='Button3';
   Button3.Parent:=Doc.Root;
 
-  Doc.Style:='div+button { left: 10px; }';
+  Doc.Style:='div+button { left: 10px; }'; // only Button2 has a prev sibling div
   Doc.ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button1.left','',Button1.Left);
@@ -484,23 +757,23 @@ begin
   AssertEquals('Button3.left','',Button3.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_TypeTildeType;
+procedure TTestNewCSSResolver.Test_Selector_TypeTildeType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Button2:=TDemoButton.Create(nil);
   Button2.Parent:=Doc.Root;
 
-  Button3:=TDemoButton.Create(Doc);
+  Button3:=TDemoButton.Create(nil);
   Button3.Parent:=Doc.Root;
 
   Doc.Style:='div~button { left: 10px; }';
@@ -512,15 +785,19 @@ begin
   AssertEquals('Button3.left','10px',Button3.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_HasAttribute;
+procedure TTestNewCSSResolver.Test_Selector_HasAttribute;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
-  Button1.Left:='2px';
+  Button1.ExplicitAttributes[naLeft]:='2px';
+  Button1.ExplicitCaption:='Click Button1';
 
   Doc.Style:=LinesToStr([
   '[left] { top: 3px; }',
@@ -533,17 +810,17 @@ begin
   AssertEquals('Button1.Width','4px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeEquals;
+procedure TTestNewCSSResolver.Test_Selector_AttributeEquals;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='2px';
+  Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='3px';
-  Button1.Color:='maybe black';
+  Button1.ExplicitAttributes[naLeft]:='3px';
+  Button1.ExplicitAttributes[naColor]:='maybe black';
 
   Doc.Style:=LinesToStr([
   '[left=2px] { top: 4px; }',
@@ -555,17 +832,17 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeEqualsI;
+procedure TTestNewCSSResolver.Test_Selector_AttributeEqualsI;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='2px';
+  Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='3px';
-  Button1.Color:='maybe Black';
+  Button1.ExplicitAttributes[naLeft]:='3px';
+  Button1.ExplicitAttributes[naColor]:='maybe Black';
 
   Doc.Style:=LinesToStr([
   '[left="2Px" i] { top: 4px; }',
@@ -577,16 +854,16 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeBeginsWith;
+procedure TTestNewCSSResolver.Test_Selector_AttributeBeginsWith;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='Foo';
+  Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='Foo Bar';
+  Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
   '[left^=Fo] { top: 4px; }',
@@ -599,16 +876,16 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeEndsWith;
+procedure TTestNewCSSResolver.Test_Selector_AttributeEndsWith;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='Foo';
+  Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='Foo Bar';
+  Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
   '[left$=o] { top: 4px; }',
@@ -621,16 +898,16 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeBeginsWithHyphen;
+procedure TTestNewCSSResolver.Test_Selector_AttributeBeginsWithHyphen;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='Foo';
+  Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='Foo-Bar';
+  Button1.ExplicitAttributes[naLeft]:='Foo-Bar';
 
   Doc.Style:=LinesToStr([
   '[left|=Foo] { top: 4px; }',
@@ -643,16 +920,18 @@ begin
   AssertEquals('Button1.Width','',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeContainsWord;
+procedure TTestNewCSSResolver.Test_Selector_AttributeContainsWord;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='One Two Three';
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='One Two Three';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
-  Button1.Left:='Four Five';
+  Button1.ExplicitAttributes[naLeft]:='Four Five';
 
   Doc.Style:=LinesToStr([
   '[left~=One] { top: 4px; }',
@@ -671,19 +950,19 @@ begin
   AssertEquals('Button1.Width','',Button1.Width);
   AssertEquals('Button1.Height','',Button1.Height);
   AssertEquals('Button1.Color','',Button1.Color);
-  AssertEquals('Button1.Display','',Button1.Display);
+  AssertEquals('Button1.Display','inline-block',Button1.Display);
 end;
 
-procedure TTestCSSResolver.Test_Selector_AttributeContainsSubstring;
+procedure TTestNewCSSResolver.Test_Selector_AttributeContainsSubstring;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='Foo';
+  Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
-  Button1.Left:='Foo Bar';
+  Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
   '[left*=oo] { top: 4px; }',
@@ -696,14 +975,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Root;
+procedure TTestNewCSSResolver.Test_Selector_Root;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Doc.Root.Left:='Foo';
+  Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -714,19 +993,19 @@ begin
   AssertEquals('Button1.Top','',Button1.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Empty;
+procedure TTestNewCSSResolver.Test_Selector_Empty;
 var
   Div1, Div11, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -744,22 +1023,22 @@ begin
   AssertEquals('Div2.Top','2px',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_FirstChild;
+procedure TTestNewCSSResolver.Test_Selector_FirstChild;
 var
   Div1, Div11, Div12, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Div12:=TDemoDiv.Create(Doc);
+  Div12:=TDemoDiv.Create(nil);
   Div12.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -779,23 +1058,23 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_LastChild;
+procedure TTestNewCSSResolver.Test_Selector_LastChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
   Button12.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -815,23 +1094,28 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_OnlyChild;
+procedure TTestNewCSSResolver.Test_Selector_OnlyChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
+  Div11.Name:='Div11';
   Div11.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.Parent:=Doc.Root;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
+  Button12.Name:='Button12';
   Button12.Parent:=Div2;
 
   Doc.Style:=LinesToStr([
@@ -851,23 +1135,28 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Not;
+procedure TTestNewCSSResolver.Test_Selector_Not;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
+  Div11.Name:='Div11';
   Div11.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.Parent:=Doc.Root;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
+  Button12.Name:='Button12';
   Button12.Parent:=Div2;
 
   Doc.Style:=LinesToStr([
@@ -887,75 +1176,75 @@ begin
   AssertEquals('Button12.Top','9px',Button12.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_NthChild;
+procedure TTestNewCSSResolver.Test_Selector_NthChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
-  Div3:=TDemoDiv.Create(Doc);
+  Div3:=TDemoDiv.Create(nil);
   Div3.Parent:=Doc.Root;
 
-  Div4:=TDemoDiv.Create(Doc);
+  Div4:=TDemoDiv.Create(nil);
   Div4.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
-  ':nth-child(2n+1) { left: 8px; }',
-  ':nth-child(n+3) { border: 6px; }',
-  ':nth-child(-n+2) { display: inline; }',
-  ':nth-child(even) { top: 3px; }',
-  ':nth-child(odd) { width: 4px; }',
+  'div:nth-child(2n+1) { left: 8px; }',
+  'div:nth-child(n+3) { border-width: 6px; }',
+  'div:nth-child(-n+2) { height: 7em; }',
+  'div:nth-child(even) { top: 3px; }',
+  'div:nth-child(odd) { width: 4px; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
-  AssertEquals('Root.Border','',Doc.Root.Border);
-  AssertEquals('Root.Display','',Doc.Root.Display);
+  AssertEquals('Root.BorderWidth','',Doc.Root.BorderWidth);
+  AssertEquals('Root.Height','',Doc.Root.Height);
   AssertEquals('Root.Top','',Doc.Root.Top);
   AssertEquals('Root.Width','',Doc.Root.Width);
   AssertEquals('Div1.Left','8px',Div1.Left);
-  AssertEquals('Div1.Border','',Div1.Border);
-  AssertEquals('Div1.Display','inline',Div1.Display);
+  AssertEquals('Div1.BorderWidth','',Div1.BorderWidth);
+  AssertEquals('Div1.Height','7em',Div1.Height);
   AssertEquals('Div1.Top','',Div1.Top);
   AssertEquals('Div1.Width','4px',Div1.Width);
   AssertEquals('Div2.Left','',Div2.Left);
-  AssertEquals('Div2.Border','',Div2.Border);
-  AssertEquals('Div2.Display','inline',Div2.Display);
+  AssertEquals('Div2.BorderWidth','',Div2.BorderWidth);
+  AssertEquals('Div2.Height','7em',Div2.Height);
   AssertEquals('Div2.Top','3px',Div2.Top);
   AssertEquals('Div2.Width','',Div2.Width);
   AssertEquals('Div3.Left','8px',Div3.Left);
-  AssertEquals('Div3.Border','6px',Div3.Border);
-  AssertEquals('Div3.Display','',Div3.Display);
+  AssertEquals('Div3.BorderWidth','6px',Div3.BorderWidth);
+  AssertEquals('Div3.Height','',Div3.Height);
   AssertEquals('Div3.Top','',Div3.Top);
   AssertEquals('Div3.Width','4px',Div3.Width);
   AssertEquals('Div4.Left','',Div4.Left);
-  AssertEquals('Div4.Border','6px',Div4.Border);
-  AssertEquals('Div4.Display','',Div4.Display);
+  AssertEquals('Div4.BorderWidth','6px',Div4.BorderWidth);
+  AssertEquals('Div4.Height','',Div4.Height);
   AssertEquals('Div4.Top','3px',Div4.Top);
   AssertEquals('Div4.Width','',Div4.Width);
 end;
 
-procedure TTestCSSResolver.Test_Selector_NthLastChild;
+procedure TTestNewCSSResolver.Test_Selector_NthLastChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
-  Div3:=TDemoDiv.Create(Doc);
+  Div3:=TDemoDiv.Create(nil);
   Div3.Parent:=Doc.Root;
 
-  Div4:=TDemoDiv.Create(Doc);
+  Div4:=TDemoDiv.Create(nil);
   Div4.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -969,26 +1258,31 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_NthChildOf;
+procedure TTestNewCSSResolver.Test_Selector_NthChildOf;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.Parent:=Doc.Root;
-  Div2.Top:='3px';
+  Div2.ExplicitAttributes[naTop]:='3px';
 
-  Div3:=TDemoDiv.Create(Doc);
+  Div3:=TDemoDiv.Create(nil);
+  Div3.Name:='Div3';
   Div3.Parent:=Doc.Root;
-  Div3.Top:='3px';
+  Div3.ExplicitAttributes[naTop]:='3px';
 
-  Div4:=TDemoDiv.Create(Doc);
+  Div4:=TDemoDiv.Create(nil);
+  Div4.Name:='Div4';
   Div4.Parent:=Doc.Root;
-  Div4.Top:='3px';
+  Div4.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
   ':nth-child(2n+1 of [top=3px]) { left: 5px; }',
@@ -1001,26 +1295,26 @@ begin
   AssertEquals('Div4.Left','5px',Div4.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_FirstOfType;
+procedure TTestNewCSSResolver.Test_Selector_FirstOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
   Button12.Parent:=Div1;
 
-  Div13:=TDemoDiv.Create(Doc);
+  Div13:=TDemoDiv.Create(nil);
   Div13.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -1042,26 +1336,26 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_LastOfType;
+procedure TTestNewCSSResolver.Test_Selector_LastOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
   Button12.Parent:=Div1;
 
-  Div13:=TDemoDiv.Create(Doc);
+  Div13:=TDemoDiv.Create(nil);
   Div13.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -1083,23 +1377,23 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_OnlyOfType;
+procedure TTestNewCSSResolver.Test_Selector_OnlyOfType;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
   Div11.Parent:=Div1;
 
-  Button12:=TDemoButton.Create(Doc);
+  Button12:=TDemoButton.Create(nil);
   Button12.Parent:=Div1;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -1119,29 +1413,36 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestCSSResolver.Test_Selector_NthOfType;
+procedure TTestNewCSSResolver.Test_Selector_NthOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.Parent:=Doc.Root;
 
-  Div3:=TDemoDiv.Create(Doc);
+  Div3:=TDemoDiv.Create(nil);
+  Div3.Name:='Div3';
   Div3.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Button2:=TDemoButton.Create(nil);
+  Button2.Name:='Button2';
   Button2.Parent:=Doc.Root;
 
-  Div4:=TDemoDiv.Create(Doc);
+  Div4:=TDemoDiv.Create(nil);
+  Div4.Name:='Div4';
   Div4.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -1157,29 +1458,29 @@ begin
   AssertEquals('Div4.Left','',Div4.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_NthLastOfType;
+procedure TTestNewCSSResolver.Test_Selector_NthLastOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
   Button1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
-  Div3:=TDemoDiv.Create(Doc);
+  Div3:=TDemoDiv.Create(nil);
   Div3.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Button2:=TDemoButton.Create(nil);
   Button2.Parent:=Doc.Root;
 
-  Div4:=TDemoDiv.Create(Doc);
+  Div4:=TDemoDiv.Create(nil);
   Div4.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
@@ -1195,26 +1496,34 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Is;
+procedure TTestNewCSSResolver.Test_Selector_Is;
 var
   Div1, Div2: TDemoDiv;
   Button1, Button2: TDemoButton;
+  Span1: TDemoSpan;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
-  Div1.Top:='3px';
+  Div1.ExplicitAttributes[naTop]:='3px';
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
   Div2.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(Doc);
+  Span1:=TDemoSpan.Create(nil);
+  Span1.Parent:=Doc.Root;
+  Span1.ExplicitAttributes[naTop]:='3px';
+
+  Button2:=TDemoButton.Create(nil);
   Button2.Parent:=Doc.Root;
-  Button2.Top:='3px';
+  Button2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
   ':is(div, button)[top=3px] { left: 7px; }',
@@ -1224,22 +1533,26 @@ begin
   AssertEquals('Div1.Left','7px',Div1.Left);
   AssertEquals('Button1.Left','',Button1.Left);
   AssertEquals('Div2.Left','',Div2.Left);
+  AssertEquals('Span1.Left','',Div2.Left);
   AssertEquals('Button2.Left','7px',Button2.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Where;
+procedure TTestNewCSSResolver.Test_Selector_Where;
 var
   Div1, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
-  Div1.Top:='3px';
+  Div1.ExplicitAttributes[naTop]:='3px';
 
-  Div2:=TDemoDiv.Create(Doc);
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
   Div2.Parent:=Div1;
-  Div2.Top:='3px';
+  Div2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
   ':where(div[top=3px]) { left: 1px; }',
@@ -1251,22 +1564,26 @@ begin
   AssertEquals('Div2.Left','2px',Div2.Left);
 end;
 
-procedure TTestCSSResolver.Test_Selector_Hover;
+procedure TTestNewCSSResolver.Test_Selector_Hover;
 var
   Div1, Div11: TDemoDiv;
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
   Div1.Hover:=true;
 
-  Button1:=TDemoButton.Create(Doc);
+  Button1:=TDemoButton.Create(nil);
+  Button1.Name:='Button1';
   Button1.Parent:=Div1;
   Button1.Hover:=true;
 
-  Div11:=TDemoDiv.Create(Doc);
+  Div11:=TDemoDiv.Create(nil);
+  Div11.Name:='Div11';
   Div11.Parent:=Div1;
 
   Doc.Style:=LinesToStr([
@@ -1284,15 +1601,15 @@ begin
   AssertEquals('Div11.Top','',Div11.Top);
 end;
 
-procedure TTestCSSResolver.Test_InlineStyle;
+procedure TTestNewCSSResolver.Test_InlineStyle;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(Doc);
+  Div1:=TDemoDiv.Create(nil);
   Div1.Parent:=Doc.Root;
-  Div1.Style:='left: 10px; top: 5px';
+  Div1.InlineStyle:='left: 10px; top: 5px';
 
   Doc.Style:=LinesToStr([
   'div { left: 6px; }',
@@ -1303,33 +1620,136 @@ begin
   AssertEquals('Div1.Top','5px',Div1.Top);
 end;
 
+procedure TTestNewCSSResolver.Test_Specifity_Id_Class;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+
+  Doc.Style:=LinesToStr([
+  '.bird { left: 6px; }',
+  '#Div1 { left: 7px; top: 8px; }', // id has higher specifity, no matter if before or after a .class
+  '.bird { top: 9px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','7px',Div1.Left);
+  AssertEquals('Div1.Top','8px',Div1.Top);
+end;
+
+procedure TTestNewCSSResolver.Test_Specifity_Important;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+
+  Doc.Style:=LinesToStr([
+  '.bird { left: 6px !important; }',
+  '#Div1 { left: 7px; top: 8px; }',
+  '.bird { top: 9px ! important; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','6px',Div1.Left);
+  AssertEquals('Div1.Top','9px',Div1.Top);
+end;
+
+procedure TTestNewCSSResolver.Test_Specifity_Shorthand_OneRule;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+
+  Doc.Style:='.bird { border-color: blue; border: 6px red; border-width: 7px; }';
+  Doc.ApplyStyle;
+  AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
+end;
+
+procedure TTestNewCSSResolver.Test_Specifity_Shorthand_ClassClass;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+  Div1.CSSClasses.Add('eagle');
+
+  Doc.Style:=LinesToStr([
+  '.bird.eagle { border-color: blue; }',
+  '.bird { border-width: 6px; }',
+  '.bird { border: 7px red; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
+end;
+
 { TDemoDiv }
 
 class function TDemoDiv.CSSTypeName: TCSSString;
 begin
-  Result:='div';
+  Result:=DemoElementTypeNames[detDiv];
 end;
 
-class function TDemoDiv.CSSTypeID: TCSSNumericalID;
+class function TDemoDiv.GetClassCSSTypeID: TCSSNumericalID;
 begin
-  Result:=101;
+  Result:=FDemoDivTypeID;
+end;
+
+class procedure TDemoDiv.SetClassCSSTypeID(aID: TCSSNumericalID);
+begin
+  FDemoDivTypeID:=aID;
+end;
+
+class function TDemoDiv.GetCSSTypeStyle: TCSSString;
+begin
+  Result:='div{ display: block }';
 end;
 
 { TDemoSpan }
 
 class function TDemoSpan.CSSTypeName: TCSSString;
 begin
-  Result:='span';
+  Result:=DemoElementTypeNames[detSpan];
 end;
 
-class function TDemoSpan.CSSTypeID: TCSSNumericalID;
+class function TDemoSpan.GetClassCSSTypeID: TCSSNumericalID;
 begin
-  Result:=102;
+  Result:=FDemoSpanTypeID;
+end;
+
+class procedure TDemoSpan.SetClassCSSTypeID(aID: TCSSNumericalID);
+begin
+  FDemoSpanTypeID:=aID;
+end;
+
+class function TDemoSpan.GetCSSTypeStyle: TCSSString;
+begin
+  Result:='span{display: inline-block }';
 end;
 
 { TDemoButton }
 
-procedure TDemoButton.SetCaption(const AValue: string);
+procedure TDemoButton.SetCaption(const AValue: TCSSString);
 begin
   if FCaption=AValue then Exit;
   FCaption:=AValue;
@@ -1337,142 +1757,64 @@ end;
 
 class function TDemoButton.CSSTypeName: TCSSString;
 begin
-  Result:='button';
+  Result:=DemoElementTypeNames[detButton];
 end;
 
-class function TDemoButton.CSSTypeID: TCSSNumericalID;
+class function TDemoButton.GetClassCSSTypeID: TCSSNumericalID;
 begin
-  Result:=103;
+  Result:=FDemoButtonTypeID;
 end;
 
-function TDemoButton.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
+class procedure TDemoButton.SetClassCSSTypeID(aID: TCSSNumericalID);
 begin
-  Result:=(AttrID=CSSCaptionID) or inherited HasCSSAttribute(AttrID);
+  FDemoButtonTypeID:=aID;
 end;
 
-function TDemoButton.GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+class function TDemoButton.GetCSSTypeStyle: TCSSString;
+begin
+  Result:='button{display: inline-block }';
+end;
+
+function TDemoButton.HasCSSExplicitAttribute(const AttrID: TCSSNumericalID
+  ): boolean;
+begin
+  //writeln('TDemoButton.HasCSSExplicitAttribute ',AttrID,' CSSCaptionID=',CSSCaptionID);
+  if AttrID=CSSCaptionID then
+    Result:=ExplicitCaption<>''
+  else
+    Result:=inherited HasCSSExplicitAttribute(AttrID);
+end;
+
+function TDemoButton.GetCSSExplicitAttribute(const AttrID: TCSSNumericalID
+  ): TCSSString;
 begin
   if AttrID=CSSCaptionID then
-    Result:=Caption
+    Result:=ExplicitCaption
   else
-    Result:=inherited GetCSSAttribute(AttrID);
-end;
-
-procedure TDemoButton.SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
-begin
-  if AttrID=CSSCaptionID then
-    SetCaption(Value.AsString)
-  else
-    inherited SetCSSValue(AttrID, Value);
+    Result:=inherited GetCSSExplicitAttribute(AttrID);
 end;
 
 { TDemoDocument }
 
-procedure TDemoDocument.SetStyle(const AValue: string);
-var
-  ss: TStringStream;
-  aParser: TCSSParser;
+procedure TDemoDocument.SetStyle(const AValue: TCSSString);
 begin
   if FStyle=AValue then Exit;
   FStyle:=AValue;
-  FreeAndNil(FStyleElements);
-  aParser:=nil;
-  ss:=TStringStream.Create(Style);
-  try
-    aParser:=TCSSParser.Create(ss);
-    FStyleElements:=aParser.Parse;
-  finally
-    aParser.Free;
-  end;
-end;
-
-function TDemoDocument.GetNumericalIDs(Kind: TCSSNumericalIDKind
-  ): TCSSNumericalIDs;
-begin
-  Result:=FNumericalIDs[Kind];
-end;
-
-procedure TDemoDocument.SetNumericalIDs(Kind: TCSSNumericalIDKind;
-  const AValue: TCSSNumericalIDs);
-begin
-  FNumericalIDs[Kind]:=AValue;
-end;
-
-procedure TDemoDocument.SetStyleElements(const AValue: TCSSElement);
-begin
-  if FStyleElements=AValue then Exit;
-  FStyleElements.Free;
-  FStyleElements:=AValue;
 end;
 
 constructor TDemoDocument.Create(AOwner: TComponent);
-var
-  Attr: TDemoNodeAttribute;
-  TypeIDs, AttributeIDs, PseudoClassIDs: TCSSNumericalIDs;
-  NumKind: TCSSNumericalIDKind;
-  AttrID: TCSSNumericalID;
-  PseudoClass: TDemoPseudoClass;
 begin
   inherited Create(AOwner);
 
-  for NumKind in TCSSNumericalIDKind do
-    FNumericalIDs[NumKind]:=TCSSNumericalIDs.Create(NumKind);
-
-  // register all css types
-  TypeIDs:=FNumericalIDs[nikType];
-  TypeIDs['*']:=CSSTypeID_Universal;
-  if TypeIDs['*']<>CSSTypeID_Universal then
-    raise Exception.Create('20220909004740');
-
-  TypeIDs[TDemoNode.CSSTypeName]:=TDemoNode.CSSTypeID;
-  TypeIDs[TDemoDiv.CSSTypeName]:=TDemoDiv.CSSTypeID;
-  TypeIDs[TDemoButton.CSSTypeName]:=TDemoButton.CSSTypeID;
-
-  // register all css attributes
-  AttributeIDs:=FNumericalIDs[nikAttribute];
-  AttributeIDs['all']:=CSSAttributeID_All;
-  // add basic element attributes
-  AttrID:=DemoAttrIDBase;
-  for Attr in TDemoNodeAttribute do
-  begin
-    AttributeIDs[DemoAttributeNames[Attr]]:=AttrID;
-    inc(AttrID);
-  end;
-  // add button caption attribute
-  TDemoButton.CSSCaptionID:=AttrID;
-  AttributeIDs['caption']:=AttrID;
-  inc(AttrID);
-
-  // register css pseudo attributes
-  PseudoClassIDs:=FNumericalIDs[nikPseudoClass];
-  AttrID:=DemoPseudoClassIDBase;
-  for PseudoClass in TDemoPseudoClass do
-  begin
-    PseudoClassIDs[DemoPseudoClassNames[PseudoClass]]:=AttrID;
-    inc(AttrID);
-  end;
-  if PseudoClassIDs[DemoPseudoClassNames[pcHover]]<>DemoPseudoClassIDBase+ord(pcHover) then
-    raise Exception.Create('20231008232201');
-
   // create the css resolver
   FCSSResolver:=TCSSResolver.Create(nil);
-  for NumKind in TCSSNumericalIDKind do
-    CSSResolver.NumericalIDs[NumKind]:=FNumericalIDs[NumKind];
-
-  // create a demo root node
-  Root:=TDemoNode.Create(Self);
-  Root.Name:='Root';
+  FCSSResolver.CSSRegistry:=TDemoNode.CSSRegistry;
 end;
 
 destructor TDemoDocument.Destroy;
-var
-  NumKind: TCSSNumericalIDKind;
 begin
-  FreeAndNil(FCSSResolver);
   FreeAndNil(Root);
-  FreeAndNil(FStyleElements);
-  for NumKind in TCSSNumericalIDKind do
-    FreeAndNil(FNumericalIDs[NumKind]);
+  FreeAndNil(FCSSResolver);
   inherited Destroy;
 end;
 
@@ -1482,29 +1824,373 @@ procedure TDemoDocument.ApplyStyle;
   var
     i: Integer;
   begin
-    ApplyStyleToNode(Node);
+    Node.ApplyCSS(CSSResolver);
     for i:=0 to Node.NodeCount-1 do
       Traverse(Node[i]);
   end;
 
 begin
-  if CSSResolver.StyleCount=0 then
-    CSSResolver.AddStyle(StyleElements)
-  else
-    CSSResolver.Styles[0]:=StyleElements;
+  ApplyTypeStyles;
+
+  CSSResolver.AddStyleSheet(Style,'test.css',cssoAuthor);
+  CSSResolver.Init;
   Traverse(Root);
 end;
 
-procedure TDemoDocument.ApplyStyleToNode(Node: TDemoNode);
+procedure TDemoDocument.ApplyTypeStyles;
+var
+  FoundStyles: array of TDemoNodeClass;
+
+  procedure AddTypeStyle(NodeClass: TDemoNodeClass);
+  var
+    i: Integer;
+    Src, ParentSrc: TCSSString;
+    ParentNodeClass: TDemoNodeClass;
+  begin
+    for i:=0 to length(FoundStyles)-1 do
+      if FoundStyles[i]=NodeClass then exit;
+    Insert(NodeClass,FoundStyles,length(FoundStyles));
+
+    Src:=NodeClass.GetCSSTypeStyle;
+    //writeln('AddTypeStyle ',NodeClass.ClassName,' Src="',Src,'"');
+    if Src='' then exit;
+    if NodeClass.ClassType<>TDemoNode then
+    begin
+      ParentNodeClass:=TDemoNodeClass(NodeClass.ClassParent);
+      AddTypeStyle(ParentNodeClass);
+      ParentSrc:=ParentNodeClass.GetCSSTypeStyle;
+      if Src=ParentSrc then exit;
+    end;
+    //writeln('AddTypeStyle ',NodeClass.ClassName);
+    FCSSResolver.AddStyleSheet(Src,NodeClass.ClassName,cssoUserAgent);
+  end;
+
+  procedure CollectTypeStyles(Node: TDemoNode);
+  var
+    NodeClass: TDemoNodeClass;
+    i: Integer;
+  begin
+    NodeClass:=TDemoNodeClass(Node.ClassType);
+    AddTypeStyle(NodeClass);
+    for i:=0 to Node.NodeCount-1 do
+      CollectTypeStyles(Node[i]);
+  end;
+
 begin
-  CSSResolver.Compute(Node,Node.StyleElements);
+  FCSSResolver.ClearStyleSheets;
+
+  FoundStyles:=[];
+  CollectTypeStyles(Root);
+end;
+
+{ TDemoCSSRegistry }
+
+procedure TDemoCSSRegistry.OnCheck_Border(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  p: PCSSChar;
+  ResValue: TCSSResValue;
+  HasWidth, HasColor: Boolean;
+begin
+  HasWidth:=false;
+  HasColor:=false;
+  p:=PCSSChar(Data.Value);
+  repeat
+    if not Resolver.ReadValue(p,ResValue) then break;
+    case ResValue.Kind of
+    rvkFloat:
+      if not HasWidth then
+        HasWidth:=ResValue.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
+    rvkKeyword:
+      if not HasColor then
+        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
+    end;
+  until false;
+  Data.Invalid:=(not HasWidth) and (not HasColor);
+end;
+
+procedure TDemoCSSRegistry.OnCheck_BorderColor(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  HasColor: Boolean;
+  p: PCSSChar;
+  ResValue: TCSSResValue;
+begin
+  HasColor:=false;
+  p:=PCSSChar(Data.Value);
+  repeat
+    if not Resolver.ReadValue(p,ResValue) then break;
+    case ResValue.Kind of
+    rvkKeyword:
+      if not HasColor then
+        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
+    end;
+  until false;
+  Data.Invalid:=not HasColor;
+end;
+
+procedure TDemoCSSRegistry.OnCheck_BorderWidth(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  ResValue: TCSSResValue;
+begin
+  Resolver.CheckAttribute_Dimension(Data,CheckParams_BorderWidth,ResValue);
+end;
+
+procedure TDemoCSSRegistry.OnSplit_Border(Resolver: TCSSBaseResolver;
+  Desc: TCSSAttributeDesc; const aValue: TCSSString;
+  var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
+var
+  HasWidth, HasColor: Boolean;
+  p: PCSSChar;
+  ResValue: TCSSResValue;
+begin
+  HasWidth:=false;
+  HasColor:=false;
+  p:=PCSSChar(aValue);
+  repeat
+    if not Resolver.ReadValue(p,ResValue) then break;
+    case ResValue.Kind of
+    rvkFloat:
+      if not HasWidth then begin
+        HasWidth:=ResValue.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
+        if HasWidth then
+        begin
+          System.Insert(DemoAttrs[naBorderWidth].Index,AttrIDs,length(AttrIDs));
+          System.Insert(ResValue.FloatAsString,Values,length(Values));
+        end;
+      end;
+    rvkKeyword:
+      if not HasColor then
+      begin
+        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
+        if HasColor then
+        begin
+          System.Insert(DemoAttrs[naBorderColor].Index,AttrIDs,length(AttrIDs));
+          System.Insert(Resolver.CSSRegistry.Keywords[ResValue.KeywordID],Values,length(Values));
+        end;
+      end;
+    end;
+  until false;
+end;
+
+procedure TDemoCSSRegistry.OnCheck_Direction(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  ResValue: TCSSResValue;
+begin
+  Resolver.CheckAttribute_Keyword(Data,CheckParams_DirectionAllowedKeywordIDs,ResValue);
+end;
+
+procedure TDemoCSSRegistry.OnCheck_Display(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  ResValue: TCSSResValue;
+begin
+  Resolver.CheckAttribute_Keyword(Data,CheckParams_DisplayAllowedKeywordIDs,ResValue);
+end;
+
+procedure TDemoCSSRegistry.OnCheck_LeftTop(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  ResValue: TCSSResValue;
+begin
+  Resolver.CheckAttribute_Dimension(Data,CheckParams_LeftTop,ResValue);
+end;
+
+procedure TDemoCSSRegistry.OnCheck_WidthHeight(Resolver: TCSSBaseResolver;
+  Data: TCSSAttributeKeyData);
+var
+  ResValue: TCSSResValue;
+begin
+  writeln('AAA1 TDemoCSSRegistry.OnCheck_WidthHeight "',Data.Value,'"');
+  Resolver.CheckAttribute_Dimension(Data,CheckParams_WidthHeight,ResValue);
+end;
+
+procedure TDemoCSSRegistry.OnCompute_Direction(Resolver: TCSSResolver;
+  Node: TDemoNode; Value: TCSSAttributeValue);
+var
+  ResValue: TCSSResValue;
+begin
+  if Resolver.ReadAttribute_Keyword(Value.Value,Value.Invalid,CheckParams_DirectionAllowedKeywordIDs,ResValue) then
+    Value.Value:=TDemoNode.CSSRegistry.Keywords[ResValue.KeywordID]
+  else
+    Value.Value:='invalid';
+  if Node=nil then ;
+end;
+
+procedure TDemoCSSRegistry.OnCompute_LeftTop(Resolver: TCSSResolver;
+  Node: TDemoNode; Value: TCSSAttributeValue);
+var
+  ResValue: TCSSResValue;
+begin
+  if Resolver.ReadAttribute_Dimension(Value.Value,Value.Invalid,CheckParams_LeftTop,ResValue) then
+    Value.Value:=ResValue.FloatAsString
+  else
+    Value.Value:='invalid';
+  if Node=nil then ;
+end;
+
+procedure TDemoCSSRegistry.OnCompute_WidthHeight(Resolver: TCSSResolver;
+  Node: TDemoNode; Value: TCSSAttributeValue);
+var
+  ResValue: TCSSResValue;
+begin
+  if Resolver.ReadAttribute_Dimension(Value.Value,Value.Invalid,CheckParams_WidthHeight,ResValue) then
+    Value.Value:=ResValue.FloatAsString
+  else
+    Value.Value:='invalid';
+  if Node=nil then ;
+end;
+
+constructor TDemoCSSRegistry.Create;
+
+  procedure SetDemoElementTypeID(aClass: TDemoNodeClass);
+  var
+    Desc: TCSSTypeDesc;
+  begin
+    Desc:=FindType(aClass.CSSTypeName);
+    if Desc=nil then
+      raise Exception.Create('20240625190912');
+    aClass.SetClassCSSTypeID(Desc.Index);
+  end;
+
+  procedure SetCompProps(ShorthandID: TDemoNodeAttribute; Longhands: array of TDemoNodeAttribute);
+  var
+    i: Integer;
+  begin
+    SetLength(DemoAttrs[ShorthandID].CompProps,length(Longhands));
+    for i:=0 to length(Longhands)-1 do
+      DemoAttrs[ShorthandID].CompProps[i]:=DemoAttrs[Longhands[i]];
+  end;
+
+var
+  Attr: TDemoNodeAttribute;
+  PseudoClass: TDemoPseudoClass;
+  aType: TDemoElementType;
+begin
+  inherited Create;
+  Init;
+
+  // register demo attributes
+  for Attr in TDemoNodeAttribute do
+    AddDemoAttr(Attr);
+  DemoAttrIDBase:=DemoAttrs[low(TDemoNodeAttribute)].Index;
+  if FindAttribute(DemoAttributeNames[naBackground]).Index<>DemoAttrIDBase+ord(naBackground) then
+    raise Exception.Create('20240617200337');
+
+  // register demo pseudo classes
+  for PseudoClass in TDemoPseudoClass do
+    AddDemoPseudoClass(PseudoClass);
+  DemoPseudoClassIDBase:=DemoPseudoClasses[low(TDemoPseudoClass)].Index;
+  if FindPseudoClass(DemoPseudoClassNames[pcHover]).Index<>DemoPseudoClassIDBase+ord(pcHover) then
+    raise Exception.Create('20231008232201');
+
+  // register demo element types
+  for aType in TDemoElementType do
+    AddDemoType(aType);
+  DemoElementTypeIDBase:=DemoTypes[low(TDemoElementType)].Index;
+  if FindType(DemoElementTypeNames[detButton]).Index<>DemoElementTypeIDBase+ord(detButton) then
+    raise Exception.Create('20240625181725');
+  SetDemoElementTypeID(TDemoNode);
+  SetDemoElementTypeID(TDemoDiv);
+  SetDemoElementTypeID(TDemoSpan);
+  SetDemoElementTypeID(TDemoButton);
+
+  kwRed:=AddKeyword('red');
+  kwFirstColor:=kwRed;
+  kwGreen:=AddKeyword('green');
+  kwBlue:=AddKeyword('blue');
+  kwWhite:=AddKeyword('white');
+  kwBlack:=AddKeyword('black');
+  kwLastColor:=kwBlack;
+
+  kwBlock:=AddKeyword('block');
+  kwInline_Block:=AddKeyword('inline-block');
+
+  kwLTR:=AddKeyword('ltr');
+  kwRTL:=AddKeyword('rtl');
+
+  // check parameters - - - - - - - - - - - - - - - - - - - - - - - -
+
+  // border-color
+  DemoAttrs[naBorderColor].OnCheck:=@OnCheck_BorderColor;
+
+  // border-width
+  DemoAttrs[naBorderWidth].OnCheck:=@OnCheck_BorderWidth;
+  CheckParams_BorderWidth.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  CheckParams_BorderWidth.AllowFrac:=true;
+
+  // border shorthand
+  SetCompProps(naBorder,[naBorderColor,naBorderWidth]);
+  DemoAttrs[naBorder].OnCheck:=@OnCheck_Border;
+  DemoAttrs[naBorder].OnSplitShorthand:=@OnSplit_Border;
+
+  // direction
+  DemoAttrs[naDirection].OnCheck:=@OnCheck_Direction;
+  CheckParams_DirectionAllowedKeywordIDs:=[kwLTR,kwRTL];
+  DemoAttrs[naDirection].OnCompute:=@OnCompute_Direction;
+
+  // display
+  DemoAttrs[naDisplay].OnCheck:=@OnCheck_Display;
+  CheckParams_DisplayAllowedKeywordIDs:=[kwBlock,kwInline_Block];
+
+  // left, top
+  DemoAttrs[naLeft].OnCheck:=@OnCheck_LeftTop;
+  DemoAttrs[naLeft].OnCompute:=@OnCompute_LeftTop;
+  DemoAttrs[naTop].OnCheck:=@OnCheck_LeftTop;
+  DemoAttrs[naTop].OnCompute:=@OnCompute_LeftTop;
+  CheckParams_LeftTop.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  CheckParams_LeftTop.AllowNegative:=true;
+  CheckParams_LeftTop.AllowFrac:=true;
+
+  // width, height
+  DemoAttrs[naWidth].OnCheck:=@OnCheck_WidthHeight;
+  DemoAttrs[naWidth].OnCompute:=@OnCompute_WidthHeight;
+  DemoAttrs[naHeight].OnCheck:=@OnCheck_WidthHeight;
+  DemoAttrs[naHeight].OnCompute:=@OnCompute_WidthHeight;
+  CheckParams_WidthHeight.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  CheckParams_WidthHeight.AllowFrac:=true;
+end;
+
+function TDemoCSSRegistry.AddDemoAttr(Attr: TDemoNodeAttribute
+  ): TDemoCSSAttributeDesc;
+begin
+  Result:=TDemoCSSAttributeDesc(AddAttribute(DemoAttributeNames[Attr],
+     DemoAttributeInitialValues[Attr],
+     Attr in DemoAttributesInherited,
+     not (Attr in DemoAttributesNotAll),
+     TDemoCSSAttributeDesc));
+  Result.DemoID:=Attr;
+  DemoAttrs[Attr]:=Result;
+end;
+
+function TDemoCSSRegistry.AddDemoPseudoClass(PC: TDemoPseudoClass
+  ): TDemoCSSPseudoClassDesc;
+begin
+  Result:=TDemoCSSPseudoClassDesc(AddPseudoClass(DemoPseudoClassNames[PC],
+     TDemoCSSPseudoClassDesc));
+  Result.DemoID:=PC;
+  DemoPseudoClasses[PC]:=Result;
+end;
+
+function TDemoCSSRegistry.AddDemoType(aType: TDemoElementType
+  ): TDemoCSSTypeDesc;
+begin
+  Result:=TDemoCSSTypeDesc(AddType(DemoElementTypeNames[aType],
+     TDemoCSSTypeDesc));
+  Result.DemoID:=aType;
+  DemoTypes[aType]:=Result;
 end;
 
 { TDemoNode }
 
-function TDemoNode.GetAttribute(AIndex: TDemoNodeAttribute): string;
+function TDemoNode.GetAttribute(DemoAttr: TDemoNodeAttribute): TCSSString;
+var
+  AttrDesc: TDemoCSSAttributeDesc;
 begin
-  Result:=FAttributeValues[AIndex];
+  AttrDesc:=TDemoNode.CSSRegistry.DemoAttrs[DemoAttr];
+  Result:=Values.GetValue(AttrDesc);
 end;
 
 function TDemoNode.GetNodeCount: integer;
@@ -1517,17 +2203,9 @@ begin
   Result:=TDemoNode(FNodes[Index]);
 end;
 
-procedure TDemoNode.SetAttribute(AIndex: TDemoNodeAttribute;
-  const AValue: string);
+function TDemoNode.GetPseudoClasses(PseudoClass: TDemoPseudoClass): boolean;
 begin
-  if FAttributeValues[AIndex]=AValue then exit;
-  FAttributeValues[AIndex]:=AValue;
-end;
-
-procedure TDemoNode.SetHover(const AValue: boolean);
-begin
-  if FHover=AValue then Exit;
-  FHover:=AValue;
+  Result:=FPseudoClasses[PseudoClass];
 end;
 
 procedure TDemoNode.SetParent(const AValue: TDemoNode);
@@ -1548,35 +2226,24 @@ begin
   end;
 end;
 
-procedure TDemoNode.SetActive(const AValue: boolean);
+procedure TDemoNode.SetInlineStyleElements(const AValue: TCSSRuleElement);
 begin
-  if FActive=AValue then Exit;
-  FActive:=AValue;
+  if FInlineStyleElements=AValue then Exit;
+  FreeAndNil(FInlineStyleElements);
+  FInlineStyleElements:=AValue;
 end;
 
-procedure TDemoNode.SetStyleElements(const AValue: TCSSElement);
+procedure TDemoNode.SetInlineStyle(const AValue: TCSSString);
 begin
-  if FStyleElements=AValue then Exit;
-  FreeAndNil(FStyleElements);
-  FStyleElements:=AValue;
+  if FInlineStyle=AValue then Exit;
+  FInlineStyle:=AValue;
+  FreeAndNil(FInlineStyleElements);
 end;
 
-procedure TDemoNode.SetStyle(const AValue: string);
-var
-  ss: TStringStream;
-  aParser: TCSSParser;
+procedure TDemoNode.SetPseudoClasses(PseudoClass: TDemoPseudoClass;
+  const AValue: boolean);
 begin
-  if FStyle=AValue then Exit;
-  FStyle:=AValue;
-  FreeAndNil(FStyleElements);
-  aParser:=nil;
-  ss:=TStringStream.Create(Style);
-  try
-    aParser:=TCSSParser.Create(ss);
-    FStyleElements:=aParser.ParseInline;
-  finally
-    aParser.Free;
-  end;
+  FPseudoClasses[PseudoClass]:=AValue;
 end;
 
 procedure TDemoNode.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1591,15 +2258,11 @@ begin
 end;
 
 constructor TDemoNode.Create(AOwner: TComponent);
-var
-  a: TDemoNodeAttribute;
 begin
   inherited Create(AOwner);
   FNodes:=TFPObjectList.Create(false);
   FCSSClasses:=TStringList.Create;
   FCSSClasses.Delimiter:=' ';
-  for a in TDemoNodeAttribute do
-    FAttributeValues[a]:=FAttributeInitialValues[a];
 end;
 
 destructor TDemoNode.Destroy;
@@ -1614,10 +2277,53 @@ procedure TDemoNode.Clear;
 var
   i: Integer;
 begin
+  Rules:=nil;
+  FreeAndNil(Values);
+
   FCSSClasses.Clear;
+  FreeAndNil(FInlineStyleElements);
+
   for i:=NodeCount-1 downto 0 do
-    Nodes[i].Parent:=nil;
-  FNodes.Clear;
+    Nodes[i].Free;
+  if FNodes.Count>0 then
+    raise Exception.Create('20240710174459');
+end;
+
+procedure TDemoNode.ApplyCSS(Resolver: TCSSResolver);
+var
+  AttrDesc: TDemoCSSAttributeDesc;
+  i: Integer;
+  AttrID: TCSSNumericalID;
+  CurValue: TCSSAttributeValue;
+begin
+  if (InlineStyleElement=nil) and (InlineStyle<>'') then
+    InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
+
+  Resolver.Compute(Self,InlineStyleElement,Rules,Values);
+
+  {$IFDEF VerboseCSSResolver}
+  writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',Values.AllValue,'"');
+  for i:=0 to length(Values.Values)-1 do
+    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Values.Values[i].AttrID,':="',Values.Values[i].Value,'"');
+  {$ENDIF}
+  // compute values
+  for i:=0 to length(Values.Values)-1 do
+  begin
+    CurValue:=Values.Values[i];
+    if CurValue.Computed then
+    begin
+    end else begin
+      AttrID:=CurValue.AttrID;
+      AttrDesc:=Resolver.CSSRegistry.Attributes[AttrID] as TDemoCSSAttributeDesc;
+      if AttrDesc.OnCompute<>nil then
+      begin
+        AttrDesc.OnCompute(Resolver,Self,CurValue);
+        {$IFDEF VerboseCSSResolver}
+        writeln('TDemoNode.ApplyCSS ',Name,' computed ',AttrID,':="',CurValue.Value,'"');
+        {$ENDIF}
+      end;
+    end;
+  end;
 end;
 
 function TDemoNode.GetCSSID: TCSSString;
@@ -1627,21 +2333,7 @@ end;
 
 class function TDemoNode.CSSTypeName: TCSSString;
 begin
-  Result:='node';
-end;
-
-class function TDemoNode.GetAttributeInitialValue(Attr: TDemoNodeAttribute
-  ): string;
-begin
-  case Attr of
-    naLeft: Result:='0px';
-    naTop: Result:='0px';
-    naWidth: Result:='';
-    naHeight: Result:='';
-    naBorder: Result:='1px';
-    naDisplay: Result:='inline';
-    naColor: Result:='#000';
-  end;
+  Result:=DemoElementTypeNames[detNode];
 end;
 
 function TDemoNode.HasCSSClass(const aClassName: TCSSString): boolean;
@@ -1652,29 +2344,6 @@ begin
     if aClassName=CSSClasses[i] then
       exit(true);
   Result:=false;
-end;
-
-function TDemoNode.CheckCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement
-  ): boolean;
-begin
-  if (AttrID<DemoAttrIDBase) or (AttrID>ord(High(TDemoNodeAttribute))+DemoAttrIDBase) then
-    exit(false);
-  Result:=Value<>nil;
-end;
-
-procedure TDemoNode.SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
-var
-  Attr: TDemoNodeAttribute;
-  s: TCSSString;
-begin
-  if (AttrID<DemoAttrIDBase) or (AttrID>ord(High(TDemoNodeAttribute))+DemoAttrIDBase) then
-    raise Exception.Create('TDemoNode.SetCSSValue invalid AttrID '+IntToStr(AttrID));
-  Attr:=TDemoNodeAttribute(AttrID-DemoAttrIDBase);
-  s:=Value.AsString;
-  {$IFDEF VerboseCSSResolver}
-  writeln('TDemoNode.SetCSSValue ',DemoAttributeNames[Attr],':="',s,'"');
-  {$ENDIF}
-  Attribute[Attr]:=s;
 end;
 
 function TDemoNode.GetCSSParent: ICSSNode;
@@ -1732,12 +2401,12 @@ begin
   i:=GetCSSIndex;
   if i<0 then exit;
   inc(i);
-  MyID:=CSSTypeID;
+  MyID:=GetClassCSSTypeID;
   Cnt:=Parent.NodeCount;
   while i<Cnt do
   begin
     aNode:=Parent.Nodes[i];
-    if aNode.CSSTypeID=MyID then
+    if aNode.GetClassCSSTypeID=MyID then
       exit(aNode);
     inc(i);
   end;
@@ -1753,11 +2422,11 @@ begin
   i:=GetCSSIndex;
   if i<0 then exit;
   dec(i);
-  MyID:=CSSTypeID;
+  MyID:=GetClassCSSTypeID;
   while i>=0 do
   begin
     aNode:=Parent.Nodes[i];
-    if aNode.CSSTypeID=MyID then
+    if aNode.GetClassCSSTypeID=MyID then
       exit(aNode);
     dec(i);
   end;
@@ -1769,25 +2438,37 @@ begin
   Result:=FCSSClasses.DelimitedText;
 end;
 
-function TDemoNode.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
-begin
-  Result:=(AttrID>=DemoAttrIDBase) and (AttrID<=DemoAttrIDBase+ord(High(TDemoNodeAttribute)));
-end;
-
-function TDemoNode.GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+function TDemoNode.HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean;
 var
+  b: TCSSNumericalID;
   Attr: TDemoNodeAttribute;
 begin
-  if (AttrID<DemoAttrIDBase) or (AttrID>DemoAttrIDBase+ord(High(TDemoNodeAttribute))) then
+  b:=CSSRegistry.DemoAttrIDBase;
+  if (AttrID<b) or (AttrID>b+ord(High(TDemoNodeAttribute))) then
+    exit(false);
+  Attr:=TDemoNodeAttribute(AttrID-b);
+  Result:=ExplicitAttributes[Attr]<>'';
+end;
+
+function TDemoNode.GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
+var
+  Attr: TDemoNodeAttribute;
+  b: TCSSNumericalID;
+begin
+  b:=CSSRegistry.DemoAttrIDBase;
+  if (AttrID<b) or (AttrID>b+ord(High(TDemoNodeAttribute))) then
     exit('');
-  Attr:=TDemoNodeAttribute(AttrID-DemoAttrIDBase);
-  Result:=Attribute[Attr];
+  Attr:=TDemoNodeAttribute(AttrID-b);
+  Result:=ExplicitAttributes[Attr];
 end;
 
 function TDemoNode.HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
+var
+  b: TCSSNumericalID;
 begin
-  if (AttrID>=DemoPseudoClassIDBase) and (AttrID<=DemoPseudoClassIDBase+ord(High(TDemoPseudoClass))) then
-    Result:=HasPseudoClass(TDemoPseudoClass(AttrID-DemoPseudoClassIDBase))
+  b:=CSSRegistry.DemoPseudoClassIDBase;
+  if (AttrID>=b) and (AttrID<=b+ord(High(TDemoPseudoClass))) then
+    Result:=HasPseudoClass[TDemoPseudoClass(AttrID-b)]
   else
     Result:=false;
 end;
@@ -1810,30 +2491,33 @@ begin
   end;
 end;
 
-function TDemoNode.HasPseudoClass(PseudoClass: TDemoPseudoClass): boolean;
-begin
-  case PseudoClass of
-    pcActive: Result:=Active;
-    pcHover: Result:=Hover;
-  end;
-end;
-
 function TDemoNode.GetCSSTypeName: TCSSString;
 begin
   Result:=CSSTypeName;
 end;
 
-class function TDemoNode.CSSTypeID: TCSSNumericalID;
+class function TDemoNode.GetClassCSSTypeID: TCSSNumericalID;
 begin
-  Result:=100;
+  Result:=FDemoNodeTypeID;
+end;
+
+class procedure TDemoNode.SetClassCSSTypeID(aID: TCSSNumericalID);
+begin
+  FDemoNodeTypeID:=aID;
 end;
 
 function TDemoNode.GetCSSTypeID: TCSSNumericalID;
 begin
-  Result:=CSSTypeID;
+  Result:=GetClassCSSTypeID;
+end;
+
+class function TDemoNode.GetCSSTypeStyle: TCSSString;
+begin
+  Result:='';
 end;
 
 initialization
-  RegisterTests([TTestCSSResolver]);
+  RegisterTests([TTestNewCSSResolver]);
+
 end.
 

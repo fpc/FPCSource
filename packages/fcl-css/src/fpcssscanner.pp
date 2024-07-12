@@ -79,12 +79,9 @@ Type
     ctkPIPE,
     ctkPIPEEQUAL,
     ctkDOLLAR,
-    ctkDOLLAREQUAL,
-    ctkINVALID
+    ctkDOLLAREQUAL
    );
   TCSSTokens = Set of TCSSToken;
-
-  TCSSString = UTF8String;
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
@@ -130,13 +127,12 @@ Type
 
   { TCSSScanner }
 
-  TCSSScannerOption = (csoExtendedIdentifiers,csoReturnComments,csoReturnWhiteSpace);
+  TCSSScannerOption = (csoExtendedIdentifiers,csoReturnComments,csoReturnWhiteSpace,csoDisablePseudo);
   TCSSScannerOptions = set of TCSSScannerOption;
-  TCSSScannerWarnEvent = procedure(Sender: TObject; Msg: string) of object;
+  TCSSScannerWarnEvent = procedure(Sender: TObject; Msg: TCSSString) of object;
 
   TCSSScanner = class
   private
-    FDisablePseudo: Boolean;
     FOnWarn: TCSSScannerWarnEvent;
     FOptions: TCSSScannerOptions;
     FSourceFile: TLineReader;
@@ -145,7 +141,7 @@ Type
     FCurToken: TCSSToken;
     FCurTokenString: TCSSString;
     FCurLine: TCSSString;
-    TokenStr: PAnsiChar;
+    TokenStr: PCSSChar;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
     function DoHash: TCSSToken;
@@ -156,17 +152,16 @@ Type
     function DoNumericLiteral: TCSSToken;
     function DoSingleLineComment: TCSSToken;
     function DoStringLiteral: TCSSToken;
+    function DoStringEscape: TCSSToken;
     function DoWhiteSpace: TCSSToken;
     function EatBadURL: TCSSToken;
     Function DoUnicodeRange : TCSSTOKEN;
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
-    function GetReturnComments: Boolean;
-    function GetReturnWhiteSpace: Boolean;
+    function GetOption(anOption: TCSSScannerOption): Boolean;
     function ReadUnicodeEscape: WideChar;
-    procedure SetReturnComments(AValue: Boolean);
-    procedure SetReturnWhiteSpace(AValue: Boolean);
-    class function UnknownCharToStr(C: AnsiChar): TCSSString;
+    procedure SetOption(anOption: TCSSScannerOption; const AValue: Boolean);
+    class function UnknownCharToStr(C: TCSSChar): TCSSString;
   protected
     procedure DoError(const Msg: TCSSString; Args: array of const); overload;
     procedure DoError(const Msg: TCSSString); overload;
@@ -178,8 +173,8 @@ Type
     procedure OpenFile(const AFilename: TCSSString);
     Function FetchToken: TCSSToken;
     function IsUTF8BOM: boolean;
-    Property ReturnComments : Boolean Read GetReturnComments Write SetReturnComments;
-    Property ReturnWhiteSpace : Boolean Read GetReturnWhiteSpace Write SetReturnWhiteSpace;
+    Property ReturnComments : Boolean Index csoReturnComments Read GetOption Write SetOption;
+    Property ReturnWhiteSpace : Boolean Index csoReturnWhiteSpace Read GetOption Write SetOption;
     Property Options : TCSSScannerOptions Read FOptions Write FOptions;
     property SourceFile: TLineReader read FSourceFile;
     property CurFilename: TCSSString read FSourceFilename;
@@ -188,11 +183,11 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
-    property DisablePseudo : Boolean Read FDisablePseudo Write FDisablePseudo;
+    property DisablePseudo : Boolean Index csoDisablePseudo Read GetOption Write SetOption;
     property OnWarn: TCSSScannerWarnEvent read FOnWarn write FOnWarn;
   end;
 
-function SafeFormat(const Fmt: string; const Args: array of const): string;
+function SafeFormat(const Fmt: TCSSString; const Args: array of const): TCSSString;
 
 implementation
 
@@ -200,11 +195,11 @@ Const
   Alpha = ['A'..'Z','a'..'z'];
   Num   = ['0'..'9'];
   AlNum = Alpha+Num;
-  AlNumIden = Alpha+Num+['-'];
+  AlNumIden = AlNum+['-'];
   WhiteSpace = [' ',#9];
 
 type
-  TMessageArgs = array of string;
+  TMessageArgs = array of TCSSString;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; const Args: array of const);
 var
@@ -281,7 +276,8 @@ begin
     {$endif}
 end;
 
-function SafeFormat(const Fmt: string; const Args: array of const): string;
+function SafeFormat(const Fmt: TCSSString;
+  const Args: array of const): TCSSString;
 var
   MsgArgs: TMessageArgs;
   i: Integer;
@@ -335,7 +331,7 @@ end;
 
 constructor TCSSScanner.Create(AStream: TStream);
 begin
-  FSourceStream:=ASTream;
+  FSourceStream:=AStream;
   FOwnSourceFile:=True;
   Create(TStreamLineReader.Create(AStream));
 end;
@@ -343,7 +339,7 @@ end;
 destructor TCSSScanner.Destroy;
 begin
   If FOwnSourceFile then
-    FSourceFile.Free;
+    FreeAndNil(FSourceFile);
   inherited Destroy;
 end;
 
@@ -363,7 +359,7 @@ begin
   end else
   begin
     FCurLine := FSourceFile.ReadLine;
-    TokenStr := PAnsiChar(CurLine);
+    TokenStr := PCSSChar(CurLine);
     Result := true;
     Inc(FCurRow);
   end;
@@ -387,7 +383,7 @@ end;
 function TCSSScanner.DoSingleLineComment : TCSSToken;
 
 Var
-  TokenStart : PAnsiChar;
+  TokenStart : PCSSChar;
   Len : Integer;
 
 begin
@@ -405,9 +401,9 @@ end;
 function TCSSScanner.DoMultiLineComment : TCSSToken;
 
 Var
-  TokenStart : PAnsiChar;
+  TokenStart : PCSSChar;
   Len,OLen : Integer;
-  PrevToken : AnsiChar;
+  PrevToken : TCSSChar;
 
 begin
   Inc(TokenStr);
@@ -485,28 +481,20 @@ begin
   Result:=WideChar(StrToInt('$'+S));
 end;
 
-procedure TCSSScanner.SetReturnComments(AValue: Boolean);
+procedure TCSSScanner.SetOption(anOption: TCSSScannerOption; const AValue: Boolean
+  );
 begin
   if AValue then
-    Include(FOptions,csoReturnComments)
+    Include(FOptions,anOption)
   else
-    Exclude(FOptions,csoReturnComments)
+    Exclude(FOptions,anOption);
 end;
-
-procedure TCSSScanner.SetReturnWhiteSpace(AValue: Boolean);
-begin
-  if AValue then
-    Include(FOptions,csoReturnWhiteSpace)
-  else
-    Exclude(FOptions,csoReturnWhiteSpace)
-end;
-
 
 function TCSSScanner.DoStringLiteral: TCSSToken;
 
 Var
-  Delim : AnsiChar;
-  TokenStart : PAnsiChar;
+  Delim : TCSSChar;
+  TokenStart : PCSSChar;
   Len,OLen: Integer;
   S : TCSSString;
 
@@ -541,7 +529,7 @@ begin
         Move(TokenStart^, FCurTokenString[OLen + 1], Len);
       Move(S[1],FCurTokenString[OLen + Len+1],Length(S));
       Inc(OLen, Len+Length(S));
-      // Next AnsiChar
+      // Next char
       // Inc(TokenStr);
       TokenStart := TokenStr+1;
       end;
@@ -559,58 +547,105 @@ begin
   Result := ctkSTRING;
 end;
 
-function TCSSScanner.DoNumericLiteral :TCSSToken;
-
-Var
-  TokenStart : PAnsiChar;
-  Len : Integer;
-  isEscape : Boolean;
-
+function TCSSScanner.DoStringEscape: TCSSToken;
+var
+  TokenStart: PCSSChar;
+  Len: Integer;
 begin
-  Result := ctkINTEGER;
-  isEscape:=TokenStr[0]='\';
-  if IsEscape then
-    Inc(TokenStr);
+  Inc(TokenStr); // skip \
   TokenStart := TokenStr;
-  while true do
-    begin
-    Inc(TokenStr);
-    case TokenStr[0] of
-      '.':
-        if IsEscape then
-          Break
-        else
-          begin
-            Result := ctkFLOAT;
-            if TokenStr[1] in ['0'..'9'] then
-            begin
-              Inc(TokenStr);
-              repeat
-                Inc(TokenStr);
-              until not (TokenStr[0] in ['0'..'9']);
-            end;
-            break;
-          end;
-      '0'..'9': ;
-      else
-        break;
-    end;
-  end;
+  while TokenStr[0] in Num do
+    inc(TokenStr);
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
-  if IsEscape then
+    Move(TokenStart^,FCurTokenString[1],Len);
+  Result:=ctkString;
+  FCurTokenString:=TCSSChar(StrToInt(FCurTokenString));
+end;
+
+function TCSSScanner.DoNumericLiteral: TCSSToken;
+// number: 1, 0.2, .3, 4.01, 0.0, +0.0, -0.0, .50, 2e3, -6.7E-2
+const
+  NumEnd = [#0..#31,' ',';','{','}',
+    ',',
+    ')', // e.g. calc(3*4)
+    '*','/', // e.g. 3*4, note that + and - require whitespace
+    'a'..'z','A'..'Z' // e.g. 3px
+    ];
+
+  procedure Skip;
+  begin
+    while not (TokenStr^ in NumEnd) do inc(TokenStr);
+    Result:=ctkUNKNOWN;
+  end;
+
+Var
+  TokenStart : PCSSChar;
+  Len : Integer;
+  HasNumber: Boolean;
+
+begin
+  Result := ctkINTEGER;
+  TokenStart := TokenStr;
+  case TokenStr^ of
+  '-': inc(TokenStr);
+  '+': if csoReturnWhiteSpace in Options then inc(TokenStr);
+  end;
+  HasNumber:=false;
+  if TokenStr^ in Num then
     begin
-    Result:=ctkString;
-    FCurTokenString:=AnsiChar(StrToInt(FCurTokenString));
+    // read significand
+    HasNumber:=true;
+    repeat
+      inc(TokenStr);
+    until not (TokenStr^ in Num);
     end;
+  if TokenStr^='.' then
+    begin
+    // read fraction
+    inc(TokenStr);
+    if TokenStr^ in Num then
+      begin
+      Result := ctkFLOAT;
+      HasNumber:=true;
+      repeat
+        inc(TokenStr);
+      until not (TokenStr^ in Num)
+      end;
+    end;
+  if not HasNumber then
+    begin
+    Skip;
+    exit;
+    end;
+  if (TokenStr^ in ['e','E']) and not (TokenStr[1] in Alpha) then
+    begin
+    // read exponent
+    Result := ctkFLOAT;
+    inc(TokenStr);
+    if TokenStr^ in ['-','+'] then
+      inc(TokenStr);
+    if not (TokenStr^ in Num) then
+      begin
+      Skip;
+      exit;
+      end;
+    repeat
+      inc(TokenStr);
+    until not (TokenStr^ in Num)
+    end;
+
+  Len:=TokenStr-TokenStart;
+  Setlength(FCurTokenString, Len);
+  if (Len>0) then
+    Move(TokenStart^,FCurTokenString[1],Len);
 end;
 
 function TCSSScanner.DoHash :TCSSToken;
 
 Var
-  TokenStart : PAnsiChar;
+  TokenStart : PCSSChar;
   Len : Integer;
 
 begin
@@ -629,7 +664,7 @@ end;
 function TCSSScanner.EatBadURL: TCSSToken;
 
 var
-  TokenStart : PAnsiChar;
+  TokenStart : PCSSChar;
   C : AnsiChar;
   len,oldlen : integer;
 
@@ -658,9 +693,9 @@ end;
 
 function TCSSScanner.DoUnicodeRange: TCSSTOKEN;
 Var
-  TokenStart:PAnsiChar;
+  TokenStart: PCSSChar;
   Len : Integer;
-  Tokens : Set of AnsiChar;
+  Tokens : Set of TCSSChar;
 
 begin
   Tokens:= ['A'..'F', 'a'..'f', '0'..'9', '-'];
@@ -680,7 +715,7 @@ begin
 
 end;
 
-class function TCSSScanner.UnknownCharToStr(C: AnsiChar): TCSSString;
+class function TCSSScanner.UnknownCharToStr(C: TCSSChar): TCSSString;
 
 begin
   if C=#0 then
@@ -694,7 +729,7 @@ end;
 function TCSSScanner.DoIdentifierLike : TCSSToken;
 
 Var
-  TokenStart:PAnsiChar;
+  TokenStart: PCSSChar;
   Len,oLen : Integer;
   IsEscape,IsAt, IsPseudo, IsFunc : Boolean;
 
@@ -744,7 +779,17 @@ begin
     Result:=ctkATKEYWORD
   else if CurTokenString='!important' then
     Result:=ctkIMPORTANT
-  else if (CurtokenString='url(') then
+  else if CurTokenString='!' then
+    begin
+    if (TokenStr^=' ') and CompareMem(TokenStr+1,PChar('important'),9)
+    and (TokenStr[10] in [' ',';']) then
+      begin
+      inc(TokenStr,10);
+      FCurTokenString:='!important';
+      Result:=ctkIMPORTANT;
+      end;
+    end
+  else if (CurTokenString='url(') then
     begin
     Result:=ctkURL;
     If TokenStr[0] in ['"',''''] then
@@ -769,13 +814,13 @@ end;
 
 function TCSSScanner.DoInvalidChars: TCSSToken;
 var
-  TokenStart: PAnsiChar;
+  TokenStart: PCSSChar;
   Len: SizeUInt;
 begin
-  Result:=ctkINVALID;
+  Result:=ctkUNKNOWN;
   TokenStart := TokenStr;
   repeat
-    writeln('TCSSScanner.DoInvalidChars ',hexstr(ord(TokenStr^),2));
+    //writeln('TCSSScanner.DoInvalidChars ',hexstr(ord(TokenStr^),2));
     Inc(TokenStr);
   until (TokenStr[0] in [#0,#9,#10,#13,#32..#127]);
   Len:=TokenStr-TokenStart;
@@ -792,7 +837,7 @@ var
 begin
   Repeat
     Result:=DoFetchToken;
-    if (Result=ctkINVALID) and IsUTF8BOM then
+    if (Result=ctkUNKNOWN) and IsUTF8BOM then
       CanStop:=false
     else
       CanStop:=(Not (Result in [ctkComment,ctkWhiteSpace]))
@@ -843,35 +888,35 @@ begin
   //CurPos:=TokenStr;
   FCurTokenString := '';
   case TokenStr[0] of
-    #0:         // Empty line
+    #0:         // EOL
       begin
       FetchLine;
       Result := ctkWhitespace;
       end;
     '''','"':
-       Result:=DoStringLiteral;
+      Result:=DoStringLiteral;
     '/' :
-       Result:=CommentDiv;
+      Result:=CommentDiv;
     #9, ' ':
-       Result := DoWhiteSpace;
+      Result := DoWhiteSpace;
     '#':
-       Result:=DoHash;
+      Result:=DoHash;
     '\':
-       begin
-       if TokenStr[1] in ['0'..'9'] then
-         Result:=DoNumericLiteral
-       else
-         begin
-         if (TokenStr[1] in WhiteSpace) or (TokenStr[1]=#0) then
-           DoError(SErrUnknownCharacter ,[UnknownCharToStr(TokenStr[1])])
-         else
-           Result:=DoIdentifierLike
-         end;
-       end;
+      begin
+      if TokenStr[1] in ['0'..'9'] then
+        Result:=DoStringEscape
+      else
+        begin
+        if (TokenStr[1] in WhiteSpace) or (TokenStr[1]=#0) then
+          DoError(SErrUnknownCharacter ,[UnknownCharToStr(TokenStr[1])])
+        else
+          Result:=DoIdentifierLike
+        end;
+      end;
     '0'..'9':
-       Result:=DoNumericLiteral;
+      Result:=DoNumericLiteral;
     '&': CharToken(ctkAnd);
-    '{': CharToken( ctkLBRACE);
+    '{': CharToken(ctkLBRACE);
     '}': CharToken(ctkRBRACE);
     '*': if TokenStr[1]='=' then
            TwoCharsToken(ctkSTAREQUAL)
@@ -904,7 +949,7 @@ begin
     '@': Result:=DoIdentifierLike;
     ':':
       begin
-      if DisablePseudo then
+      if csoDisablePseudo in Options then
         CharToken(ctkCOLON)
       else if (TokenStr[1]=':') then
         begin
@@ -920,8 +965,10 @@ begin
       end;
     '.':
       begin
-      if (TokenStr[1] in AlNum) then
-        Result:=Self.DoIdentifierLike
+      if TokenStr[1] in Num then
+        Result:=DoNumericLiteral  // e.g. .1 = 0.1
+      else if TokenStr[1] in Alpha then
+        Result:=DoIdentifierLike
       else
         CharToken(ctkDOT);
       end;
@@ -945,16 +992,17 @@ begin
       '0'..'9':
         Result:=DoNumericLiteral;
       '.':
-        if TokenStr[2] in ['0'..'9'] then
+        if TokenStr[2] in Num then
           Result:=DoNumericLiteral
         else
           CharToken(ctkMINUS);
-      #9,' ',#0:
+      #9,#10,#13,' ',#0:
         CharToken(ctkMINUS);
       else
         Result:=DoIdentifierLike;
       end;
-    '+': CharToken(ctkPLUS);
+    '+':
+      CharToken(ctkPLUS);
     '%': CharToken(ctkPERCENTAGE);
     '_','!',
     'a'..'z',
@@ -966,12 +1014,8 @@ begin
          Result:=DoIdentifierLike;
        end;
   else
-    writeln('TCSSScanner.DoFetchToken ',Ord(TokenStr[0]));
-    If Ord(TokenStr[0])>127 then
-      Result:=DoInvalidChars
-    else
-      DoError(SErrUnknownCharacter ,['"'+TokenStr[0]+'"']);
-
+    //writeln('TCSSScanner.DoFetchToken ',Ord(TokenStr[0]));
+    Result:=DoInvalidChars;
   end; // Case
 end;
 
@@ -995,17 +1039,12 @@ begin
   if (TokenStr=Nil) or (Length(CurLine)=0) then
     Result:=0
   else
-    Result := TokenStr - PAnsiChar(CurLine);
+    Result := TokenStr - PCSSChar(CurLine);
 end;
 
-function TCSSScanner.GetReturnComments: Boolean;
+function TCSSScanner.GetOption(anOption: TCSSScannerOption): Boolean;
 begin
-  Result:=(csoReturnComments in FOptions);
-end;
-
-function TCSSScanner.GetReturnWhiteSpace: Boolean;
-begin
-  Result:=(csoReturnWhiteSpace in FOptions);
+  Result:=anOption in Options;
 end;
 
 { TStreamLineReader }

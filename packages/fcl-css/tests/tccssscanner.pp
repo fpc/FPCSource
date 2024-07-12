@@ -58,7 +58,6 @@ type
     procedure DoTestFloat(F: Double);
     procedure DoTestFloat(F: Double; S: String);
     procedure DoTestString(S: String);
-    procedure TestErrorSource;
   protected
     Function CreateScanner(AInput : String) : TCSSScanner;
     procedure FreeScanner;
@@ -219,17 +218,6 @@ begin
     If (Length(S)>0) and (S[1] in ['"','''','`']) then
       S:=Copy(S,2,Length(S)-2);
     AssertEquals('Correct string is returned',S,FScanner.CurTokenString);
-  finally
-    FreeScanner;
-  end;
-end;
-
-procedure TTestCSSScanner.TestErrorSource;
-
-begin
-  CreateScanner(FErrorSource);
-  try
-    While (FScanner.FetchToken<>ctkEOF) do ;
   finally
     FreeScanner;
   end;
@@ -573,9 +561,20 @@ end;
 
 
 procedure TTestCSSScanner.TestJUNK;
+var
+  HasUnknown: Boolean;
 begin
   FErrorSource:='?';
-  AssertException('Exception',ECSSScanner, @TestErrorSource);
+  HasUnknown:=false;
+  CreateScanner(FErrorSource);
+  try
+    While (FScanner.FetchToken<>ctkEOF) do
+      if FScanner.CurToken=ctkUNKNOWN then HasUnknown:=true;
+  finally
+    FreeScanner;
+  end;
+  if not HasUnknown then
+    Fail('missing unknown');
 end;
 
 procedure TTestCSSScanner.TestSQUARED;

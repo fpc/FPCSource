@@ -18,7 +18,6 @@ unit fpCSSTree;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
-{$codepage utf8}
 
 interface
 
@@ -29,12 +28,94 @@ uses Contnrs, RtlConsts, SysUtils, Classes, Math;
 {$ENDIF FPC_DOTTEDUNITS}
 
 
+const
+  CSSFormatSettings: TFormatSettings = (
+    CurrencyFormat: 1;
+    NegCurrFormat: 5;
+    ThousandSeparator: ',';
+    DecimalSeparator: '.';
+    CurrencyDecimals: 2;
+    DateSeparator: '-';
+    TimeSeparator: ':';
+    ListSeparator: ',';
+    CurrencyString: '$';
+    ShortDateFormat: 'd/m/y';
+    LongDateFormat: 'dd" "mmmm" "yyyy';
+    TimeAMString: 'AM';
+    TimePMString: 'PM';
+    ShortTimeFormat: 'hh:nn';
+    LongTimeFormat: 'hh:nn:ss';
+    ShortMonthNames: ('Jan','Feb','Mar','Apr','May','Jun',
+                      'Jul','Aug','Sep','Oct','Nov','Dec');
+    LongMonthNames: ('January','February','March','April','May','June',
+                     'July','August','September','October','November','December');
+    ShortDayNames: ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+    LongDayNames:  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+    TwoDigitYearCenturyWindow: 50;
+  );
+
 Type
   ECSSException = class(Exception);
 
-  TCSSString = UTF8String;
-  TCSSStringDynArray = array of TCSSString;
-  TCSSUnits = (cuNONE, cuPX,cuPERCENT,cuREM,cuEM,cuPT,cuFR,cuVW,cuVH,cuDEG);
+  {$IF FPC_FULLVERSION>30300}
+  TCSSChar = Char;
+  TCSSString = String; // can be AnsiString or UnicodeString
+  {$ELSE}
+  TCSSChar = Char;
+  TCSSString = String;
+  {$ENDIF}
+  PCSSChar = ^TCSSChar;
+  TCSSStringArray = array of TCSSString;
+
+  TCSSUnit = (
+    cuNONE,// no unit, only allowed for 0
+    cuPX,  // pixels
+    cuCM,  // centimeters
+    cuMM,  // milimeters
+    cuQ,   // quarter-milimeters
+    cuIN,  // inches
+    cuPC,  // picas
+    cuPT,  // points
+    cuPERCENT, // percentage %
+    cuEM,  // relative to element's font-size
+    cuREM, // relative to parent's font-size
+    cuVW,  // relative to viewport's width
+    cuVH,  // relative to viewport's height
+    cuFR,  // fraction of flex space
+    cuDEG, // degrees, full circle is 360deg
+    cuGRAD,// gradians, full circle is 400grad
+    cuRAD, // radians, full circle is (2*pi)rad
+    cuTURN // turns, full circle is 1turn
+    );
+  TCSSUnits = set of TCSSUnit;
+const
+  cuAllAbsoluteLengths = [cuPX,cuCM,cuMM,cuQ,cuIN,cuPC,cuPT];
+  cuAllRelativeFontSize = [cuEM,cuREM];
+  cuAllLengths = cuAllAbsoluteLengths+cuAllRelativeFontSize;
+  cuAllAngles = [cuDEG,cuGRAD,cuRAD,cuTURN];
+
+  CSSUnitNames: array[TCSSUnit] of TCSSString = (
+    '',    // no unit
+    'px',  // pixels
+    'cm',  // centimeters
+    'mm',  // milimeters
+    'Q',   // quarter-milimeters
+    'in',  // inches
+    'pc',  // picas
+    'pt',  // points
+    '%',   // percentage
+    'em',  // elements font-size
+    'rem', // relative-em
+    'vw',  // viewport-width
+    'vh',  // viewport-height
+    'fr',  // fraction
+    'deg', // degrees
+    'grad',// gradians
+    'rad', // radians
+    'turn' // turns
+    );
+
+type
   TCSSType = (
     csstUnknown,
     csstInteger, csstString, csstFloat,
@@ -145,7 +226,7 @@ Type
   TCSSIntegerElement = class(TCSSElement)
   private
     FIsEscaped: Boolean;
-    FUnits: TCSSUnits;
+    FUnits: TCSSUnit;
     FValue: Integer;
   protected
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
@@ -154,7 +235,7 @@ Type
     function Equals(Obj: TObject): boolean; override;
     Property Value : Integer Read FValue Write FValue;
     Property IsEscaped : Boolean Read FIsEscaped Write FIsEscaped;
-    Property Units : TCSSUnits Read FUnits Write FUnits;
+    Property Units : TCSSUnit Read FUnits Write FUnits;
   end;
   TCSSIntegerElementClass = class of TCSSIntegerElement;
 
@@ -162,7 +243,7 @@ Type
 
   TCSSFloatElement = class(TCSSElement)
   private
-    FUnits: TCSSUnits;
+    FUnits: TCSSUnit;
     FValue: Double;
   protected
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
@@ -170,7 +251,7 @@ Type
     Class function CSSType : TCSSType; override;
     function Equals(Obj: TObject): boolean; override;
     Property Value : Double Read FValue Write FValue;
-    Property Units : TCSSUnits Read FUnits Write FUnits;
+    Property Units : TCSSUnit Read FUnits Write FUnits;
   end;
   TCSSFloatElementClass = class of TCSSFloatElement;
 
@@ -448,14 +529,14 @@ Function StringToCSSString(const S : TCSSString) : TCSSString;
 // Escapes non-identifier characters C to \C
 Function StringToIdentifier(const S : TCSSString) : TCSSString;
 
+function FloatToCSSStr(const f: double): string;
+
 Function GetCSSObj(El: TCSSElement): TCSSString;
 Function GetCSSPath(El: TCSSElement): TCSSString;
 
 Function CSSElementListEquals(ListA, ListB: TCSSElementList): boolean;
 
 Const
-  CSSUnitNames : Array[TCSSUnits] of TCSSString =
-        ('','px','%','rem','em','pt','fr','vw','vh','deg');
   UnaryOperators : Array[TCSSUnaryOperation] of TCSSString =
         ('::','-','+','/','>','~');
   BinaryOperators : Array[TCSSBinaryOperation] of TCSSString =
@@ -564,6 +645,11 @@ begin
     Inc(iIn);
     end;
   SetLength(Result,iOut);
+end;
+
+function FloatToCSSStr(const f: double): string;
+begin
+  Result:=FloatToStr(f,CSSFormatSettings);
 end;
 
 function GetCSSObj(El: TCSSElement): TCSSString;
@@ -1075,9 +1161,7 @@ end;
 function TCSSFloatElement.GetAsString(aFormat: Boolean;
   const aIndent: TCSSString): TCSSString;
 begin
-  Str(Value:5:2,Result);
-  Result:=TrimLeft(Result); // Space for positive numbers
-  Result:=Result+CSSUnitNames[Units];
+  Result:=FloatToCSSStr(Value)+CSSUnitNames[Units];
   if aFormat then
     Result:=aIndent+Result;
 end;
