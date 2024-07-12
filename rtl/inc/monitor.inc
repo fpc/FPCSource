@@ -200,7 +200,7 @@ end;
 function MonitorTryEnter(Const aObject: TObject): Boolean;
 
 begin
-  TMonitor.TryEnter(aObject);
+  Result:=TMonitor.TryEnter(aObject);
 end;
 
 
