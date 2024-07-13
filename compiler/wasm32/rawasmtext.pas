@@ -710,6 +710,8 @@ Unit rawasmtext;
                 a_i64_extend16_s,
                 a_i64_extend32_s:
                   ;
+                else
+                  internalerror(2024071401);
               end;
             end;
           else
