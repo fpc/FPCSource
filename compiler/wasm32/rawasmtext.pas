@@ -623,6 +623,8 @@ Unit rawasmtext;
                                 end;
                             end;
                           end;
+                        else
+                          {todo: error};
                       end;
                     until false;
                   end;
