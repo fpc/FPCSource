@@ -1133,7 +1133,7 @@ asm
         mov     $-1, %eax
 end;
 
-function IndexQWord_SSE41(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE4_1} IndexQWord {$else} IndexQWord_SSE41 {$endif}(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
 { eax = buf, edx = len, [esp+4] = b }
 asm
     cmp      $6, len
@@ -1180,6 +1180,7 @@ asm
     shr      $3, %eax
 end;
 
+{$ifndef CPUX86_HAS_SSE4_1}
 function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt; forward;
 
 var
@@ -1200,6 +1201,7 @@ function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
 begin
   result:=IndexQWord_Impl(buf,len,b);
 end;
+{$endif ndef CPUX86_HAS_SSE4_1}
 {$endif FPC_SYSTEM_HAS_INDEXQWORD}
 
 
