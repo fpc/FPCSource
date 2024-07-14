@@ -21,14 +21,6 @@ unit cpu;
 
   interface
 
-{$IFDEF FPC_DOTTEDUNITS}
-    uses
-      System.SysUtils;
-{$ELSE FPC_DOTTEDUNITS}
-    uses
-      sysutils;
-{$ENDIF FPC_DOTTEDUNITS}
-
     { returns true, if the processor supports the cpuid instruction }
     function cpuid_support : boolean;
 

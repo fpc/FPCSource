@@ -27,14 +27,6 @@ unit cpu;
      {$endif}
   {$endif}
 
-{$IFDEF FPC_DOTTEDUNITS}
-    uses
-      System.SysUtils;
-{$ELSE FPC_DOTTEDUNITS}
-    uses
-      sysutils;
-{$ENDIF FPC_DOTTEDUNITS}
-
 type
     TCpuidResult = record
       eax, ebx, ecx, edx: uint32;

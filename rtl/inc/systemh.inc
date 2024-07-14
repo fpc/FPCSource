@@ -788,6 +788,18 @@ type
 (* means that default handling should be used. *)
   TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
 
+  Int128Rec = packed record
+    case integer of
+{$ifdef FPC_LITTLE_ENDIAN}
+      0 : (Lo,Hi : QWord);
+{$else FPC_LITTLE_ENDIAN}
+      0 : (Hi,Lo : QWord);
+{$endif FPC_LITTLE_ENDIAN}
+      1 : (DWords : Array[0..3] of DWord);
+      2 : (Words : Array[0..7] of Word);
+      3 : (Bytes : Array[0..15] of Byte);
+  end;
+
 { Numbers for routines that have compiler magic }
 {$I innr.inc}
 
