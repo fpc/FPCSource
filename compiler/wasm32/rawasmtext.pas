@@ -843,6 +843,47 @@ Unit rawasmtext;
                     result.operands[1].opr.typ:=OPR_CONSTANT;
                     result.operands[1].opr.val:=0;
                   end;
+
+                { instructions that take a local variable parameter (or index) }
+                a_local_get,
+                a_local_set,
+                a_local_tee:
+                  case actasmtoken of
+                    AS_INTNUM:
+                      begin
+                        result.operands[1].opr.typ:=OPR_CONSTANT;
+                        result.operands[1].opr.val:=actinttoken;
+                        Consume(AS_INTNUM);
+                      end;
+                    {TODO:AS_ID}
+                    else
+                      begin
+                        { error: expected integer }
+                        result.Free;
+                        result:=nil;
+                        Consume(AS_INTNUM);
+                      end;
+                  end;
+
+                a_global_get,
+                a_global_set:
+                  case actasmtoken of
+                    AS_INTNUM:
+                      begin
+                        result.operands[1].opr.typ:=OPR_CONSTANT;
+                        result.operands[1].opr.val:=actinttoken;
+                        Consume(AS_INTNUM);
+                      end;
+                    {TODO:AS_ID}
+                    else
+                      begin
+                        { error: expected integer }
+                        result.Free;
+                        result:=nil;
+                        Consume(AS_INTNUM);
+                      end;
+                  end;
+
                 else
                   internalerror(2024071401);
               end;
