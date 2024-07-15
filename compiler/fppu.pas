@@ -65,7 +65,7 @@ interface
 {$endif def Test_Double_checksum}
           constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
-          procedure reset;override;
+          procedure reset(for_recompile: boolean);override;
           procedure re_resolve(loadfrom: tmodule);
           function  openppufile:boolean;
           function  openppustream(strm:TCStream):boolean;
@@ -182,14 +182,14 @@ var
       end;
 
 
-    procedure tppumodule.reset;
+    procedure tppumodule.reset(for_recompile : boolean);
       begin
         inc(currentdefgeneration);
         discardppu;
         freederefunitimportsyms;
         unitimportsymsderefs.free;
         unitimportsymsderefs:=tfplist.create;
-        inherited reset;
+        inherited reset(for_recompile);
       end;
 
     procedure tppumodule.re_resolve(loadfrom: tmodule);
@@ -1318,6 +1318,7 @@ var
         isnew : boolean;
 
       begin
+
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
@@ -1329,8 +1330,16 @@ var
            hp:=registerunit(self,hs,'',isnew);
            if isnew then
              usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
-
-           pu:=addusedunit(hp,false,nil);
+           if LoadCount=1 then
+             pu:=addusedunit(hp,false,nil)
+           else
+             begin
+             pu:=findusedunit(hp);
+             { Safety, normally this should not happen:
+               The used units list cannot change between loads unless recompiled and then loadcount is 1... }
+             if pu=nil then
+               pu:=addusedunit(hp,false,nil);
+             end;
            pu.checksum:=checksum;
            pu.interface_checksum:=intfchecksum;
            pu.indirect_checksum:=indchecksum;
@@ -1944,7 +1953,6 @@ var
       begin
         if current_module<>self then
          internalerror(200212284);
-
         { load the used units from interface }
         in_interface:=true;
         pu:=tused_unit(used_units.first);
@@ -1953,8 +1961,8 @@ var
            if pu.in_interface then
             begin
               tppumodule(pu.u).loadppu(self);
-              { if this unit is compiled we can stop }
-              if state in [ms_compiled,ms_processed] then
+              { if this unit is scheduled for compilation or compiled we can stop }
+              if state in [ms_compile,ms_compiled,ms_processed] then
                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,true);
@@ -2196,7 +2204,7 @@ var
           { Flag modules to reload }
           flagdependent(from_module);
           { Reset the module }
-          reset;
+          reset(false);
           if state in CompileStates then
             begin
               Message1(unit_u_second_compile_unit,modulename^);
@@ -2269,7 +2277,7 @@ var
         { Flag modules to reload }
         flagdependent(from_module);
         { Reset the module }
-        reset;
+        reset(true);
         { mark this module for recompilation }
         if not (state in [ms_compile]) then
           state:=ms_compile;
@@ -2307,6 +2315,7 @@ var
         second_time        : boolean;
 
       begin
+        Inc(LoadCount);
 
         Result:=false;
         Message3(unit_u_load_unit,from_module.modulename^,
@@ -2382,6 +2391,9 @@ var
 
         { we are back, restore current_module }
         set_current_module(from_module);
+        { safety, so it does not become negative }
+        if LoadCount>0 then
+          Dec(LoadCount);
       end;
 
     procedure tppumodule.discardppu;

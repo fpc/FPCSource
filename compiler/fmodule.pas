@@ -251,13 +251,14 @@ interface
         to that when creating link.res!!!!(mazen)}
         constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
-        procedure reset;virtual;
+        procedure reset(for_recompile: boolean);virtual;
         procedure loadlocalnamespacelist;
         procedure adddependency(callermodule:tmodule; frominterface : boolean);
         procedure flagdependent(callermodule:tmodule);
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
+        function findusedunit(m : tmodule) : tused_unit;
         function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
         function nowaitingforunits(out firstwaiting : tmodule) : Boolean;
         procedure updatemaps;
@@ -275,6 +276,8 @@ interface
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
       end;
+
+       { tused_unit }
 
        tused_unit = class(tlinkedlistitem)
           checksum,
@@ -789,13 +792,14 @@ implementation
       end;
 
 
-    procedure tmodule.reset;
+    procedure tmodule.reset(for_recompile: boolean);
       var
         i   : longint;
         current_debuginfo_reset : boolean;
         m : tmodule;
       begin
         is_reset:=true;
+        LoadCount:=0;
         if assigned(scanner) then
           begin
             { also update current_scanner if it was pointing
@@ -895,8 +899,18 @@ implementation
         _exports:=tlinkedlist.create;
         dllscannerinputlist.free;
         dllscannerinputlist:=TFPHashList.create;
-        used_units.free;
-        used_units:=TLinkedList.Create;
+        { During reload, the list of used units cannot change.
+          It can only change while recompiling.
+          Because the used_units is used in loops in the load cycle(s) which
+          can recurse into the same unit due to circular dependencies,
+          we do not destroy the list, we only update the contents.
+          As a result so the loop variable does not get reset during the loop.
+          For recompile, we recreate the list }
+        if for_recompile then
+          begin
+          used_units.free;
+          used_units:=TLinkedList.Create;
+          end;
         dependent_units.free;
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
@@ -1110,6 +1124,21 @@ implementation
           u:=tused_unit(u.next);
           end;
       end;
+
+    function tmodule.findusedunit(m: tmodule): tused_unit;
+    var
+      u : tused_unit;
+
+    begin
+      result:=nil;
+      u:=tused_unit(used_units.First);
+      while assigned(u) do
+        begin
+        if (u.u=m) then
+          exit(u);
+        u:=tused_unit(u.next);
+        end;
+    end;
 
     procedure tmodule.updatemaps;
       var
