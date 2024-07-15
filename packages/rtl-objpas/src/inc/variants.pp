@@ -3426,7 +3426,7 @@ function VarTypeIsValidArrayType(const aVarType: TVarType): Boolean;
       varSingle,varDouble,varDate,
 {$endif}
       varCurrency,varOleStr,varDispatch,varError,varBoolean,
-      varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord];
+      varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord,varInt64,varQWord];
   end;
 
 

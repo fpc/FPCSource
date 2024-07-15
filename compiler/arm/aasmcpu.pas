@@ -5835,7 +5835,23 @@ implementation
           bytes:=((bytes shr 16) and $FFFF) or ((bytes and $FFFF) shl 16);
 
         { we're finished, write code }
-        objdata.writebytes(bytes,bytelen);
+        if source_info.endian<>target_info.endian then
+          begin
+            if (bytelen=4) then
+              if target_info.endian=endian_little then
+                objdata.writeInt32LE(int32(bytes))
+              else
+                objdata.writeInt32BE(int32(bytes))
+            else if (bytelen=2) then
+              if target_info.endian=endian_little then
+                objdata.writeInt16LE(int32(bytes))
+              else
+                objdata.writeInt16BE(int32(bytes))
+            else
+              internalerror(2024022601);
+          end
+        else
+          objdata.writebytes(bytes,bytelen);
       end;
 
 begin

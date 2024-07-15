@@ -4,3 +4,4 @@ src/qlutil.pas=namespaced/SinclairApi.Qlutil.pas
 src/sms.pas=namespaced/SinclairApi.Sms.pas
 src/qdos.pas=namespaced/SinclairApi.Qdos.pas
 src/qlfloat.pas=namespaced/SinclairApi.Qlfloat.pas
+src/qsound.pas=namespaced/SinclairApi.QSound.pas

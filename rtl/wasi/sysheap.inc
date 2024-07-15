@@ -31,7 +31,9 @@ begin
   if res<>err then
     SysOSAlloc:=pointer(res*page_size)
   else
+    begin
     SysOSAlloc:=nil;
+    end;
 end;
 
 procedure SysOSFree(p: pointer; size: ptruint);

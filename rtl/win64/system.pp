@@ -14,11 +14,13 @@
 
  **********************************************************************}
 unit System;
+
 interface
 
-
-
+{$IFNDEF FPC_DISABLE_MONITOR}
 {$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
+{$ENDIF}
+
 {$define FPC_IS_SYSTEM}
 { $define SYSTEMEXCEPTIONDEBUG}
 
@@ -485,7 +487,7 @@ initialization
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
-  SetThreadStackGuarantee(@StackMargin);
+  SetThreadStackGuaranteeTo(StackMargin);
   
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
@@ -509,7 +511,6 @@ initialization
   InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
-  ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

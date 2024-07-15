@@ -2551,16 +2551,14 @@ const pemagic : array[0..3] of byte = (
                     begin
                       FCoffSyms.Read(boauxrec,sizeof(boauxrec));
                       psecrec:=pcoffsectionrec(@boauxrec[0]);
-		      secrec:=psecrec^;
-		      MaybeSwap(secrec);
                     end
                   else
                     begin
                       FCoffSyms.Read(auxrec,sizeof(auxrec));
                       psecrec:=pcoffsectionrec(@auxrec);
-		      secrec:=psecrec^;
-		      MaybeSwap(secrec);
                     end;
+                  secrec:=psecrec^;
+                  MaybeSwap(secrec);
 
                   case secrec.select of
                     IMAGE_COMDAT_SELECT_NODUPLICATES:
@@ -2577,13 +2575,17 @@ const pemagic : array[0..3] of byte = (
                       comdatsel:=oscs_largest;
                     else begin
                       comdatsel:=oscs_none;
-                      Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
+                      { there are object files out here that have comdat symbols
+                        including an associative section, but with a comdat selection
+                        of 0; it seems that other linkers just ignore those... }
+                      if secrec.select<>0 then
+                        Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
                     end;
                   end;
 
-                  if comdatsel in [oscs_associative,oscs_exact_match] then
+                  if comdatsel in [oscs_associative] then
                     { only temporary }
-                    Comment(V_Error,'Associative or exact match COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                    Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
                     Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
@@ -2594,7 +2596,7 @@ const pemagic : array[0..3] of byte = (
 
                       if (secrec.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
                         begin
-                          objsym.objsection.AssociativeSection:=GetSection(secrec.assoc);
+                          objsym.objsection.AssociativeSection:=GetSection(secrec.assoc-1);
                           if not assigned(objsym.objsection.AssociativeSection) then
                             Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
                         end;

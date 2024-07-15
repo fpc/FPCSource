@@ -173,6 +173,7 @@ implementation
                   thlcgwasm(hlcg).g_procdef(list,proc);
             end;
          end;
+      create_hlcodegen;
       InsertModuleInfo(list,current_module);
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
@@ -180,6 +181,7 @@ implementation
           InsertModuleInfo(list,cur_unit.u);
           cur_unit:=tused_unit(cur_unit.Next);
         end;
+      destroy_hlcodegen;
 
       modules.Free;
     end;

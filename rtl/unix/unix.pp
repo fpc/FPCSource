@@ -1403,8 +1403,7 @@ Var
   mydir,NewDir : RawByteString;
   p1     : cint;
   Info   : Stat;
-  i,j      : cint;
-  p      : PAnsiChar;
+  p,pe   : PAnsiChar;
 Begin
  SetCodePage(dirlist,DefaultFileSystemCodePage);
  if CurrentDirStrategy=CurrentDirectoryFirst Then
@@ -1425,8 +1424,7 @@ Begin
    Begin
      mypath:=ToSingleByteFileSystemEncodedFileName(path);
      p:=PAnsiChar(dirlist);
-     i:=length(dirlist);
-     j:=1;
+     pe:=p+length(dirlist); { Points to terminating #0. }
      Repeat
        mydir:=RawByteString(p);
        if (length(mydir)>0) and (mydir[length(mydir)]<>'/') then
@@ -1445,9 +1443,8 @@ Begin
         End
        Else
         NewDir:='';
-       while (j<=i) and (p^<>#0) do begin inc(j); inc(p); end;
-       if p^=#0 then inc(p);
-     Until (j>=i) or (Length(NewDir) > 0);
+       inc(p,IndexByte(p^,-1,0)+1); { Can increment to pe + 1 (at most). }
+     Until (p>=pe) or (Length(NewDir) > 0);
      FSearch:=NewDir;
      SetCodePage(FSearch,DefaultRTLFileSystemCodePage);
    End;

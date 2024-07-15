@@ -174,6 +174,9 @@ interface
     { returns true if the node has the int value l }
     function is_constintvalue(p : tnode;l : Tconstexprint) : Boolean;
 
+    { if the node is a constant node which can be an int value, this value is returned }
+    function get_int_value(p : tnode): Tconstexprint;
+
     { returns true if the node is an inline node of type i }
     function is_inlinefunction(p : tnode;i : tinlinenumber) : Boolean;
 
@@ -1626,6 +1629,21 @@ implementation
     function is_constintvalue(p: tnode; l: Tconstexprint): Boolean;
       begin
         Result:=is_constintnode(p) and (tordconstnode(p).value=l);
+      end;
+
+
+    function get_int_value(p: tnode): Tconstexprint;
+      begin
+        case p.nodetype of
+          ordconstn:
+            result:=tordconstnode(p).value;
+          pointerconstn:
+            result:=tpointerconstnode(p).value;
+          niln:
+            result:=0;
+          else
+            internalerror(2002080202);
+        end;
       end;
 
 

@@ -99,3 +99,4 @@
   fpc_in_wasm32_tls_align = fpc_in_cpu_first+74;
   fpc_in_wasm32_tls_base  = fpc_in_cpu_first+75;
 
+  fpc_in_wasm32_set_base_pointer = fpc_in_cpu_first+76;

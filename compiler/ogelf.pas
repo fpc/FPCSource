@@ -2271,6 +2271,7 @@ implementation
         newsections:=TFPHashObjectList.Create(false);
         allsections:=TFPList.Create;
         { copy existing sections }
+        allsections.Capacity:=ExeSectionList.Count;
         for i:=0 to ExeSectionList.Count-1 do
           allsections.add(ExeSectionList[i]);
         inserts[0]:=FindExeSection('.comment');
@@ -2688,6 +2689,7 @@ implementation
         if assigned(dynrelocsec) then
           begin
             { Append R_xx_COPY relocations }
+            dynreloclist.capacity:=dynreloclist.count+dyncopysyms.count;
             for i:=0 to dyncopysyms.count-1 do
               begin
                 objsym:=TObjSymbol(dyncopysyms[i]);

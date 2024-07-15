@@ -1459,6 +1459,12 @@ begin
   ExtractHostPort(AURI, CHost, CPort);
   SkipReconnect := False;
   ACount := 0;
+
+  // check for changed host/port
+  if IsConnected and (Socket is TInetSocket)
+  and ((TInetSocket(Socket).Host<>CHost) or (TInetSocket(Socket).Port<>CPort)) then
+    DisconnectFromServer;
+
   Repeat
     If Not IsConnected Then
       ConnectToServer(CHost,CPort,AIsHttps);

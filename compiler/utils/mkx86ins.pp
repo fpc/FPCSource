@@ -16,7 +16,7 @@
 program mkx86ins;
 
 const
-  Version = '1.6.1';
+  Version = '1.6.2';
   max_operands = 4;
 var
    s : string;

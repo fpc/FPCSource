@@ -18,10 +18,15 @@
 {Platform specific information}
 type
   THandle = LongInt;
-  TThreadID = THandle;
+  TThreadID = Pointer;
   TOSTimestamp = LongInt;
 
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
-    Locked: boolean
+    Locked: LongInt; // integer so we can use wait32.
+    Count: LongInt; // Number of times locked.
+    Waiters : LongInt; // Number of waiters
+    Kind : LongInt; // Kind of mutex, Equals Ord(TMutexKind)
+    Owner : TThreadID;  // Owner thread
+    Destroying : Boolean; // Set when notifying that we're destroying the mutex.
   end;

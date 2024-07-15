@@ -3612,7 +3612,7 @@ begin
   NextToken;
   while CurToken = tkDot do
     begin
-    ExpectIdentifier;
+    ExpectIdentifier([tkPackage]);
     N := N + '.' + CurTokenString;
     NextToken;
     end;
@@ -4158,7 +4158,7 @@ begin
   {$IFDEF VerbosePasParserWriteln}
   writeln('TPasParser.AddUseUnit AUnitName=',AUnitName,' CurModule.Name=',CurModule.Name);
   {$ENDIF VerbosePasParserWriteln}
-  if CompareText(AUnitName,CurModule.Name)=0 then
+  if (CompareText(AUnitName,CurModule.Name)=0) and not CurModule.InheritsFrom(TPasDynamicPackage) then
     begin
     if CompareText(AUnitName,'System')=0 then
       exit; // for compatibility ignore implicit use of system in system
@@ -4218,15 +4218,22 @@ procedure TPasParser.ParseRequires(ASection: TPasPackageSection);
 var
   Pck : TPasRequiredPackage;
   PckPos : TPasSourcePos;
+  N : String;
 
 begin
   repeat
-    ExpectIdentifier();
+    N:='';
     PckPos:=CurSourcePos;
-    Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,CurtokenString,aSection,visPublic,PckPos));
+    Repeat
+      ExpectIdentifier([tkPackage]);
+      if N<>'' then
+        N:=N+'.';
+      N:=N+CurtokenString;
+      NextToken;
+    until (CurToken in [tkSemicolon,tkComma]);
+    Pck:=TPasRequiredPackage(Engine.CreateElement(TPasRequiredPackage,N,aSection,visPublic,PckPos));
     aSection.Requires.Add(Pck);
-    NextToken;
-  until CurToken=tkSemicolon;
+  until (CurToken=tkSemicolon);
 end;
 
 // On Entry, current token is contains.

@@ -17,7 +17,10 @@ unit System;
 interface
 
 
+{$IFNDEF FPC_DISABLE_MONITOR}
 {$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
+{$ENDIF}
+
 {$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
@@ -628,7 +631,7 @@ initialization
   StackBottom := StackTop - StackLength;
   CodePointer(SetThreadStackGuarantee) := WinGetProcAddress(WinGetModuleHandleW(KernelDLL), 'SetThreadStackGuarantee');
   if Assigned(SetThreadStackGuarantee) then
-    SetThreadStackGuarantee(@StackMargin);
+    SetThreadStackGuaranteeTo(StackMargin);
 
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap and threading, these may be already initialized from TLS callback }
@@ -648,7 +651,6 @@ initialization
   InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
-  ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

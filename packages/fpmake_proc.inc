@@ -876,7 +876,15 @@ begin
 {$include gstreamer/fpmake.pp}
 end;
 
+procedure add_wasm_job(const ADirectory: string);
+begin
+  with Installer do
+{$include wasm-job/fpmake.pp}
+end;
+
 {$include testinsight/fpmake.pp}
 
 {$include ide/fpmake.pp}
 {$include gitlab/fpmake.pp}
+
+

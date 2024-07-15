@@ -27,13 +27,13 @@ type
   private
     class procedure Sortrange(var Arr:TArr; Start,Fin,d:SizeUInt);
     class procedure HeapSort(var Arr:TArr; Start,Fin:SizeUInt);
-    class procedure InsertSort(var Arr:TArr; Start,Fin:SizeUInt);
+    class procedure InsertSort(var Arr:TArr; Start,Fin:SizeUInt); inline;
     class function Left(a:SizeUInt):SizeUInt;inline;
     class function Right(a:SizeUInt):SizeUInt;inline;
     class procedure Heapify(var Arr: TArr; Position:SizeUInt; Start,Fin:SizeUInt);
     class function Parent(a:SizeUInt):SizeUInt;inline;
   public
-    class procedure Sort(var Arr: TArr; size:SizeUInt);
+    class procedure Sort(var Arr: TArr; size:SizeUInt); inline;
     class function NextPermutation(var Arr: TArr; size:SizeUInt):boolean;
   end;
 

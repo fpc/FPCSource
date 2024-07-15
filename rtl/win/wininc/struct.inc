@@ -9466,8 +9466,6 @@ type
     CONSOLE_FONT_INFOEX = _CONSOLE_FONT_INFOEX;
     PCONSOLE_FONT_INFOEX = ^_CONSOLE_FONT_INFOEX;
 
-
-
     _CONSOLE_HISTORY_INFO = record
         cbSize : UINT;
         HistoryBufferSize : UINT;
@@ -9506,6 +9504,29 @@ type
           ComputerNamePhysicalDnsFullyQualified,
           ComputerNameMax=31);
     TCOMPUTER_NAME_FORMAT = COMPUTER_NAME_FORMAT;
+
+
+  PGUITHREADINFO = ^TGUITHREADINFO;
+  TGUITHREADINFO = record
+    cbSize           : DWORD;     { must be initialized before the call       }
+    flags            : DWORD;
+    hwndActive       : HWND;
+    hwndFocus        : HWND;
+    hwndCapture      : HWND;
+    hwndMenuOwner    : HWND;
+    hwndMoveSize     : HWND;
+    hwndCaret        : HWND;
+    rcCaret          : TRECT;
+  end;
+
+    PPROCESSOR_NUMBER = ^_PROCESSOR_NUMBER;
+    _PROCESSOR_NUMBER = record
+        Group :  WORD;
+        Number  : BYTE;
+        Reserved : BYTE;
+      end;
+   TPROCESSOR_NUMBER = _PROCESSOR_NUMBER;
+
 {$pop}
 {$endif read_interface}
 

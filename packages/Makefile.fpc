@@ -65,7 +65,9 @@ FPMAKE_OPT+=--localunitdir=..
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
+ifndef DISABLE_FPMAKE_BUILD_UNIT
 FPMAKE_OPT+=-bu
+endif
 ifdef FPC_DOTTEDUNITS
 FPMAKE_OPT+=-ns
 FPMAKE_OPT+=-ns -o -dFPC_DOTTEDUNITS
@@ -150,18 +152,15 @@ endif
 # PPU testing targets
 #####################################################################
 
-PPULIST:=$(wildcard */units/*/*.ppu)
+PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+ALLPPUDIRS:=$(wildcard */units/*)
 # Only remove existing log-ppu files
 RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 
 ppulogs : $(PPULOGLIST)
-
-vpath %.ppu $(ALLPPUDIRS)
-vpath %.log-ppu $(ALLPPUDIRS)
-vpath %.rm-log-ppu $(ALLPPUDIRS)
 
 # Do not try to recompile ppudump, as this does not work if trying to test cross-compiled units
 %.log-ppu : %.ppu
@@ -175,6 +174,7 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
 
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 	echo RMPPULOG list is "$(RMPPULOGLIST)"
@@ -182,5 +182,6 @@ ppuinfo :
 cleanppulogs : $(RMPPULOGLIST)
 
 testppudump :
-        $(MAKE) cleanppulogs ppulogs
+	$(MAKE) cleanppulogs
+	$(MAKE) ppulogs
 

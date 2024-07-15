@@ -687,12 +687,12 @@ implementation
              (allowenumop(nodetype) or (nf_internal in flags))
             ) or
             (
-             (lt = pointerconstn) and
+             (lt in [pointerconstn,niln]) and
              is_constintnode(right) and
              (nodetype in [addn,subn])
             ) or
             (
-             (rt = pointerconstn) and
+             (rt in [pointerconstn,niln]) and
              is_constintnode(left) and
              (nodetype=addn)
             ) or
@@ -709,26 +709,9 @@ implementation
              t:=nil;
 
              { load values }
-             case lt of
-               ordconstn:
-                 lv:=tordconstnode(left).value;
-               pointerconstn:
-                 lv:=tpointerconstnode(left).value;
-               niln:
-                 lv:=0;
-               else
-                 internalerror(2002080202);
-             end;
-             case rt of
-               ordconstn:
-                 rv:=tordconstnode(right).value;
-               pointerconstn:
-                 rv:=tpointerconstnode(right).value;
-               niln:
-                 rv:=0;
-               else
-                 internalerror(2002080203);
-             end;
+             lv:=get_int_value(left);
+             rv:=get_int_value(right);
+
              { type checking already took care of multiplying      }
              { integer constants with pointeddef.size if necessary }
              case nodetype of
@@ -741,7 +724,7 @@ implementation
                        { Recover }
                        t:=genintconstnode(0)
                      end
-                   else if (lt=pointerconstn) or (rt=pointerconstn) then
+                   else if is_constpointernode(left) or is_constpointernode(right) then
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
@@ -1754,6 +1737,56 @@ implementation
                    exit
 {$endif jvm}
                    ;
+              end;
+
+            {
+              compile x < length(arr) as x <= high(arr)
+              compile x >= length(arr) as x > high(arr)
+
+              tested by tests/webtbs/tw40292.pp
+            }
+            if (nodetype in [ltn,gten]) and
+              (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_length_x) and
+              ((is_dynamic_array(tinlinenode(right).left.resultdef)) or
+               (is_open_array(tinlinenode(right).left.resultdef))
+              ) then
+              begin
+                case nodetype of
+                  ltn:
+                    result:=caddnode.create(lten,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left));
+                  gten:
+                    result:=caddnode.create(gtn,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left));
+                  else
+                    Internalerror(2024041701);
+                end;
+                left:=nil;
+                tinlinenode(right).left:=nil;
+                exit;
+              end;
+
+            {
+              compile length(arr) > x as high(arr) >= x
+              compile length(arr) <= x as high(arr) < x
+
+              tested by tests/webtbs/tw40292.pp
+            }
+            if (nodetype in [lten,gtn]) and
+              (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_length_x) and
+              ((is_dynamic_array(tinlinenode(left).left.resultdef)) or
+               (is_open_array(tinlinenode(left).left.resultdef))
+              ) then
+              begin
+                case nodetype of
+                  gtn:
+                    result:=caddnode.create(gten,cinlinenode.create(in_high_x,false,tinlinenode(left).left),right);
+                  lten:
+                    result:=caddnode.create(ltn,cinlinenode.create(in_high_x,false,tinlinenode(left).left),right);
+                  else
+                    Internalerror(2024041701);
+                end;
+                right:=nil;
+                tinlinenode(left).left:=nil;
+                exit;
               end;
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or

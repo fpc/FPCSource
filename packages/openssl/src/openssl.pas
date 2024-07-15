@@ -5839,7 +5839,7 @@ begin
     Result:=LoadLibreSSL;
   if not Result then
     Result:=LoadOpenSSL;
-  if (Not Result) and (LibreSSLSupport=lssFirst) then
+  if (Not Result) and (LibreSSLSupport=lssLast) then
     Result:=LoadLibreSSL;
 {$ENDIF}
 end;

@@ -444,7 +444,7 @@ begin
 
   if Length(DriveSeparator)>0 then
   begin
-    {$ifdef UNIX}
+    {$if defined(UNIX) or defined(WASI)}
     FVolumeSeparatorChar     := DriveSeparator[1]
     {$else}
     FVolumeSeparatorChar     := DriveSeparator
@@ -906,19 +906,20 @@ begin
   Result:=Combine([Path1,Path2,Path3,Path4],ValidateParams);
 end;
 
+function AppendPathDelim(const Path: string): string;
+begin
+  if (Path = '') or (Path[Length(Path)] in AllowDirectorySeparators)
+  {$ifdef mswindows}
+    //don't add a PathDelim to e.g. 'C:'
+    or ((Length(Path) = 2) and (Path[2] = ':') and (UpCase(Path[1]) in ['A'..'Z']))
+  {$endif}
+  then
+    Result:=Path
+  else
+    Result:=Path + DirectorySeparator;
+end;
+
 class function TPath.Combine(const Paths: array of string; const ValidateParams: Boolean = True): string;
-  function AppendPathDelim(const Path: string): string;
-  begin
-    if (Path = '') or (Path[Length(Path)] in AllowDirectorySeparators)
-    {$ifdef mswindows}
-      //don't add a PathDelim to e.g. 'C:'
-      or ((Length(Path) = 2) and (Path[2] = ':') and (UpCase(Path[1]) in ['A'..'Z']))
-    {$endif}
-    then
-      Result:=Path
-    else
-      Result:=Path + DirectorySeparator;
-  end;
 var
   i: Integer;
   Path: String;
@@ -1990,7 +1991,7 @@ begin
   With OpenRead(aPath) do
     try
        SetLength(Result,Size);
-       ReadBuffer(Result,0);
+       ReadBuffer(Result,Size);
     finally
       Free;
     end;
@@ -2155,7 +2156,8 @@ begin
   Result      :=[];
   if (FindFirst(IntPath + aSearchPattern, TFile.FileAttributesToInteger(SearchAttributes), SearchRec) = 0) then
     repeat
-      if (aSearchOption = TSearchOption.soAllDirectories) and ((SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory) <> 0) then
+      if (aSearchOption = TSearchOption.soAllDirectories) and ((SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory) <> 0)
+         and (SearchRec.Name <> '.') and (SearchRec.Name <> '..') then
         Result:=Result + GetFilesAndDirectories(IntPath + SearchRec.Name, aSearchPattern, aSearchOption, SearchAttributes, aPredicate)
       else if FilterPredicate(aPath, SearchRec) then
         Result:=Result + [IntPath + SearchRec.Name];
@@ -2210,6 +2212,7 @@ var
 begin
   Result:=false;
   CurSrcDir:=ExpandFileName(DirectoryName);
+  CurSrcDir:=IncludeTrailingPathDelimiter(CurSrcDir);
   if FindFirst(CurSrcDir+AllFilesMask,DeleteMask,FileInfo)=0 then
     Try
       repeat

@@ -179,7 +179,7 @@ uses
   ,WinApi.Activex
   ,System.Registry
   {$endif}
-  {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  {$if (defined(LINUX) or defined(SOLARIS) or defined(BSD)) and not defined(DARWIN)}
   , Api.Libfontconfig
   , UnixApi.types
   {$endif}
@@ -193,7 +193,7 @@ uses
   ,Windows,  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
   Shlobj, activex, registry
   {$endif}
-  {$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+  {$if (defined(LINUX) or defined(SOLARIS) or defined(BSD)) and not defined(DARWIN)}
   , libfontconfig, unixtype
   {$ifend}
   ;
@@ -630,7 +630,7 @@ procedure TFPFontCacheList.ReadStandardFonts;
       cFontsConf = '/usr/local/etc/fonts/fonts.conf';
   {$endif}
   { Use same default for Linux and other BSD non-Darwin systems. }
-  {$if (defined(linux) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
+  {$if (defined(linux) or defined(solaris) or (defined(bsd) and not(defined(darwin)) and not defined(HasFontsConf)))}
     {$define HasFontsConf}
     const
       cFontsConf = '/etc/fonts/fonts.conf';
@@ -876,7 +876,7 @@ begin
   end;
 end;
 
-{$if (defined(LINUX) or defined(BSD)) and not defined(DARWIN)}
+{$if (defined(LINUX) or defined(SOLARIS) or defined(BSD)) and not defined(DARWIN)}
 
 //https://stackoverflow.com/questions/10542832/how-to-use-fontconfig-to-get-font-list-c-c
 class function TFontMapper.find(const family, style: string; list: TStrings): boolean;

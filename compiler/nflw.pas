@@ -553,7 +553,7 @@ implementation
       var
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, stringvar: ttempcreatenode;
-        stringindex, loopbody, forloopnode: tnode;
+        stringindex, loopbody, forloopnode, fromn, ton: tnode;
       begin
         { result is a block of statements }
         result:=internalstatements(loopstatement);
@@ -585,9 +585,20 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
+        if tstringdef(expr.resultdef).stringtype=st_shortstring then
+          begin
+            fromn:=genintconstnode(1);
+            ton:=cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar));
+          end
+        else
+          begin
+             fromn:=cinlinenode.createintern(in_low_x,false,ctemprefnode.create(stringvar));
+             ton:= cinlinenode.create(in_high_x,false,ctemprefnode.create(stringvar));
+           end;
+
         forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-          cinlinenode.createintern(in_low_x,false,ctemprefnode.create(stringvar)),
-          cinlinenode.create(in_high_x,false,ctemprefnode.create(stringvar)),
+          fromn,
+          ton,
           loopbody,
           false);
 

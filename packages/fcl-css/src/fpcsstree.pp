@@ -60,6 +60,18 @@ Type
     procedure Visit(obj: TCSSElement); virtual; abstract;
   end;
 
+  { TCSSVisitorFreeCustomData }
+
+  TCSSVisitorFreeCustomData = class(TCSSTreeVisitor)
+  public
+    procedure Visit(obj: TCSSElement); override;
+  end;
+
+  { TCSSElementOwnedData - base class for TCSSElement.CustomData which automatically freed }
+
+  TCSSElementOwnedData = class
+  end;
+
   { TCSSElement }
 
   TCSSElement = Class(TObject)
@@ -78,9 +90,11 @@ Type
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); virtual;
   Public
     Constructor Create(const aFileName : TCSSString; aRow,aCol : Integer); virtual;
+    destructor Destroy; override;
     Class function CSSType : TCSSType; virtual;
     function Equals(Obj: TObject): boolean; override;
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
+    Procedure FreeCustomData; virtual; // free recursively CustomData
     Property CustomData : TObject Read FData Write FData;
     Property SourceRow : Integer Read FRow;
     Property SourceCol : Integer Read FCol;
@@ -142,6 +156,7 @@ Type
     Property IsEscaped : Boolean Read FIsEscaped Write FIsEscaped;
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
+  TCSSIntegerElementClass = class of TCSSIntegerElement;
 
   { TCSSFloatElement }
 
@@ -157,6 +172,7 @@ Type
     Property Value : Double Read FValue Write FValue;
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
+  TCSSFloatElementClass = class of TCSSFloatElement;
 
   { TCSSBaseUnaryElement }
 
@@ -184,6 +200,7 @@ Type
     function Equals(Obj: TObject): boolean; override;
     Property Operation : TCSSUnaryOperation Read FOperation Write FOperation;
   end;
+  TCSSUnaryElementClass = class of TCSSUnaryElement;
 
   { TCSSBinaryElement }
   TCSSBinaryOperation = (boEquals,boPlus,boMinus,boAnd,boLE,boLT,boGE,boGT,boDIV,
@@ -205,6 +222,7 @@ Type
     Property Left : TCSSElement Read FLeft Write SetLeft;
     Property Operation : TCSSBinaryOperation Read FOperation Write FOperation;
   end;
+  TCSSBinaryElementClass = class of TCSSBinaryElement;
 
   { TCSSBaseStringElement }
 
@@ -224,6 +242,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSUnicodeRangeElementClass = class of TCSSUnicodeRangeElement;
 
   { TCSSURLElement }
 
@@ -231,6 +250,7 @@ Type
   public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSURLElementClass = class of TCSSURLElement;
 
   { TCSSStringElement }
 
@@ -247,6 +267,7 @@ Type
     function Equals(Obj: TObject): boolean; override;
     Property Children : TCSSElementList Read GetChildren;
   end;
+  TCSSStringElementClass = class of TCSSStringElement;
 
   { TCSSIdentifierElement }
 
@@ -259,6 +280,7 @@ Type
     Class function CSSType : TCSSType; override;
     Property Name : TCSSString Read GetName;
   end;
+  TCSSIdentifierElementClass = class of TCSSIdentifierElement;
 
   { TCSSHashIdentifierElement }
 
@@ -268,6 +290,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSHashIdentifierElementClass = class of TCSSHashIdentifierElement;
 
   { TCSSClassNameElement }
 
@@ -277,6 +300,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSClassNameElementClass = class of TCSSClassNameElement;
 
   { TCSSPseudoClassElement }
 
@@ -286,6 +310,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSPseudoClassElementClass = class of TCSSPseudoClassElement;
 
   { TCSSChildrenElement }
 
@@ -318,6 +343,7 @@ Type
     function Equals(Obj: TObject): boolean; override;
     Property Prefix : TCSSElement Read FPrefix Write SetPrefix;
   end;
+  TCSSArrayElementClass = class of TCSSArrayElement;
 
   { TCSSCallElement }
 
@@ -336,6 +362,7 @@ Type
     Property ArgCount : Integer Read GetArgCount;
     Property Name : TCSSString Read FName Write FName;
   end;
+  TCSSCallElementClass = class of TCSSCallElement;
 
   { TCSSDeclarationElement }
 
@@ -359,6 +386,7 @@ Type
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
     Property Colon : Boolean Read FColon Write FColon;
   end;
+  TCSSDeclarationElementClass = class of TCSSDeclarationElement;
 
   { TCSSListElement }
 
@@ -368,6 +396,7 @@ Type
   Public
     Function ExtractElement(aIndex : Integer) : TCSSElement;
   end;
+  TCSSListElementClass = class of TCSSListElement;
 
   { TCSSCompoundElement }
 
@@ -377,6 +406,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
+  TCSSCompoundElementClass = class of TCSSCompoundElement;
 
   { TCSSRuleElement }
 
@@ -397,6 +427,8 @@ Type
     Property Selectors [aIndex : Integer] : TCSSElement Read GetSelector;
     Property SelectorCount : Integer Read GetSelectorCount;
   end;
+  TCSSRuleElementClass = class of TCSSRuleElement;
+  TCSSRuleElementArray = array of TCSSRuleElement;
 
   { TCSSAtRuleElement }
 
@@ -408,6 +440,7 @@ Type
     function Equals(Obj: TObject): boolean; override;
     Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord;
   end;
+  TCSSAtRuleElementClass = class of TCSSAtRuleElement;
 
 
 // Convert unicode codepoints to \0000 notation
@@ -504,7 +537,6 @@ begin
     Inc(iIn);
     end;
   SetLength(Result,iOut);
-  Result:='"'+Result+'"';
 end;
 
 function StringToIdentifier(const S: TCSSString): TCSSString;
@@ -1045,6 +1077,7 @@ function TCSSFloatElement.GetAsString(aFormat: Boolean;
 begin
   Str(Value:5:2,Result);
   Result:=TrimLeft(Result); // Space for positive numbers
+  Result:=Result+CSSUnitNames[Units];
   if aFormat then
     Result:=aIndent+Result;
 end;
@@ -1518,6 +1551,16 @@ begin
   FCol:=aCol;
 end;
 
+destructor TCSSElement.Destroy;
+begin
+  if FData is TCSSElementOwnedData then
+  begin
+    FData.Free;
+    FData:=nil;
+  end;
+  inherited Destroy;
+end;
+
 class function TCSSElement.CSSType: TCSSType;
 begin
   Result:=csstUnknown;
@@ -1542,6 +1585,30 @@ procedure TCSSElement.Iterate(aVisitor: TCSSTreeVisitor);
 begin
   aVisitor.Visit(Self);
   IterateChildren(aVisitor);
+end;
+
+procedure TCSSElement.FreeCustomData;
+var
+  Visitor: TCSSVisitorFreeCustomData;
+begin
+  Visitor:=TCSSVisitorFreeCustomData.Create;
+  try
+    Iterate(Visitor);
+  finally
+    Visitor.Free;
+  end;
+end;
+
+{ TCSSVisitorFreeCustomData }
+
+procedure TCSSVisitorFreeCustomData.Visit(obj: TCSSElement);
+var
+  d: TObject;
+begin
+  if obj.CustomData=nil then exit;
+  d:=obj.CustomData;
+  obj.CustomData:=nil;
+  d.Free;
 end;
 
 end.

@@ -25,7 +25,10 @@ Unit System;
                                     interface
 {*****************************************************************************}
 
+{$IFNDEF FPC_DISABLE_MONITOR}
 {$DEFINE SYSTEM_HAS_FEATURE_MONITOR}
+{$ENDIF}
+
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}

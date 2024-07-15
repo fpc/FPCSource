@@ -2052,7 +2052,8 @@ implementation
       g_procdef(list,pd);
 
       ttgwasm(tg).allocframepointer(list,pd.frame_pointer_ref);
-      ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
+      if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
+        ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
       g_fingerprint(list);
 

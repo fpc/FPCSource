@@ -1359,7 +1359,20 @@ type
             end;
         end;
         _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR:
-        if check_compatible then
+        if (op=_MINUS) and not(assigned(v)) then
+          begin
+            if is_ordinal(def) then
+              result:=texprvalue.create_ord(-value.valueord)
+            else if is_fpu(def) then
+              result:=texprvalue.create_real(-pbestreal(value.valueptr)^)
+            else
+              begin
+                { actually we should never get here but this avoids a warning }
+                Message(parser_e_illegal_expression);
+                result:=texprvalue.create_error;
+              end;
+          end
+        else if check_compatible then
           begin
             if (is_ordinal(def) and is_ordinal(v.def)) then
               begin
@@ -2394,6 +2407,20 @@ type
                    result:=texprvalue.create_real(1.0);
                  end;
                preproc_consume(_REALNUMBER);
+             end
+           else if current_scanner.preproc_token = _MINUS then
+             begin
+               preproc_consume(_MINUS);
+               exprvalue:=preproc_factor(eval);
+               if eval then
+                 result:=exprvalue.evaluate(nil,_MINUS)
+               else if exprvalue.isInt then
+                 result:=texprvalue.create_int(-exprvalue.asInt)
+               else if is_fpu(exprvalue.def) then
+                 result:=texprvalue.create_real(-pbestreal(exprvalue.value.valueptr)^)
+               else
+                 Message(scan_e_error_in_preproc_expr);
+               exprvalue.free;
              end
            else
              Message(scan_e_error_in_preproc_expr);

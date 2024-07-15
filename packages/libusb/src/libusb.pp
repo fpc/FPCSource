@@ -155,7 +155,7 @@ const libusb1='libusb-1.0.so';
  * \returns the value in little-endian byte order
   }
 
-function libusb_cpu_to_le16(const x:uint16_t):uint16_t;
+function libusb_cpu_to_le16(const x:uint16_t):uint16_t; inline;
 
 
     {* \def libusb_le16_to_cpu
@@ -167,7 +167,7 @@ function libusb_cpu_to_le16(const x:uint16_t):uint16_t;
      * \returns the value in host-endian byte order
       }
 
-function libusb_le16_to_cpu(const x:uint16_t):uint16_t;
+function libusb_le16_to_cpu(const x:uint16_t):uint16_t; inline;
 
 { standard USB stuff  }
 {* \ingroup desc
@@ -1149,7 +1149,7 @@ function libusb_init(var ctx:plibusb_context):integer;LIBUSB_CALL;external libus
 procedure libusb_exit(ctx:plibusb_context);LIBUSB_CALL;external libusb1;
 procedure libusb_set_debug(ctc:plibusb_context;level:integer);LIBUSB_CALL;external libusb1;
 
-function libusb_get_version():libusb_version;LIBUSB_CALL;external libusb1;
+function libusb_get_version():plibusb_version;LIBUSB_CALL;external libusb1;
 function libusb_has_capability(capability:uint32_t):integer;LIBUSB_CALL;external libusb1;
 
 function libusb_error_name(errcode:integer):pansichar;LIBUSB_CALL;external libusb1;
@@ -1338,7 +1338,7 @@ function  libusb_control_transfer_get_data(
   }
 
 function libusb_control_transfer_get_setup(
-  transfer:plibusb_transfer):plibusb_control_setup;
+  transfer:plibusb_transfer):plibusb_control_setup; inline;
 
 
 {* \ingroup asyncio
@@ -1371,7 +1371,7 @@ procedure libusb_fill_control_setup(
   bRequest: uint8_t;
   wValue:uint16_t;
   wIndex:uint16_t;
-  wLength:uint16_t);
+  wLength:uint16_t); inline;
 
 function libusb_alloc_transfer(iso_packets:integer):plibusb_transfer;LIBUSB_CALL;external libusb1;
 function libusb_submit_transfer(transfer:plibusb_transfer):integer;LIBUSB_CALL;external libusb1;
@@ -1418,7 +1418,7 @@ procedure libusb_fill_control_transfer(
   buffer:puint8_t;
   callback:libusb_transfer_cb_fn;
   user_data:pointer;
-  timeout:cardinal);
+  timeout:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1443,7 +1443,7 @@ procedure libusb_fill_bulk_transfer(
   length:integer;
   callback:libusb_transfer_cb_fn;
   user_data:pointer;
-  timeout:cardinal);
+  timeout:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1472,7 +1472,7 @@ procedure libusb_fill_bulk_stream_transfer(
   length:integer;
   callback:libusb_transfer_cb_fn;
   user_data:pointer;
-  timeout:cardinal);
+  timeout:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1497,7 +1497,7 @@ procedure libusb_fill_interrupt_transfer(
   length:integer;
   callback:libusb_transfer_cb_fn;
   user_data:pointer;
-  timeout:cardinal);
+  timeout:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1523,7 +1523,7 @@ procedure libusb_fill_iso_transfer(transfer:plibusb_transfer;
   num_iso_packets:integer;
   callback:libusb_transfer_cb_fn;
   user_data:pointer;
-  timeout:cardinal);
+  timeout:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1537,7 +1537,7 @@ procedure libusb_fill_iso_transfer(transfer:plibusb_transfer;
 
 procedure libusb_set_iso_packet_lengths(
   transfer:plibusb_transfer;
-  length:cardinal);
+  length:cardinal); inline;
 
 
 {* \ingroup asyncio
@@ -1559,7 +1559,7 @@ procedure libusb_set_iso_packet_lengths(
 
 function libusb_get_iso_packet_buffer(
   	transfer:plibusb_transfer;
-    packet:cardinal):puint8_t;
+    packet:cardinal):puint8_t; inline;
 
 
 {* \ingroup asyncio
@@ -1584,7 +1584,7 @@ function libusb_get_iso_packet_buffer(
 
 function libusb_get_iso_packet_buffer_simple(
   	transfer:plibusb_transfer;
-    packet:cardinal):puint8_t;
+    packet:cardinal):puint8_t; inline;
 
 
 { sync I/O  }

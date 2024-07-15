@@ -4632,14 +4632,31 @@ implementation
               internalerror(2024010107);
           end;
 
+        const
+          DataSections: array [1..3] of string = (
+            '.rodata',
+            '.data',
+            'fpc.resources');
         var
           DataCount: Integer;
+          DataSecName: string;
+          ExeSec: TExeSection;
         begin
-          DataCount:=2;
+          DataCount:=0;
+          for DataSecName in DataSections do
+            begin
+              ExeSec:=FindExeSection(DataSecName);
+              if Assigned(ExeSec) and (ExeSec.Size>0) then
+                Inc(DataCount);
+            end;
           WriteUleb(FWasmSections[wsiDataCount],DataCount);
           WriteUleb(FWasmSections[wsiData],DataCount);
-          WriteExeSection(FindExeSection('.rodata'));
-          WriteExeSection(FindExeSection('.data'));
+          for DataSecName in DataSections do
+            begin
+              ExeSec:=FindExeSection(DataSecName);
+              if Assigned(ExeSec) and (ExeSec.Size>0) then
+                WriteExeSection(ExeSec);
+            end;
         end;
 
       procedure WriteTableAndElemSections;

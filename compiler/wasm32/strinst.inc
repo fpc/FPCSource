@@ -22,11 +22,12 @@
 
         '<none>',
         // control flow
-        'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end', 'end', 'end', '',
+        'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end' {block},
+        'end' {loop}, 'end' {if}, '' {end function},
         'return', 'unreachable',
         // basic
         'nop', 'drop', 'i32.const', 'i64.const', 'f32.const', 'f64.const',
-        'get_local', 'set_local', 'tee_local', 'get_global', 'set_global',
+        'local.get', 'local.set', 'local.tee', 'global.get', 'global.set',
         'select', 'call', 'call_indirect',
         // integer
         'i32.add', 'i64.add', 'i32.sub', 'i64.sub', 'i32.mul', 'i64.mul',
@@ -83,7 +84,7 @@
         'i64.trunc_sat_f64_s',
         'i64.trunc_sat_f64_u',
         // exceptions
-        'try','catch','catch_all','delegate','throw','rethrow','end',
+        'try','catch','catch_all','delegate','throw','rethrow','end' {try},
         // atomic memory accesses - load/store
         'i32.atomic.load8_u', 'i32.atomic.load16_u', 'i32.atomic.load',
         'i64.atomic.load8_u', 'i64.atomic.load16_u', 'i64.atomic.load32_u',

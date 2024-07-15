@@ -39,6 +39,7 @@ unit cpunode;
        }
 {$ifndef llvm}
        narmadd,
+       narmbas,
        narmcal,
        narmmat,
        narminl,

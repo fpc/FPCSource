@@ -18,17 +18,19 @@ program webidl2pas;
 
 uses
   Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo,
-  webidltopas2js, webidltowasmjob;
+  webidltopas2js, webidltowasmjob, webidltowasmstub;
 
 type
   TWebIDLToPasFormat = (
     wifPas2js,
-    wifWasmJob
+    wifWasmJob,
+    wifWasmJobStub
     );
 const
   WebIDLToPasFormatNames: array[TWebIDLToPasFormat] of string = (
     'pas2js',
-    'wasmjob'
+    'wasmjob',
+    'wasmjobstub'
     );
 
 type
@@ -43,6 +45,7 @@ type
       const AShort: Char; const aLong: String): Boolean;
     function CheckPas2jsOption(C: TPas2jsConversionOption;
       const AShort: Char; const aLong: String): Boolean;
+    function ConfigWebIDLToPas: Boolean;
     procedure DoConvertLog(Sender: TObject; {%H-}LogType: TCodegenLogType; const Msg: String);
     function GetInputFileName: String;
     function GetOutputFileName: String;
@@ -123,69 +126,18 @@ begin
     TWebIDLToPas2js(FWebIDLToPas).Pas2jsOptions:=TWebIDLToPas2js(FWebIDLToPas).Pas2jsOptions+[C];
 end;
 
-procedure TWebIDLToPasApplication.DoRun;
-
-  procedure E(const Msg: string);
-  begin
-    {AllowWriteln}
-    writeln('Error: ',Msg);
-    {AllowWriteln-}
-    Halt(1);
-  end;
+// Return true if the configuration was OK.
+function TWebIDLToPasApplication.ConfigWebIDLToPas : Boolean;
 
 var
   A,ErrorMsg: String;
   I : Integer;
   ok: Boolean;
-  f: TWebIDLToPasFormat;
+  L : TStrings;
 
 begin
-  Terminate;
-  // quick check parameters
-  ErrorMsg:=CheckOptions('ced::f:g:hi:m:n:o:pt:u:vw:x:', [
-    'help',
-    'constexternal',
-    'dicttoclass::',
-    'expandunionargs',
-    'outputformat:',
-    'globals:',
-    'input:',
-    'implementation:',
-    'include:',
-    'output:',
-    'optionsinheader',
-    'typealiases:',
-    'unitname:',
-    'verbose',
-    'webidlversion:',
-    'extra:'
-    ]);
-  if (ErrorMsg<>'') or HasOption('h','help') then
-    begin
-    ErrorMsg:='Missing input filename';
-    WriteHelp(ErrorMsg);
-    Exit();
-    end;
-
-  // first read outputformat and create FWebIDLToPas
-  if HasOption('f','outputformat') then
-    begin
-    A:=GetOptionValue('f','outputformat');
-    ok:=false;
-    for f in TWebIDLToPasFormat do
-      begin
-      if SameText(A,WebIDLToPasFormatNames[f]) then
-        begin
-        OutputFormat:=f;
-        ok:=true;
-        end;
-      end;
-    if not ok then
-      E('unknown outputformat "'+A+'"');
-    end;
-  InitWebIDLToPas;
-
-  // then set verbosity
+  Result:=True;
+  // set verbosity
   FWebIDLToPas.Verbose:=HasOption('v','verbose');
 
   // read other options
@@ -195,7 +147,8 @@ begin
     TWebIDLToPas2js(FWebIDLToPas).DictionaryClassParent:=GetOptionValue('d','dicttoclass');
 
   CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');
-
+  CheckBaseOption(coChromeWindow,'r','chrome');
+  CheckBaseOption(coPrivateMethods,'a','private');
   // -f ?
 
   A:=GetOptionValue('g','globals');
@@ -207,11 +160,28 @@ begin
   else
     FWebIDLToPas.GlobalVars.CommaText:=A;
 
+  if HasOption('l','list') then
+    begin
+    L:=TStringList.Create;
+    try
+      A:=GetOptionValue('l','list');
+      if (Copy(A,1,1)='@') then
+        begin
+        Delete(A,1,1);
+        L.LoadFromFile(A);
+        end
+      else
+        L.CommaText:=A;
+      FWebIDLToPas.SetUsedList(L);
+    finally
+      L.free;
+    end;
+    end;
   InputFileName:=GetOptionValue('i','input');
   if (InputFileName='') then
   begin
     WriteHelp('Missing input filename');
-    Exit();
+    Exit(False);
   end;
 
   if HasOption('m','implementation') then
@@ -249,14 +219,80 @@ begin
     if (I<>-1) then
       FWebIDLToPas.WebIDLVersion:=TWebIDLVersion(I)
     else
-      E('Invalid webidl version: "'+A+'"');
+      begin
+      WriteHelp('Invalid webidl version: "'+A+'"');
+      Exit(False);
+      end;
     end;
 
   FWebIDLToPas.ExtraUnits:=GetOptionValue('x','extra');
+end;
 
-  FWebIDLToPas.Execute;
-  // stop program loop
+procedure TWebIDLToPasApplication.DoRun;
+
+const
+  Short = 'ced::f:g:hi:m:n:o:pt:u:vw:x:rl:a';
+  Long : Array of string = (
+    'help',
+    'constexternal',
+    'dicttoclass::',
+    'expandunionargs',
+    'outputformat:',
+    'globals:',
+    'input:',
+    'implementation:',
+    'include:',
+    'output:',
+    'optionsinheader',
+    'typealiases:',
+    'unitname:',
+    'verbose',
+    'webidlversion:',
+    'extra:',
+    'chrome',
+    'list:',
+    'private'
+    );
+
+
+var
+  A,ErrorMsg: String;
+  ok: Boolean;
+  f: TWebIDLToPasFormat;
+
+begin
   Terminate;
+  // quick check parameters
+  ErrorMsg:=CheckOptions(Short,Long);
+  if (ErrorMsg<>'') or HasOption('h','help') then
+    begin
+    ErrorMsg:='Missing input filename';
+    WriteHelp(ErrorMsg);
+    Exit();
+    end;
+
+  // first read outputformat and create FWebIDLToPas
+  if HasOption('f','outputformat') then
+    begin
+    A:=GetOptionValue('f','outputformat');
+    ok:=false;
+    for f in TWebIDLToPasFormat do
+      begin
+      if SameText(A,WebIDLToPasFormatNames[f]) then
+        begin
+        OutputFormat:=f;
+        ok:=true;
+        end;
+      end;
+    if not ok then
+      begin
+      WriteHelp('unknown outputformat "'+A+'"');
+      exit;
+      end;
+    end;
+  InitWebIDLToPas;
+  if ConfigWebIDLToPas then
+    FWebIDLToPas.Execute;
 end;
 
 procedure TWebIDLToPasApplication.InitWebIDLToPas;
@@ -264,6 +300,8 @@ begin
   case OutputFormat of
   wifWasmJob:
     FWebIDLToPas:=TWebIDLToPasWasmJob.Create(Self);
+  wifWasmJobStub:
+    FWebIDLToPas:=TWebIDLToPasWasmJobStub.Create(Self);
   else
     FWebIDLToPas:=TWebIDLToPas2js.Create(Self);
   end;
@@ -272,6 +310,7 @@ begin
   FWebIDLToPas.ClassSuffix:='';
   FWebIDLToPas.KeywordSuffix:='_';
   FWebIDLToPas.KeywordPrefix:='';
+  FWebIDLToPas.DottedUnitsSupport:=dusFull;
 end;
 
 constructor TWebIDLToPasApplication.Create(TheOwner: TComponent);
@@ -294,26 +333,28 @@ begin
     Writeln(StdErr,'Error : ',Msg);
   writeln(StdErr,'Usage: ', ExeName, ' [options]');
   Writeln(StdErr,'Where option is one or more of');
-  Writeln(StdErr,'-h  --help                 this help text');
-  Writeln(StdErr,'-c  --constexternal        Write consts as external const (no value)');
-  Writeln(StdErr,'-d  --dicttoclass[=Parent] Write dictionaries as classes');
-  Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments');
-  Writeln(StdErr,'-f  --outputformat=[pas2js|wasmjob] Output format, default ',WebIDLToPasFormatNames[OutputFormat]);
-  Writeln(StdErr,'-g  --globals=list         A comma separated list of global vars');
-  Writeln(StdErr,'                           use @filename to load the globals from file.');
+  Writeln(StdErr,'-h  --help                 This help text.');
+  Writeln(StdErr,'-a  --private              Write getters/setters as private methods. Default is protected.');
+  Writeln(StdErr,'-c  --constexternal        Write consts as external const (no value).');
+  Writeln(StdErr,'-d  --dicttoclass[=Parent] Write dictionaries as classes.');
+  Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments.');
+  Writeln(StdErr,'-f  --outputformat=[pas2js|wasmjob] Output format, default ',WebIDLToPasFormatNames[OutputFormat],'.');
+  Writeln(StdErr,'-g  --globals=list         A comma separated list of global vars.');
+  Writeln(StdErr,'                           Use @filename to load the globals from file.');
   Writeln(StdErr,'                           wasmjob: PasVarName=JSClassName,JOBRegisterName');
-  Writeln(StdErr,'-i  --input=FileName       input webidl file');
-  Writeln(StdErr,'-m  --implementation=Filename include file as implementation');
-  Writeln(StdErr,'-n  --include=Filename     include file at end of interface');
-  Writeln(StdErr,'-o  --output=FileName      output file. Defaults to unit name with .pas extension appended.');
-  Writeln(StdErr,'-p  --optionsinheader      add options to header of generated file');
-
-  Writeln(StdErr,'-t  --typealiases=alias    A comma separated list of type aliases in Alias=Name form');
+  Writeln(StdErr,'-i  --input=FileName       Input webidl file.');
+  Writeln(StdErr,'-m  --implementation=Filename include file as implementation.');
+  Writeln(StdErr,'-n  --include=Filename     Include file at end of interface.');
+  Writeln(StdErr,'-o  --output=FileName      Output file. Defaults to unit name with .pas extension appended.');
+  Writeln(StdErr,'-p  --optionsinheader      Add options to header of generated file.');
+  Writeln(StdErr,'-l  --used=types           A comma separated list of used IDL types. Only these types and necessary dependent types will be converted.');
+  Writeln(StdErr,'                           use @filename to load the globals from file.');
+  Writeln(StdErr,'-t  --typealiases=alias    A comma separated list of type aliases in Alias=Name form.');
   Writeln(StdErr,'                           use @filename to load the aliases from file.');
   Writeln(StdErr,'-u  --unitname=Name        name for unit. Defaults to input file without extension.');
-  Writeln(StdErr,'-v  --verbose              Output some diagnostic information');
-  Writeln(StdErr,'-w  --webidlversion=V      Set web IDL version. Allowed values: v1 or v2');
-  Writeln(StdErr,'-x  --extra=units          Extra units to put in uses clause (comma separated list)');
+  Writeln(StdErr,'-v  --verbose              Output some diagnostic information.');
+  Writeln(StdErr,'-w  --webidlversion=V      Set web IDL version. Allowed values: v1 or v2.');
+  Writeln(StdErr,'-x  --extra=units          Extra units to put in uses clause (comma separated list).');
   ExitCode:=Ord(Msg<>'');
   {AllowWriteln-}
 end;

@@ -19,7 +19,8 @@ Unit CPUInfo;
 Interface
 
   uses
-    globtype;
+    globtype,
+    systems;
 
 Type
    bestreal = double;
@@ -46,17 +47,6 @@ Type
       );
 
    tfputype =(fpu_none,fpu_soft,fpu_mips2,fpu_mips3);
-
-   tabitype = 
-     (
-     abi_none,
-     abi_default,
-     abi_o32,
-     abi_n32,
-     abi_o64,
-     abi_n64,
-     abi_eabi
-     );
 
 Const
    {# Size of native extended floating point type }
@@ -91,20 +81,6 @@ Const
      'SOFT',
      'MIPS2','MIPS3'
    );
-
-   { abi strings as accepted by 
-     GNU assembler in -abi=XXX option }
-   abitypestr : array[tabitype] of string[4] =
-     ({ abi_none    } '',
-      { abi_default } '32',
-      { abi_o32     } '32',
-      { abi_n32     } 'n32',
-      { abi_o64     } 'o64',
-      { abi_n64     } '64',
-      { abi_eabi    } 'eabi'
-     );
-
-   mips_abi : tabitype = abi_default;
 
 type
    tcpuflags=(
@@ -248,26 +224,6 @@ const
    level3optimizerswitches = level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
-function SetMipsABIType(const s : string) : boolean;
-
 Implementation
 
-uses
-  cutils;
-
-function SetMipsABIType(const s : string) : boolean;
-
-  var
-    abi : tabitype;
-  begin
-    SetMipsABIType:=false;
-    for abi := low(tabitype) to high(tabitype) do
-      if (lower(s)=abitypestr[abi]) then
-        begin
-          mips_abi:=abi;
-          SetMipsABIType:=true;
-          break;
-        end;
-  end;
-           
 end.

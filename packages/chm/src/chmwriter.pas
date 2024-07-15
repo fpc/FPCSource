@@ -1213,13 +1213,13 @@ begin
 
    // 20 The value of the Background param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
-     FIDXHdrStream.writedwordLE(ftocsm.Backgroundcolor)
+     FIDXHdrStream.writedwordLE(dword(ftocsm.Backgroundcolor))
    else
      FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 24 The value of the Foreground param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
-     FIDXHdrStream.writedwordLE(ftocsm.Foregroundcolor)
+     FIDXHdrStream.writedwordLE(dword(ftocsm.Foregroundcolor))
    else
      FIDXHdrStream.writedwordLE($FFFFFFFF);
 
@@ -1237,7 +1237,7 @@ begin
 
    // 30 The value of the EXWindow Styles param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
-     FIDXHdrStream.writedwordLE(FTocSm.ExWindowStyles)
+     FIDXHdrStream.writedwordLE(dword(FTocSm.ExWindowStyles))
    else
      FIDXHdrStream.writedwordLE(0);
 

@@ -378,7 +378,7 @@ endif
 endif
 
 # set correct defines (-d$(CPU_TARGET) is automatically added in makefile.fpc)
-override LOCALOPT+=-d$(CPC_TARGET) -dGDB
+override LOCALOPT+=-d$(CPC_TARGET)
 
 #include LLVM define/directory if requested
 ifdef LLVM
@@ -974,7 +974,7 @@ wpocycle:
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtlclean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtl
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' $(addsuffix _clean,$(ALLTARGETS))
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler 
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtl
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' $(addsuffix _clean,$(ALLTARGETS))
@@ -1280,7 +1280,7 @@ rtlinstall:
 #####################################################################
 
 PPUDIR=$(COMPILER_UNITTARGETDIR)
-ALLPPUDIR=$(CPU_TARGET)/units/*
+ALLPPUDIRS:=$(wildcard $(CPU_TARGET)/units/*)
 PPULIST=$(wildcard $(PPUDIR)/*.ppu)
 PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
 
@@ -1306,6 +1306,7 @@ vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
 
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 	echo RTLPPUDIR is "$(RTLPPUDIR)"
@@ -1318,7 +1319,8 @@ cleanrtlppulogs :
 	-$(RMPROG) $(RTLPPULOGLIST)
 
 testppudump :
-	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
+	$(MAKE) cleanrtlppulogs cleanppulogs
+	$(MAKE) ppulogs rtlppulogs
 
 #####################################################################
 # local user configurable file

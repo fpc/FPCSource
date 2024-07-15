@@ -197,7 +197,7 @@ const
     end;
 
 
-  {$ifdef OLD_ASSEMBLER}
+  {$if not defined(FPC_PIC) or defined(OLD_ASSEMBLER)}
     {$define DISABLE_PIC_IN_EXP_REAL}
   {$endif}
   {$define FPC_SYSTEM_HAS_EXP}
@@ -205,11 +205,11 @@ const
       * translated into AT&T syntax
       + PIC support
       * return +Inf/0 for +Inf/-Inf input, instead of NaN }
-    function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+    function fpc_exp_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
+      { [esp + 4 .. esp + 13] = d }
       const
         ln2hi: double=6.9314718036912382E-001;
         ln2lo: double=1.9082149292705877E-010;
-        large: single=24576.0;
         two:   single=2.0;
         half:  single=0.5;
       asm
@@ -218,23 +218,15 @@ const
 .LPIC:
         pop         %ecx
 {$endif not DISABLE_PIC_IN_EXP_REAL}
-        fldt        d
+        fldt        4(%esp)
         fldl2e
         fmul        %st(1),%st        { z = d * log2(e) }
         frndint
       { Calculate frac(z) using modular arithmetic to avoid precision loss. }
-{$ifndef DISABLE_PIC_IN_EXP_REAL}
-        fldl        ln2hi-.LPIC(%ecx)
-{$else}
-        fldl        ln2hi
-{$endif}
+        fldl        ln2hi{$ifndef DISABLE_PIC_IN_EXP_REAL}-.LPIC(%ecx){$endif}
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
-{$ifndef DISABLE_PIC_IN_EXP_REAL}
-        fldl        ln2lo-.LPIC(%ecx)
-{$else}
-        fldl        ln2lo
-{$endif}
+        fldl        ln2lo{$ifndef DISABLE_PIC_IN_EXP_REAL}-.LPIC(%ecx){$endif}
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
         fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
@@ -244,49 +236,34 @@ const
       { The above code can result in |frac(z)|>1, particularly when rounding mode
         is not "round to nearest". f2xm1 is undefined in this case, so a check
         is necessary. Furthermore, frac(z) evaluates to NaN for d=+-Inf. }
-        fld         %st
-        fabs
-        fld1
-        fcompp
-        fstsw       %ax
-        sahf
-        jp          .L3               { NaN }
-        jae         .L1               { frac(z) <= 1 }
-        fld         %st(1)
-        fabs
-{$ifndef DISABLE_PIC_IN_EXP_REAL}
-        fcomps      large-.LPIC(%ecx)
-{$else}
-        fcomps      large
-{$endif}
-        fstsw       %ax
-        sahf
-        jb          .L0               { int(z) < 24576 }
-.L3:
-        fstp        %st               { zero out frac(z), hard way because }
-        fldz                          { "fsub %st,%st" does not work for NaN }
-        jmp         .L1
-.L0:
-        { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
-{$ifndef DISABLE_PIC_IN_EXP_REAL}
-        fmuls       half-.LPIC(%ecx)
-{$else}
-        fmuls       half
-{$endif}
+        fsts        4(%esp)           { Save frac(z) as single. Usually a lot faster than saving 80-bit extended. }
+        mov         4(%esp), %eax
+        shr         $23, %eax
+        movzbl      %al, %eax
+        sub         $127, %eax        { eax = single(frac(z)) exponent. If < 0, |frac(z)| < 1. }
+        jae         .LFracOutOfRange
         f2xm1
-        fld         %st
-{$ifndef DISABLE_PIC_IN_EXP_REAL}
-        fadds       two-.LPIC(%ecx)
-{$else}
-        fadds       two
-{$endif}
-        fmulp       %st,%st(1)
-        jmp         .L2
-.L1:
-        f2xm1
-.L2:
+.LGot2PowFracZM1:
         fld1
         faddp       %st,%st(1)
+        fscale
+        fstp        %st(1)
+        ret         $12
+
+.LFracOutOfRange:
+        jne         .LForceZeroFrac   { Safeguard against |frac(z)| ≥ 2, or Inf / NaN. If single(frac(z)) exponent is 0, 1 ≤ |frac(z)| < 2. }
+
+        { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
+        fmuls       half{$ifndef DISABLE_PIC_IN_EXP_REAL}-.LPIC(%ecx){$endif}
+        f2xm1
+        fld         %st
+        fadds       two{$ifndef DISABLE_PIC_IN_EXP_REAL}-.LPIC(%ecx){$endif}
+        fmulp       %st,%st(1)
+        jmp         .LGot2PowFracZM1
+
+.LForceZeroFrac:
+        fstp        %st
+        fld1
         fscale
         fstp        %st(1)
      end;

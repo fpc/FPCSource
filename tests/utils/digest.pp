@@ -49,7 +49,6 @@ var
 begin
   if st=prevline then
     exit;
-  prevline:=st;
   should_be_run:=next_should_be_run;
   if next_should_be_run and
      (pos(failed_to_run,st)<>1) and
@@ -60,6 +59,7 @@ begin
     begin
       Writeln('No run found for "',prevline,'"');
     end;
+  prevline:=st;
   next_should_be_run:=false;
   if pos(failed_to_compile,st)=1 then
     begin

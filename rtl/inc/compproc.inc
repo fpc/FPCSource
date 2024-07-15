@@ -105,14 +105,14 @@ procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstri
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a : array of AnsiChar); compilerproc;
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of AnsiChar); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$ifndef FPUNONE}
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$endif}
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -130,8 +130,8 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
   procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of AnsiChar); compilerproc;
   procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of AnsiChar); compilerproc;
   {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-  procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-  procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
+  procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc; inline;
   {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -201,7 +201,7 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of AnsiChar); compilerproc;
 {$endif}
 {$ifndef CPUAVR}
-{ currently, the avr code generator fails on this procedure, so we disable it, 
+{ currently, the avr code generator fails on this procedure, so we disable it,
   this is not a good solution but fixing compilation of this procedure for
   avr is hard, requires significant changes to the register allocator to take
   care of different register classes }
@@ -302,8 +302,10 @@ Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSIn
 {$endif CPU16 or CPU8}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
-Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
+{ A glitch in FPC 3.2.2 prevents inline from working properly here on
+  ARM (causes a dangling pointer and hence heap corrpution). }
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc; {$if FPC_FULLVERSION>30202}inline;{$ifend}
+Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc; {$if FPC_FULLVERSION>30202}inline;{$ifend}
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Concat (Var DestS : RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Procedure fpc_AnsiStr_Concat_multi (Var DestS : RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
@@ -337,7 +339,7 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
 { pointer argument because otherwise when calling this, we get
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
-Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc;
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc; inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {*****************************************************************************

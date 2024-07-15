@@ -58,7 +58,7 @@ Type
     function OptPass1STR(var p: tai): Boolean; virtual;
     function OptPass1And(var p: tai): Boolean; virtual;
 
-    function OptPass2AND(var p: tai): Boolean;
+    function OptPass2Bitwise(var p: tai): Boolean;
     function OptPass2TST(var p: tai): Boolean;
   End;
 
@@ -231,6 +231,8 @@ Implementation
           else
             opoffset:=1;
           taicpu(hp1).loadReg(opoffset+1,taicpu(p).oper[1]^.reg);
+          if not(shiftmode in [SM_SXTX,SM_UXTX,SM_LSL]) then
+            setsubreg(taicpu(hp1).oper[opoffset+1]^.reg,R_SUBD);
           taicpu(hp1).ops:=opoffset+3;
           shifterop_reset(so);
           so.shiftmode:=shiftmode;
@@ -1519,6 +1521,7 @@ Implementation
               taicpu(hp1).opcode:=A_AND;
               taicpu(hp1).ops:=3;
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+              setsubreg(taicpu(hp1).oper[1]^.reg,getsubreg(taicpu(hp1).oper[0]^.reg));
               taicpu(hp1).loadconst(2,taicpu(p).oper[2]^.val);
               GetNextInstruction(p,hp1);
               asml.remove(p);
@@ -1616,7 +1619,7 @@ Implementation
     end;
 
 
-  function TARMAsmOptimizer.OptPass2AND(var p: tai): Boolean;
+  function TARMAsmOptimizer.OptPass2Bitwise(var p: tai): Boolean;
     var
       hp1, hp2: tai;
       WorkingReg: TRegister;
@@ -1624,22 +1627,26 @@ Implementation
       Result := False;
       {
         change
-        and  reg1, ...
+        and/bic  reg1, ...
         ...
-        cmp  reg1, #0
+        cmp      reg1, #0
         b<ne/eq> @Lbl
         to
-        ands reg1, ...
+        ands/bics reg1, ...
 
         Also:
 
-        and  reg1, ...
+        and/bic  reg1, ...
         ...
-        cmp  reg1, #0
+        cmp      reg1, #0
         (reg1 end of life)
         b<ne/eq> @Lbl
         to
         tst  reg1, ...
+        or
+        bics xzr, reg1, ... under AArch64
+
+        For ARM, also include OR, EOR and ORN
       }
       if (taicpu(p).condition = C_None) and
         (taicpu(p).ops>=3) and
@@ -1670,27 +1677,46 @@ Implementation
 
               WorkingReg := taicpu(p).oper[0]^.reg;
 
-              if RegEndOfLife(WorkingReg, taicpu(hp1)) then
+              if
+{$ifndef AARCH64}
+                (taicpu(p).opcode = A_AND) and
+{$endif AARCH64}
+                RegEndOfLife(WorkingReg, taicpu(hp1)) then
                 begin
-                  taicpu(p).opcode := A_TST;
-                  taicpu(p).oppostfix := PF_None;
-                  taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
-                  taicpu(p).loadoper(1, taicpu(p).oper[2]^);
-                  if (taicpu(p).ops = 4) then
+{$ifdef AARCH64}
+                  if (taicpu(p).opcode <> A_AND) then
                     begin
-                      { Make sure any shifter operator is also transferred }
-                      taicpu(p).loadshifterop(2, taicpu(p).oper[3]^.shifterop^);
-                      taicpu(p).ops := 3;
+                      setsupreg(taicpu(p).oper[0]^.reg, RS_XZR);
+                      taicpu(p).oppostfix := PF_S;
+                      DebugMsg(SPeepholeOptimization + 'BIC; CMP -> BICS ' + gas_regname(taicpu(p).oper[0]^.reg), p);
                     end
                   else
-                    taicpu(p).ops := 2;
+{$endif AARCH64}
+                    begin
+                      taicpu(p).opcode := A_TST;
+                      taicpu(p).oppostfix := PF_None;
+                      taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+                      taicpu(p).loadoper(1, taicpu(p).oper[2]^);
+                      if (taicpu(p).ops = 4) then
+                        begin
+                          { Make sure any shifter operator is also transferred }
+                          taicpu(p).loadshifterop(2, taicpu(p).oper[3]^.shifterop^);
+                          taicpu(p).ops := 3;
+                        end
+                      else
+                        taicpu(p).ops := 2;
 
-                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+                      DebugMsg(SPeepholeOptimization + 'AND; CMP -> TST', p);
+                    end;
                 end
               else
                 begin
                   taicpu(p).oppostfix := PF_S;
-                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> ANDS', p);
+{$ifdef AARCH64}
+                  DebugMsg(SPeepholeOptimization + 'AND/BIC; CMP -> ANDS/BICS', p);
+{$else AARCH64}
+                  DebugMsg(SPeepholeOptimization + 'Bitwise; CMP -> Bitwise+S', p);
+{$endif AARCH64}
                 end;
 
               RemoveInstruction(hp1);
@@ -1712,13 +1738,13 @@ Implementation
               { The comparison is a null operation }
               if RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
                 begin
-                  DebugMsg(SPeepholeOptimization + 'AND; CMP -> nop', p);
+                  DebugMsg(SPeepholeOptimization + 'Bitwise; CMP -> nop', p);
                   RemoveInstruction(hp1);
                   RemoveCurrentP(p);
                 end
               else
                 begin
-                  DebugMsg(SPeepholeOptimization + 'CMP -> nop', hp1);
+                  DebugMsg(SPeepholeOptimization + 'CMP/BIC -> nop', hp1);
                   RemoveInstruction(hp1);
                 end;
               Result := True;

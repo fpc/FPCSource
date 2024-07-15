@@ -49,7 +49,7 @@ interface
     procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+    procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
 
     { parse nested type declaration of the def (typedef) }
     procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
@@ -1369,7 +1369,7 @@ implementation
         begin
           consume(_SET);
           consume(_OF);
-          read_anon_type(tt2,true);
+          read_anon_type(tt2,true,nil);
           if assigned(tt2) then
            begin
              case tt2.typ of
@@ -1553,7 +1553,7 @@ implementation
                     be parsed by readtype (PFV) }
                   if token=_LKLAMMER then
                    begin
-                     read_anon_type(hdef,true);
+                     read_anon_type(hdef,true,nil);
                      setdefdecl(hdef);
                    end
                   else
@@ -1623,6 +1623,10 @@ implementation
                       symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
                       symtablestack.push(arrdef.symtable);
+                      { correctly update the generic information of the new array def }
+                      insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+                      if old_parse_generic then
+                        include(arrdef.defoptions,df_generic);
                     end
                   else
                     begin
@@ -1655,7 +1659,7 @@ implementation
                 def:=arrdef;
              end;
            consume(_OF);
-           read_anon_type(tt2,true);
+           read_anon_type(tt2,true,nil);
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
@@ -2125,12 +2129,12 @@ implementation
       end;
 
 
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+    procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
       var
         hadtypetoken : boolean;
       begin
         hadtypetoken:=false;
-        read_named_type(def,nil,nil,nil,parseprocvardir,hadtypetoken);
+        read_named_type(def,nil,genericdef,nil,parseprocvardir,hadtypetoken);
       end;
 
 

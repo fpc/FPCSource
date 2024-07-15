@@ -1343,8 +1343,17 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   // only in widechar variant.
   function GetDateFormatEx(LocaleName : pwidechar;Flags : DWORD;Date : PSYSTEMTIME; Format : pwidechar; DateBuffer : pwidechar; BufferLen  : longint; Calendar : pwidechar) : BOOL; stdcall; external 'kernel32' name 'GetDateFormatEx';
   function SetThreadExecutionState( esflags:EXECUTION_STATE ) : Cardinal; stdcall; external 'kernel32.dll' name 'SetThreadExecutionState';
-{$endif read_interface}
 
+  function GetGUIThreadInfo(InThreadId : DWORD;InoutGuiThreadInfo : PGUITHREADINFO): BOOL; stdcall; external 'user32.dll' name 'GetGUIThreadInfo';
+  function GetNumaProcessorNode(Processor:UCHAR; NodeNumber:PUCHAR):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaProcessorNode';
+  function GetNumaNodeNumberFromHandle(hFile:HANDLE; NodeNumber:PUSHORT):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaNodeNumberFromHandle';
+  function GetNumaProcessorNodeEx(Processor:PPROCESSOR_NUMBER; NodeNumber:PUSHORT):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaProcessorNodeEx';
+  function GetNumaNodeProcessorMask(Node:UCHAR; ProcessorMask:PULONGLONG):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaNodeProcessorMask';
+  function GetNumaAvailableMemoryNode(Node:UCHAR; AvailableBytes:PULONGLONG):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaAvailableMemoryNode';
+  function GetNumaAvailableMemoryNodeEx(Node:USHORT; AvailableBytes:PULONGLONG):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaAvailableMemoryNodeEx';
+  function GetNumaProximityNode(ProximityId:ULONG; NodeNumber:PUCHAR):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaProximityNode';
+
+{$endif read_interface}
 
 {$ifdef read_implementation}
 

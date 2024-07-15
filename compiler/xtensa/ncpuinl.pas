@@ -58,12 +58,29 @@ unit ncpuinl;
       cpubase;
 
     procedure tcpuinlinenode.second_abs_long;
+      var
+       hl: TAsmLabel;
       begin
+        if is_64bitint(resultdef) then
+          begin
+            inherited second_abs_long;
+            exit;
+          end;
+
         secondpass(left);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         location:=left.location;
         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+
+        if cs_check_overflow in current_settings.localswitches then
+          begin
+            current_asmdata.getjumplabel(hl);
+
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,$80000000,left.location.register,hl);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS,location.register,left.location.register));
       end;

@@ -52,12 +52,11 @@ type
     Function BaseUnits: String; override;
     // Auxiliary routines
     procedure GetOptions(L: TStrings; Full: boolean); override;
-    function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
-      ): String; override;
+    function GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean=False ): String; override;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
     // Code generation routines. Return the number of actually written defs.
-    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
+    function WriteFunctionDefinition(aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean;
       override;
     function WritePrivateReadOnlyFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer;
       override;
@@ -115,8 +114,7 @@ begin
   L.Add('Extended Options: '+Pas2jsConversionOptionsToStr(Pas2jsOptions));
 end;
 
-function TWebIDLToPas2js.GetTypeName(const aTypeName: String;
-  ForTypeDef: Boolean): String;
+function TWebIDLToPas2js.GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean): String;
 
   Function UsePascalType(Const aPascalType: string): String;
 
@@ -146,7 +144,7 @@ begin
     'USVString',
     'ByteString': Result:=UsePascalType('String');
   else
-    Result:=inherited GetTypeName(aTypeName,ForTypeDef);
+    Result:=inherited GetPascalTypeName(aTypeName,ForTypeDef);
   end;
 end;
 
@@ -157,15 +155,15 @@ var
 begin
   Result:='class external name '+MakePascalString(Intf.Name,True);
   if Assigned(Intf.ParentInterface) then
-    aParentName:=GetName(Intf.ParentInterface)
+    aParentName:=GetPasName(Intf.ParentInterface)
   else
-    aParentName:=GetTypeName(Intf.ParentName);
+    aParentName:=GetPascalTypeName(Intf.ParentName);
   if aParentName<>'' then
     Result:=Result+' ('+aParentName+')';
 end;
 
 function TWebIDLToPas2js.WriteFunctionDefinition(
-  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
+  aParent: TIDLStructuredDefinition; aDef: TIDLFunctionDefinition): Boolean;
 
 Var
   FN,RT,Suff,Args: String;
@@ -179,10 +177,10 @@ begin
   RT:='';
   if not (foConstructor in aDef.Options) then
     begin
-    FN:=GetName(aDef);
+    FN:=GetPasName(aDef);
     if FN<>aDef.Name then
       Suff:=Format('; external name ''%s''',[aDef.Name]);
-    RT:=GetTypeName(aDef.ReturnType,False);
+    RT:=GetJSTypeName(aDef.ReturnType);
     if (RT='void') then
       RT:='';
     end
@@ -258,7 +256,7 @@ begin
   if p2jcoExternalConst in Pas2jsOptions then
     begin
     S:=ConstTypes[aConst.ConstType];
-    Addln('%s: %s;',[GetName(aConst),S])
+    Addln('%s: %s;',[GetPasName(aConst),S])
     end
   else
     Result:=inherited WriteConst(aConst);
@@ -270,13 +268,13 @@ Var
 
 begin
   Result:=True;
-  N:=GetName(aAttr);
+  N:=GetPasName(aAttr);
   if aAttr.AttributeType=nil then
     begin
     AddLn('skipping field without type: "'+N+'"');
     exit;
     end;
-  TN:=GetTypeName(aAttr.AttributeType);
+  TN:=GetJSTypeName(aAttr.AttributeType);
   if TN='record' then
     TN:='TJSObject';
   if SameText(N,TN) then
@@ -290,7 +288,7 @@ end;
 function TWebIDLToPas2js.WritePrivateReadOnlyField(
   aAttr: TIDLAttributeDefinition): Boolean;
 begin
-  AddLn('%s%s: %s; external name ''%s''; ',[FieldPrefix,GetName(aAttr),GetTypeName(aAttr.AttributeType),aAttr.Name]);
+  AddLn('%s%s: %s; external name ''%s''; ',[FieldPrefix,GetPasName(aAttr),GetPascalTypeName(aAttr.AttributeType),aAttr.Name]);
   Result:=true;
 end;
 
@@ -303,9 +301,9 @@ Var
 begin
   Result:=True;
   if aParent=nil then ;
-  N:=GetName(aAttr);
+  N:=GetPasName(aAttr);
   PN:=N;
-  TN:=GetTypeName(aAttr.AttributeType);
+  TN:=GetPascalTypeName(aAttr.AttributeType);
   if SameText(PN,TN) then
     PN:='_'+PN;
   AddLn('Property %s: %s Read %s%s; ',[PN,TN,FieldPrefix,N]);

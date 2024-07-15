@@ -272,7 +272,9 @@ type
    procedure Abort;
    procedure OutOfMemoryError;
    procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
-
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
+   function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; aListObj: TObject): string; overload;
+    
 Type
    TBeepHandler = Procedure;
 
@@ -403,8 +405,8 @@ const
 Type
   TUTF8StringDynArray = Array of UTF8String;
 
-Function ArrayOfConstToStr(Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
-Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
+Function ArrayOfConstToStr(const Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
+Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
 
 { Delphi compatibility }
 

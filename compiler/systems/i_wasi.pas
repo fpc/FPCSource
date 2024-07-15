@@ -29,17 +29,6 @@ unit i_wasi;
        systems,rescmn;
 
     const
-       res_wasmraw_info : tresinfo =
-           (
-             id     : res_none; // todo: not implemented. but could be as memory
-             resbin : 'fpcwasmres';
-             rescmd : '-o $OBJ $DBG';
-             rcbin  : '';
-             rccmd  : '';
-             resourcefileclass : nil;
-             resflags : [res_no_compile];
-           );
-
         system_wasm32_wasi_info : tsysteminfo =
           (
             system       : system_wasm32_wasi;
@@ -62,7 +51,7 @@ unit i_wasi;
             asmext       : '.wat';
             objext       : '.o';
             resext       : '';
-            resobjext    : '.o';
+            resobjext    : '.or';
             sharedlibext : ''; // keep it empty! The sharedlibext drives the export module name
                                // if this is populated, then the name should be cleared when generating import
             staticlibext : '.a';
@@ -82,7 +71,7 @@ unit i_wasi;
             link         : ld_int_wasi;
             linkextern   : ld_wasi;
             ar           : ar_none;
-            res          : res_none;
+            res          : res_wasm;
             dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;

@@ -248,8 +248,8 @@
         counter := 0;
        While str1[counter] = str2[counter] do
        Begin
-         if (str2[counter] = #0) or (str1[counter] = #0) then
-            break;
+         if str1[counter] = #0 then
+           break;
          Inc(counter);
        end;
        StrComp := ord(str1[counter]) - ord(str2[counter]);
@@ -268,7 +268,7 @@
         c2 := upcase(str2[counter]);
        While c1 = c2 do
        Begin
-         if (c1 = #0) or (c2 = #0) then break;
+         if c1 = #0 then break;
          Inc(counter);
          c1 := upcase(str1[counter]);
          c2 := upcase(str2[counter]);
@@ -296,7 +296,7 @@
          if (c1 = #0) or (c2 = #0) then break;
          Inc(counter);
       Until (c1 <> c2) or (counter >= L);
-       StrLComp := ord(c1) - ord(c2);
+      StrLComp := ord(c1) - ord(c2);
      end;
 {$endif FPC_UNIT_HAS_STRLCOMP}
 
@@ -319,7 +319,6 @@
          if (c1 = #0) or (c2 = #0) then break;
          Inc(counter);
       Until (c1 <> c2) or (counter >= L);
-       StrLIComp := ord(c1) - ord(c2);
+      StrLIComp := ord(c1) - ord(c2);
      end;
 {$endif FPC_UNIT_HAS_STRLICOMP}
-

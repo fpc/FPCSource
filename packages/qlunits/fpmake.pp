@@ -33,6 +33,7 @@ begin
     T:=P.Targets.AddUnit('qlfloat.pas');
     T:=P.Targets.AddUnit('qlutil.pas');
     T:=P.Targets.AddUnit('sms.pas');
+    T:=P.Targets.AddUnit('qsound.pas');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('qlcube.pas');

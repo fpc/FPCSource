@@ -4947,6 +4947,8 @@ implementation
            end;
 
          resultnode := hp.getcopy;
+         { Remove "modify" flag from what will be an assignment destination }
+         Exclude(resultnode.flags, nf_modify);
 
          { avoid type errors from the addn/subn }
          if not is_integer(resultnode.resultdef) then
@@ -4955,7 +4957,7 @@ implementation
              inserttypeconv_internal(hpp,sinttype);
            end;
 
-         { addition/substraction depending on inc/dec }
+         { addition/subtraction depending on inc/dec }
          if inlinenumber = in_inc_x then
            hpp := caddnode.create_internal(addn,hp,hpp)
          else
@@ -5541,7 +5543,11 @@ implementation
                      datan:=caddrnode.create_internal(ctemprefnode.create(datatemp));
                    end
                  else
-                   datan:=caddrnode.create_internal(ctypeconvnode.create_internal(firstn,tarraydef(second).elementdef));
+                   begin
+                     datan:=firstn;
+                     inserttypeconv(datan,tarraydef(second).elementdef);
+                     datan:=caddrnode.create_internal(datan);
+                   end;
                  datacountn:=cordconstnode.create(1,sizesinttype,false);
                end;
              procname:='fpc_dynarray_insert';

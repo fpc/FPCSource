@@ -108,6 +108,8 @@ interface
           ait_eabi_attribute
           );
 
+        taitypes = set of taitype;
+
         taiconst_type = (
           aitconst_128bit,
           aitconst_64bit,
@@ -3159,6 +3161,11 @@ implementation
 {$endif jvm}
                 end;
 {$ifdef ARM}
+              top_regset:
+                begin
+                  new(p.oper[i]^.regset);
+                  p.oper[i]^.regset^:=oper[i]^.regset^;
+                end;
               top_shifterop:
                 begin
                   new(p.oper[i]^.shifterop);

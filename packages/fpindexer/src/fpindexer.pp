@@ -828,7 +828,7 @@ begin
 
   if FCount=0 then
     exit;
-  AddNewRankedItem(ResultList[i]);
+  AddNewRankedItem(ResultList[0]);
   for i := 1 to FCount - 1 do
   begin
     if SameRank(I,FRankedCount-1)  then

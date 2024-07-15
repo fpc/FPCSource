@@ -22,13 +22,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestMapLikeInterfaceParser"/>
+        <CommandLineParams Value="--suite=TTestWebIDL2WasmJob.TestWJ_Typedef_DictionaryWithParent"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestMapLikeInterfaceParser"/>
+            <CommandLineParams Value="--suite=TTestWebIDL2WasmJob.TestWJ_Typedef_DictionaryWithParent"/>
           </local>
         </Mode0>
       </Modes>
@@ -89,6 +89,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
         <TrashVariables Value="True"/>
       </Debugging>
       <Options>
@@ -97,9 +98,6 @@
         </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

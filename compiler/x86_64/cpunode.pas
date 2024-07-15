@@ -49,6 +49,7 @@ unit cpunode;
 {$ifndef llvm}
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
+       nx86bas,
        nx86set,
        nx86con,
        nx86mem,

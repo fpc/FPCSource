@@ -410,9 +410,10 @@ implementation
                 if (m_mac in current_settings.modeswitches) then
                   is_univ:=try_to_consume(_UNIV);
 
+                { this is not really working and generates internal errors
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
-                else
+                else }
                   begin
                     block_type:=bt_var_type;
                     single_type(hdef,[stoAllowSpecialization]);
@@ -554,6 +555,7 @@ implementation
         genericst: TSymtable;
         aprocsym : tprocsym;
         popclass : integer;
+        parentdef : tobjectdef;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
         old_current_structdef: tabstractrecorddef;
@@ -1051,6 +1053,27 @@ implementation
                     (symtablestack.top=current_module.localsymtable) and
                     assigned(current_module.globalsymtable) then
                    srsym:=tsym(current_module.globalsymtable.Find(sp));
+
+                 { if the symbol isn't assigned, but we're parsing a class or
+                   object then check in the parent types for symbols of the same
+                   name that are generics and declare the new symbol as a generic
+                   dummy symbol }
+
+                 if not assigned(srsym) and is_class_or_object(astruct) then
+                   begin
+                     parentdef:=tobjectdef(astruct).childof;
+                     while assigned(parentdef) do
+                       begin
+                         srsym:=tsym(parentdef.symtable.Find(sp));
+                         if assigned(srsym) and (sp_generic_dummy in srsym.symoptions) then
+                           begin
+                             addgendummy:=true;
+                             break;
+                           end;
+                         parentdef:=parentdef.childof;
+                       end;
+                     srsym:=nil;
+                   end;
 
                  { Check if overloaded is a procsym }
                  if assigned(srsym) then

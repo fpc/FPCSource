@@ -75,7 +75,10 @@ unit agcpugas;
         'armv8.3-a',
         'armv8.4-a',
         'armv8.5-a',
-        'armv8.6-a'
+        'armv8.6-a',
+        'armv8.7-a',
+        'armv8.8-a',
+        'armv8.9-a'
       );
 
       cputype_to_clang_march : array[tcputype] of string = (
@@ -87,7 +90,10 @@ unit agcpugas;
         'armv8.3-a',
         'armv8.4-a',
         'armv8.5-a',
-        'armv8.6-a'
+        'armv8.6-a',
+        'armv8.7-a',
+        'armv8.8-a',
+        'armv8.9-a'
       );
 
   implementation
@@ -122,11 +128,17 @@ unit agcpugas;
               CPUAARCH64_HAS_MEMTAG:
                 Result:=Result+'+memtag';
               CPUAARCH64_HAS_PAUTH:
-                Result:=Result+'+pauth';
+                { currently, clang on aarch64-darwin does not support pauth and as
+                  it is actually part of -march==armv8.4-a (and higher) we actually don't need it,
+                  so ignore it at this point }
+                if not(current_settings.cputype>=cpu_armv84a) then
+                  Result:=Result+'+pauth';
               CPUAARCH64_HAS_TME:
                 Result:=Result+'+tme';
               CPUAARCH64_HAS_PROFILE:
                 Result:=Result+'+profile';
+              CPUAARCH64_HAS_CSSC:
+                Result:=Result+'+cssc';
               else
                 ;
             end

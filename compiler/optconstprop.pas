@@ -55,7 +55,7 @@ unit optconstprop;
   implementation
 
     uses
-      globtype,
+      globtype, globals,
       pass_1,procinfo,compinnr,
       symsym, symconst,
       nutils, nbas, ncnv, nld, nflw, ncal, ninl,
@@ -346,8 +346,11 @@ unit optconstprop;
                        (is_constintnode(a.right) or
                         is_constboolnode(a.right) or
                         is_constcharnode(a.right) or
+                        is_constwidecharnode(a.right) or
+                        is_constwidestringnode(a.right) or
                         is_constenumnode(a.right) or
-                        is_conststringnode(a.right)) then
+                        is_conststringnode(a.right) or
+                        is_constpointernode(a.right)) then
                       begin
 {$ifdef DEBUG_CONSTPROP}
                         writeln('******************************* propagating ***********************************');
@@ -394,19 +397,21 @@ unit optconstprop;
 
     function do_optconstpropagate(var rootnode: tnode;var changed: boolean): tnode;
       begin
+        repeat
 {$ifdef DEBUG_CONSTPROP}
-        writeln('************************ before constant propagation ***************************');
-        printnode(rootnode);
+          writeln('************************ before constant propagation ***************************');
+          printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
-        changed:=false;
-        foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
-        if changed then
-          doinlinesimplify(rootnode);
+          changed:=false;
+          foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
+          if changed then
+            doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
-        writeln('************************ after constant propagation ***************************');
-        printnode(rootnode);
-        writeln('*******************************************************************************');
+          writeln('************************ after constant propagation ***************************');
+          printnode(rootnode);
+          writeln('*******************************************************************************');
 {$endif DEBUG_CONSTPROP}
+        until not(cs_opt_level3 in current_settings.optimizerswitches) or not(changed);
         result:=rootnode;
       end;
 

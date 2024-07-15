@@ -730,7 +730,8 @@ type
     po_AsyncProcs,            // allow async procedure modifier
     po_DisableResources,      // Disable resources altogether
     po_AsmPascalComments,    // Allow pascal comments/directives in asm blocks
-    po_AllowMem              // Allow use of meml, mem, memw arrays
+    po_AllowMem,              // Allow use of meml, mem, memw arrays
+    po_WarnResourceNotFound // Do not raise error if resource not found.
     );
   TPOptions = set of TPOption;
 
@@ -4432,8 +4433,11 @@ begin
   If (ChangeFileExt(aFileName,RTLString(''))='*') then
     aFileName:=ChangeFileExt(ExtractFileName(CurFilename),Ext);
   aFullFileName:=FileResolver.FindResourceFileName(aFileName);
-  if aFullFileName='' then
-    Error(nResourceFileNotFound,SErrResourceFileNotFound,[aFileName]);
+  if (aFullFileName='') then
+    if (po_WarnResourceNotFound in Options) then
+      Self.DoLog(mtWarning,nResourceFileNotFound,SErrResourceFileNotFound,[aFileName])
+    else
+      Error(nResourceFileNotFound,SErrResourceFileNotFound,[aFileName]);
   // Check if we can find a handler.
   if Ext<>'' then
     Ext:=Copy(Ext,2,Length(Ext)-1);

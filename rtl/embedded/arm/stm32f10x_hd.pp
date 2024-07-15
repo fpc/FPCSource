@@ -159,7 +159,7 @@ type
   res5: array[$020..$17F] of byte;
 
   TX: array[0..2] of TCANMailbox;
-  RX: array[0..2] of TCANMailbox;
+  RX: array[0..1] of TCANMailbox;
 
   res6: array[$1D0..$1FF] of byte;
 

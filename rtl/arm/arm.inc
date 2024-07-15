@@ -1349,17 +1349,17 @@ asm
 {$endif CPUARM_HAS_DMB}
 end;
 
-procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;
 begin
   barrier;
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
   { reads imply barrier on earlier reads depended on; not required on ARM }
 end;
 
-procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;
 begin
   barrier;
 end;

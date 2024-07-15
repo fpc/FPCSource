@@ -2327,11 +2327,9 @@ extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
 PPULIST:=$(wildcard */*.ppu) $(wildcard units/*/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
 RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+ALLPPUDIRS:=$(wildcard units/*) $(wildcard */units/*)
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 ppulogs : $(PPULOGLIST)
-vpath %.ppu $(ALLPPUDIRS)
-vpath %.log-ppu $(ALLPPUDIRS)
-vpath %.rm-log-ppu $(ALLPPUDIRS)
 %.log-ppu : %.ppu ../../compiler/utils/ppudump$(EXEEXT)
 	..$(PATHSEP)..$(PATHSEP)compiler$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
 %.rm-log-ppu : %.ppu ../../compiler/utils/ppudump$(EXEEXT)
@@ -2339,6 +2337,7 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 ../../compiler/utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 cleanppulogs : $(RMPPULOGLIST)

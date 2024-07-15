@@ -194,8 +194,11 @@ begin
          end
         else if (s='') or (s[1] <> '#') then
          begin
-           move(s[1],ptxt^,length(s));
-           inc(ptxt,length(s));
+           if length(s)>0 then
+             begin
+               move(s[1],ptxt^,length(s));
+               inc(ptxt,length(s));
+             end;
            ptxt^:=#10;
            inc(ptxt);
          end;

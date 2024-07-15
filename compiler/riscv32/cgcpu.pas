@@ -43,7 +43,6 @@ unit cgcpu;
         { 32x32 to 64 bit multiplication }
         procedure a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
 
-        procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
 
         procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
@@ -117,8 +116,9 @@ unit cgcpu;
       var
         ai: taicpu;
       begin
+{$ifdef EXTDEBUG}
         list.concat(tai_comment.Create(strpnew('Move '+tcgsize2str(fromsize)+'->'+tcgsize2str(tosize))));
-
+{$endif EXTDEBUG}
         if (tosize=OS_S32) and (fromsize=OS_32) then
           begin
             ai:=taicpu.op_reg_reg_const(A_ADDI,reg2,reg1,0);
@@ -174,35 +174,6 @@ unit cgcpu;
         { low word is always unsigned }
         if (dstlo<>NR_NO) then
           list.concat(taicpu.op_reg_reg_reg(A_MUL,dstlo,src1,src2));
-      end;
-
-
-    procedure tcgrv32.g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
-      var
-        paraloc1, paraloc2, paraloc3: TCGPara;
-        pd: tprocdef;
-      begin
-        pd:=search_system_proc('MOVE');
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
-        paramanager.getcgtempparaloc(list, pd, 2, paraloc2);
-        paramanager.getcgtempparaloc(list, pd, 3, paraloc3);
-        a_load_const_cgpara(list, OS_SINT, len, paraloc3);
-        a_loadaddr_ref_cgpara(list, dest, paraloc2);
-        a_loadaddr_ref_cgpara(list, Source, paraloc1);
-        paramanager.freecgpara(list, paraloc3);
-        paramanager.freecgpara(list, paraloc2);
-        paramanager.freecgpara(list, paraloc1);
-        alloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
-        alloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list, 'FPC_MOVE', false);
-        dealloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
-        dealloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
       end;
 
 

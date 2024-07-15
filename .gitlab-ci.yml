@@ -6,7 +6,7 @@
 .linux_runners:
   image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
   tags:
-    - linux
+    - saas-linux-medium-amd64
 
 stages:
   - compilercycle

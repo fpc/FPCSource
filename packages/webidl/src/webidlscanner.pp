@@ -115,6 +115,7 @@ type
     tkByteString,
     tkDOMString,
     tkUSVString,
+    tkUTF8String,
     tkboolean,
     tkbyte,
     tkdouble,
@@ -133,15 +134,22 @@ type
     tkRecord,
     tkSetLike,
     tkOther,
-    tkConstructor
+    tkConstructor,
+    tkObservableArray,
+    tkNamespace,
+    tkAsync
     );
   TIDLTokens = Set of TIDLToken;
   EWebIDLScanner = class(EParserError);
 
 Const
-  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkConstructor];
+  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray,tkObservableArray,tkConstructor,tkNamespace,tkAsync];
   V1Tokens = [tkImplements];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
+
+  V1NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise];
+  V2NameTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkUTF8String,tkPromise,tkFrozenArray,tkObservableArray,tkAsync];
+  VersionNameTokens : Array[TWebIDLVersion] of TIDLTokens = (V1NameTokens,V2NameTokens);
 
   nErrXExpectedButYFound = 1001;
   nErrRangeCheck = 1002;
@@ -382,6 +390,7 @@ const
   'ByteString',
   'DOMString',
   'USVString',
+  'UTF8String',
   'boolean',
   'byte',
   'double',
@@ -400,7 +409,10 @@ const
   'record',
   'setlike',
   'other',
-  'constructor'
+  'constructor',
+  'ObservableArray',
+  'namespace',
+  'async'
   );
 
 Function GetTokenName(aToken : TIDLToken) : String;
@@ -1082,7 +1094,6 @@ function TDirectiveEvaluator.GetStringLiteralValue: TIDLString;
 var
   p, StartP: PChar;
   s: TIDLString;
-  len : Integer;
 
 begin
   S:='';
@@ -1290,7 +1301,7 @@ begin
   TokenStart := TokenStr;
   repeat
     Inc(TokenStr);
-  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
+  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_', '-']);
   SectionLength := TokenStr - TokenStart;
 
   SetString(Result, TokenStart, SectionLength);
@@ -1461,11 +1472,9 @@ end;
 
 function TWebIDLScanner.DetermineToken2 : TIDLToken;
 
-Const
-  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray];
 
 begin
-  For Result in InfTokens do
+  For Result in VersionNameTokens[Version] do
     if (TokenInfos[result]=FCurTokenString) then exit;
   Result:=tkIdentifier;
 end;

@@ -73,6 +73,7 @@ type
     Procedure TestSetLike;
     Procedure TestRecord;
     Procedure TestInfinity;
+    Procedure TestIncludes;
     Procedure TestInherit;
     Procedure TestInterface;
     Procedure TestIterable;
@@ -102,7 +103,13 @@ type
     Procedure Testoctet;
     Procedure Testunsigned;
     Procedure Testvoid;
+    Procedure TestConstructor;
+    Procedure TestObservableArray;
+    Procedure TestFrozenArray;
+    Procedure TestNamespace;
+    Procedure TestAync;
   end;
+
 
 implementation
 
@@ -193,6 +200,7 @@ end;
 procedure TTestScanner.TestIdentifier;
 begin
   TestSingle('A',tkIdentifier,'A');
+  TestSingle('a-b',tkIdentifier,'a-b');
 end;
 
 procedure TTestScanner.TestDot;
@@ -334,6 +342,14 @@ end;
 procedure TTestScanner.TestInfinity;
 begin
   TestSingle('Infinity',tkinfinity);
+end;
+
+procedure TTestScanner.TestIncludes;
+begin
+  Version:=v2;
+  TestSingle('includes',tkincludes);
+  Version:=v1;
+  TestSingle('includes',tkIdentifier);
 end;
 
 procedure TTestScanner.TestInherit;
@@ -481,6 +497,47 @@ begin
   TestSingle('void',tkVoid);
 end;
 
+procedure TTestScanner.TestConstructor;
+begin
+  Version:=v2;
+  TestSingle('constructor',tkConstructor);
+  Version:=v1;
+  TestSingle('constructor',tkIdentifier);
+end;
+
+procedure TTestScanner.TestObservableArray;
+begin
+  Version:=v2;
+  TestSingle('ObservableArray',tkObservableArray);
+  Version:=v1;
+  TestSingle('ObservableArray',tkIdentifier);
+end;
+
+procedure TTestScanner.TestFrozenArray;
+begin
+  Version:=v2;
+  TestSingle('FrozenArray',tkFrozenArray);
+  Version:=v1;
+  TestSingle('FrozenArray',tkIdentifier);
+end;
+
+procedure TTestScanner.TestNamespace;
+begin
+  Version:=v2;
+  TestSingle('namespace',tkNamespace);
+  Version:=v1;
+  TestSingle('namespace',tkIdentifier);
+end;
+
+procedure TTestScanner.TestAync;
+begin
+  Version:=v2;
+  TestSingle('async',tkAsync);
+  Version:=v1;
+  TestSingle('async',tkIdentifier);
+
+end;
+
 procedure TTestScanner.SetVersion(AValue: TWEbIDLversion);
 begin
   if FVersion=AValue then Exit;
@@ -552,7 +609,8 @@ begin
       If I>High(AToken) then
         Fail(Format('"%s": Too many tokens in source (got: %d, expected: %d)',[aSource,I+1,High(aToken)+1]));
       AssertEquals('"'+ASource+'": token '+IntToStr(I),AToken[I],T);
-      AssertEquals('"'+ASource+'": String '+IntToStr(I),AValues[I],FScanner.CurTokenString);
+      if I<Length(aValues) then
+        AssertEquals('"'+ASource+'": String '+IntToStr(I),AValues[I],FScanner.CurTokenString);
       Inc(I);
       end
   Until (t=tkEOF);

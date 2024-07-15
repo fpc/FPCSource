@@ -150,6 +150,8 @@ const
   SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
   SAMPMError                    = 'Hour >= 13 not allowed in AM/PM mode.';
   SErrListIndexExt              = 'List index out of bounds (%d): %s object range is 0..%d';
+  SListIndexErrorEmptyReason = '%s is empty';
+  SListIndexErrorRangeReason = '%s object range is 0..%d';
 
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';

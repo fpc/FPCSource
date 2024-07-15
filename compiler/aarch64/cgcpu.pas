@@ -101,7 +101,6 @@ interface
         procedure g_maybe_got_init(list: TAsmList); override;
         procedure g_restore_registers(list: TAsmList);override;
         procedure g_save_registers(list: TAsmList);override;
-        procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len: tcgint);
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
         procedure g_check_for_fpu_exception(list: TAsmList; force, clear: boolean);override;
@@ -313,6 +312,9 @@ implementation
         { base + offset }
         if ref.base<>NR_NO then
           begin
+            if ref.offset=0 then
+              exit;
+
             { valid offset for LDUR/STUR -> use that }
             if (ref.addressmode=AM_OFFSET) and
                (op in [A_LDR,A_STR]) and
@@ -1055,7 +1057,22 @@ implementation
                 list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
               OS_64,
               OS_S64:
-                list.concat(taicpu.op_reg_reg(A_SXTW,reg2,makeregsize(reg1,OS_32)));
+                case fromsize of
+                  OS_8:
+                    list.concat(taicpu.op_reg_reg(A_UXTB,reg2,makeregsize(reg1,OS_64)));
+                  OS_S8:
+                    list.concat(taicpu.op_reg_reg(A_SXTB,reg2,makeregsize(reg1,OS_32)));
+                  OS_16:
+                    list.concat(taicpu.op_reg_reg(A_UXTH,reg2,makeregsize(reg1,OS_64)));
+                  OS_S16:
+                    list.concat(taicpu.op_reg_reg(A_SXTH,reg2,makeregsize(reg1,OS_32)));
+                  OS_32:
+                    list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
+                  OS_S32:
+                    list.concat(taicpu.op_reg_reg(A_SXTW,reg2,makeregsize(reg1,OS_32)));
+                  else
+                    internalerror(2024070701);
+                end;
               else
                 internalerror(2002090901);
             end;
@@ -2165,37 +2182,6 @@ implementation
     procedure tcgaarch64.g_save_registers(list : TAsmList);
       begin
         { done in g_proc_entry }
-      end;
-
-
-    { ************* concatcopy ************ }
-
-    procedure tcgaarch64.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
-      var
-        paraloc1,paraloc2,paraloc3 : TCGPara;
-        pd : tprocdef;
-      begin
-        pd:=search_system_proc('MOVE');
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
-        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
-        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
-        a_load_const_cgpara(list,OS_SINT,len,paraloc3);
-        a_loadaddr_ref_cgpara(list,dest,paraloc2);
-        a_loadaddr_ref_cgpara(list,source,paraloc1);
-        paramanager.freecgpara(list,paraloc3);
-        paramanager.freecgpara(list,paraloc2);
-        paramanager.freecgpara(list,paraloc1);
-        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
-        a_call_name(list,'FPC_MOVE',false);
-        dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
-        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
       end;
 
 

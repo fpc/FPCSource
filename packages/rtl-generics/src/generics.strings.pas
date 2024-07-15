@@ -31,7 +31,9 @@ resourcestring
   SCollectionInconsistency = 'Collection inconsistency';
   SCollectionDuplicate = 'Collection does not allow duplicates';
   SDictionaryKeyDoesNotExist = 'Dictionary key does not exist';
+  SDictionaryKeyNNNDoesNotExist = 'Dictionary key "%s" does not exist';
   SItemNotFound = 'Item not found';
+  SErrSameArrays = 'Cannot copy between same arrays';
 
 implementation
 

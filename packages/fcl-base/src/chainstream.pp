@@ -31,12 +31,6 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  TChainedStreamItem = record
-    Stream : TStream;
-    Size : Int64;
-  end;
-  TChainedStreamArray = Array of TChainedStreamItem;
-
   { TChainedStream }
 
   // Stream, backed by several other streams.
@@ -44,295 +38,45 @@ Type
   // When writing, the current size of the streams is kept.
   // i.e. the write operation overflows to the next stream, if any.
 
-  TChainedStream = class(TStream)
-    FStreams : TChainedStreamArray;
-    FPosition : Int64;
-    FCurrentStreamIdx : Integer;
+  TChainedStream = class(TProxyAggregateStream)
   private
     FOwnsStreams: Boolean;
-    function GetStream(aIndex : Integer): TStream;
     function GetStreamCount: Integer;
-    function IsValidStreamIndex(aIndex: Integer): Boolean;
-  Protected
-    Function CurrentStream : TStream;
-    Function StreamSize : Int64;
-    Function NextStream : Boolean;
-    Function PrevStream : Boolean;
-    Function GetTotalSize : Int64;
-    function  GetSize: Int64; virtual;
+    procedure SetOwnsStreams(const aOwnsStreams: Boolean);
   Public
-    Constructor Create(aChain : Array of TStream; OwnsStreams : Boolean = False);
-    Destructor Destroy; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    Constructor Create(aChain : Array of TStream; aOwnsStreams : Boolean = False);
     property StreamCount : Integer Read GetStreamCount;
-    property Streams[aIndex : Integer] : TStream Read GetStream;
-    Property OwnsStreams : Boolean Read FOwnsStreams Write FOwnsStreams;
+    Property OwnsStreams : Boolean Read FOwnsStreams Write SetOwnsStreams;
   end;
 
 implementation
-
-{$IFDEF FPC_DOTTEDUNITS}
-uses System.RtlConsts;
-{$ELSE FPC_DOTTEDUNITS}
-uses rtlconsts;
-{$ENDIF FPC_DOTTEDUNITS}
 
 { TChainedStream }
 
 function TChainedStream.GetStreamCount: Integer;
 begin
-  Result:=Length(FStreams);
+  Result:=Count;
 end;
 
-function TChainedStream.IsValidStreamIndex(aIndex : Integer) : Boolean;
-
-begin
-  Result:=(aIndex>=0) and (aIndex<Length(FStreams));
-end;
-
-function TChainedStream.GetStream(aIndex : Integer): TStream;
-begin
-  if not IsValidStreamIndex(aIndex) then
-    Raise EListError.CreateFmt(SListIndexError,[aIndex]);
-  Result:=FStreams[aIndex].Stream;
-end;
-
-function TChainedStream.CurrentStream: TStream;
-begin
-  if IsValidStreamIndex(FCurrentStreamIdx) then
-    Result:=FStreams[FCurrentStreamIdx].Stream
-  else
-    Result:=Nil;
-end;
-
-function TChainedStream.StreamSize: Int64;
-begin
-  if IsValidStreamIndex(FCurrentStreamIdx) then
-    begin
-    if FStreams[FCurrentStreamIdx].Size=-1 then
-      FStreams[FCurrentStreamIdx].Size:=FStreams[FCurrentStreamIdx].Stream.Size;
-    Result:=FStreams[FCurrentStreamIdx].Size;
-    end
-  else
-    Result:=0;
-end;
-
-function TChainedStream.NextStream: Boolean;
-begin
-  Inc(FCurrentStreamIdx);
-  Result:=IsValidStreamIndex(FCurrentStreamIdx);
-end;
-
-function TChainedStream.PrevStream: Boolean;
-begin
-  Dec(FCurrentStreamIdx);
-  Result:=IsValidStreamIndex(FCurrentStreamIdx);
-end;
-
-function TChainedStream.GetTotalSize: Int64;
-
+procedure TChainedStream.SetOwnsStreams(const aOwnsStreams: Boolean);
 var
-  aCurrent: Integer;
-
+  I: Integer;
 begin
-  Result:=0;
-  aCurrent:=FCurrentStreamIdx;
-  try
-    FCurrentStreamIdx:=0;
-    While CurrentStream<>Nil do
-      begin
-      Result:=Result+StreamSize;
-      NextStream;
-      end;
-  finally
-    FCurrentStreamIdx:=aCurrent;
-  end;
+  FOwnsStreams := aOwnsStreams;
+  for I := 0 to Count-1 do
+    OwnsStream[I] := FOwnsStreams;
 end;
 
-function TChainedStream.GetSize: Int64;
-begin
-  Result:=GetTotalSize;
-end;
-
-constructor TChainedStream.Create(aChain: array of TStream; OwnsStreams: Boolean);
-
+constructor TChainedStream.Create(aChain: array of TStream; aOwnsStreams: Boolean);
 Var
-  I : Integer;
+  S: TStream;
 
 begin
-  SetLength(FStreams,Length(aChain));
-  For I:=0 to Length(aChain)-1 do
-    begin
-    FStreams[i].Stream:=aChain[i];
-    FStreams[i].Size:=-1;
-    end;
-  FCurrentStreamIdx:=0;
-end;
+  inherited Create;
 
-
-destructor TChainedStream.Destroy;
-
-Var
-  I : Integer;
-
-begin
-  If OwnsStreams then
-    For I:=0 to Length(FStreams) do
-      FreeAndNil(FStreams[i].Stream);
-  inherited Destroy;
-end;
-
-function TChainedStream.Read(var Buffer; Count: Longint): Longint;
-
-Var
-  aRead : Integer;
-  P : PByte;
-
-begin
-  Result:=0;
-  P:=@Buffer;
-  While (Count>0) and Assigned(CurrentStream) do
-    begin
-    aRead:=CurrentStream.Read(P^, Count);
-    Inc(P,aRead);
-    Dec(Count,aRead);
-    Inc(Result,aRead);
-    Inc(FPosition,aRead);
-    if Count>0 then
-      if NextStream then
-        CurrentStream.Position:=0
-      else
-        break;
-    end;
-end;
-
-function TChainedStream.Write(const Buffer; Count: Longint): Longint;
-
-Var
-  aBufAvail,aToWrite,aWritten : Integer;
-  P : PByte;
-  
-begin
-  Result:=0;
-  P:=@Buffer;
-  While (Count>0) and Assigned(CurrentStream) do
-    begin
-    aBufAvail:=StreamSize-CurrentStream.Position;
-    aToWrite:=Count;
-    if aToWrite>aBufAvail then
-      aToWrite:=aBufAvail;
-    if aToWrite>0 then
-      begin
-      aWritten:=CurrentStream.Write(P^, aToWrite);
-      Inc(P,aWritten);
-      Dec(Count,aWritten);
-      Inc(Result,aWritten);
-      Inc(FPosition,aWritten);
-      end;
-    if (Count>0) then
-      if NextStream then
-        CurrentStream.Position:=0
-      else
-        break;
-    end;
-end;
-
-function TChainedStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
-
-Var
-  aOff : Int64;
-
-  Procedure MoveForward(aStartPos : Int64; aOrigin : TSeekOrigin);
-
-  var
-    aSize : Int64;
-
-  begin
-    aSize:=StreamSize;
-    while (aOff>aSize-aStartPos) do
-      begin
-      Dec(aOff,aSize-aStartPos);
-      Inc(FPosition,aSize-aStartPos);
-      if not NextStream then
-        Break;
-      aStartPos:=0;
-      aSize:=StreamSize;
-      end;
-    if CurrentStream=Nil then
-      FCurrentStreamIdx:=Length(FStreams)-1;
-    aSize:=StreamSize;
-    if aOff>aSize then
-       aOff:=aSize;
-    inc(FPosition,aOff);
-    Result:=FPosition;
-    CurrentStream.Seek(aOff,aOrigin);
-  end;
-
-  Procedure MoveBackward(aStartSize : Int64; aOrigin : TSeekOrigin);
-
-  var
-    aSize : Int64;
-
-  begin
-    aOff:=Abs(aOff);
-    aSize:=aStartSize;
-    while (aOff>aSize) do
-      begin
-      Dec(aOff,aSize);
-      Dec(FPosition,aSize);
-      if not PrevStream then
-        Break
-      else
-        begin
-        aSize:=StreamSize;
-        CurrentStream.Seek(0,soEnd);
-        end;
-      end;
-    if CurrentStream=Nil then
-      FCurrentStreamIdx:=0;
-    if aOff>aSize then
-      aOff:=aSize;
-    Dec(FPosition,aOff);
-    Result:=FPosition;
-    if (aOrigin=soCurrent) and (aStartSize<>StreamSize) then
-      CurrentStream.Seek(-aOff,soCurrent)
-    else
-      CurrentStream.Seek(-aOff,soEnd);
-  end;
-
-begin
-  if (Offset=0) and (Origin=soCurrent) then
-    Exit(FPosition);
-  aOff:=Offset;
-  Case origin of
-    soBeginning :
-      begin
-      FCurrentStreamIdx:=0;
-      FPosition:=0;
-      if aOff<0 then
-        exit(FPosition);
-      MoveForward(0,soBeginning);
-      end;
-    soCurrent :
-      begin
-      if aOff>0 then
-        begin
-        MoveForward(Currentstream.Position,soCurrent);
-        end
-      else
-        begin
-        MoveBackward(CurrentStream.Position,soCurrent)
-        end;
-      end;
-    soEnd:
-      begin
-      FCurrentStreamIdx:=Length(FStreams)-1;
-      FPosition:=GetTotalSize;
-      MoveBackward(StreamSize,SoEnd)
-      end;
-  end;
+  FOwnsStreams := aOwnsStreams;
+  for S in aChain do
+    AddStream(S, aOwnsStreams);
 end;
 
 end.

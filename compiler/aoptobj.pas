@@ -486,7 +486,7 @@ Unit AoptObj;
 {$endif DEBUG_AOPTOBJ}
 
 
-    function JumpTargetOp(ai: taicpu): poper; inline;
+    function JumpTargetOp(ai: taicpu): poper; {$IFDEF USEINLINE}inline;{$ENDIF}
       begin
 {$if defined(MIPS) or defined(riscv64) or defined(riscv32) or defined(xtensa) or defined(loongarch64)}
         { Branches of above archs can have 1,2 or 3 operands, target label is the last one. }
@@ -1934,7 +1934,9 @@ Unit AoptObj;
                           repeat
                             with tai_label(tmp).labsym do
                               begin
-                                if (labeltype <> alt_jump) then
+                                { alt_addr is needed so alignment directives before
+                                  jump tables e.g. for arm thumb are not removed }
+                                if not(labeltype in [alt_addr,alt_jump]) then
                                   begin
                                     { Non-jump label - skip over }
                                     tmp := tai(tmp.Next);

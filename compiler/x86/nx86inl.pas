@@ -1094,7 +1094,9 @@ implementation
         hl: TAsmLabel;
       begin
 {$if defined(i8086) or defined(i386)}
-        if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+        if is_64bitint(resultdef) then
+          inherited
+        else if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
@@ -1724,8 +1726,17 @@ implementation
                  paraarray[1]:=tcallparanode(parameters).paravalue;
                end;
 
+             if not(paraarray[1].location.loc in [LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[1].location,
+                 paraarray[1].resultdef,paraarray[1].resultdef,true);
+
+             if not(paraarray[2].location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,
+                 paraarray[2].resultdef,paraarray[2].resultdef,true);
+
              location_reset(location,LOC_REGISTER,paraarray[1].location.size);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
 
              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,paraarray[1].location,location.register);
              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -1740,6 +1751,15 @@ implementation
              { Try to use references as is, unless they would trigger internal
                error 200502052 }
              if (cs_create_pic in current_settings.moduleswitches) and
+               (paraarray[1].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+               Assigned(paraarray[1].location.reference.symbol) then
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[1].location,
+                 paraarray[1].resultdef,paraarray[1].resultdef,true);
+
+             { Try to use references as is, unless they would trigger internal
+               error 200502052 }
+             if (cs_create_pic in current_settings.moduleswitches) and
+               (paraarray[2].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                Assigned(paraarray[2].location.reference.symbol) then
                hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,
                  paraarray[2].resultdef,paraarray[2].resultdef,true);
@@ -1756,15 +1776,14 @@ implementation
                          begin
                            tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
                            hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,paraarray[1].location.value,tmpreg);
-                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
-                             tmpreg,paraarray[2].location.reference));
+                           emit_reg_ref(A_CMP,opsize,tmpreg,paraarray[2].location.reference);
                          end
                        else
 {$endif x86_64}
-                         current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_CMP,opsize,
-                           paraarray[1].location.value,paraarray[2].location.reference));
+                         emit_const_ref(A_CMP,opsize,paraarray[1].location.value,paraarray[2].location.reference);
 
-                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       emit_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       instr:=TAiCpu(current_asmdata.CurrAsmList.Last); { The instruction just inserted; we need to modify its condition below }
                      end;
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1784,6 +1803,7 @@ implementation
                            paraarray[1].location.value,paraarray[2].location.register));
 
                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                       current_asmdata.CurrAsmList.concat(instr); { We need to modify the instruction's condition below }
                      end;
                    else
                      InternalError(2021121907);
@@ -1794,17 +1814,15 @@ implementation
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
                        { The reference has already been stored at location.register, so use that }
-                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
-                         location.register,paraarray[2].location.reference));
-
-                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       emit_reg_ref(A_CMP,opsize,location.register,paraarray[2].location.reference);
+                       emit_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       instr:=TAiCpu(current_asmdata.CurrAsmList.Last); { The instruction just inserted; we need to modify its condition below }
                      end;
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
-                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,
-                         paraarray[1].location.reference,paraarray[2].location.register));
-
+                       emit_ref_reg(A_CMP,opsize,paraarray[1].location.reference,paraarray[2].location.register);
                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                       current_asmdata.CurrAsmList.concat(instr); { We need to modify the instruction's condition below }
                      end;
                    else
                      InternalError(2021121906);
@@ -1814,10 +1832,10 @@ implementation
                  case paraarray[2].location.loc of
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
-                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_CMP,opsize,
-                         paraarray[1].location.register,paraarray[2].location.reference));
+                       emit_reg_ref(A_CMP,opsize,paraarray[1].location.register,paraarray[2].location.reference);
 
-                       instr:=TAiCpu.op_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       emit_ref_reg(A_CMOVcc,opsize,paraarray[2].location.reference,location.register);
+                       instr:=TAiCpu(current_asmdata.CurrAsmList.Last); { The instruction just inserted; we need to modify its condition below }
                      end;
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1825,6 +1843,7 @@ implementation
                          paraarray[1].location.register,paraarray[2].location.register));
 
                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,paraarray[2].location.register,location.register);
+                       current_asmdata.CurrAsmList.concat(instr); { We need to modify the instruction's condition below }
                      end;
                    else
                      InternalError(2021121905);
@@ -1851,7 +1870,6 @@ implementation
                  Internalerror(2021121903);
              end;
 
-             current_asmdata.CurrAsmList.concat(instr);
              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
            end
          else

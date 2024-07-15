@@ -1784,6 +1784,7 @@ implementation
 
         sublist:=tfplist.create;
         tabstractrecordsymtable(tabstractrecorddef(fsym.vardef).symtable).get_managementoperator_offset_list(mop,sublist);
+        mop_list[mop].capacity:=mop_list[mop].count+sublist.count;
         for i:=0 to sublist.count-1 do
           begin
             entry:=pmanagementoperator_offset_entry(sublist[i]);
@@ -3295,6 +3296,31 @@ implementation
         end;
 
       function check_strict_protected:boolean;
+        function is_childof(child, potentialparent: tdef):boolean;
+          begin
+            result:=true;
+            if def_is_related(child, potentialparent) then
+              exit;
+            if (child.typ=objectdef) and
+               (potentialparent.typ=objectdef) and
+               (tobjectdef(potentialparent).defoptions*[df_generic,df_specialization]=[df_generic]) then
+              begin
+                 repeat
+                   if tobjectdef(child).genericdef<>nil then
+                     begin
+                       if tobjectdef(child).genericdef.typ<>objectdef then
+                         break;
+                       child:=tobjectdef(child).genericdef as tobjectdef
+                     end
+                   else
+                     child:=tobjectdef(child).childof;
+                   if (child<>nil) and equal_defs(child, potentialparent) then
+                     exit;
+                 until child=nil;
+              end;
+
+            result:=false;
+          end;
 
         function owner_hierarchy_related(nested,check:tabstractrecorddef):boolean;
           var
@@ -3302,7 +3328,7 @@ implementation
           begin
             result:=true;
             repeat
-              if def_is_related(nested,check) then
+              if is_childof(nested,check) then
                 exit;
               if nested.owner.symtabletype in [recordsymtable,objectsymtable] then
                 nested:=tabstractrecorddef(nested.owner.defowner)
@@ -3329,7 +3355,7 @@ implementation
                     assigned(contextobjdef) and
                     assigned(curstruct) and
                     owner_hierarchy_related(contextobjdef,symownerdef) and
-                    def_is_related(curstruct,contextobjdef)
+                    is_childof(curstruct,contextobjdef)
                   ) or
                   (
                     { access from child class (non-specialization case) }
@@ -3340,18 +3366,18 @@ implementation
                     ) and
                     assigned(curstruct) and
                     owner_hierarchy_related(orgcontextobjdef,orgsymownerdef) and
-                    def_is_related(curstruct,orgcontextobjdef)
+                    is_childof(curstruct,orgcontextobjdef)
                   ) or
                   (
                     { helpers can access strict protected symbols }
                     is_objectpascal_helper(contextobjdef) and
-                    def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
+                    is_childof(tobjectdef(contextobjdef).extendeddef,symownerdef)
                   ) or
                   (
                     { same as above, but from context of call node inside
                       helper method }
                     is_objectpascal_helper(curstruct) and
-                    def_is_related(tobjectdef(curstruct).extendeddef,symownerdef)
+                    is_childof(tobjectdef(curstruct).extendeddef,symownerdef)
                   );
         end;
 
@@ -3370,6 +3396,8 @@ implementation
           specialization }
         if df_specialization in symownerdef.defoptions then
           begin
+            if not assigned(symownerdef.genericdef) then
+              internalerror(2024041201);
             if not (symownerdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020901);
             orgsymownerdef:=symownerdef;
@@ -3377,6 +3405,8 @@ implementation
           end;
         if assigned(contextobjdef) and (df_specialization in contextobjdef.defoptions) then
           begin
+            if not assigned(contextobjdef.genericdef) then
+              internalerror(2024041202);
             if not (contextobjdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024020902);
             orgcontextobjdef:=contextobjdef;
@@ -3384,6 +3414,8 @@ implementation
           end;
         if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
           begin
+            if not assigned(current_structdef.genericdef) then
+              internalerror(2024041203);
             if not (current_structdef.genericdef.typ in [objectdef,recorddef]) then
               internalerror(2024030903);
             curstruct:=tabstractrecorddef(current_structdef.genericdef)

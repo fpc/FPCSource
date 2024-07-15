@@ -48,13 +48,13 @@ type
     function AESSupport : boolean;inline;
     function AVXSupport : boolean;inline;
     function AVX2Support: boolean;inline;
-    function AVX512FSupport: boolean;inline;    
-    function AVX512DQSupport: boolean;inline;    
-    function AVX512IFMASupport: boolean;inline;    
-    function AVX512PFSupport: boolean;inline;    
-    function AVX512ERSupport: boolean;inline;    
-    function AVX512CDSupport: boolean;inline;    
-    function AVX512BWSupport: boolean;inline;    
+    function AVX512FSupport: boolean;inline;
+    function AVX512DQSupport: boolean;inline;
+    function AVX512IFMASupport: boolean;inline;
+    function AVX512PFSupport: boolean;inline;
+    function AVX512ERSupport: boolean;inline;
+    function AVX512CDSupport: boolean;inline;
+    function AVX512BWSupport: boolean;inline;
     function AVX512VLSupport: boolean;inline;
     function AVX512VBMISupport: boolean;inline;
     function AVX512VBMI2Support: boolean;inline;
@@ -64,7 +64,7 @@ type
     function AVX512BITALGSupport: boolean;inline;
     function RDSEEDSupport: boolean;inline;
     function ADXSupport: boolean;inline;
-    function SHASupport: boolean;inline;    
+    function SHASupport: boolean;inline;
     function FMASupport: boolean;inline;
     function CMPXCHG16BSupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
@@ -349,37 +349,37 @@ type
       end;
 
 
-    function AVX512IFMASupport: boolean;inline;    
+    function AVX512IFMASupport: boolean;inline;
       begin
         result:=_AVX512IFMASupport;
       end;
 
 
-    function AVX512PFSupport: boolean;inline;    
+    function AVX512PFSupport: boolean;inline;
       begin
         result:=_AVX512PFSupport;
       end;
 
 
-    function AVX512ERSupport: boolean;inline;    
+    function AVX512ERSupport: boolean;inline;
       begin
         result:=_AVX512ERSupport;
       end;
 
 
-    function AVX512CDSupport: boolean;inline;    
+    function AVX512CDSupport: boolean;inline;
       begin
         result:=_AVX512CDSupport;
       end;
 
 
-    function AVX512BWSupport: boolean;inline;    
+    function AVX512BWSupport: boolean;inline;
       begin
         result:=_AVX512BWSupport;
       end;
 
 
-    function AVX512VLSupport: boolean;inline;    
+    function AVX512VLSupport: boolean;inline;
       begin
         result:=_AVX512VLSupport;
       end;
@@ -409,13 +409,13 @@ type
       end;
 
 
-    function AVX512VNNISupport: boolean;inline;    
+    function AVX512VNNISupport: boolean;inline;
       begin
         result:=_AVX512VNNISupport;
       end;
 
 
-    function AVX512BITALGSupport: boolean;inline;    
+    function AVX512BITALGSupport: boolean;inline;
       begin
         result:=_AVX512BITALGSupport;
       end;
@@ -433,7 +433,7 @@ type
       end;
 
 
-    function SHASupport: boolean;inline;    
+    function SHASupport: boolean;inline;
       begin
         result:=_SHASupport;
       end;

@@ -372,6 +372,14 @@ unit cgobj;
           procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
 
+          {# This emits code to copy len bytes from the source using the move procedure
+
+             @param(source Source reference of copy)
+             @param(dest Destination reference of copy)
+
+          }
+          procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);virtual;
+
           {# This should emit the opcode to copy len bytes from the source
              to destination.
 
@@ -2657,6 +2665,33 @@ implementation
       const ref : treference;src,dst : tregister;shuffle : pmmshuffle);
       begin
         internalerror(2013061101);
+      end;
+
+
+    procedure tcg.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
+      var
+        paraloc1,paraloc2,paraloc3 : TCGPara;
+        pd : tprocdef;
+      begin
+        pd:=search_system_proc('MOVE');
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
+        a_load_const_cgpara(list,OS_SINT,len,paraloc3);
+        a_loadaddr_ref_cgpara(list,dest,paraloc2);
+        a_loadaddr_ref_cgpara(list,source,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
+        allocallcpuregisters(list);
+        a_call_name(list,'FPC_MOVE',false);
+        deallocallcpuregisters(list);
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
       end;
 
 

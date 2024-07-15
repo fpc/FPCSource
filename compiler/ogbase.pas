@@ -3326,6 +3326,7 @@ implementation
           exit;
         { create a list of symbols sorted by address }
         list:=TFPList.Create;
+        list.Capacity:=ExeSymbolList.Count;
         for i:=0 to ExeSymbolList.Count-1 do
           list.Add(TExeSymbol(ExeSymbolList[i]).ObjSymbol);
         list.Sort(@ByAddress);

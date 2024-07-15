@@ -104,9 +104,9 @@ function AnsiLastChar(const S: AnsiString): PAnsiChar;
 function AnsiLastChar(const S: UnicodeString): PWideChar;
 function AnsiStrLastChar(Str: PAnsiChar): PAnsiChar;
 
-function Trim(const S: ansistring): ansistring;
-function TrimLeft(const S: ansistring): ansistring;
-function TrimRight(const S: ansistring): ansistring;
+function Trim(const S: ansistring): ansistring; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function TrimLeft(const S: ansistring): ansistring; {$ifdef SYSUTILSINLINE}inline;{$endif}
+function TrimRight(const S: ansistring): ansistring; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function QuotedStr(const S: string): string; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiQuotedStr(const S: string; Quote: Char): string;
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
@@ -352,5 +352,5 @@ Type
   TStringBuilder = TUnicodeStringBuilder;
 {$ENDIF}
 
-function SafeFormat (const Fmt: AnsiString; Args: array of const; const FormatSettings: TFormatSettings): UTF8String; overload;
-function SafeFormat (const Fmt: AnsiString; Args: array of const): UTF8String; overload;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const; const FormatSettings: TFormatSettings): UTF8String; overload;
+function SafeFormat (const Fmt: AnsiString;const Args: array of const): UTF8String; overload;

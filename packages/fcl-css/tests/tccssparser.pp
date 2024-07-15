@@ -92,6 +92,7 @@ type
     Procedure TestOneDeclarationStringValue;
     Procedure TestOneDeclarationHashValue;
     Procedure TestOneDeclarationURLValue;
+    Procedure TestOneDeclarationFloatValue;
     Procedure TestOneDeclarationMultiValue;
     Procedure TestOneDeclarationMultiListValue;
     Procedure TestOneDeclarationExprValue;
@@ -689,6 +690,23 @@ begin
   AssertEquals('Value count', 1, D.ChildCount);
   U:=TCSSURLElement(CheckClass('Value', TCSSURLElement,D.Children[0]));
   AssertEquals('Value ','b.c',U.Value);
+end;
+
+procedure TTestCSSParser.TestOneDeclarationFloatValue;
+var
+  R : TCSSRuleElement;
+  D : TCSSDeclarationElement;
+  F : TCSSFloatElement;
+
+begin
+  R:=ParseRule('{ a : -.5em; }');
+  AssertEquals('selector count',0,R.SelectorCount);
+  D:=CheckDeclaration(R,0,'a');
+  AssertEquals('Value count', 1, D.ChildCount);
+  F:=TCSSFloatElement(CheckClass('Value', TCSSFloatElement,D.Children[0]));
+  AssertEquals('Value ',-0.5,F.Value);
+  if F.Units<>cuEM then
+    Fail('Units expected unit em, but found '+IntToStr(ord(F.Units)));
 end;
 
 procedure TTestCSSParser.TestOneDeclarationMultiValue;

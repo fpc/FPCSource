@@ -37,7 +37,7 @@ interface
 implementation
 
     uses
-      systems,globals,
+      systems,globals,globtype,
       symdef,
       defutil,
       cpubase,
@@ -51,7 +51,8 @@ implementation
     function tx86realconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if is_number_float(value_real) and not(use_vectorfpu(resultdef)) and ((value_real=1.0) or ((value_real=0.0) and (get_real_sign(value_real)=1))) then
+         if is_number_float(value_real) and not(use_vectorfpu(resultdef)) and ((value_real=1.0) or (value_real=-1.0) or ((value_real=0.0) and (get_real_sign(value_real)=1)) or
+           ((value_real=2.0) and (cs_create_pic in current_settings.moduleswitches))) then
            expectloc:=LOC_FPUREGISTER
          else if (value_real=0.0) and (get_real_sign(value_real)=1) and use_vectorfpu(resultdef) then
            expectloc:=LOC_MMREGISTER
@@ -67,6 +68,22 @@ implementation
              if (value_real=1.0) and not(use_vectorfpu(resultdef)) then
                begin
                   emit_none(A_FLD1,S_NO);
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+                  location.register:=NR_ST;
+                  tcgx86(cg).inc_fpu_stack;
+               end
+             else if (value_real=2.0) and (cs_create_pic in current_settings.moduleswitches) and not(use_vectorfpu(resultdef)) then
+               begin
+                  emit_none(A_FLD1,S_NO);
+                  emit_reg_reg(A_FADD,S_NO,NR_ST,NR_ST);
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+                  location.register:=NR_ST;
+                  tcgx86(cg).inc_fpu_stack;
+               end
+             else if (value_real=-1.0) and not(use_vectorfpu(resultdef)) then
+               begin
+                  emit_none(A_FLD1,S_NO);
+                  emit_none(A_FCHS,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;

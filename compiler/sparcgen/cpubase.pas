@@ -186,6 +186,8 @@ uses
           F_AE, {Above or Equal, synonym: Carry Clear}
           F_B,  {Below, synonym: Carry Set}
           F_BE, {Below or Equal}
+          F_VC, {No Overflow}
+          F_VS, {Overflow}
           { Floating point results }
           F_FE,  {Equal}
           F_FNE, {Not Equal}
@@ -398,7 +400,7 @@ implementation
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TSparcFlags] of TSparcFlags =
-          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,F_VS,F_VC,
            F_FNE,F_FE,F_FLE,F_FGE,F_FL,F_FG);
       begin
         f.Flags:=inv_flags[f.Flags];
@@ -408,7 +410,7 @@ implementation
    function flags_to_cond(const f:TResFlags):TAsmCond;
       const
         flags_2_cond:array[TSparcFlags] of TAsmCond=
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,C_VC,C_VS,
            C_FE,C_FNE,C_FG,C_FL,C_FGE,C_FLE);
       begin
         result:=flags_2_cond[f.Flags];

@@ -490,7 +490,7 @@ interface
          (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'DARWIN'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'ELFV2'  ; supported:{$if defined(powerpc64)}true{$else}false{$endif}),
-         (name: 'EABI'   ; supported:{$if defined(arm)}true{$else}false{$endif}),
+         (name: 'EABI'   ; supported:{$if defined(arm) or defined(mips)}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$if defined(arm)}true{$else}false{$endif}),
          (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
@@ -504,7 +504,11 @@ interface
          (name: 'RISCV64LPD'; supported:{$if defined(riscv64)}true{$else}false{$endif}),
          (name: 'LINUX386_SYSV'; supported:{$if defined(i386)}true{$else}false{$endif}),
          (name: 'WINDOWED'; supported:{$if defined(xtensa)}true{$else}false{$endif}),
-         (name: 'CALL0'; supported:{$if defined(xtensa)}true{$else}false{$endif})
+         (name: 'CALL0'; supported:{$if defined(xtensa)}true{$else}false{$endif}),
+         (name: 'O32'; supported:{$if defined(mips)}true{$else}false{$endif}),
+         (name: 'N32'; supported:{$if defined(mips)}true{$else}false{$endif}),
+         (name: 'O64'; supported:{$if defined(mips)}true{$else}false{$endif}),
+         (name: 'N64'; supported:{$if defined(mips)}true{$else}false{$endif})
        );
 
        cgbackend2str: array[tcgbackend] of ansistring = (
@@ -1085,10 +1089,10 @@ begin
   {$ifdef cpusparc64}
     default_target(source_info.system);
   {$else cpusparc64}
-   {$ifdef solaris}
-    {$define default_target_set}
-    default_target(system_sparc64_solaris);
-   {$endif}
+   // {$ifdef solaris}
+   // {$define default_target_set}
+   // default_target(system_sparc64_solaris);
+   // {$endif}
     {$ifndef default_target_set}
     default_target(system_sparc64_linux);
     {$endif ndef default_target_set}

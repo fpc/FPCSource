@@ -146,6 +146,8 @@ general_t_unitscope=01027_T_Using unit scope: $1
 general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
 % When the \var{-Ft} switch is used, this line informs you that the compiler
 % will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
 % \end{description}
 #
 # Scanner
@@ -1677,6 +1679,9 @@ parser_e_nostringaliasinsystem=03370_E_Using 'string' alias is not allowed in th
 parser_e_coperators_off=03371_E_C styled assignment operators are turned off
 % By default, c style assignment operators (+=, -=, *=, /=) are turn off. Either turn them on by the command line
 % parameter -Sc or in the source code by {\$COPERATORS ON}
+parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be evaluted at compile time
+% Certain operations like the size of an object cannot be determined at compile time,
+% so it cannot be e.g. part of a constant expression.
 %
 % \end{description}
 %
@@ -4320,7 +4325,9 @@ A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
 a*2Tdarwin_Darwin/Mac OS X
+a*2Tembedded_Embedded
 a*2Tfreebsd_FreeBSD
+a*2Tiphonesim_iPhoneSimulator
 a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64
@@ -4485,6 +4492,7 @@ x*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
+R*2WP<x>_esp-idf version number: 4.4, 5.0.6, ... (esp32c3)
 x*2WP<x>_Esp8266-rtos-sdk or esp-idf version number: 3.3, 3.4 (esp8266) or 4.2, 4.3 (esp32)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)

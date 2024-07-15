@@ -56,6 +56,7 @@ type
     Procedure TestINTEGER;
     Procedure TestSTRING;
     Procedure TestFLOAT;
+    Procedure TestFLOATNeg;
     Procedure TestIDENTIFIER;
     Procedure TestHashIDENTIFIER;
     Procedure TestCLASSNAME;
@@ -402,13 +403,19 @@ end;
 procedure TCSSTreeAsStringTest.TestSTRING;
 begin
   TCSSStringElement(CreateElement(TCSSStringElement)).Value:='abc';
-  AssertEquals('Value','"abc"',Element.AsString);
+  AssertEquals('Value','abc',Element.AsString);
 end;
 
 procedure TCSSTreeAsStringTest.TestFLOAT;
 begin
   TCSSFloatElement(CreateElement(TCSSFloatElement)).Value:=1.23;
   AssertEquals('Value','1.23',Element.AsString);
+end;
+
+procedure TCSSTreeAsStringTest.TestFLOATNeg;
+begin
+  TCSSFloatElement(CreateElement(TCSSFloatElement)).Value:=-1.23;
+  AssertEquals('Value','-1.23',Element.AsString);
 end;
 
 procedure TCSSTreeAsStringTest.TestIDENTIFIER;

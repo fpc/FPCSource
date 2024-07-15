@@ -2416,8 +2416,12 @@ Implementation
       if p.typ = ait_instruction then
         begin
           case taicpu(p).opcode of
-            A_AND:
-              Result := OptPass2AND(p);
+            A_AND,
+            A_ORR,
+            A_EOR,
+            A_BIC,
+            A_ORN:
+              Result := OptPass2Bitwise(p);
             A_CMP:
               Result := OptPass2CMP(p);
             A_B:

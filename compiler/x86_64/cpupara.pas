@@ -1314,7 +1314,7 @@ unit cpupara;
             end;
           arraydef :
             begin
-              { cdecl array of const need to be ignored and therefor be puhsed
+              { cdecl array of const need to be ignored and therefor be pushed
                 as value parameter with length 0 }
               if ((calloption in cdecl_pocalls) and
                   is_array_of_const(def)) or

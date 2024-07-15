@@ -396,7 +396,7 @@ INSTALL_GRB =	simsrc.shr simsrc.zip sim.txt sim.pdf
 depend:		$(CFS)
 		makedepend -w 1 -Dlint $(CFS)
 
-.PHONY:		clean fresh
+.PHONY:		clean fresh distclean
 clean:
 		-rm -f *.o
 		-rm -f $(SIM_C_GRB)
@@ -409,6 +409,8 @@ clean:
 		-rm -f $(TEST_GRB)
 		-rm -f $(INSTALL_GRB)
 		-rm -f a.out a.exe sim.txt core mon.out
+
+distclean:	clean
 
 fresh:		clean
 		-rm -f $(DOS_GRB)

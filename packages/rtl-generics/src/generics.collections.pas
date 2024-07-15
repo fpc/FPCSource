@@ -46,11 +46,11 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
     System.RtlConsts, System.Classes, System.SysUtils, System.Generics.MemoryExpanders, System.Generics.Defaults,
-    System.Generics.Helpers, System.Generics.Strings;
+    System.Generics.Helpers, System.Generics.Strings, System.Types, System.Rtti;
 {$ELSE FPC_DOTTEDUNITS}
 uses
     RtlConsts, Classes, SysUtils, Generics.MemoryExpanders, Generics.Defaults,
-    Generics.Helpers, Generics.Strings;
+    Generics.Helpers, Generics.Strings, Types, Rtti;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {.$define EXTRA_WARNINGS}
@@ -121,6 +121,9 @@ type
     class function BinarySearch(const AValues: array of T; const AItem: T;
       out AFoundIndex: SizeInt; const AComparer: IComparer<T>;
       AIndex, ACount: SizeInt): Boolean; override; overload;
+    class function Concat(const Args: array of TArray<T>): TArray<T>; static;
+    class procedure Copy(const aSource: array of T; var aDestination: array of T; aCount: NativeInt); overload;
+    class procedure Copy(const aSource: array of T; var aDestination: array of T; aSourceIndex, aDestIndex, aCount: SizeInt); overload;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
   TCollectionNotification = (cnAdding, cnAdded, cnDeleting, cnRemoved, cnExtracting,  cnExtracted);
@@ -287,6 +290,7 @@ type
     {$ENDIF}
 
     function Remove(const AValue: T): SizeInt;
+    function RemoveItem(const Value: T; Direction: TDirection): SizeInt;
     procedure Delete(AIndex: SizeInt); inline;
     procedure DeleteRange(AIndex, ACount: SizeInt);
     function ExtractIndex(const AIndex: SizeInt): T; overload;
@@ -960,11 +964,33 @@ type
   end;
 
 function InCircularRange(ABottom, AItem, ATop: SizeInt): Boolean;
+procedure ErrorArgumentOutOfRange; overload;
+procedure ErrorArgumentOutOfRange(aIndex, aMaxIndex: SizeInt; aListObj: TObject); overload;
+procedure ErrorArgumentOutOfRange(aIndex, aMaxIndex: SizeInt); overload;
 
 var
   EmptyRecord: TEmptyRecord;
 
 implementation
+
+
+procedure ErrorArgumentOutOfRange;
+
+begin
+  raise EArgumentOutOfRangeException.Create(SArgumentOutOfRange);
+end;
+
+procedure ErrorArgumentOutOfRange(aIndex, aMaxIndex: SizeInt; aListObj: TObject); overload;
+
+begin
+  raise EArgumentOutOfRangeException.Create(ListIndexErrorMsg(aIndex,aMaxIndex,aListObj));
+end;
+
+procedure ErrorArgumentOutOfRange(aIndex, aMaxIndex: SizeInt); overload;
+
+begin
+  raise EArgumentOutOfRangeException.Create(ListIndexErrorMsg(aIndex,aMaxIndex,''));
+end;
 
 function InCircularRange(ABottom, AItem, ATop: SizeInt): Boolean;
 begin
@@ -1208,6 +1234,58 @@ begin
     ASearchResult.CandidateIndex := -1;
     Exit(False);
   end;
+end;
+
+
+class procedure TArrayHelper<T>.Copy(const aSource: array of T; var aDestination: array of T; aCount: NativeInt);
+begin
+  Copy(aSource,aDestination,0,0,aCount);
+end;
+
+class procedure TArrayHelper<T>.Copy(const aSource: array of T; var aDestination: array of T; aSourceIndex, aDestIndex, aCount: SizeInt);
+
+var
+  I : Integer;
+
+begin
+  if (Length(aSource)>0) and (Length(aDestination)>0) and ((@aSource[0]) = (@aDestination[0]))  then
+    raise EArgumentException.Create(SErrSameArrays);
+  if (aCount<0) or
+     (aCount>(Length(aSource)-aSourceIndex)) or
+     (aCount>(Length(aDestination)-aDestIndex)) then
+    ErrorArgumentOutOfRange;
+
+  if IsManagedType(T) then
+    begin
+    // maybe this can be optimized too ?
+    For I:=0 to aCount-1 do
+      aDestination[aDestIndex+i]:=aSource[aSourceIndex+i];
+    end
+  else
+    Move(Pointer(@aSource[aSourceIndex])^, Pointer(@aDestination[aDestIndex])^, SizeOf(T)*aCount);
+end;
+
+class function TArrayHelper<T>.Concat(const Args: array of TArray<T>): TArray<T>;
+
+var
+  TotalLen: SizeInt;
+  CurLen,Dest,i: SizeInt;
+
+begin
+  TotalLen:=0;
+  for i:=0 to Length(Args)-1 do
+    Inc(TotalLen,Length(Args[i]));
+  SetLength(Result,TotalLen);
+  Dest:=0;
+  for i:=0 to Length(Args)-1 do
+    begin
+    CurLen:=Length(Args[i]);
+    if CurLen>0 then
+      begin
+      Copy(Args[i],Result,0,Dest,CurLen);
+      Inc(Dest,CurLen);
+      end;
+    end;
 end;
 
 class function TArrayHelper<T>.BinarySearch(const AValues: array of T; const AItem: T;
@@ -1706,6 +1784,19 @@ begin
   Result := IndexOf(AValue);
   if Result >= 0 then
     DoRemove(Result, cnRemoved);
+end;
+
+function TList<T>.RemoveItem(const Value: T; Direction: TDirection): SizeInt;
+
+begin
+  if Direction=TDirection.FromBeginning then
+    Result:=Remove(Value)
+  else
+    begin
+    Result:=LastIndexOf(Value);
+    if Result>=0 then
+      DoRemove(Result, cnRemoved);
+    end;
 end;
 
 procedure TList<T>.Delete(AIndex: SizeInt);
@@ -3478,13 +3569,23 @@ begin
   Result := TValueCollection(FValues);
 end;
 
+
 function TCustomAVLTreeMap<TREE_CONSTRAINTS>.GetItem(const AKey: TKey): TValue;
+
 var
   LNode: PNode;
+  // Need to differentiate with TValue template type...
+  D : {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.TValue;
+  K : TKey;
+
 begin
   LNode := Find(AKey);
   if not Assigned(LNode) then
-    raise EAVLTree.CreateRes(@SDictionaryKeyDoesNotExist);
+    begin
+      K:=aKey;
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.TValue.Make(@K,TypeInfo(TKey),D);
+      raise EAVLTree.CreateFmt(SDictionaryKeyNNNDoesNotExist,[D.ToString]);
+    end;
   result := LNode.Value;
 end;
 

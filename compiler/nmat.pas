@@ -215,10 +215,12 @@ implementation
                 exit;
               end;
 
-            if is_constintnode(left) then
+            { pointer subtractions generate nodes dividing pointer (constants) }
+            if is_constintnode(left) or is_constpointernode(left) then
               begin
-                rv:=tordconstnode(right).value;
-                lv:=tordconstnode(left).value;
+                { load values }
+                lv:=get_int_value(left);
+                rv:=get_int_value(right);
 
                 case nodetype of
                   modn:

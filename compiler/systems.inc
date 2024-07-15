@@ -353,7 +353,7 @@
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf,res_xcoff
             ,res_win64_gorc, res_macho, res_ext
-            ,res_jvm_raw
+            ,res_jvm_raw,res_wasm
        );
 
        tresinfoflags = (res_external_file,res_arch_in_file_name
@@ -389,6 +389,10 @@
             ,abi_i386_dynalignedstack
             ,abi_xtensa_windowed
             ,abi_xtensa_call0
+            ,abi_mips_o32
+            ,abi_mips_n32
+            ,abi_mips_o64
+            ,abi_mips_n64
        );
 
        tcgbackend = (

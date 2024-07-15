@@ -1972,7 +1972,9 @@ FPMAKE_OPT+=--localunitdir=..
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
+ifndef DISABLE_FPMAKE_BUILD_UNIT
 FPMAKE_OPT+=-bu
+endif
 ifdef FPC_DOTTEDUNITS
 FPMAKE_OPT+=-ns
 FPMAKE_OPT+=-ns -o -dFPC_DOTTEDUNITS
@@ -2041,14 +2043,12 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
 endif
-PPULIST:=$(wildcard */units/*/*.ppu)
+PPULIST:=$(wildcard */units/$(TARGETSUFFIX)/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+ALLPPUDIRS:=$(wildcard */units/*)
 RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 ppulogs : $(PPULOGLIST)
-vpath %.ppu $(ALLPPUDIRS)
-vpath %.log-ppu $(ALLPPUDIRS)
-vpath %.rm-log-ppu $(ALLPPUDIRS)
 %.log-ppu : %.ppu
 	ppudump -VA -M $< > $@
 %.rm-log-ppu : %.ppu
@@ -2056,9 +2056,11 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 ../compiler/utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 	echo RMPPULOG list is "$(RMPPULOGLIST)"
 cleanppulogs : $(RMPPULOGLIST)
 testppudump :
-	$(MAKE) cleanppulogs ppulogs
+	$(MAKE) cleanppulogs
+	$(MAKE) ppulogs

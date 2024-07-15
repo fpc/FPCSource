@@ -1018,7 +1018,7 @@ indicated by the first bit set to 1. This is checked below.}
 {Both routines below assumes that framebp is a valid framepointer or nil.}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
 asm
    cmplwi  r3,0
    beq     .Lcaller_addr_invalid
@@ -1042,7 +1042,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
 asm
     cmplwi  r3,0
     beq     .Lcaller_frame_invalid
@@ -1176,23 +1176,23 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
   isync
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
   isync
   eieio
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
   eieio
 end;

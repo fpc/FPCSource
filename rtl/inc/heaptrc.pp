@@ -23,6 +23,10 @@ interface
   {$define EXTRA}
   {$inline off}
 {$endif FPC_HEAPTRC_EXTRA}
+{$ifndef DISABLE_SYSTEMINLINE}
+  {$define SYSTEMINLINE}
+{$endif}
+
 
 {$TYPEDADDRESS on}
 
@@ -605,7 +609,7 @@ end;
 *****************************************************************************}
 
 function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
-  size, ppsize: ptruint): boolean; inline;
+  size, ppsize: ptruint): boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
   ptext : ^text;
 {$ifdef EXTRA}

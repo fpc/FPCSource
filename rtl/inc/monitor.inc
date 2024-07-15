@@ -188,16 +188,19 @@ function MonitorEnter(Const aObject: TObject; aTimeout: Cardinal = INFINITE): Bo
 
 begin
   if atimeout=Infinite then
-    TMonitor.Enter(aObject)
+    begin
+    TMonitor.Enter(aObject);
+    Result:=True;
+    end
   else
-    TMonitor.Enter(aObject,aTimeOut);
+    Result:=TMonitor.Enter(aObject,aTimeOut);
 end;
 
 
 function MonitorTryEnter(Const aObject: TObject): Boolean;
 
 begin
-  TMonitor.TryEnter(aObject);
+  Result:=TMonitor.TryEnter(aObject);
 end;
 
 
@@ -211,14 +214,14 @@ end;
 function MonitorWait(Const aObject: TObject; aTimeout: Cardinal): Boolean;
 
 begin
-  TMonitor.Wait(aObject,aTimeOut);
+  Result:=TMonitor.Wait(aObject,aTimeOut);
 end;
 
 
 function MonitorWait(Const aObject, aLock: TObject; aTimeout: Cardinal): Boolean;
 
 begin
-  TMonitor.Wait(aObject,aLock,aTimeOut);
+  Result:=TMonitor.Wait(aObject,aLock,aTimeOut);
 end;
 
 

@@ -29,16 +29,18 @@
 var
   fast_large_repmovstosb : boolean; { Enhanced REP MOVSB and STOSB (ERMSB) feature @ CPUID(7).ebx[9]. }
 {$endif}
+var
+  has_sse41_support,fpc_cpuinit_performed : boolean;
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;
 asm
         movq    %rsp,%rax
 end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;
 asm
         movq    %rbp,%rax
 end;
@@ -51,7 +53,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
 begin
   get_caller_addr:=framebp;
   if assigned(framebp) then
@@ -60,7 +62,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
 begin
   get_caller_frame:=framebp;
   if assigned(framebp) then
@@ -272,8 +274,8 @@ procedure FillXxxx_MoreThanTwoXmms; assembler; nostackframe;
 { Input:
   rcx = 'x'
   rdx = byte count
-  xmm0 = pattern for unaligned writes
-  xmm1 = pattern for aligned writes }
+  xmm0 = pattern for ALIGNED writes
+  First and last 16 bytes are written. }
 const
 {$ifdef use_fast_repmovstos}
   ErmsThreshold = 1536;
@@ -291,56 +293,56 @@ asm
       H1 and so on are called “aligned heads” or just “heads”.
       T1 and so on are called “aligned tails” or just “tails”.
 
-      UT (“unaligned tail”) is written with another 'movdqu' after the loop.
+      UT (“unaligned tail”) is written by the caller as well.
       At least 1 of its bytes is exclusive to it as well, that’s why 65 is subtracted below instead of 64. }
 
-    lea    -65(%rcx,%rdx), %r8 { r8 = end of x - 65, to get the loop bound and to write UT later (why not write it right away though...). }
-    and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
-    movdqa %xmm1, 16(%rcx) { Write H1. }
-    mov    %r8, %rax
-    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8 = loop bound. }
-    cmp    $49, %rdx { 33~49 bytes might contain 1~2 heads+tails; write as H1 and T1. }
+    lea    -65(%rcx,%rdx), %rax
+    and    $-16, %rax { rax = “T4” (possibly fictive). }
+    mov    %rax, %rdx { Remember T4 to rdx. }
+    and    $-16, %rcx { rcx = H1 − 16. }
+    sub    %rcx, %rax { rax = aligned byte count − 48. }
+    movdqa %xmm0, 16(%rcx) { Write H1. }
+    cmp    $32-48, %rax
     jle    .LOneAlignedTailWrite
-    movdqa %xmm1, 32(%rcx) { Write H2. }
-    cmp    $81, %rdx  { 50~81 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    movdqa %xmm0, 32(%rcx) { Write H2. }
+    cmp    $64-48, %rax
     jle    .LTwoAlignedTailWrites
-    cmp    $113, %rdx  { 82~113 bytes might contain 4~6 heads+tails; write as H1–2 and T4–1. }
+    sub    $48, %rax { rax = aligned byte count − 96 (32 bytes already written + 64 bytes written after loop). }
     jle    .LFourAlignedTailWrites
 
-    add    $48, %rcx
+    add    $48, %rcx { rcx = H3. }
 {$ifdef use_fast_repmovstos}
-    cmp    $ErmsThreshold, %rdx
+    cmp    $ErmsThreshold-64, %rax { Need to write aligned byte count − 32 bytes already written. rax = aligned byte count − 96, so compare rax + 64 to ErmsThreshold, or rax to ErmsThreshold − 64. }
     jae    .LRepStos
 {$else}
-    cmp    $NtThreshold, %rdx
+    cmp    $NtThreshold, %rax
     jae    .L64xNT_Body
 {$endif}
 
 .balign 16
 .L64x_Body:
-    movdqa %xmm1, (%rcx)
-    movdqa %xmm1, 16(%rcx)
-    movdqa %xmm1, 32(%rcx)
-    movdqa %xmm1, 48(%rcx)
+    movdqa %xmm0, (%rcx)
+    movdqa %xmm0, 16(%rcx)
+    movdqa %xmm0, 32(%rcx)
+    movdqa %xmm0, 48(%rcx)
     add    $64, %rcx
-    cmp    %rax, %rcx
-    jb     .L64x_Body
+    sub    $64, %rax
+    ja     .L64x_Body
 
 .LFourAlignedTailWrites:
-    movdqa %xmm1, (%rax) { T4 }
-    movdqa %xmm1, 16(%rax) { T3 }
+    movdqa %xmm0, (%rdx) { T4 }
+    movdqa %xmm0, 16(%rdx) { T3 }
 .LTwoAlignedTailWrites:
-    movdqa %xmm1, 32(%rax) { T2 }
+    movdqa %xmm0, 32(%rdx) { T2 }
 .LOneAlignedTailWrite:
-    movdqa %xmm1, 48(%rax) { T1 }
-    movdqu %xmm0, 65-16(%r8) { UT }
+    movdqa %xmm0, 48(%rdx) { T1 }
     ret
 
 {$ifdef use_fast_repmovstos}
 .LRepStos:
 {$ifdef FPC_PIC}
-    movq   fast_large_repmovstosb@GOTPCREL(%rip), %r9
-    cmpb   $1, (%r9)
+    movq   fast_large_repmovstosb@GOTPCREL(%rip), %r8
+    cmpb   $1, (%r8)
 {$else FPC_PIC}
     cmpb   $1, fast_large_repmovstosb(%rip)
 {$endif FPC_PIC}
@@ -349,12 +351,10 @@ asm
     push   %rdi { For tests on Windows; however this is SEH incompliant so the entire use_fast_repmovstos branch is disabled by default! }
 {$endif}
     mov    %rcx, %rdi { rdi = REP STOS destination. }
-    lea    65-16+8-1(%r8), %rcx
-    sub    %rdi, %rcx
-    shr    $3, %rcx { rcx = count of REP STOSQ blocks before UT. }
-    movq   %xmm1, %rax { recover pattern for aligned writes back to GPR :) }
+    lea    64(%rax), %rcx
+    shr    $3, %rcx { rcx = count of REP STOSQ blocks up to T1 (might be 1 more than strictly required if T1 and UT overlap is 8 or more, don’t care). }
+    movq   %xmm0, %rax { recover pattern for aligned writes back to GPR :) }
     rep stosq
-    movdqu %xmm0, 65-16(%r8) { UT }
 {$ifdef win64}
     pop    %rdi
 {$endif}
@@ -362,18 +362,18 @@ asm
 {$endif}
 
 .LRepStosIsNotBetter:
-    cmp    $NtThreshold, %rdx
+    cmp    $NtThreshold-64, %rax
     jb     .L64x_Body
 
 .balign 16
 .L64xNT_Body:
-    movntdq %xmm1, (%rcx)
-    movntdq %xmm1, 16(%rcx)
-    movntdq %xmm1, 32(%rcx)
-    movntdq %xmm1, 48(%rcx)
+    movntdq %xmm0, (%rcx)
+    movntdq %xmm0, 16(%rcx)
+    movntdq %xmm0, 32(%rcx)
+    movntdq %xmm0, 48(%rcx)
     add    $64, %rcx
-    cmp    %rax, %rcx
-    jb     .L64xNT_Body
+    sub    $64, %rax
+    ja     .L64xNT_Body
     sfence
     jmp    .LFourAlignedTailWrites
 end;
@@ -400,11 +400,9 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0
     movdqu %xmm0, (%rcx)
-    movdqa %xmm0, %xmm1
-
+    movdqu %xmm0, -16(%rcx,%rdx)
     cmp    $32, %rdx
     jg     FillXxxx_MoreThanTwoXmms
-    movdqu %xmm0, -16(%rcx,%rdx)
     ret
 
 .L4to15:
@@ -452,22 +450,20 @@ procedure FillWord(var x;count:SizeInt;value:word);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
-
+    movdqu %xmm0, -16(%rcx,%rdx,2)
     cmp    $16, %rdx
-    jle    .LTail
+    jg     .LMoreThanTwoXMMs
+    ret
 
+.LMoreThanTwoXMMs:
     shl    $1, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %eax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movd   %eax, %xmm1
-    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
-
-.LTail:
-    movdqu %xmm0, -16(%rcx,%rdx,2)
-    ret
 
 .L4to8:
     mov    %eax, %r8d
@@ -508,14 +504,15 @@ procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
     movd   %eax, %xmm0
     pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
+    movdqu %xmm0, -16(%rcx,%rdx,4)
 
     shl    $2, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %eax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movd   %eax, %xmm1
-    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L4to8:
@@ -559,16 +556,17 @@ procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
     jle    .L3to6
 
     movq   %rax, %xmm0
-    pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
     movdqu %xmm0, (%rcx)
+    movdqu %xmm0, -16(%rcx,%rdx,8)
 
     shl    $3, %rdx { rdx = byte count }
     mov    %rcx, %r8
     shl    $3, %ecx
     rol    %cl, %rax { misalign the pattern by the misalignment of x }
     mov    %r8, %rcx
-    movq   %rax, %xmm1
-    pshufd $0b01000100, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    movq   %rax, %xmm0
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern for aligned writes }
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L3to6:
@@ -803,25 +801,95 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXQWORD}
 {$define FPC_SYSTEM_HAS_INDEXQWORD}
-function IndexQWord(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+function IndexQWord_Plain(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
 { win64: rcx=buf, rdx=len, r8=b
   else:  rdi=buf, rsi=len, rdx=b }
 asm
-    mov      {$ifdef win64} %rcx {$else} %rdi {$endif}, %rax
+    mov      buf, %rax
     sub      $8, %rax
 .balign 16
 .LQwordwise_Next:
     add      $8, %rax
-    sub      $1, {$ifdef win64} %rdx {$else} %rsi {$endif}
+    sub      $1, len
     jb       .LNothing
-    cmp      {$ifdef win64} %r8 {$else} %rdx {$endif}, (%rax)
+    cmpq     b, (%rax)
     jne      .LQwordwise_Next
-    sub      {$ifdef win64} %rcx {$else} %rdi {$endif}, %rax
+    sub      buf, %rax
     shr      $3, %rax
     ret
 
 .LNothing:
     mov      $-1, %rax
+end;
+
+function IndexQWord_SSE41(Const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+{ win64: rcx=buf, rdx=len, r8=b
+  else:  rdi=buf, rsi=len, rdx=b }
+asm
+    cmp      $6, len
+    jle      IndexQWord_Plain
+    mov      buf, %rax
+    movq     {$ifdef win64} %r8 {$else} %rdx {$endif}, %xmm0
+    punpcklqdq %xmm0, %xmm0 { xmm0 = pattern of 'b's. }
+    sub      $6, len
+.balign 16
+.L6x_Loop:
+    movdqu   (%rax), %xmm1
+    pcmpeqq  %xmm0, %xmm1 { xmm1 = cmpeq(vec 0, pattern) }
+    movdqu   16(%rax), %xmm2
+    pcmpeqq  %xmm0, %xmm2
+    por      %xmm1, %xmm2 { xmm2 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) }
+    movdqu   32(%rax), %xmm3
+    pcmpeqq  %xmm0, %xmm3
+    por      %xmm2, %xmm3 { xmm3 = cmpeq(vec 0, pattern) or cmpeq(vec 1, pattern) or cmpeq(vec 2, pattern) }
+    ptest    %xmm3, %xmm3
+    jnz      .LFound
+    add      $48, %rax
+    sub      $6, len
+    jge      .L6x_Loop
+    lea      (%rax,{$ifdef win64} %rdx {$else} %rsi {$endif},8), %rax { Point to last 3 vectors. }
+    cmp      $-5, len
+    jge      .L6x_Loop { Reuse .L6x_Loop to compare last 3 vectors, if not compared already. }
+    mov      $-1, %rax
+    ret
+
+.LFound:
+    sub      buf, %rax
+    ptest    %xmm1, %xmm1
+    jnz      .LFoundAtXmm1
+    ptest    %xmm2, %xmm2
+    jnz      .LFoundAtXmm2
+    add      $16, %rax
+    movdqa   %xmm3, %xmm2
+.LFoundAtXmm2:
+    add      $16, %rax
+    movdqa   %xmm2, %xmm1
+.LFoundAtXmm1:
+    pmovmskb %xmm1, %ecx
+    bsf      %ecx, %ecx
+    add      %rcx, %rax
+    shr      $3, %rax
+end;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt; forward;
+
+var
+  IndexQWord_Impl: function(const buf;len:SizeInt;b:QWord):SizeInt = @IndexQWord_Dispatch;
+
+function IndexQWord_Dispatch(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  if not fpc_cpuinit_performed then
+    exit(IndexQWord_Plain(buf,len,b));
+  if has_sse41_support then
+    IndexQWord_Impl:=@IndexQWord_SSE41
+  else
+    IndexQWord_Impl:=@IndexQWord_Plain;
+  result:=IndexQWord_Impl(buf,len,b);
+end;
+
+function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
+begin
+  result:=IndexQWord_Impl(buf,len,b);
 end;
 {$endif FPC_SYSTEM_HAS_INDEXQWORD}
 
@@ -1476,14 +1544,15 @@ procedure fpc_cpuinit;
       xorl %eax,%eax
       cpuid
       movl %eax,_eax
+      movl $1,%eax
+      xorl %ecx,%ecx
+      cpuid
+      movl %ecx,cpuid1_ecx
     end;
+    has_sse41_support:=boolean(cpuid1_ecx shr 19 and 1);
     if _eax>=7 then
       begin
         asm
-          movl $1,%eax
-          xorl %ecx,%ecx
-          cpuid
-          movl %ecx,cpuid1_ecx
           movl $7,%eax
           xorl %ecx,%ecx
           cpuid
@@ -1507,6 +1576,7 @@ procedure fpc_cpuinit;
               end;
           end;
       end;
+    fpc_cpuinit_performed:=true;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
@@ -1536,22 +1606,22 @@ Procedure SysResetFPU;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
   lfence
 end;
 
-procedure ReadDependencyBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;assembler;nostackframe;
 asm
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
   mfence
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
   sfence
 end;

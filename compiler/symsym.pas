@@ -1074,17 +1074,21 @@ implementation
           end;
         if sp_generic_dummy in symoptions then
           begin
-            if not assigned(fgenprocsymovlds) then
-              internalerror(2021010602);
             if not assigned(fgenprocsymovldsderefs) then
               fgenprocsymovldsderefs:=tfplist.create
             else
               fgenprocsymovldsderefs.clear;
-            for i:=0 to fgenprocsymovlds.count-1 do
+            { this might happen for procsyms in classes that override symbols
+              in a parent class that generic overloads }
+            if assigned(fgenprocsymovlds) then
               begin
-                sym:=tprocsym(fgenprocsymovlds[i]);
-                d.build(sym);
-                fgenprocsymovldsderefs.add(pointer(ptrint(d.dataidx)));
+                fgenprocsymovldsderefs.capacity:=fgenprocsymovldsderefs.count+fgenprocsymovlds.count;
+                for i:=0 to fgenprocsymovlds.count-1 do
+                  begin
+                    sym:=tprocsym(fgenprocsymovlds[i]);
+                    d.build(sym);
+                    fgenprocsymovldsderefs.add(pointer(ptrint(d.dataidx)));
+                  end;
               end;
           end;
       end;
@@ -1101,6 +1105,7 @@ implementation
         ProcdefList.Clear;
         if not assigned(FProcdefDerefList) then
           internalerror(200611031);
+        ProcdefList.capacity:=FProcdefDerefList.count;
         for i:=0 to FProcdefDerefList.Count-1 do
           begin
             d.dataidx:=PtrInt(FProcdefDerefList[i]);
@@ -1109,16 +1114,20 @@ implementation
           end;
         if sp_generic_dummy in symoptions then
           begin
-            if not assigned(fgenprocsymovlds) then
-              internalerror(2021010603);
+            {if not assigned(fgenprocsymovlds) then
+              internalerror(2021010603);}
             if not assigned(fgenprocsymovldsderefs) then
               internalerror(2021010302);
-            fgenprocsymovlds.clear;
-            for i:= 0 to fgenprocsymovldsderefs.count-1 do
+            if assigned(fgenprocsymovlds) then
               begin
-                d.dataidx:=ptrint(fgenprocsymovldsderefs[i]);
-                sym:=tprocsym(d.resolve);
-                fgenprocsymovlds.add(sym);
+                fgenprocsymovlds.clear;
+                fgenprocsymovlds.capacity:=fgenprocsymovldsderefs.count;
+                for i:= 0 to fgenprocsymovldsderefs.count-1 do
+                  begin
+                    d.dataidx:=ptrint(fgenprocsymovldsderefs[i]);
+                    sym:=tprocsym(d.resolve);
+                    fgenprocsymovlds.add(sym);
+                  end;
               end;
           end;
       end;

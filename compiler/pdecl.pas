@@ -174,7 +174,7 @@ implementation
                  information about the final type yet, we need to use safe
                  values (mostly 0, except for (Bit)SizeOf()) }
                if not parse_generic then
-                 Message(parser_e_illegal_expression);
+                 Message(parser_e_cannot_evaluate_expression_at_compile_time);
                case tinlinenode(p).inlinenumber of
                  in_sizeof_x:
                    begin
@@ -289,7 +289,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;
                    consume(_COLON);
-                   read_anon_type(hdef,false);
+                   read_anon_type(hdef,false,nil);
                    block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=current_tokenpos;

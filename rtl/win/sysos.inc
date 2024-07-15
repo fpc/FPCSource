@@ -277,12 +277,18 @@ type
 
 {$ifdef win64}
   { all win64 versions have this function, including 64 bit XP }
-  function SetThreadStackGuarantee(StackSizeInBytes : PPtrUint) : BOOL;
+  function SetThreadStackGuarantee(StackSizeInBytes : PUint32) : BOOL;
     stdcall;external KernelDLL name 'SetThreadStackGuarantee';
 {$else win64}
 var
-  SetThreadStackGuarantee: function(StackSizeInBytes : PPtrUint) : BOOL; stdcall;
+  SetThreadStackGuarantee: function(StackSizeInBytes : PUint32) : BOOL; stdcall;
 {$endif win64}
+
+  { Helper to pass StackMargin. SetThreadStackGuarantee accepts PULONG (which is PUint32, not PPtrUint) and writes previous guarantee to the same place. }
+  procedure SetThreadStackGuaranteeTo(guarantee: uint32); inline;
+  begin
+    SetThreadStackGuarantee(@guarantee);
+  end;
 {$else WINCE}
 
    { module functions }
@@ -293,6 +299,17 @@ var
      cdecl;external KernelDLL name 'GetModuleHandleW';
 
 {$endif WINCE}
+  { memory functions }
+const
+  HEAP_ZERO_MEMORY = $8;
+
+  function GetProcessHeap : THandle;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
+  function HeapAlloc(hHeap : THandle; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapAlloc';
+  function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
+    {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapFree';
+
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;

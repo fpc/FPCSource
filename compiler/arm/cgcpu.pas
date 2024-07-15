@@ -86,7 +86,6 @@ unit cgcpu;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
-        procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
         procedure g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : tcgint;aligned : boolean);
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
@@ -2669,35 +2668,6 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
-      var
-        paraloc1,paraloc2,paraloc3 : TCGPara;
-        pd : tprocdef;
-      begin
-        pd:=search_system_proc('MOVE');
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
-        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
-        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
-        a_load_const_cgpara(list,OS_SINT,len,paraloc3);
-        a_loadaddr_ref_cgpara(list,dest,paraloc2);
-        a_loadaddr_ref_cgpara(list,source,paraloc1);
-        paramanager.freecgpara(list,paraloc3);
-        paramanager.freecgpara(list,paraloc2);
-        paramanager.freecgpara(list,paraloc1);
-        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list,'FPC_MOVE',false);
-        dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
-      end;
-
-
     procedure tbasecgarm.g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : tcgint;aligned : boolean);
       const
         maxtmpreg_arm = 10; {roozbeh: can be reduced to 8 or lower if might conflick with reserved ones,also +2 is used becouse of regs required for referencing}
@@ -3663,10 +3633,10 @@ unit cgcpu;
               else
                 internalerror(2003083102);
             end;
+            ovloc.loc:=LOC_FLAGS;
             if size=OS_64 then
               begin
-                { the arm has an weired opinion how flags for SUB/ADD are handled }
-                ovloc.loc:=LOC_FLAGS;
+                { arm has a weired opinion how flags for SUB/ADD are handled }
                 case op of
                   OP_ADD:
                     ovloc.resflags:=F_CS;
@@ -3675,7 +3645,9 @@ unit cgcpu;
                   else
                     internalerror(2019050917);
                 end;
-              end;
+              end
+            else
+              ovloc.resflags:=F_VS;
           end
         else
           begin

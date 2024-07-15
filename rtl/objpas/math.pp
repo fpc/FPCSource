@@ -56,10 +56,10 @@ interface
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
     uses
-       System.BaseMath, System.SysUtils;
+       System.BaseMath, System.SysUtils, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
     uses
-       basemath, sysutils;
+       basemath, sysutils, types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPDOC_MATH}
@@ -144,15 +144,24 @@ Const
 
        EInvalidArgument = class(ematherror);
 
-       TValueRelationship = -1..1;
+{$IFDEF FPC_DOTTEDUNITS}
+       TValueRelationship = System.Types.TValueRelationship;
+{$ELSE FPC_DOTTEDUNITS}
+       TValueRelationship = types.TValueRelationship;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
-       EqualsValue = 0;
-       LessThanValue = Low(TValueRelationship);
-       GreaterThanValue = High(TValueRelationship);
-       
+{$IFDEF FPC_DOTTEDUNITS}
+       EqualsValue = System.Types.EqualsValue;
+       LessThanValue = System.Types.LessThanValue;
+       GreaterThanValue = System.Types.GreaterThanValue;
+{$ELSE FPC_DOTTEDUNITS}
+       EqualsValue = types.EqualsValue;
+       LessThanValue = types.LessThanValue;
+       GreaterThanValue = types.GreaterThanValue;
+{$ENDIF FPC_DOTTEDUNITS}
 
-       
+
 {$push}
 {$R-}
 {$Q-}
@@ -663,7 +672,7 @@ procedure SumsAndSquares(const data : PSingle; Const N : Integer;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SumOfSquares(const data : array of double) : float;
+function SumOfSquares(const data : array of double) : float;inline;
 function SumOfSquares(const data : PDouble; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
 procedure SumsAndSquares(const data : array of Double;
@@ -884,7 +893,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
     Result:=BaseMath.SetRoundMode(RoundMode);
   end;
 
-  
+
 function GetPrecisionMode: TFPUPrecisionMode;
   begin
     Result:=BaseMath.GetPrecisionMode;
@@ -1800,7 +1809,7 @@ begin
       else
         res:=0;
       exit;
-    end; 
+    end;
   res:=1;
   while exponent<>0 do
     begin
@@ -2283,7 +2292,7 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
   end;
 
 procedure sumsandsquares(const data : array of Double;
-  var sum,sumofsquares : float);
+  var sum,sumofsquares : float); inline;
 begin
   sumsandsquares (PDouble(@Data[0]),High(Data)+1,Sum,sumofsquares);
 end;

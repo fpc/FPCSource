@@ -1509,8 +1509,9 @@ Implementation
       if p.typ=ait_instruction then
         begin
           case taicpu(p).opcode of
-            A_AND:
-              Result := OptPass2AND(p);
+            A_AND,
+            A_BIC:
+              Result := OptPass2Bitwise(p);
             A_B:
               Result := OptPass2B(p);
             A_CSEL:

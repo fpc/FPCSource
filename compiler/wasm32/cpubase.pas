@@ -399,6 +399,8 @@ uses
     function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
     function decode_wasm_basic_type(b: Byte; out wbt: TWasmBasicType): Boolean;
 
+    function is_atomic_op(op: TAsmOp): boolean;
+
 implementation
 
 uses
@@ -628,6 +630,11 @@ uses
               wbt:=default(TWasmBasicType);
             end;
         end;
+      end;
+
+    function is_atomic_op(op: TAsmOp): boolean;
+      begin
+        result:=(op>=a_i32_atomic_load8_u) and (op<=a_atomic_fence);
       end;
 
 {*****************************************************************************

@@ -213,149 +213,140 @@ end;
                               Parameter Handling
 *****************************************************************************}
 
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint;
+  lpMultiByteStr:LPSTR;cchMultiByte:longint; lpDefaultChar:PAnsiChar; lpUsedDefaultChar:PLongBool):longint; stdcall; external 'kernel32' name 'WideCharToMultiByte';
+function GetCommandLineA : pansichar; stdcall;external KernelDLL name 'GetCommandLineA';
+
+type
+  { nargs — argument count (without first and without null terminator),
+    nchars — total widechar count in arguments (with null terminators),
+    nachars — total ansichar count in arguments (with null terminators), counted only if args = chars = nil. }
+  ParseCommandLineResult = record
+    nargs, nchars, nachars: SizeInt;
+  end;
+
+function ParseCommandLine(cmdLine: PWideChar; args: PPWideChar; chars: PWideChar): ParseCommandLineResult;
 var
-  argvw: PPWideChar;
+  argsStartInCmdLine: PWideChar;
+  nCharsUpToPrevArg, nCharsPlusQuotes: SizeInt;
+  c, quote: WideChar;
+  skippingFirstArg: boolean;
+begin
+  argsStartInCmdLine:=cmdLine;
+  nCharsUpToPrevArg:=0;
+  FillChar(result,sizeof(result),0);
+  skippingFirstArg:=true;
+  quote:=' ';
+  repeat
+    c:=cmdLine^;
+    inc(cmdLine);
+    case c of
+      #0..#32:
+        if (quote=' ') or (c=#0) then
+          begin
+            if (result.nchars>nCharsUpToPrevArg) then
+              begin
+                // End of an argument found
+                if Assigned(chars) then
+                  chars[result.nchars]:=#0;
+                inc(result.nchars); { Null terminator. }
+                nCharsUpToPrevArg:=result.nchars;
+              end;
+            skippingFirstArg:=false;
+            if c = #0 then
+              break;
+            continue; // Skip whitespace
+          end;
+      '"', '''':
+        if (c='"') and (quote<>'''') or (c='''') and (quote<>'"') then
+          if cmdLine^<>c then
+            begin
+              if quote=c then
+                 quote:=' '
+               else
+                 quote:=c;
+               continue;
+            end
+          else
+            inc(cmdLine);
+    end;
+    if skippingFirstArg then
+      continue;
+    if result.nchars=nCharsUpToPrevArg then
+      begin
+        if Assigned(args) then
+          args[result.nargs]:=chars+result.nchars;
+        inc(result.nargs);
+        if result.nchars=0 then
+          argsStartInCmdLine:=cmdLine-1;
+      end;
+    if Assigned(chars) then
+      chars[result.nchars]:=c;
+    inc(result.nchars);
+  until false;
+
+  if Assigned(chars) then
+    exit;
+  { Number of widechars in command line starting from argsStartInCmdLine, including markdown: cmdLine - 1 - argsStartInCmdLine. Avoid implicit signed div. }
+  nCharsPlusQuotes:=SizeUint(pointer(cmdLine-1)-pointer(argsStartInCmdLine)) div sizeof(widechar);
+  result.nachars:=
+    { Count of ANSI characters, including markdown. }
+    WideCharToMultiByte(DefaultSystemCodePage, 0, argsStartInCmdLine, nCharsPlusQuotes, nil, 0, nil, nil)
+    { Assume each markdown character (quote, space) is ANSI. Subtract markdown, add null terminators; result.nchars already includes null terminators. }
+    -(nCharsPlusQuotes-result.nchars);
+end;
+
+var
+  argvw: PPWideChar; { Start of the memory region. Should very preferably be private as argv can (and WILL, by LazUTF8) be changed from outside. }
 
 procedure setup_arguments;
 var
-  CmdLineW, pw: PWideChar;
-  c: WideChar;
+  CmdLineW, wchars: PWideChar;
   buf: array[0..MaxPathLen] of WideChar;
-  i, len, argvw_size: longint;
-  s: RawByteString;
-  quote: char;
+  iarg, nArg0W, nArg0A: SizeInt;
+  pc: ParseCommandLineResult;
+  achars, acharse: PAnsiChar;
 begin
-  // Get the unicode command line
+  CmdLine:=GetCommandLineA;
   CmdLineW:=GetCommandLineW;
-  // Create the ansi command line
-  s:=ansistring(CmdLineW);
-  len:=Length(s) + 1;
-  CmdLine:=SysGetMem(len);
-  Move(PAnsiChar(s)^, CmdLine^, len);
-  // Alloc initial space for argvw
-  if CmdLineW^ = #0 then
-    argvw_size:=2
-  else
-    argvw_size:=10;
-  argvw:=SysGetMem(argvw_size*SizeOf(pointer));
-  // Get the full module name to be used as the first argument
-  len:=GetModuleFileNameW(0, @buf, Length(buf));
-  // Alloc maximum possible space for all arguments
-  pw:=SysGetMem((len + IndexWord(CmdLineW^, High(longint), 0) + 2)*SizeOf(WideChar));
-  // Copy the module name as the first argument. It will be nil terminated later
-  Move(buf, pw^, len*SizeOf(WideChar));
-  argvw[0]:=pw;
-  Inc(pw, len);
-  // Parse the command line
-  argc:=0;
-  quote:=' ';
-  while True do
-    begin
-      c:=CmdLineW^;
-      Inc(CmdLineW);
-      case c of
-        #0..#32:
-          if (quote = ' ') or (c = #0) then
-            begin
-              // Are there any chars of an argument?
-              if argvw[argc] <> pw then
-                begin
-                  // End of an argument found
-                  pw^:=#0;
-                  Inc(pw);
-                  Inc(argc);
-                  if argc = argvw_size then
-                    begin
-                      // Increase the argvw space
-                      Inc(argvw_size, argvw_size shr 1);
-                      SysReAllocMem(argvw, argvw_size*SizeOf(pointer));
-                    end;
-                  if c = #0 then
-                    break;
-                  argvw[argc]:=pw;
-                  continue;
-                end
-              else
-                if c = #0 then
-                  break
-                else
-                  continue; // Skip whitespace
-            end;
-        '"':
-          begin
-            if quote<>'''' then
-              begin
-                if CmdLineW^<>'"' then
-                  begin
-                    if quote='"' then
-                       quote:=' '
-                     else
-                       quote:='"';
-                     continue;
-                  end
-                else
-                  Inc(CmdLineW);
-              end;
-          end;
-        '''':
-          begin
-            if quote<>'"' then
-              begin
-                if CmdLineW^<>'''' then
-                  begin
-                    if quote='''' then
-                       quote:=' '
-                     else
-                       quote:='''';
-                    continue;
-                  end
-                else
-                  Inc(CmdLineW);
-              end;
-          end;
-      end;
-      // Ignore the first argument, it is already copied
-      if argc <> 0 then
-        begin
-          // Copy the argument's AnsiChar
-          pw^:=c;
-          Inc(pw);
-        end;
-    end;
+  nArg0W:=GetModuleFileNameW(0, PWideChar(buf), Length(buf));
+  nArg0A:=WideCharToMultiByte(DefaultSystemCodePage, 0, PWideChar(buf), nArg0W, nil, 0, nil, nil);
+  pc:=ParseCommandLine(CmdLineW, nil, nil);
+  argc:=pc.nargs+1;
 
-  // Finalization
-  // argvw is terminated by nil
-  argvw[argc]:=nil;
-  // Trim the memory
-  SysReAllocMem(argvw, (argc + 1)*SizeOf(pointer));
-  SysReAllocMem(argvw[0], ptruint(pw) - ptruint(argvw[0]));
+  { Memory region layout:
+    argc × PWideChar: argvw (internal, not terminated with nil).
+    (argc + 1) × PAnsiChar: argv (terminated with nil).
+    Nw × widechar: chars for argvw.
+    Na × ansichar: chars for argv. }
+  argvw:=nil;
+  repeat { First iteration calculates region size (by adding to nil). Second iteration calculates pointers to region parts (by adding to region start). }
+    argv:=PPAnsiChar(argvw+argc);
+    wchars:=PWideChar(argv+argc+1);
+    achars:=PAnsiChar(wchars+nArg0W+1+pc.nchars);
+    acharse:=achars+nArg0A+1+pc.nachars;
+    if Assigned(argvw) then
+      break;
+    argvw:=SysGetMem(PtrUint(acharse));
+  until not Assigned(argvw); { If ReturnNilIfGrowHeapFails was customized to true, let it crash on allocation failure instead of looping endlessly. }
 
-  // Construct the ansi argv
-  argv:=SysGetMem((argc + 1)*SizeOf(pointer));
-  for i:=0 to argc - 1 do
+  Move(PWideChar(buf)^, wchars^, nArg0W*sizeof(widechar));
+  wchars[nArg0W]:=#0;
+  argvw[0]:=wchars;
+  ParseCommandLine(CmdLineW, argvw+1, wchars+nArg0W+1);
+
+  { Convert argvw to argv. }
+  for iarg:=0 to pc.nargs do
     begin
-      // Convert argvw[i] to argv[i]
-      s:=ansistring(argvw[i]);
-      len:=Length(s) + 1;
-      argv[i]:=SysGetMem(len);
-      Move(s[1], argv[i]^, len);
+      argv[iarg]:=achars;
+      inc(achars, WideCharToMultiByte(DefaultSystemCodePage, 0, argvw[iarg], -1, achars, acharse-achars, nil, nil));
     end;
-  // argv is terminated by nil
   argv[argc]:=nil;
 end;
 
-procedure finalize_arguments;
-var
-  i: longint;
+procedure finalize_arguments; inline;
 begin
-  SysFreeMem(CmdLine);
-  // Free unicode arguments
-  SysFreeMem(argvw[0]);
   SysFreeMem(argvw);
-  // Free ansi arguments
-  for i:=0 to argc - 1 do
-    SysFreeMem(argv[i]);
-  SysFreeMem(argv);
 end;
 
 function paramcount : longint;
@@ -577,14 +568,9 @@ begin
    end;
 end;
 
-{ ProcessID cached to avoid repeated calls to GetCurrentProcess. }
-
-var
-  ProcessID: SizeUInt;
-
 function GetProcessID: SizeUInt;
   begin
-    GetProcessID := ProcessID;
+    GetProcessID := GetCurrentProcessID;
   end;
 
 
@@ -814,7 +800,7 @@ begin
   CtrlBreakHandler := Handler;
 end;
 
-procedure WinFinalizeSystem;
+procedure WinFinalizeSystem; inline;
 begin
   finalize_arguments;
 end;

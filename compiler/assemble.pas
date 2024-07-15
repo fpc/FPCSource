@@ -2555,12 +2555,16 @@ Implementation
                      s:='A';
                      eabi_section.write(s[1],1);
                      ddword:=eabi_section.Size-1;
+                     if source_info.endian<>target_info.endian then
+                       ddword:=SwapEndian(ddword);
                      eabi_section.write(ddword,4);
                      s:='aeabi'#0;
                      eabi_section.write(s[1],6);
                      s:=#1;
                      eabi_section.write(s[1],1);
                      ddword:=eabi_section.Size-1-4-6-1;
+                     if source_info.endian<>target_info.endian then
+                       ddword:=SwapEndian(ddword);
                      eabi_section.write(ddword,4);
                    end;
                  leblen:=EncodeUleb128(tai_eabi_attribute(hp).tag,lebbuf,0);
@@ -2588,9 +2592,13 @@ Implementation
                  TmpDataPos:=eabi_section.Data.Pos;
                  eabi_section.Data.seek(1);
                  ddword:=eabi_section.Size-1;
+                 if source_info.endian<>target_info.endian then
+                   ddword:=SwapEndian(ddword);
                  eabi_section.Data.write(ddword,4);
                  eabi_section.Data.seek(12);
                  ddword:=eabi_section.Size-1-4-6;
+                 if source_info.endian<>target_info.endian then
+                   ddword:=SwapEndian(ddword);
                  eabi_section.Data.write(ddword,4);
                  eabi_section.Data.Seek(TmpDataPos);
                end;

@@ -46,6 +46,7 @@ type
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
+    function TSCSupport: boolean;inline;
     function MMXSupport: boolean;inline;
     function CMOVSupport: boolean;inline;
     function InterlockedCompareExchange128Support: boolean;
@@ -92,6 +93,7 @@ type
 
 {$ASMMODE INTEL}
     var
+      _TSCSupport,
       _MMXSupport,
       _CMOVSupport,
       _AESSupport,
@@ -269,6 +271,7 @@ type
            begin
               maxcpuidvalue:=CPUID(0).eax;
               cpuid1:=CPUID(1);
+              _TSCSupport:=(cpuid1.edx and $10)<>0;
               _MMXSupport:=(cpuid1.edx and $800000)<>0;
               _CMOVSupport:=(cpuid1.edx and $8000)<>0;
               _AESSupport:=(cpuid1.ecx and $2000000)<>0;
@@ -330,6 +333,12 @@ type
         { 32 Bit CPUs have no 128 Bit interlocked exchange support,
           but it can simulated using RTM }
         result:=_RTMSupport;
+      end;
+
+
+    function TSCSupport: boolean;
+      begin
+        result:=_TSCSupport;
       end;
 
 

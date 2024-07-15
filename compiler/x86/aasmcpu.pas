@@ -1664,8 +1664,9 @@ implementation
                   else
                   begin
                     { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
-                    { further, allow AAD and AAM with imm. operand }
+                    { further, allow ENTER, AAD and AAM with imm. operand }
                     if (opsize=S_NO) and not((i in [1,2,3])
+                      or ((i=0) and (opcode in [A_ENTER]))
 {$ifndef x86_64}
                       or ((i=0) and (opcode in [A_AAD,A_AAM]))
 {$endif x86_64}
@@ -4745,6 +4746,29 @@ implementation
               else
                 internalerror(200506055);
             end
+          end
+        else if (opcode=A_VMOVHPD) or (opcode=A_VMOVHPS) or (opcode=A_VMOVLHPS) or (opcode=A_VMOVLPD) or (opcode=A_VMOVLPS) then
+          begin
+            if ops=2 then
+              case opnr of
+                0:
+                  result:=operand_read;
+                1:
+                  result:=operand_readwrite;
+                else
+                  internalerror(2024060101);
+              end
+            else if ops=3 then
+              case opnr of
+                0,1:
+                  result:=operand_read;
+                2:
+                  result:=operand_write;
+                else
+                  internalerror(2024060102);
+              end
+            else
+              internalerror(2024060103);
           end
         { IMUL has 1, 2 and 3-operand forms }
         else if opcode=A_IMUL then

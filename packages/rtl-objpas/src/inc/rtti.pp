@@ -4028,6 +4028,10 @@ begin
 end;
 
 function TValue.ToString: String;
+
+var
+  Obj : TObject;
+
 begin
   if IsEmpty then
     Exit('(empty)');
@@ -4046,6 +4050,14 @@ begin
     tkEnumeration: Result := GetEnumName(TypeInfo, Integer(AsOrdinal));
     tkChar: Result := AnsiChar(FData.FAsUByte);
     tkWChar: Result := UTF8Encode(WideChar(FData.FAsUWord));
+    tkClass : 
+      begin
+      Obj:=AsObject;
+      if Assigned(Obj) then
+        Result:=Obj.ToString
+      else
+        Result:='<Nil>';  
+      end  
   else
     result := '<unknown kind>';
   end;
@@ -6110,13 +6122,12 @@ Var
 begin
   Tbl:=Nil;
   Len:=GetFieldList(FTypeInfo,Tbl);
-  SetLength(FFields,Len);
+  SetLength(FDeclaredFields,Len);
   FFieldsResolved:=True;
   if Len=0 then
     exit;
-  Ctx:=TRttiContext.Create;
+  Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
   try
-    Ctx.UsePublishedOnly:=False;
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6132,8 +6143,9 @@ begin
         Fld.FHandle:=aData;
         Ctx.AddObject(Fld);
         end;
-      FFields[I]:=Fld;
+      FDeclaredFields[I]:=Fld;
       end;
+    FFields:=FDeclaredFields;
   finally
     if assigned(Tbl) then
       FreeMem(Tbl);

@@ -705,9 +705,17 @@ begin
   CheckSpecialChars;
   L:=IndexOfName(Name);
   if L=-1 then
-   Add (Name+FNameValueSeparator+Value)
+    begin
+    if Value<>'' then
+      Add (Name+FNameValueSeparator+Value)
+    end
   else
-   Strings[L]:=Name+FNameValueSeparator+value;
+    begin
+    if Value='' then
+      Delete(L)
+    else
+      Strings[L]:=Name+FNameValueSeparator+value;
+    end;
 end;
 
 

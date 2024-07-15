@@ -92,7 +92,7 @@ unit i_sunos;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             stackalign   : 4;
             abi          : abi_default;
             { note: default LLVM stack alignment is 16 bytes for this target }
@@ -235,7 +235,7 @@ unit i_sunos;
                 maxCrecordalign : 8
               );
             first_parm_offset : 92;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             stackalign   : 8;
             abi          : abi_default;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';

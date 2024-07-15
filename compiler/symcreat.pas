@@ -130,7 +130,7 @@ interface
   { Generate the hidden thunk class for interfaces,
     so we can use them in TVirtualInterface on platforms that do not allow
     generating executable code in memory at runtime.}
-  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable; gen_intf, gen_impl : boolean);
 
 
 implementation
@@ -318,8 +318,10 @@ implementation
     function str_parse_objecttypedef(typename : shortstring;str: ansistring): tobjectdef;
      var
        b,oldparse_only: boolean;
+       i : integer;
        tmpstr: ansistring;
        flags : tread_proc_flags;
+       o : TObject;
 
      begin
       result:=nil;
@@ -333,9 +335,18 @@ implementation
       current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
       type_dec(b);
-      if (current_module.DefList.Last is tobjectdef) and
-         (tobjectdef(current_module.DefList.Last).GetTypeName=typename) then
-           result:=tobjectdef(current_module.DefList.Last);
+      // In the interface part, the object def is not necessarily the last one, the methods also generate defs.
+      i:=current_module.DefList.count-1;
+      While (result=nil) and (i>=0) do
+        begin
+        O:=current_module.DefList[i];
+        if (o is tobjectdef) then
+           if (tobjectdef(o).GetTypeName=typename) then
+             result:=tobjectdef(o);
+        dec(i);
+        end;
+      if result=nil then
+        internalerror(2024050401);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -1221,7 +1232,7 @@ implementation
   function str_parse_method(str: ansistring): tprocdef; forward;
 
 
-  procedure implement_invoke_helper(cn : string;pd: tprocdef);
+  procedure implement_invoke_helper(cn : string;pd: tprocdef; idx : integer);
 
     var
       sarg,str : ansistring;
@@ -1235,7 +1246,7 @@ implementation
     begin
       str:='procedure __invoke_helper__';
       pn:=pd.procsym.realname;
-      str:=str+cn+'__'+pn;
+      str:=str+cn+'__'+pn+'_'+tostr(idx);
       for I:=1 to length(str) do
         if str[i]='.' then
           str[i]:='_';
@@ -1401,7 +1412,7 @@ implementation
                   cn:=tobjectdef(def.owner.defowner).GetTypeName
                 else
                   internalerror(2023061107);
-                implement_invoke_helper(cn,pd);
+                implement_invoke_helper(cn,pd,i);
               end;
           end;
         end;
@@ -1537,19 +1548,40 @@ implementation
       result:=offs;
     end;
 
+
+  // return parent Interface def, but skip iunknown.
+
+  function getparent_interface_def(odef : tobjectdef) : tobjectdef;
+
+  begin
+    if (odef.getparentdef is tobjectdef) then
+      begin
+      result:=odef.getparentdef as tobjectdef;
+      if result=interface_iunknown then
+        result:=Nil;
+      end
+    else
+      result:=nil;
+  end;
+
   procedure implement_interface_thunkclass_decl(cn : shortstring; objdef : tobjectdef);
 
   var
-    str : ansistring;
+    parentname,str : ansistring;
     sym : tsym;
     proc : tprocsym absolute sym;
     pd : tprocdef;
-    def : tobjectdef;
+    odef,def : tobjectdef;
     offs,argcount,i,j : integer;
 
   begin
     str:='type '#10;
-    str:=str+cn+' = class(TInterfaceThunk,'+objdef.GetTypeName+')'#10;
+    odef:=getparent_interface_def(objdef);
+    if (oDef=Nil) or (oDef.hiddenclassdef=Nil) then
+      parentname:='TInterfaceThunk'
+    else
+      parentname:=odef.hiddenclassdef.GetTypeName;
+    str:=str+cn+' = class('+parentname+','+objdef.GetTypeName+')'#10;
     str:=str+' protected '#10;
     for I:=0 to objdef.symtable.symList.Count-1 do
       begin
@@ -1583,6 +1615,9 @@ implementation
     if assigned(def) then
       begin
       def.created_in_current_module:=true;
+      if not def.typesym.is_registered then
+        def.typesym.register_sym;
+      def.buildderef;
       include(def.objectoptions,oo_can_have_published);
       end;
     objdef.hiddenclassdef:=def;
@@ -1738,7 +1773,7 @@ implementation
       end;
   end;
 
-  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable; gen_intf, gen_impl : boolean);
 
   var
     i   : longint;
@@ -1759,14 +1794,16 @@ implementation
       def:=tdef(st.deflist[i]);
       if (def.typ<>objectdef) then
         continue;
-      if not (objdef.objecttype in [odt_interfacecorba,odt_interfacecom]) then
+      if not (objdef.objecttype in objecttypes_with_thunk) then
         continue;
       if not (oo_can_have_published in objdef.objectoptions) then
         continue;
       // need to add here extended rtti check when it is available
       cn:=generate_thunkclass_name(i,objdef);
-      implement_interface_thunkclass_decl(cn,objdef);
-      implement_interface_thunkclass_impl(cn,objdef);
+      if gen_intf then
+        implement_interface_thunkclass_decl(cn,objdef);
+      if gen_impl then
+        implement_interface_thunkclass_impl(cn,objdef);
       end;
     restore_scanner(sstate);
     // Recurse for interfaces defined in a type section of a class/record.
@@ -1774,9 +1811,9 @@ implementation
       begin
       def:=tdef(st.deflist[i]);
       if (def.typ=objectdef) and (objdef.objecttype=odt_class) then
-        add_synthetic_interface_classes_for_st(objdef.symtable)
+        add_synthetic_interface_classes_for_st(objdef.symtable,gen_intf,gen_impl)
       else if (def.typ=recorddef) and (m_advanced_records in current_settings.modeswitches) then
-        add_synthetic_interface_classes_for_st(recdef.symtable);
+        add_synthetic_interface_classes_for_st(recdef.symtable,gen_intf,gen_impl);
       end;
   end;
 

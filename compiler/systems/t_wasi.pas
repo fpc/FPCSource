@@ -75,10 +75,13 @@ type
   { TInternalLinkerWasi }
 
   TInternalLinkerWasi=class(tinternallinker)
+  private
+    function GetExeSectionSize(aExeOutput: TExeOutput; const aname:string): QWord;
   protected
     procedure DefaultLinkScript;override;
 
     function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+    function GetBssSize(aExeOutput: TExeOutput): QWord;override;
   public
     constructor create;override;
 
@@ -90,7 +93,8 @@ implementation
 
 uses
   SysUtils,
-  verbose;
+  verbose,
+  comprsrc,rescmn;
 
 { timportlibwasi }
 
@@ -165,7 +169,7 @@ begin
 
   if ts_wasm_threads in current_settings.targetswitches then
     begin
-      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=16777216 --global-base=1024';
+      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=33554432 --global-base=1024';
     end;
 
   if (cs_link_strip in current_settings.globalswitches) then
@@ -286,6 +290,18 @@ end;
 
 { TInternalLinkerWasi }
 
+function TInternalLinkerWasi.GetExeSectionSize(aExeOutput: TExeOutput;
+  const aname: string): QWord;
+var
+  sec: TExeSection;
+begin
+  sec:=aExeOutput.findexesection(aname);
+  if assigned(sec) then
+    Result:=sec.size
+  else
+    Result:=0;
+end;
+
 procedure TInternalLinkerWasi.DefaultLinkScript;
 var
   s: TCmdStr;
@@ -302,13 +318,32 @@ begin
   LinkScript.Concat('  OBJSECTION .wasm_globals.*');
   LinkScript.Concat('ENDEXESECTION');
 
-  ScriptAddGenericSections('.wasm_tags,.text,.rodata,.data,.bss,.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
+  { WebAssembly is a Harvard architecture, with multiple address spaces, so it
+    is important to keep the sections grouped, and keep the first section in
+    each group intact (otherwise, TWasmExeOutput.MemPos_ExeSection in ogwasm.pas
+    needs to be updated) }
+  ScriptAddGenericSections(
+    { tags (used by WebAssembly native exceptions) }
+    '.wasm_tags,'+
+    { code }
+    '.text,'+
+    { data (initialized data first, uninitialized data later) }
+    '.rodata,.data,fpc.resources,fpc.reshandles,.bss,'+
+    { debug info }
+    '.debug_frame,.debug_info,.debug_line,.debug_abbrev,.debug_aranges,.debug_ranges,.debug_str');
 end;
 
 function TInternalLinkerWasi.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  Result:=aExeOutput.findexesection('.rodata').size +
-          aExeOutput.findexesection('.data').size;
+  Result:=GetExeSectionSize(aExeOutput,'.rodata') +
+          GetExeSectionSize(aExeOutput,'.data') +
+          GetExeSectionSize(aExeOutput,'fpc.resources');
+end;
+
+function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  Result:=GetExeSectionSize(aExeOutput,'.bss') +
+          GetExeSectionSize(aExeOutput,'fpc.reshandles');
 end;
 
 constructor TInternalLinkerWasi.create;
@@ -332,5 +367,5 @@ initialization
   RegisterExport(system_wasm32_wasi, texportlibwasi);
   RegisterLinker(ld_int_wasi,TInternalLinkerWasi);
   RegisterLinker(ld_wasi, tlinkerwasi);
-
+  RegisterRes(res_wasm_info,TWinLikeResourceFile);
 end.

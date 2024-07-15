@@ -12,9 +12,9 @@
     *********************************************************************
 }
 
-function Trim(const S: widestring): widestring;
-function TrimLeft(const S: widestring): widestring;
-function TrimRight(const S: widestring): widestring;
+function Trim(const S: widestring): widestring;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function TrimLeft(const S: widestring): widestring;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function TrimRight(const S: widestring): widestring;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 function WideUpperCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function WideLowerCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}

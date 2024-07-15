@@ -519,12 +519,14 @@ function ConcatPaths(const Paths: array of PathStr): PathStr;
 var
   I: Integer;
 begin
+  Result := '';
   if Length(Paths) > 0 then
   begin
-    Result := Paths[0];
+    if Paths[0]<>'' then
+      Result := Paths[0];
     for I := 1 to Length(Paths) - 1 do
-      Result := IncludeTrailingPathDelimiter(Result) + ExcludeLeadingPathDelimiter(Paths[I]);
-  end else
-    Result := '';
+      if Paths[i]<>'' then
+        Result := IncludeTrailingPathDelimiter(Result) + ExcludeLeadingPathDelimiter(Paths[I]);
+  end
 end;
 

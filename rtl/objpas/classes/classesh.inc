@@ -1608,6 +1608,46 @@ type
   end;
 {$endif FPC_OS_UNICODE}
 
+{ TProxyAggregateStream }
+
+  TProxyAggregateStream = class(TStream)
+  private type
+    TStreamEntry = record
+      Stream: TStream;
+      OwnsStream: Boolean;
+    end;
+  private
+    FStreams: array of TStreamEntry;
+    FCurrentStream: Integer;
+    FCurrentStreamPos: Int64;
+    FSize: Int64;
+    FPosition: Int64;
+    function GetCount: Integer;
+    function GetOwnsStream(AIndex: Integer): Boolean;
+    function GetStreams(AIndex: Integer): TStream;
+    procedure SetOwnsStream(AIndex: Integer; const aOwnsStream: Boolean);
+  protected
+    procedure SyncPosition;
+    function GetPosition: Int64; override;
+    function GetSize: Int64; override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Read(var Buffer; ACount: Longint): Longint; override;
+    function Write(const Buffer; ACount: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override; overload;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override; overload;
+
+    function AddStream(AStream: TStream; AOwnsStream: Boolean = False): Integer;
+    procedure RemoveStream(AStream: TStream); overload;
+    procedure RemoveStream(AIndex: Integer); overload;
+    procedure Clear;
+
+    property Count: Integer read GetCount;
+    property Streams[AIndex: Integer]: TStream read GetStreams;
+    property OwnsStream[AIndex: Integer]: Boolean read GetOwnsStream write SetOwnsStream;
+  end;
+
 { TStreamAdapter }
 
   TStreamOwnership = (soReference, soOwned);
@@ -1694,7 +1734,7 @@ type
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
       var CompUnitName, CompClassName, CompName: String); virtual; overload;
     function BeginProperty: String; virtual; abstract;
-
+    procedure ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer); virtual;
     //Please don't use read, better use ReadBinary whenever possible
     procedure Read(var Buf; Count: LongInt); virtual; abstract;
     { All ReadXXX methods are called _after_ the value type has been read! }
@@ -1724,6 +1764,7 @@ type
   { TBinaryObjectReader }
 
   TBinaryObjectReader = class(TAbstractObjectReader)
+  private
   public
     {$ScopedEnums on}
     type
@@ -1756,6 +1797,7 @@ type
     destructor Destroy; override;
     function NextValue: TValueType; override;
     function ReadValue: TValueType; override;
+    procedure ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer); override;
     procedure BeginRootComponent; override;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
       var CompClassName, CompName: String); override; overload;
@@ -1841,6 +1883,7 @@ type
     FOnFindComponentClass: TFindComponentClassEvent;
     FOnCreateComponent: TCreateComponentEvent;
     FPropName: rawbytestring;
+    FRawMode : Boolean;
     FCanHandleExcepts: Boolean;
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
@@ -1926,6 +1969,7 @@ type
     property OnFindComponentClass: TFindComponentClassEvent read FOnFindComponentClass write FOnFindComponentClass;
     property OnFindComponentClassEx: TFindComponentClassExEvent read FOnFindComponentClassEx write FOnFindComponentClassEx;
     property OnReadStringProperty: TReadWriteStringPropertyEvent read FOnReadStringProperty write FOnReadStringProperty;
+    Property RawMode : Boolean Read FRawMode Write FRawMode;
   end;
 
 
@@ -2269,7 +2313,7 @@ type
   private
     FInitialSuspended: boolean;
 {$endif}
-{$ifdef Unix}
+{$if defined(Unix) or defined(wasi)}
   private
     // see tthread.inc, ThreadFunc and TThread.Resume
     FSuspendEvent: PRTLEvent;
@@ -2481,6 +2525,10 @@ type
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
       Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
   public
+    Type
+       TToStringNameMode = (snmNameClassName,snmClassName,snmName);
+    class var ToStringNameMode : TToStringNameMode;
+  public
     //!! Moved temporary
     // fpdoc doesn't handle this yet :(
 {$ifndef fpdocsystem}
@@ -2510,6 +2558,7 @@ type
     property ComObject: IUnknown read GetComObject;
     function IsImplementorOf (const Intf:IInterface):boolean;
     procedure ReferenceInterface(const intf:IInterface;op:TOperation);
+    function ToString : RTLString; override;
     property Components[Index: Integer]: TComponent read GetComponent;
     property ComponentCount: Integer read GetComponentCount;
     property ComponentIndex: Integer read GetComponentIndex write SetComponentIndex;
@@ -2867,6 +2916,7 @@ function FindGlobalComponent(const Name: string): TComponent;
 function IsUniqueGlobalComponentName(const aName: string): Boolean;
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
+function ReadComponentDeltaRes(Instance: TComponent; const DeltaCandidates: array of string; const Proc: TGetStreamProc): TComponent;
 function InitComponentRes(const ResName: string; Instance: TComponent): Boolean;
 function ReadComponentRes(const ResName: string; Instance: TComponent): TComponent;
 function ReadComponentResEx(HInstance: THandle; const ResName: string): TComponent;
@@ -2901,6 +2951,7 @@ type
 
 procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 procedure ObjectBinaryToText(Input, Output: TStream);
+procedure ObjectTextToBinary(Input, Output: TStream; var Format: TStreamOriginalFormat);
 procedure ObjectTextToBinary(Input, Output: TStream);
 
 procedure ObjectResourceToText(Input, Output: TStream);

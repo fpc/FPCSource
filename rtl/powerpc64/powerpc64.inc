@@ -531,7 +531,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
 asm
   cmpldi  r3,0
   beq     .Lcaller_addr_frame_null
@@ -545,7 +545,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
 asm
   cmpldi  r3,0
   beq     .Lcaller_frame_null
@@ -777,17 +777,17 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
   isync
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
   isync
 {$ifdef FPC_HAS_LWSYNC}
@@ -795,7 +795,7 @@ asm
 {$endif}
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
 {$ifdef FPC_HAS_LWSYNC}
   lwsync

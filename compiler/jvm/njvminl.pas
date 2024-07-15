@@ -465,13 +465,13 @@ implementation
             case finaltype of
               'R':
                 begin
-                  { expects array of FpcBaseRecord}
+                  { expects array of FpcBaseRecord }
                   setlenroutine:='FPC_SETLENGTH_DYNARR_JRECORD';
                   objarraydef:=search_system_type('TJRECORDARRAY').typedef;
                 end;
               'T':
                 begin
-                  { expects array of ShortstringClass}
+                  { expects array of ShortstringClass }
                   setlenroutine:='FPC_SETLENGTH_DYNARR_JSHORTSTRING';
                   objarraydef:=search_system_type('TSHORTSTRINGARRAY').typedef;
                 end;
@@ -489,7 +489,7 @@ implementation
         newparas:=ccallparanode.create(newnode,newparas);
         { prepend deepcopy }
         newparas:=ccallparanode.create(cordconstnode.create(0,pasbool1type,false),newparas);
-        { call the right setlenght helper }
+        { call the right setlength helper }
         if ndims>1 then
           begin
             { create proper parameters, from right to left:

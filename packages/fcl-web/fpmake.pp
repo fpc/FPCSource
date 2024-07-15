@@ -12,7 +12,13 @@ Const
   LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
-
+  
+  NoSocketsOSes       = [amiga,aros,morphos,wasi];
+  NoApacheOSes        = [amiga,aros,morphos,wasi];
+  
+  ApacheOSes          = AllOSes - NoApacheOSes;
+  SocketsOSes         = AllOSes - NoSocketsOSes;
+  
 Var
   T : TTarget;
   P : TPackage;
@@ -23,7 +29,7 @@ begin
     P.ShortName:='fclw';
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasi];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -31,23 +37,23 @@ begin
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-json');
-    P.Dependencies.Add('fcl-net');
-    P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-net',SocketsOSes);
+    P.Dependencies.Add('fcl-process',SocketsOSes); // FGI-gate
     P.Dependencies.Add('fcl-fpcunit');
     P.Dependencies.Add('fcl-hash');
     P.Dependencies.Add('hash');
-    P.Dependencies.Add('fcl-registry',AllWindowsOSes);
-    P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
-    P.Dependencies.Add('fastcgi');
+    P.Dependencies.Add('fcl-registry', AllWindowsOSes);
+    P.Dependencies.Add('openssl', AllUnixOSes+AllWindowsOSes);
+    P.Dependencies.Add('fastcgi',SocketsOSes);
 {$ifndef ALLPACKAGES}
-    P.Dependencies.Add('httpd20', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('httpd20', ApacheOSes);
 {$endif ALLPACKAGES}    
-    P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
-    P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('httpd22', ApacheOSes);
+    P.Dependencies.Add('httpd24', ApacheOSes);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX,iphonesim,ios]);
-    P.Dependencies.Add('libmicrohttpd',LibMicroHttpdOSes);
+    P.Dependencies.Add('univint', [MacOSX,iphonesim,ios]);
+    P.Dependencies.Add('libmicrohttpd', LibMicroHttpdOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -157,12 +163,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
+        OSes:=SocketsOSes;
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
+        OSes:=SocketsOSes;
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('cgiprotocol');
         Dependencies.AddUnit('custcgi');
@@ -172,7 +178,7 @@ begin
       end;
     with P.Targets.AddUnit('custapache.pp') do
       begin
-        OSes:=AllOses-[amiga,aros,morphos];
+        OSes:=ApacheOses;
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
@@ -180,19 +186,19 @@ begin
       end;
     with P.Targets.AddUnit('fpapache.pp') do
       begin
-        OSes:=AllOses-[amiga,aros,morphos];
+        OSes:=ApacheOSes;
         Dependencies.AddUnit('custapache');
       end;
     with P.Targets.AddUnit('custapache24.pp') do
       begin
-        OSes:=AllOses-[amiga,aros,morphos];
+        OSes:=ApacheOSes;
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache24.pp') do
       begin
-        OSes:=AllOses-[amiga,aros,morphos];
+        OSes:=ApacheOSes;
         Dependencies.AddUnit('custapache24');
       end;
     with P.Targets.AddUnit('custhttpsys.pp') do
@@ -232,11 +238,14 @@ begin
       
     with P.Targets.AddUnit('fphttpstatus.pas') do
       begin
+        OSes:=SocketsOSes;
         Dependencies.AddUnit('fphttpserver');
         Dependencies.AddUnit('HTTPDefs');
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
+    T.OSes:=SocketsOSes;
+    
     With T.Dependencies do
       begin
       AddUnit('httpdefs');
@@ -244,15 +253,20 @@ begin
       end;
     T:=P.Targets.AddUnit('fphttpserver.pp');
     T.ResourceStrings:=true;
+    T.OSes:=SocketsOSes;
       with T.Dependencies do
         begin
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('fphttpclient.pp');
+    T.OSes:=SocketsOSes;
     T.ResourceStrings:=true;
+    
     T:=P.Targets.AddUnit('custhttpapp.pp');
+    T.OSes:=SocketsOSes;
     // T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
+    T.OSes:=SocketsOSes;
     T:=P.Targets.AddUnit('fpwebfile.pp');
     With T.Dependencies do
       begin
@@ -268,6 +282,7 @@ begin
       AddUnit('httproute');
       end;
     T:=P.Targets.AddUnit('fpwebproxy.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do
       begin
       AddUnit('fphttp');
@@ -330,13 +345,18 @@ begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fprpcclient.pp');
+    T.OSes:=SocketsOSes;
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fphttpwebclient');
     T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
+    T.OSes:=AllOSes-[wasi];
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpextdirect.pp');
+    T.OSes:=AllOSes-[wasi];
     With T.Dependencies do
       begin
       AddUnit('fpdispextdirect');
@@ -362,6 +382,7 @@ begin
     T:=P.Targets.AddUnit('fpjwarsa.pp');
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fphttpwebclient.pp');
+    T.oses:=SocketsOSes;
     T.Dependencies.AddUnit('fpwebclient');
     T:=P.Targets.AddUnit('restbase.pp');
     T:=P.Targets.AddUnit('restcodegen.pp');
@@ -482,24 +503,29 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('fpwebsocket.pp');
+    T.OSes:=SocketsOSes;
     T.Resourcestrings:=True;
     T:=P.Targets.AddUnit('fpcustwsserver.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do  
       begin
       AddUnit('fpwebsocket');
       end;
     T:=P.Targets.AddUnit('fpwebsocketserver.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do  
       begin
       AddUnit('fpwebsocket');
       AddUnit('fpcustwsserver');
       end;
     T:=P.Targets.AddUnit('fpwebsocketclient.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do  
       begin
       AddUnit('fpwebsocket');
       end;
     T:=P.Targets.AddUnit('wsupgrader.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do  
       begin
       AddUnit('fpwebsocket');
@@ -507,12 +533,14 @@ begin
       end;
     end;
     T:=P.Targets.AddUnit('fphttpclientpool.pas');
+    T.OSes:=SocketsOSes;
     T.Resourcestrings:=True;
     With T.Dependencies do  
       begin
       AddUnit('fphttpclient');
       end;
     T:=P.Targets.AddUnit('fphttpclientasyncpool.pas');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do  
       begin
       AddUnit('fphttpclient');

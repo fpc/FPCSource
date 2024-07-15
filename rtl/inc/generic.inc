@@ -849,19 +849,10 @@ begin
         s1l:=high(dests);
       s2l:=high(dests)-s1l;
     end;
-  if @dests=@s1 then
-    fpc_shortstr_shortstr_intern_charmove(s2,1,dests,s1l+1,s2l)
-  else
-    if @dests=@s2 then
-      begin
-        fpc_shortstr_shortstr_intern_charmove(dests,1,dests,s1l+1,s2l);
-        fpc_shortstr_shortstr_intern_charmove(s1,1,dests,1,s1l);
-      end
-  else
-    begin
-      fpc_shortstr_shortstr_intern_charmove(s1,1,dests,1,s1l);
-      fpc_shortstr_shortstr_intern_charmove(s2,1,dests,s1l+1,s2l);
-    end;
+  { Copy s2 first, as in the case of @dests = @s2 it must be copied first and in other cases the order does not matter. }
+  fpc_shortstr_shortstr_intern_charmove(s2,1,dests,s1l+1,s2l);
+  if @dests<>@s1 then
+    fpc_shortstr_shortstr_intern_charmove(s1,1,dests,1,s1l);
   dests[0]:=chr(s1l+s2l);
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
@@ -869,64 +860,42 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT_MULTI}
 procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
 var
-  s2l : byte;
-  LowStart,i,
-  Len : ObjpasInt;
-  needtemp : boolean;
-  tmpstr  : shortstring;
-  p,pdest  : pshortstring;
+  i,s2l,Len,destpos0 : ObjpasInt;
+  p : pshortstring;
 begin
-  if high(sarr)=0 then
-    begin
-      DestS:='';
-      exit;
-    end;
-  lowstart:=low(sarr);
-  if Pointer(@DestS)=Pointer(sarr[lowstart]) then
-    inc(lowstart);
-  { Check for another reuse, then we can't use
-    the append optimization and need to use a temp }
-  needtemp:=false;
-  for i:=lowstart to high(sarr) do
-    begin
-      if Pointer(@DestS)=Pointer(sarr[i]) then
-        begin
-          needtemp:=true;
-          break;
-        end;
-    end;
-  if needtemp then
-    begin
-      lowstart:=low(sarr);
-      tmpstr:='';
-      pdest:=@tmpstr
-    end
-  else
-    begin
-      { Start with empty DestS if we start with concatting
-        the first array element }
-      if lowstart=low(sarr) then
-        DestS:='';
-      pdest:=@DestS;
-    end;
-  { Concat all strings, except the string we already
-    copied in DestS }
-  Len:=length(pdest^);
-  for i:=lowstart to high(sarr) do
+  Len:=0;
+  i:=0;
+  while (i<=high(sarr)) do
     begin
       p:=sarr[i];
       if assigned(p) then
-        begin
-          s2l:=length(p^);
-          if Len+s2l>high(dests) then
-            s2l:=high(dests)-Len;
-          fpc_shortstr_shortstr_intern_charmove(p^,1,pdest^,Len+1,s2l);
-          inc(Len,s2l);
-        end;
+        inc(Len,length(p^));
+      inc(i);
     end;
-  pdest^[0]:=Chr(Len);
-  if needtemp then
-    DestS:=TmpStr;
+  destpos0:=Len;
+  { Copy strings from the last to the first, so that possible occurences of DestS read correct DestS.
+    DestS[0] = length(DestS) must have its original value for a while! }
+  while (destpos0>0) do
+    begin
+      dec(i);
+      p:=sarr[i];
+      if not assigned(p) then
+        continue;
+      s2l:=length(p^);
+      dec(destpos0,s2l);
+      if (destpos0=0) and (p=@dests) then { Skip moving DestS to itself when appending. This destpos0-based form also catches DestS := '' + '' + DestS. }
+        break;
+      if destpos0+s2l>high(dests) then
+        begin
+          if destpos0>=high(dests) then
+            continue;
+          s2l:=high(dests)-destpos0;
+        end;
+      fpc_shortstr_shortstr_intern_charmove(p^,1,dests,destpos0+1,s2l);
+    end;
+  if Len>high(dests) then
+    Len:=high(dests);
+  dests[0]:=Chr(Len); { Careful, loop above relies on DestS[0] having the original value. }
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT_MULTI}
 
@@ -1321,13 +1290,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
 function fpc_pwidechar_length(p:pwidechar):sizeint;[public,alias:'FPC_PWIDECHAR_LENGTH']; compilerproc;
-var i : sizeint;
 begin
-  i:=0;
   if assigned(p) then
-    while p[i]<>#0 do
-      inc(i);
-  exit(i);
+    Result:=IndexWord(p^,-1,0)
+  else
+    result:=0;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
@@ -3002,19 +2969,19 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;
 begin
 end;
 
-procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadDependencyBarrier;
 begin
 end;
 
-procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;
 begin
 end;
 
-procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;
 begin
 end;
 

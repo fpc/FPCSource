@@ -97,5 +97,7 @@
 
   in_wasm32_tls_size  = in_cpu_first+73,
   in_wasm32_tls_align = in_cpu_first+74,
-  in_wasm32_tls_base  = in_cpu_first+75
+  in_wasm32_tls_base  = in_cpu_first+75,
+
+  in_wasm32_set_base_pointer = in_cpu_first+76
 

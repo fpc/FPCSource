@@ -650,7 +650,7 @@ REVSTR:=exported
 export REVSTR
 endif
 endif
-override LOCALOPT+=-d$(CPC_TARGET) -dGDB
+override LOCALOPT+=-d$(CPC_TARGET)
 ifdef LLVM
 ifeq ($(findstring $(PPC_TARGET),x86_64 aarch64 arm),)
 $(error The $(PPC_TARGET) architecture is not (yet) supported by the FPC/LLVM code generator)
@@ -5284,7 +5284,7 @@ wpocycle:
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtlclean
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' $(addsuffix _clean,$(ALLTARGETS))
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler 
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' $(addsuffix _clean,$(ALLTARGETS))
@@ -5489,7 +5489,7 @@ rtlclean:
 rtlinstall:
 	$(MAKE) -C $(PACKAGEDIR_RTL) install
 PPUDIR=$(COMPILER_UNITTARGETDIR)
-ALLPPUDIR=$(CPU_TARGET)/units/*
+ALLPPUDIRS:=$(wildcard $(CPU_TARGET)/units/*)
 PPULIST=$(wildcard $(PPUDIR)/*.ppu)
 PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
 RTLPPUDIR=../rtl/units/$(TARGETSUFFIX)
@@ -5505,6 +5505,7 @@ vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 ./utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
 ppuinfo :
+	echo list of PPU directories is "$(ALLPPUDIRS)"
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
 	echo RTLPPUDIR is "$(RTLPPUDIR)"
@@ -5514,7 +5515,8 @@ cleanppulogs :
 cleanrtlppulogs :
 	-$(RMPROG) $(RTLPPULOGLIST)
 testppudump :
-	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
+	$(MAKE) cleanrtlppulogs cleanppulogs
+	$(MAKE) ppulogs rtlppulogs
 localmake:=$(strip $(wildcard makefile.loc))
 ifdef localmake
 include ./$(localmake)

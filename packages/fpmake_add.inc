@@ -156,4 +156,4 @@
   add_fcl_css(ADirectory+IncludeTrailingPathDelimiter('fcl-css'));
   add_gstreamer(ADirectory+IncludeTrailingPathDelimiter('gstreamer'));
   add_testinsight(ADirectory+IncludeTrailingPathDelimiter('testinsight'));
-  
+  add_wasm_job(ADirectory+IncludeTrailingPathDelimiter('wasm-job'));
