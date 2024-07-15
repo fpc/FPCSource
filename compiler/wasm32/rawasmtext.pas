@@ -814,6 +814,35 @@ Unit rawasmtext;
                         end;
                     end;
                   end;
+                { instructions with an optional memarg operand }
+                a_i32_load,
+                a_i64_load,
+                a_f32_load,
+                a_f64_load,
+                a_i32_load8_s,
+                a_i32_load8_u,
+                a_i32_load16_s,
+                a_i32_load16_u,
+                a_i64_load8_s,
+                a_i64_load8_u,
+                a_i64_load16_s,
+                a_i64_load16_u,
+                a_i64_load32_s,
+                a_i64_load32_u,
+                a_i32_store,
+                a_i64_store,
+                a_f32_store,
+                a_f64_store,
+                a_i32_store8,
+                a_i32_store16,
+                a_i64_store8,
+                a_i64_store16,
+                a_i64_store32:
+                  begin
+                    { TODO: parse the optional memarg operand }
+                    result.operands[1].opr.typ:=OPR_CONSTANT;
+                    result.operands[1].opr.val:=0;
+                  end;
                 else
                   internalerror(2024071401);
               end;
