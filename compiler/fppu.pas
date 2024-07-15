@@ -46,12 +46,14 @@ interface
        { tppumodule }
        TAvailableUnitFile = (auPPU,auSrc);
        TAvailableUnitFiles = set of TAvailableUnitFile;
+       tschedule_recompile_proc = procedure(amodule : tmodule) of object;
 
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
           sourcefn   : TPathStr; { Source specified with "uses .. in '..'" }
           comments   : TCmdStrList;
           nsprefix   : TCmdStr; { Namespace prefix the unit was found with }
+          reload_from : tppumodule; { from_module in case we need to reload }
 {$ifdef Test_Double_checksum}
           interface_read_crc_index,
           interface_write_crc_index,
@@ -97,13 +99,13 @@ interface
           function  loadfrompackage:boolean;
           procedure load_interface;
           procedure load_implementation;
-          procedure load_usedunits;
+          function load_usedunits : boolean;
           procedure printcomments;
           procedure queuecomment(const s:TMsgStr;v,w:longint);
           procedure buildderefunitimportsyms;
           procedure derefunitimportsyms;
           procedure freederefunitimportsyms;
-          procedure try_load_ppufile(from_module: tmodule);
+          function try_load_ppufile(from_module: tmodule) : Boolean;
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -136,6 +138,9 @@ interface
 
     function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
+var
+  { Set by task class. To avoid circular dependencies }
+  schedule_recompile_proc : tschedule_recompile_proc;
 
 implementation
 
@@ -776,7 +781,7 @@ var
                 { now load the unit and all used units }
                 load_interface;
                 setdefgeneration;
-                load_usedunits;
+                result:=Load_usedunits;
                 Message1(unit_u_finished_loading_unit,modulename^);
 
                 result:=true;
@@ -1947,25 +1952,36 @@ var
       end;
 
 
-    procedure tppumodule.load_usedunits;
+    function tppumodule.load_usedunits : boolean;
       var
         pu           : tused_unit;
+        s : string;
+
       begin
         if current_module<>self then
          internalerror(200212284);
         { load the used units from interface }
         in_interface:=true;
+        result:=false;
         pu:=tused_unit(used_units.first);
         while assigned(pu) do
          begin
            if pu.in_interface then
             begin
+              s:=pu.u.modulename^;
               tppumodule(pu.u).loadppu(self);
               { if this unit is scheduled for compilation or compiled we can stop }
               if state in [ms_compile,ms_compiled,ms_processed] then
                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,true);
+
+              // Compiler decided the unit must be recompiled.
+              if pu.u.state=ms_compile then
+                 begin
+                 state:=ms_load;
+                 exit;
+                 end;
               { need to recompile the current unit, check the interface
                 crc. And when not compiled with -Ur then check the complete
                 crc }
@@ -1979,10 +1995,10 @@ var
                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
 {$ifdef DEBUG_UNIT_CRC_CHANGES}
                  if (pu.u.interface_crc<>pu.interface_checksum) then
-                   Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-                 else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                   Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
-                 else
+                   Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^);
+                 if (pu.u.indirect_crc<>pu.indirect_checksum) then
+                   Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^);
+                 if (pu.u.crc<>pu.checksum) then
                    Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                  recompile_reason:=rr_crcchanged;
@@ -1992,6 +2008,7 @@ var
             end;
            pu:=tused_unit(pu.next);
          end;
+
         { ok, now load the interface of this unit }
         if current_module<>self then
          internalerror(200208187);
@@ -2021,10 +2038,19 @@ var
          begin
            if (not pu.in_interface) then
             begin
+              s:=pu.u.modulename^;
               tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
               if state=ms_compiled then
                exit;
+
+              // compiler decided the unit must be recompiled.
+              if pu.u.state=ms_compile then
+                 begin
+                 state:=ms_load;
+                 exit;
+                 end;
+
               { add this unit to the dependencies }
               pu.u.adddependency(self,false);
               { need to recompile the current unit ? }
@@ -2034,8 +2060,8 @@ var
                   Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename+' {impl}',@queuecomment);
 {$ifdef DEBUG_UNIT_CRC_CHANGES}
                   if (pu.u.interface_crc<>pu.interface_checksum) then
-                    Comment(V_Normal,'  intfcrc change (2): '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-                  else if (pu.u.indirect_crc<>pu.indirect_checksum) then
+                    Comment(V_Normal,'  intfcrc change (2): '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^);
+                  if (pu.u.indirect_crc<>pu.indirect_checksum) then
                     Comment(V_Normal,'  indcrc change (2): '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                   recompile_reason:=rr_crcchanged;
@@ -2067,6 +2093,7 @@ var
          wpoinfo:=tunitwpoinfo.ppuload(ppufile);
          tunitwpoinfo(wpoinfo).deref;
          tunitwpoinfo(wpoinfo).derefimpl;
+         Result:=True;
       end;
 
 
@@ -2214,9 +2241,14 @@ var
             state:=ms_load;
         end;
 
-    procedure tppumodule.try_load_ppufile(from_module : tmodule);
+    function tppumodule.try_load_ppufile(from_module : tmodule) : Boolean;
+       {
+         Return True if the unit was successfully loaded.
+         False means the unit must be reloaded or recompiled
+       }
 
       begin
+        Result:=False;
         Message1(unit_u_loading_unit,modulename^);
         if auPPU in search_unit_files(from_module,false) then
           state:=ms_load
@@ -2228,9 +2260,13 @@ var
            setdefgeneration;
            if not (state=ms_compile) then
             begin
-              load_usedunits;
-              if not (state=ms_compile) then
+              if load_usedunits then
+                begin
                 Message1(unit_u_finished_loading_unit,modulename^);
+                Result:=true;
+                end
+              else
+                reload_from:=(from_module as tppumodule);
             end;
          end;
         { PPU is not needed anymore }
@@ -2282,6 +2318,8 @@ var
         if not (state in [ms_compile]) then
           state:=ms_compile;
         setdefgeneration;
+        if assigned(schedule_recompile_proc) then
+          schedule_recompile_proc(self);
       end;
 
     procedure tppumodule.post_load_or_compile(from_module : tmodule; second_time : boolean);
@@ -2290,7 +2328,7 @@ var
       if current_module<>self then
         internalerror(200212282);
 
-      if in_interface then
+       if in_interface then
         internalerror(200212283);
 
       { for a second_time recompile reload all dependent units,
@@ -2311,7 +2349,7 @@ var
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
-        do_load,
+        do_load,load_ok,
         second_time        : boolean;
 
       begin
@@ -2371,13 +2409,14 @@ var
 
         { try to opening ppu, skip this when we already
           know that we need to compile the unit }
+        load_ok:=False;
         if not (state=ms_compile) then
-          try_load_ppufile(from_module);
+          load_ok:=try_load_ppufile(from_module);
 
         { Do we need to recompile the unit }
         if (state=ms_compile) then
           recompile_from_sources(from_module)
-        else
+        else if load_ok then
           state:=ms_compiled;
 
         Result:=(state=ms_compiled);

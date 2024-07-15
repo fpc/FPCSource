@@ -88,6 +88,7 @@ uses verbose, fppu, finput, globtype, sysutils, scanner, parser, pmodules;
 procedure InitTaskHandler;
 begin
   task_handler:=ttask_handler.create;
+  schedule_recompile_proc:=@task_handler.addmodule;
 end;
 
 procedure DoneTaskHandler;
@@ -219,11 +220,12 @@ begin
     ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits(firstwaiting);
     ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+    ms_load : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiled : cancontinue:=true;
     ms_processed : cancontinue:=true;
     ms_moduleerror : cancontinue:=true;
-  else
-    InternalError(2024011802);
+{  else
+    InternalError(2024011802);}
   end;
   if (not cancontinue) and checksub then
     begin
@@ -266,6 +268,8 @@ begin
     t.RestoreState;
   case m.state of
     ms_registered : parser.compile_module(m);
+    ms_load : with tppumodule(m) do
+                 loadppu(reload_from);
     ms_compile : parser.compile_module(m);
     ms_compiled : if (not m.is_initial) or m.is_unit  then
                    (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
