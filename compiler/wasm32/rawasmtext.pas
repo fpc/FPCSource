@@ -62,7 +62,7 @@ Unit rawasmtext;
         function is_valtype(const s: string):boolean;
         procedure HandleInstruction;
         procedure HandleFoldedInstruction;
-        procedure HandlePlainInstruction;
+        function HandlePlainInstruction: TWasmInstruction;
         procedure HandleBlockInstruction;virtual;abstract;
       public
         function Assemble: tlinkedlist;override;
@@ -683,15 +683,14 @@ Unit rawasmtext;
       end;
 
 
-    procedure twasmreader.HandlePlainInstruction;
-      var
-        instr: TWasmInstruction;
+    function twasmreader.HandlePlainInstruction: TWasmInstruction;
       begin
+        result:=nil;
         case actasmtoken of
           AS_OPCODE:
             begin
-              instr:=TWasmInstruction.create(TWasmOperand);
-              instr.opcode:=actopcode;
+              result:=TWasmInstruction.create(TWasmOperand);
+              result.opcode:=actopcode;
               Consume(AS_OPCODE);
               case actopcode of
                 { instructions, which require 0 operands }
@@ -759,15 +758,15 @@ Unit rawasmtext;
                   begin
                     if actasmtoken=AS_INTNUM then
                       begin
-                        instr.operands[1].opr.typ:=OPR_CONSTANT;
-                        instr.operands[1].opr.val:=actinttoken;
+                        result.operands[1].opr.typ:=OPR_CONSTANT;
+                        result.operands[1].opr.val:=actinttoken;
                         Consume(AS_INTNUM);
                       end
                     else
                       begin
                         { error: expected integer }
-                        instr.Free;
-                        instr:=nil;
+                        result.Free;
+                        result:=nil;
                         Consume(AS_INTNUM);
                       end;
                   end;
