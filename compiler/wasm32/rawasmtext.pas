@@ -55,6 +55,7 @@ Unit rawasmtext;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
         actinttoken   : aint;
+        actfloattoken : double;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
@@ -144,6 +145,20 @@ Unit rawasmtext;
                 Val(s,u64);
               result:=aint(u64);
             end;
+        end;
+
+      function GetFloatToken: double;
+        var
+          s: string;
+        begin
+          s:=actasmpattern;
+          if is_hex then
+            begin
+              { TODO: parse hex floats }
+              internalerror(2024071501);
+            end
+          else
+            Val(s,result);
         end;
 
       var
@@ -337,7 +352,10 @@ Unit rawasmtext;
                 end;
               actasmpattern[0]:=chr(len);
               if is_float then
-                actasmtoken:=AS_REALNUM
+                begin
+                  actasmtoken:=AS_REALNUM;
+                  actfloattoken:=GetFloatToken;
+                end
               else
                 begin
                   actasmtoken:=AS_INTNUM;
@@ -769,6 +787,32 @@ Unit rawasmtext;
                         result:=nil;
                         Consume(AS_INTNUM);
                       end;
+                  end;
+                { instructions with a float const operand }
+                a_f32_const,
+                a_f64_const:
+                  begin
+                    case actasmtoken of
+                      AS_INTNUM:
+                        begin
+                          result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
+                          result.operands[1].opr.floatval:=actinttoken;
+                          Consume(AS_INTNUM);
+                        end;
+                      AS_REALNUM:
+                        begin
+                          result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
+                          result.operands[1].opr.floatval:=actfloattoken;
+                          Consume(AS_REALNUM);
+                        end;
+                      else
+                        begin
+                          { error: expected real }
+                          result.Free;
+                          result:=nil;
+                          Consume(AS_REALNUM);
+                        end;
+                    end;
                   end;
                 else
                   internalerror(2024071401);
