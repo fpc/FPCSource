@@ -574,6 +574,7 @@ Unit rawasmtext;
         instr: TWasmInstruction;
         tmpS: string;
       begin
+        instr:=nil;
         //Consume(AS_LPAREN);
         case actasmtoken of
           AS_OPCODE:
@@ -690,8 +691,16 @@ Unit rawasmtext;
                   end;
                 else
                   begin
-                    HandlePlainInstruction;
-                    {todo: parse next folded instructions, insert plain instruction after these}
+                    instr:=HandlePlainInstruction;
+                    while actasmtoken<>AS_RPAREN do
+                      begin
+                        Consume(AS_LPAREN);
+                        HandleFoldedInstruction;
+                      end;
+                    instr.ConcatInstruction(curlist);
+                    instr.Free;
+                    instr:=nil;
+                    Consume(AS_RPAREN);
                   end;
               end;
             end;
