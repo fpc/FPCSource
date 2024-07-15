@@ -287,6 +287,7 @@ end;
 {$if not defined(FPC_SYSTEM_HAS_FILLCHAR)
   or not defined(FPC_SYSTEM_HAS_FILLWORD)
   or not defined(FPC_SYSTEM_HAS_FILLDWORD)}
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillXxxx_U32Pattern_Plain_16OrMore; assembler; nostackframe;
 { eax — x, ecx — uint32 pattern, edx — byte count >= 12 (preferably >= 16). }
 asm
@@ -312,6 +313,7 @@ asm
         mov     %esi, 4(%edx)
         pop     %esi
 end;
+{$endif ndef CPUX86_HAS_SSE2 (need Fill*_Plain)}
 
 procedure FillXxxx_U32Pattern_Ladder_4to16; assembler; nostackframe;
 { eax — x, ecx — uint32 pattern, edx — byte count, 4 <= edx <= 16. }
@@ -342,6 +344,7 @@ asm
 .LQuit:
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillChar_Plain(var x;count:SizeInt;value:byte);assembler;nostackframe;
 asm
         cmp     $3, %edx
@@ -353,6 +356,7 @@ asm
         jbe     FillXxxx_U32Pattern_Ladder_4to16
         jmp     FillXxxx_U32Pattern_Plain_16OrMore
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
 procedure FillChar_SSE2(var x;count:SizeInt;value:byte);assembler;nostackframe;
 asm
@@ -403,15 +407,17 @@ procedure FillChar_Dispatch(var x;count:SizeInt;value:byte);
 begin
   if not fpc_cpucodeinit_performed then
     begin
-      FillChar_Plain(x, count, value);
+      {$ifdef CPUX86_HAS_SSE2} FillChar_SSE2 {$else} FillChar_Plain {$endif} (x, count, value);
       exit;
     end;
   if fast_large_repmovstosb then
     FillChar_Impl := @FillChar_SSE2_ERMS
-  else if has_sse2_support then
+  else {$ifndef CPUX86_HAS_SSE2} if has_sse2_support then {$endif}
     FillChar_Impl := @FillChar_SSE2
+{$ifndef CPUX86_HAS_SSE2}
   else
-    FillChar_Impl := @FillChar_Plain;
+    FillChar_Impl := @FillChar_Plain
+{$endif ndef CPUX86_HAS_SSE2};
   FillChar_Impl(x, count, value);
 end;
 
@@ -435,6 +441,7 @@ asm
 .LQuit:
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillWord_Plain(var x;count:SizeInt;value:word);assembler;nostackframe;
 asm
         cmp     $3, %edx
@@ -447,6 +454,7 @@ asm
         jbe     FillXxxx_U32Pattern_Ladder_4to16
         jmp     FillXxxx_U32Pattern_Plain_16OrMore
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
 procedure FillWord_SSE2(var x;count:SizeInt;value:word);assembler;nostackframe;
 asm
@@ -487,15 +495,17 @@ procedure FillWord_Dispatch(var x;count:SizeInt;value:word);
 begin
   if not fpc_cpucodeinit_performed then
     begin
-      FillWord_Plain(x, count, value);
+      {$ifdef CPUX86_HAS_SSE2} FillWord_SSE2 {$else} FillWord_Plain {$endif} (x, count, value);
       exit;
     end;
   if fast_large_repmovstosb then
     FillWord_Impl := @FillWord_SSE2_ERMS
-  else if has_sse2_support then
+  else {$ifndef CPUX86_HAS_SSE2} if has_sse2_support then {$endif}
     FillWord_Impl := @FillWord_SSE2
+{$ifndef CPUX86_HAS_SSE2}
   else
-    FillWord_Impl := @FillWord_Plain;
+    FillWord_Impl := @FillWord_Plain
+{$endif ndef CPUX86_HAS_SSE2};
   FillWord_Impl(x, count, value);
 end;
 
@@ -520,6 +530,7 @@ asm
 .LQuit:
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillDWord_Plain(var x;count:SizeInt;value:dword);assembler;nostackframe;
 asm
         cmp     $4, %edx
@@ -527,6 +538,7 @@ asm
         shl     $2, %edx
         jmp     FillXxxx_U32Pattern_Plain_16OrMore
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
 procedure FillDWord_SSE2(var x;count:SizeInt;value:dword);assembler;nostackframe;
 asm
@@ -557,15 +569,17 @@ procedure FillDWord_Dispatch(var x;count:SizeInt;value:dword);
 begin
   if not fpc_cpucodeinit_performed then
     begin
-      FillDWord_Plain(x, count, value);
+      {$ifdef CPUX86_HAS_SSE2} FillDWord_SSE2 {$else} FillDWord_Plain {$endif}(x, count, value);
       exit;
     end;
   if fast_large_repmovstosb then
     FillDWord_Impl := @FillDWord_SSE2_ERMS
-  else if has_sse2_support then
+  else {$ifndef CPUX86_HAS_SSE2} if has_sse2_support then {$endif}
     FillDWord_Impl := @FillDWord_SSE2
+{$ifndef CPUX86_HAS_SSE2}
   else
-    FillDWord_Impl := @FillDWord_Plain;
+    FillDWord_Impl := @FillDWord_Plain
+{$endif ndef CPUX86_HAS_SSE2};
   FillDWord_Impl(x, count, value);
 end;
 
@@ -578,6 +592,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLQWORD}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillQWord_Plain(var x;count:SizeInt;value:QWord);assembler;nostackframe;
 { eax = x, edx = count, [esp + 4] = value }
 asm
@@ -596,8 +611,9 @@ asm
         pop     %esi
 .LQuit:
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-procedure FillQWord_SSE2(var x;count:SizeInt;value:QWord);assembler;nostackframe;
+procedure {$ifdef CPUX86_HAS_SSE2} FillQWord {$else} FillQWord_SSE2 {$endif}(var x;count:SizeInt;value:QWord);assembler;nostackframe;
 { eax = x, edx = count, [esp + 4] = value }
 asm
         cmp     $4, %edx
@@ -650,6 +666,7 @@ asm
         mov     %ecx, 4(%eax)
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 procedure FillQWord_Dispatch(var x;count:SizeInt;value:qword); forward;
 
 var
@@ -673,11 +690,13 @@ procedure FillQWord(var x;count:SizeInt;value:qword);
 begin
   FillQWord_Impl(x, count, value);
 end;
+{$endif ndef CPUX86_HAS_SSE2 (need FillQWord dispatcher)}
 {$endif FPC_SYSTEM_HAS_FILLQWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
+{$ifndef CPUX86_HAS_SSE2}
 function IndexByte_Plain(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 { eax = buf, edx = len, cl = b }
 asm
@@ -761,8 +780,9 @@ asm
         pop   %ecx
         sub   %ecx,%eax
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-function IndexByte_SSE2(const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} IndexByte {$else} IndexByte_SSE2 {$endif} (const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 asm
         test      %edx, %edx
         jz        .Lnotfound                 { exit if len=0 }
@@ -807,6 +827,7 @@ asm
         or        $-1, %eax
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt; forward;
 
 var
@@ -827,11 +848,13 @@ function IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
 begin
   result:=IndexByte_Impl(buf,len,b);
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
+{$ifndef CPUX86_HAS_SSE2}
 function IndexWord_Plain(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
 asm
         test    %edx, %edx
@@ -853,8 +876,9 @@ asm
         sub     %edx, %eax
         shr     $1, %eax
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-function IndexWord_SSE2(const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} IndexWord {$else} IndexWord_SSE2 {$endif} (const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
 asm
         test      %edx, %edx       { exit if len=0 }
         je        .Lnotfound
@@ -955,6 +979,7 @@ asm
         pop       %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function IndexWord_Dispatch(const buf;len:SizeInt;b:word):SizeInt; forward;
 
 var
@@ -975,11 +1000,13 @@ function IndexWord(const buf;len:SizeInt;b:word):SizeInt; inline;
 begin
   result:=IndexWord_Impl(buf,len,b);
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
+{$ifndef CPUX86_HAS_SSE2}
 function IndexDWord_Plain(Const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
 asm
         push    %eax
@@ -999,8 +1026,9 @@ asm
         pop     %edx
         mov     $-1, %eax
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-function IndexDWord_SSE2(const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} IndexDWord {$else} IndexDWord_SSE2 {$endif} (const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
 asm
         push     %eax
         sub      $4, %edx
@@ -1050,6 +1078,7 @@ asm
         or       $-1, %eax
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function IndexDWord_Dispatch(const buf;len:SizeInt;b:DWord):SizeInt; forward;
 
 var
@@ -1070,6 +1099,7 @@ function IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
 begin
   result:=IndexDWord_Impl(buf,len,b);
 end;
+{$endif CPUX86_HAS_SSE2}
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
 
@@ -1175,6 +1205,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
+{$ifndef CPUX86_HAS_SSE2}
 function CompareByte_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         { eax = buf1, edx = buf2, ecx = len }
@@ -1243,8 +1274,9 @@ asm
         xor     %eax, %eax
         pop     %ebx
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-function CompareByte_SSE2(const buf1, buf2; len: SizeInt): SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} CompareByte {$else} CompareByte_SSE2 {$endif} (const buf1, buf2; len: SizeInt): SizeInt; assembler; nostackframe;
 asm
         { eax = buf1, edx = buf2, ecx = len }
         cmp      $1, %ecx
@@ -1472,6 +1504,7 @@ asm
         or       $1, %eax
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function CompareByte_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
 
 var
@@ -1492,11 +1525,13 @@ function CompareByte(const buf1, buf2; len: SizeInt): SizeInt;
 begin
   result:=CompareByte_Impl(buf1, buf2, len);
 end;
+{$endif ndef CPUX86_HAS_SSE2 (need CompareByte dispatcher)}
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
+{$ifndef CPUX86_HAS_SSE2}
 function CompareWord_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         push    %ebx
@@ -1552,8 +1587,9 @@ asm
         pop     %ebx
         xor     %eax, %eax
 end;
+{$endif ndef CPUX86_HAS_SSE2}
 
-function CompareWord_SSE2(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} CompareWord {$else} CompareWord_SSE2 {$endif} (Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         push     %ebx
         sub      %eax, %edx { edx = buf2 - buf1 }
@@ -1665,6 +1701,7 @@ asm
         pop      %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function CompareWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
 
 var
@@ -1685,11 +1722,13 @@ function CompareWord(const buf1, buf2; len: SizeInt): SizeInt;
 begin
   result:=CompareWord_Impl(buf1, buf2, len);
 end;
+{$endif ndef CPUX86_HAS_SSE2 (need CompareWord dispatcher)}
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
+{$ifndef CPUX86_HAS_SSE2}
 function CompareDWord_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         sub     $1, %ecx
@@ -1714,8 +1753,9 @@ asm
         sbb     %eax, %eax
         or      $1, %eax
 end;
+{$endif}
 
-function CompareDWord_SSE2(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} CompareDWord {$else} CompareDWord_SSE2 {$endif} (Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         push     %ebx
         sub      %eax, %edx { edx = buf2 - buf1 }
@@ -1800,6 +1840,7 @@ asm
         xor     %eax, %eax
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function CompareDWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
 
 var
@@ -1820,6 +1861,7 @@ function CompareDWord(const buf1, buf2; len: SizeInt): SizeInt;
 begin
   result:=CompareDWord_Impl(buf1, buf2, len);
 end;
+{$endif ndef CPUX86_HAS_SSE2 (need CompareDWord dispatcher)}
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
 

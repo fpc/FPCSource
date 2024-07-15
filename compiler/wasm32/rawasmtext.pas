@@ -54,6 +54,8 @@ Unit rawasmtext;
         actasmpattern_origcase: string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
+        actinttoken   : aint;
+        actfloattoken : double;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
@@ -61,7 +63,7 @@ Unit rawasmtext;
         function is_valtype(const s: string):boolean;
         procedure HandleInstruction;
         procedure HandleFoldedInstruction;
-        procedure HandlePlainInstruction;
+        function HandlePlainInstruction: TWasmInstruction;
         procedure HandleBlockInstruction;virtual;abstract;
       public
         function Assemble: tlinkedlist;override;
@@ -106,9 +108,61 @@ Unit rawasmtext;
 
 
     procedure twasmreader.GetToken;
+
+      var
+        has_sign, is_hex, is_float: Boolean;
+
+      function GetIntToken: aint;
+        var
+          s: string;
+          u64: UInt64;
+        begin
+          s:=actasmpattern;
+          if has_sign and (s[1]='-') then
+            begin
+              delete(s,1,1);
+              if is_hex then
+                begin
+                  delete(s,1,2);
+                  Val('$'+s,u64);
+                end
+              else
+                Val(s,u64);
+{$push} {$R-}{$Q-}
+              result:=aint(-u64);
+{$pop}
+            end
+          else
+            begin
+              if has_sign then
+                delete(s,1,1);
+              if is_hex then
+                begin
+                  delete(s,1,2);
+                  Val('$'+s,u64);
+                end
+              else
+                Val(s,u64);
+              result:=aint(u64);
+            end;
+        end;
+
+      function GetFloatToken: double;
+        var
+          s: string;
+        begin
+          s:=actasmpattern;
+          if is_hex then
+            begin
+              { TODO: parse hex floats }
+              internalerror(2024071501);
+            end
+          else
+            Val(s,result);
+        end;
+
       var
         len: Integer;
-        has_sign, is_hex, is_float: Boolean;
         tmpS: string;
         tmpI, tmpCode: Integer;
       begin
@@ -298,9 +352,15 @@ Unit rawasmtext;
                 end;
               actasmpattern[0]:=chr(len);
               if is_float then
-                actasmtoken:=AS_REALNUM
+                begin
+                  actasmtoken:=AS_REALNUM;
+                  actfloattoken:=GetFloatToken;
+                end
               else
-                actasmtoken:=AS_INTNUM;
+                begin
+                  actasmtoken:=AS_INTNUM;
+                  actinttoken:=GetIntToken;
+                end;
             end;
           '"':
             begin
@@ -641,15 +701,15 @@ Unit rawasmtext;
       end;
 
 
-    procedure twasmreader.HandlePlainInstruction;
-      var
-        instr: TWasmInstruction;
+    function twasmreader.HandlePlainInstruction: TWasmInstruction;
       begin
+        result:=nil;
         case actasmtoken of
           AS_OPCODE:
             begin
-              instr:=TWasmInstruction.create(TWasmOperand);
-              instr.opcode:=actopcode;
+              result:=TWasmInstruction.create(TWasmOperand);
+              result.opcode:=actopcode;
+              Consume(AS_OPCODE);
               case actopcode of
                 { instructions, which require 0 operands }
                 a_nop,
@@ -710,6 +770,79 @@ Unit rawasmtext;
                 a_i64_extend16_s,
                 a_i64_extend32_s:
                   ;
+                { instructions with an integer const operand }
+                a_i32_const,
+                a_i64_const:
+                  begin
+                    if actasmtoken=AS_INTNUM then
+                      begin
+                        result.operands[1].opr.typ:=OPR_CONSTANT;
+                        result.operands[1].opr.val:=actinttoken;
+                        Consume(AS_INTNUM);
+                      end
+                    else
+                      begin
+                        { error: expected integer }
+                        result.Free;
+                        result:=nil;
+                        Consume(AS_INTNUM);
+                      end;
+                  end;
+                { instructions with a float const operand }
+                a_f32_const,
+                a_f64_const:
+                  begin
+                    case actasmtoken of
+                      AS_INTNUM:
+                        begin
+                          result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
+                          result.operands[1].opr.floatval:=actinttoken;
+                          Consume(AS_INTNUM);
+                        end;
+                      AS_REALNUM:
+                        begin
+                          result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
+                          result.operands[1].opr.floatval:=actfloattoken;
+                          Consume(AS_REALNUM);
+                        end;
+                      else
+                        begin
+                          { error: expected real }
+                          result.Free;
+                          result:=nil;
+                          Consume(AS_REALNUM);
+                        end;
+                    end;
+                  end;
+                { instructions with an optional memarg operand }
+                a_i32_load,
+                a_i64_load,
+                a_f32_load,
+                a_f64_load,
+                a_i32_load8_s,
+                a_i32_load8_u,
+                a_i32_load16_s,
+                a_i32_load16_u,
+                a_i64_load8_s,
+                a_i64_load8_u,
+                a_i64_load16_s,
+                a_i64_load16_u,
+                a_i64_load32_s,
+                a_i64_load32_u,
+                a_i32_store,
+                a_i64_store,
+                a_f32_store,
+                a_f64_store,
+                a_i32_store8,
+                a_i32_store16,
+                a_i64_store8,
+                a_i64_store16,
+                a_i64_store32:
+                  begin
+                    { TODO: parse the optional memarg operand }
+                    result.operands[1].opr.typ:=OPR_CONSTANT;
+                    result.operands[1].opr.val:=0;
+                  end;
                 else
                   internalerror(2024071401);
               end;

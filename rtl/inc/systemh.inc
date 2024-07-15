@@ -788,6 +788,18 @@ type
 (* means that default handling should be used. *)
   TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
 
+  Int128Rec = packed record
+    case integer of
+{$ifdef FPC_LITTLE_ENDIAN}
+      0 : (Lo,Hi : QWord);
+{$else FPC_LITTLE_ENDIAN}
+      0 : (Hi,Lo : QWord);
+{$endif FPC_LITTLE_ENDIAN}
+      1 : (DWords : Array[0..3] of DWord);
+      2 : (Words : Array[0..7] of Word);
+      3 : (Bytes : Array[0..15] of Byte);
+  end;
+
 { Numbers for routines that have compiler magic }
 {$I innr.inc}
 
@@ -913,17 +925,17 @@ Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$els
 procedure FillByte(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word); {$if defined(cpui386)}inline;{$endif}
 procedure FillDWord(var x;count:SizeInt;value:DWord); {$if defined(cpui386)}inline;{$endif}
-procedure FillQWord(var x;count:SizeInt;value:QWord); {$if defined(cpui386)}inline;{$endif}
+procedure FillQWord(var x;count:SizeInt;value:QWord); {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)}inline;{$endif}
 function  IndexChar(const buf;len:SizeInt;b:ansichar):SizeInt;
 function  IndexChar(const buf;len:SizeInt;b:widechar):SizeInt;
-function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt; {$if defined(cpui386)} inline; {$endif}
-function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386)} inline; {$endif}
-function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
+function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
+function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
 function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt; {$if defined(cpui386) or defined(cpux86_64)} inline; {$endif}
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
-function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
-function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
+function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
+function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:Ansichar):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
