@@ -54,6 +54,7 @@ Unit rawasmtext;
         actasmpattern_origcase: string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
+        actinttoken   : aint;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
@@ -106,9 +107,47 @@ Unit rawasmtext;
 
 
     procedure twasmreader.GetToken;
+
+      var
+        has_sign, is_hex, is_float: Boolean;
+
+      function GetIntToken: aint;
+        var
+          s: string;
+          u64: UInt64;
+        begin
+          s:=actasmpattern;
+          if has_sign and (s[1]='-') then
+            begin
+              delete(s,1,1);
+              if is_hex then
+                begin
+                  delete(s,1,2);
+                  Val('$'+s,u64);
+                end
+              else
+                Val(s,u64);
+{$push} {$R-}{$Q-}
+              result:=aint(-u64);
+{$pop}
+            end
+          else
+            begin
+              if has_sign then
+                delete(s,1,1);
+              if is_hex then
+                begin
+                  delete(s,1,2);
+                  Val('$'+s,u64);
+                end
+              else
+                Val(s,u64);
+              result:=aint(u64);
+            end;
+        end;
+
       var
         len: Integer;
-        has_sign, is_hex, is_float: Boolean;
         tmpS: string;
         tmpI, tmpCode: Integer;
       begin
@@ -300,7 +339,10 @@ Unit rawasmtext;
               if is_float then
                 actasmtoken:=AS_REALNUM
               else
-                actasmtoken:=AS_INTNUM;
+                begin
+                  actasmtoken:=AS_INTNUM;
+                  actinttoken:=GetIntToken;
+                end;
             end;
           '"':
             begin
@@ -650,6 +692,7 @@ Unit rawasmtext;
             begin
               instr:=TWasmInstruction.create(TWasmOperand);
               instr.opcode:=actopcode;
+              Consume(AS_OPCODE);
               case actopcode of
                 { instructions, which require 0 operands }
                 a_nop,
@@ -710,6 +753,24 @@ Unit rawasmtext;
                 a_i64_extend16_s,
                 a_i64_extend32_s:
                   ;
+                { instructions with an integer const operand }
+                a_i32_const,
+                a_i64_const:
+                  begin
+                    if actasmtoken=AS_INTNUM then
+                      begin
+                        instr.operands[1].opr.typ:=OPR_CONSTANT;
+                        instr.operands[1].opr.val:=actinttoken;
+                        Consume(AS_INTNUM);
+                      end
+                    else
+                      begin
+                        { error: expected integer }
+                        instr.Free;
+                        instr:=nil;
+                        Consume(AS_INTNUM);
+                      end;
+                  end;
                 else
                   internalerror(2024071401);
               end;
