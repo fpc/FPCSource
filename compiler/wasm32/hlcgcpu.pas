@@ -2051,31 +2051,35 @@ implementation
       pd:=tcpuprocdef(current_procinfo.procdef);
       g_procdef(list,pd);
 
-      ttgwasm(tg).allocframepointer(list,pd.frame_pointer_ref);
-      if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
-        ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
+      if not nostackframe then
+        begin
 
-      g_fingerprint(list);
+          ttgwasm(tg).allocframepointer(list,pd.frame_pointer_ref);
+          if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
+            ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
-      list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
-      incstack(list,1);
-      list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
-      decstack(list,1);
+          g_fingerprint(list);
 
-      if (localsize>0) then begin
-        list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
-        incstack(list,1);
-        list.concat(taicpu.op_const(a_i32_const, localsize ));
-        incstack(list,1);
-        list.concat(taicpu.op_none(a_i32_sub));
-        decstack(list,1);
-        list.Concat(taicpu.op_ref(a_local_set,pd.frame_pointer_ref));
-        decstack(list,1);
-        list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
-        incstack(list,1);
-        list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
-        decstack(list,1);
-      end;
+          list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
+          incstack(list,1);
+          list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
+          decstack(list,1);
+
+          if (localsize>0) then begin
+            list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
+            incstack(list,1);
+            list.concat(taicpu.op_const(a_i32_const, localsize ));
+            incstack(list,1);
+            list.concat(taicpu.op_none(a_i32_sub));
+            decstack(list,1);
+            list.Concat(taicpu.op_ref(a_local_set,pd.frame_pointer_ref));
+            decstack(list,1);
+            list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
+            incstack(list,1);
+            list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
+            decstack(list,1);
+          end;
+        end;
     end;
 
   procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
@@ -2083,12 +2087,15 @@ implementation
       pd: tcpuprocdef;
     begin
       pd:=tcpuprocdef(current_procinfo.procdef);
-      list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
-      incstack(list,1);
-      list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
-      decstack(list,1);
+      if not nostackframe then
+        begin
+          list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
+          incstack(list,1);
+          list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
+          decstack(list,1);
 
-      list.concat(taicpu.op_none(a_return));
+          list.concat(taicpu.op_none(a_return));
+        end;
       list.concat(taicpu.op_none(a_end_function));
     end;
 
