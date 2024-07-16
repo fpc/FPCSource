@@ -2343,21 +2343,27 @@ implementation
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
     begin
       inherited;
-      list.concat(taicpu.op_none(a_block));
-      list.concat(taicpu.op_none(a_block));
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          list.concat(taicpu.op_none(a_block));
+          list.concat(taicpu.op_none(a_block));
+        end;
     end;
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
-      list.concat(taicpu.op_none(a_end_block));
-      if ts_wasm_bf_exceptions in current_settings.targetswitches then
-        a_label(list,tcpuprocinfo(current_procinfo).CurrRaiseLabel);
-      if fevalstackheight<>0 then
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          list.concat(taicpu.op_none(a_end_block));
+          if ts_wasm_bf_exceptions in current_settings.targetswitches then
+            a_label(list,tcpuprocinfo(current_procinfo).CurrRaiseLabel);
+          if fevalstackheight<>0 then
 {$ifdef DEBUG_WASMSTACK}
-        list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
+            list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
 {$else DEBUG_WASMSTACK}
-        internalerror(2021091801);
+            internalerror(2021091801);
 {$endif DEBUG_WASMSTACK}
+        end;
       inherited;
     end;
 

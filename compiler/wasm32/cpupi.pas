@@ -475,7 +475,8 @@ implementation
 
     procedure tcpuprocinfo.generate_exit_label(list: tasmlist);
       begin
-        list.concat(taicpu.op_none(a_end_block));
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
+          list.concat(taicpu.op_none(a_end_block));
         inherited generate_exit_label(list);
       end;
 
