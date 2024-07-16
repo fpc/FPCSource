@@ -64,7 +64,7 @@ Unit rawasmtext;
         procedure HandleInstruction;
         procedure HandleFoldedInstruction;
         function HandlePlainInstruction: TWasmInstruction;
-        procedure HandleBlockInstruction;virtual;abstract;
+        procedure HandleBlockInstruction;
       public
         function Assemble: tlinkedlist;override;
       end;
@@ -904,6 +904,29 @@ Unit rawasmtext;
             end;
           else
             {error};
+        end;
+      end;
+
+
+    procedure twasmreader.HandleBlockInstruction;
+      var
+        instr: TWasmInstruction;
+      begin
+        if actasmtoken<>AS_OPCODE then
+          internalerror(2024071601);
+        case actopcode of
+          a_if,
+          a_block,
+          a_loop:
+            begin
+              instr:=TWasmInstruction.create(TWasmOperand);
+              instr.opcode:=actopcode;
+              Consume(AS_OPCODE);
+              {TODO: implement the rest}
+              internalerror(2024071699);
+            end;
+          else
+            internalerror(2024071602);
         end;
       end;
 
