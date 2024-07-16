@@ -984,6 +984,8 @@ implementation
         localslist: TAsmList;
         labels_resolved, has_goto: Boolean;
       begin
+        if po_assembler in procdef.procoptions then
+          exit;
         check_goto_br_instructions(aktproccode,has_goto);
 
         localslist:=prepare_locals;
