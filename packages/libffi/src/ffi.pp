@@ -398,6 +398,9 @@ type
   {$ifndef DARWIN}
     nfixedargs: cuint;
   {$endif}
+{$elseif defined(CPULOONGARCH64)}
+  loongarch_nfixedargs: cuint;
+  loongarch_unused: cuint;
 {$endif}
   end;
 
