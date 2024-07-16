@@ -796,7 +796,7 @@ end;
 
 function TFFIFunctionCallback.GetCodeAddress: CodePointer;
 begin
-  Result := fData;
+  Result := fCode;
 end;
 
 constructor TFFIFunctionCallback.Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
