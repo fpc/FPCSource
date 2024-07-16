@@ -543,6 +543,8 @@ Unit rawasmtext;
 
 
     procedure twasmreader.HandleInstruction;
+      var
+        instr: TWasmInstruction;
       begin
         case actasmtoken of
           AS_LPAREN:
@@ -558,7 +560,10 @@ Unit rawasmtext;
                 a_if:
                   HandleBlockInstruction;
                 else
-                  HandlePlainInstruction;
+                  begin
+                    instr:=HandlePlainInstruction;
+                    instr.ConcatInstruction(curlist);
+                  end;
               end;
             end;
           else
