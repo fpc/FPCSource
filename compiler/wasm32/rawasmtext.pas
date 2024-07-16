@@ -790,6 +790,7 @@ Unit rawasmtext;
                   begin
                     if actasmtoken=AS_INTNUM then
                       begin
+                        result.ops:=1;
                         result.operands[1].opr.typ:=OPR_CONSTANT;
                         result.operands[1].opr.val:=actinttoken;
                         Consume(AS_INTNUM);
@@ -809,12 +810,14 @@ Unit rawasmtext;
                     case actasmtoken of
                       AS_INTNUM:
                         begin
+                          result.ops:=1;
                           result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
                           result.operands[1].opr.floatval:=actinttoken;
                           Consume(AS_INTNUM);
                         end;
                       AS_REALNUM:
                         begin
+                          result.ops:=1;
                           result.operands[1].opr.typ:=OPR_FLOATCONSTANT;
                           result.operands[1].opr.floatval:=actfloattoken;
                           Consume(AS_REALNUM);
@@ -854,6 +857,7 @@ Unit rawasmtext;
                 a_i64_store32:
                   begin
                     { TODO: parse the optional memarg operand }
+                    result.ops:=1;
                     result.operands[1].opr.typ:=OPR_CONSTANT;
                     result.operands[1].opr.val:=0;
                   end;
@@ -865,6 +869,7 @@ Unit rawasmtext;
                   case actasmtoken of
                     AS_INTNUM:
                       begin
+                        result.ops:=1;
                         result.operands[1].opr.typ:=OPR_CONSTANT;
                         result.operands[1].opr.val:=actinttoken;
                         Consume(AS_INTNUM);
@@ -884,6 +889,7 @@ Unit rawasmtext;
                   case actasmtoken of
                     AS_INTNUM:
                       begin
+                        result.ops:=1;
                         result.operands[1].opr.typ:=OPR_CONSTANT;
                         result.operands[1].opr.val:=actinttoken;
                         Consume(AS_INTNUM);
