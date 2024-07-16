@@ -567,7 +567,7 @@ Unit rawasmtext;
               end;
             end;
           else
-            {error};
+            internalerror(2024071603);
         end;
       end;
 
@@ -724,7 +724,7 @@ Unit rawasmtext;
               result:=TWasmInstruction.create(TWasmOperand);
               result.opcode:=actopcode;
               Consume(AS_OPCODE);
-              case actopcode of
+              case result.opcode of
                 { instructions, which require 0 operands }
                 a_nop,
                 a_unreachable,
@@ -903,7 +903,7 @@ Unit rawasmtext;
               end;
             end;
           else
-            {error};
+            internalerror(2024071604);
         end;
       end;
 
@@ -955,6 +955,9 @@ Unit rawasmtext;
           case actasmtoken of
             AS_END:
               break; { end assembly block }
+            AS_OPCODE,
+            AS_LPAREN:
+              HandleInstruction;
             else
               begin
                 Consume(actasmtoken);
