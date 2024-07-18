@@ -3513,6 +3513,9 @@ unit_u_ppu_symansistr_mismatch=10069_U_Skipping unit, PPU and compiler have to b
 unit_u_ppu_wasm_threads_mismatch=10070_U_PPU and program must both be compiled with or without WebAssembly multithreading support
 % The user is compiling a program with multithreading turned on, but the unit was compiled with multithreading off,
 % or vice versa.
+unit_w_unsupported_esp_idf_version=10071_W_Unsupported esp-idf version
+% FPC supports only certain ESP-IDF versions. It is very unlikely that the resulting program works if this
+% warning is thrown.
 % \end{description}
 # EndOfTeX
 
