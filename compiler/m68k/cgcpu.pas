@@ -2587,6 +2587,8 @@ unit cgcpu;
         href: treference;
         hreg: tregister;
       begin
+        reg.reghi:=tcg68k(cg).force_to_dataregister(list,OS_32,reg.reghi);
+        reg.reglo:=tcg68k(cg).force_to_dataregister(list,OS_32,reg.reglo);
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
