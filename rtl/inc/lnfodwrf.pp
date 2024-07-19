@@ -79,15 +79,10 @@ type
 {$endif CPUI8086}
   TSegment = Word;
 
-const
-  EBUF_SIZE = 100;
-
 {$WARNING This code is not thread-safe, and needs improvement}
 var
   { the input file to read DWARF debug info from, i.e. paramstr(0) }
   e : TExeFile;
-  EBuf: Array [0..EBUF_SIZE-1] of Byte;
-  EBufCnt, EBufPos: Integer;
   { the offset and size of the DWARF debug_line section in the file }
   Dwarf_Debug_Line_Section_Offset,
   Dwarf_Debug_Line_Section_Size,
@@ -243,11 +238,6 @@ type
 {$endif cpui8086}
 
 var
-  base, limit : TFilePos;
-  index : TFilePos;
-  baseaddr : {$ifdef cpui8086}farpointer{$else}pointer{$endif};
-  filename,
-  dbgfn : ansistring;
   lastfilename: string;   { store last processed file }
   lastopendwarf: Boolean; { store last result of processing a file }
 
@@ -274,6 +264,8 @@ type
 function OpenDwarf(addr : codepointer) : boolean;
 var
   oldprocessaddress: TExeProcessAddress;
+  baseaddr : {$ifdef cpui8086}farpointer{$else}pointer{$endif};
+  filename,dbgfn : ansistring;
 begin
   // False by default
   OpenDwarf:=false;
@@ -351,166 +343,137 @@ begin
 end;
 
 
-function Init(aBase, aLimit : Int64) : Boolean;
+type
+  TEReader = object
+    bufstart, base, limit: Int64; { All of these are absolute. }
+    bufp, bufe: pByte; { bufp = pointer into buf, bufe - bufp = available bytes. }
+    buf: array[0 .. 1023] of byte;
+    function Init(aBase, aSize : Int64) : Boolean;
+    function Pos : TFilePos; { Relative to base. }
+    procedure Seek(newIndex : Int64); { Relative to base. }
+    function ReadNext : longint; inline;
+    function ReadNext(var dest; size : SizeInt) : Boolean;
+    function ReadULEB128 : QWord;
+    function ReadLEB128 : Int64;
+    function ReadAddress(addr_size: smallint) : PtrUInt;
+  {$ifdef CPUI8086}
+    function ReadSegment() : Word;
+  {$endif CPUI8086}
+    function ReadString : ShortString;
+    function ReadUHalf : Word;
+  private
+    function ReadNextBuffer : longint;
+  end;
+
+
+function TEReader.Init(aBase, aSize : Int64) : Boolean;
 begin
   base := aBase;
-  limit := aLimit;
-  Init := (aBase + limit) <= e.size;
-  seek(e.f, base);
-  EBufCnt := 0;
-  EBufPos := 0;
-  index := 0;
-end;
-
-function Init(aBase : Int64) : Boolean;
-begin
-  Init := Init(aBase, limit - (aBase - base));
+  limit := base + aSize;
+  Init := limit <= e.size;
+  Seek(0);
 end;
 
 
-function Pos() : TFilePos;
+function TEReader.Pos() : TFilePos;
 begin
-  Pos := index;
+  Pos := (bufstart - base) + (bufp - pByte(buf));
 end;
 
 
-procedure Seek(const newIndex : Int64);
+procedure TEReader.Seek(newIndex : Int64);
 begin
-  index := newIndex;
-  system.seek(e.f, base + index);
-  EBufCnt := 0;
-  EBufPos := 0;
+  bufstart := base + newIndex;
+  System.Seek(e.f, bufstart);
+  bufp := pByte(buf);
+  bufe := bufp;
 end;
 
 
 { Returns the next Byte from the input stream, or -1 if there has been
   an error }
-function ReadNext() : Longint; inline;
-var
-  bytesread : SizeInt;
+function TEReader.ReadNext() : Longint;
 begin
-  ReadNext := -1;
-  if EBufPos >= EBufCnt then begin
-    EBufPos := 0;
-    EBufCnt := EBUF_SIZE;
-    if EBufCnt > limit - index then
-      EBufCnt := limit - index;
-    blockread(e.f, EBuf, EBufCnt, bytesread);
-    EBufCnt := bytesread;
-  end;
-  if EBufPos < EBufCnt then begin
-    ReadNext := EBuf[EBufPos];
-    inc(EBufPos);
-    inc(index);
-  end
-  else
-    ReadNext := -1;
+  if (bufp = bufe) and (ReadNextBuffer <= 0) then
+    exit(-1);
+  ReadNext := bufp^;
+  inc(bufp);
 end;
 
 { Reads the next size bytes into dest. Returns true if successful,
   false otherwise. Note that dest may be partially overwritten after
-  returning false. }
-function ReadNext(var dest; size : SizeInt) : Boolean;
+  returning false. dest = nil^ — skip size bytes. }
+function TEReader.ReadNext(var dest; size : SizeInt) : Boolean;
 var
-  bytesread, totalread : SizeInt;
-  r: Boolean;
+  bytesread : SizeInt;
   d: PByte;
 begin
   d := @dest;
-  totalread := 0;
-  r := True;
-  while (totalread < size) and r do begin;
-    if EBufPos >= EBufCnt then begin
-      EBufPos := 0;
-      EBufCnt := EBUF_SIZE;
-      if EBufCnt > limit - index then
-        EBufCnt := limit - index;
-      blockread(e.f, EBuf, EBufCnt, bytesread);
-      EBufCnt := bytesread;
-      if bytesread <= 0 then
-        r := False;
+  while (size > 0) and ((bufp < bufe) or (ReadNextBuffer > 0)) do
+    begin
+      bytesread := bufe - bufp;
+      if bytesread > size then bytesread := size;
+      if Assigned(d) then
+        begin
+          Move(bufp^, d^, bytesread);
+          inc(d, bytesread);
+        end;
+      inc(bufp, bytesread);
+      dec(size, bytesread);
     end;
-    if EBufPos < EBufCnt then begin
-      bytesread := EBufCnt - EBufPos;
-      if bytesread > size - totalread then bytesread := size - totalread;
-      System.Move(EBuf[EBufPos], d[totalread], bytesread);
-      inc(EBufPos, bytesread);
-      inc(index, bytesread);
-      inc(totalread, bytesread);
-    end;
-  end;
-  ReadNext := r;
+  ReadNext := size = 0;
 end;
 
 
 { Reads an unsigned LEB encoded number from the input stream }
-function ReadULEB128() : QWord;
+function TEReader.ReadULEB128() : QWord;
 var
-  shift : Byte;
-  data : PtrInt;
-  val : QWord;
+  shift : cardinal;
 begin
   shift := 0;
   ReadULEB128 := 0;
-  data := ReadNext();
-  while (data <> -1) do begin
-    val := data and $7f;
-    ReadULEB128 := ReadULEB128 or (val shl shift);
+  repeat
+    if (bufp = bufe) and (ReadNextBuffer <= 0) then break;
+    ReadULEB128 := ReadULEB128 or (QWord(bufp^ and $7f) shl shift);
+    inc(bufp);
     inc(shift, 7);
-    if ((data and $80) = 0) then
-      break;
-    data := ReadNext();
-  end;
+  until ((bufp[-1] and $80) = 0);
 end;
 
 { Reads a signed LEB encoded number from the input stream }
-function ReadLEB128() : Int64;
+function TEReader.ReadLEB128() : Int64;
 var
-  shift : Byte;
-  data : PtrInt;
-  val : Int64;
+  shift : cardinal;
 begin
   shift := 0;
   ReadLEB128 := 0;
-  data := ReadNext();
-  while (data <> -1) do begin
-    val := data and $7f;
-    ReadLEB128 := ReadLEB128 or (val shl shift);
+  repeat
+    if (bufp = bufe) and (ReadNextBuffer <= 0) then break;
+    ReadLEB128 := ReadLEB128 or (Int64(bufp^ and $7f) shl shift);
+    inc(bufp);
     inc(shift, 7);
-    if ((data and $80) = 0) then
-      break;
-    data := ReadNext();
-  end;
+  until ((bufp[-1] and $80) = 0);
   { extend sign. Note that we can not use shl/shr since the latter does not
     translate to arithmetic shifting for signed types }
   ReadLEB128 := (not ((ReadLEB128 and (Int64(1) shl (shift-1)))-1)) or ReadLEB128;
 end;
 
 
-{$ifdef CPUI8086}
 { Reads an address from the current input stream }
-function ReadAddress(addr_size: smallint) : LongWord;
+function TEReader.ReadAddress(addr_size: smallint) : PtrUInt;
 begin
-  if addr_size = 4 then
-    ReadNext(ReadAddress, 4)
-  else if addr_size = 2 then begin
-    ReadAddress := 0;
-    ReadNext(ReadAddress, 2);
-  end
-  else
-    ReadAddress := 0;
+{$ifdef CPUI8086}
+  ReadAddress := 0;
+  if (addr_size = 4) or (addr_size = 2) then
+{$endif}
+    ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
 
+{$ifdef CPUI8086}
 { Reads a segment from the current input stream }
-function ReadSegment() : Word;
+function TEReader.ReadSegment() : Word;
 begin
   ReadNext(ReadSegment, sizeof(ReadSegment));
-end;
-{$else CPUI8086}
-{ Reads an address from the current input stream }
-function ReadAddress(addr_size: smallint) : PtrUInt;
-begin
-  ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
 {$endif CPUI8086}
 
@@ -518,37 +481,44 @@ end;
 { Reads a zero-terminated string from the current input stream. If the
   string is larger than 255 chars (maximum allowed number of elements in
   a ShortString, excess characters will be chopped off. }
-function ReadString() : ShortString;
+function TEReader.ReadString() : ShortString;
 var
-  temp : PtrInt;
-  i : PtrUInt;
+  nbufpart,zp,nmove : SizeInt;
 begin
-  i := 1;
-  temp := ReadNext();
-  while (temp > 0) do begin
-    ReadString[i] := AnsiChar(temp);
-    if (i = 255) then begin
-      { skip remaining characters }
-      repeat
-        temp := ReadNext();
-      until (temp <= 0);
-      break;
+  ReadString[0] := #0;
+  repeat
+    if (bufp = bufe) and (ReadNextBuffer <= 0) then exit(''); { unexpected end of file occurred }
+    nbufpart := bufe - bufp;
+    zp := IndexByte(bufp^, nbufpart, 0); { Search #0 in the available buffer. }
+    if zp >= 0 then nbufpart := zp; { #0 found, copy up to it (otherwise copy the entire available buffer, and don’t end). }
+    nmove := 255 - length(ReadString);
+    if nmove <> 0 then begin
+      if nmove > nbufpart then nmove := nbufpart;
+      Move(bufp^, ReadString[1 + length(ReadString)], nmove);
+      inc(byte(ReadString[0]), nmove);
     end;
-    inc(i);
-    temp := ReadNext();
-  end;
-  { unexpected end of file occurred? }
-  if (temp = -1) then
-    ReadString := ''
-  else
-    Byte(ReadString[0]) := i-1;
+    inc(bufp, nbufpart);
+  until zp >= 0;
+  inc(bufp); { Null terminator. }
 end;
 
 
 { Reads an unsigned Half from the current input stream }
-function ReadUHalf() : Word;
+function TEReader.ReadUHalf() : Word;
 begin
   ReadNext(ReadUHalf, sizeof(ReadUHalf));
+end;
+
+function TEReader.ReadNextBuffer : longint;
+begin
+  inc(bufstart, bufp - pByte(buf));
+  ReadNextBuffer := limit - bufstart;
+  if ReadNextBuffer > 0 then begin
+    if ReadNextBuffer > length(buf) then ReadNextBuffer := length(buf);
+    BlockRead(e.f, buf, ReadNextBuffer, ReadNextBuffer);
+    bufp := pByte(buf);
+    bufe := pByte(buf) + ReadNextBuffer;
+  end;
 end;
 
 
@@ -592,37 +562,37 @@ end;
 
 
 { Skips all line info directory entries }
-procedure SkipDirectories();
+procedure SkipDirectories(var er: TEReader);
 var s : ShortString;
 begin
   while (true) do begin
-    s := ReadString();
+    s := er.ReadString();
     if (s = '') then break;
     DEBUG_WRITELN('Skipping directory : ', s);
   end;
 end;
 
 { Skips an LEB128 }
-procedure SkipLEB128();
+procedure SkipLEB128(var er: TEReader);
 {$ifdef DEBUG_DWARF_PARSER}
 var temp : QWord;
 {$endif}
 begin
-  {$ifdef DEBUG_DWARF_PARSER}temp := {$endif}ReadLEB128();
+  {$ifdef DEBUG_DWARF_PARSER}temp := {$endif}er.ReadLEB128();
   DEBUG_WRITELN('Skipping LEB128 : ', temp);
 end;
 
 { Skips the filename section from the current file stream }
-procedure SkipFilenames();
+procedure SkipFilenames(var er: TEReader);
 var s : ShortString;
 begin
   while (true) do begin
-    s := ReadString();
+    s := er.ReadString();
     if (s = '') then break;
     DEBUG_WRITELN('Skipping filename : ', s);
-    SkipLEB128(); { skip the directory index for the file }
-    SkipLEB128(); { skip last modification time for file }
-    SkipLEB128(); { skip length of file }
+    SkipLEB128(er); { skip the directory index for the file }
+    SkipLEB128(er); { skip last modification time for file }
+    SkipLEB128(er); { skip length of file }
   end;
 end;
 
@@ -631,7 +601,7 @@ begin
   CalculateAddressIncrement := (Int64(opcode) - header.opcode_base) div header.line_range * header.minimum_instruction_length;
 end;
 
-function GetFullFilename(const filenameStart, directoryStart : Int64; const file_id : DWord) : ShortString;
+function GetFullFilename(var er: TEReader; const filenameStart, directoryStart : Int64; const file_id : DWord) : ShortString;
 var
   i : DWord;
   filename, directory : ShortString;
@@ -640,14 +610,14 @@ begin
   filename := '';
   directory := '';
   i := 1;
-  Seek(filenameStart);
+  er.Seek(filenameStart);
   while (i <= file_id) do begin
-    filename := ReadString();
+    filename := er.ReadString();
     DEBUG_WRITELN('Found "', filename, '"');
     if (filename = '') then break;
-    dirindex := ReadLEB128(); { read the directory index for the file }
-    SkipLEB128(); { skip last modification time for file }
-    SkipLEB128(); { skip length of file }
+    dirindex := er.ReadLEB128(); { read the directory index for the file }
+    SkipLEB128(er); { skip last modification time for file }
+    SkipLEB128(er); { skip length of file }
     inc(i);
   end;
   { if we could not find the file index, exit }
@@ -656,10 +626,10 @@ begin
     exit;
   end;
 
-  Seek(directoryStart);
+  er.Seek(directoryStart);
   i := 1;
   while (i <= dirindex) do begin
-    directory := ReadString();
+    directory := er.ReadString();
     if (directory = '') then break;
     inc(i);
   end;
@@ -669,7 +639,7 @@ begin
 end;
 
 
-function ParseCompilationUnit(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
+function ParseCompilationUnit(var er : TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
@@ -710,22 +680,22 @@ begin
 
   found := false;
 
-  ReadNext(temp_length, sizeof(temp_length));
+  er.ReadNext(temp_length, sizeof(temp_length));
   if (temp_length <> $ffffffff) then begin
     unit_length := temp_length + sizeof(temp_length)
   end else begin
-    ReadNext(unit_length, sizeof(unit_length));
+    er.ReadNext(unit_length, sizeof(unit_length));
     inc(unit_length, 12);
   end;
 
   ParseCompilationUnit := file_offset + unit_length;
 
-  Init(file_offset, unit_length);
+  er.Init(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
-    ReadNext(header32, sizeof(header32));
+    er.ReadNext(header32, sizeof(header32));
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -740,7 +710,7 @@ begin
       sizeof(header32.unit_length);
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
-    ReadNext(header64, sizeof(header64));
+    er.ReadNext(header64, sizeof(header64));
     header_length :=
       sizeof(header64.magic) + sizeof(header64.version) +
       sizeof(header64.length) + sizeof(header64.unit_length);
@@ -749,32 +719,32 @@ begin
   inc(header_length, header64.length);
 
   fillchar(numoptable, sizeof(numoptable), #0);
-  ReadNext(numoptable, header64.opcode_base-1);
+  er.ReadNext(numoptable, header64.opcode_base-1);
   DEBUG_WRITELN('Opcode parameter count table');
   for i := 1 to header64.opcode_base-1 do begin
     DEBUG_WRITELN('Opcode[', i, '] - ', numoptable[i], ' parameters');
   end;
 
   DEBUG_WRITELN('Reading directories...');
-  include_directories := Pos();
-  SkipDirectories();
+  include_directories := er.Pos();
+  SkipDirectories(er);
   DEBUG_WRITELN('Reading filenames...');
-  file_names := Pos();
-  SkipFilenames();
+  file_names := er.Pos();
+  SkipFilenames(er);
 
-  Seek(header_length);
+  er.Seek(header_length);
 
   with header64 do begin
     InitStateRegisters(state, default_is_stmt);
   end;
-  opcode := ReadNext();
+  opcode := er.ReadNext();
   while (opcode <> -1) and (not found) do begin
     DEBUG_WRITELN('Next opcode: ');
     case (opcode) of
       { extended opcode }
       0 : begin
-        extended_opcode_length := ReadULEB128();
-        extended_opcode := ReadNext();
+        extended_opcode_length := er.ReadULEB128();
+        extended_opcode := er.ReadNext();
         case (extended_opcode) of
           -1: begin
             exit;
@@ -785,27 +755,26 @@ begin
             DEBUG_WRITELN('DW_LNE_END_SEQUENCE');
           end;
           DW_LNE_SET_ADDRESS : begin
-            state.address := ReadAddress(extended_opcode_length-1);
+            state.address := er.ReadAddress(extended_opcode_length-1);
             DEBUG_WRITELN('DW_LNE_SET_ADDRESS (', hexstr(state.address, sizeof(state.address)*2), ')');
           end;
 {$ifdef CPUI8086}
           DW_LNE_SET_SEGMENT : begin
-            state.segment := ReadSegment();
+            state.segment := er.ReadSegment();
             DEBUG_WRITELN('DW_LNE_SET_SEGMENT (', hexstr(state.segment, sizeof(state.segment)*2), ')');
           end;
 {$endif CPUI8086}
           DW_LNE_DEFINE_FILE : begin
-            {$ifdef DEBUG_DWARF_PARSER}s := {$endif}ReadString();
-            SkipLEB128();
-            SkipLEB128();
-            SkipLEB128();
+            {$ifdef DEBUG_DWARF_PARSER}s := {$endif}er.ReadString();
+            SkipLEB128(er);
+            SkipLEB128(er);
+            SkipLEB128(er);
             DEBUG_WRITELN('DW_LNE_DEFINE_FILE (', s, ')');
           end;
           else begin
             DEBUG_WRITELN('Unknown extended opcode (opcode ', extended_opcode, ' length ', extended_opcode_length, ')');
-            for i := 0 to extended_opcode_length-2 do
-              if ReadNext() = -1 then
-                exit;
+            if (extended_opcode_length>1) and not er.ReadNext(nil^, extended_opcode_length-1) then
+              exit;
           end;
         end;
       end;
@@ -817,21 +786,21 @@ begin
         DEBUG_WRITELN('DW_LNS_COPY');
       end;
       DW_LNS_ADVANCE_PC : begin
-        inc(state.address, ReadULEB128() * header64.minimum_instruction_length);
+        inc(state.address, er.ReadULEB128() * header64.minimum_instruction_length);
         DEBUG_WRITELN('DW_LNS_ADVANCE_PC (', hexstr(state.address, sizeof(state.address)*2), ')');
       end;
       DW_LNS_ADVANCE_LINE : begin
         // inc(state.line, ReadLEB128()); negative values are allowed
         // but those may generate a range check error
-        state.line := state.line + ReadLEB128();
+        state.line := state.line + er.ReadLEB128();
         DEBUG_WRITELN('DW_LNS_ADVANCE_LINE (', state.line, ')');
       end;
       DW_LNS_SET_FILE : begin
-        state.file_id := ReadULEB128();
+        state.file_id := er.ReadULEB128();
         DEBUG_WRITELN('DW_LNS_SET_FILE (', state.file_id, ')');
       end;
       DW_LNS_SET_COLUMN : begin
-        state.column := ReadULEB128();
+        state.column := er.ReadULEB128();
         DEBUG_WRITELN('DW_LNS_SET_COLUMN (', state.column, ')');
       end;
       DW_LNS_NEGATE_STMT : begin
@@ -847,7 +816,7 @@ begin
         DEBUG_WRITELN('DW_LNS_CONST_ADD_PC (', hexstr(state.address, sizeof(state.address)*2), ')');
       end;
       DW_LNS_FIXED_ADVANCE_PC : begin
-        inc(state.address, ReadUHalf());
+        inc(state.address, er.ReadUHalf());
         DEBUG_WRITELN('DW_LNS_FIXED_ADVANCE_PC (', hexstr(state.address, sizeof(state.address)*2), ')');
       end;
       DW_LNS_SET_PROLOGUE_END : begin
@@ -859,14 +828,14 @@ begin
         DEBUG_WRITELN('DW_LNS_SET_EPILOGUE_BEGIN');
       end;
       DW_LNS_SET_ISA : begin
-        state.isa := ReadULEB128();
+        state.isa := er.ReadULEB128();
         DEBUG_WRITELN('DW_LNS_SET_ISA (', state.isa, ')');
       end;
       else begin { special opcode }
         if (opcode < header64.opcode_base) then begin
           DEBUG_WRITELN('Unknown standard opcode $', hexstr(opcode, 2), '; skipping');
           for i := 1 to numoptable[opcode] do
-            SkipLEB128();
+            SkipLEB128(er);
         end else begin
           adjusted_opcode := opcode - header64.opcode_base;
           addrIncrement := CalculateAddressIncrement(opcode, header64);
@@ -923,7 +892,7 @@ begin
       end;
     end;
 
-    opcode := ReadNext();
+    opcode := er.ReadNext();
   end;
 
   if (found) then
@@ -935,69 +904,66 @@ begin
           prev_file := state.file_id;
         end;
       line := prev_line;
-      source := GetFullFilename(file_names, include_directories, prev_file);
+      source := GetFullFilename(er, file_names, include_directories, prev_file);
     end;
 end;
 
 
-var
-  Abbrev_Offsets : array of QWord;
-  Abbrev_Tags : array of QWord;
-  Abbrev_Children : array of Byte;
-  Abbrev_Attrs : array of array of record attr,form : QWord; end;
+type
+  TAbbrevs = record
+    Tags : array of QWord;
+    Children : array of Byte;
+    Attrs : array of array of record attr,form : QWord; end;
+  end;
 
-procedure ReadAbbrevTable;
+procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
   var
    i : PtrInt;
    tag,
    nr,
    attr,
-   form,
-   PrevHigh : Int64;
+   form : Int64;
   begin
-    DEBUG_WRITELN('Starting to read abbrev. section at $',hexstr(Dwarf_Debug_Abbrev_Section_Offset+Pos,16));
+    DEBUG_WRITELN('Starting to read abbrev. section at $',hexstr(Dwarf_Debug_Abbrev_Section_Offset+er.Pos,16));
     repeat
-      nr:=ReadULEB128;
+      nr:=er.ReadULEB128;
       if nr=0 then
         break;
 
-      if nr>high(Abbrev_Offsets) then
+      if nr>high(abbrevs.Tags) then
         begin
-          SetLength(Abbrev_Offsets,nr+1024);
-          SetLength(Abbrev_Tags,nr+1024);
-          SetLength(Abbrev_Attrs,nr+1024);
-          SetLength(Abbrev_Children,nr+1024);
+          SetLength(abbrevs.Tags,SizeUint(nr)+128+SizeUint(nr) div 4);
+          SetLength(abbrevs.Attrs,length(abbrevs.Tags));
+          SetLength(abbrevs.Children,length(abbrevs.Tags));
         end;
 
-      Abbrev_Offsets[nr]:=Pos;
-
       { read tag }
-      tag:=ReadULEB128;
-      Abbrev_Tags[nr]:=tag;
-      DEBUG_WRITELN('Abbrev ',nr,' at offset ',Pos,' has tag $',hexstr(tag,4));
+      tag:=er.ReadULEB128;
+      abbrevs.Tags[nr]:=tag;
+      DEBUG_WRITELN('Abbrev ',nr,' at offset ',er.Pos,' has tag $',hexstr(tag,4));
       { read flag for children }
-      Abbrev_Children[nr]:=ReadNext;
+      abbrevs.Children[nr]:=er.ReadNext;
       i:=0;
       { ensure that length(Abbrev_Attrs)=0 if an entry is overwritten (not sure if this will ever happen) and
         the new entry has no attributes }
-      Abbrev_Attrs[nr]:=nil;
+      abbrevs.Attrs[nr]:=nil;
       repeat
-        attr:=ReadULEB128;
-        form:=ReadULEB128;
+        attr:=er.ReadULEB128;
+        form:=er.ReadULEB128;
         if attr<>0 then
           begin
-            SetLength(Abbrev_Attrs[nr],i+1);
-            Abbrev_Attrs[nr][i].attr:=attr;
-            Abbrev_Attrs[nr][i].form:=form;
+            SetLength(abbrevs.Attrs[nr],i+1);
+            abbrevs.Attrs[nr][i].attr:=attr;
+            abbrevs.Attrs[nr][i].form:=form;
           end;
         inc(i);
       until attr=0;
-      DEBUG_WRITELN('Abbrev ',nr,' has ',Length(Abbrev_Attrs[nr]),' attributes');
+      DEBUG_WRITELN('Abbrev ',nr,' has ',Length(abbrevs.Attrs[nr]),' attributes');
     until false;
   end;
 
 
-function ParseCompilationUnitForDebugInfoOffset(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
+function ParseCompilationUnitForDebugInfoOffset(var er: TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var debug_info_offset : QWord; var found : Boolean) : QWord;
 {$ifndef CPUI8086}
 const
@@ -1007,7 +973,6 @@ var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugArangesHeader64;
   header32 : TDebugArangesHeader32;
-  isdwarf64 : boolean;
   temp_length : DWord;
   unit_length : QWord;
 {$ifdef CPUI8086}
@@ -1019,46 +984,44 @@ var
 begin
   found := false;
 
-  ReadNext(temp_length, sizeof(temp_length));
+  er.ReadNext(temp_length, sizeof(temp_length));
   if (temp_length <> $ffffffff) then begin
     unit_length := temp_length + sizeof(temp_length)
   end else begin
-    ReadNext(unit_length, sizeof(unit_length));
+    er.ReadNext(unit_length, sizeof(unit_length));
     inc(unit_length, 12);
   end;
 
   ParseCompilationUnitForDebugInfoOffset := file_offset + unit_length;
 
-  Init(file_offset, unit_length);
+  er.Init(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then
     begin
       DEBUG_WRITELN('32 bit DWARF detected');
-      ReadNext(header32, sizeof(header32));
+      er.ReadNext(header32, sizeof(header32));
       header64.magic := $ffffffff;
       header64.unit_length := header32.unit_length;
       header64.version := header32.version;
       header64.debug_info_offset := header32.debug_info_offset;
       header64.address_size := header32.address_size;
       header64.segment_size := header32.segment_size;
-      isdwarf64:=false;
     end
   else
     begin
       DEBUG_WRITELN('64 bit DWARF detected');
-      ReadNext(header64, sizeof(header64));
-      isdwarf64:=true;
+      er.ReadNext(header64, sizeof(header64));
     end;
 
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
   DEBUG_WRITELN('address_size: ', header64.address_size);
   DEBUG_WRITELN('segment_size: ', header64.segment_size);
-  arange_start:=ReadAddress(header64.address_size);
+  arange_start:=er.ReadAddress(header64.address_size);
 {$ifdef CPUI8086}
-  arange_segment:=ReadSegment();
+  arange_segment:=er.ReadSegment();
 {$endif CPUI8086}
-  arange_size:=ReadAddress(header64.address_size);
+  arange_size:=er.ReadAddress(header64.address_size);
 
   while not((arange_start=0) and (arange_segment=0) and (arange_size=0)) and (not found) do
     begin
@@ -1069,15 +1032,15 @@ begin
           DEBUG_WRITELN('Matching aranges entry $',hexStr(arange_start,header64.address_size*2),', $',hexStr(arange_size,header64.address_size*2));
         end;
 
-      arange_start:=ReadAddress(header64.address_size);
+      arange_start:=er.ReadAddress(header64.address_size);
 {$ifdef CPUI8086}
-      arange_segment:=ReadSegment();
+      arange_segment:=er.ReadSegment();
 {$endif CPUI8086}
-      arange_size:=ReadAddress(header64.address_size);
+      arange_size:=er.ReadAddress(header64.address_size);
     end;
 end;
 
-function ParseCompilationUnitForFunctionName(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
+function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var func : String; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1092,56 +1055,35 @@ var
   name : String;
   level : Integer;
 
-procedure SkipAttr(form : QWord);
+procedure SkipAttr(var er: TEReader; form : QWord);
   var
-    dummy : array[0..7] of byte;
-    bl : byte;
-    wl : word;
-    dl : dword;
-    ql : qword;
-    i : PtrUInt;
+    dl,nskip : dword;
   begin
+    nskip := 0;
     case form of
       DW_FORM_addr:
-        ReadNext(dummy,header64.address_size);
+        nskip := header64.address_size;
       DW_FORM_block2:
-        begin
-          ReadNext(wl,SizeOf(wl));
-          for i:=1 to wl do
-            ReadNext;
-        end;
+        nskip := er.ReadUHalf;
       DW_FORM_block4:
         begin
-          ReadNext(dl,SizeOf(dl));
-          for i:=1 to dl do
-            ReadNext;
+          er.ReadNext(dl,SizeOf(dl));
+          nskip := dl;
         end;
-      DW_FORM_data2:
-        ReadNext(dummy,2);
-      DW_FORM_data4:
-        ReadNext(dummy,4);
-      DW_FORM_data8:
-        ReadNext(dummy,8);
+      DW_FORM_data2, DW_FORM_data4, DW_FORM_data8:
+        nskip := 2 shl (form - DW_FORM_data2);
       DW_FORM_string:
-        ReadString;
+        er.ReadString;
       DW_FORM_block,
       DW_FORM_exprloc:
-        begin
-          ql:=ReadULEB128;
-          for i:=1 to ql do
-            ReadNext;
-        end;
+        nskip := er.ReadULEB128;
       DW_FORM_block1:
-        begin
-          bl:=ReadNext;
-          for i:=1 to bl do
-            ReadNext;
-        end;
+        nskip := er.ReadNext;
       DW_FORM_data1,
       DW_FORM_flag:
-        ReadNext(dummy,1);
+        er.ReadNext;
       DW_FORM_sdata:
-        ReadLEB128;
+        er.ReadLEB128;
       DW_FORM_ref_addr:
         { the size of DW_FORM_ref_addr changed between DWAWRF2 and later versions:
           in DWARF2 it depends on the architecture address size, in later versions on the DWARF type (32 bit/64 bit)
@@ -1149,73 +1091,67 @@ procedure SkipAttr(form : QWord);
         if header64.version>2 then
           begin
             if isdwarf64 then
-              ReadNext(dummy,8)
+              nskip := 8
             else
-              ReadNext(dummy,4);
+              nskip := 4;
           end
         else
           begin
             { address size for DW_FORM_ref_addr must be at least 32 bits }
             { this is compatible with Open Watcom on i8086 }
             if header64.address_size<4 then
-              ReadNext(dummy,4)
+              nskip := 4
             else
-              ReadNext(dummy,header64.address_size);
+              nskip := header64.address_size;
           end;
       DW_FORM_strp,
       DW_FORM_sec_offset:
         if isdwarf64 then
-          ReadNext(dummy,8)
+          nskip := 8
         else
-          ReadNext(dummy,4);
+          nskip := 4;
       DW_FORM_udata:
-        ReadULEB128;
-      DW_FORM_ref1:
-        ReadNext(dummy,1);
-      DW_FORM_ref2:
-        ReadNext(dummy,2);
-      DW_FORM_ref4:
-        ReadNext(dummy,4);
-      DW_FORM_ref8:
-        ReadNext(dummy,8);
+        er.ReadULEB128;
+      DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8:
+        nskip := 1 shl (form - DW_FORM_ref1);
       DW_FORM_ref_udata:
-        ReadULEB128;
+        er.ReadULEB128;
       DW_FORM_indirect:
-        SkipAttr(ReadULEB128);
+        SkipAttr(er, er.ReadULEB128);
       DW_FORM_flag_present: {none};
       else
         begin
           writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
-          ReadNext;
-          exit;
+          nskip := 1;
         end;
     end;
+    er.ReadNext(nil^, nskip);
   end;
 
 var
   i : PtrInt;
-  prev_base,prev_limit : TFilePos;
-  prev_pos : TFilePos;
+  prev_base,prev_size,prev_pos : TFilePos;
+  abbrevs : TAbbrevs;
 
 begin
   found := false;
 
-  ReadNext(temp_length, sizeof(temp_length));
+  er.ReadNext(temp_length, sizeof(temp_length));
   if (temp_length <> $ffffffff) then begin
     unit_length := temp_length + sizeof(temp_length)
   end else begin
-    ReadNext(unit_length, sizeof(unit_length));
+    er.ReadNext(unit_length, sizeof(unit_length));
     inc(unit_length, 12);
   end;
 
   ParseCompilationUnitForFunctionName := file_offset + unit_length;
 
-  Init(file_offset, unit_length);
+  er.Init(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then begin
     DEBUG_WRITELN('32 bit DWARF detected');
-    ReadNext(header32, sizeof(header32));
+    er.ReadNext(header32, sizeof(header32));
     header64.magic := $ffffffff;
     header64.unit_length := header32.unit_length;
     header64.version := header32.version;
@@ -1224,7 +1160,7 @@ begin
     isdwarf64:=false;
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
-    ReadNext(header64, sizeof(header64));
+    er.ReadNext(header64, sizeof(header64));
     isdwarf64:=true;
   end;
 
@@ -1232,54 +1168,54 @@ begin
   DEBUG_WRITELN('address_size: ',header64.address_size);
 
   { not nice, but we have to read the abbrev section after the start of the debug_info section has been read }
-  prev_limit:=limit;
-  prev_base:=base;
-  prev_pos:=Pos;
-  Init(Dwarf_Debug_Abbrev_Section_Offset+header64.debug_abbrev_offset,Dwarf_Debug_Abbrev_Section_Size);
-  ReadAbbrevTable;
+  prev_size:=er.limit-er.base;
+  prev_base:=er.base;
+  prev_pos:=er.Pos;
+  er.Init(Dwarf_Debug_Abbrev_Section_Offset+header64.debug_abbrev_offset,Dwarf_Debug_Abbrev_Section_Size);
+  ReadAbbrevTable(er, abbrevs);
 
   { restore previous reading state and position }
-  Init(prev_base,prev_limit);
-  Seek(prev_pos);
+  er.Init(prev_base,prev_size);
+  er.Seek(prev_pos);
 
-  abbrev:=ReadULEB128;
+  abbrev:=er.ReadULEB128;
   level:=0;
   while (abbrev <> 0) and (not found) do
     begin
       DEBUG_WRITELN('Next abbrev: ',abbrev);
-      if Abbrev_Children[abbrev]<>0 then
+      if abbrevs.Children[abbrev]<>0 then
         inc(level);
       { DW_TAG_subprogram? }
-      if Abbrev_Tags[abbrev]=$2e then
+      if abbrevs.Tags[abbrev]=$2e then
         begin
           low_pc:=1;
           high_pc:=0;
           name:='';
-          for i:=0 to high(Abbrev_Attrs[abbrev]) do
+          for i:=0 to high(abbrevs.Attrs[abbrev]) do
             begin
               { DW_AT_low_pc }
-              if (Abbrev_Attrs[abbrev][i].attr=$11) and
-               (Abbrev_Attrs[abbrev][i].form=DW_FORM_addr) then
+              if (abbrevs.Attrs[abbrev][i].attr=$11) and
+               (abbrevs.Attrs[abbrev][i].form=DW_FORM_addr) then
                 begin
                   low_pc:=0;
-                  ReadNext(low_pc,header64.address_size);
+                  er.ReadNext(low_pc,header64.address_size);
                 end
               { DW_AT_high_pc }
-              else if (Abbrev_Attrs[abbrev][i].attr=$12) and
-               (Abbrev_Attrs[abbrev][i].form=DW_FORM_addr) then
+              else if (abbrevs.Attrs[abbrev][i].attr=$12) and
+               (abbrevs.Attrs[abbrev][i].form=DW_FORM_addr) then
                 begin
                   high_pc:=0;
-                  ReadNext(high_pc,header64.address_size);
+                  er.ReadNext(high_pc,header64.address_size);
                 end
               { DW_AT_name }
-              else if (Abbrev_Attrs[abbrev][i].attr=$3) and
+              else if (abbrevs.Attrs[abbrev][i].attr=$3) and
                 { avoid that we accidently read an DW_FORM_strp entry accidently }
-                (Abbrev_Attrs[abbrev][i].form=DW_FORM_string) then
+                (abbrevs.Attrs[abbrev][i].form=DW_FORM_string) then
                 begin
-                  name:=ReadString;
+                  name:=er.ReadString;
                 end
               else
-                SkipAttr(Abbrev_Attrs[abbrev][i].form);
+                SkipAttr(er, abbrevs.Attrs[abbrev][i].form);
             end;
           DEBUG_WRITELN('Got DW_TAG_subprogram with low pc = $',hexStr(low_pc,header64.address_size*2),', high pc = $',hexStr(high_pc,header64.address_size*2),', name = ',name);
           if (addr>low_pc) and (addr<high_pc) then
@@ -1290,15 +1226,15 @@ begin
         end
       else
         begin
-          for i:=0 to high(Abbrev_Attrs[abbrev]) do
-            SkipAttr(Abbrev_Attrs[abbrev][i].form);
+          for i:=0 to high(abbrevs.Attrs[abbrev]) do
+            SkipAttr(er, abbrevs.Attrs[abbrev][i].form);
         end;
-      abbrev:=ReadULEB128;
+      abbrev:=er.ReadULEB128;
       { skip entries signaling that no more child entries are following }
       while (level>0) and (abbrev=0) do
         begin
           dec(level);
-          abbrev:=ReadULEB128;
+          abbrev:=er.ReadULEB128;
         end;
     end;
 end;
@@ -1329,6 +1265,7 @@ var
 
   found, found_aranges : Boolean;
   CacheIndex: CodePtrUInt;
+  er: TEReader;
 
 begin
   func := '';
@@ -1365,8 +1302,8 @@ begin
 
   found := false;
   while (current_offset < end_offset) and (not found) do begin
-    Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnit(addr, segment, current_offset,
+    er.Init(current_offset, end_offset - current_offset);
+    current_offset := ParseCompilationUnit(er, addr, segment, current_offset,
       source, line, found);
   end;
 
@@ -1375,8 +1312,8 @@ begin
 
   found_aranges := false;
   while (current_offset < end_offset) and (not found_aranges) do begin
-    Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
+    er.Init(current_offset, end_offset - current_offset);
+    current_offset := ParseCompilationUnitForDebugInfoOffset(er, addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
   end;
 
   { no function name found yet }
@@ -1390,8 +1327,8 @@ begin
 
       DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
-      Init(current_offset, end_offset - current_offset);
-      current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
+      er.Init(current_offset, end_offset - current_offset);
+      current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
       if found then
         DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
     end
@@ -1404,8 +1341,8 @@ begin
   while (current_offset < end_offset) and (not found) do begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
-    Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
+    er.Init(current_offset, end_offset - current_offset);
+    current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
   end;
 
   if not AllowReuseOfLineInfoData then
