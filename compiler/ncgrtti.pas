@@ -260,8 +260,11 @@ implementation
               sym:=tprocsym(st.symlist[i]);
               inc(totalcount,sym.procdeflist.count);
               for j:=0 to sym.procdeflist.count-1 do
-                if tprocdef(sym.procdeflist[j]).visibility in visibilities then
+                begin
+                def:=tprocdef(sym.procdeflist[j]);
+                if (def.visibility in visibilities) and not (def.is_generic) then
                   inc(rtticount);
+                end;
             end;
 
         { write the count section for non-extended methods }
@@ -285,7 +288,7 @@ implementation
                   begin
                     def:=tprocdef(sym.procdeflist[j]);
 
-                    if not (def.visibility in visibilities) then
+                    if (def.is_generic) or not (def.visibility in visibilities) then
                       continue;
 
                     def.init_paraloc_info(callerside);
@@ -701,6 +704,7 @@ implementation
               end;
           end;
         { insert field count before data }
+        maybe_add_comment(tcb,'Field count');
         tcb.emit_ord_const(fieldcnt,u32inttype);
         { parent object? }
         if parentrtti then
@@ -783,6 +787,8 @@ implementation
         methodcount,
         i, j: longint;
         sym: tprocsym;
+        pdef : tprocdef;
+
       begin
         { count methods }
         methodcount:=0;
@@ -791,13 +797,17 @@ implementation
             begin
               sym:=tprocsym(def.symtable.symlist[i]);
               for j:=0 to sym.procdeflist.count-1 do
-                if def.is_visible_for_rtti(ro_methods,tprocdef(sym.procdeflist[j]).visibility) then
+                begin
+                pdef:=tprocdef(sym.procdeflist[j]);
+                if (not pdef.is_generic) and def.is_visible_for_rtti(ro_methods,pdef.visibility) then
                   inc(methodcount);
+                end;
             end;
 
         tcb.begin_anonymous_record('',packrecords,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin);
         { emit method count }
+        maybe_add_comment(tcb,'RTTI Method table: method count');
         tcb.emit_ord_const(methodcount,u16inttype);
         { emit method entries (array) }
         if methodcount>0 then
@@ -836,6 +846,7 @@ implementation
           end;
         }
         tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_table]+tostr(list.count),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[target_info.system]^.alignment.recordalignmin);
+        maybe_add_comment(tcb,'RTTI: Extended Field count');
         tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin
@@ -1124,6 +1135,10 @@ implementation
       begin
         tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin);
+        if extended_rtti then
+          maybe_add_comment(tcb,'RTTI: Extended property data: Property count')
+        else
+          maybe_add_comment(tcb,'RTTI: Legacy property data: Property count');
         tcb.emit_ord_const(properties_count(st),u16inttype);
         for i:=0 to st.SymList.Count-1 do
           begin
