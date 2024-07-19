@@ -1638,7 +1638,6 @@ type  Psorted_array=^Tsorted_array;
 
 var l,r,l2,r2,m,sp,isp:SizeInt;
     c:char;
-    cs:Pstring;
 
 begin
   {Val for numbers accepts spaces at the start, so lets do the same
@@ -1662,16 +1661,15 @@ begin
       break;
     inc(isp);
     c:=UpCase(s[sp]);
-    cs:=Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].s;
     { Among all strings beginning with, say, ‘ab’, the ‘ab’ itself will be the first.
       So after this check, “isp ≤ length(any string in the range)” is guaranteed. }
-    if isp>length(cs^) then
+    if isp>length(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].s^) then
       begin
         inc(l);
         if l=r then
           break;
       end;
-    if UpCase(cs^[isp])=c then { Shortcut: L may be already correct (enums often have common prefixes). }
+    if UpCase(Psorted_array(Pstring_to_ord(str2ordindex)^.data)[l].s^[isp])=c then { Shortcut: L may be already correct (enums often have common prefixes). }
       begin
         if l+1=r then { Shortcut: the only string left (enums often have different suffixes). }
           continue;
