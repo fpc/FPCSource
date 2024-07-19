@@ -5916,7 +5916,10 @@ begin
         Inc(IdxCount);
         obj := GRttiPool[FUsePublishedOnly].GetByHandle(TP);
         if Assigned(obj) then
-          FProperties[I]:=obj as TRttiProperty
+          begin
+          Prop:=obj as TRttiProperty;
+          FProperties[I]:=Prop;
+          end
         else
           begin
           Prop:=TRttiProperty.Create(Self, TP);
@@ -5927,6 +5930,7 @@ begin
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       end;
+    FPropertiesResolved:=True;
   finally
     if Assigned(List) then
       FreeMem(List);
