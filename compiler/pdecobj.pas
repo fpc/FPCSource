@@ -1703,8 +1703,13 @@ implementation
             else
               olddef:=nil;
               
-            { apply $RTTI directive to current object }
-            current_structdef.apply_rtti_directive(current_module.rtti_directive);
+            { if set explicitly, apply $RTTI directive to current object }
+            if current_module.rtti_directive.clause<>rtc_none then
+              current_structdef.apply_rtti_directive(current_module.rtti_directive)
+            else
+              { if not set, and class has a parent, take parent object settings }
+              if (objectType = odt_class) and assigned(current_objectdef.childof) then
+                current_structdef.apply_rtti_directive(current_objectdef.childof.rtti);
 
             { generate TObject VMT space }
             { We must insert the VMT at the start for system.tobject, and class_tobject was already set.
