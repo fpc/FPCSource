@@ -1516,12 +1516,12 @@ var
   DynLinkStr,
   StripStr,
   FixedExeFileName: string;
-  {$if defined(XTENSA) or defined(RISCV32)}
+  {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
   memory_script,
   sections_script,
   cntrlr,
   extraopts: AnsiString;
-  {$endif defined(XTENSA) or defined(RISCV32)}
+  {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
 begin
   { for future use }
   StaticStr:='';

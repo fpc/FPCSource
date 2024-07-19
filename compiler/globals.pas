@@ -293,12 +293,12 @@ Const
        { specified with -FW and -Fw }
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
-{$if defined(XTENSA) or defined(RISCV32)}
+{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
        { specified with -Ff }
        idfpath           : TPathStr;
        { specified with }
        idf_version       : longint;
-{$endif defined(XTENSA) or defined(RISCV32)}
+{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
        { external assembler extra option }
        asmextraopt       : string;
 
