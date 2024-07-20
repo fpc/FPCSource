@@ -62,6 +62,13 @@ asm
   f64.add
 end;
 
+function test_call: longint; assembler; nostackframe;
+asm
+  i32.const 10
+  i32.const 17
+  call $test_i32_add
+end;
+
 begin
   Check(test_i32_const = 5);
   Check(test_i64_const = 1234567890123456);
@@ -71,5 +78,6 @@ begin
   Check(test_i64_add(12354312234, 654765532432) = 667119844666);
   Check(Abs(test_f32_add(1.23, 4.56) - 5.79) < eps);
   Check(Abs(test_f64_add(1.23456, 4.56789) - 5.80245) < eps);
+  Check(test_call = 27);
   Writeln('Ok!');
 end.
