@@ -717,6 +717,9 @@ Unit rawasmtext;
 
 
     function twasmreader.HandlePlainInstruction: TWasmInstruction;
+      var
+        srsym: tsym;
+        srsymtable: TSymtable;
       begin
         result:=nil;
         case actasmtoken of
@@ -914,6 +917,40 @@ Unit rawasmtext;
                         result.Free;
                         result:=nil;
                         Consume(AS_INTNUM);
+                      end;
+                  end;
+
+                a_call:
+                  case actasmtoken of
+                    AS_ID:
+                      begin
+                        AsmSearchSym(upper(Copy(actasmpattern,2,Length(actasmpattern)-1)),srsym,srsymtable);
+                        if assigned(srsym) then
+                          begin
+                            case srsym.typ of
+                              procsym:
+                                begin
+                                  if Tprocsym(srsym).ProcdefList.Count>1 then
+                                    Message(asmr_w_calling_overload_func);
+
+                                  result.ops:=1;
+                                  result.operands[1].opr.typ:=OPR_SYMBOL;
+                                  result.operands[1].opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION);
+                                  Consume(AS_ID);
+                                end;
+                              else
+                                Message(asmr_e_wrong_sym_type);
+                            end;
+                          end
+                        else
+                          Message1(sym_e_unknown_id,actasmpattern);
+                      end;
+                    else
+                      begin
+                        { error: expected identifier }
+                        result.Free;
+                        result:=nil;
+                        Consume(AS_ID);
                       end;
                   end;
 
