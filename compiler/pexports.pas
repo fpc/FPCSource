@@ -197,68 +197,70 @@ implementation
                     if (DefString<>'') and UseDeffileForExports then
                      DefFile.AddExport(DefString);
                   end;
-                case srsym.typ of
-                  procsym:
-                    begin
-                      { if no specific name or index was given, then if }
-                      { the procedure has aliases defined export those, }
-                      { otherwise export the name as it appears in the  }
-                      { export section (it doesn't make sense to export }
-                      { the generic mangled name, because the name of   }
-                      { the parent unit is used in that)                }
-                      if (options*[eo_name,eo_index]=[]) and
-                         (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
-                        exportallprocsymnames(tprocsym(srsym),options)
-                      else
-                        begin
-                          { there's a name or an index -> export only one name   }
-                          { correct? Or can you export multiple names with the   }
-                          { same index? And/or should we also export the aliases }
-                          { if a name is specified? (JM)                         }
+                // consumed the symbol. Only do something if there was no error.
+                if ErrorCount=0 then
+                  case srsym.typ of
+                    procsym:
+                      begin
+                       { if no specific name or index was given, then if }
+                       { the procedure has aliases defined export those, }
+                       { otherwise export the name as it appears in the  }
+                       { export section (it doesn't make sense to export }
+                       { the generic mangled name, because the name of   }
+                       { the parent unit is used in that)                }
+                       if (options*[eo_name,eo_index]=[]) and
+                          (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
+                         exportallprocsymnames(tprocsym(srsym),options)
+                       else
+                         begin
+                           { there's a name or an index -> export only one name   }
+                           { correct? Or can you export multiple names with the   }
+                           { same index? And/or should we also export the aliases }
+                           { if a name is specified? (JM)                         }
 
-                          if not (eo_name in options) then
-                            { Export names are not mangled on Windows and OS/2 }
-                            if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
-                              hpname:=orgs
-                            { Use set mangled name in case of cdecl/cppdecl/mwpascal }
-                            { and no name specified                                  }
-                            else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                              hpname:=target_info.cprefix+tprocsym(srsym).realname
-                            else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
-                              hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
-                            else
-                              hpname:=orgs;
+                           if not (eo_name in options) then
+                             { Export names are not mangled on Windows and OS/2 }
+                             if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
+                               hpname:=orgs
+                             { Use set mangled name in case of cdecl/cppdecl/mwpascal }
+                             { and no name specified                                  }
+                             else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
+                               hpname:=target_info.cprefix+tprocsym(srsym).realname
+                             else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
+                               hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
+                             else
+                               hpname:=orgs;
 
-                          exportprocsym(srsym,hpname,index,options);
-                        end
-                    end;
-                  staticvarsym:
-                    begin
-                      if not (eo_name in options) then
-                        { for "cvar" }
-                        if (vo_has_mangledname in tstaticvarsym(srsym).varoptions) then
-                          hpname:=srsym.mangledname
-                        else
-                          hpname:=orgs;
-                      exportvarsym(srsym,hpname,index,options);
-                    end;
-                  typesym:
-                    begin
-                      case ttypesym(srsym).typedef.typ of
-                        objectdef:
-                          case tobjectdef(ttypesym(srsym).typedef).objecttype of
-                            odt_objcclass:
-                              exportobjcclass(tobjectdef(ttypesym(srsym).typedef));
-                            else
-                              internalerror(2009092601);
-                          end;
-                        else
-                          internalerror(2009092602);
+                           exportprocsym(srsym,hpname,index,options);
+                         end
                       end;
-                    end;
-                  else
-                    internalerror(2019050502);
-                end
+                    staticvarsym:
+                      begin
+                        if not (eo_name in options) then
+                          { for "cvar" }
+                          if (vo_has_mangledname in tstaticvarsym(srsym).varoptions) then
+                            hpname:=srsym.mangledname
+                          else
+                            hpname:=orgs;
+                        exportvarsym(srsym,hpname,index,options);
+                      end;
+                    typesym:
+                      begin
+                        case ttypesym(srsym).typedef.typ of
+                          objectdef:
+                            case tobjectdef(ttypesym(srsym).typedef).objecttype of
+                              odt_objcclass:
+                                exportobjcclass(tobjectdef(ttypesym(srsym).typedef));
+                              else
+                                internalerror(2009092601);
+                            end;
+                          else
+                            internalerror(2009092602);
+                        end;
+                      end;
+                   else
+                     internalerror(2019050502);
+                   end; // Case srsym.typ
              end
            else
              consume(_ID);
