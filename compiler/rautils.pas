@@ -45,7 +45,8 @@ type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
             OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,
             OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG,
-            OPR_REGPAIR,OPR_FENCEFLAGS,OPR_INDEXEDREG,OPR_FLOATCONSTANT);
+            OPR_REGPAIR,OPR_FENCEFLAGS,OPR_INDEXEDREG,OPR_FLOATCONSTANT,
+            OPR_FUNCTYPE);
 
   TOprRec = record
     case typ:TOprType of
@@ -91,6 +92,7 @@ type
 {$endif aarch64}
 {$ifdef wasm32}
       OPR_FLOATCONSTANT: (floatval:double);
+      OPR_FUNCTYPE     : (functype: TWasmFuncType);
 {$endif wasm32}
   end;
 
@@ -1345,6 +1347,8 @@ end;
                   else
                     internalerror(2024072001);
                 end;
+              OPR_FUNCTYPE:
+                ai.loadfunctype(i-1,functype);
 {$endif wasm32}
               { ignore wrong operand }
               OPR_NONE:

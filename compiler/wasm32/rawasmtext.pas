@@ -81,7 +81,7 @@ Unit rawasmtext;
       { aasm }
       cpuinfo,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,symdef,symutil,
+      symconst,symbase,symtype,symsym,symtable,symdef,symutil,symcpu,
       { parser }
       scanner,pbase,
       procinfo,
@@ -933,9 +933,13 @@ Unit rawasmtext;
                                   if Tprocsym(srsym).ProcdefList.Count>1 then
                                     Message(asmr_w_calling_overload_func);
 
-                                  result.ops:=1;
+                                  result.ops:=2;
                                   result.operands[1].opr.typ:=OPR_SYMBOL;
                                   result.operands[1].opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname,AT_FUNCTION);
+
+                                  result.operands[2].opr.typ:=OPR_FUNCTYPE;
+                                  result.operands[2].opr.functype:=tcpuprocdef(tprocsym(srsym).ProcdefList[0]).create_functype;
+
                                   Consume(AS_ID);
                                 end;
                               else
