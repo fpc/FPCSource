@@ -4,7 +4,7 @@
 
 [package]
 main=fcl-web
-version=3.2.3
+version=3.2.4-rc1
 
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb \
