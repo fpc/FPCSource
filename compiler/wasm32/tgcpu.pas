@@ -67,6 +67,9 @@ unit tgcpu;
 
        ttgwasm = class(ttgobj)
         private
+         localsfirsttemp,
+         localslasttemp: longint;
+
          procedure updateFirstTemp;
 
          procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
@@ -205,8 +208,8 @@ unit tgcpu;
 
     procedure ttgwasm.updateFirstTemp;
     begin
-      firsttemp := localvars.varindex;
-      if lasttemp<firsttemp then lasttemp := firsttemp;
+      localsfirsttemp := localvars.varindex;
+      if localslasttemp<localsfirsttemp then localslasttemp := localsfirsttemp;
     end;
 
     constructor ttgwasm.create;
@@ -223,8 +226,9 @@ unit tgcpu;
 
     procedure ttgwasm.setfirsttemp(l: asizeint);
       begin
-        firsttemp:=l;
-        lasttemp:=l;
+        inherited setfirsttemp(0);
+        localsfirsttemp:=l;
+        localslasttemp:=l;
         localvars.varindex := l; //?
       end;
 
