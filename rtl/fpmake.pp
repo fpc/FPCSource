@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='rtl';
 {$endif ALLPACKAGES}
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
 
     // Where to find the sources using firstmatch
     P.SourcePath.Add('$(OS)');

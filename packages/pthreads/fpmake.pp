@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,aix,dragonfly,android];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

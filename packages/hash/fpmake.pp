@@ -30,7 +30,7 @@ begin
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('rtl-extra');
 
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     T:=P.Targets.AddUnit('src/md5.pp');
     T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
     T:=P.Targets.AddUnit('src/sha1.pp');

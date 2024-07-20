@@ -22,7 +22,7 @@ begin
     P:=AddPackage('fcl-web');
     P.ShortName:='fclw';
     P.Directory:=ADirectory;
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

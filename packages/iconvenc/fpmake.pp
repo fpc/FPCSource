@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.Author := 'Marco van de Voort';
     P.License := 'Library: LGPL2 or later, header: LGPL with modification, ';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,linux,aix];

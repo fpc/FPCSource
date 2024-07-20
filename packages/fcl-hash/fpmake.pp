@@ -32,7 +32,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('hash');
 
-    P.Version:='3.3.1';
+    P.Version:='3.2.4-rc1';
     T:=P.Targets.AddUnit('src/fpecc.pp');
     T:=P.Targets.AddUnit('src/fphashutils.pp');
     T.Dependencies.AddUnit('fpecc');

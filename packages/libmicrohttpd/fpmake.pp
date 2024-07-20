@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.Author := 'Library: GNU foundation, header: Silvio Clecio';
     P.License := 'Library: LGPL or later, header: LGPL with modification';
     P.HomepageURL := 'https://www.gnu.org/software/libmicrohttpd/';

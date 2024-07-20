@@ -34,7 +34,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('paszlib');
     P.Dependencies.add('winunits-base',AllWindowsOSes-[wince]);
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.Dependencies.add('libfontconfig',[linux] + AllBSDOses);
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');
     T:=P.Targets.AddUnit('src/fpparsettf.pp');

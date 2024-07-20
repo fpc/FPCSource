@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.3';
+    P.Version:='3.2.4-rc1';
     P.CPUs:=[i386,x86_64,powerpc,powerpc64,aarch64];
     P.OSes:=[darwin];
     P.Dependencies.Add('univint');
