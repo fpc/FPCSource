@@ -87,6 +87,7 @@ Unit rawasmtext;
       procinfo,
       rabase,rautils,
       cgbase,cgutils,cgobj,
+      hlcgobj,hlcgcpu,
       { wasm }
       itcpuwasm
       ;
@@ -894,7 +895,19 @@ Unit rawasmtext;
                         result.operands[1].opr.val:=actinttoken;
                         Consume(AS_INTNUM);
                       end;
-                    {TODO:AS_ID}
+                    AS_ID:
+                      begin
+                        case actasmpattern of
+                          '$'+STACK_POINTER_SYM:
+                            begin
+                              result.ops:=1;
+                              result.operands[1].opr.typ:=OPR_SYMBOL;
+                              result.operands[1].opr.symbol:=thlcgwasm(hlcg).RefStackPointerSym;
+                            end;
+                          else
+                            internalerror(2024072002);
+                        end;
+                      end;
                     else
                       begin
                         { error: expected integer }

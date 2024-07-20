@@ -55,12 +55,13 @@ uses
                               (check d.size to determine which one of the two)
         }
       function is_methodptr_like_type(d:tdef): boolean;
-      function RefStackPointerSym: TWasmGlobalAsmSymbol;
      public
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
       destructor Destroy; override;
+
+      function RefStackPointerSym: TWasmGlobalAsmSymbol;
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
