@@ -1335,6 +1335,17 @@ end;
              OPR_FENCEFLAGS:
                ai.loadfenceflags(i-1,fenceflags);
 {$endif riscv32 or riscv64}
+{$ifdef wasm32}
+              OPR_FLOATCONSTANT:
+                case opcode of
+                  a_f32_const:
+                    ai.loadsingle(i-1,floatval);
+                  a_f64_const:
+                    ai.loaddouble(i-1,floatval);
+                  else
+                    internalerror(2024072001);
+                end;
+{$endif wasm32}
               { ignore wrong operand }
               OPR_NONE:
                 ;
