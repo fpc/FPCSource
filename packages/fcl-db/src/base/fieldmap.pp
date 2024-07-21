@@ -31,9 +31,9 @@ type
   { TFieldMap }
   TTransformMap = class(TObject)
   Protected
-    function TransFormString(const aString : RawByteString) : RawByteString; virtual; overload;
-    function TransFormString(const aString : UnicodeString) : UnicodeString; virtual; overload;
-    function TransFormString(const aString : WideString) : WideString; virtual; overload;
+    function TransformString(const aString : RawByteString) : RawByteString; virtual; overload;
+    function TransformString(const aString : UnicodeString) : UnicodeString; virtual; overload;
+    function TransformString(const aString : WideString) : WideString; virtual; overload;
   end;
 
   TFieldMap = Class(TTransFormMap)
@@ -487,17 +487,17 @@ end;
 
 { TTransformMap }
 
-function TTransformMap.TransFormString(const aString: RawByteString): RawByteString;
+function TTransformMap.TransformString(const aString: RawByteString): RawByteString;
 begin
   Result:=aString;
 end;
 
-function TTransformMap.TransFormString(const aString: UnicodeString): UnicodeString;
+function TTransformMap.TransformString(const aString: UnicodeString): UnicodeString;
 begin
   Result:=aString;
 end;
 
-function TTransformMap.TransFormString(const aString: WideString): WideString;
+function TTransformMap.TransformString(const aString: WideString): WideString;
 begin
   Result:=aString;
 end;
@@ -536,7 +536,7 @@ function TParamMap.SetParam(P: TParam; const aValue: AnsiString): Boolean;
 begin
   Result:=Assigned(P);
   If Result then
-    P.AsString:=TransFormString(aValue);
+    P.AsString:=TransformString(aValue);
 end;
 
 function TParamMap.SetParam(P: TParam; aValue: Boolean): Boolean;
@@ -593,14 +593,14 @@ function TParamMap.SetParam(P: TParam; const aValue: UnicodeString): Boolean;
 begin
   Result:=Assigned(P);
   If Result then
-    P.AsUnicodeString:=TransFormString(aValue);
+    P.AsUnicodeString:=TransformString(aValue);
 end;
 
 function TParamMap.SetParam(P: TParam; const aValue: WideString): Boolean;
 begin
   Result:=Assigned(P);
   If Result then
-    P.AsWideString:=TransFormString(aValue);
+    P.AsWideString:=TransformString(aValue);
 end;
 
 function TParamMap.SetParam(P: TParam; aValue: TBytes): Boolean;
@@ -687,7 +687,7 @@ begin
     Result:=F.AsString
   else
     Result:=ADefault;
-  Result:=TransFormString(Result);
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; ADefault: Boolean): Boolean;
@@ -760,7 +760,7 @@ begin
     Result:=F.AsUnicodeString
   else
     Result:=ADefault;
-  Result:=TransFormString(Result);
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; const ADefault: WideString): WideString;
@@ -769,7 +769,7 @@ begin
     Result:=F.AsWideString
   else
     Result:=ADefault;
-  Result:=TransFormString(Result);
+  Result:=TransformString(Result);
 end;
 
 function TFieldMap.GetFromField(F: TField; ADefault: TBytes): TBytes;
