@@ -32,7 +32,8 @@ Type
 
   { TGenFieldMapOptions }
   TFieldMapOption = (fmoPublicFields,fmoRequireFields,fmoLoadObject,fmoCreateParamMap,fmoSaveObject,fmoOverrideTransformString,fmoDefineArray,fmoDefineList);
-  TListParent = (lpFPList,lpList,lpObjectList,lpFPObjectList,lpGenericList);
+  TListParent = (lpFPList,lpList,lpObjectList,lpFPObjectList,lpGenericList,lpFGLGenericList);
+  
   TFieldMapOptions = Set of TFieldMapOption;
 
   TGenFieldMapOptions = Class(TClassCodeGeneratorOptions)
@@ -161,6 +162,7 @@ begin
   case FieldMapOpts.ListParent of
     lpList,
     lpGenericList : Result:='TList';
+    lpFGLGenericList :Result:='TFPGList';
     lpFPList : Result:='TFPList';
     lpFPObjectList : Result:='TFPObjectList';
     lpObjectList : Result:='TObjectList';
@@ -235,6 +237,7 @@ begin
     lpFPObjectList,
     lpObjectList: Result:='contnrs';
     lpGenericList : Result:='Generics.Collections';
+    lpFGLGenericList : Result:='fgl';
   else
     Result:='';
   end;
