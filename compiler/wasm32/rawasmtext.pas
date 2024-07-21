@@ -1012,7 +1012,6 @@ Unit rawasmtext;
         gettoken;
         { main loop }
         repeat
-          Writeln(actasmtoken);
           case actasmtoken of
             AS_END:
               break; { end assembly block }
