@@ -32,7 +32,7 @@ procedure PASCALMAIN; external 'PASCALMAIN';
 {$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS) or defined(FPC_WASM_NATIVE_EXCEPTIONS)}
 Procedure DoUnHandledException; external name 'FPC_DOUNHANDLEDEXCEPTION';
 
-procedure _initialize;
+procedure _initialize_pascal;
 begin
   try
     PASCALMAIN;
@@ -41,11 +41,27 @@ begin
   end;
 end;
 {$else}
-procedure _initialize;
+procedure _initialize_pascal;
 begin
   PASCALMAIN;
 end;
 {$endif}
+
+procedure SetInitialHeapBlockStart(p: Pointer); external name 'FPC_WASM_SETINITIALHEAPBLOCKSTART';
+
+{ TODO: remove this, when calling SetInitialHeapBlockStart works directly from within inline asm }
+procedure SetInitialHeapBlockStart2(p: Pointer);
+begin
+  SetInitialHeapBlockStart(p);
+end;
+
+procedure _initialize; assembler; nostackframe;
+asm
+  global.get $__stack_pointer
+  call $SetInitialHeapBlockStart2
+
+  call $_initialize_pascal
+end;
 
 exports
   _initialize,

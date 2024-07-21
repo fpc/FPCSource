@@ -20,6 +20,14 @@
                               Heap Management
 *****************************************************************************}
 
+var
+  InitialHeapBlockStart: Pointer;
+
+procedure SetInitialHeapBlockStart(p: Pointer);[Public, Alias : 'FPC_WASM_SETINITIALHEAPBLOCKSTART'];
+begin
+  InitialHeapBlockStart:=p;
+end;
+
 function SysOSAlloc(size: ptruint): pointer;
 const
   page_size = 65536;
