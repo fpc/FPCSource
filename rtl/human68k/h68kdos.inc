@@ -125,6 +125,26 @@ type
   end;
   Ph68kdos_filbuf = ^Th68kdos_filbuf;
 
+type
+  Th68kdos_exfilbuf = record
+    searchatr: byte;
+    driveno: byte;
+    dirsec: dword;
+    dirlft: word;
+    dirpos: word;
+    filename: array[0..7] of char;
+    ext: array[0..2] of char;
+    atr: byte;
+    time: word;
+    date: word;
+    filelen: dword;
+    name: array[0..22] of char;
+    drive: array[0..2] of char;
+    path: array[0..64] of char;
+    unused: array[0..20] of byte;
+  end;
+  Ph68kdos_exfilbuf = ^Th68kdos_exfilbuf;
+
 // as used by seek
 const
     SEEK_FROM_START   = 0;
