@@ -31,11 +31,13 @@ uses
 Type
 
   { TGenFieldMapOptions }
-  TFieldMapOption = (fmoPublicFields,fmoRequireFields,fmoLoadObject,fmoCreateParamMap,fmoSaveObject,fmoOverrideTransformString);
+  TFieldMapOption = (fmoPublicFields,fmoRequireFields,fmoLoadObject,fmoCreateParamMap,fmoSaveObject,fmoOverrideTransformString,fmoDefineArray,fmoDefineList);
+  TListParent = (lpFPList,lpList,lpObjectList,lpFPObjectList,lpGenericList);
   TFieldMapOptions = Set of TFieldMapOption;
 
   TGenFieldMapOptions = Class(TClassCodeGeneratorOptions)
   Private
+    FListParent: TListParent;
     FOptions: TFieldMapOptions;
     FMapClassName : String;
     FMapAncestorClassName : String;
@@ -57,6 +59,7 @@ Type
     Property MapClassName : String Read GetMapName Write SetMapClassName;
     Property ParamMapAncestorName : String Read GetParamMapAncestorName Write SetParamMapAncestorName;
     Property ParamMapClassName : String Read GetParamMapName Write SetParamMapClassName;
+    Property ListParent : TListParent Read FListParent Write FlistParent;
     Property AncestorClass;
   Published
     Property FieldMapOptions : TFieldMapOptions Read FOptions Write FOptions;
@@ -74,6 +77,10 @@ Type
     Function GetInterfaceUsesClause : string; override;
     Function CreateOptions : TCodeGeneratorOptions; override;
     // New methods
+    function GetListParent: string; virtual;
+    function GetListParentUnit: String; virtual;
+    procedure CreateObjectListDeclaration(Strings: TStrings; const aObjectClassName: string);virtual;
+    procedure CreateObjectListImplementation(Strings: TStrings; const aObjectClassName: string);virtual;
     procedure AddTransFormOverrideDeclarations(Strings: TStrings); virtual;
     procedure AddTransFormOverrideImplementations(Strings: TStrings; MapClassName: string); virtual;
     procedure WriteFillMethod(Strings: TStrings; const ObjectClassName, MapClassName: String); virtual;
@@ -84,6 +91,7 @@ Type
     procedure WriteParamMapInitParams(Strings: TStrings; const ObjectClassName,   MapClassName: String); virtual;
     procedure CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
     procedure CreateParamMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
+    procedure CreateObjectArrayDeclaration(Strings: TStrings; const aObjectClassName: string);
     Property FieldMapOpts : TGenFieldMapOptions Read Getopt;
   Public
     Class function NeedsFieldDefs: Boolean; override;
@@ -102,9 +110,11 @@ Type
     Property MapAncestorName;
     Property ParamMapClassName;
     Property ParamMapAncestorName;
+    Property ListParent;
   end;
 
   TDDDBFieldMapCodeGenerator = Class(TDDBaseFieldMapCodeGenerator)
+  private
   Protected
     Function CreateOptions : TCodeGeneratorOptions; override;
     Procedure DoGenerateInterface(Strings: TStrings); override;
@@ -136,17 +146,126 @@ begin
   Result:=CodeOptions as TGenFieldMapOptions;
 end;
 
+procedure TDDBaseFieldMapCodeGenerator.CreateObjectArrayDeclaration(Strings : TStrings; const aObjectClassName : string);
+
+begin
+  IncIndent;
+  AddLn(Strings,'%sArray = Array of %s;',[aObjectClassName,aObjectClassName]);
+  Addln(Strings,'');
+  DecIndent;
+end;
+
+function TDDBaseFieldMapCodeGenerator.GetListParent : string;
+
+begin
+  case FieldMapOpts.ListParent of
+    lpList,
+    lpGenericList : Result:='TList';
+    lpFPList : Result:='TFPList';
+    lpFPObjectList : Result:='TFPObjectList';
+    lpObjectList : Result:='TObjectList';
+  end;
+end;
+
+function GetListClass(const aObjectClassName : string) : string;
+
+begin
+  Result:=aObjectClassName+'List';
+end;
+
+procedure TDDBaseFieldMapCodeGenerator.CreateObjectListDeclaration(Strings : TStrings; const aObjectClassName : string);
+
+var
+  lListClassName,lListParent : String;
+
+begin
+  IncIndent;
+  lListParent:=GetListParent;
+  lListClassName:=GetListClass(aObjectClassName);
+  Addln(Strings,'{ %s }',[lListClassName]);
+  AddLn(Strings);
+  if FieldMapOpts.ListParent=lpGenericList then
+    AddLn(Strings,'%s = specialize %s<%s>;',[lListClassName,lListParent,aObjectClassName])
+  else
+    begin
+    AddLn(Strings,'%s = Class(%s)',[lListClassName,lListParent]);
+    AddLn(Strings,'Private');
+    IncIndent;
+    AddLn(Strings,'Function _GetObj(const aIndex : Integer) : %s;',[aObjectClassName]);
+    AddLn(Strings,'Procedure _SetObj(const aIndex : Integer; const aValue : %s);',[aObjectClassName]);
+    DecIndent;
+    AddLn(Strings,'Public');
+    IncIndent;
+    AddLn(Strings,'Property Objects[aIndex : Integer] : %s Read _GetObj Write _SetObj; default;',[aObjectClassName]);
+    DecIndent;
+    AddLn(Strings,'end;');
+    end;
+  DecIndent;
+end;
+
+procedure TDDBaseFieldMapCodeGenerator.CreateObjectListImplementation(Strings : TStrings; const aObjectClassName : string);
+
+var
+  S,lListClass : String;
+
+begin
+  lListClass:=aObjectClassName+'List';
+  if FieldMapOpts.ListParent=lpGenericList then
+    Exit; // nothing to do.
+  S:=Format('Function %s._GetObj(const aIndex : Integer) : %s;',[lListClass,aObjectClassName]);
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  AddLn(Strings,'Result:=%s(Items[aIndex]);',[aObjectClassName]);
+  DecIndent;
+  EndMethod(Strings,S);
+  S:=Format('Procedure %s._SetObj(const aIndex : Integer; const aValue : %s);',[lListClass,aObjectClassName]);
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  AddLn(Strings,'Items[aIndex]:=aValue;');
+  DecIndent;
+  EndMethod(Strings,S);
+end;
+
+function TDDBaseFieldMapCodeGenerator.GetListParentUnit : String;
+
+begin
+  Case FieldMapOpts.ListParent of
+    lpFPObjectList,
+    lpObjectList: Result:='contnrs';
+    lpGenericList : Result:='Generics.Collections';
+  else
+    Result:='';
+  end;
+end;
+
 function TDDBaseFieldMapCodeGenerator.GetInterfaceUsesClause: string;
+
+Var
+  ListUnit : String;
+
 begin
   Result:=inherited GetInterfaceUsesClause;
   If (Result<>'') then
     Result:=Result+', db, fieldmap';
+  if fmoDefineList in FieldMapOpts.FieldMapOptions then
+    begin
+    ListUnit:=GetListParentUnit;
+    if ListUnit<>'' then
+      Result:=Result+', '+ListUnit;
+    end;
 end;
+
 
 procedure TDDDBFieldMapCodeGenerator.DoGenerateInterface(Strings: TStrings);
 begin
   inherited DoGenerateInterface(Strings);
   AddLn(Strings,'Type');
+  if fmoDefineArray in FieldMapOpts.FieldMapOptions then
+    CreateObjectArrayDeclaration(Strings,GetOpt.ObjectClassName);
+  if fmoDefineList in FieldMapOpts.FieldMapOptions then
+    CreateObjectListDeclaration(Strings,GetOpt.ObjectClassName);
   CreatefieldMapDeclaration(Strings,GetOpt.ObjectClassName,GetOpt.MapClassName,GetOpt.MapAncestorName);
   if fmoCreateParamMap in GetOpt.FieldMapOptions then
     CreateParamMapDeclaration(Strings,GetOpt.ObjectClassName,GetOpt.ParamMapClassName,GetOpt.ParamMapAncestorName);
@@ -156,6 +275,8 @@ procedure TDDDBFieldMapCodeGenerator.DoGenerateImplementation(Strings: TStrings
   );
 begin
   inherited DoGenerateImplementation(Strings);
+  if fmoDefineList in FieldMapOpts.FieldMapOptions then
+    CreateObjectListImplementation(Strings,GetOpt.ObjectClassName);
   With FieldMapOpts do
     CreateFieldMapImplementation(Strings,ObjectClassName,MapClassName);
   if fmoCreateParamMap in GetOpt.FieldMapOptions then
@@ -668,6 +789,7 @@ begin
     FParamMapClassName:=O.FParamMapClassName;
     FParamMapAncestorClassName:=O.FParamMapAncestorClassName;
     FieldMapOptions:=O.FieldMapOptions;
+    FListParent:=O.ListParent;
     end;
   inherited Assign(ASource);
 end;
