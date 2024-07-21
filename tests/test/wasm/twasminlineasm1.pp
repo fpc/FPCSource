@@ -62,6 +62,34 @@ asm
   f64.add
 end;
 
+function test_i32_sub(a, b: longint): longint; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.sub
+end;
+
+function test_i64_sub(a, b: int64): int64; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.sub
+end;
+
+function test_f32_sub(a, b: single): single; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  f32.sub
+end;
+
+function test_f64_sub(a, b: double): double; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  f64.sub
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -78,6 +106,10 @@ begin
   Check(test_i64_add(12354312234, 654765532432) = 667119844666);
   Check(Abs(test_f32_add(1.23, 4.56) - 5.79) < eps);
   Check(Abs(test_f64_add(1.23456, 4.56789) - 5.80245) < eps);
+  Check(test_i32_sub(2, 3) = -1);
+  Check(test_i64_sub(12354312234, 654765532432) = -642411220198);
+  Check(Abs(test_f32_sub(1.23, 4.56) + 3.33) < eps);
+  Check(Abs(test_f64_sub(1.23456, 4.56789) + 3.33333) < eps);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
