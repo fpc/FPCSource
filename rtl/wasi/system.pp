@@ -435,6 +435,7 @@ begin
   IsLibrary := FALSE;
 {$endif def FPC_HAS_FEATURE_DYNLIBS}
   { Setup heap }
+  InitInitialHeapBlock;
   InitHeap;
   SysInitExceptions;
   initunicodestringmanager;

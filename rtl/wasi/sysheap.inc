@@ -20,27 +20,41 @@
                               Heap Management
 *****************************************************************************}
 
+const
+  WasmMemoryPageSize=65536;
+
 var
   InitialHeapBlockStart: Pointer;
+  InitialHeapBlockEnd: Pointer;
 
 procedure SetInitialHeapBlockStart(p: Pointer);[Public, Alias : 'FPC_WASM_SETINITIALHEAPBLOCKSTART'];
 begin
   InitialHeapBlockStart:=p;
 end;
 
+procedure InitInitialHeapBlock;
+begin
+  InitialHeapBlockEnd:=Pointer(PtrUInt(fpc_wasm32_memory_size)*WasmMemoryPageSize);
+end;
+
 function SysOSAlloc(size: ptruint): pointer;
 const
-  page_size = 65536;
   err = high(longword);
 var
   res: ptruint;
 begin
-  res:=fpc_wasm32_memory_grow((size + page_size - 1) div page_size);
-  if res<>err then
-    SysOSAlloc:=pointer(res*page_size)
+  if (PtrUInt(InitialHeapBlockEnd)-PtrUInt(InitialHeapBlockStart))>=size then
+    begin
+      SysOSAlloc:=InitialHeapBlockStart;
+      Inc(InitialHeapBlockStart,size);
+    end
   else
     begin
-    SysOSAlloc:=nil;
+      res:=fpc_wasm32_memory_grow((size + WasmMemoryPageSize - 1) div WasmMemoryPageSize);
+      if res<>err then
+        SysOSAlloc:=pointer(res*WasmMemoryPageSize)
+      else
+        SysOSAlloc:=nil;
     end;
 end;
 
