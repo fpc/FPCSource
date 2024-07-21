@@ -36,9 +36,10 @@ type
 
   { TFieldMap }
   TTransformMap = class(TObject)
-    function TransFormString(const aString : RawByteString) : RawByteString; virtual;
-    function TransFormString(const aString : UnicodeString) : UnicodeString; virtual;
-    function TransFormString(const aString : WideString) : WideString; virtual;
+  Protected
+    function TransFormString(const aString : RawByteString) : RawByteString; virtual; overload;
+    function TransFormString(const aString : UnicodeString) : UnicodeString; virtual; overload;
+    function TransFormString(const aString : WideString) : WideString; virtual; overload;
   end;
 
   TFieldMap = Class(TTransFormMap)
