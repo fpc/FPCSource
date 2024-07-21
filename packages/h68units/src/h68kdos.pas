@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit h68kdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
