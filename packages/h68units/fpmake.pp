@@ -34,6 +34,10 @@ begin
       begin
         AddInclude('h68kdos.inc');
       end;
+    T:=P.Targets.AddUnit('h68kiocs.pas');
+
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('gradient.pas');
 
     P.Sources.AddDoc('README.md');
 
