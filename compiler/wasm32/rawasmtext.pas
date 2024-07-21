@@ -906,6 +906,7 @@ Unit rawasmtext;
                               result.ops:=1;
                               result.operands[1].opr.typ:=OPR_SYMBOL;
                               result.operands[1].opr.symbol:=thlcgwasm(hlcg).RefStackPointerSym;
+                              Consume(AS_ID);
                             end;
                           else
                             internalerror(2024072002);
