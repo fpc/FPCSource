@@ -154,6 +154,7 @@ const
 procedure h68kdos_exit; noreturn; syscall $ff00;
 function h68kdos_chgdrv(newdrv: word): longint; syscall $ff0e;
 function h68kdos_curdrv: longint; syscall $ff17;
+function h68kdos_super(stack: longint): longint; syscall $ff20;
 function h68kdos_gettim2: longint; syscall $ff27;
 function h68kdos_settim2(time: longint): longint; syscall $ff28;
 function h68kdos_getdate: longint; syscall $ff2a;
