@@ -90,6 +90,34 @@ asm
   f64.sub
 end;
 
+function test_i32_mul(a, b: longint): longint; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.mul
+end;
+
+function test_i64_mul(a, b: int64): int64; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.mul
+end;
+
+function test_f32_mul(a, b: single): single; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  f32.mul
+end;
+
+function test_f64_mul(a, b: double): double; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  f64.mul
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -110,6 +138,10 @@ begin
   Check(test_i64_sub(12354312234, 654765532432) = -642411220198);
   Check(Abs(test_f32_sub(1.23, 4.56) + 3.33) < eps);
   Check(Abs(test_f64_sub(1.23456, 4.56789) + 3.33333) < eps);
+  Check(test_i32_mul(1234, 9583) = 11825422);
+  Check(test_i64_mul(1235454, 635456) = 785076657024);
+  Check(Abs(test_f32_mul(1.23, 4.56) - 5.6088) < eps);
+  Check(Abs(test_f64_mul(1.23456, 4.56789) - 5.639334278) < eps);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
