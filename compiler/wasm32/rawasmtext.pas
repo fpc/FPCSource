@@ -720,6 +720,7 @@ Unit rawasmtext;
       var
         srsym: tsym;
         srsymtable: TSymtable;
+        globsym: TWasmGlobalAsmSymbol;
       begin
         result:=nil;
         case actasmtoken of
@@ -983,6 +984,21 @@ Unit rawasmtext;
                               result.ops:=1;
                               result.operands[1].opr.typ:=OPR_SYMBOL;
                               result.operands[1].opr.symbol:=thlcgwasm(hlcg).RefStackPointerSym;
+                              Consume(AS_ID);
+                            end;
+                          '$'+TLS_SIZE_SYM,
+                          '$'+TLS_ALIGN_SYM,
+                          '$'+TLS_BASE_SYM:
+                            begin
+                              globsym:=TWasmGlobalAsmSymbol(
+                                current_asmdata.RefAsmSymbolByClass(
+                                  TWasmGlobalAsmSymbol,
+                                  Copy(actasmpattern,2,Length(actasmpattern)-1),
+                                  AT_WASM_GLOBAL));
+                              globsym.WasmGlobalType:=wbt_i32;
+                              result.ops:=1;
+                              result.operands[1].opr.typ:=OPR_SYMBOL;
+                              result.operands[1].opr.symbol:=globsym;
                               Consume(AS_ID);
                             end;
                           else
