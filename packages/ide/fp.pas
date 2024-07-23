@@ -364,6 +364,9 @@ const bullet='*';
 const bullet=#254;
 {$endif}
 
+var
+  _GDBVersion: String;
+
 BEGIN
 {$IFDEF HasSignal}
   EnableCatchSignals;
@@ -381,7 +384,12 @@ BEGIN
   ProcessParams(true);
 
 {$ifndef NODEBUG}
-  writeln(bullet+' GDB Version '+GDBVersion);
+
+  _GDBVersion:=GDBVersion;
+  while pos(#13#3,_GDBVersion)<>0 do
+    Delete(_GDBVersion,pos(#13#3,_GDBVersion),2);
+  writeln(bullet+' GDB Version '+_GDBVersion);
+
  {$ifdef Windows}
   {$ifndef USE_MINGW_GDB}
    {$ifdef GDBMI}
