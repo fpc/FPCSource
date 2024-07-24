@@ -2240,7 +2240,7 @@ var
 
 begin
   CurrClassName:=GetPasName(aDict);
-  AddLn('constructor %s.create(const aDict : %sRec); overload;';[CurrClassName,CurrClassName]);
+  AddLn('constructor %s.create(const aDict : %sRec); overload;',[CurrClassName,CurrClassName]);
   Addln('begin');
   Indent;
   For IDl in aDict.Members do
