@@ -2058,6 +2058,7 @@ function TJSArray._GetNativeInts(Index: NativeInt): NativeInt;
 
 var
   V : TJOB_JSValue;
+  I64 : Int64;
 
 begin
   V:=Elements[Index];
@@ -2067,8 +2068,11 @@ begin
         Exit(Round(TJOB_Double(V).Value));
     if V is TJOB_String then
       begin
-      if TryStrToInt64(TJOB_STRING(V).Value,Result) then
+      if TryStrToInt64(TJOB_STRING(V).Value,I64) then
+        begin
+        Result:=I64;
         Exit
+        end;
       end;
   finally
     V.Free;
