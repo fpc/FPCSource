@@ -28,6 +28,14 @@ uses
   Classes, SysUtils, webidldefs, webidltopas, webidlscanner, webidlparser, Contnrs;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{
+  Todo:
+  - Allocate Aliased types (TIDLUserTypeDefinition) and simple types (TIDLSimpleTypeDefinition) as TIDLTypeDefinition descendants.
+    (so no more special cases are needed)
+  - Allocate Interface names so no more pasintfname etc. is needed
+}
+
+
 type
   TJOB_JSValueKind = (
     jjvkUndefined,
@@ -417,7 +425,9 @@ function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out Pa
 begin
   Result:=inherited GetResolvedType(aDef, PascalNativeType, aTypeName, aResolvedTypename);
   if Result is TIDLInterfaceDefinition then
-    aTypeName:=GetPasClassName(aTypeName)
+    aTypeName:=GetPasIntfName(Result)
+  else if Result is TIDLDictionaryDefinition then
+    aTypeName:=GetPasIntfName(Result)
   else if Result is TIDLPromiseTypeDefDefinition then
     aTypeName:=PasInterfacePrefix+'Promise'+PasInterfaceSuffix;
 end;
@@ -1227,6 +1237,8 @@ begin
   if FGeneratingInterface and (([foConstructor, foStatic] * aDef.Options)<>[]) then
     exit;
   Suff:='';
+  if (ADef.Name='createImageBitmap') then
+    Writeln('Name');
   GetMethodInfo(aParent,aDef,MethodInfo);
   Overloads:=GetOverloads(ADef);
   try
@@ -1611,6 +1623,8 @@ begin
   aAccessInfo.PropType:=aType;
   if aType is TIDLInterfaceDefinition then
     aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
+  else if aType is TIDLDictionaryDefinition then
+      aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
   else if aType is TIDLFunctionDefinition then
     // exit // not supported yet
   else if aType is TIDLEnumDefinition then
@@ -1690,6 +1704,8 @@ begin
   aType:=GetResolvedType(aProp.PropertyType,aAccessInfo.NativeType,aAccessInfo.NativeTypeName,aAccessInfo.ResolvedTypeName);
   aAccessInfo.PropType:=aType;
   if aType is TIDLInterfaceDefinition then
+    aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
+  else if aType is TIDLDictionaryDefinition then
     aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
   else if aType is TIDLFunctionDefinition then
     // exit // not supported yet
@@ -1819,6 +1835,8 @@ begin
   PropName:=GetPasName(aProp);
   aType:=GetResolvedType(aProp.PropertyType,ANT,aTypeName,aResolvedTypeName);
   if aType is TIDLInterfaceDefinition then
+    aTypeName:=GetPasIntfName(aType)
+  else if aType is TIDLDictionaryDefinition then
     aTypeName:=GetPasIntfName(aType);
   GetAccessorNames(aProp,GetterName,SetterName);
   Code:='property '+PropName+': '+aTypeName+' read '+GetterName;

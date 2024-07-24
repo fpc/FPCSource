@@ -78,6 +78,7 @@ Type
     Constructor Create(APasName: String; D: TIDLBaseObject);
     Destructor Destroy; override;
     Property PasName: String read FPasName write FPasName;
+    function ToString : RTLString; override;
   end;
   TPasDataClass = class of TPasData;
 
@@ -377,6 +378,17 @@ begin
   FreeAndNil(ParentsMemberList);
 
   inherited Destroy;
+end;
+
+function TPasData.ToString: RTLString;
+
+var
+  S : String;
+
+begin
+  Result:=inherited ToString;
+  WriteStr(S,NativeType);
+  Result:=Result+Format(': NativeType: %s, Name: %s, location: [%s: %d:%d], used: %b',[S,PasName,SrcFile,Line,Column,Used]);
 end;
 
 { TBaseWebIDLToPas }
@@ -2284,6 +2296,7 @@ begin
   Result:=PasDataClass.Create(Data.PasName,OwnerDef);
   Result.Resolved:=Data.Resolved;
   Result.NativeType:=Data.NativeType;
+  Result.Used:=Data.Used;
   FPasNameList.Add(Result);
 end;
 
