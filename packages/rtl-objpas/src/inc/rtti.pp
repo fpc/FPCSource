@@ -4590,7 +4590,7 @@ begin
   if not Assigned(IntfData^.Parent) then
     Exit(Nil);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
   finally
@@ -4638,7 +4638,7 @@ begin
   if not Assigned(IntfData^.Parent) then
     Exit(Nil);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
   finally
@@ -4820,7 +4820,7 @@ begin
   if not Assigned(FIntfMethodEntry^.ResultType) then
     Exit(Nil);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(FIntfMethodEntry^.ResultType^);
   finally
@@ -4882,7 +4882,7 @@ begin
   SetLength(FParams, FIntfMethodEntry^.ParamCount);
   SetLength(FParamsAll, FIntfMethodEntry^.ParamCount);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     total := 0;
     visible := 0;
@@ -5572,7 +5572,7 @@ begin
   SetLength(FParams, visible);
 
   if FTypeData^.ParamCount > 0 then begin
-    context := TRttiContext.Create;
+    context := TRttiContext.Create(FUsePublishedOnly);
     try
       paramtypes := PPPTypeInfo(AlignTypeData(ptr));
       visible := 0;
@@ -5716,7 +5716,7 @@ begin
   if not Assigned(FTypeData^.ProcSig.ResultTypeRef) then
     Exit(Nil);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     Result := context.GetType(FTypeData^.ProcSig.ResultTypeRef^);
   finally
@@ -5814,7 +5814,7 @@ begin
 
   SetLength(fDeclaredMethods, methtable^.Count);
 
-  context := TRttiContext.Create;
+  context := TRttiContext.Create(FUsePublishedOnly);
   try
     method := methtable^.Method[0];
     count := methtable^.Count;
@@ -6021,9 +6021,8 @@ begin
       FreeMem(Tbl);
     exit;
     end;
-  Ctx:=TRttiContext.Create;
+  Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
-    Ctx.UsePublishedOnly:=False;
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6167,9 +6166,8 @@ Var
   Ctx : TRttiContext;
 
 begin
-  Ctx:=TRttiContext.Create;
+  Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
-    Ctx.UsePublishedOnly:=False;
     FMethodsResolved:=True;
     Len:=GetMethodList(FTypeInfo,Tbl,[]);
     if not FUsePublishedOnly then
@@ -6934,6 +6932,7 @@ begin
   if not Assigned(FContextToken) then
     FContextToken := TPoolToken.Create(UsePublishedOnly);
   (FContextToken as IPooltoken).RttiPool.AddObject(AObject);
+  AObject.FUsePublishedOnly := UsePublishedOnly;
 end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
