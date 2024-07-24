@@ -1080,13 +1080,17 @@ type
 
   IJSError = interface(IJSObject)
     ['{80532C4D-CAD2-4C70-A4EA-01B29BB8C2C8}']
+    function _getMessage : String;
+    property Message : string Read _getMessage;
   end;
 
   { TJSError }
 
   TJSError = class(TJSObject,IJSError)
+    function _getMessage : String;
   public
     class function Cast(const Intf: IJSObject): IJSError; overload;
+    property Message : string Read _GetMessage;
   end;
 
   TJSPromiseResolver = function(const aValue: Variant): Variant of object;
@@ -1593,10 +1597,17 @@ end;
 
 { TJSError }
 
+function TJSError._getMessage: String;
+begin
+  Result:=ReadJSPropertyUnicodeString('message');
+end;
+
 class function TJSError.Cast(const Intf: IJSObject): IJSError;
 begin
   Result:=TJSError.JOBCast(Intf);
 end;
+
+
 
 { TJSJSON }
 
@@ -2056,7 +2067,7 @@ begin
         Exit(Round(TJOB_Double(V).Value));
     if V is TJOB_String then
       begin
-      if TryStrToInt(TJOB_STRING(V).Value,Result) then
+      if TryStrToInt64(TJOB_STRING(V).Value,Result) then
         Exit
       end;
   finally
