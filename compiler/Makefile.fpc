@@ -774,7 +774,7 @@ cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
 
 distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS) $(BETATARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
-
+        -$(DEL) msgtxt.inc msgidx.inc
 
 #####################################################################
 # Make targets
