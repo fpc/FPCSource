@@ -196,6 +196,7 @@ type
     procedure WriteUtilityMethodImplementations(aDef: TIDLStructuredDefinition; ML: TIDLDefinitionList);virtual;
     Procedure WritePrivateGetterImplementation(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition); virtual;
     Procedure WritePrivateSetterImplementation(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition);virtual;
+    procedure WriteDictionaryConstructor(aDict: TIDLDictionaryDefinition); virtual;
     // MapLike
     procedure WriteMapLikePrivateSetterImplementation(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition); virtual;
     procedure WriteMapLikePrivateGetterImplementation(aParent: TIDLStructuredDefinition; aMap: TIDLMapLikeDefinition); virtual;
@@ -610,12 +611,18 @@ end;
 function TWebIDLToPasWasmJob.WriteUtilityMethods(Intf: TIDLStructuredDefinition
   ): Integer;
 var
-  aPasIntfName: TIDLString;
+  CurrClassName,aPasIntfName: TIDLString;
 begin
   Result:=0;
   aPasIntfName:=GetPasIntfName(Intf);
+  if Intf is TIDLDictionaryDefinition then
+    begin
+    CurrClassName:=GetPasName(TIDLDictionaryDefinition(Intf));
+    AddLn('constructor create(const aDict : '+CurrClassName+'Rec); overload;');
+    end;
   AddLn('class function JSClassName: UnicodeString; override;');
   AddLn('class function Cast(const Intf: IJSObject): '+aPasIntfName+';');
+
 end;
 
 function TWebIDLToPasWasmJob.WriteMapLikeProperties(aParent: TIDLDefinition; aMap: TIDLMapLikeDefinition): Integer;
@@ -2223,6 +2230,30 @@ begin
   end;
 end;
 
+procedure TWebIDLToPasWasmJob.WriteDictionaryConstructor(aDict: TIDLDictionaryDefinition);
+
+var
+  CurrClassName: TIDLString;
+  IDL : TIDLDefinition;
+  MD : TIDLDictionaryMemberDefinition absolute IDL;
+  aName : string;
+
+begin
+  CurrClassName:=GetPasName(aDict);
+  AddLn('constructor %s.create(const aDict : %sRec); overload;';[CurrClassName,CurrClassName]);
+  Addln('begin');
+  Indent;
+  For IDl in aDict.Members do
+    if IDL is TIDLDictionaryMemberDefinition then
+      begin
+      aName:=GetPasName(MD);
+      AddLn('Self.%s:=aDict.%s;',[aName,aName]);
+      end;
+  Undent;
+  AddLn('end;');
+  AddLn('');
+end;
+
 procedure TWebIDLToPasWasmJob.WriteUtilityMethodImplementations(aDef : TIDLStructuredDefinition; ML : TIDLDefinitionList);
 
 var
@@ -2233,7 +2264,10 @@ begin
   aClassName:=GetPasName(aDef);
   aPasIntfName:=GetPasIntfName(aDef);
   if aDef.StructuredType=sdDictionary then
+    begin
+    WriteDictionaryConstructor(aDef as TIDLDictionaryDefinition);
     aJSClassName:='Object'
+    end
   else
     aJSClassName:=aDef.Name;
   AddLn('class function %s.JSClassName: UnicodeString;',[aClassName]);
