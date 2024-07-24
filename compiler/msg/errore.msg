@@ -4236,7 +4236,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **1S<x>_Syntax options:
 **2S2_Same as -Mobjfpc
 **2Sa_Turn on assertions
-**2Sc_Support operators like C (*=,+=,/= and -=)
+**2Sc_Support operators as in the C language (*=, +=, /= and -=)
 **2Sd_Same as -Mdelphi
 **2Se<x>_Error options. <x> is a combination of the following:
 **3*_<n> : Compiler halts after the <n> errors (default is 1)
@@ -4252,7 +4252,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **3SIcorba_CORBA compatible interface
 **2Sj_Allows typed constants to be writeable (default in all modes)
 **2Sk_Load fpcylix unit
-**2Sm_Support macros like C (global)
+**2Sm_Support macros like as in the C language (global)
 **2So_Same as -Mtp
 **2Sr_Transparent file names in ISO mode
 **2Ss_Constructor name must be "Init" (destructor name must be "Done")
