@@ -5913,24 +5913,25 @@ begin
       else
         begin
         NameIndexes[IdxCount]:=TP^.NameIndex;
-        Inc(IdxCount);
         obj := GRttiPool[FUsePublishedOnly].GetByHandle(TP);
         if Assigned(obj) then
           begin
           Prop:=obj as TRttiProperty;
-          FProperties[I]:=Prop;
+          FProperties[IdxCount]:=Prop;
           end
         else
           begin
           Prop:=TRttiProperty.Create(Self, TP);
-          FProperties[I]:=Prop;
+          FProperties[IdxCount]:=Prop;
           GRttiPool[FUsePublishedOnly].AddObject(Prop);
           end;
+        Inc(IdxCount);
         end;
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       end;
     FPropertiesResolved:=True;
+    SetLength(FProperties,IdxCount);
   finally
     if Assigned(List) then
       FreeMem(List);
