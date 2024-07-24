@@ -4252,7 +4252,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **3SIcorba_CORBA compatible interface
 **2Sj_Allows typed constants to be writeable (default in all modes)
 **2Sk_Load fpcylix unit
-**2Sm_Support macros like as in the C language (global)
+**2Sm_Support macros as in the C language (global)
 **2So_Same as -Mtp
 **2Sr_Transparent file names in ISO mode
 **2Ss_Constructor name must be "Init" (destructor name must be "Done")
