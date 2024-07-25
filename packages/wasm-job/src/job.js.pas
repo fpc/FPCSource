@@ -1119,6 +1119,9 @@ type
     procedure setFloat32(byteOffset : Longint; aValue : Single; littleEndian : Boolean);
   end;
 
+  IJSArrayBufferView = IJSDataView;
+  TJSArrayBufferView = TJSDataView;
+
   { IJSJSON }
 
   IJSJSON = interface(IJSObject)
