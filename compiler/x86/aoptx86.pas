@@ -15622,6 +15622,7 @@ unit aoptx86;
         Result := False;
         CallJmp := False;
         SubReg := getsubreg(taicpu(p).oper[1]^.reg);
+
         if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
           with taicpu(p).oper[0]^.ref^ do
             if not Assigned(symbol) and not Assigned(relsymbol) and (index <> NR_NO) then
@@ -15666,6 +15667,7 @@ unit aoptx86;
                   perform this optimisation }
                 not (CPUX86_HINT_FAST_3COMP_ADDR in cpu_optimization_hints[current_settings.optimizecputype]) and
                 GetNextInstruction(p, hp1) and
+                (hp1.typ = ait_instruction) and
                 (
                   (
                     { Permit jumps and calls since they have a larger degree of overhead }
@@ -15686,6 +15688,7 @@ unit aoptx86;
                   (
                     { Check up to two instructions ahead }
                     GetNextInstruction(hp1, hp2) and
+                    (hp2.typ = ait_instruction) and
                     (
                       not SetAndTest(is_calljmp(taicpu(hp2).opcode), CallJmp) or
                       (
