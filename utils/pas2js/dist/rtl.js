@@ -155,9 +155,13 @@ var rtl = {
   },
   
   showException : function (re) {
+    var errStack = (re.hasOwnProperty('stack')) ? re.stack : re;
     var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
-    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
-    alert('Uncaught Exception : '+errMsg);
+    errMsg += ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : '');
+    errMsg += ((errMsg) ? "\n" : '') + errStack;
+    errMsg = "Uncaught Exception:\n" + errMsg;
+    console.log(errMsg);
+    alert(errMsg);
   },
 
   handleUncaughtException: function (e) {
