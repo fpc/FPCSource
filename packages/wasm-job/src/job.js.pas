@@ -1028,6 +1028,10 @@ type
 
   IJSDataView = interface(IJSObject)
     ['{42F14387-FAD2-46BA-8CB4-057445095CEE}']
+    function _getBuffer: IJSArrayBuffer;
+    function _getByteLength: Longint;
+    function _getByteOffset: Longint;
+
     function getBigInt64(byteOffset : Longint) : Int64;
     function getBigInt64(byteOffset : Longint; littleEndian : Boolean) : Int64;
     function getInt32(byteOffset : Longint) : Longint;
@@ -1061,11 +1065,19 @@ type
     procedure setFloat64(byteOffset : Longint; aValue : Double; littleEndian : Boolean);
     procedure setFloat32(byteOffset : Longint; aValue : Single);
     procedure setFloat32(byteOffset : Longint; aValue : Single; littleEndian : Boolean);
+
+    property buffer : IJSArrayBuffer Read _getBuffer;
+    property byteLength : Longint Read _getByteLength;
+    property byteOffset : Longint Read _getByteOffset;
   end;
 
   { TJSDataView }
 
   TJSDataView = class(TJSObject,IJSDataView)
+  protected
+    function _getBuffer: IJSArrayBuffer;
+    function _getByteLength: Longint;
+    function _getByteOffset: Longint;
   public
     constructor create(aBuffer : IJSArrayBuffer);
     constructor create(aBuffer : IJSArrayBuffer; aOffset : longint);
@@ -1707,6 +1719,21 @@ begin
 end;
 
 { TJSDataView }
+
+function TJSDataView._getBuffer: IJSArrayBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
+end;
+
+function TJSDataView._getByteLength: Longint;
+begin
+  Result:=ReadJSPropertyLongInt('byteLength');
+end;
+
+function TJSDataView._getByteOffset: Longint;
+begin
+  Result:=ReadJSPropertyLongInt('byteOffset');
+end;
 
 constructor TJSDataView.create(aBuffer: IJSArrayBuffer);
 begin
