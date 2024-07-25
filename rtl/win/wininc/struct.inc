@@ -1125,7 +1125,7 @@ Const
        end;
      _M128A = M128A;
      TM128A = M128A;
-     PM128A = TM128A;
+     PM128A = ^TM128A;
 
 //
 // Format of data for 32-bit fxsave/fxrstor instructions.
