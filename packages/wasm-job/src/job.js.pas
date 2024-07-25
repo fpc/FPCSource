@@ -782,27 +782,32 @@ type
 
   end;
 
+  IJSArrayBufferView = interface (IJSObject) ['{E4585865-E907-40CE-B3E5-7E5E343EBED6}']
+
+    function _getBuffer: IJSArrayBuffer;
+    function _getByteLength: NativeInt;
+    function _getByteOffset: NativeInt;
+
+    property buffer : IJSArrayBuffer Read _getBuffer;
+    property byteLength : NativeInt Read _getByteLength;
+    property byteOffset : NativeInt Read _getByteOffset;
+  end;
+
   { IJSTypedArray }
 
-  IJSTypedArray = interface(IJSObject)
+  IJSTypedArray = interface(IJSArrayBufferView)
     ['{6A76602B-9555-4136-A7B7-2E683265EA82}']
-    function GetBuffer: IJSArrayBuffer;
     function _GetLength: NativeInt;
-    function _GetByteLength: NativeInt;
-    function _GetByteOffset: NativeInt;
     procedure  set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure  set_(aArray : IJSTypedArray);
-    property Buffer : IJSArrayBuffer read GetBuffer;
     Property Length: NativeInt Read _GetLength;
-    Property byteLength: NativeInt Read _GetByteLength;
-    Property byteOffset: NativeInt Read _GetByteOffset;
   end;
 
   { TJSTypedArray }
 
   TJSTypedArray = class(TJSObject,IJSTypedArray)
-  private
-    function GetBuffer: IJSArrayBuffer;
+  protected
+    function _GetBuffer: IJSArrayBuffer;
     function _GetLength: NativeInt;
     function _GetByteLength: NativeInt;
     function _GetByteOffset: NativeInt;
@@ -815,11 +820,14 @@ type
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
-    property Buffer : IJSArrayBuffer read GetBuffer;
+    property Buffer : IJSArrayBuffer read _GetBuffer;
     Property Length: NativeInt Read _GetLength;
     Property byteLength: NativeInt Read _GetByteLength;
     Property byteOffset: NativeInt Read _GetByteOffset;
   end;
+
+  // We need to be able to create a IJSArrayBufferView
+  TJSArrayBufferView = TJSTypedArray;
 
   { IJSInt8Array }
 
@@ -1024,103 +1032,99 @@ type
     class function Cast(const Intf: IJSObject): IJSBufferSource; overload;
   end;
 
+
+
   { IJSDataView }
 
-  IJSDataView = interface(IJSObject)
+  IJSDataView = interface(IJSArrayBufferView)
     ['{42F14387-FAD2-46BA-8CB4-057445095CEE}']
-    function _getBuffer: IJSArrayBuffer;
-    function _getByteLength: Longint;
-    function _getByteOffset: Longint;
 
-    function getBigInt64(byteOffset : Longint) : Int64;
-    function getBigInt64(byteOffset : Longint; littleEndian : Boolean) : Int64;
-    function getInt32(byteOffset : Longint) : Longint;
-    function getInt32(byteOffset : Longint; littleEndian : Boolean) : Longint;
-    function getInt16(byteOffset : Longint) : Smallint;
-    function getInt16(byteOffset : Longint; littleEndian : Boolean) : Smallint;
-    function getInt8(byteOffset : Longint) : ShortInt;
-    function getUint32(byteOffset : Longint) : Cardinal;
-    function getUint32(byteOffset : Longint; littleEndian : Boolean) : Cardinal;
-    function getUint16(byteOffset : Longint) : Word;
-    function getUint16(byteOffset : Longint; littleEndian : Boolean) : Word;
-    function getUint8(byteOffset : Longint) : Byte;
-    function getFloat64(byteOffset : Longint) : Double;
-    function getFloat64(byteOffset : Longint; littleEndian : Boolean) : Double;
-    function getFloat32(byteOffset : Longint) : Single;
-    function getFloat32(byteOffset : Longint; littleEndian : Boolean) : Single;
+    function getBigInt64(aByteOffset : Longint) : Int64;
+    function getBigInt64(aByteOffset : Longint; littleEndian : Boolean) : Int64;
+    function getInt32(aByteOffset : Longint) : Longint;
+    function getInt32(aByteOffset : Longint; littleEndian : Boolean) : Longint;
+    function getInt16(aByteOffset : Longint) : Smallint;
+    function getInt16(aByteOffset : Longint; littleEndian : Boolean) : Smallint;
+    function getInt8(aByteOffset : Longint) : ShortInt;
+    function getUint32(aByteOffset : Longint) : Cardinal;
+    function getUint32(aByteOffset : Longint; littleEndian : Boolean) : Cardinal;
+    function getUint16(aByteOffset : Longint) : Word;
+    function getUint16(aByteOffset : Longint; littleEndian : Boolean) : Word;
+    function getUint8(aByteOffset : Longint) : Byte;
+    function getFloat64(aByteOffset : Longint) : Double;
+    function getFloat64(aByteOffset : Longint; littleEndian : Boolean) : Double;
+    function getFloat32(aByteOffset : Longint) : Single;
+    function getFloat32(aByteOffset : Longint; littleEndian : Boolean) : Single;
 
-    procedure setBigInt64(byteOffset : Longint; aValue : Int64);
-    procedure setBigInt64(byteOffset : Longint; aValue : Int64; littleEndian : Boolean);
-    procedure setInt32(byteOffset : Longint; aValue : Longint);
-    procedure setInt32(byteOffset : Longint; aValue : Longint; littleEndian : Boolean);
-    procedure setInt16(byteOffset : Longint; aValue : Smallint);
-    procedure setInt16(byteOffset : Longint; aValue : Smallint; littleEndian : Boolean);
-    procedure setInt8(byteOffset : Longint; aValue : Shortint);
-    procedure setUint32(byteOffset : Longint; aValue : Cardinal);
-    procedure setUint32(byteOffset : Longint; aValue : Cardinal; littleEndian : Boolean);
-    procedure setUint16(byteOffset : Longint; aValue : Word);
-    procedure setUint16(byteOffset : Longint; aValue : Word; littleEndian : Boolean);
-    procedure setUint8(byteOffset : Longint; aValue : Byte);
-    procedure setFloat64(byteOffset : Longint; aValue: Double);
-    procedure setFloat64(byteOffset : Longint; aValue : Double; littleEndian : Boolean);
-    procedure setFloat32(byteOffset : Longint; aValue : Single);
-    procedure setFloat32(byteOffset : Longint; aValue : Single; littleEndian : Boolean);
+    procedure setBigInt64(aByteOffset : Longint; aValue : Int64);
+    procedure setBigInt64(aByteOffset : Longint; aValue : Int64; littleEndian : Boolean);
+    procedure setInt32(aByteOffset : Longint; aValue : Longint);
+    procedure setInt32(aByteOffset : Longint; aValue : Longint; littleEndian : Boolean);
+    procedure setInt16(aByteOffset : Longint; aValue : Smallint);
+    procedure setInt16(aByteOffset : Longint; aValue : Smallint; littleEndian : Boolean);
+    procedure setInt8(aByteOffset : Longint; aValue : Shortint);
+    procedure setUint32(aByteOffset : Longint; aValue : Cardinal);
+    procedure setUint32(aByteOffset : Longint; aValue : Cardinal; littleEndian : Boolean);
+    procedure setUint16(aByteOffset : Longint; aValue : Word);
+    procedure setUint16(aByteOffset : Longint; aValue : Word; littleEndian : Boolean);
+    procedure setUint8(aByteOffset : Longint; aValue : Byte);
+    procedure setFloat64(aByteOffset : Longint; aValue: Double);
+    procedure setFloat64(aByteOffset : Longint; aValue : Double; littleEndian : Boolean);
+    procedure setFloat32(aByteOffset : Longint; aValue : Single);
+    procedure setFloat32(aByteOffset : Longint; aValue : Single; littleEndian : Boolean);
 
-    property buffer : IJSArrayBuffer Read _getBuffer;
-    property byteLength : Longint Read _getByteLength;
-    property byteOffset : Longint Read _getByteOffset;
   end;
+
+
 
   { TJSDataView }
 
   TJSDataView = class(TJSObject,IJSDataView)
   protected
     function _getBuffer: IJSArrayBuffer;
-    function _getByteLength: Longint;
-    function _getByteOffset: Longint;
+    function _getByteLength: NativeInt;
+    function _getByteOffset: NativeInt;
   public
     constructor create(aBuffer : IJSArrayBuffer);
     constructor create(aBuffer : IJSArrayBuffer; aOffset : longint);
     constructor create(aBuffer : IJSArrayBuffer; aOffset, aByteLength : longint);
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSDataView; overload;
-    function getBigInt64(byteOffset : Longint) : Int64;
-    function getBigInt64(byteOffset : Longint; littleEndian : Boolean) : Int64;
-    function getInt32(byteOffset : Longint) : Longint;
-    function getInt32(byteOffset : Longint; littleEndian : Boolean) : Longint;
-    function getInt16(byteOffset : Longint) : Smallint;
-    function getInt16(byteOffset : Longint; littleEndian : Boolean) : Smallint;
-    function getInt8(byteOffset : Longint) : ShortInt;
-    function getUint32(byteOffset : Longint) : Cardinal;
-    function getUint32(byteOffset : Longint; littleEndian : Boolean) : Cardinal;
-    function getUint16(byteOffset : Longint) : Word;
-    function getUint16(byteOffset : Longint; littleEndian : Boolean) : Word;
-    function getUint8(byteOffset : Longint) : Byte;
-    function getFloat64(byteOffset : Longint) : Double;
-    function getFloat64(byteOffset : Longint; littleEndian : Boolean) : Double;
-    function getFloat32(byteOffset : Longint) : Single;
-    function getFloat32(byteOffset : Longint; littleEndian : Boolean) : Single;
+    function getBigInt64(aByteOffset : Longint) : Int64;
+    function getBigInt64(aByteOffset : Longint; littleEndian : Boolean) : Int64;
+    function getInt32(aByteOffset : Longint) : Longint;
+    function getInt32(aByteOffset : Longint; littleEndian : Boolean) : Longint;
+    function getInt16(aByteOffset : Longint) : Smallint;
+    function getInt16(aByteOffset : Longint; littleEndian : Boolean) : Smallint;
+    function getInt8(aByteOffset : Longint) : ShortInt;
+    function getUint32(aByteOffset : Longint) : Cardinal;
+    function getUint32(aByteOffset : Longint; littleEndian : Boolean) : Cardinal;
+    function getUint16(aByteOffset : Longint) : Word;
+    function getUint16(aByteOffset : Longint; littleEndian : Boolean) : Word;
+    function getUint8(aByteOffset : Longint) : Byte;
+    function getFloat64(aByteOffset : Longint) : Double;
+    function getFloat64(aByteOffset : Longint; littleEndian : Boolean) : Double;
+    function getFloat32(aByteOffset : Longint) : Single;
+    function getFloat32(aByteOffset : Longint; littleEndian : Boolean) : Single;
 
-    procedure setBigInt64(byteOffset : Longint; aValue : Int64);
-    procedure setBigInt64(byteOffset : Longint; aValue : Int64; littleEndian : Boolean);
-    procedure setInt32(byteOffset : Longint; aValue : Longint);
-    procedure setInt32(byteOffset : Longint; aValue : Longint; littleEndian : Boolean);
-    procedure setInt16(byteOffset : Longint; aValue : Smallint);
-    procedure setInt16(byteOffset : Longint; aValue : Smallint; littleEndian : Boolean);
-    procedure setInt8(byteOffset : Longint; aValue : Shortint);
-    procedure setUint32(byteOffset : Longint; aValue : Cardinal);
-    procedure setUint32(byteOffset : Longint; aValue : Cardinal; littleEndian : Boolean);
-    procedure setUint16(byteOffset : Longint; aValue : Word);
-    procedure setUint16(byteOffset : Longint; aValue : Word; littleEndian : Boolean);
-    procedure setUint8(byteOffset : Longint; aValue : Byte);
-    procedure setFloat64(byteOffset : Longint; aValue: Double);
-    procedure setFloat64(byteOffset : Longint; aValue : Double; littleEndian : Boolean);
-    procedure setFloat32(byteOffset : Longint; aValue : Single);
-    procedure setFloat32(byteOffset : Longint; aValue : Single; littleEndian : Boolean);
+    procedure setBigInt64(aByteOffset : Longint; aValue : Int64);
+    procedure setBigInt64(aByteOffset : Longint; aValue : Int64; littleEndian : Boolean);
+    procedure setInt32(aByteOffset : Longint; aValue : Longint);
+    procedure setInt32(aByteOffset : Longint; aValue : Longint; littleEndian : Boolean);
+    procedure setInt16(aByteOffset : Longint; aValue : Smallint);
+    procedure setInt16(aByteOffset : Longint; aValue : Smallint; littleEndian : Boolean);
+    procedure setInt8(aByteOffset : Longint; aValue : Shortint);
+    procedure setUint32(aByteOffset : Longint; aValue : Cardinal);
+    procedure setUint32(aByteOffset : Longint; aValue : Cardinal; littleEndian : Boolean);
+    procedure setUint16(aByteOffset : Longint; aValue : Word);
+    procedure setUint16(aByteOffset : Longint; aValue : Word; littleEndian : Boolean);
+    procedure setUint8(aByteOffset : Longint; aValue : Byte);
+    procedure setFloat64(aByteOffset : Longint; aValue: Double);
+    procedure setFloat64(aByteOffset : Longint; aValue : Double; littleEndian : Boolean);
+    procedure setFloat32(aByteOffset : Longint; aValue : Single);
+    procedure setFloat32(aByteOffset : Longint; aValue : Single; littleEndian : Boolean);
   end;
 
-  IJSArrayBufferView = IJSDataView;
-  TJSArrayBufferView = TJSDataView;
 
   { IJSJSON }
 
@@ -1728,12 +1732,12 @@ begin
   Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
 end;
 
-function TJSDataView._getByteLength: Longint;
+function TJSDataView._getByteLength: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('byteLength');
 end;
 
-function TJSDataView._getByteOffset: Longint;
+function TJSDataView._getByteOffset: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('byteOffset');
 end;
@@ -1763,164 +1767,164 @@ begin
   Result:=TJSDataView.JOBCast(Intf);
 end;
 
-function TJSDataView.getBigInt64(byteOffset: Longint): Int64;
+function TJSDataView.getBigInt64(aByteOffset: Longint): Int64;
 begin
-  Result:=InvokeJSMaxIntResult('getBigInt64',[byteOffset],jiCall);
+  Result:=InvokeJSMaxIntResult('getBigInt64',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getBigInt64(byteOffset: Longint; littleEndian: Boolean): Int64;
+function TJSDataView.getBigInt64(aByteOffset: Longint; littleEndian: Boolean): Int64;
 begin
-  Result:=InvokeJSMaxIntResult('getBigInt64',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSMaxIntResult('getBigInt64',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getInt32(byteOffset: Longint): Longint;
+function TJSDataView.getInt32(aByteOffset: Longint): Longint;
 begin
-  Result:=InvokeJSLongIntResult('getInt32',[byteOffset],jiCall);
+  Result:=InvokeJSLongIntResult('getInt32',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getInt32(byteOffset: Longint; littleEndian: Boolean): Longint;
+function TJSDataView.getInt32(aByteOffset: Longint; littleEndian: Boolean): Longint;
 begin
-  Result:=InvokeJSLongIntResult('getInt32',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSLongIntResult('getInt32',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getInt16(byteOffset: Longint): Smallint;
+function TJSDataView.getInt16(aByteOffset: Longint): Smallint;
 begin
-  Result:=InvokeJSLongIntResult('getInt16',[byteOffset],jiCall);
+  Result:=InvokeJSLongIntResult('getInt16',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getInt16(byteOffset: Longint; littleEndian: Boolean): Smallint;
+function TJSDataView.getInt16(aByteOffset: Longint; littleEndian: Boolean): Smallint;
 begin
-  Result:=InvokeJSLongIntResult('getInt16',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSLongIntResult('getInt16',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getInt8(byteOffset: Longint): ShortInt;
+function TJSDataView.getInt8(aByteOffset: Longint): ShortInt;
 begin
-  Result:=InvokeJSLongIntResult('getInt8',[byteOffset],jiCall);
+  Result:=InvokeJSLongIntResult('getInt8',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getUint32(byteOffset: Longint): Cardinal;
+function TJSDataView.getUint32(aByteOffset: Longint): Cardinal;
 begin
-  Result:=InvokeJSMaxIntResult('getUint32',[byteOffset],jiCall);
+  Result:=InvokeJSMaxIntResult('getUint32',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getUint32(byteOffset: Longint; littleEndian: Boolean): Cardinal;
+function TJSDataView.getUint32(aByteOffset: Longint; littleEndian: Boolean): Cardinal;
 begin
-  Result:=InvokeJSMaxIntResult('getUint32',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSMaxIntResult('getUint32',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getUint16(byteOffset: Longint): Word;
+function TJSDataView.getUint16(aByteOffset: Longint): Word;
 begin
-  Result:=InvokeJSLongIntResult('getUint16',[byteOffset],jiCall);
+  Result:=InvokeJSLongIntResult('getUint16',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getUint16(byteOffset: Longint; littleEndian: Boolean): Word;
+function TJSDataView.getUint16(aByteOffset: Longint; littleEndian: Boolean): Word;
 begin
-  Result:=InvokeJSLongIntResult('getUint16',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSLongIntResult('getUint16',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getUint8(byteOffset: Longint): Byte;
+function TJSDataView.getUint8(aByteOffset: Longint): Byte;
 begin
-  Result:=InvokeJSLongIntResult('getUint8',[byteOffset],jiCall);
+  Result:=InvokeJSLongIntResult('getUint8',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getFloat64(byteOffset: Longint): Double;
+function TJSDataView.getFloat64(aByteOffset: Longint): Double;
 begin
-  Result:=InvokeJSDoubleResult('getFloat64',[byteOffset],jiCall);
+  Result:=InvokeJSDoubleResult('getFloat64',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getFloat64(byteOffset: Longint; littleEndian: Boolean): Double;
+function TJSDataView.getFloat64(aByteOffset: Longint; littleEndian: Boolean): Double;
 begin
-  Result:=InvokeJSDoubleResult('getFloat64',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSDoubleResult('getFloat64',[aByteOffset,littleEndian],jiCall);
 end;
 
-function TJSDataView.getFloat32(byteOffset: Longint): Single;
+function TJSDataView.getFloat32(aByteOffset: Longint): Single;
 begin
-  Result:=InvokeJSDoubleResult('getFloat32',[byteOffset],jiCall);
+  Result:=InvokeJSDoubleResult('getFloat32',[aByteOffset],jiCall);
 end;
 
-function TJSDataView.getFloat32(byteOffset: Longint; littleEndian: Boolean): Single;
+function TJSDataView.getFloat32(aByteOffset: Longint; littleEndian: Boolean): Single;
 begin
-  Result:=InvokeJSDoubleResult('getFloat32',[byteOffset,littleEndian],jiCall);
+  Result:=InvokeJSDoubleResult('getFloat32',[aByteOffset,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setBigInt64(byteOffset: Longint; aValue: Int64);
+procedure TJSDataView.setBigInt64(aByteOffset: Longint; aValue: Int64);
 begin
-  InvokeJSNoResult('setBigInt64',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setBigInt64',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setBigInt64(byteOffset: Longint; aValue: Int64; littleEndian: Boolean);
+procedure TJSDataView.setBigInt64(aByteOffset: Longint; aValue: Int64; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setBigInt64',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setBigInt64',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setInt32(byteOffset: Longint; aValue: Longint);
+procedure TJSDataView.setInt32(aByteOffset: Longint; aValue: Longint);
 begin
-  InvokeJSNoResult('setInt32',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setInt32',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setInt32(byteOffset: Longint; aValue: Longint; littleEndian: Boolean);
+procedure TJSDataView.setInt32(aByteOffset: Longint; aValue: Longint; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setInt32',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setInt32',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setInt16(byteOffset: Longint; aValue: Smallint);
+procedure TJSDataView.setInt16(aByteOffset: Longint; aValue: Smallint);
 begin
-  InvokeJSNoResult('setInt16',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setInt16',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setInt16(byteOffset: Longint; aValue: Smallint; littleEndian: Boolean);
+procedure TJSDataView.setInt16(aByteOffset: Longint; aValue: Smallint; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setInt16',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setInt16',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setInt8(byteOffset: Longint; aValue: Shortint);
+procedure TJSDataView.setInt8(aByteOffset: Longint; aValue: Shortint);
 begin
-  InvokeJSNoResult('setInt8',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setInt8',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setUint32(byteOffset: Longint; aValue: Cardinal);
+procedure TJSDataView.setUint32(aByteOffset: Longint; aValue: Cardinal);
 begin
-  InvokeJSNoResult('setUint32',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setUint32',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setUint32(byteOffset: Longint; aValue: Cardinal; littleEndian: Boolean);
+procedure TJSDataView.setUint32(aByteOffset: Longint; aValue: Cardinal; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setUint32',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setUint32',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setUint16(byteOffset: Longint; aValue: Word);
+procedure TJSDataView.setUint16(aByteOffset: Longint; aValue: Word);
 begin
-  InvokeJSNoResult('setUint16',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setUint16',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setUint16(byteOffset: Longint; aValue: Word; littleEndian: Boolean);
+procedure TJSDataView.setUint16(aByteOffset: Longint; aValue: Word; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setUint16',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setUint16',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setUint8(byteOffset: Longint; aValue: Byte);
+procedure TJSDataView.setUint8(aByteOffset: Longint; aValue: Byte);
 begin
-  InvokeJSNoResult('setUint8',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setUint8',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setFloat64(byteOffset: Longint; aValue: Double);
+procedure TJSDataView.setFloat64(aByteOffset: Longint; aValue: Double);
 begin
-  InvokeJSNoResult('setFloat64',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setFloat64',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setFloat64(byteOffset: Longint; aValue: Double; littleEndian: Boolean);
+procedure TJSDataView.setFloat64(aByteOffset: Longint; aValue: Double; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setFloat64',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setFloat64',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
-procedure TJSDataView.setFloat32(byteOffset: Longint; aValue: Single);
+procedure TJSDataView.setFloat32(aByteOffset: Longint; aValue: Single);
 begin
-  InvokeJSNoResult('setFloat32',[byteOffset,aValue],jiCall);
+  InvokeJSNoResult('setFloat32',[aByteOffset,aValue],jiCall);
 end;
 
-procedure TJSDataView.setFloat32(byteOffset: Longint; aValue: Single; littleEndian: Boolean);
+procedure TJSDataView.setFloat32(aByteOffset: Longint; aValue: Single; littleEndian: Boolean);
 begin
-  InvokeJSNoResult('setFloat32',[byteOffset,aValue,littleEndian],jiCall);
+  InvokeJSNoResult('setFloat32',[aByteOffset,aValue,littleEndian],jiCall);
 end;
 
 { TJSBufferSource }
@@ -2138,7 +2142,7 @@ end;
 
 { TJSTypedArray }
 
-function TJSTypedArray.GetBuffer: IJSArrayBuffer;
+function TJSTypedArray._GetBuffer: IJSArrayBuffer;
 begin
   Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
 end;
