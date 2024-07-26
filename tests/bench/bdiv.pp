@@ -24,7 +24,7 @@ function GetRealTime : Real;
 {$pop}
 
 const
-{$if defined(cpuarm) or defined(cpuavr) or defined(cpui8086) or defined(cpum68k) or defined(cpumips) or defined(cpuz80)}
+{$if defined(cpuarm) or defined(cpuavr) or defined(cpui8086) or defined(cpum68k) or defined(cpumips) or defined(cpuz80) or defined(cpuriscv32)}
   {$define slowcpu}
 {$endif}
 
