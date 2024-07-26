@@ -1150,9 +1150,9 @@ const TypeStrings : array[TFieldType] of string =
              ,
       'Unknown',   // ftOraTimeStamp
       'Unknown',   // ftOraInterval
-      'Unknown',   // ftLongWord
-      'Unknown',   // ftShortint
-      'Unknown',   // ftByte
+      'bigint',    // ftLongWord
+      'smallint',  // ftShortint
+      'smallint',  // ftByte
       'Unknown',   // ftExtended
       'real'       // ftSingle
 {$ENDIF}
