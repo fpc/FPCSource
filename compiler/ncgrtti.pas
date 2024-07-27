@@ -953,6 +953,7 @@ implementation
         tbltcb : ttai_typedconstbuilder;
         tbllab : tasmlabel;
         tbldef : tdef;
+        visbyte : byte;
 
         procedure writeaccessproc(tcb: ttai_typedconstbuilder; pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
@@ -1060,7 +1061,9 @@ implementation
               begin
                 sym:=tsym(st.SymList[i]);
                 if (tsym(sym).typ=propertysym) and
-                   (sym.visibility in visibilities) then
+                   (sym.visibility in visibilities) and
+                   (tpropertysym(sym).parast=Nil) and
+                   not (sp_static in sym.symoptions) then
                   inc(result);
               end;
           end;
@@ -1149,7 +1152,9 @@ implementation
           begin
             sym:=tsym(st.SymList[i]);
             if (sym.typ=propertysym) and
-               (sym.visibility in visibilities) then
+               (sym.visibility in visibilities) and
+               (tpropertysym(sym).parast=Nil) and
+               not (sp_static in sym.symoptions) then
               begin
                 if extended_rtti then
                   begin
@@ -1165,7 +1170,8 @@ implementation
                       targetinfos[target_info.system]^.alignment.recordalignmin);
                     { write visiblity flags for extended RTTI }
                     maybe_add_comment(tcb,#9'visibility flags');
-                    tcb.emit_ord_const(byte(visibility_to_rtti_flags(sym.visibility)),u8inttype);
+                    visbyte:=byte(visibility_to_rtti_flags(sym.visibility));
+                    tcb.emit_ord_const(visByte,u8inttype);
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
                     tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
