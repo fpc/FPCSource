@@ -474,10 +474,21 @@ implementation
                     end;
                 end;
               A_SLL,
-              A_SRL,
+              A_SRL:
+                result:=OptPass1OP(p);
               A_SRLI,
               A_SLLI:
-                result:=OptPass1OP(p);
+                begin
+                  if (taicpu(p).oper[2]^.val=0) and
+                    MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+                    begin
+                      DebugMsg('Peephole S*LI x,x,0 to nop performed', p);
+                      RemoveInstr(p);
+                      result:=true;
+                    end
+                  else
+                    result:=OptPass1OP(p);
+                end;
               A_SLTI:
                 begin
                   {
