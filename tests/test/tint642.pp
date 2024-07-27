@@ -1177,9 +1177,9 @@ begin
    writeln('Testing QWord logical - operator was successful');
    writeln;
 
-   writeln('Testing QWord logical shift operators (shr,shr)');
+   writeln('Testing QWord logical shift operators (shl,shr)');
    testshlshrqword;
-   writeln('Testing QWord logical shift operators (shr,shr) was successful');
+   writeln('Testing QWord logical shift operators (shl,shr) was successful');
    writeln;
 
    writeln('Testing QWord function results');
