@@ -1,10 +1,10 @@
-program texrtti17;
+program texrtti18;
+
+{ Test that array properties do not appear in the list of RTTI properties }
 
 {$mode objfpc}
 
-{ Test that class properties are not returned in RTTI }
-
-uses typinfo, uexrttiutil;
+uses TypInfo, uexrttiutil;
 
 {$RTTI INHERIT
        METHODS(DefaultMethodRttiVisibility)
@@ -14,15 +14,15 @@ uses typinfo, uexrttiutil;
 
 Type
   T1 = Class(TObject)
-    class function getsomething : integer; static;
-    class property Something : Integer Read GetSomething;
+    function getsomething(aIndex : Integer) : TObject;
+    property Something[a: Integer] : TObject Read GetSomething;
   end;
 
 
-class function T1.getsomething : integer;
+function T1.getsomething(aIndex : Integer) : TObject;
 
 begin
-  Result:=0;
+  Result:=Nil;
 end;
 
 var
