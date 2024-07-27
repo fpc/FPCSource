@@ -182,7 +182,7 @@ implementation
     begin
       result:=false;
       { replace
-          <Op>   %reg3,%mreg2,%mreg1
+          <Op>   %reg3,%reg2,%reg1
           addi   %reg4,%reg3,0
           dealloc  %reg3
 
@@ -191,8 +191,6 @@ implementation
         ?
       }
       if GetNextInstruction(p,hp1) and
-        { we mix single and double operations here because we assume that the compiler
-          generates vmovapd only after double operations and vmovaps only after single operations }
         MatchInstruction(hp1,A_ADDI) and
         (taicpu(hp1).oper[2]^.val=0) and
         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
@@ -475,6 +473,8 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_SLL,
+              A_SRL,
               A_SRLI,
               A_SLLI:
                 result:=OptPass1OP(p);
