@@ -250,6 +250,7 @@
        {$ENDIF}
        protected
           function GetDisposed : Boolean; inline;
+          Property Disposed : Boolean Read GetDisposed;
        public
           { please don't change the order of virtual methods, because
             their vmt offsets are used by some assembler code which uses
@@ -304,7 +305,7 @@
           class function QualifiedClassName: RTLString;
           Procedure DisposeOf; inline;
           Procedure CheckDisposed; inline;
-          Property Disposed : Boolean Read GetDisposed;
+          
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: RTLString; virtual;
