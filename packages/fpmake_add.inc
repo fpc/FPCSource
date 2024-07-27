@@ -157,3 +157,4 @@
   add_gstreamer(ADirectory+IncludeTrailingPathDelimiter('gstreamer'));
   add_testinsight(ADirectory+IncludeTrailingPathDelimiter('testinsight'));
   add_wasm_job(ADirectory+IncludeTrailingPathDelimiter('wasm-job'));
+  add_wasm_oi(ADirectory+IncludeTrailingPathDelimiter('wasm-oi'));
