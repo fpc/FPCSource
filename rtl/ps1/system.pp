@@ -1,13 +1,7 @@
 unit system;
 interface
 
-{$define FPC_IS_SYSTEM}
 {$DEFINE FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
-{$define FPC_HAS_FEATURE_DYNLIBS}
-{$define FPC_HAS_FEATURE_INITFINAL}
-{$define FPC_HAS_FEATURE_ANSISTRINGS}
-{define USE_NOTHREADMANAGER}
-{$define FPC_HAS_FEATURE_THREADING}
 
 {$I systemh.inc}
 
@@ -18,9 +12,9 @@ var
 
 implementation
 
-procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap';
-procedure _free(p: pointer); external name 'free';
-function _malloc(l: dword): pointer; external name 'malloc';
+procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
+procedure _free(p: pointer); external name 'free2';
+function _malloc(l: dword): pointer; external name 'malloc2';
 
 
 const
@@ -84,5 +78,4 @@ end;
 begin
   InOutRes:= 0;
   _InitHeap(pdword($800F8000), $00100000);
-  InitSystemThreads;
 end.

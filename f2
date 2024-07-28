@@ -7,5 +7,5 @@ rm test.elf
 tm test.bin
 rm test.psx-exe
 rm *.res
-# -Cn
+# -Cn -XX
 ./compiler/ppcrossmipsel test.pas -a -XX -Fu./rtl/ps1 -Fu./rtl/objpas -Tps1 -Cfnone -Fu./psy-q-sdk/bindings -Fl./psy-q-sdk/lib -XP/usr/local/mipsel-unknown-elf/bin/mipsel-unknown-elf-

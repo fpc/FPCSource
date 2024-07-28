@@ -205,4 +205,5 @@
 'movz.s',
 'movn.d',
 'movz.d',
+'lwc2',
 'end_def'
