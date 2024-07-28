@@ -125,7 +125,7 @@ asm
   i32.div_s
 end;
 
-function test_i64_div_s(a, b: int64): longint; assembler; nostackframe;
+function test_i64_div_s(a, b: int64): int64; assembler; nostackframe;
 asm
   local.get 0
   local.get 1
@@ -144,6 +144,34 @@ asm
   local.get 0
   local.get 1
   i64.div_u
+end;
+
+function test_i32_rem_s(a, b: longint): longint; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.rem_s
+end;
+
+function test_i64_rem_s(a, b: int64): int64; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.rem_s
+end;
+
+function test_i32_rem_u(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.rem_u
+end;
+
+function test_i64_rem_u(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.rem_u
 end;
 
 function test_call: longint; assembler; nostackframe;
@@ -174,6 +202,10 @@ begin
   Check(test_i64_div_s(-4378294334934, 43) = -101820798486);
   Check(test_i32_div_u(3735928559, 5) = 747185711);
   Check(test_i64_div_u(16045690984833335023, 5) = 3209138196966667004);
+  Check(test_i32_rem_s(-1023, 4) = -3);
+  Check(test_i64_rem_s(-4378294334934, 43) = -36);
+  Check(test_i32_rem_u(3735928559, 5) = 4);
+  Check(test_i64_rem_u(16045690984833335023, 5) = 3);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
