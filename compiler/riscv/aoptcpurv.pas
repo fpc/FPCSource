@@ -477,6 +477,7 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_ADD,
               A_DIV,
               A_DIVU,
 {$ifdef riscv64}
