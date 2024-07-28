@@ -473,6 +473,12 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_ANDI,
+              A_XORI,
+              A_ORI,
+              A_AND,
+              A_OR,
+              A_XOR,
               A_SLL,
               A_SRL:
                 result:=OptPass1OP(p);
