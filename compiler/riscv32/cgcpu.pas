@@ -127,6 +127,8 @@ unit cgcpu;
           end
         else if (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
+        else if (tosize=OS_8) and (fromsize<>OS_8) then
+          list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
           ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or
           { do we need to mask out the sign when loading from smaller signed to larger unsigned type? }
