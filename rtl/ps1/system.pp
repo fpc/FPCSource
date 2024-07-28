@@ -1,78 +1,88 @@
 unit system;
 interface
 
-const
-  MaxLongint  = $7fffffff;
-  
-type
-  TTypeKind = (tkUnknown, tkInteger, tkChar, tkEnumeration, tkFloat, tkSet,
-    tkMethod, tkSString, tkLString, tkAString, tkWString, tkVariant, tkArray,
-    tkRecord, tkInterface, tkClass, tkObject, tkWChar, tkBool, tkInt64, tkQWord,
-    tkDynArray, tkInterfaceRaw, tkProcVar, tkUString, tkUChar, tkHelper, tkFile,
-    tkClassRef, tkPointer);
+{$define FPC_IS_SYSTEM}
+{$DEFINE FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+{$define FPC_HAS_FEATURE_DYNLIBS}
+{$define FPC_HAS_FEATURE_INITFINAL}
+{$define FPC_HAS_FEATURE_ANSISTRINGS}
+{define USE_NOTHREADMANAGER}
+{$define FPC_HAS_FEATURE_THREADING}
 
-{$I typedefs.inc}
-
-{$I ../mips/setjumph.inc}
-
-type
-PExceptAddr = ^TExceptAddr;
-  TExceptAddr = record 
-    buf: Pjmp_buf;
-    next: PExceptAddr;
-    {$IFDEF CPU16}
-    frametype: SmallInt;
-    {$ELSE CPU16}
-    frametype: LongInt;
-    {$ENDIF CPU16}
-  end;
-
-  PGuid = ^TGuid;
-  TGuid = packed record
-    case Integer of
-    1:
-     (Data1: DWord;
-      Data2: word;
-      Data3: word;
-      Data4: array [0 .. 7] of byte;
-    );
-    2:
-     (D1: DWord;
-      D2: word;
-      D3: word;
-      D4: array [0 .. 7] of byte;
-    );
-    3:
-    ( { uuid fields according to RFC4122 }
-      time_low: DWord; // The low field of the timestamp
-      time_mid: word; // The middle field of the timestamp
-      time_hi_and_version: word;
-      // The high field of the timestamp multiplexed with the version number
-      clock_seq_hi_and_reserved: byte;
-      // The high field of the clock sequence multiplexed with the variant
-      clock_seq_low: byte; // The low field of the clock sequence
-      node: array [0 .. 5] of byte; // The spatially unique node identifier
-    );
-  end;
+{$I systemh.inc}
 
 var
-  ExitCode: hresult = 0; export name 'operatingsystem_result';
-
-procedure fpc_initializeunits; compilerproc;
-
-procedure fpc_do_exit; compilerproc;
+  argc:longint=0;
+  argv:PPAnsiChar;
+  envp:PPAnsiChar;
 
 implementation
 
-{$I ../mips/setjump.inc}
+procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap';
+procedure _free(p: pointer); external name 'free';
+function _malloc(l: dword): pointer; external name 'malloc';
 
 
-procedure fpc_initializeunits;
+const
+    maxExitCode = 255;
+    AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+    DirectorySeparator = '/';
+  { Default filehandles }
+    UnusedHandle    = $ffff;{ instead of -1, as it is a word value}
+    StdInputHandle  = 0;
+    StdOutputHandle = 1;
+    StdErrorHandle  = 2;
+    CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCR;
+    LineEnding = #10;
+    PathSeparator = '/';
+    MaxPathLen = 255;
+    LFNSupport = true;
+    FileNameCaseSensitive = true;
+    sLineBreak = #13;
+
+{I ../mips/setjump.inc}
+{$I system.inc}
+
+
+procedure Randomize;
+begin
+  randseed:= 1234;
+end;
+
+function GetProcessID: LongWord;
+begin
+  result:= 0;
+end;
+
+function ParamCount: LongInt;
+begin
+  ParamCount:= 0;
+end;
+
+function ParamStr(l: LongInt): ShortString;
+begin
+  result:='';
+end;
+
+procedure SysInitStdIO;
 begin
 end;
 
-procedure fpc_do_exit;
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
+  result:= stklen;
 end;
 
+procedure system_exit;
+begin
+  repeat
+  until false;
+end;
+
+
+begin
+  InOutRes:= 0;
+  _InitHeap(pdword($800F8000), $00100000);
+  InitSystemThreads;
 end.

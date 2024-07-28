@@ -64,6 +64,18 @@ implementation
       ref: treference;
       sym: tasmsymbol;
     begin
+
+
+    if (cs_create_pic in current_settings.moduleswitches) then begin
+
+{
+    !!!!!!!!!!!!!!!!1
+    
+    I'm not shure this code is correct
+      see line 86   ->    if NOT pic then do pic code
+
+
+}
       if weak then
         sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
       else
@@ -81,6 +93,14 @@ implementation
         end
       else
         cg.a_call_name(list,s,weak);
+
+
+    end else
+        cg.a_call_name(list,s,weak);
+
+
+
+
       { set the result location }
       result:=get_call_result_cgpara(pd,forceresdef);
     end;

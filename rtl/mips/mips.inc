@@ -16,6 +16,7 @@
 {****************************************************************************
                            MIPS specific stuff
 ****************************************************************************}
+{$IFNDEF FPUNONE}
 function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
   asm
     cfc1 $2,$31
@@ -70,6 +71,9 @@ const
   fpu_rounding_minus_inf = 3;
 
   fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
+
+{$ENDIF}
+
 
 {$if defined(FPUMIPS2) or defined(FPUMIPS3)}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
@@ -485,6 +489,13 @@ begin
   InterLockedIncrement(l);
 end;
 
+{$IFDEF CPUMIPS1}
+function InterLockedDecrement (var Target: longint) : longint;
+begin
+    Target:= Target - 1;
+    Result:=Target;
+end;
+{$ELSE}
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
   sync
@@ -497,8 +508,15 @@ asm
   nop
   sync
 end;
+{$ENDIF}
 
-
+{$IFDEF CPUMIPS1}
+function InterLockedIncrement (var Target: longint) : longint;
+begin
+    Target:= Target + 1;
+    Result:=Target;
+end;
+{$ELSE}
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
   sync
@@ -511,8 +529,15 @@ asm
   nop
   sync
 end;
+{$ENDIF}
 
-
+{$IFDEF CPUMIPS1}
+function InterLockedExchange (var Target: longint;Source : longint) : longint;
+begin
+    Result:=Target;
+    Target:=Source;
+end;
+{$ELSE}
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
   sync
@@ -524,7 +549,15 @@ asm
   nop
   sync
 end;
+{$ENDIF}
 
+{$IFDEF CPUMIPS1}
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+begin
+    Result:=Target;
+    Target:= Target + Source;
+end;
+{$ELSE}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
   sync
@@ -536,8 +569,16 @@ asm
   nop
   sync
 end;
+{$ENDIF}
 
-
+{$IFDEF CPUMIPS1}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+begin
+    Result:= Target;
+    if Target = Comperand then
+      Target:= NewValue;
+end;
+{$ELSE}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
   sync
@@ -552,7 +593,7 @@ asm
   sync
 .L2:
 end;
-
+{$ENDIF}
 
 {$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
 {$ifdef ENDIAN_BIG}

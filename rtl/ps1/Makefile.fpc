@@ -1,0 +1,56 @@
+#
+#   Makefile.fpc for MIPSEL PlayStation 1
+#
+[package]
+main=rtl
+[target]
+loaders=
+units=$(SYSTEMUNIT) strt
+
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+target=ps1
+cpu=mipsel
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+#
+# Loaders
+#
+
+strt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) strt.pp
