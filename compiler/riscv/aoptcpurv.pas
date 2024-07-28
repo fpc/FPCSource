@@ -321,7 +321,9 @@ implementation
                       RemoveInstr(p);
 
                       result:=true;
-                    end;
+                    end
+                  else
+                    result:=OptPass1OP(p);
                 end;
               A_SUB:
                 begin
@@ -352,7 +354,9 @@ implementation
                       RemoveInstr(p);
 
                       result:=true;
-                    end;
+                    end
+                  else
+                    result:=OptPass1OP(p);
                 end;
               A_SLT,
               A_SLTU:
@@ -473,6 +477,15 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_DIV,
+              A_DIVU,
+{$ifdef riscv64}
+              A_DIVW,
+{$endif riscv64}
+              A_MUL,
+              A_MULH,
+              A_MULHSU,
+              A_MULHU,
               A_ANDI,
               A_XORI,
               A_ORI,
