@@ -230,6 +230,20 @@ asm
   i64.shl
 end;
 
+function test_i32_shr_u(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.shr_u
+end;
+
+function test_i64_shr_u(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.shr_u
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -270,6 +284,8 @@ begin
   Check(test_i64_xor(5207479527901863356, 9908469343996027762) = 13962666639138668238);
   Check(test_i32_shl(3790383670, 17) = 1416364032);
   Check(test_i64_shl(10525455493106971507, 37) = 13431544297274998784);
+  Check(test_i32_shr_u(3128451123, 15) = 95472);
+  Check(test_i64_shr_u(13472797416736092787, 61) = 5);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
