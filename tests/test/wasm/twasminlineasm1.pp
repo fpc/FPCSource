@@ -118,6 +118,34 @@ asm
   f64.mul
 end;
 
+function test_i32_div_s(a, b: longint): longint; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.div_s
+end;
+
+function test_i64_div_s(a, b: int64): longint; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.div_s
+end;
+
+function test_i32_div_u(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.div_u
+end;
+
+function test_i64_div_u(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.div_u
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -142,6 +170,10 @@ begin
   Check(test_i64_mul(1235454, 635456) = 785076657024);
   Check(Abs(test_f32_mul(1.23, 4.56) - 5.6088) < eps);
   Check(Abs(test_f64_mul(1.23456, 4.56789) - 5.639334278) < eps);
+  Check(test_i32_div_s(-1023, 4) = -255);
+  Check(test_i64_div_s(-4378294334934, 43) = -101820798486);
+  Check(test_i32_div_u(3735928559, 5) = 747185711);
+  Check(test_i64_div_u(16045690984833335023, 5) = 3209138196966667004);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
