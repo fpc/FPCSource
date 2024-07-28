@@ -258,6 +258,34 @@ asm
   i64.shr_u
 end;
 
+function test_i32_rotl(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.rotl
+end;
+
+function test_i64_rotl(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.rotl
+end;
+
+function test_i32_rotr(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.rotr
+end;
+
+function test_i64_rotr(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.rotr
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -302,6 +330,10 @@ begin
   Check(test_i64_shr_s(-549750071149968174, 40) = -499995);
   Check(test_i32_shr_u(3128451123, 15) = 95472);
   Check(test_i64_shr_u(13472797416736092787, 61) = 5);
+  Check(test_i32_rotl(794311356, 9) = 2960488542);
+  Check(test_i64_rotl(16308732359199215765, 54) = 2700071874357346100);
+  Check(test_i32_rotr(1183709466, 15) = 4063530267);
+  Check(test_i64_rotr(18216775875638200500, 49) = 9120411745173274215);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
