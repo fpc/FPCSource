@@ -4658,9 +4658,14 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL32');
         def_system_macro('CPU32');
-        def_system_macro('FPC_HAS_TYPE_DOUBLE');
-        def_system_macro('FPC_HAS_TYPE_SINGLE');
-        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        if target_info.system=system_x86_64_win64 then
+          begin
+            def_system_macro('FPC_CURRENCY_IS_INT64');
+            def_system_macro('FPC_COMP_IS_INT64');
+          end;
+//        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+//        def_system_macro('FPC_HAS_TYPE_SINGLE');
+//        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
         def_system_macro('FPC_CURRENCY_IS_INT64');
         def_system_macro('FPC_COMP_IS_INT64');
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
@@ -5548,6 +5553,16 @@ begin
           init_settings.optimizecputype:=cpu_pic32mx;
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_soft;
+      end;
+    system_mipsel_PS1:
+      begin
+        { set default cpu type to MIPS1 with no FPU }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mips1;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_mips1;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_none;
       end;
     else
       ;

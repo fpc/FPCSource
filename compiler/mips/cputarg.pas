@@ -54,6 +54,9 @@ implementation
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}
+    {$ifndef NOTARGETPS1}
+          ,t_ps1
+    {$endif}
 
 {**************************************
              Assemblers

@@ -314,6 +314,8 @@ interface
                            system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded,
                            system_aarch64_embedded];
 
+
+
        { all FreeRTOS systems }
        systems_freertos = [system_xtensa_freertos,system_arm_freertos,system_riscv32_freertos];
 
@@ -398,7 +400,7 @@ interface
                                    system_riscv32_linux,system_riscv64_linux,
                                    system_aarch64_win64,
                                    system_z80_zxspectrum,system_z80_msxdos,
-                                   system_wasm32_wasi,system_loongarch64_linux
+                                   system_wasm32_wasi,system_loongarch64_linux,system_mipsel_ps1
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use the PE+ header in the PE/COFF file
@@ -424,6 +426,9 @@ interface
          system_jvm_java32,
          system_jvm_android32
        ];
+
+       { all systems based on the PlayStation 1 }
+       systems_ps1 = [system_mipsel_ps1];
 
        { all systems where typed constants have to be translated into node
          trees that initialise the data instead of into data sections }

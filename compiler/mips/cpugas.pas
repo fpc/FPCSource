@@ -280,7 +280,7 @@ unit cpugas;
         idtxt: 'AS';
         asmbin: 'as';
         asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
-        supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded];
+        supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded,system_mipsel_ps1];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
         labelmaxlen : -1;
