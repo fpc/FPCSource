@@ -208,11 +208,11 @@
 
       begin
          { Use the usually faster 32-bit division if possible }
-	 if (hi(z) = 0) and (hi(n) = 0) then
-	 begin
-	   fpc_div_qword := Dword(z) div Dword(n);
-	   exit;
-	 end;
+	       if (hi(z) = 0) and (hi(n) = 0) then
+	         begin
+	           fpc_div_qword := Dword(z) div Dword(n);
+             exit;
+	         end;
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -249,11 +249,11 @@
 
       begin
          { Use the usually faster 32-bit mod if possible }
-	 if (hi(z) = 0) and (hi(n) = 0) then
-	 begin
-	   fpc_mod_qword := Dword(z) mod Dword(n);
-	   exit;
-	 end;
+         if (hi(z) = 0) and (hi(n) = 0) then
+           begin
+             fpc_mod_qword := Dword(z) mod Dword(n);
+             exit;
+           end;
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
