@@ -174,6 +174,48 @@ asm
   i64.rem_u
 end;
 
+function test_i32_and(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.and
+end;
+
+function test_i64_and(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.and
+end;
+
+function test_i32_or(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.or
+end;
+
+function test_i64_or(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.or
+end;
+
+function test_i32_xor(a, b: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i32.xor
+end;
+
+function test_i64_xor(a, b: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  local.get 1
+  i64.xor
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -206,6 +248,12 @@ begin
   Check(test_i64_rem_s(-4378294334934, 43) = -36);
   Check(test_i32_rem_u(3735928559, 5) = 4);
   Check(test_i64_rem_u(16045690984833335023, 5) = 3);
+  Check(test_i32_and(3942830758, 1786356659) = 1778418338);
+  Check(test_i64_and(15183510473490053603, 16355312621958629969) = 14028899775131945025);
+  Check(test_i32_or(2142750614, 1251056774) = 2142756758);
+  Check(test_i64_or(10479676218861969639, 16801051693844791272) = 17973685792710066159);
+  Check(test_i32_xor(4098315151, 2896801202) = 1492057661);
+  Check(test_i64_xor(5207479527901863356, 9908469343996027762) = 13962666639138668238);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
