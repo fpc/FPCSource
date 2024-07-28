@@ -348,7 +348,8 @@ type
     bufstart, base, limit: Int64; { All of these are absolute. }
     bufp, bufe: pByte; { bufp = pointer into buf, bufe - bufp = available bytes. }
     buf: array[0 .. 1023] of byte;
-    function Init(aBase, aSize : Int64) : Boolean;
+    procedure Init;
+    procedure SetRange(aBase, aSize : Int64);
     function Pos : TFilePos; { Relative to base. }
     procedure Seek(newIndex : Int64); { Relative to base. }
     function ReadNext : longint; inline;
@@ -366,12 +367,25 @@ type
   end;
 
 
-function TEReader.Init(aBase, aSize : Int64) : Boolean;
+procedure TEReader.Init;
+begin
+  bufstart := 0;
+  base := 0;
+  limit := 0;
+  bufp := pByte(buf);
+  bufe := bufp;
+end;
+
+procedure TEReader.SetRange(aBase, aSize : Int64);
 begin
   base := aBase;
   limit := base + aSize;
-  Init := limit <= e.size;
   Seek(0);
+  if limit < bufstart + (bufe - pByte(buf)) then
+    begin
+      bufe := pByte(buf) + (limit - bufstart); { Respect the limit if the buffer was reused. Probably unreachable, but just in case... }
+      System.Seek(e.f, limit);
+    end;
 end;
 
 
@@ -382,11 +396,19 @@ end;
 
 
 procedure TEReader.Seek(newIndex : Int64);
+var
+  gpos : Int64;
 begin
-  bufstart := base + newIndex;
-  System.Seek(e.f, bufstart);
-  bufp := pByte(buf);
-  bufe := bufp;
+  gpos := base + newIndex;
+  if (gpos >= bufstart) and (gpos <= bufstart + (bufe - pByte(buf))) then
+    bufp := pByte(buf) + (gpos - bufstart) { Reuse the buffer. }
+  else
+    begin
+      bufstart := gpos;
+      System.Seek(e.f, gpos);
+      bufp := pByte(buf);
+      bufe := bufp;
+    end;
 end;
 
 
@@ -516,9 +538,9 @@ begin
   if ReadNextBuffer > 0 then begin
     if ReadNextBuffer > length(buf) then ReadNextBuffer := length(buf);
     BlockRead(e.f, buf, ReadNextBuffer, ReadNextBuffer);
-    bufp := pByte(buf);
-    bufe := pByte(buf) + ReadNextBuffer;
   end;
+  bufp := pByte(buf);
+  bufe := pByte(buf) + ReadNextBuffer;
 end;
 
 
@@ -690,7 +712,7 @@ begin
 
   ParseCompilationUnit := file_offset + unit_length;
 
-  er.Init(file_offset, unit_length);
+  er.SetRange(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then begin
@@ -994,7 +1016,7 @@ begin
 
   ParseCompilationUnitForDebugInfoOffset := file_offset + unit_length;
 
-  er.Init(file_offset, unit_length);
+  er.SetRange(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then
@@ -1146,7 +1168,7 @@ begin
 
   ParseCompilationUnitForFunctionName := file_offset + unit_length;
 
-  er.Init(file_offset, unit_length);
+  er.SetRange(file_offset, unit_length);
 
   DEBUG_WRITELN('Unit length: ', unit_length);
   if (temp_length <> $ffffffff) then begin
@@ -1171,11 +1193,11 @@ begin
   prev_size:=er.limit-er.base;
   prev_base:=er.base;
   prev_pos:=er.Pos;
-  er.Init(Dwarf_Debug_Abbrev_Section_Offset+header64.debug_abbrev_offset,Dwarf_Debug_Abbrev_Section_Size);
+  er.SetRange(Dwarf_Debug_Abbrev_Section_Offset+header64.debug_abbrev_offset,Dwarf_Debug_Abbrev_Section_Size);
   ReadAbbrevTable(er, abbrevs);
 
   { restore previous reading state and position }
-  er.Init(prev_base,prev_size);
+  er.SetRange(prev_base,prev_size);
   er.Seek(prev_pos);
 
   abbrev:=er.ReadULEB128;
@@ -1300,9 +1322,10 @@ begin
   current_offset := Dwarf_Debug_Line_Section_Offset;
   end_offset := Dwarf_Debug_Line_Section_Offset + Dwarf_Debug_Line_Section_Size;
 
+  er.Init;
   found := false;
   while (current_offset < end_offset) and (not found) do begin
-    er.Init(current_offset, end_offset - current_offset);
+    er.SetRange(current_offset, end_offset - current_offset);
     current_offset := ParseCompilationUnit(er, addr, segment, current_offset,
       source, line, found);
   end;
@@ -1312,7 +1335,7 @@ begin
 
   found_aranges := false;
   while (current_offset < end_offset) and (not found_aranges) do begin
-    er.Init(current_offset, end_offset - current_offset);
+    er.SetRange(current_offset, end_offset - current_offset);
     current_offset := ParseCompilationUnitForDebugInfoOffset(er, addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
   end;
 
@@ -1327,7 +1350,7 @@ begin
 
       DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
-      er.Init(current_offset, end_offset - current_offset);
+      er.SetRange(current_offset, end_offset - current_offset);
       current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
       if found then
         DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
@@ -1341,7 +1364,7 @@ begin
   while (current_offset < end_offset) and (not found) do begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
-    er.Init(current_offset, end_offset - current_offset);
+    er.SetRange(current_offset, end_offset - current_offset);
     current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
   end;
 
