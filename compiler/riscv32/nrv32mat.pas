@@ -218,13 +218,22 @@ implementation
                 emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reghi,lreg.reglo,tmpreg1));
                 cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
                 cg.a_label(current_asmdata.CurrAsmList,less32);
-                emit_instr(taicpu.op_reg_const(A_LI,tmpreg1,31));
-                emit_instr(taicpu.op_reg_reg_const(A_SRLI,tmpreg2,lreg.reglo,1));
-                emit_instr(taicpu.op_reg_reg_reg(A_SUB,tmpreg1,tmpreg1,right.location.register64.reglo));
-                emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reglo,lreg.reglo,right.location.register64.reglo));
-                emit_instr(taicpu.op_reg_reg_reg(A_SRL,tmpreg2,tmpreg2,tmpreg1));
-                emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reghi,lreg.reghi,right.location.register64.reglo));
-                emit_instr(taicpu.op_reg_reg_reg(A_OR,resreg.reghi,resreg.reghi,tmpreg2));
+                { simple case were we know where the bit ends up, usefull when bitmasks are created }
+                if (left.nodetype=ordconstn) and (tordconstnode(left).value=1) then
+                  begin
+                    emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reglo,lreg.reglo,right.location.register64.reglo));
+                    emit_instr(taicpu.op_reg_const(A_LI,resreg.reghi,0));
+                  end
+                else
+                  begin
+                    emit_instr(taicpu.op_reg_const(A_LI,tmpreg1,31));
+                    emit_instr(taicpu.op_reg_reg_const(A_SRLI,tmpreg2,lreg.reglo,1));
+                    emit_instr(taicpu.op_reg_reg_reg(A_SUB,tmpreg1,tmpreg1,right.location.register64.reglo));
+                    emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reglo,lreg.reglo,right.location.register64.reglo));
+                    emit_instr(taicpu.op_reg_reg_reg(A_SRL,tmpreg2,tmpreg2,tmpreg1));
+                    emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reghi,lreg.reghi,right.location.register64.reglo));
+                    emit_instr(taicpu.op_reg_reg_reg(A_OR,resreg.reghi,resreg.reghi,tmpreg2));
+                  end;
               end
             else
               begin
