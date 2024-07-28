@@ -149,6 +149,19 @@ const
 
   SHA_DIGEST_LENGTH = 20;
 
+const
+  OSSL_PKEY_PARAM_PAD_MODE = 'pad-mode';
+  OSSL_ASYM_CIPHER_PARAM_PAD_MODE = OSSL_PKEY_PARAM_PAD_MODE;
+  OSSL_PKEY_RSA_PAD_MODE_NONE = 'none';
+  OSSL_PKEY_RSA_PAD_MODE_PKCSV15 = 'pkcs1';
+  OSSL_PKEY_RSA_PAD_MODE_OAEP = 'oaep';
+  OSSL_ASYM_CIPHER_PARAM_OAEP_LABEL = 'oaep-label';
+  OSSL_ALG_PARAM_DIGEST = 'digest';
+  OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST = OSSL_ALG_PARAM_DIGEST;
+  OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST_PROPS = 'digest-props';
+  SN_sha256 = 'SHA256';
+  LN_sha256 = 'sha256';
+
 type
   uint64_t = qword;
   SslPtr = Pointer;
@@ -167,6 +180,10 @@ type
   PASN1_UTCTIME = SslPtr;
   PASN1_INTEGER = SSlPtr;
   POPENSSL_INIT_SETTINGS = SSLPtr;
+
+  POSSL_LIB_CTX = pointer;
+  POSSL_PARAM = pointer;
+  POSSL_PARAM_BLD = pointer;
 
   PDH = pointer;
   PSTACK_OFX509 = pointer;
@@ -1295,6 +1312,12 @@ var
   procedure OpenSSL_add_all_ciphers;
   procedure OpenSSL_add_all_digests;
   //
+  function OSSL_PARAM_BLD_new: POSSL_PARAM_BLD;
+  function OSSL_PARAM_BLD_push_utf8_string(bld: POSSL_PARAM_BLD; key: PAnsiChar; const buf: PAnsiChar; bsize: csize_t): integer;
+  function OSSL_PARAM_BLD_to_param(bld: POSSL_PARAM_BLD): POSSL_PARAM;
+  procedure OSSL_PARAM_BLD_free(bld: POSSL_PARAM_BLD);
+  procedure OSSL_PARAM_free(params: POSSL_PARAM);
+  //
   function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
   function EVP_DigestUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
   function EVP_DigestFinal(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint;
@@ -1302,6 +1325,12 @@ var
     key: pEVP_PKEY): integer;
   function EVP_PKEY_size(key: pEVP_PKEY): integer;
   procedure EVP_PKEY_free(key: pEVP_PKEY);
+  function EVP_PKEY_encrypt_init_ex(ctx: PEVP_PKEY_CTX; params: POSSL_PARAM): integer;
+  function EVP_PKEY_encrypt(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer;
+  function EVP_PKEY_decrypt(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer;
+  procedure EVP_PKEY_CTX_free(ctx: PEVP_PKEY_CTX);
+  function EVP_PKEY_CTX_new_from_name(libctx: POSSL_LIB_CTX; const name: PAnsiChar; const propquery: PAnsiChar): PEVP_PKEY_CTX;
+  function EVP_PKEY_CTX_new_from_pkey(libctx: POSSL_LIB_CTX; const pkey: PEVP_PKEY; const propquery: PAnsiChar): PEVP_PKEY_CTX;
   function EVP_VerifyFinal(ctx: pEVP_MD_CTX; sigbuf: pointer;
     siglen: cardinal; pkey: pEVP_PKEY): integer;
   //
@@ -1771,6 +1800,12 @@ type
   TOpenSSL_add_all_ciphers = procedure(); cdecl;
   TOpenSSL_add_all_digests = procedure(); cdecl;
   //
+  TOSSL_PARAM_BLD_new = function: POSSL_PARAM_BLD; cdecl;
+  TOSSL_PARAM_BLD_push_utf8_string = function(bld: POSSL_PARAM_BLD; key: PAnsiChar; const buf: PAnsiChar; bsize: csize_t): integer; cdecl;
+  TOSSL_PARAM_BLD_to_param = function(bld: POSSL_PARAM_BLD): POSSL_PARAM; cdecl;
+  TOSSL_PARAM_BLD_free = procedure(bld: POSSL_PARAM_BLD); cdecl;
+  TOSSL_PARAM_free = procedure(params: POSSL_PARAM); cdecl;
+  //
   TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
   TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
   TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
@@ -1779,6 +1814,12 @@ type
     key: pEVP_PKEY): integer; cdecl;
   TEVP_PKEY_size = function(key: pEVP_PKEY): integer; cdecl;
   TEVP_PKEY_free = Procedure(key: pEVP_PKEY); cdecl;
+  TEVP_PKEY_encrypt_init_ex = function(ctx: PEVP_PKEY_CTX; params: POSSL_PARAM): integer; cdecl;
+  TEVP_PKEY_encrypt = function(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer; cdecl;
+  TEVP_PKEY_decrypt = function(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer; cdecl;
+  TEVP_PKEY_CTX_free = procedure(pctx: PEVP_PKEY_CTX); cdecl;
+  TEVP_PKEY_CTX_new_from_name = function(libctx: POSSL_LIB_CTX; const name: PAnsiChar; const propquery: PAnsiChar): PEVP_PKEY_CTX; cdecl;
+  TEVP_PKEY_CTX_new_from_pkey = function(libctx: POSSL_LIB_CTX; const pkey: PEVP_PKEY; const propquery: PAnsiChar): PEVP_PKEY_CTX; cdecl;
   TEVP_VerifyFinal = function(ctx: pEVP_MD_CTX; sigbuf: pointer;
     siglen: cardinal; pkey: pEVP_PKEY): integer;  cdecl;
   //
@@ -2040,6 +2081,12 @@ var
   _OpenSSL_add_all_ciphers: TOpenSSL_add_all_ciphers = nil;
   _OpenSSL_add_all_digests: TOpenSSL_add_all_digests = nil;
   //
+  _OSSL_PARAM_BLD_new: TOSSL_PARAM_BLD_new = nil;
+  _OSSL_PARAM_BLD_push_utf8_string: TOSSL_PARAM_BLD_push_utf8_string = nil;
+  _OSSL_PARAM_BLD_to_param: TOSSL_PARAM_BLD_to_param = nil;
+  _OSSL_PARAM_BLD_free: TOSSL_PARAM_BLD_free = nil;
+  _OSSL_PARAM_free: TOSSL_PARAM_free = nil;
+//
   _EVP_DigestInit: TEVP_DigestInit = nil;
   _EVP_DigestUpdate: TEVP_DigestUpdate = nil;
   _EVP_DigestFinal: TEVP_DigestFinal = nil;
@@ -2047,6 +2094,13 @@ var
   _EVP_SignFinal: TEVP_SignFinal = nil;
   _EVP_PKEY_size: TEVP_PKEY_size = nil;
   _EVP_PKEY_free: TEVP_PKEY_free = nil;
+  _EVP_PKEY_encrypt_init_ex: TEVP_PKEY_encrypt_init_ex = nil;
+  _EVP_PKEY_encrypt: TEVP_PKEY_encrypt = nil;
+  _EVP_PKEY_decrypt: TEVP_PKEY_decrypt = nil;
+  _EVP_PKEY_CTX_free: TEVP_PKEY_CTX_free = nil;
+  _EVP_PKEY_CTX_new_from_name: TEVP_PKEY_CTX_new_from_name = nil;
+  _EVP_PKEY_CTX_new_from_pkey: TEVP_PKEY_CTX_new_from_pkey = nil;
+
   _EVP_VerifyFinal: TEVP_VerifyFinal = nil;
   //
   _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
@@ -3633,6 +3687,42 @@ begin
      _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, Nil)
 end;
 //
+function OSSL_PARAM_BLD_new: POSSL_PARAM_BLD;
+begin
+  if InitSSLInterface and Assigned(_OSSL_PARAM_BLD_new) then
+    Result := _OSSL_PARAM_BLD_new
+  else
+    Result := nil;
+end;
+
+function OSSL_PARAM_BLD_push_utf8_string(bld: POSSL_PARAM_BLD; key: PAnsiChar; const buf: PAnsiChar; bsize: csize_t): integer;
+begin
+  if InitSSLInterface and Assigned(_OSSL_PARAM_BLD_push_utf8_string) then
+    Result := _OSSL_PARAM_BLD_push_utf8_string(bld, key, buf, bsize)
+  else
+    Result := 0;
+end;
+
+function OSSL_PARAM_BLD_to_param(bld: POSSL_PARAM_BLD): POSSL_PARAM;
+begin
+  if InitSSLInterface and Assigned(_OSSL_PARAM_BLD_to_param) then
+    Result := _OSSL_PARAM_BLD_to_param(bld)
+  else
+    Result := nil;
+end;
+
+procedure OSSL_PARAM_BLD_free(bld: POSSL_PARAM_BLD);
+begin
+  if InitSSLInterface and Assigned(_OSSL_PARAM_BLD_free) then
+    _OSSL_PARAM_BLD_free(bld);
+end;
+
+procedure OSSL_PARAM_free(params: POSSL_PARAM);
+begin
+  if InitSSLInterface and Assigned(_OSSL_PARAM_free) then
+    _OSSL_PARAM_free(params);
+end;
+//
 function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
 begin
   if InitSSLInterface and Assigned(_EVP_DigestInit) then
@@ -3688,6 +3778,52 @@ begin
     _EVP_PKEY_free(key);
 end;
 
+function EVP_PKEY_encrypt_init_ex(ctx: PEVP_PKEY_CTX; params: POSSL_PARAM): integer;
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_encrypt_init_ex) then
+    Result := _EVP_PKEY_encrypt_init_ex(ctx, params)
+  else
+    Result := -1;
+end;
+
+function EVP_PKEY_encrypt(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer;
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_encrypt) then
+    Result := _EVP_PKEY_encrypt(ctx, out_, outlen, in_, inlen)
+  else
+    Result := -1;
+end;
+
+function EVP_PKEY_decrypt(ctx: PEVP_PKEY_CTX; out_: PByte; var outlen: csize_t; const in_: PByte; inlen: csize_t): integer;
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_decrypt) then
+    Result := _EVP_PKEY_decrypt(ctx, out_, outlen, in_, inlen)
+  else
+    Result := -1;
+end;
+
+procedure EVP_PKEY_CTX_free(ctx: PEVP_PKEY_CTX);
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_CTX_free) then
+    _EVP_PKEY_CTX_free(ctx);
+end;
+
+function EVP_PKEY_CTX_new_from_name(libctx: POSSL_LIB_CTX; const name: PAnsiChar; const propquery: PAnsiChar): PEVP_PKEY_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_CTX_new_from_name) then
+    Result := _EVP_PKEY_CTX_new_from_name(libctx, name, propquery)
+  else
+    Result := nil;
+end;
+
+function EVP_PKEY_CTX_new_from_pkey(libctx: POSSL_LIB_CTX; const pkey: PEVP_PKEY; const propquery: PAnsiChar): PEVP_PKEY_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_PKEY_CTX_new_from_pkey) then
+    Result := _EVP_PKEY_CTX_new_from_pkey(libctx, pkey, propquery)
+  else
+    Result := nil;
+end;
+      
 function EVP_VerifyFinal(ctx: pEVP_MD_CTX; sigbuf: pointer;
     siglen: cardinal; pkey: pEVP_PKEY): integer;
 begin
@@ -5215,12 +5351,25 @@ begin
   _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms');
   _OpenSSL_add_all_ciphers := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_ciphers');
   _OpenSSL_add_all_digests := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_digests');
+
+  _OSSL_PARAM_BLD_new := GetProcAddr(SSLUtilHandle, 'OSSL_PARAM_BLD_new');
+  _OSSL_PARAM_BLD_push_utf8_string := GetProcAddr(SSLUtilHandle, 'OSSL_PARAM_BLD_push_utf8_string');
+  _OSSL_PARAM_BLD_to_param := GetProcAddr(SSLUtilHandle, 'OSSL_PARAM_BLD_to_param');
+  _OSSL_PARAM_BLD_free := GetProcAddr(SSLUtilHandle, 'OSSL_PARAM_BLD_free');
+  _OSSL_PARAM_free := GetProcAddr(SSLUtilHandle, 'OSSL_PARAM_free');
+  //
   _EVP_DigestInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestInit');
   _EVP_DigestUpdate := GetProcAddr(SSLUtilHandle, 'EVP_DigestUpdate');
   _EVP_DigestFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestFinal');
   _EVP_SignFinal := GetProcAddr(SSLUtilHandle, 'EVP_SignFinal');
   _EVP_PKEY_size := GetProcAddr(SSLUtilHandle,'EVP_PKEY_size');
   _EVP_PKEY_free := GetProcAddr(SSLUtilHandle,'EVP_PKEY_free');
+  _EVP_PKEY_encrypt_init_ex := GetProcAddr(SSLUtilHandle,'EVP_PKEY_encrypt_init_ex');
+  _EVP_PKEY_encrypt := GetProcAddr(SSLUtilHandle,'EVP_PKEY_encrypt');
+  _EVP_PKEY_decrypt := GetProcAddr(SSLUtilHandle,'EVP_PKEY_decrypt');
+  _EVP_PKEY_CTX_free := GetProcAddr(SSLUtilHandle,'EVP_PKEY_CTX_free');
+  _EVP_PKEY_CTX_new_from_name := GetProcAddr(SSLUtilHandle,'EVP_PKEY_CTX_new_from_name');
+  _EVP_PKEY_CTX_new_from_pkey := GetProcAddr(SSLUtilHandle,'EVP_PKEY_CTX_new_from_pkey');
   _EVP_VerifyFinal := GetProcAddr(SSLUtilHandle,'EVP_VerifyFinal');
   _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname');
   _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
@@ -5651,6 +5800,12 @@ begin
   _OpenSSL_add_all_ciphers := nil;
   _OpenSSL_add_all_digests := nil;
   //
+  _OSSL_PARAM_BLD_new := nil;
+  _OSSL_PARAM_BLD_push_utf8_string := nil;
+  _OSSL_PARAM_BLD_to_param := nil;
+  _OSSL_PARAM_BLD_free := nil;
+  _OSSL_PARAM_free := nil;
+  //
   _EVP_DigestInit := nil;
   _EVP_DigestUpdate := nil;
   _EVP_DigestFinal := nil;
@@ -5658,6 +5813,12 @@ begin
       _EVP_SignFinal := nil;
       _EVP_PKEY_size := nil;
       _EVP_PKEY_free := nil;
+      _EVP_PKEY_encrypt_init_ex := nil;
+      _EVP_PKEY_encrypt := nil;
+      _EVP_PKEY_decrypt := nil;
+      _EVP_PKEY_CTX_free := nil;
+      _EVP_PKEY_CTX_new_from_name := nil;
+      _EVP_PKEY_CTX_new_from_pkey := nil;
       _EVP_VerifyFinal := nil;
   //
   _EVP_get_cipherbyname := nil;
