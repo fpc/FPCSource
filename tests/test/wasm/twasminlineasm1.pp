@@ -286,6 +286,42 @@ asm
   i64.rotr
 end;
 
+function test_i32_clz(a: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  i32.clz
+end;
+
+function test_i64_clz(a: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  i64.clz
+end;
+
+function test_i32_ctz(a: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  i32.ctz
+end;
+
+function test_i64_ctz(a: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  i64.ctz
+end;
+
+function test_i32_popcnt(a: longword): longword; assembler; nostackframe;
+asm
+  local.get 0
+  i32.popcnt
+end;
+
+function test_i64_popcnt(a: qword): qword; assembler; nostackframe;
+asm
+  local.get 0
+  i64.popcnt
+end;
+
 function test_call: longint; assembler; nostackframe;
 asm
   i32.const 10
@@ -334,6 +370,12 @@ begin
   Check(test_i64_rotl(16308732359199215765, 54) = 2700071874357346100);
   Check(test_i32_rotr(1183709466, 15) = 4063530267);
   Check(test_i64_rotr(18216775875638200500, 49) = 9120411745173274215);
+  Check(test_i32_clz(123835432) = 5);
+  Check(test_i64_clz(12383543223210) = 20);
+  Check(test_i32_ctz(123835432) = 3);
+  Check(test_i64_ctz(12383543223210) = 1);
+  Check(test_i32_popcnt(123835432) = 11);
+  Check(test_i64_popcnt(12383543223210) = 21);
   Check(test_call = 27);
   Writeln('Ok!');
 end.
