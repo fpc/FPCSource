@@ -13,3 +13,9 @@ and newlib ports for Human68k by Lyderic "Lydux" Maillet, and is available
 at:
 
 https://github.com/Lydux
+
+Some of the Pascal examples are inspired by code (C) Federico Roviralta
+under the GPLv2 license. Additional examples in C language are available
+at:
+
+https://github.com/FedericoTech/X68KTutorials
