@@ -4032,6 +4032,7 @@ function TValue.ToString: String;
 var
   Obj : TObject;
 
+
 begin
   if IsEmpty then
     Exit('(empty)');
@@ -4040,6 +4041,7 @@ begin
     tkUString : result := AsUnicodeString;
     tkSString,
     tkAString : result := AsAnsiString;
+    tkFloat   : Str(AsDouble:12:4,Result);
     tkInteger : result := IntToStr(AsInteger);
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
@@ -4059,7 +4061,7 @@ begin
         Result:='<Nil>';  
       end  
   else
-    result := '<unknown kind>';
+    result := '<unknown kind: '+GetEnumName(System.TypeInfo(TTypeKind),Ord(Kind))+'>';
   end;
 end;
 
