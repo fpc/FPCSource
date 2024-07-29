@@ -35,6 +35,7 @@ begin
         AddInclude('h68kdos.inc');
       end;
     T:=P.Targets.AddUnit('h68kiocs.pas');
+    T:=P.Targets.AddUnit('h68kutil.pas');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('gradient.pas');
