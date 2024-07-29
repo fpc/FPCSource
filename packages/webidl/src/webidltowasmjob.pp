@@ -701,7 +701,7 @@ end;
 
 function TWebIDLToPasWasmJob.WriteDictionaryField(aDict: TIDLDictionaryDefinition; aField: TIDLDictionaryMemberDefinition): Boolean;
 var
-  N, TN: TIDLString;
+  aDef, N, TN: TIDLString;
 begin
   if (aDict=Nil) then ; // Silence compiler warning
   Result:=True;
@@ -709,7 +709,10 @@ begin
   TN:=GetPasName(aField.MemberType);
   if SameText(N,TN) then
     N:='_'+N;
-  AddLn(N+': '+TN+';');
+  aDef:=N+': '+TN+';';
+  if aField.IsRequired then
+    aDef:=aDef+' // required';
+  AddLn(aDef);
 end;
 
 function TWebIDLToPasWasmJob.WriteForwardClassDef(D: TIDLStructuredDefinition
@@ -1890,6 +1893,9 @@ begin
   Code:=Code+';';
   if aType is TIDLFunctionDefinition then
     Code:='// '+Code;
+  if (aProp is TIDLDictionaryMemberDefinition) then
+    if TIDLDictionaryMemberDefinition(aProp).IsRequired then
+      Code:=Code+' // required';
   AddLn(Code);
   Result:=true;
 end;
