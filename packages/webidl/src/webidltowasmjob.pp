@@ -87,6 +87,7 @@ type
     NativeType: TPascalNativeType;
     NativeTypeName,
     ResolvedTypeName,
+    CallBackName,
     FuncName: TIDLString;
   end;
 
@@ -127,6 +128,8 @@ type
     function BaseUnits: String; override;
     function DottedBaseUnits: String; override;
     function IsStub : Boolean; virtual;
+    function IsKeyWord(const S: String): Boolean; override;
+
     // Auxiliary routines
     function DefaultForNativeType(aNativeType: TPascalNativeType; aReturnTypeName: String): String;
     function GetAliasPascalType(D: TIDLDefinition; out PascalTypeName : string): TPascalNativeType; override;
@@ -252,6 +255,13 @@ end;
 function TWebIDLToPasWasmJob.IsStub: Boolean;
 begin
   Result:=False;
+end;
+
+function TWebIDLToPasWasmJob.IsKeyWord(const S: String): Boolean;
+begin
+  Result:=inherited IsKeyWord(S);
+  if not Result then
+    Result:=SameText(s,'create');
 end;
 
 function TWebIDLToPasWasmJob.GetAliasPascalType(D: TIDLDefinition; out PascalTypeName: string): TPascalNativeType;
@@ -1198,6 +1208,7 @@ begin
           end;
         Undent;
         AddLn('end;');
+        AddLn('');
       finally
         ArgNames.Free;
       end;
@@ -1244,8 +1255,6 @@ begin
   if FGeneratingInterface and (([foConstructor, foStatic] * aDef.Options)<>[]) then
     exit;
   Suff:='';
-  if (ADef.Name='createImageBitmap') then
-    Writeln('Name');
   GetMethodInfo(aParent,aDef,MethodInfo);
   Overloads:=GetOverloads(ADef);
   try
@@ -1541,6 +1550,7 @@ begin
     AddLn(GetFunc);
     undent;
     AddLn('end;');
+    AddLn('');
   finally
     ArgNames.Free;
   end;
@@ -1661,8 +1671,11 @@ begin
   Call:=GetReadPropertyCall(Info,aProp.Name);
   Addln('function '+aClassName+'.'+info.FuncName+': '+Info.NativeTypeName+';');
   Addln('begin');
-  Addln('  Result:='+Call+';');
+  Indent;
+  Addln('Result:='+Call+';');
+  Undent;
   Addln('end;');
+  AddLn('');
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetter(aParent: TIDLStructuredDefinition; aProp: TIDLPropertyDefinition): boolean;
@@ -1715,7 +1728,9 @@ begin
   else if aType is TIDLDictionaryDefinition then
     aAccessInfo.NativeTypeName:=GetPasIntfName(aType)
   else if aType is TIDLFunctionDefinition then
-    // exit // not supported yet
+    aAccessInfo.ResolvedTypeName:=GetPasName(aType)
+  else if aType is TIDLCallbackDefinition then
+    aAccessInfo.CallBackName:='JobCall'+GetPasName(TIDLCallbackDefinition(aType).FunctionDef) // callback
   else if aType is TIDLEnumDefinition then
     aAccessInfo.ResolvedTypeName:='UnicodeString';
   Result:=True;
@@ -1770,13 +1785,36 @@ begin
   aClassName:=GetPasName(aParent);
   if not GetPrivateSetterInfo(aProp,Info) then
     exit;
-  Call:=GetWritePropertyCall(Info, aProp.Name);
   Addln('procedure %s.%s(const aValue : %s);',[aClassName,info.FuncName,Info.NativeTypeName]);
-  Addln('begin');
-  indent;
-  Addln(Call+';');
+  if Info.PropType is TIDLCallbackDefinition then
+    begin
+    Addln('var');
+    Indent;
+    AddLn('m : TJOB_Method;');
+    Undent;
+    Addln('begin');
+    indent;
+    Addln('m:=TJOB_Method.create(TMethod(aValue),@%s);',[Info.CallBackName]);
+    Addln('try');
+    indent;
+    Addln('InvokeJSNoResult(''%s'',[m],jiSet);',[aProp.Name]);
+    undent;
+    Addln('finally');
+    indent;
+    Addln('m.free');
+    undent;
+    Addln('end;');
+    end
+  else
+    begin
+    Call:=GetWritePropertyCall(Info, aProp.Name);
+    Addln('begin');
+    indent;
+    Addln(Call+';');
+    end;
   undent;
   Addln('end;');
+  Addln('');
 end;
 
 
@@ -2245,10 +2283,11 @@ begin
   Indent;
   For IDl in aDict.Members do
     if IDL is TIDLDictionaryMemberDefinition then
-      begin
-      aName:=GetPasName(MD);
-      AddLn('Self.%s:=aDict.%s;',[aName,aName]);
-      end;
+      if convertDef(Idl) then
+        begin
+        aName:=GetPasName(MD);
+        AddLn('Self.%s:=aDict.%s;',[aName,aName]);
+        end;
   Undent;
   AddLn('end;');
   AddLn('');
@@ -2283,6 +2322,7 @@ begin
   AddLn('Result:=%s.JOBCast(Intf);',[aClassName]);
   Undent;
   AddLn('end;');
+  AddLn('');
 end;
 
 
