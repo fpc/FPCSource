@@ -423,6 +423,7 @@ end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
+  result := stklen;
 end;
 
 begin
