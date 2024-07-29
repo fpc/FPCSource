@@ -44,7 +44,7 @@ Function TProcess.PeekExitStatus : Boolean;
 begin
   Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
   // wait up to 10ms extra till process really done to get rest of input bug #39821
-  if not Result Then
+  if Result Then
     WaitForSingleObject(FProcessHandle,10);
 end;
 
@@ -188,7 +188,7 @@ Var
   AllDescriptorsDefault :=
     (FDescriptors[phtInput].IOType = iotDefault) and
     (FDescriptors[phtOutput].IOType = iotDefault) and
-    (FDescriptors[phtError].IOType = iotDefault) and 
+    (FDescriptors[phtError].IOType = iotDefault) and
     not (poStdErrToOutput in Options);
   FDescriptors[phtInput].PrepareHandles;
   FDescriptors[phtOutput].PrepareHandles;
@@ -245,7 +245,7 @@ Var
         Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
-      FThreadId:=FProcessInformation.dwThreadId;  
+      FThreadId:=FProcessInformation.dwThreadId;
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
       FDescriptors[phtInput].CloseTheirHandle;
@@ -351,7 +351,7 @@ function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THan
 var
   oldHandle: THandle;
   Res : Boolean;
-  
+
 begin
   if (IOType in [iotDefault,iotFile]) or ((IOType=iotHandle) and FCustomHandleIsInheritable) then
     begin
@@ -359,7 +359,7 @@ begin
     exit;
     end;
   oldHandle := ahandle;
-  ahandle:=THandle(INVALID_HANDLE_VALUE); 
+  ahandle:=THandle(INVALID_HANDLE_VALUE);
   Res := DuplicateHandle
   ( GetCurrentProcess(),
     oldHandle,
@@ -382,7 +382,7 @@ begin
     Raise EProcess.CreateFmt('Could not make handle %d inheritable',[aHandle]);
     end;
   Result:=aHandle;
-end;    
+end;
 
 function TIODescriptor.SysNullFileName: string;
 begin
