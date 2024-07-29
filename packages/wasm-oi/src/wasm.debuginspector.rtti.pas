@@ -362,7 +362,7 @@ var
   Idx : Integer;
   S,Vis : String;
   ObjCaption : RawByteString;
-
+  L : TStringList;
 
 begin
   Result:=ClearObjectInspector;
@@ -377,13 +377,21 @@ begin
   lPropArray:=Info.GetProperties;
   Idx:=0;
   __wasm_oi_log(wolDebug,'    '+S+Format(': %d properties',[Length(lPropArray)]));
-  For lProp in lPropArray do
-    begin
-    if (lProp.Visibility in aVisibilities) then
-      if not SendObjectProperty(aObject,Idx,lProp) then
-        Result:=False;
-    Inc(Idx);
-    end;
+  L:=TStringList.Create;
+  try
+    For lProp in lPropArray do
+      L.AddObject(lProp.Name,lProp);
+    L.Sort;
+    for Idx:=0 to L.Count-1 do
+      begin
+      lProp:=TRttiProperty(L.Objects[Idx]);
+      if (lProp.Visibility in aVisibilities) then
+        if not SendObjectProperty(aObject,Idx,lProp) then
+          Result:=False;
+       end;
+  finally
+    L.Free;
+  end;
   __wasm_oi_log(wolTrace,'<-- '+S);
 end;
 
