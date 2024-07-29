@@ -16,6 +16,7 @@
 unit wasm.debuginspector.api;
 
 {$mode objfpc}
+{$h+}
 
 interface
 
