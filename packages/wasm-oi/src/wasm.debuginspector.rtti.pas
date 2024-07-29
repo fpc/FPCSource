@@ -151,20 +151,14 @@ var
 
 begin
   lFLags:=[];
-  Writeln('Converting vis 0 ',VisibilitiesToString(lFlags));
   if (aFlags and WASM_SENDPROPERTYFLAG_PRIVATE) <> 0 then
     include(lFlags,mvPrivate);
-  Writeln('Converting vis 1 ',VisibilitiesToString(lFlags));
   if (aFlags and WASM_SENDPROPERTYFLAG_PROTECTED) <> 0 then
     include(lFlags,mvProtected);
-  Writeln('Converting vis 2 ',VisibilitiesToString(lFlags));
   if (aFlags and WASM_SENDPROPERTYFLAG_PUBLIC) <> 0 then
     include(lFlags,mvPublic);
-  Writeln('Converting vis 3 ',VisibilitiesToString(lFlags));
   if (aFlags and WASM_SENDPROPERTYFLAG_PUBLISHED) <> 0 then
     include(lFlags,mvPublished);
-  Writeln('Converting vis 4 ',VisibilitiesToString(lFlags));
-  Writeln('Converting vis a: ',Integer(lFlags));
   Result:=lFlags;
 end;
 
@@ -176,7 +170,6 @@ var
 
 begin
   Vis:=PropertyFlagsToVisibilities(aFlags);
-  Writeln('Converted vis: ',Integer(vis));
   Obj:=FindObject(aObjectID);
   if Obj=Nil then
     Result:=WASMOI_INVALIDOBJECT
