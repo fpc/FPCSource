@@ -794,7 +794,7 @@ asm
 
   sub r1, r0, #1 // Decrement value
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3       // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -805,7 +805,7 @@ asm
 {$endif}
   // MOVS sets the Z flag when the result reaches zero, this can be used later on
   // The C-Flag will not be modified by this because we're not doing any shifting
-  movcss r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  movcss r0, r1     // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
 
@@ -877,7 +877,7 @@ asm
 
   add r1, r0, #1 // Increment value
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3     // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -886,7 +886,7 @@ asm
   mov pc, r3
 {$endif}
 {$endif}
-  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  movcs r0, r1     // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
 
@@ -957,7 +957,7 @@ asm
   sub r3, r3, #0x3F
   mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3     // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -1040,7 +1040,7 @@ asm
 
   add r1, r0, r4 // Add to value
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3     // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -1246,14 +1246,14 @@ But FPC currently does not support inlining of asm-functions, so the whole call-
 is bigger than the gain of the optimized function.
 function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
 asm
-	// We're starting with 4321
+    // We're starting with 4321
 {$if defined(CPUARM_HAS_REV)}
-	rev r0, r0		// Reverse byteorder    r0 = 1234
-	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
+    rev r0, r0        // Reverse byteorder    r0 = 1234
+    mov r0, r0, shr #16    // Shift down to 16bits r0 = 0012
 {$else}
-	mov r0, r0, shl #16	// Shift to make that 2100
-	mov r0, r0, ror #24	// Rotate to 1002
-	orr r0, r0, r0 shr #16  // Shift and combine into 0012
+    mov r0, r0, shl #16    // Shift to make that 2100
+    mov r0, r0, ror #24    // Rotate to 1002
+    orr r0, r0, r0 shr #16  // Shift and combine into 0012
 {$endif}
 end;
 
