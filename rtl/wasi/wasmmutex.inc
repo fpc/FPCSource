@@ -74,7 +74,10 @@ Var
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
   Res:=lmrNone;
-  EndTime:=GetClockTime+aTimeOutMS*1000;
+  if aTimeOutMS<>-1 then
+    EndTime:=GetClockTime+aTimeOutMS*1000000
+  else
+    EndTime:=0;
   MyThread:=GetSelfThread;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait: entering loop');{$ENDIF}
   Repeat
@@ -106,7 +109,10 @@ begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
   Res:=lmrNone;
   MyThread:=GetSelfThread;
-  EndTime:=GetClockTime+aTimeOutMS*1000;
+  if aTimeOutMS<>-1 then
+    EndTime:=GetClockTime+aTimeOutMS*1000000
+  else
+    EndTime:=0;
   InterLockedIncrement(M.Waiters);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait: entering loop');{$ENDIF}
   Repeat
