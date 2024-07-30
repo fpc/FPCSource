@@ -175,7 +175,10 @@ begin
     if (MutexKind(M)=mkRecursive) or (M.Count=1) then
       InterLockedDecrement(M.Count);
     if (M.Count=0) then
-      a:=fpc_wasm32_memory_atomic_notify(@M.Locked,1);
+      begin
+        M.Locked:=0;
+        a:=fpc_wasm32_memory_atomic_notify(@M.Locked,1);
+      end;
     end;
 end;
 
