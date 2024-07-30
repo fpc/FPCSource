@@ -14,7 +14,7 @@ begin
   Result:=TMutexKind(M.Kind);
 end;
 
-procedure InitMutex(M : TWasmMutex; aKind : TMutexKind = mkNormal; aOwner : TThreadID = Nil);
+procedure InitMutex(var M : TWasmMutex; aKind : TMutexKind = mkNormal; aOwner : TThreadID = Nil);
 
 begin
   FillChar(M,SizeOf(TWasmMutex),0);
@@ -24,7 +24,7 @@ begin
   M.Kind:=Ord(aKind);
 end;
 
-procedure DoneMutex(M : TWasmMutex);
+procedure DoneMutex(var M : TWasmMutex);
 
 Var
   a : LongInt;
