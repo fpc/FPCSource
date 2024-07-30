@@ -8,7 +8,7 @@ Type
   TMutexKind = (mkNormal,mkRecursive);
   TLockMutexResult = (lmrNone,lmrOK,lmrNotOwner,lmrError,lmrTimeout);
 
-Function MutexKind(M : TWasmMutex) : TMutexKind;
+Function MutexKind(const M : TWasmMutex) : TMutexKind;
 
 begin
   Result:=TMutexKind(M.Kind);
