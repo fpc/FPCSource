@@ -231,12 +231,12 @@ Var
 begin
   IsMain:=GlobalIsMainThread<>0;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : waiting (is main: '+intToStr(Ord(IsMain))+')');{$ENDIF}
-  if aTimeoutNs>0 then
+  if aTimeoutNs>=0 then
     EndTime:=GetClockTime+aTimeoutNs
   else
     EndTime:=0;
   Repeat
-    IsTimeOut:=(aTimeoutNs>0) and (GetClockTime>EndTime);
+    IsTimeOut:=(aTimeoutNs>=0) and (GetClockTime>EndTime);
     IsDone:=(aEvent^.Signal=1) or (aEvent^.Destroying) or (Not IsMain and (GetThreadState(GetSelfThread)<>tsRunning));
   Until isTimeOut or IsDone;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : done waiting');{$ENDIF}
