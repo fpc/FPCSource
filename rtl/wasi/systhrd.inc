@@ -208,19 +208,19 @@ begin
   UnLockMutex(P^.Mutex);
 end;
 
-procedure WasiRTLEventWaitFor_WaitAllowed(AEvent:PWasmRTLEvent; aTimeoutMs : Longint);
+procedure WasiRTLEventWaitFor_WaitAllowed(AEvent:PWasmRTLEvent; aTimeoutNs : Int64);
 
 Var
   a : Longint;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : waiting');{$ENDIF}
-  a:=fpc_wasm32_memory_atomic_wait32(@(aEvent^.Signal),1,aTimeoutMs*1000);
+  a:=fpc_wasm32_memory_atomic_wait32(@(aEvent^.Signal),1,aTimeoutNs);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : done');{$ENDIF}
 end;
 
 
-procedure WasiRTLEventWaitFor_WaitNotAllowed(AEvent:PWasmRTLEvent; aTimeoutMs : Longint);
+procedure WasiRTLEventWaitFor_WaitNotAllowed(AEvent:PWasmRTLEvent; aTimeoutNs : Int64);
 
 Var
   EndTime : Int64;
@@ -231,9 +231,12 @@ Var
 begin
   IsMain:=GlobalIsMainThread<>0;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : waiting (is main: '+intToStr(Ord(IsMain))+')');{$ENDIF}
-  EndTime:=GetClockTime+aTimeoutMs*1000;
+  if aTimeoutNs>0 then
+    EndTime:=GetClockTime+aTimeoutNs
+  else
+    EndTime:=0;
   Repeat
-    IsTimeOut:=(aTimeOutMS<>0) and (GetClockTime>EndTime);
+    IsTimeOut:=(aTimeoutNs>0) and (GetClockTime>EndTime);
     IsDone:=(aEvent^.Signal=1) or (aEvent^.Destroying) or (Not IsMain and (GetThreadState(GetSelfThread)<>tsRunning));
   Until isTimeOut or IsDone;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : done waiting');{$ENDIF}
@@ -246,20 +249,25 @@ Var
 
 begin
   if IsWaitAllowed then
-    WasiRTLEventWaitFor_WaitAllowed(P,0)
+    WasiRTLEventWaitFor_WaitAllowed(P,-1)
   else
-    WasiRTLEventWaitFor_WaitNotAllowed(P,0);
+    WasiRTLEventWaitFor_WaitNotAllowed(P,-1);
 end;
 
 procedure WasiRTLEventWaitForTimeout(AEvent:PRTLEvent;timeout : longint);
 Var
   P : PWasmRTLEvent absolute aEvent;
+  TimeoutNs: Int64;
 
 begin
-  if IsWaitAllowed then
-    WasiRTLEventWaitFor_WaitAllowed(P,TimeOut)
+  if timeout=-1 then
+    TimeoutNs:=-1
   else
-    WasiRTLEventWaitFor_WaitNotAllowed(P,TimeOut);
+    TimeoutNs:=Int64(timeout)*1000000;
+  if IsWaitAllowed then
+    WasiRTLEventWaitFor_WaitAllowed(P,TimeoutNs)
+  else
+    WasiRTLEventWaitFor_WaitNotAllowed(P,TimeoutNs);
 end;
 
 
