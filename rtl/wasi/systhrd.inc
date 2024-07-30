@@ -159,6 +159,7 @@ begin
   P^.Signal:=0;
   P^.Destroying:=False;
   InitMutex(P^.Mutex);
+  Result:=P;
 end;
 
 procedure WasiRTLEventSetEvent(AEvent:PRTLEvent);
