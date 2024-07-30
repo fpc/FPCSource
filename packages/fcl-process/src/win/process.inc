@@ -40,7 +40,7 @@ Function TProcessnamemacro.PeekExitStatus : Boolean;
 begin
   Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
   // wait up to 10ms extra till process really done to get rest of input bug #39821
-  if not Result Then
+  if Result Then
     WaitForSingleObject(FProcessHandle,10);
 end;
 
