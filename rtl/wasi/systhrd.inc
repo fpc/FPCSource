@@ -215,7 +215,7 @@ Var
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : waiting');{$ENDIF}
-  a:=fpc_wasm32_memory_atomic_wait32(@(aEvent^.Signal),1,aTimeoutNs);
+  a:=fpc_wasm32_memory_atomic_wait32(@(aEvent^.Signal),0,aTimeoutNs);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : done');{$ENDIF}
 end;
 
