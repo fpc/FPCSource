@@ -3,7 +3,7 @@
 
 
 Type
-  // We us an alias here.
+  // We use an alias here.
   TWasmMutex = TRTLCriticalSection;
   TMutexKind = (mkNormal,mkRecursive);
   TLockMutexResult = (lmrNone,lmrOK,lmrNotOwner,lmrError,lmrTimeout);
