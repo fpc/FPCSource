@@ -31,11 +31,7 @@ uses
 
 {$IFDEF DUMPCERT}
 Const
-{$IFDEF UNIX}
-  DumpCertFile = '/tmp/x509.txt';
-{$ELSE}
-  DumpCertFile = 'C:\temp\x509.txt';
-{$ENDIF}
+  DumpCertFile = 'x509.txt';
 {$ENDIF}
 
 Type
@@ -303,7 +299,7 @@ begin
     With TStringList.Create do
       try
         Add(S);
-        SaveToFile(DumpCertFile);
+        SaveToFile(IncludeTrailingPathDelimiter(GetTempDir)+DumpCertFile);
       finally
         Free;
       end;
