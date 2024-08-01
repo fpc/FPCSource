@@ -494,7 +494,10 @@ implementation
               A_OR,
               A_XOR,
               A_SLL,
-              A_SRL:
+              A_SRL,
+              A_SRA,
+              A_NEG,
+              A_NOT:
                 result:=OptPass1OP(p);
               A_SRLI,
               A_SLLI:
