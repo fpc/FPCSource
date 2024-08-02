@@ -22,6 +22,7 @@ begin
     aOwner:=GetSelfThread;
   M.Creator:=aOwner;
   M.Kind:=Ord(aKind);
+  fpc_wasm32_i32_atomic_store(@M.Owner,0);
   fpc_wasm32_i32_atomic_store(@M.Locked,0);
 end;
 
@@ -45,7 +46,7 @@ Var
 
 begin
   // We already have the lock ?
-  Res:=(fpc_wasm32_i32_atomic_load(@M.Locked)=1) and (M.Owner=GetSelfThread);
+  Res:=(fpc_wasm32_i32_atomic_load(@M.Locked)=1) and (TThreadID(fpc_wasm32_i32_atomic_load(@M.Owner))=GetSelfThread);
   if Not Res then
     Res:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@M.Locked,0,1)=0
   else
@@ -58,7 +59,7 @@ begin
     if (MutexKind(M)=mkRecursive) or (M.Count=0) then
       InterLockedIncrement(M.Count);
 //    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : setting owner to '+IntToStr(PtrUint(GetSelfThread))+'.');{$ENDIF}
-    M.Owner:=GetSelfThread;
+    fpc_wasm32_i32_atomic_store(@M.Owner,LongWord(GetSelfThread));
     end;
   TryLockMutex:=Res;
 end;
@@ -180,7 +181,7 @@ var
 begin
   Res:=lmrNone;
   MyThread:=GetSelfThread;
-  if MyThread<>M.owner then
+  if MyThread<>TThreadID(fpc_wasm32_i32_atomic_load(@M.Owner)) then
     Res:=lmrNotOwner
   else if M.Count=0 then
     Res:=lmrError
@@ -191,7 +192,7 @@ begin
       InterLockedDecrement(M.Count);
     if (M.Count=0) then
       begin
-        M.Owner:=nil;
+        fpc_wasm32_i32_atomic_store(@M.Owner,0);
         fpc_wasm32_i32_atomic_store(@M.Locked,0);
         a:=fpc_wasm32_memory_atomic_notify(@M.Locked,1);
       end;
