@@ -104,6 +104,7 @@ Var
   Res : TLockMutexResult;
   MyThread : TThreadID;
   EndTime: TOSTime;
+  RemainingTime: Int64;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
@@ -112,30 +113,37 @@ begin
   if aTimeOutNS>=0 then
     EndTime:=GetClockTime+aTimeOutNS
   else
-    EndTime:=0;
+    begin
+      EndTime:=0;
+      RemainingTime:=-1;
+    end;
   InterLockedIncrement(M.Waiters);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait: entering loop');{$ENDIF}
   Repeat
-    Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,1000) of
-      0 : begin
-          if M.Destroying then
-            Res:=lmrError
-          else
-            Res:=lmrOK;
+    if TryLockMutex(m) then
+      Res:=lmrOk
+    else
+      begin
+        if aTimeOutNS>=0 then
+          begin
+            RemainingTime:=EndTime-GetClockTime;
+            if RemainingTime<0 then
+              Res:=lmrTimeOut;;
           end;
-      1 : Res:=lmrError;
-      2 : begin
-          if M.Destroying then
-            Res:=lmrError
-          else if (GetThreadState(MyThread)<>tsRunning) then
-            Res:=lmrError
-          else
-            begin
-            If (aTimeOutNS>=0) and (GetClockTime>EndTime) then
-              Res:=lmrTimeOut
-            end;
-          end;
-    end;
+        if Res<>lmrNone then
+          Case fpc_wasm32_memory_atomic_wait32(@M.Locked,1,RemainingTime) of
+            0, 1:
+              if M.Destroying then
+                Res:=lmrError;
+            2:
+              if M.Destroying then
+                Res:=lmrError
+              else if (GetThreadState(MyThread)<>tsRunning) then
+                Res:=lmrError
+              else
+                Res:=lmrTimeOut;
+        end;
+      end;
   Until Res<>lmrNone;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait: done loop');{$ENDIF}
   InterLockedDecrement(M.Waiters);
