@@ -64,7 +64,7 @@ end;
 
 
 // aTimeOutMS is in milliseconds. <0 (e.g. -1) is infinite
-Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutMS : LongInt) : TLockMutexResult;
+Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutMS : Int64) : TLockMutexResult;
 
 Var
   Res : TLockMutexResult;
@@ -98,7 +98,7 @@ begin
   LockMutexTimeoutNoWait:=Res;
 end;
 
-Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutMS : LongInt) : TLockMutexResult;
+Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutMS : Int64) : TLockMutexResult;
 
 Var
   Res : TLockMutexResult;
