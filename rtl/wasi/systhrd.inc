@@ -389,12 +389,17 @@ function WasiWaitForThreadTerminate(threadHandle : TThreadID; TimeoutMs : longin
 Var
   Res : Integer;
   TH : PWasmThread absolute ThreadHandle;
+  TimeoutNs : Int64;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+','+IntToStr(TimeoutMs)+')');{$ENDIF}
+  if TimeoutMs>=0 then
+    TimeoutNs:=TimeoutMs*1000000
+  else
+    TimeoutNs:=-1;
   WasiRTLEventWaitFor(TH^.DoneEvent);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+') : Event set, waiting for lock');{$ENDIF}
-  Case LockMuTexTimeout(PWasmThread(ThreadHandle)^.Running,TimeoutMS) of
+  Case LockMuTexTimeout(PWasmThread(ThreadHandle)^.Running,TimeoutNs) of
     lmrOK : Res:=0;
     lmrError : Res:=-2;
   else

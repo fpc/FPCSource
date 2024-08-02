@@ -63,8 +63,8 @@ begin
 end;
 
 
-// aTimeOutMS is in milliseconds. <0 (e.g. -1) is infinite
-Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutMS : Int64) : TLockMutexResult;
+// aTimeOutNS is in nanoseconds. <0 (e.g. -1) is infinite
+Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMutexResult;
 
 Var
   Res : TLockMutexResult;
@@ -72,10 +72,10 @@ Var
   EndTime: TOSTime;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
   Res:=lmrNone;
-  if aTimeOutMS>=0 then
-    EndTime:=GetClockTime+aTimeOutMS*1000000
+  if aTimeOutNS>=0 then
+    EndTime:=GetClockTime+aTimeOutNS
   else
     EndTime:=0;
   MyThread:=GetSelfThread;
@@ -89,7 +89,7 @@ begin
         Res:=lmrError
       else
         begin
-        If (aTimeOutMS>=0) and (GetClockTime>EndTime) then
+        If (aTimeOutNS>=0) and (GetClockTime>EndTime) then
           Res:=lmrTimeOut
         end;
       end;
@@ -98,7 +98,7 @@ begin
   LockMutexTimeoutNoWait:=Res;
 end;
 
-Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutMS : Int64) : TLockMutexResult;
+Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMutexResult;
 
 Var
   Res : TLockMutexResult;
@@ -106,11 +106,11 @@ Var
   EndTime: TOSTime;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
   Res:=lmrNone;
   MyThread:=GetSelfThread;
-  if aTimeOutMS>=0 then
-    EndTime:=GetClockTime+aTimeOutMS*1000000
+  if aTimeOutNS>=0 then
+    EndTime:=GetClockTime+aTimeOutNS
   else
     EndTime:=0;
   InterLockedIncrement(M.Waiters);
@@ -131,7 +131,7 @@ begin
             Res:=lmrError
           else
             begin
-            If (aTimeOutMS>=0) and (GetClockTime>EndTime) then
+            If (aTimeOutNS>=0) and (GetClockTime>EndTime) then
               Res:=lmrTimeOut
             end;
           end;
@@ -142,16 +142,16 @@ begin
   LockMutexTimeoutWait:=Res;
 end;
 
-Function LockMutexTimeout(var m : TWasmMutex; aTimeOutMS : Int64) : TLockMutexResult;
+Function LockMutexTimeout(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMutexResult;
 
 
 begin
   if TryLockMutex(M) then
     Result:=lmrOK
   else if isWaitAllowed then
-    Result:=LockMutexTimeoutWait(m,aTimeOutMS)
+    Result:=LockMutexTimeoutWait(m,aTimeOutNS)
   else
-    Result:=LockMutexTimeoutNoWait(m,aTimeOutMS)
+    Result:=LockMutexTimeoutNoWait(m,aTimeOutNS)
 end;
 
 Function LockMutex(var m : TRTLCriticalSection) : TLockMutexResult;
