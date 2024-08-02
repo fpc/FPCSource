@@ -63,7 +63,7 @@ begin
 end;
 
 
-// aTimeOutNS is in milliseconds. -1 is infinite
+// aTimeOutMS is in milliseconds. <0 (e.g. -1) is infinite
 Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutMS : LongInt) : TLockMutexResult;
 
 Var
@@ -74,7 +74,7 @@ Var
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
   Res:=lmrNone;
-  if aTimeOutMS<>-1 then
+  if aTimeOutMS>=0 then
     EndTime:=GetClockTime+aTimeOutMS*1000000
   else
     EndTime:=0;
@@ -89,7 +89,7 @@ begin
         Res:=lmrError
       else
         begin
-        If (aTimeOutMS<>-1) and (GetClockTime>EndTime) then
+        If (aTimeOutMS>=0) and (GetClockTime>EndTime) then
           Res:=lmrTimeOut
         end;
       end;
@@ -109,7 +109,7 @@ begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutMs)+')');{$ENDIF}
   Res:=lmrNone;
   MyThread:=GetSelfThread;
-  if aTimeOutMS<>-1 then
+  if aTimeOutMS>=0 then
     EndTime:=GetClockTime+aTimeOutMS*1000000
   else
     EndTime:=0;
@@ -131,7 +131,7 @@ begin
             Res:=lmrError
           else
             begin
-            If (aTimeOutMS<>-1) and (GetClockTime>EndTime) then
+            If (aTimeOutMS>=0) and (GetClockTime>EndTime) then
               Res:=lmrTimeOut
             end;
           end;
