@@ -22,6 +22,7 @@ begin
     aOwner:=GetSelfThread;
   M.Creator:=aOwner;
   M.Kind:=Ord(aKind);
+  fpc_wasm32_i32_atomic_store(@M.Locked,0);
 end;
 
 procedure DoneMutex(var M : TWasmMutex);
@@ -30,7 +31,7 @@ Var
   a : LongInt;
 
 begin
-  if (M.Locked>0) and (M.Creator=GetSelfThread) then
+  if (fpc_wasm32_i32_atomic_load(@M.Locked)<>0) and (M.Creator=GetSelfThread) then
     begin
     M.Destroying:=True;
     a:=fpc_wasm32_memory_atomic_notify(@M.Locked,MaxThreadSignal);
@@ -44,7 +45,7 @@ Var
 
 begin
   // We already have the lock ?
-  Res:=(M.Locked=1) and (M.Owner=GetSelfThread);
+  Res:=(fpc_wasm32_i32_atomic_load(@M.Locked)=1) and (M.Owner=GetSelfThread);
   if Not Res then
     Res:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@M.Locked,0,1)=0
   else
@@ -191,7 +192,7 @@ begin
     if (M.Count=0) then
       begin
         M.Owner:=nil;
-        M.Locked:=0;
+        fpc_wasm32_i32_atomic_store(@M.Locked,0);
         a:=fpc_wasm32_memory_atomic_notify(@M.Locked,1);
       end;
     end;
