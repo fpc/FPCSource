@@ -358,6 +358,39 @@ implementation
                   else
                     result:=OptPass1OP(p);
                 end;
+              A_ANDI:
+                begin
+                  {
+                    Changes
+                      andi x, y, #
+                      andi z, x, #
+                      dealloc x
+                    To
+                      andi z, y, # and #
+                  }
+                  if (taicpu(p).ops=3) and
+                     (taicpu(p).oper[2]^.typ=top_const) and
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     MatchInstruction(hp1,A_ANDI) and
+                     (taicpu(hp1).ops=3) and
+                     MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+                     (taicpu(hp1).oper[2]^.typ=top_const) and
+                     is_imm12(taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val) and
+                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                    begin
+                      taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
+                      taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+
+                      DebugMsg('Peephole AndiAndi2Andi performed', hp1);
+
+                      RemoveInstr(p);
+
+                      result:=true;
+                    end
+                  else
+                    result:=OptPass1OP(p);
+                end;
               A_SLT,
               A_SLTU:
                 begin
@@ -487,7 +520,6 @@ implementation
               A_MULH,
               A_MULHSU,
               A_MULHU,
-              A_ANDI,
               A_XORI,
               A_ORI,
               A_AND,
