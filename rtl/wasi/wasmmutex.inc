@@ -20,7 +20,7 @@ begin
   FillChar(M,SizeOf(TWasmMutex),0);
   if aOwner=Nil then
     aOwner:=GetSelfThread;
-  M.Owner:=aOwner;
+  M.Creator:=aOwner;
   M.Kind:=Ord(aKind);
 end;
 
@@ -30,7 +30,7 @@ Var
   a : LongInt;
 
 begin
-  if (M.Locked>0) and (M.Owner=GetSelfThread) then
+  if (M.Locked>0) and (M.Creator=GetSelfThread) then
     begin
     M.Destroying:=True;
     a:=fpc_wasm32_memory_atomic_notify(@M.Locked,MaxThreadSignal);
@@ -190,6 +190,7 @@ begin
       InterLockedDecrement(M.Count);
     if (M.Count=0) then
       begin
+        M.Owner:=nil;
         M.Locked:=0;
         a:=fpc_wasm32_memory_atomic_notify(@M.Locked,1);
       end;

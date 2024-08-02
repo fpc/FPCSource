@@ -27,6 +27,7 @@ type
     Count: LongInt; // Number of times locked.
     Waiters : LongInt; // Number of waiters
     Kind : LongInt; // Kind of mutex, Equals Ord(TMutexKind)
-    Owner : TThreadID;  // Owner thread
+    Owner : TThreadID;  // Owner thread (who holds the lock)
+    Creator : TThreadID;  // Creator thread
     Destroying : Boolean; // Set when notifying that we're destroying the mutex.
   end;
