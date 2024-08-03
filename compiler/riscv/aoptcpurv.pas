@@ -48,6 +48,9 @@ type
 
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     function OptPass1OP(var p: tai): boolean;
+
+    function OptPass1Add(var p: tai): boolean;
+    procedure RemoveInstr(var orig: tai; moveback: boolean=true);
   end;
 
 implementation
@@ -208,21 +211,120 @@ implementation
     end;
 
 
+  procedure TRVCpuAsmOptimizer.RemoveInstr(var orig: tai; moveback: boolean = true);
+    var
+      n: tai;
+    begin
+      if moveback and (not GetLastInstruction(orig,n)) then
+        GetNextInstruction(orig,n);
+
+      AsmL.Remove(orig);
+      orig.Free;
+
+      orig:=n;
+    end;
+
+
+  function TRVCpuAsmOptimizer.OptPass1Add(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result:=false;
+      {
+        Changes
+          addi x, y, #
+          addi/addiw z, x, #
+          dealloc x
+        To
+          addi z, y, #+#
+      }
+      if (taicpu(p).ops=3) and
+         (taicpu(p).oper[2]^.typ=top_const) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1,[A_ADDI{$ifdef riscv64},A_ADDIW{$endif}]) and
+         (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+         (taicpu(hp1).oper[2]^.typ=top_const) and
+         is_imm12(taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
+          taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val);
+
+          DebugMsg('Peephole AddiAddi2Addi performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      {
+        Changes
+          addi x, z, (ref)
+          ld/sd y, 0(x)
+          dealloc x
+        To
+          ld/sd y, 0(ref)(x)
+      }
+      else if (taicpu(p).ops=3) and
+         (taicpu(p).oper[2]^.typ=top_ref) and
+         MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1, [A_LB,A_LBU,A_LH,A_LHU,A_LW,
+                                 A_SB,A_SH,A_SW{$ifdef riscv64},A_LD,A_LWU,A_SD{$endif}]) and
+         (taicpu(hp1).ops=2) and
+         (taicpu(hp1).oper[1]^.typ=top_ref) and
+         (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
+         (taicpu(hp1).oper[1]^.ref^.offset=0) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadref(1,taicpu(p).oper[2]^.ref^);
+          taicpu(hp1).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
+
+          DebugMsg('Peephole AddiMem2Mem performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      {
+        Changes
+          addi x, z, #w
+          ld/sd y, 0(x)
+          dealloc x
+        To
+          ld/sd y, #w(z)
+      }
+      else if (taicpu(p).ops=3) and
+         (taicpu(p).oper[2]^.typ=top_const) and
+         //MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1, [A_LB,A_LBU,A_LH,A_LHU,A_LW,
+                                 A_SB,A_SH,A_SW{$ifdef riscv64},A_LWU,A_LD,A_SD{$endif}]) and
+         (taicpu(hp1).ops=2) and
+         (taicpu(hp1).oper[1]^.typ=top_ref) and
+         (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
+         (taicpu(hp1).oper[1]^.ref^.offset=0) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          //taicpu(hp1).loadconst(1,taicpu(p).oper[2]^.ref^);
+          taicpu(hp1).oper[1]^.ref^.offset:=taicpu(p).oper[2]^.val;
+          taicpu(hp1).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
+
+          DebugMsg('Peephole AddiMem2Mem performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      else
+        result:=OptPass1OP(p);
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
-
-    procedure RemoveInstr(var orig: tai; moveback: boolean = true);
-      var
-        n: tai;
-      begin
-        if moveback and (not GetLastInstruction(orig,n)) then
-          GetNextInstruction(orig,n);
-
-        AsmL.Remove(orig);
-        orig.Free;
-
-        orig:=n;
-      end;
-
     var
       hp1: tai;
     begin
@@ -232,99 +334,7 @@ implementation
           begin
             case taicpu(p).opcode of
               A_ADDI:
-                begin
-                  {
-                    Changes
-                      addi x, y, #
-                      addi/addiw z, x, #
-                      dealloc x
-                    To
-                      addi z, y, #+#
-                  }
-                  if (taicpu(p).ops=3) and
-                     (taicpu(p).oper[2]^.typ=top_const) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1,[A_ADDI{$ifdef riscv64},A_ADDIW{$endif}]) and
-                     (taicpu(hp1).ops=3) and
-                     MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
-                     (taicpu(hp1).oper[2]^.typ=top_const) and
-                     is_imm12(taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
-                      taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val);
-
-                      DebugMsg('Peephole AddiAddi2Addi performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  {
-                    Changes
-                      addi x, z, (ref)
-                      ld/sd y, 0(x)
-                      dealloc x
-                    To
-                      ld/sd y, 0(ref)(x)
-                  }
-                  else if (taicpu(p).ops=3) and
-                     (taicpu(p).oper[2]^.typ=top_ref) and
-                     MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1, [A_LB,A_LBU,A_LH,A_LHU,A_LW,
-                                             A_SB,A_SH,A_SW{$ifdef riscv64},A_LD,A_LWU,A_SD{$endif}]) and
-                     (taicpu(hp1).ops=2) and
-                     (taicpu(hp1).oper[1]^.typ=top_ref) and
-                     (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
-                     (taicpu(hp1).oper[1]^.ref^.offset=0) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadref(1,taicpu(p).oper[2]^.ref^);
-                      taicpu(hp1).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
-
-                      DebugMsg('Peephole AddiMem2Mem performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  {
-                    Changes
-                      addi x, z, #w
-                      ld/sd y, 0(x)
-                      dealloc x
-                    To
-                      ld/sd y, #w(z)
-                  }
-                  else if (taicpu(p).ops=3) and
-                     (taicpu(p).oper[2]^.typ=top_const) and
-                     //MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1, [A_LB,A_LBU,A_LH,A_LHU,A_LW,
-                                             A_SB,A_SH,A_SW{$ifdef riscv64},A_LWU,A_LD,A_SD{$endif}]) and
-                     (taicpu(hp1).ops=2) and
-                     (taicpu(hp1).oper[1]^.typ=top_ref) and
-                     (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
-                     (taicpu(hp1).oper[1]^.ref^.offset=0) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      //taicpu(hp1).loadconst(1,taicpu(p).oper[2]^.ref^);
-                      taicpu(hp1).oper[1]^.ref^.offset:=taicpu(p).oper[2]^.val;
-                      taicpu(hp1).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
-
-                      DebugMsg('Peephole AddiMem2Mem performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  else
-                    result:=OptPass1OP(p);
-                end;
+                result:=OptPass1Add(p);
               A_SUB:
                 begin
                   {
