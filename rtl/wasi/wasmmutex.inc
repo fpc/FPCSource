@@ -84,7 +84,7 @@ begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait: entering loop');{$ENDIF}
   Repeat
     if TryLockMutex(M) then
-      Result:=lmrOK
+      Res:=lmrOK
     else if (GetThreadState(MyThread)<>tsRunning) then
       Res:=lmrError
     else if (aTimeOutNS>=0) and (GetClockTime>EndTime) then
