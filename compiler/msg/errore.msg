@@ -3522,7 +3522,7 @@ unit_w_unsupported_esp_idf_version=10071_W_Unsupported esp-idf version
 #
 #  Options
 #
-# 11068 is the last used one
+# 11069 is the last used one
 #
 # BeginOfTeX
 %
@@ -3692,6 +3692,7 @@ option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no correspo
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
+option_wasm_threads_require_external_linker=11069_N_WebAssembly multithreading is not supported by the internal linker, switching to external linking
 % \end{description}
 # EndOfTeX
 
