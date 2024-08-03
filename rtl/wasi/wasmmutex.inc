@@ -70,7 +70,6 @@ Function LockMutexTimeoutNoWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockM
 
 Var
   Res : TLockMutexResult;
-  MyThread : TThreadID;
   EndTime: TOSTime;
 
 begin
@@ -80,13 +79,10 @@ begin
     EndTime:=GetClockTime+aTimeOutNS
   else
     EndTime:=0;
-  MyThread:=GetSelfThread;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutNoWait: entering loop');{$ENDIF}
   Repeat
     if TryLockMutex(M) then
       Res:=lmrOK
-    else if (GetThreadState(MyThread)<>tsRunning) then
-      Res:=lmrError
     else if (aTimeOutNS>=0) and (GetClockTime>EndTime) then
       Res:=lmrTimeOut;
   Until (res<>lmrNone);
@@ -98,14 +94,12 @@ Function LockMutexTimeoutWait(var m : TWasmMutex; aTimeOutNS : Int64) : TLockMut
 
 Var
   Res : TLockMutexResult;
-  MyThread : TThreadID;
   EndTime: TOSTime;
   RemainingTime: Int64;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('LockMutexTimeoutWait('+IntToStr(m.locked)+','+intToStr(aTimeOutNS)+')');{$ENDIF}
   Res:=lmrNone;
-  MyThread:=GetSelfThread;
   if aTimeOutNS>=0 then
     EndTime:=GetClockTime+aTimeOutNS
   else
@@ -133,8 +127,6 @@ begin
                 Res:=lmrError;
             2:
               if M.Destroying then
-                Res:=lmrError
-              else if (GetThreadState(MyThread)<>tsRunning) then
                 Res:=lmrError
               else
                 Res:=lmrTimeOut;
