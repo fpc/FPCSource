@@ -127,6 +127,9 @@ begin
 end;
 
 function tlinkerwasi.MakeExecutable:boolean;
+const
+  PageSize = 65536;
+  DefaultMaxMemoryForThreads = 33554432;
 var
   GCSectionsStr  : ansistring;
   binstr, cmdstr : Tcmdstr;
@@ -138,6 +141,9 @@ var
 
   tmp : TCmdStrListItem;
   tempFileName : ansistring;
+
+  initialmem,
+  maxmem : longint;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename);
@@ -167,10 +173,21 @@ begin
 
   cmdstr := cmdstr + ' --no-entry';
 
+  initialmem:=align(heapsize,PageSize);
+  maxmem:=align(maxheapsize,PageSize);
+
   if ts_wasm_threads in current_settings.targetswitches then
     begin
-      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=33554432 --global-base=1024';
+      cmdstr := cmdstr + ' --import-memory --shared-memory --global-base=1024';
+      if maxmem<=0 then
+        maxmem:=align(DefaultMaxMemoryForThreads,PageSize);
     end;
+
+  if initialmem>0 then
+    cmdstr := cmdstr + ' --initial-memory=' + tostr(initialmem);
+
+  if maxmem>0 then
+    cmdstr := cmdstr + ' --max-memory=' + tostr(maxmem);
 
   if (cs_link_strip in current_settings.globalswitches) then
    begin
