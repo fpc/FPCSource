@@ -26,6 +26,10 @@ const
 var
   InitialHeapBlockStart: Pointer;
   InitialHeapBlockEnd: Pointer;
+{$ifdef FPC_WASM_THREADS}
+  InitialHeapCriticalSection: TRtlCriticalSection;
+  InitialHeapCriticalSectionInitialized: Boolean = false;
+{$endif FPC_WASM_THREADS}
 
 procedure SetInitialHeapBlockStart(p: Pointer);[Public, Alias : 'FPC_WASM_SETINITIALHEAPBLOCKSTART'];
 begin
@@ -43,6 +47,10 @@ const
 var
   res: ptruint;
 begin
+{$ifdef FPC_WASM_THREADS}
+  if InitialHeapCriticalSectionInitialized then
+    EnterCriticalSection(InitialHeapCriticalSection);
+{$endif FPC_WASM_THREADS}
   if (PtrUInt(InitialHeapBlockEnd)-PtrUInt(InitialHeapBlockStart))>=size then
     begin
       SysOSAlloc:=InitialHeapBlockStart;
@@ -56,6 +64,10 @@ begin
       else
         SysOSAlloc:=nil;
     end;
+{$ifdef FPC_WASM_THREADS}
+  if InitialHeapCriticalSectionInitialized then
+    LeaveCriticalSection(InitialHeapCriticalSection);
+{$endif FPC_WASM_THREADS}
 end;
 
 procedure SysOSFree(p: pointer; size: ptruint);

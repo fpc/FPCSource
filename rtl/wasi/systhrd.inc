@@ -121,6 +121,8 @@ begin
 {$ELSE FPC_WASM_MAIN_THREAD_CAN_WAIT}
   GlobalIsThreadBlockable:=0;
 {$ENDIF FPC_WASM_MAIN_THREAD_CAN_WAIT}
+  InitMutex(TWasmMutex(InitialHeapCriticalSection));
+  InitialHeapCriticalSectionInitialized:=true;
   if TLSInfoBlock=Nil then
     TLSInfoBlock:=AllocateOSInfoBlock;
 {$IFDEF DEBUGWASMTHREADS}
