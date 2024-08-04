@@ -43,7 +43,6 @@ Type
   PWasmRTLEvent = ^TWasmRTLEvent;
   TWasmRTLEvent = record
     Signal : Longint;
-    mutex: TWasmMutex;
     Destroying : Boolean;
   end;
 
@@ -179,9 +178,8 @@ Var
 
 begin
   New(P);
-  P^.Signal:=0;
-  P^.Destroying:=False;
-  InitMutex(P^.Mutex);
+  fpc_wasm32_i32_atomic_store(@P^.Signal,0);
+  fpc_wasm32_i32_atomic_store8(@P^.Destroying,0);
   Result:=P;
 end;
 
@@ -192,12 +190,9 @@ Var
   a : longint;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : locking mutex');{$ENDIF}
-  LockMutex(P^.Mutex);
-  P^.Signal:=1;
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : unlocking mutex');{$ENDIF}
-  UnLockMutex(P^.Mutex);
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : send signal');{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : setting signal=1');{$ENDIF}
+  fpc_wasm32_i32_atomic_store(@P^.Signal,1);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : notifying waiting threads');{$ENDIF}
   a:=fpc_wasm32_memory_atomic_notify(@(P^.Signal),MaxThreadSignal);
 end;
 
@@ -207,14 +202,12 @@ Var
   P : PWasmRTLEvent absolute aEvent;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : locking mutex');{$ENDIF}
-  LockMutex(P^.Mutex);
-  P^.Destroying:=True;
-  UnlockMutex(P^.Mutex);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : setting destroying to true');{$ENDIF}
+  fpc_wasm32_i32_atomic_store8(@P^.Destroying,1);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : setting event to notify others');{$ENDIF}
   WasiRTLEventSetEvent(aEvent);
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : set event to notify others');{$ENDIF}
-  FreeMem(P);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : freeing memory');{$ENDIF}
+  Dispose(P);
 end;
 
 
@@ -224,11 +217,8 @@ Var
   P : PWasmRTLEvent absolute aEvent;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventResetEvent : locking mutex');{$ENDIF}
-  LockMutex(P^.Mutex);
-  P^.Signal:=0;
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventResetEvent : unlocking mutex');{$ENDIF}
-  UnLockMutex(P^.Mutex);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventResetEvent : setting signal=0');{$ENDIF}
+  fpc_wasm32_i32_atomic_store(@P^.Signal,0);
 end;
 
 procedure WasiRTLEventWaitFor_WaitAllowed(AEvent:PWasmRTLEvent; aTimeoutNs : Int64);
@@ -249,18 +239,16 @@ Var
   EndTime : Int64;
   IsTimeOut : Boolean;
   IsDone : Boolean;
-  isMain : Boolean;
 
 begin
-  IsMain:=GlobalIsMainThread<>0;
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : waiting (is main: '+intToStr(Ord(IsMain))+')');{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : waiting');{$ENDIF}
   if aTimeoutNs>=0 then
     EndTime:=GetClockTime+aTimeoutNs
   else
     EndTime:=0;
   Repeat
     IsTimeOut:=(aTimeoutNs>=0) and (GetClockTime>EndTime);
-    IsDone:=(aEvent^.Signal=1) or (aEvent^.Destroying) or (Not IsMain and (GetThreadState(GetSelfThread)<>tsRunning));
+    IsDone:=(fpc_wasm32_i32_atomic_load(@aEvent^.Signal)=1) or (fpc_wasm32_i32_atomic_load8_u(@aEvent^.Destroying)<>0);
   Until isTimeOut or IsDone;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : done waiting (isTimeout='+intToStr(Ord(isTimeOut))+',IsDone='+intToStr(Ord(IsDone))+
                                         ',Signal='+IntToStr(aEvent^.Signal)+',Destroying='+IntToStr(Ord(aEvent^.Destroying))+')');{$ENDIF}
