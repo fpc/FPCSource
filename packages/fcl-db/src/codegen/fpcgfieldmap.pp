@@ -26,7 +26,6 @@ Type
   { TGenFieldMapOptions }
   TFieldMapOption = (fmoPublicFields,fmoRequireFields,fmoLoadObject,fmoCreateParamMap,fmoSaveObject,fmoOverrideTransformString,fmoDefineArray,fmoDefineList);
   TListParent = (lpFPList,lpList,lpObjectList,lpFPObjectList,lpGenericList,lpFGLGenericList);
-  
   TFieldMapOptions = Set of TFieldMapOption;
 
   TGenFieldMapOptions = Class(TClassCodeGeneratorOptions)
@@ -510,7 +509,7 @@ begin
     Try
       Addln(Strings,'begin');
       IncIndent;
-      AddLn(Strings,'Fill(aObject as %s);',[ObjectClassName]);
+      AddLn(Strings,'Save(aObject as %s);',[ObjectClassName]);
       DecIndent;
     finally
       EndMethod(Strings,S);
