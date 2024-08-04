@@ -35,7 +35,7 @@ unit i_wasi;
             name         : 'The WebAssembly System Interface (WASI)';
             shortname    : 'Wasi';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
-                            tf_files_case_sensitive,tf_no_generic_stackcheck,
+                            tf_files_case_sensitive,tf_no_generic_stackcheck,tf_emit_stklen,
                             tf_smartlink_sections,tf_has_winlike_resources,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];

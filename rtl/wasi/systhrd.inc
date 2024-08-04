@@ -361,7 +361,6 @@ Function wasi_thread_spawn(start_arg: PWasmThread) : LongInt; external 'wasi' na
 function WasiBeginThread(sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
 
 Const
-  DefaultStackSize=1024*1024;
   HeapAlignment=16;
 Var
   T : PWasmThread;
@@ -374,7 +373,7 @@ begin
   T^.ThreadFunction:=ThreadFunction;
   T^.ThreadFunctionArg:=p;
   if stacksize<=0 then
-    stacksize:=DefaultStackSize;
+    stacksize:=StkLen;
   T^.StackBlock:=GetMem(stacksize);
   T^.InitialStackPointer:=Pointer(PtrUInt(PtrUInt(T^.StackBlock)+stacksize) and $FFFFFFF0);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: InitialStackPointer='+IntToStr(PtrUint(T^.InitialStackPointer)));{$ENDIF}

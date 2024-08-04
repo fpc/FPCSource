@@ -73,6 +73,9 @@ Procedure DebugWriteln(aString : ShortString);
 
 implementation
 
+var
+  StkLen: SizeUInt; external name '__stklen';
+
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
 
