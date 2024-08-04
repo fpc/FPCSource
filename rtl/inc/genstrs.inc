@@ -13,24 +13,14 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
-   function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;
-   var
-    counter : byte;
+  function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;
+  var
+    n: SizeInt;
   Begin
-    counter := 0;
-   { if empty pascal string  }
-   { then setup and exit now }
-   if Length(s)=0 then
-   Begin
-     D[0] := #0;
-     StrPCopy := D;
-     exit;
-   end;
-   for counter:=1 to length(S) do
-     D[counter-1] := S[counter];
-   { terminate the string }
-   D[counter] := #0;
-   StrPCopy:=D;
- end;
+    n:=length(s);
+    Move(s[1], d^, n);
+    d[n]:=#0;
+    StrPCopy:=D;
+  end;
 {$endif FPC_UNIT_HAS_STRPCOPY}
 

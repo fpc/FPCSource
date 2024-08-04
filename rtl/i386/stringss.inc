@@ -15,27 +15,4 @@
  **********************************************************************}
 
 
-{$ifndef FPC_UNIT_HAS_STRPCOPY}
-{$define FPC_UNIT_HAS_STRPCOPY}
-function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;assembler;
-var
-  saveesi,saveedi : longint;
-asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-
-        movl    %eax,%edi          // load destination address
-        movl    %edx,%esi          // Load Source adress
-        movzbl  (%esi),%ecx        // load length in ECX
-        incl    %esi
-        rep
-        movsb
-        movb    $0,(%edi)
-        movl    saveedi,%edi
-        movl    saveesi,%esi
-end;
-{$endif FPC_UNIT_HAS_STRPCOPY}
 

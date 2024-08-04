@@ -746,54 +746,6 @@ END;
 
 (*
 ===============================================================================================
-"Special" Helper Functions
-
-Don't ask me why. But including these functions makes the parser *DRAMATICALLY* faster
-on my K6-233 machine. You can test it yourself just by commenting them out.
-They do exactly the same as the Assembler routines defined in SysUtils.
-(This is where you can see how great the Delphi compiler really is. The compiled code is
-faster than hand-coded assembler!)
-===============================================================================================
---> Just move this line below the StrScan function -->  *)
-
-
-FUNCTION StrPos (CONST Str, SearchStr : PAnsiChar) : PAnsiChar;
-         // Same functionality as SysUtils.StrPos
-VAR
-  First : AnsiChar;
-  Len   : INTEGER;
-BEGIN
-  First  := SearchStr^;
-  Len    := StrLen (SearchStr);
-  Result := Str;
-  REPEAT
-    IF Result^ = First THEN
-      IF StrLComp (Result, SearchStr, Len) = 0 THEN BREAK;
-    IF Result^ = #0 THEN BEGIN
-      Result := NIL;
-      BREAK;
-      END;
-    INC (Result);
-  UNTIL FALSE;
-END;
-
-
-FUNCTION StrScan (CONST Start : PAnsiChar; CONST Ch : AnsiChar) : PAnsiChar;
-         // Same functionality as SysUtils.StrScan
-BEGIN
-  Result := Start;
-  WHILE Result^ <> Ch DO BEGIN
-    IF Result^ = #0 THEN BEGIN
-      Result := NIL;
-      EXIT;
-      END;
-    INC (Result);
-    END;
-END;
-
-
-(*
-===============================================================================================
 Helper Functions
 ===============================================================================================
 *)
