@@ -46,21 +46,29 @@ const
   err = high(longword);
 var
   res: ptruint;
+  avail: SizeUInt;
+  grow_pages: LongInt;
 begin
 {$ifdef FPC_WASM_THREADS}
   if InitialHeapCriticalSectionInitialized then
     EnterCriticalSection(InitialHeapCriticalSection);
 {$endif FPC_WASM_THREADS}
-  if (PtrUInt(InitialHeapBlockEnd)-PtrUInt(InitialHeapBlockStart))>=size then
+  avail:=PtrUInt(InitialHeapBlockEnd)-PtrUInt(InitialHeapBlockStart);
+  if avail>=size then
     begin
       SysOSAlloc:=InitialHeapBlockStart;
       Inc(InitialHeapBlockStart,size);
     end
   else
     begin
-      res:=fpc_wasm32_memory_grow((size + WasmMemoryPageSize - 1) div WasmMemoryPageSize);
+      grow_pages:=(size-avail+WasmMemoryPageSize-1) div WasmMemoryPageSize;
+      res:=fpc_wasm32_memory_grow(grow_pages);
       if res<>err then
-        SysOSAlloc:=pointer(res*WasmMemoryPageSize)
+        begin
+          SysOSAlloc:=InitialHeapBlockStart;//pointer(res*WasmMemoryPageSize)
+          Inc(InitialHeapBlockStart,size);
+          Inc(InitialHeapBlockEnd,grow_pages*WasmMemoryPageSize);
+        end
       else
         SysOSAlloc:=nil;
     end;
