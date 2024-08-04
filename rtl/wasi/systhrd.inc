@@ -336,6 +336,8 @@ procedure WasiAllocateThreadVars; forward;
 procedure FPCWasmThreadStartPascal(tid: longint; start_arg: PWasmThread);
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal(...)');{$ENDIF}
+  fpc_wasm32_init_tls(start_arg^.InitTLSBase);
+
   start_arg^.ID:=tid;
   GlobalCurrentThread:=@start_arg;
   GlobalIsMainThread:=0;
@@ -358,12 +360,6 @@ asm
   local.get 1
   i32.load
   global.set $__stack_pointer
-
-  local.get 1
-  i32.const 4
-  i32.add
-  i32.load
-  global.set $__tls_base
 
   local.get 0
   local.get 1
