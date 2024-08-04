@@ -216,7 +216,7 @@ end;
 function TThread.WaitFor: Integer;
 
 begin
-  WaitFor:=WaitForThreadTerminate(FThreadID,0);
+  WaitFor:=WaitForThreadTerminate(FThreadID,-1);
 end;
 
 {$else FPC_WASM_THREADS}
