@@ -41,6 +41,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+          function get_saved_registers_fpu(calloption: tproccalloption): tcpuregisterarray;override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -65,6 +66,14 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[RS_F0..RS_F31]-[RS_F8..RS_F9,RS_F18..RS_F27];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;
+      const
+        inv: tcpuregisterarray = (RS_F8,RS_F9,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27);
+      begin
+        result:=inv;
       end;
 
 
