@@ -786,13 +786,58 @@ function {$ifdef CPUX86_HAS_SSE2} IndexByte {$else} IndexByte_SSE2 {$endif} (con
 asm
         test      %edx, %edx
         jz        .Lnotfound                 { exit if len=0 }
-        push      %ebx
+
         movd      %ecx, %xmm1
-        lea       16(%eax), %ecx             { eax = original ptr, ecx = buf + 16 for aligning & shifts. }
+        mov       %eax, %ecx
         punpcklbw %xmm1, %xmm1
-        and       $-0x10, %ecx               { first aligned address after buf }
         punpcklbw %xmm1, %xmm1
+        and       $4095, %ecx
         pshufd    $0, %xmm1, %xmm1
+
+        cmp       $4080, %ecx
+        ja        .LCrossPage
+
+        movdqu    (%eax), %xmm0              { Analyze first 16 bytes, unaligned. }
+        pcmpeqb   %xmm1, %xmm0
+        pmovmskb  %xmm0, %ecx
+        test      %ecx, %ecx
+        jz        .LContinueAligned
+
+        bsf       %ecx, %eax
+        cmp       %edx, %eax
+        jae       .Lnotfound
+        ret
+
+        .byte     144                        { Make .balign 16 before .Lloop a no-op. }
+.LContinueAligned:
+        cmp       $16, %edx                  { Length might be explicitly set to 16 or less; if so, skip a bit of work. }
+        jbe       .Lnotfound                 { (Or rather, this check is *required* unless jumping to .Lcontinue instead of going directly to .Lloop) }
+
+        push      %ebx
+        lea       16(%eax), %ecx             { eax = original ptr, ecx = buf + 16 for aligning & shifts. }
+        and       $-0x10, %ecx               { first aligned address after buf }
+        sub       %eax, %ecx                 { ecx=number of valid bytes, eax=original ptr }
+
+    .balign 16
+.Lloop:
+        movdqa    (%eax,%ecx), %xmm0         { eax and ecx may have any values, }
+        add       $16, %ecx                  { but their sum is evenly divisible by 16. }
+        pcmpeqb   %xmm1, %xmm0
+        pmovmskb  %xmm0, %ebx
+        test      %ebx, %ebx
+        jnz       .Lmatch
+.Lcontinue:
+        cmp       %ecx, %edx
+        ja        .Lloop
+        pop       %ebx
+.Lnotfound:
+        or        $-1, %eax
+        ret
+
+.LCrossPage:
+        push      %ebx
+        lea       16(%eax), %ecx             { eax = original ptr, ecx = buf + 16 for aligning & shifts. }
+        and       $-0x10, %ecx               { first aligned address after buf }
         movdqa    -16(%ecx), %xmm0           { Fetch first 16 bytes (up to 15 bytes before target) }
         sub       %eax, %ecx                 { ecx=number of valid bytes, eax=original ptr }
 
@@ -809,22 +854,6 @@ asm
         pop       %ebx
         cmp       %eax, %edx                 { check against the buffer length }
         jbe       .Lnotfound
-        ret
-
-    .balign 16
-.Lloop:
-        movdqa    (%eax,%ecx), %xmm0         { eax and ecx may have any values, }
-        add       $16, %ecx                  { but their sum is evenly divisible by 16. }
-        pcmpeqb   %xmm1, %xmm0
-        pmovmskb  %xmm0, %ebx
-        test      %ebx, %ebx
-        jnz       .Lmatch
-.Lcontinue:
-        cmp       %ecx, %edx
-        ja        .Lloop
-        pop       %ebx
-.Lnotfound:
-        or        $-1, %eax
 end;
 
 {$ifndef CPUX86_HAS_SSE2}

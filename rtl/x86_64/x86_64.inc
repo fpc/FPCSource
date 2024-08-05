@@ -595,17 +595,65 @@ function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackfram
 asm
     test   len, len
     jz     .Lnotfound                  { exit if len=0 }
+
     movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
+    mov    {$ifdef win64} %ecx {$else} %edi {$endif}, %eax
+    punpcklbw  %xmm1, %xmm1
+    punpcklbw  %xmm1, %xmm1
+    and    $4095, %eax
+    pshufd $0, %xmm1, %xmm1
+
+    cmp    $4080, %eax
+    ja     .LCrossPage
+
+    movdqu    ({$ifdef win64} %rcx {$else} %rdi {$endif}), %xmm0 { Analyze first 16 bytes, unaligned. }
+    pcmpeqb   %xmm1, %xmm0
+    pmovmskb  %xmm0, %eax
+    test      %eax, %eax
+    jz        .LContinueAligned
+
+    bsf    %eax, %eax
+    cmp    len, %rax
+    jae    .Lnotfound
+    ret
+
+    .byte  {$ifndef win64}102,102,102,102,{$endif}102,102,102,102,102,102,102,102,102,144 { Make .balign 16 before .Lloop a no-op. }
+.LContinueAligned:
+    cmp    $16, len                    { Length might be explicitly set to 16 or less; if so, skip a bit of work. }
+    jbe    .Lnotfound                  { (Or rather, this check is *required* unless jumping to .Lcontinue instead of going directly to .Lloop) }
+
 {$ifdef win64}
     mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
     add    $16, %rcx
 {$else}
     lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
-    punpcklbw  %xmm1, %xmm1
     and    $-0x10, %rcx                { first aligned address after buf }
-    punpcklbw  %xmm1, %xmm1
-    pshufd $0, %xmm1, %xmm1
+    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
+
+    .balign 16
+.Lloop:
+    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
+    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
+    pcmpeqb %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    test   %eax, %eax
+    jnz    .Lmatch
+.Lcontinue:
+    cmp    %rcx, len
+    ja     .Lloop
+.Lnotfound:
+    or     $-1, %rax
+    ret
+
+.LCrossPage:
+{$ifdef win64}
+    mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
+    add    $16, %rcx
+{$else}
+    lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
+{$endif}
+    and    $-0x10, %rcx                { first aligned address after buf }
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
     sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
 
@@ -621,21 +669,6 @@ asm
     lea    -16(%rcx,%rax), %rax
     cmp    %rax, len                   { check against the buffer length }
     jbe    .Lnotfound
-    ret
-
-    .balign 16
-.Lloop:
-    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
-    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
-    pcmpeqb %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-    test   %eax, %eax
-    jnz    .Lmatch
-.Lcontinue:
-    cmp    %rcx, len
-    ja     .Lloop
-.Lnotfound:
-    or     $-1, %rax
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
