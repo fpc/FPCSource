@@ -520,12 +520,28 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_LB,
+              A_LBU,
+              A_LH,
+              A_LHU,
+              A_LW,
+{$ifdef riscv64}
+              A_LWU,
+              A_LD,
+{$endif riscv64}
               A_ADD,
               A_DIV,
               A_DIVU,
 {$ifdef riscv64}
               A_DIVW,
+              A_DIVUW,
 {$endif riscv64}
+              A_REM,
+              A_REMU,
+              {$ifdef riscv64}
+              A_REMW,
+              A_REMUW,
+              {$endif riscv64}
               A_MUL,
               A_MULH,
               A_MULHSU,
