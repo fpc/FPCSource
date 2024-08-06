@@ -129,6 +129,9 @@ uses
       procedure gen_entry_code(list: TAsmList); override;
       procedure gen_exit_code(list: TAsmList); override;
 
+      procedure gen_stack_check_size_para(list: TAsmList); override;
+      procedure gen_stack_check_call(list: TAsmList); override;
+
       { unimplemented/unnecessary routines }
       procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister); override;
       procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle); override;
@@ -2365,6 +2368,24 @@ implementation
             internalerror(2021091801);
 {$endif DEBUG_WASMSTACK}
         end;
+      inherited;
+    end;
+
+  procedure thlcgwasm.gen_stack_check_size_para(list: TAsmList);
+    begin
+      { HACK: this is called *after* gen_stack_check_call, but the code it
+        generates is inserted *before* the call. Thus, it breaks our
+        incstack/decstack tracking and causes an internal error 2010120501. We
+        workaround this by generating a const instruction without calling
+        incstack, and instead we call incstack before the call, in
+        gen_stack_check_call. }
+      list.concat(taicpu.op_const(a_i32_const,current_procinfo.calc_stackframe_size));
+    end;
+
+  procedure thlcgwasm.gen_stack_check_call(list: TAsmList);
+    begin
+      { HACK: see the comment in gen_stack_check_size_para }
+      incstack(list,1);
       inherited;
     end;
 
