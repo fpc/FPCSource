@@ -339,6 +339,7 @@ begin
 
   start_arg^.State:=tsRunning;
   InitThread(start_arg^.StackSize);
+  StackBottom:=start_arg^.StackBlock;
   start_arg^.ExitCode:=Cardinal(start_arg^.ThreadFunction(start_arg^.ThreadFunctionArg));
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Signaling end of thread');{$ENDIF}
   WasiRTLEventSetEvent(start_arg^.DoneEvent);
