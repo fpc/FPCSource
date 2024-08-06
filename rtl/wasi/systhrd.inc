@@ -322,6 +322,7 @@ procedure WasiAllocateThreadVars; forward;
 //  Result:=tthreadfunc(RunFunction)(args);
 //end;
 
+{$push}{$S-}  // no stack checking for this procedure
 procedure FPCWasmThreadStartPascal(tid: longint; start_arg: PWasmThread);
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal(...)');{$ENDIF}
@@ -344,6 +345,7 @@ begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Signaling end of thread');{$ENDIF}
   WasiRTLEventSetEvent(start_arg^.DoneEvent);
 end;
+{$pop}
 
 procedure wasi_thread_start(tid: longint; start_arg: PWasmThread); assembler; nostackframe;
 asm
