@@ -1335,6 +1335,15 @@ function __job_create_object(
 function JOBCallback(const Func: TJOBCallback; Data, Code: Pointer; Args: PByte): PByte;
 function VarRecToJSValue(const V: TVarRec): TJOB_JSValue;
 
+Type
+  TJobCallbackErrorEvent = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean) of Object;
+  TJobCallBackErrorCallback = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean);
+
+var
+  JobCallbackErrorHandler : TJobCallbackErrorEvent;
+  JobCallbackErrorCallBack : TJobCallBackErrorCallback;
+
+
 implementation
 
 const
@@ -1390,16 +1399,34 @@ function JOBCallback(const Func: TJOBCallback; Data, Code: Pointer; Args: PByte
 var
   m: TMethod;
   h: TJOBCallbackHelper;
+  reraise : Boolean;
+
 begin
   Result:=nil;
   try
-    {$IFDEF VERBOSEJOB}
-    writeln('In JOBCallback');
-    {$ENDIF}
-    m.Data:=Data;
-    m.Code:=Code;
-    h.Init(Args);
-    Result:=Func(m,h);
+    try
+      {$IFDEF VERBOSEJOB}
+      writeln('In JOBCallback');
+      {$ENDIF}
+      m.Data:=Data;
+      m.Code:=Code;
+      h.Init(Args);
+      Result:=Func(m,h);
+    except
+      On E : Exception do
+        begin
+        {$IFDEF VERBOSEJOB}
+        writeln('In JOBCallback: caught exception ',E.ClassName,': ',E.Message);
+        {$ENDIF}
+        ReRaise:=True;
+        If Assigned(JobCallbackErrorHandler) then
+          JobCallbackErrorHandler(E,M,H,ReRaise)
+        else If Assigned(JobCallbackErrorCallback) then
+          JobCallbackErrorCallback(E,M,H,ReRaise);
+        if ReRaise then
+          Raise;
+        end
+    end;
   finally
     if Args<>nil then
       FreeMem(Args);
