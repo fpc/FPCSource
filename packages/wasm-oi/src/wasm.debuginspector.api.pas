@@ -89,7 +89,9 @@ begin
     OnGetObjectProperties(aInspectorID, aObjectID,aFlags,Result);
 end;
 
-exports wasm_oi_get_object_properties;
+exports
+  wasm_oi_get_object_properties,
+  wasm_oi_get_object_tree;
 
 end.
 
