@@ -214,7 +214,7 @@ class constructor TWasmDebugInspector.init;
 begin
   _List:=TInspectorList.Create;
   OnGetObjectProperties:=@_List.HandleObjectPropertiesEvent;
-  OnGetObjectTree:=@_List.HandleObjectPropertiesEvent;
+  OnGetObjectTree:=@_List.HandleObjectTreeEvent;
 end;
 
 constructor TWasmDebugInspector.Create(aOwner: TComponent);
