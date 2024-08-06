@@ -71,9 +71,9 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-function Sptr : pointer;
-  begin
-    result:=nil;
+function Sptr : pointer; assembler; nostackframe;
+  asm
+    global.get $__stack_pointer
   end;
 
 
