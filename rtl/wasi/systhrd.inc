@@ -59,6 +59,7 @@ Type
     ExitCode : Cardinal;
     StackBlock : Pointer;
     TLSBlock : Pointer;
+    StackSize : PtrUInt;
     ThreadName : Array of byte; // UTF8 name
   end;
 
@@ -337,7 +338,7 @@ begin
 {$ENDIF FPC_WASM_WORKER_THREADS_CAN_WAIT}
 
   start_arg^.State:=tsRunning;
-  InitThread;
+  InitThread(start_arg^.StackSize);
   start_arg^.ExitCode:=Cardinal(start_arg^.ThreadFunction(start_arg^.ThreadFunctionArg));
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Signaling end of thread');{$ENDIF}
   WasiRTLEventSetEvent(start_arg^.DoneEvent);
@@ -374,6 +375,7 @@ begin
   T^.ThreadFunctionArg:=p;
   if stacksize<=0 then
     stacksize:=StkLen;
+  T^.StackSize:=stacksize;
   T^.StackBlock:=GetMem(stacksize);
   T^.InitialStackPointer:=Pointer(PtrUInt(PtrUInt(T^.StackBlock)+stacksize) and $FFFFFFF0);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: InitialStackPointer='+IntToStr(PtrUint(T^.InitialStackPointer)));{$ENDIF}
