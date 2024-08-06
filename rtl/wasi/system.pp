@@ -431,6 +431,7 @@ end;
 
 begin
   StackLength:=CheckInitialStkLen(stklen);
+  StackBottom:=Pointer(PtrUInt(InitialHeapBlockStart)-PtrUInt(StackLength));
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
