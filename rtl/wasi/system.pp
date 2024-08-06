@@ -430,6 +430,7 @@ begin
 end;
 
 begin
+  StackLength:=CheckInitialStkLen(stklen);
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
