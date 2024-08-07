@@ -408,6 +408,8 @@ begin
   if FEcho then
     DoLog(etInfo,'Setting up /echo route');
   Log(etInfo,'Location REST API '+IfThen(FAPISecret<>'','','NOT ')+'activated.');
+  Log(etInfo,'Navigate to: http'+IfThen(UseSSL,'s','')+'://localhost:'+IntToStr(Port)+'/');
+ 
 end;
 
 destructor THTTPApplication.Destroy;
