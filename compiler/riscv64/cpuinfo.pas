@@ -37,7 +37,8 @@ type
     cpu_rv64imac,
     cpu_rv64ima,
     cpu_rv64im,
-    cpu_rv64i
+    cpu_rv64i,
+    cpu_rv64gc
   );
 
   tfputype =
@@ -90,7 +91,8 @@ Const
     'RV64IMAC',
     'RV64IMA',
     'RV64IM',
-    'RV64I'
+    'RV64I',
+    'RV64GC'
     );
 
   fputypestr: array[tfputype] of string[8] = (
@@ -120,7 +122,9 @@ Const
    tcpuflags =
       (CPURV_HAS_MUL,
        CPURV_HAS_ATOMIC,
-       CPURV_HAS_COMPACT
+       CPURV_HAS_COMPACT,
+       CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
+       CPURV_HAS_FETCH_FENCE         { extension Zifencei }
       );
 
  const
@@ -129,7 +133,8 @@ Const
        { cpu_rv64imac   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],
        { cpu_rv64ima    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
        { cpu_rv64im     } [CPURV_HAS_MUL],
-       { cpu_rv64i      } []
+       { cpu_rv64i      } [],
+       { cpu_rv64gc     } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE]
      );
 
 implementation
