@@ -483,7 +483,6 @@ end;
 procedure WasiThreadSwitch;
 begin
   // Normally a yield, but this does not (yet) exist in webassembly.
-  {todo:implement}
 end;
 
 function WasiWaitForThreadTerminate(threadHandle : TThreadID; TimeoutMs : longint) : dword;
