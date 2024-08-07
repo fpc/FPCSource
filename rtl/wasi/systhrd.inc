@@ -63,6 +63,16 @@ Type
     ThreadName : Array of byte; // UTF8 name
   end;
 
+  { EWasmThreadTerminate }
+
+  EWasmThreadTerminate = class(TObject)
+  strict private
+    FExitCode : DWord;
+  public
+    constructor Create(AExitCode: DWord);
+    property ExitCode: DWord read FExitCode;
+  end;
+
 Var
   MainThread : TWasmThread;
   WasiThreadManager : TThreadManager;
@@ -71,6 +81,12 @@ Var
   GlobalIsThreadBlockable : Longint; section 'WebAssembly.Global';
   GlobalCurrentThread : PWasmThread; section 'WebAssembly.Global';
 
+{ EWasmThreadTerminate }
+
+constructor EWasmThreadTerminate.Create(AExitCode: DWord);
+begin
+  FExitCode:=AExitCode;
+end;
 
 
 // Forward functions
@@ -341,7 +357,21 @@ begin
   start_arg^.State:=tsRunning;
   InitThread(start_arg^.StackSize);
   StackBottom:=start_arg^.StackBlock;
-  start_arg^.ExitCode:=Cardinal(start_arg^.ThreadFunction(start_arg^.ThreadFunctionArg));
+  try
+    start_arg^.ExitCode:=Cardinal(start_arg^.ThreadFunction(start_arg^.ThreadFunctionArg));
+  except
+    on e: EWasmThreadTerminate do
+      begin
+        {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Caught EWasmThreadTerminate with ExitCode='+IntToStr(e.ExitCode));{$ENDIF}
+        start_arg^.ExitCode:=e.ExitCode;
+      end;
+    else
+      begin
+        {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Uncaught exception');{$ENDIF}
+        { TODO: what should we return here? }
+        start_arg^.ExitCode:=High(Cardinal);
+      end;
+  end;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Signaling end of thread');{$ENDIF}
   WasiRTLEventSetEvent(start_arg^.DoneEvent);
 end;
@@ -418,14 +448,7 @@ Var
   T : PWasmThread;
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('EndThread('+IntToStr(ExitCode)+')');{$ENDIF}
-  T:=PWasmThread(GetSelfThread);
-  T^.ExitCode:=ExitCode;
-  // Signal that we're done
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('EndThread: Signaling end of thread');{$ENDIF}
-  WasiRTLEventSetEvent(T^.DoneEvent);
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('EndThread: Unlocking mutex');{$ENDIF}
-  // Now unlock running mutex
-  UnlockMutex(T^.Running);
+  raise EWasmThreadTerminate.Create(ExitCode);
 end;
 
 function WasiSuspendThread(threadHandle : TThreadID) : dword;
