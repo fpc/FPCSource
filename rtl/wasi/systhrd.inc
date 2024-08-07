@@ -342,7 +342,6 @@ procedure WasiAllocateThreadVars; forward;
 procedure FPCWasmThreadStartPascal(tid: longint; start_arg: PWasmThread);
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal(...)');{$ENDIF}
-  fpc_wasm32_init_tls(start_arg^.InitTLSBase);
 
   start_arg^.ID:=tid;
   GlobalCurrentThread:=@start_arg;
@@ -382,6 +381,16 @@ asm
   local.get 1
   i32.load
   global.set $__stack_pointer
+
+  ;; call fpc_wasm32_init_tls from within assembly code, because in branchful
+  ;; exceptions mode, Free Pascal generates threadvar access after every
+  ;; function call. Therefore, we want threadvars to be initialized, before we
+  ;; call any sort of Pascal code.
+  local.get 1  ;; start_arg
+  i32.const 4  ;; offset to InitTLSBase
+  i32.add
+  i32.load
+  call $fpc_wasm32_init_tls
 
   local.get 0
   local.get 1
