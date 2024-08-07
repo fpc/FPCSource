@@ -399,6 +399,8 @@ begin
   else
     begin
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: spawn thread failed');{$ENDIF}
+    WasiRTLEventDestroy(T^.DoneEvent);
+    DoneMutex(T^.Running);
     if Assigned(T^.StackBlock) then
       FreeMem(T^.StackBlock);
     if Assigned(T^.TLSBlock) then
