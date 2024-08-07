@@ -372,6 +372,8 @@ Var
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread(sa: '+IntToStr(PtrUint(Sa))+',ss: '+IntToStr(PtrUint(StackSize))+',TF: '+IntToStr(PtrUint(ThreadFunction))+',Arg: '+IntToStr(PtrUint(P))+',fl: '+IntToStr(PtrUint(CreationFlags))+',ID: '+IntToStr(PtrUint(ThreadID))+')');{$ENDIF}
   T:=GetMem(SizeOf(TWasmThread));
+  T^.StackBlock:=nil;
+  T^.TLSBlock:=nil;
   ThreadID:=T;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread thread ID : '+IntToStr(PtrUint(ThreadID)));{$ENDIF}
   T^.ThreadFunction:=ThreadFunction;
@@ -397,6 +399,10 @@ begin
   else
     begin
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: spawn thread failed');{$ENDIF}
+    if Assigned(T^.StackBlock) then
+      FreeMem(T^.StackBlock);
+    if Assigned(T^.TLSBlock) then
+      FreeMem(T^.TLSBlock);
     FreeMem(T);
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: spawn thread failed, freeing thread struct');{$ENDIF}
     WasiBeginThread:=TThreadID(0);
