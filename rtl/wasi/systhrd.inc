@@ -378,8 +378,8 @@ end;
 
 procedure wasi_thread_start(tid: longint; start_arg: PWasmThread); assembler; nostackframe;
 asm
-  local.get 1
-  i32.load
+  local.get 1  ;; start_arg
+  i32.load     ;; load InitialStackPointer
   global.set $__stack_pointer
 
   ;; call fpc_wasm32_init_tls from within assembly code, because in branchful
@@ -392,8 +392,8 @@ asm
   i32.load
   call $fpc_wasm32_init_tls
 
-  local.get 0
-  local.get 1
+  local.get 0  ;; tid
+  local.get 1  ;; start_arg
   call $FPCWasmThreadStartPascal
 end;
 
