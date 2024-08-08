@@ -19,8 +19,8 @@ unit wasiapi;
 
 interface
 
-{$I wasitypes.inc}
-{$I wasiprocs.inc}
+{$I wasiinc/wasitypes.inc}
+{$I wasiinc/wasiprocs.inc}
 
 implementation
 
