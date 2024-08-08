@@ -67,6 +67,7 @@ const
   JOBFn_ReleaseObject = 'release_object';
   JOBFn_InvokeJSValueResult = 'invoke_jsvalueresult';
   JOBFn_CallbackHandler = 'JOBCallback';
+  JOBFn_SetMemFromArray = 'set_mem_from_object';
 
   JOBArgUndefined = 0;
   JOBArgLongint = 1;
