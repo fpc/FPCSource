@@ -544,7 +544,7 @@ end;
 
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 begin
-  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True) = slrOk;
+  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, False) = slrOk;
 end;
 
 
