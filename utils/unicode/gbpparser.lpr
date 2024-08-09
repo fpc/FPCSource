@@ -102,7 +102,7 @@ begin
     'E_Base_GAZ':
       Result := gbpE_Base_GAZ;
     else
-      raise EArgumentException('Unknown grapheme break property: ''' + S + '''');
+      raise EArgumentException.Create('Unknown grapheme break property: ''' + S + '''');
   end;
 end;
 
