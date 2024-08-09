@@ -171,6 +171,12 @@ begin
   Result := GetCurrent;
 end;
 
+function TCustomDictionaryEnumerator<T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetCurrent: T;
+
+begin
+  Result:=Default(T);
+end;
+
 { TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS> }
 
 function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetPtrEnumerator: TEnumerator<PT>;
