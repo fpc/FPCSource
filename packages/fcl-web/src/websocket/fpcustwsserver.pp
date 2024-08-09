@@ -444,14 +444,16 @@ Var
   L : TList;
   aContinue : Boolean;
   I : Integer;
-
 begin
   aContinue:=True;
   L:=Connections.LockList;
   try
     For I:=L.Count-1 downto 0 do
-      if aContinue then
-        aIterator(TWSServerConnection(L[i]),aContinue);
+      begin
+        aIterator(TWSServerConnection(L[i]), aContinue);
+        if not aContinue then
+          RemoveConnection(TWSServerConnection(L[i]), True);
+      end;
   finally
     Connections.UnlockList;
   end;
@@ -633,13 +635,12 @@ end;
 
 procedure TWSServerConnectionHandler.DoCheckConnectionRequests(aConnection: TWSServerConnection; var aContinue: boolean);
 begin
-  aConnection.CheckIncoming(WaitTime,True);
-  aContinue:=True;
+  aContinue := aConnection.CheckIncoming(WaitTime, True) <> irClose;
 end;
 
 procedure TWSServerConnectionHandler.RemoveConnection(aConnection: TWSServerConnection);
 begin
-  FServer.RemoveConnection(aConnection,True);
+  FServer.RemoveConnection(aConnection, True);
 end;
 
 procedure TWSServerConnectionHandler.HandleError(aConnection : TWSServerConnection; E: Exception);
@@ -700,7 +701,6 @@ begin
 end;
 
 procedure TWSThreadedConnectionHandler.TWSConnectionThread.Execute;
-
 begin
   try
     // Always handle first request
@@ -711,7 +711,7 @@ begin
         Terminate;
       end;
     While not Terminated do
-      if Connection.CheckIncoming(10)=irClose then
+      if Connection.CheckIncoming(WaitTime) = irClose then
       begin
         // answer for client about close connection
         if not (Connection.CloseState = csClosed) then
@@ -827,15 +827,13 @@ begin
 end;
 
 procedure TWSPooledConnectionHandler.ConnectionDone(Sender: TObject);
-
 var
   aTask : THandleRequestTask absolute Sender;
   aConn : TWSServerConnection;
-
 begin
   aConn:=aTask.Connection;
   FBusy.Remove(aConn);
-  if aConn.CheckIncoming(10)=irClose then
+  if aConn.CheckIncoming(WaitTime) = irClose then
     RemoveConnection(aConn);
 end;
 

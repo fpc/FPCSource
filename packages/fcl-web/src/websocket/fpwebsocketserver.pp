@@ -150,7 +150,6 @@ begin
 end;
 
 procedure TAcceptThread.Execute;
-
 begin
   FServer.StartAccepting;
 end;
@@ -357,14 +356,12 @@ begin
 end;
 
 procedure TWebSocketServer.StartAccepting;
-
 begin
   FActive:=True;
   FServer.StartAccepting;
 end;
 
 procedure TWebSocketServer.StartServer;
-
 begin
   StartConnectionHandler;
   CreateServerSocket;
