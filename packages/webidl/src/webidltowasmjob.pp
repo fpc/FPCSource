@@ -1470,10 +1470,7 @@ begin
       GetFunc:=GetNativeTypeHelperGetterName(ANT);
       if aNt=ntObject then
         begin
-        if argType is TIDLDictionaryDefinition then
-          ArgResolvedTypename:='TJSObject'
-        else
-          ArgResolvedTypename:=IntfToPasClassName(ArgResolvedTypename);
+        ArgResolvedTypename:=IntfToPasClassName(ArgResolvedTypename);
         GetFunc:='GetObject('+ArgResolvedTypename+') as '+ArgTypeName
         end
       else if aNt=ntArray then
