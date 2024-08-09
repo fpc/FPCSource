@@ -894,8 +894,8 @@ type
     FHashFactory: THashFactoryClass;
   public
     constructor Create(AHashFactoryClass: THashFactoryClass);
-    function Equals(const ALeft, ARight: T): Boolean;
-    function GetHashCode(const AValue: T): UInt32;
+    function Equals(const ALeft, ARight: T): Boolean; reintroduce;
+    function GetHashCode(const AValue: T): UInt32; reintroduce;
   end;
 
   TBinaryExtendedEqualityComparer<T> = class(TBinaryEqualityComparer<T>, IExtendedEqualityComparer<T>)

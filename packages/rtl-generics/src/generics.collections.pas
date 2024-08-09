@@ -135,7 +135,7 @@ type
   TEnumerator<T> = class abstract
   protected
     function DoGetCurrent: T; virtual; abstract;
-    function DoMoveNext: boolean; virtual; abstract;
+    function DoMoveNext: boolean; virtual;
   public
     property Current: T read DoGetCurrent;
     function MoveNext: boolean;
@@ -1272,6 +1272,7 @@ var
   CurLen,Dest,i: SizeInt;
 
 begin
+  Result:=Nil;
   TotalLen:=0;
   for i:=0 to Length(Args)-1 do
     Inc(TotalLen,Length(Args[i]));
@@ -1348,6 +1349,11 @@ begin
 end;
 
 { TEnumerator<T> }
+
+function TEnumerator<T>.DoMoveNext: boolean;
+begin
+  Result:=False;
+end;
 
 function TEnumerator<T>.MoveNext: boolean;
 begin
