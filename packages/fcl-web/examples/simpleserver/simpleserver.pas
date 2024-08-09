@@ -182,7 +182,7 @@ Var
 begin
   if Quiet then
     exit;
-  Msg:=Format('(Proxy redirect) location: %s, Method: %s, From: %s, to: %s',[aLocation,aMethod,aFromURl,atoURL]);
+  Msg:=Format('(Proxy redirect) location: %s, Method: %s, From: %s, to: %s.',[aLocation,aMethod,aFromURl,atoURL]);
   if IsConsole then
     Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',etInfo,'] ',Msg)
   else
@@ -199,33 +199,33 @@ begin
   Writeln('Where options is one or more of : ');
   Writeln('-A --api=path,secret  Activate location API on path, using secret as accepted bearer token.');
   Writeln('-a --max-age=age      Set max-age expiry header on returned file requests.');
-  Writeln('-c --config=file      Ini configuration file (default: simpleserver.ini)');
+  Writeln('-c --config=file      Ini configuration file (default: simpleserver.ini).');
 {$ifdef unix}
-  Writeln('-b --background       fork to background');
+  Writeln('-b --background       fork to background.');
 {$endif}
   Writeln('-d --directory=dir    Base directory from which to serve files.');
   Writeln('                      Default is current working directory: ',GetCurrentDir);
   Writeln('-e --echo             Activate /echo URL.');
-  Writeln('-h --help             This help text');
-  Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate');
-  Writeln('-i --indexpage=name   Directory index page to use (default: index.html)');
+  Writeln('-h --help             This help text.');
+  Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate.');
+  Writeln('-i --indexpage=name   Directory index page to use (default: index.html)/');
   Writeln('-I --interface=IP     Listen on this interface address only.');
-  Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types');
+  Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types.');
   Writeln('-n --noindexpage      Do not allow index page.');
-  Writeln('-o --coi              Enable Cross-Origin Isolation headers');
-  Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000)');
-  Writeln('-q --quiet            Do not write diagnostic messages');
-  Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop');
-  Writeln('-s --ssl              Use SSL');
+  Writeln('-o --coi              Enable Cross-Origin Isolation headers.');
+  Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000).');
+  Writeln('-q --quiet            Do not write diagnostic messages.');
+  Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop.');
+  Writeln('-s --ssl              Use SSL.');
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
   Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
-  Writeln('-V --version          Display server version and exit');         
+  Writeln('-V --version          Display server version and exit.');         
   Writeln('-x --proxy=proxydef   Add proxy definition. Definition is of form:');
   Writeln('                      name:BaseURL');
   Writeln('');
-  Writeln('Config file is ini file, section [Server]. Key names are long option names');
-  Writeln('Proxies are defined in section [Proxy], Key is name, value is URL');
-  Writeln('Locations are defined in section [Locations], Key is location name, value is path');
+  Writeln('Config file is ini file, section [Server]. Key names are long option names.');
+  Writeln('Proxies are defined in section [Proxy], Key is name, value is URL.');
+  Writeln('Locations are defined in section [Locations], Key is location name, value is path.');
   Halt(Ord(Msg<>''));
 end;
 
@@ -397,16 +397,16 @@ Var
   I : Integer;
 
 begin
-  Log(etInfo,'Listening on port %d, serving files from directory: %s (using SSL: %s)',[Port,BaseDir,BoolToStr(UseSSL,'true','false')]);
+  Log(etInfo,'Listening on port %d, serving files from directory: %s (using SSL: %s).',[Port,BaseDir,BoolToStr(UseSSL,'true','false')]);
   For I:=0 to ProxyManager.LocationCount-1 do
     with ProxyManager.Locations[i] do
-      Log(etInfo,'Proxy location /proxy/%s redirects to %s',[Path,URL]);
+      Log(etInfo,'Proxy location /proxy/%s redirects to: %s',[Path,URL]);
   if not NoIndexPage then
-    Log(etInfo,'Using index page %s',[IndexPageName]);
+    Log(etInfo,'Using index page: %s',[IndexPageName]);
   if (Self.FPassword<>'') then
-    DoLog(etInfo,'/quit route set up');
+    DoLog(etInfo,'/quit route set up.');
   if FEcho then
-    DoLog(etInfo,'Setting up /echo route');
+    DoLog(etInfo,'Setting up /echo route.');
   Log(etInfo,'Location REST API '+IfThen(FAPISecret<>'','','NOT ')+'activated.');
   Log(etInfo,'Navigate to: http'+IfThen(UseSSL,'s','')+'://localhost:'+IntToStr(Port)+'/');
  
@@ -430,7 +430,7 @@ begin
     Dest:='Console';
   if Dest<>'' then
     begin
-    DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
+    DoLog(etInfo,Format('Setting up capture on route "%s", writing to: %s',[SCaptureRoute,Dest]));
     HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
     end;
 end;
@@ -462,7 +462,7 @@ begin
 {$ifdef unix}
     if FPFork>0 then Halt(0);
 {$else}
-    Log(etError,'Background option not supported');
+    Log(etError,'Background option not supported.');
 {$endif}
     end;
   SetupCapture;
