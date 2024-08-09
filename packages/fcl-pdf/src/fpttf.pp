@@ -636,13 +636,11 @@ var
   FN : PFcChar8;
   lDir: string;
   config: PfcConfig;
-const
-  is_fc_loaded:integer=0;
 {$endif}
 begin
   {$ifdef HasFontsConf} // Linux & BSD
-  if (is_fc_loaded=0) then
-    is_fc_loaded:=loadfontconfiglib('');
+  if not FontConfigLibLoaded then
+    loadfontconfiglib('');
 
   config := FcInitLoadConfigAndFonts();
 
@@ -885,8 +883,8 @@ begin
   Result:=false;
   res:='';
 
-  if (is_fc_loaded=0) then
-    is_fc_loaded:=loadfontconfiglib('');
+  if not FontConfigLibLoaded then
+    loadfontconfiglib('');
 
   config := FcInitLoadConfigAndFonts();
 
