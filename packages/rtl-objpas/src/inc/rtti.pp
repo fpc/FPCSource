@@ -294,6 +294,8 @@ type
   { TRttiContext }
 
   TRttiContext = record
+  strict private
+    class var FKeptContexts: array[Boolean] of IUnknown;
   Public
     UsePublishedOnly : Boolean;
   private
@@ -303,6 +305,8 @@ type
   public
     class function Create: TRttiContext; static;
     class function Create(aUsePublishedOnly : Boolean): TRttiContext; static;
+    class procedure DropContext; static;
+    class procedure KeepContext; static;
     procedure  Free;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
     function GetType(AClass: TClass): TRttiType;
@@ -6916,6 +6920,18 @@ class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
 begin
   Result:=Create;
   Result.UsePublishedOnly:=aUsePublishedOnly;
+end;
+
+class procedure TRttiContext.DropContext;
+begin
+  FKeptContexts[False] := nil;
+  FKeptContexts[True] := nil;
+end;
+
+class procedure TRttiContext.KeepContext;
+begin
+  FKeptContexts[False] := TPoolToken.Create(False);
+  FKeptContexts[True] := TPoolToken.Create(True);
 end;
 
 procedure TRttiContext.Free;
