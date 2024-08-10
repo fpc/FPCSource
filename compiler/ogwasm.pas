@@ -271,7 +271,8 @@ interface
         FTlsSizeSym: TWasmObjSymbol;
         FTlsAlignSym: TWasmObjSymbol;
         FInitTlsFunctionSym: TWasmObjSymbol;
-        FMinMemoryPages: Integer;
+        FMinMemoryPages,
+        FMaxMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
@@ -4599,17 +4600,31 @@ implementation
 
       procedure WriteImportSection;
         var
-          imports_count: SizeInt;
+          imports_count,
+          memory_imports: SizeInt;
           i: Integer;
         begin
-          imports_count:=Length(FFunctionImports);
+          if ts_wasm_threads in current_settings.targetswitches then
+            memory_imports:=1
+          else
+            memory_imports:=0;
+          imports_count:=Length(FFunctionImports)+memory_imports;
           WriteUleb(FWasmSections[wsiImport],imports_count);
+          if ts_wasm_threads in current_settings.targetswitches then
+            begin
+              WriteName(FWasmSections[wsiImport],'env');
+              WriteName(FWasmSections[wsiImport],'memory');
+              WriteByte(FWasmSections[wsiImport],$02);  { mem }
+              WriteByte(FWasmSections[wsiImport],$03);  { shared }
+              WriteUleb(FWasmSections[wsiImport],FMinMemoryPages);
+              WriteUleb(FWasmSections[wsiImport],Max(FMinMemoryPages,FMaxMemoryPages));  { max pages }
+            end;
           for i:=0 to Length(FFunctionImports)-1 do
             with FFunctionImports[i] do
               begin
                 WriteName(FWasmSections[wsiImport],ModName);
                 WriteName(FWasmSections[wsiImport],Name);
-                WriteByte(FWasmSections[wsiImport],$00);
+                WriteByte(FWasmSections[wsiImport],$00);  { func }
                 WriteUleb(FWasmSections[wsiImport],TypeIdx);
               end;
         end;
@@ -4875,10 +4890,16 @@ implementation
             end;
         end;
 
+      const
+        PageSize = 65536;
+        DefaultMaxMemoryForThreads = 33554432;
       var
         cust_sec: TWasmCustomSectionType;
       begin
         result:=false;
+        FMaxMemoryPages:=align(maxheapsize,PageSize) div PageSize;
+        if (ts_wasm_threads in current_settings.targetswitches) and (FMaxMemoryPages<=0) then
+          FMaxMemoryPages:=align(DefaultMaxMemoryForThreads,PageSize) div PageSize;
 
         { each custom sections starts with its name }
         for cust_sec in TWasmCustomSectionType do
@@ -4898,9 +4919,12 @@ implementation
         WriteTagSection;
         WriteExportSection;
 
-        WriteUleb(FWasmSections[wsiMemory],1);
-        WriteByte(FWasmSections[wsiMemory],0);
-        WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          begin
+            WriteUleb(FWasmSections[wsiMemory],1);
+            WriteByte(FWasmSections[wsiMemory],0);
+            WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+          end;
 
         {...}
 
@@ -4910,7 +4934,8 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiTable);
-        WriteWasmSection(wsiMemory);
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          WriteWasmSection(wsiMemory);
         WriteWasmSectionIfNotEmpty(wsiTag);
         WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiExport);
