@@ -5559,6 +5559,8 @@ implementation
       end;
 
     procedure TWasmExeOutput.GenerateCode_InitSharedMemory;
+      const
+        InitFlagOfs=256;
       var
         Sec: TObjSection;
       begin
@@ -5570,9 +5572,63 @@ implementation
         { locals }
         Sec.writeUInt8($00);
 
-        { TODO: implement }
+        { block }
+        Sec.writeUInt16BE($0240);
+        { block }
+        Sec.writeUInt16BE($0240);
+        { block }
+        Sec.writeUInt16BE($0240);
 
-        Sec.writeUInt8($0B);  { end }
+        { i32.const $InitFlag }
+        Sec.writeUInt8($41);
+        WriteUleb5(sec,InitFlagOfs);
+        { i32.const 0 }
+        Sec.writeUInt16BE($4100);
+        { i32.const 1 }
+        Sec.writeUInt16BE($4101);
+        { i32.atomic.rmw.cmpxchg 2 0 }
+        Sec.writeUInt32BE($fe480200);
+        { br_table 0 1 2 }
+        Sec.writebytes(#$0e#$02#$00#$01#$02);
+        { end }
+        Sec.writeUInt8($0B);
+
+        { TODO: memory.init and memory.fill }
+
+        { i32.const $InitFlag }
+        Sec.writeUInt8($41);
+        WriteUleb5(sec,InitFlagOfs);
+        { i32.const 2 }
+        Sec.writeUInt16BE($4102);
+        { i32.atomic.store 2 0 }
+        Sec.writeUInt32BE($fe170200);
+        { i32.const $InitFlag }
+        Sec.writeUInt8($41);
+        WriteUleb5(sec,InitFlagOfs);
+        { i32.const 4294967295 }
+        Sec.writeUInt16BE($417f);
+        { memory.atomic.notify 2 0 }
+        Sec.writeUInt32BE($fe000200);
+        { drop }
+        Sec.writeUInt8($1A);
+        { end }
+        Sec.writeUInt8($0B);
+        { i32.const $InitFlag }
+        Sec.writeUInt8($41);
+        WriteUleb5(sec,InitFlagOfs);
+        { i32.const 1 }
+        Sec.writeUInt16BE($4101);
+        { i64.const -1 }
+        Sec.writeUInt16BE($427f);
+        { memory.atomic.wait32 2 0 }
+        Sec.writeUInt32BE($fe010200);
+        { drop }
+        Sec.writeUInt8($1A);
+        { end }
+        Sec.writeUInt8($0B);
+        { TODO: data.drop }
+        { end }
+        Sec.writeUInt8($0B);
       end;
 
     procedure TWasmExeOutput.WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
