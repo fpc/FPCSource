@@ -271,6 +271,7 @@ interface
         FTlsSizeSym: TWasmObjSymbol;
         FTlsAlignSym: TWasmObjSymbol;
         FInitTlsFunctionSym: TWasmObjSymbol;
+        FInitSharedMemoryFunctionSym: TWasmObjSymbol;
         FMinMemoryPages,
         FMaxMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
@@ -284,6 +285,7 @@ interface
         procedure SetTlsSizeAlignAndBase;
         procedure SetThreadVarGlobalsInitValues;
         procedure GenerateCode_InitTls;
+        procedure GenerateCode_InitSharedMemory;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
       protected
         function writeData:boolean;override;
@@ -4909,6 +4911,7 @@ implementation
         SetTlsSizeAlignAndBase;
         SetThreadVarGlobalsInitValues;
         GenerateCode_InitTls;
+        GenerateCode_InitSharedMemory;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
@@ -4926,7 +4929,8 @@ implementation
             WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
           end;
 
-        {...}
+        if ts_wasm_threads in current_settings.targetswitches then
+          WriteUleb(FWasmSections[wsiStart],FInitSharedMemoryFunctionSym.LinkingData.ExeFunctionIndex);
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
@@ -4939,6 +4943,8 @@ implementation
         WriteWasmSectionIfNotEmpty(wsiTag);
         WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiExport);
+        if ts_wasm_threads in current_settings.targetswitches then
+          WriteWasmSection(wsiStart);
         WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
@@ -5264,6 +5270,14 @@ implementation
             TWasmObjSection(FInitTlsFunctionSym.ObjSection).MainFuncSymbol:=FInitTlsFunctionSym;
             FInitTlsFunctionSym.LinkingData.FuncType:=TWasmFuncType.Create([wbt_i32],[]);
           end
+        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__fpc_wasm_init_shared_memory') then
+          begin
+            internalObjData.createsection('*'+aname,0,[]);
+            FInitSharedMemoryFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
+            TWasmObjSection(FInitSharedMemoryFunctionSym.ObjSection).MainFuncSymbol:=FInitSharedMemoryFunctionSym;
+            FInitSharedMemoryFunctionSym.ObjSection.SecOptions:=FInitSharedMemoryFunctionSym.ObjSection.SecOptions+[oso_keep];
+            FInitSharedMemoryFunctionSym.LinkingData.FuncType:=TWasmFuncType.Create([],[]);
+          end
         else
           inherited;
       end;
@@ -5540,6 +5554,23 @@ implementation
                 WriteUleb5(sec,globalobjsym.offset+globalobjsym.objsection.MemPos);
               end;
           end;
+
+        Sec.writeUInt8($0B);  { end }
+      end;
+
+    procedure TWasmExeOutput.GenerateCode_InitSharedMemory;
+      var
+        Sec: TObjSection;
+      begin
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          exit;
+        Sec:=FInitSharedMemoryFunctionSym.objsection;
+        Sec.SecOptions:=Sec.SecOptions+[oso_Data];
+
+        { locals }
+        Sec.writeUInt8($00);
+
+        { TODO: implement }
 
         Sec.writeUInt8($0B);  { end }
       end;
