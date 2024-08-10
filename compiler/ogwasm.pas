@@ -265,6 +265,9 @@ interface
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         FStackPointerSym: TWasmObjSymbol;
+        FTlsBaseSym: TWasmObjSymbol;
+        FTlsSizeSym: TWasmObjSymbol;
+        FTlsAlignSym: TWasmObjSymbol;
         FInitTlsFunctionSym: TWasmObjSymbol;
         FMinMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
@@ -5144,6 +5147,42 @@ implementation
             FStackPointerSym.LinkingData.GlobalIsMutable:=True;
             FStackPointerSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=0;
+          end
+        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_base') then
+          begin
+            internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
+            FTlsBaseSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
+            FTlsBaseSym.size:=1;
+            FTlsBaseSym.ObjSection.WriteZeros(1);
+            TWasmObjSection(FTlsBaseSym.ObjSection).MainFuncSymbol:=FTlsBaseSym;
+            FTlsBaseSym.LinkingData.GlobalType:=wbt_i32;
+            FTlsBaseSym.LinkingData.GlobalIsMutable:=True;
+            FTlsBaseSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+            FTlsBaseSym.LinkingData.GlobalInitializer.init_i32:=0;
+          end
+        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_size') then
+          begin
+            internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
+            FTlsSizeSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
+            FTlsSizeSym.size:=1;
+            FTlsSizeSym.ObjSection.WriteZeros(1);
+            TWasmObjSection(FTlsSizeSym.ObjSection).MainFuncSymbol:=FTlsSizeSym;
+            FTlsSizeSym.LinkingData.GlobalType:=wbt_i32;
+            FTlsSizeSym.LinkingData.GlobalIsMutable:=False;
+            FTlsSizeSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+            FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=0;
+          end
+        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_align') then
+          begin
+            internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
+            FTlsAlignSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
+            FTlsAlignSym.size:=1;
+            FTlsAlignSym.ObjSection.WriteZeros(1);
+            TWasmObjSection(FTlsAlignSym.ObjSection).MainFuncSymbol:=FTlsAlignSym;
+            FTlsAlignSym.LinkingData.GlobalType:=wbt_i32;
+            FTlsAlignSym.LinkingData.GlobalIsMutable:=False;
+            FTlsAlignSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+            FTlsAlignSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
         else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__wasm_init_tls') then
           begin
