@@ -5015,9 +5015,9 @@ implementation
                     else if (ts_wasm_threads in current_settings.targetswitches) and
                             (objsym.typ=AT_TLS) then
                       begin
-                        Writeln('TODO! threadvar relocation: ', objsym.typ, ' ', objsym.objsection.MemPos, ' ', objsym.Name, ' ', objsym.objsection.Name);
-                        objsec.Data.seek(objreloc.DataOffset);
-                        WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                        { Nothing to do here. A second RELOC_GLOBAL_INDEX_LEB
+                          relocation, overlaid on top of this one, pointing to
+                          an AT_WASM_GLOBAL should have already done the job. }
                       end
                     else
                       internalerror(2024010111);
