@@ -4249,6 +4249,7 @@ implementation
                         objsym.TlsGlobalSym.objsection:=nil;
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
+                        objsym.TlsGlobalSym.LinkingData.GlobalType:=wbt_i32;
                       end
                     else
                       objsym.typ:=AT_DATA;
@@ -4274,6 +4275,7 @@ implementation
                           objsym.TlsGlobalSym.objsection.WriteZeros(1);
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
+                        objsym.TlsGlobalSym.LinkingData.GlobalType:=wbt_i32;
                       end
                     else
                       objsym.typ:=AT_DATA;
