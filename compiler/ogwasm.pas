@@ -5569,6 +5569,9 @@ implementation
         InitFlagOfs=256;
       var
         Sec: TObjSection;
+        DataSecName: string;
+        DataSecIdx: Integer;
+        ExeSec: TExeSection;
       begin
         if not (ts_wasm_threads in current_settings.targetswitches) then
           exit;
@@ -5599,7 +5602,27 @@ implementation
         { end }
         Sec.writeUInt8($0B);
 
-        { TODO: memory.init and memory.fill }
+        DataSecIdx:=-1;
+        for DataSecName in DataSections do
+          begin
+            ExeSec:=FindExeSection(DataSecName);
+            if Assigned(ExeSec) and (ExeSec.Size>0) then
+              begin
+                Inc(DataSecIdx);
+                { i32.const $memPos }
+                Sec.writeUInt8($41);
+                WriteUleb5(sec,ExeSec.MemPos);
+                { i32.const 0 }
+                Sec.writeUInt16BE($4100);
+                { i32.const size }
+                Sec.writeUInt8($41);
+                WriteUleb5(sec,ExeSec.Size);
+                { memory.init $DataSecIdx 0 }
+                Sec.writeUInt16BE($fc08);
+                WriteUleb5(sec,DataSecIdx);
+                Sec.writeUInt8(0);
+              end;
+          end;
 
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
