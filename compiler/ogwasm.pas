@@ -84,6 +84,7 @@ interface
         AliasOf: string;
         ExtraData: TWasmObjSymbolExtraData;
         LinkingData: TWasmObjSymbolLinkingData;
+        TlsGlobalSym: TWasmObjSymbol;
         constructor create(AList:TFPHashObjectList;const AName:string);override;
         destructor Destroy;override;
         function IsAlias: Boolean;
@@ -4239,7 +4240,15 @@ implementation
                     objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                     objsym.bind:=AB_EXTERNAL;
                     if (SymFlags and WASM_SYM_TLS)<>0 then
-                      objsym.typ:=AT_TLS
+                      begin
+                        objsym.typ:=AT_TLS;
+                        objsym.TlsGlobalSym:=TWasmObjSymbol(ObjData.CreateSymbol('GOT.mem.'+SymName));
+                        objsym.TlsGlobalSym.bind:=AB_EXTERNAL;
+                        objsym.TlsGlobalSym.typ:=AT_WASM_GLOBAL;
+                        objsym.TlsGlobalSym.objsection:=nil;
+                        objsym.TlsGlobalSym.offset:=0;
+                        objsym.TlsGlobalSym.size:=1;
+                      end
                     else
                       objsym.typ:=AT_DATA;
                     objsym.objsection:=nil;
@@ -4254,7 +4263,17 @@ implementation
                     else
                       objsym.bind:=AB_GLOBAL;
                     if (SymFlags and WASM_SYM_TLS)<>0 then
-                      objsym.typ:=AT_TLS
+                      begin
+                        objsym.typ:=AT_TLS;
+                        objsym.TlsGlobalSym:=TWasmObjSymbol(ObjData.CreateSymbol('GOT.mem.'+SymName));
+                        objsym.TlsGlobalSym.bind:=objsym.bind;
+                        objsym.TlsGlobalSym.typ:=AT_WASM_GLOBAL;
+                        objsym.objsection:=ObjData.createsection('.wasm_globals.n_'+objsym.TlsGlobalSym.Name,1,[oso_Data,oso_load],true);
+                        if objsym.objsection.Size=0 then
+                          objsym.objsection.WriteZeros(1);
+                        objsym.TlsGlobalSym.offset:=0;
+                        objsym.TlsGlobalSym.size:=1;
+                      end
                     else
                       objsym.typ:=AT_DATA;
                     objsym.objsection:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SymIndex]);
