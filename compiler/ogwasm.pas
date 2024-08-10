@@ -279,6 +279,7 @@ interface
         procedure PrepareTags;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
         procedure SetStackPointer;
+        procedure GenerateCode_InitTls;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
       protected
         function writeData:boolean;override;
@@ -4874,6 +4875,7 @@ implementation
           WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
 
         SetStackPointer;
+        GenerateCode_InitTls;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
@@ -5418,6 +5420,14 @@ implementation
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
         FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
+      end;
+
+    procedure TWasmExeOutput.GenerateCode_InitTls;
+      var
+        a: Byte=0;
+      begin
+        FInitTlsFunctionSym.objsection.SecOptions:=FInitTlsFunctionSym.objsection.SecOptions+[oso_Data];
+        FInitTlsFunctionSym.objsection.write(a,1);
       end;
 
     procedure TWasmExeOutput.WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
