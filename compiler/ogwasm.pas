@@ -5551,6 +5551,7 @@ implementation
         i: Integer;
         globalobjsec: TWasmObjSection;
         globalobjsym: TWasmObjSymbol;
+        OffsetInTls: QWord;
       begin
         if not (ts_wasm_threads in current_settings.targetswitches) then
           exit;
@@ -5577,13 +5578,17 @@ implementation
             globalobjsym:=globalobjsec.MainFuncSymbol;
             if Assigned(globalobjsym.TlsDataSym) then
               begin
+                OffsetInTls:=globalobjsym.TlsDataSym.offset+globalobjsym.TlsDataSym.objsection.MemPos-globalobjsym.TlsDataSym.objsection.ExeSection.MemPos;
                 { local.get 0 }
                 Sec.writeUInt16BE($2000);
-                { i32.const x }
-                Sec.writeUInt8($41);
-                WriteUleb(Sec,globalobjsym.TlsDataSym.offset+globalobjsym.TlsDataSym.objsection.MemPos-globalobjsym.TlsDataSym.objsection.ExeSection.MemPos);
-                { i32.add }
-                Sec.writeUInt8($6A);
+                if OffsetInTls<>0 then
+                  begin
+                    { i32.const $OffsetInTls }
+                    Sec.writeUInt8($41);
+                    WriteUleb(Sec,OffsetInTls);
+                    { i32.add }
+                    Sec.writeUInt8($6A);
+                  end;
                 { global.set y }
                 Sec.writeUInt8($24);
                 WriteUleb(sec,globalobjsym.offset+globalobjsym.objsection.MemPos);
