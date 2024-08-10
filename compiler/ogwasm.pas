@@ -4975,12 +4975,20 @@ implementation
                       end;
                     end;
                   RELOC_GLOBAL_INDEX_LEB:
-                    begin
-                      if objsym.typ<>AT_WASM_GLOBAL then
-                        internalerror(2024010111);
-                      objsec.Data.seek(objreloc.DataOffset);
-                      WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
-                    end;
+                    if objsym.typ=AT_WASM_GLOBAL then
+                      begin
+                        objsec.Data.seek(objreloc.DataOffset);
+                        WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                      end
+                    else if (ts_wasm_threads in current_settings.targetswitches) and
+                            (objsym.typ=AT_DATA) then
+                      begin
+                        Writeln('TODO! threadvar relocation: ', objsym.typ, ' ', objsym.objsection.MemPos, ' ', objsym.Name, ' ', objsym.objsection.Name);
+                        objsec.Data.seek(objreloc.DataOffset);
+                        WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                      end
+                    else
+                      internalerror(2024010111);
                   RELOC_TAG_INDEX_LEB:
                     begin
                       if objsym.typ<>AT_WASM_EXCEPTION_TAG then
