@@ -358,6 +358,8 @@ begin
     end
   else
     ScriptAddGenericSections('.text');
+  if ts_wasm_threads in current_settings.targetswitches then
+    ScriptAddGenericSections('.tbss');
   ScriptAddGenericSections(
     { data (initialized data first, uninitialized data later) }
     '.rodata,.data,fpc.resources,fpc.reshandles,.bss,'+
