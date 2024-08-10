@@ -265,6 +265,7 @@ interface
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         FStackPointerSym: TWasmObjSymbol;
+        FInitTlsFunctionSym: TWasmObjSymbol;
         FMinMemoryPages: Integer;
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
@@ -5135,6 +5136,13 @@ implementation
             FStackPointerSym.LinkingData.GlobalIsMutable:=True;
             FStackPointerSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=0;
+          end
+        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__wasm_init_tls') then
+          begin
+            internalObjData.createsection('*'+aname,0,[]);
+            FInitTlsFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
+            TWasmObjSection(FInitTlsFunctionSym.ObjSection).MainFuncSymbol:=FInitTlsFunctionSym;
+            FInitTlsFunctionSym.LinkingData.FuncType:=TWasmFuncType.Create([wbt_i32],[]);
           end
         else
           inherited;
