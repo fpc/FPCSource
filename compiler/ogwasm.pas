@@ -4268,9 +4268,9 @@ implementation
                         objsym.TlsGlobalSym:=TWasmObjSymbol(ObjData.CreateSymbol('GOT.mem.'+SymName));
                         objsym.TlsGlobalSym.bind:=objsym.bind;
                         objsym.TlsGlobalSym.typ:=AT_WASM_GLOBAL;
-                        objsym.objsection:=ObjData.createsection('.wasm_globals.n_'+objsym.TlsGlobalSym.Name,1,[oso_Data,oso_load],true);
-                        if objsym.objsection.Size=0 then
-                          objsym.objsection.WriteZeros(1);
+                        objsym.TlsGlobalSym.objsection:=ObjData.createsection('.wasm_globals.n_'+objsym.TlsGlobalSym.Name,1,[oso_Data,oso_load],true);
+                        if objsym.TlsGlobalSym.objsection.Size=0 then
+                          objsym.TlsGlobalSym.objsection.WriteZeros(1);
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
                       end
