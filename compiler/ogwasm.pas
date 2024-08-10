@@ -248,6 +248,12 @@ interface
 
       TWasmExeOutput = class(TExeOutput)
       private
+        const
+          DataSections: array [1..3] of string = (
+            '.rodata',
+            '.data',
+            'fpc.resources');
+      private
         FImports: TFPHashObjectList;
         FFuncTypes: TWasmFuncTypeTable;
 
@@ -4705,11 +4711,6 @@ implementation
               internalerror(2024010107);
           end;
 
-        const
-          DataSections: array [1..3] of string = (
-            '.rodata',
-            '.data',
-            'fpc.resources');
         var
           DataCount: Integer;
           DataSecName: string;
