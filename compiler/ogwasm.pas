@@ -4669,11 +4669,16 @@ implementation
             exesecdatapos: LongWord;
             dpos, pad: QWord;
           begin
-            WriteByte(FWasmSections[wsiData],0);
+            if ts_wasm_threads in current_settings.targetswitches then
+              WriteByte(FWasmSections[wsiData],1)  { mode passive }
+            else
+              begin
+                WriteByte(FWasmSections[wsiData],0);  { mode active, memory 0, offset e }
 
-            WriteByte(FWasmSections[wsiData],$41);  { i32.const }
-            WriteSleb(FWasmSections[wsiData],longint(exesec.MemPos));
-            WriteByte(FWasmSections[wsiData],$0B);  { end }
+                WriteByte(FWasmSections[wsiData],$41);  { i32.const }
+                WriteSleb(FWasmSections[wsiData],longint(exesec.MemPos));
+                WriteByte(FWasmSections[wsiData],$0B);  { end }
+              end;
 
             WriteUleb(FWasmSections[wsiData],exesec.Size);
             exesecdatapos:=FWasmSections[wsiData].size;
