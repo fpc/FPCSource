@@ -391,6 +391,19 @@ implementation
         until v=0;
       end;
 
+    procedure WriteUleb(d: tobjsection; v: uint64);
+      var
+        b: byte;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          d.write(b,1);
+        until v=0;
+      end;
+
     procedure WriteUleb(w: TObjectWriter; v: uint64);
       var
         b: byte;
@@ -405,6 +418,22 @@ implementation
       end;
 
     procedure WriteSleb(d: tdynamicarray; v: int64);
+      var
+        b: byte;
+        Done: Boolean=false;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=SarInt64(v,7);
+          if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
+            Done:=true
+          else
+            b:=b or 128;
+          d.write(b,1);
+        until Done;
+      end;
+
+    procedure WriteSleb(d: tobjsection; v: int64);
       var
         b: byte;
         Done: Boolean=false;
@@ -5540,7 +5569,7 @@ implementation
         Sec.writeUInt16BE($2000);
         { global.set $__tls_base }
         Sec.writeUInt8($24);
-        WriteUleb5(sec,FTlsBaseSym.offset+FTlsBaseSym.objsection.MemPos);
+        WriteUleb(sec,FTlsBaseSym.offset+FTlsBaseSym.objsection.MemPos);
 
         for i:=0 to globalexesec.ObjSectionList.Count-1 do
           begin
@@ -5552,12 +5581,12 @@ implementation
                 Sec.writeUInt16BE($2000);
                 { i32.const x }
                 Sec.writeUInt8($41);
-                WriteUleb5(Sec,globalobjsym.TlsDataSym.offset+globalobjsym.TlsDataSym.objsection.MemPos-globalobjsym.TlsDataSym.objsection.ExeSection.MemPos);
+                WriteUleb(Sec,globalobjsym.TlsDataSym.offset+globalobjsym.TlsDataSym.objsection.MemPos-globalobjsym.TlsDataSym.objsection.ExeSection.MemPos);
                 { i32.add }
                 Sec.writeUInt8($6A);
                 { global.set y }
                 Sec.writeUInt8($24);
-                WriteUleb5(sec,globalobjsym.offset+globalobjsym.objsection.MemPos);
+                WriteUleb(sec,globalobjsym.offset+globalobjsym.objsection.MemPos);
               end;
           end;
 
@@ -5590,7 +5619,7 @@ implementation
 
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb5(sec,InitFlagOfs);
+        WriteUleb(sec,InitFlagOfs);
         { i32.const 0 }
         Sec.writeUInt16BE($4100);
         { i32.const 1 }
@@ -5611,29 +5640,29 @@ implementation
                 Inc(DataSecIdx);
                 { i32.const $memPos }
                 Sec.writeUInt8($41);
-                WriteUleb5(sec,ExeSec.MemPos);
+                WriteUleb(sec,ExeSec.MemPos);
                 { i32.const 0 }
                 Sec.writeUInt16BE($4100);
                 { i32.const size }
                 Sec.writeUInt8($41);
-                WriteUleb5(sec,ExeSec.Size);
+                WriteUleb(sec,ExeSec.Size);
                 { memory.init $DataSecIdx 0 }
                 Sec.writeUInt16BE($fc08);
-                WriteUleb5(sec,DataSecIdx);
+                WriteUleb(sec,DataSecIdx);
                 Sec.writeUInt8(0);
               end;
           end;
 
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb5(sec,InitFlagOfs);
+        WriteUleb(sec,InitFlagOfs);
         { i32.const 2 }
         Sec.writeUInt16BE($4102);
         { i32.atomic.store 2 0 }
         Sec.writeUInt32BE($fe170200);
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb5(sec,InitFlagOfs);
+        WriteUleb(sec,InitFlagOfs);
         { i32.const 4294967295 }
         Sec.writeUInt16BE($417f);
         { memory.atomic.notify 2 0 }
@@ -5644,7 +5673,7 @@ implementation
         Sec.writeUInt8($0B);
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb5(sec,InitFlagOfs);
+        WriteUleb(sec,InitFlagOfs);
         { i32.const 1 }
         Sec.writeUInt16BE($4101);
         { i64.const -1 }
@@ -5664,7 +5693,7 @@ implementation
                 Inc(DataSecIdx);
                 { data.drop $DataSecIdx }
                 Sec.writeUInt16BE($fc09);
-                WriteUleb5(sec,DataSecIdx);
+                WriteUleb(sec,DataSecIdx);
               end;
           end;
         { end }
