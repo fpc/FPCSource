@@ -4238,7 +4238,10 @@ implementation
                   begin
                     objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
                     objsym.bind:=AB_EXTERNAL;
-                    objsym.typ:=AT_DATA;
+                    if (SymFlags and WASM_SYM_TLS)<>0 then
+                      objsym.typ:=AT_TLS
+                    else
+                      objsym.typ:=AT_DATA;
                     objsym.objsection:=nil;
                     objsym.offset:=0;
                     objsym.size:=0;
@@ -4250,7 +4253,10 @@ implementation
                       objsym.bind:=AB_LOCAL
                     else
                       objsym.bind:=AB_GLOBAL;
-                    objsym.typ:=AT_DATA;
+                    if (SymFlags and WASM_SYM_TLS)<>0 then
+                      objsym.typ:=AT_TLS
+                    else
+                      objsym.typ:=AT_DATA;
                     objsym.objsection:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SymIndex]);
                     objsym.offset:=SymOffset;
                     objsym.size:=SymSize;
@@ -4984,7 +4990,7 @@ implementation
                         WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                       end
                     else if (ts_wasm_threads in current_settings.targetswitches) and
-                            (objsym.typ=AT_DATA) then
+                            (objsym.typ=AT_TLS) then
                       begin
                         Writeln('TODO! threadvar relocation: ', objsym.typ, ' ', objsym.objsection.MemPos, ' ', objsym.Name, ' ', objsym.objsection.Name);
                         objsec.Data.seek(objreloc.DataOffset);
