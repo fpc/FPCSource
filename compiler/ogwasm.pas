@@ -2700,9 +2700,16 @@ implementation
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
                       end;
-                    if (RelocType=R_WASM_GLOBAL_INDEX_LEB) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_GLOBAL) then
+                    if (RelocType=R_WASM_GLOBAL_INDEX_LEB) and
+                       not ((SymbolTable[RelocIndex].SymKind=SYMTAB_GLOBAL) or
+                            ((ts_wasm_threads in current_settings.targetswitches) and
+                             (SymbolTable[RelocIndex].SymKind=SYMTAB_DATA) and
+                             ((SymbolTable[RelocIndex].SymFlags and WASM_SYM_TLS)<>0))) then
                       begin
-                        InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
+                        if ts_wasm_threads in current_settings.targetswitches then
+                          InputError('Relocation must point to a SYMTAB_GLOBAL symbol or a SYMTAB_DATA symbol with the WASM_SYM_TLS flag set')
+                        else
+                          InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
                         exit;
                       end;
                     if (RelocType=R_WASM_TAG_INDEX_LEB) and (SymbolTable[RelocIndex].SymKind<>SYMTAB_EVENT) then
