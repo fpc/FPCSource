@@ -85,6 +85,7 @@ interface
         ExtraData: TWasmObjSymbolExtraData;
         LinkingData: TWasmObjSymbolLinkingData;
         TlsGlobalSym: TWasmObjSymbol;
+        TlsDataSym: TWasmObjSymbol;
         constructor create(AList:TFPHashObjectList;const AName:string);override;
         destructor Destroy;override;
         function IsAlias: Boolean;
@@ -4245,6 +4246,7 @@ implementation
                       begin
                         objsym.typ:=AT_TLS;
                         objsym.TlsGlobalSym:=TWasmObjSymbol(ObjData.CreateSymbol('GOT.mem.'+SymName));
+                        objsym.TlsGlobalSym.TlsDataSym:=objsym;
                         objsym.TlsGlobalSym.bind:=AB_EXTERNAL;
                         objsym.TlsGlobalSym.typ:=AT_WASM_GLOBAL;
                         objsym.TlsGlobalSym.objsection:=nil;
@@ -4269,6 +4271,7 @@ implementation
                       begin
                         objsym.typ:=AT_TLS;
                         objsym.TlsGlobalSym:=TWasmObjSymbol(ObjData.CreateSymbol('GOT.mem.'+SymName));
+                        objsym.TlsGlobalSym.TlsDataSym:=objsym;
                         objsym.TlsGlobalSym.bind:=objsym.bind;
                         objsym.TlsGlobalSym.typ:=AT_WASM_GLOBAL;
                         objsym.TlsGlobalSym.objsection:=ObjData.createsection('.wasm_globals.n_'+objsym.TlsGlobalSym.Name,1,[oso_Data,oso_load],true);
