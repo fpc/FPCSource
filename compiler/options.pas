@@ -2245,15 +2245,6 @@ begin
       Message(option_too_many_exception_modes);
       StopOptions(1);
     end;
-
-{$ifndef FPC_WASM_THREADS_INTERNAL_LINKER}
-  if (ts_wasm_threads in init_settings.targetswitches) and
-     not (cs_link_extern in init_settings.globalswitches) then
-    begin
-      Message(option_wasm_threads_require_external_linker);
-      include(init_settings.globalswitches,cs_link_extern);
-    end;
-{$endif FPC_WASM_THREADS_INTERNAL_LINKER}
 {$endif}
 
 {$ifdef i8086}
