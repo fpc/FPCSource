@@ -332,6 +332,12 @@ begin
 
   LinkScript.Concat('EXESECTION .wasm_globals');
   LinkScript.Concat('  SYMBOL __stack_pointer');
+  if ts_wasm_threads in current_settings.targetswitches then
+    begin
+      LinkScript.Concat('  SYMBOL __tls_base');
+      LinkScript.Concat('  SYMBOL __tls_size');
+      LinkScript.Concat('  SYMBOL __tls_align');
+    end;
   LinkScript.Concat('  OBJSECTION .wasm_globals.*');
   LinkScript.Concat('ENDEXESECTION');
 
