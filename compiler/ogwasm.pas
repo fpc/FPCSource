@@ -5655,7 +5655,18 @@ implementation
         Sec.writeUInt8($1A);
         { end }
         Sec.writeUInt8($0B);
-        { TODO: data.drop }
+        DataSecIdx:=-1;
+        for DataSecName in DataSections do
+          begin
+            ExeSec:=FindExeSection(DataSecName);
+            if Assigned(ExeSec) and (ExeSec.Size>0) then
+              begin
+                Inc(DataSecIdx);
+                { data.drop $DataSecIdx }
+                Sec.writeUInt16BE($fc09);
+                WriteUleb5(sec,DataSecIdx);
+              end;
+          end;
         { end }
         Sec.writeUInt8($0B);
       end;
