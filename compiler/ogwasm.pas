@@ -5099,12 +5099,17 @@ implementation
         ExeSec: TExeSection;
         i: Integer;
         objsec: TObjSection;
+        firstdatasec: string;
       begin
         { WebAssembly is a Harvard architecture.
           Data lives in a separate address space, so start addressing back from 0
           (the LLVM leaves the first 1024 bytes in the data segment empty, so we
           start at 1024). }
-        if aname='.rodata' then
+        if ts_wasm_threads in current_settings.targetswitches then
+          firstdatasec:='.tbss'
+        else
+          firstdatasec:='.rodata';
+        if aname=firstdatasec then
           begin
             CurrMemPos:=1024;
             inherited;
