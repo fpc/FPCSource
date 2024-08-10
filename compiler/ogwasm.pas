@@ -5434,6 +5434,8 @@ implementation
         objsec: TWasmObjSection;
         objsym: TWasmObjSymbol;
       begin
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          exit;
         exesec:=FindExeSection('.wasm_globals');
         if not assigned(exesec) then
           internalerror(2024010112);
@@ -5449,6 +5451,8 @@ implementation
       var
         a: Byte=0;
       begin
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          exit;
         FInitTlsFunctionSym.objsection.SecOptions:=FInitTlsFunctionSym.objsection.SecOptions+[oso_Data];
         FInitTlsFunctionSym.objsection.write(a,1);
       end;
