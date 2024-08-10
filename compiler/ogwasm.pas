@@ -5456,12 +5456,51 @@ implementation
 
     procedure TWasmExeOutput.GenerateCode_InitTls;
       var
-        a: Byte=0;
+        Sec: TObjSection;
+        globalexesec: TExeSection;
+        i: Integer;
+        globalobjsec: TWasmObjSection;
+        globalobjsym: TWasmObjSymbol;
       begin
         if not (ts_wasm_threads in current_settings.targetswitches) then
           exit;
-        FInitTlsFunctionSym.objsection.SecOptions:=FInitTlsFunctionSym.objsection.SecOptions+[oso_Data];
-        FInitTlsFunctionSym.objsection.write(a,1);
+
+        globalexesec:=FindExeSection('.wasm_globals');
+        if not assigned(globalexesec) then
+          internalerror(2024010112);
+
+        Sec:=FInitTlsFunctionSym.objsection;
+        Sec.SecOptions:=Sec.SecOptions+[oso_Data];
+
+        { locals }
+        Sec.writeUInt8($00);
+
+        { local.get 0 }
+        Sec.writeUInt16BE($2000);
+        { global.set $__tls_base }
+        Sec.writeUInt8($24);
+        WriteUleb5(sec,FTlsBaseSym.offset+FTlsBaseSym.objsection.MemPos);
+
+        for i:=0 to globalexesec.ObjSectionList.Count-1 do
+          begin
+            globalobjsec:=TWasmObjSection(globalexesec.ObjSectionList[i]);
+            globalobjsym:=globalobjsec.MainFuncSymbol;
+            if Assigned(globalobjsym.TlsDataSym) then
+              begin
+                { local.get 0 }
+                Sec.writeUInt16BE($2000);
+                { i32.const x }
+                Sec.writeUInt8($41);
+                WriteUleb5(Sec,globalobjsym.TlsDataSym.offset+globalobjsym.TlsDataSym.objsection.MemPos-globalobjsym.TlsDataSym.objsection.ExeSection.MemPos);
+                { i32.add }
+                Sec.writeUInt8($6A);
+                { global.set y }
+                Sec.writeUInt8($24);
+                WriteUleb5(sec,globalobjsym.offset+globalobjsym.objsection.MemPos);
+              end;
+          end;
+
+        Sec.writeUInt8($0B);  { end }
       end;
 
     procedure TWasmExeOutput.WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
