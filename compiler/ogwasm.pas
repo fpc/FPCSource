@@ -280,6 +280,7 @@ interface
         procedure PrepareTags;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
         procedure SetStackPointer;
+        procedure SetTlsSizeAlignAndBase;
         procedure SetThreadVarGlobalsInitValues;
         procedure GenerateCode_InitTls;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
@@ -4884,6 +4885,7 @@ implementation
           WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
 
         SetStackPointer;
+        SetTlsSizeAlignAndBase;
         SetThreadVarGlobalsInitValues;
         GenerateCode_InitTls;
 
@@ -5430,6 +5432,18 @@ implementation
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
         FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
+      end;
+
+    procedure TWasmExeOutput.SetTlsSizeAlignAndBase;
+      var
+        TBssSec: TExeSection;
+      begin
+        if not (ts_wasm_threads in current_settings.targetswitches) then
+          exit;
+        TBssSec:=FindExeSection('.tbss');
+        FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=Int32(TBssSec.Size);
+        FTlsAlignSym.LinkingData.GlobalInitializer.init_i32:=Int32(TBssSec.SecAlign);
+        FTlsBaseSym.LinkingData.GlobalInitializer.init_i32:=Int32(TBssSec.MemPos);
       end;
 
     procedure TWasmExeOutput.SetThreadVarGlobalsInitValues;
