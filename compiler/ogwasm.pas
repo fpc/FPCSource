@@ -4539,7 +4539,11 @@ implementation
                       ObjSec.ObjRelocations.Add(ObjReloc);
                     end;
                   R_WASM_GLOBAL_INDEX_LEB:
-                    ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB));
+                    begin
+                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_GLOBAL_INDEX_LEB));
+                      if Assigned(SymbolTable[RelocIndex].ObjSym.TlsGlobalSym) then
+                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym.TlsGlobalSym,RELOC_GLOBAL_INDEX_LEB));
+                    end;
                   R_WASM_TAG_INDEX_LEB:
                     ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_TAG_INDEX_LEB));
                   else
