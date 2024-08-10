@@ -5446,7 +5446,11 @@ implementation
           begin
             objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
             objsym:=objsec.MainFuncSymbol;
-            { TODO: implement }
+            if Assigned(objsym.TlsDataSym) then
+              begin
+                objsym.LinkingData.GlobalInitializer.typ:=wbt_i32;
+                objsym.LinkingData.GlobalInitializer.init_i32:=objsym.TlsDataSym.offset+objsym.TlsDataSym.objsection.MemPos;
+              end;
           end;
       end;
 
