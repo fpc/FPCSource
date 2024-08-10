@@ -4253,6 +4253,7 @@ implementation
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
                         objsym.TlsGlobalSym.LinkingData.GlobalType:=wbt_i32;
+                        objsym.TlsGlobalSym.LinkingData.GlobalIsMutable:=true;
                       end
                     else
                       objsym.typ:=AT_DATA;
@@ -4281,6 +4282,7 @@ implementation
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
                         objsym.TlsGlobalSym.LinkingData.GlobalType:=wbt_i32;
+                        objsym.TlsGlobalSym.LinkingData.GlobalIsMutable:=true;
                       end
                     else
                       objsym.typ:=AT_DATA;
