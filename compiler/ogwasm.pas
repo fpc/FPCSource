@@ -5585,7 +5585,7 @@ implementation
                   begin
                     { i32.const $OffsetInTls }
                     Sec.writeUInt8($41);
-                    WriteUleb(Sec,OffsetInTls);
+                    WriteSleb(Sec,Int32(OffsetInTls));
                     { i32.add }
                     Sec.writeUInt8($6A);
                   end;
@@ -5624,7 +5624,7 @@ implementation
 
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb(sec,InitFlagOfs);
+        WriteSleb(sec,InitFlagOfs);
         { i32.const 0 }
         Sec.writeUInt16BE($4100);
         { i32.const 1 }
@@ -5645,12 +5645,12 @@ implementation
                 Inc(DataSecIdx);
                 { i32.const $memPos }
                 Sec.writeUInt8($41);
-                WriteUleb(sec,ExeSec.MemPos);
+                WriteSleb(sec,Int32(ExeSec.MemPos));
                 { i32.const 0 }
                 Sec.writeUInt16BE($4100);
                 { i32.const size }
                 Sec.writeUInt8($41);
-                WriteUleb(sec,ExeSec.Size);
+                WriteSleb(sec,Int32(ExeSec.Size));
                 { memory.init $DataSecIdx 0 }
                 Sec.writeUInt16BE($fc08);
                 WriteUleb(sec,DataSecIdx);
@@ -5660,14 +5660,14 @@ implementation
 
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb(sec,InitFlagOfs);
+        WriteSleb(sec,InitFlagOfs);
         { i32.const 2 }
         Sec.writeUInt16BE($4102);
         { i32.atomic.store 2 0 }
         Sec.writeUInt32BE($fe170200);
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb(sec,InitFlagOfs);
+        WriteSleb(sec,InitFlagOfs);
         { i32.const 4294967295 }
         Sec.writeUInt16BE($417f);
         { memory.atomic.notify 2 0 }
@@ -5678,7 +5678,7 @@ implementation
         Sec.writeUInt8($0B);
         { i32.const $InitFlag }
         Sec.writeUInt8($41);
-        WriteUleb(sec,InitFlagOfs);
+        WriteSleb(sec,InitFlagOfs);
         { i32.const 1 }
         Sec.writeUInt16BE($4101);
         { i64.const -1 }
