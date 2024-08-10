@@ -520,6 +520,7 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_LUI,
               A_LB,
               A_LBU,
               A_LH,
@@ -557,6 +558,7 @@ implementation
               A_NEG,
               A_NOT:
                 result:=OptPass1OP(p);
+              A_SRAI,
               A_SRLI,
               A_SLLI:
                 begin
