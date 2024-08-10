@@ -49,8 +49,8 @@
       <SyntaxOptions>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
-        <CPPInline Value="False"/>
         <UseAnsiStrings Value="False"/>
+        <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
     <Other>
@@ -64,12 +64,13 @@
       </ConfigFile>
       <CustomOptions Value="-dwasm32
 -dnoopt
--dEXTDEBUG"/>
+-dEXTDEBUG
+-dFPC_WASM_THREADS_INTERNAL_LINKER"/>
       <OtherDefines Count="4">
         <Define0 Value="wasm32"/>
         <Define1 Value="noopt"/>
         <Define2 Value="EXTDEBUG"/>
-        <Define3 Value="DEBUG_WASM_GOTO"/>
+        <Define3 Value="FPC_WASM_THREADS_INTERNAL_LINKER"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
