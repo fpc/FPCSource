@@ -279,6 +279,7 @@ interface
         procedure PrepareTags;
         function AddOrGetIndirectFunctionTableIndex(FuncIdx: Integer): integer;
         procedure SetStackPointer;
+        procedure SetThreadVarGlobalsInitValues;
         procedure GenerateCode_InitTls;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
       protected
@@ -4878,6 +4879,7 @@ implementation
           WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
 
         SetStackPointer;
+        SetThreadVarGlobalsInitValues;
         GenerateCode_InitTls;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
@@ -5423,6 +5425,24 @@ implementation
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
         FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
+      end;
+
+    procedure TWasmExeOutput.SetThreadVarGlobalsInitValues;
+      var
+        exesec: TExeSection;
+        i: Integer;
+        objsec: TWasmObjSection;
+        objsym: TWasmObjSymbol;
+      begin
+        exesec:=FindExeSection('.wasm_globals');
+        if not assigned(exesec) then
+          internalerror(2024010112);
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(exesec.ObjSectionList[i]);
+            objsym:=objsec.MainFuncSymbol;
+            { TODO: implement }
+          end;
       end;
 
     procedure TWasmExeOutput.GenerateCode_InitTls;
