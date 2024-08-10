@@ -4273,6 +4273,7 @@ implementation
                         objsym.TlsGlobalSym.objsection:=ObjData.createsection('.wasm_globals.n_'+objsym.TlsGlobalSym.Name,1,[oso_Data,oso_load],true);
                         if objsym.TlsGlobalSym.objsection.Size=0 then
                           objsym.TlsGlobalSym.objsection.WriteZeros(1);
+                        TWasmObjSection(objsym.TlsGlobalSym.objsection).MainFuncSymbol:=objsym.TlsGlobalSym;
                         objsym.TlsGlobalSym.offset:=0;
                         objsym.TlsGlobalSym.size:=1;
                         objsym.TlsGlobalSym.LinkingData.GlobalType:=wbt_i32;
