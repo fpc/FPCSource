@@ -19,10 +19,10 @@ const
     initialized data section, just before the bss (uninitialized data) section,
     therefore it's perfectly possible that their data exist on a relatively low
     address (less than 64KB). So, for WebAssembly we check whether the pointer
-    resides in the first 4KB of linear memory, instead of the first 64KB. Note
-    that the first 4KB of linear memory in WebAssembly aren't used by Free
+    resides in the first 1KB of linear memory, instead of the first 64KB. Note
+    that the first 1KB of linear memory in WebAssembly aren't used by Free
     Pascal. }
-  MaxIntResource=4095;
+  MaxIntResource=1023;
 {$else}
   MaxIntResource=65535;
 {$endif}
