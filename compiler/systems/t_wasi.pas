@@ -378,6 +378,7 @@ end;
 function TInternalLinkerWasi.GetBssSize(aExeOutput: TExeOutput): QWord;
 begin
   Result:=GetExeSectionSize(aExeOutput,'.bss') +
+          GetExeSectionSize(aExeOutput,'.tbss') +
           GetExeSectionSize(aExeOutput,'fpc.reshandles');
 end;
 
