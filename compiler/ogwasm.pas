@@ -5137,6 +5137,7 @@ implementation
       begin
         inherited create;
         CObjData:=TWasmObjData;
+        SectionMemAlign:=16;
         MaxMemPos:=$FFFFFFFF;
         FFuncTypes:=TWasmFuncTypeTable.Create;
         for i in TWasmSectionID do
