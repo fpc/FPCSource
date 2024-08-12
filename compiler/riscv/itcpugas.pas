@@ -74,6 +74,45 @@ unit itcpugas;
         'amoor.d','amomin.d','amomax.d','amominu.d','amomaxu.d',
 {$endif RISCV64}
 
+        { B-extension }
+        'add.uw','andn','clmul','clmulh','clmulr','clz',
+{$ifdef RISCV64}
+        'clzw',
+{$endif RISCV64}
+        'cpop',
+{$ifdef RISCV64}
+        'cpopw',
+{$endif RISCV64}
+        'ctz',
+{$ifdef RISCV64}
+        'ctzw',
+{$endif RISCV64}
+        'max','maxu','min','minu','orc.b','orn','rev8','rol',
+{$ifdef RISCV64}
+        'rolw',
+{$endif RISCV64}
+        'ror','rori',
+{$ifdef RISCV64}
+        'roriw',
+        'rorw',
+{$endif RISCV64}
+        'bclr','bclri','bext','bexti','binv','binvi','bset','seti',{ 'sext.b','sext.h', }
+        'sh1add',
+{$ifdef RISCV64}
+        'sh1add.uw',
+{$endif RISCV64}
+        'sh2add',
+{$ifdef RISCV64}
+        'sh2add.uw',
+{$endif RISCV64}
+        'sh3add',
+{$ifdef RISCV64}
+        'sh3add.uw',
+        'slli.uw',
+{$endif RISCV64}
+        'xnor',
+        { 'zext.h', }
+
         { f-extension }
         'flw','fsw',
         'fmadd.s','fmsub.s','fnmsub.s','fnmadd.s',

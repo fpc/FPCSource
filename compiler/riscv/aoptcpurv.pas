@@ -58,7 +58,7 @@ implementation
   uses
     cutils;
 
-  function MatchInstruction(const instr: tai; const op: TAsmOps; const AConditions: TAsmConds = []): boolean;
+  function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const AConditions: TAsmConds = []): boolean;
     begin
       result :=
         (instr.typ = ait_instruction) and

@@ -83,6 +83,45 @@ uses
         A_AMOOR_D,A_AMOMIN_D,A_AMOMAX_D,A_AMOMINU_D,A_AMOMAXU_D,
 {$endif RISCV64}
 
+        { B-extension }
+        A_ADD_UW,A_ANDN,A_CLMUL,A_CLMULH,A_CLMULR,A_CLZ,
+{$ifdef RISCV64}
+        A_CLZW,
+{$endif RISCV64}
+        A_CPOP,
+{$ifdef RISCV64}
+        A_CPOPW,
+{$endif RISCV64}
+        A_CTZ,
+{$ifdef RISCV64}
+        A_CTZW,
+{$endif RISCV64}
+        A_MAX,A_MAXU,A_MIN,A_MINU,A_ORC_B,A_ORN,A_REV8,A_ROL,
+{$ifdef RISCV64}
+        A_ROLW,
+{$endif RISCV64}
+        A_ROR,A_RORI,
+{$ifdef RISCV64}
+        A_RORIW,
+        A_RORW,
+{$endif RISCV64}
+        A_BCLR,A_BCLRI,A_BEXT,A_BEXTI,A_BINV,A_BINVI,A_BSET,A_SETI,{ A_SEXT_B,A_SEXT_H, }
+        A_SH1ADD,
+{$ifdef RISCV64}
+        A_SH1ADD_UW,
+{$endif RISCV64}
+        A_SH2ADD,
+{$ifdef RISCV64}
+        A_SH2ADD_UW,
+{$endif RISCV64}
+        A_SH3ADD,
+{$ifdef RISCV64}
+        A_SH3ADD_UW,
+        A_SLLI_UW,
+{$endif RISCV64}
+        A_XNOR,
+        { A_ZEXT_H, }
+
         { F-extension }
         A_FLW,A_FSW,
         A_FMADD_S,A_FMSUB_S,A_FNMSUB_S,A_FNMADD_S,
@@ -129,17 +168,20 @@ uses
         A_CSRSI,A_CSRCI
       );
 
-      TAsmOps = set of TAsmOp;
-
-      {# This should define the array of instructions as string }
+      { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
 
     Const
-      {# First value of opcode enumeration }
+      { First value of opcode enumeration }
       firstop = low(tasmop);
-      {# Last value of opcode enumeration  }
+      { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
+      { Last value of opcode for TCommonAsmOps set below  }
+      LastCommonAsmOp = A_MRET;
+
+    Type
+      TCommonAsmOps = Set of A_None .. LastCommonAsmOp;
 
 {*****************************************************************************
                                   Registers
