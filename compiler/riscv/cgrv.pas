@@ -32,9 +32,6 @@ unit cgrv;
        parabase;
 
     type
-
-      { tcgrv }
-
       tcgrv = class(tcg)
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
