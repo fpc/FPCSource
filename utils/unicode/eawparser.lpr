@@ -67,7 +67,7 @@ begin
     'W':
       Result := eawW;
     else
-      raise EArgumentException('Unknown east asian width: ''' + S + '''');
+      raise EArgumentException.Create('Unknown east asian width: ''' + S + '''');
   end;
 end;
 
