@@ -20,7 +20,7 @@ interface
 
 Const
   SEmpty : string = 'Empty';  
-
+  SMenuSeparator: string = '-';
 
 ResourceString
 
