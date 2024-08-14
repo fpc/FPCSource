@@ -264,6 +264,7 @@ type
    procedure ListIndexError(aIndex,aMax: Integer; aObj: TObject);
    function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
    function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; aListObj: TObject): string; overload;
+   procedure RangeIndexError(aIndex, aMaxIndex: SizeInt; aListObj: TObject);
     
 Type
    TBeepHandler = Procedure;
