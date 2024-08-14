@@ -1025,7 +1025,7 @@ type
     function IndexOfName(const Name: string): Integer; virtual;
     function IndexOfObject(AObject: TObject): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
-    procedure InsertObject(Index: Integer; const S: string; AObject: TObject);
+    procedure InsertObject(Index: Integer; const S: string; AObject: TObject); virtual;
     function LastIndexOf(const S: string; aStart : Integer): Integer; virtual;
     function LastIndexOf(const S: string): Integer;
     procedure LoadFromFile(const FileName: string); overload; virtual;
