@@ -206,7 +206,7 @@ Const
        CPURV_HAS_COMPACT,
        CPURV_HAS_16REGISTERS,
        CPURV_HAS_ZBA,
-       CPURV_HAS_ZBb,
+       CPURV_HAS_ZBB,
        CPURV_HAS_ZBC,
        CPURV_HAS_ZBS,
        CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }

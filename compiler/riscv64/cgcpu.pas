@@ -108,6 +108,10 @@ implementation
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
+          list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
+          list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
         else if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
           ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or
           { do we need to mask out the sign when loading from smaller signed to larger unsigned type? }
