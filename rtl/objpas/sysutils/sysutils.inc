@@ -531,6 +531,12 @@ end;
 
 {$pop} //{$S-} for Error handling functions
 
+procedure RangeIndexError(aIndex, aMaxIndex: SizeInt; aListObj: TObject);
+
+begin
+  raise ERangeError.Create(ListIndexErrorMsg(aIndex,aMaxIndex,aListObj));
+end;
+
 Procedure InitExceptions;
 {
   Must install uncaught exception handler (ExceptProc)
