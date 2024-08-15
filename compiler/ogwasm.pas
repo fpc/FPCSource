@@ -5499,13 +5499,17 @@ implementation
       end;
 
     procedure TWasmExeOutput.SetStackPointer;
+      const
+        PageSize = 65536;
       var
         BssSec: TExeSection;
         StackStart, InitialStackPtrAddr: QWord;
       begin
         BssSec:=FindExeSection('.bss');
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
-        FMinMemoryPages := (InitialStackPtrAddr+65535) shr 16;
+        FMinMemoryPages := Max(
+          QWord(Align(QWord(InitialStackPtrAddr),QWord(PageSize)) div PageSize),
+          QWord(Align(QWord(heapsize),QWord(PageSize)) div PageSize));
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
       end;
 
