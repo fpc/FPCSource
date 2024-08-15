@@ -129,6 +129,10 @@ unit cgcpu;
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S16) then
+          list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_32) then
+          list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
         else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
         else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
