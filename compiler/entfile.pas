@@ -1315,7 +1315,7 @@ begin
   if sizeofreal=sizeof(e) then
     begin
 {$ifdef DEBUG_PPU}
-      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')='));
+      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')=');
       inc_log_level;
 {$endif}
       if entryidx+sizeof(e)>entry.size then
@@ -1343,7 +1343,7 @@ begin
   if sizeofreal=sizeof(d) then
     begin
 {$ifdef DEBUG_PPU}
-      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')='));
+      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')=');
       inc_log_level;
 {$endif}
       if entryidx+sizeof(d)>entry.size then
@@ -1374,7 +1374,7 @@ begin
   if sizeofreal=sizeof(s) then
     begin
 {$ifdef DEBUG_PPU}
-      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')='));
+      ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')=');
       inc_log_level;
 {$endif}
       if entryidx+sizeof(s)>entry.size then
