@@ -1297,14 +1297,14 @@ unit i_linux;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 8;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 8;
-                maxCrecordalign : 8
+                recordalignmax  : 16;
+                maxCrecordalign : 16
               );
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
