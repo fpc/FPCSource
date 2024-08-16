@@ -30,7 +30,7 @@ interface
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
-{ define INTFPPU}
+{ define DEBUG_GENERATE_INTERFACE_PPU}
 
 {$ifdef Test_Double_checksum}
 const
@@ -343,7 +343,7 @@ end;
 
 function tppufile.createfile:boolean;
 begin
-{$ifdef INTFPPU}
+{$ifdef DEBUG_GENERATE_INTERFACE_PPU}
   if crc_only then
    begin
      fname:=fname+'.intf';

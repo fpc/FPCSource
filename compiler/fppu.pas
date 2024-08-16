@@ -1906,7 +1906,7 @@ var
          indirect_crc:=ppufile.indirect_crc;
 
          { end of implementation, to generate a correct ppufile
-           for ppudump when using INTFPPU define }
+           for ppudump when using DEBUG_GENERATE_INTERFACE_PPU define }
          ppufile.writeentry(ibendimplementation);
 
 {$ifdef Test_Double_checksum_write}
