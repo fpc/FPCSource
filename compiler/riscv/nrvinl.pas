@@ -117,7 +117,11 @@ implementation
 
      function trvinlinenode.first_round_real: tnode;
        begin
-         if (current_settings.fputype >= fpu_fd) then
+         if
+{$ifdef RISCV32}
+           is_32bitint(resultdef) and
+{$endif RISCV32}
+           (current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_round_real := nil;
@@ -131,7 +135,11 @@ implementation
 
      function trvinlinenode.first_trunc_real: tnode;
        begin
-         if (current_settings.fputype >= fpu_fd) then
+         if
+{$ifdef RISCV32}
+           is_32bitint(resultdef) and
+{$endif RISCV32}
+           (current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_trunc_real := nil;
