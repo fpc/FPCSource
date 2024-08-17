@@ -24,7 +24,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Net.Ssockets, Fcl.ThreadPool, FpWeb.WebSocket.Protocol;
+  System.Classes, System.SysUtils, System.Contnrs, System.Net.Ssockets, Fcl.ThreadPool, FpWeb.WebSocket.Protocol;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs,
