@@ -894,3 +894,9 @@ end;
 {$include gitlab/fpmake.pp}
 
 
+procedure add_fcl_jsonschema(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-jsonschema/fpmake.pp}
+end;
+

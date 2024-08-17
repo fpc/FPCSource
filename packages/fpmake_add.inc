@@ -158,3 +158,4 @@
   add_testinsight(ADirectory+IncludeTrailingPathDelimiter('testinsight'));
   add_wasm_job(ADirectory+IncludeTrailingPathDelimiter('wasm-job'));
   add_wasm_oi(ADirectory+IncludeTrailingPathDelimiter('wasm-oi'));
+  add_fcl_jsonschema(ADirectory+IncludeTrailingPathDelimiter('fcl-jsonschema'));
