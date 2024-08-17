@@ -170,6 +170,9 @@ type
     // Return position of first char after \\?\(UNC). Optionally return prefixtype.
     class function SkipExtendedPrefix(const aPath: string; out Prefix: TPathPrefixType): SizeInt; static;
     class function SkipExtendedPrefix(const aPath: String): SizeInt; static;
+  {$ifdef mswindows}
+    class function SkipRoot(const aPath: string): SizeInt; static;
+  {$endif}
   public
     class constructor Create;
     class function IsValidPathChar(const AChar: Char): Boolean; static;
@@ -504,6 +507,38 @@ begin
     Result:=1;
   end;
 end;
+
+{$ifdef mswindows}
+class function TPath.SkipRoot(const aPath: string): SizeInt;
+var
+  P, Start: PChar;
+  Skip: SizeInt;
+begin
+  P := PChar(aPath); // Guarantee terminating #0 to avoid explicit length checks.
+  if P[0] in AllowDirectorySeparators then
+    if P[1] in AllowDirectorySeparators then
+    begin
+      Start := P;
+      Inc(P, 2);
+      // UNC: \\server\share, \\?\UNC\server\share, \\.\UNC\server\share. Devices: \\.\devicе, \\?\device.
+      if (P[0] in ['.', '?']) and (P[1] in AllowDirectorySeparators) and
+        (P[2] in ['u', 'U']) and (P[3] in ['n', 'N']) and (P[4] in ['c', 'C']) and (P[5] in AllowDirectorySeparators) then
+        Inc(P, 6);
+      // Skip two slash-delimited components. For UNC — server (P points to) and share, for devices — point/question mark (P points to) and device name.
+      for Skip := 0 to 1 do
+        repeat
+          if P^ = #0 then break;
+          Inc(P); // Includes the slash.
+        until P[-1] in AllowDirectorySeparators; // Breaks on slash.
+      Result := SizeUint(Pointer(P) - Pointer(Start)) div sizeof(Char);
+    end else
+      Result := 1 // One slash.
+  else if (P[0] in ['a' .. 'z', 'A' .. 'Z']) and (P[1] = ':') then
+    Result := 2 + ord(P[2] in AllowDirectorySeparators) // Drive plus maybe slash.
+  else
+    Result := 0;
+end;
+{$endif}
 
 class function TPath.HasValidPathChars(const aPath: string;
   const UseWildcards: Boolean): Boolean;
@@ -921,25 +956,28 @@ end;
 
 class function TPath.Combine(const Paths: array of string; const ValidateParams: Boolean = True): string;
 var
-  i: Integer;
+{$ifdef mswindows} nRoot : SizeInt; {$endif}
   Path: String;
 begin
-  if ValidateParams then
-    for i := Low(Paths) to High(Paths) do
-      if not TPath.HasValidPathChars(Paths[i], False) then
-        Raise EInOutArgumentException.CreateFmt(SErrInvalidCharsInPath,[Paths[i]],Path[i]);
   Result := '';
-  for i := High(Paths) downto Low(Paths) do
+  for Path in Paths do
   begin
-    Path := Paths[i];
-    if (Path <> '') then
+    if ValidateParams and not TPath.HasValidPathChars(Path, False) then
+      Raise EInOutArgumentException.CreateFmt(SErrInvalidCharsInPath,[Path],Path);
+  {$ifdef mswindows}
+    // Path starts with one \: root-relative.
+    if (Path[1] in AllowDirectorySeparators) and ((Length(Path) < 2) or not (Path[2] in AllowDirectorySeparators)) then
     begin
-      if (Result <> '') then
-        Path := AppendPathDelim(Path);
-      Result := Path + Result;
-      if not TPath.IsRelativePath(Result) then
-        Exit;
-    end;
+      nRoot := SkipRoot(Result);
+      if (nRoot > 0) and (Result[nRoot] in AllowDirectorySeparators) then
+        dec(nRoot); // Skip trailing \ if present, as Path already starts with a separator.
+      Result := Copy(Result, 1, nRoot) + Path;
+    end else
+  {$endif}
+    if TPath.IsRelativePath(Path) then
+      Result := AppendPathDelim(Result) + Path
+    else
+      Result := Path;
   end;
 end;
 
