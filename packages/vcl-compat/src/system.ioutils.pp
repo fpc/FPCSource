@@ -962,6 +962,8 @@ begin
   Result := '';
   for Path in Paths do
   begin
+    if Path = '' then
+      continue;
     if ValidateParams and not TPath.HasValidPathChars(Path, False) then
       Raise EInOutArgumentException.CreateFmt(SErrInvalidCharsInPath,[Path],Path);
   {$ifdef mswindows}
