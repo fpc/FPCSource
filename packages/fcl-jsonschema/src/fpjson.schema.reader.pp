@@ -31,13 +31,13 @@ Type
 
   TJsonTokens = Set of TJsonToken;
 
-  TKeywordInfo = Record
+  TReadKeywordInfo = Record
     Schema : TJSONSChema;
     Keyword : TJSONStringType;
     Scanner : TJSONScanner;
   end;
 
-  TKeyWordHandler = Procedure(Sender : TObject; const Info : TKeywordInfo; var Handled: Boolean) of object;
+  TReadKeyWordHandler = Procedure(Sender : TObject; const Info : TReadKeywordInfo; var Handled: Boolean) of object;
   TSchemaReadOption = (roSkipUnknownProperties);
   TSchemaReadOptions = Set of TSchemaReadOption;
 
@@ -46,7 +46,7 @@ Type
 
   TJsonSchemaReader = class(TComponent)
   private
-    FOnUnknownKeyWord: TKeywordHandler;
+    FOnUnknownKeyWord: TReadKeywordHandler;
     FOptions: TSchemaReadOptions;
     FScanner : TJSONScanner;
   Protected
@@ -73,7 +73,7 @@ Type
     function ReadPositiveInteger: Cardinal;
     function ReadString: String;
     // Read properties
-    function HandleUnknownKeyword(aInfo : TKeyWordInfo) : Boolean;
+    function HandleUnknownKeyword(aInfo : TReadKeyWordInfo) : Boolean;
     procedure ReadDependentRequired(aSchema: TJsonSchema; aList: TSchemaDependentRequiredList);
 //    procedure ReadSchemaValue(aSchema: TJsonSchema; AValue: TSchemaValue; const AValidTypes: TJsonTokens = []);
     procedure ReadArray(aValues: TJSONArray; Full : Boolean);
@@ -94,7 +94,7 @@ Type
     procedure ReadFromString(aSchema: TJSONSchema; const AString: TJSONStringType);
     function ReadJSONData: TJSONData;
     Property Options : TSchemaReadOptions Read FOptions Write FOptions;
-    Property OnUnknownKeyWord : TKeywordHandler Read FOnUnknownKeyWord Write FOnUnknownKeyWord;
+    Property OnUnknownKeyWord : TReadKeywordHandler Read FOnUnknownKeyWord Write FOnUnknownKeyWord;
   end;
 
 implementation
@@ -605,7 +605,7 @@ var
   propName: String;
   aToken: TJSONToken;
   keyword : TJSONSchemaKeyword;
-  Info : TKeywordInfo;
+  Info : TReadKeywordInfo;
   aValue : TJSONData;
 
 begin
@@ -749,7 +749,7 @@ begin
   Result:=GetTokenString;
 end;
 
-function TJsonSchemaReader.HandleUnknownKeyword(aInfo: TKeyWordInfo): Boolean;
+function TJsonSchemaReader.HandleUnknownKeyword(aInfo: TReadKeyWordInfo): Boolean;
 begin
   Result:=False;
   if Assigned(OnUnknownKeyword) then

@@ -30,20 +30,20 @@ Type
   EJsonSchemaLoader = class(EJSONSchema);
 
   { TJsonSchemaLoader }
-  TKeywordInfo = Record
+  TLoadKeywordInfo = Record
     Schema : TJSONSChema;
     Keyword : TJSONStringType;
     Value : TJSONData;
   end;
 
-  TKeyWordHandler = Procedure(Sender : TObject; const Info : TKeywordInfo; var Handled: Boolean) of object;
+  TLoadKeyWordHandler = Procedure(Sender : TObject; const Info : TLoadKeywordInfo; var Handled: Boolean) of object;
   TSchemaLoadOption = (loSkipUnknownProperties);
   TSchemaLoadOptions = Set of TSchemaLoadOption;
 
   TJsonSchemaLoader = class(TComponent)
   private
     FCurrentKeyword : TJSONSchemaKeyword;
-    FOnUnknownKeyword: TKeyWordHandler;
+    FOnUnknownKeyword: TLoadKeyWordHandler;
     FOptions: TSchemaLoadOptions;
     procedure ReadVocabulary(aData: TJSONData; aSchema: TJSONSchema);
   Protected
@@ -61,7 +61,7 @@ Type
     function ReadPositiveInteger(aData : TJSONData): cardinal;
     function ReadString(aData : TJSONData): String;
     // Handle unknown props
-    function HandleUnknownKeyWord(const aInfo : TKeywordInfo) : Boolean; virtual;
+    function HandleUnknownKeyWord(const aInfo : TLoadKeywordInfo) : Boolean; virtual;
     // Read various special properties
     procedure ReadDependentRequired(aData: TJSONData; aList: TSchemaDependentRequiredList);
     procedure ReadArray(aData : TJSONData; aValues: TJSONArray);
@@ -77,7 +77,7 @@ Type
   public
     procedure ReadFromJSON(aSchema: TJSONSchema; aJSONData : TJSONData);
   Published
-    property OnUnknownKeyword : TKeyWordHandler read FOnUnknownKeyword Write FOnUnknownKeyword;
+    property OnUnknownKeyword : TLoadKeyWordHandler read FOnUnknownKeyword Write FOnUnknownKeyword;
     property Options : TSchemaLoadOptions Read FOptions Write FOptions;
   end;
 
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-function TJsonSchemaLoader.HandleUnknownKeyWord(const aInfo: TKeywordInfo): Boolean;
+function TJsonSchemaLoader.HandleUnknownKeyWord(const aInfo: TLoadKeywordInfo): Boolean;
 begin
   Result:=False;
   if Assigned(FOnUnknownKeyword) then
@@ -333,7 +333,7 @@ var
   Enum : TJSONEnum;
   aData : TJSONData;
   keyword : TJSONSchemaKeyword;
-  Info : TKeywordInfo;
+  Info : TLoadKeywordInfo;
 
 begin
   For Enum in aObject do
