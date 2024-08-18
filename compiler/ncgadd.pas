@@ -665,7 +665,7 @@ interface
         ovloc.loc:=LOC_VOID;
 
         pass_left_right;
-        force_reg_left_right(false,true);
+        force_reg_left_right(true,true);
         set_result_location_reg;
 
         { determine if the comparison will be unsigned }
