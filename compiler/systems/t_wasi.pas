@@ -129,7 +129,6 @@ end;
 function tlinkerwasi.MakeExecutable:boolean;
 const
   PageSize = 65536;
-  DefaultMaxMemoryForThreads = 33554432;
 var
   GCSectionsStr  : ansistring;
   binstr, cmdstr : Tcmdstr;
@@ -179,8 +178,6 @@ begin
   if ts_wasm_threads in current_settings.targetswitches then
     begin
       cmdstr := cmdstr + ' --import-memory --shared-memory --global-base=1024';
-      if maxmem<=0 then
-        maxmem:=align(DefaultMaxMemoryForThreads,PageSize);
     end;
 
   if initialmem>0 then

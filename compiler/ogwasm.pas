@@ -4928,15 +4928,11 @@ implementation
             end;
         end;
 
-      const
-        DefaultMaxMemoryForThreads = 33554432;
       var
         cust_sec: TWasmCustomSectionType;
       begin
         result:=false;
         FMaxMemoryPages:=align(maxheapsize,WasmPageSize) div WasmPageSize;
-        if (ts_wasm_threads in current_settings.targetswitches) and (FMaxMemoryPages<=0) then
-          FMaxMemoryPages:=align(DefaultMaxMemoryForThreads,WasmPageSize) div WasmPageSize;
 
         { each custom sections starts with its name }
         for cust_sec in TWasmCustomSectionType do

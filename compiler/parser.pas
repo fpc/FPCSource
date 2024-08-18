@@ -199,6 +199,13 @@ implementation
                if heapsize=0 then
                  heapsize:=65536;
              end;
+           system_wasm32_wasi:
+             begin
+               if ts_wasm_threads in init_settings.targetswitches then
+                 maxheapsize:=33554432
+               else
+                 maxheapsize:=0;
+             end;
 {$ifdef i8086}
            system_i8086_embedded:
              begin
