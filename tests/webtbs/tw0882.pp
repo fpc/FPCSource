@@ -1,5 +1,11 @@
 {$D+,I+,L+,P-,Q+,R+,S+,T+,V+,X+,Y+}
-{$M 8192,0,655360}
+
+{$if defined(CPUWASM32)}
+  { use the default memory sizes for the platform }
+{$else}
+  {$M 8192,0,655360}
+{$endif}
+
 PROGRAM TEST;
 CONST
         maxBlockSize    = 1 SHL 13;
