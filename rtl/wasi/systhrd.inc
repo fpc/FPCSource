@@ -132,6 +132,7 @@ begin
   GlobalIsMainThread:=1;
   GlobalIsWorkerThread:=0;
   GlobalCurrentThread:=@MainThread;
+  ThreadId:=@MainThread;
 {$IFDEF FPC_WASM_MAIN_THREAD_CAN_WAIT}
   GlobalIsThreadBlockable:=1;
 {$ELSE FPC_WASM_MAIN_THREAD_CAN_WAIT}
