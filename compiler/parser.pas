@@ -202,7 +202,7 @@ implementation
            system_wasm32_wasi:
              begin
                if ts_wasm_threads in init_settings.targetswitches then
-                 maxheapsize:=33554432
+                 maxheapsize:=268435456
                else
                  maxheapsize:=0;
              end;
