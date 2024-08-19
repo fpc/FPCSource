@@ -25,7 +25,7 @@
 {//$DEFINE DEBUGWASMTHREADS}
 
 Const
-  MaxThreadSignal = 1000; // maximum threads to signal
+  MaxThreadSignal = high(uint32); // maximum threads to signal
 
 Type
   TThreadState = (tsNone,tsInit,tsRunning,tsCanceling,tsExit);
