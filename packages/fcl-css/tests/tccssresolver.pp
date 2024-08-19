@@ -137,14 +137,13 @@ type
   TDemoCSSRegistry = class(TCSSRegistry)
   private
     // check attribute declarations for validity
-    procedure OnCheck_BorderColor(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
-    procedure OnCheck_BorderWidth(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
-    procedure OnCheck_Border(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
-    procedure OnCheck_Direction(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
-    procedure OnCheck_Display(Resolver: TCSSBaseResolver;
-      Data: TCSSAttributeKeyData);
-    procedure OnCheck_LeftTop(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
-    procedure OnCheck_WidthHeight(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData);
+    function OnCheck_BorderColor(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_BorderWidth(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_Border(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_Direction(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_Display(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_LeftTop(Resolver: TCSSBaseResolver): boolean;
+    function OnCheck_WidthHeight(Resolver: TCSSBaseResolver): boolean;
     // clean up and normalize attribute values
     procedure OnCompute_Direction(Resolver: TCSSResolver; Node: TDemoNode;
       Value: TCSSAttributeValue);
@@ -153,9 +152,8 @@ type
     procedure OnCompute_WidthHeight(Resolver: TCSSResolver; Node: TDemoNode;
       Value: TCSSAttributeValue);
     // split shorthands into longhands
-    procedure OnSplit_Border(Resolver: TCSSBaseResolver; {%H-}Desc: TCSSAttributeDesc;
-      const aValue: TCSSString; var AttrIDs: TCSSNumericalIDArray; var
-      Values: TCSSStringArray);
+    procedure OnSplit_Border(Resolver: TCSSBaseResolver;
+      var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
   public
     DemoAttrIDBase: TCSSNumericalID;
     DemoPseudoClassIDBase: TCSSNumericalID;
@@ -166,24 +164,22 @@ type
     DemoTypes: array[TDemoElementType] of TDemoCSSTypeDesc;
 
     // keywords
-    kwFirstColor,
     kwRed,
     kwGreen,
     kwBlue,
     kwWhite,
     kwBlack,
     kwBlock,
-    kwLastColor,
     kwInline_Block,
     kwLTR,
     kwRTL: TCSSNumericalID;
 
     // check parameters
-    CheckParams_BorderWidth: TCSSCheckAttrParams_Float;
-    CheckParams_DirectionAllowedKeywordIDs: TCSSNumericalIDArray;
-    CheckParams_DisplayAllowedKeywordIDs: TCSSNumericalIDArray;
-    CheckParams_LeftTop: TCSSCheckAttrParams_Float;
-    CheckParams_WidthHeight: TCSSCheckAttrParams_Float;
+    Chk_BorderWidth: TCSSCheckAttrParams_Dimension;
+    Chk_DirectionAllowedKeywordIDs: TCSSNumericalIDArray;
+    Chk_DisplayAllowedKeywordIDs: TCSSNumericalIDArray;
+    Chk_LeftTop: TCSSCheckAttrParams_Dimension;
+    Chk_WidthHeight: TCSSCheckAttrParams_Dimension;
 
     constructor Create;
     function AddDemoAttr(Attr: TDemoNodeAttribute): TDemoCSSAttributeDesc;
@@ -529,6 +525,7 @@ begin
     +'  height: 6E+1rem;'
     +'}';
   Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
   Div1.Parent:=Doc.Root;
 
   Doc.ApplyStyle;
@@ -1832,7 +1829,7 @@ procedure TDemoDocument.ApplyStyle;
 begin
   ApplyTypeStyles;
 
-  CSSResolver.AddStyleSheet(Style,'test.css',cssoAuthor);
+  CSSResolver.AddStyleSheet(cssoAuthor,'test.css',Style);
   CSSResolver.Init;
   Traverse(Root);
 end;
@@ -1861,8 +1858,8 @@ var
       ParentSrc:=ParentNodeClass.GetCSSTypeStyle;
       if Src=ParentSrc then exit;
     end;
-    //writeln('AddTypeStyle ',NodeClass.ClassName);
-    FCSSResolver.AddStyleSheet(Src,NodeClass.ClassName,cssoUserAgent);
+    //writeln('AddTypeStyle ',NodeClass.ClassName,' [',Src,']');
+    FCSSResolver.AddStyleSheet(cssoUserAgent,NodeClass.ClassName,Src);
   end;
 
   procedure CollectTypeStyles(Node: TDemoNode);
@@ -1885,161 +1882,138 @@ end;
 
 { TDemoCSSRegistry }
 
-procedure TDemoCSSRegistry.OnCheck_Border(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
+function TDemoCSSRegistry.OnCheck_Border(Resolver: TCSSBaseResolver): boolean;
 var
-  p: PCSSChar;
-  ResValue: TCSSResValue;
   HasWidth, HasColor: Boolean;
 begin
   HasWidth:=false;
   HasColor:=false;
-  p:=PCSSChar(Data.Value);
   repeat
-    if not Resolver.ReadValue(p,ResValue) then break;
-    case ResValue.Kind of
+    case Resolver.CurComp.Kind of
     rvkFloat:
       if not HasWidth then
-        HasWidth:=ResValue.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
+        HasWidth:=Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
     rvkKeyword:
       if not HasColor then
-        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
+        HasColor:=(Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor);
     end;
-  until false;
-  Data.Invalid:=(not HasWidth) and (not HasColor);
+  until not Resolver.ReadNext;
+  Result:=HasWidth or HasColor;
 end;
 
-procedure TDemoCSSRegistry.OnCheck_BorderColor(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  HasColor: Boolean;
-  p: PCSSChar;
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_BorderColor(Resolver: TCSSBaseResolver): boolean;
 begin
-  HasColor:=false;
-  p:=PCSSChar(Data.Value);
-  repeat
-    if not Resolver.ReadValue(p,ResValue) then break;
-    case ResValue.Kind of
-    rvkKeyword:
-      if not HasColor then
-        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
-    end;
-  until false;
-  Data.Invalid:=not HasColor;
+  Result:=Resolver.CheckAttribute_Color([]);
 end;
 
-procedure TDemoCSSRegistry.OnCheck_BorderWidth(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_BorderWidth(Resolver: TCSSBaseResolver): boolean;
 begin
-  Resolver.CheckAttribute_Dimension(Data,CheckParams_BorderWidth,ResValue);
+  Result:=Resolver.CheckAttribute_Dimension(Chk_BorderWidth);
 end;
 
 procedure TDemoCSSRegistry.OnSplit_Border(Resolver: TCSSBaseResolver;
-  Desc: TCSSAttributeDesc; const aValue: TCSSString;
   var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
 var
-  HasWidth, HasColor: Boolean;
-  p: PCSSChar;
-  ResValue: TCSSResValue;
+  aWidth, aColor: TCSSString;
 begin
-  HasWidth:=false;
-  HasColor:=false;
-  p:=PCSSChar(aValue);
+  aWidth:='';
+  aColor:='';
   repeat
-    if not Resolver.ReadValue(p,ResValue) then break;
-    case ResValue.Kind of
+    case Resolver.CurComp.Kind of
     rvkFloat:
-      if not HasWidth then begin
-        HasWidth:=ResValue.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths);
-        if HasWidth then
-        begin
-          System.Insert(DemoAttrs[naBorderWidth].Index,AttrIDs,length(AttrIDs));
-          System.Insert(ResValue.FloatAsString,Values,length(Values));
-        end;
+      if aWidth='' then begin
+        if Resolver.CurComp.FloatUnit in ([cuNONE,cuPERCENT]+cuAllLengths) then
+          aWidth:=Resolver.CurComp.FloatAsString;
       end;
     rvkKeyword:
-      if not HasColor then
+      if aColor='' then
       begin
-        HasColor:=(ResValue.KeywordID>=kwFirstColor) and (ResValue.KeywordID<=kwLastColor);
-        if HasColor then
-        begin
-          System.Insert(DemoAttrs[naBorderColor].Index,AttrIDs,length(AttrIDs));
-          System.Insert(Resolver.CSSRegistry.Keywords[ResValue.KeywordID],Values,length(Values));
-        end;
+        if (Resolver.CurComp.KeywordID>=kwFirstColor) and (Resolver.CurComp.KeywordID<=kwLastColor) then
+          aColor:=Keywords[Resolver.CurComp.KeywordID];
       end;
     end;
-  until false;
+  until not Resolver.ReadNext;
+  SetLength(AttrIDs,2);
+  SetLength(Values,2);
+  AttrIDs[0]:=DemoAttrs[naBorderWidth].Index;
+  Values[0]:=aWidth;
+  AttrIDs[1]:=DemoAttrs[naBorderColor].Index;
+  Values[1]:=aColor;
 end;
 
-procedure TDemoCSSRegistry.OnCheck_Direction(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_Direction(Resolver: TCSSBaseResolver): boolean;
 begin
-  Resolver.CheckAttribute_Keyword(Data,CheckParams_DirectionAllowedKeywordIDs,ResValue);
+  Result:=Resolver.CheckAttribute_Keyword(Chk_DirectionAllowedKeywordIDs);
 end;
 
-procedure TDemoCSSRegistry.OnCheck_Display(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_Display(Resolver: TCSSBaseResolver): boolean;
 begin
-  Resolver.CheckAttribute_Keyword(Data,CheckParams_DisplayAllowedKeywordIDs,ResValue);
+  Result:=Resolver.CheckAttribute_Keyword(Chk_DisplayAllowedKeywordIDs);
 end;
 
-procedure TDemoCSSRegistry.OnCheck_LeftTop(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_LeftTop(Resolver: TCSSBaseResolver): boolean;
 begin
-  Resolver.CheckAttribute_Dimension(Data,CheckParams_LeftTop,ResValue);
+  Result:=Resolver.CheckAttribute_Dimension(Chk_LeftTop);
 end;
 
-procedure TDemoCSSRegistry.OnCheck_WidthHeight(Resolver: TCSSBaseResolver;
-  Data: TCSSAttributeKeyData);
-var
-  ResValue: TCSSResValue;
+function TDemoCSSRegistry.OnCheck_WidthHeight(Resolver: TCSSBaseResolver): boolean;
 begin
-  writeln('AAA1 TDemoCSSRegistry.OnCheck_WidthHeight "',Data.Value,'"');
-  Resolver.CheckAttribute_Dimension(Data,CheckParams_WidthHeight,ResValue);
+  Result:=Resolver.CheckAttribute_Dimension(Chk_WidthHeight);
 end;
 
 procedure TDemoCSSRegistry.OnCompute_Direction(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
 var
-  ResValue: TCSSResValue;
+  Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Keyword(Value.Value,Value.Invalid,CheckParams_DirectionAllowedKeywordIDs,ResValue) then
-    Value.Value:=TDemoNode.CSSRegistry.Keywords[ResValue.KeywordID]
-  else
+  if Resolver.ReadAttribute_Keyword(Invalid,Chk_DirectionAllowedKeywordIDs) then
+  begin
+    Value.Value:=Keywords[Resolver.CurComp.KeywordID];
+    Value.State:=cavsComputed;
+  end
+  else begin
     Value.Value:='invalid';
+    Value.State:=cavsInvalid;
+  end;
   if Node=nil then ;
 end;
 
 procedure TDemoCSSRegistry.OnCompute_LeftTop(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
 var
-  ResValue: TCSSResValue;
+  Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Value.Value,Value.Invalid,CheckParams_LeftTop,ResValue) then
-    Value.Value:=ResValue.FloatAsString
-  else
+  if Resolver.ReadAttribute_Dimension(Invalid,Chk_LeftTop) then
+  begin
+    case Resolver.CurComp.Kind of
+    rvkFloat:
+      Value.Value:=Resolver.CurComp.FloatAsString;
+    rvkKeyword:
+      Value.Value:=Keywords[Resolver.CurComp.KeywordID];
+    end;
+    Value.State:=cavsComputed;
+  end
+  else begin
     Value.Value:='invalid';
+    Value.State:=cavsInvalid;
+  end;
   if Node=nil then ;
 end;
 
 procedure TDemoCSSRegistry.OnCompute_WidthHeight(Resolver: TCSSResolver;
   Node: TDemoNode; Value: TCSSAttributeValue);
 var
-  ResValue: TCSSResValue;
+  Invalid: boolean;
 begin
-  if Resolver.ReadAttribute_Dimension(Value.Value,Value.Invalid,CheckParams_WidthHeight,ResValue) then
-    Value.Value:=ResValue.FloatAsString
-  else
+  if Resolver.ReadAttribute_Dimension(Invalid,Chk_WidthHeight) then
+  begin
+    Value.Value:=Resolver.CurComp.FloatAsString;
+    Value.State:=cavsComputed;
+  end
+  else begin
     Value.Value:='invalid';
+    Value.State:=cavsInvalid;
+  end;
   if Node=nil then ;
 end;
 
@@ -2118,8 +2092,8 @@ begin
 
   // border-width
   DemoAttrs[naBorderWidth].OnCheck:=@OnCheck_BorderWidth;
-  CheckParams_BorderWidth.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
-  CheckParams_BorderWidth.AllowFrac:=true;
+  Chk_BorderWidth.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  Chk_BorderWidth.AllowFrac:=true;
 
   // border shorthand
   SetCompProps(naBorder,[naBorderColor,naBorderWidth]);
@@ -2128,29 +2102,29 @@ begin
 
   // direction
   DemoAttrs[naDirection].OnCheck:=@OnCheck_Direction;
-  CheckParams_DirectionAllowedKeywordIDs:=[kwLTR,kwRTL];
+  Chk_DirectionAllowedKeywordIDs:=[kwLTR,kwRTL];
   DemoAttrs[naDirection].OnCompute:=@OnCompute_Direction;
 
   // display
   DemoAttrs[naDisplay].OnCheck:=@OnCheck_Display;
-  CheckParams_DisplayAllowedKeywordIDs:=[kwBlock,kwInline_Block];
+  Chk_DisplayAllowedKeywordIDs:=[kwBlock,kwInline_Block];
 
   // left, top
   DemoAttrs[naLeft].OnCheck:=@OnCheck_LeftTop;
   DemoAttrs[naLeft].OnCompute:=@OnCompute_LeftTop;
   DemoAttrs[naTop].OnCheck:=@OnCheck_LeftTop;
   DemoAttrs[naTop].OnCompute:=@OnCompute_LeftTop;
-  CheckParams_LeftTop.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
-  CheckParams_LeftTop.AllowNegative:=true;
-  CheckParams_LeftTop.AllowFrac:=true;
+  Chk_LeftTop.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  Chk_LeftTop.AllowNegative:=true;
+  Chk_LeftTop.AllowFrac:=true;
 
   // width, height
   DemoAttrs[naWidth].OnCheck:=@OnCheck_WidthHeight;
   DemoAttrs[naWidth].OnCompute:=@OnCompute_WidthHeight;
   DemoAttrs[naHeight].OnCheck:=@OnCheck_WidthHeight;
   DemoAttrs[naHeight].OnCompute:=@OnCompute_WidthHeight;
-  CheckParams_WidthHeight.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
-  CheckParams_WidthHeight.AllowFrac:=true;
+  Chk_WidthHeight.AllowedUnits:=[cuNONE,cuPERCENT]+cuAllLengths;
+  Chk_WidthHeight.AllowFrac:=true;
 end;
 
 function TDemoCSSRegistry.AddDemoAttr(Attr: TDemoNodeAttribute
@@ -2188,9 +2162,14 @@ end;
 function TDemoNode.GetAttribute(DemoAttr: TDemoNodeAttribute): TCSSString;
 var
   AttrDesc: TDemoCSSAttributeDesc;
+  i: Integer;
 begin
-  AttrDesc:=TDemoNode.CSSRegistry.DemoAttrs[DemoAttr];
-  Result:=Values.GetValue(AttrDesc);
+  AttrDesc:=CSSRegistry.DemoAttrs[DemoAttr];
+  i:=Values.IndexOf(AttrDesc.Index);
+  if i>=0 then
+    Result:=Values.Values[i].Value
+  else
+    Result:='';
 end;
 
 function TDemoNode.GetNodeCount: integer;
@@ -2302,26 +2281,34 @@ begin
   Resolver.Compute(Self,InlineStyleElement,Rules,Values);
 
   {$IFDEF VerboseCSSResolver}
-  writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',Values.AllValue,'"');
-  for i:=0 to length(Values.Values)-1 do
-    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Values.Values[i].AttrID,':="',Values.Values[i].Value,'"');
+  writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
+  for i:=0 to length(Values.Values)-1 do begin
+    AttrID:=Values.Values[i].AttrID;
+    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',Values.Values[i].Value,'"');
+  end;
   {$ENDIF}
   // compute values
   for i:=0 to length(Values.Values)-1 do
   begin
     CurValue:=Values.Values[i];
-    if CurValue.Computed then
-    begin
-    end else begin
-      AttrID:=CurValue.AttrID;
-      AttrDesc:=Resolver.CSSRegistry.Attributes[AttrID] as TDemoCSSAttributeDesc;
-      if AttrDesc.OnCompute<>nil then
-      begin
-        AttrDesc.OnCompute(Resolver,Self,CurValue);
-        {$IFDEF VerboseCSSResolver}
-        writeln('TDemoNode.ApplyCSS ',Name,' computed ',AttrID,':="',CurValue.Value,'"');
-        {$ENDIF}
-      end;
+    case CurValue.State of
+      cavsSource, cavsBaseKeywords:
+        begin
+          AttrID:=CurValue.AttrID;
+          AttrDesc:=CSSRegistry.Attributes[AttrID] as TDemoCSSAttributeDesc;
+          if AttrDesc.OnCompute<>nil then
+          begin
+            Resolver.CurComp.EndP:=PChar(CurValue.Value);
+            Resolver.ReadNext;
+            AttrDesc.OnCompute(Resolver,Self,CurValue);
+            {$IFDEF VerboseCSSResolver}
+            writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
+            {$ENDIF}
+          end else
+            CurValue.State:=cavsComputed;
+        end;
+      cavsComputed: ;
+      cavsInvalid: ;
     end;
   end;
 end;

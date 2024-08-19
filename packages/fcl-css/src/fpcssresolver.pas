@@ -209,9 +209,16 @@ type
 
   TCSSAttributeValue = class
   public
+    type
+      TState = (
+        cavsSource, // value from CSS - simple normalization, e.g. no comments, some spaces differ, floats
+        cavsBaseKeywords, // base keywords resolved e.g. "initial" or "inherit"
+        cavsComputed, // has final result
+        cavsInvalid // skip this value
+        );
+  public
     AttrID: TCSSNumericalID; // the resolver has substituted all shorthands
-    Computed: boolean;
-    Invalid: boolean;
+    State: TState;
     Value: TCSSString; // the resolver has substituted all var() calls
   end;
   TCSSAttributeValueArray = array of TCSSAttributeValue;
@@ -220,12 +227,12 @@ type
 
   TCSSAttributeValues = class
   public
-    AllValue: TCSSString;
+    AllValue: TCSSNumericalID;
     Values: TCSSAttributeValueArray; // the resolver sorts them ascending for AttrID, shorthands are already replaced with longhands
     procedure SortValues; virtual; // ascending AttrID
     procedure SwapValues(Index1, Index2: integer);
     function IndexOf(AttrID: TCSSNumericalID): integer;
-    function GetValue(AttrDesc: TCSSAttributeDesc): TCSSString;
+    procedure SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
     destructor Destroy; override;
   end;
 
@@ -290,7 +297,7 @@ type
     type
       TStyleSheet = class
         Source: TCSSString;
-        Filename: TCSSString;
+        Name: TCSSString; // case sensitive
         Origin: TCSSOrigin;
         Element: TCSSElement;
         Parsed: boolean;
@@ -352,6 +359,7 @@ type
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
     function ParseCSSSource(const Src: TCSSString; Inline: boolean): TCSSElement; virtual;
+    procedure ClearElements; virtual;
 
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
@@ -391,7 +399,7 @@ type
     function CreateSharedRuleList: TCSSSharedRuleList; virtual; // using FElRules, sets FMergedAttributes
 
     // merge properties
-    procedure InitMerge; virtual;
+    procedure ClearMerge; virtual;
     procedure SetMergedAttribute(AttrID, aSpecifity: TCSSNumericalID; DeclEl: TCSSDeclarationElement);
     procedure RemoveMergedAttribute(AttrID: TCSSNumericalID);
     procedure MergeAttribute(El: TCSSElement; aSpecifity: TCSSSpecifity); virtual;
@@ -411,21 +419,24 @@ type
     procedure Init; virtual; // call after adding stylesheets and before computing all nodes
     function GetElPath(El: TCSSElement): TCSSString; virtual;
     function GetElPos(El: TCSSElement): TCSSString; virtual;
-    function ParseInlineStyle(const Src: TCSSString): TCSSElement; virtual;
+    function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual;
     procedure Compute(Node: ICSSNode;
       InlineStyle: TCSSRuleElement; // inline style of Node
       out Rules: TCSSSharedRuleList {owned by resolver};
       out Values: TCSSAttributeValues
       ); virtual;
     function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; virtual;
+    function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
     property StringComparison: TCSSResStringComparison read FStringComparison;
   public
     // stylesheets
     procedure ClearStyleSheets; virtual;
-    function AddStyleSheet(const aSource, aFilename: TCSSString; anOrigin: TCSSOrigin): TStyleSheet; virtual;
+    function AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString; const aSource: TCSSString): TStyleSheet; virtual;
+    procedure ReplaceStyleSheet(Index: integer; const NewSource: TCSSString); virtual;
     function IndexOfStyleSheetWithElement(El: TCSSElement): integer;
+    function IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString): integer;
     function FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;
     property StyleSheetCount: integer read FStyleSheetCount;
     property StyleSheets[Index: integer]: TStyleSheet read GetStyleSheets;
@@ -443,6 +454,7 @@ function ComparePointer(Data1, Data2: Pointer): integer;
 function CompareCSSSharedRuleArrays(const Rules1, Rules2: TCSSSharedRuleArray): integer;
 function CompareCSSSharedRuleLists(A, B: Pointer): integer;
 function CompareRulesArrayWithCSSSharedRuleList(RuleArray, SharedRuleList: Pointer): integer;
+
 
 implementation
 
@@ -570,6 +582,66 @@ end;
 { TCSSAttributeValues }
 
 procedure TCSSAttributeValues.SortValues;
+
+  procedure QuickSort(L, R : integer);
+  var
+    I, J, PivotIdx : integer;
+    AttrP: TCSSNumericalID;
+    V: TCSSAttributeValue;
+  begin
+    repeat
+      I := L;
+      J := R;
+      PivotIdx := L + ((R - L) shr 1); { same as ((L + R) div 2), but without the possibility of overflow }
+      AttrP := Values[PivotIdx].AttrID;
+      repeat
+        while (I < PivotIdx) and (AttrP > Values[i].AttrID) do
+          Inc(I);
+        while (J > PivotIdx) and (AttrP < Values[J].AttrID) do
+          Dec(J);
+        if I < J then
+        begin
+          V := Values[I];
+          Values[I] := Values[J];
+          Values[J] := V;
+          if PivotIdx = I then
+          begin
+            PivotIdx := J;
+            Inc(I);
+          end
+          else if PivotIdx = J then
+          begin
+            PivotIdx := I;
+            Dec(J);
+          end
+          else
+          begin
+            Inc(I);
+            Dec(J);
+          end;
+        end;
+      until I >= J;
+      // sort the smaller range recursively
+      // sort the bigger range via the loop
+      // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+      if (PivotIdx - L) < (R - PivotIdx) then
+      begin
+        if (L + 1) < PivotIdx then
+          QuickSort(L, PivotIdx - 1);
+        L := PivotIdx + 1;
+      end
+      else
+      begin
+        if (PivotIdx + 1) < R then
+          QuickSort(PivotIdx + 1, R);
+        if (L + 1) < PivotIdx then
+          R := PivotIdx - 1
+        else
+          exit;
+      end;
+    until L >= R;
+  end;
+
 var
   l: SizeInt;
   i, j: Integer;
@@ -582,8 +654,12 @@ begin
         if Values[i].AttrID>Values[j].AttrID then
           SwapValues(i,j);
   end else begin
-    // todo: quicksort
-    raise ECSSResolver.Create('20240628170311');
+    //for i:=0 to l-1 do
+    //  writeln('TCSSAttributeValues.SortValues ',i,' ',Values[i]<>nil);
+    QuickSort(0,l-1);
+    for i:=0 to l-2 do
+      if Values[i].AttrID>=Values[i+1].AttrID then
+        raise Exception.Create('20240816160749');
   end;
 end;
 
@@ -592,7 +668,7 @@ var
   A, B: TCSSAttributeValue;
   AttrId: TCSSNumericalID;
   Value: TCSSString;
-  Computed: Boolean;
+  aState: TCSSAttributeValue.TState;
 begin
   A:=Values[Index1];
   B:=Values[Index2];
@@ -605,9 +681,9 @@ begin
   A.Value:=B.Value;
   B.Value:=Value;
 
-  Computed:=A.Computed;
-  A.Computed:=B.Computed;
-  B.Computed:=Computed;
+  aState:=A.State;
+  A.State:=B.State;
+  B.State:=aState;
 end;
 
 function TCSSAttributeValues.IndexOf(AttrID: TCSSNumericalID): integer;
@@ -631,17 +707,41 @@ begin
   Result:=-1;
 end;
 
-function TCSSAttributeValues.GetValue(AttrDesc: TCSSAttributeDesc): TCSSString;
+procedure TCSSAttributeValues.SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
+
+  procedure AddNew;
+  var
+    Item: TCSSAttributeValue;
+    i, l: integer;
+  begin
+    l:=length(Values);
+    i:=l;
+    while (i>0) and (Values[i-1].AttrID>AttrID) do dec(i);
+    Item:=TCSSAttributeValue.Create;
+    Item.AttrID:=AttrID;
+    Item.State:=cavsComputed;
+    Item.Value:=aValue;
+    System.Insert(Item,Values,i);
+  end;
+
 var
   i: Integer;
 begin
-  i:=IndexOf(AttrDesc.Index);
-  if i>=0 then
-    Result:=Values[i].Value
-  else if AttrDesc.All then
-    Result:=AllValue
-  else
-    Result:='';
+  if AttrID<=CSSAttributeID_All then
+    raise Exception.Create('20240729084610');
+  if Values=nil then
+  begin
+    AddNew;
+  end else begin
+    i:=IndexOf(AttrID);
+    if i>=0 then
+    begin
+      Values[i].State:=cavsComputed;
+      Values[i].Value:=aValue;
+    end else begin
+      AddNew;
+    end;
+  end;
 end;
 
 destructor TCSSAttributeValues.Destroy;
@@ -767,6 +867,28 @@ begin
   end;
 end;
 
+procedure TCSSResolver.ClearElements;
+var
+  i: Integer;
+begin
+  FLogEntries.Clear;
+
+  ClearMerge;
+  ClearSharedRuleLists;
+
+  // clear layers
+  for i:=0 to length(FLayers)-1 do
+  begin
+    FLayers[i].ElementCount:=0;
+    FLayers[i].Elements:=nil;
+    FLayers[i].Name:='';
+  end;
+  FLayers:=nil;
+
+  for i:=0 to FStyleSheetCount-1 do
+    FreeAndNil(FStyleSheets[i].Element);
+end;
+
 procedure TCSSResolver.AddRule(aRule: TCSSRuleElement; Specifity: TCSSSpecifity
   );
 var
@@ -887,7 +1009,7 @@ begin
     FSharedRuleLists.Add(Result);
 
     // merge shared properties
-    InitMerge;
+    ClearMerge;
     for i:=0 to length(Result.Rules)-1 do
     begin
       RuleArr:=Result.Rules[i];
@@ -900,7 +1022,7 @@ begin
   end;
 end;
 
-procedure TCSSResolver.InitMerge;
+procedure TCSSResolver.ClearMerge;
 var
   i: Integer;
 begin
@@ -952,6 +1074,7 @@ var
   AttrP: PMergedAttribute;
 begin
   AttrP:=@FMergedAttributes[AttrID];
+  if AttrP^.Stamp<>FMergedAttributesStamp then exit;
   AttrP^.Stamp:=0;
   if FMergedAttributeFirst=AttrID then
     FMergedAttributeFirst:=AttrP^.Next;
@@ -1328,7 +1451,7 @@ begin
         Result:=CSSSpecifityNoMatch;
       CSSAttributeID_ID,
       CSSAttributeID_Class:
-        // basic CSS attributes are always defined
+        // id and class are always defined
         Result:=CSSSpecifityClass;
       CSSAttributeID_All:
         // special CSS attributes without a value
@@ -2067,7 +2190,7 @@ procedure TCSSResolver.LoadSharedMergedAttributes(
 var
   i: Integer;
 begin
-  InitMerge;
+  ClearMerge;
   FMergedAllDecl:=SharedMerged.AllDecl;
   FMergedAllSpecifity:=SharedMerged.AllSpecifity;
   for i:=0 to length(SharedMerged.Values)-1 do
@@ -2126,7 +2249,7 @@ begin
       if TCSSResolverParser.IsWhiteSpace(Value) then
         RemoveMergedAttribute(AttrID)
       else
-        AttrP^.Complete:=KeyData.Complete or (Pos('var(',Value)<1);
+        AttrP^.Complete:=KeyData.Complete;
     end;
     AttrID:=NextAttrID;
   end;
@@ -2176,31 +2299,35 @@ begin
     if Assigned(AttrDesc.OnSplitShorthand) then
     begin
       RemoveMergedAttribute(AttrID);
-      if AttrP^.Value<>'' then
+      if AttrP^.Value>'' then
       begin
         // replace shorthand with longhands, keep already set longhands
         LHAttrIDs:=[];
         LHValues:=[];
-        AttrDesc.OnSplitShorthand(Self,AttrDesc,AttrP^.Value,LHAttrIDs,LHValues);
-        for i:=0 to length(LHAttrIDs)-1 do
+        InitParseAttr(AttrDesc,nil,AttrP^.Value);
+        if not (CurComp.Kind in [rvkNone,rvkInvalid]) then
         begin
-          SubAttrID:=LHAttrIDs[i];
-          SubAttrDesc:=GetAttributeDesc(SubAttrID);
-          if SubAttrDesc=nil then
-            raise ECSSResolver.Create('20240709194135');
-          if SubAttrDesc.OnSplitShorthand<>nil then
-            raise ECSSResolver.Create('20240709194634');
-          SubAttrP:=@FMergedAttributes[SubAttrID];
-          if SubAttrP^.Stamp=FMergedAttributesStamp then
+          AttrDesc.OnSplitShorthand(Self,LHAttrIDs,LHValues);
+          for i:=0 to length(LHAttrIDs)-1 do
           begin
-            // longhand already exists -> keep
-            if SubAttrP^.Specifity<AttrP^.Specifity then
-              raise ECSSResolver.Create('20240709194537');
-          end else begin
-            SetMergedAttribute(SubAttrID,AttrP^.Specifity,nil);
-            SubAttrP^.Value:=LHValues[i];
-            SubAttrP^.Complete:=false;
-            // Note: if NextAttrID=0 then this was the last shorthand
+            SubAttrID:=LHAttrIDs[i];
+            SubAttrDesc:=GetAttributeDesc(SubAttrID);
+            if SubAttrDesc=nil then
+              raise ECSSResolver.Create('20240709194135');
+            if SubAttrDesc.OnSplitShorthand<>nil then
+              raise ECSSResolver.Create('20240709194634');
+            SubAttrP:=@FMergedAttributes[SubAttrID];
+            if (SubAttrP^.Stamp=FMergedAttributesStamp) and (SubAttrP^.Specifity>=AttrP^.Specifity) then
+            begin
+              // longhand already exists -> keep
+            end else begin
+              SetMergedAttribute(SubAttrID,AttrP^.Specifity,nil);
+              SubAttrP^.Value:=LHValues[i];
+              if SubAttrP^.Value='' then
+                SubAttrP^.Value:=SubAttrDesc.InitialValue;
+              SubAttrP^.Complete:=false;
+              // Note: if NextAttrID=0 then this was the last shorthand
+            end;
           end;
         end;
       end;
@@ -2221,8 +2348,12 @@ begin
   // all
   if FMergedAllDecl<>nil then
   begin
-    // todo parse FMergedAllDecl and set Result.All
-    raise ECSSResolver.Create('20240628165049');
+    // set Result.AllValue
+    InitParseAttr(CSSRegistry.Attributes[CSSAttributeID_All],nil,GetDeclarationValue(FMergedAllDecl));
+    if (CurComp.Kind=rvkKeyword) and IsBaseKeyword(CurComp.KeywordID) then
+    begin
+      Result.AllValue:=CurComp.KeywordID;
+    end;
   end;
 
   // count and allocate attributes
@@ -2246,9 +2377,9 @@ begin
     Result.Values[Cnt]:=AttrValue;
     AttrValue.AttrID:=AttrID;
     AttrValue.Value:=AttrP^.Value;
-    AttrValue.Computed:=false;
-    inc(Cnt);
+    //writeln('TCSSResolver.CreateValueList ',Cnt,' ',AttrID,' "',AttrValue.Value,'"');
     AttrID:=AttrP^.Next;
+    inc(Cnt);
   end;
 
   // sort
@@ -2335,9 +2466,9 @@ begin
   end;
 end;
 
-function TCSSResolver.ParseInlineStyle(const Src: TCSSString): TCSSElement;
+function TCSSResolver.ParseInlineStyle(const Src: TCSSString): TCSSRuleElement;
 begin
-  Result:=ParseCSSSource(Src,true);
+  Result:=ParseCSSSource(Src,true) as TCSSRuleElement;
 end;
 
 function TCSSResolver.GetElPath(El: TCSSElement): TCSSString;
@@ -2362,8 +2493,6 @@ end;
 
 procedure TCSSResolver.Clear;
 begin
-  ClearSharedRuleLists;
-  FLogEntries.Clear;
   ClearStyleSheets;
 end;
 
@@ -2372,13 +2501,19 @@ var
   OldLen, NewLen: TCSSNumericalID;
   i: Integer;
 begin
-  CSSRegistry.ConsistencyCheck;;
+  if CSSRegistry.Modified then
+  begin
+    CSSRegistry.ConsistencyCheck;
+    CSSRegistry.Modified:=false;
+  end;
+
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
     FMergedAttributes[i].Stamp:=0;
   OldLen:=length(FMergedAttributes);
   NewLen:=OldLen;
-  if CSSRegistry.AttributeCount>NewLen then NewLen:=CSSRegistry.AttributeCount;
+  if CSSRegistry.AttributeCount>NewLen then
+    NewLen:=CSSRegistry.AttributeCount;
   if NewLen>OldLen then
   begin
     SetLength(FMergedAttributes,NewLen);
@@ -2444,18 +2579,23 @@ begin
     Result:=CSSRegistry.Attributes[AttrId];
 end;
 
+function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;
+var
+  KeyData: TCSSAttributeKeyData;
+begin
+  Result:='';
+  if Decl=nil then exit;
+  if Decl.KeyCount=0 then exit;
+  KeyData:=TCSSAttributeKeyData(Decl.Keys[0].CustomData);
+  if KeyData=nil then exit;
+  Result:=KeyData.Value;
+end;
+
 procedure TCSSResolver.ClearStyleSheets;
 var
   i: Integer;
 begin
-  // clear layers
-  for i:=0 to length(FLayers)-1 do
-  begin
-    FLayers[i].ElementCount:=0;
-    FLayers[i].Elements:=nil;
-    FLayers[i].Name:='';
-  end;
-  FLayers:=nil;
+  ClearElements;
 
   // clear stylesheets
   for i:=0 to FStyleSheetCount-1 do
@@ -2466,11 +2606,21 @@ begin
   FStyleSheetCount:=0;
 end;
 
-function TCSSResolver.AddStyleSheet(const aSource, aFilename: TCSSString;
-  anOrigin: TCSSOrigin): TStyleSheet;
+function TCSSResolver.AddStyleSheet(anOrigin: TCSSOrigin; const aName: TCSSString;
+  const aSource: TCSSString): TStyleSheet;
 var
-  Cnt: SizeInt;
+  Cnt, i: SizeInt;
 begin
+  if aName>'' then
+  begin
+    i:=IndexOfStyleSheetWithName(anOrigin,aName);
+    if i>=0 then
+    begin
+      ReplaceStyleSheet(i,aSource);
+      exit;
+    end;
+  end;
+
   Cnt:=length(FStyleSheets);
   if Cnt=FStyleSheetCount then
   begin
@@ -2490,15 +2640,30 @@ begin
   inc(FStyleSheetCount);
 
   with Result do begin
-    Source:=aSource;
-    Filename:=aFilename;
+    Name:=aName;
     Origin:=anOrigin;
+    Source:=aSource;
     Parsed:=false;
     if Element<>nil then
       FreeAndNil(Element);
   end;
 
   ParseSource(FStyleSheetCount-1);
+end;
+
+procedure TCSSResolver.ReplaceStyleSheet(Index: integer; const NewSource: TCSSString);
+var
+  Sheet: TStyleSheet;
+begin
+  Sheet:=StyleSheets[Index];
+  if NewSource=Sheet.Source then exit;
+  ClearMerge;
+  ClearSharedRuleLists;
+  FreeAndNil(Sheet.Element);
+  Sheet.Parsed:=false;
+  Sheet.Source:=NewSource;
+
+  ParseSource(Index);
 end;
 
 function TCSSResolver.IndexOfStyleSheetWithElement(El: TCSSElement): integer;
@@ -2516,6 +2681,20 @@ begin
   for i:=0 to FStyleSheetCount-1 do
     if FStyleSheets[i].Element=El then
       exit(i);
+end;
+
+function TCSSResolver.IndexOfStyleSheetWithName(anOrigin: TCSSOrigin; const aName: TCSSString
+  ): integer;
+var
+  Sheet: TStyleSheet;
+begin
+  for Result:=0 to FStyleSheetCount-1 do
+  begin
+    Sheet:=FStyleSheets[Result];
+    if (Sheet.Origin=anOrigin) and (aName=Sheet.Name) then
+      exit;
+  end;
+  Result:=-1;
 end;
 
 function TCSSResolver.FindStyleSheetWithElement(El: TCSSElement): TStyleSheet;

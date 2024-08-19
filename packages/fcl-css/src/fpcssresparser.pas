@@ -33,7 +33,7 @@ uses
   FPCSS.Tree, FPCSS.Scanner, FPCSS.Parser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, math, Contnrs, AVL_Tree, fpCSSTree, fpCSSScanner,
+  Classes, SysUtils, Math, Contnrs, AVL_Tree, System.UITypes, fpCSSTree, fpCSSScanner,
   fpCSSParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -105,6 +105,9 @@ const
   CSSKeywordAuto = CSSKeywordRevertLayer+1;
   CSSKeyword_LastResolver = CSSKeywordAuto;
 
+  // attribute functions
+  CSSAttrFuncVar = 1;
+
   CSSMinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 54 bits (52 plus signed bit plus implicit highest bit)
   CSSMaxSafeIntDouble =  $1fffffffffffff; //  9007199254740991
 
@@ -134,6 +137,167 @@ const
     'Keyword',
     'AttributeFunction'
     );
+
+type
+  TCSSAlphaColor = DWord;
+
+  TCSSNamedColor = record
+    Name: TCSSString;
+    Color: TCSSAlphaColor;
+  end;
+const
+  CSSNamedColors: array[0..148] of TCSSNamedColor = (
+    (Name: 'aliceblue'; Color: TCSSAlphaColor($fff0f8ff)),
+    (Name: 'antiquewhite'; Color: TCSSAlphaColor($fffaebd7)),
+    (Name: 'aqua'; Color: TCSSAlphaColor($ff00ffff)),
+    (Name: 'aquamarine'; Color: TCSSAlphaColor($ff7fffd4)),
+    (Name: 'azure'; Color: TCSSAlphaColor($fff0ffff)),
+    (Name: 'beige'; Color: TCSSAlphaColor($fff5f5dc)),
+    (Name: 'bisque'; Color: TCSSAlphaColor($ffffe4c4)),
+    (Name: 'black'; Color: TCSSAlphaColor($ff000000)),
+    (Name: 'blanchedalmond'; Color: TCSSAlphaColor($ffffebcd)),
+    (Name: 'blue'; Color: TCSSAlphaColor($ff0000ff)),
+    (Name: 'blueviolet'; Color: TCSSAlphaColor($ff8a2be2)),
+    (Name: 'brown'; Color: TCSSAlphaColor($ffa52a2a)),
+    (Name: 'burlywood'; Color: TCSSAlphaColor($ffdeb887)),
+    (Name: 'cadetblue'; Color: TCSSAlphaColor($ff5f9ea0)),
+    (Name: 'chartreuse'; Color: TCSSAlphaColor($ff7fff00)),
+    (Name: 'chocolate'; Color: TCSSAlphaColor($ffd2691e)),
+    (Name: 'coral'; Color: TCSSAlphaColor($ffff7f50)),
+    (Name: 'cornflowerblue'; Color: TCSSAlphaColor($ff6495ed)),
+    (Name: 'cornsilk'; Color: TCSSAlphaColor($fffff8dc)),
+    (Name: 'crimson'; Color: TCSSAlphaColor($ffdc143c)),
+    (Name: 'cyan'; Color: TCSSAlphaColor($ff00ffff)),
+    (Name: 'darkblue'; Color: TCSSAlphaColor($ff00008b)),
+    (Name: 'darkcyan'; Color: TCSSAlphaColor($ff008b8b)),
+    (Name: 'darkgoldenrod'; Color: TCSSAlphaColor($ffb8860b)),
+    (Name: 'darkgray'; Color: TCSSAlphaColor($ffa9a9a9)),
+    (Name: 'darkgreen'; Color: TCSSAlphaColor($ff006400)),
+    (Name: 'darkgrey'; Color: TCSSAlphaColor($ffa9a9a9)),
+    (Name: 'darkkhaki'; Color: TCSSAlphaColor($ffbdb76b)),
+    (Name: 'darkmagenta'; Color: TCSSAlphaColor($ff8b008b)),
+    (Name: 'darkolivegreen'; Color: TCSSAlphaColor($ff556b2f)),
+    (Name: 'darkorange'; Color: TCSSAlphaColor($ffff8c00)),
+    (Name: 'darkorchid'; Color: TCSSAlphaColor($ff9932cc)),
+    (Name: 'darkred'; Color: TCSSAlphaColor($ff8b0000)),
+    (Name: 'darksalmon'; Color: TCSSAlphaColor($ffe9967a)),
+    (Name: 'darkseagreen'; Color: TCSSAlphaColor($ff8fbc8f)),
+    (Name: 'darkslateblue'; Color: TCSSAlphaColor($ff483d8b)),
+    (Name: 'darkslategray'; Color: TCSSAlphaColor($ff2f4f4f)),
+    (Name: 'darkslategrey'; Color: TCSSAlphaColor($ff2f4f4f)),
+    (Name: 'darkturquoise'; Color: TCSSAlphaColor($ff00ced1)),
+    (Name: 'darkviolet'; Color: TCSSAlphaColor($ff9400d3)),
+    (Name: 'deeppink'; Color: TCSSAlphaColor($ffff1493)),
+    (Name: 'deepskyblue'; Color: TCSSAlphaColor($ff00bfff)),
+    (Name: 'dimgray'; Color: TCSSAlphaColor($ff696969)),
+    (Name: 'dimgrey'; Color: TCSSAlphaColor($ff696969)),
+    (Name: 'dodgerblue'; Color: TCSSAlphaColor($ff1e90ff)),
+    (Name: 'firebrick'; Color: TCSSAlphaColor($ffb22222)),
+    (Name: 'floralwhite'; Color: TCSSAlphaColor($fffffaf0)),
+    (Name: 'forestgreen'; Color: TCSSAlphaColor($ff228b22)),
+    (Name: 'fuchsia'; Color: TCSSAlphaColor($ffff00ff)),
+    (Name: 'gainsboro'; Color: TCSSAlphaColor($ffdcdcdc)),
+    (Name: 'ghostwhite'; Color: TCSSAlphaColor($fff8f8ff)),
+    (Name: 'gold'; Color: TCSSAlphaColor($ffffd700)),
+    (Name: 'goldenrod'; Color: TCSSAlphaColor($ffdaa520)),
+    (Name: 'gray'; Color: TCSSAlphaColor($ff808080)),
+    (Name: 'green'; Color: TCSSAlphaColor($ff008000)),
+    (Name: 'greenyellow'; Color: TCSSAlphaColor($ffadff2f)),
+    (Name: 'grey'; Color: TCSSAlphaColor($ff808080)),
+    (Name: 'honeydew'; Color: TCSSAlphaColor($fff0fff0)),
+    (Name: 'hotpink'; Color: TCSSAlphaColor($ffff69b4)),
+    (Name: 'indianred'; Color: TCSSAlphaColor($ffcd5c5c)),
+    (Name: 'indigo'; Color: TCSSAlphaColor($ff4b0082)),
+    (Name: 'ivory'; Color: TCSSAlphaColor($fffffff0)),
+    (Name: 'khaki'; Color: TCSSAlphaColor($fff0e68c)),
+    (Name: 'lavender'; Color: TCSSAlphaColor($ffe6e6fa)),
+    (Name: 'lavenderblush'; Color: TCSSAlphaColor($fffff0f5)),
+    (Name: 'lawngreen'; Color: TCSSAlphaColor($ff7cfc00)),
+    (Name: 'lemonchiffon'; Color: TCSSAlphaColor($fffffacd)),
+    (Name: 'lightblue'; Color: TCSSAlphaColor($ffadd8e6)),
+    (Name: 'lightcoral'; Color: TCSSAlphaColor($fff08080)),
+    (Name: 'lightcyan'; Color: TCSSAlphaColor($ffe0ffff)),
+    (Name: 'lightgoldenrodyellow'; Color: TCSSAlphaColor($fffafad2)),
+    (Name: 'lightgray'; Color: TCSSAlphaColor($ffd3d3d3)),
+    (Name: 'lightgreen'; Color: TCSSAlphaColor($ff90ee90)),
+    (Name: 'lightgrey'; Color: TCSSAlphaColor($ffd3d3d3)),
+    (Name: 'lightpink'; Color: TCSSAlphaColor($ffffb6c1)),
+    (Name: 'lightsalmon'; Color: TCSSAlphaColor($ffffa07a)),
+    (Name: 'lightseagreen'; Color: TCSSAlphaColor($ff20b2aa)),
+    (Name: 'lightskyblue'; Color: TCSSAlphaColor($ff87cefa)),
+    (Name: 'lightslategray'; Color: TCSSAlphaColor($ff778899)),
+    (Name: 'lightslategrey'; Color: TCSSAlphaColor($ff778899)),
+    (Name: 'lightsteelblue'; Color: TCSSAlphaColor($ffb0c4de)),
+    (Name: 'lightyellow'; Color: TCSSAlphaColor($ffffffe0)),
+    (Name: 'lime'; Color: TCSSAlphaColor($ff00ff00)),
+    (Name: 'limegreen'; Color: TCSSAlphaColor($ff32cd32)),
+    (Name: 'linen'; Color: TCSSAlphaColor($fffaf0e6)),
+    (Name: 'magenta'; Color: TCSSAlphaColor($ffff00ff)),
+    (Name: 'maroon'; Color: TCSSAlphaColor($ff800000)),
+    (Name: 'mediumaquamarine'; Color: TCSSAlphaColor($ff66cdaa)),
+    (Name: 'mediumblue'; Color: TCSSAlphaColor($ff0000cd)),
+    (Name: 'mediumorchid'; Color: TCSSAlphaColor($ffba55d3)),
+    (Name: 'mediumpurple'; Color: TCSSAlphaColor($ff9370db)),
+    (Name: 'mediumseagreen'; Color: TCSSAlphaColor($ff3cb371)),
+    (Name: 'mediumslateblue'; Color: TCSSAlphaColor($ff7b68ee)),
+    (Name: 'mediumspringgreen'; Color: TCSSAlphaColor($ff00fa9a)),
+    (Name: 'mediumturquoise'; Color: TCSSAlphaColor($ff48d1cc)),
+    (Name: 'mediumvioletred'; Color: TCSSAlphaColor($ffc71585)),
+    (Name: 'midnightblue'; Color: TCSSAlphaColor($ff191970)),
+    (Name: 'mintcream'; Color: TCSSAlphaColor($fff5fffa)),
+    (Name: 'mistyrose'; Color: TCSSAlphaColor($ffffe4e1)),
+    (Name: 'moccasin'; Color: TCSSAlphaColor($ffffe4b5)),
+    (Name: 'navajowhite'; Color: TCSSAlphaColor($ffffdead)),
+    (Name: 'navy'; Color: TCSSAlphaColor($ff000080)),
+    (Name: 'oldlace'; Color: TCSSAlphaColor($fffdf5e6)),
+    (Name: 'olive'; Color: TCSSAlphaColor($ff808000)),
+    (Name: 'olivedrab'; Color: TCSSAlphaColor($ff6b8e23)),
+    (Name: 'orange'; Color: TCSSAlphaColor($ffffa500)),
+    (Name: 'orangered'; Color: TCSSAlphaColor($ffff4500)),
+    (Name: 'orchid'; Color: TCSSAlphaColor($ffda70d6)),
+    (Name: 'palegoldenrod'; Color: TCSSAlphaColor($ffeee8aa)),
+    (Name: 'palegreen'; Color: TCSSAlphaColor($ff98fb98)),
+    (Name: 'paleturquoise'; Color: TCSSAlphaColor($ffafeeee)),
+    (Name: 'palevioletred'; Color: TCSSAlphaColor($ffdb7093)),
+    (Name: 'papayawhip'; Color: TCSSAlphaColor($ffffefd5)),
+    (Name: 'peachpuff'; Color: TCSSAlphaColor($ffffdab9)),
+    (Name: 'peru'; Color: TCSSAlphaColor($ffcd853f)),
+    (Name: 'pink'; Color: TCSSAlphaColor($ffffc0cb)),
+    (Name: 'plum'; Color: TCSSAlphaColor($ffdda0dd)),
+    (Name: 'powderblue'; Color: TCSSAlphaColor($ffb0e0e6)),
+    (Name: 'purple'; Color: TCSSAlphaColor($ff800080)),
+    (Name: 'rebeccapurple'; Color: TCSSAlphaColor($ff663399)),
+    (Name: 'red'; Color: TCSSAlphaColor($ffff0000)),
+    (Name: 'rosybrown'; Color: TCSSAlphaColor($ffbc8f8f)),
+    (Name: 'royalblue'; Color: TCSSAlphaColor($ff4169e1)),
+    (Name: 'saddlebrown'; Color: TCSSAlphaColor($ff8b4513)),
+    (Name: 'salmon'; Color: TCSSAlphaColor($fffa8072)),
+    (Name: 'sandybrown'; Color: TCSSAlphaColor($fff4a460)),
+    (Name: 'seagreen'; Color: TCSSAlphaColor($ff2e8b57)),
+    (Name: 'seashell'; Color: TCSSAlphaColor($fffff5ee)),
+    (Name: 'sienna'; Color: TCSSAlphaColor($ffa0522d)),
+    (Name: 'silver'; Color: TCSSAlphaColor($ffc0c0c0)),
+    (Name: 'skyblue'; Color: TCSSAlphaColor($ff87ceeb)),
+    (Name: 'slateblue'; Color: TCSSAlphaColor($ff6a5acd)),
+    (Name: 'slategray'; Color: TCSSAlphaColor($ff708090)),
+    (Name: 'slategrey'; Color: TCSSAlphaColor($ff708090)),
+    (Name: 'snow'; Color: TCSSAlphaColor($fffffafa)),
+    (Name: 'springgreen'; Color: TCSSAlphaColor($ff00ff7f)),
+    (Name: 'steelblue'; Color: TCSSAlphaColor($ff4682b4)),
+    (Name: 'tan'; Color: TCSSAlphaColor($ffd2b48c)),
+    (Name: 'teal'; Color: TCSSAlphaColor($ff008080)),
+    (Name: 'thistle'; Color: TCSSAlphaColor($ffd8bfd8)),
+    (Name: 'tomato'; Color: TCSSAlphaColor($ffff6347)),
+    (Name: 'transparent'; Color: TCSSAlphaColor($ff0)),
+    (Name: 'turquoise'; Color: TCSSAlphaColor($ff40e0d0)),
+    (Name: 'violet'; Color: TCSSAlphaColor($ffee82ee)),
+    (Name: 'wheat'; Color: TCSSAlphaColor($fff5deb3)),
+    (Name: 'white'; Color: TCSSAlphaColor($ffffffff)),
+    (Name: 'whitesmoke'; Color: TCSSAlphaColor($fff5f5f5)),
+    (Name: 'yellow'; Color: TCSSAlphaColor($ffffff00)),
+    (Name: 'yellowgreen'; Color: TCSSAlphaColor($ff9acd32))
+  );
+
 
 type
   TCSSRegistryNamedItem = class
@@ -176,23 +340,19 @@ type
   TCSSAttributeDesc = class(TCSSRegistryNamedItem)
   public
     type
-      TCheckEvent = procedure(Resolver: TCSSBaseResolver; Data: TCSSAttributeKeyData) of object;
-      TCheckExEvent = procedure(Resolver: TCSSBaseResolver; Desc: TCSSAttributeDesc;
-                      DeclEl: TCSSElement; Data: TCSSAttributeKeyData) of object;
-      TSplitShorthandEvent = procedure(Resolver: TCSSBaseResolver; Desc: TCSSAttributeDesc;
-           const aValue: TCSSString; var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray) of object;
+      TCheckEvent = function(Resolver: TCSSBaseResolver): boolean of object;
+      TSplitShorthandEvent = procedure(Resolver: TCSSBaseResolver;
+           var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray) of object;
   public
-    Syntax: TCSSString; // an optional description
     Inherits: boolean; // true = the default value is the parent's value
     All: boolean; // true = can be changed by the 'all' attribute
     InitialValue: TCSSString;
     CompProps: array of TCSSAttributeDesc; // if this attribute is a shorthand,
       // these are the component properties (longhands + sub-shorthands like border-width)
       // used by the cascade algorithm to delete all overwritten properties
-    OnCheck: TCheckEvent; // called by the parser after reading a declaration
-      // can set Data.Invalid, so the resolver skips this declaration
-    OnCheckEx: TCheckExEvent; // same as OnCheck, except more context
-    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var()
+    OnCheck: TCheckEvent; // called by the parser after reading a declaration and there is no var()
+      // return false if invalid, so the resolver skips this declaration
+    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(), if any value is empty, the initialvalue is used
   end;
   TCSSAttributeDescClass = class of TCSSAttributeDesc;
   TCSSAttributeDescArray = array of TCSSAttributeDesc;
@@ -207,7 +367,10 @@ type
     FKeywordCount: TCSSNumericalID;
     FPseudoClassCount: TCSSNumericalID;
     FPseudoFunctionCount: TCSSNumericalID;
+    FStamp, FModifiedStamp: integer;
     FTypeCount: TCSSNumericalID;
+    function GetModified: boolean;
+    procedure SetModified(const AValue: boolean);
   public
     constructor Create;
     procedure Init; virtual; // add basic items
@@ -215,9 +378,12 @@ type
     function FindNamedItem(Kind: TCSSNumericalIDKind; const aName: TCSSString): TCSSRegistryNamedItem; overload;
     function IndexOfNamedItem(Kind: TCSSNumericalIDKind; const aName: TCSSString): TCSSNumericalID; overload;
     procedure ConsistencyCheck; virtual;
+    procedure ChangeStamp;
+    property Stamp: integer read FStamp;
+    property Modified: boolean read GetModified write SetModified;
   public
     // attributes
-    Attributes: TCSSAttributeDescArray;
+    Attributes: TCSSAttributeDescArray; // Note: Attributes[0] is nil to spot bugs easily
     Attribute_ClassOf: TCSSAttributeDescClass;
     NotAllAttributes: TCSSAttributeDescArray;
     function AddAttribute(Attr: TCSSAttributeDesc): TCSSAttributeDesc; overload;
@@ -225,10 +391,15 @@ type
       aInherits: boolean = false; aAll: boolean = true; aClass: TCSSAttributeDescClass = nil): TCSSAttributeDesc; overload;
     function FindAttribute(const aName: TCSSString): TCSSAttributeDesc; overload;
     function IndexOfAttributeName(const aName: TCSSString): TCSSNumericalID; overload;
+    procedure AddSplitLonghand(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray; AttrID: TCSSNumericalID; const Value: TCSSString); overload;
+    procedure AddSplitLonghandSides(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray;
+      TopID, RightID, BottomID, LeftID: TCSSNumericalID; const Found: TCSSStringArray); overload;
+    procedure AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray;
+      TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID; const Found: TCSSStringArray); overload;
     property AttributeCount: TCSSNumericalID read FAttributeCount;
   public
     // pseudo classes
-    PseudoClasses: TCSSPseudoClassDescArray;
+    PseudoClasses: TCSSPseudoClassDescArray; // Note: PseudoClasses[0] is nil to spot bugs easily
     PseudoClass_ClassOf: TCSSPseudoClassDescClass;
     function AddPseudoClass(aPseudo: TCSSPseudoClassDesc): TCSSPseudoClassDesc; overload;
     function AddPseudoClass(const aName: TCSSString; aClass: TCSSPseudoClassDescClass = nil): TCSSPseudoClassDesc; overload;
@@ -243,7 +414,7 @@ type
     property PseudoFunctionCount: TCSSNumericalID read FPseudoFunctionCount;
   public
     // types
-    Types: TCSSTypeDescArray;
+    Types: TCSSTypeDescArray; // Note: Types[0] is nil to spot bugs easily
     Type_ClassOf: TCSSTypeDescClass;
     function AddType(aType: TCSSTypeDesc): TCSSTypeDesc; overload;
     function AddType(const aName: TCSSString; aClass: TCSSTypeDescClass = nil): TCSSTypeDesc; overload;
@@ -253,12 +424,18 @@ type
   public
     // keywords
     Keywords: TCSSStringArray;
+    kwFirstColor, kwLastColor, kwTransparent: TCSSNumericalID;
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
+    procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
     function IndexOfKeyword(const aName: TCSSString): TCSSNumericalID; overload;
+    procedure AddColorKeywords; virtual;
+    function GetNamedColor(const aName: TCSSString): TCSSAlphaColor; virtual; overload;
+    function GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor; virtual; overload;
     property KeywordCount: TCSSNumericalID read FKeywordCount;
   public
     // attribute functions
     AttrFunctions: TCSSStringArray;
+    afVar: TCSSNumericalID;
     function AddAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     property AttrFunctionCount: TCSSNumericalID read FAttrFunctionCount;
@@ -321,28 +498,32 @@ type
     rvkKeywordUnknown,
     rvkFunction,
     rvkFunctionUnknown,
-    rvkString
+    rvkString,
+    rvkHexColor
     );
 
-  { TCSSResValue }
+  { TCSSResCompValue }
 
-  TCSSResValue = record
+  TCSSResCompValue = record
     Kind: TCSSResValueKind;
-    Start: PCSSChar;
+    StartP, EndP: PCSSChar;
+    function AsString: TCSSString;
     function FloatAsString: TCSSString;
     case longint of
     1: (Float: Double; FloatUnit: TCSSUnit);
-    3: (KeywordID: TCSSNumericalID);
-    4: (FunctionID: TCSSNumericalID; BracketOpen: PCSSChar);
+    2: (KeywordID: TCSSNumericalID);
+    3: (FunctionID: TCSSNumericalID; BracketOpen: PCSSChar);
+    4: (Symbol: TCSSToken);
   end;
 
-  { TCSSCheckAttrParams_Float }
+  { TCSSCheckAttrParams_Dimension }
 
-  TCSSCheckAttrParams_Float = record
+  TCSSCheckAttrParams_Dimension = record
   public
     AllowedUnits: TCSSUnits;
     AllowNegative, AllowFrac: boolean;
     AllowedKeywordIDs: TCSSNumericalIDArray;
+    function Fits(const ResValue: TCSSResCompValue): boolean; overload;
   end;
 
   { TCSSBaseResolver }
@@ -353,18 +534,33 @@ type
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
   public
+    CurAttrData: TCSSAttributeKeyData;
+    CurDesc: TCSSAttributeDesc;
+    CurValue: TCSSString;
+    CurComp: TCSSResCompValue;
+    function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData; const Value: TCSSString): boolean; virtual; // true if parsing can start
+    // check whole attribute, skipping invalid values, emit warnings:
+    function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
+    function CheckAttribute_CommaList_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
+    function CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
+    function CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     // parse whole attribute, skipping invalid values:
-    // Result=true, Invalid=false: some value was valid
-    // Result=false, Invalid=false: due to a function call it might be valid
-    // Result=false, Invalid=true: always invalid
-    function CheckAttribute_Keyword(Data: TCSSAttributeKeyData; const AllowedKeywordIDs: TCSSNumericalIDArray; out ResValue: TCSSResValue): boolean; virtual;
-    function CheckAttribute_Dimension(Data: TCSSAttributeKeyData; const Params: TCSSCheckAttrParams_Float; out ResValue: TCSSResValue): boolean; virtual;
-    function ReadAttribute_Keyword(const Value: TCSSString; out Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray; out ResValue: TCSSResValue): boolean; virtual;
-    function ReadAttribute_Dimension(const Value: TCSSString; out Invalid: boolean; const Params: TCSSCheckAttrParams_Float; out ResValue: TCSSResValue): boolean; virtual;
-    // check values of an attribute
-    function ReadValue(var p: PCSSChar; out Value: TCSSResValue): boolean; virtual; // true if parsing attribute can continue
-    function ReadNumber(var p: PCSSChar; var Value: TCSSResValue): boolean; virtual;
-    function ReadIdentifier(var p: PCSSChar; var Value: TCSSResValue): boolean; virtual;
+    function ReadNext: boolean;
+    function ReadAttribute_Keyword(out Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
+    function ReadAttribute_Dimension(out Invalid: boolean; const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
+    function ReadAttribute_Color(out Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
+    function IsBaseKeyword(KeywordID: TCSSNumericalID): boolean;
+    function IsKeywordIn(aKeywordID: TCSSNumericalID; const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
+    function IsKeywordIn(const KeywordIDs: TCSSNumericalIDArray): boolean; overload;
+    function IsLengthOrPercentage(AllowNegative: boolean): boolean; overload;
+    function IsLengthOrPercentage(const ResValue: TCSSResCompValue; AllowNegative: boolean): boolean; overload;
+    function IsSymbol(Token: TCSSToken): boolean; overload;
+    function GetCompString: TCSSString; overload;
+    function GetCompString(const aValue: string; const ResValue: TCSSResCompValue; EndP: PCSSChar): TCSSString; overload;
+    // low level functions to parse attribute components
+    function ReadComp(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue
+    function ReadNumber(var aComp: TCSSResCompValue): boolean;
+    function ReadIdentifier(var aComp: TCSSResCompValue): boolean;
     procedure SkipToEndOfAttribute(var p: PCSSChar);
     function SkipString(var p: PCSSChar): boolean;
     function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
@@ -415,10 +611,24 @@ Const
   AlIden = Alpha+['-'];
   AlNumIden = AlNum+['-'];
   Whitespace = [#9,#10,#13,' '];
-  WhitespaceZ = Whitespace+[#0];
-  ValEnd = [#0,#10,#13,#9,' ',';','}',')',']'];
+  //WhitespaceZ = Whitespace+[#0];
+  Hex = ['0'..'9','a'..'z','A'..'Z'];
+  ValEnd = [#0,#10,#13,#9,' ',';',',','}',')',']']; // used for skipping a component value
 
 { TCSSRegistry }
+
+procedure TCSSRegistry.SetModified(const AValue: boolean);
+begin
+  if AValue then
+    ChangeStamp
+  else
+    FModifiedStamp:=FStamp;
+end;
+
+function TCSSRegistry.GetModified: boolean;
+begin
+  Result:=FStamp=FModifiedStamp;
+end;
 
 constructor TCSSRegistry.Create;
 var
@@ -527,6 +737,10 @@ begin
     raise Exception.Create('20240623184114');
   if AddKeyword('auto')<>CSSKeywordAuto then
     raise Exception.Create('20240625182731');
+
+  // init attribute functions
+  if AddAttrFunction('var')<>CSSAttrFuncVar then
+    raise Exception.Create('20240716124054');
 end;
 
 destructor TCSSRegistry.Destroy;
@@ -713,6 +927,14 @@ begin
   end;
 end;
 
+procedure TCSSRegistry.ChangeStamp;
+begin
+  if FStamp<high(FStamp) then
+    inc(FStamp)
+  else
+    FStamp:=1;
+end;
+
 function TCSSRegistry.AddAttribute(Attr: TCSSAttributeDesc
   ): TCSSAttributeDesc;
 begin
@@ -734,6 +956,7 @@ begin
   Attr.Index:=AttributeCount;
   FHashLists[nikAttribute].Add(Attr.Name,Attr);
   inc(FAttributeCount);
+  ChangeStamp;
 end;
 
 function TCSSRegistry.AddAttribute(const aName: TCSSString;
@@ -776,6 +999,118 @@ begin
     Result:=-1;
 end;
 
+procedure TCSSRegistry.AddSplitLonghand(var AttrIDs: TCSSNumericalIDArray;
+  var Values: TCSSStringArray; AttrID: TCSSNumericalID; const Value: TCSSString);
+begin
+  System.Insert(AttrID,AttrIDs,length(AttrIDs));
+  System.Insert(Value,Values,length(Values));
+end;
+
+procedure TCSSRegistry.AddSplitLonghandSides(var AttrIDs: TCSSNumericalIDArray;
+  var Values: TCSSStringArray; TopID, RightID, BottomID, LeftID: TCSSNumericalID;
+  const Found: TCSSStringArray);
+begin
+  if length(Found)=0 then
+    exit; // invalid
+
+  Setlength(AttrIDs,4);
+  Setlength(Values,4);
+
+  AttrIDs[0]:=TopID;
+  AttrIDs[1]:=RightID;
+  AttrIDs[2]:=BottomID;
+  AttrIDs[3]:=LeftID;
+
+  // sets sides depending on how many values were passed:
+  // 1: all four the same
+  // 2: top and bottom | left and right
+  // 3: top | left and right | bottom
+  // 4: top | right | bottom | left
+  case length(Found) of
+  1:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[0];
+      Values[2]:=Found[0];
+      Values[3]:=Found[0];
+    end;
+  2:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[0];
+      Values[3]:=Found[1];
+    end;
+  3:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[2];
+      Values[3]:=Found[1];
+    end;
+  4:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[2];
+      Values[3]:=Found[3];
+    end;
+  end;
+end;
+
+procedure TCSSRegistry.AddSplitLonghandCorners(var AttrIDs: TCSSNumericalIDArray;
+  var Values: TCSSStringArray; TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID;
+  const Found: TCSSStringArray);
+begin
+  if length(Found)=0 then
+    exit; // invalid
+
+  Setlength(AttrIDs,4);
+  Setlength(Values,4);
+
+  AttrIDs[0]:=TopLeftID;
+  AttrIDs[1]:=TopRightID;
+  AttrIDs[2]:=BottomRightID;
+  AttrIDs[3]:=BottomLeftID;
+
+  // sets corners depending on how many values were passed:
+  // 1: all four the same
+  // 2: top-left-and-bottom-right | top-right-and-bottom-left
+  // 3: top-left | top-right-and-bottom-left | bottom-right
+  // 4: top-left | top-right | bottom-right | bottom-left
+
+  case length(Found) of
+  1:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[0];
+      Values[2]:=Found[0];
+      Values[3]:=Found[0];
+    end;
+  2:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[0];
+      Values[3]:=Found[1];
+    end;
+  3:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[2];
+      Values[3]:=Found[1];
+    end;
+  4:
+    begin
+      Values[0]:=Found[0];
+      Values[1]:=Found[1];
+      Values[2]:=Found[2];
+      Values[3]:=Found[3];
+    end;
+  end;
+end;
+
 function TCSSRegistry.AddPseudoClass(aPseudo: TCSSPseudoClassDesc
   ): TCSSPseudoClassDesc;
 begin
@@ -797,6 +1132,7 @@ begin
   aPseudo.Index:=PseudoClassCount;
   FHashLists[nikPseudoClass].Add(aPseudo.Name,aPseudo);
   inc(FPseudoClassCount);
+  ChangeStamp;
 end;
 
 function TCSSRegistry.AddPseudoClass(const aName: TCSSString;
@@ -854,6 +1190,7 @@ begin
   PseudoFunctions[Result]:=aName;
   FHashLists[nikPseudoFunction].Add(aName,{%H-}Pointer(Result));
   inc(FPseudoFunctionCount);
+  ChangeStamp;
 end;
 
 function TCSSRegistry.IndexOfPseudoFunction(const aName: TCSSString
@@ -888,6 +1225,7 @@ begin
   aType.Index:=TypeCount;
   FHashLists[nikType].Add(aType.Name,aType);
   inc(FTypeCount);
+  ChangeStamp;
 end;
 
 function TCSSRegistry.AddType(const aName: TCSSString; aClass: TCSSTypeDescClass
@@ -942,6 +1280,38 @@ begin
   Keywords[Result]:=aName;
   FHashLists[nikKeyword].Add(aName,{%H-}Pointer(Result));
   inc(FKeywordCount);
+  ChangeStamp;
+end;
+
+procedure TCSSRegistry.AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID);
+var
+  i, NewCnt: integer;
+begin
+  if Names=nil then begin
+    First:=CSSIDNone;
+    Last:=CSSIDNone;
+    exit;
+  end;
+  for i:=0 to length(Names)-1 do
+    if IndexOfKeyword(Names[i])>CSSIDNone then
+      raise Exception.Create('20240712215853');
+
+  NewCnt:=KeywordCount+length(Names);
+  if NewCnt>length(Keywords) then
+  begin
+    NewCnt:=(NewCnt div 32 +1) *32;
+    SetLength(Keywords,NewCnt);
+  end;
+
+  First:=KeywordCount;
+  for i:=0 to length(Names)-1 do
+  begin
+    Last:=KeywordCount;
+    Keywords[Last]:=Names[i];
+    FHashLists[nikKeyword].Add(Names[i],{%H-}Pointer(Last));
+    inc(FKeywordCount);
+  end;
+  ChangeStamp;
 end;
 
 function TCSSRegistry.IndexOfKeyword(const aName: TCSSString): TCSSNumericalID;
@@ -953,6 +1323,31 @@ begin
     exit(CSSIDNone)
   else
     Result:={%H-}TCSSNumericalID(p);
+end;
+
+procedure TCSSRegistry.AddColorKeywords;
+var
+  Names: TCSSStringArray;
+  i: Integer;
+begin
+  SetLength(Names{%H-},length(CSSNamedColors));
+  for i:=0 to High(CSSNamedColors) do
+    Names[i]:=CSSNamedColors[i].Name;
+  AddKeywords(Names,kwFirstColor,kwLastColor);
+  kwTransparent:=IndexOfKeyword('transparent');
+end;
+
+function TCSSRegistry.GetNamedColor(const aName: TCSSString): TCSSAlphaColor;
+begin
+  Result:=GetKeywordColor(IndexOfKeyword(aName));
+end;
+
+function TCSSRegistry.GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor;
+begin
+  if (KeywordID<kwFirstColor) or (KeywordID>kwLastColor) then
+    Result:=$ff000000
+  else
+    Result:=CSSNamedColors[KeywordID-kwFirstColor].Color;
 end;
 
 function TCSSRegistry.AddAttrFunction(const aName: TCSSString): TCSSNumericalID;
@@ -976,6 +1371,7 @@ begin
   AttrFunctions[Result]:=aName;
   FHashLists[nikAttrFunction].Add(aName,{%H-}Pointer(Result));
   inc(FAttrFunctionCount);
+  ChangeStamp;
 end;
 
 function TCSSRegistry.IndexOfAttrFunction(const aName: TCSSString
@@ -998,11 +1394,46 @@ begin
   inherited Destroy;
 end;
 
-{ TCSSResValue }
+{ TCSSResCompValue }
 
-function TCSSResValue.FloatAsString: TCSSString;
+function TCSSResCompValue.AsString: TCSSString;
+var
+  l: integer;
+begin
+  if (StartP=nil) or (EndP=nil) or (EndP<=StartP) then
+    exit('');
+  l:=EndP-StartP;
+  SetLength(Result,l);
+  Move(StartP^,Result[1],l);
+end;
+
+function TCSSResCompValue.FloatAsString: TCSSString;
 begin
   Result:=FloatToCSSStr(Float)+CSSUnitNames[FloatUnit];
+end;
+
+{ TCSSCheckAttrParams_Dimension }
+
+function TCSSCheckAttrParams_Dimension.Fits(const ResValue: TCSSResCompValue): boolean;
+var
+  i: Integer;
+begin
+  Result:=false;
+  case ResValue.Kind of
+  rvkFloat:
+    if ResValue.FloatUnit in AllowedUnits then
+    begin
+      if not (ResValue.FloatUnit in AllowedUnits) then exit;
+      if (not AllowNegative) and (ResValue.Float<0) then exit;
+      if (not AllowFrac) and (Frac(ResValue.Float)>0) then exit;
+      exit(true);
+    end else if (ResValue.FloatUnit=cuNone) and (ResValue.Float=0) then
+      exit(true);
+  rvkKeyword:
+    for i:=0 to length(AllowedKeywordIDs)-1 do
+      if ResValue.KeywordID=AllowedKeywordIDs[i] then
+        exit(true);
+  end;
 end;
 
 { TCSSBaseResolver }
@@ -1013,187 +1444,299 @@ begin
   FCSSRegistry:=AValue;
 end;
 
-function TCSSBaseResolver.CheckAttribute_Keyword(Data: TCSSAttributeKeyData;
-  const AllowedKeywordIDs: TCSSNumericalIDArray; out ResValue: TCSSResValue
-  ): boolean;
-begin
-  Result:=ReadAttribute_Keyword(Data.Value,Data.Invalid,AllowedKeywordIDs,ResValue);
-end;
-
-function TCSSBaseResolver.CheckAttribute_Dimension(Data: TCSSAttributeKeyData;
-  const Params: TCSSCheckAttrParams_Float; out ResValue: TCSSResValue
-  ): boolean;
-begin
-  Result:=ReadAttribute_Dimension(Data.Value,Data.Invalid,Params,ResValue);
-end;
-
-function TCSSBaseResolver.ReadAttribute_Keyword(const Value: TCSSString; out
-  Invalid: boolean; const AllowedKeywordIDs: TCSSNumericalIDArray; out
-  ResValue: TCSSResValue): boolean;
+function TCSSBaseResolver.InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData;
+  const Value: TCSSString): boolean;
 var
   p: PCSSChar;
-  i: Integer;
 begin
-  Invalid:=true;
-  p:=PCSSChar(Value);
-  while ReadValue(p,ResValue) do
+  Result:=false;
+  CurAttrData:=AttrData;
+  CurDesc:=Desc;
+  CurValue:=Value;
+  CurComp:=Default(TCSSResCompValue);
+  CurComp.EndP:=PCSSChar(CurValue);
+  if not ReadNext then
   begin
-    case ResValue.Kind of
+    if CurAttrData<>nil then
+      CurAttrData.Invalid:=true;
+    exit;
+  end;
+  if (CurAttrData<>nil) and (CurComp.Kind=rvkKeyword)
+      and IsBaseKeyword(CurComp.KeywordID) then
+  begin
+    p:=CurComp.EndP;
+    while (p^ in Whitespace) do inc(p);
+    if p^>#0 then
+    begin
+      // "inherit" must be alone
+      CurAttrData.Invalid:=true;
+      exit;
+    end;
+    CurAttrData.Complete:=true;
+  end;
+  Result:=true;
+end;
+
+function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
+  ): boolean;
+begin
+  Result:=ReadAttribute_Keyword(CurAttrData.Invalid,AllowedKeywordIDs);
+end;
+
+function TCSSBaseResolver.CheckAttribute_CommaList_Keyword(
+  const AllowedKeywordIDs: TCSSNumericalIDArray): boolean;
+var
+  i: Integer;
+  Fits: Boolean;
+begin
+  CurAttrData.Invalid:=true;
+  repeat
+    Fits:=false;
+    case CurComp.Kind of
     rvkKeyword:
-      case ResValue.KeywordID of
-      CSSKeywordNone,CSSKeywordInitial,CSSKeywordInherit,CSSKeywordUnset,CSSKeywordRevert,CSSKeywordRevertLayer:
+      for i:=0 to length(AllowedKeywordIDs)-1 do
+        if CurComp.KeywordID=AllowedKeywordIDs[i] then
         begin
-          Invalid:=false;
-          exit(true);
-        end
-      else
-        for i:=0 to length(AllowedKeywordIDs)-1 do
-          if ResValue.KeywordID=AllowedKeywordIDs[i] then
-          begin
-            Invalid:=false;
-            exit(true);
-          end;
-      end;
+          Fits:=true;
+          break;
+        end;
     rvkFunction:
       begin
-        // could be valid
-        Invalid:=false;
+        // todo: check for allowed functions
+        Fits:=true;
       end;
     end;
-  end;
+    if not Fits then exit;
+
+    if not ReadNext then
+    begin
+      // ok
+      CurAttrData.Invalid:=false;
+      exit(true);
+    end;
+    if (CurComp.Kind<>rvkSymbol) or (CurComp.Symbol=ctkCOMMA) then
+      exit;
+  until not ReadNext;
   Result:=false;
 end;
 
-function TCSSBaseResolver.ReadAttribute_Dimension(const Value: TCSSString; out
-  Invalid: boolean; const Params: TCSSCheckAttrParams_Float; out
-  ResValue: TCSSResValue): boolean;
+function TCSSBaseResolver.CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension
+  ): boolean;
+begin
+  Result:=ReadAttribute_Dimension(CurAttrData.Invalid,Params);
+end;
+
+function TCSSBaseResolver.CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray
+  ): boolean;
+begin
+  Result:=ReadAttribute_Color(CurAttrData.Invalid,AllowedKeywordIDs);
+end;
+
+function TCSSBaseResolver.ReadNext: boolean;
+begin
+  Result:=ReadComp(CurComp);
+end;
+
+function TCSSBaseResolver.ReadAttribute_Keyword(out Invalid: boolean;
+  const AllowedKeywordIDs: TCSSNumericalIDArray): boolean;
 var
-  p: PCSSChar;
+  i: Integer;
+begin
+  Invalid:=false;
+  repeat
+    case CurComp.Kind of
+    rvkKeyword:
+      for i:=0 to length(AllowedKeywordIDs)-1 do
+        if CurComp.KeywordID=AllowedKeywordIDs[i] then
+          exit(true);
+    end;
+    // todo: warn if invalid
+  until not ReadNext;
+  Invalid:=true;
+  Result:=false;
+end;
+
+function TCSSBaseResolver.ReadAttribute_Dimension(out Invalid: boolean;
+  const Params: TCSSCheckAttrParams_Dimension): boolean;
+var
   i: Integer;
 begin
   Invalid:=true;
-  p:=PCSSChar(Value);
-  while ReadValue(p,ResValue) do
-  begin
-    case ResValue.Kind of
+  repeat
+    case CurComp.Kind of
     rvkFloat:
-      if ResValue.FloatUnit in Params.AllowedUnits then
-      begin
-        if (not Params.AllowNegative) and (ResValue.Float<0) then continue;
-        if (not Params.AllowFrac) and (Frac(ResValue.Float)>0) then continue;
-        Invalid:=false;
+      if Params.Fits(CurComp) then
         exit(true);
-      end;
     rvkKeyword:
-      case ResValue.KeywordID of
-      CSSKeywordNone,CSSKeywordInitial,CSSKeywordInherit,CSSKeywordUnset,CSSKeywordRevert,CSSKeywordRevertLayer:
-        begin
-          Invalid:=false;
+      for i:=0 to length(Params.AllowedKeywordIDs)-1 do
+        if CurComp.KeywordID=Params.AllowedKeywordIDs[i] then
           exit(true);
-        end
-      else
-        for i:=0 to length(Params.AllowedKeywordIDs)-1 do
-          if ResValue.KeywordID=Params.AllowedKeywordIDs[i] then
-          begin
-            Invalid:=false;
-            exit(true);
-          end;
-      end;
-    rvkFunction:
-      begin
-        // could be valid
-        Invalid:=false;
-      end;
     end;
-  end;
+    // todo: warn if invalid
+  until not ReadNext;
+  Invalid:=true;
   Result:=false;
 end;
 
-function TCSSBaseResolver.ReadValue(var p: PCSSChar; out Value: TCSSResValue
-  ): boolean;
+function TCSSBaseResolver.ReadAttribute_Color(out Invalid: boolean;
+  const AllowedKeywordIDs: TCSSNumericalIDArray): boolean;
+var
+  i: Integer;
+begin
+  Invalid:=false;
+  repeat
+    case CurComp.Kind of
+    rvkKeyword:
+      begin
+        if (CurComp.KeywordID>=CSSRegistry.kwFirstColor)
+            and (CurComp.KeywordID<=CSSRegistry.kwLastColor)
+        then
+          exit(true);
+        for i:=0 to length(AllowedKeywordIDs)-1 do
+          if CurComp.KeywordID=AllowedKeywordIDs[i] then
+            exit(true);
+      end;
+    rvkFunction:
+      begin
+        // todo: check for allowed functions
+      end;
+    rvkHexColor:
+      exit(true);
+    end;
+    // todo: warn if invalid
+  until not ReadNext;
+  Invalid:=true;
+  Result:=false;
+end;
+
+function TCSSBaseResolver.ReadComp(var aComp: TCSSResCompValue): boolean;
 var
   c: TCSSChar;
+  p: PCSSChar;
+  l: SizeInt;
+
+  procedure SetSymbol(s: TCSSToken);
+  begin
+    aComp.Kind:=rvkSymbol;
+    aComp.Symbol:=s;
+    aComp.EndP:=p+1;
+  end;
+
 begin
   Result:=true;
-  Value.Kind:=rvkNone;
+  aComp.Kind:=rvkNone;
+
+  p:=aComp.EndP;
 
   // skip whitespace
   while (p^ in Whitespace) do inc(p);
-  Value.Start:=p;
+  aComp.StartP:=p;
+  aComp.EndP:=p;
 
   c:=p^;
   case c of
   #0: exit(false);
   '0'..'9':
-    if ReadNumber(p,Value) then exit;
+    if ReadNumber(aComp) then exit;
+  ',':
+    begin
+      SetSymbol(ctkCOMMA);
+      exit;
+    end;
+  ')':
+    begin
+      SetSymbol(ctkRPARENTHESIS);
+      exit;
+    end;
   '+':
     case p[1] of
     '0'..'9','.':
-      if ReadNumber(p,Value) then exit;
+      if ReadNumber(aComp) then exit;
     #0,#9,#10,#13,' ':
       begin
-        inc(p);
-        Value.Kind:=rvkSymbol;
+        SetSymbol(ctkPLUS);
         exit;
       end;
     end;
   '-':
     case p[1] of
     '0'..'9','.':
-      if ReadNumber(p,Value) then exit;
+      if ReadNumber(aComp) then exit;
     'a'..'z','A'..'Z','-':
-      if ReadIdentifier(p,Value) then exit;
+      if ReadIdentifier(aComp) then exit;
     #0,#9,#10,#13,' ':
       begin
-        inc(p);
-        Value.Kind:=rvkSymbol;
+        SetSymbol(ctkMINUS);
         exit;
       end;
     end;
   '.':
     case p[1] of
     '0'..'9':
-      if ReadNumber(p,Value) then exit;
+      if ReadNumber(aComp) then exit;
     else
-      inc(p);
-      Value.Kind:=rvkSymbol;
+      SetSymbol(ctkDOT);
       exit;
     end;
-  '*','/':
-    if p[1] in WhitespaceZ then
+  '*':
     begin
-      inc(p);
-      Value.Kind:=rvkSymbol;
+      if p[1]='=' then
+      begin
+        inc(p);
+        SetSymbol(ctkSTAREQUAL);
+      end else
+        SetSymbol(ctkSTAR);
+      exit;
+    end;
+  '/':
+    begin
+      SetSymbol(ctkDIV);
       exit;
     end;
   'a'..'z','A'..'Z':
-    if ReadIdentifier(p,Value) then exit;
+    if ReadIdentifier(aComp) then exit;
+  '#':
+    begin
+      inc(p);
+      while p^ in Hex do inc(p);
+      l:=p-aComp.StartP;
+      case l of
+      4,5,7,9:
+        begin
+          // #rgb, #rgba, #rrggbb, #rrggbbaa
+          aComp.Kind:=rvkHexColor;
+          aComp.EndP:=p;
+          exit;
+        end;
+      end;
+    end;
   end;
 
-  // skip unknown value
-  Value.Kind:=rvkInvalid;
+  // skip unknown aComp
+  aComp.Kind:=rvkInvalid;
   repeat
-    if p^ in ValEnd then exit;
+    if p^ in ValEnd then break;
     case p^ of
     '(','[': SkipBrackets(p);
     '''','"': SkipString(p);
     else inc(p);
     end;
   until false;
+  aComp.EndP:=p;
 end;
 
-function TCSSBaseResolver.ReadNumber(var p: PCSSChar; var Value: TCSSResValue
-  ): boolean;
+function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
 var
   Negative, HasNumber: Boolean;
   Divisor: double;
   Exponent: Integer;
   d: Float;
   U: TCSSUnit;
-  StartP: PCSSChar;
+  StartP, p: PCSSChar;
 begin
   Result:=false;
-  Value.Kind:=rvkInvalid;
+  aComp.Kind:=rvkInvalid;
+  p:=aComp.StartP;
 
   // number: 1, 0.2, .3, 4.01, 0.0, +0.0, -0.0, .50, 2e3, -6.7E-2
   if p^='-' then
@@ -1206,14 +1749,14 @@ begin
       inc(p);
   end;
   HasNumber:=false;
-  Value.Float:=0;
+  aComp.Float:=0;
   if p^ in Num then
   begin
     // read significand
     HasNumber:=true;
     repeat
-      Value.Float:=Value.Float*10+ord(p^)-ord('0');
-      if Value.Float>CSSMaxSafeIntDouble then
+      aComp.Float:=aComp.Float*10+ord(p^)-ord('0');
+      if aComp.Float>CSSMaxSafeIntDouble then
         exit; // loosing precision
       inc(p);
     until not (p^ in Num);
@@ -1226,17 +1769,17 @@ begin
     Divisor:=1;
     repeat
       Divisor:=Divisor*10;
-      Value.Float:=Value.Float*10+ord(p^)-ord('0');
+      aComp.Float:=aComp.Float*10+ord(p^)-ord('0');
       if (Divisor>CSSMaxSafeIntDouble)
-          or (Value.Float>CSSMaxSafeIntDouble) then
+          or (aComp.Float>CSSMaxSafeIntDouble) then
         exit; // loosing precision
       inc(p);
     until not (p^ in Num);
-    Value.Float:=Value.Float/Divisor;
+    aComp.Float:=aComp.Float/Divisor;
   end else if not HasNumber then
     exit;
   if Negative then
-    Value.Float:=-Value.Float;
+    aComp.Float:=-aComp.Float;
 
   if (p^ in ['e','E']) and not (p[1] in ['a'..'z']) then
   begin
@@ -1264,77 +1807,174 @@ begin
         Exponent:=-Exponent;
       try
         d:=Power(10,Exponent);
-        Value.Float:=Value.Float*d;
+        aComp.Float:=aComp.Float*d;
       except
         exit;
       end;
     end;
   end;
-  Value.Kind:=rvkFloat;
+  aComp.Kind:=rvkFloat;
 
   // parse unit
-  U:=cuNONE;
+  U:=cuNone;
   case p^ of
   '%':
     begin
       inc(p);
-      U:=cuPERCENT;
+      U:=cuPercent;
     end;
   'a'..'z','A'..'Z':
     begin
       StartP:=p;
       while p^ in Alpha do inc(p);
       U:=high(TCSSUnit);
-      while (U>cuNONE) and not CompareMem(StartP,PChar(CSSUnitNames[U]),length(CSSUnitNames[U])) do
+      while (U>cuNone) and not CompareMem(StartP,PChar(CSSUnitNames[U]),length(CSSUnitNames[U])) do
         U:=pred(U);
-      if U=cuNONE then
+      if U=cuNone then
         exit; // unknown unit
     end;
   end;
-  Value.FloatUnit:=U;
+  aComp.FloatUnit:=U;
+  aComp.EndP:=p;
 
-  Result:=p^ in ValEnd;
-  //writeln('TCSSBaseResolver.ReadNumber "',p,'" Value=',FloatToCSSStr(Value.Float),' U=',U,' Kind=',Value.Kind,' Result=',Result);
+  Result:=true;
+  //writeln('TCSSBaseResolver.ReadNumber "',p,'" Value=',FloatToCSSStr(aComp.Float),' U=',U,' Kind=',aComp.Kind,' Result=',Result);
 end;
 
-function TCSSBaseResolver.ReadIdentifier(var p: PCSSChar; var Value: TCSSResValue
-  ): boolean;
+function TCSSBaseResolver.ReadIdentifier(var aComp: TCSSResCompValue): boolean;
 var
   Identifier: TCSSString;
   IsFunc: Boolean;
+  p: PCSSChar;
 begin
   Result:=false;
-  Value.Kind:=rvkInvalid;
+  aComp.Kind:=rvkInvalid;
+  p:=aComp.EndP;
   if not (p^ in AlIden) then exit;
-  Value.Start:=p;
   repeat
     inc(p);
   until not (p^ in AlNumIden);
-  SetString(Identifier,Value.Start,p-Value.Start);
+  SetString(Identifier,aComp.StartP,p-aComp.StartP);
   IsFunc:=p^='(';
   if IsFunc then
   begin
     // function call
-    Value.BracketOpen:=p;
-    if not SkipBrackets(p) then exit;
+    aComp.BracketOpen:=p;
+    if not SkipBrackets(p) then
+    begin
+      aComp.EndP:=p;
+      exit;
+    end;
   end;
-  Result:=p^ in ValEnd;
-  if not Result then exit;
+  aComp.EndP:=p;
 
   if IsFunc then
   begin
-    Value.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
-    if Value.FunctionID>CSSIDNone then
-      Value.Kind:=rvkFunction
+    aComp.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
+    if aComp.FunctionID>CSSIDNone then
+      aComp.Kind:=rvkFunction
     else
-      Value.Kind:=rvkFunctionUnknown;
+      aComp.Kind:=rvkFunctionUnknown;
   end else begin
-    Value.KeywordID:=CSSRegistry.IndexOfKeyword(Identifier);
-    if Value.KeywordID>CSSIDNone then
-      Value.Kind:=rvkKeyword
+    aComp.KeywordID:=CSSRegistry.IndexOfKeyword(Identifier);
+    if aComp.KeywordID>CSSIDNone then
+      aComp.Kind:=rvkKeyword
     else
-      Value.Kind:=rvkKeywordUnknown;
+      aComp.Kind:=rvkKeywordUnknown;
   end;
+  Result:=true;
+end;
+
+function TCSSBaseResolver.IsBaseKeyword(KeywordID: TCSSNumericalID): boolean;
+begin
+  Result:=(KeywordID>=CSSKeywordInitial) and (KeywordID<=CSSKeywordRevertLayer);
+end;
+
+function TCSSBaseResolver.IsKeywordIn(aKeywordID: TCSSNumericalID;
+  const KeywordIDs: TCSSNumericalIDArray): boolean;
+var
+  i: Integer;
+begin
+  for i:=0 to length(KeywordIDs)-1 do
+    if KeywordIDs[i]=aKeywordID then
+      exit(true);
+  Result:=false;
+end;
+
+function TCSSBaseResolver.IsKeywordIn(const KeywordIDs: TCSSNumericalIDArray): boolean;
+var
+  aKeywordID: TCSSNumericalID;
+  i: Integer;
+begin
+  Result:=false;
+  if CurComp.Kind<>rvkKeyword then exit;
+  aKeywordID:=CurComp.KeywordID;
+  for i:=0 to length(KeywordIDs)-1 do
+    if KeywordIDs[i]=aKeywordID then
+      exit(true);
+end;
+
+function TCSSBaseResolver.IsLengthOrPercentage(AllowNegative: boolean): boolean;
+begin
+  Result:=false;
+  case CurComp.Kind of
+  rvkFloat:
+    if CurComp.FloatUnit in cuAllLengthsAndPercent then
+    begin
+      if (not AllowNegative) and (CurComp.Float<0) then exit;
+      exit(true);
+    end
+    else if (CurComp.FloatUnit=cuNone) and (CurComp.Float=0) then
+      exit(true); // 0 without unit is allowed
+  end;
+end;
+
+function TCSSBaseResolver.IsLengthOrPercentage(const ResValue: TCSSResCompValue;
+  AllowNegative: boolean): boolean;
+begin
+  Result:=false;
+  case ResValue.Kind of
+  rvkFloat:
+    if ResValue.FloatUnit in cuAllLengthsAndPercent then
+    begin
+      if (not AllowNegative) and (ResValue.Float<0) then exit;
+      exit(true);
+    end
+    else if (ResValue.FloatUnit=cuNone) and (ResValue.Float=0) then
+      exit(true);
+  end;
+end;
+
+function TCSSBaseResolver.IsSymbol(Token: TCSSToken): boolean;
+begin
+  Result:=(CurComp.Kind=rvkSymbol) and (CurComp.Symbol=Token);
+end;
+
+function TCSSBaseResolver.GetCompString: TCSSString;
+var
+  StartP: PCSSChar;
+begin
+  if CurComp.Kind=rvkKeyword then
+    exit(CSSRegistry.Keywords[CurComp.KeywordID]);
+  StartP:=CurComp.StartP;
+  if (StartP=PCSSChar(CurValue)) and (CurComp.EndP-StartP = length(CurValue)) then
+    Result:=CurValue
+  else
+    SetString(Result,StartP,CurComp.EndP-StartP);
+end;
+
+function TCSSBaseResolver.GetCompString(const aValue: string; const ResValue: TCSSResCompValue;
+  EndP: PCSSChar): TCSSString;
+var
+  Start: PCSSChar;
+begin
+  if ResValue.Kind=rvkKeyword then
+    exit(CSSRegistry.Keywords[ResValue.KeywordID]);
+  Start:=ResValue.StartP;
+  if (Start=PCSSChar(aValue)) and (EndP-Start = length(aValue)) then
+    Result:=aValue
+  else
+    SetString(Result,Start,EndP-Start);
 end;
 
 procedure TCSSBaseResolver.SkipToEndOfAttribute(var p: PCSSChar);
@@ -1448,7 +2088,7 @@ begin
   El.Kind:=nikPseudoClass;
   Result:=Registry.IndexOfNamedItem(nikPseudoClass,aName);
   //writeln('TCSSResolverParser.ResolvePseudoClass ',aName,' ID=',Result);
-  if Result=CSSIDNone then
+  if Result<=CSSIDNone then
   begin
     El.NumericalID:=-1;
     Log(etWarning,20240625130648,'unknown pseudo class "'+aName+'"',El);
@@ -1510,7 +2150,7 @@ var
   AttrId: TCSSNumericalID;
   Desc: TCSSAttributeDesc;
   AttrData: TCSSAttributeKeyData;
-  i: Integer;
+  i, ChildCnt: Integer;
 begin
   Result:=inherited ParseDeclaration(aIsAt);
   if Result.KeyCount<>1 then
@@ -1533,26 +2173,31 @@ begin
     AttrData:=CSSAttributeKeyDataClass.Create;
     aKey.CustomData:=AttrData;
 
-    i:=Result.ChildCount;
-    if i=0 then
+    ChildCnt:=Result.ChildCount;
+    if ChildCnt=0 then
     begin
       AttrData.Invalid:=true;
       exit;
     end;
-    for i:=0 to Result.ChildCount-1 do
+    for i:=0 to ChildCnt-1 do
     begin
       if (i>0) then
         AttrData.Value+=', ';
       AttrData.Value+=Result.Children[i].AsString;
     end;
 
-    if AttrId>CSSIDNone then
+    if AttrId>=CSSAttributeID_All then
     begin
       Desc:=Registry.Attributes[AttrId];
-      if Assigned(Desc.OnCheck) then
-        Desc.OnCheck(Resolver,AttrData);
-      if Assigned(Desc.OnCheckEx) and (not AttrData.Invalid) then
-        Desc.OnCheckEx(Resolver,Desc,Result,AttrData);
+
+      if Pos('var(',AttrData.Value)>0 then
+      begin
+        // cannot be parsed yet
+      end else if Resolver.InitParseAttr(Desc,AttrData,AttrData.Value) then
+      begin
+        if Assigned(Desc.OnCheck) then
+          AttrData.Invalid:=not Desc.OnCheck(Resolver);
+      end;
       {$IFDEF VerboseCSSResolver}
       if AttrData.Invalid then
         Log(etWarning,20240710162400,'Invalid CSS attribute value: '+Result.AsString,aKey);
@@ -1573,7 +2218,6 @@ procedure TCSSResolverParser.CheckSelector(El: TCSSElement);
 var
   C: TClass;
 begin
-  //writeln('TCSSResolverParser.CheckSelector ',GetCSSObj(El));
   C:=El.ClassType;
   if C=TCSSResolvedIdentifierElement then
     // e.g. div {}

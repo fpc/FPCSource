@@ -132,6 +132,7 @@ Type
 
 Function TokenToBinaryOperation(aToken : TCSSToken) : TCSSBinaryOperation;
 Function TokenToUnaryOperation(aToken : TCSSToken) : TCSSUnaryOperation;
+Function IsValidCSSAttributeName(const aName: TCSSString): boolean;
 
 implementation
 
@@ -188,6 +189,26 @@ begin
   else
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,[GetEnumName(TypeInfo(aToken),Ord(aToken))]);
   end;
+end;
+
+function IsValidCSSAttributeName(const aName: TCSSString): boolean;
+var
+  p, StartP: PCSSChar;
+begin
+  if aName='' then exit(false);
+  StartP:=PCSSChar(aName);
+  p:=StartP;
+  if p^='-' then
+  begin
+    inc(p);
+    if p^='-' then
+      inc(p);
+    if not (p^ in ['A'..'Z','a'..'z']) then
+      exit;
+    inc(p);
+  end;
+  while p^ in ['A'..'Z','a'..'z','_','-'] do inc(p);
+  Result:=p=StartP+length(aName);
 end;
 
 { TCSSParser }
@@ -737,13 +758,13 @@ begin
   case CurrentToken of
   ctkPERCENTAGE:
     begin
-    Result:=cuPERCENT;
+    Result:=cuPercent;
     Consume(CurrentToken);
     end;
   ctkIDENTIFIER:
     begin
     p:=PCSSChar(CurrentTokenString);
-    for U:=Succ(cuNONE) to High(TCSSUnit) do
+    for U:=Succ(cuNone) to High(TCSSUnit) do
       if CompareMem(p,PCSSChar(CSSUnitNames[U]),SizeOf(TCSSChar)*length(CSSUnitNames[U])) then
         begin
         Result:=U;

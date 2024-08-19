@@ -68,51 +68,152 @@ Type
   TCSSStringArray = array of TCSSString;
 
   TCSSUnit = (
-    cuNONE,// no unit, only allowed for 0
-    cuPX,  // pixels
-    cuCM,  // centimeters
-    cuMM,  // milimeters
-    cuQ,   // quarter-milimeters
-    cuIN,  // inches
-    cuPC,  // picas
-    cuPT,  // points
-    cuPERCENT, // percentage %
-    cuEM,  // relative to element's font-size
-    cuREM, // relative to parent's font-size
-    cuVW,  // relative to viewport's width
-    cuVH,  // relative to viewport's height
-    cuFR,  // fraction of flex space
-    cuDEG, // degrees, full circle is 360deg
-    cuGRAD,// gradians, full circle is 400grad
-    cuRAD, // radians, full circle is (2*pi)rad
-    cuTURN // turns, full circle is 1turn
+    cuNone, // no unit
+    // absolute lengths
+    cuPX,   // pixels
+    cuCM,   // centimeters
+    cuMM,   // milimeters
+    cuQ,    // quarter-milimeters
+    cuIn,   // inches
+    cuPT,   // points (1pt = 1/72 of 1in)
+    cuPC,   // picas (1pc = 12 pt)
+    // percentage
+    cuPercent, // percentage, context sensitive
+    // relative to element's font
+    cuEM,   // relative to the height of char "M" of element's font
+    cuEX,   // relative to the height of char "x" of element's font
+    cuCap,  // cap height, relative to nominal height of capital letters
+    cuCh,   // relative to the width of the "0" (zero)
+    cuIC,   // advance measure of the "水" glyph (CJK water ideograph, U+6C34)
+    cuLH,   // line-height
+    // relative to root's font
+    cuREM,  // root-em, as EM, except the font of the root element
+    cuREX,  // root-ex
+    cuRCap, // root-cap height
+    cuRCh,  // root-ch
+    cuRIC,  // root-ic
+    cuRLH,  // root-line-height
+    // relative to default viewport size
+    cuVW,   // relative to 1% of the width of the viewport
+    cuVH,   // relative to 1% of the height of the viewport
+    cuVMax, // relative to 1% of viewport's larger dimension
+    cuVMin, // relative to 1% of viewport's smaller dimension
+    cuVB,   // relative to 1% of viewport's block axis
+    cuVI,   // relative to 1% of viewport's inline axis
+    // relative to small viewport (when e.g. viewport is shrunk to show browser interface)
+    cuSVW,  // small-vw
+    cuSVH,  // small-vh
+    cuSVMax,// small-vmax
+    cuSVMin,// small-vmin
+    cuSVB,  // small-vb
+    cuSVI,  // small-vi
+    // relative to large viewport (when e.g. browser hides interface and viewport is expanded)
+    cuLVW,  // large-vw
+    cuLVH,  // large-vh
+    cuLVMax,// large-vmax
+    cuLVMin,// large-vmin
+    cuLVB,  // large-vb
+    cuLVI,  // large-vi
+    // relative to dynamic viewport size aka current size
+    cuDVW,  // dynamic-vw
+    cuDVH,  // dynamic-vh
+    cuDVMax,// dynamic-vmax
+    cuDVMin,// dynamic-vmin
+    cuDVB,  // dynamic-vb
+    cuDVI,  // dynamic-vi
+    // container queries
+    cuCQW,  // relative to 1% of container's width
+    cuCQH,  // relative to 1% of container's height
+    cuCQB,  // relative to 1% of container's block axis dimension
+    cuCQI,  // relative to 1% of container's inline axis dimension
+    cuCQMin,// relative to 1% of container's smaller dimension
+    cuCQMax,// relative to 1% of container's larger dimension
+    // angles
+    cuDeg,  // degrees, full circle is 360deg
+    cuGrad, // gradians, full circle is 400grad
+    cuRad,  // radians, full circle is (2*pi)rad
+    cuTurn, // turns, full circle is 1turn
+    // special
+    cuFr    // fraction of flex space
     );
   TCSSUnits = set of TCSSUnit;
 const
-  cuAllAbsoluteLengths = [cuPX,cuCM,cuMM,cuQ,cuIN,cuPC,cuPT];
-  cuAllRelativeFontSize = [cuEM,cuREM];
-  cuAllLengths = cuAllAbsoluteLengths+cuAllRelativeFontSize;
-  cuAllAngles = [cuDEG,cuGRAD,cuRAD,cuTURN];
+  cuAllAbsoluteLengths = [cuPX,cuCM,cuMM,cuQ,cuIn,cuPT,cuPC];
+  cuAllViewportLengths = [cuVW,cuVH,cuVMax,cuVMin,cuVB,cuVI,
+                          cuSVW,cuSVH,cuSVMax,cuSVMin,cuSVB,cuSVI,
+                          cuLVW,cuLVH,cuLVMax,cuLVMin,cuLVB,cuLVI,
+                          cuDVW,cuDVH,cuDVMax,cuDVMin,cuDVB,cuDVI];
+  cuAllRelativeFontSize = [cuEM,cuEX,cuCap,cuCh,cuIC,cuLH,
+                           cuREM,cuREX,cuRCap,cuRCh,cuRIC,cuRLH];
+  cuAllLengths = cuAllAbsoluteLengths+cuAllViewportLengths+cuAllRelativeFontSize;
+  cuAllLengthsAndPercent = cuAllLengths+[cuPercent];
+  cuAllAngles = [cuDeg,cuGrad,cuRad,cuTurn];
 
   CSSUnitNames: array[TCSSUnit] of TCSSString = (
-    '',    // no unit
-    'px',  // pixels
-    'cm',  // centimeters
-    'mm',  // milimeters
-    'Q',   // quarter-milimeters
-    'in',  // inches
-    'pc',  // picas
-    'pt',  // points
-    '%',   // percentage
-    'em',  // elements font-size
-    'rem', // relative-em
-    'vw',  // viewport-width
-    'vh',  // viewport-height
-    'fr',  // fraction
-    'deg', // degrees
-    'grad',// gradians
-    'rad', // radians
-    'turn' // turns
+    '',     // no unit
+    // absolute lengths
+    'px',   // pixels
+    'cm',   // centimeters
+    'mm',   // milimeters
+    'Q',    // quarter-milimeters, Big Q!
+    'in',   // inches
+    'pt',   // points
+    'pc',   // picas
+    // %
+    '%',    // percentage
+    // relative to element's font
+    'em',   // elements font-size
+    'ex',   // elements height of "x"
+    'cap',  // cap-height
+    'ch',   // character "0"
+    'ic',   // CJK water ideograph
+    'lh',   // line-height
+    // relative to root's font
+    'rem',  // root-em
+    'rex',  // root-ex
+    'rcap', // root-cap-height
+    'rch',  // root-character "0"
+    'ric',  // root-ic
+    'rlh',  // root-line-height
+    // relative to viewport
+    'vw',   // viewport-width
+    'vh',   // viewport-height
+    'vmax', // viewport larger dimension
+    'vmin', // viewport smaller dimension
+    'vb',   // viewport block axis size
+    'vi',   // viewport inline axis size
+    'svw',  // small-vw
+    'svh',  // small-vh
+    'svmax',// small-vmax
+    'svmin',// small-vmin
+    'svb',  // small-vb
+    'svi',  // small-vi
+    'lvw',  // large-vw
+    'lvh',  // large-vh
+    'lvmax',// large-vmax
+    'lvmin',// large-vmin
+    'lvb',  // large-vb
+    'lvi',  // large-vi
+    'dvw',  // dynamic-vw
+    'dvh',  // dynamic-vh
+    'dvmax',// dynamic-vmax
+    'dvmin',// dynamic-vmin
+    'dvb',  // dynamic-vb
+    'dvi',  // dynamic-vi
+    // container queries
+    'cqw',  // container's width
+    'cqh',  // container's height
+    'cqb',  // container's block axis dimension
+    'cqi',  // container's inline axis dimension
+    'cqmin',// container's smaller dimension
+    'cqmax',// container's larger dimension
+    // angles
+    'deg',  // degrees
+    'grad', // gradians
+    'rad',  // radians
+    'turn', // turns
+    // special
+    'fr'    // fraction
     );
 
 type
