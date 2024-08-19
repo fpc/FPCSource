@@ -1337,6 +1337,8 @@ var
   function EVP_get_cipherbyname(const name: PAnsiChar): PEVP_CIPHER;
   function EVP_get_digestbyname(const name: PAnsiChar): PEVP_MD;
   //
+  function EVP_CIPHER_CTX_new(): PEVP_CIPHER_CTX;
+  procedure EVP_CIPHER_CTX_free(ctx: PEVP_CIPHER_CTX);
   procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
   function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
   function EVP_CIPHER_CTX_set_key_length(x: PEVP_CIPHER_CTX; keylen: cint): cint;
@@ -1827,6 +1829,8 @@ type
   TEVP_get_cipherbyname = function(const name: PAnsiChar): PEVP_CIPHER; cdecl;
   TEVP_get_digestbyname = function(const name: PAnsiChar): PEVP_MD; cdecl;
   //
+  TEVP_CIPHER_CTX_new = function(): PEVP_CIPHER_CTX; cdecl;
+  TEVP_CIPHER_CTX_free = procedure(ctx: PEVP_CIPHER_CTX); cdecl;
   TEVP_CIPHER_CTX_init = procedure(a: PEVP_CIPHER_CTX); cdecl;
   TEVP_CIPHER_CTX_cleanup = function(a: PEVP_CIPHER_CTX): cint; cdecl;
   TEVP_CIPHER_CTX_reset = function(a: PEVP_CIPHER_CTX): cint; cdecl;
@@ -2106,6 +2110,8 @@ var
   _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
   _EVP_get_digestbyname: TEVP_get_digestbyname = nil;
   //
+  _EVP_CIPHER_CTX_new: TEVP_CIPHER_CTX_new = nil;
+  _EVP_CIPHER_CTX_free: TEVP_CIPHER_CTX_free = nil;
   _EVP_CIPHER_CTX_reset: TEVP_CIPHER_CTX_reset = nil;
   _EVP_CIPHER_CTX_init: TEVP_CIPHER_CTX_init = nil;
   _EVP_CIPHER_CTX_cleanup: TEVP_CIPHER_CTX_cleanup = nil;
@@ -3851,6 +3857,22 @@ begin
     Result := nil;
 end;
 //
+function EVP_CIPHER_CTX_new(): PEVP_CIPHER_CTX;
+begin
+  if InitSSLInterface then
+   if Assigned(_EVP_CIPHER_CTX_new) then
+    Result := _EVP_CIPHER_CTX_new()
+  else
+    Result := nil;
+end;
+
+procedure EVP_CIPHER_CTX_free(ctx: PEVP_CIPHER_CTX);
+begin
+  if InitSSLInterface then
+    if Assigned(_EVP_CIPHER_CTX_free) then
+      _EVP_CIPHER_CTX_free(ctx)
+end;
+
 procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
 begin
   if InitSSLInterface then
@@ -5373,6 +5395,8 @@ begin
   _EVP_VerifyFinal := GetProcAddr(SSLUtilHandle,'EVP_VerifyFinal');
   _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname');
   _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
+  _EVP_CIPHER_CTX_new := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_new');
+  _EVP_CIPHER_CTX_free := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_free');
   _EVP_CIPHER_CTX_init := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_init');
   _EVP_CIPHER_CTX_reset := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_reset');
   _EVP_CIPHER_CTX_cleanup := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_cleanup');
@@ -5824,6 +5848,8 @@ begin
   _EVP_get_cipherbyname := nil;
   _EVP_get_digestbyname := nil;
   //
+  _EVP_CIPHER_CTX_new := nil;
+  _EVP_CIPHER_CTX_free := nil;
   _EVP_CIPHER_CTX_reset := nil;
   _EVP_CIPHER_CTX_init := nil;
   _EVP_CIPHER_CTX_cleanup := nil;
