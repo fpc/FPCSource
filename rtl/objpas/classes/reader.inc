@@ -1132,7 +1132,6 @@ begin
   while not EndOfList do
     ReadProperty(Instance);
   ReadListEnd;
-
   { Read children }
   SavedOwner := Owner;
   SavedParent := Parent;
@@ -1196,13 +1195,29 @@ begin
 end;
 
 function TReader.ReadSingle: Single;
+var
+  vt : TValueType;
 begin
-  if FDriver.NextValue = vaSingle then
-  begin
+  vt:=FDriver.NextValue;
+  Case vt of
+  vaSingle :
+    begin
     FDriver.ReadValue;
     Result := FDriver.ReadSingle;
-  end else
+    end;
+  vaDouble :
+    begin
+    FDriver.ReadValue;
+    Result := FDriver.ReadDouble;
+    end;
+  vaExtended :
+    begin
+    FDriver.ReadValue;
+    Result := FDriver.ReadFloat;
+    end;
+  else
     Result := ReadInteger;
+  end;
 end;
 
 {$endif}
@@ -1419,12 +1434,11 @@ begin
           break;
         end;
         DotPos := NextPos + 1;
-
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
         if not Assigned(PropInfo) then begin
-          if not HandleMissingProperty(true) then exit;
+          if not HandleMissingProperty(true) then Exit;
           if not Assigned(PropInfo) then
-            PropertyError;
+            Break; // Defineproperties deserves a shot.
         end;
 
         if PropInfo^.PropType^.Kind = tkClass then
@@ -1449,6 +1463,12 @@ begin
       else
       begin
         FCanHandleExcepts := False;
+        if Instance=aInstance then
+          begin
+          // Use case:
+          // DefineProperty('Size.X',proc1,proc2,True)
+          FPropName:=Path;
+          end;
         Instance.DefineProperties(Self);
         FCanHandleExcepts := True;
         if Length(FPropName) > 0 then begin
