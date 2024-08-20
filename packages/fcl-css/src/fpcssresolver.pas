@@ -113,7 +113,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Classes, System.SysUtils, System.Types, System.Contnrs, System.StrUtils,
-  FPCSS.Tree, FPCSS.ValueParser;
+  Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, types, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;

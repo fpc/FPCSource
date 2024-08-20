@@ -29,8 +29,8 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Types, System.Contnrs, System.StrUtils,
-  FPCSS.Tree, FPCSS.Scanner, FPCSS.Parser;
+  System.Classes, System.SysUtils, System.Math, System.Contnrs, System.StrUtils,
+  Fcl.AVLTree, FpCss.Tree, FpCss.Scanner, FpCss.Parser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Math, Contnrs, AVL_Tree, fpCSSTree, fpCSSScanner,
