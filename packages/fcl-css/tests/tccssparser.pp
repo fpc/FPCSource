@@ -705,7 +705,7 @@ begin
   AssertEquals('Value count', 1, D.ChildCount);
   F:=TCSSFloatElement(CheckClass('Value', TCSSFloatElement,D.Children[0]));
   AssertEquals('Value ',-0.5,F.Value);
-  if F.Units<>cuEM then
+  if F.Units<>cu_em then
     Fail('Units expected unit em, but found '+IntToStr(ord(F.Units)));
 end;
 
@@ -722,10 +722,10 @@ begin
   AssertEquals('Value count', 1, D.ChildCount);
   L:=TCSSListElement(CheckClass('List',TCSSListElement,D.Children[0]));
   AssertEquals('List element count', 4, L.ChildCount);
-  CheckLiteral('Value 1 ',L.Children[0],1,cuPX);
-  CheckLiteral('Value 2 ',L.Children[1],2,cuPX);
-  CheckLiteral('Value 3 ',L.Children[2],3,cuPX);
-  CheckLiteral('Value 4 ',L.Children[3],4,cuPX);
+  CheckLiteral('Value 1 ',L.Children[0],1,cu_px);
+  CheckLiteral('Value 2 ',L.Children[1],2,cu_px);
+  CheckLiteral('Value 3 ',L.Children[2],3,cu_px);
+  CheckLiteral('Value 4 ',L.Children[3],4,cu_px);
 end;
 
 procedure TTestCSSParser.TestOneDeclarationMultiListValue;
@@ -741,12 +741,12 @@ begin
   AssertEquals('Value count', 2, D.ChildCount);
   L:=TCSSListElement(CheckClass('List',TCSSListElement,D.Children[0]));
   AssertEquals('List element count', 2, L.ChildCount);
-  CheckLiteral('Value 1 ',L.Children[0],1,cuPX);
-  CheckLiteral('Value 2 ',L.Children[1],2,cuPX);
+  CheckLiteral('Value 1 ',L.Children[0],1,cu_px);
+  CheckLiteral('Value 2 ',L.Children[1],2,cu_px);
   L:=TCSSListElement(CheckClass('List',TCSSListElement,D.Children[1]));
   AssertEquals('List element count', 2, L.ChildCount);
-  CheckLiteral('Value 3 ',L.Children[0],3,cuPX);
-  CheckLiteral('Value 4 ',L.Children[1],4,cuPX);
+  CheckLiteral('Value 3 ',L.Children[0],3,cu_px);
+  CheckLiteral('Value 4 ',L.Children[1],4,cu_px);
 end;
 
 procedure TTestCSSParser.TestOneDeclarationExprValue;

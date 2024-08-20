@@ -70,84 +70,84 @@ Type
   TCSSUnit = (
     cuNone, // no unit
     // absolute lengths
-    cuPX,   // pixels
-    cuCM,   // centimeters
-    cuMM,   // milimeters
-    cuQ,    // quarter-milimeters
-    cuIn,   // inches
-    cuPT,   // points (1pt = 1/72 of 1in)
-    cuPC,   // picas (1pc = 12 pt)
+    cu_px,   // pixels
+    cu_cm,   // centimeters
+    cu_mm,   // milimeters
+    cu_Q,    // quarter-milimeters
+    cu_in,   // inches
+    cu_pt,   // points (1pt = 1/72 of 1in)
+    cu_pc,   // picas (1pc = 12 pt)
     // percentage
     cuPercent, // percentage, context sensitive
     // relative to element's font
-    cuEM,   // relative to the height of char "M" of element's font
-    cuEX,   // relative to the height of char "x" of element's font
-    cuCap,  // cap height, relative to nominal height of capital letters
-    cuCh,   // relative to the width of the "0" (zero)
-    cuIC,   // advance measure of the "水" glyph (CJK water ideograph, U+6C34)
-    cuLH,   // line-height
+    cu_em,   // relative to the height of char "M" of element's font
+    cu_ex,   // relative to the height of char "x" of element's font
+    cu_cap,  // cap height, relative to nominal height of capital letters
+    cu_ch,   // relative to the width of the "0" (zero)
+    cu_ic,   // advance measure of the "水" glyph (CJK water ideograph, U+6C34)
+    cu_lh,   // line-height
     // relative to root's font
-    cuREM,  // root-em, as EM, except the font of the root element
-    cuREX,  // root-ex
-    cuRCap, // root-cap height
-    cuRCh,  // root-ch
-    cuRIC,  // root-ic
-    cuRLH,  // root-line-height
+    cu_rem,  // root-em, as EM, except the font of the root element
+    cu_rex,  // root-ex
+    cu_rcap, // root-cap height
+    cu_rchh,  // root-ch
+    cu_ric,  // root-ic
+    cu_rlh,  // root-line-height
     // relative to default viewport size
-    cuVW,   // relative to 1% of the width of the viewport
-    cuVH,   // relative to 1% of the height of the viewport
-    cuVMax, // relative to 1% of viewport's larger dimension
-    cuVMin, // relative to 1% of viewport's smaller dimension
-    cuVB,   // relative to 1% of viewport's block axis
-    cuVI,   // relative to 1% of viewport's inline axis
+    cu_vw,   // relative to 1% of the width of the viewport
+    cu_vh,   // relative to 1% of the height of the viewport
+    cu_vmax, // relative to 1% of viewport's larger dimension
+    cu_vmin, // relative to 1% of viewport's smaller dimension
+    cu_vb,   // relative to 1% of viewport's block axis
+    cu_vi,   // relative to 1% of viewport's inline axis
     // relative to small viewport (when e.g. viewport is shrunk to show browser interface)
-    cuSVW,  // small-vw
-    cuSVH,  // small-vh
-    cuSVMax,// small-vmax
-    cuSVMin,// small-vmin
-    cuSVB,  // small-vb
-    cuSVI,  // small-vi
+    cu_svw,  // small-vw
+    cu_svh,  // small-vh
+    cu_svmax,// small-vmax
+    cu_svmin,// small-vmin
+    cu_svb,  // small-vb
+    cu_svi,  // small-vi
     // relative to large viewport (when e.g. browser hides interface and viewport is expanded)
-    cuLVW,  // large-vw
-    cuLVH,  // large-vh
-    cuLVMax,// large-vmax
-    cuLVMin,// large-vmin
-    cuLVB,  // large-vb
-    cuLVI,  // large-vi
+    cu_lvw,  // large-vw
+    cu_lvh,  // large-vh
+    cu_lvmax,// large-vmax
+    cu_lvmin,// large-vmin
+    cu_lvb,  // large-vb
+    cu_lvi,  // large-vi
     // relative to dynamic viewport size aka current size
-    cuDVW,  // dynamic-vw
-    cuDVH,  // dynamic-vh
-    cuDVMax,// dynamic-vmax
-    cuDVMin,// dynamic-vmin
-    cuDVB,  // dynamic-vb
-    cuDVI,  // dynamic-vi
+    cu_dvw,  // dynamic-vw
+    cu_dvh,  // dynamic-vh
+    cu_dvmax,// dynamic-vmax
+    cu_dvmin,// dynamic-vmin
+    cu_dvb,  // dynamic-vb
+    cu_dvi,  // dynamic-vi
     // container queries
-    cuCQW,  // relative to 1% of container's width
-    cuCQH,  // relative to 1% of container's height
-    cuCQB,  // relative to 1% of container's block axis dimension
-    cuCQI,  // relative to 1% of container's inline axis dimension
-    cuCQMin,// relative to 1% of container's smaller dimension
-    cuCQMax,// relative to 1% of container's larger dimension
+    cu_cqw,  // relative to 1% of container's width
+    cu_cqh,  // relative to 1% of container's height
+    cu_cqb,  // relative to 1% of container's block axis dimension
+    cu_cqi,  // relative to 1% of container's inline axis dimension
+    cu_cqmin,// relative to 1% of container's smaller dimension
+    cu_cqmax,// relative to 1% of container's larger dimension
     // angles
-    cuDeg,  // degrees, full circle is 360deg
-    cuGrad, // gradians, full circle is 400grad
-    cuRad,  // radians, full circle is (2*pi)rad
-    cuTurn, // turns, full circle is 1turn
+    cu_deg,  // degrees, full circle is 360deg
+    cu_grad, // gradians, full circle is 400grad
+    cu_rad,  // radians, full circle is (2*pi)rad
+    cu_turn, // turns, full circle is 1turn
     // special
-    cuFr    // fraction of flex space
+    cu_fr    // fraction of flex space
     );
   TCSSUnits = set of TCSSUnit;
 const
-  cuAllAbsoluteLengths = [cuPX,cuCM,cuMM,cuQ,cuIn,cuPT,cuPC];
-  cuAllViewportLengths = [cuVW,cuVH,cuVMax,cuVMin,cuVB,cuVI,
-                          cuSVW,cuSVH,cuSVMax,cuSVMin,cuSVB,cuSVI,
-                          cuLVW,cuLVH,cuLVMax,cuLVMin,cuLVB,cuLVI,
-                          cuDVW,cuDVH,cuDVMax,cuDVMin,cuDVB,cuDVI];
-  cuAllRelativeFontSize = [cuEM,cuEX,cuCap,cuCh,cuIC,cuLH,
-                           cuREM,cuREX,cuRCap,cuRCh,cuRIC,cuRLH];
+  cuAllAbsoluteLengths = [cu_px,cu_cm,cu_mm,cu_Q,cu_in,cu_pt,cu_pc];
+  cuAllViewportLengths = [cu_vw,cu_vh,cu_vmax,cu_vmin,cu_vb,cu_vi,
+                          cu_svw,cu_svh,cu_svmax,cu_svmin,cu_svb,cu_svi,
+                          cu_lvw,cu_lvh,cu_lvmax,cu_lvmin,cu_lvb,cu_lvi,
+                          cu_dvw,cu_dvh,cu_dvmax,cu_dvmin,cu_dvb,cu_dvi];
+  cuAllRelativeFontSize = [cu_em,cu_ex,cu_cap,cu_ch,cu_ic,cu_lh,
+                           cu_rem,cu_rex,cu_rcap,cu_rchh,cu_ric,cu_rlh];
   cuAllLengths = cuAllAbsoluteLengths+cuAllViewportLengths+cuAllRelativeFontSize;
   cuAllLengthsAndPercent = cuAllLengths+[cuPercent];
-  cuAllAngles = [cuDeg,cuGrad,cuRad,cuTurn];
+  cuAllAngles = [cu_deg,cu_grad,cu_rad,cu_turn];
 
   CSSUnitNames: array[TCSSUnit] of TCSSString = (
     '',     // no unit

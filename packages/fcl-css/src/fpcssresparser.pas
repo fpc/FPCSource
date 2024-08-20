@@ -33,7 +33,7 @@ uses
   FPCSS.Tree, FPCSS.Scanner, FPCSS.Parser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Math, Contnrs, AVL_Tree, System.UITypes, fpCSSTree, fpCSSScanner,
+  Classes, SysUtils, Math, Contnrs, AVL_Tree, fpCSSTree, fpCSSScanner,
   fpCSSParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
