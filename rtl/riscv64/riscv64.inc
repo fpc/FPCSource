@@ -264,7 +264,7 @@ begin
   softfloat_exception_mask:=[exPrecision,exUnderflow];
 {$ifdef FPUFD}
   cw:=GetNativeFPUControlWord;
-  { riscv does not support triggering exceptoins when FPU exceptions happen;
+  { riscv does not support triggering exceptions when FPU exceptions happen;
     it merely records which exceptions have happened until now -> clear }
   cw.cw:=0;
   { round to nearest }
