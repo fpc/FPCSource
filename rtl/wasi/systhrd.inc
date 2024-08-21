@@ -209,21 +209,30 @@ Var
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : setting signal=1');{$ENDIF}
-  fpc_wasm32_i32_atomic_store(@P^.Signal,1);
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : notifying waiting threads');{$ENDIF}
-  a:=fpc_wasm32_memory_atomic_notify(@(P^.Signal),MaxThreadSignal);
+  if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,0,1)=0 then
+    begin
+      {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : notifying 1 waiting thread');{$ENDIF}
+      a:=fpc_wasm32_memory_atomic_notify(@(P^.Signal),1);
+    end
+  else
+    begin
+      {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventSetEvent : signal was already 1, nothing to do');{$ENDIF}
+    end;
 end;
 
 procedure WasiRTLEventDestroy(AEvent:PRTLEvent);
 
 Var
   P : PWasmRTLEvent absolute aEvent;
+  a : LongInt;
 
 begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : setting destroying to true');{$ENDIF}
   fpc_wasm32_i32_atomic_store8(@P^.Destroying,1);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : setting event to notify others');{$ENDIF}
-  WasiRTLEventSetEvent(aEvent);
+  fpc_wasm32_i32_atomic_store(@P^.Signal,1);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : notifying waiting threads');{$ENDIF}
+  a:=fpc_wasm32_memory_atomic_notify(@(P^.Signal),MaxThreadSignal);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventDestroy : freeing memory');{$ENDIF}
   Dispose(P);
 end;
@@ -239,37 +248,78 @@ begin
   fpc_wasm32_i32_atomic_store(@P^.Signal,0);
 end;
 
-procedure WasiRTLEventWaitFor_WaitAllowed(AEvent:PWasmRTLEvent; aTimeoutNs : Int64);
+procedure WasiRTLEventWaitFor_WaitAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64);
 
 Var
   a : Longint;
+  EndTime: TOSTime;
+  RemainingTime: Int64;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : waiting');{$ENDIF}
-  a:=fpc_wasm32_memory_atomic_wait32(@(aEvent^.Signal),0,aTimeoutNs);
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitAllowed : done');{$ENDIF}
+  if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+    exit;  // abandoned
+  if aTimeOutNS>=0 then
+    EndTime:=GetClockTime+aTimeOutNS
+  else
+    begin
+      EndTime:=0;
+      RemainingTime:=-1;
+    end;
+  repeat
+    if aTimeOutNS>=0 then
+      begin
+        RemainingTime:=EndTime-GetClockTime;
+        if RemainingTime<0 then
+          exit;  // timeout
+      end;
+    case fpc_wasm32_memory_atomic_wait32(@P^.Signal,0,RemainingTime) of
+      0, { "ok" }
+      1: { "not-equal" }
+        begin
+          if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+            exit  // abandoned
+          else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
+            exit  // signaled
+          else
+            ; { try waiting again (loop continues) }
+        end;
+      2: { "timed-out" }
+        exit;  // timeout or abandoned
+      else { invalid result from wait }
+        exit;  // error
+    end;
+  until false;
 end;
 
 
-procedure WasiRTLEventWaitFor_WaitNotAllowed(AEvent:PWasmRTLEvent; aTimeoutNs : Int64);
+procedure WasiRTLEventWaitFor_WaitNotAllowed(P:PWasmRTLEvent; aTimeoutNs : Int64);
 
 Var
-  EndTime : Int64;
-  IsTimeOut : Boolean;
-  IsDone : Boolean;
+  EndTime: TOSTime;
+  RemainingTime: Int64;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : waiting');{$ENDIF}
-  if aTimeoutNs>=0 then
-    EndTime:=GetClockTime+aTimeoutNs
+  if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+    exit;  // abandoned
+  if aTimeOutNS>=0 then
+    EndTime:=GetClockTime+aTimeOutNS
   else
-    EndTime:=0;
-  Repeat
-    IsTimeOut:=(aTimeoutNs>=0) and (GetClockTime>EndTime);
-    IsDone:=(fpc_wasm32_i32_atomic_load(@aEvent^.Signal)=1) or (fpc_wasm32_i32_atomic_load8_u(@aEvent^.Destroying)<>0);
-  Until isTimeOut or IsDone;
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiRTLEventWaitFor_WaitNotAllowed : done waiting (isTimeout='+intToStr(Ord(isTimeOut))+',IsDone='+intToStr(Ord(IsDone))+
-                                        ',Signal='+IntToStr(aEvent^.Signal)+',Destroying='+IntToStr(Ord(aEvent^.Destroying))+')');{$ENDIF}
+    begin
+      EndTime:=0;
+      RemainingTime:=-1;
+    end;
+  repeat
+    if aTimeOutNS>=0 then
+      begin
+        RemainingTime:=EndTime-GetClockTime;
+        if RemainingTime<0 then
+          exit;  // timeout
+      end;
+    if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+      exit  // abandoned
+    else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
+      exit;  // signaled
+  until false;
 end;
 
 procedure WasiRTLEventWaitFor(AEvent:PRTLEvent);
