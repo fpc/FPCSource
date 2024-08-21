@@ -299,7 +299,7 @@ end;
        ErrCode:=Code;
     end;
 
-  
+
 constructor EInOutArgumentException.Create(const aMsg, aPath: string); overload;
 
 begin
@@ -682,7 +682,7 @@ begin
   if Assigned(aObj) then
     aClassName:=aObj.ClassName
   else
-    aClassName:='<nil>';  
+    aClassName:='<nil>';
   Raise EListError.CreateFmt(SErrListIndexExt,[aIndex,aClassName,aMax])
 end;
 
@@ -893,7 +893,6 @@ end;
 
 
 // generic ifthen..
-{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 begin
   if val then
@@ -907,7 +906,7 @@ begin
   Result := target;
   target := newvalue;
 end;
-{$ENDIF}
+
 
 Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
 
