@@ -126,8 +126,11 @@ const
   CSSSpecifityType = 1;
   CSSSpecifityClass = 10; // includes attribute selectors e.g. [href]
   CSSSpecifityIdentifier = 100;
-  CSSSpecifityInline = 1000;
-  CSSSpecifityImportant = 10000;
+  CSSSpecifityUserAgent = 1000;
+  CSSSpecifityUser = 2000;
+  CSSSpecifityAuthor = 3000;
+  CSSSpecifityInline = 10000;
+  CSSSpecifityImportant = 100000;
 
 type
   TCSSSpecifity = integer; // see CSSSpecifityInvalid..CSSSpecifityImportant
@@ -354,7 +357,8 @@ type
     FMergedAttributesStamp: integer;
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
     FMergedAllDecl: TCSSDeclarationElement;
-    FMergedAllSpecifity: TCSSNumericalID;
+    FMergedAllSpecifity: TCSSSpecifity;
+    FSourceSpecifity: TCSSSpecifity;
 
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
@@ -1141,11 +1145,10 @@ begin
   writeln('TCSSResolver.SelectorIdentifierMatches ',Identifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
   {$ENDIF}
   if TypeID=CSSTypeID_Universal then
-  begin
     // universal selector
-    Result:=CSSSpecifityUniversal;
-  end else if OnlySpecifity then
-    Result:=CSSSpecifityType
+    Result:=CSSSpecifityUniversal+FSourceSpecifity
+  else if OnlySpecifity then
+    Result:=CSSSpecifityType+FSourceSpecifity
   else if TypeID=CSSIDNone then
   begin
     // already warned by parser
@@ -1154,7 +1157,7 @@ begin
     {$ENDIF}
     Result:=CSSSpecifityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
-    Result:=CSSSpecifityType;
+    Result:=CSSSpecifityType+FSourceSpecifity;
 end;
 
 function TCSSResolver.SelectorHashIdentifierMatches(
@@ -1164,11 +1167,11 @@ var
   aValue: TCSSString;
 begin
   if OnlySpecifity then
-    exit(CSSSpecifityIdentifier);
+    exit(CSSSpecifityIdentifier+FSourceSpecifity);
   Result:=CSSSpecifityNoMatch;
   aValue:=Identifier.Value;
   if TestNode.GetCSSID=aValue then
-    Result:=CSSSpecifityIdentifier;
+    Result:=CSSSpecifityIdentifier+FSourceSpecifity;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
@@ -1178,10 +1181,10 @@ var
   aValue: TCSSString;
 begin
   if OnlySpecifity then
-    exit(CSSSpecifityClass);
+    exit(CSSSpecifityClass+FSourceSpecifity);
   aValue:=aClassName.Name;
   if TestNode.HasCSSClass(aValue) then
-    Result:=CSSSpecifityClass
+    Result:=CSSSpecifityClass+FSourceSpecifity
   else
     Result:=CSSSpecifityNoMatch;
   //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
@@ -1194,7 +1197,7 @@ var
   PseudoID: TCSSNumericalID;
 begin
   if OnlySpecifity then
-    exit(CSSSpecifityClass);
+    exit(CSSSpecifityClass+FSourceSpecifity);
   Result:=CSSSpecifityNoMatch;
   PseudoID:=aPseudoClass.NumericalID;
   case PseudoID of
@@ -1207,33 +1210,33 @@ begin
     end;
   CSSPseudoID_Root:
     if TestNode.GetCSSParent=nil then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_Empty:
     if TestNode.GetCSSEmpty then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_FirstChild:
     if TestNode.GetCSSPreviousSibling=nil then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_LastChild:
     if TestNode.GetCSSNextSibling=nil then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_OnlyChild:
     if (TestNode.GetCSSNextSibling=nil)
         and (TestNode.GetCSSPreviousSibling=nil) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_FirstOfType:
     if TestNode.GetCSSPreviousOfType=nil then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_LastOfType:
     if TestNode.GetCSSNextOfType=nil then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   CSSPseudoID_OnlyOfType:
     if (TestNode.GetCSSNextOfType=nil)
         and (TestNode.GetCSSPreviousOfType=nil) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   else
     if TestNode.HasCSSPseudoClass(PseudoID) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   end;
 end;
 
@@ -1381,7 +1384,7 @@ var
   aValue: TCSSString;
 begin
   if OnlySpecifity then
-    exit(CSSSpecifityClass);
+    exit(CSSSpecifityClass+FSourceSpecifity);
 
   Result:=CSSSpecifityInvalid;
   if anArray.Prefix<>nil then
@@ -1452,13 +1455,13 @@ begin
       CSSAttributeID_ID,
       CSSAttributeID_Class:
         // id and class are always defined
-        Result:=CSSSpecifityClass;
+        Result:=CSSSpecifityClass+FSourceSpecifity;
       CSSAttributeID_All:
         // special CSS attributes without a value
         Result:=CSSSpecifityNoMatch;
       else
         if TestNode.HasCSSExplicitAttribute(AttrID) then
-          Result:=CSSSpecifityClass
+          Result:=CSSSpecifityClass+FSourceSpecifity
         else
           Result:=CSSSpecifityNoMatch;
       end;
@@ -1503,7 +1506,8 @@ begin
     LeftValue:=TestNode.GetCSSID;
   CSSAttributeID_Class:
     LeftValue:=TestNode.GetCSSAttributeClass;
-  CSSAttributeID_All: exit(CSSSpecifityNoMatch);
+  CSSAttributeID_All:
+    exit(CSSSpecifityNoMatch);
   else
     LeftValue:=TestNode.GetCSSExplicitAttribute(AttrID);
   end;
@@ -1528,29 +1532,29 @@ begin
   case aBinary.Operation of
   boEquals:
     if SameValueText(LeftValue,RightValue) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   boSquaredEqual:
     // begins with
     if (RightValue<>'') and SameValueText(LeftStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   boDollarEqual:
     // ends with
     if (RightValue<>'') and SameValueText(RightStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   boPipeEqual:
     // equal to or starts with name-hyphen
     if (RightValue<>'')
         and (SameValueText(LeftValue,RightValue)
           or SameValueText(LeftStr(LeftValue,length(RightValue)+1),RightValue+'-')) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   boStarEqual:
     // contains substring
     if (RightValue<>'') and (Pos(RightValue,LeftValue)>0) then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   boTildeEqual:
     // contains word
     if PosWord(RightValue,LeftValue)>0 then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   else
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -1680,7 +1684,7 @@ begin
     exit(CSSSpecifityInvalid);
 
   if OnlySpecifity then
-    Result:=CSSSpecifityClass
+    Result:=CSSSpecifityClass+FSourceSpecifity
   else
     Result:=CSSSpecifityInvalid;
 
@@ -1721,7 +1725,7 @@ begin
   begin
     i:=i div Params.Modulo;
     if i>=0 then
-      Result:=CSSSpecifityClass;
+      Result:=CSSSpecifityClass+FSourceSpecifity;
   end;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.Call_NthChild Node=',TestNode.GetCSSID,' ',Params.Modulo,' * N + ',Params.Start,' Index=',TestNode.GetCSSIndex+1,' i=',i,' Result=',Result);
@@ -2566,6 +2570,13 @@ begin
   // find all matching rules in all stylesheets
   for aLayerIndex:=0 to length(FLayers)-1 do
     with FLayers[aLayerIndex] do begin
+      case Origin of
+      cssoUserAgent: FSourceSpecifity:=CSSSpecifityUserAgent;
+      cssoUser: FSourceSpecifity:=CSSSpecifityUser;
+      else
+        FSourceSpecifity:=CSSSpecifityAuthor;
+      end;
+
       for i:=0 to ElementCount-1 do
         ComputeElement(Elements[i].Element);
     end;
@@ -2601,7 +2612,7 @@ begin
   for i:=0 to FStyleSheetCount-1 do
   begin
     FreeAndNil(FStyleSheets[i].Element);
-    FStyleSheets[i].Free;
+    FreeAndNil(FStyleSheets[i]);
   end;
   FStyleSheetCount:=0;
 end;

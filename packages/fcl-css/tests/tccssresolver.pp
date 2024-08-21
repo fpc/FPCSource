@@ -405,8 +405,6 @@ type
 
     // custom pseudo classes and functions
     procedure Test_Selector_Hover;
-    // ToDo: :dir()
-    // ToDo: :lang()
 
     // inline style
     procedure Test_InlineStyle;
@@ -416,14 +414,11 @@ type
     procedure Test_Specifity_Important;
     procedure Test_Specifity_Shorthand_OneRule;
     procedure Test_Specifity_Shorthand_ClassClass;
-    // longhand, all, longhand
-    // shorthand, all, shorthand
-    // important longhand, shorthand
-    // important shorthand, longhand
+    procedure Test_Specifity_Longhand_All_Longhand;
+    procedure Test_Specifity_Shorthand_All_Shorthand;
 
     // origin
-    // higher in specifity in user-agent is beaten by author style
-    // important in author is beaten by user-agent important
+    procedure Test_Origin_Id_Class;
 
     // var()
 
@@ -1700,6 +1695,86 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
+procedure TTestNewCSSResolver.Test_Specifity_Longhand_All_Longhand;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+  Div1.CSSClasses.Add('eagle');
+
+  Doc.Style:=LinesToStr([
+  '.bird.eagle { border-color: blue; }',
+  '.bird { border-width: 7px; }',
+  '.bird { all: initial; }',
+  '.bird { background: red; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','',Div1.BorderWidth);
+  AssertEquals('Div1.Background','red',Div1.Background);
+end;
+
+procedure TTestNewCSSResolver.Test_Specifity_Shorthand_All_Shorthand;
+var
+  Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('bird');
+
+  Div2:=TDemoDiv.Create(nil);
+  Div2.Name:='Div2';
+  Div2.Parent:=Doc.Root;
+  Div2.CSSClasses.Add('eagle');
+
+  Doc.Style:=LinesToStr([
+  '.bird { border: 7px blue; }',
+  '.bird { all: initial; }',
+  '.eagle { all: initial; }',
+  '.eagle { border: 8px red; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Div1.BorderColor','',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','',Div1.BorderWidth);
+  AssertEquals('Div2.BorderColor','red',Div2.BorderColor);
+  AssertEquals('Div2.BorderWidth','8px',Div2.BorderWidth);
+end;
+
+procedure TTestNewCSSResolver.Test_Origin_Id_Class;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+
+  writeln('TTestNewCSSResolver.Test_Origin_Id_Class ',Doc.CSSResolver.ClassName);
+  Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'testagent',
+  '#Div1 { border-width: 2px;'
+  +' border-color: blue !important;'
+  +' background: green; }'
+  );
+
+  Doc.Style:=LinesToStr([
+  'div { border-width: 3px; ', // although class has lower spec than id, author origin wins
+  ' border-color: orange;', // former important always wins
+  '}']);
+  Doc.ApplyStyle;
+  AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+  AssertEquals('Div1.Background','green',Div1.Background);
+end;
+
 { TDemoDiv }
 
 class function TDemoDiv.CSSTypeName: TCSSString;
@@ -1874,8 +1949,6 @@ var
   end;
 
 begin
-  FCSSResolver.ClearStyleSheets;
-
   FoundStyles:=[];
   CollectTypeStyles(Root);
 end;
