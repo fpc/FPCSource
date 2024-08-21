@@ -47,7 +47,7 @@
 {$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
   { strange Delphi thing }
   {$i sysmarshal.inc}
-{$ENDIF}  
+{$ENDIF}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
@@ -305,7 +305,7 @@ end;
        ErrCode:=Code;
     end;
 
-  
+
 constructor EInOutArgumentException.Create(const aMsg, aPath: string); overload;
 
 begin
@@ -688,7 +688,7 @@ begin
   if Assigned(aObj) then
     aClassName:=aObj.ClassName
   else
-    aClassName:='<nil>';  
+    aClassName:='<nil>';
   Raise EListError.CreateFmt(SErrListIndexExt,[aIndex,aClassName,aMax])
 end;
 
@@ -899,7 +899,6 @@ end;
 
 
 // generic ifthen..
-{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 begin
   if val then
@@ -913,7 +912,7 @@ begin
   Result := target;
   target := newvalue;
 end;
-{$ENDIF}
+
 
 Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
 

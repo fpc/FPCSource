@@ -217,10 +217,10 @@ type
    ENoDynLibsSupport = class(Exception);
 
    EProgrammerNotFound = class(Exception);
-   
+
    EMonitor = class(Exception);
    EMonitorLockException = class(EMonitor);
-   ENoMonitorSupportException = class(EMonitor);   
+   ENoMonitorSupportException = class(EMonitor);
 
    EObjectDisposed = class(Exception);
 
@@ -265,7 +265,7 @@ type
    function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; const aListObjName: string): string; overload;
    function ListIndexErrorMsg(aIndex, aMaxIndex: SizeInt; aListObj: TObject): string; overload;
    procedure RangeIndexError(aIndex, aMaxIndex: SizeInt; aListObj: TObject);
-    
+
 Type
    TBeepHandler = Procedure;
 
@@ -288,10 +288,8 @@ type
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
-{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 generic function Exchange<T>(var target:T; const newvalue:T) :T; inline;
-{$ENDIF}
 
 Var
    OnShowException : Procedure (Msg : ShortString);
@@ -360,7 +358,7 @@ Type
 {$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
   { strange Delphi thing }
   {$i sysmarshalh.inc}
-{$ENDIF}  
+{$ENDIF}
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
@@ -410,7 +408,7 @@ Type
     TArchitecture = (arIntelX86, arIntelX64, arARM32, arARM64, arIntelX16, arXTensa, arAVR, arM68k, arPowerPC, arPower64,
                      arMips, arMipsel, arMips64, arMips64el, arJVM, arWasm32, arSparc, arSparc64, arRiscV32, arRiscV64, arZ80,
                      arLoongArch64, arOther);
-    
+
     TPlatform = (pfWindows, pfMacOS, pfiOS, pfAndroid, pfWinRT, pfLinux,
                  pfGo32v2, pfOS2, pfFreeBSD, pfBeos, pfNetBSD, pfAmiga,
                  pfAtari, pfSolaris, pfQNX, pfNetware, pfOpenBSD, pfWDosX,
@@ -420,7 +418,7 @@ Type
                  pfNativeNT, pfMSDos, pfWII, pfAROS, pfDragonFly, pfWin16,
                  pfFreeRTOS, pfZXSpectrum, pfMSXDOS, pfAmstradCPC,
                  pfSinclairQL, pfWasi, pfOther);
-    TDelphiPlatform = TPlatform.pfWindows..TPlatform.pfLinux;             
+    TDelphiPlatform = TPlatform.pfWindows..TPlatform.pfLinux;
   public const
     AllArchitectures = [Low(TArchitecture) .. High(TArchitecture)];
     AllPlatforms = [Low(TPlatform) .. High(TPlatform)];
@@ -468,6 +466,6 @@ Type
   Function GetCompiledPlatform : TOSVersion.TPlatform;
 
 {$IFNDEF HAS_INVALIDHANDLE}
-const 
+const
   INVALID_HANDLE_VALUE = DWORD(-1);
 {$ENDIF}
