@@ -2997,7 +2997,8 @@ begin
       ObjId:=PLongWord(p)^;
       inc(p,4);
       Result:=aResultClass.JOBCreateFromID(ObjId);
-      Result.JOBObjectIDOwner:=false; // owned by caller (JS code in browser)
+      Result.JOBObjectIDOwner:=True; // The objects passed are not freed, we need to do it.
+      // Writeln('Will free ',ObjID);
     end
   else
     raise EJSArgParse.Create(JOBArgNames[p^]);
