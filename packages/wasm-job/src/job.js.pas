@@ -821,6 +821,8 @@ type
     constructor Create(aBytes : PByte; aLen : NativeUInt);
     constructor Create(aBytes : TBytes);
     constructor create(aArray : IJSArrayBuffer);
+    constructor create(aArray : IJSArrayBuffer; aByteOffset: NativeUint);
+    constructor create(aArray : IJSArrayBuffer; aByteOffset: NativeUint; Len : NativeUint);
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
@@ -2232,6 +2234,16 @@ end;
 constructor TJSTypedArray.create(aArray: IJSArrayBuffer);
 begin
   JobCreate(True,[aArray]);
+end;
+
+constructor TJSTypedArray.create(aArray: IJSArrayBuffer; aByteOffset: NativeUint);
+begin
+  JobCreate(True,[aArray,aByteOffset]);
+end;
+
+constructor TJSTypedArray.create(aArray: IJSArrayBuffer; aByteOffset: NativeUint; Len: NativeUint);
+begin
+  JobCreate(True,[aArray,aByteOffset,Len]);
 end;
 
 class function TJSTypedArray.Cast(const Intf: IJSObject): IJSTypedArray;
