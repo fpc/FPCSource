@@ -1139,6 +1139,7 @@ type
     Constructor Create(anOwnsObjects : Boolean);
     destructor Destroy; override;
     function Add(const S: string): Integer; override;
+    function AddObject(const S: string; AObject: TObject): Integer; override;
     procedure Clear; override;
     procedure Delete(Index: Integer); override;
     procedure Exchange(Index1, Index2: Integer); override;
