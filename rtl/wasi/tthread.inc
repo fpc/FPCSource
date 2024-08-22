@@ -217,6 +217,9 @@ function TThread.WaitFor: Integer;
 
 begin
   WaitFor:=WaitForThreadTerminate(FThreadID,-1);
+  { should actually check for errors in WaitForThreadTerminate, but no }
+  { error api is defined for that function                             }
+  FThreadReaped:=true;
 end;
 
 {$else FPC_WASM_THREADS}
