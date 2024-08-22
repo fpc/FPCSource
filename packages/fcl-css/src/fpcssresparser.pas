@@ -407,7 +407,7 @@ type
     function IndexOfPseudoClassName(const aName: TCSSString): TCSSNumericalID; overload;
     property PseudoClassCount: TCSSNumericalID read FPseudoClassCount;
   public
-    // pseudo functions
+    // pseudo functions lowercase (they are parsed case insensitive)
     PseudoFunctions: TCSSStringArray;
     function AddPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
@@ -564,6 +564,13 @@ type
     procedure SkipToEndOfAttribute(var p: PCSSChar);
     function SkipString(var p: PCSSChar): boolean;
     function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
+    // registry
+    function GetAttributeID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc; virtual;
+    function GetTypeID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetPseudoClassID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
+
     property CSSRegistry: TCSSRegistry read FCSSRegistry write SetCSSRegistry;
   end;
 
@@ -574,10 +581,10 @@ type
   TCSSResolverParser = class(TCSSParser)
   private
     FOnLog: TCSSValueParserLogEvent;
-    FRegistry: TCSSRegistry;
     FResolver: TCSSBaseResolver;
   protected
-    function ResolveIdentifier(El: TCSSResolvedIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
+    function ResolveAttribute(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
+    function ResolveType(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoClass(El: TCSSResolvedPseudoClassElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
@@ -597,7 +604,6 @@ type
     destructor Destroy; override;
     procedure Log(MsgType: TEventType; const ID: TCSSMsgID; const Msg: TCSSString; PosEl: TCSSElement); virtual;
     class function IsWhiteSpace(const s: TCSSString): boolean; virtual; overload;
-    property Registry: TCSSRegistry read FRegistry write FRegistry;
     property Resolver: TCSSBaseResolver read FResolver write FResolver;
     property OnLog: TCSSValueParserLogEvent read FOnLog write FOnLog;
   end;
@@ -1175,6 +1181,8 @@ begin
     raise ECSSParser.Create('missing name');
   if length(aName)>255 then
     raise ECSSParser.Create('pseudo function name too long');
+  if aName<>LowerCase(aName) then
+    raise ECSSParser.Create('pseudo function name not lowercase');
   Result:=IndexOfKeyword(aName);
   if Result>0 then
     raise ECSSParser.Create('duplicate pseudo function "'+aName+'"');
@@ -2044,30 +2052,67 @@ begin
   until false;
 end;
 
+function TCSSBaseResolver.GetAttributeID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfAttributeName(aName);
+end;
+
+function TCSSBaseResolver.GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc;
+begin
+  if (AttrID>0) and (AttrID<CSSRegistry.AttributeCount) then
+    Result:=CSSRegistry.Attributes[AttrID]
+  else
+    Result:=nil;
+end;
+
+function TCSSBaseResolver.GetTypeID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfTypeName(aName);
+end;
+
+function TCSSBaseResolver.GetPseudoClassID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfPseudoClassName(aName);
+end;
+
+function TCSSBaseResolver.GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfPseudoFunction(aName);
+end;
+
 { TCSSResolverParser }
 
-function TCSSResolverParser.ResolveIdentifier(El: TCSSResolvedIdentifierElement;
-  Kind: TCSSNumericalIDKind): TCSSNumericalID;
+function TCSSResolverParser.ResolveAttribute(El: TCSSResolvedIdentifierElement): TCSSNumericalID;
 var
   aName: TCSSString;
 begin
   if El.NumericalID<>CSSIDNone then
     raise Exception.Create('20240701143234');
   aName:=El.Name;
-  if Kind=nikPseudoClass then
-  begin
-    // pseudo classes are ASCII case insensitive
-    System.Delete(aName,1,1);
-    aName:=lowercase(aName);
-  end;
-
-  El.Kind:=Kind;
-  Result:=Registry.IndexOfNamedItem(Kind,aName);
-  //writeln('TCSSResolverParser.ResolveIdentifier ',aName,' ID=',Result);
-  if Result=CSSIDNone then
+  El.Kind:=nikAttribute;
+  Result:=Resolver.GetAttributeID(aName);
+  writeln('AAA1 TCSSResolverParser.ResolveAttribute ',aName,' ',Result);
+  if Result<=CSSIDNone then
   begin
     El.NumericalID:=-1;
-    Log(etWarning,20240625130648,'unknown '+CSSNumericalIDKindNames[Kind]+' "'+aName+'"',El);
+    Log(etWarning,20240625130648,'unknown attribute "'+aName+'"',El);
+  end else
+    El.NumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolveType(El: TCSSResolvedIdentifierElement): TCSSNumericalID;
+var
+  aName: TCSSString;
+begin
+  if El.NumericalID<>CSSIDNone then
+    raise Exception.Create('20240822133813');
+  aName:=El.Name;
+  El.Kind:=nikType;
+  Result:=Resolver.GetTypeID(aName);
+  if Result<=CSSIDNone then
+  begin
+    El.NumericalID:=-1;
+    Log(etWarning,20240822133816,'unknown type "'+aName+'"',El);
   end else
     El.NumericalID:=Result;
 end;
@@ -2086,7 +2131,7 @@ begin
     raise Exception.Create('20240701143234');
 
   El.Kind:=nikPseudoClass;
-  Result:=Registry.IndexOfNamedItem(nikPseudoClass,aName);
+  Result:=Resolver.GetPseudoClassID(aName);
   //writeln('TCSSResolverParser.ResolvePseudoClass ',aName,' ID=',Result);
   if Result<=CSSIDNone then
   begin
@@ -2112,12 +2157,12 @@ begin
   aName:=lowercase(aName);
 
   El.Kind:=nikPseudoFunction;
-  Result:=Registry.IndexOfNamedItem(nikPseudoFunction,aName);
+  Result:=Resolver.GetPseudoFunctionID(aName);
   //writeln('TCSSResolverParser.ResolvePseudoFunction ',aName,' ID=',Result);
-  if Result=CSSIDNone then
+  if Result<=CSSIDNone then
   begin
     El.NameNumericalID:=-1;
-    Log(etWarning,20240625130648,'unknown pseudo class "'+aName+'"',El);
+    Log(etWarning,20240625130648,'unknown pseudo function "'+aName+'"',El);
   end else
     El.NameNumericalID:=Result;
 end;
@@ -2165,8 +2210,7 @@ begin
   aKey:=Result.Keys[0];
   if aKey is TCSSResolvedIdentifierElement then
   begin
-    // todo: custom attributes
-    AttrId:=ResolveIdentifier(TCSSResolvedIdentifierElement(aKey),nikAttribute);
+    AttrId:=ResolveAttribute(TCSSResolvedIdentifierElement(aKey));
 
     if aKey.CustomData<>nil then
       raise Exception.Create('20240626113536');
@@ -2188,7 +2232,7 @@ begin
 
     if AttrId>=CSSAttributeID_All then
     begin
-      Desc:=Registry.Attributes[AttrId];
+      Desc:=Resolver.GetAttributeDesc(AttrId);
 
       if Pos('var(',AttrData.Value)>0 then
       begin
@@ -2221,7 +2265,7 @@ begin
   C:=El.ClassType;
   if C=TCSSResolvedIdentifierElement then
     // e.g. div {}
-    ResolveIdentifier(TCSSResolvedIdentifierElement(El),nikType)
+    ResolveType(TCSSResolvedIdentifierElement(El))
   else if C=TCSSHashIdentifierElement then
     // e.g. #id {}
   else if C=TCSSClassNameElement then
@@ -2293,7 +2337,7 @@ begin
   if C=TCSSResolvedIdentifierElement then
   begin
     // [name]  ->  has explicit attribute
-    ResolveIdentifier(TCSSResolvedIdentifierElement(El),nikAttribute);
+    ResolveAttribute(TCSSResolvedIdentifierElement(El));
   end else if C=TCSSBinaryElement then
     CheckSelectorArrayBinary(TCSSBinaryElement(El))
   else begin
@@ -2313,7 +2357,7 @@ begin
     Log(etWarning,20240625154314,'Invalid CSS array selector, expected attribute',Left);
     exit;
   end;
-  ResolveIdentifier(TCSSResolvedIdentifierElement(Left),nikAttribute);
+  ResolveAttribute(TCSSResolvedIdentifierElement(Left));
 
   Right:=aBinary.Right;
   C:=Right.ClassType;

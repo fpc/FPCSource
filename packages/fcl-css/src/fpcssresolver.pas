@@ -857,7 +857,6 @@ begin
     ms.Write(Src[1],length(Src)*SizeOf(TCSSChar));
     ms.Position:=0;
     aParser:=TCSSResolverParser.Create(ms); // ss is freed by the parser
-    aParser.Registry:=CSSRegistry;
     aParser.Resolver:=Self;
     aParser.OnLog:=@Log;
     aParser.CSSNthChildParamsClass:=TCSSResolverNthChildParams;
