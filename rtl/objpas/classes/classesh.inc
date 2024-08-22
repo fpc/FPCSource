@@ -1134,6 +1134,7 @@ type
     procedure InsertItem(Index: Integer; const S: string); virtual;
     procedure InsertItem(Index: Integer; const S: string; O: TObject); virtual;
     Function DoCompareText(const s1,s2 : string) : PtrInt; override;
+    function DoAddObject(const S: string; AObject: TObject) : Integer; inline;
   public
     Constructor Create;
     Constructor Create(anOwnsObjects : Boolean);
