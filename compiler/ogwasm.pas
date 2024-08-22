@@ -4956,8 +4956,17 @@ implementation
         if not (ts_wasm_threads in current_settings.targetswitches) then
           begin
             WriteUleb(FWasmSections[wsiMemory],1);
-            WriteByte(FWasmSections[wsiMemory],0);
-            WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+            if FMaxMemoryPages>=FMinMemoryPages then
+              begin
+                WriteByte(FWasmSections[wsiMemory],1);
+                WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+                WriteUleb(FWasmSections[wsiMemory],FMaxMemoryPages);
+              end
+            else
+              begin
+                WriteByte(FWasmSections[wsiMemory],0);
+                WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+              end;
           end;
 
         if ts_wasm_threads in current_settings.targetswitches then
