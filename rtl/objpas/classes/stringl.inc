@@ -1969,15 +1969,7 @@ begin
   Inherited destroy;
 end;
 
-
-
-function TStringList.Add(const S: string): Integer;
-
-begin
-  Result := AddObject(S, nil);
-end;
-
-function TStringList.AddObject(const S: string; AObject: TObject): Integer;
+function TStringList.DoAddObject(const S: string; AObject: TObject): Integer;
 
 begin
   If (SortStyle<>sslAuto) then
@@ -1989,6 +1981,18 @@ begin
         DupError : Error(SDuplicateString,0)
       end;
    InsertItem (Result,S,AObject);
+end;
+
+function TStringList.Add(const S: string): Integer;
+
+begin
+  Result:=DoAddObject(S, nil);
+end;
+
+function TStringList.AddObject(const S: string; AObject: TObject): Integer;
+
+begin
+  Result:=DoAddObject(S,aObject);
 end;
 
 procedure TStringList.Clear;
