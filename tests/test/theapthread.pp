@@ -2,6 +2,12 @@
 { %TIMEOUT=105 }
 {$mode objfpc}{$h+}
 
+{$ifdef CPUWASM32}
+  { This test runs out of memory, when using the default WebAssembly shared
+    memory limit of 256 MiB, so we increase it to 512 MiB }
+  {$M 1048576,536870912,536870912}
+{$endif}
+
 uses
 {$ifdef UNIX}
   cthreads,
