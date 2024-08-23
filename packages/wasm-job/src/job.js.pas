@@ -771,7 +771,7 @@ type
     function _getResizable: Boolean;
   public
     constructor create (aSize : integer);
-    class function GlobalMemory : TJSArrayBuffer;
+    class function GlobalMemory : IJSArrayBuffer;
     function Slice : IJSArrayBuffer;
     function Slice (aStart : NativeInt): IJSArrayBuffer;
     function Slice (aStart,aEndExclusive : NativeInt): IJSArrayBuffer;
@@ -2294,9 +2294,15 @@ begin
   JobCreate(True,[aSize])
 end;
 
-class function TJSArrayBuffer.GlobalMemory: TJSArrayBuffer;
+class function TJSArrayBuffer.GlobalMemory: IJSArrayBuffer;
+
+var
+  Obj : TJSArrayBuffer;
+
 begin
-  Result:=JOBCreateGlobal('InstanceBuffer');
+  Obj:=TJSArrayBuffer.JOBCreateGlobal('InstanceBuffer');
+  Obj.FJOBObjectIDOwner:=True;
+  Result:=Obj;
 end;
 
 function TJSArrayBuffer.Slice: IJSArrayBuffer;
@@ -2998,7 +3004,6 @@ begin
       inc(p,4);
       Result:=aResultClass.JOBCreateFromID(ObjId);
       Result.JOBObjectIDOwner:=True; // The objects passed are not freed, we need to do it.
-      // Writeln('Will free ',ObjID);
     end
   else
     raise EJSArgParse.Create(JOBArgNames[p^]);
@@ -4368,9 +4373,10 @@ var
   Buf: array[0..7] of byte;
   p: PByte;
   r: TJOBResult;
-  Obj: TJSObject;
+  Obj: IInterface;
   func : TJSFunction;
   objid,thisid : TJOBObjectID;
+  Tmp : TJSObject;
 begin
   FillByte(Buf[0],length(Buf),0);
   p:=@Buf[0];
@@ -4396,8 +4402,10 @@ begin
     end;
   JOBResult_Object:
     begin
-    Obj:=TJSObject.JOBCreateFromID(PJOBObjectID(p)^);
-    Result:=Obj as IJSObject;
+    Tmp:=TJSObject.JOBCreateFromID(PJOBObjectID(p)^);
+    Obj:=Tmp;
+    Result:=Obj;
+    Obj:=nil;
     end;
   else
     VarClear(Result);
