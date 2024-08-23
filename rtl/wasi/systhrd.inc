@@ -50,6 +50,7 @@ Type
   TWasmThread = Record
     InitialStackPointer : Pointer;
     InitTLSBase : Pointer;
+    ThreadHasFinished : Boolean;
     ID : LongInt; // Allocated by host
     ThreadFunction : TThreadFunc;
     ThreadFunctionArg : Pointer;
@@ -446,6 +447,16 @@ asm
   local.get 0  ;; tid
   local.get 1  ;; start_arg
   call $FPCWasmThreadStartPascal
+
+  ;; Set start_arg^.ThreadHasFinished to true.
+  ;; This is done from within inline asm, after the pascal code has finished
+  ;; executing, because it indicates that the thread no longer needs its TLS
+  ;; block and linear stack block, so this means it's safe to free them.
+  local.get 1  ;; start_arg
+  i32.const 8  ;; offset to ThreadHasFinished
+  i32.add
+  i32.const 1  ;; true
+  i32.atomic.store8
 end;
 
 exports wasi_thread_start;
