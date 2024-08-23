@@ -452,12 +452,20 @@ exports wasi_thread_start;
 
 Function wasi_thread_spawn(start_arg: PWasmThread) : LongInt; external 'wasi' name 'thread-spawn';
 
+{ Just because we set the original pointer to nil, using InterlockedExchange
+  to avoid race conditions leading to double free, doesn't mean this function is
+  meant to be called more than once, or from multiple threads. This just adds
+  some extra layer of protection. }
 procedure FreeStackAndTlsBlock(T : PWasmThread);
+var
+  P: Pointer;
 begin
-  if Assigned(T^.StackBlock) then
-    FreeMem(T^.StackBlock);
-  if Assigned(T^.TLSBlock) then
-    FreeMem(T^.TLSBlock);
+  P:=InterlockedExchange(T^.StackBlock,nil);
+  if Assigned(P) then
+    FreeMem(P);
+  P:=InterlockedExchange(T^.TLSBlock,nil);
+  if Assigned(P) then
+    FreeMem(P);
 end;
 
 function WasiBeginThread(sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
