@@ -575,6 +575,8 @@ begin
   UnLockMuTex(PWasmThread(ThreadHandle)^.Running);
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+') : Lock released');{$ENDIF}
   WasiWaitForThreadTerminate:=DWord(Res);
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+') : FreeStackAndTlsBlock');{$ENDIF}
+  FreeStackAndTlsBlock(TH);
 end;
 
 function WasiThreadSetPriority(threadHandle : TThreadID; Prio: longint): boolean;
