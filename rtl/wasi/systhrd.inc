@@ -452,6 +452,14 @@ exports wasi_thread_start;
 
 Function wasi_thread_spawn(start_arg: PWasmThread) : LongInt; external 'wasi' name 'thread-spawn';
 
+procedure FreeStackAndTlsBlock(T : PWasmThread);
+begin
+  if Assigned(T^.StackBlock) then
+    FreeMem(T^.StackBlock);
+  if Assigned(T^.TLSBlock) then
+    FreeMem(T^.TLSBlock);
+end;
+
 function WasiBeginThread(sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
 
 Const
@@ -492,10 +500,7 @@ begin
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: spawn thread failed');{$ENDIF}
     WasiRTLEventDestroy(T^.DoneEvent);
     DoneMutex(T^.Running);
-    if Assigned(T^.StackBlock) then
-      FreeMem(T^.StackBlock);
-    if Assigned(T^.TLSBlock) then
-      FreeMem(T^.TLSBlock);
+    FreeStackAndTlsBlock(T);
     Dispose(T);
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WasiBeginThread: spawn thread failed, freeing thread struct');{$ENDIF}
     WasiBeginThread:=TThreadID(0);
