@@ -95,6 +95,7 @@ const
   DoKnown : boolean = false;
   DoAll : boolean = false;
   DoUsual : boolean = true;
+  ForceTestThreads : Boolean = false;
   { TargetDir : string = ''; unused }
   BenchmarkInfo : boolean = false;
   ExtraCompilerOpts : string = '';
@@ -129,7 +130,8 @@ procedure TranslateConfig(var AConfig: TConfig);
 begin
   AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoSharedLibSupportPattern, TargetHasNoSharedLibSupport);
   AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingUnicodeSupport, TargetHasNoWorkingUnicodeSupport);
-  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
+  if not ForceTestThreads then
+    AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
 end;
 
 
@@ -2075,6 +2077,8 @@ end;
 
 
 begin
+  if GetEnvironmentVariable('TEST_THREADS')='1' then
+    ForceTestThreads:=True;
   Current:=0;
   PPFile:=TStringList.Create;
   PPFile.Capacity:=10;
