@@ -2391,7 +2391,13 @@ var
           inc(p);
           SkipIdentifier;
         end;
-      'a'..'z','A'..'Z':
+      '-':
+        begin
+          inc(p);
+          if (p^ in ['a'..'z','A'..'Z','_','-']) then
+            SkipIdentifier;
+        end;
+      'a'..'z','A'..'Z','_':
         if (p^='v') and (p[1]='a') and (p[2]='r') and (p[3]='(') then
         begin
           // var() found

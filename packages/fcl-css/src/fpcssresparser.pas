@@ -435,7 +435,7 @@ type
   public
     // attribute functions
     AttrFunctions: TCSSStringArray;
-    afVar: TCSSNumericalID;
+    const afVar = CSSAttrFuncVar;
     function AddAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     property AttrFunctionCount: TCSSNumericalID read FAttrFunctionCount;
@@ -556,7 +556,7 @@ type
     function IsLengthOrPercentage(const ResValue: TCSSResCompValue; AllowNegative: boolean): boolean; overload;
     function IsSymbol(Token: TCSSToken): boolean; overload;
     function GetCompString: TCSSString; overload;
-    function GetCompString(const aValue: string; const ResValue: TCSSResCompValue; EndP: PCSSChar): TCSSString; overload;
+    function GetCompString(const aValue: string; const ResValue: TCSSResCompValue): TCSSString; overload;
     // low level functions to parse attribute components
     function ReadComp(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue
     function ReadNumber(var aComp: TCSSResCompValue): boolean;
@@ -1701,6 +1701,16 @@ begin
       SetSymbol(ctkDIV);
       exit;
     end;
+  ':':
+    begin
+      SetSymbol(ctkCOLON);
+      exit;
+    end;
+  ';':
+    begin
+      SetSymbol(ctkSEMICOLON);
+      exit;
+    end;
   'a'..'z','A'..'Z':
     if ReadIdentifier(aComp) then exit;
   '#':
@@ -1971,18 +1981,18 @@ begin
     SetString(Result,StartP,CurComp.EndP-StartP);
 end;
 
-function TCSSBaseResolver.GetCompString(const aValue: string; const ResValue: TCSSResCompValue;
-  EndP: PCSSChar): TCSSString;
+function TCSSBaseResolver.GetCompString(const aValue: string; const ResValue: TCSSResCompValue
+  ): TCSSString;
 var
   Start: PCSSChar;
 begin
   if ResValue.Kind=rvkKeyword then
     exit(CSSRegistry.Keywords[ResValue.KeywordID]);
   Start:=ResValue.StartP;
-  if (Start=PCSSChar(aValue)) and (EndP-Start = length(aValue)) then
+  if (Start=PCSSChar(aValue)) and (ResValue.EndP-Start = length(aValue)) then
     Result:=aValue
   else
-    SetString(Result,Start,EndP-Start);
+    SetString(Result,Start,ResValue.EndP-Start);
 end;
 
 procedure TCSSBaseResolver.SkipToEndOfAttribute(var p: PCSSChar);
