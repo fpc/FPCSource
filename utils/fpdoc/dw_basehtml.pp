@@ -154,13 +154,13 @@ type
     Property BaseImageURL : String Read FBaseImageURL Write FBaseImageURL;
   end;
 
-Function FixHTMLpath(S : String) : STring;
+Function FixHTMLpath(const S : String) : STring;
 
 implementation
 
 uses fpdocstrs, xmlread, sysutils, sh_pas;
 
-Function FixHTMLpath(S : String) : STring;
+Function FixHTMLpath(const S : String) : STring;
 
 begin
   Result:=StringReplace(S,'\','/',[rfReplaceAll]);
