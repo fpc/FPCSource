@@ -855,9 +855,9 @@ unit scandir;
 
     procedure dir_memory;
       var
-        l : longint;
-        heapsize_limit: longint;
-        maxheapsize_limit: longint;
+        l : int64;
+        heapsize_limit: int64;
+        maxheapsize_limit: int64;
       begin
 {$if defined(i8086)}
         if target_info.system=system_i8086_win16 then
@@ -875,12 +875,15 @@ unit scandir;
             heapsize_limit:=65520;
             maxheapsize_limit:=65520;
           end;
+{$elseif defined(WASM32)}
+        heapsize_limit:=int64(high(uint32))+1;
+        maxheapsize_limit:=int64(high(uint32))+1;
 {$elseif defined(cpu16bitaddr)}
         heapsize_limit:=65520;
         maxheapsize_limit:=65520;
 {$else}
-        heapsize_limit:=high(heapsize);
-        maxheapsize_limit:=high(maxheapsize);
+        heapsize_limit:=high(longint);
+        maxheapsize_limit:=high(longint);
 {$endif}
         current_scanner.skipspace;
         l:=current_scanner.readval;
@@ -899,14 +902,14 @@ unit scandir;
           begin
             current_scanner.readchar;
             current_scanner.skipspace;
-            l:=current_scanner.readval;
+            l:=current_scanner.readval64;
             if l>=1024 then
               heapsize:=min(l,heapsize_limit);
             if c=',' then
               begin
                 current_scanner.readchar;
                 current_scanner.skipspace;
-                l:=current_scanner.readval;
+                l:=current_scanner.readval64;
                 if l>=heapsize then
                   maxheapsize:=min(l,maxheapsize_limit)
                 else

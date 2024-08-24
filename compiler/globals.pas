@@ -417,7 +417,7 @@ Const
        pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
-       maxheapsize,
+       maxheapsize : int64;
        stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
