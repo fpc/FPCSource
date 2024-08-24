@@ -50,9 +50,9 @@ uses
   utcmatrix,
   utcpoint,
   utcvector,
-  utcquaternion,
+  utcquaternion
 {$IFDEF HAS_MONITOR}
-  utcfpmonitor, tests.rtti.attrtypes
+  ,utcfpmonitor, tests.rtti.attrtypes
 {$ENDIF}
 
 ;
