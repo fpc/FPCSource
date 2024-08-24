@@ -3250,7 +3250,12 @@ begin
             if UnsetBool(More, j, opt, false) then
               exclude(init_settings.globalswitches,cs_use_lineinfo)
             else
-              include(init_settings.globalswitches,cs_use_lineinfo);
+              begin
+                if target_info.system in systems_wasm then
+                  IgnoredPara('-gl')
+                else
+                  include(init_settings.globalswitches,cs_use_lineinfo);
+              end;
           end;
         'm' :
           begin
