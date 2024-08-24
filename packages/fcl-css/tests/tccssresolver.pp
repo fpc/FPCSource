@@ -241,6 +241,7 @@ type
     function GetCSSNextOfType: ICSSNode; virtual;
     function GetCSSPreviousOfType: ICSSNode; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
@@ -424,8 +425,9 @@ type
     procedure Test_Origin_Id_Class;
 
     // var()
-    procedure Test_Var;
-    // todo: Test_Var_Inline; // var() in inline, custom attr in inline
+    procedure Test_Var_NoDefault;
+    procedure Test_Var_Inline_NoDefault;
+      procedure Test_Var_Defaults;
 
     // skipping for forward compatibility
     // ToDo: invalid token in selector makes selector invalid
@@ -1043,6 +1045,7 @@ var
   i: Integer;
   AttrID: TCSSNumericalID;
   CurValue: TCSSAttributeValue;
+  Desc: TCSSAttributeDesc;
 begin
   if (InlineStyleElement=nil) and (InlineStyle<>'') then
     InlineStyleElement:=Resolver.ParseInlineStyle(InlineStyle) as TCSSRuleElement;
@@ -1064,17 +1067,23 @@ begin
       cavsSource, cavsBaseKeywords:
         begin
           AttrID:=CurValue.AttrID;
-          AttrDesc:=CSSRegistry.Attributes[AttrID] as TDemoCSSAttributeDesc;
-          if AttrDesc.OnCompute<>nil then
+          Desc:=Resolver.GetAttributeDesc(AttrID);
+          if Desc=nil then
+            raise Exception.Create('20240823100115 AttrID='+IntToStr(AttrID));
+          if Desc is TDemoCSSAttributeDesc then
           begin
-            Resolver.CurComp.EndP:=PChar(CurValue.Value);
-            Resolver.ReadNext;
-            AttrDesc.OnCompute(Resolver,Self,CurValue);
-            {$IFDEF VerboseCSSResolver}
-            writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
-            {$ENDIF}
-          end else
-            CurValue.State:=cavsComputed;
+            AttrDesc:=TDemoCSSAttributeDesc(Desc);
+            if AttrDesc.OnCompute<>nil then
+            begin
+              Resolver.CurComp.EndP:=PChar(CurValue.Value);
+              Resolver.ReadNext;
+              AttrDesc.OnCompute(Resolver,Self,CurValue);
+              {$IFDEF VerboseCSSResolver}
+              writeln('TDemoNode.ApplyCSS ',Name,' computed ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',CurValue.Value,'"');
+              {$ENDIF}
+            end else
+              CurValue.State:=cavsComputed;
+          end;
         end;
       cavsComputed: ;
       cavsInvalid: ;
@@ -1192,6 +1201,27 @@ function TDemoNode.GetCSSAttributeClass: TCSSString;
 begin
   FCSSClasses.Delimiter:=' ';
   Result:=FCSSClasses.DelimitedText;
+end;
+
+function TDemoNode.GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
+var
+  i: Integer;
+  El: TDemoNode;
+begin
+  Result:='';
+  El:=Self;
+  repeat
+    if El.Values<>nil then
+    begin
+      i:=El.Values.IndexOf(AttrID);
+      if i>=0 then
+      begin
+        Result:=El.Values.Values[i].Value;
+        if Result<>'' then exit;
+      end;
+    end;
+    El:=El.Parent;
+  until El=nil;
 end;
 
 function TDemoNode.HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean;
@@ -2613,12 +2643,10 @@ begin
   AssertEquals('Div1.Background','green',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.Test_Var;
+procedure TTestNewCSSResolver.Test_Var_NoDefault;
 var
   Div1: TDemoDiv;
 begin
-  exit;
-
   Doc.Root:=TDemoNode.Create(nil);
 
   Div1:=TDemoDiv.Create(nil);
@@ -2632,12 +2660,61 @@ begin
   'div {',
   '  border-color: var(--bird-color);',
   '  border-width: var(--bird-width);',
+  '  color: var(--bird-nothing);',
   '}',
   'div {',
   '  --bird-width: 3px;',
   '}']);
   ApplyStyle;
   AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+  AssertEquals('Div1.Color','',Div1.Color);
+end;
+
+procedure TTestNewCSSResolver.Test_Var_Inline_NoDefault;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --bird-color: red;',
+  '}']);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.InlineStyle:='--bird-width: 3px; border-color: var(--bird-color); border-width: var(--bird-width);';
+
+  ApplyStyle;
+  AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+end;
+
+procedure TTestNewCSSResolver.Test_Var_Defaults;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  --def-color:blue;',
+  '}',
+  'div {',
+  '  color: var(--bird-color,);',
+  '  border-color: var(--bird-border-color,var(--def-color));',
+  '  border-width: var(--bird-border-width,3px);',
+  '}']);
+  ApplyStyle;
+  AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
+  AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
+  AssertEquals('Div1.Color','',Div1.Color);
 end;
 
 initialization

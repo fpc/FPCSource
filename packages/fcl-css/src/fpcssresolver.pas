@@ -169,6 +169,7 @@ type
     function GetCSSChild(const anIndex: integer): ICSSNode;
     function GetCSSNextOfType: ICSSNode;
     function GetCSSPreviousOfType: ICSSNode;
+    function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
@@ -177,6 +178,13 @@ type
   end;
 
 type
+
+  { TCSSResCustomAttributeDesc }
+
+  TCSSResCustomAttributeDesc = class(TCSSAttributeDesc)
+  public
+  end;
+  TCSSResCustomAttributeDescArray = array of TCSSResCustomAttributeDesc;
 
   { TCSSResolvedAttribute - used for shared rule lists, merged by the cascade algorithm, not yet computed  }
 
@@ -321,12 +329,13 @@ type
       end;
       TLayerArray = array of TLayer;
   private
+    FLayers: TLayerArray; // sorted for Origin, named layers before anonymous layers
     FOnLog: TCSSResolverLogEvent;
     FOptions: TCSSResolverOptions;
     FStringComparison: TCSSResStringComparison;
     FStyleSheets: TStyleSheets;
     FStyleSheetCount: integer;
-    FLayers: TLayerArray; // sorted for Origin, named layers before anonymous layers
+    function GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
     function GetLogCount: integer;
     function GetLogEntries(Index: integer): TCSSResolverLogEntry;
     function GetStyleSheets(Index: integer): TStyleSheet;
@@ -348,6 +357,9 @@ type
       TMergedAttributeArray = array of TMergedAttribute;
 
   protected
+    FCustomAttributes: TCSSResCustomAttributeDescArray;
+    FCustomAttributeCount: TCSSNumericalID;
+    FCustomAttributeNameToDesc: TFPHashList;
     FElRules: TCSSSharedRuleArray;
     FElRuleCount: integer;
     FNode: ICSSNode;
@@ -359,11 +371,13 @@ type
     FMergedAllDecl: TCSSDeclarationElement;
     FMergedAllSpecifity: TCSSSpecifity;
     FSourceSpecifity: TCSSSpecifity;
+    FCSSRegistryStamp: TCSSNumericalID;
 
     // parse stylesheets
     procedure ParseSource(Index: integer); virtual;
     function ParseCSSSource(const Src: TCSSString; Inline: boolean): TCSSElement; virtual;
     procedure ClearElements; virtual;
+    procedure ClearCustomAttributes; virtual;
 
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
@@ -404,6 +418,7 @@ type
 
     // merge properties
     procedure ClearMerge; virtual;
+    procedure InitMerge; virtual;
     procedure SetMergedAttribute(AttrID, aSpecifity: TCSSNumericalID; DeclEl: TCSSDeclarationElement);
     procedure RemoveMergedAttribute(AttrID: TCSSNumericalID);
     procedure MergeAttribute(El: TCSSElement; aSpecifity: TCSSSpecifity); virtual;
@@ -429,7 +444,11 @@ type
       out Rules: TCSSSharedRuleList {owned by resolver};
       out Values: TCSSAttributeValues
       ); virtual;
-    function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; virtual;
+    // attributes
+    property CustomAttributes[Index: TCSSNumericalID]: TCSSAttributeDesc read GetCustomAttributes;
+    property CustomAttributeCount: TCSSNumericalID read FCustomAttributeCount;
+    function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; override;
+    function GetAttributeDesc(AttrId: TCSSNumericalID): TCSSAttributeDesc; override;
     function GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString; virtual;
   public
     property Options: TCSSResolverOptions read FOptions write SetOptions;
@@ -765,6 +784,11 @@ begin
   Result:=FLogEntries.Count;
 end;
 
+function TCSSResolver.GetCustomAttributes(Index: TCSSNumericalID): TCSSAttributeDesc;
+begin
+  Result:=FCustomAttributes[Index];
+end;
+
 function TCSSResolver.GetLogEntries(Index: integer): TCSSResolverLogEntry;
 begin
   Result:=TCSSResolverLogEntry(FLogEntries[Index]);
@@ -851,6 +875,14 @@ begin
     exit;
   if CSSRegistry=nil then
     raise ECSSResolver.Create('20240630203634');
+
+  if (FCSSRegistryStamp>0) then
+  begin
+    if (FCSSRegistryStamp<>CSSRegistry.Stamp) then
+      raise ECSSResolver.Create('20240822143309 Clear was not called after changing CSSRegistry');
+  end else
+    FCSSRegistryStamp:=CSSRegistry.Stamp;
+
   aParser:=nil;
   ms:=TMemoryStream.Create;
   try
@@ -878,6 +910,7 @@ begin
 
   ClearMerge;
   ClearSharedRuleLists;
+  ClearCustomAttributes;
 
   // clear layers
   for i:=0 to length(FLayers)-1 do
@@ -890,6 +923,19 @@ begin
 
   for i:=0 to FStyleSheetCount-1 do
     FreeAndNil(FStyleSheets[i].Element);
+
+  // not referencing CSSRegistry anymore
+  FCSSRegistryStamp:=0;
+end;
+
+procedure TCSSResolver.ClearCustomAttributes;
+var
+  i: Integer;
+begin
+  for i:=0 to FCustomAttributeCount-1 do
+    FreeAndNil(FCustomAttributes[i]);
+  FCustomAttributeCount:=0;
+  FCustomAttributeNameToDesc.Clear;
 end;
 
 procedure TCSSResolver.AddRule(aRule: TCSSRuleElement; Specifity: TCSSSpecifity
@@ -1042,6 +1088,25 @@ begin
   FMergedAttributeLast:=0;
 end;
 
+procedure TCSSResolver.InitMerge;
+var
+  OldLen, NewLen: TCSSNumericalID;
+begin
+  if FCustomAttributeCount>0 then
+  begin
+    if FCustomAttributes[0].Index<>CSSRegistry.AttributeCount then
+      raise ECSSResolver.Create('20240822142652');
+  end;
+
+  OldLen:=length(FMergedAttributes);
+  NewLen:=CSSRegistry.AttributeCount+FCustomAttributeCount;
+  if NewLen>OldLen then
+  begin
+    SetLength(FMergedAttributes,NewLen);
+    FillByte(FMergedAttributes[OldLen],(NewLen-OldLen)*SizeOf(TMergedAttribute),0);
+  end;
+end;
+
 procedure TCSSResolver.SetMergedAttribute(AttrID, aSpecifity: TCSSNumericalID;
   DeclEl: TCSSDeclarationElement);
 var
@@ -1049,6 +1114,8 @@ var
 begin
   if AttrID<=0 then
     raise ECSSResolver.Create('20240701120038');
+  if AttrID>=length(FMergedAttributes) then
+    raise ECSSResolver.Create('20240823095544');
 
   AttrP:=@FMergedAttributes[AttrID];
   AttrP^.Specifity:=aSpecifity;
@@ -2261,9 +2328,208 @@ end;
 procedure TCSSResolver.SubstituteVarCalls;
 // called after CSS attribute values have been merged by cascade rules
 // before replacing shorthands
+const
+  ReplaceMax = 10;
 var
   AttrID, NextAttrID: TCSSNumericalID;
   AttrP: PMergedAttribute;
+  p: PCSSChar;
+  ReplaceCnt: integer;
+
+  procedure SkipEscape;
+  begin
+    inc(p);
+    if p^>#0 then inc(p);
+  end;
+
+  procedure SkipString;
+  var
+    c: TCSSChar;
+  begin
+    c:=p^;
+    repeat
+      inc(p);
+      if p^=#0 then exit;
+      if p^=c then
+      begin
+        inc(p);
+        exit;
+      end;
+    until false;
+  end;
+
+  procedure SkipIdentifier;
+  begin
+    while p^ in ['-','_','a'..'z','A'..'Z'] do inc(p);
+  end;
+
+  procedure SkipWhiteSpace;
+  begin
+    while p^ in [' ',#9,#10,#13] do inc(p);
+  end;
+
+  function ReplaceVarsInRightString: boolean;
+  var
+    OldP, Lvl: integer;
+    VarStartP, NameStartP, NameEndP, ValueStartP, BracketCloseP: PCSSChar;
+    aValue, s: TCSSString;
+    VarName: ShortString;
+    Desc: TCSSResCustomAttributeDesc;
+    aParentNode: ICSSNode;
+  begin
+    {$IFDEF VerboseCSSVar}
+    writeln('ReplaceVarsInRightString p="',p,'"');
+    {$ENDIF}
+    Result:=true;
+    repeat
+      case p^ of
+      #0: break;
+      '"','''': SkipString;
+      '\': SkipEscape;
+      '@','#':
+        begin
+          inc(p);
+          SkipIdentifier;
+        end;
+      'a'..'z','A'..'Z':
+        if (p^='v') and (p[1]='a') and (p[2]='r') and (p[3]='(') then
+        begin
+          // var() found
+
+          inc(ReplaceCnt);
+          if ReplaceCnt=ReplaceMax then
+          begin
+            // maybe a loop
+            exit(false);
+          end;
+
+          VarStartP:=p;
+          inc(p,4);
+          SkipWhiteSpace;
+
+          // replace var() in parameter
+          OldP:=p-PCSSChar(AttrP^.Value);
+          if not ReplaceVarsInRightString then
+            exit(false);
+          p:=PCSSChar(AttrP^.Value)+OldP;
+
+          NameStartP:=p;
+          NameEndP:=nil;
+          ValueStartP:=nil;
+          if (p^<>'-') or (p[1]<>'-') then
+          begin
+            {$IFDEF VerboseCSSVar}
+            writeln('ReplaceVarsInRightString invalid VarName (must start with --): ',NameStartP);
+            {$ENDIF}
+            exit(false);
+          end;
+          inc(p,2);
+          while p^ in ['a'..'z','A'..'Z','_','-'] do inc(p);
+          NameEndP:=p;
+          if NameEndP-NameStartP>255 then
+          begin
+            {$IFDEF VerboseCSSVar}
+            writeln('ReplaceVarsInRightString invalid VarName (too long): ',NameStartP);
+            {$ENDIF}
+            exit(false);
+          end;
+          SkipWhiteSpace;
+          if p^=',' then
+          begin
+            inc(p);
+            SkipWhiteSpace;
+            ValueStartP:=p;
+          end;
+
+          // skip to round bracket close
+          Lvl:=1;
+          BracketCloseP:=nil;
+          repeat
+            case p^ of
+            #0:
+              begin
+                // syntax error
+                {$IFDEF VerboseCSSVar}
+                writeln('ReplaceVarsInRightString missing closing bracket: ',NameStartP);
+                {$ENDIF}
+                exit(false);
+              end;
+            '"','''': SkipString;
+            '\': SkipEscape;
+            '(':
+              begin
+                inc(Lvl);
+                inc(p);
+              end;
+            ')':
+              if Lvl=1 then
+              begin
+                BracketCloseP:=p;
+                inc(p);
+                break;
+              end else begin
+                dec(Lvl);
+                inc(p);
+              end;
+            else
+              inc(p);
+            end;
+          until false;
+
+          // fetch value from node
+          SetString(VarName,NameStartP,NameEndP-NameStartP);
+          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
+          if Desc<>nil then
+          begin
+            {$IFDEF VerboseCSSVar}
+            writeln('ReplaceVarsInRightString VarName="',VarName,'" AttrID=',Desc.Index);
+            {$ENDIF}
+            if FMergedAttributes[Desc.Index].Stamp=FMergedAttributesStamp then
+              aValue:=FMergedAttributes[Desc.Index].Value
+            else
+              aValue:='';
+            if aValue='' then
+            begin
+              aParentNode:=FNode.GetCSSParent;
+              if aParentNode<>nil then
+                aValue:=aParentNode.GetCSSCustomAttribute(Desc.Index);
+            end;
+          end else begin
+            {$IFDEF VerboseCSSVar}
+            writeln('ReplaceVarsInRightString VarName="',VarName,'" never declared');
+            {$ENDIF}
+            aValue:='';
+          end;
+
+          if aValue='' then
+          begin
+            // use default value
+            if ValueStartP<>nil then
+              SetString(aValue,ValueStartP,BracketCloseP-ValueStartP);
+          end;
+          {$IFDEF VerboseCSSVar}
+          writeln('ReplaceVarsInRightString VarName="',VarName,'" Value="',aValue,'"');
+          {$ENDIF}
+
+          // replace
+          p:=PCSSChar(AttrP^.Value);
+          OldP:=VarStartP-p;
+          s:=AttrP^.Value;
+          AttrP^.Value:=LeftStr(s,VarStartP-p)+aValue+copy(s,BracketCloseP-p+2,length(s));
+          {$IFDEF VerboseCSSVar}
+          writeln('ReplaceVarsInRightString New AttrP^.Value="',AttrP^.Value,'"');
+          {$ENDIF}
+
+          // continue parsing
+          p:=PCSSChar(AttrP^.Value)+OldP;
+        end else
+          SkipIdentifier;
+      else
+        inc(p);
+      end;
+    until false;
+  end;
+
 begin
   AttrID:=FMergedAttributeFirst;
   while AttrID>0 do
@@ -2272,9 +2538,19 @@ begin
     AttrP:=@FMergedAttributes[AttrID];
     if not AttrP^.Complete then
     begin
-      // todo: parse and search for var()
+      // check attribute
       if Pos('var(',AttrP^.Value)>0 then
-        raise ECSSResolver.Create('20240628164021');
+      begin
+        // can have var() calls -> parse
+        p:=PCSSChar(AttrP^.Value);
+        {$IFDEF VerboseCSSVar}
+        writeln('TCSSResolver.SubstituteVarCalls ',GetAttributeDesc(AttrID).Name,': "',AttrP^.Value,'"');
+        {$ENDIF}
+        ReplaceCnt:=0;
+        if not ReplaceVarsInRightString then
+          AttrP^.Value:='';
+      end;
+
       if AttrP^.Value='' then
         RemoveMergedAttribute(AttrID);
     end;
@@ -2484,11 +2760,13 @@ begin
   inherited;
   FLogEntries:=TFPObjectList.Create(true);
   FSharedRuleLists:=TAVLTree.Create(@CompareCSSSharedRuleLists);
+  FCustomAttributeNameToDesc:=TFPHashList.Create;
 end;
 
 destructor TCSSResolver.Destroy;
 begin
   Clear;
+  FreeAndNil(FCustomAttributeNameToDesc);
   FreeAndNil(FSharedRuleLists);
   FreeAndNil(FLogEntries);
   inherited Destroy;
@@ -2501,7 +2779,6 @@ end;
 
 procedure TCSSResolver.Init;
 var
-  OldLen, NewLen: TCSSNumericalID;
   i: Integer;
 begin
   if CSSRegistry.Modified then
@@ -2510,18 +2787,11 @@ begin
     CSSRegistry.Modified:=false;
   end;
 
+  // todo: if CSSRegistry has changed, reparse all stylesheets
+
   FMergedAttributesStamp:=1;
   for i:=0 to length(FMergedAttributes)-1 do
     FMergedAttributes[i].Stamp:=0;
-  OldLen:=length(FMergedAttributes);
-  NewLen:=OldLen;
-  if CSSRegistry.AttributeCount>NewLen then
-    NewLen:=CSSRegistry.AttributeCount;
-  if NewLen>OldLen then
-  begin
-    SetLength(FMergedAttributes,NewLen);
-    FillByte(FMergedAttributes[OldLen],(NewLen-OldLen)*SizeOf(TMergedAttribute),0);
-  end;
 end;
 
 procedure TCSSResolver.ClearSharedRuleLists;
@@ -2537,6 +2807,8 @@ begin
   Rules:=nil;
   FNode:=Node;
   try
+    InitMerge;
+
     FindMatchingRules;
 
     // create a shared rule list and merge attributes
@@ -2557,6 +2829,54 @@ begin
     Values:=CreateValueList;
   finally
     FNode:=nil;
+  end;
+end;
+
+function TCSSResolver.GetAttributeID(const aName: TCSSString; AutoCreate: boolean): TCSSNumericalID;
+var
+  Desc: TCSSResCustomAttributeDesc;
+  Cnt: TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfAttributeName(aName);
+  if Result<0 then
+  begin
+    Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(aName));
+    if Desc<>nil then
+      exit(Desc.Index);
+
+    if AutoCreate
+        and (length(aName)>2) and (aName[1]='-') and (aName[2]='-')
+        and (length(aName)<256) then
+    begin
+      // create custom attribute
+      Cnt:=FCustomAttributeCount;
+      if Cnt=length(FCustomAttributes) then
+      begin
+        if Cnt<32 then
+          Cnt:=32
+        else
+          Cnt:=Cnt*2;
+        SetLength(FCustomAttributes,Cnt);
+        FillByte(FCustomAttributes[FCustomAttributeCount],SizeOf(Pointer)*(Cnt-FCustomAttributeCount),0);
+      end;
+
+      Desc:=TCSSResCustomAttributeDesc.Create;
+      Desc.Name:=aName;
+      Desc.Index:=CSSRegistry.AttributeCount+FCustomAttributeCount;
+      Desc.Inherits:=true;
+      FCustomAttributes[FCustomAttributeCount]:=Desc;
+      FCustomAttributeNameToDesc.Add(aName,Desc);
+
+      inc(FCustomAttributeCount);
+
+      Result:=Desc.Index;
+      Cnt:=GetAttributeID(aName);
+      if Cnt<>Result then
+        raise ECSSResolver.Create('20240822173412');
+
+      if GetAttributeDesc(Result)<>Desc then
+        raise ECSSResolver.Create('20240822174053');
+    end;
   end;
 end;
 
@@ -2586,7 +2906,12 @@ function TCSSResolver.GetAttributeDesc(AttrId: TCSSNumericalID
 begin
   Result:=nil;
   if AttrID<CSSRegistry.AttributeCount then
-    Result:=CSSRegistry.Attributes[AttrId];
+    Result:=CSSRegistry.Attributes[AttrId]
+  else begin
+    dec(AttrID,CSSRegistry.AttributeCount);
+    if AttrID<FCustomAttributeCount then
+      Result:=FCustomAttributes[AttrId];
+  end;
 end;
 
 function TCSSResolver.GetDeclarationValue(Decl: TCSSDeclarationElement): TCSSString;

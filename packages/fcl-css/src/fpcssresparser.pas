@@ -367,7 +367,7 @@ type
     FKeywordCount: TCSSNumericalID;
     FPseudoClassCount: TCSSNumericalID;
     FPseudoFunctionCount: TCSSNumericalID;
-    FStamp, FModifiedStamp: integer;
+    FStamp, FModifiedStamp: TCSSNumericalID;
     FTypeCount: TCSSNumericalID;
     function GetModified: boolean;
     procedure SetModified(const AValue: boolean);
@@ -379,7 +379,7 @@ type
     function IndexOfNamedItem(Kind: TCSSNumericalIDKind; const aName: TCSSString): TCSSNumericalID; overload;
     procedure ConsistencyCheck; virtual;
     procedure ChangeStamp;
-    property Stamp: integer read FStamp;
+    property Stamp: TCSSNumericalID read FStamp; // always >0
     property Modified: boolean read GetModified write SetModified;
   public
     // attributes
@@ -565,7 +565,7 @@ type
     function SkipString(var p: PCSSChar): boolean;
     function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
     // registry
-    function GetAttributeID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; virtual;
     function GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc; virtual;
     function GetTypeID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoClassID(const aName: TCSSString): TCSSNumericalID; virtual;
@@ -2052,9 +2052,11 @@ begin
   until false;
 end;
 
-function TCSSBaseResolver.GetAttributeID(const aName: TCSSString): TCSSNumericalID;
+function TCSSBaseResolver.GetAttributeID(const aName: TCSSString; AutoCreate: boolean
+  ): TCSSNumericalID;
 begin
   Result:=CSSRegistry.IndexOfAttributeName(aName);
+  if AutoCreate then ;
 end;
 
 function TCSSBaseResolver.GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc;
@@ -2090,12 +2092,11 @@ begin
     raise Exception.Create('20240701143234');
   aName:=El.Name;
   El.Kind:=nikAttribute;
-  Result:=Resolver.GetAttributeID(aName);
-  writeln('AAA1 TCSSResolverParser.ResolveAttribute ',aName,' ',Result);
+  Result:=Resolver.GetAttributeID(aName,true);
   if Result<=CSSIDNone then
   begin
     El.NumericalID:=-1;
-    Log(etWarning,20240625130648,'unknown attribute "'+aName+'"',El);
+    Log(etWarning,20240822172823,'unknown attribute "'+aName+'"',El);
   end else
     El.NumericalID:=Result;
 end;
@@ -2136,7 +2137,7 @@ begin
   if Result<=CSSIDNone then
   begin
     El.NumericalID:=-1;
-    Log(etWarning,20240625130648,'unknown pseudo class "'+aName+'"',El);
+    Log(etWarning,20240822172826,'unknown pseudo class "'+aName+'"',El);
   end else
     El.NumericalID:=Result;
 end;
@@ -2162,7 +2163,7 @@ begin
   if Result<=CSSIDNone then
   begin
     El.NameNumericalID:=-1;
-    Log(etWarning,20240625130648,'unknown pseudo function "'+aName+'"',El);
+    Log(etWarning,20240822172830,'unknown pseudo function "'+aName+'"',El);
   end else
     El.NameNumericalID:=Result;
 end;
@@ -2237,10 +2238,13 @@ begin
       if Pos('var(',AttrData.Value)>0 then
       begin
         // cannot be parsed yet
-      end else if Resolver.InitParseAttr(Desc,AttrData,AttrData.Value) then
+      end else if AttrID<Resolver.CSSRegistry.AttributeCount then
       begin
-        if Assigned(Desc.OnCheck) then
-          AttrData.Invalid:=not Desc.OnCheck(Resolver);
+        if Resolver.InitParseAttr(Desc,AttrData,AttrData.Value) then
+        begin
+          if Assigned(Desc.OnCheck) then
+            AttrData.Invalid:=not Desc.OnCheck(Resolver);
+        end;
       end;
       {$IFDEF VerboseCSSResolver}
       if AttrData.Invalid then
