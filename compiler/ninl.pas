@@ -850,6 +850,12 @@ implementation
                 end;
               enumdef:
                 begin
+                  if m_isolike_io in current_settings.modeswitches then
+                    begin
+                      error_para := true;
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                    end;
+
                   name:=procprefixes[do_read]+'enum';
                   if do_read then
                     { read is done with a var parameter so we need the correct
