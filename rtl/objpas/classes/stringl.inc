@@ -1946,11 +1946,16 @@ begin
         DupIgnore : Exit;
         DupError : Error(SDuplicateString,0)
       end;
-   // Avoid crash in lazarus   
-   if Assigned(aObject) then   
-     InsertItem (Result,S,AObject)
-   else
-     InsertItem (Result,S);  
+   InsertItem (Result,S);  
+   if (aObject<>Nil) then 
+     begin
+     BeginUpdate;
+     try
+      Objects[Result]:=AObject;
+     finally
+       EndUpdate;
+     end;
+     end;
 end;
 
 function TStringList.Add(const S: string): Integer;
