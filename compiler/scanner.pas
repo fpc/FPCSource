@@ -241,6 +241,7 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
+          function  readval64:int64;
           function  readcomment(include_special_char: boolean = false):string;
           function  readquotedstring:string;
           function  readstate:char;
@@ -4657,6 +4658,17 @@ type
         readnumber;
         val(pattern,l,w);
         readval:=l;
+      end;
+
+
+    function tscannerfile.readval64:int64;
+      var
+        l : int64;
+        w : integer;
+      begin
+        readnumber;
+        val(pattern,l,w);
+        readval64:=l;
       end;
 
 
