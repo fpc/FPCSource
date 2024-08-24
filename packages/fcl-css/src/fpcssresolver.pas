@@ -438,7 +438,7 @@ type
     procedure Init; virtual; // call after adding stylesheets and before computing all nodes
     function GetElPath(El: TCSSElement): TCSSString; virtual;
     function GetElPos(El: TCSSElement): TCSSString; virtual;
-    function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual;
+    function ParseInlineStyle(const Src: TCSSString): TCSSRuleElement; virtual; // must be freed by caller
     procedure Compute(Node: ICSSNode;
       InlineStyle: TCSSRuleElement; // inline style of Node
       out Rules: TCSSSharedRuleList {owned by resolver};
