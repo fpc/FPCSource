@@ -2275,6 +2275,7 @@ implementation
                   (lto > aintmax) then
                  begin
                    g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
+                   hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -2290,6 +2291,7 @@ implementation
                   (hto < 0) then
                  begin
                    g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
+                   hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -2319,6 +2321,7 @@ implementation
       thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
       g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
+      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
     end;
