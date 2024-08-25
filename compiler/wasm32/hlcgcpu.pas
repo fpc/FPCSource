@@ -2459,7 +2459,8 @@ implementation
 
   procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef);
     begin
-      list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype));
+      if not pd.is_generic then
+        list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype));
     end;
 
   procedure thlcgwasm.g_maybe_checkforexceptions(list: TasmList);
