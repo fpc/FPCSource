@@ -1809,7 +1809,8 @@ implementation
 
   procedure thlcgwasm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
     var
-      orgsrc1, orgsrc2: tregister;
+      orgsrc1: tregister = NR_NO;
+      orgsrc2: tregister = NR_NO;
       docheck: boolean;
       lab: tasmlabel;
     begin
