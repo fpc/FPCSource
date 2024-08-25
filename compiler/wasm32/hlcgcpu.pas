@@ -1878,16 +1878,25 @@ implementation
             end
           else
             begin
-              current_asmdata.getjumplabel(lab);
-              { can be optimized by removing duplicate xor'ing to convert dst from
-                signed to unsigned quadrant }
-              list.concat(taicpu.op_none(a_block));
-              a_load_const_reg(list,s32inttype,0,ovloc.register);
-              a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc1,lab);
-              a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc2,lab);
-              a_load_const_reg(list,s32inttype,1,ovloc.register);
-              list.concat(taicpu.op_none(a_end_block));
-              a_label(list,lab);
+              if op=OP_SUB then
+                begin
+                  { unsigned (src1-src2) overflows iff (src1<src2) }
+                  a_cmp_reg_reg_stack(list,size,OC_B,orgsrc1,orgsrc2);
+                  a_load_stack_reg(list,s32inttype,ovloc.register);
+                end
+              else
+                begin
+                  current_asmdata.getjumplabel(lab);
+                  { can be optimized by removing duplicate xor'ing to convert dst from
+                    signed to unsigned quadrant }
+                  list.concat(taicpu.op_none(a_block));
+                  a_load_const_reg(list,s32inttype,0,ovloc.register);
+                  a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc1,lab);
+                  a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc2,lab);
+                  a_load_const_reg(list,s32inttype,1,ovloc.register);
+                  list.concat(taicpu.op_none(a_end_block));
+                  a_label(list,lab);
+                end;
             end;
         end
       else
