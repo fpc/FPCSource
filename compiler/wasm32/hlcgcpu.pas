@@ -1860,12 +1860,12 @@ implementation
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
                                              pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
             begin
-              a_load_reg_stack(list,size,src1);
+              a_load_reg_stack(list,size,orgsrc1);
               if op in [OP_SUB,OP_IMUL] then
                 a_op_stack(list,OP_NOT,size);
-              a_op_reg_stack(list,OP_XOR,size,src2);
+              a_op_reg_stack(list,OP_XOR,size,orgsrc2);
               a_op_stack(list,OP_NOT,size);
-              a_load_reg_stack(list,size,src1);
+              a_load_reg_stack(list,size,orgsrc1);
               a_op_reg_stack(list,OP_XOR,size,dst);
               a_op_stack(list,OP_AND,size);
               a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
@@ -1883,8 +1883,8 @@ implementation
                 signed to unsigned quadrant }
               list.concat(taicpu.op_none(a_block));
               a_load_const_reg(list,s32inttype,0,ovloc.register);
-              a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
-              a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
+              a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc1,lab);
+              a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc2,lab);
               a_load_const_reg(list,s32inttype,1,ovloc.register);
               list.concat(taicpu.op_none(a_end_block));
               a_label(list,lab);
