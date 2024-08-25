@@ -1812,7 +1812,6 @@ implementation
       orgsrc1: tregister = NR_NO;
       orgsrc2: tregister = NR_NO;
       docheck: boolean;
-      lab: tasmlabel;
     begin
       if not setflags then
         begin
@@ -1887,16 +1886,12 @@ implementation
                 end
               else
                 begin
-                  current_asmdata.getjumplabel(lab);
                   { can be optimized by removing duplicate xor'ing to convert dst from
                     signed to unsigned quadrant }
-                  list.concat(taicpu.op_none(a_block));
-                  a_load_const_reg(list,s32inttype,0,ovloc.register);
-                  a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc1,lab);
-                  a_cmp_reg_reg_label(list,size,OC_B,dst,orgsrc2,lab);
-                  a_load_const_reg(list,s32inttype,1,ovloc.register);
-                  list.concat(taicpu.op_none(a_end_block));
-                  a_label(list,lab);
+                  a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc1);
+                  a_cmp_reg_reg_stack(list,size,OC_AE,dst,orgsrc2);
+                  a_op_stack(list,OP_AND,s32inttype);
+                  a_load_stack_reg(list,s32inttype,ovloc.register);
                 end;
             end;
         end
