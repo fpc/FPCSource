@@ -495,16 +495,6 @@ Type
   TExitCode = Word;
 {$endif CPU16}
 
-{$if defined(VER3_0)}
-{$if defined(CPU16)}
-{$define CPUINT16}
-{$elseif defined(CPU32)}
-{$define CPUINT32}
-{$elseif defined(CPU64)}
-{$define CPUINT64}
-{$endif defined(CPU64)}
-{$endif defined(VER3_0)}
-
 {$if defined(CPUINT8)}
   ALUSInt = ShortInt;
   ALUUInt = Byte;
@@ -643,9 +633,7 @@ Type
 
   PBoolean            = ^Boolean;
 
-{$IFNDEF VER3_0}
   PBoolean8           = ^Boolean8;
-{$ENDIF VER3_0}
   PBoolean16          = ^Boolean16;
   PBoolean32          = ^Boolean32;
   PBoolean64          = ^Boolean64;
@@ -1302,11 +1290,6 @@ function StrLen(p:PAnsiChar):sizeint;external name 'FPC_PCHAR_LENGTH';
 function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
 
 { Shortstring functions }
-{$ifdef VER3_0}
-Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
-Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
-Procedure Insert(source:AnsiChar;var s:shortstring;index:SizeInt);
-{$endif VER3_0}
 Function  Pos(const substr:shortstring;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 Function  Pos(C:AnsiChar;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -1349,9 +1332,9 @@ Function  HexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { AnsiChar functions }
-{$if defined(VER3_2) or defined(VER3_0)}
+{$if defined(VER3_2)}
 Function Chr(b : byte) : AnsiChar;      [INTERNPROC: fpc_in_chr_byte];
-{$endif defined(VER3_2) or defined(VER3_0)}
+{$endif defined(VER3_2)}
 Function  UpCase(c:AnsiChar):AnsiChar;
 Function  LowerCase(c:AnsiChar):AnsiChar; overload;
 function  Pos(const substr : shortstring;c:Ansichar; Offset: Sizeint = 1): SizeInt;
@@ -1365,10 +1348,6 @@ function  Pos(const substr : shortstring;c:Ansichar; Offset: Sizeint = 1): SizeI
 Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Pos (const Substr : RawByteString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Function  Pos (c : AnsiChar; const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
-{$ifdef VER3_0}
-Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
-Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
-{$endif VER3_0}
 Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 function  UpCase(const s : ansistring) : ansistring;
 function  LowerCase(const s : ansistring) : ansistring;

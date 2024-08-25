@@ -274,14 +274,10 @@
 
     function TVmt.GetvParent: PVmt;
       begin
-        {$ifdef VER3_0}
-        GetvParent:=vParentRef;
-        {$else VER3_0}
         if Assigned(vParentRef) then
           GetvParent:=vParentRef^
         else
           GetvParent:=Nil;
-        {$endif VER3_0}
       end;
 
 
@@ -363,27 +359,19 @@ end;
 
     function tinterfaceentry.GetIID: pguid;
       begin
-        {$ifdef VER3_0}
-        GetIID:=IIDRef;
-        {$else VER3_0}
         if Assigned(IIDRef) then
           GetIID:=IIDRef^
         else
           GetIID:=Nil;
-        {$endif VER3_0}
       end;
 
 
     function tinterfaceentry.GetIIDStr: pshortstring;
       begin
-        {$ifdef VER3_0}
-        GetIIDStr:=IIDStrRef;
-        {$else VER3_0}
         if Assigned(IIDStrRef) then
           GetIIDStr:=IIDStrRef^
         else
           GetIIDStr:=Nil;
-        {$endif VER3_0}
       end;
 
 
@@ -413,11 +401,6 @@ end;
            InstanceSize := PVmt(Self)^.vInstanceSize;
         end;
 
-      {$ifdef VER3_0}
-      var
-        emptyintf: ptruint; public name 'FPC_EMPTYINTF';
-      {$endif VER3_0}
-
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
         var
@@ -427,22 +410,17 @@ end;
           Res: pinterfaceentry;
         begin
           ovmt := PVmt(objclass);
-          while assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}assigned(ovmt^.vIntfTable){$endif} do
+          while assigned(ovmt) and assigned(ovmt^.vIntfTable) do
             begin
               intftable:=ovmt^.vIntfTable;
-              {$ifdef VER3_0}
-              if assigned(intftable) then
-              {$endif VER3_0}
-              begin
-                i:=intftable^.EntryCount;
-                Res:=@intftable^.Entries[0];
-                while i>0 do begin
-                  if Res^.IType = etStandard then
-                    ppointer(@(pbyte(instance)[Res^.IOffset]))^:=
-                      pointer(Res^.VTable);
-                  inc(Res);
-                  dec(i);
-                end;
+              i:=intftable^.EntryCount;
+              Res:=@intftable^.Entries[0];
+              while i>0 do begin
+                if Res^.IType = etStandard then
+                  ppointer(@(pbyte(instance)[Res^.IOffset]))^:=
+                    pointer(Res^.VTable);
+                inc(Res);
+                dec(i);
               end;
               ovmt:=ovmt^.vParent;
             end;
@@ -450,7 +428,6 @@ end;
 
       class function TObject.InitInstance(instance : pointer) : tobject;
 
-{$ifndef VER3_0}
         var
            vmt  : PVmt;
            inittable : pointer;
@@ -458,7 +435,6 @@ end;
            mopinittable : PRTTIRecordOpOffsetTable;
 {$endif def FPC_HAS_FEATURE_RTTI}
            i : longint;
-{$endif VER3_0}
         begin
            I:=instancesize;
            { the size is saved at offset 0 }
@@ -477,10 +453,9 @@ end;
              {$ENDIF}
           {$ENDIF}
 
-           if {$ifdef VER3_0}PVmt(self)^.vIntfTable <> @emptyintf{$else}assigned(PVmt(self)^.vIntfTable){$endif} then
+           if assigned(PVmt(self)^.vIntfTable) then
              InitInterfacePointers(self,instance);
 
-{$ifndef VER3_0}
 {$ifdef FPC_HAS_FEATURE_RTTI}
            { for management operators like initialize call int_initialize }
            vmt := PVmt(self);
@@ -502,7 +477,6 @@ end;
                  end;
              end;
 {$endif def FPC_HAS_FEATURE_RTTI}
-{$endif VER3_0}
 
            InitInstance:=TObject(Instance);
         end;
@@ -1039,19 +1013,14 @@ end;
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntftable){$endif} do
+          while Assigned(ovmt) and Assigned(ovmt^.vIntftable) do
           begin
             intftable:=ovmt^.vIntfTable;
-            {$ifdef VER3_0}
-            if assigned(intftable) then
-            {$endif VER3_0}
+            for i:=0 to intftable^.EntryCount-1 do
             begin
-              for i:=0 to intftable^.EntryCount-1 do
-              begin
-                result:=@intftable^.Entries[i];
-                if assigned(Result^.iid) and IsGUIDEqual(Result^.iid^,iid) then
-                  Exit;
-              end;
+              result:=@intftable^.Entries[i];
+              if assigned(Result^.iid) and IsGUIDEqual(Result^.iid^,iid) then
+                Exit;
             end;
             ovmt := ovmt^.vParent;
           end;
@@ -1065,19 +1034,14 @@ end;
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntfTable){$endif} do
+          while Assigned(ovmt) and Assigned(ovmt^.vIntfTable) do
           begin
             intftable:=ovmt^.vIntfTable;
-            {$ifdef VER3_0}
-            if assigned(intftable) then
-            {$endif VER3_0}
+            for i:=0 to intftable^.EntryCount-1 do
             begin
-              for i:=0 to intftable^.EntryCount-1 do
-              begin
-                result:=@intftable^.Entries[i];
-                if assigned(result^.iidstr) and (result^.iidstr^ = iidstr) then
-                  Exit;
-              end;
+              result:=@intftable^.Entries[i];
+              if assigned(result^.iidstr) and (result^.iidstr^ = iidstr) then
+                Exit;
             end;
             ovmt := ovmt^.vParent;
           end;

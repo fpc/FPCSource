@@ -672,7 +672,7 @@ begin
       ClassTable := FieldTable^.ClassTable;
       for i := 0 to ClassTable^.Count - 1 do
       begin
-        Result := ClassTable^.Entries[i]{$ifndef VER3_0}^{$endif};
+        Result := ClassTable^.Entries[i]^;
         if Result.ClassNameIs(ShortClassName) then
           exit;
       end;

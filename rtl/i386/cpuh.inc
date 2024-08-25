@@ -44,10 +44,10 @@ function fpc_x86_get_fs:longint;[internproc:fpc_in_x86_get_fs];
 function fpc_x86_get_gs:longint;[internproc:fpc_in_x86_get_gs];
 
 { include automatically generated procs }
-{$if not defined(VER3_0) and not defined(VER3_2)}
+{$if not defined(VER3_2)}
 { do not active yet, they are not usable yet neither is the naming fixed }
 { $i cpummprocs.inc}
-{$endif not VER3_0 and not VER3_2}
+{$endif not VER3_2}
 
 type
   TNativeFPUControlWord = record

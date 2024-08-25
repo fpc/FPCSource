@@ -26,11 +26,7 @@ type
     namelen : byte;
     { here the chars follow, we've to skip them }
     elesize : sizeint;
-    {$ifdef VER3_0}
-    eletype : pdynarraytypeinfo;
-    {$else}
     eletype : ppdynarraytypeinfo;
-    {$endif}
     vartype : longint;
   end;
   

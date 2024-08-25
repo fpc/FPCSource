@@ -25,7 +25,6 @@ unit TypInfo;
 {$MODE objfpc}
 {$MODESWITCH AdvancedRecords}
 {$inline on}
-{$macro on}
 {$h+}
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -93,8 +92,7 @@ unit TypInfo;
                       mkClassProcedure,mkClassFunction,mkClassConstructor,
                       mkClassDestructor,mkOperatorOverload);
        TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut,pfConstRef
-                         {$ifndef VER3_0},pfHidden,pfHigh,pfSelf,pfVmt,pfResult{$endif VER3_0}
-                         );
+                         ,pfHidden,pfHigh,pfSelf,pfVmt,pfResult);
        TParamFlags    = set of TParamFlag;
        TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
@@ -264,17 +262,9 @@ unit TypInfo;
 
       PPropData = ^TPropData;
 
-{ Note: these are only for backwards compatibility. New type references should
-        only use PPTypeInfo directly! }
-{$ifdef ver3_0}
-{$define TypeInfoPtr := PTypeInfo}
-{$else}
-{$define TypeInfoPtr := PPTypeInfo}
-{$endif}
-
 {$PACKRECORDS C}
 
-{$if not defined(VER3_0) and not defined(VER3_2)}
+{$if not defined(VER3_2)}
 {$define PROVIDE_ATTR_TABLE}
 {$endif}
 
@@ -323,9 +313,9 @@ unit TypInfo;
       public
         Size: SizeInt;
         ElCount: SizeInt;
-        ElTypeRef: TypeInfoPtr;
+        ElTypeRef: PPTypeInfo;
         DimCount: Byte;
-        DimsRef: array[0..255] of TypeInfoPtr;
+        DimsRef: array[0..255] of PPTypeInfo;
       end;
 
       PManagedField = ^TManagedField;
@@ -339,7 +329,7 @@ unit TypInfo;
       public
         property TypeRef: PTypeInfo read GetTypeRef;
       public
-        TypeRefRef: TypeInfoPtr;
+        TypeRefRef: PPTypeInfo;
         FldOffset: SizeInt;
       end;
 
@@ -360,7 +350,7 @@ unit TypInfo;
         property Flags: Byte read GetFlags;
       public
         ParamFlags: TParamFlags;
-        ParamTypeRef: TypeInfoPtr;
+        ParamTypeRef: PPTypeInfo;
         Name: ShortString;
       end;
 
@@ -377,7 +367,7 @@ unit TypInfo;
       public
         Flags: Byte;
         CC: TCallConv;
-        ResultTypeRef: TypeInfoPtr;
+        ResultTypeRef: PPTypeInfo;
         ParamCount: Byte;
         {Params: array[0..ParamCount - 1] of TProcedureParam;}
         function GetParam(ParamIndex: Integer): PProcedureParam;
@@ -623,10 +613,8 @@ unit TypInfo;
           tkRecord: (
             Terminator: Pointer;
             Size: Longint;
-{$ifndef VER3_0}
             InitOffsetOp: PRecOpOffsetTable;
             ManagementOp: Pointer;
-{$endif}
             ManagedFieldCount: Longint;
           { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
           );
@@ -853,9 +841,7 @@ unit TypInfo;
         case TTypeKind of
       tkRecord:
         (
-  {$ifndef VER3_0}
           RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
-  {$endif VER3_0}
           RecSize: Longint;
           case Boolean of
             False: (ManagedFldCount: Longint deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
@@ -887,9 +873,7 @@ unit TypInfo;
         function GetBaseType: PTypeInfo; inline;
         function GetCompType: PTypeInfo; inline;
         function GetParentInfo: PTypeInfo; inline;
-{$ifndef VER3_0}        
         function GetRecInitData: PRecInitData; inline;
-{$endif}
         function GetHelperParent: PTypeInfo; inline;
         function GetExtendedInfo: PTypeInfo; inline;
         function GetIntfParent: PTypeInfo; inline;
@@ -907,9 +891,7 @@ unit TypInfo;
         { tkClass }
         property ParentInfo: PTypeInfo read GetParentInfo;
         { tkRecord }
-{$ifndef VER3_0}        
         property RecInitData: PRecInitData read GetRecInitData;
-{$endif}
         { tkHelper }
         property HelperParent: PTypeInfo read GetHelperParent;
         property ExtendedInfo: PTypeInfo read GetExtendedInfo;
@@ -934,10 +916,7 @@ unit TypInfo;
               ();
             tkAString:
               (CodePage: Word);
-{$ifndef VER3_0}
-            tkInt64,tkQWord,
-{$endif VER3_0}
-            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
+            tkInt64,tkQWord,tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
@@ -945,24 +924,20 @@ unit TypInfo;
                     case TTypeKind of
                       tkEnumeration:
                         (
-                        BaseTypeRef : TypeInfoPtr;
+                        BaseTypeRef : PPTypeInfo;
                         NameList : ShortString;
                         {EnumUnitName: ShortString;})
                     );
-{$ifndef VER3_0}
                   {tkBool with OrdType=otSQWord }
                   tkInt64:
                     (MinInt64Value, MaxInt64Value: Int64);
                   {tkBool with OrdType=otUQWord }
                   tkQWord:
                     (MinQWordValue, MaxQWordValue: QWord);
-{$endif VER3_0}
                   tkSet:
                     (
-{$ifndef VER3_0}
                      SetSize : SizeInt;
-{$endif VER3_0}
-                     CompTypeRef : TypeInfoPtr
+                     CompTypeRef : PPTypeInfo
                     )
               );
 {$ifndef FPUNONE}
@@ -973,7 +948,7 @@ unit TypInfo;
               (MaxLength : Byte);
             tkClass:
               (ClassType : TClass;
-               ParentInfoRef : TypeInfoPtr;
+               ParentInfoRef : PPTypeInfo;
                PropCount : SmallInt;
                UnitName : ShortString;
                // here the properties follow as array of TPropInfo:
@@ -988,9 +963,7 @@ unit TypInfo;
               );
             tkRecord:
               (
-{$ifndef VER3_0}
                 RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
-{$endif VER3_0}
                 RecSize: Longint;
                 case Boolean of
                   False: (ManagedFldCount: Longint deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
@@ -998,8 +971,8 @@ unit TypInfo;
                 {ManagedFields: array[1..TotalFieldCount] of TManagedField}
               );
             tkHelper:
-              (HelperParentRef : TypeInfoPtr;
-               ExtendedInfoRef : TypeInfoPtr;
+              (HelperParentRef : PPTypeInfo;
+               ExtendedInfoRef : PPTypeInfo;
                HelperProps : SmallInt;
                HelperUnit : ShortString
                // here the properties follow as array of TPropInfo
@@ -1025,15 +998,9 @@ unit TypInfo;
               );
             tkProcVar:
               (ProcSig: TProcedureSignature);
-{$ifdef VER3_0}
-            tkInt64:
-              (MinInt64Value, MaxInt64Value: Int64);
-            tkQWord:
-              (MinQWordValue, MaxQWordValue: QWord);
-{$endif VER3_0}
             tkInterface:
               (
-               IntfParentRef: TypeInfoPtr;
+               IntfParentRef: PPTypeInfo;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                ThunkClass : PPTypeInfo;
@@ -1043,7 +1010,7 @@ unit TypInfo;
               );
             tkInterfaceRaw:
               (
-               RawIntfParentRef: TypeInfoPtr;
+               RawIntfParentRef: PPTypeInfo;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
                RawThunkClass : PPTypeInfo;
@@ -1056,15 +1023,15 @@ unit TypInfo;
             tkDynArray:
               (
               elSize     : PtrUInt;
-              elType2Ref : TypeInfoPtr;
+              elType2Ref : PPTypeInfo;
               varType    : Longint;
-              elTypeRef  : TypeInfoPtr;
+              elTypeRef  : PPTypeInfo;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
-              (InstanceTypeRef: TypeInfoPtr);
+              (InstanceTypeRef: PPTypeInfo);
             tkPointer:
-              (RefTypeRef: TypeInfoPtr);
+              (RefTypeRef: PPTypeInfo);
       end;
 
       PPropInfo = ^TPropInfo;
@@ -1132,7 +1099,7 @@ unit TypInfo;
         function GetTail: Pointer; inline;
         function GetNext: PPropInfo; inline;
       public
-        PropTypeRef : TypeInfoPtr;
+        PropTypeRef : PPTypeInfo;
         GetProc : CodePointer;
         SetProc : CodePointer;
         StoredProc : CodePointer;
@@ -1391,7 +1358,7 @@ Const
   OnSetVariantprop : TSetVariantProp = Nil;
 
 { for inlining }
-function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
+function DerefTypeInfoPtr(Info: PPTypeInfo): PTypeInfo; inline;
 
 Implementation
 
@@ -1422,16 +1389,12 @@ function aligntoptr(p : pointer) : pointer;inline;
    end;
 
 
-function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
+function DerefTypeInfoPtr(Info: PPTypeInfo): PTypeInfo; inline;
 begin
-{$ifdef ver3_0}
-  Result := Info;
-{$else}
   if not Assigned(Info) then
     Result := Nil
   else
     Result := Info^;
-{$endif}
 end;
 
 function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
@@ -1623,31 +1586,10 @@ begin
   PTD := GetTypeData(TypeInfo);
   ValueArr := PLongInt(Value);
   Result:=[];
-{$ifdef ver3_0}
-  case PTD^.OrdType of
-    otSByte, otUByte: begin
-      Els := 0;
-      Rem := 1;
-    end;
-    otSWord, otUWord: begin
-      Els := 0;
-      Rem := 2;
-    end;
-    otSLong, otULong: begin
-      Els := 1;
-      Rem := 0;
-    end;
-  end;
-{$else}
   Els := PTD^.SetSize div SizeOf(LongInt);
   Rem := PTD^.SetSize mod SizeOf(LongInt);
-{$endif}
 
-{$ifdef ver3_0}
-  El := 0;
-{$else}
   for El := 0 to (PTD^.SetSize - 1) div SizeOf(LongInt) do
-{$endif}
     begin
       if El = Els then
         Max := Rem
@@ -1782,11 +1724,7 @@ Var
 
 begin
   PTD:=GetTypeData(TypeInfo);
-{$ifndef ver3_0}
   FillChar(Result^, PTD^.SetSize, 0);
-{$else}
-  PInteger(Result)^ := 0;
-{$endif}
   ResArr := PLongWord(Result);
   for B in Value do
     begin
@@ -1816,11 +1754,7 @@ Function AlignTypeData(p : Pointer) : Pointer;
 {$packrecords default}
 begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-{$ifdef VER3_0}
-  Result:=Pointer(align(p,SizeOf(Pointer)));
-{$else VER3_0}
   Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).q)))
-{$endif VER3_0}
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
   Result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -4920,12 +4854,10 @@ begin
   Result := DerefTypeInfoPtr(ParentInfoRef);
 end;
 
-{$ifndef VER3_0}
 function TTypeData.GetRecInitData: PRecInitData;
 begin
   Result := PRecInitData(aligntoptr(PTypeData(RecInitInfo+2+PByte(RecInitInfo+1)^)));
 end;
-{$endif}
 
 function TTypeData.GetHelperParent: PTypeInfo;
 begin

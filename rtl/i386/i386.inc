@@ -14,9 +14,9 @@
 
  **********************************************************************}
 
-{$if not(defined(VER3_0)) and defined(linux)}
+{$if defined(linux)}
   {$define FPC_SYSTEM_STACKALIGNMENT16}
-{$endif not(defined(VER3_0)) and defined(linux)}
+{$endif defined(linux)}
 
 {****************************************************************************
                                Primitives

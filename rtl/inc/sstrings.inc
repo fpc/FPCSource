@@ -51,7 +51,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_DELETE}
 {$define FPC_HAS_SHORTSTR_DELETE}
-procedure {$ifdef VER3_0}delete{$else}fpc_shortstr_delete{$endif}(var s : shortstring;index : SizeInt;count : SizeInt);
+procedure fpc_shortstr_delete(var s : shortstring;index : SizeInt;count : SizeInt);
 begin
   if index<=0 then
      exit;
@@ -69,7 +69,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT}
 {$define FPC_HAS_SHORTSTR_INSERT}
-procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert{$endif}(const source : shortstring;var s : shortstring;index : SizeInt);
+procedure fpc_shortstr_insert(const source : shortstring;var s : shortstring;index : SizeInt);
 var
   cut,srclen,indexlen : SizeInt;
 begin
@@ -103,7 +103,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT_CHAR}
 {$define FPC_HAS_SHORTSTR_INSERT_CHAR}
-procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert_char{$endif}(source : AnsiChar;var s : shortstring;index : SizeInt);
+procedure fpc_shortstr_insert_char(source : AnsiChar;var s : shortstring;index : SizeInt);
 var
   indexlen : SizeInt;
 begin
@@ -518,10 +518,7 @@ type
     Common: TRttiDataCommon;
 {$endif}
     case TTypeKind of
-{$ifndef VER3_0}
-      tkInt64,tkQWord,
-{$endif VER3_0}
-      tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
+      tkInt64,tkQWord,tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
          OrdType : Byte;
          case TTypeKind of
             tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
@@ -530,14 +527,12 @@ type
                 tkEnumeration: (
                   BaseTypeRef : pointer
                   );
-{$ifndef VER3_0}
             {tkBool with OrdType=otSQWord }
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
             {tkBool with OrdType=otUQWord }
             tkQWord:
               (MinQWordValue, MaxQWordValue: QWord);
-{$endif VER3_0}
          );
     );
     { more data here, but not needed }
@@ -587,11 +582,7 @@ begin
         does nothing) in case FPC_REQUIRES_PROPER_ALIGNMENT is not set
         to avoid the need for an if in this situation }
 
-{$ifdef VER3_0}
-      body:=Penum_typedata(aligntoptr(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
-{$else VER3_0}
       body:=Penum_typedata(aligntoqword(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
-{$endif VER3_0}
 
       with body^ do
         begin

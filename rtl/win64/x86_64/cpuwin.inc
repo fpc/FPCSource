@@ -45,15 +45,9 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-{$ifdef VER3_0}
-procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
-{$else VER3_0}
 procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
-{$endif VER3_0}
   begin
-{$ifndef VER3_0}
      SetupEntryInformation(info);
-{$endif VER3_0}
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
@@ -67,15 +61,6 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
         movl %eax,_SS(%rip)
         movq %rbp,%rsi
         xorq %rbp,%rbp
-{$ifdef VER3_0}
-{$ifdef FPC_USE_WIN64_SEH}
-        xor  %rcx,%rcx
-        lea  PASCALMAIN(%rip),%rdx
-        call main_wrapper
-{$else FPC_USE_WIN64_SEH}
-        call PASCALMAIN
-{$endif FPC_USE_WIN64_SEH}
-{$else VER3_0}
 {$ifdef FPC_USE_WIN64_SEH}
         xor  %rcx,%rcx
         lea  EntryInformation(%rip),%rdx
@@ -85,7 +70,6 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
         lea  EntryInformation(%rip),%rdx
         call TEntryInformation.PascalMain(%rdx)
 {$endif FPC_USE_WIN64_SEH}
-{$endif VER3_0}
         movq %rsi,%rbp
      end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
      { if we pass here there was no error ! }

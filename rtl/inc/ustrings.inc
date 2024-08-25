@@ -39,7 +39,7 @@ Type
   TUnicodeRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
-{$if not defined(VER3_0) and not defined(VER3_2)}
+{$if not defined(VER3_2)}
   {$ifdef CPU64}	
     Ref         : Longint;
   {$else}
@@ -1301,7 +1301,7 @@ end;
 
 {$ifndef FPC_HAS_DELETE_UNICODESTR}
 {$define FPC_HAS_DELETE_UNICODESTR}
-Procedure {$ifdef VER3_0}Delete{$else}fpc_unicodestr_delete{$endif}(Var S : UnicodeString; Index,Size: SizeInt);
+Procedure fpc_unicodestr_delete(Var S : UnicodeString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -1325,7 +1325,7 @@ end;
 
 {$ifndef FPC_HAS_INSERT_UNICODESTR}
 {$define FPC_HAS_INSERT_UNICODESTR}
-Procedure {$ifdef VER3_0}Insert{$else}fpc_unicodestr_insert{$endif}(Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
+Procedure fpc_unicodestr_insert(Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
 var
   LS,LSource : SizeInt;
   selfinsert : boolean;

@@ -20,10 +20,8 @@
   {$define USE_PACKED}
 {$endif}
 
-{$ifndef VER3_0}
 { 3.1.1 and newer also (re)stores $MinEnumSize and $PackSet upon $Push/$Pop }
 {$push}
-{$endif}
 
 {$MINENUMSIZE 1   this saves a lot of memory }
 {$ifdef FPC_RTTI_PACKSET1}
@@ -46,11 +44,7 @@ type
   packed
 {$endif USE_PACKED}
   record
-    {$ifdef VER3_0}
-    TypeInfo: Pointer;
-    {$else}
     TypeInfo: PPointer;
-    {$endif}
     Offset: SizeInt;
   end;
 
@@ -65,9 +59,7 @@ type
 {$endif declared TRttiDataCommon}
     case TTypeKind of
       tkRecord: (
-{$ifndef VER3_0}
         InitTable: Pointer;
-{$endif VER3_0}
         Size: Longint;
         Count: Longint;
         { Elements: array[count] of TRecordElement }
@@ -79,7 +71,6 @@ type
   end;
 
   PRecordInfoInit=^TRecordInfoInit;
-{$ifndef VER3_0}
   TRTTIRecVarOp=procedure(ARec: Pointer);
   TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
   TRTTIRecOpType=(rotAny, rotInitialize, rotFinalize, rotAddRef, rotCopy);
@@ -126,10 +117,8 @@ type
       tkRecord: (
         Terminator: Pointer;
         Size: Longint;
-{$ifndef VER3_0}
         InitRecordOpTable: PRTTIRecordOpOffsetTable;
         RecordOp: PRTTIRecordOpVMT;
-{$endif VER3_0}
         Count: Longint;
         { Elements: array[count] of TRecordElement }
       );
@@ -138,9 +127,6 @@ type
         dummy : Int64
       );
   end;
-{$else VER3_0}
-  TRecordInfoInit=TRecordInfoFull;
-{$endif VER3_0}
 
   PArrayInfo=^TArrayInfo;
   TArrayInfo=
@@ -155,11 +141,7 @@ type
       tkArray: (
         Size: SizeInt;
         ElCount: SizeInt;
-{$ifdef VER3_0}
-        ElInfo: Pointer;
-{$else}
         ElInfo: PPointer;
-{$endif}
         DimCount: Byte;
         Dims:array[0..255] of Pointer;
       );
@@ -169,14 +151,6 @@ type
       );
   end;
 
-
-{$ifndef VER3_0}
 function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable; forward;
-{$endif VER3_0}
 
-{$ifdef VER3_0}
-{$MINENUMSIZE DEFAULT}
-{$PACKSET DEFAULT}
-{$else}
 {$pop}
-{$endif}

@@ -346,7 +346,6 @@
             pop %ebx
       end;
 
-{$ifndef VER3_0}
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
     function fpc_mul_qword(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       begin
@@ -425,4 +424,3 @@
         addl %ecx,%edx
         jc  .Loverflowed
       end;
-{$endif VER3_0}

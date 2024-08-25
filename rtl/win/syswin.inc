@@ -201,7 +201,7 @@ begin
     CurFilt:=@PFilterRec(Filter+sizeof(Longint))[i];
     if (CurFilt^.RvaClass=$FFFFFFFF) or
       { TODO: exception might be coming from another module, need more advanced comparing }
-      (ExClass.InheritsFrom({$if not defined(ver3_0) and not defined(ver3_2)}PClass(imagebase+CurFilt^.RvaClass)^{$else}TClass(imagebase+CurFilt^.RvaClass){$endif})) then
+      (ExClass.InheritsFrom({$if not defined(ver3_2)}PClass(imagebase+CurFilt^.RvaClass)^{$else}TClass(imagebase+CurFilt^.RvaClass){$endif})) then
     begin
       result:=Pointer(imagebase+CurFilt^.RvaHandler);
       exit;
@@ -736,7 +736,6 @@ procedure InitWin32Widestrings;
     i: longint;
     ptable: PWStrInitEntry;
   begin
-{$if not(defined(VER2_2) or defined(VER2_4))}
     { assign initial values to global Widestring typed consts }
     for i:=1 to WStrInitTablesTable^.count do
       begin
@@ -747,7 +746,6 @@ procedure InitWin32Widestrings;
             Inc(ptable);
           end;
       end;
-{$endif}
 
     { Note: since WideChar=UnicodeChar and PWideChar=PUnicodeChar,
       Wide2AnsiMoveProc is identical to Unicode2AnsiStrMoveProc. }

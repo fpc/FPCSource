@@ -352,46 +352,6 @@
       end;
 {$endif FPC_SYSTEM_HAS_MOD_INT64}
 
-{$ifdef VER3_0}
-
-{$ifndef FPC_SYSTEM_HAS_MUL_QWORD}
-    { multiplies two qwords
-      the longbool for checkoverflow avoids a misaligned stack
-    }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
-
-      var
-         _f1,bitpos : qword;
-         l : longint;
-         f1overflowed : boolean;
-      begin
-        fpc_mul_qword:=0;
-        bitpos:=1;
-        f1overflowed:=false;
-
-        for l:=0 to 63 do
-          begin
-            if (f2 and bitpos)<>0 then
-              begin
-                _f1:=fpc_mul_qword;
-                fpc_mul_qword:=fpc_mul_qword+f1;
-
-                { if one of the operands is greater than the result an
-                  overflow occurs                                      }
-                if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
-                  ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)))) then
-                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
-              end;
-            { when bootstrapping, we forget about overflow checking for qword :) }
-            f1overflowed:=f1overflowed or ((f1 and (qword(1) shl 63))<>0);
-            f1:=f1 shl 1;
-            bitpos:=bitpos shl 1;
-          end;
-      end;
-{$endif FPC_SYSTEM_HAS_MUL_QWORD}
-
-{$else VER3_0}
-
 {$ifndef FPC_SYSTEM_HAS_MUL_QWORD}
     function fpc_mul_qword(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       var
@@ -440,8 +400,6 @@
       end;
 {$endif FPC_SYSTEM_HAS_MUL_QWORD}
 
-{$endif VER3_0}
-
 {$ifndef FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
     function fpc_mul_qword_compilerproc(f1,f2 : qword) : qword; external name 'FPC_MUL_QWORD';
 
@@ -451,63 +409,6 @@
       end;
 {$endif FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
 
-
-{$ifdef VER3_0}
-
-{$ifndef FPC_SYSTEM_HAS_MUL_INT64}
-    function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; compilerproc;
-      var
-         sign : boolean;
-         q1,q2,q3 : qword;
-      begin
-{$ifdef EXCLUDE_COMPLEX_PROCS}
-         runerror(219);
-{$else EXCLUDE_COMPLEX_PROCS}
-        { there's no difference between signed and unsigned multiplication,
-          when the destination size is equal to the source size and overflow
-          checking is off }
-        if not checkoverflow then
-          { qword(f1)*qword(f2) is coded as a call to mulqword }
-          fpc_mul_int64:=int64(qword(f1)*qword(f2))
-        else
-          begin
-            sign:=false;
-            if f1<0 then
-              begin
-                sign:=not(sign);
-                q1:=qword(-f1);
-              end
-            else
-              q1:=f1;
-            if f2<0 then
-              begin
-                sign:=not(sign);
-                q2:=qword(-f2);
-              end
-            else
-              q2:=f2;
-            { the q1*q2 is coded as call to mulqword }
-            q3:=q1*q2;
-
-            if (q1 <> 0) and (q2 <>0) and
-              ((q1>q3) or (q2>q3) or
-                { the bit 63 can be only set if we have $80000000 00000000 }
-                { and sign is true                                         }
-                (q3 shr 63<>0) and
-                 ((q3<>qword(qword(1) shl 63)) or not(sign))
-                ) then
-              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
-
-            if sign then
-              fpc_mul_int64:=-q3
-            else
-              fpc_mul_int64:=q3;
-          end;
-{$endif EXCLUDE_COMPLEX_PROCS}
-      end;
-{$endif FPC_SYSTEM_HAS_MUL_INT64}
-
-{$else VER3_0}
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INT64}
     function fpc_mul_int64(f1,f2 : int64) : int64;[public,alias: 'FPC_MUL_INT64']; compilerproc;
@@ -566,8 +467,6 @@
       end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
-
-{$endif VER3_0}
 
 {$ifndef FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
     function fpc_mul_int64_compilerproc(f1,f2 : int64) : int64; external name 'FPC_MUL_INT64';

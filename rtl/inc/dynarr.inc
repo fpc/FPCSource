@@ -35,15 +35,6 @@ type
    tdynarraytypedata =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
    packed
-{$else}
-  {$ifdef powerpc64}
-    { 3.0.0 does not align elType field on a 8-byte boundary,
-      thus use packed also in this case }
-    {$ifdef VER3_0_0}
-      packed
-    {$endif VER3_0_0}
-  {$endif powerpc64}
-
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
      {$if declared(TRttiDataCommon)}
@@ -52,17 +43,9 @@ type
      case TTypeKind of
        tkArray: (
          elSize : SizeUInt;
-         {$ifdef VER3_0}
-         elType2 : Pointer;
-         {$else}
          elType2 : PPointer;
-         {$endif}
          varType : Longint;
-         {$ifdef VER3_0}
-         elType : Pointer;
-         {$else}
          elType : PPointer;
-         {$endif}
        );
        { include for proper alignment }
        tkInt64: (
@@ -107,13 +90,9 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
 
     if (realp^.refcount>0) and declocked(realp^.refcount) then
       begin
-{$ifdef VER3_0}
-        ti:=aligntoptr(ti+2+PByte(ti)[1]);
-{$else VER3_0}
         ti:=aligntoqword(ti+2+PByte(ti)[1]);
-{$endif VER3_0}
         if assigned(pdynarraytypedata(ti)^.elType) then
-          int_finalizearray(p,pdynarraytypedata(ti)^.elType{$ifndef VER3_0}^{$endif},realp^.high+1);
+          int_finalizearray(p,pdynarraytypedata(ti)^.elType^,realp^.high+1);
         freemem(realp);
       end;
     p:=nil;
@@ -183,27 +162,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
          end;
 
      { skip kind and name }
-{$ifdef VER3_0}
-     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
-{$else VER3_0}
      ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
-{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
-     {$ifdef VER3_0}
-     eletype:=pdynarraytypedata(ti)^.elType2;
-     {$else}
      eletype:=pdynarraytypedata(ti)^.elType2^;
-     {$endif}
      { only set if type needs finalization }
-     {$ifdef VER3_0}
-     eletypemngd:=pdynarraytypedata(ti)^.elType;
-     {$else}
      if assigned(pdynarraytypedata(ti)^.elType) then
        eletypemngd:=pdynarraytypedata(ti)^.elType^
      else
        eletypemngd:=nil;
-     {$endif}
 
      { determine new memory size, throw a runtime error on overflow }
 {$push} {$q+,r+}
@@ -214,11 +181,9 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      if not(assigned(p)) then
        begin
           newp:=AllocMem(size);
-{$ifndef VER3_0}
           { call int_InitializeArray for management operators }
           if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
             int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
-{$endif VER3_0}
        end
      else
        begin
@@ -239,10 +204,8 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if size-sizeof(tdynarray)>movsize then
                  begin
                    fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
-{$ifndef VER3_0}
                    if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
                      int_InitializeArray(pointer(newp)+sizeof(tdynarray)+movsize, eletype, dims[0]-movelen);
-{$endif VER3_0}
                  end;
 
                { increment ref. count of managed members }
@@ -275,12 +238,10 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                newp := realp;
                fillchar((pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1))^,
                  (dims[0]-newp^.high-1)*elesize,0);
-{$ifndef VER3_0}
                { call int_InitializeArray for management operators }
                if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
                  int_InitializeArray(pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1),
                    eletype, dims[0]-newp^.high-1);
-{$endif VER3_0}
             end;
        end;
     p:=pointer(newp)+sizeof(tdynarray);
@@ -304,7 +265,7 @@ function int_array_to_dynarray_copy(psrc : pointer;ti : pointer;
     ) : fpc_stub_dynarray;[external name 'FPC_ARR_TO_DYNARR_COPY'];
 
 
-{$if defined(VER3_0) or defined(VER3_2)}
+{$if defined(VER3_2)}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
   var
@@ -315,29 +276,19 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      fpc_dynarray_clear(pointer(result),ti);
      if psrc=nil then
        exit;
-
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
 
-{$ifdef VER3_0}
-     tti:=aligntoptr(ti+2+PByte(ti)[1]);
-{$else VER3_0}
      tti:=aligntoqword(ti+2+PByte(ti)[1]);
-{$endif VER3_0}
-
      elesize:=pdynarraytypedata(tti)^.elSize;
-{$ifdef VER3_0}
-     eletype:=pdynarraytypedata(tti)^.elType;
-{$else VER3_0}
      { only set if type needs finalization }
      if assigned(pdynarraytypedata(tti)^.elType) then
        eletype:=pdynarraytypedata(tti)^.elType^
      else
        eletype:=nil;
-{$endif VER3_0}
 
      fpc_array_to_dynarray_copy(psrc,ti,lowidx,count,realpsrc^.high+1,elesize,eletype);
   end;
-{$endif VER3_0 or VER3_2}
+{$endif VER3_2}
 
 { copy a custom array (open/dynamic/static) to dynamic array }
 function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
@@ -388,7 +339,6 @@ function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
   end;
 
 
-{$ifndef VER3_0}
 procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : pointer);
    var
       newlen : tdynarrayindex;
@@ -713,8 +663,6 @@ procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 
     newp^.high:=totallen-1;
     dest:=newp+1;
   end;
-{$endif VER3_0}
-
 
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
   external name 'FPC_DYNARR_SETLENGTH';
@@ -734,18 +682,10 @@ function DynArrayDim(typeInfo: Pointer): Integer;
     while (typeInfo <> nil) and (pdynarraytypeinfo(typeInfo)^.kind = tkDynArray) do
     begin
       { skip kind and name }
-{$ifdef VER3_0}
-      typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
-{$else VER3_0}
       typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-{$endif VER3_0}
 
       { element type info}
-      {$ifdef VER3_0}
-      typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
-      {$else VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2^;
-      {$endif VER3_0}
 
       Inc(result);
     end;
@@ -795,20 +735,12 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
     for i:=0 to h do
     begin
       { skip kind and name }
-{$ifdef VER3_0}
-      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
-{$else VER3_0}
       typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
-{$endif VER3_0}
       if i=h then
         break;
       a := PPointerArray(a)^[indices[i]];
       { element type info}
-      {$ifdef VER3_0}
-      typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
-      {$else VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2^;
-      {$endif VER3_0}
     end;
     result:=a+SizeUint(indices[h])*pdynarraytypedata(typeInfo)^.elSize;
   end;

@@ -55,12 +55,7 @@ var
 implementation
 
 var
-{$ifdef VER3_0}
-  SysInstance : qword;
-  FPCSysInstance: PQWord = @SysInstance; public name '_FPC_SysInstance';
-{$else VER3_0}
   FPCSysInstance : PQWord;public name '_FPC_SysInstance';
-{$endif VER3_0}
 
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
 procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
@@ -82,17 +77,9 @@ function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
 {$ifndef SYSTEM_USE_WIN_SEH}
 procedure install_exception_handlers;forward;
 {$endif SYSTEM_USE_WIN_SEH}
-{$ifdef VER3_0}
-procedure PascalMain;external name 'PASCALMAIN';
-{$endif VER3_0}
 
 { include code common with win32 }
 {$I syswin.inc}
-
-{$ifdef VER3_0}
-{ TLS directory code }
-{$I systlsdir.inc}
-{$endif VER3_0}
 
 procedure OsSetupEntryInformation(constref info: TEntryInformation);
 begin
@@ -135,27 +122,6 @@ begin
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
 end;
-
-{$ifdef VER3_0}
-procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLMainCRTStartup';
-begin
-  IsConsole:=true;
-  sysinstance:=_hinstance;
-  dllreason:=_dllreason;
-  dllparam:=PtrInt(_dllparam);
-  DLL_Entry;
-end;
-
-
-procedure _FPC_DLLWinMainCRTStartup(_hinstance : qword;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLWinMainCRTStartup';
-begin
-  IsConsole:=false;
-  sysinstance:=_hinstance;
-  dllreason:=_dllreason;
-  dllparam:=PtrInt(_dllparam);
-  DLL_Entry;
-end;
-{$endif VER3_0}
 
 //
 // Hardware exception handling
@@ -345,32 +311,6 @@ procedure install_exception_handlers;
     AddVectoredExceptionHandler(1,@syswin64_x86_64_exception_handler);
   end;
 {$endif ndef SYSTEM_USE_WIN_SEH}
-
-{$ifdef VER3_0}
-procedure LinkIn(p1,p2,p3: Pointer); inline;
-begin
-end;
-
-procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
-begin
-  IsConsole:=true;
-  GetConsoleMode(GetStdHandle((Std_Input_Handle)),@StartupConsoleMode);
-{$ifdef FPC_USE_TLS_DIRECTORY}
-  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
-{$endif FPC_USE_TLS_DIRECTORY}
-  Exe_entry;
-end;
-
-
-procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
-begin
-  IsConsole:=false;
-{$ifdef FPC_USE_TLS_DIRECTORY}
-  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
-{$endif FPC_USE_TLS_DIRECTORY}
-  Exe_entry;
-end;
-{$endif VER3_0}
 
 {$ifdef FPC_SECTION_THREADVARS}
 function fpc_tls_add(addr: pointer): pointer; assembler; nostackframe;

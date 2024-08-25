@@ -534,15 +534,15 @@ function aligntoqword(p : pointer) : pointer;inline;
 
 function AlignTypeData(p : pointer) : pointer; inline;
   begin
-{$if defined(CPUM68K) and not defined(VER3_0)}
+{$if defined(CPUM68K)}
     result := aligntoqword(p);
-{$else CPUM68K and not VER3_0}
+{$else CPUM68K}
     result := aligntoptr(p);
-{$endif CPUM68K and not VER3_0}
+{$endif CPUM68K}
   end;
 
 
-{$if not defined(VER3_0) and not defined(VER3_2)}
+{$if not defined(VER3_2)}
 type
   TRttiDataCommon =
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -551,7 +551,7 @@ type
   record
     Attrs: Pointer;
   end;
-{$endif not VER3_0 and not VER3_2}
+{$endif not VER3_2}
 
 
 {****************************************************************************
@@ -1131,9 +1131,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : {$if defined(VER3_0)}sizeint
-                 {$else}ALUUInt{$endif}
-                 ;
+    InitCount  : ALUUInt;
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;

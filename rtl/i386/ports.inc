@@ -18,51 +18,6 @@
 
 { to give easy port access like tp with port[] }
 
-{$ifdef VER3_0}
-procedure tport.writeport(p : word;data : byte);assembler;stdcall;
-asm
-        movw    p,%dx
-        movb    data,%al
-        outb    %al,%dx
-end;
-
-
-function tport.readport(p : word) : byte;assembler;stdcall;
-asm
-        movw    p,%dx
-        inb     %dx,%al
-end;
-
-
-procedure tportw.writeport(p : word;data : word);assembler;stdcall;
-asm
-        movw    p,%dx
-        movw    data,%ax
-        outw    %ax,%dx
-end;
-
-
-function tportw.readport(p : word) : word;assembler;stdcall;
-asm
-        movw    p,%dx
-        inw     %dx,%ax
-end;
-
-
-procedure tportl.writeport(p : word;data : longint);assembler;stdcall;
-asm
-        movw    p,%dx
-        movl    data,%eax
-        outl    %eax,%dx
-end;
-
-
-function tportl.readport(p : word) : longint;assembler;stdcall;
-asm
-        movw    p,%dx
-        inl     %dx,%eax
-end;
-{$else VER3_0}
 procedure tport.writeport(p : word;data : byte);inline;
 begin
   fpc_x86_outportb(p,data);
@@ -97,4 +52,3 @@ function tportl.readport(p : word) : longint;inline;
 begin
   readport:=fpc_x86_inportl(p);
 end;
-{$endif VER3_0}

@@ -43,7 +43,7 @@ Type
   TAnsiRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
-{$if not defined(VER3_0) and not defined(VER3_2)}
+{$if not defined(VER3_2)}
   {$ifdef CPU64}	
     Ref         : Longint;
   {$else}
@@ -1310,7 +1310,7 @@ begin
 end;
 {$endif CPU16 or CPU8}
 
-Procedure {$ifdef VER3_0}Delete{$else}fpc_ansistr_delete{$endif}(Var S : RawByteString; Index,Size: SizeInt);
+Procedure fpc_ansistr_delete(Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -1329,7 +1329,7 @@ begin
 end;
 
 
-Procedure {$ifdef VER3_0}Insert{$else}fpc_ansistr_insert{$endif}(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
+Procedure fpc_ansistr_insert(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
 var
   LS,LSource : SizeInt;
 {$ifdef jvm}

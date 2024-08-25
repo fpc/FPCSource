@@ -535,7 +535,6 @@ function CenteredRect(const SourceRect: TRect; const aCenteredRect: TRect): TRec
 function IntersectRectF(out Rect: TRectF; const R1, R2: TRectF): Boolean;
 function UnionRectF(out Rect: TRectF; const R1, R2: TRectF): Boolean;
 
-{$ifndef VER3_0}
 type
   TBitConverter = class
     generic class procedure UnsafeFrom<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0); static; {inline;}
@@ -543,7 +542,6 @@ type
     generic class function UnsafeInTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T; static; {inline;}
     generic class function InTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T; static;
   end;
-{$endif}
 
 Const
   cPI: Single = 3.141592654;
@@ -1922,7 +1920,6 @@ begin
 end;
 
 
-{$ifndef VER3_0}
 generic class procedure TBitConverter.UnsafeFrom<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0);
 begin
   move(ASrcValue, ADestination[AOffset], SizeOf(T));
@@ -1960,6 +1957,5 @@ begin
 
   Result := TBitConverter.specialize UnsafeInTo<T>(ASource, AOffset);
 end;
-{$endif}
 
 end.

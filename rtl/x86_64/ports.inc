@@ -12,19 +12,6 @@
 
  **********************************************************************}
 
-{$IFDEF VER3_0}
-{ Bootstrapping kludge. Note that these do nothing, but since I/O port access is
-  not necessary for bootstrapping on any x86_64 target, these are only added to
-  make the rtl compile with 3.0.
-}
-procedure fpc_x86_outportb(p:longint;v:byte); begin end;
-procedure fpc_x86_outportw(p:longint;v:word); begin end;
-procedure fpc_x86_outportl(p:longint;v:longint); begin end;
-function fpc_x86_inportb(p:word):byte; begin fpc_x86_inportb:=0; end;
-function fpc_x86_inportw(p:word):word; begin fpc_x86_inportw:=0; end;
-function fpc_x86_inportl(p:word):longint; begin fpc_x86_inportl:=0; end;
-{$ENDIF VER3_0}
-
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : Longint;data : byte);inline;

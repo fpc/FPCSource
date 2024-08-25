@@ -140,7 +140,7 @@
        TVmt = record
          vInstanceSize: SizeInt;
          vInstanceSize2: SizeInt;
-         vParentRef: {$ifdef VER3_0}PVmt{$else}PPVmt{$endif};
+         vParentRef: PPVmt;
          vClassName: PShortString;
          vDynamicTable: Pointer;
          vMethodTable: Pointer;
@@ -188,7 +188,7 @@
          property IID: pguid read GetIID;
          property IIDStr: pshortstring read GetIIDStr;
        public
-         IIDRef      : {$IFNDEF VER3_0}^{$ENDIF}pguid; { if assigned(IID) then Com else Corba}
+         IIDRef      : ^pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
          case integer of
            1 : (
@@ -196,7 +196,7 @@
                );
            2 : (
                 IOffsetAsCodePtr: CodePointer;
-                IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+                IIDStrRef   : ^pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
                 IType       : tinterfaceentrytype;
                );
        end;
