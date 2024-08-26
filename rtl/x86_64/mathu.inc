@@ -57,7 +57,7 @@ function log2(x : float) : float;assembler;nostackframe;
 
 {$define FPC_MATH_HAS_SINCOS}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure sincos(theta : extended;out sinus,cosinus : extended);assembler;nostackframe;
+procedure sincos(theta : extended;out sinus,cosinus : extended);assembler;
 asm
     fldt theta
     fsincos
