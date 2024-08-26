@@ -927,6 +927,10 @@ implementation
                   if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
                     result:=2;
 {$endif ARM}
+{$ifdef RISCV}
+                  if not(is_imm12(aint(tordconstnode(p).value.svalue))) then
+                    result:=2;
+{$endif RISCV}
                   exit;
                 end;
               exitn:
