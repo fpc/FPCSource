@@ -91,6 +91,7 @@ Type
     function ParseInteger: TCSSElement; virtual;
     function ParseFloat: TCSSElement; virtual;
     function ParseString: TCSSElement; virtual;
+    function ParseColor: TCSSElement; virtual;
     Function ParseUnicodeRange : TCSSElement; virtual;
     function ParseArray(aPrefix: TCSSElement): TCSSElement; virtual;
     function ParseURL: TCSSElement; virtual;
@@ -1170,8 +1171,8 @@ begin
     ctkGT,
     ctkTilde: Result:=ParseUnary;
     ctkUnicodeRange: Result:=ParseUnicodeRange;
-    ctkSTRING,
-    ctkHASH : Result:=ParseString;
+    ctkSTRING: Result:=ParseString;
+    ctkHASH: Result:=ParseColor;
     ctkINTEGER: Result:=ParseInteger;
     ctkFloat : Result:=ParseFloat;
     ctkPSEUDOFUNCTION,
@@ -1632,26 +1633,32 @@ begin
 end;
 
 function TCSSParser.ParseString: TCSSElement;
-
-Var
-  aValue : TCSSString;
-  aEl : TCSSElement;
-  aStr : TCSSStringElement;
-
+var
+  aStr: TCSSStringElement;
+  aValue: TCSSString;
 begin
   aValue:=CurrentTokenString;
   aStr:=TCSSStringElement(CreateElement(CSSStringElementClass));
   try
-    if CurrentToken=ctkSTRING then
-      Consume(ctkSTRING)
-    else
-      Consume(ctkHASH); // e.g. #rrggbb
     aStr.Value:=aValue;
-    While (CurrentToken in [ctkIDENTIFIER,ctkSTRING,ctkINTEGER,ctkFLOAT,ctkHASH]) do
-      begin
-      aEl:=ParseComponentValue;
-      aStr.Children.Add(aEl);
-      end;
+    Consume(ctkSTRING);
+    Result:=aStr;
+    aStr:=nil;
+  finally
+    aStr.Free;
+  end;
+end;
+
+function TCSSParser.ParseColor: TCSSElement;
+var
+  aStr: TCSSStringElement;
+  aValue: TCSSString;
+begin
+  aValue:=CurrentTokenString;
+  aStr:=TCSSStringElement(CreateElement(CSSStringElementClass));
+  try
+    aStr.Value:=aValue;
+    Consume(ctkHASH); // e.g. #rrggbb
     Result:=aStr;
     aStr:=nil;
   finally
