@@ -1946,16 +1946,14 @@ begin
         DupIgnore : Exit;
         DupError : Error(SDuplicateString,0)
       end;
-   InsertItem (Result,S);  
-   if (aObject<>Nil) then 
-     begin
-     BeginUpdate;
-     try
+   BeginUpdate;
+   try
+     InsertItem (Result,S);  
+     if (aObject<>Nil) then 
       Objects[Result]:=AObject;
-     finally
-       EndUpdate;
-     end;
-     end;
+   finally
+     EndUpdate;
+   end;
 end;
 
 function TStringList.Add(const S: string): Integer;
