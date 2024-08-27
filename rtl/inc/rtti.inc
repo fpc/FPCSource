@@ -43,37 +43,60 @@ begin
   end
 end;
 
-function RTTISizeAndOp(typeInfo: Pointer;
-  const expectedManagementOp: TRTTIRecOpType; out hasManagementOp: boolean): SizeInt;
+{ result = manBuiltin means e.g. that initialization is simply zeroing and can be omitted if the memory is already zeroed, as in dynarr.inc. }
+function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt): TRTTIManagement;
+var
+  ri: PRecordInfoInit;
+  elem, eElem: PRecordElement;
+  newMan: TRTTIManagement;
+  _initrtti: pointer;
+  _size: SizeInt;
 begin
-  hasManagementOp:=false;
   case PTypeKind(typeinfo)^ of
     tkAString,tkWString,tkUString,
     tkInterface,tkDynarray:
-      result:=sizeof(Pointer);
+      begin
+        size:=sizeof(Pointer);
+        result:=manBuiltin;
+      end;
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
-      result:=sizeof(TVarData);
+      begin
+        size:=sizeof(TVarData);
+        result:=manBuiltin;
+      end;
 {$endif FPC_HAS_FEATURE_VARIANTS}
     tkArray:
-      result:=RTTIArraySize(typeinfo);
-    tkObject:
-      result:=RTTIRecordSize(typeinfo);
+      begin
+        typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+        size:=PArrayInfo(typeInfo)^.Size;
+        result:=RTTIManagementAndSize(PArrayInfo(typeInfo)^.ElInfo^, op, _size);
+      end;
+    tkObject,
     tkRecord:
-      with RTTIRecordOp(typeInfo,typeInfo)^ do
-        begin
-          result:=Size;
-          hasManagementOp := Assigned(RecordOp);
-          if hasManagementOp then
-            case expectedManagementOp of
-              rotInitialize: hasManagementOp:=Assigned(RecordOp^.Initialize);
-              rotFinalize: hasManagementOp:=Assigned(RecordOp^.Finalize);
-              rotAddRef: hasManagementOp:=Assigned(RecordOp^.AddRef);
-              rotCopy: hasManagementOp:=Assigned(RecordOp^.Copy);
-            end;
-        end;
+      begin
+        ri:=RTTIRecordOp(typeInfo, _initrtti);
+        size:=ri^.Size;
+        if Assigned(ri^.RecordOp) and Assigned(ri^.RecordOp^.Ops[op]) then
+          result:=manCustom
+        else
+          begin
+            result:=manNone;
+            elem:=AlignTypeData(Pointer(@ri^.Count)+SizeOf(ri^.Count));
+            eElem:=elem+ri^.Count;
+            while elem<>eElem do
+              begin
+                newMan:=RTTIManagementAndSize(elem^.TypeInfo^, op, _size);
+                if newMan<>manNone then
+                  result:=newMan;
+                if newMan=manCustom then
+                  break;
+                inc(elem);
+              end;
+          end;
+      end;
   else
-    result:=-1;
+    result:=manNone; { Size undefined, ultimately can be always correct to support unmanaged scenarios. }
   end;
 end;
 
@@ -310,13 +333,11 @@ begin
             { Process elements with rtti }
             for i:=1 to EleCount Do
               begin
-                Info:=PRecordElement(Temp)^.TypeInfo^;
                 Offset:=PRecordElement(Temp)^.Offset;
-                Inc(PRecordElement(Temp));
                 if Offset>expectedoffset then
                   move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-                copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
-                expectedoffset:=Offset+copiedsize;
+                expectedoffset:=Offset+fpc_Copy_internal(Src+Offset,Dest+Offset,PRecordElement(Temp)^.TypeInfo^);
+                Inc(PRecordElement(Temp));
               end;
             { elements remaining? }
             if result>expectedoffset then
@@ -354,10 +375,8 @@ end;
 procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public,alias:'FPC_INITIALIZE_ARRAY']; compilerproc;
   var
     i, size : SizeInt;
-    hasManagementOp: boolean;
   begin
-    size:=RTTISizeAndOp(typeinfo, rotInitialize, hasManagementOp);
-    if (size>0) or hasManagementOp then
+    if RTTIManagementAndSize(typeinfo, rotInitialize, size)<>manNone then
       for i:=0 to count-1 do
         int_initialize(data+size*i,typeinfo);
   end;
@@ -365,11 +384,9 @@ procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public
 
 procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,Alias:'FPC_FINALIZE_ARRAY'];  compilerproc;
   var
-     i, size: SizeInt;
-    hasManagementOp: boolean;
+    i, size : SizeInt;
   begin
-    size:=RTTISizeAndOp(typeinfo, rotFinalize, hasManagementOp);
-    if (size>0) or hasManagementOp then
+    if RTTIManagementAndSize(typeinfo, rotFinalize, size)<>manNone then
       for i:=0 to count-1 do
         int_finalize(data+size*i,typeinfo);
   end;
@@ -377,11 +394,9 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,A
 
 procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_ADDREF_ARRAY']; compilerproc;
   var
-    i, size: SizeInt;
-    hasManagementOp: boolean;
+    i, size : SizeInt;
   begin
-    size:=RTTISizeAndOp(typeinfo, rotAddRef, hasManagementOp);
-    if (size>0) or hasManagementOp then
+    if RTTIManagementAndSize(typeinfo, rotAddRef, size)<>manNone then
       for i:=0 to count-1 do
         int_addref(data+size*i,typeinfo);
   end;
@@ -406,10 +421,8 @@ procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   var
     i, size: SizeInt;
-    hasManagementOp: boolean;
   begin
-    size:=RTTISizeAndOp(typeinfo, rotCopy, hasManagementOp);
-    if (size>0) or hasManagementOp then
+    if RTTIManagementAndSize(typeinfo, rotCopy, size)<>manNone then
       for i:=0 to count-1 do
         fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
   end;

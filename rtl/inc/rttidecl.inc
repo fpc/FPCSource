@@ -73,17 +73,23 @@ type
   PRecordInfoInit=^TRecordInfoInit;
   TRTTIRecVarOp=procedure(ARec: Pointer);
   TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
-  TRTTIRecOpType=(rotAny, rotInitialize, rotFinalize, rotAddRef, rotCopy);
+  TRTTIRecOpType=(rotInitialize, rotFinalize, rotAddRef, rotCopy);
+  TRTTIManagement=(manNone, manBuiltin, manCustom);
   PRTTIRecordOpVMT=^TRTTIRecordOpVMT;
   TRTTIRecordOpVMT=
 {$ifdef USE_PACKED}
   packed
 {$endif USE_PACKED}
   record
-    Initialize: TRTTIRecVarOp;
-    Finalize: TRTTIRecVarOp;
-    AddRef: TRTTIRecVarOp;
-    Copy: TRTTIRecCopyOp;
+    case cardinal of
+      0:
+      (
+        Initialize: TRTTIRecVarOp;
+        Finalize: TRTTIRecVarOp;
+        AddRef: TRTTIRecVarOp;
+        Copy: TRTTIRecCopyOp;
+      );
+      1: (Ops: array[TRTTIRecOpType] of CodePointer);
   end;
 
   TRTTIRecordOpOffsetEntry =
@@ -151,6 +157,7 @@ type
       );
   end;
 
+function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt): TRTTIManagement; forward;
 function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable; forward;
 
 {$pop}
