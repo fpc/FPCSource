@@ -2373,7 +2373,11 @@ var
     OldP, Lvl: integer;
     VarStartP, NameStartP, NameEndP, ValueStartP, BracketCloseP: PCSSChar;
     aValue, s: TCSSString;
+    {$IF SIZEOF(CHAR)=2}
+    varname: UnicodeString;
+    {$ELSE}
     VarName: ShortString;
+    {$ENDIF}
     Desc: TCSSResCustomAttributeDesc;
     aParentNode: ICSSNode;
   begin
@@ -2484,7 +2488,11 @@ var
 
           // fetch value from node
           SetString(VarName,NameStartP,NameEndP-NameStartP);
+          {$IF SIZEOF(CHAR)=2}
+          Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(UTF8Encode(VarName)));
+          {$ELSE}
           Desc:=TCSSResCustomAttributeDesc(FCustomAttributeNameToDesc.Find(VarName));
+          {$ENDIF}
           if Desc<>nil then
           begin
             {$IFDEF VerboseCSSVar}
