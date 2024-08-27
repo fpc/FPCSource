@@ -72,13 +72,56 @@ procedure ide_check_gdb_availability(Sender: TObject);
   end;
 
 var
-  GDBLibDir: string;
+  CompilerDir, GDBLibDir: string;
   P: TPackage;
+
+  procedure maybe_regenerate_msg_files;
+  var
+    cmd, msgfile, msgidxfile, msgtxtfile, fpclang : string;
+    Opts : TstringList;
+  begin
+    msgidxfile:=CompilerDir+PathDelim+'msgidx.inc';
+    msgtxtfile:=CompilerDir+PathDelim+'msgtxt.inc';
+    if FileExists(msgidxfile) and FileExists(msgtxtfile) then
+      Exit;
+    fpclang:=GetEnvironmentVariable('FPCLANG');
+    if fpclang='' then
+      fpclang:='e';
+    msgfile:=CompilerDir+PathDelim+'msg/error'+fpclang+'.msg';
+    if not FileExists(msgfile) and (fpclang<>'e') then
+      begin
+        fpclang:='e';
+        msgfile:=CompilerDir+PathDelim+'msg/error'+fpclang+'.msg';
+      end;
+    if not FileExists(msgfile) then
+      Exit;
+    Cmd:=CompilerDir+PathDelim+AddProgramExtension('msg2inc',Defaults.BuildOS);
+    if not FileExists(Cmd) then
+       Cmd:=FileSearch(AddProgramExtension('msg2inc',Defaults.BuildOS),GetEnvironmentVariable('PATH'),False);
+    if not FileExists(Cmd) then
+      begin
+        Installer.BuildEngine.log(vlWarning, 'msg2inc utility not found');
+        exit;
+      end;
+    Opts:=TStringList.Create;
+    try
+      Opts.Add(msgfile);
+      Opts.Add(CompilerDir+PathDelim+'msg');
+      Opts.Add('msg');
+      Installer.BuildEngine.log(vlCommand, 'Regenerating msg files');
+      Installer.BuildEngine.ExecuteCommand(Cmd,Opts);
+    finally
+      Opts.Free;
+    end;
+  end;
 
 begin
   P := sender as TPackage;
   with installer do
     begin
+      CompilerDir:=P.Directory +'../../compiler';
+      maybe_regenerate_msg_files;
+
     if GDBMIOption then
       begin
         BuildEngine.log(vlCommand, 'Compiling IDE with GDB/MI debugger support, LibGDB is not needed');
