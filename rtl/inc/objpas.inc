@@ -834,7 +834,7 @@ end;
                { The RTTI format matches one for records, except the type is tkClass.
                  Since RecordRTTI does not check the type, calling it yields the desired result. }
                if Assigned(Temp) then
-                 RecordRTTI(Self,Temp,@int_finalize);
+                 RecordRTTI(Self,aligntoqword(Temp+2+PByte(Temp)[1]),@int_finalize);
 {$endif def FPC_HAS_FEATURE_RTTI}
                vmt:= vmt^.vParent;
              end;

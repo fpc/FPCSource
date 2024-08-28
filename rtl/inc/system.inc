@@ -578,8 +578,6 @@ type
   {$i ustrings.inc}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
-{$i aliases.inc}
-
 {****************************************************************************
                   Run-Time Type Information (RTTI) declarations
 ****************************************************************************}
@@ -587,6 +585,8 @@ type
 {$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rttidecl.inc}
 {$endif FPC_HAS_FEATURE_RTTI}
+
+{$i aliases.inc}
 
 {*****************************************************************************
                         Dynamic Array support

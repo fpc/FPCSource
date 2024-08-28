@@ -35,5 +35,5 @@ procedure int_AddRefArray(data,typeinfo : pointer;count : SizeInt); [external na
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
 
-procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc); forward;
+procedure RecordRTTI(Data:Pointer;Ri:PRecordInfoInit;rttiproc:TRTTIProc); forward;
 {$endif FPC_HAS_FEATURE_RTTI and not cpujvm}

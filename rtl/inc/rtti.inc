@@ -14,32 +14,18 @@
 
 { Run-Time type information routines }
 
-function RTTIArraySize(typeInfo: Pointer): SizeInt;
-begin
-  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-  result:=PArrayInfo(typeInfo)^.Size;
-end;
-
-function RTTIRecordSize(typeInfo: Pointer): SizeInt;
-begin
-  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-  { for size field init table is compatible with rtti table }
-  result:=PRecordInfoFull(typeInfo)^.Size;
-end;
-
-function RTTIRecordOp(typeInfo: Pointer; var initrtti: Pointer): PRecordInfoInit; inline;
+function RTTIRecordInfoInit(typeInfo: Pointer): PRecordInfoInit; inline;
 begin
   { find init table and management operators }
-  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-  result:=typeInfo;
+  result:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
 
   { check terminator, maybe we are already in init table }
   if Assigned(result^.Terminator) then
   begin
     { point to more optimal initrtti }
-    initrtti:=PRecordInfoFull(result)^.InitTable;
+    result:=PRecordInfoFull(result)^.InitTable;
     { and point to management operators in our init table }
-    result:=aligntoqword(initrtti+2+PByte(initrtti)[1]);
+    result:=aligntoqword(pointer(result)+2+PByte(result)[1]);
   end
 end;
 
@@ -60,7 +46,6 @@ var
   ri: PRecordInfoInit;
   elem: PRecordElement;
   newMan: TRTTIManagement;
-  _initrtti: pointer;
   elemCount,sample,_size: SizeInt;
 begin
   sample:=ManagedSizes[PTypeKind(typeinfo)^];
@@ -75,7 +60,7 @@ begin
     end
   else {tkObject, tkRecord}
     begin
-      ri:=RTTIRecordOp(typeInfo, _initrtti);
+      ri:=RTTIRecordInfoInit(typeInfo);
       size:=ri^.Size;
       if Assigned(ri^.RecordOp) and Assigned(ri^.RecordOp^.Ops[op]) then
         exit(manCustom);
@@ -100,20 +85,18 @@ begin
 end;
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
-procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
+procedure RecordRTTI(Data:Pointer;Ri:PRecordInfoInit;rttiproc:TRTTIProc);
 var
-  count,
   i : longint;
+  Re : PRecordElement;
 begin
-  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-  Count:=PRecordInfoInit(typeInfo)^.Count;
   { Get element info, hacky, but what else can we do? }
-  typeInfo:=AlignTypeData(Pointer(@PRecordInfoInit(typeInfo)^.Count)+SizeOf(PRecordInfoInit(typeInfo)^.Count));
+  Re:=AlignTypeData(Pointer(@Ri^.Count)+SizeOf(Ri^.Count));
   { Process elements }
-  for i:=1 to count Do
+  for i:=Ri^.Count downto 1 Do
     begin
-      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo^);
-      Inc(PRecordElement(typeInfo));
+      rttiproc(Data+Re^.Offset,Re^.TypeInfo^);
+      Inc(Re);
     end;
 end;
 
@@ -142,6 +125,8 @@ begin
 end;
 
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
+var
+  ri: PRecordInfoInit;
 begin
   case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
@@ -161,12 +146,11 @@ begin
     tkObject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
-      { if possible try to use more optimal initrtti }
-      with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
-        recordrtti(data,typeinfo,@int_initialize);
-        if Assigned(recordop) and Assigned(recordop^.Initialize) then
-          recordop^.Initialize(data);
+        ri:=RTTIRecordInfoInit(typeinfo);
+        recordrtti(data,ri,@int_initialize);
+        if Assigned(ri^.recordop) and Assigned(ri^.recordop^.Initialize) then
+          ri^.recordop^.Initialize(data);
       end;
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
@@ -177,6 +161,8 @@ end;
 
 
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
+var
+  ri: PRecordInfoInit;
 begin
   case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -197,12 +183,11 @@ begin
     tkObject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
-      { if possible try to use more optimal initrtti }
-      with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
-        if Assigned(recordop) and Assigned(recordop^.Finalize) then
-          recordop^.Finalize(data);
-        recordrtti(data,typeinfo,@int_finalize);
+        ri:=RTTIRecordInfoInit(typeinfo);
+        if Assigned(ri^.recordop) and Assigned(ri^.recordop^.Finalize) then
+          ri^.recordop^.Finalize(data);
+        recordrtti(data,ri,@int_finalize);
       end;
 {$ifdef FPC_HAS_FEATURE_CLASSES}
     tkInterface:
@@ -221,6 +206,8 @@ end;
 
 
 Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  compilerproc;
+var
+  ri: PRecordInfoInit;
 begin
   case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -241,12 +228,11 @@ begin
     tkobject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord :
-      { find init table }
-      with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
-        recordrtti(data,typeinfo,@int_addref);
-        if Assigned(recordop) and Assigned(recordop^.AddRef) then
-          recordop^.AddRef(Data);
+        ri:=RTTIRecordInfoInit(typeinfo);
+        recordrtti(data,ri,@int_addref);
+        if Assigned(ri^.recordop) and Assigned(ri^.recordop^.AddRef) then
+          ri^.recordop^.AddRef(Data);
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
@@ -269,12 +255,12 @@ Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external n
 
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
-  Temp: pbyte;
   copiedsize,
   expectedoffset,
   EleCount,
   offset,
   i: SizeInt;
+  Temp,
   info: pointer;
 begin
   result:=sizeof(pointer);
@@ -313,18 +299,13 @@ begin
     tkobject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord:
-      { find init table }
-      with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
-        Temp:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-        if Assigned(recordop) and Assigned(recordop^.Copy) then
-          begin
-            recordop^.Copy(Src,Dest);
-            Result:=PRecordInfoFull(Temp)^.Size;
-          end
+        Temp:=RTTIRecordInfoInit(typeinfo);
+        Result:=PRecordInfoInit(Temp)^.Size;
+        if Assigned(PRecordInfoInit(Temp)^.recordop) and Assigned(PRecordInfoInit(Temp)^.recordop^.Copy) then
+          PRecordInfoInit(Temp)^.recordop^.Copy(Src,Dest)
         else
           begin
-            Result:=PRecordInfoInit(Temp)^.Size;
             EleCount:=PRecordInfoInit(Temp)^.Count;
             { Get element info, hacky, but what else can we do? }
             Temp:=AlignTypeData(Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count));
