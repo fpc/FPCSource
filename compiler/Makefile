@@ -5155,6 +5155,7 @@ distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS) $(BETATA
 $(MSG2INC): $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(COMPILERUTILSDIR)/msg2inc.pp
 	$(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 msgtxt.inc: $(MSGFILE)
+	$(MAKE) rtl
 	$(MAKE) $(MSG2INC)
 	$(MSG2INC) $(MSGFILE) msg msg
 msg: msgtxt.inc

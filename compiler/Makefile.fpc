@@ -786,6 +786,7 @@ $(MSG2INC): $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(COMPILERUTILSDIR)/
 # The msgtxt.inc only depends on the error?.msg file, not on msg2inc,
 # because that one will be new almost everytime
 msgtxt.inc: $(MSGFILE)
+        $(MAKE) rtl
         $(MAKE) $(MSG2INC)
         $(MSG2INC) $(MSGFILE) msg msg
 
