@@ -5114,7 +5114,7 @@ $(SYMLINKINSTALL_TARGETS):
 alltargets: $(ALLTARGETS)
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 all: compiler $(addsuffix _all,$(TARGET_DIRS))
-compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)
+compiler: msg $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
 ifdef DATE
