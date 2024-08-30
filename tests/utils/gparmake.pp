@@ -8,11 +8,17 @@ Uses
 procedure Usage;
   begin
     writeln('GParMake: create make rules for parallel execution of testsuite');
-    writeln('Usage: gparmake [-a] <outputfile> <dirname> <startchunk> <tests_per_chunk> <test1> [<test2> ...]');
+    writeln('Usage: gparmake [-a] [-f] <outputfile> <dirname> <startchunk> <tests_per_chunk> <test1> [<test2> ...]');
     writeln('Output: makefile fragment with rules to run the tests in sequences of <tests_per_chunk>');
+    writeln('  -a: Append to existing files');
+    writeln('  -f: redirect output to separate files');
     writeln;
     halt(1);
   end;
+
+var
+  doappend: boolean;
+  doredirect: boolean;
 
 { make all numbers of the same string length so they can be sorted
   lexographically }
@@ -28,11 +34,18 @@ function rulenr2str(rulenr: longint): string;
 
 procedure WriteChunkRule(rulenr: longint; const dirname, files: ansistring);
   var
-    rulestr: string;
+    rulestr, redirectfile: string;
   begin
     rulestr:=rulenr2str(rulenr)+dirname;
     writeln('$(TEST_OUTPUTDIR)/testchunk_',rulestr,'-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)');
-    writeln(#9'$(Q)$(DOTEST) $(DOTESTOPT) -Lchunk',rulestr,' -e ',files);
+    write(#9'$(Q)$(DOTEST) $(DOTESTOPT) -Lchunk',rulestr,' -e ',files);
+    if doredirect then
+      begin
+        redirectfile:=dirname+DirectorySeparator+rulestr+'.log';
+	writeln(' > '+redirectfile);
+      end
+    else
+      writeln;
     writeln(#9'$(ECHOREDIR) $(TEST_DATETIME) > $@');
     writeln;
     writeln('$(addsuffix .chunk',rulestr,', $(LOGFILES)) : $(TEST_OUTPUTDIR)/testchunk_',rulestr,'-stamp.$(TEST_FULL_TARGET)');
@@ -45,7 +58,6 @@ procedure WriteChunkRule(rulenr: longint; const dirname, files: ansistring);
 var
   startchunk: longint;
   dirname : ansistring;
-  doappend: boolean;
   FileList : TStringList;
 
 Function ProcessArgs: longint;
@@ -86,11 +98,18 @@ Function ProcessArgs: longint;
       Usage;
 
     doappend:=false;
+    doredirect:=false;
 
     paramnr:=1;
     if paramstr(paramnr)='-a' then
       begin
         doappend:=true;
+        inc(paramnr);
+      end;
+
+    if paramstr(paramnr)='-f' then
+      begin
+        doredirect:=true;
         inc(paramnr);
       end;
 
@@ -169,13 +188,15 @@ Function ProcessArgs: longint;
 
 procedure WriteWrapperRules(totalchunks: longint);
   const
-    lognames: array[1..3] of string[11] = ('log','faillist','longlog');
+    lognames: array[1..4] of string[11] = ('log','faillist','longlog','orderedlog');
   var
     logi,
     i: longint;
   begin
-    for logi:=1 to 3 do
+    for logi:=low(lognames) to high(lognames) do
       begin
+        if (logi=4) and not doredirect then
+          continue;
         write('$(TEST_OUTPUTDIR)/',lognames[logi],' :');
         for i:=startchunk to totalchunks do
           write(' $(TEST_OUTPUTDIR)/',lognames[logi],'.chunk',rulenr2str(i)+dirname);
