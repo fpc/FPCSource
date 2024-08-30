@@ -1284,7 +1284,7 @@ function cosh(x : Double) : Double;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function cosh(x : Extended) : Extended;
   var
-     temp : Extended;
+     temp : ValReal;
   begin
      temp:=exp(x);
      cosh:=0.5*(temp+1.0/temp);
@@ -1317,7 +1317,7 @@ function sinh(x : Double) : Double;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function sinh(x : Extended) : Extended;
   var
-     temp : Extended;
+     temp : ValReal;
   begin
      temp:=exp(x);
      if temp=1 then
@@ -1408,7 +1408,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SecH(const X: Extended): Extended;
 var
-  Ex: Extended;
+  Ex: ValReal;
 begin
   Ex:=Exp(X);
   SecH:=2/(Ex+1/Ex);
@@ -1437,7 +1437,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CscH(const X: Extended): Extended;
 var
-  Ex: Extended;
+  Ex: ValReal;
 begin
   Ex:=Exp(X);
   CscH:=2/(Ex-1/Ex);
@@ -1485,7 +1485,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CotH(const X: Extended): Extended;
 var
-  e2: Extended;
+  e2: ValReal;
 begin
   if x < 0 then begin
     e2:=exp(2*x);
