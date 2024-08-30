@@ -527,6 +527,11 @@ $(CREATELST): utils/createlst.pp
 	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
 	$(FPC) -FE. utils/createlst.pp $(OPT)
 
+ifdef MAKEINC_SEPARATE
+  GPARMAKE_OPT=-f
+else
+  GPARMAKE_OPT=
+endif
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed
 # after making the MakeChunks file (because it has to be included) and all
@@ -547,15 +552,15 @@ $(MAKEINC): $(GPARMAKE) $(CREATELST)
 # even if CHUNKSIZE is equal to 1.
 	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
 	$(Q)$(CREATELST) filelisttest.lst $(TESTDIRS)
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @filelisttest.lst
+	$(Q)$(GPARMAKE) $(GPARMAKE_OPT) $(MAKEINC) test 1 $(CHUNKSIZE) @filelisttest.lst
 	$(Q)$(CREATELST) filelisttbs.lst tbs
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @filelisttbs.lst
+	$(Q)$(GPARMAKE) -a $(GPARMAKE_OPT) $(MAKEINC) tbs 10000 $(CHUNKSIZE) @filelisttbs.lst
         $(Q)$(CREATELST) filelisttbf.lst tbf
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @filelisttbf.lst
+	$(Q)$(GPARMAKE) -a $(GPARMAKE_OPT) $(MAKEINC) tbf 15000 $(CHUNKSIZE) @filelisttbf.lst
         $(Q)$(CREATELST) filelistwebtbs.lst webtbs
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @filelistwebtbs.lst
+	$(Q)$(GPARMAKE) -a $(GPARMAKE_OPT) $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @filelistwebtbs.lst
         $(Q)$(CREATELST) filelistwebtbf.lst webtbf
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @filelistwebtbf.lst
+	$(Q)$(GPARMAKE) -a $(GPARMAKE_OPT) $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @filelistwebtbf.lst
 
 
 # only include the targets to compile/run the tests when we want to
@@ -563,7 +568,7 @@ $(MAKEINC): $(GPARMAKE) $(CREATELST)
 ifeq (,$(findstring clean,$(firstword $(MAKECMDGOALS))))
 ifneq (,$(findstring all,$(MAKECMDGOALS)))
 ifneq (,$(wildcard $(MAKEINC)))
-# incude the rules we just generated
+# include the rules we just generated
 include $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 endif
 endif
