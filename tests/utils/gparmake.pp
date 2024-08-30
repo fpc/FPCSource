@@ -42,7 +42,7 @@ procedure WriteChunkRule(rulenr: longint; const dirname, files: ansistring);
     write(#9'$(Q)$(DOTEST) $(DOTESTOPT) -Lchunk',rulestr,' -e ',files);
     if doredirect then
       begin
-        redirectfile:='$(TEST_OUTPUTDIR)/sep_log.chunk'+rulestr;
+        redirectfile:='$(TEST_OUTPUTDIR)/seplog.chunk'+rulestr;
 	writeln(' > '+redirectfile);
       end
     else
@@ -189,7 +189,7 @@ Function ProcessArgs: longint;
 
 procedure WriteWrapperRules(totalchunks: longint);
   const
-    lognames: array[1..4] of string[11] = ('log','faillist','longlog','sep_log');
+    lognames: array[1..4] of string[11] = ('log','faillist','longlog','seplog');
   var
     logi,
     i: longint;
