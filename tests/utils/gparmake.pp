@@ -38,6 +38,7 @@ procedure WriteChunkRule(rulenr: longint; const dirname, files: ansistring);
   begin
     rulestr:=rulenr2str(rulenr)+dirname;
     writeln('$(TEST_OUTPUTDIR)/testchunk_',rulestr,'-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)');
+    writeln(#9'$(Q)$(ECHOREDIR) "Starting testchunk_'+rulestr+'"');
     write(#9'$(Q)$(DOTEST) $(DOTESTOPT) -Lchunk',rulestr,' -e ',files);
     if doredirect then
       begin
