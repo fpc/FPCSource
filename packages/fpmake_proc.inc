@@ -882,6 +882,12 @@ begin
 {$include wasm-job/fpmake.pp}
 end;
 
+procedure add_wasm_utils(const ADirectory: string);
+begin
+  with Installer do
+{$include wasm-utils/fpmake.pp}
+end;
+
 procedure add_wasm_oi(const ADirectory: string);
 begin
   with Installer do
