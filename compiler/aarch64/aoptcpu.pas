@@ -1480,6 +1480,13 @@ Implementation
             A_SXTW:
               Result:=OptPass1SXTW(p);
 //            A_VLDR,
+            A_FRINTA,
+            A_FRINTI,
+            A_FRINTM,
+            A_FRINTN,
+            A_FRINTP,
+            A_FRINTX,
+            A_FRINTZ,
             A_FCSEL,
             A_FMADD,
             A_FMSUB,
