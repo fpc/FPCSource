@@ -157,7 +157,7 @@ type
       );
   end;
 
-function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt): TRTTIManagement; forward;
+function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt; maxInteresting: TRTTIManagement): TRTTIManagement; forward;
 function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable; forward;
 
 {$pop}

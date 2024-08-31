@@ -44,60 +44,59 @@ begin
 end;
 
 { result = manBuiltin means e.g. that initialization is simply zeroing and can be omitted if the memory is already zeroed, as in dynarr.inc. }
-function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt): TRTTIManagement;
+function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt; maxInteresting: TRTTIManagement): TRTTIManagement;
+const
+  Special = 49;
+  ManagedSizes: array[TTypeKind] of uint8 = { 0 — unmanaged, Special — special, otherwise manBuiltin of that size. }
+  (
+    {tkUnknown} 0, {tkInteger} 0, {tkChar} 0, {tkEnumeration} 0, {tkFloat} 0,
+    {tkSet} 0, {tkMethod} 0, {tkSString} 0, {tkLString} 0, {tkAString} sizeof(pointer),
+    {tkWString} sizeof(pointer), {tkVariant} {$ifdef FPC_HAS_FEATURE_VARIANTS} sizeof(TVarData) {$else} 0 {$endif}, {tkArray} Special, {tkRecord} Special, {tkInterface} sizeof(pointer),
+    {tkClass} 0, {tkObject} Special, {tkWChar} 0, {tkBool} 0, {tkInt64} 0, {tkQWord} 0,
+    {tkDynArray} sizeof(pointer), {tkInterfaceRaw} 0, {tkProcVar} 0, {tkUString} sizeof(pointer), {tkUChar} 0,
+    {tkHelper} 0, {tkFile} 0, {tkClassRef} 0, {tkPointer} 0
+  );
 var
   ri: PRecordInfoInit;
-  elem, eElem: PRecordElement;
+  elem: PRecordElement;
   newMan: TRTTIManagement;
   _initrtti: pointer;
-  _size: SizeInt;
+  elemCount,sample,_size: SizeInt;
 begin
-  case PTypeKind(typeinfo)^ of
-    tkAString,tkWString,tkUString,
-    tkInterface,tkDynarray:
-      begin
-        size:=sizeof(Pointer);
-        result:=manBuiltin;
-      end;
-{$ifdef FPC_HAS_FEATURE_VARIANTS}
-    tkVariant:
-      begin
-        size:=sizeof(TVarData);
-        result:=manBuiltin;
-      end;
-{$endif FPC_HAS_FEATURE_VARIANTS}
-    tkArray:
-      begin
-        typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
-        size:=PArrayInfo(typeInfo)^.Size;
-        result:=RTTIManagementAndSize(PArrayInfo(typeInfo)^.ElInfo^, op, _size);
-      end;
-    tkObject,
-    tkRecord:
-      begin
-        ri:=RTTIRecordOp(typeInfo, _initrtti);
-        size:=ri^.Size;
-        if Assigned(ri^.RecordOp) and Assigned(ri^.RecordOp^.Ops[op]) then
-          result:=manCustom
-        else
-          begin
-            result:=manNone;
-            elem:=AlignTypeData(Pointer(@ri^.Count)+SizeOf(ri^.Count));
-            eElem:=elem+ri^.Count;
-            while elem<>eElem do
-              begin
-                newMan:=RTTIManagementAndSize(elem^.TypeInfo^, op, _size);
-                if newMan<>manNone then
-                  result:=newMan;
-                if newMan=manCustom then
-                  break;
-                inc(elem);
-              end;
-          end;
-      end;
-  else
-    result:=manNone; { Size undefined, ultimately can be always correct to support unmanaged scenarios. }
-  end;
+  sample:=ManagedSizes[PTypeKind(typeinfo)^];
+  size:=sample;
+  if sample<>Special then
+    result:=TRTTIManagement(ord(sample<>0)) { manNone(0) if sample = 0, manBuiltin(1) otherwise. }
+  else if PTypeKind(typeinfo)^=tkArray then
+    begin
+      typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+      size:=PArrayInfo(typeInfo)^.Size;
+      result:=RTTIManagementAndSize(PArrayInfo(typeInfo)^.ElInfo^, op, _size, maxInteresting);
+    end
+  else {tkObject, tkRecord}
+    begin
+      ri:=RTTIRecordOp(typeInfo, _initrtti);
+      size:=ri^.Size;
+      if Assigned(ri^.RecordOp) and Assigned(ri^.RecordOp^.Ops[op]) then
+        exit(manCustom);
+      result:=manNone;
+      elem:=AlignTypeData(Pointer(@ri^.Count)+SizeOf(ri^.Count));
+      for elemCount:=ri^.Count downto 1 do
+        begin
+          sample:=ManagedSizes[PTypeKind(elem^.TypeInfo^)^];
+          if sample<>Special then
+            newMan:=TRTTIManagement(ord(sample<>0)) { Avoid recursive call for simple fields. }
+          else
+            newMan:=RTTIManagementAndSize(elem^.TypeInfo^, op, _size, maxInteresting);
+          if newMan>result then
+            begin
+              result:=newMan;
+              if newMan>=maxInteresting then
+                break;
+            end;
+          inc(elem);
+        end;
+    end;
 end;
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
@@ -376,7 +375,7 @@ procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public
   var
     i, size : SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotInitialize, size)<>manNone then
+    if RTTIManagementAndSize(typeinfo, rotInitialize, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
         int_initialize(data+size*i,typeinfo);
   end;
@@ -386,7 +385,7 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,A
   var
     i, size : SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotFinalize, size)<>manNone then
+    if RTTIManagementAndSize(typeinfo, rotFinalize, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
         int_finalize(data+size*i,typeinfo);
   end;
@@ -396,7 +395,7 @@ procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alia
   var
     i, size : SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotAddRef, size)<>manNone then
+    if RTTIManagementAndSize(typeinfo, rotAddRef, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
         int_addref(data+size*i,typeinfo);
   end;
@@ -422,7 +421,7 @@ procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   var
     i, size: SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotCopy, size)<>manNone then
+    if RTTIManagementAndSize(typeinfo, rotCopy, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
         fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
   end;

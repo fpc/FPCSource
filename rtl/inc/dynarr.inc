@@ -182,7 +182,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
        begin
           newp:=AllocMem(size);
           { call int_InitializeArray for management operators; not required if no operators as memory is already zeroed }
-          if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size)=manCustom) then
+          if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, manCustom)=manCustom) then
             int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
        end
      else
@@ -204,7 +204,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if size-sizeof(tdynarray)>movsize then
                  begin
                    fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
-                   if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size)=manCustom) then
+                   if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, manCustom)=manCustom) then
                      int_InitializeArray(pointer(newp)+sizeof(tdynarray)+movsize, eletype, dims[0]-movelen);
                  end;
 
@@ -238,7 +238,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                newp := realp;
                fillchar((pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1))^,
                  (dims[0]-newp^.high-1)*elesize,0);
-               if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size)=manCustom) then
+               if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, manCustom)=manCustom) then
                  int_InitializeArray(pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1),
                    eletype, dims[0]-newp^.high-1);
             end;
