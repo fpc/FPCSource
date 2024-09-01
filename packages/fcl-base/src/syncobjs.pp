@@ -172,10 +172,8 @@ type
     class function Exchange(var Target: TObject; Value: TObject): TObject; overload; static; inline;
     class function CompareExchange(var Target: Pointer; Value: Pointer; Comparand: Pointer): Pointer; overload; static; inline;
     class function CompareExchange(var Target: TObject; Value: TObject; Comparand: TObject): TObject; overload; static; inline;
-{$ifndef VER3_0}
     generic class function Exchange<T: class>(var Target: T; Value: T): T; overload; static; inline;
     generic class function CompareExchange<T: class>(var Target: T; Value: T; Comparand: T): T; overload; static; inline;
-{$endif VER3_0}
 {$ENDIF NOPOINTER}
   end;
 
@@ -614,7 +612,6 @@ begin
   Result := TObject(InterLockedExchange(Pointer(Target), Pointer(Value)));
 end;
 
-{$ifndef VER3_0}
 generic class function TInterlocked.CompareExchange<T>(var Target: T; Value: T; Comparand: T): T; overload; static; inline;
 begin
   Result := T(InterlockedCompareExchange(Pointer(Target), Pointer(Value), Pointer(Comparand)));
@@ -624,7 +621,6 @@ generic class function TInterlocked.Exchange<T>(var Target: T; Value: T): T; ove
 begin
   Result := T(InterLockedExchange(Pointer(Target), Pointer(Value)));
 end;
-{$endif VER3_0}
 
 {$ENDIF NOPOINTER}
 

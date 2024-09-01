@@ -732,7 +732,7 @@ end;
 
 
 {$define FPC_HAS_DELETE_UNICODESTR}
-Procedure {$ifdef VER3_0}Delete{$else}fpc_unicodestr_delete{$endif} (Var S : UnicodeString; Index,Size: SizeInt);
+Procedure fpc_unicodestr_delete (Var S : UnicodeString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
   sb: JLStringBuilder;
@@ -757,7 +757,7 @@ end;
 
 
 {$define FPC_HAS_INSERT_UNICODESTR}
-Procedure {$ifdef VER3_0}Insert{$else}fpc_unicodestr_insert{$endif} (Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
+Procedure fpc_unicodestr_insert (Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
 var
   Temp : UnicodeString;
   LS : SizeInt;

@@ -216,7 +216,6 @@ end;
 procedure TXMLOutputStreamer.FinalizeOutput;
 
 begin
-{$IFNDEF VER3_0}
   if Not (ooHumanReadable in OutputOptions) then
     begin
     With TDOMWriter.Create(Stream,FXML) do
@@ -229,7 +228,6 @@ begin
       end;
     end
   else
-{$ENDIF}
   WriteXML(FXML,Stream);
   FreeAndNil(FXML);
 end;

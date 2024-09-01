@@ -41,11 +41,7 @@ uses
   fpReportStreamer,
   fpTTF,
   fpJSON,
-{$IFDEF VER3_0}  
-  fprepexprpars,
-{$ELSE}  
   fpexprpars,
-{$ENDIF}
   jsonparser;
 
 { TGroupingDemo }

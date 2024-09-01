@@ -521,12 +521,7 @@ begin
       rftDateTime : P.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),S);
       rftString : P.AsString:=S;
       rftBoolean : P.AsBoolean:=D.AsBoolean;
-      rftBlob :
-{$IFNDEF VER3_0}
-         P.AsBlob:=BytesOf(DecodeStringBase64(S));
-{$ELSE}
-         P.AsBlob:=DecodeStringBase64(S);
-{$ENDIF}
+      rftBlob : P.AsBlob:=BytesOf(DecodeStringBase64(S));
     else
       OtherParamValue(S,N);
     end
@@ -851,23 +846,6 @@ function TSQLDBRestDBHandler.GetGeneratorValue(const aGeneratorName: String
   ): Int64;
 
 begin
-{$IFDEF VER3_0_4}
-  // The 'get next value' SQL in 3.0.4 is wrong, so we need to do this sep
-  if (IO.Connection is TSQLConnector) and SameText((IO.Connection as TSQLConnector).ConnectorType,'Sqlite3') then
-    begin
-    With CreateQuery('SELECT seq+1 FROM sqlite_sequence WHERE name=:aName') do
-      Try
-        ParamByName('aName').AsString:=aGeneratorName;
-        Open;
-        if (EOF and BOF) then
-          DatabaseErrorFmt('Generator %s does not exist',[aGeneratorName]);
-        Result:=Fields[0].asLargeint;
-      Finally
-        Free;
-      end;
-    end
-  else
-{$ENDIF}
   Result:=IO.Connection.GetNextValue(aGeneratorName,1);
 end;
 
@@ -920,12 +898,7 @@ begin
       rftDateTime : DataField.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),D.AsString);
       rftString : DataField.AsString:=D.AsString;
       rftBoolean : DataField.AsBoolean:=D.AsBoolean;
-      rftBlob :
-{$IFNDEF VER3_0}
-         DataField.AsBytes:=BytesOf(DecodeStringBase64(D.AsString));
-{$ELSE}
-         DataField.AsString:=DecodeStringBase64(D.AsString);
-{$ENDIF}
+      rftBlob : DataField.AsBytes:=BytesOf(DecodeStringBase64(D.AsString));
     else
       DataField.AsString:=D.AsString;
     end

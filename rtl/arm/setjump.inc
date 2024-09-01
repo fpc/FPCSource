@@ -23,11 +23,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
     // fstmiad increases the address register always by 2n+1 words, so fix this
     sub r0,r0,#4
     {$else}
-    {$ifdef VER3_0}
-    fstmiad r0!, {d8-d15}
-    {$else}
     vstmia r0!, {d8-d15}
-    {$endif}
     {$endif}
     {$endif}
 
@@ -74,11 +70,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     it eq
     moveq   r0, #1
     {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV4) or defined(FPUVFPV3_D16)}
-    {$ifdef VER3_0}
-    fldmiad ip!, {d8-d15}
-    {$else}
     vldmia ip!, {d8-d15}
-    {$endif}
     {$endif}
     ldmia   ip!, {v1-v6, sl, fp}
     ldr     sp, [ip]
@@ -116,11 +108,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     // increases fldmiax the address register always by 2n+1 words, so fix this
     sub ip,ip,#4
     {$else}
-    {$ifdef VER3_0}
-    fldmiad ip!, {d8-d15}
-    {$else}
     vldmia ip!, {d8-d15}
-    {$endif}
     {$endif}
     {$endif}
     ldmia   ip,{v1-v6, sl, fp, sp, pc}

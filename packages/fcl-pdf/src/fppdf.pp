@@ -1480,13 +1480,6 @@ end;
 
 procedure DecompressStream(AFrom: TStream; ATo: TStream);
 
-{$IFDEF VER2_6}
-{$DEFINE NOHEADERWORKADOUND}
-{$ENDIF}
-{$IFDEF VER3_0}
-{$DEFINE NOHEADERWORKADOUND}
-{$ENDIF}
-
 Const
   BufSize = 1024; // 1K
 
@@ -1495,9 +1488,6 @@ Type
 
 var
   d: TDecompressionStream;
-  {$IFDEF NOHEADERWORKADOUND}
-  I: integer;
-  {$ENDIF}
   Count : Integer;
   Buffer : TBuffer;
 
@@ -1511,12 +1501,6 @@ begin
 
   AFrom.Position := 0;
   AFrom.Seek(0,soFromEnd);
-{$IFDEF NOHEADERWORKADOUND}
-  // Work around a paszlib bug, FPC bugtracker 26827
-  I:=0;
-  AFrom.Write(I,SizeOf(I));
-  AFrom.Position:=0;
-{$ENDIF}
   D:=TDecompressionStream.Create(AFrom, False);
   try
     repeat

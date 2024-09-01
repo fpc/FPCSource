@@ -60,11 +60,7 @@ type
   }
 
   { ObjCBOOL is one byte and uses 0/1, just like Pascal }
-{$ifndef VER3_0}
   ObjCBOOL = boolean8;
-{$else}
-  ObjCBOOL = boolean;
-{$endif}
   pObjCBOOL = ^ObjCBOOL;
 
   tobjc_class = record

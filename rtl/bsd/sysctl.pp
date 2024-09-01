@@ -88,19 +88,11 @@ TYPE    CtlNameRec = Record
 //
 
 {$ifdef FPC_USE_LIBC}
-{$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
-{$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
-{$endif}
 function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
 function FPsysctlnametomib (Name: PAnsiChar;mibp:pcint;sizep:psize_t):cint; cdecl; external name 'sysctlnametomib';
 {$else}
-{$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-{$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-{$endif}
 function FPsysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlnametomib (Name: PAnsiChar; mibp:pcint;sizep:psize_t):cint;
 {$endif}
@@ -120,11 +112,7 @@ Uses Syscall;
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 
-{$if defined(VER3_0_0) or defined(VER3_0_2)}
-function FPsysctl (Name: PAnsiChar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-{$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-{$endif}
 
 {$ifdef OpenBSD}
 const
@@ -132,7 +120,7 @@ const
 {$endif OpenBSD}
 
 Begin
-        if (pcint(name)[0] <> CTL_USER) Then
+        if (name[0] <> CTL_USER) Then
            exit(do_syscall(syscall_nr___sysctl,TSysParam(name), namelen, TSysParam(oldp), TSysParam(oldlenp), TSysParam(newp), TSysParam(newlen)))
         else
          Exit(0);

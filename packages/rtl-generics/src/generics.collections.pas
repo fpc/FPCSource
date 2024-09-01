@@ -62,10 +62,6 @@ type
 
   TDuplicates = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.TDuplicates;
 
-  {$ifdef VER3_0_0}
-  TArray<T> = array of T;
-  {$endif}
-
   // bug #24254 workaround
   // should be TArray = record class procedure Sort<T>(...) etc.
   TBinarySearchResult = record

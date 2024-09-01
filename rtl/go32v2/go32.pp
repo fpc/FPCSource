@@ -158,19 +158,6 @@ interface
     function unlock_data(var data;size : longint) : boolean;
     function unlock_code(functionaddr : pointer;size : longint) : boolean;
 
-{$ifdef VER3_0}
-    { disables and enables interrupts }
-    procedure disable;
-    procedure enable;
-
-    function inportb(port : word) : byte;
-    function inportw(port : word) : word;
-    function inportl(port : word) : longint;
-
-    procedure outportb(port : word;data : byte);
-    procedure outportw(port : word;data : word);
-    procedure outportl(port : word;data : longint);
-{$else VER3_0}
     { disables and enables interrupts }
     procedure disable;inline;
     procedure enable;inline;
@@ -182,7 +169,7 @@ interface
     procedure outportb(port : word;data : byte);inline;
     procedure outportw(port : word;data : word);inline;
     procedure outportl(port : word;data : longint);inline;
-{$endif VER3_0}
+
     function get_run_mode : word;
 
     function transfer_buffer : longint;
@@ -464,67 +451,7 @@ interface
            end ['ECX','EAX'];
       end;
 
-{$ifdef VER3_0}
-    procedure outportb(port : word;data : byte);
 
-      begin
-         asm
-            movw port,%dx
-            movb data,%al
-            outb %al,%dx
-         end ['EAX','EDX'];
-      end;
-
-    procedure outportw(port : word;data : word);
-
-      begin
-         asm
-            movw port,%dx
-            movw data,%ax
-            outw %ax,%dx
-         end ['EAX','EDX'];
-      end;
-
-    procedure outportl(port : word;data : longint);
-
-      begin
-         asm
-            movw port,%dx
-            movl data,%eax
-            outl %eax,%dx
-         end ['EAX','EDX'];
-      end;
-
-    function inportb(port : word) : byte;
-
-      begin
-         asm
-            movw port,%dx
-            inb %dx,%al
-            movb %al,__RESULT
-         end ['EAX','EDX'];
-      end;
-
-    function inportw(port : word) : word;
-
-      begin
-         asm
-            movw port,%dx
-            inw %dx,%ax
-            movw %ax,__RESULT
-         end ['EAX','EDX'];
-      end;
-
-    function inportl(port : word) : longint;
-
-      begin
-         asm
-            movw port,%dx
-            inl %dx,%eax
-            movl %eax,__RESULT
-         end ['EAX','EDX'];
-      end;
-{$else VER3_0}
     procedure outportb(port : word;data : byte);inline;
       begin
 	    fpc_x86_outportb(port,data);
@@ -554,8 +481,6 @@ interface
       begin
 	    inportl:=fpc_x86_inportl(port);
       end;
-{$endif VER3_0}
-
 
 
     function get_cs : word;assembler;
@@ -1170,19 +1095,6 @@ interface
          end;
       end;
 
-{$ifdef VER3_0}
-    procedure disable;assembler;
-
-      asm
-         cli
-      end;
-
-    procedure enable;assembler;
-
-      asm
-         sti
-      end;
-{$else VER3_0}
     procedure disable;inline;
 
       begin
@@ -1194,8 +1106,6 @@ interface
       begin
          fpc_x86_sti;
       end;
-{$endif VER3_0}
-
 
     var
       _run_mode : word;external name '_run_mode';

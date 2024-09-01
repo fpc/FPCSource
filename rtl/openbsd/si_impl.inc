@@ -12,9 +12,7 @@
 
  **********************************************************************}
 
-{$IFNDEF VER3_0}
-  {$I openbsd_ident.inc}
-{$ENDIF VER3_0}
+{$I openbsd_ident.inc}
 
 procedure PascalMain; external name 'PASCALMAIN';
 

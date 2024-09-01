@@ -14,7 +14,6 @@
 
  **********************************************************************}
 
-{$ifndef VER3_0}
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
 function fpc_mul_qword( f1, f2: qword): qword; [public,alias: 'FPC_MUL_QWORD']; compilerproc;
 begin
@@ -272,7 +271,6 @@ begin
 @@done:
   end [ 'ax','bx','cx','dx','si','di' ];
 end;
-{$endif VER3_0}
 
 
 {$define FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}

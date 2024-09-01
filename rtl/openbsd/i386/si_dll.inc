@@ -16,11 +16,7 @@
 
 {$asmmode att}
 
-{$ifdef VER3_0}
-procedure _init; cdecl; external name '_init';
-{$else VER3_0}
 procedure _init; cdecl; weakexternal name '_init';
-{$endif VER3_0}
 
 procedure _FPC_shared_lib_start; cdecl; public name 'FPC_LIB_START';
   begin

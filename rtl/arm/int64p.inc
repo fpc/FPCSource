@@ -13,7 +13,6 @@
 
  **********************************************************************}
 
-{$ifndef VER3_0}
 {$if (not defined(CPUTHUMB)) and defined(CPUARM_HAS_UMULL)}
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
 function fpc_mul_qword(f1,f2 : qword) : qword;assembler;nostackframe;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
@@ -88,4 +87,3 @@ asm
   ldmfd sp!,{r4,r5,r6,r15}
 end;
 {$endif (not defined(CPUTHUMB)) and defined(CPUARM_HAS_UMULL)}
-{$endif VER3_0}

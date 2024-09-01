@@ -62,7 +62,7 @@ type
   }
 
   { ObjCBOOL is one byte and uses 0/1, just like Pascal }
-{$if (defined(darwin) and defined(cpuaarch64)) or defined(VER3_0)}
+{$if defined(darwin) and defined(cpuaarch64)}
   ObjCBOOL = boolean;
 {$else}
   ObjCBOOL = boolean8;
