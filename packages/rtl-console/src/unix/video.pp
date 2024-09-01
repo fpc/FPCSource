@@ -147,8 +147,8 @@ const term_codes_ansi:Ttermcodes=
          #$1B#$5B#$48#$1B#$5B#$32#$4A,                      {clear_screen}
          #$1B#$5B#$48,                                      {cursor_home}
          #$1B#$5B#$3F#$31#$32#$6C#$1B#$5B#$3F#$32#$35#$68,  {cursor_normal}
-         #$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, underline}
-         #$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, block}
+         #27'[?25h'#27'[4 q',                               {cursor visible, underline}
+         #27'[?25h'#27'[2 q',                               {cursor visible, block}
          #$1B#$5B#$3F#$32#$35#$6C,                          {cursor_invisible}
          #$1B#$5B#$3F#$31#$30#$34#$39#$68,                  {enter_ca_mode}
          #$1B#$5B#$3F#$31#$30#$34#$39#$6C,                  {exit_ca_mode}
@@ -1283,6 +1283,8 @@ begin
   case NewType of
     crBlock:
       SendEscapeSeqNdx(cursor_visible_block);
+    crUnderLine:
+      SendEscapeSeqNdx(cursor_visible_underline);
     crHidden:
       SendEscapeSeqNdx(cursor_invisible);
   else

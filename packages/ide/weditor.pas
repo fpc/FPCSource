@@ -3943,13 +3943,17 @@ begin
 end;
 
 procedure TCustomCodeEditor.DrawCursor;
+var InsertMode : boolean;
 begin
   if Elockflag>0 then
     DrawCursorCalled:=true
   else
     begin
       SetCursor(GetReservedColCount+CurPos.X-Delta.X,EditorToViewLine(CurPos.Y)-Delta.Y);
-      SetState(sfCursorIns,Overwrite);
+      InsertMode:=Overwrite;
+      if IsFlagSet (efBlockInsCursor) then
+         InsertMode:=not InsertMode; {revers insert and overwrite mode cursor shapes}
+      SetState(sfCursorIns,InsertMode);
     end;
 end;
 
