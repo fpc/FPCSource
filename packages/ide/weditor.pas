@@ -5202,7 +5202,7 @@ begin
   if ValidBlock=false then
     begin
 {      SetSelection(SelStart,Limit);}
-      P1:=CurPos; P1.X:=0; P2:=CurPos; {P2.X:=length(GetLineText(P2.Y))+1;}
+      P1:=CurPos; P2:=CurPos; {P2.X:=length(GetLineText(P2.Y))+1;}
       SetSelection(P1,P2);
     end
   else
