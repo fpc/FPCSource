@@ -735,6 +735,11 @@ const
        selection (PM) }
      DontConsiderShiftState: boolean  = false;
 
+     cut_key:word=kbShiftDel;
+     copy_key:word=kbCtrlIns;
+     paste_key:word=kbShiftIns;
+     all_key:word=kbNoKey;
+
      CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
@@ -6983,7 +6988,7 @@ begin
                end;
              ClearEvent(Event);
            End
-         else if (Event.KeyCode=kbShiftIns)  and
+         else if ((Event.KeyCode=kbShiftIns) or (Event.KeyCode=paste_key))  and
                  Assigned(Clipboard) and (Clipboard^.ValidBlock) then
            { paste from clipboard }
            begin
@@ -7011,7 +7016,7 @@ begin
                end;
              ClearEvent(Event);
            end
-         else if (Event.KeyCode=kbCtrlIns)  and
+         else if ((Event.KeyCode=kbCtrlIns) or (Event.KeyCode=copy_key))  and
                  Assigned(Clipboard) then
            { Copy to clipboard }
            begin
@@ -7022,7 +7027,7 @@ begin
              Clipboard^.SelEnd:=Clipboard^.CurPos;
              ClearEvent(Event);
            end
-         else if (Event.KeyCode=kbShiftDel)  and
+         else if ((Event.KeyCode=kbShiftDel) or (Event.KeyCode=cut_key))  and
                  Assigned(Clipboard) then
            { Cut to clipboard }
            begin
