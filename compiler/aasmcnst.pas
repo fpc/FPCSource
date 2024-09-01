@@ -360,7 +360,7 @@ type
      { starts a dynamic array constant so that its data can be emitted directly afterwards }
      function begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;virtual;
      { ends a dynamic array constant by updating the count field; the arrlengthloc will be freed }
-     function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;virtual;
+     function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder;llofs:tasmlabofs):tdef;virtual;
 
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
@@ -1817,11 +1817,13 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;
+   function ttai_typedconstbuilder.end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder;llofs:tasmlabofs):tdef;
      begin
        { we emit the high value, not the count }
        arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
        arrlengthloc.free;
+       if get_dynarray_symofs=0 then
+         emit_tai(tai_symbol_end.create(llofs.lab),arrdef);
        result:=end_anonymous_record;
      end;
 

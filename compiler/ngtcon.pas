@@ -1298,7 +1298,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       end;
                     ftcb:=oldtcb;
 
-                    dynarrdef:=datatcb.end_dynarray_const(def,dyncount,dyncountloc);
+                    dynarrdef:=datatcb.end_dynarray_const(def,dyncount,dyncountloc,llofs);
 
                     ftcb.finish_internal_data_builder(datatcb,ll,dynarrdef,sizeof(pint));
 
