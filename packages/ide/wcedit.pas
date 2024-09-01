@@ -1281,7 +1281,7 @@ var
   Temp,Idx,Last,Count : Longint;
   StoredFlags : longint;
   UndoTime : longint;
-  WasInserting,IsGrouped,HadefNoIndent : boolean;
+  WasInserting,WasAutoBrackets,IsGrouped,HadefNoIndent : boolean;
   MaxY,MinY : sw_integer;
   Line : String;
 
@@ -1341,9 +1341,12 @@ begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
+                WasAutoBrackets:=GetAutoBrackets;
+                SetAutoBrackets(false);
                 if assigned(text) then
                   for Temp := 1 to length(Text^) do
                     AddChar(Text^[Temp]);
+                SetAutoBrackets(WasAutoBrackets);
                 SetInsertMode(WasInserting);
                 SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
@@ -1354,6 +1357,8 @@ begin
                 Line:=GetDisplayText(StartPos.Y);
                 WasInserting:=GetInsertMode;
                 SetInsertMode(false);
+                WasAutoBrackets:=GetAutoBrackets;
+                SetAutoBrackets(false);
                 if assigned(text) then
                   for Temp := 1 to length(Text^) do
                     begin
@@ -1363,6 +1368,7 @@ begin
                       else
                         Text^[Temp]:=Line[StartPos.X+Temp];
                     end;
+                SetAutoBrackets(WasAutoBrackets);
                 SetInsertMode(WasInserting);
                 SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
@@ -1448,7 +1454,7 @@ procedure TCodeEditor.Redo;
 var
   Temp,Idx,i,Last,Count : Longint;
   StoredFlags : longint;
-  WasInserting,IsGrouped,ShouldInsertText : boolean;
+  WasInserting,WasAutoBrackets,IsGrouped,ShouldInsertText : boolean;
   Line : String;
   MaxY,MinY : sw_integer;
   procedure SetMinMax(y : sw_integer);
@@ -1509,6 +1515,8 @@ begin
             Line:=GetDisplayText(StartPos.Y);
             WasInserting:=GetInsertMode;
             SetInsertMode(false);
+            WasAutoBrackets:=GetAutoBrackets;
+            SetAutoBrackets(false);
             if assigned(text) then
               for Temp := 1 to length(Text^) do
                 begin
@@ -1518,6 +1526,7 @@ begin
                   else
                     Text^[Temp]:=Line[StartPos.X+Temp];
                 end;
+            SetAutoBrackets(WasAutoBrackets);
             SetInsertMode(WasInserting);
             SetCurPtr(EndPos.X,EndPos.Y);
             SetMinMax(StartPos.Y);

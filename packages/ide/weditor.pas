@@ -503,6 +503,8 @@ type
    {a}procedure   SetIndentSize(AIndentSize: integer); virtual;
    {a}function    IsReadOnly: boolean; virtual;
    {a}function    IsClipboard: Boolean; virtual;
+   {a}function    GetAutoBrackets: boolean; virtual;
+   {a}procedure   SetAutoBrackets(AutoBrackets: boolean); virtual;
    {a}function    GetInsertMode: boolean; virtual;
    {a}procedure   SetInsertMode(InsertMode: boolean); virtual;
       procedure   SetCurPtr(X,Y: sw_integer); virtual;
@@ -3087,14 +3089,18 @@ function TCustomCodeEditor.InsertText(const S: string): Boolean;
 var I: sw_integer;
     OldPos: TPoint;
     HoldUndo : boolean;
+    WasAutoBrackets : boolean;
 begin
   Lock;
   OldPos:=CurPos;
   HoldUndo:=GetStoreUndo;
+  WasAutoBrackets:=GetAutoBrackets;
+  SetAutoBrackets(false);
   SetStoreUndo(false);
   for I:=1 to length(S) do
     AddChar(S[I]);
   InsertText:=true;
+  SetAutoBrackets(WasAutoBrackets);
   SetStoreUndo(HoldUndo);
   AddAction(eaInsertText,OldPos,CurPos,S,GetFlags);
   UnLock;
@@ -6488,6 +6494,19 @@ begin
     begin
       SetSelection(AreaStart,AreaEnd);
     end;
+end;
+
+function TCustomCodeEditor.GetAutoBrackets: boolean;
+begin
+  GetAutoBrackets:=(GetFlags and efAutoBrackets)<>0;
+end;
+
+procedure TCustomCodeEditor.SetAutoBrackets(AutoBrackets: boolean);
+begin
+  if AutoBrackets then
+    SetFlags(GetFlags or efAutoBrackets)
+  else
+    SetFlags(GetFlags and (not efAutoBrackets));
 end;
 
 function TCustomCodeEditor.GetInsertMode: boolean;
