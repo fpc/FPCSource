@@ -5,7 +5,7 @@ program fpmake;
 
 uses
   {$ifdef unix}cthreads,{$endif} fpmkunit,
-  sysutils;
+  sysutils, classes;
 {$endif ALLPACKAGES}
 
 const
@@ -13,7 +13,7 @@ const
   GDBMIOption: boolean = false;
   GDBMI_Disabled: boolean = false;
   LLVM_Disabled: boolean = false;
-  GDBMI_DEFAULT_OSes = [aix, darwin, freebsd, haiku,linux, netbsd, openbsd, solaris, win32, win64];
+  GDBMI_DEFAULT_OSes = [aix, darwin, freebsd, haiku, linux, netbsd, openbsd, solaris, win32, win64];
 
 procedure ide_check_gdb_availability(Sender: TObject);
 
@@ -78,7 +78,7 @@ var
   procedure maybe_regenerate_msg_files;
   var
     cmd, msgfile, msgidxfile, msgtxtfile, fpclang : string;
-    Opts : TstringList;
+    Opts : TStringList;
   begin
     msgidxfile:=CompilerDir+PathDelim+'msgidx.inc';
     msgtxtfile:=CompilerDir+PathDelim+'msgtxt.inc';
