@@ -471,6 +471,18 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v13 introduces a WebAssembly type checker. Unfortunately, it is
+      broken and produces spurious errors for valid code, such as:
+
+        system.wat:390742:3: error: 19 superfluous return values
+
+      We try to disable it with the '--no-type-check' option. However, this
+      still doesn't work, due to a different LLVM-MC bug, causing a different
+      kind of spurious errors:
+
+        system.wat:396083:3: error: empty stack while popping i32
+
+      This means that LLVM-MC v13 is unusable as an external assembler. }
     as_wasm32_llvm_mc_v13_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v13;
@@ -484,12 +496,16 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v14 still contains a buggy WebAssembly type checker that cannot be
+      disabled completely.
+
+      This means that LLVM-MC v14 is unusable as an external assembler. }
     as_wasm32_llvm_mc_v14_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v14;
          idtxt  : 'LLVM-MC-14';
          asmbin : 'llvm-mc-14';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
@@ -497,12 +513,18 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v15 fixes the bug that causes '--no-type-check' not to disable the
+      still broken WebAssembly type checker.
+
+      This makes LLVM-MC v15 usable as an external assembler. The type checker
+      is still broken, of course, producing the same spurious errors, but at
+      least, we can now safely disable it. }
     as_wasm32_llvm_mc_v15_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v15;
          idtxt  : 'LLVM-MC-15';
          asmbin : 'llvm-mc-15';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
@@ -510,12 +532,15 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v16 is usable as an external assembler. The type checker is still
+      broken, producing the same spurious errors, but we at least, we can now
+      safely disable it. }
     as_wasm32_llvm_mc_v16_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v16;
          idtxt  : 'LLVM-MC-16';
          asmbin : 'llvm-mc-16';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
@@ -523,12 +548,19 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v17 features an interesting development. The type checker is still
+      broken, but now produces fewer and different spurious errors, like this:
+
+      system.wat:56092:3: error: br: insufficient values on the type stack
+
+      So, we still disable the type checker, making LLVM-MC v17 usable as an
+      external assembler. The type checker is still useless, though. }
     as_wasm32_llvm_mc_v17_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v17;
          idtxt  : 'LLVM-MC-17';
          asmbin : 'llvm-mc-17';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
@@ -536,12 +568,15 @@ implementation
          comment : '# ';
          dollarsign : '$';
        );
+    { LLVM-MC v18 contains the same bugs as v17, so we still need to disable the
+      type checker. So far LLVM has shipped 6 major LLVM versions with a broken
+      WebAssembly type checker. }
     as_wasm32_llvm_mc_v18_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc;
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
