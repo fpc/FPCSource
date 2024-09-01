@@ -308,6 +308,7 @@ ResourceString
 
 var
   GlobalXMLFile : Boolean = False;
+  VendorXMLFile : Boolean = False;
 
 implementation
 

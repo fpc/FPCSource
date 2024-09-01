@@ -176,6 +176,8 @@ var s : string;
 begin
   FStringSizeIncludesNull:=False;
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
+  if VendorXMLFile and (VendorName <> '') and (ApplicationName <> '') then
+    s:= Copy(s, 1, Length(s)-Length(ApplicationName)-1);
   {$ifdef XMLRegfile_in_CurDir}
   s:='.' + PathDelim;
   {$endif}
