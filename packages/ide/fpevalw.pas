@@ -1,8 +1,8 @@
 {
     Copyright (c) 1997-2008 by the Daniel Mantione
-   
-    Debug expression evaluator dialog ? 
-   
+
+    Debug expression evaluator dialog
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,31 +19,32 @@ unit fpevalw;
                                   interface
 {****************************************************************************}
 
-uses fpdebug,dialogs,views,objects,fpconst,drivers;
+uses fpdebug,dialogs,WViews,objects,fpconst,drivers,WEditor;
 
 type  Pevaluate_dialog=^Tevaluate_dialog;
-      Tevaluate_dialog=object(Tdialog)
-        watch:Pwatch;
-        expr_input,expr_output:Pinputline;
+      Tevaluate_dialog=object(TCenterDialog)
+        watch : PWatch;
+        expr_input : PEditorInputLine;
+        expr_output : PEditorInputLine;
         constructor init(var bounds:Trect);
         procedure evaluate;
-        procedure handleevent(var event:Tevent);virtual;
+        procedure HandleEvent(var Event:TEvent);virtual;
         destructor done;
       end;
 
 {****************************************************************************}
                                 implementation
 {****************************************************************************}
+uses FPViews;
 
 constructor Tevaluate_dialog.init(var bounds:Trect);
-
 var r:Trect;
     l:Plabel;
     b:Pbutton;
-
+    EditorWindow : PSourceWindow;
+    S : String;
 begin
   inherited init(bounds,'Evaluate expression');
-  options:=options or ofcentered;
   {watch is auto initialized to nil.}
 
   r.assign(2,3,size.x-20,4);
@@ -72,12 +73,22 @@ begin
   //r.assign(size.x-14,6,size.x-3,8);
   //new(b,init(r,'Help',cmHelp,bfNormal));
   //insert(b);
+  EditorWindow:=FirstEditorWindow;
+  If assigned(EditorWindow) then
+    S:=EditorWindow^.Editor^.GetCurrentWord
+  else
+    S:='';
+  expr_input^.SetData(S);
+  expr_input^.Select;
+  if s <>'' then
+    evaluate;
+  { for right arrow to give a char from EditorWindow }
+  if assigned(EditorWindow) then
+    FindReplaceEditor:=EditorWindow^.Editor;
 
-  expr_input^.select;
 end;
 
-procedure Tevaluate_dialog.evaluate;
-
+procedure Tevaluate_dialog.Evaluate;
 begin
   if watch<>nil then
     dispose(watch,done);
@@ -86,20 +97,19 @@ begin
   expr_output^.drawview;
 end;
 
-procedure Tevaluate_dialog.handleevent(var event:Tevent);
-
+procedure Tevaluate_dialog.HandleEvent(var Event:TEvent);
 begin
-  inherited handleevent(event);
-  if event.what=evCommand then
-    case event.command of
+  inherited HandleEvent(Event);
+  if Event.what=evCommand then
+    case Event.command of
       cmEvaluate:
         evaluate;
     end;
 end;
 
 destructor Tevaluate_dialog.done;
-
 begin
+  FindReplaceEditor:=nil;
   if watch<>nil then
     dispose(watch,done);
 end;
