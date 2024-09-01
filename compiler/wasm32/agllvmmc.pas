@@ -77,6 +77,30 @@ interface
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
     end;
 
+    { TLLVMMachineCodePlaygroundAssemblerV15 }
+
+    TLLVMMachineCodePlaygroundAssemblerV15=class(TLLVMMachineCodePlaygroundAssembler)
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+    end;
+
+    { TLLVMMachineCodePlaygroundAssemblerV16 }
+
+    TLLVMMachineCodePlaygroundAssemblerV16=class(TLLVMMachineCodePlaygroundAssembler)
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+    end;
+
+    { TLLVMMachineCodePlaygroundAssemblerV17 }
+
+    TLLVMMachineCodePlaygroundAssemblerV17=class(TLLVMMachineCodePlaygroundAssembler)
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+    end;
+
+    { TLLVMMachineCodePlaygroundAssemblerV18 }
+
+    TLLVMMachineCodePlaygroundAssemblerV18=class(TLLVMMachineCodePlaygroundAssembler)
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+    end;
+
     { TWASM32InstrWriter }
 
     TWASM32InstrWriter = class(TCPUInstrWriter)
@@ -134,6 +158,38 @@ implementation
   constructor TLLVMMachineCodePlaygroundAssemblerV14.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
     begin
       FLLVMMajorVersion:=14;
+      inherited CreateWithWriter(info, wr, freewriter, smart);
+    end;
+
+  { TLLVMMachineCodePlaygroundAssemblerV15 }
+
+  constructor TLLVMMachineCodePlaygroundAssemblerV15.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    begin
+      FLLVMMajorVersion:=15;
+      inherited CreateWithWriter(info, wr, freewriter, smart);
+    end;
+
+  { TLLVMMachineCodePlaygroundAssemblerV16 }
+
+  constructor TLLVMMachineCodePlaygroundAssemblerV16.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    begin
+      FLLVMMajorVersion:=16;
+      inherited CreateWithWriter(info, wr, freewriter, smart);
+    end;
+
+  { TLLVMMachineCodePlaygroundAssemblerV17 }
+
+  constructor TLLVMMachineCodePlaygroundAssemblerV17.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    begin
+      FLLVMMajorVersion:=17;
+      inherited CreateWithWriter(info, wr, freewriter, smart);
+    end;
+
+  { TLLVMMachineCodePlaygroundAssemblerV18 }
+
+  constructor TLLVMMachineCodePlaygroundAssemblerV18.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    begin
+      FLLVMMajorVersion:=18;
       inherited CreateWithWriter(info, wr, freewriter, smart);
     end;
 
@@ -430,6 +486,58 @@ implementation
        );
     as_wasm32_llvm_mc_v14_info : tasminfo =
        (
+         id     : as_wasm32_llvm_mc_v14;
+         idtxt  : 'LLVM-MC-14';
+         asmbin : 'llvm-mc-14';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         flags : [af_smartlink_sections];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign : '$';
+       );
+    as_wasm32_llvm_mc_v15_info : tasminfo =
+       (
+         id     : as_wasm32_llvm_mc_v15;
+         idtxt  : 'LLVM-MC-15';
+         asmbin : 'llvm-mc-15';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         flags : [af_smartlink_sections];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign : '$';
+       );
+    as_wasm32_llvm_mc_v16_info : tasminfo =
+       (
+         id     : as_wasm32_llvm_mc_v16;
+         idtxt  : 'LLVM-MC-16';
+         asmbin : 'llvm-mc-16';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         flags : [af_smartlink_sections];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign : '$';
+       );
+    as_wasm32_llvm_mc_v17_info : tasminfo =
+       (
+         id     : as_wasm32_llvm_mc_v17;
+         idtxt  : 'LLVM-MC-17';
+         asmbin : 'llvm-mc-17';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         flags : [af_smartlink_sections];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign : '$';
+       );
+    as_wasm32_llvm_mc_v18_info : tasminfo =
+       (
          id     : as_wasm32_llvm_mc;
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
@@ -448,5 +556,9 @@ initialization
   RegisterAssembler(as_wasm32_llvm_mc_v12_info,TLLVMMachineCodePlaygroundAssemblerV12);
   RegisterAssembler(as_wasm32_llvm_mc_v13_info,TLLVMMachineCodePlaygroundAssemblerV13);
   RegisterAssembler(as_wasm32_llvm_mc_v14_info,TLLVMMachineCodePlaygroundAssemblerV14);
+  RegisterAssembler(as_wasm32_llvm_mc_v15_info,TLLVMMachineCodePlaygroundAssemblerV15);
+  RegisterAssembler(as_wasm32_llvm_mc_v16_info,TLLVMMachineCodePlaygroundAssemblerV16);
+  RegisterAssembler(as_wasm32_llvm_mc_v17_info,TLLVMMachineCodePlaygroundAssemblerV17);
+  RegisterAssembler(as_wasm32_llvm_mc_v18_info,TLLVMMachineCodePlaygroundAssemblerV18);
 end.
 

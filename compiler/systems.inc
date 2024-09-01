@@ -280,7 +280,11 @@
              ,as_wasm32_llvm_mc_v11    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 11 }
              ,as_wasm32_llvm_mc_v12    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 12 }
              ,as_wasm32_llvm_mc_v13    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 13 }
-             ,as_wasm32_llvm_mc        { WebAssembly code assembled by llvm-mc (llvm machine code playground) from the latest stable LLVM version (14 or later) }
+             ,as_wasm32_llvm_mc_v14    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 14 }
+             ,as_wasm32_llvm_mc_v15    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 15 }
+             ,as_wasm32_llvm_mc_v16    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 16 }
+             ,as_wasm32_llvm_mc_v17    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 17 }
+             ,as_wasm32_llvm_mc        { WebAssembly code assembled by llvm-mc (llvm machine code playground) from the latest stable LLVM version (18 or later) }
              ,as_arm_vasm
              ,as_wasm32_wasm
              ,as_clang_llvm_darwin

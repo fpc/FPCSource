@@ -4036,7 +4036,11 @@ W*2Allvm-mc-10_Assemble using llvm-mc-10
 W*2Allvm-mc-11_Assemble using llvm-mc-11
 W*2Allvm-mc-12_Assemble using llvm-mc-12
 W*2Allvm-mc-13_Assemble using llvm-mc-13
-W*2Allvm-mc_Assemble using llvm-mc (version 14 or later)
+W*2Allvm-mc-14_Assemble using llvm-mc-14
+W*2Allvm-mc-15_Assemble using llvm-mc-15
+W*2Allvm-mc-16_Assemble using llvm-mc-16
+W*2Allvm-mc-17_Assemble using llvm-mc-17
+W*2Allvm-mc_Assemble using llvm-mc (version 18 or later)
 W*2Awabt_Assemble using wasa (experimental)
 x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
