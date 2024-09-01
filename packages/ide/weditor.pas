@@ -3468,10 +3468,10 @@ begin
           SetCurPtr(P.X,P.Y);
           repeat
             GetMousePos(P);
+            SetCurPtr(P.X,P.Y);
             if PointOfs(P)<PointOfs(StartP)
                then SetSelection(P,StartP)
                else SetSelection(StartP,P);
-            SetCurPtr(P.X,P.Y);
             DrawView;
           until not MouseEvent(Event, evMouseMove+evMouseAuto);
           DrawView;
