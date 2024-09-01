@@ -87,7 +87,7 @@ implementation
 
       procedure WriteImportDll(list: TAsmList; proc: tprocdef);
         begin
-          thlcgwasm(hlcg).g_procdef(list,proc);
+          thlcgwasm(hlcg).g_procdef(list,proc,false);
           list.Concat(tai_import_module.create(proc.mangledname,proc.import_dll^));
           list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
         end;
@@ -113,9 +113,9 @@ implementation
           if ((u.moduleflags * [mf_init,mf_finalize])<>[]) and assigned(u.globalsymtable) then
             begin
               if mf_init in u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('INIT$',u.globalsymtable,''),TWasmFuncType.Create([],[])));
+                list.Concat(tai_functype.create(make_mangledname('INIT$',u.globalsymtable,''),TWasmFuncType.Create([],[]),false));
               if mf_finalize in u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',u.globalsymtable,''),TWasmFuncType.Create([],[])));
+                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',u.globalsymtable,''),TWasmFuncType.Create([],[]),false));
             end;
           for i:=0 to u.deflist.Count-1 do
             begin
@@ -126,7 +126,9 @@ implementation
                   if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
                     WriteImportDll(list,proc)
                   else if not proc.owner.iscurrentunit or (po_external in proc.procoptions) then
-                    thlcgwasm(hlcg).g_procdef(list,proc);
+                    thlcgwasm(hlcg).g_procdef(list,proc,false)
+                  else
+                    thlcgwasm(hlcg).g_procdef(list,proc,true);
                 end;
             end;
         end;
@@ -170,7 +172,7 @@ implementation
                 if po_has_importdll in proc.procoptions then
                   WriteImportDll(list,proc)
                 else
-                  thlcgwasm(hlcg).g_procdef(list,proc);
+                  thlcgwasm(hlcg).g_procdef(list,proc,false);
             end;
          end;
       create_hlcodegen;

@@ -348,7 +348,8 @@ uses
       tai_functype = class(tai)
         funcname: string;
         functype: TWasmFuncType;
-        constructor create(const afuncname: string; afunctype: TWasmFuncType);
+        is_forward: Boolean;
+        constructor create(const afuncname: string; afunctype: TWasmFuncType; aisforward: Boolean);
         destructor destroy;override;
       end;
 
@@ -1862,10 +1863,11 @@ uses
 
     { tai_functype }
 
-    constructor tai_functype.create(const afuncname: string; afunctype: TWasmFuncType);
+    constructor tai_functype.create(const afuncname: string; afunctype: TWasmFuncType; aisforward: Boolean);
       begin
         inherited Create;
         typ:=ait_functype;
+        is_forward:=aisforward;
         funcname:=afuncname;
         functype:=afunctype;
       end;

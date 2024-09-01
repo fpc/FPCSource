@@ -71,6 +71,7 @@ interface
         destructor destroy; override;
 {$ifdef WASM}
         procedure WriteFuncType(functype: TWasmFuncType);
+        procedure WriteFuncTypeDirective(hp:tai_functype);virtual;abstract;
 {$endif WASM}
        private
         setcount: longint;
@@ -815,16 +816,6 @@ implementation
         end;
 
 {$ifdef WASM}
-      procedure WriteFuncTypeDirective(hp:tai_functype);
-        begin
-          writer.AsmWrite(#9'.functype'#9);
-          writer.AsmWrite(hp.funcname);
-          writer.AsmWrite(' ');
-          WriteFuncType(hp.functype);
-          writer.AsmLn;
-        end;
-
-
       procedure WriteTagType(hp: tai_tagtype);
         var
           wasm_basic_typ: TWasmBasicType;

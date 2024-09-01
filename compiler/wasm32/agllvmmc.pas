@@ -44,6 +44,7 @@ interface
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      procedure WriteFuncTypeDirective(hp:tai_functype);override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV10 }
@@ -157,6 +158,19 @@ implementation
       inherited;
       InstrWriter:=TWASM32InstrWriter.create(self);
       TWASM32InstrWriter(InstrWriter).FLLVMMajorVersion:=FLLVMMajorVersion;
+    end;
+
+
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteFuncTypeDirective(hp: tai_functype);
+    begin
+      if not hp.is_forward or (FLLVMMajorVersion>=13) then
+        begin
+          writer.AsmWrite(#9'.functype'#9);
+          writer.AsmWrite(hp.funcname);
+          writer.AsmWrite(' ');
+          WriteFuncType(hp.functype);
+          writer.AsmLn;
+        end;
     end;
 
 

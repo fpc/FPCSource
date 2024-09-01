@@ -148,7 +148,7 @@ uses
 
       { Wasm-specific routines }
 
-      procedure g_procdef(list:TAsmList;pd: tprocdef);
+      procedure g_procdef(list:TAsmList;pd: tprocdef;is_forward: Boolean);
       procedure g_maybe_checkforexceptions(list:TasmList); override;
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
@@ -2058,7 +2058,7 @@ implementation
       pd: tcpuprocdef;
     begin
       pd:=tcpuprocdef(current_procinfo.procdef);
-      g_procdef(list,pd);
+      g_procdef(list,pd,false);
 
       if not nostackframe then
         begin
@@ -2457,10 +2457,10 @@ implementation
       internalerror(2012090206);
     end;
 
-  procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef);
+  procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef; is_forward: Boolean);
     begin
       if not pd.is_generic then
-        list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype));
+        list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype,is_forward));
     end;
 
   procedure thlcgwasm.g_maybe_checkforexceptions(list: TasmList);
