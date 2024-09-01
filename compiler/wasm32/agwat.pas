@@ -49,9 +49,9 @@ interface
 
      { TWatAssembler }
 
-     { TWabtTextAssembler }
+     { TWasaTextAssembler }
 
-     TWabtTextAssembler=class(texternalassembler)
+     TWasaTextAssembler=class(texternalassembler)
      protected
        dataofs  : integer;
 
@@ -91,10 +91,10 @@ interface
      { TWatInstrWriter }
 
      TWatInstrWriter = class
-       constructor create(_owner: TWabtTextAssembler);
+       constructor create(_owner: TWasaTextAssembler);
        procedure WriteInstruction(hp : tai); virtual;
       protected
-       owner: TWabtTextAssembler;
+       owner: TWasaTextAssembler;
      end;
 
 implementation
@@ -215,9 +215,9 @@ implementation
         end;
       end;
 
-  { TWabtTextAssembler }
+  { TWasaTextAssembler }
 
-                procedure TWabtTextAssembler.WriteOutGlobalInt32(const aname: string;
+                procedure TWasaTextAssembler.WriteOutGlobalInt32(const aname: string;
           val: integer; isconst: boolean);
           begin
              writer.AsmWrite(#9);
@@ -233,7 +233,7 @@ implementation
              writer.AsmWriteLn(')');
           end;
 
-    procedure TWabtTextAssembler.WriteInstruction(hp: tai);
+    procedure TWasaTextAssembler.WriteInstruction(hp: tai);
     var
       cpu : taicpu;
       i   : integer;
@@ -294,7 +294,7 @@ implementation
       writer.AsmLn;
     end;
 
-    procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef; stub: Boolean; stubUnreachable: Boolean);
+    procedure TWasaTextAssembler.WriteProcDef(pd: tprocdef; stub: Boolean; stubUnreachable: Boolean);
     var
       i : integer;
     begin
@@ -336,7 +336,7 @@ implementation
       writer.AsmLn;
     end;
 
-    procedure TWabtTextAssembler.WriteProcParams(pd: tprocdef);
+    procedure TWasaTextAssembler.WriteProcParams(pd: tprocdef);
       var
         i : integer;
         prm : tcpuparavarsym;
@@ -368,7 +368,7 @@ implementation
           end;
       end;
 
-    procedure TWabtTextAssembler.WriteProcResult(pd: tprocdef);
+    procedure TWasaTextAssembler.WriteProcResult(pd: tprocdef);
       var
         bt : TWasmBasicType;
       begin
@@ -392,7 +392,7 @@ implementation
         writer.AsmLn;
       end;
 
-    procedure TWabtTextAssembler.WriteTree(p: TAsmList);
+    procedure TWasaTextAssembler.WriteTree(p: TAsmList);
       var
         ch       : char;
         hp       : tai;
@@ -640,7 +640,7 @@ implementation
          end;
     end;
 
-    procedure TWabtTextAssembler.WriteAsmList;
+    procedure TWasaTextAssembler.WriteAsmList;
       var
         hal : tasmlisttype;
       begin
@@ -685,7 +685,7 @@ implementation
         writer.AsmLn;
       end;
 
-    function TWabtTextAssembler.DoAssemble: boolean;
+    function TWasaTextAssembler.DoAssemble: boolean;
     var
       t : tcmdstr;
       begin
@@ -704,13 +704,13 @@ implementation
             Message1(exec_e_util_not_found,'wasmtool');
       end;
 
-    constructor TWabtTextAssembler.CreateWithWriter(info: pasminfo;
+    constructor TWasaTextAssembler.CreateWithWriter(info: pasminfo;
       wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited CreateWithWriter(info, wr, freewriter, smart);
       end;
 
-    procedure TWabtTextAssembler.WriteSymtableProcdefs(st: TSymtable);
+    procedure TWasaTextAssembler.WriteSymtableProcdefs(st: TSymtable);
       var
         i   : longint;
         def : tdef;
@@ -743,7 +743,7 @@ implementation
           end;
       end;
 
-    procedure TWabtTextAssembler.WriteSymtableVarSyms(st: TSymtable);
+    procedure TWasaTextAssembler.WriteSymtableVarSyms(st: TSymtable);
       var
         i : integer;
         sym : tsym;
@@ -791,7 +791,7 @@ implementation
          end;
       end;
 
-    procedure TWabtTextAssembler.WriteTempAlloc(p: TAsmList);
+    procedure TWasaTextAssembler.WriteTempAlloc(p: TAsmList);
       var
         hp: tai;
         tmp: array of tai_tempalloc;
@@ -850,7 +850,7 @@ implementation
 
       end;
 
-    procedure TWabtTextAssembler.WriteExports(p: TAsmList);
+    procedure TWasaTextAssembler.WriteExports(p: TAsmList);
     var
       hp: tai;
       x: tai_export_name;
@@ -920,7 +920,7 @@ implementation
       end;
     end;
 
-    procedure TWabtTextAssembler.WriteUnitExports(st: TSymtable);
+    procedure TWasaTextAssembler.WriteUnitExports(st: TSymtable);
     var
       i   : longint;
       def : tdef;
@@ -954,7 +954,7 @@ implementation
       writer.AsmWriteLn(#9') ');
     end;
 
-    procedure TWabtTextAssembler.WriteImports;
+    procedure TWasaTextAssembler.WriteImports;
       var
         i    : integer;
         def  : tdef;
@@ -1006,7 +1006,7 @@ implementation
       end;
 
 
-    procedure TWabtTextAssembler.WriteOutPChar(p: pchar; ofs, len: integer);
+    procedure TWasaTextAssembler.WriteOutPChar(p: pchar; ofs, len: integer);
         var
           i : integer;
           s : string;
@@ -1027,7 +1027,7 @@ implementation
             end;
         end;
 
-        procedure TWabtTextAssembler.WriteConstString(lbl: tai_label;
+        procedure TWasaTextAssembler.WriteConstString(lbl: tai_label;
             str: tai_string);
           var
             i : integer;
@@ -1047,7 +1047,7 @@ implementation
             inc(dataofs, str.len);
           end;
 
-    procedure TWabtTextAssembler.WriteConstants(p: TAsmList);
+    procedure TWasaTextAssembler.WriteConstants(p: TAsmList);
       var
         i : integer;
         hp : tai;
@@ -1077,7 +1077,7 @@ implementation
 
 { TWatInstrWriter }
 
-  constructor TWatInstrWriter.create(_owner: TWabtTextAssembler);
+  constructor TWatInstrWriter.create(_owner: TWasaTextAssembler);
     begin
       inherited create;
       owner := _owner;
@@ -1105,6 +1105,6 @@ implementation
        );
 
 initialization
-  RegisterAssembler(as_wasm_wasa_info, TWabtTextAssembler);
+  RegisterAssembler(as_wasm_wasa_info, TWasaTextAssembler);
 
 end.
