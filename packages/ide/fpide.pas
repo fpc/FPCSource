@@ -1088,7 +1088,7 @@ begin
       StdStatusKeys(
       NewStatusKey('~Cursor~ Move', kbNoKey, 65535,
       NewStatusKey('~Shift+Cursor~ Size', kbNoKey, 65535,
-      NewStatusKey('~'#17'��~ Done', kbNoKey, 65535, {#17 = left arrow}
+      NewStatusKey('~'#17'~ Done', kbNoKey, 65535, {#17 = left arrow}
       NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
       nil)))))),
     NewStatusDef(hcStackWindow, hcStackWindow,
