@@ -4363,12 +4363,18 @@ end;
 
 procedure TCustomCodeEditor.WindowStart;
 begin
-  SetCurPtr(CurPos.X,Delta.Y);
-end;
-
-procedure TCustomCodeEditor.WindowEnd;
-begin
-  SetCurPtr(CurPos.X,Delta.Y+Size.Y-1);
+  if not NoSelect and ShouldExtend then
+    TextStart    {select to start}
+  else
+    SetCurPtr(CurPos.X,Delta.Y);
+ end;
+ 
+ procedure TCustomCodeEditor.WindowEnd;
+ begin
+  if not NoSelect and ShouldExtend then
+    TextEnd      {select to end}
+  else
+    SetCurPtr(CurPos.X,Delta.Y+Size.Y-1);
 end;
 
 procedure TCustomCodeEditor.JumpSelStart;
