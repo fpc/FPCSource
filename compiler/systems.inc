@@ -276,6 +276,7 @@
              ,as_z80_vasm
              ,as_z80_rel
              ,as_wasm32_wabt
+             ,as_wasm32_wasa
              ,as_wasm32_llvm_mc_v10    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 10 }
              ,as_wasm32_llvm_mc_v11    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 11 }
              ,as_wasm32_llvm_mc_v12    { WebAssembly code assembled by llvm-mc (llvm machine code playground) from LLVM 12 }

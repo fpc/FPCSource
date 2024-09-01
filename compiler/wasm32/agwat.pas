@@ -1092,7 +1092,7 @@ implementation
   const
     as_wasm_wabt_info : tasminfo =
        (
-         id     : as_wasm32_wabt;
+         id     : as_wasm32_wasa;
          idtxt  : 'WABT';
          asmbin : 'wasa';
          asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
