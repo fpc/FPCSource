@@ -4041,7 +4041,7 @@ W*2Allvm-mc-15_Assemble using llvm-mc-15
 W*2Allvm-mc-16_Assemble using llvm-mc-16
 W*2Allvm-mc-17_Assemble using llvm-mc-17
 W*2Allvm-mc_Assemble using llvm-mc (version 18 or later)
-W*2Awabt_Assemble using wasa (experimental)
+W*2Awasa_Assemble using wasa (experimental)
 x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
 Z*2Avasm_Assemble using Vasm
