@@ -1093,7 +1093,7 @@ implementation
     as_wasm_wabt_info : tasminfo =
        (
          id     : as_wasm32_wasa;
-         idtxt  : 'WABT';
+         idtxt  : 'WASA';
          asmbin : 'wasa';
          asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
