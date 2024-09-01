@@ -6970,7 +6970,8 @@ begin
                i:=1 {if input line is empty then start from first character of word if any}
              else
                i:=pos(Data^,s);
-             if (i>0) and (length(s)>=i+length(Data^)) then               begin
+             if (i>0) and (length(s)>=i+length(Data^)) then               
+               begin
                  s:=Data^+s[i+length(Data^)];
                  If not assigned(validator) or
                     Validator^.IsValidInput(s,False)  then
