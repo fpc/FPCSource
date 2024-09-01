@@ -45,7 +45,7 @@ implementation
              Assemblers
 **************************************}
 
-      ,agwat
+      ,agwasa
       ,agbinaryen
       ,agllvmmc
       ,ogwasm
