@@ -90,6 +90,7 @@ const
       efFolds               = $00008000;
       efNoIndent            = $00010000;
       efKeepLineAttr        = $00020000;
+      efOverwriteBlocks     = $00040000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -508,6 +509,7 @@ type
    {a}function    GetInsertMode: boolean; virtual;
    {a}procedure   SetInsertMode(InsertMode: boolean); virtual;
       procedure   SetCurPtr(X,Y: sw_integer); virtual;
+      function    InSelectionArea:boolean; {CurPos in selection area}
       procedure   GetSelectionArea(var StartP,EndP: TPoint); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
@@ -2967,6 +2969,8 @@ begin
   OK:=(Editor^.SelStart.X<>Editor^.SelEnd.X) or (Editor^.SelStart.Y<>Editor^.SelEnd.Y);
   if OK then
   begin
+    if not (Clipboard=@Self) and IsFlagSet(efOverwriteBlocks) and InSelectionArea then
+      DelSelect; {delete selection before paste}
     StartPos:=CurPos; DestPos:=CurPos;
     EPos:=CurPos;
     VerticalBlock:=Editor^.IsFlagSet(efVerticalBlocks);
@@ -5709,8 +5713,9 @@ var S,SC,TabS: string;
     HoldUndo : boolean;
 begin
   if IsReadOnly then Exit;
-
   Lock;
+  if not (Clipboard=@Self) and IsFlagSet(efOverwriteBlocks) and InSelectionArea then
+      DelSelect; {delete selection before}
   SP:=CurPos;
   HoldUndo:=GetStoreUndo;
   SetStoreUndo(false);
@@ -5850,6 +5855,8 @@ begin
           if l>500 then
             PushInfo(msg_readingwinclipboard);
           AddGroupedAction(eaPasteWin);
+          if not (Clipboard=@Self) and IsFlagSet(efOverwriteBlocks) and InSelectionArea then
+            DelSelect; {delete selection before paste}
           p2:=p;
           len:=strlen(p2);
           // issue lines ((#13)#10 terminated) of maximally "linelimit" chars.
@@ -6701,6 +6708,22 @@ end;
 procedure TCustomCodeEditor.HideHighlight;
 begin
   SetHighlight(CurPos,CurPos);
+end;
+
+function TCustomCodeEditor.InSelectionArea:boolean; {CurPos in selection area}
+begin
+  InSelectionArea:=false;
+  if ((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) then    {there is selection}
+    begin
+      if (SelStart.Y = SelEnd.Y) and (CurPos.X>=min(SelStart.X,SelEnd.X)) and (CurPos.X<=max(SelStart.X,SelEnd.X)) then
+        InSelectionArea:=true {select in one line}
+      else if (CurPos.Y>min(SelStart.Y,SelEnd.Y)) and (CurPos.Y<max(SelStart.Y,SelEnd.Y)) then
+        InSelectionArea:=true {between first and last selected line}
+      else if (SelStart.Y < SelEnd.Y) and ( ((SelStart.Y=CurPos.Y) and (SelStart.X<=CurPos.X)) or ((SelEnd.Y=CurPos.Y) and (SelEnd.X>=CurPos.X))) then
+        InSelectionArea:=true  {in first line or last line}
+      else if (SelStart.Y > SelEnd.Y) and ( ((SelStart.Y=CurPos.Y) and (SelStart.X>=CurPos.X)) or ((SelEnd.Y=CurPos.Y) and (SelEnd.X<=CurPos.X))) then
+        InSelectionArea:=true; {in first line or last line (selection Start and End revers)}
+    end;
 end;
 
 procedure TCustomCodeEditor.GetSelectionArea(var StartP,EndP: TPoint);

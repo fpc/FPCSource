@@ -251,7 +251,7 @@ function DefUseTabsPattern(Editor: PFileEditor): boolean;
 
 const
      DefaultCodeEditorFlags : longint =
-       efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
+       efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+efOverwriteBlocks+
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
        efExpandAllTabs+efCodeComplete{+efFolds};
      DefaultTabSize     : integer = 8;

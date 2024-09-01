@@ -598,6 +598,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_editor_usetabcharacters = '~U~se tab characters';
                 label_editor_backspaceunindents = '~B~ackspace unindents';
                 label_editor_persistentblocks = '~P~ersistent blocks';
+                label_editor_overwriteblocks = '~O~verwrite blocks';
                 label_editor_syntaxhighlight = '~S~yntax highlight';
                 label_editor_blockinsertcursor = 'B~l~ock insert cursor';
                 label_editor_verticalblocks = '~V~ertical blocks';
@@ -1087,7 +1088,7 @@ begin
       StdStatusKeys(
       NewStatusKey('~Cursor~ Move', kbNoKey, 65535,
       NewStatusKey('~Shift+Cursor~ Size', kbNoKey, 65535,
-      NewStatusKey('~'#17'ды~ Done', kbNoKey, 65535, {#17 = left arrow}
+      NewStatusKey('~'#17'О©╫О©╫~ Done', kbNoKey, 65535, {#17 = left arrow}
       NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
       nil)))))),
     NewStatusDef(hcStackWindow, hcStackWindow,
