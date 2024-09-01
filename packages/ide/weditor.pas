@@ -6950,10 +6950,27 @@ begin
             Assigned(FindReplaceEditor) then
            Begin
              s:=FindReplaceEditor^.GetDisplayText(FindReplaceEditor^.CurPos.Y);
-             s:=Copy(s,FindReplaceEditor^.CurPos.X + 1 -length(Data^),high(s));
-             i:=pos(Data^,s);
-             if i>0 then
-               begin
+             i:=FindReplaceEditor^.CurPos.X;
+             {finds beginning of word}
+              if i>0 then
+             while s[i] in ['a'..'z','A'..'Z','0'..'9','_'] do
+             begin
+               dec(i);
+               if i=0 then break;
+             end;
+             inc(i);
+             {step out of white space}
+             while (s[i] in [' ']) do
+             begin
+               inc(i);
+               if i=length(s) then break;
+             end;
+             s:=Copy(s,i-length(Data^),length(s)-(i-length(Data^))+1);
+             if length(Data^)=0 then
+               i:=1 {if input line is empty then start from first character of word if any}
+             else
+               i:=pos(Data^,s);
+             if (i>0) and (length(s)>=i+length(Data^)) then               begin
                  s:=Data^+s[i+length(Data^)];
                  If not assigned(validator) or
                     Validator^.IsValidInput(s,False)  then
