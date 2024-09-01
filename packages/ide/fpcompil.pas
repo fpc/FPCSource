@@ -470,6 +470,14 @@ end;}
 procedure TCompilerMessageWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
+    evKeyDown :
+      begin
+        if (Event.KeyCode=kbEsc) then
+          begin
+            ClearEvent(Event);
+            Hide;
+          end;
+      end;
     evBroadcast :
       case Event.Command of
         cmListFocusChanged :
