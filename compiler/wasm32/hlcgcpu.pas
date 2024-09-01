@@ -2102,8 +2102,6 @@ implementation
           incstack(list,1);
           list.Concat(taicpu.op_sym(a_global_set,RefStackPointerSym));
           decstack(list,1);
-
-          list.concat(taicpu.op_none(a_return));
         end;
       list.concat(taicpu.op_none(a_end_function));
     end;
