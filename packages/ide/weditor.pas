@@ -5364,11 +5364,15 @@ var
   ey,i{,indlen} : Sw_integer;
   S,Ind : String;
   Pos : Tpoint;
+  WasPersistentBlocks : boolean;
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
   AddGroupedAction(eaIndentBlock);
+  WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags or efPersistentBlocks);
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -5413,6 +5417,9 @@ begin
      AddAction(eaInsertText,Pos,Pos,Ind,GetFlags);
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
+  {after SetCurPtr return PersistentBlocks as it was before}
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags and (not longword(efPersistentBlocks)));
   { must be added manually here PM }
   AddAction(eaMoveCursor,Pos,CurPos,'',GetFlags);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
@@ -5427,11 +5434,15 @@ var
   ey,i,j,k,indlen : Sw_integer;
   S : String;
   Pos : TPoint;
+  WasPersistentBlocks : boolean;
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
   AddGroupedAction(eaUnindentBlock);
+  WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags or efPersistentBlocks);
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -5489,6 +5500,9 @@ begin
        end;
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
+  {after SetCurPtr return PersistentBlocks as it was before}
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags and (not longword(efPersistentBlocks)));
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
