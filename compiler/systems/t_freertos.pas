@@ -840,16 +840,12 @@ begin
 {$ifdef RISCV32}
   with linkres do
     begin
-      Add('MEMORY');
-      Add('{');
-      Add('  dummy : org = 0x0, len = 0x100');
-      Add('}');
       Add('SECTIONS');
       Add('{');
       Add('  .data :');
       Add('  {');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-      Add('  } > dummy');
+      Add('  }');
       Add('}');
     end;
 {$endif RISCV32}
@@ -857,16 +853,12 @@ begin
 {$ifdef XTENSA}
   with linkres do
     begin
-      Add('MEMORY');
-      Add('{');
-      Add('  dummy : org = 0x0, len = 0x100');
-      Add('}');
       Add('SECTIONS');
       Add('{');
       Add('  .data :');
       Add('  {');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-      Add('  } > dummy');
+      Add('  }');
       Add('}');
     end;
 {$endif XTENSA}
