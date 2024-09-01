@@ -63,6 +63,8 @@ const
       cmExpandFold           = 51267;
       cmDelToEndOfWord       = 51268;
       cmInputLineLen         = 51269;
+      cmScrollOneUp          = 51270;
+      cmScrollOneDown        = 51271;
 
       EditorTextBufSize = 32768;
       MaxLineLength     = 255;
@@ -647,6 +649,8 @@ type
       procedure LineDown; virtual;
       procedure PageUp; virtual;
       procedure PageDown; virtual;
+      procedure ScrollOneUp; virtual;
+      procedure ScrollOneDown; virtual;
       procedure TextStart; virtual;
       procedure TextEnd; virtual;
       procedure WindowStart; virtual;
@@ -816,7 +820,7 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 46;
+  FirstKeyCount = 48;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
     Ord(^A), cmWordLeft, Ord(^B), cmJumpLine, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
@@ -829,7 +833,8 @@ const
     Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
     Ord(^T), cmDelToEndOfWord, Ord(^U), cmUndo,
     Ord(^V), cmInsMode, Ord(^X), cmLineDown,
-    Ord(^Y), cmDelLine, kbLeft, cmCharLeft,
+    Ord(^Y), cmDelLine, Ord(^W), cmScrollOneUp,
+    Ord(^Z), cmScrollOneDown, kbLeft, cmCharLeft,
     kbRight, cmCharRight, kbCtrlLeft, cmWordLeft,
     kbCtrlRight, cmWordRight, kbHome, cmLineStart,
     kbCtrlHome, cmWindowStart, kbCtrlEnd, cmWindowEnd,
@@ -3546,6 +3551,8 @@ begin
           cmLineDown    : LineDown;
           cmPageUp      : PageUp;
           cmPageDown    : PageDown;
+          cmScrollOneUp : ScrollOneUp;
+          cmScrollOneDown:ScrollOneDown;
           cmTextStart   : TextStart;
           cmTextEnd     : TextEnd;
           cmWindowStart : WindowStart;
@@ -4308,6 +4315,34 @@ begin
     NL:=NextVisibleLine(NL,true);
   if NL>=0 then
     SetCurPtr(CurPos.X,Min(GetLineCount-1,NL));
+end;
+
+procedure TCustomCodeEditor.ScrollOneUp;
+var NL: sw_integer;
+    LinesScroll : sw_integer;
+    cursorInVisibleArea : boolean;
+begin
+  LinesScroll:=-1;
+  cursorInVisibleArea:= (CurPos.Y>=Delta.Y) and (CurPos.Y<(Delta.Y+Size.Y)); {ignore folds here}
+  NL:=NextVisibleLine(CurPos.Y-1,false);
+  ScrollTo(Delta.X, Delta.Y + LinesScroll);
+  if cursorInVisibleArea and (CurPos.Y>=(Delta.Y+Size.Y)) then {do not allow corsor leave visible area}
+  if NL<>-1 then
+    SetCurPtr(CurPos.X,NL); {cursor stick to window bottom line}
+end;
+
+procedure TCustomCodeEditor.ScrollOneDown;
+var NL: sw_integer;
+    LinesScroll : sw_integer;
+    cursorInVisibleArea : boolean;
+begin
+  LinesScroll:=1;
+  cursorInVisibleArea:= (CurPos.Y>=Delta.Y) and (CurPos.Y<(Delta.Y+Size.Y)); {ignore folds here}
+  NL:=NextVisibleLine(CurPos.Y+1,true);
+  ScrollTo(Delta.X, Delta.Y + LinesScroll);
+  if cursorInVisibleArea and (CurPos.Y<Delta.Y) then {do not allow corsor leave visible area}
+  if NL>=0 then
+    SetCurPtr(CurPos.X,Min(GetLineCount-1,NL));  {cursor stick to window top line}
 end;
 
 procedure TCustomCodeEditor.TextStart;
