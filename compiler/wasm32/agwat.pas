@@ -1090,7 +1090,7 @@ implementation
 
 
   const
-    as_wasm_wabt_info : tasminfo =
+    as_wasm_wasa_info : tasminfo =
        (
          id     : as_wasm32_wasa;
          idtxt  : 'WASA';
@@ -1105,6 +1105,6 @@ implementation
        );
 
 initialization
-  RegisterAssembler(as_wasm_wabt_info, TWabtTextAssembler);
+  RegisterAssembler(as_wasm_wasa_info, TWabtTextAssembler);
 
 end.
