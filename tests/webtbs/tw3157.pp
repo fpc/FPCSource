@@ -28,7 +28,7 @@ begin
   on E:Exception do
     begin
       Writeln('Line "c:=..." raised ' +E.ClassName+ ': ' +E.Message);
-      if E.ClassType<>EInvalidOp then
+      if E.ClassType<>EOverflow then
         begin
           writeln('EInvalidOp exception expected');
           halt(1);
