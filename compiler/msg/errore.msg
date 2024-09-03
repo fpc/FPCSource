@@ -4076,6 +4076,7 @@ L*3Clflsanitize=address_Enable address sanitizer
 L*3Clv<x>_LLVM target version: Xcode-10.1, 7.0, 8.0, .., 10.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)
+W*2CN_Generate nil-pointer checks
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
