@@ -625,6 +625,11 @@ type
     //Function map(const aCallBack: TJSArrayMapEvent; aThis: TObject): TJSArray; overload;
     function pop: TJOB_JSValue;
     function push(aElement: TJOB_JSValue): NativeInt; overload; {varargs;}
+    function push(aValue : Integer): NativeInt; overload; {varargs;}
+    function push(aValue : Double): NativeInt; overload; {varargs;}
+    function push(aValue : rawByteString): NativeInt; overload; {varargs;}
+    function push(aValue : UnicodeString): NativeInt; overload; {varargs;}
+    function push(aValue : IJSObject): NativeInt; overload; {varargs;}
     //function reduce(const aCallBack: TJSArrayReduceCallBack): TJOB_JSValue; overload;
     //function reduce(const aCallBack: TJSArrayReduceCallBack; initialValue: TJOB_JSValue): TJOB_JSValue; overload;
     //function reduceRight(const aCallBack: TJSArrayReduceCallBack): TJOB_JSValue; overload;
@@ -709,6 +714,11 @@ type
     //Function map(const aCallBack: TJSArrayMapEvent; aThis: TObject): IJSArray; overload;
     function pop: TJOB_JSValue;
     function push(aElement: TJOB_JSValue): NativeInt; overload; {varargs;}
+    function push(aValue : Integer): NativeInt; overload; {varargs;}
+    function push(aValue : Double): NativeInt; overload; {varargs;}
+    function push(aValue : rawByteString): NativeInt; overload; {varargs;}
+    function push(aValue : UnicodeString): NativeInt; overload; {varargs;}
+    function push(aValue : IJSObject): NativeInt; overload; {varargs;}
     //function reduce(const aCallBack: TJSArrayReduceCallBack): TJOB_JSValue; overload;
     //function reduce(const aCallBack: TJSArrayReduceCallBack; initialValue: TJOB_JSValue): TJOB_JSValue; overload;
     //function reduceRight(const aCallBack: TJSArrayReduceCallBack): TJOB_JSValue; overload;
@@ -2613,6 +2623,72 @@ end;
 function TJSArray.push(aElement: TJOB_JSValue): NativeInt;
 begin
   Result:=InvokeJSMaxIntResult('push',[aElement]);
+end;
+
+function TJSArray.push(aValue: Integer): NativeInt;
+
+var
+  Obj : TJOB_Double;
+
+begin
+  Obj:=TJOB_Double.Create(aValue);
+  try
+    Result:=Push(Obj);
+  finally
+    Obj.Free;
+  end;
+end;
+
+function TJSArray.push(aValue: Double): NativeInt;
+var
+  Obj : TJOB_Double;
+
+begin
+  Obj:=TJOB_Double.Create(aValue);
+  try
+    Result:=Push(Obj);
+  finally
+    Obj.Free;
+  end;
+end;
+
+function TJSArray.push(aValue: rawByteString): NativeInt;
+var
+  Obj : TJOB_String;
+
+begin
+  Obj:=TJOB_String.Create(UTF8Decode(aValue));
+  try
+    Result:=Push(Obj);
+  finally
+    Obj.Free;
+  end;
+end;
+
+function TJSArray.push(aValue: UnicodeString): NativeInt;
+var
+  Obj : TJOB_String;
+
+begin
+  Obj:=TJOB_String.Create(aValue);
+  try
+    Result:=Push(Obj);
+  finally
+    Obj.Free;
+  end;
+end;
+
+function TJSArray.push(aValue: IJSObject): NativeInt;
+var
+  Obj : TJOB_Object;
+
+begin
+  Obj:=TJOB_Object.Create(aValue);
+  try
+    Result:=Push(Obj);
+  finally
+    Obj.Free;
+  end;
 end;
 
 function TJSArray.reverse: IJSArray;
