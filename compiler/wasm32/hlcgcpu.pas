@@ -150,6 +150,7 @@ uses
 
       procedure g_procdef(list:TAsmList;pd: tprocdef;is_forward: Boolean);
       procedure g_maybe_checkforexceptions(list:TasmList); override;
+      procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
       { extra_slots are the slots that are used by the reference, and that
@@ -1365,6 +1366,7 @@ implementation
       extra_slots: longint;
       tmpref: treference;
     begin
+      g_load_check_simple(list,ref,1024);
       tmpref:=ref;
       extra_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_const_stack(list,tosize,a,def2regtyp(tosize));
@@ -1376,6 +1378,7 @@ implementation
       extra_slots: longint;
       tmpref: treference;
     begin
+      g_load_check_simple(list,ref,1024);
       tmpref:=ref;
       extra_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_reg_stack(list,fromsize,register);
@@ -1397,6 +1400,7 @@ implementation
       extra_slots: longint;
       tmpref: treference;
     begin
+      g_load_check_simple(list,ref,1024);
       tmpref:=ref;
       extra_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_ref_stack(list,fromsize,tmpref,extra_slots);
@@ -1415,6 +1419,8 @@ implementation
     begin
       if sref.base<>NR_EVAL_STACK_BASE then
         begin
+          g_load_check_simple(list,sref,1024);
+          g_load_check_simple(list,dref,1024);
           tmpsref:=sref;
           tmpdref:=dref;
           { make sure the destination reference is on top, since in the end the
@@ -2474,6 +2480,45 @@ implementation
 
           list.concat(taicpu.op_sym(a_br_if,tcpuprocinfo(current_procinfo).CurrRaiseLabel));
       end;
+    end;
+
+  procedure thlcgwasm.g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
+    var
+      reg: tregister;
+    begin
+      if not(cs_check_low_addr_load in current_settings.localswitches) then
+        exit;
+      { A global symbol (if not weak) will always map to a proper address, and
+        the same goes for stack addresses -> skip }
+      if assigned(ref.symbol) and
+         (ref.symbol.bind<>AB_WEAK_EXTERNAL) then
+        exit;
+      if (ref.base=NR_STACK_POINTER_REG) or
+         (ref.index=NR_STACK_POINTER_REG) or
+         (ref.base=NR_EVAL_STACK_BASE) or
+         (ref.index=NR_EVAL_STACK_BASE) or
+         (assigned(current_procinfo) and
+          ((ref.base=current_procinfo.framepointer) or
+           (ref.index=current_procinfo.framepointer))) then
+        exit;
+      if assigned(ref.symbol) or
+         (ref.offset<>0) or
+         ((ref.base<>NR_NO) and (ref.index<>NR_NO)) or
+         ((ref.base=NR_NO) and (ref.index=NR_NO)) then
+        begin
+          reg:=getintregister(list,voidpointertype);
+          a_loadaddr_ref_reg(list,voidpointertype,voidpointertype,ref,reg);
+        end
+      else if ref.base<>NR_NO then
+        reg:=ref.base
+      else
+        reg:=ref.index;
+      a_cmp_const_reg_stack(list,voidpointertype,OC_B,size,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
+      decstack(current_asmdata.CurrAsmList,1);
+      g_call_system_proc(list,'fpc_invalidpointer',[],nil);
+      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
     end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
