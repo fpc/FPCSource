@@ -775,6 +775,7 @@ procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
 procedure fpc_iocheck; compilerproc;
+procedure fpc_invalidpointer; compilerproc;
 {$ifndef FPC_NO_GENERIC_STACK_CHECK}
 procedure fpc_stackcheck(stack_size:SizeUInt); compilerproc;
 {$endif}

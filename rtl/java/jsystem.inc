@@ -744,7 +744,7 @@ begin
 end;
 
 
-procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER'];
+procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER']; compilerproc;
 begin
   HandleErrorAddrFrameInd(216,get_pc_addr,get_frame);
 end;
