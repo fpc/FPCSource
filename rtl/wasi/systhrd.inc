@@ -835,8 +835,17 @@ begin
                 end
               else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
                 begin
-                  result:=wrSignaled;
-                  exit;
+                  if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+                    begin
+                      fpc_wasm32_i32_atomic_store(@P^.Signal,1);
+                      result:=wrAbandoned;
+                      exit;
+                    end
+                  else
+                    begin
+                      result:=wrSignaled;
+                      exit;
+                    end;
                 end
               else
                 ; { try waiting again (loop continues) }
@@ -899,8 +908,16 @@ begin
           end
         else if fpc_wasm32_i32_atomic_load(@P^.Signal)<>0 then
           begin
-            result:=wrSignaled;
-            exit;
+            if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+              begin
+                result:=wrAbandoned;
+                exit;
+              end
+            else
+              begin
+                result:=wrSignaled;
+                exit;
+              end;
           end;
       until false;
     end
@@ -924,8 +941,17 @@ begin
           end
         else if fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@P^.Signal,1,0)=1 then
           begin
-            result:=wrSignaled;
-            exit;
+            if fpc_wasm32_i32_atomic_load8_u(@P^.Destroying)<>0 then
+              begin
+                fpc_wasm32_i32_atomic_store(@P^.Signal,1);
+                result:=wrAbandoned;
+                exit;
+              end
+            else
+              begin
+                result:=wrSignaled;
+                exit;
+              end;
           end;
       until false;
     end;
