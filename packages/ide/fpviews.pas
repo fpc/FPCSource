@@ -541,10 +541,6 @@ const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
       menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
       menu_key_edit_all:string[63]=menu_key_edit_all_borland;
       menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
-      cut_key:word=kbShiftDel;
-      copy_key:word=kbCtrlIns;
-      paste_key:word=kbShiftIns;
-      all_key:word=kbNoKey;
 
 procedure RegisterFPViews;
 
