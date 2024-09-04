@@ -1247,12 +1247,19 @@ function arctan2(y,x : float) : float;
   end;
 {$endif FPC_MATH_HAS_ARCTAN2}
 
+const
+  huge: double = 1e300;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function cosh(x : Single) : Single;
   var
      temp : ValReal;
   begin
+     if x>8.94159862326326216608E+0001 then
+       begin
+         cosh:=huge+huge;
+         exit;
+       end;
      temp:=exp(x);
 {$push}
 {$safefpuexceptions on}
@@ -1267,6 +1274,11 @@ function cosh(x : Double) : Double;
   var
      temp : ValReal;
   begin
+     if x>7.10475860073943942030E+0002 then
+       begin
+         cosh:=huge+huge;
+         exit;
+       end;
      temp:=exp(x);
 {$push}
 {$safefpuexceptions on}
@@ -1291,6 +1303,11 @@ function sinh(x : Single) : Single;
   var
      temp : ValReal;
   begin
+     if x>8.94159862326326216608E+0001 then
+       begin
+         sinh:=huge+huge;
+         exit;
+       end;
      temp:=exp(x);
      { gives better behavior around zero, and in particular ensures that sinh(-0.0)=-0.0 }
      if temp=1 then
@@ -1308,6 +1325,11 @@ function sinh(x : Double) : Double;
   var
      temp : ValReal;
   begin
+     if x>7.10475860073943942030E+0002 then
+       begin
+         sinh:=huge+huge;
+         exit;
+       end;
      temp:=exp(x);
      if temp=1 then
        exit(x);
