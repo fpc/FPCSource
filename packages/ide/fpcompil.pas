@@ -839,7 +839,7 @@ begin
           FileName:=P^.Editor^.FileName;
           if FileName='' then
             begin
-              P^.Editor^.SaveAsk(true);
+              P^.Editor^.SaveAsk(cmValid,true);
               FileName:=P^.Editor^.FileName;
             end;
         end
@@ -988,7 +988,7 @@ begin
 
   { Retrieve created exefile }
   If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
+    EXEFile:=FixFileName(GetEXEPath)+NameOf(MainFile)+GetTargetExeExt
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
   DefaultReplacements(ExeFile);

@@ -1305,7 +1305,7 @@ begin
               begin
                 I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 if W<>nil then
-                  if W^.Editor^.SaveAsk(true)=false then
+                  if W^.Editor^.SaveAsk(cmValid,true)=false then
                     Err:=-1;
               end;
           end else
