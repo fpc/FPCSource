@@ -190,8 +190,10 @@ procedure TRegistry.SysRegFree;
 
 begin
   if Assigned(FSysData) then
+  begin
     TXMLRegistry(FSysData).Flush;
-  TXMLRegistryInstance.FreeXMLRegistry(TXMLRegistry(FSysData));
+    TXMLRegistryInstance.FreeXMLRegistry(TXMLRegistry(FSysData));
+  end;
 end;
 
 function TRegistry.SysCreateKey(Key: UnicodeString): Boolean;

@@ -603,9 +603,13 @@ begin
     FDocument.Free;
     FDocument:=Nil;
     end;
-  ReadXMLFile(FDocument,S);
-  if (FDocument=Nil) then
+  try
+    ReadXMLFile(FDocument,S);
+    if (FDocument=Nil) then
+      CreateEmptyDoc;
+  except
     CreateEmptyDoc;
+  end;
   SetRootKey('HKEY_CURRENT_USER');
   FDirty:=False;
 end;
