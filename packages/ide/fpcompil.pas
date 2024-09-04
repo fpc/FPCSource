@@ -844,7 +844,7 @@ begin
           FileName:=P^.Editor^.FileName;
           if FileName='' then
             begin
-              P^.Editor^.SaveAsk(true);
+              P^.Editor^.SaveAsk(cmValid,true);
               FileName:=P^.Editor^.FileName;
             end;
         end

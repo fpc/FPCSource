@@ -230,7 +230,7 @@ type
           PScrollBar; AIndicator: PIndicator; ACore: PCodeEditorCore; const AFileName: string);
       function    Save: Boolean; virtual;
       function    SaveAs: Boolean; virtual;
-      function    SaveAsk(Force: boolean): Boolean; virtual;
+      function    SaveAsk(Command: Word; Force: boolean): boolean; virtual;
       function    LoadFile: boolean; virtual;
       function    ReloadFile: boolean; virtual;
       function    SaveFile: boolean; virtual;
@@ -261,7 +261,7 @@ implementation
 
 uses Dos,
      WConsts,
-     FVConsts,
+     FVConsts,FPConst,
      App,WViews;
 
 {$ifndef NOOBJREG}
@@ -1927,7 +1927,7 @@ begin
   end;
 end;
 
-function TFileEditor.SaveAsk(Force: boolean): boolean;
+function TFileEditor.SaveAsk(Command: Word; Force: boolean): boolean;
 var OK: boolean;
     D: Sw_integer;
 begin
@@ -1942,7 +1942,8 @@ begin
    begin
      OK:=(GetModified=false);
      if (OK=false) and (Core^.GetBindingCount>1) then
-      OK:=true;
+       if (command<>cmAskSaveAll) or (Core^.GetBindingIndex(PCustomCodeEditor(@self))<>0) then
+         OK:=true;
      if OK=false then
       begin
         if FileName = '' then D := edSaveUntitled else D := edSaveModify;
@@ -1998,7 +1999,7 @@ begin
   OK:=inherited Valid(Command);
   if OK and (Command=cmClose) then
     if IsClipboard=false then
-      OK:=SaveAsk(false);
+      OK:=SaveAsk(Command,false);
   Valid:=OK;
 end;
 

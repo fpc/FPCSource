@@ -1896,7 +1896,7 @@ begin
   if OK and ({(Command=cmClose) or already handled in TFileEditor.Valid PM }
      (Command=cmAskSaveAll)) then
     if IsClipboard=false then
-      OK:=SaveAsk(false);
+      OK:=SaveAsk(Command,false);
   Valid:=OK;
 end;
 
