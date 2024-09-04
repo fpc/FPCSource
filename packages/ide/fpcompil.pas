@@ -988,7 +988,7 @@ begin
 
   { Retrieve created exefile }
   If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
+    EXEFile:=FixFileName(GetEXEPath)+NameOf(MainFile)+GetTargetExeExt
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
   DefaultReplacements(ExeFile);
