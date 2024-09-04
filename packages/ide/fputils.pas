@@ -155,8 +155,7 @@ begin
               NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
             end;
  'A'..'Z' : if NoPath then
-             {FixFileName[i]:=char(byte(s[i])+ord('a')-ord('A'))}
-             FixFileName[i]:=s[i] {leave case as is, not sure why lowercasing to begin with}
+             FixFileName[i]:=char(byte(s[i])+ord('a')-ord('A'))
             else
              FixFileName[i]:=s[i];
  {$else}
