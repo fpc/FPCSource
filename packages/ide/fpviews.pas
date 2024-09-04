@@ -2217,9 +2217,7 @@ begin
     AFileName:='';
   New(Editor, Init(R, HSB, VSB, Indicator,AFileName));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
-  {load from file if there is no other window with the same file }
-  if Editor^.Core^.GetBindingCount = 1 then
-    if LoadFile then
+  if LoadFile then
     begin
       if Editor^.LoadFile=false then
         ErrorBox(FormatStrStr(msg_errorreadingfile,AFileName),nil)
