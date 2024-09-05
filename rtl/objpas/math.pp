@@ -1183,6 +1183,7 @@ begin
   csc := cosecant(x);
 end;
 
+
 { arcsin and arccos functions from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function arcsin(x : Single) : Single;
@@ -1190,12 +1191,16 @@ begin
   arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
 {$ENDIF}
+
+
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function arcsin(x : Double) : Double;
 begin
   arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
 {$ENDIF}
+
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function arcsin(x : Extended) : Extended;
 begin
@@ -1203,18 +1208,23 @@ begin
 end;
 {$ENDIF}
 
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Arccos(x : Single) : Single;
 begin
   arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 {$ENDIF}
+
+
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function Arccos(x : Double) : Double;
 begin
   arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 {$ENDIF}
+
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function Arccos(x : Extended) : Extended;
 begin
@@ -1248,19 +1258,17 @@ function arctan2(y,x : float) : float;
 {$endif FPC_MATH_HAS_ARCTAN2}
 
 const
-  huge: double = 1e300;
+  huge_single: single = 1e30;
+  huge_double: double = 1e300;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function cosh(x : Single) : Single;
   var
      temp : ValReal;
   begin
-     if x>8.94159862326326216608E+0001 then
-       begin
-         cosh:=huge+huge;
-         exit;
-       end;
-     temp:=exp(x);
+     if (x>8.94159862326326216608E+0001) or (x<-8.94159862326326216608E+0001) then
+       exit(huge_single*huge_single);
+    temp:=exp(x);
 {$push}
 {$safefpuexceptions on}
      cosh:=0.5*(temp+1.0/temp);
@@ -1274,11 +1282,8 @@ function cosh(x : Double) : Double;
   var
      temp : ValReal;
   begin
-     if x>7.10475860073943942030E+0002 then
-       begin
-         cosh:=huge+huge;
-         exit;
-       end;
+     if (x>7.10475860073943942030E+0002) or (x<-7.10475860073943942030E+0002) then
+       exit(huge_double*huge_double);
      temp:=exp(x);
 {$push}
 {$safefpuexceptions on}
@@ -1298,16 +1303,16 @@ function cosh(x : Extended) : Extended;
   end;
 {$ENDIF}
 
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function sinh(x : Single) : Single;
   var
      temp : ValReal;
   begin
      if x>8.94159862326326216608E+0001 then
-       begin
-         sinh:=huge+huge;
-         exit;
-       end;
+       exit(huge_single*huge_single);
+     if x<8.94159862326326216608E+0001 then
+       exit(huge_single*huge_single);
      temp:=exp(x);
      { gives better behavior around zero, and in particular ensures that sinh(-0.0)=-0.0 }
      if temp=1 then
@@ -1326,10 +1331,9 @@ function sinh(x : Double) : Double;
      temp : ValReal;
   begin
      if x>7.10475860073943942030E+0002 then
-       begin
-         sinh:=huge+huge;
-         exit;
-       end;
+       exit(huge_double*huge_double);
+     if x<-7.10475860073943942030E+0002 then
+       exit(-(huge_double*huge_double));
      temp:=exp(x);
      if temp=1 then
        exit(x);
