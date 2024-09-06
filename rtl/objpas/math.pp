@@ -1327,8 +1327,8 @@ function sinh(x : Single) : Single;
   begin
      if x>8.94159862326326216608E+0001 then
        exit(huge_single*huge_single);
-     if x<8.94159862326326216608E+0001 then
-       exit(huge_single*huge_single);
+     if x<-8.94159862326326216608E+0001 then
+       exit(-(huge_single*huge_single));
      temp:=exp(x);
      { gives better behavior around zero, and in particular ensures that sinh(-0.0)=-0.0 }
      if temp=1 then
