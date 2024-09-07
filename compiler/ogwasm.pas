@@ -132,6 +132,7 @@ interface
         SegOfs: qword;
         FileSectionOfs: qword;
         MainFuncSymbol: TWasmObjSymbol;
+        CustomSectionIdx: Integer;
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         function IsCode: Boolean;
         function IsData: Boolean;
@@ -753,6 +754,7 @@ implementation
         inherited create(AList, Aname, Aalign, Aoptions);
         SegIdx:=-1;
         SegSymIdx:=-1;
+        CustomSectionIdx:=-1;
         MainFuncSymbol:=nil;
       end;
 
@@ -1679,6 +1681,7 @@ implementation
                 debug_section_nr:=section_nr;
                 Inc(section_nr);
                 objsec.SegSymIdx:=FWasmSymbolTableEntriesCount;
+                objsec.CustomSectionIdx:=debug_section_nr;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
                 WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
