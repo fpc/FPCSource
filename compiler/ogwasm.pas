@@ -2563,9 +2563,7 @@ implementation
                 Result:=True;
                 exit;
               end;
-{$push} {$R-}{$Q-}
-          Res:=default(TWasmCustomDebugSectionType);
-{$pop}
+          Res:=low(TWasmCustomDebugSectionType);
           Result:=False;
         end;
 
