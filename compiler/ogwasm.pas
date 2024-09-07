@@ -1984,6 +1984,96 @@ implementation
               end;
           end;
 
+        Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
+        Writer.write(WasmVersion,SizeOf(WasmVersion));
+
+        if ts_wasm_threads in current_settings.targetswitches then
+          begin
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],4);
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'atomics');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
+          end
+        else
+          begin
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],3);
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
+          end;
+
+        { Write the producers section:
+          https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md }
+        WriteUleb(FWasmCustomSections[wcstProducers],2);
+        WriteName(FWasmCustomSections[wcstProducers],'language');
+        WriteUleb(FWasmCustomSections[wcstProducers],1);
+        WriteName(FWasmCustomSections[wcstProducers],'Pascal');
+        WriteName(FWasmCustomSections[wcstProducers],'');
+        WriteName(FWasmCustomSections[wcstProducers],'processed-by');
+        WriteUleb(FWasmCustomSections[wcstProducers],1);
+        WriteName(FWasmCustomSections[wcstProducers],'Free Pascal Compiler (FPC)');
+        WriteName(FWasmCustomSections[wcstProducers],full_version_string+' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname);
+
+        code_section_nr:=-1;
+        data_section_nr:=-1;
+        debug_abbrev_section_nr:=-1;
+        debug_info_section_nr:=-1;
+        debug_str_section_nr:=-1;
+        debug_line_section_nr:=-1;
+        debug_frame_section_nr:=-1;
+        debug_aranges_section_nr:=-1;
+        debug_ranges_section_nr:=-1;
+        section_nr:=0;
+
+        WriteWasmSection(wsiType);
+        Inc(section_nr);
+        WriteWasmSection(wsiImport);
+        Inc(section_nr);
+        WriteWasmSection(wsiFunction);
+        Inc(section_nr);
+        if exception_tags_count>0 then
+          begin
+            WriteWasmSection(wsiTag);
+            Inc(section_nr);
+          end;
+        if globals_count>0 then
+          begin
+            WriteWasmSection(wsiGlobal);
+            Inc(section_nr);
+          end;
+        if export_functions_count>0 then
+          begin
+            WriteWasmSection(wsiExport);
+            Inc(section_nr);
+          end;
+
+        { determine the section numbers for the datacount, code, data and debug sections ahead of time }
+        if segment_count>0 then
+          Inc(section_nr);  { the DataCount section }
+        code_section_nr:=section_nr;  { the Code section }
+        Inc(section_nr);
+        if segment_count>0 then
+          begin
+            data_section_nr:=section_nr; { the Data section }
+            Inc(section_nr);
+          end;
+        { the debug sections }
+        MaybeAddDebugSectionToSymbolTable(wcstDebugAbbrev,debug_abbrev_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugInfo,debug_info_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugStr,debug_str_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugLine,debug_line_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugFrame,debug_frame_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugAranges,debug_aranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugRanges,debug_ranges_section_nr);
+
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
@@ -2112,96 +2202,6 @@ implementation
                   end;
               end;
           end;
-
-        Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
-        Writer.write(WasmVersion,SizeOf(WasmVersion));
-
-        if ts_wasm_threads in current_settings.targetswitches then
-          begin
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],4);
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'atomics');
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
-          end
-        else
-          begin
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],3);
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
-            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
-          end;
-
-        { Write the producers section:
-          https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md }
-        WriteUleb(FWasmCustomSections[wcstProducers],2);
-        WriteName(FWasmCustomSections[wcstProducers],'language');
-        WriteUleb(FWasmCustomSections[wcstProducers],1);
-        WriteName(FWasmCustomSections[wcstProducers],'Pascal');
-        WriteName(FWasmCustomSections[wcstProducers],'');
-        WriteName(FWasmCustomSections[wcstProducers],'processed-by');
-        WriteUleb(FWasmCustomSections[wcstProducers],1);
-        WriteName(FWasmCustomSections[wcstProducers],'Free Pascal Compiler (FPC)');
-        WriteName(FWasmCustomSections[wcstProducers],full_version_string+' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname);
-
-        code_section_nr:=-1;
-        data_section_nr:=-1;
-        debug_abbrev_section_nr:=-1;
-        debug_info_section_nr:=-1;
-        debug_str_section_nr:=-1;
-        debug_line_section_nr:=-1;
-        debug_frame_section_nr:=-1;
-        debug_aranges_section_nr:=-1;
-        debug_ranges_section_nr:=-1;
-        section_nr:=0;
-
-        WriteWasmSection(wsiType);
-        Inc(section_nr);
-        WriteWasmSection(wsiImport);
-        Inc(section_nr);
-        WriteWasmSection(wsiFunction);
-        Inc(section_nr);
-        if exception_tags_count>0 then
-          begin
-            WriteWasmSection(wsiTag);
-            Inc(section_nr);
-          end;
-        if globals_count>0 then
-          begin
-            WriteWasmSection(wsiGlobal);
-            Inc(section_nr);
-          end;
-        if export_functions_count>0 then
-          begin
-            WriteWasmSection(wsiExport);
-            Inc(section_nr);
-          end;
-
-        { determine the section numbers for the datacount, code, data and debug sections ahead of time }
-        if segment_count>0 then
-          Inc(section_nr);  { the DataCount section }
-        code_section_nr:=section_nr;  { the Code section }
-        Inc(section_nr);
-        if segment_count>0 then
-          begin
-            data_section_nr:=section_nr; { the Data section }
-            Inc(section_nr);
-          end;
-        { the debug sections }
-        MaybeAddDebugSectionToSymbolTable(wcstDebugAbbrev,debug_abbrev_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugInfo,debug_info_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugStr,debug_str_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugLine,debug_line_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugFrame,debug_frame_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugAranges,debug_aranges_section_nr);
-        MaybeAddDebugSectionToSymbolTable(wcstDebugRanges,debug_ranges_section_nr);
 
         DoRelocations;
 
