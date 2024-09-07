@@ -128,7 +128,8 @@ type
     SYMTAB_GLOBAL   = 2,
     SYMTAB_SECTION  = 3,
     SYMTAB_EVENT    = 4,
-    SYMTAB_TABLE    = 5);
+    SYMTAB_TABLE    = 5,
+    SYMTAB_FPC_CUSTOM = 6);
 
 const
   { segment flags }

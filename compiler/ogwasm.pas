@@ -2173,11 +2173,26 @@ implementation
                   end;
                 WriteName(FWasmSymbolTable,objsym.Name);
               end
-            else if (objsym.typ in [AT_DATA,AT_TLS]) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
+            else if (objsym.typ in [AT_DATA,AT_TLS,AT_METADATA]) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
               begin
                 if (objsym.bind<>AB_EXTERNAL) and TWasmObjSection(objsym.objsection).IsDebug then
                   begin
-                    {todo: debug symbols}
+                    objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
+                    Inc(FWasmSymbolTableEntriesCount);
+                    WriteByte(FWasmSymbolTable,Ord(SYMTAB_FPC_CUSTOM));
+                    if objsym.bind=AB_GLOBAL then
+                      SymbolFlags:=0
+                    else if objsym.bind=AB_LOCAL then
+                      SymbolFlags:=WASM_SYM_BINDING_LOCAL
+                    else if objsym.bind=AB_EXTERNAL then
+                      SymbolFlags:=WASM_SYM_UNDEFINED
+                    else
+                      internalerror(2024090701);
+                    WriteUleb(FWasmSymbolTable,SymbolFlags);
+                    WriteName(FWasmSymbolTable,objsym.Name);
+                    WriteUleb(FWasmSymbolTable,TWasmObjSection(objsym.objsection).CustomSectionIdx);
+                    WriteUleb(FWasmSymbolTable,objsym.offset);
+                    WriteUleb(FWasmSymbolTable,objsym.size);
                   end
                 else
                   begin
@@ -2518,6 +2533,8 @@ implementation
           SymIndex: uint32;
           SymOffset: uint32;
           SymSize: uint32;
+          SymCustomSectionIndex: uint32;
+          SymCustomSectionType: TWasmCustomDebugSectionType;
           SymKind: TWasmSymbolType;
           SymName: ansistring;
           ObjSym: TWasmObjSymbol;
@@ -2533,6 +2550,21 @@ implementation
           RelocOffset: uint32;
           RelocIndex: uint32;
           RelocAddend: int32;
+        end;
+
+      function FindDebugSectionByIndex(SectionIndex: Integer; out res: TWasmCustomDebugSectionType): Boolean;
+        var
+          ds: TWasmCustomDebugSectionType;
+        begin
+          for ds in TWasmCustomDebugSectionType do
+            if DebugSectionIndex[ds]=SectionIndex then
+              begin
+                Res:=ds;
+                Result:=True;
+                exit;
+              end;
+          Res:=default(TWasmCustomDebugSectionType);
+          Result:=False;
         end;
 
       function ReadSection: Boolean;
@@ -2939,6 +2971,37 @@ implementation
                                 if not ReadUleb32(SymSize) then
                                   begin
                                     InputError('Error reading the size of a SYMTAB_DATA symbol');
+                                    exit;
+                                  end;
+                              end;
+                          end;
+                        SYMTAB_FPC_CUSTOM:
+                          begin
+                            if not ReadName(SymName) then
+                              begin
+                                InputError('Error reading symbol name of a SYMTAB_FPC_CUSTOM symbol');
+                                exit;
+                              end;
+                            if (SymFlags and WASM_SYM_UNDEFINED)=0 then
+                              begin
+                                if not ReadUleb32(SymCustomSectionIndex) then
+                                  begin
+                                    InputError('Error reading the custom section index of a SYMTAB_FPC_CUSTOM symbol');
+                                    exit;
+                                  end;
+                                if not FindDebugSectionByIndex(SymCustomSectionIndex,SymCustomSectionType) then
+                                  begin
+                                    InputError('Custom section index of SYMTAB_FPC_CUSTOM symbol not pointing to a debug section');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(SymOffset) then
+                                  begin
+                                    InputError('Error reading the offset of a SYMTAB_FPC_CUSTOM symbol');
+                                    exit;
+                                  end;
+                                if not ReadUleb32(SymSize) then
+                                  begin
+                                    InputError('Error reading the size of a SYMTAB_FPC_CUSTOM symbol');
                                     exit;
                                   end;
                               end;
@@ -4330,6 +4393,32 @@ implementation
                     else
                       objsym.typ:=AT_DATA;
                     objsym.objsection:=TObjSection(ObjData.ObjSectionList[FirstDataSegmentIdx+SymIndex]);
+                    objsym.offset:=SymOffset;
+                    objsym.size:=SymSize;
+                  end;
+              SYMTAB_FPC_CUSTOM:
+                if (SymFlags and WASM_SYM_UNDEFINED)<>0 then
+                  begin
+                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                    objsym.bind:=AB_EXTERNAL;
+                    if (SymFlags and WASM_SYM_TLS)<>0 then
+                      internalerror(2024080702);
+                    objsym.typ:=AT_DATA;
+                    objsym.objsection:=nil;
+                    objsym.offset:=0;
+                    objsym.size:=0;
+                  end
+                else
+                  begin
+                    objsym:=TWasmObjSymbol(ObjData.CreateSymbol(SymName));
+                    if (SymFlags and WASM_SYM_BINDING_LOCAL)<> 0 then
+                      objsym.bind:=AB_LOCAL
+                    else
+                      objsym.bind:=AB_GLOBAL;
+                    if (SymFlags and WASM_SYM_TLS)<>0 then
+                      internalerror(2024080703);
+                    objsym.typ:=AT_DATA;
+                    objsym.objsection:=TObjSection(ObjData.ObjSectionList.Find(WasmCustomSectionName[SymCustomSectionType]));
                     objsym.offset:=SymOffset;
                     objsym.size:=SymSize;
                   end;
