@@ -2563,7 +2563,9 @@ implementation
                 Result:=True;
                 exit;
               end;
+{$push} {$R-}{$Q-}
           Res:=default(TWasmCustomDebugSectionType);
+{$pop}
           Result:=False;
         end;
 
