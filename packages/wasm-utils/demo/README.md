@@ -22,3 +22,8 @@ packages/fcl-web/examples/websocket/server
 ```
 is needed, since this is the websocket server that the demo program will
 connect to.
+
+For the regexp demo, you need the corresponding pas2js host program
+```
+demos/wasienv/regexp
+```
