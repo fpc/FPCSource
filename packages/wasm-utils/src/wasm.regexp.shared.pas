@@ -59,8 +59,8 @@ Const
   regexpFN_GetIndexes = 'get_indexes';
   regexpFN_GetNamedGroupIndexes = 'get_named_group_indexes';
 
-Function StringToFlags(S : String; IgnoreUnknown : Boolean = True) : Longint;
-Function FlagsToString(S : Longint) : String;
+Function StringToRegexpFlags(const S : String; IgnoreUnknown : Boolean = True) : Longint;
+Function RegexpFlagsToString(S : Longint) : String;
 
 implementation
 
@@ -72,7 +72,7 @@ uses
 {$ENDIF}
 
 
-Function StringToFlags(S : String; IgnoreUnknown : Boolean = True) : Longint;
+Function StringToRegexpFlags(const S : String; IgnoreUnknown : Boolean = True) : Longint;
 
 var
   C : Char;
@@ -100,7 +100,7 @@ begin
    end;
 end;
 
-Function FlagsToString(S : Longint) : String;
+Function RegexpFlagsToString(S : Longint) : String;
 
 var
   C,I : Longint;

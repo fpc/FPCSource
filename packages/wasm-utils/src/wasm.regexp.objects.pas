@@ -134,7 +134,7 @@ end;
 function TRegexpFlagsHelper.ToString: String;
 
 begin
-  Result:=FlagsToString(AsFlags);
+  Result:=RegexpFlagsToString(AsFlags);
 end;
 
 function TRegexpFlagsHelper.ToFlags: Longint;
@@ -174,7 +174,7 @@ end;
 
 constructor TWasmRegExp.Create(const aExpression, aFlags: String);
 begin
-  Create(aExpression,StringToFlags(aFlags,False));
+  Create(aExpression,StringToRegexpFlags(aFlags,False));
 end;
 
 constructor TWasmRegExp.Create(const aExpression: String; aFlags: Longint);

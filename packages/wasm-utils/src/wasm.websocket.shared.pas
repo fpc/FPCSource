@@ -28,7 +28,6 @@ uses
 Type
   TWasmWebsocketResult = longint;
   TWasmWebsocketID = longint;
-  TBuffer = longint;
   TWasmWebSocketMessageType = Longint;
   TWebsocketCallBackResult = Longint;
 
