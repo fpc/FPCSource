@@ -1,5 +1,5 @@
 { %TARGET=win32,win64,wince,linux,android }
-{ %OPT=-CE }
+{ %OPT=-CE -OoNOCONSTPROP }
 program tsafecall3;
 
 {$mode objfpc}{$H+}
