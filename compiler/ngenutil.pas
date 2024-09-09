@@ -135,7 +135,7 @@ interface
       class procedure InsertMemorySizes; virtual;
 
       { Call this to check if init code is required }
-      class function has_init_list: boolean;
+      class function has_init_list: boolean; static;
 
       { called right before an object is assembled, can be used to insert
         global information into the assembler list (used by LLVM to insert type
