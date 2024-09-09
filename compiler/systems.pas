@@ -922,6 +922,10 @@ begin
     default_target(system_i386_linux);
     {$define default_target_set}
    {$endif}
+   {$ifdef MSWindows}
+    default_target(system_i386_win32);
+    {$define default_target_set}
+   {$endif}
    {$ifdef freebsd}
     default_target(system_i386_freebsd);
     {$define default_target_set}
