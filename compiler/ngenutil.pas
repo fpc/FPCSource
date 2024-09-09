@@ -1235,18 +1235,23 @@ implementation
     var
       hp : tused_unit;
     begin
-      Result:=false;
+      Result := True;
+
+      { Check current module first }
+      if mf_init in current_module.moduleflags then
+        Exit;
+
       { Check used units }
       hp:=tused_unit(usedunits.first);
-      while assigned(hp) and (Result=false) do
+      while assigned(hp) do
         begin
           if mf_init in hp.u.moduleflags then
-            Result:=true;
+            Exit;
           hp:=tused_unit(hp.next);
         end;
 
-      { Check current module }
-      Result:=Result or (mf_init in current_module.moduleflags);
+      { We reach this point, none of the used units have an initialisation list }
+      Result := False;
     end;
 
 
