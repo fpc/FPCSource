@@ -2389,8 +2389,7 @@ implementation
                           begin
                             templist.concat(tai_const.create_8bit(ord(DW_OP_WASM_location)));
                             templist.concat(tai_const.create_8bit(3)); { wasm global }
-                            templist.concat(tai_const.create_32bit(0));
-                            //templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,TLS_BASE_SYM,AT_WASM_GLOBAL,0));
+                            templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,TLS_BASE_SYM,AT_WASM_GLOBAL,0));
                             templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
                             templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
                             templist.concat(tai_const.create_8bit(ord(DW_OP_plus)));
