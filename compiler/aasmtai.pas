@@ -767,6 +767,7 @@ interface
           constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+          constructor Create_type_name(_typ:taiconst_type;const name:string;symclass: TAsmSymbolClass;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_nil_codeptr;
           constructor Create_nil_codeptr_unaligned;
           constructor Create_nil_dataptr;
@@ -1993,6 +1994,13 @@ implementation
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name,_symtyp),ofs);
          consttype:=_typ;
+      end;
+
+
+    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;symclass: TAsmSymbolClass;_symtyp:Tasmsymtype;ofs:asizeint);
+      begin
+        self.create_sym_offset(current_asmdata.RefAsmSymbolByClass(symclass,name,_symtyp),ofs);
+        consttype:=_typ;
       end;
 
 
