@@ -284,14 +284,13 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$endif}
 
 {$ifndef FPC_DOTTEDUNITS}
 function LeftStr(const s: UnicodeString; Count: SizeInt): UnicodeString; overload;
 begin
   Result:=copy(s,1,Count);
 end;
-{$endif}
-
 {$endif}
 
 function QuoteJSString(const S: TJSString; Quote: TJSChar): TJSString;
@@ -525,17 +524,17 @@ end;
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
-  S : UTF8String;
+  s : TJSWriterString;
 
 begin
   //system.writeln('TJSWriter.Write unicodestring=',U);
   WriteIndent;
   if UseUTF8 then
     begin
-    S:=UTF16ToUTF8(U);
-    if S='' then exit;
-    FLinePos:=FLinePos+Writer.Write(S);
-    FLastChar:=AnsiChar(S[length(S)]);
+    s:=UTF16ToUTF8(U);
+    if s='' then exit;
+    FLinePos:=FLinePos+Writer.Write(s);
+    FLastChar:=AnsiChar(s[length(s)]);
     end
   else if U<>'' then
     begin
@@ -604,7 +603,7 @@ function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
 Var
   I,J,L : Integer;
   R: TJSString;
-  c: WideChar;
+  c: Word;
 begin
   //system.writeln('TJSWriter.EscapeString "',S,'"');
   I:=1;
@@ -613,27 +612,30 @@ begin
   L:=Length(S);
   While I<=L do
     begin
-    c:=S[I];
-    if (c in [#0..#31,'"','''','\'])
-        or (c>=#$ff00) or ((c>=#$D800) and (c<=#$DFFF)) then
+    c:=ord(S[I]);
+    if (c in [0..31,ord('"'),ord(''''),ord('\')])
+        or (c>=$ff00)
+        or ((c>=$D800) and (c<=$DFFF))
+        or (c=$1680) or ((c>=$2000) and (c<=$200A)) or (c=$2028) or (c=$205F) or (c=$3000) // whitespaces
+    then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
-        '\' : R:=R+'\\';
-        '"' : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
-        '''': if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
-        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(c),2));
-        #8  : R:=R+'\b';
-        #9  : R:=R+'\t';
-        #10 : R:=R+'\n';
-        #12 : R:=R+'\f';
-        #13 : R:=R+'\r';
-        #$D800..#$DBFF:
+        ord('\') : R:=R+'\\';
+        ord('"') : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
+        ord(''''): if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
+        0..7,11,14..31: R:=R+'\x'+TJSString(hexStr(ord(c),2));
+        8  : R:=R+'\b';
+        9  : R:=R+'\t';
+        10 : R:=R+'\n';
+        12 : R:=R+'\f';
+        13 : R:=R+'\r';
+        $D800..$DBFF:
           begin
           if (I<L) then
             begin
-            c:=S[I+1];
-            if (c>=#$DC00) and (c<=#$DFFF) then
+            c:=ord(S[I+1]);
+            if (c>=$DC00) and (c<=$DFFF) then
               begin
               // surrogate, two WideChar codepoint
               R:=R+Copy(S,I,2);
@@ -647,14 +649,15 @@ begin
             end
           else
             // high surrogate without low surrogate at end of string, cannot be encoded as UTF-8 -> encode as hex
-            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+            R:=R+'\u'+TJSString(HexStr(c,4));
           end;
-        #$DC00..#$DFFF:
+        $DC00..$DFFF:
           begin
             // low surrogate without high surrogate, cannot be encoded as UTF-8 -> encode as hex
-            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+            R:=R+'\u'+TJSString(HexStr(c,4));
           end;
-        #$FF00..#$FFFF: R:=R+'\u'+TJSString(HexStr(ord(c),4));
+      else
+        R:=R+'\u'+TJSString(HexStr(c,4));
       end;
       J:=I+1;
       end;
@@ -2249,7 +2252,7 @@ begin
       continue;
       end;
     else
-      // ignore low/high surrogate, CurColumn is AnsiChar index, not codepoint
+      // ignore low/high surrogate, CurColumn is WideChar index, not codepoint
       inc(FCurColumn);
     end;
     inc(p);

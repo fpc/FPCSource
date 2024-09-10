@@ -325,6 +325,7 @@ type
     Procedure TestStringConst;
     Procedure TestStringConst_InvalidUTF16;
     Procedure TestStringConstSurrogate;
+    Procedure TestStringConstWhitespaces;
     Procedure TestStringConst_Multiline;
     Procedure TestString_Length;
     Procedure TestString_Compare;
@@ -8860,6 +8861,27 @@ begin
     LinesToStr([
     '$mod.s="😊";',
     '$mod.s="Hello 😉";'
+    ]));
+end;
+
+procedure TTestModule.TestStringConstWhitespaces;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  'begin',
+  '  s:=#$2028;', // line separator not supported by some editors, e.g. vsc
+  '  s:=''Medium Mathematical Space ''#$205f',
+  '']);
+  ConvertProgram;
+  CheckSource('TestStringConstSurrogate',
+    LinesToStr([
+    'this.s="";'
+    ]),
+    LinesToStr([
+    '$mod.s="\u2028";',
+    '$mod.s="Medium Mathematical Space \u205F";'
     ]));
 end;
 
