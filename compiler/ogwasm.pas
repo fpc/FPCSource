@@ -2746,7 +2746,8 @@ implementation
                                           R_WASM_MEMORY_ADDR_I32,
                                           R_WASM_TYPE_INDEX_LEB,
                                           R_WASM_GLOBAL_INDEX_LEB,
-                                          R_WASM_TAG_INDEX_LEB]) then
+                                          R_WASM_TAG_INDEX_LEB,
+                                          R_WASM_GLOBAL_INDEX_I32]) then
                       begin
                         InputError('Unsupported relocation type: ' + tostr(Ord(RelocType)));
                         exit;
@@ -2778,7 +2779,8 @@ implementation
                           R_WASM_MEMORY_ADDR_SLEB,
                           R_WASM_MEMORY_ADDR_I32,
                           R_WASM_FUNCTION_OFFSET_I32,
-                          R_WASM_GLOBAL_INDEX_LEB]) and (RelocIndex>High(SymbolTable)) then
+                          R_WASM_GLOBAL_INDEX_LEB,
+                          R_WASM_GLOBAL_INDEX_I32]) and (RelocIndex>High(SymbolTable)) then
                       begin
                         InputError('Relocation index outside the bounds of the symbol table');
                         exit;
@@ -2793,7 +2795,7 @@ implementation
                         InputError('R_WASM_SECTION_OFFSET_I32 must point to a SYMTAB_SECTION symbol');
                         exit;
                       end;
-                    if (RelocType=R_WASM_GLOBAL_INDEX_LEB) and
+                    if (RelocType in [R_WASM_GLOBAL_INDEX_LEB,R_WASM_GLOBAL_INDEX_I32]) and
                        not ((SymbolTable[RelocIndex].SymKind=SYMTAB_GLOBAL) or
                             ((ts_wasm_threads in current_settings.targetswitches) and
                              (SymbolTable[RelocIndex].SymKind=SYMTAB_DATA) and
@@ -4696,6 +4698,12 @@ implementation
                       if Assigned(SymbolTable[RelocIndex].ObjSym.TlsGlobalSym) then
                         ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym.TlsGlobalSym,RELOC_GLOBAL_INDEX_LEB));
                     end;
+                  R_WASM_GLOBAL_INDEX_I32:
+                    begin
+                      ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_ABSOLUTE));
+                      if Assigned(SymbolTable[RelocIndex].ObjSym.TlsGlobalSym) then
+                        ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym.TlsGlobalSym,RELOC_ABSOLUTE));
+                    end;
                   R_WASM_TAG_INDEX_LEB:
                     ObjSec.ObjRelocations.Add(TWasmObjRelocation.CreateSymbol(RelocOffset-BaseSectionOffset,SymbolTable[RelocIndex].ObjSym,RELOC_TAG_INDEX_LEB));
                   else
@@ -5167,6 +5175,13 @@ implementation
                               internalerror(2024010602);
                             objsec.Data.seek(objreloc.DataOffset);
                             writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos-objsym.objsection.ExeSection.MemPos)+objreloc.Addend));
+                          end;
+                        AT_WASM_GLOBAL:
+                          begin
+                            if objreloc.IsFunctionOffsetI32 then
+                              internalerror(2024010602);
+                            objsec.Data.seek(objreloc.DataOffset);
+                            writeUInt32LE(UInt32(objsym.offset+objsym.objsection.MemPos));
                           end;
                         else
                           internalerror(2024010108);
