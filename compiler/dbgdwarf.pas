@@ -3401,9 +3401,9 @@ implementation
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_32bit_unaligned(0));
 {$else i8086}
             { offset }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
+            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_nil_codeptr);
             { length }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
+            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_nil_codeptr);
 {$endif i8086}
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(target_asm.labelprefix+'earanges0',AT_METADATA,0,voidpointertype));
           end;
