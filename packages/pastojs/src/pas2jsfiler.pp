@@ -1629,6 +1629,7 @@ end;
 
 function ModeSwitchToInt(ms: TModeSwitch): byte;
 begin
+  // these numbers are stored in files, so keep the values.
   case ms of
     msNone: Result:=0;
     msFpc: Result:=1;
@@ -1683,6 +1684,8 @@ begin
     msImplicitFunctionSpec: Result:=50;
     msMultiLineStrings: Result:=51;
     msDelphiMultiLineStrings: Result:=52;
+  else
+    Result:=0;
   end;
 end;
 
