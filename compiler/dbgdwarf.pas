@@ -2360,7 +2360,9 @@ implementation
               case sym.typ of
                 staticvarsym:
                   begin
-                    if vo_is_thread_var in sym.varoptions then
+                    if (vo_is_thread_var in sym.varoptions) and
+                       (not (target_info.system in systems_wasm) or
+                            (ts_wasm_threads in current_settings.targetswitches)) then
                       begin
                         if tf_section_threadvars in target_info.flags then
                           begin
