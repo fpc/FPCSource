@@ -37,9 +37,29 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, System.Contnrs, {$IFNDEF USEWIDESTRING} Api.PCRE2_8 {$ELSE} Api.PCRE2_16 {$ENDIF}, System.CTypes, System.RegularExpressionsConsts;
+  System.SysUtils, System.Classes, System.Contnrs, System.CTypes,
+  {$IFNDEF CPUWASM}
+    {$IFNDEF USEWIDESTRING}
+      Api.PCRE2_8
+    {$ELSE}
+      Api.PCRE2_16
+    {$ENDIF},
+  {$ELSE}
+  wasm.pcrebridge,
+  {$ENDIF}
+  System.RegularExpressionsConsts;
 {$ELSE}
-  SysUtils, Classes, Contnrs, {$IFNDEF USEWIDESTRING} libpcre2_8 {$ELSE} libpcre2_16 {$ENDIF}, ctypes, System.RegularExpressionsConsts;
+  SysUtils, Classes, Contnrs,ctypes,
+  {$IFNDEF CPUWASM}
+    {$IFNDEF USEWIDESTRING}
+      libpcre2_8
+    {$ELSE}
+      libpcre2_16
+    {$ENDIF},
+  {$ELSE}
+  wasm.pcrebridge,
+  {$ENDIF}
+ System.RegularExpressionsConsts;
 {$ENDIF}
 
 const
@@ -642,7 +662,6 @@ begin
   if (FCode=nil) then
     raise ERegularExpressionError.CreateFmt(SRegExExpressionError,[ErrorPos+1,GetPCREErrorMsg(ErrorNr)]);
   FMatchData:=pcre2_match_data_create_from_pattern(FCode,Nil);
-
 end;
 
 procedure TPerlRegEx.Study;
@@ -705,8 +724,7 @@ end;
 function TPerlRegEx.GetNames(aIndex : Integer): TREString;
 var
   Ptr : PCRE2_SPTR;
-  N,I : Integer;
-  tblName : TREString;
+  I : Integer;
 
 begin
   Ptr:=FNameTable;
@@ -715,10 +733,8 @@ begin
   for i:=0 to aIndex-1 do
     Inc(Ptr,FNameEntrySize);
 {$IFDEF USEWIDESTRING}
-  n:=ord(ptr[0]);
   Result:=GetStrLen((Ptr+1),FNameEntrySize-2);
 {$ELSE}
-  n:=(ord(ptr[0]) shl 8) or ord(ptr[1]);
   Result:=GetStrLen((Ptr+2),FNameEntrySize-3);
 {$ENDIF}
 end;

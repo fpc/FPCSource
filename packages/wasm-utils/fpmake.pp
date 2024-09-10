@@ -50,6 +50,10 @@ begin
     T:=P.Targets.AddUnit('wasm.regexp.objects.pas');
       T.Dependencies.AddUnit('wasm.regexp.api');
       T.Dependencies.AddUnit('wasm.regexp.shared');
+    T:=P.Targets.AddUnit('wasm.pcrebridge.pas');
+      T.Dependencies.AddUnit('wasm.regexp.api');
+      T.Dependencies.AddUnit('wasm.regexp.shared');
+      T.Dependencies.AddUnit('wasm.regexp.objects');
       
 {$ifndef ALLPACKAGES}
     Run;

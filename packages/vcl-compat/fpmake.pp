@@ -37,6 +37,7 @@ begin
     P.Dependencies.Add('fcl-hash');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('libpcre',[Win64,Linux,darwin]);
+    P.Dependencies.Add('wasm-utils',[wasi]);
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -64,12 +65,12 @@ begin
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.credentials.pp');
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp',[Win64,Linux,darwin]);
+    T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp',[Win64,Linux,darwin,wasi]);
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('system.regularexpressionscore.pp',[Win64,Linux,darwin]);
-    T.Dependencies.AddUnit('system.regularexpressionsconsts',[Win64,Linux,darwin]);
-    T:=P.Targets.AddUnit('system.regularexpressions.pp',[Win64,Linux,darwin]);
-    T.Dependencies.AddUnit('system.regularexpressionscore',[Win64,Linux,darwin]);
+    T:=P.Targets.AddUnit('system.regularexpressionscore.pp',[Win64,Linux,darwin,wasi]);
+    T.Dependencies.AddUnit('system.regularexpressionsconsts',[Win64,Linux,darwin,wasi]);
+    T:=P.Targets.AddUnit('system.regularexpressions.pp',[Win64,Linux,darwin,wasi]);
+    T.Dependencies.AddUnit('system.regularexpressionscore',[Win64,Linux,darwin,wasi]);
     T:=P.Targets.AddUnit('system.threading.pp',AllOSes-[go32v2,nativent,atari]);
     T.ResourceStrings := True;
 
