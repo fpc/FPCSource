@@ -1050,7 +1050,7 @@ implementation
 
     procedure TDebugInfoDwarf.append_proc_frame_base(list: TAsmList;
       def: tprocdef);
-{$ifdef i8086}
+{$if defined(i8086)}
       var
         dreg: longint;
         blocksize: longint;
@@ -1073,13 +1073,33 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
         templist.free;
       end;
-{$else i8086}
+{$elseif defined(wasm)}
+      var
+        blocksize: longint;
+        templist: TAsmList;
+      begin
+        with tcpuprocdef(def).frame_pointer_ref do
+          if (base=NR_LOCAL_STACK_POINTER_REG) and
+             (index=NR_NO) then
+            begin
+              templist:=TAsmList.create;
+              templist.concat(tai_const.create_8bit(ord(DW_OP_WASM_location)));
+              templist.concat(tai_const.create_8bit(0)); { wasm local }
+              templist.concat(tai_const.create_uleb128bit(offset));
+              templist.concat(tai_const.create_8bit(ord(DW_OP_stack_value)));
+              blocksize:=3+Lengthuleb128(offset);
+              append_block1(DW_AT_frame_base,blocksize);
+              current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
+              templist.free;
+            end;
+      end;
+{$else}
       begin
         { problem: base reg isn't known here
           DW_AT_frame_base,DW_FORM_block1,1
         }
       end;
-{$endif i8086}
+{$endif}
 
 
 {$ifdef i8086}
