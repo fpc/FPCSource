@@ -5151,6 +5151,13 @@ implementation
                             objsec.Data.seek(objreloc.DataOffset);
                             writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
                           end;
+                        AT_TLS:
+                          begin
+                            if objreloc.IsFunctionOffsetI32 then
+                              internalerror(2024010602);
+                            objsec.Data.seek(objreloc.DataOffset);
+                            writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos-objsym.objsection.ExeSection.MemPos)+objreloc.Addend));
+                          end;
                         else
                           internalerror(2024010108);
                       end;

@@ -2384,6 +2384,19 @@ implementation
                        (not (target_info.system in systems_wasm) or
                             (ts_wasm_threads in current_settings.targetswitches)) then
                       begin
+{$ifdef wasm}
+                        if target_info.system in systems_wasm then
+                          begin
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_WASM_location)));
+                            templist.concat(tai_const.create_8bit(3)); { wasm global }
+                            templist.concat(tai_const.create_32bit(0));
+                            //templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,TLS_BASE_SYM,AT_WASM_GLOBAL,0));
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
+                            templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_plus)));
+                            blocksize:=3+2*sizeof(puint);
+                          end;
+{$else wasm}
                         if tf_section_threadvars in target_info.flags then
                           begin
                             case sizeof(puint) of
@@ -2419,6 +2432,7 @@ implementation
                               offset+sizeof(pint)));
                             blocksize:=1+sizeof(puint);
                           end;
+{$endif wasm}
                       end
                     else
                       begin
