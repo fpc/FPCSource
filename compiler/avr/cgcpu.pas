@@ -1326,7 +1326,7 @@ unit cgcpu;
           end;
 
         { can we take advantage of adiw/sbiw? }
-        if (current_settings.cputype>=cpu_avr2) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
+        if (CPUAVR_HAS_ADIW in cpu_capabilities[current_settings.cputype]) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
           ((tmpreg=NR_R24) or (tmpreg=NR_R26) or (tmpreg=NR_R28) or (tmpreg=NR_R30)) and (ref.base<>NR_NO) then
           begin
             maybegetcpuregister(list,tmpreg);
