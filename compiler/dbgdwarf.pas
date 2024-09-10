@@ -2394,7 +2394,7 @@ implementation
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
                         templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
                         templist.concat(tai_const.create_8bit(ord(DW_OP_plus)));
-                        blocksize:=3+2*sizeof(puint);
+                        blocksize:=4+2*sizeof(puint);
 {$else wasm}
                         if tf_section_threadvars in target_info.flags then
                           begin
