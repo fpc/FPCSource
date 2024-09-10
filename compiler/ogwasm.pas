@@ -1609,6 +1609,16 @@ implementation
                             WriteUleb(relout,FuncSym.SymbolIndex);
                           WriteSleb(relout,objrel.Addend+objrel.symbol.address);  { addend to add to the address }
                         end
+                      else if assigned(objrel.symbol) and (objrel.symbol.typ=AT_WASM_GLOBAL) then
+                        begin
+                          Inc(relcount^);
+                          WriteByte(relout,Ord(R_WASM_GLOBAL_INDEX_I32));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+			  if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
+                            message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                          else
+                            WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                        end
                       else
                         begin
                           Inc(relcount^);
