@@ -148,9 +148,15 @@ Const
                     HeaderTransferEncoding, HeaderUpgrade , HeaderUserAgent, HeaderVary,
                     HeaderVia, HeaderWarning, HeaderWWWAuthenticate);
 
+Type
+   THTTPUnsafeChar = Byte;
+   THTTPUnsafeChars = set of THTTPUnsafeChar;
+
 Function HeaderName(AHeader : THeader) : String;
 Function HeaderType(AHeader : String) : THeader;
 Function HTTPDecode(const AStr: String): String;
+Function HTTPDecode(const AStr: String; aPlusAsSpaces : Boolean): String;
+Function HTTPEncode(const AStr: String; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
 Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 Function ExcludeHTTPPathDelimiter(const AStr: String): String;
@@ -174,6 +180,12 @@ end;
 
 function HTTPDecode(const AStr: String): String;
 
+begin
+  Result:=HTTPDecode(aStr,True);
+end;
+
+Function HTTPDecode(const AStr: String; aPlusAsSpaces : Boolean): String;
+
 var
   S,SS, R : PChar;
   H : String[3];
@@ -191,7 +203,10 @@ begin
   while (S-SS)<L do
     begin
     case S^ of
-      '+': R^ := ' ';
+      '+': if aPlusAsSpaces then
+             R^:=' '
+           else
+             R^:='+';
       '%': begin
            Inc(S);
            if ((S-SS)<L) then
@@ -222,13 +237,7 @@ begin
   SetLength(Result,R-PChar(Result));
 end;
 
-function HTTPEncode(const AStr: String): String;
-
-const
-  HTTPAllowed = ['A'..'Z','a'..'z',
-                 '*','@','.','_','-',
-                 '0'..'9',
-                 '$','!','''','(',')'];
+function DoHTTPEncode(const AStr: String; HTTPAllowed : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
 
 var
   SS,S,R: PChar;
@@ -246,10 +255,15 @@ begin
   SS:=S; // Avoid #0 limit !!
   while ((S-SS)<L) do
     begin
-    if S^ in HTTPAllowed then
+    if Ord(S^) in HTTPAllowed then
       R^:=S^
     else if (S^=' ') then
-      R^:='+'
+      begin
+      if aSpacesAsPlus then
+        R^:='+'
+      else
+        R^:=' '
+      end
     else
       begin
       R^:='%';
@@ -264,6 +278,27 @@ begin
     end;
   SetLength(Result,R-PChar(Result));
 end;
+
+const
+  OrdHTTPAllowed = [Ord('A')..Ord('Z'),Ord('a')..Ord('z'),
+                    Ord('*'),Ord('@'),Ord('.'),Ord('_'),Ord('-'),
+                    Ord('0')..Ord('9'),
+                    Ord('$'),Ord('!'),Ord(''''),Ord('('),Ord(')')];
+  OrdDelphiHTTPAllowed = OrdHTTPAllowed + [Ord('%')];
+
+function HTTPEncode(const AStr: String): String;
+
+begin
+  // Backwards compatible: % is not allowed.
+  Result:=DoHTTPEncode(aStr,OrdHTTPAllowed,True);
+end;
+
+Function HTTPEncode(const AStr: String; aUnsafeChars : THTTPUnsafeChars; aSpacesAsPlus : Boolean): String;
+
+begin
+  Result:=DoHTTPEncode(aStr,OrdDelphiHTTPAllowed-aUnsafeChars,aSpacesAsPlus);
+end;
+
 
 function IncludeHTTPPathDelimiter(const AStr: String): String;
 
