@@ -17,6 +17,7 @@ unit wasm.regexp.objects;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -57,9 +58,12 @@ Type
     Property AsFlags : Longint Read ToFlags Write SetAsFlags;
   end;
 
+  { TRegExpMatch }
+
   TRegExpMatch = record
     Value : UTF8String;
     StartIndex, StopIndex : Integer;
+    function MatchPos(aStartIndex, aStopIndex : Integer) : Boolean;
   end;
   TRegExpMatchArray = array of TRegExpMatch;
 
@@ -86,6 +90,7 @@ Type
     function GetGroups(aCount: Integer): TRegExpGroupArray;
     function GetLastIndex: Longint;
     function GetMatches(aCount: Integer): TRegExpMatchArray;
+    procedure SetLastIndex(AValue: Longint);
   protected
     function CheckRegExpResult(Res : TWasmRegexpResult; const aOperation : String; aRaise : Boolean = true) : Boolean;
   Public
@@ -95,7 +100,8 @@ Type
     destructor Destroy; override;
     Function Exec(const aString : String) : TRegExpResult;
     Function Test(const aString : String) : Boolean;
-    Property LastIndex : Longint Read GetLastIndex;
+    // 0 - based !
+    Property LastIndex : Longint Read GetLastIndex Write SetLastIndex;
     Property RegexpID : TWasmRegExpID Read FRegexpID;
     Property FlagsAsInteger : Integer Read FFlags;
     Property Flags : TRegexpFlags Read GetFlags;
@@ -164,6 +170,13 @@ end;
 class function TRegexpFlagsHelper.FromFlags(aFlags: Longint): TRegExpFlags;
 begin
   Result.AsFlags:=aFlags;
+end;
+
+{ TRegExpMatch }
+
+function TRegExpMatch.MatchPos(aStartIndex, aStopIndex: Integer): Boolean;
+begin
+  Result:=(aStartIndex=StartIndex) and (aStopIndex=StopIndex);
 end;
 
 
@@ -242,6 +255,11 @@ begin
     Result[i].StartIndex:=lStart+1;
     Result[i].StopIndex:=lStop+1;
     end;
+end;
+
+procedure TWasmRegExp.SetLastIndex(AValue: Longint);
+begin
+  CheckRegExpResult(__wasm_regexp_set_last_index(FRegexpID,AValue),'set_last_index');
 end;
 
 function TWasmRegExp.GetGroups(aCount: Integer): TRegExpGroupArray;

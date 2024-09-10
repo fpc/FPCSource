@@ -67,6 +67,7 @@ Const
   regexpFN_GetFlags = 'get_flags';
   regexpFN_GetExpression = 'get_expression';
   regexpFN_GetLastIndex = 'get_last_index';
+  regexpFN_SetLastIndex = 'set_last_index';
   regexpFN_GetResultMatch = 'get_result_match';
   regexpFN_GetGroupCount = 'get_group_count';
   regexpFN_GetGroupName = 'get_group_name';

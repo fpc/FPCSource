@@ -28,6 +28,7 @@ function __wasm_regexp_test(aExprID : TWasmRegExpID; aString : PByte; aStringLen
 function __wasm_regexp_get_flags(aExprID : TWasmRegExpID; aFlags : PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetFlags;
 function __wasm_regexp_get_expression(aExprID : TWasmRegExpID; aExp : PByte; aExpLen : PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetExpression;
 function __wasm_regexp_get_last_index(aExprID : TWasmRegExpID; aLastIndex : PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetLastIndex;
+function __wasm_regexp_set_last_index(aExprID : TWasmRegExpID; aLastIndex : Longint) : TWasmRegexpResult; external regexpExportName name regexpFN_SetLastIndex;
 function __wasm_regexp_get_result_match(aExprID : TWasmRegExpID; aIndex : Longint; Res : PByte; ResLen : PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetResultMatch;
 function __wasm_regexp_get_group_count(aExprID : TWasmRegExpID; aCount: PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetGroupCount;
 function __wasm_regexp_get_group_name(aExprID : TWasmRegExpID; aIndex : Longint; aName : PByte; aNameLen : PLongint) : TWasmRegexpResult; external regexpExportName name regexpFN_GetGroupName;
