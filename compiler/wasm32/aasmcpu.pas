@@ -2071,12 +2071,15 @@ uses
     function taicpu.Pass1(objdata: TObjData): longint;
 
         function SlebSize(v: tcgint): longint;
+          var
+            b: byte;
           begin
             result:=0;
             repeat
+              b:=byte(v) and 127;
               v:=SarInt64(v,7);
               Inc(result);
-            until ((v=0) and ((byte(v) and 64)=0)) or ((v=-1) and ((byte(v) and 64)<>0));
+            until ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0));
           end;
 
         function UlebSize(v: tcgint): longint;
