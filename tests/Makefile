@@ -2535,18 +2535,21 @@ endif
 ifndef FAILLIST
 export FAILLIST:=$(TEST_OUTPUTDIR)/faillist
 endif
+export TEST_FAILLIST:=$(TEST_OUTPUTDIR)/faillist
 ifndef LONGLOG
 export LONGLOG:=$(TEST_OUTPUTDIR)/longlog
 endif
+export TEST_LONGLOG:=$(TEST_OUTPUTDIR)/longlog
 ifndef LOG
 export LOG:=$(TEST_OUTPUTDIR)/log
 endif
-ifndef SEPLOG
+export TEST_LOG:=$(TEST_OUTPUTDIR)/log
+ifndef TEST_SEPLOG
 ifdef MAKEINC_SEPARATE
-export SEPLOG:=$(TEST_OUTPUTDIR)/seplog
+export TEST_SEPLOG:=$(TEST_OUTPUTDIR)/seplog
 endif
 endif
-LOGFILES=$(LOG) $(LONGLOG) $(FAILLIST) $(SEPLOG)
+LOGFILES=$(TEST_LOG) $(TEST_LONGLOG) $(TEST_FAILLIST) $(TEST_SEPLOG)
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs linux unixutil types nullable contnrs convutils
 TESTDIRECTDIRS=
