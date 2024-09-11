@@ -131,6 +131,7 @@ interface
         SegSymIdx: Integer;
         SegOfs: qword;
         FileSectionOfs: qword;
+        EncodedLocalsSize: qword;
         MainFuncSymbol: TWasmObjSymbol;
         CustomSectionIdx: Integer;
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
@@ -1326,6 +1327,7 @@ implementation
         encoded_locals.seek(0);
         CopyDynamicArray(encoded_locals,dest,encoded_locals.size);
         ObjSection.FileSectionOfs:=dest.size-objsym.offset;
+        ObjSection.EncodedLocalsSize:=encoded_locals.size;
         CopyDynamicArray(ObjSection.Data,dest,codeexprlen);
         WriteByte(dest,$0B);
         encoded_locals.Free;
@@ -1607,7 +1609,10 @@ implementation
                             message1(asmw_e_illegal_unset_index,FuncSym.Name)
                           else
                             WriteUleb(relout,FuncSym.SymbolIndex);
-                          WriteSleb(relout,objrel.Addend+objrel.symbol.address);  { addend to add to the address }
+                          if (objrel.Addend+objrel.symbol.address)=0 then
+                            WriteSleb(relout,objrel.Addend+objrel.symbol.address)  { addend to add to the address }
+                          else
+                            WriteSleb(relout,objrel.Addend+objrel.symbol.address+TWasmObjSection(objrel.symbol.objsection).EncodedLocalsSize);  { addend to add to the address }
                         end
                       else if assigned(objrel.symbol) and (objrel.symbol.typ=AT_WASM_GLOBAL) then
                         begin
