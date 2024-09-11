@@ -1892,7 +1892,7 @@ end; { TEditor.Draw }
 procedure TEditor.DrawLines (Y, Count : Sw_Integer; LinePtr : Sw_Word);
 VAR
   Color : Word;
-  B     : array[0..MaxLineLength - 1] of Sw_Word;
+  B     : array[0..MaxLineLength - 1] of Word;  { This is array of video buffer cells. Has to be Word}
 begin
   Color := GetColor ($0201);
   while Count > 0 do
@@ -3020,8 +3020,25 @@ end; { TEditor.SetBufLen }
 
 function TEditor.SetBufSize (NewSize : Sw_Word) : Boolean;
 begin
-  ReAllocMem(Buffer, NewSize);
-  BufSize := NewSize;
+  {  This function is called on every new key typed on keyboard
+     and NewSize is BufLen+1. That is bad idea.
+     Fix: do not allow downsize Buffer,
+     make incremental grow at last by 4k.
+  }
+  if NewSize > BufSize then
+  begin
+    if (NewSize+4096-1) and (not Sw_Word(4095)) > BufSize then
+    begin
+      {Buffer increment to 4k boundary}
+      ReAllocMem(Buffer, (NewSize+4096-1) and (not Sw_Word(4095)) );
+      BufSize := (NewSize+4096-1) and (not Sw_Word(4095));
+    end else
+    begin
+      {branch is taken only if NewSize+4096 wrap around sw_word }
+      ReAllocMem(Buffer, NewSize);
+      BufSize := NewSize;
+    end;
+  end;
   SetBufSize := True;
 end; { TEditor.SetBufSize }
 
