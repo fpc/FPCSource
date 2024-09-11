@@ -1614,7 +1614,11 @@ BEGIN
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetVideoMode(StartupScreenMode);
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ClearScreen;
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorPos(0,0);
-  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.DoneVideo;
+{$ifdef FV_UNICODE}
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.DoneEnhancedVideo;
+{$else FV_UNICODE}
+   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.DoneVideo;
+{$endif FV_UNICODE}
   VideoInitialized:=false;
 END;
 
