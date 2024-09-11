@@ -1452,6 +1452,7 @@ end;
 
 
 procedure TIDEApp.ShowIDEScreen;
+var oldH,oldW : byte;
 begin
   if Assigned(UserScreen) then
     UserScreen^.SaveConsoleScreen;
@@ -1461,6 +1462,8 @@ begin
     InitMouse
   else
     ButtonCount:=0;
+  oldH:=ScreenHeight;
+  oldW:=ScreenWidth;
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
@@ -1475,14 +1478,23 @@ begin
   InitSysError;
   CurDirChanged;
 {$ifndef Windows}
-  Message(Application,evBroadcast,cmUpdate,nil);
+  if (oldH<>ScreenHeight) or (oldW<>ScreenWidth) then
+  begin
+    { acknowledge new screen dimensions } 
+    { prevents to draw out of boundaries of new video buffer }
+    ResizeApplication(ScreenWidth,ScreenHeight);
+  end else
+    Message(Application,evBroadcast,cmUpdate,nil);
 {$endif Windows}
 {$ifdef Windows}
   // WindowsShowMouse;
 {$endif Windows}
 
   if Assigned(UserScreen) then
-    UserScreen^.SwitchBackToIDEScreen;
+{$ifdef unix}
+    if (oldH=ScreenHeight) and (oldW=ScreenWidth) then
+{$endif unix}
+      UserScreen^.SwitchBackToIDEScreen;
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
