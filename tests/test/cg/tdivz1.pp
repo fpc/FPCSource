@@ -28,7 +28,6 @@ var
   int64res : int64;
   int64cnt : int64;
 begin
-
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64res := 1;

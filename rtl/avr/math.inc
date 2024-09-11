@@ -30,7 +30,7 @@ asm
   cp R24, R17
 {$else CPUAVR_16_REGS}
   cp R24, R1
-{$endif CPUAVR_16_REGS}  
+{$endif CPUAVR_16_REGS}
   brne .LNonZero
 {$ifdef CPUAVR_HAS_JMP_CALL}
   call fpc_divbyzero
@@ -96,8 +96,12 @@ asm
   cp R24, R17
   cpc R25, R17
 {$else CPUAVR_16_REGS}
+{$ifdef CPUAVR_HAS_ADIW}
+  sbiw R24,0
+{$else CPUAVR_HAS_ADIW}
   cp R24, R1
   cpc R25, R1
+{$endif CPUAVR_HAS_ADIW}
 {$endif CPUAVR_16_REGS}
   brne .LNonZero
 {$ifdef CPUAVR_HAS_JMP_CALL}
@@ -136,8 +140,12 @@ asm
   cp R24, R17
   cpc R25, R17
 {$else CPUAVR_16_REGS}
+{$ifdef CPUAVR_HAS_ADIW}
+  sbiw R24,0
+{$else CPUAVR_HAS_ADIW}
   cp R24, R1
   cpc R25, R1
+{$endif CPUAVR_HAS_ADIW}
 {$endif CPUAVR_16_REGS}
   brne .LNonZero
 {$ifdef CPUAVR_HAS_JMP_CALL}

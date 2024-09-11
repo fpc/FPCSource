@@ -26,7 +26,6 @@ var
   longres : longint;
   longcnt : longint;
 begin
-
   longres := 1;
   longcnt := 0;
   longres := longres div longcnt;
