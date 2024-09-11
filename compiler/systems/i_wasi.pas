@@ -77,8 +77,8 @@ unit i_wasi;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
-                loopalign       : 4;
+                procalign       : 0;
+                loopalign       : 0;
                 jumpalign       : 0;
                 jumpalignskipmax    : 0;
                 coalescealign   : 0;
