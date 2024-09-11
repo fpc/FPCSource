@@ -1233,8 +1233,14 @@ begin
   else
 {$endif}
     updateTTY(force);
-  for I := Low(EnhancedVideoBuf) to High(EnhancedVideoBuf) do
-    OldEnhancedVideoBuf[I] := EnhancedVideoBuf[I];
+  if VideoInitialized then
+  begin
+    move(VideoBuf^,OldVideoBuf^,VideoBufSize);
+  end else
+  begin
+    for I := Low(EnhancedVideoBuf) to High(EnhancedVideoBuf) do
+      OldEnhancedVideoBuf[I] := EnhancedVideoBuf[I];
+  end;
 end;
 
 
