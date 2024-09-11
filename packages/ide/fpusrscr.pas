@@ -362,7 +362,7 @@ begin
   Capture;
   { get the current ctrl-C state }
   Ctrl_c_state:=djgpp_set_ctrl_c(false);
-  djgpp_set_ctrl_c(Ctrl_c_state);
+  djgpp_set_ctrl_c(false);
 end;
 
 
