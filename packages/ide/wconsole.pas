@@ -74,10 +74,7 @@ Begin
         IntToStr(GetLastError),0,0);
 {$endif Windows}
 {$ifdef go32v2}
-  if djgpp_set_ctrl_c(false) then
-    ConsoleMode:=1
-  else
-    ConsoleMode:=0;
+  ConsoleMode:=0;
 {$endif go32v2}
 {$ifdef netware}
   ConsoleMode:=0;
@@ -94,9 +91,6 @@ Begin
     DebugMessage('','Call to SetConsoleMode failed, GetLastError='+
         IntToStr(GetLastError),0,0);
 {$endif Windows}
-{$ifdef go32v2}
-  djgpp_set_ctrl_c((ConsoleMode and 1)<>0);
-{$endif go32v2}
 End;
 
 end.
