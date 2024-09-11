@@ -1322,14 +1322,13 @@ implementation
 
         encoded_locals:=tdynamicarray.Create(64);
         WriteFunctionLocals(encoded_locals,ObjSymExtraData);
-        codelen:=encoded_locals.size+codeexprlen+1;
+        codelen:=encoded_locals.size+codeexprlen;
         WriteUleb(dest,codelen);
         encoded_locals.seek(0);
         CopyDynamicArray(encoded_locals,dest,encoded_locals.size);
         ObjSection.FileSectionOfs:=dest.size-objsym.offset;
         ObjSection.EncodedLocalsSize:=encoded_locals.size;
         CopyDynamicArray(ObjSection.Data,dest,codeexprlen);
-        WriteByte(dest,$0B);
         encoded_locals.Free;
       end;
 

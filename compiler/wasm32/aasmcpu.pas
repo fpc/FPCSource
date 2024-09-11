@@ -2236,6 +2236,7 @@ uses
           a_end_if,
           a_end_loop,
           a_end_try,
+          a_end_function,
           a_catch_all,
           a_ref_is_null:
             result:=1;
@@ -2350,8 +2351,6 @@ uses
                     internalerror(2021092011);
                 end;
             end;
-          a_end_function:
-            result:=0;
           a_block,
           a_loop,
           a_if,
@@ -2993,7 +2992,8 @@ uses
           a_end_block,
           a_end_if,
           a_end_loop,
-          a_end_try:
+          a_end_try,
+          a_end_function:
             WriteByte($0B);
           a_catch_all:
             WriteByte($19);
@@ -3132,8 +3132,6 @@ uses
                     internalerror(2021092011);
                 end;
             end;
-          a_end_function:
-            ;
           a_block,
           a_loop,
           a_if,
