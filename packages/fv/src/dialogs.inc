@@ -3261,6 +3261,15 @@ BEGIN
        end;
      end;
    FinishLine;
+   if Y < Size.Y then
+   begin
+     {we have to draw blank lines}
+     for I:=Y to Size.Y-1 do
+     begin
+       BeginNewLine;
+       FinishLine;
+     end;
+   end;
 END;
 {$else FV_UNICODE}
 PROCEDURE TStaticText.Draw;
