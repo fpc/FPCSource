@@ -145,6 +145,9 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
+      private
+         insoffset : longint;
+      public
          is_br_generated_by_goto: boolean;
 
          constructor Create(op : tasmop);override;
@@ -2093,6 +2096,8 @@ uses
 
       begin
         result:=0;
+        { Save the old offset and set the new offset }
+        InsOffset:=ObjData.CurrObjSec.Size;
         case opcode of
           a_unreachable,
           a_nop,
@@ -2688,6 +2693,9 @@ uses
           end;
 
       begin
+        { safety check }
+        if objdata.currobjsec.size<>longword(insoffset) then
+          internalerror(200130121);
         case opcode of
           a_unreachable:
             WriteByte($00);
