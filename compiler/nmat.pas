@@ -452,8 +452,11 @@ implementation
            division. this should not be done when the divn node is
            created internally }
          if (nodetype=divn) and
+            not(nf_internal in flags) and
             not(nf_is_currency in flags) and
-            is_currency(resultdef) then
+            is_currency(resultdef) and
+            (nf_is_currency in left.flags) and
+            not (nf_is_currency in right.flags) then
           begin
             hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false));
             include(hp.flags,nf_is_currency);

@@ -887,10 +887,29 @@ implementation
                 not is_invokable(left.resultdef) and
               (right.nodetype=calln) and is_void(right.resultdef) then
               CGMessage(type_e_procedures_return_no_value)
-            else if nf_internal in flags then
-              inserttypeconv_internal(right,left.resultdef)
             else
-              inserttypeconv(right,left.resultdef);
+              begin
+                if nf_internal in flags then
+                  inserttypeconv_internal(right,left.resultdef)
+                else
+                  inserttypeconv(right,left.resultdef);
+
+                { If assigning to a currency type, we need to make sure the
+                  value is correctly scaled }
+                if (nf_is_currency in left.flags) and
+                  not (nf_is_currency in right.flags) then
+                  begin
+                    right:=ctypeconvnode.Create(right,right.resultdef);
+                    Include(right.flags,nf_is_currency);
+
+                    { Force an explicit conversion so the scalar is generated }
+                    if s64currencytype.typ=floatdef then
+                      ttypeconvnode(right).convtype:=tc_real_2_real
+                    else
+                      ttypeconvnode(right).convtype:=tc_int_2_int;
+                    typecheckpass(right);
+                  end;
+              end;
           end;
 
         { call helpers for interface }

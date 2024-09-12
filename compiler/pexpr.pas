@@ -1756,7 +1756,12 @@ implementation
               Message(parser_e_no_category_as_types)
               { recovery by not creating a conversion node }
             else
-              result:=ctypeconvnode.create_explicit(result,hdef);
+              begin
+                result:=ctypeconvnode.create_explicit(result,hdef);
+                if is_currency(hdef) then
+                  { Make sure currency types are correctly scaled }
+                  Include(result.flags,nf_is_currency);
+              end;
           end
          { not LKLAMMER }
          else if (current_scanner.token=_POINT) and
@@ -3061,6 +3066,10 @@ implementation
                   propaccesslist_to_node(result,nil,tabsolutevarsym(srsym).ref);
                   result:=ctypeconvnode.create(result,tabsolutevarsym(srsym).vardef);
                   include(result.flags,nf_absolute);
+                  if tabsolutevarsym(srsym).vardef=s64currencytype then
+                    { If a Currency type is connected to another type, we have
+                      to make sure a scalar is never applied }
+                    include(result.flags,nf_is_currency);
                 end
               else
                 result:=cloadnode.create(srsym,srsymtable);

@@ -1741,7 +1741,7 @@ unit nx86add;
         refnode, hp: tnode;
         hasref : boolean;
       begin
-        if use_vectorfpu(resultdef) then
+        if use_vectorfpu(resultdef) and use_vectorfpu(left.resultdef) and use_vectorfpu(right.resultdef) then
           begin
             if UseAVX then
               second_addfloatavx

@@ -2134,7 +2134,12 @@ implementation
               ordconstn:
                 getconstrealvalue:=tordconstnode(left).value;
               realconstn:
-                getconstrealvalue:=trealconstnode(left).value_real;
+                begin
+                  if (nf_is_currency in trealconstnode(left).flags) then
+                    getconstrealvalue:=trealconstnode(left).value_real/BestReal(10000.0)
+                  else
+                    getconstrealvalue:=trealconstnode(left).value_real;
+                end
               else
                 internalerror(309992);
            end;
@@ -4039,7 +4044,8 @@ implementation
                   else
                     removefloatupcasts(temp_pnode^,[s32real,s64real,s80real,sc80real,s128real,s64comp]);
                   if (inlinenumber=in_trunc_real) and
-                     is_currency(temp_pnode^.resultdef) then
+                     is_currency(temp_pnode^.resultdef) and
+                     (nf_is_currency in temp_pnode^.flags) then
                     begin
                       result:=cmoddivnode.create(divn,ctypeconvnode.create_internal(temp_pnode^.getcopy,s64inttype),genintconstnode(10000));
                       exit;

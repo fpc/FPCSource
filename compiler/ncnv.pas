@@ -383,6 +383,8 @@ implementation
              tct_internal:
                p:=ctypeconvnode.create_internal(p,def);
            end;
+           if not (nf_internal in p.flags) and is_currency(def) then
+             Include(p.flags, nf_is_currency);
            p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
@@ -1504,27 +1506,40 @@ implementation
     function ttypeconvnode.typecheck_int_to_int : tnode;
       var
         v : TConstExprInt;
+        n : TNode;
+        SetCurFlag: Boolean;
       begin
+        SetCurFlag:=False;
         result:=nil;
         if left.nodetype=ordconstn then
          begin
            v:=tordconstnode(left).value;
            if is_currency(resultdef) and
+              (nf_is_currency in flags) and
               not(nf_internal in flags) then
-             v:=v*10000;
+             begin
+               if not(nf_is_currency in left.flags) then
+                 v:=v*10000;
+               SetCurFlag:=True;
+             end;
            if (resultdef.typ=pointerdef) then
              result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
-               if is_currency(left.resultdef) then
+               if (nf_is_currency in left.flags) and
+                 is_currency(left.resultdef) then
                  begin
-                  if not(nf_internal in flags) then
+                  if not(nf_internal in flags) and
+                    not(nf_is_currency in flags) then
                     v:=v div 10000;
                  end
                else if (resultdef.typ in [orddef,enumdef]) then
                  adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches);
                result:=cordconstnode.create(v,resultdef,false);
              end;
+
+           if SetCurFlag then
+             Include(result.flags, nf_is_currency);
          end
         else if left.nodetype=pointerconstn then
          begin
@@ -1533,35 +1548,34 @@ implementation
              result:=cpointerconstnode.create(v.uvalue,resultdef)
            else
              begin
-               if is_currency(resultdef) and
+               if (nf_is_currency in flags) and
+                 is_currency(resultdef) and
                   not(nf_internal in flags) then
                  v:=v*10000;
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
         else
-         begin
-           if (is_currency(resultdef) or
-               is_currency(left.resultdef)) and
-              (nf_internal in flags) then
-             begin
-               include(flags,nf_is_currency)
-             end
+         if not (nf_internal in flags) then
+          begin
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           else if is_currency(resultdef) then
+           if (nf_is_currency in flags) and not (nf_is_currency in left.flags) then
             begin
-              result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
+              n:=getcopy;
+              result:=caddnode.create(muln,n,cordconstnode.create_currency_scalar(resultdef));
               include(result.flags,nf_is_currency);
-              include(taddnode(result).left.flags,nf_internal);
+              exclude(n.flags,nf_is_currency);
+              include(n.flags,nf_internal);
             end
-           else if is_currency(left.resultdef) then
+           else if not (nf_is_currency in flags) and (nf_is_currency in left.flags) then
             begin
-              result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resultdef,false));
-              include(result.flags,nf_is_currency);
-              include(tmoddivnode(result).left.flags,nf_internal);
+              n:=getcopy;
+              result:=cmoddivnode.create(divn,n,cordconstnode.create_currency_scalar(resultdef));
+              include(n.flags,nf_is_currency);
+              include(n.flags,nf_internal);
             end;
          end;
       end;
@@ -1570,69 +1584,96 @@ implementation
     function ttypeconvnode.typecheck_int_to_real : tnode;
       var
         rv : bestreal;
+        n : TNode;
+        SetCurFlag: Boolean;
       begin
         result:=nil;
         if left.nodetype=ordconstn then
          begin
            rv:=tordconstnode(left).value;
-           if is_currency(resultdef) and
-              not(nf_internal in flags) then
-             rv:=rv*10000.0
-           else if is_currency(left.resultdef) and
-              not(nf_internal in flags) then
-             rv:=rv/10000.0;
-           result:=crealconstnode.create(rv,resultdef);
-         end
-        else
-         begin
-           if (is_currency(resultdef) or
-               is_currency(left.resultdef)) and
-              (nf_internal in flags) then
+
+           if not(nf_internal in flags) then
              begin
-               include(flags,nf_is_currency)
+               SetCurFlag:=(nf_is_currency in flags); { Make sure the flag gets preserved }
+
+               if (nf_is_currency in flags) and is_currency(resultdef) then
+                 begin
+                   if not(nf_is_currency in left.flags) then
+                     begin
+                       rv:=rv*BestReal(10000.0);
+                       SetCurFlag:=True;
+                     end
+                 end
+               else if is_currency(left.resultdef) and
+                 (nf_is_currency in left.flags) and
+                 not SetCurFlag then
+                 rv:=rv/BestReal(10000.0);
              end
+           else
+             SetCurFlag:=False;
+
+           result:=crealconstnode.create(rv,resultdef);
+           if SetCurFlag then
+             include(result.flags,nf_is_currency)
+         end
+        else if not(nf_internal in flags) then
+         begin
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           else if is_currency(resultdef) then
+           if is_currency(resultdef) and
+             not (nf_is_currency in left.flags) then
             begin
-              result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef));
-              include(result.flags,nf_is_currency);
+              n:=getcopy;
+              Exclude(n.flags,nf_is_currency);
+              result:=caddnode.create(muln,n,crealconstnode.create_currency_scalar(resultdef));
+              Include(result.flags,nf_is_currency);
             end
-           else if is_currency(left.resultdef) then
+           else if is_currency(left.resultdef) and
+            (nf_is_currency in left.flags) and
+            not (nf_is_currency in flags) then
             begin
-              result:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultdef));
-              include(result.flags,nf_is_currency);
+              n:=getcopy;
+              Include(n.flags,nf_is_currency);
+              result:=caddnode.create(slashn,n,crealconstnode.create_currency_scalar(resultdef));
             end;
          end;
       end;
 
 
     function ttypeconvnode.typecheck_real_to_currency : tnode;
+      var
+        n: TNode;
       begin
         if not is_currency(resultdef) then
           internalerror(200304221);
-        result:=nil;
-        if not(nf_internal in flags) then
+
+        { Convert constants directly, else call Round() }
+        if left.nodetype=realconstn then
           begin
-            left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
-            include(left.flags,nf_is_currency);
-            { Convert constants directly, else call Round() }
-            if left.nodetype=realconstn then
+            if (nf_is_currency in left.flags) then
               result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
             else
-              begin
-                result:=cinlinenode.create(in_round_real,false,left);
-                { Internal type cast to currency }
-                result:=ctypeconvnode.create_internal(result,s64currencytype);
-                left:=nil;
-              end
+              { Try to use the value stored directly in value_currency to
+                minimise rounding errors and compiler errors (Currency won't be
+                floating-point) }
+              result:=cordconstnode.create(PInt64(@trealconstnode(left).value_currency)^,resultdef,false);
+            include(result.flags,nf_is_currency);
           end
         else
           begin
-            include(left.flags,nf_is_currency);
-            result:=left;
+            if not (nf_is_currency in left.flags) then
+              begin
+                left:=caddnode.create(muln,left,crealconstnode.create_currency_scalar(left.resultdef));
+                include(left.flags,nf_is_currency);
+              end;
+
+            result:=cinlinenode.create(in_round_real,false,left);
+            include(result.flags,nf_is_currency);
+            { Internal type cast to currency }
+            result:=ctypeconvnode.create_internal(result,s64currencytype);
+            include(result.flags,nf_is_currency);
             left:=nil;
           end;
       end;
@@ -1643,27 +1684,25 @@ implementation
          result:=nil;
          if not(nf_internal in flags) then
            begin
-             if is_currency(left.resultdef) and not(is_currency(resultdef)) then
+             if not (nf_is_currency in flags) and not(is_currency(resultdef))
+               and (nf_is_currency in left.flags) and is_currency(left.resultdef) then
                begin
-                 left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef));
-                 include(left.flags,nf_is_currency);
+                 left:=caddnode.create_internal(slashn,left,crealconstnode.create_currency_scalar(left.resultdef));
                  typecheckpass(left);
                end
              else
-               if is_currency(resultdef) and not(is_currency(left.resultdef)) then
+               if (nf_is_currency in flags) and is_currency(resultdef) and
+                 not (nf_is_currency in left.flags) then { Regardless of whether or not the type is Currency }
                  begin
-                   left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
+                   left:=caddnode.create_internal(muln,left,crealconstnode.create_currency_scalar(left.resultdef));
                    include(left.flags,nf_is_currency);
-                   include(flags,nf_is_currency);
                    typecheckpass(left);
                  end;
              { comp is handled by the fpu but not a floating type point }
              if is_fpucomp(resultdef) and not(is_fpucomp(left.resultdef)) and
                not (nf_explicit in flags) then
                Message(type_w_convert_real_2_comp);
-           end
-         else
-           include(flags,nf_is_currency);
+           end;
       end;
 
 
@@ -3559,6 +3598,7 @@ implementation
       var
         hp: tnode;
         v: Tconstexprint;
+        f: bestreal;
 {$ifndef CPUNO32BITOPS}
         foundsint: boolean;
 {$endif not CPUNO32BITOPS}
@@ -3760,9 +3800,30 @@ implementation
                 is_currency(resultdef) then
                 begin
                   v:=tordconstnode(left).value;
-                  if not(nf_internal in flags) and not(is_currency(left.resultdef)) then
-                    v:=v*10000;
-                  result:=cordconstnode.create(v,resultdef,false);
+                  if (nf_is_currency in flags) and not(nf_internal in flags) and not(nf_is_currency in left.flags) then
+                    begin
+                      result:=cordconstnode.create(v*10000,resultdef,false);
+                      Include(result.flags, nf_is_currency);
+                    end
+                  else
+                    result:=cordconstnode.create(v,resultdef,false);
+                  exit;
+                end
+              else if (convtype=tc_int_2_real) and
+                is_currency(resultdef) then
+                begin
+                  if (resultdef.typ<>floatdef) then
+                    { It should be a floating-point-based Currency if int-to-real was selected }
+                    InternalError(2024091801);
+
+                  f := bestreal(tordconstnode(left).value);
+                  if not(nf_internal in flags) and not(nf_is_currency in left.flags) then
+                    begin
+                      result:=crealconstnode.create(f*BestReal(10000.0),resultdef);
+                      Include(result.flags,nf_is_currency);
+                    end
+                  else
+                    result:=crealconstnode.create(f,resultdef);
                   exit;
                 end;
             end;

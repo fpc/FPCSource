@@ -1089,6 +1089,10 @@ implementation
           resultdef:=generrordef
          else
           resultdef:=left.resultdef;
+
+         if is_currency(resultdef) then
+           { Ensure actual parameters are scaled correctly }
+           Include(flags,nf_is_currency);
       end;
 
 
@@ -4698,6 +4702,9 @@ implementation
           typecheckpass(call_self_node);
         if assigned(call_vmt_node) then
           typecheckpass(call_vmt_node);
+
+        if is_currency(resultdef) then
+          Include(flags,nf_is_currency);
 
         if assigned(current_procinfo) and
             (procdefinition.typ=procdef) and

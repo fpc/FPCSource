@@ -904,6 +904,9 @@ implementation
            resultdef:=cundefineddef.create(true)
          else
            CGMessage(parser_e_invalid_qualifier);
+
+         if is_currency(resultdef) then
+           Include(flags,nf_is_currency);
       end;
 
     procedure Tderefnode.mark_write;
@@ -1008,6 +1011,9 @@ implementation
         if (left.resultdef.typ=recorddef) and
            (resultdef.typ=floatdef) then
           make_not_regable(left,[ra_addr_regable]);
+
+        if is_currency(resultdef) then
+          Include(flags,nf_is_currency);
       end;
 
     procedure Tsubscriptnode.mark_write;
@@ -1378,6 +1384,9 @@ implementation
            else
              CGMessage(type_e_array_required);
         end;
+
+        if is_currency(resultdef) then
+          Include(flags,nf_is_currency);
       end;
 
 

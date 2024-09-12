@@ -711,7 +711,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            scurrency:
              begin
                 if is_constintnode(node) then
-                  intvalue:=tordconstnode(node).value*10000
+                  begin
+                    if nf_is_currency in node.flags then
+                      intvalue:=tordconstnode(node).value
+                    else
+                      intvalue:=tordconstnode(node).value*10000
+                  end
                 { allow bootstrapping }
                 else if is_constrealnode(node) then
                   intvalue:=PInt64(@trealconstnode(node).value_currency)^
@@ -760,7 +765,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              { the round is necessary for native compilers where comp isn't a float }
              ftcb.emit_tai(tai_realconst.create_s64compreal(round(value)),def);
            s64currency:
-             ftcb.emit_tai(tai_realconst.create_s64compreal(round(value*10000)),def);
+             if nf_is_currency in node.flags then
+               ftcb.emit_tai(tai_realconst.create_s64compreal(round(value)),def)
+             else
+               ftcb.emit_tai(tai_realconst.create_s64compreal(round(value*10000)),def);
            s128real:
              ftcb.emit_tai(tai_realconst.create_s128real(value),def);
         end;
