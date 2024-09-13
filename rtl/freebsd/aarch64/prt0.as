@@ -9,17 +9,29 @@
 #APP
 	.ident  "FreeBSD"
 #NO_APP
-	.section        .note.ABI-tag,"a",@progbits
+	.section        .note.tag,"a",%note
 	.p2align 2
 	.type	abitag, @object
 	.size	abitag, 24
 abitag:
-	.long	8
-	.long	4
-	.long	1
+	.4byte	8
+	.4byte	4
+	.4byte	1 /* NT_FREEBSD_ABI_TAG */
 	.string	"FreeBSD"
-	.long	120000
+	.p2align 2
+	.4byte	1302001
 
+	.section .note.tag,"a",%note
+	.p2align	2
+	.4byte		.L_2-.L_1
+	.4byte		.L_4-.L_3
+	.4byte		4 /* NT_FREEBSD_FEATURE_CTL */
+.L_1:	.asciz		"FreeBSD" /* NOTE_FREEBSD_VENDOR */
+.L_2:	.p2align	2
+.L_3:	.4byte		0
+.L_4:
+
+	.section .note.GNU-stack,"",%progbits
 	.section        .rodata
 .LC0:
 	.string ""
