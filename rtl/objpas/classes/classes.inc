@@ -1565,7 +1565,6 @@ function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boo
 Var
   I : Integer;
 begin
-  I:=0;
   if not Assigned(InitHandlerList) then begin
     Result := True;
     Exit;
