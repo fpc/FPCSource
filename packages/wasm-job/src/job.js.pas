@@ -1363,7 +1363,7 @@ procedure __job_set_array_from_mem (
   aObjectID : integer;
   aPointer : PByte;
   aMaxLen : cardinal
-  ); external JOBExportName name JOBFn_SetMemFromArray;
+  ); external JOBExportName name JOBFn_SetArrayFromMem;
 
 
 
