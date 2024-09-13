@@ -652,7 +652,6 @@ type
     Property Length: NativeInt Read _GetLength Write _SetLength;
     property Elements[Index: NativeInt]: TJOB_JSValue read _GetElements write _SetElements; default;
     // Convenience properties
-    procedure CopyToMemory(aMemory : PByte);
     Property Floats[Index: NativeInt] : Double Read _GetFloats Write _SetFloats;
     Property NativeInts[Index: NativeInt] : NativeInt Read _GetNativeInts Write _SetNativeInts;
     Property Strings[Index: NativeInt] : UnicodeString Read _GetStrings Write _SetStrings;
@@ -741,7 +740,8 @@ type
     Property Length: NativeInt Read _GetLength Write _SetLength;
     property Elements[Index: NativeInt]: TJOB_JSValue read _GetElements write _SetElements; default;
     // Convenience properties & functions
-    procedure CopyToMemory(aMemory : PByte);
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     Property Floats[Index: NativeInt] : Double Read _GetFloats;
     Property NativeInts[Index: NativeInt] : NativeInt Read _GetNativeInts;
     Property Strings[Index: NativeInt] : UnicodeString Read _GetStrings;
@@ -763,7 +763,8 @@ type
     function _getDetached: Boolean;
     function _getMaxByteLength: Nativeint;
     function _getResizable: Boolean;
-    procedure CopyToMemory(aMemory : PByte);
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     property byteLength : Nativeint Read _getByteLength;
     property maxByteLength : Nativeint Read _getMaxByteLength;
     property detached : Boolean Read _getDetached;
@@ -787,7 +788,8 @@ type
     function Slice (aStart,aEndExclusive : NativeInt): IJSArrayBuffer;
     class function Cast(const Intf: IJSObject): IJSArrayBuffer; overload;
     class function JSClassName: UnicodeString; override;
-    procedure CopyToMemory(aMemory : PByte);
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     property byteLength : Nativeint Read _getByteLength;
     property maxByteLength : Nativeint Read _getMaxByteLength;
     property detached : Boolean Read _getDetached;
@@ -810,7 +812,8 @@ type
 
   IJSTypedArray = interface(IJSArrayBufferView)
     ['{6A76602B-9555-4136-A7B7-2E683265EA82}']
-    procedure CopyToMemory(aMemory : PByte);
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     function _GetLength: NativeInt;
     procedure  set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure  set_(aArray : IJSTypedArray);
@@ -836,7 +839,8 @@ type
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
-    procedure CopyToMemory(aMemory : PByte);
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     property Buffer : IJSArrayBuffer read _GetBuffer;
     Property Length: NativeInt Read _GetLength;
     Property byteLength: NativeInt Read _GetByteLength;
@@ -1351,8 +1355,16 @@ function __job_create_object(
 
 procedure __job_set_mem_from_array (
   aObjectID : integer; 
-  aPointer : PByte
+  aPointer : PByte;
+  aMaxLen : cardinal
   ); external JOBExportName name JOBFn_SetMemFromArray;
+
+procedure __job_set_array_from_mem (
+  aObjectID : integer;
+  aPointer : PByte;
+  aMaxLen : cardinal
+  ); external JOBExportName name JOBFn_SetMemFromArray;
+
 
 
 function JOBCallback(const Func: TJOBCallback; Data, Code: Pointer; Args: PByte): PByte;
@@ -2271,9 +2283,14 @@ begin
   InvokeJSNoResult('set',[aArray]);
 end;
 
-procedure TJSTypedArray.CopyToMemory(aMemory: PByte);
+procedure TJSTypedArray.CopyToMemory(aMemory: PByte; aMaxByteLen : Cardinal = 0);
 begin
-  __job_set_mem_from_array(GetJSObjectID,aMemory);
+  __job_set_mem_from_array(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+procedure TJSTypedArray.CopyFromMemory(aMemory: PByte; aMaxByteLen: Cardinal);
+begin
+  __job_set_array_from_mem(GetJSObjectID,aMemory,aMaxByteLen);
 end;
 
 { TJSArrayBuffer }
@@ -2340,9 +2357,14 @@ begin
   Result:='ArrayBuffer';
 end;
 
-procedure TJSArrayBuffer.CopyToMemory(aMemory: PByte);
+procedure TJSArrayBuffer.CopyToMemory(aMemory: PByte; aMaxByteLen : Cardinal = 0);
 begin
-  __job_set_mem_from_array(GetJSObjectID,aMemory);
+  __job_set_mem_from_array(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+procedure TJSArrayBuffer.CopyFromMemory(aMemory: PByte; aMaxByteLen: Cardinal);
+begin
+  __job_set_array_from_mem(GetJSObjectID,aMemory,aMaxByteLen);
 end;
 
 
@@ -2741,9 +2763,14 @@ begin
   Result:=InvokeJSMaxIntResult('unshift',[]);
 end;
 
-procedure TJSArray.CopyToMemory(aMemory: PByte);
+procedure TJSArray.CopyToMemory(aMemory: PByte; aMaxByteLen : Cardinal = 0);
 begin
-  __job_set_mem_from_array(GetJSObjectID,aMemory);
+  __job_set_mem_from_array(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+procedure TJSArray.CopyFromMemory(aMemory: PByte; aMaxByteLen: Cardinal);
+begin
+  __job_set_array_from_mem(GetJSObjectID,aMemory,aMaxByteLen);
 end;
 
 class function TJSArray.Cast(const Intf: IJSObject): IJSArray;
