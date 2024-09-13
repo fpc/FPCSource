@@ -151,6 +151,14 @@ begin
       DynamicLinker:='/usr/libexec/ld.so'
      else if target_info.system in systems_netbsd then
       DynamicLinker:='/usr/libexec/ld.elf_so'
+     else if target_info.system in systems_freebsd then
+       begin
+	 if (target_info.system = system_i386_freebsd) and
+            FileExists('/usr/libexec/ld-elf32.so.1',true) then
+           DynamicLinker:='/usr/libexec/ld-elf32.so.1'
+         else
+           DynamicLinker:='/usr/libexec/ld-elf.so.1'
+       end
      else if target_info.system=system_x86_64_dragonfly then
       DynamicLinker:='/libexec/ld-elf.so.2'
      else
