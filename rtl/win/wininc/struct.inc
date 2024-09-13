@@ -1117,12 +1117,11 @@ Const
 //
 
 //typedef struct DECLSPEC_ALIGN(16) _M128A {
-{$note todo, fix alignment }
   type
      M128A = record
           Low: ULONGLONG;
           High: LONGLONG;
-       end;
+       end {$ifndef VER3_2} align 16 {$endif}; // Also implicitly aligns CONTEXT to 16 bytes as required.
      _M128A = M128A;
      TM128A = M128A;
      PM128A = ^TM128A;
@@ -1192,7 +1191,6 @@ Const
 //
 
 //typedef struct DECLSPEC_ALIGN(16) _CONTEXT {
-{$note todo, fix alignment }
   type
      CONTEXT = record
 
