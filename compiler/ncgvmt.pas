@@ -735,7 +735,7 @@ implementation
         realintfdef: tobjectdef;
         tmpstr : AnsiString;
         hs : TSymStr;
-        crc : DWord;
+        hash : QWord;
       begin
         realintfdef:=AImplIntf.IntfDef;
         while realintfdef.is_unique_objpasdef do
@@ -744,9 +744,9 @@ implementation
         tmpstr:=_class.objname^+'_$_'+make_mangledname('',realintfdef.owner,'')+'_$$_'+realintfdef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
         if length(tmpstr)>50 then
           begin
-            crc:=0;
-            crc:=UpdateCrc32(crc,tmpstr[51],length(tmpstr)-50);
-            hs:=copy(tmpstr,1,50)+'$CRC'+hexstr(crc,8);
+            hash:=0;
+            hash:=UpdateFnv64(hash,tmpstr[51],length(tmpstr)-50);
+            hs:=copy(tmpstr,1,50)+'$H'+Base64Mangle(hash);
           end
         else
           hs:=tmpstr;
