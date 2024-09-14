@@ -41,12 +41,86 @@ interface
 implementation
 
   uses
+    verbose,
+    cpubase,
+    symconst,
+    aasmbase,aasmtai,aasmcpu,
+    procinfo,
+    fmodule,
     hlcgobj,
     cgcpu;
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    var
+      make_global: boolean;
     begin
-      //internalerror(2011021324);
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(2024091401);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(2024091402);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(2024091403);
+
+      make_global:=false;
+      if (not current_module.is_unit) or
+         create_smartlink or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
+      else
+        list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
+
+      { the wrapper might need aktlocaldata for the additional data to
+        load the constant }
+      current_procinfo:=cprocinfo.create(nil);
+
+      //{ set param1 interface to self  }
+      //g_adjust_self_value(list,procdef,ioffset);
+      //
+      //{ case 4 }
+      //if (po_virtualmethod in procdef.procoptions) and
+      //    not is_objectpascal_helper(procdef.struct) then
+      //  begin
+      //    loadvmttor12;
+      //    op_onr12methodaddr;
+      //  end
+      //{ case 0 }
+      //else if GenerateThumbCode then
+      //  begin
+      //    { bl cannot be used here because it destroys lr }
+      //
+      //    list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+      //
+      //    { create consts entry }
+      //    reference_reset(tmpref,4,[]);
+      //    current_asmdata.getjumplabel(l);
+      //    current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
+      //    cg.a_label(current_procinfo.aktlocaldata,l);
+      //    tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+      //    current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+      //
+      //    tmpref.symbol:=l;
+      //    tmpref.base:=NR_PC;
+      //    cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
+      //    list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+      //    list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+      //    list.concat(taicpu.op_reg(A_BX,NR_R12));
+      //  end
+      //else
+      //  list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+      list.concatlist(current_procinfo.aktlocaldata);
+
+      { dummy so far }
+      list.concat(taicpu.op_none(A_RET));
+
+      current_procinfo.Free;
+      current_procinfo:=nil;
+
+      list.concat(Tai_symbol_end.Createname(labelname));
     end;
 
 
