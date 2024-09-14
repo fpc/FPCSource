@@ -1353,6 +1353,24 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetNumaAvailableMemoryNodeEx(Node:USHORT; AvailableBytes:PULONGLONG):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaAvailableMemoryNodeEx';
   function GetNumaProximityNode(ProximityId:ULONG; NodeNumber:PUCHAR):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaProximityNode';
 
+  // tlhelp32.h
+  function CreateToolhelp32Snapshot(dwFlags: DWORD; th32ProcessID: DWORD): HANDLE; stdcall; external KernelDLL;
+  function Heap32First(var lphe: HEAPENTRY32; th32ProcessID: DWORD; th32HeapID: ULONG_PTR): BOOL; stdcall; external KernelDLL;
+  function Heap32Next(var lphe: HEAPENTRY32): BOOL; stdcall; external KernelDLL;
+  function Heap32ListFirst(hSnapshot: HANDLE; var lphl: HEAPLIST32): BOOL; stdcall; external KernelDLL;
+  function Heap32ListNext(hSnapshot: HANDLE; var lphl: HEAPLIST32): BOOL; stdcall; external KernelDLL;
+  function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; external KernelDLL;
+  function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; external KernelDLL;
+  function Module32FirstW(hSnapshot: HANDLE; var lpme: MODULEENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Module32NextW(hSnapshot: HANDLE; var lpme: MODULEENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall; external KernelDLL;
+  function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall; external KernelDLL;
+  function Process32FirstW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Process32NextW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
+  function Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
+  function Toolhelp32ReadProcessMemory(th32ProcessID: DWORD; lpBaseAddress: pointer; lpBuffer: pointer; cbRead: SIZE_T; lpNumberOfBytesRead: PSIZE_T): BOOL; stdcall; external KernelDLL;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
