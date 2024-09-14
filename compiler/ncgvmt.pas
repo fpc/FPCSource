@@ -744,7 +744,7 @@ implementation
         tmpstr:=_class.objname^+'_$_'+make_mangledname('',realintfdef.owner,'')+'_$$_'+realintfdef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
         if length(tmpstr)>50 then
           begin
-            hash:=0;
+            hash:=InitFnv64;
             hash:=UpdateFnv64(hash,tmpstr[51],length(tmpstr)-50);
             hs:=copy(tmpstr,1,50)+'$H'+Base64Mangle(hash);
           end

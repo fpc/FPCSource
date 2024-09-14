@@ -33,6 +33,7 @@ function TrimStrCRC32(const s: ansistring; maxlen: longint): ansistring;
 { calculate string hash using FNV Hash:
   http://www.isthe.com/chongo/tech/comp/fnv/
 }
+function InitFnv64: uint64;
 function UpdateFnv64(const InitFnv: uint64; const InBuf; InLen: Integer): uint64;
 
 type
@@ -101,6 +102,12 @@ begin
      result:=copy(s,1,maxlen)+'$CRC'+hexstr(crc,8);
    end;
 end;
+
+
+function InitFnv64: uint64;
+  begin
+    result:=uint64(14695981039346656037);
+  end;
 
 { calculate string hash using FNV Hash:
   http://www.isthe.com/chongo/tech/comp/fnv/

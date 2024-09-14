@@ -1669,7 +1669,7 @@ implementation
                begin
                  if length(prefix)>(maxidlen-length(s)-1) then
                    begin
-                     hash:=0;
+                     hash:=InitFnv64;
                      hash:=UpdateFnv64(hash,prefix[1],length(prefix));
                      prefix:='$H'+Base64Mangle(hash);
                    end;
@@ -1686,7 +1686,7 @@ implementation
               internalerror(200204174);
              if length(prefix)>(maxidlen-length(tabstractrecorddef(st.defowner).objname^)-3) then
                begin
-                 hash:=0;
+                 hash:=InitFnv64;
                  hash:=UpdateFnv64(hash,prefix[1],length(prefix));
                  prefix:='$H'+Base64Mangle(hash);
                end;
@@ -1731,7 +1731,7 @@ implementation
           result:=result+'_$$_'+suffix;
         if length(result)>(maxidlen-1) then
           begin
-            hash:=0;
+            hash:=InitFnv64;
             hash:=UpdateFnv64(hash,result[1],length(result));
             result:=copy(result,1,maxidlen-(high(Base64OfUint64String)-low(Base64OfUint64String)+1)-2)+'$H'+Base64Mangle(hash);
           end;
@@ -5785,7 +5785,7 @@ implementation
         if (newlen-oldlen>12) and
            ((newlen>100) or (newlen-oldlen>64)) then
           begin
-            hash:=0;
+            hash:=InitFnv64;
             for i:=0 to paras.count-1 do
               begin
                 hp:=tparavarsym(paras[i]);
