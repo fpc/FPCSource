@@ -1952,7 +1952,7 @@ Implementation
              ait_import_name:
                TWasmObjData(ObjData).DeclareImportName(tai_import_name(hp));
              ait_local:
-               TWasmObjData(ObjData).DeclareLocal(tai_local(hp));
+               TWasmObjData(ObjData).DeclareLocals(tai_local(hp));
 {$endif WASM}
              else
                ;

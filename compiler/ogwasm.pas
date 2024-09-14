@@ -180,7 +180,7 @@ interface
         procedure DeclareExportName(en: tai_export_name);
         procedure DeclareImportModule(aim: tai_import_module);
         procedure DeclareImportName(ain: tai_import_name);
-        procedure DeclareLocal(al: tai_local);
+        procedure DeclareLocals(al: tai_local);
         procedure symbolpairdefine(akind: TSymbolPairKind;const asym, avalue: string);override;
         property FuncTypes: TWasmFuncTypeTable read FFuncTypes;
       end;
@@ -1203,7 +1203,7 @@ implementation
         ObjSymExtraData.ImportName:=ain.importname;
       end;
 
-    procedure TWasmObjData.DeclareLocal(al: tai_local);
+    procedure TWasmObjData.DeclareLocals(al: tai_local);
       var
         ObjSymExtraData: TWasmObjSymbolExtraData;
         t: TWasmBasicType;
