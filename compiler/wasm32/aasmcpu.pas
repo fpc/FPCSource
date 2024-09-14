@@ -326,10 +326,9 @@ uses
 
       tai_local = class(tai)
         bastyp: TWasmBasicType;
-        name : string;
         first: boolean;
         last: boolean;
-        constructor create(abasictype: TWasmBasicType; const aname: string = '');
+        constructor create(abasictype: TWasmBasicType);
       end;
 
       { tai_globaltype }
@@ -1893,12 +1892,11 @@ uses
 
     { tai_local }
 
-    constructor tai_local.create(abasictype: TWasmBasicType; const aname: string);
+    constructor tai_local.create(abasictype: TWasmBasicType);
       begin
         inherited Create;
         bastyp := abasictype;
         typ := ait_local;
-        name := aname;
       end;
 
     { timpexp_ai }

@@ -622,12 +622,6 @@ implementation
              ait_local :
                begin
                  writer.AsmWrite(#9#9'(local ');
-                 if tai_local(hp).name <> '' then
-                   begin
-                     writer.AsmWrite(' ');
-                     writer.AsmWrite(tai_local(hp).name);
-                     writer.AsmWrite(' ');
-                   end;
                  writer.AsmWrite( WasmBasicTypeStr[ tai_local(hp).bastyp ] );
                  writer.AsmWrite(')');
                  writer.AsmLn;
