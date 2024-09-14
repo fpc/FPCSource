@@ -140,6 +140,7 @@ uses
         wbt_v128
       );
       TWasmResultType = array of TWasmBasicType;
+      TWasmLocalsDynArray = array of TWasmBasicType;
 
       { TWasmFuncType }
 

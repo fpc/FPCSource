@@ -325,10 +325,10 @@ uses
       { tai_local }
 
       tai_local = class(tai)
-        bastyp: TWasmBasicType;
-        first: boolean;
-        last: boolean;
-        constructor create(abasictype: TWasmBasicType);
+        locals: TWasmLocalsDynArray;
+        constructor create(alocals: TWasmLocalsDynArray);
+        procedure AddLocal(abasictype: TWasmBasicType);
+        procedure AddLocals(alocals: TWasmLocalsDynArray);
       end;
 
       { tai_globaltype }
@@ -1892,11 +1892,22 @@ uses
 
     { tai_local }
 
-    constructor tai_local.create(abasictype: TWasmBasicType);
+    constructor tai_local.create(alocals: TWasmLocalsDynArray);
       begin
         inherited Create;
-        bastyp := abasictype;
+        locals := Copy(alocals);
         typ := ait_local;
+      end;
+
+    procedure tai_local.AddLocal(abasictype: TWasmBasicType);
+      begin
+        SetLength(locals,Length(locals)+1);
+        locals[high(locals)]:=abasictype;
+      end;
+
+    procedure tai_local.AddLocals(alocals: TWasmLocalsDynArray);
+      begin
+        locals:=Concat(locals,alocals);
       end;
 
     { timpexp_ai }

@@ -897,12 +897,11 @@ implementation
         function prepare_locals: TAsmList;
           var
             local: tai_local;
-            first: Boolean;
             l : TWasmLocal;
           begin
             result:=TAsmList.create;
-            local:=nil;
-            first:=true;
+            local:=tai_local.create([]);
+            result.Concat(local);
             l:=ttgwasm(tg).localvars.first;
             FFuncType:=findfirst_tai_functype(aktproccode).functype;
             FLocals:=Copy(FFuncType.params);
@@ -912,30 +911,23 @@ implementation
               begin
                 SetLength(FLocals,Length(FLocals)+1);
                 FLocals[High(FLocals)]:=l.typ;
-                local:=tai_local.create(l.typ);
-                local.first:=first;
-                first:=false;
-                result.Concat(local);
+                local.AddLocal(l.typ);
                 l:=l.nextseq;
                 Inc(FFirstFreeLocal);
               end;
           end;
 
         procedure add_extra_allocated_locals(localslist: TAsmList);
-          var
-            t: TWasmBasicType;
           begin
-            for t in FAllocatedLocals do
-              localslist.Concat(tai_local.create(t));
+            if tai(localslist.First).typ<>ait_local then
+              internalerror(2024081501);
+            tai_local(localslist.First).AddLocals(FAllocatedLocals);
           end;
 
         procedure insert_localslist(destlist,localslist: TAsmList);
           begin
             if assigned(localslist) then
-              begin
-                tai_local(localslist.Last).last:=true;
-                destlist.insertListAfter(findfirst_tai_functype(destlist),localslist);
-              end;
+              destlist.insertListAfter(findfirst_tai_functype(destlist),localslist);
           end;
 
         procedure check_goto_br_instructions(list: TAsmList; out HasGotoBrInstructions: boolean);

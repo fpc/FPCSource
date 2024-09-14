@@ -839,6 +839,23 @@ implementation
             end;
           writer.AsmLn;
         end;
+
+      procedure WriteWasmLocalDirective(hp: tai_local);
+        var
+          t: TWasmBasicType;
+          first: boolean=true;
+        begin
+          writer.AsmWrite(#9'.local'#9);
+          for t in tai_local(hp).locals do
+            begin
+              if first then
+                first:=false
+              else
+                writer.AsmWrite(', ');
+              writer.AsmWrite(gas_wasm_basic_type_str[t]);
+            end;
+          writer.AsmLn;
+        end;
 {$endif WASM}
 
     var
@@ -1638,15 +1655,7 @@ implementation
 
 {$ifdef WASM}
            ait_local:
-             begin
-               if tai_local(hp).first then
-                 writer.AsmWrite(#9'.local'#9)
-               else
-                 writer.AsmWrite(', ');
-               writer.AsmWrite(gas_wasm_basic_type_str[tai_local(hp).bastyp]);
-               if tai_local(hp).last then
-                 writer.AsmLn;
-             end;
+             WriteWasmLocalDirective(tai_local(hp));
            ait_globaltype:
              begin
                writer.AsmWrite(#9'.globaltype'#9);

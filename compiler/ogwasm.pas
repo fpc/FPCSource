@@ -1206,9 +1206,11 @@ implementation
     procedure TWasmObjData.DeclareLocal(al: tai_local);
       var
         ObjSymExtraData: TWasmObjSymbolExtraData;
+        t: TWasmBasicType;
       begin
         ObjSymExtraData:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(FLastFuncName));
-        ObjSymExtraData.AddLocal(al.bastyp);
+        for t in al.locals do
+          ObjSymExtraData.AddLocal(t);
       end;
 
     procedure TWasmObjData.symbolpairdefine(akind: TSymbolPairKind; const asym, avalue: string);
