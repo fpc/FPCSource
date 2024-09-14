@@ -973,12 +973,20 @@ implementation
             vs.Free;
           end;
 
+        procedure postprocess_code_assembler;
+          begin
+            aktproccode.InsertAfter(tai_local.create([]),findfirst_tai_functype(aktproccode));
+          end;
+
       var
         localslist: TAsmList;
         labels_resolved, has_goto: Boolean;
       begin
         if po_assembler in procdef.procoptions then
-          exit;
+          begin
+            postprocess_code_assembler;
+            exit;
+          end;
         check_goto_br_instructions(aktproccode,has_goto);
 
         localslist:=prepare_locals;
