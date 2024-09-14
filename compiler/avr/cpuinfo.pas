@@ -59,6 +59,7 @@ Type
      (ct_none,
 
       ct_avrsim,
+      ct_avrsim6,
 
       ct_at90can32,
       ct_at90can64,
@@ -356,6 +357,19 @@ Const
         flashsize:$20000;
         srambase:256;
         sramsize:32*1024;
+        eeprombase:0;
+        eepromsize:4096;
+        ),
+        (
+        controllertypestr:'AVRSIM6';
+        controllerunitstr:'AVRSIM';
+
+        cputype: cpu_avr6;
+        fputype: fpu_soft;
+        flashbase:0;
+        flashsize:$400000;
+        srambase:256;
+        sramsize:60*1024;
         eeprombase:0;
         eepromsize:4096;
         )

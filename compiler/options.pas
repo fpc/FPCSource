@@ -4985,7 +4985,7 @@ begin
       case target_info.system of
 {$ifdef AVR}
         system_avr_embedded:
-          if init_settings.controllertype=ct_avrsim then
+          if init_settings.controllertype in [ct_avrsim,ct_avrsim6] then
             heapsize:=8192
           else
             heapsize:=128;
