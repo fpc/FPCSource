@@ -1942,7 +1942,7 @@ Implementation
              ait_globaltype:
                TWasmObjData(ObjData).DeclareGlobalType(tai_globaltype(hp));
              ait_functype:
-               TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
+               TWasmObjData(ObjData).DeclareFuncType_Pass0(tai_functype(hp));
              ait_tagtype:
                TWasmObjData(ObjData).DeclareTagType(tai_tagtype(hp));
              ait_export_name:
@@ -1952,7 +1952,7 @@ Implementation
              ait_import_name:
                TWasmObjData(ObjData).DeclareImportName(tai_import_name(hp));
              ait_local:
-               TWasmObjData(ObjData).DeclareLocals(tai_local(hp));
+               TWasmObjData(ObjData).DeclareLocals_Pass0(tai_local(hp));
 {$endif WASM}
              else
                ;
@@ -2145,6 +2145,12 @@ Implementation
                      Internalerror(2019100703);
                  end;
                end;
+{$ifdef WASM}
+             ait_functype:
+               TWasmObjData(ObjData).DeclareFuncType_Pass1(tai_functype(hp));
+             ait_local:
+               TWasmObjData(ObjData).DeclareLocals_Pass1(tai_local(hp));
+{$endif WASM}
              else
                ;
            end;
@@ -2602,6 +2608,12 @@ Implementation
                  eabi_section.Data.write(ddword,4);
                  eabi_section.Data.Seek(TmpDataPos);
                end;
+{$ifdef WASM}
+             ait_functype:
+               TWasmObjData(ObjData).DeclareFuncType_Pass2(tai_functype(hp));
+             ait_local:
+               TWasmObjData(ObjData).WriteLocals_Pass2(tai_local(hp));
+{$endif WASM}
              else
                ;
            end;
