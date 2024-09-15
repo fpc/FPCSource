@@ -4388,7 +4388,10 @@ implementation
           with DataSegments[i] do
             if Active then
               begin
-                CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write],false);
+                if not (cs_link_smart in current_settings.globalswitches) then
+                  CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write,oso_keep],false)
+                else
+                  CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write],false);
                 CurrSec.DataPos:=DataPos;
                 CurrSec.MemPos:=Offset;
                 CurrSec.Size:=Len;
