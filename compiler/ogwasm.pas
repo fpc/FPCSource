@@ -4376,7 +4376,7 @@ implementation
                   InputError('Code section ' + tostr(i) + ' does not have a main symbol defined in the symbol table');
                   exit;
                 end;
-              if SegIsExported then
+              if SegIsExported or not (cs_link_smart in current_settings.globalswitches) then
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load,oso_keep],false)
               else
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load],false);
