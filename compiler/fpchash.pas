@@ -116,11 +116,6 @@ function InitFnv64: uint64;
 function UpdateFnv64(const InitFnv: uint64; const InBuf; InLen: Integer): uint64;
 const
   M = uint64(1099511628211);
-  { Compiler yells at you for overflows in constants, even with disabled range checks,
-    so there are precalculated values for unrolled loop: M^2, M^3, M^4. }
-  Mp2 = uint64(956575116354345);
-  Mp3 = uint64(624165263380053675);
-  Mp4 = uint64(11527715348014283921);
 var
   pp: pByte;
 begin
@@ -128,13 +123,13 @@ begin
   pp := @InBuf;
   while InLen >= 4 do
    begin
-     result := (result + pp[0]) * Mp4 + pp[1] * Mp3 + pp[2] * Mp2 + pp[3] * M;
+     result := ((((result xor pp[0]) * M xor pp[1]) * M xor pp[2]) * M xor pp[3]) * M;
      pp := pp + 4;
      InLen := InLen - 4;
    end;
   while InLen > 0 do
    begin
-     result := (result + pp^) * M;
+     result := (result xor pp^) * M;
      pp := pp + 1;
      InLen := InLen - 1;
    end;
