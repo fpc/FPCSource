@@ -3533,6 +3533,7 @@ implementation
         nolineinfolevel : Integer;
         prevlabel,
         currlabel     : tasmlabel;
+        haslineinfo: Boolean = false;
       begin
 {$ifdef OMFOBJSUPPORT}
         if ds_dwarf_omf_linnum in current_settings.debugswitches then
@@ -3625,6 +3626,7 @@ implementation
                 { line changed ? }
                 if (lastfileinfo.line<>currfileinfo.line) and ((currfileinfo.line<>0) or (nolineinfolevel>0)) then
                   begin
+                    haslineinfo:=true;
                     { set address }
                     current_asmdata.getlabel(currlabel, alt_dbgline);
                     list.insertbefore(tai_label.create(currlabel), hp);
@@ -3722,10 +3724,15 @@ implementation
           end;
 
         { end sequence }
-        asmline.concat(tai_const.Create_8bit(DW_LNS_extended_op));
-        asmline.concat(tai_const.Create_8bit(1));
-        asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
-        asmline.concat(tai_comment.Create(strpnew('###################')));
+        if haslineinfo or
+           { WasmTime doesn't like it when we emit an end sequence without any previous lines }
+           not (target_info.system in systems_wasm) then
+          begin
+            asmline.concat(tai_const.Create_8bit(DW_LNS_extended_op));
+            asmline.concat(tai_const.Create_8bit(1));
+            asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
+            asmline.concat(tai_comment.Create(strpnew('###################')));
+          end;
       end;
 
 
