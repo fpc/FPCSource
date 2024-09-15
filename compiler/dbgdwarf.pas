@@ -282,8 +282,16 @@ implementation
       ;
 
     const
+{$ifdef WASM}
+      { WasmTime's debugger requires that:
+        (LINE_BASE<=0) and (SignedInt8(LINE_BASE + LINE_RANGE) > 0),
+        so we use different values for WebAssembly }
+      LINE_BASE   = 0;
+      LINE_RANGE  = 127;
+{$else WASM}
       LINE_BASE   = 1;
       LINE_RANGE  = 255;
+{$endif WASM}
       OPCODE_BASE = 13;
 
     const
