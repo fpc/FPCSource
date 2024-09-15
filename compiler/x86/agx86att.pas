@@ -465,9 +465,8 @@ interface
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_x86_64_linux, system_x86_64_freebsd, system_x86_64_netbsd, system_x86_64_openbsd];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : '.L';
-            labelmaxlen : -1;
             comment : '// ';
             dollarsign: '$';
           );
@@ -553,9 +552,8 @@ interface
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_i386_linux, system_i386_freebsd, system_i386_netbsd, system_i386_openbsd];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : '.L';
-            labelmaxlen : -1;
             comment : '// ';
             dollarsign: '$';
           );
