@@ -283,6 +283,7 @@ implementation
 
     const
       LINE_BASE   = 1;
+      LINE_RANGE  = 255;
       OPCODE_BASE = 13;
 
     const
@@ -3095,7 +3096,7 @@ implementation
 
         { line_range }
         { only line increase, no adress }
-        linelist.concat(tai_const.create_8bit(255));
+        linelist.concat(tai_const.create_8bit(LINE_RANGE));
 
         { opcode_base }
         linelist.concat(tai_const.create_8bit(OPCODE_BASE));
@@ -3675,7 +3676,8 @@ implementation
 
                     { set line }
                     diffline := currfileinfo.line - prevline;
-                    if (diffline >= LINE_BASE) and (OPCODE_BASE + diffline - LINE_BASE <= 255) then
+                    if (diffline >= LINE_BASE) and (diffline <= (LINE_BASE + LINE_RANGE - 1)) and
+                       (OPCODE_BASE + diffline - LINE_BASE <= 255) then
                       begin
                         { use special opcode, this also adds a row }
                         asmline.concat(tai_const.create_8bit(OPCODE_BASE + diffline - LINE_BASE));
