@@ -1334,14 +1334,12 @@ begin
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
    begin
-{$ifdef I386}
      AddSelectItem(opt_defaultassembler,'default',idNone);
-{     AddSelectItem(opt_directassembler,'direct',idAsmDirect);}
+{$if defined(I386) or defined(x86_64)}
      AddSelectItem(opt_attassembler,'att',idAsmATT);
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
 {$ifdef M68K}
-     AddSelectItem(opt_defaultassembler,'default',idNone);
      //AddSelectItem(opt_standardassembler,'standard',idAsmStandard);
      AddSelectItem(opt_motassembler,'motorola',idAsmMot);
 {$endif M68K}
