@@ -1039,6 +1039,7 @@ procedure TIDEApp.InitMenuBar;
 begin
   LoadMenuBar;
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
+  SetCmdState([cmTile,cmCascade],false);
   // Update; Desktop is still nil at that point ...
 end;
 
@@ -1624,7 +1625,7 @@ procedure TIDEApp.Update;
 begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmWindowList],IsThereAnyWindow);
-  SetCmdState([cmTile,cmCascade],IsThereAnyVisibleWindow);
+  SetCmdState([cmTile,cmCascade],IsThereAnyVisibleEditorWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
   SetCmdState([cmResetDebugger,cmUntilReturn],assigned(debugger) and debugger^.debuggee_started);
