@@ -1159,6 +1159,7 @@ begin
      videoInitDone;
 
      decide_codepages;
+     SendEscapeSeq(#27'[>31u');{Entering alternativ screen we have to set up kitty keys}
    end
   else
    ErrorCode:=errVioInit; { not a TTY }
@@ -1169,6 +1170,7 @@ procedure SysDoneVideo;
 var font_custom:array[0..2] of AnsiChar=#27'(K';
 
 begin
+  SendEscapeSeq(#27'[<u'); { kitty keys disable }
   prepareDoneVideo;
   SetCursorType(crUnderLine);
 {$ifdef linux}

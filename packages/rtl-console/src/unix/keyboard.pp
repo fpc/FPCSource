@@ -102,23 +102,12 @@ var
 
 {$i keyscan.inc}
 
-{Some internal only scancodes}
-const KbShiftUp    = $f0;
-      KbShiftLeft  = $f1;
-      KbShiftRight = $f2;
-      KbShiftDown  = $f3;
-      KbShiftHome  = $f4;
-      KbShiftEnd   = $f5;
-      KbShiftPgUp  = $f6;
-      KbShiftPgDn  = $f7;
-      KbCtrlShiftUp    = $f8;
-      KbCtrlShiftDown  = $f9;
-      KbCtrlShiftRight = $fa;
-      KbCtrlShiftLeft  = $fb;
-      KbCtrlShiftHome  = $fc;
-      KbCtrlShiftEnd   = $fd;
-      KbCtrlShiftPgUp  = $fe;
-      KbCtrlShiftPgDn  = $ff;
+var kitty_keys_yes : boolean;  {one of two have to be true}
+    kitty_keys_no : boolean;
+    isKittyKeys : boolean;
+
+const
+      kbAltCenter = kbCtrlCenter;  {there is no true DOS scancode for Alt+Center (Numpad "5") reusing Ctrl+Center}
 
       double_esc_hack_enabled : boolean = false;
 
@@ -896,10 +885,11 @@ type  key_sequence=packed record
         AnsiChar:0..127;
         scan:byte;
         shift:TEnhancedShiftState;
-        st:string[7];
+        st:string[10];
       end;
 
-const key_sequences:array[0..302] of key_sequence=(
+const key_sequences:array[0..385] of key_sequence=(
+       (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
        (AnsiChar:0;scan:kbAltB;shift:[essAlt];st:#27'B'),
@@ -1068,7 +1058,7 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbShiftF12;shift:[essShift];st:#27'[24$'),    {rxvt}
        (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'[11;2~'),   {konsole in vt420pc mode}
        (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'[12;2~'),   {konsole in vt420pc mode}
-       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[13;2~'),   {konsole in vt420pc mode}
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[13;2~'),   {konsole in vt420pc mode,kitty}
        (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[14;2~'),   {konsole in vt420pc mode}
        (AnsiChar:0;scan:kbShiftF5;shift:[essShift];st:#27'[15;2~'),   {xterm}
        (AnsiChar:0;scan:kbShiftF6;shift:[essShift];st:#27'[17;2~'),   {xterm}
@@ -1096,7 +1086,7 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[1;5S'),      {xterm,gnome3}
        (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[11;5~'),     {none, but expected}
        (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[12;5~'),     {none, but expected}
-       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13;5~'),     {none, but expected}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13;5~'),     {kitty}
        (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[14;5~'),     {none, but expected}
        (AnsiChar:0;scan:kbCtrlF5;shift:[essCtrl];st:#27'[15;5~'),     {xterm}
        (AnsiChar:0;scan:kbCtrlF6;shift:[essCtrl];st:#27'[17;5~'),     {xterm}
@@ -1163,6 +1153,7 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27'O3P'),          {xterm on FreeBSD}
        (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27'O3Q'),          {xterm on FreeBSD}
        (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27'O3R'),          {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27'[13;3~'),       {kitty}
        (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27'O3S'),          {xterm on FreeBSD}
        (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27'[15;3~'),       {xterm on FreeBSD}
        (AnsiChar:0;scan:kbAltF6;shift:[essAlt];st:#27'[17;3~'),       {xterm on FreeBSD}
@@ -1173,31 +1164,78 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbAltF11;shift:[essAlt];st:#27'[23;3~'),      {xterm on FreeBSD}
        (AnsiChar:0;scan:kbAltF12;shift:[essAlt];st:#27'[24;3~'),      {xterm on FreeBSD}
 
+       (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl,essShift];st:#27'[1;6P'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl,essShift];st:#27'[1;6Q'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl,essShift];st:#27'[1;6R'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl,essShift];st:#27'[13;6~'),     {kitty}
+       (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl,essShift];st:#27'[1;6S'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF5;shift:[essCtrl,essShift];st:#27'[15;6~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF6;shift:[essCtrl,essShift];st:#27'[17;6~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF7;shift:[essCtrl,essShift];st:#27'[18;6~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF8;shift:[essCtrl,essShift];st:#27'[19;6~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF9;shift:[essCtrl,essShift];st:#27'[20;6~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF10;shift:[essCtrl,essShift];st:#27'[21;6~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlF11;shift:[essCtrl,essShift];st:#27'[23;6~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlF12;shift:[essCtrl,essShift];st:#27'[24;6~'),    {xterm}
+
+       (AnsiChar:0;scan:kbAltF1;shift:[essShift,essAlt];st:#27'[1;4P'),        {xterm}
+       (AnsiChar:0;scan:kbAltF2;shift:[essShift,essAlt];st:#27'[1;4Q'),        {xterm}
+       (AnsiChar:0;scan:kbAltF3;shift:[essShift,essAlt];st:#27'[1;4R'),        {xterm}
+       (AnsiChar:0;scan:kbAltF3;shift:[essShift,essAlt];st:#27'[13;4~'),       {kitty}
+       (AnsiChar:0;scan:kbAltF4;shift:[essShift,essAlt];st:#27'[1;4S'),        {xterm}
+       (AnsiChar:0;scan:kbAltF5;shift:[essShift,essAlt];st:#27'[15;4~'),       {xterm}
+       (AnsiChar:0;scan:kbAltF6;shift:[essShift,essAlt];st:#27'[17;4~'),       {xterm}
+       (AnsiChar:0;scan:kbAltF7;shift:[essShift,essAlt];st:#27'[18;4~'),       {xterm}
+       (AnsiChar:0;scan:kbAltF8;shift:[essShift,essAlt];st:#27'[19;4~'),       {xterm}
+       (AnsiChar:0;scan:kbAltF9;shift:[essShift,essAlt];st:#27'[20;4~'),       {xterm}
+       (AnsiChar:0;scan:kbAltF10;shift:[essShift,essAlt];st:#27'[21;4~'),      {xterm}
+       (AnsiChar:0;scan:kbAltF11;shift:[essShift,essAlt];st:#27'[23;4~'),      {xterm}
+       (AnsiChar:0;scan:kbAltF12;shift:[essShift,essAlt];st:#27'[24;4~'),      {xterm}
+
+       (AnsiChar:0;scan:KbAltF1;shift:[essCtrl,essShift,essAlt];st:#27'[1;8P'),        {xterm}
+       (AnsiChar:0;scan:KbAltF2;shift:[essCtrl,essShift,essAlt];st:#27'[1;8Q'),        {xterm}
+       (AnsiChar:0;scan:KbAltF3;shift:[essCtrl,essShift,essAlt];st:#27'[1;8R'),        {xterm}
+       (AnsiChar:0;scan:KbAltF3;shift:[essCtrl,essShift,essAlt];st:#27'[13;8~'),       {kitty}
+       (AnsiChar:0;scan:KbAltF4;shift:[essCtrl,essShift,essAlt];st:#27'[1;8S'),        {xterm}
+       (AnsiChar:0;scan:KbAltF5;shift:[essCtrl,essShift,essAlt];st:#27'[15;8~'),       {xterm}
+       (AnsiChar:0;scan:KbAltF6;shift:[essCtrl,essShift,essAlt];st:#27'[17;8~'),       {xterm}
+       (AnsiChar:0;scan:KbAltF7;shift:[essCtrl,essShift,essAlt];st:#27'[18;8~'),       {xterm}
+       (AnsiChar:0;scan:KbAltF8;shift:[essCtrl,essShift,essAlt];st:#27'[19;8~'),       {xterm}
+       (AnsiChar:0;scan:KbAltF9;shift:[essCtrl,essShift,essAlt];st:#27'[20;8~'),       {xterm}
+       (AnsiChar:0;scan:KbAltF10;shift:[essCtrl,essShift,essAlt];st:#27'[21;8~'),      {xterm}
+       (AnsiChar:0;scan:KbAltF11;shift:[essCtrl,essShift,essAlt];st:#27'[23;8~'),      {xterm}
+       (AnsiChar:0;scan:KbAltF12;shift:[essCtrl,essShift,essAlt];st:#27'[24;8~'),      {xterm}
+
        (AnsiChar:0;scan:kbShiftTab;shift:[essShift];st:#27#9),        {linux - 'Meta_Tab'}
        (AnsiChar:0;scan:kbShiftTab;shift:[essShift];st:#27'[Z'),
-       (AnsiChar:0;scan:kbShiftUp;shift:[essShift];st:#27'[1;2A'),    {xterm}
-       (AnsiChar:0;scan:kbShiftDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
-       (AnsiChar:0;scan:kbShiftRight;shift:[essShift];st:#27'[1;2C'), {xterm}
-       (AnsiChar:0;scan:kbShiftLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
-       (AnsiChar:0;scan:kbShiftPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (AnsiChar:0;scan:kbShiftPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (AnsiChar:0;scan:kbShiftUp;shift:[essShift];st:#27'[a'),       {rxvt}
-       (AnsiChar:0;scan:kbShiftDown;shift:[essShift];st:#27'[b'),     {rxvt}
-       (AnsiChar:0;scan:kbShiftRight;shift:[essShift];st:#27'[c'),    {rxvt}
-       (AnsiChar:0;scan:kbShiftLeft;shift:[essShift];st:#27'[d'),     {rxvt}
-       (AnsiChar:0;scan:kbShiftEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
-       (AnsiChar:0;scan:kbShiftEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
-       (AnsiChar:0;scan:kbShiftHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
-       (AnsiChar:0;scan:kbShiftHome;shift:[essShift];st:#27'[7$'),    {rxvt}
+       (AnsiChar:0;scan:kbUp;shift:[essShift];st:#27'[1;2A'),    {xterm}
+       (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
+       (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[1;2C'), {xterm}
+       (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
+       (AnsiChar:0;scan:kbCenter;shift:[essShift];st:#27'[1;2E'),{xterm}
+       (AnsiChar:0;scan:kbPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbUp;shift:[essShift];st:#27'[a'),       {rxvt}
+       (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'[b'),     {rxvt}
+       (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[c'),    {rxvt}
+       (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[d'),     {rxvt}
+       (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
+       (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
+       (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
+       (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[7$'),    {rxvt}
 
-       (AnsiChar:0;scan:KbCtrlShiftUp;shift:[essCtrl,essShift];st:#27'[1;6A'),    {xterm}
-       (AnsiChar:0;scan:KbCtrlShiftDown;shift:[essCtrl,essShift];st:#27'[1;6B'),  {xterm}
-       (AnsiChar:0;scan:KbCtrlShiftRight;shift:[essCtrl,essShift];st:#27'[1;6C'), {xterm, xfce4}
-       (AnsiChar:0;scan:KbCtrlShiftLeft;shift:[essCtrl,essShift];st:#27'[1;6D'),  {xterm, xfce4}
-       (AnsiChar:0;scan:KbCtrlShiftHome;shift:[essCtrl,essShift];st:#27'[1;6H'),  {xterm}
-       (AnsiChar:0;scan:KbCtrlShiftEnd;shift:[essCtrl,essShift];st:#27'[1;6F'),   {xterm}
-       (AnsiChar:0;scan:kbCtrlShiftPgUp;shift:[essCtrl,essShift];st:#27'[5;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (AnsiChar:0;scan:kbCtrlShiftPgDn;shift:[essCtrl,essShift];st:#27'[6;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+
+       (AnsiChar:0;scan:KbCtrlUp;shift:[essCtrl,essShift];st:#27'[1;6A'),    {xterm}
+       (AnsiChar:0;scan:KbCtrlDown;shift:[essCtrl,essShift];st:#27'[1;6B'),  {xterm}
+       (AnsiChar:0;scan:KbCtrlRight;shift:[essCtrl,essShift];st:#27'[1;6C'), {xterm, xfce4}
+       (AnsiChar:0;scan:KbCtrlLeft;shift:[essCtrl,essShift];st:#27'[1;6D'),  {xterm, xfce4}
+       (AnsiChar:0;scan:KbCtrlCenter;shift:[essCtrl,essShift];st:#27'[1;6E'),{xterm}
+       (AnsiChar:0;scan:KbCtrlHome;shift:[essCtrl,essShift];st:#27'[1;6H'),  {xterm}
+       (AnsiChar:0;scan:KbCtrlEnd;shift:[essCtrl,essShift];st:#27'[1;6F'),   {xterm}
+       (AnsiChar:0;scan:KbCtrlIns;shift:[essCtrl,essShift];st:#27'[2;6~'),   {xterm}
+       (AnsiChar:0;scan:KbCtrlDel;shift:[essCtrl,essShift];st:#27'[3;6~'),   {xterm}
+       (AnsiChar:0;scan:kbCtrlPgUp;shift:[essCtrl,essShift];st:#27'[5;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbCtrlPgDn;shift:[essCtrl,essShift];st:#27'[6;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
 
        (AnsiChar:0;scan:kbCtrlPgDn;shift:[essCtrl];st:#27'[6;5~'),    {xterm}
        (AnsiChar:0;scan:kbCtrlPgUp;shift:[essCtrl];st:#27'[5;5~'),    {xterm}
@@ -1205,6 +1243,7 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[1;5B'),    {xterm}
        (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[1;5C'),   {xterm}
        (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[1;5D'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlCenter;shift:[essCtrl];st:#27'[1;5E'),  {xterm}
        (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[Oa'),        {rxvt}
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[Ob'),      {rxvt}
        (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[Oc'),     {rxvt}
@@ -1237,6 +1276,47 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:kbAltIns;shift:[essAlt];st:#27#27'[2~'),      {rxvt}
        (AnsiChar:0;scan:kbAltDel;shift:[essAlt];st:#27#27'[3~'),      {rxvt}
 
+       (AnsiChar:0;scan:KbAltUp;shift:[essAlt];st:#27'[1;3A'),        {xterm}
+       (AnsiChar:0;scan:KbAltDown;shift:[essAlt];st:#27'[1;3B'),      {xterm}
+       (AnsiChar:0;scan:KbAltRight;shift:[essAlt];st:#27'[1;3C'),     {xterm}
+       (AnsiChar:0;scan:KbAltLeft;shift:[essAlt];st:#27'[1;3D'),      {xterm}
+       (AnsiChar:0;scan:KbAltCenter;shift:[essAlt];st:#27'[1;3E'),    {xterm}
+       (AnsiChar:0;scan:KbAltHome;shift:[essAlt];st:#27'[1;3H'),      {xterm}
+       (AnsiChar:0;scan:KbAltEnd;shift:[essAlt];st:#27'[1;3F'),       {xterm}
+       (AnsiChar:0;scan:KbAltIns;shift:[essAlt];st:#27'[2;3~'),       {xterm}
+       (AnsiChar:0;scan:KbAltDel;shift:[essAlt];st:#27'[3;3~'),       {xterm}
+       (AnsiChar:0;scan:kbAltPgUp;shift:[essAlt];st:#27'[5;3~'),      {xterm}
+       (AnsiChar:0;scan:kbAltPgDn;shift:[essAlt];st:#27'[6;3~'),      {xterm}
+
+       (AnsiChar:0;scan:kbAltUp;shift:[essShift,essAlt];st:#27'[1;4A'),      {xterm}
+       (AnsiChar:0;scan:kbAltDown;shift:[essShift,essAlt];st:#27'[1;4B'),    {xterm}
+       (AnsiChar:0;scan:kbAltRight;shift:[essShift,essAlt];st:#27'[1;4C'),   {xterm}
+       (AnsiChar:0;scan:kbAltLeft;shift:[essShift,essAlt];st:#27'[1;4D'),    {xterm}
+       (AnsiChar:0;scan:kbAltCenter;shift:[essShift,essAlt];st:#27'[1;4E'),  {xterm}
+       (AnsiChar:0;scan:kbAltHome;shift:[essShift,essAlt];st:#27'[1;4H'),    {xterm}
+       (AnsiChar:0;scan:kbAltEnd;shift:[essShift,essAlt];st:#27'[1;4F'),     {xterm}
+       (AnsiChar:0;scan:kbAltIns;shift:[essShift,essAlt];st:#27'[2;4~'),     {xterm}
+       (AnsiChar:0;scan:kbAltDel;shift:[essShift,essAlt];st:#27'[3;4~'),     {xterm}
+       (AnsiChar:0;scan:kbAltPgUp;shift:[essShift,essAlt];st:#27'[5;4~'),    {xterm}
+       (AnsiChar:0;scan:kbAltPgDn;shift:[essShift,essAlt];st:#27'[6;4~'),    {xterm}
+
+       (AnsiChar:0;scan:KbAltIns;shift:[essCtrl,essAlt];st:#27'[2;7~'),     {xterm}
+       (AnsiChar:0;scan:KbAltDel;shift:[essCtrl,essAlt];st:#27'[3;7~'),     {xterm (Del on numpad)}
+       (AnsiChar:0;scan:KbAltPgUp;shift:[essCtrl,essAlt];st:#27'[5;7~'),    {xterm}
+       (AnsiChar:0;scan:KbAltPgDn;shift:[essCtrl,essAlt];st:#27'[6;7~'),    {xterm}
+
+       (AnsiChar:0;scan:KbAltUp;shift:[essCtrl,essShift,essAlt];st:#27'[1;8A'),      {xterm}
+       (AnsiChar:0;scan:KbAltDown;shift:[essCtrl,essShift,essAlt];st:#27'[1;8B'),    {xterm}
+       (AnsiChar:0;scan:KbAltRight;shift:[essCtrl,essShift,essAlt];st:#27'[1;8C'),   {xterm}
+       (AnsiChar:0;scan:KbAltLeft;shift:[essCtrl,essShift,essAlt];st:#27'[1;8D'),    {xterm}
+       (AnsiChar:0;scan:KbAltCenter;shift:[essCtrl,essShift,essAlt];st:#27'[1;8E'),  {xterm}
+       (AnsiChar:0;scan:KbAltHome;shift:[essCtrl,essShift,essAlt];st:#27'[1;8H'),    {xterm}
+       (AnsiChar:0;scan:KbAltEnd;shift:[essCtrl,essShift,essAlt];st:#27'[1;8F'),     {xterm}
+       (AnsiChar:0;scan:KbAltIns;shift:[essCtrl,essShift,essAlt];st:#27'[2;8~'),     {xterm}
+       (AnsiChar:0;scan:KbAltDel;shift:[essCtrl,essShift,essAlt];st:#27'[3;8~'),     {xterm}
+       (AnsiChar:0;scan:KbAltPgUp;shift:[essCtrl,essShift,essAlt];st:#27'[5;8~'),    {xterm}
+       (AnsiChar:0;scan:KbAltPgDn;shift:[essCtrl,essShift,essAlt];st:#27'[6;8~'),    {xterm}
+
   { xterm default values }
   { xterm alternate default values }
   { ignored sequences }
@@ -1248,6 +1328,259 @@ const key_sequences:array[0..302] of key_sequence=(
        (AnsiChar:0;scan:0;shift:[];st:#27'[?7h')
       );
 
+
+type  TKeyByte = array [0..23] of byte;
+      PKeyByte = ^TKeyByte;
+
+const cSunKey : TKeyByte =(224,225,226,227,228,229,230,231,232,233,192,193,
+                                2,3,214,220,216,222,218,197,0,0,0,0);
+const cKb : TKeyByte = (kbF1,kbF2,kbF3,kbF4,kbF5,kbF6,kbF7,kbF8,kbF9,kbF10,kbF11,kbF12,
+                        kbIns,kbDel,KbHome,KbEnd,KbPgUp,KbPgDn,KbCenter,{kbMenu}0,KbUp,KbLeft,KbRight,KbDown);
+const cKbCtrl : TKeyByte = (kbCtrlF1,kbCtrlF2,kbCtrlF3,kbCtrlF4,kbCtrlF5,kbCtrlF6,kbCtrlF7,kbCtrlF8,kbCtrlF9,kbCtrlF10,kbCtrlF11,kbCtrlF12,
+                        kbCtrlIns,kbCtrlDel,KbCtrlHome,KbCtrlEnd,KbCtrlPgUp,KbCtrlPgDn,KbCtrlCenter,{kbCtrlMenu}0,KbCtrlUp,KbCtrlLeft,KbCtrlRight,KbCtrlDown);
+const cKbAlt : TKeyByte = (kbAltF1,kbAltF2,kbAltF3,kbAltF4,kbAltF5,kbAltF6,kbAltF7,kbAltF8,kbAltF9,kbAltF10,kbAltF11,kbAltF12,
+                        kbAltIns,kbAltDel,KbAltHome,KbAltEnd,KbAltPgUp,KbAltPgDn,KbAltCenter,{kbAltMenu}0,KbAltUp,KbAltLeft,KbAltRight,KbAltDown);
+
+const cSunKeyEnd : array [0..7] of string [3] = ('z',';2z',';3z',';4z',';5z',';6z',';7z',';8z');
+      cKeyScanCode : array [0..7] of PKeyByte  = (@cKb,@cKb,@cKbAlt,@cKbAlt,@cKbCtrl,@cKbCtrl,@cKbAlt,@cKbAlt);
+      cKeyShift : array [0..7] of TEnhancedShiftState=(
+       {}     [],
+       {2}    [essShift],
+       {3}    [essAlt],
+       {4}    [essShift,essAlt],
+       {5}    [essCtrl],
+       {6}    [essCtrl,essShift],
+       {7}    [essCtrl,essAlt],
+       {8}    [essCtrl,essShift,essAlt]
+      );
+
+procedure sunKeySquences;
+{    generate Sun function-key escape squences
+     format:  CSI number z
+              CSI number ; modifier z
+}
+var st, zt : string[15];
+    AnsiChar : byte;
+    scan : byte;
+    shift:TEnhancedShiftState;
+    i,n : dword;
+    kb : PKeyByte;
+begin
+  AnsiChar:=0;
+  for n:=0 to 7 do
+  begin
+    kb:=cKeyScanCode[n];
+    shift:=cKeyShift[n];
+    zt:=cSunKeyEnd[n];
+    for i:=0 to 23-5 do
+    begin
+      str(cSunKey[i],st);
+      st:=#27'['+st+zt;
+      scan:=kb^[i];
+      DoAddSequence(st,AnsiChar,scan,shift);
+    end;
+  end;
+end;
+
+procedure PushUnicodeKey (k: TEnhancedKeyEvent; UnicodeCodePoint : longint;  ReplacementAsciiChar:AnsiChar);
+begin
+  if UnicodeCodePoint<=$FFFF then
+    begin
+      { Code point is in the Basic Multilingual Plane (BMP)
+        -> encode as single WideChar }
+      k.UnicodeChar:=WideChar(UnicodeCodePoint);
+      if UnicodeCodePoint<=127 then
+        k.AsciiChar:=Chr(UnicodeCodePoint)
+      else
+        k.AsciiChar:=ReplacementAsciiChar;
+      PushKey(k);
+    end
+  else if UnicodeCodePoint<=$10FFFF then
+    begin
+      { Code point from the Supplementary Planes (U+010000..U+10FFFF)
+        -> encode as a surrogate pair of WideChars (as in UTF-16) }
+      k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) shr 10)+$D800);
+      k.AsciiChar:=ReplacementAsciiChar;
+      PushKey(k);
+      k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) and %1111111111)+$DC00);
+      PushKey(k);
+    end;
+end;
+
+
+const           {lookup tables: nKey, modifier -> ScanCode, KeyChar }
+    cAltAscii   : array [0..127] of AnsiChar = (
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00);
+
+    cCtrlAscii   : array [0..127] of AnsiChar = (
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$08,#$00,#$00,#$00,#$00,#$0a,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$1b,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,
+      #$00,#$01,#$02,#$03,#$04,#$05,#$06,#$00,#$00,#$09,#$0a,#$0b,#$0c,#$0d,#$0e,#$0f,
+      #$10,#$11,#$12,#$13,#$14,#$15,#$16,#$17,#$18,#$19,#$1a,#$1b,#$1c,#$1d,#$1e,#$1f,
+      #$00,#$01,#$02,#$03,#$04,#$05,#$06,#$07,#$08,#$09,#$0a,#$0b,#$0c,#$0d,#$0e,#$0f,
+      #$10,#$11,#$12,#$13,#$14,#$15,#$16,#$17,#$18,#$19,#$1a,#$1b,#$1c,#$1d,#$1e,#$7f);
+
+    cShiftAscii   : array [0..127] of AnsiChar = (
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$08,#$00,#$00,#$00,#$00,#$0d,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$00,#$1b,#$00,#$00,#$00,#$00,
+      #$20,#$21,#$22,#$23,#$24,#$25,#$26,#$00,#$28,#$29,#$2a,#$2b,#$00,#$2d,#$2e,#$2f,
+      #$30,#$31,#$32,#$33,#$34,#$35,#$36,#$37,#$38,#$39,#$3a,#$00,#$3c,#$00,#$3e,#$3f,
+      #$40,#$41,#$42,#$43,#$44,#$45,#$46,#$47,#$48,#$49,#$4a,#$4b,#$4c,#$4d,#$4e,#$4f,
+      #$50,#$51,#$52,#$53,#$54,#$55,#$56,#$57,#$58,#$59,#$5a,#$00,#$00,#$00,#$5e,#$5f,
+      #$00,#$61,#$62,#$63,#$64,#$65,#$66,#$67,#$68,#$69,#$6a,#$6b,#$6c,#$6d,#$6e,#$6f,
+      #$70,#$71,#$72,#$73,#$74,#$75,#$76,#$77,#$78,#$79,#$7a,#$7b,#$7c,#$7d,#$7e,#$08);
+
+    cAscii   : array [0..127] of AnsiChar = (
+      #$00,#$00,#$00,#$00,#$04,#$00,#$00,#$00,#$08,#$09,#$00,#$00,#$00,#$0d,#$00,#$00,
+      #$00,#$00,#$00,#$00,#$00,#$15,#$00,#$00,#$00,#$00,#$00,#$1b,#$00,#$00,#$00,#$00,
+      #$20,#$00,#$00,#$00,#$00,#$00,#$00,#$27,#$00,#$00,#$2a,#$2b,#$2c,#$2d,#$2e,#$2f,
+      #$30,#$31,#$32,#$33,#$34,#$35,#$36,#$37,#$38,#$39,#$00,#$3b,#$3c,#$3d,#$00,#$00,
+      #$00,#$41,#$42,#$43,#$44,#$45,#$46,#$47,#$48,#$49,#$4a,#$4b,#$4c,#$4d,#$4e,#$4f,
+      #$50,#$51,#$52,#$53,#$54,#$55,#$56,#$57,#$58,#$59,#$5a,#$5b,#$5c,#$5d,#$00,#$00,
+      #$60,#$61,#$62,#$63,#$64,#$65,#$66,#$67,#$68,#$69,#$6a,#$6b,#$6c,#$6d,#$6e,#$6f,
+      #$70,#$71,#$72,#$73,#$74,#$75,#$76,#$77,#$78,#$79,#$7a,#$00,#$00,#$00,#$00,#$08);
+
+    cScanValue  : array [0..127] of byte = (
+       $fe, $00, $00, $00, $20, $00, $00, $00, $0e, $0f, $00, $00, $00, $1c, $00, $00,
+       $00, $00, $00, $00, $00, $16, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00,
+       $39, $00, $00, $00, $00, $00, $00, $28, $00, $00, $37, $0d, $33, $0c, $34, $35,
+       $0b, $02, $03, $04, $05, $06, $07, $08, $09, $0a, $00, $27, $33, $0d, $00, $00,
+       $00, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $00, $00,
+       $2b, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $00, $00, $00, $00, $0e);
+
+    cShiftScanValue  : array [0..127] of byte = (
+       $fe, $00, $00, $00, $00, $00, $00, $00, $0e, $0f, $00, $00, $00, $1c, $00, $00,
+       $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00,
+       $39, $02, $28, $04, $05, $06, $08, $00, $0a, $0b, $09, $0d, $00, $0c, $53, $35,
+       $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $27, $00, $33, $00, $34, $35,
+       $03, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $00, $00, $00, $07, $0c,
+       $00, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $29, $0e);
+
+    cAltScanValue  : array [0..127] of byte = (
+       $fe, $00, $00, $00, $00, $00, $00, $00, $0e, $00, $00, $00, $00, $1c, $00, $00,
+       $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00,
+       $39, $78, $28, $7a, $7b, $7c, $7e, $28, $80, $81, $7f, $83, $33, $82, $34, $35,
+       $81, $78, $79, $7a, $7b, $7c, $7d, $7e, $7f, $80, $27, $27, $33, $83, $34, $35,
+       $79, $1e, $30, $2e, $20, $12, $21, $00, $00, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $7d, $82,
+       $2b, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $29, $0e);
+
+    cCtrlScanValue  : array [0..127] of byte = (
+       $fe, $00, $00, $00, $00, $00, $00, $00, $0e, $94, $00, $00, $00, $1c, $00, $00,
+       $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00,
+       $39, $02, $28, $04, $05, $06, $08, $28, $0a, $0b, $96, $0d, $33, $0c, $34, $35,
+       $0b, $02, $03, $04, $05, $06, $07, $08, $09, $0a, $27, $27, $33, $0d, $34, $35,
+       $03, $1e, $30, $2e, $20, $12, $21, $00, $00, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $07, $0c,
+       $29, $1e, $30, $2e, $20, $12, $21, $22, $23, $17, $24, $25, $26, $32, $31, $18,
+       $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $29, $0e);
+
+
+procedure buildKeyEvent(modifier:dword; nKey:dword);
+var k : TEnhancedKeyEvent;
+    SState: TEnhancedShiftState;
+    ScanValue : byte;
+begin
+  k:=NilEnhancedKeyEvent;
+  AltPrefix := 0;
+  ShiftPrefix := 0;
+  CtrlPrefix := 0;
+
+  { Shift states}
+  if modifier =  0 then modifier:=1;
+  modifier:=modifier-1;
+
+  SState:=[];
+  if (modifier and 1)>0 then SState:=SState+[essShift];
+  if (modifier and 2)>0 then SState:=SState+[essAlt];
+  if (modifier and 4)>0 then SState:=SState+[essCtrl];
+  k.ShiftState:=SState;
+
+  if nKey < 128 then
+  begin
+    if essAlt in SState then
+       k.AsciiChar:=cAltAscii[nKey]
+    else if essCtrl in SState then
+       k.AsciiChar:=cCtrlAscii[nKey]
+    else if essShift in SState then
+      k.AsciiChar:=cShiftAscii[nKey]
+    else
+      k.AsciiChar:=cAscii[nKey];
+
+    if essAlt in SState then
+       ScanValue :=cAltScanValue[nKey]
+    else if essCtrl in SState then
+       ScanValue :=cCtrlScanValue[nKey]
+    else if essShift in SState then
+      ScanValue :=cShiftScanValue[nKey]
+    else
+      ScanValue :=cScanValue[nKey];
+
+    k.UnicodeChar := WideChar(k.AsciiChar);
+    k.VirtualScanCode := (ScanValue shl 8) or Ord(k.AsciiChar);
+
+    PushKey(k);
+    if byte(k.AsciiChar) = 27 then PushKey(k);
+  end else
+    PushUnicodeKey (k,nKey,'?');
+end;
+
+procedure xterm_ModifyOtherKeys;
+{ format: CSI 27 ; modifier ; number ~ }
+var ch : AnsiChar;
+    fdsin : tfdSet;
+    st: string[31];
+    modifier : dword;
+    nKey : dword;
+    nr : byte;
+    i : dword;
+begin
+  fpFD_ZERO(fdsin);
+  fpFD_SET(StdInputHandle,fdsin);
+
+  nr:=0;
+  modifier:=1;
+  nKey:=0;
+  st:='0';
+  repeat
+     if inhead=intail then
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+     ch:=ttyRecvChar;
+     if ch in [';','~'] then
+     begin
+       if nr = 0 then val(st,modifier,i);
+       if nr = 1 then val(st,nKey,i);
+       inc(nr);
+       st:='0';
+     end else
+     begin
+       if not (ch in ['0'..'9']) then break;
+       st:=st+ch;
+     end;
+  until ch='~';
+
+  {test for validity}
+  if ch<>'~' then exit;
+  if nr<> 2  then exit;
+
+  buildKeyEvent(modifier,nKey);
+end;
+
+
 procedure LoadDefaultSequences;
 
 var i:cardinal;
@@ -1255,6 +1588,9 @@ var i:cardinal;
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
   AddSpecialSequence(#27'[<',@GenMouseEvent_ExtendedSGR1006);
+  if not isKittyKeys then
+    AddSpecialSequence(#27'[27;',@xterm_ModifyOtherKeys);
+
   {Unix backspace/delete hell... Is #127 a backspace or delete?}
   if copy(fpgetenv('TERM'),1,4)='cons' then
     begin
@@ -1271,6 +1607,7 @@ begin
   for i:=low(key_sequences) to high(key_sequences) do
     with key_sequences[i] do
       DoAddSequence(st,AnsiChar,scan,shift);
+  sunKeySquences;
 end;
 
 function RawReadKey:AnsiChar;
@@ -1433,21 +1770,336 @@ begin
   IsValidUtf8ContinuationByte:=(Ord(ch) and %11000000)=%10000000;
 end;
 
+const  cKeysUnicodePrivateBase = 57344; { unicode private area starts here}
+
+      kCapsLock = 14;
+      kScrollLock = 15;
+      kNumLock = 16;
+      kPrintScreen = 17;
+      kPauseBreak = 18;
+      kMenu = 19;
+
+      {Numpad keys}
+      kDecimal = 65;
+      kDivide = 66;
+      kMultiple = 67;
+      kMinuss = 68;
+      kPluss = 69;
+      kEnter = 70;
+      kEqual = 71;
+      kSeperator = 72;
+      kLeft = 73;
+      kRight = 74;
+      kUp = 75;
+      kDown = 76;
+      kPgUp = 77;
+      kPgDown = 78;
+      kHome = 79;
+      kEnd = 80;
+      kIns = 81;
+      kDel = 82;
+      kMiddle = 83;
+
+      {modifyers}
+      kShiftLeft = 97;
+      kCtrlLeft = 98;
+      kAltLeft = 99;
+      kSuperLeft = 100;
+
+      kShiftRight = 103;
+      kCtrlRight = 104;
+      kAltRight = 105;
+      kSuperRight  = 106;
+      kAltGr = 109;
+
+
+const { lookup tables for ScanCodes of numpad keys}
+      cKP_ScanVal : array [kDecimal..kMiddle] of byte = (
+      { kDecimal = 65;   } $53,
+      { kDivide = 66;    } $e0,
+      { kMultiple = 67;  } $37,
+      { kMinuss = 68;    } $4a,
+      { kPluss = 69;     } $4e,
+      { kEnter = 70;     } $e0,
+      { kEqual = 71;     } $f0, {none}
+      { kSeperator = 72; } $f1, {none}
+      { kLeft = 73;      } $4b,
+      { kRight = 74;     } $4d,
+      { kUp = 75;        } $48,
+      { kDown = 76;      } $50,
+      { kPgUp = 77;      } $49,
+      { kPgDown = 78;    } $51,
+      { kHome = 79;      } $47,
+      { kEnd = 80;       } $4f,
+      { kIns = 81;       } $52,
+      { kDel = 82;       } $53,
+      { kMiddle = 83;    } $4c);
+
+const cKP_CtrlScanVal : array [kDecimal..kMiddle] of byte = (
+      { kDecimal = 65;   } $93,
+      { kDivide = 66;    } $95,
+      { kMultiple = 67;  } $96,
+      { kMinuss = 68;    } $8e,
+      { kPluss = 69;     } $90,
+      { kEnter = 70;     } $e0,
+      { kEqual = 71;     } $f0, {none}
+      { kSeperator = 72; } $f1, {none}
+      { kLeft = 73;      } $73,
+      { kRight = 74;     } $74,
+      { kUp = 75;        } $8d,
+      { kDown = 76;      } $91,
+      { kPgUp = 77;      } $84,
+      { kPgDown = 78;    } $76,
+      { kHome = 79;      } $77,
+      { kEnd = 80;       } $75,
+      { kIns = 81;       } $92,
+      { kDel = 82;       } $93,
+      { kMiddle = 83;    } $8f);
+
+const cKP_AltScanVal : array [kDecimal..kMiddle] of byte = (
+      { kDecimal = 65;   } $93,
+      { kDivide = 66;    } $a4,
+      { kMultiple = 67;  } $37,
+      { kMinuss = 68;    } $4a,
+      { kPluss = 69;     } $4e,
+      { kEnter = 70;     } $a6,
+      { kEqual = 71;     } $f0, {none}
+      { kSeperator = 72; } $f1, {none}
+      { kLeft = 73;      } $9b,
+      { kRight = 74;     } $9d,
+      { kUp = 75;        } $98,
+      { kDown = 76;      } $a0,
+      { kPgUp = 77;      } $99,
+      { kPgDown = 78;    } $a1,
+      { kHome = 79;      } $97,
+      { kEnd = 80;       } $9f,
+      { kIns = 81;       } $92,
+      { kDel = 82;       } $93,
+      { kMiddle = 83;    } $8f);
+
+procedure buildKeyPadEvent(modifier:dword; nKey:dword; ch : AnsiChar);
+var k : TEnhancedKeyEvent;
+    SState: TEnhancedShiftState;
+    ScanValue : byte;
+begin
+  k:=NilEnhancedKeyEvent;
+  AltPrefix := 0;
+  ShiftPrefix := 0;
+  CtrlPrefix := 0;
+
+  { Shift states}
+  if modifier =  0 then modifier:=1;
+  modifier:=modifier-1;
+
+  SState:=[];
+  if (modifier and 1)>0 then SState:=SState+[essShift];
+  if (modifier and 2)>0 then SState:=SState+[essAlt];
+  if (modifier and 4)>0 then SState:=SState+[essCtrl];
+  k.ShiftState:=SState;
+
+  if nKey < 128 then
+  begin
+    if nKey = kEnter then
+    begin
+       if essAlt in SState then
+          ch:=#0
+       else if essCtrl in SState then
+          ch:=#$0a
+       else if essShift in SState then
+         ch:=#$0d
+       else
+         ch:=#$0d;
+    end;
+    if essAlt in SState then
+       k.AsciiChar:=#0
+    else if essCtrl in SState then
+       k.AsciiChar:=ch
+    else if essShift in SState then
+      k.AsciiChar:=ch
+    else
+      k.AsciiChar:=ch;
+
+    if essAlt in SState then
+       ScanValue :=cKP_AltScanVal[nKey]
+    else if essCtrl in SState then
+       ScanValue :=cKP_CtrlScanVal[nKey]
+    else if essShift in SState then
+      ScanValue :=cKP_ScanVal[nKey]
+    else
+      ScanValue :=cKP_ScanVal[nKey];
+
+    k.UnicodeChar := WideChar(k.AsciiChar);
+    k.VirtualScanCode := (ScanValue shl 8) or Ord(k.AsciiChar);
+
+    PushKey(k);
+  end;
+end;
+
 
 function ReadKey:TEnhancedKeyEvent;
 const
   ReplacementAsciiChar='?';
 var
-  store    : array [0..8] of AnsiChar;
+  store    : array [0..31] of AnsiChar;
   arrayind : byte;
   SState: TEnhancedShiftState;
 
+    procedure DecodeKittyKey(var k :TEnhancedKeyEvent; var NPT : PTreeElement);
+    var i : dword;
+        wc: wideChar;
+        ch: AnsiChar;
+        st:string[15];
+        escStr:string[15];
+        asIs:string[15];
+        unicodeCodePoint : longint;
+        z : longint;
+        NNPT : PTreeElement;
+
+        enh: array[0..11] of longint;
+
+        iE : dword;
+        kbDown : byte;
+        nKey : longint;
+        modifier: longint;
+    begin   {
+         if arrayind>0 then
+         for i:= 0 to arrayind-1 do
+         begin
+            write(hexstr(byte(store[i]),2),' ');
+         end;}
+         iE:=0;
+         fillchar(enh,sizeof(enh),$ff);
+         enh[3]:=1;
+         enh[4]:=1;
+         st:='';
+         asIs:='';
+
+         if arrayind > 2 then
+         for i:= 2 to arrayind-1 do
+         begin
+            ch:=store[i];
+            asIs:=asIs+ch;
+            if ch in ['0'..'9'] then st:=st+ch else
+            begin
+               if length(st)>0 then
+               begin
+                  val(st,unicodeCodePoint,z);
+                  enh[iE]:=unicodeCodePoint;
+               end;
+               st:='';
+               if ch =';' then begin iE:=((iE div 3)+1)*3; end else
+               if ch =':' then inc(iE);
+               if not (ch in [';',':']) then break;
+            end;
+         end;
+
+         nKey:=enh[0];
+         modifier:=((enh[3]-1)and 7)+1;
+         kbDown:=enh[4];
+
+         unicodeCodePoint:=0;
+         if kbDown <3 then
+         begin
+           unicodeCodePoint:=enh[6];
+           if unicodeCodePoint < 0 then
+              unicodeCodePoint:=enh[0];
+         end;
+         enh[5]:=modifier;
+
+         escStr:='';
+         ch:=store[arrayind-1];
+
+         if (ch='E') and (enh[6]>0) then ch:='u'; {this is one exception (numlock off, Shift+Center (numpad 5))}
+
+         case ch of
+            '~': begin
+                   if kbDown<3 then
+                   begin
+                     str(nKey,st);
+                     escStr:='_['+st;
+                     if modifier>1 then
+                     begin
+                       str(modifier,st);
+                       escStr:=escStr+';'+st;
+                     end;
+                     escStr:=escStr+ch;
+                     for i:=2 to length(escStr) do
+                     begin
+                       ch:=escStr[i];
+                       NPT:=FindChild(ord(ch),NPT);
+                       if not assigned(NPT) then
+                       begin
+                         break;
+                       end;
+                     end;
+                   end else NPT:=nil;
+                 end;
+
+            'A','B','C','D','E','F','H','P','Q','S':
+                 begin
+                   if kbDown<3 then
+                   begin
+                     escStr:='_[';
+                     if modifier>1 then
+                     begin
+                       str(modifier,st);
+                       escStr:=escStr+'1;'+st;
+                     end;
+                     escStr:=escStr+ch;
+                     for i:=2 to length(escStr) do
+                     begin
+                       ch:=escStr[i];
+                       NPT:=FindChild(ord(ch),NPT);
+                       if not assigned(NPT) then
+                       begin
+                         break;
+                       end;
+                     end;
+                   end else NPT:=nil;
+                 end;
+
+         otherwise
+               NPT:=nil;
+         end;
+
+         if kbDown =3 then arrayind:=0; {release keys are ignored}
+
+         if not assigned(NPT) and (ch='u') then
+         begin
+           if (unicodeCodePoint >=57344) and (unicodeCodePoint<=63743) then
+           begin
+             {function keys have been pressed}
+             arrayind:=0;
+             nKey:=unicodeCodePoint-cKeysUnicodePrivateBase;
+             if (nKey < 128) and (kbDown <3) then
+             begin
+               if nKey = 60 then nKey:= kMiddle; {KP_5 -> KP_BEGIN}
+               if nKey in [kDecimal..kMiddle] then
+               begin
+                 buildKeyPadEvent(modifier,nKey,#0);
+                 exit;
+               end else exit;
+             end else
+             {ignore...}
+             exit;
+           end;
+
+           if kbDown =3 then exit; {key up... ignored}
+
+           nKey:=unicodeCodePoint;
+
+           if nKey>-1 then
+              buildKeyEvent(modifier,nKey);
+           arrayind:=0;
+        end;
+    end;
 
     procedure RestoreArray;
       var
         i : byte;
         k : TEnhancedKeyEvent;
       begin
+        if arrayind>0 then
         for i:=0 to arrayind-1 do
         begin
           k := NilEnhancedKeyEvent;
@@ -1515,8 +2167,11 @@ var
   ch       : AnsiChar;
   fdsin    : tfdSet;
   NPT,NNPT : PTreeElement;
+  RootNPT  : PTreeElement;
+  FoundNPT : PTreeElement;
   k: TEnhancedKeyEvent;
   UnicodeCodePoint: LongInt;
+  i : dword;
 begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -1532,6 +2187,7 @@ begin
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   k:=NilEnhancedKeyEvent;
+
 {$ifdef linux}
   if is_console then
     SState:=EnhShiftState
@@ -1547,27 +2203,7 @@ begin
       if Utf8KeyboardInputEnabled then
         begin
           UnicodeCodePoint:=ReadUtf8(ch);
-          if UnicodeCodePoint<=$FFFF then
-            begin
-              { Code point is in the Basic Multilingual Plane (BMP)
-                -> encode as single WideChar }
-              k.UnicodeChar:=WideChar(UnicodeCodePoint);
-              if UnicodeCodePoint<=127 then
-                k.AsciiChar:=Chr(UnicodeCodePoint)
-              else
-                k.AsciiChar:=ReplacementAsciiChar;
-              PushKey(k);
-            end
-          else if UnicodeCodePoint<=$10FFFF then
-            begin
-              { Code point from the Supplementary Planes (U+010000..U+10FFFF)
-                -> encode as a surrogate pair of WideChars (as in UTF-16) }
-              k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) shr 10)+$D800);
-              k.AsciiChar:=ReplacementAsciiChar;
-              PushKey(k);
-              k.UnicodeChar:=WideChar(((UnicodeCodePoint-$10000) and %1111111111)+$DC00);
-              PushKey(k);
-            end;
+          PushUnicodeKey(k,UnicodeCodePoint,ReplacementAsciiChar);
         end
       else
         PushKey(k);
@@ -1578,7 +2214,11 @@ begin
       fpFD_SET(StdInputHandle,fdsin);
       store[0]:=ch;
       arrayind:=1;
-      while assigned(NPT) and syskeypressed do
+      RootNPT:=NPT;
+      FoundNPT:=nil;
+      if NPT^.CanBeTerminal then FoundNPT:=NPT;
+
+      while {assigned(NPT) and} syskeypressed do
         begin
           if inhead=intail then
             fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -1600,28 +2240,50 @@ begin
                   double_esc_hack_enabled:=false;
                 end;
             end;
-           NNPT:=FindChild(ord(ch),NPT);
-           if assigned(NNPT) then
-             begin
-               NPT:=NNPT;
-               if NPT^.CanBeTerminal and
-                  assigned(NPT^.SpecialHandler) then
-                 break;
-             End
-           else
-             begin
-               { Put that unused AnsiChar back into InBuf? }
-               if ch<>#0 then
-                 PutBackIntoInBuf(ch);
-               break;
-             end;
-           if ch<>#0 then
-             begin
-               store[arrayind]:=ch;
-               inc(arrayind);
-             end;
+          {save char later use }
+          store[arrayind]:=ch;
+          inc(arrayind);
+          if arrayind >= 31 then break;
+          {check tree for maching sequence}
+          if assigned(NPT) then
+            NNPT:=FindChild(ord(ch),NPT);
+          if assigned(NNPT) then
+            begin
+              NPT:=NNPT;
+              if NPT^.CanBeTerminal then
+              begin
+                FoundNPT:=NPT;
+                if assigned(NPT^.SpecialHandler) then
+                  break;
+              end;
+            End
+          else
+            NPT:=nil;  {not found and not looking for anymore, but don't let hope fade... read sequence till the end}
+          {check sequnce end conditions}
+          if (arrayind>2) and  (ch < #32) then
+          begin
+            {if two short escape sequences are back to back}
+            PutBackIntoInBuf(ch); { rolling back }
+            dec(arrayind);
+            break;
+          end;
+          if (arrayind>3) and not (ch in [';',':','0'..'9']) then break; {end of escape sequence}
         end;
-      if assigned(NPT) and NPT^.CanBeTerminal then
+
+        if (arrayind>3) then
+          if (ch = 'u'  )   { for sure kitty keys  or }
+              or ( isKittyKeys and  not assigned(FoundNPT) ) {probally kitty keys}
+              then
+            begin
+              if not (assigned(FoundNPT) and  assigned(FoundNPT^.SpecialHandler)) then
+                begin
+                  FoundNPT:=RootNPT;
+                  DecodeKittyKey(k,FoundNPT);
+                end;
+            end;
+
+       NPT:=FoundNPT;
+       if assigned(NPT) and NPT^.CanBeTerminal then
         begin
           if assigned(NPT^.SpecialHandler) then
             begin
@@ -1636,6 +2298,7 @@ begin
               k.AsciiChar := chr(NPT^.CharValue);
               k.UnicodeChar := WideChar(NPT^.CharValue);
               k.VirtualScanCode := (NPT^.ScanValue shl 8) or Ord(k.AsciiChar);
+              k.ShiftState:=k.ShiftState+NPT^.ShiftValue;
               PushKey(k);
             end;
         end
@@ -1645,15 +2308,64 @@ begin
 {$ifdef logging}
        writeln(f);
 {$endif logging}
-
   ReadKey:=PopKey;
 End;
 
+procedure KittyKeyAvailability;
+var st,zt : shortstring;
+    i: integer;
+    ch : AnsiChar;
+begin
+  if (kitty_keys_yes=kitty_keys_no) then {make this test just once}
+  begin
+    write(#27'[?u');   { request response! }
+    write(#27'[c');    { request device status (DA1) to get at least some answer. }
+    st:=RawReadString; { read the answer }
+    isKittyKeys:=false;
+    if length(st)>0 then
+    begin
+      zt:='';
+      for i:=1 to length(st) do
+      begin
+        ch:=st[i];
+        if ch = #27 then
+        begin
+          if zt = #27'[?31u' then
+          begin
+            isKittyKeys:=true;   {kitty keys supported and enabled}
+          end;
+          zt:='';
+        end;
+        zt:=zt+ch;
+      end;
+      if zt =#27'[?31u' then
+      begin
+        isKittyKeys:=true;   {kitty keys supported and enabled}
+      end;
+      kitty_keys_yes:= isKittyKeys;
+      kitty_keys_no := not isKittyKeys;
+    end;
+  end;
+end;
+
+procedure waitAndReadAfterArtifacts;
+var st : shortstring;
+  timewait,finalparsec : TimeSpec;
+  ree : longint;
+begin
+  if not kitty_keys_yes then exit;
+  timewait.tv_sec := 0;
+  timewait.tv_nsec := 100000000; {few nano seconds to wait}
+  ree:=fpNanoSleep(@timewait,@finalparsec);
+  st:='';
+  if syskeypressed then st:=RawReadString; {empty key buffer (key realeas might be pending)}
+end;
 
 { Exported functions }
 
 procedure SysInitKeyboard;
 begin
+  isKittyKeys:=false;
   PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
   Utf8KeyboardInputEnabled:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}UnixKVMBase.UTF8Enabled;
   SetRawMode(true);
@@ -1686,6 +2398,13 @@ begin
           write(#27'[?1036s'#27'[?1036h');
           double_esc_hack_enabled:=true;
         end;
+      {kitty_keys_no:=true;}
+      isKittyKeys:=kitty_keys_yes;
+      if kitty_keys_yes or (kitty_keys_yes=kitty_keys_no) then
+         write(#27'[>31u'); { try to set up kitty keys }
+      KittyKeyAvailability;
+      if not isKittyKeys then
+        write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
 {$ifdef linux}
     end;
 {$endif}
@@ -1700,6 +2419,14 @@ begin
   if is_console then
   unpatchkeyboard;
 {$endif linux}
+  if not isKittyKeys then
+    write(#27'[>4m'); { xterm -> reset to default modifyOtherKeys }
+  if kitty_keys_yes then
+  begin
+    write(#27'[<u'); {if we have kitty keys, disable them}
+    waitAndReadAfterArtifacts;
+    isKittyKeys:=false;
+  end;
 
   if copy(fpgetenv('TERM'),1,5)='xterm' then
      {Restore the old alt key behaviour.}
@@ -1762,14 +2489,9 @@ const
     kbCtrlCenter,kbCtrlRight,kbAltGrayPlus,kbCtrlEnd,
     kbCtrlDown,kbCtrlPgDn,kbCtrlIns,kbCtrlDel);
   AltArrow : array [kbHome..kbDel] of byte =
-   (kbAltHome,kbAltUp,kbAltPgUp,kbNoKey,kbAltLeft,
-    kbCenter,kbAltRight,kbAltGrayPlus,kbAltEnd,
+   (kbAltHome,kbAltUp,kbAltPgUp,{kbNoKey}$4a,kbAltLeft,
+    kbAltCenter,kbAltRight,kbAltGrayPlus,kbAltEnd,
     kbAltDown,kbAltPgDn,kbAltIns,kbAltDel);
-  ShiftArrow : array [kbShiftUp..kbShiftPgDn] of byte =
-   (kbUp,kbLeft,kbRight,kbDown,kbHome,kbEnd,kbPgUp,kbPgDn);
-  CtrlShiftArrow : array [kbCtrlShiftUp..kbCtrlShiftPgDn] of byte =
-   (kbCtrlUp,kbCtrlDown,kbCtrlRight,kbCtrlLeft,kbCtrlHome,kbCtrlEnd,kbCtrlPgUp,kbCtrlPgDn);
-
 var
   MyScan:byte;
   MyChar : AnsiChar;
@@ -1829,18 +2551,6 @@ begin {main}
               MyScan:=MyScan+kbShiftF1-kbF1;
             kbF11..KbF12 : { sF11-sF12 }
               MyScan:=MyScan+kbShiftF11-kbF11;
-          end;
-        if myscan in [kbShiftUp..kbCtrlShiftPgDn] then
-          begin
-            if myscan <= kbShiftPgDn then
-            begin
-               myscan:=ShiftArrow[myscan];
-               Include(sstate, essShift);
-            end else
-            begin
-               myscan:=CtrlShiftArrow[myscan];
-               sstate:=sstate + [essShift, essCtrl];
-            end;
           end;
         if myscan=kbAltBack then
           Include(sstate, essAlt);
@@ -1905,10 +2615,11 @@ begin {main}
         MyScan:=MyKey.VirtualScanCode shr 8;
       end;
   until not Again;
-  MyScan:=EvalScan(ord(MyChar));
+  if MyScan = 0 then
+      MyScan:=EvalScan(ord(MyChar));
   if (essCtrl in SState) and (not (essAlt in SState)) then
     begin
-      if MyChar=#9 then
+      if (MyChar=#9) and (MyScan <> $17) then
         begin
           MyChar:=#0;
           MyUniChar:=WideChar(0);
@@ -1917,13 +2628,13 @@ begin {main}
     end
   else if (essAlt in SState) and (not (essCtrl in SState)) then
     begin
-      if MyChar=#9 then
+      if (MyChar=#9) and (MyScan <> $17) then
         begin
           MyChar:=#0;
           MyUniChar:=WideChar(0);
           MyScan:=kbAltTab;
         end
-      else
+      else if (MyScan <> $17) then
         begin
           if MyScan in [$02..$0D] then
             inc(MyScan,$76);
@@ -1932,7 +2643,7 @@ begin {main}
         end;
     end
   else if essShift in SState then
-    if MyChar=#9 then
+    if (MyChar=#9) and (MyScan <> $17) then
       begin
         MyChar:=#0;
         MyUniChar:=WideChar(0);
