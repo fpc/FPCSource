@@ -21,7 +21,7 @@ interface
 uses
   Dos,Objects,Drivers,
   FVConsts,
-  Views,Menus,Dialogs,App,Gadgets,Tabs,
+  Views,Menus,Dialogs,StdDlg,App,Gadgets,Tabs,
   ASCIITAB,
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
@@ -381,6 +381,11 @@ type
       ScreenView : PScreenView;
       constructor Init(AScreen: PScreen; ANumber: integer);
       destructor  Done; virtual;
+    end;
+
+    PFPChDirDialog = ^TFPChDirDialog;
+    TFPChDirDialog = object(TChDirDialog)
+      constructor Init(AOptions: Word; HistoryId: Sw_Word);
     end;
 
     PFPAboutDialog = ^TFPAboutDialog;
@@ -3658,7 +3663,7 @@ begin
   if HeaderLen>Size.X-2 then HeaderLen:=Size.X-2;
 
   { --- 1. sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[HeaderLen+1],'³',C1,1);
+  ClearBuf; MoveChar(B[0],''#$B3'',C1,1); MoveChar(B[HeaderLen+1],''#$B3'',C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
@@ -3671,47 +3676,47 @@ begin
                 end
            else C:=C2;
         MoveCStr(B[X],' '+Name^+' ',C); X:=X+X2+3;
-        MoveChar(B[X-1],'³',C1,1);
+        MoveChar(B[X-1],''#$B3'',C1,1);
       end;
   SWriteBuf(0,1,Size.X,1,B);
 
   { --- 0. sor --- }
-  ClearBuf; MoveChar(B[0],'Ú',C1,1);
+  ClearBuf; MoveChar(B[0],''#$DA'',C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-        if I<ActiveDef then FC:='Ú'
-                       else FC:='¿';
+        if I<ActiveDef then FC:=#$DA
+                       else FC:=#$BF;
         X2:=CStrLen(AtTab(i)^.Name^)+2;
-        MoveChar(B[X+X2],{'Â'}FC,C1,1);
+        MoveChar(B[X+X2],{''#$C2''}FC,C1,1);
         if i=DefCount-1 then X2:=X2+1;
         if X2>0 then
-        MoveChar(B[X],'Ä',C1,X2);
+        MoveChar(B[X],''#$C4'',C1,X2);
         X:=X+X2+1;
       end;
-  MoveChar(B[HeaderLen+1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ú',C1,1); MoveChar(B[ActiveVPos],'¿',C1,1);
+  MoveChar(B[HeaderLen+1],#$BF,C1,1);
+  MoveChar(B[ActiveKPos],#$DA,C1,1); MoveChar(B[ActiveVPos],#$BF,C1,1);
   SWriteBuf(0,0,Size.X,1,B);
 
   { --- 2. sor --- }
-  MoveChar(B[1],'Ä',C1,Max(HeaderLen,0)); MoveChar(B[HeaderLen+2],'Ä',C1,Max(Size.X-HeaderLen-3,0));
-  MoveChar(B[Size.X-1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ù',C1,1);
-  if ActiveDef=0 then MoveChar(B[0],'³',C1,1)
-                 else MoveChar(B[0],{'Ã'}'Ú',C1,1);
-  MoveChar(B[HeaderLen+1],'Ä'{'Á'},C1,1); MoveChar(B[ActiveVPos],'À',C1,1);
+  MoveChar(B[1],#$C4,C1,Max(HeaderLen,0)); MoveChar(B[HeaderLen+2],#$C4,C1,Max(Size.X-HeaderLen-3,0));
+  MoveChar(B[Size.X-1],#$BF,C1,1);
+  MoveChar(B[ActiveKPos],#$D9,C1,1);
+  if ActiveDef=0 then MoveChar(B[0],#$B3,C1,1)
+                 else MoveChar(B[0],{#$C3}#$DA,C1,1);
+  MoveChar(B[HeaderLen+1],#$C4{''#$C1''},C1,1); MoveChar(B[ActiveVPos],#$C0,C1,1);
   MoveChar(B[ActiveKPos+1],' ',C1,Max(ActiveVPos-ActiveKPos-1,0));
   SWriteBuf(0,2,Size.X,1,B);
 
-  { --- marad‚k sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[Size.X-1],'³',C1,1);
+  { --- marad#$82k sor --- }
+  ClearBuf; MoveChar(B[0],''#$B3'',C1,1); MoveChar(B[Size.X-1],''#$B3'',C1,1);
   for i:=3 to Size.Y-1 do
     SWriteBuf(0,i,Size.X,1,B);
   { SWriteBuf(0,3,Size.X,Size.Y-4,B); this was wrong
     because WriteBuf then expect a buffer of size size.x*(size.y-4)*2 PM }
 
   { --- Size.X . sor --- }
-  MoveChar(B[0],'À',C1,1); MoveChar(B[1],'Ä',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],'Ù',C1,1);
+  MoveChar(B[0],''#$C0'',C1,1); MoveChar(B[1],''#$C4'',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],''#$D9'',C1,1);
   SWriteBuf(0,Size.Y-1,Size.X,1,B);
 
   { - End of TGroup.Draw - }
@@ -4244,6 +4249,40 @@ begin
   if Lines<>nil then Dispose(Lines, Done);
 end;
 
+constructor TFPChDirDialog.Init(AOptions: Word; HistoryId: Sw_Word);
+var
+  R: TRect;
+  DInput  : PEditorInputLine;
+  Control : PView;
+  History : PHistory;
+  S : String;
+begin
+   inherited init(AOptions,HistoryId);
+   HelpCtx:=hcChangeDir;
+   {replace TInputLine with TEditorInputLine in order to be able to use Clipboard in it}
+   DirInput^.getData(S);
+   R.Assign(3, 3, 30, 4);
+   DInput := New(PEditorInputLine, Init(R, FileNameLen+4));
+   DInput^.SetData(S);
+   InsertBefore(DInput,DirInput); {insert before to preserv order as it was}
+   Delete(DirInput);
+   Dispose(DirInput,done);
+   DirInput:=DInput;
+   Control:=DirInput^.Next; {here we make assumption that THistory control will folow}
+   while (Control<> nil) do
+   begin
+     if TypeOf(Control^) = TypeOf(THistory) then
+     begin
+       History:=PHistory(Control);
+       History^.Link:=DirInput;
+       break;
+     end;
+     Control:=Control^.Next;
+   end;
+   {set focus on the new input line}
+   DirInput^.Focus;
+end;
+
 constructor TFPAboutDialog.Init;
 var R,R2: TRect;
     C: PUnsortedStringCollection;
@@ -4297,7 +4336,7 @@ begin
     R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2020 by')));
   R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
+  Insert(New(PStaticText, Init(R2, ^C'B'#$82'rczi G'#$A0'bor')));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Pierre Muller')));
   R2.Move(0,1);
@@ -4313,14 +4352,14 @@ begin
   AddLine(^C'< Compiler development >');
   AddLine(^C'Carl-Eric Codere');
   AddLine(^C'Daniel Mantione');
-  AddLine(^C'Florian Kl„mpfl');
+  AddLine(^C'Florian Kl'#$84'mpfl');
   AddLine(^C'Jonas Maebe');
-  AddLine(^C'Mich„el Van Canneyt');
+  AddLine(^C'Mich'#$84'el Van Canneyt');
   AddLine(^C'Peter Vreman');
   AddLine(^C'Pierre Muller');
   AddLine('');
   AddLine(^C'< IDE development >');
-  AddLine(^C'B‚rczi G bor');
+  AddLine(^C'B'#$82'rczi G'#$A0'bor');
   AddLine(^C'Peter Vreman');
   AddLine(^C'Pierre Muller');
   AddLine('');
