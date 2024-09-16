@@ -23,7 +23,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.12';
+     VersionStr           = '1.0.14';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
