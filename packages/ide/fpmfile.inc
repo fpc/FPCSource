@@ -124,7 +124,7 @@ begin
          OpenEditorWindow(nil,FileName,0,0);
          if (MiscOptions and moChangeDirOnOpen)<>0 then
           begin
-            ChDir(DirOf(filename)); 
+            ChDir(DirOf(filename));
             CurDirChanged;
             GetDir(0,StartUpDir);
           end;
@@ -213,10 +213,9 @@ end;
 
 procedure TIDEApp.ChangeDir;
 var
-  D : PChDirDialog;
+  D : PFPChDirDialog;
 begin
   New(D, Init(cdNormal, hisChDirDialog));
-  D^.HelpCtx:=hcChangeDir;
   ExecuteDialog(D,nil);
   CurDirChanged;
   { Set new startup dir }
