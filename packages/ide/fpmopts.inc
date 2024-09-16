@@ -255,7 +255,6 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label52, Init(R2, label_compiler_assemblerinfo, CB5));
 
-    Count:=AsmOutputSwitches^.ItemCount;
     UpdateAsmOutputSwitches;
     Count:=AsmOutputSwitches[SwitchesMode]^.ItemCount;
     R2.Copy(TabIR);
