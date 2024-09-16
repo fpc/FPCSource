@@ -192,6 +192,8 @@ type
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      procedure   Show; virtual;
+      procedure   Hide; virtual;
       procedure   Close; virtual;
       destructor  Done; virtual;
     end;
@@ -446,6 +448,7 @@ function IsWindow(P: PView): boolean;
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
 function IsThereAnyVisibleWindow: boolean;
+function IsThereAnyVisibleEditorWindow: boolean; {any visible Source Editor, including Clipboard}
 function IsThereAnyNumberedWindow: boolean;
 function FirstEditorWindow: PSourceWindow;
 function EditorWindowFile(const Name : String): PSourceWindow;
@@ -801,6 +804,15 @@ begin
 end;
 begin
   IsThereAnyVisibleWindow:=Desktop^.FirstThat(@CheckIt)<>nil;
+end;
+
+function IsThereAnyVisibleEditorWindow: boolean;
+function EditorWindow(P: PView): boolean;
+begin
+  EditorWindow:=((P^.HelpCtx=hcSourceWindow) or (P^.HelpCtx=hcClipboardWindow)) and P^.GetState(sfVisible);
+end;
+begin
+  IsThereAnyVisibleEditorWindow:=Desktop^.FirstThat(@EditorWindow)<>nil;
 end;
 
 function FirstEditorWindow: PSourceWindow;
@@ -2323,7 +2335,7 @@ begin
     SetCmdState(SourceCmds+CompileCmds,Active);
     SetCmdState(EditorCmds,Active);
   end;
-  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd+[cmHide],Active);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -2364,6 +2376,17 @@ begin
   PopStatus;
 end;
 
+procedure TSourceWindow.Show;
+begin
+  inherited Show;
+  IDEApp.SetCmdState([cmTile,cmCascade],true);
+end;
+
+procedure TSourceWindow.Hide;
+begin
+  inherited Hide;
+  IDEApp.SetCmdState([cmTile,cmCascade],IsThereAnyVisibleEditorWindow);
+end;
 
 procedure TSourceWindow.Close;
 begin
@@ -3931,6 +3954,10 @@ begin
     { this makes loading a lot slower and is not needed as far as I can see (FK)
     Message(Application,evBroadcast,cmUpdate,nil);
     }
+    if ShowIt then
+      W^.SetCmdState([cmTile,cmCascade,cmSaveAll],true)
+    else
+      W^.SetCmdState([cmSaveAll],true);
   end;
   PopStatus;
   IOpenEditorWindow:=W;
