@@ -1928,7 +1928,8 @@ begin
       end;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
-  end;
+  end else
+    Message(Application,evBroadcast,cmSaveCancelled,@Self);
 end;
 
 function TFileEditor.SaveAsk(Command: Word; Force: boolean): boolean;
