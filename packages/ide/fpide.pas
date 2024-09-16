@@ -106,6 +106,7 @@ type
       procedure DoShowRegisters;
       procedure DoShowFPU;
       procedure DoShowVector;
+      function  CheckModifiedEditor:boolean;
       function  AskRecompileIfModified:boolean;
       procedure Messages;
       procedure Calculator;
