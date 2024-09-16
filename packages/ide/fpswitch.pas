@@ -178,12 +178,14 @@ var
     ProcessorOptimizationSwitches,
     AsmReaderSwitches,
     AsmInfoSwitches,
-    AsmOutputSwitches,
     TargetSwitches,
     ConditionalSwitches,
     MemorySwitches,
     BrowserSwitches,
     DirectorySwitches : PSwitches;
+
+    {Every mode can have different target, thus have its own AsmOutput}
+    AsmOutputSwitches: array [TSwitchMode] of PSwitches;
 
 { write/read the Switches to fpc.cfg file }
 procedure WriteSwitches(const fn:string);
@@ -966,7 +968,8 @@ begin
      ProcessorOptimizationSwitches^.WriteItemsCfg;
      AsmReaderSwitches^.WriteItemsCfg;
      AsmInfoSwitches^.WriteItemsCfg;
-     AsmOutputSwitches^.WriteItemsCfg;
+     if assigned(AsmOutputSwitches[SwitchesMode]) then
+       AsmOutputSwitches[SwitchesMode]^.WriteItemsCfg;
      DirectorySwitches^.WriteItemsCfg;
      MemorySwitches^.WriteItemsCfg;
      ConditionalSwitches^.WriteItemsCfg;
@@ -1015,7 +1018,10 @@ begin
       Delete(s,1,2);
       case c of
        'a' : res:=AsmInfoSwitches^.ReadItemsCfg(s);
-       'A' : res:=AsmOutputSwitches^.ReadItemsCfg(s);
+       'A' : begin
+               UpdateAsmOutputSwitches;
+               res:=AsmOutputSwitches[SwitchesMode]^.ReadItemsCfg(s);
+             end;
        'b' : res:=BrowserSwitches^.ReadItemsCfg(s);
        'C' : begin
                res:=CodegenSwitches^.ReadItemsCfg(s);
@@ -1100,24 +1106,46 @@ end;
 procedure UpdateAsmOutputSwitches;
 var
   ta : tasm;
+  zt : tsystem;
+  sy : tsystem;
+  sw : TSwitchMode;
   st : string;
+  L : String;
+  t : string;
 begin
-  if assigned(AsmOutputSwitches) then
-    dispose(AsmOutputSwitches,Done);
-  New(AsmOutputSwitches,InitSelect('A'));
-  with AsmOutputSwitches^ do
+  sw:=SwitchesMode;
+  t:='';
+  if assigned(TargetSwitches) then
+    t:=TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel);
+  sy:=target_info.system;
+  for zt:=low(tsystem) to high(tsystem) do
+    if assigned(targetinfos[zt]) then
+    begin
+      if targetinfos[zt]^.name = t then
+      begin
+        sy:=zt;
+        break;
+      end;
+    end;
+  L:='';
+  if assigned(AsmOutputSwitches[sw]) then
+  begin
+    L:=AsmOutputSwitches[sw]^.GetCurrSelParam;
+    dispose(AsmOutputSwitches[sw],Done);
+  end;
+  New(AsmOutputSwitches[sw],InitSelect('A'));
+  with AsmOutputSwitches[sw]^ do
    begin
-
      AddDefaultSelect(opt_usedefaultas);
      for ta:=low(tasm) to high(tasm) do
        if assigned(asminfos[ta]) and
-         ((target_info.system in asminfos[ta]^.supported_targets) or
+         ((sy in asminfos[ta]^.supported_targets) or
          (system_any in asminfos[ta]^.supported_targets)) then
          begin
            st:='Asm '+asminfos[ta]^.idtxt;
            if asminfos[ta]^.idtxt='AS' then
              st:=opt_usegnuas;
-{$ifdef I386}
+{$if defined(I386) or defined(x86_64)}
            if asminfos[ta]^.idtxt='NASMCOFF' then
              st:=opt_usenasmcoff;
            if asminfos[ta]^.idtxt='NASMOBJ' then
@@ -1148,6 +1176,7 @@ begin
            AddSelectItem(st,asminfos[ta]^.idtxt,idNone);
          end;
    end;
+   AsmOutputSwitches[sw]^.SetCurrSelParam(L);
 end;
 
 {*****************************************************************************
@@ -1476,7 +1505,7 @@ begin
 end;
 
 procedure DoneSwitches;
-
+var sw : TSwitchMode;
 begin
   dispose(SyntaxSwitches,Done);
   dispose(CompilerModeSwitches,Done);
@@ -1488,7 +1517,6 @@ begin
   dispose(BrowserSwitches,Done);
   dispose(TargetSwitches,Done);
   dispose(AsmReaderSwitches,Done);
-  dispose(AsmOutputSwitches,Done);
   dispose(AsmInfoSwitches,Done);
   dispose(ConditionalSwitches,Done);
   dispose(MemorySwitches,Done);
@@ -1499,6 +1527,9 @@ begin
   dispose(LinkAfterSwitches,Done);
   dispose(OtherLinkerSwitches,Done);
   dispose(ProfileInfoSwitches,Done);
+  for sw:=low(TSwitchMode) to high(TSwitchMode) do
+    if assigned(AsmOutputSwitches[sw]) then
+      dispose(AsmOutputSwitches[sw],Done);
 end;
 
 procedure GetCompilerOptionLines(C: PUnsortedStringCollection);
@@ -1575,7 +1606,7 @@ begin
   EnumSwitches(ProcessorCodeGenerationSwitches);
   EnumSwitches(AsmReaderSwitches);
   EnumSwitches(AsmInfoSwitches);
-  EnumSwitches(AsmOutputSwitches);
+  EnumSwitches(AsmOutputSwitches[SM]);
   EnumSwitches(TargetSwitches);
   EnumSwitches(ConditionalSwitches);
   EnumSwitches(MemorySwitches);

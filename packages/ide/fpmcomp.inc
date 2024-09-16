@@ -50,6 +50,7 @@ begin
        if L<>RB^.Value then
          PrevMainFile:='';
        UpdateTarget;
+       UpdateAsmOutputSwitches;
     end;
   Dispose(D, Done);
 end;
