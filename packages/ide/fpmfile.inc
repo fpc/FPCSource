@@ -200,7 +200,8 @@ function TIDEApp.SaveAll: boolean;
 
   procedure SendSave(P: PView);
   begin
-    Message(P,evCommand,cmSave,nil);
+    if not SaveCancelled then
+      Message(P,evCommand,cmSave,nil);
   end;
 
 begin
