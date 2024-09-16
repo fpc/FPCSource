@@ -101,6 +101,7 @@ type
       procedure DoShowRegisters;
       procedure DoShowFPU;
       procedure DoShowVector;
+      function  CheckModifiedEditor:boolean;
       function  AskRecompileIfModified:boolean;
       procedure Messages;
       procedure Calculator;
@@ -1088,7 +1089,7 @@ begin
       StdStatusKeys(
       NewStatusKey('~Cursor~ Move', kbNoKey, 65535,
       NewStatusKey('~Shift+Cursor~ Size', kbNoKey, 65535,
-      NewStatusKey('~'#17'~ Done', kbNoKey, 65535, {#17 = left arrow}
+      NewStatusKey('~'#17#$C4#$D9'~ Done', kbNoKey, 65535, {#17 = left arrow}
       NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
       nil)))))),
     NewStatusDef(hcStackWindow, hcStackWindow,

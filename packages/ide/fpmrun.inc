@@ -15,16 +15,12 @@
 
 {$define MODIFIEDINDEBUG}
 
-function TIDEApp.AskRecompileIfModified:boolean;
+function TIDEApp.CheckModifiedEditor:boolean;
 var
   PW,PPW : PSourceWindow;
-  Checkmodifiededitor : boolean;
+  Checkmodified : boolean;
 begin
-  AskRecompileIfModified:=false;
-{$ifdef MODIFIEDINDEBUG}
-  if not AskRecompileIfModifiedFlag then
-   exit;
-  Checkmodifiededitor:=false;
+  Checkmodified:=false;
   PW:=FirstEditorWindow;
   PPW:=PW;
   while assigned(PW) do
@@ -34,7 +30,7 @@ begin
         if pw^.editor^.getmodified then
          if pw^.editor^.core^.getmodifytime > LastCompileTime then
            begin
-             Checkmodifiededitor:=true;
+             Checkmodified:=true;
              break;
            end;
       end;
@@ -44,7 +40,16 @@ begin
      If PW=PPW then
       break;
    end;
-  if Checkmodifiededitor then
+  CheckModifiedEditor:=Checkmodified;
+end;
+
+function TIDEApp.AskRecompileIfModified:boolean;
+begin
+  AskRecompileIfModified:=false;
+{$ifdef MODIFIEDINDEBUG}
+  if not AskRecompileIfModifiedFlag then
+    exit;
+  if CheckModifiedEditor then
    begin
      if (MessageBox(#3+'You''ve edited a file, recompile the project?',nil,mfinformation+mfyesbutton+mfnobutton)=cmYes) then
       begin
@@ -187,7 +192,7 @@ begin
 {$endif}
     begin
       if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
-         NeedRecompile(cRun,false) then
+         NeedRecompile(cRun,false) or CheckModifiedEditor then
         begin
           DoCompile(cRun);
           if CompilationPhase<>cpDone then
@@ -235,6 +240,9 @@ begin
               else
                 Debugger^.Run;
               RunDirect:=false;
+              {we are about to run debuger, AutoSave first}
+              SaveCancelled:=false;
+              AutoSave; {ignore result, ignore if canceled}
             end;
         end;
 {$endif ndef NODEBUG}
