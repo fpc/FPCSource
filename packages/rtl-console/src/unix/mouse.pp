@@ -181,7 +181,7 @@ begin
         t:=i;
         break;
       end;
-  if t=xterm then 
+  if t=xterm then
     begin
       {Rxvt sets TERM=xterm and COLORTERM=rxvt. Gnome does something similar.}
       term:=fpgetenv('COLORTERM');
@@ -229,7 +229,8 @@ begin
       begin
         {Use the xterm mouse, report all mouse events.}
         gpm_fs:=-1003;
-        write(#27'[?1003h'); { enable mouse tracking }
+        write(#27'[?1002h'); { enable mouse down, up and drag tracking (putty pretend to be xterm but doesn't have _[?1003h mode)}
+        write(#27'[?1003h'); { enable mouse all motion tracking }
         if not DisableSGRExtModeMouse then
           write(#27'[?1006h'); { try to enable Extended/SGH 1006 mouse tracking }
       end;
@@ -271,7 +272,8 @@ begin
       end;
     -1003:
       begin
-        write(#27'[?1003l'); { disable mouse tracking }
+        write(#27'[?1003l'); { disable mouse all motion tracking }
+        write(#27'[?1002l'); { disable mouse down, up and drag tracking }
         if not DisableSGRExtModeMouse then
           write(#27'[?1006l'); { disable Extended/SGH 1006 mouse tracking }
       end;
