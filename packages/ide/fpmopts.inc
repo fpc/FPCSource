@@ -256,16 +256,17 @@ begin
     New(Label52, Init(R2, label_compiler_assemblerinfo, CB5));
 
     Count:=AsmOutputSwitches^.ItemCount;
+    UpdateAsmOutputSwitches;
+    Count:=AsmOutputSwitches[SwitchesMode]^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
-    UpdateAsmOutputSwitches;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(AsmOutputSwitches^.ItemName(I), Items);
+      Items:=NewSItem(AsmOutputSwitches[SwitchesMode]^.ItemName(I), Items);
     New(RB6, Init(R2, Items));
-    L:=AsmOutputSwitches^.GetCurrSel;
+    L:=AsmOutputSwitches[SwitchesMode]^.GetCurrSel;
     RB6^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
@@ -348,7 +349,7 @@ begin
     AsmReaderSwitches^.SetCurrSel(RB5^.Value);
     for I:=0 to AsmInfoSwitches^.ItemCount-1 do
       AsmInfoSwitches^.SetBooleanItem(I,CB5^.Mark(I));
-    AsmOutputSwitches^.SetCurrSel(RB6^.Value);
+    AsmOutputSwitches[SwitchesMode]^.SetCurrSel(RB6^.Value);
     BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
     CustomArg[SwitchesMode]:=IL2^.Data^;
@@ -464,11 +465,11 @@ begin
     OtherLinkerSwitches^.SetBooleanItem(1,CB2^.Mark(0));
     if LibLinkerSwitches^.GetCurrSelParam='X' then
      if CompareText(TargetSwitches^.GetCurrSelParam,'Windows')=0 then
-      if CompareText(AsmOutputSwitches^.GetCurrSelParam,'pecoff')<>0 then
+      if CompareText(AsmOutputSwitches[SwitchesMode]^.GetCurrSelParam,'pecoff')<>0 then
         if ConfirmBox(
           FormatStrStr3(msg_xmustbesettoyforz_doyouwanttochangethis,
            label_compiler_assembleroutput,'pecoff','smartlinking'),nil,false)=cmYes then
-             AsmOutputSwitches^.SetCurrSelParam('pecoff');
+             AsmOutputSwitches[SwitchesMode]^.SetCurrSelParam('pecoff');
     for I:=0 to LinkAfterSwitches^.ItemCount-1 do
       LinkAfterSwitches^.SetBooleanItem(I,CB^.Mark(I));
   end;
