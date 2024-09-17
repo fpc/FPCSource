@@ -3446,7 +3446,7 @@ implementation
                            else
                              if hdef.typ=procdef then
                                begin
-                                 if block_type<>bt_body then
+                                 if not(block_type in inline_specialization_block_types) then
                                    message(parser_e_illegal_expression);
                                  srsym:=tprocdef(hdef).procsym;
                                  if assigned(spezcontext.symtable) then
@@ -3721,7 +3721,7 @@ implementation
              dopostfix:=false
            else
              if (m_delphi in current_settings.modeswitches) and
-                 (block_type=bt_body) and
+                 (block_type in inline_specialization_block_types) and
                  (token in [_LT,_LSHARPBRACKET]) then
                begin
                  idstr:='';
