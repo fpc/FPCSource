@@ -486,6 +486,10 @@ implementation
            else
              internalerror(200104141);
          end;
+
+         { Currency variables are scaled by 10000 when stored }
+         if is_currency(resultdef) then
+           Include(flags, nf_is_currency);
       end;
 
     procedure Tloadnode.mark_write;
