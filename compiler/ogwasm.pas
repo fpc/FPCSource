@@ -279,6 +279,7 @@ interface
 
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
+        FWasmNameSubsections: array [TWasmNameSubsectionType] of tdynamicarray;
         FStackPointerSym: TWasmObjSymbol;
         FTlsBaseSym: TWasmObjSymbol;
         FTlsSizeSym: TWasmObjSymbol;
@@ -287,6 +288,12 @@ interface
         FInitSharedMemoryFunctionSym: TWasmObjSymbol;
         FMinMemoryPages,
         FMaxMemoryPages: Integer;
+        { use for the Name section }
+        FFunctionNameMap: array of record
+          idx: UInt32;
+          name: string;
+        end;
+        procedure AddToFunctionNameMap(aidx: UInt32; const aname: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
@@ -321,7 +328,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,version,globals,ogmap;
+      cutils,verbose,version,globals,fmodule,ogmap;
 
     const
       StackPointerSymStr='__stack_pointer';
@@ -4764,6 +4771,16 @@ implementation
                                TWasmExeOutput
 ****************************************************************************}
 
+    procedure TWasmExeOutput.AddToFunctionNameMap(aidx: UInt32; const aname: string);
+      begin
+        SetLength(FFunctionNameMap,Length(FFunctionNameMap)+1);
+        with FFunctionNameMap[High(FFunctionNameMap)] do
+          begin
+            idx:=aidx;
+            name:=aname;
+          end;
+      end;
+
     procedure TWasmExeOutput.WriteWasmSection(wsid: TWasmSectionID);
       var
         b: byte;
@@ -5084,6 +5101,35 @@ implementation
             end;
         end;
 
+      procedure WriteNameSubsection(wnst: TWasmNameSubsectionType);
+        begin
+          if FWasmNameSubsections[wnst].size>0 then
+            begin
+              WriteByte(FWasmCustomSections[wcstName],Ord(wnst));
+              WriteUleb(FWasmCustomSections[wcstName],FWasmNameSubsections[wnst].size);
+              FWasmNameSubsections[wnst].seek(0);
+              CopyDynamicArray(FWasmNameSubsections[wnst],FWasmCustomSections[wcstName],FWasmNameSubsections[wnst].size);
+            end;
+        end;
+
+      procedure WriteNameSection;
+        var
+          i: Integer;
+        begin
+          WriteName(FWasmNameSubsections[wnstModuleName],current_module.exefilename);
+
+          WriteUleb(FWasmNameSubsections[wnstFunctionNames],Length(FFunctionNameMap));
+          for i:=low(FFunctionNameMap) to high(FFunctionNameMap) do
+            with FFunctionNameMap[i] do
+              begin
+                WriteUleb(FWasmNameSubsections[wnstFunctionNames],idx);
+                WriteName(FWasmNameSubsections[wnstFunctionNames],name);
+              end;
+
+          WriteNameSubsection(wnstModuleName);
+          WriteNameSubsection(wnstFunctionNames);
+        end;
+
       var
         cust_sec: TWasmCustomSectionType;
       begin
@@ -5128,6 +5174,8 @@ implementation
         if ts_wasm_threads in current_settings.targetswitches then
           WriteUleb(FWasmSections[wsiStart],FInitSharedMemoryFunctionSym.LinkingData.ExeFunctionIndex);
 
+        WriteNameSection;
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
         WriteWasmSection(wsiType);
@@ -5153,6 +5201,8 @@ implementation
         MaybeWriteDebugSection(wcstDebugFrame);
         MaybeWriteDebugSection(wcstDebugAranges);
         MaybeWriteDebugSection(wcstDebugRanges);
+
+        WriteWasmCustomSection(wcstName);
 
         result := true;
       end;
@@ -5309,6 +5359,7 @@ implementation
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
+        k: TWasmNameSubsectionType;
       begin
         inherited create;
         CObjData:=TWasmObjData;
@@ -5319,6 +5370,8 @@ implementation
           FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
         for j in TWasmCustomSectionType do
           FWasmCustomSections[j] := tdynamicarray.create(SectionDataMaxGrow);
+        for k:=low(FWasmNameSubsections) to high(FWasmNameSubsections) do
+          FWasmNameSubsections[k] := tdynamicarray.create(SectionDataMaxGrow);
         SetLength(FIndirectFunctionTable,1);
         FIndirectFunctionTable[0].FuncIdx:=-1;
       end;
@@ -5327,11 +5380,14 @@ implementation
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
+        k: TWasmNameSubsectionType;
       begin
         for i in TWasmSectionID do
           FWasmSections[i].Free;
         for j in TWasmCustomSectionType do
           FWasmCustomSections[j].Free;
+        for k:=low(FWasmNameSubsections) to high(FWasmNameSubsections) do
+          FWasmNameSubsections[k].Free;
         FFuncTypes.Free;
         inherited destroy;
       end;
@@ -5537,6 +5593,7 @@ implementation
                     newdll:=True;
                     TWasmObjSymbol(exesym.ObjSymbol).LinkingData.ExeFunctionIndex:=
                       AddFunctionImport(ImportLibrary.Name,ImportSymbol.Name,TWasmObjSymbol(exesym.ObjSymbol).LinkingData.FuncType);
+                    AddToFunctionNameMap(TWasmObjSymbol(exesym.ObjSymbol).LinkingData.ExeFunctionIndex,ImportSymbol.MangledName);
                   end;
               end;
           end;
@@ -5588,6 +5645,7 @@ implementation
               begin
                 exemap.Add('  Function[' + tostr(fsym.LinkingData.ExeFunctionIndex) + '] ' + fsym.Name + fsym.LinkingData.FuncType.ToString);
               end;
+            AddToFunctionNameMap(fsym.LinkingData.ExeFunctionIndex,fsym.Name);
           end;
         { set ExeFunctionIndex to the alias symbols as well }
         for i:=0 to ObjDataList.Count-1 do
