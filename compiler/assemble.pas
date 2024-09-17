@@ -1123,7 +1123,7 @@ Implementation
     procedure TExternalAssembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
       var
         pdata: pbyte;
-        index, step, swapmask, count: longint;
+        index, step, swapmask, real_byte_count: longint;
         ssingle: single;
         ddouble: double;
 {$ifdef FPC_COMP_IS_INT64}
@@ -1273,7 +1273,7 @@ Implementation
           else
             internalerror(2014051001);
         end;
-        count:=tai_realconst(hp).datasize;
+        real_byte_count:=tai_realconst(hp).datasize;
         { write bytes in inverse order if source and target endianess don't
           match }
         if source_info.endian<>target_info.endian then
@@ -1284,7 +1284,7 @@ Implementation
               index:=sizeof(eextended)-1
             else
 {$endif USE_SOFT_FLOATX80}
-              index:=count-1;
+              index:=real_byte_count-1;
             step:=-1;
           end
         else
@@ -1313,12 +1313,12 @@ Implementation
 {$endif USE_SOFT_FLOATX80}
           writer.AsmWrite(tostr(pdata[index xor swapmask]));
           inc(index,step);
-          dec(count);
-          if count<>0 then
+          dec(real_byte_count);
+          if real_byte_count<>0 then
             writer.AsmWrite(',');
-        until count=0;
+        until real_byte_count=0;
         { padding }
-        for count:=tai_realconst(hp).datasize+1 to tai_realconst(hp).savesize do
+        for real_byte_count:=tai_realconst(hp).datasize+1 to tai_realconst(hp).savesize do
           writer.AsmWrite(',0');
         writer.AsmLn;
       end;
@@ -2171,15 +2171,19 @@ Implementation
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
         pdata : pointer;
+	real_byte_count, index, step : longint;
         ssingle : single;
         ddouble : double;
         {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended : extended;
         {$else}
-        {$ifdef FPC_SOFT_FPUX80}
+        {$ifdef USE_SOFT_FLOATX80}
         f32 : float32;
         f64 : float64;
         eextended : floatx80;
+        has_gap : boolean;
+        gap_ofs_low,gap_ofs_high : byte;
+        gap_index, gap_size : byte;
         {$endif}
         {$endif}
 {$ifdef FPC_COMP_IS_INT64}
@@ -2202,6 +2206,11 @@ Implementation
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
         fillchar(objsymend,sizeof(objsymend),0);
+{$ifdef USE_SOFT_FLOATX80}
+        has_gap:=false;
+        gap_index:=0;
+        gap_size:=0;
+{$endif USE_SOFT_FLOATX80}
         { main loop }
         while assigned(hp) do
          begin
@@ -2250,6 +2259,7 @@ Implementation
                end;
              ait_realconst:
                begin
+                 real_byte_count:=tai_realconst(hp).datasize;
                  case tai_realconst(hp).realtyp of
                    aitrealconst_s32bit:
                      begin
@@ -2269,7 +2279,7 @@ Implementation
                        pdata:=@eextended;
                      end;
          {$else}
-         {$ifdef FPC_SOFT_FPUX80}
+         {$ifdef USE_SOFT_FLOATX80}
            {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
                    aitrealconst_s80bit:
                      begin
@@ -2295,6 +2305,26 @@ Implementation
                        else
                          internalerror(2017091903);
                        pdata:=@eextended;
+                       if sizeof(eextended)>10 then
+                         begin
+                           gap_ofs_high:=(pbyte(@eextended.high) - pbyte(@eextended));
+                           gap_ofs_low:=(pbyte(@eextended.low) - pbyte(@eextended));
+                           if (gap_ofs_low<gap_ofs_high) then
+                             begin
+                               gap_index:=gap_ofs_low+sizeof(eextended.low);
+                               gap_size:=gap_ofs_high-gap_index;
+                             end
+                           else
+                             begin
+                               gap_index:=gap_ofs_high+sizeof(eextended.high);
+                               gap_size:=gap_ofs_low-gap_index;
+                             end;
+                           if source_info.endian<>target_info.endian then
+                             gap_index:=gap_index+gap_size-1;
+                           has_gap:=gap_size <> 0;
+                         end
+                       else
+                         has_gap:=false;
                      end;
            {$pop}
          {$endif}
@@ -2312,13 +2342,46 @@ Implementation
                      internalerror(2015030501);
                  end;
                  if source_info.endian<>target_info.endian then
+                   { write bytes in inverse order if source and target endianess don't match }
                    begin
-                     for d:=0 to tai_realconst(hp).datasize-1 do
-                       lebbuf[d]:=pbyte(pdata)[tai_realconst(hp).datasize-1-d];
-                     pdata:=@lebbuf;
+                     { go from back to front }
+{$ifdef USE_SOFT_FLOATX80}
+                     if has_gap then
+                       index:=sizeof(eextended)-1
+                     else
+{$endif USE_SOFT_FLOATX80}
+                       index:=real_byte_count-1;
+                     step:=-1;
+                   end
+                 else
+                   begin
+                     index:=0;
+                     step:=1;
                    end;
-                 ObjData.writebytes(pdata^,tai_realconst(hp).datasize);
-                 ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-tai_realconst(hp).datasize);
+                 if (source_info.endian<>target_info.endian)
+                   {$ifdef USE_SOFT_FLOATX80} or has_gap{$endif} then
+                   begin
+                     d:=0;
+                     repeat
+{$ifdef USE_SOFT_FLOATX80}
+                       if has_gap and (index=gap_index) then
+                         index:=index+step*gap_size;
+{$endif USE_SOFT_FLOATX80}
+                       lebbuf[d]:=pbyte(pdata)[index];
+                       inc(index,step);
+                       dec(real_byte_count);
+                       inc(d);
+                     until real_byte_count=0;
+		     { d now bares the count value }
+                     pdata:=@lebbuf;
+                     ObjData.writebytes(pdata^,d);
+                     ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-d);
+                   end
+		 else
+                   begin
+                     ObjData.writebytes(pdata^,tai_realconst(hp).datasize);
+                     ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-tai_realconst(hp).datasize);
+		   end;
                end;
              ait_string :
                ObjData.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
