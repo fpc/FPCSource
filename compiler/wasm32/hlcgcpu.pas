@@ -220,19 +220,6 @@ uses
         slots used for parameters and the provided resultdef }
       procedure g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef);
 
-      { because WebAssembly has no spec for any sort of debug info, and the
-        only linker that we support (LLVM's wasm-ld) does not support creating
-        map files in its stable version, and crashes when attempting to create
-        a map file in its development version from git, we have no way to
-        identify which procedure a crash occurred in. So, to identify the
-        procedure, we call this procedure on proc entry, which generates a few
-        useless loads of random numbers on the stack, that are immediately
-        discarded, so they are essentially equivalent to a nop. This allows
-        finding the procedure in the FPC output assembly, produced with -al by
-        searching for these random numbers, as taken from the disassembly of the
-        final binary. }
-      procedure g_fingerprint(list: TAsmList);
-
       property maxevalstackheight: longint read fmaxevalstackheight;
 
      protected
@@ -2073,8 +2060,6 @@ implementation
           if pd.base_pointer_ref.base<>NR_LOCAL_STACK_POINTER_REG then
             ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
-          g_fingerprint(list);
-
           list.Concat(taicpu.op_sym(a_global_get,RefStackPointerSym));
           incstack(list,1);
           list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
@@ -2816,19 +2801,6 @@ implementation
       else if totalremovesize<0 then
         incstack(list,-totalremovesize);
       ft.free;
-    end;
-
-
-  procedure thlcgwasm.g_fingerprint(list: TAsmList);
-    begin
-      list.concat(taicpu.op_const(a_i64_const,Random(high(int64))));
-      list.concat(taicpu.op_const(a_i64_const,Random(high(int64))));
-      list.concat(taicpu.op_const(a_i64_const,Random(high(int64))));
-      list.concat(taicpu.op_const(a_i64_const,Random(high(int64))));
-      list.concat(taicpu.op_none(a_drop));
-      list.concat(taicpu.op_none(a_drop));
-      list.concat(taicpu.op_none(a_drop));
-      list.concat(taicpu.op_none(a_drop));
     end;
 
 
