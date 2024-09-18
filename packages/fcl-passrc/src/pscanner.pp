@@ -5548,6 +5548,7 @@ begin
   l:=length(FCurLine);
   {$endif}
   NestingLevel := 0;
+
   repeat
     if {$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif} then
       begin
@@ -5565,7 +5566,7 @@ begin
           FCurTokenString[OldLength] := LE[i];
         end;
       {$else}
-      FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
+      FCurTokenString:=FCurTokenString+copy(S,TokenStart,SectionLength)+LineEnding; // Corrected JC
       {$endif}
       if not FetchLocalLine then
       begin
