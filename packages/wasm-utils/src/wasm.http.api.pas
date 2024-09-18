@@ -19,12 +19,21 @@ unit wasm.http.api;
 
 interface
 
-uses wasm.http.shared;
+uses wasm.http.shared, wasm.logger.api;
 
 Type
-  TWasmHTTPLogLevel = (hllTrace, hllDebug, hllInfo, hllWarning, hllError, hllCritical);
-  TWasmHTTPLogLevels = set of TWasmHTTPLogLevel;
+  TWasmHTTPLogLevel = TWasmLogLevel;
+  TWasmHTTPLogLevels = TWasmLogLevels;
 
+const
+  hllTrace    = wllTrace;
+  hllDebug    = wllDebug;
+  hllInfo     = wllInfo;
+  hllWarning  = wllWarning;
+  hllError    = wllError;
+  hllCritical = wllCritical;
+
+Type
   TWasmString = record
     Data : PAnsiChar;
     Len : Longint;
@@ -58,7 +67,7 @@ Type
 
   TWasmHTTPResponseEvent    = procedure(aRequestID : Longint; aUserData : Pointer; aStatus : TWasmHTTPResponseStatus; var Deallocate : Boolean) of object;
   TWasmHTTPResponseCallback = procedure(aRequestID : Longint; aUserData : Pointer; aStatus : TWasmHTTPResponseStatus; var Deallocate : Boolean);
-  TWasmHTTPLogHook = procedure (Level : TWasmHTTPLogLevel; const Msg : string) of object;
+  TWasmHTTPLogHook = TWasmLogHook;
 
 function __wasmhttp_request_allocate(aRequest : PWasmHTTPAPIRequest; aUserData : Pointer; aRequestID : PWasmHTTPRequestID) : TWasmHTTPResult; external httpExportName name httpFN_RequestAllocate;
 function __wasmhttp_request_execute(aRequestID : TWasmHTTPRequestID) : TWasmHTTPResult; external httpExportName name httpFN_RequestExecute;
@@ -81,7 +90,7 @@ procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; Args : A
 var
   OnWasmHTTPResponse : TWasmHTTPResponseEvent;
   WasmHTTPResponseCallback : TWasmHTTPResponseCallback;
-  OnWasmHTTPLog : TWasmHTTPLogHook;
+  EnableWasmHTTPLog : Boolean;
 
 implementation
 
@@ -94,15 +103,17 @@ uses sysutils;
 procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Msg : String);
 
 begin
-  If assigned(OnWasmHTTPLog) then
-    OnWasmHTTPLog(level,Msg);
+  if not EnableWasmHTTPLog then
+    exit;
+  __wasm_log(level,'HTTP',Msg);
 end;
 
 procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; Args : Array of const);
 
 begin
-  If assigned(OnWasmHTTPLog) then
-    OnWasmHTTPLog(level,SafeFormat(Fmt,Args));
+  if not EnableWasmHTTPLog then
+    exit;
+  __wasm_log(level,'HTTP',Fmt,Args);
 end;
 
 function __wasmhttp_response_callback(aRequestID : TWasmHTTPRequestID; aUserData : Pointer; aStatus : TWasmHTTPResponseStatus) : TWasmHTTPResponseResult;

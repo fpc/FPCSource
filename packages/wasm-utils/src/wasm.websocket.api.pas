@@ -25,11 +25,20 @@ uses
   {$ELSE}
   sysutils,
   {$ENDIF}
+  wasm.logger.api,
   wasm.websocket.shared;
 
 Type
-  TWasmWebSocketLogLevel = (wllTrace, wllDebug, wllInfo, wllWarning, wllError, wllCritical);
+  TWasmWebSocketLogLevel = TWasmLogLevel;
   TWasmWebSocketLogLevels = set of TWasmWebsocketLogLevel;
+
+const
+  wllTrace    = wasm.logger.api.wllTrace;
+  wllDebug    = wasm.logger.api.wllDebug;
+  wllInfo     = wasm.logger.api.wllInfo;
+  wllWarning  = wasm.logger.api.wllWarning;
+  wllError    = wasm.logger.api.wllError;
+  wllCritical = wasm.logger.api.wllCritical;
 
 function __wasm_websocket_allocate(
     aURL : PByte;
@@ -71,30 +80,32 @@ Function __wasm_websocket_on_open (aWebsocketID : TWasmWebSocketID; aUserData : 
 Function __wasm_websocket_on_close (aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aCode: Longint; aReason : PByte; aReasonLen : Longint; aClean : Longint) : TWebsocketCallBackResult;
 
 
-procedure __wasmwebsocket_log(level : TWasmWebsocketLogLevel; const Msg : String);
-procedure __wasmwebsocket_log(level : TWasmWebSocketLogLevel; const Fmt : String; Args : Array of const);
+procedure __wasmwebsocket_log(level : TWasmLogLevel; const Msg : String);
+procedure __wasmwebsocket_log(level : TWasmLogLevel; const Fmt : String; Args : Array of const);
 
 var
+  WebSocketLogEnabled : Boolean;
   WebSocketErrorCallback : TWasmWebsocketErrorCallback;
   WebSocketMessageCallback : TWasmWebsocketMessageCallback;
   WebSocketCloseCallback : TWasmWebsocketCloseCallback;
   WebSocketOpenCallback : TWasmWebsocketOpenCallback;
-  OnWebsocketLog : TWasmWebsocketLogHook;
 
 implementation
 
 procedure __wasmwebsocket_log(level : TWasmWebSocketLogLevel; const Msg : String);
 
 begin
-  if assigned(OnWebsocketLog) then
-    OnWebSocketLog(level,msg)
+  if not WebSocketLogEnabled then
+    exit;
+  __wasm_log(level,'websocket',msg);
 end;
 
 procedure __wasmwebsocket_log(level : TWasmWebSocketLogLevel; const Fmt : String; Args : Array of const);
 
 begin
-  if assigned(OnWebsocketLog) then
-    OnWebSocketLog(level,SafeFormat(Fmt,Args));
+  if not WebSocketLogEnabled then
+    exit;
+  __wasm_log(level,'websocket',Fmt,Args);
 end;
 
 

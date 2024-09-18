@@ -1,15 +1,17 @@
 # Assorted Webassembly utility routine demos
 
-For the HTTP and Websocket demos, you need also the corresponding host application
-which will load the demo and provide the needed APIs
+For the Timer, HTTP and Websocket demos, you need also the corresponding host application
+which will load the demo and provide the needed APIs.
 
 They are contained in the Pas2JS demos under 
 ```
+demos/wasienv/timer
+```
+for the timer host, the http host is located under
+```
 demos/wasienv/wasm-http 
 ```
-
-and
-
+and the websocket host is in
 ```
 demos/wasienv/wasm-websocket
 ```

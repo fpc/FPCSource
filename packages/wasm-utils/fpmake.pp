@@ -25,9 +25,21 @@ begin
     P.OSes:=[wasi];
     P.CPUs:=[wasm32];
     P.SourcePath.Add('src');
+    // Logger
+    T:=P.Targets.AddUnit('wasm.logger.api.pas');
     
+    // Timer
+    T:=P.Targets.AddUnit('wasm.timer.shared.pas');
+    T:=P.Targets.AddUnit('wasm.timer.api.pas');
+      T.Dependencies.AddUnit('wasm.timer.shared');
+      T.Dependencies.AddUnit('wasm.logger.api');
+    T:=P.Targets.AddUnit('wasm.timer.objects.pas');
+      T.Dependencies.AddUnit('wasm.timer.api');
+      T.Dependencies.AddUnit('wasm.logger.api');
+      
+    // HTTP
     T:=P.Targets.AddUnit('wasm.http.shared.pas');
-    
+
     T:=P.Targets.AddUnit('wasm.http.api.pas');
       T.Dependencies.AddUnit('wasm.http.shared');
       
@@ -35,15 +47,20 @@ begin
       T.Dependencies.AddUnit('wasm.http.api');
       T.Dependencies.AddUnit('wasm.http.shared');
 
+    // Websocket
     T:=P.Targets.AddUnit('wasm.websocket.shared.pas');
+    
     T:=P.Targets.AddUnit('wasm.websocket.api.pas');
       T.Dependencies.AddUnit('wasm.websocket.shared');
+      T.Dependencies.AddUnit('wasm.timer.api');
       
     T:=P.Targets.AddUnit('wasm.websocket.objects.pas');
       T.Dependencies.AddUnit('wasm.websocket.api');
       T.Dependencies.AddUnit('wasm.websocket.shared');
-      
+    
+    // Regexp  
     T:=P.Targets.AddUnit('wasm.regexp.shared.pas');
+    
     T:=P.Targets.AddUnit('wasm.regexp.api.pas');
       T.Dependencies.AddUnit('wasm.regexp.shared');
       
