@@ -4293,7 +4293,9 @@ begin
     end;
 
   // build final string
+  {$IFNDEF PAS2JS}
   SetLength(FCurTokenString,Cnt);
+  {$ENDIF}
   Cnt:=0;
   For I:=0 to CurLineCount-1 do
     begin
@@ -4301,14 +4303,22 @@ begin
     l:=length(s);
     if l>0 then
       begin
+      {$IFDEF PAS2JS}
+      FCurTokenString:=FCurTokenString+S;
+      {$ELSE}
       System.Move(s[1],FCurTokenString[Cnt+1],l);
       inc(Cnt,l);
+      {$ENDIF}
       end;
     if I<CurLineCount-1 then
       begin
+      {$IFDEF PAS2JS}
+      FCurTokenString:=FCurTokenString+CurLF;
+      {$ELSE}
       l:=length(CurLF);
       System.Move(CurLF[1],FCurTokenString[Cnt+1],l);
       inc(Cnt,l);
+      {$ENDIF}
       end;
     end;
   Result:=tkStringMultiLine;

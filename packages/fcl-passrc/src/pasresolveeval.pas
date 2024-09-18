@@ -4577,7 +4577,11 @@ end;
 function TResExprEvaluator.EvalPrimitiveExprStringMultiLine(Expr: TPrimitiveExpr
   ): TResEvalValue;
 begin
+  {$IFDEF PAS2JS}
+  Result:=TResEvalUTF16.CreateValue(Expr.Value);
+  {$ELSE}
   Result:=TResEvalUTF16.CreateValue(GetUnicodeStr(Expr.Value,Expr));
+  {$ENDIF}
 end;
 
 function TResExprEvaluator.CreateResEvalInt(UInt: TMaxPrecUInt): TResEvalValue;
