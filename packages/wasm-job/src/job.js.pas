@@ -302,6 +302,7 @@ type
     procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod); virtual;
     // create a new object using the new-operator
     function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject; virtual;
+    procedure ShowAsDebug;
     // JS members
     function getOwnPropertyNames(const Obj: IJSObject): TUnicodeStringDynArray;
     function getPrototypeOf(const Obj: IJSObject): IJSObject;
@@ -361,6 +362,7 @@ type
     constructor JOBCreate(aOwnsObjectID : Boolean; const Args : Array of const);
     class function JSClassName : UnicodeString; virtual;
     class function Cast(const Intf: IJSObject): IJSObject; overload;
+    procedure ShowAsDebug;
     constructor Create; virtual;
     destructor Destroy; override;
     property JOBObjectID: TJOBObjectID read FJOBObjectID;
@@ -1365,10 +1367,16 @@ procedure __job_set_array_from_mem (
   aMaxLen : cardinal
   ); external JOBExportName name JOBFn_SetArrayFromMem;
 
-
+function __job_debug_object (
+  aObjectID : integer;
+  aFlags : Longint) : longint; external JOBExportName name JOBFn_DebugObject;
 
 function JOBCallback(const Func: TJOBCallback; Data, Code: Pointer; Args: PByte): PByte;
 function VarRecToJSValue(const V: TVarRec): TJOB_JSValue;
+
+Procedure DebugObject(aObject : IJSObject);
+Procedure DebugObject(aObject : TJSObject);
+Procedure DebugObject(aObject : TJOB_JSValue);
 
 Type
   TJobCallbackErrorEvent = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean) of Object;
@@ -1389,6 +1397,32 @@ const
     JOBInvokeSet,
     JOBInvokeNew
     );
+
+Procedure DebugObject(aObject : IJSObject);
+begin
+  __job_debug_object(aObject.GetJSObjectID,0);
+end;
+
+Procedure DebugObject(aObject : TJSObject);
+
+begin
+  __job_debug_object(aObject.GetJSObjectID,0);
+end;
+
+Procedure DebugObject(aObject : TJOB_JSValue);
+
+begin
+  if (aObject is TJOB_Object) then
+    DebugObject(TJOB_Object(aObject).Value)
+  else if aObject is TJOB_String then
+    Writeln(UTF8Encode(TJOB_String(aObject).Value))
+  else if aObject is TJOB_Boolean then
+    Writeln(TJOB_Boolean(aObject).Value)
+  else if aObject is TJOB_Double then
+    Writeln(TJOB_Double(aObject).Value)
+  else
+    Writeln(TJOB_Double(aObject).AsString);
+end;
 
 {$IFDEF VerboseJOB}
 function GetVarRecName(vt: word): string;
@@ -4339,6 +4373,11 @@ end;
 class function TJSObject.Cast(const Intf: IJSObject): IJSObject;
 begin
   Result:=JOBCast(Intf);
+end;
+
+procedure TJSObject.ShowAsDebug;
+begin
+  DebugObject(Self);
 end;
 
 class function TJSObject.JSClassName : UnicodeString;
