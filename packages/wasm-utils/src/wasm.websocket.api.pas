@@ -81,7 +81,7 @@ Function __wasm_websocket_on_close (aWebsocketID : TWasmWebSocketID; aUserData :
 
 
 procedure __wasmwebsocket_log(level : TWasmLogLevel; const Msg : String);
-procedure __wasmwebsocket_log(level : TWasmLogLevel; const Fmt : String; Args : Array of const);
+procedure __wasmwebsocket_log(level : TWasmLogLevel; const Fmt : String; const Args : Array of const);
 
 var
   WebSocketLogEnabled : Boolean;
@@ -100,7 +100,7 @@ begin
   __wasm_log(level,'websocket',msg);
 end;
 
-procedure __wasmwebsocket_log(level : TWasmWebSocketLogLevel; const Fmt : String; Args : Array of const);
+procedure __wasmwebsocket_log(level : TWasmWebSocketLogLevel; const Fmt : String; const Args : Array of const);
 
 begin
   if not WebSocketLogEnabled then

@@ -85,7 +85,7 @@ function __wasmhttp_response_callback(aRequestID : TWasmHTTPRequestID; aUserData
 
 
 procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Msg : String);
-procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; Args : Array of const);
+procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; const Args : Array of const);
 
 var
   OnWasmHTTPResponse : TWasmHTTPResponseEvent;
@@ -108,7 +108,7 @@ begin
   __wasm_log(level,'HTTP',Msg);
 end;
 
-procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; Args : Array of const);
+procedure __wasmhttp_log(level : TWasmHTTPLogLevel; const Fmt : String; const Args : Array of const);
 
 begin
   if not EnableWasmHTTPLog then

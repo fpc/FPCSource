@@ -33,14 +33,14 @@ Type
   TWasmLogHook = procedure (Level : TWasmLogLevel; const Msg : string) of object;
 
 Const
-  AllLogLevels = [Low(TWasmLogLevel)..High(TWasmLogLevel)];
+  AllWasmLogLevels = [Low(TWasmLogLevel)..High(TWasmLogLevel)];
 
 var
   OnWasmLog : TWasmLogHook;
-  WasmLogLevels : TWasmLogLevels = AllLogLevels;
+  WasmLogLevels : TWasmLogLevels = AllWasmLogLevels;
 
 procedure __wasm_log(level : TWasmLogLevel; const Module, Msg : String);
-procedure __wasm_log(level : TWasmLogLevel; const Module, Fmt : String; Args : Array of const);
+procedure __wasm_log(level : TWasmLogLevel; const Module, Fmt : String; const Args : Array of const);
 
 implementation
 
@@ -54,7 +54,7 @@ begin
   OnWasmLog(level,'['+Module+'] '+Msg);
 end;
 
-procedure __wasm_log(level : TWasmLogLevel; const Module, Fmt : String; Args : Array of const);
+procedure __wasm_log(level : TWasmLogLevel; const Module, Fmt : String; const Args : Array of const);
 
 begin
   if not (level in WasmLogLevels) then

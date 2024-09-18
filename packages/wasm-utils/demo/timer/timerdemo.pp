@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-  SysUtils, Classes, wasm.timer.shared, wasm.timer.api, wasm.logger.api, wasm.timer.objects, wasm.http.api;
+  SysUtils, Classes, wasm.timer.shared, wasm.timer.api, wasm.logger.api, wasm.timer.objects;
 
 Type
 
