@@ -5118,6 +5118,19 @@ implementation
             end;
         end;
 
+      procedure WriteNameMap(const nm: TCustomSectionNameMap; dest: tdynamicarray);
+        var
+          i: Integer;
+        begin
+          WriteUleb(dest,Length(nm));
+          for i:=low(nm) to high(nm) do
+            with nm[i] do
+              begin
+                WriteUleb(dest,idx);
+                WriteName(dest,name);
+              end;
+        end;
+
       procedure WriteNameSubsection(wnst: TWasmNameSubsectionType);
         begin
           if FWasmNameSubsections[wnst].size>0 then
@@ -5130,18 +5143,10 @@ implementation
         end;
 
       procedure WriteNameSection;
-        var
-          i: Integer;
         begin
           WriteName(FWasmNameSubsections[wnstModuleName],current_module.exefilename);
 
-          WriteUleb(FWasmNameSubsections[wnstFunctionNames],Length(FFunctionNameMap));
-          for i:=low(FFunctionNameMap) to high(FFunctionNameMap) do
-            with FFunctionNameMap[i] do
-              begin
-                WriteUleb(FWasmNameSubsections[wnstFunctionNames],idx);
-                WriteName(FWasmNameSubsections[wnstFunctionNames],name);
-              end;
+          WriteNameMap(FFunctionNameMap,FWasmNameSubsections[wnstFunctionNames]);
 
           WriteNameSubsection(wnstModuleName);
           WriteNameSubsection(wnstFunctionNames);
