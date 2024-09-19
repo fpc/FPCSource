@@ -297,6 +297,7 @@ interface
         FMaxMemoryPages: Integer;
         { use for the Name section }
         FFunctionNameMap: TCustomSectionNameMap;
+        procedure AddToNameMap(var nm: TCustomSectionNameMap; aidx: UInt32; const aname: string);
         procedure AddToFunctionNameMap(aidx: UInt32; const aname: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
@@ -4775,14 +4776,19 @@ implementation
                                TWasmExeOutput
 ****************************************************************************}
 
-    procedure TWasmExeOutput.AddToFunctionNameMap(aidx: UInt32; const aname: string);
+    procedure TWasmExeOutput.AddToNameMap(var nm: TCustomSectionNameMap; aidx: UInt32; const aname: string);
       begin
-        SetLength(FFunctionNameMap,Length(FFunctionNameMap)+1);
-        with FFunctionNameMap[High(FFunctionNameMap)] do
+        SetLength(nm,Length(nm)+1);
+        with nm[High(nm)] do
           begin
             idx:=aidx;
             name:=aname;
           end;
+      end;
+
+    procedure TWasmExeOutput.AddToFunctionNameMap(aidx: UInt32; const aname: string);
+      begin
+        AddToNameMap(FFunctionNameMap,aidx,aname);
       end;
 
     procedure TWasmExeOutput.WriteWasmSection(wsid: TWasmSectionID);
