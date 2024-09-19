@@ -266,6 +266,7 @@ interface
             idx: UInt32;
             name: string;
           end;
+          TCustomSectionNameMap = array of TCustomSectionNameMapEntry;
       private
         FImports: TFPHashObjectList;
         FFuncTypes: TWasmFuncTypeTable;
@@ -295,7 +296,7 @@ interface
         FMinMemoryPages,
         FMaxMemoryPages: Integer;
         { use for the Name section }
-        FFunctionNameMap: array of TCustomSectionNameMapEntry;
+        FFunctionNameMap: TCustomSectionNameMap;
         procedure AddToFunctionNameMap(aidx: UInt32; const aname: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
