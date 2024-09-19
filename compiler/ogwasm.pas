@@ -5039,6 +5039,8 @@ implementation
                     internalerror(2024010114);
                 end;
               WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+              { add entry for the name section }
+              AddToGlobalNameMap(i,objsec.MainFuncSymbol.Name);
             end;
         end;
 
@@ -5147,9 +5149,11 @@ implementation
           WriteName(FWasmNameSubsections[wnstModuleName],current_module.exefilename);
 
           WriteNameMap(FFunctionNameMap,FWasmNameSubsections[wnstFunctionNames]);
+          WriteNameMap(FGlobalNameMap,FWasmNameSubsections[wnstGlobalNames]);
 
           WriteNameSubsection(wnstModuleName);
           WriteNameSubsection(wnstFunctionNames);
+          WriteNameSubsection(wnstGlobalNames);
         end;
 
       var
