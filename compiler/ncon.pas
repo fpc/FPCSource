@@ -45,6 +45,7 @@ interface
           value_currency : currency;
           lab_real : tasmlabel;
           constructor create(v : bestreal;def:tdef);virtual;
+          constructor create_currency_scalar(def:tdef);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -71,6 +72,7 @@ interface
             against the ranges of the type definition.
           }
           constructor create(const v : tconstexprint;def:tdef; _rangecheck : boolean);virtual;
+          constructor create_currency_scalar(def:tdef);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -446,6 +448,13 @@ implementation
          lab_real:=nil;
       end;
 
+    constructor trealconstnode.create_currency_scalar(def:tdef);
+      begin
+        Create(10000.0,def);
+        Include(flags,nf_internal);
+        Include(flags,nf_is_currency);
+      end;
+
     constructor trealconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
         i : int64;
@@ -627,6 +636,14 @@ implementation
          value:=v;
          typedef:=def;
          rangecheck := _rangecheck;
+      end;
+
+
+    constructor tordconstnode.create_currency_scalar(def:tdef);
+      begin
+        Create(10000,def,false);
+        Include(flags,nf_internal);
+        Include(flags,nf_is_currency);
       end;
 
 
