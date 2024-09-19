@@ -16,6 +16,11 @@
 
 {$ifdef supported}
 
+{$if (FPC_FULLVERSION<=30301) and defined(linux)}
+  uses
+    initc;
+{$endif (FPC_FULLVERSION<=30301) and defined(linux)}
+
 const
 {$ifdef windows}
   libname='tlibrary1.dll';

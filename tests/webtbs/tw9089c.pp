@@ -6,6 +6,11 @@ program ptest;
 
 {$ifdef fpc}{$mode objfpc}{$H+}{$endif fpc}
 
+{$if (FPC_FULLVERSION<=30301) and defined(linux)}
+  uses
+    initc;
+{$endif (FPC_FULLVERSION<=30301) and defined(linux)}
+
 const
 {$if defined(windows) or defined(mswindows)}
   libname='tw9089b.dll';

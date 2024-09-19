@@ -1,24 +1,12 @@
-{ %NORUN }
-{ %SKIPTARGET=macos, $nosharedlib, win64 }
-{ %delfiles=tlibrary3 }
+{ %skiptarget=$nosharedlib }
+{ %NEEDLIBRARY }
+{ %delfiles=tlibrary1 }
 
-{$ifdef darwin}
-{$PIC+}
-{$endif darwin}
-
-{$ifdef CPUX86_64}
-{$ifndef WINDOWS}
-{$PIC+}
-{$endif WINDOWS}
-{$endif CPUX86_64}
-
-{ The .so of the library needs to be in the current dir when
-  testing the loading at runtime }
+{ Test program to test linking to fpc library }
 
 {$ifdef mswindows}
  {$define supported}
- {$define supportidx}
-{$endif win32}
+{$endif mswindows}
 {$ifdef Unix}
  {$define supported}
 {$endif Unix}
@@ -28,32 +16,25 @@
 
 {$ifdef supported}
 
-library bug;
-
-uses
-  initc;
-
 const
-   publicname='TestName';
-   publicindex = 1234;
-
-procedure Test;export;
-
- begin
-//   writeln('Hoi');
- end;
-
-exports
-  Test name publicname;
-{$ifdef supportidx}
-exports
-  Test index publicindex;
+{$ifdef windows}
+  libname='tlibrary1.dll';
+{$else}
+  libname='tlibrary1';
+  {$linklib tlibrary1}
 {$endif}
 
+procedure test;external libname name 'TestName';
+
 begin
+  if islibrary then
+    halt(3);
+  if moduleislib then
+    halt(4);
+  test;
 end.
-{$else supported}
+{$else not supported}
 begin
-  Writeln('No library for that target');
+  Writeln('Dummy test because target does not support libraries');
 end.
-{$endif supported}
+{$endif not supported}

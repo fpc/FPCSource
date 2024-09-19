@@ -2,6 +2,11 @@
 { %target=linux,haiku }
 {$mode objfpc}
 
+{$if (FPC_FULLVERSION<=30301) and defined(linux)}
+  uses
+    initc;
+{$endif (FPC_FULLVERSION<=30301) and defined(linux)}
+
 {$linklib tw3964a}
 
 function testfunc : longint;

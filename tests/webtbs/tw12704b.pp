@@ -6,7 +6,11 @@
 program MainApp;
 
 uses
-  sysutils;
+  sysutils
+{$if (FPC_FULLVERSION<=30301) and defined(linux)}
+  ,initc
+{$endif (FPC_FULLVERSION<=30301) and defined(linux)}
+;
 
 const
 {$ifdef windows}
