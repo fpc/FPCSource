@@ -260,6 +260,12 @@ interface
             '.data',
             'fpc.resources');
         WasmPageSize = 65536;
+
+        type
+          TCustomSectionNameMapEntry = record
+            idx: UInt32;
+            name: string;
+          end;
       private
         FImports: TFPHashObjectList;
         FFuncTypes: TWasmFuncTypeTable;
@@ -289,10 +295,7 @@ interface
         FMinMemoryPages,
         FMaxMemoryPages: Integer;
         { use for the Name section }
-        FFunctionNameMap: array of record
-          idx: UInt32;
-          name: string;
-        end;
+        FFunctionNameMap: array of TCustomSectionNameMapEntry;
         procedure AddToFunctionNameMap(aidx: UInt32; const aname: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
