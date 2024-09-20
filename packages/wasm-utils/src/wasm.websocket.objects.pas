@@ -243,7 +243,6 @@ end;
 procedure TWasmWebsocket.SendMessage(const aString: String);
 
 var
-  Res : TWasmWebsocketResult;
   Buf : TBytes;
 
 begin
@@ -271,6 +270,7 @@ begin
     if C=Nil then C:=TWasmWebSocketManager;
     _instance:=TWasmWebSocketManager.Create;
     end;
+  Result:=_instance;
 end;
 
 
