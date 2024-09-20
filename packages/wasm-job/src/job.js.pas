@@ -1379,6 +1379,7 @@ function VarRecToJSValue(const V: TVarRec): TJOB_JSValue;
 Procedure DebugObject(const Message: String; aObject : IJSObject);
 Procedure DebugObject(const Message: String; aObject : TJSObject);
 Procedure DebugObject(const Message: String; aObject : TJOB_JSValue);
+Procedure ShowLiveObjects(const Message: String);
 
 Type
   TJobCallbackErrorEvent = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean) of Object;
@@ -1406,7 +1407,11 @@ var
   msg : Rawbytestring;
 
 begin
+  {$IF SIZEOF(CHAR)=2}
   msg:=UTF8Encode(Message);
+  {$ELSE}
+  msg:=Message;
+  {$ENDIF}
   __job_debug_object(aObject.GetJSObjectID,PByte(Msg),Length(Msg),0);
 end;
 
@@ -1416,7 +1421,11 @@ var
   msg : Rawbytestring;
 
 begin
+  {$IF SIZEOF(CHAR)=2}
   msg:=UTF8Encode(Message);
+  {$ELSE}
+  msg:=Message;
+  {$ENDIF}
   __job_debug_object(aObject.GetJSObjectID,PByte(Msg),Length(Msg),0);
 end;
 
@@ -1433,6 +1442,19 @@ begin
     Writeln(Message,': ',TJOB_Double(aObject).Value)
   else
     Writeln(Message,': ',TJOB_Double(aObject).AsString);
+end;
+
+procedure ShowLiveObjects(const Message: String);
+var
+  msg : Rawbytestring;
+begin
+  {$IF SIZEOF(CHAR)=2}
+  msg:=UTF8Encode(Message);
+  {$ELSE}
+  msg:=Message;
+  {$ENDIF}
+  if not __job_debug_object(-1,PByte(msg),Length(msg),0)=JOBResult_Success then
+    Writeln('Failed to show live objects');
 end;
 
 {$IFDEF VerboseJOB}
