@@ -298,9 +298,11 @@ interface
         { use for the Name section }
         FFunctionNameMap: TCustomSectionNameMap;
         FGlobalNameMap: TCustomSectionNameMap;
+        FDataNameMap: TCustomSectionNameMap;
         procedure AddToNameMap(var nm: TCustomSectionNameMap; aidx: UInt32; const aname: string);
         procedure AddToFunctionNameMap(aidx: UInt32; const aname: string);
         procedure AddToGlobalNameMap(aidx: UInt32; const aname: string);
+        procedure AddToDataNameMap(aidx: UInt32; const aname: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure WriteWasmSectionIfNotEmpty(wsid: TWasmSectionID);
         procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
@@ -4798,6 +4800,11 @@ implementation
         AddToNameMap(FGlobalNameMap,aidx,aname);
       end;
 
+    procedure TWasmExeOutput.AddToDataNameMap(aidx: UInt32; const aname: string);
+      begin
+        AddToNameMap(FDataNameMap,aidx,aname);
+      end;
+
     procedure TWasmExeOutput.WriteWasmSection(wsid: TWasmSectionID);
       var
         b: byte;
@@ -4895,6 +4902,7 @@ implementation
             exesecdatapos: LongWord;
             dpos, pad: QWord;
           begin
+            AddToDataNameMap(Length(FDataNameMap),exesec.Name);
             if ts_wasm_threads in current_settings.targetswitches then
               WriteByte(FWasmSections[wsiData],1)  { mode passive }
             else
@@ -5150,10 +5158,12 @@ implementation
 
           WriteNameMap(FFunctionNameMap,FWasmNameSubsections[wnstFunctionNames]);
           WriteNameMap(FGlobalNameMap,FWasmNameSubsections[wnstGlobalNames]);
+          WriteNameMap(FDataNameMap,FWasmNameSubsections[wnstDataNames]);
 
           WriteNameSubsection(wnstModuleName);
           WriteNameSubsection(wnstFunctionNames);
           WriteNameSubsection(wnstGlobalNames);
+          WriteNameSubsection(wnstDataNames);
         end;
 
       var
