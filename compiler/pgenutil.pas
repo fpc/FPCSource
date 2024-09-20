@@ -1342,6 +1342,17 @@ uses
                   end;
               end;
           end;
+
+        { unlink unused defs }
+        if not(result) and assigned(callerparams) then
+          begin
+            for k:=0 to callerparams.count-1 do
+              begin
+                if tsym(callerparams[k]).typ=typesym then
+                  ttypesym(callerparams[k]).typedef.typesym:=nil;
+              end;
+          end;
+
         callerparams.free;
       end;
 

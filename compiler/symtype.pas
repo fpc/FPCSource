@@ -415,6 +415,7 @@ implementation
           result:=result+GetTypeName;
       end;
 
+
     function tdef.fulltypename:string;
       begin
         result:=fullownerhierarchyname(false);
