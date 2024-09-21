@@ -5174,8 +5174,11 @@ implementation
           WriteNameMap(FDataNameMap,FWasmNameSubsections[wnstDataNames]);
           WriteNameSubsection(wnstDataNames);
 
-          WriteNameMap(FTagNameMap,FWasmNameSubsections[wnstTagNames]);
-          WriteNameSubsection(wnstTagNames);
+          if Length(FTagNameMap)>0 then
+            begin
+              WriteNameMap(FTagNameMap,FWasmNameSubsections[wnstTagNames]);
+              WriteNameSubsection(wnstTagNames);
+            end;
         end;
 
       var
