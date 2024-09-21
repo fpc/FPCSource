@@ -5163,16 +5163,18 @@ implementation
       procedure WriteNameSection;
         begin
           WriteName(FWasmNameSubsections[wnstModuleName],current_module.exefilename);
+          WriteNameSubsection(wnstModuleName);
 
           WriteNameMap(FFunctionNameMap,FWasmNameSubsections[wnstFunctionNames]);
-          WriteNameMap(FGlobalNameMap,FWasmNameSubsections[wnstGlobalNames]);
-          WriteNameMap(FDataNameMap,FWasmNameSubsections[wnstDataNames]);
-          WriteNameMap(FTagNameMap,FWasmNameSubsections[wnstTagNames]);
-
-          WriteNameSubsection(wnstModuleName);
           WriteNameSubsection(wnstFunctionNames);
+
+          WriteNameMap(FGlobalNameMap,FWasmNameSubsections[wnstGlobalNames]);
           WriteNameSubsection(wnstGlobalNames);
+
+          WriteNameMap(FDataNameMap,FWasmNameSubsections[wnstDataNames]);
           WriteNameSubsection(wnstDataNames);
+
+          WriteNameMap(FTagNameMap,FWasmNameSubsections[wnstTagNames]);
           WriteNameSubsection(wnstTagNames);
         end;
 
