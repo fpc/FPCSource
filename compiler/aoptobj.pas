@@ -416,9 +416,9 @@ Unit AoptObj;
 
         { If a group of labels are clustered, change the jump to point to the last one that is still referenced }
         function CollapseLabelCluster(jump: tai; var lbltai: tai): TAsmLabel;
-{$ifndef JVM}
+{$if not defined(JVM) and not defined(WASM)}
         function OptimizeConditionalJump(CJLabel: TAsmLabel; var p: tai; hp1: tai; var stoploop: Boolean): Boolean;
-{$endif JVM}
+{$endif not JVM and not WASM}
 
         { Function to determine if the jump optimisations can be performed }
         function CanDoJumpOpts: Boolean; virtual;
@@ -2091,7 +2091,7 @@ Unit AoptObj;
           end;
       end;
 
-{$ifndef JVM}
+{$if not defined(JVM) and not defined(WASM)}
     function TAOptObj.OptimizeConditionalJump(CJLabel: TAsmLabel; var p: tai; hp1: tai; var stoploop: Boolean): Boolean;
       var
         hp2: tai;
@@ -2306,7 +2306,7 @@ Unit AoptObj;
           end;
 
       end;
-{$endif JVM}
+{$endif not JVM and not WASM}
 
     function TAOptObj.CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
       var
@@ -2393,10 +2393,10 @@ Unit AoptObj;
                         { Might have caused some earlier labels to become dead }
                         stoploop := False;
                     end
-{$ifndef JVM}
+{$if not defined(JVM) and not defined(WASM)}
                   else if (taicpu(p).opcode {$ifdef z80}in{$else}={$endif} aopt_condjmp) then
                     ThisPassResult := OptimizeConditionalJump(ThisLabel, p, hp1, stoploop)
-{$endif JVM}
+{$endif not JVM and not WASM}
                     ;
                 end;
 
@@ -2422,7 +2422,7 @@ Unit AoptObj;
 
       var p1: tai;
           p2: tai;
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64) and not defined(WASM)}
           p3: tai;
 {$endif}
           ThisLabel, l: tasmlabel;
@@ -2469,9 +2469,9 @@ Unit AoptObj;
                       Exit;
                   end;
 
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64) and not defined(WASM)}
                 p3 := p2;
-{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64 and not WASM}
 
                 if { the next instruction after the label where the jump hp arrives}
                    { is unconditional or of the same type as hp, so continue       }
@@ -2480,7 +2480,7 @@ Unit AoptObj;
                    { TODO: For anyone with experience with MIPS or RISC-V, please add support for tracing
                      conditional jumps. [Kit] }
 
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64) and not defined(WASM)}
   { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                    or
                    condition_in(hp.condition, taicpu(p1).condition) or
@@ -2498,7 +2498,7 @@ Unit AoptObj;
                      ) and
                      SetAndTest(p2,p1)
                    )
-{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64 and not WASM}
                    then
                   begin
                     { quick check for loops of the form "l5: ; jmp l5" }
@@ -2527,7 +2527,7 @@ Unit AoptObj;
                     GetFinalDestination := True;
                     Exit;
                   end
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64) and not defined(WASM)}
                 else
                   if condition_in(inverse_cond(hp.condition), taicpu(p1).condition) then
                     begin
@@ -2564,7 +2564,7 @@ Unit AoptObj;
                       GetFinalDestination := True;
                       Exit;
                     end;
-{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64 and not WASM}
               end;
           end;
 

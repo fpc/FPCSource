@@ -63,7 +63,6 @@
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
       <CustomOptions Value="-dwasm32
--dnoopt
 -dEXTDEBUG"/>
       <OtherDefines Count="4">
         <Define0 Value="wasm32"/>

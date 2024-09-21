@@ -485,7 +485,7 @@ endif
 
 # WASM32 specific
 ifeq ($(PPC_TARGET),wasm32)
-override LOCALOPT+=-dNOOPT
+override LOCALOPT+=-Fuwasm32
 endif
 
 # LoongArch64 specific

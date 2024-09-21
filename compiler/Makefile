@@ -715,7 +715,7 @@ ifeq ($(PPC_TARGET),riscv64)
 override LOCALOPT+=-Furiscv
 endif
 ifeq ($(PPC_TARGET),wasm32)
-override LOCALOPT+=-dNOOPT
+override LOCALOPT+=-Fuwasm32
 endif
 ifeq ($(PPC_TARGET),loongarch64)
 override LOCALOPT+=-Fuloongarch64
