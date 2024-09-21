@@ -32,7 +32,7 @@ implementation
       systems { prevent a syntax error when nothing is included }
 
 {$ifndef NOOPT}
-//      ,aoptcpu
+      ,aoptcpu
 {$endif NOOPT}
 
 {**************************************
