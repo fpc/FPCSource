@@ -1231,11 +1231,12 @@ implementation
       unitinits.free;
     end;
 
+
   class function tnodeutils.has_init_list: boolean;
     var
       hp : tused_unit;
     begin
-      Result := True;
+      Result:=True;
 
       { Check current module first }
       if mf_init in current_module.moduleflags then
@@ -1251,7 +1252,7 @@ implementation
         end;
 
       { We reach this point, none of the used units have an initialisation list }
-      Result := False;
+      Result:=False;
     end;
 
 
