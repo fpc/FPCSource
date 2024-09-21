@@ -64,8 +64,7 @@
       </ConfigFile>
       <CustomOptions Value="-dwasm32
 -dnoopt
--dEXTDEBUG
--dFPC_WASM_THREADS_INTERNAL_LINKER"/>
+-dEXTDEBUG"/>
       <OtherDefines Count="4">
         <Define0 Value="wasm32"/>
         <Define1 Value="noopt"/>
