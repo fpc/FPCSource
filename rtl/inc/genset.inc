@@ -26,7 +26,7 @@ const
   convert sets
 }
 {$ifdef FPC_SETBASE_USED}
-procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdstbase : ptrint); compilerproc;
+procedure fpc_varset_load(const l;sourcesize : ptrint;var dest;size,srcminusdstbase : ptrint); compilerproc;
   var
     srcptr, dstptr: pointer;
   begin
@@ -60,7 +60,7 @@ procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdst
 
 {$else FPC_SETBASE_USED}
 
-procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
+procedure fpc_varset_load(const l;sourcesize : ptrint;var dest;size : ptrint); compilerproc;
   begin
     if sourcesize>size then
       sourcesize:=size;

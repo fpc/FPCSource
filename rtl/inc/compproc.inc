@@ -744,9 +744,9 @@ Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer); compilerproc; inline;
 
 
 {$ifdef FPC_SETBASE_USED}
-procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdstbase : ptrint); compilerproc;
+procedure fpc_varset_load(const l;sourcesize : ptrint;var dest;size,srcminusdstbase : ptrint); compilerproc;
 {$else}
-procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
+procedure fpc_varset_load(const l;sourcesize : ptrint;var dest;size : ptrint); compilerproc;
 {$endif}
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
