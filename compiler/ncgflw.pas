@@ -131,7 +131,7 @@ implementation
       fmodule,
       cpubase,
       tgobj,paramgr,
-      cgobj,hlcgobj,nutils
+      cgobj,hlcgobj,nutils,node
       ;
 
 {*****************************************************************************
