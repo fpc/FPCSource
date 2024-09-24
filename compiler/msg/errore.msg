@@ -3207,7 +3207,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09223 is the last used one
+# 09224 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3274,6 +3274,8 @@ link_e_undefined_symbol=09222_E_Undefined symbol: $1
 % The specified symbol is used, but not defined.
 link_w_unsupported_cross_endian_internal_linker=09223_W_Internal linker in cross-endian configuration is work in progress
 % The internal linker does not correctly handle endianess conversion.
+link_f_executable_too_big_exceeds_X_by_Y_bytes=09224_F_Executable image size is too big for $1 target (exceeds $2 by $3 bytes).
+% The result File is too big
 % \end{description}
 # EndOfTeX
 

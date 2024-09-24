@@ -57,7 +57,7 @@ implementation
     cgobj,
     cpubase,
     cpuinfo,
-    cgcpu;
+    cgcpu,systems;
 
   function thlcgmips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var

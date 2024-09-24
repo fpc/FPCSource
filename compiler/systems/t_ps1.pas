@@ -264,7 +264,7 @@ begin
   if ioResult <> 0 then exit;
 
   if filesize(f) >= $200000 then begin
-    writeln('Binary size if bigger than 2 097 152 bytes');
+    Message3(link_f_executable_too_big_exceeds_X_by_Y_bytes,'PS1','2097152',tostr(filesize(f)-$200000));
     exit;
   end;
   
