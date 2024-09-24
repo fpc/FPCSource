@@ -1365,7 +1365,7 @@ begin
     '/','\': exit;
     '.':
       begin
-      Delete(Result,p,length(Result));
+      SetLength(Result, p-1);
       exit;
       end;
     end;
