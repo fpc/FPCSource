@@ -169,7 +169,7 @@ type
     function GetString: UnicodeString;
     function GetObject(aResultClass: TJSObjectClass): TJSObject;
     function GetValue: TJOB_JSValue;
-    function GetVariant: Variant;
+    function GetVariant(OwnsObject : Boolean = False): Variant;
     function GetLongInt: longint;
     function GetMaxInt: int64;
     function GetArray : TJSArray;
@@ -1618,9 +1618,11 @@ end;
 function JOBCallTJSPromiseResolver(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 var
   aValue: Variant;
+  aRes : Variant;
 begin
-  aValue:=H.GetVariant;
-  Result:=H.AllocVariant(TJSPromiseResolver(aMethod)(aValue));
+  aValue:=H.GetVariant(True);
+  aRes:=TJSPromiseResolver(aMethod)(aValue);
+  Result:=H.AllocVariant(aRes);
 end;
 
 function JOBCallTJSPromiseFinallyHandler(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
@@ -3299,7 +3301,7 @@ begin
   inc(Index);
 end;
 
-function TJOBCallbackHelper.GetVariant: Variant;
+function TJOBCallbackHelper.GetVariant(OwnsObject : Boolean = False): Variant;
 var
   ObjId, Len: LongWord;
   Obj: TJSObject;
@@ -3357,7 +3359,7 @@ begin
       ObjId:=PLongWord(p)^;
       inc(p,4);
       Obj:=TJSObject.JOBCreateFromID(ObjId);
-      Obj.JOBObjectIDOwner:=false;
+      Obj.JOBObjectIDOwner:=OwnsObject;
       Result:=Obj as IJSObject;
     end;
   else
