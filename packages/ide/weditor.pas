@@ -5373,7 +5373,7 @@ end;
 
 procedure TCustomCodeEditor.IndentBlock;
 var
-  ey,i{,indlen} : Sw_integer;
+  ey,i,Indlen : Sw_Integer;
   S,Ind : String;
   Pos : Tpoint;
   WasPersistentBlocks : boolean;
@@ -5420,7 +5420,11 @@ begin
     end
   else
    Ind:=' ';}
-  Ind:=CharStr(' ',GetIndentSize);
+  Indlen:=GetIndentSize;
+  {selection Start and End move along}
+  if SelStart.X>0 then inc(SelStart.X,Indlen);
+  if SelEnd.X>0 then inc(SelEnd.X,Indlen);
+  Ind:=CharStr(' ',Indlen);
   for i:=selstart.y to ey do
    begin
      S:=GetLineText(i);
@@ -5493,6 +5497,12 @@ begin
   else
    Indlen:=1;}
   Indlen:=GetIndentSize;
+  {selection Start and End move along}
+  if SelStart.X>0 then dec(SelStart.X,Indlen);
+  if SelStart.X<0 then SelStart.X:=0;
+  if SelEnd.X>0 then dec(SelEnd.X,Indlen);
+  if SelEnd.X<0 then begin SelEnd.X:=0; inc(SelEnd.Y); end;
+  {do indent line by line}
   for i:=selstart.y to ey do
    begin
      S:=GetLineText(i);
