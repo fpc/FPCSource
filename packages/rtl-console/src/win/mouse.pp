@@ -53,6 +53,10 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
       e.buttons:=e.buttons or MouseMiddleButton;
     if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
       e.buttons:=e.buttons or MouseRightButton;
+    if (ir.Event.MouseEvent.dwButtonState and $FF880000=$FF880000) then
+      e.buttons:=e.buttons or MouseButton5;
+    if (ir.Event.MouseEvent.dwButtonState and $00780000=$00780000) then
+      e.buttons:=e.buttons or MouseButton4;
 
     if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
       e.Action:=MouseActionMove;
@@ -94,6 +98,20 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
                end;
 
              PutMouseEvent(e);
+             if (e.buttons and (MouseButton4 or MouseButton5))<>0 then
+             begin
+               {fake mouse Up for Scroll Up and Scroll Down}
+               e.buttons := e.buttons and not (MouseButton4 or MouseButton5);
+               e.Action := MouseActionUp;
+               LastHandlermouseEvent:=e;
+               while PendingMouseEvents>=MouseEventBufSize do
+               begin
+                 LeaveCriticalSection(ChangeMouseEvents);
+                 sleep(0);
+                 EnterCriticalSection(ChangeMouseEvents);
+               end;
+               PutMouseEvent(e);
+             end;
            end;
          // this should be done in PutMouseEvent, now it is PM
          // inc(PendingMouseEvents);
