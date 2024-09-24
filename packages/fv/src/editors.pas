@@ -2024,6 +2024,7 @@ VAR
   SelectMode   : Byte;
   D            : {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Objects.TPoint;
   Mouse        : {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Objects.TPoint;
+  LinesScroll  : Sw_Integer;
 
   function CheckScrollBar (P : PScrollBar; var D : Sw_Integer) : Boolean;
   begin
@@ -2047,6 +2048,19 @@ begin
   case Event.What of
     {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evMouseDown:
       begin
+        if (Event.Buttons=mbScrollUp) then { mouse scroll up}
+          begin
+            LinesScroll:=1;
+            if Event.Double then LinesScroll:=LinesScroll+4;
+            ScrollTo(Delta.X, Delta.Y + LinesScroll);
+          end else
+        if (Event.Buttons=mbScrollDown) then  { mouse scroll down }
+          begin
+            LinesScroll:=-1;
+            if Event.Double then LinesScroll:=LinesScroll-4;
+            ScrollTo(Delta.X, Delta.Y + LinesScroll);
+          end else
+        begin
         if Event.Double then
           SelectMode := SelectMode or smDouble;
         repeat
@@ -2069,6 +2083,7 @@ begin
           SelectMode := SelectMode or smExtend;
           Unlock;
         until not MouseEvent (Event, evMouseMove + evMouseAuto);
+        end;
       end; { {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evMouseDown }
 
     {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evKeyDown:
