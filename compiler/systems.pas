@@ -314,8 +314,6 @@ interface
                            system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded,
                            system_aarch64_embedded];
 
-
-
        { all FreeRTOS systems }
        systems_freertos = [system_xtensa_freertos,system_arm_freertos,system_riscv32_freertos];
 
