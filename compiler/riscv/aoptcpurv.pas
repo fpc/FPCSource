@@ -380,23 +380,44 @@ implementation
                   }
                   if (taicpu(p).ops=3) and
                      (taicpu(p).oper[2]^.typ=top_const) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1,A_ANDI) and
-                     (taicpu(hp1).ops=3) and
-                     MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
-                     (taicpu(hp1).oper[2]^.typ=top_const) and
-                     is_imm12(taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
                     begin
-                      taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
-                      taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                      if MatchInstruction(hp1,A_ANDI) and
+                        (taicpu(hp1).ops=3) and
+                        MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+                        (taicpu(hp1).oper[2]^.typ=top_const) and
+                        is_imm12(taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val) and
+                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                        begin
+                          taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
+                          taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
 
-                      DebugMsg('Peephole AndiAndi2Andi performed', hp1);
+                          DebugMsg('Peephole AndiAndi2Andi performed', hp1);
 
-                      RemoveInstr(p);
+                          RemoveInstr(p);
 
-                      result:=true;
+                          result:=true;
+                        end
+                      else if MatchInstruction(hp1,A_ADDIW) and
+                        (taicpu(hp1).ops=3) and
+                        MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+                        (taicpu(hp1).oper[2]^.typ=top_const) and
+                        (taicpu(hp1).oper[2]^.val=0) and
+                         is_imm12(taicpu(p).oper[2]^.val) and
+                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                        begin
+                          taicpu(p).loadreg(0,taicpu(hp1).oper[0]^.reg);
+
+                          DebugMsg('Peephole AndiAddwi02Andi performed', hp1);
+
+                          RemoveInstr(hp1);
+
+                          result:=true;
+                         end
+                      else
+                        result:=OptPass1OP(p);
                     end
                   else
                     result:=OptPass1OP(p);
