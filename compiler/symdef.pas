@@ -1398,6 +1398,7 @@ interface
     procedure get_tabledef(prefix:tinternaltypeprefix;countdef,elementdef:tdef;count:longint;packrecords:shortint;out recdef:trecorddef;out arrdef:tarraydef);
 
     function fileinfo_of_typesym_in_def(def:tdef;sym:tsym;out filepos:tfileposinfo):boolean;
+    procedure set_default_types_nil; {housekeeping for Textmode IDE sanity}
 
 implementation
 
@@ -9579,5 +9580,164 @@ implementation
 {$endif}
       end;
 
+    procedure set_default_types_nil;
+    { Those class pointers have to be set to nil manually }
+    { after memory they point to have been released.      }
+    { Necessary strictly for Textmode IDE.                }
+    begin
+       voidpointertype:=nil;           { pointer for Void-pointeddef }
+       charpointertype:=nil;           { pointer for Char-pointeddef }
+       widecharpointertype:=nil;       { pointer for WideChar-pointeddef }
+       voidcodepointertype:=nil;       { pointer to code; corresponds to System.CodePointer }
+       voidstackpointertype:=nil;      { the pointer type used for accessing parameters and local vars on the stack }
+       parentfpvoidpointertype:=nil;   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
+{$ifdef x86}
+       voidnearpointertype:=nil;
+       voidnearcspointertype:=nil;
+       voidneardspointertype:=nil;
+       voidnearsspointertype:=nil;
+       voidnearespointertype:=nil;
+       voidnearfspointertype:=nil;
+       voidneargspointertype:=nil;
+  {$ifdef i8086}
+       voidfarpointertype:=nil;
+       voidhugepointertype:=nil;
+       charnearpointertype:=nil;
+       charfarpointertype:=nil;
+       charhugepointertype:=nil;
+       bytefarpointertype:=nil;        { used for Mem[] }
+       wordfarpointertype:=nil;        { used for MemW[] }
+       longintfarpointertype:=nil;     { used for MemL[] }
+  {$endif i8086}
+{$endif x86}
+{$ifdef wasm}
+       wasmvoidexternreftype:=nil;
+{$endif wasm}
+       cundefinedtype:=nil;
+       cformaltype:=nil;               { unique formal definition }
+       ctypedformaltype:=nil;          { unique typed formal definition }
+       voidtype:=nil;                  { Void (procedure) }
+       cansichartype:=nil;             { Char }
+       cwidechartype:=nil;             { WideChar }
+       cchartype:=nil;                 { either cansichartype or cwidechartype. Do not free }
+       pasbool1type:=nil;              { boolean type }
+       pasbool8type:=nil;
+       pasbool16type:=nil;
+       pasbool32type:=nil;
+       pasbool64type:=nil;
+       bool8type:=nil;
+       bool16type:=nil;
+       bool32type:=nil;
+       bool64type:=nil;                
+{$ifdef llvm}
+       llvmbool1type:=nil;             { LLVM i1 type }
+{$endif llvm}
+       u8inttype:=nil;                 { 8-Bit unsigned integer }
+       s8inttype:=nil;                 { 8-Bit signed integer }
+       u16inttype:=nil;                { 16-Bit unsigned integer }
+       s16inttype:=nil;                { 16-Bit signed integer }
+       u24inttype:=nil;                { 24-Bit unsigned integer }
+       s24inttype:=nil;                { 24-Bit signed integer }
+       u32inttype:=nil;                { 32-Bit unsigned integer }
+       s32inttype:=nil;                { 32-Bit signed integer }
+       u40inttype:=nil;                { 40-Bit unsigned integer }
+       s40inttype:=nil;                { 40-Bit signed integer }
+       u48inttype:=nil;                { 48-Bit unsigned integer }
+       s48inttype:=nil;                { 48-Bit signed integer }
+       u56inttype:=nil;                { 56-Bit unsigned integer }
+       s56inttype:=nil;                { 56-Bit signed integer }
+       u64inttype:=nil;                { 64-bit unsigned integer }
+       s64inttype:=nil;                { 64-bit signed integer }
+       u128inttype:=nil;               { 128-bit unsigned integer }
+       s128inttype:=nil;               { 128-bit signed integer }
+       s32floattype:=nil;              { 32 bit floating point number }
+       s64floattype:=nil;              { 64 bit floating point number }
+       s80floattype:=nil;              { 80 bit floating point number }
+       sc80floattype:=nil;             { 80 bit floating point number but stored like in C }
+       s64currencytype:=nil;           { pointer to a currency type }
+       cshortstringtype:=nil;          { pointer to type of short string const   }
+       clongstringtype:=nil;           { pointer to type of long string const   }
+       cansistringtype:=nil;           { pointer to type of ansi string const  }
+       cwidestringtype:=nil;           { pointer to type of wide string const  }
+       cunicodestringtype:=nil;
+       openshortstringtype:=nil;
+       openchararraytype:=nil;
+       cfiletype:=nil;
+       methodpointertype:=nil;         { typecasting of methodpointers to extract self }
+       nestedprocpointertype:=nil;     { typecasting of nestedprocpointers to extract parentfp }
+       hresultdef:=nil;
+       typekindtype:=nil;              { def of TTypeKind for correct handling of GetTypeKind parameters }
+       { we use only one variant def for every variant class }
+       cvarianttype:=nil;
+       colevarianttype:=nil;
+       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
+       sinttype:=nil;
+       uinttype:=nil;
+       { integer types corresponding to OS_SINT/OS_INT }
+       ossinttype:=nil;
+       osuinttype:=nil;
+       { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
+       alusinttype:=nil;
+       aluuinttype:=nil;
+       { integer types corresponding to SizeInt and SizeUInt for the target platform }
+       sizeuinttype:=nil;
+       sizesinttype:=nil;
+       { unsigned and signed ord type with the same size as a pointer }
+       ptruinttype:=nil;
+       ptrsinttype:=nil;
+       { unsigned and signed ord type with the same size as a codepointer }
+       codeptruinttype:=nil;
+       codeptrsinttype:=nil;
+       { several types to simulate more or less C++ objects for GDB }
+       vmttype:=nil;
+       vmtarraytype:=nil;
+       { type of classrefs, used for stabs }
+       pvmttype:=nil;
+       { return type of the setjmp function }
+       exceptionreasontype:=nil;
+
+       class_tobject:=nil;
+       class_tcustomattribute:=nil;
+       interface_iunknown:=nil;
+       interface_idispatch:=nil;
+       rec_tguid:=nil;
+       rec_jmp_buf:=nil;
+       rec_exceptaddr:=nil;
+       objc_metaclasstype:=nil;
+       objc_superclasstype:=nil;
+       objc_idtype:=nil;
+       objc_seltype:=nil;
+       objc_objecttype:=nil;
+       objc_protocoltype:=nil;
+       objc_fastenumeration:=nil;
+       objc_fastenumerationstate:=nil;
+
+{$ifdef llvm}
+       { llvm types }
+       { a unique def to identify any kind of metadata }
+       llvm_metadatatype:=nil;
+{$endif llvm}
+
+       { Java base types }
+       java_jlobject:=nil;
+       java_jlthrowable:=nil;
+       java_fpcbaserecordtype:=nil;
+       java_jlstring:=nil;
+       java_jlenum:=nil;
+       java_juenumset:=nil;
+       java_jubitset:=nil;
+       java_ansistring:=nil;
+       java_shortstring:=nil;
+       java_procvarbase:=nil;
+
+       { x86 vector types }
+       x86_m64type:=nil;
+       x86_m128type:=nil;
+       x86_m128dtype:=nil;
+       x86_m128itype:=nil;
+       x86_m256type:=nil;
+       x86_m256dtype:=nil;
+       x86_m256itype:=nil;
+    end;
 
 end.

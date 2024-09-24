@@ -5081,19 +5081,6 @@ implementation
        { unit aliases }
        unitaliases:=TFPHashObjectList.create;
 {$endif}
-       { set some global vars to nil, might be important for the ide }
-       class_tobject:=nil;
-       class_tcustomattribute:=nil;
-       interface_iunknown:=nil;
-       interface_idispatch:=nil;
-       rec_tguid:=nil;
-       rec_jmp_buf:=nil;
-       rec_exceptaddr:=nil;
-       objc_metaclasstype:=nil;
-       objc_superclasstype:=nil;
-       objc_idtype:=nil;
-       objc_seltype:=nil;
-       objc_objecttype:=nil;
        dupnr:=0;
      end;
 

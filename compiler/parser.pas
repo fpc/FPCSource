@@ -285,6 +285,8 @@ implementation
              unloaded_units.free;
              unloaded_units:=nil;
            end;
+         { Set default types to nil. At this point they are not valid class pointers. }
+         set_default_types_nil; 
 
          { if there was an error in the scanner, the scanner is
            still assinged }
