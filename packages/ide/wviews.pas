@@ -2255,23 +2255,23 @@ begin
   else
     LabelC:=GetColor(1)+GetColor(3) shl 8;
   { First Line }
-  MoveChar(B[0],'Ú',FrameC,1);
-  MoveChar(B[1],'Ä',FrameC,Size.X-2);
-  MoveChar(B[Size.X-1],'¿',FrameC,1);
+  MoveChar(B[0],''#$DA'',FrameC,1);
+  MoveChar(B[1],''#$C4'',FrameC,Size.X-2);
+  MoveChar(B[Size.X-1],''#$BF'',FrameC,1);
   if Text<>nil then
     begin
       MoveCStr(B[1],' '+Text^+' ',LabelC);
     end;
   WriteLine(0,0,Size.X,1,B);
   { Mid Lines }
-  MoveChar(B[0],'³',FrameC,1);
+  MoveChar(B[0],''#$B3'',FrameC,1);
   MoveChar(B[1],' ',FrameC,Size.X-2);
-  MoveChar(B[Size.X-1],'³',FrameC,1);
+  MoveChar(B[Size.X-1],''#$B3'',FrameC,1);
   WriteLine(0,1,Size.X,Size.Y-2,B);
   { Last Line }
-  MoveChar(B[0],'À',FrameC,1);
-  MoveChar(B[1],'Ä',FrameC,Size.X-2);
-  MoveChar(B[Size.X-1],'Ù',FrameC,1);
+  MoveChar(B[0],''#$C0'',FrameC,1);
+  MoveChar(B[1],''#$C4'',FrameC,Size.X-2);
+  MoveChar(B[Size.X-1],''#$D9'',FrameC,1);
   WriteLine(0,Size.Y-1,Size.X,1,B);
 end;
 
