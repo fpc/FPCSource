@@ -698,10 +698,15 @@ begin
           firstReg:= taicpu(p).oper[0]^.reg;
 
           x:= l.next;
+          if not assigned(x) then goto skip;
+          
           pp:= tai(x);
     
           while pp.typ <> ait_instruction do begin
+            
             x:= x.next;
+            if not assigned(x) then goto skip;
+
             pp:= tai(x);
           end;
 
