@@ -65,41 +65,29 @@ implementation
       sym: tasmsymbol;
     begin
 
+      if not (target_info.system in systems_ps1) then begin
 
-    if (cs_create_pic in current_settings.moduleswitches) then begin
+        if weak then
+          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
+        else
+          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
 
-{
-    !!!!!!!!!!!!!!!!1
-    
-    I'm not shure this code is correct
-      see line 86   ->    if NOT pic then do pic code
-
-
-}
-      if weak then
-        sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
-      else
-        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
-
-      if (po_external in pd.procoptions) then
-        begin
-          if not (cs_create_pic in current_settings.moduleswitches) then
-            begin
-              reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
-              list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
-              cg.a_loadaddr_ref_reg(list,ref,NR_GP);
-            end;
-          TCGMIPS(cg).a_call_sym_pic(list,sym);
-        end
-      else
-        cg.a_call_name(list,s,weak);
+        if (po_external in pd.procoptions) then
+          begin
+            if not (cs_create_pic in current_settings.moduleswitches) then
+              begin
+                reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
+                list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
+                cg.a_loadaddr_ref_reg(list,ref,NR_GP);
+              end;
+            TCGMIPS(cg).a_call_sym_pic(list,sym);
+          end
+        else
+          cg.a_call_name(list,s,weak);
 
 
-    end else
-        cg.a_call_name(list,s,weak);
-
-
-
+      end else
+          cg.a_call_name(list,s,weak);
 
       { set the result location }
       result:=get_call_result_cgpara(pd,forceresdef);
