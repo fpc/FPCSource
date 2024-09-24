@@ -1,3 +1,0 @@
-#!/bin/bash
-pcsx-redux -exe "/run/media/key-real/E3AF-F107/code/source/test.psx-exe" -run
-#pcsx-redux -exe "/home/key-real/vip-code/source/test.psx-exe" -run

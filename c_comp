@@ -1,2 +1,0 @@
-#!/bin/bash 
-make compiler_cycle CPU_TARGET=mipsel OS_TARGET=ps1 OPT="-O- -CR -glv" CROSSOPT="-O- -g-" ALLOW_WARNINGS=1
