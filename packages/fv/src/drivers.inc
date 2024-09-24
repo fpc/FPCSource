@@ -297,8 +297,12 @@ CONST
    mbLeftButton      = $01;                           { Left mouse button }
    mbRightButton     = $02;                           { Right mouse button }
    mbMiddleButton    = $04;                           { Middle mouse button }
-   mbScrollWheelDown = $08;                           { Scroll wheel down}
-   mbScrollWheelUp   = $10;                           { Scroll wheel up }
+   mbScrollWheelDown = $08 deprecated 'use mbScrollDown instead';
+   mbScrollWheelUp   = $10 deprecated 'use mbScrollUp instead';
+   mbScrollDown      = $08;                           { Scroll down - turn the wheel downward (toward you) }
+   mbScrollUp        = $10;                           { Scroll up - turn the wheel upward (away from you) }
+   mbXButton1        = $20;                           { 4th mouse button. Browser_Back }
+   mbXButton2        = $40;                           { 5th mouse button. Browser_Forward }
 
 
 {---------------------------------------------------------------------------}
