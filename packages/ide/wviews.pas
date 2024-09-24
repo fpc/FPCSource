@@ -1510,15 +1510,35 @@ end;
 procedure TLocalMenuListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     P: TPoint;
+
+   PROCEDURE MoveFocus (Req: Sw_Integer);
+   BEGIN
+     FocusItemNum(Req);                               { Focus req item }
+     DrawView;                                      { Redraw focus box }
+   END;
+
 begin
   case Event.What of
     evMouseDown :
-      if MouseInView(Event.Where) and (Event.Buttons=mbRightButton) then
+       if MouseInView(Event.Where) then
+      begin
+        if  (Event.Buttons=mbRightButton) then
         begin
           MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
           LocalMenu(P);
           ClearEvent(Event);
-        end;
+        end else
+        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+          begin
+            if Event.Double then MoveFocus(Focused+6) else MoveFocus(Focused+1);
+            ClearEvent(Event);
+          end else
+        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+          begin
+            if Event.Double then MoveFocus(Focused-6) else MoveFocus(Focused-1);
+            ClearEvent(Event);
+         end;
+      end;
     evKeyDown :
       begin
         DontClear:=false;
