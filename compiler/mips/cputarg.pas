@@ -55,7 +55,7 @@ implementation
       ,t_embed
     {$endif}
     {$ifndef NOTARGETPS1}
-          ,t_ps1
+      ,t_ps1
     {$endif}
 
 {**************************************
