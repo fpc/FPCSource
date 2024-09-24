@@ -29,8 +29,7 @@ interface
     cutils,
     globtype,symdef,
     procinfo,cpuinfo,cpupara,
-    psub,aasmdata,cgutils,
-    cpuext;
+    psub,aasmdata,cgutils;
 
   type
 
