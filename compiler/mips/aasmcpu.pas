@@ -707,8 +707,8 @@ begin
 
           if pp.typ = ait_instruction then begin
 
-            if taicpu(p).opcode in [A_LWL, A_LWR] then goto skip;
-            if taicpu(p).opcode in [A_LWR, A_LWL] then goto skip;
+            if (taicpu(p).opcode = A_LWL) and (taicpu(pp).opcode = A_LWR) then goto skip;
+            if (taicpu(p).opcode = A_LWR) and (taicpu(pp).opcode = A_LWL) then goto skip;
 
             if taicpu(pp).ops > 0 then begin
 
