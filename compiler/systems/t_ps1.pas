@@ -202,6 +202,7 @@ var
     fin, fout : file;
     NumRead : dWord;
     Buf : Array[1..2048] of byte;
+
 begin
 
   result:= false;
@@ -276,11 +277,11 @@ begin
   BlockWrite(f, header, sizeof(header));
   write0till(f, $10);
 
-  d:= $80010000;
+  d:= NtoLE($80010000);
   BlockWrite(f, d, 4);
-  d:= $FFFFFFFF;
+  d:= NtoLE($FFFFFFFF);
   BlockWrite(f, d, 4);
-  d:= $80010000;
+  d:= NtoLE($80010000);
   BlockWrite(f, d, 4);
 
   write0till(f, $30);
