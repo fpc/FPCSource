@@ -1211,13 +1211,15 @@ begin
 end;
 
 procedure TAdvancedListBox.HandleEvent(var Event: TEvent);
+var eEvent : TEvent;
 begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) {and (Event.Double)} then
       begin
+        eEvent:=Event; {save for later use after inherited call}
         inherited HandleEvent(Event);
-        if Event.Double then
+        if (eEvent.Double) and ((eEvent.Buttons and (mbScrollUp or mbScrollDown))=0) then
           if Range>Focused then
             SelectItem(Focused);
       end;

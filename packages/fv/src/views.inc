@@ -3824,6 +3824,15 @@ BEGIN
          End;
      End;
      evMouseDown: Begin                               { Mouse down event }
+       if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+         begin
+           if Event.Double then MoveFocus(Focused+1) else MoveFocus(Focused+1);
+         end else
+       if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+         begin
+           if Event.Double then MoveFocus(Focused-1) else MoveFocus(Focused-1);
+         end else
+       begin
        Cw := Size.X DIV NumCols + 1;                  { Column width }
        Oi := Focused;                                 { Hold focused item }
        MakeLocal(Event.Where, Mouse);                 { Localize mouse }
@@ -3864,6 +3873,7 @@ BEGIN
        If (Oi <> Ni) Then MoveFocus(Ni);              { Focus moved again }
        If (Event.Double AND (Range > Focused)) Then
          SelectItem(Focused);                         { Select the item }
+       end;
        ClearEvent(Event);                             { Event was handled }
      End;
    End;

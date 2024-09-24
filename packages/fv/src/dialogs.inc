@@ -3577,7 +3577,8 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE THistoryViewer.HandleEvent (Var Event: TEvent);
 BEGIN
-   If ((Event.What = evMouseDown) AND (Event.Double)) { Double click mouse }
+   If ((Event.What = evMouseDown) AND (Event.Double)  { Double click mouse }
+       and ((Event.Buttons and (mbScrollUp or mbScrollDown))=0)){and not scroll}
    OR ((Event.What = evKeyDown) AND
    (Event.KeyCode = kbEnter)) Then Begin              { Enter key press }
      EndModal(cmOk);                                  { End with cmOk }

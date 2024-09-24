@@ -2533,7 +2533,7 @@ begin
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,1); R.B.Y:=R.A.Y+1;
-  New(ST, Init(R, CharStr('Ä', MaxViewWidth)));
+  New(ST, Init(R, CharStr(''#$C4'', MaxViewWidth)));
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,2);Dec(R.B.Y,5);
@@ -3252,12 +3252,12 @@ procedure   TWatchesListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
-    evMouseDown : begin
-                   if Event.Double then
-                      Message(@Self,evCommand,cmEdit,nil)
-                   else
-                     ClearEvent(Event);
-                  end;
+    evMouseDown :
+      if Event.Double and ((Event.Buttons and (mbScrollUp or mbScrollDown))=0) {not scroll} then
+        begin
+          Message(@Self,evCommand,cmEdit,nil);
+          ClearEvent(Event);
+        end;
     evKeyDown :
       begin
         DontClear:=false;
