@@ -4658,14 +4658,11 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL32');
         def_system_macro('CPU32');
-        if target_info.system=system_x86_64_win64 then
-          begin
-            def_system_macro('FPC_CURRENCY_IS_INT64');
-            def_system_macro('FPC_COMP_IS_INT64');
-          end;
-//        def_system_macro('FPC_HAS_TYPE_DOUBLE');
-//        def_system_macro('FPC_HAS_TYPE_SINGLE');
-//        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        if target_info.system <> system_mipsel_ps1 then begin
+          def_system_macro('FPC_HAS_TYPE_DOUBLE');
+          def_system_macro('FPC_HAS_TYPE_SINGLE');
+          def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        end;
         def_system_macro('FPC_CURRENCY_IS_INT64');
         def_system_macro('FPC_COMP_IS_INT64');
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
