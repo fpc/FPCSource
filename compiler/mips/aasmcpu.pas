@@ -693,11 +693,7 @@ begin
     p:= tai(l);
     if p.typ = ait_instruction then begin
 
-      if (taicpu(p).opcode = A_LB) or (taicpu(p).opcode = A_LBU) or
-         (taicpu(p).opcode = A_LH) or (taicpu(p).opcode = A_LHU) or
-         (taicpu(p).opcode = A_LW) or (taicpu(p).opcode = A_LWU) or
-         (taicpu(p).opcode = A_LWL) or (taicpu(p).opcode = A_LWR) or
-         (taicpu(p).opcode = A_MFC0) {MFC2} {LWC2} then begin
+      if taicpu(p).opcode in [A_LB, A_LBU, A_LH, A_LHU, A_LW, A_LWU, A_LWL, A_LWR, A_MFC0 {MFC2, LWC2}] then begin
 
           firstReg:= taicpu(p).oper[0]^.reg;
 
@@ -711,8 +707,8 @@ begin
 
           if pp.typ = ait_instruction then begin
 
-            if (taicpu(p).opcode = A_LWL) and (taicpu(pp).opcode = A_LWR) then goto skip;
-            if (taicpu(p).opcode = A_LWR) and (taicpu(pp).opcode = A_LWL) then goto skip;
+            if taicpu(p).opcode in [A_LWL, A_LWR] then goto skip;
+            if taicpu(p).opcode in [A_LWR, A_LWL] then goto skip;
 
             if taicpu(pp).ops > 0 then begin
 
