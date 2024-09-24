@@ -197,6 +197,22 @@ type
       function GetPalette: PPalette; virtual;
     end;
 
+    PScrollerRadioButtons = ^TScrollerRadioButtons;
+    TScrollerRadioButtons = object (TRadioButtons)
+      VScrollBar  : PScrollBar;
+      Delta : TPoint;
+      constructor Init (Var Bounds: TRect; AStrings: PSItem; aVScrollBar:PScrollBar);
+      procedure HandleEvent (Var Event: TEvent); Virtual;
+      procedure MovedTo (Item: Sw_Integer); Virtual;
+      procedure ScrollDraw; Virtual;
+      procedure Draw; Virtual;
+      procedure DrawScrollMultiBox (Const Icon, Marker: String);
+      procedure ScrollTo (X,Y: Sw_Integer); Virtual;
+      procedure CentreSelected;
+      private
+      function FindSel (P: TPoint): Sw_Integer;
+   end;
+
     PPanel = ^TPanel;
     TPanel = object(TGroup)
       constructor Init(var Bounds: TRect);
@@ -2307,6 +2323,182 @@ function TPlainRadioButtons.GetPalette: PPalette;
 const P: string[length(CPlainCluster)] = CPlainCluster;
 begin
   GetPalette:=@P;
+end;
+
+constructor TScrollerRadioButtons.Init (Var Bounds: TRect; AStrings: PSItem; aVScrollBar:PScrollBar);
+var Y : sw_word;
+begin
+  inherited init (Bounds, AStrings);
+  VScrollBar:=aVScrollBar;
+  EventMask := evMouseDown + evKeyDown + evCommand + evBroadcast;
+  Y:=Strings.count;
+  if (VScrollBar<> nil) and (Y>=size.Y) and (Size.Y>0) then
+    VScrollBar^.SetParams(0, 0,Y-Size.Y, Size.Y-1, VScrollBar^.ArStep);       { Set vert scrollbar }
+end;
+
+procedure TScrollerRadioButtons.HandleEvent (Var Event: TEvent);
+VAR I: Sw_Integer; Mouse: TPoint;
+   LinesScroll : sw_integer;
+begin
+   If ((Options AND ofSelectable) <> 0) Then
+   begin
+     If (Event.What = evMouseDown) Then Begin             { MOUSE EVENT }
+      if (Event.Buttons=mbScrollUp) then                  { mouse scroll up}
+         begin
+           LinesScroll:=1;
+           if Event.Double then LinesScroll:=LinesScroll+4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+           ClearEvent(Event);                             { Event was handled }
+         end else
+       if (Event.Buttons=mbScrollDown) then               { mouse scroll down }
+         begin
+           LinesScroll:=-1;
+           if Event.Double then LinesScroll:=LinesScroll-4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+           ClearEvent(Event);                             { Event was handled }
+         end else
+       if (VScrollBar<>nil) then begin       { mouse click if we have scrollbar}
+         MakeLocal(Event.Where, Mouse);                   { Make point local }
+         I := FindSel(Mouse);                             { Find selected item }
+         If (I <> -1) Then                                { Check in view }
+           If ButtonState(I) Then Sel := I;               { If enabled select }
+         DrawView;                                        { Now draw changes }
+         Repeat
+           MakeLocal(Event.Where, Mouse);                 { Make point local }
+         Until NOT MouseEvent(Event, evMouseMove);        { Wait for mouse up }
+         MakeLocal(Event.Where, Mouse);                   { Make point local }
+         If (FindSel(Mouse) = Sel) AND ButtonState(Sel)   { If valid/selected }
+         Then Begin
+           Press(Sel);                                    { Call pressed }
+           DrawView;                                      { Now draw changes }
+         End;
+         ClearEvent(Event);                               { Event was handled }
+       end;
+     end;
+   end;
+
+   Inherited HandleEvent(Event);                      { Call ancestor }
+
+   If (Event.What = evBroadcast) AND
+     (Event.Command = cmScrollBarChanged) AND         { Scroll bar change }
+     ({(Event.InfoPtr = HScrollBar) OR}               { Our scrollbar? }
+      (Event.InfoPtr = VScrollBar)) Then
+   begin
+     ScrollDraw;
+     ClearEvent(Event);
+  end;
+end;
+
+procedure TScrollerRadioButtons.ScrollTo (X,Y: Sw_Integer);
+begin
+  if X>Size.X then X:=Size.X-1;
+  if X<0 then X:=0;
+  if (Y>(Strings.Count-Size.Y)) then Y:=(Strings.Count-Size.Y);
+  if Y<0 then Y:=0;
+  if Delta.Y<>Y then
+  begin
+    Delta.Y:=Y;
+    if (VScrollBar<>nil) then if VScrollBar^.Value<>Delta.Y then VScrollBar^.SetValue(Delta.Y);
+    DrawView;
+  end;
+end;
+
+function TScrollerRadioButtons.FindSel (P: TPoint): Sw_Integer;
+var I, S, Vh: Sw_Integer; R: TRect;
+begin
+   GetExtent(R);                                      { Get view extents }
+   If R.Contains(P) Then Begin                        { Point in view }
+     Vh := Size.Y;                            { View height }
+     I := 0;                                          { Preset zero value }
+     {While (P.X >= Column(I+Vh)) Do Inc(I, Vh);}       { Inc view size }
+     S := I + P.Y+ Delta.Y;                                { Line to select }
+     If ((S >= 0) AND (S < Strings.Count))            { Valid selection }
+       Then FindSel := S Else FindSel := -1;          { Return selected item }
+   End Else FindSel := -1;                            { Point outside view }
+end;
+
+procedure TScrollerRadioButtons.MovedTo (Item: Sw_Integer);
+begin
+  if (Item<Delta.Y) then begin Delta.Y:=Item; end;
+  if (Item>=(Size.Y+Delta.Y)) then begin Delta.Y:=Item-Size.Y+1; end;
+  if (VScrollBar<>nil) then if VScrollBar^.Value<>Delta.Y then VScrollBar^.SetValue(Delta.Y);
+  inherited MovedTo(Item);
+end;
+
+procedure TScrollerRadioButtons.ScrollDraw;
+begin
+  if (VScrollBar<> nil) then Delta.Y:=VScrollBar^.Value;
+  Drawview;
+end;
+
+procedure TScrollerRadioButtons.CentreSelected;
+var Y : Sw_Integer;
+begin
+  if (VScrollBar<> nil) then
+  begin
+    Y:=Sel-(Size.Y div 2);
+    if Y<0 then Y:=0;
+    if (Size.Y+Y) >= Strings.Count then Y:=Strings.Count-Size.Y;
+    if Y<0 then Y:=0;
+    if Delta.Y<>Y then
+    begin
+      Delta.Y:=Y;
+      VScrollBar^.SetValue(Y);
+      DrawView;
+    end;
+  end;
+end;
+
+procedure TScrollerRadioButtons.Draw;
+begin
+  if VScrollBar=nil then begin inherited draw; exit; end;
+  if Size.Y >= Strings.Count then begin inherited draw; exit; end;
+  DrawScrollMultiBox(' ( ) ',' *');
+end;
+
+procedure TScrollerRadioButtons.DrawScrollMultiBox (Const Icon, Marker: String);
+VAR I, J, Cur, Col: Sw_Integer;
+    CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
+begin
+   CNorm := GetColor($0301);                          { Normal colour }
+   CSel := GetColor($0402);                           { Selected colour }
+   CDis := GetColor($0505);                           { Disabled colour }
+   For I := 0 To Size.Y-1 Do Begin                { For each line }
+     MoveChar(B, ' ', Byte(CNorm), Size.X);       { Fill buffer }
+     {For J := 0 To (Strings.Count - 1) DIV Size.Y + 1
+     Do}
+     J:=0;
+     Begin
+       Cur := {J*Size.Y} Delta.Y + I;                { Current line }
+       If (Cur < Strings.Count) Then Begin
+         Col := {Column(Cur)}1;                          { Calc column }
+         If (Col + CStrLen(PString(Strings.At(Cur))^)+
+         5 < Sizeof(TDrawBuffer) DIV SizeOf(Word))
+         AND (Col < Size.X) Then Begin            { Text fits in column }
+           If NOT ButtonState(Cur) Then
+             Color := CDis Else If (Cur = Sel) AND    { Disabled colour }
+             (State and sfFocused <> 0) Then
+               Color := CSel Else                     { Selected colour }
+               Color := CNorm;                        { Normal colour }
+           MoveChar(B[Col], ' ', Byte(Color),
+             Size.X-Col);                         { Set this colour }
+           MoveStr(B[Col], Icon, Byte(Color));        { Transfer icon string }
+           WordRec(B[Col+2]).Lo := Byte(Marker[
+             MultiMark(Cur) + 1]);                    { Transfer marker }
+           MoveCStr(B[Col+5], PString(Strings.At(
+             Cur))^, Color);                          { Transfer item string }
+           If ShowMarkers AND (State AND sfFocused <> 0)
+           AND (Cur = Sel) Then Begin                 { Current is selected }
+             WordRec(B[Col]).Lo := Byte(SpecialChars[0]);
+              WordRec(B[{Column(Cur+Size.Y)}1-1]).Lo
+                := Byte(SpecialChars[1]);             { Set special character }
+           End;
+         End;
+       End;
+     End;
+     WriteBuf(0, I, Size.X, 1, B);              { Write buffer }
+   End;
+  SetCursor({Column(Sel)}1+2,{Row(Sel)}Sel-Delta.Y);
 end;
 
 constructor TAdvancedListBox.Load(var S: TStream);

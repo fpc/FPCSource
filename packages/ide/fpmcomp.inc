@@ -14,27 +14,43 @@
  **********************************************************************}
 
 procedure TIDEApp.Target;
-var R,R2: TRect;
+var R,R2,R3: TRect;
     D: PCenterDialog;
-    RB: PRadioButtons;
-    TargetCount,I: integer;
+    RB: PScrollerRadioButtons;
+    VScrollBar : PScrollBar;
+    TargetCount,TargetHeight,I: Sw_Integer;
     LastItem: PSItem;
     L: longint;
 begin
   TargetCount:=TargetSwitches^.ItemCount;
-  R.Assign(0,0,60,4+TargetCount);
+  TargetHeight:=TargetCount;
+  GetExtent(R);
+  if (R.B.Y-R.A.Y) < (TargetHeight+9) then TargetHeight:= (R.B.Y-R.A.Y)-9;
+  if TargetHeight<3 then TargetHeight:=3;
+  R.Assign(0,0,60,4+TargetHeight);
   New(D, Init(R, dialog_target));
   with D^ do
   begin
     HelpCtx:=hcTarget;
     GetExtent(R); R.Grow(-3,-1); Inc(R.A.Y);
-    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+TargetCount;
+    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+TargetHeight;
+    {have scroll bar for Targets only if they does not fit in view}
+    VScrollBar :=nil;
+    if TargetHeight<>TargetCount then
+    begin
+      Dec(R2.B.X);
+      R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
+      R3.B.Y:=R3.B.Y-3; {-3 because of InsertButtons later}
+      VScrollBar := New(PScrollBar, Init(R3));
+      Insert(VScrollBar);
+    end;
     LastItem:=nil;
     for I:=TargetCount-1 downto 0 do
       LastItem:=NewSItem(TargetSwitches^.ItemName(I), LastItem);
-    New(RB, Init(R2, LastItem));
+    New(RB, Init(R2, LastItem, VScrollBar));
     L:=ord(TargetSwitches^.GetCurrSel);
     RB^.SetData(L);
+    RB^.CentreSelected;
     Insert(RB);
     R2.Copy(R);
     R2.B.Y:=R2.A.Y+1;

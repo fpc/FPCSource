@@ -63,7 +63,9 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,R3,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
-    RB1,RB1b,RB2,RB4,RB5,RB6: PRadioButtons;
+    RB1,RB1b: PScrollerRadioButtons;
+    RB2,RB4,RB5,RB6: PRadioButtons;
+    VScrollBar1,VScrollBar2 : PScrollBar;
     Items: PSItem;
     IL: PEditorInputLine;
     IL2: PEditorInputLine;
@@ -74,8 +76,21 @@ var R,R2,R3,TabR,TabIR: TRect;
     Label21,Label22,Label23,Label23b,
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
+    TargetHeight,ProcessorHeight: sw_integer;
 begin
-  R.Assign(0,0,76,31);
+  {decide height of dialog view}
+  GetExtent(R);
+  Count:=ProcessorOptimizationSwitches^.ItemCount;
+  Count:=max(Count,ProcessorCodeGenerationSwitches^.ItemCount); {lines we need to be able to show}
+  if Count < 10 then Count:=10; {10 lines are needed in Assembler page}
+  TargetHeight:=Count+11; {11 lines for rest (empty lines, borders, pages, conditions...)}
+  if TargetHeight> 31 then TargetHeight:=31; {don't go wild, limit ourselvs on 31 line}
+  if (R.B.Y-R.A.Y) < (TargetHeight+5) then
+    TargetHeight:= (R.B.Y-R.A.Y)-5; {screen allow exactly this much lines}
+  if TargetHeight<21 then
+    TargetHeight:=21; {at last 21 for our view}
+  {actual height will be TargetHeight + 2 border lines + 3 lines for Ok buttons (min 26 lines)}
+  R.Assign(0,0,76,TargetHeight);
   New(D, Init(R, dialog_compilerswitches));
   with D^ do
   begin
@@ -158,33 +173,54 @@ begin
 
     { --- Sheet 3 --- }
     Count:=ProcessorOptimizationSwitches^.ItemCount;
+    ProcessorHeight:=Count;
+    if (ProcessorHeight+11 > TargetHeight) then
+      ProcessorHeight:=ProcessorHeight-((ProcessorHeight+11) -TargetHeight);
     R.Copy(TabIR);
     R2.Copy(R);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
-    R2.B.Y:=R2.A.Y+Count;
+    R2.B.Y:=R2.A.Y+ProcessorHeight;
+    VScrollBar1:=nil;
+    if ProcessorHeight<>Count then
+    begin
+      R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
+      VScrollBar1:=New(PScrollBar, Init(R3));
+    end;
     Items:=nil;
     for I:=Count-1 downto 0 do
       Items:=NewSItem(ProcessorOptimizationSwitches^.ItemName(I), Items);
-    New(RB1, Init(R2, Items));
+    New(RB1, Init(R2, Items, VScrollBar1));
     L:=ProcessorOptimizationSwitches^.GetCurrSel;
     RB1^.SetData(L);
+    RB1^.CentreSelected;
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label23, Init(R2, label_compiler_opt_targetprocessor, RB1));
 
     Count:=ProcessorCodeGenerationSwitches^.ItemCount;
+    ProcessorHeight:=Count;
+    if (ProcessorHeight+11 > TargetHeight) then
+      ProcessorHeight:=ProcessorHeight-((ProcessorHeight+11) -TargetHeight);
     R.Copy(TabIR);
     R2.Copy(R);
     R2.A.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
-    R2.B.X:=R2.B.X-3;
-    R2.B.Y:=R2.A.Y+Count;
+    R2.B.X:=R2.B.X-4;
+    R2.B.Y:=R2.A.Y+ProcessorHeight;
+    VScrollBar2:=nil;
+    if ProcessorHeight<>Count then
+    begin
+      Dec(R2.B.X);
+      R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
+      VScrollBar2:=New(PScrollBar, Init(R3));
+    end;
     Items:=nil;
     for I:=Count-1 downto 0 do
       Items:=NewSItem(ProcessorCodeGenerationSwitches^.ItemName(I), Items);
-    New(RB1b, Init(R2, Items));
+    New(RB1b, Init(R2, Items, VScrollBar2));
     L:=ProcessorCodeGenerationSwitches^.GetCurrSel;
     RB1b^.SetData(L);
+    RB1b^.CentreSelected;
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label23b, Init(R2, label_compiler_codegen_targetprocessor, RB1b));
@@ -287,10 +323,12 @@ begin
         nil)))),
       NewTabDef('~P~rocessor',RB1,
         NewTabItem(Label23,
+        NewTabItem(VScrollBar1,
         NewTabItem(RB1,
         NewTabItem(Label23b,
+        NewTabItem(VScrollBar2,
         NewTabItem(RB1b,
-        nil)))),
+        nil)))))),
       NewTabDef(page_compiler_verbose,CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
