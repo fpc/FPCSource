@@ -1812,17 +1812,6 @@ unit cgcpu;
        //  tmpreg : tregister;
          i : integer;
        begin
-         { sign extend
-
-           AND #$80
-           ASL A -> sign bit goes to the Carry flag
-
-           SBC #$01
-
-           ADC #$FF
-           EOR #$FF
-
-         }
          list.Concat(tai_comment.Create(strpnew('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2))));
          Writeln('TODO: a_load_reg_reg '+tcgsize2str(fromsize)+' '+tcgsize2str(tosize)+' '+std_regname(reg1)+' '+std_regname(reg2));
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
@@ -1858,32 +1847,44 @@ unit cgcpu;
                  ungetcpuregister(list,NR_A);
                end;
            end
-         //else
-         //  begin
-         //    if reg1<>reg2 then
-         //      for i:=1 to tcgsize2size[fromsize]-1 do
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //          reg1:=GetNextReg(reg1);
-         //          reg2:=GetNextReg(reg2);
-         //        end
-         //    else
-         //      for i:=1 to tcgsize2size[fromsize]-1 do
-         //        reg2:=GetNextReg(reg2);
-         //    emit_mov(list,reg2,reg1);
-         //    getcpuregister(list,NR_A);
-         //    emit_mov(list,NR_A,reg2);
-         //    reg2:=GetNextReg(reg2);
-         //    list.concat(taicpu.op_none(A_RLA));
-         //    list.concat(taicpu.op_reg_reg(A_SBC,NR_A,NR_A));
-         //    for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
-         //      begin
-         //        emit_mov(list,reg2,NR_A);
-         //        if i<>tcgsize2size[tosize] then
-         //          reg2:=GetNextReg(reg2);
-         //      end;
-         //    ungetcpuregister(list,NR_A);
-         //  end;
+         else
+           begin
+             if reg1<>reg2 then
+               for i:=1 to tcgsize2size[fromsize]-1 do
+                 begin
+                   emit_mov(list,reg2,reg1);
+                   reg1:=GetNextReg(reg1);
+                   reg2:=GetNextReg(reg2);
+                 end
+             else
+               for i:=1 to tcgsize2size[fromsize]-1 do
+                 begin
+                   reg1:=GetNextReg(reg1);
+                   reg2:=GetNextReg(reg2);
+                 end;
+             emit_mov(list,reg2,reg1);
+             getcpuregister(list,NR_A);
+             emit_mov(list,NR_A,reg2);
+             reg2:=GetNextReg(reg2);
+             { sign extend
+
+               ASL A -> sign bit goes to the Carry flag
+               LDA #$00
+               ADC #$FF -> C set: $00, C clear: $FF
+               EOR #$FF -> C set: $FF, C clear: $00
+             }
+             list.concat(taicpu.op_reg(A_ASL,NR_A));
+             list.concat(taicpu.op_const(A_LDA,0));
+             list.concat(taicpu.op_const(A_ADC,$FF));
+             list.concat(taicpu.op_const(A_EOR,$FF));
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 emit_mov(list,reg2,NR_A);
+                 if i<>tcgsize2size[tosize] then
+                   reg2:=GetNextReg(reg2);
+               end;
+             ungetcpuregister(list,NR_A);
+           end;
        end;
 
 
