@@ -399,6 +399,7 @@ implementation
 
                           result:=true;
                         end
+{$ifndef RISCV32}
                       else if MatchInstruction(hp1,A_ADDIW) and
                         (taicpu(hp1).ops=3) and
                         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
@@ -416,6 +417,7 @@ implementation
 
                           result:=true;
                          end
+{$endif RISCV32}
                       else
                         result:=OptPass1OP(p);
                     end
