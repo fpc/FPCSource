@@ -1325,7 +1325,7 @@ function FilenameIsWinAbsolute(const TheFilename: String): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: String): boolean;
 function IsNamedToken(Const AToken : TPasScannerString; Out T : TToken) : Boolean;
 Function ExtractFilenameOnly(Const AFileName : String) : String;
-function ExtractFileUnitName(aFilename: String): String;
+function ExtractFileUnitName(const aFilename: String): String;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
 function SafeFormat(const Fmt: String; Args: array of const): String;
@@ -1337,6 +1337,12 @@ procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
 
 implementation
 
+uses
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.StrUtils;
+  {$ELSE}
+  strutils;
+  {$ENDIF}
 const
   IdentChars = ['0'..'9', 'A'..'Z', 'a'..'z','_'];
   Digits = ['0'..'9'];
@@ -1354,21 +1360,16 @@ begin
   Result:=ChangeFileExt(ExtractFileName(aFileName),'');
 end;
 
-function ExtractFileUnitName(aFilename: String): String;
+function ExtractFileUnitName(const aFilename: String): String;
 var
   p: Integer;
 begin
   Result:=ExtractFileName(aFilename);
-  if Result='' then exit;
-  for p:=length(Result) downto 1 do
-    case Result[p] of
-    '/','\': exit;
-    '.':
-      begin
-      SetLength(Result, p-1);
-      exit;
-      end;
-    end;
+  if Result='' then
+    exit;
+  p:=rpos('.',Result);
+  if p>0 then
+    SetLength(Result, p-1);
 end;
 
 Procedure SortTokenInfo;
