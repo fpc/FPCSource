@@ -74,7 +74,6 @@ type
   TRTTIRecVarOp=procedure(ARec: Pointer);
   TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
   TRTTIRecOpType=(rotInitialize, rotFinalize, rotAddRef, rotCopy);
-  TRTTIManagement=(manNone, manBuiltin, manCustom);
   PRTTIRecordOpVMT=^TRTTIRecordOpVMT;
   TRTTIRecordOpVMT=
 {$ifdef USE_PACKED}
@@ -157,7 +156,7 @@ type
       );
   end;
 
-function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt; maxInteresting: TRTTIManagement): TRTTIManagement; forward;
+function RTTIManagementAndSize(typeInfo: Pointer; op: TRTTIRecOpType; out size: SizeInt; onlyCustomOps: boolean): boolean; forward;
 function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable; forward;
 
 {$pop}
