@@ -806,6 +806,7 @@ var
 
 begin
   Result:=false;
+  IOstatus:=0;
   P := TProcess.Create(nil);
   try
     P.CommandLine:=Progname + ' ' + ComLine;
@@ -815,10 +816,20 @@ begin
       P.Options:=P.options+[poStdErrToOutput]
     else  
       P.ErrorDescriptor.FileName:=RedirStdErr;
-    P.Execute;
-    Result:=P.WaitOnExit(max_count);
+    try
+      P.Execute;
+      Result:=P.WaitOnExit(max_count);
+    except
+      on e : exception do
+        begin
+          IOStatus:=2;
+          writeln(stderr,'ExecuteRedir generated an exception: ',E.Message);
+        end;
+      end;
     if Result then  
       ExecuteResult:=P.ExitCode
+    else if (IOStatus<>0) then
+      ExecuteResult:=IOStatus*1000
     else
       begin
       Writeln(stderr,'Terminate requested for ',Progname,' ',ComLine);
