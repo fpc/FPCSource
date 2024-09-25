@@ -14,11 +14,19 @@ begin
       writeln(power(a,b));
     except
       on e: EZeroDivide do begin
+        writeln('EZeroDivide Exception: ',e.Message);
+        writeln(Infinity);
+      end;
+      on e: EMathError do begin
+        writeln('MathError Exception: ',e.Message);
         writeln(Infinity);
       end;
     end;
   except
-    halt(1);
+    on e:Exception do begin
+      writeln('Error: exception at wrong level: ',e.Message);
+      halt(1);
+    end;
   end;
   writeln('ok');
 end.
