@@ -108,8 +108,6 @@ implementation
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
         else if (tosize=OS_S32) and (fromsize=OS_32) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
-        else if (tosize=OS_32) and (fromsize=OS_32) then
-          list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
         else if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
