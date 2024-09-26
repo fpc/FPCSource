@@ -447,22 +447,18 @@ var
     end;
   end;
 
-  function TranslateSize(AWidth, AHeight: Integer): TSize;
+  function TranslateSize(out ASize: TSize): TSize;
+  var
+    iInt: Integer;
   begin
-    // image dimension depending on orientation
-    case FOrientation of
-      eoUnknown, eoNormal, eoMirrorHor, eoRotate180, eoMirrorVert:
-      begin
-        Result.Width := AWidth;
-        Result.Height := AHeight;
-      end;
-      eoMirrorHorRot270, eoRotate90,  eoMirrorHorRot90, eoRotate270:
-      begin
-        Result.Width := AHeight;
-        Result.Height := AWidth;
-      end;
+    // returning image dimension depending on orientation
+    if FOrientation in [eoMirrorHorRot270, eoRotate90,  eoMirrorHorRot90, eoRotate270] then
+    begin
+      iInt := ASize.Width;
+      ASize.Width := ASize.Height;
+      ASize.Height := iInt;
     end;
-  end;   
+  end;  
 
 begin
   InitReadingPixels;
@@ -473,7 +469,8 @@ begin
 
   jpeg_start_decompress(@FInfo);
 
-  LOutputSize := TranslateSize(FInfo.output_width, FInfo.output_height);
+  LOutputSize := Size(FInfo.output_width, FInfo.output_height);
+  TranslateSize(LOutputSize);  
   FWidth := LOutputSize.Width;
   FHeight := LOutputSize.Height;
   Img.SetSize(FWidth, FHeight);
