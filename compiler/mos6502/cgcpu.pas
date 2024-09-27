@@ -1862,9 +1862,9 @@ unit cgcpu;
                    reg1:=GetNextReg(reg1);
                    reg2:=GetNextReg(reg2);
                  end;
-             emit_mov(list,reg2,reg1);
              getcpuregister(list,NR_A);
-             emit_mov(list,NR_A,reg2);
+             emit_mov(list,NR_A,reg1);
+             emit_mov(list,reg2,NR_A);
              reg2:=GetNextReg(reg2);
              { sign extend
 
