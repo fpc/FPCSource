@@ -101,7 +101,11 @@ unit i_ps1;
 
 initialization
 
+{$IFDEF CPUMIPSEL}
+  {$IFDEF PS1}
     set_source_info(system_mipsel_ps1_info);
+  {$ENDIF}
+{$ENDIF}
 
 end.
 
