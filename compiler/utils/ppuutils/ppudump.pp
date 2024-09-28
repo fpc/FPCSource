@@ -537,12 +537,6 @@ const
     e_qw, mantval : qword;
     e_w : word;
   begin
-    if ppufile.change_endian then
-      begin
-        for i:=0 to 9 do
-          new.bytes[i]:=e.bytes[9-i];
-        e:=new;
-      end;
     if sizeof(ext)=10 then
       begin
         ext:=pextended(@e)^;
@@ -559,6 +553,11 @@ const
       begin
         e_w:=pword(@(e.bytes[8]))^;
         e_qw:=pqword(@(e.bytes[0]))^;
+      end;
+    if ppufile.change_endian then
+      begin
+        e_w:=swapendian(e_w);
+        e_qw:=swapendian(e_qw);
       end;
     sign := (e_w and $8000) <> 0;
     expMaximal := (e_w and $7fff) = 32767;
