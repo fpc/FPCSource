@@ -3165,8 +3165,9 @@ unit cgx86;
             getcpuregister(list,REGCX);
             if ts_cld in current_settings.targetswitches then
               list.concat(Taicpu.op_none(A_CLD,S_NO));
-            if (cs_opt_size in current_settings.optimizerswitches) and
-               (len>sizeof(aint)+(sizeof(aint) div 2)) then
+            if ((cs_opt_size in current_settings.optimizerswitches) and
+               (len>sizeof(aint)+(sizeof(aint) div 2))) or
+               ((len<=128) and (CPUX86_HINT_FAST_SHORT_REP_MOVS in cpu_optimization_hints[current_settings.optimizecputype])) then
               begin
                 a_load_const_reg(list,OS_INT,len,REGCX);
                 list.concat(Taicpu.op_none(A_REP,S_NO));
