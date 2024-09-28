@@ -719,7 +719,7 @@ begin
 
               case taicpu(pp).ops of
 
-                0 : {noting to do};
+                0 : {nothing to do};
 
                 1 : 
                     if (taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg) then
