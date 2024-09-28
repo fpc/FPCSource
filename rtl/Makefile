@@ -611,6 +611,9 @@ endif
 ifeq ($(CPU_OS_TARGET),mipsel-android)
 override TARGET_DIRS+=android
 endif
+ifeq ($(CPU_OS_TARGET),mipsel-ps1)
+override TARGET_DIRS+=ps1
+endif
 ifeq ($(CPU_OS_TARGET),mips64-linux)
 override TARGET_DIRS+=linux
 endif
@@ -2271,6 +2274,9 @@ TARGET_DIRS_EMBEDDED=1
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-android)
 TARGET_DIRS_ANDROID=1
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-ps1)
+TARGET_DIRS_PS1=1
 endif
 ifeq ($(CPU_OS_TARGET),mips64-linux)
 TARGET_DIRS_LINUX=1
@@ -3936,6 +3942,51 @@ freertos_makefiles:
 freertos:
 	$(MAKE) -C freertos all
 .PHONY: freertos_all freertos_debug freertos_smart freertos_release freertos_units freertos_examples freertos_shared freertos_install freertos_sourceinstall freertos_exampleinstall freertos_distinstall freertos_zipinstall freertos_zipsourceinstall freertos_zipexampleinstall freertos_zipdistinstall freertos_clean freertos_distclean freertos_cleanall freertos_info freertos_makefiles freertos
+endif
+ifdef TARGET_DIRS_PS1
+ps1_all:
+	$(MAKE) -C ps1 all
+ps1_debug:
+	$(MAKE) -C ps1 debug
+ps1_smart:
+	$(MAKE) -C ps1 smart
+ps1_release:
+	$(MAKE) -C ps1 release
+ps1_units:
+	$(MAKE) -C ps1 units
+ps1_examples:
+	$(MAKE) -C ps1 examples
+ps1_shared:
+	$(MAKE) -C ps1 shared
+ps1_install:
+	$(MAKE) -C ps1 install
+ps1_sourceinstall:
+	$(MAKE) -C ps1 sourceinstall
+ps1_exampleinstall:
+	$(MAKE) -C ps1 exampleinstall
+ps1_distinstall:
+	$(MAKE) -C ps1 distinstall
+ps1_zipinstall:
+	$(MAKE) -C ps1 zipinstall
+ps1_zipsourceinstall:
+	$(MAKE) -C ps1 zipsourceinstall
+ps1_zipexampleinstall:
+	$(MAKE) -C ps1 zipexampleinstall
+ps1_zipdistinstall:
+	$(MAKE) -C ps1 zipdistinstall
+ps1_clean:
+	$(MAKE) -C ps1 clean
+ps1_distclean:
+	$(MAKE) -C ps1 distclean
+ps1_cleanall:
+	$(MAKE) -C ps1 cleanall
+ps1_info:
+	$(MAKE) -C ps1 info
+ps1_makefiles:
+	$(MAKE) -C ps1 makefiles
+ps1:
+	$(MAKE) -C ps1 all
+.PHONY: ps1_all ps1_debug ps1_smart ps1_release ps1_units ps1_examples ps1_shared ps1_install ps1_sourceinstall ps1_exampleinstall ps1_distinstall ps1_zipinstall ps1_zipsourceinstall ps1_zipexampleinstall ps1_zipdistinstall ps1_clean ps1_distclean ps1_cleanall ps1_info ps1_makefiles ps1
 endif
 ifdef TARGET_DIRS_JAVA
 java_all:

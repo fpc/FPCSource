@@ -57,6 +57,7 @@ dirs_msxdos=msxdos
 dirs_sinclairql=sinclairql
 dirs_wasi=wasi
 dirs_human68k=human68k
+dirs_ps1=ps1
 
 [install]
 fpcpackage=y
