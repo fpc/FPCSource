@@ -923,7 +923,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) strt
+override TARGET_UNITS+=$(SYSTEMUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
@@ -2923,4 +2923,3 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 strt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) strt.pp
