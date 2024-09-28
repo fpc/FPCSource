@@ -398,7 +398,7 @@ interface
                                    system_riscv32_linux,system_riscv64_linux,
                                    system_aarch64_win64,
                                    system_z80_zxspectrum,system_z80_msxdos,
-                                   system_wasm32_wasi,system_loongarch64_linux,system_mipsel_ps1
+                                   system_wasm32_wasi,system_loongarch64_linux
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use the PE+ header in the PE/COFF file

@@ -73,6 +73,14 @@ Var
     megastr : ansistring;
     newname : ansistring;
     HPath    : TCmdStrListItem;
+    ObjectFilesTable : TStringList;
+
+
+procedure delLib(name: string);
+begin
+  if ObjectFilesTable.indexof(name) <> -1 then ObjectFilesTable.delete(ObjectFilesTable.indexof(name));
+end;
+
 
 begin
 
@@ -97,15 +105,39 @@ begin
     end;
 
 
-    LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');  // have to be "si_prc.o"
+    ObjectFilesTable := TStringList.Create;
     while not ObjectFiles.Empty do begin
-        s:= ObjectFiles.GetFirst;
-        if s <> '' then LinkRes.Add('INPUT(' + ExtractFileName(s) + ')');        
+        ObjectFilesTable.add(ExtractFileName(ObjectFiles.GetFirst));
     end;
+    
+    delLib('libcard.o');
+    delLib('libpress.o');
+    delLib('libgpu.o');
+    delLib('libgs.o');
+    delLib('libgte.o');
+    delLib('libcd.o');
+    delLib('libetc.o');
+    delLib('libsn.o');
+    delLib('libsnd.o ');
+    delLib('libspu.o');
+    delLib('libmath.o');
+    delLib('libcomb.o');
+    delLib('libtap.o');
+    delLib('libsio.o');
+    delLib('libpad.o');
+    delLib('libc2.o');
+    delLib('libapi.o');
+
+    for i:= 0 to ObjectFilesTable.count - 1 do begin
+        LinkRes.Add('INPUT(' + ObjectFilesTable[i] + ')');
+    end;
+
+    ObjectFilesTable.Free;
+    
 
     LinkRes.Add('INPUT(libcard.a libpress.a libgpu.a libgs.a libgte.a)');
     LinkRes.Add('INPUT(libcd.a libetc.a libsn.a libsnd.a libspu.a)');
-    LinkRes.Add('INPUT(libmath.a libcomb.a libcard.a libtap.a libsio.a)');
+    LinkRes.Add('INPUT(libmath.a libcomb.a libtap.a libsio.a)');
     LinkRes.Add('INPUT(libpad.a libc2.a libapi.a)');
 
     LinkRes.Add('SECTIONS');
