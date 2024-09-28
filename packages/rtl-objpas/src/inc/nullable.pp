@@ -28,6 +28,8 @@ uses sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
+  TNull = record
+  end;
 
   { TNullable }
 
@@ -44,6 +46,10 @@ Type
     // Make things more readable
     Type
       TMyType = specialize TNullable<T>;
+    // Return if it has value and if so unpack
+    function Unpack(out aDest: T): Boolean;
+    // Return value if present, else return fallback
+    function ValueOr(const Fallback: T): T;
     // Clear value, no value present after this.
     procedure Clear;
     // Is a value present ?
@@ -62,8 +68,15 @@ Type
     class operator Explicit(aValue: T): TMyType;
     class operator Explicit(aValue: TMyType): T;
     class operator := (aValue: T): TMyType;
+    class operator := (aValue: TNull): TMyType;
     class operator := (aValue: TMyType): T;
+    class operator Not (aValue: TMyType): Boolean;
    end;
+
+{$Push}
+{$WriteableConst Off}
+const null: TNull = ();
+{$Pop}
 
 implementation
 
@@ -110,6 +123,21 @@ begin
   FHasValue:=True;
 end;
 
+function TNullable.Unpack(out aDest: T): Boolean;
+begin
+  Result := HasValue;
+  if Result then
+    aDest := GetValue;
+end;
+
+function TNullable.ValueOr(const Fallback: T): T;
+begin
+  if HasValue then
+    Result := GetValue
+  else
+    Result := Fallback;
+end;
+
 procedure TNullable.Clear;
 begin
   HasValue:=False;
@@ -143,11 +171,22 @@ begin
   Result.Value:=aValue;
 end;
 
+class operator TNullable.:=(aValue: TNull): TMyType;
+begin
+  Result := Default(TMyType);
+  Result.Clear;
+end;
+
 class operator TNullable.:= (aValue: TMyType): T;
 
 begin
   // We could use :=This is in line with TField's behaviour.
   Result:=aValue.Value;
+end;
+
+class operator TNullable.Not(aValue: TMyType): Boolean;
+begin
+  Result := Not aValue.HasValue;
 end;
 
 end.

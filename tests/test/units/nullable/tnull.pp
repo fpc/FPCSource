@@ -194,6 +194,64 @@ begin
   end;
 end;
 
+Function TestAssignNull : string;
+
+Var
+  A : specialize TNullable<String>;
+begin
+  Result:='';
+  A.Value:=Val1;
+  If Not A.HasValue then
+    Exit('Assign not correct');
+  A := null;
+  if A.HasValue then
+    Exit('Null assignement not correct');
+end;
+
+Function TestBoolCheck : string;
+
+Var
+  A : specialize TNullable<String>;
+begin
+  Result:='';
+  A.Value:=Val1;
+  If Not A then
+    Exit('Bool check not correct');
+end;
+
+Function TestUnpack : string;
+
+Var
+  A : specialize TNullable<String>;
+  B : String;
+begin
+  Result:='';
+  A.Value:=Val1;
+  if not A.unpack(B) then
+    Exit('Unpack return not correct');
+  If Not (B=Val1) then
+    Exit('Unpack value not correct');
+  A.Clear;
+  if A.unpack(B) then
+    Exit('Unpack return not correct');
+end;
+
+Function TestValueOr : string;
+
+Var
+  A : specialize TNullable<String>;
+  B : String;
+begin
+  Result:='';
+  A.Value:=Val1;
+  B:=A.ValueOr(Val2);
+  If Not (B=Val1) then
+    Exit('ValueOr not correct');
+  A.Clear;
+  B:=A.ValueOr(Val2);
+  If Not (B=Val2) then
+    Exit('ValueOr not correct');
+end;
 
 Procedure DoTest(aTest,aResult : String);
 
@@ -220,5 +278,9 @@ begin
   DoTest('TestAssign2',TestAssign2);
   DoTest('TestGetEmptyValue',TestGetEmptyValue);
   DoTest('TestGetEmptyValueOrDefault',TestGetEmptyValueOrDefault);
+  DoTest('TestAssignNull',TestAssignNull);
+  DoTest('TestBoolCheck',TestBoolCheck);
+  DoTest('TestUnpack',TestUnpack);
+  DoTest('TestValueOr',TestValueOr);
 end.
 
