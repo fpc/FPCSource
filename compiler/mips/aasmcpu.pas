@@ -717,21 +717,31 @@ begin
 
             if taicpu(pp).ops > 0 then begin
 
-              if taicpu(pp).ops = 1 then
-                if (taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg) then
-                  list.insertAfter(taicpu.op_none(A_NOP), l);
+              case taicpu(pp).ops of
 
-              if taicpu(pp).ops = 2 then
-                if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
-                   ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or 
-                   ((taicpu(pp).oper[1]^.typ = top_ref) and (firstReg = taicpu(pp).oper[1]^.ref^.base)) then
-                  list.insertAfter(taicpu.op_none(A_NOP), l);
+                0 : {noting to do};
 
-              if taicpu(pp).ops = 3 then
-                if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
-                   ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
-                   ((taicpu(pp).oper[2]^.typ = top_reg) and (firstReg = taicpu(pp).oper[2]^.reg)) then
-                  list.insertAfter(taicpu.op_none(A_NOP), l);
+                1 : 
+                    if (taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg) then
+                          list.insertAfter(taicpu.op_none(A_NOP), l);
+
+                2 :
+                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
+                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or 
+                       ((taicpu(pp).oper[1]^.typ = top_ref) and (firstReg = taicpu(pp).oper[1]^.ref^.base)) then
+                          list.insertAfter(taicpu.op_none(A_NOP), l);
+
+                3 :
+                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
+                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
+                       ((taicpu(pp).oper[2]^.typ = top_reg) and (firstReg = taicpu(pp).oper[2]^.reg)) then
+                          list.insertAfter(taicpu.op_none(A_NOP), l);
+                
+                else
+
+                    internalerror(2024092501);
+
+              end;
 
             end;
 
