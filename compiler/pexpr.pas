@@ -1937,7 +1937,7 @@ implementation
                                Factor
 ****************************************************************************}
 
-
+{$push} {$R-}{$Q-} { Need to protect against integer overflows }
     function real_const_node_from_pattern(const s:string):tnode;
       var
         d : bestreal;
@@ -1968,6 +1968,7 @@ implementation
         if code=0 then
           trealconstnode(result).value_currency:=cur;
       end;
+{$pop}
 
 {---------------------------------------------
                PostFixOperators

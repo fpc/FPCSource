@@ -433,6 +433,8 @@ implementation
       begin
          if current_settings.fputype=fpu_none then
             internalerror(2008022401);
+         if def.typ<>floatdef then
+           InternalError(2002022402);
          inherited create(realconstn);
          typedef:=def;
          case tfloatdef(def).floattype of
