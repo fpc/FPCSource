@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=$(SYSTEMUNIT)
+units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT)
 
 [require]
 nortl=y
@@ -52,4 +52,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-strt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(FPINTRESUNIT)$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl

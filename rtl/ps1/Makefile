@@ -923,7 +923,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT)
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
@@ -2922,4 +2922,5 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-strt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(FPINTRESUNIT)$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
