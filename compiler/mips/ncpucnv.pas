@@ -74,6 +74,11 @@ function tmipseltypeconvnode.first_int_to_real: tnode;
 var
   fname: string[19];
 begin
+  if cs_fp_emulation in current_settings.moduleswitches then
+    begin
+      result:=inherited;
+      exit;
+    end;
   { converting a 64bit integer to a float requires a helper }
   if is_64bitint(left.resultdef) or
      is_currency(left.resultdef) then
