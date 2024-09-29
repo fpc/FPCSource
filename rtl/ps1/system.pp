@@ -16,18 +16,6 @@ interface
 
 {$endif FPUNONE}
 
-var
-  argc:longint=0;
-  argv:PPAnsiChar;
-  envp:PPAnsiChar;
-
-implementation
-
-procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
-procedure _free(p: pointer); external name 'free2';
-function _malloc(l: dword): pointer; external name 'malloc2';
-
-
 const
     maxExitCode = 255;
     AllowDirectorySeparators : set of AnsiChar = ['\','/'];
@@ -45,6 +33,17 @@ const
     LFNSupport = true;
     FileNameCaseSensitive = true;
     sLineBreak = #13;
+
+var
+  argc:longint=0;
+  argv:PPAnsiChar;
+  envp:PPAnsiChar;
+
+implementation
+
+procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
+procedure _free(p: pointer); external name 'free2';
+function _malloc(l: dword): pointer; external name 'malloc2';
 
 {I ../mips/setjump.inc}
 {$I system.inc}
