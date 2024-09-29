@@ -46,7 +46,7 @@ implementation
 
 uses
   systems,
-  globtype,
+  globtype,globals,
   cutils, verbose,
   symconst, symdef,
   aasmtai, aasmcpu, aasmdata,
@@ -74,22 +74,37 @@ end;
 
 function tMIPSELinlinenode.first_abs_real: tnode;
 begin
-  expectloc      := LOC_FPUREGISTER;
-  first_abs_real := nil;
+  if not (cs_fp_emulation in current_settings.moduleswitches) then
+    begin
+      expectloc      := LOC_FPUREGISTER;
+      first_abs_real := nil;
+    end
+  else
+    result:=inherited;
 end;
 
 
 function tMIPSELinlinenode.first_sqr_real: tnode;
 begin
-  expectloc      := LOC_FPUREGISTER;
-  first_sqr_real := nil;
+  if not (cs_fp_emulation in current_settings.moduleswitches) then
+    begin
+      expectloc      := LOC_FPUREGISTER;
+      first_sqr_real := nil;
+    end
+  else
+    result:=inherited;
 end;
 
 
 function tMIPSELinlinenode.first_sqrt_real: tnode;
 begin
-  expectloc    := LOC_FPUREGISTER;
-  first_sqrt_real := nil;
+  if not (cs_fp_emulation in current_settings.moduleswitches) then
+    begin
+      expectloc    := LOC_FPUREGISTER;
+      first_sqrt_real := nil;
+    end
+  else
+    result:=inherited;
 end;
 
 
