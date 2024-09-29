@@ -923,7 +923,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
-override TARGET_UNITS+=$(SYSTEMUNIT) si_prc
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) si_prc
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
