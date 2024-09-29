@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT)
+units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) libstd libetc libgpu libgte
 
 [require]
 nortl=y
@@ -16,7 +16,7 @@ target=ps1
 cpu=mipsel
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON)
+sourcedir=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk
 [prerules]
 RTL=..
 INC=../inc
@@ -51,7 +51,3 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 # Loaders
 #
-
-
-buildrtl$(PPUEXT): buildrtl.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(FPINTRESUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
