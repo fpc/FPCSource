@@ -2922,3 +2922,11 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+libstd$(PPUEXT) : psy-q-sdk/libstd.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libetc$(PPUEXT) : psy-q-sdk/libetc.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libgpu$(PPUEXT) : psy-q-sdk/libgpu.pas libgte$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libgte$(PPUEXT) : psy-q-sdk/libgte.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
