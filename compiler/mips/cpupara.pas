@@ -550,7 +550,7 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
-        can_use_float := true;
+        can_use_float := not ((p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches));
         { Create Function result paraloc }
         create_funcretloc_info(p,callerside);
         { calculate the registers for the normal parameters }
@@ -578,7 +578,7 @@ implementation
       begin
         intparareg:=0;
         intparasize:=0;
-        can_use_float := true;
+        can_use_float := not ((p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches));
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
         create_paraloc_info_intern(p,side,p.paras);
