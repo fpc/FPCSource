@@ -135,6 +135,8 @@ esac
 if [ $is_64 -eq 1 ] ; then
   if [ "$os_cpu" == "aarch64" ] ; then
     CC_OPT="$CC_OPT -Wall"
+  elif [ "$os_cpu" == "riscv64" ] ; then
+    CC_OPT="$CC_OPT -mabi=lp64d"
   else
     CC_OPT="$CC_OPT -m64 -Wall"
   fi
@@ -148,6 +150,8 @@ elif [ $is_32 -eq 1 ] ;then
     CC_OPT="$CC_OPT -march=armv7-a -Wall"
   elif [ "${os_cpu/arm/}" != "$os_cpu" ] ; then
     CC_OPT="$CC_OPT -march=armv5 -Wall"
+  elif [ "${os_cpu/riscv/}" != "$os_cpu" ] ; then
+    CC_OPT="$CC_OPT -mabi=ilp32 -Wall"
   else
     CC_OPT="$CC_OPT -m32 -Wall"
   fi
