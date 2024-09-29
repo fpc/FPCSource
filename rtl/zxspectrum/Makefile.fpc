@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(OBJPASUNIT) $(UUCHARUNIT) si_prc
+units=$(SYSTEMUNIT) $(OBJPASUNIT) $(UUCHARUNIT) $(STRINGSUNIT) si_prc
 
 [require]
 nortl=y
