@@ -304,6 +304,7 @@
     {$define cpu64bitalu}
     {$define cpu64bitaddr}
   {$endif}
+  {$define cpufpemu}
   {$define cpuflags} { Flags are emulated }
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
