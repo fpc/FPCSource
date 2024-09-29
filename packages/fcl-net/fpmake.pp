@@ -42,6 +42,7 @@ begin
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes-[EMX]);
 
     // IP and Sockets
+    T:=P.Targets.AddUnit('fpsockets.pp',AllUnixOSes+AllWindowsOSes);
     T:=P.Targets.AddUnit('netdb.pp',AllUnixOSes);
     T:=P.Targets.AddUnit('sslbase.pp');
     T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
