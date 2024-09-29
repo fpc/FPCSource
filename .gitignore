@@ -1,5 +1,4 @@
 *.psx-exe
-!/psy-q-sdk/lib/*
 *.bak
 *.exe
 *.ppu
