@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=
 units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) \
-  $(SYSCONSTUNIT) \
+  $(SYSCONSTUNIT) $(UUCHARUNIT) \
   libstd libetc libgpu libgte
 
 [require]
