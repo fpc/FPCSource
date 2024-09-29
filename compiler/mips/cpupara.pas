@@ -24,7 +24,7 @@ unit cpupara;
 interface
 
     uses
-      globtype,
+      globtype,globals,
       cclasses,
       aasmtai,
       cpubase,cpuinfo,
@@ -200,12 +200,54 @@ implementation
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            paraloc^.loc:=LOC_FPUREGISTER;
-            paraloc^.register:=NR_FPU_RESULT_REG;
-            if retcgsize=OS_F64 then
-              setsubreg(paraloc^.register,R_SUBFD);
-            paraloc^.size:=retcgsize;
-            paraloc^.def:=result.def;
+            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+              begin
+                case retcgsize of
+                  OS_64,
+                  OS_F64:
+                    begin
+                      { low }
+                      paraloc^.loc:=LOC_REGISTER;
+                      if side=callerside then
+                        paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+                      else
+                        paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+                      paraloc^.size:=OS_32;
+                      paraloc^.def:=u32inttype;
+                      { high }
+                      paraloc:=result.add_location;
+                      paraloc^.loc:=LOC_REGISTER;
+                      if side=callerside then
+                        paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+                      else
+                        paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+                      paraloc^.size:=OS_32;
+                      paraloc^.def:=u32inttype;
+                    end;
+                  OS_32,
+                  OS_F32:
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      if side=callerside then
+                        paraloc^.register:=NR_FUNCTION_RESULT_REG
+                      else
+                        paraloc^.register:=NR_FUNCTION_RETURN_REG;
+                      paraloc^.size:=OS_32;
+                      paraloc^.def:=u32inttype;
+                    end;
+                  else
+                    internalerror(2024092901);
+                end;
+              end
+            else
+              begin
+                paraloc^.loc:=LOC_FPUREGISTER;
+                paraloc^.register:=NR_FPU_RESULT_REG;
+                if retcgsize=OS_F64 then
+                  setsubreg(paraloc^.register,R_SUBFD);
+                paraloc^.size:=retcgsize;
+                paraloc^.def:=result.def;
+              end;
           end
         else
          { Return in register }
