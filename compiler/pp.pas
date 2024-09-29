@@ -32,6 +32,7 @@ program pp;
   I386                generate a compiler for the Intel i386+
   I8086               generate a compiler for the Intel 8086+
   JVM                 generate a compiler for the JVM (Java Virtual Machine)
+  LOONGARCH64         generate a compiler for the LoongArch64 architecture
   M68K                generate a compiler for the M68000
   MIPS                generate a compiler for the MIPS (Big Endian)
   MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
@@ -45,7 +46,6 @@ program pp;
   X86_64              generate a compiler for the AMD x86-64 architecture
   XTENSA              generate a compiler for XTENSA
   Z80                 generate a compiler for Z80
-  LOONGARCH64         generate a compiler for the LoongArch64 architecture
 
   -----------------------------------------------------------------
   Other compiler switches
