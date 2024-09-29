@@ -5,7 +5,8 @@
 main=rtl
 [target]
 loaders=
-units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) libstd libetc libgpu libgte
+units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) \
+  libstd libetc libgpu libgte
 
 [require]
 nortl=y
