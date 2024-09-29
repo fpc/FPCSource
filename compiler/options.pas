@@ -5309,7 +5309,8 @@ begin
          system_m68k_amiga,system_m68k_atari,
          system_arm_nds,system_arm_embedded,system_arm_freertos,
          system_riscv32_embedded,system_riscv64_embedded,system_xtensa_linux,
-         system_z80_embedded,system_z80_zxspectrum,system_riscv32_freertos])
+         system_z80_embedded,system_z80_zxspectrum,system_riscv32_freertos,
+         system_mipsel_ps1])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
@@ -5553,13 +5554,16 @@ begin
       end;
     system_mipsel_PS1:
       begin
-        { set default cpu type to MIPS1 with no FPU }
+        { set default cpu type to MIPS1 with SoftFPU }
         if not option.CPUSetExplicitly then
           init_settings.cputype:=cpu_mips1;
         if not option.OptCPUSetExplicitly then
           init_settings.optimizecputype:=cpu_mips1;
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_none;
+          begin
+            include(init_settings.moduleswitches,cs_fp_emulation);
+            init_settings.fputype:=fpu_soft;
+          end;
       end;
     else
       ;
