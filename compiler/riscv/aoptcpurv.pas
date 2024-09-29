@@ -319,6 +319,32 @@ implementation
 
           result:=true;
         end
+      {
+        Changes
+          addi w, z, 0
+          op x, y, w
+          dealloc w
+        To
+          op x, y, z
+      }
+      else if (taicpu(p).ops=3) and
+         (taicpu(p).oper[2]^.typ=top_const) and
+         (taicpu(p).oper[2]^.val=0) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1, [A_SUB{$ifdef riscv64}{$endif}]) and
+         (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+
+          DebugMsg('Peephole Addi0Op2Op performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
       else
         result:=OptPass1OP(p);
     end;
