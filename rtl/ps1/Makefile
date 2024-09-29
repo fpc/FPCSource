@@ -923,7 +923,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) libstd libetc libgpu libgte
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) libstd libetc libgpu libgte
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
