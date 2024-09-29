@@ -9,6 +9,7 @@ src/inc/varutils.pp=namespaced/System.VarUtils.pp
 src/inc/convutils.pp=namespaced/System.ConvUtils.pp
 src/inc/dateutils.pp=namespaced/System.DateUtils.pp
 src/inc/nullable.pp=namespaced/System.Nullable.pp
+src/inc/tuples.pp=namespaced/System.Tuples.pp
 src/inc/rtti.pp=namespaced/System.Rtti.pp
 src/inc/widestrutils.pp=namespaced/System.WideStrUtils.pp
 src/inc/syshelpers.pp=namespaced/System.Syshelpers.pp
