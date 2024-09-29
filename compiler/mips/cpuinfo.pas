@@ -46,7 +46,7 @@ Type
        cpu_pic32mx
       );
 
-   tfputype =(fpu_none,fpu_soft,fpu_mips2,fpu_mips3);
+   tfputype =(fpu_none,fpu_soft,fpu_libgcc,fpu_mips2,fpu_mips3);
 
 Const
    {# Size of native extended floating point type }
@@ -79,6 +79,7 @@ Const
    fputypestr : array[tfputype] of string[9] = (
      'NONE',
      'SOFT',
+     'LIBGCC',
      'MIPS2','MIPS3'
    );
 
