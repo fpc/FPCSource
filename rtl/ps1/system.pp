@@ -1,6 +1,8 @@
 unit system;
 interface
 
+{$define FPC_IS_SYSTEM}
+
 {$DEFINE FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 
 {$I systemh.inc}
