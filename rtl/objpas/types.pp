@@ -68,6 +68,30 @@ type
   LARGE_UINT= LargeUInt;
   PLargeuInt = ^LargeuInt;
 
+  { Null dummy type, for compile time null passing }
+  TNullPtr = record
+    { Some operators to make it (more or less) nil compatible }
+    class operator :=(None: TNullPtr): Pointer; inline;
+    class operator :=(None: TNullPtr): TObject; inline;
+
+    class operator =(LHS: TNullPtr; RHS: Pointer): Boolean; inline;
+    class operator =(LHS: TNullPtr; RHS: TObject): Boolean; inline;
+    class operator =(LHS: Pointer; RHS: TNullPtr): Boolean; inline;
+    class operator =(LHS: TObject; RHS: TNullPtr): Boolean; inline;
+
+    class operator <>(LHS: TNullPtr; RHS: Pointer): Boolean; inline;
+    class operator <>(LHS: TNullPtr; RHS: TObject): Boolean; inline;
+    class operator <>(LHS: Pointer; RHS: TNullPtr): Boolean; inline;
+    class operator <>(LHS: TObject; RHS: TNullPtr): Boolean; inline;
+  end;
+
+  {$Push}
+  {$WriteableConst Off}
+const
+  NullPtr: TNullPtr = ();
+  {$Pop}
+
+type
   TBooleanDynArray = array of Boolean;
   TByteDynArray = array of Byte;
   TClassicByteDynArray = TByteDynArray;
@@ -1039,6 +1063,58 @@ begin
   if P>1 then
     Delete(S,1,P-1);
   Result:=S;
+end;
+
+{ TNullPtr }
+
+class operator TNullPtr.:=(None: TNullPtr): Pointer;
+begin
+  Result := nil;
+end;
+
+class operator TNullPtr.:=(None: TNullPtr): TObject;
+begin
+  Result := nil;
+end;
+
+class operator TNullPtr.=(LHS: TNullPtr; RHS: Pointer): Boolean;
+begin
+  Result := not Assigned(RHS);
+end;
+
+class operator TNullPtr.=(LHS: TNullPtr; RHS: TObject): Boolean;
+begin
+  Result := not Assigned(RHS);
+end;
+
+class operator TNullPtr.=(LHS: Pointer; RHS: TNullPtr): Boolean;
+begin
+  Result := not Assigned(LHS);
+end;
+
+class operator TNullPtr.=(LHS: TObject; RHS: TNullPtr): Boolean;
+begin
+  Result := not Assigned(LHS);
+end;
+
+class operator TNullPtr.<>(LHS: TNullPtr; RHS: Pointer): Boolean;
+begin
+  Result := Assigned(RHS);
+end;
+
+class operator TNullPtr.<>(LHS: TNullPtr; RHS: TObject): Boolean;
+begin
+  Result := Assigned(RHS);
+end;
+
+class operator TNullPtr.<>(LHS: Pointer; RHS: TNullPtr): Boolean;
+begin
+  Result := Assigned(LHS);
+end;
+
+class operator TNullPtr.<>(LHS: TObject; RHS: TNullPtr): Boolean;
+begin
+  Result := Assigned(LHS);
 end;
 
 { TPointF}

@@ -31,10 +31,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
   uses
-    System.SysUtils,System.SysConst,System.RtlConsts,System.TypInfo;
+    System.SysUtils,System.SysConst,System.RtlConsts,System.TypInfo,System.Types;
 {$ELSE FPC_DOTTEDUNITS}
   uses
-    sysutils,sysconst,rtlconsts,typinfo;
+    sysutils,sysconst,rtlconsts,typinfo,types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -356,6 +356,8 @@ Function  GetVariantProp(Instance: TObject; const PropName: AnsiString): Variant
 Procedure SetVariantProp(Instance: TObject; const PropName: AnsiString; const Value: Variant);
 Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
 
+
+operator :=(ANullPtr: TNullPtr): Variant; inline;
 
 {$IFDEF DEBUG_VARIANTS}
 var
@@ -4742,6 +4744,11 @@ begin
      raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
                                     [PropInfo^.PropType^.Name]);
    end;
+end;
+
+operator :=(ANullPtr: TNullPtr): Variant;
+begin
+  Result := Null;
 end;
 
 var

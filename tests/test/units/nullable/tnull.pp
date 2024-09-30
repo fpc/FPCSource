@@ -208,6 +208,33 @@ begin
     Exit('Null assignement not correct');
 end;
 
+Function TestCompareNull : string;
+
+Var
+  A : specialize TNullable<String>;
+begin
+  Result:='';
+  A.Value:=Val1;
+  If A = null then
+    Exit('Compare to null not correct');
+  If null = A then
+    Exit('Compare to null not correct');
+  If not (A <> null) then
+    Exit('Compare to null not correct');
+  If not (A <> null) then
+    Exit('Compare to null not correct');
+
+  A.Clear;
+  If not (A = null) then
+    Exit('Compare to null not correct');
+  If not (null = A) then
+    Exit('Compare to null not correct');
+  If A <> null then
+    Exit('Compare to null not correct');
+  If A <> null then
+    Exit('Compare to null not correct');
+end;
+
 Function TestBoolCheck : string;
 
 Var
@@ -297,6 +324,7 @@ begin
   DoTest('TestGetEmptyValue',TestGetEmptyValue);
   DoTest('TestGetEmptyValueOrDefault',TestGetEmptyValueOrDefault);
   DoTest('TestAssignNull',TestAssignNull);
+  DoTest('TestCompareNull',TestCompareNull);
   DoTest('TestBoolCheck',TestBoolCheck);
   DoTest('TestUnpack',TestUnpack);
   DoTest('TestValueOr',TestValueOr);

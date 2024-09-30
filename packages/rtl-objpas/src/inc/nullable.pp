@@ -22,14 +22,12 @@ unit nullable;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils;
+uses System.SysUtils, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
-uses sysutils;
+uses sysutils, types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  TNull = record
-  end;
 
   { TNullable }
 
@@ -73,14 +71,19 @@ Type
     class operator Explicit(aValue: T): TMyType;
     class operator Explicit(aValue: TMyType): T;
     class operator := (aValue: T): TMyType;
-    class operator := (aValue: TNull): TMyType;
+    class operator := (aValue: TNullPtr): TMyType;
     class operator := (aValue: TMyType): T;
-    class operator Not (aValue: TMyType): Boolean;
+    class operator Not (const aValue: TMyType): Boolean; inline;
+    class operator =(const lhs: TMyType; rhs: TNullPtr): Boolean; inline;
+    class operator =(lhs: TNullPtr; const rhs: TMyType): Boolean; inline;
+    class operator <>(const lhs: TMyType; rhs: TNullPtr): Boolean; inline;
+    class operator <>(lhs: TNullPtr; const rhs: TMyType): Boolean; inline;
    end;
 
 {$Push}
 {$WriteableConst Off}
-const null: TNull = ();
+const
+  null: TNullPtr = ();
 {$Pop}
 
 implementation
@@ -183,7 +186,7 @@ begin
   Result.Value:=aValue;
 end;
 
-class operator TNullable.:=(aValue: TNull): TMyType;
+class operator TNullable.:=(aValue: TNullPtr): TMyType;
 begin
   Result := Default(TMyType);
   Result.Clear;
@@ -196,9 +199,29 @@ begin
   Result:=aValue.Value;
 end;
 
-class operator TNullable.Not(aValue: TMyType): Boolean;
+class operator TNullable.not(const aValue: TMyType): Boolean;
 begin
   Result := Not aValue.HasValue;
+end;
+
+class operator TNullable.=(const lhs: TMyType; rhs: TNullPtr): Boolean;
+begin
+  Result := not lhs.HasValue;
+end;
+
+class operator TNullable.=(lhs: TNullPtr; const rhs: TMyType): Boolean;
+begin
+  Result := not rhs.HasValue;
+end;
+
+class operator TNullable.<>(const lhs: TMyType; rhs: TNullPtr): Boolean;
+begin
+  Result := lhs.HasValue;
+end;
+
+class operator TNullable.<>(lhs: TNullPtr; const rhs: TMyType): Boolean;
+begin
+  Result := rhs.HasValue;
 end;
 
 end.
