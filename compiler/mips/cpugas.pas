@@ -57,6 +57,25 @@ unit cpugas;
       globals, verbose, itcpugas, cgbase, cgutils;
 
 
+      { float related options as accepted by
+        GNU assembler in -mXXXX option:
+        -mhard-float            allow floating-point instructions
+        -msoft-float            do not allow floating-point instructions
+        -msingle-float          only allow 32-bit floating-point operations
+        -mdouble-float          allow 32-bit and 64-bit floating-point operations
+      }
+      function gas_float_option(fputype : tfputype) : string;
+        begin
+          case fputype of
+            fpu_none:
+              result:='';
+            fpu_soft:
+              result:='-msoft-float';
+	    else
+              result:='-mhard-float';
+          end;
+        end;
+
       { abi strings as accepted by
         GNU assembler in -abi=XXX option }
       function gas_abitype(abi : tabi) : string;
@@ -104,6 +123,8 @@ unit cpugas;
          result := Inherited MakeCmdLine;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+gas_abitype(target_info.abi));
+         { float selection }
+         Replace(result,'$FLOATABI',gas_float_option(current_settings.fputype));
          { ARCH selection }
          Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
 //          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');      
@@ -279,7 +300,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
+        asmcmd: '$ABI $FLOATABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
         supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded,system_mipsel_ps1];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
@@ -293,7 +314,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $EXTRAOPT $ASM';
+        asmcmd: '$ABI $FLOATABI $ARCH $NOWARN -EB $PIC -o $OBJ $EXTRAOPT $ASM';
         supported_targets: [system_mipseb_linux];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
