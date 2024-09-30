@@ -56,7 +56,8 @@ type
 implementation
 
   uses
-    cutils;
+    cutils,
+    verbose;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const AConditions: TAsmConds = []): boolean;
     begin
@@ -333,11 +334,16 @@ implementation
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
          MatchInstruction(hp1, [A_SUB{$ifdef riscv64}{$endif}]) and
          (taicpu(hp1).ops=3) and
-         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) and
+         (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)) and
          (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
          RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
         begin
-          taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+          if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
+            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg)
+          else if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
+            taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg)
+          else
+            Internalerror(2024093001);
 
           DebugMsg('Peephole Addi0Op2Op performed', hp1);
 
