@@ -300,6 +300,9 @@ const
 
 
 type
+
+  { TCSSRegistryNamedItem }
+
   TCSSRegistryNamedItem = class
   public
     Name: TCSSString; // case sensitive
@@ -539,6 +542,7 @@ type
     CurValue: TCSSString;
     CurComp: TCSSResCompValue;
     function InitParseAttr(Desc: TCSSAttributeDesc; AttrData: TCSSAttributeKeyData; const Value: TCSSString): boolean; virtual; // true if parsing can start
+    procedure InitParseAttr(const Value: TCSSString); virtual;
     // check whole attribute, skipping invalid values, emit warnings:
     function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_CommaList_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
@@ -559,11 +563,13 @@ type
     function GetCompString(const aValue: string; const ResValue: TCSSResCompValue): TCSSString; overload;
     // low level functions to parse attribute components
     function ReadComp(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue
-    function ReadNumber(var aComp: TCSSResCompValue): boolean;
-    function ReadIdentifier(var aComp: TCSSResCompValue): boolean;
-    procedure SkipToEndOfAttribute(var p: PCSSChar);
-    function SkipString(var p: PCSSChar): boolean;
-    function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
+    procedure ReadWordID(var aComp: TCSSResCompValue);
+    class function ReadValue(var aComp: TCSSResCompValue): boolean; // true if parsing attribute can continue, not using CSSRegistry
+    class function ReadNumber(var aComp: TCSSResCompValue): boolean;
+    class function ReadIdentifier(var aComp: TCSSResCompValue): boolean;
+    class procedure SkipToEndOfAttribute(var p: PCSSChar);
+    class function SkipString(var p: PCSSChar): boolean;
+    class function SkipBrackets(var p: PCSSChar; Lvl: integer = 1): boolean;
     // registry
     function GetAttributeID(const aName: TCSSString; AutoCreate: boolean = false): TCSSNumericalID; virtual;
     function GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc; virtual;
@@ -1485,6 +1491,14 @@ begin
   Result:=true;
 end;
 
+procedure TCSSBaseResolver.InitParseAttr(const Value: TCSSString);
+begin
+  CurValue:=Value;
+  CurComp:=Default(TCSSResCompValue);
+  CurComp.EndP:=PCSSChar(CurValue);
+  ReadNext;
+end;
+
 function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
   ): boolean;
 begin
@@ -1618,6 +1632,34 @@ begin
 end;
 
 function TCSSBaseResolver.ReadComp(var aComp: TCSSResCompValue): boolean;
+begin
+  Result:=ReadValue(aComp);
+  ReadWordID(aComp);
+end;
+
+procedure TCSSBaseResolver.ReadWordID(var aComp: TCSSResCompValue);
+var
+  Identifier: TCSSString;
+begin
+  case aComp.Kind of
+  rvkFunctionUnknown:
+    begin
+      SetString(Identifier,aComp.StartP,aComp.EndP-aComp.StartP);
+      aComp.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
+      if aComp.FunctionID>CSSIDNone then
+        aComp.Kind:=rvkFunction;
+    end;
+  rvkKeywordUnknown:
+    begin
+      SetString(Identifier,aComp.StartP,aComp.EndP-aComp.StartP);
+      aComp.KeywordID:=CSSRegistry.IndexOfKeyword(Identifier);
+      if aComp.KeywordID>CSSIDNone then
+        aComp.Kind:=rvkKeyword;
+    end;
+  end;
+end;
+
+class function TCSSBaseResolver.ReadValue(var aComp: TCSSResCompValue): boolean;
 var
   c: TCSSChar;
   p: PCSSChar;
@@ -1743,7 +1785,7 @@ begin
   aComp.EndP:=p;
 end;
 
-function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
+class function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
 var
   Negative, HasNumber: Boolean;
   Divisor: double;
@@ -1859,9 +1901,8 @@ begin
   //writeln('TCSSBaseResolver.ReadNumber "',p,'" Value=',FloatToCSSStr(aComp.Float),' U=',U,' Kind=',aComp.Kind,' Result=',Result);
 end;
 
-function TCSSBaseResolver.ReadIdentifier(var aComp: TCSSResCompValue): boolean;
+class function TCSSBaseResolver.ReadIdentifier(var aComp: TCSSResCompValue): boolean;
 var
-  Identifier: TCSSString;
   IsFunc: Boolean;
   p: PCSSChar;
 begin
@@ -1872,34 +1913,21 @@ begin
   repeat
     inc(p);
   until not (p^ in AlNumIden);
-  SetString(Identifier,aComp.StartP,p-aComp.StartP);
   IsFunc:=p^='(';
   if IsFunc then
   begin
     // function call
+    aComp.Kind:=rvkFunctionUnknown;
     aComp.BracketOpen:=p;
     if not SkipBrackets(p) then
     begin
       aComp.EndP:=p;
       exit;
     end;
-  end;
+  end else
+    aComp.Kind:=rvkKeywordUnknown;
   aComp.EndP:=p;
 
-  if IsFunc then
-  begin
-    aComp.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
-    if aComp.FunctionID>CSSIDNone then
-      aComp.Kind:=rvkFunction
-    else
-      aComp.Kind:=rvkFunctionUnknown;
-  end else begin
-    aComp.KeywordID:=CSSRegistry.IndexOfKeyword(Identifier);
-    if aComp.KeywordID>CSSIDNone then
-      aComp.Kind:=rvkKeyword
-    else
-      aComp.Kind:=rvkKeywordUnknown;
-  end;
   Result:=true;
 end;
 
@@ -1995,7 +2023,7 @@ begin
     SetString(Result,Start,ResValue.EndP-Start);
 end;
 
-procedure TCSSBaseResolver.SkipToEndOfAttribute(var p: PCSSChar);
+class procedure TCSSBaseResolver.SkipToEndOfAttribute(var p: PCSSChar);
 begin
   repeat
     case p^ of
@@ -2006,7 +2034,7 @@ begin
   until false;
 end;
 
-function TCSSBaseResolver.SkipString(var p: PCSSChar): boolean;
+class function TCSSBaseResolver.SkipString(var p: PCSSChar): boolean;
 var
   Delim, c: TCSSChar;
 begin
@@ -2026,7 +2054,7 @@ begin
   until false;
 end;
 
-function TCSSBaseResolver.SkipBrackets(var p: PCSSChar; Lvl: integer): boolean;
+class function TCSSBaseResolver.SkipBrackets(var p: PCSSChar; Lvl: integer): boolean;
 const
   CSSMaxBracketLvl = 10;
 var
