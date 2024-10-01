@@ -34,9 +34,12 @@ Type
   { TNullable }
 
   generic TNullable<T> = record
+  public type
+    PT = ^T;
   private
     FValue: T;
     FHasValue: Boolean; // Default False
+    function InitAndGetPtr: PT;
     function GetIsNull: Boolean;
     function GetValue: T;
     function GetValueOrDefault: T;
@@ -58,6 +61,8 @@ Type
     property IsNull: Boolean read GetIsNull;
     // return the value.
     property Value: T read GetValue write SetValue;
+    // Initializes the value if not exists and gets the pointer
+    property Ptr: PT read InitAndGetPtr;
     // If a value is present, return it, otherwise return the default.
     property ValueOrDefault: T read GetValueOrDefault;
     // Return an empty value
@@ -87,6 +92,13 @@ uses rtlconsts,typinfo;
 {$ENDIF FPC_DOTTEDUNITS}
 
 { TNullable }
+
+function TNullable.InitAndGetPtr:PT;
+begin
+  if not HasValue then
+    SetValue(Default(T));
+  Result := @FValue;
+end;
 
 function TNullable.GetIsNull: Boolean;
 begin

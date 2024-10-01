@@ -253,6 +253,24 @@ begin
     Exit('ValueOr not correct');
 end;
 
+Function TestPtrAccess : string;
+
+Var
+  A : specialize TNullable<String>;
+begin
+  Result:='';
+  A.Value:=Val1;
+  If Not (A.Ptr^=Val1) then
+    Exit('Pointer to initialized not correct');
+  A.Clear;
+  If Not (A.Ptr^='') then
+    Exit('Pointer to uninitialized not correct');
+  A.Clear;
+  A.Ptr^:=Val1;
+  If Not (A.HasValue And (A.Value=Val1)) then
+    Exit('Setting value through PTR access not correct');
+end;
+
 Procedure DoTest(aTest,aResult : String);
 
 begin
@@ -282,5 +300,6 @@ begin
   DoTest('TestBoolCheck',TestBoolCheck);
   DoTest('TestUnpack',TestUnpack);
   DoTest('TestValueOr',TestValueOr);
+  DoTest('TestPtrAccess',TestPtrAccess);
 end.
 
