@@ -339,11 +339,9 @@ implementation
          RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
         begin
           if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
-            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg)
-          else if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
-            taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg)
-          else
-            Internalerror(2024093001);
+            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+          if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
+            taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
 
           DebugMsg('Peephole Addi0Op2Op performed', hp1);
 
