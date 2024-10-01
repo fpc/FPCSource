@@ -169,6 +169,7 @@ type
     kwBlue,
     kwWhite,
     kwBlack,
+    kwNone,
     kwBlock,
     kwInline_Block,
     kwLTR,
@@ -412,6 +413,7 @@ type
 
     // inline style
     procedure Test_InlineStyle;
+    procedure Test_InlineStyle_DisplayNone;
 
     // specifity
     procedure Test_Specifity_Id_Class;
@@ -850,6 +852,7 @@ begin
   kwBlack:=AddKeyword('black');
   kwLastColor:=kwBlack;
 
+  kwNone:=CSSKeywordNone;
   kwBlock:=AddKeyword('block');
   kwInline_Block:=AddKeyword('inline-block');
 
@@ -878,7 +881,7 @@ begin
 
   // display
   DemoAttrs[naDisplay].OnCheck:=@OnCheck_Display;
-  Chk_DisplayAllowedKeywordIDs:=[kwBlock,kwInline_Block];
+  Chk_DisplayAllowedKeywordIDs:=[kwNone,kwBlock,kwInline_Block];
 
   // left, top
   DemoAttrs[naLeft].OnCheck:=@OnCheck_LeftTop;
@@ -2479,6 +2482,20 @@ begin
   AssertEquals('Root.Left','',Doc.Root.Left);
   AssertEquals('Div1.Left','10px',Div1.Left);
   AssertEquals('Div1.Top','5px',Div1.Top);
+end;
+
+procedure TTestNewCSSResolver.Test_InlineStyle_DisplayNone;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Parent:=Doc.Root;
+  Div1.InlineStyle:='display:none';
+
+  ApplyStyle;
+  AssertEquals('Div1.Display','none',Div1.Display);
 end;
 
 procedure TTestNewCSSResolver.Test_Specifity_Id_Class;
