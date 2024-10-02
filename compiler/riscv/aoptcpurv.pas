@@ -332,7 +332,7 @@ implementation
          (taicpu(p).oper[2]^.typ=top_const) and
          (taicpu(p).oper[2]^.val=0) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         MatchInstruction(hp1, [A_SUB{$ifdef riscv64}{$endif}]) and
+         MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SLT,A_AND,A_OR{$ifdef riscv64}{$endif}]) and
          (taicpu(hp1).ops=3) and
          (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)) and
          (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
