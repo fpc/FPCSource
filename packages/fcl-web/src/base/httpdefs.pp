@@ -1921,8 +1921,10 @@ begin
         VN:=Copy(S,1,P-1);
         Delete(S,1,P);
         P:=GetFieldNameIndex(VN);
-        If (P<>-1) then
-          SetFieldValue(P,S);
+        If (P<>0) then                     // Changed -1 in 0
+          SetFieldValue(P,trim(S))         // Added TRIM
+        else                               // Added else
+          SetCustomHeader(VN, trim(S));
         end;
       Inc(Result);
       end;
@@ -2292,7 +2294,8 @@ begin
   begin
     FHttpVersion := Copy(URI, i + 1, Length(URI));
     URI := Copy(URI, 1, i - 1);
-    FHttpVersion := Copy(HttpVersion, Pos('/', HttpVersion) + 1, Length(HttpVersion));
+    FHttpVersion := Copy(FHttpVersion, Pos('/', FHttpVersion) + 1, Length(FHttpVersion)); // Changed HttpVersion in HttpVersion
+    HTTPVersion:= FHttpVersion;
   end;
 
   // Extract query string
