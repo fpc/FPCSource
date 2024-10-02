@@ -405,12 +405,6 @@ begin
     result:= true;
 end;
 
-{
-procedure TLinkerPS1.InitSysInitUnitName;
-begin
-  sysinitunit:= 'si_prc';
-end;
-}
 
 
 initialization
