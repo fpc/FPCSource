@@ -40,7 +40,6 @@ type
 
       procedure SetDefaultInfo; override;
       function  MakeExecutable: boolean; override;
-      procedure InitSysInitUnitName; override;
 
     end;
 
@@ -109,7 +108,7 @@ begin
     while not ObjectFiles.Empty do begin
         ObjectFilesTable.add(ExtractFileName(ObjectFiles.GetFirst));
     end;
-    
+{    
     delLib('libcard.o');
     delLib('libpress.o');
     delLib('libgpu.o');
@@ -127,7 +126,7 @@ begin
     delLib('libpad.o');
     delLib('libc2.o');
     delLib('libapi.o');
-
+}
     for i:= 0 to ObjectFilesTable.count - 1 do begin
         LinkRes.Add('INPUT(' + ObjectFilesTable[i] + ')');
     end;
@@ -406,12 +405,12 @@ begin
     result:= true;
 end;
 
-
+{
 procedure TLinkerPS1.InitSysInitUnitName;
 begin
   sysinitunit:= 'si_prc';
 end;
-
+}
 
 
 initialization
