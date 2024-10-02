@@ -16,7 +16,7 @@
 {****************************************************************************
                            MIPS specific stuff
 ****************************************************************************}
-{$IFNDEF FPUNONE}
+{$if not defined(FPUNONE) and not defined(FPUSOFT)}
 function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
   asm
     cfc1 $2,$31
@@ -72,7 +72,7 @@ const
 
   fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
 
-{$ENDIF}
+{$endif}
 
 
 {$if defined(FPUMIPS2) or defined(FPUMIPS3)}
