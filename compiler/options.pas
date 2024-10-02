@@ -5583,7 +5583,7 @@ begin
         if not option.CPUSetExplicitly then
           init_settings.cputype:=cpu_mips1;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_none;
+          init_settings.optimizecputype:=cpu_mips1;
         if not option.FPUSetExplicitly then
           begin
             include(init_settings.moduleswitches,cs_fp_emulation);
