@@ -8,3 +8,4 @@ src/cnetdb.pp=namespaced/System.Net.Cnetdb.pp
 src/netdb.pp=namespaced/System.Net.Netdb.pp
 src/ssockets.pp=namespaced/System.Net.Ssockets.pp
 src/fpsock.pp=namespaced/System.Net.Fpsock.pp
+src/fpsockets.pp=System.Net.FPSockets.pp

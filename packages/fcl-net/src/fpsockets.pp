@@ -22,7 +22,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Net.Sockets, SystemNullable;
+  System.SysUtils, System.Net.Sockets, System.Nullable;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, sockets, nullable;
