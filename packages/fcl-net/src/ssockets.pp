@@ -1588,7 +1588,7 @@ begin
     SetSocketBlockingMode(Handle, bmBlocking, @FDS);
     end;
 {$ENDIF}
-  If Not IsError then
+  If (Not IsError) and Assigned(Handler) then
     begin
     IsError:=Not FHandler.Connect;
     if IsError then
@@ -1599,7 +1599,10 @@ begin
       Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])])
     else
       begin
-      aErrMsg:=FHandler.GetLastErrorDescription;
+      if Assigned(FHandler) then
+        aErrMsg:=FHandler.GetLastErrorDescription
+      else
+        aErrMsg:='Error connecting';
       Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort]),aErrMsg]);
       end;
 end;
