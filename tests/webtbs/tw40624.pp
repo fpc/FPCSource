@@ -15,7 +15,7 @@ begin
 
   if CurrToStr(C) <> '822337203685477.5807' then
     begin
-      Writeln('Currentcy variable C as string is ',CurrToStr(C),' expecting 822337203685477.5807');
+      Writeln('Currency variable C as string is ',CurrToStr(C),' expecting 822337203685477.5807');
       Halt(1);
     end;
   S := V;
