@@ -22,7 +22,7 @@ begin
     P.Dependencies.Add('fcl-json');
 
     P.ShortName:='jsnp';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi,human68k];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi,human68k,ps1];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
