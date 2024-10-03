@@ -1682,7 +1682,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             consume(_ID);
             consume(_COLON);
             recsym := tsym(def.symtable.Find(s));
-            if not assigned(recsym) then
+            if not assigned(recsym) or (recsym.typ<>fieldvarsym) then
               begin
                 Message1(sym_e_illegal_field,sorg);
                 error := true;
