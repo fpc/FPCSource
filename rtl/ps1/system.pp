@@ -43,6 +43,9 @@ var
 
 implementation
 
+var
+  StkLen: SizeUInt; external name '__stklen';
+
 procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
 procedure _free(p: pointer); external name 'free2';
 function _malloc(l: dword): pointer; external name 'malloc2';
@@ -110,6 +113,8 @@ end;
 
 
 begin
+  StackLength:=CheckInitialStkLen(stklen);
+  StackBottom:=Pointer(PtrUInt($80200000)-PtrUInt(StackLength));
   InOutRes:= 0;
   _InitHeap(pdword($800F8000), $00100000);
 end.
