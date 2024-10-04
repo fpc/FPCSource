@@ -35,8 +35,20 @@ end;
 
 
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
+var
+  i: longint;
 begin
-  do_write:=len;
+  case h of
+    StdOutputHandle,
+    StdErrorHandle:
+      begin
+        for i:=0 to len-1 do
+          _putchar(PChar(addr)[i]);
+        do_write:=len;
+      end;
+    else
+      do_write:=len;
+  end;
 end;
 
 

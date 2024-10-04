@@ -28,13 +28,13 @@ const
     StdOutputHandle = 1;
     StdErrorHandle  = 2;
     CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
-    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCR;
+    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
     LineEnding = #10;
     PathSeparator = '/';
     MaxPathLen = 255;
     LFNSupport = true;
     FileNameCaseSensitive = true;
-    sLineBreak = #13;
+    sLineBreak = #10;
 
 var
   argc:longint=0;
@@ -50,6 +50,7 @@ var
 procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
 procedure _free(p: pointer); external name 'free2';
 function _malloc(l: dword): pointer; external name 'malloc2';
+procedure _putchar(ch: char); external name 'putchar';
 
 {I ../mips/setjump.inc}
 {$I system.inc}
@@ -99,6 +100,11 @@ end;
 
 procedure SysInitStdIO;
 begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -126,6 +132,9 @@ begin
 
   { Init unicode strings }
   initunicodestringmanager;
+
+  { Setup stdin, stdout and stderr }
+  SysInitStdIO;
 
   InOutRes:= 0;
 end.
