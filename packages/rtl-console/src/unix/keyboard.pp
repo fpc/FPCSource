@@ -511,46 +511,121 @@ const
   end;
 
   procedure GenMouseEvent;
+  { format: CSI M char1 charX charY
+       char1 - button nr and state
+       charX - mouse X (if multi byte format then 1 or 2 chars)
+       charY - mouse Y (if multi byte format then 1 or 2 chars)
+  }
   var MouseEvent: TMouseEvent;
       ch : AnsiChar;
       fdsin : tfdSet;
       buttonval:byte;
+      x,y,x1 : word;
+      notMultiByte : boolean;
+      NeedMouseRelease:boolean;
+      addButtMove : byte;
   begin
     fpFD_ZERO(fdsin);
     fpFD_SET(StdInputHandle,fdsin);
 {    Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);}
-    MouseEvent.action:=0;
+    MouseEvent.buttons:=0;
     if inhead=intail then
       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
     ch:=ttyRecvChar;
+    buttonval:=byte(ch);
+    if ch in [#$c2,#$c3] then
+    begin
+      {xterm multibyte}
+      addButtMove:=(byte(ch) and 1) shl 6;
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      buttonval:=byte(ch) or addButtMove;
+    end;
+    NeedMouseRelease:=false;
     { Other bits are used for Shift, Meta and Ctrl modifiers PM }
-    buttonval:=byte(ch)-byte(' ');
+    buttonval:=buttonval and %11100111;
     {bits 0..1: button status
      bit  5   : mouse movement while button down.
      bit  6   : interpret button 1 as button 4
                 interpret button 2 as button 5}
-    case buttonval and 67 of
-      0 : {left button press}
+    case buttonval of
+      %00100000,%01000000 : {left button pressed,moved}
         MouseEvent.buttons:=1;
-      1 : {middle button pressed }
+      %00100001,%01000001 : {middle button pressed,moved }
         MouseEvent.buttons:=2;
-      2 : { right button pressed }
+      %00100010,%01000010 : { right button pressed,moved }
         MouseEvent.buttons:=4;
-      3 : { no button pressed }
+      %00100011,%01000011 : { no button pressed,moved }
         MouseEvent.buttons:=0;
-      64: { button 4 pressed }
-          MouseEvent.buttons:=8;
-      65: { button 5 pressed }
-          MouseEvent.buttons:=16;
+      %01100000: { button 4 pressed }
+          MouseEvent.buttons:=MouseButton4;
+      %10000000: { rxvt - button 4 move }
+          MouseEvent.buttons:=0;  {rxvt does not release button keeps moving it, fake as no button press move}
+      %01100001: { button 5 pressed }
+          MouseEvent.buttons:=MouseButton5;
+      %10000001: { rxvt - button 5 move }
+          MouseEvent.buttons:=0;
+      %10100000,%11000000 : { xterm - button 6 pressed,moved }
+          MouseEvent.buttons:=MouseXButton1;
+      %01100100 : { rxvt - button 6 pressed, have to add fake release }
+          begin MouseEvent.buttons:=MouseXButton1; NeedMouseRelease:=true; end;
+      %10000100 : { rxvt - button 6 move }
+          MouseEvent.buttons:=0;
+      %10100001,%11000001 : { xterm - button 7 pressed,moved }
+          MouseEvent.buttons:=MouseXButton2;
+      %01100101 : { rxvt - button 7 pressed, have to add fake release }
+          begin MouseEvent.buttons:=MouseXButton2; NeedMouseRelease:=true; end;
+      %10000101: { rxvt - button 7 move }
+          MouseEvent.buttons:=0;
     end;
+     notMultiByte:=false;
+     {mouse X}
      if inhead=intail then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
-     MouseEvent.x:=Ord(ch)-ord(' ')-1;
+     x:=byte(ch);
+     x1:=x;
+     {mouse Y}
      if inhead=intail then
-      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
-     MouseEvent.y:=Ord(ch)-ord(' ')-1;
+     y:=byte(ch);
+     {decide if this is a single byte or a multi byte mouse report format}
+     if (x in [127..193]) or (x=0) then
+       notMultiByte:=true
+     else
+     if x >= 194 then
+     begin
+       if ch in [#$80..#$bf] then  {probably multibyte}
+         x1:=128+(byte(ch)-128)+(x-194)*($bf-$80+1)
+       else notMultiByte:=true;
+     end;
+     if y < 128 then
+       notMultiByte:=true;
+     {probability is high for multi byte format and we have extra character in line to read}
+     if not notMultiByte and sysKeyPressed then
+     begin
+       if inhead=intail then
+         fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+       ch:=ttyRecvChar;
+       if ch > ' ' then
+       begin
+         {we are sure, it is a multi byte mouse report format}
+         x:=x1; {new mouse X}
+         y:=byte(ch); {new mouse Y}
+         if (y <> 0 ) and sysKeyPressed and (y >= 194) then
+         begin
+           if inhead=intail then
+             fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+           ch:=ttyRecvChar;
+           y:=128+(byte(ch)-128)+(y-194)*($bf-$80+1); {multibyte mouse Y}
+         end;
+       end else PutBackIntoInBuf(ch);
+     end;
+     if (x=0) or (y=0) then exit; {single byte format hit its limts, no mouse event}
+     MouseEvent.x:=x-32-1;
+     MouseEvent.y:=y-32-1;
      mouseevent.action:=MouseActionMove;
      if (lastmouseevent.buttons=0) and (mouseevent.buttons<>0) then
        MouseEvent.action:=MouseActionDown;
@@ -576,6 +651,8 @@ const
 *)
      PutMouseEvent(MouseEvent);
      if (MouseEvent.buttons and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+       GenFakeReleaseEvent(MouseEvent);
+     if NeedMouseRelease then
        GenFakeReleaseEvent(MouseEvent);
 {$ifdef DebugMouse}
      if MouseEvent.Action=MouseActionDown then

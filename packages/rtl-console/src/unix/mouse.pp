@@ -221,7 +221,10 @@ begin
         {Use the xterm mouse, report button events only.}
         gpm_fs:=-1000;
         {write(#27'[?1001s');} { save old hilit tracking }
-        write(#27'[?1000h'); { enable mouse tracking }
+        write(#27'[?1000h'); { try to enable mouse down+up tracking }
+        write(#27'[?1002h'); { try to enable mouse down+up and drag tracking }
+        write(#27'[?1003h'); { try to enable mouse all motion tracking }
+        write(#27'[?1005h'); { try to enable mouse report format multibyte }
         if not DisableSGRExtModeMouse then
           write(#27'[?1006h'); { try to enable Extended/SGH 1006 mouse tracking }
       end;
@@ -265,10 +268,14 @@ begin
     -1000:
       begin
         {xterm mouse}
-        write(#27'[?1000l'); { disable mouse tracking }
-        {write(#27'[?1001r');} { Restore old hilit tracking }
         if not DisableSGRExtModeMouse then
           write(#27'[?1006l'); { disable Extended/SGH 1006 mouse tracking }
+        write(#27'[?1005l'); { disable mouse report format multibyte }
+        write(#27'[?1003l'); { disable mouse all motion tracking }
+        write(#27'[?1002l'); { disable mouse down+up and drag tracking }
+        write(#27'[?1000l'); { disable mouse down+up tracking }
+        {write(#27'[?1001r');} { Restore old hilit tracking }
+
       end;
     -1003:
       begin
