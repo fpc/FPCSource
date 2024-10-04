@@ -142,5 +142,6 @@ begin
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
 
+  { Reset IO Error }
   InOutRes:= 0;
 end.
