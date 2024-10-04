@@ -1398,7 +1398,7 @@ interface
     procedure get_tabledef(prefix:tinternaltypeprefix;countdef,elementdef:tdef;count:longint;packrecords:shortint;out recdef:trecorddef;out arrdef:tarraydef);
 
     function fileinfo_of_typesym_in_def(def:tdef;sym:tsym;out filepos:tfileposinfo):boolean;
-    procedure set_default_types_nil; {housekeeping for Textmode IDE sanity}
+    procedure reset_all_default_types; {housekeeping for Textmode IDE sanity}
 
 implementation
 
@@ -9580,7 +9580,7 @@ implementation
 {$endif}
       end;
 
-    procedure set_default_types_nil;
+    procedure reset_all_default_types;
     { Those class pointers have to be set to nil manually }
     { after memory they point to have been released.      }
     { Necessary strictly for Textmode IDE.                }
