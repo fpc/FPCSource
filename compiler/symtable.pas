@@ -1838,16 +1838,16 @@ implementation
             if assigned(collision_sym) then
               begin
                 if (fieldvs.visibility=vis_hidden) then
-                  Message1(sym_e_duplicate_id,tsym(sym).realname)
+                  MessagePos1(sym.fileinfo,sym_e_duplicate_id,sym.realname)
                 else { if it's a named field, disambiguation is possible through that field }
                   if (sym.typ=procsym) or ((sym.typ=propertysym) and
                       (ppo_hasparameters in tpropertysym(sym).propoptions)) then
                     { if it's a method, or an parametized property, one may expect
                       it to be overloaded, but because it uses one sym for overloads
                       this is in the current architecture not possible }
-                    Message2(sym_w_overload_not_possible,tsym(sym).realname,realname^)
+                    MessagePos2(sym.fileinfo,sym_w_overload_not_possible,sym.realname,realname^)
                   else
-                    Message1(sym_w_duplicate_id,tsym(sym).realname);
+                    MessagePos1(sym.fileinfo,sym_w_duplicate_id,sym.realname);
                 continue;
               end;
             refsym:=tsymrefsym.create(sym,fieldvs);
