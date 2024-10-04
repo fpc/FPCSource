@@ -969,7 +969,7 @@ type  key_sequence=packed record
         st:string[10];
       end;
 
-const key_sequences:array[0..385] of key_sequence=(
+const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
@@ -1079,6 +1079,15 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:kbF12;shift:[];st:#27'Oz'),                   {vt100}
        (AnsiChar:27;scan:kbEsc;shift:[];st:#27'[0~'),                 {if linux keyboard patched, escape
                                                                    returns this}
+       (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27#27'OT'),        {pterm}
+       (AnsiChar:0;scan:kbF5;shift:[];st:#27'OT'),                    {pterm}
+       (AnsiChar:0;scan:kbF6;shift:[];st:#27'OU'),                    {pterm}
+       (AnsiChar:0;scan:kbF7;shift:[];st:#27'OV'),                    {pterm}
+       (AnsiChar:0;scan:kbF8;shift:[];st:#27'OW'),                    {pterm}
+       (AnsiChar:0;scan:kbF9;shift:[];st:#27'OX'),                    {pterm}
+       (AnsiChar:0;scan:kbF10;shift:[];st:#27'OY'),                   {pterm}
+       (AnsiChar:0;scan:kbF11;shift:[];st:#27'OZ'),                   {pterm}
+       (AnsiChar:0;scan:kbF12;shift:[];st:#27'O['),                   {pterm}
        (AnsiChar:0;scan:kbIns;shift:[];st:#27'[2~'),                  {linux,Eterm,rxvt}
        (AnsiChar:0;scan:kbDel;shift:[];st:#27'[3~'),                  {linux,Eterm,rxvt}
        (AnsiChar:0;scan:kbHome;shift:[];st:#27'[1~'),                 {linux}
@@ -1195,6 +1204,7 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'[3;2~'),   {xterm,konsole}
        (AnsiChar:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2;5~'),     {xterm}
        (AnsiChar:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3;5~'),     {xterm}
+       (AnsiChar:0;scan:kbShiftIns;shift:[essShift];st:#27'[2$'),     {rxvt}
        (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'[3$'),     {rxvt}
        (AnsiChar:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2^'),       {rxvt}
        (AnsiChar:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3^'),       {rxvt}
@@ -1304,7 +1314,8 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[7$'),    {rxvt}
-
+       (AnsiChar:0;scan:kbShiftIns;shift:[essShift];st:#27'Op'), {rxvt - on numpad}
+       (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'On'), {rxvt - on numpad}
 
        (AnsiChar:0;scan:KbCtrlUp;shift:[essCtrl,essShift];st:#27'[1;6A'),    {xterm}
        (AnsiChar:0;scan:KbCtrlDown;shift:[essCtrl,essShift];st:#27'[1;6B'),  {xterm}
@@ -1333,11 +1344,28 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:kbCtrlEnd;shift:[essCtrl];st:#27'[8^'),       {rxvt}
        (AnsiChar:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[1;5H'),    {xterm}
        (AnsiChar:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[7^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlPgUp;shift:[essCtrl];st:#27'[5^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlPgDn;shift:[essCtrl];st:#27'[6^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'Oa'),         {rxvt}
+       (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'Ob'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'Od'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'Oc'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlPgUp;shift:[essCtrl,essShift];st:#27'[5@'),     {rxvt}
+       (AnsiChar:0;scan:kbCtrlPgDn;shift:[essCtrl,essShift];st:#27'[6@'),     {rxvt}
+       (AnsiChar:0;scan:kbCtrlEnd;shift:[essCtrl,essShift];st:#27'[8@'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlHome;shift:[essCtrl,essShift];st:#27'[7@'),     {rxvt}
+       (AnsiChar:0;scan:kbCtrlIns;shift:[essCtrl,essShift];st:#27'[2@'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlDel;shift:[essCtrl,essShift];st:#27'[3@'),      {rxvt}
+
 
        (AnsiChar:0;scan:kbAltUp;shift:[essAlt];st:#27#27'[A'),        {rxvt}
        (AnsiChar:0;scan:kbAltDown;shift:[essAlt];st:#27#27'[B'),      {rxvt}
        (AnsiChar:0;scan:kbAltLeft;shift:[essAlt];st:#27#27'[D'),      {rxvt}
        (AnsiChar:0;scan:kbAltRight;shift:[essAlt];st:#27#27'[C'),     {rxvt}
+       (AnsiChar:0;scan:kbAltUp;shift:[essShift,essAlt];st:#27#27'[a'),        {rxvt}
+       (AnsiChar:0;scan:kbAltDown;shift:[essShift,essAlt];st:#27#27'[b'),      {rxvt}
+       (AnsiChar:0;scan:kbAltLeft;shift:[essShift,essAlt];st:#27#27'[d'),      {rxvt}
+       (AnsiChar:0;scan:kbAltRight;shift:[essShift,essAlt];st:#27#27'[c'),     {rxvt}
 {$ifdef HAIKU}
        (AnsiChar:0;scan:kbAltUp;shift:[essAlt];st:#27#27'OA'),
        (AnsiChar:0;scan:kbAltDown;shift:[essAlt];st:#27#27'OB'),
@@ -1356,6 +1384,18 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:kbAltHome;shift:[essAlt];st:#27#27'[7~'),     {rxvt}
        (AnsiChar:0;scan:kbAltIns;shift:[essAlt];st:#27#27'[2~'),      {rxvt}
        (AnsiChar:0;scan:kbAltDel;shift:[essAlt];st:#27#27'[3~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltPgUp;shift:[essShift,essAlt];st:#27#27'[5$'),     {rxvt}
+       (AnsiChar:0;scan:kbAltPgDn;shift:[essShift,essAlt];st:#27#27'[6$'),     {rxvt}
+       (AnsiChar:0;scan:kbAltEnd;shift:[essShift,essAlt];st:#27#27'[8$'),      {rxvt}
+       (AnsiChar:0;scan:kbAltHome;shift:[essShift,essAlt];st:#27#27'[7$'),     {rxvt}
+       (AnsiChar:0;scan:kbAltIns;shift:[essShift,essAlt];st:#27#27'[2$'),      {rxvt}
+       (AnsiChar:0;scan:kbAltDel;shift:[essShift,essAlt];st:#27#27'[3$'),      {rxvt}
+       (AnsiChar:0;scan:kbAltPgUp;shift:[essCtrl,essShift,essAlt];st:#27#27'[5@'),     {rxvt}
+       (AnsiChar:0;scan:kbAltPgDn;shift:[essCtrl,essShift,essAlt];st:#27#27'[6@'),     {rxvt}
+       (AnsiChar:0;scan:kbAltEnd;shift:[essCtrl,essShift,essAlt];st:#27#27'[8@'),      {rxvt}
+       (AnsiChar:0;scan:kbAltHome;shift:[essCtrl,essShift,essAlt];st:#27#27'[7@'),     {rxvt}
+       (AnsiChar:0;scan:kbAltIns;shift:[essCtrl,essShift,essAlt];st:#27#27'[2@'),      {rxvt}
+       (AnsiChar:0;scan:kbAltDel;shift:[essCtrl,essShift,essAlt];st:#27#27'[3@'),      {rxvt}
 
        (AnsiChar:0;scan:KbAltUp;shift:[essAlt];st:#27'[1;3A'),        {xterm}
        (AnsiChar:0;scan:KbAltDown;shift:[essAlt];st:#27'[1;3B'),      {xterm}
@@ -1409,6 +1449,49 @@ const key_sequences:array[0..385] of key_sequence=(
        (AnsiChar:0;scan:0;shift:[];st:#27'[?7h')
       );
 
+      {those are rxvt specific, due to conflict can not put in main array }
+const rxvt_key_sequences:array[0..7] of key_sequence=(
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[25~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[26~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF5;shift:[essShift];st:#27'[28~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF6;shift:[essShift];st:#27'[29~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF7;shift:[essShift];st:#27'[31~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF8;shift:[essShift];st:#27'[32~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF9;shift:[essShift];st:#27'[33~'),     {rxvt,pterm}
+       (AnsiChar:0;scan:kbShiftF10;shift:[essShift];st:#27'[34~')     {rxvt,pterm}
+       );
+
+type TTerm = (trNone,trCons,trEterm,trGnome,trKonsole,trRxvt,trScreen,trXterm,trLinux);
+
+function detect_terminal:TTerm;
+const terminals:array[TTerm] of string[7]=('None'#0,'cons','eterm','gnome',
+                                                'konsole','rxvt','screen',
+                                                'xterm','linux');
+var term:string;
+    i,t:TTerm;
+begin
+  detect_terminal:=trNone;
+  t:=trNone;
+  term:=fpgetenv('TERM');
+  for i:=low(terminals) to high(terminals) do
+    if copy(term,1,length(terminals[i]))=terminals[i] then
+      begin
+        t:=i;
+        break;
+      end;
+  if t=trXterm then
+    begin
+      {Rxvt sets TERM=xterm and COLORTERM=rxvt. Gnome does something similar.}
+      term:=fpgetenv('COLORTERM');
+      for i:=low(terminals) to high(terminals) do
+        if copy(term,1,length(terminals[i]))=terminals[i] then
+          begin
+            t:=i;
+            break;
+          end;
+    end;
+  detect_terminal:=t;
+end;
 
 type  TKeyByte = array [0..23] of byte;
       PKeyByte = ^TKeyByte;
@@ -1688,6 +1771,12 @@ begin
   for i:=low(key_sequences) to high(key_sequences) do
     with key_sequences[i] do
       DoAddSequence(st,AnsiChar,scan,shift);
+  if detect_terminal in [trRxvt] then
+  begin  {rxvt specific escape sequences}
+    for i:=low(rxvt_key_sequences) to high(rxvt_key_sequences) do
+    with rxvt_key_sequences[i] do
+      DoAddSequence(st,AnsiChar,scan,shift);
+  end;
   sunKeySquences;
 end;
 
