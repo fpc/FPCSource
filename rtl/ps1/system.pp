@@ -121,5 +121,8 @@ begin
   _InitHeap(pdword(@bss_end),PtrUInt(StackBottom)-PtrUInt(@bss_end));
   InitHeap;
 
+  { Init exceptions }
+  SysInitExceptions;
+
   InOutRes:= 0;
 end.
