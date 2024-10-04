@@ -116,7 +116,10 @@ end;
 begin
   StackLength:=CheckInitialStkLen(stklen);
   StackBottom:=Pointer(PtrUInt($80200000)-PtrUInt(StackLength));
+
+  { Setup heap }
   _InitHeap(pdword(@bss_end),PtrUInt(StackBottom)-PtrUInt(@bss_end));
+  InitHeap;
 
   InOutRes:= 0;
 end.
