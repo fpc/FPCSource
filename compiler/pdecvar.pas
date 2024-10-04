@@ -1864,7 +1864,8 @@ implementation
                    { generate a unique name for an unnamed field }
                    sorg:='$unknown_'+IntToStr(variantrecordlevel)+'_'+inttostr(recst.symlist.count);
                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
-                 if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
+                 { very dirty hack to check if it's a hidden variabel }
+                 if sorg[1]='$' then
                    fieldvs.visibility:=vis_hidden
                  else
                    fieldvs.visibility:=visibility;
