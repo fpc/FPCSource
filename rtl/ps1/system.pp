@@ -109,8 +109,16 @@ begin
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+const
+  MinHeap = 1024;  // always leave at least 1k heap
+var
+  MaxStack: SizeInt;
 begin
-  result:= stklen;
+  MaxStack:=SizeInt(PtrUInt($80200000)-PtrUInt(@bss_end))-MinHeap;
+  if stklen<MaxStack then
+    result:= stklen
+  else
+    result:=MaxStack;
 end;
 
 procedure system_exit;
