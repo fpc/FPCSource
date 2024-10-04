@@ -2012,6 +2012,88 @@ begin
   end;
 end;
 
+function RemoveShiftState(AShiftState:TEnhancedShiftState; toRemoveState,aState,toTestState:TEnhancedShiftStateElement):TEnhancedShiftState;
+{ remove state toRemoveState and                                  }
+{ remove state aState if AShiftState does not contain toTestState }
+begin
+  AShiftState:=AShiftState-[toRemoveState];
+  if not (toTestState in AShiftState) then
+    AShiftState:=AShiftState-[aState];
+  RemoveShiftState:=AShiftState;
+end;
+
+var LastShiftState, CurrentShiftState : TEnhancedShiftState;
+
+function GetLastShiftState : byte;
+{ get fake shift state or current shift state for kitty keys }
+var State : byte;
+begin
+  State:=0;
+  if isKittyKeys then
+  begin
+    LastShiftState:=CurrentShiftState;
+    if essLeftShift in LastShiftState then
+      inc(state,kbLeftShift);
+    if essRightShift in LastShiftState then
+      inc(state,kbRightShift);
+    if (essShift in LastShiftState) and (not ((essRightShift in LastShiftState) or (essLeftShift in LastShiftState))) then
+      inc(state,kbShift); {this for super rare case when shift state key press was not recived (maybe that is impossible)}
+  end else
+  if essShift in LastShiftState then
+    inc(state,kbShift);
+  if essCtrl in LastShiftState then
+    inc(state,kbCtrl);
+  if essAlt in LastShiftState then
+    inc(state,kbAlt);
+  GetLastShiftState:=State;
+end;
+
+procedure UpdateCurrentShiftState(nKey:longint; kbDown:byte);
+begin
+  {current shift state changes}
+  if kbDown <3 then
+  begin {state key down}
+    case nKey of
+      kShiftLeft  : CurrentShiftState:=CurrentShiftState +[essShift,essLeftShift];
+      kShiftRight : CurrentShiftState:=CurrentShiftState +[essShift,essRightShift];
+      kCtrlLeft   : CurrentShiftState:=CurrentShiftState +[essCtrl,essLeftCtrl];
+      kCtrlRight  : CurrentShiftState:=CurrentShiftState +[essCtrl,essRightCtrl];
+      kAltRight   : CurrentShiftState:=CurrentShiftState +[essAlt,essRightAlt];
+      kAltLeft    : CurrentShiftState:=CurrentShiftState +[essAlt,essLeftAlt];
+      kAltGr      : CurrentShiftState:=CurrentShiftState +[essAltGr];
+    end;
+  end else
+  begin {state key up}
+    case nKey of
+      kShiftLeft  : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essLeftShift,essShift,essRightShift);
+      kShiftRight : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essRightShift,essShift,essLeftShift);
+      kCtrlLeft   : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essLeftCtrl,essCtrl,essRightCtrl);
+      kCtrlRight  : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essRightCtrl,essCtrl,essLeftCtrl);
+      kAltRight   : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essRightAlt,essAlt,essLeftAlt);
+      kAltLeft    : CurrentShiftState:=RemoveShiftState(CurrentShiftState,essLeftAlt,essAlt,essRightAlt);
+      kAltGr      : CurrentShiftState:=CurrentShiftState -[essAltGr];
+    end;
+  end;
+end;
+
+procedure UpdateShiftStateWithModifier(modifier:longint);
+{ Sanity double check. In case if there is no generated shift state key release (shortcut key intercepted by OS or terminal). }
+{ Make sure on key press there is correct current shift state }
+begin
+  { Shift states}
+  if modifier =  0 then modifier:=1;
+  modifier:=modifier-1;
+  if (modifier and 1)>0 then
+  begin if not (essShift in CurrentShiftState) then CurrentShiftState:=CurrentShiftState+[essShift];
+  end else if (essShift in CurrentShiftState) then CurrentShiftState:=CurrentShiftState-[essLeftShift,essShift,essRightShift];
+  if (modifier and 2)>0 then
+  begin  if not (essAlt in CurrentShiftState) then CurrentShiftState:=CurrentShiftState+[essAlt];
+  end else if (essAlt in CurrentShiftState) then CurrentShiftState:=CurrentShiftState-[essLeftAlt,essAlt,essRightAlt];
+  if (modifier and 4)>0 then
+  begin if not (essCtrl in CurrentShiftState) then CurrentShiftState:=CurrentShiftState+[essCtrl];
+  end else if (essCtrl in CurrentShiftState) then CurrentShiftState:=CurrentShiftState-[essRightCtrl,essCtrl,essLeftCtrl];
+end;
+
 
 function ReadKey:TEnhancedKeyEvent;
 const
@@ -2074,13 +2156,9 @@ var
          modifier:=((enh[3]-1)and 7)+1;
          kbDown:=enh[4];
 
-         unicodeCodePoint:=0;
-         if kbDown <3 then
-         begin
-           unicodeCodePoint:=enh[6];
-           if unicodeCodePoint < 0 then
-              unicodeCodePoint:=enh[0];
-         end;
+         unicodeCodePoint:=enh[6];
+         if unicodeCodePoint < 0 then
+            unicodeCodePoint:=enh[0];
          enh[5]:=modifier;
 
          escStr:='';
@@ -2139,6 +2217,7 @@ var
                NPT:=nil;
          end;
 
+         UpdateShiftStateWithModifier(modifier);
          if kbDown =3 then arrayind:=0; {release keys are ignored}
 
          if not assigned(NPT) and (ch='u') then
@@ -2148,6 +2227,8 @@ var
              {function keys have been pressed}
              arrayind:=0;
              nKey:=unicodeCodePoint-cKeysUnicodePrivateBase;
+             if (nKey >=kShiftLeft) and (nKey<=kAltGr) then
+               UpdateCurrentShiftState(nKey,kbDown);
              if (nKey < 128) and (kbDown <3) then
              begin
                if nKey = 60 then nKey:= kMiddle; {KP_5 -> KP_BEGIN}
@@ -2443,6 +2524,7 @@ end;
 procedure SysInitKeyboard;
 begin
   isKittyKeys:=false;
+  CurrentShiftState:=[];
   PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
   Utf8KeyboardInputEnabled:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}UnixKVMBase.UTF8Enabled;
   SetRawMode(true);
@@ -2581,6 +2663,7 @@ begin {main}
   if PendingEnhancedKeyEvent<>NilEnhancedKeyEvent then
     begin
       SysGetEnhancedKeyEvent:=PendingEnhancedKeyEvent;
+      LastShiftState:=SysGetEnhancedKeyEvent.ShiftState; {to fake shift state later}
       PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
       exit;
     end;
@@ -2638,6 +2721,7 @@ begin {main}
             SysGetEnhancedKeyEvent.ShiftState:=SState;
             SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
           end;
+        LastShiftState:=SysGetEnhancedKeyEvent.ShiftState; {to fake shift state later}
         exit;
       end
     else if MyChar=#27 then
@@ -2733,6 +2817,7 @@ begin {main}
       SysGetEnhancedKeyEvent.ShiftState:=SState;
       SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
     end;
+  LastShiftState:=SysGetEnhancedKeyEvent.ShiftState; {to fake shift state later}
 end;
 
 
@@ -2750,6 +2835,7 @@ begin
     end
   else
     SysPollEnhancedKeyEvent:=NilEnhancedKeyEvent;
+  LastShiftState:=SysPollEnhancedKeyEvent.ShiftState; {to fake shift state later}
 end;
 
 
@@ -2760,7 +2846,7 @@ begin
     SysGetShiftState:=ShiftState
   else
 {$endif}
-    SysGetShiftState:=0;
+    SysGetShiftState:=GetLastShiftState;
 end;
 
 
