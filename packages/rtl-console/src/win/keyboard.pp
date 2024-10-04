@@ -732,7 +732,7 @@ CONST
    (n : $00; s : $00; c : $00; a: $7F),      {09 8 }
    (n : $00; s : $00; c : $00; a: $80),      {0A 9 }
    (n : $00; s : $00; c : $00; a: $81),      {0B 0 }
-   (n : $00; s : $00; c : $00; a: $82),      {0C ß }
+   (n : $00; s : $00; c : $00; a: $82),      {0C #223 }
    (n : $00; s : $00; c : $00; a: $00),      {0D}
    (n : $00; s : $00; c : $00; a: $00),      {0E Backspace}
    (n : $00; s : $0F; c : $94; a: $00));     {0F Tab }
@@ -862,7 +862,7 @@ begin
           this is not good !!! }
         $00DC,         {^ : next key i.e. a is modified }
         { Strange on my keyboard this corresponds to double point over i or u PM }
-        $00DD: exit;   {´ and ` : next key i.e. e is modified }
+        $00DD: exit;   {#180 and ` : next key i.e. e is modified }
       end;
 
       Key.VirtualScanCode := t.ev.wVirtualScanCode shl 8;  { make lower 8 bit=0 like under dos }
@@ -884,7 +884,7 @@ begin
 
     { Reset Ascii-AnsiChar if Alt+Key, fv needs that, may be we
       need it for other special keys too
-      18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
+      18 Sept 1999 AD: not for right Alt i.e. for AltGr+#223 = \ on german keyboard }
     if (essAlt in t.ShiftState) or
     (*
       { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
