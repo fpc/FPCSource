@@ -737,6 +737,24 @@ const
       exit;
     if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
       exit;
+    case buttonval and (67 or 128) of
+      0 : {left button press}
+        ButtonMask:=1;
+      1 : {middle button pressed }
+        ButtonMask:=2;
+      2 : { right button pressed }
+        ButtonMask:=4;
+      3 : { no button pressed }
+        ButtonMask:=0;
+      64: { button 4 pressed }
+        ButtonMask:=8;
+      65: { button 5 pressed }
+        ButtonMask:=16;
+      128: { button browse back }
+        ButtonMask:=MouseXButton1;
+      129: { button browse forward }
+        ButtonMask:=MouseXButton2;
+    end;
     MouseEvent.X:=X-1;
     MouseEvent.Y:=Y-1;
     if (buttonval and 32)<>0 then
@@ -746,20 +764,6 @@ const
     end
     else
     begin
-      case buttonval and 67 of
-        0 : {left button press}
-          ButtonMask:=1;
-        1 : {middle button pressed }
-          ButtonMask:=2;
-        2 : { right button pressed }
-          ButtonMask:=4;
-        3 : { no button pressed }
-          ButtonMask:=0;
-        64: { button 4 pressed }
-          ButtonMask:=8;
-        65: { button 5 pressed }
-          ButtonMask:=16;
-      end;
       if ch='M' then
       begin
         MouseEvent.Action:=MouseActionDown;
