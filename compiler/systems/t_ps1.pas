@@ -60,7 +60,7 @@ end;
 
 procedure TLinkerPS1.SetDefaultInfo;
 begin
-  info.ExeCmd[1]:= 'ld $OPT $RES';
+  info.ExeCmd[1]:= 'ld $OPT $MAP $RES';
 end;
 
 
@@ -348,9 +348,13 @@ end;
 
 function TLinkerPS1.MakeExecutable: boolean;
 var
-    binstr, cmdstr : TCmdStr;
+    binstr, cmdstr, mapstr : TCmdStr;
     success : boolean;
 begin
+    if (cs_link_map in current_settings.globalswitches) then
+      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+    else
+      mapstr:='';
 
     WriteScriptFile;
 
@@ -364,6 +368,7 @@ begin
 
     Replace(cmdstr, '$OPT', Info.ExtraOptions);
     Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(outputexedir + Info.ResName))));
+    Replace(cmdstr, '$MAP', mapstr);
 
     if cs_link_smart in current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
 
