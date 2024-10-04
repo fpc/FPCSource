@@ -24,7 +24,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx
 
 interface
 
-// CSIDL_* contants are also declared in "ShellApi" and "shfolder" units.
+// CSIDL_* constants are also declared in "ShellApi" and "shfolder" units.
 // If changed, remember to add an appropriate mapping in CSIDLtoFOLDERID list.
 const
   CSIDL_PROGRAMS                = $0002; { %SYSTEMDRIVE%\Program Files                                      }
