@@ -91,7 +91,7 @@ unit i_ps1;
                 maxCrecordalign : 8
               );
             first_parm_offset : 0;
-            stacksize    : 32*1024*1024;
+            stacksize    : 262144;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
