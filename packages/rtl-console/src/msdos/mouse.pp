@@ -407,10 +407,11 @@ asm
 {$else}
         cmp     ScreenWidth, 40
 {$endif}
-        jne     @@morethan40cols
+        {jne     @@morethan40cols}
+        jne     @@exit
         shr     ax, 1
 @@morethan40cols:
-        inc     ax
+        {inc     ax} {need to be zero based - no inc}
         jmp @@exit
 @@GetMouseXError:
         xor     ax, ax
@@ -430,7 +431,7 @@ asm
         shr     ax, 1
         shr     ax, 1
         shr     ax, 1
-        inc     ax
+        {inc     ax} {need to be zero based - no inc}
         jmp @@exit
 @@GetMouseYError:
         xor     ax, ax
@@ -460,6 +461,12 @@ asm
         jne     @@SetMouseXYExit
         mov     cx, x
         mov     dx, y
+        shl     cx, 1 {character based convert to pixels: x * 8}
+        shl     cx, 1
+        shl     cx, 1
+        shl     dx, 1 {character based convert to pixels: y * 8}
+        shl     dx, 1
+        shl     dx, 1
         mov     ax, 4
         push    bp
         int     33h

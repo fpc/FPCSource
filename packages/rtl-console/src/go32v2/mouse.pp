@@ -656,10 +656,11 @@ asm
         movzwl  %cx,%eax
         shrl    $3,%eax
         cmpw    $40,ScreenWidth
-        jne     .Lmorethan40cols
+        {jne     .Lmorethan40cols}
+        jne     .Lexit
         shrl    $1,%eax
 .Lmorethan40cols:
-        incl    %eax
+        {incl    %eax} {need to be zero based - no inc}
         jmp .Lexit
 .LGetMouseXError:
         xorl    %eax,%eax
@@ -679,7 +680,7 @@ asm
         popl    %ebp
         movzwl  %dx,%eax
         shrl    $3,%eax
-        incl    %eax
+        {incl    %eax} {need to be zero based - no inc}
         jmp .Lexit
 .LGetMouseYError:
         xorl    %eax,%eax
@@ -713,6 +714,8 @@ asm
         jne     .LSetMouseXYExit
         movw    x,%cx
         movw    y,%dx
+        shll    $3,%ecx {character based convert to pixels: x * 8}
+        shll    $3,%edx {character based convert to pixels: y * 8}
         movl    $4,%eax
         pushl   %ebp
         int     $0x33
