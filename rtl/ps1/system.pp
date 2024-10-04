@@ -124,5 +124,8 @@ begin
   { Init exceptions }
   SysInitExceptions;
 
+  { Init unicode strings }
+  initunicodestringmanager;
+
   InOutRes:= 0;
 end.
