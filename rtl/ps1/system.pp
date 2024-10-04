@@ -123,6 +123,12 @@ begin
   StackLength:=CheckInitialStkLen(stklen);
   StackBottom:=Pointer(PtrUInt($80200000)-PtrUInt(StackLength));
 
+  { Debug printing via writeln (visible in emulator logs) is possible, so
+    pretend to be a console application. }
+  IsConsole := TRUE;
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
+
   { Setup heap }
   _InitHeap(pdword(@bss_end),PtrUInt(StackBottom)-PtrUInt(@bss_end));
   InitHeap;
