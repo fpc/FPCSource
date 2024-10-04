@@ -531,7 +531,7 @@ implementation
 
 function strdup(p: pchar): pchar;	
 begin
- 	strdup:= malloc(strlen(p) + 1);
+ 	strdup:= malloc2(strlen(p) + 1);
  	strcpy(strdup, p);
 end;
 
