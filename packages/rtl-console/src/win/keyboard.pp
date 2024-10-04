@@ -618,7 +618,7 @@ const
   { BD OEM specific } 0,
   { BE OEM specific } 0,
   { BF OEM specific } 0,
-  { C0 OEM specific } 0,
+  { C0 OEM specific } $29, {possible silent key, make fixed scancode}
   { C1 unassigned } -2,
   { C2 unassigned } -2,
   { C3 unassigned } -2,
@@ -648,7 +648,7 @@ const
   { DB OEM specific } 0,
   { DC OEM specific } 0,
   { DD OEM specific } 0,
-  { DE OEM specific } 0,
+  { DE OEM specific } $28, {possible silent key, make fixed scancode}
   { DF OEM specific } 0,
   { E0 OEM specific } 0,
   { E1 OEM specific } 0,
