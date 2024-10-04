@@ -35,6 +35,7 @@ const
     LFNSupport = true;
     FileNameCaseSensitive = true;
     sLineBreak = #10;
+    AllFilesMask = '*';
 
 var
   argc:longint=0;
