@@ -45,6 +45,7 @@ implementation
 
 var
   StkLen: SizeUInt; external name '__stklen';
+  bss_end: record end; external name '__bss_end__';
 
 procedure _InitHeap(p: pdword; l: dword); external name 'InitHeap2';
 procedure _free(p: pointer); external name 'free2';
@@ -115,6 +116,7 @@ end;
 begin
   StackLength:=CheckInitialStkLen(stklen);
   StackBottom:=Pointer(PtrUInt($80200000)-PtrUInt(StackLength));
+  _InitHeap(pdword(@bss_end),PtrUInt(StackBottom)-PtrUInt(@bss_end));
+
   InOutRes:= 0;
-  _InitHeap(pdword($800F8000), $00100000);
 end.
