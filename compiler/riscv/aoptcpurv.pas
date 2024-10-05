@@ -48,7 +48,7 @@ type
 
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     function OptPass1OP(var p: tai): boolean;
-    function OptPass1FOP_S(var p: tai): boolean;
+    function OptPass1FOP(var p: tai;mvop: tasmop): boolean;
 
     function OptPass1Add(var p: tai): boolean;
     procedure RemoveInstr(var orig: tai; moveback: boolean=true);
@@ -213,22 +213,23 @@ implementation
     end;
 
 
-  function TRVCpuAsmOptimizer.OptPass1FOP_S(var p : tai) : boolean;
+  function TRVCpuAsmOptimizer.OptPass1FOP(var p: tai;mvop: tasmop) : boolean;
     var
       hp1 : tai;
     begin
       result:=false;
       { replace
-          <FOp.S>   %reg3,%reg2,%reg1
-          fsgnj.s   %reg4,%reg3,%reg3
-          dealloc   %reg3
+          <FOp>   %reg3,%reg2,%reg1
+          <mvop>  %reg4,%reg3,%reg3
+          dealloc %reg3
 
-          by
-          <FOp.S>   %reg4,%reg2,%reg1
+        by
+
+          <FOp>   %reg4,%reg2,%reg1
         ?
       }
       if GetNextInstruction(p,hp1) and
-        MatchInstruction(hp1,A_FSGNJ_S) and
+        MatchInstruction(hp1,mvop) and
         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
         begin
@@ -237,7 +238,7 @@ implementation
           if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg,hp1,TmpUsedRegs)) then
             begin
               taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
-              DebugMsg('Peephole FOp.sFsgnj.s02FOp.s done',p);
+              DebugMsg('Peephole FOpFsgnj02FOp done',p);
               RemoveInstruction(hp1);
               result:=true;
             end;
@@ -713,7 +714,12 @@ implementation
               A_FSUB_S,
               A_FMUL_S,
               A_FDIV_S:
-                result:=OptPass1FOP_S(p);
+                result:=OptPass1FOP(p,A_FSGNJ_S);
+              A_FADD_D,
+              A_FSUB_D,
+              A_FMUL_D,
+              A_FDIV_D:
+                result:=OptPass1FOP(p,A_FSGNJ_D);
               else
                 ;
             end;
