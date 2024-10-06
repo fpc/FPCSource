@@ -4350,7 +4350,7 @@ l*2Tlinux_Linux
 m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
-m*2Tps1_PS1
+m*2Tps1_PlayStation 1
 # mipseb targets
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
