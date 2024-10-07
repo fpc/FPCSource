@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
@@ -12071,8 +12071,8 @@ unit aoptx86;
                                 end;
                               A_ADD:
                                 begin
-                                  if (taicpu(next).opsize = S_B) or
-                                    { LEA doesn't support 8-bit operands }
+                                  if { LEA doesn't support 8-bit in general and 16-bit on x86-64 operands }
+                                    (taicpu(next).opsize in [S_B{$ifdef x86_64},S_W{$endif x86_64}]) or
                                     (taicpu(next).oper[1]^.typ <> top_reg) or
                                     { Must write to a register }
                                     (taicpu(next).oper[0]^.typ = top_ref) then
@@ -12083,8 +12083,8 @@ unit aoptx86;
                                 end;
                               A_SUB:
                                 begin
-                                  if (taicpu(next).opsize = S_B) or
-                                    { LEA doesn't support 8-bit operands }
+                                  if { LEA doesn't support 8-bit in general and 16-bit on x86-64 operands }
+                                    (taicpu(next).opsize in [S_B{$ifdef x86_64},S_W{$endif x86_64}]) or
                                     (taicpu(next).oper[1]^.typ <> top_reg) or
                                     { Must write to a register }
                                     (taicpu(next).oper[0]^.typ <> top_const) or
@@ -12099,8 +12099,8 @@ unit aoptx86;
                               A_SAL,
                               A_SHL:
                                 begin
-                                  if (taicpu(next).opsize = S_B) or
-                                    { LEA doesn't support 8-bit operands }
+                                  if { LEA doesn't support 8-bit in general and 16-bit on x86-64 operands }
+                                    (taicpu(next).opsize in [S_B{$ifdef x86_64},S_W{$endif x86_64}]) or
                                     (taicpu(next).oper[1]^.typ <> top_reg) or
                                     { Must write to a register }
                                     (taicpu(next).oper[0]^.typ <> top_const) or
