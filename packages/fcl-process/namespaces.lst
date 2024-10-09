@@ -3,6 +3,7 @@ src/process.pp=namespaced/System.Process.pp
 {i+:src/}
 src/dbugintf.pp=namespaced/System.Dbugintf.pp
 src/simpleipc.pp=namespaced/System.SimpleIpc.pp
+src/syncipc.pp=namespaced/System.SyncIpc.pp
 src/dbugmsg.pp=namespaced/System.Dbugmsg.pp
 src/processunicode.pp=namespaced/System.Process.Unicode.pp
 src/pipes.pp=namespaced/System.Pipes.pp

@@ -59,6 +59,7 @@ begin
     T:=P.Targets.AddUnit('simpleipc.pp');
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('syncipc.pp');
     T:=P.Targets.AddUnit('pipesipc.pp',AllUnixOSes);
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
@@ -69,6 +70,8 @@ begin
     P.ExamplePath.Add('examples');
       T:=P.Targets.AddExampleProgram('ipcclient.pp');
       T:=P.Targets.AddExampleProgram('ipcserver.pp');
+      T:=P.Targets.AddExampleProgram('syncipcclient.pp');
+      T:=P.Targets.AddExampleProgram('syncipcserver.pp');
       T:=P.Targets.AddExampleProgram('dbugsrv.pp');
 
 
