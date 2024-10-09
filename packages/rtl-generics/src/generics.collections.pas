@@ -250,6 +250,7 @@ type
     type
       // bug workaround
       TEnumerator = class(TCustomListEnumerator<T>);
+      TEmptyFunc = reference to function (const L, R: T): Boolean;
 
     function GetEnumerator: TEnumerator; reintroduce;
   protected
@@ -284,6 +285,9 @@ type
     {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
     procedure InsertRange(AIndex: SizeInt; const AEnumerable: TEnumerableWithPointers<T>); overload;
     {$ENDIF}
+
+    procedure Pack; overload;
+    procedure Pack(const IsEmpty: TEmptyFunc); overload;
 
     function Remove(const AValue: T): SizeInt;
     function RemoveItem(const Value: T; Direction: TDirection): SizeInt;
@@ -1755,6 +1759,24 @@ begin
     InternalInsert(Aindex + i, LValue);
     Inc(i);
   end;
+end;
+
+procedure TList<T>.Pack;
+begin
+  Pack(
+    function(const L, R: T): Boolean
+    begin
+      Result := FComparer.Compare(L, Default(T)) = 0;
+    end);
+end;
+
+procedure TList<T>.Pack(const IsEmpty: TEmptyFunc);
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if IsEmpty(List[I], Default(T)) then
+      DoRemove(I, cnRemoved);
 end;
 
 {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
