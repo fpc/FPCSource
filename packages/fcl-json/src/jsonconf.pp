@@ -186,8 +186,10 @@ begin
       else
         S:=FJSON.AsJSON;
       if S>'' then
+        begin
         F.WriteBuffer(S[1],Length(S));  
-      F.Flush;
+        F.Flush;
+        end;
     Finally
       F.Free;
     end;
