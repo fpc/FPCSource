@@ -154,8 +154,8 @@ type
         procedure   SetCurPtr(X,Y: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
         function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
-        function    GetLineText(Line: sw_integer): string; virtual;
-        function    GetDisplayText(I: sw_integer): string; virtual;
+        function    GetLineText(Line: sw_integer): sw_astring; virtual;
+        function    GetDisplayText(I: sw_integer): sw_astring; virtual;
         function    GetLinkCount: sw_integer; virtual;
         procedure   GetLinkBounds(Index: sw_integer; var R: TRect); virtual;
         function    GetLinkFileID(Index: sw_integer): word; virtual;
@@ -828,13 +828,13 @@ begin
   {Abstract; used in wcedit unit ! }
   GetLine:=nil;
 end;
-function THelpViewer.GetDisplayText(I: sw_integer): string;
+function THelpViewer.GetDisplayText(I: sw_integer): sw_astring;
 begin
   GetDisplayText:=ExtractTabs(GetLineText(I),DefaultTabSize);
 end;
 
-function THelpViewer.GetLineText(Line: sw_integer): string;
-var S: string;
+function THelpViewer.GetLineText(Line: sw_integer): sw_astring;
+var S: sw_astring;
 begin
   if HelpTopic=nil then S:='' else S:=HelpTopic^.GetLineText(Line);
   GetLineText:=S;
@@ -887,7 +887,7 @@ begin
   begin
     if Y=R.A.Y then StartX:=R.A.X else StartX:=Margin;
     if Y=R.B.Y then EndX:=R.B.X else EndX:=High(S);
-    S:=S+copy(GetLineText(Y),StartX+1,EndX-StartX+1);
+    S:=S+copy(GetLineText(Y),StartX+1,EndX-StartX+1);   { Note: AnsiString to ShortString convertino}
     Inc(Y);
   end;
   GetLinkText:=S;
@@ -1219,7 +1219,7 @@ var NormalColor, LinkColor,
     B: TDrawBuffer;
     DX,DY,X,Y,I,MinX,MaxX,ScreenX: sw_integer;
     LastLinkDrawn,LastColorAreaDrawn: sw_integer;
-    S: string;
+    S: sw_astring;
     R: TRect;
     SelR : TRect;
     C,Mask: word;
@@ -1244,7 +1244,8 @@ begin
     MoveChar(B,' ',NormalColor,Size.X);
     if Y<GetLineCount then
     begin
-      S:=copy(GetLineText(Y),Delta.X+1,High(S));
+      S:=GetLineText(Y);
+      S:=copy(S,Delta.X+1,Length(S));
       S:=copy(S,1,MaxViewWidth);
       MoveStr(B,S,NormalColor);
 
