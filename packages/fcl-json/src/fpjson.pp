@@ -82,7 +82,8 @@ type
                    foUseTabchar,        // Use tab characters instead of spaces.
                    foSkipWhiteSpace,    // Do not use whitespace at all
                    foSkipWhiteSpaceOnlyLeading,   //  When foSkipWhiteSpace is active, skip whitespace for object members only before :
-                   foForceLF            // On Windows, use this to force use of LF instead of CR/LF
+                   foForceLF,            // On Windows, use this to force use of LF instead of CR/LF
+                   foFormatFloat         // Format floats using floattostr
                    );
   TFormatOptions = set of TFormatOption;
 
@@ -239,6 +240,7 @@ Type
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsString(const AValue: TJSONStringType); override;
     procedure SetValue(const AValue: TJSONVariant); override;
+    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
   public
     Constructor Create(AValue : TJSONFloat); reintroduce;
     class function NumberType : TJSONNumberType; override;
@@ -833,6 +835,28 @@ Uses typinfo;
 const
   HexDigits: array[0..15] of AnsiChar = '0123456789ABCDEF';
 {$ENDIF}
+const
+  // ensure thousandseparator and decimalseparator comply with JSON specification
+  JSONFormatSettings: TFormatSettings = (
+    CurrencyFormat: 1;
+    NegCurrFormat: 5;
+    ThousandSeparator: ',';
+    DecimalSeparator: '.';
+    CurrencyDecimals: 2;
+    DateSeparator: '-';
+    TimeSeparator: ':';
+    ListSeparator: ',';
+    CurrencyString: '$';
+    ShortDateFormat: 'd/m/y';
+    LongDateFormat: 'dd" "mmmm" "yyyy';
+    TimeAMString: 'AM';
+    TimePMString: 'PM';
+    ShortTimeFormat: 'hh:nn';
+    LongTimeFormat: 'hh:nn:ss';
+    ShortMonthNames: ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+    LongMonthNames: ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'); ShortDayNames: ('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'); LongDayNames: ('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+    TwoDigitYearCenturyWindow: 50
+  );
 
 Resourcestring
   SErrCannotConvertFromNull = 'Cannot convert data from Null value';
@@ -2165,6 +2189,16 @@ procedure TJSONFloatNumber.SetValue(const AValue: TJSONVariant);
 begin
   FValue:={$IFDEF PAS2JS}TJSONFloat(AValue){$else}AValue{$ENDIF};
 end;
+
+function TJSONFloatNumber.DoFormatJSON(Options: TFormatOptions; CurrentIndent, Indent: Integer): TJSONStringType;
+begin
+  if (foFormatFloat in Options) then
+    Result:=TJSONStringType(FloatToStr(FValue,JSONFormatSettings))
+  else
+    Result:=AsJSON;
+end;
+
+
 
 constructor TJSONFloatNumber.Create(AValue: TJSONFloat);
 begin

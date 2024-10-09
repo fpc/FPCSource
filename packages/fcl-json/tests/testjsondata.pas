@@ -2164,6 +2164,7 @@ begin
   F:=TJSONFloatNumber.Create(1.23);
   try
     AssertEquals('FormatJSON equals asJSON',F.AsJSON,F.FormatJSON);
+    AssertEquals('Formatjson with float formatting','1.23',F.FormatJSON([foFormatFloat]));
   finally
     FreeAndNil(F);
   end;
