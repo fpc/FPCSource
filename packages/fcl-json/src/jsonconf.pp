@@ -187,6 +187,7 @@ begin
         S:=FJSON.AsJSON;
       if S>'' then
         F.WriteBuffer(S[1],Length(S));  
+      F.Flush;
     Finally
       F.Free;
     end;
