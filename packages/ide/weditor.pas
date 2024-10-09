@@ -4906,8 +4906,8 @@ begin
      CP:=CurPos.X-1;
      S:=GetLineText(CurPos.Y);
      CI:=LinePosToCharIdx(CurPos.Y,CP);
-     if (s[ci]=TAB) and (CharIdxToLinePos(Curpos.y,ci)=cp) then
-      CP:=CharIdxToLinePos(CurPos.Y,CI-1)+1;
+     if (s[ci]=TAB) {and (CharIdxToLinePos(Curpos.y,ci)=cp)} then
+      CP:=CharIdxToLinePos(CurPos.Y,CI);
      if IsFlagSet(efBackspaceUnindents) then
       begin
         S:=GetDisplayText(CurPos.Y);
