@@ -371,9 +371,34 @@ begin
                   SetLength(hs,Prec);
                 ToAdd:=hs;
               end;
-        'P' : Begin
-              CheckArg(vtpointer,true);
-              ToAdd:=TFormatString(HexStr(ptruint(Args[DoArg].VPointer),sizeof(Ptruint)*2));
+        'O' :
+              begin
+              if CheckArg(vtClass,false) then
+                begin
+                if (Args[DoArg].VClass=Nil) then
+                  ToAdd:='<Nil>'
+                else
+                  ToAdd:=TFormatString(Args[DoArg].VClass.ClassName);
+                end
+              else
+                begin
+                CheckArg(vtObject,True);
+                if (Args[DoArg].VObject=Nil) then
+                  ToAdd:='<Nil>'
+                else
+                  ToAdd:=TFormatString(Args[DoArg].VObject.ToString);
+                end
+              end;
+        'P' : begin
+              if CheckArg(vtObject,false) then
+                ToAdd:=TFormatString(HexStr(ptruint(Args[DoArg].VObject),sizeof(Ptruint)*2))
+              else if CheckArg(vtClass,false) then
+                ToAdd:=TFormatString(HexStr(ptruint(Args[DoArg].VClass),sizeof(Ptruint)*2))
+              else
+                begin
+                CheckArg(vtpointer,true);
+                ToAdd:=TFormatString(HexStr(ptruint(Args[DoArg].VPointer),sizeof(Ptruint)*2));
+                end;
               // Insert ':'. Is this needed in 32 bit ? No it isn't.
               // Insert(':',ToAdd,5);
               end;
