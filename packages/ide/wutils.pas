@@ -46,11 +46,14 @@ const
   TempExt       = '.tmp';
   TempNameLen   = 8;
 
-  { Get DirSep and EOL from System unit, instead of redefining 
+  { Get DirSep and EOL from System unit, instead of redefining
     here with tons of $ifdefs (KB) }
   DirSep : AnsiChar = System.DirectorySeparator;
   EOL : String[2] = System.LineEnding;
 
+type
+  Sw_AString = AnsiString;      { long lines in editor }
+  {Sw_AString = ShortString;}     { 255 char lines in editor }
 
 type
   PByteArray = ^TByteArray;
@@ -99,7 +102,8 @@ type
   TFastBufStream = object(TBufStream)
     constructor Init (FileName: FNameStr; Mode, Size: Word);
     procedure   Seek(Pos: Longint); virtual;
-    procedure Readline(var s:string;var linecomplete,hasCR : boolean);
+    procedure Readline(var S:ShortString;var linecomplete,hasCR : boolean);
+    procedure Readline(var S:AnsiString;var linecomplete,hasCR : boolean);
   private
     BasePos: longint;
   end;
@@ -119,7 +123,8 @@ type
     function  AtInt(Index: sw_integer): ptrint;
   end;
 
-procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete,hasCR : boolean);
+procedure ReadlnFromStream(Stream: PStream; var s:ShortString;var linecomplete,hasCR : boolean);
+procedure ReadlnFromStream(Stream: PStream; var s:AnsiString;var linecomplete,hasCR : boolean);
 function eofstream(s: pstream): boolean;
 procedure ReadlnFromFile(var f : file; var S:string;
            var linecomplete,hasCR : boolean;
@@ -128,15 +133,20 @@ procedure ReadlnFromFile(var f : file; var S:string;
 function Min(A,B: longint): longint;
 function Max(A,B: longint): longint;
 
-function CharStr(C: AnsiChar; Count: integer): string;
+function CharStr(C: AnsiChar; Count: sw_integer): Sw_AString;
 function UpcaseStr(const S: string): string;
+function UpcaseStr(const S: AnsiString): AnsiString;
 function LowCase(C: AnsiChar): AnsiChar;
 function LowcaseStr(S: string): string;
-function RExpand(const S: string; MinLen: byte): string;
+function LowcaseStr(S: AnsiString): AnsiString;
+function RExpand(const S: Sw_AString; MinLen: sw_integer): Sw_AString;
 function LExpand(const S: string; MinLen: byte): string;
 function LTrim(const S: string): string;
+function LTrim(const S: AnsiString): AnsiString;
 function RTrim(const S: string): string;
+function RTrim(const S: AnsiString): AnsiString;
 function Trim(const S: string): string;
+function Trim(const S: AnsiString): AnsiString;
 function IntToStr(L: longint): string;
 function IntToStrL(L: longint; MinLen: sw_integer): string;
 function IntToStrZ(L: longint; MinLen: sw_integer): string;
@@ -232,10 +242,11 @@ begin
   eofstream:=(s^.getpos>=s^.getsize);
 end;
 
-procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR : boolean);
+procedure ReadlnFromStream(Stream: PStream; var S:ShortString;var linecomplete,hasCR : boolean);
   var
     c : AnsiChar;
     i,pos : longint;
+    CurLen : longword;
   begin
     linecomplete:=false;
     c:=#0;
@@ -269,12 +280,54 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR 
         if c<>#10 then
           stream^.seek(pos);
       end;
-
     if (c=#10) or eofstream(stream) then
       linecomplete:=true;
     if (c=#10) then
       hasCR:=true;
-    setlength(s,i);  
+    setlength(s,i);
+  end;
+
+procedure ReadlnFromStream(Stream: PStream; var S:AnsiString;var linecomplete,hasCR : boolean);
+  var
+    c : AnsiChar;
+    i,pos : longint;
+    CurLen : longword;
+  begin
+    linecomplete:=false;
+    c:=#0;
+    i:=0;
+    CurLen:=256;
+    SetLength(S,CurLen);
+    { this created problems for lines longer than 255 characters
+      now those lines are cutted into pieces without warning PM }
+    { changed implicit 255 to High(S), so it will be automatically extended
+      when longstrings eventually become default - Gabor }
+    while (not eofstream(stream)) and (c<>#10) {and (i<High(S))} do
+     begin
+       stream^.read(c,sizeof(c));
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+          if (i mod 256)=0 then
+          begin
+            CurLen:=CurLen+256;
+            SetLength(S,CurLen);
+          end;
+        end;
+     end;
+    { if there was a CR LF then remove the CR Dos newline style }
+    if (i>0) and (s[i]=#13) then
+      begin
+        dec(i);
+      end;
+    if (c=#13) and (not eofstream(stream)) then
+      stream^.read(c,sizeof(c));
+    if (c=#10) or eofstream(stream) then
+      linecomplete:=true;
+    if (c=#10) then
+      hasCR:=true;
+    setlength(s,i);
   end;
 
 procedure ReadlnFromFile(var f : file; var S:string;
@@ -329,7 +382,7 @@ procedure ReadlnFromFile(var f : file; var S:string;
            (LastSpacePos>1) then
           begin
 {$ifdef DEBUG}
-            setlength(s,i); 
+            setlength(s,i);
             filename:=strpas(@(filerec(f).Name));
             DebugMessage(filename,'s='+s,1,1);
 {$endif DEBUG}
@@ -372,16 +425,18 @@ begin
   if A<B then Min:=A else Min:=B;
 end;
 
-function CharStr(C: AnsiChar; Count: integer): string;
+function CharStr(C: AnsiChar; Count: sw_integer): Sw_AString;
 begin
   if Count<=0 then
     begin
       CharStr:='';
       exit;
     end
+{$if sizeof(sw_astring)>8  only if ShortString}
   else if Count>255 then
     Count:=255;
-  setlength(CharStr,Count);
+{$endif};
+  SetLength(CharStr,Count);
   FillChar(CharStr[1],Count,C);
 end;
 
@@ -397,7 +452,19 @@ begin
   Setlength(UpcaseStr,length(s));
 end;
 
-function RExpand(const S: string; MinLen: byte): string;
+function UpcaseStr(const S: AnsiString): AnsiString;
+var
+  I: Longint;
+begin
+  Setlength(UpcaseStr,length(s));
+  for I:=1 to length(S) do
+    if S[I] in ['a'..'z'] then
+      UpCaseStr[I]:=chr(ord(S[I])-32)
+    else
+      UpCaseStr[I]:=S[I];
+end;
+
+function RExpand(const S: Sw_AString; MinLen: sw_integer): Sw_AString;
 begin
   if length(S)<MinLen then
     RExpand:=S+CharStr(' ',MinLen-length(S))
@@ -434,6 +501,39 @@ begin
 end;
 
 function Trim(const S: string): string;
+var
+  i,j : longint;
+begin
+  i:=1;
+  while (i<length(s)) and (s[i]=' ') do
+   inc(i);
+  j:=length(s);
+  while (j>0) and (s[j]=' ') do
+   dec(j);
+  Trim:=Copy(S,i,j-i+1);
+end;
+
+function LTrim(const S: AnsiString): AnsiString;
+var
+  i : longint;
+begin
+  i:=1;
+  while (i<length(s)) and (s[i]=' ') do
+   inc(i);
+  LTrim:=Copy(s,i,length(S));
+end;
+
+function RTrim(const S: AnsiString): AnsiString;
+var
+  i : longint;
+begin
+  i:=length(s);
+  while (i>0) and (s[i]=' ') do
+   dec(i);
+  RTrim:=Copy(s,1,i);
+end;
+
+function Trim(const S: AnsiString): AnsiString;
 var
   i,j : longint;
 begin
@@ -666,6 +766,14 @@ begin
   LowcaseStr:=S;
 end;
 
+function LowcaseStr(S: AnsiString): AnsiString;
+var I: Longint;
+begin
+  SetLength(LowcaseStr,length(S));
+  for I:=1 to length(S) do
+      LowcaseStr[I]:=Lowcase(S[I]);
+end;
+
 
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
 begin
@@ -849,7 +957,7 @@ begin
     end;
 end;
 
-procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean);
+procedure TFastBufStream.Readline(var S:ShortString;var linecomplete,hasCR : boolean);
   var
     c : AnsiChar;
     i,pos,StartPos : longint;
@@ -914,11 +1022,78 @@ procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean)
     if (c=#10) or (getpos>=getsize) then
       linecomplete:=true;
     if (c=#10) then
-      hasCR:=true; 
-    setlength(s,i);    
+      hasCR:=true;
+    setlength(s,i);
   end;
 
+procedure TFastBufStream.Readline(var S:AnsiString;var linecomplete,hasCR : boolean);
+  var
+    c : char;
+    i,pos,StartPos : longint;
+    charsInS : boolean;
+    Len,Idx : sw_integer;
+  begin
+    linecomplete:=false;
+    c:=#0;
+    i:=0;
 
+    CharsInS:=false;
+    Len:=bufend-bufptr;
+    Idx:=-1;
+    if Len>0 then
+      Idx:=IndexByte(buffer^[bufptr],Len, 10)+1; {find end of line}
+    Len:=Min(Idx,Len);
+
+    SetLength(S,Len);
+    if (Len > 0) and (GetPos+Len<GetSize) then
+    begin
+      StartPos:=GetPos;
+      system.move(buffer^[bufptr],S[1],Len); {get full line}
+      charsInS:=true;
+    end;
+
+    while (CharsInS or not (getpos>=getsize)) and (c<>#10) do
+     begin
+       if CharsInS then
+         c:=s[i+1]
+       else
+         read(c,sizeof(c));
+       if c<>#10 then
+        begin
+          inc(i);
+          if not CharsInS then
+          begin
+            if i > Len then
+            begin
+              Len:=Len+256; {constant grow}
+              SetLength(S,Len);
+            end;
+            s[i]:=c;
+          end;
+        end;
+     end;
+    if CharsInS then
+      begin
+        if c=#10 then
+          Seek(StartPos+i+1)
+        else
+          Seek(StartPos+i);
+      end;
+    { if there was a CR LF then remove the CR Dos newline style }
+    if (i>0) and (s[i]=#13) then
+      begin
+        dec(i);
+      end;
+    if (c=#13) and (not (getpos>=getsize)) then
+      begin
+        read(c,sizeof(c));
+      end;
+    if (c=#10) or (getpos>=getsize) then
+      linecomplete:=true;
+    if (c=#10) then
+      hasCR:=true;
+    setlength(s,i);
+  end;
 
 function TTextCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var K1: PString absolute Key1;

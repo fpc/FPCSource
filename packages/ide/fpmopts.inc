@@ -820,7 +820,7 @@ begin
             else
               messagebox('Internal error: Unknown switch.',nil,mfOkButton);
           end;
-          e^.setcontent(directorySwitches^.getMultiStringItem(i));
+          e^.SetContent(directorySwitches^.getMultiStringItem(i));
           e^.addline(''); {Empty line so user can scroll below existing dirs.}
           IL[i]:=nil;
         end
@@ -904,14 +904,10 @@ begin
             end;
             c:=directorySwitches^.getMultiStringItem(i);
             c^.freeall;
-            for j:=0 to e^.getlinecount-1 do
+            for j:=0 to e^.GetLineCount-1 do
               begin
-                s:=e^.getlinetext(j);
-                {Strip string.}
-                while (length(s)>0) and (s[length(s)]=' ') do
-                  dec(s[0]);
-                while (length(s)>0) and (s[1]=' ') do
-                  system.delete(s,1,1);
+                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString convertino}
+                s:=Trim(s);
                 if s<>'' then
                   c^.insert(newstr(s));
               end;
@@ -919,11 +915,7 @@ begin
         else
           begin
             s:=IL[i]^.data^;
-            {Strip string.}
-            while (length(s)>0) and (s[length(s)]=' ') do
-              dec(s[0]);
-            while (length(s)>0) and (s[1]=' ') do
-              system.delete(s,1,1);
+            s:=Trim(s);
             DirectorySwitches^.SetStringItem(i,s);
           end;
     end;

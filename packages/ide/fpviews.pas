@@ -173,8 +173,8 @@ type
       procedure   DelChar; virtual;
       procedure   DelSelect; virtual;
       function    InsertNewLine : Sw_integer;virtual;
-      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
-      procedure   AddLine(const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine; virtual;
+      procedure   AddLine(const S: sw_astring); virtual;
     end;
 
     PSourceWindow = ^TSourceWindow;
@@ -203,7 +203,7 @@ type
     TGDBSourceEditor = object(TSourceEditor)
       function   InsertNewLine : Sw_integer;virtual;
       function   Valid(Command: Word): Boolean; virtual;
-      procedure  AddLine(const S: string); virtual;
+      procedure  AddLine(const S: sw_astring); virtual;
       procedure  AddErrorLine(const S: string); virtual;
       { Syntax highlight }
       function  IsReservedWord(const S: string): boolean; virtual;
@@ -1387,7 +1387,7 @@ end;
 procedure TSourceEditor.FindMatchingDelimiter(ScanForward: boolean);
 var
   St,nextResWord : String;
-  LineText,LineAttr: string;
+  LineText,LineAttr: sw_astring;
   Res,found,addit : boolean;
   JumpPos: TPoint;
   X,Y,lexchange,curlevel,linecount : sw_integer;
@@ -1698,7 +1698,7 @@ end;
 
 procedure TSourceEditor.DelChar;
 var
-  S: string;
+  S: sw_astring;
   I,CI : sw_integer;
 {$ifndef NODEBUG}
   PBStart,PBEnd : PBreakpoint;
@@ -1802,7 +1802,7 @@ begin
 end;
 
 
-function TSourceEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+function TSourceEditor.InsertLine(LineNo: sw_integer; const S: sw_astring): PCustomLine;
 begin
   InsertLine := inherited InsertLine(LineNo,S);
 {$ifndef NODEBUG}
@@ -1811,7 +1811,7 @@ begin
 {$endif NODEBUG}
 end;
 
-procedure TSourceEditor.AddLine(const S: string);
+procedure TSourceEditor.AddLine(const S: sw_astring);
 begin
   inherited AddLine(S);
 {$ifndef NODEBUG}
@@ -1870,7 +1870,7 @@ begin
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
          AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y+1)+':'+IntToStr(StartPos.X+1)+
-           ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
+           ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetText()+'"',0,0);
       end;
   if Core^.RedoList^.count>0 then
     AddToolCommand('RedoList Dump');
@@ -1881,7 +1881,7 @@ begin
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
          AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y+1)+':'+IntToStr(StartPos.X+1)+
-         ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
+         ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetText()+'"',0,0);
       end;
   UpdateToolMessages;
   if Assigned(MessagesWindow) then
@@ -2213,11 +2213,11 @@ begin
   inherited Init(Bounds,AFileName,{SearchFreeWindowNo}0);
   AutoNumber:=true;
   Options:=Options or ofTileAble;
-  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
+  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=15;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
   New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
-  GetExtent(R); R.A.X:=3; R.B.X:=14; R.A.Y:=R.B.Y-1;
+  GetExtent(R); R.A.X:=3; R.B.X:=15; R.A.Y:=R.B.Y-1;
   New(Indicator, Init(R));
   Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Indicator);
@@ -2419,7 +2419,7 @@ begin
   Valid:=OK;
 end;
 
-procedure  TGDBSourceEditor.AddLine(const S: string);
+procedure  TGDBSourceEditor.AddLine(const S: sw_astring);
 begin
    if Silent or (IgnoreStringAtEnd and (S=LastCommand)) then exit;
    inherited AddLine(S);
@@ -2696,7 +2696,7 @@ end;
 
 procedure  TDisassemblyEditor.AddSourceLine(const AFileName: string;line : longint);
 var
-  S : String;
+  S : sw_astring;
 begin
    if AFileName<>CurrentSource then
      begin
