@@ -58,9 +58,9 @@ type
   EScannerError = class(EParserError);
 
   TJSONOption = (joUTF8,                // Return string with UTF8 codepage.
-                 joStrict,              // Do not allow { a : "x" } (no quotes around a)
+                 joStrict,              // Do not allow { a : "x" } (no quotes around a).
                  joComments,            // Allow javascript comments in JSON.
-                 joIgnoreTrailingComma, // Ignore trailing comma in array 
+                 joIgnoreTrailingComma, // Ignore trailing comma in array/object.
                  joIgnoreDuplicates,    // Do not attempt to add duplicate object members. Default is to try and add them.
                  joBOMCheck,            // Check for BOM marker at beginning of stream.
                  joSingle               // Only read a single JSON value from the stream. Default is to continue reading tokens.
