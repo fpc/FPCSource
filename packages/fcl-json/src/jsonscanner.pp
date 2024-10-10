@@ -57,7 +57,14 @@ type
 
   EScannerError = class(EParserError);
 
-  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates,joBOMCheck,joSingle);
+  TJSONOption = (joUTF8,                // Return string with UTF8 codepage.
+                 joStrict,              // Do not allow { a : "x" } (no quotes around a)
+                 joComments,            // Allow javascript comments in JSON.
+                 joIgnoreTrailingComma, // Ignore trailing comma in array 
+                 joIgnoreDuplicates,    // Do not attempt to add duplicate object members. Default is to try and add them.
+                 joBOMCheck,            // Check for BOM marker at beginning of stream.
+                 joSingle               // Only read a single JSON value from the stream. Default is to continue reading tokens.
+                 );
   TJSONOptions = set of TJSONOption;
 
 Const
