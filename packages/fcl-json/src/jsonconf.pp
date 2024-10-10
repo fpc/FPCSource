@@ -89,7 +89,7 @@ type
     destructor Destroy; override;
     Procedure Reload;
     procedure Clear;
-    procedure Flush;    // Writes the JSON file
+    procedure Flush; virtual;    // Writes the JSON file
     procedure OpenKey(const aPath: UnicodeString; AllowCreate : Boolean);
     procedure CloseKey;
     procedure ResetKey;
