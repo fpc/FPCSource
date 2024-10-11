@@ -194,7 +194,11 @@ implementation
                              try_to_consume(_LAST);
                          end;
                      end;
-                    if (DefString<>'') and UseDeffileForExports then
+                    if (DefString<>'') and
+                        (
+                          UseDeffileForExports or
+                          (cs_link_deffile in current_settings.globalswitches)
+                        ) then
                      DefFile.AddExport(DefString);
                   end;
                 // consumed the symbol. Only do something if there was no error.
