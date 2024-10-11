@@ -359,7 +359,10 @@ implementation
          ) and
          not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
          not(vo_is_external in tabstractvarsym(p).varoptions) and
-         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
+         (
+           not (vo_is_default_var in tabstractvarsym(p).varoptions) or
+           (tabstractvarsym(p).varspez<>vs_const)
+         ) and
          (is_managed_type(tabstractvarsym(p).vardef) or
           ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
@@ -376,9 +379,13 @@ implementation
     begin
       if (tsym(p).typ=localvarsym) and
          (tlocalvarsym(p).refs>0) and
+         not(vo_is_typed_const in tlocalvarsym(p).varoptions) and
          not(vo_is_external in tlocalvarsym(p).varoptions) and
          not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
+         (
+           not(vo_is_default_var in tabstractvarsym(p).varoptions) or
+           (tabstractvarsym(p).varspez<>vs_const)
+         ) and
          is_managed_type(tlocalvarsym(p).vardef) then
         sym_maybe_finalize(tstatementnode(arg^),tsym(p));
     end;

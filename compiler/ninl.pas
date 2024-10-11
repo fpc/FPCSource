@@ -475,6 +475,7 @@ implementation
           srsym : tsym;
           srsymtable : tsymtable;
           defaultname : tidstring;
+          varspez : tvarspez;
         begin
           if not assigned(def) or
               not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
@@ -502,10 +503,17 @@ implementation
               srsym:=tsym(srsymtable.findwithhash(hashedid));
               if not assigned(srsym) then
                 begin
+                  varspez:=vs_const;
+                  { if we have an initialize or finalize management operator then
+                    we may not declare this as const as the unit init-/finalization
+                    needs to be able to modify it }
+                  if (def.typ=recorddef) and (mop_initialize in trecordsymtable(trecorddef(def).symtable).managementoperators) then
+                    varspez:=vs_var;
                   { no valid default variable found, so create it }
-                  srsym:=cstaticvarsym.create(defaultname,vs_const,def,[]);
+                  srsym:=cstaticvarsym.create(defaultname,varspez,def,[]);
                   { mark the staticvarsym as typedconst }
-                  include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
+                  if varspez=vs_const then
+                    include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
                   include(tabstractvarsym(srsym).varoptions,vo_is_default_var);
                   { The variable has a value assigned }
                   tabstractvarsym(srsym).varstate:=vs_initialised;
