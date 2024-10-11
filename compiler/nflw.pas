@@ -666,8 +666,18 @@ implementation
               end
             else
               begin
-                lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
-                highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+                { Iterating throug slice }
+                if (expression.nodetype=vecn) and (tvecnode(expression).right.nodetype=rangen) then
+                  begin
+                    lowbound:=trangenode(tvecnode(expression).right).left.getcopy;
+                    highbound:=trangenode(tvecnode(expression).right).right.getcopy;
+                    expression:=tvecnode(expression).left.getcopy;
+                  end
+                else
+                  begin
+                    lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
+                    highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+                  end;
               end;
 
             addstatement(loopstatement,arrayvar);
@@ -683,8 +693,18 @@ implementation
               end
             else
               begin
-                lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy);
-                highbound:=cinlinenode.create(in_high_x,false,expression.getcopy);
+                { Iterating throug slice }
+                if (expression.nodetype=vecn) and (tvecnode(expression).right.nodetype=rangen) then
+                  begin
+                    lowbound:=trangenode(tvecnode(expression).right).left.getcopy;
+                    highbound:=trangenode(tvecnode(expression).right).right.getcopy;
+                    expression:=tvecnode(expression).left.getcopy;
+                  end
+                else
+                  begin
+                    lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy);
+                    highbound:=cinlinenode.create(in_high_x,false,expression.getcopy);
+                  end;
               end;
           end;
 
