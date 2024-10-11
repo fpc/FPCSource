@@ -716,6 +716,7 @@ implementation
               A_FDIV_S,
               A_FSQRT_S,
               A_FNEG_S,
+              A_FLW,
               A_FMADD_S,A_FMSUB_S,A_FNMSUB_S,A_FNMADD_S:
                 result:=OptPass1FOP(p,A_FSGNJ_S);
               A_FADD_D,
@@ -724,6 +725,7 @@ implementation
               A_FDIV_D,
               A_FSQRT_D,
               A_FNEG_D,
+              A_FLD,
               A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D:
                 result:=OptPass1FOP(p,A_FSGNJ_D);
               else
