@@ -2926,6 +2926,8 @@ var
 
 begin
   j:=1;
+  if length(more)=0 then
+    include(init_settings.globalswitches,cs_link_deffile);
   while j<=length(more) do
     begin
       case more[j] of
