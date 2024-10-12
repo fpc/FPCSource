@@ -955,6 +955,7 @@ unit cgx86;
     procedure tcgx86.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);
       var
         tmpref : treference;
+        tmpreg: TRegister;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
@@ -963,9 +964,9 @@ unit cgx86;
         if (tosize in [OS_S64,OS_64]) and
            ((a<low(longint)) or (a>high(longint))) then
           begin
-            a_load_const_ref(list,OS_32,longint(a and $ffffffff),tmpref);
-            inc(tmpref.offset,4);
-            a_load_const_ref(list,OS_32,longint(a shr 32),tmpref);
+            tmpreg:=getintregister(list,tosize);
+            a_load_const_reg(list,tosize,a,tmpreg);
+            a_load_reg_ref(list,tosize,tosize,tmpreg,tmpref);
           end
         else
 {$endif x86_64}
