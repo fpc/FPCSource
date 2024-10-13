@@ -3905,9 +3905,8 @@ begin
           MoveChar(B,' ',Color,Size.X);
           GetDisplayTextFormat(AY,LineText,Format);
 
-      {    if FlagSet(efSyntaxHighlight) then MaxX:=length(LineText)+1
-             else }MaxX:=Size.X+Delta.X;
-          for X:=1 to Min(MaxX,Length(LineText)) do
+          MaxX:=Min(Delta.X+1+Size.X,MaxLineLength);
+          for X:=(MaxX-Size.X) to MaxX+1 do
           begin
             AX:=Delta.X+X-1;
             if X<=length(LineText) then C:=LineText[X] else C:=' ';
