@@ -130,10 +130,19 @@ type
       Align: TAlign;
     end;
 
+const cMaxNestnessChanges = 20;
+type
+    TNestnessPoints = array[0..cMaxNestnessChanges-1] of record X,Y:sw_integer;NC:boolean; end;
+
     PSourceEditor = ^TSourceEditor;
     TSourceEditor = object(TFileEditor)
       CompileStamp : longint;
       CodeCompleteTip: PFPToolTip;
+      {for nested comments managment}
+      NestedComments : boolean;
+      FixedNestedComments : TPoint;
+      NestnessPoints:TNestnessPoints;
+      NestPos : sw_integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
 {$ifndef NODEBUG}
@@ -146,6 +155,9 @@ type
       function  IsAsmReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
+      function    ParseSourceNestedComments(X,Y : sw_integer): boolean; virtual;
+      function    IsNestedComments(X,Y : sw_integer): boolean; virtual;
+      function    NestedCommentsChangeCheck(CurLine : sw_integer):boolean; virtual;
       { CodeTemplates }
       function    TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
@@ -573,8 +585,8 @@ uses
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
   {$ifdef VESA}Vesa,{$endif}
-  FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
-  FPTools,FPIDE,FPCodTmp,FPCodCmp;
+  FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
+  FPTools,FPIDE,FPCodTmp,FPCodCmp,FPSwitch;
 
 const
   RSourceEditor: TStreamRec = (
@@ -1283,6 +1295,8 @@ begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,EC,AFileName);
   SetStoreUndo(true);
   CompileStamp:=0;
+  FixedNestedComments.Y:=2000001;
+  NestedComments:=false;
 end;
 
 Const
@@ -1293,8 +1307,8 @@ Const
     2,{ssCommentSuffix}
     1,{ssStringPrefix}
     1,{ssStringSuffix}
-    1,{ssDirectivePrefix}
-    1,{ssDirectiveSuffix}
+    2,{ssDirectivePrefix}
+    {2,}{ssDirectiveSuffix}
     1,{ssAsmPrefix}
     1 {ssAsmSuffix}
   );
@@ -1308,8 +1322,10 @@ Const
   FreePascalCommentSuffix2 : string[2] = '*)';
   FreePascalStringPrefix : string[1] = '''';
   FreePascalStringSuffix : string[1] = '''';
-  FreePascalDirectivePrefix : string[2] = '{$';
-  FreePascalDirectiveSuffix : string[1] = '}';
+  FreePascalDirectivePrefix1 : string[2] = '{$';
+  FreePascalDirectivePrefix2 : string[3] = '(*$';
+  //FreePascalDirectiveSuffix1 : string[1] = '}';
+  //FreePascalDirectiveSuffix2 : string[2] = '*)';
   FreePascalAsmPrefix : string[3] = 'ASM';
   FreePascalAsmSuffix : string[3] = 'END';
 
@@ -1347,9 +1363,15 @@ begin
     ssAsmSuffix :
       GetSpecSymbol:=@FreePascalAsmSuffix;
     ssDirectivePrefix :
-      GetSpecSymbol:=@FreePascalDirectivePrefix;
-    ssDirectiveSuffix :
-      GetSpecSymbol:=@FreePascalDirectiveSuffix;
+      case Index of
+        0 : GetSpecSymbol:=@FreePascalDirectivePrefix1;
+        1 : GetSpecSymbol:=@FreePascalDirectivePrefix2;
+      end;
+    {ssDirectiveSuffix :
+      case Index of
+        0 : GetSpecSymbol:=@FreePascalDirectiveSuffix1;
+        1 : GetSpecSymbol:=@FreePascalDirectiveSuffix2;
+      end;}
   end;
 end;
 
@@ -1361,6 +1383,331 @@ end;
 function TSourceEditor.IsAsmReservedWord(const S: string): boolean;
 begin
   IsAsmReservedWord:=IsFPAsmReservedWord(S);
+end;
+
+function TSourceEditor.ParseSourceNestedComments(X,Y : sw_integer): boolean;
+const cModeNestedComments : array [TCompilerMode] of boolean =
+ (false,true{fpc},true{objfpc},false,false,false,false,false,false,false);
+
+function CompilerModeToNestedComments(AMode: String; ACurrentNestedComments:boolean):boolean;
+var SourceCompilerMode : TCompilerMode;
+begin
+  SourceCompilerMode:=moNone;
+  case length(AMode) of
+    2 : if AMode='tp' then
+          SourceCompilerMode:=moTp;
+    3 : if AMode='fpc' then
+          SourceCompilerMode:=moFpc
+        else if AMode='iso' then
+          SourceCompilerMode:=moIso;
+    6 : if AMode='objfpc' then
+          SourceCompilerMode:=moObjFpc
+        else if AMode='delphi' then
+          SourceCompilerMode:=moDelphi
+        else if AMode='macpas' then
+          SourceCompilerMode:=moMacPas;
+    13: if AMode='delphiunicode' then
+          SourceCompilerMode:=moDelphiUnicode;
+    14: if AMode='extendedpascal' then
+          SourceCompilerMode:=moExtendedPascal;
+  end;
+  if SourceCompilerMode=moNone then
+    CompilerModeToNestedComments:=ACurrentNestedComments
+  else
+    CompilerModeToNestedComments:=cModeNestedComments[SourceCompilerMode];
+end;
+
+procedure RegisterNestnessPoint( LineNr, X : sw_integer);
+begin
+  NestnessPoints[NestPos].X:=X;
+  NestnessPoints[NestPos].Y:=LineNr;
+  NestnessPoints[NestPos].NC:=NestedComments;
+  inc(NestPos);
+  if NestPos=cMaxNestnessChanges then NestPos:=0;
+end;
+
+var CurrentCompilerMode : TCompilerMode;
+    CurX,CurY:sw_integer;
+    S : sw_astring;
+    crWord,prWord : sw_astring;
+    ch,prCh,prprCh : AnsiChar;
+    CommentStartX,CommentStartY:sw_integer;
+    WordNpk : sw_integer;
+    inCompilerDirective : boolean;
+    inLineComment       : boolean;
+    inCurlyBracketComment : boolean;
+    inBracketComment    : boolean;
+    inString            : boolean;
+    CommentDepth: sw_integer;
+    CompilerDirective: sw_integer;
+    ResultIsSet : boolean;
+begin
+  CurrentCompilerMode:=TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID);
+  NestedComments:=cModeNestedComments[CurrentCompilerMode];
+  ParseSourceNestedComments:=NestedComments;
+  ResultIsSet:=false;
+  RegisterNestnessPoint(0,0);
+  if (not IsFlagSet(efSyntaxHighlight)) then
+  begin {not ment to be syntax highlighted }
+    FixedNestedComments.Y:=0;
+    FixedNestedComments.X:=0;
+    exit;
+  end;
+  FixedNestedComments.Y:=2000001;
+  CurX:=0;
+  CurY:=0;
+  inCompilerDirective:=false;
+  inLineComment:=false;
+  inCurlyBracketComment:=false;
+  inBracketComment:=false;
+  inString:=false;
+  CommentDepth:=0;
+  CompilerDirective:=0;
+  WordNpk:=0;
+  NestPos:=0;
+  while CurY<GetLineCount do
+  begin
+    S:=GetLineText(CurY)+' ';
+    prCh:=#0;prprCh:=#0;
+    CurX:=0;
+    while CurX < length(S) do
+    begin
+      inc(CurX);
+      ch := S[CurX];
+      {-- comment part --}
+      if not (inCompilerDirective or inLineComment or inCurlyBracketComment or inBracketComment or inString) then
+      if (ch = '{') then
+      begin
+           inCurlyBracketComment:=true;
+           CommentDepth:=0;
+           CommentStartX:=CurX;
+           CommentStartY:=CurY;
+      end else
+      if (ch = '*') and (prCh='(') then
+      begin
+           inBracketComment:=true;
+           CommentDepth:=0;
+           CommentStartX:=CurX;
+           CommentStartY:=CurY;
+      end;
+      if (ch = '{') and inCurlyBracketComment then
+        inc(CommentDepth);
+      if (ch = '*') and (prCh='(') and inBracketComment then
+      begin
+        inc(CommentDepth);
+        if CurX < length(S) then if S[CurX+1] = ')' then
+          dec(CommentDepth); {in comment (*) is not begin comment but end}
+      end;
+      if (ch = '$') and (prCh='{') and inCurlyBracketComment and (CommentDepth=1) then
+      begin
+        inCompilerDirective:=true;
+        CompilerDirective:=1;
+        WordNpk:=0;
+      end;
+      if (ch = '$') and (prCh='*') and (prprCh='(') and inBracketComment and (CommentDepth=1) then
+      begin
+        inCompilerDirective:=true;
+        CompilerDirective:=2;
+        WordNpk:=0;
+      end;
+      if not (inCompilerDirective or inLineComment or inCurlyBracketComment or inBracketComment or inString) then
+      if (ch = '/') and (prCh = '/') then
+           inLineComment:=true;
+      {-- string part --}
+      if not (inCompilerDirective or inLineComment or inCurlyBracketComment or inBracketComment or inString) then
+      if (ch = '''') then
+        inString:=true;
+      if (ch = '''') and inString then
+        inString:=false;
+      {-- word part --}
+      if ch in ['a'..'z','.','_','A'..'Z','0'..'9'] then
+        crWord:=crWord+ch
+      else begin
+        if length(crWord)>0 then
+        begin
+          crWord:=LowcaseStr(crWord);
+          if inCompilerDirective then
+          begin
+            inc(WordNpk);
+            if WordNpk=2 then
+            begin
+              if (prWord='mode') then
+              begin
+                NestedComments:=CompilerModeToNestedComments(crWord,NestedComments);
+                RegisterNestnessPoint(CurY,CurX-1);
+              end else
+              if (prWord='modeswitch') and (crWord='nestedcomments') then
+                begin
+                  if ch='-' then
+                    NestedComments:=false
+                  else
+                    NestedComments:=true;
+                  RegisterNestnessPoint(CurY,CurX-1);
+                end;
+            end;
+          end;
+          if not (inCompilerDirective or inLineComment or inCurlyBracketComment or inBracketComment or inString) then
+          begin
+            if (crWord='uses')
+              or (crWord='type')
+              or (crWord='var')
+              or (crWord='const')
+              or (crWord='begin')
+              or (crWord='implementation')
+              or (crWord='function')
+              or (crWord='procedure')
+              then
+            begin
+              FixedNestedComments.Y:=CurY;
+              FixedNestedComments.X:=CurX-1;
+              if not ResultIsSet then
+                ParseSourceNestedComments:=NestedComments;
+              exit;
+            end;
+          end;
+        end;
+        prWord:=crWord;
+        crWord:='';
+      end;
+      { --- comment close part ---- }
+      if (ch = '}') and inCurlyBracketComment then
+      begin
+        dec(CommentDepth);
+        if not NestedComments then
+          CommentDepth:=0;
+        if CommentDepth=0 then
+          inCurlyBracketComment:=false;
+      end;
+      if (ch = ')') and (prCh='*') and inBracketComment then
+      begin
+        if (CommentStartY<>CurY) or ((CommentStartY=CurY) and ((CurX-CommentStartX)>3)) then
+        begin
+          dec(CommentDepth);
+          if not NestedComments then
+            CommentDepth:=0;
+          if CommentDepth=0 then
+            inBracketComment:=false;
+        end;
+      end;
+      if (ch = '}') and inCompilerDirective and not inCurlyBracketComment then
+           inCompilerDirective:=false;
+      if (ch = ')') and (prCh='*') and inCompilerDirective and not inBracketComment then
+         inCompilerDirective:=false;
+      { --- result --- }
+      if (CurY=Y) and ((CurX-1)=X) then
+      begin
+        ParseSourceNestedComments:=NestedComments;
+        ResultIsSet:=true;
+      end;
+      prprCh:=prCh;
+      prCh:=ch;
+    end; {end while one line}
+    if inLineComment then
+      inLineComment:=false;
+    inc(CurY); {next line}
+    if CurY=200 then break; {give up on line 200, it might not be a pascal source after all}
+  end; {end while all lines}
+  FixedNestedComments.Y:=CurY; { full(200 lines) parse was done }
+  FixedNestedComments.X:=CurX;
+end;
+
+function TSourceEditor.IsNestedComments(X,Y : sw_integer): boolean;
+var iPos : sw_integer;
+    lastNC : boolean;
+begin
+  if (FixedNestedComments.Y<Y) or ((FixedNestedComments.Y=Y) and (FixedNestedComments.X<=X)) then
+  begin  {we are at point where comment nestness is determined }
+    IsNestedComments:=NestedComments;
+  end else
+  begin
+    lastNC:=NestedComments;
+    if NestPos>0 then
+      for iPos:=0 to NestPos-1 do
+      begin
+        if (NestnessPoints[iPos].Y>Y) or ((NestnessPoints[iPos].Y=Y) and (NestnessPoints[iPos].X>=X)) then
+          break;
+        lastNC:=NestnessPoints[iPos].NC;
+      end;
+    IsNestedComments:=lastNC;
+  end;
+end;
+
+function TSourceEditor.NestedCommentsChangeCheck(CurLine : sw_integer):boolean;
+
+function CheckTantedLine(LineNr : sw_integer):boolean;
+function OneInTantetList (AWord : string):boolean;
+begin
+  OneInTantetList:=false;
+  if AWord='$mode' then OneInTantetList:=true else
+  if AWord='nestedcomments' then OneInTantetList:=true;
+end;
+var S : sw_astring;
+    CurX : sw_integer;
+    ch, fo : AnsiChar;
+    crWord : String;
+    el : boolean;
+begin
+  CheckTantedLine:=false;
+  S:=GetLineText(LineNr);
+  crWord:='';
+  For CurX:=1 to length(S) do
+  begin
+    if length(crWord)=255 then crWord:=''; {overflow}
+    ch:=LowCase(S[CurX]);
+    el:=true;
+    if ch in ['$','a'..'z'] then
+    begin
+      crWord:=crWord+ch;
+      el:=false;
+    end;
+    if (el or (CurX=length(S))) and (crWord<>'') then
+    begin
+      if OneInTantetList(crWord) then
+      begin
+        CheckTantedLine:=true;
+        break;
+      end;
+      crWord:='';
+    end;
+  end;
+end;
+
+var Points : TNestnessPoints;
+    iPos,iFrom,oNest : sw_integer;
+begin
+  NestedCommentsChangeCheck:=false;
+  if (FixedNestedComments.Y>=CurLine) then
+  begin
+    if FixedNestedComments.Y>=2000000 then
+    begin
+      ParseSourceNestedComments(0,CurLine+1);
+      NestedCommentsChangeCheck:=true;
+    end else
+    begin
+      Points:=NestnessPoints;
+      iFrom:=-1;oNest:=NestPos;
+      if NestPos>0 then
+        for iPos:=0 to NestPos-1 do
+          if Points[iPos].Y=CurLine then
+            if iFrom<0 then begin iFrom:=iPos;break; end;
+      if (iFrom>=0) or CheckTantedLine(CurLine) then
+      begin  {we have something to checkup}
+        ParseSourceNestedComments(0,CurLine+1);
+        if oNest=NestPos then
+        begin
+          for iPos:=0 to NestPos-1 do
+          begin
+            if Points[iPos].NC<>NestnessPoints[iPos].NC then
+            begin
+              NestedCommentsChangeCheck:=true;
+              break;
+            end;
+          end;
+        end else
+          NestedCommentsChangeCheck:=true;
+      end;
+    end;
+  end;
 end;
 
 function TSourceEditor.TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean;
@@ -4720,9 +5067,15 @@ begin
     ssAsmSuffix :
       GetSpecSymbol:=@FreePascalAsmSuffix;
     ssDirectivePrefix :
-      GetSpecSymbol:=@FreePascalDirectivePrefix;
-    ssDirectiveSuffix :
-      GetSpecSymbol:=@FreePascalDirectiveSuffix;
+      case Index of
+        0 : GetSpecSymbol:=@FreePascalDirectivePrefix1;
+        1 : GetSpecSymbol:=@FreePascalDirectivePrefix2;
+      end;
+    {ssDirectiveSuffix :
+      case Index of
+        0 : GetSpecSymbol:=@FreePascalDirectiveSuffix1;
+        1 : GetSpecSymbol:=@FreePascalDirectiveSuffix2;
+      end;}
   end;
 end;
 

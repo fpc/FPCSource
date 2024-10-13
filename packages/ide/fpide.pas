@@ -24,7 +24,7 @@ uses
   WEditor,WCEdit,
   Comphook,Browcol,
   WHTMLScn,
-  FPViews,FPSymbol
+  FPViews,FPSymbol,FPSwitch
   {$ifndef NODEBUG}
   ,fpevalw
   {$endif};
@@ -52,6 +52,7 @@ type
       procedure   UpdateMode;
       procedure   UpdateRunMenu(DebuggeeRunning : boolean);
       procedure   UpdateTarget;
+      procedure   UpdateEditorsCompilerMode(OldMode:TCompilerMode);
       procedure   GetEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
@@ -184,7 +185,7 @@ uses
   Dos{,Memory},Menus,Dialogs,StdDlg,timeddlg,
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
-  FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
+  FPConst,FPVars,FPUtils,FPIni,FPIntf,FPCompil,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,
 {$ifndef NODEBUG}
   FPDebug,FPRegs,

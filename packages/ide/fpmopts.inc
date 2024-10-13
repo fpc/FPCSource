@@ -21,6 +21,7 @@ var R,R2: TRect;
     SwitchesCount : integer;
     LastItem: PSItem;
     L: longint;
+    OldCompilerMode: TCompilerMode;
 begin
   SwitchesCount:=ord(high(TSwitchMode))-ord(low(TSwitchMode))+1;
   R.Assign(0,0,36,4+SwitchesCount);
@@ -52,8 +53,12 @@ begin
   end;
   InsertButtons(D);
   RB^.Select;
+  OldCompilerMode:=TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID());
   if Desktop^.ExecView(D)=cmOK then
+  begin
    SwitchesMode:=TSwitchMode(RB^.Value);
+   UpdateEditorsCompilerMode(OldCompilerMode);
+  end;
   Dispose(D, Done);
   UpdateMode;
   UpdateTarget;
@@ -77,6 +82,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
     TargetHeight,ProcessorHeight: sw_integer;
+    OldCompilerMode: TCompilerMode;
 begin
   {decide height of dialog view}
   GetExtent(R);
@@ -372,6 +378,7 @@ begin
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
   begin
+    OldCompilerMode:= TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID());
     for I:=0 to SyntaxSwitches^.ItemCount-1 do
       SyntaxSwitches^.SetBooleanItem(I,CB1^.Mark(I));
     CompilerModeSwitches^.SetCurrSel(RB2^.Value);
@@ -390,8 +397,30 @@ begin
     BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
     CustomArg[SwitchesMode]:=IL2^.Data^;
+    UpdateEditorsCompilerMode(OldCompilerMode);
   end;
   Dispose(D, Done);
+end;
+
+procedure TIDEApp.UpdateEditorsCompilerMode(OldMode:TCompilerMode);
+
+  procedure UpdateEditor(P: PView);
+  begin
+    if assigned(P) and (TypeOf(P^)=TypeOf(TSourceWindow)) then
+    begin
+      PSourceWindow(P)^.Editor^.UpdateAttrs(0,attrForceFull);
+      PSourceWindow(P)^.ReDraw;
+    end;
+  end;
+
+var NewMode:TCompilerMode;
+begin
+  NewMode:=TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID());
+  if (OldMode in [moFpc,moObjfpc]) and not (NewMode in [moFpc,moObjfpc]) then
+    Desktop^.ForEach(TCallbackProcParam(@UpdateEditor))
+  else
+  if not (OldMode in [moFpc,moObjfpc]) and (NewMode in [moFpc,moObjfpc]) then
+    Desktop^.ForEach(TCallbackProcParam(@UpdateEditor));
 end;
 
 procedure TIDEApp.MemorySizes;

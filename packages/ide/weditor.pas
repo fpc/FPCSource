@@ -266,6 +266,8 @@ type
       BeginsWithDirective,
       EndsWithDirective : boolean;
       BeginCommentType,EndCommentType : byte;
+      BeginCommentDepth,EndCommentDepth : sw_integer;
+      BeginNestedComments,EndNestedComments : byte;
       Fold: PFold;
       constructor Init(AEditor: PCustomCodeEditor);
       destructor  Done; virtual;
@@ -345,7 +347,7 @@ type
 
     TSpecSymbolClass =
       (ssCommentPrefix,ssCommentSingleLinePrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
-       ssDirectivePrefix,ssDirectiveSuffix,ssAsmPrefix,ssAsmSuffix);
+       ssDirectivePrefix{,ssDirectiveSuffix},ssAsmPrefix,ssAsmSuffix);
 
     TEditorBookMark = record
       Valid  : boolean;
@@ -510,6 +512,8 @@ type
    {a}procedure   SetSyntaxCompleted(SC: boolean); virtual;
    {a}function    GetLastSyntaxedLine: sw_integer; virtual;
    {a}procedure   SetLastSyntaxedLine(ALine: sw_integer); virtual;
+      function    IsNestedComments(X,Y : sw_integer): boolean; virtual;
+      function    NestedCommentsChangeCheck(CurLine : sw_integer):boolean; virtual;
       function    IsFlagSet(AFlag: longint): boolean;{$ifdef USEINLINE}inline;{$endif}
       function    GetReservedColCount: sw_integer; virtual;
    {a}function    GetTabSize: integer; virtual;
@@ -2108,8 +2112,12 @@ function TCustomCodeEditorCore.UpdateAttrs(FromLine: sw_integer; Attrs: byte): s
 var MinLine: sw_integer;
 procedure CallIt(P: PEditorBinding);
 var I: sw_integer;
+    AAttrs:byte;
 begin
-  I:=DoUpdateAttrs(P^.Editor,FromLine,Attrs);
+  AAttrs:=Attrs;
+  if P^.Editor^.NestedCommentsChangeCheck(FromLine) then
+    AAttrs:=Attrs or attrForceFull;
+  I:=DoUpdateAttrs(P^.Editor,FromLine,AAttrs);
   if (I<MinLine) or (MinLine=-1) then MinLine:=I;
 end;
 begin
@@ -2122,7 +2130,11 @@ function TCustomCodeEditorCore.UpdateAttrsRange(FromLine, ToLine: sw_integer; At
 var MinLine: sw_integer;
 procedure CallIt(P: PEditorBinding);
 var I: sw_integer;
+    AAttrs:byte;
 begin
+  AAttrs:=Attrs;
+  if P^.Editor^.NestedCommentsChangeCheck(FromLine) then
+    AAttrs:=Attrs or attrForceFull;
   I:=DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,Attrs);
   if (I<MinLine) or (MinLine=-1) then MinLine:=I;
 end;
@@ -2139,7 +2151,11 @@ type
       ccHash,ccSymbol);
 var
   SymbolIndex: Sw_integer;
+  CurLineNr: Sw_integer;
   CurrentCommentType : Byte;
+  CurrentCommentDepth : sw_integer;
+  NestedComments,LookForNestedComments : boolean;
+  CommentStartX,CommentStartY : sw_integer;
   FirstCC,LastCC: TCharClass;
   InAsm,InComment,InSingleLineComment,InDirective,InString: boolean;
   X,ClassStart: Sw_integer;
@@ -2235,6 +2251,18 @@ var
   begin
     IsCommentPrefix:=MatchesAnySpecSymbol(ssCommentPrefix,pmLeft);
   end;
+
+  function IsMatchingCommentPrefix: boolean;
+  var tmpIs : boolean;
+  begin  {looking for nested comments with matching prefix}
+    tmpIs:=(MatchesAnySpecSymbol(ssCommentPrefix,pmLeft));
+    if tmpIs
+      and (CurrentCommentType=2) {bad, we are making assumption that this is comment opener (* }
+      and (LineText[X+1]=')') { looking into next char is bad aproach but it is working }
+      then
+        tmpIs:=false;  { in comment this "(*)" is not start of new nested comment but end }
+    IsMatchingCommentPrefix:= tmpIs and (CurrentCommentType=SymbolIndex);
+  end;
                               {** **}
   function IsSingleLineCommentPrefix: boolean;
   begin
@@ -2242,9 +2270,13 @@ var
   end;
 
   function IsCommentSuffix: boolean;
+  var tmpIs : boolean;
   begin
-    IsCommentSuffix:=(MatchesAnySpecSymbol(ssCommentSuffix,pmRight))
+    tmpIs:=(MatchesAnySpecSymbol(ssCommentSuffix,pmRight))
       and (CurrentCommentType=SymbolIndex);
+    if tmpIs then
+      tmpIs:=(CurLineNr<>CommentStartY) or ((CurLineNr=CommentStartY) and ((X-length(MatchingSymbol))-CommentStartX>=0));
+    IsCommentSuffix:=tmpIs;
   end;
 
   function IsStringPrefix: boolean;
@@ -2259,13 +2291,15 @@ var
 
   function IsDirectivePrefix: boolean;
   begin
-    IsDirectivePrefix:=MatchesAnySpecSymbol(ssDirectivePrefix,pmLeft);
+    IsDirectivePrefix:=MatchesAnySpecSymbol(ssDirectivePrefix,pmLeft)
+      and (CurrentCommentType=SymbolIndex); {yes - matching comment type}
   end;
 
+  { Directive is treated as comment. Comment suffix will close directive.
   function IsDirectiveSuffix: boolean;
   begin
     IsDirectiveSuffix:=MatchesAnySpecSymbol(ssDirectiveSuffix,pmRight);
-  end;
+  end;}
 
   function IsAsmPrefix(const WordS: string): boolean;
   { var
@@ -2409,9 +2443,9 @@ var
            if  InComment and IsCommentSuffix then
               Inc(EX) else
            if InString and IsStringSuffix  then
-              Inc(EX) else
+              Inc(EX) {else
            if InDirective and IsDirectiveSuffix then
-              Inc(EX);
+              Inc(EX)};
          end;
         if CC=ccRealNumber then
           Inc(EX);
@@ -2427,35 +2461,58 @@ var
           ccNumber :
             if (LastCC<>ccAlpha) then;
           ccSymbol :
-              if (InComment=true) and (CurrentCommentType=1) and
+              if (InComment=true) and (CurrentCommentDepth=1) and
                  (InDirective=false)  and IsDirectivePrefix then
                 begin
                   InDirective:=true;
-                  InComment:=false;
+                  {InComment:=false;} { treat compiler directive as comment }
+                  {CurrentCommentType:=0;}
                   Dec(ClassStart,length(MatchingSymbol)-1);
                 end
-              else if (InComment=false) and
+              else {if (InComment=false) and
                  (InDirective=true) and IsDirectiveSuffix then
                  InDirective:=false
-              else if (InComment=false) and
+              else }if (InComment=false) and
                  (InString=false) and (InDirective=false) and IsCommentPrefix then
                 begin
                   InComment:=true;
+                  LookForNestedComments:=true;
                   CurrentCommentType:=SymbolIndex;
+                  CurrentCommentDepth:=1;
                   InSingleLineComment:=IsSingleLineCommentPrefix;
+                  CommentStartX:=X;
+                  CommentStartY:=CurLineNr;
                   {InString:=false; }
                   Dec(ClassStart,length(MatchingSymbol)-1);
                   { Remove (* from SymbolConcat to avoid problem with (*) PM }
                   { fixes part of bug 1617 }
                   { but removed proper directive prefix detection ... }
+                  { Well. Added false positive end suffix detection. Do not remove. M
                   EndComment:=Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex);
                   if MatchingSymbol[length(MatchingSymbol)]=EndComment^[1] then
-                    Delete(SymbolConcat,1,length(MatchingSymbol));
+                    Delete(SymbolConcat,1,length(MatchingSymbol));}
+                end
+              else if InComment and IsMatchingCommentPrefix then
+                begin
+                  inc(CurrentCommentDepth);
+                  if LookForNestedComments then
+                  begin  { once per every nested comment test IsNestedCommments }
+                    LookForNestedComments:=false;
+                    NestedComments:=Editor^.IsNestedComments(X,CurLineNr);
+                  end;
                 end
               else if InComment and IsCommentSuffix then
                 begin
-                  InComment:=false;
-                  InString:=false;
+                  dec(CurrentCommentDepth);
+                  if not NestedComments then
+                    CurrentCommentDepth:=0;
+                  if CurrentCommentDepth=0 then
+                  begin
+                    InComment:=false;
+                    CurrentCommentType:=0;
+                    InDirective:=false; {not in comment then not in Directive}
+                    InString:=false;
+                  end;
                 end
               else if (InComment=false) and (InString=false) and IsStringPrefix then
                 begin
@@ -2471,8 +2528,7 @@ var
       end;
   end;
 
-var CurLineNr: Sw_integer;
-    Line,NextLine,PrevLine{,OldLine}: PCustomLine;
+var Line,NextLine,PrevLine{,OldLine}: PCustomLine;
     PrevLI,LI,nextLI: PEditorLineInfo;
 begin
   if (not Editor^.IsFlagSet(efSyntaxHighlight)) or (FromLine>=GetLineCount) then
@@ -2503,6 +2559,7 @@ begin
     PrevLine:=GetLine(CurLineNr-1)
   else
     PrevLine:=nil;
+  CommentStartY:=CurLineNr-1; { use in detection for false positive commment: (*) }
   repeat
     Line:=GetLine(CurLineNr);
     if Assigned(PrevLine) then PrevLI:=PrevLine^.GetEditorInfo(Editor) else PrevLI:=nil;
@@ -2513,6 +2570,9 @@ begin
        InAsm:=PrevLI^.EndsWithAsm;
        InComment:=PrevLI^.EndsWithComment and not PrevLI^.EndsInSingleLineComment;
        CurrentCommentType:=PrevLI^.EndCommentType;
+       CurrentCommentDepth:=PrevLI^.EndCommentDepth;
+       NestedComments:=(PrevLI^.EndNestedComments and 1)=1;
+       LookForNestedComments:=(PrevLI^.EndNestedComments and 2)=2;
        InDirective:=PrevLI^.EndsWithDirective;
      end
     else
@@ -2520,7 +2580,10 @@ begin
        InAsm:=false;
        InComment:=false;
        CurrentCommentType:=0;
+       CurrentCommentDepth:=0;
        InDirective:=false;
+       NestedComments:=false;
+       LookForNestedComments:=false;
      end;
 {    OldLine:=Line;}
     if (not Editor^.IsFlagSet(efKeepLineAttr)) then
@@ -2529,6 +2592,9 @@ begin
         LI^.BeginsWithComment:=InComment;
         LI^.BeginsWithDirective:=InDirective;
         LI^.BeginCommentType:=CurrentCommentType;
+        LI^.BeginCommentDepth:=CurrentCommentDepth;
+        LI^.BeginNestedComments:=byte(NestedComments) and 1;
+        LI^.BeginNestedComments:=LI^.BeginNestedComments or ((byte(LookForNestedComments)and 1) shl 1);
       end
     else
       begin
@@ -2536,6 +2602,9 @@ begin
         InComment:=LI^.BeginsWithComment;
         InDirective:=LI^.BeginsWithDirective;
         CurrentCommentType:=LI^.BeginCommentType;
+        CurrentCommentDepth:=LI^.BeginCommentDepth;
+        NestedComments:=(LI^.BeginNestedComments and 1)=1;
+        LookForNestedComments:=(LI^.BeginNestedComments and 2)=2;
       end;
     LineText:=GetLineText(CurLineNr);
     Format:=CharStr(chr(coTextColor),length(LineText));
@@ -2554,6 +2623,9 @@ begin
     LI^.EndsWithAsm:=InAsm;
     LI^.EndsWithComment:=InComment;
     LI^.EndsInSingleLineComment:=InSingleLineComment;
+    LI^.EndNestedComments:=byte(NestedComments) and 1;
+    LI^.EndNestedComments:=LI^.EndNestedComments or ((byte(LookForNestedComments)and 1) shl 1);
+    LI^.EndCommentDepth:=CurrentCommentDepth;
     LI^.EndCommentType:=CurrentCommentType;
     LI^.EndsWithDirective:=InDirective;
     Inc(CurLineNr);
@@ -2577,6 +2649,8 @@ begin
          (NextLI^.BeginsWithComment=LI^.EndsWithComment) and
          (NextLI^.BeginsWithDirective=LI^.EndsWithDirective) and
          (NextLI^.BeginCommentType=LI^.EndCommentType) and
+         (NextLI^.BeginNestedComments=LI^.EndNestedComments) and
+         (NextLI^.BeginCommentDepth=LI^.EndCommentDepth) and
          (Length(NextLI^.GetFormat)>0) then
        Break;
 {$ifdef TEST_PARTIAL_SYNTAX}
@@ -2794,6 +2868,16 @@ end;
 procedure   TCustomCodeEditor.SetLastSyntaxedLine(ALine: sw_integer);
 begin
   Abstract;
+end;
+
+function TCustomCodeEditor.IsNestedComments(X,Y : sw_integer): boolean;
+begin
+  IsNestedComments:=false; {default behavior is no nested comments}
+end;
+
+function TCustomCodeEditor.NestedCommentsChangeCheck(CurLine : sw_integer):boolean;
+begin
+  NestedCommentsChangeCheck:=false;
 end;
 
 function TCustomCodeEditor.IsFlagSet(AFlag: longint): boolean;{$ifdef USEINLINE}inline;{$endif}
