@@ -44,6 +44,9 @@ type
 
     TSwitchMode = (om_Normal,om_Debug,om_Release);
 
+    TCompilerMode = (moNone,moFpc,moObjFpc,moTp,moDelphi,moDelphiUnicode,
+      moMacPas,moIso,moExtendedPascal,moGnu);
+
     TSwitchItemTyp = (ot_Select,ot_Boolean,ot_String,ot_MultiString,ot_Longint);
 
     PSwitchItem = ^TSwitchItem;
@@ -132,6 +135,7 @@ type
       procedure AddMultiStringItem(const name,param:string;AID: TParamID);
       function  GetCurrSel:integer;
       function  GetCurrSelParam : String;
+      function  GetCurrSelParamID : TParamID;
       function  GetBooleanItem(index:integer):boolean;
       function  GetLongintItem(index:integer):longint;
       function  GetStringItem(index:integer):string;
@@ -238,7 +242,10 @@ const
       opt_mode_objectpascal = 'Object Pascal extension on';
       opt_mode_turbopascal = 'Turbo Pascal compatible';
       opt_mode_delphi = 'Delphi compatible';
+      opt_mode_delphiunicode = 'Delphi Unicode';
       opt_mode_macpascal = 'Macintosh Pascal dialect';
+      opt_mode_iso = 'Standard Pascal, ISO 7185';
+      opt_mode_extendedpascal = 'Extended Pascal, ISO 10206';
       opt_mode_gnupascal = 'GNU Pascal';
       { Verbose options }
       opt_warnings = '~W~arnings';
@@ -794,6 +801,14 @@ begin
     GetCurrSelParam:='';
 end;
 
+function  TSwitches.GetCurrSelParamID : TParamID;
+begin
+  if IsSel then
+    GetCurrSelParamID:=PSwitchItem(Items^.At(SelNr[SwitchesMode]))^.ParamID
+  else
+    GetCurrSelParamID:=idNone;
+end;
+
 procedure TSwitches.SetCurrSel(index:integer);
 begin
   if index<ItemCount then
@@ -1212,11 +1227,14 @@ begin
   New(CompilerModeSwitches,InitSelect('M'));
   with CompilerModeSwitches^ do
     begin
-       AddSelectItem(opt_mode_freepascal,'fpc',idNone);
-       AddSelectItem(opt_mode_objectpascal,'objfpc',idNone);
-       AddSelectItem(opt_mode_turbopascal,'tp',idNone);
-       AddSelectItem(opt_mode_delphi,'delphi',idNone);
-       AddSelectItem(opt_mode_macpascal,'macpas',idNone);
+       AddSelectItem(opt_mode_freepascal,'fpc',TParamID(moFpc));
+       AddSelectItem(opt_mode_objectpascal,'objfpc',TParamID(moObjFpc));
+       AddSelectItem(opt_mode_turbopascal,'tp',TParamID(moTp));
+       AddSelectItem(opt_mode_delphi,'delphi',TParamID(moDelphi));
+       AddSelectItem(opt_mode_delphiunicode,'delphiunicode',TParamID(moDelphiUnicode));
+       AddSelectItem(opt_mode_macpascal,'macpas',TParamID(moMacPas));
+       AddSelectItem(opt_mode_iso,'iso',TParamID(moIso));
+       AddSelectItem(opt_mode_extendedpascal,'extendedpascal',TParamID(moExtendedPascal));
 {      GNU Pascal mode doesn't do much, better disable it
        AddSelectItem(opt_mode_gnupascal,'gpc',idNone);}
     end;
