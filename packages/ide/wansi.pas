@@ -994,7 +994,8 @@ begin
   LockCount:=0;
   GrowMode:=gfGrowHiX or gfGrowHiY;
   New(Console, Init(@Self));
-  Console^.Size.X:=Bounds.B.X+1; Console^.Size.Y:=Bounds.B.Y+1;
+  Console^.Size.X:=Max(Bounds.B.X+1,80); { 80 is for LoadFile to not wrap lines around too soon}
+  Console^.Size.Y:=Bounds.B.Y+1;
   Console^.ClrScr;
   Console^.CursorOn;
 end;
