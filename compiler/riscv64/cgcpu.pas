@@ -273,7 +273,10 @@ implementation
               begin
                 current_asmdata.getjumplabel(l);
 
-                list.Concat(taicpu.op_reg_reg_reg(A_SUB,dst,src2,src1));
+                if size in [OS_S32,OS_32] then
+                  list.Concat(taicpu.op_reg_reg_reg(A_SUBW,dst,src2,src1))
+                else
+                  list.Concat(taicpu.op_reg_reg_reg(A_SUB,dst,src2,src1));
 
                 if signed then
                   begin

@@ -305,6 +305,12 @@ unit cgrv;
                 list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
                 maybeadjustresult(list,op,size,dst);
               end
+            else if (op=OP_SUB) and
+               (size in [OS_32,OS_S32]) then
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_SUBW,dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end
             else
 {$endif RISCV64}
             if (op in [OP_IMUL,OP_MUL]) and not(CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
