@@ -87,11 +87,12 @@ Type
     // Entry points
     procedure ReadSchemaObject(ASchema: TJsonSchema);
     procedure ReadSchema(ASchema: TJsonSchema);
-    property Scanner : TJSONScanner Read FScanner;
+    property Scanner : TJSONScanner Read FScanner Write FScanner;
   public
-    procedure ReadFromFile(aSchema: TJSONSchema; const AFilename: String);
-    procedure ReadFromStream(aSchema: TJSONSchema; AStream: TStream);
-    procedure ReadFromString(aSchema: TJSONSchema; const AString: TJSONStringType);
+    procedure ReadFromScanner(aSchema: TJSONSchema; aScanner: TJSONScanner);
+    procedure ReadFromFile(aSchema: TJSONSchema; const aFilename: String);
+    procedure ReadFromStream(aSchema: TJSONSchema; aStream: TStream);
+    procedure ReadFromString(aSchema: TJSONSchema; const aString: TJSONStringType);
     function ReadJSONData: TJSONData;
     Property Options : TSchemaReadOptions Read FOptions Write FOptions;
     Property OnUnknownKeyWord : TReadKeywordHandler Read FOnUnknownKeyWord Write FOnUnknownKeyWord;
@@ -425,14 +426,28 @@ begin
   end;
 end;
 
-procedure TJsonSchemaReader.ReadFromStream(aSchema : TJSONSchema; AStream: TStream);
+procedure TJsonSchemaReader.ReadFromScanner(aSchema : TJSONSchema; aScanner : TJSONScanner);
 
 begin
-  FScanner:= TJSONScanner.Create(AStream,[joUTF8]);
+  FScanner:=aScanner;
   try
-    ReadSchema(aSchema)
+    ReadSchema(aSchema);
   finally
-    FScanner.Free;
+    FScanner:=nil;
+  end;
+end;
+
+procedure TJsonSchemaReader.ReadFromStream(aSchema : TJSONSchema; aStream: TStream);
+
+var
+  aScanner : TJSONScanner;
+
+begin
+  aScanner:= TJSONScanner.Create(aStream,[joUTF8]);
+  try
+    ReadFromScanner(aSchema,aScanner);
+  finally
+    aScanner.Free;
   end;
 end;
 
@@ -502,8 +517,8 @@ begin
       tkIdentifier,
       tkString:
       begin
-        CheckNextToken(tkColon);
         propName := GetTokenString;
+        CheckNextToken(tkColon);
         schemaItem := ASchema.CreateChildSchema;
         schemaItem.Name := propName;
         ASchema.Properties.Add(schemaItem);
