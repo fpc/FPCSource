@@ -795,6 +795,7 @@ type
     FDeclaredMethods : TRttiMethodArray;
     FMethodsResolved : Boolean;
   protected
+    function GetMethods: TRttiMethodArray; override;
     procedure ResolveFields;
     procedure ResolveMethods;
     procedure ResolveProperties;
@@ -6120,6 +6121,11 @@ begin
 end;
 
 { TRttiRecordType }
+
+function TRttiRecordType.GetMethods: TRttiMethodArray;
+begin
+  Result:=GetDeclaredMethods;
+end;
 
 procedure TRttiRecordType.ResolveFields;
 Var
