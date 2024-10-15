@@ -1432,7 +1432,13 @@ implementation
     isAnonymousArrayDef:=false;
     if asPointer and (vardef.typ=formaldef) then
       exit('pointer');
-    if not (vardef is tarraydef) then
+    if (vardef is tprocvardef) then
+      begin
+      result:=vardef.fullownerhierarchyname(false);
+      if Assigned(vardef.typesym) then
+        Result:=Result+(vardef.typesym.Name);
+      end
+    else if not (vardef is tarraydef) then
       result:=vardef.fulltypename
     else
       begin
