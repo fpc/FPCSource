@@ -142,7 +142,6 @@ unit aoptbase;
       for Count:=0 to TInstr(p1).ops-1 do
         if RegInOp(Reg, TInstr(p1).oper[Count]^) then
           exit(true);
-      result:=false;
     End;
 
 
