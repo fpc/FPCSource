@@ -513,18 +513,21 @@ const
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
               if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
-                { Expand to “(pointer(L.left) = nil) or (PUint32(L.left)[-1] = 0)”. }
-                resn:=caddnode.create_internal(orn,
-                    resn,
-                    caddnode.create_internal(equaln,
-                      ctypeconvnode.create_internal(
-                        cderefnode.create(
-                          caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype),
-                            cordconstnode.create(sizeof(uint32),ptruinttype,false))
-                        ),u32inttype
-                      ),
-                    cordconstnode.create(0,u32inttype,false))
-                  );
+                begin
+                  { Expand to “(pointer(L.left) = nil) or (PUint32(L.left)[-1] = 0)”. }
+                  resn:=caddnode.create_internal(orn,
+                      resn,
+                      caddnode.create_internal(equaln,
+                        ctypeconvnode.create_internal(
+                          cderefnode.create(
+                            caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype),
+                              cordconstnode.create(sizeof(uint32),ptruinttype,false))
+                          ),u32inttype
+                        ),
+                        cordconstnode.create(0,u32inttype,false))
+                    );
+                  include(taddnode(resn).addnodeflags,anf_short_bool);
+                end;
               tinlinenode(L).left:=nil; { Was stolen inside resn, and no longer of interest. }
 
               { resn now checks for Length = 0. For Length <> 0, invert. }
