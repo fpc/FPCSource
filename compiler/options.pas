@@ -3253,7 +3253,7 @@ begin
               exclude(init_settings.globalswitches,cs_use_lineinfo)
             else
               begin
-                if target_info.system in systems_wasm then
+                if target_info.system in (systems_wasm+systems_embedded) then
                   IgnoredPara('-gl')
                 else
                   include(init_settings.globalswitches,cs_use_lineinfo);
