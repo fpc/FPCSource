@@ -3967,8 +3967,7 @@ const
               right := nil;
             end;
           unequaln,equaln:
-            { nothing to do }
-            ;
+            expectloc:=LOC_FLAGS;
           else
             Internalerror(2018030301);
           end;
