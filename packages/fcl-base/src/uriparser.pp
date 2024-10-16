@@ -252,9 +252,7 @@ begin
       else
         Result.Document := '';
       break;
-    end else if s[i] = ':' then
-      break
-    else if i = 1 then
+    end else if i = 1 then
     begin
       Result.Document :=s;
       if Decode then
