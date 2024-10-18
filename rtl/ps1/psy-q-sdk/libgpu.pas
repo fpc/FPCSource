@@ -1018,7 +1018,7 @@ procedure setPolyGT4(var p: POLY_GT4);
 procedure setSprt8(var p: SPRT_8);
 procedure setSprt16(var p: SPRT_16);
 procedure setSprt(var p: SPRT);
-procedure setTile1(var p: TILE_1);
+//procedure setTile1(var p: TILE_1);
 procedure setTile8(var p: TILE_8);
 procedure setTile16(var p: TILE_16);
 procedure setTile(var p: TILE);
@@ -3080,13 +3080,13 @@ begin
 	setcode(p, $64);
 end;
 
-
+{
 procedure setTile1(var p: TILE_1);
 begin
 	setlen(p, 2);
 	setcode(p, $68);
 end;
-
+}
 
 procedure setTile8(var p: TILE_8);
 begin
