@@ -56,7 +56,11 @@ interface
       mips_nb_used_registers  : longint = MIPS_NB_REGISTERS_USED_IN_CALL_O32;
 
       { Might need to be changed if we support N64 ABI later }
+{$ifdef MIPS64}
+      mips_sizeof_register_param : longint = 8;
+{$else MIPS64}
       mips_sizeof_register_param : longint = 4;
+{$endif MIPS64}
 
     type
       tparasupregs = array[0..MIPS_MAX_REGISTERS_USED_IN_CALL-1] of tsuperregister;

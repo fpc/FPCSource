@@ -2045,6 +2045,15 @@ implementation
                 unget_para(paraloc^);
                 list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,destloc.register));
               end
+{$ifdef mips64}
+            else if (destloc.size = OS_F64) and
+               (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              begin
+                gen_alloc_regloc(list,destloc,vardef);
+                unget_para(paraloc^);
+                list.Concat(taicpu.op_reg_reg(A_DMTC1,paraloc^.register,destloc.register));
+              end
+{$endif mips64}
 { TODO: Produces invalid code, needs fixing together with regalloc setup. }
 {
             else if (destloc.size = OS_F64) and
