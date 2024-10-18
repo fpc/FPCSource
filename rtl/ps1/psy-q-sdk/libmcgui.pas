@@ -11,14 +11,13 @@ const
 	MCGUI_EXTERNAL_FONT		= 1;
 
 type
-	
+
 // Texture Information Structure
 	sMcGuiTexture = packed record
 						addr : pointer;
 	end;
 
-
-// Memory Card Information Structure */
+// Memory Card Information Structure
 	sMcGuiCards = packed record
 							_file : array [0..20] of char;
 							title : array [0..64] of char;
@@ -37,13 +36,11 @@ type
 						timadr : pointer;
 	end;
 
-
 // Cursor Information Structure
 	sMcGuiCursor = packed record
 						mode : byte;
 						r, g, b : byte;
 	end;
-
 
 // BGM,Sound Effects Information Structure
 	Tbgm = packed record

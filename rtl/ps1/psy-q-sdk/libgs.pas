@@ -175,14 +175,14 @@ type
 							w, h : word;
 							r, g, b : byte;
        	end;
-       	PGsBOXF = ^GsBOXF;
+		PGsBOXF = ^GsBOXF;
 
        	GsFOGPARAM = packed record
 							dqa : smallint;
 							dqb : longint;
 							rfc, gfc, bfc : byte;
        	end;
-       	PGsFOGPARAM = ^GsFOGPARAM;
+		PGsFOGPARAM = ^GsFOGPARAM;
 
 
        	GsIMAGE = packed record
@@ -938,7 +938,7 @@ type
 var
 	CLIP2 : RECT; external;									// clipping area
 	PSDBASEX : array [0..1] of smallint; external;			// double buffer base
-	PSDBASEY : array [0..1] of smallint; external;	
+	PSDBASEY : array [0..1] of smallint; external;
 	PSDIDX : smallint; external;							// double buffer index
 	PSDCNT : dword; external;								// frame counter for using matrix cache
 	POSITION : _GsPOSITION; external;						// 2d offset
@@ -956,7 +956,7 @@ var
 	GsADIVW : smallint; external;
 	GsADIVH : smallint; external; 					// Active sub divide condition (w,h)
 	GsLIGHT_MODE : longint; external;						// lighting mode global
-	GsMATE_C : dword; external; 
+	GsMATE_C : dword; external;
 	GsLMODE : dword; external;
 	GsLIGNR : dword; external;
 	GsLIOFF : dword; external;
@@ -983,16 +983,16 @@ procedure GsIncFrame;
 begin
 
 	inc(PSDCNT);
-                      
- 	if PSDCNT > 0 then PSDCNT:= PSDCNT else PSDCNT:= 1;
- 	if PSDIDX = 0 then PSDIDX:=1 else PSDIDX:= 0;
+
+	if PSDCNT > 0 then PSDCNT:= PSDCNT else PSDCNT:= 1;
+	if PSDIDX = 0 then PSDIDX:=1 else PSDIDX:= 0;
 
 end;
 
 
 procedure GsUpdateCoord;
 begin
-	
+
 	inc(PSDCNT);
 	if PSDCNT > 0 then PSDCNT:= PSDCNT else PSDCNT:= 1;
 

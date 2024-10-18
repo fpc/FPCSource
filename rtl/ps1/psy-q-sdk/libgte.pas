@@ -11,18 +11,19 @@ const
 
 
 type
+	PMATRIX = ^MATRIX;
 	MATRIX = packed record
-				m : array [0..2, 0..2] of smallint;		// 3x3 rotation matrix
-        		t : array [0..2] of longint;		// transfer vector
-        	 end;
-    	PMATRIX = ^MATRIX;
-
-    	VECTOR = packed record							// long word type 3D vector
-				vx, vy : longint;
-				vz, pad : longint;
-			 end;
-	PVECTOR = ^VECTOR;
+			m : array [0..2, 0..2] of smallint;		// 3x3 rotation matrix
+        		t : array [0..2] of longint;			// transfer vector
+       end;
 	
+
+	VECTOR = packed record							// long word type 3D vector
+			vx, vy : longint;
+			vz, pad : longint;
+	end;
+
+	PVECTOR = ^VECTOR;
 	SVECTOR = packed record							// short word type 3D vector
 				vx, vy : smallint;
 				vz, pad : smallint;

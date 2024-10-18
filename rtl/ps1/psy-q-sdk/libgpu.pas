@@ -668,7 +668,7 @@ procedure setXY0(var p: POLY_G4; const x, y: smallint);
 procedure setXY0(var p: POLY_GT3; const x, y: smallint);
 procedure setXY0(var p: POLY_GT4; const x, y: smallint);
 procedure setXY0(var p: LINE_F2; const x, y: smallint);
-procedure setXY0(var p: LINE_G2; const x, y: smallint);	
+procedure setXY0(var p: LINE_G2; const x, y: smallint);
 procedure setXY0(var p: LINE_F3; const x, y: smallint);
 procedure setXY0(var p: LINE_G3; const x, y: smallint);
 procedure setXY0(var p: LINE_F4; const x, y: smallint);
@@ -867,7 +867,7 @@ procedure dumpRGB2(p: POLY_GT3);
 procedure dumpRGB2(p: POLY_GT4);
 
 procedure dumpRGB3(p: POLY_G4);
-procedure dumpRGB3(p: POLY_GT4);	
+procedure dumpRGB3(p: POLY_GT4);
 
 
 // Primitive Handling Macros
@@ -1018,7 +1018,7 @@ procedure setPolyGT4(var p: POLY_GT4);
 procedure setSprt8(var p: SPRT_8);
 procedure setSprt16(var p: SPRT_16);
 procedure setSprt(var p: SPRT);
-//procedure setTile1(var p: TILE_1);
+procedure setTile1(var p: TILE_1);
 procedure setTile8(var p: TILE_8);
 procedure setTile16(var p: TILE_16);
 procedure setTile(var p: TILE);
@@ -1714,7 +1714,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -1740,7 +1740,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -1766,7 +1766,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -1779,7 +1779,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -2077,66 +2077,77 @@ begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
 
+
 procedure dumpXY0(p: LINE_G2);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: LINE_F3);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: LINE_G3);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: LINE_F4);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: LINE_G4);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: SPRT);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: SPRT_16);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: SPRT_8);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: TILE);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: TILE_16);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: TILE_8);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
+
+
 procedure dumpXY0(p: TILE_1);
 begin
 	GPU_printf('(%d,%d)\n', p.x0, p.y0);
 end;
-	
 
 
 procedure dumpUV0(p: POLY_FT3);
@@ -2150,100 +2161,120 @@ begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
 
+
 procedure dumpUV0(p: POLY_GT3);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
+
 
 procedure dumpUV0(p: POLY_GT4);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
 
+
 procedure dumpUV0(p: SPRT);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
+
 
 procedure dumpUV0(p: SPRT_16);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
 
+
 procedure dumpUV0(p: SPRT_8);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
+
 
 procedure dumpUV0(p: TMD_PRIM);
 begin
 	GPU_printf('(%d,%d)\n', p.u0, p.v0);
 end;
 
+
 procedure dumpXY2(p: POLY_F3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: POLY_F4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: POLY_FT3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: POLY_FT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: POLY_G3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: POLY_G4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: POLY_GT3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: POLY_GT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: LINE_F2);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: LINE_G2);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: LINE_F3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: LINE_G3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
 
+
 procedure dumpXY2(p: LINE_F4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
 end;
+
 
 procedure dumpXY2(p: LINE_G4);
 begin
@@ -2298,25 +2329,30 @@ begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
 end;
 
+
 procedure dumpXY3(p: LINE_F3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
 end;
+
 
 procedure dumpXY3(p: LINE_G3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
 end;
 
+
 procedure dumpXY3(p: LINE_F4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
 end;
 
+
 procedure dumpXY3(p: LINE_G4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
 end;
+
 
 procedure dumpUV3(p: POLY_FT3);
 begin
@@ -2329,15 +2365,18 @@ begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
 end;
 
+
 procedure dumpUV3(p: POLY_GT3);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
 end;
 
+
 procedure dumpUV3(p: POLY_GT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
 end;
+
 
 procedure dumpUV3(p: TMD_PRIM);
 begin
@@ -2350,77 +2389,90 @@ begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
 end;
 
+
 procedure dumpXY4(p: POLY_FT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
 end;
+
 
 procedure dumpXY4(p: POLY_G4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
 end;
 
+
 procedure dumpXY4(p: POLY_GT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
 end;
 
-	
+
 procedure dumpUV4(p: POLY_FT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
 end;
+
 
 procedure dumpUV4(p: POLY_GT4);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
 end;
 
+
 procedure dumpUV4(p: TMD_PRIM);
 begin
 	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
 end;
-	
+
 
 procedure dumpRGB0(p: POLY_F3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
 
+
 procedure dumpRGB0(p: POLY_F4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
+
 
 procedure dumpRGB0(p: POLY_FT3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
 
+
 procedure dumpRGB0(p: POLY_FT4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
+
 
 procedure dumpRGB0(p: POLY_G3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
 
+
 procedure dumpRGB0(p: POLY_G4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
+
 
 procedure dumpRGB0(p: POLY_GT3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
 
+
 procedure dumpRGB0(p: POLY_GT4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
 end;
+
 
 procedure dumpRGB0(p: DRAWENV);
 begin
@@ -2433,35 +2485,42 @@ begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
 end;
 
+
 procedure dumpRGB1(p:POLY_G4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
 end;
+
 
 procedure dumpRGB1(p:POLY_GT3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
 end;
 
+
 procedure dumpRGB1(p:POLY_GT4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
 end;
+
 
 procedure dumpRGB2(p: POLY_G3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
 end;
 
+
 procedure dumpRGB2(p: POLY_G4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
 end;
 
+
 procedure dumpRGB2(p: POLY_GT3);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
 end;
+
 
 procedure dumpRGB2(p: POLY_GT4);
 begin
@@ -2474,11 +2533,11 @@ begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r3, p.g3, p.b3);
 end;
 
+
 procedure dumpRGB3(p: POLY_GT4);	
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r3, p.g3, p.b3);
 end;
-
 
 
 procedure setTPage(var p: DRAWENV; tp, abr, x, y: longint);
@@ -2522,43 +2581,47 @@ begin
 	p.clut:= getClut(x, y);
 end;
 
+
 procedure setClut(var p: POLY_FT4; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
+
 
 procedure setClut(var p: POLY_GT3; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
 
+
 procedure setClut(var p: POLY_GT4; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
+
 
 procedure setClut(var p: SPRT; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
 
+
 procedure setClut(var p: SPRT_16; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
+
 
 procedure setClut(var p: SPRT_8; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
 
+
 procedure setClut(var p: TMD_PRIM; x, y: longint);
 begin
 	p.clut:= getClut(x, y);
 end;
-
-
-
 
 
 procedure dumpRECT(r: RECT);
@@ -2567,13 +2630,11 @@ begin
 end;
 
 
-
-
-
 procedure setlen(var p: P_TAG; const len: byte);
 begin
  	p.len:= len;
 end;
+
 
 procedure setlen(var p: POLY_F3; const len: byte);
 var x : ^P_TAG;
@@ -2582,12 +2643,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: POLY_FT3; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: POLY_G3; const len: byte);
 var x : ^P_TAG;
@@ -2596,12 +2659,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: POLY_GT3; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: POLY_F4; const len: byte);
 var x : ^P_TAG;
@@ -2610,12 +2675,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: POLY_FT4; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: POLY_G4; const len: byte);
 var x : ^P_TAG;
@@ -2624,12 +2691,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: POLY_GT4; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: SPRT_8; const len: byte);
 var x : ^P_TAG;
@@ -2638,12 +2707,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: SPRT_16; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: SPRT; const len: byte);
 var x : ^P_TAG;
@@ -2652,12 +2723,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: TILE_1; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: TILE_8; const len: byte);
 var x : ^P_TAG;
@@ -2666,12 +2739,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: TILE_16; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: TILE; const len: byte);
 var x : ^P_TAG;
@@ -2680,12 +2755,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: LINE_F2; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: LINE_G2; const len: byte);
 var x : ^P_TAG;
@@ -2694,12 +2771,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: LINE_F3; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: LINE_G3; const len: byte);
 var x : ^P_TAG;
@@ -2708,12 +2787,14 @@ begin
  	x^.len:= len;
 end;
 
+
 procedure setlen(var p: LINE_F4; const len: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.len:= len;
 end;
+
 
 procedure setlen(var p: LINE_G4; const len: byte);
 var x : ^P_TAG;
@@ -2723,15 +2804,11 @@ begin
 end;
 
 
-
-
-
-
-
 procedure setaddr(var p: P_TAG; const addr: dword);
 begin
 	p.addr:= addr;
 end;
+
 
 procedure setcode(var p: P_TAG; const code: byte);
 begin
@@ -2746,12 +2823,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: POLY_FT3; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: POLY_G3; const code: byte);
 var x : ^P_TAG;
@@ -2760,12 +2839,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: POLY_GT3; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: POLY_F4; const code: byte);
 var x : ^P_TAG;
@@ -2774,12 +2855,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: POLY_FT4; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: POLY_G4; const code: byte);
 var x : ^P_TAG;
@@ -2788,12 +2871,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: POLY_GT4; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: SPRT_8; const code: byte);
 var x : ^P_TAG;
@@ -2802,12 +2887,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: SPRT_16; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: SPRT; const code: byte);
 var x : ^P_TAG;
@@ -2816,12 +2903,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: TILE_1; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: TILE_8; const code: byte);
 var x : ^P_TAG;
@@ -2830,12 +2919,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: TILE_16; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: TILE; const code: byte);
 var x : ^P_TAG;
@@ -2844,12 +2935,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: LINE_F2; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: LINE_G2; const code: byte);
 var x : ^P_TAG;
@@ -2858,12 +2951,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: LINE_F3; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: LINE_G3; const code: byte);
 var x : ^P_TAG;
@@ -2872,12 +2967,14 @@ begin
  	x^.code:= code;
 end;
 
+
 procedure setcode(var p: LINE_F4; const code: byte);
 var x : ^P_TAG;
 begin
 	x:= @p;
  	x^.code:= code;
 end;
+
 
 procedure setcode(var p: LINE_G4; const code: byte);
 var x : ^P_TAG;
@@ -2892,46 +2989,42 @@ begin
 	getlen:= p.len;
 end;
 
+
 function getcode(p: P_TAG): byte;
 begin
    	getcode:= p.code;
 end;
+
 
 function getaddr(p: P_TAG): dword;
 begin
 	getaddr:= p.addr;
 end;
 
-
-
-
-
 //	Primitive 	Lentgh		Code			
 //--------------------------------------------------------------------
 //								
-
-//#define setPolyF3(p)	setlen(p, 4),  setcode(p, 0x20)
 procedure setPolyF3(var p: POLY_F3);
 begin
 	setlen(p, 4);
 	setcode(p, $20);
 end;
 
-//#define setPolyFT3(p)	setlen(p, 7),  setcode(p, 0x24)
+
 procedure setPolyFT3(var p: POLY_FT3);
 begin
 	setlen(p, 7);
 	setcode(p, $24);
 end;
 
-//#define setPolyG3(p)	setlen(p, 6),  setcode(p, 0x30)
+
 procedure setPolyG3(var p: POLY_G3);
 begin
 	setlen(p, 6);
 	setcode(p, $30);
 end;
 
-//#define setPolyGT3(p)	setlen(p, 9),  setcode(p, 0x34)
+
 procedure setPolyGT3(var p: POLY_GT3);
 begin
 	setlen(p, 9);
@@ -2939,14 +3032,13 @@ begin
 end;
 
 
-//#define setPolyF4(p)	setlen(p, 5),  setcode(p, 0x28)
 procedure setPolyF4(var p: POLY_F4);
 begin
 	setlen(p, 5);
 	setcode(p, $28);
 end;
 
-//#define setPolyFT4(p)	setlen(p, 9),  setcode(p, 0x2c)
+
 procedure setPolyFT4(var p: POLY_FT4);
 begin
 	setlen(p, 9);
@@ -2954,14 +3046,13 @@ begin
 end;
 
 
-//#define setPolyG4(p)	setlen(p, 8),  setcode(p, 0x38)
 procedure setPolyG4(var p: POLY_G4);
 begin
 	setlen(p, 8);
 	setcode(p, $38);
 end;
 
-//#define setPolyGT4(p)	setlen(p, 12), setcode(p, 0x3c)
+
 procedure setPolyGT4(var p: POLY_GT4);
 begin
 	setlen(p, 12);
@@ -2969,72 +3060,69 @@ begin
 end;
 
 
-//#define setSprt8(p)	setlen(p, 3),  setcode(p, 0x74)
 procedure setSprt8(var p: SPRT_8);
 begin
 	setlen(p, 3);
 	setcode(p, $74);
 end;
 
-//#define setSprt16(p)	setlen(p, 3),  setcode(p, 0x7c)
+
 procedure setSprt16(var p: SPRT_16);
 begin
 	setlen(p, 3);
 	setcode(p, $7c);
-
 end;
 
-//#define setSprt(p)	setlen(p, 4),  setcode(p, 0x64)
+
 procedure setSprt(var p: SPRT);
 begin
 	setlen(p, 4);
 	setcode(p, $64);
 end;
 
-//#define setTile1(p)	setlen(p, 2),  setcode(p, 0x68)
-{
+
 procedure setTile1(var p: TILE_1);
 begin
 	setlen(p, 2);
 	setcode(p, $68);
 end;
-}
-//#define setTile8(p)	setlen(p, 2),  setcode(p, 0x70)
+
+
 procedure setTile8(var p: TILE_8);
 begin
 	setlen(p, 2);
 	setcode(p, $70);
 end;
 
-//#define setTile16(p)	setlen(p, 2),  setcode(p, 0x78)
+
 procedure setTile16(var p: TILE_16);
 begin
 	setlen(p, 2);
 	setcode(p, $78);
 end;
 
-//#define setTile(p)	setlen(p, 3),  setcode(p, 0x60)
+
 procedure setTile(var p: TILE);
 begin
 	setlen(p, 3);
 	setcode(p, $60);
 end;
 
-//#define setLineF2(p)	setlen(p, 3),  setcode(p, 0x40)
+
 procedure setLineF2(var p: LINE_F2);
 begin
 	setlen(p, 3);
 	setcode(p, $40);
 end;
 
-//#define setLineG2(p)	setlen(p, 4),  setcode(p, 0x50)
+
 procedure setLineG2(var p: LINE_G2);
 begin
 	setlen(p, 4);
 	setcode(p, $50);
 end;
 
-//#define setLineF3(p)	setlen(p, 5),  setcode(p, 0x48),(p)->pad = 0x55555555
+
 procedure setLineF3(var p: LINE_F3);
 begin
 	setlen(p, 5);  
@@ -3042,8 +3130,7 @@ begin
 	p.pad:= $55555555;
 end;
 
-//#define setLineG3(p)	setlen(p, 7),  setcode(p, 0x58),(p)->pad = 0x55555555, \
-//			(p)->p2 = 0
+
 procedure setLineG3(var p: LINE_G3);
 begin
 	setlen(p, 7);
@@ -3052,7 +3139,7 @@ begin
 	p.p2:= 0;
 end;
 
-//#define setLineF4(p)	setlen(p, 6),  setcode(p, 0x4c),(p)->pad = 0x55555555
+
 procedure setLineF4(var p: LINE_F4);
 begin
 	setlen(p, 6);
@@ -3060,8 +3147,7 @@ begin
 	p.pad:= $55555555;
 end;
 
-//#define setLineG4(p)	setlen(p, 9),  setcode(p, 0x5c),(p)->pad = 0x55555555, \
-//			(p)->p2 = 0, (p)->p3 = 0
+
 procedure setLineG4(var p: LINE_G4);
 begin
 	setlen(p, 9);
@@ -3074,18 +3160,20 @@ end;
 {
 function getTPage(tp, abr, x, y: longint): longint;
 begin
-	result:= ((((tp) and $3)shl 7)or(((abr) and $3) shl 5) or (((y) and $100) shr 4)|(((x)and $3ff) shr6) or (((y) and $200) shl 2));
+	result:= ((((tp) and $3) shl 7) or (((abr) and $3) shl 5) or (((y) and $100) shr 4) or (((x) and $3ff) shr 6) or (((y) and $200) shl 2));
 end;
 
 function getClut(x, y): longint;
 begin
-	result:= (((y) shl 6)or(((x) shr 4) and $3f));
+	result:= (((y) shl 6) or (((x) shr 4) and $3f));
 end;
 }
+
 procedure dumpTPage(tpage: longint);
 begin
 	GPU_printf('tpage: (%d,%d,%d,%d)\n', ((tpage) shr 7) and $003, ((tpage) shr 5) and $003, ((tpage) shl 6) and $7c0, (((tpage) shl 4) and $100)+(((tpage)shr 2) and $200));
 end;
+
 
 procedure dumpClut(clut: longint);
 begin

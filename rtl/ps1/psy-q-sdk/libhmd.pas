@@ -54,7 +54,7 @@ type
 		offset : longint;
 		out_packetp : PPACKET;
 	end;
-	
+
 	PGsWORKUNIT = ^GsWORKUNIT;
 	GsWORKUNIT = packed record
 		vec : DVECTOR;
@@ -86,7 +86,6 @@ type
 		nortop2 : PSVECTOR;
 	end;
 
-	
 	GsARGUNIT_IMAGE = packed record
 		primp : pdword;
 		tagp : PGsOT;
@@ -196,9 +195,9 @@ type
 		vert_sect : PSVECTOR;
 		norm_sect : PSVECTOR;
 	end;
-	
+
 	PGsARGUNIT_ANIM = ^GsARGUNIT_ANIM;
- 	GsARGUNIT_ANIM = packed record
+	GsARGUNIT_ANIM = packed record
 		primp : pdword;
 		tagp : PGsOT;
 		shift : longint;
@@ -240,258 +239,258 @@ type
 const
 	GsUF3		= $00000008;	// flat triangle
 	GsUFT3		= $00000009;	// texture flat triangle
-	GsUG3		= $0000000c;	// gour triangle 
-	GsUGT3		= $0000000d;	// texture gour triangle 
-	GsUF4		= $00000010;	// flat quad 
-	GsUFT4		= $00000011;	// texture flat quad 
-	GsUG4		= $00000014;	// gour quad 
-	GsUGT4		= $00000015;	// texture gour quad 
+	GsUG3		= $0000000c;	// gour triangle
+	GsUGT3		= $0000000d;	// texture gour triangle
+	GsUF4		= $00000010;	// flat quad
+	GsUFT4		= $00000011;	// texture flat quad
+	GsUG4		= $00000014;	// gour quad
+	GsUGT4		= $00000015;	// texture gour quad
 
-	GsUFF3		= $00020008;	// fog flat triangle 
-	GsUFFT3		= $00020009;	// fog texture flat triangle 
-	GsUFG3		= $0002000c;	// fog gour triangle 
-	GsUFGT3		= $0002000d;	// fog texture gour triangle 
-	GsUFF4		= $00020010;	// fog flat quad 
-	GsUFFT4		= $00020011;	// fog texture flat quad 
-	GsUFG4		= $00020014;	// fog gour quad 
-	GsUFGT4		= $00020015;	// fog texture gour quad 
+	GsUFF3		= $00020008;	// fog flat triangle
+	GsUFFT3		= $00020009;	// fog texture flat triangle
+	GsUFG3		= $0002000c;	// fog gour triangle
+	GsUFGT3		= $0002000d;	// fog texture gour triangle
+	GsUFF4		= $00020010;	// fog flat quad
+	GsUFFT4		= $00020011;	// fog texture flat quad
+	GsUFG4		= $00020014;	// fog gour quad
+	GsUFGT4		= $00020015;	// fog texture gour quad
 
-	GsUCF3		= $0000000a;	// colored flat triangle 
-	GsUCFT3		= $0000000b;	// colored texture flat triangle 
-	GsUCG3		= $0000000e;	// colored gour triangle 
-	GsUCGT3		= $0000000f;	// colored texture gour triangle 
-	GsUCF4		= $00000012;	// colored flat quad 
-	GsUCFT4		= $00000013;	// colored texture flat quad 
-	GsUCG4		= $00000016;	// colored gour quad 
-	GsUCGT4		= $00000017;	// colored texture gour quad 
+	GsUCF3		= $0000000a;	// colored flat triangle
+	GsUCFT3		= $0000000b;	// colored texture flat triangle
+	GsUCG3		= $0000000e;	// colored gour triangle
+	GsUCGT3		= $0000000f;	// colored texture gour triangle
+	GsUCF4		= $00000012;	// colored flat quad
+	GsUCFT4		= $00000013;	// colored texture flat quad
+	GsUCG4		= $00000016;	// colored gour quad
+	GsUCGT4		= $00000017;	// colored texture gour quad
 
-	GsUNF3		= $00040048;	// nonLight flat triangle 
-	GsUNFT3		= $00040049;	// nonLight texture flat triangle 
-	GsUNG3		= $0004004c;	// nonLight gouraud triangle 
-	GsUNGT3		= $0004004d;	// nonLight texture gouraud triangle 
-	GsUNF4		= $00040050;	// nonLight flat quad 
-	GsUNFT4		= $00040051;	// nonLight texture flat quad 
-	GsUNG4		= $00040054;	// nonLight gouraud quad 
-	GsUNGT4		= $00040055;	// nonLight texture gouraud quad 
+	GsUNF3		= $00040048;	// nonLight flat triangle
+	GsUNFT3		= $00040049;	// nonLight texture flat triangle
+	GsUNG3		= $0004004c;	// nonLight gouraud triangle
+	GsUNGT3		= $0004004d;	// nonLight texture gouraud triangle
+	GsUNF4		= $00040050;	// nonLight flat quad
+	GsUNFT4		= $00040051;	// nonLight texture flat quad
+	GsUNG4		= $00040054;	// nonLight gouraud quad
+	GsUNGT4		= $00040055;	// nonLight texture gouraud quad
 
-	GsUDF3		= $00010008;	// div flat triangle 
-	GsUDFT3		= $00010009;	// div texture flat triangle 
-	GsUDG3		= $0001000c;	// div gour triangle 
-	GsUDGT3		= $0001000d;	// div texture gour triangle 
-	GsUDF4		= $00010010;	// div flat quad 
-	GsUDFT4		= $00010011;	// div texture flat quad 
-	GsUDG4		= $00010014;	// div gour quad 
-	GsUDGT4		= $00010015;	// div texture gour quad 
+	GsUDF3		= $00010008;	// div flat triangle
+	GsUDFT3		= $00010009;	// div texture flat triangle
+	GsUDG3		= $0001000c;	// div gour triangle
+	GsUDGT3		= $0001000d;	// div texture gour triangle
+	GsUDF4		= $00010010;	// div flat quad
+	GsUDFT4		= $00010011;	// div texture flat quad
+	GsUDG4		= $00010014;	// div gour quad
+	GsUDGT4		= $00010015;	// div texture gour quad
 
-	GsUDFF3		= $00030008;	// div fog flat triangle 
-	GsUDFFT3	= $00030009;	// div fog texture flat triangle 
-	GsUDFG3		= $0003000c;	// div fog gour triangle 
-	GsUDFGT3	= $0003000d;	// div fog texture gour triangle 
-	GsUDFF4		= $00030010;	// div fog flat quad 
-	GsUDFFT4	= $00030011;	// div fog texture flat quad 
-	GsUDFG4		= $00030014;	// div fog gour quad 
-	GsUDFGT4	= $00030015;	// div fog texture gour quad 
+	GsUDFF3		= $00030008;	// div fog flat triangle
+	GsUDFFT3	= $00030009;	// div fog texture flat triangle
+	GsUDFG3		= $0003000c;	// div fog gour triangle
+	GsUDFGT3	= $0003000d;	// div fog texture gour triangle
+	GsUDFF4		= $00030010;	// div fog flat quad
+	GsUDFFT4	= $00030011;	// div fog texture flat quad
+	GsUDFG4		= $00030014;	// div fog gour quad
+	GsUDFGT4	= $00030015;	// div fog texture gour quad
 
-	GsUDNF3		= $00050048;	// div nonLight flat triangle 
-	GsUDNFT3	= $00050049;	// div nonLight texture flat triangle 
-	GsUDNG3		= $0005004c;	// div nonLight gouraud triangle 
-	GsUDNGT3	= $0005004d;	// div nonLight tex gouraud triangle 
-	GsUDNF4		= $00050050;	// div nonLight flat quad 
-	GsUDNFT4	= $00050051;	// div nonLight texture flat quad 
-	GsUDNG4		= $00050054;	// div nonLight gouraud quad 
-	GsUDNGT4	= $00050055;	// div nonLight tex gouraud quad 
+	GsUDNF3		= $00050048;	// div nonLight flat triangle
+	GsUDNFT3	= $00050049;	// div nonLight texture flat triangle
+	GsUDNG3		= $0005004c;	// div nonLight gouraud triangle
+	GsUDNGT3	= $0005004d;	// div nonLight tex gouraud triangle
+	GsUDNF4		= $00050050;	// div nonLight flat quad
+	GsUDNFT4	= $00050051;	// div nonLight texture flat quad
+	GsUDNG4		= $00050054;	// div nonLight gouraud quad
+	GsUDNGT4	= $00050055;	// div nonLight tex gouraud quad
 
-	GsUSCAL		= $01000000;	// shared calculate vertex and normal 
-	GsUSG3		= $0100000c;	// shared gour triangle 
-	GsUSGT3		= $0100000d;	// shared texture gour triangle 
-	GsUSG4		= $01000014;	// shared gour quad 
-	GsUSGT4		= $01000015;	// shared texture gour quad 
+	GsUSCAL		= $01000000;	// shared calculate vertex and normal
+	GsUSG3		= $0100000c;	// shared gour triangle
+	GsUSGT3		= $0100000d;	// shared texture gour triangle
+	GsUSG4		= $01000014;	// shared gour quad
+	GsUSGT4		= $01000015;	// shared texture gour quad
 
-	GsUSTGT3	= $0100020d;	// shared tile texture gour triangle 
-	GsUSTGT4	= $01000215;	// shared tile texture gour quad 
+	GsUSTGT3	= $0100020d;	// shared tile texture gour triangle
+	GsUSTGT4	= $01000215;	// shared tile texture gour quad
 
-	GsUSFG3		= $0102000c;	// shared fog gour triangle 
-	GsUSFGT3	= $0102000d;	// shared fog texture gour triangle 
-	GsUSFG4		= $01020014;	// shared fog gour quad 
-	GsUSFGT4	= $01020015;	// shared fog texture gour quad 
+	GsUSFG3		= $0102000c;	// shared fog gour triangle
+	GsUSFGT3	= $0102000d;	// shared fog texture gour triangle
+	GsUSFG4		= $01020014;	// shared fog gour quad
+	GsUSFGT4	= $01020015;	// shared fog texture gour quad
 
-	GsUSNF3		= $01040048;	// shared nonLight flat tri 
-	GsUSNFT3	= $01040049;	// shared nonLight texture flat tri 
-	GsUSNG3		= $0104004c;	// shared nonLight gour tri 
-	GsUSNGT3	= $0104004d;	// shared nonLight texture gour tri 
-	GsUSNF4		= $01040050;	// shared nonLight flat quad 
-	GsUSNFT4	= $01040051;	// shared nonLight texture flat quad 
-	GsUSNG4		= $01040054;	// shared nonLight gour quad 
-	GsUSNGT4	= $01040055;	// shared nonLight texture gour quad 
+	GsUSNF3		= $01040048;	// shared nonLight flat tri
+	GsUSNFT3	= $01040049;	// shared nonLight texture flat tri
+	GsUSNG3		= $0104004c;	// shared nonLight gour tri
+	GsUSNGT3	= $0104004d;	// shared nonLight texture gour tri
+	GsUSNF4		= $01040050;	// shared nonLight flat quad
+	GsUSNFT4	= $01040051;	// shared nonLight texture flat quad
+	GsUSNG4		= $01040054;	// shared nonLight gour quad
+	GsUSNGT4	= $01040055;	// shared nonLight texture gour quad
 
-	GsUMF3		= $00000018;	// mesh flat tri 
-	GsUMFT3		= $00000019;	// mesh texture flat tri 
-	GsUMG3		= $0000001c;	// mesh gour triangle 
-	GsUMGT3		= $0000001d;	// mesh texture gour triangle 
-	GsUMNF3		= $00040058;	// mesh nonLight flat tri 
-	GsUMNFT3	= $00040059;	// mesh nonLight tex flat tri 
-	GsUMNG3		= $0004005c;	// mesh nonLight gour triangle 
-	GsUMNGT3	= $0004005d;	// mesh nonLight tex gour tri 
+	GsUMF3		= $00000018;	// mesh flat tri
+	GsUMFT3		= $00000019;	// mesh texture flat tri
+	GsUMG3		= $0000001c;	// mesh gour triangle
+	GsUMGT3		= $0000001d;	// mesh texture gour triangle
+	GsUMNF3		= $00040058;	// mesh nonLight flat tri
+	GsUMNFT3	= $00040059;	// mesh nonLight tex flat tri
+	GsUMNG3		= $0004005c;	// mesh nonLight gour triangle
+	GsUMNGT3	= $0004005d;	// mesh nonLight tex gour tri
 
-	GsUTFT3		= $00000209;	// tile texture flat triangle 
-	GsUTGT3		= $0000020d;	// tile texture gour triangle 
-	GsUTFT4		= $00000211;	// tile texture flat quad 
-	GsUTGT4		= $00000215;	// tile texture gour quad 
+	GsUTFT3		= $00000209;	// tile texture flat triangle
+	GsUTGT3		= $0000020d;	// tile texture gour triangle
+	GsUTFT4		= $00000211;	// tile texture flat quad
+	GsUTGT4		= $00000215;	// tile texture gour quad
 
-	GsUPNF3		= $00040148;	// preset nonLight flat triangle 
-	GsUPNFT3	= $00040149;	// preset nonLight tex flat triangle 
-	GsUPNG3		= $0004014c;	// preset nonLight gouraud triangle 
-	GsUPNGT3	= $0004014d;	// preset nonLight tex gour triangle 
-	GsUPNF4		= $00040150;	// preset nonLight flat quad 
-	GsUPNFT4	= $00040151;	// preset nonLight tex flat quad 
-	GsUPNG4		= $00040154;	// preset nonLight gouraud quad 
-	GsUPNGT4	= $00040155;	// preset nonLight tex gour quad 
+	GsUPNF3		= $00040148;	// preset nonLight flat triangle
+	GsUPNFT3	= $00040149;	// preset nonLight tex flat triangle
+	GsUPNG3		= $0004014c;	// preset nonLight gouraud triangle
+	GsUPNGT3	= $0004014d;	// preset nonLight tex gour triangle
+	GsUPNF4		= $00040150;	// preset nonLight flat quad
+	GsUPNFT4	= $00040151;	// preset nonLight tex flat quad
+	GsUPNG4		= $00040154;	// preset nonLight gouraud quad
+	GsUPNGT4	= $00040155;	// preset nonLight tex gour quad
 
-	GsUSTPF3	= $00200008;	// semi-trans flat triangle 
-	GsUSTPFT3	= $00200009;	// semi-trans texture flat triangle 
-	GsUSTPG3	= $0020000c;	// semi-trans gour triangle 
-	GsUSTPGT3	= $0020000d;	// semi-trans texture gour triangle 
-	GsUSTPF4	= $00200010;	// semi-trans flat quad 
-	GsUSTPFT4	= $00200011;	// semi-trans texture flat quad 
-	GsUSTPG4	= $00200014;	// semi-trans gour quad 
-	GsUSTPGT4	= $00200015;	// semi-trans texture gour quad 
-	GsUSTPSG3	= $0120000c;	// semi-trans shared gour tri 
-	GsUSTPSGT3	= $0120000d;	// semi-trans shared tex gour tri 
-	GsUSTPSG4	= $01200014;	// semi-trans shared gour quad 
-	GsUSTPSGT4	= $01200015;	// semi-trans shared tex gour quad 
+	GsUSTPF3	= $00200008;	// semi-trans flat triangle
+	GsUSTPFT3	= $00200009;	// semi-trans texture flat triangle
+	GsUSTPG3	= $0020000c;	// semi-trans gour triangle
+	GsUSTPGT3	= $0020000d;	// semi-trans texture gour triangle
+	GsUSTPF4	= $00200010;	// semi-trans flat quad
+	GsUSTPFT4	= $00200011;	// semi-trans texture flat quad
+	GsUSTPG4	= $00200014;	// semi-trans gour quad
+	GsUSTPGT4	= $00200015;	// semi-trans texture gour quad
+	GsUSTPSG3	= $0120000c;	// semi-trans shared gour tri
+	GsUSTPSGT3	= $0120000d;	// semi-trans shared tex gour tri
+	GsUSTPSG4	= $01200014;	// semi-trans shared gour quad
+	GsUSTPSGT4	= $01200015;	// semi-trans shared tex gour quad
 
-	GsUSTPNF3	= $00240048;	// semi-trans nonLight flat tri 
-	GsUSTPNFT3	= $00240049;	// semi-trans nonLight tex flat tri 
-	GsUSTPNG3	= $0024004c;	// semi-trans nonLight gour tri 
-	GsUSTPNGT3	= $0024004d;	// semi-trans nonLight tex gour tri 
-	GsUSTPNF4	= $00240050;	// semi-trans nonLight flat quad 
-	GsUSTPNFT4	= $00240051;	// semi-trans nonLight tex flat quad 
-	GsUSTPNG4	= $00240054;	// semi-trans nonLight gour quad 
-	GsUSTPNGT4	= $00240055;	// semi-trans nonLight tex gour quad 
+	GsUSTPNF3	= $00240048;	// semi-trans nonLight flat tri
+	GsUSTPNFT3	= $00240049;	// semi-trans nonLight tex flat tri
+	GsUSTPNG3	= $0024004c;	// semi-trans nonLight gour tri
+	GsUSTPNGT3	= $0024004d;	// semi-trans nonLight tex gour tri
+	GsUSTPNF4	= $00240050;	// semi-trans nonLight flat quad
+	GsUSTPNFT4	= $00240051;	// semi-trans nonLight tex flat quad
+	GsUSTPNG4	= $00240054;	// semi-trans nonLight gour quad
+	GsUSTPNGT4	= $00240055;	// semi-trans nonLight tex gour quad
 
-	GsUSTPSNF3	= $01240048;	// stp shared nonLight flat tri 
-	GsUSTPSNFT3	= $01240049;	// stp shared nonLight tex flat tri 
-	GsUSTPSNG3	= $0124004c;	// stp shared nonLight gour tri 
-	GsUSTPSNGT3	= $0124004d;	// stp shared nonLight tex gour tri 
-	GsUSTPSNF4	= $01240050;	// stp shared nonLight flat quad 
-	GsUSTPSNFT4	= $01240051;	// stp shared nonLight tex flat quad 
-	GsUSTPSNG4	= $01240054;	// stp shared nonLight gour quad 
-	GsUSTPSNGT4	= $01240055;	// stp shared nonLight tex gour quad 
+	GsUSTPSNF3	= $01240048;	// stp shared nonLight flat tri
+	GsUSTPSNFT3	= $01240049;	// stp shared nonLight tex flat tri
+	GsUSTPSNG3	= $0124004c;	// stp shared nonLight gour tri
+	GsUSTPSNGT3	= $0124004d;	// stp shared nonLight tex gour tri
+	GsUSTPSNF4	= $01240050;	// stp shared nonLight flat quad
+	GsUSTPSNFT4	= $01240051;	// stp shared nonLight tex flat quad
+	GsUSTPSNG4	= $01240054;	// stp shared nonLight gour quad
+	GsUSTPSNGT4	= $01240055;	// stp shared nonLight tex gour quad
 
-	GsUADF3		= $00080008;	// active-div flat triangle 
-	GsUADFT3	= $00080009;	// active-div texture flat triangle 
-	GsUADG3		= $0008000c;	// active-div gour triangle 
-	GsUADGT3	= $0008000d;	// active-div texture gour triangle 
-	GsUADF4		= $00080010;	// active-div flat quad 
-	GsUADFT4	= $00080011;	// active-div texture flat quad 
-	GsUADG4		= $00080014;	// active-div gour quad 
-	GsUADGT4	= $00080015;	// active-div texture gour quad 
+	GsUADF3		= $00080008;	// active-div flat triangle
+	GsUADFT3	= $00080009;	// active-div texture flat triangle
+	GsUADG3		= $0008000c;	// active-div gour triangle
+	GsUADGT3	= $0008000d;	// active-div texture gour triangle
+	GsUADF4		= $00080010;	// active-div flat quad
+	GsUADFT4	= $00080011;	// active-div texture flat quad
+	GsUADG4		= $00080014;	// active-div gour quad
+	GsUADGT4	= $00080015;	// active-div texture gour quad
 
-	GsUADFF3	= $000a0008;	// active-div fog flat tri 
-	GsUADFFT3	= $000a0009;	// active-div fog texture flat tri 
-	GsUADFG3	= $000a000c;	// active-div fog gour tri 
-	GsUADFGT3	= $000a000d;	// active-div fog texture gour tri 
-	GsUADFF4	= $000a0010;	// active-div fog flat quad 
-	GsUADFFT4	= $000a0011;	// active-div fog texture flat quad 
-	GsUADFG4	= $000a0014;	// active-div fog gour quad 
-	GsUADFGT4	= $000a0015;	// active-div fog texture gour quad 
+	GsUADFF3	= $000a0008;	// active-div fog flat tri
+	GsUADFFT3	= $000a0009;	// active-div fog texture flat tri
+	GsUADFG3	= $000a000c;	// active-div fog gour tri
+	GsUADFGT3	= $000a000d;	// active-div fog texture gour tri
+	GsUADFF4	= $000a0010;	// active-div fog flat quad
+	GsUADFFT4	= $000a0011;	// active-div fog texture flat quad
+	GsUADFG4	= $000a0014;	// active-div fog gour quad
+	GsUADFGT4	= $000a0015;	// active-div fog texture gour quad
 
-	GsUADNF3	= $000c0048;	// active-div nonLight flat tri 
-	GsUADNFT3	= $000c0049;	// active-div nonLight tex flat tri 
-	GsUADNG3	= $000c004c;	// active-div nonLight gour tri 
-	GsUADNGT3	= $000c004d;	// active-div nonLight tex gour tri 
-	GsUADNF4	= $000c0050;	// active-div nonLight flat quad 
-	GsUADNFT4	= $000c0051;	// active-div nonLight tex flat quad 
-	GsUADNG4	= $000c0054;	// active-div nonLight gour quad 
-	GsUADNGT4	= $000c0055;	// active-div nonLight tex gour quad 
+	GsUADNF3	= $000c0048;	// active-div nonLight flat tri
+	GsUADNFT3	= $000c0049;	// active-div nonLight tex flat tri
+	GsUADNG3	= $000c004c;	// active-div nonLight gour tri
+	GsUADNGT3	= $000c004d;	// active-div nonLight tex gour tri
+	GsUADNF4	= $000c0050;	// active-div nonLight flat quad
+	GsUADNFT4	= $000c0051;	// active-div nonLight tex flat quad
+	GsUADNG4	= $000c0054;	// active-div nonLight gour quad
+	GsUADNGT4	= $000c0055;	// active-div nonLight tex gour quad
 
-	GsUBF3		= $00100008;	// back-f flat tri 
-	GsUBFT3		= $00100009;	// back-f tex flat tri 
-	GsUBG3		= $0010000c;	// back-f gour tri 
-	GsUBGT3		= $0010000d;	// back-f tex gour tri 
-	GsUBF4		= $00100010;	// back-f flat quad 
-	GsUBFT4		= $00100011;	// back-f tex flat quad 
-	GsUBG4		= $00100014;	// back-f gour quad 
-	GsUBGT4		= $00100015;	// back-f tex gour quad 
+	GsUBF3		= $00100008;	// back-f flat tri
+	GsUBFT3		= $00100009;	// back-f tex flat tri
+	GsUBG3		= $0010000c;	// back-f gour tri
+	GsUBGT3		= $0010000d;	// back-f tex gour tri
+	GsUBF4		= $00100010;	// back-f flat quad
+	GsUBFT4		= $00100011;	// back-f tex flat quad
+	GsUBG4		= $00100014;	// back-f gour quad
+	GsUBGT4		= $00100015;	// back-f tex gour quad
 
-	GsUBCF3		= $0010000a;	// back-f colored flat tri 
-	GsUBCFT3	= $0010000b;	// back-f colored tex flat tri 
-	GsUBCG3		= $0010000e;	// back-f colored gour tri 
-	GsUBCGT3	= $0010000f;	// back-f colored tex gour tri 
-	GsUBCF4		= $00100012;	// back-f colored flat quad 
-	GsUBCFT4	= $00100013;	// back-f colored tex flat quad 
-	GsUBCG4		= $00100016;	// back-f colored gour quad 
-	GsUBCGT4	= $00100017;	// back-f colored tex gour quad 
+	GsUBCF3		= $0010000a;	// back-f colored flat tri
+	GsUBCFT3	= $0010000b;	// back-f colored tex flat tri
+	GsUBCG3		= $0010000e;	// back-f colored gour tri
+	GsUBCGT3	= $0010000f;	// back-f colored tex gour tri
+	GsUBCF4		= $00100012;	// back-f colored flat quad
+	GsUBCFT4	= $00100013;	// back-f colored tex flat quad
+	GsUBCG4		= $00100016;	// back-f colored gour quad
+	GsUBCGT4	= $00100017;	// back-f colored tex gour quad
 
-	GsUBSTPF3	= $00300008;	// back-f semi-trans flat tri 
-	GsUBSTPFT3	= $00300009;	// back-f semi-trans tex flat tri 
-	GsUBSTPG3	= $0030000c;	// back-f semi-trans gour tri 
-	GsUBSTPGT3	= $0030000d;	// back-f semi-trans tex gour tri 
-	GsUBSTPF4	= $00300010;	// back-f semi-trans flat quad 
-	GsUBSTPFT4	= $00300011;	// back-f semi-trans tex flat quad 
-	GsUBSTPG4	= $00300014;	// back-f semi-trans gour quad 
-	GsUBSTPGT4	= $00300015;	// back-f semi-trans tex gour quad 
+	GsUBSTPF3	= $00300008;	// back-f semi-trans flat tri
+	GsUBSTPFT3	= $00300009;	// back-f semi-trans tex flat tri
+	GsUBSTPG3	= $0030000c;	// back-f semi-trans gour tri
+	GsUBSTPGT3	= $0030000d;	// back-f semi-trans tex gour tri
+	GsUBSTPF4	= $00300010;	// back-f semi-trans flat quad
+	GsUBSTPFT4	= $00300011;	// back-f semi-trans tex flat quad
+	GsUBSTPG4	= $00300014;	// back-f semi-trans gour quad
+	GsUBSTPGT4	= $00300015;	// back-f semi-trans tex gour quad
 
-	GsUBNF3		= $00140048;	// back-f noLgt flat tri 
-	GsUBNFT3	= $00140049;	// back-f noLgt tex flat tri 
-	GsUBNG3		= $0014004c;	// back-f noLgt gouraud tri 
-	GsUBNGT3	= $0014004d;	// back-f noLgt tex gouraud tri 
-	GsUBNF4		= $00140050;	// back-f noLgt flat quad 
-	GsUBNFT4	= $00140051;	// back-f noLgt tex flat quad 
-	GsUBNG4		= $00140054;	// back-f noLgt gouraud quad 
-	GsUBNGT4	= $00140055;	// back-f noLgt tex gouraud quad 
+	GsUBNF3		= $00140048;	// back-f noLgt flat tri
+	GsUBNFT3	= $00140049;	// back-f noLgt tex flat tri
+	GsUBNG3		= $0014004c;	// back-f noLgt gouraud tri
+	GsUBNGT3	= $0014004d;	// back-f noLgt tex gouraud tri
+	GsUBNF4		= $00140050;	// back-f noLgt flat quad
+	GsUBNFT4	= $00140051;	// back-f noLgt tex flat quad
+	GsUBNG4		= $00140054;	// back-f noLgt gouraud quad
+	GsUBNGT4	= $00140055;	// back-f noLgt tex gouraud quad
 
-	GsUBSTPNF3	= $00340048;	// back-f stp noLgt flat tri 
-	GsUBSTPNFT3	= $00340049;	// back-f stp noLgt tex flat tri 
-	GsUBSTPNG3	= $0034004c;	// back-f stp noLgt gour tri 
-	GsUBSTPNGT3	= $0034004d;	// back-f stp noLgt tex gour tri 
-	GsUBSTPNF4	= $00340050;	// back-f stp noLgt flat quad 
-	GsUBSTPNFT4	= $00340051;	// back-f stp noLgt tex flat quad 
-	GsUBSTPNG4	= $00340054;	// back-f stp noLgt gour quad 
-	GsUBSTPNGT4	= $00340055;	// back-f stp noLgt tex gour quad 
+	GsUBSTPNF3	= $00340048;	// back-f stp noLgt flat tri
+	GsUBSTPNFT3	= $00340049;	// back-f stp noLgt tex flat tri
+	GsUBSTPNG3	= $0034004c;	// back-f stp noLgt gour tri
+	GsUBSTPNGT3	= $0034004d;	// back-f stp noLgt tex gour tri
+	GsUBSTPNF4	= $00340050;	// back-f stp noLgt flat quad
+	GsUBSTPNFT4	= $00340051;	// back-f stp noLgt tex flat quad
+	GsUBSTPNG4	= $00340054;	// back-f stp noLgt gour quad
+	GsUBSTPNGT4	= $00340055;	// back-f stp noLgt tex gour quad
 
-	GsUBSNF3	= $01140048;	// back-f shrd noLgt flat tri 
-	GsUBSNFT3	= $01140049;	// back-f shrd noLgt tex flat tri 
-	GsUBSNG3	= $0114004c;	// back-f shrd noLgt gour tri 
-	GsUBSNGT3	= $0114004d;	// back-f shrd noLgt tex gour tri 
-	GsUBSNF4	= $01140050;	// back-f shrd noLgt flat quad 
-	GsUBSNFT4	= $01140051;	// back-f shrd noLgt tex flat quad 
-	GsUBSNG4	= $01140054;	// back-f shrd noLgt gour quad 
-	GsUBSNGT4	= $01140055;	// back-f shrd noLgt tex gour quad 
+	GsUBSNF3	= $01140048;	// back-f shrd noLgt flat tri
+	GsUBSNFT3	= $01140049;	// back-f shrd noLgt tex flat tri
+	GsUBSNG3	= $0114004c;	// back-f shrd noLgt gour tri
+	GsUBSNGT3	= $0114004d;	// back-f shrd noLgt tex gour tri
+	GsUBSNF4	= $01140050;	// back-f shrd noLgt flat quad
+	GsUBSNFT4	= $01140051;	// back-f shrd noLgt tex flat quad
+	GsUBSNG4	= $01140054;	// back-f shrd noLgt gour quad
+	GsUBSNGT4	= $01140055;	// back-f shrd noLgt tex gour quad
 
-	GsUBSTPSNF3		= $01340048;	// back-f stp shrd noLgt flat tri 
-	GsUBSTPSNFT3	= $01340049;	// back-f stp shrd noLgt tex flat tri 
-	GsUBSTPSNG3		= $0134004c;	// back-f stp shrd noLgt gour tri 
-	GsUBSTPSNGT3	= $0134004d;	// back-f stp shrd noLgt tex gour tri 
-	GsUBSTPSNF4		= $01340050;	// back-f stp shrd noLgt flat quad 
+	GsUBSTPSNF3		= $01340048;	// back-f stp shrd noLgt flat tri
+	GsUBSTPSNFT3	= $01340049;	// back-f stp shrd noLgt tex flat tri
+	GsUBSTPSNG3		= $0134004c;	// back-f stp shrd noLgt gour tri
+	GsUBSTPSNGT3	= $0134004d;	// back-f stp shrd noLgt tex gour tri
+	GsUBSTPSNF4		= $01340050;	// back-f stp shrd noLgt flat quad
 	GsUBSTPSNFT4	= $01340051;	// back-f stp shrd noLgt tex flat quad
-	GsUBSTPSNG4		= $01340054;	// back-f stp shrd noLgt gour quad 
+	GsUBSTPSNG4		= $01340054;	// back-f stp shrd noLgt gour quad
 	GsUBSTPSNGT4	= $01340055;	// back-f stp shrd noLgt tex gour quad
 
-	GsUIMG0		= $02000000;	// image data with no-clut 
-	GsUIMG1		= $02000001;	// image data with clut 
+	GsUIMG0		= $02000000;	// image data with no-clut
+	GsUIMG1		= $02000001;	// image data with clut
 
-	GsUGNDF		= $05000000;	// ground flat 
-	GsUGNDFT	= $05000001;	// ground flat texture 
+	GsUGNDF		= $05000000;	// ground flat
+	GsUGNDFT	= $05000001;	// ground flat texture
 
-	GsUSCAL2	= $06000100;	// envmap shared calculate 
-	GsUE1G3		= $0600100c;	// envmap 1D gour tri 
-	GsUE1G4		= $06001014;	// envmap 1D gour quad 
-	GsUE1SG3	= $0600110c;	// envmap 1D shared gour tri 
-	GsUE1SG4	= $06001114;	// envmap 1D shared gour quad 
-	GsUE2LG3	= $0600200c;	// envmap 2D reflect gour tri 
-	GsUE2LG4	= $06002014;	// envmap 2D reflect gour quad 
-	GsUE2RG3	= $0600300c;	// envmap 2D refract gour tri 
-	GsUE2RG4	= $06003014;	// envmap 2D refract gour quad 
-	GsUE2RLG3	= $0600400c;	// envmap 2D both gour tri 
-	GsUE2RLG4	= $06004014;	// envmap 2D both gour quad 
-	GsUE2OLG3	= $0600500c;	// envmap 2D org+reflect gour tri 
-	GsUE2OLG4	= $06005014;	// envmap 2D org+reflect gour quad 
+	GsUSCAL2	= $06000100;	// envmap shared calculate
+	GsUE1G3		= $0600100c;	// envmap 1D gour tri
+	GsUE1G4		= $06001014;	// envmap 1D gour quad
+	GsUE1SG3	= $0600110c;	// envmap 1D shared gour tri
+	GsUE1SG4	= $06001114;	// envmap 1D shared gour quad
+	GsUE2LG3	= $0600200c;	// envmap 2D reflect gour tri
+	GsUE2LG4	= $06002014;	// envmap 2D reflect gour quad
+	GsUE2RG3	= $0600300c;	// envmap 2D refract gour tri
+	GsUE2RG4	= $06003014;	// envmap 2D refract gour quad
+	GsUE2RLG3	= $0600400c;	// envmap 2D both gour tri
+	GsUE2RLG4	= $06004014;	// envmap 2D both gour quad
+	GsUE2OLG3	= $0600500c;	// envmap 2D org+reflect gour tri
+	GsUE2OLG4	= $06005014;	// envmap 2D org+reflect gour quad
 
-	GsVtxMIMe		 = $04010020;	// Vertex-MIMe 
-	GsNrmMIMe		 = $04010021;	// Normal-MIMe 
-	GsRstVtxMIMe	 = $04010028;	// Reset-Vertex-MIMe 
-	GsRstNrmMIMe	 = $04010029;	// Reset-Normal-MIMe 
+	GsVtxMIMe		 = $04010020;	// Vertex-MIMe
+	GsNrmMIMe		 = $04010021;	// Normal-MIMe
+	GsRstVtxMIMe	 = $04010028;	// Reset-Vertex-MIMe
+	GsRstNrmMIMe	 = $04010029;	// Reset-Normal-MIMe
 	GsJntAxesMIMe	 = $04010010;	// Joint-Axes-MIMe
 	GsRstJntAxesMIMe = $04010018;	// Reset-Joint-Axes-MIMe
 	GsJntRPYMIMe	 = $04010011;	// Joint-RPY-MIMe
@@ -748,7 +747,7 @@ const
 	function GsU_01020016(arg: PGsARGUNIT): pdword; external;
 	function GsU_01020017(arg: PGsARGUNIT): pdword; external;
 
-	// tiled texture 
+	// tiled texture
 	function GsU_0000020b(arg: PGsARGUNIT): pdword; external;
 	function GsU_0000020f(arg: PGsARGUNIT): pdword; external;
 	function GsU_00000213(arg: PGsARGUNIT): pdword; external;
@@ -833,22 +832,22 @@ const
 	function GsU_05000000(arg: PGsARGUNIT): pdword; external;
 	function GsU_05000001(arg: PGsARGUNIT): pdword; external;
 
-	// camera 
+	// camera
 	function GsU_07000100(arg: PGsARGUNIT): pdword; external;
 	function GsU_07010100(arg: PGsARGUNIT): pdword; external;
 	function GsU_07020100(arg: PGsARGUNIT): pdword; external;
 	function GsU_07030100(arg: PGsARGUNIT): pdword; external;
 
-	// light 
+	// light
 	function GsU_07000200(arg: PGsARGUNIT): pdword; external;
 	function GsU_07010200(arg: PGsARGUNIT): pdword; external;
 	function GsU_07020200(arg: PGsARGUNIT): pdword; external;
 	function GsU_07030200(arg: PGsARGUNIT): pdword; external;
 	
-	// update driver 
+	// update driver
 	function GsU_03000000(sp: PGsARGUNIT_ANIM): pdword; external;
 	
-	// interpolation driver 
+	// interpolation driver
 	function GsU_03000001(sp: PGsARGUNIT_ANIM): longint; external;
 	function GsU_03000002(sp: PGsARGUNIT_ANIM): longint; external;
 	function GsU_03000003(sp: PGsARGUNIT_ANIM): longint; external;
@@ -1069,7 +1068,7 @@ const
 	function GsU_03010371(sp: PGsARGUNIT_ANIM): longint; external;
 	function GsU_03010372(sp: PGsARGUNIT_ANIM): longint; external;
 
-	// envmap driver 
+	// envmap driver
 	function GsU_06000100(arg: PGsARGUNIT): longint; external;
 	function GsU_0600100c(arg: PGsARGUNIT): longint; external;
 	function GsU_06001014(arg: PGsARGUNIT): longint; external;
@@ -1084,7 +1083,7 @@ const
 	function GsU_0600500c(arg: PGsARGUNIT): longint; external;
 	function GsU_06005014(arg: PGsARGUNIT): longint; external;
 
-	// MIMe driver 
+	// MIMe driver
 	function GsU_04010020(arg: PGsARGUNIT): longint; external;
 	function GsU_04010021(arg: PGsARGUNIT): longint; external;
 	function GsU_04010028(arg: PGsARGUNIT): longint; external;
@@ -1109,7 +1108,7 @@ const
 	function GsScanAnim(p: pdword; ut: PGsTYPEUNIT): pdword; external;
 	function GsLinkAnim(seq: PPGsSEQ; p: dword): longint; external;
 
-	// for MIMe 
+	// for MIMe
 	procedure GsInitRstVtxMIMe(primtop, hp: pdword); external;
 	procedure GsInitRstNrmMIMe(primtop, hp: pdword); external;
 

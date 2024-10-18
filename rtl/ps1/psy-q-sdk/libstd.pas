@@ -183,7 +183,7 @@ const
 	R_CAUSE= 36;
 	NREGS =	40;
 
-	
+
 	// compiler defined bindings
 	R_ZERO = R_R0;
 	R_AT = R_R1;
@@ -217,7 +217,7 @@ const
 	R_SP = R_R29;
 	R_FP = R_R30;
 	R_RA = R_R31;
- 
+
 
 // types.h
 type
@@ -663,9 +663,9 @@ type
 		dt_firstfile : function(): plongint;// directory serach routine
 		dt_nextfile : function(): plongint;	// directory serach routine
 		dt_format : function(): plongint;
-		dt_cd : function(): plongint;	
-		dt_rename : function(): plongint;	
-		dt_remove : function(): plongint;	
+		dt_cd : function(): plongint;
+		dt_rename : function(): plongint;
+		dt_remove : function(): plongint;
 		dt_else : function(): plongint;
 	end;
 	Pdevice_table = ^Tdevice_table;
@@ -780,14 +780,7 @@ const
 	SR_SWC	  =	$00020000;					// swap cache
 	SR_ISC	  =	$00010000;					// Isolate data cache
 
- 	SR_MM_MODE = $00010000;					// lwl/swl/etc become scache/etc
- {
- define: 
- lcache		lwl
- scache		swl
- flush		lwr $0,
- inval		swr $0,
-}
+	SR_MM_MODE = $00010000;					// lwl/swl/etc become scache/etc
 
 
 // Interrupt enable bits
@@ -911,19 +904,19 @@ const
 	NF_NENTRIES	= 8;
 
 // TLB size constants
- 	TLBWIREDBASE    = 0;               					// WAG for now
- 	NWIREDENTRIES   = 8;               					// WAG for now
- 	TLBRANDOMBASE   = NWIREDENTRIES;
- 	NTLBENTRIES     = 64;
- 	NRANDOMENTRIES  = (NTLBENTRIES - NWIREDENTRIES);
- 	              		
+	TLBWIREDBASE    = 0;               					// WAG for now
+	NWIREDENTRIES   = 8;               					// WAG for now
+	TLBRANDOMBASE   = NWIREDENTRIES;
+	NTLBENTRIES     = 64;
+	NRANDOMENTRIES  = (NTLBENTRIES - NWIREDENTRIES);
 
- 	TLBRAND_RANDMASK   = $00003f00;
+
+	TLBRAND_RANDMASK   = $00003f00;
 	TLBRAND_RANDSHIFT  = 8;
 
 
 // Chip interrupt vector
-	NC0VECS		 = 8;
+	NC0VECS	= 8;
 
 
 
@@ -933,12 +926,12 @@ var
 
 
 const
- 	BRK_KERNEL 		 = $f1;
- 	EXCEPT_NORM      = 1;
- 	EXCEPT_UTLB      = 2;
- 	EXCEPT_BRKPT   	 = 3;
- 	EXCEPT_DB    	 = 4;
- 	EXCEPT_GDB    	 = 4;
+	BRK_KERNEL 		 = $f1;
+	EXCEPT_NORM      = 1;
+	EXCEPT_UTLB      = 2;
+	EXCEPT_BRKPT   	 = 3;
+	EXCEPT_DB    	 = 4;
+	EXCEPT_GDB    	 = 4;
 	EXCEPT_INT    	 = 9;
 	EXCEPT_ELSE    	 = $ff;
 
@@ -974,13 +967,13 @@ procedure longjmp(buf: jmp_buf; i: longint); external;
 // status bits
 const
 	SR_IRQ		= $200;
- 	SR_CTS		= $100;
- 	SR_DSR		= $80;
- 	SR_FE		= $20;
- 	SR_OE		= $10;
- 	SR_PERROR	= $8;
- 	SR_TXU		= $4;
- 	SR_RXRDY	= $2;
+	SR_CTS		= $100;
+	SR_DSR		= $80;
+	SR_FE		= $20;
+	SR_OE		= $10;
+	SR_PERROR	= $8;
+	SR_TXU		= $4;
+	SR_RXRDY	= $2;
 	SR_TXRDY	= $1;
 
 	SIO_CTS		= $100;
@@ -1041,23 +1034,28 @@ generic procedure va_start<T>(out AP: Pointer; var LastArg: T);
 procedure va_end(out AP: Pointer);
 generic function va_arg<T>(var AP: Pointer):T;
 
+
 implementation
+
 
 generic function __va_rounded_size<T>: SizeInt;inline;
 begin
   Result := ((sizeof(T) + sizeof (longint) - 1) div sizeof (longint)) * sizeof (longint);
 end;
- 
+
+
 generic procedure va_start<T>(out AP: Pointer; var LastArg: T);inline;
 begin
   AP := Pointer(@LastArg) + specialize __va_rounded_size<T>;
 end;
- 
+
+
 procedure va_end(out AP: Pointer);inline;
 begin
   AP := nil;
 end;
- 
+
+
 generic function va_arg<T>(var AP: Pointer):T;inline;
 type
   PT=^T;
@@ -1067,7 +1065,7 @@ begin
 end;
 
 
-function strdup(p: pchar): pchar;	
+function strdup(p: pchar): pchar;
 begin
  	strdup:= malloc2(strlen(p) + 1);
  	strcpy(strdup, p);
@@ -1267,7 +1265,7 @@ end;
 
 
 // Address conversion macros
-function K0_TO_K1(x: dword): dword;	
+function K0_TO_K1(x: dword): dword;
 begin
 	result:= x or $A0000000;
 end;
@@ -1299,7 +1297,7 @@ end;
 
 // Address predicates
 function IS_KSEG0(x: dword): boolean;
-begin	
+begin
 	result:= ((x >= K0BASE) and (x < K1BASE));
 end;
 

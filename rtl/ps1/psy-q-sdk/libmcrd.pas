@@ -5,12 +5,12 @@ uses libstd;
 type
 	MemCB = function(cmds, rslt: longint): pointer;
 const
- 		McFuncExist			= 1;
- 		McFuncAccept		= 2;
- 		McFuncReadFile		= 3;
- 		McFuncWriteFile		= 4;
- 		McFuncReadData		= 5;
- 		McFuncWriteData		= 6;
+		McFuncExist			= 1;
+		McFuncAccept		= 2;
+		McFuncReadFile		= 3;
+		McFuncWriteFile		= 4;
+		McFuncReadData		= 5;
+		McFuncWriteData		= 6;
 
 		McErrNone			= 0;
 		McErrCardNotExist	= 1;
