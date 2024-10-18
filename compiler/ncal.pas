@@ -3368,7 +3368,7 @@ implementation
            end;
 
         { if the result is the same as the self parameter (in case of objects),
-          we can't optimise. We have to check this explicitly becaise
+          we can't optimise. We have to check this explicitly because
           hidden parameters such as self have not yet been inserted at this
           point
         }
