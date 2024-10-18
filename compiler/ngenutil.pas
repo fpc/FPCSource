@@ -355,7 +355,14 @@ implementation
            they are used }
          ((tabstractvarsym(p).refs>0) or
           { managed return symbols must be inited }
-          ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
+          ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions)) or
+          { public managed records with Initialize operator need to be initialized
+            even if they aren't referenced in *this* unit }
+          (
+            (tsym(p).owner.symtabletype=globalsymtable) and
+            is_record(tabstractvarsym(p).vardef) and
+            (mop_initialize in trecordsymtable(trecorddef(tabstractvarsym(p).vardef).symtable).managementoperators)
+          )
          ) and
          not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
          not(vo_is_external in tabstractvarsym(p).varoptions) and
