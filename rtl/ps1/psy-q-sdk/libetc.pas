@@ -4,7 +4,7 @@ unit libetc;
 interface 
 
 var
- 	PadIdentifier: integer; external;
+ 	PadIdentifier: longint; external;
 // PAD I/O (SIO Pad)
 const
 	PADLup     = 1 shl 12;
@@ -50,16 +50,16 @@ const
 	MODE_NTSC = 0;
 	MODE_PAL  = 1;
 
-function CheckCallback: integer; stdcall; external;
-procedure PadInit(mode: integer); stdcall; external;
-function ResetCallback: integer; stdcall; external;
-function RestartCallback: integer; stdcall; external;
-function StopCallback: integer; stdcall; external;
-function VSync(mode: integer): integer; stdcall; external;
-function VSyncCallback(f: pointer): integer; stdcall; external;
+function CheckCallback: longint; stdcall; external;
+procedure PadInit(mode: longint); stdcall; external;
+function ResetCallback: longint; stdcall; external;
+function RestartCallback: longint; stdcall; external;
+function StopCallback: longint; stdcall; external;
+function VSync(mode: longint): longint; stdcall; external;
+function VSyncCallback(f: pointer): longint; stdcall; external;
 function GetVideoMode: longint; stdcall; external;
 function SetVideoMode(mode: longint): longint; stdcall; external;
-function PadRead(id: integer): dword; stdcall; external;
+function PadRead(id: longint): dword; stdcall; external;
 procedure PadStop; stdcall; external;
 
 

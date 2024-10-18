@@ -923,7 +923,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgpu libgte
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgpu libgte libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
@@ -2926,7 +2926,39 @@ libstd$(PPUEXT) : psy-q-sdk/libstd.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 libetc$(PPUEXT) : psy-q-sdk/libetc.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-libgpu$(PPUEXT) : psy-q-sdk/libgpu.pas libgte$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+libgpu$(PPUEXT) : psy-q-sdk/libgpu.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 libgte$(PPUEXT) : psy-q-sdk/libgte.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libapi$(PPUEXT) : psy-q-sdk/libapi.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libcd$(PPUEXT) : psy-q-sdk/libcd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libcomb$(PPUEXT) : psy-q-sdk/libcomb.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libgs$(PPUEXT) : psy-q-sdk/libgs.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libsnd$(PPUEXT) : psy-q-sdk/libsnd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libspu$(PPUEXT) : psy-q-sdk/libspu.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libds$(PPUEXT) : psy-q-sdk/libds.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libgun$(PPUEXT) : psy-q-sdk/libgun.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libmcrd$(PPUEXT) : psy-q-sdk/libmcrd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libtap$(PPUEXT) : psy-q-sdk/libtap.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libpad$(PPUEXT) : psy-q-sdk/libpad.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libmcx$(PPUEXT) : psy-q-sdk/libmcx.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libpress$(PPUEXT) : psy-q-sdk/libpress.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libsn$(PPUEXT) : psy-q-sdk/libsn.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

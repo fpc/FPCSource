@@ -67,7 +67,7 @@ const
 	WAIT_TIME	=	$800000;
 
 //	General
-procedure limitRange(var x: integer; l, h: integer); inline;
+procedure limitRange(var x: longint; l, h: longint); inline;
 
 
 
@@ -610,12 +610,25 @@ procedure dumpMatrix(const x: MATRIX);
 
 procedure setRECT(var r: RECT; const x, y, w, h: longint);
 
-(*
- *	Set Primitive Attributes
- */
-#define setTPage(p,tp,abr,x,y) \
-	((p)->tpage = getTPage(tp,abr,x,y))
+// Set Primitive Attributes
+procedure setTPage(var p: DRAWENV; tp, abr, x, y: longint);
+procedure setTPage(var p: POLY_FT3; tp, abr, x, y: longint);
+procedure setTPage(var p: POLY_FT4; tp, abr, x, y: longint);
+procedure setTPage(var p: POLY_GT3; tp, abr, x, y: longint);
+procedure setTPage(var p: POLY_GT4; tp, abr, x, y: longint);
+procedure setTPage(var p: TMD_PRIM; tp, abr, x, y: longint);
 
+
+procedure setClut(var p: POLY_FT3; x, y: longint);
+procedure setClut(var p: POLY_FT4; x, y: longint);
+procedure setClut(var p: POLY_GT3; x, y: longint);
+procedure setClut(var p: POLY_GT4; x, y: longint);
+procedure setClut(var p: SPRT; x, y: longint);
+procedure setClut(var p: SPRT_16; x, y: longint);
+procedure setClut(var p: SPRT_8; x, y: longint);
+procedure setClut(var p: TMD_PRIM; x, y: longint);
+
+(*
 #define setClut(p,x,y) \
 	((p)->clut = getClut(x,y))
 *)					   
@@ -654,105 +667,207 @@ procedure setXY0(var p: POLY_G3; const x, y: smallint);
 procedure setXY0(var p: POLY_G4; const x, y: smallint);
 procedure setXY0(var p: POLY_GT3; const x, y: smallint);
 procedure setXY0(var p: POLY_GT4; const x, y: smallint);
+procedure setXY0(var p: LINE_F2; const x, y: smallint);
+procedure setXY0(var p: LINE_G2; const x, y: smallint);	
+procedure setXY0(var p: LINE_F3; const x, y: smallint);
+procedure setXY0(var p: LINE_G3; const x, y: smallint);
+procedure setXY0(var p: LINE_F4; const x, y: smallint);
+procedure setXY0(var p: LINE_G4; const x, y: smallint);
+procedure setXY0(var p: SPRT; const x, y: smallint);
+procedure setXY0(var p: SPRT_16; const x, y: smallint);
+procedure setXY0(var p: SPRT_8; const x, y: smallint);
+procedure setXY0(var p: TILE; const x, y: smallint);
+procedure setXY0(var p: TILE_16; const x, y: smallint);
+procedure setXY0(var p: TILE_8; const x, y: smallint);
+procedure setXY0(var p: TILE_1; const x, y: smallint);
+
+procedure setXY2(var p: POLY_F3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_F4; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_FT3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_FT4; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_G3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_G4; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_GT3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: POLY_GT4; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_F2; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_G2; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_F3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_G3; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_F4; const x0, y0, x1, y1: smallint);
+procedure setXY2(var p: LINE_G4; const x0, y0, x1, y1: smallint);
+
+procedure setXY3(var p: POLY_F3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_F4; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_FT3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_FT4; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_G3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_G4; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_GT3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: POLY_GT4; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: LINE_F3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: LINE_G3; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: LINE_F4; const x0, y0, x1, y1, x2, y2: smallint);
+procedure setXY3(var p: LINE_G4; const x0, y0, x1, y1, x2, y2: smallint);
+
+procedure setXY4(var p: POLY_F4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+procedure setXY4(var p: POLY_FT4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+procedure setXY4(var p: POLY_G4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+procedure setXY4(var p: POLY_GT4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
 
 
+procedure setXYWH(var p: POLY_F4; x0, y0, w, h: smallint);
+procedure setXYWH(var p: POLY_FT4; x0, y0, w, h: smallint);
+procedure setXYWH(var p: POLY_G4; x0, y0, w, h: smallint);
+procedure setXYWH(var p: POLY_GT4; x0, y0, w, h: smallint);
+procedure setXYWH(var p: LINE_F4; x0, y0, w, h: smallint);
+procedure setXYWH(var p: LINE_G4; x0, y0, w, h: smallint);
 
-(*
-#define setXY2(p,_x0,_y0,_x1,_y1)					\
-	(p)->x0 = (_x0), (p)->y0 = (_y0),				\
-	(p)->x1 = (_x1), (p)->y1 = (_y1)
+// Set Primitive Width/Height
+procedure setWH(var p: RECT; w, h: smallint);
+procedure setWH(var p: RECT32; w, h: longint);
+procedure setWH(var p: SPRT; w, h: smallint);
+procedure setWH(var p: TILE; w, h: smallint);
 
-#define setXY3(p,_x0,_y0,_x1,_y1,_x2,_y2)				\
-	(p)->x0 = (_x0), (p)->y0 = (_y0),				\
-	(p)->x1 = (_x1), (p)->y1 = (_y1),				\
-	(p)->x2 = (_x2), (p)->y2 = (_y2)
 
-#define setXY4(p,_x0,_y0,_x1,_y1,_x2,_y2,_x3,_y3) 			\
-	(p)->x0 = (_x0), (p)->y0 = (_y0),				\
-	(p)->x1 = (_x1), (p)->y1 = (_y1),				\
-	(p)->x2 = (_x2), (p)->y2 = (_y2),				\
-	(p)->x3 = (_x3), (p)->y3 = (_y3)
-
-#define setXYWH(p,_x0,_y0,_w,_h)					\
-	(p)->x0 = (_x0),      (p)->y0 = (_y0),				\
-	(p)->x1 = (_x0)+(_w), (p)->y1 = (_y0),				\
-	(p)->x2 = (_x0),      (p)->y2 = (_y0)+(_h),			\
-	(p)->x3 = (_x0)+(_w), (p)->y3 = (_y0)+(_h)
-
-/*
- * Set Primitive Width/Height
- */
-#define setWH(p,_w,_h)	(p)->w = _w, (p)->h = _h
-
-/*
- * Set Primitive Texture Points
- */
-#define setUV0(p,_u0,_v0)						\
-	(p)->u0 = (_u0), (p)->v0 = (_v0)				\
+// Set Primitive Texture Points
+procedure setUV0(var p: POLY_FT3; u0, v0: smallint);
+procedure setUV0(var p: POLY_FT4; u0, v0: smallint);
+procedure setUV0(var p: POLY_GT3; u0, v0: smallint);
+procedure setUV0(var p: POLY_GT4; u0, v0: smallint);
+procedure setUV0(var p: SPRT; u0, v0: byte);
+procedure setUV0(var p: SPRT_16; u0, v0: byte);
+procedure setUV0(var p: SPRT_8; u0, v0: byte);
+procedure setUV0(var p: TMD_PRIM; u0, v0: byte);
 	
-#define setUV3(p,_u0,_v0,_u1,_v1,_u2,_v2)				\
-	(p)->u0 = (_u0), (p)->v0 = (_v0),				\
-	(p)->u1 = (_u1), (p)->v1 = (_v1),				\
-	(p)->u2 = (_u2), (p)->v2 = (_v2)
-	
-#define setUV4(p,_u0,_v0,_u1,_v1,_u2,_v2,_u3,_v3) 			\
-	(p)->u0 = (_u0), (p)->v0 = (_v0),				\
-	(p)->u1 = (_u1), (p)->v1 = (_v1),				\
-	(p)->u2 = (_u2), (p)->v2 = (_v2),				\
-	(p)->u3 = (_u3), (p)->v3 = (_v3)
+procedure setUV3(var p: POLY_FT3; u0, v0, u1, v1, u2, v2: smallint);
+procedure setUV3(var p: POLY_FT4; u0, v0, u1, v1, u2, v2: smallint);
+procedure setUV3(var p: POLY_GT3; u0, v0, u1, v1, u2, v2: smallint);
+procedure setUV3(var p: POLY_GT4; u0, v0, u1, v1, u2, v2: smallint);
+procedure setUV3(var p: TMD_PRIM; u0, v0, u1, v1, u2, v2: byte);
 
-#define setUVWH(p,_u0,_v0,_w,_h)					\
-	(p)->u0 = (_u0),      (p)->v0 = (_v0),				\
-	(p)->u1 = (_u0)+(_w), (p)->v1 = (_v0),				\
-	(p)->u2 = (_u0),      (p)->v2 = (_v0)+(_h),			\
-	(p)->u3 = (_u0)+(_w), (p)->v3 = (_v0)+(_h)
-*)
+procedure setUV4(var p: POLY_FT4; u0, v0, u1, v1, u2, v2, u3, v3: smallint);
+procedure setUV4(var p: POLY_GT4; u0, v0, u1, v1, u2, v2, u3, v3: smallint);
+procedure setUV4(var p: TMD_PRIM; u0, v0, u1, v1, u2, v2, u3, v3: byte);
+
+procedure setUVWH(var p: POLY_FT4; u0, v0, w, h: smallint);
+procedure setUVWH(var p: POLY_GT4; u0, v0, w, h: smallint);
+procedure setUVWH(var p: TMD_PRIM; u0, v0, w, h: smallint);
 	
 
 // Dump Primivie Parameters
 procedure dumpRECT(r: RECT);
 
-(*
-procedure dumpWH(p)	GPU_printf("(%d,%d)\n", (p)->w,  (p)->h ) 
-#define dumpXY0(p)	GPU_printf("(%d,%d)\n", (p)->x0, (p)->y0) 
-#define dumpUV0(p)	GPU_printf("(%d,%d)\n", (p)->u0, (p)->v0) 
+procedure dumpWH(p: RECT);
+procedure dumpWH(p: RECT32);
+procedure dumpWH(p: SPRT);
+procedure dumpWH(p: TILE);
 
-#define dumpXY2(p)							\
-	GPU_printf("(%d,%d)-(%d,%d)\n",					\
-	(p)->x0, (p)->y0, (p)->x1, (p)->y1)
 
-#define dumpXY3(p)							\
-	GPU_printf("(%d,%d)-(%d,%d)-(%d,%d)\n",				\
-	(p)->x0, (p)->y0, (p)->x1, (p)->y1,				\
-	(p)->x2, (p)->y2)
+procedure dumpXY0(p: POLY_F3);
+procedure dumpXY0(p: POLY_F4);
+procedure dumpXY0(p: POLY_FT3);
+procedure dumpXY0(p: POLY_FT4);
+procedure dumpXY0(p: POLY_G3);
+procedure dumpXY0(p: POLY_G4);
+procedure dumpXY0(p: POLY_GT3);
+procedure dumpXY0(p: POLY_GT4);
+procedure dumpXY0(p: LINE_F2);
+procedure dumpXY0(p: LINE_G2);
+procedure dumpXY0(p: LINE_F3);
+procedure dumpXY0(p: LINE_G3);
+procedure dumpXY0(p: LINE_F4);
+procedure dumpXY0(p: LINE_G4);
+procedure dumpXY0(p: SPRT);
+procedure dumpXY0(p: SPRT_16);
+procedure dumpXY0(p: SPRT_8);
+procedure dumpXY0(p: TILE);
+procedure dumpXY0(p: TILE_16);
+procedure dumpXY0(p: TILE_8);
+procedure dumpXY0(p: TILE_1);
 
-#define dumpUV3(p)							\
-	GPU_printf("(%d,%d)-(%d,%d)-(%d,%d)\n",				\
-	(p)->u0, (p)->v0, (p)->u1, (p)->v1,				\
-	(p)->u2, (p)->v2)
 
-#define dumpXY4(p)							\
-	GPU_printf("(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n",			\
-	(p)->x0, (p)->y0, (p)->x1, (p)->y1,				\
-	(p)->x2, (p)->y2, (p)->x3, (p)->y3)
 
-#define dumpUV4(p)							\
-	GPU_printf("(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n",			\
-	(p)->u0, (p)->v0, (p)->u1, (p)->v1,				\
-	(p)->u2, (p)->v2, (p)->u3, (p)->v3)			
 
-#define dumpRGB0(p)							\
-	GPU_printf("(%3d,%3d,%3d)\n", (p)->r0, (p)->g0, (p)->b0) 	
+procedure dumpUV0(p: POLY_FT3);
+procedure dumpUV0(p: POLY_FT4);
+procedure dumpUV0(p: POLY_GT3);
+procedure dumpUV0(p: POLY_GT4);
+procedure dumpUV0(p: SPRT);
+procedure dumpUV0(p: SPRT_16);
+procedure dumpUV0(p: SPRT_8);
+procedure dumpUV0(p: TMD_PRIM);
+
+
+procedure dumpXY2(p: POLY_F3);
+procedure dumpXY2(p: POLY_F4);
+procedure dumpXY2(p: POLY_FT3);
+procedure dumpXY2(p: POLY_FT4);
+procedure dumpXY2(p: POLY_G3);
+procedure dumpXY2(p: POLY_G4);
+procedure dumpXY2(p: POLY_GT3);
+procedure dumpXY2(p: POLY_GT4);
+procedure dumpXY2(p: LINE_F2);
+procedure dumpXY2(p: LINE_G2);
+procedure dumpXY2(p: LINE_F3);
+procedure dumpXY2(p: LINE_G3);
+procedure dumpXY2(p: LINE_F4);
+procedure dumpXY2(p: LINE_G4);
+
+
+
+procedure dumpXY3(p: POLY_F3);
+procedure dumpXY3(p: POLY_F4);
+procedure dumpXY3(p: POLY_FT3);
+procedure dumpXY3(p: POLY_FT4);
+procedure dumpXY3(p: POLY_G3);
+procedure dumpXY3(p: POLY_G4);
+procedure dumpXY3(p: POLY_GT3);
+procedure dumpXY3(p: POLY_GT4);
+procedure dumpXY3(p: LINE_F3);
+procedure dumpXY3(p: LINE_G3);
+procedure dumpXY3(p: LINE_F4);
+procedure dumpXY3(p: LINE_G4);
+
+
+procedure dumpUV3(p: POLY_FT3);
+procedure dumpUV3(p: POLY_FT4);
+procedure dumpUV3(p: POLY_GT3);
+procedure dumpUV3(p: POLY_GT4);
+procedure dumpUV3(p: TMD_PRIM);
+
+procedure dumpXY4(p: POLY_F4);
+procedure dumpXY4(p: POLY_FT4);
+procedure dumpXY4(p: POLY_G4);
+procedure dumpXY4(p: POLY_GT4);
+
+procedure dumpUV4(p: POLY_FT4);
+procedure dumpUV4(p: POLY_GT4);
+procedure dumpUV4(p: TMD_PRIM);
+
+
+procedure dumpRGB0(p: POLY_F3);
+
+procedure dumpRGB0(p: POLY_F4);
+procedure dumpRGB0(p: POLY_FT3);
+procedure dumpRGB0(p: POLY_FT4);
+procedure dumpRGB0(p: POLY_G3);
+procedure dumpRGB0(p: POLY_G4);
+procedure dumpRGB0(p: POLY_GT3);
+procedure dumpRGB0(p: POLY_GT4);
+procedure dumpRGB0(p: DRAWENV);
 		   
-#define dumpRGB1(p)							\
-	GPU_printf("(%3d,%3d,%3d)\n", (p)->r1, (p)->g1, (p)->b1)	
-		   
-#define dumpRGB2(p)							\
-	GPU_printf("(%3d,%3d,%3d)\n", (p)->r2, (p)->g2, (p)->b2) 
-		   
-#define dumpRGB3(p)							\
-	GPU_printf("(%3d,%3d,%3d)\n", (p)->r3, (p)->g3, (p)->b3) 	
-*)
+procedure dumpRGB1(p:POLY_G3);
+procedure dumpRGB1(p:POLY_G4);
+procedure dumpRGB1(p:POLY_GT3);
+procedure dumpRGB1(p:POLY_GT4);
+
+procedure dumpRGB2(p: POLY_G3);
+procedure dumpRGB2(p: POLY_G4);
+procedure dumpRGB2(p: POLY_GT3);
+procedure dumpRGB2(p: POLY_GT4);
+
+procedure dumpRGB3(p: POLY_G4);
+procedure dumpRGB3(p: POLY_GT4);	
 
 
 // Primitive Handling Macros
@@ -828,23 +943,21 @@ function getaddr(p: P_TAG): dword;
 
 #define setShadeTex(p, tge) \
 	((tge)?setcode(p, getcode(p)|0x01):setcode(p, getcode(p)&~0x01))
-
-#define getTPage(tp, abr, x, y) 					\
+}
+{
+function getTPage(tp, abr, x, y: longint): longint;
 	 ((((tp)&0x3)<<7)|(((abr)&0x3)<<5)|(((y)&0x100)>>4)|(((x)&0x3ff)>>6)| \
 	 (((y)&0x200)<<2))
 
-#define getClut(x, y) \
+function getClut(x, y): longint;
 	(((y)<<6)|(((x)>>4)&0x3f))
+}
 
-#define dumpTPage(tpage)						\
-	GPU_printf("tpage: (%d,%d,%d,%d)\n",				\
-			   ((tpage)>>7)&0x003,((tpage)>>5)&0x003,	\
-			   ((tpage)<<6)&0x7c0,				\
-			   (((tpage)<<4)&0x100)+(((tpage)>>2)&0x200))
+procedure dumpTPage(tpage: longint);
 
-#define dumpClut(clut) \
-	GPU_printf("clut: (%d,%d)\n", (clut&0x3f)<<4, (clut>>6))
+procedure dumpClut(clut: longint);
 
+{
 #define _get_mode(dfe, dtd, tpage)	\
 		((0xe1000000)|((dtd)?0x0200:0)| \
 		((dfe)?0x0400:0)|((tpage)&0x9ff))
@@ -863,6 +976,8 @@ function getaddr(p: P_TAG): dword;
 	((u_long *)(p))[1] = _get_tw(tw),	\
 	((u_long *)(p))[2] = 0
 
+}
+{
 #define _get_len(rect)	\
 		(((rect)->w*(rect)->h+1)/2+4)
 
@@ -918,7 +1033,7 @@ procedure setLineG4(var p: LINE_G4);
 implementation
 
 
-procedure limitRange(var x: integer; l, h: integer); inline;
+procedure limitRange(var x: longint; l, h: longint); inline;
 begin
   if x < l then x := l else if x > h then x := h;
 end;
@@ -1216,13 +1331,1231 @@ begin
 	p.y0:= y;
 end;
 
+procedure setXY0(var p: LINE_F2; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: LINE_G2; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: LINE_F3; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: LINE_G3; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: LINE_F4; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+
+procedure setXY0(var p: LINE_G4; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: SPRT; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: SPRT_16; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: SPRT_8; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: TILE; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: TILE_16; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: TILE_8; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+procedure setXY0(var p: TILE_1; const x, y: smallint);
+begin
+	p.x0:= x;
+	p.y0:= y;
+end;
+
+
+procedure setXY2(var p: POLY_F3; const x0, y0, x1, y1: smallint);
+begin
+	p.x1:= x0;
+	p.y1:= y0;
+	p.x2:= x1;
+	p.y2:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_F4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_FT3; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: POLY_FT4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_G3; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_G4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_GT3; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: POLY_GT4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+
+procedure setXY2(var p: LINE_F2; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: LINE_G2; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: LINE_F3; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: LINE_G3; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: LINE_F4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY2(var p: LINE_G4; const x0, y0, x1, y1: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+end;
+
+procedure setXY3(var p: LINE_F3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+procedure setXY3(var p: LINE_G3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+procedure setXY3(var p: LINE_F4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+procedure setXY3(var p: LINE_G4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_F3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_F4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_FT3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_FT4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_G3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_G4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY3(var p: POLY_GT3; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+procedure setXY3(var p: POLY_GT4; const x0, y0, x1, y1, x2, y2: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+end;
+
+
+procedure setXY4(var p: POLY_F4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+	p.x3:= x3;
+	p.y3:= y3;
+end;
+
+procedure setXY4(var p: POLY_FT4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+	p.x3:= x3;
+	p.y3:= y3;
+end;
+
+
+procedure setXY4(var p: POLY_G4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+	p.x3:= x3;
+	p.y3:= y3;
+end;
+
+
+procedure setXY4(var p: POLY_GT4; const x0, y0, x1, y1, x2, y2, x3, y3: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x1;
+	p.y1:= y1;
+	p.x2:= x2;
+	p.y2:= y2;
+	p.x3:= x3;
+	p.y3:= y3;
+end;
+
+
+procedure setXYWH(var p: POLY_F4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
+
+
+procedure setXYWH(var p: POLY_FT4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
+
+
+procedure setXYWH(var p: POLY_G4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
+
+
+procedure setXYWH(var p: POLY_GT4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
+
+
+procedure setXYWH(var p: LINE_F4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
+
+
+procedure setXYWH(var p: LINE_G4; x0, y0, w, h: smallint);
+begin
+	p.x0:= x0;
+	p.y0:= y0;
+	p.x1:= x0 + w;
+	p.y1:= y0;	
+	p.x2:= x0;
+	p.y2:= y0 + h;
+	p.x3:= x0 + w;
+	p.y3:= y0 + h;
+end;
 
 
 
+procedure setWH(var p: RECT; w, h: smallint);
+begin
+	p.w:= w;
+	p.h:= h;
+end;
+
+
+procedure setWH(var p: RECT32; w, h: longint);
+begin
+	p.w:= w;
+	p.h:= h;
+end;
+
+
+procedure setWH(var p: SPRT; w, h: smallint);
+begin
+	p.w:= w;
+	p.h:= h;
+end;
+
+
+procedure setWH(var p: TILE; w, h: smallint);
+begin
+	p.w:= w;
+	p.h:= h;
+end;
+
+
+procedure setUV0(var p: POLY_FT3; u0, v0: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: POLY_FT4; u0, v0: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: POLY_GT3; u0, v0: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: POLY_GT4; u0, v0: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: SPRT; u0, v0: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: SPRT_16; u0, v0: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: SPRT_8; u0, v0: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV0(var p: TMD_PRIM; u0, v0: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+end;
+
+
+procedure setUV3(var p: POLY_FT3; u0, v0, u1, v1, u2, v2: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+end;
+
+
+procedure setUV3(var p: POLY_FT4; u0, v0, u1, v1, u2, v2: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+end;
+
+
+procedure setUV3(var p: POLY_GT3; u0, v0, u1, v1, u2, v2: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+end;
+
+
+procedure setUV3(var p: POLY_GT4; u0, v0, u1, v1, u2, v2: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+end;
+
+
+procedure setUV3(var p: TMD_PRIM; u0, v0, u1, v1, u2, v2: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+end;
+
+
+procedure setUV4(var p: POLY_FT4; u0, v0, u1, v1, u2, v2, u3, v3: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+	p.u3:= u3;
+	p.v3:= v3;
+end;
+
+
+procedure setUV4(var p: POLY_GT4; u0, v0, u1, v1, u2, v2, u3, v3: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+	p.u3:= u3;
+	p.v3:= v3;
+end;
+
+
+procedure setUV4(var p: TMD_PRIM; u0, v0, u1, v1, u2, v2, u3, v3: byte);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u1;
+	p.v1:= v1;
+	p.u2:= u2;
+	p.v2:= v2;
+	p.u3:= u3;
+	p.v3:= v3;
+end;
+
+
+procedure setUVWH(var p: POLY_FT4; u0, v0, w, h: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u0 + w;
+	p.v1:= v0;
+	p.u2:= u0;
+	p.v2:= v0 + h;
+	p.u3:= u0 + w;
+	p.v3:= v0 + h;
+end;
+
+
+procedure setUVWH(var p: POLY_GT4; u0, v0, w, h: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u0 + w;
+	p.v1:= v0;
+	p.u2:= u0;
+	p.v2:= v0 + h;
+	p.u3:= u0 + w;
+	p.v3:= v0 + h;
+end;
+
+
+procedure setUVWH(var p: TMD_PRIM; u0, v0, w, h: smallint);
+begin
+	p.u0:= u0;
+	p.v0:= v0;
+	p.u1:= u0 + w;
+	p.v1:= v0;
+	p.u2:= u0;
+	p.v2:= v0 + h;
+	p.u3:= u0 + w;
+	p.v3:= v0 + h;
+end;
+
+
+procedure dumpWH(p: RECT);
+begin
+	GPU_printf('(%d,%d)\n', p.w, p.h);
+end;
+
+
+procedure dumpWH(p: RECT32);begin
+	GPU_printf('(%d,%d)\n', p.w, p.h);
+end;
+
+procedure dumpWH(p: SPRT);begin
+	GPU_printf('(%d,%d)\n', p.w, p.h);
+end;
+
+procedure dumpWH(p: TILE);begin
+	GPU_printf('(%d,%d)\n', p.w, p.h);
+end;
+
+
+procedure dumpXY0(p: POLY_F3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_F4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_FT3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_G3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_G4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_GT3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+
+procedure dumpXY0(p: LINE_F2);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+
+procedure dumpXY0(p: LINE_G2);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: LINE_F3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: LINE_G3);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: LINE_F4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: LINE_G4);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: SPRT);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: SPRT_16);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: SPRT_8);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: TILE);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: TILE_16);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: TILE_8);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+procedure dumpXY0(p: TILE_1);
+begin
+	GPU_printf('(%d,%d)\n', p.x0, p.y0);
+end;
+	
+
+
+procedure dumpUV0(p: POLY_FT3);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+
+procedure dumpUV0(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: POLY_GT3);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: SPRT);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: SPRT_16);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: SPRT_8);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpUV0(p: TMD_PRIM);
+begin
+	GPU_printf('(%d,%d)\n', p.u0, p.v0);
+end;
+
+procedure dumpXY2(p: POLY_F3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_F4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_FT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_G3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_G4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_GT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_F2);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_G2);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_F3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_G3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_F4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+procedure dumpXY2(p: LINE_G4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1);
+end;
+
+
+procedure dumpXY3(p: POLY_F3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_F4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_FT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_G3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_G4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_GT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+
+procedure dumpXY3(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+procedure dumpXY3(p: LINE_F3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+procedure dumpXY3(p: LINE_G3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+procedure dumpXY3(p: LINE_F4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+procedure dumpXY3(p: LINE_G4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2);
+end;
+
+procedure dumpUV3(p: POLY_FT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
+end;
+
+
+procedure dumpUV3(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
+end;
+
+procedure dumpUV3(p: POLY_GT3);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
+end;
+
+procedure dumpUV3(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
+end;
+
+procedure dumpUV3(p: TMD_PRIM);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2);
+end;
+
+
+procedure dumpXY4(p: POLY_F4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
+end;
+
+procedure dumpXY4(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
+end;
+
+procedure dumpXY4(p: POLY_G4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
+end;
+
+procedure dumpXY4(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.x0, p.y0, p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
+end;
+
+	
+procedure dumpUV4(p: POLY_FT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
+end;
+
+procedure dumpUV4(p: POLY_GT4);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
+end;
+
+procedure dumpUV4(p: TMD_PRIM);
+begin
+	GPU_printf('(%d,%d)-(%d,%d)-(%d,%d)-(%d,%d)\n', p.u0, p.v0, p.u1, p.v1, p.u2, p.v2, p.u3, p.v3);
+end;
+	
+
+procedure dumpRGB0(p: POLY_F3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_F4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_FT3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_FT4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_G3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_G4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_GT3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: POLY_GT4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+procedure dumpRGB0(p: DRAWENV);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r0, p.g0, p.b0);
+end;
+
+
+procedure dumpRGB1(p:POLY_G3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
+end;
+
+procedure dumpRGB1(p:POLY_G4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
+end;
+
+procedure dumpRGB1(p:POLY_GT3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
+end;
+
+procedure dumpRGB1(p:POLY_GT4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r1, p.g1, p.b1);
+end;
+
+procedure dumpRGB2(p: POLY_G3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
+end;
+
+procedure dumpRGB2(p: POLY_G4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
+end;
+
+procedure dumpRGB2(p: POLY_GT3);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
+end;
+
+procedure dumpRGB2(p: POLY_GT4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r2, p.g2, p.b2);
+end;
+
+
+procedure dumpRGB3(p: POLY_G4);
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r3, p.g3, p.b3);
+end;
+
+procedure dumpRGB3(p: POLY_GT4);	
+begin
+	GPU_printf('(%3d,%3d,%3d)\n', p.r3, p.g3, p.b3);
+end;
 
 
 
+procedure setTPage(var p: DRAWENV; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
 
+
+procedure setTPage(var p: POLY_FT3; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
+
+
+procedure setTPage(var p: POLY_FT4; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
+
+
+procedure setTPage(var p: POLY_GT3; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
+
+
+procedure setTPage(var p: POLY_GT4; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
+
+
+procedure setTPage(var p: TMD_PRIM; tp, abr, x, y: longint);
+begin
+	p.tpage:= GetTPage(tp, abr, x, y);
+end;
+
+
+procedure setClut(var p: POLY_FT3; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: POLY_FT4; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: POLY_GT3; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: POLY_GT4; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: SPRT; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: SPRT_16; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: SPRT_8; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
+
+procedure setClut(var p: TMD_PRIM; x, y: longint);
+begin
+	p.clut:= getClut(x, y);
+end;
 
 
 
@@ -1736,6 +3069,27 @@ begin
 	p.pad:= $55555555;
 	p.p2:= 0;
 	p.p3:= 0;
+end;
+
+{
+function getTPage(tp, abr, x, y: longint): longint;
+begin
+	result:= ((((tp) and $3)shl 7)or(((abr) and $3) shl 5) or (((y) and $100) shr 4)|(((x)and $3ff) shr6) or (((y) and $200) shl 2));
+end;
+
+function getClut(x, y): longint;
+begin
+	result:= (((y) shl 6)or(((x) shr 4) and $3f));
+end;
+}
+procedure dumpTPage(tpage: longint);
+begin
+	GPU_printf('tpage: (%d,%d,%d,%d)\n', ((tpage) shr 7) and $003, ((tpage) shr 5) and $003, ((tpage) shl 6) and $7c0, (((tpage) shl 4) and $100)+(((tpage)shr 2) and $200));
+end;
+
+procedure dumpClut(clut: longint);
+begin
+	GPU_printf('clut: (%d,%d)\n', (clut and $3f) shl 4, (clut shr 6));
 end;
 
 

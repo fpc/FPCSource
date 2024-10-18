@@ -130,56 +130,56 @@ const
 // maximum number of command execution results
 	DslMaxRESULTS	=	8;
 
-function DsInit: integer; stdcall external;
-function DsReset: integer; stdcall external;
+function DsInit: longint; stdcall external;
+function DsReset: longint; stdcall external;
 procedure DsClose; stdcall external;
-function DsCommand(com: byte; param: pchar; cbsync: DslCB; count: integer ): integer; stdcall external;
-function DsPacket(mode: byte; pos:PDslLOC; com: byte; func: DslCB; count: integer): integer; stdcall external;
+function DsCommand(com: byte; param: pchar; cbsync: DslCB; count: longint ): longint; stdcall external;
+function DsPacket(mode: byte; pos:PDslLOC; com: byte; func: DslCB; count: longint): longint; stdcall external;
 function DsSyncCallback(func: DslCB): DslCB; stdcall external;
 function DsReadyCallback(func: DslCB): DslCB; stdcall external;
-function DsSync(id: integer; res: pointer): integer; stdcall external;
-function DsReady(res: pointer): integer; stdcall external;
+function DsSync(id: longint; res: pointer): longint; stdcall external;
+function DsReady(res: pointer): longint; stdcall external;
 procedure DsFlush; stdcall external;
-function DsSystemStatus: integer; stdcall external;
-function DsQueueLen: integer; stdcall external;
+function DsSystemStatus: longint; stdcall external;
+function DsQueueLen: longint; stdcall external;
 function DsStatus: byte; stdcall external;
-function DsShellOpen: integer; stdcall external;
+function DsShellOpen: longint; stdcall external;
 
-function DsMix(vol: PDslATV): integer; stdcall external;
-function DsGetSector(madr: pointer; size: integer): integer; stdcall external;
-function DsGetSector2(madr: pointer; size: integer): integer; stdcall external;
-function DsGetToc(loc: PDslLOC): integer; stdcall external;
+function DsMix(vol: PDslATV): longint; stdcall external;
+function DsGetSector(madr: pointer; size: longint): longint; stdcall external;
+function DsGetSector2(madr: pointer; size: longint): longint; stdcall external;
+function DsGetToc(loc: PDslLOC): longint; stdcall external;
 procedure DsDataCallback(func: pointer); stdcall external;
-function DsDataSync(mode: integer): integer; stdcall external;
-function DsIntToPos(i: integer; p: PDslLOC): PDslLOC; stdcall external;
-function DsPosToInt(p: PDslLOC): integer; stdcall external;
-function DsSetDebug(level: integer ): integer; stdcall external;
+function DsDataSync(mode: longint): longint; stdcall external;
+function DsIntToPos(i: longint; p: PDslLOC): PDslLOC; stdcall external;
+function DsPosToInt(p: PDslLOC): longint; stdcall external;
+function DsSetDebug(level: longint ): longint; stdcall external;
 function DsLastPos(p: PDslLOC): PDslLOC; stdcall external;
 function DsLastCom: byte; stdcall external;
 
 function DsComstr(com: byte): pchar; stdcall external;
 function DsIntstr(intr: byte): pchar; stdcall external;
 
-function DsStartReadySystem(func: DslRCB; count: integer): integer; stdcall external;
+function DsStartReadySystem(func: DslRCB; count: longint): longint; stdcall external;
 procedure DsEndReadySystem; stdcall external;
-function DsReadySystemMode(mode: integer): integer; stdcall external;
+function DsReadySystemMode(mode: longint): longint; stdcall external;
 
-function DsControlF(com: byte; param: pchar): integer; stdcall external;
-function DsControl(com: byte; param: pchar; res: pointer): integer; stdcall external;
-function DsControlB(com: byte; param: pchar; res: pointer): integer; stdcall external;
+function DsControlF(com: byte; param: pchar): longint; stdcall external;
+function DsControl(com: byte; param: pchar; res: pointer): longint; stdcall external;
+function DsControlB(com: byte; param: pchar; res: pointer): longint; stdcall external;
 
-function DsRead(pos: PDslLOC; sectors: integer; buf: Plongint; mode: integer): integer; stdcall external;
-function DsReadSync(res: pointer): integer; stdcall external;
+function DsRead(pos: PDslLOC; sectors: longint; buf: Plongint; mode: longint): longint; stdcall external;
+function DsReadSync(res: pointer): longint; stdcall external;
 function DsReadCallback(func: DslCB): DslCB; stdcall external;
 procedure DsReadBreak; stdcall external;
-function DsRead2(pos: PDslLOC; mode: integer): integer; stdcall external;
+function DsRead2(pos: PDslLOC; mode: longint): longint; stdcall external;
 
 function DsSearchFile(fp: PDslFILE; name: pchar ): PDslFILE; stdcall external;
-function DsReadFile(_file: pchar; addr: Plongint; nbyte: integer): integer; stdcall external;
-//struct EXEC* DsReadExec( char* file ); stdcall external;
-function DsPlay(mode: integer; tracks: Pinteger; offset: integer): integer; stdcall external;
+function DsReadFile(_file: pchar; addr: Plongint; nbyte: longint): longint; stdcall external;
+function DsReadExec(name: pchar): PEXEC; stdcall external;
+function DsPlay(mode: longint; tracks: Plongint; offset: longint): longint; stdcall external;
 
-procedure DsGetDiskType; stdcall external;
+function DsGetDiskType: longint; stdcall external;
 
 implementation
 
