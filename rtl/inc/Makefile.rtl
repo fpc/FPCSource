@@ -252,6 +252,7 @@ UIUNIT=PalmApi.Ui
 UIQUNIT=SymbianApi.Uiq
 UIQCLASSESUNIT=SymbianApi.Uiqclasses
 UNICODEDATAUNIT=System.CodePages.unicodedata
+UNIX98PTYUNIT=UnixApi.Unix98.PTY
 UNIXUNIT=UnixApi.Unix
 UNIXCPUNIT=UnixApi.CP
 UNIXTYPEUNIT=UnixApi.Types
@@ -519,6 +520,7 @@ UIUNIT=ui
 UIQUNIT=uiq
 UIQCLASSESUNIT=uiqclasses
 UNICODEDATAUNIT=unicodedata
+UNIX98PTYUNIT=unix98pty
 UNIXUNIT=unix
 UNIXCPUNIT=unixcp
 UNIXTYPEUNIT=unixtype
@@ -1472,6 +1474,19 @@ unixtype$(PPUEXT) : $(UNIXTYPE_DEPS)
 
 UnixApi.Types$(PPUEXT) : $(NSINC)/UnixApi.Types.pp $(UNIXTYPE_DEPS)
 	$(COMPILER) $(UNIXTYPE_OPT) $<
+
+#
+# Unix98PTY
+#
+
+UNIX98PTY_DEPS=$(UNIXINC)/unix98pty.pp \
+               $(CTYPESUNIT)$(PPUEXT)
+
+unix98pty$(PPUEXT) : $(UNIX98PTY_DEPS)
+	$(COMPILER) $(UNIX98PTY_OPT) $(UNIXINC)/unix98pty.pp
+
+UnixApi.Unix98.PTY$(PPUEXT) : $(NSINC)/UnixApi.Unix98.PTY.pp $(UNIX98PTY_DEPS)
+	$(COMPILER) $(UNIX98PTY_OPT) $<
 
 #
 # dl unit
