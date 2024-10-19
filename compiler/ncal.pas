@@ -2003,6 +2003,24 @@ implementation
             printnode(t,funcretnode);
           end;
 
+        if assigned(vmt_entry) then
+          begin
+            writeln(t,printnodeindention,'vmt_entry =');
+            printnode(t,vmt_entry);
+          end;
+
+        if assigned(call_self_node) then
+          begin
+            writeln(t,printnodeindention,'call_self_node =');
+            printnode(t,call_self_node);
+          end;
+
+        if assigned(call_vmt_node) then
+          begin
+            writeln(t,printnodeindention,'call_vmt_node =');
+            printnode(t,call_vmt_node);
+          end;
+
         if assigned(callinitblock) then
           begin
             writeln(t,printnodeindention,'callinitblock =');
