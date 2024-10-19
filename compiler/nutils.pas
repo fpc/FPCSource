@@ -243,6 +243,7 @@ implementation
               result := foreachnode(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;
               result := foreachnode(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnode(procmethod,tcallnode(n).funcretnode,f,arg) or result;
+              result := foreachnode(procmethod,tnode(tcallnode(n).vmt_entry),f,arg) or result;
               result := foreachnode(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
           callparan:
@@ -351,6 +352,7 @@ implementation
               result := foreachnodestatic(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).funcretnode,f,arg) or result;
+              result := foreachnodestatic(procmethod,tnode(tcallnode(n).vmt_entry),f,arg) or result;
               result := foreachnodestatic(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
           callparan:
