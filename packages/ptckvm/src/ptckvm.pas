@@ -30,7 +30,9 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptckvm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 

@@ -1,0 +1,3 @@
+src/ptckvm.pas=namespaced/PTC.KVM.pas
+{s*:src/}=namespaced/
+{i+:src/}

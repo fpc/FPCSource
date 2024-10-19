@@ -31,6 +31,8 @@ begin
 
     T:=P.Targets.AddUnit('ptckvm.pas');
 
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
