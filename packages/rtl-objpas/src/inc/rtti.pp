@@ -375,10 +375,11 @@ type
     function GetDeclaredFields: TRttiFieldArray; virtual;
     function GetProperties: TRttiPropertyArray; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
-    function GetMethods: TRttiMethodArray; virtual;
+    function GetMethods: TRttiMethodArray; virtual; overload;
+    function GetMethods(const aName: string): TRttiMethodArray; overload; virtual;
     function GetMethod(const aName: String): TRttiMethod; virtual;
     property IsInstance: boolean read GetIsInstance;
-    property isManaged: boolean read GetIsManaged;
+    property IsManaged: boolean read GetIsManaged;
     property IsOrdinal: boolean read GetIsOrdinal;
     property IsRecord: boolean read GetIsRecord;
     property IsSet: boolean read GetIsSet;
@@ -795,12 +796,12 @@ type
     FDeclaredMethods : TRttiMethodArray;
     FMethodsResolved : Boolean;
   protected
-    function GetMethods: TRttiMethodArray; override;
     procedure ResolveFields;
     procedure ResolveMethods;
     procedure ResolveProperties;
     function GetTypeSize: Integer; override;
   public
+    function GetMethods: TRttiMethodArray; override;
     function GetProperties: TRttiPropertyArray; override;
     function GetDeclaredFields: TRttiFieldArray; override;
     function GetDeclaredMethods: TRttiMethodArray;
@@ -1256,6 +1257,7 @@ type
   Protected
     function GetName: string; override;
     Function GetIsConstructor: Boolean; override;
+    Function GetIsDestructor: Boolean; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
     function GetDispatchKind: TDispatchKind; override;
@@ -6892,6 +6894,25 @@ begin
   Result := Nil;
 end;
 
+function TRttiType.GetMethods(const aName: string): TRttiMethodArray;
+var
+  methods: specialize TArray<TRttiMethod>;
+  method: TRttiMethod;
+  count: Integer;
+begin
+  methods := Self.GetMethods;
+  count := 0;
+  Result := nil;
+
+  for method in methods do
+    if SameText(method.Name, aName) then
+    begin
+      SetLength(Result, count + 1);
+      Result[count] := method;
+      Inc(count);
+    end;
+end;
+
 function TRttiType.GetDeclaredMethods: TRttiMethodArray;
 begin
   Result := Nil;
@@ -7209,12 +7230,12 @@ end;
 
 function TRttiRecordMethod.GetHasExtendedInfo: Boolean;
 begin
-  Result:=False
+  Result:=True
 end;
 
 function TRttiRecordMethod.GetCodeAddress: CodePointer;
 begin
-  Result := Nil;
+  Result := FHandle^.CodeAddress;
 end;
 
 function TRttiRecordMethod.GetIsClassMethod: Boolean;
@@ -7314,6 +7335,11 @@ end;
 function TRttiRecordMethod.GetIsConstructor: Boolean;
 begin
   Result:=GetMethodKind in [mkConstructor,mkClassConstructor];
+end;
+ 
+function TRttiRecordMethod.GetIsDestructor: Boolean;
+begin
+  Result:=False;
 end;
 
 
