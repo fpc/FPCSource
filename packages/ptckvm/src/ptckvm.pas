@@ -2,7 +2,7 @@
   An implementation of a console driver, integrated with the video, keyboard
   and mouse units, built on top of the PTCPas graphics library.
 
-  Copyright (C) 2006, 2021, 2022 Nikolay Nikolov <nickysn@users.sourceforge.net>
+  Copyright (C) 2006, 2021, 2022, 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
   This library is free software; you can redistribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -37,7 +37,11 @@ unit ptckvm;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Console.Keyboard, System.Console.Video, System.Console.Mouse;
+{$ELSE FPC_DOTTEDUNITS}
   Keyboard, Video, Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure RegisterPtcKvmDrivers;
 function CheckPendingResize(out NewMode: TVideoMode): Boolean;
@@ -52,7 +56,11 @@ var
 implementation
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils, ptc, PTC.EventQueue;
+{$ELSE FPC_DOTTEDUNITS}
   SysUtils, ptc, ptceventqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TSubsystem = (sKeyboard, sVideo, sMouse);
