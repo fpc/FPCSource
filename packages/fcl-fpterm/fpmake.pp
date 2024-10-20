@@ -27,6 +27,7 @@ Const
 {end of copied code}
 
   KVMAny       = KbdOSes+VideoOSes+MouseOSes;
+  PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd];
 
 Var
   P : TPackage;
@@ -49,6 +50,7 @@ begin
     P.SourcePath.Add('src');
 
     p.Dependencies.Add('rtl-console', KVMAny);
+    p.Dependencies.Add('ptckvm', PtcKvmOSes);
 
     T:=P.Targets.AddUnit('system.terminal.base.pas');
 
@@ -138,6 +140,12 @@ begin
         AddUnit('System.Terminal.View.Video');
         AddUnit('System.Terminal.KeyboardInput.Keyboard');
         AddUnit('System.Terminal.PointingDeviceInput.Mouse');
+      end;
+
+    T:=P.Targets.AddUnit('system.terminal.view.video.ptc.kvm.pas', PtcKvmOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.view.video.base');
       end;
 
     //P.NamespaceMap:='namespaces.lst';
