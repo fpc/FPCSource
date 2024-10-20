@@ -1953,6 +1953,33 @@ implementation
             WriteLn(T, PrintNodeIndention, '</funcretnode>');
           end;
 
+        if assigned(vmt_entry) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<vmt_entry>');
+            PrintNodeIndent;
+            XMLPrintNode(T, vmt_entry);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</vmt_entry>');
+          end;
+
+        if assigned(call_self_node) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<call_self_node>');
+            PrintNodeIndent;
+            XMLPrintNode(T, call_self_node);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</call_self_node>');
+          end;
+
+        if assigned(call_vmt_node) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<call_vmt_node>');
+            PrintNodeIndent;
+            XMLPrintNode(T, call_vmt_node);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</call_vmt_node>');
+          end;
+
         if assigned(callinitblock) then
           begin
             WriteLn(T, PrintNodeIndention, '<callinitblock>');
