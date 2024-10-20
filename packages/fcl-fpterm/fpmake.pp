@@ -128,6 +128,18 @@ begin
         AddUnit('system.terminal.view.video.base');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.kvm.pas', KVMALL);
+    with T.Dependencies do
+      begin
+        AddUnit('System.Terminal');
+        AddUnit('System.Terminal.View');
+        AddUnit('System.Terminal.KeyboardInput');
+        AddUnit('System.Terminal.PointingDeviceInput');
+        AddUnit('System.Terminal.View.Video');
+        AddUnit('System.Terminal.KeyboardInput.Keyboard');
+        AddUnit('System.Terminal.PointingDeviceInput.Mouse');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
   end;
 end;
