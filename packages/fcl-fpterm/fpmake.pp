@@ -60,6 +60,12 @@ begin
         AddUnit('system.terminal.logger');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.keyboardinput.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
