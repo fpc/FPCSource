@@ -50,6 +50,8 @@ begin
         AddUnit('system.terminal.base');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.logger.pas');
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
