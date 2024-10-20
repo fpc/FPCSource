@@ -66,6 +66,18 @@ begin
         AddUnit('system.terminal.base');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+        AddUnit('system.terminal.view');
+        AddUnit('system.terminal.model');
+        AddUnit('system.terminal.controller');
+        AddUnit('system.terminal.inputoutputconnection');
+        AddUnit('system.terminal.pointingdeviceinput');
+        AddUnit('system.terminal.keyboardinput');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
