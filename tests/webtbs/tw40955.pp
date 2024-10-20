@@ -1,4 +1,4 @@
-{ %opt=-v -Seh }
+{ %opt=-vh -Seh }
 program unused;
 
 uses
