@@ -42,6 +42,8 @@ begin
         AddUnit('system.terminal.view');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.inputoutputconnection.pas');
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
