@@ -44,6 +44,12 @@ begin
 
     T:=P.Targets.AddUnit('system.terminal.inputoutputconnection.pas');
 
+    T:=P.Targets.AddUnit('system.terminal.pointingdeviceinput.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
