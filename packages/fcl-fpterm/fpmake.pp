@@ -52,6 +52,14 @@ begin
 
     T:=P.Targets.AddUnit('system.terminal.logger.pas');
 
+    T:=P.Targets.AddUnit('system.terminal.controller.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+        AddUnit('system.terminal.model');
+        AddUnit('system.terminal.logger');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
