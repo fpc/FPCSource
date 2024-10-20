@@ -45,7 +45,6 @@ begin
     P.HomepageURL := 'https://sourceforge.net/projects/fpterm/';
     P.Description := 'Terminal emulator library, written in Free Pascal.';
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,ps1];
-//    p.OSes:=[linux,win32,win64,go32v2,macosx,openbsd,freebsd];
 
     P.SourcePath.Add('src');
 
@@ -133,13 +132,13 @@ begin
     T:=P.Targets.AddUnit('system.terminal.kvm.pas', KVMALL);
     with T.Dependencies do
       begin
-        AddUnit('System.Terminal');
-        AddUnit('System.Terminal.View');
-        AddUnit('System.Terminal.KeyboardInput');
-        AddUnit('System.Terminal.PointingDeviceInput');
-        AddUnit('System.Terminal.View.Video');
-        AddUnit('System.Terminal.KeyboardInput.Keyboard');
-        AddUnit('System.Terminal.PointingDeviceInput.Mouse');
+        AddUnit('system.terminal');
+        AddUnit('system.terminal.view');
+        AddUnit('system.terminal.keyboardinput');
+        AddUnit('system.terminal.pointingdeviceinput');
+        AddUnit('system.terminal.view.video');
+        AddUnit('system.terminal.keyboardinput.keyboard');
+        AddUnit('system.terminal.pointingdeviceinput.mouse');
       end;
 
     T:=P.Targets.AddUnit('system.terminal.view.video.ptc.kvm.pas', PtcKvmOSes);
@@ -159,8 +158,6 @@ begin
         AddUnit('system.terminal.keyboardinput.keyboard');
         AddUnit('system.terminal.pointingdeviceinput.mouse');
       end;
-
-    //P.NamespaceMap:='namespaces.lst';
   end;
 end;
 
