@@ -163,6 +163,13 @@ begin
       end;
 
     T:=P.Targets.AddUnit('system.terminal.pseudoterminal.unix.pas', UnixPtyOSes);
+
+    T:=P.Targets.AddUnit('system.terminal.inputoutputconnection.unixpty.pas', UnixPtyOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.inputoutputconnection');
+        AddUnit('system.terminal.pseudoterminal.unix');
+      end;
   end;
 end;
 
