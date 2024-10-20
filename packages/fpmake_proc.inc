@@ -912,3 +912,9 @@ begin
 {$include ptckvm/fpmake.pp}
 end;
 
+procedure add_fcl_fpterm(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-fpterm/fpmake.pp}
+end;
+
