@@ -108,6 +108,13 @@ begin
         AddUnit('system.terminal.keyboardinput');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.pointingdeviceinput.mouse.pas', MouseOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+        AddUnit('system.terminal.pointingdeviceinput');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
   end;
 end;
