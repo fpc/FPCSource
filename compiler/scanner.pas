@@ -1872,6 +1872,12 @@ type
             end;
         end;
 
+        procedure MarkSymbolAsUsed(sym: tsym);
+          begin
+           tabstractvarsym(sym).IncRefCount;
+           inc(current_module.unitmap[sym.owner.moduleid].refs);
+          end;
+
         function preproc_factor(eval: Boolean):texprvalue;
         var
            hs,countstr,storedpattern: string;
@@ -2050,9 +2056,15 @@ type
                               staticvarsym,
                               localvarsym,
                               paravarsym :
-                                l:=tabstractvarsym(srsym).getsize;
+                                begin
+                                  l:=tabstractvarsym(srsym).getsize;
+                                  MarkSymbolAsUsed(srsym);
+                                end;
                               typesym:
-                                l:=ttypesym(srsym).typedef.size;
+                                begin
+                                  l:=ttypesym(srsym).typedef.size;
+                                  MarkSymbolAsUsed(srsym);
+                                end;
                               else
                                 Message(scan_e_error_in_preproc_expr);
                             end;
