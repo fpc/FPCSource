@@ -115,6 +115,13 @@ begin
         AddUnit('system.terminal.pointingdeviceinput');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.view.video.base.pas', VideoOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+        AddUnit('system.terminal.view');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
   end;
 end;
