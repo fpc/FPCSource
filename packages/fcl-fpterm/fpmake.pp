@@ -122,6 +122,12 @@ begin
         AddUnit('system.terminal.view');
       end;
 
+    T:=P.Targets.AddUnit('system.terminal.view.video.pas', VideoOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.view.video.base');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
   end;
 end;
