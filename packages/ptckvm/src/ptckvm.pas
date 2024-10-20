@@ -669,11 +669,13 @@ begin
   Timer := nil;
   CursorBlinkTimer := nil;
   Format := nil;
+  PendingResize := nil;
   FreeAndNil(KeyPressEvents);
   CurrentWidth := 0;
   CurrentHeight := 0;
   CurrentWidthPixels := 0;
   CurrentHeightPixels := 0;
+  FreeAndNil(CurrentFont);
 end;
 
 procedure KVMUpdateScreen;
