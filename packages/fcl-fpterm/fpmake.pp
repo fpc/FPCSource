@@ -29,6 +29,9 @@ Const
   KVMAny       = KbdOSes+VideoOSes+MouseOSes;
   PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd];
 
+  // OSes that have unix98pty and termio units
+  UnixPtyOSes  = [linux];
+
 Var
   P : TPackage;
   T : TTarget;
@@ -158,6 +161,8 @@ begin
         AddUnit('system.terminal.keyboardinput.keyboard');
         AddUnit('system.terminal.pointingdeviceinput.mouse');
       end;
+
+    T:=P.Targets.AddUnit('system.terminal.pseudoterminal.unix.pas', UnixPtyOSes);
   end;
 end;
 
