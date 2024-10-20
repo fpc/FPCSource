@@ -3,19 +3,19 @@
 program fpmake;
 
 uses {$ifdef unix}cthreads,{$endif} fpmkunit;
+{$endif ALLPACKAGES}
+
+procedure add_fcl_fpterm(const ADirectory: string);
 
 Var
   P : TPackage;
   T : TTarget;
-begin
-  With Installer do
-    begin
-{$endif ALLPACKAGES}
 
+begin
+  with Installer do
+  begin
     P:=AddPackage('fcl-fpterm');
-{$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
     P.Version:='3.3.1';
 
     P.Author := 'Nikolay Nikolov';
@@ -79,9 +79,12 @@ begin
       end;
 
     //P.NamespaceMap:='namespaces.lst';
+  end;
+end;
 
 {$ifndef ALLPACKAGES}
-    Run;
-    end;
+begin
+  add_fcl_fpterm('');
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}
