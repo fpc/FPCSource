@@ -29,6 +29,19 @@ begin
 
     T:=P.Targets.AddUnit('system.terminal.base.pas');
 
+    T:=P.Targets.AddUnit('system.terminal.view.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+      end;
+
+    T:=P.Targets.AddUnit('system.terminal.model.pas');
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
+        AddUnit('system.terminal.view');
+      end;
+
     //P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
