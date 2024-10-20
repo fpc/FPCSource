@@ -7,6 +7,27 @@ uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 procedure add_fcl_fpterm(const ADirectory: string);
 
+Const
+{copied from ../rtl-console/fpmake.pp}
+  // All Unices have full set of KVM+Crt in unix/ except QNX which is not
+  // in workable state atm.
+  UnixLikes = AllUnixOSes -[QNX];
+
+  WinEventOSes = [win32,win64];
+  KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
+
+  // all full KVMers have crt too
+  CrtOSes      = KVMALL+[WatCom];
+  KbdOSes      = KVMALL;
+  VideoOSes    = KVMALL;
+  MouseOSes    = KVMALL;
+  TerminfoOSes = UnixLikes-[beos,haiku];
+
+  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes;
+{end of copied code}
+
+  KVMAny       = KbdOSes+VideoOSes+MouseOSes;
+
 Var
   P : TPackage;
   T : TTarget;
@@ -26,6 +47,8 @@ begin
 //    p.OSes:=[linux,win32,win64,go32v2,macosx,openbsd,freebsd];
 
     P.SourcePath.Add('src');
+
+    p.Dependencies.Add('rtl-console', KVMAny);
 
     T:=P.Targets.AddUnit('system.terminal.base.pas');
 
@@ -75,6 +98,13 @@ begin
         AddUnit('system.terminal.controller');
         AddUnit('system.terminal.inputoutputconnection');
         AddUnit('system.terminal.pointingdeviceinput');
+        AddUnit('system.terminal.keyboardinput');
+      end;
+
+    T:=P.Targets.AddUnit('system.terminal.keyboardinput.keyboard.pas', KbdOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('system.terminal.base');
         AddUnit('system.terminal.keyboardinput');
       end;
 
