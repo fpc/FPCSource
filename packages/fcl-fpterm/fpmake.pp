@@ -30,7 +30,7 @@ Const
   PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd];
 
   // OSes that have unix98pty and termio units
-  UnixPtyOSes  = [linux];
+  UnixPtyOSes  = [linux,openbsd];
 
 Var
   P : TPackage;
