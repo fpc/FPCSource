@@ -47,19 +47,11 @@ type
   protected
     function IsEventAvailable: Boolean; virtual; abstract;
   public
-    constructor Create; virtual;
-
     procedure GetEvent(out Event: TPointingDeviceEvent); virtual; abstract;
     property EventAvailable: Boolean read IsEventAvailable;
   end;
 
 implementation
-
-{ TTerminalPointingDeviceInput }
-
-constructor TTerminalPointingDeviceInput.Create;
-begin
-end;
 
 end.
 

@@ -52,7 +52,7 @@ type
     function GetWidth: Integer; override;
     procedure SetCell(Y, X: Integer; AValue: TCell); override;
   public
-    constructor Create; override;
+    constructor Create;
     destructor Destroy; override;
 
     procedure UpdateScreen; override;

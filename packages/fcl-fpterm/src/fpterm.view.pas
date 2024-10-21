@@ -53,8 +53,6 @@ type
     function GetWidth: Integer; virtual; abstract;
     procedure SetCell(Y, X: Integer; AValue: TCell); virtual; abstract;
   public
-    constructor Create; virtual;
-
     procedure UpdateScreen; virtual; abstract;
     procedure IdleLoop; virtual; abstract;
     procedure HideCursor; virtual; abstract;
@@ -85,12 +83,6 @@ type
   end;
 
 implementation
-
-{ TTerminalView }
-
-constructor TTerminalView.Create;
-begin
-end;
 
 end.
 

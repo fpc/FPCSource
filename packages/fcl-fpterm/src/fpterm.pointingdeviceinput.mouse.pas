@@ -47,7 +47,7 @@ type
   protected
     function IsEventAvailable: Boolean; override;
   public
-    constructor Create; override;
+    constructor Create;
     destructor Destroy; override;
 
     procedure GetEvent(out Event: TPointingDeviceEvent); override;

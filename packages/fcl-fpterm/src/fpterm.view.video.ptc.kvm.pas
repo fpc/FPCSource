@@ -50,7 +50,7 @@ type
 
   TTerminalView_Video_ptckvm = class(TTerminalView_Video_Base)
   public
-    constructor Create; override;
+    constructor Create;
 
     procedure StartBlinkingCursor; override;
     procedure StopBlinkingCursor; override;

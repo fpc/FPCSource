@@ -61,7 +61,7 @@ type
 {$endif HAS_TERMIO}
   public
 {$ifdef HAS_TERMIO}
-    constructor Create; override;
+    constructor Create;
 {$endif HAS_TERMIO}
     function CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean; override;
   end;

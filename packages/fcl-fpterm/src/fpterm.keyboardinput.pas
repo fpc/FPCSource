@@ -47,19 +47,11 @@ type
   protected
     function IsEventAvailable: Boolean; virtual; abstract;
   public
-    constructor Create; virtual;
-
     procedure GetEvent(out Event: TKeyEvent); virtual; abstract;
     property EventAvailable: Boolean read IsEventAvailable;
   end;
 
 implementation
-
-{ TTerminalKeyboardInput }
-
-constructor TTerminalKeyboardInput.Create;
-begin
-end;
 
 end.
 
