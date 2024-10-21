@@ -2294,48 +2294,49 @@ type
                           begin
                             try_consume_nestedsym(srsym,srsymtable);
                             if assigned(srsym) then
-                              case srsym.typ of
-                                constsym:
-                                  begin
-                                    { const def must conform to the set type }
-                                    if (conform_to<>nil) and
-                                      (conform_to.typ=setdef) and
-                                      (tconstsym(srsym).constdef.typ=setdef) and
-                                      (compare_defs(tsetdef(tconstsym(srsym).constdef).elementdef,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                              begin
+                                MarkSymbolAsUsed(srsym);
+                                case srsym.typ of
+                                  constsym:
+                                    begin
+                                      { const def must conform to the set type }
+                                      if (conform_to<>nil) and
+                                        (conform_to.typ=setdef) and
+                                        (tconstsym(srsym).constdef.typ=setdef) and
+                                        (compare_defs(tsetdef(tconstsym(srsym).constdef).elementdef,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                                          begin
+                                            result.free;
+                                            result:=nil;
+                                            // TODO(ryan): better error?
+                                            Message(scan_e_error_in_preproc_expr);
+                                          end;
+                                      if result<>nil then
                                         begin
                                           result.free;
-                                          result:=nil;
-                                          // TODO(ryan): better error?
-                                          Message(scan_e_error_in_preproc_expr);
+                                          result:=texprvalue.create_const(tconstsym(srsym));
                                         end;
-                                    if result<>nil then
-                                      begin
-                                        result.free;
-                                        result:=texprvalue.create_const(tconstsym(srsym));
-                                        MarkSymbolAsUsed(tconstsym(srsym));
-                                      end;
-                                  end;
-                                enumsym:
-                                  begin
-                                    { enum definition must conform to the set type }
-                                    if (conform_to<>nil) and
-                                      (conform_to.typ=setdef) and
-                                      (compare_defs(tenumsym(srsym).definition,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                                    end;
+                                  enumsym:
+                                    begin
+                                      { enum definition must conform to the set type }
+                                      if (conform_to<>nil) and
+                                        (conform_to.typ=setdef) and
+                                        (compare_defs(tenumsym(srsym).definition,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                                          begin
+                                            result.free;
+                                            result:=nil;
+                                            // TODO(ryan): better error?
+                                            Message(scan_e_error_in_preproc_expr);
+                                          end;
+                                      if result<>nil then
                                         begin
                                           result.free;
-                                          result:=nil;
-                                          // TODO(ryan): better error?
-                                          Message(scan_e_error_in_preproc_expr);
+                                          result:=texprvalue.create_int(tenumsym(srsym).value);
                                         end;
-                                    if result<>nil then
-                                      begin
-                                        result.free;
-                                        result:=texprvalue.create_int(tenumsym(srsym).value);
-                                        MarkSymbolAsUsed(tenumsym(srsym));
-                                      end;
-                                  end;
-                                else
-                                  MarkSymbolAsUsed(tconstsym(srsym));
+                                    end;
+                                  else
+                                    ;
+                                end;
                               end;
                           end
                         { the id must be belong to the set type }
