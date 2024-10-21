@@ -1874,7 +1874,7 @@ type
 
         procedure MarkSymbolAsUsed(sym: tsym);
           begin
-           tabstractvarsym(sym).IncRefCount;
+           sym.IncRefCount;
            { do we know an owner? }
            if Assigned(current_module) and Assigned(current_module.unitmap) and Assigned(sym.owner) then
              inc(current_module.unitmap[sym.owner.moduleid].refs);
