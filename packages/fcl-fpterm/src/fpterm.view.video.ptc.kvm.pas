@@ -1,6 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  Implements a terminal on top of the ptckvm unit.
+  This unit implements the display of the terminal, using ptckvm.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,73 +30,88 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.PTC.KVM;
+unit FpTerm.View.Video.PTC.KVM;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal,
-  System.Terminal.View,
-  System.Terminal.KeyboardInput,
-  System.Terminal.PointingDeviceInput;
+  FpTerm.View.Video.Base,
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Console.Video;
+{$ELSE FPC_DOTTEDUNITS}
+  video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
-  { TPTCKVMTerminal }
+  { TTerminalView_Video_ptckvm }
 
-  TPTCKVMTerminal = class(TTerminal)
-  private
-    FView: TTerminalView;
-    FKeyboard: TTerminalKeyboardInput;
-    FPointingDevice: TTerminalPointingDeviceInput;
+  TTerminalView_Video_ptckvm = class(TTerminalView_Video_Base)
   public
-    constructor Create;
-    destructor Destroy; override;
+    constructor Create; override;
+
+    procedure StartBlinkingCursor; override;
+    procedure StopBlinkingCursor; override;
+    function CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean; override;
   end;
 
 implementation
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, PTC.KVM,
+  PTC.KVM;
 {$ELSE FPC_DOTTEDUNITS}
-  SysUtils, ptckvm,
+  ptckvm;
 {$ENDIF FPC_DOTTEDUNITS}
-  System.Terminal.View.Video.PTC.KVM,
-  System.Terminal.KeyboardInput.Keyboard,
-  System.Terminal.PointingDeviceInput.Mouse;
 
-{ TPTCKVMTerminal }
+{ TTerminalView_Video_ptckvm }
 
-constructor TPTCKVMTerminal.Create;
-var
-  ffn: rawbytestring;
+constructor TTerminalView_Video_ptckvm.Create;
 begin
-  InitialWidth := 80;
-  InitialHeight := 24;
-  ffn := GetEnvironmentVariable('FPTERM_FONT');
-  if ffn <> '' then
-{$IFDEF FPC_DOTTEDUNITS}
-    ptc.kvm.FontFileName := ffn;
-{$ELSE FPC_DOTTEDUNITS}
-    ptckvm.FontFileName := ffn;
-{$ENDIF FPC_DOTTEDUNITS}
-  RegisterPtcKvmDrivers;
-
-  FView := TTerminalView_Video_ptckvm.Create;
-  FKeyboard := TTerminalKeyboardInput_Keyboard.Create;
-  FPointingDevice := TTerminalPointingDeviceInput_Mouse.Create;
-  inherited Create(FView, FKeyboard, FPointingDevice);
+  InitEnhancedVideo;
+  ClearScreen;
 end;
 
-destructor TPTCKVMTerminal.Destroy;
+procedure TTerminalView_Video_ptckvm.StartBlinkingCursor;
 begin
-  inherited Destroy;
-  FreeAndNil(FPointingDevice);
-  FreeAndNil(FKeyboard);
-  FreeAndNil(FView);
+{$IFDEF FPC_DOTTEDUNITS}
+  ptc.kvm.StartBlinkingCursor;
+{$ELSE FPC_DOTTEDUNITS}
+  ptckvm.StartBlinkingCursor;
+{$ENDIF FPC_DOTTEDUNITS}
+end;
+
+procedure TTerminalView_Video_ptckvm.StopBlinkingCursor;
+begin
+{$IFDEF FPC_DOTTEDUNITS}
+  ptc.kvm.StopBlinkingCursor;
+{$ELSE FPC_DOTTEDUNITS}
+  ptckvm.StopBlinkingCursor;
+{$ENDIF FPC_DOTTEDUNITS}
+end;
+
+function TTerminalView_Video_ptckvm.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
+var
+  NewMode: TVideoMode;
+begin
+{$IFDEF FPC_DOTTEDUNITS}
+  if ptc.kvm.CheckPendingResize(NewMode) then
+{$ELSE FPC_DOTTEDUNITS}
+  if ptckvm.CheckPendingResize(NewMode) then
+{$ENDIF FPC_DOTTEDUNITS}
+  begin
+    NewWidth := NewMode.Col;
+    NewHeight := NewMode.Row;
+    Result := True;
+  end
+  else
+  begin
+    NewWidth := -1;
+    NewHeight := -1;
+    Result := False;
+  end;
 end;
 
 end.

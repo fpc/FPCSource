@@ -1,6 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit implements a pointing device for the terminal, using unit 'Mouse'.
+  This unit defines a keyboard device for the terminal.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,80 +30,35 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.PointingDeviceInput.Mouse;
+unit FpTerm.KeyboardInput;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal.Base, System.Terminal.PointingDeviceInput;
+  FpTerm.Base;
 
 type
 
-  { TTerminalPointingDeviceInput_Mouse }
+  { TTerminalKeyboardInput }
 
-  TTerminalPointingDeviceInput_Mouse = class(TTerminalPointingDeviceInput)
+  TTerminalKeyboardInput = class
   protected
-    function IsEventAvailable: Boolean; override;
+    function IsEventAvailable: Boolean; virtual; abstract;
   public
-    constructor Create; override;
-    destructor Destroy; override;
+    constructor Create; virtual;
 
-    procedure GetEvent(out Event: TPointingDeviceEvent); override;
+    procedure GetEvent(out Event: TKeyEvent); virtual; abstract;
+    property EventAvailable: Boolean read IsEventAvailable;
   end;
 
 implementation
 
-uses
-{$IFDEF FPC_DOTTEDUNITS}
-  System.Console.Mouse;
-{$ELSE FPC_DOTTEDUNITS}
-  Mouse;
-{$ENDIF FPC_DOTTEDUNITS}
+{ TTerminalKeyboardInput }
 
-procedure MouseEvent2TerminalPointingDeviceEvent(const me: TMouseEvent; var tpde: TPointingDeviceEvent);
-var
-  b: TPointingDeviceButton;
-  bs: TPointingDeviceButtonState;
+constructor TTerminalKeyboardInput.Create;
 begin
-  tpde.X := me.x;
-  tpde.Y := me.y;
-  bs := [];
-  for b := Low(TPointingDeviceButton) to High(TPointingDeviceButton) do
-    if (me.buttons and (Word(1) shl Ord(b))) <> 0 then
-      Include(bs, b);
-  tpde.ButtonState := bs;
-end;
-
-{ TTerminalPointingDeviceInput_Mouse }
-
-function TTerminalPointingDeviceInput_Mouse.IsEventAvailable: Boolean;
-var
-  me: TMouseEvent;
-begin
-  Result := PollMouseEvent(me);
-end;
-
-constructor TTerminalPointingDeviceInput_Mouse.Create;
-begin
-  inherited Create;
-  InitMouse;
-end;
-
-destructor TTerminalPointingDeviceInput_Mouse.Destroy;
-begin
-  DoneMouse;
-  inherited Destroy;
-end;
-
-procedure TTerminalPointingDeviceInput_Mouse.GetEvent(out Event: TPointingDeviceEvent);
-var
-  me: TMouseEvent;
-begin
-  FillChar(Event, SizeOf(Event), 0);
-  GetMouseEvent(me);
-  MouseEvent2TerminalPointingDeviceEvent(me, Event);
 end;
 
 end.

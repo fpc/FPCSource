@@ -28,14 +28,14 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.Model;
+unit FpTerm.Model;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal.Base, System.Terminal.View;
+  FpTerm.Base, FpTerm.View;
 
 type
 

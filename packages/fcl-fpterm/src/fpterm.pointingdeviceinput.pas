@@ -1,6 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit implements the display of the terminal, using ptckvm.
+  This unit defines a basic pointing device (like a mouse) for the terminal.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,88 +30,35 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.View.Video.PTC.KVM;
+unit FpTerm.PointingDeviceInput;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal.View.Video.Base,
-{$IFDEF FPC_DOTTEDUNITS}
-  System.Console.Video;
-{$ELSE FPC_DOTTEDUNITS}
-  video;
-{$ENDIF FPC_DOTTEDUNITS}
+  FpTerm.Base;
 
 type
 
-  { TTerminalView_Video_ptckvm }
+  { TTerminalPointingDeviceInput }
 
-  TTerminalView_Video_ptckvm = class(TTerminalView_Video_Base)
+  TTerminalPointingDeviceInput = class
+  protected
+    function IsEventAvailable: Boolean; virtual; abstract;
   public
-    constructor Create; override;
+    constructor Create; virtual;
 
-    procedure StartBlinkingCursor; override;
-    procedure StopBlinkingCursor; override;
-    function CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean; override;
+    procedure GetEvent(out Event: TPointingDeviceEvent); virtual; abstract;
+    property EventAvailable: Boolean read IsEventAvailable;
   end;
 
 implementation
 
-uses
-{$IFDEF FPC_DOTTEDUNITS}
-  PTC.KVM;
-{$ELSE FPC_DOTTEDUNITS}
-  ptckvm;
-{$ENDIF FPC_DOTTEDUNITS}
+{ TTerminalPointingDeviceInput }
 
-{ TTerminalView_Video_ptckvm }
-
-constructor TTerminalView_Video_ptckvm.Create;
+constructor TTerminalPointingDeviceInput.Create;
 begin
-  InitEnhancedVideo;
-  ClearScreen;
-end;
-
-procedure TTerminalView_Video_ptckvm.StartBlinkingCursor;
-begin
-{$IFDEF FPC_DOTTEDUNITS}
-  ptc.kvm.StartBlinkingCursor;
-{$ELSE FPC_DOTTEDUNITS}
-  ptckvm.StartBlinkingCursor;
-{$ENDIF FPC_DOTTEDUNITS}
-end;
-
-procedure TTerminalView_Video_ptckvm.StopBlinkingCursor;
-begin
-{$IFDEF FPC_DOTTEDUNITS}
-  ptc.kvm.StopBlinkingCursor;
-{$ELSE FPC_DOTTEDUNITS}
-  ptckvm.StopBlinkingCursor;
-{$ENDIF FPC_DOTTEDUNITS}
-end;
-
-function TTerminalView_Video_ptckvm.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
-var
-  NewMode: TVideoMode;
-begin
-{$IFDEF FPC_DOTTEDUNITS}
-  if ptc.kvm.CheckPendingResize(NewMode) then
-{$ELSE FPC_DOTTEDUNITS}
-  if ptckvm.CheckPendingResize(NewMode) then
-{$ENDIF FPC_DOTTEDUNITS}
-  begin
-    NewWidth := NewMode.Col;
-    NewHeight := NewMode.Row;
-    Result := True;
-  end
-  else
-  begin
-    NewWidth := -1;
-    NewHeight := -1;
-    Result := False;
-  end;
 end;
 
 end.

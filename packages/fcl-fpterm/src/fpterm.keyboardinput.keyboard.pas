@@ -30,14 +30,14 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.KeyboardInput.Keyboard;
+unit FpTerm.KeyboardInput.Keyboard;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal.Base, System.Terminal.KeyboardInput;
+  FpTerm.Base, FpTerm.KeyboardInput;
 
 type
 
@@ -50,7 +50,7 @@ type
     constructor Create; override;
     destructor Destroy; override;
 
-    procedure GetEvent(out Event: System.Terminal.Base.TKeyEvent); override;
+    procedure GetEvent(out Event: FpTerm.Base.TKeyEvent); override;
   end;
 
 implementation
@@ -63,9 +63,9 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC_DOTTEDUNITS}
-function ConvertShiftState(ess: System.Console.Keyboard.TEnhancedShiftState): System.Terminal.Base.TShiftState;
+function ConvertShiftState(ess: System.Console.Keyboard.TEnhancedShiftState): FpTerm.Base.TShiftState;
 {$ELSE FPC_DOTTEDUNITS}
-function ConvertShiftState(ess: Keyboard.TEnhancedShiftState): System.Terminal.Base.TShiftState;
+function ConvertShiftState(ess: Keyboard.TEnhancedShiftState): FpTerm.Base.TShiftState;
 {$ENDIF FPC_DOTTEDUNITS}
 begin
   Result := [];
@@ -104,9 +104,9 @@ begin
 end;
 
 {$IFDEF FPC_DOTTEDUNITS}
-procedure EnhancedKeyEvent2TerminalKeyEvent(const k: System.Console.Keyboard.TEnhancedKeyEvent; var tk: System.Terminal.Base.TKeyEvent);
+procedure EnhancedKeyEvent2TerminalKeyEvent(const k: System.Console.Keyboard.TEnhancedKeyEvent; var tk: FpTerm.Base.TKeyEvent);
 {$ELSE FPC_DOTTEDUNITS}
-procedure EnhancedKeyEvent2TerminalKeyEvent(const k: Keyboard.TEnhancedKeyEvent; var tk: System.Terminal.Base.TKeyEvent);
+procedure EnhancedKeyEvent2TerminalKeyEvent(const k: Keyboard.TEnhancedKeyEvent; var tk: FpTerm.Base.TKeyEvent);
 {$ENDIF FPC_DOTTEDUNITS}
 begin
   tk.VirtualKeyCode := k.VirtualKeyCode;
@@ -136,7 +136,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TTerminalKeyboardInput_Keyboard.GetEvent(out Event: System.Terminal.Base.TKeyEvent);
+procedure TTerminalKeyboardInput_Keyboard.GetEvent(out Event: FpTerm.Base.TKeyEvent);
 var
 {$IFDEF FPC_DOTTEDUNITS}
   k: System.Console.Keyboard.TEnhancedKeyEvent;

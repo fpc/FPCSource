@@ -1,6 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit implements the display of the terminal, using the unit 'video'.
+  Implements a terminal on top of the keyboard, video and mouse units.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,91 +30,61 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.View.Video;
+unit FpTerm.KVM;
 
 {$mode objfpc}{$H+}
-
-{$if defined(UNIX)}
-  {$DEFINE HAS_TERMIO}
-{$endif}
 
 interface
 
 uses
-  System.Terminal.View.Video.Base
-{$ifdef HAS_TERMIO}
-  {$IFDEF FPC_DOTTEDUNITS}
-    , UnixApi.TermIO
-  {$ELSE FPC_DOTTEDUNITS}
-    , termio
-  {$ENDIF FPC_DOTTEDUNITS}
-{$endif HAS_TERMIO};
+  FpTerm,
+  FpTerm.View,
+  FpTerm.KeyboardInput,
+  FpTerm.PointingDeviceInput;
 
 type
 
-  { TTerminalView_Video }
+  { TKVMTerminal }
 
-  TTerminalView_Video = class(TTerminalView_Video_Base)
+  TKVMTerminal = class(TTerminal)
   private
-{$ifdef HAS_TERMIO}
-    FLastWinSize: TWinSize;
-{$endif HAS_TERMIO}
+    FView: TTerminalView;
+    FKeyboard: TTerminalKeyboardInput;
+    FPointingDevice: TTerminalPointingDeviceInput;
   public
-{$ifdef HAS_TERMIO}
-    constructor Create; override;
-{$endif HAS_TERMIO}
-    function CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean; override;
+    constructor Create;
+    destructor Destroy; override;
   end;
 
 implementation
 
-{$ifdef HAS_TERMIO}
 uses
-  {$IFDEF FPC_DOTTEDUNITS}
-    UnixApi.Base;
-  {$ELSE FPC_DOTTEDUNITS}
-    baseunix;
-  {$ENDIF FPC_DOTTEDUNITS}
-{$endif HAS_TERMIO}
+{$IFDEF FPC_DOTTEDUNITS}
+  System.SysUtils,
+{$ELSE FPC_DOTTEDUNITS}
+  SysUtils,
+{$ENDIF FPC_DOTTEDUNITS}
+  FpTerm.View.Video,
+  FpTerm.KeyboardInput.Keyboard,
+  FpTerm.PointingDeviceInput.Mouse;
 
-{ TTerminalView_Video }
+{ TKVMTerminal }
 
-{$ifdef HAS_TERMIO}
-constructor TTerminalView_Video.Create;
+constructor TKVMTerminal.Create;
 begin
-  inherited Create;
-  fpioctl(stdinputhandle,TIOCGWINSZ,@FLastWinSize);
+  FView := TTerminalView_Video.Create;
+  FKeyboard := TTerminalKeyboardInput_Keyboard.Create;
+  FPointingDevice := TTerminalPointingDeviceInput_Mouse.Create;
+  inherited Create(FView, FKeyboard, FPointingDevice);
 end;
-{$endif HAS_TERMIO}
 
-{$ifdef HAS_TERMIO}
-function TTerminalView_Video.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
-var
-  ws: TWinSize;
+destructor TKVMTerminal.Destroy;
 begin
-  fpioctl(stdinputhandle,TIOCGWINSZ,@ws);
-  if (ws.ws_col <> FLastWinSize.ws_col) or (ws.ws_row <> FLastWinSize.ws_row) then
-  begin
-    FLastWinSize := ws;
-    NewWidth := ws.ws_col;
-    NewHeight := ws.ws_row;
-    Result := True;
-  end
-  else
-  begin
-    NewWidth := -1;
-    NewHeight := -1;
-    Result := False;
-  end;
+  inherited Destroy;
+  FreeAndNil(FPointingDevice);
+  FreeAndNil(FKeyboard);
+  FreeAndNil(FView);
 end;
-{$else HAS_TERMIO}
-function TTerminalView_Video.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
-begin
-  NewWidth := -1;
-  NewHeight := -1;
-  Result := False;
-end;
-{$endif HAS_TERMIO}
 
 end.
 

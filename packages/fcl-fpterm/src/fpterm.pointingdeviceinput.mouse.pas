@@ -1,8 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit defines the basic abstract input/output connection of the terminal.
-  This could be a serial port, an Unix-like pseudoterminal, a telnet, an SSH
-  connection, etc.
+  This unit implements a pointing device for the terminal, using unit 'Mouse'.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -32,28 +30,81 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.InputOutputConnection;
+unit FpTerm.PointingDeviceInput.Mouse;
 
 {$mode objfpc}{$H+}
 
 interface
 
+uses
+  FpTerm.Base, FpTerm.PointingDeviceInput;
+
 type
 
-  { ITerminalInputOutputConnection }
+  { TTerminalPointingDeviceInput_Mouse }
 
-  ITerminalInputOutputConnection = interface
-    function IsDataAvailable: Boolean;
-    function IsClosed: Boolean;
+  TTerminalPointingDeviceInput_Mouse = class(TTerminalPointingDeviceInput)
+  protected
+    function IsEventAvailable: Boolean; override;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
 
-    function Read(var Buffer; Bytes: SizeUInt): SizeInt;
-    procedure Write(const Buffer; Bytes: SizeUInt);
-    procedure Resize(NewWidth, NewHeight: Integer);
-    property DataAvailable: Boolean read IsDataAvailable;
-    property Closed: Boolean read IsClosed;
+    procedure GetEvent(out Event: TPointingDeviceEvent); override;
   end;
 
 implementation
+
+uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Console.Mouse;
+{$ELSE FPC_DOTTEDUNITS}
+  Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
+
+procedure MouseEvent2TerminalPointingDeviceEvent(const me: TMouseEvent; var tpde: TPointingDeviceEvent);
+var
+  b: TPointingDeviceButton;
+  bs: TPointingDeviceButtonState;
+begin
+  tpde.X := me.x;
+  tpde.Y := me.y;
+  bs := [];
+  for b := Low(TPointingDeviceButton) to High(TPointingDeviceButton) do
+    if (me.buttons and (Word(1) shl Ord(b))) <> 0 then
+      Include(bs, b);
+  tpde.ButtonState := bs;
+end;
+
+{ TTerminalPointingDeviceInput_Mouse }
+
+function TTerminalPointingDeviceInput_Mouse.IsEventAvailable: Boolean;
+var
+  me: TMouseEvent;
+begin
+  Result := PollMouseEvent(me);
+end;
+
+constructor TTerminalPointingDeviceInput_Mouse.Create;
+begin
+  inherited Create;
+  InitMouse;
+end;
+
+destructor TTerminalPointingDeviceInput_Mouse.Destroy;
+begin
+  DoneMouse;
+  inherited Destroy;
+end;
+
+procedure TTerminalPointingDeviceInput_Mouse.GetEvent(out Event: TPointingDeviceEvent);
+var
+  me: TMouseEvent;
+begin
+  FillChar(Event, SizeOf(Event), 0);
+  GetMouseEvent(me);
+  MouseEvent2TerminalPointingDeviceEvent(me, Event);
+end;
 
 end.
 

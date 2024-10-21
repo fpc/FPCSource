@@ -54,121 +54,121 @@ begin
     p.Dependencies.Add('rtl-console', KVMAny);
     p.Dependencies.Add('ptckvm', PtcKvmOSes);
 
-    T:=P.Targets.AddUnit('system.terminal.base.pas');
+    T:=P.Targets.AddUnit('fpterm.base.pas');
 
-    T:=P.Targets.AddUnit('system.terminal.view.pas');
+    T:=P.Targets.AddUnit('fpterm.view.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
+        AddUnit('fpterm.base');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.model.pas');
+    T:=P.Targets.AddUnit('fpterm.model.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.view');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.view');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.inputoutputconnection.pas');
+    T:=P.Targets.AddUnit('fpterm.inputoutputconnection.pas');
 
-    T:=P.Targets.AddUnit('system.terminal.pointingdeviceinput.pas');
+    T:=P.Targets.AddUnit('fpterm.pointingdeviceinput.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
+        AddUnit('fpterm.base');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.logger.pas');
+    T:=P.Targets.AddUnit('fpterm.logger.pas');
 
-    T:=P.Targets.AddUnit('system.terminal.controller.pas');
+    T:=P.Targets.AddUnit('fpterm.controller.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.model');
-        AddUnit('system.terminal.logger');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.model');
+        AddUnit('fpterm.logger');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.keyboardinput.pas');
+    T:=P.Targets.AddUnit('fpterm.keyboardinput.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
+        AddUnit('fpterm.base');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.pas');
+    T:=P.Targets.AddUnit('fpterm.pas');
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.view');
-        AddUnit('system.terminal.model');
-        AddUnit('system.terminal.controller');
-        AddUnit('system.terminal.inputoutputconnection');
-        AddUnit('system.terminal.pointingdeviceinput');
-        AddUnit('system.terminal.keyboardinput');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.view');
+        AddUnit('fpterm.model');
+        AddUnit('fpterm.controller');
+        AddUnit('fpterm.inputoutputconnection');
+        AddUnit('fpterm.pointingdeviceinput');
+        AddUnit('fpterm.keyboardinput');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.keyboardinput.keyboard.pas', KbdOSes);
+    T:=P.Targets.AddUnit('fpterm.keyboardinput.keyboard.pas', KbdOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.keyboardinput');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.keyboardinput');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.pointingdeviceinput.mouse.pas', MouseOSes);
+    T:=P.Targets.AddUnit('fpterm.pointingdeviceinput.mouse.pas', MouseOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.pointingdeviceinput');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.pointingdeviceinput');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.view.video.base.pas', VideoOSes);
+    T:=P.Targets.AddUnit('fpterm.view.video.base.pas', VideoOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.base');
-        AddUnit('system.terminal.view');
+        AddUnit('fpterm.base');
+        AddUnit('fpterm.view');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.view.video.pas', VideoOSes);
+    T:=P.Targets.AddUnit('fpterm.view.video.pas', VideoOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.view.video.base');
+        AddUnit('fpterm.view.video.base');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.kvm.pas', KVMALL);
+    T:=P.Targets.AddUnit('fpterm.kvm.pas', KVMALL);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal');
-        AddUnit('system.terminal.view');
-        AddUnit('system.terminal.keyboardinput');
-        AddUnit('system.terminal.pointingdeviceinput');
-        AddUnit('system.terminal.view.video');
-        AddUnit('system.terminal.keyboardinput.keyboard');
-        AddUnit('system.terminal.pointingdeviceinput.mouse');
+        AddUnit('fpterm');
+        AddUnit('fpterm.view');
+        AddUnit('fpterm.keyboardinput');
+        AddUnit('fpterm.pointingdeviceinput');
+        AddUnit('fpterm.view.video');
+        AddUnit('fpterm.keyboardinput.keyboard');
+        AddUnit('fpterm.pointingdeviceinput.mouse');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.view.video.ptc.kvm.pas', PtcKvmOSes);
+    T:=P.Targets.AddUnit('fpterm.view.video.ptc.kvm.pas', PtcKvmOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.view.video.base');
+        AddUnit('fpterm.view.video.base');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.ptc.kvm.pas', PtcKvmOSes);
+    T:=P.Targets.AddUnit('fpterm.ptc.kvm.pas', PtcKvmOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal');
-        AddUnit('system.terminal.view');
-        AddUnit('system.terminal.keyboardinput');
-        AddUnit('system.terminal.pointingdeviceinput');
-        AddUnit('system.terminal.view.video.ptc.kvm');
-        AddUnit('system.terminal.keyboardinput.keyboard');
-        AddUnit('system.terminal.pointingdeviceinput.mouse');
+        AddUnit('fpterm');
+        AddUnit('fpterm.view');
+        AddUnit('fpterm.keyboardinput');
+        AddUnit('fpterm.pointingdeviceinput');
+        AddUnit('fpterm.view.video.ptc.kvm');
+        AddUnit('fpterm.keyboardinput.keyboard');
+        AddUnit('fpterm.pointingdeviceinput.mouse');
       end;
 
-    T:=P.Targets.AddUnit('system.terminal.pseudoterminal.unix.pas', UnixPtyOSes);
+    T:=P.Targets.AddUnit('fpterm.pseudoterminal.unix.pas', UnixPtyOSes);
 
-    T:=P.Targets.AddUnit('system.terminal.inputoutputconnection.unixpty.pas', UnixPtyOSes);
+    T:=P.Targets.AddUnit('fpterm.inputoutputconnection.unixpty.pas', UnixPtyOSes);
     with T.Dependencies do
       begin
-        AddUnit('system.terminal.inputoutputconnection');
-        AddUnit('system.terminal.pseudoterminal.unix');
+        AddUnit('fpterm.inputoutputconnection');
+        AddUnit('fpterm.pseudoterminal.unix');
       end;
   end;
 end;

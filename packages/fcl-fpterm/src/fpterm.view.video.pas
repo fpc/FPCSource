@@ -1,6 +1,6 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit defines a keyboard device for the terminal.
+  This unit implements the display of the terminal, using the unit 'video'.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,36 +30,91 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.KeyboardInput;
+unit FpTerm.View.Video;
 
 {$mode objfpc}{$H+}
+
+{$if defined(UNIX)}
+  {$DEFINE HAS_TERMIO}
+{$endif}
 
 interface
 
 uses
-  System.Terminal.Base;
+  FpTerm.View.Video.Base
+{$ifdef HAS_TERMIO}
+  {$IFDEF FPC_DOTTEDUNITS}
+    , UnixApi.TermIO
+  {$ELSE FPC_DOTTEDUNITS}
+    , termio
+  {$ENDIF FPC_DOTTEDUNITS}
+{$endif HAS_TERMIO};
 
 type
 
-  { TTerminalKeyboardInput }
+  { TTerminalView_Video }
 
-  TTerminalKeyboardInput = class
-  protected
-    function IsEventAvailable: Boolean; virtual; abstract;
+  TTerminalView_Video = class(TTerminalView_Video_Base)
+  private
+{$ifdef HAS_TERMIO}
+    FLastWinSize: TWinSize;
+{$endif HAS_TERMIO}
   public
-    constructor Create; virtual;
-
-    procedure GetEvent(out Event: TKeyEvent); virtual; abstract;
-    property EventAvailable: Boolean read IsEventAvailable;
+{$ifdef HAS_TERMIO}
+    constructor Create; override;
+{$endif HAS_TERMIO}
+    function CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean; override;
   end;
 
 implementation
 
-{ TTerminalKeyboardInput }
+{$ifdef HAS_TERMIO}
+uses
+  {$IFDEF FPC_DOTTEDUNITS}
+    UnixApi.Base;
+  {$ELSE FPC_DOTTEDUNITS}
+    baseunix;
+  {$ENDIF FPC_DOTTEDUNITS}
+{$endif HAS_TERMIO}
 
-constructor TTerminalKeyboardInput.Create;
+{ TTerminalView_Video }
+
+{$ifdef HAS_TERMIO}
+constructor TTerminalView_Video.Create;
 begin
+  inherited Create;
+  fpioctl(stdinputhandle,TIOCGWINSZ,@FLastWinSize);
 end;
+{$endif HAS_TERMIO}
+
+{$ifdef HAS_TERMIO}
+function TTerminalView_Video.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
+var
+  ws: TWinSize;
+begin
+  fpioctl(stdinputhandle,TIOCGWINSZ,@ws);
+  if (ws.ws_col <> FLastWinSize.ws_col) or (ws.ws_row <> FLastWinSize.ws_row) then
+  begin
+    FLastWinSize := ws;
+    NewWidth := ws.ws_col;
+    NewHeight := ws.ws_row;
+    Result := True;
+  end
+  else
+  begin
+    NewWidth := -1;
+    NewHeight := -1;
+    Result := False;
+  end;
+end;
+{$else HAS_TERMIO}
+function TTerminalView_Video.CheckPendingResize(out NewWidth, NewHeight: Integer): Boolean;
+begin
+  NewWidth := -1;
+  NewHeight := -1;
+  Result := False;
+end;
+{$endif HAS_TERMIO}
 
 end.
 

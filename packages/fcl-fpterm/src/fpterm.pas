@@ -28,7 +28,7 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal;
+unit FpTerm;
 
 {$mode objfpc}{$H+}
 
@@ -40,13 +40,13 @@ uses
 {$ELSE FPC_DOTTEDUNITS}
   SysUtils,
 {$ENDIF FPC_DOTTEDUNITS}
-  System.Terminal.Base,
-  System.Terminal.View,
-  System.Terminal.Model,
-  System.Terminal.Controller,
-  System.Terminal.InputOutputConnection,
-  System.Terminal.PointingDeviceInput,
-  System.Terminal.KeyboardInput;
+  FpTerm.Base,
+  FpTerm.View,
+  FpTerm.Model,
+  FpTerm.Controller,
+  FpTerm.InputOutputConnection,
+  FpTerm.PointingDeviceInput,
+  FpTerm.KeyboardInput;
 
 type
 

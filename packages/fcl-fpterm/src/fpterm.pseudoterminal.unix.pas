@@ -28,7 +28,7 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.PseudoTerminal.Unix;
+unit FpTerm.PseudoTerminal.Unix;
 
 {$mode objfpc}{$H+}
 

@@ -1,6 +1,8 @@
 { This file is part of fpterm - a terminal emulator, written in Free Pascal
 
-  This unit defines a basic pointing device (like a mouse) for the terminal.
+  This unit defines the basic abstract input/output connection of the terminal.
+  This could be a serial port, an Unix-like pseudoterminal, a telnet, an SSH
+  connection, etc.
 
   Copyright (C) 2024 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
@@ -30,36 +32,28 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.PointingDeviceInput;
+unit FpTerm.InputOutputConnection;
 
 {$mode objfpc}{$H+}
 
 interface
 
-uses
-  System.Terminal.Base;
-
 type
 
-  { TTerminalPointingDeviceInput }
+  { ITerminalInputOutputConnection }
 
-  TTerminalPointingDeviceInput = class
-  protected
-    function IsEventAvailable: Boolean; virtual; abstract;
-  public
-    constructor Create; virtual;
+  ITerminalInputOutputConnection = interface
+    function IsDataAvailable: Boolean;
+    function IsClosed: Boolean;
 
-    procedure GetEvent(out Event: TPointingDeviceEvent); virtual; abstract;
-    property EventAvailable: Boolean read IsEventAvailable;
+    function Read(var Buffer; Bytes: SizeUInt): SizeInt;
+    procedure Write(const Buffer; Bytes: SizeUInt);
+    procedure Resize(NewWidth, NewHeight: Integer);
+    property DataAvailable: Boolean read IsDataAvailable;
+    property Closed: Boolean read IsClosed;
   end;
 
 implementation
-
-{ TTerminalPointingDeviceInput }
-
-constructor TTerminalPointingDeviceInput.Create;
-begin
-end;
 
 end.
 

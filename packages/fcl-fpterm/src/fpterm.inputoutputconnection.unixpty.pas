@@ -31,14 +31,14 @@
   Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1335, USA.
 }
 
-unit System.Terminal.InputOutputConnection.UnixPty;
+unit FpTerm.InputOutputConnection.UnixPty;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  System.Terminal.InputOutputConnection, System.Terminal.Pseudoterminal.Unix;
+  FpTerm.InputOutputConnection, FpTerm.Pseudoterminal.Unix;
 
 type
 
