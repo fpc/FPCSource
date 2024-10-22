@@ -5019,23 +5019,6 @@ implementation
 
       hs1,hs2 : String;
 
-      function bitcnt(aValue: int64): integer;
-      var
-        i: integer;
-      begin
-        result := 0;
-
-        for i := 0 to 63 do
-        begin
-          if (aValue mod 2) = 1 then
-          begin
-            inc(result);
-          end;
-
-          aValue := aValue shr 1;
-        end;
-      end;
-
     begin
       new(InsTabMemRefSizeInfoCache);
       FillChar(InsTabMemRefSizeInfoCache^,sizeof(TInsTabMemRefSizeInfoCache),0);
@@ -5322,7 +5305,7 @@ implementation
                          OT_SHORT: ; // ignore
                          else
                            begin
-                             bitcount := bitcnt(actMemSize);
+                             bitcount := popcnt(qword(actMemSize));
 
                              if bitcount > 1 then MRefInfo := msiMultiple
                              else InternalError(777203);
