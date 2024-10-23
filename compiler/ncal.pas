@@ -4822,7 +4822,10 @@ implementation
                   persistently by the callee (it becomes invalid when the callee
                   returns)                                                       }
                 if not(vo_is_funcret in hp.parasym.varoptions) and
-                   not(po_compilerproc in procdefinition.procoptions) then
+                   ((po_inline in procdefinition.procoptions) or
+                     (not(po_compilerproc in procdefinition.procoptions) and
+                     (hp.parasym.varspez=vs_const))
+                   ) then
                   make_not_regable(hp.left,[ra_addr_regable,ra_addr_taken])
                 else
                   make_not_regable(hp.left,[ra_addr_regable]);
