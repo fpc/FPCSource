@@ -48,6 +48,8 @@ begin
     P.HomepageURL := 'https://sourceforge.net/projects/fpterm/';
     P.Description := 'Terminal emulator library, written in Free Pascal.';
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,ps1];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 
