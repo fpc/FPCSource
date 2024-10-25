@@ -50,6 +50,7 @@ type
     WpoParas      : string;
     WpoPasses     : longint;
     DelFiles      : string;
+    ExpectMsgs    : array of longint;
   end;
 
 Const
@@ -278,7 +279,8 @@ var
   t : text;
   part,code : integer;
   l : longint;
-  s,res : string;
+  p : sizeint;
+  s,res,tmp : string;
 
   function GetEntry(const entry:string):boolean;
   var
@@ -470,6 +472,24 @@ begin
               else
                 if GetEntry('DELFILES') then
                   r.DelFiles:=res
+              else
+                if GetEntry('EXPECTMSGS') then
+                  begin
+                    p:=Pos(',',res);
+                    while p>0 do
+                      begin
+                        Val(Copy(res,1,p-1),l,code);
+                        if code<>0 then
+                          Verbose(V_Error,'Invalid value in EXPECTMSGS list: '+Copy(res,1,p-1));
+                        Insert(l,r.ExpectMsgs,Length(r.ExpectMsgs));
+                        Delete(res,1,p);
+                        p:=Pos(',',res);
+                      end;
+                    Val(res,l,code);
+                    if code<>0 then
+                      Verbose(V_Error,'Invalid value in EXPECTMSGS list: '+res);
+                    Insert(l,r.ExpectMsgs,Length(r.ExpectMsgs));
+                  end
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;

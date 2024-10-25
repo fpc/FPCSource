@@ -36,6 +36,7 @@ const
   skipping_run_unit = 'Skipping test run because it is a unit ';
   skipping_run_test = 'Skipping run test ';
   known_problem = ' known problem: ';
+  message_missing = 'Missing compiler message: ';
   line_separation = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
   ResLogfile  : string = 'log';

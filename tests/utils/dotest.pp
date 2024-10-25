@@ -737,6 +737,47 @@ begin
 end;
 
 
+function CheckForMessages(const OutName:string;Msgs:array of longint;var Found:array of boolean):boolean;
+var
+  t : text;
+  s,id : string;
+  fnd,i : longint;
+begin
+  CheckForMessages:=false;
+  for i:=0 to high(Found) do
+    Found[i]:=False;
+  if length(Msgs)<>length(Found) then
+    exit;
+  assign(t,Outname);
+  {$I-}
+  reset(t);
+  {$I+}
+  if ioresult<>0 then
+    exit;
+  fnd:=0;
+  for i:=0 to high(Found) do
+    Found[i]:=False;
+  while not eof(t) do
+    begin
+      readln(t,s);
+      for i:=0 to high(Msgs) do
+        begin
+          str(Msgs[i],id);
+          id:='('+id+')';
+          if copy(s,1,length(id))=id then
+            begin
+              if not Found[i] then
+                inc(fnd);
+              Found[i]:=True;
+              { there can only be a single message per line }
+              break;
+            end;
+        end;
+    end;
+  close(t);
+  CheckForMessages:=fnd=Length(Msgs);
+end;
+
 { Takes each option from AddOptions list
   considered as a space separated list
   and adds the option to args
@@ -859,13 +900,15 @@ end;
 
 function RunCompiler(const ExtraPara: string):boolean;
 var
-  args,LocalExtraArgs,
+  args,LocalExtraArgs,msgid,
   wpoargs,wposuffix : string;
+  i,
   passnr,
   passes  : longint;
   execres : boolean;
   EndTicks,
   StartTicks : int64;
+  fndmsgs : array of boolean;
 begin
   RunCompiler:=false;
   args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
@@ -900,6 +943,12 @@ begin
     end;
   if Config.NeedOptions<>'' then
    AppendOptions(Config.NeedOptions,args);
+  { we need to check for message IDs, so request them }
+  if Length(Config.ExpectMsgs) <> 0 then
+    begin
+      AppendOptions('-vq',args);
+      SetLength(fndmsgs,Length(Config.ExpectMsgs));
+    end;
   wpoargs:='';
   wposuffix:='';
   if (Config.WpoPasses=0) or
@@ -971,6 +1020,34 @@ begin
          Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
+
+      if length(Config.ExpectMsgs)<>0 then
+        begin
+          Verbose(V_Debug,'Checking for messages: '+ToStr(Length(Config.ExpectMsgs)));
+          if not CheckForMessages(CompilerLogFile,Config.ExpectMsgs,fndmsgs) then
+            begin
+              AddLog(FailLogFile,TestName);
+              if Config.Note<>'' then
+                AddLog(FailLogFile,Config.Note);
+              AddLog(ResLogFile,message_missing+PPFileInfo[current]);
+              AddLog(LongLogFile,line_separation);
+              AddLog(LongLogFile,message_missing+PPFileInfo[current]);
+              if Config.Note<>'' then
+                AddLog(LongLogFile,Config.Note);
+              for i:=0 to length(Config.ExpectMsgs) do
+                if not fndmsgs[i] then
+                  begin
+                    str(Config.ExpectMsgs[i],msgid);
+                    AddLog(LongLogFile,message_missing+msgid);
+                  end;
+              CopyFile(CompilerLogFile,LongLogFile,true);
+              { avoid to try again }
+              AddLog(ExeLogFile,message_missing+PPFileInfo[current]);
+              exit;
+            end
+          else
+            Verbose(V_Debug,'All messages found');
+        end;
     end;
 
   { Should the compile fail ? }

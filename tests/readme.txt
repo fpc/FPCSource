@@ -112,6 +112,10 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
                    the right of the equal sign is the expected exit code
                    from compiler, followed by an optional note. Will not
                    be logged as a bug.
+EXPECTMSGS.........A comma separated list of message IDs (see -vq) which the
+                   compiler is expected to print during execution. If at least
+                   one is not printed then this is considered an error.
+                   Note: implicitly adds the -vq option for compilation.
 QUICKTEST..........If set, only tests without package dependencies are executed
 WPOPARAS...........Parameters to be added after -OW/-Ow to perform whole
                    program optimization tests
