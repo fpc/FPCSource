@@ -1757,15 +1757,24 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FRAC}
+{$push}
+{ if we have to check manually fpu exceptions, then force the result assignment statement here to
+  throw one }
+{$CHECKFPUEXCEPTIONS+}
+{ turn off fastmath as it converts (d-d)/zero into 0 and thus not raising an exception }
+{$OPTIMIZATION NOFASTMATH}
 function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
+  const
+    zero: ValReal = 0.0;
   begin
     { Nan or +/-Inf }
     if (float64high(d) and $7ff00000)=$7ff00000 then
       { return NaN }
-      result := (d-d)/0.0 
+      result := zero/zero
     else
       result := d - Int(d);
   end;
+{$pop}
 {$endif}
 
 
