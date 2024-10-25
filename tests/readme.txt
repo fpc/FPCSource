@@ -102,7 +102,7 @@ NEEDLIBRARY........Adds -rpath to the linker for unix. This is needed to
                    test runtime library tests. The library needs the -FE.
                    option to place the .so in the correct directory.
 NEEDEDAFTER........Use it if the files are necessary for a later test.
-                   this option will avoid delteting generated file even when
+                   this option will avoid deleting generated file even when
                    TEST_DELTEMP is used.
 KNOWNRUNERROR......Known bug, which manifest itself at runtime. To the
                    right of the equal sign is the expected exit code,
