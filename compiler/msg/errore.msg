@@ -53,7 +53,7 @@
 #
 # General
 #
-# 01027 is the last used one
+# 01033 is the last used one
 #
 # BeginOfTeX
 % \section{General compiler messages}
@@ -142,6 +142,27 @@ general_t_unitscope=01027_T_Using unit scope: $1
 % When the \var{-vt} switch is used, this line tells you what unit scopes (namespaces)
 % the compiler is using when looking up units. You can add a unit scope with the
 % \var{-FN} option.
+general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppercased or 8.3 unit filenames.
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler stopped
+% Compilation was aborted.
+general_t_unitpath_local=01030_T_$1: Using local unit path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for compiled units. You can set this path with the \var{\{\$UNITPATH xxx\}}
+% directive.
+general_t_includepath_local=01031_T_$1: Using local include path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
+% You can set this path with the \var{\{\$INCLUDEPATH xxx\}} directive.
+general_t_librarypath_local=01032_T_$1: Using local library path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for the libraries. You can set this path with the \var{\{\$LIBRARYPATH xxx\}}
+% directive.
+general_t_objectpath_local=01033_T_$1: Using local object path: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
+% You can set this path with the \var{\{\$OBJECTPATH xxx\}} directive.
 % \end{description}
 #
 # Scanner
