@@ -615,13 +615,17 @@ unit scandir;
       end;
 
     procedure dir_includepath;
+      var
+        path : string;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
-            current_module.localincludesearchpath.AddPath(current_scanner.readcomment,false);
+            path:=current_scanner.readcomment;
+            current_module.localincludesearchpath.AddPath(path,false);
+            Message2(general_t_includepath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -666,13 +670,17 @@ unit scandir;
       end;
 
     procedure dir_librarypath;
+      var
+        path : string;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
-            current_module.locallibrarysearchpath.AddPath(current_scanner.readcomment,false);
+            path:=current_scanner.readcomment;
+            current_module.locallibrarysearchpath.AddPath(path,false);
+            Message2(general_t_librarypath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -1095,13 +1103,17 @@ unit scandir;
       end;
 
     procedure dir_objectpath;
+      var
+        path : string;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
-            current_module.localobjectsearchpath.AddPath(current_scanner.readcomment,false);
+            path:=current_scanner.readcomment;
+            current_module.localobjectsearchpath.AddPath(path,false);
+            Message2(general_t_objectpath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -1670,6 +1682,7 @@ unit scandir;
                not path_absolute(unitpath) then
              unitpath:=current_module.path+source_info.DirSep+unitpath;
             current_module.localunitsearchpath.AddPath(unitpath,false);
+            Message2(general_t_unitpath_local,current_module.realmodulename^,unitpath);
           end;
       end;
 
