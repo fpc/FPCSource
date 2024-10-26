@@ -1791,7 +1791,7 @@ begin
   begin
     if Pos(':', SGRAttr) <> 0 then
     begin
-      ExtParas := SGRAttr.Split(':');
+      ExtParas := SGRAttr.Split(String(':'));
       ExtPara1 := StrToIntDef(ExtParas[0], 0);
       case ExtPara1 of
         38,

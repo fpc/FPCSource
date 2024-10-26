@@ -51,7 +51,7 @@ type
     function IsDataAvailable: Boolean;
     function IsClosed: Boolean;
   public
-    constructor Create(const progname: string; argv, envp: PPChar; Width, Height: Integer);
+    constructor Create(const progname: ansistring; argv, envp: PPansiChar; Width, Height: Integer);
     destructor Destroy; override;
 
     function Read(var Buffer; Bytes: SizeUInt): SizeInt;
@@ -94,7 +94,7 @@ begin
 end;
 
 constructor TTerminalInputOutputConnection_UnixPty.Create(
-  const progname: string; argv, envp: PPChar; Width, Height: Integer);
+  const progname: ansistring; argv, envp: PPAnsiChar; Width, Height: Integer);
 begin
   FUnixPseudoTerminal := TUnixPseudoTerminal.Create(progname, argv, envp, Width, Height);
 end;

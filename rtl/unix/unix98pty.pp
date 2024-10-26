@@ -44,7 +44,7 @@ uses
 function fpposix_openpt(flags: cint): cint; external 'c' name 'posix_openpt';
 function fpgrantpt(fd: cint): cint; external 'c' name 'grantpt';
 function fpunlockpt(fd: cint): cint; external 'c' name 'unlockpt';
-function fpptsname(fd: cint): PChar; external 'c' name 'ptsname';
+function fpptsname(fd: cint): PAnsiChar; external 'c' name 'ptsname';
 
 implementation
 
