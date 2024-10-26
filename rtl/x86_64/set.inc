@@ -163,30 +163,6 @@ asm
     sub    size, 16
     jl     @Bytewise_Prepare { probably dead branch... }
 
-{$if false}
-{ Scans 16 bytes at a time left to right with early exits.
-  Would be better for large enough sets (maybe around 64 bytes or even more) — if they existed, but worse for actually existing 32.
-  Kept for the future. }
-    pxor   xmm2, xmm2 { xmm2 = 0 }
-    add    set1, size
-    add    set2, size
-    neg    size { Now "size" = -(orig.size - 16), "set1" points to orig.set1 + orig.size - 16, "set2" points to orig.set2 + orig.size - 16.
-                  Loop ends on "size" >= 0, leaving up to 16 tail bytes. }
-@16x_Loop:
-    movdqu xmm1, xmmword ptr [set1 + size]
-    movdqu xmm0, xmmword ptr [set2 + size]
-    pandn  xmm0, xmm1
-    pcmpeqb xmm0, xmm2
-    pmovmskb eax, xmm0
-    inc    ax
-    jnz    @No
-    add    size, 16
-    js     @16x_Loop
-
-    movdqu xmm1, xmmword ptr [set1]
-    movdqu xmm0, xmmword ptr [set2]
-    pandn  xmm0, xmm1
-{$else}
 { Folds all 16-byte "set1 and not set2" chunks with OR and checks the final result for zero. Better for small enough sets. }
     movdqu xmm1, xmmword ptr [set1]
     movdqu xmm2, xmmword ptr [set2]
@@ -201,7 +177,6 @@ asm
     ja     @16x_Loop
 
     pxor   xmm0, xmm0
-{$endif}
     pcmpeqb xmm0, xmm2
     pmovmskb ecx, xmm0
     xor    eax, eax
