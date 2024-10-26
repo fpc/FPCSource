@@ -85,7 +85,7 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD) or defined (dragonfly)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD) or defined (dragonfly) or defined(NetBSD)}
   IPC_PRIVATE = TKey(0);
 {$elseif defined(aix)}
   IPC_PRIVATE = TKey(-1)
