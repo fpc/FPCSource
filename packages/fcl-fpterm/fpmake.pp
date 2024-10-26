@@ -27,10 +27,10 @@ Const
 {end of copied code}
 
   KVMAny       = KbdOSes+VideoOSes+MouseOSes;
-  PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd];
+  PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd,netbsd];
 
   // OSes that have unix98pty and termio units
-  UnixPtyOSes  = [linux,openbsd,freebsd];
+  UnixPtyOSes  = [linux,openbsd,freebsd,netbsd];
 
 Var
   P : TPackage;
