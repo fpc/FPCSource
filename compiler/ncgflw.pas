@@ -509,8 +509,6 @@ implementation
          if assigned(labsym) and
             assigned(labsym.asmblocklabel) then
            hlcg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
-
-         secondpass(left);
       end;
 
 

@@ -199,7 +199,7 @@ interface
        end;
        tgotonodeclass = class of tgotonode;
 
-       tlabelnode = class(tunarynode)
+       tlabelnode = class(tnode)
           exceptionblock : integer;
           { when copying trees, this points to the newly created copy of a label }
           copiedto : tlabelnode;
@@ -2439,7 +2439,7 @@ implementation
 
     constructor tlabelnode.create(l:tnode;alabsym:tlabelsym);
       begin
-        inherited create(labeln,l);
+        inherited create(labeln);
         exceptionblock:=current_exceptblock;
         labsym:=alabsym;
         { Register labelnode in labelsym }
@@ -2494,9 +2494,6 @@ implementation
     function tlabelnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        { left could still be unassigned }
-        if assigned(left) then
-         typecheckpass(left);
         resultdef:=voidtype;
       end;
 
@@ -2509,8 +2506,6 @@ implementation
         if not (nf_internal in flags) then
           include(current_procinfo.flags,pi_has_label);
 
-        if assigned(left) then
-          firstpass(left);
         if (m_non_local_goto in current_settings.modeswitches) and
             { the owner can be Nil for internal labels }
             assigned(labsym.owner) and

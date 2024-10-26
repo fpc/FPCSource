@@ -324,13 +324,7 @@ unit optutils;
             labeln:
               begin
                 result:=p;
-                if assigned(tlabelnode(p).left) then
-                  begin
-                    DoSet(tlabelnode(p).left,succ);
-                    p.successor:=tlabelnode(p).left;
-                  end
-                else
-                  p.successor:=succ;
+                p.successor:=succ;
               end;
             assignn:
               begin

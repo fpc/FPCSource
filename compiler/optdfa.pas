@@ -574,17 +574,7 @@ unit optdfa;
                 calclife(node);
               end;
 
-            labeln:
-              begin
-                calclife(node);
-
-                if assigned(tlabelnode(node).left) then
-                  begin
-                    l:=node.optinfo^.life;
-                    DFASetIncludeSet(l,tlabelnode(node).optinfo^.life);
-                    UpdateLifeInfo(node,l);
-                  end;
-              end;
+            labeln,
             tempcreaten,
             tempdeleten,
             nothingn,
@@ -946,9 +936,6 @@ unit optdfa;
                 MaybeDoCheck(tcasenode(node).elseblock);
               end;
 
-            labeln:
-              MaybeDoCheck(tlabelnode(node).left);
-
             { we are aware of the following nodes so if new node types are added to the compiler
               and pop up in the search, the ie below kicks in as a reminder }
             exitn:
@@ -979,6 +966,7 @@ unit optdfa;
             { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
             raisen,
 {$endif JVM}
+            labeln,
             loadn,
             assignn,
             calln,

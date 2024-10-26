@@ -1319,6 +1319,7 @@ implementation
     function statement : tnode;
       var
          p,
+         astatement,
          code       : tnode;
          filepos    : tfileposinfo;
          srsym      : tsym;
@@ -1487,21 +1488,19 @@ implementation
 
              if p.nodetype=labeln then
                begin
-                 { the pointer to the following instruction }
-                 { isn't a very clean way                   }
-                 if token in endtokens then
-                   tlabelnode(p).left:=cnothingnode.create
-                 else
-                   tlabelnode(p).left:=statement();
-                 { be sure to have left also typecheckpass }
-                 typecheckpass(tlabelnode(p).left);
+                 if not(token in endtokens) then
+                   begin
+                     astatement:=statement();
+                     typecheckpass(astatement);
+                     p:=cblocknode.create(cstatementnode.create(p,cstatementnode.create(astatement,nil)));
+                     Include(TBlockNode(p).blocknodeflags, bnf_strippable);
+                   end;
                end
              else
-
-             { change a load of a procvar to a call. this is also
-               supported in fpc mode }
-             if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
-               maybe_call_procvar(p,false);
+               { change a load of a procvar to a call. this is also
+                 supported in fpc mode }
+               if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
+                 maybe_call_procvar(p,false);
 
              { blockn support because a read/write is changed into a blocknode
                with a separate statement for each read/write operation (JM)
