@@ -78,6 +78,23 @@ begin
       AddUnit('fpjson.schema.types');
       AddUnit('fpjson.schema.schema');
       end;
+
+   T:=P.Targets.AddUnit('fpjson.schema.pascaltypes.pp');
+   with T.Dependencies do
+     begin
+     AddUnit('fpjson.schema.types');
+     AddUnit('fpjson.schema.schema');
+     end;
+
+   T:=P.Targets.AddUnit('fpjson.schema.codegen.pp');
+   with T.Dependencies do
+     begin
+     AddUnit('fpjson.schema.pascaltypes');
+     AddUnit('fpjson.schema.types');
+     AddUnit('fpjson.schema.schema');
+     end;
+
+ 
       
 {$ifndef ALLPACKAGES}
     Run;
