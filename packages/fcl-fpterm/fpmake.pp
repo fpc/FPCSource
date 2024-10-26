@@ -14,7 +14,7 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
 
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
+  KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes-[macosx];
 
   // all full KVMers have crt too
   CrtOSes      = KVMALL+[WatCom];
@@ -27,7 +27,7 @@ Const
 {end of copied code}
 
   KVMAny       = KbdOSes+VideoOSes+MouseOSes;
-  PtcKvmOSes   = [linux,win32,win64,go32v2,macosx,openbsd,freebsd,netbsd];
+  PtcKvmOSes   = [linux,win32,win64,go32v2,openbsd,freebsd,netbsd];
 
   // OSes that have unix98pty and termio units
   UnixPtyOSes  = [linux,openbsd,freebsd,netbsd];
@@ -47,7 +47,7 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'https://sourceforge.net/projects/fpterm/';
     P.Description := 'Terminal emulator library, written in Free Pascal.';
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,ps1];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,amstradcpc,sinclairql,ps1];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
