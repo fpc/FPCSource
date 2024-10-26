@@ -22,7 +22,7 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'https://sourceforge.net/projects/fpterm/';
     P.Description := 'Driver for the video, keyboard and mouse units, built on top of the PTCPas graphics library.';
-    p.OSes:=[linux,win32,win64,go32v2,macosx,openbsd,freebsd];
+    p.OSes:=[linux,win32,win64,go32v2,macosx,openbsd,freebsd,netbsd];
 
     P.SourcePath.Add('src');
 
