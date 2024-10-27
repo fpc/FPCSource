@@ -1974,12 +1974,8 @@ implementation
 
 
     destructor tgenericconstraintdata.destroy;
-      var
-        i : longint;
       begin
-        for i:=0 to interfacesderef.count-1 do
-          dispose(pderef(interfacesderef[i]));
-        interfacesderef.free;
+        TFPList.FreeAndNilDisposing(interfacesderef,typeinfo(tderef));
         interfaces.free;
         inherited destroy;
       end;
@@ -2103,8 +2099,6 @@ implementation
 
 
     destructor tstoreddef.destroy;
-      var
-        i : longint;
       begin
         { Direct calls are not allowed, use symtable.deletedef() }
         if assigned(owner) then
@@ -2116,10 +2110,7 @@ implementation
           end;
         rtti_attribute_list.free;
         genericparas.free;
-        if assigned(genericparaderefs) then
-          for i:=0 to genericparaderefs.count-1 do
-            dispose(pderef(genericparaderefs[i]));
-        genericparaderefs.free;
+        TFPList.FreeAndNilDisposing(genericparaderefs,typeinfo(tderef));
         genconstraintdata.free;
 {$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
@@ -6797,19 +6788,11 @@ implementation
 
 
     procedure tprocdef.freeimplprocdefinfo;
-      var
-        i : longint;
       begin
         if assigned(implprocdefinfo) then
           begin
             stringdispose(implprocdefinfo^.resultname);
-            if assigned(implprocdefinfo^.capturedsyms) then
-              begin
-                for i:=0 to implprocdefinfo^.capturedsyms.count-1 do
-                  dispose(pcapturedsyminfo(implprocdefinfo^.capturedsyms[i]));
-              end;
-            implprocdefinfo^.capturedsyms.free;
-            implprocdefinfo^.capturedsyms:=nil;
+            TFPList.FreeAndNilDisposing(implprocdefinfo^.capturedsyms,typeinfo(tcapturedsyminfo));
             freemem(implprocdefinfo);
             implprocdefinfo:=nil;
           end;

@@ -1103,14 +1103,10 @@ implementation
 
 
   class procedure tnodeutils.release_init_final_list(list:tfplist);
-    var
-      i : longint;
     begin
       if not assigned(list) then
         internalerror(2017051901);
-      for i:=0 to list.count-1 do
-        dispose(pinitfinalentry(list[i]));
-      list.free;
+      TFPList.FreeAndNilDisposing(list,typeinfo(tinitfinalentry));
     end;
 
 
