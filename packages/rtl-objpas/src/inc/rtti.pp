@@ -6604,6 +6604,8 @@ begin
       SetOrdProp(TObject(Instance), FPropInfo, AValue.AsOrdinal);
     tkClass:
       SetObjectProp(TObject(Instance), FPropInfo, AValue.AsObject);
+    tkMethod:
+      SetMethodProp(TObject(Instance), FPropInfo, TMethod(AValue.GetReferenceToRawData^));
     tkInterface:
       SetInterfaceProp(TObject(Instance), FPropInfo, AValue.AsInterface);
     tkFloat:
