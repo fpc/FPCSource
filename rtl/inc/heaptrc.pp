@@ -782,6 +782,8 @@ function TraceMemSize(p:pointer):ptruint;
 var
   pp : pheap_mem_info;
 begin
+  if not assigned(p) then
+    exit(0);
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   TraceMemSize:=pp^.size;
 end;

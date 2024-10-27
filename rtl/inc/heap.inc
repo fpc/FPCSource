@@ -1303,6 +1303,8 @@ end;
 
 function SysMemSize(p: pointer): ptruint;
 begin
+  if not assigned(p) then
+    exit(0);
   result := pmemchunk_fixed(pointer(p)-sizeof(tmemchunk_fixed_hdr))^.size;
   if (result and fixedsizeflag) = 0 then
     result := result and sizemask-sizeof(tmemchunk_var_hdr)
