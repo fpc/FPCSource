@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
+{$define FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
 label
   fpc_varset_add_sets_plain_fallback;
 
@@ -53,7 +54,7 @@ fpc_varset_add_sets_plain_fallback:
     pop    %ebx
 end;
 
-procedure fpc_varset_add_sets_sse(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
+procedure {$ifdef CPUX86_HAS_SSEUNIT} fpc_varset_add_sets {$else} fpc_varset_add_sets_sse {$endif} (const set1,set2; var dest;size : ptrint); assembler; nostackframe; {$ifdef CPUX86_HAS_SSEUNIT} compilerproc; {$endif}
 { eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
     push   %ebx
@@ -76,6 +77,7 @@ asm
     pop    %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSEUNIT}
 procedure fpc_varset_add_sets_dispatch(const set1,set2; var dest;size : ptrint); forward;
 
 var
@@ -94,10 +96,11 @@ procedure fpc_varset_add_sets(const set1,set2; var dest;size : ptrint); compiler
 begin
   fpc_varset_add_sets_impl(set1,set2,dest,size);
 end;
-{$define FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
+{$endif ndef CPUX86_HAS_SSEUNIT (need fpc_varset_add_sets dispatcher)}
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
+{$define FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
 label
   fpc_varset_mul_sets_plain_fallback;
 
@@ -137,7 +140,7 @@ fpc_varset_mul_sets_plain_fallback:
     pop    %ebx
 end;
 
-procedure fpc_varset_mul_sets_sse(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
+procedure {$ifdef CPUX86_HAS_SSEUNIT} fpc_varset_mul_sets {$else} fpc_varset_mul_sets_sse {$endif} (const set1,set2; var dest;size : ptrint); assembler; nostackframe; {$ifdef CPUX86_HAS_SSEUNIT} compilerproc; {$endif}
 { Same as fpc_varset_add_sets_sse but with 'and' instead of 'or'. }
 asm
     push   %ebx
@@ -160,6 +163,7 @@ asm
     pop    %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSEUNIT}
 procedure fpc_varset_mul_sets_dispatch(const set1,set2; var dest;size : ptrint); forward;
 
 var
@@ -178,10 +182,11 @@ procedure fpc_varset_mul_sets(const set1,set2; var dest;size : ptrint); compiler
 begin
   fpc_varset_mul_sets_impl(set1,set2,dest,size);
 end;
-{$define FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
+{$endif ndef CPUX86_HAS_SSEUNIT (need fpc_varset_mul_sets dispatcher)}
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
+{$define FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
 label
   fpc_varset_sub_sets_plain_fallback;
 
@@ -226,7 +231,7 @@ fpc_varset_sub_sets_plain_fallback:
     pop    %ebx
 end;
 
-procedure fpc_varset_sub_sets_sse(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
+procedure {$ifdef CPUX86_HAS_SSEUNIT} fpc_varset_sub_sets {$else} fpc_varset_sub_sets_sse {$endif} (const set1,set2; var dest;size : ptrint); assembler; nostackframe; {$ifdef CPUX86_HAS_SSEUNIT} compilerproc; {$endif}
 { eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
     push   %ebx
@@ -250,6 +255,7 @@ asm
     pop    %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSEUNIT}
 procedure fpc_varset_sub_sets_dispatch(const set1,set2; var dest;size : ptrint); forward;
 
 var
@@ -268,10 +274,11 @@ procedure fpc_varset_sub_sets(const set1,set2; var dest;size : ptrint); compiler
 begin
   fpc_varset_sub_sets_impl(set1,set2,dest,size);
 end;
-{$define FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
+{$endif ndef CPUX86_HAS_SSEUNIT (need fpc_varset_sub_sets dispatcher)}
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
+{$define FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
 label
   fpc_varset_symdif_sets_plain_fallback;
 
@@ -314,7 +321,7 @@ fpc_varset_symdif_sets_plain_fallback:
     pop    %ebx
 end;
 
-procedure fpc_varset_symdif_sets_sse(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
+procedure {$ifdef CPUX86_HAS_SSEUNIT} fpc_varset_symdif_sets {$else} fpc_varset_symdif_sets_sse {$endif} (const set1,set2; var dest;size : ptrint); assembler; nostackframe; {$ifdef CPUX86_HAS_SSEUNIT} compilerproc; {$endif}
 { Same as fpc_varset_sub_sets_sse but with 'xor' instead of 'and not'.
   eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
@@ -339,6 +346,7 @@ asm
     pop    %ebx
 end;
 
+{$ifndef CPUX86_HAS_SSEUNIT}
 procedure fpc_varset_symdif_sets_dispatch(const set1,set2; var dest;size : ptrint); forward;
 
 var
@@ -357,10 +365,11 @@ procedure fpc_varset_symdif_sets(const set1,set2; var dest;size : ptrint); compi
 begin
   fpc_varset_symdif_sets_impl(set1,set2,dest,size);
 end;
-{$define FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
+{$endif ndef CPUX86_HAS_SSEUNIT (need fpc_varset_symdif_sets dispatcher)}
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_CONTAINS_SET}
+{$define FPC_SYSTEM_HAS_FPC_VARSET_CONTAINS_SET}
 function fpc_varset_contains_sets_plain(const set1,set2;size : ptrint):boolean; assembler; nostackframe;
 { eax = set1, edx = set2, ecx = size }
 asm
@@ -409,7 +418,7 @@ asm
     pop    %ebx
 end;
 
-function fpc_varset_contains_sets_sse2(const set1,set2;size : ptrint):boolean; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_SSE2} fpc_varset_contains_sets {$else} fpc_varset_contains_sets_sse2 {$endif} (const set1,set2;size : ptrint):boolean; assembler; nostackframe; {$ifdef CPUX86_HAS_SSE2} compilerproc; {$endif}
 { eax = set1, edx = set2, ecx = size }
 asm
     sub    $16, %ecx
@@ -441,6 +450,7 @@ asm
     jmp    fpc_varset_contains_sets_plain
 end;
 
+{$ifndef CPUX86_HAS_SSE2}
 function fpc_varset_contains_sets_dispatch(const set1,set2;size : ptrint):boolean; forward;
 
 var
@@ -459,6 +469,6 @@ function fpc_varset_contains_sets(const set1,set2;size : ptrint):boolean; compil
 begin
   result:=fpc_varset_contains_sets_impl(set1,set2,size);
 end;
-{$define FPC_SYSTEM_HAS_FPC_VARSET_CONTAINS_SET}
+{$endif ndef CPUX86_HAS_SSE2 (need fpc_varset_contains_sets dispatcher)}
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_CONTAINS_SET}
 
