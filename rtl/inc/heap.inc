@@ -1170,7 +1170,7 @@ begin
       { deallocated in wrong thread! add to to-be-freed list of correct thread }
       waitfree_fixed(pmc, poc);
     end;
-  result := chunksize;
+  result := chunksize-sizeof(tmemchunk_fixed_hdr);
 end;
 
 function SysFreeMem_Var(loc_freelists: pfreelists; pmcv: pmemchunk_var): ptruint;
@@ -1178,23 +1178,22 @@ var
   chunksize: ptruint;
 begin
   chunksize := pmcv^.size and sizemask;
-  if loc_freelists <> pmcv^.freelists then
+  if loc_freelists = pmcv^.freelists then
   begin
+{$ifdef DEBUG_SYSOSREALLOC}
+    writeln('Releasing block at: $',hexstr(PtrUInt(pmcv),SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
+    { insert the block in its freelist }
+    pmcv^.size := pmcv^.size and (not usedflag);
+    append_to_list_var(pmcv);
+    pmcv := try_concat_free_chunk(pmcv);
+    if (pmcv^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
+      append_to_oslist_var(pmcv);
+    dec(loc_freelists^.internal_status.currheapused, chunksize);
+  end else
     { deallocated in wrong thread! add to to-be-freed list of correct thread }
     waitfree_var(pmcv);
-    exit(chunksize);
-  end;
-{$ifdef DEBUG_SYSOSREALLOC}
-  writeln('Releasing block at: $',hexstr(PtrUInt(pmcv),SizeOf(PtrUInt)*2));
-{$endif DEBUG_SYSOSREALLOC}
-  { insert the block in its freelist }
-  pmcv^.size := pmcv^.size and (not usedflag);
-  append_to_list_var(pmcv);
-  pmcv := try_concat_free_chunk(pmcv);
-  if (pmcv^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
-    append_to_oslist_var(pmcv);
-  dec(loc_freelists^.internal_status.currheapused, chunksize);
-  result := chunksize;
+  result:=chunksize-sizeof(tmemchunk_var_hdr);
 end;
 
 
@@ -1306,15 +1305,9 @@ function SysMemSize(p: pointer): ptruint;
 begin
   result := pmemchunk_fixed(pointer(p)-sizeof(tmemchunk_fixed_hdr))^.size;
   if (result and fixedsizeflag) = 0 then
-    begin
-      result := result and sizemask;
-      dec(result, sizeof(tmemchunk_var_hdr));
-    end
+    result := result and sizemask-sizeof(tmemchunk_var_hdr)
   else
-    begin
-      result := result and fixedsizemask;
-      dec(result, sizeof(tmemchunk_fixed_hdr));
-    end;
+    result := result and fixedsizemask-sizeof(tmemchunk_fixed_hdr);
 end;
 
 
