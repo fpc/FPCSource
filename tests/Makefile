@@ -2928,7 +2928,11 @@ endif
 ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
 ifdef inOS2
+ifeq ($(TEST_USE_LONGLOG),)
 	cd $(subst /,\,$(TEST_OUTPUTDIR)) && gnufind . -name "*.log" -o -name "*.elg" > tar.lst
+else
+	$(ECHOREDIR) longlog > $(TEST_OUTPUTDIR)/tar.lst
+endif
 	$(ECHOREDIR) log>> $(TEST_OUTPUTDIR)/tar.lst
 	$(ECHOREDIR) dbdigest.cfg>> $(TEST_OUTPUTDIR)/tar.lst
 else
@@ -2955,15 +2959,15 @@ $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifdef inDOS
 	$(ECHOREDIR) @echo off > dotgz$(SRCBATCHEXT)
 	$(ECHOREDIR) cd $(subst /,\,$(TEST_OUTPUTDIR)) >> dotgz$(SRCBATCHEXT)
-	$(ECHOREDIR) $(subst /,\,../../$(PREPUP)) $(DB_TARGZ) >> dotgz$(SRCBATCHEXT)
+	$(ECHOREDIR) $(subst /,\,../../$(PREPUP)) $PREPUP_OPT $(DB_TARGZ) >> dotgz$(SRCBATCHEXT)
 	$(ECHOREDIR) if errorlevel 1 $(DEL) $(DB_TARGZ) >> dotgz$(SRCBATCHEXT)
 	$(ECHOREDIR) cd $(subst /,\,../../) >> dotgz$(SRCBATCHEXT)
 	$(RUNBATCH) dotgz$(SRCBATCHEXT)
 else
 ifdef inOS2
-	cd "$(subst /,\,$(TEST_OUTPUTDIR))" && "..\..\$(PREPUP)" $(DB_TARGZ)
+	cd "$(subst /,\,$(TEST_OUTPUTDIR))" && "$(subst /,\,../../$(PREPUP))" $PREPUP_OPT $(DB_TARGZ)
 else
-	cd "$(TEST_OUTPUTDIR)" && "../../$(PREPUP)" $(DB_TARGZ)
+	cd "$(TEST_OUTPUTDIR)" && "../../$(PREPUP)" $PREPUP_OPT $(DB_TARGZ)
 endif
 endif
 endif
