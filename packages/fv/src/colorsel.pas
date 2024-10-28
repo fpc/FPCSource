@@ -20,12 +20,21 @@
 
  ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ColorSel;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode fpc}
 {$h-}
 interface
 
-uses Objects, Drivers, Dialogs, Views, fvconsts;
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Objects, FreeVision.Drivers, FreeVision.Dialogs, FreeVision.Views, 
+  FreeVision.Fvconsts;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Objects, Drivers, Dialogs, Views, fvconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const dialog_colorsel_colors        = 'Colors';
       label_colorsel_group          = '~G~roup';
