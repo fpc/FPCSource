@@ -103,6 +103,14 @@ begin
           AddUnit('timeddlg');
           AddUnit('time');
         end;
+    T:=P.Targets.AddUnit('colorsel.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('drivers');
+          AddUnit('views');
+          AddUnit('dialogs');
+          AddUnit('fvconsts');
+        end;
     T:=P.Targets.AddUnit('colortxt.pas');
       with T.Dependencies do
         begin
