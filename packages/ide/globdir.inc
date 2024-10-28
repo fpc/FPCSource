@@ -172,6 +172,7 @@
 { $ undef DEBUGUNDO}
 
 {$define BROWSERCOL}
+{$define COLORSEL}
 
 {$ifdef SUPPORTVESA}
   {$define VESA}

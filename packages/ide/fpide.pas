@@ -183,6 +183,9 @@ uses
   Compiler,Version,
   FVConsts,
   Dos{,Memory},Menus,Dialogs,StdDlg,timeddlg,
+{$Ifdef COLORSEL}
+  ColorSel,
+{$endif}
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPIni,FPIntf,FPCompil,FPHelp,
@@ -327,7 +330,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_options_env_desktop = '~D~esktop...';
                 menu_options_env_keybmouse = 'Keyboard & ~m~ouse...';
                 menu_options_env_startup = '~S~tartup...';
-                menu_options_env_colors= '~C~olors';
+                menu_options_env_colors= 'C~o~lors';
                 menu_options_learn_keys= 'Learn ~K~eys';
                 menu_options_open      = '~O~pen...';
                 menu_options_save      = '~S~ave';
@@ -678,6 +681,41 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_mouse_act_addwatch = 'Add watch';
                 label_mouse_act_browsesymbol = 'Browse symbol';
 
+                {Color select dialog.}
+                label_colors_grp_menus        = 'Menu';
+                label_colors_grp_desktop      = 'Desktop';
+                label_colors_grp_dialogs      = 'Dialogs';
+                label_colors_grp_browser      = 'Browser';
+                label_colors_grp_editor       = 'Editor';
+                label_colors_grp_help         = 'Help';
+                label_colors_grp_syntax       = 'Syntax';
+                label_colors_grp_clock        = 'Clock';
+
+                label_colors_clockview        = 'Clock view';
+                label_colors_highlighcolumn   = 'Higlight column';
+                label_colors_highlightrow     = 'Higlight row';
+                label_colors_errormessages    = 'Error message';
+                label_colors_helptext         = 'Text';
+                label_colors_helplinks        = 'Link';
+                label_colors_selectedlink     = 'Selected link';
+                label_colors_html_heading1    = 'Html heading 1';
+                label_colors_html_heading2    = 'Html heading 2';
+                label_colors_html_heading3    = 'Html heading 3';
+                label_colors_html_heading4    = 'Html heading 4';
+                label_colors_html_heading5    = 'Html heading 5';
+                label_colors_html_heading6    = 'Html heading 6';
+                label_colors_whitespace       = 'Whitesapce';
+                label_colors_comments         = 'Comments';
+                label_colors_reservedwords    = 'Reserved words';
+                label_colors_identifiers      = 'Identifiers';
+                label_colors_strings          = 'Strings';
+                label_colors_numbers          = 'Numbers';
+                label_colors_hexnumbers       = 'Hexadecimal numbers';
+                label_colors_assembler        = 'Assembler block';
+                label_colors_symbols          = 'Symbols';
+                label_colors_directives       = 'Directives';
+                label_colors_tabs             = 'Tabs';
+
                 {Open options dialog.}
                 dialog_openoptions = 'Open Options';
                 msg_cantopenconfigfile = 'Can''t open config file.';
@@ -987,8 +1025,8 @@ begin
         NewItem(menu_options_env_codetemplates,'', kbNoKey, cmCodeTemplateOptions, hcCodeTemplateOptions,
         NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
         NewItem(menu_options_env_keybmouse,'', kbNoKey, cmMouse, hcMouse,
-{        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
-        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,}
+{        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,}
+        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
 {$ifdef Unix}
         NewItem(menu_options_learn_keys,'', kbNoKey, cmKeys, hcKeys,
 {$endif Unix}
@@ -996,7 +1034,7 @@ begin
 {$ifdef Unix}
         )
 {$endif Unix}
-        {))}))))))),
+        ){)}))))))),
       NewLine(
       NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,

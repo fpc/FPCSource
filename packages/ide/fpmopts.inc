@@ -1609,7 +1609,7 @@ begin
   D^.HelpCtx:=hcColors;
   if ExecuteDialog(D, @AppPalette)=cmOK then
     begin
-      DoneMemory;
+      {DoneMemory;}
       Message(Application,evBroadcast,cmUpdate,nil);
       ReDraw;
       UpdateScreen(true);
