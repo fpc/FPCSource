@@ -52,15 +52,7 @@ interface
          data         : tprocdef;
          wrongparaidx,
          firstparaidx : integer;
-         exact_count,
-         equal_count,
-         cl1_count,
-         cl2_count,
-         cl3_count,
-         cl4_count,
-         cl5_count,
-         cl6_count,
-         coper_count : integer; { should be signed }
+         te_count : array[te_convert_operator .. te_exact] of integer; { should be signed }
          ordinal_distance : double;
          invalid : boolean;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
@@ -2877,15 +2869,15 @@ implementation
             Comment(lvl,'   invalid')
            else
             begin
-              Comment(lvl,'   ex: '+tostr(hp^.exact_count)+
-                          ' eq: '+tostr(hp^.equal_count)+
-                          ' l1: '+tostr(hp^.cl1_count)+
-                          ' l2: '+tostr(hp^.cl2_count)+
-                          ' l3: '+tostr(hp^.cl3_count)+
-                          ' l4: '+tostr(hp^.cl4_count)+
-                          ' l5: '+tostr(hp^.cl5_count)+
-                          ' l6: '+tostr(hp^.cl6_count)+
-                          ' oper: '+tostr(hp^.coper_count)+
+              Comment(lvl,'   ex: '+tostr(hp^.te_count[te_exact])+
+                          ' eq: '+tostr(hp^.te_count[te_equal])+
+                          ' l1: '+tostr(hp^.te_count[te_convert_l1])+
+                          ' l2: '+tostr(hp^.te_count[te_convert_l2])+
+                          ' l3: '+tostr(hp^.te_count[te_convert_l3])+
+                          ' l4: '+tostr(hp^.te_count[te_convert_l4])+
+                          ' l5: '+tostr(hp^.te_count[te_convert_l5])+
+                          ' l6: '+tostr(hp^.te_count[te_convert_l6])+
+                          ' oper: '+tostr(hp^.te_count[te_convert_operator])+
                           ' ord: '+realtostr(hp^.ordinal_distance));
               { Print parameters in left-right order }
               for i:=0 to hp^.data.paras.count-1 do
@@ -3210,28 +3202,10 @@ implementation
                 eq:=te_incompatible;
 
               { increase correct counter }
-              case eq of
-                te_exact :
-                  inc(hp^.exact_count);
-                te_equal :
-                  inc(hp^.equal_count);
-                te_convert_l1 :
-                  inc(hp^.cl1_count);
-                te_convert_l2 :
-                  inc(hp^.cl2_count);
-                te_convert_l3 :
-                  inc(hp^.cl3_count);
-                te_convert_l4 :
-                  inc(hp^.cl4_count);
-                te_convert_l5 :
-                  inc(hp^.cl5_count);
-                te_convert_l6 :
-                  inc(hp^.cl6_count);
-                te_convert_operator :
-                  inc(hp^.coper_count);
-                te_incompatible :
-                  hp^.invalid:=true;
-              end;
+              if eq<>te_incompatible then
+                inc(hp^.te_count[eq])
+              else
+                hp^.invalid:=true;
 
               { stop checking when an incompatible parameter is found }
               if hp^.invalid then
@@ -3319,8 +3293,6 @@ implementation
 
 
     function is_better_candidate(currpd,bestpd:pcandidate):integer;
-      var
-        res : integer;
       begin
         {
           Return values:
@@ -3338,82 +3310,55 @@ implementation
           - (Smaller) Total of ordinal distance. For example, the distance of a word
             to a byte is 65535-255=65280.
         }
-        if bestpd^.invalid then
-         begin
-           if currpd^.invalid then
-            res:=0
-           else
-            res:=1;
-         end
-        else
-         if currpd^.invalid then
-          res:=-1
-        else
-         begin
-           { less operator parameters? }
-           res:=(bestpd^.coper_count-currpd^.coper_count);
-           if (res=0) then
-            begin
-             { less cl6 parameters? }
-             res:=(bestpd^.cl6_count-currpd^.cl6_count);
-             if (res=0) then
-              begin
-                { less cl5 parameters? }
-                res:=(bestpd^.cl5_count-currpd^.cl5_count);
-                if (res=0) then
-                 begin
-                  { less cl4 parameters? }
-                  res:=(bestpd^.cl4_count-currpd^.cl4_count);
-                  if (res=0) then
-                   begin
-                    { less cl3 parameters? }
-                    res:=(bestpd^.cl3_count-currpd^.cl3_count);
-                    if (res=0) then
-                     begin
-                       { less cl2 parameters? }
-                       res:=(bestpd^.cl2_count-currpd^.cl2_count);
-                       if (res=0) then
-                        begin
-                          { less cl1 parameters? }
-                          res:=(bestpd^.cl1_count-currpd^.cl1_count);
-                          if (res=0) then
-                           begin
-                             { more exact parameters? }
-                             res:=(currpd^.exact_count-bestpd^.exact_count);
-                             if (res=0) then
-                              begin
-                                { less equal parameters? }
-                                res:=(bestpd^.equal_count-currpd^.equal_count);
-                                if (res=0) then
-                                 begin
-                                   { smaller ordinal distance? }
-                                   if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                                    res:=1
-                                   else
-                                    if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                                     res:=-1
-                                   else
-                                    res:=0;
-                                   { if a specialization is better than a non-specialization then
-                                     the non-generic always wins }
-                                   if m_implicit_function_specialization in current_settings.modeswitches then
-                                     begin
-                                       if (currpd^.data.is_specialization and not bestpd^.data.is_specialization) then
-                                         res:=-1
-                                       else if (not currpd^.data.is_specialization and bestpd^.data.is_specialization) then
-                                         res:=1;
-                                     end;
-                                 end;
-                              end;
-                           end;
-                        end;
-                     end;
-                   end;
-                 end;
-              end;
-            end;
-         end;
-        is_better_candidate:=res;
+        if bestpd^.invalid or currpd^.invalid then
+          exit(ord(bestpd^.invalid)-ord(currpd^.invalid)); { 1 if bestpd^.invalid, -1 if currpd^.invalid, 0 if both. }
+        { less operator parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_operator]-currpd^.te_count[te_convert_operator]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl6 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l6]-currpd^.te_count[te_convert_l6]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl5 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l5]-currpd^.te_count[te_convert_l5]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl4 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l4]-currpd^.te_count[te_convert_l4]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl3 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l3]-currpd^.te_count[te_convert_l3]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl2 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l2]-currpd^.te_count[te_convert_l2]);
+        if is_better_candidate<>0 then
+          exit;
+        { less cl1 parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_convert_l1]-currpd^.te_count[te_convert_l1]);
+        if is_better_candidate<>0 then
+          exit;
+        { more exact parameters? }
+        is_better_candidate:=(currpd^.te_count[te_exact]-bestpd^.te_count[te_exact]);
+        if is_better_candidate<>0 then
+          exit;
+        { less equal parameters? }
+        is_better_candidate:=(bestpd^.te_count[te_equal]-currpd^.te_count[te_equal]);
+        if is_better_candidate<>0 then
+          exit;
+        { if a specialization is better than a non-specialization then
+          the non-generic always wins }
+        if m_implicit_function_specialization in current_settings.modeswitches then
+          begin
+            is_better_candidate:=ord(bestpd^.data.is_specialization)-ord(currpd^.data.is_specialization); { 1 if bestpd^.data.is_specialization and not currpd^.data.is_specialization, -1 if the reverse, 0 if same is_specialization. }
+            if is_better_candidate<>0 then
+              exit;
+          end;
+        { smaller ordinal distance? }
+        if (currpd^.ordinal_distance<>bestpd^.ordinal_distance) then
+          is_better_candidate:=2*ord(currpd^.ordinal_distance<bestpd^.ordinal_distance)-1; { 1 if currpd^.ordinal_distance < bestpd^.ordinal_distance, -1 if the reverse. }
       end;
 
 
