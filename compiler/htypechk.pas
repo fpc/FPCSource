@@ -1852,7 +1852,7 @@ implementation
                      mayberesettypeconvs;
                      exit;
                    end
-                 else
+                 else if hp.nodetype=blockn then
                    begin
                      hp2:=tblocknode(hp).statements;
                      if assigned(hp2) then
@@ -1870,6 +1870,13 @@ implementation
                          mayberesettypeconvs;
                          exit;
                        end;
+                   end
+                 else
+                   begin
+                     if report_errors then
+                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                     mayberesettypeconvs;
+                     exit;
                    end;
                end;
              inlinen :

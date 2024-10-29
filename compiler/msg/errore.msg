@@ -789,7 +789,7 @@ parser_e_directive_only_one_var=03095_E_$1 can be associated with only one varia
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
 % \end{verbatim}
-parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated with a var or const
+parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated with a variable or constant representing an address
 % The address of an \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
