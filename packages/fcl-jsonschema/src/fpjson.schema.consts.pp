@@ -146,14 +146,6 @@ Resourcestring
   SErrUnexpectedTypeNotInSet = 'Invalid JSON type at <<%s>>, expected one of: [%s], got: "%s"';
   SErrInvalidType = 'Invalid JSON type %s at <<%s>>';
 
-  // Writer
-  SErrNoObjectsOnStack = 'No objects created on stack';
-  SPropertyNameAlreadySet = 'Cannot set property name to "%s", it is already set to "%s"';
-  SErrNotAtStructuredValue = 'Current value is not a structured value';
-  SErrCannotPop = 'Cannot pop, stack empty';
-  SErrNoPushOnSimpleValue = 'Cannot push on top of non-structured value';
-  SErrNoPropertyNameForPush = 'Cannot push to object without property name';
-
   // Validator
   SSchemaInfo = 'Schema info: "%s" : %s';
   SErrNoFalseMatch = '"false" schema does not match any JSON';
