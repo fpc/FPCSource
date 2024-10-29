@@ -201,7 +201,7 @@ begin
   For I:=0 to aType.PropertyCount-1 do
     begin
     lProp:=aType.Properties[i];
-    if lProp.PropertyType=ptAPIComponent then
+    if lProp.PropertyType=ptSchemaStruct then
       begin
       if lProp.TypeData.HasObjectProperty(True) then
         lConstructor:='CreateWithMembers'
@@ -295,7 +295,7 @@ end;
 function TSerializerCodeGenerator.FieldToJSON(aType: TPropertyType; aFieldName : String): string;
 
 begin
-  if aType in [ptStructure,ptAPIComponent] then
+  if aType in [ptStructure,ptSchemaStruct] then
   begin
     Result := Format('%s.SerializeObject', [aFieldName]);
   end
@@ -346,7 +346,7 @@ var
 begin
   if aKeyName='features' then
     Writeln('a');
-  if aType in [ptAPIComponent,ptStructure] then
+  if aType in [ptSchemaStruct,ptStructure] then
   begin
     Result := Format('%s.Deserialize(%s)', [aPropertyTypeName, ObjectField(aKeyName)]);
   end
@@ -390,7 +390,7 @@ var
 begin
   if aPropertyTypeName='' then
     Writeln('aPropertyTypeName is empty for ',aFieldName);
-  if aType in [ptStructure,ptAPIComponent] then
+  if aType in [ptStructure,ptSchemaStruct] then
     Result := Format('%s.Deserialize(%s as TJSONObject)', [aPropertyTypeName, aFieldName])
   else
     begin
@@ -444,7 +444,7 @@ begin
   lFieldName := aProperty.PascalName;
   lValue := FieldToJSON(aProperty);
   lType:=aProperty.PropertyType;
-  lNilCheck:=WriteClassType and (lType in [ptJSON,ptStructure,ptAPIComponent]);
+  lNilCheck:=WriteClassType and (lType in [ptJSON,ptStructure,ptSchemaStruct]);
   case lType of
     ptEnum:
       begin
@@ -464,7 +464,7 @@ begin
     ptFloat32,
     ptFloat64,
     ptJSON,
-    ptAPIComponent:
+    ptSchemaStruct:
     begin
       if lNilCheck then
         begin
@@ -529,7 +529,7 @@ begin
     ptBoolean,
     ptStructure,
     ptJSON,
-    ptAPIComponent:
+    ptSchemaStruct:
       Addln('Result.%s:=%s;', [lFieldName, lValue]);
     ptArray:
     begin
