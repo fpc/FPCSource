@@ -32,7 +32,7 @@ Type
 
   TPascalTypeData = Class;
 
-  TAPICodeGenLogEvent = Procedure (aType : TEventType; const Msg : String) of object;
+  TSchemaCodeGenLogEvent = Procedure (aType : TEventType; const Msg : String) of object;
 
   TDependencyType = (dtNone,dtDirect,dtIndirect);
   TDependencyTypes = set of TDependencyType;
@@ -43,7 +43,7 @@ Type
   TSerializeType = (stSerialize,stDeserialize);
   TSerializeTypes = set of TSerializeType;
 
-  TPropertyType = (ptUnknown,
+  TPascalType = (ptUnknown,
                    ptBoolean,      // Boolean
                    ptInteger,      // 32-bit integer
                    ptInt64,        // 64-bit integer
@@ -54,10 +54,14 @@ Type
                    ptEnum,         // Enumerated
                    ptJSON,         // TJSONData (empty schema object)
                    ptStructure,    // Class/Record  (schema object with properties)
-                   ptAPIComponent, // Api component
+                   ptSchemaStruct, // Def/APcomponent
                    ptArray         // Array of...
                    );
-  TPropertyTypes = Set of TPropertyType;
+
+  TPascalTypes = Set of TPascalType;
+  // Aliases
+  TPropertyType = TPascalType;
+  TPropertyTypes = TPascalTypes;
 
   { TPascalProperty }
 
@@ -100,8 +104,8 @@ Type
     Property ElementTypeName : String Index ntPascal Read GetElementTypeNames Write SetElementTypeNames;
     // PropertyType = ptArray : The array element type names
     Property ElementTypeNames[aType : TNameType] : String Read GetElementTypeNames Write SetElementTypeNames;
-    // PropertyType = ptAPIComponent: The type data for that component.
-    // PropertyType = ptArray and elType=ptAPIComponent
+    // PropertyType = ptSchemaStruct: The type data for that component.
+    // PropertyType = ptArray and elType=ptSchemaStruct
     Property TypeData : TPascalTypeData Read FTypeData Write FTypeData;
     // The JSON Schema for this property
     Property Schema : TJSONSchema Read FSchema Write FSchema;
@@ -132,21 +136,21 @@ Type
     function GetPropertyCount: Integer;
     function GetSerializerName: String;
   Protected
-    function CreateProperty(const aAPIName, aPascalName: string): TPascalPropertyData; virtual;
+    function CreateProperty(const aSchemaName, aPascalName: string): TPascalPropertyData; virtual;
     Procedure SortProperties;
   Public
     class function ExtractFirstType(aSchema: TJSONSchema): TSchemaSimpleType;
   Public
     Constructor Create(aIndex : integer; const aSchemaName,aPascalName : String; aSchema : TJSONSchema);
     destructor Destroy; override;
-    // Index of property using API name
-    Function IndexOfProperty(const aApiName: string) : Integer;
+    // Index of property using schema name
+    Function IndexOfProperty(const aSchemaName: string) : Integer;
     // Index of property using Pascal name
     Function IndexOfPascalProperty(const aPascalName: string) : Integer;
-    // Find property by API name.
+    // Find property by schema name.
     Function FindProperty(const aName: string) : TPascalPropertyData;
     // Add a property. The pascal name must not yet exist.
-    Function AddProperty(const aApiName,aPascalName : String) : TPascalPropertyData;
+    Function AddProperty(const aSchemaName,aPascalName : String) : TPascalPropertyData;
     // Return the requested name
     function GetTypeName(aNameType : TNameType) : string;
     // Check whether this component depends on given component. If recurse is true, check all intermediary structures as well.
@@ -155,8 +159,8 @@ Type
     Procedure AddDependency(aData : TPascalTypeData);
     // Component has array-typed property ?
     Function HasArrayProperty : Boolean;
-    // Component has object-typed property ? (APIComponentsonly = False -> also return array of string etc.)
-    function HasObjectProperty(APIComponentsOnly: Boolean): Boolean;
+    // Component has object-typed property ? (SchemaComponentsonly = False -> also return array of string etc.)
+    function HasObjectProperty(aSchemaComponentsOnly: Boolean): Boolean;
     // Components his component depends on
     Property Dependency[aIndex : Integer] : TPascalTypeData Read GetDependency;
     // Number of Components his component depends on
@@ -165,7 +169,7 @@ Type
     Property Properties[aIndex : Integer] : TPascalPropertyData Read GetProperty; default;
     // Number of properties
     Property PropertyCount : Integer Read GetPropertyCount;
-    // Pascal type name for DTO (can be influenced by map). Default is OpenAPI name with prefix/suffix
+    // Pascal type name for DTO (can be influenced by map). Default is schema name with prefix/suffix
     Property PascalName : String Read FPascalName;
     // Schema name.
     Property SchemaName : String Read FSchemaName;
@@ -210,7 +214,7 @@ Type
     FInterfaceTypePrefix: String;
     FObjectTypePrefix: string;
     FObjectTypeSuffix: string;
-    FOnLog: TAPICodeGenLogEvent;
+    FOnLog: TSchemaCodeGenLogEvent;
     FUseEnums: Boolean;
     function GetSchemaType(aIndex : Integer): TPascalTypeData;
     function GetSchemaTypeCount: Integer;
@@ -229,10 +233,14 @@ Type
     class function IsKeyWord(const aWord : String) : Boolean;
     // Escape the word if it is a pascal keyword ?
     function EscapeKeyWord(const aWord : string) : string;
-    // Get the pascal name based on API name
+    // Get the pascal name based on schema name
     function GetTypeMap(const aName : string): String;
-    // Return index of named API type (name as in OpenApi). Return -1 if not found.
+    // Return index of named schema type (name as in OpenApi). Return -1 if not found.
     function IndexOfSchemaType(const aSchemaName: String): integer;
+    // Extract simple type from schema
+    Function GetSchemaType(aSchema : TJSONSchema) : TSchemaSimpleType;
+    // Extract element type from schema
+    Function GetArrayElementType(aSchema : TJSONSchema) : TSchemaSimpleType;
     // Add a type to the list
     Procedure AddType(const aSchemaName: String; aType : TPascalTypeData); virtual;
     // Add a type definition to the type map.
@@ -258,7 +266,7 @@ Type
     // Use enums for enumerateds (default is to keep them as strings)
     Property UseEnums : Boolean Read FUseEnums Write FUseEnums;
     // Log callback
-    Property OnLog : TAPICodeGenLogEvent Read FOnLog Write FOnLog;
+    Property OnLog : TSchemaCodeGenLogEvent Read FOnLog Write FOnLog;
     // how to escape keywords
     Property KeywordEscapeMode : TKeywordEscapeMode Read FKeywordEscapeMode Write FKeywordEscapeMode;
   end;
@@ -312,7 +320,7 @@ begin
     exit;
   if (PropertyType=ptArray) then
     begin
-    if (ElementType=ptAPIComponent) then
+    if (ElementType=ptSchemaStruct) then
       Exit(TypeData.GetTypeName(aType));
     Result:=GetFallBackTypeName(ElementType);
     end;
@@ -367,7 +375,7 @@ begin
     ptEnum         : Raise ESchemaData.CreateFmt('Unknown name for enumerated property "%s"',[PascalName]);
     ptJSON         : Result := 'string';
     ptStructure    : Raise ESchemaData.CreateFmt('Unknown name for structured property "%s"',[PascalName]);
-    ptAPIComponent : Raise ESchemaData.CreateFmt('Unknown name for API-typed property "%s"',[PascalName]);
+    ptSchemaStruct : Raise ESchemaData.CreateFmt('Unknown name for schema-typed property "%s"',[PascalName]);
   end;
 end;
 
@@ -440,10 +448,10 @@ begin
 end;
 
 
-function TPascalTypeData.CreateProperty(const aAPIName,aPascalName: string): TPascalPropertyData;
+function TPascalTypeData.CreateProperty(const aSchemaName,aPascalName: string): TPascalPropertyData;
 
 begin
-  Result:=TPascalPropertyData.Create(aAPIName,aPascalName);
+  Result:=TPascalPropertyData.Create(aSchemaName,aPascalName);
 end;
 
 
@@ -485,11 +493,11 @@ begin
 end;
 
 
-function TPascalTypeData.IndexOfProperty(const aApiName: string): Integer;
+function TPascalTypeData.IndexOfProperty(const aSchemaName: string): Integer;
 
 begin
   Result:=FProperties.Count-1;
-  While (Result>=0) and Not SameText(GetProperty(Result).SchemaName,aApiName) do
+  While (Result>=0) and Not SameText(GetProperty(Result).SchemaName,aSchemaName) do
     Dec(Result);
 end;
 
@@ -517,12 +525,12 @@ begin
 end;
 
 
-function TPascalTypeData.AddProperty(const aApiName, aPascalName: String): TPascalPropertyData;
+function TPascalTypeData.AddProperty(const aSchemaName, aPascalName: String): TPascalPropertyData;
 
 begin
   if IndexOfPascalProperty(aPascalName)<>-1 then
     Raise ESchemaData.CreateFmt('Duplicate property name : %s',[aPascalName]);
-  Result:=CreateProperty(aAPIName,aPascalName);
+  Result:=CreateProperty(aSchemaName,aPascalName);
   FProperties.Add(Result);
 end;
 
@@ -598,7 +606,7 @@ begin
 end;
 
 
-function TPascalTypeData.HasObjectProperty(APIComponentsOnly : Boolean): Boolean;
+function TPascalTypeData.HasObjectProperty(aSchemaComponentsOnly : Boolean): Boolean;
 
 var
   I : integer;
@@ -612,7 +620,7 @@ begin
     lProp:=Schema.Properties[i];
     if (lProp.Ref<>'') then
       exit(True);
-    if (ExtractFirstType(lProp)=sstObject) and not APIComponentsOnly then
+    if (ExtractFirstType(lProp)=sstObject) and not aSchemaComponentsOnly then
       exit(True);
     end;
 end;
@@ -742,6 +750,22 @@ begin
   Result:=FTypeList.Count-1;
   While (Result>=0) and (GetSchemaType(Result).SchemaName<>aSchemaName) do
     Dec(Result);
+end;
+
+function TSchemaData.GetSchemaType(aSchema: TJSONSchema): TSchemaSimpleType;
+
+begin
+  if aSchema=Nil then
+    Result:=sstNone
+  else
+    Result:=TPascalTypeData.ExtractFirstType(aSchema);
+end;
+
+function TSchemaData.GetArrayElementType(aSchema: TJSONSchema): TSchemaSimpleType;
+begin
+  Result:=sstNone;
+  if GetSchemaType(aSchema)=sstArray then
+    Result:=GetSchemaType(aSchema.Items[0]);
 end;
 
 
