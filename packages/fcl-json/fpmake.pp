@@ -66,6 +66,13 @@ begin
       AddUnit('jsonscanner');
       end;
         
+    T:=P.Targets.AddUnit('jsonwriter.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      end;
+        
     T:=P.Targets.AddUnit('jsonscanner.pp');
     T.ResourceStrings:=true;
     
