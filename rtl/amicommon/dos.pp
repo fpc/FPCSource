@@ -575,7 +575,7 @@ var
   NumDevices: Integer = 0;
 
 const
-  IllegalDevices: array[0..12] of string =(
+  IllegalDevices: array[0..12] of string[7] =(
                    'PED:',
                    'PRJ:',
                    'PIPE:',   // Pipes
