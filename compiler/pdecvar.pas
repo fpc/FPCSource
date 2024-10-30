@@ -1214,7 +1214,6 @@ implementation
                 abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
               else
                 abssym.asmname:=stringdup(chr(tordconstnode(pt).value.svalue));
-              consume(token);
               abssym.abstyp:=toasm;
             end
           { address }
