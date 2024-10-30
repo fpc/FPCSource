@@ -443,7 +443,7 @@ interface
          constructor create(aintf: tobjectdef);virtual;
          constructor create_deref(intfd,getterd:tderef);virtual;
          destructor  destroy; override;
-         function  getcopy:TImplementedInterface;
+         function getcopy:TImplementedInterface;
          procedure buildderef;
          procedure deref;
          procedure AddMapping(const origname, newname: string);
@@ -9142,18 +9142,48 @@ implementation
 
 
     function TImplementedInterface.getcopy:TImplementedInterface;
+
+      function stringdup(s:pshortstring):pshortstring;inline;
+        begin
+           getmem(result,ord(s^[0])+1);
+           move(s^[0],result^[0],ord(s^[0])+1);
+        end;
+
+      var
+        i : longint;
       begin
         Result:=TImplementedInterface.Create(nil);
         { 1) the procdefs list will be freed once for each copy
           2) since the procdefs list owns its elements, those will also be freed for each copy
+             Nope: procdefs are owned by their symtable, so no copy necessary
           3) idem for the name mappings
         }
-        { warning: this is completely wrong on so many levels...
-        Move(pointer(self)^,pointer(result)^,InstanceSize);
-        We need to make clean copies of the different fields
-        this is not implemented yet, and thus we generate an internal
-        error instead PM 2011-06-14 }
-        internalerror(2011061401);
+        result.fIOffset:=fIOffset;
+        result.IntfDef:=IntfDef;
+        result.IntfDefDeref.reset;
+        result.IType:=IType;
+        result.VtblImplIntf:=VtblImplIntf;
+        if assigned(NameMappings) then
+          begin
+            result.NameMappings:=TFPHashList.create;
+            for i:=0 to NameMappings.Count-1 do
+              Result.NameMappings.Add(NameMappings.NameOfIndex(i),
+                                      stringdup(pshortstring(NameMappings.Items[i])));
+          end;
+        if assigned(ProcDefs) then
+          begin
+            result.ProcDefs:=TFPObjectList.create(false);
+            { Note: this is probably wrong, because those procdefs are owned by
+              the old objectdef from which we copy, what would be the correct way
+              of doing this is to lookup the equivalent copy in the new owner
+              and reference this instead... But this is complicated so let's try
+              it this way until it blows up ok? }
+            for i:=0 to ProcDefs.Count-1 do
+              Result.ProcDefs.add(tprocdef(procdefs[i]).getcopy);
+          end;
+        result.ImplementsGetter:=ImplementsGetter;
+        result.ImplementsGetterDeref.reset;
+        result.ImplementsField:=ImplementsField;
       end;
 
 {****************************************************************************
