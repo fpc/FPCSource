@@ -582,7 +582,7 @@ const
                    'PED:',
                    'PRJ:',
                    'PIPE:',   // Pipes
-                   'XPIPE:',  // Extented Pipe
+                   'XPIPE:',  // Extended Pipe
                    'CON:',    // Console
                    'RAW:',    // RAW: Console
                    'KCON:',   // KingCON Console
@@ -590,7 +590,7 @@ const
                    'SER:',    // serial Ports
                    'SER0:',
                    'SER1:',
-                   'PAR:',    // Parallel Porty
+                   'PAR:',    // Parallel Port
                    'PRT:');   // Printer
 
 function IsIllegalDevice(DeviceName: string): Boolean;
