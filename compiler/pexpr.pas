@@ -2608,7 +2608,13 @@ implementation
                                p1:=cerrornode.create;
                                consume(_ID);
                              end;
-                       end;
+                       end
+                     else
+                       begin
+                         p1.destroy;
+                         p1:=cerrornode.create;
+                         consume(_ID);
+                       end
                    end;
                  arraydef:
                    begin
