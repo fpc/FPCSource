@@ -5961,6 +5961,8 @@ implementation
         Sec.writeUInt32BE($fe000200);
         { drop }
         Sec.writeUInt8($1A);
+        { br 1 }
+        Sec.writeUInt16BE($0C01);
         { end }
         Sec.writeUInt8($0B);
         { i32.const $InitFlag }
