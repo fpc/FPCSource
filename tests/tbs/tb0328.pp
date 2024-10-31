@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 { %OPT=-Or }
 { test for full boolean eval and register usage with b+ }
 

@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 var
   a,b:array of integer;

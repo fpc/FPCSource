@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 {$mode delphi}
 type
    tc1 = class

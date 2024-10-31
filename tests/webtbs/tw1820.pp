@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %TARGET=win32 }
 unit tw1820;
 interface

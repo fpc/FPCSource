@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 
 procedure p1(const a:array of byte);
 var

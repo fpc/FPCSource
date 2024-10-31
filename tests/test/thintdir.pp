@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %NORUN }
 
 program thintdir;

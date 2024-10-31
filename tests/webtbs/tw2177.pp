@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 { Source provided for Free Pascal Bug Report 2177 }
 { Submitted by "Rimgaudas" on  2002-10-14 }

@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 {$ifdef fpc}{$mode objfpc}{$endif}
 
 type

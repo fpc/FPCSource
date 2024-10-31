@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 type oo2 = pchar;
 

@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 {%OPT=-Og}
 { This verifies if the strings are
   correctly aligned, normally the generated assembler

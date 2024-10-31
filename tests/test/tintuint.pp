@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 { Testing longint and cardinal addtions }
 const

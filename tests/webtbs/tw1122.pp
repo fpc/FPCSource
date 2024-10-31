@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %cpu=i386 }
 {$mode objfpc}
 { Source provided for Free Pascal Bug Report 1122 }

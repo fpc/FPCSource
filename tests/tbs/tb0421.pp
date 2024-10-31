@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %recompile }
 
 uses ub0421a;

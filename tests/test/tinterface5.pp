@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 { %SKIPTARGET=macos }
 { On macos it crashes when run.}
 

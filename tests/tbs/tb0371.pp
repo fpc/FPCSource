@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 { %target=win32 }
 
 {$mode delphi}

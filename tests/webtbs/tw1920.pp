@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 VAR
         X64     : Qword;

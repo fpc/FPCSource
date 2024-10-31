@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 {$MODE OBJFPC}
 Unit ub0426;
 

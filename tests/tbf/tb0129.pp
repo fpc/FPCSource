@@ -1,6 +1,5 @@
 {%skiptarget=$nothread }
 { %fail }
-{ %version=1.1 }
 
 {$ifdef fpc}
   {$mode objfpc}

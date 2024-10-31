@@ -1,5 +1,4 @@
 { %CPU=i386 }
-{ %VERSION=1.1 }
 
 {$ifdef fpc}
   {$mode delphi}

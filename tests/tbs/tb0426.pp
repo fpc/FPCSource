@@ -1,4 +1,3 @@
-{ %VERSION=1.1 }
 uses ub0426;
 
 

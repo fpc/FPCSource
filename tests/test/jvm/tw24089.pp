@@ -1,6 +1,5 @@
 program tw24089;
 
-{ %VERSION=1.1 }
 
 {$ifdef fpc}
   {$mode objfpc}
@@ -57,5 +56,5 @@ end;
 
 begin
   with TMyClasstw24089.Create do
-   Test;  
+   Test;
 end.

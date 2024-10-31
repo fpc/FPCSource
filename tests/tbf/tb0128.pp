@@ -1,5 +1,4 @@
 {%skiptarget=$nothread }
-{ %version=1.1 }
 { %fail }
 
 {$mode delphi}

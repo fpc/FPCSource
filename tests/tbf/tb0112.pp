@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %FAIL }
 
 { in this mode, typed constants are read-only }

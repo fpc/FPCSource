@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %result=231 }
 
 uses

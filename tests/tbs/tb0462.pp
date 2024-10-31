@@ -1,4 +1,3 @@
-{ %version=1.1 }
 
 {$ifdef go32v2}
   {$define USE_INTERNAL_UNICODE}

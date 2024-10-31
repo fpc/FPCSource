@@ -1,4 +1,3 @@
-{ %version=1.1 }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  By Carl Eric Codere                                           }

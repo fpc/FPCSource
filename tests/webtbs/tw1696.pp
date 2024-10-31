@@ -1,4 +1,3 @@
-{ %version=1.1 }
 { %target=win32 }
 
 Uses Windows;

@@ -1,5 +1,4 @@
 { %skiptarget=go32v2 }
-{ %version=1.1 }
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 program test_fpu_excpetions;

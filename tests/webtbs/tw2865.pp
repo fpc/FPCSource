@@ -1,4 +1,3 @@
-{ %version=1.1 }
 {$mode objfpc}
 { Source provided for Free Pascal Bug Report 2865 }
 { Submitted by "Eric Grange" on  2003-12-30 }

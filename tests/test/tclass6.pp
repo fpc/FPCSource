@@ -1,6 +1,5 @@
 { %fail }
 { %opt=-CR }
-{ %version=1.1 }
 
 {$mode objfpc}
 program test_class;

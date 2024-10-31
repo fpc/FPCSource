@@ -1,4 +1,3 @@
-{ %version=1.1 }
 var
    b1,b2 : boolean;
    c : char;
