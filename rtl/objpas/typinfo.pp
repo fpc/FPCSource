@@ -1092,6 +1092,16 @@ unit TypInfo;
       PPropListEx = ^TPropListEx;
       TPropListEx = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfoEx))-2{$else}65535{$endif}] of PPropInfoEx;
 
+      TPropParams =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: LongInt;
+        Params: array[0..0] of TVmtMethodParam;
+      end;
+      PPropParams = ^TPropParams;
+
 {$PACKRECORDS 1}
       TPropInfo = packed record
       private
@@ -1113,6 +1123,8 @@ unit TypInfo;
         //     4..5 StoredProc
         //     6 : true, constant index property
         PropProcs : Byte;
+
+        PropParams : PPropParams;
 
         {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;

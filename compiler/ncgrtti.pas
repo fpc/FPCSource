@@ -69,6 +69,7 @@ interface
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
         procedure write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
         procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+        procedure write_param(tcb:ttai_typedconstbuilder;para:tparavarsym);
         procedure write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
         procedure maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string); inline;
       public
@@ -333,32 +334,7 @@ implementation
                       end;
 
                     for k:=0 to def.paras.count-1 do
-                      begin
-                        para:=tparavarsym(def.paras[k]);
-
-                        maybe_add_comment(tcb,'RTTI: begin param '+para.prettyname);
-                        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-                          targetinfos[target_info.system]^.alignment.recordalignmin);
-
-                        maybe_add_comment(tcb,#9'type');
-                        if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
-                          write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
-                        else if para.vardef=cformaltype then
-                          write_rtti_reference(tcb,nil,fullrtti)
-                        else
-                          write_rtti_reference(tcb,para.vardef,fullrtti);
-                        maybe_add_comment(tcb,#9'flags');
-                        write_param_flag(tcb,para);
-
-                        maybe_add_comment(tcb,#9'name');
-                        tcb.emit_pooled_shortstring_const_ref(para.realname);
-
-                        maybe_add_comment(tcb,#9'locs');
-                        write_paralocs(tcb,@para.paraloc[callerside]);
-
-                        tcb.end_anonymous_record;
-                        maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
-                      end;
+                        write_param(tcb,tparavarsym(def.paras[k]));
 
                     if not is_void(def.returndef) then
                       begin
@@ -560,6 +536,33 @@ implementation
           paraspec:=reverse_word(paraspec);
         { write flags for current parameter }
         tcb.emit_ord_const(paraspec,u16inttype);
+      end;
+
+    procedure TRTTIWriter.write_param(tcb: ttai_typedconstbuilder;
+      para: tparavarsym);
+      begin
+        maybe_add_comment(tcb,'RTTI: begin param '+para.prettyname);
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+          targetinfos[target_info.system]^.alignment.recordalignmin);
+
+        maybe_add_comment(tcb,#9'type');
+        if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
+          write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
+        else if para.vardef=cformaltype then
+          write_rtti_reference(tcb,nil,fullrtti)
+        else
+          write_rtti_reference(tcb,para.vardef,fullrtti);
+        maybe_add_comment(tcb,#9'flags');
+        write_param_flag(tcb,para);
+
+        maybe_add_comment(tcb,#9'name');
+        tcb.emit_pooled_shortstring_const_ref(para.realname);
+
+        maybe_add_comment(tcb,#9'locs');
+        write_paralocs(tcb,@para.paraloc[callerside]);
+
+        tcb.end_anonymous_record;
+        maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
       end;
 
 
@@ -1062,10 +1065,38 @@ implementation
                 sym:=tsym(st.SymList[i]);
                 if (tsym(sym).typ=propertysym) and
                    (sym.visibility in visibilities) and
-                   (tpropertysym(sym).parast=Nil) and
+                   (extended_rtti or (tpropertysym(sym).parast=Nil)) and
                    not (sp_static in sym.symoptions) then
                   inc(result);
               end;
+          end;
+
+        procedure write_prop_params(tcb:ttai_typedconstbuilder;paramst:tsymtable);
+          var
+            paramtcb : ttai_typedconstbuilder;
+            paramlbl : tasmlabel;
+            paramdef : tdef;
+            i : longint;
+          begin
+              tcb.start_internal_data_builder(current_asmdata.AsmLists[al_rtti],sec_rodata,'',paramtcb,paramlbl);
+
+              paramtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                targetinfos[target_info.system]^.alignment.recordalignmin);
+
+              { paramcount }
+              paramtcb.emit_ord_const(paramst.symlist.count,u32inttype);
+              for i:=0 to paramst.symlist.count-1 do
+                begin
+                  if tsym(paramst.symlist[i]).typ<>paravarsym then
+                    Internalerror(2024103101);
+                  write_param(paramtcb,tparavarsym(paramst.symlist[i]));
+                end;
+
+
+              paramdef:=paramtcb.end_anonymous_record;
+              tcb.finish_internal_data_builder(paramtcb,paramlbl,paramdef,sizeof(pint));
+
+              tcb.emit_tai(tai_const.Create_sym(paramlbl),voidpointertype);
           end;
 
         function write_propinfo_data(tcb: ttai_typedconstbuilder; sym: tpropertysym): tdef;
@@ -1127,6 +1158,13 @@ implementation
             if addcomments then
               tcb.emit_comment(#9'proc types');
             tcb.emit_ord_const(proctypesinfo,u8inttype);
+            { index parameters }
+            if addcomments then
+              tcb.emit_comment(#9'indexed params');
+            if extended_rtti and assigned(tpropertysym(sym).parast) then
+              write_prop_params(tcb,sym.parast)
+            else
+              tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype);
             { write reference to attribute table }
             if addcomments then
               tcb.emit_comment(#9'attributes');
@@ -1153,7 +1191,7 @@ implementation
             sym:=tsym(st.SymList[i]);
             if (sym.typ=propertysym) and
                (sym.visibility in visibilities) and
-               (tpropertysym(sym).parast=Nil) and
+               (extended_rtti or (tpropertysym(sym).parast=Nil)) and
                not (sp_static in sym.symoptions) then
               begin
                 if extended_rtti then
