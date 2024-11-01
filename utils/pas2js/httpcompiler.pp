@@ -10,9 +10,9 @@ uses
   {$IF FPC_FULLVERSION > 30300}
   strutils,
   {$ENDIF}
-  sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
+  sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles, types,
   fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
-  Pas2JSCompilerCfg, ssockets, fpdebugcapturesvc;
+  Pas2JSCompilerCfg, ssockets, fpdebugcapturesvc, fpsimpleserver;
 
 Const
   HTTPCompilerVersion = '1.0';
@@ -82,45 +82,21 @@ Type
     Destructor Destroy; override;
   end;
 
-  { TMySimpleFileModule }
-
-  TMySimpleFileModule = class(TSimpleFileModule)
-  Public
-    Procedure SendFile(const AFileName: String; AResponse: TResponse); override;
-  end;
-
   { THTTPCompilerApplication }
 
-  THTTPCompilerApplication = Class(TCustomHTTPApplication)
+  THTTPCompilerApplication = Class(TFPSimpleServerApplication)
   private
-    FAPI: String;
-    FBaseDir: String;
-    FConfigFile: String;
-    FIndexPageName: String;
-    FNoIndexPage: Boolean;
     FProjectFile: String;
+    FProjectConfigFile: String;
     FStatusLock : TCriticalSection;
-    FQuiet: Boolean;
     FWatch: Boolean;
     FDW : TDirWatcher;
+    FAPI : String;
     FStatusList : TFPObjectList;
     FCompiles : TCompiles;
     FServeOnly  : Boolean;
-    FMimeFile : String;
-    FBackground:boolean;
-    FPassword:String;
-    FEcho:Boolean;
-    FMaxAge: integer;
-    FCrossOriginIsolation : Boolean;
-    FInterfaceAddress : String;
     procedure AddToStatus(O: TJSONObject);
-    procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
-    procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
-    procedure Doquit(ARequest: TRequest; AResponse: TResponse);
-    procedure SetupCapture;
     function HandleCompileOptions(aDir: String): Boolean;
-    function ProcessOptions: Boolean;
-    procedure ReadConfigFile(const ConfigFile: string);
     Procedure ReportBuilding(AItem : TCompileItem);
     Procedure ReportBuilt(AItem : TCompileItem);
     Procedure AddToStatus(AEntry : TDirectoryEntry; AEvents : TFileEvents);
@@ -129,40 +105,32 @@ Type
     function ScheduleCompile(const aProjectFile: String; Options : TStrings = Nil): Integer;
     procedure StartWatch(ADir: String);
   protected
-    procedure Usage(Msg: String); virtual;
-    function GetDefaultMimeTypesFile: string; virtual;
-    procedure LoadDefaultMimeTypes; virtual;
+    // Override
+    procedure ProcessOptions; override;
+    procedure GetValidOptions(out aShort: String; out aLong: TStringDynArray); override;
+    procedure DoReadConfigFile(const aIni : TCustomIniFile); override;
+    Function GetDefaultConfigFile : string; override;
+    procedure LoadMimeTypes; override;
+    procedure WriteOptions; override;
+    procedure RegisterRoutes; override;
   public
     Constructor Create(AOWner : TComponent); override;
     Destructor Destroy; override;
-    procedure DoLog(EventType: TEventType; const Msg: String); override;
-    Procedure DoRun; override;
-    Property API : String Read FAPI Write FAPI;
-    property Quiet : Boolean read FQuiet Write FQuiet;
     Property Watch : Boolean Read FWatch Write FWatch;
     Property ProjectFile : String Read FProjectFile Write FProjectFile;
-    Property ConfigFile : String Read FConfigFile Write FConfigFile;
-    Property BaseDir : String Read FBaseDir;
+    Property ProjectConfigFile : String Read FProjectConfigFile Write FProjectConfigFile;
     Property ServeOnly : Boolean Read FServeOnly;
-    Property MimeFile : String Read FMimeFile;
-    Property NoIndexPage : Boolean Read FNoIndexPage Write FNoIndexPage;
-    Property IndexPageName : String Read FIndexPageName Write FIndexPageName;
-    Property InterfaceAddress : String Read FInterfaceAddress Write FInterfaceAddress;
   end;
 
 
 Implementation
 
-{ TMySimpleFileModule }
-
-procedure TMySimpleFileModule.SendFile(const AFileName: String; AResponse: TResponse);
-begin
-  AResponse.SetCustomHeader('Cross-Origin-Embedder-Policy','require-corp');
-  AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
-  inherited SendFile(AFileName, AResponse);
-end;
-
-
+Const
+  SConfig = 'Config';
+  KeyServeOnly = 'ServeOnly';
+  KeyWatch = 'Watch';
+  KeyProject = 'Project';
+  KeyProjectConfig = 'ProjectConfig';
 
 { TCompileThread }
 
@@ -279,63 +247,9 @@ end;
 
 { THTTPCompilerApplication }
 
-procedure THTTPCompilerApplication.DoLog(EventType: TEventType; const Msg: String);
+procedure THTTPCompilerApplication.LoadMimeTypes;
 begin
-  {AllowWriteln}
-  if Quiet then
-    exit;
-  if IsConsole then
-    Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',EventType,'] ',Msg)
-  else
-    inherited DoLog(EventType, Msg);
-  {AllowWriteln-}
-end;
-
-procedure THTTPCompilerApplication.Usage(Msg : String);
-
-begin
-  {AllowWriteln}
-  if (Msg<>'') then
-    Writeln('Error: ',Msg);
-  Writeln('Version ',HTTPCompilerVersion);
-  Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
-  Writeln('Where options is one or more of : ');
-  Writeln('-A --api=location,secret Enable location management API.');
-  Writeln('-c --compile[=proj]      Recompile project if pascal files change. Default project is app.lpr');
-  Writeln('-d --directory=dir       Base directory from which to serve files.');
-  Writeln('                         Default is current working directory: ',GetCurrentDir);
-  Writeln('-h --help                This help text');
-  Writeln('-i --indexpage=name      Directory index page to use (default: index.html)');
-  Writeln('-I --interface=IP        Listen on this interface address only.');
-  Writeln('-m --mimetypes=file      Set Filename for loading mimetypes. Default is ',GetDefaultMimeTypesFile);
-  Writeln('-n --noindexpage         Do not allow index page.');
-  Writeln('-o --coi                 Enable Cross-Origin Isolation headers');
-  Writeln('-p --port=NNNN           TCP/IP port to listen on (default is 3000)');
-  Writeln('-q --quiet               Do not write diagnostic messages');
-  Writeln('-s --simpleserver        Only serve files, do not enable compilation.');
-  Writeln('-u --capture[=FILE]      Set up /debugcapture route to capture output sent by browser.');
-  Writeln('                         If FILE is specified, write to file. If not specified, writes to STDOUT.');
-  Writeln('-w --watch               Watch directory for changes');
-  Halt(Ord(Msg<>''));
-  {AllowWriteln-}
-end;
-
-function THTTPCompilerApplication.GetDefaultMimeTypesFile: string;
-begin
-  {$ifdef unix}
-  Result:='/etc/mime.types';
-  {$ifdef darwin}
-  if not FileExists(Result) then
-    Result:='/private/etc/apache2/mime.types';
-  {$endif}
-  {$else}
-  Result:=ExtractFilePath(System.ParamStr(0))+'mime.types';
-  {$endif}
-end;
-
-procedure THTTPCompilerApplication.LoadDefaultMimeTypes;
-begin
-  MimeTypes.LoadKnownTypes;
+  Inherited;
   // To be sure
   MimeTypes.AddType('application/xhtml+xml','xhtml;xht');
   MimeTypes.AddType('text/html','html;htm');
@@ -377,6 +291,18 @@ procedure THTTPCompilerApplication.StartWatch(ADir : String);
 
 begin
   FDW:=TDirWatcher.Create(Self,ADir);
+end;
+
+function THTTPCompilerApplication.GetDefaultConfigFile: string;
+begin
+  Result:='compileserver.ini';
+end;
+
+procedure THTTPCompilerApplication.WriteOptions;
+begin
+  inherited WriteOptions;
+  Writeln('-s --simpleserver        Only serve files, do not enable compilation.');
+  Writeln('-w --watch               Watch directory for changes');
 end;
 
 procedure THTTPCompilerApplication.ReportBuilding(AItem: TCompileItem);
@@ -505,14 +431,14 @@ begin
       Inc(TC);
   if TC>10 then
     begin
-    Log(etError,'Refusing compile of file "%s" using config file "%s"',[AProjectFile, ConfigFile]);
+    Log(etError,'Refusing compile of file "%s" using config file "%s"',[AProjectFile, ProjectConfigFile]);
     Exit(nErrTooManyThreads);
     end;
   CI:=FCompiles.Add as TCompileItem;
-  Log(etInfo,'Scheduling compile ID %d of file "%s" using config file "%s"',[CI.ID,AProjectFile, ConfigFile]);
+  Log(etInfo,'Scheduling compile ID %d of file "%s" using config file "%s"',[CI.ID,AProjectFile, ProjectConfigFile]);
   CI.BaseDir:=BaseDir;
   CI.FileName:=AProjectFile;
-  CI.ConfigFile:=ConfigFile;
+  CI.ConfigFile:=ProjectConfigFile;
   if Assigned(Options) then
     CI.Options.Assign(Options);
   TCompileThread.Create(Self,CI);
@@ -584,328 +510,66 @@ begin
       Log(etError,'Project file "%s" does not exist, aborting.',[ProjectFile]);
       Exit;
       end;
-    ConfigFile:=GetOptionValue('c','config');
-    if (ConfigFile='') then
-      ConfigFile:=ChangeFileExt(Projectfile,'.cfg');
-    if not FileExists(ConfigFile) then
-      ConfigFile:='';
     end;
   if Watch then
     begin
     if (ProjectFile='') then
-      Log(etWarning,'No project file specified, disabling watch.')   ;
-    StartWatch(aDir);
-    end;
-  Result:=True;
-end;
-
-procedure THTTPCompilerApplication.DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
-
-Var
-  Msg : String;
-
-begin
-  if Quiet then
-    exit;
-  Msg:=Format('(Proxy redirect) location: %s, Method: %s, From: %s, to: %s',[aLocation,aMethod,aFromURl,atoURL]);
-  if IsConsole then
-    {AllowWriteln}
-    Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',etInfo,'] ',Msg)
-    {AllowWriteln-}
-  else
-    inherited DoLog(etInfo, Msg);
-end;
-
-procedure THTTPCompilerApplication.DoEcho(ARequest: TRequest; AResponse: TResponse);
-
-Var
-  L : TStrings;
-
-begin
-  L:=TStringList.Create;
-  try
-    L.AddStrings(['<!doctype html>',
-      '<html>',
-      '<head>',
-      '<title>Echo request</title>',
-      '</head>',
-      '<body>'
-    ]);
-    DumpRequest(aRequest,L);
-    L.AddStrings(['</body>','</html>']);
-    AResponse.Content:=L.Text;
-    AResponse.SendResponse;
-  finally
-    L.Free;
-  end;
-end;
-procedure THTTPCompilerApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
-
-Var
-  PWD : String;
-
-begin
-  PWD:=ARequest.QueryFields.Values['password'];
-  if PWD='' then
-    ARequest.ContentFields.Values['password'];
-  if PWD=FPassword then
-    begin
-    AResponse.Content:='OK';
-    AResponse.SendContent;
-    Terminate;
-    end
-  else
-    begin
-    AResponse.Code:=403;
-    AResponse.CodeText:='Forbidden';
-    AResponse.SendContent;
-    end;
-end;
-
-Const
-  SCaptureRoute = '/debugcapture';
-
-procedure THTTPCompilerApplication.ReadConfigFile(Const ConfigFile : string);
-
-Const
-  SConfig  = 'Server';
-  SProxy = 'Proxy';
-  SLocations = 'Locations';
-
-  KeyPort  = 'Port';
-  KeyInterface = 'Interface';   
-  KeyDir   = 'Directory';
-  KeyIndexPage = 'IndexPage';
-  KeyHostName = 'hostname';
-  keyMimetypes = 'mimetypes';
-  KeySSL = 'SSL';
-  KeyQuiet = 'quiet';
-  KeyQuit = 'quit';
-  KeyEcho = 'echo';
-  KeyNoIndexPage = 'noindexpage';
-  KeyBackground = 'background';
-  KeyMaxAge = 'MaxAge';
-  KeyAPI = 'API';
-  KeyCOI = 'CrossOriginIsolation';
-  KeyCapture = 'DebugCapture';
-
-
-Var
-  L : TStringList;
-  C,P,U : String;
-  I : Integer;
-
-begin
-  if (ConfigFile='') or Not FileExists(ConfigFile) then exit;
-  L:=Nil;
-  With TMemIniFile.Create(ConfigFile) do
-    try
-      FBaseDir:=ReadString(SConfig,KeyDir,BaseDir);
-      Port:=ReadInteger(SConfig,KeyPort,Port);
-      InterfaceAddress:=ReadString(SConfig,KeyInterface,InterfaceAddress);
-      Quiet:=ReadBool(SConfig,KeyQuiet,Quiet);
-      FMimeFile:=ReadString(SConfig,keyMimetypes,MimeFile);
-      NoIndexPage:=ReadBool(SConfig,KeyNoIndexPage,NoIndexPage);
-      IndexPageName:=ReadString(SConfig,KeyIndexPage,IndexPageName);
-      HostName:=ReadString(SConfig,KeyHostName,HostName);
-      UseSSL:=ReadBool(SConfig,KeySSL,UseSSL);
-      FBackground:=ReadBool(SConfig,Keybackground,FBackGround);
-      FPassword:=ReadString(SConfig,KeyQuit,FPassword);
-      FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
-      FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
-      FAPI:=ReadString(SConfig,keyAPI,'');
-      FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
-      if ValueExists(SConfig,KeyCapture) then
-        begin
-        C:=ReadString(SConfig,keyCapture,'');
-        if C='-' then
-          TDebugCaptureService.Instance.LogToConsole:=True
-        else
-          TDebugCaptureService.Instance.LogFileName:=C;
-        end;
-      L:=TstringList.Create;
-      ReadSectionValues(SProxy,L,[]);
-      For I:=0 to L.Count-1 do
-        begin
-        L.GetNameValue(I,P,U);
-        if (P<>'') and (U<>'') then
-          ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
-        end;
-      L.Clear;
-      ReadSectionValues(SLocations,L,[]);
-      For I:=0 to L.Count-1 do
-        begin
-        L.GetNameValue(I,P,U);
-        if (P<>'') and (U<>'') then
-          RegisterFileLocation(P,U);
-        end;
-    finally
-      L.Free;
-      Free;
-    end;
-end;
-
-
-function THTTPCompilerApplication.ProcessOptions: Boolean;
-
-Var
-  C,IndexPage,D : String;
-
-begin
-  Result:=False;
-  if HasOption('A','api') then
-    FAPI:=GetOptionValue('A','api');
-  FServeOnly:=FServeOnly or HasOption('s','serve-only');
-  Quiet:=Quiet or HasOption('q','quiet');
-  if (Port=0) or HasOption('p','port') then
-    Port:=StrToIntDef(GetOptionValue('p','port'),3000);
-  if HasOption('d','directory') then
-    D:=GetOptionValue('d','directory');
-  if D='' then
-    D:=GetCurrentDir;
-  if HasOption('m','mimetypes') then
-    MimeTypesFile:=GetOptionValue('m','mimetypes');
-    
-  if MimeTypesFile='' then
-    begin
-    MimeTypesFile:=GetDefaultMimeTypesFile;
-    if not FileExists(MimeTypesFile) then
-      begin
-      MimeTypesFile:='';
-      LoadDefaultMimeTypes;
-      end;
-    end
-  else if not FileExists(MimeTypesFile) then
-    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
-  FBaseDir:=D;
-  if not ServeOnly then
-    if not HandleCompileOptions(D) then
-      exit(False);
-  TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
-  TSimpleFileModule.OnLog:=@Log;
-  Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
-  if ServeOnly then
-    Log(etInfo,'Compile requests will be ignored.');
-  NoIndexPage:=NoIndexPage or HasOption('n','noindexpage');
-  if HasOption('i','indexpage') then
-    IndexPage:=GetOptionValue('i','indexpage');
-  if HasOption('I','interface') then
-    InterfaceAddress:=GetOptionValue('I','interface');   
-  If not NoIndexPage then
-    begin
-    if (IndexPage='') then
-      IndexPage:='index.html';
-    Log(etInfo,'Using index page %s',[IndexPage]);
-    TSimpleFileModule.IndexPageName:=IndexPage;
-    end;
-  FCrossOriginIsolation:=hasOption('o','coi');
-  if HasOption('u','capture') then
-    begin
-    C:=GetOptionValue('u','capture');
-    if C='' then
-      TDebugCaptureService.Instance.LogToConsole:=True
+      Log(etWarning,'No project file specified, disabling watch.')
     else
-      TDebugCaptureService.Instance.LogFileName:=C;
+      StartWatch(aDir);
     end;
   Result:=True;
 end;
 
-procedure THTTPCompilerApplication.DoRun;
-
-Var
-  S : String;
+procedure THTTPCompilerApplication.DoReadConfigFile(const aIni: TCustomIniFile);
 
 begin
-  S:=Checkoptions('shqVd:ni:p:wP::cm:A:I:u::',['help','quiet','version','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:','interface:','capture']);
-  if (S<>'') or HasOption('h','help') then
-    Usage(S);
-  if HasOption('V','version') then
+  With aIni do
     begin
-    {AllowWriteln}
-    writeln(HTTPCompilerVersion);
-    {AllowWriteln-}
-    Terminate;
-    exit;
+    FServeOnly:=ReadBool(SConfig,KeyServeOnly,FServeOnly);
+    FWatch:=ReadBool(SConfig,KeyWatch,FWatch);
+    FProjectFile:=ReadString(SConfig,KeyProject,FProjectFile);
+    FProjectConfigFile:=ReadString(SConfig,KeyProject,FProjectConfigFile);
+    if (FProjectConfigFile='') and (FProjectFile<>'') then
+      FProjectConfigFile:=ChangeFileExt(FProjectFile,'.cfg');
     end;
-  if HasOption('c','config') then
-    ConfigFile:=GetOptionValue('c','config')
-  else
-    ConfigFile:='compileserver.ini';
-  Port:=3000;
-  ReadConfigFile(ConfigFile);
-  If not ProcessOptions then
-    begin
-    Terminate;
-    exit;
-    end;
-  if FBackground then
-    begin
-{$ifdef unix}
-    if FPFork>0 then Halt(0);
-{$else}
-    Log(etError,'Background option not supported');
-{$endif}
-    end;
-  // Handle options
-  SetupCapture;
-  if FPassword<>'' then
-    HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
-  if FEcho  then
-    HTTPRouter.RegisterRoute('/echo',rmAll,@DoEcho,False);
-  if ProxyManager.LocationCount>0 then
-    begin
-    TProxyWebModule.RegisterModule('Proxy',True);
-    ProxyManager.OnLog:=@DoProxyLog;
-    end;
-  DefaultCacheControlMaxAge:=FMaxAge; // one year by default
+end;
+
+procedure THTTPCompilerApplication.ProcessOptions;
+
+begin
+  Inherited;
+  FServeOnly:=FServeOnly or HasOption('s','serve-only');
+  if not ServeOnly then
+    if not HandleCompileOptions(BaseDir) then
+
+end;
+
+procedure THTTPCompilerApplication.GetValidOptions(out aShort: String; out aLong: TStringDynArray);
+
+var
+  len : integer;
+
+begin
+  Inherited GetValidOptions(aShort,aLong);
+  aShort:=aShort+'wP:';
+  Len:=Length(aLong);
+  SetLength(aLong,Len+2);
+  aLong[Len]:='watch';
+  aLong[Len+1]:='project';
+end;
+
+procedure THTTPCompilerApplication.RegisterRoutes;
+
+begin
   if not ServeOnly then
     begin
     httprouter.RegisterRoute('$sys/compile',rmPost,@DoRecompile);
     httprouter.RegisterRoute('$sys/status',rmGet,@DoStatusRequest);
     end;
-  if FAPI<>'' then
-    {$IF FPC_FULLVERSION > 30300}
-    TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPI,[',']),ExtractWord(2,FAPI,[',']));
-    {$ELSE}
-    Log(etError,'API support missing, compile with fpc 3.3.1+');
-    {$ENDIF}
-  if FCrossOriginIsolation then
-    {$IF FPC_FULLVERSION > 30300}
-    TSimpleFileModule.DefaultSimpleFileModuleClass:=TMySimpleFileModule;
-    {$ELSE}
-    Log(etError,'CrossOriginIsolation support missing, compile with fpc 3.3.1+');
-    {$ENDIF}
-  TSimpleFileModule.RegisterDefaultRoute;
-  if InterfaceAddress<>'' then
-    HTTPHandler.Address:=InterfaceAddress;
-  try
-    inherited DoRun;
-  except
-    on E: ESocketError do begin
-      Log(etError,E.ClassName+': '+E.Message);
-      ExitCode:=nExitCodeSocketError;
-      Terminate;
-    end;
-  end;
+  Inherited;
 end;
 
 
-procedure THTTPCompilerApplication.SetupCapture;
-
-Var
-  Dest : String;
-  Svc : TDebugCaptureService;
-
-begin
-  Svc:=TDebugCaptureService.Instance;
-  Dest:=Svc.LogFileName;
-  if (Dest='') and Svc.LogToConsole then
-    Dest:='Console';
-  if Dest<>'' then
-    begin
-    DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
-    HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
-    end;
-end;
 
 end.
