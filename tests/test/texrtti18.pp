@@ -1,36 +1,35 @@
-program texrtti18;
+{$Mode ObjFpc}
 
-{ Test that array properties do not appear in the list of RTTI properties }
+uses TypInfo;
 
-{$mode objfpc}
-
-uses TypInfo, uexrttiutil;
-
-{$RTTI INHERIT
-       METHODS(DefaultMethodRttiVisibility)
-       FIELDS(DefaultFieldRttiVisibility)
-       PROPERTIES(DefaultPropertyRttiVisibility)
-}
-
-Type
-  T1 = Class(TObject)
-    function getsomething(aIndex : Integer) : TObject;
-    property Something[a: Integer] : TObject Read GetSomething;
+type
+  {$RTTI EXPLICIT 
+    FIELDS([vcPublic])
+    PROPERTIES([vcPublic,vcPublished])
+    METHODS([vcPublic,vcPublished])
+  }
+  TTestClass = class
+  public 
+    fa:integer;
+    function MyMethod(const arg1: Integer): Integer;
+    property TestIProp[const i: Longint]: Integer read MyMethod; 
+  published
+    property TestProp: Integer read fa;
   end;
 
-
-function T1.getsomething(aIndex : Integer) : TObject;
-
+function TTestClass.MyMethod(const arg1: Integer): Integer;
 begin
-  Result:=Nil;
+  Result := arg1;
 end;
 
 var
-  aCount : Integer;
-  P: PPropListEx;
-
+  pcd: PClassData;
 begin
-  aCount:=GetPropListEx(T1,P);
-  AssertEquals('class property not in RTTI properties',0,aCount);
+  pcd:=PClassData(GetTypeData(TypeInfo(TTestClass)));
+  WriteLn(pcd^.PropertyTable^.PropCount);
+  if pcd^.PropertyTable^.PropCount <> 1 then
+    Halt(1);
+  if assigned(pcd^.PropertyTable^.Prop[0]^.PropParams) then
+    Halt(2);
+  WriteLn('Ok');
 end.
-
