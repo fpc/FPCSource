@@ -42,6 +42,8 @@ uses
 
 {$i videoh.inc}
 
+type
+  TVideoColorMap = array[0..15,0..2] of byte;
 
 { Amiga specific calls, to help interaction between Keyboard, Mouse and
   Video units, and Free Vision }
@@ -57,6 +59,8 @@ procedure GotInactiveWindow;
 function HasInactiveWindow: boolean;
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
+procedure SetAllColors(const colormap: TVideoColorMap);
+
 
 var
   VideoWindow: PWindow;
@@ -920,6 +924,32 @@ begin
 end;
 {$endif}
 
+procedure SetAllColors(const colormap: TVideoColorMap);
+var
+  counter: longint;
+begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
+  for Counter := 0 to 15 do
+    ReleasePen(VideoColorMap, VideoPens[Counter]);
+  {$endif}
+
+  for Counter := 0 to 15 do
+  begin
+    {$if defined(AMIGA_V1_2_ONLY)}
+      VideoPens[Counter] := Counter;
+      SetRGB4(@(PScreen(VideoWindow^.WScreen)^.ViewPort), Counter, colormap[counter, 0] shr 4, colormap[counter, 1] shr 4, colormap[counter, 2] shr 4);
+    {$else}
+      VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
+        colormap[counter, 0] shl 24, colormap[counter, 1] shl 24, colormap[counter, 2] shl 24, nil);
+    {$endif}
+    {$ifdef VIDEODEBUG}
+    If VideoPens[Counter] = -1 then
+      WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
+    else
+      WriteLn('good color[',Counter,'] = ', VideoPens[Counter]);
+    {$endif}
+  end;
+end;
 
 initialization
   SetVideoDriver(SysVideoDriver);
