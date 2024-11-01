@@ -1779,7 +1779,8 @@ unit cgcpu;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if needs_check_for_fpu_exceptions and
+        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and
+          needs_check_for_fpu_exceptions and
           (force or current_procinfo.FPUExceptionCheckNeeded) then
           begin
             r:=getintregister(list,OS_INT);
