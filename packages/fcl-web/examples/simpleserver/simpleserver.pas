@@ -42,8 +42,11 @@ uses
   {$ifdef unix}
   baseunix,
   {$endif}
+  {$IFNDEF VER3_2}
+  fpdebugcapturesvc,
+  {$ENDIF}
   sysutils, Classes, jsonparser, fpjson, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy,
-  webutil, fpdebugcapturesvc;
+  webutil;
 
 Const
   ServerVersion = '1.0';
@@ -57,15 +60,20 @@ Type
   TParentApp = TCustomHTTPApplication;
 {$ENDIF}
 
+{$IFDEF VER3_2}
   { TMySimpleFileModule }
-
-  TMySimpleFileModule = class(TSimpleFileModule)
+  TMySimpleFileModule = class(TFPCustomFileModule)
   Public
+    Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); override;
     Procedure SendFile(const AFileName: String; AResponse: TResponse); override;
   end;
+{$ENDIF}
 
   THTTPApplication = Class(TParentApp)
   private
+    FProxyDefs : TStrings;
+    FLocations : TStrings;
+    FHeaders: TStrings;
     FAPISecret : String;
     FBaseDir: string;
     FIndexPageName: String;
@@ -79,16 +87,23 @@ Type
     FMaxAge : Integer;
     FCrossOriginIsolation : Boolean;
     procedure AddProxy(const aProxyDef: String);
+    procedure ApplyCoi(Sender: TObject; aResponse: TResponse);
     procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
     procedure DoQuit(ARequest: TRequest; AResponse: TResponse);
     procedure LoadMimeTypes;
     procedure ProcessOptions;
     procedure ReadConfigFile(const ConfigFile: string);
+    {$IFNDEF VER3_2}
     procedure SetupCapture;
+    Procedure RegisterCustomHeaders;
+    {$ENDIF}
     procedure Usage(Msg: String);
     procedure Writeinfo;
+    procedure RegisterFileLocations;
+    Procedure RegisterProxies;
   Public
+    constructor create(aOwner : TComponent); override;
     Destructor Destroy; override;
   published
     procedure DoLog(EventType: TEventType; const Msg: String); override;
@@ -104,7 +119,13 @@ Type
 Var
   Application : THTTPApplication;
 
+{$IFDEF VER3_2}
 { TMySimpleFileModule }
+
+constructor TMySimpleFileModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
+begin
+  inherited CreateNew(AOwner, CreateMode);
+end;
 
 procedure TMySimpleFileModule.SendFile(const AFileName: String; AResponse: TResponse);
 begin
@@ -112,8 +133,24 @@ begin
   AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
   inherited SendFile(AFileName, AResponse);
 end;
+{$ENDIF}
 
 { THTTPApplication }
+constructor THTTPApplication.create(aOwner : TComponent);
+
+begin
+  Inherited;
+  FProxyDefs:=TStringList.Create;
+  FLocations:=TStringList.Create;
+  FHeaders:=TStringList.Create;
+end;
+
+procedure THTTPApplication.ApplyCoi(Sender : TObject; aResponse : TResponse);
+
+begin
+  AResponse.SetCustomHeader('Cross-Origin-Embedder-Policy','require-corp');
+  AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
+end;
 
 procedure THTTPApplication.DoEcho(ARequest: TRequest; AResponse: TResponse);
 
@@ -141,7 +178,7 @@ begin
 end;
 
 
-procedure THTTPApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
+procedure THTTPApplication.DoQuit(ARequest: TRequest; AResponse: TResponse);
 
 Var
   PWD : String;
@@ -217,8 +254,10 @@ begin
   Writeln('-q --quiet            Do not write diagnostic messages.');
   Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop.');
   Writeln('-s --ssl              Use SSL.');
+  {$IFNDEF VER3_2}
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
   Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
+  {$ENDIF}
   Writeln('-V --version          Display server version and exit.');         
   Writeln('-x --proxy=proxydef   Add proxy definition. Definition is of form:');
   Writeln('                      name:BaseURL');
@@ -268,6 +307,7 @@ Const
   SConfig  = 'Server';
   SProxy = 'Proxy';
   SLocations = 'Locations';
+  SHeaders = 'Headers';
 
   KeyPort  = 'Port';
   KeyInterface = 'Interface';
@@ -288,16 +328,8 @@ Const
 
 procedure THTTPApplication.ReadConfigFile(const ConfigFile: string);
 
-
-
-Var
-  L : TStringList;
-  P,U : String;
-  I : Integer;
-
 begin
   if (ConfigFile='') or Not FileExists(ConfigFile) then exit;
-  L:=Nil;
   With TMemIniFile.Create(ConfigFile) do
     try
       BaseDir:=ReadString(SConfig,KeyDir,BaseDir);
@@ -315,31 +347,83 @@ begin
       FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
       FAPISecret:=ReadString(SConfig,KeyAPI,'');
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
+      {$IFNDEF VER3_2}
       if ValueExists(SConfig,KeyCapture) then
         begin
         TDebugCaptureService.Instance.LogFileName:=ReadString(SConfig,keyCapture,'');
         end;
-      L:=TstringList.Create;
-      ReadSectionValues(SProxy,L,[]);
-      For I:=0 to L.Count-1 do
-        begin
-        L.GetNameValue(I,P,U);
-        if (P<>'') and (U<>'') then
-          ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
-        end;
-      L.Clear;
-      ReadSectionValues(SLocations,L,[]);
-      For I:=0 to L.Count-1 do
-        begin
-        L.GetNameValue(I,P,U);
-        if (P<>'') and (U<>'') then
-          RegisterFileLocation(P,U);
-        end;
+      {$ENDIF}
+      ReadSectionValues(SProxy,FProxyDefs,[]);
+      ReadSectionValues(SLocations,FLocations,[]);
+      ReadSectionValues(SHeaders,FHeaders,[]);
     finally
-      L.Free;
       Free;
     end;
 end;
+
+procedure THTTPApplication.RegisterProxies;
+
+var
+  I : integer;
+  Proxy,URL : String;
+  
+begin
+  For I:=0 to FProxyDefs.Count-1 do
+    begin
+    FProxyDefs.GetNameValue(I,Proxy,Url);
+    if (Proxy<>'') and (Url<>'') then
+      ProxyManager.RegisterLocation(Proxy,Url).AppendPathInfo:=true;
+    end;
+end;
+
+{$IFNDEF VER3_2}
+procedure THTTPApplication.RegisterCustomHeaders;
+var
+  I : integer;
+  lName,lValue : String;
+
+begin
+  For I:=0 to FLocations.Count-1 do
+    begin
+    FLocations.GetNameValue(I,lName,lValue);
+    if (lName<>'') and (lValue<>'') then
+      TFPCustomFileModule.RegisterGlobalResponseHeader(lName,lValue);
+    end;
+end;
+
+procedure THTTPApplication.SetupCapture;
+
+Var
+  Dest : String;
+  Svc : TDebugCaptureService;
+
+begin
+  Svc:=TDebugCaptureService.Instance;
+  Dest:=Svc.LogFileName;
+  if (Dest='') and Svc.LogToConsole then
+    Dest:='Console';
+  if Dest<>'' then
+    begin
+    DoLog(etInfo,Format('Setting up capture on route "%s", writing to: %s',[SCaptureRoute,Dest]));
+    HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
+    end;
+end;
+{$ENDIF}
+
+procedure THTTPApplication.RegisterFileLocations;
+
+var
+  I : integer;
+  loc,Dir : String;
+  
+begin
+  For I:=0 to FLocations.Count-1 do
+    begin
+    FLocations.GetNameValue(I,Loc,Dir);
+    if (Loc<>'') and (Dir<>'') then
+      RegisterFileLocation(Loc,Dir);
+    end;
+end;        
 
 procedure THTTPApplication.ProcessOptions;
 
@@ -381,6 +465,7 @@ begin
     FBackground:=true;
   if hasOption('o','coi') then
     FCrossOriginIsolation:=true;
+  {$IFNDEF VER3_2}
   if HasOption('u','capture') then
     begin
     S:=GetOptionValue('u','capture');
@@ -389,50 +474,52 @@ begin
     else
       TDebugCaptureService.Instance.LogFileName:=S;
     end;
+  {$ENDIF}
 end;
 
 procedure THTTPApplication.Writeinfo;
 
+  function BtoS(B : Boolean) : string;
+
+  begin
+    Result:=BoolToStr(B,'True','False');
+  end;
+
 Var
   I : Integer;
+  Base,N,V : String;
 
 begin
-  Log(etInfo,'Listening on port %d, serving files from directory: %s (using SSL: %s).',[Port,BaseDir,BoolToStr(UseSSL,'true','false')]);
+  Log(etInfo,'Listening on port %d',[Port]);
+  Log(etInfo,'Serving files from directory: %s',[BaseDir]);
   For I:=0 to ProxyManager.LocationCount-1 do
     with ProxyManager.Locations[i] do
       Log(etInfo,'Proxy location /proxy/%s redirects to: %s',[Path,URL]);
+  For I:=0 to FLocations.Count-1 do
+    begin
+    FLocations.GetNameValue(I,N,V);
+    Log(etInfo,'Enabled file location "%s", serving from: %s',[N,V]);
+    end;
+  Log(etInfo,'Enabled index page: %s',[BToS(NoIndexPage)]);
   if not NoIndexPage then
-    Log(etInfo,'Using index page: %s',[IndexPageName]);
-  if (Self.FPassword<>'') then
-    DoLog(etInfo,'/quit route set up.');
-  if FEcho then
-    DoLog(etInfo,'Setting up /echo route.');
-  Log(etInfo,'Location REST API '+IfThen(FAPISecret<>'','','NOT ')+'activated.');
-  Log(etInfo,'Navigate to: http'+IfThen(UseSSL,'s','')+'://localhost:'+IntToStr(Port)+'/');
- 
+    Log(etInfo,'Index page name: %s',[IndexPageName]);
+  Log(etInfo,'Enabled SSL: %s',[BtoS(UseSSL)]);
+  Log(etInfo,'Enabled COI/CORP: %s',[BToS(FCrossOriginIsolation)]);
+  Log(etInfo,'Enabled /quit route: %s',[BtoS(Self.FPassword<>'')]);
+  Log(etInfo,'Enabled /echo route: %s',[BtoS(FEcho)]);
+  Log(etInfo,'Enabled location REST API: %s',[BtoS(FAPISecret<>'')]);
+  Base:='http'+IfThen(UseSSL,'s','')+'://localhost:'+IntToStr(Port)+'/';
+  Log(etInfo,'Navigate to: %s',[Base]);
+  For I:=0 to FLocations.Count-1 do
+    begin
+    FLocations.GetNameValue(I,N,V);
+    Log(etInfo,'Navigate to location "%s" at: %s/',[N,Base+N]);
+    end;
 end;
 
 destructor THTTPApplication.Destroy;
 begin
   inherited Destroy;
-end;
-
-procedure THTTPApplication.SetupCapture;
-
-Var
-  Dest : String;
-  Svc : TDebugCaptureService;
-
-begin
-  Svc:=TDebugCaptureService.Instance;
-  Dest:=Svc.LogFileName;
-  if (Dest='') and Svc.LogToConsole then
-    Dest:='Console';
-  if Dest<>'' then
-    begin
-    DoLog(etInfo,Format('Setting up capture on route "%s", writing to: %s',[SCaptureRoute,Dest]));
-    HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@Svc.HandleRequest,False);
-    end;
 end;
 
 procedure THTTPApplication.DoRun;
@@ -465,7 +552,9 @@ begin
     Log(etError,'Background option not supported.');
 {$endif}
     end;
+  {$IFNDEF VER3_2}
   SetupCapture;
+  {$ENDIF}
   if FPassword<>'' then
     begin
     HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
@@ -482,10 +571,23 @@ begin
     BaseDir:=GetCurrentDir;
   if (BaseDir<>'') then
     BaseDir:=IncludeTrailingPathDelimiter(BaseDir);
+  {$IFNDEF VER3_2_2}
   if FAPISecret<>'' then
     TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPISecret,[',']),ExtractWord(2,FAPISecret,[',']));
+  {$ENDIF}
   if FCrossOriginIsolation then  
-    TSimpleFileModule.DefaultSimpleFileModuleClass:=TMySimpleFileModule;
+    begin
+    {$IFDEF VER3_2_2}
+    DefaultFileModuleClass:=TMySimpleFileModule;
+    {$ELSE}
+    TFPCustomFileModule.OnPrepareResponse:=@ApplyCoi;
+    {$ENDIF}
+    end;
+  RegisterProxies;
+  RegisterFileLocations;
+  {$IFNDEF VER_3_2}
+  RegisterCustomHeaders;
+  {$ENDIF}
   TSimpleFileModule.RegisterDefaultRoute;
   TSimpleFileModule.BaseDir:=BaseDir;
   TSimpleFileModule.OnLog:=@Log;
