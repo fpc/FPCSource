@@ -26,22 +26,26 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-p 3003 -s -H nickname.freepascal.org"/>
+        <CommandLineParams Value="-c /home/tixeo/.lazarus/simplewebservergui.ini --coi"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-p 3003 -s -H nickname.freepascal.org"/>
+            <CommandLineParams Value="-c /home/tixeo/.lazarus/simplewebservergui.ini --coi"/>
           </local>
         </Mode0>
       </Modes>
     </RunParams>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="simpleserver.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="../../src/base/fpsimpleserver.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -54,6 +58,11 @@
       <OtherUnitFiles Value="../../src/base"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

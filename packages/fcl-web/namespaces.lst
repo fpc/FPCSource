@@ -20,6 +20,7 @@ src/base/iniwebsession.pp=namespaced/FpWeb.Session.Ini.pp
 src/base/httpprotocol.pp=namespaced/FpWeb.Http.Protocol.pp
 src/base/custapache24.pp=namespaced/FpWeb.HostApp.Custom.Apache24.pp
 src/base/custmicrohttpapp.pp=namespaced/FpWeb.HostApp.Custom.MicroHttpApp.pp
+src/base/fpsimpleserver.pp=namespaced/FpWeb.HostApp.Simple.pp
 src/base/fpcgi.pp=namespaced/FpWeb.HostApp.Cgi.pp
 src/base/fpdatasetform.pp=namespaced/FpWeb.DatasetForm.pp
 src/base/fpwebproxy.pp=namespaced/FpWeb.Modules.Proxy.pp
