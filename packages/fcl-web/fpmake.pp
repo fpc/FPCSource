@@ -253,6 +253,7 @@ begin
       AddUnit('httpdefs');
       AddUnit('custcgi');
       end;
+      
     T:=P.Targets.AddUnit('fphttpserver.pp');
     T.ResourceStrings:=true;
     T.OSes:=SocketsOSes;
@@ -260,6 +261,7 @@ begin
         begin
           AddUnit('httpdefs');
         end;
+        
     T:=P.Targets.AddUnit('fphttpclient.pp');
     T.OSes:=SocketsOSes;
     T.ResourceStrings:=true;
@@ -564,6 +566,7 @@ begin
       AddUnit('fpfcmtypes');
       end;
     T:=P.Targets.AddUnit('fpsimpleserver.pp');
+    T.OSes:=SocketsOSes;
     With T.Dependencies do
       begin
       AddUnit('httpdefs');
