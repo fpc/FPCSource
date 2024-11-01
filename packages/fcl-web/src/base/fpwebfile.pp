@@ -37,6 +37,8 @@ Type
 
   TFPCustomFileModule = Class(TCustomHTTPModule)
   private
+    class var _globalHeaders : TstringList;
+  private
     FCacheControlMaxAge: Integer;
     FScriptName:string;
   Protected
@@ -48,14 +50,23 @@ Type
     Function AllowFile(Const AFileName : String) : Boolean; virtual;
     // Actually Send file to client.
     Procedure SendFile(Const AFileName : String; AResponse : TResponse); virtual;
+    // Prepare response. This can be overridden to add headers
+    procedure PrepareResponse(aResponse: TResponse); virtual;
   Public
     Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); override; overload;
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property CacheControlMaxAge : Integer Read FCacheControlMaxAge Write FCacheControlMaxAge;
-  Public Class Var
-    // If you want some logging, set this.
-    OnLog : TSimpleFileLog;
+  Public
+    Type
+      TPrepareFileResponseCallback = procedure(Sender : TObject; aResponse : TResponse) of object;
+    Class Var
+      // If you want some logging, set this.
+      OnLog : TSimpleFileLog;
+      // If you want to customize the response, call this.
+      OnPrepareResponse : TPrepareFileResponseCallback;
+      // You can add some global headers.
+    class procedure RegisterGlobalResponseHeader(const aName,aValue : String);
   Published
     Property CORS;
     property Kind;
@@ -173,6 +184,7 @@ Procedure RegisterFileLocation(Const ALocation,ADirectory : String);
 
 Var
   D,BaseDir : String;
+  C : TFPCustomFileModuleClass;
 
 begin
   if (ALocation='') then
@@ -181,8 +193,9 @@ begin
     Raise HTTPError.CreateFmt(SErrInvalidLocation,[aLocation]);
   if (Locations=Nil) then
     Locations:=TStringList.Create;
-  if DefaultFileModuleClass=Nil then
-    DefaultFileModuleClass:=TFPCustomFileModule;
+  C:=DefaultFileModuleClass;
+  if C=Nil then
+    C:=TFPCustomFileModule;
   BaseDir:=ExtractFilePath(ParamStr(0));
   if (ADirectory='') then
     setFileLocationPath(aLocation,BaseDir)
@@ -195,7 +208,8 @@ begin
       Raise HTTPError.CreateFmt(SErrInvalidDirectory,[D]);
     SetFileLocationPath(ALocation,IncludeTrailingPathDelimiter(D));
     end;
-  RegisterHTTPModule(ALocation,DefaultFileModuleClass,true);
+  Writeln('Location ',aLocation,' handled by ',C.ClassName);
+  RegisterHTTPModule(ALocation,C,true);
   ModuleFactory.MoveModuleBeforeDefault(ALocation);
 end;
 
@@ -235,6 +249,7 @@ begin
   aClass:=DefaultSimpleFileModuleClass;
   if aClass=Nil then
     aClass:=TSimpleFileModule;
+  Writeln('Creating ',aClass.ClassName);
   With aClass.CreateNew(Nil) do
     try
       HandleRequest(ARequest,AResponse);
@@ -287,7 +302,7 @@ begin
   Result:=FPrivateRoute<>Nil;
 end;
 
-Function TFPCustomFileModule.GetRequestFileName(Const ARequest : TRequest) : String;
+function TFPCustomFileModule.GetRequestFileName(const ARequest: TRequest): String;
 
   procedure sb;
 
@@ -305,7 +320,7 @@ begin
   sb;
 end;
 
-Function TFPCustomFileModule.MapFileName(Const AFileName : String) : String; 
+function TFPCustomFileModule.MapFileName(const AFileName: String): String;
 
 Var
   D,localBaseURL : String;
@@ -333,7 +348,7 @@ begin
     end;
 end;
 
-Function TFPCustomFileModule.AllowFile(Const AFileName : String) : Boolean;
+function TFPCustomFileModule.AllowFile(const AFileName: String): Boolean;
 
 Var
   BaseDir,FN : String;
@@ -352,7 +367,7 @@ begin
   Result:=Pos('..'+PathDelim,FN)=0;
 end;
 
-procedure TFPCustomFileModule.SendFile(Const AFileName : String; AResponse : TResponse);
+procedure TFPCustomFileModule.SendFile(const AFileName: String; AResponse: TResponse);
 
 Var
   F : TFileStream;
@@ -376,19 +391,40 @@ begin
   end;
 end;
 
+procedure TFPCustomFileModule.PrepareResponse(aResponse: TResponse);
+
+var
+  I : Integer;
+  N,V : String;
+
+begin
+  if Assigned(_globalHeaders) then
+    For I:=0 to _GlobalHeaders.Count-1 do
+      begin
+      _GlobalHeaders.GetNameValue(I,N,V);
+      aResponse.CustomHeaders.Values[N]:=V;
+      end;
+  if Assigned(OnPrepareResponse) then
+     OnPrepareResponse(Self,aResponse);
+end;
+
 constructor TFPCustomFileModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
 begin
   inherited CreateNew(aOwner,CreateMode);
   CacheControlMaxAge:=DefaultCacheControlMaxAge;
+  Kind:=wkOneShot;
 end;
 
 
-Procedure TFPCustomFileModule.HandleRequest(ARequest : TRequest; AResponse : TResponse);
+procedure TFPCustomFileModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   RFN,FN : String;
+  S : String;
 
 begin
+  WriteStr(S,'Class ',ClassName,' mapping request ',aRequest.ScriptName);
+  Writeln(S);
   FScriptName:=ARequest.ScriptName;
   If CompareText(ARequest.Method,'GET')<>0 then
     begin
@@ -399,22 +435,42 @@ begin
   if (RFN='') then
     begin
     AResponse.SetStatus(400,True);
+    if Assigned (OnLog) then
+      OnLog(etInfo,Format('%d serving "%s"',[AResponse.Code,aRequest.URL]));
     exit;
     end;
   FN:=MapFileName(RFN);
   if (FN='') or not AllowFile(FN) then  
     begin
     AResponse.SetStatus(403,True);
+    if Assigned (OnLog) then
+      OnLog(etInfo,Format('%d serving "%s"',[AResponse.Code,aRequest.URL]));
     exit;
     end;
   if  not FileExists(FN) then
     begin
     AResponse.SetStatus(404,True);
+    if Assigned (OnLog) then
+      OnLog(etInfo,Format('%d serving "%s"',[AResponse.Code,aRequest.URL]));
     exit;
     end;
-  SendFile(FN,AResponse);
+  PrepareResponse(aResponse);
+  if not aResponse.ContentSent then
+    SendFile(FN,AResponse)
+  else if Assigned (OnLog) then
+    OnLog(etInfo,Format('Skipping serving "%s", handled in user code',[aRequest.URL]));
   if Assigned (OnLog) then
     OnLog(etInfo,Format('%d serving "%s" -> "%s"',[AResponse.Code,RFN,FN]));
+end;
+
+class procedure TFPCustomFileModule.RegisterGlobalResponseHeader(const aName, aValue: String);
+begin
+  if not assigned(_GlobalHeaders) then
+    begin
+    _globalHeaders:=TStringList.Create;
+    _globalHeaders.NameValueSeparator:=':';
+    end;
+  _GlobalHeaders.Values[aName]:=aValue;
 end;
 
 procedure TFPWebFileLocationAPIModule.SetCors(AValue: TCORSSupport);
@@ -689,4 +745,5 @@ initialization
 
 finalization
   FreeAndNil(Locations);
+  FreeAndNil(TFPCustomFileModule._globalHeaders);
 end.
