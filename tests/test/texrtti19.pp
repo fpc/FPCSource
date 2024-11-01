@@ -2,6 +2,8 @@
 
 uses TypInfo;
 
+{ Check that extended RTTI has information about array properties }
+
 type
   {$RTTI EXPLICIT 
     FIELDS([vcPublic])
