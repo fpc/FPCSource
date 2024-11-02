@@ -64,8 +64,6 @@ Type
 
 implementation
 
-uses FpJson.Schema.Consts;
-
 { TJSONSchemaWriter }
 
 procedure TJSONSchemaWriter.WriteProperty(const aName: TJSONStringType; aValue: TJSONSchema);

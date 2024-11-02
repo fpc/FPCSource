@@ -432,6 +432,7 @@ var
   OK : Boolean;
 
 begin
+  OK:=True;
   Result:=OK;
 end;
 

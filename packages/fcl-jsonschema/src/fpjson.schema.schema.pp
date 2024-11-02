@@ -415,164 +415,7 @@ Type
 
 implementation
 
-uses FpJson.Schema.Consts;
-
-{ TSchemaValue }
-
-(*
-
-procedure TSchemaValue.SetSchema(AValue: TJSONSchema);
-begin
-  if FSchema=AValue then Exit;
-  FreeAndNil(Fschema);
-  FSchema:=AValue;
-  if Assigned(FSchema) then
-    begin
-    FreeAndNil(FValue);
-    FreeAndNil(FList);
-    end;
-  DoOnChanged;
-end;
-
-procedure TSchemaValue.SetList(AValue: TSchemaValueList);
-begin
-  if FList=AValue then Exit;
-  FreeAndNil(FList);
-  FList:=AValue;
-  if Assigned(FList) then
-    begin
-    FreeAndNil(FSchema);
-    FreeAndNil(FValue);
-    end;
-  DoOnChanged;
-end;
-
-procedure TSchemaValue.SetValue(AValue: TJSONData);
-begin
-  if FValue=AValue then Exit;
-  if aValue.JSONType in StructuredJSONTypes then
-    Raise EJSONSchema.Create(SErrOnlySimpleValues);
-  FreeAndNil(FValue);
-  FValue:=AValue;
-  if Assigned(FValue) then
-    begin
-    FreeAndNil(FSchema);
-    FreeAndNil(FList);
-    end;
-  DoOnChanged;
-end;
-
-procedure TSchemaValue.DoOnChanged;
-begin
-  If Assigned(FOnChange) then
-    FOnChange(Self);
-end;
-
-constructor TSchemaValue.Create;
-begin
-  // Assign nothing
-end;
-
-constructor TSchemaValue.Create(aValue: TJSONData);
-begin
-  FValue:=aValue;
-end;
-
-constructor TSchemaValue.Create(aSchema: TJSONSchema);
-begin
-  FSchema:=aSchema;
-end;
-
-constructor TSchemaValue.Create(aList: TSchemaValueList);
-begin
-  FList:=aList;
-end;
-
-destructor TSchemaValue.Destroy;
-begin
-  FreeAndNil(FValue);
-  FreeAndNil(FList);
-  FreeAndNil(FSchema);
-  inherited Destroy;
-end;
-
-procedure TSchemaValue.Clear;
-begin
-  SimpleValue:=Nil;
-  Schema:=Nil;
-  List:=Nil;
-end;
-
-function TSchemaValue.ValueType: TSchemaValueType;
-begin
-  Result:=svtEmpty;
-  if (FValue<>Nil) then
-    Result:=svtSimple
-  else if (FSchema<>Nil) then
-    Result:=svtSchema
-  else if (FList<>Nil) then
-    Result:=svtList;
-end;
-
-function TSchemaValue.IsEmpty: Boolean;
-begin
-  Result:=(FValue=Nil) and (FSchema=Nil) and (FList=Nil);
-end;
-
-function TSchemaValue.IsSimpleValue: Boolean;
-begin
-  Result:=(FValue<>Nil);
-end;
-
-function TSchemaValue.IsSchema: Boolean;
-begin
-  Result:=(FSchema<>Nil);
-end;
-
-function TSchemaValue.IsList: Boolean;
-begin
-  Result:=(FList<>Nil);
-end;
-
-{ TSchemaValueList }
-
-function TSchemaValueList.GetValue(aIndex : integer): TSchemaValue;
-begin
-  Result:=Items[aIndex] as TSchemaValue;
-end;
-
-procedure TSchemaValueList.SetValue(aIndex : integer; AValue: TSchemaValue);
-begin
-  Items[aIndex]:=aValue;
-end;
-
-procedure TSchemaValueList.DoOnAdd;
-begin
-  If assigned(FOnAdd) then FOnAdd(Self);
-end;
-
-constructor TSchemaValueList.create(aKeyword: TJSONSchemaKeyword);
-begin
-  Inherited Create(True);
-  FKeyword:=aKeyword;
-end;
-
-function TSchemaValueList.Add(aSchema: TJSONSchema): TSchemaValue;
-begin
-  Result:=TSchemaValue.Create(aSchema);
-  Inherited Add(Result);
-  DoOnAdd;
-end;
-
-function TSchemaValueList.Add(aValue: TJSONData): TSchemaValue;
-begin
-  Result:=TSchemaValue.Create(aValue);
-  Inherited Add(Result);
-  DoOnAdd;
-end;
-*)
 { TJSONSchemaMetadata }
-
 
 procedure TJSONSchemaMetadata.SetConstrained;
 
@@ -581,17 +424,6 @@ begin
     Schema.MatchType:=smConstrained;
 end;
 
-(*
-function TJSONSchemaMetadata.GetDefaultValue: TSchemaValue;
-begin
-  if FDefaultValue=Nil then
-    begin
-    FDefaultValue:=TSchemaValue.Create(TJSONData(Nil));
-    SetConstrained;
-    end;
-  Result:=FDefaultValue;
-end;
-*)
 procedure TJSONSchemaMetadata.DoAddExample(Sender: TObject);
 begin
   SetConstrained;
@@ -605,14 +437,6 @@ begin
   if Assigned(FDefaultValue) then
     SetKeywordData(jskDefault);
 end;
-
-(*
-procedure TJSONSchemaMetadata.DoValueChanged(Sender: TObject);
-begin
-  if not TSchemaValue(Sender).IsEmpty then
-    SetConstrained;
-end;
-*)
 
 procedure TJSONSchemaMetadata.SetDeprecated(AValue: Boolean);
 begin

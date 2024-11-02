@@ -434,6 +434,7 @@ var
   Kw : TJSONSchemaKeyword;
   T : TJSONSubschema;
 begin
+  kw:=Default(TJSONSchemaKeyword);
   Kw.AsString:=aValue;
   For T in TJSONSubSchema do
     if JSONSubschemaKeys[T]=kw then
