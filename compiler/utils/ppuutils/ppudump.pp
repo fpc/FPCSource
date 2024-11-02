@@ -3302,7 +3302,8 @@ const
      (mask:oo_has_new_destructor; str:'HasNewDestructor'),
      (mask:oo_is_funcref;         str:'IsFuncRef'),
      (mask:oo_is_invokable;       str:'IsInvokable'),
-     (mask:oo_is_capturer;        str:'IsCapturer')
+     (mask:oo_is_capturer;        str:'IsCapturer'),
+     (mask:oo_inherits_not_specialized; str:'InheritedNotSpecialized')
   );
 var
   i      : longint;

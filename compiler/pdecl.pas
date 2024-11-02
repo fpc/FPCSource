@@ -1134,7 +1134,11 @@ implementation
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if not istyperenaming and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) then
-                      build_vmt(tobjectdef(hdef));
+                      if not (oo_inherits_not_specialized in tobjectdef(hdef).objectoptions) then
+                        build_vmt(tobjectdef(hdef))
+                      else
+                      { update the procdevs to add hidden self param }
+                      insert_struct_hidden_paras(tobjectdef(hdef));
 
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set

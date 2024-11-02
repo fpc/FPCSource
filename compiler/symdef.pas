@@ -8327,6 +8327,9 @@ implementation
           exit;
         { inherit options and status }
         objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
+        { check if parent is a generic parameter }
+        if sp_generic_para in c.typesym.symoptions then
+         objectoptions:=objectoptions+[oo_inherits_not_specialized];
         { initially has the same number of abstract methods as the parent }
         abstractcnt:=c.abstractcnt;
         { add the data of the anchestor class/object }

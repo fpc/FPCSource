@@ -585,7 +585,8 @@ type
     oo_has_new_destructor,{ the object/class declares a destructor (apart from potentially inherting one from the parent) }
     oo_is_funcref,        { interface has a single Invoke method that can be directly called }
     oo_is_invokable,      { interface that is invokable like a function }
-    oo_is_capturer        { the class is the capturer for anonymous functions (or converted proc(var)s) }
+    oo_is_capturer,        { the class is the capturer for anonymous functions (or converted proc(var)s) }
+    oo_inherits_not_specialized { the class inherits from a not yet specialized type }
   );
   tobjectoptions=set of tobjectoption;
 
@@ -895,7 +896,7 @@ const
 {$ifndef jvm}
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
                 oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
-                oo_can_have_published];
+                oo_can_have_published,oo_inherits_not_specialized];
 {$else not jvm}
 { constructors are not inherited in Java }
 inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,

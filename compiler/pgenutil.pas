@@ -2058,8 +2058,11 @@ uses
 
                       if oo_is_forward in tobjectdef(result).objectoptions then
                         add_forward_generic_def(result,context)
+                      else if not (oo_inherits_not_specialized in tobjectdef(result).objectoptions) then
+                        build_vmt(tobjectdef(result))
                       else
-                        build_vmt(tobjectdef(result));
+                        { update the procdevs to add hidden self param }
+                        insert_struct_hidden_paras(tobjectdef(result));
                     end;
                   { handle params, calling convention, etc }
                   procvardef:
