@@ -1275,20 +1275,14 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TStream.ReadRawByteString: RawByteString;
 VAR
-{$ifdef FPC_HAS_CPSTRING}
   CP: TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   L: LongInt;
 BEGIN
-{$ifdef FPC_HAS_CPSTRING}
   Read(CP, SizeOf(CP));
-{$endif FPC_HAS_CPSTRING}
   Read(L, SizeOf(L));
    If (L <= 0) Then ReadRawByteString := '' Else Begin
      SetLength(ReadRawByteString, L);
-{$ifdef FPC_HAS_CPSTRING}
      SetCodePage(ReadRawByteString, CP, False);
-{$endif FPC_HAS_CPSTRING}
      Read(ReadRawByteString[1], L);
    End;
 END;
@@ -1432,15 +1426,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.WriteRawByteString (Const S: RawByteString);
 VAR
-{$ifdef FPC_HAS_CPSTRING}
   CP: TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   L: LongInt;
 BEGIN
-{$ifdef FPC_HAS_CPSTRING}
    CP := StringCodePage(S);
    Write(CP, SizeOf(CP));
-{$endif FPC_HAS_CPSTRING}
    L := Length(S);
    Write(L, SizeOf(L));
    if L > 0 then

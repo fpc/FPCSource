@@ -1120,8 +1120,6 @@ begin
     Result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.CP{$ELSE}unixcp{$ENDIF}.GetSystemCodepage;
 end;
 
-{$ifdef FPC_HAS_CPSTRING}
-
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of
@@ -1138,7 +1136,6 @@ begin
   SetStdIOCodePage(StdOut);
   SetStdIOCodePage(StdErr);
 end;
-{$endif FPC_HAS_CPSTRING}
 
 var
   OrgWideStringManager: TUnicodeStringManager;
@@ -1210,9 +1207,7 @@ initialization
   DefaultFileSystemCodePage:=GetStandardCodePage(scpFileSystemSingleByte);
   DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
 
-  {$ifdef FPC_HAS_CPSTRING}
   SetStdIOCodePages;
-  {$endif FPC_HAS_CPSTRING}
 
   { init conversion tables for main program }
   InitThread;

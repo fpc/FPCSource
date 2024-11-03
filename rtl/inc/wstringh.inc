@@ -26,8 +26,8 @@ Function Pos (const c : ShortString; Const s : WideString; Offset : SizeInt = 1)
 
 Function UpCase(const s : WideString) : WideString;
 
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pwidechar{$else}SetString{$endif}(Out S : WideString; Buf : PWideChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pansichar{$else}SetString{$endif}(Out S : WideString; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_widestr_pwidechar(Out S : WideString; Buf : PWideChar; Len : SizeInt); compilerproc;
+Procedure fpc_setstring_widestr_pansichar(Out S : WideString; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 
 procedure DefaultAnsi2WideMove(source:PAnsiChar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 

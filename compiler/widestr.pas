@@ -335,13 +335,10 @@ unit widestr;
 
 
     function charlength(p: pchar; len: sizeint): sizeint;
-      {$IFDEF FPC_HAS_CPSTRING}
       var
         p2: pchar;
         i, chars, codepointlen: sizeint;
-      {$ENDIF FPC_HAS_CPSTRING}
       begin
-{$IFDEF FPC_HAS_CPSTRING}
         if len=0 then
           begin
             result:=0;
@@ -373,9 +370,6 @@ unit widestr;
           end
         else
           result:=len;
-{$ELSE FPC_HAS_CPSTRING}
-        result:=len;
-{$ENDIF FPC_HAS_CPSTRING}
       end;
 
     function charlength(const s: string): sizeint;

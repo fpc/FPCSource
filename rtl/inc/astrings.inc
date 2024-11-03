@@ -83,7 +83,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pansichar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pansichar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); rtlproc;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
 end;
@@ -92,7 +92,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
-procedure fpc_pchar_pchar_intern_charmove(const src: pansichar; const srcindex: sizeint; const dst: pansichar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_pchar_intern_charmove(const src: pansichar; const srcindex: sizeint; const dst: pansichar; const dstindex, len: sizeint); rtlproc; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],dst[dstindex],len);
 end;
@@ -101,7 +101,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_shortstr_ansistr_intern_charmove(const src: shortstring; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_shortstr_ansistr_intern_charmove(const src: shortstring; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); rtlproc; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
 end;
@@ -211,19 +211,15 @@ end;
 
 {$ifndef FPC_HAS_ANSISTR_CONCAT}
 {$define FPC_HAS_ANSISTR_CONCAT}
-procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString;cp : TSystemCodePage); compilerproc;
 Var
   S1Len, S2Len: SizeInt;
   S1CP, S2CP, DestCP: TSystemCodePage;
   OldDestP, NewDestP, RealDestP, Src : Pointer;
 begin
-{$ifdef FPC_HAS_CPSTRING}
   DestCP:=cp;
   if DestCp=CP_NONE then
     DestCP:=DefaultSystemCodePage;
-{$else FPC_HAS_CPSTRING}
-  DestCP:=StringCodePage(DestS);
-{$endif FPC_HAS_CPSTRING}
   DestCP:=TranslatePlaceholderCP(DestCP);
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
@@ -234,7 +230,6 @@ begin
   S2CP:=S1CP; { So if S2 is empty, S2CP = S1CP. }
   if Length(S2)<>0 then
     S2CP:=TranslatePlaceholderCP(StringCodePage(S2));
-{$ifdef FPC_HAS_CPSTRING}
   { if the result is rawbytestring and both strings have the same code page,
     keep that code page or keep the code page if the other string is empty }
   if cp=CP_NONE then
@@ -245,7 +240,6 @@ begin
        DestCP:=S2CP;
        S1CP:=S2CP;
      end;
-{$endif FPC_HAS_CPSTRING}
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
@@ -308,19 +302,15 @@ begin
   widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,cp,Length(U));
 end;
 
-procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString;cp : TSystemCodePage); compilerproc;
 Var
   lowstart,i,Size,NewLen : SizeInt;
   p,pc,olddestp,newdestp,realdestp : pointer;
   DestCP,tmpCP : TSystemCodePage;
 begin
-{$ifdef FPC_HAS_CPSTRING}
   DestCP:=cp;
   if DestCp=CP_NONE then
     DestCP:=DefaultSystemCodePage;
-{$else FPC_HAS_CPSTRING}
-  DestCP:=StringCodePage(DestS);
-{$endif FPC_HAS_CPSTRING}
   lowstart:=low(sarr);
   { skip empty strings }
   while (lowstart<=high(sarr)) and
@@ -344,12 +334,10 @@ begin
           exit;
         end;
     end;
-{$ifdef FPC_HAS_CPSTRING}
   { if the result is rawbytestring and all strings have the same code page,
     keep that code page }
   if cp=CP_NONE then
     DestCP:=tmpCP;
-{$endif FPC_HAS_CPSTRING}
   { Calculate size of the result so we can do
     a single call to SetLength() }
   NewLen:=0;
@@ -424,7 +412,6 @@ begin
 end;
 {$endif EXTRAANSISHORT}
 
-{$ifdef FPC_HAS_CPSTRING}
 {$ifndef FPC_HAS_ANSISTR_TO_ANSISTR}
 {$define FPC_HAS_ANSISTR_TO_ANSISTR}
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [Public, alias: 'FPC_ANSISTR_TO_ANSISTR']; compilerproc;
@@ -458,7 +445,6 @@ begin
 end;
 
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
-{$endif FPC_HAS_CPSTRING}
 {$endif FPC_HAS_ANSISTR_TO_ANSISTR}
 
 {$ifndef FPC_HAS_ANSISTR_TO_SHORTSTR}
@@ -487,27 +473,19 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_TO_ANSISTR}
 {$define FPC_HAS_SHORTSTR_TO_ANSISTR}
-Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString;cp : TSystemCodePage): RawByteString; compilerproc;
 {
   Converts a ShortString to a AnsiString;
 }
 Var
   Size : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifdef FPC_HAS_CPSTRING}
-  cp:=TranslatePlaceholderCP(cp);
-{$else FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   Size:=Length(S2);
   Setlength(fpc_ShortStr_To_AnsiStr,Size);
   if Size>0 then
     begin
       fpc_shortstr_ansistr_intern_charmove(S2,1,fpc_ShortStr_To_AnsiStr,0,Size);
-      SetCodePage(fpc_ShortStr_To_AnsiStr,cp,False);
+      SetCodePage(fpc_ShortStr_To_AnsiStr,TranslatePlaceholderCP(cp),False);
     end
 end;
 {$endif FPC_HAS_SHORTSTR_TO_ANSISTR}
@@ -515,36 +493,24 @@ end;
 
 {$ifndef FPC_HAS_CHAR_TO_ANSISTR}
 {$define FPC_HAS_CHAR_TO_ANSISTR}
-Function fpc_Char_To_AnsiStr(const c : AnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : AnsiChar;cp : TSystemCodePage): RawByteString; compilerproc;
 {
   Converts a AnsiChar to a AnsiString;
 }
-{$ifndef FPC_HAS_CPSTRING}
-var
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifdef FPC_HAS_CPSTRING}
-  cp:=TranslatePlaceholderCP(cp);
-{$else FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   Setlength (fpc_Char_To_AnsiStr,1);
   PAnsiChar(fpc_Char_To_AnsiStr)^:=c;
   { Terminating Zero already set by SetLength above }
-  SetCodePage(fpc_Char_To_AnsiStr,cp,False);
+  SetCodePage(fpc_Char_To_AnsiStr,TranslatePlaceholderCP(cp),False);
 end;
 {$endif FPC_HAS_CHAR_TO_ANSISTR}
 
 
 {$ifndef FPC_HAS_PCHAR_TO_ANSISTR}
 {$define FPC_HAS_PCHAR_TO_ANSISTR}
-Function fpc_PChar_To_AnsiStr(const p : PAnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Function fpc_PChar_To_AnsiStr(const p : PAnsiChar;cp : TSystemCodePage): RawByteString; compilerproc;
 Var
   L : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
   if (not assigned(p)) or (p[0]=#0) Then
     L := 0
@@ -553,13 +519,8 @@ begin
   SetLength(fpc_PChar_To_AnsiStr,L);
   if L > 0 then
     begin
-{$ifdef FPC_HAS_CPSTRING}
-      cp:=TranslatePlaceholderCP(cp);
-{$else FPC_HAS_CPSTRING}
-      cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
       fpc_pchar_ansistr_intern_charmove(p,0,fpc_PChar_To_AnsiStr,0,L);
-      SetCodePage(fpc_PChar_To_AnsiStr,cp,False);
+      SetCodePage(fpc_PChar_To_AnsiStr,TranslatePlaceholderCP(cp),False);
     end;
 end;
 {$endif FPC_HAS_PCHAR_TO_ANSISTR}
@@ -567,12 +528,9 @@ end;
 
 {$ifndef FPC_HAS_CHARARRAY_TO_ANSISTR}
 {$define FPC_HAS_CHARARRAY_TO_ANSISTR}
-Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING}zerobased: boolean = true): RawByteString; compilerproc;
+Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; cp : TSystemCodePage;zerobased: boolean = true): RawByteString; compilerproc;
 var
   i  : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
   if (zerobased) then
     begin
@@ -590,13 +548,8 @@ begin
   SetLength(fpc_CharArray_To_AnsiStr,i);
   if i > 0 then
     begin
-{$ifdef FPC_HAS_CPSTRING}
-      cp:=TranslatePlaceholderCP(cp);
-{$else FPC_HAS_CPSTRING}
-      cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
       fpc_pchar_ansistr_intern_charmove(pansichar(@arr),0,fpc_CharArray_To_AnsiStr,0,i);
-      SetCodePage(fpc_CharArray_To_AnsiStr,cp,False);
+      SetCodePage(fpc_CharArray_To_AnsiStr,TranslatePlaceholderCP(cp),False);
     end;
 end;
 {$endif FPC_HAS_ANSISTR_TO_CHARARRAY}
@@ -725,7 +678,7 @@ end;
 
 {$ifndef FPC_HAS_ANSISTR_SETLENGTH}
 {$define FPC_HAS_ANSISTR_SETLENGTH}
-Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -739,12 +692,8 @@ begin
       if Pointer(S)=nil then
         begin
           Pointer(S):=NewAnsiString(L);
-{$ifdef FPC_HAS_CPSTRING}
           cp:=TranslatePlaceholderCP(cp);
           PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
-{$else}
-          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
         end
       else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
         begin
@@ -832,7 +781,7 @@ end;
 Function fpc_ansistr_Unique_func(Var S : RawByteString): Pointer; external name 'FPC_ANSISTR_UNIQUE';
 
 
-Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure UniqueString(var S : RawByteString);rtlproc;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     fpc_ansistr_Unique_func(S);
   end;
@@ -1154,42 +1103,36 @@ end;
 
 
 {$ifndef FPUNONE}
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; inline;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString;cp : TSystemCodePage);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; inline;
 var
   ss: ShortString;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
   s:=ss;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 {$endif}
 
 {$ifndef FPC_STR_ENUM_INTERN}
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; inline;
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString;cp : TSystemCodePage);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; inline;
 
 var ss:shortstring;
 
 begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 {$endif FPC_STR_ENUM_INTERN}
 
 
-procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; inline;
+procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString;cp : TSystemCodePage);[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; inline;
 var
   ss:shortstring;
 begin
   fpc_shortstr_bool(b,len,ss);
   s:=ss;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
 
@@ -1202,111 +1145,93 @@ end;
 {$endif FPC_STR_ENUM_INTERN}
 
 
-procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; inline;
+procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString;cp : TSystemCodePage);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; inline;
 var
   ss: ShortString;
 begin
   str(c:len:fr,ss);
   s:=ss;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; inline;
+Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
 
 
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; inline;
+Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
 
 {$ifndef CPU64}
 
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; inline;
+Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; inline;
+Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
 {$endif CPU64}
 
 {$if defined(CPU16) or defined(CPU8)}
-Procedure fpc_AnsiStr_LongWord(v : LongWord;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGWORD']; compilerproc; inline;
+Procedure fpc_AnsiStr_LongWord(v : LongWord;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_LONGWORD']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_LongInt(v : LongInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc; inline;
+Procedure fpc_AnsiStr_LongInt(v : LongInt; Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_Word(v : Word;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_WORD']; compilerproc; inline;
+Procedure fpc_AnsiStr_Word(v : Word;Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_WORD']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_SmallInt(v : SmallInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_SMALLINT']; compilerproc; inline;
+Procedure fpc_AnsiStr_SmallInt(v : SmallInt; Len : SizeInt; out S : RawByteString;cp : TSystemCodePage);[Public,Alias : 'FPC_ANSISTR_SMALLINT']; compilerproc; inline;
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
-  {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,cp,false);
-  {$endif FPC_HAS_CPSTRING}
 end;
 {$endif CPU16 or CPU8}
 
@@ -1384,38 +1309,24 @@ end;
 {$endif FPC_HAS_ANSISTR_OF_CHAR}
 
 
-{$ifdef FPC_HAS_CPSTRING}
 Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
-{$else}
-Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
-{$endif}
 begin
   SetLength(S,Len);
-{$ifdef FPC_HAS_CPSTRING}
   SetCodePage(S,cp,false);
-{$endif}
   If (Buf<>Nil) then
     fpc_pchar_ansistr_intern_charmove(Buf,0,S,0,Len);
 end;
 
 
-{$ifdef FPC_HAS_CPSTRING}
 Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
-{$else}
-Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
-{$endif}
 begin
-{$ifdef FPC_HAS_CPSTRING}
   cp:=TranslatePlaceholderCP(cp);
-{$endif}
   if (Buf<>nil) and (Len>0) then
-    widestringmanager.Wide2AnsiMoveProc(Buf,S,{$ifdef FPC_HAS_CPSTRING}cp{$else}DefaultSystemCodePage{$endif},Len)
+    widestringmanager.Wide2AnsiMoveProc(Buf,S,cp,Len)
   else
     begin
       SetLength(S, Len);
-{$ifdef FPC_HAS_CPSTRING}
       SetCodePage(S,cp,false);
-{$endif}
     end;
 end;
 
@@ -1450,11 +1361,9 @@ end;
 {$define FPC_HAS_ANSISTR_STRINGCODEPAGE}
 function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
   begin
-{$ifdef FPC_HAS_CPSTRING}
     if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage
     else
-{$endif FPC_HAS_CPSTRING}
       Result:=DefaultSystemCodePage;
   end;
 {$endif FPC_HAS_ANSISTR_STRINGCODEPAGE}
@@ -1490,12 +1399,7 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
   begin
     if Convert then
       begin
-{$ifdef FPC_HAS_CPSTRING}
         s:=fpc_AnsiStr_To_AnsiStr(s,CodePage);
-{$else FPC_HAS_CPSTRING}
-        UniqueString(s);
-        PAnsiRec(pointer(s)-AnsiFirstOff)^.CodePage:=CodePage;
-{$endif FPC_HAS_CPSTRING}
       end
     else
       begin

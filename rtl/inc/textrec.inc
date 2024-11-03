@@ -54,9 +54,7 @@ type
     name      : array[0..textrecnamelength-1] of TFileTextRecChar;
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
-{$ifdef FPC_HAS_CPSTRING}
     CodePage  : TSystemCodePage;
-{$endif}
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
     FullName  : Pointer;
 {$endif FPC_HAS_FEATURE_UNICODESTRINGS}

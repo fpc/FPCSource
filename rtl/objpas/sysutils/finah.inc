@@ -40,8 +40,8 @@ function ExcludeTrailingPathDelimiter(Const Path: PathStr): PathStr;
 function IncludeLeadingPathDelimiter(Const Path : PathStr) : PathStr;
 function ExcludeLeadingPathDelimiter(Const Path: PathStr): PathStr;
 function IsPathDelimiter(Const Path: PathStr; Index: Integer): Boolean;
-Procedure DoDirSeparators (Var FileName : PathStr); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif}
+Procedure DoDirSeparators (Var FileName : PathStr); rtlproc;
 Function SetDirSeparators (Const FileName : PathStr) : PathStr;
-Function GetDirs (Var DirName : PathStr; Var Dirs : Array of PathPChar) : Longint; {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif}
+Function GetDirs (Var DirName : PathStr; Var Dirs : Array of PathPChar) : Longint; rtlproc;
 function ConcatPaths(const Paths: array of PathStr): PathStr;
 

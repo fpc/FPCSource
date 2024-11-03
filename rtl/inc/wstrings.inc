@@ -35,12 +35,11 @@ Type
   PWideRec = ^TWideRec;
   TWideRec = Packed Record
     Len   : DWord;
-    First : WideChar;
   end;
 
 Const
   WideRecLen = SizeOf(TWideRec);
-  WideFirstOff = SizeOf(TWideRec)-sizeof(WideChar);
+  WideFirstOff = SizeOf(TWideRec);
 
 {
   Default WideChar <-> AnsiChar conversion is to only convert the
@@ -95,8 +94,8 @@ begin
       If P<>Nil then
         begin
          PWideRec(P)^.Len:=Len*2;     { Initial length }
-         PWideRec(P)^.First:=#0;      { Terminating #0 }
          inc(p,WideFirstOff);         { Points to widestring now }
+         PWideChar(P)^:=#0;           { Terminating #0 }
         end
       else
         WideStringError;
@@ -176,26 +175,17 @@ begin
 end;
 
 
-Function fpc_WideStr_To_AnsiStr (const S2 : WideString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString;cp : TSystemCodePage): AnsiString; compilerproc;
 {
   Converts a WideString to an AnsiString
 }
 Var
   Size : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifndef FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
-  begin
-    cp:=TranslatePlaceholderCP(cp);
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
-  end;
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,TranslatePlaceholderCP(cp),Size);
 end;
 
 
@@ -743,7 +733,7 @@ begin
 end;
 
 
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pwidechar{$else}SetString{$endif}(Out S : WideString; Buf : PWideChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_widestr_pwidechar(Out S : WideString; Buf : PWideChar; Len : SizeInt); compilerproc;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -751,7 +741,7 @@ begin
 end;
 
 
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pansichar{$else}SetString{$endif}(Out S : WideString; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_widestr_pansichar(Out S : WideString; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 begin
   If (Buf<>Nil) and (Len>0) then
     widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len)

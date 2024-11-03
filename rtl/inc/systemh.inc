@@ -572,18 +572,9 @@ Type
   UCS4String          = array of UCS4Char;
 {$endif}
 
-{$ifdef FPC_HAS_CPSTRING}
   UTF8String          = type AnsiString(CP_UTF8);
-{$else FPC_HAS_CPSTRING}
-  UTF8String          = type ansistring;
-{$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
-
-{$ifdef FPC_HAS_CPSTRING}
   RawByteString       = type AnsiString(CP_NONE);
-{$else FPC_HAS_CPSTRING}
-  RawByteString       = ansistring;
-{$endif FPC_HAS_CPSTRING}
 
   HRESULT             = type Longint;
 {$ifndef FPUNONE}
@@ -1295,15 +1286,10 @@ Function  Pos(C:AnsiChar;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function  Pos(const Substr : ShortString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 
-{$ifdef FPC_HAS_CPSTRING}
 Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
 Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
-{$else}
-Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
-Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
-{$endif}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_shortstr(out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  UpCase(const s:shortstring):shortstring;
 Function  LowerCase(const s:shortstring):shortstring; overload;
@@ -1345,7 +1331,7 @@ function  Pos(const substr : shortstring;c:Ansichar; Offset: Sizeint = 1): SizeI
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure UniqueString(var S : RawByteString);rtlproc;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Pos (const Substr : RawByteString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Function  Pos (c : AnsiChar; const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
@@ -1518,7 +1504,7 @@ Procedure ChDir(const s:rawbytestring); overload;
 Procedure MkDir(const s:rawbytestring); overload;
 Procedure RmDir(const s:rawbytestring); overload;
 // defaultrtlfilesystemcodepage is returned here
-Procedure GetDir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Procedure GetDir(drivenr:byte;var dir: rawbytestring);overload;rtlproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure ChDir(const s:unicodestring); overload;

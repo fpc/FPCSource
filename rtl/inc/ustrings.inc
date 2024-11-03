@@ -295,26 +295,17 @@ end;
 
 {$ifndef FPC_HAS_UNICODESTR_TO_ANSISTR}
 {$define FPC_HAS_UNICODESTR_TO_ANSISTR}
-Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
+Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString;cp : TSystemCodePage): AnsiString; compilerproc;
 {
   Converts a UnicodeString to an AnsiString
 }
 Var
   Size : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifndef FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
-  begin
-    cp:=TranslatePlaceholderCP(cp);
-    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
-  end;
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,TranslatePlaceholderCP(cp),Size);
 end;
 {$endif FPC_HAS_UNICODESTR_TO_ANSISTR}
 
@@ -379,25 +370,16 @@ end;
 
 {$ifndef FPC_HAS_PWIDECHAR_TO_ANSISTR}
 {$define FPC_HAS_PWIDECHAR_TO_ANSISTR}
-Function fpc_PWideChar_To_AnsiStr(const p : pwidechar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): ansistring; compilerproc;
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar;cp : TSystemCodePage): ansistring; compilerproc;
 var
   Size : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifndef FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   result:='';
   if p=nil then
     exit;
   Size := IndexWord(p^, -1, 0);
   if Size>0 then
-  begin
-    cp:=TranslatePlaceholderCP(cp);
-    widestringmanager.Wide2AnsiMoveProc(P,result,cp,Size);
-  end;
+    widestringmanager.Wide2AnsiMoveProc(P,result,TranslatePlaceholderCP(cp),Size);
 end;
 {$endif FPC_HAS_PWIDECHAR_TO_ANSISTR}
 
@@ -630,20 +612,12 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_ANSISTR}
 {$define FPC_HAS_UCHAR_TO_ANSISTR}
-Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
+Function fpc_UChar_To_AnsiStr(const c : UnicodeChar;cp : TSystemCodePage): AnsiString; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
-{$ifndef FPC_HAS_CPSTRING}
-var
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifndef FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
-  cp:=TranslatePlaceholderCP(cp);
-  widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
+  widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, TranslatePlaceholderCP(cp), 1);
 end;
 {$endif FPC_HAS_UCHAR_TO_ANSISTR}
 
@@ -743,16 +717,10 @@ end;
 
 {$ifndef FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
 {$define FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING} zerobased: boolean = true): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; cp : TSystemCodePage; zerobased: boolean = true): AnsiString; compilerproc;
 var
   i  : SizeInt;
-{$ifndef FPC_HAS_CPSTRING}
-  cp : TSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
 begin
-{$ifndef FPC_HAS_CPSTRING}
-  cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
   if (zerobased) then
     begin
       i:=IndexWord(arr,high(arr)+1,0);
@@ -762,10 +730,7 @@ begin
   else
     i := high(arr)+1;
   if i > 0 then
-  begin
-    cp:=TranslatePlaceholderCP(cp);
-    widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),RawByteString(fpc_WideCharArray_To_AnsiStr),cp,i);
-  end
+    widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),RawByteString(fpc_WideCharArray_To_AnsiStr),TranslatePlaceholderCP(cp),i)
   else
     fpc_WideCharArray_To_AnsiStr:='';
 end;
@@ -1394,7 +1359,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pwidechar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_unicodestr_pwidechar(Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt); compilerproc;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -1405,7 +1370,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_unicodestr_pansichar(Out S : UnicodeString; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 begin
   If (Buf<>Nil) and (Len>0) then
     widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len)
@@ -2298,11 +2263,9 @@ function StringRefCount(const S: UnicodeString): SizeInt; overload;
 
 function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
   begin
-{$ifdef FPC_HAS_CPSTRING}
     if assigned(Pointer(S)) then
       Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.CodePage
     else
-{$endif FPC_HAS_CPSTRING}
       Result:=DefaultUnicodeCodePage;
   end;
 

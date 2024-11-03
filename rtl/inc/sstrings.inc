@@ -1854,7 +1854,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(Out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure fpc_setstring_shortstr(Out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 begin
   If Len > High(S) then
     Len := High(S);
