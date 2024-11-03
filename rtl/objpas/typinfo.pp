@@ -2066,7 +2066,7 @@ begin
         begin
         // When passing nil, we just need the count
         if Assigned(PropList) then
-          PropList^[Result]:=TD^.Prop[i];
+          PropList^[Result]:=TP;
         Inc(Result);
         end;
       end;
@@ -2082,7 +2082,7 @@ Function GetRecordPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibi
 
 Var
   TD : PPropDataEx;
-  TP : PPropListEx;
+  TP : PPropInfoEx;
   Offset,I,Count : Longint;
 
 begin
@@ -2090,17 +2090,17 @@ begin
   // Clear list
   TD:=PRecordData(GetTypeData(TypeInfo))^.ExRTTITable;
   Count:=TD^.PropCount;
-  // Now point TP to first propinfo record.
-  Inc(Pointer(TP),SizeOF(Word));
-  tp:=aligntoptr(tp);
   For I:=0 to Count-1 do
-    if ([]=Visibilities) or (PropList^[Result]^.Visibility in Visibilities) then
+  begin           
+    TP:=TD^.Prop[I];
+    if ([]=Visibilities) or (TP^.Visibility in Visibilities) then
       begin
       // When passing nil, we just need the count
       if Assigned(PropList) then
-        PropList^[Result]:=TD^.Prop[i];
+        PropList^[Result]:=TP;
       Inc(Result);
       end;
+  end;
 end;
 
 
