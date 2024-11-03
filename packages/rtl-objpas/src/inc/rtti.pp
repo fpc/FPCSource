@@ -6453,13 +6453,12 @@ var
 
 begin
   List:=Nil;
+  FPropertiesResolved:=True;
   if FUsePublishedOnly then
-    aCount:=GetPropListEx(FTypeinfo,List,[vcPublished])
-  else
-    aCount:=GetPropListEx(FTypeinfo,List);
+    Exit;
+  aCount:=GetPropListEx(FTypeinfo,List);
   PropCount:=aCount; 
   J := 0;
-  FPropertiesResolved:=True;
   try
     SetLength(FProperties,aCount);
     For I:=0 to aCount-1 do
