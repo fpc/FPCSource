@@ -9142,13 +9142,6 @@ implementation
 
 
     function TImplementedInterface.getcopy:TImplementedInterface;
-
-      function stringdup(s:pshortstring):pshortstring;inline;
-        begin
-           getmem(result,ord(s^[0])+1);
-           move(s^[0],result^[0],ord(s^[0])+1);
-        end;
-
       var
         i : longint;
       begin
@@ -9168,7 +9161,7 @@ implementation
             result.NameMappings:=TFPHashList.create;
             for i:=0 to NameMappings.Count-1 do
               Result.NameMappings.Add(NameMappings.NameOfIndex(i),
-                                      stringdup(pshortstring(NameMappings.Items[i])));
+                                      stringdup(pshortstring(NameMappings.Items[i])^));
           end;
         if assigned(ProcDefs) then
           begin
