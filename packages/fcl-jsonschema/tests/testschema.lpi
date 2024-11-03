@@ -37,7 +37,6 @@
       <Unit>
         <Filename Value="../src/fpjson.schema.schema.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="FpJson.Schema.Schema"/>
       </Unit>
       <Unit>
         <Filename Value="../src/fpjson.schema.consts.pp"/>
@@ -91,6 +90,14 @@
       </Unit>
       <Unit>
         <Filename Value="utSchemaValidator.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../src/fpjson.schema.pascaltypes.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utSchemaPascalTypes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

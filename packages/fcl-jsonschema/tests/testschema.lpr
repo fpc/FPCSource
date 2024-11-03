@@ -22,7 +22,8 @@ uses
   {$endif}
   SysUtils, Classes, jsonparser, consoletestrunner, fpjson.schema.schema, fpjson.schema.consts, fpjson.schema.reader,
   fpjson.schema.loader, fpjson.schema.testutils, utOfficialTests, fpjson.schema.types, utSchemaTypes, utSchema,
-  fpjson.schema.writer, utSchemaWriter, fpjson.schema.validator, utSchemaValidator;
+  fpjson.schema.writer, utSchemaWriter, fpjson.schema.validator, utSchemaValidator, fpjson.schema.pascaltypes,
+  fpjson.schema.codegen, utSchemaPascalTypes;
 
 type
 

@@ -20,9 +20,9 @@ interface
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs,
+  System.Classes, System.SysUtils, System.Contnrs, System.StrUtils,
   {$ELSE}
-  Classes, SysUtils, contnrs,
+  Classes, SysUtils, contnrs, StrUtils,
   {$ENDIF}
   fpjson.schema.types,
   fpjson.schema.schema;
@@ -53,8 +53,8 @@ Type
                    ptString,       // String
                    ptEnum,         // Enumerated
                    ptJSON,         // TJSONData (empty schema object)
-                   ptStructure,    // Class/Record  (schema object with properties)
-                   ptSchemaStruct, // Def/APcomponent
+                   ptAnonStruct,   // Anonymous Class/Record  (schema object with properties)
+                   ptSchemaStruct, // Named Class/Record
                    ptArray         // Array of...
                    );
 
@@ -127,6 +127,7 @@ Type
     FSerializeTypes: TSerializeTypes;
     FSorted : Boolean;
     FProperties : TFPObjectList;
+    FType: TPascalType;
     function GetDependency(aIndex : Integer): TPascalTypeData;
     function GetDependencyCount: Integer;
     function GetImplementationName: String;
@@ -141,7 +142,7 @@ Type
   Public
     class function ExtractFirstType(aSchema: TJSONSchema): TSchemaSimpleType;
   Public
-    Constructor Create(aIndex : integer; const aSchemaName,aPascalName : String; aSchema : TJSONSchema);
+    Constructor Create(aIndex : integer; aType : TPascalType; const aSchemaName,aPascalName : String; aSchema : TJSONSchema);
     destructor Destroy; override;
     // Index of property using schema name
     Function IndexOfProperty(const aSchemaName: string) : Integer;
@@ -161,6 +162,7 @@ Type
     Function HasArrayProperty : Boolean;
     // Component has object-typed property ? (SchemaComponentsonly = False -> also return array of string etc.)
     function HasObjectProperty(aSchemaComponentsOnly: Boolean): Boolean;
+
     // Components his component depends on
     Property Dependency[aIndex : Integer] : TPascalTypeData Read GetDependency;
     // Number of Components his component depends on
@@ -185,8 +187,10 @@ Type
     Property SerializeTypes : TSerializeTypes Read FSerializeTypes Write FSerializeTypes;
     // Schema of this component.
     Property Schema: TJSONSChema Read FSchema;
-    //
+    // Was this element sorted ?
     Property Sorted : Boolean Read FSorted Write FSorted;
+    // PascalType
+    Property Pascaltype : TPascalType Read FType;
   end;
 
   { TPascalTypeDataList }
@@ -207,6 +211,7 @@ Type
   private
     FKeywordEscapeMode: TKeywordEscapeMode;
     FTypeList : TPascalTypeDataList;
+    FAliasList : TPascalTypeDataList;
     FTypeMap : TFPObjectHashTable;
     FArrayTypePrefix: string;
     FArrayTypeSuffix: string;
@@ -222,13 +227,25 @@ Type
     // Logging
     procedure DoLog(Const aType : TEventType; const aMessage : String);
     procedure DoLog(Const aType : TEventType; const aFmt : String; aArgs : Array of const);
+    // Override this to determine the type name of a pascal property
+    function GetSchemaTypeAndName(aType: TPascalTypeData; aSchema: TJSONSchema; out aPropType: TPascalType; aNameType: TNameType=ntPascal): String; virtual;
     // Add a new type to the type map.
     procedure AddToTypeMap(const aSchemaName: String; aData : TPascalTypeData); virtual; overload;
-
+    // Get pascal type name based on schema name
+    function SchemaNameToNameType(const aName: string; aNameType: TNameType): string; virtual;
+    // Take JSONPointer reference and find pascal type data for it.
+    function GetPascalTypeDataFromRef(const aRef: String): TPascalTypeData; virtual;
+    // Find schema pascal type data. If AllowCreate is true, type data for Enum,Array and object properties will be created.
+    function GetSchemaTypeData(aType: TPascalTypeData; lSchema: TJSONSchema; AllowCreate: Boolean=False): TPascalTypeData;
+    // Add a type to the alias list
+    Procedure AddAliasType(aType : TPascalTypeData); virtual;
+    // Sort types in dependency order
     procedure SortTypes;
   Public
     Constructor Create; virtual;
     Destructor Destroy; override;
+    // Create aliases for known simple types
+    procedure DefineStandardPascalTypes;
     // Is the word a pascal keyword ?
     class function IsKeyWord(const aWord : String) : Boolean;
     // Escape the word if it is a pascal keyword ?
@@ -237,20 +254,30 @@ Type
     function GetTypeMap(const aName : string): String;
     // Return index of named schema type (name as in OpenApi). Return -1 if not found.
     function IndexOfSchemaType(const aSchemaName: String): integer;
+    // Find Pascal type data based on schema type name.
+    function FindSchemaTypeData(const aSchemaName: String; aFormat : String = ''): TPascalTypeData;
     // Extract simple type from schema
     Function GetSchemaType(aSchema : TJSONSchema) : TSchemaSimpleType;
     // Extract element type from schema
     Function GetArrayElementType(aSchema : TJSONSchema) : TSchemaSimpleType;
+    // Used when creating a new type. Override to create a descendant;
+    function CreatePascalType(aIndex: integer; aType : TPascalType; const aSchemaName, aPascalName: String; aSchema: TJSONSchema): TPascalTypeData; virtual;
     // Add a type to the list
     Procedure AddType(const aSchemaName: String; aType : TPascalTypeData); virtual;
     // Add a type definition to the type map.
-    procedure AddAliasToTypeMap(const aSchemaTypeName,aPascalTypeName : String; aSchema : TJSONSchema = Nil); overload;
-
+    procedure AddAliasToTypeMap(aType: TPascalType; const aAlias, aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema); overload;
+    // Add a property to a type
+    function AddTypeProperty(aType: TPascalTypeData; lProp: TJSONSchema; aName : string = ''; Recurse : Boolean = True): TPascalPropertyData;
+    // Add properties to structured pascal type from aSchema. if aSchema = nil then use aType.Schema
+    Procedure AddPropertiesToType(aType : TPascalTypeData; aSchema: TJSONSchema = Nil; Recurse : Boolean = True);
+    // For all types, fill the depency list: contains all structured types on which the type depends (recursively).
+    procedure CheckDependencies;
+    // Number of types
     Property TypeCount : Integer Read GetSchemaTypeCount;
+    // Indexed access to all types.
     Property Types[aIndex : Integer] : TPascalTypeData Read GetSchemaType; default;
     // Map schema type to pascal type.
     Property TypeMap[aSchemaName : string] : String Read GetTypeMap;
-
     // prefix for object definitions. Default T
     Property ObjectTypePrefix : string Read FObjectTypePrefix Write FObjectTypePrefix;
     // prefix for object definitions. Default empty
@@ -272,6 +299,7 @@ Type
   end;
 
 implementation
+
 
 function CompareTypeDataOnName(Item1, Item2: Pointer): Integer;
 
@@ -374,7 +402,7 @@ begin
     ptString       : Result:='string';
     ptEnum         : Raise ESchemaData.CreateFmt('Unknown name for enumerated property "%s"',[PascalName]);
     ptJSON         : Result := 'string';
-    ptStructure    : Raise ESchemaData.CreateFmt('Unknown name for structured property "%s"',[PascalName]);
+    ptAnonStruct   : Raise ESchemaData.CreateFmt('Unknown name for structured property "%s"',[PascalName]);
     ptSchemaStruct : Raise ESchemaData.CreateFmt('Unknown name for schema-typed property "%s"',[PascalName]);
   end;
 end;
@@ -472,7 +500,8 @@ begin
 end;
 
 
-constructor TPascalTypeData.Create(aIndex: integer; const aSchemaName, aPascalName: String; aSchema: TJSONSchema);
+constructor TPascalTypeData.Create(aIndex: integer; aType: TPascalType; const aSchemaName, aPascalName: String; aSchema: TJSONSchema
+  );
 
 begin
   FIndex:=aIndex;
@@ -481,6 +510,7 @@ begin
   FPascalName:=aPascalName;
   FSerializeTypes:=[stSerialize,stDeserialize];
   FProperties:=TFPObjectList.Create(True);
+  FType:=aType;
 end;
 
 
@@ -576,19 +606,42 @@ begin
   FDependencies.Add(aData);
 end;
 
+procedure TSchemaData.CheckDependencies;
+
+  procedure CheckProps(lTop,aData : TPascalTypeData);
+
+  var
+    lPropData : TPascalTypeData;
+    I : Integer;
+  begin
+    For I:=0 to aData.PropertyCount-1 do
+      begin
+      lPropData:=aData.Properties[I].TypeData;
+      if Assigned(lPropData) and (lPropData.Pascaltype in [ptAnonStruct,ptSchemaStruct]) then
+        begin
+        lTop.AddDependency(lPropData);
+        CheckProps(lTop,lPropData);
+        end;
+      end;
+  end;
+
+var
+  I : Integer;
+  lData : TPascalTypeData;
+
+begin
+  For I:=0 to TypeCount-1 do
+    begin
+    lData:=Types[I];
+    CheckProps(lData,lData);
+    end;
+end;
+
 
 class function TPascalTypeData.ExtractFirstType(aSchema : TJSONSchema): TSchemaSimpleType;
 
-var
-  types : TSchemaSimpleTypes;
-  t : TSchemaSimpleType;
-
 begin
-  result:=sstNone;
-  types:=aSchema.Validations.Types;
-  for T in TSchemaSimpleType do
-    if T in Types then
-      Exit(T);
+  Result:=aSchema.Validations.GetFirstType;
 end;
 
 
@@ -671,11 +724,260 @@ begin
     FOnLog(aType,Format(aFmt,aArgs));
 end;
 
+// Find requested name type in API types, based on openAPI name.
+function TSchemaData.SchemaNameToNameType(const aName: string; aNameType: TNameType): string;
 
-procedure TSchemaData.AddAliasToTypeMap(const aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema);
+var
+  lType : TPascalTypeData;
 
 begin
-  AddToTypeMap(aSchemaTypeName,TPascalTypeData.Create(-1,aSchemaTypeName,aPascalTypeName,aSchema));
+  lType:=FindSchemaTypeData(aName);
+  if Assigned(lType) then
+    Result:=lType.GetTypeName(aNameType)
+  else
+    Result:=aName;
+end;
+
+function TSchemaData.GetPascalTypeDataFromRef(const aRef : String): TPascalTypeData;
+
+var
+  P : Integer;
+  lName : String;
+begin
+  P:=RPos('/',aRef);
+  if P=0 then
+    P:=RPos('#',aRef);
+  if p=0 then
+    lName:=aRef
+  else
+    lName:=Copy(aRef,P+1,Length(aRef)-P);
+  Result:=FindSchemaTypeData(lName);
+end;
+
+procedure TSchemaData.AddAliasType(aType: TPascalTypeData);
+begin
+  FAliasList.Add(aType);
+end;
+
+
+// Determine the PascalType and pascal type name of the given schema
+
+function TSchemaData.GetSchemaTypeAndName(aType: TPascalTypeData; aSchema: TJSONSchema; out aPropType: TPascalType; aNameType : TNameType = ntPascal): String;
+
+var
+  lTypeData : TPascalTypeData;
+  lName : string;
+
+begin
+  lTypeData:=GetSchemaTypeData(aType,aSchema);
+  if lTypeData=Nil then
+    begin
+    aPropType:=ptUnknown;
+    Result:='';
+    {
+    if assigned(aType) then
+      lName:=aType.SchemaName
+    else
+      lName:='<unknown>';
+    Raise ESchemaData.CreateFmt('Could not find type data for %s, property %s',[lName,aSchema.Name]);
+    }
+    end
+  else
+    begin
+    aPropType:=lTypeData.Pascaltype;
+    Result:=lTypeData.GetTypeName(aNameType);
+    end;
+end;
+
+function TSchemaData.GetSchemaTypeData(aType: TPascalTypeData; lSchema: TJSONSchema; AllowCreate : Boolean = False) : TPascalTypeData;
+
+var
+  lType : TSchemaSimpleType;
+  lName,lBaseName,lPascalName : string;
+  lFormat : String;
+  lElTypeData : TPascalTypeData;
+
+begin
+  LType:=lSchema.Validations.GetFirstType;
+  Result:=Nil;
+  if lSchema.Ref<>'' then
+    Result:=GetPascalTypeDataFromRef(lSchema.Ref)
+  else
+    begin
+    lName:='';
+    lFormat:='';
+    Case lType of
+      sstNone: ;
+      sstNull: ;
+      sstBoolean :
+        lName:='boolean';
+      sstInteger :
+        begin
+        lName:='integer';
+        lFormat:=lSchema.Validations.Format;
+        end;
+      sstNumber:
+        begin
+        lName:='number';
+        end;
+      sstString:
+        begin
+        if IndexText(lSchema.Validations.Format,['date','time','date-time'])>=0 then
+          begin
+          lName:='string';
+          lFormat:=lSchema.Validations.Format;
+          end
+        else if UseEnums and lSchema.Validations.HasKeywordData(jskEnum) and (lSchema.Validations.Enum.Count>0) then
+          begin
+          if assigned(aType) then
+            lBaseName:=aType.GetTypeName(ntSchema)+'_'+lSchema.Name
+          else
+            lBaseName:='T'+lSchema.Name;
+          lName:='('+lBaseName+')';
+          Result:=FindSchemaTypeData(lName);
+          if (Result=Nil) and allowCreate then
+            begin
+            Result:=CreatePascalType(-1,ptEnum,lName,'T'+lBaseName,lSchema);
+            AddType(lName,Result);
+            end;
+          end
+        else
+          begin
+          lName:='string';
+          end;
+        end;
+      sstArray:
+        begin
+        lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
+//         Data.FindSchemaTypeData('Array of string')
+        if DelphiTypes then
+          lPascalName:='TArray<'+lElTypeData.PascalName+'>'
+        else
+          lPascalName:='Array of '+lElTypeData.PascalName;
+        lName:='['+lElTypeData.SchemaName+']';
+        Result:=FindSchemaTypeData(lName);
+        if (Result=Nil) and AllowCreate then
+          begin
+          Result:=CreatePascalType(-1,ptArray,lName,lPascalName,lSchema);
+          AddType(lName,Result);
+          end;
+        end;
+      sstObject:
+        begin
+        if lSchema.Properties.Count=0 then
+          lName:='JSON'
+        else
+          begin
+          if assigned(aType) then
+            lBaseName:=aType.GetTypeName(ntSchema)+'_'+lSchema.Name
+          else
+            lBaseName:='Nested_'+lSchema.Name;
+          lName:='{'+lBaseName+'}';
+          Writeln('Alias ',lName);
+          lPascalName:='T'+lBaseName;
+          Result:=FindSchemaTypeData(lName);
+          if (Result=Nil) and AllowCreate then
+            begin
+            Result:=CreatePascalType(-1,ptAnonStruct,lName,lPascalName,lSchema);
+            AddType(lName,Result);
+            AddPropertiesToType(Result,lSchema,True);
+            end;
+          end;
+        end;
+      sstAny:
+        lname:='any';
+    end;
+    if lName<>'' then
+      Result:=FindSchemaTypeData(lName,lFormat);
+    end;
+end;
+
+// Add a property to the type using the schema
+function TSchemaData.AddTypeProperty(aType: TPascalTypeData; lProp: TJSONSchema; aName: string; Recurse: Boolean
+  ): TPascalPropertyData;
+
+var
+  Tmp, lTypeName, lName : string;
+  lType,lEltype : TPropertyType;
+  I : Integer;
+  lPropTypeData : TPascaltypeData;
+
+
+begin
+  lName:=aName;
+  if lName='' then
+    lName:=EscapeKeyWord(lProp.Name);
+  if lProp.Validations.TypesCount>1 then
+    Raise ESchemaData.CreateFmt('Creating property for schema with multiple types ("%s") is not supported',[lName]);
+  if (lProp.Validations.GetFirstType=sstArray) then
+    if (lProp.Items.Count<>1) then
+      Raise ESchemaData.CreateFmt('Creating array property for schema with multiple item types ("%s") is not supported',[lName])
+    else if (lProp.Items.Count<1) then
+      Raise ESchemaData.CreateFmt('Creating array property for schema without item types ("%s") is not supported',[lName]);
+  lPropTypeData:=GetSchemaTypeData(aType,lProp,Recurse);
+  if lPropTypeData=Nil then
+    Raise ESchemaData.CreateFmt('Unknown property type for property %s',[lName]);
+  lType:=lPropTypeData.Pascaltype;
+  lTypeName:=lPropTypeData.GetTypeName(ntPascal);
+  Result:=aType.AddProperty(lProp.Name,lName);
+  Result.Schema:=lProp;
+  Result.PropertyType:=lType;
+  Result.TypeData:=lPropTypeData;
+  Result.PascalTypeName:=lPropTypeData.GetTypeName(ntPascal);
+  if (lType=ptEnum) then
+    begin
+    for I:=0 to lProp.Validations.Enum.Count-1 do
+      Result.EnumValues.Add(EscapeKeyWord(lProp.Validations.Enum.Items[I].AsString));
+    end;
+  if (lType=ptArray) then
+    begin
+    Result.PascalTypeName:=lTypeName;
+    if (lProp.Items[0].Ref<>'') then
+      begin
+      Result.ElementType:=ptSchemaStruct;
+      Result.TypeData:=GetPascalTypeDataFromRef(lProp.Items[0].Ref);
+      if Result.TypeData=Nil then
+        Raise ESchemaData.CreateFmt('No typedata for property %s element type (Ref: %s)',[Result.PascalName,lProp.Items[0].Ref]);
+      Result.ElementTypeName:=Result.TypeData.PascalName;
+      end
+    else
+      begin
+      Result.ElementTypeName:=GetSchemaTypeAndName(Nil,lProp.Items[0],lEltype);
+      Result.ElementType:=lElType;
+      end;
+    Result.TypeNames[ntInterface]:=GetSchemaTypeAndName(Nil,lProp,lelType,ntInterface);
+    Result.TypeNames[ntImplementation]:=GetSchemaTypeAndName(Nil,lProp,lElType,ntImplementation);
+    end;
+end;
+
+procedure TSchemaData.AddPropertiesToType(aType: TPascalTypeData; aSchema: TJSONSchema; Recurse: Boolean);
+
+var
+  I : Integer;
+  lSchema : TJSONSchema;
+begin
+  lSchema:=aSchema;
+  if lSchema=Nil then
+    lSchema:=aType.Schema;
+  for I:=0 to lSchema.Properties.Count-1 do
+    AddTypeProperty(aType,lSchema.Properties[i],'',Recurse);
+end;
+
+function TSchemaData.CreatePascalType(aIndex: integer; aType : TPascalType; const aSchemaName, aPascalName: String; aSchema: TJSONSchema): TPascalTypeData;
+begin
+  Result:=TPascalTypeData.Create(aIndex,aType,aSchemaName,aPascalName,aSchema);
+end;
+
+
+procedure TSchemaData.AddAliasToTypeMap(aType : TPascalType; const aAlias,aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema);
+
+var
+  lType : TPascalTypeData;
+
+begin
+  lType:=CreatePascalType(-1,aType,aSchemaTypeName,aPascalTypeName,aSchema);
+  AddToTypeMap(aAlias,lType);
+  AddAliasType(lType);
 end;
 
 
@@ -684,6 +986,7 @@ constructor TSchemaData.Create;
 begin
   FTypeMap:=TFPObjectHashTable.Create(False);
   FTypeList:=TPascalTypeDataList.Create(True);
+  FAliasList:=TPascalTypeDataList.Create(True);
   FObjectTypePrefix:='T';
   FObjectTypeSuffix:='';
   FInterfaceTypePrefix:='I';
@@ -695,8 +998,25 @@ destructor TSchemaData.Destroy;
 
 begin
   FreeAndNil(FTypeList);
+  FreeAndNil(FAliasList);
   FreeAndNil(FTypeMap);
   inherited Destroy;
+end;
+
+procedure TSchemaData.DefineStandardPascalTypes;
+begin
+  // typename--format
+  AddAliasToTypeMap(ptInteger,'integer','integer','integer',Nil);
+  AddAliasToTypeMap(ptInteger,'integer--int32','integer','integer',Nil);
+  AddAliasToTypeMap(ptInt64,'integer--int64','integer','int64',Nil);
+  AddAliasToTypeMap(ptString,'string','string','string',Nil);
+  AddAliasToTypeMap(ptDateTime,'string--date','string','TDateTime',Nil);
+  AddAliasToTypeMap(ptDateTime,'string--time','string','TDateTime',Nil);
+  AddAliasToTypeMap(ptDateTime,'string--date-time','string','TDateTime',Nil);
+  AddAliasToTypeMap(ptBoolean,'boolean','boolean','boolean',Nil);
+  AddAliasToTypeMap(ptFloat64,'number','number','double',Nil);
+  AddAliasToTypeMap(ptJSON,'JSON','object','string',Nil);
+  AddAliasToTypeMap(ptJSON,'any','object','string',Nil);
 end;
 
 
@@ -732,17 +1052,23 @@ end;
 
 function TSchemaData.GetTypeMap(const aName: string): String;
 
-var
-  Obj : TPascalTypeData;
-
 begin
-  Obj:=TPascalTypeData(FTypeMap.Items[aName]);
-  if Assigned(Obj) then
-    Result:=Obj.PascalName
-  else
-    Result:=aName;
+  Result:=SchemaNameToNameType(aName,ntPascal);
 end;
 
+
+// Find Pascal type data based on schema name
+function TSchemaData.FindSchemaTypeData(const aSchemaName: String; aFormat: String): TPascalTypeData;
+
+var
+  lName : string;
+
+begin
+  lName:=aSchemaName;
+  if aFormat<>'' then
+    lName:=lName+'--'+aFormat;
+  Result:=TPascalTypeData(FTypeMap.Items[lName]);
+end;
 
 function TSchemaData.IndexOfSchemaType(const aSchemaName: String): integer;
 
@@ -821,7 +1147,6 @@ begin
     lSortedList.Free;
   end;
 end;
-
 
 end.
 

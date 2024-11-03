@@ -148,7 +148,7 @@ begin
     ptJSON,
     ptString:
       Result := '''''';
-    ptStructure:
+    ptAnonStruct:
       Result := 'TJSONObject(Nil)';
     ptArray:
       Result := 'TJSONArray(Nil)';
@@ -295,7 +295,7 @@ end;
 function TSerializerCodeGenerator.FieldToJSON(aType: TPropertyType; aFieldName : String): string;
 
 begin
-  if aType in [ptStructure,ptSchemaStruct] then
+  if aType in [ptAnonStruct,ptSchemaStruct] then
   begin
     Result := Format('%s.SerializeObject', [aFieldName]);
   end
@@ -346,7 +346,7 @@ var
 begin
   if aKeyName='features' then
     Writeln('a');
-  if aType in [ptSchemaStruct,ptStructure] then
+  if aType in [ptSchemaStruct,ptAnonStruct] then
   begin
     Result := Format('%s.Deserialize(%s)', [aPropertyTypeName, ObjectField(aKeyName)]);
   end
@@ -390,7 +390,7 @@ var
 begin
   if aPropertyTypeName='' then
     Writeln('aPropertyTypeName is empty for ',aFieldName);
-  if aType in [ptStructure,ptSchemaStruct] then
+  if aType in [ptAnonStruct,ptSchemaStruct] then
     Result := Format('%s.Deserialize(%s as TJSONObject)', [aPropertyTypeName, aFieldName])
   else
     begin
@@ -418,7 +418,7 @@ begin
         else
           Result := Format('%s.As%s', [aFieldName, aPropertyTypeName]);
       end;
-      ptStructure:
+      ptAnonStruct:
       begin
         if DelphiCode then
           Result := Format('%s.ToJSON', [aFieldName])
@@ -444,7 +444,7 @@ begin
   lFieldName := aProperty.PascalName;
   lValue := FieldToJSON(aProperty);
   lType:=aProperty.PropertyType;
-  lNilCheck:=WriteClassType and (lType in [ptJSON,ptStructure,ptSchemaStruct]);
+  lNilCheck:=WriteClassType and (lType in [ptJSON,ptAnonStruct,ptSchemaStruct]);
   case lType of
     ptEnum:
       begin
@@ -527,7 +527,7 @@ begin
     ptFloat64,
     ptString,
     ptBoolean,
-    ptStructure,
+    ptAnonStruct,
     ptJSON,
     ptSchemaStruct:
       Addln('Result.%s:=%s;', [lFieldName, lValue]);

@@ -181,6 +181,10 @@ Type
     function KeywordsWithData : TJSONSchemaKeywords; virtual;
     // Is the keyword set
     function HasKeywordData(aKeyword : TJSONSchemaKeyword) : Boolean; virtual;
+    // Count types
+    Function TypesCount : Integer;
+    // First type (in order of TSchemaSimpleType
+    Function GetFirstType : TSchemaSimpleType;
     // Owner schema
     property Schema : TJSONSchema Read FSchema;
     // type keyword
@@ -880,6 +884,29 @@ begin
   else
     Result:=aKeyword in FKeywordData
   end;
+end;
+
+function TJSONSchemaValidations.TypesCount: Integer;
+
+var
+  T : TSchemaSimpleType;
+
+begin
+  Result:=0;
+  For T in TSchemaSimpleType do
+    if T in Types then
+      Inc(Result);
+end;
+
+function TJSONSchemaValidations.GetFirstType: TSchemaSimpleType;
+var
+  T : TSchemaSimpleType;
+
+begin
+  Result:=sstNone;
+  For T in TSchemaSimpleType do
+    if T in Types then
+      Exit(T);
 end;
 
 { TJSONSChemaVocabulary }
