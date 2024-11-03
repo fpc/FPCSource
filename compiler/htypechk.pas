@@ -32,13 +32,12 @@ interface
       pgentype;
 
     type
+      TSupportedOpOverload = (op_unary, op_binary);
       Ttok2nodeRec=record
         tok : ttoken;
         nod : tnodetype;
         inr : tinlinenumber;
-        op_overloading_supported : boolean;
-        minargs : longint;
-        maxargs : longint;
+        supported_op_overloads: set of TSupportedOpOverload;
       end;
 
       Ttok2opRec=record
@@ -118,33 +117,33 @@ interface
     const
       tok2nodes=27;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
-        (tok:_PLUS       ;nod:addn;inr:in_none;op_overloading_supported:true;minargs:1;maxargs:2),      { binary overloading supported }
-        (tok:_MINUS      ;nod:subn;inr:in_none;op_overloading_supported:true;minargs:1;maxargs:2),      { binary and unary overloading supported }
-        (tok:_STAR       ;nod:muln;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_SLASH      ;nod:slashn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),    { binary overloading supported }
-        (tok:_EQ         ;nod:equaln;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),    { binary overloading supported }
-        (tok:_GT         ;nod:gtn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),       { binary overloading supported }
-        (tok:_LT         ;nod:ltn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),       { binary overloading supported }
-        (tok:_GTE        ;nod:gten;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_LTE        ;nod:lten;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_SYMDIF     ;nod:symdifn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),   { binary overloading supported }
-        (tok:_STARSTAR   ;nod:starstarn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2), { binary overloading supported }
-        (tok:_OP_AS      ;nod:asn;inr:in_none;op_overloading_supported:false;minargs:0;maxargs:0),      { binary overloading NOT supported }
-        (tok:_OP_IN      ;nod:inn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),       { binary overloading supported }
-        (tok:_OP_IS      ;nod:isn;inr:in_none;op_overloading_supported:false;minargs:0;maxargs:0),      { binary overloading NOT supported }
-        (tok:_OP_OR      ;nod:orn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),       { binary overloading supported }
-        (tok:_OP_AND     ;nod:andn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_OP_DIV     ;nod:divn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_OP_NOT     ;nod:notn;inr:in_none;op_overloading_supported:true;minargs:1;maxargs:1),      { unary overloading supported }
-        (tok:_OP_MOD     ;nod:modn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_OP_SHL     ;nod:shln;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_OP_SHR     ;nod:shrn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_OP_XOR     ;nod:xorn;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),      { binary overloading supported }
-        (tok:_ASSIGNMENT ;nod:assignn;inr:in_none;op_overloading_supported:true;minargs:1;maxargs:1),   { unary overloading supported }
-        (tok:_OP_EXPLICIT;nod:assignn;inr:in_none;op_overloading_supported:true;minargs:1;maxargs:1),   { unary overloading supported }
-        (tok:_NE         ;nod:unequaln;inr:in_none;op_overloading_supported:true;minargs:2;maxargs:2),  { binary overloading supported }
-        (tok:_OP_INC     ;nod:inlinen;inr:in_inc_x;op_overloading_supported:true;minargs:1;maxargs:1),  { unary overloading supported }
-        (tok:_OP_DEC     ;nod:inlinen;inr:in_dec_x;op_overloading_supported:true;minargs:1;maxargs:1)   { unary overloading supported }
+        (tok:_PLUS       ;nod:addn     ;inr:in_none ;supported_op_overloads:[op_unary,op_binary]),
+        (tok:_MINUS      ;nod:subn     ;inr:in_none ;supported_op_overloads:[op_unary,op_binary]),
+        (tok:_STAR       ;nod:muln     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_SLASH      ;nod:slashn   ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_EQ         ;nod:equaln   ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_GT         ;nod:gtn      ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_LT         ;nod:ltn      ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_GTE        ;nod:gten     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_LTE        ;nod:lten     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_SYMDIF     ;nod:symdifn  ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_STARSTAR   ;nod:starstarn;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_AS      ;nod:asn      ;inr:in_none ;supported_op_overloads:[]),
+        (tok:_OP_IN      ;nod:inn      ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_IS      ;nod:isn      ;inr:in_none ;supported_op_overloads:[]),
+        (tok:_OP_OR      ;nod:orn      ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_AND     ;nod:andn     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_DIV     ;nod:divn     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_NOT     ;nod:notn     ;inr:in_none ;supported_op_overloads:[op_unary]),
+        (tok:_OP_MOD     ;nod:modn     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_SHL     ;nod:shln     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_SHR     ;nod:shrn     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_XOR     ;nod:xorn     ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_ASSIGNMENT ;nod:assignn  ;inr:in_none ;supported_op_overloads:[op_unary]),
+        (tok:_OP_EXPLICIT;nod:assignn  ;inr:in_none ;supported_op_overloads:[op_unary]),
+        (tok:_NE         ;nod:unequaln ;inr:in_none ;supported_op_overloads:[op_binary]),
+        (tok:_OP_INC     ;nod:inlinen  ;inr:in_inc_x;supported_op_overloads:[op_unary]),
+        (tok:_OP_DEC     ;nod:inlinen  ;inr:in_dec_x;supported_op_overloads:[op_unary])
       );
 
       tok2ops=4;
@@ -706,9 +705,7 @@ implementation
                       if tok2node[i].tok=optoken then
                         begin
                           result:=
-                            tok2node[i].op_overloading_supported and
-                            (tok2node[i].minargs<=1) and
-                            (tok2node[i].maxargs>=1) and
+                            (op_unary in tok2node[i].supported_op_overloads) and
                             isunaryoperatoroverloadable(tok2node[i].nod,tok2node[i].inr,ld);
                           break;
                         end;
@@ -718,15 +715,13 @@ implementation
                   end;
               end;
           2 : begin
+                ld:=tparavarsym(pf.parast.SymList[0]).vardef;
+                rd:=tparavarsym(pf.parast.SymList[1]).vardef;
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
-                      ld:=tparavarsym(pf.parast.SymList[0]).vardef;
-                      rd:=tparavarsym(pf.parast.SymList[1]).vardef;
                       result:=
-                        tok2node[i].op_overloading_supported and
-                        (tok2node[i].minargs<=2) and
-                        (tok2node[i].maxargs>=2) and
+                        (op_binary in tok2node[i].supported_op_overloads) and
                         isbinaryoperatoroverloadable(tok2node[i].nod,ld,nothingn,rd,nothingn);
                       break;
                     end;
@@ -878,7 +873,7 @@ implementation
         operpd  : tprocdef;
         ht      : tnode;
         ppn     : tcallparanode;
-        cand_cnt : integer;
+        i,cand_cnt : sizeint;
 
         function search_operator(optoken:ttoken;generror:boolean): integer;
           var
@@ -975,57 +970,22 @@ implementation
           it is not overloaded }
         result:=not (ocf_check_only in ocf);
 
-        case t.nodetype of
-           equaln:
-             optoken:=_EQ;
-           unequaln:
-             optoken:=_NE;
-           addn:
-             optoken:=_PLUS;
-           subn:
-             optoken:=_MINUS;
-           muln:
-             optoken:=_STAR;
-           starstarn:
-             optoken:=_STARSTAR;
-           slashn:
-             optoken:=_SLASH;
-           ltn:
-             optoken:=_LT;
-           gtn:
-             optoken:=_GT;
-           lten:
-             optoken:=_LTE;
-           gten:
-             optoken:=_GTE;
-           symdifn :
-             optoken:=_SYMDIF;
-           modn :
-             optoken:=_OP_MOD;
-           orn :
-             optoken:=_OP_OR;
-           xorn :
-             optoken:=_OP_XOR;
-           andn :
-             optoken:=_OP_AND;
-           divn :
-             optoken:=_OP_DIV;
-           shln :
-             optoken:=_OP_SHL;
-           shrn :
-             optoken:=_OP_SHR;
-           inn :
-             optoken:=_OP_IN;
-           else
-             begin
-               if not (ocf_check_only in ocf) then
-                 begin
-                   CGMessage(parser_e_operator_not_overloaded);
-                   t:=cnothingnode.create;
-                 end;
-               exit;
-             end;
-        end;
+        optoken:=NOTOKEN;
+        for i:=1 to tok2nodes do
+          if (t.nodetype=tok2node[i].nod) and (op_binary in tok2node[i].supported_op_overloads) then
+            begin
+              optoken:=tok2node[i].tok;
+              break;
+            end;
+        if optoken=NOTOKEN then
+          begin
+            if not (ocf_check_only in ocf) then
+              begin
+                CGMessage(parser_e_operator_not_overloaded);
+                t:=cnothingnode.create;
+              end;
+            exit;
+          end;
 
         cand_cnt:=search_operator(optoken,(optoken<>_NE) and not (ocf_check_only in ocf));
 
