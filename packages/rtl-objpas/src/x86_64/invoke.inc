@@ -173,7 +173,7 @@ begin
           else
             val := PtrUInt(aArgs[i].ValueRef);
         tkRecord:
-          if td^.RecSize in [1, 2, 4, 8] then
+          if (td^.RecSize in [1, 2, 4, 8]) and not (pfConst in aArgs[i].Info.ParamFlags) then
             val := PPtrUInt(aArgs[i].ValueRef)^
           else
             val := PtrUInt(aArgs[i].ValueRef);
