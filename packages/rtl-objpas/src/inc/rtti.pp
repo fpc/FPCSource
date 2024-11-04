@@ -4125,7 +4125,11 @@ begin
       else
         Result:='<Nil>';  
       end;
+    {$IF SIZEOF(POINTER) = SIZEOF(CODEPOINTER)}
+    { if CodePointer is not the same as Pointer then it currently can't be
+      passed onto a array of const }
     tkMethod: Result := Format('(method code=%p, data=%p)', [FData.FAsMethod.Code, FData.FAsMethod.Data]);
+    {$ENDIF}
   else
     result := '<unknown kind: '+GetEnumName(System.TypeInfo(TTypeKind),Ord(Kind))+'>';
   end;
