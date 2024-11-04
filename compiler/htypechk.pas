@@ -46,18 +46,20 @@ interface
       end;
 
       pcandidate = ^tcandidate;
-      tcandidate = record
+      tcandidate = object
          next         : pcandidate;
          data         : tprocdef;
          wrongparaidx,
          firstparaidx : integer;
          te_count : array[te_convert_operator .. te_exact] of integer; { should be signed }
-         ordinal_distance : double;
+         ordinal_distance_lo : uint64;
+         ordinal_distance_hi,ordinal_distance_secondary : uint32; { “hi” allows summing many uint64s, “secondary” allows tie-break corrections. }
          invalid : boolean;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
          saved_validity : boolean;
 {$endif}
          wrongparanr : byte;
+         procedure increment_ordinal_distance(by: uint64);
       end;
 
       tcallcandidatesflag =
@@ -2155,6 +2157,14 @@ implementation
       end;
 
 
+    procedure tcandidate.increment_ordinal_distance(by: uint64);
+      begin
+      {$push} {$q-,r-} inc(ordinal_distance_lo,by); {$pop}
+        if ordinal_distance_lo<by then
+          inc(ordinal_distance_hi); { Carry. }
+      end;
+
+
 {****************************************************************************
                            TCallCandidates
 ****************************************************************************}
@@ -2746,7 +2756,7 @@ implementation
             pd:=candidate^.data;
 
             if st<>pd.owner then
-              candidate^.ordinal_distance:=candidate^.ordinal_distance+1.0;
+              candidate^.increment_ordinal_distance(1);
 
             candidate:=candidate^.next;
           end;
@@ -2838,7 +2848,9 @@ implementation
                           ' l5: '+tostr(hp^.te_count[te_convert_l5])+
                           ' l6: '+tostr(hp^.te_count[te_convert_l6])+
                           ' oper: '+tostr(hp^.te_count[te_convert_operator])+
-                          ' ord: '+realtostr(hp^.ordinal_distance));
+                          ' ordhi: '+tostr(hp^.ordinal_distance_hi)+
+                          ' ordlo: '+tostr(hp^.ordinal_distance_lo)+
+                          ' ord2: '+tostr(hp^.ordinal_distance_secondary));
               { Print parameters in left-right order }
               for i:=0 to hp^.data.paras.count-1 do
                begin
@@ -2857,9 +2869,8 @@ implementation
       var
         hp       : pcandidate;
         currpara : tparavarsym;
-        paraidx  : integer;
+        paraidx,fp_precision_distance : integer;
         currparanr : byte;
-        rfh,rth  : double;
         obj_from,
         obj_to   : tobjectdef;
         def_from,
@@ -2875,12 +2886,16 @@ implementation
         cdoptions : tcompare_defs_options;
         n : tnode;
 
-    {$push}
-    {$r-}
-    {$q-}
-      const
-        inf=1.0/0.0;
-    {$pop}
+        function fp_precision_score(def: tdef): integer;
+          begin
+            if is_extended(def) then
+              result:=4
+            else if is_double(def) then
+              result:=2
+            else
+              result:=1;
+          end;
+
       begin
         cdoptions:=[cdo_check_operator];
         if FAllowVariant then
@@ -3008,19 +3023,13 @@ implementation
                   is_in_limit(def_from,def_to) then
                  begin
                    eq:=te_equal;
-                   hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
-                   rth:=bestreal(torddef(def_to).high);
-                   rfh:=bestreal(torddef(def_from).high);
-                   hp^.ordinal_distance:=hp^.ordinal_distance+abs(rth-rfh);
+                   { is_in_limit(def_from, def_to) means that def_from.low >= def_to.low and def_from.high <= def_to.high. }
+                   hp^.increment_ordinal_distance(torddef(def_from).low-torddef(def_to).low);
+                   hp^.increment_ordinal_distance(torddef(def_to).high-torddef(def_from).high);
                    { Give wrong sign a small penalty, this is need to get a diffrence
                      from word->[longword,longint] }
-                   if is_signed(def_from)<>is_signed(def_to) then
-{$push}
-{$r-}
-{$q-}
-                     hp^.ordinal_distance:=nextafter(hp^.ordinal_distance,inf);
-{$pop}
+                   if (is_signed(def_from)<>is_signed(def_to)) then
+                     inc(hp^.ordinal_distance_secondary);
                  end
               else
               { for value and const parameters check precision of real, give
@@ -3030,26 +3039,11 @@ implementation
                   is_real_or_cextended(def_to) then
                  begin
                    eq:=te_equal;
-                   if is_extended(def_to) then
-                     rth:=4
-                   else
-                     if is_double (def_to) then
-                       rth:=2
-                   else
-                     rth:=1;
-                   if is_extended(def_from) then
-                     rfh:=4
-                   else
-                     if is_double (def_from) then
-                       rfh:=2
-                   else
-                     rfh:=1;
+                   fp_precision_distance:=fp_precision_score(def_to)-fp_precision_score(def_from);
                    { penalty for shrinking of precision }
-                   if rth<rfh then
-                     rfh:=(rfh-rth)*16
-                   else
-                     rfh:=rth-rfh;
-                   hp^.ordinal_distance:=hp^.ordinal_distance+rfh;
+                   if fp_precision_distance<0 then
+                     fp_precision_distance:=16*-fp_precision_distance;
+                   hp^.increment_ordinal_distance(fp_precision_distance);
                  end
               else
               { related object parameters also need to determine the distance between the current
@@ -3069,7 +3063,7 @@ implementation
                      begin
                        if obj_from=obj_to then
                          break;
-                       hp^.ordinal_distance:=hp^.ordinal_distance+1;
+                       hp^.increment_ordinal_distance(1);
                        obj_from:=obj_from.childof;
                      end;
                  end
@@ -3277,35 +3271,35 @@ implementation
         if is_better_candidate<>0 then
           exit;
         { less cl6 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l6]-currpd^.te_count[te_convert_l6]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l6]-currpd^.te_count[te_convert_l6];
         if is_better_candidate<>0 then
           exit;
         { less cl5 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l5]-currpd^.te_count[te_convert_l5]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l5]-currpd^.te_count[te_convert_l5];
         if is_better_candidate<>0 then
           exit;
         { less cl4 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l4]-currpd^.te_count[te_convert_l4]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l4]-currpd^.te_count[te_convert_l4];
         if is_better_candidate<>0 then
           exit;
         { less cl3 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l3]-currpd^.te_count[te_convert_l3]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l3]-currpd^.te_count[te_convert_l3];
         if is_better_candidate<>0 then
           exit;
         { less cl2 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l2]-currpd^.te_count[te_convert_l2]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l2]-currpd^.te_count[te_convert_l2];
         if is_better_candidate<>0 then
           exit;
         { less cl1 parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_convert_l1]-currpd^.te_count[te_convert_l1]);
+        is_better_candidate:=bestpd^.te_count[te_convert_l1]-currpd^.te_count[te_convert_l1];
         if is_better_candidate<>0 then
           exit;
         { more exact parameters? }
-        is_better_candidate:=(currpd^.te_count[te_exact]-bestpd^.te_count[te_exact]);
+        is_better_candidate:=currpd^.te_count[te_exact]-bestpd^.te_count[te_exact];
         if is_better_candidate<>0 then
           exit;
         { less equal parameters? }
-        is_better_candidate:=(bestpd^.te_count[te_equal]-currpd^.te_count[te_equal]);
+        is_better_candidate:=bestpd^.te_count[te_equal]-currpd^.te_count[te_equal];
         if is_better_candidate<>0 then
           exit;
         { if a specialization is better than a non-specialization then
@@ -3317,8 +3311,12 @@ implementation
               exit;
           end;
         { smaller ordinal distance? }
-        if (currpd^.ordinal_distance<>bestpd^.ordinal_distance) then
-          is_better_candidate:=2*ord(currpd^.ordinal_distance<bestpd^.ordinal_distance)-1; { 1 if currpd^.ordinal_distance < bestpd^.ordinal_distance, -1 if the reverse. }
+        is_better_candidate:=int32(bestpd^.ordinal_distance_hi)-int32(currpd^.ordinal_distance_hi); { >0 if currpd^.ordinal_distance_hi < bestpd^.ordinal_distance_hi. }
+        if is_better_candidate<>0 then
+          exit;
+        if currpd^.ordinal_distance_lo<>bestpd^.ordinal_distance_lo then
+          exit(2*ord(currpd^.ordinal_distance_lo<bestpd^.ordinal_distance_lo)-1); { 1 if currpd^.ordinal_distance_lo < bestpd^.ordinal_distance_lo, -1 if the reverse. }
+        is_better_candidate:=int32(bestpd^.ordinal_distance_secondary)-int32(currpd^.ordinal_distance_secondary); { >0 if currpd^.ordinal_distance_secondary < bestpd^.ordinal_distance_secondary. }
       end;
 
 

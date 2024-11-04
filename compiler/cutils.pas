@@ -156,13 +156,6 @@ interface
     }
     function lowercase(c : char) : char;
 
-    { makes zero terminated string to a pascal string }
-    { the data in p is modified and p is returned     }
-    function pchar2pshortstring(p : pchar) : pshortstring;
-
-    { inverse of pchar2pshortstring }
-    function pshortstring2pchar(p : pshortstring) : pchar;
-
     { allocate a new pchar with the contents of a}
     function ansistring2pchar(const a: ansistring) : pchar;
 
@@ -170,12 +163,6 @@ interface
     procedure ansistringdispose(var p : pchar;length : longint);
     function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
     function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
-
-    {Lzw encode/decode to compress strings -> save memory.}
-    function minilzw_encode(const s:string):string;
-    function minilzw_decode(const s:string):string;
-
-    Function nextafter(x,y:double):double;
 
     function LengthUleb128(a: qword) : byte;
     function LengthSleb128(a: int64) : byte;
@@ -776,10 +763,10 @@ implementation
         if (length(needle)=0) or
            (length(needle)>length(haystack)) then
           exit;
-        result:=length(haystack)-length(needle);
+        result:=length(haystack)-length(needle)+1;
         repeat
           if (haystack[result]=needle[1]) and
-             (copy(haystack,result,length(needle))=needle) then
+             (CompareByte(haystack[result],needle[1],length(needle))=0) then
             exit;
           dec(result);
         until result=0;
@@ -1158,30 +1145,6 @@ implementation
     end;
 
 
-    function pchar2pshortstring(p : pchar) : pshortstring;
-      var
-         w,i : longint;
-      begin
-         w:=strlen(p);
-         for i:=w-1 downto 0 do
-           p[i+1]:=p[i];
-         p[0]:=chr(w);
-         pchar2pshortstring:=pshortstring(p);
-      end;
-
-
-    function pshortstring2pchar(p : pshortstring) : pchar;
-      var
-         w,i : longint;
-      begin
-         w:=length(p^);
-         for i:=1 to w do
-           p^[i-1]:=p^[i];
-         p^[w]:=#0;
-         pshortstring2pchar:=pchar(p);
-      end;
-
-
     function ansistring2pchar(const a: ansistring) : pchar;
       var
         len: ptrint;
@@ -1335,251 +1298,11 @@ implementation
       end;
 
 
-{*****************************************************************************
-                       Ultra basic KISS Lzw (de)compressor
-*****************************************************************************}
-
-    {This is an extremely basic implementation of the Lzw algorithm. It
-     compresses 7-bit ASCII strings into 8-bit compressed strings.
-     The Lzw dictionary is preinitialized with 0..127, therefore this
-     part of the dictionary does not need to be stored in the arrays.
-     The Lzw code size is allways 8 bit, so we do not need complex code
-     that can write partial bytes.}
-
-    function minilzw_encode(const s:string):string;
-
-    var t,u,i:byte;
-        c:char;
-        data:array[128..255] of char;
-        previous:array[128..255] of byte;
-        lzwptr:byte;
-        next_avail:set of 0..255;
-
-    label l1;
-
-    begin
-      minilzw_encode:='';
-      fillchar(data,sizeof(data),#0);
-      fillchar(previous,sizeof(previous),#0);
-      if s<>'' then
-        begin
-          lzwptr:=127;
-          t:=byte(s[1]);
-          i:=2;
-          u:=128;
-          next_avail:=[];
-          while i<=length(s) do
-            begin
-              c:=s[i];
-              if not(t in next_avail) or (u>lzwptr) then goto l1;
-              while (previous[u]<>t) or (data[u]<>c) do
-                begin
-                  inc(u);
-                  if u>lzwptr then goto l1;
-                end;
-              t:=u;
-              inc(i);
-              continue;
-            l1:
-              {It's a pity that we still need those awfull tricks
-               with this modern compiler. Without this performance
-               of the entire procedure drops about 3 times.}
-              inc(minilzw_encode[0]);
-              minilzw_encode[length(minilzw_encode)]:=char(t);
-              if lzwptr=255 then
-                begin
-                  lzwptr:=127;
-                  next_avail:=[];
-                end
-              else
-                begin
-                  inc(lzwptr);
-                  data[lzwptr]:=c;
-                  previous[lzwptr]:=t;
-                  include(next_avail,t);
-                end;
-              t:=byte(c);
-              u:=128;
-              inc(i);
-            end;
-          inc(minilzw_encode[0]);
-          minilzw_encode[length(minilzw_encode)]:=char(t);
-        end;
-    end;
-
-    function minilzw_decode(const s:string):string;
-
-    var oldc,newc,c:char;
-        i,j:byte;
-        data:array[128..255] of char;
-        previous:array[128..255] of byte;
-        lzwptr:byte;
-        t:string;
-
-    begin
-      minilzw_decode:='';
-      fillchar(data,sizeof(data),#0);
-      fillchar(previous,sizeof(previous),#0);
-      if s<>'' then
-        begin
-          lzwptr:=127;
-          oldc:=s[1];
-          c:=oldc;
-          i:=2;
-          minilzw_decode:=oldc;
-          while i<=length(s) do
-            begin
-              newc:=s[i];
-              if byte(newc)>lzwptr then
-                begin
-                  t:=c;
-                  c:=oldc;
-                end
-              else
-                begin
-                  c:=newc;
-                  t:='';
-                end;
-              while c>=#128 do
-                begin
-                  inc(t[0]);
-                  t[length(t)]:=data[byte(c)];
-                  byte(c):=previous[byte(c)];
-                end;
-              inc(minilzw_decode[0]);
-              minilzw_decode[length(minilzw_decode)]:=c;
-              for j:=length(t) downto 1 do
-                begin
-                  inc(minilzw_decode[0]);
-                  minilzw_decode[length(minilzw_decode)]:=t[j];
-                end;
-              if lzwptr=255 then
-                lzwptr:=127
-              else
-                begin
-                  inc(lzwptr);
-                  previous[lzwptr]:=byte(oldc);
-                  data[lzwptr]:=c;
-                end;
-              oldc:=newc;
-              inc(i);
-            end;
-        end;
-    end;
-
-
     procedure defaulterror(i:longint);
       begin
         writeln('Internal error ',i);
         runerror(255);
       end;
-
-    Function Nextafter(x,y:double):double;
-    // Returns the double precision number closest to x in
-    // the direction toward y.
-
-    // Initial direct translation by Soeren Haastrup from
-    // www.netlib.org/fdlibm/s_nextafter.c according to
-    // ====================================================
-    // Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
-    // Developed at SunSoft, a Sun Microsystems, Inc. business.
-    // Permission to use, copy, modify, and distribute this
-    // software is freely granted, provided that this notice
-    // is preserved.
-    // ====================================================
-    // and with all signaling policies preserved as is.
-
-    type
-      {$if defined(ENDIAN_LITTLE) and not defined(FPC_DOUBLE_HILO_SWAPPED)}
-        twoword=record
-                  lo,hi:longword; // Little Endian split of a double.
-                end;
-      {$else}
-        twoword=record
-                  hi,lo:longword; // Big Endian split of a double.
-                end;
-      {$endif}
-
-    var
-        hx,hy,ix,iy:longint;
-        lx,ly:longword;
-
-    Begin
-    hx:=twoword(x).hi;    // high and low words of x and y
-    lx:=twoword(x).lo;
-    hy:=twoword(y).hi;
-    ly:=twoword(y).lo;
-    ix:=hx and $7fffffff;  // absolute values
-    iy:=hy and $7fffffff;
-
-    // Case x=NAN or y=NAN
-
-    if ( (ix>=$7ff00000) and ((longword(ix-$7ff00000) or lx) <> 0) )
-        or ( (iy>=$7ff00000) and ((longword(iy-$7ff00000) OR ly) <> 0) )
-    then exit(x+y);
-
-    // Case x=y
-
-    if x=y then exit(x); // (implies Nextafter(0,-0) is 0 and not -0...)
-
-    // Case x=0
-
-    if (longword(ix) or lx)=0
-    then begin
-          twoword(x).hi:=hy and $80000000;  // return +-minimalSubnormal
-          twoword(x).lo:=1;
-          y:=x*x;    // set underflow flag (ignored in FPC as default)
-          if y=x
-          then exit(y)
-          else exit(x);
-        end;
-
-    // all other cases
-
-    if hx>=0  // x>0
-    then begin
-          if (hx>hy) or ( (hx=hy) and (lx>ly) ) // x>y , return x-ulp
-          then begin
-                if (lx=0) then hx:=hx-1;
-                lx:=lx-1;
-              end
-          else begin                      // x<y, return x+ulp
-                lx:=lx+1;
-                if lx=0 then hx:=hx+1;
-              end
-        end
-    else begin // x<0
-          if (hy>=0) or (hx>=hy) or ( (hx=hy) and (lx>ly)) // x<y, return x-ulp
-          then begin
-                if (lx=0) then hx:=hx-1;
-                lx:=lx-1;
-              end
-          else begin            // x>y , return x+ulp
-                lx:=lx+1;
-                if lx=0 then hx:=hx+1;
-              end
-        end;
-
-    // finally check if overflow or underflow just happend
-
-    hy:=hx and $7ff00000;
-    if (hy>= $7ff00000) then exit(x+x); // overflow and signal
-    if (hy<$0010000)                    // underflow
-    then begin
-          y:=x*x;              // raise underflow flag
-          if y<>x
-          then begin
-                twoword(y).hi:=hx;
-                twoword(y).lo:=lx;
-                exit(y);
-              end
-        end;
-
-    twoword(x).hi:=hx;
-    twoword(x).lo:=lx;
-    nextafter:=x;
-
-    end;
 
 
     function LengthUleb128(a: qword) : byte;
