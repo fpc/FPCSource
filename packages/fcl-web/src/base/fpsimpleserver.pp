@@ -54,7 +54,7 @@ uses
   webutil;
 {$ENDIF}
 Const
-  ServerVersion = '1.1';
+  fpSimpleServerVersion = '1.1';
 
 Type
 
@@ -502,7 +502,7 @@ end;
 
 procedure TFPSimpleServerApplication.WriteOptions;
 begin
-  Writeln('Version : ',ServerVersion);
+  Writeln('Version : ',fpSimpleServerVersion);
   Writeln('Where options is one or more of : ');
   Writeln('-A --api=path,secret  Activate location API on path, using secret as accepted bearer token.');
   Writeln('-a --max-age=age      Set max-age expiry header on returned file requests.');
@@ -632,7 +632,7 @@ begin
   if HasOption('V','version') then
     begin
     Terminate;
-    Writeln(ServerVersion);
+    Writeln(fpSimpleServerVersion);
     Exit;
     end;
   if HasOption('c','config') then
