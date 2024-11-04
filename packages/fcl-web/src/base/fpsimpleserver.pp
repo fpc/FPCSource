@@ -60,21 +60,13 @@ Type
 
   { TFPSimpleServerApplication }
 {$IFDEF USEMICROHTTP}
-  TParentApp = TCustomMicroHTTPApplication;
+  TSimpleServerParentApp = TCustomMicroHTTPApplication;
 {$ELSE}
-  TParentApp = TCustomHTTPApplication;
+  TSimpleServerParentApp = TCustomHTTPApplication;
 {$ENDIF}
 
-{$IFDEF VER3_2}
-  { TMySimpleFileModule }
-  TMySimpleFileModule = class(TFPCustomFileModule)
-  Public
-    Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); override;
-    Procedure SendFile(const AFileName: String; AResponse: TResponse); override;
-  end;
-{$ENDIF}
 
-  TFPSimpleServerApplication = Class(TParentApp)
+  TFPSimpleServerApplication = Class(TSimpleServerParentApp)
   private
     FProxyDefs : TStrings;
     FLocations : TStrings;
@@ -203,14 +195,22 @@ Const
 
 
 {$IFDEF VER3_2}
-{ TMySimpleFileModule }
+Type
+  { TCoiAwareSimpleFileModule }
+  TCoiAwareSimpleFileModule = class(TFPCustomFileModule)
+  Public
+    Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); override;
+    Procedure SendFile(const AFileName: String; AResponse: TResponse); override;
+  end;
 
-constructor TMySimpleFileModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
+{ TCoiAwareSimpleFileModule }
+
+constructor TCoiAwareSimpleFileModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
 begin
   inherited CreateNew(AOwner, CreateMode);
 end;
 
-procedure TMySimpleFileModule.SendFile(const AFileName: String; AResponse: TResponse);
+procedure TCoiAwareSimpleFileModule.SendFile(const AFileName: String; AResponse: TResponse);
 begin
   AResponse.SetCustomHeader('Cross-Origin-Embedder-Policy','require-corp');
   AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
@@ -704,7 +704,7 @@ begin
   if FCrossOriginIsolation then
     begin
     {$IFDEF VER3_2_2}
-    DefaultFileModuleClass:=TMySimpleFileModule;
+    DefaultFileModuleClass:=TCoiAwareSimpleFileModule;
     {$ELSE}
     TFPCustomFileModule.OnPrepareResponse:=@ApplyCoi;
     {$ENDIF}
