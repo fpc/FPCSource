@@ -63,7 +63,7 @@ begin
           AddUnit('fpimage');
           AddUnit('fpcanvas');
           AddUnit('pixtools');
-        end; 
+        end;
     T:=P.Targets.AddUnit('fpcanvas.pp');
       with T.Dependencies do
         begin
@@ -128,7 +128,7 @@ begin
           AddUnit('fpimage');
           AddUnit('bmpcomn');
         end;
-    T:=P.Targets.AddUnit('jpegcomn.pas');    
+    T:=P.Targets.AddUnit('jpegcomn.pas');
     T:=P.Targets.AddUnit('fpreadjpeg.pas');
       with T.Dependencies do
         begin
@@ -236,20 +236,20 @@ begin
         begin
           AddUnit('fpimage');
         end;
-    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly,android]);
       T.CPUS:=T.CPUS-[wasm32];
       T.Dependencies.AddInclude('libfreetype.inc');
-    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly,android]);
       T.ResourceStrings:=true;
       T.CPUS:=T.CPUS-[wasm32];
       T.Dependencies.AddInclude('libfreetype.inc');
-    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly,android]);
       with T.Dependencies do
         begin
           AddUnit('freetypeh');
           AddUnit('fpimgcmn');
         end;
-    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly,android]);
       with T.Dependencies do
         begin
           AddUnit('fpcanvas');
@@ -285,7 +285,7 @@ begin
     T:=P.Targets.AddUnit('fpimggauss.pp');
     With T.Dependencies do
       AddUnit('fpimage');
-      
+
     T:=P.Targets.AddUnit('fpbarcode.pp');
     T:=P.Targets.AddUnit('fpimgbarcode.pp');
     With T.Dependencies do
@@ -304,7 +304,7 @@ begin
       Addunit('fpimgcmn');
       AddUnit('fpqrcodegen');
       end;
-    // qoi  
+    // qoi
     T:=P.Targets.AddUnit('qoicomn.pas');
       with T.Dependencies do
         begin
@@ -329,7 +329,7 @@ begin
           AddInclude('fpspectraldata.inc');
           AddUnit('fpimage');
         end;
-      
+
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
