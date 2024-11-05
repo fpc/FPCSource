@@ -370,6 +370,10 @@ implementation
           if ([m_objfpc,m_delphi] * current_settings.modeswitches)<>[] then
             if is_systemunit_unicode then
               Include(current_settings.modeswitches,m_default_unicodestring);
+
+        { default the extended RTTI options to that of TObject }
+        if assigned(class_tobject) then
+          current_module.rtti_directive.options:=class_tobject.rtti.options;
       end;
 
 
