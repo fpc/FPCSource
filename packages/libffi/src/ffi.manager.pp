@@ -80,7 +80,7 @@ var
 
 var
   td, fieldtd: PTypeData;
-  i, j, asize,lastoffset, curoffset, remoffset: SizeInt;
+  i, j, asize,expoffset, curoffset, remoffset: SizeInt;
   field: PManagedField;
   ffitype: pffi_type;
   {$IFDEF TESTCIFSIZE}
@@ -97,7 +97,7 @@ begin
   FillChar(Result^, SizeOf(Result), 0);
   Result^._type := _FFI_TYPE_STRUCT;
   Result^.elements := Nil;
-  lastoffset := -1;
+  expoffset := 0;
   curoffset := 0;
   curindex := 0;
   asize := 0;
@@ -106,12 +106,11 @@ begin
   SetLength(elements, td^.TotalFieldCount);
   for i := 0 to td^.TotalFieldCount - 1 do begin
     curoffset := field^.FldOffset;
-    if (curoffset <= lastoffset) then begin
+    if (curoffset < expoffset) then begin
       Inc(field);
       Continue;
     end;
-    lastoffset:=field^.FldOffset;
-    remoffset := curoffset-(lastoffset-aSize);
+    remoffset := curoffset - expoffset;
     { insert padding elements }
     while remoffset >= SizeOf(QWord) do begin
       AddElement(@ffi_type_uint64);
@@ -145,7 +144,7 @@ begin
         aSize:=aSize+AddElement(ffitype);
     end else
       aSize:=AddElement(TypeInfoToFFIType(field^.TypeRef, []));
-    lastoffset:=lastOffset+aSize;
+    expoffset := field^.FldOffset + aSize;
     Inc(field);
   end;
   { add a final Nil element }
