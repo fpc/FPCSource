@@ -228,6 +228,8 @@ Type
     // Logging
     procedure DoLog(Const aType : TEventType; const aMessage : String);
     procedure DoLog(Const aType : TEventType; const aFmt : String; aArgs : Array of const);
+    // Override this to finish creating a type.
+    procedure FinishAutoCreatedType(aName: string; aType: TPascalTypeData; lElementTypeData: TPascalTypeData); virtual;
     // Override this to determine the type name of a pascal property
     function GetSchemaTypeAndName(aType: TPascalTypeData; aSchema: TJSONSchema; out aPropType: TPascalType; aNameType: TNameType=ntPascal): String; virtual;
     // Add a new type to the type map.
@@ -618,10 +620,26 @@ procedure TSchemaData.CheckDependencies;
     For I:=0 to aData.PropertyCount-1 do
       begin
       lPropData:=aData.Properties[I].TypeData;
-      if Assigned(lPropData) and (lPropData.Pascaltype in [ptAnonStruct,ptSchemaStruct]) then
+      if Assigned(lPropData) then
         begin
-        lTop.AddDependency(lPropData);
-        CheckProps(lTop,lPropData);
+        Case lPropData.Pascaltype of
+        ptAnonStruct,ptSchemaStruct:
+          begin
+          lTop.AddDependency(lPropData);
+          CheckProps(lTop,lPropData);
+          end;
+        ptArray:
+          begin
+          lPropData:=GetSchemaTypeData(lPropData,lPropData.Schema.Items[0],False);
+          if assigned(lPropData) and (lPropData.PascalType in [ptAnonStruct,ptSchemaStruct]) then
+            begin
+            lTop.AddDependency(lPropData);
+            CheckProps(lTop,lPropData);
+            end;
+          end
+        else
+          ;
+        end;
         end;
       end;
   end;
@@ -790,6 +808,14 @@ begin
     end;
 end;
 
+Procedure TSchemaData.FinishAutoCreatedType(aName : string; aType: TPascalTypeData; lElementTypeData: TPascalTypeData);
+
+begin
+  AddType(aName,aType);
+  if aType.Pascaltype=ptAnonStruct then
+    AddPropertiesToType(aType,aType.Schema,True);
+end;
+
 function TSchemaData.GetSchemaTypeData(aType: TPascalTypeData; lSchema: TJSONSchema; AllowCreate : Boolean = False) : TPascalTypeData;
 
 var
@@ -839,7 +865,7 @@ begin
           if (Result=Nil) and allowCreate then
             begin
             Result:=CreatePascalType(-1,ptEnum,lName,'T'+lBaseName,lSchema);
-            AddType(lName,Result);
+            FinishAutoCreatedType(lName,Result,Nil);
             end;
           end
         else
@@ -860,7 +886,7 @@ begin
         if (Result=Nil) and AllowCreate then
           begin
           Result:=CreatePascalType(-1,ptArray,lName,lPascalName,lSchema);
-          AddType(lName,Result);
+          FinishAutoCreatedType(lName,Result,lElTypeData);
           end;
         end;
       sstObject:
@@ -874,14 +900,12 @@ begin
           else
             lBaseName:='Nested_'+lSchema.Name;
           lName:='{'+lBaseName+'}';
-          Writeln('Alias ',lName);
           lPascalName:='T'+lBaseName;
           Result:=FindSchemaTypeData(lName);
           if (Result=Nil) and AllowCreate then
             begin
             Result:=CreatePascalType(-1,ptAnonStruct,lName,lPascalName,lSchema);
-            AddType(lName,Result);
-            AddPropertiesToType(Result,lSchema,True);
+            FinishAutoCreatedType(lName,Result,lElTypeData);
             end;
           end;
         end;
@@ -977,6 +1001,8 @@ var
 
 begin
   lType:=CreatePascalType(-1,aType,aSchemaTypeName,aPascalTypeName,aSchema);
+  if not (aType in [ptSchemaStruct,ptAnonStruct,ptArray]) then
+    lType.InterfaceName:=aPascalTypeName;
   AddToTypeMap(aAlias,lType);
   AddAliasType(lType);
 end;

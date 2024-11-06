@@ -65,12 +65,15 @@ Type
 
   { TSerializerCodeGen }
 
+  { TSerializerCodeGenerator }
+
   TSerializerCodeGenerator = class(TJSONSchemaCodeGenerator)
   private
     FDataUnitName: string;
     function FieldToJSON(aProperty: TPascalPropertyData) : string;
     function ArrayMemberToField(aType: TPropertyType; const aPropertyTypeName: String; const aFieldName: string): string;
     function FieldToJSON(aType: TPropertyType; aFieldName: String): string;
+    procedure GenerateConverters;
     function JSONToField(aProperty: TPascalPropertyData) : string;
     function JSONToField(aType: TPropertyType; const aPropertyTypeName: string; const aKeyName: string): string;
     procedure WriteFieldDeSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData);
@@ -260,17 +263,19 @@ begin
     EnsureSection(csType);
     indent;
     for I := 0 to aData.TypeCount-1 do
-    begin
-      DoLog('Generating type %s', [aData.Types[I].PascalName]);
-      WriteDtoType(aData.Types[I]);
-    end;
+      if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
+        begin
+          DoLog('Generating type %s', [aData.Types[I].PascalName]);
+          WriteDtoType(aData.Types[I]);
+        end;
     undent;
     Addln('implementation');
     Addln('');
     if WriteClassType then
       for I := 0 to aData.TypeCount-1 do
         begin
-        if aData.Types[I].HasObjectProperty(True) then
+        if (aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct])
+           and aData.Types[I].HasObjectProperty(True) then
           begin
           DoLog('Generating type %s constructor', [aData.Types[I].PascalName]);
           WriteDtoConstructor(aData.Types[I]);
@@ -341,11 +346,10 @@ function TSerializerCodeGenerator.JSONToField(aType: TPropertyType; const aPrope
   end;
 
 var
+  lPropType,
   lPasDefault: string;
 
 begin
-  if aKeyName='features' then
-    Writeln('a');
   if aType in [ptSchemaStruct,ptAnonStruct] then
   begin
     Result := Format('%s.Deserialize(%s)', [aPropertyTypeName, ObjectField(aKeyName)]);
@@ -362,9 +366,13 @@ begin
       ptInt64,
       ptBoolean:
       begin
+        if aType=ptDateTime then
+          lPropType:='string'
+        else
+          lPropType:=aPropertyTypeName;
         lPasDefault:=GetJSONDefault(aType);
         if DelphiCode then
-          Result := Format('aJSON.GetValue<%s>(''%s'',%s)', [aPropertyTypeName, aKeyName, lPasDefault])
+          Result := Format('aJSON.GetValue<%s>(''%s'',%s)', [lPropType, aKeyName, lPasDefault])
         else
           Result := Format('aJSON.Get(''%s'',%s)', [aKeyName, lPasDefault]);
       end;
@@ -388,8 +396,6 @@ var
   lPasDefault: string;
 
 begin
-  if aPropertyTypeName='' then
-    Writeln('aPropertyTypeName is empty for ',aFieldName);
   if aType in [ptAnonStruct,ptSchemaStruct] then
     Result := Format('%s.Deserialize(%s as TJSONObject)', [aPropertyTypeName, aFieldName])
   else
@@ -728,6 +734,30 @@ begin
   Addln('end;');
 end;
 
+procedure TSerializerCodeGenerator.GenerateConverters;
+
+begin
+  Addln('function ISO8601ToDateDef(S: String; aDefault : TDateTime) : TDateTime;');
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('if (S='''') then');
+  indent;
+  Addln('Exit(aDefault);');
+  undent;
+  Addln('try');
+  indent;
+  AddLn('Result:=ISO8601ToDate(S);');
+  undent;
+  Addln('except');
+  indent;
+  Addln('Result:=aDefault;');
+  undent;
+  Addln('end;');
+  undent;
+  Addln('end;');
+  Addln('');
+end;
 
 procedure TSerializerCodeGenerator.Execute(aData: TSchemaData);
 
@@ -763,31 +793,38 @@ begin
     for I := 0 to aData.TypeCount-1 do
     begin
       with aData.Types[I] do
-        DoLog('Generating serialization helper type %s for Dto %s', [SerializerName, PascalName]);
-      WriteDtoHelper(aData.Types[I]);
-      Addln('');
+        if Pascaltype in [ptSchemaStruct,ptAnonStruct] then
+          begin
+          DoLog('Generating serialization helper type %s for Dto %s', [SerializerName, PascalName]);
+          WriteDtoHelper(aData.Types[I]);
+          Addln('');
+          end;
     end;
     undent;
     Addln('implementation');
     Addln('');
     if DelphiCode then
-      Addln('uses System.Generics.Collections, System.SysUtils, System.Types, System.StrUtils;')
+      Addln('uses System.Generics.Collections, System.SysUtils, System.Types, System.DateUtils, System.StrUtils;')
     else
-      Addln('uses Generics.Collections, SysUtils, Types, StrUtils;');
+      Addln('uses Generics.Collections, SysUtils, Types, DateUtils, StrUtils;');
     Addln('');
+    GenerateConverters;
     for I := 0 to aData.TypeCount-1 do
     begin
       lType := aData.Types[I];
-      if stSerialize in lType.SerializeTypes then
-      begin
-        WriteDtoObjectSerializer(aData.Types[I]);
-        WriteDtoSerializer(aData.Types[I]);
-      end;
-      if stDeserialize in lType.SerializeTypes then
-      begin
-        WriteDtoObjectDeserializer(aData.Types[I]);
-        WriteDtoDeserializer(aData.Types[I]);
-      end;
+      if LType.Pascaltype in [ptSchemaStruct,ptAnonStruct] then
+        begin
+        if stSerialize in lType.SerializeTypes then
+        begin
+          WriteDtoObjectSerializer(aData.Types[I]);
+          WriteDtoSerializer(aData.Types[I]);
+        end;
+        if stDeserialize in lType.SerializeTypes then
+        begin
+          WriteDtoObjectDeserializer(aData.Types[I]);
+          WriteDtoDeserializer(aData.Types[I]);
+        end;
+        end;
     end;
     Addln('');
     Addln('end.');
