@@ -1205,9 +1205,16 @@ implementation
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
-                { expect at least one type declaration }
-                if token<>_ID then
-                  consume(_ID);
+
+                if (token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
+                begin
+                  check_unbound_attributes;
+                  types_dec(true,hadgeneric, rtti_attrs_def);
+                end
+                else
+                  // expect at least one type declaration
+                  if token<>_ID then
+                    consume(_ID);
               end;
             _VAR :
               begin
