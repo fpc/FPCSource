@@ -5,7 +5,11 @@ unit wasm.pcrebridge;
 interface
 
 uses
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.CTypes, System.SysUtils, wasm.regexp.objects;
+  {$ELSE}
   ctypes, sysutils, wasm.regexp.objects;
+  {$ENDIF}
 
 {$IF SIZEOF(CHAR)=2}
 {$DEFINE STRING_IS_UNICODE}
@@ -331,7 +335,7 @@ var
 
 begin
   {$IFDEF STRING_IS_UNICODE}
-  Res:='';
+  RS:='';
   SetLength(RS,aSubjectLen);
   if aSubjectLen>0 then
     Move(aSubject^,RS[1],aSubjectLen* SizeOf(Char));
