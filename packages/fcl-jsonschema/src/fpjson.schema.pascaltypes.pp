@@ -138,12 +138,13 @@ Type
     function GetSerializerName: String;
   Protected
     function CreateProperty(const aSchemaName, aPascalName: string): TPascalPropertyData; virtual;
-    Procedure SortProperties;
   Public
     class function ExtractFirstType(aSchema: TJSONSchema): TSchemaSimpleType;
   Public
     Constructor Create(aIndex : integer; aType : TPascalType; const aSchemaName,aPascalName : String; aSchema : TJSONSchema);
     destructor Destroy; override;
+    // Sort the properties.
+    Procedure SortProperties;
     // Index of property using schema name
     Function IndexOfProperty(const aSchemaName: string) : Integer;
     // Index of property using Pascal name
@@ -271,7 +272,7 @@ Type
     // Add properties to structured pascal type from aSchema. if aSchema = nil then use aType.Schema
     Procedure AddPropertiesToType(aType : TPascalTypeData; aSchema: TJSONSchema = Nil; Recurse : Boolean = True);
     // For all types, fill the depency list: contains all structured types on which the type depends (recursively).
-    procedure CheckDependencies;
+    procedure CheckDependencies; virtual;
     // Number of types
     Property TypeCount : Integer Read GetSchemaTypeCount;
     // Indexed access to all types.
