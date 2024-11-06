@@ -1371,7 +1371,8 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
   function Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
   function Toolhelp32ReadProcessMemory(th32ProcessID: DWORD; lpBaseAddress: pointer; lpBuffer: pointer; cbRead: SIZE_T; lpNumberOfBytesRead: PSIZE_T): BOOL; stdcall; external KernelDLL;
-
+  function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PLARGE_INTEGER): BOOL; stdcall; external kernelDLL; 
+ 
 {$endif read_interface}
 
 {$ifdef read_implementation}
