@@ -1008,6 +1008,9 @@ function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualRe
 function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA';
 //function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
+// native int64 typed overload.
+function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PINT64): BOOL; stdcall; external kernelDLL; 
+
 // windows because of Delphi compat.
 
 {$calling default}
