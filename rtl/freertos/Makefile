@@ -2489,6 +2489,9 @@ unixcp$(PPUEXT) : $(UNIXCP_DEPS)
 	$(COMPILER) $(UNIXCP_OPT) $(UNIXINC)/unixcp.pp
 UnixApi.CP$(PPUEXT) : $(NSINC)/UnixApi.CP.pp $(UNIXCP_DEPS)
 	$(COMPILER) $(UNIXCP_OPT) $<
+ifndef LINUXINC
+LINUXINC=$(OSDIR)
+endif
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   LINUX_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 else
@@ -2496,14 +2499,14 @@ ifneq ($(filter $(CPU_TARGET),i386 x86_64),)
   LINUX_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif
 endif
-LINUX_DEPS=$(OSDIR)/linux.pp \
+LINUX_DEPS=$(LINUXINC)/linux.pp \
 	   $(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(LINUX_DEPS_OS) $(LINUX_DEPS_CPU)
 linux$(PPUEXT): $(LINUX_DEPS)
 	$(COMPILER) $<
 LinuxApi$(PPUEXT): $(NSOSDIR)/LinuxApi.pp $(LINUX_DEPS) 
 	$(COMPILER) $(LINUX_OPT) $<
-LINUXVCS_DEPS=$(OSDIR)/linuxvcs.pp $(BASEUNIXUNIT)$(PPUEXT) $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+LINUXVCS_DEPS=$(LINUXINC)/linuxvcs.pp $(BASEUNIXUNIT)$(PPUEXT) $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	      $(LINUXVCS_DEPS_OS) $(LINUXVCS_DEPS_CPU)
 linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
@@ -2744,19 +2747,25 @@ cmem$(PPUEXT) : $(CMEM_DEPS)
 	$(COMPILER) $(CMEM_OPT) $<
 System.CMem$(PPUEXT) : $(NSINC)/System.CMem.pp $(CMEM_DEPS)
 	$(COMPILER) $(CMEM_OPT) $<
+ifndef PTYPESINCDIR
+  PTYPESINCDIR=$(OSDIR)
+endif
 BASEUNIX_DEPS=$(BASEUNIXDIR)/baseunix.pp  $(UNIXINC)/ctypes.inc  \
-	      $(UNIXINC)/bunxh.inc $(UNIXINC)/gensigset.inc $(OSDIR)/ptypes.inc $(OSDIR)/errno.inc \
+	      $(UNIXINC)/bunxh.inc $(UNIXINC)/gensigset.inc $(PTYPESINCDIR)/ptypes.inc $(OSDIR)/errno.inc \
 	      $(UNIXTYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	      $(BASEUNIX_DEPS_OS) $(BASEUNIX_DEPS_CPU) 
 baseunix$(PPUEXT): $(BASEUNIX_DEPS)
 	$(COMPILER) $(BASEUNIX_OPT) $<
 UnixApi.Base$(PPUEXT): $(NSINC)/UnixApi.Base.pp $(BASEUNIX_DEPS) 
 	$(COMPILER) $(BASEUNIX_OPT) $<
+ifndef UNXINC
+  UNXINC=$(OSDIR)
+endif
 UNIX_DEPS=$(UNIXINC)/unix.pp \
 	 $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
 	 $(UNIXUTILUNIT)$(PPUEXT) \
 	 $(INC)/textrec.inc $(INC)/filerec.inc  $(UNIXINC)/timezone.inc \
-	 $(OSDIR)/unxconst.inc $(OSDIR)/unxfunc.inc \
+	 $(UNXINC)/unxconst.inc $(UNXINC)/unxfunc.inc \
 	 $(UNIX_DEPS_OS) $(UNIX_DEPS_CPU)
 unix$(PPUEXT): $(UNIX_DEPS)
 	$(COMPILER) $(UNIX_OPT) $<
@@ -2776,9 +2785,6 @@ unixutil$(PPUEXT) : $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
 UnixApi.Utils$(PPUEXT) : $(NSINC)/UnixApi.Utils.pp $(UNIXUTIL_DEPS) 
 	$(COMPILER) $(UNIXUTIL_OPT) $<
-ifndef PTYPESINCDIR
-  PTYPESINCDIR=$(OSDIR)
-endif
 UNIXTYPE_DEPS=$(UNIXINC)/unixtype.pp \
 	      $(SYSTEMUNIT)$(PPUEXT) $(PTYPESINCDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
 	      $(UNIXTYPE_DEPS_OS) $(UNIXTYPE_DEPS_CPU)
