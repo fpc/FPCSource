@@ -340,22 +340,6 @@ function GetICMProfileW(_para1:HDC; _para2:LPDWORD; _para3:LPWSTR):WINBOOL; exte
 function SetICMProfileW(_para1:HDC; _para2:LPWSTR):WINBOOL; external 'gdi32' name 'SetICMProfileW';
 function UpdateICMRegKeyW(_para1:DWORD; _para2:DWORD; _para3:LPWSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyW';
 function EnumICMProfilesW(_para1:HDC; _para2:ICMENUMPROCW; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesW';
-{
-function CreatePropertySheetPageW(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external 'comctl32' name 'CreatePropertySheetPageW';
-function PropertySheetW(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetW';
-function ImageList_LoadImageW(hi:HINST; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageW';
-function CreateStatusWindowW(style:LONG; lpszText:LPCWSTR; hwndParent:HWND; wID:UINT):HWND; external 'comctl32' name 'CreateStatusWindowW';
-procedure DrawStatusTextW(hDC:HDC; lprc:LPRECT; pszText:LPCWSTR; uFlags:UINT); external 'comctl32' name 'DrawStatusTextW';
-function GetOpenFileNameW(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameW';
-function GetSaveFileNameW(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameW';
-function GetFileTitleW(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleW';
-function ChooseColorW(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorW';
-function ReplaceTextW(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextW';
-function ChooseFontW(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontW';
-function FindTextW(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextW';
-function PrintDlgW(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgW';
-function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgW';
-}
 
 function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;dwCreationFlags:DWORD; lpEnvironment:LPVOID;
   lpCurrentDirectory:LPCWSTR; lpStartupInfo:LPSTARTUPINFOW; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessW';
