@@ -906,6 +906,12 @@ begin
 {$include fcl-jsonschema/fpmake.pp}
 end;
 
+procedure add_fcl_openapi(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-openapi/fpmake.pp}
+end;
+
 procedure add_ptckvm(const ADirectory: string);
 begin
   with Installer do

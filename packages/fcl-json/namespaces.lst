@@ -13,3 +13,4 @@ src/jsonreader.pp=namespaced/FpJson.Reader.pp
 src/jsonwriter.pp=namespaced/FpJson.Writer.pp
 src/jsonconf.pp=namespaced/FpJson.Conf.pp
 src/jsonfpcunit.pp=namespaced/FpJson.FpcUnit.pp
+src/jsoncomparer.pp=namespaced/FpJson.Comparer.pp

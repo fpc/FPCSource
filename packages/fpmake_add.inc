@@ -160,5 +160,6 @@
   add_wasm_utils(ADirectory+IncludeTrailingPathDelimiter('wasm-utils'));
   add_wasm_oi(ADirectory+IncludeTrailingPathDelimiter('wasm-oi'));
   add_fcl_jsonschema(ADirectory+IncludeTrailingPathDelimiter('fcl-jsonschema'));
+  add_fcl_openapi(ADirectory+IncludeTrailingPathDelimiter('fcl-openapi'));
   add_ptckvm(ADirectory+IncludeTrailingPathDelimiter('ptckvm'));
   add_fcl_fpterm(ADirectory+IncludeTrailingPathDelimiter('fcl-fpterm'));

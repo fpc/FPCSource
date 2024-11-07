@@ -43,6 +43,13 @@ begin
       AddUnit('fpjson');
       AddUnit('jsonparser');
      end;
+
+    T:=P.Targets.AddUnit('jsoncomparer.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+     end;
     T:=P.Targets.AddUnit('jsonfpcunit.pp');
     T.ResourceStrings:=true;
     with T.Dependencies do
