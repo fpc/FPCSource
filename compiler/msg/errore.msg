@@ -798,7 +798,7 @@ parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated w
 %  var p : longint absolute x;
 % \end{verbatim}
 parser_e_initialized_only_one_var=03097_E_Only one variable can be initialized
-% You cannot specify more than one variable with a initial value in Delphi mode.
+% You cannot specify more than one variable with a initial value.
 parser_e_abstract_no_definition=03098_E_Abstract methods shouldn't have any definition (with function body)
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
