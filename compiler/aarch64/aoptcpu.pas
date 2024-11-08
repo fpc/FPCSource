@@ -525,7 +525,7 @@ Implementation
 
   function TCpuAsmOptimizer.OptPass1STP(var p : tai): boolean;
     var
-      hp1, hp2, hp3, hp4: tai;
+      hp1, hp2, hp3, hp4, tmp1 : tai;
     begin
       Result:=false;
       {
@@ -576,6 +576,22 @@ Implementation
         MatchInstruction(hp4, A_RET, [C_None], [PF_None]) and
         (taicpu(hp4).ops = 0) then
         begin
+          { remove the SEH instruction for the STP FP,LR }
+          if GetNextInstruction(p,tmp1,[ait_seh_directive]) and
+              (tmp1.typ=ait_seh_directive) and
+              (tai_seh_directive(tmp1).kind=ash_savefplr_x) then
+            begin
+              asml.Remove(tmp1);
+              tmp1.free;
+            end;
+          { remove the SEH instruction for the MOV FP,SP }
+          if GetNextInstruction(hp1,tmp1,[ait_seh_directive]) and
+              (tmp1.typ=ait_seh_directive) and
+              (tai_seh_directive(tmp1).kind=ash_setfp) then
+            begin
+              asml.Remove(tmp1);
+              tmp1.free;
+            end;
           asml.Remove(p);
           asml.Remove(hp1);
           asml.Remove(hp3);
