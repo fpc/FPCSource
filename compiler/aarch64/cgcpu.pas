@@ -2167,7 +2167,15 @@ implementation
             else if current_procinfo.final_localsize<>0 then
               begin
                 { restore stack pointer }
-                if pi_no_framepointer_needed in current_procinfo.flags then
+                { Note: for Windows we need to restore the stack using an ADD
+                        and to set FP back to SP }
+                if target_info.system=system_aarch64_win64 then
+                  begin
+                    handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
+                      current_procinfo.framepointer,NR_IP0,false,true);
+                      a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
+                  end
+                else if pi_no_framepointer_needed in current_procinfo.flags  then
                   handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
                     current_procinfo.framepointer,NR_IP0,false,true)
                 else
