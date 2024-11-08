@@ -278,13 +278,13 @@ unit agcpugas;
                   begin
                     check_offset(seh.data.offset,504);
                     check_reg(seh.data.reg,R_INTREGISTER,min_int_reg);
-                    writeword($C000 or ((getsupreg(seh.data.reg)-min_int_reg) shl 6) or (seh.data.offset shr 3));
+                    writeword($D000 or ((getsupreg(seh.data.reg)-min_int_reg) shl 6) or (seh.data.offset shr 3));
                   end;
                 ash_savereg_x:
                   begin
                     check_offset(seh.data.offset,256);
                     check_reg(seh.data.reg,R_INTREGISTER,min_int_reg);
-                    writeword($C400 or ((getsupreg(seh.data.reg)-min_int_reg) shl 5) or ((seh.data.offset shr 3)-1));
+                    writeword($D400 or ((getsupreg(seh.data.reg)-min_int_reg) shl 5) or ((seh.data.offset shr 3)-1));
                   end;
                 ash_saveregp:
                   begin
