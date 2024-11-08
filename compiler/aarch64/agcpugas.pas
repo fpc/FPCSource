@@ -447,99 +447,108 @@ unit agcpugas;
                         if inprologue then
                           cgmessage(asmw_e_missing_endprologue);
 
+                        { only generate xdata and pdata if we have any
+                          prologue or a handler is set }
                         unwinddata:=convert_unwinddata(sehlist);
 
-                        writebyte($E4);
-
-                        { fill up with NOPs }
-                        while unwinddata.size mod 4<>0 do
-                          writebyte($E3);
-
-                        { note: we can pass Nil here, because in case of a LLVM
-                                backend this whole code shouldn't be required
-                                anyway }
-                        xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
-
-                        tmplist:=tasmlist.create;
-                        new_section(tmplist,sec_pdata,lastsec.name^,0);
-                        tmplist.concat(tai_const.Create_rva_sym(lastsym.sym));
-                        tmplist.concat(tai_const.Create_rva_sym(xdatasym));
-
-                        new_section(tmplist,sec_rodata,xdatasym.name,0);
-                        tmplist.concat(tai_symbol.Create(xdatasym,0));
-
-                        tmplist.concat(tai_comment.Create(strpnew('instr: '+tostr(instrcount)+', data: '+tostr(datacount)+', unwind: '+tostr(unwinddata.size))));
-
-                        {$ifdef EXTDEBUG}
-                        comment(V_Debug,'got section: '+lastsec.name^);
-                        comment(V_Debug,'got instructions: '+tostr(instrcount));
-                        comment(V_Debug,'got data: '+tostr(datacount));
-                        comment(V_Debug,'got unwinddata: '+tostr(unwinddata.size));
-                        {$endif EXTDEBUG}
-
-                        if datacount mod 4<>0 then
-                          cgmessage(asmw_e_seh_invalid_data_size);
-
-                        totalcount:=datacount div 4+instrcount;
-
-                        { splitting to multiple pdata/xdata sections is not yet
-                          supported, so 1 MB is our limit for now }
-                        if totalcount>(1 shl 18) then
-                          comment(V_Error,'Function is larger than 1 MB which is not supported for SEH currently');
-
-                        unwindrec:=min(totalcount,(1 shl 18)-1);
-                        if handlerflags<>0 then
-                          unwindrec:=unwindrec or (1 shl 20);
-
-                        { currently we only have one epilog, so E needs to be
-                          set to 1 and epilog scope index needs to be 0, no
-                          matter if we require the extension for the unwinddata
-                          or not }
-                        unwindrec:=unwindrec or (1 shl 21);
-
-                        if unwinddata.size div 4<=31 then
-                          unwindrec:=unwindrec or ((unwinddata.size div 4) shl 27);
-
-                        { exception record headers }
-                        tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
-                        if cs_asm_source in init_settings.globalswitches then
-                          tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
-
-                        if unwinddata.size div 4>31 then
+                        if unwinddata.size>0 then
                           begin
-                            { once we're able to split a .pdata entry this can be
-                              removed as well }
-                            if unwinddata.size div 4>255 then
-                              comment(V_Error,'Too many unwind codes for SEH');
-                            unwindrec:=(unwinddata.size div 4) shl 16;
-                            tmplist.concat(tai_const.create_32bit(longint(unwindrec)));
-                            if cs_asm_source in init_settings.globalswitches then
-                              tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
+                            writebyte($E4);
+
+                            { fill up with NOPs }
+                            while unwinddata.size mod 4<>0 do
+                              writebyte($E3);
                           end;
 
-                        { unwind codes }
-                        unwinddata.seek(0);
-                        while unwinddata.pos<unwinddata.size do
+                        if (handlerflags<>0) or (unwinddata.size<>0) then
                           begin
-                            unwinddata.read(unwindrec,sizeof(longword));
+                            { note: we can pass Nil here, because in case of a LLVM
+                                    backend this whole code shouldn't be required
+                                    anyway }
+                            xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
+
+                            tmplist:=tasmlist.create;
+                            new_section(tmplist,sec_pdata,lastsec.name^,0);
+                            tmplist.concat(tai_const.Create_rva_sym(lastsym.sym));
+                            tmplist.concat(tai_const.Create_rva_sym(xdatasym));
+
+                            new_section(tmplist,sec_rodata,xdatasym.name,sizeof(int32));
+                            tmplist.concat(tai_symbol.Create(xdatasym,0));
+
+                            tmplist.concat(tai_comment.Create(strpnew('instr: '+tostr(instrcount)+', data: '+tostr(datacount)+', unwind: '+tostr(unwinddata.size))));
+
+                            {$ifdef EXTDEBUG}
+                            comment(V_Debug,'got section: '+lastsec.name^);
+                            comment(V_Debug,'got instructions: '+tostr(instrcount));
+                            comment(V_Debug,'got data: '+tostr(datacount));
+                            comment(V_Debug,'got unwinddata: '+tostr(unwinddata.size));
+                            {$endif EXTDEBUG}
+
+                            if datacount mod 4<>0 then
+                              cgmessage(asmw_e_seh_invalid_data_size);
+
+                            totalcount:=datacount div 4+instrcount;
+
+                            { splitting to multiple pdata/xdata sections is not yet
+                              supported, so 1 MB is our limit for now }
+                            if totalcount>(1 shl 18) then
+                              comment(V_Error,'Function is larger than 1 MB which is not supported for SEH currently');
+
+                            unwindrec:=min(totalcount,(1 shl 18)-1);
+                            if handlerflags<>0 then
+                              unwindrec:=unwindrec or (1 shl 20);
+
+                            { currently we only have one epilog, so E needs to be
+                              set to 1 and epilog scope index needs to be 0, no
+                              matter if we require the extension for the unwinddata
+                              or not }
+                            unwindrec:=unwindrec or (1 shl 21);
+
+                            if unwinddata.size div 4<=31 then
+                              unwindrec:=unwindrec or ((unwinddata.size div 4) shl 27);
+
+                            { exception record headers }
                             tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
                             if cs_asm_source in init_settings.globalswitches then
                               tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
-                          end;
-                        unwinddata.free;
 
-                        if handlerflags<>0 then
-                          begin
-                            tmplist.concat(tai_const.Create_rva_sym(current_asmdata.RefAsmSymbol(handlername,AT_FUNCTION,false)));
-                            if length(handlerdata)>0 then
+                            if unwinddata.size div 4>31 then
                               begin
-                                tmplist.concat(handlerdatacount);
-                                for handlerdataidx:=0 to high(handlerdata) do
-                                  tmplist.concat(handlerdata[handlerdataidx]);
+                                { once we're able to split a .pdata entry this can be
+                                  removed as well }
+                                if unwinddata.size div 4>255 then
+                                  comment(V_Error,'Too many unwind codes for SEH');
+                                unwindrec:=(unwinddata.size div 4) shl 16;
+                                tmplist.concat(tai_const.create_32bit(longint(unwindrec)));
+                                if cs_asm_source in init_settings.globalswitches then
+                                  tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
                               end;
+
+                            { unwind codes }
+                            unwinddata.seek(0);
+                            while unwinddata.pos<unwinddata.size do
+                              begin
+                                unwinddata.read(unwindrec,sizeof(longword));
+                                tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
+                                if cs_asm_source in init_settings.globalswitches then
+                                  tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
+                              end;
+
+                            if handlerflags<>0 then
+                              begin
+                                tmplist.concat(tai_const.Create_rva_sym(current_asmdata.RefAsmSymbol(handlername,AT_FUNCTION,false)));
+                                if length(handlerdata)>0 then
+                                  begin
+                                    tmplist.concat(handlerdatacount);
+                                    for handlerdataidx:=0 to high(handlerdata) do
+                                      tmplist.concat(handlerdata[handlerdataidx]);
+                                  end;
+                              end;
+
+                            handlerdata:=nil;
                           end;
 
-                        handlerdata:=nil;
+                        unwinddata.free;
 
                         sehlist.free;
                         sehlist:=nil;
