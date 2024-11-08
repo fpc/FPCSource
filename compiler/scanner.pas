@@ -2564,6 +2564,7 @@ type
         else
           begin
             mac.defined:=true;
+            mac.fileinfo:=current_tokenpos;
             mac.is_compiler_var:=false;
           { delete old definition }
             mac.free_buftext;
