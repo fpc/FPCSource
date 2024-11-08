@@ -100,9 +100,13 @@ type
 
 {$IFNDEF HAS_SYSTEMTIME}
    TSystemTime = record
-      Year, Month, Day, DayOfWeek: word;
-      Hour, Minute, Second, MilliSecond: word;
-   end ;
+     case integer of
+       0: (Year, Month, Day, DayOfWeek: word;
+           Hour, Minute, Second, MilliSecond: word);
+       // Win32 compatibility
+       1: (wYear, wMonth, wDay, wDayOfWeek: word;
+           wHour, wMinute, wSecond, wMilliseconds: word);
+   end;
 {$ENDIF}
 
    TTimeStamp = record
