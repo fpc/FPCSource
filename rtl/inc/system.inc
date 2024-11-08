@@ -2415,7 +2415,7 @@ end;
 function AtomicDecrement (var Target: Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
-  Result:=Cardinal(InterlockedIncrement(Longint(Target)));
+  Result:=Cardinal(InterlockedDecrement(Longint(Target)));
 end;
 
 
