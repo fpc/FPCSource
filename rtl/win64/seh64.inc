@@ -158,7 +158,7 @@ type
   { This is a simplified definition, only array part of unions }
   PKNONVOLATILE_CONTEXT_POINTERS=^KNONVOLATILE_CONTEXT_POINTERS;
   KNONVOLATILE_CONTEXT_POINTERS=record
-    IntegerContext: array[0..12] of PQWord;
+    IntegerContext: array[0..11] of PQWord;
     FloatingContext: array[0..7] of PM128A;
   end;
 {$endif NOT (X86_64 or AARCH64)}
