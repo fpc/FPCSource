@@ -64,7 +64,11 @@ begin
 {$include cocoaint/fpmake.pp}
 end;
 
+procedure add_dblib(const ADirectory: string);
+begin
+  with Installer do
 {$include dblib/fpmake.pp}
+end;
 
 procedure add_dbus(const ADirectory: string);
 begin
