@@ -612,69 +612,35 @@ begin
 end;
 
 
-
 {****************************************************************************}
 {*                             TREADER                                      *}
 {****************************************************************************}
-
-type
-  TFieldInfo =
-  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-    FieldOffset: SizeUInt;
-    ClassTypeIndex: Word; // start at 1
-    Name: ShortString;
-  end;
-  PFieldInfo = ^TFieldInfo;
-
-  PPersistentClass = ^TPersistentClass;
-  PersistentClassRef = PPersistentClass;
-
-  TFieldClassTable =
-  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-    Count: Word;
-    Entries: array[{$ifdef cpu16}0..16384 div sizeof(PersistentClassRef){$else}Word{$endif}] of PersistentClassRef;
-  end;
-  PFieldClassTable = ^TFieldClassTable;
-
-  TFieldTable =
-  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-    FieldCount: Word;
-    ClassTable: PFieldClassTable;
-    Fields: array[0..0] of TFieldInfo;
-  end;
-  PFieldTable = ^TFieldTable;
 
 function GetFieldClass(Instance: TObject; const ClassName: string): TPersistentClass;
 var
   ShortClassName: shortstring;
   ClassType: TClass;
-  ClassTable: PFieldClassTable;
   i: Integer;
-  FieldTable: PFieldTable;
+  FieldTable: PVmtFieldTable;
+  ClassTable: PVmtFieldClassTab;
 begin
   // At first, try to locate the class in the class tables
   ShortClassName := ClassName;
   ClassType := Instance.ClassType;
   while ClassType <> TPersistent do
   begin
-    FieldTable := PFieldTable(PVmt(ClassType)^.vFieldTable);
-    if Assigned(FieldTable) then
+    FieldTable := PVmtFieldTable(PVmt(ClassType)^.vFieldTable);
+    if FieldTable<>nil then
     begin
-      ClassTable := FieldTable^.ClassTable;
-      for i := 0 to ClassTable^.Count - 1 do
+      ClassTable := PVmtFieldClassTab(FieldTable^.ClassTab);
+      if ClassTable<>nil then
       begin
-        Result := ClassTable^.Entries[i]^;
-        if Result.ClassNameIs(ShortClassName) then
-          exit;
+        for i := 0 to ClassTable^.Count - 1 do
+        begin
+          Result := TPersistentClass(Pointer(ClassTable^.ClassRef[i])^);
+          if Result.ClassNameIs(ShortClassName) then
+            exit;
+        end;
       end;
     end;
     // Try again with the parent class type
@@ -1919,12 +1885,12 @@ var
 
   function FindInFieldTable(Instance: TComponent): TComponentClass;
   var
-    aClassType: TClass;
-    FieldTable: PFieldTable;
-    ClassTable: PFieldClassTable;
-    i: Integer;
-    FieldInfo: PFieldInfo;
-    PersistenClass: TPersistentClass;
+    aClassType     : TClass;
+    FieldTable     : PVmtFieldTable;
+    ClassTable     : PVmtFieldClassTab;
+    FieldInfo      : PVmtFieldEntry;
+    PersistenClass : TPersistentClass;
+    i              : Integer;
   begin
     //writeln('FindInFieldTable Instance=',Instance.Name,':',Instance.UnitName,'>',Instance.ClassName,' ShortName="',ShortName,'" ShortClassName="',ShortClassName,'"');
     Result:=nil;
@@ -1933,30 +1899,25 @@ var
     aClassType := Instance.ClassType;
     while aClassType <> TPersistent do
     begin
-      FieldTable := PFieldTable(PVmt(aClassType)^.vFieldTable);
-      if Assigned(FieldTable) then
+      FieldTable := PVmtFieldTable(PVmt(aClassType)^.vFieldTable);
+      if FieldTable<>nil then
       begin
-        ClassTable := FieldTable^.ClassTable;
-        FieldInfo := @FieldTable^.Fields[0];
-        for i := 0 to FieldTable^.FieldCount - 1 do
+        ClassTable := PVmtFieldClassTab(FieldTable^.ClassTab);
+        if ClassTable<>nil then
         begin
-          //writeln('FindInFieldTable Instance=',Instance.ClassName,' FieldInfo ',i,'/',FieldTable^.FieldCount,' ',FieldInfo^.Name);
-          if ShortCompareText(FieldInfo^.Name,ShortName)=0 then
+          for i := 0 to FieldTable^.Count - 1 do
           begin
-            PersistenClass := ClassTable^.Entries[FieldInfo^.ClassTypeIndex-1]^;
-            //writeln('FindInFieldTable Found Field "',FieldInfo^.Name,'" Class="',PersistenClass.UnitName,'>',PersistenClass.ClassName,'"');
-            if PersistenClass.ClassNameIs(ShortClassName)
-                and PersistenClass.InheritsFrom(TComponent) then
-              exit(TComponentClass(PersistenClass));
+            FieldInfo := FieldTable^.Field[i];
+            if ShortCompareText(FieldInfo^.Name,ShortName)=0 then
+            begin
+              PersistenClass := TPersistentClass(Pointer(ClassTable^.ClassRef[FieldInfo^.TypeIndex-1])^);
+              if PersistenClass.ClassNameIs(ShortClassName)
+                  and PersistenClass.InheritsFrom(TComponent) then
+                exit(TComponentClass(PersistenClass));
+            end;
           end;
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-          FieldInfo := PFieldInfo(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-          FieldInfo := PFieldInfo(align(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name), sizeof(SizeUInt)));
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         end;
       end;
-      // Try again with the parent class type
       aClassType := aClassType.ClassParent;
     end;
 
@@ -1964,19 +1925,22 @@ var
     aClassType := Instance.ClassType;
     while aClassType <> TPersistent do
     begin
-      FieldTable := PFieldTable(PVmt(aClassType)^.vFieldTable);
-      if Assigned(FieldTable) then
+      FieldTable := PVmtFieldTable(PVmt(aClassType)^.vFieldTable);
+      if FieldTable<>nil then
       begin
-        ClassTable := FieldTable^.ClassTable;
-        for i := 0 to ClassTable^.Count - 1 do
+        ClassTable := PVmtFieldClassTab(FieldTable^.ClassTab);
+        if ClassTable<>nil then
         begin
-          PersistenClass := ClassTable^.Entries[i]^;
-          if PersistenClass.ClassNameIs(ShortClassName)
-              and PersistenClass.InheritsFrom(TComponent) then
-            begin
-            if (anUnitName='') or SameText(PersistenClass.UnitName,anUnitName) then
-              exit(TComponentClass(PersistenClass));
-            end;
+          for i := 0 to ClassTable^.Count - 1 do
+          begin
+            PersistenClass := TPersistentClass(Pointer(ClassTable^.ClassRef[i])^);
+            if PersistenClass.ClassNameIs(ShortClassName)
+                and PersistenClass.InheritsFrom(TComponent) then
+              begin
+              if (anUnitName='') or SameText(PersistenClass.UnitName,anUnitName) then
+                exit(TComponentClass(PersistenClass));
+              end;
+          end;
         end;
       end;
       // Try again with the parent class type
