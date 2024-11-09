@@ -3293,6 +3293,7 @@ begin
     tkString,
     tkWChar,
     tkLString,
+    tkAString,
     tkWString,
     tkUString,
     tkChar : CastStringToString(aRes,aDest,aDestType);
@@ -3409,6 +3410,7 @@ begin
     tkEnumeration : CastFromEnum(aRes,aDest,aDestType);
     tkFloat : CastFromFloat(aRes,aDest,aDestType);
     tkLString,
+    tkAString,
     tkWString,
     tkUstring,
     tkSString : CastFromString(aRes,aDest,aDestType);
