@@ -774,7 +774,6 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
-              labeln,
               blockn:
                 p := tunarynode(p).left;
               callparan:
