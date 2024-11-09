@@ -128,6 +128,15 @@ begin
 end;
 
 
+function alignvalue(x, a : dword): dword;
+var r : dword;
+begin
+  r:= x mod a;
+  if r <> 0 then begin
+    result:= x + (a - r);
+  end else result:= x;
+end;
+
 begin
   StackLength:=CheckInitialStkLen(stklen);
   StackBottom:=Pointer(PtrUInt($80200000)-PtrUInt(StackLength));
@@ -139,7 +148,7 @@ begin
   IsLibrary := FALSE;
 
   { Setup heap }
-  _InitHeap(pdword(@bss_end),PtrUInt(StackBottom)-PtrUInt(@bss_end));
+  _InitHeap(pdword(@bss_end),alignvalue(PtrUInt(StackBottom)-PtrUInt(@bss_end), 4));
   InitHeap;
 
   { Init exceptions }
