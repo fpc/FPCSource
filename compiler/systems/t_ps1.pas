@@ -37,7 +37,7 @@ type
     public
 
       constructor Create; override;
-
+      procedure InitSysInitUnitName; override;
       procedure SetDefaultInfo; override;
       function  MakeExecutable: boolean; override;
 
@@ -57,6 +57,10 @@ begin
   Inherited Create;
 end;
 
+Procedure TLinkerPS1.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
+end;
 
 procedure TLinkerPS1.SetDefaultInfo;
 begin
@@ -72,14 +76,6 @@ Var
     megastr : ansistring;
     newname : ansistring;
     HPath    : TCmdStrListItem;
-    ObjectFilesTable : TStringList;
-
-
-procedure delLib(name: string);
-begin
-  if ObjectFilesTable.indexof(name) <> -1 then ObjectFilesTable.delete(ObjectFilesTable.indexof(name));
-end;
-
 
 begin
 
@@ -91,7 +87,7 @@ begin
     LinkRes.Add('{');
     LinkRes.Add('ram (rwx) : ORIGIN = 0x80010000, LENGTH = 2M - 64K');
     LinkRes.Add('}');
-    LinkRes.Add('ENTRY(main)');
+    LinkRes.Add('ENTRY(_start)');
 
 
     HPath:= TCmdStrListItem(LibrarySearchPath.First);
@@ -104,34 +100,9 @@ begin
     end;
 
 
-    ObjectFilesTable := TStringList.Create;
     while not ObjectFiles.Empty do begin
-        ObjectFilesTable.add(ExtractFileName(ObjectFiles.GetFirst));
+        LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');
     end;
-{    
-    delLib('libcard.o');
-    delLib('libpress.o');
-    delLib('libgpu.o');
-    delLib('libgs.o');
-    delLib('libgte.o');
-    delLib('libcd.o');
-    delLib('libetc.o');
-    delLib('libsn.o');
-    delLib('libsnd.o ');
-    delLib('libspu.o');
-    delLib('libmath.o');
-    delLib('libcomb.o');
-    delLib('libtap.o');
-    delLib('libsio.o');
-    delLib('libpad.o');
-    delLib('libc2.o');
-    delLib('libapi.o');
-}
-    for i:= 0 to ObjectFilesTable.count - 1 do begin
-        LinkRes.Add('INPUT(' + ObjectFilesTable[i] + ')');
-    end;
-
-    ObjectFilesTable.Free;
     
 
     LinkRes.Add('INPUT(libcard.a libpress.a libgpu.a libgs.a libgte.a)');
@@ -145,7 +116,7 @@ begin
     LinkRes.Add('         __exe_start__ = .;');
     LinkRes.Add('');
     LinkRes.Add('         __text_start__ = .;');
-    LinkRes.Add('           KEEP(*(.text.n_main));');
+    LinkRes.Add('           KEEP(*(.text.n_start));');
     LinkRes.Add('           *(.text .text.*)');
     LinkRes.Add('         __text_end__ = .;');
     LinkRes.Add('');

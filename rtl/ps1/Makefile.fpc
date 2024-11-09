@@ -7,7 +7,8 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) \
   $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) \
-  libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd
+  libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd \
+  si_prc
 
 [require]
 nortl=y
@@ -110,6 +111,10 @@ libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$
 
 libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas libgte$(PPUEXT) libgs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
+
 #
 # Loaders
 #
+
+si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) si_prc.pp

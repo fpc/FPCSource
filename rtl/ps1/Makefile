@@ -925,7 +925,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd si_prc
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
@@ -2970,3 +2970,5 @@ libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$
 	$(COMPILER) $<
 libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas libgte$(PPUEXT) libgs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
+si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_prc.pp
