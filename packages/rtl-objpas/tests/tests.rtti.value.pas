@@ -52,6 +52,7 @@ Type
     procedure TestMakeGenericWideChar;
 
     procedure TestFromOrdinal;
+    Procedure TestTryCastUnicodeString;
   end;
 
   { TTestValueArray }
@@ -1531,6 +1532,17 @@ begin
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalTObject, EInvalidCast);
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalSet, EInvalidCast);
   CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalString, EInvalidCast);
+end;
+
+procedure TTestValueSimple.TestTryCastUnicodeString;
+
+var
+  S: string;
+  V, V2: TValue;
+begin
+  S := 'str';
+  V := S;
+  CheckTrue(V.TryCast(TypeInfo(UnicodeString), V2),'Cast OK');
 end;
 
 { TTestValueArray }
