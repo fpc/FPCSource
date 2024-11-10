@@ -2177,6 +2177,7 @@ implementation
                   begin
                     handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
                       current_procinfo.framepointer,NR_IP0,false,true);
+                    if not (pi_no_framepointer_needed in current_procinfo.flags) then
                       a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
                   end
                 else if pi_no_framepointer_needed in current_procinfo.flags  then
