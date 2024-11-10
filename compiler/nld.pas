@@ -920,6 +920,36 @@ implementation
 
 
     function tassignmentnode.pass_1 : tnode;
+
+      function tempreturnfromcall:boolean;
+        var
+          node:tnode;
+        begin
+          result:=false;
+          if not is_managed_type(right.resultdef) then
+            exit;
+          node:=right;
+          while assigned(node) do
+            begin
+              case node.nodetype of
+              blockn:
+                node:=tblocknode(node).left;
+              statementn:
+                if assigned(tstatementnode(node).right) then
+                  node:=tstatementnode(node).right
+                else
+                  node:=tstatementnode(node).left;
+              else
+                break;
+              end;
+            end;
+          if not assigned(node) then
+            internalerror(2024111101);
+          if (node.nodetype=calln) and assigned(tcallnode(node).funcretnode) then
+            node:=tcallnode(node).funcretnode;
+          result:=(node.nodetype=temprefn) and (nf_is_funcret in node.flags);
+        end;
+
       var
         hp: tnode;
         oldassignmentnode : tassignmentnode;
@@ -986,13 +1016,15 @@ implementation
             not is_const(left) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
-           hp:=ccallparanode.create(caddrnode.create_internal(
+           hp:=ccallparanode.create(cordconstnode.create(
+                  ord(tempreturnfromcall),pasbool1type,false),
+               ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(left),voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
-               nil)));
+               nil))));
            result:=ccallnode.createintern('fpc_copy_proc',hp);
            firstpass(result);
            left:=nil;

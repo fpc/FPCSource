@@ -701,8 +701,8 @@ procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); compile
 procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); compilerproc;
 procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); compilerproc;
 procedure fpc_decref_array(data,typeinfo: pointer; count: sizeint); compilerproc;
-Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt; compilerproc;
-Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer); compilerproc; inline;
+Function fpc_Copy (Src, Dest, TypeInfo : Pointer; DoMove : Boolean) : SizeInt; compilerproc;
+Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer; DoMove : Boolean); compilerproc; inline;
 {$endif FPC_HAS_FEATURE_RTTI}
 *)
 { array initialisation helpers (for open array "out" parameters whose elements

@@ -97,6 +97,11 @@
 {$define USE_FILEREC_FULLNAME}
 {$endif defined(FPC_HAS_FEATURE_UNICODESTRINGS)}
 
+{ allow for lightweight move of managed records }
+{$if FPC_FULLVERSION>=30301}
+{$define FPC_MANAGED_MOVE}
+{$endif }
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
