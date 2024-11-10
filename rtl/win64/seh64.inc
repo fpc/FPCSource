@@ -18,6 +18,8 @@ const
   EXCEPTION_UNWIND          = EXCEPTION_UNWINDING or EXCEPTION_EXIT_UNWIND or
                               EXCEPTION_TARGET_UNWIND or EXCEPTION_COLLIDED_UNWIND;
 
+  CONTEXT_UNWOUND_TO_CALL   = $20000000;
+
   UNWIND_HISTORY_TABLE_SIZE = 12;
 
   UNW_FLAG_NHANDLER         = 0;
@@ -346,9 +348,12 @@ begin
       Context.Rip:=PQWord(Context.Rsp)^;
       Inc(Context.Rsp, sizeof(Pointer));
 {$elseif defined(CPUAARCH64)}
-      { ToDo }
-      //Context.Pc:=Context.Lr;
-      ContextSetIP(Context,0);
+      { For leaf function on Windows ARM64, return address is at LR(X30). Add
+        CONTEXT_UNWOUND_TO_CALL flag to avoid unwind ambiguity for tailcall on
+        ARM64, because padding after tailcall is not guaranteed.
+        Source: https://chromium.googlesource.com/chromium/src/base/+/master/profiler/win32_stack_frame_unwinder.cc#116 }
+      Context.Pc:=Context.Lr;
+      Context.ContextFlags := Context.ContextFlags or CONTEXT_UNWOUND_TO_CALL;
 {$else}
       ContextSetIP(Context,0);
 {$endif}
