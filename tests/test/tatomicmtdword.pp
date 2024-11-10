@@ -15,7 +15,7 @@ uses
   SysUtils, Classes;
 
 type
-  TOperation = (opAdd, opDec, opExchange, opExchangeAdd, opExchangeDec, opCompareExchange);
+  TOperation = (opAdd, opDec, opAdd7, opDec7, opExchange, opExchangeAdd, opExchangeDec, opCompareExchange);
 
   TWorker = class(TThread)
   private
@@ -29,7 +29,7 @@ type
   end;
 
 const
-  TotalThreadCount : longint = 50;
+  TotalThreadCount : longint = 70;
   TestCount = 1000000;
   WaitTime = 60;
 
@@ -83,6 +83,22 @@ begin
             break;
         end;
       end;
+    opAdd7:
+      begin
+        for i:=1 to FCount do begin
+          AtomicIncrement(Counter,7);
+          if AbortThread then
+            break;
+        end;
+      end;
+    opDec7:
+      begin
+        for i:=1 to FCount do begin
+          AtomicDecrement(Counter,7);
+          if AbortThread then
+            break;
+        end;
+      end;
     opExchange:
       begin
         for i:=1 to FCount do begin
@@ -92,7 +108,6 @@ begin
             break;
         end;
       end;
-{
     opExchangeAdd:
       begin
         for i:=1 to FCount do begin
@@ -104,12 +119,11 @@ begin
     opExchangeDec:
       begin
         for i:=1 to FCount do begin
-          InterlockedExchangeAdd(Counter, -3);
+          InterlockedExchangeAdd(Counter, DWord(-3));
           if AbortThread then
             break;
         end;
       end;
-}
     opCompareExchange:
       begin
         opt:=FOption and 1;
@@ -196,6 +210,10 @@ begin
     workers[j]:=New_TWorker_Thread(TestCount, opAdd);
     Inc(j);
     workers[j]:=New_TWorker_Thread(TestCount, opDec);
+    Inc(j);
+    workers[j]:=New_TWorker_Thread(TestCount, opAdd7);
+    Inc(j);
+    workers[j]:=New_TWorker_Thread(TestCount, opDec7);
     Inc(j);
     workers[j]:=New_TWorker_Thread(TestCount div 3, opExchange);
     Inc(j);
