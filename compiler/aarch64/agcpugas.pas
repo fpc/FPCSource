@@ -308,7 +308,7 @@ unit agcpugas;
                   begin
                     check_offset(seh.data.offset,256);
                     check_reg(seh.data.reg,R_MMREGISTER,min_mm_reg);
-                    writeword($CE00 or ((getsupreg(seh.data.reg)-min_mm_reg) shl 5) or ((seh.data.offset shr 3)-1));
+                    writeword($DE00 or ((getsupreg(seh.data.reg)-min_mm_reg) shl 5) or ((seh.data.offset shr 3)-1));
                   end;
                 ash_savefregp:
                   begin
