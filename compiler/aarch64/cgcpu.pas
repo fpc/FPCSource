@@ -2163,6 +2163,10 @@ implementation
                   handle_reg_imm12_reg(list,A_ADD,OS_ADDR,NR_SP,current_procinfo.final_localsize,NR_SP,NR_IP0,false,true);
                 load_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD);
                 load_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
+                { on Windows also restore SP even if the add should be enough
+                  to have matching exit sequence to the entry sequence }
+                if target_info.system=system_aarch64_win64 then
+                  a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end
             else if current_procinfo.final_localsize<>0 then
               begin
