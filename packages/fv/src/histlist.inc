@@ -371,13 +371,13 @@ BEGIN
   StrU8 := Str;
   while (HistoryUsed+Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8))+2>HistorySize) do
    begin
-       P:=HistoryBlock;
+       P:=HistoryBlock+1;
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
            if Pointer(P)+StoredStringSize(P+2)+4+Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8)) >
               Pointer(HistoryBlock)+HistorySize then
              begin
-               Dec(HistoryUsed,Length(PShortString(P+2)^)+3);
+               HistoryUsed:=P-HistoryBlock;
                FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
                break;
              end;
@@ -403,13 +403,13 @@ VAR P, P1, P2: PAnsiChar;
 BEGIN
   while (HistoryUsed+Length(Str)+3>HistorySize) do
    begin
-       P:=PAnsiChar(HistoryBlock);
+       P:=PAnsiChar(HistoryBlock)+1;
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
            if Pointer(P)+Length(PShortString(P+2)^)+6+Length(Str) >
               Pointer(HistoryBlock)+HistorySize then
              begin
-               Dec(HistoryUsed,Length(PShortString(P+2)^)+3);
+               HistoryUsed:=P-HistoryBlock;
                FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
                break;
              end;
