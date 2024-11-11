@@ -39,7 +39,7 @@
 {$ifdef Linux}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
-  {$undef WinClipSupported}
+  {$define WinClipSupported}
   {$define HasSignal}
   {$define SignalIsCdecl}
   {$define HasSysMsgUnit}

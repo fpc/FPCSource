@@ -41,6 +41,11 @@ implementation
     dos;
 {$endif DOS}
 
+{$ifdef linux}
+  uses
+    baseUnix,base64,keyboard,Objects,fvclip;
+{$endif linux}
+
 {$ifdef Windows}
   uses
     strings,windows;
@@ -99,6 +104,39 @@ begin
   InternGetDataSize:=(r.dx shl 16) + r.ax;
 end;
 {$endif DOS}
+
+{$ifdef linux}
+function WinClipboardSupported : boolean;
+begin
+  WinClipboardSupported:=true;
+end;
+
+function OpenWinClipboard : boolean;
+begin
+  OpenWinClipboard:=true;
+end;
+
+function EmptyWinClipboard : boolean;
+begin
+  EmptyWinClipboard:=true;
+end;
+
+function CloseWinClipboard : boolean;
+begin
+  CloseWinClipboard:=true;
+end;
+
+function InternGetDataSize : longint;
+begin
+  InternGetDataSize:=1; {there has to be something in order for menu to be active}
+end;
+
+function GetTextLinuxClipBoardData(var p : PAnsiChar;var l : longint) : boolean;
+begin
+  GetTextLinuxClipBoardData:=false;
+  GetGlobalClipboardData;
+end;
+{$endif linux}
 
 {$ifdef Windows}
 function WinClipboardSupported : boolean;
@@ -179,6 +217,9 @@ var
   r : Registers;
   M : MemPtr;
 {$endif DOS}
+{$ifdef linux}
+  rez : boolean; {one variable needed to satifay compiler}
+{$endif linux}
 {$ifdef Windows}
   h : HGlobal;
   pp : PAnsiChar;
@@ -209,6 +250,10 @@ begin
   RealIntr($2F,r);
   GetTextWinClipBoardData:=(r.ax<>0);
 {$endif DOS}
+{$ifdef linux}
+  rez:=GetTextLinuxClipBoardData(p,l);
+  GetTextWinClipBoardData:=rez;
+{$endif linux}
 {$ifdef Windows}
   h:=GetClipboardData(CF_OEMTEXT);
   if h<>0 then
@@ -242,6 +287,9 @@ var
   r : Registers;
   M : MemPtr;
 {$endif DOS}
+{$ifdef linux}
+  st : AnsiString;
+{$endif linux}
 {$ifdef Windows}
   h : HGlobal;
   pp : PAnsiChar;
@@ -278,6 +326,9 @@ begin
   RealIntr($2F,r);
   FreeDosMem(M);
 {$endif DOS}
+{$ifdef linux}
+  SetTextWinClipBoardData:=SetGlobalClipboardData(p,l);
+{$endif linux}
 {$ifdef Windows}
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
   pp:=PAnsiChar(GlobalLock(h));

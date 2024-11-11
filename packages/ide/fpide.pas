@@ -176,7 +176,7 @@ uses
   WinClip,
 {$endif WinClipSupported}
 {$ifdef Unix}
-  fpKeys,
+  fpKeys,FVClip,
 {$endif Unix}
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
@@ -1475,6 +1475,7 @@ begin
     UserScreen^.SaveIDEScreen;
   DoneSysError;
   DoneEvents;
+  {$ifdef unix}DoneClip;{$endif}
   { DoneKeyboard should be called last to
     restore the keyboard correctly PM }
 {$ifndef go32v2}
@@ -1505,6 +1506,7 @@ begin
     ButtonCount:=0;
   oldH:=ScreenHeight;
   oldW:=ScreenWidth;
+  {$ifdef unix}InitClip(@Self);{$endif}
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
@@ -1521,7 +1523,7 @@ begin
 {$ifndef Windows}
   if (oldH<>ScreenHeight) or (oldW<>ScreenWidth) then
   begin
-    { acknowledge new screen dimensions } 
+    { acknowledge new screen dimensions }
     { prevents to draw out of boundaries of new video buffer }
     ResizeApplication(ScreenWidth,ScreenHeight);
   end else

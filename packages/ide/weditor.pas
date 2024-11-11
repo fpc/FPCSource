@@ -718,6 +718,7 @@ type
       procedure PrintBlock; virtual;
       procedure ExpandCodeTemplate; virtual;
       procedure AddChar(C: AnsiChar); virtual;
+      procedure PasteText(P:PAnsiChar; ASize:sw_integer); virtual;
 {$ifdef WinClipSupported}
       function  ClipCopyWin: Boolean; virtual;
       function  ClipPasteWin: Boolean; virtual;
@@ -3743,6 +3744,7 @@ begin
           cmCut         : ClipCut;
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
+          cmPasteText   : PasteText(Event.InfoPtr,Event.Id);
 
           cmSelectAll   : SelectAll(true);
           cmUnselect    : SelectAll(false);
@@ -5947,15 +5949,14 @@ begin
   UnLock;
 end;
 
-{$ifdef WinClipSupported}
-
 const
    linelimit = 200;
 
-function TCustomCodeEditor.ClipPasteWin: Boolean;
+procedure TCustomCodeEditor.PasteText(P:PAnsiChar; ASize:sw_integer);
 var
     StorePos : TPoint;
     first : boolean;
+    IsNewLine: boolean;
 
 procedure InsertStringWrap(const s: string; var i : Longint);
 var
@@ -5965,7 +5966,8 @@ begin
     begin
       { we need to cut the line in two
       if not at end of line PM }
-      InsertNewLine;
+      if IsNewLine then
+        InsertNewLine;
       SetCurPtr(StorePos.X,StorePos.Y);
       InsertText(s);
       first:=false;
@@ -5973,35 +5975,30 @@ begin
   else
     begin
       Inc(i);
-      InsertLine(i,s);
-      BPos.X:=0;BPos.Y:=i;
-      EPOS.X:=Length(s);EPos.Y:=i;
-      AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
+      if IsNewLine then
+      begin
+        InsertLine(i,s);
+        BPos.X:=0;BPos.Y:=i;
+        EPOS.X:=Length(s);EPos.Y:=i;
+        AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
+      end else
+      begin
+        SetCurPtr(0,i);
+        InsertText(s);
+      end;
     end;
 end;
 
 var
-    OK: boolean;
     l,i,len,len10 : longint;
-    p,p10,p2,p13 : PAnsiChar;
+    p10,p2,p13 : PAnsiChar;
     s : string;
 begin
   Lock;
-  OK:=WinClipboardSupported;
-  if OK then
-    begin
-
-      first:=true;
-      StorePos:=CurPos;
-      i:=CurPos.Y;
-      l:=GetTextWinClipboardSize;
-      if l=0 then
-        OK:=false
-      else
-        OK:=GetTextWinClipBoardData(p,l);
-      if OK then
-        begin
-          if l>500 then
+  first:=true;
+  StorePos:=CurPos;
+  i:=CurPos.Y;
+          if ASize>500 then
             PushInfo(msg_readingwinclipboard);
           AddGroupedAction(eaPasteWin);
           if not (Clipboard=@Self) and IsFlagSet(efOverwriteBlocks) and InSelectionArea then
@@ -6013,10 +6010,16 @@ begin
           repeat
             p13:=strpos(p2,#13);
             p10:=strpos(p2,#10);
+{$if sizeof(sw_astring)>8  only if ShortString lines}
             if len> linelimit then
               len:=linelimit;
+{$endif}
+            if not assigned(p10) and assigned(p13) then
+              p10:=p13;
+            IsNewLine:=false;
             if assigned(p10) then
               begin
+               IsNewLine:=true;
                len10:=p10-p2;
                if len10<len then
                  begin
@@ -6044,11 +6047,34 @@ begin
           UpdateAttrs(StorePos.Y,attrAll);
           CloseGroupedAction(eaPasteWin);
           Update;
-          if l>500 then
+          if ASize>500 then
             PopInfo;
+          DrawView;
+  UnLock;
+end;
+
+{$ifdef WinClipSupported}
+
+function TCustomCodeEditor.ClipPasteWin: Boolean;
+var
+    OK: boolean;
+    l : longint;
+    p : PAnsiChar;
+begin
+  Lock;
+  OK:=WinClipboardSupported;
+  if OK then
+    begin
+      l:=GetTextWinClipboardSize;
+      if l=0 then
+        OK:=false
+      else
+        OK:=GetTextWinClipBoardData(p,l);
+      if OK then
+        begin
+          PasteText(p,l);
           { we must free the allocated memory }
           freemem(p,l);
-          DrawView;
         end;
     end;
   ClipPasteWin:=OK;
