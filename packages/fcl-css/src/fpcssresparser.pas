@@ -1640,11 +1640,17 @@ end;
 procedure TCSSBaseResolver.ReadWordID(var aComp: TCSSResCompValue);
 var
   Identifier: TCSSString;
+  p: PCSSChar;
 begin
   case aComp.Kind of
   rvkFunctionUnknown:
     begin
-      SetString(Identifier,aComp.StartP,aComp.EndP-aComp.StartP);
+      p:=aComp.StartP;
+      if not (p^ in AlIden) then exit;
+      repeat
+        inc(p);
+      until not (p^ in AlNumIden);
+      SetString(Identifier,aComp.StartP,p-aComp.StartP);
       aComp.FunctionID:=CSSRegistry.IndexOfAttrFunction(Identifier);
       if aComp.FunctionID>CSSIDNone then
         aComp.Kind:=rvkFunction;
