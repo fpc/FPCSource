@@ -793,7 +793,7 @@ end;
 constructor TResourceFile.LoadFile(AFileName: string);
 var B: PFastBufStream;
 begin
-  New(B, Init(AFileName, stOpen, 4096));
+  New(B, Init(AFileName, stOpenRead, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
