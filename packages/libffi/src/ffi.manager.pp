@@ -50,7 +50,7 @@ end;
 
 
 function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type; forward;
-function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean; forward;
+function ArgIsIndirect(aTypeInfo: PTypeInfo; aFlags: TParamFlags; aIsResult: Boolean): Boolean; forward;
 
 function RecordOrObjectToFFIType(aTypeInfo: PTypeInfo): pffi_type;
 var
@@ -131,7 +131,7 @@ begin
     { now add the real field type (Note: some are handled differently from
       being passed as arguments, so we handle those here) }
     aSize:=0;
-    if field^.TypeRef^.Kind = tkObject then
+    if field^.TypeRef^.Kind in [tkRecord, tkObject] then
       aSize:=AddElement(RecordOrObjectToFFIType(field^.TypeRef))
     else if field^.TypeRef^.Kind = tkSString then begin
       fieldtd := GetTypeData(field^.TypeRef);
@@ -220,7 +220,7 @@ begin
   Result := @ffi_type_void;
   if Assigned(aTypeInfo) then begin
     td := GetTypeData(aTypeInfo);
-    if ArgIsIndirect(aTypeInfo^.Kind,aFlags,False)  then
+    if ArgIsIndirect(aTypeInfo,aFlags,False)  then
       Result := @ffi_type_pointer
     else
       case aTypeInfo^.Kind of
@@ -317,7 +317,27 @@ begin
     Result := @ffi_type_pointer;
 end;
 
-function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean;
+function ArgIsIndirect(aTypeInfo: PTypeInfo; aFlags: TParamFlags; aIsResult: Boolean): Boolean;
+  function IsManaged(aTypeInfo: PTypeInfo): boolean;
+  begin
+    Result := False;
+    if aTypeInfo = nil then Exit;
+
+    case aTypeInfo^.Kind of
+      tkAString,
+      tkLString,
+      tkWString,
+      tkUString,
+      tkInterface,
+      tkDynArray,
+      tkVariant: Result := True;
+
+      tkRecord,
+      tkObject:
+        Result := GetTypeData(aTypeInfo)^.RecInitData^.ManagedFieldCount > 0;
+    end;
+  end;
+
 const
   ResultTypeNeedsIndirection = [
    tkAString,
@@ -326,16 +346,23 @@ const
    tkInterface,
    tkDynArray
   ];
+var
+  Kind: TTypeKind;
 begin
   Result := False;
-  if (aKind = tkSString) or
-      (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
+  if aTypeInfo = nil then
+    Kind := tkUnknown
+  else
+    Kind := aTypeInfo^.Kind;
+  if (Kind = tkSString) or
+      (aIsResult and (Kind in ResultTypeNeedsIndirection)) or
       (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
-      ((aKind = tkUnknown) and (pfConst in aFlags))
+      ((pfConst in aFlags) and (Kind in [tkRecord, tkObject]) and (GetTypeData(aTypeInfo)^.RecSize > SizeOf(Pointer)) and IsManaged(aTypeInfo)) or
+      ((Kind = tkUnknown) and (pfConst in aFlags))
       // This is true for all CPUs except sparc64/xtensa and i386/X86_64 on windows.
       // The latter 2 are handled by the i386-specific invoke, so need not concern us here.
 {$IF NOT (DEFINED(CPUSPARC64) or DEFINED(CPUXTENSA))}
-      or (aKind=tkVariant)
+      or (Kind=tkVariant)
 {$ENDIF}
       then
     Result := True;
@@ -467,7 +494,6 @@ var
   abi: ffi_abi;
   i, arglen, argoffset, argstart: LongInt;
   usevalues, retparam: Boolean;
-  kind: TTypeKind;
   types: ppffi_type;
 
 begin
@@ -533,11 +559,7 @@ begin
 
   if not (fcfStatic in aFlags) and retparam then begin
     aData.Types[0] := TypeInfoToFFIType(aArgInfos[0].ParamType, aArgInfos[0].ParamFlags);
-    if Assigned(aArgInfos[0].ParamType) then
-      kind := aArgInfos[0].ParamType^.Kind
-    else
-      kind := tkUnknown;
-    aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
+    aData.Indirect[0] := ArgIsIndirect(aArgInfos[0].ParamType, aArgInfos[0].ParamFlags, False);
     if usevalues then
       if aData.Indirect[0] then
         aData.Values[0] := @aArgValues[0]
@@ -553,11 +575,7 @@ begin
     aData.Types[i + argoffset] := TypeInfoToFFIType(aArgInfos[i].ParamType, aArgInfos[i].ParamFlags);
     if (pfResult in aArgInfos[i].ParamFlags) and not retparam then
       aData.ResultIndex := i + argoffset;
-    if Assigned(aArgInfos[i].ParamType) then
-      kind := aArgInfos[i].ParamType^.Kind
-    else
-      kind := tkUnknown;
-    aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
+    aData.Indirect[i + argoffset] := ArgIsIndirect(aArgInfos[i].ParamType, aArgInfos[i].ParamFlags, False);
     if usevalues then
       if aData.Indirect[i + argoffset] then
         aData.Values[i + argoffset] := @aArgValues[i]
@@ -567,7 +585,7 @@ begin
 
   if retparam then begin
     aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
-    aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
+    aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType, [], True);
     if usevalues then
       if aData.Indirect[aData.ResultIndex] then
         aData.Values[aData.ResultIndex] := @aResultValue
