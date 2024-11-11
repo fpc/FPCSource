@@ -38,3 +38,5 @@ src/statuses.pas=namespaced/FreeVision.Statuses.pas
 src/editors.pas=namespaced/FreeVision.Editors.pas
 src/time.pas=namespaced/FreeVision.Time.pas
 src/gadgets.pas=namespaced/FreeVision.Gadgets.pas
+src/fvclip.pas=namespaced/FreeVision.Fvclip.pas
+src/ufvclip.pas=namespaced/FreeVision.Ufvclip.pas
