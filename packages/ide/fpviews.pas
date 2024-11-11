@@ -398,7 +398,7 @@ type
     end;
 
     PFPChDirDialog = ^TFPChDirDialog;
-    TFPChDirDialog = object(TChDirDialog)
+    TFPChDirDialog = object(TEditChDirDialog)
       constructor Init(AOptions: Word; HistoryId: Sw_Word);
     end;
 
@@ -4637,6 +4637,7 @@ begin
    DirInput^.getData(S);
    R.Assign(3, 3, 30, 4);
    DInput := New(PEditorInputLine, Init(R, FileNameLen+4));
+   DInput^.GrowMode:=gfGrowHiX;
    DInput^.SetData(S);
    InsertBefore(DInput,DirInput); {insert before to preserv order as it was}
    Delete(DirInput);
@@ -4653,6 +4654,11 @@ begin
      end;
      Control:=Control^.Next;
    end;
+   {resize}
+   if Desktop^.Size.Y > 26 then
+     GrowTo(Size.X,Desktop^.Size.Y-6);
+   if Desktop^.Size.X > 80 then
+     GrowTo(Min(Desktop^.Size.X-(80-Size.X),102),Size.Y);
    {set focus on the new input line}
    DirInput^.Focus;
 end;

@@ -325,11 +325,20 @@ end;
 
 procedure TIDEApp.RunDir;
 var
-  s : DirStr;
+  S,Dir : DirStr;
+  D : PFPChDirDialog;
 begin
-  s:=GetRunDir;
-  SelectDir(s,hidRunDir);
-  SetRunDir(s);
+  {$push}{$I-}
+  GetDir(0,Dir);
+  {$pop}
+  S:=GetRunDir;
+  S:=FExpand(S);
+  New(D, Init(cdNormal, hidRunDir));
+  if ExecuteDialog(D,@S)= cmOk then
+    SetRunDir(S);
+  {$push}{$I-}
+  ChDir(Dir);
+  {$pop}
 end;
 
 
