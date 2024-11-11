@@ -3227,7 +3227,7 @@ end;
 
 function TCustomCodeEditor.InsertFrom(Editor: PCustomCodeEditor): Boolean;
 var OK: boolean;
-    CP,RX,RSX,LineDelta,LineCount: Sw_integer;
+    CP,CI,RX,RSX,LineDelta,LineCount: Sw_integer;
     StartPos,DestPos,BPos,EPos: TPoint;
     LineStartX,LineEndX: Sw_integer;
     TabSize,CharIdxStart,CharIdxEnd: Sw_integer;
@@ -3251,6 +3251,8 @@ begin
   begin
     if not (Clipboard=@Self) and IsFlagSet(efOverwriteBlocks) and InSelectionArea then
       DelSelect; {delete selection before paste}
+    CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+    CurPos.X:=CharIdxToLinePos(CurPos.Y,CI); {tab space adjustment}
     StartPos:=CurPos; DestPos:=CurPos;
     EPos:=CurPos;
     VerticalBlock:=Editor^.IsFlagSet(efVerticalBlocks);
@@ -3377,12 +3379,14 @@ begin
 end;
 
 function TCustomCodeEditor.InsertText(const S: sw_astring): Boolean;
-var I: sw_integer;
+var I,CI: sw_integer;
     OldPos: TPoint;
     HoldUndo : boolean;
     WasAutoBrackets : boolean;
 begin
   Lock;
+  CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+  CurPos.X:=CharIdxToLinePos(CurPos.Y,CI); {tab space adjustment}
   OldPos:=CurPos;
   HoldUndo:=GetStoreUndo;
   WasAutoBrackets:=GetAutoBrackets;
@@ -6150,6 +6154,7 @@ begin
       exit;
     end;
 {$endif}
+  SP.X:=CharIdxToLinePos(CurPos.Y,CI); {actual changes are going to be here (tab space adjustment)}
   if (CI>0) and (S[CI]=TAB) and not IsFlagSet(efUseTabCharacters) then
     begin
       if CI=1 then
