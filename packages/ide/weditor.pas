@@ -6389,7 +6389,7 @@ begin
 {$else}
       s:=EOL+s+#0;
       Move(S[1],P2^,Length(S));
-+{$endif}
+{$endif}
     end;
   OK:=WinClipboardSupported;
   if OK then
