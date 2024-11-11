@@ -3102,13 +3102,17 @@ end;
 procedure TWatchesListBox.EditCurrent;
 var
   P: PWatch;
+  D: PWatchItemDialog;
 begin
   if Range=0 then Exit;
   if Focused<WatchesCollection^.Count then
     P:=WatchesCollection^.At(Focused)
   else
-    P:=New(PWatch,Init(''));
-  Application^.ExecuteDialog(New(PWatchItemDialog,Init(P)),nil);
+    begin EditNew; exit; end;
+  D:=New(PWatchItemDialog,Init(P));
+  Dispose(D^.Title);
+  D^.Title:=NewStr('Edit Watch');
+  Application^.ExecuteDialog(D,nil);
   WatchesCollection^.Update;
 end;
 
@@ -3410,7 +3414,7 @@ constructor TWatchItemDialog.Init(AWatch: PWatch);
 var R,R2: TRect;
 begin
   R.Assign(0,0,50,10);
-  inherited Init(R,'Edit Watch');
+  inherited Init(R,'Add Watch');
   Watch:=AWatch;
 
   GetExtent(R); R.Grow(-3,-2);
