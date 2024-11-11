@@ -156,7 +156,9 @@ type
       procedure AddRecentFile(AFileName: string; CurX, CurY: sw_integer);
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
+    public
       procedure CurDirChanged;
+    private
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
       procedure UpdateRecentFileList;
@@ -663,6 +665,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_desktop_symbolinfo = '~S~ymbol information';
                 label_desktop_codecompletewords = 'Co~d~eComplete wordlist';
                 label_desktop_codetemplates = 'Code~T~emplates';
+                label_desktop_returntolastdir = '~R~eturn to last directory';
                 label_desktop_preservedacrosssessions = '~P~reserved across sessions';
 
                 {Mouse options dialog.}
@@ -826,7 +829,6 @@ begin
   CompilerMessageWindow^.Hide;
   Desktop^.Insert(CompilerMessageWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
-  CurDirChanged;
   { heap viewer }
   GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));

@@ -1352,12 +1352,12 @@ var R: TRect;
     D: PCenterDialog;
     CB: PCheckBoxes;
 begin
-  R.Assign(0,0,40,12);
+  R.Assign(0,0,40,13);
   New(D, Init(R, dialog_desktoppreferences));
   with D^ do
   begin
     HelpCtx:=hcDesktopOptions;
-    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+8;
+    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+9;
     New(CB, Init(R,
       NewSItem(label_desktop_historylists,
       NewSItem(label_desktop_clipboard,
@@ -1367,7 +1367,8 @@ begin
       NewSItem(label_desktop_symbolinfo,
       NewSItem(label_desktop_codecompletewords,
       NewSItem(label_desktop_codetemplates,
-      nil))))))))));
+      NewSItem(label_desktop_returntolastdir,
+      nil)))))))))));
     CB^.Value:=DesktopFileFlags;
     Insert(CB);
     R.Move(0,-1); R.B.Y:=R.A.Y+1;

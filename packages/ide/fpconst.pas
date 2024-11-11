@@ -126,6 +126,7 @@ const
      dfSymbolInformation  = $00000020;
      dfCodeCompleteWords  = $00000040;
      dfCodeTemplates      = $00000080;
+     dfReturnToLastDir    = $00000100;
 
      { Auto Save flag constants }
      asEditorFiles        = $00000001; { Editor files }
