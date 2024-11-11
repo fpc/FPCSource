@@ -570,7 +570,7 @@ type
       function    SaveToFile(const AFileName: string): boolean; virtual;
     public
       function    InsertFrom(Editor: PCustomCodeEditor): Boolean; virtual;
-   {a}function    InsertText(const S: string): Boolean; virtual;
+   {a}function    InsertText(const S: sw_astring): Boolean; virtual;
     public
       procedure   FlagsChanged(OldFlags: longint); virtual;
    {a}procedure   BindingsChanged; virtual;
@@ -3227,7 +3227,7 @@ begin
   InsertFrom:=OK;
 end;
 
-function TCustomCodeEditor.InsertText(const S: string): Boolean;
+function TCustomCodeEditor.InsertText(const S: sw_astring): Boolean;
 var I: sw_integer;
     OldPos: TPoint;
     HoldUndo : boolean;
@@ -5958,7 +5958,7 @@ var
     first : boolean;
     IsNewLine: boolean;
 
-procedure InsertStringWrap(const s: string; var i : Longint);
+procedure InsertStringWrap(const s: sw_astring; var i : Longint);
 var
     BPos,EPos: TPoint;
 begin
@@ -5992,7 +5992,7 @@ end;
 var
     l,i,len,len10 : longint;
     p10,p2,p13 : PAnsiChar;
-    s : string;
+    s : sw_astring;
 begin
   Lock;
   first:=true;
@@ -6112,19 +6112,35 @@ begin
   else
     str_end:=LinePosToCharIdx(i,SelEnd.X)-1;
   s:=copy(s,str_begin,str_end-str_begin+1);
+{$if sizeof(sw_astring)>8}
   strpcopy(p,s);
+{$else}
+  s:=s+#0;
+  Move(S[1],P^,Length(S));
+{$endif}
   p2:=strend(p);
   inc(i);
   while i<SelEnd.Y do
     begin
-      strpcopy(p2,EOL+GetLineText(i));
+      s:=EOL+GetLineText(i);
+{$if sizeof(sw_astring)>8}
+      strpcopy(p2,s);
+{$else}
+      s:=s+#0;
+      Move(S[1],P2^,Length(S));
+{$endif}
       p2:=strend(p2);
       Inc(i);
     end;
   if SelEnd.Y>SelStart.Y then
     begin
       s:=copy(GetLineText(i),1,LinePosToCharIdx(i,SelEnd.X)-1);
+{$if sizeof(sw_astring)>8}
       strpcopy(p2,EOL+s);
+{$else}
+      s:=EOL+s+#0;
+      Move(S[1],P2^,Length(S));
++{$endif}
     end;
   OK:=WinClipboardSupported;
   if OK then
