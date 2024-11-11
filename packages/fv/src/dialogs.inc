@@ -1811,11 +1811,55 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
      End Else CheckValid := True;                     { No validator }
    END;
 
+   Procedure PasteText(P :PAnsiChar;ASize:sw_integer);
+   var s : sw_string;
+    i : sw_integer;
+    st: sw_string;
+    wlen : sw_integer;
+   begin
+     {$ifdef FV_UNICODE}
+     wlen:=ASize;
+     Setlength(S,wlen);
+     wlen:=Utf8ToUnicode(@S[1],wlen,P,ASize);
+     Setlength(S,wlen);
+     {$else}
+     Setlength(S,Min(ASize,255));
+     Move(P^,s[1],Min(ASize,255));
+     {$endif}
+     for i:=1 to Min(length(s),255) do
+     begin
+       {$ifdef FV_UNICODE}
+       st:=Data+S[i];
+       {$else}
+       st:=Data^+s[i];
+       {$endif}
+       If not assigned(validator) or
+          Validator^.IsValidInput(st,False)  then
+         Begin
+           Event.What:=evKeyDown;
+           {$ifdef FV_UNICODE}
+           Event.UnicodeChar:=s[i];
+           {$else}
+           Event.CharCode:=s[i];
+           {$endif}
+           Event.Scancode:=0;
+           TInputLine.HandleEvent(Event);             { add pasted chars}
+         End;
+       if length(st)=255 then break;
+     end;
+   end;
+
 BEGIN
    Inherited HandleEvent(Event);                      { Call ancestor }
    If (State AND sfSelected <> 0) Then Begin          { View is selected }
      Case Event.What Of
        evNothing: Exit;                               { Speed up exit }
+       evCommand: Begin                               { Command event }
+         If (Event.Command=cmPasteText) then begin    { Bracketed paste or osc52 }
+           PasteText(Event.InfoPtr,Event.Id);
+           ClearEvent(Event);
+         end;
+       end;
        evMouseDown: Begin                             { Mouse down event }
          Delta := MouseDelta;                         { Calc scroll value }
          If CanScroll(Delta) Then Begin               { Can scroll }

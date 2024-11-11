@@ -2117,6 +2117,7 @@ begin
             cmCut         : ClipCut;
             cmCopy        : ClipCopy;
             cmPaste       : ClipPaste;
+            cmPasteText   : InsertText(Event.InfoPtr,Event.Id,false);
             cmUndo        : Undo;
             cmClear       : DeleteSelect;
             cmCharLeft    : SetCurPtr (PrevChar  (CurPtr), SelectMode);

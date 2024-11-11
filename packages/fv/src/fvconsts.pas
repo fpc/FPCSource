@@ -258,6 +258,9 @@ const
   cmNewColorIndex          = 75;
   cmSaveColorIndex         = 76;
 
+  { fvclip Unit }
+  cmPasteText   = 77;    {bracketed paste, osc52 paste}
+
   { StdDlg Unit   800 - ? }
   cmFileOpen    = 800;   { Returned from TFileDialog when Open pressed }
   cmFileReplace = 801;   { Returned from TFileDialog when Replace pressed }
