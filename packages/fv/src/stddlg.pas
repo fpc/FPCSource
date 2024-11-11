@@ -1984,12 +1984,14 @@ begin
 
   R.Assign(3, 3, 30, 4);
   DirInput := New(PInputLine, Init(R, FileNameLen+4));
+  DirInput^.GrowMode:=gfGrowHiX;
   Insert(DirInput);
   R.Assign(2, 2, 17, 3);
   Control := New(PLabel, Init(R,slDirectoryName, DirInput));
   Insert(Control);
   R.Assign(30, 3, 33, 4);
   Control := New(PHistory, Init(R, DirInput, HistoryId));
+  Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
   Insert(Control);
 
   R.Assign(32, 6, 33, 16);
@@ -1997,6 +1999,7 @@ begin
   Insert(Control);
   R.Assign(3, 6, 32, 16);
   DirList := New(PDirListBox, Init(R, PScrollBar(Control)));
+  DirList^.GrowMode:=gfGrowHiX or gfGrowHiY;
   Insert(DirList);
   R.Assign(2, 5, 17, 6);
   Control := New(PLabel, Init(R, slDirectoryTree, DirList));
@@ -2004,13 +2007,17 @@ begin
 
   R.Assign(35, 6, 45, 8);
   OkButton := New(PButton, Init(R, slOk, cmOK, bfDefault));
+  OkButton^.GrowMode:=gfGrowHiX or gfGrowLoX;
   Insert(OkButton);
   Inc(R.A.Y,3); Inc(R.B.Y,3);
   ChDirButton := New(PButton,Init(R,slChDir,cmChangeDir,
            bfNormal));
+  ChDirButton^.GrowMode:=gfGrowHiX or gfGrowLoX;
   Insert(ChDirButton);
   Inc(R.A.Y,3); Inc(R.B.Y,3);
-  Insert(New(PButton, Init(R,slRevert, cmRevert, bfNormal)));
+  Control := New(PButton, Init(R,slRevert, cmRevert, bfNormal));
+  Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+  Insert(Control);
   if AOptions and cdHelpButton <> 0 then
   begin
     //Inc(R.A.Y,3); Inc(R.B.Y,3);
