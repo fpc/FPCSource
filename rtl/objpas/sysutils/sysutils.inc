@@ -913,6 +913,21 @@ begin
   target := newvalue;
 end;
 
+generic function Extract<T>(var from: T) :T;
+begin
+  Finalize(Result);
+  Move(from,Result,SizeOf(T));
+  Initialize(from);
+end;
+
+generic procedure Swap<T>(var lhs,rhs: T);
+var
+  tmp:array[0..sizeof(T)-1] of Byte;
+begin
+  Move(lhs,tmp,sizeof(T));
+  Move(rhs,lhs,sizeof(T));
+  Move(tmp,rhs,sizeof(T));
+end;
 
 Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
 
