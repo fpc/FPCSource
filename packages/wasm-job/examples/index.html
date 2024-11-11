@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wasm Javascript Object Bindings - Test bed</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"> <!-- Prevents caching -->
+    <meta http-equiv="Pragma" content="no-cache"> <!-- Legacy HTTP 1.0 backward compatibility -->
+    <meta http-equiv="Expires" content="0"> <!-- Proxies -->
+    <link href="bulma.min.css" rel="stylesheet">
+    <link type="stylesheet" src="bulma.min.css">
+    <script src="hostsimpletest.js"></script>
+</head>
+<body>
+    <div class="box">
+      <p class="title is-3">Webassembly JSON test bed</p>
+      <p class="subtitle is-5">Console output:</p>
+      <div id="pasjsconsole">
+      </div>
+    </div>
+  <script>
+    rtl.showUncaughtExceptions=true;
+    rtl.run();
+  </script>
+</body>
+</html>
