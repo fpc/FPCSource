@@ -95,6 +95,7 @@ const
       efNoIndent            = $00010000;
       efKeepLineAttr        = $00020000;
       efOverwriteBlocks     = $00040000;
+      efShowIndent          = $00080000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -3926,7 +3927,7 @@ begin
     Color:=(Color and $F0) or $F;
   CombineColors:=Color;
 end;
-var
+var ShowIndent:boolean;
     FoldPrefix,FoldSuffix: string;
 {    SkipLine: boolean;}
 {    FoldStartLine: sw_integer;}
@@ -3962,6 +3963,7 @@ begin
   HighlightColColor:=GetColor(11);
   HighlightRowColor:=GetColor(12);
   ErrorMessageColor:=GetColor(16);
+  ShowIndent:=IsFlagSet(efShowIndent) and IsFlagSet(efSyntaxHighlight);
 {$ifdef TEST_PARTIAL_SYNTAX}
   If (not GetSyntaxCompleted) and (GetLastSyntaxedLine<Delta.Y+Size.Y) then
     UpdateAttrsRange(GetLastSyntaxedLine,Delta.Y+Size.Y,AttrAll);
@@ -4002,6 +4004,14 @@ begin
           FillChar(FreeFormat,SizeOf(FreeFormat),1);
           MoveChar(B,' ',Color,Size.X);
           GetDisplayTextFormat(AY,LineText,Format);
+          if ShowIndent and (length(Format)=length(LineText)) then
+            for X:=1 to length(LineText) do
+            begin
+              if LineText[X] <> ' ' then break;
+              if (X>1 ) and (X and 1 = 1) then
+                if ord(Format[X]) in [coWhiteSpaceColor,coTabColor] then
+                  LineText[X]:=#179; { | show line indent }
+            end;
 
           MaxX:=Min(Delta.X+1+Size.X,MaxLineLength);
           for X:=(MaxX-Size.X) to MaxX+1 do

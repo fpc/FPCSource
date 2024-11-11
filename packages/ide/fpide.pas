@@ -607,6 +607,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_editor_persistentblocks = '~P~ersistent blocks';
                 label_editor_overwriteblocks = '~O~verwrite blocks';
                 label_editor_syntaxhighlight = '~S~yntax highlight';
+                label_editor_showlineindents = 'Sho~w~ line indents';
                 label_editor_blockinsertcursor = 'B~l~ock insert cursor';
                 label_editor_verticalblocks = '~V~ertical blocks';
                 label_editor_highlightcolumn = 'Highlight ~c~olumn';

@@ -1217,21 +1217,22 @@ begin
   if (EFlags and efPersistentBlocks  )<>0 then EFValue:=EFValue or (1 shl  5);
   if (EFlags and efOverwriteBlocks   )<>0 then EFValue:=EFValue or (1 shl  6);
   if (EFlags and efSyntaxHighlight   )<>0 then EFValue:=EFValue or (1 shl  7);
-  if (EFlags and efVerticalBlocks    )<>0 then EFValue:=EFValue or (1 shl  8);
-  if (EFlags and efHighlightColumn   )<>0 then EFValue:=EFValue or (1 shl  9);
-  if (EFlags and efHighlightRow      )<>0 then EFValue:=EFValue or (1 shl 10);
-  if (EFlags and efAutoBrackets      )<>0 then EFValue:=EFValue or (1 shl 11);
-  if (EFlags and efKeepTrailingSpaces)<>0 then EFValue:=EFValue or (1 shl 12);
-  if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 13);
-  if (EFlags and efFolds             )<>0 then EFValue:=EFValue or (1 shl 14);
-  if (EFlags and efBlockInsCursor    )<>0 then EFValue:=EFValue or (1 shl 15);
+  if (EFlags and efShowIndent        )<>0 then EFValue:=EFValue or (1 shl  8);
+  if (EFlags and efVerticalBlocks    )<>0 then EFValue:=EFValue or (1 shl  9);
+  if (EFlags and efHighlightColumn   )<>0 then EFValue:=EFValue or (1 shl 10);
+  if (EFlags and efHighlightRow      )<>0 then EFValue:=EFValue or (1 shl 11);
+  if (EFlags and efAutoBrackets      )<>0 then EFValue:=EFValue or (1 shl 12);
+  if (EFlags and efKeepTrailingSpaces)<>0 then EFValue:=EFValue or (1 shl 13);
+  if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 14);
+  if (EFlags and efFolds             )<>0 then EFValue:=EFValue or (1 shl 15);
+  if (EFlags and efBlockInsCursor    )<>0 then EFValue:=EFValue or (1 shl 16);
 
-  R.Assign(0,0,66,20);
+  R.Assign(0,0,66,21);
   New(D, Init(R, Title));
   with D^ do
   begin
     HelpCtx:=hcEditor;
-    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+9;
+    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+10;
     R2.Copy(R); Inc(R2.A.Y);
     New(CB, Init(R2,
       NewSItem(label_editor_backupfiles,
@@ -1242,6 +1243,7 @@ begin
       NewSItem(label_editor_persistentblocks,
       NewSItem(label_editor_overwriteblocks,
       NewSItem(label_editor_syntaxhighlight,
+      NewSItem(label_editor_showlineindents,
       NewSItem(label_editor_verticalblocks,
       NewSItem(label_editor_highlightcolumn,
       NewSItem(label_editor_highlightrow,
@@ -1250,7 +1252,7 @@ begin
       NewSItem(label_editor_codecomplete,
       NewSItem(label_editor_folds,
       NewSItem(label_editor_blockinsertcursor,
-      nil))))))))))))))))));
+      nil)))))))))))))))))));
     CB^.Value:=EFValue;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
@@ -1300,14 +1302,15 @@ begin
     if (CB^.Value and (1 shl  5))<>0 then EFlags:=EFlags or efPersistentBlocks;
     if (CB^.Value and (1 shl  6))<>0 then EFlags:=EFlags or efOverwriteBlocks;
     if (CB^.Value and (1 shl  7))<>0 then EFlags:=EFlags or efSyntaxHighlight;
-    if (CB^.Value and (1 shl  8))<>0 then EFlags:=EFlags or efVerticalBlocks;
-    if (CB^.Value and (1 shl  9))<>0 then EFlags:=EFlags or efHighlightColumn;
-    if (CB^.Value and (1 shl 10))<>0 then EFlags:=EFlags or efHighlightRow;
-    if (CB^.Value and (1 shl 11))<>0 then EFlags:=EFlags or efAutoBrackets;
-    if (CB^.Value and (1 shl 12))<>0 then EFlags:=EFlags or efKeepTrailingSpaces;
-    if (CB^.Value and (1 shl 13))<>0 then EFlags:=EFlags or efCodeComplete;
-    if (CB^.Value and (1 shl 14))<>0 then EFlags:=EFlags or efFolds;
-    if (CB^.Value and (1 shl 15))<>0 then EFlags:=EFlags or efBlockInsCursor;
+    if (CB^.Value and (1 shl  8))<>0 then EFlags:=EFlags or efShowIndent;
+    if (CB^.Value and (1 shl  9))<>0 then EFlags:=EFlags or efVerticalBlocks;
+    if (CB^.Value and (1 shl 10))<>0 then EFlags:=EFlags or efHighlightColumn;
+    if (CB^.Value and (1 shl 11))<>0 then EFlags:=EFlags or efHighlightRow;
+    if (CB^.Value and (1 shl 12))<>0 then EFlags:=EFlags or efAutoBrackets;
+    if (CB^.Value and (1 shl 13))<>0 then EFlags:=EFlags or efKeepTrailingSpaces;
+    if (CB^.Value and (1 shl 14))<>0 then EFlags:=EFlags or efCodeComplete;
+    if (CB^.Value and (1 shl 15))<>0 then EFlags:=EFlags or efFolds;
+    if (CB^.Value and (1 shl 16))<>0 then EFlags:=EFlags or efBlockInsCursor;
     TabSize:=StrToInt(ILTab^.Data^);
     IndentSize:=StrToInt(ILIdent^.Data^);
     if Editor=nil then
