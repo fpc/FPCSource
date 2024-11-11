@@ -20,19 +20,31 @@
 
  ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 unit ufvclip;
 {$else FV_UNICODE}
 unit fvclip;
 {$endif FV_UNICODE}
+{$ENDIF}
 {$i platform.inc}
 {$h-}
+
 interface
+
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+uses System.Objects, FreeVision.Uapp;
+{$else FV_UNICODE}
+uses System.Objects, FreeVision.App;
+{$endif FV_UNICODE}
+{$ELSE}
 {$ifdef FV_UNICODE}
 uses objects,uapp;
 {$else FV_UNICODE}
 uses objects,app;
 {$endif FV_UNICODE}
+{$ENDIF}
 
 {Should be called after InitKeyboard}
 procedure InitClip(AProgram :PProgram);
@@ -46,6 +58,19 @@ procedure GetGlobalClipboardData;
 function SetGlobalClipboardData(P: PAnsiChar; ASize: longint): boolean;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef unix}
+  UnixApi.Base, System.Console.Keyboard,
+{$endif}
+{$ifdef FV_UNICODE}
+  FreeVision.UDrivers,
+{$else FV_UNICODE}
+  FreeVision.Drivers,
+{$endif FV_UNICODE}
+  FreeVision.Fvconsts,FreeVision.Fvcommon;
+{$ELSE}
 uses
 {$ifdef unix}
   baseUnix,keyboard,
@@ -56,7 +81,7 @@ uses
   drivers,
 {$endif FV_UNICODE}
   fvconsts,FVCommon;
-
+{$ENDIF}
 var cProgram : PProgram;
   PText : PAnsiChar;
 
