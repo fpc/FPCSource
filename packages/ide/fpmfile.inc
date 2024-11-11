@@ -74,7 +74,7 @@ end;
 
 
 procedure TIDEApp.Open(FileName: string;FileDir:string);
-var D: PFileDialog;
+var D : PFPFileDialog;
     OpenIt: boolean;
     DriveNumber : byte;
     StoreDir,StoreDir2 : DirStr;
@@ -141,7 +141,7 @@ begin
 end;
 
 function TIDEApp.OpenSearch(FileName: string) : boolean;
-var D: PFileDialog;
+var D : PFPFileDialog;
     OpenIt: boolean;
     P : PString;
     Dir,S : String;
