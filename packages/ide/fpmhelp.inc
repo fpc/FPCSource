@@ -169,7 +169,7 @@ procedure THelpFilesDialog.HandleEvent(var Event: TEvent);
   StoreHtmlIndexFile := Re <> cmCancel;
   end;
 var I: integer;
-    D: PFileDialog;
+    D : PFPFileDialog;
     FileName: string;
     Re: word;
     S: string;

@@ -97,7 +97,7 @@ end;
 
 procedure TIDEApp.DoPrimaryFile;
 var
-  D : PFileDialog;
+  D : PFPFileDialog;
   FileName : string;
 begin
   New(D, Init('*.pri;*.pas',label_primaryfile_primaryfile,'*.pri;*.pas',fdOpenButton,hidPrimaryFile));

@@ -22,7 +22,7 @@ unit WEditor;
 interface
 {tes}
 uses
-  Dos,Objects,Drivers,Views,Dialogs,Menus,
+  Dos,Objects,Drivers,Views,Dialogs,Menus,Stddlg,
   FVConsts,
   WUtils,WViews;
 
@@ -750,6 +750,18 @@ type
 
     PSearchHelperDialog = ^TSearchHelperDialog;
 
+    PFPFileInputLine = ^TFPFileInputLine;
+    TFPFileInputLine = object(TFileInputLine)
+      constructor Init(var Bounds: TRect; AMaxLen: Sw_Integer);
+      procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
+    PFPFileDialog = ^TFPFileDialog;
+    TFPFileDialog = object(TFileDialog)
+      constructor Init(AWildCard: TWildStr; const ATitle,
+        InputName: String; AOptions: Word; HistoryId: Byte);
+    end;
+
 const
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
@@ -802,7 +814,7 @@ procedure RegisterWEditor;
 implementation
 
 uses
-  Strings,Video,MsgBox,App,StdDlg,Validate,
+  Strings,Video,MsgBox,App,Validate,
 {$ifdef WinClipSupported}
   WinClip,
 {$endif WinClipSupported}
@@ -7285,6 +7297,14 @@ begin
              inherited HandleEvent(Event);
              ClearEvent(Event);
            end
+         else if ((Event.KeyCode=kbCtrlDel)) then
+           { Cut & discard }
+           begin
+             { now remove the selected part }
+             Event.keyCode:=kbDel;
+             inherited HandleEvent(Event);
+             ClearEvent(Event);
+           end
          else
            Inherited HandleEvent(Event);
        End
@@ -7293,6 +7313,118 @@ begin
   st:=getstr(data);
   Message(Owner,evBroadCast,cmInputLineLen,pointer(Length(st)));
 end;
+
+constructor TFPFileInputLine.Init(var Bounds: TRect; AMaxLen: Sw_Integer);
+begin
+  inherited Init(Bounds, AMaxLen);
+end;
+
+procedure TFPFileInputLine.HandleEvent(var Event: TEvent);
+var s : sw_astring;
+    i : sw_integer;
+    st: string;
+begin
+     If (Event.What=evKeyDown) then
+       begin
+           if ((Event.KeyCode=kbShiftIns) or (Event.KeyCode=paste_key))  and
+                 Assigned(weditor.Clipboard) and (weditor.Clipboard^.ValidBlock) then
+           { paste from clipboard }
+           begin
+             i:=Clipboard^.SelStart.Y;
+             s:=Clipboard^.GetDisplayText(i);
+             i:=Clipboard^.SelStart.X;
+             if i>0 then
+              s:=copy(s,i+1,length(s));
+             if (Clipboard^.SelStart.Y=Clipboard^.SelEnd.Y) then
+               begin
+                 i:=Clipboard^.SelEnd.X-i;
+                 s:=copy(s,1,i);
+               end;
+             for i:=1 to length(s) do
+               begin
+                 st:=Data^+s[i];
+                 If not assigned(validator) or
+                    Validator^.IsValidInput(st,False)  then
+                   Begin
+                     Event.What:=evKeyDown;
+                     Event.CharCode:=s[i];
+                     Event.Scancode:=0;
+                     Inherited HandleEvent(Event);
+                   End;
+               end;
+             ClearEvent(Event);
+           end
+         else if ((Event.KeyCode=kbCtrlIns) or (Event.KeyCode=copy_key))  and
+                 Assigned(Clipboard) then
+           { Copy to clipboard }
+           begin
+             s:=GetStr(Data);
+             s:=copy(s,selstart+1,selend-selstart);
+             Clipboard^.SelStart:=Clipboard^.CurPos;
+             Clipboard^.InsertText(s);
+             Clipboard^.SelEnd:=Clipboard^.CurPos;
+             ClearEvent(Event);
+           end
+         else if ((Event.KeyCode=kbShiftDel) or (Event.KeyCode=cut_key))  and
+                 Assigned(Clipboard) then
+           { Cut to clipboard }
+           begin
+             s:=GetStr(Data);
+             s:=copy(s,selstart+1,selend-selstart);
+             Clipboard^.SelStart:=Clipboard^.CurPos;
+             Clipboard^.InsertText(s);
+             Clipboard^.SelEnd:=Clipboard^.CurPos;
+             { now remove the selected part }
+             Event.keyCode:=kbDel;
+             inherited HandleEvent(Event);
+             ClearEvent(Event);
+           end
+         else if ((Event.KeyCode=kbCtrlDel)) then
+           { Cut & discard }
+           begin
+             { now remove the selected part }
+             Event.keyCode:=kbDel;
+             inherited HandleEvent(Event);
+             ClearEvent(Event);
+           end
+         else
+           Inherited HandleEvent(Event);
+       End
+     else
+       Inherited HandleEvent(Event);
+  //st:=getstr(data);
+  //Message(Owner,evBroadCast,cmInputLineLen,pointer(Length(st)));
+end;
+
+constructor TFPFileDialog.Init(AWildCard: TWildStr; const ATitle,
+        InputName: String; AOptions: Word; HistoryId: Byte);
+var R: TRect;
+  DInput  : PFPFileInputLine;
+  Control : PView;
+  History : PHistory;
+  S : String;
+begin
+  inherited init(AWildCard,ATitle,InputName,AOptions,HistoryId);
+  FileName^.getData(S);
+  R.Assign(3, 3, 31, 4);
+  DInput := New(PFPFileInputLine, Init(R, 79{FileNameLen+4}));
+  DInput^.SetData(S);
+  InsertBefore(DInput,FileName); {insert before to preserv order as it was}
+  Delete(FileName);
+  Dispose(FileName,done);
+  DInput^.GrowMode:=gfGrowHiX;
+  FileName:=DInput;
+  FileHistory^.Link:=DInput;
+  {resize}
+  if Desktop^.Size.Y > 26 then
+    GrowTo(Size.X,Desktop^.Size.Y-6);
+  if Desktop^.Size.X > 80 then
+    GrowTo(Min(Desktop^.Size.X-(80-Size.X),102),Size.Y);
+  FileList^.NumCols:= Max((FileList^.Size.X-(FileList^.Size.X div 14)) div 14,2);
+  {set focus on the new input line}
+  DInput^.Focus;
+end;
+
 
 procedure TSearchHelperDialog.HandleEvent(var Event : TEvent);
 begin
@@ -7595,7 +7727,7 @@ begin
             end;
         else begin Title:='???'; DefExt:=''; end;
         end;
-        Re:=Application^.ExecuteDialog(New(PFileDialog, Init(DefExt,
+        Re:=Application^.ExecuteDialog(New(PFPFileDialog, Init(DefExt,
           Title, label_name, fdOkButton, FileId)), @Name);
         case Dialog of
           edSaveAs     :

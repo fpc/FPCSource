@@ -1621,7 +1621,7 @@ end;
 {$endif COLORSEL}
 
 procedure TIDEApp.OpenINI;
-var D: PFileDialog;
+var D : PFPFileDialog;
     FileName: string;
 begin
   New(D, Init('*'+ExtOf(INIFileName),dialog_openoptions,dialog_ini_filename,fdOpenButton,hidOpenIniFile));
@@ -1646,7 +1646,7 @@ begin
 end;
 
 procedure TIDEApp.SaveAsINI;
-var D: PFileDialog;
+var D : PFPFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin

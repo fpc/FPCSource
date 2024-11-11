@@ -1181,6 +1181,35 @@ begin
 end;
 
 {****************************************************************************}
+{ AdjustNameSize for TFileInfoPane                                           }
+{****************************************************************************}
+function AdjustNameSize(S:String;ASize:sw_integer):String;
+var St: String;
+    NameLen:sw_integer;
+    K,N : sw_integer;
+begin
+  NameLen:=12;
+  Str(NameLen,St);
+  NameLen:=ASize-10-9-3-2-4-2-2-1-2;
+  if NameLen>12 then
+    Str(NameLen,St);
+  k:=1;
+  while k<=length(S) do
+  begin
+    if (S[k] in ['0'..'9']) then break;
+    inc(k);
+  end;
+  N:=K;
+  while N<=length(S) do
+  begin
+    if not (S[N] in ['0'..'9']) then break;
+    inc(N);
+  end;
+  S:=Copy(S,1,K-1)+St+Copy(S,N,length(S));
+  AdjustNameSize:=S;
+end;
+
+{****************************************************************************}
 { TFileInfoPane.Draw                    }
 {****************************************************************************}
 procedure TFileInfoPane.Draw;
@@ -1242,6 +1271,7 @@ begin
     FmtId := sFileLine;
     Params[1] := S.Size;
   end;
+  FmtId:=AdjustNameSize(FmtId,Size.X);
   UnpackTime(S.Time, Time);
   M := Month[Time.Month];
   Params[2] := ptruint(@M);
@@ -1460,6 +1490,7 @@ begin
 
   R.Assign(3,3,31,4);
   FileName := New(PFileInputLine, Init(R, 79));
+  FileName^.GrowMode:=gfGrowHiX;
   FileName^.Data^ := WildCard;
   Insert(FileName);
   R.Assign(2,2,3+CStrLen(InputName),3);
@@ -1467,6 +1498,7 @@ begin
   Insert(Control);
   R.Assign(31,3,34,4);
   FileHistory := New(PFileHistory, Init(R, FileName, HistoryId));
+  FileHistory^.GrowMode:=gfGrowHiX or gfGrowLoX;
   Insert(FileHistory);
 
   R.Assign(3,14,34,15);
@@ -1474,6 +1506,7 @@ begin
   Insert(Control);
   R.Assign(3,6,34,14);
   FileList := New(PFileList, Init(R, PScrollBar(Control)));
+  FileList^.GrowMode:=gfGrowHiX or gfGrowHiY;
   Insert(FileList);
   R.Assign(2,5,8,6);
   Control := New(PLabel, Init(R, slFiles, FileList));
@@ -1483,29 +1516,39 @@ begin
   Opt := bfDefault;
   if AOptions and fdOpenButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,slOpen, cmFileOpen, Opt)));
+    Control:=New(PButton, Init(R,slOpen, cmFileOpen, Opt));
+    Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+    Insert(Control);
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdOkButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,slOk, cmFileOpen, Opt)));
+    Control:=New(PButton, Init(R,slOk, cmFileOpen, Opt));
+    Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+    Insert(Control);
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdReplaceButton <> 0 then
   begin
-    Insert(New(PButton, Init(R, slReplace,cmFileReplace, Opt)));
+    Control:=New(PButton, Init(R, slReplace,cmFileReplace, Opt));
+    Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+    Insert(Control);
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdClearButton <> 0 then
   begin
-    Insert(New(PButton, Init(R, slClear,cmFileClear, Opt)));
+    Control:=New(PButton, Init(R, slClear,cmFileClear, Opt));
+    Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+    Insert(Control);
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
-  Insert(New(PButton, Init(R, slCancel, cmCancel, bfNormal)));
+  Control:=New(PButton, Init(R, slCancel, cmCancel, bfNormal));
+  Control^.GrowMode:=gfGrowHiX or gfGrowLoX;
+  Insert(Control);
   Inc(R.A.Y,3); Inc(R.B.Y,3);
   if AOptions and fdHelpButton <> 0 then
   begin
@@ -1515,6 +1558,7 @@ begin
 
   R.Assign(1,16,48,18);
   Control := New(PFileInfoPane, Init(R));
+  Control^.GrowMode:=gfGrowHiX or gfGrowHiY or gfGrowLoY;
   Insert(Control);
 
   SelectNext(False);
