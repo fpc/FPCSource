@@ -183,7 +183,7 @@ begin
           AddUnit('msgbox');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('fvclip.pas',AllUnixOSes);
+    T:=P.Targets.AddUnit('fvclip.pp',AllUnixOSes);
       with T.Dependencies do
         begin
           AddInclude('fvclip.inc');
