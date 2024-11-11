@@ -1262,6 +1262,7 @@ begin
        ch:=#0;
      if ch<>#0 then
        St:=St+ch;
+     if length(st)=255 then break;
   Until ch=#0;
   RawReadString:=St;
 end;
