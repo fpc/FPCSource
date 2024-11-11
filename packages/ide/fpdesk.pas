@@ -383,7 +383,7 @@ begin
     Begin
       Move(XData[XDataOfs],B,Size);
       Inc(XDataOfs,Size);
-    End;   
+    End;
 end;
 procedure ProcessWindowInfo;
 var W: PWindow;
@@ -396,6 +396,7 @@ var W: PWindow;
     ZZ: byte;
     Z: TRect;
     Len : Byte;
+    BM: TEditorBookMark;
 begin
   XDataOfs:=0;
   Desktop^.Lock;
@@ -427,6 +428,10 @@ begin
           SW^.Editor^.SetSelection(TP,TP2);
           GetData(TP,sizeof(TP)); SW^.Editor^.SetCurPtr(TP.X,TP.Y);
           GetData(TP,sizeof(TP)); SW^.Editor^.ScrollTo(TP.X,TP.Y);
+          for L:=0 to 9 do begin
+            GetData(BM,Sizeof(BM));
+            SW^.Editor^.SetBookmark(L,BM); {restore bookmarks}
+          end;
         end;
       end;
      hcClipboardWindow:
@@ -594,6 +599,7 @@ begin
         begin
           SetLength(Title,WI.TitleLen);
           S^.Read(Title[1],WI.TitleLen);
+          FillChar(XData,SizeOf(XData),0);
           if WI.ExtraDataSize>0 then
           S^.Read(XData,WI.ExtraDataSize);
           ProcessWindowInfo;
@@ -647,6 +653,7 @@ var W: PWindow;
     St: string;
     Ch: AnsiChar;
     TP: TPoint;
+    BM: TEditorBookMark;
     L: longint;
 procedure AddData(const B; Size: word);
 begin
@@ -696,6 +703,9 @@ begin
         TP:=SW^.Editor^.SelEnd; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.CurPos; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.Delta; AddData(TP,sizeof(TP));
+        for L:=0 to 9 do begin
+          BM:=SW^.Editor^.GetBookmark(L); AddData(BM,Sizeof(BM)); {save bookmarks}
+        end;
       end;
     hcAsciiTableWindow :
       begin
