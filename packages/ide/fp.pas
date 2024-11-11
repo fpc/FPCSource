@@ -450,6 +450,9 @@ BEGIN
   InitDesktopFile;
   LoadDesktop;
 
+  {Adjust to current directory, might be changed by LoadDesktop.}
+  IDEapp.CurDirChanged;
+
   {Menubar might be changed because of loading INI file.}
   IDEapp.reload_menubar;
 
