@@ -1038,7 +1038,7 @@ begin
     if ((DesktopFileFlags and dfCodeTemplates)<>0) then
       OK:=ReadCodeTemplates(F) and OK;
     if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
-        OK:=WriteReturnToLastDir(F) and OK;
+      OK:=ReadReturnToLastDir(F) and OK;
 {$ifdef Unix}
     OK:=ReadKeys(F) and OK;
 {$endif Unix}
