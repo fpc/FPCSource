@@ -183,7 +183,7 @@ begin
           AddUnit('msgbox');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('fvclip.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('fvclip.pas',AllUnixOSes);
       with T.Dependencies do
         begin
           AddInclude('fvclip.inc');
@@ -198,10 +198,10 @@ begin
         begin
           AddInclude('fvclip.inc');
           AddInclude('platform.inc');
-          AddUnit('drivers');
+          AddUnit('udrivers');
           AddUnit('fvconsts');
-          AddUnit('app');
-          AddUnit('fvcommon');
+          AddUnit('uapp');
+          AddUnit('ufvcommon');
         end;
     T:=P.Targets.AddUnit('fvcommon.pas');
       with T.Dependencies do
