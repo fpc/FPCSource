@@ -37,11 +37,13 @@ Type
     FHTTP : TFPHTTPClient;
   Public
     function GetHeaders: TStrings;override;
-    Constructor Create(AHTTP : TFPHTTPClient);
+    Constructor Create(AHTTP : TFPHTTPClient; aAsync: Boolean; const aRequestID : String=''); reintroduce;
     Destructor Destroy; override;
   end;
 
   { TFPHTTPRequest }
+
+  { TFPHTTPResponse }
 
   TFPHTTPResponse = Class(TWebClientResponse)
   Private
@@ -51,14 +53,14 @@ Type
     Function GetStatusCode : Integer; override;
     Function GetStatusText : String; override;
   Public
-    Constructor Create(AHTTP : TFPHTTPRequest);
+    Constructor Create(ARequest : TFPHTTPRequest); reintroduce;
   end;
 
   { TFPHTTPWebClient }
 
   TFPHTTPWebClient = Class(TAbstractWebClient)
   Protected
-    Function DoCreateRequest: TWebClientRequest; override;
+    Function DoCreateRequest(aIsAsync : Boolean; const aRequestID : String): TWebClientRequest; override;
     Function DoHTTPMethod(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse; override;
   end;
 
@@ -77,8 +79,9 @@ begin
   Result:=FHTTP.RequestHeaders;
 end;
 
-constructor TFPHTTPRequest.Create(AHTTP: TFPHTTPClient);
+constructor TFPHTTPRequest.Create(AHTTP: TFPHTTPClient; aAsync: Boolean; const aRequestID : String = '');
 begin
+  Inherited Create(aAsync,aRequestID);
   FHTTP:=AHTTP;
 end;
 
@@ -114,16 +117,16 @@ begin
     Result:='';
 end;
 
-Constructor TFPHTTPResponse.Create(AHTTP: TFPHTTPRequest);
+constructor TFPHTTPResponse.Create(ARequest: TFPHTTPRequest);
 begin
-  Inherited Create(AHTTP);
-  FHTTP:=AHTTP.FHTTP;
+  Inherited Create(ARequest);
+  FHTTP:=ARequest.FHTTP;
 end;
 
 
 { TFPHTTPWebClient }
 
-Function TFPHTTPWebClient.DoCreateRequest: TWebClientRequest;
+function TFPHTTPWebClient.DoCreateRequest(aIsAsync: Boolean; const aRequestID: String): TWebClientRequest;
 
 Var
   C : TFPHTTPClient;
@@ -133,7 +136,7 @@ begin
   C.RequestHeaders.NameValueSeparator:=':';
   C.ResponseHeaders.NameValueSeparator:=':';
 //  C.HTTPversion:='1.0';
-  Result:=TFPHTTPRequest.Create(C);
+  Result:=TFPHTTPRequest.Create(C,aIsAsync,aRequestID);
 end;
 
 Function TFPHTTPWebClient.DoHTTPMethod(Const AMethod, AURL: String;
