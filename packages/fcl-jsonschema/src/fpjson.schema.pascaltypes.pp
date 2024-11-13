@@ -115,6 +115,7 @@ Type
 
   TPascalTypeData = class(TObject)
   private
+    FElementTypeData: TPascalTypeData;
     FSchemaName: String;
     FImplementationName: String;
     FIndex: Integer;
@@ -163,7 +164,6 @@ Type
     Function HasArrayProperty : Boolean;
     // Component has object-typed property ? (SchemaComponentsonly = False -> also return array of string etc.)
     function HasObjectProperty(aSchemaComponentsOnly: Boolean): Boolean;
-
     // Components his component depends on
     Property Dependency[aIndex : Integer] : TPascalTypeData Read GetDependency;
     // Number of Components his component depends on
@@ -192,6 +192,8 @@ Type
     Property Sorted : Boolean Read FSorted Write FSorted;
     // PascalType
     Property Pascaltype : TPascalType Read FType;
+    // For arrays, a pointer to the element type
+    Property ElementTypeData : TPascalTypeData Read FElementTypeData Write FElementTypeData;
   end;
 
   { TPascalTypeDataList }
@@ -630,7 +632,7 @@ procedure TSchemaData.CheckDependencies;
           end;
         ptArray:
           begin
-          lPropData:=GetSchemaTypeData(lPropData,lPropData.Schema.Items[0],False);
+          lPropData:=lPropData.ElementTypeData;
           if assigned(lPropData) and (lPropData.PascalType in [ptAnonStruct,ptSchemaStruct]) then
             begin
             lTop.AddDependency(lPropData);
@@ -785,7 +787,6 @@ function TSchemaData.GetSchemaTypeAndName(aType: TPascalTypeData; aSchema: TJSON
 
 var
   lTypeData : TPascalTypeData;
-  lName : string;
 
 begin
   lTypeData:=GetSchemaTypeData(aType,aSchema);
@@ -793,13 +794,6 @@ begin
     begin
     aPropType:=ptUnknown;
     Result:='';
-    {
-    if assigned(aType) then
-      lName:=aType.SchemaName
-    else
-      lName:='<unknown>';
-    Raise ESchemaData.CreateFmt('Could not find type data for %s, property %s',[lName,aSchema.Name]);
-    }
     end
   else
     begin
@@ -812,8 +806,12 @@ Procedure TSchemaData.FinishAutoCreatedType(aName : string; aType: TPascalTypeDa
 
 begin
   AddType(aName,aType);
-  if aType.Pascaltype=ptAnonStruct then
+  Case aType.Pascaltype of
+  ptAnonStruct:
     AddPropertiesToType(aType,aType.Schema,True);
+  ptArray:
+    aType.FElementTypeData:=lElementTypeData;
+  end;
 end;
 
 function TSchemaData.GetSchemaTypeData(aType: TPascalTypeData; lSchema: TJSONSchema; AllowCreate : Boolean = False) : TPascalTypeData;
@@ -877,16 +875,16 @@ begin
         begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
 //         Data.FindSchemaTypeData('Array of string')
-        if DelphiTypes then
-          lPascalName:='TArray<'+lElTypeData.PascalName+'>'
-        else
-          lPascalName:='Array of '+lElTypeData.PascalName;
+        lPascalName:=ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix;
         lName:='['+lElTypeData.SchemaName+']';
         Result:=FindSchemaTypeData(lName);
+        if Result<>Nil then
+          lName:='';
         if (Result=Nil) and AllowCreate then
           begin
           Result:=CreatePascalType(-1,ptArray,lName,lPascalName,lSchema);
           FinishAutoCreatedType(lName,Result,lElTypeData);
+          lName:='';
           end;
         end;
       sstObject:
@@ -906,6 +904,7 @@ begin
             begin
             Result:=CreatePascalType(-1,ptAnonStruct,lName,lPascalName,lSchema);
             FinishAutoCreatedType(lName,Result,lElTypeData);
+            lName:='';
             end;
           end;
         end;
@@ -922,7 +921,7 @@ function TSchemaData.AddTypeProperty(aType: TPascalTypeData; lProp: TJSONSchema;
   ): TPascalPropertyData;
 
 var
-  Tmp, lTypeName, lName : string;
+  lTypeName, lName : string;
   lType,lEltype : TPropertyType;
   I : Integer;
   lPropTypeData : TPascaltypeData;
@@ -1017,6 +1016,8 @@ begin
   FObjectTypePrefix:='T';
   FObjectTypeSuffix:='';
   FInterfaceTypePrefix:='I';
+  FArrayTypeSuffix:='Array';
+  FArrayTypePrefix:='';
   FKeywordEscapeMode:=kemSuffix;
 end;
 
@@ -1044,6 +1045,11 @@ begin
   AddAliasToTypeMap(ptFloat64,'number','number','double',Nil);
   AddAliasToTypeMap(ptJSON,'JSON','object','string',Nil);
   AddAliasToTypeMap(ptJSON,'any','object','string',Nil);
+  AddAliasToTypeMap(ptArray,'[string]','[string]','TStringDynArray',Nil);
+  AddAliasToTypeMap(ptArray,'[integer]','[integer]','TIntegerDynArray',Nil);
+  AddAliasToTypeMap(ptArray,'[integer--int64]','[integer--int64]','TInt64DynArray',Nil);
+  AddAliasToTypeMap(ptArray,'[number]','[number]','TDoubleDynArray',Nil);
+  AddAliasToTypeMap(ptArray,'[boolean]','[boolean]','TBooleanDynArray',Nil);
 end;
 
 

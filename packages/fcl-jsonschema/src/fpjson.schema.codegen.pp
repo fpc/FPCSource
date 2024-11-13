@@ -31,6 +31,8 @@ Type
 
   { TJSONSchemaCodeGen }
 
+  { TJSONSchemaCodeGenerator }
+
   TJSONSchemaCodeGenerator = class(TPascalCodeGenerator)
   private
     FData: TSchemaData;
@@ -39,6 +41,8 @@ Type
     FWriteClassType: boolean;
   protected
     procedure GenerateHeader; virtual;
+    procedure GenerateFPCDirectives(modeswitches : array of string);
+    procedure GenerateFPCDirectives();
     function GetPascalTypeAndDefault(aType: TSchemaSimpleType; out aPasType, aPasDefault: string) : boolean;
     function GetJSONDefault(aType: TPropertyType) : String;
     procedure SetTypeData(aData : TSchemaData);
@@ -57,6 +61,7 @@ Type
     procedure WriteDtoConstructor(aType: TPascalTypeData);
     procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData);
     procedure WriteDtoType(aType: TPascalTypeData);
+    procedure WriteDtoArrayType(aType: TPascalTypeData);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Execute(aData: TSchemaData);
@@ -171,6 +176,32 @@ begin
   // Do nothing
 end;
 
+procedure TJSONSchemaCodeGenerator.GenerateFPCDirectives(modeswitches: array of string);
+
+var
+  S : String;
+
+begin
+  if DelphiCode then
+    begin
+    Addln('{$ifdef FPC}');
+    AddLn('{$mode delphi}');
+    end
+  else
+    AddLn('{$mode objfpc}');
+  AddLn('{$h+}');
+  for S in modeswitches do
+    AddLn('{$modeswitch %s}',[lowercase(S)]);
+  if DelphiCode then
+    Addln('{$endif FPC}');
+  Addln('');
+end;
+
+procedure TJSONSchemaCodeGenerator.GenerateFPCDirectives;
+begin
+  GenerateFPCDirectives([]);
+end;
+
 
 { TTypeCodeGenerator }
 
@@ -239,6 +270,19 @@ begin
   Addln('');
 end;
 
+procedure TTypeCodeGenerator.WriteDtoArrayType(aType: TPascalTypeData);
+
+var
+  Fmt : String;
+
+begin
+  if DelphiCode then
+    Fmt:='%s = TArray<%s>;'
+  else
+    Fmt:='%s = Array of %s;';
+  Addln(Fmt,[aType.PascalName,aType.ElementTypeData.PascalName]);
+end;
+
 
 constructor TTypeCodeGenerator.Create(AOwner: TComponent);
 begin
@@ -251,6 +295,7 @@ procedure TTypeCodeGenerator.Execute(aData: TSchemaData);
 
 var
   I: integer;
+  lArray : TPascalTypeData;
 
 begin
   FData := aData;
@@ -258,8 +303,11 @@ begin
   try
     Addln('unit %s;', [OutputUnitName]);
     Addln('');
+    GenerateFPCDirectives();
+    Addln('');
     Addln('interface');
     Addln('');
+    AddLn('uses types;');
     EnsureSection(csType);
     indent;
     for I := 0 to aData.TypeCount-1 do
@@ -267,7 +315,13 @@ begin
         begin
           DoLog('Generating type %s', [aData.Types[I].PascalName]);
           WriteDtoType(aData.Types[I]);
+          lArray:=aData.FindSchemaTypeData('['+aData.Types[I].SchemaName+']');
+          if lArray<>Nil then
+            WriteDtoArrayType(lArray);
         end;
+{      else if (aData.Types[I].PascalType=ptArray) then
+        WriteDtoArrayType(aData.Types[I]);}
+
     undent;
     Addln('implementation');
     Addln('');
@@ -773,12 +827,8 @@ begin
     Addln('');
     Addln('interface');
     Addln('');
-    if not DelphiCode then
-    begin
-      Addln('{$mode objfpc}');
-      Addln('{$h+}');
-      Addln('{$modeswitch typehelpers}');
-    end;
+    GenerateFPCDirectives(['typehelpers']);
+    Addln('');
     Addln('uses');
     indent;
     if DelphiCode then
