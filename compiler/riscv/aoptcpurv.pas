@@ -622,6 +622,9 @@ implementation
               A_LD,
 {$endif riscv64}
               A_ADD,
+{$ifdef riscv64}
+              A_ADDIW,
+{$endif riscv64}
               A_DIV,
               A_DIVU,
 {$ifdef riscv64}

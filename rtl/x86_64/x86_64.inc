@@ -1597,7 +1597,7 @@ procedure fpc_cpuinit;
         fast_large_repmovstosb:=cpuid7_ebx and (1 shl 9)<>0;
 {$endif}
         { XGETBV support? }
-        if (cpuid1_ecx and $8000000)<>0 then 
+        if (cpuid1_ecx and $8000000)<>0 then
           begin
             asm
               xorl %ecx,%ecx

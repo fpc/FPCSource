@@ -58,7 +58,7 @@ implementation
 
     procedure trvcasenode.optimizevalues(var max_linear_list : int64; var max_dist : qword);
       begin
-        max_linear_list := 3;
+        max_linear_list:=3;
       end;
     
 
