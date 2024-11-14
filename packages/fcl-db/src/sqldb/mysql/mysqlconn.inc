@@ -898,6 +898,8 @@ begin
       begin
       if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
         NewType := ftAutoInc
+      else if AField^.flags and UNSIGNED_FLAG <> 0 then
+        NewType := ftLongWord
       else
         NewType := ftInteger;
       end;
