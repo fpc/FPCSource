@@ -1065,8 +1065,10 @@ implementation
                 sym:=tsym(st.SymList[i]);
                 if (tsym(sym).typ=propertysym) and
                    (sym.visibility in visibilities) and
-                   (extended_rtti or (tpropertysym(sym).parast=Nil)) and
-                   not (sp_static in sym.symoptions) then
+                   (extended_rtti or (
+                     (tpropertysym(sym).parast=Nil) and
+                     not (sp_static in sym.symoptions)
+                   )) then
                   inc(result);
               end;
           end;
@@ -1158,6 +1160,9 @@ implementation
             if addcomments then
               tcb.emit_comment(#9'proc types');
             tcb.emit_ord_const(proctypesinfo,u8inttype);
+            if addcomments then
+              tcb.emit_comment(#9'is static prop');
+            tcb.emit_ord_const(ord(sp_static in sym.symoptions),pasbool1type);
             { index parameters }
             if addcomments then
               tcb.emit_comment(#9'indexed params');
@@ -1191,8 +1196,7 @@ implementation
             sym:=tsym(st.SymList[i]);
             if (sym.typ=propertysym) and
                (sym.visibility in visibilities) and
-               (extended_rtti or (tpropertysym(sym).parast=Nil)) and
-               not (sp_static in sym.symoptions) then
+               (extended_rtti or (tpropertysym(sym).parast=Nil)) then
               begin
                 if extended_rtti then
                   begin
@@ -1226,7 +1230,7 @@ implementation
                     tcb.end_anonymous_record;
                     maybe_add_comment(tcb,'RTTI: end property '+sym.prettyname);
                   end
-                else
+                else if not (sp_static in sym.symoptions) then
                   write_propinfo_data(tcb,tpropertysym(sym));
               end;
           end;

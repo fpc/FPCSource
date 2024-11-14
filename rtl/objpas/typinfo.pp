@@ -1124,6 +1124,7 @@ unit TypInfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
+        IsStatic : Boolean;
         PropParams : PPropParams;
 
         {$ifdef PROVIDE_ATTR_TABLE}
