@@ -194,6 +194,7 @@ function StrToHostAddr(IP : AnsiString) : in_addr ;
 function StrToNetAddr (IP : AnsiString) : in_addr;
 
 function TryStrToHostAddr(IP : AnsiString; out ip4: in_addr) : Boolean ;
+function TryStrToNetAddr(IP : AnsiString; out ip4: in_addr) : Boolean ;
 
 { these for are for netdb legacy compat}
 Function HostToNet     (Host : in_addr) : in_addr; deprecated;

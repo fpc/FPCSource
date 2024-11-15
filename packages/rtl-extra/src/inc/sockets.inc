@@ -311,7 +311,7 @@ begin
     StrToHostAddr := ip4;
 end;
 
-function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
+function TryStrToNetAddr(IP: AnsiString; out ip4: in_addr): Boolean;
 
 Const
   AllowedChars = ['.','0'..'9'];
@@ -322,7 +322,7 @@ Var
     Temp : in_addr;
 
 begin
-  TryStrToHostAddr := False;
+  TryStrToNetAddr := False;
   ip4.s_addr:=0;              //:=NoAddress;
   for I:=1 to Length(IP) do
     if Not (IP[I] in AllowedChars) then
@@ -350,8 +350,16 @@ begin
       If array4int(temp.s_addr)[i]<>k then
         exit;
    end;
-   ip4.s_addr:=ntohl(Temp.s_addr);
-   TryStrToHostAddr := True;
+   ip4.s_addr:=Temp.s_addr;
+   TryStrToNetAddr := True;
+end;
+
+function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
+
+begin
+  TryStrToHostAddr:=TryStrToNetAddr(IP, ip4);
+  if TryStrToHostAddr then
+    ip4.s_addr:=ntohl(ip4.s_addr);
 end;
 
 function StrToNetAddr(IP : AnsiString) : in_addr;
