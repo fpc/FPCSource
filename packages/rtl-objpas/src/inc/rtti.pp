@@ -2771,12 +2771,21 @@ var
   S : Single;
   D : Double;
   E : Extended;
-  Co : Comp;
   Cu : Currency;
   DestFloatType: TFloatType;
 begin
+  if TypeData^.FloatType = ftComp then
+  begin
+    aRes := False;
+    Exit;
+  end;
   // Destination float type
   DestFloatType := GetTypeData(aDestType)^.FloatType;
+  if DestFloatType = ftComp then
+  begin
+    aRes := False;
+    Exit;
+  end;
   ti:=FloatTypeToTypeInfo(DestFloatType);
   case TypeData^.FloatType of
     ftSingle:
@@ -2786,7 +2795,6 @@ begin
         ftSingle:   begin          TValue.Make(@S, Ti,aDest); end;
         ftDouble:   begin D := S;  TValue.Make(@D, Ti,aDest); end;
         ftExtended: begin E := S;  TValue.Make(@E, Ti,aDest); end;
-        ftComp:     begin Co := S; TValue.Make(@Co,Ti,aDest); end;
         ftCurr:     begin Cu := S; TValue.Make(@Cu,Ti,aDest); end;
       end;
       end;
@@ -2797,7 +2805,6 @@ begin
         ftSingle:   begin S  := D; TValue.Make(@S, Ti,aDest); end;
         ftDouble:   begin          TValue.Make(@D, Ti,aDest); end;
         ftExtended: begin E  := D; TValue.Make(@E, Ti,aDest); end;
-        ftComp:     begin Co := D; TValue.Make(@Co,Ti,aDest); end;
         ftCurr:     begin Cu := D; TValue.Make(@Cu,Ti,aDest); end;
       end;
       end;
@@ -2808,19 +2815,7 @@ begin
         ftSingle:   begin S  := E; TValue.Make(@S, Ti,aDest); end;
         ftDouble:   begin D  := E; TValue.Make(@D, Ti,aDest); end;
         ftExtended: begin          TValue.Make(@E, Ti,aDest); end;
-        ftComp:     begin Co := E; TValue.Make(@Co,Ti,aDest); end;
         ftCurr:     begin Cu := E; TValue.Make(@Cu,Ti,aDest); end;
-      end;
-      end;
-    ftComp:
-      begin
-      Co:=FData.FAsComp;
-      case DestFloatType of
-        ftSingle:   begin S  := Co; TValue.Make(@S, Ti,aDest); end;
-        ftDouble:   begin D  := Co; TValue.Make(@D, Ti,aDest); end;
-        ftExtended: begin E  := Co; TValue.Make(@E, Ti,aDest); end;
-        ftComp:     begin           TValue.Make(@Co,Ti,aDest); end;
-        ftCurr:     begin Cu := Co; TValue.Make(@Cu,Ti,aDest); end;
       end;
       end;
     ftCurr:
@@ -2830,7 +2825,6 @@ begin
         ftSingle:   begin S  := Cu; TValue.Make(@S, Ti,aDest); end;
         ftDouble:   begin D  := Cu; TValue.Make(@D, Ti,aDest); end;
         ftExtended: begin E  := Cu; TValue.Make(@E, Ti,aDest); end;
-        ftComp:     begin Co := Cu; TValue.Make(@Co,Ti,aDest); end;
         ftCurr:     begin           TValue.Make(@Cu,Ti,aDest); end;
       end;
       end;
