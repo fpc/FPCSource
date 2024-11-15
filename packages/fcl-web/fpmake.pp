@@ -13,11 +13,13 @@ Const
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   
-  NoSocketsOSes       = [amiga,aros,morphos,wasi];
+  NoSocketsOSes       = [wasi];
   NoApacheOSes        = [amiga,aros,morphos,wasi];
+  NoCGIOSes           = [amiga,aros,morphos,wasi];
   
   ApacheOSes          = AllOSes - NoApacheOSes;
   SocketsOSes         = AllOSes - NoSocketsOSes;
+  CGIOSes             = ALLOSes - NoCGIOSes;
   
 Var
   T : TTarget;
@@ -46,7 +48,7 @@ begin
     P.Dependencies.Add('hash');
     P.Dependencies.Add('fcl-registry', AllWindowsOSes);
     P.Dependencies.Add('openssl', AllUnixOSes+AllWindowsOSes);
-    P.Dependencies.Add('fastcgi',SocketsOSes);
+    P.Dependencies.Add('fastcgi',NoCGIOSes);
 {$ifndef ALLPACKAGES}
     P.Dependencies.Add('httpd20', ApacheOSes);
 {$endif ALLPACKAGES}    
@@ -165,12 +167,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=SocketsOSes;
+        OSes:=CGIOSes;
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=SocketsOSes;
+        OSes:=CGIOSes;
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('cgiprotocol');
         Dependencies.AddUnit('custcgi');
@@ -244,14 +246,12 @@ begin
         Dependencies.AddUnit('fphttpserver');
         Dependencies.AddUnit('HTTPDefs');
       end;
-    T:=P.Targets.AddUnit('fcgigate.pp');
-    T.ResourceStrings:=true;
-    T.OSes:=SocketsOSes;
-    
-    With T.Dependencies do
+    with P.Targets.AddUnit('fcgigate.pp') do
       begin
-      AddUnit('httpdefs');
-      AddUnit('custcgi');
+        OSes:=CGIOSes;
+        ResourceStrings:=true;
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('custcgi');
       end;
       
     T:=P.Targets.AddUnit('fphttpserver.pp');
