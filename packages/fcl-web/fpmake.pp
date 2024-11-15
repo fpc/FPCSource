@@ -48,7 +48,7 @@ begin
     P.Dependencies.Add('hash');
     P.Dependencies.Add('fcl-registry', AllWindowsOSes);
     P.Dependencies.Add('openssl', AllUnixOSes+AllWindowsOSes);
-    P.Dependencies.Add('fastcgi',NoCGIOSes);
+    P.Dependencies.Add('fastcgi',CGIOSes);
 {$ifndef ALLPACKAGES}
     P.Dependencies.Add('httpd20', ApacheOSes);
 {$endif ALLPACKAGES}    
