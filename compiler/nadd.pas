@@ -58,6 +58,7 @@ interface
           function simplify(forinline: boolean) : tnode;override;
           function dogetcopy : tnode;override;
           function docompare(p: tnode): boolean; override;
+          procedure printnodedata(var t:text);override;
     {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
     {$endif}
@@ -2006,6 +2007,27 @@ const
         result:=
           inherited docompare(p) and
           equal_defs(taddnode(p).resultrealdef,resultrealdef);
+      end;
+
+
+    procedure taddnode.printnodedata(var t: text);
+      var
+        i: TAddNodeFlag;
+        first: Boolean;
+      begin
+        write(t,printnodeindention,'addnodeflags = [');
+        first:=true;
+        for i:=low(TAddNodeFlag) to high(TAddNodeFlag) do
+          if i in addnodeflags then
+            begin
+              if not(first) then
+                write(t,',')
+              else
+                first:=false;
+              write(t, i);
+            end;
+        writeln(t,']');
+        inherited printnodedata(t);
       end;
 
 
