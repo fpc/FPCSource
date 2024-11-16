@@ -496,7 +496,6 @@ begin
     lAPIData.DelphiTypes := Self.DelphiCode;
     lAPIData.ServiceNamePrefix := ServiceNamePrefix;
     lAPIData.ServiceNameSuffix := ServiceNameSuffix;
-    lAPIData.DtoInterfacePrefix:= DtoInterfacePrefix;
     PrepareAPIData(lAPIData);
     GenerateRecordDefs(lAPIData);
     GenerateSerializerDefs(lAPIData);
