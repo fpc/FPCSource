@@ -104,3 +104,5 @@ src/jwt/fpoauth2.pp=namespaced/Jwt.Oauth2.pp
 src/fcm/fpfcmclient.pp=Fcm.Client.pp
 src/fcm/fpfcmstrings.pp=Fcm.Strings.pp
 src/fcm/fpfcmtypes.pp=Fcm.Types.pp
+src/openapi/fpopenapiclient.pp=FpWeb.OpenAPI.Client.pp
+src/openapi/fpopenapimodule.pp=FpWeb.OpenAPI.Module.pp

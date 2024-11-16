@@ -58,6 +58,10 @@ begin
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint', [MacOSX,iphonesim,ios]);
     P.Dependencies.Add('libmicrohttpd', LibMicroHttpdOSes);
+    
+    P.Dependencies.Add('fcl-jsonschema');
+    P.Dependencies.Add('fcl-openapi');
+    
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -73,6 +77,7 @@ begin
     P.SourcePath.Add('src/restbridge');
     P.SourcePath.Add('src/websocket');
     P.SourcePath.Add('src/fcm');
+    P.SourcePath.Add('src/openapi');
     T:=P.Targets.addUnit('fpmimetypes.pp');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
@@ -581,7 +586,14 @@ begin
         lOSes := lOSes - [java,android];
       AddUnit('custmicrohttpapp',lOSes);
       end;
-        
+
+    T:=P.Targets.AddUnit('fpopenapiclient.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+
+    T:=P.Targets.AddUnit('fpopenapimodule.pp');
+    T.Dependencies.AddUnit('httpprotocol');
+    T.Dependencies.AddUnit('httpdefs');
+    T.Dependencies.AddUnit('httproute');
 end;
     
 {$ifndef ALLPACKAGES}
