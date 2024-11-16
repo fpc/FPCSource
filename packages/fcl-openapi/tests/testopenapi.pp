@@ -4,7 +4,7 @@ program testopenapi;
 
 uses
   Classes, consoletestrunner, utOpenApi, fpopenapi.consts, fpopenapi.types, fpopenapi.objects, utOpenApiReader, utOpenAPIWriter,
-  fpopenapi.reader, jsoncomparer, jsonparser;
+  fpopenapi.reader, jsonparser, UtOpenApiPascalTypes;
 
 type
 

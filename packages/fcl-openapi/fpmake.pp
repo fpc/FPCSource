@@ -72,16 +72,24 @@ begin
      AddUnit('fpopenapi.objects');
      end;
 
-(*
-   T:=P.Targets.AddUnit('fpopenapi.codegen.pp');
+
+   T:=P.Targets.AddUnit('fpopenapi.generators.pp');
    with T.Dependencies do
      begin
      AddUnit('fpopenapi.pascaltypes');
      AddUnit('fpopenapi.types');
      AddUnit('fpopenapi.objects');
      end;
+   T:=P.Targets.AddUnit('fpopenapi.codegen.pp');
+   with T.Dependencies do
+     begin
+     AddUnit('fpopenapi.pascaltypes');
+     AddUnit('fpopenapi.types');
+     AddUnit('fpopenapi.objects');
+     AddUnit('fpopenapi.generators');
+     end;
 
-*) 
+
       
 {$ifndef ALLPACKAGES}
     Run;

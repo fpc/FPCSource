@@ -62,19 +62,15 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpopenapi.data.ppcal.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="../src/fpopenapi.ppcaltypes.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="../src/fpopenapi.writer.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="jsoncomparer.pp"/>
+        <Filename Value="../src/fpopenapi.pascaltypes.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="UtOpenApiPascalTypes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -86,7 +82,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src;../../JSONSchema/fpc/src"/>
+      <OtherUnitFiles Value="../src;../../fcl-jsonschema/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

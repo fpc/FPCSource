@@ -58,7 +58,7 @@ type
   { TAPIServiceMethod }
 
   { TAPIServiceMethodParam }
-  TParamLocation = (plQuery,plPath);
+  TParamLocation = (plQuery,plPath,plHeader,plCookie);
 
   TAPIServiceMethodParam = Class(TObject)
   private
@@ -93,18 +93,18 @@ type
 
   TAPIServiceMethod = Class(TObject)
   private
-    FBodyType: String;
+    FBodyType: TAPITypeData;
     FMethodName: String;
     FOperation: TApiOperation;
     FResultCallbackType: String;
-    FResultClassType: String;
-    FResultDtoType: String;
-    FResultType: String;
+    FResultDataType: TAPITypeData;
     FService: TAPIService;
     FPath : TPathItem;
     FParams : TFPObjectList;
     function GetParam(aIndex : Integer): TAPIServiceMethodParam;
     function GetParamCount: Integer;
+    function GetRequestBodyType: String;
+    function GetResultType(AIndex: TNameType): String;
   protected
     // override this if you want to subclass the parameter
     function CreateParam(const aType: TPascaltype; const aOriginalName, aName, aTypeName: String; aParam: TParameter     ): TAPIServiceMethodParam; virtual;
@@ -116,22 +116,25 @@ type
     function AddParam(const aType: TPascalType; const aOriginalName, aName, aTypeName: String; aParam: TParameter
       ): TAPIServiceMethodParam;
     // Find parameter methods by name.
-    Function ParamByNAme(aOriginalName : String) : TAPIServiceMethodParam;
+    Function ParamByName(aOriginalName : String) : TAPIServiceMethodParam;
     // Does this class have parameters with location 'path'
     function HasPathParam: Boolean;
     // Does this class have parameters with location 'query'
     Function HasQueryParam : Boolean;
     // Does this method have parameters with default values ?
     Function HasOptionalParams : Boolean;
-
     // Pascal type of request body. May be empty.
-    Property RequestBodyType : String Read FBodyType Write FBodyType;
+    Property RequestBodyType : String Read GetRequestBodyType; deprecated;
+    // Pascal type of request body. May be empty.
+    Property RequestBodyDataType : TAPITypeData Read FBodyType Write FBodyType;
+    // Result data type. Can be nil
+    Property ResultDataType : TAPITypeData Read FResultDataType Write FResultDataType;
     // Result type. Can be empty
-    Property ResultType : String Read FResultType Write FResultType;
+    Property ResultType : String index ntInterface Read GetResultType;
     // Component result class type.
-    Property ResultClassType : String Read FResultClassType Write FResultClassType;
+    Property ResultClassType : String index ntImplementation Read GetResultType;
     // Component result Dto type
-    Property ResultDtoType : String Read FResultDtoType Write FResultDtoType;
+    Property ResultDtoType : String index ntPascal Read GetResultType;
     // Callback type for result.
     Property ResultCallBackType : String Read FResultCallbackType write FResultCallBackType;
     // OpenAPI Operation for this method.
@@ -152,10 +155,10 @@ type
   private
     FMethods : TFPObjectList;
     FNeedsAuthentication: Boolean;
-    FServiceImplementationClassName: String;
     FServiceInterfaceName: string;
     FServiceName: string;
     FServiceParentInterface: String;
+    FServiceProxyImplementationClassName: String;
     FServiceUUID: string;
     function GetMethod(aIndex : Integer): TAPIServiceMethod;
     function GetMethodCount: Integer;
@@ -183,7 +186,7 @@ type
     // Service interface UUID
     Property ServiceUUID : string Read GetServiceUUID Write FServiceUUID;
     // Service interface implementation Class Name
-    Property ServiceImplementationClassName : String Read GetServiceImplementationClassName Write FServiceImplementationClassName;
+    Property ServiceProxyImplementationClassName : String Read GetServiceImplementationClassName Write FServiceProxyImplementationClassName;
     // Indexed access to methods.
     Property Methods[aIndex : Integer]: TAPIServiceMethod Read GetMethod;
     // Number of methods.
@@ -232,16 +235,16 @@ type
     function GenerateServiceName(const aUrl : String; const aPath: TPathItem; aOperation: TAPIOperation): String;virtual;
     // Create a new service definition. Override this if you want to subclass it.
     function CreateService(const aName: String): TAPIService; virtual;
-    // Add a service
-    function AddService(const aName: String) : TAPIService;
     // Configure a service
     procedure ConfigService(const aService: TAPIService); virtual;
     // Generate the name of the method, based on URL/Operation. Takes into account the mapping.
     function GenerateServiceMethodName(const aUrl : String; const aPath: TPathItem; aOperation: TAPIOperation): String; virtual;
     // Return the request body type. The application/json content type is used.
-    function GetMethodRequestBodyType(aMethod: TAPIServiceMethod): string; virtual;
+    function GetMethodRequestBodyType(aMethod: TAPIServiceMethod): TAPITypeData; virtual;
     // Return the method result type
-    function GetMethodResultType(aMethod: TAPIServiceMethod; aNameType: TNameType): String; virtual;
+    function GetMethodResultTypeData(aMethod: TAPIServiceMethod): TAPITypeData; virtual;
+    // Return the method result type
+    function GetMethodResultType(aMethod: TAPIServiceMethod; aNameType: TNameType): String; virtual; deprecated;
     // Return the method result callback name
     function GenerateMethodResultCallBackName(aMethod: TAPIServiceMethod): String; virtual;
     // Configure the service method. Called after it is created.
@@ -253,16 +256,18 @@ type
     // Check the output of various operations of a OpenAPI path item. Used in determining the need for deserialization
     function CheckOperationsOutput(aPath: TPathItem; aData: TAPITypeData): Boolean;
     // Check input/output for serialization
-    procedure CheckInputOutput;
+    procedure CheckInputOutput(aIncludeServer : Boolean);
   Public
     // Create. API must be alive while the data is kept alive.
     constructor Create(aAPI : TOpenAPI); reintroduce;
     // Destroy
     destructor Destroy; override;
+    // Add a service
+    function AddService(const aName: String) : TAPIService;
     // Create default type maps (integer,string etc.)
     Procedure CreateDefaultTypeMaps; virtual;
     // Create default API type maps (#components in openapi)
-    Procedure CreateDefaultAPITypeMaps;
+    Procedure CreateDefaultAPITypeMaps(aIncludeServer : Boolean);
     // Create service defs from paths. Call RecordMethodNameMap first)
     Procedure CreateServiceDefs; virtual;
     // Get schema element typename of aRef. For components, return requested name
@@ -422,9 +427,9 @@ end;
 
 function TAPIService.GetServiceImplementationClassName: String;
 begin
-  Result:=FServiceImplementationClassName;
+  Result:=FServiceProxyImplementationClassName;
   if Result='' then
-    Result:='T'+ServiceName;
+    Result:='T'+ServiceName+'Proxy';
 end;
 
 function TAPIService.GetServiceInterfaceName: string;
@@ -482,6 +487,22 @@ begin
   Result:=FParams.Count;
 end;
 
+function TAPIServiceMethod.GetRequestBodyType: String;
+begin
+  if assigned(FBodyType) then
+    Result:=FBodyType.GetTypeName(ntPascal)
+  else
+    Result:='';
+end;
+
+function TAPIServiceMethod.GetResultType(AIndex: TNameType): String;
+begin
+  if assigned(FResultDataType) then
+    Result:=FResultDataType.GetTypeName(aIndex)
+  else
+    Result:='';
+end;
+
 procedure TAPIServiceMethod.SortParams;
 begin
    FParams.Sort(@CompareParamName);
@@ -516,7 +537,7 @@ begin
   FParams.Add(Result);
 end;
 
-function TAPIServiceMethod.ParamByNAme(aOriginalName: String): TAPIServiceMethodParam;
+function TAPIServiceMethod.ParamByName(aOriginalName: String): TAPIServiceMethodParam;
 
 var
   Idx : Integer;
@@ -613,14 +634,8 @@ end;
 
 function TAPIData.FindApiType(const aName: String): TAPITypeData;
 
-var
-  Idx : Integer;
-
 begin
-  Result:=Nil;
-  Idx:=IndexOfApiType(aName);
-  if Idx<>-1 then
-    Result:=APITypes[Idx];
+  Result:=FindSchemaTypeData(aName) as TAPITypeData;
 end;
 
 function TAPIData.GetAPIType(const aName : String): TAPITypeData;
@@ -752,7 +767,7 @@ begin
     Raise EGenAPI.CreateFmt('Unknown service: %s',[aName]);
 end;
 
-procedure TAPIData.CheckInputOutput;
+procedure TAPIData.CheckInputOutput(aIncludeServer: Boolean);
 
 var
   I: Integer;
@@ -764,16 +779,24 @@ begin
     begin
     lSerTypes:=[];
     lData:=APITypes[i];
-    if NeedsSerialize(lData) then
-      Include(lSerTypes,stSerialize);
-    if NeedsDeserialize(lData) then
-      Include(lSerTypes,stDeSerialize);
+    if aIncludeServer then
+      begin
+      if NeedsSerialize(lData) or NeedsDeserialize(lData) then
+        lSerTypes:=[stSerialize,stDeSerialize]
+      end
+    else
+      begin
+      if NeedsSerialize(lData) then
+        Include(lSerTypes,stSerialize);
+      if NeedsDeserialize(lData) then
+        Include(lSerTypes,stDeSerialize);
+      end;
     lData.SerializeTypes:=lSerTypes;
     DoLog(etInfo,'%s needs serialize: %s, deserialize: %s',[lData.SchemaName,BoolToStr(stSerialize in lSerTypes,True),BoolToStr(stDeSerialize in lSerTypes,True)]);
     end;
 end;
 
-procedure TAPIData.CreateDefaultAPITypeMaps;
+procedure TAPIData.CreateDefaultAPITypeMaps(aIncludeServer : Boolean);
 
   Procedure AddProperties(aType : TAPITypeData);
 
@@ -812,7 +835,7 @@ begin
   // Finally, sort
   CheckDependencies;
   SortTypes;
-  CheckInputOutput;
+  CheckInputOutput(aIncludeServer);
 end;
 
 function TAPIData.GenerateServiceName(const aUrl: String; const aPath: TPathItem;
@@ -991,23 +1014,34 @@ begin
     end;
 end;
 
-function TAPIData.GetMethodResultType(aMethod : TAPIServiceMethod; aNameType : TNameType) : String;
+function TAPIData.GetMethodResultTypeData(aMethod: TAPIServiceMethod): TAPITypeData;
 
 var
   lResponse: TResponse;
   lMedia : TMediaType;
 
 begin
-  Result:='Boolean';
   if AMethod.Operation.Responses.Count>0 then
     begin
     lResponse:=AMethod.Operation.Responses.ResponseByindex[0];
     lMedia:=lResponse.Content.MediaTypes['application/json'];
-    if (lMedia.Schema.Ref<>'') then
-      Result:=GetRefSchemaTypeName(lMedia.Schema.Ref,aNameType)
-    else if (lMedia.Schema.Validations.Types<>[]) then
-      Result:=GetSchemaTypeName(lMedia.Schema,aNameType)
-    end;
+    if lMedia=Nil then
+      Raise EGenAPI.CreateFmt('No application/json response media type for %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
+    Result:=GetSchemaTypeData(Nil,lMedia.Schema,True) as TAPITypeData;
+    end
+  else
+    Result:=Nil; // FindApiType('boolean');
+end;
+
+function TAPIData.GetMethodResultType(aMethod : TAPIServiceMethod; aNameType : TNameType) : String;
+
+var
+  lData : TAPITypeData;
+begin
+  lData:=aMethod.ResultDataType;
+  if not assigned(lData) then
+    Raise EGenAPI.CreateFmt('No result type %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
+  Result:=lData.GetTypeName(aNameType);
 end;
 
 function TAPIData.IsRequestBodyApplicationJSON(aOperation : TAPIOperation) : Boolean;
@@ -1028,25 +1062,26 @@ begin
     end;
 end;
 
-function TAPIData.GetMethodRequestBodyType(aMethod : TAPIServiceMethod) : string;
+function TAPIData.GetMethodRequestBodyType(aMethod: TAPIServiceMethod): TAPITypeData;
 
 var
   lMedia : TMediaType;
 
 begin
-  Result:='';
+  Result:=Nil;
   if Not aMethod.Operation.HasKeyWord(okRequestBody) then
     exit;
   if aMethod.Operation.RequestBody.HasReference then
-    Result:=GetRefSchemaTypeName(aMethod.Operation.RequestBody.Reference.Ref,ntInterface)
+    Result:=TAPITypeData(GetPascalTypeDataFromRef(aMethod.Operation.RequestBody.Reference.Ref))
   else
     begin
     lMedia:=aMethod.Operation.RequestBody.Content['application/json'];
-    if (lMedia.Schema.Ref<>'') then
-      Result:=GetRefSchemaTypeName(lMedia.Schema.Ref,ntInterface)
-    else if (lMedia.Schema.Validations.Types<>[]) then
-      Result:=GetSchemaTypeName(lMedia.Schema,ntInterface);
+    if lMedia<>Nil then
+      Result:=TAPITypeData(GetSchemaTypeData(Nil,lMedia.Schema,True));
     end;
+  if Result=Nil then
+    with aMethod do
+      Raise EGenAPI.CreateFmt('Unknown result type for method %s.%s: %s',[Service.ServiceName,MethodName,Operation.RequestBody.Reference.Ref]);
 end;
 
 
@@ -1054,11 +1089,8 @@ end;
 procedure TAPIData.ConfigureServiceMethod(aService : TAPIService; aMethod : TAPIServiceMethod);
 
 begin
-  aMethod.ResultCallBackType:=GenerateMethodResultCallBackName(aMethod);
-  aMethod.ResultType:=GetMethodResultType(aMethod,ntInterface);
-  aMethod.ResultClassType:=GetMethodResultType(aMethod,ntImplementation);
-  aMethod.ResultDtoType:=GetMethodResultType(aMethod,ntPascal);
-  aMethod.RequestBodyType:=GetMethodRequestBodyType(aMethod);
+  aMethod.ResultDataType:=GetMethodResultTypeData(aMethod);
+  aMethod.RequestBodyDataType:=GetMethodRequestBodyType(aMethod);
 end;
 
 
@@ -1331,7 +1363,11 @@ procedure TAPIData.FinishAutoCreatedType(aName: string; aType: TPascalTypeData; 
 begin
   if aType.Pascaltype=ptArray then
     begin
-    aType.InterfaceName:=Format('%s<%s>',[InterfaceArrayType,lElementTypeData.InterfaceName]);
+    if InterfaceArrayType<>'' then
+      aType.InterfaceName:=Format('%s<%s>',[InterfaceArrayType,lElementTypeData.InterfaceName])
+    else
+      aType.InterfaceName:=lElementTypeData.InterfaceName+ArrayTypeSuffix;
+    aType.ImplementationName:=aType.PascalName;
     end;
   Inherited;
 end;
