@@ -20,3 +20,4 @@
   add_pas2js(ADirectory+IncludeTrailingPathDelimiter('pas2js'));
   add_ihxutil(ADirectory+IncludeTrailingPathDelimiter('ihxutil'));
   add_wasmbin(ADirectory+IncludeTrailingPathDelimiter('wasmbin'));
+  add_openapi2pas(ADirectory+IncludeTrailingPathDelimiter('openapi'));

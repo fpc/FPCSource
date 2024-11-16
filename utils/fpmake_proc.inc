@@ -42,3 +42,4 @@
 
 {$include wasmbin/fpmake.pp}
 
+{$include openapi/fpmake.pp}
