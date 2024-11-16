@@ -308,7 +308,9 @@ begin
     Addln('interface');
     Addln('');
     AddLn('uses types;');
+    Addln('');
     EnsureSection(csType);
+    Addln('');
     indent;
     for I := 0 to aData.TypeCount-1 do
       if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
