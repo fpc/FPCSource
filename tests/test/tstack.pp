@@ -1,3 +1,8 @@
+{$ifdef linux}
+uses
+  baseunix;
+{$endif linux}
+
 {$ifdef CPUAVR}
 { avr does not support an exitproc }
 begin
@@ -60,7 +65,18 @@ begin
   exitproc:=saveexit;
 end;
 
+{$ifdef linux}
+var
+  limits : TRLimit;
+{$endif linux}
+
 begin
+{$ifdef linux}
+  FpGetRLimit(RLIMIT_STACK, @limits);
+  writeln('Cur: ',limits.rlim_cur);
+  writeln('Max: ',limits.rlim_max);
+  writeln('StackLength: ',StackLength);
+{$endif linux}
   saveexit:=exitproc;
   exitproc:=@stack_check_exit;
   x:=inf_rec(5000);
