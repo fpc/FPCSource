@@ -3,6 +3,11 @@
 
 {$mode objfpc}
 
+{$ifdef linux}
+uses
+  baseunix;
+{$endif linux}
+
 type
   TForm1 = class
     procedure Button1Click(Sender: TObject);
