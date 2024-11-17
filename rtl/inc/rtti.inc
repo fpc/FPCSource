@@ -250,9 +250,6 @@ begin
 end;
 
 
-{ define alias for internal use in the system unit }
-Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
-
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
   copiedsize,
@@ -291,7 +288,7 @@ begin
         { Process elements }
         for I:=1 to EleCount do
           begin
-            fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+            int_Copy(Src+Offset,Dest+Offset,Info);
             inc(Offset,copiedsize);
           end;
       end;
@@ -316,7 +313,7 @@ begin
                 Offset:=PRecordElement(Temp)^.Offset;
                 if Offset>expectedoffset then
                   move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-                expectedoffset:=Offset+fpc_Copy_internal(Src+Offset,Dest+Offset,PRecordElement(Temp)^.TypeInfo^);
+                expectedoffset:=Offset+int_Copy(Src+Offset,Dest+Offset,PRecordElement(Temp)^.TypeInfo^);
                 Inc(PRecordElement(Temp));
               end;
             { elements remaining? }
@@ -348,7 +345,7 @@ end;
 { have unintended side-effects                                               }
 procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer);compilerproc; inline;
 begin
-  fpc_copy_internal(src,dest,typeinfo);
+  int_copy(src,dest,typeinfo);
 end;
 
 
@@ -367,11 +364,9 @@ begin
   int_initialize(Src,TypeInfo);
 end;
 
-Function fpc_Copy_with_move_semantics_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY_WITH_MOVE_SEMANTICS'];
-
 procedure fpc_Copy_with_move_semantics_proc (Src, Dest, TypeInfo : Pointer);compilerproc; inline;
 begin
-  fpc_Copy_with_move_semantics_internal(src,dest,typeinfo);
+  int_Copy_with_move_semantics(src,dest,typeinfo);
 end;
 {$endif FPC_MANAGED_MOVE}
 
@@ -428,6 +423,6 @@ procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   begin
     if RTTIManagementAndSize(typeinfo, rotCopy, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
-        fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
+        int_Copy(source+size*i, dest+size*i, typeInfo);
   end;
 

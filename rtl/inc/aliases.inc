@@ -30,6 +30,10 @@ Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZ
 procedure int_InitializeArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_INITIALIZE_ARRAY'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_FINALIZE_ARRAY'];
 procedure int_AddRefArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_ADDREF_ARRAY'];
+Function int_Copy(Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
+{$ifdef FPC_MANAGED_MOVE}
+Function int_Copy_with_move_semantics(Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY_WITH_MOVE_SEMANTICS'];
+{$endif}
 
 {$if defined(FPC_HAS_FEATURE_RTTI) and not defined(cpujvm)}
 type
