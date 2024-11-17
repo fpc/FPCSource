@@ -25,6 +25,7 @@ end;
 
 var
   r1, r2, r3: TMyRec;
+  w: Word;
 begin
   r1 := 42;
   r2 := 32;
@@ -36,5 +37,10 @@ begin
     Halt(2);
   if CopyCount <> 0 then
     Halt(3);
+  { ensure that SysUtils.Swap<> does not hide System.Swap }
+  w := $4321;
+  w := Swap(w);
+  if w <> $2143 then
+    Halt(4);
   WriteLn('Ok');
 end.
