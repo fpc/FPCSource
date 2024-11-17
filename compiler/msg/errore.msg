@@ -1695,7 +1695,7 @@ parser_e_nostringaliasinsystem=03370_E_Using 'string' alias is not allowed in th
 parser_e_coperators_off=03371_E_C styled assignment operators are turned off
 % By default, c style assignment operators (+=, -=, *=, /=) are turn off. Either turn them on by the command line
 % parameter -Sc or in the source code by {\$COPERATORS ON}
-parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be evaluted at compile time
+parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be evaluated at compile time
 % Certain operations like the size of an object cannot be determined at compile time,
 % so it cannot be e.g. part of a constant expression.
 %
@@ -3608,9 +3608,6 @@ option_obsolete_switch_use_new=11019_W_You are using the obsolete switch $1, ple
 option_switch_bin_to_src_assembler=11020_N_Switching assembler to default source writing assembler
 % This notifies you that the assembler has been changed because you used the
 % -a switch, which cannot be used with a binary assembler writer.
-option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
-% This notifies you that the assembler has been changed because
-% the binary assembler writer is not yet ready for cross-endian configuration.
 option_incompatible_asm=11021_W_Assembler output selected "$1" is not compatible with "$2"
 option_asm_forced=11022_W_"$1" assembler use forced
 % The assembler output selected cannot generate
@@ -3712,6 +3709,10 @@ option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no correspo
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
+%
 % \end{description}
 # EndOfTeX
 
