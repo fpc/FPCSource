@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of git commit f364bb6b + 1, 29 Jul, 2023
+#   Based on errore.msg of git commit 57fd8f13 + 1, 17 November, 2024
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2024 by the Free Pascal Development team
@@ -58,7 +58,7 @@
 #
 # General
 #
-# 01027 is the last used one
+# 01033 is the last used one
 #
 # BeginOfTeX
 %
@@ -148,6 +148,27 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 % When the \var{-vt} switch is used, this line tells you what unit scopes (namespaces)
 % the compiler is using when looking up units. You can add a unit scope with the
 % \var{-FN} option.
+general_i_reduced_filesearch=01028_I_EingeschrÑnkte Dateisuche: Keine Suche nach Unit-Dateien mit gro· geschriebenen oder 8.3 formatierten Dateinamen
+% When the \var{-Ft} switch is used, this line informs you that the compiler
+% will not look for uppercased filenames or 8.3 conforming filenames.
+general_f_compiler_aborted=01029_F_Compiler beendet
+% Compilation was aborted.
+general_t_unitpath_local=01030_T_$1: Nutze den lokalen Unit-Pfad: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for compiled units. You can set this path with the \var{\{\$UNITPATH xxx\}}
+% directive.
+general_t_includepath_local=01031_T_$1: Nutze den lokalen Include-Pfad: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
+% You can set this path with the \var{\{\$INCLUDEPATH xxx\}} directive.
+general_t_librarypath_local=01032_T_$1: Nutze den lokalen Bibliothekspfad: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for the libraries. You can set this path with the \var{\{\$LIBRARYPATH xxx\}}
+% directive.
+general_t_objectpath_local=01033_T_$1: Nutze den lokalen Objekt-Pfad: $2
+% When the \var{-vt} switch is used, this line tells you where the compiler
+% looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
+% You can set this path with the \var{\{\$OBJECTPATH xxx\}} directive.
 %
 % \end{description}
 # EndOfTeX
@@ -155,7 +176,7 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 #
 # Scanner
 #
-# 02108 is the last used one
+# 02112 is the last used one
 #
 # BeginOfTeX
 %
@@ -452,6 +473,20 @@ scan_e_unexpected_endif=02108_E_$ENDIF Direktive ohne entsprechende $IF(N)DEF Di
 % When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
 % \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
 % \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+scan_e_invalid_rtti_clause=02109_E_UngÅltiger RTTI-Abschnitt (Explicit oder Inherit erwartet)
+% The \var{\$RTTI} directive needs to be followed either by \var{EXPLICIT} or \var{INHERIT}
+% and entries for \var{FIELDS}, \var{PROPERTIES} or \var{METHODS}.
+scan_e_incomplete_rtti_clause=02110_E_Explicit-Abschnitt erfordert mindestens eine Option (Methode, Eingeschaft oder Feld)
+% An \var{\$RTTI EXPLICIT} directive requires at least one of the \var{FIELDS}, \var{PROPERTIES}
+% or \var{METHODS} entries.
+scan_e_invalid_rtti_option=02111_E_UngÅltige RTTI-Option "$1" (Methoden, Eingeschaften oder Felder erwartet)
+% The \var{\$RTTI EXPLICIT} can only contain \var{FIELDS}, \var{PROPERTIES} and \var{METHODS}
+% entries.
+scan_e_duplicate_rtti_option=02112_E_RTTI-Option "$1" ist ein Duplikat
+% An option in a \var{\$RTTI EXPLICIT} directive can only appear once.
+scan_e_misplaced_rtti_directive=02113_E_RTTI-Direktive kann hier nicht benutzt werden
+% The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
+% or \var{UNIT} headers).
 %
 % \end{description}
 # EndOfTeX
@@ -769,7 +804,7 @@ parser_e_directive_only_one_var=03095_E_$1 kann nur auf eine alleinstehende Vari
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
 % \end{verbatim}
-parser_e_absolute_only_to_var_or_const=03096_E_ABSOLUTE kann nur auf Variablen und Konstanten angewendet werden
+parser_e_absolute_only_to_var_or_const=03096_E_ABSOLUTE kann nur auf Variablen und Konstanten angewendet werden, die eine Adresse reprÑsentieren
 % The address of an \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -779,7 +814,7 @@ parser_e_absolute_only_to_var_or_const=03096_E_ABSOLUTE kann nur auf Variablen u
 % \end{verbatim}
 %
 parser_e_initialized_only_one_var=03097_E_Es kann nur EINE Variable initialisiert werden
-% You cannot specify more than one variable with a initial value in Delphi mode.
+% You cannot specify more than one variable with an initial value.
 parser_e_abstract_no_definition=03098_E_Abstrakte Methoden dÅrfen keine Definition (mit Rumpf) haben
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
@@ -1044,7 +1079,7 @@ parser_e_illegal_field_or_method=03181_E_Klassenfeld oder Methoden-Bezeichner "$
 parser_w_proc_overriding_calling=03182_W_öberschreibe die Aufrufkonvention "$1" mit "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used.
-parser_e_no_procvarobj_const=03183_E_Typisierte Konstanten des Typs "procedure of object" benîtigen einen Self-Pointer, der zur Kompile-Zeit bekannt ist
+parser_e_no_procvarobj_const=03183_E_Typisierte Konstanten des Typs "procedure of object" benîtigen einen Self-Pointer, der zur Zeit der öbersetzung bekannt ist
 % In order to initialize a method pointer with a method, the value of the \var{Self}
 % pointer for calling that method at run time must be known at compile time.
 % Thus, a method pointer can be initialized either with \var{Nil}, or with a class
@@ -1671,9 +1706,15 @@ parser_e_suspending_externals_not_supported_on_current_platform=03368_E_External
 parser_w_widechar_set_reduced=03369_W_Reduziere Widechar-Set zu Single-Byte-AnsiChar-Set.
 % The base type of a set can only have 255 elements. Sets of wide characters
 % are reduced to sets of 1-byte characters.
-parser_e_nostringaliasinsystem=03370_e_Das Alias 'string' ist in der Unit "system" nicht erlaubt. Benutze Short-, Ansi- oder Unicodestring.
+parser_e_nostringaliasinsystem=03370_E_Das Alias 'string' ist in der Unit "system" nicht erlaubt. Benutze Short-, Ansi- oder Unicodestring.
 % As a safeguard, the system unit may only use basic string types, not the
 % string alias which is dependent on the mode in which a unit is compiled.
+parser_e_coperators_off=03371_E_Zuweisungsoperatoren im C-Stil sind ausgeschaltet
+% By default, c style assignment operators (+=, -=, *=, /=) are turn off. Either turn them on by the command line
+% parameter -Sc or in the source code by {\$COPERATORS ON}
+parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Ausdruck kann zur Zeit der öbersetzung nicht berechnet werden
+% Certain operations like the size of an object cannot be determined at compile time,
+% so it cannot be e.g. part of a constant expression.
 %
 % \end{description}
 # EndOfTeX
@@ -3222,7 +3263,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Byte
 #
 # Internal linker messages
 #
-# 09222 is the last used one
+# 09224 is the last used one
 #
 # BeginOfTeX
 %
@@ -3288,6 +3329,10 @@ link_e_undefined_symbol_in_obj=09221_E_Nicht definiertes Symbol: $1 (Zuerst gese
 % The specified symbol is used, but not defined and was first seen in the specified object file.
 link_e_undefined_symbol=09222_E_Nicht definiertes Symbol: $1
 % The specified symbol is used, but not defined.
+link_w_unsupported_cross_endian_internal_linker=09223_W_Der interne Linker in cross-endian Konfiguration ist noch eine unfertige Baustelle
+% The internal linker does not correctly handle endianess conversion.
+link_f_executable_too_big_exceeds_X_by_Y_bytes=09224_F_Die Grî·e des ausfÅhrbaren Image ist fÅr das Zielsystem $1 zu gro· (Åberschreitet $2 um $3 Byte)
+% The result File is too big
 %
 % \end{description}
 # EndOfTeX
@@ -3295,7 +3340,7 @@ link_e_undefined_symbol=09222_E_Nicht definiertes Symbol: $1
 #
 # Unit loading
 #
-# 10070 is the last used one
+# 10071 is the last used one
 #
 # BeginOfTeX
 %
@@ -3529,6 +3574,9 @@ unit_u_ppu_symansistr_mismatch=10069_U_öberspringe Unit, PPU und Compiler mÅssen
 unit_u_ppu_wasm_threads_mismatch=10070_U_PPU und Programm mÅssen beide mit oder ohne WebAssembly-Multithreading-UnterstÅtzung kompiliert werden
 % The user is compiling a program with multithreading turned on, but the unit was compiled with multithreading off,
 % or vice versa.
+unit_w_unsupported_esp_idf_version=10071_W_esp-idf Version nicht unterstÅtzt
+% FPC supports only certain ESP-IDF versions. It is very unlikely that the resulting program works if this
+% warning is thrown.
 %
 % \end{description}
 # EndOfTeX
@@ -3536,7 +3584,7 @@ unit_u_ppu_wasm_threads_mismatch=10070_U_PPU und Programm mÅssen beide mit oder 
 #
 # Options
 #
-# 11067 is the last used one
+# 11068 is the last used one
 #
 # BeginOfTeX
 %
@@ -3703,6 +3751,9 @@ option_subtarget_config_not_found=11066_E_Subzielsystem $1 angegeben, aber keine
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoriere den Compiler-Programm-Suffix $1.
 % Displayed if more than one \var{-t} option is specified.
+option_switch_bin_to_src_assembler_cross_endian=11068_N_Schalte in der cross-endian Konfiguration um auf den voreingestellten, Quellcode-schreibenden Assembler
+% This notifies you that the assembler has been changed because
+% the binary assembler writer is not yet ready for cross-endian configuration.
 %
 % \end{description}
 # EndOfTeX
@@ -4044,14 +4095,18 @@ P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
 s*2Aas_Assembliere mit Hilfe von GNU AS
 v*2Aas_Assembliere mit Hilfe von GNU AS
-W*2Awasm_Assembliere mit Hilfe des internen Objektschreibers fÅr wasm32 (experimentell)
+W*2Awasm_Assembliere mit Hilfe des internen Objektschreibers fÅr wasm32
 W*2Abinaryen_Assembliere mit Hilfe von GNU AS fÅr wasm32 (wasm-as) (experimentell)
 W*2Allvm-mc-10_Assembliere mit Hilfe von llvm-mc-10
 W*2Allvm-mc-11_Assembliere mit Hilfe von llvm-mc-11
 W*2Allvm-mc-12_Assembliere mit Hilfe von llvm-mc-12
-W*2Allvm-mc-13_Assembliere mit Hilfe von llvm-mc-13
-W*2Allvm-mc_Assembliere mit Hilfe von llvm-mc (Version 14 oder spÑter)
-W*2Awabt_Assembliere mit Hilfe von wasa (experimentell)
+W*2Allvm-mc-13_Assembliere mit Hilfe von llvm-mc-13 (funktioniert nicht wegen Bugs in llvm)
+W*2Allvm-mc-14_Assembliere mit Hilfe von llvm-mc-14 (funktioniert nicht wegen Bugs in llvm)
+W*2Allvm-mc-15_Assembliere mit Hilfe von llvm-mc-15
+W*2Allvm-mc-16_Assembliere mit Hilfe von llvm-mc-16
+W*2Allvm-mc-17_Assembliere mit Hilfe von llvm-mc-17
+W*2Allvm-mc_Assembliere mit Hilfe von llvm-mc (Version 18 oder spÑter)
+W*2Awasa_Assembliere mit Hilfe von wasa (experimentell)
 x*2Aas_Assembliere mit Hilfe von GNU AS
 Z*2Asdcc-sdasz80_Assembliere mit Hilfe von SDCC-SDASZ80
 Z*2Avasm_Assembliere mit Hilfe von Vasm
@@ -4065,6 +4120,11 @@ Z*2Az80asm_Assembliere mit Hilfe von z80asm
 **2Ca<x>_WÑhle ABI aus; fpc -i oder fpc -ia geben die mîglichen Werte aus
 **2Cb_Erzeuge Code fÅr die "big-endian"-Variante der Zielarchitektur
 **2Cc<x>_Setze "default calling convention" zu <x>
+V*2Cd<x>_Verwerfe ausgewÑhlte RTL Start-Sektionen (Mit Vorsicht nutzen)
+V*3Cdc_Verwerfe Intialisierungsdaten. FÅr die Daten wird die Voreinstellung der Noinit-Sektion verwendet
+V*3Cdj_Verwerfe den Sprung nach PASCALMAIN. Nur verwenden, wenn PASCALMAIN direkt dem Start-Code folgt
+V*3Cds_Verwerfe den _START Code. Nur verwenden, wenn alle Interrupts ausgeschaltet sind
+V*3Cdz_Verwerfe Code, der das Zero-Register und den Stack-Pointer initialisiert
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstÅtzt)
 **2Ce_öbersetze mit emulierten Fliesskomma opcodes
 **2CE_Erzeuge FPU Code, der Ausnahmen (exceptions) auslîsen kann
@@ -4080,7 +4140,7 @@ L*3Clfltonosystem_Schalte LTO fÅr die Systemunit aus (benîtigt fÅr Xcode 10.2 un
 L*3Clflsanitize=address_Schalte Adressenbereiniger (address sanitizer) ein
 L*3Clv<x>_LLVM Zielversion: Xcode-10.1, 7.0, 8.0, .., 10.0
 **2Cn_Lasse die Linkstufe aus
-P*2CN_Erzeuge öberprÅfungen auf Nil-Zeiger (nur AIX)
+W*2CN_Erzeuge öberprÅfungen auf Nil-Zeiger
 **2Co_PrÅfe auf öberlauf von Integer-Operationen
 **2CO_PrÅfe auf mîglichen öberlauf von Integer-Operationen
 **2Cp<x>_WÑhle Befehlssatz aus; fpc -i oder fpc -ic geben die mîglichen Werte aus
@@ -4150,6 +4210,7 @@ A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2Fo<x>_ErgÑnze <x> zum Objektdatei-Pfad
 **2Fr<x>_Lade die Fehlermeldungs-Datei <x>
 **2FR<x>_Setze den Resource (.res) Linker auf <x>
+**2Ft_Suche nicht nach Unit-Dateien mit gro· geschriebenen oder 8.3 formatierten Dateinamen auf Dateisystemen mit Gro·/Kleinschreibung.
 **2Fu<x>_ErgÑnze <x> zum Unit-Pfad
 **2FU<x>_Units werden nach <x> ausgegeben, hat Vorrang vor -FE
 **2Fw<x>_Lade das bereits gespeicherte Feedback fÅr die Gesamtprogramm-Optimierung aus <x>
@@ -4226,7 +4287,7 @@ L*2il_Zeige Liste der unterstÅtzten LLVM/Xcode Versionen des LLVM-Backend
 F*1P<x>_Zielprozessor / Compiler bezogene Optionen:
 F*2PB_Zeige die voreingestellte CompilerbinÑrdatei
 F*2PP_Zeige den voreingestellten Zielprozessor
-F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
+F*2P<x>_Setze den Zielprozessor (aarch64, arm, avr, i386, i8086, jvm, loongarch64, m68k, mips, mipsel, powerpc, powerpc64, riscv32, riscv64, sparc, sparc64, wasm32, x86_64, xtensa, z80)
 **1R<x>_Assembler Code-Format:
 **2Rdefault_Benutze den voreingestellten Assembler
 3*2Ratt_Lese Assembler Code im AT&T-Format
@@ -4244,7 +4305,7 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 **1S<x>_Syntax-Optionen:
 **2S2_Schalte einige der Delphi 2 Erweiterungen ein (wie -Mobjfpc)
 **2Sa_Erlaube assertion code.
-**2Sc_UnterstÅtze spezielle C-Operatoren (*=,+=,/= and -=)
+**2Sc_UnterstÅtze Zuweisungsoperatoren wie in der Sprache C (*=, +=, /= und -=)
 **2Sd_Sei Delphi-kompatibel (wie -Mdelphi)
 **2Se<x>_Fehler Optionen. <x> ist eine der folgenden Kombinationen:
 **3*_<n> : Compiler hÑlt nach <n> Fehlern (Voreinstellung ist 1)
@@ -4260,7 +4321,7 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 **3SIcorba_CORBA kompatibles Interface
 **2Sj_Erlaube das Schreiben von typisierten Konstanten (Voreinstellung in allen Modi)
 **2Sk_Lade fpcylix Unit
-**2Sm_UnterstÅtze Makros wie in C (global)
+**2Sm_UnterstÅtze Makros wie in der Sprache C (global)
 **2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
 **2Sr_Transparente Dateinamen im ISO-Modus
 **2Ss_Konstruktor- und Destruktorname mÅssen "Init" und "Done" sein
@@ -4309,9 +4370,9 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tembedded_Embedded
+6*2Thuman68k_Human 68k
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
-6*2Tmacos_Mac OS
 6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
 6*2Tsinclairql_Sinclair QL
@@ -4335,7 +4396,9 @@ A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
 a*2Tdarwin_Darwin/Mac OS X
+a*2Tembedded_Embedded
 a*2Tfreebsd_FreeBSD
+a*2Tiphonesim_iPhoneSimulator
 a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64
@@ -4348,6 +4411,7 @@ l*2Tlinux_Linux
 m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
+m*2Tps1_PlayStation 1
 # mipseb targets
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
@@ -4404,19 +4468,33 @@ W*2Twasi_Das WebAssembly System Interface (WASI)
 **2Ur_Erzeuge "release unit"-Dateien
 **2Us_Erzeuge eine Systemunit
 **1v<x>_Meldungen, <x> ist eine Kombination der folgenden Zeichen:
-**2*_0 : Nichts (au·er Fehlern)        p : Schreibe tree.log mit Analysenbaum (parse tree)
-**2*_a : Alles                         q : Nummer der Meldung
-**2*_b : Schreibe bei Meldungen mit    r : Rhide/GCC kompatibler Modus
-**2*_    Dateinamen den vollstÑndigen  s : Zeitstempel
-**2*_    Pfad                          t : Angesprochene/benutzte Dateien
-**2*_c : Preprozessordirektiven        u : Unit Informationen
-**2*_d : Debug-Informationen           v : Schreibe fpcdebug.txt mit
-**2*_e : Fehler (Standard)                 ganz viel Information
-**2*_h : Hinweise                      w : Warnungen 
-**2*_i : Allgemeine Informationen      x : Zeige Infos Åber aufgerufene Tools
-**2*_l : Zeilennummern                 z : Schreibe output nach stderr
-**2*_m<x>,<y> : Zeige die Meldungen mit den Nummern <x> und <y> nicht
+**2*_0 : Nichts (au·er Fehlern)
+**2*_a : Alles
+**2*_b : Schreibe bei Meldungen mit Dateinamen den vollstÑndigen Pfad
+**2*_c : Preprozessordirektiven
+**2*_d : Debug-Informationen
+**2*_e : Fehler (Standard)
+**2*_f : (ungenutzt)
+**2*_g : (ungenutzt)
+**2*_h : Hinweise
+**2*_i : Allgemeine Informationen
+**2*_j : (ungenutzt)
+**2*_k : (ungenutzt)
+**2*_l : Zeilennummern
+**2*_m<x>,<y> : Keine Meldungen mit den Nummern <x> und <y>
 **2*_n : Anmerkungen                   
+**2*_o : (ungenutzt)
+**2*_p : Schreibe tree.log mit Analysenbaum (parse tree)
+**2*_q : Nummer der Meldung
+**2*_r : Rhide/GCC kompatibler Modus
+**2*_s : Zeitstempel
+**2*_t : Angesprochene/benutzte Dateien
+**2*_u : Unit-Informationen
+**2*_v : Schreibe fpcdebug.txt mit ganz viel Informationen
+**2*_w : Warnungen 
+**2*_x : Informationen Åber aufgerufene Werkzeuge
+**2*_y : (ungenutzt)
+**2*_z : Schreibe die Ausgabe nach stderr
 F*1V<x>_HÑnge '-<x>' an den Namen der Compilerbinary an (z.B. fÅr die Version)
 **1W<x>_Spezifiziere ein natives Programm (Windows)
 3*2WA_Spezifiziere ein natives Programm (Windows)
@@ -4487,6 +4565,7 @@ x*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Wert
 4*2WP<x>_Minimale iOS Deployment Version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimale iOS Deployment Version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (Darwin)
+R*2WP<x>_esp-idf Versionsnummer: 4.4, 5.0.6, ... (esp32c3)
 x*2WP<x>_Esp8266-rtos-sdk oder esp-idf Versionsnummer: 3.3, 3.4 (esp8266) oder 4.2, 4.3 (esp32)
 3*2WR_Erzeuge "relocation code" (Windows)
 4*2WR_Erzeuge "relocation code" (Windows)
