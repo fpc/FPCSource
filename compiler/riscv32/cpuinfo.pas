@@ -41,6 +41,8 @@ Type
        cpu_rv32i,
        cpu_rv32e,
        cpu_rv32imc,
+       cpu_rv32imafdc,
+       cpu_rv32imafd,
        cpu_rv32ec,
        cpu_rv32gc
       );
@@ -173,6 +175,8 @@ Const
      'RV32I',
      'RV32E',
      'RV32IMC',
+     'RV32IMAFDC',
+     'RV32IMAFD',
      'RV32EC',
      'RV32GC'
    );
@@ -210,7 +214,17 @@ Const
        CPURV_HAS_ZBC,
        CPURV_HAS_ZBS,
        CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
-       CPURV_HAS_FETCH_FENCE         { extension Zifencei }
+       CPURV_HAS_FETCH_FENCE,        { extension Zifencei }
+       CPURV_HAS_F,
+       CPURV_HAS_D,
+       CPURV_HAS_Q,
+       CPURV_HAS_ZFH,
+       CPURV_HAS_ZFHMIN,
+       CPURV_HAS_ZFA,
+       CPURV_HAS_ZFINX,
+       CPURV_HAS_ZDINX,
+       CPURV_HAS_ZHINX,
+       CPURV_HAS_ZHINXMIN
       );
 
  const
@@ -222,8 +236,10 @@ Const
        { cpu_rv32i     } [],
        { cpu_rv32e     } [CPURV_HAS_16REGISTERS],
        { cpu_rv32imc   } [CPURV_HAS_MUL,CPURV_HAS_COMPACT],
+       { cpu_rv32imafdc} [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_F,CPURV_HAS_D],
+       { cpu_rv32imafd } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_F,CPURV_HAS_D],
        { cpu_rv32ec    } [CPURV_HAS_16REGISTERS,CPURV_HAS_COMPACT],
-       { cpu_rv32gc    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT]
+       { cpu_rv32gc    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_F,CPURV_HAS_D]
      );
 
 Implementation

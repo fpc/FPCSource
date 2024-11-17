@@ -5491,17 +5491,17 @@ begin
   { RISC-V defaults }
   if (target_info.abi = abi_riscv_hf) then
     begin
-      {$ifdef riscv32}
+    {$ifdef riscv32}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv32ima;
+        init_settings.cputype:=cpu_rv32imafd;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv32ima;
-      {$else}
+        init_settings.optimizecputype:=cpu_rv32imafd;
+    {$else}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv64imac;
+        init_settings.cputype:=cpu_rv64imafdc;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv64imac;
-      {$endif}
+        init_settings.optimizecputype:=cpu_rv64imafdc;
+    {$endif}
 
       { Set FPU type }
       if not(option.FPUSetExplicitly) then

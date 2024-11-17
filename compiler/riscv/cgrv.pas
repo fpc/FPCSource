@@ -1043,7 +1043,8 @@ unit cgrv;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if needs_check_for_fpu_exceptions then
+        if (CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and
+          needs_check_for_fpu_exceptions then
           begin
             r:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg(A_FRFLAGS,r));

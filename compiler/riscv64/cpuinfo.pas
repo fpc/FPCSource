@@ -38,6 +38,8 @@ type
     cpu_rv64ima,
     cpu_rv64im,
     cpu_rv64i,
+    cpu_rv64imafdc,
+    cpu_rv64imafd,
     cpu_rv64gc
   );
 
@@ -92,6 +94,8 @@ Const
     'RV64IMA',
     'RV64IM',
     'RV64I',
+    'RV64IMAFDC',
+    'RV64IMAFD',
     'RV64GC'
     );
 
@@ -128,7 +132,17 @@ Const
        CPURV_HAS_ZBC,
        CPURV_HAS_ZBS,
        CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
-       CPURV_HAS_FETCH_FENCE         { extension Zifencei }
+       CPURV_HAS_FETCH_FENCE,        { extension Zifencei }
+       CPURV_HAS_F,
+       CPURV_HAS_D,
+       CPURV_HAS_Q,
+       CPURV_HAS_ZFH,
+       CPURV_HAS_ZFHMIN,
+       CPURV_HAS_ZFA,
+       CPURV_HAS_ZFINX,
+       CPURV_HAS_ZDINX,
+       CPURV_HAS_ZHINX,
+       CPURV_HAS_ZHINXMIN
       );
 
  const
@@ -138,7 +152,9 @@ Const
        { cpu_rv64ima    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
        { cpu_rv64im     } [CPURV_HAS_MUL],
        { cpu_rv64i      } [],
-       { cpu_rv64gc     } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE]
+       { cpu_rv64imafdc } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_F,CPURV_HAS_D],
+       { cpu_rv64imafd  } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_F,CPURV_HAS_D],
+       { cpu_rv64gc     } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE,CPURV_HAS_F,CPURV_HAS_D]
      );
 
 implementation
