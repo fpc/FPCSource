@@ -249,17 +249,11 @@ begin
   end;
 end;
 
-{$ifdef FPC_MANAGED_MOVE}
-{ define alias for internal use in the system unit }
-Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer; DoMove : Boolean) : SizeInt;[external name 'FPC_COPY'];
 
-Function fpc_Copy (Src, Dest, TypeInfo : Pointer; DoMove : Boolean) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
-{$else}
 { define alias for internal use in the system unit }
 Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
 
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
-{$endif FPC_MANAGED_MOVE}
 var
   copiedsize,
   expectedoffset,
@@ -273,41 +267,14 @@ begin
   case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
-{$ifdef FPC_MANAGED_MOVE}
-      if domove then
-        begin
-          fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
-          PPointer(Dest)^:=PPointer(src)^;
-          PPointer(Src)^:=nil;
-        end
-      else
-{$endif FPC_MANAGED_MOVE}
       fpc_AnsiStr_Assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
-{$ifdef FPC_MANAGED_MOVE}
-      if domove then
-        begin
-          fpc_WideStr_Decr_Ref(PPointer(Dest)^);
-          PPointer(Dest)^:=PPointer(src)^;
-          PPointer(Src)^:=nil;
-        end
-      else
-{$endif FPC_MANAGED_MOVE}
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkUstring:
-{$ifdef FPC_MANAGED_MOVE}
-      if domove then
-        begin
-          fpc_UnicodeStr_Decr_Ref(PPointer(Dest)^);
-          PPointer(Dest)^:=PPointer(src)^;
-          PPointer(Src)^:=nil;
-        end
-      else
-{$endif FPC_MANAGED_MOVE}
       fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
@@ -324,11 +291,7 @@ begin
         { Process elements }
         for I:=1 to EleCount do
           begin
-{$ifdef FPC_MANAGED_MOVE}
-            fpc_Copy_internal(Src+Offset,Dest+Offset,Info,DoMove);
-{$else}
             fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
-{$endif FPC_MANAGED_MOVE}
             inc(Offset,copiedsize);
           end;
       end;
@@ -339,15 +302,6 @@ begin
       begin
         Temp:=RTTIRecordInfoInit(typeinfo);
         Result:=PRecordInfoInit(Temp)^.Size;
-{$ifdef FPC_MANAGED_MOVE}
-        if domove then
-          begin
-            int_finalize(Dest,TypeInfo);
-            move(src^,dest^,result);
-            int_initialize(Src,TypeInfo);
-          end
-        else
-{$endif FPC_MANAGED_MOVE}
         if Assigned(PRecordInfoInit(Temp)^.recordop) and Assigned(PRecordInfoInit(Temp)^.recordop^.Copy) then
           PRecordInfoInit(Temp)^.recordop^.Copy(Src,Dest)
         else
@@ -362,11 +316,7 @@ begin
                 Offset:=PRecordElement(Temp)^.Offset;
                 if Offset>expectedoffset then
                   move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-{$ifdef FPC_MANAGED_MOVE}
-                expectedoffset:=Offset+fpc_Copy_internal(Src+Offset,Dest+Offset,PRecordElement(Temp)^.TypeInfo^,DoMove);
-{$else}
                 expectedoffset:=Offset+fpc_Copy_internal(Src+Offset,Dest+Offset,PRecordElement(Temp)^.TypeInfo^);
-{$endif FPC_MANAGED_MOVE}
                 Inc(PRecordElement(Temp));
               end;
             { elements remaining? }
@@ -376,27 +326,10 @@ begin
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
-{$ifdef FPC_MANAGED_MOVE}
-      if domove then
-        begin
-          fpc_dynarray_clear(PPointer(Dest)^,TypeInfo);
-          PPointer(Dest)^:=PPointer(src)^;
-          PPointer(Src)^:=nil;
-        end
-      else
-{$endif FPC_MANAGED_MOVE}
       fpc_dynarray_assign(PPointer(Dest)^,PPointer(Src)^,typeinfo);
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 {$ifdef FPC_HAS_FEATURE_CLASSES}
     tkInterface:
-{$ifdef FPC_MANAGED_MOVE}
-      if domove then
-        begin
-          PPointer(Dest)^:=PPointer(src)^;
-          PPointer(Src)^:=nil;
-        end
-      else
-{$endif FPC_MANAGED_MOVE}
       fpc_intf_assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_CLASSES}
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
@@ -413,15 +346,32 @@ end;
 { For internal use by the compiler, because otherwise $x- can cause trouble. }
 { Generally disabling extended syntax checking for all compilerprocs may     }
 { have unintended side-effects                                               }
-{$ifdef FPC_MANAGED_MOVE}
-procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer; DoMove : Boolean);compilerproc; inline;
-begin
-  fpc_copy_internal(src,dest,typeinfo,domove);
-end;
-{$else}
 procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer);compilerproc; inline;
 begin
   fpc_copy_internal(src,dest,typeinfo);
+end;
+
+
+{$ifdef FPC_MANAGED_MOVE}
+function fpc_Copy_with_move_semantics (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY_WITH_MOVE_SEMANTICS']; compilerproc;
+var
+  tki : pointer;
+begin
+  tki:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+  if PTypeKind(TypeInfo)^=tkArray then { Only tkArray, tkObject, tkRecord are possible, search for 'fpc_copy_proc' in compiler/nld.pas. }
+    result:=PArrayInfo(tki)^.Size
+  else
+    result:=PRecordInfoInit(tki)^.Size;
+  int_finalize(Dest,TypeInfo);
+  move(src^,dest^,result);
+  int_initialize(Src,TypeInfo);
+end;
+
+Function fpc_Copy_with_move_semantics_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY_WITH_MOVE_SEMANTICS'];
+
+procedure fpc_Copy_with_move_semantics_proc (Src, Dest, TypeInfo : Pointer);compilerproc; inline;
+begin
+  fpc_Copy_with_move_semantics_internal(src,dest,typeinfo);
 end;
 {$endif FPC_MANAGED_MOVE}
 
@@ -478,10 +428,6 @@ procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   begin
     if RTTIManagementAndSize(typeinfo, rotCopy, size, manBuiltin)<>manNone then
       for i:=0 to count-1 do
-{$ifdef FPC_MANAGED_MOVE}
-        fpc_Copy_internal(source+size*i, dest+size*i, typeInfo, False);
-{$else}
         fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
-{$endif FPC_MANAGED_MOVE}
   end;
 

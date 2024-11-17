@@ -1016,16 +1016,17 @@ implementation
             not is_const(left) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
-           hp:=ccallparanode.create(cordconstnode.create(
-                  ord(tempreturnfromcall),pasbool1type,false),
-               ccallparanode.create(caddrnode.create_internal(
+           hp:=ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(left),voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
-               nil))));
-           result:=ccallnode.createintern('fpc_copy_proc',hp);
+               nil)));
+           if tempreturnfromcall then
+             result:=ccallnode.createintern('fpc_copy_with_move_semantics_proc',hp)
+           else
+             result:=ccallnode.createintern('fpc_copy_proc',hp);
            firstpass(result);
            left:=nil;
            right:=nil;
