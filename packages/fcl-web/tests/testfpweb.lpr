@@ -4,7 +4,7 @@ program testfpweb;
 
 uses
   Classes, consoletestrunner, tchttproute, tcjwt, jsonparser,
-  fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256, fpjwarsa;
+  fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256, fpjwarsa, testsqldbopenapi, sqldbrestopenapi;
 
 type
 

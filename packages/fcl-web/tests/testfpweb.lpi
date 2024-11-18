@@ -22,13 +22,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestJWT.TestVerifyES256"/>
+        <CommandLineParams Value="--suite=TTestSQLDBRestOpenAPI.TestResourceReadOnly"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestJWT.TestVerifyES256"/>
+            <CommandLineParams Value="--suite=TTestSQLDBRestOpenAPI.TestResourceReadOnly"/>
           </local>
         </Mode0>
       </Modes>
@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="11">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -75,6 +75,14 @@
         <Filename Value="../src/jwt/fpjwarsa.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="testsqldbopenapi.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../src/restbridge/sqldbrestopenapi.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -84,9 +92,14 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src/base;../src/jwt"/>
+      <OtherUnitFiles Value="../src/base;../src/jwt;../src/restbridge;../../fcl-openapi/src;../../fcl-jsonschema/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
