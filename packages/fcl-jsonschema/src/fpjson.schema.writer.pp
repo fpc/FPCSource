@@ -39,7 +39,8 @@ Type
     Procedure WriteProperty(const aName : TJSONStringType; aValue : TJSONSchemaVocabularyList);
     Procedure WriteProperty(const aName : TJSONStringType; aValue : TSchemaSimpleTypes);
     procedure WriteProperty(const aName: TJSONStringType; aValue: TJSONSchema);
-    procedure WriteProperty(const aName: TJSONStringType; aValue: TJSONSchemaList);
+    procedure WriteListAsObject(const aName: TJSONStringType; aValue: TJSONSchemaList);
+    procedure WriteProperty(const aName: TJSONStringType; aValue: TJSONSchemaList; AllowAsObject: Boolean = False);
     Procedure DoWriteSchema(aSchema : TJSONSchema);
   Public
     Procedure Writeschema(aSchema : TJSONSchema; aWriter : TAbstractJSONWriter);
@@ -79,20 +80,39 @@ begin
  end;
 end;
 
-procedure TJSONSchemaWriter.WriteProperty(const aName: TJSONStringType; aValue: TJSONSchemaList);
+procedure TJSONSchemaWriter.WriteListAsObject(const aName: TJSONStringType; aValue: TJSONSchemaList);
+var
+  I : Integer;
+begin
+ FWriter.StartProperty(aName);
+ FWriter.StartObject;
+ for I:=0 to aValue.Count-1 do
+   begin
+   FWriter.NextElement;
+   FWriter.StartProperty(aValue.Schemas[i].Name);
+   DoWriteSchema(aValue.Schemas[i]);
+   end;
+ FWriter.EndObject;
+ FWriter.EndProperty;
+end;
+
+procedure TJSONSchemaWriter.WriteProperty(const aName: TJSONStringType; aValue: TJSONSchemaList; AllowAsObject: Boolean);
 
 var
   I : Integer;
 
 begin
   FWriter.StartProperty(aName);
-  FWriter.StartArray;
-  for I:=0 to aValue.Count-1 do
-    begin
-    FWriter.NextElement;
-    DoWriteSchema(aValue.Schemas[i]);
-    end;
-  FWriter.EndArray;
+  if AllowAsObject and (aValue.Count=1) then
+    DoWriteSchema(aValue.Schemas[0])
+  else
+    for I:=0 to aValue.Count-1 do
+      begin
+      FWriter.StartArray;
+      FWriter.NextElement;
+      DoWriteSchema(aValue.Schemas[i]);
+      FWriter.EndArray;
+      end;
   FWriter.EndProperty;
 end;
 
@@ -148,19 +168,32 @@ end;
 procedure TJSONSchemaWriter.WriteProperty(const aName: TJSONStringType; aValue: TSchemaSimpleTypes);
 
 var
-  St : TSchemaSimpleType;
+  lCount : Integer;
+  St,stVal : TSchemaSimpleType;
 
 begin
+  lCount:=0;
+  for St in TSchemaSimpleType do
+    if st in aValue then
+      begin
+      inc(lCount);
+      stVal:=St;
+      end;
   With FWriter do
     begin
     StartProperty(aName);
-    StartArray;
-    For ST in aValue do
+    if lCount=1 then
+      WriteValue(stVal.AsString)
+    else
       begin
-      NextElement;
-      WriteValue(ST.AsString);
+      StartArray;
+      For ST in aValue do
+        begin
+        NextElement;
+        WriteValue(ST.AsString);
+        end;
+      EndArray;
       end;
-    EndArray;
     EndProperty;
     end;
 end;
@@ -201,7 +234,7 @@ begin
         jskMinLength : W.WriteProperty(PropName,aSchema.Validations.MinLength);
         jskPattern : W.WriteProperty(PropName,aSchema.Validations.Pattern);
         // jskAdditionalItems : WriteProperty(PropName,aSchema.Validations.AdditionalItems);
-        jskItems : WriteProperty(PropName,aSchema.Items);
+        jskItems : WriteProperty(PropName,aSchema.Items,true);
         jskPrefixItems : WriteProperty(PropName,aSchema.PrefixItems);
         jskMaxItems : W.WriteProperty(PropName,aSchema.Validations.MaxItems);
         jskMinItems : W.WriteProperty(PropName,aSchema.Validations.MinItems);
@@ -212,7 +245,7 @@ begin
         jskMinContains : W.WriteProperty(PropName,aSchema.Validations.MinContains);
         jskRequired : W.WriteProperty(PropName,aSchema.Validations.Required);
         jskAdditionalProperties : WriteProperty(PropName,aSchema.AdditionalProperties);
-        jskProperties : WriteProperty(PropName,aSchema.Properties);
+        jskProperties : WriteListAsObject(PropName,aSchema.Properties);
         jskPatternProperties: WriteProperty(PropName,aSchema.PatternProperties);
         jskPropertyNames : WriteProperty(PropName,aSchema.PropertyNames);
         jskDependentSchemas : WriteProperty(PropName,aSchema.DependentSchemas);
