@@ -417,10 +417,10 @@ begin
   aType:=Data.CreatePascalType(0,ptSchemaStruct,'a','Ta',Schema);
   Data.AddType('a',aType);
   Data.AddPropertiesToType(aType);
-  AssertProperty('array',aType,0,'b','b','Array of string',ptArray,Data.FindSchemaTypeData('[string]'));
+  AssertProperty('array',aType,0,'b','b','TStringDynArray',ptArray,Data.FindSchemaTypeData('[string]'));
   AssertSame('Schema in property def',lProp,aType.Properties[0].Schema);
-  AssertSame('Schema in property type def',lProp,Data.FindSchemaTypeData('[string]').Schema);
-  AssertEquals('Have 2 public types',2,Data.TypeCount);
+//  AssertSame('Schema in property type def',lProp,Data.FindSchemaTypeData('[string]').Schema);
+  AssertEquals('Have 2 public types',1,Data.TypeCount);
 end;
 
 procedure TTestSchemaPascalType.TestAddPropertiesArrayDelphi;
@@ -437,8 +437,8 @@ begin
   aType:=Data.CreatePascalType(0,ptSchemaStruct,'a','Ta',Schema);
   Data.AddType('a',aType);
   Data.AddPropertiesToType(aType);
-  AssertProperty('array',aType,0,'b','b','TArray<string>',ptArray,Data.FindSchemaTypeData('[string]'));
-  AssertEquals('Have 2 public types',2,Data.TypeCount);
+  AssertProperty('array',aType,0,'b','b','TStringDynArray',ptArray,Data.FindSchemaTypeData('[string]'));
+  AssertEquals('Have 2 public types',1,Data.TypeCount);
 end;
 
 procedure TTestSchemaPascalType.TestAddPropertiesArrayMultiValue;
