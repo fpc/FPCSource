@@ -19,7 +19,11 @@ unit fpopenapi.codegen;
 interface
 
 uses
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, System.StrUtils, System.DateUtils, Pascal.CodeGenerator, System.IniFiles,
+  {$ELSE}
   Classes, SysUtils, strutils, dateutils,  pascodegen, inifiles,
+  {$ENDIF}
   fpjson.schema.types,
   fpjson.schema.Pascaltypes,
   fpjson.schema.codegen,
@@ -504,9 +508,12 @@ begin
       GenerateServiceInterface(lAPIData);
       GenerateServiceImplementation(lAPIData);
       end;
-    GenerateServerHandlerModule(lAPIData);
-    if AbstractServiceCalls and not SkipServerServiceImplementationModule then
-      GenerateServerModuleImplementation(lAPIData);
+    if GenerateServer then
+      begin
+      GenerateServerHandlerModule(lAPIData);
+      if AbstractServiceCalls and not SkipServerServiceImplementationModule then
+        GenerateServerModuleImplementation(lAPIData);
+      end;
     GetUUIDMap(lAPIData);
   finally
     lAPIData.Free;

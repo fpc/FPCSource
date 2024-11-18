@@ -20,7 +20,11 @@ unit fpopenapi.generators;
 interface
 
 uses
-  Classes, SysUtils, dateutils, contnrs, pascodegen,
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, System.DateUtils, System.Contnrs, Pascal.CodeGenerator,
+  {$ELSE}
+  Classes, SysUtils, strutils, dateutils,  pascodegen, inifiles,
+  {$ENDIF}
   fpjson.schema.types,
   fpjson.schema.Pascaltypes,
   fpjson.schema.codegen,
