@@ -135,7 +135,7 @@ begin
   load('simplecomponent');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   AssertEquals('Have 1 API type',1,Data.TypeCount);
   AssertSimpleComponent('First component',Data.APITypes[0]);
 end;
@@ -191,7 +191,7 @@ begin
   load('simpleservice');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   Data.CreateServiceDefs;
   AssertEquals('Have 1 API type',1,Data.TypeCount);
   AssertSimpleComponent('First component',Data.APITypes[0]);
@@ -209,7 +209,7 @@ begin
   load('simpleservicearray');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   Data.CreateServiceDefs;
   AssertEquals('Have 2 API type',2,Data.TypeCount);
   AssertSimpleComponent('First component',Data.APITypes[0]);
@@ -228,7 +228,7 @@ begin
   load('doubleservicearray');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   Data.CreateServiceDefs;
   AssertEquals('Have 2 API type',2,Data.TypeCount);
   AssertSimpleComponent('First component',Data.APITypes[0]);
@@ -248,7 +248,7 @@ begin
   load('noapplicationjsonresponse');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   Data.CreateServiceDefs;
   AssertEquals('API type count',1,Data.TypeCount);
   AssertEquals('Service count',0,Data.ServiceCount);
@@ -260,7 +260,7 @@ begin
   load('noapplicationjsonrequestbody');
   AssertTrue('Have components',API.HasKeyWord(oakComponents));
   Data.CreateDefaultTypeMaps;
-  Data.CreateDefaultAPITypeMaps;
+  Data.CreateDefaultAPITypeMaps(False);
   Data.CreateServiceDefs;
   AssertEquals('API type count',1,Data.TypeCount);
   AssertEquals('Service count',0,Data.ServiceCount);
