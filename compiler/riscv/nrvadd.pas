@@ -339,7 +339,10 @@ implementation
 
     function trvaddnode.use_fma: boolean;
       begin
-        Result:=current_settings.fputype in [fpu_fd];
+        Result:=(is_single(left.resultdef) and is_single(right.resultdef) and
+          (CPURV_HAS_F in cpu_capabilities[current_settings.cputype])) or
+          (is_double(left.resultdef) and is_double(right.resultdef) and
+          (CPURV_HAS_D in cpu_capabilities[current_settings.cputype]));
       end;
 
 
