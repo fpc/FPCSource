@@ -111,6 +111,9 @@ type
 
     Function DoDecode(const aInput: RawByteString): RawByteString; overload; override;
     Function DoEncode(const aInput: RawByteString): RawByteString; overload; override;
+
+    Function DoDecode(const aInput: array of Byte): TBytes; overload; override;
+    Function DoEncode(const aInput: array of Byte): TBytes; overload; override;
   end;
 
   { TBase64Encoding }
@@ -186,6 +189,40 @@ begin
   end;
 end;
 
+function TCustomBase64Encoding.DoDecode(const aInput: array of Byte): TBytes;
+var
+  Instream  : TBytesStream;
+  Outstream : TBytesStream;
+  Decoder   : TBase64DecodingStream;
+const
+  cPad: AnsiChar = '=';
+begin
+  if Length(aInput)=0 then
+    Exit(nil);
+  Instream:=TBytesStream.Create;
+  try
+    Instream.WriteBuffer(aInput[0], Length(aInput));
+    while Instream.Size mod 4 > 0 do
+      Instream.WriteBuffer(cPad, 1);
+    Instream.Position:=0;
+    Outstream:=TBytesStream.Create;
+    try
+      Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
+      try
+         Outstream.CopyFrom(Decoder,Decoder.Size);
+         Result:=Outstream.Bytes;
+         SetLength(Result,Outstream.Size);
+      finally
+        Decoder.Free;
+      end;
+    finally
+      Outstream.Free;
+    end;
+  finally
+    Instream.Free;
+  end;
+end;
+
 function TCustomBase64Encoding.DoEncode(const aInput, aOutput: TStream): Integer;
 Var
   S : TBase64EncodingStream;
@@ -197,6 +234,28 @@ begin
     aOutput.CopyFrom(S,Result);
   finally
     S.Free;
+  end;
+end;
+
+function TCustomBase64Encoding.DoEncode(const aInput: array of Byte): TBytes;
+var
+  Outstream : TBytesStream;
+  Encoder   : TBase64EncodingStream;
+begin
+  if Length(aInput)=0 then
+    Exit(nil);
+  Outstream:=TBytesStream.Create;
+  try
+    Encoder:=TBase64EncodingStream.create(outstream,FCharsPerline,FLineSeparator,FPadEnd);
+    try
+      Encoder.Write(aInput[0],Length(aInput));
+    finally
+      Encoder.Free;
+    end;
+    Result:=Outstream.Bytes;
+    SetLength(Result,Outstream.Size);
+  finally
+    Outstream.free;
   end;
 end;
 
