@@ -23,7 +23,7 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, SysUtils, CustApp, sqldbrestbridge, fphttpapp, IBConnection, odbcconn, mysql55conn, mysql56conn, pqconnection,
   mssqlconn, oracleconnection, sqldbrestxml, sqldbrestio, sqldbrestschema, sqldbrestdata, sqldbrestjson, sqldbrestcsv, sqldbrestcds,
-  sqldbrestado,  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini;
+  sqldbrestado,  sqldbrestconst, sqldbrestauth, sqldbrestini, sqldb, sqldbrestauthini, sqldbrestopenapi;
 
 type
   { TXMLSQLDBRestDispatcher }
@@ -107,7 +107,7 @@ begin
     FAuth.DefaultUserName:='me';
     FAuth.DefaultPassword:='secret';
     FAuth.AuthenticateUserSQL.Text:='select uID from users where (uLogin=:UserName) and (uPassword=:Password)';
-    FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoCustomView,rdoHandleCORS];
+    FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoCustomView,rdoHandleCORS,rdoOpenAPI];
     UN:=GetOptionValue('u','user');
     if UN='' then
       UN:='You';

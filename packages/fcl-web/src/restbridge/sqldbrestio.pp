@@ -84,7 +84,8 @@ Type
                          rpConnectionResourceName,
                          rpParametersResourceName,
                          rpParametersRoutePart,
-                         rpAttachment
+                         rpAttachment,
+                         rpOpenAPI
                          );
   TRestStringProperties = Set of TRestStringProperty;
 
@@ -146,6 +147,7 @@ Type
     Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property ConnectionResourceName : UTF8string Index ord(rpConnectionResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property AttachmentParam : UTF8String Index ord(rpAttachment) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property OpenAPIEndPoint : UTF8String Index ord(rpOpenAPI) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
   end;
 
   TRestStatus = (rsError,                   // Internal logic/unexpected error (500)
@@ -486,7 +488,8 @@ Const
     '_connection',     { rpConnectionResourceName }
     '_parameters',     { rpParametersResourceName }
     'parameters',      { rpParametersRoutePart }
-    'att'              { rpAttachment }
+    'att',             { rpAttachment }
+    '_openAPI'         { rpOpenAPI }
   );
   DefaultStatuses : Array[TRestStatus] of Word = (
     500, { rsError }

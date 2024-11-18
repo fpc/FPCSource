@@ -41,7 +41,8 @@ Type
                            rdoLegacyPut,               // Makes PUT simulate PATCH : Not all values are required, missing values will be gotten from previous record.
                            rdoAllowNoRecordUpdates,    // Check rows affected, rowsaffected = 0 is OK.
                            rdoAllowMultiRecordUpdates, // Check rows affected, rowsaffected > 1 is OK.
-                           rdoSingleEmptyOK            // When asking a single resource and it does not exist, an empty dataset is returned
+                           rdoSingleEmptyOK,           // When asking a single resource and it does not exist, an empty dataset is returned
+                           rdoOpenAPI                  // Serve OpenAPI document.
                            );
 
   TRestDispatcherOptions = set of TRestDispatcherOption;
@@ -154,6 +155,7 @@ Type
 
 
   { TSQLDBRestDispatcher }
+  TSQLDBRestDispatcher = Class;
 
   TResourceAuthorizedEvent = Procedure (Sender : TObject; aRequest : TRequest; Const aResource : UTF8String; var AllowResource : Boolean) of object;
   TGetConnectionNameEvent = Procedure(Sender : TObject; aRequest : TRequest; Const AResource : String; var AConnectionName : UTF8String) of object;
@@ -162,11 +164,14 @@ Type
   TRestOperationEvent = Procedure(Sender : TObject; aConn: TSQLConnection; aResource : TSQLDBRestResource) of object;
   TRestGetFormatEvent = Procedure(Sender : TObject; aRest : TRequest; var aFormat : String) of object;
   TRestLogEvent = Procedure(Sender : TObject; aType : TRestDispatcherLogOption; Const aMessage : UTF8String) of object;
+  TOpenAPIRouteCallBack = Procedure(aDispatcher : TSQLDBRestDispatcher; aRequest : TRequest; aResponse : TResponse);
 
   TSQLDBRestDispatcher = Class(TComponent)
   Private
     Class Var FIOClass : TRestIOClass;
     Class Var FDBHandlerClass : TSQLDBRestDBHandlerClass;
+    class var OpenAPIRequestHandler : TOpenAPIRouteCallBack;
+
   private
     FAdminUserIDs: TStrings;
     FAfterPatch: TRestOperationEvent;
@@ -212,6 +217,7 @@ Type
     FListRoute: THTTPRoute;
     FItemRoute: THTTPRoute;
     FParamRoute: THTTPRoute;
+    FOpenAPIRoute: THTTPRoute;
     FConnectionsRoute: THTTPRoute;
     FConnectionItemRoute: THTTPRoute;
     FMetadataRoute: THTTPRoute;
@@ -317,6 +323,8 @@ Type
   Public
     Class Procedure SetIOClass (aClass: TRestIOClass);
     Class Procedure SetDBHandlerClass (aClass: TSQLDBRestDBHandlerClass);
+    class procedure SetOpenAPIRequestHandler(aHandler : TOpenAPIRouteCallBack);
+
     Constructor Create(AOWner : TComponent); override;
     Destructor Destroy; override;
     procedure RegisterRoutes;
@@ -324,6 +332,7 @@ Type
     procedure HandleMetadataParameterRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleMetadataRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
+    procedure HandleOpenAPIRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleRequest(aRequest : TRequest; aResponse : TResponse);
     Procedure VerifyPathInfo(aRequest : TRequest);
     Function ExposeDatabase(Const aType,aHostName,aDatabaseName,aUserName,aPassword : String; aTables : Array of String; aMinFieldOpts : TRestFieldOptions = []) : TSQLDBRestConnection;
@@ -697,6 +706,20 @@ begin
   HandleRequest(aRequest,aResponse);
 end;
 
+procedure TSQLDBRestDispatcher.HandleOpenAPIRequest(aRequest: TRequest; aResponse: TResponse);
+
+begin
+  if Not Assigned(OpenAPIRequestHandler) then
+    begin
+    aResponse.Code:=404;
+    aResponse.CodeText:='NOT FOUND';
+    end
+  else
+    OpenAPIRequestHandler(Self,aRequest,aResponse);
+  if not aResponse.ContentSent then
+    aResponse.SendContent;
+end;
+
 procedure TSQLDBRestDispatcher.HandleMetadataRequest(aRequest: TRequest;aResponse: TResponse);
 
 Var
@@ -752,10 +775,17 @@ begin
       end;
     Res:=Res+':connection/';
     end;
+  if (rdoOpenAPI in DispatchOptions) then
+    begin
+    C:=Strings.GetRestString(rpOpenAPI);
+    FOpenAPIRoute:=HTTPRouter.RegisterRoute(res+C,@HandleOpenAPIRequest);
+    end;
+
   Res:=Res+':resource';
   FListRoute:=HTTPRouter.RegisterRoute(res,@HandleRequest);
   FParamRoute:=HTTPRouter.RegisterRoute(Res+'/:ResourceName/'+P,@HandleMetadataParameterRequest);
   FItemRoute:=HTTPRouter.RegisterRoute(Res+'/:id',@HandleRequest);
+
 end;
 
 function TSQLDBRestDispatcher.GetInputFormat(IO : TRestIO) : String;
@@ -914,6 +944,11 @@ begin
   FDBHandlerClass:=aClass;
   if FDBHandlerClass=Nil then
     FDBHandlerClass:=TSQLDBRestDBHandler;
+end;
+
+class procedure TSQLDBRestDispatcher.SetOpenAPIRequestHandler(aHandler: TOpenAPIRouteCallBack);
+begin
+  OpenAPIRequestHandler:=aHandler;
 end;
 
 constructor TSQLDBRestDispatcher.Create(AOWner: TComponent);
@@ -2215,6 +2250,7 @@ begin
   Un(FMetadataItemRoute);
   Un(FMetadataParameterRoute);
   Un(FMetadataRoute);
+  Un(FOpenAPIRoute);
 end;
 
 procedure TSQLDBRestDispatcher.HandleMetadataParameterRequest(
