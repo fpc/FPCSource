@@ -131,13 +131,20 @@ begin
   FUUIDMapFile:=GetOptionValue('u','uuid-map');
   FServiceMapFile:=GetOptionValue('s','service-map');
   FCodeGen.GenerateServer:=HasOption('r','server');
+  FCodeGen.GenerateClient:=HasOption('c','client');
   FCodeGen.AbstractServiceCalls:=HasOption('b','abstract');
   FCodeGen.SkipServerServiceImplementationModule:=HasOption('n','no-implementation');
   FQuiet:=HasOption('q','quiet');
+
   if HasOption('w','write-config') then
     WriteConfig(GetOptionValue('w','write-config'))
   else
     begin
+    if lInputFile='' then
+      begin
+      Usage('No input file specified.');
+      Exit;
+      end;
     if lOutputFile='' then
       lOutputFile:=ChangeFileExt(lInputFile,'');
     lAPI:=TOpenAPI.Create;
@@ -169,7 +176,9 @@ end;
 procedure TGenDTOApplication.Usage(const aMessage: string);
 
 begin
-  writeln('Usage: ', ExeName, '[options]');
+  if aMessage<>'' then
+    Writeln('Error : ',aMessage);
+  writeln('Usage: ', ExtractFileName(ExeName), ' [options]');
   Writeln('Where options is one or more of:');
   Writeln('-a --async             Generate asynchronous service calls.');
   Writeln('-b --abstract          Split server in abstract handler and implementation modules (and units).');
@@ -178,10 +187,11 @@ begin
   Writeln('-d --delphi            Generate delphi code for DTO/Serializer/Service definitions.');
   Writeln('-e --enumerated        Use enumerateds (default is to keep strings).');
   Writeln('-h --help              This message.');
-  Writeln('-i --input=FILE        OpenAPI JSON File to use.');
+  Writeln('-i --input=FILE        OpenAPI JSON File to use. Required.');
   Writeln('-n --no-implementation Skip generation of server service module (only useful when -b is used).');
   Writeln('-o --output=FILE       Base filename for output.');
   Writeln('-q --quiet             Be less verbose.');
+  Writeln('-r --server            Generate a HTTP server module.');
   Writeln('-s --service-map=FILE  Read service and method name mapping from file.');
   Writeln('-u --uuid-map=FILE     Read (and write) a file with UUIDs for interfaces.');
   Writeln('-v --verbose-header    Add OpenAPI description to unit header.');
