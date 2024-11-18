@@ -37,11 +37,23 @@ uses classes, sysutils;
 type
 
   TBase64EncodingStream = class(TOwnerStream)
+  private type
+    TWriteBuffer = array[0..3] of AnsiChar;
+    TWriteBufferLength = 1..4;
   protected
+    CharsPerLine: Integer;
+    LineSeparator: string;
+    PadEnd: Boolean;
+
     TotalBytesProcessed, BytesWritten: LongWord;
+    LineLength: Integer;
     Buf: array[0..2] of Byte;
     BufSize: Integer;    // # of bytes used in Buf
+
+    procedure DoWriteBuf(var Buffer: TWriteBuffer; BufferLength: TWriteBufferLength);
   public
+    constructor Create(ASource: TStream); overload;
+    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: string; APadEnd: Boolean); overload;
     destructor Destroy; override;
     Function Flush : Boolean;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -84,11 +96,11 @@ type
 
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    
+
     property EOF: Boolean read fEOF;
     property Mode: TBase64DecodingMode read FMode write SetMode;
   end;
-  
+
   EBase64DecodingException = class(Exception)
   end;
 
@@ -147,9 +159,7 @@ begin
     1: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
         WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4];
-        WriteBuf[2] := '=';
-        WriteBuf[3] := '=';
-        Source.Write(WriteBuf, 4);
+        DoWriteBuf(WriteBuf, 2);
         Result:=True;
         Inc(TotalBytesProcessed,2);
       end;
@@ -157,8 +167,7 @@ begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
         WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
         WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
-        WriteBuf[3] := '=';
-        Source.Write(WriteBuf, 4);
+        DoWriteBuf(WriteBuf, 3);
         Result:=True;
         Inc(TotalBytesProcessed,1);
       end;
@@ -167,10 +176,64 @@ begin
   end;
 end;
 
+constructor TBase64EncodingStream.Create(ASource: TStream);
+begin
+  Create(ASource, 0, '', True);
+end;
+
+constructor TBase64EncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: string; APadEnd: Boolean);
+begin
+  inherited Create(ASource);
+
+  CharsPerLine := ACharsPerLine;
+  LineSeparator := ALineSeparator;
+  PadEnd := APadEnd;
+end;
+
 destructor TBase64EncodingStream.Destroy;
 begin
   Flush;
   inherited Destroy;
+end;
+
+procedure TBase64EncodingStream.DoWriteBuf(var Buffer: TWriteBuffer; BufferLength: TWriteBufferLength);
+const
+  Pad: AnsiChar = '=';
+var
+  CharsBeforeLineEnd: Integer;
+  I: TWriteBufferLength;
+begin
+  if PadEnd and (BufferLength<4) then
+  begin
+    for I := BufferLength to 3 do
+      Buffer[I] := Pad;
+    BufferLength := 4;
+  end;
+
+  if (CharsPerLine<=0) or (LineSeparator='') then
+    Source.Write(Buffer[0], BufferLength)
+  else
+  begin // split output into lines
+    CharsBeforeLineEnd := CharsPerLine-LineLength;
+    if CharsBeforeLineEnd<0 then
+      CharsBeforeLineEnd := 0;
+
+    if CharsBeforeLineEnd<BufferLength then
+    begin // buffer does not fit in the line
+      if CharsBeforeLineEnd>0 then
+        Source.Write(Buffer[0], CharsBeforeLineEnd);
+      Source.Write(LineSeparator[1], Length(LineSeparator));
+      Source.Write(Buffer[CharsBeforeLineEnd], BufferLength-CharsBeforeLineEnd);
+      Inc(BytesWritten, Length(LineSeparator));
+      LineLength := BufferLength-CharsBeforeLineEnd;
+    end else
+    begin
+      Source.Write(Buffer[0], BufferLength);
+      Inc(LineLength, BufferLength);
+    end;
+  end;
+  Inc(BytesWritten, BufferLength);
+  BufSize := 0;
 end;
 
 function TBase64EncodingStream.Write(const Buffer; Count: Longint): Longint;
@@ -196,19 +259,35 @@ begin
     WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
     WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2 or (Buf[2] shr 6)];
     WriteBuf[3] := EncodingTable[Buf[2] and 63];
-    Source.Write(WriteBuf, 4);
-    Inc(BytesWritten, 4);
-    BufSize := 0;
+    DoWriteBuf(WriteBuf, 4);
   end;
   Move(p^, Buf[BufSize], count);
   Inc(BufSize, count);
 end;
 
 function TBase64EncodingStream.Seek(Offset: Longint; Origin: Word): Longint;
+var
+  NewChars: Integer;
 begin
   Result := BytesWritten;
   if BufSize > 0 then
-    Inc(Result, 4);
+  begin
+    if PadEnd then
+      NewChars := 4
+    else
+    case (TotalBytesProcessed mod 3) of
+      1: NewChars := 2;
+      2: NewChars := 3;
+    else
+      NewChars := 0;
+    end;
+    if NewChars>0 then
+    begin
+      Inc(Result, NewChars);
+      if (CharsPerLine>0) and (LineLength+NewChars>CharsPerLine) then
+        Inc(Result, Length(LineSeparator));
+    end;
+  end;
 
   // This stream only supports the Seek modes needed for determining its size
   if not ((((Origin = soFromCurrent) or (Origin = soFromEnd)) and (Offset = 0))
@@ -312,7 +391,7 @@ var
   b: byte;
   ReadBuf: array[0..3] of Byte; // buffer to store last read 4 input bytes
   ToRead, OrgToRead, HaveRead, ReadOK, i: Integer;
-  
+
   procedure DetectedEnd(ASize:Int64);
   begin
     DecodedSize := ASize;
@@ -320,7 +399,7 @@ var
     if CurPos + Count > DecodedSize then
       Count := DecodedSize - CurPos;
   end;
-  
+
 begin
   if Count <= 0 then exit(0); // nothing to read, quit
   if DecodedSize <> -1 then begin // try using calculated size info if possible
@@ -354,7 +433,7 @@ begin
             end;
           end;
         end;
-        
+
         if HaveRead <> OrgToRead then begin // less than 4 base64 bytes could be read; end of input stream
           //WriteLn('End: ReadOK=', ReadOK, ', count=', Count);
           for i := ReadOK to 3 do
@@ -366,7 +445,7 @@ begin
       end;
 
       Inc(ReadBase64ByteCount, ReadOK);
-      
+
       // Check for pad characters
       case Mode of
         bdmStrict:begin
@@ -396,13 +475,13 @@ begin
           end;
         end;
       end;
-      
+
       // Decode the 4 bytes in the buffer to 3 undecoded bytes
       Buf[0] :=  ReadBuf[0]         shl 2 or ReadBuf[1] shr 4;
       Buf[1] := (ReadBuf[1] and 15) shl 4 or ReadBuf[2] shr 2;
       Buf[2] := (ReadBuf[2] and  3) shl 6 or ReadBuf[3];
     end;
-    
+
     if Count <= 0 then begin
       Break;
     end;
@@ -415,7 +494,7 @@ begin
     Dec(Count);
     Inc(Result);
   end;
-  
+
   // check for EOF
   if (DecodedSize <> -1) and (CurPos >= DecodedSize) then begin
     FEOF := true;
@@ -430,21 +509,21 @@ end;
 
 function DecodeStringBase64(const s: AnsiString;strict:boolean=false): AnsiString;
 
-var 
+var
   SD : Ansistring;
-  Instream, 
+  Instream,
   Outstream : TStringStream;
   Decoder   : TBase64DecodingStream;
 begin
   if Length(s)=0 then
     Exit('');
   SD:=S;
-  while Length(Sd) mod 4 > 0 do 
+  while Length(Sd) mod 4 > 0 do
     SD := SD + '=';
   Instream:=TStringStream.Create(SD);
   try
     Outstream:=TStringStream.Create('');
-    try 
+    try
       if strict then
         Decoder:=TBase64DecodingStream.Create(Instream,bdmStrict)
       else
@@ -455,10 +534,10 @@ begin
       finally
         Decoder.Free;
         end;
-    finally 
+    finally
      Outstream.Free;
      end;
-  finally 
+  finally
     Instream.Free;
     end;
 end;
@@ -469,14 +548,14 @@ var
   Outstream : TStringStream;
   Encoder   : TBase64EncodingStream;
 begin
-  if Length(s)=0 then 
+  if Length(s)=0 then
     Exit('');
   Outstream:=TStringStream.Create('');
   try
     Encoder:=TBase64EncodingStream.create(outstream);
-    try 
+    try
       Encoder.Write(s[1],Length(s));
-    finally 
+    finally
       Encoder.Free;
       end;
     Result:=Outstream.DataString;

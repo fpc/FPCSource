@@ -39,11 +39,15 @@ type
 
   TNetEncoding = class
   private
-    Const
-      StdCount = 3;
+    type
+      TStandardEncoding = (
+        seBase64,
+        seBase64String,
+        seHTML,
+        seURL);
     Class var
-      FStdEncodings : Array[1..StdCount] of TNetEncoding;
-    Class Function GetStdEncoding(aIndex : Integer) : TNetEncoding; Static;
+      FStdEncodings : Array[TStandardEncoding] of TNetEncoding;
+    Class Function GetStdEncoding(aIndex : TStandardEncoding) : TNetEncoding; Static;
     Class Destructor Destroy;
     class function GetURLEncoding: TURLEncoding; static;
   protected
@@ -85,20 +89,44 @@ type
     Function EncodeBytesToString(const aInput: array of Byte): UnicodeString; overload;
     Function EncodeBytesToString(const aInput: Pointer; Size: Integer): UnicodeString; overload;
     // Default instances
-    class property Base64: TNetEncoding Index 1 read GetStdEncoding;
-    class property HTML: TNetEncoding Index 2 read GetStdEncoding;
+    class property Base64: TNetEncoding Index seBase64 read GetStdEncoding;
+    class property Base64String: TNetEncoding Index seBase64String read GetStdEncoding;
+    class property HTML: TNetEncoding Index seHTML read GetStdEncoding;
     class property URL: TURLEncoding read GetURLEncoding;
   end;
 
-  { TBase64Encoding }
+  { TCustomBase64Encoding }
 
-  TBase64Encoding = class(TNetEncoding)
+  TCustomBase64Encoding = class(TNetEncoding)
+  protected const
+    kCharsPerLine = 76;
+    kLineSeparator = #13#10;
+  protected
+    FCharsPerline: Integer;
+    FLineSeparator: string;
+    FPadEnd: Boolean;
   protected
     Function DoDecode(const aInput, aOutput: TStream): Integer; overload; override;
     Function DoEncode(const aInput, aOutput: TStream): Integer; overload; override;
 
     Function DoDecode(const aInput: RawByteString): RawByteString; overload; override;
     Function DoEncode(const aInput: RawByteString): RawByteString; overload; override;
+  end;
+
+  { TBase64Encoding }
+
+  TBase64Encoding = class(TCustomBase64Encoding)
+  public
+    constructor Create; overload; virtual;
+    constructor Create(CharsPerLine: Integer); overload; virtual;
+    constructor Create(CharsPerLine: Integer; LineSeparator: string); overload; virtual;
+  end;
+
+  { TBase64StringEncoding }
+
+  TBase64StringEncoding = class(TCustomBase64Encoding)
+  public
+    constructor Create; overload; virtual;
   end;
 
   { TURLEncoding }
@@ -141,9 +169,9 @@ uses base64, httpprotocol, HTMLDefs, xmlread;
 Resourcestring
   sInvalidHTMLEntity = 'Invalid HTML encoded character: %s';
 
-{ TBase64Encoding }
+{ TCustomBase64Encoding }
 
-function TBase64Encoding.DoDecode(const aInput, aOutput: TStream): Integer;
+function TCustomBase64Encoding.DoDecode(const aInput, aOutput: TStream): Integer;
 
 Var
   S : TBase64DecodingStream;
@@ -158,12 +186,12 @@ begin
   end;
 end;
 
-function TBase64Encoding.DoEncode(const aInput, aOutput: TStream): Integer;
+function TCustomBase64Encoding.DoEncode(const aInput, aOutput: TStream): Integer;
 Var
   S : TBase64EncodingStream;
 
 begin
-  S:=TBase64EncodingStream.Create(aInput);
+  S:=TBase64EncodingStream.Create(aInput,FCharsPerline,FLineSeparator,FPadEnd);
   try
     Result:=S.Size;
     aOutput.CopyFrom(S,Result);
@@ -172,14 +200,60 @@ begin
   end;
 end;
 
-function TBase64Encoding.DoDecode(const aInput: RawByteString): RawByteString;
+function TCustomBase64Encoding.DoDecode(const aInput: RawByteString): RawByteString;
 begin
   Result:=DecodeStringBase64(aInput,False);
 end;
 
-function TBase64Encoding.DoEncode(const aInput: RawByteString): RawByteString;
+function TCustomBase64Encoding.DoEncode(const aInput: RawByteString): RawByteString;
+var
+  Outstream : TStringStream;
+  Encoder   : TBase64EncodingStream;
 begin
-  Result:=EncodeStringBase64(aInput);
+  if Length(aInput)=0 then
+    Exit('');
+  Outstream:=TStringStream.Create('');
+  try
+    Encoder:=TBase64EncodingStream.create(outstream,FCharsPerline,FLineSeparator,FPadEnd);
+    try
+      Encoder.Write(aInput[1],Length(aInput));
+    finally
+      Encoder.Free;
+    end;
+    Result:=Outstream.DataString;
+  finally
+    Outstream.free;
+  end;
+end;
+
+{ TBase64Encoding }
+
+constructor TBase64Encoding.Create(CharsPerLine: Integer);
+begin
+  Create(CharsPerLine, kLineSeparator);
+end;
+
+constructor TBase64Encoding.Create(CharsPerLine: Integer; LineSeparator: string);
+begin
+  inherited Create;
+  FCharsPerline:=CharsPerLine;
+  FLineSeparator:=LineSeparator;
+  FPadEnd:=True;
+end;
+
+constructor TBase64Encoding.Create;
+begin
+  Create(kCharsPerLine, kLineSeparator);
+end;
+
+{ TBase64StringEncoding }
+
+constructor TBase64StringEncoding.Create;
+begin
+  inherited Create;
+  FCharsPerline:=0;
+  FLineSeparator:='';
+  FPadEnd:=True;
 end;
 
 { ---------------------------------------------------------------------
@@ -189,10 +263,10 @@ end;
 class procedure TNetEncoding.FreeStdEncodings;
 
 Var
-  I : Integer;
+  I : TStandardEncoding;
 
 begin
-  For I:=1 to StdCount do
+  For I in TStandardEncoding do
     FreeAndNil(FStdEncodings[i]);
 end;
 
@@ -201,20 +275,39 @@ begin
   FreeStdEncodings;
 end;
 
-class function TNetEncoding.GetURLEncoding: TURLEncoding; static;
+class function TNetEncoding.GetURLEncoding: TURLEncoding;
 begin
-  Result:=TURLEncoding(GetStdEncoding(3));
+  Result:=TURLEncoding(GetStdEncoding(seURL));
 end;
 
-class function TNetEncoding.GetStdEncoding(aIndex: Integer): TNetEncoding;
+class function TNetEncoding.GetStdEncoding(aIndex: TStandardEncoding): TNetEncoding;
 begin
-  if FStdEncodings[aIndex]=Nil then
-    case aIndex of
-      1 : FStdEncodings[1]:=TBase64Encoding.Create;
-      2 : FStdEncodings[2]:=THTMLEncoding.Create;
-      3 : FStdEncodings[3]:=TURLEncoding.Create;
-    end;
   Result:=FStdEncodings[aIndex];
+  if Assigned(Result) then
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    ReadDependencyBarrier; // Read Result contents (by caller) after Result pointer.
+{$endif}
+    Exit;
+  end;
+
+  case aIndex of
+    seBase64: Result:=TBase64Encoding.Create;
+    seBase64String: Result:=TBase64StringEncoding.Create;
+    seHTML: Result:=THTMLEncoding.Create;
+    seURL: Result:=TURLEncoding.Create;
+  end;
+
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  WriteBarrier; // Write FStdEncodings[aIndex] after Result contents.
+  if InterlockedCompareExchange(Pointer(FStdEncodings[aIndex]), Pointer(Result), nil) <> nil then
+  begin
+    Result.Free;
+    Result := FStdEncodings[aIndex];
+  end;
+{$else}
+  FStdEncodings[aIndex] := Result;
+{$endif}
 end;
 
 // Public API
