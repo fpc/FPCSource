@@ -228,10 +228,9 @@ Var
   S : TBase64EncodingStream;
 
 begin
-  S:=TBase64EncodingStream.Create(aInput,FCharsPerline,FLineSeparator,FPadEnd);
+  S:=TBase64EncodingStream.Create(aOutput,FCharsPerline,FLineSeparator,FPadEnd);
   try
-    Result:=S.Size;
-    aOutput.CopyFrom(S,Result);
+    Result:=S.CopyFrom(aInput,0);
   finally
     S.Free;
   end;
