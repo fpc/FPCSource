@@ -239,6 +239,7 @@ type
 
 var
   lastfilename: string;   { store last processed file }
+  lastbaseaddr: {$ifdef cpui8086}farpointer{$else}pointer{$endif};  { store last base address }
   lastopendwarf: Boolean; { store last result of processing a file }
 
 {$ifdef cpui8086}
@@ -284,7 +285,7 @@ begin
     exit;
 
   // If target filename same as previous, then re-use previous result
-  if AllowReuseOfLineInfoData and (filename = lastfilename) then
+  if AllowReuseOfLineInfoData and (filename = lastfilename) and (baseaddr = lastbaseaddr) then
   begin
     {$ifdef DEBUG_LINEINFO}
     writeln(stderr,'Reusing debug data');
@@ -301,6 +302,9 @@ begin
 
   // Save newly processed filename
   lastfilename := filename;
+
+  // Save newly processed file's base address
+  lastbaseaddr := baseaddr;
 
   // Open exe file or debug link
   if not OpenExeFile(e,filename) then
