@@ -4148,7 +4148,10 @@ begin
     tkUString : result := AsUnicodeString;
     tkSString,
     tkAString : result := AsAnsiString;
-    tkFloat   : Str(AsDouble:12:4,Result);
+    tkFloat   : begin
+                Str(AsDouble:12:4,Result);
+                Result:=TrimLeft(Result)
+                end;
     tkInteger : result := IntToStr(AsInteger);
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
