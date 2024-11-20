@@ -161,14 +161,23 @@ end;
 {$endif FPC_SYSTEM_HAS_MOVE}
 
 
-{$if not defined(FPC_SYSTEM_HAS_FILLCHAR)
-  or not defined(FPC_SYSTEM_HAS_FILLWORD)
-  or not defined(FPC_SYSTEM_HAS_FILLDWORD)
-  or not defined(FPC_SYSTEM_HAS_FILLQWORD)}
+{ Darwin uses Clang to assemble. Recent Clang versions (rightly) give an error when you add global labels in
+  the middle of .cfi_startproc / .cfi_endproc pairs, since this means you could jump into it from other code
+  whose CFI state is completely different without the compiler even having the theoretical ability to analyse
+  all code and generate balanced information.
+
+  Since FPC does not attempt it even for local labels, this kind of code is inherently unsafe.
+}
+{$if not defined(darwin) and
+  (not defined(FPC_SYSTEM_HAS_FILLCHAR)
+   or not defined(FPC_SYSTEM_HAS_FILLWORD)
+   or not defined(FPC_SYSTEM_HAS_FILLDWORD)
+   or not defined(FPC_SYSTEM_HAS_FILLQWORD)
+)}
 
 {$if not defined(FPC_SYSTEM_HAS_FILLCHAR)
-  or not defined(FPC_SYSTEM_HAS_FILLWORD)
-  or not defined(FPC_SYSTEM_HAS_FILLDWORD)}
+   or not defined(FPC_SYSTEM_HAS_FILLWORD)
+   or not defined(FPC_SYSTEM_HAS_FILLDWORD)}
 const
   FillXxxx_RepStosThreshold_ERMS = 1024;
   FillXxxx_RepStosThreshold_NoERMS = 512 * 1024;
@@ -330,7 +339,8 @@ end;
 {$endif FillChar/Word/DWord/QWord required.}
 
 
-{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
+{$if not defined(darwin) and
+     not defined(FPC_SYSTEM_HAS_FILLCHAR)}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 procedure FillChar_3OrLess; assembler; nostackframe;
 { cl — x, edx — byte count, Low(int32) <= edx <= 3. }
@@ -428,7 +438,8 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
-{$ifndef FPC_SYSTEM_HAS_FILLWORD}
+{$if not defined(darwin) and
+     not defined(FPC_SYSTEM_HAS_FILLWORD)}
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure FillWord_3OrLess; assembler; nostackframe;
 asm
@@ -516,7 +527,8 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLWORD}
 
 
-{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
+{$if not defined(darwin) and
+     not defined(FPC_SYSTEM_HAS_FILLDWORD)}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure FillDWord_4OrLess; assembler; nostackframe;
 asm
@@ -590,7 +602,8 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
-{$ifndef FPC_SYSTEM_HAS_FILLQWORD}
+{$if not defined(darwin) and
+     not defined(FPC_SYSTEM_HAS_FILLQWORD)}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
 {$ifndef CPUX86_HAS_SSE2}
 procedure FillQWord_Plain(var x;count:SizeInt;value:QWord);assembler;nostackframe;
