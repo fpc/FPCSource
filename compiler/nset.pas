@@ -1305,7 +1305,11 @@ implementation
       begin
         { Check label type coverage for enumerations and small types }
         getrange(left.resultdef,lv,hv);
-        typcount:=hv-lv;
+        { low/high value of c-style booleans are not suitable for calculating their "type count" }
+        if is_cbool(left.resultdef) then
+          typcount:=1
+        else
+          typcount:=hv-lv;
         if not assigned(elseblock) then
           begin
             { unless cs_check_all_case_coverage is set, only check for enums, booleans and
