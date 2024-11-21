@@ -43,6 +43,10 @@
 unit ffi;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$IFDEF Darwin}
+{$LinkLib ffi}
+{$ENDIF}
+
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
