@@ -1005,6 +1005,7 @@ type
     Procedure TestAttributes_NonConstParam_Fail;
     Procedure TestAttributes_UnknownAttrWarning;
     Procedure TestAttributes_Members;
+    Procedure TestAttributes_MethodParams; // todo
 
     // library
     Procedure TestLibrary_Empty;
@@ -19263,6 +19264,34 @@ begin
   '    Field: word;',
   '  end;',
   'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckAttributeMarkers;
+end;
+
+procedure TTestResolver.TestAttributes_MethodParams;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#create}Create;',
+  '  end;',
+  '  {#custom}TCustomAttribute = class',
+  '  end;',
+  '  TMyClass = class',
+  '    procedure Fly([{#attr__custom__create__size}TCustom]Size: word);',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'procedure TMyClass.Fly(Size: word);',
   'begin',
   'end;',
   'begin',

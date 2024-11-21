@@ -4935,14 +4935,13 @@ begin
   ExportName:=DoParseExpression(Parent);
 end;
 
-
 // Full means that a full variable declaration is being parsed.
 procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility;
   VarParseType: TDeclParseType);
 // on Exception the VarList is restored, no need to Release the new elements
 
 var
-  i, VarCnt: Integer;
+  i, AttrCnt, VarCnt: Integer;
   Value , aLibName, aExpName, AbsoluteExpr: TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
@@ -4958,6 +4957,7 @@ begin
   aExpName:=nil;
   AbsoluteExpr:=nil;
   AbsoluteLocString:='';
+  AttrCnt:=0;
   VarCnt:=0;
   ok:=false;
   IsUntyped:=False;
@@ -4971,6 +4971,7 @@ begin
       if msPrefixedAttributes in CurrentModeswitches then
         begin
         VarList.Add(ParseAttributes(Parent,false));
+        inc(AttrCnt);
         NextToken;
         end
       else
@@ -5002,14 +5003,19 @@ begin
 
     // read type
     VarType:=nil;
+
+    // VarEl is the last created TPasVariable
     if CurToken=tkColon then
       begin
       OldForceCaret:=Scanner.SetForceCaret(True);
       try
         VarType := ParseVarType(VarEl); // Note: this can insert elements into VarList!
+        if VarList[VarList.Count-1]<>Pointer(VarEl) then
+          raise Exception.Create('20241121115919'); // some element was added at end instead of in front (candidate: resolver DeanonymizeType)
       finally
         Scanner.SetForceCaret(OldForceCaret);
       end;
+
       // read type
       for i := VarList.Count-VarCnt to VarList.Count - 1 do
         begin
@@ -5022,6 +5028,7 @@ begin
     // read hints
     H:=CheckHint(Nil,False);
     // read value and location
+    // VarEl is the last created TPasVariable
     If VarParseType in [dptFull,dptInline]then
       GetVariableValueAndLocation(VarEl,IsUnTyped,Value,AbsoluteExpr,AbsoluteLocString);
     if VarCnt>1 then
@@ -5067,7 +5074,6 @@ begin
     for i := VarList.Count-VarCnt to VarList.Count - 1 do
       begin
       VarEl:=TPasVariable(VarList[i]);
-      // Writeln(VarEl.Name, AVisibility);
       // Procedure declaration eats the hints.
       if Assigned(VarType) and (VarType is TPasProcedureType) then
         VarEl.Hints:=VarType.Hints
@@ -5095,9 +5101,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      begin
-      VarList.Count:=VarList.Count-VarCnt;
-      end;
+      VarList.Count:=VarList.Count-VarCnt-AttrCnt;
   end;
 end;
 
@@ -8449,25 +8453,7 @@ begin
   VarSt:=TPasInlineVarDeclStatement(CreateElement(TPasInlineVarDeclStatement,SrcPos));
   NewImplElement:=VarSt;
   CurBlock.AddElement(VarSt);
-  List := TFPList.Create;
-  try
-    Parser.ParseVarList(VarSt,List,visDefault,dptInline);
-    For I:=0 to List.Count-1 do
-      begin
-      V:=TPasVariable(List[i]);
-      List[i]:=Nil;
-      VarSt.Declarations.Add(V);
-      end;
-  finally
-     For I:=0 to List.count-1 do
-       if List[i]<>Nil then
-         begin
-         Obj:=TObject(List[I]);
-         Obj.Free;
-         end;
-     List.Free;
-  end;
-
+  Parser.ParseVarList(VarSt,VarSt.Declarations,visDefault,dptInline);
 end;
 
 function TPasParser.TParseStatementParams.ParseOn: boolean;

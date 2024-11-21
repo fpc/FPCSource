@@ -11994,38 +11994,35 @@ end;
 
 procedure TPasResolver.DeanonymizeType(El: TPasType);
 
-  procedure InsertInFront(NewParent: TPasElement; List: TFPList);
+  procedure InsertInFront(NewParent, Child: TPasElement; List: TFPList);
   var
     i: Integer;
     p, Prev: TPasElement;
   begin
-    p:=El.Parent;
-    if NewParent=p.Parent then
+    // e.g. m,n:array of longint; -> insert n$a in front of m
+    i:=List.Count-1;
+    while (i>=0) and (List[i]<>Pointer(Child)) do
+      dec(i);
+    // skip preview variables with shared type
+    if Child is TPasVariable then
       begin
-      // e.g. m,n:array of longint; -> insert n$a in front of m
-      i:=List.Count-1;
-      while (i>=0) and (List[i]<>Pointer(p)) do
-        dec(i);
-      if P is TPasVariable then
+      while (i>0) do
         begin
-        while (i>0) do
-          begin
-          Prev:=TPasElement(List[i-1]);
-          if (Prev.ClassType=P.ClassType) and (TPasVariable(Prev).VarType=TPasVariable(P).VarType) then
-            dec(i) // e.g. m,n: array of longint
-          else
-            break;
-          end;
+        Prev:=TPasElement(List[i-1]);
+        if (Prev.ClassType=Child.ClassType)
+            and (TPasVariable(Prev).VarType=TPasVariable(Child).VarType) then
+          dec(i) // e.g. m,n: array of longint
+        else
+          break;
         end;
-      if i<0 then
-        List.Add(El)
-      else
-        List.Insert(i,El);
-      end
-    else
-      begin
-      List.Add(El);
       end;
+    // skip attributes
+    while (i>0) and (TPasElement(List[i-1]).ClassType=TPasAttributes) do
+      dec(i);
+    if i<0 then
+      List.Add(El)
+    else
+      List.Insert(i,El);
     {$IFDEF VerbosePasResolver}
     if El.Parent<>NewParent then writeln('TPasResolver.DeanonymizeType.InsertInFront OldParent=',GetObjName(El.Parent),' -> ',GetObjPath(NewParent));
     {$ENDIF}
@@ -12034,7 +12031,7 @@ procedure TPasResolver.DeanonymizeType(El: TPasType);
 
 var
   Decl: TPasDeclarations;
-  p: TPasElement;
+  Child, p: TPasElement;
   MembersType: TPasMembersType;
   CurName: String;
 begin
@@ -12042,8 +12039,10 @@ begin
     exit;
   if (El.Name<>'') then
     RaiseNotYetImplemented(20220320121923,El);
+  if El.ClassType=TPasSpecializeType then exit;
 
   CurName:='';
+  Child:=El;
   p:=El.Parent;
   repeat
     if p=nil then
@@ -12059,13 +12058,13 @@ begin
       if p is TPasDeclarations then
         begin
         Decl:=TPasDeclarations(p);
-        InsertInFront(Decl,Decl.Declarations);
+        InsertInFront(Decl,Child,Decl.Declarations);
         Decl.Types.Add(El);
         end
       else if p is TPasMembersType then
         begin
         MembersType:=TPasMembersType(p);
-        InsertInFront(MembersType,MembersType.Members);
+        InsertInFront(MembersType,Child,MembersType.Members);
         end;
       break;
       end
@@ -12076,6 +12075,7 @@ begin
       else
         CurName:=p.Name;
       end;
+    Child:=p;
     p:=p.Parent;
   until false;
 end;
@@ -28019,7 +28019,7 @@ begin
       pekStringMultiLine:
         begin
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.ComputeElement pekStringMultiLine Value="',LeftStr(TPrimitiveExpr(El).Value,1,500),'"');
+        writeln('TPasResolver.ComputeElement pekStringMultiLine Value="',LeftStr(TPrimitiveExpr(El).Value,500),'"');
         {$ENDIF}
         SetResolverValueExpr(ResolvedEl,btString,
                              FBaseTypes[btString],FBaseTypes[btString],
