@@ -274,6 +274,21 @@ type
     function DoTest : String; override;
   end;
 
+type
+  TEnum1 = (en1_1, en1_2);
+  TEnum2 = (en2_1);
+  TEnum3 = en1_1..en1_1;
+
+
+  { TTestInvokeCast }
+
+  TTestInvokeCast = class(TPersistent)
+  published
+    function Test(Arg: Single): Double;
+    procedure Test2(var Arg: Single);
+    procedure Test3(Arg: TEnum1);
+    function Test4(Arg: UInt8): UInt8;
+  end;
 
 
 
@@ -1145,6 +1160,27 @@ begin
   Result:='In test';
 end;
 
+{ TTestInvokeCast }
+
+function TTestInvokeCast.Test(Arg: Single): Double;
+begin
+  Result := Arg + 1;
+end;
+
+procedure TTestInvokeCast.Test2(var Arg: Single);
+begin
+  Arg := Arg + 1;
+end;
+
+procedure TTestInvokeCast.Test3(Arg: TEnum1);
+begin
+
+end;
+
+function TTestInvokeCast.Test4(Arg: UInt8): UInt8;
+begin
+  Result := Arg + 1;
+end;
 
 end.
 

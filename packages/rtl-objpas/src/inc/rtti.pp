@@ -2734,7 +2734,13 @@ Procedure TValue.CastEnumToEnum(out aRes : Boolean; out ADest: TValue; aDestType
 
   begin
     if aType^.Kind=tkEnumeration then
-      Result:=GetTypeData(aType)^.BaseType
+    begin
+      Result:=GetTypeData(aType)^.BaseType;
+      if Assigned(Result) and (Result^.Kind = tkEnumeration) then
+        Result := GetEnumBaseType(Result)
+      else
+        Result := aType;
+    end
     else
       Result:=Nil;
   end;
@@ -3258,7 +3264,7 @@ Procedure TValue.CastFromInteger(out aRes : Boolean; out ADest: TValue; aDestTyp
 
 begin
   Case aDestType^.Kind of
-    tkChar: CastIntegerToInteger(aRes,aDest,aDestType);
+    tkInteger: CastIntegerToInteger(aRes,aDest,aDestType);
     tkVariant : CastToVariant(aRes,aDest,aDestType);
     tkInt64 : CastIntegerToInt64(aRes,aDest,aDestType);
     tkQWord : CastIntegerToQWord(aRes,aDest,aDestType);
@@ -4437,17 +4443,22 @@ begin
 end;
 
 function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: TRttiParameterArray; aReturnType: TRttiType): TValue;
+  function ShouldTryCast(AParam: TRttiParameter; const AArg: TValue): boolean;
+  begin
+    Result := Assigned(AParam.ParamType) and (AParam.ParamType.FTypeInfo <> AArg.TypeInfo);
+  end;
+
 var
   param: TRttiParameter;
-  unhidden, highs, i: SizeInt;
+  unhidden, i: SizeInt;
   args: TFunctionCallParameterArray;
-  highargs: array of SizeInt;
+  castedargs: array of TValue; // instance + args[i].Cast<ParamType>
   restype: PTypeInfo;
   resptr: Pointer;
   mgr: TFunctionCallManager;
   flags: TFunctionCallFlags;
   hiddenVmt : Pointer;
-
+  highArg: SizeInt;
 begin
   mgr := FuncCallMgr[aCallConv];
   if not Assigned(mgr.Invoke) then
@@ -4456,22 +4467,17 @@ begin
   if not Assigned(aCodeAddress) then
     raise EInvocationError.CreateFmt(SErrInvokeNoCodeAddr, [aName]);
 
+  SetLength(castedargs, Length(aParams));
   unhidden := 0;
-  highs := 0;
   for param in aParams do begin
     if unhidden < Length(aArgs) then begin
       if pfArray in param.Flags then begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
-      end else if not (pfHidden in param.Flags) then begin
-        if Assigned(param.ParamType) and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
-          raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
       end;
     end;
     if not (pfHidden in param.Flags) then
       Inc(unhidden);
-    if pfHigh in param.Flags then
-      Inc(highs);
   end;
 
   if unhidden <> Length(aArgs) then
@@ -4487,12 +4493,9 @@ begin
     restype := Nil;
   end;
 
-  highargs:=[];
   args:=[];
-  SetLength(highargs, highs);
   SetLength(args, Length(aParams));
   unhidden := 0;
-  highs := 0;
 
   for i := 0 to High(aParams) do begin
     param := aParams[i];
@@ -4505,7 +4508,15 @@ begin
 
     if pfHidden in param.Flags then begin
       if pfSelf in param.Flags then
-        args[i].ValueRef := aInstance.GetReferenceToRawData
+      begin
+        if ShouldTryCast(param, aInstance) then
+        begin
+          if not aInstance.TryCast(param.ParamType.Handle, castedargs[I]) then
+            raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, ['Self', aName]);
+          args[i].ValueRef := castedargs[I].GetReferenceToRawData;
+        end else
+          args[i].ValueRef := aInstance.GetReferenceToRawData
+      end
       else if pfVmt in param.Flags then
         begin
         if aInstance.Kind=tkClassRef then
@@ -4523,13 +4534,13 @@ begin
       end else if pfHigh in param.Flags then begin
         { the corresponding array argument is the *previous* unhidden argument }
         if aArgs[unhidden - 1].IsArray then
-          highargs[highs] := aArgs[unhidden - 1].GetArrayLength - 1
+          highArg := aArgs[unhidden - 1].GetArrayLength - 1
         else if not Assigned(aArgs[unhidden - 1].TypeInfo) then
-          highargs[highs] := -1
+          highArg := -1
         else
-          highargs[highs] := 0;
-        args[i].ValueRef := @highargs[highs];
-        Inc(highs);
+          highArg := 0;
+        TValue.Make(@highArg, TypeInfo(SizeInt), castedargs[i]);
+        args[i].ValueRef := castedargs[i].GetReferenceToRawData;
       end;
     end else begin
       if (pfArray in param.Flags) then begin
@@ -4540,7 +4551,22 @@ begin
         else
           args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
       end else
-        args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData;
+      begin
+        if param.Flags * [pfVar, pfOut] <> [] then
+        begin
+          if ShouldTryCast(param, aArgs[unhidden]) then
+            raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
+          args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData
+        end
+        else if not ShouldTryCast(param, aArgs[unhidden]) then
+          args[i].ValueRef := aArgs[unhidden].GetReferenceToRawData
+        else
+        begin
+          if not aArgs[unhidden].TryCast(param.ParamType.Handle, castedargs[I]) then
+            raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
+          args[i].ValueRef := castedargs[I].GetReferenceToRawData;
+        end;
+      end;
 
       Inc(unhidden);
     end;

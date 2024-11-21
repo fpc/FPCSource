@@ -68,6 +68,7 @@ type
     procedure TestIntfVariant;
 
     procedure TestTObject;
+    procedure TestCasts;
   end;
 
   { TTestInvokeIntfMethods }
@@ -1494,6 +1495,57 @@ begin
 end;
 
 
+procedure TTestInvoke.TestCasts;
+
+var
+  Context: TRttiContext;
+
+  procedure ExpectedInvocationException(const AMethodName: string;
+    const AInstance: TValue; const AArgs: array of TValue);
+  var
+    HasException: boolean;
+  begin
+    HasException := False;
+    try
+      Context.GetType(TTestInvokeCast).GetMethod(AMethodName).Invoke(AInstance, AArgs);
+    except
+  {$ifndef fpc}
+      on EInvalidCast do
+        HasException := True;
+  {$endif}
+      on EInvocationError do
+        HasException := True;
+    end;
+    if not HasException then
+      Fail('Expected exception on call method ' + AMethodName);
+  end;
+
+var
+  Instance: TValue;
+  M: TRttiMethod;
+  T1,T2,TempV: TValue;
+  
+begin
+
+  Context := TRttiContext.Create;
+  try
+    Instance := TValue.specialize From<TTestInvokeCast>(TTestInvokeCast.Create);
+    M := Context.GetType(TTestInvokeCast).GetMethod('Test');
+    T1:=TValue.specialize From<Double>(10);
+    T2:=M.Invoke(Instance, [T1]);
+    CheckEquals(11, T2. specialize AsType<Double>, 'Test(Double(10) <> 11)');
+
+    ExpectedInvocationException('Test', TValue. specialize From<TObject>(TObject.Create), [TValue. Specialize From<Double>(10)]);
+    ExpectedInvocationException('Test2', Instance, [TValue.specialize From<Double>(10)]);
+
+    Context.GetType(TTestInvokeCast).GetMethod('Test3').Invoke(Instance, [TValue. specialize From<TEnum3>(en1_1)]);
+    ExpectedInvocationException('Test3', Instance, [TValue. specialize From<TEnum2>(en2_1)]);
+
+    Instance. specialize AsType<TTestInvokeCast>.Free;
+  finally
+    Context.Free;
+  end;
+end;
 
 procedure TTestInvoke.TestTObject;
 
@@ -1557,6 +1609,9 @@ begin
   DoStaticInvokeTestClassCompare('TTestClass StdCall', @TestTTestClassStdCall, ccStdCall, values, TypeInfo(TTestClass), rescls);
   DoStaticInvokeTestClassCompare('TTestClass Pascal', @TestTTestClassPascal, ccPascal, values, TypeInfo(TTestClass), rescls);
 end;
+
+
+
 
 { ----------------------------------------------------------------------
   TTestInvokeMethodTests

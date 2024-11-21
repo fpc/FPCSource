@@ -15,8 +15,8 @@ Type
     procedure TestDataSizeEmpty;
     procedure TestReferenceRawData;
     procedure TestReferenceRawDataEmpty;
-
     procedure TestIsManaged;
+    procedure TestCasts; 
   end;
 
   TTestValueSimple = Class(TTestCase)
@@ -1877,6 +1877,31 @@ begin
   CheckEquals(false, IsManaged(TypeInfo(Pointer)), 'IsManaged for tkPointer');
   CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
 end;
+
+Type
+  TEnum1 = (en1_1, en1_2);
+  TEnum2 = (en2_1);
+  TEnum3 = en1_1..en1_1;
+
+procedure TTestValueGeneral.TestCasts;
+
+var
+  TempV,T1,T2,T3 : TValue;
+
+begin
+  T1:=TValue. specialize From<TEnum1>(en1_1);
+  T2:=T1. specialize Cast<TEnum3>;
+//  T3:=T2. specialize AsType<TEnum3>;
+  CheckTrue((en1_1 = T2. specialize AsType<TEnum3>), 'en1_1 = (TValue.From<TEnum1>(en1_1).Cast<TEnum3>.AsType<TEnum3>)');
+  CheckFalse(TValue. specialize From<Integer>(32).TryCast(TypeInfo(AnsiChar), TempV), 'not (TValue.From<Integer>(32).TryCast(TypeInfo(AnsiChar), V)');
+  CheckFalse(TValue. specialize From<Integer>(32).TryCast(TypeInfo(WideChar), TempV), 'not (TValue.From<Integer>(32).TryCast(TypeInfo(WideChar), V)');
+{$ifdef fpc}
+  CheckFalse(TValue. specialize From<Integer>(32).TryCast(TypeInfo(UnicodeChar), TempV), 'not (TValue.From<Integer>(32).TryCast(TypeInfo(UnicodeChar), V)');
+{$endif}
+  CheckTrue(Byte(397) = (TValue. specialize From<Integer>(397). specialize Cast<Byte>(). specialize AsType<Byte>), 'Byte(397) = (TValue.From<Integer>(397).Cast<Byte>().AsType<Byte>)');
+  CheckTrue(32 = (TValue. specialize From<Byte>(32). specialize Cast<Integer>(). specialize AsType<Integer>), '32 = (TValue.From<Byte>(32).Cast<Integer>().AsType<Integer>)');
+end;
+  
 
 procedure TTestValueGeneral.TestReferenceRawData;
 var
