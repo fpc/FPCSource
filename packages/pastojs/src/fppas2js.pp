@@ -540,6 +540,7 @@ resourcestring
   sInvalidVariableModifier = 'Invalid variable modifier "%s"';
   sPublishedNameMustMatchExternal = 'Published name must match external';
   sAWaitOnlyInAsyncProcedure = 'await only available in async procedure';
+  sAsyncFunctionOrPromise = 'async function or promise';
   sNewInstanceFunctionMustBeVirtual = 'NewInstance function must be virtual';
   sNewInstanceFunctionMustHaveTwoParameters = 'NewInstance function must have two parameters';
   sNewInstanceFunctionMustNotHaveOverloadAtX = 'NewInstance function must not have overload at %s';
@@ -6157,7 +6158,8 @@ var
       {$ENDIF}
 
       if RaiseOnError then
-        RaiseMsg(20201229232446,nXExpectedButYFound,sXExpectedButYFound,['async function or a promise',GetResolverResultDescription(ParamResolved)],Expr);
+        RaiseMsg(20201229232446, nXExpectedButYFound, sXExpectedButYFound, [
+          sAsyncFunctionOrPromise, GetResolverResultDescription(ParamResolved)], Expr);
     end;
   end;
 

@@ -35171,7 +35171,7 @@ begin
   'end;',
   'begin',
   '  Fly(1);']);
-  SetExpectedPasResolverError('async function expected, but Result:Word found',nXExpectedButYFound);
+  SetExpectedPasResolverError('async function or promise expected, but Result:Word found',nXExpectedButYFound);
   ConvertProgram;
 end;
 

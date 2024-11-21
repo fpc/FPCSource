@@ -40,7 +40,8 @@ type
     procedure TestGen_Class_OverloadsInUnit;
     procedure TestGen_ClassForward_CircleRTTI;
     procedure TestGen_Class_Nested_RTTI;
-    Procedure TestGen_Class_ClassVarRecord_UnitImpl;
+    procedure TestGen_Class_ClassVarRecord_UnitImpl;
+    procedure TestGen_Class_Field_ArrayOfSpec;
 
     // generic external class
     procedure TestGen_ExtClass_VarArgsOfType;
@@ -1284,6 +1285,47 @@ begin
     '$mod.$implcode = function () {',
     '  pas.UnitA.TAnt$G1.$initSpec();',
     '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_Field_ArrayOfSpec;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TWing<T> = class',
+  '  end;',
+  '  TBird = class',
+  '    Wings: array of TWing<string>;',
+  '  end;',
+  'begin',
+  'end.']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_Field_ArrayOfSpec',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TWing$G1", this.TObject, function () {',
+    '}, "TWing<System.String>");',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Wings = [];',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Wings = undefined;',
+    '    $mod.TObject.$final.call(this);',
+    '  };',
+    '});',
     '']),
     LinesToStr([ // $mod.$main
     '']));
