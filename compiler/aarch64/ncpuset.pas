@@ -276,7 +276,7 @@ implementation
               will occur, but also full 64-bit references to avoid problems with 
               relative references }
             sectype:=sec_rodata;
-            new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),getprocalign);
+            new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),sizeof(aint));
           end
         else
           begin
