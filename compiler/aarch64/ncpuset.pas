@@ -240,8 +240,11 @@ implementation
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
-        { local label in order to avoid using GOT }
-        current_asmdata.getlabel(tablelabel,alt_data);
+        if target_info.system=system_aarch64_win64 then
+          current_asmdata.getstaticdatalabel(tablelabel)
+        else
+          { local label in order to avoid using GOT }
+          current_asmdata.getlabel(tablelabel,alt_data);
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_ADDR);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_ADDR,hregister,indexreg);
         { load table address }
