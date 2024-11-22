@@ -250,7 +250,10 @@ implementation
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load the slot }
         jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        reference_reset_base(href,basereg,0,href.temppos,4,[]);
+        if target_info.system=system_aarch64_win64 then
+          reference_reset_base(href,basereg,0,href.temppos,sizeof(aint),[])
+        else
+          reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;
         if target_info.system=system_aarch64_win64 then
