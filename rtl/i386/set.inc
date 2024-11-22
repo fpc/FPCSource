@@ -15,14 +15,10 @@
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
 {$define FPC_SYSTEM_HAS_FPC_VARSET_ADD_SETS}
-label
-  fpc_varset_add_sets_plain_fallback;
-
 procedure fpc_varset_add_sets_plain(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
 { eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
     push   %ebx
-fpc_varset_add_sets_plain_fallback:
     push   %esi
     mov    12(%esp), %esi { esi = size }
     sub    $4, %esi
@@ -60,7 +56,7 @@ asm
     push   %ebx
     mov    8(%esp), %ebx
     sub    $16, %ebx { ebx = position }
-    jl     fpc_varset_add_sets_plain_fallback { probably dead branch... }
+    jl     .LFallback { Hopefully dead branch... }
 
 .L16x_Loop:
     movups (%eax,%ebx), %xmm0
@@ -75,6 +71,11 @@ asm
     orps   %xmm1, %xmm0
     movups %xmm0, (%ecx)
     pop    %ebx
+    ret    $4
+
+.LFallback:
+    pop    %ebx
+    jmp    fpc_varset_add_sets_plain
 end;
 
 {$ifndef CPUX86_HAS_SSEUNIT}
@@ -101,14 +102,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
 {$define FPC_SYSTEM_HAS_FPC_VARSET_MUL_SETS}
-label
-  fpc_varset_mul_sets_plain_fallback;
-
 procedure fpc_varset_mul_sets_plain(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
 { Same as fpc_varset_add_sets_plain but with 'and' instead of 'or'. }
 asm
     push   %ebx
-fpc_varset_mul_sets_plain_fallback:
     push   %esi
     mov    12(%esp), %esi { esi = size }
     sub    $4, %esi
@@ -146,7 +143,7 @@ asm
     push   %ebx
     mov    8(%esp), %ebx
     sub    $16, %ebx { ebx = position }
-    jl     fpc_varset_mul_sets_plain_fallback { probably dead branch... }
+    jl     .LFallback { Hopefully dead branch... }
 
 .L16x_Loop:
     movups (%eax,%ebx), %xmm0
@@ -161,6 +158,11 @@ asm
     andps   %xmm1, %xmm0
     movups %xmm0, (%ecx)
     pop    %ebx
+    ret    $4
+
+.LFallback:
+    pop    %ebx
+    jmp    fpc_varset_mul_sets_plain
 end;
 
 {$ifndef CPUX86_HAS_SSEUNIT}
@@ -187,14 +189,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
 {$define FPC_SYSTEM_HAS_FPC_VARSET_SUB_SETS}
-label
-  fpc_varset_sub_sets_plain_fallback;
-
 procedure fpc_varset_sub_sets_plain(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
 { eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
     push   %ebx
-fpc_varset_sub_sets_plain_fallback:
     push   %esi
     mov    12(%esp), %esi { esi = size }
     sub    $4, %esi
@@ -237,7 +235,7 @@ asm
     push   %ebx
     mov    8(%esp), %ebx
     sub    $16, %ebx { ebx = position }
-    jl     fpc_varset_sub_sets_plain_fallback { probably dead branch... }
+    jl     .LFallback { Hopefully dead branch... }
 
     movups (%eax), %xmm1 { Tail, just in case (if size is always divisible by 16, 16x_Loop can be altered to handle everything instead). }
     movups (%edx), %xmm2 { Precalculated because operation is not idempotent and dest can be equal to set1/set2. }
@@ -253,6 +251,11 @@ asm
 
     movups %xmm2, (%ecx) { Write precalculated tail. }
     pop    %ebx
+    ret    $4
+
+.LFallback:
+    pop    %ebx
+    jmp    fpc_varset_sub_sets_plain
 end;
 
 {$ifndef CPUX86_HAS_SSEUNIT}
@@ -279,15 +282,11 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
 {$define FPC_SYSTEM_HAS_FPC_VARSET_SYMDIF_SETS}
-label
-  fpc_varset_symdif_sets_plain_fallback;
-
 procedure fpc_varset_symdif_sets_plain(const set1,set2; var dest;size : ptrint); assembler; nostackframe;
 { Same as fpc_varset_sub_sets_plain but with 'xor' instead of 'and not'.
   eax = set1, edx = set2, ecx = dest, [esp + 4] = size }
 asm
     push   %ebx
-fpc_varset_symdif_sets_plain_fallback:
     push   %esi
     mov    12(%esp), %esi { esi = size }
     sub    $4, %esi
@@ -328,7 +327,7 @@ asm
     push   %ebx
     mov    8(%esp), %ebx
     sub    $16, %ebx { ebx = position }
-    jl     fpc_varset_symdif_sets_plain_fallback { probably dead branch... }
+    jl     .LFallback { Hopefully dead branch... }
 
     movups (%eax), %xmm1 { Tail, just in case (if size is always divisible by 16, 16x_Loop can be altered to handle everything instead). }
     movups (%edx), %xmm2 { Precalculated because operation is not idempotent and dest can be equal to set1/set2. }
@@ -344,6 +343,11 @@ asm
 
     movups %xmm2, (%ecx) { Write precalculated tail. }
     pop    %ebx
+    ret    $4
+
+.LFallback:
+    pop    %ebx
+    jmp    fpc_varset_symdif_sets_plain
 end;
 
 {$ifndef CPUX86_HAS_SSEUNIT}
