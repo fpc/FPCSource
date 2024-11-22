@@ -248,7 +248,7 @@ implementation
         reference_reset_symbol(href,tablelabel,0,4,[]);
         basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
-        { load table slot, 32-bit sign extended }
+        { load the slot }
         jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
@@ -261,6 +261,7 @@ implementation
           end
         else
           begin
+            { load table slot, 32-bit sign extended }
             href.shiftimm:=2;
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
             { add table address }
