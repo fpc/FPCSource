@@ -24,9 +24,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Types, System.SysUtils, System.Classes, System.Rtti, System.TypInfo, System.Generics.Collections, FpJson.Data;
+  System.Types, System.SysUtils, System.DateUtils, System.Classes, System.Rtti, System.TypInfo, System.Generics.Collections, FpJson.Data;
 {$ELSE}
-  Types, SysUtils, Classes, Rtti, TypInfo, Generics.Collections, fpjson;
+  Types, SysUtils, DateUtils, Classes, Rtti, TypInfo, Generics.Collections, fpjson;
 {$ENDIF}
 
 type
@@ -526,6 +526,111 @@ begin
   Result:=Byte(DecimalToHexMap[aDecimal+1]);
 end;
 
+function CreateTValue(S : String; aInfo : PTypeInfo; out aValue : TValue) : Boolean;
+
+const
+  // otSByte,otUByte,otSWord,otUWord,otSLong,otULong,otSQWord,otUQWord
+  Lows : Array[TOrdType] of Int64 = (Low(Int8),Low(UInt8),low(Int16),low(UInt16),low(Int32),low(UInt16),Low(Int64),Low(Uint64));
+  Highs : Array[TOrdType] of QWord = (High(Int8),High(UInt8),High(Int16),High(UInt16),High(Int32),High(UInt16),High(Int64),High(Uint64));
+
+Type
+  TAnyValue = record
+    case Integer of
+      2 : (I32: Int32);
+      3 : (I64: Int64);
+      4 : (Bn: Boolean);
+      5 : (Si: Single);
+      6 : (Db: Double);
+      7 : (Ex: Extended);
+      8 : (Cu: Currency);
+      9 : (AC: AnsiChar);
+      10 : (WC: WideChar);
+  end;
+
+var
+  lKind : TTypeKind;
+  lTmp : TAnyValue;
+  lOrd : TOrdType;
+  lFloat : TFloatType;
+  lCode : Integer;
+  lAStr : AnsiString;
+  lUStr : UnicodeString;
+
+
+begin
+  lKind:=aInfo^.kind;
+  Result:=True;
+  Case lKind of
+    tkBool :
+      lTmp.Bn:=StrToBool(S);
+    tkInteger :
+      begin
+      lOrd:=GetTypeData(aInfo)^.OrdType;
+      lTmp.I32:=StrToInt(S);
+      if (lTmp.I32<Lows[lOrd]) or (lTmp.I32>Highs[lOrd]) then
+         raise EConvertError.CreateFmt('Integer not in range %d to %s',[Lows[lOrd],Highs[lOrd]]);
+      end;
+    tkEnumeration:
+      begin
+      lTmp.I32:=GetEnumValue(aInfo,S);
+      if lTmp.I32=-1 then
+         begin
+         val(S,lTmp.I32,lCode);
+         Result:=lCode=0;
+         end;
+      end;
+    tkFloat:
+      begin
+      if (aInfo=System.TypeInfo(TDateTime)) or (aInfo=System.TypeInfo(TDate)) or (aInfo=System.TypeInfo(TTime)) then
+        Result:=TryISO8601ToDate(S,TDateTime(lTmp.Db),False)
+      else
+        begin
+        lFloat:=GetTypeData(aInfo)^.FloatType;
+        case lFloat of
+          ftSingle: val(S,lTmp.si,lCode);
+          ftDouble: val(S,lTmp.db,lCode);
+          ftExtended: val(S,lTmp.ex,lCode);
+          ftCurr: val(S,lTmp.Cu,lCode);
+        end;
+        end;
+      Result:=lCode=0;
+      end;
+    tkChar:
+      begin
+      Result:=Length(S)>0;
+      if Result then
+        lTmp.AC:=S[1];
+      end;
+
+    tkWChar:
+      begin
+      Result:=Length(S)>0;
+      if Result then
+        lTmp.WC:=S[1];
+      end;
+     tkSString,
+     tkLString,
+     tkAString:
+       begin
+       lAStr:=S;
+       TValue.Make(@lAStr,aInfo,aValue);
+       Exit;
+       end;
+     tkUString,
+     tkWString:
+       begin
+       lUStr:=UnicodeString(S);
+       TValue.Make(@lUStr,aInfo,aValue);
+       Exit;
+       end;
+  else
+    Result:=False;
+  end;
+  if Result then
+    TValue.Make(@lTmp,aInfo,aValue);
+end;
+
+
 { TJSONParser }
 Type
   TJSONParser = Class(TBaseJSONReader)
@@ -916,30 +1021,63 @@ end;
 generic function TJSONValue.TryGetValue<T>(out aValue: T): Boolean;
 
 begin
-
+  Result:=specialize TryGetValue<T>('',aValue);
 end;
 
 generic function TJSONValue.TryGetValue<T>(const aPath: UnicodeString; out aValue: T): Boolean; overload;
 
-begin
+var
+  lValue: TJSONValue;
 
+begin
+  lValue:=FindValue(aPath);
+  Result:=Assigned(lValue);
+  if Result then
+    Try
+      aValue:=lValue.specialize AsType<T>;
+    except
+      on E : Exception do
+        begin
+        Writeln('Err',E.Message);
+        Result:=False;
+        end;
+    end;
 end;
 
 generic function TJSONValue.GetValue<T>(const aPath: UnicodeString = ''): T; overload;
 
-begin
+var
+  lValue: TJSONValue;
 
+begin
+  lValue:=GetValueP(aPath);
+  Result:= lValue. specialize AsType<T>;
 end;
 
 generic function TJSONValue.GetValue<T>(const aPath: UnicodeString; aDefaultValue: T): T; overload;
 
-begin
+var
+  lValue: TJSONValue;
 
+begin
+  lValue:=FindValue(aPath);
+  if not Assigned(lValue) then
+    Result:=aDefaultValue
+  else if not lValue.specialize TryGetValue<T>(Result) then
+    Result:=aDefaultValue;
 end;
 
 generic function TJSONValue.AsType<T> : T;
-begin
 
+var
+  lValue : TValue;
+  lInfo : PTypeInfo;
+
+begin
+  lInfo:=PTypeInfo(TypeInfo(T));
+  if not AsTValue(lInfo,lValue) then
+    Raise EJSON.CreateFmt('Cannot convert JSON value %s to %s',[ClassName,lInfo^.Name]);
+  Result:=lValue. specialize AsType<T>;
 end;
 
 class function TJSONValue.ParseJSONValueUTF8(const aData: TByteDynArray; const aOffset: Integer; const aCount: Integer): TJSONValue;
@@ -1213,8 +1351,15 @@ begin
 end;
 
 function TJSONString.AsTValue(aTypeInfo: PTypeInfo; var aValue: TValue): Boolean;
+
+const
+  Kinds = [tkInteger, tkInt64, tkFloat,tkAString, tkLString, tkWString, tkUString, tkChar, tkWChar, tkEnumeration];
+
+
 begin
-  Result:=inherited AsTValue(aTypeInfo, aValue);
+  Result:=(aTypeInfo^.Kind in Kinds) and CreateTValue(Self.Value,aTypeInfo,aValue);
+  if not Result then
+    Result:=inherited AsTValue(aTypeInfo, aValue);
 end;
 
 constructor TJSONString.Create;
@@ -1261,7 +1406,7 @@ begin
   Inc(aOffset,Result);
 end;
 
-function MoveRawString(const aString : RawByteString; aData : TByteDynArray; var aOffset :Integer) : Integer; inline;
+function MoveRawString(const aString : RawByteString; aData : TByteDynArray; var aOffset :Integer) : Integer; // inline;
 
 
 begin

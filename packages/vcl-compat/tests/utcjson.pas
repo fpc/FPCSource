@@ -61,6 +61,9 @@ type
     Procedure TestFindObjectNameRecurse;
     Procedure TestFindArrayIndex;
     Procedure TestFindArrayName;
+    Procedure TestAsType;
+    procedure TestGetValue;
+    procedure TestTryGetValue;
   end;
 
   { TTestJSONPathParser }
@@ -463,6 +466,47 @@ begin
   V:=FValue.FindValue('a');
   AssertNull('Have no JSON value',V);
 end;
+
+procedure TTestJSONObject.TestAsType;
+
+begin
+  Value:=TJSONObject.ParseJSONValue('{ "a" : "b" }');
+  AssertEquals('Correct class',TJSONObject.ClassName,(Value.specialize AsType<TJSONObject>()).ClassName);
+end;
+
+procedure TTestJSONObject.TestGetValue;
+
+begin
+  Value:=TJSONObject.ParseJSONValue('{ "a" : "b" }');
+  AssertEquals('Correct value','b',Value. specialize GetValue<String>('a'));
+end;
+
+procedure TTestJSONObject.TestTryGetValue;
+
+var
+  S : String;
+
+begin
+  Value:=TJSONObject.ParseJSONValue('{ "a" : "b" }');
+  AssertTrue('Can get value', Value. specialize TryGetValue<String>('a',S));
+  AssertEquals('Correct value','b',S);
+end;
+
+(*
+{$mode objfpc}
+{$h+}
+
+var
+  V : TJSONValue;
+  S : String;
+
+begin
+  V:=TJSONObject.ParseJSONValue('{ "a" : "b" }');
+  Writeln(V.specialize TryGetValue<String>('a',S));
+  Writeln(S);
+  Writeln(V.specialize GetValue<String>('a'));
+
+*)
 
 procedure TTestJSONObject.SetUp;
 begin
