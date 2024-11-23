@@ -2621,6 +2621,56 @@ begin
 end;
 
 
+
+function FindCmdLineSwitch(const Switch: string; var Value: string; IgnoreCase: Boolean = True; const SwitchTypes: TCmdLineSwitchTypes = [clstValueNextParam, clstValueAppended]): Boolean;
+
+const
+{$IFDEF WINDOWS}
+  SwitchChars = ['-','/'];
+{$ELSE}
+  SwitchChars = ['-'];
+{$ENDIF}
+
+Var
+  I,L,SL : Integer;
+  S,T,R : String;
+
+begin
+  Result:=False;
+  S:=Switch;
+  If IgnoreCase then
+    S:=UpperCase(S);
+  SL:=Length(S);
+  I:=ParamCount;
+  While (Not Result) and (I>0) do
+    begin
+    L:=Length(Paramstr(I));
+    If (L>0) and (ParamStr(I)[1] in SwitchChars) then
+      begin
+      T:=Copy(ParamStr(I),2,SL);
+      If IgnoreCase then
+        T:=UpperCase(T);
+      R:=Copy(ParamStr(I),2+SL);
+      Result:=(S=T);
+      end;
+    If Result then
+      begin
+      if clstValueAppended in SwitchTypes then
+        begin
+        if (R<>'') and (R[1]=':') then
+          Delete(R,1,1);
+        Value:=R;
+        end;
+      if (R='') and (clstValueNextParam in SwitchTypes) then
+        begin
+        if (I<ParamCount) then
+          Value:=Paramstr(I+1);
+        end;
+      end;
+    Dec(i);
+    end;
+end;
+
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
 
 Var

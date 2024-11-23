@@ -287,9 +287,13 @@ Type
   TSysCharSet = Set of AnsiChar;
   PSysCharSet = ^TSysCharSet;
 
-Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
+  TCmdLineSwitchType = (clstValueNextParam, clstValueAppended);
+  TCmdLineSwitchTypes = Set of TCmdLineSwitchType;
+
+Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet; IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string): Boolean;
+function FindCmdLineSwitch(const Switch: string; var Value: string; IgnoreCase: Boolean = True; const SwitchTypes: TCmdLineSwitchTypes = [clstValueNextParam, clstValueAppended]): Boolean;
 
 function WrapText(const Line, BreakStr: string; const BreakChars: TSysCharSet;  MaxCol: Integer): string;
 function WrapText(const Line: string; MaxCol: Integer): string;
