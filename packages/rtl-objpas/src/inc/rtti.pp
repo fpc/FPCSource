@@ -1418,8 +1418,8 @@ begin
 {$ENDIF}
 end;
 
-label
-  RawThunkEnd;
+const
+  RawTHunkEndMarker = $f0f0f0f0;
 
 {$if defined(cpui386)}
 const
@@ -1451,7 +1451,7 @@ asm
   movl RawThunkPlaceholderContext, (%eax)
   movl RawThunkPlaceholderProc, %eax
   jmp %eax
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpux86_64)}
 const
@@ -1469,7 +1469,7 @@ asm
   movq RawThunkPlaceholderContext, %rcx
   movq RawThunkPlaceholderProc, %rax
   jmp %rax
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$else}
 procedure RawThunk; assembler; nostackframe;
@@ -1478,7 +1478,7 @@ asm
   movq RawThunkPlaceholderContext, %rdi
   movq RawThunkPlaceholderProc, %rax
   jmp %rax
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$endif}
 {$elseif defined(cpuarm)}
@@ -1507,7 +1507,7 @@ asm
   .long RawThunkPlaceholderProc
 .LContext:
   .long RawThunkPlaceholderContext
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpuaarch64)}
 const
@@ -1527,7 +1527,7 @@ asm
   .quad RawThunkPlaceholderProc
 .LContext:
   .quad RawThunkPlaceholderContext
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpum68k)}
 const
@@ -1544,7 +1544,7 @@ asm
   move.l #RawThunkPlaceholderContext, (a0)
   move.l #RawThunkPlaceholderProc, a0
   jmp (a0)
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpuriscv64)}
 const
@@ -1564,7 +1564,7 @@ asm
   .quad RawThunkPlaceholderProc
 .LContext:
   .quad RawThunkPlaceholderContext
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpuriscv32)}
 const
@@ -1584,7 +1584,7 @@ asm
   .long RawThunkPlaceholderProc
 .LContext:
   .long RawThunkPlaceholderContext
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$elseif defined(cpuloongarch64)}
 const
@@ -1606,13 +1606,13 @@ asm
   ld.d $t1, $ra, 0
   move $ra, $t0
   jr $t1
-RawThunkEnd:
+  .long RawTHunkEndMarker
 end;
 {$endif}
 
 {$if declared(RawThunk)}
-const
-  RawThunkEndPtr: Pointer = @RawThunkEnd;
+var
+  RawThunkEndPtr: Pointer;
 
 type
 {$if declared(TRawThunkBytesToPop)}
@@ -1642,7 +1642,13 @@ begin
   { platform dose not have thunk support... :/ }
   Result := Nil;
 {$else}
-  Size := PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk) + 1;
+  if not assigned(RawThunkEndPtr) then
+    begin
+      Result := Nil;
+      Exit;
+    end;
+
+  Size := PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk);
   Result := AllocateMemory(size);
   Move(Pointer(@RawThunk)^, Result^, size);
 
@@ -1693,7 +1699,8 @@ end;
 procedure FreeRawThunk(aThunk: CodePointer);
 begin
 {$if declared(RawThunk)}
-  FreeMemory(aThunk, PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk));
+  if assigned(RawThunkEndPtr) then
+    FreeMemory(aThunk, PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk));
 {$endif}
 end;
 
@@ -7929,6 +7936,19 @@ begin
 end;
 
 
+{$if declared(RawThunk)}
+procedure InitRawThunkEndPtr;
+var
+  Size: sizeint;
+begin
+  { no need for cross-endian support, the thunk will always have the native
+    endianess }
+  Size := IndexDWord(pointer(@RawThunk)^, 1024, RawTHunkEndMarker);
+  if size > 0 then
+    RawThunkEndPtr := pointer(@RawThunk) + size;
+end;
+{$endif}
+
 {$ifndef InLazIDE}
 {$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}
 {$I invoke.inc}
@@ -7939,6 +7959,9 @@ initialization
   PoolRefCount[False] := 0;
   PoolRefCount[True] := 0;
   InitDefaultFunctionCallManager;
+{$if declared(RawThunk)}
+  InitRawThunkEndPtr;
+{$endif}
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;
 {$endif}
