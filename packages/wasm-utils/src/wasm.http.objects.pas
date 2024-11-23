@@ -645,14 +645,15 @@ begin
   Result.Referrer:=StringToWasmString(Idx,Referrer);
   Result.ReferrerPolicy:=StringToWasmString(Idx,ReferrerPolicy);
   Result.Integrity:=StringToWasmString(Idx,Integrity);
-  Result.HeaderCount:=0;
+  Result.HeaderCount:=FHeaders.Count;
   SetLength(FAPIHeaders,FHeaders.Count);
   Idx2:=0;
   For H in FHeaders do
     begin
-    FAPIHeaders[Idx2]:=StringToWasmString(Idx,URL);
+    FAPIHeaders[Idx2]:=StringToWasmString(Idx,H);
     Inc(Idx2);
     end;
+  Result.Headers:=PWasmString(FAPIHeaders);
   Result.AbortSignal:=Ord(AbortSignal);
   Result.KeepAlive:=Ord(KeepAlive);
   Result.Cache:=Ord(Cache);
@@ -660,6 +661,9 @@ begin
   Result.Priority:=Ord(Priority);
   Result.Redirect:=Ord(Redirect);
   Result.Credentials:=Ord(Credentials);
+  Result.Body.Len:=Length(FBody);
+  if Result.Body.Len>0 then
+    Result.Body.Data:=PByte(FBody);
 end;
 
 function TWasmHTTPRequest.Scheduled: Boolean;
