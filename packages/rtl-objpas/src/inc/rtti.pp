@@ -246,12 +246,14 @@ type
     function GetArrayElement(AIndex: SizeInt): TValue;
     procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
     function IsType(aTypeInfo: PTypeInfo): boolean; inline;
+    function IsType(aTypeInfo: PTypeInfo; const EmptyAsAnyType: Boolean) : Boolean;
     function IsInstanceOf(aClass : TClass): boolean; inline;
     function TryCast(aTypeInfo: PTypeInfo; out aResult: TValue; const aEmptyAsAnyType: Boolean = True): Boolean;
     function Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
 {$ifndef NoGenericMethods}
     generic function Cast<T>(const aEmptyAsAnyType: Boolean = True): TValue; overload;
     generic function IsType<T>: Boolean; inline;
+    generic function IsType<T>(const EmptyAsAnyType: Boolean) : Boolean; inline;
     generic function AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
     generic function TryAsType<T>(out aResult: T; const aEmptyAsAnyType: Boolean = True): Boolean; inline;
 {$endif}
@@ -2324,6 +2326,11 @@ begin
   Result := IsType(PTypeInfo(System.TypeInfo(T)));
 end;
 
+generic function TValue.IsType<T>(const EmptyAsAnyType : Boolean):Boolean;
+begin
+  Result := IsType(PTypeInfo(System.TypeInfo(T)),EmptyAsAnyType);
+end;
+
 generic class procedure TValue.Make<T>(const AValue: T; out Result: TValue);
 begin
   TValue.Make(@AValue, PTypeInfo(System.TypeInfo(T)), Result);
@@ -2350,6 +2357,14 @@ function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
 begin
   result := ATypeInfo = TypeInfo;
 end;
+
+function TValue.IsType(ATypeInfo: PTypeInfo; const EmptyAsAnyType : Boolean): boolean;
+begin
+  Result:=IsEmpty;
+  if Not Result then
+    result := ATypeInfo = TypeInfo;
+end;
+
 
 class procedure TValue.Make(AValue: NativeInt; ATypeInfo: PTypeInfo; out Result: TValue);
 begin
