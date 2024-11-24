@@ -1419,7 +1419,13 @@ begin
 end;
 
 const
+  { increase if you have a thunk larger than this in bytes }
+  MaxRawThunkSize = 64;
   RawTHunkEndMarker = $f0f0f0f0;
+
+type
+  TRawThunkEndMarker = UInt32;
+  PRawThunkEndMarker = ^TRawThunkEndMarker;
 
 {$if defined(cpui386)}
 const
@@ -7939,13 +7945,23 @@ end;
 {$if declared(RawThunk)}
 procedure InitRawThunkEndPtr;
 var
-  Size: sizeint;
+  rtp: PRawThunkEndMarker;
+  i, Size: sizeint;
+  RawThunkFound: boolean;
 begin
-  { no need for cross-endian support, the thunk will always have the native
-    endianess }
-  Size := IndexDWord(pointer(@RawThunk)^, 1024, RawTHunkEndMarker);
-  if size > 0 then
-    RawThunkEndPtr := pointer(@RawThunk) + size;
+  RawThunkFound := false;
+  for i := 0 to MaxRawThunkSize - SizeOf(TRawThunkEndMarker) do
+    begin
+      rtp := PRawThunkEndMarker(pointer(@RawThunk) + i);
+      if unaligned(rtp^) = TRawThunkEndMarker(RawTHunkEndMarker) then
+        begin
+          RawThunkFound := true;
+          break;
+        end;
+    end;
+
+  if RawThunkFound then
+    RawThunkEndPtr := pointer(@RawThunk) + i;
 end;
 {$endif}
 
