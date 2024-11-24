@@ -1421,7 +1421,7 @@ end;
 const
   { increase if you have a thunk larger than this in bytes }
   MaxRawThunkSize = 64;
-  RawTHunkEndMarker = $f0f0f0f0;
+  RawThunkEndMarker = $f0f0f0f0;
 
 type
   TRawThunkEndMarker = UInt32;
@@ -1457,7 +1457,7 @@ asm
   movl RawThunkPlaceholderContext, (%eax)
   movl RawThunkPlaceholderProc, %eax
   jmp %eax
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpux86_64)}
 const
@@ -1475,7 +1475,7 @@ asm
   movq RawThunkPlaceholderContext, %rcx
   movq RawThunkPlaceholderProc, %rax
   jmp %rax
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$else}
 procedure RawThunk; assembler; nostackframe;
@@ -1484,7 +1484,7 @@ asm
   movq RawThunkPlaceholderContext, %rdi
   movq RawThunkPlaceholderProc, %rax
   jmp %rax
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$endif}
 {$elseif defined(cpuarm)}
@@ -1513,7 +1513,7 @@ asm
   .long RawThunkPlaceholderProc
 .LContext:
   .long RawThunkPlaceholderContext
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpuaarch64)}
 const
@@ -1533,7 +1533,7 @@ asm
   .quad RawThunkPlaceholderProc
 .LContext:
   .quad RawThunkPlaceholderContext
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpum68k)}
 const
@@ -1550,7 +1550,7 @@ asm
   move.l #RawThunkPlaceholderContext, (a0)
   move.l #RawThunkPlaceholderProc, a0
   jmp (a0)
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpuriscv64)}
 const
@@ -1570,7 +1570,7 @@ asm
   .quad RawThunkPlaceholderProc
 .LContext:
   .quad RawThunkPlaceholderContext
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpuriscv32)}
 const
@@ -1590,7 +1590,7 @@ asm
   .long RawThunkPlaceholderProc
 .LContext:
   .long RawThunkPlaceholderContext
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$elseif defined(cpuloongarch64)}
 const
@@ -1612,7 +1612,7 @@ asm
   ld.d $t1, $ra, 0
   move $ra, $t0
   jr $t1
-  .long RawTHunkEndMarker
+  .long RawThunkEndMarker
 end;
 {$endif}
 
@@ -7953,7 +7953,7 @@ begin
   for i := 0 to MaxRawThunkSize - SizeOf(TRawThunkEndMarker) do
     begin
       rtp := PRawThunkEndMarker(pointer(@RawThunk) + i);
-      if unaligned(rtp^) = TRawThunkEndMarker(RawTHunkEndMarker) then
+      if unaligned(rtp^) = TRawThunkEndMarker(RawThunkEndMarker) then
         begin
           RawThunkFound := true;
           break;
