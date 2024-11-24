@@ -1668,23 +1668,23 @@ begin
 {$if declared(TRawThunkBytesToPop)}
     if not btpdone and (i <= Size - SizeOf(TRawThunkBytesToPop)) then begin
       btp := PRawThunkBytesToPop(PByte(Result) + i);
-      if btp^ = TRawThunkBytesToPop(RawThunkPlaceholderBytesToPop) then begin
-        btp^ := TRawThunkBytesToPop(aBytesToPop);
+      if unaligned(btp^) = TRawThunkBytesToPop(RawThunkPlaceholderBytesToPop) then begin
+        unaligned(btp^) := TRawThunkBytesToPop(aBytesToPop);
         btpdone := True;
       end;
     end;
 {$endif}
     if not contextdone and (i <= Size - SizeOf(TRawThunkContext)) then begin
       context := PRawThunkContext(PByte(Result) + i);
-      if context^ = TRawThunkContext(RawThunkPlaceholderContext) then begin
-        context^ := TRawThunkContext(aContext);
+      if unaligned(context^) = TRawThunkContext(RawThunkPlaceholderContext) then begin
+        unaligned(context^) := TRawThunkContext(aContext);
         contextdone := True;
       end;
     end;
     if not procdone and (i <= Size - SizeOf(TRawThunkProc)) then begin
       proc := PRawThunkProc(PByte(Result) + i);
-      if proc^ = TRawThunkProc(RawThunkPlaceholderProc) then begin
-        proc^ := TRawThunkProc(aProc);
+      if unaligned(proc^) = TRawThunkProc(RawThunkPlaceholderProc) then begin
+        unaligned(proc^) := TRawThunkProc(aProc);
         procdone := True;
       end;
     end;
