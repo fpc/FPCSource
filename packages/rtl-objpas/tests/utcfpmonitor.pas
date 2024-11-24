@@ -137,7 +137,7 @@ begin
 
   except
     On E : Exception do
-      Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' exception ',E.ClassName,' during operation ',FOperation,' : ',E.Message);
+      Writeln(StdErr,GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' exception ',E.ClassName,' during operation ',FOperation,' : ',E.Message);
   end;
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' End executing operation ',FOperation);{$ENDIF}
 end;
@@ -297,7 +297,7 @@ begin
   DoCreateThread(Obj1,toTryEnter,1,0);
   Sleep(WaitPeriod);
   TMonitor.Exit(Obj1);
-  Writeln(GetTickCount64,': Thread ',GetCurrentThreadID,' Released lock');
+  Writeln(GetTickCount64,': Thread ',ptruint(GetCurrentThreadID),' Released lock');
   WaitForAllThreads;
   AssertEquals('Thread tried a lock ',toTryEnter,Obj1.Res[1].Op);
   AssertFalse('Thread lock failed ',Obj1.Res[1].Res);
