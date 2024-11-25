@@ -674,8 +674,11 @@ unit optloop;
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
                 include(tfornode(n).loopflags,lnf_backward);
-                tfornode(n).right:=caddnode.create_internal(addn,caddnode.create_internal(subn,tfornode(n).t1,tfornode(n).right),
-                  cordconstnode.create(1,tfornode(n).left.resultdef,false));
+                tfornode(n).right:=ctypeconvnode.create_internal(
+                  caddnode.create_internal(addn,caddnode.create_internal(subn,
+                    tfornode(n).t1,tfornode(n).right),
+                    cordconstnode.create(1,tfornode(n).left.resultdef,false)),
+                  tfornode(n).left.resultdef);
                 tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
                 exclude(n.transientflags,tnf_pass1_done);
