@@ -1579,7 +1579,7 @@ implementation
     pd : tprocdef;
     odef,def : tobjectdef;
     offs,argcount,i,j : integer;
-
+    intfDef : tobjectdef;
   begin
     str:='type '#10;
     odef:=getparent_interface_def(objdef);
@@ -1589,27 +1589,36 @@ implementation
       parentname:=odef.hiddenclassdef.GetTypeName;
     str:=str+cn+' = class('+parentname+','+objdef.GetTypeName+')'#10;
     str:=str+' protected '#10;
-    for I:=0 to objdef.symtable.symList.Count-1 do
-      begin
-      sym:=tsym(objdef.symtable.symList[i]);
-      if Not assigned(sym) then
-        continue;
-      if (Sym.typ<>procsym) then
-        continue;
-      for j:=0 to proc.ProcdefList.Count-1 do
-        begin
-        pd:=tprocdef(proc.ProcdefList[j]);
-        if pd.returndef<>voidtype then
-          str:=str+'function '
-        else
-          str:=str+'procedure ';
-        str:=str+proc.RealName;
-        str:=str+create_intf_method_args(pd,argcount);
-        if pd.returndef<>voidtype then
-          str:=str+' : '+get_method_paramtype(pd.returndef,false);
-        str:=str+';'#10;
-        end;
-      end;
+    Intfdef:=objdef;
+    Repeat
+      if not IntfDef.is_generic then
+        for I:=0 to intfdef.symtable.symList.Count-1 do
+          begin
+          sym:=tsym(intfdef.symtable.symList[i]);
+          if Not assigned(sym) then
+            continue;
+          if (Sym.typ<>procsym) then
+            continue;
+          for j:=0 to proc.ProcdefList.Count-1 do
+            begin
+            pd:=tprocdef(proc.ProcdefList[j]);
+            if pd.returndef<>voidtype then
+              str:=str+'function '
+            else
+              str:=str+'procedure ';
+            str:=str+proc.RealName;
+            str:=str+create_intf_method_args(pd,argcount);
+            if pd.returndef<>voidtype then
+              str:=str+' : '+get_method_paramtype(pd.returndef,false);
+            str:=str+';'#10;
+            end;
+          end;
+      // Check parent class
+      intfdef:=getparent_interface_def(intfdef);
+      // If we already have a hidden class def for it, no need to continue
+      if (IntfDef<>nil) and (IntfDef.hiddenclassdef<>nil) then
+        IntfDef:=Nil;
+    until intfdef=nil;
     offs:=get_thunkclass_interface_vmtoffset(objdef);
     if offs>0 then
       begin
@@ -1759,24 +1768,33 @@ implementation
     proc : tprocsym absolute sym;
     pd : tprocdef;
     offs,i,j : integer;
+    intfDef : tobjectdef;
 
   begin
     offs:=get_thunkclass_interface_vmtoffset(objdef);
     if offs>0 then
       implement_thunkclass_interfacevmtoffset(cn,objdef,offs);
-    for I:=0 to objdef.symtable.symList.Count-1 do
-      begin
-      sym:=tsym(objdef.symtable.symList[i]);
-      if Not assigned(sym) then
-        continue;
-      if (Sym.typ<>procsym) then
-        continue;
-      for j:=0 to proc.ProcdefList.Count-1 do
+    intfDef:=objdef;
+    repeat
+      for I:=0 to intfdef.symtable.symList.Count-1 do
         begin
-        pd:=tprocdef(proc.ProcdefList[j]);
-        implement_interface_thunkclass_impl_method(cn,objdef,proc,pd);
+        sym:=tsym(intfdef.symtable.symList[i]);
+        if Not assigned(sym) then
+          continue;
+        if (Sym.typ<>procsym) then
+          continue;
+        for j:=0 to proc.ProcdefList.Count-1 do
+          begin
+          pd:=tprocdef(proc.ProcdefList[j]);
+          implement_interface_thunkclass_impl_method(cn,intfdef,proc,pd);
+          end;
         end;
-      end;
+      // Check parent class.
+      intfdef:=getparent_interface_def(intfdef);
+      // If we already have a hidden class def for it, no need to continue
+      if (intfdef<>Nil) and (IntfDef.hiddenclassdef<>nil) then
+        IntfDef:=Nil;
+    until (intfdef=Nil);
   end;
 
   procedure add_synthetic_interface_classes_for_st(st : tsymtable; gen_intf, gen_impl : boolean);
