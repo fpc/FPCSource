@@ -3517,10 +3517,10 @@ begin
     tkUString,
     tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkDynArray : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
-    tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, False);
+    tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, IsManaged(ATypeInfo));
     tkObject,
-    tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, False);
-    tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, False);
+    tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, IsManaged(ATypeInfo));
+    tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, True);
     tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
   else
     // Silence compiler warning
