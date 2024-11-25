@@ -876,7 +876,11 @@ begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
 //         Data.FindSchemaTypeData('Array of string')
         lPascalName:=ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix;
-        lName:='['+lElTypeData.SchemaName+']';
+
+        lName:='['+lElTypeData.SchemaName;
+        if lSchema.Items[0].Validations.HasKeywordData(jskformat) then
+          lName:=lName+'--'+lSchema.Items[0].Validations.Format;
+        lName:=LName+']';
         Result:=FindSchemaTypeData(lName);
         if Result<>Nil then
           lName:='';
