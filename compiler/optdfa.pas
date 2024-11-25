@@ -559,6 +559,7 @@ unit optdfa;
             { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
             raisen,
 {$endif JVM}
+            tempcreaten,
             asn,
             inlinen,
             calln:
@@ -575,7 +576,6 @@ unit optdfa;
               end;
 
             labeln,
-            tempcreaten,
             tempdeleten,
             nothingn,
             continuen,
