@@ -1813,6 +1813,7 @@ implementation
     if ErrorCount<>0 then
       exit;
     replace_scanner('hiddenclass_impl',sstate);
+    sstate.new_scanner.allowgenericid:=true;
     for i:=0 to st.deflist.count-1 do
       begin
       def:=tdef(st.deflist[i]);

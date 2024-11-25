@@ -174,6 +174,8 @@ interface
           in_preproc_comp_expr : boolean;
           { true if tokens must be converted to opposite endianess}
           change_endian_for_replay : boolean;
+          { hack to allow reading generic generated identifiers IDs}
+          allowgenericid : boolean;
 
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
@@ -4523,11 +4525,13 @@ type
         i:=0;
         repeat
           case c of
-            '_',
+            '_','$',
             '0'..'9',
             'A'..'Z',
             'a'..'z' :
               begin
+                if (c='$') and not allowgenericid then
+                  break;
                 if i<255 then
                  begin
                    inc(i);
