@@ -104,6 +104,7 @@ type
     function GetParam(aIndex : Integer): TAPIServiceMethodParam;
     function GetParamCount: Integer;
     function GetRequestBodyType: String;
+    function GetResultCallbackType: String;
     function GetResultType(AIndex: TNameType): String;
   protected
     // override this if you want to subclass the parameter
@@ -136,7 +137,7 @@ type
     // Component result Dto type
     Property ResultDtoType : String index ntPascal Read GetResultType;
     // Callback type for result.
-    Property ResultCallBackType : String Read FResultCallbackType write FResultCallBackType;
+    Property ResultCallBackType : String Read GetResultCallbackType write FResultCallBackType;
     // OpenAPI Operation for this method.
     Property Operation : TApiOperation Read FOperation;
     // Pascal name for the method.
@@ -493,6 +494,18 @@ begin
     Result:=FBodyType.GetTypeName(ntPascal)
   else
     Result:='';
+end;
+
+function TAPIServiceMethod.GetResultCallbackType: String;
+begin
+  Result:=FResultCallbackType;
+  if Result='' then
+    begin
+    Result:=ResultType;
+    if Result='' then
+      Result:='VoidResult';
+    Result:='T'+Result+'CallBack';
+    end;
 end;
 
 function TAPIServiceMethod.GetResultType(AIndex: TNameType): String;
