@@ -307,7 +307,10 @@ begin
     Addln('');
     Addln('interface');
     Addln('');
-    AddLn('uses types;');
+    if DelphiCode then
+      AddLn('uses System.Types;')
+    else
+      AddLn('uses types;');
     Addln('');
     EnsureSection(csType);
     Addln('');
