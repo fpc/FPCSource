@@ -641,11 +641,6 @@ unit optloop;
           not(lnf_backward in tfornode(n).loopflags) and
           (lnf_dont_mind_loopvar_on_exit in tfornode(n).loopflags) and
           is_constintnode(tfornode(n).right) and
-          { this is not strictly necessary, but we do it for now;
-
-            found not case so far where it cause trouble to remove the check, so commented
-
-            is_constnode(tfornode(n).t1) and }
           (([cs_check_overflow,cs_check_range]*n.localswitches)=[]) and
           (([cs_check_overflow,cs_check_range]*tfornode(n).left.localswitches)=[]) and
           ((tfornode(n).left.nodetype=loadn) and (tloadnode(tfornode(n).left).symtableentry is tabstractvarsym) and
