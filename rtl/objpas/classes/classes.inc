@@ -413,7 +413,6 @@ procedure TThread.InitSynchronizeEvent;
     New(FSynchronizeEntry);
     FillChar(FSynchronizeEntry^, SizeOf(TThreadQueueEntry), 0);
     FSynchronizeEntry^.Thread := Self;
-    FSynchronizeEntry^.ThreadID := ThreadID;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     FSynchronizeEntry^.SyncEvent := RtlEventCreate;
 {$else}
@@ -461,10 +460,8 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
       New(syncentry);
       FillChar(syncentry^, SizeOf(TThreadQueueEntry), 0);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      syncentry^.ThreadID := GetCurrentThreadID;
       syncentry^.SyncEvent := RtlEventCreate;
 {$else}
-      syncentry^.ThreadID := 0{GetCurrentThreadID};
       syncentry^.SyncEvent := nil{RtlEventCreate};
 {$endif}
     end;
@@ -515,10 +512,8 @@ class procedure TThread.Synchronize(AThread: TThread; AProcedure: TThreadProcedu
       New(syncentry);
       FillChar(syncentry^, SizeOf(TThreadQueueEntry), 0);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      syncentry^.ThreadID := GetCurrentThreadID;
       syncentry^.SyncEvent := RtlEventCreate;
 {$else}
-      syncentry^.ThreadID := 0{GetCurrentThreadID};
       syncentry^.SyncEvent := nil{RtlEventCreate};
 {$endif}
     end;
@@ -688,11 +683,6 @@ begin
   New(queueentry);
   FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
   queueentry^.Thread := aThread;
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  queueentry^.ThreadID := GetCurrentThreadID;
-{$else}
-  queueentry^.ThreadID := 0{GetCurrentThreadID};
-{$endif}
   queueentry^.Method := aMethod;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
@@ -707,11 +697,6 @@ begin
   New(queueentry);
   FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
   queueentry^.Thread := aThread;
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  queueentry^.ThreadID := GetCurrentThreadID;
-{$else}
-  queueentry^.ThreadID := 0{GetCurrentThreadID};
-{$endif}
   queueentry^.ThreadProc := aProcedure;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
@@ -756,7 +741,7 @@ begin
         { only entries not added by Synchronize }
         not Assigned(entry^.SyncEvent)
         { check for the thread }
-        and (not Assigned(aThread) or (entry^.Thread = aThread) or (entry^.ThreadID = aThread.ThreadID))
+        and (not Assigned(aThread) or (entry^.Thread = aThread))
         { check for the method }
         and (not Assigned(aMethod) or
           (

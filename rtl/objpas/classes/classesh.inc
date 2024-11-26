@@ -2253,7 +2253,6 @@ type
       ThreadProc: TThreadProcedure;
 {$endif}
       Thread: TThread;
-      ThreadID: TThreadID;
       Exception: TObject;
       SyncEvent: PRtlEvent;
       Next: PThreadQueueEntry;
