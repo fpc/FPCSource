@@ -2862,7 +2862,7 @@ var
   RS : RawByteString;
   WS : WideString;
   SS : ShortString;
-
+  AStr: AnsiString;
 begin
   aRes:=False;
   US:=AsUnicodeString;
@@ -2894,6 +2894,11 @@ begin
     SetString(RS,PAnsiChar(US),Length(US));
     TValue.Make(@RS, aDestType, aDest);
     end;
+  tkAString:
+    begin
+    AStr := AnsiString(US);
+    TValue.Make(@AStr, aDestType, aDest);
+    end;
   tkWChar:
     begin
     if Length(US)<>1 then
@@ -2901,7 +2906,7 @@ begin
     TValue.Make(PWideChar(US),aDestType,aDest);
     end;
   else
-     // silence compiler warning
+    Exit;
   end;
   aRes:=True;
 end;

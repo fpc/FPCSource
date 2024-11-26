@@ -1954,6 +1954,10 @@ begin
 {$endif}
   CheckTrue(Byte(397) = (TValue. specialize From<Integer>(397). specialize Cast<Byte>(). specialize AsType<Byte>), 'Byte(397) = (TValue.From<Integer>(397).Cast<Byte>().AsType<Byte>)');
   CheckTrue(32 = (TValue. specialize From<Byte>(32). specialize Cast<Integer>(). specialize AsType<Integer>), '32 = (TValue.From<Byte>(32).Cast<Integer>().AsType<Integer>)');
+
+  CheckTrue('test_str' = TValue.{$ifdef fpc}specialize{$endif} From<ShortString>('test_str')
+              .{$ifdef fpc}specialize{$endif} Cast<AnsiString>
+              .{$ifdef fpc}specialize{$endif} AsType<AnsiString>, 'TValue.From<shortring>.Cast<AnsiString> failed');
 end;
   
 
