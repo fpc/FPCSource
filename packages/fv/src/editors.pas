@@ -3562,12 +3562,16 @@ VAR
   Length : Sw_Word;
   FSize : Longint;
   FRead : Sw_Integer;
+  oFileMode : byte;
   F : File;
 begin
   LoadFile := False;
   Length := 0;
+  oFileMode:=FileMode;   {save file open mode}
+  FileMode:=0;           {Reset will open file in read only mode }
   Assign(F, FileName);
-  Reset(F, 1);
+  {$push}{$i-}Reset(F, 1);{$pop}
+  FileMode:=oFileMode;   {restore file open mode}
   if IOResult <> 0 then
     EditorDialog(edReadError, @FileName)
   else
@@ -3635,7 +3639,7 @@ begin
     InOutRes := 0;
   end;
   Assign (F, FileName);
-  Rewrite (F, 1);
+  {$push}{$i-}Rewrite (F, 1);{$pop}
   if IOResult <> 0 then
     EditorDialog (edCreateError, @FileName)
   else
