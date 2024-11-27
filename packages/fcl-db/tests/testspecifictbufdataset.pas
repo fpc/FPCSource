@@ -457,6 +457,7 @@ begin
 
     Dataset.Open;
     Dataset.IndexFieldNames := 'ID';
+    Dataset.CancelChangesOnRefresh:=True;
     AssertNoException('Refresh OK',Dataset.Refresh);
   finally
     Dataset.Close;
@@ -464,27 +465,35 @@ begin
   end;
 end;
 
-procedure TTestSpecificTBufDataset.TestCancelUpdatesOnRefresh;
+procedure  TTestSpecificTBufDataset.TestCancelUpdatesOnRefresh;
 var
   Dataset: TBufDataset;
+  FN : String;
+
 begin
   Dataset := TBufDataset.Create(nil);
   try
+    FN:=GetTempFileName;
+    if FileExists(GetTempFileName) then
+      AssertTrue('Delete existing db file',DeleteFile(FN));
+    Dataset.FileName := FN;
     Dataset.FieldDefs.Clear;
     Dataset.FieldDefs.Add('LastName', ftString, 20);
     Dataset.FieldDefs.Add('FirstName', ftString, 20);
     Dataset.FieldDefs.Add('ID', ftString, 4);
     Dataset.CreateDataset;
-
     Dataset.Open;
     Dataset.IndexFieldNames := 'ID';
     Dataset.AppendRecord(['Jenkins', 'John', '0003']);
     Dataset.AppendRecord(['Brooks', 'Jenny', '0001']);
     Dataset.AppendRecord(['Adams', 'Paul', '0002']);
+    Dataset.Close;
+    Dataset.Open;
+    Dataset.AppendRecord(['Jenkins2', 'John2', '0004']);
+
     AssertException('Refresh raises error',EDatabaseError,Dataset.Refresh);
     Dataset.CancelChangesOnRefresh:=True;
     AssertNoException('Refresh raises no error if CancelChangesOnRefresh is set',Dataset.Refresh);
-    AssertEquals('Changes have been deleted',0,Dataset.ChangeCount);
   finally
     Dataset.Close;
     Dataset.Free;

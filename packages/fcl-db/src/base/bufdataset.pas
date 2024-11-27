@@ -4086,7 +4086,7 @@ procedure TBufDataset.InternalRefresh;
 begin
   if (DataBase = nil) and (FFileName = '') then
     DatabaseError(SErrNoInMemoryRefresh, Self);
-  if (ChangeCount>0) then
+  if (ChangeCount>0) and FCancelChangesOnRefresh then
     CancelUpdates;
   inherited;
 end;
