@@ -35,6 +35,7 @@ type
   private
     FAfterScrollCount:integer;
     FBeforeScrollCount:integer;
+    FDataset : TBufDataset;
     procedure DoAfterScrollCount(DataSet: TDataSet);
     procedure DoBeforeScrollCount(DataSet: TDataSet);
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
@@ -58,6 +59,9 @@ type
     Procedure TestClear;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
     procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
+    procedure TestNoRefreshForInMemory; // Test that refresh with in-memory data raises an error.
+    procedure TestRefreshWithIndexOK; // Test that refresh works when indexes are defined
+    procedure TestCancelUpdatesOnRefresh; // Test that refresh works when changes are present and cancelupdatesonrefresh is true.
   end;
 
 implementation
@@ -425,6 +429,92 @@ begin
   CheckFieldDatasetValues(bufds2);
   NewID:=bufds1.FieldByName('ID').AsInteger;
   AssertEquals('Mismatch between ID field contents - the record has moved.',CurrentID,NewID);
+end;
+
+procedure TTestSpecificTBufDataset.TestRefreshWithIndexOK;
+
+var
+  Dataset: TBufDataset;
+  FN : String;
+
+begin
+  Dataset := TBufDataset.Create(nil);
+  try
+    FN:=GetTempFileName;
+    if FileExists(GetTempFileName) then
+      AssertTrue('Delete existing db file',DeleteFile(FN));
+    Dataset.FileName := FN;
+    Dataset.FieldDefs.Add('LastName', ftString, 20);
+    Dataset.FieldDefs.Add('FirstName', ftString, 20);
+    Dataset.FieldDefs.Add('ID', ftString, 4);
+    Dataset.CreateDataset;
+
+    Dataset.Open;
+    Dataset.AppendRecord(['Jenkins', 'John', '0003']);
+    Dataset.AppendRecord(['Brooks', 'Jenny', '0001']);
+    Dataset.AppendRecord(['Adams', 'Paul', '0002']);
+    Dataset.Close;
+
+    Dataset.Open;
+    Dataset.IndexFieldNames := 'ID';
+    AssertNoException('Refresh OK',Dataset.Refresh);
+  finally
+    Dataset.Close;
+    Dataset.Free;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestCancelUpdatesOnRefresh;
+var
+  Dataset: TBufDataset;
+begin
+  Dataset := TBufDataset.Create(nil);
+  try
+    Dataset.FieldDefs.Clear;
+    Dataset.FieldDefs.Add('LastName', ftString, 20);
+    Dataset.FieldDefs.Add('FirstName', ftString, 20);
+    Dataset.FieldDefs.Add('ID', ftString, 4);
+    Dataset.CreateDataset;
+
+    Dataset.Open;
+    Dataset.IndexFieldNames := 'ID';
+    Dataset.AppendRecord(['Jenkins', 'John', '0003']);
+    Dataset.AppendRecord(['Brooks', 'Jenny', '0001']);
+    Dataset.AppendRecord(['Adams', 'Paul', '0002']);
+    AssertException('Refresh raises error',EDatabaseError,Dataset.Refresh);
+    Dataset.CancelChangesOnRefresh:=True;
+    AssertNoException('Refresh raises no error if CancelChangesOnRefresh is set',Dataset.Refresh);
+    AssertEquals('Changes have been deleted',0,Dataset.ChangeCount);
+  finally
+    Dataset.Close;
+    Dataset.Free;
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestNoRefreshForInMemory;
+var
+  Dataset: TBufDataset;
+begin
+  Dataset := TBufDataset.Create(nil);
+  try
+    Dataset.FieldDefs.Clear;
+    Dataset.FieldDefs.Add('LastName', ftString, 20);
+    Dataset.FieldDefs.Add('FirstName', ftString, 20);
+    Dataset.FieldDefs.Add('ID', ftString, 4);
+    Dataset.CreateDataset;
+
+    Dataset.Open;
+    Dataset.AppendRecord(['Jenkins', 'John', '0003']);
+    Dataset.AppendRecord(['Brooks', 'Jenny', '0001']);
+    Dataset.AppendRecord(['Adams', 'Paul', '0002']);
+
+    Dataset.Open;
+    Dataset.IndexFieldNames := 'ID';
+    AssertException('Refresh raises error',EDatabaseError,Dataset.Refresh);
+  finally
+    Dataset.Close;
+    Dataset.Free;
+  end;
 end;
 
 initialization

@@ -101,7 +101,9 @@ Resourcestring
   SMaxIndexes              = 'The maximum amount of indexes is reached';
   SMinIndexes              = 'The minimum amount of indexes is 1';
   STooManyFields           = 'More fields specified then really exist';
-// These are added for Delphi-compatilility, but not used by the fcl:
+  SErrNoInMemoryRefresh    = 'In-memory table cannot be refreshed.';
+
+  // These are added for Delphi-compatilility, but not used by the fcl:
   SFieldIndexError         = 'Field index out of range';
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';
