@@ -1982,7 +1982,7 @@ implementation
 
         { check if we can pred/succ the loop var at the end }
         do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags) and
-          is_constnode(right) and is_constnode(t1) and
+          is_constnode(t1) and
           { we cannot test at the end after the pred/succ if the to value is equal to the max./min. value of the counter variable
             because we either get an overflow/underflow or the compiler removes the check as it never can be true }
 
@@ -2129,7 +2129,7 @@ implementation
           end
         else
           begin
-            { is a simple comparision for equality sufficient? }
+            { is a simple comparison for equality sufficient? }
             if do_loopvar_at_end and (lnf_backward in loopflags) and (lnf_counter_not_used in loopflags) then
               addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(equaln,leftcopy,
                 caddnode.create_internal(subn,t1.getcopy,cordconstnode.create(1,t1.resultdef,false))),loopblock,false,true))
