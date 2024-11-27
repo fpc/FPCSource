@@ -687,6 +687,10 @@ type
   end;
 
   TBufDataset = class(TCustomBufDataset)
+  private
+    FCancelChangesOnRefresh: Boolean;
+  protected
+    procedure InternalRefresh; override;
   published
     property MaxIndexesCount;
     // TDataset stuff
@@ -718,6 +722,7 @@ type
     Property OnFilterRecord;
     Property OnNewRecord;
     Property OnPostError;
+    Property CancelChangesOnRefresh : Boolean Read FCancelChangesOnRefresh Write FCancelChangesOnRefresh default False;
   end;
 
 
@@ -1456,10 +1461,7 @@ begin
     InitDefaultIndexes;
     InitUserIndexes;
     If FIndexName<>'' then
-      FCurrentIndexDef:=TBufDatasetIndex(FIndexes.Find(FIndexName))
-    else if (FIndexFieldNames<>'') then
-      BuildCustomIndex;
-
+      FCurrentIndexDef:=TBufDatasetIndex(FIndexes.Find(FIndexName));
     CalcRecordSize;
 
     FBRecordCount := 0;
@@ -1468,6 +1470,9 @@ begin
       if Assigned(BufIndexdefs[IndexNr]) then
         With BufIndexes[IndexNr] do
           InitialiseSpareRecord(IntAllocRecordBuffer);
+
+    if (FIndexName = '') and (FIndexFieldNames<>'') then
+      BuildCustomIndex;
 
     FAllPacketsFetched := False;
 
@@ -4062,6 +4067,17 @@ begin
   finally
     EnableControls;
   end;
+end;
+
+{ TBufDataset }
+
+procedure TBufDataset.InternalRefresh;
+begin
+  if (DataBase = nil) and (FFileName = '') then
+    DatabaseError(SErrNoInMemoryRefresh, Self);
+  if (ChangeCount>0) then
+    CancelUpdates;
+  inherited;
 end;
 
 { TArrayBufIndex }
