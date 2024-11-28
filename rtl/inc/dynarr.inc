@@ -80,22 +80,19 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
 
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; compilerproc;
   var
-     realp : pdynarray;
+    pv : pdynarray;
   begin
-    if (P=Nil) then
+    pv:=p;
+    if not assigned(pv) then
       exit;
-    realp:=pdynarray(p-sizeof(tdynarray));
-    if realp^.refcount=0 then
-      HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
-
-    if (realp^.refcount>0) and declocked(realp^.refcount) then
-      begin
-        ti:=aligntoqword(ti+2+PByte(ti)[1]);
-        if assigned(pdynarraytypedata(ti)^.elType) then
-          int_finalizearray(p,pdynarraytypedata(ti)^.elType^,realp^.high+1);
-        freemem(realp);
-      end;
     p:=nil;
+    if (pv[-1].refcount>0) and declocked(pv[-1].refcount) then
+      begin
+        ti:=pdynarraytypedata(aligntoqword(ti+2+PByte(ti)[1]))^.elType;
+        if assigned(ti) then
+          int_finalizearray(pv,PPointer(ti)^,pv[-1].high+1);
+        freemem(pv-1);
+      end;
   end;
 
 { alias for internal use }
@@ -103,17 +100,9 @@ Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_
 
 
 procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; compilerproc;
-  var
-     realp : pdynarray;
   begin
-     if p=nil then
-       exit;
-
-     realp:=pdynarray(p-sizeof(tdynarray));
-     if realp^.refcount=0 then
-       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame)
-     else if realp^.refcount>0 then
-       inclocked(realp^.refcount);
+     if assigned(p) and (pdynarray(p)[-1].refcount>0) then
+       inclocked(pdynarray(p)[-1].refcount);
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
@@ -138,82 +127,56 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
   var
      i : tdynarrayindex;
-     movelen,
-     size : sizeint;
+     movelen,size,_size,elesize,oldlen,newlen : sizeint;
      { contains the "fixed" pointers where the refcount }
      { and high are at positive offsets                 }
      realp,newp : pdynarray;
-     ti : pointer;
-     elesize : sizeint;
-     eletype,eletypemngd : pointer;
-     movsize,_size : sizeint;
+     ti,eletypemngd : pointer;
 
   begin
+     newlen:=dims[0];
      { negative or zero length? }
-     if dims[0]<=0 then
-       { negative length is not allowed }
-       if dims[0]<0 then
-         HandleErrorAddrFrameInd(201,get_pc_addr,get_frame)
-       else
-         begin
-           { if the new dimension is 0, we've to release all data }
-           fpc_dynarray_clear(p,pti);
-           exit;
-         end;
+     if newlen<=0 then
+       begin
+         { negative length is not allowed }
+         if newlen<0 then
+           HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+         { if the new dimension is 0, we've to release all data }
+         fpc_dynarray_clear(p,pti);
+         exit;
+       end;
 
      { skip kind and name }
      ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
-     eletype:=pdynarraytypedata(ti)^.elType2^;
      { only set if type needs finalization }
-     if assigned(pdynarraytypedata(ti)^.elType) then
-       eletypemngd:=pdynarraytypedata(ti)^.elType^
-     else
-       eletypemngd:=nil;
+     eletypemngd:=pdynarraytypedata(ti)^.elType;
+     if assigned(eletypemngd) then
+       eletypemngd:=PPointer(eletypemngd)^;
 
      { determine new memory size, throw a runtime error on overflow }
 {$push} {$q+,r+}
-     size:=elesize*dims[0]+sizeof(tdynarray);
+     size:=elesize*newlen+sizeof(tdynarray);
 {$pop}
 
-     { not assigned yet? }
-     if not(assigned(p)) then
+     if assigned(p) then
        begin
-          newp:=AllocMem(size);
-          { call int_InitializeArray for management operators; not required if no operators as memory is already zeroed }
-          if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, true)) then
-            int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
-       end
-     else
-       begin
-          realp:=pdynarray(p-sizeof(tdynarray));
-          newp := realp;
-
-          if realp^.refcount<>1 then
+          oldlen:=pdynarray(p-sizeof(tdynarray))^.high+1;
+          if pdynarray(p-sizeof(tdynarray))^.refcount<>1 then
             begin
-               { make an unique copy }
                newp:=getmem(size);
-               fillchar(newp^,sizeof(tdynarray),0);
-               if realp^.high < dims[0] then
-                 movelen := realp^.high+1
-               else
-                 movelen := dims[0];
-               movsize := elesize*movelen;
-               move(p^,(pointer(newp)+sizeof(tdynarray))^, movsize);
-               if size-sizeof(tdynarray)>movsize then
-                 begin
-                   fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
-                   if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, true)) then
-                     int_InitializeArray(pointer(newp)+sizeof(tdynarray)+movsize, eletype, dims[0]-movelen);
-                 end;
-
+               { make an unique copy }
+               movelen:=oldlen;
+               if newlen<movelen then
+                 movelen:=newlen;
+               move(p^,(pointer(newp)+sizeof(tdynarray))^,elesize*movelen);
                { increment ref. count of managed members }
                if assigned(eletypemngd) then
                  int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,movelen);
 
                { a declock(ref. count) isn't enough here }
-               { it could be that the in MT environments  }
+               { it could be that the in MT environments }
                { in the mean time the refcount was       }
                { decremented                             }
 
@@ -221,38 +184,38 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { if the array is now removed             }
                fpc_dynarray_clear(p,pti);
             end
-          else if dims[0]<newp^.high+1 then
+          else
             begin
-               { shrink the array }
-               if assigned(eletypemngd) then
-                 int_finalizearray(pointer(newp)+sizeof(tdynarray)+
-                    elesize*dims[0],
-                    eletypemngd,newp^.high-dims[0]+1);
-               reallocmem(realp,size);
-               newp := realp;
-            end
-          else if dims[0]>newp^.high+1 then
-            begin
-               { grow the array }
-               reallocmem(realp,size);
-               newp := realp;
-               fillchar((pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1))^,
-                 (dims[0]-newp^.high-1)*elesize,0);
-               if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject, tkArray]) and (RTTIManagementAndSize(eletype, rotInitialize, _size, true)) then
-                 int_InitializeArray(pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1),
-                   eletype, dims[0]-newp^.high-1);
+               { Finalize if shrinking. }
+               if assigned(eletypemngd) and (newlen<oldlen) then
+                 int_finalizearray(p+elesize*newlen,eletypemngd,oldlen-newlen);
+               realp:=p-sizeof(tdynarray);
+               newp:=reallocmem(realp,size);
             end;
+       end
+     else
+       begin
+          oldlen:=0;
+          newp:=AllocMem(size);
        end;
-    p:=pointer(newp)+sizeof(tdynarray);
-    newp^.refcount:=1;
-    newp^.high:=dims[0]-1;
-    { handle nested arrays }
-    if dimcount>1 then
-      begin
-         for i:=0 to dims[0]-1 do
-           int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
-             eletype,dimcount-1,@dims[1]);
-      end;
+     if newlen>oldlen then
+       begin
+          { Initialize new items. }
+          if oldlen<>0 then { Skip if AllocMem was used. CAREFUL: Assigned(p) won’t work because of fpc_dynarray_clear above. }
+            fillchar((pointer(newp)+sizeof(tdynarray)+elesize*oldlen)^,(newlen-oldlen)*elesize,0);
+          if assigned(eletypemngd) and (PTypeKind(eletypemngd)^ in [tkRecord, tkObject, tkArray]) and RTTIManagementAndSize(eletypemngd, rotInitialize, _size, true) then
+            int_InitializeArray(pointer(newp)+sizeof(tdynarray)+elesize*oldlen,eletypemngd,newlen-oldlen);
+       end;
+     p:=pointer(newp)+sizeof(tdynarray);
+     newp^.refcount:=1;
+     newp^.high:=newlen-1;
+     { handle nested arrays }
+     if dimcount>1 then
+       begin
+          for i:=0 to newlen-1 do
+            int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
+              pdynarraytypedata(ti)^.elType2^,dimcount-1,@dims[1]);
+       end;
   end;
 
 
