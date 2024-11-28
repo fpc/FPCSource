@@ -2103,7 +2103,16 @@ implementation
             else
               toexpr:=t1.getcopy;
 
-            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,leftcopy,toexpr),loopblock,false,true));
+            { checking against zero might improve the generated assembler,
+              doing this transformation for other values is normally not beneficial }
+            if do_loopvar_at_end and (lnf_backward in loopflags) and is_constintnode(toexpr) and (tordconstnode(toexpr).value=1) and
+              (countermin<tordconstnode(toexpr).value) then
+              begin
+                tordconstnode(toexpr).value:=tordconstnode(toexpr).value-1;
+                addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(equaln,leftcopy,toexpr),loopblock,false,true))
+              end
+            else
+              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,leftcopy,toexpr),loopblock,false,true));
 
             if usefromtemp then
               fromexpr:=ctemprefnode.create(fromtemp)
