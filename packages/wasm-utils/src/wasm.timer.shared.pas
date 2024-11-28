@@ -23,8 +23,8 @@ Type
 
 const
   TimerExportName  = 'timer';
-  TimerFN_Allocate = 'allocate';
-  TimerFN_DeAllocate = 'deallocate';
+  TimerFN_Allocate = 'allocate_timer';
+  TimerFN_DeAllocate = 'deallocate_timer';
 
 
 implementation
