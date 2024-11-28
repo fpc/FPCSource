@@ -55,10 +55,10 @@ Const
 
 const
   websocketExportName  = 'websocket';
-  websocketFN_Allocate = 'allocate';
-  websocketFN_DeAllocate = 'deallocate';
-  websocketFN_close = 'close';
-  websocketFN_send = 'send';
+  websocketFN_Allocate = 'allocate_websocket';
+  websocketFN_DeAllocate = 'deallocate_websocket';
+  websocketFN_close = 'close_websocket';
+  websocketFN_send = 'send_websocket';
 
 
 implementation
