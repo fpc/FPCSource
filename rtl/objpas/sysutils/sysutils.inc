@@ -914,19 +914,23 @@ begin
 end;
 
 generic function Extract<T>(var from: T) :T;
+type
+  RawT = array[0 .. sizeof(T) - 1] of byte;
 begin
   Finalize(Result);
-  Move(from,Result,SizeOf(T));
+  RawT(Result):=RawT(from);
   Initialize(from);
 end;
 
 generic procedure Swap<T>(var lhs,rhs: T);
+type
+  RawT = array[0 .. sizeof(T) - 1] of byte;
 var
-  tmp:array[0..sizeof(T)-1] of Byte;
+  tmp:RawT;
 begin
-  Move(lhs,tmp,sizeof(T));
-  Move(rhs,lhs,sizeof(T));
-  Move(tmp,rhs,sizeof(T));
+  tmp:=RawT(lhs);
+  RawT(lhs):=RawT(rhs);
+  RawT(rhs):=tmp;
 end;
 
 Function ArrayOfConstToStrArray(const Args: array of const) : TUTF8StringDynArray;
