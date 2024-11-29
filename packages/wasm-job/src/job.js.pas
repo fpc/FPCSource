@@ -754,33 +754,45 @@ type
     class function JSClassName: UnicodeString; override;
   end;
 
+  IJSBaseArrayBuffer = interface(IJSObject) ['{F08E3A2D-8948-44C9-9F4A-4E1422C01640}']
+    function _getByteLength: Nativeint;
+    function _getMaxByteLength: Nativeint;
+    property maxByteLength : Nativeint Read _getMaxByteLength;
+    property byteLength : Nativeint Read _getByteLength;
+  end;
+
+  TJSBaseArrayBuffer = class(TJSObject,IJSBaseArrayBuffer)
+  Protected
+    function _getByteLength: Nativeint;
+    function _getMaxByteLength: Nativeint;
+  Public
+    property maxByteLength : Nativeint Read _getMaxByteLength;
+    property byteLength : Nativeint Read _getByteLength;
+  end;
+
+
   { IJSArrayBuffer }
 
-  IJSArrayBuffer = interface(IJSObject)
+  IJSArrayBuffer = interface(IJSBaseArrayBuffer)
     ['{A1612EED-4F05-46C0-90BE-ACD511B15E89}']
     function Slice : IJSArrayBuffer;
     function Slice (aStart : NativeInt): IJSArrayBuffer;
     function Slice (aStart,aEndExclusive : NativeInt): IJSArrayBuffer;
-    function _getByteLength: Nativeint;
     function _getDetached: Boolean;
-    function _getMaxByteLength: Nativeint;
     function _getResizable: Boolean;
     procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
     procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
-    property byteLength : Nativeint Read _getByteLength;
-    property maxByteLength : Nativeint Read _getMaxByteLength;
     property detached : Boolean Read _getDetached;
     property resizable : Boolean Read _getResizable;
   end;
 
 
+
   { TJSArrayBuffer }
 
-  TJSArrayBuffer = class(TJSObject,IJSArrayBuffer)
+  TJSArrayBuffer = class(TJSBaseArrayBuffer,IJSArrayBuffer)
   Protected
-    function _getByteLength: Nativeint;
     function _getDetached: Boolean;
-    function _getMaxByteLength: Nativeint;
     function _getResizable: Boolean;
   public
     constructor create (aSize : integer);
@@ -796,16 +808,65 @@ type
     property maxByteLength : Nativeint Read _getMaxByteLength;
     property detached : Boolean Read _getDetached;
     property resizable : Boolean Read _getResizable;
+  end;
 
+  IJSSharedArrayBuffer = interface(IJSBaseArrayBuffer) ['{667CD88A-4BB2-4C14-BDBD-39BDEA8DC7A1}']
+    function _getgrowable : Boolean;
+    function Slice : IJSSharedArrayBuffer;
+    function Slice (aStart : NativeInt): IJSSharedArrayBuffer;
+    function Slice (aStart,aEndExclusive : NativeInt): IJSSharedArrayBuffer;
+    procedure grow(aNewSize : NativeInt);
+    property growable : Boolean read _getgrowable;
+  end;
+
+  { IJSSharedArrayBufferOptions }
+
+  IJSSharedArrayBufferOptions = interface(IJSObject) ['{FB7C6786-AF40-4B98-92CA-50CF2E64E931}']
+    function _maxByteLength: NativeInt;
+    procedure _setmaxByteLength(AValue: NativeInt);
+    property maxByteLength : NativeInt read _maxByteLength Write _setmaxByteLength;
+  end;
+
+  { TJSSharedArrayBufferOptions }
+
+  TJSSharedArrayBufferOptions = Class(TJSObject,IJSSharedArrayBufferOptions)
+  Protected
+    function _maxByteLength: NativeInt;
+    procedure _setmaxByteLength(AValue: NativeInt);
+  Public
+    class function Cast(const Intf: IJSObject): IJSSharedArrayBufferOptions; overload;
+    property maxByteLength : NativeInt read _maxByteLength Write _setmaxByteLength;
+  end;
+
+  { TJSSharedArrayBuffer }
+
+  TJSSharedArrayBuffer = class(TJSBaseArrayBuffer,IJSSharedArrayBuffer)
+  Protected
+    function _getGrowable: Boolean;
+  public
+    constructor create (aSize : integer);
+    constructor create (aSize : integer; aOptions : IJSObject);
+    class function GlobalMemory : IJSSharedArrayBuffer;
+    class function Cast(const Intf: IJSObject): IJSSharedArrayBuffer; overload;
+    class function JSClassName: UnicodeString; override;
+    procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
+    procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
+    function Slice : IJSSharedArrayBuffer;
+    function Slice (aStart : NativeInt): IJSSharedArrayBuffer;
+    function Slice (aStart,aEndExclusive : NativeInt): IJSSharedArrayBuffer;
+    procedure grow(aNewSize : NativeInt);
+    property growable : Boolean read _getgrowable;
   end;
 
   IJSArrayBufferView = interface (IJSObject) ['{E4585865-E907-40CE-B3E5-7E5E343EBED6}']
 
     function _getBuffer: IJSArrayBuffer;
+    function _getSharedBuffer: IJSSharedArrayBuffer;
     function _getByteLength: NativeInt;
     function _getByteOffset: NativeInt;
 
     property buffer : IJSArrayBuffer Read _getBuffer;
+    property Sharedbuffer : IJSSharedArrayBuffer Read _getSharedBuffer;
     property byteLength : NativeInt Read _getByteLength;
     property byteOffset : NativeInt Read _getByteOffset;
   end;
@@ -827,6 +888,7 @@ type
   TJSTypedArray = class(TJSObject,IJSTypedArray)
   protected
     function _GetBuffer: IJSArrayBuffer;
+    function _GetSharedBuffer: IJSSharedArrayBuffer;
     function _GetLength: NativeInt;
     function _GetByteLength: NativeInt;
     function _GetByteOffset: NativeInt;
@@ -835,15 +897,16 @@ type
     constructor Create(aObject : IJSObject);
     constructor Create(aBytes : PByte; aLen : NativeUInt);
     constructor Create(aBytes : TBytes);
-    constructor create(aArray : IJSArrayBuffer);
-    constructor create(aArray : IJSArrayBuffer; aByteOffset: NativeUint);
-    constructor create(aArray : IJSArrayBuffer; aByteOffset: NativeUint; Len : NativeUint);
+    constructor create(aArray : IJSBaseArrayBuffer);
+    constructor create(aArray : IJSBaseArrayBuffer; aByteOffset: NativeUint);
+    constructor create(aArray : IJSBaseArrayBuffer; aByteOffset: NativeUint; Len : NativeUint);
     class function Cast(const Intf: IJSObject): IJSTypedArray; overload;
     procedure set_(aArray : IJSTypedArray; TargetOffset : Integer);
     procedure set_(aArray : IJSTypedArray);
     procedure CopyToMemory(aMemory : PByte; aMaxByteLen : Cardinal = 0);
     procedure CopyFromMemory(aMemory : PByte; aMaxByteLen : Cardinal);
     property Buffer : IJSArrayBuffer read _GetBuffer;
+    property SharedBuffer : IJSSharedArrayBuffer read _GetSharedBuffer;
     Property Length: NativeInt Read _GetLength;
     Property byteLength: NativeInt Read _GetByteLength;
     Property byteOffset: NativeInt Read _GetByteOffset;
@@ -1105,12 +1168,13 @@ type
   TJSDataView = class(TJSObject,IJSDataView)
   protected
     function _getBuffer: IJSArrayBuffer;
+    function _getSharedBuffer: IJSSharedArrayBuffer;
     function _getByteLength: NativeInt;
     function _getByteOffset: NativeInt;
   public
-    constructor create(aBuffer : IJSArrayBuffer);
-    constructor create(aBuffer : IJSArrayBuffer; aOffset : longint);
-    constructor create(aBuffer : IJSArrayBuffer; aOffset, aByteLength : longint);
+    constructor create(aBuffer : IJSBaseArrayBuffer);
+    constructor create(aBuffer : IJSBAseArrayBuffer; aOffset : longint);
+    constructor create(aBuffer : IJSBaseArrayBuffer; aOffset, aByteLength : longint);
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSDataView; overload;
     function getBigInt64(aByteOffset : Longint) : Int64;
@@ -1864,6 +1928,11 @@ begin
   Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
 end;
 
+function TJSDataView._getSharedBuffer: IJSSharedArrayBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSSharedArrayBuffer) as IJSSharedArrayBuffer;
+end;
+
 function TJSDataView._getByteLength: NativeInt;
 begin
   Result:=ReadJSPropertyLongInt('byteLength');
@@ -1874,17 +1943,17 @@ begin
   Result:=ReadJSPropertyLongInt('byteOffset');
 end;
 
-constructor TJSDataView.create(aBuffer: IJSArrayBuffer);
+constructor TJSDataView.create(aBuffer: IJSBaseArrayBuffer);
 begin
   JOBCreate([aBuffer]);
 end;
 
-constructor TJSDataView.create(aBuffer: IJSArrayBuffer; aOffset: longint);
+constructor TJSDataView.create(aBuffer: IJSBaseArrayBuffer; aOffset: longint);
 begin
   JOBCreate([aBuffer,aOffset]);
 end;
 
-constructor TJSDataView.create(aBuffer: IJSArrayBuffer; aOffset, aByteLength: longint);
+constructor TJSDataView.create(aBuffer: IJSBaseArrayBuffer; aOffset, aByteLength: longint);
 begin
   JOBCreate([aBuffer,aOffset,aByteLength]);
 end;
@@ -2279,6 +2348,11 @@ begin
   Result:=ReadJSPropertyObject('buffer',TJSArrayBuffer) as IJSArrayBuffer;
 end;
 
+function TJSTypedArray._GetSharedBuffer: IJSSharedArrayBuffer;
+begin
+  Result:=ReadJSPropertyObject('buffer',TJSSharedArrayBuffer) as IJSSharedArrayBuffer;
+end;
+
 function TJSTypedArray._GetLength: NativeInt;
 begin
   // For the time being
@@ -2323,17 +2397,17 @@ begin
   JobCreate(True,[Data]);
 end;
 
-constructor TJSTypedArray.create(aArray: IJSArrayBuffer);
+constructor TJSTypedArray.create(aArray: IJSBAseArrayBuffer);
 begin
   JobCreate(True,[aArray]);
 end;
 
-constructor TJSTypedArray.create(aArray: IJSArrayBuffer; aByteOffset: NativeUint);
+constructor TJSTypedArray.create(aArray: IJSBaseArrayBuffer; aByteOffset: NativeUint);
 begin
   JobCreate(True,[aArray,aByteOffset]);
 end;
 
-constructor TJSTypedArray.create(aArray: IJSArrayBuffer; aByteOffset: NativeUint; Len: NativeUint);
+constructor TJSTypedArray.create(aArray: IJSBaseArrayBuffer; aByteOffset: NativeUint; Len: NativeUint);
 begin
   JobCreate(True,[aArray,aByteOffset,Len]);
 end;
@@ -2365,10 +2439,23 @@ end;
 
 { TJSArrayBuffer }
 
-function TJSArrayBuffer._getByteLength: Nativeint;
+function TJSBaseArrayBuffer._getByteLength: Nativeint;
 begin
   Result:=ReadJSPropertyInt64('byteLength');
+end;
 
+
+function TJSBaseArrayBuffer._getMaxByteLength: Nativeint;
+begin
+  Result:=ReadJSPropertyInt64('maxByteLength');
+end;
+
+
+{ TJSArrayBuffer }
+
+constructor TJSArrayBuffer.create(aSize: integer);
+begin
+  JobCreate(True,[aSize])
 end;
 
 function TJSArrayBuffer._getDetached: Boolean;
@@ -2376,19 +2463,9 @@ begin
   Result:=ReadJSPropertyBoolean('detached');
 end;
 
-function TJSArrayBuffer._getMaxByteLength: Nativeint;
-begin
-  Result:=ReadJSPropertyInt64('maxByteLength');
-end;
-
 function TJSArrayBuffer._getResizable: Boolean;
 begin
   Result:=ReadJSPropertyBoolean('resizable');
-end;
-
-constructor TJSArrayBuffer.create(aSize: integer);
-begin
-  JobCreate(True,[aSize])
 end;
 
 class function TJSArrayBuffer.GlobalMemory: IJSArrayBuffer;
@@ -2435,6 +2512,92 @@ end;
 procedure TJSArrayBuffer.CopyFromMemory(aMemory: PByte; aMaxByteLen: Cardinal);
 begin
   __job_set_array_from_mem(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+{ TJSSharedArrayBufferOptions }
+
+function TJSSharedArrayBufferOptions._maxByteLength: NativeInt;
+begin
+  Result:=ReadJSPropertyLongInt('maxByteLength');
+end;
+
+procedure TJSSharedArrayBufferOptions._setmaxByteLength(AValue: NativeInt);
+begin
+  WriteJSPropertyLongInt('maxByteLength',aValue);
+end;
+
+class function TJSSharedArrayBufferOptions.Cast(const Intf: IJSObject): IJSSharedArrayBufferOptions;
+begin
+  Result:=TJSSharedArrayBufferOptions.JOBCast(Intf);
+end;
+
+{ TJSSharedArrayBuffer }
+
+
+function TJSSharedArrayBuffer._getGrowable: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('growable');
+end;
+
+constructor TJSSharedArrayBuffer.create(aSize: integer);
+begin
+  JobCreate(True,[aSize])
+end;
+
+constructor TJSSharedArrayBuffer.create(aSize: integer; aOptions: IJSObject);
+begin
+  JobCreate(True,[aSize,aOptions])
+end;
+
+class function TJSSharedArrayBuffer.GlobalMemory: IJSSharedArrayBuffer;
+
+var
+  Obj : TJSSharedArrayBuffer;
+
+begin
+  Obj:=TJSSharedArrayBuffer.JOBCreateGlobal('InstanceBuffer');
+  Obj.FJOBObjectIDOwner:=True;
+  Result:=Obj;
+end;
+
+class function TJSSharedArrayBuffer.Cast(const Intf: IJSObject): IJSSharedArrayBuffer;
+begin
+  Result:=TJSSharedArrayBuffer.JOBCast(Intf);
+end;
+
+class function TJSSharedArrayBuffer.JSClassName: UnicodeString;
+begin
+  Result:='SharedArrayBuffer';
+end;
+
+procedure TJSSharedArrayBuffer.CopyToMemory(aMemory: PByte; aMaxByteLen: Cardinal);
+begin
+  __job_set_mem_from_array(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+procedure TJSSharedArrayBuffer.CopyFromMemory(aMemory: PByte; aMaxByteLen: Cardinal);
+begin
+  __job_set_array_from_mem(GetJSObjectID,aMemory,aMaxByteLen);
+end;
+
+function TJSSharedArrayBuffer.Slice: IJSSharedArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[],TJSSharedArrayBuffer) as IJSSharedArrayBuffer;
+end;
+
+function TJSSharedArrayBuffer.Slice(aStart: NativeInt): IJSSharedArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart],TJSSharedArrayBuffer) as IJSSharedArrayBuffer;
+end;
+
+function TJSSharedArrayBuffer.Slice(aStart, aEndExclusive: NativeInt): IJSSharedArrayBuffer;
+begin
+  Result:=InvokeJSObjectResult('slice',[aStart,aEndExclusive],TJSSharedArrayBuffer) as IJSSharedArrayBuffer;
+end;
+
+procedure TJSSharedArrayBuffer.grow(aNewSize: NativeInt);
+begin
+  InvokeJSNoResult('grow',[aNewSize]);
 end;
 
 
