@@ -2629,6 +2629,16 @@ end;
     Initialization section
   ---------------------------------------------------------------------}
 
+procedure FallbackToLocal;
+begin
+  if Length(DNSServers) = 0 then 
+  begin
+    //Writeln('No DNS servers detected/configured! Falling back to "localhost".');
+    SetLength(DNSServers, 1);
+    DNSServers[0]:=StrToNetAddr('127.0.0.1');
+  end;
+end;
+
 Procedure InitResolver;
 
 begin
@@ -2662,6 +2672,8 @@ begin
     GetDNsservers(EtcPath + SResolveFile2)
 {$ENDIF OS2}
                                          ;
+
+  FallbackToLocal; // if no nameservers found: fall back to 'localhost'
 end;
 
 Procedure DoneResolver;
