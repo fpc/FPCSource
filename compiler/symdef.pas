@@ -1054,8 +1054,6 @@ interface
        end;
        tstringdefclass = class of tstringdef;
 
-       { tenumdef }
-
        tenumdef = class(tstoreddef)
           minval,
           maxval    : asizeint;
@@ -3064,16 +3062,16 @@ implementation
     procedure tenumdef.calcsavesize(packenum: shortint);
       begin
 {$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
-        if (packenum=8) or (int64(min)<low(longint)) or (int64(max)>high(cardinal)) then
+        if (packenum=8) or (int64(min)<low(longint)) or (int64(max)>high(cardinal)) or ((min<0) and (max>high(longint))) then
          savesize:=8
 {$IFNDEF cpu64bitaddr} {$pop} {$ENDIF}
         else
 {$IFDEF cpu16bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
-         if (packenum=4) or (min<low(smallint)) or (max>high(word)) then
+         if (packenum=4) or (min<low(smallint)) or (max>high(word)) or ((min<0) and (max>high(smallint))) then
           savesize:=4
 {$IFDEF cpu16bitaddr} {$pop} {$ENDIF}
         else
-         if (packenum=2) or (min<low(shortint)) or (max>high(byte)) then
+         if (packenum=2) or (min<low(shortint)) or (max>high(byte)) or ((min<0) and (max>high(shortint))) then
           savesize:=2
         else
          savesize:=1;
