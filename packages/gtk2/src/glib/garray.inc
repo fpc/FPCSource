@@ -29,9 +29,13 @@
 
 {$IFDEF read_interface_rest}
 
-function g_array_append_val(a: PGArray; v : gpointer) : PGArray;
-function g_array_prepend_val(a: PGArray; v : gpointer) : PGArray;
-function g_array_insert_val(a: PGArray; i: guint; v : gpointer) : PGArray;
+function g_array_append_val(a: PGArray; v : gpointer) : PGArray;inline;
+function g_array_prepend_val(a: PGArray; v : gpointer) : PGArray;inline;
+function g_array_insert_val(a: PGArray; i: guint; v : gpointer) : PGArray;inline;
+
+function g_array_append_val(a: PGArray; const v): PGArray;inline;
+function g_array_prepend_val(a: PGArray; const v): PGArray;inline;
+function g_array_insert_val(a: PGArray; i: guint; const v): PGArray;inline;
 
 function g_array_new(zero_terminated:gboolean; clear:gboolean; element_size:guint):PGArray;cdecl;external gliblib name 'g_array_new';
 function g_array_sized_new(zero_terminated:gboolean; clear:gboolean; element_size:guint; reserved_size:guint):PGArray;cdecl;external gliblib name 'g_array_sized_new';

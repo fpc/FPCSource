@@ -157,19 +157,34 @@ end;
  *  garray.inc
  *}
 
-function g_array_append_val(a: PGArray; v : gpointer) : PGArray;
+function g_array_append_val(a: PGArray; v : gpointer) : PGArray;inline;
 begin
    g_array_append_val := g_array_append_vals(a,@(v),1);
 end;
 
-function g_array_prepend_val(a: PGArray; v : gpointer) : PGArray;
+function g_array_prepend_val(a: PGArray; v : gpointer) : PGArray;inline;
 begin
    g_array_prepend_val := g_array_prepend_vals(a,@(v),1);
 end;
 
-function g_array_insert_val(a: PGArray; i: guint; v : gpointer) : PGArray;
+function g_array_insert_val(a: PGArray; i: guint; v : gpointer) : PGArray;inline;
 begin
    g_array_insert_val := g_array_insert_vals(a,i,@(v),1);
+end;
+
+function g_array_append_val(a: PGArray; const v): PGArray;inline;
+begin
+  Result := g_array_append_vals(a, @v, 1);
+end;
+
+function g_array_prepend_val(a: PGArray; const v): PGArray;inline;
+begin
+  Result := g_array_prepend_vals(a, @v, 1);
+end;
+
+function g_array_insert_val(a: PGArray; i: guint; const v): PGArray;inline;
+begin
+  Result := g_array_insert_vals(a, i, @v, 1);
 end;
 
 function g_ptr_array_index (parray: PGPtrArray; index: guint): gpointer;
