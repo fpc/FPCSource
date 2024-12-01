@@ -266,6 +266,21 @@ implementation
     begin
       result:=false;
       {
+        Get rid of
+          addi x, x, 0
+      }
+      if (taicpu(p).ops=3) and
+        (taicpu(p).oper[2]^.typ=top_const) and
+        (taicpu(p).oper[2]^.val=0) and
+        MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+        begin
+          DebugMsg('Peephole Addi2Nop performed', p);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      {
         Changes
           addi x, y, #
           addi/addiw z, x, #
@@ -273,7 +288,7 @@ implementation
         To
           addi z, y, #+#
       }
-      if (taicpu(p).ops=3) and
+      else if (taicpu(p).ops=3) and
          (taicpu(p).oper[2]^.typ=top_const) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
          MatchInstruction(hp1,[A_ADDI{$ifdef riscv64},A_ADDIW{$endif}]) and
