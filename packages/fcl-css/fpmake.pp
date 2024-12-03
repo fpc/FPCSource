@@ -56,6 +56,13 @@ begin
           AddUnit('fpcssscanner');
           AddUnit('fpcssparser');
         end;
+    T:=P.Targets.AddUnit('fpcssresparser.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpcsstree');
+          AddUnit('fpcssscanner');
+          AddUnit('fpcssparser');
+        end;
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/cssmin.lpr');
     P.Targets.AddExampleProgram('examples/extractcssclasses.lpr');
