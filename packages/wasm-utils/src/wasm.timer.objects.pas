@@ -80,7 +80,7 @@ begin
   FOnTimer:=aEvent;
   FSender:=aSender;
   FInterval:=aInterval;
-//  FID:=__wasm_timer_allocate(aInterval,Self);
+  FID:=__wasm_timer_allocate(aInterval,Self);
   if (FID=0) then
     begin
     __wasmtimer_log(wllError,SErrCouldNotCreateTimer);
