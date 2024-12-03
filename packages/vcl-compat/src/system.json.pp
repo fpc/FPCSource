@@ -1619,7 +1619,13 @@ end;
 
 function TJSONBool.AsTValue(aTypeInfo: PTypeInfo; var aValue: TValue): Boolean;
 begin
-  Result:=inherited AsTValue(aTypeInfo, aValue);
+  if aTypeInfo^.Kind=tkBool then
+    begin
+    TValue.Make(@FValue,aTypeInfo,aValue);
+    Result:=True;
+    end
+  else
+    Result:=inherited AsTValue(aTypeInfo, aValue);
 end;
 
 constructor TJSONBool.Create(aValue: Boolean);
