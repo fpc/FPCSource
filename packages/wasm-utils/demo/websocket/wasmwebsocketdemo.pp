@@ -1,6 +1,6 @@
 library wasmwebsocketdemo;
 
-uses fpjson, jsonparser, basenenc, sysutils, wasm.websocket.api, wasm.websocket.shared, wasm.websocket.objects;
+uses fpjson, jsonparser, basenenc, sysutils, wasm.logger.api, wasm.websocket.api, wasm.websocket.shared, wasm.websocket.objects;
 
 Type
 
@@ -100,7 +100,7 @@ Procedure TApplication.Run;
 
 begin
   FWS:=TWasmWebsocket.Create(Nil);
-  OnWebsocketLog:=@HandleWebsocketLog;
+  OnWasmLog:=@HandleWebsocketLog;
   WS.OnOpen:=@HandleOpen;
   WS.OnError:=@HandleError;
   WS.OnClose:=@HandleClose;
