@@ -20,6 +20,15 @@ procedure test_exception(const s : string);
       end;
   end;
 
+procedure test_no_exception(const s : string);
+  begin
+    if exception_called then
+      begin
+        Writeln('Unexpected exception called : ',s);
+        Program_has_errors := true;
+      end;
+  end;
+
 var
    i,j : longint;
    e : extended;
@@ -60,6 +69,17 @@ begin
        end;
    end;
    test_exception('First division by zero for reals');
+   try
+   exception_called:=false;
+   e:=i/(j+3.5);
+   except
+     on e : exception do
+       begin
+         Writeln('Wrong exception called ',e.message);
+         exception_called:=true;
+       end;
+   end;
+   test_no_exception('Allowed division by zero for reals after first division by zero for reals');
    try
    exception_called:=false;
    e:=i/j;
