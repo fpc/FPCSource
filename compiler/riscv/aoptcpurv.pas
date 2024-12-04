@@ -381,20 +381,32 @@ implementation
          (taicpu(p).oper[2]^.typ=top_const) and
          (taicpu(p).oper[2]^.val=0) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_SLT,A_AND,A_OR,
-           A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI
-           {$ifdef riscv64},A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
-           A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW{$endif}]
-           ) and
-         (taicpu(hp1).ops=3) and
-         (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)) and
+         ((MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_SLT,A_AND,A_OR,
+            A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI
+            {$ifdef riscv64},A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
+            A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW{$endif}]
+            ) and
+          (taicpu(hp1).ops=3) and
+          (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^))) {or
+
+          This is not possible yet as the deallocation after the jump could also mean that the register is in use at the
+          jump target.
+
+          (MatchInstruction(hp1, [A_Bxx]) and
+          (taicpu(hp1).ops=3) and
+          (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^))) }
+         ) and
          (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
          RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
         begin
-          if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
-            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+          { if MatchInstruction(hp1, [A_Bxx]) and MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) then
+            taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg); }
           if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
             taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
+          if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
+            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
 
           DebugMsg('Peephole Addi0Op2Op performed', hp1);
 
