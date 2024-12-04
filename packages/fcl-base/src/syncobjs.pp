@@ -882,7 +882,7 @@ begin
 {$IFDEF CPUWASM}
   // Todo
 {$ELSE}
-  raise ESync ObjectException.Create(SErrMutexNotSupported);
+  raise ESyncObjectException.Create(SErrMutexNotSupported);
 {$ENDIF CPUWASM}
 {$ENDIF WINDOWS}  
 {$ENDIF UNIX}
@@ -913,7 +913,7 @@ begin
 {$IFDEF CPUWASM}
   // Todo
 {$ELSE}
-  raise ESync ObjectException.Create(SErrMutexNotSupported);
+  raise ESyncObjectException.Create(SErrMutexNotSupported);
 {$ENDIF CPUWASM}  
 {$ENDIF WINDOWS}
 {$ENDIF UNIX}
