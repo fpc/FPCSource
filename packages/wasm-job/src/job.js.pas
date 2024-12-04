@@ -1329,10 +1329,32 @@ type
     class function Cast(const Intf: IJSObject): IJSTextEncoder; overload;
   end;
 
+  IJSAtomics = interface
+  end;
+
+  { TJSAtomics }
+
+  TJSAtomics = class (TJSObject,IJSAtomics)
+    class function add(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+    class function and_(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+    class function compareExchange(aTypedArray : IJSTypedArray; index: integer; ExpectedValue, ReplacementValue : Integer) : integer;
+    class function exchange(aTypedArray : IJSTypedArray; index: integer; ReplacementValue : Integer) : integer;
+    class function isLockFree(size : integer) : boolean;
+    class function load(aTypedArray : IJSTypedArray; Index : integer) : integer;
+    class function notify(aTypedArray : IJSTypedArray; Index : integer; count : integer) : integer;
+    class function or_(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+    class function store(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+    class function sub(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+    class function wait(aTypedArray: IJSTypedArray; index: integer; value: Integer): unicodestring;
+    class function wait(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer): unicodestring;
+    class function xor_(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
+  end;
+
 var
   JSObject: IJSObject; // singleton of JS 'Object'
   JSDate: IJSDate; // singleton of JS 'Date'
   JSJSON: IJSJSON; // singleton of JS 'Date'
+  JSAtomics: TJSAtomics; // Singleton of JS 'Atomics'
 
 // imported functions from browser
 function __job_invoke_noresult(
@@ -1734,6 +1756,74 @@ end;
 class function TJSTextEncoder.Cast(const Intf: IJSObject): IJSTextEncoder;
 begin
   Result:=TJSTextEncoder.JOBCast(Intf);
+end;
+
+{ TJSAtomics }
+
+class function TJSAtomics.add(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongIntResult('add',[aTypedArray,Index,Value]);
+end;
+
+class function TJSAtomics.and_(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongIntResult('and',[aTypedArray,Index,Value]);
+end;
+
+class function TJSAtomics.compareExchange(aTypedArray: IJSTypedArray; index: integer; ExpectedValue, ReplacementValue: Integer
+  ): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongIntResult('compareExchange',[aTypedArray,Index,ExpectedValue, ReplacementValue]);
+end;
+
+class function TJSAtomics.exchange(aTypedArray: IJSTypedArray; index: integer; ReplacementValue: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongIntResult('exchange',[aTypedArray,Index, ReplacementValue]);
+end;
+
+class function TJSAtomics.isLockFree(size: integer): boolean;
+begin
+  Result:=JSAtomics.InvokeJSBooleanResult('isLockFree',[Size]);
+end;
+
+class function TJSAtomics.load(aTypedArray: IJSTypedArray; Index: integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('load',[aTypedArray,Index]);
+end;
+
+class function TJSAtomics.notify(aTypedArray: IJSTypedArray; Index: integer; count: integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('notify',[aTypedArray,Index,count]);
+end;
+
+class function TJSAtomics.or_(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('or',[aTypedArray,Index,value]);
+end;
+
+class function TJSAtomics.store(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('store',[aTypedArray,Index,value]);
+end;
+
+class function TJSAtomics.sub(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('sub',[aTypedArray,Index,value]);
+end;
+
+class function TJSAtomics.wait(aTypedArray: IJSTypedArray; index: integer; value: Integer): unicodestring;
+begin
+  Result:=JSAtomics.InvokeJSUnicodeStringResult('wait',[aTypedArray,Index,value]);
+end;
+
+class function TJSAtomics.wait(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer): unicodestring;
+begin
+  Result:=JSAtomics.InvokeJSUnicodeStringResult('wait',[aTypedArray,Index,value,timeout]);
+end;
+
+class function TJSAtomics.xor_(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
+begin
+  Result:=JSAtomics.InvokeJSLongintResult('xor',[aTypedArray,Index,value]);
 end;
 
 { TJSTextDecoder }
@@ -4989,5 +5079,6 @@ initialization
   JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
   JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
   JSJSON:=TJSJSON.JOBCreateGlobal('JSON') as IJSJSON;
+  JSAtomics:=TJSAtomics.JOBCreateGlobal('Atomics');
 end.
 
