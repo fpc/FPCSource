@@ -1781,7 +1781,8 @@ Begin
       begin
         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
           begin
-            Tlabelsym(sym).nonlocal:=true;
+            if (srsymtable.symtabletype=globalsymtable) or create_smartlink_library then
+              Tlabelsym(sym).nonlocal:=true;
             if emit then
               include(current_procinfo.flags,pi_has_interproclabel);
           end;
