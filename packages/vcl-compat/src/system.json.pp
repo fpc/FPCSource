@@ -570,6 +570,10 @@ begin
       if (lTmp.I32<Lows[lOrd]) or (lTmp.I32>Highs[lOrd]) then
          raise EConvertError.CreateFmt('Integer not in range %d to %s',[Lows[lOrd],Highs[lOrd]]);
       end;
+    tkInt64 :
+      begin
+      lTmp.I64:=StrToInt64(S);
+      end;
     tkEnumeration:
       begin
       lTmp.I32:=GetEnumValue(aInfo,S);
