@@ -1656,7 +1656,8 @@ Begin
       begin
         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
           begin
-            Tlabelsym(sym).nonlocal:=true;
+            if (srsymtable.symtabletype=globalsymtable) or create_smartlink_library then
+              Tlabelsym(sym).nonlocal:=true;
             if emit then
               exclude(current_procinfo.procdef.procoptions,po_inline);
           end;
