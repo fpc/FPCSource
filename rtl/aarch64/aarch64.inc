@@ -157,6 +157,15 @@ procedure SysInitFPU;
   end;
 
 
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  softfloat_exception_flags:=[];
+  { clear all "exception happened" flags we care about}
+  setfpsr(getfpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
+end;
+
+
 {****************************************************************************
                                 Move / Fill
 ****************************************************************************}
