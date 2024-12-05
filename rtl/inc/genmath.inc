@@ -989,7 +989,7 @@ end;
        if( d <= 0.0 ) then
        begin
            if d < 0.0 then
-             result:=(d-d)/zero
+             result:=zero/zero
            else
              result := 0.0;
        end
@@ -1439,7 +1439,7 @@ end;
 { if we have to check manually fpu exceptions, then force the exit statements here to
   throw one }
 {$CHECKFPUEXCEPTIONS+}
-{ turn off fastmath as it converts (d-d)/zero into 0 and thus not raising an exception }
+{ turn off fastmath as it converts zero/zero into 1 and thus not raising an exception }
 {$OPTIMIZATION NOFASTMATH}
     begin
       hx := float64high(d);
@@ -1451,7 +1451,7 @@ end;
         if (((hx and $7fffffff) or longint(lx))=0) then
           exit(-two54/zero);                { log(+-0)=-inf }
         if (hx<0) then
-          exit((d-d)/zero);                 { log(-#) = NaN }
+          exit(zero/zero);                 { log(-#) = NaN }
         dec(k, 54); d := d * two54;         { subnormal number, scale up x }
         hx := float64high(d);
       end;
@@ -1762,7 +1762,7 @@ end;
 { if we have to check manually fpu exceptions, then force the result assignment statement here to
   throw one }
 {$CHECKFPUEXCEPTIONS+}
-{ turn off fastmath as it converts (d-d)/zero into 0 and thus not raising an exception }
+{ turn off fastmath as it converts zero/zero into 0 and thus not raising an exception }
 {$OPTIMIZATION NOFASTMATH}
 {$endif VER3_2}
 function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
