@@ -415,13 +415,13 @@ type
     procedure Test_InlineStyle;
     procedure Test_InlineStyle_DisplayNone;
 
-    // specifity
-    procedure Test_Specifity_Id_Class;
-    procedure Test_Specifity_Important;
-    procedure Test_Specifity_Shorthand_OneRule;
-    procedure Test_Specifity_Shorthand_ClassClass;
-    procedure Test_Specifity_Longhand_All_Longhand;
-    procedure Test_Specifity_Shorthand_All_Shorthand;
+    // Specificity
+    procedure Test_Specificity_Id_Class;
+    procedure Test_Specificity_Important;
+    procedure Test_Specificity_Shorthand_OneRule;
+    procedure Test_Specificity_Shorthand_ClassClass;
+    procedure Test_Specificity_Longhand_All_Longhand;
+    procedure Test_Specificity_Shorthand_All_Shorthand;
 
     // origin
     procedure Test_Origin_Id_Class;
@@ -2498,7 +2498,7 @@ begin
   AssertEquals('Div1.Display','none',Div1.Display);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Id_Class;
+procedure TTestNewCSSResolver.Test_Specificity_Id_Class;
 var
   Div1: TDemoDiv;
 begin
@@ -2511,7 +2511,7 @@ begin
 
   Doc.Style:=LinesToStr([
   '.bird { left: 6px; }',
-  '#Div1 { left: 7px; top: 8px; }', // id has higher specifity, no matter if before or after a .class
+  '#Div1 { left: 7px; top: 8px; }', // id has higher Specificity, no matter if before or after a .class
   '.bird { top: 9px; }',
   '']);
   ApplyStyle;
@@ -2520,7 +2520,7 @@ begin
   AssertEquals('Div1.Top','8px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Important;
+procedure TTestNewCSSResolver.Test_Specificity_Important;
 var
   Div1: TDemoDiv;
 begin
@@ -2542,7 +2542,7 @@ begin
   AssertEquals('Div1.Top','9px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Shorthand_OneRule;
+procedure TTestNewCSSResolver.Test_Specificity_Shorthand_OneRule;
 var
   Div1: TDemoDiv;
 begin
@@ -2559,7 +2559,7 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Shorthand_ClassClass;
+procedure TTestNewCSSResolver.Test_Specificity_Shorthand_ClassClass;
 var
   Div1: TDemoDiv;
 begin
@@ -2581,7 +2581,7 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Longhand_All_Longhand;
+procedure TTestNewCSSResolver.Test_Specificity_Longhand_All_Longhand;
 var
   Div1: TDemoDiv;
 begin
@@ -2605,7 +2605,7 @@ begin
   AssertEquals('Div1.Background','red',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.Test_Specifity_Shorthand_All_Shorthand;
+procedure TTestNewCSSResolver.Test_Specificity_Shorthand_All_Shorthand;
 var
   Div1, Div2: TDemoDiv;
 begin

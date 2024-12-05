@@ -51,7 +51,7 @@ element1~element2 	p ~ ul 	Selects every <ul> element that is preceded by a <p> 
 :is()
 :where()
 
-Specifity:
+Specificity:
 important: 10000
 inline: 1000
 id: 100 #menu
@@ -120,20 +120,20 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  CSSSpecifityInvalid = -2;
-  CSSSpecifityNoMatch = -1;
-  CSSSpecifityUniversal = 0;
-  CSSSpecifityType = 1;
-  CSSSpecifityClass = 10; // includes attribute selectors e.g. [href]
-  CSSSpecifityIdentifier = 100;
-  CSSSpecifityUserAgent = 1000;
-  CSSSpecifityUser = 2000;
-  CSSSpecifityAuthor = 3000;
-  CSSSpecifityInline = 10000;
-  CSSSpecifityImportant = 100000;
+  CSSSpecificityInvalid = -2;
+  CSSSpecificityNoMatch = -1;
+  CSSSpecificityUniversal = 0;
+  CSSSpecificityType = 1;
+  CSSSpecificityClass = 10; // includes attribute selectors e.g. [href]
+  CSSSpecificityIdentifier = 100;
+  CSSSpecificityUserAgent = 1000;
+  CSSSpecificityUser = 2000;
+  CSSSpecificityAuthor = 3000;
+  CSSSpecificityInline = 10000;
+  CSSSpecificityImportant = 100000;
 
 type
-  TCSSSpecifity = integer; // see CSSSpecifityInvalid..CSSSpecifityImportant
+  TCSSSpecificity = integer; // see CSSSpecificityInvalid..CSSSpecificityImportant
 
   TCSSOrigin = (
     cssoUserAgent,
@@ -190,7 +190,7 @@ type
 
   TCSSResolvedAttribute = record
     AttrID: TCSSNumericalID;
-    Specifity: TCSSSpecifity;
+    Specificity: TCSSSpecificity;
     DeclEl: TCSSDeclarationElement;
   end;
   TCSSResolvedAttributeArray = array of TCSSResolvedAttribute;
@@ -198,7 +198,7 @@ type
 
   TCSSSharedRule = record
     Rule: TCSSRuleElement;
-    Specifity: TCSSSpecifity;
+    Specificity: TCSSSpecificity;
   end;
   PCSSSharedRule = ^TCSSSharedRule;
   TCSSSharedRuleArray = array of TCSSSharedRule;
@@ -207,8 +207,8 @@ type
 
   TCSSSharedRuleList = class
     AllDecl: TCSSDeclarationElement;
-    AllSpecifity: TCSSSpecifity;
-    Rules: TCSSSharedRuleArray; // sorted ascending for Specifity, secondary for source position
+    AllSpecificity: TCSSSpecificity;
+    Rules: TCSSSharedRuleArray; // sorted ascending for Specificity, secondary for source position
     Values: TCSSResolvedAttributeArray; // not sorted, merged, not computed
     destructor Destroy; override;
     procedure Clear;
@@ -347,7 +347,7 @@ type
 
       TMergedAttribute = record
         Stamp: Integer; // only valid if equal to FMergedAttributesStamp
-        Specifity: TCSSSpecifity;
+        Specificity: TCSSSpecificity;
         DeclEl: TCSSDeclarationElement; // can be nil if set by a shorthand
         Value: TCSSString;
         Complete: boolean;
@@ -369,8 +369,8 @@ type
     FMergedAttributesStamp: integer;
     FMergedAttributeFirst, FMergedAttributeLast: TCSSNumericalID; // first, last index in FMergedAttributes of linked list of attributes with current stamp
     FMergedAllDecl: TCSSDeclarationElement;
-    FMergedAllSpecifity: TCSSSpecifity;
-    FSourceSpecifity: TCSSSpecifity;
+    FMergedAllSpecificity: TCSSSpecificity;
+    FSourceSpecificity: TCSSSpecificity;
     FCSSRegistryStamp: TCSSNumericalID;
 
     // parse stylesheets
@@ -382,20 +382,20 @@ type
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
-    function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; var TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecifity; virtual;
-    function SelectorCallMatches(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function Call_Not(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function Call_Is(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function Call_Where(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    function Call_NthChild(PseudoFuncID: TCSSNumericalID; aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
+    function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; var TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
+    function SelectorCallMatches(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function Call_Not(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function Call_Is(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function Call_Where(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function Call_NthChild(PseudoFuncID: TCSSNumericalID; aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function CollectSiblingsOf(PseudoFuncID: TCSSNumericalID; TestNode: ICSSNode;
       Params: TCSSResolverNthChildParams): TIntegerDynArray; virtual;
     function GetSiblingOfIndex(SiblingIDs: TIntegerDynArray; Index: integer): integer; virtual;
@@ -412,16 +412,16 @@ type
     // shared rules
     procedure ClearSharedRuleLists; virtual;
     procedure FindMatchingRules; virtual; // create FElRules for current FNode
-    procedure AddRule(aRule: TCSSRuleElement; Specifity: TCSSSpecifity); // add rule to current array (FElRules)
+    procedure AddRule(aRule: TCSSRuleElement; Specificity: TCSSSpecificity); // add rule to current array (FElRules)
     function FindSharedRuleList(const Rules: TCSSSharedRuleArray): TCSSSharedRuleList; virtual;
     function CreateSharedRuleList: TCSSSharedRuleList; virtual; // using FElRules, sets FMergedAttributes
 
     // merge properties
     procedure ClearMerge; virtual;
     procedure InitMerge; virtual;
-    procedure SetMergedAttribute(AttrID, aSpecifity: TCSSNumericalID; DeclEl: TCSSDeclarationElement);
+    procedure SetMergedAttribute(AttrID, aSpecificity: TCSSNumericalID; DeclEl: TCSSDeclarationElement);
     procedure RemoveMergedAttribute(AttrID: TCSSNumericalID);
-    procedure MergeAttribute(El: TCSSElement; aSpecifity: TCSSSpecifity); virtual;
+    procedure MergeAttribute(El: TCSSElement; aSpecificity: TCSSSpecificity); virtual;
     procedure SaveSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     procedure LoadSharedMergedAttributes(SharedMerged: TCSSSharedRuleList); virtual;
     procedure WriteMergedAttributes(const Title: TCSSString); virtual;
@@ -502,8 +502,8 @@ begin
   R2:=@Rules2[0];
   for i:=0 to Len1-1 do
   begin
-    if R1^.Specifity>R2^.Specifity then exit(1)
-    else if R1^.Specifity<R2^.Specifity then exit(-1);
+    if R1^.Specificity>R2^.Specificity then exit(1)
+    else if R1^.Specificity<R2^.Specificity then exit(-1);
     Result:=ComparePointer(R1^.Rule,R2^.Rule);
     if Result<>0 then exit;
     inc(R1);
@@ -559,7 +559,7 @@ var
 begin
   Result:=TCSSSharedRuleList.Create;
   Result.AllDecl:=AllDecl;
-  Result.AllSpecifity:=AllSpecifity;
+  Result.AllSpecificity:=AllSpecificity;
 
   l:=length(Rules);
   if l>0 then
@@ -938,7 +938,7 @@ begin
   FCustomAttributeNameToDesc.Clear;
 end;
 
-procedure TCSSResolver.AddRule(aRule: TCSSRuleElement; Specifity: TCSSSpecifity
+procedure TCSSResolver.AddRule(aRule: TCSSRuleElement; Specificity: TCSSSpecificity
   );
 var
   l: SizeInt;
@@ -957,7 +957,7 @@ begin
   end;
   i:=FElRuleCount;
   FElRules[i].Rule:=aRule;
-  FElRules[i].Specifity:=Specifity;
+  FElRules[i].Specificity:=Specificity;
   inc(FElRuleCount);
 end;
 
@@ -987,21 +987,21 @@ end;
 procedure TCSSResolver.ComputeRule(aRule: TCSSRuleElement);
 var
   i: Integer;
-  BestSpecifity, Specifity: TCSSSpecifity;
+  BestSpecificity, Specificity: TCSSSpecificity;
   aSelector: TCSSElement;
 begin
-  BestSpecifity:=CSSSpecifityNoMatch;
+  BestSpecificity:=CSSSpecificityNoMatch;
   for i:=0 to aRule.SelectorCount-1 do
   begin
     aSelector:=aRule.Selectors[i];
-    Specifity:=SelectorMatches(aSelector,FNode,false);
-    if Specifity>BestSpecifity then
-      BestSpecifity:=Specifity;
+    Specificity:=SelectorMatches(aSelector,FNode,false);
+    if Specificity>BestSpecificity then
+      BestSpecificity:=Specificity;
   end;
-  if BestSpecifity>=0 then
+  if BestSpecificity>=0 then
   begin
     // match -> add rule to ruleset
-    AddRule(aRule,BestSpecifity);
+    AddRule(aRule,BestSpecificity);
   end;
 end;
 
@@ -1022,23 +1022,23 @@ var
   i, j: Integer;
   RuleArr: TCSSSharedRule;
   Rule: TCSSRuleElement;
-  Specifity: TCSSSpecifity;
+  Specificity: TCSSSpecificity;
   RuleI, RuleJ: PCSSSharedRule;
 begin
   SetLength(FElRules,FElRuleCount); // needed by FindSharedRuleList
 
-  // sort ascending for specifity
+  // sort ascending for Specificity
   for i:=0 to FElRuleCount-2 do
   begin
     RuleI:=@FElRules[i];
     for j:=i+1 to FElRuleCount-1 do
     begin
       RuleJ:=@FElRules[j];
-      if RuleI^.Specifity>RuleJ^.Specifity then
+      if RuleI^.Specificity>RuleJ^.Specificity then
       begin
-        Specifity:=RuleI^.Specifity;
-        RuleI^.Specifity:=RuleJ^.Specifity;
-        RuleJ^.Specifity:=Specifity;
+        Specificity:=RuleI^.Specificity;
+        RuleI^.Specificity:=RuleJ^.Specificity;
+        RuleJ^.Specificity:=Specificity;
         Rule:=RuleI^.Rule;
         RuleI^.Rule:=RuleJ^.Rule;
         RuleJ^.Rule:=Rule;
@@ -1063,9 +1063,9 @@ begin
     begin
       RuleArr:=Result.Rules[i];
       Rule:=RuleArr.Rule;
-      Specifity:=RuleArr.Specifity;
+      Specificity:=RuleArr.Specificity;
       for j:=0 to Rule.ChildCount-1 do
-        MergeAttribute(Rule.Children[j],Specifity);
+        MergeAttribute(Rule.Children[j],Specificity);
     end;
     SaveSharedMergedAttributes(Result);
   end;
@@ -1083,7 +1083,7 @@ begin
   end else
     inc(FMergedAttributesStamp);
   FMergedAllDecl:=nil;
-  FMergedAllSpecifity:=CSSSpecifityInvalid;
+  FMergedAllSpecificity:=CSSSpecificityInvalid;
   FMergedAttributeFirst:=0;
   FMergedAttributeLast:=0;
 end;
@@ -1107,7 +1107,7 @@ begin
   end;
 end;
 
-procedure TCSSResolver.SetMergedAttribute(AttrID, aSpecifity: TCSSNumericalID;
+procedure TCSSResolver.SetMergedAttribute(AttrID, aSpecificity: TCSSNumericalID;
   DeclEl: TCSSDeclarationElement);
 var
   AttrP: PMergedAttribute;
@@ -1118,7 +1118,7 @@ begin
     raise ECSSResolver.Create('20240823095544');
 
   AttrP:=@FMergedAttributes[AttrID];
-  AttrP^.Specifity:=aSpecifity;
+  AttrP^.Specificity:=aSpecificity;
   AttrP^.DeclEl:=DeclEl;
   if AttrP^.Stamp<>FMergedAttributesStamp then
   begin
@@ -1159,38 +1159,38 @@ begin
 end;
 
 function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 
   procedure MatchPseudo;
   var
     aNode: ICSSNode;
   begin
     aNode:=TestNode;
-    Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),aNode,OnlySpecifity);
+    Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),aNode,OnlySpecificity);
   end;
 
 var
   C: TClass;
 begin
-  Result:=CSSSpecifityInvalid;
+  Result:=CSSSpecificityInvalid;
   //writeln('TCSSResolver.SelectorMatches ',aSelector.ClassName,' ',TestNode.GetCSSTypeName);
   C:=aSelector.ClassType;
   if C=TCSSResolvedIdentifierElement then
-    Result:=SelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSHashIdentifierElement then
-    Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSClassNameElement then
-    Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedPseudoClassElement then
     MatchPseudo
   else if C=TCSSBinaryElement then
-    Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSArrayElement then
-    Result:=SelectorArrayMatches(TCSSArrayElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorArrayMatches(TCSSArrayElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSListElement then
-    Result:=SelectorListMatches(TCSSListElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorListMatches(TCSSListElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedCallElement then
-    Result:=SelectorCallMatches(TCSSResolvedCallElement(aSelector),TestNode,OnlySpecifity)
+    Result:=SelectorCallMatches(TCSSResolvedCallElement(aSelector),TestNode,OnlySpecificity)
   else begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
@@ -1201,70 +1201,70 @@ end;
 
 function TCSSResolver.SelectorIdentifierMatches(
   Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode;
-  OnlySpecifity: boolean): TCSSSpecifity;
+  OnlySpecificity: boolean): TCSSSpecificity;
 var
   TypeID: TCSSNumericalID;
 begin
-  Result:=CSSSpecifityNoMatch;
+  Result:=CSSSpecificityNoMatch;
   TypeID:=Identifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorIdentifierMatches ',Identifier.Value,' TypeId=',TypeID,' Node=',TestNode.GetCSSTypeID);
   {$ENDIF}
   if TypeID=CSSTypeID_Universal then
     // universal selector
-    Result:=CSSSpecifityUniversal+FSourceSpecifity
-  else if OnlySpecifity then
-    Result:=CSSSpecifityType+FSourceSpecifity
+    Result:=CSSSpecificityUniversal+FSourceSpecificity
+  else if OnlySpecificity then
+    Result:=CSSSpecificityType+FSourceSpecificity
   else if TypeID=CSSIDNone then
   begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20240625153922,'Unknown type ',Identifier);
     {$ENDIF}
-    Result:=CSSSpecifityInvalid;
+    Result:=CSSSpecificityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
-    Result:=CSSSpecifityType+FSourceSpecifity;
+    Result:=CSSSpecificityType+FSourceSpecificity;
 end;
 
 function TCSSResolver.SelectorHashIdentifierMatches(
   Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode;
-  OnlySpecifity: boolean): TCSSSpecifity;
+  OnlySpecificity: boolean): TCSSSpecificity;
 var
   aValue: TCSSString;
 begin
-  if OnlySpecifity then
-    exit(CSSSpecifityIdentifier+FSourceSpecifity);
-  Result:=CSSSpecifityNoMatch;
+  if OnlySpecificity then
+    exit(CSSSpecificityIdentifier+FSourceSpecificity);
+  Result:=CSSSpecificityNoMatch;
   aValue:=Identifier.Value;
   if TestNode.GetCSSID=aValue then
-    Result:=CSSSpecifityIdentifier+FSourceSpecifity;
+    Result:=CSSSpecificityIdentifier+FSourceSpecificity;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
   aClassName: TCSSClassNameElement; const TestNode: ICSSNode;
-  OnlySpecifity: boolean): TCSSSpecifity;
+  OnlySpecificity: boolean): TCSSSpecificity;
 var
   aValue: TCSSString;
 begin
-  if OnlySpecifity then
-    exit(CSSSpecifityClass+FSourceSpecifity);
+  if OnlySpecificity then
+    exit(CSSSpecificityClass+FSourceSpecificity);
   aValue:=aClassName.Name;
   if TestNode.HasCSSClass(aValue) then
-    Result:=CSSSpecifityClass+FSourceSpecifity
+    Result:=CSSSpecificityClass+FSourceSpecificity
   else
-    Result:=CSSSpecifityNoMatch;
+    Result:=CSSSpecificityNoMatch;
   //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
 end;
 
 function TCSSResolver.SelectorPseudoClassMatches(
   aPseudoClass: TCSSResolvedPseudoClassElement; var TestNode: ICSSNode;
-  OnlySpecifity: boolean): TCSSSpecifity;
+  OnlySpecificity: boolean): TCSSSpecificity;
 var
   PseudoID: TCSSNumericalID;
 begin
-  if OnlySpecifity then
-    exit(CSSSpecifityClass+FSourceSpecifity);
-  Result:=CSSSpecifityNoMatch;
+  if OnlySpecificity then
+    exit(CSSSpecificityClass+FSourceSpecificity);
+  Result:=CSSSpecificityNoMatch;
   PseudoID:=aPseudoClass.NumericalID;
   case PseudoID of
   CSSIDNone:
@@ -1276,43 +1276,43 @@ begin
     end;
   CSSPseudoID_Root:
     if TestNode.GetCSSParent=nil then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_Empty:
     if TestNode.GetCSSEmpty then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_FirstChild:
     if TestNode.GetCSSPreviousSibling=nil then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_LastChild:
     if TestNode.GetCSSNextSibling=nil then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_OnlyChild:
     if (TestNode.GetCSSNextSibling=nil)
         and (TestNode.GetCSSPreviousSibling=nil) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_FirstOfType:
     if TestNode.GetCSSPreviousOfType=nil then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_LastOfType:
     if TestNode.GetCSSNextOfType=nil then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   CSSPseudoID_OnlyOfType:
     if (TestNode.GetCSSNextOfType=nil)
         and (TestNode.GetCSSPreviousOfType=nil) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   else
     if TestNode.HasCSSPseudoClass(PseudoID) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   end;
 end;
 
 function TCSSResolver.SelectorListMatches(aList: TCSSListElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   i: Integer;
   El: TCSSElement;
   C: TClass;
-  Specifity: TCSSSpecifity;
+  Specificity: TCSSSpecificity;
   aNode: ICSSNode;
 begin
   Result:=0;
@@ -1329,39 +1329,39 @@ begin
     C:=El.ClassType;
     if (C=TCSSResolvedIdentifierElement) and (i>0) then
     begin
-      if OnlySpecifity then
+      if OnlySpecificity then
         exit(0);
       // already warned by parser
       {$IFDEF VerboseCSSResolver}
       Log(etWarning,20240625154031,'Type selector must be first',aList);
       {$ENDIF}
-      exit(CSSSpecifityInvalid);
+      exit(CSSSpecificityInvalid);
     end
     else if C=TCSSResolvedPseudoClassElement then
     begin
-      Specifity:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(El),aNode,OnlySpecifity);
+      Specificity:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(El),aNode,OnlySpecificity);
     end else
-      Specifity:=SelectorMatches(El,aNode,OnlySpecifity);
-    if Specifity<0 then
-      exit(Specifity);
-    inc(Result,Specifity);
+      Specificity:=SelectorMatches(El,aNode,OnlySpecificity);
+    if Specificity<0 then
+      exit(Specificity);
+    inc(Result,Specificity);
   end;
 end;
 
 function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   aParent, Sibling: ICSSNode;
-  aSpecifity: TCSSSpecifity;
+  aSpecificity: TCSSSpecificity;
 begin
-  if OnlySpecifity then
+  if OnlySpecificity then
   begin
     Result:=SelectorMatches(aBinary.Left,TestNode,true);
     inc(Result,SelectorMatches(aBinary.Right,TestNode,true));
     exit;
   end;
 
-  Result:=CSSSpecifityInvalid;
+  Result:=CSSSpecificityInvalid;
   case aBinary.Operation of
   boGT:
     begin
@@ -1370,11 +1370,11 @@ begin
       if Result<0 then exit;
       aParent:=TestNode.GetCSSParent;
       if aParent=nil then
-        exit(CSSSpecifityNoMatch);
-      aSpecifity:=SelectorMatches(aBinary.Left,aParent,false);
-      if aSpecifity<0 then
-        exit(aSpecifity);
-      inc(Result,aSpecifity);
+        exit(CSSSpecificityNoMatch);
+      aSpecificity:=SelectorMatches(aBinary.Left,aParent,false);
+      if aSpecificity<0 then
+        exit(aSpecificity);
+      inc(Result,aSpecificity);
     end;
   boPlus:
     begin
@@ -1383,11 +1383,11 @@ begin
       if Result<0 then exit;
       Sibling:=TestNode.GetCSSPreviousSibling;
       if Sibling=nil then
-        exit(CSSSpecifityNoMatch);
-      aSpecifity:=SelectorMatches(aBinary.Left,Sibling,false);
-      if aSpecifity<0 then
-        exit(aSpecifity);
-      inc(Result,aSpecifity);
+        exit(CSSSpecificityNoMatch);
+      aSpecificity:=SelectorMatches(aBinary.Left,Sibling,false);
+      if aSpecificity<0 then
+        exit(aSpecificity);
+      inc(Result,aSpecificity);
     end;
   boTilde:
     begin
@@ -1397,17 +1397,17 @@ begin
       Sibling:=TestNode.GetCSSPreviousSibling;
       while Sibling<>nil do
       begin
-        aSpecifity:=SelectorMatches(aBinary.Left,Sibling,false);
-        if aSpecifity=CSSSpecifityInvalid then
-          exit(aSpecifity)
-        else if aSpecifity>=0 then
+        aSpecificity:=SelectorMatches(aBinary.Left,Sibling,false);
+        if aSpecificity=CSSSpecificityInvalid then
+          exit(aSpecificity)
+        else if aSpecificity>=0 then
         begin
-          inc(Result,aSpecifity);
+          inc(Result,aSpecificity);
           exit;
         end;
         Sibling:=Sibling.GetCSSPreviousSibling;
       end;
-      Result:=CSSSpecifityNoMatch;
+      Result:=CSSSpecificityNoMatch;
     end;
   boWhiteSpace:
     begin
@@ -1418,15 +1418,15 @@ begin
     repeat
       aParent:=aParent.GetCSSParent;
       if aParent=nil then
-        exit(CSSSpecifityNoMatch);
-      aSpecifity:=SelectorMatches(aBinary.Left,aParent,false);
-      if aSpecifity>=0 then
+        exit(CSSSpecificityNoMatch);
+      aSpecificity:=SelectorMatches(aBinary.Left,aParent,false);
+      if aSpecificity>=0 then
       begin
-        inc(Result,aSpecifity);
+        inc(Result,aSpecificity);
         exit;
       end
-      else if aSpecifity=CSSSpecifityInvalid then
-        exit(CSSSpecifityInvalid);
+      else if aSpecificity=CSSSpecificityInvalid then
+        exit(CSSSpecificityInvalid);
     until false;
     end
   else
@@ -1438,7 +1438,7 @@ begin
 end;
 
 function TCSSResolver.SelectorArrayMatches(anArray: TCSSArrayElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   {$IFDEF VerboseCSSResolver}
   i: integer;
@@ -1449,10 +1449,10 @@ var
   OldStringComparison: TCSSResStringComparison;
   aValue: TCSSString;
 begin
-  if OnlySpecifity then
-    exit(CSSSpecifityClass+FSourceSpecifity);
+  if OnlySpecificity then
+    exit(CSSSpecificityClass+FSourceSpecificity);
 
-  Result:=CSSSpecifityInvalid;
+  Result:=CSSSpecificityInvalid;
   if anArray.Prefix<>nil then
   begin
     // already warned by parser
@@ -1517,19 +1517,19 @@ begin
       AttrID:=TCSSResolvedIdentifierElement(El).NumericalID;
       case AttrID of
       CSSIDNone:
-        Result:=CSSSpecifityNoMatch;
+        Result:=CSSSpecificityNoMatch;
       CSSAttributeID_ID,
       CSSAttributeID_Class:
         // id and class are always defined
-        Result:=CSSSpecifityClass+FSourceSpecifity;
+        Result:=CSSSpecificityClass+FSourceSpecificity;
       CSSAttributeID_All:
         // special CSS attributes without a value
-        Result:=CSSSpecifityNoMatch;
+        Result:=CSSSpecificityNoMatch;
       else
         if TestNode.HasCSSExplicitAttribute(AttrID) then
-          Result:=CSSSpecifityClass+FSourceSpecifity
+          Result:=CSSSpecificityClass+FSourceSpecificity
         else
-          Result:=CSSSpecifityNoMatch;
+          Result:=CSSSpecificityNoMatch;
       end;
     end else if C=TCSSBinaryElement then
       Result:=SelectorArrayBinaryMatches(TCSSBinaryElement(El),TestNode)
@@ -1545,14 +1545,14 @@ begin
 end;
 
 function TCSSResolver.SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement;
-  const TestNode: ICSSNode): TCSSSpecifity;
+  const TestNode: ICSSNode): TCSSSpecificity;
 var
   Left, Right: TCSSElement;
   AttrID: TCSSNumericalID;
   LeftValue, RightValue: TCSSString;
   C: TClass;
 begin
-  Result:=CSSSpecifityNoMatch;
+  Result:=CSSSpecificityNoMatch;
   Left:=aBinary.Left;
   if Left.ClassType<>TCSSResolvedIdentifierElement then
   begin
@@ -1567,13 +1567,13 @@ begin
   writeln('TCSSResolver.SelectorArrayBinaryMatches AttrID=',AttrID,' Value=',TCSSResolvedIdentifierElement(Left).Value);
   {$ENDIF}
   case AttrID of
-  CSSIDNone: exit(CSSSpecifityNoMatch);
+  CSSIDNone: exit(CSSSpecificityNoMatch);
   CSSAttributeID_ID:
     LeftValue:=TestNode.GetCSSID;
   CSSAttributeID_Class:
     LeftValue:=TestNode.GetCSSAttributeClass;
   CSSAttributeID_All:
-    exit(CSSSpecifityNoMatch);
+    exit(CSSSpecificityNoMatch);
   else
     LeftValue:=TestNode.GetCSSExplicitAttribute(AttrID);
   end;
@@ -1598,35 +1598,35 @@ begin
   case aBinary.Operation of
   boEquals:
     if SameValueText(LeftValue,RightValue) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   boSquaredEqual:
     // begins with
     if (RightValue<>'') and SameValueText(LeftStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   boDollarEqual:
     // ends with
     if (RightValue<>'') and SameValueText(RightStr(LeftValue,length(RightValue)),RightValue) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   boPipeEqual:
     // equal to or starts with name-hyphen
     if (RightValue<>'')
         and (SameValueText(LeftValue,RightValue)
           or SameValueText(LeftStr(LeftValue,length(RightValue)+1),RightValue+'-')) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   boStarEqual:
     // contains substring
     if (RightValue<>'') and (Pos(RightValue,LeftValue)>0) then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   boTildeEqual:
     // contains word
     if PosWord(RightValue,LeftValue)>0 then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   else
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20220910164356,'Invalid CSS array selector operator',aBinary);
     {$ENDIF}
-    Result:=CSSSpecifityInvalid;
+    Result:=CSSSpecificityInvalid;
   end;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorArrayBinaryMatches Result=',Result);
@@ -1634,69 +1634,69 @@ begin
 end;
 
 function TCSSResolver.SelectorCallMatches(aCall: TCSSResolvedCallElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   CallID: TCSSNumericalID;
 begin
-  Result:=CSSSpecifityNoMatch;
+  Result:=CSSSpecificityNoMatch;
   CallID:=aCall.NameNumericalID;
   //writeln('TCSSResolver.SelectorCallMatches ',CallID,' ',aCall.AsString);
   case CallID of
   CSSCallID_Not:
-    Result:=Call_Not(aCall,TestNode,OnlySpecifity);
+    Result:=Call_Not(aCall,TestNode,OnlySpecificity);
   CSSCallID_Is:
-    Result:=Call_Is(aCall,TestNode,OnlySpecifity);
+    Result:=Call_Is(aCall,TestNode,OnlySpecificity);
   CSSCallID_Where:
-    Result:=Call_Where(aCall,TestNode,OnlySpecifity);
+    Result:=Call_Where(aCall,TestNode,OnlySpecificity);
   CSSCallID_NthChild,
   CSSCallID_NthLastChild,
   CSSCallID_NthOfType,
   CSSCallID_NthLastOfType:
-    Result:=Call_NthChild(CallID,aCall,TestNode,OnlySpecifity);
+    Result:=Call_NthChild(CallID,aCall,TestNode,OnlySpecificity);
   else
-    if OnlySpecifity then
+    if OnlySpecificity then
       Result:=0
     else
-      Result:=CSSSpecifityInvalid;
+      Result:=CSSSpecificityInvalid;
   end;
 end;
 
 function TCSSResolver.Call_Not(aCall: TCSSResolvedCallElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 // :not(arg1, arg2, ...)
-// :not(args) has the same specifity as :not(:is(args))
+// :not(args) has the same Specificity as :not(:is(args))
 var
   i: Integer;
-  Specifity: TCSSSpecifity;
+  Specificity: TCSSSpecificity;
   HasMatch: Boolean;
 begin
   Result:=0;
   HasMatch:=false;
   for i:=0 to aCall.ArgCount-1 do
   begin
-    Specifity:=SelectorMatches(aCall.Args[i],TestNode,OnlySpecifity);
-    //writeln('TCSSResolver.Call_Not ',i,' ',TestNode.GetCSSTypeName,' Spec=',Specifity);
-    if Specifity>=0 then
+    Specificity:=SelectorMatches(aCall.Args[i],TestNode,OnlySpecificity);
+    //writeln('TCSSResolver.Call_Not ',i,' ',TestNode.GetCSSTypeName,' Spec=',Specificity);
+    if Specificity>=0 then
       HasMatch:=true
     else begin
-      // the specifity of ":not" is the highest, independent of matching (forgiving)
-      if not OnlySpecifity then
-        Specifity:=SelectorMatches(aCall.Args[i],TestNode,true);
+      // the Specificity of ":not" is the highest, independent of matching (forgiving)
+      if not OnlySpecificity then
+        Specificity:=SelectorMatches(aCall.Args[i],TestNode,true);
     end;
-    if Specifity>Result then
-      Result:=Specifity;
+    if Specificity>Result then
+      Result:=Specificity;
   end;
-  if OnlySpecifity then
+  if OnlySpecificity then
     // return best
   else if HasMatch then
-    Result:=CSSSpecifityNoMatch;
+    Result:=CSSSpecificityNoMatch;
 end;
 
 function TCSSResolver.Call_Is(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode;
-  OnlySpecifity: boolean): TCSSSpecifity;
+  OnlySpecificity: boolean): TCSSSpecificity;
 var
   i: Integer;
-  Specifity: TCSSSpecifity;
+  Specificity: TCSSSpecificity;
   ok: Boolean;
 begin
   Result:=0;
@@ -1704,29 +1704,29 @@ begin
   ok:=false;
   for i:=0 to aCall.ArgCount-1 do
   begin
-    Specifity:=SelectorMatches(aCall.Args[i],TestNode,OnlySpecifity);
-    //writeln('TCSSResolver.Call_Is i=',i,' ',TestNode.GetCSSID,' ',aCall.Args[i].AsString,' Spec=',Specifity);
-    if Specifity>=0 then
+    Specificity:=SelectorMatches(aCall.Args[i],TestNode,OnlySpecificity);
+    //writeln('TCSSResolver.Call_Is i=',i,' ',TestNode.GetCSSID,' ',aCall.Args[i].AsString,' Spec=',Specificity);
+    if Specificity>=0 then
       ok:=true
     else begin
-      // the specifity of :is is the highest, independent of matching (forgiving)
-      if not OnlySpecifity then
-        Specifity:=SelectorMatches(aCall.Args[i],TestNode,true);
+      // the Specificity of :is is the highest, independent of matching (forgiving)
+      if not OnlySpecificity then
+        Specificity:=SelectorMatches(aCall.Args[i],TestNode,true);
     end;
-    if Specifity>Result then
-      Result:=Specifity;
+    if Specificity>Result then
+      Result:=Specificity;
   end;
-  if (not ok) and (not OnlySpecifity) then
-    Result:=CSSSpecifityNoMatch;
+  if (not ok) and (not OnlySpecificity) then
+    Result:=CSSSpecificityNoMatch;
 end;
 
 function TCSSResolver.Call_Where(aCall: TCSSResolvedCallElement;
-  const TestNode: ICSSNode; OnlySpecifity: boolean): TCSSSpecifity;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   i: Integer;
 begin
   Result:=0;
-  if OnlySpecifity then
+  if OnlySpecificity then
     exit;
   for i:=0 to aCall.ArgCount-1 do
   begin
@@ -1734,12 +1734,12 @@ begin
       // Note: :where is forgiving, so invalid arguments are ignored
       exit;
   end;
-  Result:=CSSSpecifityNoMatch;
+  Result:=CSSSpecificityNoMatch;
 end;
 
 function TCSSResolver.Call_NthChild(PseudoFuncID: TCSSNumericalID;
-  aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecifity: boolean
-  ): TCSSSpecifity;
+  aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean
+  ): TCSSSpecificity;
 var
   i: Integer;
   Params: TCSSResolverNthChildParams;
@@ -1747,21 +1747,21 @@ var
 begin
   Params:=aCall.Params as TCSSResolverNthChildParams;
   if Params=nil then
-    exit(CSSSpecifityInvalid);
+    exit(CSSSpecificityInvalid);
 
-  if OnlySpecifity then
-    Result:=CSSSpecifityClass+FSourceSpecifity
+  if OnlySpecificity then
+    Result:=CSSSpecificityClass+FSourceSpecificity
   else
-    Result:=CSSSpecifityInvalid;
+    Result:=CSSSpecificityInvalid;
 
-  if OnlySpecifity then
+  if OnlySpecificity then
   begin
     if Params.OfSelector<>nil then
       inc(Result,SelectorMatches(Params.OfSelector,TestNode,true));
     exit;
   end;
 
-  Result:=CSSSpecifityNoMatch;
+  Result:=CSSSpecificityNoMatch;
   if Params.Modulo=0 then
     exit;
   i:=TestNode.GetCSSIndex;
@@ -1791,7 +1791,7 @@ begin
   begin
     i:=i div Params.Modulo;
     if i>=0 then
-      Result:=CSSSpecifityClass+FSourceSpecifity;
+      Result:=CSSSpecificityClass+FSourceSpecificity;
   end;
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.Call_NthChild Node=',TestNode.GetCSSID,' ',Params.Modulo,' * N + ',Params.Start,' Index=',TestNode.GetCSSIndex+1,' i=',i,' Result=',Result);
@@ -2085,7 +2085,7 @@ begin
 end;
 
 procedure TCSSResolver.MergeAttribute(El: TCSSElement;
-  aSpecifity: TCSSSpecifity);
+  aSpecificity: TCSSSpecificity);
 var
   C: TClass;
   Decl: TCSSDeclarationElement;
@@ -2127,7 +2127,7 @@ begin
   if Decl.ChildCount=0 then
     exit;
   if Decl.IsImportant then
-    aSpecifity:=CSSSpecifityImportant;
+    aSpecificity:=CSSSpecificityImportant;
 
   aKey:=Decl.Keys[0];
   C:=aKey.ClassType;
@@ -2162,9 +2162,9 @@ begin
   if AnAttrID=CSSAttributeID_All then
   begin
     // 'all' sets almost all attributes to a value
-    if FMergedAllSpecifity>aSpecifity then
+    if FMergedAllSpecificity>aSpecificity then
       exit;
-    FMergedAllSpecifity:=aSpecifity;
+    FMergedAllSpecificity:=aSpecificity;
     FMergedAllDecl:=Decl;
 
     SubAttrID:=FMergedAttributeFirst;
@@ -2181,33 +2181,33 @@ begin
     // set property
     AttrDesc:=GetAttributeDesc(AnAttrID);
 
-    if (FMergedAllSpecifity>aSpecifity) and AttrDesc.All then
-      exit; // a former 'all' has higher specifity
+    if (FMergedAllSpecificity>aSpecificity) and AttrDesc.All then
+      exit; // a former 'all' has higher Specificity
 
     with FMergedAttributes[AnAttrID] do
     begin
-      if (Stamp=FMergedAttributesStamp) and (Specifity>aSpecifity) then
-        exit; // a former attribute has higher specifity
+      if (Stamp=FMergedAttributesStamp) and (Specificity>aSpecificity) then
+        exit; // a former attribute has higher Specificity
     end;
     {$IFDEF VerboseCSSResolver}
-    writeln('TCSSResolver.MergeAttribute Node=',FNode.GetCSSID,' AttrID=',AnAttrID,' ',AttrDesc.Name,' Spec=',aSpecifity,' Decl="',Decl.AsString,'"');
+    writeln('TCSSResolver.MergeAttribute Node=',FNode.GetCSSID,' AttrID=',AnAttrID,' ',AttrDesc.Name,' Spec=',aSpecificity,' Decl="',Decl.AsString,'"');
     {$ENDIF}
-    SetMergedAttribute(AnAttrID,aSpecifity,Decl);
+    SetMergedAttribute(AnAttrID,aSpecificity,Decl);
 
     if (AttrDesc<>nil) and (length(AttrDesc.CompProps)>0) then
     begin
       // shorthand -> set longhands
-      // Note: order matters when same specifity, so longhands must be done during the cascade
+      // Note: order matters when same Specificity, so longhands must be done during the cascade
       for NextAttrID:=0 to length(AttrDesc.CompProps)-1 do
       begin
         SubAttrID:=AttrDesc.CompProps[NextAttrID].Index;
         with FMergedAttributes[SubAttrID] do
         begin
-          if (Stamp=FMergedAttributesStamp) and (Specifity>aSpecifity) then
-            continue; // a former attribute has higher specifity
-          SetMergedAttribute(SubAttrID,aSpecifity,nil);
+          if (Stamp=FMergedAttributesStamp) and (Specificity>aSpecificity) then
+            continue; // a former attribute has higher Specificity
+          SetMergedAttribute(SubAttrID,aSpecificity,nil);
           {$IFDEF VerboseCSSResolver}
-          writeln('TCSSResolver.MergeAttribute Longhand Node=',FNode.GetCSSID,' Shorthand=',AttrDesc.Name,' Spec=',aSpecifity,' Decl="',Decl.AsString,'" Longhand=',GetAttributeDesc(SubAttrID).Name);
+          writeln('TCSSResolver.MergeAttribute Longhand Node=',FNode.GetCSSID,' Shorthand=',AttrDesc.Name,' Spec=',aSpecificity,' Decl="',Decl.AsString,'" Longhand=',GetAttributeDesc(SubAttrID).Name);
           {$ENDIF}
         end;
       end;
@@ -2224,7 +2224,7 @@ var
   AttrP: PMergedAttribute;
 begin
   SharedMerged.AllDecl:=FMergedAllDecl;
-  SharedMerged.AllSpecifity:=FMergedAllSpecifity;
+  SharedMerged.AllSpecificity:=FMergedAllSpecificity;
 
   // count attributes (skip longhands set by shorthands DeclEl=nil)
   Cnt:=0;
@@ -2248,7 +2248,7 @@ begin
     begin
       SharedMerged.Values[Cnt].AttrID:=AttrID;
       SharedMerged.Values[Cnt].DeclEl:=AttrP^.DeclEl;
-      SharedMerged.Values[Cnt].Specifity:=AttrP^.Specifity;
+      SharedMerged.Values[Cnt].Specificity:=AttrP^.Specificity;
       inc(Cnt);
     end;
     AttrID:=AttrP^.Next;
@@ -2262,11 +2262,11 @@ var
 begin
   ClearMerge;
   FMergedAllDecl:=SharedMerged.AllDecl;
-  FMergedAllSpecifity:=SharedMerged.AllSpecifity;
+  FMergedAllSpecificity:=SharedMerged.AllSpecificity;
   for i:=0 to length(SharedMerged.Values)-1 do
   begin
     with SharedMerged.Values[i] do
-      SetMergedAttribute(AttrID,Specifity,DeclEl);
+      SetMergedAttribute(AttrID,Specificity,DeclEl);
   end;
 end;
 
@@ -2285,7 +2285,7 @@ begin
     NextAttrID:=FMergedAttributes[AttrID].Next;
     AttrP:=@FMergedAttributes[AttrID];
     AttrDesc:=GetAttributeDesc(AttrID);
-    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specifity,' Value="',AttrP^.Value,'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
+    writeln('  ',Cnt,' AttrID=',AttrID,' ',AttrDesc.Name,' Spec=',AttrP^.Specificity,' Value="',AttrP^.Value,'" Complete=',AttrP^.Complete,' Decl=',AttrP^.DeclEl<>nil);
     inc(Cnt);
     AttrID:=NextAttrID;
   end;
@@ -2610,11 +2610,11 @@ begin
             if SubAttrDesc.OnSplitShorthand<>nil then
               raise ECSSResolver.Create('20240709194634');
             SubAttrP:=@FMergedAttributes[SubAttrID];
-            if (SubAttrP^.Stamp=FMergedAttributesStamp) and (SubAttrP^.Specifity>=AttrP^.Specifity) then
+            if (SubAttrP^.Stamp=FMergedAttributesStamp) and (SubAttrP^.Specificity>=AttrP^.Specificity) then
             begin
               // longhand already exists -> keep
             end else begin
-              SetMergedAttribute(SubAttrID,AttrP^.Specifity,nil);
+              SetMergedAttribute(SubAttrID,AttrP^.Specificity,nil);
               SubAttrP^.Value:=LHValues[i];
               if SubAttrP^.Value='' then
                 SubAttrP^.Value:=SubAttrDesc.InitialValue;
@@ -2832,7 +2832,7 @@ begin
     if InlineStyle<>nil then
     begin
       for i:=0 to InlineStyle.ChildCount-1 do
-        MergeAttribute(InlineStyle.Children[i],CSSSpecifityInline);
+        MergeAttribute(InlineStyle.Children[i],CSSSpecificityInline);
     end;
 
     LoadMergedValues;
@@ -2904,10 +2904,10 @@ begin
   for aLayerIndex:=0 to length(FLayers)-1 do
     with FLayers[aLayerIndex] do begin
       case Origin of
-      cssoUserAgent: FSourceSpecifity:=CSSSpecifityUserAgent;
-      cssoUser: FSourceSpecifity:=CSSSpecifityUser;
+      cssoUserAgent: FSourceSpecificity:=CSSSpecificityUserAgent;
+      cssoUser: FSourceSpecificity:=CSSSpecificityUser;
       else
-        FSourceSpecifity:=CSSSpecifityAuthor;
+        FSourceSpecificity:=CSSSpecificityAuthor;
       end;
 
       for i:=0 to ElementCount-1 do
