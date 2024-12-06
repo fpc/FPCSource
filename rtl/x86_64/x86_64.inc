@@ -1621,20 +1621,19 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
-    localfpucw: word;
-  begin
-    localfpucw:=Default8087CW;
-    localmxcsr:=DefaultMXCSR;
-    asm
-      fninit
-      fwait
-      fldcw   localfpucw
-      ldmxcsr localmxcsr
-    end;
+Procedure SysResetFPU;assembler;nostackframe;
+  asm
+    fninit
+    fwait
+{$ifdef FPC_PIC}
+    movq  Default8087CW@GOTPCREL(%rip),%rax
+    fldcw (%rax)
+    movq  DefaultMXCSR@GOTPCREL(%rip),%rax
+    ldmxcsr (%rax)
+{$else FPC_PIC}
+    fldcw   Default8087CW(%rip)
+    ldmxcsr DefaultMXCSR(%rip)
+{$endif FPC_PIC}
   end;
 
 
