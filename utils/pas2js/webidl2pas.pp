@@ -130,9 +130,8 @@ end;
 function TWebIDLToPasApplication.ConfigWebIDLToPas : Boolean;
 
 var
-  A,ErrorMsg: String;
+  A: String;
   I : Integer;
-  ok: Boolean;
   L : TStrings;
 
 begin
