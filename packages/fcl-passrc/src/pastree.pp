@@ -2262,13 +2262,18 @@ end;
 function TInlineSpecializeExpr.GetDeclaration(full: Boolean): TPasTreeString;
 var
   i: Integer;
+  aParam: TPasElement;
 begin
   Result:='specialize '+NameExpr.GetDeclaration(false)+'<';
   for i:=0 to Params.Count-1 do
     begin
     if i>0 then
       Result:=Result+',';
-    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
+    aParam:=TPasElement(Params[i]);
+    if aParam is TPasMembersType then
+      Result:=Result+aParam.FullName
+    else
+      Result:=Result+aParam.GetDeclaration(false);
     end;
   Result:=Result+'>';
   if full then ;
@@ -2328,13 +2333,18 @@ end;
 function TPasSpecializeType.GetDeclaration(full: boolean): TPasTreeString;
 var
   i: Integer;
+  aParam: TPasElement;
 begin
   Result:='specialize '+DestType.Name+'<';
   for i:=0 to Params.Count-1 do
     begin
     if i>0 then
       Result:=Result+',';
-    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
+    aParam:=TPasElement(Params[i]);
+    if aParam is TPasMembersType then
+      Result:=Result+aParam.FullName
+    else
+      Result:=Result+aParam.GetDeclaration(false);
     end;
   If Full and (Name<>'') then
     begin
