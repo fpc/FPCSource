@@ -1931,6 +1931,8 @@ begin
     else
       RaiseNotSupported(20181015193334,Expr,OpcodeStrings[Unary.OpCode]);
     end
+  else if C=TInlineSpecializeExpr then
+    UseExprRef(El,TInlineSpecializeExpr(Expr).NameExpr,Access,UseFull)
   else if (Access=rraRead)
       and ((C=TPrimitiveExpr) // Kind<>pekIdent
         or (C=TNilExpr)
