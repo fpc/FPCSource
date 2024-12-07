@@ -489,14 +489,22 @@ begin
   InterLockedIncrement(l);
 end;
 
-{$IFDEF CPUMIPS1}
+{$IFNDEF VER3_2}
+{$DEFINE FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+{$ENDIF VER3_2}
+
+{$IFDEF VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;
+{$ELSE VER3_2}
+{$DEFINE FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint) : longint;
+{$ENDIF VER3_2}
+{$IFDEF CPUMIPS1}
 begin
     Target:= Target - 1;
     Result:=Target;
-end;
 {$ELSE}
-function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
+assembler; nostackframe;
 asm
   sync
 .L1:
@@ -507,17 +515,21 @@ asm
   beq   $v1,$0,.L1
   nop
   sync
-end;
 {$ENDIF}
+end;
 
-{$IFDEF CPUMIPS1}
+{$IFDEF VER3_2}
 function InterLockedIncrement (var Target: longint) : longint;
+{$ELSE VER3_2}
+{$DEFINE FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint) : longint;
+{$ENDIF VER3_2}
+{$IFDEF CPUMIPS1}
 begin
     Target:= Target + 1;
     Result:=Target;
-end;
 {$ELSE}
-function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
+assembler; nostackframe;
 asm
   sync
 .L1:
@@ -528,17 +540,21 @@ asm
   beq   $v1,$0,.L1
   nop
   sync
-end;
 {$ENDIF}
+end;
 
-{$IFDEF CPUMIPS1}
+{$IFDEF VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
+{$ELSE VER3_2}
+{$DEFINE FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint;
+{$ENDIF VER3_2}
+{$IFDEF CPUMIPS1}
 begin
     Result:=Target;
     Target:=Source;
-end;
 {$ELSE}
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+assembler; nostackframe;
 asm
   sync
 .L1:
@@ -548,17 +564,21 @@ asm
   beq   $v1,$0,.L1
   nop
   sync
-end;
 {$ENDIF}
+end;
 
-{$IFDEF CPUMIPS1}
+{$IFDEF VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+{$ELSE VER3_2}
+{$DEFINE FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
+{$ENDIF VER3_2}
+{$IFDEF CPUMIPS1}
 begin
     Result:=Target;
     Target:= Target + Source;
-end;
 {$ELSE}
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+assembler; nostackframe;
 asm
   sync
 .L1:
@@ -568,18 +588,22 @@ asm
   beq   $v1,$0,.L1
   nop
   sync
-end;
 {$ENDIF}
+end;
 
-{$IFDEF CPUMIPS1}
+{$IFDEF VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+{$ELSE VER3_2}
+{$DEFINE FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint; [public,alias:'FPC_ATOMIC_CMP_XCHG_32'];
+{$ENDIF VER3_2}
+{$IFDEF CPUMIPS1}
 begin
     Result:= Target;
     if Target = Comperand then
       Target:= NewValue;
-end;
 {$ELSE}
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+assembler; nostackframe;
 asm
   sync
 .L1:
@@ -592,8 +616,8 @@ asm
   nop
   sync
 .L2:
-end;
 {$ENDIF}
+end;
 
 {$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
 {$ifdef ENDIAN_BIG}
