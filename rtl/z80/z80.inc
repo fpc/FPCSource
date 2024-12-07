@@ -159,8 +159,6 @@ Function Sptr : pointer;assembler;nostackframe;
 
 
 function InterLockedDecrement (var Target: longint) : longint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -178,8 +176,6 @@ function InterLockedDecrement (var Target: longint) : longint;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -197,8 +193,6 @@ function InterLockedIncrement (var Target: longint) : longint;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -216,8 +210,6 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -236,8 +228,6 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -255,8 +245,6 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
 
 function InterLockedDecrement (var Target: smallint) : smallint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -274,8 +262,6 @@ function InterLockedDecrement (var Target: smallint) : smallint;
 
 
 function InterLockedIncrement (var Target: smallint) : smallint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -293,8 +279,6 @@ function InterLockedIncrement (var Target: smallint) : smallint;
 
 
 function InterLockedExchange (var Target: smallint;Source : smallint) : smallint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -312,8 +296,6 @@ function InterLockedExchange (var Target: smallint;Source : smallint) : smallint
 
 
 function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
@@ -332,8 +314,6 @@ function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Co
 
 
 function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;
-  var
-    temp_sreg : byte;
   begin
     { block interrupts }
     asm
