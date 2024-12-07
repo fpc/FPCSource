@@ -694,7 +694,16 @@ asm
 {$endif FPC_X86_DATA_NEAR}
 end;
 
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+{$endif VER3_2}
+
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: smallint) : smallint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_16}
+function fpc_atomic_dec_16 (var Target: smallint) : smallint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -713,7 +722,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint) : longint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -734,7 +748,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: smallint) : smallint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_16}
+function fpc_atomic_inc_16 (var Target: smallint) : smallint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -753,7 +772,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint) : longint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -774,7 +798,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: smallint;Source : smallint) : smallint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
+function fpc_atomic_xchg_16 (var Target: smallint;Source : smallint) : smallint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -790,7 +819,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -811,7 +845,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+function fpc_atomic_add_16 (var Target: smallint;Value : smallint) : smallint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -831,7 +870,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;nostackframe;assembler;
+{$endif VER3_2}
 asm
   mov si, sp
 {$ifdef FPC_X86_DATA_NEAR}
@@ -854,7 +898,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+function fpc_atomic_cmp_xchg_16 (var Target: smallint; NewValue: smallint; Comparand: smallint): smallint;[public,alias:'FPC_ATOMIC_CMP_XCHG_16'];assembler;
+{$endif VER3_2}
 asm
 {$ifdef FPC_X86_DATA_NEAR}
   mov bx, [Target]  // Target
@@ -862,7 +911,11 @@ asm
   mov cx, ds
   lds bx, [Target]  // Target
 {$endif FPC_X86_DATA_NEAR}
+{$ifdef VER3_2}
   mov di, [Comperand]
+{$else VER3_2}
+  mov di, [Comparand]
+{$endif VER3_2}
   pushf
   cli
   mov ax, [bx]
@@ -877,7 +930,12 @@ asm
 {$endif}
 end;
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;assembler;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint;assembler;
+{$endif VER3_2}
 asm
 {$ifdef FPC_X86_DATA_NEAR}
   mov bx, [Target]  // Target
@@ -885,8 +943,13 @@ asm
   mov cx, ds
   lds bx, [Target]  // Target
 {$endif FPC_X86_DATA_NEAR}
+{$ifdef VER3_2}
   mov di, word [Comperand]
   mov si, word [Comperand+2]
+{$else VER3_2}
+  mov di, word [Comparand]
+  mov si, word [Comparand+2]
+{$endif VER3_2}
   pushf
   cli
   mov ax, [bx]
