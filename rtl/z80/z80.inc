@@ -158,7 +158,17 @@ Function Sptr : pointer;assembler;nostackframe;
   end;
 
 
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+{$endif VER3_2}
+
+
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint): longint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -175,7 +185,12 @@ function InterLockedDecrement (var Target: longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint): longint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -192,7 +207,12 @@ function InterLockedIncrement (var Target: longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint): longint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -209,7 +229,12 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint): longint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -217,7 +242,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     end;
 
     Result:=Target;
-    if Target=Comperand then
+    if Target={$ifdef VER3_2}Comperand{$else}Comparand{$endif} then
       Target:=NewValue;
 
     { release interrupts }
@@ -227,7 +252,12 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint): longint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -235,7 +265,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
     end;
 
     Result:=Target;
-    inc(Target,Source);
+    inc(Target,{$ifdef VER3_2}Source{$else}Value{$endif});
 
     { release interrupts }
     asm
@@ -244,7 +274,12 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: smallint) : smallint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_16}
+function fpc_atomic_dec_16 (var Target: smallint): smallint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -261,7 +296,12 @@ function InterLockedDecrement (var Target: smallint) : smallint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: smallint) : smallint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_16}
+function fpc_atomic_inc_16 (var Target: smallint): smallint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -278,7 +318,12 @@ function InterLockedIncrement (var Target: smallint) : smallint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: smallint;Source : smallint) : smallint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
+function fpc_atomic_xchg_16 (var Target: smallint;Source : smallint): smallint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -295,7 +340,12 @@ function InterLockedExchange (var Target: smallint;Source : smallint) : smallint
   end;
 
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+function fpc_atomic_cmp_xchg_16 (var Target: smallint; NewValue: smallint; Comparand: smallint): smallint; [public,alias:'FPC_ATOMIC_CMP_XCHG_16'];
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -303,7 +353,7 @@ function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Co
     end;
 
     Result:=Target;
-    if Target=Comperand then
+    if Target={$ifdef VER3_2}Comperand{$else}Comparand{$endif} then
       Target:=NewValue;
 
     { release interrupts }
@@ -313,7 +363,12 @@ function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Co
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+function fpc_atomic_add_16 (var Target: smallint;Value : smallint): smallint;
+{$endif VER3_2}
   begin
     { block interrupts }
     asm
@@ -321,7 +376,7 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
     end;
 
     Result:=Target;
-    inc(Target,Source);
+    inc(Target,{$ifdef VER3_2}Source{$else}Value{$endif});
 
     { release interrupts }
     asm
