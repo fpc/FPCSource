@@ -62,6 +62,7 @@ type
     function RDSEEDSupport: boolean;inline;
     function ADXSupport: boolean;inline;
     function SHASupport: boolean;inline;
+    function SHA512Support: boolean;inline;
     function FMASupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
     function LZCNTSupport: boolean;inline;
@@ -86,7 +87,7 @@ type
 {$ASMMODE INTEL}
     var
       data: record
-        cpuid1, cpuid7: TCpuidResult;
+        cpuid1, cpuid7_0, cpuid7_1: TCpuidResult;
         AVXSupport,
         LZCNTSupport: boolean;
       end;
@@ -231,7 +232,10 @@ type
             maxcpuidvalue:=CPUID(0).eax;
             CPUID(1, 0, data.cpuid1);
             if maxcpuidvalue>=7 then
-              CPUID(7, 0, data.cpuid7);
+              begin
+                CPUID(7, 0, data.cpuid7_0);
+                CPUID(7, 1, data.cpuid7_1);
+              end;
 
             is_sse3_cpu:=(data.cpuid1.ecx and (1 shl 0))<>0;
 
@@ -286,113 +290,119 @@ type
 
     function AVX2Support: boolean;inline;
       begin
-        result:=data.AVXSupport and ((data.cpuid7.ebx and (1 shl 5))<>0);
+        result:=data.AVXSupport and ((data.cpuid7_0.ebx and (1 shl 5))<>0);
       end;
 
 
     function AVX512FSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 16))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 16))<>0;
       end;
 
 
     function AVX512DQSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 17))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 17))<>0;
       end;
 
 
     function AVX512IFMASupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 21))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 21))<>0;
       end;
 
 
     function AVX512PFSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 26))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 26))<>0;
       end;
 
 
     function AVX512ERSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 27))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 27))<>0;
       end;
 
 
     function AVX512CDSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 28))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 28))<>0;
       end;
 
 
     function AVX512BWSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 30))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 30))<>0;
       end;
 
 
     function AVX512VLSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 31))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 31))<>0;
       end;
 
 
     function AVX512VBMISupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 1))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 1))<>0;
       end;
 
 
     function AVX512VBMI2Support: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 6))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 6))<>0;
       end;
 
 
     function VAESSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 9))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 9))<>0;
       end;
 
 
     function VCLMULSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 10))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 10))<>0;
       end;
 
 
     function AVX512VNNISupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 11))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 11))<>0;
       end;
 
 
     function AVX512BITALGSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ecx and (1 shl 12))<>0;
+        result:=(data.cpuid7_0.ecx and (1 shl 12))<>0;
       end;
 
 
     function RDSEEDSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 18))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 18))<>0;
       end;
 
 
     function ADXSupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 19))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 19))<>0;
       end;
 
 
-     function SHASupport: boolean;inline;
+    function SHASupport: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 29))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 29))<>0;
       end;
 
 
-   function FMASupport: boolean;inline;
+    function SHA512Support: boolean;inline;
+      begin
+        result:=(data.cpuid7_1.eax and 1)<>0;
+      end;
+
+
+    function FMASupport: boolean;inline;
       begin
         result:=data.AVXSupport and ((data.cpuid1.ecx and (1 shl 12))<>0);
       end;
@@ -454,19 +464,19 @@ type
 
     function RTMSupport: boolean;inline;
       begin
-        result:=((data.cpuid7.ebx and (1 shl 11))<>0) and (data.cpuid7.edx and (1 shl 11)=0 {RTM_ALWAYS_ABORT});
+        result:=((data.cpuid7_0.ebx and (1 shl 11))<>0) and (data.cpuid7_0.edx and (1 shl 11)=0 {RTM_ALWAYS_ABORT});
       end;
 
 
     function BMI1Support: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 3))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 3))<>0;
       end;
 
 
     function BMI2Support: boolean;inline;
       begin
-        result:=(data.cpuid7.ebx and (1 shl 8))<>0;
+        result:=(data.cpuid7_0.ebx and (1 shl 8))<>0;
       end;
 
 begin

@@ -5,7 +5,7 @@ uses
 
 var
   dummy16b : array[0..15] of byte;
-  
+
 begin
   write('CMOV support: ');
   if CMOVSupport then
@@ -166,6 +166,16 @@ begin
     end
   else
     writeln('no');
+  write('SHA512 support: ');
+  if SHA512Support then
+    begin
+      writeln('yes');
+      asm
+//        vsha512msg2 %ymm0,%ymm0
+      end;
+    end
+  else
+    writeln('no');
   write('LZCNT support: ');
   if LZCNTSupport then
     begin
@@ -213,6 +223,6 @@ begin
     end
   else
     writeln('no');
-{$endif cpui386}    
+{$endif cpui386}
 end.
 
