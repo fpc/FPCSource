@@ -127,7 +127,8 @@ interface
         'ia64',        // cpu_icelake_client
         'ia64',        // cpu_icelake_server
         'ia64',        // cpu_zen3
-        'ia64'         // cpu_zen4
+        'ia64',        // cpu_zen4
+        'ia64'         // cpu_zen5
 {$elseif defined(i386)}
         'ia64',     // cpu_none
         '386',      // cpu_386
@@ -151,7 +152,8 @@ interface
         'ia64',     // cpu_icelake_client
         'ia64',     // cpu_icelake_server
         'ia64',     // cpu_zen3
-        'ia64'      // cpu_zen4
+        'ia64',     // cpu_zen4
+        'ia64'      // cpu_zen5
 {$elseif defined(i8086)}
         'ia64',    // cpu_none
         '8086',    // cpu_8086
