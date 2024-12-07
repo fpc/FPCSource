@@ -291,7 +291,17 @@ procedure inclocked(var l : int64);assembler;nostackframe;
   end;
 
 
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+{$endif VER3_2}
+
+
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint) : longint; assembler; nostackframe;
+{$endif VER3_2}
   { input:  address of target in x0 }
   { output: target-1 in x0          }
   { side-effect: target := target-1 }
@@ -311,7 +321,12 @@ function InterLockedDecrement (var Target: longint) : longint; assembler; nostac
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint) : longint; assembler; nostackframe;
+{$endif VER3_2}
   { input:  address of target in x0 }
   { output: target+1 in x0          }
   { side-effect: target := target+1 }
@@ -331,7 +346,12 @@ function InterLockedIncrement (var Target: longint) : longint; assembler; nostac
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+{$endif VER3_2}
   { input:  address of target in x0, source in w1 }
   { output: target in x0                          }
   { side-effect: target := source                 }
@@ -348,7 +368,12 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint; a
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     ldadd    w1,w0,[x0]
@@ -363,7 +388,12 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
   end;
 
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+function fpc_atomic_cmp_xchg_32(var Target: longint; NewValue: longint; Comparand: longint): longint; assembler; nostackframe;
+{$endif VER3_2}
   { input:  address of target in x0, newvalue in w1, comparand in w2 }
   { output: value stored in target before entry of the function      }
   { side-effect: NewValue stored in target if (target = comparand)   }
@@ -383,7 +413,12 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedDecrement64 (var Target: int64) : int64; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_64}
+function fpc_atomic_dec_64 (var Target: int64) : int64; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     mov    x1,#-1
@@ -400,7 +435,12 @@ function InterLockedDecrement64 (var Target: int64) : int64; assembler; nostackf
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedIncrement64 (var Target: int64) : int64; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_64}
+function fpc_atomic_inc_64 (var Target: int64) : int64; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     mov    x1,#1
@@ -417,7 +457,12 @@ function InterLockedIncrement64 (var Target: int64) : int64; assembler; nostackf
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
+function fpc_atomic_xchg_64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     swp    x1,x0,[x0]
@@ -431,7 +476,12 @@ function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assem
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+function fpc_atomic_add_64 (var Target: int64;Value : int64) : int64; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     ldadd    x1,x0,[x0]
@@ -446,7 +496,12 @@ function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; as
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : int64): int64; assembler; nostackframe;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_64}
+function fpc_atomic_cmp_xchg_64 (var Target: int64; NewValue, Comparand : int64) : int64; [public, alias: 'FPC_ATOMIC_CMP_XCHG_64']; assembler; nostackframe;
+{$endif VER3_2}
   asm
   {$ifdef CPUAARCH64_HAS_LSE}
     cas    x2,x1,[x0]
