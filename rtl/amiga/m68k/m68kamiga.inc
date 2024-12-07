@@ -21,7 +21,17 @@
   be safe for multithreading. (KB) }
 
 {$DEFINE FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
+
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+{$endif VER3_2}
+
+{$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint) : longint;
+{$endif VER3_2}
   begin
     Forbid;
     Dec(Target);
@@ -30,7 +40,12 @@ function InterLockedDecrement (var Target: longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedIncrement (var Target: longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint) : longint;
+{$endif VER3_2}
   begin
     Forbid;
     Inc(Target);
@@ -39,7 +54,12 @@ function InterLockedIncrement (var Target: longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint;
+{$endif VER3_2}
   begin
     Forbid;
     Result := Target;
@@ -48,20 +68,30 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
   end;
 
 
+{$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
+{$endif VER3_2}
   begin
     Forbid;
     Result := Target;
-    Target := Target + Source;
+    Target := Target + {$ifdef VER3_2}Source{$else}Value{$endif};
     Permit;
   end;
 
 
+{$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint;
+{$endif VER3_2}
   begin
     Forbid;
     Result := Target;
-    if Target = Comperand then
+    if Target = {$ifdef VER3_2}Comperand{$else}Comparand{$endif} then
       Target := NewValue;
     Permit;
   end;
