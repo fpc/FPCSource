@@ -2797,14 +2797,14 @@ begin
     else
       begin
       Str(TJOB_Double(V).Value,S);
-      Result:=S;
+      Exit(S);
       end;
     if V is TJOB_String then
-      Result:=TJOB_STRING(V).Value;
+      Exit(TJOB_STRING(V).Value);
   finally
     V.Free;
   end;
-  Raise EConvertError.CreateFmt('Element %d is not a valid integer value',[Index]);
+  Raise EConvertError.CreateFmt('Element %d is not a valid string value',[Index]);
 end;
 
 procedure TJSArray._SetBooleans(Index: NativeInt; aValue: Boolean);
