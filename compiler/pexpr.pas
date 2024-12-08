@@ -951,6 +951,51 @@ implementation
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
+
+          in_atomic_inc,
+          in_atomic_dec:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              if try_to_consume(_COMMA) then
+                begin
+                  p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+                end
+              else
+                p2:=nil;
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,p2));
+              consume(_RKLAMMER);
+            end;
+
+          in_atomic_xchg:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              consume(_COMMA);
+              p2:=comp_expr([ef_accept_equal]);
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
+              consume(_RKLAMMER);
+            end;
+
+          in_atomic_cmp_xchg:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              paras:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              consume(_COMMA);
+              tcallparanode(paras).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              consume(_COMMA);
+              tcallparanode(tcallparanode(paras).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              if try_to_consume(_COMMA) then
+                begin
+                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+                end;
+              statement_syssym:=geninlinenode(l,false,paras);
+              consume(_RKLAMMER);
+            end;
+
           else
             internalerror(15);
 

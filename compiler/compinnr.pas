@@ -193,7 +193,13 @@ type
      { SSE }
 
 { More internal functions }
-     in_isconstvalue_x    = 1000
+     in_isconstvalue_x    = 1000,
+
+{ atomic intrinsics }
+     in_atomic_inc       = 1100,
+     in_atomic_dec       = 1101,
+     in_atomic_xchg      = 1102,
+     in_atomic_cmp_xchg  = 1103
 
 {$if defined(X86)}
      ,

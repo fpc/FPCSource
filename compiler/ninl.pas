@@ -111,6 +111,7 @@ interface
 {$endif not cpu64bitalu and not cpuhighleveltarget}
           function first_AndOrXorShiftRot_assign: tnode; virtual;
           function first_NegNot_assign: tnode; virtual;
+          function first_atomic:tnode;virtual;
           function first_cpu : tnode; virtual;
 
           procedure CheckParameters(count : integer);
@@ -3347,6 +3348,7 @@ implementation
          hightree,
          hp        : tnode;
          temp_pnode: pnode;
+         convdef   : tdef;
       begin
         result:=nil;
         { when handling writeln "left" contains no valid address }
@@ -4203,6 +4205,105 @@ implementation
                 begin
                   result:=handle_concat;
                 end;
+              in_atomic_dec,
+              in_atomic_inc,
+              in_atomic_xchg,
+              in_atomic_cmp_xchg:
+                begin
+                  begin
+                    resultdef:=voidtype;
+                    if not(df_generic in current_procinfo.procdef.defoptions) then
+                      begin
+                        { first parameter must exist for all }
+                        if not assigned(left) or (left.nodetype<>callparan) then
+                          internalerror(2022093001);
+                        { second parameter must exist for xchg and cmp_xchg }
+                        if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
+                          begin
+                            if not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype<>callparan) then
+                              internalerror(2022093002);
+                            if inlinenumber=in_atomic_cmp_xchg then
+                              begin
+                                { third parameter must exist }
+                                if not assigned(tcallparanode(tcallparanode(left).right).right) or (tcallparanode(tcallparanode(left).right).right.nodetype<>callparan) then
+                                  internalerror(2022093004);
+                                { fourth parameter may exist }
+                                if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+                                  begin
+                                    if tcallparanode(tcallparanode(tcallparanode(left).right).right).right.nodetype<>callparan then
+                                      internalerror(2022093005);
+                                    { fifth parameter must NOT exist }
+                                    if assigned(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).right) then
+                                      internalerror(2022093006);
+                                  end;
+                              end
+                            { third parameter must NOT exist }
+                            else if assigned(tcallparanode(tcallparanode(left).right).right) then
+                              internalerror(2022093003);
+                          end
+                        else if assigned(tcallparanode(left).right) then
+                          begin
+                            { if the second parameter exists, it must be a callparan }
+                            if tcallparanode(left).right.nodetype<>callparan then
+                              internalerror(2022093004);
+                            { a third parameter must not exist }
+                            if assigned(tcallparanode(tcallparanode(left).right).right) then
+                              internalerror(2022093005);
+                          end;
+
+                        valid_for_var(tcallparanode(left).left,true);
+                        set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
+
+                        if is_integer(tcallparanode(left).resultdef) or is_pointer(tcallparanode(left).resultdef) then
+                          begin
+                            if not is_pointer(tcallparanode(left).resultdef) then
+                              begin
+                                resultdef:=get_signed_inttype(tcallparanode(left).left.resultdef);
+                                convdef:=resultdef;
+                              end
+                            else
+                              begin
+                                { pointer is only allowed for Exchange and CmpExchange }
+                                if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
+                                  cgmessagepos(fileinfo,type_e_ordinal_expr_expected);
+                                resultdef:=voidpointertype;
+                                convdef:=ptrsinttype;
+                              end;
+                            { left gets changed -> must be unique }
+                            set_unique(tcallparanode(left).left);
+                            inserttypeconv_internal(tcallparanode(left).left,convdef);
+                            if assigned(tcallparanode(left).right) then
+                              begin
+                                inserttypeconv(tcallparanode(tcallparanode(left).right).left,resultdef);
+                                if resultdef<>convdef then
+                                  inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,convdef);
+                                if assigned(tcallparanode(tcallparanode(left).right).right) then
+                                  begin
+                                    inserttypeconv(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,resultdef);
+                                    if resultdef<>convdef then
+                                      inserttypeconv_internal(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,convdef);
+                                    if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+                                      begin
+                                        { the boolean parameter must be assignable }
+                                        valid_for_var(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,true);
+                                        set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_readwritten,[vsf_must_be_valid]);
+                                        inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type);
+                                      end;
+                                  end;
+                              end;
+                          end
+                        else if is_typeparam(tcallparanode(left).left.resultdef) then
+                          begin
+                            result:=cnothingnode.create;
+                            exit;
+                          end
+                        else if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
+                          CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_or_pointer_expr_expected)
+                        else
+                          CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_expr_expected);
+                      end;
+                  end;
+                end;
               else
                 result:=pass_typecheck_cpu;
             end;
@@ -4647,6 +4748,11 @@ implementation
          in_max_single,
          in_max_double:
            result:=first_minmax;
+         in_atomic_inc,
+         in_atomic_dec,
+         in_atomic_xchg,
+         in_atomic_cmp_xchg:
+           result:=first_atomic;
          else
            result:=first_cpu;
           end;
@@ -6033,6 +6139,118 @@ implementation
        begin
          result:=nil;
          expectloc:=left.expectloc;
+       end;
+
+
+     function tinlinenode.first_atomic: tnode;
+       var
+         name : string;
+         n,n2,cmpn,succn,valn : tnode;
+         c : sizeint;
+         stmt : tstatementnode;
+         tmp,tmp2: ttempcreatenode;
+       begin
+         { by default we redirect to the corresponding compilerprocs }
+         name:='fpc_atomic_';
+         case inlinenumber of
+           in_atomic_inc:
+             if assigned(tcallparanode(left).right) then
+               name:=name+'add'
+             else
+               name:=name+'inc';
+           in_atomic_dec:
+             if assigned(tcallparanode(left).right) then
+               name:=name+'sub'
+             else
+               name:=name+'dec';
+           in_atomic_xchg:
+             name:=name+'xchg';
+           in_atomic_cmp_xchg:
+             name:=name+'cmp_xchg';
+           else
+             internalerror(2022093008);
+         end;
+         name:=name+'_';
+         if is_pointer(resultdef) then
+           name:=name+tostr(voidpointertype.size*8)
+         else if is_integer(resultdef) then
+           case torddef(resultdef).ordtype of
+             s8bit:
+               name:=name+'8';
+             s16bit:
+               name:=name+'16';
+             s32bit:
+               name:=name+'32';
+             s64bit:
+               name:=name+'64';
+             else
+               internalerror(2022100101);
+           end
+         else
+           internalerror(2022093009);
+
+         { for the call node we need to reverse the parameters }
+         c:=reverseparameters(tcallparanode(left));
+
+         succn:=nil;
+         cmpn:=nil;
+         valn:=nil;
+
+         if (inlinenumber=in_atomic_cmp_xchg) and (c=4) then
+           begin
+             { don't pass along the Succeeded parameter }
+             succn:=tcallparanode(left).left;
+             n:=tcallparanode(left).right;
+             tcallparanode(left).left:=nil;
+             tcallparanode(left).right:=nil;
+             left.free;
+             left:=tcallparanode(n);
+             { get a copy of the Comparand parameter }
+             cmpn:=tcallparanode(left).left.getcopy;
+           end
+         else if ((inlinenumber=in_atomic_inc) or (inlinenumber=in_atomic_dec)) and (c=2) then
+           begin
+             valn:=tcallparanode(left).left.getcopy;
+           end;
+
+         result:=ctypeconvnode.create_internal(ccallnode.createintern(name,left),resultdef);
+
+         left:=nil;
+
+         if assigned(succn) then
+           begin
+             { we need to execute the intrinsic and then we check whether the
+               returned result, namely the original value, is equal to the
+               comparand which means that the Succeeded parameter needs to be
+               True (otherwise it needs to be False). }
+             n:=internalstatements(stmt);
+             tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+             addstatement(stmt,tmp);
+             addstatement(stmt,cassignmentnode.create(ctemprefnode.create(tmp),result));
+             cmpn:=cmpn.getcopy;
+             inserttypeconv_internal(cmpn,resultdef);
+             addstatement(stmt,cassignmentnode.create(tcallparanode(succn),caddnode.create(equaln,cmpn,ctemprefnode.create(tmp))));
+             addstatement(stmt,ctempdeletenode.create_normal_temp(tmp));
+             addstatement(stmt,ctemprefnode.create(tmp));
+             result:=n;
+           end
+         else if ((inlinenumber=in_atomic_dec) or (inlinenumber=in_atomic_inc)) and (c=2) then
+           begin
+             { the helpers return the original value, due to ease of implementation with the
+               existing Interlocked* implementations, but the intrinsics need to return the
+               resulting value so we add/sub the Value to/from the result }
+             n:=internalstatements(stmt);
+             tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+             addstatement(stmt,tmp);
+             if inlinenumber=in_atomic_inc then
+               n2:=caddnode.create(addn,result,valn)
+             else
+               n2:=caddnode.create(subn,result,valn);
+             addstatement(stmt,cassignmentnode.create(ctemprefnode.create(tmp),n2));
+             addstatement(stmt,ctempdeletenode.create_normal_temp(tmp));
+             addstatement(stmt,ctemprefnode.create(tmp));
+             result:=n;
+           end;
        end;
 
 
