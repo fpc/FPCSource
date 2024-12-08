@@ -156,7 +156,7 @@ Const
      'ICELAKE-SERVER',
      'ZEN3',
      'ZEN4',
-     'ZEN4'
+     'ZEN5'
    );
 
    fputypestr : array[tfputype] of string[9] = (
