@@ -63,6 +63,8 @@ interface
           property parameters : tnode read left write left;
 
           function may_have_sideeffect_norecurse: boolean;
+
+          function may_ignore_result:boolean;
          protected
           { All the following routines currently
             call compilerprocs, unless they are
@@ -6048,6 +6050,20 @@ implementation
            in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y,in_neg_assign_x,in_not_assign_x]) or
           ((inlinenumber = in_assert_x_y) and
            (cs_do_assertion in localswitches));
+       end;
+
+
+     function tinlinenode.may_ignore_result:boolean;
+       begin
+         case inlinenumber of
+           in_atomic_inc,
+           in_atomic_dec,
+           in_atomic_xchg,
+           in_atomic_cmp_xchg:
+             result:=true;
+           else
+             result:=is_void(resultdef);
+         end;
        end;
 
 

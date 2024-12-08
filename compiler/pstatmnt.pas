@@ -50,7 +50,7 @@ implementation
        paramgr,
        { pass 1 }
        pass_1,htypechk,
-       nutils,ngenutil,nbas,ncal,nmem,nset,ncnv,ncon,nld,nflw,
+       nutils,ngenutil,nbas,ncal,nmem,nset,ncnv,ncon,nld,nflw,ninl,
        { parser }
        scanner,
        pbase,ptype,pexpr,
@@ -1512,7 +1512,7 @@ implementation
              if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn,goton]) or
                 ((p.nodetype=inlinen) and
-                 not is_void(p.resultdef)) or
+                 not tinlinenode(p).may_ignore_result) or
                 ((p.nodetype=calln) and
                  (assigned(tcallnode(p).procdefinition)) and
                  (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
