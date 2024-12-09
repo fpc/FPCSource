@@ -507,7 +507,7 @@ unit optloop;
 
                       startvaltemp:=maybereplacewithtemp(tfornode(arg).right,initcode,initcodestatements,tfornode(arg).right.resultdef.size,true);
                       nn:=caddrnode.create(
-                          cvecnode.create(tvecnode(n).left.getcopy,tfornode(arg).right.getcopy)
+                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(tfornode(arg).right.getcopy,tvecnode(n).right.resultdef))
                         );
                       { If the calculation is not performed at the end
                         it is needed to adjust the starting value }
