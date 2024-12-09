@@ -4909,6 +4909,7 @@ Type
      CC_RGBINIT  = $1;
      CC_SHOWHELP  = $8;
      CC_SOLIDCOLOR  = $80;
+     CC_ANYCOLOR  = $100;
   { FINDREPLACE structure  }
      FR_DIALOGTERM  = $40;
      FR_DOWN  = $1;
