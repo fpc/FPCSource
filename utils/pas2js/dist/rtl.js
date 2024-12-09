@@ -155,7 +155,13 @@ var rtl = {
   },
   
   showException : function (re) {
-    var errStack = (re.hasOwnProperty('stack')) ? re.stack : re;
+    var errStack="";
+    if (rtl.isObject(re) && re.hasOwnProperty('FJSError') && rtl.isObject(re.FJSError) && !(re.FJSError.stack==undefined)) // rtl Exception
+      errStack=re.FJSError.stack
+    else if (rtl.isObject(re) && re.hasOwnProperty('stack') && !(re.stack==undefined)) // native JS Error
+      errStack=re.stack
+    else
+      errStack=re; // unknown object
     var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
     errMsg += ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : '');
     errMsg += ((errMsg) ? "\n" : '') + errStack;
