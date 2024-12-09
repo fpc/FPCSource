@@ -42,7 +42,7 @@ type
     TWriteBufferLength = 1..4;
   protected
     CharsPerLine: Integer;
-    LineSeparator: string;
+    LineSeparator: RawByteString;
     PadEnd: Boolean;
 
     TotalBytesProcessed, BytesWritten: LongWord;
@@ -53,7 +53,8 @@ type
     procedure DoWriteBuf(var Buffer: TWriteBuffer; BufferLength: TWriteBufferLength);
   public
     constructor Create(ASource: TStream); overload;
-    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: string; APadEnd: Boolean); overload;
+    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean); overload;
+    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: UnicodeString; APadEnd: Boolean); overload;
     destructor Destroy; override;
     Function Flush : Boolean;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -181,13 +182,18 @@ begin
   Create(ASource, 0, '', True);
 end;
 
-constructor TBase64EncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: string; APadEnd: Boolean);
+constructor TBase64EncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean);
 begin
   inherited Create(ASource);
 
   CharsPerLine := ACharsPerLine;
   LineSeparator := ALineSeparator;
   PadEnd := APadEnd;
+end;
+
+constructor TBase64EncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: UnicodeString; APadEnd: Boolean);
+begin
+  Create(ASource, ACharsPerLine, UTF8Encode(ALineSeparator), APadEnd);
 end;
 
 destructor TBase64EncodingStream.Destroy;

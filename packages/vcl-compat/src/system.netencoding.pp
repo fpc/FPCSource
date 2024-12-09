@@ -103,7 +103,7 @@ type
     kLineSeparator = #13#10;
   protected
     FCharsPerline: Integer;
-    FLineSeparator: string;
+    FLineSeparator: UnicodeString;
     FPadEnd: Boolean;
   protected
     Function DoDecode(const aInput, aOutput: TStream): Integer; overload; override;
@@ -122,7 +122,8 @@ type
   public
     constructor Create; overload; virtual;
     constructor Create(CharsPerLine: Integer); overload; virtual;
-    constructor Create(CharsPerLine: Integer; LineSeparator: string); overload; virtual;
+    constructor Create(CharsPerLine: Integer; LineSeparator: UnicodeString); overload; virtual;
+    constructor Create(CharsPerLine: Integer; LineSeparator: RawByteString); overload;
   end;
 
   { TBase64StringEncoding }
@@ -291,12 +292,17 @@ begin
   Create(CharsPerLine, kLineSeparator);
 end;
 
-constructor TBase64Encoding.Create(CharsPerLine: Integer; LineSeparator: string);
+constructor TBase64Encoding.Create(CharsPerLine: Integer; LineSeparator: UnicodeString);
 begin
   inherited Create;
   FCharsPerline:=CharsPerLine;
   FLineSeparator:=LineSeparator;
   FPadEnd:=True;
+end;
+
+constructor TBase64Encoding.Create(CharsPerLine: Integer; LineSeparator: RawByteString);
+begin
+  Create(CharsPerLine, UTF8Decode(LineSeparator));
 end;
 
 constructor TBase64Encoding.Create;
