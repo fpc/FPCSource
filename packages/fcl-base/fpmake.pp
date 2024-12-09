@@ -144,6 +144,8 @@ begin
     P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes,'$(unitinstalldir)');
     T:=P.Targets.addUnit('basenenc.pp');
 
+    T:=P.Targets.addUnit('dirwatch.pp');
+
     // Examples
     P.ExamplePath.Add('examples');
       T:=P.Targets.AddExampleProgram('asiotest.pp');
