@@ -292,6 +292,10 @@ type
   end;
   PEVP_PKEY = ^EVP_PKEY;
   PPEVP_PKEY = ^PEVP_PKEY;
+  PEC_KEY = SslPtr;
+  PPEC_KEY = ^PEC_KEY;
+  PEC_GROUP = SslPtr;
+  PEC_POINT = SslPtr;
 
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
@@ -1369,12 +1373,22 @@ var
   function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
   function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
   function EVP_DigestVerify(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t; const tbs : pointer; tbslen: csize_t): cint;
+  function EVP_PKEY_set1_EC_KEY(pkey: PEVP_PKEY; key: PEC_KEY): cint;
+  function EC_KEY_get0_group(key: PEC_KEY): PEC_GROUP;
+  function EC_KEY_get0_public_key(key: PEC_KEY): PEC_POINT;
+  function EVP_PKEY_get1_EC_KEY(pkey: PEVP_PKEY): PEC_KEY;
+  function EC_KEY_check_key(key: PEC_KEY): cint;
+  function EC_KEY_dup(key: PEC_KEY): PEC_KEY;
+  function EC_KEY_generate_key(key: PEC_KEY): cint;
+  procedure EC_KEY_free(key: PEC_KEY);
+
   //function
   //
   // PEM Functions - pem.h
   //
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
+  function PEM_read_bio_ECPrivateKey(bp: PBIO; key: PPEC_KEY; cb: Pointer; u: Pointer): PEC_KEY;
   function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
   function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
@@ -1733,6 +1747,16 @@ type
   TSkX509PopFree = procedure(st: PSslPtr; func: TX509Free); cdecl;
   Ti2dPrivateKeyBio= function(b: PBIO; pkey: PEVP_PKEY): cInt; cdecl;
 
+  // libcrypto
+  TEVP_PKEY_set1_EC_KEY = function(pkey: PEVP_PKEY; key: PEC_KEY): cint; cdecl;
+  TEC_KEY_free = procedure(key: PEC_KEY); cdecl;
+  TEC_KEY_check_key = function(key: PEC_KEY): cint; cdecl;
+  TEC_KEY_dup = function (key: PEC_KEY): PEC_KEY; cdecl;
+  TEVP_PKEY_get1_EC_KEY = function(pkey: PEVP_PKEY): PEC_KEY; cdecl;
+  TEC_KEY_generate_key = function (key: PEC_KEY): cint; cdecl;
+  TEC_KEY_get0_group = function(key: PEC_KEY): PEC_GROUP; cdecl;
+  TEC_KEY_get0_public_key = function(key: PEC_KEY): PEC_POINT; cdecl;
+
   // 3DES functions
   TDESsetoddparity = procedure(Key: des_cblock); cdecl;
   TDESsetkeychecked = function(key: des_cblock; schedule: des_key_schedule): cInt; cdecl;
@@ -1871,6 +1895,7 @@ type
   TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
   TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
   TPEM_write_bio_PKCS7 = function(bp: pBIO; x: PPKCS7): integer; cdecl;
+  TPEM_read_bio_ECPrivateKey = function(bp: PBIO; key: PPEC_KEY; cb: Pointer; u: Pointer): PEC_KEY; cdecl;
 
   // BIO Functions
 
@@ -2079,6 +2104,14 @@ var
   _CRYPTOcleanupAllExData: TCRYPTOcleanupAllExData = nil;
   _OPENSSLaddallalgorithms: TOPENSSLaddallalgorithms = nil;
 
+
+  _EC_KEY_get0_group: TEC_KEY_get0_group = nil;
+  _EC_KEY_get0_public_key: TEC_KEY_get0_public_key = nil;
+  _EC_KEY_check_key: TEC_KEY_check_key = nil;
+  _EC_KEY_dup: TEC_KEY_dup = nil;
+  _EC_KEY_generate_key: TEC_KEY_generate_key = nil;
+  _EC_KEY_free: TEC_KEY_free = nil;
+
   // EVP Functions
 
   _OpenSSL_add_all_algorithms: TOpenSSL_add_all_algorithms = nil;
@@ -2104,6 +2137,8 @@ var
   _EVP_PKEY_CTX_free: TEVP_PKEY_CTX_free = nil;
   _EVP_PKEY_CTX_new_from_name: TEVP_PKEY_CTX_new_from_name = nil;
   _EVP_PKEY_CTX_new_from_pkey: TEVP_PKEY_CTX_new_from_pkey = nil;
+  _EVP_PKEY_set1_EC_KEY: TEVP_PKEY_set1_EC_KEY = nil;
+  _EVP_PKEY_get1_EC_KEY: TEVP_PKEY_get1_EC_KEY = nil;
 
   _EVP_VerifyFinal: TEVP_VerifyFinal = nil;
   //
@@ -2136,6 +2171,7 @@ var
   _EVP_DigestVerify: TEVP_DigestVerify = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
+  _PEM_read_bio_ECPrivateKey: TPEM_read_bio_ECPrivateKey = nil;
 
   _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil;
   _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;
@@ -4041,11 +4077,83 @@ end;
 
 { PEM }
 
+function EVP_PKEY_set1_EC_KEY(pkey: PEVP_PKEY; key: PEC_KEY): cint;
+begin
+ if InitSSLInterface and Assigned(_EVP_PKEY_set1_EC_KEY) then
+   Result := _EVP_PKEY_set1_EC_KEY(pkey, key)
+ else
+   Result := -1;
+end;
+
+function EC_KEY_get0_group(key: PEC_KEY): PEC_GROUP;
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_get0_group) then
+   Result := _EC_KEY_get0_group(key)
+ else
+   Result := nil;
+end;
+
+function EC_KEY_get0_public_key(key: PEC_KEY): PEC_POINT;
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_get0_public_key) then
+   Result := _EC_KEY_get0_public_key(key)
+ else
+   Result := nil;
+end;
+
+function EVP_PKEY_get1_EC_KEY(pkey: PEVP_PKEY): PEC_KEY;
+begin
+ if InitSSLInterface and Assigned(_EVP_PKEY_get1_EC_KEY) then
+   Result := _EVP_PKEY_get1_EC_KEY(pkey)
+ else
+   Result := nil;
+end;
+
+function EC_KEY_check_key(key: PEC_KEY): cint;
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_check_key) then
+   Result := _EC_KEY_check_key(key)
+ else
+   Result := -1;
+end;
+
+function EC_KEY_dup(key: PEC_KEY): PEC_KEY;
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_dup) then
+   Result := _EC_KEY_dup(key)
+ else
+   Result := nil;
+end;
+
+function EC_KEY_generate_key(key: PEC_KEY): cint;
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_generate_key) then
+   Result := _EC_KEY_check_key(key)
+ else
+   Result := -1;
+
+end;
+
+procedure EC_KEY_free(key: PEC_KEY);
+begin
+ if InitSSLInterface and Assigned(_EC_KEY_free) then
+   _EC_KEY_free(key)
+end;
+
 function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
          cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
 begin
   if InitSSLInterface and Assigned(_PEM_read_bio_PrivateKey) then
     Result := _PEM_read_bio_PrivateKey(bp, x, cb, u)
+  else
+    Result := nil;
+end;
+
+function PEM_read_bio_ECPrivateKey(bp: PBIO; key: PPEC_KEY; cb: Pointer;
+  u: Pointer): PEC_KEY;
+begin
+  if InitSSLInterface and Assigned(_PEM_read_bio_ECPrivateKey) then
+    Result := _PEM_read_bio_ECPrivateKey(bp, key, cb, u)
   else
     Result := nil;
 end;
@@ -5317,6 +5425,15 @@ begin
   _EVP_DigestVerifyInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyInit');
   _EVP_DigestVerifyFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyFinal');
   _EVP_DigestVerify := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerify');
+  _EVP_PKEY_set1_EC_KEY := GetProcAddress(SSLUtilHandle, 'EVP_PKEY_set1_EC_KEY');
+  _EVP_PKEY_get1_EC_KEY := GetProcAddress(SSLUtilHandle, 'EVP_PKEY_get1_EC_KEY');
+  _EC_KEY_get0_group := GetProcAddress(SSLUtilHandle, 'EC_KEY_get0_group');
+  _EC_KEY_get0_public_key := GetProcAddress(SSLUtilHandle, 'EC_KEY_get0_public_key');
+  _EC_KEY_check_key := GetProcAddress(SSLUtilHandle, 'EC_KEY_check_key');
+  _EC_KEY_dup := GetProcAddress(SSLUtilHandle, 'EC_KEY_dup');
+  _EC_KEY_generate_key := GetProcAddress(SSLUtilHandle, 'EC_KEY_generate_key');
+  _EC_KEY_free := GetProcAddress(SSLUtilHandle, 'EC_KEY_free');
+
    // 3DES functions
   _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'DES_set_odd_parity');
   _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'DES_set_key_checked');
@@ -5410,6 +5527,7 @@ begin
   _EVP_DecryptFinal := GetProcAddr(SSLUtilHandle, 'EVP_DecryptFinal');
    // PEM
   _PEM_read_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PrivateKey');
+  _PEM_read_bio_ECPrivateKey := GetProcAddress(SSLUtilHandle, 'PEM_read_bio_ECPrivateKey');
   _PEM_read_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PUBKEY');
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
