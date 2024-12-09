@@ -128,11 +128,6 @@ Function Sptr : pointer;assembler;nostackframe;
   end;
 
 
-{$ifndef VER3_2}
-{$define FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
-{$endif VER3_2}
-
-
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;
 {$else VER3_2}

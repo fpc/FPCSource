@@ -489,10 +489,6 @@ begin
   InterLockedIncrement(l);
 end;
 
-{$IFNDEF VER3_2}
-{$DEFINE FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
-{$ENDIF VER3_2}
-
 {$IFDEF VER3_2}
 function InterLockedDecrement (var Target: longint) : longint;
 {$ELSE VER3_2}

@@ -3677,8 +3677,6 @@ begin
 end;
 {$endif}
 
-{$if defined(FPC_SYSTEM_INTERLOCKED_USE_INTRIN)}
-
 {$ifdef cpu16}
 function InterlockedIncrement (var Target: smallint) : smallint;
 begin
@@ -3757,8 +3755,6 @@ begin
   Result := AtomicCmpExchange(Target, NewValue, Comperand);
 end;
 {$endif cpu64}
-
-{$endif FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
 
 {$pop}
 {$endif VER3_2}
