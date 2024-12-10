@@ -1,3 +1,4 @@
+{ %opt=-O3 }
 type
 	myrec=record
 		f1,f2,f3:byte;
