@@ -32,7 +32,7 @@ uses
   fpopenapi.pascaltypes;
 
 Type
-  TUnitKind = (ukDto, ukSerialize, ukClientServiceIntf, ukServerServiceHandler, ukClientServiceImpl, ukServerServiceImpl, ukClientParent, ukServerParent);
+  TUnitKind = (ukDto, ukSerialize, ukClientServiceIntf, ukServerServiceHandler, ukClientServiceImpl, ukServerServiceImpl, ukClientParent, ukServerParent, ukServerProxy);
 
 const
   DefaultUnitSuffix = '.{kind}';
@@ -45,7 +45,10 @@ const
   DefaultServerServiceImplSuffix = 'Module.Impl';
   DefaultServiceNamePrefix = '';
   DefaultServiceNameSuffix = 'Service';
-
+  DefaultServerProxyModuleName = 'TServerProxy';
+  DefaultServerProxyModuleParentName = 'TDataModule';
+  DefaultServerProxyModuleParentUnit = ''; // Depends on Delphicode or not
+  DefaultServerProxyUseServiceInterface = True;
 
 
   Suffixes : Array[TUnitKind] of string = (
@@ -56,7 +59,8 @@ const
      DefaultClientServiceImplSuffix,
      DefaultServerServiceImplSuffix,
      '',
-     '');
+     '',
+     'ServerProxy');
 
 type
   { TOpenAPICodeGen }
@@ -71,9 +75,14 @@ type
     FDelphiCode: boolean;
     FGenerateClient: boolean;
     FGenerateServer: boolean;
+    FGenerateServerProxyModule: Boolean;
     FOnLog: TSchemaCodeGenLogEvent;
     FParentHasCancelRequest: Boolean;
     FServerParentClass: String;
+    FServerProxyModuleName: String;
+    FServerProxyModuleParentName: String;
+    FServerProxyModuleParentUnit: String;
+    FServerProxyUseServiceInterface: Boolean;
     FServiceMap: TStrings;
     FServiceNamePrefix: String;
     FServiceNameSuffix: String;
@@ -87,6 +96,7 @@ type
     FUnitNames : Array [TUnitKind] of string;
     procedure CleanMaps;
     function GetBaseOutputUnitName: string;
+    function GetServerProxyModuleParentUnit: String;
     function GetUnitName(AIndex: TUnitKind): String;
     function GetUnitSuffix(aKind: TUnitKind): String;
     procedure SetUnitName(AIndex: TUnitKind; AValue: String);
@@ -104,6 +114,7 @@ type
     procedure GenerateServiceImplementation(aData: TAPIData); virtual;
     procedure GenerateServerHandlerModule(aData: TAPIData); virtual;
     procedure GenerateServerModuleImplementation(aData: TAPIData); virtual;
+    procedure GenerateServerProxy(aData: TAPIData); virtual;
     procedure GetUUIDMap(aData: TAPIData);
     procedure PrepareAPIData(aData: TAPIData); virtual;
   public
@@ -177,6 +188,18 @@ type
     Property AbstractServiceCalls : Boolean Read FAbstractServiceCalls Write FAbstractServiceCalls;
     // Skip generation of implementation module (only used when AbstractServiceCalls is True
     Property SkipServerServiceImplementationModule : Boolean Read FSkipServerServiceImplementationModule Write FSkipServerServiceImplementationModule;
+    // In case of multiple services modules, generate a "server proxy" TDataModule that contains each service as a property?
+    Property GenerateServerProxyModule : Boolean Read FGenerateServerProxyModule Write FGenerateServerProxyModule;
+    // Server proxy unit name serservice parent class name
+    Property ServerProxyUnit : String index ukServerProxy Read GetUnitName Write SetUnitName;
+    // Class name for server proxy datamodule.
+    Property ServerProxyModuleName : String Read FServerProxyModuleName Write FServerProxyModuleName;
+    // Class name for server proxy parent class.
+    Property ServerProxyModuleParentName : String Read FServerProxyModuleParentName Write FServerProxyModuleParentName;
+    // Unit name where server proxy parent class is defined.
+    Property ServerProxyModuleParentUnit : String Read GetServerProxyModuleParentUnit Write FServerProxyModuleParentUnit;
+    // Define service properties using their interface definition.
+    Property ServerProxyUseServiceInterface : Boolean Read FServerProxyUseServiceInterface Write FServerProxyUseServiceInterface;
     // Prefix for client/server service name
     Property ServiceNameSuffix : String Read FServiceNameSuffix Write FServiceNameSuffix;
     // Prefix for client/server service name
@@ -207,8 +230,13 @@ Const
   KeyServerParentUnit            = 'ServerParentUnit';
   KeyParentHasCancelRequest      = 'ParentHasCancelRequest';
   KeyAbstractServiceCalls        = 'AbstractServiceCalls';
+  KeyGenerateServerProxyModule   = 'GenerateServerProxyModule';
   KeyServiceNameSuffix           = 'ServiceNameSuffix';
   KeyServiceNamePrefix           = 'ServiceNamePrefix';
+  KeyServerProxyModuleName       = 'ServerProxyModuleName';
+  KeyServerProxyModuleParentName = 'ServerProxyModuleParentName';
+  KeyServerProxyModuleParentUnit = 'ServerProxyModuleParentUnit';
+  KeyServerProxyUseServiceInterface = 'ServerProxyModuleUseInterface';
 
 { TOpenAPICodeGen }
 
@@ -239,6 +267,7 @@ var
   aKind : TUnitKind;
 
 begin
+  GenerateServerProxyModule:=False;
   GenerateServer:=False;
   GenerateClient:=True;
   AbstractServiceCalls:=True;
@@ -253,12 +282,16 @@ begin
   ServerServiceParentUnit:='fpopenapimodule';
   ServiceNamePrefix:=DefaultServiceNamePrefix;
   ServiceNameSuffix:=DefaultServiceNameSuffix;
+  ServerProxyModuleName:=DefaultServerProxyModuleName;
+  ServerProxyModuleParentName:=DefaultServerProxyModuleParentName;
+  ServerProxyModuleParentUnit:=DefaultServerProxyModuleParentUnit;
+  ServerProxyUseServiceInterface:=DefaultServerProxyUseServiceInterface;
 end;
 
 procedure TOpenAPICodeGen.LoadConfig(aIni : TCustomIniFile; const aSection : String);
 
 var
-  lSection : String;
+  lSection: String;
 
 begin
   lSection:=aSection;
@@ -282,6 +315,11 @@ begin
     AbstractServiceCalls:=ReadBool(lSection,KeyAbstractServiceCalls,AbstractServiceCalls);
     ServiceNameSuffix:=ReadString(lSection,KeyServiceNameSuffix,ServiceNameSuffix);
     ServiceNamePrefix:=ReadString(lSection,KeyServiceNamePrefix,ServiceNamePrefix);
+    GenerateServerProxyModule:=ReadBool(lSection,KeyGenerateServerProxyModule,GenerateServerProxyModule);
+    ServerProxyModuleName:=ReadString(lSection,KeyServerProxyModuleName,ServerProxyModuleName);
+    ServerProxyModuleParentName:=ReadString(lSection,KeyServerProxyModuleParentName,ServerProxyModuleParentName);
+    ServerProxyModuleParentUnit:=ReadString(lSection,KeyServerProxyModuleParentName,ServerProxyModuleParentUnit);
+    ServerProxyUseServiceInterface:=ReadBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
     end;
 end;
 
@@ -382,6 +420,16 @@ end;
 function TOpenAPICodeGen.GetBaseOutputUnitName: string;
 begin
   Result := ExtractFileName(BaseOutputFileName);
+end;
+
+function TOpenAPICodeGen.GetServerProxyModuleParentUnit: String;
+begin
+  Result:=FServerProxyModuleParentUnit;
+  if Result='' then
+    if DelphiCode then
+      Result:='System.Classes'
+    else
+      Result:='Classes';
 end;
 
 function TOpenAPICodeGen.GetUnitName(AIndex: TUnitKind): String;
@@ -514,6 +562,9 @@ begin
       if AbstractServiceCalls and not SkipServerServiceImplementationModule then
         GenerateServerModuleImplementation(lAPIData);
       end;
+    if GenerateServerProxyModule then
+      GenerateServerProxy(lAPIData);
+
     GetUUIDMap(lAPIData);
   finally
     lAPIData.Free;
@@ -677,6 +728,32 @@ begin
   finally
     codegen.Free;
   end;
+end;
+
+procedure TOpenAPICodeGen.GenerateServerProxy(aData: TAPIData);
+var
+  codegen: TServerProxyServiceModuleCodeGen;
+  lFileName : string;
+
+begin
+  lFileName:=ResolveUnit(ukServerProxy,True);
+  DoLog(etInfo, 'Writing server proxy module implementation to file "%s"', [lFileName]);
+  codegen := TServerProxyServiceModuleCodeGen.Create(Self);
+  try
+    Configure(codegen);
+    codegen.OutputUnitName := ResolveUnit(ukServerProxy);
+    codegen.ProxyParentClass := ServerProxyModuleParentName;
+    codegen.ProxyParentUnit := ServerProxyModuleParentUnit;
+    codegen.ProxyClassName := ServerProxyModuleName;
+    codegen.UseInterfaceType:=ServerProxyUseServiceInterface;
+    codegen.ServiceImplementationUnit := ResolveUnit(ukClientServiceImpl);
+    codegen.ServiceInterfaceUnit := ResolveUnit(ukClientServiceIntf);
+    codegen.Execute(aData);
+    codegen.Source.SaveToFile(lFileName);
+  finally
+    codegen.Free;
+  end;
+
 end;
 
 

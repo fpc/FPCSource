@@ -190,12 +190,34 @@ type
   { TServerImplementationModuleCodeGen }
 
   TServerImplementationModuleCodeGen = class(TServerCodeGen)
-    //  private
-    //    FServerModuleInterfaceUnit: String;
   public
     procedure Execute(aData: TAPIData); virtual;
-    //    property ServerModuleInterfaceUnit : String Read FServerModuleInterfaceUnit Write FServerModuleInterfaceUnit;
   end;
+
+  { TServerServiceModule }
+
+  { TServerProxyServiceModule }
+
+  TServerProxyServiceModuleCodeGen = class(TOpenApiPascalCodeGen)
+  private
+    FProxyClassName: string;
+    FProxyParentClass: string;
+    FProxyParentUnit: string;
+    FServiceImplementationUnit: string;
+    FServiceInterfaceUnit: string;
+    FUseInterfaceType: Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure GenerateModule;
+    procedure Execute(aData: TAPIData); virtual;
+    property ServiceInterfaceUnit: string read FServiceInterfaceUnit write FServiceInterfaceUnit;
+    property ServiceImplementationUnit: string read FServiceImplementationUnit write FServiceImplementationUnit;
+    property ProxyParentClass: string read FProxyParentClass write FProxyParentClass;
+    property ProxyParentUnit: string read FProxyParentUnit write FProxyParentUnit;
+    Property UseInterfaceType : Boolean Read FUseInterfaceType Write FUseInterfaceType;
+    Property ProxyClassName : string Read FProxyClassName Write FProxyClassName;
+  end;
+
 
 implementation
 
@@ -1312,6 +1334,114 @@ begin
     end;
   Addln('');
   Addln('end.');
+end;
+
+{ TServerServiceModule }
+
+constructor TServerProxyServiceModuleCodeGen.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FProxyClassName:='TServerProxy';
+  FProxyParentClass:='TDataModule';
+  FProxyParentUnit:='Classes';
+end;
+
+procedure TServerProxyServiceModuleCodeGen.GenerateModule;
+
+var
+  I: integer;
+  lUnits : String;
+  lService: TAPIService;
+
+begin
+  GenerateFPCDirectives();
+
+  Addln('unit %s;', [Self.OutputUnitName]);
+  Addln('');
+  Addln('interface');
+  Addln('');
+  Addln('uses');
+  indent;
+  If Not UseInterfaceType then
+    lUnits:=ServiceImplementationUnit
+  else
+    lUnits:=ServiceInterfaceUnit;
+  if not (SameText(ProxyParentUnit,'Classes') or SameText(ProxyParentUnit,'System.Classes')) then
+    if DelphiCode then
+      lUnits:='System.Classes, '+lUnits
+    else
+      lUnits:='Classes, '+lUnits;
+  AddLn('%s, %s;', [ProxyParentUnit, lUnits]);
+  undent;
+  Addln('');
+  EnsureSection(csType);
+  indent;
+  Addln('%s = class(%s)',[ProxyClassName,ProxyParentClass]);
+  Addln('private');
+  indent;
+  for I:=0 to APIData.ServiceCount-1 do
+    begin
+    lService:=APIData.Services[I];
+    Addln('F%s : %s;',[lService.ServiceName,lService.ServiceInterfaceName]);
+    end;
+  undent;
+  Addln('protected');
+  indent;
+  Addln('Procedure CreateServices; virtual;');
+  undent;
+  Addln('public');
+  indent;
+  Addln('constructor Create(aOwner : TComponent); override;');
+  for I:=0 to APIData.ServiceCount-1 do
+    begin
+    lService:=APIData.Services[I];
+    Addln('Property %s : %s read F%s;',[lService.ServiceName,lService.ServiceInterfaceName,lService.ServiceName]);
+    end;
+  undent;
+  Addln('end;');
+  undent;
+  Addln('');
+  Addln('implementation');
+  Addln('');
+  Addln('uses');
+  indent;
+  if UseInterfaceType then
+    Addln('%s,', [ServiceImplementationUnit]);
+  if DelphiCode then
+    Addln('System.SysUtils;')
+  else
+    Addln('SysUtils;');
+  undent;
+  Addln('');
+  Addln('constructor %s.Create(aOwner : TComponent);',[ProxyClassName]);
+  Addln('');
+  Addln('begin');
+  indent;
+  Addln('Inherited;');
+  Addln('CreateServices;');
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('');
+  Addln('procedure %s.CreateServices;',[ProxyClassName]);
+  Addln('');
+  Addln('begin');
+  Indent;
+  for I:=0 to APIData.ServiceCount-1 do
+    begin
+    lService:=APIData.Services[I];
+    Addln('F%s:=%s.create(Self);',[lService.ServiceName,lService.ServiceProxyImplementationClassName]);
+    end;
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('end.');
+end;
+
+procedure TServerProxyServiceModuleCodeGen.Execute(aData: TAPIData);
+begin
+  SetTypeData(aData);
+  GenerateModule;
 end;
 
 
