@@ -97,18 +97,24 @@ interface
        MathQNaN : tcompdoublerec = (bytes : (0,0,252,255,0,0,0,0));
        MathInf : tcompdoublerec = (bytes : (0,0,240,127,0,0,0,0));
        MathNegInf : tcompdoublerec = (bytes : (0,0,240,255,0,0,0,0));
+       MathPosZero : tcompdoublerec = (bytes : (0,0,0,0,0,0,0,0));
+       MathNegZero : tcompdoublerec = (bytes : (0,0,0,128,0,0,0,0));
        MathPi : tcompdoublerec =  (bytes : (251,33,9,64,24,45,68,84));
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}
        MathQNaN : tcompdoublerec = (bytes : (0,0,0,0,0,0,252,255));
        MathInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,127));
        MathNegInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,255));
+       MathPosZero : tcompdoublerec = (bytes : (0,0,0,0,0,0,0,0));
+       MathNegZero : tcompdoublerec = (bytes : (0,0,0,0,0,0,0,128));
        MathPi : tcompdoublerec = (bytes : (24,45,68,84,251,33,9,64));
        MathPiExtended : tcompextendedrec = (bytes : (53,194,104,33,162,218,15,201,0,64));
 {$else FPC_LITTLE_ENDIAN}
        MathQNaN : tcompdoublerec = (bytes : (255,252,0,0,0,0,0,0));
        MathInf : tcompdoublerec = (bytes : (127,240,0,0,0,0,0,0));
        MathNegInf : tcompdoublerec = (bytes : (255,240,0,0,0,0,0,0));
+       MathPosZero : tcompdoublerec = (bytes : (0,0,0,0,0,0,0,0));
+       MathNegZero : tcompdoublerec = (bytes : (128,0,0,0,0,0,0,0));
        MathPi : tcompdoublerec =  (bytes : (64,9,33,251,84,68,45,24));
        MathPiExtended : tcompextendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
@@ -731,6 +737,9 @@ Const
     { discern +0.0 and -0.0 }
     function get_real_sign(r: bestreal): longint;
 
+    function IsPosZero(value: bestreal): boolean; {$if sizeof(bestreal)=sizeof(double)}{$ifdef USEINLINE}inline;{$endif USEINLINE}{$endif}
+    function IsNegZero(value: bestreal): boolean; {$if sizeof(bestreal)=sizeof(double)}{$ifdef USEINLINE}inline;{$endif USEINLINE}{$endif}
+
     procedure InitGlobals;
     procedure DoneGlobals;
     procedure register_initdone_proc(init,done:tprocedure);
@@ -1266,6 +1275,44 @@ implementation
 {$endif CPUARM}
       end;
 
+{$if sizeof(bestreal)=sizeof(double)}
+    function IsPosZero(value: bestreal): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result:=(QWord(TCompDoubleRec(value).bytes)=0);
+      end;
+
+    function IsNegZero(value: bestreal): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result:=(QWord(TCompDoubleRec(value).bytes)=QWord(MathNegZero.bytes));
+      end;
+{$else sizeof(bestreal)=sizeof(double)}
+    function IsPosZero(value: bestreal): boolean;
+      var
+        X, Count: Integer;
+        ByteArray: PByte;
+      begin
+        Result:=False;
+        ByteArray:=@value;
+        Count:=SizeOf(bestreal);
+
+        { Read raw bytes of floating-point value - must be all zeroes }
+        Result:=(CompareByte(ByteArray^,MathPosZero.bytes,Count)=0);
+      end;
+
+    function IsNegZero(value: bestreal): boolean;
+      var
+        X, Count: Integer;
+        ByteArray: PByte;
+      begin
+        Result:=False;
+        ByteArray:=@value;
+        Count:=SizeOf(bestreal);
+
+        { Read raw bytes of floating-point value - must be all zeroes except
+          for the most significant (sign) bit }
+        Result:=(CompareByte(ByteArray^,MathNegZero.bytes,Count)=0);
+      end;
+{$ifend sizeof(bestreal)=sizeof(double)}
 
     { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
     function string2guid(const s: string; var GUID: TGUID): boolean;
