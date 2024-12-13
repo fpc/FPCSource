@@ -226,8 +226,8 @@ Type
       FWatch : TCustomDirwatch;
     Protected
       procedure ConstructList(const aBaseDir, aDir: String; aList: TFPStringHashTable);
-      procedure DoCheckItem(Item: String; const Key: string; var Continue: Boolean);
-      procedure DoDeletedItem(Item: String; const Key: string; var Continue: Boolean);
+      procedure DoCheckItem(Item: AnsiString; const Key: Ansistring; var Continue: Boolean);
+      procedure DoDeletedItem(Item: AnsiString; const Key: Ansistring; var Continue: Boolean);
       procedure InitWatch;
       function Check : cardinal;
     Public
@@ -642,7 +642,8 @@ begin
           end
       until FindNext(Info)<>0;
     finally
-      Sysutils.FindClose(Info);
+    
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Sysutils.FindClose(Info);
     end;
 end;
 
@@ -693,7 +694,7 @@ begin
   FCount:=0;
 end;
 
-procedure TDirListDriver.TDirData.DoDeletedItem(Item: String; const Key: string; var Continue: Boolean);
+procedure TDirListDriver.TDirData.DoDeletedItem(Item: AnsiString; const Key: Ansistring; var Continue: Boolean);
 
 Var
   lEvent : TFileChangeEvent;
@@ -707,7 +708,7 @@ begin
   Continue:=Not Watch.Terminated;
 end;
 
-procedure TDirListDriver.TDirData.DoCheckItem(Item: String; const Key: string; var Continue: Boolean);
+procedure TDirListDriver.TDirData.DoCheckItem(Item: AnsiString; const Key: Ansistring; var Continue: Boolean);
 
 Var
   S : String;
