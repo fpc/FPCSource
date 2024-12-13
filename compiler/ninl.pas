@@ -4212,99 +4212,92 @@ implementation
               in_atomic_xchg,
               in_atomic_cmp_xchg:
                 begin
-                  begin
-                    resultdef:=voidtype;
-                    if not(df_generic in current_procinfo.procdef.defoptions) then
-                      begin
-                        { first parameter must exist for all }
-                        if not assigned(left) or (left.nodetype<>callparan) then
-                          internalerror(2022093001);
-                        { second parameter must exist for xchg and cmp_xchg }
-                        if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
-                          begin
-                            if not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype<>callparan) then
-                              internalerror(2022093002);
-                            if inlinenumber=in_atomic_cmp_xchg then
-                              begin
-                                { third parameter must exist }
-                                if not assigned(tcallparanode(tcallparanode(left).right).right) or (tcallparanode(tcallparanode(left).right).right.nodetype<>callparan) then
-                                  internalerror(2022093004);
-                                { fourth parameter may exist }
-                                if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
-                                  begin
-                                    if tcallparanode(tcallparanode(tcallparanode(left).right).right).right.nodetype<>callparan then
-                                      internalerror(2022093005);
-                                    { fifth parameter must NOT exist }
-                                    if assigned(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).right) then
-                                      internalerror(2022093006);
-                                  end;
-                              end
-                            { third parameter must NOT exist }
-                            else if assigned(tcallparanode(tcallparanode(left).right).right) then
-                              internalerror(2022093003);
-                          end
-                        else if assigned(tcallparanode(left).right) then
-                          begin
-                            { if the second parameter exists, it must be a callparan }
-                            if tcallparanode(left).right.nodetype<>callparan then
-                              internalerror(2022093004);
-                            { a third parameter must not exist }
-                            if assigned(tcallparanode(tcallparanode(left).right).right) then
-                              internalerror(2022093005);
-                          end;
+                  { first parameter must exist for all }
+                  if not assigned(left) or (left.nodetype<>callparan) then
+                    internalerror(2022093001);
+                  { second parameter must exist for xchg and cmp_xchg }
+                  if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
+                    begin
+                      if not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype<>callparan) then
+                        internalerror(2022093002);
+                      if inlinenumber=in_atomic_cmp_xchg then
+                        begin
+                          { third parameter must exist }
+                          if not assigned(tcallparanode(tcallparanode(left).right).right) or (tcallparanode(tcallparanode(left).right).right.nodetype<>callparan) then
+                            internalerror(2022093004);
+                          { fourth parameter may exist }
+                          if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+                            begin
+                              if tcallparanode(tcallparanode(tcallparanode(left).right).right).right.nodetype<>callparan then
+                                internalerror(2022093005);
+                              { fifth parameter must NOT exist }
+                              if assigned(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).right) then
+                                internalerror(2022093006);
+                            end;
+                        end
+                      { third parameter must NOT exist }
+                      else if assigned(tcallparanode(tcallparanode(left).right).right) then
+                        internalerror(2022093003);
+                    end
+                  else if assigned(tcallparanode(left).right) then
+                    begin
+                      { if the second parameter exists, it must be a callparan }
+                      if tcallparanode(left).right.nodetype<>callparan then
+                        internalerror(2022093004);
+                      { a third parameter must not exist }
+                      if assigned(tcallparanode(tcallparanode(left).right).right) then
+                        internalerror(2022093005);
+                    end;
 
-                        valid_for_var(tcallparanode(left).left,true);
-                        set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
+                  valid_for_var(tcallparanode(left).left,true);
+                  set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
 
-                        if is_integer(tcallparanode(left).resultdef) or is_pointer(tcallparanode(left).resultdef) then
-                          begin
-                            if not is_pointer(tcallparanode(left).resultdef) then
-                              begin
-                                resultdef:=get_signed_inttype(tcallparanode(left).left.resultdef);
-                                convdef:=resultdef;
-                              end
-                            else
-                              begin
-                                { pointer is only allowed for Exchange and CmpExchange }
-                                if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
-                                  cgmessagepos(fileinfo,type_e_ordinal_expr_expected);
-                                resultdef:=voidpointertype;
-                                convdef:=ptrsinttype;
-                              end;
-                            { left gets changed -> must be unique }
-                            set_unique(tcallparanode(left).left);
-                            inserttypeconv_internal(tcallparanode(left).left,convdef);
-                            if assigned(tcallparanode(left).right) then
-                              begin
-                                inserttypeconv(tcallparanode(tcallparanode(left).right).left,resultdef);
-                                if resultdef<>convdef then
-                                  inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,convdef);
-                                if assigned(tcallparanode(tcallparanode(left).right).right) then
-                                  begin
-                                    inserttypeconv(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,resultdef);
-                                    if resultdef<>convdef then
-                                      inserttypeconv_internal(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,convdef);
-                                    if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
-                                      begin
-                                        { the boolean parameter must be assignable }
-                                        valid_for_var(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,true);
-                                        set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_readwritten,[vsf_must_be_valid]);
-                                        inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type);
-                                      end;
-                                  end;
-                              end;
-                          end
-                        else if is_typeparam(tcallparanode(left).left.resultdef) then
-                          begin
-                            result:=cnothingnode.create;
-                            exit;
-                          end
-                        else if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
-                          CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_or_pointer_expr_expected)
-                        else
-                          CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_expr_expected);
-                      end;
-                  end;
+                  if is_integer(tcallparanode(left).resultdef) or is_pointer(tcallparanode(left).resultdef) then
+                    begin
+                      if not is_pointer(tcallparanode(left).resultdef) then
+                        begin
+                          resultdef:=get_signed_inttype(tcallparanode(left).left.resultdef);
+                          convdef:=resultdef;
+                        end
+                      else
+                        begin
+                          { pointer is only allowed for Exchange and CmpExchange }
+                          if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
+                            cgmessagepos(fileinfo,type_e_ordinal_expr_expected);
+                          resultdef:=voidpointertype;
+                          convdef:=ptrsinttype;
+                        end;
+                      { left gets changed -> must be unique }
+                      set_unique(tcallparanode(left).left);
+                      inserttypeconv_internal(tcallparanode(left).left,convdef);
+                      if assigned(tcallparanode(left).right) then
+                        begin
+                          inserttypeconv(tcallparanode(tcallparanode(left).right).left,resultdef);
+                          if resultdef<>convdef then
+                            inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,convdef);
+                          if assigned(tcallparanode(tcallparanode(left).right).right) then
+                            begin
+                              inserttypeconv(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,resultdef);
+                              if resultdef<>convdef then
+                                inserttypeconv_internal(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,convdef);
+                              if assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+                                begin
+                                  { the boolean parameter must be assignable }
+                                  valid_for_var(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,true);
+                                  set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_readwritten,[vsf_must_be_valid]);
+                                  inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type);
+                                end;
+                            end;
+                        end;
+                    end
+                  else if is_typeparam(tcallparanode(left).left.resultdef) then
+                    begin
+                      resultdef:=tcallparanode(left).left.resultdef;
+                    end
+                  else if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
+                    CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_or_pointer_expr_expected)
+                  else
+                    CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_expr_expected);
                 end;
               else
                 result:=pass_typecheck_cpu;
