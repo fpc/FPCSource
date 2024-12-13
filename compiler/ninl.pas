@@ -4284,8 +4284,9 @@ implementation
                                 begin
                                   { the boolean parameter must be assignable }
                                   valid_for_var(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,true);
-                                  set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_readwritten,[vsf_must_be_valid]);
-                                  inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type);
+                                  set_varstate(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,vs_written,[]);
+                                  if not is_boolean(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left.resultdef) then
+                                    inserttypeconv(tcallparanode(tcallparanode(tcallparanode(tcallparanode(left).right).right).right).left,pasbool1type);
                                 end;
                             end;
                         end;
