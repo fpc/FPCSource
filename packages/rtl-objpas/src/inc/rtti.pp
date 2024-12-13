@@ -252,8 +252,8 @@ type
     function Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
 {$ifndef NoGenericMethods}
     generic function Cast<T>(const aEmptyAsAnyType: Boolean = True): TValue; overload;
-    generic function IsType<T>: Boolean; inline;
-    generic function IsType<T>(const EmptyAsAnyType: Boolean) : Boolean; inline;
+    generic function IsType<T>: Boolean; inline; overload;
+    generic function IsType<T>(const EmptyAsAnyType: Boolean) : Boolean; inline; overload;
     generic function AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
     generic function TryAsType<T>(out aResult: T; const aEmptyAsAnyType: Boolean = True): Boolean; inline;
 {$endif}
