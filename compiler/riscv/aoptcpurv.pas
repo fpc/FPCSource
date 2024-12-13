@@ -382,9 +382,11 @@ implementation
          (taicpu(p).oper[2]^.val=0) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
          ((MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_SLT,A_AND,A_OR,
-            A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI
+            A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI,A_MUL,
+            A_DIV,A_DIVU,A_REM,A_REMU
             {$ifdef riscv64},A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
-            A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW{$endif}]
+            A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
+            A_DIVUW,A_DIVW,A_REMW,A_REMUW{$endif}]
             ) and
           (taicpu(hp1).ops=3) and
           (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) or MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^))) {or
