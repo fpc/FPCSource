@@ -1,5 +1,5 @@
 { %skiptarget=go32v2 }
-{ %opt=-CE }
+{ %opt=-CE -Oonofastmath }
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 program test_fpu_excpetions;
