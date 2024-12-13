@@ -82,7 +82,7 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 {$else VER3_2}
 {$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
-function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint; [public;alias:'FPC_ATOMIC_CMP_XCHG_32'];
+function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint; [public,alias:'FPC_ATOMIC_CMP_XCHG_32'];
 {$endif VER3_2}
   begin
     Forbid;
