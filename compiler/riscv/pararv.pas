@@ -26,21 +26,31 @@ unit pararv;
 
     uses
       globtype,
-      cgutils,
-      paramgr;
+      aasmdata,
+      symdef,
+      cgbase,cgutils,
+      parabase,paramgr;
 
     type
       trvparamanager = class(tparamanager)
         function get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset; override;
         function get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset; override;
 
-       function get_saved_registers_fpu(calloption: tproccalloption): tcpuregisterarray;override;
-       function get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
+        function get_saved_registers_fpu(calloption: tproccalloption): tcpuregisterarray;override;
+        function get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
+
+        procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);override;
+
+      protected
+        procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       end;
 
 implementation
 
     uses
+      verbose,
+      symtype,symsym,
+      defutil,
       cpubase;
 
     function trvparamanager.get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset;
@@ -68,6 +78,53 @@ implementation
         saved_regs: tcpuregisterarray = (RS_F8,RS_F9,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27);
       begin
         result:=saved_regs;
+      end;
+
+
+    procedure trvparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+      var
+        paraloc : pcgparalocation;
+        psym : tparavarsym;
+        pdef : tdef;
+      begin
+        psym:=tparavarsym(pd.paras[nr-1]);
+        pdef:=psym.vardef;
+        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+          pdef:=cpointerdef.getreusable_no_free(pdef);
+        cgpara.reset;
+        cgpara.size:=def_cgsize(pdef);
+        cgpara.intsize:=tcgsize2size[cgpara.size];
+        cgpara.alignment:=get_para_align(pd.proccalloption);
+        cgpara.def:=pdef;
+        paraloc:=cgpara.add_location;
+        with paraloc^ do
+         begin
+           size:=def_cgsize(pdef);
+           def:=pdef;
+           if (nr<=8) then
+             begin
+               if nr=0 then
+                 internalerror(2024121501);
+               loc:=LOC_REGISTER;
+               register:=newreg(R_INTREGISTER,RS_X10+nr-1,R_SUBWHOLE);
+             end
+           else
+             begin
+               loc:=LOC_REFERENCE;
+               paraloc^.reference.index:=NR_STACK_POINTER_REG;
+               reference.offset:=sizeof(pint)*nr;
+             end;
+          end;
+      end;
+
+
+    procedure trvparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+      begin
+        { register parameter save area begins at 48(r2) }
+        cur_stack_offset := 0;
+        curintreg := RS_X10;
+        curfloatreg := RS_F10;
+        curmmreg := RS_NO;
       end;
 
 end.

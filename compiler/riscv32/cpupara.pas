@@ -36,12 +36,10 @@ unit cpupara;
        tcpuparamanager = class(trvparamanager)
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
 
-          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
-          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
        end;
@@ -53,44 +51,6 @@ unit cpupara;
        verbose,systems,
        defutil,symtable,
        procinfo,cpupi;
-
-    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym : tparavarsym;
-        pdef : tdef;
-      begin
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=get_para_align(pd.proccalloption);
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-         begin
-           size:=def_cgsize(pdef);
-           def:=pdef;
-           if (nr<=8) then
-             begin
-               if nr=0 then
-                 internalerror(200309271);
-               loc:=LOC_REGISTER;
-               register:=newreg(R_INTREGISTER,RS_X10+nr-1,R_SUBWHOLE);
-             end
-           else
-             begin
-               loc:=LOC_REFERENCE;
-               paraloc^.reference.index:=NR_STACK_POINTER_REG;
-               reference.offset:=sizeof(pint)*(nr);
-             end;
-          end;
-      end;
-
-
 
     function getparaloc(p : tdef) : tcgloc;
 
@@ -203,15 +163,6 @@ unit cpupara;
           else
             ;
         end;
-      end;
-
-
-    procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-      begin
-        cur_stack_offset:=0;
-        curintreg:=RS_X10;
-        curfloatreg:=RS_F10;
-        curmmreg:=RS_NO;
       end;
 
 
