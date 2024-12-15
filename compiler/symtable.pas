@@ -1645,11 +1645,11 @@ implementation
         else
           exit;
         offset := sym.fieldoffset;
-        if(def2.typ = def1.typ)then
+        if def2.typ = def1.typ then
           cnt := 2
         else
           cnt := 1;
-        if((offset = 0))then
+        if offset = 0 then
           cnt := 0;
         has_double_field := cnt;
       end;

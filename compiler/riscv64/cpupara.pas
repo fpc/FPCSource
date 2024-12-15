@@ -29,12 +29,11 @@ unit cpupara;
       aasmtai,aasmdata,
       cpubase,
       symconst, symtype, symdef, symsym,
-      paramgr, parabase, cgbase, cgutils;
+      paramgr, parabase, cgbase, cgutils,
+      pararv;
 
     type
-      tcpuparamanager = class(tparamanager)
-        function get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset; override;
-        function get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset; override;
+      tcpuparamanager = class(trvparamanager)
         function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
@@ -43,8 +42,6 @@ unit cpupara;
         function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
 
-       function get_saved_registers_fpu(calloption: tproccalloption): tcpuregisterarray;override;
-       function get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
       private
         procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
         function create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;
@@ -59,30 +56,6 @@ implementation
       globals, cpuinfo,
       defutil,symtable,symcpu,
       procinfo, cpupi;
-
-    function tcpuparamanager.get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset;
-      begin
-        result:=[RS_X0..RS_X31]-[RS_X2,RS_X8..RS_X9,RS_X18..RS_X27];
-      end;
-
-    function tcpuparamanager.get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset;
-      begin
-        result:=[RS_F0..RS_F31]-[RS_F8..RS_F9,RS_F18..RS_F27];
-      end;
-
-    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
-      const
-        saved_regs: tcpuregisterarray = (RS_X2,RS_X8,RS_X9,RS_X18,RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X26,RS_X26,RS_X27);
-      begin
-        result:=saved_regs;
-      end;
-
-    function tcpuparamanager.get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;
-      const
-        saved_regs: tcpuregisterarray = (RS_F8,RS_F9,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27);
-      begin
-        result:=saved_regs;
-      end;
 
     procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
       var
@@ -339,7 +312,7 @@ implementation
             else
               paralen := tcgsize2size[def_cgsize(paradef)];
 
-            if (paradef.typ=recorddef) and
+            if (paradef.typ=recorddef) and not(is_implicit_pointer_object_type(paradef)) and
                tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(tmpdef) and
                (tmpdef.typ=floatdef) then
               begin
