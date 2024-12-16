@@ -55,62 +55,6 @@ implementation
       defutil,symtable,symcpu,
       procinfo, cpupi;
 
-    function getparaloc(p: tdef): tcgloc;
-      begin
-        { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
-          if push_addr_param for the def is true
-        }
-        case p.typ of
-          orddef:
-            result := LOC_REGISTER;
-          floatdef:
-            if (cs_fp_emulation in current_settings.moduleswitches) or
-               (current_settings.fputype in [fpu_soft]) then
-              result := LOC_REGISTER
-            else
-              result := LOC_FPUREGISTER;
-          enumdef:
-            result := LOC_REGISTER;
-          pointerdef:
-            result := LOC_REGISTER;
-          formaldef:
-            result := LOC_REGISTER;
-          classrefdef:
-            result := LOC_REGISTER;
-          procvardef,
-          recorddef:
-            result := LOC_REGISTER;
-          objectdef:
-            if is_object(p) then
-              result := LOC_REFERENCE
-            else
-              result := LOC_REGISTER;
-          stringdef:
-            if is_shortstring(p) or is_longstring(p) then
-              result := LOC_REFERENCE
-            else
-              result := LOC_REGISTER;
-          filedef:
-            result := LOC_REGISTER;
-          arraydef:
-            if is_dynamic_array(p) then
-              getparaloc:=LOC_REGISTER
-            else
-              result := LOC_REFERENCE;
-          setdef:
-            if is_smallset(p) then
-              result := LOC_REGISTER
-            else
-              result := LOC_REFERENCE;
-          variantdef:
-            result := LOC_REFERENCE;
-          { avoid problems with errornous definitions }
-          errordef:
-            result := LOC_REGISTER;
-        else
-          internalerror(2002071001);
-        end;
-      end;
 
     function tcpuparamanager.push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
       begin
@@ -143,6 +87,7 @@ implementation
             ;
         end;
       end;
+
 
     function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
       var
