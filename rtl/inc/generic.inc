@@ -3560,13 +3560,13 @@ procedure AtomicLeaveLock; forward;
 {$endif}
 function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint;compilerproc;
 begin
-  {$ifdef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
   AtomicEnterLock;
   {$endif FPC_SYSTEM_ATOMIC_8_NO_LOCK}
   Result:=Target;
   if Target=Comparand then
     Target:=NewValue;
-  {$ifdef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
   AtomicLeaveLock;
   {$endif FPC_SYSTEM_ATOMIC_8_NO_LOCK}
 end;
@@ -3581,13 +3581,13 @@ end;
 {$endif}
 function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint;compilerproc;
 begin
-  {$ifdef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
   AtomicEnterLock;
   {$endif FPC_SYSTEM_ATOMIC_16_NO_LOCK}
   Result:=Target;
   if Target=Comparand then
     Target:=NewValue;
-  {$ifdef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
   AtomicLeaveLock;
   {$endif FPC_SYSTEM_ATOMIC_16_NO_LOCK}
 end;
@@ -3602,13 +3602,13 @@ end;
 {$endif}
 function fpc_atomic_cmp_xchg_32(var Target: longint; NewValue: longint; Comparand: longint): longint;compilerproc;
 begin
-  {$ifdef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
   AtomicEnterLock;
   {$endif FPC_SYSTEM_ATOMIC_32_NO_LOCK}
   Result:=Target;
   if Target=Comparand then
     Target:=NewValue;
-  {$ifdef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
   AtomicLeaveLock;
   {$endif FPC_SYSTEM_ATOMIC_32_NO_LOCK}
 end;
@@ -3623,13 +3623,13 @@ end;
 {$endif}
 function fpc_atomic_cmp_xchg_64(var Target: int64; NewValue: int64; Comparand: int64): int64;compilerproc;
 begin
-  {$ifdef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
   AtomicEnterLock;
   {$endif FPC_SYSTEM_ATOMIC_64_NO_LOCK}
   Result:=Target;
   if Target=Comparand then
     Target:=NewValue;
-  {$ifdef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+  {$ifndef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
   AtomicLeaveLock;
   {$endif FPC_SYSTEM_ATOMIC_64_NO_LOCK}
 end;
