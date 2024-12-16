@@ -2719,24 +2719,20 @@ end;
 
 
 {$ifdef VER3_2}
-function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64; assembler;
+function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64; assembler; nostackframe;
 {$else VER3_2}
 {$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_64}
-function fpc_atomic_cmp_xchg_64 (var Target: int64; NewValue: int64; Comparand: int64) : int64; assembler;
+function fpc_atomic_cmp_xchg_64 (var Target: int64; NewValue: int64; Comparand: int64) : int64; assembler; nostackframe;
 {$endif VER3_2}
+{ eax = Target, [esp + 12] = NewValue, [esp + 4] = Comparand. }
 asm
         pushl       %ebx
         pushl       %edi
         movl        %eax,%edi
-{$ifdef VER3_2}
-        movl        Comperand+4,%edx
-        movl        Comperand+0,%eax
-{$else VER3_2}
-        movl        Comparand+4,%edx
-        movl        Comparand+0,%eax
-{$endif}
-        movl        NewValue+4,%ecx
-        movl        NewValue+0,%ebx
+        movl        8+4(%esp),%eax
+        movl        8+8(%esp),%edx
+        movl        8+12(%esp),%ebx
+        movl        8+16(%esp),%ecx
         lock cmpxchg8b (%edi)
         pop         %edi
         pop         %ebx

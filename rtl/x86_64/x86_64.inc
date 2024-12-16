@@ -1489,13 +1489,8 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint; a
 function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
-        xchgl   (%rcx),%edx
-        movl    %edx,%eax
-{$else win64}
-        xchgl   (%rdi),%esi
-        movl    %esi,%eax
-{$endif win64}
+        xchgl   ({$ifdef win64} %rcx {$else} %rdi {$endif}),Source
+        movl    Source,%eax
 end;
 
 
@@ -1506,15 +1501,9 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
         lock
-        xaddl   %edx, (%rcx)
-        movl    %edx,%eax
-{$else win64}
-        lock
-        xaddl   %esi, (%rdi)
-        movl    %esi,%eax
-{$endif win64}
+        xaddl   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef win64} %rcx {$else} %rdi {$endif})
+        movl    {$ifdef VER3_2} Source {$else} Value {$endif},%eax
 end;
 
 
@@ -1525,15 +1514,9 @@ function InterLockedCompareExchange(var Target: longint; NewValue, Comperand : l
 function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue, Comparand : longint) : longint; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
-        movl            %r8d,%eax
+        movl            {$ifdef VER3_2} Comperand {$else} Comparand {$endif},%eax
         lock
-        cmpxchgl        %edx,(%rcx)
-{$else win64}
-        movl            %edx,%eax
-        lock
-        cmpxchgl        %esi,(%rdi)
-{$endif win64}
+        cmpxchgl        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
 end;
 
 
@@ -1572,13 +1555,8 @@ function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assem
 function fpc_atomic_xchg_64 (var Target: int64;Source: int64) : int64; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
-        xchgq   (%rcx),%rdx
-        movq    %rdx,%rax
-{$else win64}
-        xchgq   (%rdi),%rsi
-        movq    %rsi,%rax
-{$endif win64}
+        xchgq   ({$ifdef win64} %rcx {$else} %rdi {$endif}),Source
+        movq    Source,%rax
 end;
 
 
@@ -1589,15 +1567,9 @@ function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; as
 function fpc_atomic_add_64 (var Target: int64;Value: int64) : int64; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
         lock
-        xaddq   %rdx, (%rcx)
-        movq    %rdx,%rax
-{$else win64}
-        lock
-        xaddq   %rsi, (%rdi)
-        movq    %rsi,%rax
-{$endif win64}
+        xaddq   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef win64} %rcx {$else} %rdi {$endif})
+        movq    {$ifdef VER3_2} Source {$else} Value {$endif},%rax
 end;
 
 
@@ -1608,15 +1580,9 @@ function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : i
 function fpc_atomic_cmp_xchg_64 (var Target: int64; NewValue, Comparand : int64) : int64; [public, alias:'FPC_ATOMIC_CMP_XCHG_64']; assembler; nostackframe;
 {$endif VER3_2}
 asm
-{$ifdef win64}
-        movq            %r8,%rax
+        movq            {$ifdef VER3_2} Comperand {$else} Comparand {$endif},%rax
         lock
-        cmpxchgq        %rdx,(%rcx)
-{$else win64}
-        movq            %rdx,%rax
-        lock
-        cmpxchgq        %rsi,(%rdi)
-{$endif win64}
+        cmpxchgq        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
 end;
 
 
