@@ -3174,373 +3174,269 @@ function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_8}
 function fpc_atomic_inc_8(var Target: shortint): shortint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_8)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_8)}
   Result := AtomicIncrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_8)}
-begin
   Result := AtomicDecrement(Target, -1);
 {$else}
-var
-  t1, t2: shortint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
-  until t2 = t1;
-  Result := t2 + 1;
+    Result := Target + 1;
+  until shortint(Result - 1) = AtomicCmpExchange(Target, Result, Result - 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_INC_8}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_16}
 function fpc_atomic_inc_16(var Target: smallint): smallint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_16)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_16)}
   Result := AtomicIncrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_16)}
-begin
   Result := AtomicDecrement(Target, -1);
 {$else}
-var
-  t1, t2: smallint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
-  until t2 = t1;
-  Result := t2 + 1;
+    Result := Target + 1;
+  until smallint(Result - 1) = AtomicCmpExchange(Target, Result, Result - 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_INC_16}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_32}
 function fpc_atomic_inc_32(var Target: longint): longint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_32)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_32)}
   Result := AtomicIncrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_32)}
-begin
   Result := AtomicDecrement(Target, -1);
 {$else}
-var
-  t1, t2: longint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
-  until t2 = t1;
-  Result := t2 + 1;
+    Result := Target + 1;
+  until longint(Result - 1) = AtomicCmpExchange(Target, Result, Result - 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_INC_32}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_64}
 function fpc_atomic_inc_64(var Target: int64): int64;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_64)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_64)}
   Result := AtomicIncrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_64)}
-begin
   Result := AtomicDecrement(Target, -1);
 {$else}
-var
-  t1, t2: int64;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
-  until t2 = t1;
-  Result := t2 + 1;
+    Result := Target + 1;
+  until int64(Result - 1) = AtomicCmpExchange(Target, Result, Result - 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_INC_64}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_8}
 function fpc_atomic_dec_8(var Target: shortint): shortint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_8)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_8)}
   Result := AtomicDecrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_8)}
-begin
   Result := AtomicIncrement(Target, -1);
 {$else}
-var
-  t1, t2: shortint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
-  until t2 = t1;
-  Result := t2 - 1;
+    Result := Target - 1;
+  until shortint(Result + 1) = AtomicCmpExchange(Target, Result, Result + 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_DEC_8}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_16}
 function fpc_atomic_dec_16(var Target: smallint): smallint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_16)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_16)}
   Result := AtomicDecrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_16)}
-begin
   Result := AtomicIncrement(Target, -1);
 {$else}
-var
-  t1, t2: smallint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
-  until t2 = t1;
-  Result := t2 - 1;
+    Result := Target - 1;
+  until smallint(Result + 1) = AtomicCmpExchange(Target, Result, Result + 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_DEC_16}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_32}
 function fpc_atomic_dec_32(var Target: longint): longint;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_32)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_32)}
   Result := AtomicDecrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_32)}
-begin
   Result := AtomicIncrement(Target, -1);
 {$else}
-var
-  t1, t2: longint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
-  until t2 = t1;
-  Result := t2 - 1;
+    Result := Target - 1;
+  until longint(Result + 1) = AtomicCmpExchange(Target, Result, Result + 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_DEC_32}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_64}
 function fpc_atomic_dec_64(var Target: int64): int64;compilerproc;
-{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_64)}
 begin
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_64)}
   Result := AtomicDecrement(Target, 1);
 {$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_64)}
-begin
   Result := AtomicIncrement(Target, -1);
 {$else}
-var
-  t1, t2: int64;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
-  until t2 = t1;
-  Result := t2 - 1;
+    Result := Target - 1;
+  until int64(Result + 1) = AtomicCmpExchange(Target, Result, Result + 1);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_DEC_64}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_8}
 function fpc_atomic_add_8(var Target: shortint; Value: shortint): shortint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_8}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_8}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicDecrement(Target, - Value) - Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_SUB_8}
-var
-  t1, t2: shortint;
-begin
   repeat
-    t1:=Target;
-    t2:=AtomicCmpExchange(Target, t1 + Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result + Value, Result);
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_16}
 function fpc_atomic_add_16(var Target: smallint; Value: smallint): smallint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_16}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_16}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicDecrement(Target, - Value) - Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_SUB_16}
-var
-  t1, t2: smallint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result + Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_16}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_16}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_32}
 function fpc_atomic_add_32(var Target: longint; Value: longint): longint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_32}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_32}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicDecrement(Target, - Value) - Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_SUB_32}
-var
-  t1, t2: longint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result + Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_32}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_32}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_64}
 function fpc_atomic_add_64(var Target: int64; Value: int64): int64;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_64}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_64}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicDecrement(Target, - Value) - Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_SUB_64}
-var
-  t1, t2: int64;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result + Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_64}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_64}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_8}
 function fpc_atomic_sub_8(var Target: shortint; Value: shortint): shortint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_8}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_8}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicIncrement(Target, - Value) + Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_ADD_8}
-var
-  t1, t2: smallint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result - Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_8}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_16}
 function fpc_atomic_sub_16(var Target: smallint; Value: smallint): smallint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_16}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_16}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicIncrement(Target, - Value) + Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_ADD_16}
-var
-  t1, t2: shortint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result - Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_16}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_16}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_32}
 function fpc_atomic_sub_32(var Target: longint; Value: longint): longint;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_32}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_32}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicIncrement(Target, - Value) + Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_ADD_32}
-var
-  t1, t2: longint;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result - Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_32}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_32}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_64}
 function fpc_atomic_sub_64(var Target: int64; Value: int64): int64;compilerproc;
-{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_64}
 begin
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_64}
   { the intrinsic returns the new value, but the helper needs to return the old }
   Result := AtomicIncrement(Target, - Value) + Value;
 {$else FPC_SYSTEM_HAS_ATOMIC_ADD_64}
-var
-  t1, t2: int64;
-begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
-  until t2 = t1;
-  Result := t2;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Result - Value, Result);
 {$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_SUB_64}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_8}
 function fpc_atomic_xchg_8(var Target: shortint; Source: shortint): shortint;compilerproc;
-var
-  t1, t2: shortint;
 begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, Source, t1);
-  until t2 = t1;
-  Result := t1;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Source, Result);
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_8}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
 function fpc_atomic_xchg_16(var Target: smallint; Source: smallint): smallint;compilerproc;
-var
-  t1, t2: smallint;
 begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, Source, t1);
-  until t2 = t1;
-  Result := t1;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Source, Result);
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
 function fpc_atomic_xchg_32(var Target: longint; Source: longint): longint;compilerproc;
-var
-  t1, t2: longint;
 begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, Source, t1);
-  until t2 = t1;
-  Result := t1;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Source, Result);
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
 
 {$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
 function fpc_atomic_xchg_64(var Target: int64; Source: int64): int64;compilerproc;
-var
-  t1, t2: int64;
 begin
   repeat
-    t1 := Target;
-    t2 := AtomicCmpExchange(Target, Source, t1);
-  until t2 = t1;
-  Result := t1;
+    Result := Target;
+  until Result = AtomicCmpExchange(Target, Source, Result);
 end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
 
