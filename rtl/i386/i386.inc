@@ -2523,6 +2523,135 @@ begin
 end;
 
 
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
+function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint; assembler; nostackframe;
+asm
+        xchgl    %eax,%ecx
+        lock
+        cmpxchgb %dl,(%ecx)
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint; assembler; nostackframe;
+asm
+        xchgl    %eax,%ecx
+        lock
+        cmpxchgw %dx,(%ecx)
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
+function fpc_atomic_xchg_64(var Target: int64; Source: int64): int64; assembler; nostackframe;
+{ eax = Target, [esp + 4] = Source. }
+asm
+        pushl       %ebx
+        pushl       %edi
+        movl        %eax,%edi
+        movl        8+4(%esp),%ebx
+        movl        8+8(%esp),%ecx
+.LAgain:
+        movl        (%edi),%eax
+        movl        4(%edi),%edx
+        lock cmpxchg8b (%edi)
+        jne         .LAgain
+        pop         %edi
+        pop         %ebx
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+function fpc_atomic_sub_32(var Target: longint; Value: longint): longint; assembler; nostackframe;
+asm
+        neg     %edx
+        lock
+        xaddl   %edx, (%eax)
+        movl    %edx,%eax
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_64}
+function fpc_atomic_inc_64(var Target: int64): int64; assembler; nostackframe;
+{ eax = Target. }
+asm
+        pushl       %ebx
+        pushl       %edi
+        movl        %eax,%edi
+.LAgain:
+        movl        (%edi),%eax
+        movl        4(%edi),%edx
+        movl        %eax,%ebx { ecx:ebx := edx:eax + 1. }
+        movl        %edx,%ecx
+        addl        $1,%ebx
+        adcl        $0,%ecx
+        lock cmpxchg8b (%edi)
+        jne         .LAgain
+        movl        %ebx,%eax
+        movl        %ecx,%edx
+        pop         %edi
+        pop         %ebx
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_64}
+function fpc_atomic_dec_64(var Target: int64): int64; assembler; nostackframe;
+{ eax = Target. }
+asm
+        pushl       %ebx
+        pushl       %edi
+        movl        %eax,%edi
+.LAgain:
+        movl        (%edi),%eax
+        movl        4(%edi),%edx
+        movl        %eax,%ebx { ecx:ebx := edx:eax - 1. }
+        movl        %edx,%ecx
+        subl        $1,%ebx
+        sbbl        $0,%ecx
+        lock cmpxchg8b (%edi)
+        jne         .LAgain
+        movl        %ebx,%eax
+        movl        %ecx,%edx
+        pop         %edi
+        pop         %ebx
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+function fpc_atomic_add_64(var Target: int64; Value: int64): int64; assembler; nostackframe;
+{ eax = Target, [esp + 4] = Value. }
+asm
+        pushl       %ebx
+        pushl       %edi
+        movl        %eax,%edi
+.LAgain:
+        movl        (%edi),%eax
+        movl        4(%edi),%edx
+        movl        %eax,%ebx { ecx:ebx := edx:eax + Value. }
+        movl        %edx,%ecx
+        addl        8+4(%esp),%ebx
+        adcl        8+8(%esp),%ecx
+        lock cmpxchg8b (%edi)
+        jne         .LAgain
+        pop         %edi
+        pop         %ebx
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+function fpc_atomic_sub_64(var Target: int64; Value: int64): int64; assembler; nostackframe;
+{ eax = Target, [esp + 4] = Value. }
+asm
+        pushl       %ebx
+        pushl       %edi
+        movl        %eax,%edi
+.LAgain:
+        movl        (%edi),%eax
+        movl        4(%edi),%edx
+        movl        %eax,%ebx { ecx:ebx := edx:eax - Value. }
+        movl        %edx,%ecx
+        subl        8+4(%esp),%ebx
+        sbbl        8+8(%esp),%ecx
+        lock cmpxchg8b (%edi)
+        jne         .LAgain
+        pop         %edi
+        pop         %ebx
+end;
+{$endif VER3_2}
+
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 {$else VER3_2}

@@ -1417,6 +1417,43 @@ procedure inclocked(var l : int64);assembler; nostackframe;
   end;
 
 
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
+function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint; assembler; nostackframe;
+asm
+        movl            {$ifdef win64} %r8d {$else} %edx {$endif},%eax
+        lock
+        cmpxchgb        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint; assembler; nostackframe;
+asm
+        movl            {$ifdef win64} %r8d {$else} %edx {$endif},%eax
+        lock
+        cmpxchgw        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+function fpc_atomic_sub_32(var Target: longint; Value: longint): longint; assembler; nostackframe;
+asm
+        negl    Value
+        lock
+        xaddl   Value,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        movl    Value,%eax
+end;
+
+{$define FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+function fpc_atomic_sub_64(var Target: int64; Value: int64): int64; assembler; nostackframe;
+asm
+        negq    Value
+        lock
+        xaddq   Value,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        movq    Value,%rax
+end;
+{$endif VER3_2}
+
+
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 {$else VER3_2}
