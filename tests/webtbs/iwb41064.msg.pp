@@ -1,0 +1,3 @@
+const
+  Hello = 'Hello world!';
+  

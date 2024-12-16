@@ -1884,7 +1884,7 @@ type
 
         function preproc_factor(eval: Boolean):texprvalue;
         var
-           hs,countstr,storedpattern: string;
+           hs,countstr,storedpattern,fileext: string;
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
@@ -1920,15 +1920,16 @@ type
 
                     { try to find the file, this like 'include' }
                     found:=findincludefile(path,name,foundfile);
-                    if (not found) and (ExtractFileExt(name)='') then
+                    fileext:=lower(ExtractFileExt(name));
+                    if (not found) and ((fileext<>'.inc') and (fileext<>sourceext) and (fileext<>pasext)) then
                      begin
                        { try default extensions .inc , .pp and .pas }
                        if (not found) then
-                        found:=findincludefile(path,ChangeFileExt(name,'.inc'),foundfile);
+                        found:=findincludefile(path,name+'.inc',foundfile);
                        if (not found) then
-                        found:=findincludefile(path,ChangeFileExt(name,sourceext),foundfile);
+                        found:=findincludefile(path,name+sourceext,foundfile);
                        if (not found) then
-                        found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
+                        found:=findincludefile(path,name+pasext,foundfile);
                      end;
                     if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
                       found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
@@ -2752,6 +2753,7 @@ type
         hp    : tinputfile;
         found : boolean;
         macroIsString : boolean;
+        fileext: string;
       begin
         current_scanner.skipspace;
         args:=current_scanner.readcomment;
@@ -2856,15 +2858,16 @@ type
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
-           if (not found) and (ExtractFileExt(name)='') then
+           fileext:=lower(ExtractFileExt(name));
+           if (not found) and ((fileext<>'.inc') and (fileext<>sourceext) and (fileext<>pasext)) then
             begin
               { try default extensions .inc , .pp and .pas }
               if (not found) then
-               found:=findincludefile(path,ChangeFileExt(name,'.inc'),foundfile);
+               found:=findincludefile(path,name+'.inc',foundfile);
               if (not found) then
-               found:=findincludefile(path,ChangeFileExt(name,sourceext),foundfile);
+               found:=findincludefile(path,name+sourceext,foundfile);
               if (not found) then
-               found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
+               found:=findincludefile(path,name+pasext,foundfile);
             end;
            { if the name ends in dot, try without the dot }
            if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
