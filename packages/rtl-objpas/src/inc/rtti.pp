@@ -71,6 +71,7 @@ type
   TRttiIndexedProperty = class;
   TRttiField = Class;
   TRttiProperty = class;
+  TRttiOrdinalType = class;
   TRttiInstanceType = class;
   TRttiRecordType = class;
 
@@ -361,6 +362,7 @@ type
     FProperties : TRttiPropertyArray;
     FIndexedProperties : TRttiIndexedPropertyArray;
     function GetAsInstance: TRttiInstanceType;
+    function GetAsOrdinal: TRttiOrdinalType;
     function GetAsRecord: TRttiRecordType;
   protected
     FTypeData: PTypeData;
@@ -401,6 +403,7 @@ type
     property BaseType: TRttiType read GetBaseType;
     property Handle: PTypeInfo read FTypeInfo;
     property AsInstance: TRttiInstanceType read GetAsInstance;
+    property AsOrdinal: TRttiOrdinalType read GetAsOrdinal;
     property AsRecord: TRttiRecordType read GetAsRecord;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
@@ -7181,6 +7184,11 @@ function TRttiType.GetAsInstance: TRttiInstanceType;
 begin
   // This is a ridicoulous design, but Delphi-compatible...
   result := TRttiInstanceType(self);
+end;
+
+function TRttiType.GetAsOrdinal: TRttiOrdinalType;
+begin
+  Result := TRttiOrdinalType(Self);
 end;
 
 function TRttiType.GetAsRecord: TRttiRecordType;
