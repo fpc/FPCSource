@@ -185,6 +185,7 @@ type
     procedure CastInterfaceToInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
     procedure CastFromInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
     // From Pointer
+    procedure CastPointerToClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
     procedure CastFromPointer(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
     // From set
     procedure CastSetToSet(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
@@ -3436,11 +3437,23 @@ begin
   end;
 end;
 
+Procedure TValue.CastPointerToClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+
+var
+  Tmp: Pointer;
+
+begin
+  Tmp:=AsPointer;
+  TValue.Make(@Tmp,aDestType,aDest);
+  aRes:=True;
+end;
+
 Procedure TValue.CastFromPointer(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
     tkPointer, tkProcedure: CastAssign(aRes,aDest,aDestType);
+    tkClass: CastPointerToClass(aRes,aDest,aDestType);
   else
     aRes:=False;
   end;
