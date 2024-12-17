@@ -421,12 +421,15 @@ type
     property FloatType: TFloatType read GetFloatType;
   end;
 
+  { TRttiOrdinalType }
+
   TRttiOrdinalType = class(TRttiType)
   private
     function GetMaxValue: LongInt; inline;
     function GetMinValue: LongInt; inline;
     function GetOrdType: TOrdType; inline;
   protected
+    function GetIsOrdinal: Boolean; override;
     function GetTypeSize: Integer; override;
   public
     property OrdType: TOrdType read GetOrdType;
@@ -5151,6 +5154,11 @@ begin
   Result := FTypeData^.OrdType;
 end;
 
+function TRttiOrdinalType.GetIsOrdinal: Boolean;
+begin
+  Result:=True;
+end;
+
 function TRttiOrdinalType.GetTypeSize: Integer;
 begin
   case OrdType of
@@ -7537,7 +7545,7 @@ end;
 
 function TRttiType.GetMethods(const aName: string): TRttiMethodArray;
 var
-  methods: specialize TArray<TRttiMethod>;
+  methods: TRttiMethodArray;
   method: TRttiMethod;
   count: Integer;
 begin
