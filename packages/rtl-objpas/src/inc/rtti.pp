@@ -392,6 +392,7 @@ type
     function GetMethods: TRttiMethodArray; virtual; overload;
     function GetMethods(const aName: string): TRttiMethodArray; overload; virtual;
     function GetMethod(const aName: String): TRttiMethod; virtual;
+    function ToString : RTLString; override;
     property IsInstance: boolean read GetIsInstance;
     property IsManaged: boolean read GetIsManaged;
     property IsOrdinal: boolean read GetIsOrdinal;
@@ -7506,6 +7507,11 @@ begin
     if SameText(method.Name, AName) then
       Exit(method);
   Result := Nil;
+end;
+
+function TRttiType.ToString: RTLString;
+begin
+  Result:=Name;
 end;
 
 function TRttiType.GetMethods(const aName: string): TRttiMethodArray;
