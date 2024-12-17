@@ -560,6 +560,8 @@ type
     function GetIndex: Integer; virtual;
     function GetIsClassProperty: boolean; virtual;
   protected
+    procedure SetStaticPropValue(const AValue: TValue); virtual;
+    function GetStaticPropValue: TValue; virtual;
     function GetName: string; override;
     function GetHandle: Pointer; override;
   public
@@ -968,12 +970,12 @@ generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValu
 
 { these resource strings are needed by units implementing function call managers }
 resourcestring
-  SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
+  SErrInvokeNotImplemented = 'Invoke functionality is not implemented on this platform. Use external managers, e.g. ffi.manager.';
   SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
   SErrMethodImplCreateFailed  = 'Failed to create method implementation';
   SErrCallbackNotImplemented = 'Callback functionality is not implemented';
-  SErrCallConvNotSupported = 'Calling convention not supported: %s';
+  SErrCallConvNotSupported = 'Calling convention not supported: %s.  Enable external managers, e.g. ffi.manager.';
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
   SErrCallbackHandlerNil = 'Callback handler is Nil';
   SErrMissingSelfParam = 'Missing self parameter';
@@ -1390,6 +1392,8 @@ resourcestring
   SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
   SErrVirtIntfCreateVmt = 'Failed to create VMT for ''%s''';
 //  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';  
+  SErrCannotWriteToClassProperty = 'Cannot write to class property "%s"';
+  SErrCannotReadClassProperty = 'Cannot read class property "%s"';
   SErrCannotWriteToIndexedProperty = 'Cannot write to indexed property "%s"';
   SErrCannotReadIndexedProperty = 'Cannot read indexed property "%s"';
 
@@ -2386,7 +2390,7 @@ function TValue.GetIsEmpty: boolean;
 begin
   result := (FData.FTypeInfo=nil) or
             ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
-            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
+            ((Kind in [tkPointer, tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
 end;
 
 
@@ -6843,6 +6847,34 @@ begin
   result := FAttributes;
 end;
 
+function TRttiProperty.GetStaticPropValue: TValue;
+
+var
+  getter: CodePointer;
+  Args: array of TValue;
+
+begin
+  case FPropInfo^.PropProcs and 3 of
+    ptField:
+      TValue.Make(PtrUInt(FPropInfo^.GetProc), FPropInfo^.PropType, Result);
+    ptStatic,
+    ptVirtual:
+      begin
+        if (FPropInfo^.PropProcs and 3)=ptStatic then
+          getter:=FPropInfo^.GetProc
+        else
+          getter:=PCodePointer(Pointer(Parent.AsInstance.MetaClassType)+PtrUInt(FPropInfo^.GetProc))^;
+        if ((FPropInfo^.PropProcs shr 6) and 1)=0 then
+          Args := []
+        else
+          Args := [FPropInfo^.Index];
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(getter, Args, ccReg, FPropInfo^.PropType, FPropInfo^.IsStatic, False);
+      end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadClassProperty, [FPropInfo^.Name]);
+  end;
+end;
+
 function TRttiProperty.GetValue(Instance: pointer): TValue;
 
   procedure ValueFromBool(value: Int64);
@@ -6951,6 +6983,11 @@ var
   M: TMethod;
   Int: IUnknown;
 begin
+  if FPropInfo^.IsStatic then
+    begin
+    Result:= GetStaticPropValue();
+    exit;
+    end;
   case FPropinfo^.PropType^.Kind of
     tkSString:
       begin
@@ -7058,8 +7095,42 @@ begin
   end
 end;
 
+procedure TRttiProperty.SetStaticPropValue(const AValue: TValue);
+
+var
+  setter: CodePointer;
+  Args: array of TValue;
+
+begin
+  case (FPropInfo^.PropProcs shr 2) and 3 of
+    ptField:
+      AValue.Cast(FPropInfo^.PropType).ExtractRawData(FPropInfo^.SetProc);
+    ptStatic,
+    ptVirtual:
+      begin
+        if ((FPropInfo^.PropProcs shr 2) and 3)=ptStatic then
+          setter:=FPropInfo^.SetProc
+        else
+          setter:=PCodePointer(Pointer(Parent.AsInstance.MetaClassType)+PtrUInt(FPropInfo^.SetProc))^;
+        if ((FPropInfo^.PropProcs shr 6) and 1)=0 then
+          Args := [AValue.Cast(FPropInfo^.PropType)]
+        else
+          Args := [FPropInfo^.Index, AValue.Cast(FPropInfo^.PropType)];
+        {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(setter, Args, ccReg, nil, FPropInfo^.IsStatic, False);
+      end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToClassProperty, [FPropInfo^.Name]);
+  end;
+end;
+
+
 procedure TRttiProperty.SetValue(Instance: pointer; const AValue: TValue);
 begin
+  if FPropInfo^.IsStatic then
+    begin
+    SetStaticPropValue(aValue);
+    exit;
+    end;
   case FPropinfo^.PropType^.Kind of
     tkSString,
     tkAString:
@@ -7988,10 +8059,10 @@ end;
 
 function TRttiRecordMethod.GetParameters(aWithHidden : Boolean): TRttiParameterArray;
 begin
-  if  (Length(FParams[aWithHidden]) > 0) then
-    Exit(FParams[aWithHidden]);
   if FHandle^.ParamCount = 0 then
     Exit(Nil);
+  if (Length(FParams[aWithHidden]) > 0) then
+    Exit(FParams[aWithHidden]);
   ResolveParams;
   Result := FParams[aWithHidden];
 end;

@@ -118,6 +118,8 @@ type
     Procedure TestProtectedPropertyAttributes;
     Procedure TestPublicPropertyAttributes;
     Procedure TestPublishedPropertyAttributes;
+    procedure TestGetStaticProperty;
+    procedure TestSetStaticProperty;
   end;
 
   { TTestRecordExtendedRTTI }
@@ -136,7 +138,11 @@ type
 implementation
 
 uses
-  Tests.Rtti.Util, {tests.rtti.exttypes, } tests.rtti.attrtypes, tests.rtti.types;
+  Tests.Rtti.Util,
+  {tests.rtti.exttypes, }
+  tests.rtti.attrtypes2,
+  tests.rtti.attrtypes,
+  tests.rtti.types;
 
 
 
@@ -2070,6 +2076,31 @@ begin
   AssertNotNull('Attribute class ',O);
   AssertEquals('Attribute class ',O.ClassType,My3Attribute);
   AssertEquals('Attribute value ',5,M3.Int);
+end;
+
+procedure TTestClassExtendedRTTI.TestGetStaticProperty;
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Prop : TRttiProperty;
+begin
+  Obj:=FCtx.GetType(TypeInfo(TTestAttr2Class));
+  TTestAttr2Class.StaticProp:=4539;
+  Prop:=rttiData.GetProperty('StaticProp');
+  AssertEquals('Class property is set or got incorrectly via methods', 4539, Prop.GetValue(nil).AsInteger);
+end;
+
+procedure TTestClassExtendedRTTI.TestSetStaticProperty;
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  Prop : TRttiProperty;
+begin
+  Obj:=FCtx.GetType(TypeInfo(TTestAttr2Class));
+  Prop:=rttiData.GetProperty('StaticProp');
+  // Write
+  Prop.SetValue(nil, 4539);
+  AssertEquals('Property correctly set',4539,TTestAttr2Class.StaticProp);
 end;
 
 
