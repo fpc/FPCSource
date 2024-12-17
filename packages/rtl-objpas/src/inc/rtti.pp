@@ -556,6 +556,9 @@ type
     function GetIsWritable: boolean; override;
     function GetIsReadable: boolean; override;
     function GetDataType: TRttiType; override;
+    function GetDefault: Integer; virtual;
+    function GetIndex: Integer; virtual;
+    function GetIsClassProperty: boolean; virtual;
   protected
     function GetName: string; override;
     function GetHandle: Pointer; override;
@@ -567,6 +570,9 @@ type
     procedure SetValue(Instance: pointer; const AValue: TValue); override; 
     function ToString: String; override;
     property PropertyType: TRttiType read GetPropertyType;
+    property Default: Integer read GetDefault;
+    property Index: Integer read GetIndex;
+    property IsClassProperty: boolean read GetIsClassProperty;
     property IsReadable: boolean read GetIsReadable;
     property IsWritable: boolean read GetIsWritable;
   end;
@@ -6749,6 +6755,21 @@ function TRttiProperty.GetDataType: TRttiType;
 
 begin
   Result:=GetPropertyType
+end;
+
+function TRttiProperty.GetDefault: Integer;
+begin
+  Result := FPropInfo^.Default;
+end;
+
+function TRttiProperty.GetIndex: Integer;
+begin
+  Result := FPropInfo^.Index;
+end;
+
+function TRttiProperty.GetIsClassProperty: boolean;
+begin
+  result := FPropInfo^.IsStatic;
 end;
 
 function TRttiProperty.GetPropertyType: TRttiType;
