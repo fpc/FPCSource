@@ -587,13 +587,14 @@ type
     FHandle : PExtendedFieldEntry;
     FAttributes: TCustomAttributeArray;
     FAttributesResolved : Boolean;
-    function GetName: string; override;
     function GetDataType: TRttiType; override;
     function GetIsReadable: Boolean; override;
     function GetIsWritable: Boolean; override;
+    procedure ResolveAttributes;
+  protected
+    function GetName: string; override;
     function GetHandle: Pointer; override;
     Function GetAttributes: TCustomAttributeArray; override;
-    procedure ResolveAttributes;
 //    constructor Create(AParent: TRttiObject; var P: PByte); override;
   public
     destructor destroy; override;
@@ -2377,6 +2378,14 @@ begin
   result := ATypeInfo = TypeInfo;
 end;
 
+function TValue.GetIsEmpty: boolean;
+begin
+  result := (FData.FTypeInfo=nil) or
+            ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
+            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
+end;
+
+
 function TValue.IsType(ATypeInfo: PTypeInfo; const EmptyAsAnyType : Boolean): boolean;
 begin
   Result:=IsEmpty;
@@ -3816,12 +3825,6 @@ begin
 end;
 
 
-function TValue.GetIsEmpty: boolean;
-begin
-  result := (FData.FTypeInfo=nil) or
-            ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
-            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
-end;
 
 function TValue.IsArray: boolean;
 begin
@@ -4521,6 +4524,7 @@ var
   hiddenVmt : Pointer;
   highArg: SizeInt;
 begin
+  castedargs:=[];
   mgr := FuncCallMgr[aCallConv];
   if not Assigned(mgr.Invoke) then
     raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CCToStr(aCallConv)]);
@@ -5604,9 +5608,7 @@ end;
 { TRttiIndexedProperty }
 
 procedure TRttiIndexedProperty.GetAccessors;
-var
-  context: TRttiContext;
-  obj: TRttiObject;
+
 begin
   if Assigned(FReadMethod) or Assigned(FWriteMethod) or
      not IsReadable and not IsWritable then
@@ -5724,6 +5726,7 @@ var
   argsV: TValueArray;
   i: Integer;
 begin
+  argsV:=[];
   setter := WriteMethod;
   if setter = nil then
     raise EPropertyError.CreateFmt(SErrCannotWriteToIndexedProperty, [Name]);
@@ -6241,12 +6244,11 @@ Procedure TRttiInstanceType.ResolveExtendedDeclaredProperties;
 var
   Table: PPropDataEx;
   //List : PPropListEx;
-  Ctx: TRttiContext;
   info : PPropInfoEx;
   TP : PPropInfo;
   Prop : TRttiProperty;
-  i,j,Idx,IdxCount,Len, PropCount : Integer;
-  obj: TRttiObject;
+  i,j,Len, PropCount : Integer;
+
 begin
   Table:=PClassData(FTypeData)^.ExRTTITable;
   Len:=Table^.PropCount;
@@ -6286,12 +6288,8 @@ Procedure TRttiInstanceType.ResolveClassicDeclaredProperties;
 
 var
   Table: PPropData;
-
-  lTypeInfo: PTypeInfo;
-  TypeRttiType: TRttiType;
-  TD: PTypeData;
   TP: PPropInfo;
-  Idx,I,Len: longint;
+  I,Len: longint;
   Prop: TRttiProperty;
 
 begin
@@ -6333,12 +6331,11 @@ Procedure TRttiInstanceType.ResolveDeclaredIndexedProperties;
 
 var   
   Table: PPropDataEx;
-  Ctx: TRttiContext;
   info : PPropInfoEx;
   TP : PPropInfo;
   IProp : TRttiIndexedProperty;
-  i,j,Idx,IdxCount,Len, PropCount : Integer;
-  obj: TRttiObject;
+  i,Len, PropCount : Integer;
+
 begin
   Table:=PClassData(FTypeData)^.ExRTTITable;
   Len:=Table^.PropCount;
@@ -6640,7 +6637,6 @@ var
   TP : PPropInfo;
   IProp : TRttiIndexedProperty;
   i,Len, PropCount : Integer;
-  obj: TRttiObject;
 
 begin
   List:=Nil;   
@@ -7121,7 +7117,6 @@ end;
 destructor TRttiField.destroy;
 
 var
-  Attr : TCustomAttribute;
   I : Integer;
 
 begin
@@ -7620,7 +7615,7 @@ end;
 
 class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
 begin
-  Result:=Create;
+  Result:=Create();
   Result.UsePublishedOnly:=aUsePublishedOnly;
 end;
 
