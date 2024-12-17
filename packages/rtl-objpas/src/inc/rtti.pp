@@ -394,6 +394,7 @@ type
     function GetMethods: TRttiMethodArray; virtual; overload;
     function GetMethods(const aName: string): TRttiMethodArray; overload; virtual;
     function GetMethod(const aName: String): TRttiMethod; virtual;
+    function GetMethod(aCodeAddress: CodePointer): TRttiMethod; overload; virtual;
     function ToString : RTLString; override;
     property IsInstance: boolean read GetIsInstance;
     property IsManaged: boolean read GetIsManaged;
@@ -7507,12 +7508,24 @@ end;
 
 function TRttiType.GetMethod(const aName: String): TRttiMethod;
 var
-  methods: specialize TArray<TRttiMethod>;
+  methods: TRttiMethodArray;
   method: TRttiMethod;
 begin
   methods := GetMethods;
   for method in methods do
     if SameText(method.Name, AName) then
+      Exit(method);
+  Result := Nil;
+end;
+
+function TRttiType.GetMethod(aCodeAddress: CodePointer): TRttiMethod;
+var
+  methods: TRttiMethodArray;
+  method: TRttiMethod;
+begin
+  methods := GetMethods;
+  for method in methods do
+    if method.CodeAddress = aCodeAddress then
       Exit(method);
   Result := Nil;
 end;

@@ -109,6 +109,7 @@ type
     Procedure TestProperties;
     Procedure TestDeclaredMethods;
     Procedure TestMethods;
+    Procedure TestMethodByAddress;
     Procedure TestMethodsInherited;
     Procedure TestPrivateFieldAttributes;
     Procedure TestProtectedFieldAttributes;
@@ -1820,6 +1821,20 @@ begin
   aCount:=Length(A);
   AssertEquals('Full declared Count',1,aCount);
   CheckMethod('Full declared',1, A[0],'PublicAdditionalMethod',mvPublic);
+end;
+
+procedure TTestClassExtendedRTTI.TestMethodByAddress;
+
+var
+  Obj : TRttiObject;
+  RttiData : TRttiInstanceType absolute obj;
+  M1,M2 : TRttiMethod;
+begin
+  Obj:=FCtx.GetType(TAdditionalMethodClassRTTI.ClassInfo);
+  M1:=RttiData.GetMethod('PublicAdditionalMethod');
+  AssertNotNull('have method',m1);
+  M2:=RttiData.GetMethod(@TAdditionalMethodClassRTTI.PublicAdditionalMethod);
+  AssertSame('Correct method ',M1,M2);
 end;
 
 procedure TTestClassExtendedRTTI.TestMethodsInherited;
