@@ -7313,7 +7313,7 @@ begin
     tkClass:
       SetObjectProp(TObject(Instance), FPropInfo, AValue.AsObject);
     tkMethod:
-      SetMethodProp(TObject(Instance), FPropInfo, TMethod(AValue.GetReferenceToRawData^));
+      SetMethodProp(TObject(Instance), FPropInfo, PMethod(AValue.GetReferenceToRawData)^);
     tkInterface:
       SetInterfaceProp(TObject(Instance), FPropInfo, AValue.AsInterface);
     tkFloat:
