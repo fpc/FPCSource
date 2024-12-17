@@ -282,6 +282,7 @@ type
     class operator := (AValue: QWord): TValue; inline;
     class operator := (AValue: TObject): TValue; inline;
     class operator := (AValue: TClass): TValue; inline;
+    class operator := (AValue: Pointer): TValue; inline;
     class operator := (AValue: Boolean): TValue; inline;
     class operator := (AValue: IUnknown): TValue; inline;
     class operator := (AValue: TVarRec): TValue; inline;
@@ -2386,7 +2387,6 @@ begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
 
-
 class operator TValue.:=(const AValue: WideString): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
@@ -2468,6 +2468,11 @@ begin
 end;
 
 class operator TValue.:=(AValue: TClass): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Pointer): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;

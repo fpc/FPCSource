@@ -17,6 +17,7 @@ Type
     procedure TestReferenceRawDataEmpty;
     procedure TestIsManaged;
     procedure TestCasts; 
+    procedure TestAssignPointer;
   end;
 
   TTestValueSimple = Class(TTestCase)
@@ -1959,7 +1960,14 @@ begin
               .{$ifdef fpc}specialize{$endif} Cast<AnsiString>
               .{$ifdef fpc}specialize{$endif} AsType<AnsiString>, 'TValue.From<shortring>.Cast<AnsiString> failed');
 end;
-  
+
+procedure TTestValueGeneral.TestAssignPointer;
+var
+  V : TValue;
+begin
+  V:=Pointer(Nil);
+  AssertSame('Correct type info', TypeInfo(Pointer),V.TypeInfo);
+end;
 
 procedure TTestValueGeneral.TestReferenceRawData;
 var
