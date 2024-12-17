@@ -32,7 +32,7 @@ type
     property TestIProp[i1, i2: Integer]: Integer read Offset;
     constructor Create(a1, a2: Integer); overload;
     constructor Create(rec: TTestAttr2Record); overload;
-    class function StaticFunc(d: Double; p: TPoint; r: TRect): string; static;
+    class function StaticFunc(d: integer; p: TPoint; r: TRect): string; static;
   end;
 
   TTestAttr2Class = class
@@ -88,7 +88,7 @@ begin
   fa2 := rec.fa2;
 end;
 
-class function TTestAttr2Record.StaticFunc(d: Double; p: TPoint; r: TRect): string;
+class function TTestAttr2Record.StaticFunc(d: integer; p: TPoint; r: TRect): string;
 begin
   Result := 'experiment_'+d.ToString+'_'+p.X.ToString+'_'+p.Y.ToString+'_'+r.Left.ToString+'_'+r.Top.ToString+'_'+r.Right.ToString+'_'+r.Bottom.ToString;
 end;
