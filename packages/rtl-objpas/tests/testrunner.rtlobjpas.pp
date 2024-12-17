@@ -36,7 +36,6 @@ uses
   ffi.manager,
 {$endif}
   consoletestrunner,
-  tests.rtti.util,
 {$ifdef testinvoke}
   tests.rtti.invoke,
 {$endif}
@@ -44,18 +43,21 @@ uses
   tests.rtti.impl,
 {$endif}
   tests.rtti,
+  tests.rtti.util,
   tests.rtti.value,
   tests.rtti.types,
+  tests.rtti.attrtypes,
+  tests.rtti.impltypes,
+  tests.rtti.invoketypes,
   utmathvectorbase,
   utcmatrix,
   utcpoint,
   utcvector,
   utcquaternion
 {$IFDEF HAS_MONITOR}
-  ,utcfpmonitor, tests.rtti.attrtypes
+  ,utcfpmonitor
 {$ENDIF}
-
-;
+  ;
 
 
 var

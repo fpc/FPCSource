@@ -4,6 +4,7 @@
     <Version Value="12"/>
     <General>
       <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
@@ -32,6 +33,60 @@
         <Filename Value="tests.rtti.attrtypes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.util.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Tests.Rtti.Util"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.invoke.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.impl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Tests.Rtti.Impl"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.invoketypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.impltypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tests.rtti.value.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfpmonitor.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcmatrix.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcmatrix3d.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcpoint.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcquaternion.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcvector.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utmathvectorbase.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -41,7 +96,6 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src/inc"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -50,9 +104,10 @@
       </Debugging>
     </Linking>
     <Other>
-      <ConfigFile>
-        <WriteConfigFilePath Value=""/>
-      </ConfigFile>
+      <OtherDefines Count="2">
+        <Define0 Value="testinvoke"/>
+        <Define1 Value="useffi"/>
+      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>
