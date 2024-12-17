@@ -678,11 +678,14 @@ type
     function ToString : string; override;
   end;
 
+  { TRttiMethodType }
+
   TRttiMethodType = class(TRttiInvokableType)
   private
     FCallConv: TCallConv;
     FReturnType: TRttiType;
     FParams, FParamsAll: TRttiParameterArray;
+    function GetMethodKind: TMethodKind;
   protected
     function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
     function GetCallingConvention: TCallConv; override;
@@ -690,6 +693,7 @@ type
     function GetFlags: TFunctionCallFlags; override;
   public
     function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
+    property MethodKind: TMethodKind read GetMethodKind;
     function ToString: string; override;
   end;
 
@@ -5869,6 +5873,11 @@ end;
 
 
 { TRttiMethodType }
+
+function TRttiMethodType.GetMethodKind: TMethodKind;
+begin
+  Result := FTypeData^.MethodKind;
+end;
 
 function TRttiMethodType.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
 type
