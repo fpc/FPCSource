@@ -4507,9 +4507,22 @@ end;
 
 function TValue.ToString: String;
 
+  function GetArrayElType(ATypeInfo: PTypeInfo): PTypeInfo;
+  begin
+    case ATypeInfo^.Kind of
+      tkArray:
+        Result := GetTypeData(ATypeInfo)^.ArrayData.ElType;
+      tkDynArray:
+        Result := GetTypeData(ATypeInfo)^.ElType2;
+      else
+        Result := nil;
+    end;
+  end;
+
 var
   Obj : TObject;
-
+  Cls: TClass;
+  ArrayKind: string;
 
 begin
   if IsEmpty then
@@ -4531,6 +4544,7 @@ begin
     tkInterface : result := '(interface @ ' + HexStr(PPointer(FData.FValueData.GetReferenceToRawData)^) + ')';
     tkInterfaceRaw : result := '(raw interface @ ' + HexStr(FData.FAsPointer) + ')';
     tkEnumeration: Result := GetEnumName(TypeInfo, Integer(AsOrdinal));
+    tkSet: Result := SetToString(TypeInfo, GetReferenceToRawData, True);
     tkChar: Result := AnsiChar(FData.FAsUByte);
     tkWChar: Result := UTF8Encode(WideChar(FData.FAsUWord));
     tkClass : 
@@ -4541,11 +4555,30 @@ begin
       else
         Result:='<Nil>';  
       end;
+    tkRecord: Result := '(' + TypeInfo^.Name + ' record)';
+    tkClassRef:
+      begin
+      Cls:=AsClass;
+      if Assigned(Cls) then
+        Result := Format('(class ''%s'' @ %p)', [Cls.ClassName, Pointer(Cls)])
+      else
+        Result:='<empty class ref>';
+      end;
+    tkArray,
+    tkDynArray:
+      begin
+      if Kind = tkDynArray then
+        ArrayKind := 'dynamic '
+      else
+        ArrayKind := '';
+      Result:=Format('(%sarray [0..%d] of %s)', [ArrayKind, GetArrayLength - 1, GetArrayElType(TypeInfo)^.Name]);
+      end;
     {$IF SIZEOF(POINTER) = SIZEOF(CODEPOINTER)}
     { if CodePointer is not the same as Pointer then it currently can't be
       passed onto a array of const }
     tkMethod: Result := Format('(method code=%p, data=%p)', [FData.FAsMethod.Code, FData.FAsMethod.Data]);
     {$ENDIF}
+    tkVariant: Result := '(variant)';
   else
     result := '<unknown kind: '+GetEnumName(System.TypeInfo(TTypeKind),Ord(Kind))+'>';
   end;
