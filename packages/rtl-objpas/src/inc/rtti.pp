@@ -359,6 +359,7 @@ type
     FProperties : TRttiPropertyArray;
     FIndexedProperties : TRttiIndexedPropertyArray;
     function GetAsInstance: TRttiInstanceType;
+    function GetAsRecord: TRttiRecordType;
   protected
     FTypeData: PTypeData;
     function GetName: string; override;
@@ -397,6 +398,7 @@ type
     property BaseType: TRttiType read GetBaseType;
     property Handle: PTypeInfo read FTypeInfo;
     property AsInstance: TRttiInstanceType read GetAsInstance;
+    property AsRecord: TRttiRecordType read GetAsRecord;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
   end;
@@ -7159,6 +7161,12 @@ begin
   // This is a ridicoulous design, but Delphi-compatible...
   result := TRttiInstanceType(self);
 end;
+
+function TRttiType.GetAsRecord: TRttiRecordType;
+begin
+  result := TRttiRecordType(self);
+end;
+
 
 function TRttiType.GetBaseType: TRttiType;
 begin
