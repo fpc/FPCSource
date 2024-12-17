@@ -208,6 +208,7 @@ type
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
+    class function From(aTypeInfo: PTypeInfo; ABuffer: Pointer): TValue; static;
     class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
     class function FromVarRec(const aValue: TVarRec): TValue; static;
@@ -3673,6 +3674,12 @@ begin
   Result.FData.FArrLength := ALength;
   Make(Nil, Result.TypeData^.ArrayData.ElType, el);
   Result.FData.FElSize := el.DataSize;
+end;
+
+class function TValue.From(aTypeInfo: PTypeInfo; ABuffer: Pointer): TValue;
+
+begin
+  TValue.Make(ABuffer, PTypeInfo(aTypeInfo), Result);
 end;
 
 class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
