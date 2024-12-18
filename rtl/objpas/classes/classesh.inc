@@ -1048,8 +1048,10 @@ type
     procedure SaveToStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
     procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     function Shift : String;
-    Procedure Slice(fromIndex: integer; aList : TStrings);
-    Function Slice(fromIndex: integer) : TStrings;
+    Procedure Slice(fromIndex: integer; aList : TStrings); overload;
+    Procedure Slice(fromIndex, toIndex: integer; aList : TStrings); overload;
+    Function Slice(fromIndex: integer) : TStrings; overload;
+    Function Slice(fromIndex, toIndex: integer) : TStrings; overload;
     procedure SetText(TheText: PChar); virtual;
     property AlwaysQuote: Boolean read FAlwaysQuote write FAlwaysQuote;
     property Capacity: Integer read GetCapacity write SetCapacity;

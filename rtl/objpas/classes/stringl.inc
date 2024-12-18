@@ -430,26 +430,40 @@ begin
 end;
 
 
-Procedure TStrings.Slice(fromIndex: integer; aList : TStrings);
+Procedure TStrings.Slice(fromIndex, toIndex: integer; aList : TStrings);
 
 var
   i: integer;
 
 begin
-  for i:=fromIndex to Count-1 do
+  for i:=fromIndex to toIndex do
     aList.Add(Self[i]);
 end;
 
-Function TStrings.Slice(fromIndex: integer) :  TStrings;
+
+Procedure TStrings.Slice(fromIndex: integer; aList : TStrings);
+
+begin
+  Slice(fromIndex,Count-1,aList);
+end;
+
+Function TStrings.Slice(fromIndex, toIndex: integer) :  TStrings;
 
 begin
   Result:=TStringsClass(Self.ClassType).Create;
   try
-    Slice(FromIndex,Result);
+    Slice(FromIndex, toIndex,Result);
   except
     FreeAndNil(Result);
     Raise;
   end;
+end;
+
+
+Function TStrings.Slice(fromIndex: integer) :  TStrings;
+
+begin
+  Result := Slice(fromIndex,Count-1);
 end;
 
 function TStrings.GetName(Index: Integer): string;
