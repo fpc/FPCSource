@@ -58,6 +58,7 @@ type
   { TTestInvoke }
 
   TTestInvoke = class(TTestInvokeBase)
+  private
   published
     procedure TestShortString;
     procedure TestAnsiString;
@@ -71,6 +72,10 @@ type
 
     procedure TestTObject;
     procedure TestCasts;
+    procedure TestClassConstructor;
+    procedure TestInheritedClassConstructor;
+    procedure TestClassProperty;
+    procedure TestIndexedProperty;
   end;
 
   { TTestInvokeIntfMethods }
@@ -1569,6 +1574,62 @@ begin
   finally
     Context.Free;
   end;
+end;
+
+procedure TTestInvoke.TestClassConstructor;
+
+var
+  context: TRttiContext;
+  aclassType: TRttiType;
+  testClass: TTestAttr2Class;
+
+begin
+  context := TRttiContext.Create(False);
+  aclassType := context.GetType(TTestAttr2Class);
+  testClass := aclassType.GetMethod('Create').Invoke(TValue.Empty, [459, 982]).AsObject as TTestAttr2Class;
+  AssertTrue('Created from nothing TTestClass is incorrect', (testClass.fa = 459) and (testClass.fa2 = 982));
+end;
+
+procedure TTestInvoke.TestInheritedClassConstructor;
+
+var
+  context: TRttiContext;
+  aclassType: TRttiType;
+  testClass: TTestAttr2Class;
+
+begin
+  context := TRttiContext.Create(False);
+  aclassType := context.GetType(TTestAttr2Class);
+  testClass := aclassType.GetMethod('Create').Invoke(TInherited2Class, [116, 904]).AsObject as TTestAttr2Class;
+  AssertTrue('TInheritedClass created via an ancestor constructor is incorrect',(testClass is TInherited2Class) and (testClass.fa = 116) and (testClass.fa2 = 904));
+end;
+
+procedure TTestInvoke.TestClassProperty;
+
+var
+  context: TRttiContext;
+  aclassType: TRttiType;
+
+begin
+  context := TRttiContext.Create(False);
+  aclassType := context.GetType(TTestAttr2Class);
+  aclassType.GetProperty('StaticProp').SetValue(nil, 4539);
+  AssertTrue('Class property is set or got incorrectly via methods',aclassType.GetProperty('StaticProp').GetValue(nil).AsInteger = 4539);
+end;
+
+procedure TTestInvoke.TestIndexedProperty;
+
+var
+  context: TRttiContext;
+  aclassType: TRttiType;
+  testClass: TTestAttr2Class;
+begin
+  context := TRttiContext.Create(False);
+  aclassType := context.GetType(TTestAttr2Class);
+  testClass:=TTestAttr2Class.Create(784,328);
+  aclassType.GetIndexedProperty('TestIProp').SetValue(testClass, [653, 796], testClass);
+  testClass := TTestAttr2Class(aclassType.GetIndexedProperty('TestIProp').GetValue(testClass, [384, 170]).AsObject);
+  AssertTrue('The getter of an indexed property for a class is incorrectly called', (testClass.fa = 384) and (testClass.fa2 = 170));
 end;
 
 procedure TTestInvoke.TestTObject;
