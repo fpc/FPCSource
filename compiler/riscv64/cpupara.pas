@@ -38,11 +38,10 @@ unit cpupara;
         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
-        function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
 
+        function create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;override;
       private
-        function create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;
         function parseparaloc(p: tparavarsym; const s: string): boolean; override;
         procedure create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
       end;
@@ -395,43 +394,6 @@ implementation
         end;
       end;
 
-function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee;
-  varargspara: tvarargsparalist): longint;
-var
-  cur_stack_offset: aword;
-  parasize, l: longint;
-  curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
-  i: integer;
-  hp: tparavarsym;
-  paraloc: pcgparalocation;
-begin
-  init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
-  firstfloatreg := curfloatreg;
-
-  result := create_paraloc_info_intern(p, side, p.paras, curintreg,
-    curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl, pocall_mwpascal]) then
-    begin
-      { just continue loading the parameters in the registers }
-      if assigned(varargspara) then
-        begin
-          if side=callerside then
-            result := create_paraloc_info_intern(p, side, varargspara, curintreg,
-              curfloatreg, curmmreg, cur_stack_offset, true)
-          else
-            internalerror(2019021918);
-          if curfloatreg <> firstfloatreg then
-            include(varargspara.varargsinfo, va_uses_float_reg);
-        end;
-      { varargs routines have to reserve at least 64 bytes for the RiscV ABI }
-      if (result < 64) then
-        result := 64;
-    end
-  else
-    internalerror(2019021913);
-
-  create_funcretloc_info(p, side);
-end;
 
 function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
 begin

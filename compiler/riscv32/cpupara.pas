@@ -37,11 +37,10 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
 
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
-         private
+
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
-              var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
+              var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;override;
        end;
 
   implementation
@@ -367,38 +366,6 @@ unit cpupara;
          curmmreg:=nextmmreg;
          cur_stack_offset:=stack_offset;
          result:=stack_offset;
-      end;
-
-
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
-      var
-        cur_stack_offset: aword;
-        parasize, l: longint;
-        curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
-        i : integer;
-        hp: tparavarsym;
-        paraloc: pcgparalocation;
-      begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
-        firstfloatreg:=curfloatreg;
-
-        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
-        if (p.proccalloption in cstylearrayofconst) then
-          { just continue loading the parameters in the registers }
-          begin
-            if assigned(varargspara) then
-              begin
-                if side=callerside then
-                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true)
-                else
-                  internalerror(2019021919);
-                if curfloatreg<>firstfloatreg then
-                  include(varargspara.varargsinfo,va_uses_float_reg);
-              end;
-           end
-        else
-          internalerror(2019021912);
-        create_funcretloc_info(p,side);
       end;
 
 begin

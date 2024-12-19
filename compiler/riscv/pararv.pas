@@ -27,7 +27,7 @@ unit pararv;
     uses
       globtype,
       aasmdata,
-      symtype,symdef,
+      symconst,symtype,symdef,
       cgbase,cgutils,
       parabase,paramgr;
 
@@ -41,6 +41,9 @@ unit pararv;
 
         procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);override;
 
+        function create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;virtual;abstract;
+
+        function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint;override;
       protected
         procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       end;
@@ -53,7 +56,7 @@ implementation
       verbose,
       globals,
       cpuinfo,
-      symconst,symsym,
+      symsym,
       defutil,
       cpubase;
 
@@ -202,6 +205,44 @@ implementation
         curintreg := RS_X10;
         curfloatreg := RS_F10;
         curmmreg := RS_NO;
+      end;
+
+
+    function trvparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
+      var
+        cur_stack_offset: aword;
+        parasize, l: longint;
+        curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
+        i : integer;
+        hp: tparavarsym;
+        paraloc: pcgparalocation;
+      begin
+        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        firstfloatreg:=curfloatreg;
+
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,false);
+        if (p.proccalloption in cstylearrayofconst) then
+          { just continue loading the parameters in the registers }
+          begin
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true)
+                else
+                  internalerror(2019021919);
+                if curfloatreg<>firstfloatreg then
+                  include(varargspara.varargsinfo,va_uses_float_reg);
+                { not sure if this applies to RiscV 32 as well ... }
+{$ifdef RISCV64}
+                { varargs routines have to reserve at least 64 bytes for the RiscV ABI }
+                if (result < 64) then
+                  result := 64;
+{$endif RISCV64}
+              end;
+           end
+        else
+          internalerror(2019021912);
+        create_funcretloc_info(p,side);
       end;
 
 end.
