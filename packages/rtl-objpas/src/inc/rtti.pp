@@ -765,10 +765,13 @@ type
     FPropInfo: PPropInfo;  
     FAttributesResolved: boolean;
     FAttributes: TCustomAttributeArray;
+    FParams:  TRttiParameterArray;
     FReadMethod: TRttiMethod;
     FWriteMethod: TRttiMethod;
     procedure GetAccessors;
     //function GetIsDefault: Boolean; virtual;
+    function GetIndexParameters: TRttiParameterArray; virtual;
+    function GetIsClassProperty: Boolean; virtual;
     function GetPropertyType: TRttiType; virtual;
     function GetIsReadable: Boolean; virtual;
     function GetIsWritable: Boolean; virtual;
@@ -776,7 +779,8 @@ type
     function GetWriteMethod: TRttiMethod; virtual;
     function GetReadProc: CodePointer; virtual;
     function GetWriteProc: CodePointer; virtual;
-  protected                      
+    procedure ResolveIndexParams;
+  protected
     function GetName: string; override;
     function GetHandle: Pointer; override;
   public
@@ -788,6 +792,8 @@ type
       const aValue: TValue);
     function ToString: String; override;
     property Handle: Pointer read GetHandle;
+    property IndexParameters: TRttiParameterArray read GetIndexParameters;
+    property IsClassProperty: Boolean read GetIsClassProperty;
     property IsReadable: Boolean read GetIsReadable;
     property IsWritable: Boolean read GetIsWritable;
     property PropertyType: TRttiType read GetPropertyType;
@@ -1405,6 +1411,9 @@ resourcestring
   SErrCannotReadClassProperty = 'Cannot read class property "%s"';
   SErrCannotWriteToIndexedProperty = 'Cannot write to indexed property "%s"';
   SErrCannotReadIndexedProperty = 'Cannot read indexed property "%s"';
+  // SErrIndPropArgInvalidType   = 'Invalid type of argument for parameter %s of indexed property %s';
+  SErrIndPropArgCount         = 'Invalid argument count for indexed property %s; expected %d, but got %d';
+  // SErrInvalidIndPropValue     = 'Invalid indexed property value type for: %s';
 
 var
   // Boolean = UsePublishedOnly
@@ -5764,10 +5773,15 @@ end;
 procedure TRttiIndexedProperty.GetAccessors;
 
 begin
-  if Assigned(FReadMethod) or Assigned(FWriteMethod) or
-     not IsReadable and not IsWritable then
+  if Assigned(FReadMethod)
+     or Assigned(FWriteMethod)
+     or not (IsReadable or IsWritable) then
     Exit;
-  // yet not implemented
+  { not tested on virtual methods }
+  if IsReadable then
+    FReadMethod := Parent.GetMethod(ReadProc);
+  if IsWritable then
+    FWriteMethod := Parent.GetMethod(WriteProc);
 end;
 
 function TRttiIndexedProperty.GetPropertyType: TRttiType;
@@ -5782,6 +5796,61 @@ begin
   end;
 end;
 
+procedure TRttiIndexedProperty.ResolveIndexParams;
+var
+  param: PVmtMethodParam;
+  total, visible: SizeInt;
+  context: TRttiContext;
+  obj: TRttiObject;
+  prtti : TRttiVmtMethodParameter;
+begin
+  total := 0;
+  visible := 0;
+  SetLength(FParams,FPropInfo^.PropParams^.Count);
+  context := TRttiContext.Create(FUsePublishedOnly);
+  try
+    param := @FPropInfo^.PropParams^.Params[0];
+    while total < FPropInfo^.PropParams^.Count do
+    begin
+      obj := context.GetByHandle(param);
+      if Assigned(obj) then
+        prtti := obj as TRttiVmtMethodParameter
+      else
+        begin
+        prtti := TRttiVmtMethodParameter.Create(param);
+        context.AddObject(prtti);
+        end;
+      FParams[total]:=prtti;
+      if not (pfHidden in param^.Flags) then
+      begin
+        FParams[visible] := prtti;
+        Inc(visible);
+      end;
+      param := param^.Next;
+      Inc(total);
+    end;
+    if visible <> total then
+      SetLength(FParams, visible);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiIndexedProperty.GetIndexParameters: TRttiParameterArray;
+begin
+  if FPropInfo^.PropParams^.Count = 0 then
+    Exit(Nil);
+  if Length(FParams) > 0 then
+    Exit(FParams);
+  ResolveIndexParams;
+  Result := FParams;
+end;
+
+function TRttiIndexedProperty.GetIsClassProperty: boolean;
+begin
+  result := FPropInfo^.IsStatic;
+end;
+
 function TRttiIndexedProperty.GetIsReadable: boolean;
 begin
   Result := Assigned(FPropInfo^.GetProc);
@@ -5794,26 +5863,42 @@ end;
 
 function TRttiIndexedProperty.GetReadMethod: TRttiMethod;
 begin
-  //Result := FPropInfo^.GetProc;
   Result := nil;
-  raise ENotImplemented.Create(SErrNotImplementedRtti);
+  if IsReadable then
+  begin
+    if FReadMethod = nil then
+      GetAccessors;
+    Result := FReadMethod;
+  end;
 end;
 
 function TRttiIndexedProperty.GetWriteMethod: TRttiMethod;
 begin
-  //Result := FPropInfo^.SetProc;
   Result := nil;
-  raise ENotImplemented.Create(SErrNotImplementedRtti);
+  if IsWritable then
+  begin
+    if FWriteMethod = nil then
+      GetAccessors;
+    Result := FWriteMethod;
+  end;
 end;
 
 function TRttiIndexedProperty.GetReadProc: CodePointer;
 begin
-  Result := FPropInfo^.GetProc;
+  if (FPropInfo^.PropProcs and 3)=ptStatic then
+    Result := FPropInfo^.GetProc
+  else
+    { ptVirtual }
+    Result := PCodePointer(Pointer(Parent.AsInstance.MetaClassType)+PtrUInt(FPropInfo^.GetProc))^;
 end;
 
 function TRttiIndexedProperty.GetWriteProc: CodePointer;
 begin
-  Result := FPropInfo^.SetProc;
+  if (FPropInfo^.PropProcs and 3)=ptStatic then
+    Result := FPropInfo^.SetProc
+  else
+    { ptVirtual }
+    Result := PCodePointer(Pointer(Parent.AsInstance.MetaClassType)+PtrUInt(FPropInfo^.SetProc))^;
 end;
 
 function TRttiIndexedProperty.GetName: string;
@@ -5831,6 +5916,7 @@ begin
   inherited Create(AParent);
   FPropInfo := APropInfo;
 end;
+
 destructor TRttiIndexedProperty.Destroy;
 var
   attr: TCustomAttribute;
@@ -5862,36 +5948,67 @@ end;
 function TRttiIndexedProperty.GetValue(aInstance: Pointer;
   const aArgs: array of TValue): TValue;
 var
-  getter: TRttiMethod;
+  argList: TValueArray;
+  I, J: Integer;
+  params: TRttiParameterArray;
 begin
-  getter := ReadMethod;
-  if getter = nil then
+  if not IsReadable then
     raise EPropertyError.CreateFmt(SErrCannotReadIndexedProperty, [Name]);
-  if getter.IsStatic or getter.IsClassMethod then
-    Result := getter.Invoke(TClass(aInstance), aArgs)
+  params := GetIndexParameters;
+  if Length(params) <> Length(aArgs) then
+    raise EInvocationError.CreateFmt(SErrIndPropArgCount, [Name, Length(params), Length(aArgs)]);
+  if FPropInfo^.IsStatic then
+    J := 0
   else
-    Result := getter.Invoke(TObject(aInstance), aArgs);
+    J := 1;
+  argList := [];
+  SetLength(argList, J + Length(aArgs));
+  if not FPropInfo^.IsStatic then
+    if Parent is TRttiInstanceType then
+      argList[0] := TObject(aInstance)
+    else
+      argList[0] := aInstance;
+  for I := 0 to Length(aArgs)-1 do
+    begin
+    argList[J] := aArgs[I].Cast(TypeInfoFromRtti(params[I].ParamType));
+    Inc(J);
+    end;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(ReadProc, argList, ccReg, FPropInfo^.PropType, FPropInfo^.IsStatic, False);
 end;
 
 procedure TRttiIndexedProperty.SetValue(aInstance: Pointer;
   const aArgs: array of TValue; const aValue: TValue);
 var
-  setter: TRttiMethod;
-  argsV: TValueArray;
-  i: Integer;
+  argList: TValueArray;
+  I, J: Integer;
+  params: TRttiParameterArray;
 begin
-  argsV:=[];
-  setter := WriteMethod;
-  if setter = nil then
+  if not IsWritable then
     raise EPropertyError.CreateFmt(SErrCannotWriteToIndexedProperty, [Name]);
-  SetLength(argsV, Length(aArgs) + 1);
-  for i := 0 to High(aArgs) do
-    argsV[i] := aArgs[i];
-  argsV[Length(aArgs)] := aValue;
-  if setter.IsStatic or setter.IsClassMethod then
-    setter.Invoke(TClass(aInstance), argsV)
+  params := GetIndexParameters;
+  if Length(params) <> Length(aArgs) then
+    raise EInvocationError.CreateFmt(SErrIndPropArgCount, [Name, Length(params), Length(aArgs)]);
+  if FPropInfo^.IsStatic then
+    J := 0
   else
-    setter.Invoke(TObject(aInstance), argsV);
+    J := 1;
+
+  argList := [];
+  SetLength(argList, J + Length(aArgs) + 1);
+
+  if not FPropInfo^.IsStatic then
+    if Parent is TRttiInstanceType then
+      argList[0] := TObject(aInstance)
+    else
+      argList[0] := aInstance;
+
+  for I := 0 to Length(aArgs)-1 do
+  begin
+    argList[J] := aArgs[I].Cast(TypeInfoFromRtti(params[I].ParamType));
+    Inc(J);
+  end;
+  argList[J] := aValue.Cast(FPropInfo^.PropType);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(WriteProc, argList, ccReg, FPropInfo^.PropType, FPropInfo^.IsStatic, False);
 end;
 
 function TRttiIndexedProperty.ToString: string;
