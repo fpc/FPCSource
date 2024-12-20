@@ -8,7 +8,7 @@ var
   f1,f2 : text;
   err : word;
   mystatx1,mystatx2 : tstatx;
-  times : tkernel_timespecs;
+  times : TTimespecArr;
   st,major,minor : string;
   i,p,e : longint;
   major_release, minor_release : longint;
