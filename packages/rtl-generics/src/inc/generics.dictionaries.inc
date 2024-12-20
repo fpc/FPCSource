@@ -607,9 +607,12 @@ begin
 end;
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetMutableValue(const AKey: TKey; out APValue: PValue): Boolean;
+var
+  LPValue: PValue;
 begin
-  APValue := GetMutableValue(AKey);
-  Result := APValue <>Nil;
+  LPValue := GetMutableValue(AKey);
+  APValue := LPValue;
+  Result := LPValue <> Nil;
 end;
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
@@ -792,12 +795,13 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
     LItem := _TItem(AItems[Result]);
@@ -807,13 +811,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -886,12 +890,13 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
     LItem := _TItem(AItems[Result]);
@@ -900,13 +905,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -925,12 +930,13 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := AHash and LLengthMask;
+  Result := LHash and LLengthMask;
 
   repeat
     LItem := _TItem(AItems[Result]);
@@ -940,13 +946,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
 
   until false;
 end;
@@ -976,14 +982,15 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if Length(AItems) = 0 then
     Exit(-1);
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, LHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position
@@ -991,7 +998,7 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
   end;
@@ -1010,14 +1017,15 @@ begin
   LHash := FEqualityComparer.GetHashCode(AKey);
 
   i := 0;
-  AHash := LHash or UInt32.GetSignMask;
+  LHash := LHash or UInt32.GetSignMask;
+  AHash := LHash;
 
   if Length(AItems) = 0 then
     Exit(-1);
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, LHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position or tombstone
@@ -1025,7 +1033,7 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = AHash then
+    if LItem.Hash = LHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
   end;
