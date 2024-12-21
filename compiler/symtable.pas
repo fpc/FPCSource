@@ -823,7 +823,7 @@ implementation
         { stop when no new defs or syms have been registered while processing
           the currently registered ones (defs/syms get added to the module's
           deflist/symlist when they are registered) }
-        until not changed and 
+        until not changed and
           (defidmax=current_module.deflist.count) and
           (symidmax=current_module.symlist.count);
       end;
@@ -1612,11 +1612,11 @@ implementation
         result:=usefieldalignment=bit_alignment;
       end;
 
+
     function tabstractrecordsymtable.has_double_field(out def1,def2:tdef; out offset:integer): integer;
       var
         i,cnt: longint;
         currentsymlist: TFPHashObjectList;
-        currentdef: tdef;
         sym: tfieldvarsym;
       begin
         has_double_field := 0;
@@ -1629,7 +1629,6 @@ implementation
           exit;
         if currentsymlist.Count <> 2 then
           exit;
-        currentdef := nil;
         if is_normal_fieldvarsym(tsym(currentsymlist[0])) then
           begin
             sym:=tfieldvarsym(currentsymlist[0]);
@@ -1654,6 +1653,7 @@ implementation
         has_double_field := cnt;
       end;
 
+
     function tabstractrecordsymtable.has_single_field(out def:tdef): boolean;
       var
         i: longint;
@@ -1672,55 +1672,57 @@ implementation
         { a record/object can contain other things than fields }
         currentsymlist:=symlist;
         { recurse in arrays and records }
-        repeat
-          sym:=nil;
-          { record has one field? }
-          for i:=0 to currentsymlist.Count-1 do
-            begin
-              if is_normal_fieldvarsym(tsym(currentsymlist[i])) then
-                begin
-                  if result then
-                    begin
-                      result:=false;
-                      exit;
-                    end;
-                  result:=true;
-                  sym:=tfieldvarsym(currentsymlist[i]);
-                end;
-            end;
-          if assigned(sym) then
-            begin
-              { if the field is an array, does it contain one element? }
-              currentdef:=sym.vardef;
-              while (currentdef.typ=arraydef) and
-                    not is_special_array(currentdef) do
-                begin
-                  if tarraydef(currentdef).elecount<>1 then
-                    begin
-                      result:=false;
-                      exit;
-                    end;
-                  currentdef:=tarraydef(currentdef).elementdef;
-                end;
-              { if the array element is again a record, continue descending }
-              if currentdef.typ=recorddef then
-                begin
-                  { the record might be empty, so reset the result until we've
-                    really found something }
-                  result:=false;
-                  currentsymlist:=trecorddef(currentdef).symtable.SymList
-                end
-              else
-                begin
-                  { otherwise we found the type of the single element }
-                  def:=currentdef;
-                  exit;
-                end;
-            end
-          else
-            exit
-        until false;
+        while true do
+          begin
+            sym:=nil;
+            { record has one field? }
+            for i:=0 to currentsymlist.Count-1 do
+              begin
+                if is_normal_fieldvarsym(tsym(currentsymlist[i])) then
+                  begin
+                    if result then
+                      begin
+                        result:=false;
+                        exit;
+                      end;
+                    result:=true;
+                    sym:=tfieldvarsym(currentsymlist[i]);
+                  end;
+              end;
+            if assigned(sym) then
+              begin
+                { if the field is an array, does it contain one element? }
+                currentdef:=sym.vardef;
+                while (currentdef.typ=arraydef) and
+                      not is_special_array(currentdef) do
+                  begin
+                    if tarraydef(currentdef).elecount<>1 then
+                      begin
+                        result:=false;
+                        exit;
+                      end;
+                    currentdef:=tarraydef(currentdef).elementdef;
+                  end;
+                { if the array element is again a record, continue descending }
+                if currentdef.typ=recorddef then
+                  begin
+                    { the record might be empty, so reset the result until we've
+                      really found something }
+                    result:=false;
+                    currentsymlist:=trecorddef(currentdef).symtable.SymList
+                  end
+                else
+                  begin
+                    { otherwise we found the type of the single element }
+                    def:=currentdef;
+                    exit;
+                  end;
+              end
+            else
+              exit
+          end;
       end;
+
 
     procedure tabstractrecordsymtable.do_get_managementoperator_offset_list(data:tobject;arg:pointer);
       var
