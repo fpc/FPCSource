@@ -38,12 +38,8 @@ unit cpupara;
         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
-        function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
-
-        function create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;override;
       private
         function parseparaloc(p: tparavarsym; const s: string): boolean; override;
-        procedure create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
       end;
 
 implementation
@@ -53,7 +49,6 @@ implementation
       globals, cpuinfo,
       defutil,symtable,symcpu,
       procinfo, cpupi;
-
 
     function tcpuparamanager.push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
       begin
@@ -70,7 +65,7 @@ implementation
             result := true;
           procvardef,
           recorddef:
-            result := (def.size > 16);
+            result := not(def.size in [0..sizeof(aint)*2]) or (varspez = vs_const);
           arraydef:
             result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
               is_open_array(def) or
@@ -89,8 +84,6 @@ implementation
 
 
     function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
-      var
-        tmpdef: tdef;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
@@ -99,26 +92,6 @@ implementation
         result:=push_addr_param(vs_value,def,pd.proccalloption);
       end;
 
-
-    function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
-      var
-        paraloc: pcgparalocation;
-        retcgsize: tcgsize;
-        nextfloatreg, nextintreg, nextmmreg: tsuperregister;
-        stack_offset: aword;
-      begin
-        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
-          exit;
-
-         { in this case, it must be returned in registers as if it were passed
-           as the first parameter }
-         init_values(nextintreg,nextfloatreg,nextmmreg,stack_offset);
-         create_paraloc_for_def(result,vs_value,result.def,nextfloatreg,nextintreg,stack_offset,false,false,side,p);
-         { sanity check (LOC_VOID for empty records) }
-         if not assigned(result.location) or
-            not(result.location^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_VOID]) then
-           internalerror(2014113001);
-      end;
 
     function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
       var
@@ -132,274 +105,12 @@ implementation
         create_funcretloc_info(p, side);
       end;
 
-    function tcpuparamanager.create_paraloc_info_intern(p: tabstractprocdef; side: tcallercallee; paras: tparalist; var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; isVararg : boolean): longint;
-      var
-        nextintreg, nextfloatreg, nextmmreg : tsuperregister;
-        i: integer;
-        hp: tparavarsym;
-        paraloc: pcgparalocation;
-        delphi_nestedfp: boolean;
 
+    function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
       begin
-{$IFDEF extdebug}
-        if po_explicitparaloc in p.procoptions then
-          internalerror(200411141);
-{$ENDIF extdebug}
-
-        result := 0;
-        nextintreg := curintreg;
-        nextfloatreg := curfloatreg;
-        nextmmreg := curmmreg;
-
-        for i := 0 to paras.count - 1 do begin
-          hp := tparavarsym(paras[i]);
-
-          if (vo_has_explicit_paraloc in hp.varoptions) then begin
-            internalerror(200412153);
-          end;
-
-          { currently only support C-style array of const }
-          if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) and
-            is_array_of_const(hp.vardef) then begin
-            paraloc := hp.paraloc[side].add_location;
-            { hack: the paraloc must be valid, but is not actually used }
-            paraloc^.loc := LOC_REGISTER;
-            paraloc^.register := NR_X0;
-            paraloc^.size := OS_ADDR;
-            paraloc^.def := voidpointertype;
-            break;
-          end;
-          delphi_nestedfp:=(vo_is_parentfp in hp.varoptions) and (po_delphi_nested_cc in p.procoptions);
-          create_paraloc_for_def(hp.paraloc[side], hp.varspez, hp.vardef,
-            nextfloatreg, nextintreg, cur_stack_offset, isVararg, delphi_nestedfp, side, p);
-        end;
-
-        curintreg := nextintreg;
-        curfloatreg := nextfloatreg;
-        curmmreg := nextmmreg;
-        result := cur_stack_offset;
+        internalerror(200404182);
+        result := true;
       end;
-
-    procedure tcpuparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
-      var
-        paracgsize: tcgsize;
-        loc: tcgloc;
-        paraloc: pcgparalocation;
-        { def to use for all paralocs if <> nil }
-        alllocdef,
-        { def to use for the current paraloc }
-        locdef,
-        tmpdef: tdef;
-        paralen: aint;
-        firstparaloc,
-        paraaligned: boolean;
-      begin
-        alllocdef:=nil;
-        locdef:=nil;
-        para.reset;
-        { have we ensured that the next parameter location will be aligned to the
-          next 8 byte boundary? }
-        paraaligned:=false;
-        if push_addr_param(varspez, paradef, p.proccalloption) then
-          begin
-            paradef := cpointerdef.getreusable_no_free(paradef);
-            loc := LOC_REGISTER;
-            paracgsize := OS_ADDR;
-            paralen := tcgsize2size[OS_ADDR];
-          end
-        else
-          begin
-            if not is_special_array(paradef) then
-              paralen := paradef.size
-            else
-              paralen := tcgsize2size[def_cgsize(paradef)];
-
-            if (paradef.typ=recorddef) and not(is_implicit_pointer_object_type(paradef)) and
-               tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(tmpdef) and
-               (tmpdef.typ=floatdef) then
-              begin
-                paradef:=tmpdef;
-                loc:=getparaloc(paradef);
-                paracgsize:=def_cgsize(paradef)
-              end
-            else if (((paradef.typ=arraydef) and not
-                 is_special_array(paradef)) or
-                (paradef.typ=recorddef)) then
-              begin
-                { general fallback rule: pass aggregate types in integer registers
-                  without special adjustments (incl. Darwin h) }
-                loc:=LOC_REGISTER;
-                paracgsize:=int_cgsize(paralen);
-              end
-            else
-              begin
-                loc:=getparaloc(paradef);
-                paracgsize:=def_cgsize(paradef);
-                { for things like formaldef }
-                if (paracgsize=OS_NO) then
-                  begin
-                    paracgsize:=OS_ADDR;
-                    paralen:=tcgsize2size[OS_ADDR];
-                  end;
-              end
-          end;
-
-        { patch FPU values into integer registers if we are processing varargs }
-        if (isVararg) and (paradef.typ = floatdef) then
-          begin
-            loc := LOC_REGISTER;
-            if paracgsize = OS_F64 then
-              paracgsize := OS_64
-            else
-              paracgsize := OS_32;
-          end;
-
-        para.alignment := std_param_align;
-        para.size := paracgsize;
-        para.intsize := paralen;
-        para.def := paradef;
-        if (paralen = 0) then
-          if (paradef.typ = recorddef) then
-            begin
-              paraloc := para.add_location;
-              paraloc^.loc := LOC_VOID;
-            end
-          else
-            internalerror(2024121401);
-        if not assigned(alllocdef) then
-          locdef:=paradef
-        else
-          begin
-            locdef:=alllocdef;
-            paracgsize:=def_cgsize(locdef);
-          end;
-        firstparaloc:=true;
-
-        // Parameters passed in 2 registers are passed in a register starting with an even number.
-        if isVararg and
-           (paralen > 8) and
-           (loc = LOC_REGISTER) and
-           (nextintreg <= RS_X17) and
-           odd(nextintreg) then
-          inc(nextintreg);
-
-        { can become < 0 for e.g. 3-byte records }
-        while (paralen > 0) do begin
-          paraloc := para.add_location;
-          { In case of po_delphi_nested_cc, the parent frame pointer
-            is always passed on the stack. }
-          if (loc = LOC_REGISTER) and
-             (nextintreg <= RS_X17) and
-             not forceintmem then
-            begin
-              paraloc^.loc := loc;
-
-              { make sure we don't lose whether or not the type is signed }
-              if (paracgsize <> OS_NO) and
-                 (paradef.typ <> orddef) and
-                 not assigned(alllocdef) then
-                begin
-                  paracgsize := int_cgsize(paralen);
-                  locdef:=get_paraloc_def(paradef, paralen, firstparaloc);
-                end;
-
-               if (paracgsize in [OS_NO, OS_128, OS_S128]) then
-                begin
-                  if (paralen>4) then
-                    begin
-                      paraloc^.size := OS_INT;
-                      paraloc^.def := osuinttype;
-                    end
-                  else
-                    begin
-                      { for 3-byte records aligned in the lower bits of register }
-                      paraloc^.size := OS_32;
-                      paraloc^.def := u32inttype;
-                    end;
-                end
-              else
-                begin
-                  paraloc^.size := paracgsize;
-                  paraloc^.def := locdef;
-                end;
-
-              paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
-              inc(nextintreg);
-              dec(paralen, tcgsize2size[paraloc^.size]);
-            end
-          else if (loc = LOC_FPUREGISTER) and
-            (nextfloatreg <= RS_F17) then
-            begin
-              paraloc^.loc := loc;
-              paraloc^.size := paracgsize;
-              paraloc^.def := locdef;
-              paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
-              { the RiscV ABI says that the GPR index is increased for every parameter, no matter
-                which type it is stored in
-
-                 not really, https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#hardware-floating-point-calling-convention says
-                 otherwise, gcc doesn't do it either }
-              inc(nextfloatreg);
-              dec(paralen, tcgsize2size[paraloc^.size]);
-            end
-          else if (loc = LOC_MMREGISTER) then
-            { no mm registers }
-            internalerror(2018072601)
-          else
-            begin
-              { either LOC_REFERENCE, or one of the above which must be passed on the
-              stack because of insufficient registers }
-              paraloc^.loc := LOC_REFERENCE;
-              case loc of
-                LOC_FPUREGISTER:
-                  begin
-                    paraloc^.size:=int_float_cgsize(paralen);
-                    case paraloc^.size of
-                      OS_F32: paraloc^.def:=s32floattype;
-                      OS_F64: paraloc^.def:=s64floattype;
-                      else
-                        internalerror(2013060122);
-                    end;
-                  end;
-                LOC_REGISTER,
-                LOC_REFERENCE:
-                  begin
-                    paraloc^.size:=int_cgsize(paralen);
-                    paraloc^.def:=get_paraloc_def(paradef, paralen, firstparaloc);
-                  end;
-                else
-                  internalerror(2006011101);
-              end;
-              if (side = callerside) then
-                paraloc^.reference.index := NR_STACK_POINTER_REG
-              else
-                begin
-                  { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
-                  paraloc^.reference.index := NR_FRAME_POINTER_REG;
-                  { create_paraloc_info_intern might be also called when being outside of
-                    code generation so current_procinfo might be not set }
-                  if assigned(current_procinfo) then
-                    trv64procinfo(current_procinfo).needs_frame_pointer := true;
-                end;
-              paraloc^.reference.offset := stack_offset;
-
-              { align temp contents to next register size }
-              if not paraaligned then
-                inc(stack_offset, align(paralen, 8))
-              else
-                inc(stack_offset, paralen);
-              paralen := 0;
-            end;
-          firstparaloc:=false;
-        end;
-      end;
-
-
-function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
-begin
-  internalerror(200404182);
-  result := true;
-end;
 
 
 begin
