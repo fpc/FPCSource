@@ -6549,7 +6549,6 @@ begin
       if TP^.PropParams <> nil then
       begin
         Dec(PropCount);
-        SetLength(FDeclaredProperties, PropCount);
         continue;
       end;
       Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
@@ -6564,6 +6563,7 @@ begin
       Inc(J);
     end;
   finally
+    SetLength(FDeclaredProperties, PropCount);
   end;
 end;
 
