@@ -5621,7 +5621,7 @@ end;
 
 function TRttiMethod.GetHasExtendedInfo: Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRttiMethod.GetFlags: TFunctionCallFlags;
