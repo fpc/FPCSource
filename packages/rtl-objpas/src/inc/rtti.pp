@@ -2860,8 +2860,6 @@ begin
     Result:=FData.FValueData.GetDataSize;
     exit;
   end;
-  if IsEmpty then 
-    exit;
   case Kind of
     tkEnumeration,
     tkBool,

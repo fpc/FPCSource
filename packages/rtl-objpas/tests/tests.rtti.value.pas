@@ -1787,7 +1787,7 @@ begin
   s:=[low(TTestEnum),high(TTestEnum)];
   TValue.Make(@s, TypeInfo(TTestSet), value);
   CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');
-  p := Nil;
+  p := Self;
   TValue.Make(@p, TypeInfo(Pointer), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of Pointer differs');
 end;
