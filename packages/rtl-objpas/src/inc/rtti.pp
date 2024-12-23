@@ -7654,7 +7654,7 @@ begin
     parentfields := parent.GetFields;
   end;
 
-  fFields := Concat(parentfields, selffields);
+  fFields := Concat(selffields, parentfields);
 
   Result := fFields;
 end;
@@ -7890,7 +7890,7 @@ begin
     parentmethods := parent.GetMethods;
   end;
 
-  fMethods := Concat(parentmethods, selfmethods);
+  fMethods := Concat(selfmethods, parentmethods);
 
   Result := fMethods;
 end;

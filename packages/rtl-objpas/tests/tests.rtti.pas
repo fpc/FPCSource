@@ -1745,7 +1745,7 @@ begin
   AssertEquals('Correct class type',TRttiInstanceType,Obj2.ClassType);
   A:=RttiData.GetFields;
   AssertEquals('Class field Count',11,Length(A));
-  For I:=0 to 9 do
+  For I:=1 to 10 do
     AssertSame('Field parent'+IntToStr(i)+' is parent class', Obj2,A[I].Parent);
   A:=RttiData.GetDeclaredFields;
   AssertEquals('Class declared field Count',1,Length(A));
@@ -1822,7 +1822,7 @@ begin
   A:=RttiData.GetMethods;
   aCount:=Length(A);
   AssertEquals('Full Count',13,aCount);
-  CheckMethod('Full',12, A[12],'PublicAdditionalMethod',mvPublic);
+  CheckMethod('Full',0, A[0],'PublicAdditionalMethod',mvPublic);
   A:=RttiData.GetDeclaredMethods;
   aCount:=Length(A);
   AssertEquals('Full declared Count',1,aCount);
@@ -1859,7 +1859,7 @@ begin
   A:=RttiData.GetMethods;
   aCount:=Length(A);
   AssertEquals('Full Count',13,aCount);
-  For I:=0 to 11 do
+  For I:=1 to 12 do
     AssertSame('Parent is RTTI of parent class',Obj2,A[I].Parent);
   A:=RttiData.GetDeclaredMethods;
   aCount:=Length(A);
