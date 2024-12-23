@@ -2232,10 +2232,10 @@ end;
 
 function TRttiInstanceMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
 begin
-  if  (Length(FParams[aWithHidden]) > 0) then
-    Exit(FParams[aWithHidden]);
   if FHandle^.ParamCount = 0 then
     Exit(Nil);
+  if  (Length(FParams[aWithHidden]) > 0) then
+    Exit(FParams[aWithHidden]);
   ResolveParams;
   Result := FParams[aWithHidden];
 end;
