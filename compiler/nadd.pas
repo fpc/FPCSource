@@ -2825,9 +2825,9 @@ const
             case nodetype of
                equaln,unequaln :
                  begin
-                    if is_voidpointer(right.resultdef) and (left.nodetype<>niln) then
+                    if is_voidpointer(right.resultdef) then
                       inserttypeconv(right,left.resultdef)
-                    else if is_voidpointer(left.resultdef) and (right.nodetype<>niln) then
+                    else if is_voidpointer(left.resultdef) then
                       inserttypeconv(left,right.resultdef)
                     else if not(equal_defs(ld,rd)) then
                       IncompatibleTypes(ld,rd);
