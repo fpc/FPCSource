@@ -1388,7 +1388,7 @@ resourcestring
   SErrInvokeRecCreateSelf     = 'The record constructor can only take an empty value, a record or a pointer: %s';
   SErrInvokeInstCreateSelf    = 'The instance constructor can only accept a class, an instance of a class, or an empty value: %s';
   SErrInvokeArrayArgExpected  = 'Array argument expected for parameter %s of method %s';
-  SErrInvokeArgInvalidType    = 'Invalid type of argument for parameter %s of method %s';
+  SErrInvokeArgInvalidType    = 'Invalid type of argument for parameter %s of method %s: expected %s, but got %s';
   SErrInvokeArgCount          = 'Invalid argument count for method %s; expected %d, but got %d';
   SErrInvokeNoCodeAddr        = 'Failed to determine code address for method: %s';
   SErrInvokeRttiDataError     = 'The RTTI data is inconsistent for method: %s';
