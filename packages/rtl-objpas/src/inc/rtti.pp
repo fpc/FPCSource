@@ -6028,7 +6028,7 @@ begin
   for i := 0 to params^.Count - 2 do
   begin
     param := params^.Params[i];
-    Result := Result + param.Name + ': ' + param.ParamType^^.Name + ', ';
+    Result := Result + param.Name + ': ' + param.ParamType^^.Name + '; ';
   end;
   param := params^.Params[params^.Count - 1];
   Result := Result + param.Name + ': ' + param.ParamType^^.Name + ']: ' + PropertyType.Name;
