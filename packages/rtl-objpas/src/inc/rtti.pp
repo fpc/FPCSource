@@ -244,7 +244,8 @@ type
     function AsInterface: IInterface;
     function AsPointer : Pointer;
     function AsVariant : Variant;
-    function ToString: String;
+    function ToString: String; overload;
+    function ToString(aSettings: TFormatSettings): String; overload;
     function GetArrayLength: SizeInt;
     function GetArrayElement(AIndex: SizeInt): TValue;
     procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
@@ -4516,6 +4517,13 @@ end;
 
 function TValue.ToString: String;
 
+begin
+ Result:=ToString(TFormatSettings.Invariant);   
+end;
+
+function TValue.ToString(aSettings : TFormatSettings): String;
+
+
   function GetArrayElType(ATypeInfo: PTypeInfo): PTypeInfo;
   begin
     case ATypeInfo^.Kind of
@@ -4541,10 +4549,7 @@ begin
     tkUString : result := AsUnicodeString;
     tkSString,
     tkAString : result := AsAnsiString;
-    tkFloat   : begin
-                Str(AsDouble:12:4,Result);
-                Result:=TrimLeft(Result)
-                end;
+    tkFloat   : result := FloatToStr(asDouble,aSettings);
     tkInteger : result := IntToStr(AsInteger);
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
