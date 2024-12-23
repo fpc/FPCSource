@@ -1211,12 +1211,12 @@ implementation
                 object_member_blocktype:=bt_type;
 
                 if (token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
-                begin
-                  check_unbound_attributes;
-                  types_dec(true,hadgeneric, rtti_attrs_def);
-                end
+                  begin
+                    check_unbound_attributes;
+                    types_dec(true,hadgeneric, rtti_attrs_def);
+                  end
                 else
-                  // expect at least one type declaration
+                  { expect at least one type declaration }
                   if token<>_ID then
                     consume(_ID);
               end;
