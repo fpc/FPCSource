@@ -1,3 +1,7 @@
+{$ifdef FPUSOFT}
+{$define SMALL_TEST}
+{$endif FPUSOFT}
+
 {$mode objfpc} {$longstrings on} {$coperators on} {$zerobasedstrings on}
 uses
 	SysUtils, Math;
@@ -13,7 +17,11 @@ const
 	HistogramMax = 10;
 	NHistogramBuckets = 40;
 	NRows = 12;
+{$ifdef SMALL_TEST}
+	NSamples = 100 * 1000;
+{$else SMALL_TEST}
 	NSamples = 100 * 1000 * 1000;
+{$endif SMALL_TEST}
 var
 	hist: array of uint32;
 	iSample, nOutOfRange, maxInBucket: uint32;
@@ -29,7 +37,11 @@ begin
 	time := Now;
 	for iSample := 0 to NSamples - 1 do
 	begin
+{$ifdef SMALL_TEST}
+		if iSample and (1 shl 11 - 1) = 0 then
+{$else SMALL_TEST}
 		if iSample and (1 shl 21 - 1) = 0 then
+{$endif SMALL_TEST}
 		begin
 			WriteStr(newMsg, name, ': ', iSample / NSamples * 100:0:1, '%');
 			write(stderr, #13, StringOfChar(' ', length(msg)), #13, newMsg);
