@@ -616,7 +616,7 @@ Const
         cputype : cpu_rv32ima;
         optimizecputype : cpu_rv32ima;
         asmcputype : cpu_none;
-        fputype : fpu_fd;
+        fputype : fpu_soft;
   {$endif riscv32}
   {$ifdef riscv64}
         cputype : cpu_rv64imac;
