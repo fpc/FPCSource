@@ -5515,6 +5515,10 @@ begin
             end;
         end;
     end;
+
+  { check if the fpu type requires the F and D extension }
+  if (init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
+    Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],cputypestr[init_settings.cputype]);
 {$endif defined(riscv32) or defined(riscv64)}
 
 {$ifdef jvm}
