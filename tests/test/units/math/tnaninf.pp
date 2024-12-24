@@ -5,13 +5,13 @@ procedure DoTestSingle;
 var
   val: Single;
 begin
-  val := nan;
+  val := NaN;
   if not(isnan(val)) then
     begin
       writeln('error single 1');
       halt(1);
     end;
-  val := infinity;
+  val := Infinity;
   if not(isinfinite(val)) then
     begin
       writeln('error single 2');
@@ -42,13 +42,13 @@ procedure DoTestDouble;
 var
   val: Double;
 begin
-  val := nan;
+  val := NaN;
   if not(isnan(val)) then
     begin
       writeln('error double 1');
       halt(1);
     end;
-  val := infinity;
+  val := Infinity;
   if not(isinfinite(val)) then
     begin
       writeln('error double 2');
@@ -80,13 +80,13 @@ procedure DoTestExtended;
 var
   val: Extended;
 begin
-  val := nan;
+  val := NaN;
   if not(isnan(val)) then
     begin
       writeln('error extended 1');
       halt(1);
     end;
-  val := infinity;
+  val := Infinity;
   if not(isinfinite(val)) then
     begin
       writeln('error extended 2');

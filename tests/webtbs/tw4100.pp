@@ -20,5 +20,5 @@
         writeln('test');
         writeln(StrToFloat('1e7'));
         writeln(Z);
-        end.
+    end.
 
