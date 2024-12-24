@@ -6914,6 +6914,7 @@ begin
       Inc(J);
     end;
   finally
+    SetLength(FDeclaredProperties,PropCount);
     if assigned(List) then
       FreeMem(List);
   end;
