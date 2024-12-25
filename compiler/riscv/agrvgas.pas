@@ -74,7 +74,7 @@ unit agrvgas;
             else
               begin
                 s :='';
-                if not(refaddr in [addr_no,addr_pic_no_got,addr_plt]) then
+                if not(refaddr in [addr_no,addr_pic_no_got,addr_plt,addr_full]) then
                   s := s+'(';
                 if assigned(symbol) then
                   begin

@@ -480,7 +480,7 @@ uses cutils, cclasses;
 
           // I type
           A_JALR,
-          A_LB,A_LH,A_LW,A_LBU,A_LHU,
+          A_LA,A_LB,A_LH,A_LW,A_LBU,A_LHU,
           A_ADDI,A_SLTI,A_SLTIU,
           A_XORI,A_ORI,A_ANDI,
           A_SLLI,A_SRLI,A_SRAI,

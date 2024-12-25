@@ -931,6 +931,12 @@ unit cgrv;
 
         if assigned(ref.symbol) then
           begin
+{$ifdef unsed}
+            { keeping the code for reference
+
+              we use the pseudo instruction LA below which is expanded by the assembler, doing
+              so results in more readable assembler and easier optimization of the assembler code
+            }
             if cs_create_pic in current_settings.moduleswitches then
               begin
                 reference_reset_symbol(href,ref.symbol,0,0,[]);
@@ -969,6 +975,15 @@ unit cgrv;
                 href.refaddr:=addr_pcrel_lo12;
                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,href));
               end;
+{$endif unsed}
+
+            reference_reset_symbol(href,ref.symbol,0,0,[]);
+            href.refaddr:=addr_full;
+            ref.symbol:=nil;
+
+            tmpreg:=getintregister(list,OS_ADDR);
+
+            list.concat(taicpu.op_reg_ref(A_LA,tmpreg,href));
 
             if (ref.index<>NR_NO) and
                (ref.base<>NR_NO) then

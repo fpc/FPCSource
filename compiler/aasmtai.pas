@@ -2987,6 +2987,9 @@ implementation
 {$ifdef aarch64}
               and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
 {$endif aarch64}
+{$ifdef riscv}
+              and not(opcode=A_LA)
+{$endif riscv}
               then
               internalerror(200502052);
 {$endif not llvm}
