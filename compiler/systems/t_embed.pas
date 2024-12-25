@@ -106,10 +106,7 @@ begin
     platformopt:=' -b elf32-xtensa-le -m elf32xtensa'
   else
     platformopt:=' -b elf32-xtensa-be -m elf32xtensa';
-  if target_info.abi=abi_xtensa_call0 then
-    platformopt:=platformopt+' --abi-call0'
-  else if target_info.abi=abi_xtensa_windowed then
-    platformopt:=platformopt+' --abi-windowed';
+  platformopt:=platformopt+' $PLATFORMABI';
   {$else}
   platformopt:='';
   {$endif}
@@ -1812,6 +1809,17 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  {$ifdef xtensa}
+  if target_info.abi=abi_xtensa_call0 then
+   begin
+     if current_settings.controllertype=ct_esp8266 then
+      Replace(cmdstr,'$PLATFORMABI','')
+     else
+      Replace(cmdstr,'$PLATFORMABI','--abi-call0');
+   end
+  else if target_info.abi=abi_xtensa_windowed then
+   Replace(cmdstr,'$PLATFORMABI','--abi-windowed');
+  {$endif}
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
