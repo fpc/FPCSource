@@ -640,6 +640,7 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_LA,
               A_LUI,
               A_LB,
               A_LBU,
