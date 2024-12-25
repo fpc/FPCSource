@@ -1,4 +1,4 @@
-{ %skipcpu=x86_64,powerpc64,aarch64 }
+{ %skipcpu=x86_64,powerpc64,aarch64,riscv64 }
 { %FAIL }
 
 {$mode delphi}
