@@ -2637,9 +2637,12 @@ implementation
                   compatible with the target }
                 if po_anonymous in def1.procoptions then
                   begin
-                    if def1.typ<>procdef then
-                      internalerror(2021052602);
-                    captured:=tprocdef(def1).capturedsyms;
+                    captured:=nil;
+                    if def1.typ=procdef then
+                      captured:=tprocdef(def1).capturedsyms
+                    { def1.typ=procvardef can happen if someone uses procvar := @<anon func> }
+                    else if def1.typ<>procvardef then
+                      internalerror(2021052601);
                     { a function reference can capture anything, but they're
                       rather expensive, so cheaper overloads are preferred }
                     dstisfuncref:=assigned(def2.owner) and
@@ -2656,7 +2659,9 @@ implementation
                         - nested procvar }
                     if not assigned(captured) or (captured.count=0) then
                       begin
-                        if po_methodpointer in def2.procoptions then
+                        if def1.typ=procvardef then
+                          eq:=te_incompatible
+                        else if po_methodpointer in def2.procoptions then
                           eq:=te_convert_l2
                         else if po_delphi_nested_cc in def2.procoptions then
                           eq:=te_convert_l4
