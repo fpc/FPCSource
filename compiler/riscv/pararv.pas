@@ -59,6 +59,7 @@ implementation
     uses
       verbose,
       globals,
+      systems,
       cpuinfo,
       symsym,
       symtable,
@@ -134,7 +135,9 @@ implementation
 
     function trvparamanager.get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset;
       begin
-        result:=[RS_F0..RS_F31]-[RS_F8..RS_F9,RS_F18..RS_F27];
+        result:=[RS_F0..RS_F31];
+        if target_info.abi in [abi_riscv_hf,abi_riscv_ilp32f,abi_riscv_ilp32d,abi_riscv_lp64f,abi_riscv_lp64d] then
+          result:=result-[RS_F8..RS_F9,RS_F18..RS_F27];
       end;
 
 
@@ -149,8 +152,12 @@ implementation
     function trvparamanager.get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;
       const
         saved_regs: tcpuregisterarray = (RS_F8,RS_F9,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27);
+        empty_regs: tcpuregisterarray = ();
       begin
-        result:=saved_regs;
+        if target_info.abi in [abi_riscv_hf,abi_riscv_ilp32f,abi_riscv_ilp32d,abi_riscv_lp64f,abi_riscv_lp64d] then
+          result:=saved_regs
+        else
+          result:=empty_regs;
       end;
 
 
