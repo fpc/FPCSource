@@ -164,6 +164,8 @@ const
   MSG_TRUNC        = $0020;
   MSG_WAITALL      = $0040;              { Wait for a full request }
   MSG_DONTWAIT     = $0080;              { Non-blocking I/O }
+  MSG_NOSIGNAL     = $0200;           { Solaris 11.4 : Don't generate SIGPIPE }
+  MSG_WAITFORONE   = $0400;           { Solaris 11.4 : recvmmsg() control flag }
   MSG_NOTIFICATION = $0100;           { Notification, not data }
   MSG_XPG4_2       = $8000;	      { Private: XPG4.2 flag }
   MSG_MAXIOVLEN    =    16;
