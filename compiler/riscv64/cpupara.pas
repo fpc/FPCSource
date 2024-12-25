@@ -34,7 +34,6 @@ unit cpupara;
 
     type
       tcpuparamanager = class(trvparamanager)
-        function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
@@ -49,39 +48,6 @@ implementation
       globals, cpuinfo,
       defutil,symtable,symcpu,
       procinfo, cpupi;
-
-    function tcpuparamanager.push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
-      begin
-        result := false;
-        { var,out,constref always require address }
-        if varspez in [vs_var, vs_out, vs_constref] then
-        begin
-          result := true;
-          exit;
-        end;
-        case def.typ of
-          variantdef,
-          formaldef:
-            result := true;
-          procvardef,
-          recorddef:
-            result := not(def.size in [0..sizeof(aint)*2]) or (varspez = vs_const);
-          arraydef:
-            result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
-              is_open_array(def) or
-              is_array_of_const(def) or
-              is_array_constructor(def);
-          objectdef:
-            result := is_object(def);
-          setdef:
-            result := not is_smallset(def);
-          stringdef:
-            result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
-          else
-            ;
-        end;
-      end;
-
 
     function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
       begin
