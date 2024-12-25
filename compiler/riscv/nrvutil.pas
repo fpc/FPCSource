@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2024
 
-    Includes the RiscV64 code generator
+    RISCV version of some node tree helper routines
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,38 +19,37 @@
 
  ****************************************************************************
 }
-unit cpunode;
+unit nrvutil;
 
-{$I fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
+  uses
+    ngenutil;
+
+
+  type
+    trvnodeutils = class(tnodeutils)
+      class procedure InsertObjectInfo; override;
+    end;
+
 implementation
 
-uses
-  { generic nodes }
-  ncgbas, ncgld, ncgflw, ncgcnv, ncgmem, ncgcon, ncgcal, ncgset, ncginl, ncgopt,
-  ncgobjc,
-  { symtable }
-  symcpu,           
-  aasmdef,
-  { to be able to only parts of the generic code,
-    the processor specific nodes must be included
-    after the generic one (FK)
-  }
-{$ifndef llvm}
-  nrv64add,
-  nrv64cal,
-  nrvset,
-  nrvinl,
-  nrv64mat,
-  nrv64cnv,
-  nrv64ld,
-  nrvutil
-{$else not llvm}
-  llvmnode
-{$endif not llvm}
-  ;
+  uses
+    globtype,globals,
+    systems,
+    aasmdata,aasmtai;
 
+  class procedure trvnodeutils.InsertObjectInfo;
+    begin
+      inherited InsertObjectInfo;
+      if (target_info.system in systems_linux) and (cs_create_pic in current_settings.moduleswitches) then
+        current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'));
+    end;
+
+
+begin
+  cnodeutils:=trvnodeutils;
 end.
 

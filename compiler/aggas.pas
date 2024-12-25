@@ -1958,6 +1958,9 @@ implementation
         name has to be translated as well }
       if dir=asd_cpu then
         writer.AsmWrite(asminfo^.comment+' CPU ')
+      { indent for easier reading }
+      else if dir in [asd_option] then
+        writer.AsmWrite(#9'.'+directivestr[dir]+' ')
       else
         writer.AsmWrite('.'+directivestr[dir]+' ');
     end;

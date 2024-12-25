@@ -29,12 +29,12 @@ interface
     cclasses,
     fmodule,
     node,nbas,
-    ngenutil,
+    nrvutil,
     symtype,symconst,symsym,symdef;
 
 
   type
-    trv32nodeutils = class(tnodeutils)
+    trv32nodeutils = class(trvnodeutils)
     protected
       class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     end;
