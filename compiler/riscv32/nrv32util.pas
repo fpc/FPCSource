@@ -32,7 +32,6 @@ interface
     nrvutil,
     symtype,symconst,symsym,symdef;
 
-
   type
     trv32nodeutils = class(trvnodeutils)
     protected
@@ -51,7 +50,8 @@ implementation
       systems,
       CPUInfo,
       ppu,
-      pass_1;
+      pass_1,
+      ngenutil;
 
 
   class procedure trv32nodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
