@@ -4347,6 +4347,7 @@ implementation
                  if (block_type=bt_body) and
                      (m_anonymous_functions in current_settings.modeswitches) then
                    begin
+                     filepos:=current_filepos;
                      oldprocvardef:=getprocvardef;
                      oldfuncrefdef:=getfuncrefdef;
                      getprocvardef:=nil;
@@ -4358,6 +4359,13 @@ implementation
                        tokens follow that indicate a call }
                      do_proc_call(pd.procsym,pd.owner,nil,not (token in [_POINT,_CARET,_LECKKLAMMER]),
                                   again,p1,[],nil);
+                     { don't allow @<anon func>, but keep the parsing for recovery }
+                     if (p1.nodetype<>errorn) and getaddr then
+                       begin
+                         p1.free;
+                         p1:=cerrornode.create;
+                         MessagePos(filepos,parser_e_illegal_expression);
+                       end;
                    end
                  else
                    begin
