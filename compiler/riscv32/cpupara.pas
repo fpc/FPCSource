@@ -25,38 +25,15 @@ unit cpupara;
   interface
 
     uses
-       globtype,
-       aasmtai,aasmdata,
-       cpubase,
-       symconst,symtype,symdef,symsym,
-       paramgr,parabase,cgbase,cgutils,
-       pararv;
+      paramgr,
+      pararv;
 
     type
        tcpuparamanager = class(trvparamanager)
-         function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
        end;
 
   implementation
 
-    uses
-       cpuinfo,globals,
-       verbose,systems,
-       defutil,symtable,
-       procinfo,cpupi;
-
-    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
-      var
-        cur_stack_offset: aword;
-        curintreg, curfloatreg, curmmreg: tsuperregister;
-      begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
-
-        result := create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,false);
-
-        create_funcretloc_info(p,side);
-      end;
-
 begin
-   paramanager:=tcpuparamanager.create;
+  paramanager:=tcpuparamanager.create;
 end.

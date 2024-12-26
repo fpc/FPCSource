@@ -35,8 +35,6 @@ unit cpupara;
     type
       tcpuparamanager = class(trvparamanager)
         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
-
-        function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
       private
         function parseparaloc(p: tparavarsym; const s: string): boolean; override;
       end;
@@ -56,19 +54,6 @@ implementation
 
         { general rule: passed in registers -> returned in registers }
         result:=push_addr_param(vs_value,def,pd.proccalloption);
-      end;
-
-
-    function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
-      var
-        cur_stack_offset: aword;
-        curintreg, curfloatreg, curmmreg : tsuperregister;
-      begin
-        init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
-
-        result := create_paraloc_info_intern(p, side, p.paras, curintreg, curfloatreg, curmmreg, cur_stack_offset, false);
-
-        create_funcretloc_info(p, side);
       end;
 
 

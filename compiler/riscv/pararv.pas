@@ -50,6 +50,7 @@ unit pararv;
 
         function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;override;
 
+        function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;override;
       protected
         procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       end;
@@ -306,6 +307,19 @@ implementation
         else
           internalerror(2019021912);
         create_funcretloc_info(p,side);
+      end;
+
+
+    function trvparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
+      var
+        cur_stack_offset: aword;
+        curintreg, curfloatreg, curmmreg : tsuperregister;
+      begin
+        init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
+
+        result := create_paraloc_info_intern(p, side, p.paras, curintreg, curfloatreg, curmmreg, cur_stack_offset, false);
+
+        create_funcretloc_info(p, side);
       end;
 
 
