@@ -8724,7 +8724,8 @@ implementation
         if not classref_created_in_current_module then
           begin
             classref_created_in_current_module:=true;
-            current_module.wpoinfo.addcreatedobjtypeforclassref(self);
+            if not (owner.symtabletype in [localsymtable]) then
+              current_module.wpoinfo.addcreatedobjtypeforclassref(self);
           end;
       end;
 
@@ -8734,7 +8735,8 @@ implementation
         if not created_in_current_module then
           begin
             created_in_current_module:=true;
-            current_module.wpoinfo.addcreatedobjtype(self);
+            if not (owner.symtabletype in [localsymtable]) then
+              current_module.wpoinfo.addcreatedobjtype(self);
           end;
       end;
 
