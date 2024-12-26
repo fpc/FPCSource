@@ -1803,7 +1803,7 @@ begin
   Pack(
     function(const L, R: T): Boolean
     begin
-      Result := FComparer.Compare(L, Default(T)) = 0;
+      Result := FComparer.Compare(L, R) = 0;
     end);
 end;
 
