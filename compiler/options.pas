@@ -2142,7 +2142,7 @@ begin
     if def then
       def_system_macro('FPC_CPUCROSSCOMPILING')
     else
-      def_system_macro('FPC_CPUCROSSCOMPILING');
+      undef_system_macro('FPC_CPUCROSSCOMPILING');
 
   if (tf_no_generic_stackcheck in target_info.flags) then
     if def then
