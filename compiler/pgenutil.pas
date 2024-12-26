@@ -1335,7 +1335,7 @@ uses
           begin
             for k:=0 to callerparams.count-1 do
               begin
-                if tsym(callerparams[k]).typ=typesym then
+                if (tsym(callerparams[k]).typ=typesym) and (sp_generic_unnamed_type in ttypesym(callerparams[k]).symoptions) then
                   ttypesym(callerparams[k]).typedef.typesym:=nil;
               end;
           end;
