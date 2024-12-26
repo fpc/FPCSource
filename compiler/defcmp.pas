@@ -1714,7 +1714,7 @@ implementation
                         (torddef(tpointerdef(def_to).pointeddef).ordtype=uvoid) then
                        begin
                          doconv:=tc_equal;
-                         eq:=te_convert_l2;
+                         eq:=te_convert_l5;
                        end
                      else if (is_objc_class_or_protocol(def_from) and
                               (def_to=objc_idtype)) or
@@ -1947,8 +1947,9 @@ implementation
                                   else
                                     { for Objective-C, we don't have to do anything special }
                                     doconv:=tc_equal;
-                                  { don't prefer this over objectdef->objectdef }
-                                  eq:=te_convert_l2;
+                                  { don't prefer this over objectdef->objectdef or
+                                    inherited objectdef->objectdef }
+                                  eq:=te_convert_l4;
                                   break;
                                end;
                              hobjdef:=hobjdef.childof;
