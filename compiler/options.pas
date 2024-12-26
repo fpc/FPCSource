@@ -5668,10 +5668,6 @@ begin
   if init_settings.asmcputype = cpu_none then
     init_settings.asmcputype:=init_settings.cputype;
 
-{$ifdef llvm}
-  def_system_macro('CPULLVM');
-{$endif llvm}
-
 {$if defined(cpucapabilities)}
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
