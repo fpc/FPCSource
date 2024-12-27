@@ -594,6 +594,7 @@ uses
             if validparam then
               begin
                 if tstoreddef(typeparam.resultdef).is_generic and
+                    not is_or_belongs_to_current_genericdef(typeparam.resultdef) and
                     (
                       not parse_generic or
                       not defs_belong_to_same_generic(typeparam.resultdef,current_genericdef)
