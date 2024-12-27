@@ -660,7 +660,7 @@ type
 
   TCustomAVLTreeMap<TREE_CONSTRAINTS> = class
   private type
-    TTree = class(TCustomAVLTreeMap<TREE_CONSTRAINTS>);
+    TTree = TCustomAVLTreeMap<TREE_CONSTRAINTS>;
   public type
     TNode = TAVLTreeNode<TREE_CONSTRAINTS, TTree>;
     PNode = ^TNode;
@@ -670,7 +670,7 @@ type
     PValue = ^TValue;
   private type
     // type exist only for generic constraint in TNodeCollection (non functional - PPNode has no sense)
-    TPNodeEnumerator = class(TAVLTreeEnumerator<PPNode, PNode, TTree>);
+    TPNodeEnumerator = TAVLTreeEnumerator<PPNode, PNode, TTree>;
   private var
     FDuplicates: TDuplicates;
     FComparer: IComparer<TKey>;
