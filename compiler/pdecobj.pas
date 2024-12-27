@@ -708,9 +708,6 @@ implementation
               end;
             consume(_RKLAMMER);
           end;
-
-        { remove forward flag, is resolved }
-        exclude(current_structdef.objectoptions,oo_is_forward);
       end;
 
     procedure parse_extended_type(helpertype:thelpertype);
@@ -1531,8 +1528,9 @@ implementation
             current_structdef:=cobjectdef.create(objecttype,n,nil,true);
             tobjectdef(current_structdef).helpertype:=helpertype;
 
-            { include always the forward flag, it'll be removed after the parent class have been
-              added. This is to prevent circular childof loops }
+            { include always the forward flag, it'll be removed once the whole
+              class has been parsed so that it can be used as a parent class
+              of a nested class }
             include(current_structdef.objectoptions,oo_is_forward);
 
             if (cs_compilesystem in current_settings.moduleswitches) then
@@ -1676,11 +1674,7 @@ implementation
             if not (is_objectpascal_helper(current_objectdef) and
                 (m_delphi in current_settings.modeswitches) and
                 (helpertype=ht_record)) then
-              parse_parent_classes
-            else
-              { remove forward flag, is resolved (this is normally done inside
-                parse_parent_classes) }
-              exclude(current_structdef.objectoptions,oo_is_forward);
+              parse_parent_classes;
 
             { parse extended type for helpers }
             if is_objectpascal_helper(current_structdef) then
@@ -1755,6 +1749,8 @@ implementation
             end;
 
             symtablestack.pop(current_structdef.symtable);
+
+            exclude(current_structdef.objectoptions,oo_is_forward);
           end;
 
         { generate vmt space if needed }
