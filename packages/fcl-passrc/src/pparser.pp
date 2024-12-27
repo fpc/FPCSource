@@ -5215,6 +5215,7 @@ procedure TPasParser.ParseArgList(Parent: TPasElement; Args: TFPList; EndToken: 
 
 var
   HasRef: Boolean;
+  Attributes: TPasAttributes;
 
   Function GetParamName : string;
 
@@ -5233,18 +5234,40 @@ var
 
   Procedure ParseAttr(Peek : Boolean);
 
+  var
+    Expr: TPasExpr;
+    Prim: TPrimitiveExpr;
+    i: Integer;
+    AddAttributes: TPasAttributes;
   begin
     HasRef:=False;
-    NextToken;
-    While CurToken=tkIdentifier do
+
+    AddAttributes:=ParseAttributes(Parent,false);
+    if AddAttributes<>nil then
       begin
-      HasRef:=HasRef or CurTokenIsIdentifier('ref');
-      NextToken;
-      // We ignore the attribute value for the moment.
-      if CurToken=tkComma then
-        NextToken;
+      // check for 'ref' attribute
+      for i:=0 to length(AddAttributes.Calls)-1 do
+        begin
+        Expr:=AddAttributes.Calls[i];
+        if (Expr.Kind=pekIdent) and (TPrimitiveExpr(Expr).Value='ref') then
+          HasRef:=true;
+        end;
+      if Attributes=nil then
+        Attributes:=AddAttributes
+      else
+        begin
+        // move attributes to first array
+        for i:=0 to length(AddAttributes.Calls)-1 do
+          begin
+          Expr:=AddAttributes.Calls[i];
+          Attributes.AddCall(Expr);
+          Expr.Parent:=Attributes;
+          end;
+        AddAttributes.Calls:=nil;
+        AddAttributes.Free;
+        end;
       end;
-    CheckToken(tkSquaredBraceClose);
+
     if not Peek then
       NextToken;
   end;
@@ -5276,136 +5299,156 @@ var
 
 begin
   LastHadDefaultValue := false;
-  while True do
-  begin
-    OldArgCount:=Args.Count;
-    Access := argDefault;
-    IsUntyped := False;
-    ArgType := nil;
-    NextToken;
-    // [ref] (const|var|) a : type;
-    HasRef:=False;
-    CheckAttributes(False);
-
-    if CurToken = tkDotDotDot then
-    begin
-      expectToken(endToken);
-      Break;
-    end else  if CurToken = tkConst then
-    begin
-      Access := argConst;
-      // (const|var|) [ref]  a : type;
-      CheckAttributes(True);
-      if HasRef then
-        Access := argConstRef;
-      Name := GetParamName;
-    end else if CurToken = tkConstRef then
-    begin
-      Access := argConstref;
-      CheckAttributes(True);
-      Name := getParamName;
-    end else if CurToken = tkVar then
-    begin
-      Access := ArgVar;
-      // (const|var|) [ref]  a : type;
-      CheckAttributes(True);
-      Name:=GetParamName;
-    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
-    begin
-      if  ([msObjfpc, msDelphi, msDelphiUnicode, msOut] * CurrentModeswitches)<>[] then
-        begin
-        Access := ArgOut;
-        Name := ExpectIdentifier
-        end
-      else
-        Name := CurTokenString
-    end else if (CurToken = tkproperty) or (CurToken=tkClass) then
-      begin
-      if ([msDelphi,msDelphiUnicode,msObjfpc]* CurrentModeswitches)<>[] then
-        ParseExcTokenError('identifier')
-      else
-        Name := CurTokenString
-    end else if CurToken = tkIdentifier then
-      Name := CurTokenString
-    else
-      ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
+  try
     while True do
     begin
-      Arg := TPasArgument(CreateElement(TPasArgument, Name, Parent));
-      Arg.Access := Access;
-      Args.Add(Arg);
+      // parse modifiers and attributes
+      Access := argDefault;
+      IsUntyped := False;
+      ArgType := nil;
       NextToken;
-      if CurToken = tkColon then
-        break
-      else if ((CurToken = tkSemicolon) or (CurToken = tkBraceClose)) and
-        (Access <> argDefault) then
+      // [ref] (const|var|) a : type;
+      HasRef:=False;
+      Attributes:=nil;
+      CheckAttributes(False);
+
+      if CurToken = tkDotDotDot then
       begin
-        // found an untyped const or var argument
-        UngetToken;
-        IsUntyped := True;
-        break
-      end
-      else if CurToken <> tkComma then
-        ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
-      NextToken;
-      if CurToken = tkIdentifier then
+        expectToken(endToken);
+        Break;
+      end else  if CurToken = tkConst then
+      begin
+        Access := argConst;
+        // (const|var|) [ref]  a : type;
+        CheckAttributes(True);
+        if HasRef then
+          Access := argConstRef;
+        Name := GetParamName;
+      end else if CurToken = tkConstRef then
+      begin
+        Access := argConstref;
+        CheckAttributes(True);
+        Name := getParamName;
+      end else if CurToken = tkVar then
+      begin
+        Access := ArgVar;
+        // (const|var|) [ref]  a : type;
+        CheckAttributes(True);
+        Name:=GetParamName;
+      end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
+      begin
+        if ([msObjfpc, msDelphi, msDelphiUnicode, msOut] * CurrentModeswitches)<>[] then
+          begin
+          Access := ArgOut;
+          Name := ExpectIdentifier
+          end
+        else
+          Name := CurTokenString
+      end else if (CurToken = tkproperty) or (CurToken=tkClass) then
+        begin
+        if ([msDelphi,msDelphiUnicode,msObjfpc]* CurrentModeswitches)<>[] then
+          ParseExcTokenError('identifier')
+        else
+          Name := CurTokenString
+      end else if CurToken = tkIdentifier then
         Name := CurTokenString
       else
         ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
-    end;
-    Value:=Nil;
-    if not IsUntyped then
-      begin
-      Arg := TPasArgument(Args[OldArgCount]);
-      ArgType:=Nil;
-      oldForceCaret:=Scanner.SetForceCaret(True);
-      try
-        ArgType := ParseType(Arg,CurSourcePos);
+
+      // parse names
+      OldArgCount:=Args.Count;
+      while True do
+        begin
+        Arg := TPasArgument(CreateElement(TPasArgument, Name, Parent));
+        Arg.Access := Access;
+        Args.Add(Arg);
         NextToken;
-        if CurToken = tkEqual then
+        if CurToken = tkColon then
+          break
+        else if ((CurToken = tkSemicolon) or (CurToken = tkBraceClose)) and
+          (Access <> argDefault) then
           begin
-          if (Args.Count>OldArgCount+1) then
-            begin
-            ArgType:=nil;
-            ParseExc(nParserOnlyOneArgumentCanHaveDefault,SParserOnlyOneArgumentCanHaveDefault);
-            end;
-          if Parent is TPasProperty then
-            ParseExc(nParserPropertyArgumentsCanNotHaveDefaultValues,
-              SParserPropertyArgumentsCanNotHaveDefaultValues);
-          NextToken;
-          Value := DoParseExpression(Arg,Nil);
-          // After this, we're on ), which must be unget.
-          LastHadDefaultValue:=true;
+          // found an untyped const or var argument
+          UngetToken;
+          IsUntyped := True;
+          break
           end
-        else if LastHadDefaultValue then
-          ParseExc(nParserDefaultParameterRequiredFor,
-            SParserDefaultParameterRequiredFor,[TPasArgument(Args[OldArgCount]).Name]);
-        UngetToken;
-      finally
-        Scanner.SetForceCaret(oldForceCaret);
-      end;
-      end;
+        else if CurToken <> tkComma then
+          ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
+        NextToken;
+        if CurToken = tkIdentifier then
+          Name := CurTokenString
+        else
+          ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
+        end;
 
-    for i := OldArgCount to Args.Count - 1 do
-    begin
-      Arg := TPasArgument(Args[i]);
-      Arg.ArgType := ArgType;
-      Arg.ValueExpr := Value;
-      Value:=Nil; // Only the first gets a value. OK, since Var A,B : Integer = 1 is not allowed.
-    end;
+      // parse type and default value
+      Value:=Nil;
+      if not IsUntyped then
+        begin
+        Arg := TPasArgument(Args[OldArgCount]);
+        ArgType:=Nil;
+        oldForceCaret:=Scanner.SetForceCaret(True);
+        try
+          ArgType := ParseType(Arg,CurSourcePos);
+          NextToken;
+          if CurToken = tkEqual then
+            begin
+            if (Args.Count>OldArgCount+1) then
+              begin
+              ArgType:=nil;
+              ParseExc(nParserOnlyOneArgumentCanHaveDefault,SParserOnlyOneArgumentCanHaveDefault);
+              end;
+            if Parent is TPasProperty then
+              ParseExc(nParserPropertyArgumentsCanNotHaveDefaultValues,
+                SParserPropertyArgumentsCanNotHaveDefaultValues);
+            NextToken;
+            Value := DoParseExpression(Arg,Nil);
+            // After this, we're on ), which must be unget.
+            LastHadDefaultValue:=true;
+            end
+          else if LastHadDefaultValue then
+            ParseExc(nParserDefaultParameterRequiredFor,
+              SParserDefaultParameterRequiredFor,[TPasArgument(Args[OldArgCount]).Name]);
+          UngetToken;
+        finally
+          Scanner.SetForceCaret(oldForceCaret);
+        end;
+        end;
 
-    for i := OldArgCount to Args.Count - 1 do
-      Engine.FinishScope(stDeclaration,TPasArgument(Args[i]));
+      for i := OldArgCount to Args.Count - 1 do
+        begin
+        Arg := TPasArgument(Args[i]);
+        if Attributes<>nil then
+          begin
+          Arg.Attributes := Attributes;
+          if (i=OldArgCount) then
+            begin
+            Attributes.Parent := Arg;
+            Engine.FinishScope(stDeclaration,Attributes);
+            end;
+          end;
+        Arg.ArgType := ArgType;
+        Arg.ValueExpr := Value;
+        Value:=Nil; // Only the first gets a value. OK, since Var A,B : Integer = 1 is not allowed.
+        end;
+      Attributes:=nil;
 
-    NextToken;
-    if (CurToken = tkIdentifier) and (LowerCase(CurTokenString) = 'location') then
-      begin
+      for i := OldArgCount to Args.Count - 1 do
+        Engine.FinishScope(stDeclaration,TPasArgument(Args[i]));
+
+      NextToken;
+      if (CurToken = tkIdentifier) and (LowerCase(CurTokenString) = 'location') then
+        begin
         NextToken; // remove 'location'
         NextToken; // remove register
-      end;
-    if CurToken = EndToken then
-      break;
-    CheckToken(tkSemicolon);
+        end;
+      if CurToken = EndToken then
+        break;
+      CheckToken(tkSemicolon);
+    end;
+  finally
+    Attributes.Free;
   end;
 end;
 

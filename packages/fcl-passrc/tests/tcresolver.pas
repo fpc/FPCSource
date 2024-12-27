@@ -1005,7 +1005,7 @@ type
     Procedure TestAttributes_NonConstParam_Fail;
     Procedure TestAttributes_UnknownAttrWarning;
     Procedure TestAttributes_Members;
-    Procedure TestAttributes_MethodParams; // todo
+    Procedure TestAttributes_MethodParams;
 
     // library
     Procedure TestLibrary_Empty;
@@ -19274,8 +19274,6 @@ end;
 
 procedure TTestResolver.TestAttributes_MethodParams;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$modeswitch prefixedattributes}',
@@ -19287,6 +19285,7 @@ begin
   '  end;',
   '  TMyClass = class',
   '    procedure Fly([{#attr__custom__create__size}TCustom]Size: word);',
+  '    procedure Eat(const [ref] Portion: word);',
   '  end;',
   'constructor TObject.Create;',
   'begin',
@@ -19294,10 +19293,14 @@ begin
   'procedure TMyClass.Fly(Size: word);',
   'begin',
   'end;',
+  'procedure TMyClass.Eat(const [ref] Portion: word);',
+  'begin',
+  'end;',
   'begin',
   '']);
   ParseProgram;
   CheckAttributeMarkers;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestLibrary_Empty;

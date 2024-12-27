@@ -9017,6 +9017,7 @@ end;
 
 procedure TPasResolver.FinishAttributes(El: TPasAttributes);
 var
+  IsArg: boolean;
   i, j: Integer;
   NameExpr, Expr: TPasExpr;
   Bin: TBinaryExpr;
@@ -9033,12 +9034,20 @@ var
   DotScope: TPasDotBaseScope;
   Params: TPasExprArray;
 begin
+  IsArg:=El.Parent is TPasArgument;
   for i:=0 to length(El.Calls)-1 do
     begin
     NameExpr:=El.Calls[i];
     {$IFDEF VerbosePasResolver}
     //writeln('TPasResolver.FinishAttributes El.Calls[',i,']=',GetObjName(NameExpr));
     {$ENDIF}
+    if IsArg and (NameExpr.Kind=pekIdent)
+        and (SameText(TPrimitiveExpr(NameExpr).Value,'ref')) then
+    begin
+      if TPasArgument(El.Parent).Access=argConstRef then
+        continue; // const [ref] arg
+    end;
+
     if NameExpr is TParamsExpr then
       NameExpr:=TParamsExpr(NameExpr).Value;
     DotScope:=nil;
