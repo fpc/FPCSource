@@ -36,10 +36,11 @@ const
 type
   pspecializationstate = ^tspecializationstate;
   tspecializationstate = record
-    oldsymtablestack    : tsymtablestack;
-    oldextendeddefs     : tfphashobjectlist;
-    oldgenericdummysyms : tfphashobjectlist;
-    oldspecializestate  : pspecializationstate;
+    oldsymtablestack      : tsymtablestack;
+    oldextendeddefs       : tfphashobjectlist;
+    oldgenericdummysyms   : tfphashobjectlist;
+    oldspecializestate    : pspecializationstate;
+    oldcurrent_genericdef : tdef;
   end;
 
   tspecializationcontext=class

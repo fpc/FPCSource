@@ -2740,6 +2740,7 @@ uses
       state.oldsymtablestack:=symtablestack;
       state.oldextendeddefs:=current_module.extendeddefs;
       state.oldgenericdummysyms:=current_module.genericdummysyms;
+      state.oldcurrent_genericdef:=current_genericdef;
       state.oldspecializestate:=pspecializationstate(current_module.specializestate);
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
