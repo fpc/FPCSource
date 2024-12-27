@@ -62,6 +62,8 @@ uses
     procedure maybe_add_pending_specialization(def:tdef;unnamed_syms:tfplist);
     function determine_generic_def(const name:tidstring):tstoreddef;
 
+    function is_or_belongs_to_current_genericdef(def:tdef):boolean;
+
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
     procedure specialization_done(var state:tspecializationstate);
 
@@ -2721,6 +2723,28 @@ uses
         result:=(name<>'') and
                   (current_module.genericdummysyms.findindexof(name)>=0);
       end;
+
+
+    function is_or_belongs_to_current_genericdef(def:tdef):boolean;
+      var
+        d : tdef;
+        state : pspecializationstate;
+      begin
+        result:=true;
+        if (def=current_genericdef) or
+            defs_belong_to_same_generic(def,current_genericdef) then
+          exit;
+        state:=pspecializationstate(current_module.specializestate);
+        while assigned(state) do
+          begin
+            if (state^.oldcurrent_genericdef=def) or
+                defs_belong_to_same_generic(state^.oldcurrent_genericdef,def) then
+              exit;
+            state:=state^.oldspecializestate;
+          end;
+        result:=false;
+      end;
+
 
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var
