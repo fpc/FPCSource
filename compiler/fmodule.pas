@@ -232,6 +232,7 @@ interface
         waitingunits: tfpobjectlist;
 
         finishstate: pointer;
+        specializestate : pointer;
 
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 

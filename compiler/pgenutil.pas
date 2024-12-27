@@ -2740,6 +2740,8 @@ uses
       state.oldsymtablestack:=symtablestack;
       state.oldextendeddefs:=current_module.extendeddefs;
       state.oldgenericdummysyms:=current_module.genericdummysyms;
+      state.oldspecializestate:=pspecializationstate(current_module.specializestate);
+      current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
       symtablestack:=tdefawaresymtablestack.create;
@@ -2819,6 +2821,7 @@ uses
       current_module.extendeddefs:=state.oldextendeddefs;
       current_module.genericdummysyms.free;
       current_module.genericdummysyms:=state.oldgenericdummysyms;
+      current_module.specializestate:=state.oldspecializestate;
       symtablestack.free;
       symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }
