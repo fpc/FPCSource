@@ -7390,7 +7390,12 @@ var
 begin
   case (FPropInfo^.PropProcs shr 2) and 3 of
     ptField:
+      {$ifdef cpu8086}
+      { convert to the correct pointer type }
+      AValue.Cast(FPropInfo^.PropType).ExtractRawData(PPointer(@(FPropInfo^.SetProc))^);
+      {$else}
       AValue.Cast(FPropInfo^.PropType).ExtractRawData(FPropInfo^.SetProc);
+      {$endif}
     ptStatic,
     ptVirtual:
       begin
