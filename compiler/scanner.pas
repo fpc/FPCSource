@@ -3857,14 +3857,15 @@ type
                       end;
                     ST_LOADMESSAGES:
                       begin
-                        current_settings.pmessage:=nil;
+                        { free pending messages }
+                        FreeLocalVerbosity(pendingstate.nextmessagerecord);
                         mesgnb:=tokenreadsizeint;
                         prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
                             new(pmsg);
                             if i=1 then
-                              current_settings.pmessage:=pmsg
+                              pendingstate.nextmessagerecord:=pmsg
                             else
                               prevmsg^.next:=pmsg;
                             pmsg^.value:=tokenreadlongint;
