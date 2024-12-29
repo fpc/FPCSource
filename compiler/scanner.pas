@@ -3772,6 +3772,10 @@ type
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;
+            if assigned(pendingstate.nextmessagerecord) then
+              FreeLocalVerbosity(pendingstate.nextmessagerecord);
+            pendingstate.nextmessagerecord:=current_settings.pmessage;
+            current_settings.pmessage:=nil;
             popreplaystack;
 {$ifdef check_inputpointer_limits}
             if assigned(hidden_inputpointer) then
