@@ -1530,7 +1530,9 @@ implementation
 
             { include always the forward flag, it'll be removed once the whole
               class has been parsed so that it can be used as a parent class
-              of a nested class }
+              of a nested class;
+              Exception: for external classes this will be removed once the
+              parent classes have been parsed }
             include(current_structdef.objectoptions,oo_is_forward);
 
             if (cs_compilesystem in current_settings.moduleswitches) then
@@ -1675,6 +1677,10 @@ implementation
                 (m_delphi in current_settings.modeswitches) and
                 (helpertype=ht_record)) then
               parse_parent_classes;
+
+            { for external classes we remove the external flag here already }
+            if oo_is_external in current_objectdef.objectoptions then
+              exclude(current_objectdef.objectoptions,oo_is_forward);
 
             { parse extended type for helpers }
             if is_objectpascal_helper(current_structdef) then
