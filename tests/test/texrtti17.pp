@@ -2,7 +2,7 @@ program texrtti17;
 
 {$mode objfpc}
 
-{ Test that class properties are not returned in RTTI }
+{ Test that class properties are returned in RTTI }
 
 uses typinfo, uexrttiutil;
 
@@ -31,6 +31,6 @@ var
 
 begin
   aCount:=GetPropListEx(T1,P);
-  AssertEquals('class property not in RTTI properties',0,aCount);
+  AssertEquals('class property not in RTTI properties',1,aCount);
 end.
 
