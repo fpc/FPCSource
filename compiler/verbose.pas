@@ -189,7 +189,7 @@ implementation
         while assigned(pstate) do
           begin
             unaligned(fstate):=pstate^.next;
-            freemem(pstate);
+            dispose(pstate);
             pstate:=unaligned(fstate);
           end;
       end;
