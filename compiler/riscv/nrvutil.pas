@@ -44,8 +44,13 @@ implementation
   class procedure trvnodeutils.InsertObjectInfo;
     begin
       inherited InsertObjectInfo;
-      if (target_info.system in systems_linux) and (cs_create_pic in current_settings.moduleswitches) then
-        current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'));
+      if (target_info.system in systems_linux) then
+        begin
+          if (cs_create_pic in current_settings.moduleswitches) then
+            current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'))
+          else
+            current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'nopic'));
+        end;
     end;
 
 
