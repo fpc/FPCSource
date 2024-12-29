@@ -3721,6 +3721,10 @@ type
         { install buffer }
         replaytokenbuf:=buf;
 
+        { flushpendingswitchesstate should have been called }
+        if assigned(pendingstate.nextmessagerecord) then
+          internalerror(2024122901);
+
         { Initialize value of change_endian_for_replay variable }
         change_endian_for_replay:=change_endian;
 
