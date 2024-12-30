@@ -41,6 +41,14 @@ implementation
     systems,
     aasmdata,aasmtai;
 
+  const
+    tag_stack_align = 4;
+    tag_arch = 5;
+    tag_unaligned_access = 6;
+    tag_priv_spec = 8;
+    tag_priv_spec_minor = 10;
+    tag_priv_spec_revision = 12;
+
   class procedure trvnodeutils.InsertObjectInfo;
     begin
       inherited InsertObjectInfo;
@@ -50,6 +58,9 @@ implementation
             current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'))
           else
             current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'nopic'));
+
+          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,target_info.stackalign));
+          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
         end;
     end;
 

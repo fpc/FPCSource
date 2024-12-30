@@ -1653,6 +1653,23 @@ implementation
                  end;
              end;
 
+           ait_attribute:
+             begin
+               case tai_attribute(hp).eattr_typ of
+                 eattrtype_dword:
+                   writer.AsmWrite(#9'.attribute '+tostr(tai_attribute(hp).tag)+','+tostr(tai_attribute(hp).value));
+                 eattrtype_ntbs:
+                   begin
+                     if assigned(tai_attribute(hp).valuestr) then
+                       writer.AsmWrite(#9'.attribute '+tostr(tai_attribute(hp).tag)+',"'+tai_attribute(hp).valuestr^+'"')
+                     else
+                       writer.AsmWrite(#9'.attribute '+tostr(tai_attribute(hp).tag)+',""');
+                   end
+                 else
+                   Internalerror(2024123001);
+               end;
+               writer.AsmLn;
+             end;
 {$ifdef WASM}
            ait_local:
              WriteWasmLocalDirective(tai_local(hp));
