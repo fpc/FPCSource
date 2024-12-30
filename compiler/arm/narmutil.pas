@@ -100,99 +100,99 @@ interface
               cpu_armv2,
               cpu_armv3:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,''));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,''));
                 end;
               cpu_armv4:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,1));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'4'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,1));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'4'));
                 end;
               cpu_armv4t:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,2));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'4T'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,2));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'4T'));
                 end;
               cpu_armv5t:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,3));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'5T'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,3));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'5T'));
                 end;
               cpu_armv5te:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,4));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'5TE'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,4));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'5TE'));
                 end;
               cpu_armv5tej:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,5));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'5TEJ'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,5));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'5TEJ'));
                 end;
               cpu_armv6:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,6));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'6'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,6));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'6'));
                 end;
               cpu_armv6k:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,9));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'6K'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,9));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'6K'));
                 end;
               cpu_armv6t2:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,8));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'T2'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,8));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'T2'));
                 end;
               cpu_armv6z:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,7));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'6Z'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,7));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'6Z'));
                 end;
               cpu_armv6m:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,11));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'6-M'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,11));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'6-M'));
                 end;
               cpu_armv7:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,10));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,0));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'7'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,10));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,0));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'7'));
                 end;
               cpu_armv7a:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,10));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,$41));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'7-A'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,10));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,$41));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'7-A'));
                 end;
               cpu_armv7r:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,10));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,$52));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'7-R'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,10));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,$52));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'7-R'));
                 end;
               cpu_armv7m:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,10));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,$4D));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'7-M'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,10));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,$4D));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'7-M'));
                 end;
               cpu_armv7em:
                 begin
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch,13));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_arch_profile,$4D));
-                  current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_CPU_name,'7E-M'));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch,13));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_arch_profile,$4D));
+                  current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_CPU_name,'7E-M'));
                 end;
               else
                 Internalerror(2019100602);
@@ -204,48 +204,48 @@ interface
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,0));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,0));
               fpu_vfpv2:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,2));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,2));
               fpu_vfpv3,
               fpu_neon_vfpv3:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,3));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,3));
               fpu_vfpv3_d16:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,4));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,4));
               fpu_fpv4_sp_d16,
               fpu_fpv4_s16:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,6));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,6));
               fpu_vfpv4,
               fpu_neon_vfpv4:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,5));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,5));
               fpu_fpv5_sp_d16,
               fpu_fpv5_d16:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,8));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,8));
               fpu_fp_armv8:
-                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,7));
+                current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_FP_Arch,7));
               { else not needed anymore PM 2020/04/13
                 Internalerror(2019100603); }
             end;
             if FPUARM_HAS_FMA in fpu_capabilities[current_settings.fputype] then
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_Advanced_SIMD_arch,2))
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,2))
             else if FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype] then
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_Advanced_SIMD_arch,1))
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,1))
             else
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_Advanced_SIMD_arch,0));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ARM_ISA_use,1));
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,0));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ARM_ISA_use,1));
             if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_THUMB_ISA_use,2))
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,2))
             else
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_THUMB_ISA_use,1));
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,1));
             if target_info.abi=abi_eabihf then
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_VFP_args,1))
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_VFP_args,1))
             else
-              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_VFP_args,0));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_denormal,1));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_exceptions,1));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_number_model,3));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_align_needed,0));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_align8_preserved,1));
+              current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_VFP_args,0));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_FP_denormal,1));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_FP_exceptions,1));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_FP_number_model,3));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_align_needed,0));
+            current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_align8_preserved,1));
             { gcc typically writes more like enum size, wchar size, optimization goal, however, this
               is normally not module global in FPC }
           end;

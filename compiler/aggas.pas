@@ -1636,15 +1636,15 @@ implementation
                { as of today, vasm does not support the eabi directives }
                if target_asm.id<>as_arm_vasm then
                  begin
-                   case tai_eabi_attribute(hp).eattr_typ of
+                   case tai_attribute(hp).eattr_typ of
                      eattrtype_dword:
-                       writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+','+tostr(tai_eabi_attribute(hp).value));
+                       writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_attribute(hp).tag)+','+tostr(tai_attribute(hp).value));
                      eattrtype_ntbs:
                        begin
-                         if assigned(tai_eabi_attribute(hp).valuestr) then
-                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+',"'+tai_eabi_attribute(hp).valuestr^+'"')
+                         if assigned(tai_attribute(hp).valuestr) then
+                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_attribute(hp).tag)+',"'+tai_attribute(hp).valuestr^+'"')
                          else
-                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+',""');
+                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_attribute(hp).tag)+',""');
                        end
                      else
                        Internalerror(2019100601);

@@ -105,7 +105,8 @@ interface
           ait_seh_directive,
           { Dwarf CFI directive }
           ait_cfi,
-          ait_eabi_attribute
+          ait_eabi_attribute,
+          ait_attribute
           );
 
         taitypes = set of taitype;
@@ -257,7 +258,8 @@ interface
 {$endif}
           'cfi',
           'seh_directive',
-          'eabi_attribute'
+          'eabi_attribute',
+          'attribute'
           );
 
     type
@@ -380,7 +382,8 @@ interface
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,
-                     ait_eabi_attribute
+                     ait_eabi_attribute,
+                     ait_attribute
                     ];
 
 
@@ -1053,12 +1056,12 @@ interface
         end;
 
         teattrtyp = (eattrtype_none,eattrtype_dword,eattrtype_ntbs);
-        tai_eabi_attribute = class(tai)
+        tai_attribute = class(tai)
           eattr_typ : teattrtyp;
           tag,value : dword;
           valuestr : pstring;
-          constructor create(atag,avalue : dword);
-          constructor create(atag : dword;const avalue : string);
+          constructor create(atyp: taitype; atag,avalue : dword);
+          constructor create(atyp: taitype; atag : dword;const avalue : string);
           destructor destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -3609,41 +3612,41 @@ implementation
 
 
 {****************************************************************************
-                              tai_eabi_attribute
+                              tai_attribute
  ****************************************************************************}
 
-    constructor tai_eabi_attribute.create(atag,avalue : dword);
+    constructor tai_attribute.create(atyp : taitype; atag,avalue : dword);
       begin
         inherited Create;
-        typ:=ait_eabi_attribute;
+        typ:=atyp;
         eattr_typ:=eattrtype_dword;
         tag:=atag;
         value:=avalue;
       end;
 
 
-    constructor tai_eabi_attribute.create(atag: dword; const avalue: string);
+    constructor tai_attribute.create(atyp : taitype; atag: dword; const avalue: string);
       begin
         inherited Create;
-        typ:=ait_eabi_attribute;
+        typ:=atyp;
         eattr_typ:=eattrtype_ntbs;
         tag:=atag;
         valuestr:=NewStr(avalue);
       end;
 
 
-    destructor tai_eabi_attribute.destroy;
+    destructor tai_attribute.destroy;
       begin
         Inherited Destroy;
       end;
 
 
-    constructor tai_eabi_attribute.ppuload(t:taitype;ppufile:tcompilerppufile);
+    constructor tai_attribute.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
       end;
 
 
-    procedure tai_eabi_attribute.ppuwrite(ppufile:tcompilerppufile);
+    procedure tai_attribute.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
         ppufile.putdword(tag);

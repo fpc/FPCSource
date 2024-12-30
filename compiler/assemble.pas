@@ -1925,13 +1925,13 @@ Implementation
                    end;
                  if eabi_section.Size=0 then
                    eabi_section.alloc(16);
-                 eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).tag));
-                 case tai_eabi_attribute(hp).eattr_typ of
+                 eabi_section.alloc(LengthUleb128(tai_attribute(hp).tag));
+                 case tai_attribute(hp).eattr_typ of
                    eattrtype_dword:
-                     eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).value));
+                     eabi_section.alloc(LengthUleb128(tai_attribute(hp).value));
                    eattrtype_ntbs:
-                     if assigned(tai_eabi_attribute(hp).valuestr) then
-                       eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1)
+                     if assigned(tai_attribute(hp).valuestr) then
+                       eabi_section.alloc(Length(tai_attribute(hp).valuestr^)+1)
                      else
                        eabi_section.alloc(1);
                    else
@@ -2132,13 +2132,13 @@ Implementation
                    Internalerror(2019100702);
                  if eabi_section.Size=0 then
                    eabi_section.alloc(16);
-                 eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).tag));
-                 case tai_eabi_attribute(hp).eattr_typ of
+                 eabi_section.alloc(LengthUleb128(tai_attribute(hp).tag));
+                 case tai_attribute(hp).eattr_typ of
                    eattrtype_dword:
-                     eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).value));
+                     eabi_section.alloc(LengthUleb128(tai_attribute(hp).value));
                    eattrtype_ntbs:
-                     if assigned(tai_eabi_attribute(hp).valuestr) then
-                       eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1)
+                     if assigned(tai_attribute(hp).valuestr) then
+                       eabi_section.alloc(Length(tai_attribute(hp).valuestr^)+1)
                      else
                        eabi_section.alloc(1);
                    else
@@ -2636,19 +2636,19 @@ Implementation
                        ddword:=SwapEndian(ddword);
                      eabi_section.write(ddword,4);
                    end;
-                 leblen:=EncodeUleb128(tai_eabi_attribute(hp).tag,lebbuf,0);
+                 leblen:=EncodeUleb128(tai_attribute(hp).tag,lebbuf,0);
                  eabi_section.write(lebbuf,leblen);
 
-                 case tai_eabi_attribute(hp).eattr_typ of
+                 case tai_attribute(hp).eattr_typ of
                    eattrtype_dword:
                      begin
-                       leblen:=EncodeUleb128(tai_eabi_attribute(hp).value,lebbuf,0);
+                       leblen:=EncodeUleb128(tai_attribute(hp).value,lebbuf,0);
                        eabi_section.write(lebbuf,leblen);
                      end;
                    eattrtype_ntbs:
                      begin
-                       if assigned(tai_eabi_attribute(hp).valuestr) then
-                         s:=tai_eabi_attribute(hp).valuestr^+#0
+                       if assigned(tai_attribute(hp).valuestr) then
+                         s:=tai_attribute(hp).valuestr^+#0
                        else
                          s:=#0;
                        eabi_section.write(s[1],Length(s));
