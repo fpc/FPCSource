@@ -211,7 +211,7 @@ implementation
           val(tok, msgnr, code);
           if (code<>0) then
             exit;
-          if not msg^.setverbosity(msgnr,state) then
+          if not msg^.valid(msgnr) then
             exit
           else
             recordpendingmessagestate(msgnr, state);
