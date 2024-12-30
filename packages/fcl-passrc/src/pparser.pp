@@ -2272,6 +2272,8 @@ begin
       end;
     tkNumber,tkMinus,tkChar:
       begin
+      if Parent is TPasArgument then
+        ParseExcExpectedIdentifier;
       UngetToken;
       Result:=ParseRangeType(Parent,NamePos,TypeName,declParseType=dptFull);
       end;

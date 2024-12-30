@@ -401,6 +401,7 @@ type
     Procedure TestProc_ArgVarTypeAliasObjFPC;
     Procedure TestProc_ArgVarTypeAliasDelphi;
     Procedure TestProc_ArgVarTypeAliasDelphiMismatchFail;
+    Procedure TestProc_ArgAnonymouseRangeTypeFail;
     Procedure TestProc_ArgMissingSemicolonFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
@@ -1006,6 +1007,7 @@ type
     Procedure TestAttributes_UnknownAttrWarning;
     Procedure TestAttributes_Members;
     Procedure TestAttributes_MethodParams;
+    Procedure TestAttributes_MethodParamsGroup;
 
     // library
     Procedure TestLibrary_Empty;
@@ -6480,6 +6482,16 @@ begin
   '']);
   CheckResolverException('Incompatible type for arg no. 1: Got "Longint", expected "TColor". Var param must match exactly.',
     nIncompatibleTypeArgNoVarParamMustMatchExactly);
+end;
+
+procedure TTestResolver.TestProc_ArgAnonymouseRangeTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(Speed: 1..2);',
+  'begin end;',
+  'begin']);
+  CheckParserException('Identifier expected at token "Number" in file afile.pp at line 2 column 22',nParserExpectedIdentifier);
 end;
 
 procedure TTestResolver.TestProc_ArgMissingSemicolonFail;
@@ -19294,6 +19306,33 @@ begin
   'begin',
   'end;',
   'procedure TMyClass.Eat(const [ref] Portion: word);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckAttributeMarkers;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestAttributes_MethodParamsGroup;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '    constructor {#create}Create;',
+  '  end;',
+  '  {#custom}TCustomAttribute = class',
+  '  end;',
+  '  TMyClass = class',
+  '    procedure Fly([{#attr__custom__create__size}TCustom]Speed, Dist: word);',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'procedure TMyClass.Fly(Speed, Dist: word);',
   'begin',
   'end;',
   'begin',
