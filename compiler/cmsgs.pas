@@ -66,6 +66,7 @@ type
     { function  ClearVerbosity(nr:longint):boolean; not used anymore }
     function  SetVerbosity(nr:longint;newstate:tmsgstate):boolean;
     function  Get(nr:longint;const args:array of TMsgStr):TMsgStr;
+    function  Valid(nr:longint):boolean;
   end;
 
 { this will read a line until #10 or #0 and also increase p }
@@ -457,6 +458,11 @@ begin
 {$endif cpawaremessages}
       Get:=MsgReplace(s,args);
     end;
+end;
+
+function TMessage.Valid(nr:longint):boolean;
+begin
+  result:=(nr div 1000<msgparts) and (nr mod 1000<msgidxmax[nr div 1000]) and assigned(msgidx[nr div 1000]^[nr mod 1000]);
 end;
 
 procedure TMessage.ResetStates;
