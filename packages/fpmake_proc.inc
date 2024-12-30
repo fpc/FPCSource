@@ -916,6 +916,12 @@ begin
 {$include fcl-openapi/fpmake.pp}
 end;
 
+procedure add_fcl_yaml(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-yaml/fpmake.pp}
+end;
+
 procedure add_ptckvm(const ADirectory: string);
 begin
   with Installer do
