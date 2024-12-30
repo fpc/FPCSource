@@ -2153,7 +2153,7 @@ Const
   NoHintTokens = [tkProcedure,tkFunction];
   InterfaceKindTypes : Array[Boolean] of TPasObjKind = (okInterface,okObjcProtocol);
   ClassKindTypes : Array[TLocalClassType] of TPasObjKind = (okClass,okObjCClass,okObjcCategory,okClassHelper);
-  ArgTypeTokens = [tkIdentifier,tkarray,tkSpecialize,tkCaret];
+  FuncArgResultTypeTokens = [tkIdentifier,tkarray,tkSpecialize];
 
 var
   PM: TPackMode;
@@ -2173,7 +2173,8 @@ begin
       ParseExc(nParserTypeNotAllowedHere,SParserTypeNotAllowedHere,[CurtokenText]);
     end;
 
-  if (Parent is TPasArgument) and not (CurToken in ArgTypeTokens) then
+  if (not (CurToken in FuncArgResultTypeTokens))
+     and ((Parent is TPasArgument) or (Parent is TPasResultElement)) then
     ParseExc(nParserParamsOrResultTypesNoLocalTypeDefs,SParserParamsOrResultTypesNoLocalTypeDefs);
 
   case CurToken of

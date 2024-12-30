@@ -404,6 +404,7 @@ type
     Procedure TestProc_ArgAnonymouseRangeTypeFail;
     Procedure TestProc_ArgAnonymouseEnumTypeFail;
     Procedure TestProc_ArgAnonymouseSetTypeFail;
+    Procedure TestProc_ArgAnonymousePointerTypeFail;
     Procedure TestProc_ArgMissingSemicolonFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
@@ -6516,6 +6517,16 @@ begin
   CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
+procedure TTestResolver.TestProc_ArgAnonymousePointerTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(Speed: ^word);',
+  'begin end;',
+  'begin']);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
+end;
+
 procedure TTestResolver.TestProc_ArgMissingSemicolonFail;
 begin
   StartProgram(false);
@@ -9265,7 +9276,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Cannot nest anonymous record',nCannotNestAnonymousX);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestRecordAnonym_ArgumentFail;
@@ -16919,8 +16930,7 @@ begin
   'var',
   '  f: function:function:longint;',
   'begin']);
-  CheckResolverException('Cannot nest anonymous functional type',
-    nCannotNestAnonymousX);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestProcTypeAnonymous_ResultTypeFail;
@@ -16931,8 +16941,7 @@ begin
   'begin',
   'end;',
   'begin']);
-  CheckResolverException('Cannot nest anonymous procedural type',
-    nCannotNestAnonymousX);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestProcTypeAnonymous_ArgumentFail;

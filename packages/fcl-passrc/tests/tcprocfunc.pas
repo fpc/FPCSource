@@ -104,8 +104,6 @@ type
     Procedure TestFunctionArrayOfConstArg;
     procedure TestProcedureConstArrayOfConstArg;
     Procedure TestFunctionConstArrayOfConstArg;
-    procedure TestProcedureOnePointerArg;
-    procedure TestFUnctionPointerResult;
 
     Procedure TestProcedureCdecl;
     Procedure TestFunctionCdecl;
@@ -501,26 +499,11 @@ begin
   AssertFunc([],[],ccDefault,0);
 end;
 
-
-
 procedure TTestProcedureFunction.TestProcedureOneArg;
 begin
   ParseProcedure('(B : Integer)');
   AssertProc([],[],ccDefault,1);
   AssertArg(ProcType,0,'B',argDefault,'Integer','');
-end;
-
-procedure TTestProcedureFunction.TestProcedureOnePointerArg;
-begin
-  ParseProcedure('(B : ^Integer)');
-  AssertProc([],[],ccDefault,1);
-  AssertArg(ProcType,0,'B',argDefault,'^Integer','');
-end;
-
-procedure TTestProcedureFunction.TestFUnctionPointerResult;
-begin
-  ParseFunction('()','^LongInt');
-  AssertFunc([],[],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestFunctionOneArg;
