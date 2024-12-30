@@ -3721,6 +3721,9 @@ type
         { install buffer }
         replaytokenbuf:=buf;
 
+        { ensure that existing message state records won't be freed }
+        current_settings.pmessage:=nil;
+
         { flushpendingswitchesstate should have been called }
         if assigned(pendingstate.nextmessagerecord) then
           internalerror(2024122901);
@@ -3863,7 +3866,8 @@ type
                       end;
                     ST_LOADMESSAGES:
                       begin
-                        { free pending messages }
+                        { free current and pending messages }
+                        FreeLocalVerbosity(current_settings.pmessage);
                         FreeLocalVerbosity(pendingstate.nextmessagerecord);
                         { the message settings are stored from newest to oldest
                           change for the whole stack, so we only want to apply
