@@ -402,6 +402,8 @@ type
     Procedure TestProc_ArgVarTypeAliasDelphi;
     Procedure TestProc_ArgVarTypeAliasDelphiMismatchFail;
     Procedure TestProc_ArgAnonymouseRangeTypeFail;
+    Procedure TestProc_ArgAnonymouseEnumTypeFail;
+    Procedure TestProc_ArgAnonymouseSetTypeFail;
     Procedure TestProc_ArgMissingSemicolonFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
@@ -6491,7 +6493,27 @@ begin
   'procedure Fly(Speed: 1..2);',
   'begin end;',
   'begin']);
-  CheckParserException('Identifier expected at token "Number" in file afile.pp at line 2 column 22',nParserExpectedIdentifier);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
+end;
+
+procedure TTestResolver.TestProc_ArgAnonymouseEnumTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(Speed: (red, blue));',
+  'begin end;',
+  'begin']);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
+end;
+
+procedure TTestResolver.TestProc_ArgAnonymouseSetTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(Speed: set of (red, blue));',
+  'begin end;',
+  'begin']);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestProc_ArgMissingSemicolonFail;
@@ -9257,7 +9279,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Cannot nest anonymous record',nCannotNestAnonymousX);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestRecordAnonym_Advanced_ConstFail;
@@ -16921,8 +16943,7 @@ begin
   'begin',
   'end;',
   'begin']);
-  CheckResolverException('Cannot nest anonymous procedural type',
-    nCannotNestAnonymousX);
+  CheckParserException('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.',nParserParamsOrResultTypesNoLocalTypeDefs);
 end;
 
 procedure TTestResolver.TestProcTypeAnonymous_PropertyFail;

@@ -75,6 +75,7 @@ const
   nParserSyntaxError = 2022;
   nParserTypeSyntaxError = 2023;
   nParserArrayTypeSyntaxError = 2024;
+  nParserParamsOrResultTypesNoLocalTypeDefs = 2025;
   nParserExpectedIdentifier = 2026;
   nParserNotAProcToken = 2026;
   nRangeExpressionExpected = 2027;
@@ -111,6 +112,7 @@ const
   nInvalidMessageType = 2058;
   nErrCompilationAborted = 2059; // FPC = 1018;
 
+
 // resourcestring patterns of messages
 resourcestring
   SErrNoSourceGiven = 'No source file specified';
@@ -137,6 +139,7 @@ resourcestring
   SParserSyntaxError = 'Syntax error';
   SParserTypeSyntaxError = 'Syntax error in type';
   SParserArrayTypeSyntaxError = 'Syntax error in array type';
+  SParserParamsOrResultTypesNoLocalTypeDefs = 'Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.';
   SParserExpectedIdentifier = 'Identifier expected';
   SParserNotAProcToken = 'Not a procedure or function token';
   SRangeExpressionExpected = 'Range expression expected';
@@ -2150,7 +2153,7 @@ Const
   NoHintTokens = [tkProcedure,tkFunction];
   InterfaceKindTypes : Array[Boolean] of TPasObjKind = (okInterface,okObjcProtocol);
   ClassKindTypes : Array[TLocalClassType] of TPasObjKind = (okClass,okObjCClass,okObjcCategory,okClassHelper);
-
+  ArgTypeTokens = [tkIdentifier,tkarray,tkSpecialize,tkCaret];
 
 var
   PM: TPackMode;
@@ -2169,6 +2172,9 @@ begin
     if (CurToken in FullTypeTokens) then
       ParseExc(nParserTypeNotAllowedHere,SParserTypeNotAllowedHere,[CurtokenText]);
     end;
+
+  if (Parent is TPasArgument) and not (CurToken in ArgTypeTokens) then
+    ParseExc(nParserParamsOrResultTypesNoLocalTypeDefs,SParserParamsOrResultTypesNoLocalTypeDefs);
 
   case CurToken of
     // types only allowed when full
@@ -2272,8 +2278,6 @@ begin
       end;
     tkNumber,tkMinus,tkChar:
       begin
-      if Parent is TPasArgument then
-        ParseExcExpectedIdentifier;
       UngetToken;
       Result:=ParseRangeType(Parent,NamePos,TypeName,declParseType=dptFull);
       end;
