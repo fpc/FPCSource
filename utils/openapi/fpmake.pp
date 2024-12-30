@@ -34,6 +34,7 @@ begin
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-json');
+    P.Dependencies.Add('fcl-yaml');
     P.Dependencies.Add('fcl-openapi');
     P.Dependencies.Add('fcl-jsonschema');
 

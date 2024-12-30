@@ -20,6 +20,10 @@ uses
   Classes,
   SysUtils,
   CustApp,
+  fpjson,
+  fpyaml.parser,
+  fpyaml.data,
+  fpyaml.json,
   fpopenapi.objects,
   fpopenapi.reader,
   fpopenapi.codegen;
@@ -30,10 +34,12 @@ type
 
   TGenDTOApplication = class(TCustomApplication)
   private
+    FInputIsYAML : Boolean;
     FQuiet : Boolean;
     FCodeGen : TOpenAPICodeGen;
     FServiceMapFile,
     FUUIDMapFile : String;
+    procedure ReadYAML(const aInputFile: string; aApi: TOpenAPI);
   protected
     Procedure DoLog(EventType : TEventType; const Msg : String); override;
     procedure DoRun; override;
@@ -63,10 +69,43 @@ begin
     FCodeGen.UUIDMap.SavetoFile(FUUIDMapFile);
 end;
 
+procedure TGenDTOApplication.ReadYAML(const aInputFile : string; aApi: TOpenAPI);
+
+var
+  lParser : TYAMLParser;
+  lYAML : TYAMLStream;
+  lJSON : TJSONData;
+  lJSONString : TJSONStringType;
+  lReader : TOpenAPIReader;
+
+begin
+  lYAML:=Nil;
+  lParser:=TYAMLParser.Create(aInputFile);
+  try
+    lYAML:=lParser.Parse;
+  finally
+    lParser.Free;
+  end;
+  lJSON:=Nil;
+  try
+    lJSON:=YAMLtoJSON(lYAML);
+    lJSONString:=lJSON.FormatJSON();
+  finally
+    lJSON.Free;
+  end;
+  lReader:=TOpenAPIReader.Create(Self);
+  try
+    lReader.ReadFromString(aAPI,lJSONString);
+  finally
+    lReader.Free;
+  end;
+end;
+
 procedure TGenDTOApplication.ReadOpenAPi(const aInputFile : string; aApi: TOpenAPI);
 
 var
   lReader : TOpenAPIReader;
+
 
 begin
   lReader:=TOpenAPIReader.Create(Self);
@@ -104,8 +143,8 @@ end;
 procedure TGenDTOApplication.DoRun;
 
 const
-  shortOpts = 'hi:o:dequ:s:varcC:bnw:';
-  LongOpts : Array of string = ('help','input:','output:','delphi','uuid-map:','quiet','service-map','verbose-header','enumerated','async','server','client','config:','abstract','no-implementation','write-config:');
+  shortOpts = 'hi:o:dequ:s:varcC:bnw:y';
+  LongOpts : Array of string = ('help','input:','output:','delphi','uuid-map:','quiet','service-map','verbose-header','enumerated','async','server','client','config:','abstract','no-implementation','write-config:','yaml');
 
 var
   lAPI : TOpenAPI;
@@ -134,6 +173,7 @@ begin
   FCodeGen.GenerateClient:=HasOption('c','client');
   FCodeGen.AbstractServiceCalls:=HasOption('b','abstract');
   FCodeGen.SkipServerServiceImplementationModule:=HasOption('n','no-implementation');
+  FInputIsYAML:=HasOption('y','yaml') or SameText(ExtractFileExt(lInputFile),'.yaml');
   FQuiet:=HasOption('q','quiet');
 
   if HasOption('w','write-config') then
@@ -149,7 +189,10 @@ begin
       lOutputFile:=ChangeFileExt(lInputFile,'');
     lAPI:=TOpenAPI.Create;
     try
-      ReadOpenAPi(lInputFile,lAPI);
+      if FInputIsYAML then
+        ReadYAML(lInputFile,lAPI)
+      else
+        ReadOpenAPi(lInputFile,lAPI);
       WriteApi(lApi,lOutputFile);
     finally
       lApi.Free;
