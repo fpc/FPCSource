@@ -24,11 +24,6 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages>
-      <Item>
-        <PackageName Value="FCL"/>
-      </Item>
-    </RequiredPackages>
     <Units>
       <Unit>
         <Filename Value="testyaml.lpr"/>
@@ -36,10 +31,6 @@
       </Unit>
       <Unit>
         <Filename Value="utyamlparser.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="../src/fpyaml.data.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -70,6 +61,10 @@
         <Filename Value="../src/fpyaml.strings.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="../src/fpyaml.data.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -79,11 +74,12 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="src"/>
+      <OtherUnitFiles Value="src;../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
         <UseHeaptrc Value="True"/>
       </Debugging>
       <Options>

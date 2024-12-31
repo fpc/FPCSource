@@ -47,6 +47,8 @@ type
     procedure TestCreate;
     procedure TestEmptyDocument;
     procedure TestVersionEmptyDocument;
+    procedure TestMultiDocument;
+    procedure TestMultiDocumentNoEnd;
     procedure TestScalar;
     procedure TestAnchoredScalar;
     procedure TestBlockSequence;
@@ -504,6 +506,46 @@ begin
   AssertEquals('Major',1,Document.Version.Major);
   AssertEquals('Minor',2,Document.Version.Minor);
   AssertEquals('Document empty',0,Document.Count);
+end;
+
+procedure TTestYamlParser.TestMultiDocument;
+var
+  doc : TYAMLDocument;
+begin
+  Parse(['%YAML 1.2','---','abc','...','---','def','...']);
+  AssertNotNull('Data',Data);
+  AssertEquals('YAML Stream',TYAMLStream,Data.ClassType);
+  AssertEquals('YAML Stream item count',2,YAML.Count);
+  AssertEquals('YAML Stream document count',2,YAML.DocumentCount);
+  Doc:=YAML.Documents[0];
+  AssertNotNull('Document 1',Doc);
+  AssertEquals('Document 1 Major',1,Doc.Version.Major);
+  AssertEquals('Document 1 Minor',2,Doc.Version.Minor);
+  AssertEquals('Document 1 element count',1,Doc.Count);
+  AssertScalar('Document 1 element',Doc[0],yttString,'abc');
+  Doc:=YAML.Documents[1];
+  AssertNotNull('Document 2',doc);
+  AssertEquals('Document 2 element count',1,Doc.Count);
+  AssertScalar('Document 2 element',Doc[0],yttString,'def');
+end;
+
+procedure TTestYamlParser.TestMultiDocumentNoEnd;
+var
+  doc : TYAMLDocument;
+begin
+  Parse(['abc','---','def']);
+  AssertNotNull('Data',Data);
+  AssertEquals('YAML Stream',TYAMLStream,Data.ClassType);
+  AssertEquals('YAML Stream item count',2,YAML.Count);
+  AssertEquals('YAML Stream document count',2,YAML.DocumentCount);
+  Doc:=YAML.Documents[0];
+  AssertNotNull('Document 1',Doc);
+  AssertEquals('Document 1 element count',1,Doc.Count);
+  AssertScalar('Document 1 element',Doc[0],yttString,'abc');
+  Doc:=YAML.Documents[1];
+  AssertNotNull('Document 2',doc);
+  AssertEquals('Document 2 element count',1,Doc.Count);
+  AssertScalar('Document 2 element',Doc[0],yttString,'def');
 end;
 
 function TTestYamlParser.GetDocument: TYAMLDocument;

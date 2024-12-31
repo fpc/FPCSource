@@ -437,7 +437,7 @@ begin
       ConsumeToken;
       lToken:=Peek;
       end;
-    While not (lToken.token in [ytEOF,ytDocumentEnd]) do
+    While not (lToken.token in [ytEOF,ytDocumentStart,ytDocumentEnd]) do
       begin
       case lToken.Token of
         ytAnchor : ParseAnchor;
