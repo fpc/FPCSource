@@ -78,6 +78,7 @@ Type
     Constructor Create(const aInput : array of string);
     Constructor Create(const aFileName : string);
     Destructor Destroy; override;
+    Class function IsYamlFileName(const aFileName : string) : Boolean; inline;
     function ParseSingleDocument: TYAMLDocument;
     Function Parse : TYAMLStream;
   end;
@@ -620,10 +621,19 @@ begin
   inherited Destroy;
 end;
 
+
+class function TYAMLParser.IsYamlFileName(const aFileName: string): Boolean;
+
+begin
+  Result:=fpyaml.types.IsYamlFileName(aFileName);
+end;
+
+
 function TYAMLParser.ParseSingleDocument: TYAMLDocument;
 begin
   Result:=ParseSingleDocument(Nil);
 end;
+
 
 function TYAMLParser.ParseSingleDocument(aStream : TYAMLStream): TYAMLDocument;
 

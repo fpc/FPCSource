@@ -87,6 +87,8 @@ Const
   'tag:yaml.org,2002:seq',
   'tag:yaml.org,2002:map');
 
+Function IsYAMLFileName(const aFileName : string) : Boolean;
+
 implementation
 
 
@@ -142,6 +144,17 @@ function TYAMLTagTypeHelper.ToString: String;
 begin
   Result:=YAMLTagNames[Self];
 end;
+
+Function IsYAMLFileName(const aFileName : string) : Boolean;
+
+var
+  Ext : string;
+
+begin
+  Ext:=ExtractFileExt(aFileName);
+  Result:=SameText(YamlExt1,Ext) or SameText(YamlExt2,Ext);
+end;
+
 
 end.
 

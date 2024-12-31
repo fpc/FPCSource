@@ -18,6 +18,10 @@ unit fpyaml.strings;
 
 interface
 
+const
+  YAMLExt1 = '.yaml';
+  YAMLExt2 = '.yml';
+
 resourcestring
   // Data
   SErrIsNotA = '%s is not a valid %s';
