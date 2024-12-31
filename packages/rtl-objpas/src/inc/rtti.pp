@@ -21,21 +21,6 @@ unit Rtti;
 {$goto on}
 {$Assertions on}
 
-{ Note: since the Lazarus IDE is not yet capable of correctly handling generic
-  functions it is best to define a InLazIDE define inside the IDE that disables
-  the generic code for CodeTools. To do this do this:
-
-  - go to Tools -> Codetools Defines Editor
-  - go to Edit -> Insert Node Below -> Define Recurse
-  - enter the following values:
-      Name: InLazIDE
-      Description: Define InLazIDE everywhere
-      Variable: InLazIDE
-      Value from text: 1
-}
-{$ifdef InLazIDE}
-{$define NoGenericMethods}
-{$endif}
 {$WARN 4055 off : Conversion between ordinals and pointers is not portable}
 interface
 
@@ -203,12 +188,10 @@ type
     class procedure Make(AValue: NativeInt; ATypeInfo: PTypeInfo; out Result: TValue); static; inline;
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     class procedure MakeOpenArray(AArray: Pointer; ALength: SizeInt; ATypeInfo: PTypeInfo; out Result: TValue); static;
-{$ifndef NoGenericMethods}
     generic class procedure Make<T>(const AValue: T; out Result: TValue); static; inline;
     generic class function From<T>(constref aValue: T): TValue; static; inline;
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
-{$endif}
     class function From(aTypeInfo: PTypeInfo; ABuffer: Pointer): TValue; static;
     class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
@@ -254,13 +237,11 @@ type
     function IsInstanceOf(aClass : TClass): boolean; inline;
     function TryCast(aTypeInfo: PTypeInfo; out aResult: TValue; const aEmptyAsAnyType: Boolean = True): Boolean;
     function Cast(aTypeInfo: PTypeInfo; const aEmptyAsAnyType: Boolean = True): TValue; overload;
-{$ifndef NoGenericMethods}
     generic function Cast<T>(const aEmptyAsAnyType: Boolean = True): TValue; overload;
     generic function IsType<T>: Boolean; inline; overload;
     generic function IsType<T>(const EmptyAsAnyType: Boolean) : Boolean; inline; overload;
     generic function AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
     generic function TryAsType<T>(out aResult: T; const aEmptyAsAnyType: Boolean = True): Boolean; inline;
-{$endif}
     function TryAsOrdinal(out AResult: int64): boolean;
     function GetReferenceToRawData: Pointer;
     procedure ExtractRawData(ABuffer: Pointer);
@@ -2646,7 +2627,6 @@ begin
   Result:=Assigned(Obj) and Obj.InheritsFrom(aClass);
 end;
 
-{$ifndef NoGenericMethods}
 generic function TValue.IsType<T>:Boolean;
 begin
   Result := IsType(PTypeInfo(System.TypeInfo(T)));
@@ -2677,7 +2657,6 @@ begin
     arrdata := Nil;
   TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
 end;
-{$endif}
 
 function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
 begin
@@ -4248,8 +4227,6 @@ begin
     raise EInvalidCast.Create(SInvalidCast);
 end;
 
-{$ifndef NoGenericMethods}
-
 generic function TValue.AsType<T>(const aEmptyAsAnyType: Boolean = True): T;
 
 begin
@@ -4282,7 +4259,6 @@ begin
     else  
       aResult:=Default(T);
 end;   
-{$endif}
 
 function TValue.AsObject: TObject;
 begin
