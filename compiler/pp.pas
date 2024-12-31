@@ -219,10 +219,7 @@ program pp;
 {$endif support_mmx}
 
 
-{ Don't care about minstacksize or maxstacksize not beeing supported by current OS }
-{$WARN 2077 OFF}
-{$WARN 2078 OFF}
-
+{$ifdef windows}
 {$ifdef win32}
   { 256 MB stack }
   { under windows the stack can't grow }
@@ -238,6 +235,7 @@ program pp;
     {$MINSTACKSIZE 1000000}
   {$endif win64}
 {$endif win32}
+{$endif windows}
 
 uses
 {$ifdef heaptrc}
