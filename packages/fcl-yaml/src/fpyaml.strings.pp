@@ -62,6 +62,7 @@ resourcestring
   SErrDoubleVersion   = 'Double version directive: encountered new version "%s", current is "%s".';
   SErrAliasNotAllowed = 'Alias not allowed at stream level.';
   SErrUnexpectedToken = 'Unexpected token %s with value: "%s".';
+  SErrUnknownAlias    = 'Unknown alias: "%s".';
 
   // Convert to JSON
   SErrOnlyScalarKeys = 'Only scalar keys can be converted to JSON keys.';

@@ -32,7 +32,9 @@ Type
   Public
     procedure TearDown; override;
     procedure SetData(aData : TYAMLData);
-    procedure AssertScalar(const Msg : string; aData : TYAMLData; aType : TYAMLTagType; const aValue : String);
+    function AssertScalar(const Msg : string; aData : TYAMLData; aType : TYAMLTagType; const aValue : String) : TYAMLScalar;
+    function AssertMapping(Msg: String; Y: TYAMLData; aCount : Integer = -1): TYAMLMapping;
+    function AssertSequence(Msg: String; Y: TYAMLData; aCount : Integer = -1): TYAMLSequence;
     Property Data : TYAMLData Read FData Write SetData;
   Published
     Procedure TestHookup;
@@ -156,12 +158,33 @@ begin
   FData:=aData;
 end;
 
-procedure TTestYAMLData.AssertScalar(const Msg: string; aData: TYAMLData; aType: TYAMLTagType; const aValue: String);
+function TTestYAMLData.AssertScalar(const Msg: string; aData: TYAMLData; aType: TYAMLTagType; const aValue: String): TYAMLScalar;
 begin
   AssertNotNull(Msg+': not null',aData);
   AssertEquals(Msg+': scalar',TYAMLScalar,aData.ClassType);
   AssertEquals(Msg+': tag',YAMLTagNames[aType],aData.Tag);
   AssertEquals(Msg+': value',aValue,TYAMLScalar(aData).Value);
+  Result:=TYAMLScalar(aData);
+end;
+
+function TTestYamlData.AssertSequence(Msg: String; Y: TYAMLData; aCount: Integer = -1): TYAMLSequence;
+
+begin
+  AssertNotNull(Msg+': Have data',Y);
+  AssertEquals(Msg+': Have sequence',TYAMLSequence,Y.ClassType);
+  if aCount<>-1 then
+    AssertEquals(Msg+': element count',aCount,Y.Count);
+  Result:=TYAMLSequence(Y);
+end;
+
+Function TTestYamlData.AssertMapping(Msg : String; Y : TYAMLData; aCount : Integer = -1) : TYAMLMapping;
+
+begin
+  AssertNotNull(Msg+': Have data',Y);
+  AssertEquals(Msg+': Have mapping',TYAMLMapping,Y.ClassType);
+  if aCount<>-1 then
+    AssertEquals(Msg+': element count',aCount,Y.Count);
+  Result:=TYAMLMapping(Y);
 end;
 
 procedure TTestYAMLData.TestHookup;

@@ -28,8 +28,6 @@ type
   TTestYamlParser= class(TTestYAMLData)
   private
     FParser: TYAMLParser;
-    function AssertMapping(Msg: String; Y: TYAMLData): TYAMLMapping;
-    function AssertSequence(Msg: String; Y: TYAMLData): TYAMLSequence;
     function AssertValue(aClass: TYAMLDataClass): TYAMLData;
     function GetDocument: TYAMLDocument;
     function GetStream: TYAMLStream;
@@ -51,6 +49,7 @@ type
     procedure TestMultiDocumentNoEnd;
     procedure TestScalar;
     procedure TestAnchoredScalar;
+    procedure TestAlias;
     procedure TestBlockSequence;
     procedure TestBlockSequenceTwo;
     procedure TestBlockSequenceThree;
@@ -107,10 +106,25 @@ begin
   AssertEquals('YAML Stream',TYAMLStream,Data.ClassType);
   AssertEquals('YAML Stream item count',1,YAML.Count);
   AssertNotNull('Document',Document);
-  AssertNotNUll('Value');
+  AssertScalar('Value',Value,yttString,'one');
+  AssertNotNUll('Value',Value);
   AssertEquals('Value ',TYAMLScalar,Value.ClassType);
-  AssertEquals('Value ','one',Value.AsString);
+  AssertEquals('Value valua ','one',Value.AsString);
   AssertEquals('Value ','anchor',Value.Anchor);
+end;
+
+procedure TTestYamlParser.TestAlias;
+
+var
+  Seq : TYAMLSequence;
+  lItem : TYAMLScalar;
+begin
+  Parse(['- &anchor one','- *anchor ']);
+  Seq:=AssertSequence('Value',Value,2);
+  lItem:=AssertScalar('First',Seq[0],yttString,'one');
+  AssertEquals('first has anchor','anchor',lItem.Anchor);
+  lItem:=AssertScalar('Second',Seq[1],yttString,'one');
+  AssertEquals('second has no anchor','',lItem.Anchor);
 end;
 
 function TTestYamlParser.AssertValue(aClass : TYAMLDataClass) : TYAMLData;
@@ -370,20 +384,6 @@ begin
   AssertScalar('2 - item',map.items[1],yttString,'c');
 end;
 
-Function TTestYamlParser.AssertSequence(Msg : String; Y : TYAMLData) : TYAMLSequence;
-begin
-  AssertNotNull(Msg+': Have data',Y);
-  AssertEquals(Msg+': Have sequence',TYAMLSequence,Y.ClassType);
-  Result:=TYAMLSequence(Y);
-end;
-Function TTestYamlParser.AssertMapping(Msg : String; Y : TYAMLData) : TYAMLMapping;
-
-begin
-  AssertNotNull(Msg+': Have data',Y);
-  AssertEquals(Msg+': Have mapping',TYAMLMapping,Y.ClassType);
-  Result:=TYAMLMapping(Y);
-
-end;
 
 procedure TTestYamlParser.TestBlockMappingUnindentedSequenceWithIndent;
 var

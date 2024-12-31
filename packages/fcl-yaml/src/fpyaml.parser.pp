@@ -248,7 +248,11 @@ var
 begin
   lToken:=Peek;
   case lToken.Token of
-    ytAnchor : ParseAnchor;
+    ytAnchor :
+      begin
+      ParseAnchor;
+      Result:=ParseValue(aAllowBlockEntry);
+      end;
     ytAlias : Result:=ParseAlias;
     ytBlockEntry :
       {
@@ -415,9 +419,21 @@ end;
 
 
 function TYAMLParser.ParseAlias : TYAMLData;
+// On entry, we're on the alias token.
+// On exit, we're on EOF or the first token after the alias token.
+var
+  lToken : TYAMLTokenData;
+  lAlias : TYAMLString;
+  lValue : TYAMLData;
 
 begin
-  //
+  lToken:=Peek;
+  lAlias:=lToken.Value;
+  ConsumeToken;
+  lValue:=TYAMLData(FMap.Items[lAlias]);
+  if lValue=nil then
+    Error(SErrUnknownAlias,[lAlias]);
+  Result:=lValue.Clone;
 end;
 
 
