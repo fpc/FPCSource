@@ -67,8 +67,9 @@ Type
     function ParseBlockSequence(SkipStart: boolean=false): TYAMLSequence; virtual;
     function ParseFlowSequence: TYAMLSequence; virtual;
     function ParseValue(aAllowBlockEntry: Boolean=false): TYAMLData; virtual;
-    function ParseDocument: TYAMLDocument; virtual;
     function ParseTagDirective: TYAMLTagData; virtual;
+    function ParseDocument: TYAMLDocument; virtual;
+    function ParseSingleDocument(aStream: TYAMLStream): TYAMLDocument;
     Property Scanner : TYAMLScanner Read FScanner;
   public
     Constructor Create(aScanner : TYAMLScanner; aOwnsScanner : Boolean = False);
@@ -77,6 +78,7 @@ Type
     Constructor Create(const aInput : array of string);
     Constructor Create(const aFileName : string);
     Destructor Destroy; override;
+    function ParseSingleDocument: TYAMLDocument;
     Function Parse : TYAMLStream;
   end;
 
@@ -588,7 +590,7 @@ end;
 function TYAMLParser.Parse: TYAMLStream;
 
 var
-  lToken : TYAMLTokenData;
+  lDoc : TYAMLDocument;
   lDone : Boolean;
 
 begin
@@ -596,26 +598,10 @@ begin
   Result:=CreateStream;
   try
     Repeat
-      lToken:=Peek;
-      Case lToken.token of
-        ytAnchor : ParseAnchor;
-        ytAlias : Error(SErrAliasNotAllowed);
-        ytScalarDouble,
-        ytScalarSingle,
-        ytScalarFolded,
-        ytScalarLiteral,
-        ytScalarPlain,
-        ytBlockMappingStart,
-        ytBlockSequenceStart,
-        ytFlowSequenceStart,
-        ytFlowMappingStart,
-        ytDocumentStart : Result.Add(ParseDocument);
-        ytVersionDirective : ParseVersion;
-        ytTagDirective : Result.Add(ParseTagDirective);
-        ytEOF: lDone:=True;
-      else
-        Error(SErrUnexpectedToken,[lToken.Token.ToString,lToken.value]);
-      end;
+      lDoc:=ParseSingleDocument(Result);
+      lDone:=lDoc=Nil;
+      if not lDone then
+        Result.Add(lDoc);
     until lDone;
   except
     Result.Free;
@@ -632,6 +618,50 @@ begin
   if FOwnsScanner then
     FreeAndNil(FScanner);
   inherited Destroy;
+end;
+
+function TYAMLParser.ParseSingleDocument: TYAMLDocument;
+begin
+  Result:=ParseSingleDocument(Nil);
+end;
+
+function TYAMLParser.ParseSingleDocument(aStream : TYAMLStream): TYAMLDocument;
+
+var
+  lToken : TYAMLTokenData;
+  lTag : TYAMLTagData;
+
+begin
+  Result:=Nil;
+  Repeat
+    lToken:=Peek;
+    Case lToken.token of
+      ytAnchor : ParseAnchor;
+      ytAlias : Error(SErrAliasNotAllowed);
+      ytScalarDouble,
+      ytScalarSingle,
+      ytScalarFolded,
+      ytScalarLiteral,
+      ytScalarPlain,
+      ytBlockMappingStart,
+      ytBlockSequenceStart,
+      ytFlowSequenceStart,
+      ytFlowMappingStart,
+      ytDocumentStart : Result:=ParseDocument;
+      ytVersionDirective : ParseVersion;
+      ytTagDirective :
+        begin
+        lTag:=ParseTagDirective;
+        if aStream<>Nil then
+          aStream.Add(lTag)
+        else
+          lTag.Free;
+        end;
+      ytEOF: ;
+    else
+      Error(SErrUnexpectedToken,[lToken.Token.ToString,lToken.value]);
+    end;
+  until (lToken.token=ytEOF) or Assigned(Result);
 end;
 
 end.

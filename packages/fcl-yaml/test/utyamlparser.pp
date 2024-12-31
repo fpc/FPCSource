@@ -28,13 +28,13 @@ type
   TTestYamlParser= class(TTestYAMLData)
   private
     FParser: TYAMLParser;
+    FSingle : Boolean;
     function AssertValue(aClass: TYAMLDataClass): TYAMLData;
     function GetDocument: TYAMLDocument;
     function GetStream: TYAMLStream;
     function GetValue: TYAMLData;
   public
     procedure Parse(aContent : Array of string);
-
     procedure SetUp; override;
     procedure TearDown; override;
     property Parser : TYAMLParser Read FParser;
@@ -47,6 +47,7 @@ type
     procedure TestVersionEmptyDocument;
     procedure TestMultiDocument;
     procedure TestMultiDocumentNoEnd;
+    procedure TestMultiDocumentSingle;
     procedure TestScalar;
     procedure TestAnchoredScalar;
     procedure TestAlias;
@@ -548,6 +549,28 @@ begin
   AssertScalar('Document 2 element',Doc[0],yttString,'def');
 end;
 
+procedure TTestYamlParser.TestMultiDocumentSingle;
+var
+  doc : TYAMLDocument;
+begin
+  FSingle:=True;
+  Parse(['%YAML 1.2','---','abc','...','---','def','...']);
+  AssertNotNull('Data',Data);
+  AssertEquals('YAML Stream',TYAMLDocument,Data.ClassType);
+  Doc:=TYAMLDocument(Data);
+  AssertNotNull('Document 1',Doc);
+  AssertEquals('Document 1 Major',1,Doc.Version.Major);
+  AssertEquals('Document 1 Minor',2,Doc.Version.Minor);
+  AssertEquals('Document 1 element count',1,Doc.Count);
+  AssertScalar('Document 1 element',Doc[0],yttString,'abc');
+  SetData(Parser.ParseSingleDocument);
+  AssertEquals('YAML Stream',TYAMLDocument,Data.ClassType);
+  Doc:=TYAMLDocument(Data);
+  AssertNotNull('Document 2',doc);
+  AssertEquals('Document 2 element count',1,Doc.Count);
+  AssertScalar('Document 2 element',Doc[0],yttString,'def');
+end;
+
 function TTestYamlParser.GetDocument: TYAMLDocument;
 
 begin
@@ -573,7 +596,10 @@ end;
 procedure TTestYamlParser.Parse(aContent: array of string);
 begin
   FParser:=TYAMLParser.Create(aContent);
-  SetData(FParser.Parse);
+  if FSingle then
+    SetData(FParser.ParseSingleDocument)
+  else
+    SetData(FParser.Parse);
 end;
 
 procedure TTestYamlParser.SetUp;
