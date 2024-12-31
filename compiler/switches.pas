@@ -50,7 +50,7 @@ uses
   { override optimizer switches }
   llvminfo,
 {$endif llvm}
-  globals,verbose,comphook,dirparse,
+  globals,verbose,comphook,dirparse,cclasses,
   fmodule;
 
 {****************************************************************************
@@ -384,6 +384,8 @@ procedure flushpendingswitchesstate;
   var
     tmpproccal: tproccalloption;
     fstate, pstate : pmessagestaterecord;
+    msgset : thashset;
+    msgfound : boolean;
   begin
     { process pending localswitches (range checking, etc) }
     if psf_local_switches_changed in pendingstate.flags then
@@ -423,12 +425,17 @@ procedure flushpendingswitchesstate;
         setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
       end;
+    msgset:=thashset.create(10,false,false);
     fstate:=pendingstate.nextmessagerecord;
     pstate:=pendingstate.nextmessagerecord;
     while assigned(pstate) do
       begin
         pendingstate.nextmessagerecord:=pstate^.next;
-        SetMessageVerbosity(pstate^.value,pstate^.state);
+        { the message records are ordered newest to oldest, so only apply the newest change }
+        msgfound:=false;
+        if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
+            not msgfound then
+          SetMessageVerbosity(pstate^.value,pstate^.state);
         if not assigned(pstate^.next) then
           begin
             pstate^.next:=current_settings.pmessage;
@@ -439,6 +446,7 @@ procedure flushpendingswitchesstate;
           pstate:=pstate^.next;
         pendingstate.nextmessagerecord:=nil;
       end;
+    msgset.free;
     { process pending calling convention changes (calling x) }
     if pendingstate.nextcallingstr<>'' then
       begin

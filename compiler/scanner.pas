@@ -3755,6 +3755,8 @@ type
         specialtoken : tspecialgenerictoken;
         i : byte;
         pmsg,prevmsg : pmessagestaterecord;
+        msgset : thashset;
+        msgfound : boolean;
       begin
         if not assigned(replaytokenbuf) then
           internalerror(200511177);
@@ -3863,20 +3865,33 @@ type
                       begin
                         { free pending messages }
                         FreeLocalVerbosity(pendingstate.nextmessagerecord);
+                        { the message settings are stored from newest to oldest
+                          change for the whole stack, so we only want to apply
+                          the newest changes for each message type }
                         mesgnb:=tokenreadsizeint;
+                        msgset:=thashset.create(min(mesgnb,10),false,false);
                         prevmsg:=nil;
+                        pmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
-                            new(pmsg);
+                            if not assigned(pmsg) then
+                              new(pmsg);
+                            pmsg^.value:=tokenreadlongint;
+                            pmsg^.state:=tmsgstate(tokenreadlongint);
+                            pmsg^.next:=nil;
+                            msgfound:=false;
+                            if assigned(msgset.findoradd(@pmsg^.value,sizeof(pmsg^.value),msgfound)) and msgfound then
+                              continue;
                             if i=1 then
                               pendingstate.nextmessagerecord:=pmsg
                             else
                               prevmsg^.next:=pmsg;
-                            pmsg^.value:=tokenreadlongint;
-                            pmsg^.state:=tmsgstate(tokenreadlongint);
-                            pmsg^.next:=nil;
                             prevmsg:=pmsg;
+                            pmsg:=nil;
                           end;
+                        if assigned(pmsg) then
+                          dispose(pmsg);
+                        msgset.free;
                       end;
                     ST_LINE:
                       begin

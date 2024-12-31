@@ -114,7 +114,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule,constexp,globals,cfileutl,switches;
+      comphook,fmodule,constexp,globals,cfileutl,switches,cclasses;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -173,13 +173,22 @@ implementation
       end;
 
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+      var
+        msgset : thashset;
+        msgfound : boolean;
       begin
         msg^.ResetStates;
+        msgset:=thashset.create(10,false,false);
         while assigned(pstate) do
           begin
-            SetMessageVerbosity(pstate^.value,pstate^.state);
+            msgfound:=false;
+            { only apply the newest message state }
+            if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
+                not msgfound then
+              SetMessageVerbosity(pstate^.value,pstate^.state);
             pstate:=pstate^.next;
           end;
+        msgset.free;
       end;
 
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
