@@ -450,7 +450,7 @@ type
     TCDM = class(TOpenAddressingSH<TKey, TEmptyRecord, TDefaultHashFactory, TLinearProbing>);
     TItemsArray = array of TItem;
     TItemsDArray = array[0..Pred(TCuckooCfg.D)] of TItemsArray;
-    TPointersEnumerator = class(TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>);
+    TPointersEnumerator = TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>;
     TPointersCollection = TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>;
   public type
     PPointersCollection = ^TPointersCollection;
