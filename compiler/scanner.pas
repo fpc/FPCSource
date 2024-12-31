@@ -90,10 +90,12 @@ interface
          tokenbuf : tdynamicarray;
          tokenbuf_needs_swapping : boolean;
          next     : treplaystack;
+         pending  : tpendingstate;
          constructor Create(atoken: ttoken;aidtoken:ttoken;
            const aorgpattern,apattern:string;const acstringpattern:ansistring;
            apatternw:pcompilerwidestring;asettings:tsettings;
-           atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
+           atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;
+           anext:treplaystack);
          destructor destroy;override;
        end;
 
@@ -2972,7 +2974,7 @@ type
     constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
       const aorgpattern,apattern:string;const acstringpattern:ansistring;
       apatternw:pcompilerwidestring;asettings:tsettings;
-      atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
+      atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;anext:treplaystack);
       begin
         token:=atoken;
         idtoken:=aidtoken;
@@ -2986,6 +2988,7 @@ type
             move(apatternw^.data^,patternw^.data^,apatternw^.len*sizeof(tcompilerwidechar));
           end;
         settings:=asettings;
+        pending:=apending;
         tokenbuf:=atokenbuf;
         tokenbuf_needs_swapping:=change_endian;
         next:=anext;
@@ -3710,7 +3713,8 @@ type
 
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
-          cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,replaystack);
+          cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,
+          pendingstate,replaystack);
 {$ifdef check_inputpointer_limits}
         if assigned(hidden_inputpointer) then
           dec_inputpointer;
@@ -3723,10 +3727,7 @@ type
 
         { ensure that existing message state records won't be freed }
         current_settings.pmessage:=nil;
-
-        { flushpendingswitchesstate should have been called }
-        if assigned(pendingstate.nextmessagerecord) then
-          internalerror(2024122901);
+        pendingstate:=default(tpendingstate);
 
         { Initialize value of change_endian_for_replay variable }
         change_endian_for_replay:=change_endian;
@@ -3777,6 +3778,7 @@ type
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;
+            pendingstate:=replaystack.pending;
             if assigned(pendingstate.nextmessagerecord) then
               FreeLocalVerbosity(pendingstate.nextmessagerecord);
             pendingstate.nextmessagerecord:=current_settings.pmessage;
