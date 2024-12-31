@@ -179,6 +179,8 @@ Const
          packrecords     : shortint;
          maxfpuregisters : shortint;
 
+         verbosity       : longint;
+
          cputype,
          optimizecputype,
          asmcputype      : tcputype;
@@ -513,6 +515,8 @@ Const
         packrecords     : 0;
 {$endif i8086}
         maxfpuregisters : 0;
+
+        verbosity : V_Default;
 
 { Note: GENERIC_CPU is used together with generic subdirectory to
   be able to compile some of the units without any real CPU.

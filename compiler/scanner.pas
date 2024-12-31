@@ -91,11 +91,12 @@ interface
          tokenbuf_needs_swapping : boolean;
          next     : treplaystack;
          pending  : tpendingstate;
+         verbosity : longint;
          constructor Create(atoken: ttoken;aidtoken:ttoken;
            const aorgpattern,apattern:string;const acstringpattern:ansistring;
            apatternw:pcompilerwidestring;asettings:tsettings;
            atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;
-           anext:treplaystack);
+           averbosity:longint;anext:treplaystack);
          destructor destroy;override;
        end;
 
@@ -2974,7 +2975,8 @@ type
     constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
       const aorgpattern,apattern:string;const acstringpattern:ansistring;
       apatternw:pcompilerwidestring;asettings:tsettings;
-      atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;anext:treplaystack);
+      atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;
+      averbosity:longint;anext:treplaystack);
       begin
         token:=atoken;
         idtoken:=aidtoken;
@@ -2989,6 +2991,7 @@ type
           end;
         settings:=asettings;
         pending:=apending;
+        verbosity:=averbosity;
         tokenbuf:=atokenbuf;
         tokenbuf_needs_swapping:=change_endian;
         next:=anext;
@@ -3450,10 +3453,10 @@ type
               >0: round to this size }
             setalloc:=tokenreadshortint;
             packenum:=tokenreadshortint;
-
             packrecords:=tokenreadshortint;
             maxfpuregisters:=tokenreadshortint;
 
+            verbosity:=tokenreadlongint;
 
             cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
             optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
@@ -3537,6 +3540,7 @@ type
             tokenwriteshortint(packenum);
             tokenwriteshortint(packrecords);
             tokenwriteshortint(maxfpuregisters);
+            tokenwritelongint(verbosity);
 
             tokenwriteenum(cputype,sizeof(tcputype));
             tokenwriteenum(optimizecputype,sizeof(tcputype));
@@ -3581,6 +3585,8 @@ type
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
         t:=_GENERICSPECIALTOKEN;
+        { ensure that all fields of settings are up to date }
+        current_settings.verbosity:=status.verbosity;
         { settings changed? }
         { last field pmessage is handled separately below in
           ST_LOADMESSAGES }
@@ -3714,7 +3720,7 @@ type
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
           cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,
-          pendingstate,replaystack);
+          pendingstate,status.verbosity,replaystack);
 {$ifdef check_inputpointer_limits}
         if assigned(hidden_inputpointer) then
           dec_inputpointer;
@@ -3781,6 +3787,7 @@ type
             pendingstate:=replaystack.pending;
             if assigned(pendingstate.nextmessagerecord) then
               FreeLocalVerbosity(pendingstate.nextmessagerecord);
+            recordpendingverbosityfullswitch(replaystack.verbosity);
             pendingstate.nextmessagerecord:=current_settings.pmessage;
             current_settings.pmessage:=nil;
             popreplaystack;
@@ -3865,6 +3872,7 @@ type
                         replaytokenbuf.read(current_settings,copy_size);
                         }
                         tokenreadsettings(current_settings,copy_size);
+                        recordpendingverbosityfullswitch(current_settings.verbosity);
                       end;
                     ST_LOADMESSAGES:
                       begin
