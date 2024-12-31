@@ -1778,7 +1778,7 @@ unit scandir;
         had_info : boolean;
       begin
         had_info:=(status.verbosity and V_Info)<>0;
-        { this message should allways appear !! }
+        { this message should always appear !! }
         status.verbosity:=status.verbosity or V_Info;
         Message(scan_i_press_enter);
         readln;
