@@ -29,31 +29,27 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.data.pas"/>
+        <Filename Value="../src/fpyaml.data.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.json.pas"/>
+        <Filename Value="../src/fpyaml.json.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.parser.pas"/>
+        <Filename Value="../src/fpyaml.parser.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.reader.pas"/>
+        <Filename Value="../src/fpyaml.scanner.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.scanner.pas"/>
+        <Filename Value="../src/fpyaml.strings.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../src/fpyaml.strings.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="../src/fpyaml.types.pas"/>
+        <Filename Value="../src/fpyaml.types.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
