@@ -39,7 +39,7 @@ type
   TYAMLPos = record
     Line: Cardinal;
     Column: Cardinal;
-    Constructor create(const aLine, aColumn: Cardinal);
+    Constructor Create(const aLine, aColumn: Cardinal);
   end;
   { TYAMLKey }
 
@@ -239,7 +239,7 @@ const
 
 { TYAMLPos }
 
-constructor TYAMLPos.create(const aLine, aColumn : Cardinal);
+constructor TYAMLPos.Create(const aLine, aColumn : Cardinal);
 
 begin
   Line:=aLine;

@@ -57,9 +57,9 @@ Type
 
   TYAMLTagTypeHelper = Type helper for TYAMLTagType
   private
-    procedure SetAsString(AValue: String);
+    procedure SetAsString(const AValue: String);
   public
-    class function FromString(aString : String) : TYAMLTagType; static;
+    class function FromString(const aString : String) : TYAMLTagType; static;
     function ToString: String;
     Property AsString : String Read ToString Write SetAsString;
   end;
@@ -118,7 +118,7 @@ end;
 
 { TYAMLTagTypeHelper }
 
-procedure TYAMLTagTypeHelper.SetAsString(AValue: String);
+procedure TYAMLTagTypeHelper.SetAsString(const AValue: String);
 var
   T : TYAMLTagType;
 
@@ -132,7 +132,7 @@ begin
       end;
 end;
 
-class function TYAMLTagTypeHelper.FromString(aString: String): TYAMLTagType;
+class function TYAMLTagTypeHelper.FromString(const aString: String): TYAMLTagType;
 begin
   Result:=Default(TYAMLTagType);
   Result.AsString:=aString;

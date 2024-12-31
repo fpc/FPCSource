@@ -56,8 +56,8 @@ Type
     class function allowTag : Boolean; virtual;
     class function DefaultTag : TYAMLString; virtual;
   Public
-    constructor create(); virtual;
-    constructor create(const aAnchor : TYAMLString; const aTag : TYAMLString = '');
+    constructor Create(); virtual;
+    constructor Create(const aAnchor : TYAMLString; const aTag : TYAMLString = '');
     Function Clone : TYAMLData; virtual; abstract;
     Function Equals(aData : TYAMLData; aStrict : Boolean = False) : Boolean; overload;virtual;
     Function GetEnumerator: TYAMLEnumerator; virtual; abstract;
@@ -188,8 +188,8 @@ Type
   Private
     Fkey,Fvalue : TYAMLData;
   Public
-    constructor create(aKey,aValue : TYAMLData);
-    destructor destroy; override;
+    constructor Create(aKey,aValue : TYAMLData);
+    destructor Destroy; override;
     Property Key : TYAMLData Read FKey;
     Property Value : TYAMLData Read FValue;
   end;
@@ -388,7 +388,7 @@ begin
 end;
 
 
-constructor TYAMLData.create();
+constructor TYAMLData.Create();
 
 begin
   if AllowTag then
@@ -396,7 +396,7 @@ begin
 end;
 
 
-constructor TYAMLData.create(const aAnchor: TYAMLString; const aTag: TYAMLString);
+constructor TYAMLData.Create(const aAnchor: TYAMLString; const aTag: TYAMLString);
 
 begin
   Create;
@@ -419,7 +419,7 @@ end;
 function TYAMLTagData.Clone: TYAMLData;
 
 begin
-  Result:=TYAMLTagData(Self.ClassType).create('',Self.Tag);
+  Result:=TYAMLTagData(Self.ClassType).Create('',Self.Tag);
   TYAMLTagData(Result).Data:=Self.Data;
 end;
 
@@ -716,7 +716,7 @@ var
   I : Integer;
 
 begin
-  Result:=TYAMLDataClass(Self.ClassType).create('',Self.Tag);
+  Result:=TYAMLDataClass(Self.ClassType).Create('',Self.Tag);
   For I:=0 to Count-1 do
     aList.Add(GetItem(I).Clone);
 end;
@@ -796,7 +796,7 @@ begin
   Findex:=-1;
   FList:=aList;
   FKey:=TYAMLScalar.Create('',yttCustom,yskPlain);
-  FItem:=TYAMLMapItem.create(FKey,Nil);
+  FItem:=TYAMLMapItem.Create(FKey,Nil);
 end;
 
 
@@ -1076,7 +1076,7 @@ var
   aMap : TYAMLMapping absolute Result;
 
 begin
-  Result:=TYAMLDataClass(Self.ClassType).create('',Self.tag);
+  Result:=TYAMLDataClass(Self.ClassType).Create('',Self.tag);
   aMap.Kind:=Self.Kind;
   For I:=0 to Count-1 do
     With Mapping[i] do
@@ -1210,7 +1210,7 @@ end;
 
 { TYAMLMapping.TMapItem }
 
-constructor TYAMLMapItem.create(aKey, aValue: TYAMLData);
+constructor TYAMLMapItem.Create(aKey, aValue: TYAMLData);
 
 begin
   FKey:=aKey;

@@ -49,7 +49,7 @@ Type
     function ConsumeAnchor: TYAMLString;
     function ConsumeVersion: TYAMLVersion;
     class function TokenToScalarKind(aToken: TYAMLToken): TYAMLScalarKind;
-    function GuessTagFromScalarValue(aValue: TYAMLString; aKind: TYAMLScalarKind): TYAMLTagType; virtual;
+    function GuessTagFromScalarValue(const aValue: TYAMLString; aKind: TYAMLScalarKind): TYAMLTagType; virtual;
     Function CreateScanner(aInput : TStream) : TYAMLScanner; virtual;
     function CreateYAMLData(aClass: TYAMLDataClass; aTag : TYAMLTagType = yttCustom): TYAMLData; virtual;
     function CreateDocument : TYAMLDocument;
@@ -71,14 +71,13 @@ Type
     function ParseTagDirective: TYAMLTagData; virtual;
     Property Scanner : TYAMLScanner Read FScanner;
   public
-    Constructor create(aScanner : TYAMLScanner; aOwnsScanner : Boolean = False);
-    Constructor create(aStream: TStream);
-    Constructor create(aInput: TStrings);
-    Constructor create(aInput : array of string);
-    Constructor create(aFileName : string);
-
-    Function Parse : TYAMLStream;
+    Constructor Create(aScanner : TYAMLScanner; aOwnsScanner : Boolean = False);
+    Constructor Create(aStream: TStream);
+    Constructor Create(aInput: TStrings);
+    Constructor Create(const aInput : array of string);
+    Constructor Create(const aFileName : string);
     Destructor Destroy; override;
+    Function Parse : TYAMLStream;
   end;
 
 implementation
@@ -154,7 +153,7 @@ begin
 end;
 
 
-constructor TYAMLParser.create(aInput: array of string);
+constructor TYAMLParser.create(const aInput: array of string);
 
 var
   L : TStrings;
@@ -170,7 +169,7 @@ begin
 end;
 
 
-constructor TYAMLParser.create(aFileName: string);
+constructor TYAMLParser.create(const aFileName: string);
 
 begin
   FStream:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
@@ -178,7 +177,7 @@ begin
 end;
 
 
-function TYAMLParser.GuessTagFromScalarValue(aValue : TYAMLString; aKind : TYAMLScalarKind): TYAMLTagType;
+function TYAMLParser.GuessTagFromScalarValue(const aValue : TYAMLString; aKind : TYAMLScalarKind): TYAMLTagType;
 
 var
   i64 : Int64;
