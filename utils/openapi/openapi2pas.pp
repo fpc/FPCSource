@@ -173,7 +173,7 @@ begin
   FCodeGen.GenerateClient:=HasOption('c','client');
   FCodeGen.AbstractServiceCalls:=HasOption('b','abstract');
   FCodeGen.SkipServerServiceImplementationModule:=HasOption('n','no-implementation');
-  FInputIsYAML:=HasOption('y','yaml') or SameText(ExtractFileExt(lInputFile),'.yaml');
+  FInputIsYAML:=HasOption('y','yaml') or TYAMLParser.IsYamlFileName(lInputFile);
   FQuiet:=HasOption('q','quiet');
 
   if HasOption('w','write-config') then
