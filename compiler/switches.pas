@@ -426,6 +426,9 @@ procedure flushpendingswitchesstate;
         pendingstate.nextverbositystr:='';
       end;
     msgset:=thashset.create(10,false,false);
+    { we need to start from a clean slate }
+    if not assigned(current_settings.pmessage) then
+      RestoreLocalVerbosity(nil);
     fstate:=pendingstate.nextmessagerecord;
     pstate:=pendingstate.nextmessagerecord;
     while assigned(pstate) do

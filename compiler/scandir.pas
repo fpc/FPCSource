@@ -1264,8 +1264,7 @@ unit scandir;
           recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
           recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
           pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
-          { Reset verbosity and forget previous pmeesage }
-          RestoreLocalVerbosity(nil);
+          { flushpendingswitchesstate will reset the message state }
           current_settings.pmessage:=nil;
           { Do not activate these changes yet, as otherwise
             you get a problem if you put a $pop just right after
