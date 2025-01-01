@@ -367,7 +367,8 @@ implementation
              location_reset(location,LOC_FPUREGISTER,paraarray[1].location.size);
              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[2].location.register));
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],
+               location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[3].location.register));
              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
