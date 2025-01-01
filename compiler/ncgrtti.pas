@@ -867,7 +867,10 @@ implementation
             { FieldOffset }
             tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
-            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
+            if is_objc_class_or_protocol(fldsym.vardef) then
+              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(voidpointertype,fullrtti,true)),voidpointertype)
+            else
+              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
             { FieldVisibility }
             tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),u8inttype);
             { Name }
