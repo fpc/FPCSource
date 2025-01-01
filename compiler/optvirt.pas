@@ -706,7 +706,10 @@ unit optvirt;
         defunitclassname(node.def,unitid,classid,classprefix);
         unitdevirtinfo:=addunitifnew(unitid^);
         classdevirtinfo:=unitdevirtinfo.addclass(classprefix+classid^,node.instantiated);
-        if (node.def.vmtentries.count=0) then
+        { node.def.vmcallstaticinfo can be nil if the object only has abstract
+          virtual methods }
+        if (node.def.vmtentries.count=0) or
+            not assigned(node.def.vmcallstaticinfo) then
           exit;
         for i:=0 to node.def.vmtentries.count-1 do
           if (po_virtualmethod in pvmtentry(node.def.vmtentries[i])^.procdef.procoptions) then
