@@ -737,7 +737,7 @@ begin
 end;
 
 
-function CheckForMessages(const OutName:string;Msgs:array of longint;var Found:array of boolean):boolean;
+function CheckForMessages(const OutName:string;const Msgs:array of longint;var Found:array of boolean):boolean;
 var
   t : text;
   s,id : string;
