@@ -653,6 +653,21 @@ unit agppcgas;
          dollarsign: '$';
        );
 
+    as_ppc_gas_macosclassic_info : tasminfo =
+       (
+         id     : as_powerpc_gas_macosclassic;
+
+         idtxt  : 'AS-MACOS';
+         asmbin : 'as';
+         asmcmd: '-o $OBJ $EXTRAOPT $ARCH $ASM';
+         supported_targets : [system_powerpc_macosclassic];
+         flags : [af_needar,af_smartlink_sections];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign: '$';
+       );
+
     as_ppc_gas_legacy_info : tasminfo =
        (
          id     : as_powerpc_gas_legacy;
@@ -750,6 +765,7 @@ unit agppcgas;
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_macosclassic_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_legacy_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
   RegisterAssembler(as_ppc_clang_darwin_info,TPPCAppleGNUAssembler);

@@ -560,6 +560,7 @@ implementation
              if (atype in [sec_stub]) then
                writer.AsmWrite('.section ');
            end;
+         system_powerpc_macosclassic,
          system_wasm32_wasi,
          system_wasm32_embedded:
            begin
