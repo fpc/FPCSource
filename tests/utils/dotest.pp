@@ -764,7 +764,7 @@ begin
         begin
           str(Msgs[i],id);
           id:='('+id+')';
-          if copy(s,1,length(id))=id then
+          if (copy(s,1,length(id))=id) or (pos(': '+id,s)>0) then
             begin
               if not Found[i] then
                 inc(fnd);
