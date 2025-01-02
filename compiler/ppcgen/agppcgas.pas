@@ -65,6 +65,10 @@ unit agppcgas;
       procedure WriteDirectiveName(dir: TAsmDirective); override;
     end;
 
+    TPPCMacOSAssembler=class(TPPCGNUAssembler)
+      function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
+    end;
+
     topstr = string[4];
 
     function branchmode(o: tasmop): topstr;
@@ -100,7 +104,7 @@ unit agppcgas;
           case refaddr of
             addr_no:
               begin
-                if (offset < -32768) or (offset > 32767) or assigned(symbol) then
+                if (offset < -32768) or (offset > 32767) { or assigned(symbol) } then
                   internalerror(2006052501);
                 s:='';
               end;
@@ -628,6 +632,32 @@ unit agppcgas;
       end;
 
 
+    function TPPCMacOSAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
+      begin
+        case atype of
+          sec_code:
+            result:='.text[PR]';
+          sec_data,
+          sec_rodata,
+          { don't use .bss[BS], causes relocation problems }
+          sec_bss:
+            result:='.data[RW]';
+          sec_rodata_norel:
+            result:='.text[RO]';
+          sec_fpc:
+            result:='.fpc[RO]';
+          sec_toc:
+            result:='.toc';
+          { automatically placed in the right section }
+          sec_stab,
+          sec_stabstr:
+            result:='';
+          else
+            internalerror(2025010201);
+        end;
+      end;
+
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -766,7 +796,7 @@ unit agppcgas;
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
-  RegisterAssembler(as_ppc_gas_macosclassic_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_macosclassic_info,TPPCMACOsAssembler);
   RegisterAssembler(as_ppc_gas_legacy_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
   RegisterAssembler(as_ppc_clang_darwin_info,TPPCAppleGNUAssembler);
