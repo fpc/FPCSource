@@ -97,12 +97,13 @@ unit agppcgas;
     begin
        with ref do
         begin
-          if ((offset < -32768) or (offset > 32767)) and
-             (refaddr = addr_no) then
-            internalerror(2006052501);
           case refaddr of
             addr_no:
-              s := '';
+              begin
+                if (offset < -32768) or (offset > 32767) or assigned(symbol) then
+                  internalerror(2006052501);
+                s:='';
+              end;
             addr_pic_no_got:
               begin
                 { used for TOC-based loads }
@@ -142,15 +143,15 @@ unit agppcgas;
               end;
           end;
           if offset<0 then
-           s:=s+tostr(offset)
+            s:=s+tostr(offset)
           else
-           if (offset>0) then
-            begin
-              if assigned(symbol) then
-                s:=s+'+'+tostr(offset)
-              else
-                s:=s+tostr(offset);
-            end;
+            if (offset>0) then
+             begin
+               if assigned(symbol) then
+                 s:=s+'+'+tostr(offset)
+               else
+                 s:=s+tostr(offset);
+             end;
 
            if not(refaddr in [addr_no,addr_pic_no_got]) then
              begin
