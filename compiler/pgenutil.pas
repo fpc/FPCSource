@@ -1688,7 +1688,8 @@ uses
           result:=False;
           if adef.genericparas<>nil then
             for i:=0 to adef.genericparas.Count-1 do
-              if sp_generic_para in tsym(adef.genericparas[i]).symoptions then
+              if ((tsym(adef.genericparas[i]).typ=typesym) and (sp_generic_para in tsym(adef.genericparas[i]).symoptions)) or
+                  ((tsym(adef.genericparas[i]).typ=constsym) and not (sp_generic_const in tsym(adef.genericparas[i]).symoptions)) then
                 exit(true);
         end;
 
