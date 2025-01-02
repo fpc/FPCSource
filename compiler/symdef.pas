@@ -2602,7 +2602,7 @@ implementation
                  (genericparas.count>0) and
                  (df_generic in defoptions);
        if result then
-         { if any of the type parameters does *not* belong to as (meaning it was passed
+         { if any of the type parameters does *not* belong to us (meaning it was passed
            in from outside) then we aren't a generic, but a specialization }
          for i:=0 to genericparas.count-1 do
            begin
