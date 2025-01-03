@@ -1303,11 +1303,12 @@ implementation
                        end;
                       ch:=tai_string(hp).str[i-1];
                       case ch of
-                                #0, {This can't be done by range, because a bug in FPC}
-                           #1..#31,
-                        #128..#255 : s:='\'+tostr(ord(ch) shr 6)+tostr((ord(ch) and 63) shr 3)+tostr(ord(ch) and 7);
-                               '"' : s:='\"';
-                               '\' : s:='\\';
+                        #0, {This can't be done by range, because a bug in FPC}
+                        #1..#31,
+                        '"',#128..#255:
+                          s:='\'+tostr(ord(ch) shr 6)+tostr((ord(ch) and 63) shr 3)+tostr(ord(ch) and 7);
+                        '\':
+                          s:='\\';
                       else
                         s:=ch;
                       end;
