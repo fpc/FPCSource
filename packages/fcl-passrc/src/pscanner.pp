@@ -732,7 +732,7 @@ type
     po_AsmPascalComments,    // Allow pascal comments/directives in asm blocks
     po_AllowMem,             // Allow use of meml, mem, memw arrays
     po_WarnResourceNotFound, // Do not raise error if resource not found.
-    po_CheckRTTI             // parse $RTTI directive and error on invalid
+    po_CheckDirectiveRTTI    // parse $RTTI directive and error on invalid
     );
   TPOptions = set of TPOption;
 

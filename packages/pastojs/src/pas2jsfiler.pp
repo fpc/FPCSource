@@ -155,7 +155,8 @@ const
     'DisableResources',
     'po_AsmPascalComments',
     'AllowMem',
-    'WarnResourceNotFound');
+    'WarnResourceNotFound',
+    'CheckDirectiveRTTI');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,

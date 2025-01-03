@@ -5169,7 +5169,7 @@ var
   NewRTTIVisibility: TPasMembersType.TRTTIVisibility;
   Visibility: TPasMembersType.TRTTIVisibilitySections;
 begin
-  if not (po_CheckRTTI in Options) then exit;
+  if not (po_CheckDirectiveRTTI in Options) then exit;
   Handled:=true;
   p:=1;
   l:=length(Param);

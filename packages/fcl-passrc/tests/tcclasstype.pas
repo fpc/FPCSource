@@ -555,7 +555,7 @@ procedure TTestClassType.TestDirectiveRTTI(Param: string; ExpectedExplicit: bool
   end;
 
 begin
-  Parser.Options:=Parser.Options+[po_CheckRTTI];
+  Parser.Options:=Parser.Options+[po_CheckDirectiveRTTI];
   Add('{$RTTI '+Param+'}');
   FStarted:=True;
   FDecl.add('TMyClass = Class');
