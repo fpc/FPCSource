@@ -562,7 +562,8 @@ implementation
            end;
          system_powerpc_macosclassic:
            begin
-             writer.AsmWrite('.csect ');
+             if atype<>sec_toc then
+               writer.AsmWrite('.csect ');
            end;
          system_wasm32_wasi,
          system_wasm32_embedded:
