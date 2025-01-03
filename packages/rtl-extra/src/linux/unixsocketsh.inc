@@ -9,13 +9,13 @@ type
      msg_iov : piovec;
      msg_iovlen : size_t;
      msg_control : pointer;
-     msg_controllen : socklen_t;
+     msg_controllen : size_t;
      msg_flags : cInt;
   end;
 
   Pcmsghdr = ^cmsghdr;
   cmsghdr = record
-    cmsg_len   : socklen_t;
+    cmsg_len   : size_t;
     cmsg_level : cInt;
     cmsg_type  : cInt;
   end;
