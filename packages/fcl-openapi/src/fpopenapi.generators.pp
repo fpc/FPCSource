@@ -32,6 +32,11 @@ uses
   fpopenapi.types,
   fpopenapi.pascaltypes;
 
+Const
+  DefaultServerProxyName = 'TServerProxy';
+  DefaultServerProxyParent = 'TDataModule';
+  DefaultServerProxyParentUnit = 'Classes';
+
 type
 
   { TJSONSchemaCodeGeneratorHelper }
@@ -198,24 +203,38 @@ type
 
   { TServerProxyServiceModule }
 
+  { TServerProxyServiceModuleCodeGen }
+
   TServerProxyServiceModuleCodeGen = class(TOpenApiPascalCodeGen)
   private
+    FFormFile: Boolean;
     FProxyClassName: string;
     FProxyParentClass: string;
     FProxyParentUnit: string;
+    FProxyVarName: String;
     FServiceImplementationUnit: string;
     FServiceInterfaceUnit: string;
     FUseInterfaceType: Boolean;
+    FForm : TStrings;
+    procedure CheckDefaults;
+    function GetProxyVarName: String;
+    procedure SetProxyClassName(const aValue: string);
+  Protected
   public
     constructor Create(AOwner: TComponent); override;
+    Destructor Destroy; override;
     procedure GenerateModule;
+    procedure GenerateFormFile;
     procedure Execute(aData: TAPIData); virtual;
     property ServiceInterfaceUnit: string read FServiceInterfaceUnit write FServiceInterfaceUnit;
     property ServiceImplementationUnit: string read FServiceImplementationUnit write FServiceImplementationUnit;
     property ProxyParentClass: string read FProxyParentClass write FProxyParentClass;
     property ProxyParentUnit: string read FProxyParentUnit write FProxyParentUnit;
     Property UseInterfaceType : Boolean Read FUseInterfaceType Write FUseInterfaceType;
-    Property ProxyClassName : string Read FProxyClassName Write FProxyClassName;
+    Property ProxyClassName : string Read FProxyClassName Write SetProxyClassName;
+    Property ProxyVarName : String Read GetProxyVarName Write FProxyVarName;
+    Property FormFile : Boolean Read FFormFile Write FFormFile;
+    Property Form : TStrings Read FForm Write FForm;
   end;
 
 
@@ -1338,39 +1357,65 @@ end;
 
 { TServerServiceModule }
 
+function TServerProxyServiceModuleCodeGen.GetProxyVarName: String;
+begin
+  Result:=FProxyVarName;
+  if Result='' then
+    Result:=Copy(ProxyClassName,2,Length(ProxyClassName)-1);
+end;
+
+procedure TServerProxyServiceModuleCodeGen.SetProxyClassName(const aValue: string);
+begin
+  if FProxyClassName=aValue then Exit;
+  FProxyClassName:=aValue;
+  CheckDefaults;
+end;
+
 constructor TServerProxyServiceModuleCodeGen.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FProxyClassName:='TServerProxy';
-  FProxyParentClass:='TDataModule';
-  FProxyParentUnit:='Classes';
+  FForm:=TStringList.Create;
+  CheckDefaults;
+end;
+
+destructor TServerProxyServiceModuleCodeGen.Destroy;
+begin
+  FreeAndNil(FForm);
+  inherited Destroy;
+end;
+
+procedure TServerProxyServiceModuleCodeGen.CheckDefaults;
+begin
+  if FProxyClassName='' then
+    FProxyClassName:=DefaultServerProxyName;
+  if FProxyParentClass='' then
+    FProxyParentClass:=DefaultServerProxyParent;
+  if FProxyParentUnit='' then
+    FProxyParentUnit:=DefaultServerProxyParentUnit;
 end;
 
 procedure TServerProxyServiceModuleCodeGen.GenerateModule;
 
 var
   I: integer;
-  lUnits : String;
+  lClass,lUnits : String;
   lService: TAPIService;
 
 begin
   GenerateFPCDirectives();
-
+  CheckDefaults;
   Addln('unit %s;', [Self.OutputUnitName]);
   Addln('');
   Addln('interface');
   Addln('');
   Addln('uses');
   indent;
-  If Not UseInterfaceType then
-    lUnits:=ServiceImplementationUnit
-  else
-    lUnits:=ServiceInterfaceUnit;
+  lUnits:=ServiceInterfaceUnit+', '+ServiceImplementationUnit;
   if not (SameText(ProxyParentUnit,'Classes') or SameText(ProxyParentUnit,'System.Classes')) then
     if DelphiCode then
       lUnits:='System.Classes, '+lUnits
     else
-      lUnits:='Classes, '+lUnits;
+      lUnits:='Classes, fpWebClient, '+lUnits;
   AddLn('%s, %s;', [ProxyParentUnit, lUnits]);
   undent;
   Addln('');
@@ -1379,11 +1424,22 @@ begin
   Addln('%s = class(%s)',[ProxyClassName,ProxyParentClass]);
   Addln('private');
   indent;
+  Addln('FWebClient : TAbstractWebClient;');
+  Addln('FBaseURL : TAbstractWebClient;');
   for I:=0 to APIData.ServiceCount-1 do
     begin
     lService:=APIData.Services[I];
-    Addln('F%s : %s;',[lService.ServiceName,lService.ServiceInterfaceName]);
+    lClass:=lService.ServiceProxyImplementationClassName;
+    Addln('F%s : %s;',[lService.ServiceName,lClass]);
     end;
+  if UseInterfaceType then
+    for I:=0 to APIData.ServiceCount-1 do
+      begin
+      lService:=APIData.Services[I];
+      lClass:=lService.ServiceProxyImplementationClassName;
+      Addln('function Get%s : %s;',[lService.ServiceName,lService.ServiceInterfaceName]);
+      end;
+  Addln('Procedure SetBaseURL(const aValue : string);');
   undent;
   Addln('protected');
   indent;
@@ -1395,29 +1451,42 @@ begin
   for I:=0 to APIData.ServiceCount-1 do
     begin
     lService:=APIData.Services[I];
-    Addln('Property %s : %s read F%s;',[lService.ServiceName,lService.ServiceInterfaceName,lService.ServiceName]);
+    if UseInterfaceType then
+      Addln('Property %s : %s read Get%s;',[lService.ServiceName,lService.ServiceInterfaceName,lService.ServiceName])
+    else
+      Addln('Property %s : %s read F%s;',[lService.ServiceName,lService.ServiceProxyImplementationClassName,lService.ServiceName]);
     end;
+  Addln('Property BaseURL : String Read FBaseURL Write SetBaseURL;',[lService.ServiceName,lService.ServiceInterfaceName,lService.ServiceName]);
   undent;
   Addln('end;');
   undent;
   Addln('');
+  if FormFile then
+    begin
+    Addln('var %s : %s;',[ProxyVarName,ProxyClassName]);
+    Addln('');
+    end;
   Addln('implementation');
   Addln('');
   Addln('uses');
   indent;
-  if UseInterfaceType then
-    Addln('%s,', [ServiceImplementationUnit]);
   if DelphiCode then
     Addln('System.SysUtils;')
   else
     Addln('SysUtils;');
   undent;
+  if FormFile then
+    begin
+    Addln('');
+    Addln('{$R *.lfm}');
+    end;
   Addln('');
   Addln('constructor %s.Create(aOwner : TComponent);',[ProxyClassName]);
   Addln('');
   Addln('begin');
   indent;
   Addln('Inherited;');
+  Addln('FWebClient:=DefaultWebClientClass.Create(Self);');
   Addln('CreateServices;');
   undent;
   Addln('end;');
@@ -1430,18 +1499,67 @@ begin
   for I:=0 to APIData.ServiceCount-1 do
     begin
     lService:=APIData.Services[I];
-    Addln('F%s:=%s.create(Self);',[lService.ServiceName,lService.ServiceProxyImplementationClassName]);
+    lClass:=lService.ServiceProxyImplementationClassName;
+    Addln('F%s:=%s.create(Self);',[lService.ServiceName,lClass]);
+    Addln('%s(F%s).WebClient:=FWebClient',[lClass,lService.ServiceName]);
     end;
   undent;
   Addln('end;');
   Addln('');
+  Addln('');
+  Addln('Procedure %s.SetBaseURL(const aValue : string);',[ProxyClassName]);
+  Addln('');
+  Addln('begin');
+  Indent;
+  Addln('FBaseURL:=aValue;');
+  for I:=0 to APIData.ServiceCount-1 do
+    begin
+    lService:=APIData.Services[I];
+    Addln('F%s.BaseURL:=aValue;',[lService.ServiceName]);
+    end;
+  undent;
+  Addln('end;');
+  Addln('');
+  Addln('');
+  for I:=0 to APIData.ServiceCount-1 do
+    begin
+    lService:=APIData.Services[I];
+    lClass:=lService.ServiceProxyImplementationClassName;
+    Addln('function %s.Get%s : %s;',[ProxyClassName,lService.ServiceName,lService.ServiceInterfaceName]);
+    Addln('');
+    Addln('begin');
+    Indent;
+    Addln('Result:=F%s;',[lService.ServiceName]);
+    Undent;
+    Addln('end;');
+    Addln('');
+    Addln('');
+    end;
+  Addln('');
   Addln('end.');
+end;
+
+procedure TServerProxyServiceModuleCodeGen.GenerateFormFile;
+
+begin
+  With FForm Do
+    begin
+    Add('object %s: %s',[ProxyVarName,ProxyClassName]);
+    Add('  OldCreateOrder = False');
+    Add('  Height = 150');
+    Add('  HorizontalOffset = 547');
+    Add('  VerticalOffset = 323');
+    Add('  Width = 150');
+    Add('end');
+    end;
 end;
 
 procedure TServerProxyServiceModuleCodeGen.Execute(aData: TAPIData);
 begin
   SetTypeData(aData);
   GenerateModule;
+  if FFormFile then
+    GenerateFormFile;
 end;
 
 

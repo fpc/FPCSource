@@ -79,6 +79,7 @@ type
     FOnLog: TSchemaCodeGenLogEvent;
     FParentHasCancelRequest: Boolean;
     FServerParentClass: String;
+    FServerProxyFormFile: Boolean;
     FServerProxyModuleName: String;
     FServerProxyModuleParentName: String;
     FServerProxyModuleParentUnit: String;
@@ -96,6 +97,7 @@ type
     FUnitNames : Array [TUnitKind] of string;
     procedure CleanMaps;
     function GetBaseOutputUnitName: string;
+    function GetServerProxyModuleName: String;
     function GetServerProxyModuleParentUnit: String;
     function GetUnitName(AIndex: TUnitKind): String;
     function GetUnitSuffix(aKind: TUnitKind): String;
@@ -193,13 +195,15 @@ type
     // Server proxy unit name serservice parent class name
     Property ServerProxyUnit : String index ukServerProxy Read GetUnitName Write SetUnitName;
     // Class name for server proxy datamodule.
-    Property ServerProxyModuleName : String Read FServerProxyModuleName Write FServerProxyModuleName;
+    Property ServerProxyModuleName : String Read GetServerProxyModuleName Write FServerProxyModuleName;
     // Class name for server proxy parent class.
     Property ServerProxyModuleParentName : String Read FServerProxyModuleParentName Write FServerProxyModuleParentName;
     // Unit name where server proxy parent class is defined.
     Property ServerProxyModuleParentUnit : String Read GetServerProxyModuleParentUnit Write FServerProxyModuleParentUnit;
     // Define service properties using their interface definition.
     Property ServerProxyUseServiceInterface : Boolean Read FServerProxyUseServiceInterface Write FServerProxyUseServiceInterface;
+    // Generate form file for ServerProxy module
+    Property ServerProxyFormFile : Boolean Read FServerProxyFormFile Write FServerProxyFormFile;
     // Prefix for client/server service name
     Property ServiceNameSuffix : String Read FServiceNameSuffix Write FServiceNameSuffix;
     // Prefix for client/server service name
@@ -237,6 +241,8 @@ Const
   KeyServerProxyModuleParentName = 'ServerProxyModuleParentName';
   KeyServerProxyModuleParentUnit = 'ServerProxyModuleParentUnit';
   KeyServerProxyUseServiceInterface = 'ServerProxyModuleUseInterface';
+  KeyServerProxyFormFile            = 'ServerProxyFormFile';
+  KeyServerProxyUnit                = 'ServerProxyUnit' ;
 
 { TOpenAPICodeGen }
 
@@ -315,11 +321,14 @@ begin
     AbstractServiceCalls:=ReadBool(lSection,KeyAbstractServiceCalls,AbstractServiceCalls);
     ServiceNameSuffix:=ReadString(lSection,KeyServiceNameSuffix,ServiceNameSuffix);
     ServiceNamePrefix:=ReadString(lSection,KeyServiceNamePrefix,ServiceNamePrefix);
+
     GenerateServerProxyModule:=ReadBool(lSection,KeyGenerateServerProxyModule,GenerateServerProxyModule);
     ServerProxyModuleName:=ReadString(lSection,KeyServerProxyModuleName,ServerProxyModuleName);
     ServerProxyModuleParentName:=ReadString(lSection,KeyServerProxyModuleParentName,ServerProxyModuleParentName);
     ServerProxyModuleParentUnit:=ReadString(lSection,KeyServerProxyModuleParentName,ServerProxyModuleParentUnit);
     ServerProxyUseServiceInterface:=ReadBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
+    ServerProxyUnit:=ReadString(lSection,KeyServerProxyUnit,ServerProxyUnit);
+    ServerProxyFormFile:=ReadBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
     end;
 end;
 
@@ -364,7 +373,16 @@ begin
     WriteBool(lSection,KeyAbstractServiceCalls,AbstractServiceCalls);
     WriteString(lSection,KeyServiceNameSuffix,ServiceNameSuffix);
     WriteString(lSection,KeyServiceNamePrefix,ServiceNamePrefix);
+    WriteString(lSection,KeyServiceNameSuffix,ServiceNameSuffix);
+
+    WriteString(lSection,KeyServerProxyModuleName,ServerProxyModuleName);
+    WriteString(lSection,KeyServerProxyModuleParentUnit,ServerProxyModuleParentUnit);
+    WriteString(lSection,KeyServerProxyUnit,ServerProxyUnit);
+    WriteBool(lSection,KeyServerProxyUseServiceInterface,ServerProxyUseServiceInterface);
+    WriteBool(lSection,KeyServerProxyFormFile,ServerProxyFormFile);
+    WriteBool(lSection,KeyGenerateServerProxyModule, GenerateServerProxyModule);
     end;
+
 end;
 
 procedure TOpenAPICodeGen.SaveConfig(aConfigFile: String);
@@ -422,6 +440,13 @@ begin
   Result := ExtractFileName(BaseOutputFileName);
 end;
 
+function TOpenAPICodeGen.GetServerProxyModuleName: String;
+begin
+  Result:=FServerProxyModuleName;
+  if Result='' then
+    Result:='TServerProxy';
+end;
+
 function TOpenAPICodeGen.GetServerProxyModuleParentUnit: String;
 begin
   Result:=FServerProxyModuleParentUnit;
@@ -435,6 +460,8 @@ end;
 function TOpenAPICodeGen.GetUnitName(AIndex: TUnitKind): String;
 begin
   Result:=FUnitNames[aIndex];
+  if Result='' then
+
 end;
 
 procedure TOpenAPICodeGen.SetUnitName(AIndex: TUnitKind; AValue: String);
@@ -748,8 +775,11 @@ begin
     codegen.UseInterfaceType:=ServerProxyUseServiceInterface;
     codegen.ServiceImplementationUnit := ResolveUnit(ukClientServiceImpl);
     codegen.ServiceInterfaceUnit := ResolveUnit(ukClientServiceIntf);
+    codegen.FormFile:=FServerProxyFormFile;
     codegen.Execute(aData);
     codegen.Source.SaveToFile(lFileName);
+    if codegen.FormFile then
+      codegen.Form.SaveToFile(ChangeFileExt(lFileName,'.lfm'));
   finally
     codegen.Free;
   end;
