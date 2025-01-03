@@ -297,6 +297,7 @@ unit cgppc;
     function tcgppcgen.g_indirect_sym_load(list: TAsmList; const symname: string; const flags: tindsymflags): tregister;
       begin
         case target_info.system of
+          system_powerpc_macosclassic,
           system_powerpc_aix,
           system_powerpc64_aix:
             result:=load_got_symbol(list,symname,flags);
@@ -765,7 +766,7 @@ unit cgppc;
           ref.base:=NR_RTOC;
           ref.refaddr:=addr_pic;
         end
-      else if target_info.system in systems_aix then
+      else if target_info.system in systems_aix+[system_powerpc_macosclassic] then
         get_aix_toc_sym(list,symbol,flags,ref,false)
       else
         internalerror(2007102010);
@@ -1035,7 +1036,7 @@ unit cgppc;
         { if we have to create PIC, add the symbol to the TOC/GOT }
         if (((target_info.system = system_powerpc64_linux) and
              (cs_create_pic in current_settings.moduleswitches)) or
-            (target_info.system in systems_aix)) and
+            (target_info.system in systems_aix+[system_powerpc_macosclassic])) and
            (assigned(ref.symbol) and
             not assigned(ref.relsymbol)) then
           begin
