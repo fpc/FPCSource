@@ -111,7 +111,7 @@ const
   nFileSystemsNotSupported = 2057;
   nInvalidMessageType = 2058;
   nErrCompilationAborted = 2059; // FPC = 1018;
-
+  nErrInvalidCompilerDirectiveRTTI = 2060;
 
 // resourcestring patterns of messages
 resourcestring
@@ -175,6 +175,7 @@ resourcestring
   SErrFileSystemNotSupported = 'No support for filesystems enabled';
   SErrInvalidMessageType = 'Invalid message type: string or integer expression expected';
   SErrCompilationAborted = 'Compilation aborted';
+  SErrInvalidCompilerDirectiveX = 'Invalid compiler directive %s';
 
 type
   TPasScopeType = (
@@ -391,6 +392,8 @@ type
     procedure SetOptions(AValue: TPOptions);
     procedure OnScannerModeChanged(Sender: TObject; NewMode: TModeSwitch;
       Before: boolean; var Handled: boolean);
+    procedure OnScannerDirectiveRTTI(Sender: TObject; Directive, Param: TPasScannerString;
+      var Handled: boolean);
   protected
     function AllowFinal(aType: TPasType): Boolean;
     function CheckCurtokenIsFinal(aType: TPasType): boolean;
@@ -482,8 +485,9 @@ type
     // Set this to false to NOT raise an error when errors were ignored during parsing.
     Property FailOnModuleErors : Boolean Read FFailOnModuleErors Write FFailOnModuleErors;
   public
+    RTTIVisibility: TPasMembersType.TRTTIVisibility;
     constructor Create(AScanner: TPascalScanner; AFileResolver: TBaseFileResolver;  AEngine: TPasTreeContainer);
-    Destructor Destroy; override;
+    destructor Destroy; override;
     procedure SetLastMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
     // General parsing routines
     function CurTokenName: String;
@@ -492,7 +496,7 @@ type
     function CurTokenPos: TPasSourcePos;
     function CurSourcePos: TPasSourcePos;
     function HasToken: boolean;
-    Function SavedComments : String;
+    function SavedComments : String;
     procedure NextToken; // read next non whitespace, non space
     procedure ChangeToken(tk: TToken);
     procedure UngetToken;
@@ -502,8 +506,8 @@ type
     procedure ExpectTokens(tk:  TTokens);
     function GetPrevToken: TToken;
     function ExpectIdentifier(CountAsIdentifier : TTokens = []): String;
-    Procedure SaveIdentifierPosition;
-    Function CurTokenIsIdentifier(Const S : String) : Boolean;
+    procedure SaveIdentifierPosition;
+    function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
     function isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True): Boolean;
     function ExprToText(Expr: TPasExpr): String;
@@ -1246,6 +1250,7 @@ begin
   FScanner := AScanner;
   if FScanner.OnModeChanged=nil then
     FScanner.OnModeChanged:=@OnScannerModeChanged;
+  FScanner.RegisterDirectiveHandler('rtti',@OnScannerDirectiveRTTI);
   FFileResolver := AFileResolver;
   FTokenRingCur:=High(FTokenRing);
   FEngine := AEngine;
@@ -4773,6 +4778,7 @@ begin
         if AObjKind=okInterface then
           if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
             ClassEl.InterfaceType:=citCorba;
+        ClassEl.RTTIVisibility:=RTTIVisibility;
         if AddToParent and (Parent is TPasDeclarations) then
           TPasDeclarations(Parent).Classes.Add(ClassEl);
         ClassEl.IsExternal:=(AExternalName<>'');
@@ -4789,6 +4795,7 @@ begin
        begin
        RecordEl := TPasRecordType(CreateElement(TPasRecordType,
          TypeName, Parent, visDefault, NamePos, TypeParams));
+       RecordEl.RTTIVisibility:=RTTIVisibility;
        if AddToParent and (Parent is TPasDeclarations) then
          TPasDeclarations(Parent).Classes.Add(RecordEl);
        InitGenericType(RecordEl,TypeParams);
@@ -5125,6 +5132,119 @@ procedure TPasParser.OnScannerModeChanged(Sender: TObject;
 begin
   Engine.ModeChanged(Self,NewMode,Before,Handled);
   if Sender=nil then ;
+end;
+
+procedure TPasParser.OnScannerDirectiveRTTI(Sender: TObject; Directive, Param: TPasScannerString;
+  var Handled: boolean);
+// $rtti explicit|inherit space-separated-clauses
+// clause: methods|fields|properties([enums])
+// enums: comma separated list of vcPrivate,vcProtected,vcPublic,vcPublished
+var
+  p, l: Integer;
+
+  procedure Err;
+  begin
+    ParseExc(nErrInvalidCompilerDirectiveRTTI,SErrInvalidCompilerDirectiveX,[Directive]);
+  end;
+
+  procedure SkipWhiteSpace;
+  begin
+    while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
+      inc(p);
+  end;
+
+  function ReadIdentifier: string;
+  var
+    StartP: Integer;
+  begin
+    StartP:=p;
+    while (p<=l) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
+      inc(p);
+    Result:=copy(Param,StartP,p-StartP);
+  end;
+
+var
+  StartP, ElType: Integer;
+  Value: String;
+  NewRTTIVisibility: TPasMembersType.TRTTIVisibility;
+  Visibility: TPasMembersType.TRTTIVisibilitySections;
+begin
+  if not (po_CheckRTTI in Options) then exit;
+  Handled:=true;
+  p:=1;
+  l:=length(Param);
+
+  NewRTTIVisibility:=Default(TPasMembersType.TRTTIVisibility);
+
+  // read Explicit, Inherit
+  SkipWhiteSpace;
+  Value:=ReadIdentifier;
+  case lowercase(Value) of
+  'explicit': NewRTTIVisibility.Explicit:=true;
+  'inherit': NewRTTIVisibility.Explicit:=false;
+  else Err;
+  end;
+
+  // read clauses
+  while p<=l do
+    begin
+    // read what type of elements
+    SkipWhiteSpace;
+    if p>l then break;
+    Value:=ReadIdentifier;
+    case lowercase(Value) of
+    'fields': ElType:=0;
+    'methods': ElType:=1;
+    'properties': ElType:=2;
+    else Err;
+    end;
+
+    // parameters
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>'(') then
+      Err;
+    inc(p);
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>'[') then
+      Err;
+    inc(p);
+
+    Visibility:=[];
+    repeat
+      SkipWhiteSpace;
+      if (p<=l) and (Param[p]=']') then break;
+      Value:=ReadIdentifier;
+      case lowercase(Value) of
+      'vcprivate': Include(Visibility,vcPrivate);
+      'vcprotected': Include(Visibility,vcProtected);
+      'vcpublic': Include(Visibility,vcPublic);
+      'vcpublished': Include(Visibility,vcPublished);
+      else Err;
+      end;
+      SkipWhiteSpace;
+      if p>l then
+        Err;
+      case Param[p] of
+      ',': ;
+      ']': break;
+      else Err;
+      end;
+      inc(p);
+    until false;
+    inc(p);
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>')') then
+      Err;
+    inc(p);
+
+    case ElType of
+    0: NewRTTIVisibility.Fields:=Visibility;
+    1: NewRTTIVisibility.Methods:=Visibility;
+    2: NewRTTIVisibility.Properties:=Visibility;
+    end;
+
+    end;
+  RTTIVisibility:=NewRTTIVisibility;
 end;
 
 function TPasParser.SaveComments: String;
@@ -6871,7 +6991,7 @@ procedure TPasParser.ParseRecordVariantParts(ARec: TPasRecordType;
   AEndToken: TToken);
 
 Var
-  M : TPasRecordType;
+  RecordEl : TPasRecordType;
   V : TPasVariant;
   Done : Boolean;
 
@@ -6887,9 +7007,10 @@ begin
     Until (curToken=tkColon);
     ExpectToken(tkBraceOpen);
     NextToken;
-    M:=TPasRecordType(CreateElement(TPasRecordType,'',V));
-    V.Members:=M;
-    ParseRecordMembers(M,tkBraceClose,False);
+    RecordEl:=TPasRecordType(CreateElement(TPasRecordType,'',V));
+    RecordEl.RTTIVisibility:=RTTIVisibility;
+    V.Members:=RecordEl;
+    ParseRecordMembers(RecordEl,tkBraceClose,False);
     // Current token is closing ), so we eat that
     NextToken;
     // If there is a semicolon, we eat that too.
@@ -7163,6 +7284,7 @@ var
   AllowAdvanced : Boolean;
 begin
   Result := TPasRecordType(CreateElement(TPasRecordType, TypeName, Parent, NamePos));
+  Result.RTTIVisibility:=RTTIVisibility;
   Result.PackMode:=PackMode;
   NextToken;
   AllowAdvanced:=(msAdvancedRecords in Scanner.CurrentModeSwitches)
@@ -7804,7 +7926,7 @@ function TPasParser.ParseClassDecl(Parent: TPasElement;
 Var
   isExternal, isSealed, isAbstract, ok: Boolean;
   AExternalNameSpace,AExternalName : String;
-  PCT:TPasClassType;
+  ClassEl: TPasClassType;
 
 begin
   NextToken;
@@ -7834,34 +7956,35 @@ begin
       ParseExcSyntaxError;
     NextToken;
     end;
-  PCT := TPasClassType(CreateElement(TPasClassType, AClassName,
+  ClassEl := TPasClassType(CreateElement(TPasClassType, AClassName,
     Parent, NamePos));
-  Result:=PCT;
+  ClassEl.RTTIVisibility:=RTTIVisibility;
+  Result:=ClassEl;
   ok:=false;
   try
     if IsAbstract then
-      PCT.Modifiers.Add('abstract');
+      ClassEl.Modifiers.Add('abstract');
     if IsSealed then
-      PCT.Modifiers.Add('sealed');
-    PCT.HelperForType:=nil;
-    PCT.IsExternal:=IsExternal;
+      ClassEl.Modifiers.Add('sealed');
+    ClassEl.HelperForType:=nil;
+    ClassEl.IsExternal:=IsExternal;
     if AExternalName<>'' then
-      PCT.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
+      ClassEl.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
     if AExternalNameSpace<>'' then
-      PCT.ExternalNameSpace:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalNameSpace,'''');
-    PCT.ObjKind := AObjKind;
-    PCT.PackMode:=PackMode;
+      ClassEl.ExternalNameSpace:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalNameSpace,'''');
+    ClassEl.ObjKind := AObjKind;
+    ClassEl.PackMode:=PackMode;
     if AObjKind=okInterface then
       begin
       if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
-        PCT.InterfaceType:=citCorba;
+        ClassEl.InterfaceType:=citCorba;
       end;
-    DoParseClassType(PCT);
+    DoParseClassType(ClassEl);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
     if not ok then
-      PCT.Parent:=nil; // clear references from members to PCT
+      ClassEl.Parent:=nil; // clear references from members to ClassEl
   end;
 end;
 

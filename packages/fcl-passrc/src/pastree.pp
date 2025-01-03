@@ -767,8 +767,19 @@ type
 
   TPasMembersType = class(TPasGenericType)
   public
+    type
+      TRTTIVisibilitySection = (vcPrivate,vcProtected,vcPublic,vcPublished);
+      TRTTIVisibilitySections = set of TRTTIVisibilitySection;
+      TRTTIVisibility = record
+        Explicit: boolean; // inherit or explicit
+        Fields: TRTTIVisibilitySections;
+        Methods: TRTTIVisibilitySections;
+        Properties: TRTTIVisibilitySections;
+      end;
+  public
     PackMode: TPackMode;
     Members: TFPList;
+    RTTIVisibility: TRTTIVisibility;
     Constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     Destructor Destroy; override;
     procedure FreeChildren(Prepare: boolean); override;
@@ -1860,6 +1871,8 @@ procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray; Prepare: b
 function GenericTemplateTypesAsString(List: TFPList): TPasTreeString;
 
 function dbgs(const s: TProcTypeModifiers): TPasTreeString; overload;
+function dbgs(const v: TPasMembersType.TRTTIVisibilitySection): TPasTreeString; overload;
+function dbgs(const Sections: TPasMembersType.TRTTIVisibilitySections): TPasTreeString; overload;
 function WritePasElTree(Expr: TPasExpr; FollowPrefix: TPasTreeString = ''): TPasTreeString;
 function GetPasElementDesc(El: TPasElement): TPasTreeString;
 
@@ -1931,6 +1944,24 @@ begin
     begin
     if Result<>'' then Result:=Result+',';
     Result:=Result+ProcTypeModifiers[m];
+    end;
+  Result:='['+Result+']';
+end;
+
+function dbgs(const v: TPasMembersType.TRTTIVisibilitySection): TPasTreeString;
+begin
+  str(v,Result);
+end;
+
+function dbgs(const Sections: TPasMembersType.TRTTIVisibilitySections): TPasTreeString;
+var
+  s: TPasMembersType.TRTTIVisibilitySection;
+begin
+  Result:='';
+  for s in Sections do
+    begin
+    if Result<>'' then Result:=Result+',';
+    Result:=Result+dbgs(s);
     end;
   Result:='['+Result+']';
 end;

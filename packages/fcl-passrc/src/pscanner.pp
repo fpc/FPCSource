@@ -41,7 +41,7 @@ uses
   {$ENDIF}
   Types,
   {$endif}
-  SysUtils, Classes;
+  SysUtils, Classes, Types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 // message numbers
@@ -727,11 +727,12 @@ type
     po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
     po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
     po_IgnoreUnknownResource,// Ignore resources for which no handler is registered.
-    po_AsyncProcs,            // allow async procedure modifier
-    po_DisableResources,      // Disable resources altogether
+    po_AsyncProcs,           // allow async procedure modifier
+    po_DisableResources,     // Disable resources altogether
     po_AsmPascalComments,    // Allow pascal comments/directives in asm blocks
-    po_AllowMem,              // Allow use of meml, mem, memw arrays
-    po_WarnResourceNotFound // Do not raise error if resource not found.
+    po_AllowMem,             // Allow use of meml, mem, memw arrays
+    po_WarnResourceNotFound, // Do not raise error if resource not found.
+    po_CheckRTTI             // parse $RTTI directive and error on invalid
     );
   TPOptions = set of TPOption;
 
@@ -767,6 +768,10 @@ type
       TResourceHandlerRecord = record
         Ext : TPasScannerString;
         Handler : TResourceHandler;
+      end;
+      TDirectiveHandlerRecord = record
+        Directive : TPasScannerString;
+        Handler : TPScannerDirectiveEvent;
       end;
       TWarnMsgNumberState = record
         Number: integer;
@@ -829,7 +834,8 @@ type
     FIncludeStack: TFPList;
     FFiles: TStrings;
     FWarnMsgStates: TWarnMsgNumberStateArr;
-    FResourceHandlers : Array of TResourceHandlerRecord;
+    FResourceHandlers: Array of TResourceHandlerRecord;
+    FDirectiveHandles: Array of TDirectiveHandlerRecord;
 
     // Preprocessor $IFxxx skipping data
     PPSkipMode: TPascalScannerPPSkipMode;
@@ -858,17 +864,18 @@ type
     // extension without initial dot (.)
     Function IndexOfResourceHandler(Const aExt : TPasScannerString) : Integer;
     Function FindResourceHandler(Const aExt : TPasScannerString) : TResourceHandler;
+    function IndexOfDirectiveHandle(const aDirective: TPasScannerString; ForInsert: boolean = false): Integer;
     function ReadIdentifier(const AParam: TPasScannerString): TPasScannerString;
     function FetchLine: boolean;
     procedure AddFile(aFilename: TPasScannerString); virtual;
     function GetMacroName(const Param: TPasScannerString): TPasScannerString;
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : TPasScannerString; Args : Array of const);
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Msg : TPasScannerString);
-    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : TPasScannerString; SkipSourceInfo : Boolean = False);overload;
-    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : TPasScannerString; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
-    procedure ErrorAt(MsgNumber: integer; const Msg: TPasScannerString; aRow,ACol : Integer);overload;
-    procedure Error(MsgNumber: integer; const Msg: TPasScannerString);overload;
-    procedure Error(MsgNumber: integer; const Fmt: TPasScannerString; Args: array of const);overload;
+    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : TPasScannerString; SkipSourceInfo : Boolean = False); overload;
+    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : TPasScannerString; Args : Array of const;SkipSourceInfo : Boolean = False); overload;
+    procedure ErrorAt(MsgNumber: integer; const Msg: TPasScannerString; aRow,ACol : Integer); overload;
+    procedure Error(MsgNumber: integer; const Msg: TPasScannerString); overload;
+    procedure Error(MsgNumber: integer; const Fmt: TPasScannerString; Args: array of const); overload;
     procedure PushSkipMode;
     function GetMultiLineStringLineEnd(aReader: TLineReader): TPasScannerString;
     function MakeLibAlias(const LibFileName: TPasScannerString): TPasScannerString; virtual;
@@ -932,12 +939,14 @@ type
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     // extension without initial dot  (.), case insensitive
-    Procedure RegisterResourceHandler(aExtension : String; aHandler : TResourceHandler); overload;
-    Procedure RegisterResourceHandler(aExtensions : Array of String; aHandler : TResourceHandler); overload;
+    procedure RegisterResourceHandler(aExtension : String; const aHandler : TResourceHandler); overload;
+    procedure RegisterResourceHandler(const aExtensions : Array of String; const aHandler : TResourceHandler); overload;
+    procedure RegisterDirectiveHandler(const aDirective: String; const aHandler : TPScannerDirectiveEvent); overload;
+    procedure RegisterDirectiveHandler(const aDirectives : TStringDynArray; const aHandler : TPScannerDirectiveEvent); overload;
     procedure OpenFile(AFilename: TPasScannerString);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: String): String; virtual;
-    Procedure DisablePackageTokens;
+    procedure DisablePackageTokens;
     procedure SetNonToken(aToken : TToken);
     procedure UnsetNonToken(aToken : TToken);
     procedure SetTokenOption(aOption : TTokenoption);
@@ -3393,7 +3402,8 @@ begin
   inherited Destroy;
 end;
 
-procedure TPascalScanner.RegisterResourceHandler(aExtension: String; aHandler: TResourceHandler);
+procedure TPascalScanner.RegisterResourceHandler(aExtension: String;
+  const aHandler: TResourceHandler);
 
 Var
   Idx: Integer;
@@ -3413,7 +3423,8 @@ begin
   FResourceHandlers[Idx].handler:=aHandler;
 end;
 
-procedure TPascalScanner.RegisterResourceHandler(aExtensions: array of String; aHandler: TResourceHandler);
+procedure TPascalScanner.RegisterResourceHandler(const aExtensions: array of String;
+  const aHandler: TResourceHandler);
 
 Var
   S : TPasScannerString;
@@ -3421,6 +3432,38 @@ Var
 begin
   For S in aExtensions do
     RegisterResourceHandler(S,aHandler);
+end;
+
+procedure TPascalScanner.RegisterDirectiveHandler(const aDirective: String;
+  const aHandler: TPScannerDirectiveEvent);
+var
+  i: Integer;
+  Item: TDirectiveHandlerRecord;
+begin
+  if aDirective='' then exit;
+  i:=IndexOfDirectiveHandle(aDirective,true);
+  if (i<length(FDirectiveHandles))
+      and (CompareText(aDirective,FDirectiveHandles[i].Directive)=0) then
+    begin
+    // replace
+    FDirectiveHandles[i].Directive:=aDirective;
+    FDirectiveHandles[i].Handler:=aHandler;
+    end
+  else
+    begin
+    Item.Directive:=aDirective;
+    Item.Handler:=aHandler;
+    Insert(Item,FDirectiveHandles,i);
+    end;
+end;
+
+procedure TPascalScanner.RegisterDirectiveHandler(const aDirectives: TStringDynArray;
+  const aHandler: TPScannerDirectiveEvent);
+var
+  S: String;
+begin
+  for S in aDirectives do
+    RegisterDirectiveHandler(S,aHandler);
 end;
 
 procedure TPascalScanner.ClearFiles;
@@ -5360,9 +5403,17 @@ end;
 
 procedure TPascalScanner.DoHandleDirective(Sender: TObject; Directive,
   Param: TPasScannerString; var Handled: boolean);
+var
+  i: Integer;
 begin
   if Assigned(OnDirective) then
+    begin
     OnDirective(Sender,Directive,Param,Handled);
+    if Handled then exit;
+    end;
+  i:=IndexOfDirectiveHandle(Directive);
+  if i>=0 then
+    FDirectiveHandles[i].Handler(Sender,Directive,Param,Handled);
 end;
 
 procedure TPascalScanner.HandleMultilineStringTrimLeft(const AParam: TPasScannerString);
@@ -6535,6 +6586,32 @@ begin
     Result:=Nil
   else
     Result:=FResourceHandlers[Idx].handler;
+end;
+
+function TPascalScanner.IndexOfDirectiveHandle(const aDirective: TPasScannerString;
+  ForInsert: boolean): Integer;
+var
+  l, r, m, cmp: Integer;
+begin
+  l:=0;
+  r:=length(FDirectiveHandles)-1;
+  m:=0;
+  while l<=r do begin
+    m:=(l+r) div 2;
+    cmp:=CompareText(aDirective,FDirectiveHandles[m].Directive);
+    if cmp>0 then
+      l:=m+1
+    else if cmp<0 then
+      r:=m-1
+    else
+      exit(m);
+  end;
+  if not ForInsert then exit(-1);
+  Result:=m;
+  if length(FDirectiveHandles)=0 then
+    exit;
+  if cmp>0 then
+    inc(Result);
 end;
 
 function TPascalScanner.ReadIdentifier(const AParam: TPasScannerString): TPasScannerString;

@@ -50,6 +50,8 @@ type
     procedure AssertMemberType(AType : TClass; Member : TPaselement = Nil);
     procedure AssertMemberName(AName : string; Member : TPaselement = Nil);
     Procedure AssertProperty(P : TPasProperty; AVisibility : TPasMemberVisibility;AName,ARead,AWrite,AStored,AImplements : String; AArgCount : Integer; ADefault,ANodefault : Boolean);
+    Procedure TestDirectiveRTTI(Param: string; ExpectedExplicit: boolean;
+        const ExpectedFields, ExpectedMethods, ExpectedProperties: TPasMembersType.TRTTIVisibilitySections);
     Property TheClass : TPasClassType Read FClass;
     Property Members[AIndex : Integer] : TPasElement Read GetM;
     Property Member1 : TPasElement Read FMember1;
@@ -204,6 +206,12 @@ type
     procedure TestRecordHelperOneMethod;
     procedure TestEscapedVisibilityVar;
     procedure TestEscapedAbsoluteVar;
+    procedure TestClassRTTIInherit;
+    procedure TestClassRTTIExplicit;
+    procedure TestClassRTTIExplicitFields;
+    procedure TestClassRTTIExplicitFieldsPublic;
+    procedure TestClassRTTIExplicitMethodsAll;
+    procedure TestClassRTTIExplicitAllPublic;
   end;
 
 implementation
@@ -532,6 +540,30 @@ begin
   Assertequals(P.Name+': stored accessor name',AStored,P.StoredAccessorName);
   Assertequals(P.Name+': default',ADefault,P.IsDefault);
   Assertequals(P.Name+': nodefault',ANodefault,P.IsNoDefault);
+end;
+
+procedure TTestClassType.TestDirectiveRTTI(Param: string; ExpectedExplicit: boolean;
+  const ExpectedFields, ExpectedMethods, ExpectedProperties: TPasMembersType.TRTTIVisibilitySections
+  );
+
+  procedure Check(const El: string; const Expected, Actual: TPasMembersType.TRTTIVisibilitySections);
+  var
+    s: String;
+  begin
+    if Expected=Actual then exit;
+    Fail(El+' visibility expected '+dbgs(Expected)+', but found '+dbgs(Actual));
+  end;
+
+begin
+  Parser.Options:=Parser.Options+[po_CheckRTTI];
+  Add('{$RTTI '+Param+'}');
+  FStarted:=True;
+  FDecl.add('TMyClass = Class');
+  ParseClass;
+  AssertEquals('rtti directive explicit (not inherit)',ExpectedExplicit,FClass.RTTIVisibility.Explicit);
+  Check('Fields',FClass.RTTIVisibility.Fields,ExpectedFields);
+  Check('Methods',FClass.RTTIVisibility.Methods,ExpectedMethods);
+  Check('Properties',FClass.RTTIVisibility.Properties,ExpectedProperties);
 end;
 
 procedure TTestClassType.TestEmpty;
@@ -2377,6 +2409,38 @@ begin
   AssertNotNull('Have 1 field',Field1);
   AssertMemberName('absolute');
   AssertVisibility;
+end;
+
+procedure TTestClassType.TestClassRTTIInherit;
+begin
+  TestDirectiveRTTI('inherit',false,[],[],[]);
+end;
+
+procedure TTestClassType.TestClassRTTIExplicit;
+begin
+  TestDirectiveRTTI('explicit',true,[],[],[]);
+end;
+
+procedure TTestClassType.TestClassRTTIExplicitFields;
+begin
+  TestDirectiveRTTI('explicit fields([])',true,[],[],[]);
+end;
+
+procedure TTestClassType.TestClassRTTIExplicitFieldsPublic;
+begin
+  TestDirectiveRTTI('explicit fields ( [vcPublic] ) ',true,[vcPublic],[],[]);
+end;
+
+procedure TTestClassType.TestClassRTTIExplicitMethodsAll;
+begin
+  TestDirectiveRTTI('explicit methods([vcPublic,vcPrivate,vcPublished,vcProtected])',true,
+    [],[vcPrivate,vcProtected,vcPublic,vcPublished],[]);
+end;
+
+procedure TTestClassType.TestClassRTTIExplicitAllPublic;
+begin
+  TestDirectiveRTTI('explicit fields([vcPublic]) Methods([vcPublic]) Properties([vcPublic])',true,
+    [vcPublic],[vcPublic],[vcPublic]);
 end;
 
 initialization
