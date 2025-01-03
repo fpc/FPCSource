@@ -5406,14 +5406,14 @@ procedure TPascalScanner.DoHandleDirective(Sender: TObject; Directive,
 var
   i: Integer;
 begin
+  i:=IndexOfDirectiveHandle(Directive);
+  if i>=0 then
+    FDirectiveHandles[i].Handler(Sender,Directive,Param,Handled);
   if Assigned(OnDirective) then
     begin
     OnDirective(Sender,Directive,Param,Handled);
     if Handled then exit;
     end;
-  i:=IndexOfDirectiveHandle(Directive);
-  if i>=0 then
-    FDirectiveHandles[i].Handler(Sender,Directive,Param,Handled);
 end;
 
 procedure TPascalScanner.HandleMultilineStringTrimLeft(const AParam: TPasScannerString);

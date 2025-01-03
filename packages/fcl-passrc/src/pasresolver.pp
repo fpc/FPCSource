@@ -8871,6 +8871,14 @@ begin
       else
         RaiseNotYetImplemented(20190825195203,aClass,GetObjName(El));
     until El=nil;
+
+    if not aClass.RTTIVisibility.Explicit then
+      begin
+      // inherit extended RTTI visibilities
+      aClass.RTTIVisibility.Fields:=AncestorClassEl.RTTIVisibility.Fields+aClass.RTTIVisibility.Fields;
+      aClass.RTTIVisibility.Methods:=AncestorClassEl.RTTIVisibility.Methods+aClass.RTTIVisibility.Methods;
+      aClass.RTTIVisibility.Properties:=AncestorClassEl.RTTIVisibility.Properties+aClass.RTTIVisibility.Properties;
+      end;
     end;
 
   if TopScope is TPasGenericParamsScope then
@@ -18662,6 +18670,7 @@ var
   SpecScope: TPasGenericScope;
 begin
   SpecEl.PackMode:=GenEl.PackMode;
+  SpecEl.RTTIVisibility:=GenEl.RTTIVisibility;
   if SpecializedItem<>nil then
     begin
     // specialized generic record
@@ -18704,6 +18713,7 @@ begin
   GenericTemplateTypes:=GenEl.GenericTemplateTypes;
   SpecEl.ObjKind:=GenEl.ObjKind;
   SpecEl.PackMode:=GenEl.PackMode;
+  SpecEl.RTTIVisibility:=GenEl.RTTIVisibility;
   if GenEl.HelperForType<>nil then
     RaiseNotYetImplemented(20190730182758,GenEl,'');
   if GenEl.IsForward then
@@ -22053,6 +22063,7 @@ begin
                               NewType.Name,NewType.Parent,NewType.Visibility,
                               NewType.SourceFilename,NewType.SourceLinenumber));
     aClass.ObjKind := AncestorClass.ObjKind;
+    aClass.RTTIVisibility:=AncestorClass.RTTIVisibility;
 
     // release old alias type
     OldType := TPasTypeAliasType(NewType);

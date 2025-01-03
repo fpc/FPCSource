@@ -565,8 +565,7 @@ type
     procedure ParseStatement(Parent: TPasImplBlock; out NewImplElement: TPasImplElement);
     procedure ParseAdhocExpression(out NewExprElement: TPasExpr);
     procedure ParseLabels(AParent: TPasElement);
-    procedure ParseProcBeginBlock(Parent: TProcedureBody);
-    procedure ParseProcAsmBlock(Parent: TProcedureBody);
+    function ParseRTTIDirective(const Param: TPasScannerString; out Vis: TPasMembersType.TRTTIVisibility): boolean;
     // Function/Procedure declaration
     function ParseProcedureOrFunctionDecl(Parent: TPasElement;
       ProcType: TProcType; MustBeGeneric: boolean;
@@ -578,6 +577,8 @@ type
       Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
     function ParseMethodResolution(Parent: TPasElement): TPasMethodResolution;
+    procedure ParseProcBeginBlock(Parent: TProcedureBody);
+    procedure ParseProcAsmBlock(Parent: TProcedureBody);
     // Properties for external access
     property FileResolver: TBaseFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
@@ -3841,7 +3842,7 @@ begin
       Scanner.UnSetTokenOption(toOperatorToken);
     NextToken;
     Scanner.SkipGlobalSwitches:=true;
-  //  writeln('TPasParser.ParseDeclarations Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
+    //writeln('TPasParser.ParseDeclarations Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
     case CurToken of
     tkend:
       begin
@@ -4778,7 +4779,6 @@ begin
         if AObjKind=okInterface then
           if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
             ClassEl.InterfaceType:=citCorba;
-        ClassEl.RTTIVisibility:=RTTIVisibility;
         if AddToParent and (Parent is TPasDeclarations) then
           TPasDeclarations(Parent).Classes.Add(ClassEl);
         ClassEl.IsExternal:=(AExternalName<>'');
@@ -4786,6 +4786,8 @@ begin
           ClassEl.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
         if AExternalNameSpace<>'' then
           ClassEl.ExternalNameSpace:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalNameSpace,'''');
+        if not ClassEl.IsExternal then
+          ClassEl.RTTIVisibility:=RTTIVisibility;
         InitGenericType(ClassEl,TypeParams);
         DoParseClassType(ClassEl);
         CheckHint(ClassEl,True);
@@ -5136,115 +5138,14 @@ end;
 
 procedure TPasParser.OnScannerDirectiveRTTI(Sender: TObject; Directive, Param: TPasScannerString;
   var Handled: boolean);
-// $rtti explicit|inherit space-separated-clauses
-// clause: methods|fields|properties([enums])
-// enums: comma separated list of vcPrivate,vcProtected,vcPublic,vcPublished
 var
-  p, l: Integer;
-
-  procedure Err;
-  begin
-    ParseExc(nErrInvalidCompilerDirectiveRTTI,SErrInvalidCompilerDirectiveX,[Directive]);
-  end;
-
-  procedure SkipWhiteSpace;
-  begin
-    while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
-      inc(p);
-  end;
-
-  function ReadIdentifier: string;
-  var
-    StartP: Integer;
-  begin
-    StartP:=p;
-    while (p<=l) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
-      inc(p);
-    Result:=copy(Param,StartP,p-StartP);
-  end;
-
-var
-  StartP, ElType: Integer;
-  Value: String;
-  NewRTTIVisibility: TPasMembersType.TRTTIVisibility;
-  Visibility: TPasMembersType.TRTTIVisibilitySections;
+  NewVisibility: TPasMembersType.TRTTIVisibility;
 begin
   if not (po_CheckDirectiveRTTI in Options) then exit;
   Handled:=true;
-  p:=1;
-  l:=length(Param);
-
-  NewRTTIVisibility:=Default(TPasMembersType.TRTTIVisibility);
-
-  // read Explicit, Inherit
-  SkipWhiteSpace;
-  Value:=ReadIdentifier;
-  case lowercase(Value) of
-  'explicit': NewRTTIVisibility.Explicit:=true;
-  'inherit': NewRTTIVisibility.Explicit:=false;
-  else Err;
-  end;
-
-  // read clauses
-  while p<=l do
-    begin
-    // read what type of elements
-    SkipWhiteSpace;
-    if p>l then break;
-    Value:=ReadIdentifier;
-    case lowercase(Value) of
-    'fields': ElType:=0;
-    'methods': ElType:=1;
-    'properties': ElType:=2;
-    else Err;
-    end;
-
-    // parameters
-    SkipWhiteSpace;
-    if (p>l) or (Param[p]<>'(') then
-      Err;
-    inc(p);
-    SkipWhiteSpace;
-    if (p>l) or (Param[p]<>'[') then
-      Err;
-    inc(p);
-
-    Visibility:=[];
-    repeat
-      SkipWhiteSpace;
-      if (p<=l) and (Param[p]=']') then break;
-      Value:=ReadIdentifier;
-      case lowercase(Value) of
-      'vcprivate': Include(Visibility,vcPrivate);
-      'vcprotected': Include(Visibility,vcProtected);
-      'vcpublic': Include(Visibility,vcPublic);
-      'vcpublished': Include(Visibility,vcPublished);
-      else Err;
-      end;
-      SkipWhiteSpace;
-      if p>l then
-        Err;
-      case Param[p] of
-      ',': ;
-      ']': break;
-      else Err;
-      end;
-      inc(p);
-    until false;
-    inc(p);
-    SkipWhiteSpace;
-    if (p>l) or (Param[p]<>')') then
-      Err;
-    inc(p);
-
-    case ElType of
-    0: NewRTTIVisibility.Fields:=Visibility;
-    1: NewRTTIVisibility.Methods:=Visibility;
-    2: NewRTTIVisibility.Properties:=Visibility;
-    end;
-
-    end;
-  RTTIVisibility:=NewRTTIVisibility;
+  if not ParseRTTIDirective(Param,NewVisibility) then
+    ParseExc(nErrInvalidCompilerDirectiveRTTI,SErrInvalidCompilerDirectiveX,[Directive]);
+  RTTIVisibility:=NewVisibility;
 end;
 
 function TPasParser.SaveComments: String;
@@ -6749,6 +6650,112 @@ begin
 
 end;
 
+function TPasParser.ParseRTTIDirective(const Param: TPasScannerString; out Vis: TPasMembersType.
+  TRTTIVisibility): boolean;
+// $rtti explicit|inherit space-separated-clauses
+// clause: methods|fields|properties([enums])
+// enums: comma separated list of vcPrivate,vcProtected,vcPublic,vcPublished
+var
+  p, l: Integer;
+
+  procedure SkipWhiteSpace;
+  begin
+    while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
+      inc(p);
+  end;
+
+  function ReadIdentifier: TPasScannerString;
+  var
+    StartP: Integer;
+  begin
+    StartP:=p;
+    while (p<=l) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
+      inc(p);
+    Result:=copy(Param,StartP,p-StartP);
+  end;
+
+var
+  StartP, ElType: Integer;
+  Value: TPasScannerString;
+  Visibility: TPasMembersType.TRTTIVisibilitySections;
+begin
+  Result:=false;
+  Vis:=Default(TPasMembersType.TRTTIVisibility);
+
+  p:=1;
+  l:=length(Param);
+
+  // read Explicit, Inherit
+  SkipWhiteSpace;
+  Value:=ReadIdentifier;
+  case lowercase(Value) of
+  'explicit': Vis.Explicit:=true;
+  'inherit': Vis.Explicit:=false;
+  else exit;
+  end;
+
+  // read clauses
+  while p<=l do
+    begin
+    // read what type of elements
+    SkipWhiteSpace;
+    if p>l then break;
+    Value:=ReadIdentifier;
+    case lowercase(Value) of
+    'fields': ElType:=0;
+    'methods': ElType:=1;
+    'properties': ElType:=2;
+    else exit;
+    end;
+
+    // parameters
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>'(') then
+      exit;
+    inc(p);
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>'[') then
+      exit;
+    inc(p);
+
+    Visibility:=[];
+    repeat
+      SkipWhiteSpace;
+      if (p<=l) and (Param[p]=']') then break;
+      Value:=ReadIdentifier;
+      case lowercase(Value) of
+      'vcprivate': Include(Visibility,vcPrivate);
+      'vcprotected': Include(Visibility,vcProtected);
+      'vcpublic': Include(Visibility,vcPublic);
+      'vcpublished': Include(Visibility,vcPublished);
+      else exit;
+      end;
+      SkipWhiteSpace;
+      if p>l then
+        exit;
+      case Param[p] of
+      ',': ;
+      ']': break;
+      else exit;
+      end;
+      inc(p);
+    until false;
+    inc(p);
+    SkipWhiteSpace;
+    if (p>l) or (Param[p]<>')') then
+      exit;
+    inc(p);
+
+    case ElType of
+    0: Vis.Fields:=Visibility;
+    1: Vis.Methods:=Visibility;
+    2: Vis.Properties:=Visibility;
+    end;
+
+    end;
+  Result:=true;
+end;
+
 // Starts after the "procedure" or "function" token
 function TPasParser.GetProcedureClass(ProcType: TProcType): TPTreeElement;
 
@@ -7958,7 +7965,6 @@ begin
     end;
   ClassEl := TPasClassType(CreateElement(TPasClassType, AClassName,
     Parent, NamePos));
-  ClassEl.RTTIVisibility:=RTTIVisibility;
   Result:=ClassEl;
   ok:=false;
   try
@@ -7979,6 +7985,8 @@ begin
       if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
         ClassEl.InterfaceType:=citCorba;
       end;
+    if not ClassEl.IsExternal then
+      ClassEl.RTTIVisibility:=RTTIVisibility;
     DoParseClassType(ClassEl);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;

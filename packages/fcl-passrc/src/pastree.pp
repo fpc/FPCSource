@@ -432,7 +432,6 @@ type
     Destructor Destroy; override;
     Procedure FreeChildren(Prepare: boolean); override;
     function ElementTypeName: TPasTreeString; override;
-
   end;
 
 
@@ -463,6 +462,7 @@ type
   { TPasUnitModule }
 
   TPasUnitModule = Class(TPasModule)
+  public
     function ElementTypeName: TPasTreeString; override;
   end;
 
