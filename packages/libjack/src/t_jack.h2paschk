@@ -1,4 +1,4 @@
-# OpenBSD RTL-to-C structure compatibility checker description file
+# JACK structure compatibility checker description file
 #
 # Use
 #   h2paschk t_jack.h2paschk
