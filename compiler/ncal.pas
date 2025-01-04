@@ -2263,6 +2263,7 @@ implementation
 
     procedure tcallnode.load_in_temp(var p:tnode);
       var
+        actnode : pnode;
         loadp,
         refp  : tnode;
         hdef : tdef;
@@ -2271,6 +2272,21 @@ implementation
       begin
         if assigned(p) then
           begin
+            { if the node is a deref node we load the pointer in a temp to allow
+              code using this node to still be able to modify the original
+              reference (e.g. a function returning a floating point value on x86
+              would pass that value through the FP stack and then to the stack
+              and thus e.g. a type helper for float called on that would modify
+              the temporary memory on the stack instead of the returned pointer
+              value }
+            actnode:=@p;
+            actnode:=actualtargetnode(actnode);
+            if actnode^.nodetype=derefn then
+              begin
+                load_in_temp(tderefnode(actnode^).left);
+                exit;
+              end;
+
             { temp create }
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
                       is_shortstring(p.resultdef) or
@@ -4415,24 +4431,6 @@ implementation
 
               if methodpointer.nodetype<>typen then
                begin
-                 { if the value a type helper works on is a derefentiation (before
-                   removing postix operators) we need to pass the original pointer
-                   as Self as the Self value might be changed by the helper }
-                 if is_objectpascal_helper(tdef(procdefinition.owner.defowner)) and
-                    not is_implicit_pointer_object_type(tobjectdef(procdefinition.owner.defowner).extendeddef) then
-                   begin
-                     hpt:=methodpointer;
-
-                     hpt:=actualtargetnode(@hpt)^;
-                     if hpt.nodetype=derefn then
-                       begin
-                         tmp:=tderefnode(hpt).left;
-                         tderefnode(hpt).left:=nil;
-                         methodpointer.free;
-                         methodpointer:=tmp;
-                       end;
-                   end;
-
                   hpt:=methodpointer;
 
                   { Remove all postfix operators }
