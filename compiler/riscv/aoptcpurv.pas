@@ -680,12 +680,22 @@ implementation
               A_AND,
               A_OR,
               A_XOR,
+{$ifdef riscv64}
+              A_SLLW,
+              A_SRLW,
+              A_SRAW,
+{$endif riscv64}
               A_SLL,
               A_SRL,
               A_SRA,
               A_NEG,
               A_NOT:
                 result:=OptPass1OP(p);
+{$ifdef riscv64}
+              A_SRAIW,
+              A_SRLIW,
+              A_SLLIW,
+{$endif riscv64}
               A_SRAI,
               A_SRLI,
               A_SLLI:
