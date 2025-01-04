@@ -1862,7 +1862,7 @@ HKCR
           Result := DISP_E_BADINDEX
         else
         begin
-          ITypeInfo(TypeInfo) := TAutoObjectFactory(Factory).ClassInfo;
+          ITypeInfo(TypeInfo) := TAutoObjectFactory(Factory).DispTypeInfo;
           Result := S_OK;
         end;
       end;
