@@ -930,3 +930,8 @@ end;
 
 {$include fcl-fpterm/fpmake.pp}
 
+procedure add_libjack(const ADirectory: string);
+begin
+  with Installer do
+{$include libjack/fpmake.pp}
+end;

@@ -1,0 +1,115 @@
+# OpenBSD RTL-to-C structure compatibility checker description file
+#
+# Use
+#   h2paschk t_jack.h2paschk
+#
+# ...to generate Pascal and C code, then make sure they both compile and that
+# the Pascal program produces the same output as the C program for each
+# supported architecture.
+
+@Pascal uses jack;
+@Pascal begin
+
+@C #include <jack/jack.h>
+@C #include <stdio.h>
+@C #include <stddef.h>
+@C int main()
+@C {
+
+@type jack_native_thread_t
+@type jack_uuid_t
+@type jack_shmsize_t
+@type jack_nframes_t
+@constant JACK_MAX_FRAMES
+@type jack_time_t
+@constant JACK_LOAD_INIT_LIMIT
+@type jack_intclient_t
+#@type jack_port_t
+#@type jack_client_t
+@type jack_port_id_t
+@type jack_port_type_id_t
+@constant JackOpenOptions
+@constant JackLoadOptions
+@type jack_options_t
+@type jack_status_t
+@type jack_latency_callback_mode_t
+@type TJackLatencyCallback,JackLatencyCallback
+
+@record jack_latency_range_t
+.min
+.max
+
+@type TJackProcessCallback,JackProcessCallback
+@type TJackThreadCallback,JackThreadCallback
+@type TJackThreadInitCallback,JackThreadInitCallback
+@type TJackGraphOrderCallback,JackGraphOrderCallback
+@type TJackXRunCallback,JackXRunCallback
+@type TJackBufferSizeCallback,JackBufferSizeCallback
+@type TJackSampleRateCallback,JackSampleRateCallback
+@type TJackPortRegistrationCallback,JackPortRegistrationCallback
+@type TJackClientRegistrationCallback,JackClientRegistrationCallback
+@type TJackPortConnectCallback,JackPortConnectCallback
+@type TJackPortRenameCallback,JackPortRenameCallback
+@type TJackFreewheelCallback,JackFreewheelCallback
+@type TJackShutdownCallback,JackShutdownCallback
+@type TJackInfoShutdownCallback,JackInfoShutdownCallback
+
+#@stringconstant JACK_DEFAULT_AUDIO_TYPE
+#@stringconstant JACK_DEFAULT_MIDI_TYPE
+
+@type jack_default_audio_sample_t
+@type jack_transport_state_t
+@type jack_unique_t
+@type jack_position_bits_t
+@constant JACK_POSITION_MASK
+
+@record jack_position_t
+.unique_1
+.usecs
+.frame_rate
+.frame
+.valid
+.bar
+.beat
+.tick
+.bar_start_tick
+.beats_per_bar
+.beat_type
+.ticks_per_beat
+.beats_per_minute
+.frame_time
+.next_time
+.bbt_offset
+.audio_frames_per_video_frame
+.video_offset
+.tick_double
+.padding
+.unique_2
+
+@type TJackSyncCallback,JackSyncCallback
+@type TJackTimebaseCallback,JackTimebaseCallback
+@type jack_transport_bits_t
+
+@record jack_transport_info_t
+.frame_rate
+.usecs
+.valid
+.transport_state
+.frame
+.loop_start
+.loop_end
+.smpte_offset
+.smpte_frame_rate
+.bar
+.beat
+.tick
+.bar_start_tick
+.beats_per_bar
+.beat_type
+.ticks_per_beat
+.beats_per_minute
+
+@C   return 0;
+@C }
+
+@Pascal end.

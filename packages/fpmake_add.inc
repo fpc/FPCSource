@@ -164,3 +164,4 @@
   add_fcl_yaml(ADirectory+IncludeTrailingPathDelimiter('fcl-yaml'));
   add_ptckvm(ADirectory+IncludeTrailingPathDelimiter('ptckvm'));
   add_fcl_fpterm(ADirectory+IncludeTrailingPathDelimiter('fcl-fpterm'));
+  add_libjack(ADirectory+IncludeTrailingPathDelimiter('libjack'));
