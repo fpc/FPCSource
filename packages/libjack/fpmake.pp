@@ -37,6 +37,9 @@ begin
         AddInclude('weakmacros.inc');
       end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('simple_client.pp');
+
     P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
