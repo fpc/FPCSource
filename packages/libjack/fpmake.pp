@@ -40,6 +40,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('latent_client.pp');
+    P.Targets.AddExampleProgram('transport_client.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
