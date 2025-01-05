@@ -31,7 +31,7 @@ uses
   {$ENDIF}
   System.Types,
   {$endif}
-  System.SysUtils, System.Classes;
+  System.SysUtils, System.Classes, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
