@@ -7,10 +7,11 @@
 # the Pascal program produces the same output as the C program for each
 # supported architecture.
 
-@Pascal uses jack;
+@Pascal uses jack, jackringbuffer;
 @Pascal begin
 
 @C #include <jack/jack.h>
+@C #include <jack/ringbuffer.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -108,6 +109,18 @@
 .beat_type
 .ticks_per_beat
 .beats_per_minute
+
+@record jack_ringbuffer_data_t
+.buf
+.len
+
+@record jack_ringbuffer_t
+.buf
+.write_ptr
+.read_ptr
+.size
+.size_mask
+.mlocked
 
 @C   return 0;
 @C }
