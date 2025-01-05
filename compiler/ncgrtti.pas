@@ -1591,7 +1591,10 @@ implementation
                { total element count }
                tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
                { last dimension element type }
-               tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),voidpointertype);
+               if is_objc_class_or_protocol(curdef.elementdef) then
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(voidpointertype,rt,true)),voidpointertype)
+               else
+                 tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),voidpointertype);
                { dimension count }
                tcb.emit_ord_const(dimcount,u8inttype);
                finaldef:=def;
@@ -2635,6 +2638,10 @@ implementation
         rttidef: tdef;
         s: TIDString;
       begin
+        { Objective-C has its own RTTI system }
+        if is_objc_class_or_protocol(def) then
+          exit;
+
         { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
           exit;
