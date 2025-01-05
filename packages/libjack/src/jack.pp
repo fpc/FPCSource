@@ -27,7 +27,11 @@ interface
 {$packrecords C}
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libjack = 'jack';
