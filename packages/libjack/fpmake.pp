@@ -37,6 +37,13 @@ begin
         AddInclude('weakmacros.inc');
       end;
 
+    T:=P.Targets.AddUnit('jackringbuffer.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('ringbuffer.inc');
+        AddUnit('jack');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('latent_client.pp');
