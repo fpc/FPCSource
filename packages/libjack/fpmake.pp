@@ -51,6 +51,14 @@ begin
         AddUnit('jack');
       end;
 
+    T:=P.Targets.AddUnit('jacksession.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('session.inc');
+        AddInclude('session.inc');
+        AddUnit('jack');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('latent_client.pp');
