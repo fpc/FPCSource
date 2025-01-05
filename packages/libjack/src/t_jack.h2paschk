@@ -7,11 +7,13 @@
 # the Pascal program produces the same output as the C program for each
 # supported architecture.
 
-@Pascal uses jack, jackringbuffer;
+@Pascal uses jack, jackringbuffer, jacksession, jackthread;
 @Pascal begin
 
 @C #include <jack/jack.h>
 @C #include <jack/ringbuffer.h>
+@C #include <jack/session.h>
+@C #include <jack/thread.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -121,6 +123,27 @@
 .size
 .size_mask
 .mlocked
+
+@type jack_session_event_type_t
+@type jack_session_flags_t
+
+@record jack_session_event_t
+._type,type
+.session_dir
+.client_uuid
+.command_line
+.flags
+.future
+
+@type TJackSessionCallback,JackSessionCallback
+
+@record jack_session_command_t
+.uuid
+.client_name
+.command
+.flags
+
+@type jack_thread_creator_t
 
 @C   return 0;
 @C }

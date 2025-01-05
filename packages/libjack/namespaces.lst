@@ -2,5 +2,6 @@ src/jack.pp=namespaced/Api.Jack.pp
 src/jackringbuffer.pp=namespaced/Api.Jack.RingBuffer.pp
 src/jackuuid.pp=namespaced/Api.Jack.Uuid.pp
 src/jacksession.pp=namespaced/Api.Jack.Session.pp
+src/jackthread.pp=namespaced/Api.Jack.Thread.pp
 {s*:src/}=namespaced/
 {i+:src/}

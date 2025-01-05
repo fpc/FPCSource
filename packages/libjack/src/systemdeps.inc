@@ -125,6 +125,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #endif /* __APPLE__ || __linux__ || __sun__ || sun */*)
 
 type
+  PPjack_native_thread_t = ^Pjack_native_thread_t;
+  Pjack_native_thread_t = ^jack_native_thread_t;
   jack_native_thread_t = System.TThreadID;
 
 (*#if (defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__ppc__) || defined(__powerpc__)) && !defined(__APPLE__)
