@@ -55,7 +55,7 @@ begin
     with T.Dependencies do
       begin
         AddInclude('session.inc');
-        AddInclude('session.inc');
+        AddInclude('weakmacros.inc');
         AddUnit('jack');
       end;
 
