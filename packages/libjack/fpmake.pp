@@ -48,6 +48,7 @@ begin
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('latent_client.pp');
     P.Targets.AddExampleProgram('transport_client.pp');
+    P.Targets.AddExampleProgram('impulse_grabber.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
