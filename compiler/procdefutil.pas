@@ -656,8 +656,13 @@ implementation
                 begin
                   {$ifdef DEBUG_CAPTURER}writeln('Adding field OuterSelf to ',subcapturer.typesym.name);{$endif}
                   if subcapturer.owner.symtablelevel>normal_function_level then
-                    { the outer self is the capturer of the outer procdef }
-                    sym:=get_or_create_capturer(curpd)
+                    begin
+                      { the outer self is the capturer of the outer procdef }
+                      sym:=get_or_create_capturer(curpd);
+                      { ensure that the outer capturer isn't put into a register anymore }
+                      tabstractvarsym(sym).different_scope:=true;
+                      tabstractvarsym(sym).varregable:=vr_none;
+                    end
                   else
                     begin
                       { the outer self is the self of the method }
@@ -1383,10 +1388,12 @@ implementation
           if not assigned(outercapturer) then
             internalerror(2022011605);
           selfnode:=cloadnode.create(outercapturer,outercapturer.owner);
+          make_not_regable(selfnode,[ra_different_scope]);
           outeralive:=get_capturer_alive(tprocdef(ctx.procdef.owner.defowner));
           if not assigned(outeralive) then
             internalerror(2022051706);
           alivenode:=cloadnode.create(outeralive,outeralive.owner);
+          make_not_regable(alivenode,[ra_different_scope]);
         end;
       addstatement(stmt,cassignmentnode.create(
                           csubscriptnode.create(
