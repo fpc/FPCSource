@@ -500,19 +500,19 @@ Type
   TExitCode = Word;
 {$endif CPU16}
 
-{$if defined(CPUINT8)}
+{$if defined(CPU8)}
   ALUSInt = ShortInt;
   ALUUInt = Byte;
-{$elseif defined(CPUINT16)}
+{$elseif defined(CPU16)}
   ALUSInt = SmallInt;
   ALUUInt = Word;
-{$elseif defined(CPUINT32)}
+{$elseif defined(CPU32)}
   ALUSInt = Longint;
   ALUUInt = DWord;
-{$elseif defined(CPUINT64)}
+{$elseif defined(CPU64)}
   ALUSInt = Int64;
   ALUUInt = QWord;
-{$endif defined(CPUINT64)}
+{$endif defined(CPU64)}
 
   { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
     has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
