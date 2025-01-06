@@ -147,6 +147,9 @@ unit itcpugas;
         'fcvt.d.l','fcvt.d.lu','fmv.d.x',
 {$endif RISCV64}
 
+        { q-extension }
+        'fmax.q','fmax.q',
+
         { Machine mode }
         'mret','hret','sret','uret',
         'wfi',

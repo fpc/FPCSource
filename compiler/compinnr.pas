@@ -176,6 +176,8 @@ type
      in_min_int64        = 146,
      in_max_qword        = 147,
      in_max_int64        = 148,
+     in_min_quad         = 149,
+     in_max_quad         = 150,
 
 { MMX functions }
 { these contants are used by the mmx unit }

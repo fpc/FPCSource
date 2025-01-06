@@ -156,6 +156,16 @@ uses
         A_FCVT_D_L,A_FCVT_D_LU,A_FMV_D_X,
 {$endif RISCV64}
 
+        { Q-extension }
+//        A_FLD,A_FSD,
+//        A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D,
+//        A_FADD_D,A_FSUB_D,A_FMUL_D,A_FDIV_D,
+//        A_FSQRT_D,A_FSGNJ_D,A_FSGNJN_D,A_FSGNJX_D,
+        A_FMIN_Q,A_FMAX_Q,
+//        A_FEQ_D,A_FLT_D,A_FLE_D,A_FCLASS_D,
+//        A_FCVT_D_S,A_FCVT_S_D,
+//        A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU,
+
         { Machine mode }
         A_MRET,A_HRET,A_SRET,A_URET,
         A_WFI,

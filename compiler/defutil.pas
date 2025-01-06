@@ -257,6 +257,9 @@ interface
     {# Returns true, if def is an extended type }
     function is_extended(def : tdef) : boolean;
 
+    {# Returns true, if def is quad type }
+    function is_quad(def : tdef) : boolean;
+
     {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
     function is_real(def : tdef) : boolean;
 
@@ -476,10 +479,19 @@ implementation
       end;
 
 
+    { returns true, if def is an extended type }
     function is_extended(def : tdef) : boolean;
       begin
         result:=(def.typ=floatdef) and
           (tfloatdef(def).floattype in [s80real,sc80real]);
+      end;
+
+
+    { returns true, if def is a quad type }
+    function is_quad(def : tdef) : boolean;
+      begin
+        result:=(def.typ=floatdef) and
+          (tfloatdef(def).floattype=s128real);
       end;
 
 
