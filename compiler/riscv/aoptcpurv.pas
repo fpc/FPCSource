@@ -765,7 +765,8 @@ implementation
               A_FNEG_S,
               A_FLW,
               A_FCVT_D_S,
-              A_FMADD_S,A_FMSUB_S,A_FNMSUB_S,A_FNMADD_S:
+              A_FMADD_S,A_FMSUB_S,A_FNMSUB_S,A_FNMADD_S,
+              A_FMIN_S,A_FMAX_S:
                 result:=OptPass1FOP(p,A_FSGNJ_S);
               A_FADD_D,
               A_FSUB_D,
@@ -775,7 +776,8 @@ implementation
               A_FNEG_D,
               A_FLD,
               A_FCVT_S_D,
-              A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D:
+              A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D,
+              A_FMIN_D,A_FMAX_D:
                 result:=OptPass1FOP(p,A_FSGNJ_D);
               else
                 ;
