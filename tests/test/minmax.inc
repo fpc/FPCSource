@@ -146,6 +146,7 @@ procedure TestSingle;
       TestFail(37);
     if Max4(v1,v3)<>v3 then
       TestFail(38);
+{$ifndef USE_FASTMATH}
     SetExceptionMask([exInvalidOp]);
     vNaN:=NaN;
     if not(IsNaN(Min1(v1,vNaN))) then
@@ -181,6 +182,7 @@ procedure TestSingle;
     if Max4(vNaN,v3)<>v3 then
       TestFail(56);
     SetExceptionMask([]);
+{$endif USE_FASTMATH}
   end;
 
 procedure TestDouble;
@@ -322,6 +324,7 @@ procedure TestDouble;
       TestFail(137);
     if Max4(v1,v3)<>v3 then
       TestFail(138);
+{$ifndef USE_FASTMATH}
     SetExceptionMask([exInvalidOp]);
     vNaN:=NaN;
     if not(IsNaN(Min1(v1,vNaN))) then
@@ -357,6 +360,7 @@ procedure TestDouble;
     if Max4(vNaN,v3)<>v3 then
       TestFail(156);
     SetExceptionMask([]);
+{$endif USE_FASTMATH}
   end;
 
 
