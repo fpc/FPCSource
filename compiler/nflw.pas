@@ -1570,14 +1570,19 @@ implementation
         include(flags,nf_internal);
       end;
 
+{$ifndef llvm}
+  {$if defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64) or defined(riscv)}
+    {$define HAS_MINMAX_INTRINSICS}
+  {$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64) or defined(riscv)}
+{$endif llvm}
 
     function tifnode.internalsimplify(warn: boolean) : tnode;
-{$if defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
+{$if defined(HAS_MINMAX_INTRINSICS)}
       var
         thenstmnt, elsestmnt: tnode;
         in_nr: tinlinenumber;
         paratype: tdef;
-{$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
+{$endif defined(HAS_MINMAX_INTRINSICS)}
       begin
         result:=nil;
         { optimize constant expressions }
@@ -1604,8 +1609,7 @@ implementation
                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                end;
           end;
-{$ifndef llvm}
-{$if defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
+{$if defined(HAS_MINMAX_INTRINSICS)}
         { use min/max intrinsic?
           convert (with <op> being <, >, >=, <=
           if a <op> b then
@@ -1733,8 +1737,7 @@ implementation
                 );
             node_reset_pass1_write(Result);
           end;
-{$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
-{$endif llvm}
+{$endif defined(HAS_MINMAX_INTRINSICS)}
       end;
 
 
