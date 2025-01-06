@@ -304,9 +304,9 @@ implementation
     {$ifdef i8086}
       cpuinfo,
     {$endif i8086}
-    {$if defined(xtensa) or defined(i386)}
+    {$if defined(xtensa) or defined(i386) or defined(riscv)}
       cpuinfo,
-    {$endif defined(xtensa) or defined(i386)}
+    {$endif defined(xtensa) or defined(i386) or defined(riscv)}
       cgbase,procinfo
       ;
 
@@ -1654,6 +1654,15 @@ implementation
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef) or
            is_32bitint(tassignmentnode(thenstmnt).left.resultdef) or is_64bitint(tassignmentnode(thenstmnt).left.resultdef)) and
 {$endif defined(aarch64)}
+{$if defined(riscv)}
+          { RiscV fmin/fmax/fminm/fmaxm uses the IEEE semantics (2008 or 201x) of min/max regarding NaN (using either
+            always the NaN or non-NaN operand instead of the second one in case on is NaN), so
+            we can use them only when fast math is on }
+          ((cs_opt_fastmath in current_settings.optimizerswitches) and
+           ((is_single(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_F in cpu_capabilities[current_settings.cputype])) or
+            (is_double(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_D in cpu_capabilities[current_settings.cputype])) or
+            (is_quad(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_Q in cpu_capabilities[current_settings.cputype])))) and
+{$endif defined(riscv)}
           (
           { the right size of the assignment in the then clause must either }
 
