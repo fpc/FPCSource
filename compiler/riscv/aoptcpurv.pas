@@ -262,7 +262,7 @@ implementation
           <FOp>   %reg3,%reg2,%reg2
         ?
       }
-      if GetNextInstruction(p,hp1) and
+      if GetNextInstruction(p,hp1) and (hp1.typ=ait_instruction) and
         (((mvop=A_FSGNJ_S) and (taicpu(hp1).opcode in [A_FADD_S,A_FSUB_S,A_FMUL_S,A_FDIV_S,A_FSQRT_S,
               A_FNEG_S,A_FMADD_S,A_FMSUB_S,A_FNMSUB_S,A_FNMADD_S,A_FMIN_S,A_FMAX_S,A_FCVT_D_S,
               A_FEQ_S])) or
