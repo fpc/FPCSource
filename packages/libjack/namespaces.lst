@@ -4,5 +4,6 @@ src/jackuuid.pp=namespaced/Api.Jack.Uuid.pp
 src/jacksession.pp=namespaced/Api.Jack.Session.pp
 src/jackthread.pp=namespaced/Api.Jack.Thread.pp
 src/jackstatistics.pp=namespaced/Api.Jack.Statistics.pp
+src/jacknet.pp=namespaced/Api.Jack.Net.pp
 {s*:src/}=namespaced/
 {i+:src/}

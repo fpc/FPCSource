@@ -74,6 +74,15 @@ begin
         AddUnit('jack');
       end;
 
+    T:=P.Targets.AddUnit('jacknet.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('net.inc');
+        AddInclude('systemdeps.inc');
+        AddInclude('weakmacros.inc');
+        AddUnit('jack');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('simple_session_client.pp');

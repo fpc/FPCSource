@@ -7,13 +7,14 @@
 # the Pascal program produces the same output as the C program for each
 # supported architecture.
 
-@Pascal uses jack, jackringbuffer, jacksession, jackthread;
+@Pascal uses jack, jackringbuffer, jacksession, jackthread, jacknet;
 @Pascal begin
 
 @C #include <jack/jack.h>
 @C #include <jack/ringbuffer.h>
 @C #include <jack/session.h>
 @C #include <jack/thread.h>
+@C #include <jack/net.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -144,6 +145,45 @@
 .flags
 
 @type jack_thread_creator_t
+
+#@stringconstant DEFAULT_MULTICAST_IP
+@constant DEFAULT_PORT
+@constant DEFAULT_MTU
+@constant MASTER_NAME_SIZE
+@constant NO_ERROR
+@constant SOCKET_ERROR
+@constant SYNC_PACKET_ERROR
+@constant DATA_PACKET_ERROR
+@constant RESTART_CB_API
+
+@record jack_slave_t
+.audio_input
+.audio_output
+.midi_input
+.midi_output
+.mtu
+.time_out
+.encoder
+.kbps
+.latency
+
+@record jack_master_t
+.audio_input
+.audio_output
+.midi_input
+.midi_output
+.buffer_size
+.sample_rate
+.master_name
+.time_out
+.partial_cycle
+
+@type TJackNetSlaveProcessCallback,JackNetSlaveProcessCallback
+@type TJackNetSlaveBufferSizeCallback,JackNetSlaveBufferSizeCallback
+@type TJackNetSlaveSampleRateCallback,JackNetSlaveSampleRateCallback
+@type TJackNetSlaveShutdownCallback,JackNetSlaveShutdownCallback
+@type TJackNetSlaveRestartCallback,JackNetSlaveRestartCallback
+@type TJackNetSlaveErrorCallback,JackNetSlaveErrorCallback
 
 @C   return 0;
 @C }
