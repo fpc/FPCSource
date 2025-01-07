@@ -466,7 +466,7 @@ var block : TVerBlockHeader;
 begin
   before:=RawData.Position;
   block.length:=0;
-  block.vallength:=length(aValue)+1;
+  block.vallength:=length(WideString(aValue))+1;
   block.valtype:=1;
   block.key:=aKey;
   {$IFDEF ENDIAN_BIG}
