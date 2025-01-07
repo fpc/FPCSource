@@ -111,7 +111,7 @@ const
   nFileSystemsNotSupported = 2057;
   nInvalidMessageType = 2058;
   nErrCompilationAborted = 2059; // FPC = 1018;
-  nErrInvalidCompilerDirectiveRTTI = 2060;
+  nErrInvalidParamsForDirectiveX = 2060;
 
 // resourcestring patterns of messages
 resourcestring
@@ -175,7 +175,7 @@ resourcestring
   SErrFileSystemNotSupported = 'No support for filesystems enabled';
   SErrInvalidMessageType = 'Invalid message type: string or integer expression expected';
   SErrCompilationAborted = 'Compilation aborted';
-  SErrInvalidCompilerDirectiveX = 'Invalid compiler directive %s';
+  SErrInvalidParamsForDirectiveX = 'Invalid parameters for compiler directive %s';
 
 type
   TPasScopeType = (
@@ -5144,7 +5144,7 @@ begin
   if not (po_CheckDirectiveRTTI in Options) then exit;
   Handled:=true;
   if not ParseRTTIDirective(Param,NewVisibility) then
-    ParseExc(nErrInvalidCompilerDirectiveRTTI,SErrInvalidCompilerDirectiveX,[Directive]);
+    ParseExc(nErrInvalidParamsForDirectiveX,SErrInvalidParamsForDirectiveX,[Directive]);
   RTTIVisibility:=NewVisibility;
 end;
 

@@ -1223,7 +1223,6 @@ begin
     UseSubEl(TPasArgument(El).ArgType)
   else if C=TPasProperty then
     begin
-    // published property
     Prop:=TPasProperty(El);
     Args:=Resolver.GetPasPropertyArgs(Prop);
     for i:=0 to Args.Count-1 do
@@ -1232,7 +1231,7 @@ begin
     UseElement(Resolver.GetPasPropertyGetter(Prop),rraRead,false);
     UseElement(Resolver.GetPasPropertySetter(Prop),rraRead,false);
     UseElement(Resolver.GetPasPropertyIndex(Prop),rraRead,false);
-    // stored and defaultvalue are only used when published -> mark as used
+    // stored and defaultvalue are only used with typeinfo -> mark as used
     UseElement(Resolver.GetPasPropertyStoredExpr(Prop),rraRead,false);
     UseElement(Resolver.GetPasPropertyDefaultExpr(Prop),rraRead,false);
     end
@@ -1279,7 +1278,7 @@ begin
   else if C=TPasClassOfType then
   else if C=TPasRecordType then
     begin
-    // published record: use all members (except generic)
+    // record: use all members (except generic)
     Rec:=TPasRecordType(El);
     if CanSkipGenericType(Rec) then exit;
     Members:=Rec.Members;
@@ -2266,6 +2265,7 @@ var
   Map: TPasClassIntfMap;
   ImplProc, IntfProc, Proc: TPasProcedure;
   aClass: TPasClassType;
+  C: TClass;
 begin
   FirstTime:=true;
   case Mode of
@@ -2347,7 +2347,8 @@ begin
   for i:=0 to El.Members.Count-1 do
     begin
     Member:=TPasElement(El.Members[i]);
-    if FirstTime and (Member is TPasProcedure) then
+    C:=Member.ClassType;
+    if FirstTime and C.InheritsFrom(TPasProcedure) then
       begin
       Proc:=TPasProcedure(Member);
       ProcScope:=Member.CustomData as TPasProcedureScope;
@@ -2398,10 +2399,11 @@ begin
         continue;
         end;
       end
-    else if Member.ClassType=TPasAttributes then
+    else if C=TPasAttributes then
       continue; // attributes are never used directly
 
-    if AllPublished and (Member.Visibility=visPublished) then
+    if AllPublished
+        and ((Member.Visibility=visPublished) or El.HasExtRTTI(Member)) then
       begin
       // include published
       if not FirstTime then continue;
@@ -2418,12 +2420,12 @@ begin
       continue
     else if (Mode=paumAllPasUsable) and FirstTime then
       begin
-      if Member.ClassType=TPasProperty then
+      if C=TPasProperty then
         begin
         // non private property can be used by typeinfo by descendants in other units
         UseTypeInfo(Member);
         end
-      else if Member is TPasType then
+      else if C.InheritsFrom(TPasType) then
         begin
         // non private type can be used by descendants in other units
         UseType(TPasType(Member),Mode);

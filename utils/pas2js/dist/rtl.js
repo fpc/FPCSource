@@ -1383,7 +1383,7 @@ var rtl = {
 
     // tTypeInfoStruct - base object for tTypeInfoClass, tTypeInfoRecord, tTypeInfoInterface
     var tis = newBaseTI("tTypeInfoStruct",0);
-    tis.$addMember = function(name,ancestor,options){
+    tis.$addMember = function(name,ancestor,vis,options){
       if (rtl.debug_rtti){
         if (!rtl.hasString(name) || (name.charAt()==='$')) throw 'invalid member "'+name+'", this="'+this.name+'"';
         if (!rtl.is(ancestor,rtl.tTypeMember)) throw 'invalid ancestor "'+ancestor+':'+ancestor.name+'", "'+this.name+'.'+name+'"';
@@ -1393,13 +1393,14 @@ var rtl = {
       t.name = name;
       this.members[name] = t;
       this.names.push(name);
+      t.visibility = vis?vis:2;
       if (rtl.isObject(options)){
         for (var key in options) if (options.hasOwnProperty(key)) t[key] = options[key];
       };
       return t;
     };
-    tis.addField = function(name,type,options){
-      var t = this.$addMember(name,rtl.tTypeMemberField,options);
+    tis.addField = function(name,type,vis,options){
+      var t = this.$addMember(name,rtl.tTypeMemberField,vis,options);
       if (rtl.debug_rtti){
         if (!rtl.is(type,rtl.tTypeInfo)) throw 'invalid type "'+type+'", "'+this.name+'.'+name+'"';
       };
@@ -1419,15 +1420,15 @@ var rtl = {
         };
       };
     };
-    tis.addMethod = function(name,methodkind,params,result,flags,options){
-      var t = this.$addMember(name,rtl.tTypeMemberMethod,options);
+    tis.addMethod = function(name,methodkind,params,vis,result,flags,options){
+      var t = this.$addMember(name,rtl.tTypeMemberMethod,vis,options);
       t.methodkind = methodkind;
       t.procsig = rtl.newTIProcSig(params,result,flags);
       this.methods.push(name);
       return t;
     };
-    tis.addProperty = function(name,flags,result,getter,setter,options){
-      var t = this.$addMember(name,rtl.tTypeMemberProperty,options);
+    tis.addProperty = function(name,flags,result,getter,setter,vis,options){
+      var t = this.$addMember(name,rtl.tTypeMemberProperty,vis,options);
       t.flags = flags;
       t.typeinfo = result;
       t.getter = getter;

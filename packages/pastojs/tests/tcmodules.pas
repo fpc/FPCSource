@@ -879,10 +879,13 @@ type
     Procedure TestRTTI_PublishedClassFieldFail;
     Procedure TestRTTI_PublishedFieldExternalFail;
     Procedure TestRTTI_Class_Field;
+    Procedure TestRTTI_Class_FieldPrivate;
     Procedure TestRTTI_Class_Method;
     Procedure TestRTTI_Class_MethodArgFlags;
+    Procedure TestRTTI_Class_MethodPrivate;
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
+    Procedure TestRTTI_Class_PropertyPrivate;
     Procedure TestRTTI_Class_OtherUnit_TypeAlias;
     Procedure TestRTTI_Class_OmitRTTI;
     Procedure TestRTTI_Class_Field_AnonymousArrayOfSelfClass;
@@ -19120,7 +19123,7 @@ begin
     '    this.FSwiper = undefined;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("Swiper", 0, $mod.$rtti["JSwiper"], "FSwiper", "FSwiper");',
+    '  $r.addProperty("Swiper", 0, $mod.$rtti["JSwiper"], "FSwiper", "FSwiper", 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -19217,9 +19220,9 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("FDate", rtl.string);',
-    '  $r.addProperty("Date", 0, rtl.string, "FDate", "FDate");',
-    '  $r.addProperty("ExtA", 0, rtl.string, "FDate", "FDate");',
+    '  $r.addField("FDate", rtl.string, 4);',
+    '  $r.addProperty("Date", 0, rtl.string, "FDate", "FDate", 4);',
+    '  $r.addProperty("ExtA", 0, rtl.string, "FDate", "FDate", 4);',
     '});',
     'this.B = null;',
     'this.o = null;',
@@ -29616,7 +29619,7 @@ begin
   'procedure DoIt(p: ^longint); begin end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('Not supported: pointer',nNotSupportedX);
+  SetExpectedParserError('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block. at token "^" in file test1.pp at line 3 column 19',nParserParamsOrResultTypesNoLocalTypeDefs);
   ConvertProgram;
 end;
 
@@ -29638,7 +29641,7 @@ begin
   'function DoIt: ^longint; begin end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('Not supported: pointer',nNotSupportedX);
+  SetExpectedParserError('Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block. at token "^" in file test1.pp at line 3 column 16',nParserParamsOrResultTypesNoLocalTypeDefs);
   ConvertProgram;
 end;
 
@@ -31560,13 +31563,13 @@ begin
     '  this.Fly = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("Fly", 0, []);',
+    '  $r.addMethod("Fly", 0, [], 4);',
     '});',
     'rtl.createClass(this, "TEagle", this.TBird, function () {',
     '  this.Fly = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("Fly", 0, []);',
+    '  $r.addMethod("Fly", 0, [], 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -31689,22 +31692,22 @@ begin
     '    this.ArrB = undefined;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("VarLI", rtl.longint);',
-    '  $r.addField("VarC", rtl.char);',
-    '  $r.addField("VarS", rtl.string);',
-    '  $r.addField("VarD", rtl.double);',
-    '  $r.addField("VarB", rtl.boolean);',
-    '  $r.addField("VarLW", rtl.longword);',
-    '  $r.addField("VarSmI", rtl.smallint);',
-    '  $r.addField("VarW", rtl.word);',
-    '  $r.addField("VarShI", rtl.shortint);',
-    '  $r.addField("VarBy", rtl.byte);',
-    '  $r.addField("VarExt", rtl.longint);',
+    '  $r.addField("VarLI", rtl.longint, 4);',
+    '  $r.addField("VarC", rtl.char, 4);',
+    '  $r.addField("VarS", rtl.string, 4);',
+    '  $r.addField("VarD", rtl.double, 4);',
+    '  $r.addField("VarB", rtl.boolean, 4);',
+    '  $r.addField("VarLW", rtl.longword, 4);',
+    '  $r.addField("VarSmI", rtl.smallint, 4);',
+    '  $r.addField("VarW", rtl.word, 4);',
+    '  $r.addField("VarShI", rtl.shortint, 4);',
+    '  $r.addField("VarBy", rtl.byte, 4);',
+    '  $r.addField("VarExt", rtl.longint, 4);',
     '  $mod.$rtti.$DynArray("TObject.ArrB$a", {',
     '    eltype: rtl.byte',
     '  });',
-    '  $r.addField("ArrA", $mod.$rtti["TObject.ArrB$a"]);',
-    '  $r.addField("ArrB", $mod.$rtti["TObject.ArrB$a"]);',
+    '  $r.addField("ArrA", $mod.$rtti["TObject.ArrB$a"], 4);',
+    '  $r.addField("ArrB", $mod.$rtti["TObject.ArrB$a"], 4);',
     '});',
     'this.p = null;',
     'this.Obj = null;',
@@ -31713,6 +31716,48 @@ begin
     '$mod.p = $mod.$rtti["TObject"];',
     '$mod.p = rtl.pointer;',
     '$mod.p = $mod.Obj.$rtti;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_FieldPrivate;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add('type');
+  Add('{$RTTI explicit fields([vcPrivate,vcProtected,vcPublic,vcPublished])}');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    A: word;');
+  Add('  protected');
+  Add('    B1, B2: word;');
+  Add('  public');
+  Add('    C: word;');
+  Add('  published');
+  Add('    D: word;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_FieldPrivate',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.A = 0;',
+    '    this.B1 = 0;',
+    '    this.B2 = 0;',
+    '    this.C = 0;',
+    '    this.D = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("A", rtl.word, 0);',
+    '  $r.addField("B1", rtl.word, 1);',
+    '  $r.addField("B2", rtl.word, 1);',
+    '  $r.addField("C", rtl.word);',
+    '  $r.addField("D", rtl.word, 3);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -31742,11 +31787,11 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("Click", 0, []);',
-    '  $r.addMethod("Notify", 0, [["Sender", $r]]);',
-    '  $r.addMethod("GetNotify", 1, [], rtl.boolean, 4);',
-    '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], null, 2);',
-    '  $r.addMethod("Fetch", 1, [["URL", rtl.string]], rtl.word, 20);',
+    '  $r.addMethod("Click", 0, [], 4);',
+    '  $r.addMethod("Notify", 0, [["Sender", $r]], 4);',
+    '  $r.addMethod("GetNotify", 1, [], 4, rtl.boolean, 4);',
+    '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], 4, null, 2);',
+    '  $r.addMethod("Fetch", 1, [["URL", rtl.string]], 4, rtl.word, 20);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -31774,9 +31819,60 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]]);',
-    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]]);',
-    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]]);',
+    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]], 4);',
+    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]], 4);',
+    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]], 4);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_MethodPrivate;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add('type');
+  Add('{$RTTI explicit methods([vcPrivate,vcProtected,vcPublic,vcPublished])}');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    procedure PrivateProc(a: word); virtual; abstract;');
+  Add('  protected');
+  Add('    class function ProtectedFunc: word; virtual; abstract;');
+  Add('  public');
+  Add('    class procedure PublicProc; virtual; abstract;');
+  Add('    constructor Create;');
+  Add('    destructor Destroy;');
+  Add('  published');
+  Add('    function PublishedProc: word; virtual; abstract;');
+  Add('  end;');
+  Add('constructor TObject.Create;');
+  Add('begin');
+  Add('end;');
+  Add('destructor TObject.Destroy;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_MethodPrivate',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '  this.Destroy = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("PrivateProc", 0, [["a", rtl.word]], 0);',
+    '  $r.addMethod("ProtectedFunc", 5, [], 1, rtl.word);',
+    '  $r.addMethod("PublicProc", 4, []);',
+    '  $r.addMethod("Create", 2, []);',
+    '  $r.addMethod("Destroy", 3, []);',
+    '  $r.addMethod("PublishedProc", 1, [], 4, rtl.word);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -31822,26 +31918,28 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("ColorA", 0, rtl.longint, "FColor", "");',
-    '  $r.addProperty("ColorB", 0, rtl.longint, "", "FColor");',
-    '  $r.addProperty("ColorC", 3, rtl.longint, "GetColor", "SetColor");',
+    '  $r.addProperty("ColorA", 0, rtl.longint, "FColor", "", 4);',
+    '  $r.addProperty("ColorB", 0, rtl.longint, "", "FColor", 4);',
+    '  $r.addProperty("ColorC", 3, rtl.longint, "GetColor", "SetColor", 4);',
     '  $r.addProperty(',
     '    "ColorD",',
     '    8,',
     '    rtl.longint,',
     '    "FColor",',
     '    "FColor",',
+    '    4,',
     '    {',
     '      stored: "FColorStored"',
     '    }',
     '  );',
-    '  $r.addProperty("ExtSizeA", 0, rtl.longint, "$extSize", "$extSize");',
+    '  $r.addProperty("ExtSizeA", 0, rtl.longint, "$extSize", "$extSize", 4);',
     '  $r.addProperty(',
     '    "ExtSizeB",',
     '    11,',
     '    rtl.longint,',
     '    "$getSize",',
     '    "$setSize",',
+    '    4,',
     '    {',
     '      stored: "$extSizeStored"',
     '    }',
@@ -31852,6 +31950,7 @@ begin
     '    rtl.longint,',
     '    "$extSize",',
     '    "$extSize",',
+    '    4,',
     '    {',
     '      stored: "$getExtSizeStored"',
     '    }',
@@ -31889,8 +31988,69 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems");',
-    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
+    '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems", 4);',
+    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues", 4);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_PropertyPrivate;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add('type');
+  Add('{$RTTI explicit properties([vcPrivate,vcProtected,vcPublic,vcPublished])}');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    FWord: word;');
+  Add('    function GetWord: word; virtual; abstract;');
+  Add('    procedure SetWord(Value: word); virtual; abstract;');
+  Add('    property PrivateWord: word read FWord write FWord;');
+  Add('  protected');
+  Add('    property ProtectedWord: word read FWord write SetWord;');
+  Add('  public');
+  Add('    property PublicWord: word read GetWord;');
+  Add('  published');
+  Add('    property PublishedWord: word read FWord;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_PropertyPrivate',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FWord = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty(',
+    '    "PrivateWord",',
+    '    0,',
+    '    rtl.word,',
+    '    "FWord",',
+    '    "FWord",',
+    '    0',
+    '  );',
+    '  $r.addProperty(',
+    '    "ProtectedWord",',
+    '    2,',
+    '    rtl.word,',
+    '    "FWord",',
+    '    "SetWord",',
+    '    1',
+    '  );',
+    '  $r.addProperty("PublicWord", 1, rtl.word, "GetWord", "");',
+    '  $r.addProperty(',
+    '    "PublishedWord",',
+    '    0,',
+    '    rtl.word,',
+    '    "FWord",',
+    '    "",',
+    '    4',
+    '  );',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -31935,9 +32095,9 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("Color", 0, pas.unit1.$rtti["TColor"], "fColor", "");',
-    '  $r.addProperty("Alias", 0, pas.unit1.$rtti["TColor"], "fAlias", "");',
-    '  $r.addProperty("TypeAlias", 0, $mod.$rtti["TColorTypeAlias"], "fTypeAlias", "");',
+    '  $r.addProperty("Color", 0, pas.unit1.$rtti["TColor"], "fColor", "", 4);',
+    '  $r.addProperty("Alias", 0, pas.unit1.$rtti["TColor"], "fAlias", "", 4);',
+    '  $r.addProperty("TypeAlias", 0, $mod.$rtti["TColorTypeAlias"], "fTypeAlias", "", 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32003,7 +32163,7 @@ begin
     '  $mod.$rtti.$DynArray("TBird.Swarm$a", {',
     '    eltype: $r',
     '  });',
-    '  $r.addField("Swarm", $mod.$rtti["TBird.Swarm$a"]);',
+    '  $r.addField("Swarm", $mod.$rtti["TBird.Swarm$a"], 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32059,6 +32219,7 @@ begin
     '    rtl.boolean,',
     '    "FB",',
     '    "SetIntBool",',
+    '    4,',
     '    {',
     '      index: 1',
     '    }',
@@ -32069,6 +32230,7 @@ begin
     '    rtl.boolean,',
     '    "GetEnumBool",',
     '    "FB",',
+    '    4,',
     '    {',
     '      index: $mod.TEnum.blue',
     '    }',
@@ -32079,6 +32241,7 @@ begin
     '    rtl.boolean,',
     '    "GetStrIntBool",',
     '    "SetStrIntBool",',
+    '    4,',
     '    {',
     '      index: 2',
     '    }',
@@ -32120,25 +32283,27 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("BoolA", 0, rtl.boolean, "FB", "");',
-    '  $r.addProperty("BoolB", 4, rtl.boolean, "FB", "");',
+    '  $r.addProperty("BoolA", 0, rtl.boolean, "FB", "", 4);',
+    '  $r.addProperty("BoolB", 4, rtl.boolean, "FB", "", 4);',
     '  $r.addProperty(',
     '    "BoolC",',
     '    8,',
     '    rtl.boolean,',
     '    "FB",',
     '    "",',
+    '    4,',
     '    {',
     '      stored: "FB"',
     '    }',
     '  );',
-    '  $r.addProperty("BoolD", 0, rtl.boolean, "FB", "");',
+    '  $r.addProperty("BoolD", 0, rtl.boolean, "FB", "", 4);',
     '  $r.addProperty(',
     '    "BoolE",',
     '    12,',
     '    rtl.boolean,',
     '    "FB",',
     '    "",',
+    '    4,',
     '    {',
     '      stored: "IsBStored"',
     '    }',
@@ -32206,6 +32371,7 @@ begin
     '    rtl.boolean,',
     '    "FB",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: true',
     '    }',
@@ -32216,6 +32382,7 @@ begin
     '    rtl.boolean,',
     '    "FB",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: true',
     '    }',
@@ -32226,6 +32393,7 @@ begin
     '    rtl.boolean,',
     '    "FB",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: true',
     '    }',
@@ -32236,6 +32404,7 @@ begin
     '    rtl.longint,',
     '    "FI",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: 2',
     '    }',
@@ -32246,6 +32415,7 @@ begin
     '    rtl.longint,',
     '    "FI",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: 3',
     '    }',
@@ -32256,6 +32426,7 @@ begin
     '    $mod.$rtti["TEnum"],',
     '    "FE",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: $mod.TEnum.red',
     '    }',
@@ -32266,6 +32437,7 @@ begin
     '    $mod.$rtti["TEnum"],',
     '    "FE",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: $mod.TEnum.blue',
     '    }',
@@ -32329,6 +32501,7 @@ begin
     '    $mod.$rtti["TSet"],',
     '    "FSet",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: {}',
     '    }',
@@ -32339,6 +32512,7 @@ begin
     '    $mod.$rtti["TSet"],',
     '    "FSet",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: rtl.createSet($mod.TEnum.red)',
     '    }',
@@ -32349,6 +32523,7 @@ begin
     '    $mod.$rtti["TSet"],',
     '    "FSet",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: rtl.createSet($mod.TEnum.red, $mod.TEnum.blue)',
     '    }',
@@ -32359,6 +32534,7 @@ begin
     '    $mod.$rtti["TSet"],',
     '    "FSet",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: $mod.CSet',
     '    }',
@@ -32409,6 +32585,7 @@ begin
     '    $mod.$rtti["TRg"],',
     '    "FV",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: -1',
     '    }',
@@ -32455,11 +32632,12 @@ begin
     '    rtl.byte,',
     '    "FA",',
     '    "",',
+    '    4,',
     '    {',
     '      Default: 1',
     '    }',
     '  );',
-    '  $r.addProperty("B", 0, rtl.byte, "FB", "");',
+    '  $r.addProperty("B", 0, rtl.byte, "FB", "", 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32490,7 +32668,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("DoIt", 0, []);',
+    '  $r.addMethod("DoIt", 0, [], 4);',
     '});',
     'rtl.createClass(this, "TSky", this.TObject, function () {',
     '  this.DoIt = function () {',
@@ -32532,14 +32710,14 @@ begin
     '  this.DoIt = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("DoIt", 0, []);',
+    '  $r.addMethod("DoIt", 0, [], 4);',
     '});',
     'rtl.createClass(this, "TSky", this.TObject, function () {',
     '  this.DoIt = function () {',
     '    $mod.TObject.DoIt.call(this);',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("DoIt", 0, []);',
+    '  $r.addMethod("DoIt", 0, [], 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32572,11 +32750,11 @@ begin
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("Flag", 0, rtl.longint, "FFlag", "");',
+    '  $r.addProperty("Flag", 0, rtl.longint, "FFlag", "", 4);',
     '});',
     'rtl.createClass(this, "TSky", this.TObject, function () {',
     '  var $r = this.$rtti;',
-    '  $r.addProperty("Flag", 0, rtl.longint, "", "FFlag");',
+    '  $r.addProperty("Flag", 0, rtl.longint, "", "FFlag", 4);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32628,9 +32806,9 @@ begin
     '    $mod.TObject.$final.call(this);',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("FBridge", $mod.$rtti["TBridge"]);',
-    '  $r.addMethod("SetBridge", 0, [["Value", $mod.$rtti["TBridge"]]]);',
-    '  $r.addProperty("Bridge", 2, $mod.$rtti["TBridge"], "FBridge", "SetBridge");',
+    '  $r.addField("FBridge", $mod.$rtti["TBridge"], 4);',
+    '  $r.addMethod("SetBridge", 0, [["Value", $mod.$rtti["TBridge"]]], 4);',
+    '  $r.addProperty("Bridge", 2, $mod.$rtti["TBridge"], "FBridge", "SetBridge", 4);',
     '});',
     'rtl.createClass(this, "TBridge", this.TObject, function () {',
     '  this.$init = function () {',
@@ -32689,7 +32867,7 @@ begin
     '    this.C = undefined;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("C", $mod.$rtti["TClass"]);',
+    '  $r.addField("C", $mod.$rtti["TClass"], 4);',
     '});',
     'this.$rtti.$Class("TFox");',
     'rtl.createClass(this, "TBird", this.TObject, function () {',
@@ -33571,8 +33749,8 @@ begin
     '    return Result;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addMethod("GetItem", 1, [], rtl.longint);',
-    '  $r.addProperty("Item", 1, rtl.longint, "GetItem", "");',
+    '  $r.addMethod("GetItem", 1, [], 4, rtl.longint);',
+    '  $r.addProperty("Item", 1, rtl.longint, "GetItem", "", 4);',
     '});',
     'this.t = null;',
     '']),
@@ -33824,6 +34002,8 @@ begin
   '  TRec = record',
   '    [Tcustom,tcustom(14)]',
   '    Size: word;',
+  '    [Tcustom(15)]',
+  '    Width, Height: word;',
   '  end;',
   'constructor TObject.Create; begin end;',
   'constructor TCustomAttribute.Create(Id: word); begin end;',
@@ -33852,7 +34032,7 @@ begin
     '    this.FField = 0;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("FField", rtl.word, {',
+    '  $r.addField("FField", rtl.word, 4, {',
     '    attr: [$mod.TCustomAttribute, "Create"]',
     '  });',
     '  $r.addProperty(',
@@ -33861,25 +34041,37 @@ begin
     '    rtl.word,',
     '    "FField",',
     '    "",',
+    '    4,',
     '    {',
     '      attr: [$mod.TCustomAttribute, "Create$1", [14]]',
     '    }',
     '  );',
-    '  $r.addMethod("Fly", 0, [], null, 0, {',
+    '  $r.addMethod(',
+    '    "Fly",',
+    '    0,',
+    '    [],',
+    '    4,',
+    '    null,',
+    '    0,',
+    '    {',
     '    attr: [$mod.TCustomAttribute, "Create$1", [15]]',
     '  });',
     '});',
     'rtl.recNewT(this, "TRec", function () {',
     '  this.Size = 0;',
+    '  this.Width = 0;',
+    '  this.Height = 0;',
     '  this.$eq = function (b) {',
-    '    return this.Size === b.Size;',
+    '    return (this.Size === b.Size) && (this.Width === b.Width) && (this.Height === b.Height);',
     '  };',
     '  this.$assign = function (s) {',
     '    this.Size = s.Size;',
+    '    this.Width = s.Width;',
+    '    this.Height = s.Height;',
     '    return this;',
     '  };',
     '  var $r = $mod.$rtti.$Record("TRec", {});',
-    '  $r.addField("Size", rtl.word, {',
+    '  $r.addField("Size", rtl.word, 2, {',
     '    attr: [',
     '        $mod.TCustomAttribute,',
     '        "Create",',
@@ -33888,6 +34080,10 @@ begin
     '        [14]',
     '      ]',
     '  });',
+    '  $r.addField("Width", rtl.word, 2, {',
+    '    attr: [$mod.TCustomAttribute, "Create$1", [15]]',
+    '  });',
+    '  $r.addField("Height", rtl.word);',
     '});',
     '']),
     LinesToStr([ // $mod.$main

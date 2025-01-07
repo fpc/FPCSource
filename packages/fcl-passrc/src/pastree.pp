@@ -776,6 +776,19 @@ type
         Methods: TRTTIVisibilitySections;
         Properties: TRTTIVisibilitySections;
       end;
+    const
+      VisibilityToExtRTTI: array[TPasMemberVisibility] of TRTTIVisibilitySection = (
+        vcPublic, // visDefault,
+        vcPrivate, // visPrivate,
+        vcProtected, // visProtected,
+        vcPublic, // visPublic,
+        vcPublished, // visPublished,
+        vcPublic, // visAutomated,
+        vcPrivate, // visStrictPrivate,
+        vcProtected, // visStrictProtected,
+        vcPublic, // visRequired,
+        vcPublic // visOptional
+        );
   public
     PackMode: TPackMode;
     Members: TFPList;
@@ -787,6 +800,7 @@ type
     Function IsBitPacked : Boolean; inline;
     Procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
+    Function HasExtRTTI(El: TPasElement): boolean; virtual;
   end;
 
   { TPasRecordType }
@@ -4596,6 +4610,31 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Members.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
+end;
+
+function TPasMembersType.HasExtRTTI(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  if El.Visibility=visPublished then
+    exit(true);
+  C:=El.ClassType;
+  if C=TPasVariable then
+    begin
+    if VisibilityToExtRTTI[El.Visibility] in RTTIVisibility.Fields then
+      exit(true);
+    end
+  else if C=TPasProperty then
+    begin
+    if VisibilityToExtRTTI[El.Visibility] in RTTIVisibility.Properties then
+      exit(true);
+    end
+  else if C.InheritsFrom(TPasProcedure) then
+    begin
+    if VisibilityToExtRTTI[El.Visibility] in RTTIVisibility.Methods then
+      exit(true);
+    end;
+  Result:=false;
 end;
 
 { TPasRecordType }

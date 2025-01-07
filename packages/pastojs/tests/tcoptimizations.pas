@@ -108,6 +108,7 @@ type
     procedure TestWPO_ConstructorDefaultValueConst;
     procedure TestWPO_RTTI_PublishedField;
     procedure TestWPO_RTTI_TypeInfo;
+    procedure TestWPO_RTTI_PrivateField;
   end;
 
 implementation
@@ -1434,7 +1435,7 @@ begin
     '    $lt3.$create("Create");',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("Bird", $mod.$rtti["TBird"]);',
+    '  $r.addField("Bird", $mod.$rtti["TBird"], 4);',
     '});',
     'rtl.createClass(this, "TBird", $lt4, function () {',
     '  $lt2 = this;',
@@ -2567,7 +2568,7 @@ begin
     '      this.PublishedB = undefined;',
     '    };',
     '    var $r = this.$rtti;',
-    '    $r.addField("PublishedB", $mod.$rtti["TArrB"]);',
+    '    $r.addField("PublishedB", $mod.$rtti["TArrB"], 4);',
     '  });',
     '  this.C = null;',
     '  $mod.$main = function () {',
@@ -2613,6 +2614,63 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_RTTI_TypeInfo',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_RTTI_PrivateField;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  WithTypeInfo:=true;
+  StartProgram(true);
+  Add([
+  'type',
+  '  TArrA = array of char;',
+  '  TArrB = array of string;',
+  '  TArrC = array of word;',
+  '  {$RTTI explicit Fields([vcPrivate,vcProtected])}',
+  '  TObject = class',
+  '  private',
+  '    PrivateA: TArrA;',
+  '  protected',
+  '    ProtectedB: TArrB;',
+  '  public',
+  '    PublicC: TArrC;',
+  '  end;',
+  'var',
+  '  C: TObject;',
+  'begin',
+  '  if typeinfo(TObject)=nil then ;',
+  '']);
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    '  var $mod = this;',
+    '  this.$rtti.$DynArray("TArrA", {',
+    '    eltype: rtl.char',
+    '  });',
+    '  this.$rtti.$DynArray("TArrB", {',
+    '    eltype: rtl.string',
+    '  });',
+    '  rtl.createClass(this, "TObject", null, function () {',
+    '    this.$init = function () {',
+    '      this.PrivateA = [];',
+    '      this.ProtectedB = [];',
+    '    };',
+    '    this.$final = function () {',
+    '      this.PrivateA = undefined;',
+    '      this.ProtectedB = undefined;',
+    '    };',
+    '    var $r = this.$rtti;',
+    '    $r.addField("PrivateA", $mod.$rtti["TArrA"], 0);',
+    '    $r.addField("ProtectedB", $mod.$rtti["TArrB"], 1);',
+    '  });',
+    '  $mod.$main = function () {',
+    '    if ($mod.$rtti["TObject"] === null) ;',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_RTTI_PrivateField',ExpectedSrc,ActualSrc);
 end;
 
 Initialization

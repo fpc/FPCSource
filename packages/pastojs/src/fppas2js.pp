@@ -559,9 +559,15 @@ resourcestring
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
-  IsExtModePasClassInstance = 1;
-  IsExtModePasClass = 2;
+  IsExtModePasClassInstance = 1; // rtl.isExt param for is-class-instance
+  IsExtModePasClass = 2; // rtl.isExt param for is-class
   LocalVarHide = '-';
+  ExtRTTIVisPrivate = 0;
+  ExtRTTIVisProtected = 1;
+  ExtRTTIVisPublic = 2;
+  ExtRTTIVisPublished = 3;
+  ExtRTTIVisPublicPublished = 4; // in source published, in RTTI public
+  ExtRTTIVisDefault = ExtRTTIVisPublic;
 
 type
   TPas2JSBuiltInName = (
@@ -1374,7 +1380,8 @@ const
     po_ResolveStandardTypes,
     po_ExtConstWithoutExpr,
     po_StopOnUnitInterface,
-    po_AsyncProcs];
+    po_AsyncProcs,
+    po_CheckDirectiveRTTI];
 
   btAllJSBaseTypes = [
     btChar,
@@ -1699,6 +1706,7 @@ type
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
       false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
+    function HasExtRTTI(El: TPasMembersType): boolean; virtual;
     function ProcHasImplElements(Proc: TPasProcedure): boolean; override;
     function HasAnonymousFunctions(El: TPasImplElement): boolean;
     function GetTopLvlProcScope(El: TPasElement): TPas2JSProcedureScope;
@@ -2200,11 +2208,12 @@ type
     Function CreateRTTINewType(El: TPasType; const CallFuncName: string;
       IsForward: boolean; AContext: TConvertContext; out ObjLit: TJSObjectLiteral): TJSCallExpression; virtual;
     Function CreateRTTIAttributes(const Attr: TPasExprArray; PosEl: TPasElement; aContext: TConvertContext): TJSElement; virtual;
-    Function CreateRTTIMemberField(Members: TFPList; Index: integer;
+    Function GetExtRTTIVisibilityParam(El: TPasElement; const Vis: TPasMembersType.TRTTIVisibilitySections): word; virtual;
+    Function CreateRTTIMemberField(ParentEl: TPasMembersType; Members: TFPList; Index: integer;
       AContext: TConvertContext): TJSElement; virtual;
-    Function CreateRTTIMemberMethod(Members: TFPList; Index: integer;
+    Function CreateRTTIMemberMethod(ParentEl: TPasMembersType; Members: TFPList; Index: integer;
       AContext: TConvertContext): TJSElement; virtual;
-    Function CreateRTTIMemberProperty(Members: TFPList; Index: integer;
+    Function CreateRTTIMemberProperty(ParentEl: TPasMembersType; Members: TFPList; Index: integer;
       AContext: TConvertContext): TJSElement; virtual;
     Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext); virtual; // needed by precompiled files from 2.0.0
     Function CreateRTTIAnonymousArray(El: TPasArrayType; AContext: TConvertContext): TJSCallExpression; virtual;
@@ -3394,7 +3403,7 @@ begin
     if TPasProcedure(El).IsOverride then
       exit(true); // using name of overridden
     if El.Visibility=visPublished then
-      exit(false);
+      exit(false); // published elements are always using the pascal identifier
 
     // Note: external proc pollutes the name space
     ProcScope:=TPasProcedureScope(El.CustomData);
@@ -4312,6 +4321,12 @@ begin
     if El.ExternalName='' then
       RaiseMsg(20170321151109,nMissingExternalName,sMissingExternalName,[],El);
     AddExternalPath(El.ExternalName,El);
+    if El.RTTIVisibility.Fields<>[] then
+      RaiseNotYetImplemented(20250103153804,El,'RTTI for external class');
+    if El.RTTIVisibility.Methods<>[] then
+      RaiseNotYetImplemented(20250103153905,El,'RTTI for external class');
+    if El.RTTIVisibility.Properties<>[] then
+      RaiseNotYetImplemented(20250103153913,El,'RTTI for external class');
     end;
   if El.IsPacked then
     RaiseMsg(20180326155616,nPasElementNotSupported,sPasElementNotSupported,
@@ -7404,6 +7419,28 @@ begin
   if not Result then exit;
   if El.Parent is TProcedureBody then
     Result:=false;
+end;
+
+function TPas2JSResolver.HasExtRTTI(El: TPasMembersType): boolean;
+var
+  Members: TFPList;
+  i: Integer;
+  ChildEl: TPasElement;
+  V: TPasMembersType.TRTTIVisibility;
+begin
+  Result:=false;
+  V:=El.RTTIVisibility;
+  if (V.Fields=[])
+      and (V.Methods=[])
+      and (V.Properties=[]) then exit;
+
+  Members:=El.Members;
+  for i:=0 to Members.Count-1 do
+    begin
+    ChildEl:=TPasElement(Members[i]);
+    if El.HasExtRTTI(ChildEl) then
+      exit(true);
+    end;
 end;
 
 function TPas2JSResolver.ProcHasImplElements(Proc: TPasProcedure): boolean;
@@ -16100,7 +16137,8 @@ begin
       end;
 
     NeedInitFunction:=true;
-    NeedTypeInfo:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext);
+    NeedTypeInfo:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext)
+                  or aResolver.HasExtRTTI(El);
     IntfKind:='';
     if El.ObjKind=okInterface then
       begin
@@ -20715,7 +20753,25 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberField(Members: TFPList;
+function TPasToJSConverter.GetExtRTTIVisibilityParam(El: TPasElement; const Vis: TPasMembersType.
+  TRTTIVisibilitySections): word;
+var
+  ExtVis: TPasMembersType.TRTTIVisibilitySection;
+begin
+  ExtVis:=TPasMembersType.VisibilityToExtRTTI[El.Visibility];
+  case ExtVis of
+    vcPrivate: Result:=ExtRTTIVisPrivate;
+    vcProtected: Result:=ExtRTTIVisProtected;
+    vcPublic: Result:=ExtRTTIVisPublic;
+    vcPublished:
+      if not (vcPublished in Vis) then
+        Result:=ExtRTTIVisPublicPublished
+      else
+        Result:=ExtRTTIVisPublished;
+  end;
+end;
+
+function TPasToJSConverter.CreateRTTIMemberField(ParentEl: TPasMembersType; Members: TFPList;
   Index: integer; AContext: TConvertContext): TJSElement;
 // create $r.addField("varname",typeinfo);
 // create $r.addField("varname",typeinfo,options);
@@ -20723,6 +20779,12 @@ var
   V: TPasVariable;
   Call: TJSCallExpression;
   OptionsEl: TJSObjectLiteral;
+  ExtVis: word;
+
+  procedure AddExtRTTIVisibility;
+  begin
+    Call.AddArg(CreateLiteralNumber(V,ExtVis));
+  end;
 
   procedure AddOption(const aName: String; JS: TJSElement);
   var
@@ -20731,6 +20793,8 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
+      if ExtVis=ExtRTTIVisDefault then
+        AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,V));
       Call.AddArg(OptionsEl);
       end;
@@ -20775,6 +20839,7 @@ begin
 
   JSTypeInfo:=CreateTypeInfoRef(VarType,AContext,V);
   OptionsEl:=nil;
+  ExtVis:=GetExtRTTIVisibilityParam(V,ParentEl.RTTIVisibility.Fields);
 
   // Note: create JSTypeInfo first, it may raise an exception
   Call:=CreateCallExpression(V);
@@ -20786,6 +20851,9 @@ begin
     Call.AddArg(CreateLiteralString(V,aName));
     // param typeinfo
     Call.AddArg(JSTypeInfo);
+    // extended RTTI
+    if ExtVis<>ExtRTTIVisDefault then
+      AddExtRTTIVisibility;
 
     // param options if needed as {}
     // option: attributes
@@ -20801,7 +20869,7 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberMethod(Members: TFPList;
+function TPasToJSConverter.CreateRTTIMemberMethod(ParentEl: TPasMembersType; Members: TFPList;
   Index: integer; AContext: TConvertContext): TJSElement;
 // create $r.addMethod("funcname",methodkind,params,resulttype,options)
 var
@@ -20810,6 +20878,12 @@ var
   ResultTypeInfo: TJSElement;
   Call: TJSCallExpression;
   Flags: Integer;
+  ExtVis: word;
+
+  procedure AddExtRTTIVisibility;
+  begin
+    Call.AddArg(CreateLiteralNumber(Proc,ExtVis));
+  end;
 
   procedure AddOption(const aName: String; JS: TJSElement);
   var
@@ -20818,6 +20892,8 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
+      if ExtVis=ExtRTTIVisDefault then
+        AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Proc));
       Call.AddArg(OptionsEl);
       end;
@@ -20887,6 +20963,11 @@ begin
     // param params as []
     Call.AddArg(CreateRTTIArgList(Proc,Proc.ProcType.Args,AContext));
 
+    // add visibility
+    ExtVis:=GetExtRTTIVisibilityParam(Proc,ParentEl.RTTIVisibility.Fields);
+    if ExtVis<>ExtRTTIVisDefault then
+      AddExtRTTIVisibility;
+
     // optional params:
     ResultTypeInfo:=nil;
     Flags:=0;
@@ -20927,13 +21008,20 @@ begin
   end;
 end;
 
-function TPasToJSConverter.CreateRTTIMemberProperty(Members: TFPList;
+function TPasToJSConverter.CreateRTTIMemberProperty(ParentEl: TPasMembersType; Members: TFPList;
   Index: integer; AContext: TConvertContext): TJSElement;
 // create  $r.addProperty("propname",flags,proptype,"getter","setter",{options})
 var
   Prop: TPasProperty;
   Call: TJSCallExpression;
   OptionsEl: TJSObjectLiteral;
+
+  ExtVis: word;
+
+  procedure AddExtRTTIVisibility;
+  begin
+    Call.AddArg(CreateLiteralNumber(Prop,ExtVis));
+  end;
 
   function GetAccessorName(Decl: TPasElement): String;
   begin
@@ -20947,6 +21035,8 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
+      if ExtVis=ExtRTTIVisDefault then
+        AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Prop));
       Call.AddArg(OptionsEl);
       end;
@@ -21047,6 +21137,11 @@ begin
       Call.AddArg(CreateLiteralString(Prop,''))
     else
       Call.AddArg(CreateLiteralString(Prop,GetAccessorName(SetterPas)));
+
+    // add visibility
+    ExtVis:=GetExtRTTIVisibilityParam(Prop,ParentEl.RTTIVisibility.Fields);
+    if ExtVis<>ExtRTTIVisDefault then
+      AddExtRTTIVisibility;
 
     // add option "index"
     IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
@@ -21279,35 +21374,35 @@ begin
       mtClass:
         if (P.Visibility=visPublished) then
           // published member
-        else if (P is TPasConstructor) and (P.Visibility = visPublic)
-            and (pcsfPublished in TPas2JSClassScope(El.CustomData).Flags) then
-          // this class supports published members -> add public constructor to RTTI
-          // workaround til extended RTTI
-          // see issue #37752
+        else if El.HasExtRTTI(P) then
+          // extended RTTI
         else
           continue;
       mtInterface: ; // all members of an interface are published
       mtRecord:
         // a published record publishes all non private members
         if P.Visibility in [visPrivate,visStrictPrivate] then
-          continue
+          begin
+          if not El.HasExtRTTI(P) then
+            continue;
+          end
         else if P.ClassType=TPasConst then
           continue;
       end;
       if not IsElementUsed(P) then continue;
 
       if C=TPasVariable then
-        NewEl:=CreateRTTIMemberField(Members,i,MembersFuncContext)
+        NewEl:=CreateRTTIMemberField(El,Members,i,MembersFuncContext)
       else if C.InheritsFrom(TPasProcedure) then
         begin
         if aResolver.GetProcTemplateTypes(TPasProcedure(P))<>nil then
           continue; // parametrized functions cannot be published
         if (P.CustomData as TPas2JSProcedureScope).SpecializedFromItem<>nil then
           continue; // specialized function cannot be published
-        NewEl:=CreateRTTIMemberMethod(Members,i,MembersFuncContext);
+        NewEl:=CreateRTTIMemberMethod(El,Members,i,MembersFuncContext);
         end
       else if C=TPasProperty then
-        NewEl:=CreateRTTIMemberProperty(Members,i,MembersFuncContext)
+        NewEl:=CreateRTTIMemberProperty(El,Members,i,MembersFuncContext)
       else if C.InheritsFrom(TPasType)
           or (C=TPasAttributes) then
       else
