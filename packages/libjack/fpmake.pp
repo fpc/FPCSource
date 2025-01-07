@@ -83,6 +83,14 @@ begin
         AddUnit('jack');
       end;
 
+    T:=P.Targets.AddUnit('jackmidiport.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('midiport.inc');
+        AddInclude('weakmacros.inc');
+        AddUnit('jack');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('simple_session_client.pp');
