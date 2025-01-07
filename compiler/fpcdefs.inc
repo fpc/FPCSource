@@ -127,6 +127,7 @@
 {$ifdef x86_64}
   {$define x86}
   {$define cpuflags}
+  {$define cpu64bit}
   {$define cpu64bitalu}
   {$define cpu64bitaddr}
   {$define cpuextended}
@@ -183,6 +184,7 @@
 {$endif powerpc}
 
 {$ifdef powerpc64}
+  {$define cpu64bit}
   {$define cpu64bitalu}
   {$define cpu64bitaddr}
   {$define cpuflags}
