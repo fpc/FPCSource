@@ -129,6 +129,7 @@ begin
     P.Targets.AddExampleProgram('showtime.pp');
     P.Targets.AddExampleProgram('midisine.pp');
     P.Targets.AddExampleProgram('midiseq.pp');
+    P.Targets.AddExampleProgram('metro.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
