@@ -437,7 +437,7 @@
 {$ifdef wasm32}
   {$define wasm}
   {$define cpu32bit}
-  {$define cpu64bitalu}
+  {$define cpu32bitalu}
   {$define cpu32bitaddr}
   {$define cpuhighleveltarget}
   {$define cpurox}
