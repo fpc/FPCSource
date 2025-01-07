@@ -128,6 +128,7 @@ begin
     P.Targets.AddExampleProgram('impulse_grabber.pp');
     P.Targets.AddExampleProgram('showtime.pp');
     P.Targets.AddExampleProgram('midisine.pp');
+    P.Targets.AddExampleProgram('midiseq.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
