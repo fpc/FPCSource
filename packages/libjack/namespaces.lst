@@ -6,5 +6,6 @@ src/jackthread.pp=namespaced/Api.Jack.Thread.pp
 src/jackstatistics.pp=namespaced/Api.Jack.Statistics.pp
 src/jacknet.pp=namespaced/Api.Jack.Net.pp
 src/jackmidiport.pp=namespaced/Api.Jack.MidiPort.pp
+src/jackmetadata.pp=namespaced/Api.Jack.Metadata.pp
 {s*:src/}=namespaced/
 {i+:src/}

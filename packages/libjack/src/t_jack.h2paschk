@@ -7,7 +7,7 @@
 # the Pascal program produces the same output as the C program for each
 # supported architecture.
 
-@Pascal uses jack, jackringbuffer, jacksession, jackthread, jacknet, jackmidiport;
+@Pascal uses jack, jackringbuffer, jacksession, jackthread, jacknet, jackmidiport, jackmetadata;
 @Pascal begin
 
 @C #include <jack/jack.h>
@@ -16,6 +16,7 @@
 @C #include <jack/thread.h>
 @C #include <jack/net.h>
 @C #include <jack/midiport.h>
+@C #include <jack/metadata.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -192,6 +193,20 @@
 .time
 .size
 .buffer
+
+@record jack_property_t
+.key
+.data
+._type,type
+
+@record jack_description_t
+.subject
+.property_cnt
+.properties
+.property_size
+
+@type jack_property_change_t
+@type TJackPropertyChangeCallback,JackPropertyChangeCallback
 
 @C   return 0;
 @C }
