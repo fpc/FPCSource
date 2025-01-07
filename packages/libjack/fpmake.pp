@@ -127,6 +127,7 @@ begin
     P.Targets.AddExampleProgram('transport_client.pp');
     P.Targets.AddExampleProgram('impulse_grabber.pp');
     P.Targets.AddExampleProgram('showtime.pp');
+    P.Targets.AddExampleProgram('midisine.pp');
 
     P.NamespaceMap:='namespaces.lst';
 
