@@ -1393,14 +1393,14 @@ var rtl = {
       t.name = name;
       this.members[name] = t;
       this.names.push(name);
-      t.visibility = vis?vis:2;
+      t.visibility = vis;
       if (rtl.isObject(options)){
         for (var key in options) if (options.hasOwnProperty(key)) t[key] = options[key];
       };
       return t;
     };
     tis.addField = function(name,type,vis,options){
-      var t = this.$addMember(name,rtl.tTypeMemberField,vis,options);
+      var t = this.$addMember(name,rtl.tTypeMemberField,vis?vis:2,options);
       if (rtl.debug_rtti){
         if (!rtl.is(type,rtl.tTypeInfo)) throw 'invalid type "'+type+'", "'+this.name+'.'+name+'"';
       };
@@ -1421,14 +1421,14 @@ var rtl = {
       };
     };
     tis.addMethod = function(name,methodkind,params,vis,result,flags,options){
-      var t = this.$addMember(name,rtl.tTypeMemberMethod,vis,options);
+      var t = this.$addMember(name,rtl.tTypeMemberMethod,vis?vis:2,options);
       t.methodkind = methodkind;
       t.procsig = rtl.newTIProcSig(params,result,flags);
       this.methods.push(name);
       return t;
     };
     tis.addProperty = function(name,flags,result,getter,setter,vis,options){
-      var t = this.$addMember(name,rtl.tTypeMemberProperty,vis,options);
+      var t = this.$addMember(name,rtl.tTypeMemberProperty,vis?vis:4,options);
       t.flags = flags;
       t.typeinfo = result;
       t.getter = getter;

@@ -567,7 +567,9 @@ const
   ExtRTTIVisPublic = 2;
   ExtRTTIVisPublished = 3;
   ExtRTTIVisPublicPublished = 4; // in source published, in RTTI public
-  ExtRTTIVisDefault = ExtRTTIVisPublic;
+  ExtRTTIVisDefaultField = ExtRTTIVisPublic;
+  ExtRTTIVisDefaultMethod = ExtRTTIVisPublic;
+  ExtRTTIVisDefaultProperty = ExtRTTIVisPublicPublished;
 
 type
   TPas2JSBuiltInName = (
@@ -20793,7 +20795,7 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
-      if ExtVis=ExtRTTIVisDefault then
+      if ExtVis=ExtRTTIVisDefaultField then
         AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,V));
       Call.AddArg(OptionsEl);
@@ -20852,7 +20854,7 @@ begin
     // param typeinfo
     Call.AddArg(JSTypeInfo);
     // extended RTTI
-    if ExtVis<>ExtRTTIVisDefault then
+    if ExtVis<>ExtRTTIVisDefaultField then
       AddExtRTTIVisibility;
 
     // param options if needed as {}
@@ -20892,7 +20894,7 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
-      if ExtVis=ExtRTTIVisDefault then
+      if ExtVis=ExtRTTIVisDefaultMethod then
         AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Proc));
       Call.AddArg(OptionsEl);
@@ -20965,7 +20967,7 @@ begin
 
     // add visibility
     ExtVis:=GetExtRTTIVisibilityParam(Proc,ParentEl.RTTIVisibility.Fields);
-    if ExtVis<>ExtRTTIVisDefault then
+    if ExtVis<>ExtRTTIVisDefaultMethod then
       AddExtRTTIVisibility;
 
     // optional params:
@@ -21035,7 +21037,7 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
-      if ExtVis=ExtRTTIVisDefault then
+      if ExtVis=ExtRTTIVisDefaultProperty then
         AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Prop));
       Call.AddArg(OptionsEl);
@@ -21140,7 +21142,7 @@ begin
 
     // add visibility
     ExtVis:=GetExtRTTIVisibilityParam(Prop,ParentEl.RTTIVisibility.Fields);
-    if ExtVis<>ExtRTTIVisDefault then
+    if ExtVis<>ExtRTTIVisDefaultProperty then
       AddExtRTTIVisibility;
 
     // add option "index"
