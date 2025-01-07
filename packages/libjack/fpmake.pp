@@ -111,6 +111,15 @@ begin
         AddUnit('jack');
       end;
 
+    T:=P.Targets.AddUnit('jackcontrol.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('control.inc');
+        AddInclude('systemdeps.inc');
+        AddUnit('jack');
+        AddUnit('jackjslist');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('simple_session_client.pp');

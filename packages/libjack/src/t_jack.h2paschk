@@ -7,7 +7,7 @@
 # the Pascal program produces the same output as the C program for each
 # supported architecture.
 
-@Pascal uses jack, jackringbuffer, jacksession, jackthread, jacknet, jackmidiport, jackmetadata, jackjslist;
+@Pascal uses jack, jackringbuffer, jacksession, jackthread, jacknet, jackmidiport, jackmetadata, jackjslist, jackcontrol;
 @Pascal begin
 
 @C #include <jack/jack.h>
@@ -18,6 +18,7 @@
 @C #include <jack/midiport.h>
 @C #include <jack/metadata.h>
 @C #include <jack/jslist.h>
+@C #include <jack/control.h>
 @C #include <stdio.h>
 @C #include <stddef.h>
 @C int main()
@@ -212,6 +213,18 @@
 @record JSList
 .data
 .next
+
+@type jackctl_param_type_t
+@type jackctl_driver_type_t
+@constant JACK_PARAM_MAX
+@constant JACK_PARAM_STRING_MAX
+
+@record jackctl_parameter_value,union jackctl_parameter_value
+.ui
+.i
+.c
+.str
+.b
 
 @C   return 0;
 @C }
