@@ -8,5 +8,6 @@ src/jacknet.pp=namespaced/Api.Jack.Net.pp
 src/jackmidiport.pp=namespaced/Api.Jack.MidiPort.pp
 src/jackmetadata.pp=namespaced/Api.Jack.Metadata.pp
 src/jackjslist.pp=namespaced/Api.Jack.JSList.pp
+src/jackintclient.pp=namespaced/Api.Jack.IntClient.pp
 {s*:src/}=namespaced/
 {i+:src/}

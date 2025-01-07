@@ -104,6 +104,13 @@ begin
         AddInclude('jslist.inc');
       end;
 
+    T:=P.Targets.AddUnit('jackintclient.pp');
+    with T.Dependencies do
+      begin
+        AddInclude('intclient.inc');
+        AddUnit('jack');
+      end;
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple_client.pp');
     P.Targets.AddExampleProgram('simple_session_client.pp');
