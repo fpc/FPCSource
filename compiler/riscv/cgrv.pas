@@ -127,6 +127,7 @@ unit cgrv;
       var
         href: treference;
         l: TAsmLabel;
+        ai: taicpu;
       begin
         if not(weak) then
           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
@@ -149,7 +150,9 @@ unit cgrv;
 
             reference_reset_symbol(href,l,0,0,[]);
             href.refaddr:=addr_pcrel_lo12;
-            list.concat(taicpu.op_reg_reg_ref(A_JALR,NR_RETURN_ADDRESS_REG,NR_RETURN_ADDRESS_REG,href));
+            ai:=taicpu.op_reg_reg_ref(A_JALR,NR_RETURN_ADDRESS_REG,NR_RETURN_ADDRESS_REG,href);
+            ai.is_jmp:=true;
+            list.concat(ai);
           end;
 
         { not assigned while generating external wrappers }
