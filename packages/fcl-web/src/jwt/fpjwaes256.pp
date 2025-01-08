@@ -51,7 +51,7 @@ Var
 begin
   Result:='';
   aPrivateKey:=Default(TECCPrivateKey);
-  Move(aKey.AsPointer,aPrivateKey,Sizeof(aPrivateKey));
+  Move(aKey.AsPointer^,aPrivateKey,Sizeof(aPrivateKey));
   B:=GetSignInput(aJWT);
   if TECDSA.SignSHA256(B,aPrivateKey,aSignature) then
     Result:=Base64URL.Encode(@aSignature[0],Length(aSignature),False);
