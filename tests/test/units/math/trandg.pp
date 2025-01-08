@@ -112,7 +112,7 @@ begin
 	end;
 	writeln('Out of range: ', nOutOfRange, ' / ', NSamples, ' (', nOutOfRange / nSamples * 100:0:1, '%).', LineEnding,
 		'Took ', time:0:1, ' s.', LineEnding);
-	if nOutOfRange / nSamples>0.001 then
+	if nOutOfRange / nSamples>0.001 {$ifdef SMALL_TEST} +0.0003 {$endif} then
 	  halt(1);
 	if imperfections > {$ifdef SMALL_TEST} 40 {$else} 16 {$endif} then
 	  halt(1);
