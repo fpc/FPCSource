@@ -258,3 +258,17 @@ function fpc_atomic_add_16 (var Target: smallint;Value : smallint) : smallint;
     inc(Target,{$ifdef VER3_2}Source{$else}Value{$endif});
 {$endif FPC_WASM_THREADS}
   end;
+
+{$ifndef VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
+function fpc_atomic_cmp_xchg_8 (var Target : shortint; NewValue : shortint; Comparand : shortint) : shortint;
+  begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=ShortInt(fpc_wasm32_i32_atomic_rmw8_cmpxchg_u(@Target, Byte(Comparand), Byte(NewValue)));
+{$else FPC_WASM_THREADS}
+    Result:=Target;
+    if Target=Comparand then
+      Target:=NewValue;
+{$endif FPC_WASM_THREADS}
+  end;
+{$endif VER3_2}
