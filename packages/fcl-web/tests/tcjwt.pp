@@ -54,6 +54,7 @@ type
     procedure TestVerifySHA384;
 
     // ES
+    procedure TestSignES256;
     procedure TestVerifyES256;
     procedure TestVerifyES256Pem;
 
@@ -294,6 +295,44 @@ begin
   AssertEquals('Have correct sub','',FVerifyResult.Claims.sub);
   AssertEquals('Have correct name','',(TMyJWT(FVerifyResult).Claims as TMyClaims).Name);
   AssertEquals('Have correct admin',False,(TMyJWT(FVerifyResult).Claims as TMyClaims).Admin);
+end;
+
+procedure TTestJWT.TestSignES256;
+// Private key in PEM format
+Const APrivateKeyPem =
+    '-----BEGIN EC PRIVATE KEY-----'+ #10+
+    'MHcCAQEEIFzS3/5bCnrlpa4902/zkYzURF6E2D8pazgnJu4smhpQoAoGCCqGSM49'+ #10+
+    'AwEHoUQDQgAEqTjyg2z65i+zbyUZW8BQ+K87DNsICRaEH7Fy7Rm3MseXy9ItSCQU'+ #10+
+    'VeJbtO6kYUA00mx7bKoC1sx5sbtFExnYPQ=='+ #10+
+    '-----END EC PRIVATE KEY-----';
+
+
+Var
+  S : TStringStream;
+  aPrivateKey : TEccPrivateKey;
+  aPublicKey : TEccPublicKey;
+  X,Y : AnsiString;
+begin
+  S:=TStringStream.Create(aPrivateKeyPem);
+  try
+    PemLoadECDSA(S,aPrivateKey,aPublicKey,X,Y);
+  finally
+    S.Free;
+  end;
+  FKey:=TJWTKey.Create(@aPrivateKey,SizeOf(TEccPrivateKey));
+  FJWT.JOSE.alg:='ES256';
+  //Writeln('JOSE: ',FJWT.JOSE.AsString);
+  //Writeln('Claims: ',FJWT.Claims.AsString);
+
+  FJWT.Sign(FKey);
+  //WriteLn('Signature: ',FJWT.Signature);
+  //WriteLn('JWT: ',FJWT.AsEncodedString);
+
+  FVerifyResult := TMyJWT.ValidateJWT(FJWT.AsEncodedString, FKey);
+  AssertNotNull('Have result',FVerifyResult);
+  AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
+  AssertNotNull('Have result.claims',FVerifyResult.Claims);
+  AssertEquals('Correct claims class',TMyClaims,FVerifyResult.Claims.ClassType);
 end;
 
 procedure TTestJWT.TestVerifyRS256Pem;
