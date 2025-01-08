@@ -3532,17 +3532,24 @@ end;
 {$endif FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_64}
 
 {$if defined(FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK)}
+Type
+{$IFDEF CPUWASM32}
+  TAtomicLockType = longint;
+{$ELSE}  
+  TAtomicLockType = ALUSInt;
+{$ENDIF}
 var
-  gAtomicLock: ALUSInt = 0;
 
-function fpc_atomic_cmp_xchg_alu(var Target: ALUSInt; NewValue: ALUSInt; Comparand: ALUSint): ALUSint; external name
-{$if defined(CPU8)}
+  gAtomicLock: TAtomicLockType = 0;
+
+function fpc_atomic_cmp_xchg_alu(var Target: TAtomicLockType; NewValue: TAtomicLockType; Comparand: TAtomicLockType): TAtomicLockType; external name
+{$if SIZEOF(TAtomicLockType)=1}
   'FPC_ATOMIC_CMP_XCHG_8'
-{$elseif defined(CPU16)}
+{$elseif SIZEOF(TAtomicLockType)=2}
   'FPC_ATOMIC_CMP_XCHG_16'
-{$elseif defined(CPU32)}
+{$elseif SIZEOF(TAtomicLockType)=4}
   'FPC_ATOMIC_CMP_XCHG_32'
-{$elseif defined(CPU64)}
+{$elseif SIZEOF(TAtomicLockType)=8}
   'FPC_ATOMIC_CMP_XCHG_64'
 {$else}
   'FPC_ATOMIC_CMP_XCHG_UNKNOWN'
@@ -3551,7 +3558,7 @@ function fpc_atomic_cmp_xchg_alu(var Target: ALUSInt; NewValue: ALUSInt; Compara
 
 procedure AtomicEnterLock;
 var
-  r: ALUSint;
+  r: TAtomicLockType;
 begin
   { spin until we get the lock }
   repeat
