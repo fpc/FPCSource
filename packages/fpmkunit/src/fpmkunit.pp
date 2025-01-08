@@ -8686,7 +8686,8 @@ Var
     if (APackage.FBUTarget.Dependencies.Count>0) then
       begin
         Log(vldebug, Format(SDbgGenerateBuildUnit, [APackage.FBUTarget.Name]));
-        system.Assign(F,AddPathPrefix(APackage,APackage.FBUTarget.FTargetSourceFileName));
+        aPath:=AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CompileTarget));
+        system.Assign(F,IncludeTrailingPathDelimiter(apath)+APackage.FBUTarget.FTargetSourceFileName);
         Rewrite(F);
         writeln(F,'unit ' + APackage.FBUTarget.Name +';');
         writeln(F,'interface');
@@ -8709,6 +8710,7 @@ Var
 
         APackage.FBuildMode:=bmOneByOne;
         Compilationfailed:=false;
+        APackage.FBUTarget.FTargetSourceFileName:=IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CompileTarget))+APackage.FBUTarget.FTargetSourceFileName;
         try
           try
             Compile(APackage,APackage.FBUTarget);
