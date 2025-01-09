@@ -97,7 +97,7 @@ type
 
 
     PSymbolView = ^TSymbolView;
-    TSymbolView = object(TLocalMenuListBox)
+    TSymbolView = object(THSListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       destructor   Done;virtual;
       procedure    HandleEvent(var Event: TEvent); virtual;
@@ -167,9 +167,9 @@ type
       function    GetPalette: PPalette; virtual;
     end;
 
-    PSymbolInheritanceView = ^TSymbolInheritanceView;
+        PSymbolInheritanceView = ^TSymbolInheritanceView;
 {$ifdef HASOUTLINE}
-    TSymbolInheritanceView = object(TOutlineViewer)
+    TSymbolInheritanceView = object(TLocalMenuOutlieViewer)
 {$else notHASOUTLINE}
     TSymbolInheritanceView = object(TLocalMenuListBox)
 {$endif HASOUTLINE}
@@ -194,6 +194,9 @@ type
       procedure    Selected(I: sw_Integer); virtual;
       procedure    HandleEvent(var Event: TEvent); virtual;
       function     GetPalette: PPalette; virtual;
+      function     GetLocalMenu: PMenu; virtual;
+      function     SaveToFile(const AFileName: string): boolean; virtual;
+      function     SaveAs: Boolean; virtual;
     private
       Root         : PObjectSymbol;
       MyBW         : PBrowserWindow;
@@ -280,12 +283,12 @@ const
 
 implementation
 
-uses App,Strings,
+uses App,Strings,Stddlg,
      FVConsts,
 {$ifdef BROWSERCOL}
      symconst,
 {$endif BROWSERCOL}
-     WUtils,WEditor,
+     WUtils,WEditor,WConsts,
      FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
 
 {$ifdef USERESSTRINGS}
@@ -307,6 +310,7 @@ const
                 menu_symlocal_browse = '~B~rowse';
                 menu_symlocal_gotosource = '~G~oto source';
                 menu_symlocal_tracksource = '~T~rack source';
+                menu_symlocal_saveas = 'Save ~a~s';
                 menu_symlocal_options = '~O~ptions...';
 
                 { Symbol browser meminfo page }
@@ -657,8 +661,8 @@ end;
 
 constructor TSymbolView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
-  inherited Init(Bounds,1,AVScrollBar);
-  HScrollBar:=AHScrollBar;
+  inherited Init(Bounds,1,AHScrollBar,AVScrollBar);
+  {HScrollBar:=AHScrollBar;}
   MyBW:=nil;
   if assigned(HScrollBar) then
     begin
@@ -761,6 +765,8 @@ begin
             GotoSource;
           cmSymTrackSource :
             TrackSource;
+          cmSymSaveAs,cmSaveAs :
+            SaveAs;
           cmSymOptions :
             OptionsDlg;
         else DontClear:=true;
@@ -793,8 +799,9 @@ begin
     NewItem(menu_symlocal_gotosource,'',kbNoKey,cmSymGotoSource,hcSymGotoSource,
     NewItem(menu_symlocal_tracksource,'',kbNoKey,cmSymTrackSource,hcSymTrackSource,
     NewLine(
+    NewItem(menu_symlocal_saveas,'',kbNoKey,cmSymSaveAs,hcSymSaveAs,
     NewItem(menu_symlocal_options,'',kbNoKey,cmSymOptions,hcSymOptions,
-    nil))))));
+    nil)))))));
 end;
 
 function TSymbolView.GotoItem(Item: sw_integer): boolean;
@@ -1391,6 +1398,18 @@ begin
             ClearEvent(Event);
           end;
       end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmSymBrowse :
+            Message(@Self,evKeyDown,kbEnter,nil);
+          cmSymSaveAs,cmSaveAs :
+            SaveAs;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
   end;
   inherited HandleEvent(Event);
 end;
@@ -1399,6 +1418,89 @@ function TSymbolInheritanceView.GetPalette: PPalette;
 const P: string[length(CBrowserOutline)] = CBrowserOutline;
 begin
   GetPalette:=@P;
+end;
+
+function TSymbolInheritanceView.GetLocalMenu: PMenu;
+begin
+    GetLocalMenu:=NewMenu(
+    NewItem(menu_symlocal_browse,'',kbNoKey,cmSymBrowse,hcSymBrowse,
+    NewLine(
+    NewItem(menu_symlocal_saveas,'',kbNoKey,cmSymSaveAs,hcSymSaveAs,
+    nil))));
+end;
+
+function TSymbolInheritanceView.SaveToFile(const AFileName: string): boolean;
+var OK: boolean;
+    S: PBufStream;
+    st : string;
+    P : PObjectSymbol;
+
+    procedure WriteSymbolTree(P:PObjectSymbol;Depth:Sw_Integer);
+    var
+      Q : PObjectSymbol;
+      Nc,Des,Count : integer;
+      Space : String;
+    begin
+      if not assigned(P) then
+         exit;
+      Des:=0;
+      Count:=GetNumChildren{Exposed}(P);
+      if Count=0 then exit;
+      SetLength(Space,Depth*2);
+      for nc:=1 to Length(Space) do Space[nc]:=' ';
+      While Count>Des do
+        begin
+          if not ok then exit;
+          Q:=P^.GetDescendant(Des);
+          st:=GetText(Q);
+          S^.Write(Space[1],Length(Space));
+          if not OK then exit;
+          S^.Write(St[1],length(St));
+          OK:=(S^.Status=stOK);
+          if not OK then exit;
+          S^.Write(EOL[1],length(EOL));
+          OK:=(S^.Status=stOK);
+          if not OK then exit;
+          if Ok then
+            WriteSymbolTree(Q,Depth+1);
+          Inc(Des);
+        end;
+    end;
+
+begin
+  New(S, Init(AFileName,stCreate,4096));
+  OK:=Assigned(S) and (S^.Status=stOK);
+  if OK then
+    begin
+      P:=Root;
+      st:=GetText(P);
+      S^.Write(St[1],length(St));
+      OK:=(S^.Status=stOK);
+      if OK then
+      begin
+        S^.Write(EOL[1],length(EOL));
+        OK:=(S^.Status=stOK);
+        if OK then
+          WriteSymbolTree(P,1);
+      end;
+    end;
+  if Assigned(S) then Dispose(S, Done);
+  SaveToFile:=OK;
+end;
+
+function TSymbolInheritanceView.SaveAs: Boolean;
+var
+  DefExt,Title,Filename : string;
+  Re : word;
+begin
+  SaveAs := False;
+  Filename:='list.txt';
+  DefExt:='*.txt';
+  Title:='Save content';
+  Re:=Application^.ExecuteDialog(New(PFPFileDialog, Init(DefExt,
+          Title, label_name, fdOkButton, FileId)), @FileName);
+  if Re <> cmCancel then
+    SaveAs := SaveToFile(FileName);
 end;
 
 {$ifdef HASOUTLINE}
@@ -2090,10 +2192,12 @@ begin
 end;
 
 procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);
-{var OldState: word;}
+var OldState: word;
 begin
-{  OldState:=State;}
+  OldState:=State;
   inherited SetState(AState,Enable);
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
+    SetCmdState([cmSaveAs],Enable);
 {  if ((State xor OldState) and sfActive)<>0 then
     if GetState(sfActive)=false then
       Message(Desktop,evBroadcast,cmClearLineHighlights,nil);}

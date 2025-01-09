@@ -16,7 +16,7 @@ unit WViews;
 
 interface
 
-uses Objects,Drivers,Views,Menus,Dialogs;
+uses Objects,Drivers,Views,Menus,Dialogs,Outline;
 
 const
       evIdle                 = $8000;
@@ -96,6 +96,15 @@ type
     end;
 
     TLocalMenuListBox = object(TAdvancedListBox)
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   LocalMenu(P: TPoint); virtual;
+      function    GetLocalMenu: PMenu; virtual;
+      function    GetCommandTarget: PView; virtual;
+    private
+      LastLocalCmd: word;
+    end;
+
+    TLocalMenuOutlieViewer = object(TOutlineViewer)
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   LocalMenu(P: TPoint); virtual;
       function    GetLocalMenu: PMenu; virtual;
@@ -1520,6 +1529,79 @@ begin
 end;
 
 procedure TLocalMenuListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+    P: TPoint;
+begin
+  case Event.What of
+    evMouseDown :
+      if MouseInView(Event.Where) then
+      begin
+        if  (Event.Buttons=mbRightButton) then
+        begin
+          MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
+          LocalMenu(P);
+          ClearEvent(Event);
+        end;
+      end;
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmLocalMenu :
+            begin
+              P:=Cursor; Inc(P.X); Inc(P.Y);
+              LocalMenu(P);
+            end;
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+procedure TLocalMenuOutlieViewer.LocalMenu(P: TPoint);
+var M: PMenu;
+    MV: PAdvancedMenuPopUp;
+    R: TRect;
+    Re: word;
+begin
+  M:=GetLocalMenu;
+  if M=nil then Exit;
+  if LastLocalCmd<>0 then
+     M^.Default:=SearchMenuItem(M,LastLocalCmd);
+  Desktop^.GetExtent(R);
+  MakeGlobal(P,R.A); {Desktop^.MakeLocal(R.A,R.A);}
+  New(MV, Init(R, M));
+  Re:=Application^.ExecView(MV);
+  if M^.Default=nil then LastLocalCmd:=0
+     else LastLocalCmd:=M^.Default^.Command;
+  Dispose(MV, Done);
+  if Re<>0 then
+    Message(GetCommandTarget,evCommand,Re,@Self);
+end;
+
+function TLocalMenuOutlieViewer.GetLocalMenu: PMenu;
+begin
+  GetLocalMenu:=nil;
+{  Abstract;}
+end;
+
+function TLocalMenuOutlieViewer.GetCommandTarget: PView;
+begin
+  GetCommandTarget:=@Self;
+end;
+
+procedure TLocalMenuOutlieViewer.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     P: TPoint;
 begin

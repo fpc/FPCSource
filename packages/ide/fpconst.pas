@@ -304,6 +304,7 @@ const
      cmSymGotoSource     = 2701;
      cmSymTrackSource    = 2702;
      cmSymOptions        = 2703;
+     cmSymSaveAs         = 2704;
 
      { Help constants }
      hcSourceWindow      = 8000;
@@ -428,6 +429,7 @@ const
      hcSymGotoSource     = hcShift+cmSymGotoSource;
      hcSymTrackSource    = hcShift+cmSymTrackSource;
      hcSymOptions        = hcShift+cmSymOptions;
+     hcSymSaveAs         = hcShift+cmSymSaveAs;
      hcGotoCursor        = hcShift+cmGotoCursor;
      hcNewBreakpoint     = hcShift+cmNewBreakpoint;
      hcEditBreakpoint    = hcShift+cmEditBreakpoint;
