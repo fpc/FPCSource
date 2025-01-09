@@ -339,6 +339,7 @@ TYPE
         evMouse: (
           Buttons: Byte;                              { Mouse buttons }
           Double: Boolean;                            { Double click state }
+          Triple: Boolean;                            { Triple click state }
           Where: TPoint);                             { Mouse position }
         evKeyDown: (
         { ** KEY EVENT ** }
@@ -1404,19 +1405,30 @@ begin
      MouseWhere.X:=e.x;
      MouseWhere.Y:=e.y;
      Event.Double:=false;
+     Event.Triple:=false;
      case e.Action of
        MouseActionMove :
          Event.What:=evMouseMove;
        MouseActionDown :
          begin
            Event.What:=evMouseDown;
-           if (DownButtons=e.Buttons) and (LastWhere.X=MouseWhere.X) and (LastWhere.Y=MouseWhere.Y) and
+           if (DownButtons=e.Buttons) and (DownWhere.X=MouseWhere.X) and (DownWhere.Y=MouseWhere.Y) and
               (GetDosTicks-DownTicks<=DoubleDelay) then
+           begin
              Event.Double:=true;
+             if LastDouble and ((e.Buttons and( mbScrollUp or mbScrollDown)) = 0) then
+             begin              {only "normal" buttons can produce triple click}
+               Event.Double:=false;
+               Event.Triple:=true;
+             end;
+           end;
+           LastDouble:=Event.Double;
            DownButtons:=e.Buttons;
            DownWhere.X:=MouseWhere.x;
            DownWhere.Y:=MouseWhere.y;
            DownTicks:=GetDosTicks;
+           if Event.Triple then
+             dec(DownTicks,DoubleDelay); {after triple click can follow only single click}
            AutoTicks:=GetDosTicks;
            if AutoTicks=0 then
              AutoTicks:=1;
