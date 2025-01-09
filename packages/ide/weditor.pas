@@ -4153,7 +4153,7 @@ begin
         begin
           Color:=ColorTab[coTextColor];
           FillChar(FreeFormat,SizeOf(FreeFormat),1);
-          MoveChar(B,' ',Color,Size.X);
+          { MoveChar(B,' ',Color,Size.X); redundant, following for loop covers it all }
           GetDisplayTextFormat(AY,LineText,Format);
           if ShowIndent and (length(Format)=length(LineText)) then
             for X:=1 to length(LineText) do
@@ -4232,7 +4232,8 @@ begin
                 FreeFormat[X]:=false;
               end;
 
-            if (0<=LSX+X-1-Delta.X) and (LSX+X-1-Delta.X<MaxViewWidth) then
+            { redundant check, for loop condition is taking care of correct range
+            if (0<=LSX+X-1-Delta.X) and (LSX+X-1-Delta.X<MaxViewWidth) then  }
               MoveChar(B[LSX+X-1-Delta.X],C,Color,1);
           end; { for X:=1 to ... }
           if IsFlagSet(efFolds) then
