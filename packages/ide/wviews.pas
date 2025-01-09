@@ -1245,10 +1245,6 @@ begin
           Message(Owner,evBroadcast,cmDefault,nil);
       end;
   end;
-  if assigned(VScrollBar) then
-    VScrollBar^.HandleEvent(Event);
-  if assigned(HScrollBar) then
-    HScrollBar^.HandleEvent(Event);
   inherited HandleEvent(Event);
 end;
 
@@ -1526,13 +1522,6 @@ end;
 procedure TLocalMenuListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     P: TPoint;
-
-   PROCEDURE MoveFocus (Req: Sw_Integer);
-   BEGIN
-     FocusItemNum(Req);                               { Focus req item }
-     DrawView;                                      { Redraw focus box }
-   END;
-
 begin
   case Event.What of
     evMouseDown :
@@ -1543,17 +1532,7 @@ begin
           MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
           LocalMenu(P);
           ClearEvent(Event);
-        end else
-        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
-          begin
-            if Event.Double then MoveFocus(Focused+6) else MoveFocus(Focused+1);
-            ClearEvent(Event);
-          end else
-        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
-          begin
-            if Event.Double then MoveFocus(Focused-6) else MoveFocus(Focused-1);
-            ClearEvent(Event);
-         end;
+        end;
       end;
     evKeyDown :
       begin
