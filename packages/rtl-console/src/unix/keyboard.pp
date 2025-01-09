@@ -551,11 +551,11 @@ const
                 interpret button 2 as button 5}
     case buttonval of
       %00100000,%01000000 : {left button pressed,moved}
-        MouseEvent.buttons:=1;
+        MouseEvent.buttons:=MouseLeftButton;
       %00100001,%01000001 : {middle button pressed,moved }
-        MouseEvent.buttons:=2;
+        MouseEvent.buttons:=MouseMiddleButton;
       %00100010,%01000010 : { right button pressed,moved }
-        MouseEvent.buttons:=4;
+        MouseEvent.buttons:=MouseRightButton;
       %00100011,%01000011 : { no button pressed,moved }
         MouseEvent.buttons:=0;
       %01100000: { button 4 pressed }
@@ -739,17 +739,17 @@ const
       exit;
     case buttonval and (67 or 128) of
       0 : {left button press}
-        ButtonMask:=1;
+        ButtonMask:=MouseLeftButton;
       1 : {middle button pressed }
-        ButtonMask:=2;
+        ButtonMask:=MouseMiddleButton;
       2 : { right button pressed }
-        ButtonMask:=4;
+        ButtonMask:=MouseRightButton;
       3 : { no button pressed }
         ButtonMask:=0;
       64: { button 4 pressed }
-        ButtonMask:=8;
+        ButtonMask:=MouseButton4;
       65: { button 5 pressed }
-        ButtonMask:=16;
+        ButtonMask:=MouseButton5;
       128: { button browse back }
         ButtonMask:=MouseXButton1;
       129: { button browse forward }
