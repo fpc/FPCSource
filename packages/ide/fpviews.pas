@@ -3405,9 +3405,30 @@ end;
 
 
 procedure TMessageListBox.HandleEvent(var Event: TEvent);
+
+  procedure ScrollTo (req : sw_integer);
+  begin
+    TopItem:=Max(0,Min(Range-1,req));
+    If (VScrollBar <> Nil) Then
+      VScrollBar^.SetValue(TopItem);
+    DrawView;
+  end;
+
 var DontClear: boolean;
 begin
   case Event.What of
+    evMouseDown: Begin                                 { Mouse down event }
+        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+          begin
+            if Event.Double then ScrollTo(TopItem+7) else ScrollTo(TopItem+1);
+            ClearEvent(Event);                         { Event was handled }
+          end else
+        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+          begin
+            if Event.Double then ScrollTo(TopItem-7) else ScrollTo(TopItem-1);
+            ClearEvent(Event);                         { Event was handled }
+          end;
+      end;
     evKeyDown :
       begin
         DontClear:=false;
