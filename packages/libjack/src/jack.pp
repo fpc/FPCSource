@@ -36,7 +36,7 @@ uses
 const
 {$if defined(win32)}
   libjack = 'libjack';
-{$else if defined(win64)}
+{$elseif defined(win64)}
   libjack = 'libjack64';
 {$else}
   libjack = 'jack';
