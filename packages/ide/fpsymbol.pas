@@ -80,6 +80,22 @@ type
       end;
 
 
+    PFilteredSym = ^TFilteredSym;
+    TFilteredSym = Object(TObject)
+        constructor Init(AItemSym:Sw_Integer;ASym : PSymbol);
+        function GetText:String;
+        destructor Done;virtual;
+      private
+        Sym:PSymbol;
+        ItemSym : Sw_Integer;
+      end;
+
+    PFilteredSymCollection=^TFilteredSymCollection;
+    TFilteredSymCollection = Object(TCollection)
+      function  At(Index: sw_Integer): PFilteredSym;
+      end;
+
+
     PSymbolView = ^TSymbolView;
     TSymbolView = object(TLocalMenuListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
@@ -107,6 +123,7 @@ type
       constructor Init(var Bounds: TRect; ASymbols: PSymbolCollection; AHScrollBar, AVScrollBar: PScrollBar);
       destructor  Done; virtual;
       procedure   SetGDBCol;
+      procedure   FilterSymbols(AFilter:boolean);
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Draw; virtual;
@@ -114,6 +131,7 @@ type
       function    GotoItem(Item: sw_integer): boolean; virtual;
       function    TrackItem(Item: sw_integer; AutoTrack: boolean): boolean; virtual;
     private
+      FilteredSym: PFilteredSymCollection;
       Symbols: PSymbolCollection;
       SymbolsValue : PGDBValueCollection;
       LookupStr: string;
@@ -604,6 +622,35 @@ function  TGDBValueCollection.At(Index: sw_Integer): PGDBValue;
 begin
   At:= Inherited At(Index);
 end;
+
+{****************************************************************************
+                               TFilteredSym
+****************************************************************************}
+constructor TFilteredSym.Init(AItemSym:Sw_Integer;ASym : PSymbol);
+begin
+   inherited Init;
+   ItemSym:=AItemSym;
+   Sym:=ASym;
+end;
+
+function TFilteredSym.GetText:String;
+begin
+   GetText:=Sym^.GetText;
+end;
+
+destructor TFilteredSym.Done;
+begin
+   inherited Done;
+end;
+
+{****************************************************************************
+                               TFilteredSymCollection
+****************************************************************************}
+function TFilteredSymCollection.At(Index: sw_Integer): PFilteredSym;
+begin
+  At:= Inherited At(Index);
+end;
+
 {****************************************************************************
                                TSymbolView
 ****************************************************************************}
@@ -849,9 +896,11 @@ constructor TSymbolScopeView.Init(var Bounds: TRect; ASymbols: PSymbolCollection
 begin
   inherited Init(Bounds,AHScrollBar, AVScrollBar);
   Symbols:=ASymbols;
-  NewList(ASymbols);
   New(SymbolsValue,Init(50,50));
-  SetRange(Symbols^.Count);
+  New(FilteredSym,Init(50,50));
+  FilterSymbols(false); {select all}
+  NewList(FilteredSym);
+  SetRange(FilteredSym^.Count);
 end;
 
 destructor TSymbolScopeView.Done;
@@ -866,6 +915,11 @@ begin
     begin
       Dispose(SymbolsValue,Done);
       SymbolsValue:=nil;
+    end;
+  if Assigned(FilteredSym) then
+    begin
+      Dispose(FilteredSym,Done);
+      FilteredSym:=nil;
     end;
   Inherited Done;
 end;
@@ -905,18 +959,54 @@ begin
 end;
 
 procedure TSymbolScopeView.LookUp(S: string);
-var Idx,Slength: Sw_integer;
+var LookUpS : String;
+
+  function GetFilteredLookUpIdx(Item:Sw_Integer):Sw_Integer;
+  var I, Count : Sw_Integer;
+      F : PFilteredSym;
+      UpS,LeftS : String;
+  begin
+    GetFilteredLookUpIdx:=-1;
+    Count:=FilteredSym^.Count;
+    if Count > 0 then
+      for I:=0 to Count-1 do
+      begin
+         F:=FilteredSym^.At(I);
+         if F^.ItemSym = Item then   {perfect match}
+         begin
+           GetFilteredLookUpIdx:=I;
+           break;
+         end;
+         if F^.ItemSym > Item then  { test next item if perfect match is missing}
+         begin
+           LeftS:=UpcaseStr(F^.Sym^.GetName);
+           UpS:=UpcaseStr(LookUpS);
+           if copy(LeftS,1,length(UpS))=UpS then  {perfect match}
+             GetFilteredLookUpIdx:=I;
+           break; {all you get is one second chance, it wont be any better from here}
+         end;
+      end;
+  end;
+
+var Idx,Slength,I: Sw_integer;
     NS: string;
 begin
   NS:=LookUpStr;
   Slength:=Length(S);
+  LookUpS:=S;
   if (Symbols=nil) or (S='') then NS:='' else
     begin
       S:=Symbols^.LookUp(S,Idx);
       if Idx<>-1 then
         begin
-          NS:=S;
-          FocusItem(Idx);
+          { Have found, but get filtered list index first
+            Some entries might be missing if need then look up agin }
+          Idx:=GetFilteredLookUpIdx(Idx);
+          if Idx<>-1 then
+          begin
+            NS:=S;
+            FocusItem(Idx);
+          end;
         end;
     end;
   LookUpStr:=Copy(NS,1,Slength);
@@ -927,11 +1017,13 @@ end;
 function TSymbolScopeView.GotoItem(Item: sw_integer): boolean;
 var S: PSymbol;
     OK: boolean;
+    F : PFilteredSym;
 begin
   OK:=Range>0;
   if OK then
   begin
-    S:=List^.At(Item);
+    F:=List^.At(Item);
+    S:=F^.Sym;
     OK:=(S^.References<>nil) and (S^.References^.Count>0);
     if OK then
       OK:=GotoReference(S^.References^.At(0));
@@ -942,11 +1034,13 @@ end;
 function TSymbolScopeView.TrackItem(Item: sw_integer; AutoTrack: boolean): boolean;
 var S: PSymbol;
     OK: boolean;
+    F: PFilteredSym;
 begin
   OK:=Range>0;
   if OK then
   begin
-    S:=List^.At(Item);
+    F:=List^.At(Item);
+    S:=F^.Sym;
     OK:=(S^.References<>nil) and (S^.References^.Count>0);
     if OK then
       OK:=TrackReference(S^.References^.At(0),AutoTrack);
@@ -968,11 +1062,52 @@ begin
     end;
 end;
 
+procedure TSymbolScopeView.FilterSymbols(AFilter:boolean);
+var S : PSymbol;
+    I : sw_integer;
+    Flags : Longint;
+    bUni, bLab, bcon, btyp, bvar, bprc, binh: boolean;
+begin
+  Flags:=0;
+  if assigned(MyBW) then
+    Flags:=MyBW^.GetFlags;
+  bUni:=(Flags and bfUnits)<>0;
+  bLab:=(Flags and bfLabels)<>0;
+  bCon:=(Flags and bfConstants)<>0;
+  bTyp:=(Flags and bfTypes)<>0;
+  bVar:=(Flags and bfVariables)<>0;
+  bPrc:=(Flags and bfProcedures)<>0;
+  bInh:=(Flags and bfInherited)<>0;
+  FilteredSym^.FreeAll;
+  if Symbols^.Count = 0 then exit;
+  For i:=0 to Symbols^.Count-1 do
+    begin
+      S:=Symbols^.At(I);
+      if AFilter then begin
+        {----------  only selected ones  ----------}
+        case S^.typ of
+          labelsym: if not bLab then continue;
+          namespacesym,staticvarsym,localvarsym,paravarsym,
+          fieldvarsym,absolutevarsym,programparasym: if not bVar then continue;
+          procsym,propertysym,syssym : if not bPrc then continue;
+          typesym : if not bTyp then continue;
+          constsym,enumsym : if not bCon then continue;
+          unitsym : if not bUni then continue;
+          errorsym,macrosym,undefinedsym: ;  {accepted anyway}
+        end;
+      end;
+      FilteredSym^.Insert(New(PFilteredSym,Init(I,S)));
+    end;
+end;
+
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
 var S1: string;
     S : PSymbol;
     SG : PGDBValue;
+    F : PFilteredSym;
 begin
+  F:=FilteredSym^.At(Item);
+  Item:=F^.ItemSym;
   S:=Symbols^.At(Item);
   if Assigned(SymbolsValue) and (SymbolsValue^.Count>Item) then
     SG:=SymbolsValue^.At(Item)
@@ -1652,6 +1787,8 @@ begin
       Insert(ScopeView);
       ScopeView^.MyBW:=@Self;
       ScopeView^.SetGDBCol;
+      ScopeView^.FilterSymbols(true);
+      ScopeView^.SetRange(ScopeView^.FilteredSym^.Count);
     end;
   if assigned(AReferences) and (AReferences^.Count>0) then
     begin
@@ -1771,8 +1908,9 @@ begin
   PageTab^.GrowMode:=gfGrowHiX;
   Insert(PageTab);
 
-  if assigned(ScopeView) then
-   SelectTab(btScope)
+  if assigned(ScopeView) {Scope assinged and chosen to be selected by default}
+    and ((DefaultBrowserPane=0) or not assigned(ReferenceView)) then
+    SelectTab(btScope)
   else if assigned(ReferenceView) then
     SelectTab(btReferences)
   else if assigned(MemInfoView) then
@@ -1833,7 +1971,7 @@ begin
             S:=nil;
             if (Event.InfoPtr=ScopeView) then
               begin
-                S:=ScopeView^.Symbols^.At(ScopeView^.Focused);
+                S:=ScopeView^.FilteredSym^.At(ScopeView^.Focused)^.Sym;
                 MakeGlobal(ScopeView^.Origin,P);
                 Desktop^.MakeLocal(P,P); Inc(P.Y,ScopeView^.Focused-ScopeView^.TopItem);
                 Inc(P.Y);
@@ -1940,6 +2078,12 @@ end;
 procedure TBrowserWindow.SetFlags(AFlags: longint);
 begin
   BrowserFlags:=AFlags;
+  if assigned(ScopeView) then
+  begin
+    ScopeView^.FilterSymbols(true);
+    ScopeView^.SetRange(ScopeView^.FilteredSym^.Count);
+    ScopeView^.DrawView;
+  end;
 end;
 
 procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);
