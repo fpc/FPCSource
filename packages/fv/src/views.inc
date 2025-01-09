@@ -650,6 +650,8 @@ TYPE
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PROCEDURE FocusItemNum (Item: Sw_Integer); Virtual;
+      private
+        LastY : Sw_integer;                           { to track last Size.Y }
    END;
    PListViewer = ^TListViewer;
 
@@ -3561,22 +3563,12 @@ CONST TvListViewerName = 'LISTBOX';                   { Native name }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TListViewer.Init (Var Bounds: TRect; ANumCols: Sw_Word; AHScrollBar,
   AVScrollBar: PScrollBar);
-VAR ArStep, PgStep: Sw_Integer;
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    Options := Options OR (ofFirstClick+ofSelectable); { Set options }
    EventMask := EventMask OR evBroadcast;             { Set event mask }
    NumCols := ANumCols;                               { Hold column number }
-   If (AVScrollBar <> Nil) Then Begin                 { Chk vert scrollbar }
-     If (NumCols = 1) Then Begin                      { Only one column }
-       PgStep := Size.Y -1;                           { Set page size }
-       ArStep := 1;                                   { Set step size }
-     End Else Begin                                   { Multiple columns }
-       PgStep := Size.Y * NumCols;                    { Set page size }
-       ArStep := Size.Y;                              { Set step size }
-     End;
-     AVScrollBar^.SetStep(PgStep, ArStep);            { Set scroll values }
-   End;
+   LastY:=0;
    If (AHScrollBar <> Nil) Then
      AHScrollBar^.SetStep(Size.X DIV NumCols, 1);     { Set step size }
    HScrollBar := AHScrollBar;                         { Horz scrollbar held }
@@ -3687,41 +3679,79 @@ END;
 
 
 {--TListViewer--------------------------------------------------------------}
-{  FocusItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB         }
+{  FocusItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jan2025 M         }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.FocusItem (Item: Sw_Integer);
+VAR NewTopItem : Sw_Integer;
 BEGIN
    Focused := Item;                                   { Set focus to item }
-   If (VScrollBar <> Nil) Then
-     VScrollBar^.SetValue(Item);                      { Scrollbar to value }
+   NewTopItem:=TopItem;
    If (Item < TopItem) Then                           { Item above top item }
-     If (NumCols = 1) Then TopItem := Item            { Set top item }
-       Else TopItem := Item - Item MOD Size.Y         { Set top item }
+     If (NumCols = 1) Then NewTopItem := Item         { New top item }
+       Else NewTopItem := Item - Item MOD Size.Y      { New top item }
    Else If (Item >= TopItem + (Size.Y*NumCols)) Then  { Item below bottom }
-     If (NumCols = 1) Then TopItem := Item-Size.Y+1   { Set new top item }
-     Else TopItem := Item - Item MOD Size.Y -
-       (Size.Y*(NumCols-1));                          { Set new top item }
+     If (NumCols = 1) Then NewTopItem := Item-Size.Y+1 { New top item }
+     Else NewTopItem := Item - Item MOD Size.Y -
+       (Size.Y*(NumCols-1));
+   if TopItem <> NewTopItem then SetTopItem(NewTopItem); { Set new top item }
+   DrawView;                                           { Redraw focus box }
 END;
 
 {--TListViewer--------------------------------------------------------------}
-{  SetTopItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Aug99 LdB        }
+{  SetTopItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 07Jan2025 M        }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.SetTopItem (Item: Sw_Integer);
 BEGIN
+   if Size.Y<> LastY then SetRange(Range);{ Reset range to ajdust to Size.Y}
+   If (VScrollBar <> Nil) and (Item> VScrollBar^.Max) Then
+       Item:=VScrollBar^.Max;           { Don't let overrun scrollbar limit }
+   if Item>=Range then Item:=Range-1;             { Item has to be in range }
+   if Item<0 then Item:=0;                      { Don't allow negative item }
    TopItem := Item;                                   { Set the top item }
+   If (VScrollBar <> Nil) and (VScrollBar^.Value<>TopItem) Then
+       VScrollBar^.SetValue(TopItem);               { Scrollbar to value }
 END;
 
 {--TListViewer--------------------------------------------------------------}
-{  SetRange -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB          }
+{  SetRange -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 07Jan2025 M          }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.SetRange (ARange: Sw_Integer);
+
+procedure NewScrollbarStep;
+var ArStep, PgStep: Sw_Integer;
+begin
+   If (VScrollBar <> Nil) Then Begin                 { Chk vert scrollbar }
+     If (NumCols = 1) Then Begin                      { Only one column }
+       PgStep := Size.Y -1;                           { Set page size }
+       ArStep := 1;                                   { Set step size }
+     End Else Begin                                   { Multiple columns }
+       PgStep := Size.Y * NumCols;                    { Set page size }
+       ArStep := Size.Y;                              { Set step size }
+     End;
+     VScrollBar^.SetStep(PgStep, ArStep);            { Set scroll values }
+   End;
+end;
+
+var MaxRange : sw_integer;
 BEGIN
    Range := ARange;                                   { Set new range }
+   if LastY <> Size.Y then NewScrollbarStep;
+   LastY := Size.Y;                                   { Save last seen Size.Y }
+   If (Focused >= ARange) Then Focused := 0;          { Clear focused }
    If (VScrollBar <> Nil) Then Begin                  { Vertical scrollbar }
-     If (Focused > ARange) Then Focused := 0;         { Clear focused }
-     VScrollBar^.SetParams(Focused, 0, ARange - 1,
+     MaxRange:=Min(ARange-Size.Y,ARange - 1);         { Glue last item at bottom }
+     if (Size.Y > 0) and (NumCols>1) then             { More than one column ? }
+     begin
+       MaxRange:=(ARange div Size.Y) * Size.Y;   { Last column stay in view }
+       if MaxRange=ARange then MaxRange:=MaxRange-Size.Y;
+       MaxRange:=MaxRange-((NumCols-1)*Size.Y);  { Last NumCols stay in view }
+     end;
+     if MaxRange < 0 then MaxRange:=0;           { Negative isn't acceptable }
+     If (TopItem > MaxRange) Then TopItem:=MaxRange;  { Adjust top item }
+     VScrollBar^.SetParams(TopItem, 0, MaxRange,
        VScrollBar^.PgStep, VScrollBar^.ArStep);       { Set parameters }
-   End;
+   End else
+   If (TopItem >= ARange) Then TopItem := ARange-1;   { Adjust top item }
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -3780,7 +3810,12 @@ VAR Oi, Ni: Sw_Integer; Ct, Cw: Word; Mouse: TPoint;
    PROCEDURE MoveFocus (Req: Sw_Integer);
    BEGIN
      FocusItemNum(Req);                               { Focus req item }
-     DrawView;                                      { Redraw focus box }
+   END;
+
+   PROCEDURE ScrollTo (Req: Sw_Integer);
+   BEGIN
+     SetTopItem(Req);
+     DrawView;                                        { Redraw focus box }
    END;
 
 BEGIN
@@ -3818,7 +3853,7 @@ BEGIN
          Else If (Event.Command = cmScrollBarChanged) { Scrollbar changed }
          Then Begin
            If (VScrollBar = Event.InfoPtr) Then Begin
-             MoveFocus(VScrollBar^.Value);            { Focus us to item }
+             ScrollTo(VScrollBar^.Value);            { Focus us to item }
            End Else If (HScrollBar = Event.InfoPtr)
              Then DrawView;                           { Redraw the view }
          End;
@@ -3826,11 +3861,13 @@ BEGIN
      evMouseDown: Begin                               { Mouse down event }
        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
          begin
-           if Event.Double then MoveFocus(Focused+1) else MoveFocus(Focused+1);
+           if NumCols>1 then ScrollTo(TopItem+Size.Y)
+           else if Event.Double then ScrollTo(TopItem+4) else ScrollTo(TopItem+1);
          end else
        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
          begin
-           if Event.Double then MoveFocus(Focused-1) else MoveFocus(Focused-1);
+           if NumCols>1 then ScrollTo(TopItem-Size.Y)
+           else if Event.Double then ScrollTo(TopItem-4) else ScrollTo(TopItem-1);
          end else
        begin
        Cw := Size.X DIV NumCols + 1;                  { Column width }
