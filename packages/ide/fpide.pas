@@ -625,6 +625,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 {Browser options dialog.}
                 dialog_browseroptions = 'Browser Options';
                 dialog_localbrowseroptions = 'Local Browser Options';
+                label_browser_units = '~U~nits';
                 label_browser_labels = '~L~abels';
                 label_browser_constants = '~C~onstants';
                 label_browser_types = '~T~ypes';

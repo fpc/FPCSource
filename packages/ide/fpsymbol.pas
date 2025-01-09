@@ -34,6 +34,29 @@ const
       btUnitInfo    = 4;
       btBreakWatch  = 7;
 
+      {Symbol Flags}
+      bfUnits            = $00000001;
+      bfLabels           = $00000002;
+      bfConstants        = $00000004;
+      bfTypes            = $00000008;
+      bfVariables        = $00000010;
+      bfProcedures       = $00000020;
+      bfInherited        = $00000040;
+      {Display Flags}
+      bfQualifiedSymbols = $40000000;
+      bfSortAlways       = $80000000;
+
+const
+      DefaultSymbolFlags : longint = bfUnits or
+         bfLabels or bfConstants or bfTypes or bfVariables or bfProcedures;
+      DefaultDispayFlags : longint = (bfQualifiedSymbols) shr 30;
+      { Note: default browser flags will be created with formula:
+        BrowserFlags:=DefaultDispayFlags shl 30 or DefaultSymbolFlags;
+      }
+      DefaultBrowserSub  : longint = 0;
+      DefaultBrowserPane : longint = 0;
+
+
 type
     PBrowserWindow = ^TBrowserWindow;
 
@@ -198,8 +221,11 @@ type
       procedure   SelectTab(BrowserTab: Sw_integer); virtual;
       function    GetPalette: PPalette; virtual;
       function    Disassemble : boolean;
+      function    GetFlags: longint; virtual;
+      procedure   SetFlags(AFlags: longint); virtual;
       destructor  Done;virtual;
     private
+      BrowserFlags  : Longint;
       PageTab       : PBrowserTab;
       ST            : PStaticText;
       Sym           : PSymbol;
@@ -608,7 +634,8 @@ end;
 
 procedure TSymbolView.OptionsDlg;
 begin
-  { Abstract }
+  if MyBW<> nil then
+    Message(@IDEApp, evCommand, cmBrowserOptions, MyBW);   { Send message }
 end;
 
 destructor TSymbolView.Done;
@@ -1594,6 +1621,7 @@ begin
   HelpCtx:=hcBrowserWindow;
   Sym:=ASym;
   Prefix:=NewStr(APrefix);
+  BrowserFlags:=DefaultDispayFlags shl 30 or DefaultSymbolFlags;
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
@@ -1902,6 +1930,16 @@ begin
 {$else NODEBUG}
   NoDebugger;
 {$endif NODEBUG}
+end;
+
+function TBrowserWindow.GetFlags: longint;
+begin
+  GetFlags:=BrowserFlags;
+end;
+
+procedure TBrowserWindow.SetFlags(AFlags: longint);
+begin
+  BrowserFlags:=AFlags;
 end;
 
 procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);

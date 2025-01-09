@@ -1350,54 +1350,84 @@ var D: PCenterDialog;
     TitleS: string;
     CB1,CB2: PCheckBoxes;
     RB1,RB2: PRadioButtons;
+    SymbolsFlags,DisplayFlags,BrowserFlags : Longint;
+    BrowserSub,BrowserPane : Longint;
+    DialogWidth : sw_integer;
+    SymbolsHight: sw_integer;
+    DisplayHight: sw_integer;
 begin
   if Browser=nil then
-    TitleS:=dialog_browseroptions
-  else
+  begin    { Default browser options }
+    TitleS:=dialog_browseroptions;
+    SymbolsFlags := DefaultSymbolFlags;
+    DisplayFlags := DefaultDispayFlags;
+    BrowserSub:=DefaultBrowserSub;
+    BrowserPane:=DefaultBrowserPane;
+    DialogWidth:=56;
+    SymbolsHight:=4;
+    DisplayHight:=1;
+  end else
+  begin   { Local browser options }
     TitleS:=dialog_localbrowseroptions;
-  R.Assign(0,0,56,15);
+    {BrowserFlags := DefaultBrowserFlags;}
+    BrowserFlags := Browser^.GetFlags;
+    DisplayFlags := BrowserFlags shr 30;
+    SymbolsFlags := BrowserFlags and $7f;
+    DialogWidth:=56-20;
+    SymbolsHight:=7;
+    DisplayHight:=2;
+    RB1:=nil; {it is not suppoused to be valid}
+  end;
+  R.Assign(0,0,DialogWidth,16);
   New(D, Init(R, TitleS));
   with D^ do
   begin
     HelpCtx:=hcBrowser;
     GetExtent(R); R.Grow(-2,-2);
-    R.B.Y:=R.A.Y+1+3; R2.Copy(R); Inc(R2.A.Y);
+    R.B.Y:=R.A.Y+1+SymbolsHight; R2.Copy(R); Inc(R2.A.Y);
     New(CB1, Init(R2,
-      NewSItem(RExpand(label_browser_labels,21+2),
+      NewSItem(RExpand(label_browser_units,21+2),
+      NewSItem(label_browser_labels,
       NewSItem(label_browser_constants,
       NewSItem(label_browser_types,
       NewSItem(label_browser_variables,
       NewSItem(label_browser_procedures,
       NewSItem(label_browser_inherited,
-      nil)))))))
+      nil))))))))
     );
     Insert(CB1);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, label_browser_symbols, CB1)));
+    CB1^.Value := SymbolsFlags;
+
+    if Browser=nil then
+    begin
+      R.Move(0,R.B.Y-R.A.Y+1);
+      R.B.Y:=R.A.Y+1+2; R2.Copy(R);
+      R3.Copy(R2); R3.B.X:=R3.A.X+(R3.B.X-R3.A.X) div 2-1; Inc(R3.A.Y);
+      New(RB1, Init(R3,
+        NewSItem(label_browser_newbrowser,
+        NewSItem(label_browser_currentbrowser,
+        nil)))
+      );
+      Insert(RB1);
+      R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
+      Insert(New(PLabel, Init(R3, label_browser_subbrowsing, RB1)));
+      R3.Copy(R2); R3.A.X:=R3.B.X-(R3.B.X-R3.A.X) div 2+1; Inc(R3.A.Y);
+      New(RB2, Init(R3,
+        NewSItem(label_browser_scope,
+        NewSItem(label_browser_reference,
+        nil)))
+      );
+      Insert(RB2);
+      R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
+      Insert(New(PLabel, Init(R3, label_browser_preferredpane, RB2)));
+      RB1^.Value:=BrowserSub;
+      RB2^.Value:=BrowserPane;
+    end;
 
     R.Move(0,R.B.Y-R.A.Y+1);
-    R.B.Y:=R.A.Y+1+2; R2.Copy(R);
-    R3.Copy(R2); R3.B.X:=R3.A.X+(R3.B.X-R3.A.X) div 2-1; Inc(R3.A.Y);
-    New(RB1, Init(R3,
-      NewSItem(label_browser_newbrowser,
-      NewSItem(label_browser_currentbrowser,
-      nil)))
-    );
-    Insert(RB1);
-    R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
-    Insert(New(PLabel, Init(R3, label_browser_subbrowsing, RB1)));
-    R3.Copy(R2); R3.A.X:=R3.B.X-(R3.B.X-R3.A.X) div 2+1; Inc(R3.A.Y);
-    New(RB2, Init(R3,
-      NewSItem(label_browser_scope,
-      NewSItem(label_browser_reference,
-      nil)))
-    );
-    Insert(RB2);
-    R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
-    Insert(New(PLabel, Init(R3, label_browser_preferredpane, RB2)));
-
-    R.Move(0,R.B.Y-R.A.Y+1);
-    R.B.Y:=R.A.Y+1+1; R2.Copy(R); Inc(R2.A.Y);
+    R.B.Y:=R.A.Y+1+DisplayHight; R2.Copy(R); Inc(R2.A.Y);
     New(CB2, Init(R2,
       NewSItem(RExpand(label_browser_qualifiedsymbols,21+2),
       NewSItem(label_browser_sortsymbols,
@@ -1406,11 +1436,26 @@ begin
     Insert(CB2);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, label_browser_display, CB2)));
+    CB2^.Value:=DisplayFlags;
   end;
   InsertButtons(D);
   CB1^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
+    SymbolsFlags:=CB1^.Value;
+    DisplayFlags:=CB2^.Value;
+    if Browser=nil then
+    begin
+      {DefaultBrowserFlags:=BrowserFlags;}
+      DefaultSymbolFlags:=SymbolsFlags;
+      DefaultDispayFlags:=DisplayFlags;
+      DefaultBrowserSub:=RB1^.Value;
+      DefaultBrowserPane:=RB2^.Value;
+    end else
+    begin
+      BrowserFlags:=DisplayFlags shl 30 or SymbolsFlags;
+      Browser^.SetFlags(BrowserFlags);
+    end;
   end;
   Dispose(D, Done);
 end;

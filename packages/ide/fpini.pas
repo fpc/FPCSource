@@ -39,7 +39,7 @@ uses
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
-  WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
+  WConsts,WUtils,WINI,WViews,WEditor,WCEdit,FPSymbol,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
   FPIntf,FPTools,FPSwitch,fpchash;
 
@@ -82,6 +82,7 @@ const
   secColors      = 'Colors';
   secHelp        = 'Help';
   secEditor      = 'Editor';
+  secBrowser     = 'Browser';
   secBreakpoint  = 'Breakpoints';
   secWatches     = 'Watches';
   secHighlight   = 'Highlight';
@@ -123,6 +124,10 @@ const
   ieDefaultIndentSize = 'DefaultIndentSize';
   ieDefaultEditorFlags='DefaultFlags';
   ieDefaultSaveExt   = 'DefaultSaveExt';
+  ieBrowserSymbols   = 'SymbolFlags';
+  ieBrowserDisplay   = 'DisplayFlags';
+  ieBrowserSub       = 'SubBrowsing';
+  ieBrowserPane      = 'PreferrdPane';
   ieOpenExts         = 'OpenExts';
   ieHighlightExts    = 'Exts';
   ieTabsPattern      = 'NeedsTabs';
@@ -478,6 +483,11 @@ begin
   DefaultIndentSize:=INIFile^.GetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   DefaultSaveExt:=INIFile^.GetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
+  { Browser }
+  DefaultSymbolFlags:=INIFile^.GetIntEntry(secBrowser,ieBrowserSymbols,DefaultSymbolFlags);
+  DefaultDispayFlags:=INIFile^.GetIntEntry(secBrowser,ieBrowserDisplay,DefaultDispayFlags);
+  DefaultBrowserSub:=INIFile^.GetIntEntry(secBrowser,ieBrowserSub,DefaultBrowserSub);
+  DefaultBrowserPane:=INIFile^.GetIntEntry(secBrowser,ieBrowserPane,DefaultBrowserPane);
   { Highlight }
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
   TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
@@ -698,6 +708,11 @@ begin
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
+  { Browser }
+  INIFile^.SetIntEntry(secBrowser,ieBrowserSymbols,DefaultSymbolFlags);
+  INIFile^.SetIntEntry(secBrowser,ieBrowserDisplay,DefaultDispayFlags);
+  INIFile^.SetIntEntry(secBrowser,ieBrowserSub,DefaultBrowserSub);
+  INIFile^.SetIntEntry(secBrowser,ieBrowserPane,DefaultBrowserPane);
   { Highlight }
   INIFile^.SetEntry(secHighlight,ieHighlightExts,EscapeIniText(HighlightExts));
   INIFile^.SetEntry(secHighlight,ieTabsPattern,EscapeIniText(TabsPattern));
