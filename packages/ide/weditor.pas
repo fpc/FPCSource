@@ -2081,11 +2081,11 @@ begin
       exit;
     end; *)
   if S='' then
-    CP:=0
+    CP:=X+1
   else
     begin
      CP:=0; RX:=0;
-     while (RX<=X) and (CP<=length(S)) do
+     while (RX<=X) {and (CP<=length(S))} do
       begin
         Inc(CP);
         if (CP<=length(S)) and
