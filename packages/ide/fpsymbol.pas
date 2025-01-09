@@ -745,7 +745,7 @@ begin
       end;
     evMouseDown :
       begin
-        if Event.double then
+        if ((Event.buttons and (mbScrollUp or mbScrollDown))=0) and Event.double then
           begin
             Browse;
             ClearEvent(Event);
@@ -1379,6 +1379,7 @@ begin
         if DontClear=false then ClearEvent(Event);
       end;
     evMouseDown :
+      if ((Event.buttons and (mbScrollUp or mbScrollDown))=0) then
       begin
 {$ifndef HASOUTLINE}
         MakeLocal(Event.Where,P);
@@ -1672,7 +1673,8 @@ end;
 begin
   case Event.What of
     evMouseDown :
-      if MouseInView(Event.Where) then
+      if MouseInView(Event.Where)
+        and ((Event.buttons and (mbScrollUp or mbScrollDown))=0) then
         begin
           repeat
             MakeLocal(Event.Where,P);
@@ -2004,6 +2006,7 @@ begin
                    ScopeView^.GetText(ScopeView^.Focused,255),
                    S,@self,
                    Symbols,S^.References,Anc,S^.MemInfo);
+                ClearEvent(Event);
               end;
             end;
       end;
