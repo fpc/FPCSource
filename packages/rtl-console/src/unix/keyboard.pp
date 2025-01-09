@@ -522,17 +522,17 @@ const
                 interpret button 2 as button 5}
     case buttonval and 67 of
       0 : {left button press}
-        MouseEvent.buttons:=1;
+        MouseEvent.buttons:=MouseLeftButton;
       1 : {middle button pressed }
-        MouseEvent.buttons:=2;
+        MouseEvent.buttons:=MouseMiddleButton;
       2 : { right button pressed }
-        MouseEvent.buttons:=4;
+        MouseEvent.buttons:=MouseRightButton;
       3 : { no button pressed }
         MouseEvent.buttons:=0;
       64: { button 4 pressed }
-          MouseEvent.buttons:=8;
+          MouseEvent.buttons:=MouseButton4;
       65: { button 5 pressed }
-          MouseEvent.buttons:=16;
+          MouseEvent.buttons:=MouseButton5;
     end;
      if inhead=intail then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -653,17 +653,17 @@ const
       exit;
     case buttonval and (67 or 128) of
       0 : {left button press}
-        ButtonMask:=1;
+        ButtonMask:=MouseLeftButton;
       1 : {middle button pressed }
-        ButtonMask:=2;
+        ButtonMask:=MouseMiddleButton;
       2 : { right button pressed }
-        ButtonMask:=4;
+        ButtonMask:=MouseRightButton;
       3 : { no button pressed }
         ButtonMask:=0;
       64: { button 4 pressed }
-        ButtonMask:=8;
+        ButtonMask:=MouseButton4;
       65: { button 5 pressed }
-        ButtonMask:=16;
+        ButtonMask:=MouseButton5;
       128: { button browse back }
         ButtonMask:=MouseXButton1;
       129: { button browse forward }
