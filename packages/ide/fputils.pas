@@ -48,6 +48,7 @@ const
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
 function FixFileName(const s:string):string;
+function MakeFileNameExt(const fn:string; const aExt: string):string;
 function MakeExeName(const fn:string):string;
 function Center(const S: string; Len: byte): string;
 function FitStr(const S: string; Len: byte): string;
@@ -173,6 +174,15 @@ begin
   FixFileName[0]:=s[0];
 end;
 
+function MakeFileNameExt(const fn:string; const aExt: string):string;
+var
+  d : DirStr;
+  n : NameStr;
+  e : ExtStr;
+begin
+  FSplit(fn,d,n,e);
+  MakeFileNameExt:=d+n+aExt;
+end;
 
 function MakeExeName(const fn:string):string;
 var

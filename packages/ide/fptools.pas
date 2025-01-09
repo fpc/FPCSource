@@ -1136,7 +1136,7 @@ begin
         if (WordS='$CONFIG') then
           begin
             if (Pass=1) then
-              I:=I+ReplacePart(LastWordStart,I-1,IniFileName)-1;
+              I:=I+ReplacePart(LastWordStart,I-1,IniFilePath)-1;
           end else
         if (WordS='$DIR') then
           begin

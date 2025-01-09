@@ -138,9 +138,9 @@ const
 procedure InitDesktopFile;
 begin
   if DesktopLocation=dlCurrentDir then
-    DesktopPath:=FExpand(DesktopName)
+    DesktopPath:=FExpand(DesktopFileName)
   else
-    DesktopPath:=FExpand(DirOf(IniFileName)+DesktopName);
+    DesktopPath:=FExpand(DirOf(IniFilePath)+DesktopFileName);
 end;
 
 procedure DoneDesktopFile;
