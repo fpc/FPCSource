@@ -32,7 +32,7 @@ unit itcpugas;
       gas_op2str: array[tasmop] of string[14] = ('<none>',
         'nop','call','la','lla','lga','li','mv','not','neg','negw',
         'sext.b','sext.h','zext.b','zext.h','seqz','sneg','sltz','sgtz',
-        'fmv.s','fabs.s','fneg.s','fmv.d','fabs.d','fneg.d',
+        'fmv.s','fabs.s','fneg.s','fmv.d','fabs.d','fneg.d','fneg.q',
         'beqz','bnez','blez','bgez','bltz','bgtz','gt','ble',
         'bgtu','bleu','j','jr','ret','tail',
         'lui','auipc','jal','jalr',

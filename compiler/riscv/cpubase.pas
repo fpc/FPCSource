@@ -40,7 +40,7 @@ uses
         { Pseudo instructions }
         A_NOP,A_CALL,A_LA,A_LLA,A_LGA,A_LI,A_MV,A_NOT,A_NEG,A_NEGW,
         A_SEXT_B,A_SEXT_H,A_ZEXT_B,A_ZEXT_H,A_SEQZ,A_SNEG,A_SLTZ,A_SGTZ,
-        A_FMV_S,A_FABS_S,A_FNEG_S,A_FMV_D,A_FABS_D,A_FNEG_D,
+        A_FMV_S,A_FABS_S,A_FNEG_S,A_FMV_D,A_FABS_D,A_FNEG_D,A_FNEG_Q,
         A_BEQZ,A_BNEZ,A_BLEZ,A_BGEZ,A_BLTZ,A_BGTZ,A_BGT,A_BLE,
         A_BGTU,A_BLEU,A_J,A_JR,A_RET,A_TAIL,
         { normal opcodes }

@@ -41,7 +41,7 @@ interface
         procedure second_64bit;override;
       end;
 
-      trv32unaryminusnode = class(tcgunaryminusnode)
+      trv32unaryminusnode = class(trvunaryminusnode)
       end;
 
       trv32notnode = class(tcgnotnode)

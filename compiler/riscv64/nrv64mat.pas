@@ -26,7 +26,8 @@ unit nrv64mat;
   interface
 
     uses
-      node,nmat, ncgmat,
+      node, nmat, ncgmat,
+      nrvmat,
       cgbase;
 
     type
@@ -40,7 +41,7 @@ unit nrv64mat;
       trv64shlshrnode = class(tcgshlshrnode)
       end;
 
-      trv64unaryminusnode = class(tcgunaryminusnode)
+      trv64unaryminusnode = class(trvunaryminusnode)
       end;
 
       trv64notnode = class(tcgnotnode)
