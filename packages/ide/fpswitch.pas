@@ -1441,9 +1441,9 @@ begin
      AddLongIntItem('~S~tack size','s');
      AddLongIntItem('Local ~h~eap size','h');
    end;}
-  SwitchesPath:=LocateFile(SwitchesName);
+  SwitchesPath:=LocateFile(SwitchesFileName);
   if SwitchesPath='' then
-    SwitchesPath:=SwitchesName;
+    SwitchesPath:=SwitchesFileName;
   SwitchesPath:=FExpand(SwitchesPath);
 end;
 

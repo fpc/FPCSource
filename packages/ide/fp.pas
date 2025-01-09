@@ -201,7 +201,10 @@ begin
               delete(param,1,1); // delete C
               if (length(Param)>=1) and (Param[1] in['=',':']) then
                 Delete(Param,1,1); { eat optional separator }
-              IniFileName:=Param;
+              IniFileName:=MakeFileNameExt(Param,IniExt);
+              DesktopFileName:=MakeFileNameExt(Param,DesktopExt);
+              SwitchesFileName:=MakeFileNameExt(Param,SwitchesExt);
+              DirInfoFileName:=MakeFileNameExt(Param,DirInfoExt);
             end;
 {$ifdef GDBMI}
           'G' : { custom GDB exec file (GDBMI mode only) }

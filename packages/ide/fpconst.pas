@@ -67,11 +67,17 @@ const
 {$ifndef USE_SPECIAL_BASENAME}
      FPBaseName = 'fp';
 {$endif not USE_SPECIAL_BASENAME}
-     ININame              = FPBaseName+'.ini';
-     DirInfoName          = FPBaseName+'.dir';
-     SwitchesName         = FPBaseName+'.cfg';
-     DesktopName          = FPBaseName+'.dsk';
-     BrowserName          = FPBaseName+'.brw';
+     INIExt               = '.ini';
+     DirInfoExt           = '.dir';
+     SwitchesExt          = '.cfg';
+     DesktopExt           = '.dsk';
+     BrowserExt           = '.brw';
+
+     ININame              = FPBaseName+INIExt;
+     DirInfoName          = FPBaseName+DirInfoExt;
+     SwitchesName         = FPBaseName+SwitchesExt;
+     DesktopName          = FPBaseName+DesktopExt;
+     BrowserName          = FPBaseName+BrowserExt;
      BackgroundName       = 'fp.ans';
      ReadmeName           = 'readme.ide';
 

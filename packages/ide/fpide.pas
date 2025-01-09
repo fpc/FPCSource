@@ -1709,7 +1709,7 @@ end;
 
 procedure TIDEApp.UpdateINIFile;
 begin
-  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(IniFileName));
+  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(IniFilePath));
 end;
 
 procedure TIDEApp.UpdateRecentFileList;

@@ -1628,14 +1628,14 @@ procedure TIDEApp.OpenINI;
 var D : PFPFileDialog;
     FileName: string;
 begin
-  New(D, Init('*'+ExtOf(INIFileName),dialog_openoptions,dialog_ini_filename,fdOpenButton,hidOpenIniFile));
+  New(D, Init('*'+ExtOf(INIFilePath),dialog_openoptions,dialog_ini_filename,fdOpenButton,hidOpenIniFile));
   D^.HelpCtx:=hcOpenIni;
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
       if ExistsFile(FileName)=false then ErrorBox(msg_cantopenconfigfile,nil) else
         begin
-          IniFileName:=FileName;
+          IniFilePath:=FileName;
           ReadINIFile;
           Message(Application,evBroadcast,cmUpdate,nil);
         end;
@@ -1654,7 +1654,7 @@ var D : PFPFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init('*'+ExtOf(INIFileName),dialog_saveoptions,dialog_ini_filename,fdOkButton,hidSaveIniFile));
+  New(D, Init('*'+ExtOf(INIFilePath),dialog_saveoptions,dialog_ini_filename,fdOkButton,hidSaveIniFile));
   D^.HelpCtx:=hcSaveAsINI;
   if Desktop^.ExecView(D)<>cmCancel then
     begin
@@ -1664,7 +1664,7 @@ begin
         CanWrite:=ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,SmartPath(FileName)),nil,false)=cmYes;
       if CanWrite then
         begin
-          IniFileName:=FileName;
+          IniFilePath:=FileName;
           if WriteINIFile(true)=false then
             ErrorBox(msg_errorsavingconfigfile,nil);
           Message(Application,evBroadcast,cmUpdate,nil);
