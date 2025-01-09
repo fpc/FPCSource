@@ -646,11 +646,17 @@ var
   end;
 
   procedure OutSpaces;
+  var SpaceLen : longint;
   begin
     if (Spaces=0) then
      exit;
     OutClr(SpaceFg,SpaceBg,SpaceAttr);
-    OutData(Space(Spaces));
+    repeat
+      SpaceLen:=Spaces;
+      if SpaceLen > 200 then SpaceLen:=200; {have to fit in ShortString}
+      OutData(Space(SpaceLen));
+      Spaces:=Spaces-SpaceLen;
+    until Spaces = 0;
     LastX:=x;
     LastY:=y;
     Spaces:=0;

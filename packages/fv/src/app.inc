@@ -744,7 +744,7 @@ BEGIN
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
    Options := 0;                                      { No options set }
-   Size.X := ScreenWidth;                             { Set x size value }
+   Size.X := Min(ScreenWidth,MaxViewWidth);           { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
    InitStatusLine;                                    { Create status line }
    InitMenuBar;                                       { Create a bar menu }

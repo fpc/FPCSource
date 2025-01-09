@@ -154,7 +154,11 @@ type
 {$endif WITH_CRT}
 
 const
+{$if defined(unix) or defined(windows)}
+      MaxVideoLine = 65520 div ({2*}255); { maximum number of lines (don't have to fit in 64K) }
+{$else}
       MaxVideoLine = 65520 div (2*MaxViewWidth); { maximum number of lines that fit in 64K }
+{$endif}
 
 type
      TAnsiBuffer = array[0..MaxViewWidth*MaxVideoLine] of word;
@@ -687,7 +691,7 @@ begin
 end;
 
 procedure TANSIViewConsole.ClrScr;
-var X,Y: word;
+var X,Y: sw_word;
     Pos: longint;
 begin
   GotoXY(1,1);
@@ -700,7 +704,7 @@ begin
 end;
 
 procedure TANSIViewConsole.ClrEol;
-var X,Y: word;
+var X,Y: sw_word;
     Pos: longint;
 begin
   if Owner<>nil then
@@ -765,7 +769,7 @@ begin
 end;
 
 procedure TANSIViewConsole.GotoXY(X,Y: integer);
-var W: word;
+var W: sw_word;
 begin
   if Owner<>nil then
   while Y>MaxVideoLine do
@@ -904,7 +908,7 @@ begin
 end;
 
 procedure TANSIBackgroundConsole.ClrScr;
-var X,Y: word;
+var X,Y: sw_word;
     Pos: longint;
 begin
   GotoXY(1,1);
@@ -918,7 +922,7 @@ begin
 end;
 
 procedure TANSIBackgroundConsole.ClrEol;
-var X,Y: word;
+var X,Y: sw_word;
     Pos: longint;
 begin
   if Owner<>nil then
@@ -975,7 +979,7 @@ begin
 end;
 
 procedure TANSIBackgroundConsole.GotoXY(X,Y: integer);
-var W: word;
+var W: sw_word;
 begin
   if Owner<>nil then
   while Y>MaxVideoLine do

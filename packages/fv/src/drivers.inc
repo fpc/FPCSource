@@ -719,8 +719,8 @@ CONST
 VAR
    MouseIntFlag: Byte;                                { Mouse in int flag }
    MouseButtons: Byte;                                { Mouse button state }
-   ScreenWidth : Byte;                                { Screen text width }
-   ScreenHeight: Byte;                                { Screen text height }
+   ScreenWidth : Sw_Word;                             { Screen text width }
+   ScreenHeight: Sw_Word;                             { Screen text height }
    ScreenMode  : TVideoMode;                         { Screen mode }
    MouseWhere  : TPoint;                              { Mouse position }
 
@@ -752,11 +752,6 @@ CONST EventQSize = 16;                                { Default int bufsize }
 {                DOS/DPMI/WIN/NT/OS2 NEW EVENT QUEUE MAX SIZE               }
 {---------------------------------------------------------------------------}
 CONST QueueMax = 64;                                  { Max new queue size }
-
-{---------------------------------------------------------------------------}
-{   MAX WIEW WIDTH to avoid TDrawBuffer overrun in views unit               }
-{---------------------------------------------------------------------------}
-CONST MaxViewWidth = 255;                                  { Max view width }
 
 {***************************************************************************}
 {                          PRIVATE INTERNAL TYPES                           }
@@ -1611,9 +1606,6 @@ begin
       {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetVideoMode(StoreScreenMode);
       GetVideoMode(ScreenMode);
     end;
-
-  if ScreenWidth > MaxViewWidth then
-    ScreenWidth := MaxViewWidth;
   ScreenWidth:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ScreenWidth;
   ScreenHeight:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ScreenHeight;
   VideoInitialized:=true;

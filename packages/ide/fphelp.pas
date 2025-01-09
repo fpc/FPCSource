@@ -74,9 +74,11 @@ uses Objects,Views,App,MsgBox,
 
 const
     MaxStatusLevel = 10;
-
+{$if MaxViewWidth < 256}
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
-
+{$else}
+var StatusStack : array[0..MaxStatusLevel] of string[255{MaxViewWidth}];
+{$endif}
 const
       StatusStackPtr  : integer = 0;
 

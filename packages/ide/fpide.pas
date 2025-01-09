@@ -1497,7 +1497,7 @@ end;
 
 
 procedure TIDEApp.ShowIDEScreen;
-var oldH,oldW : byte;
+var oldH,oldW : Sw_Word;
 begin
   if Assigned(UserScreen) then
     UserScreen^.SaveConsoleScreen;

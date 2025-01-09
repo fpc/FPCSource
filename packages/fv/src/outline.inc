@@ -349,7 +349,8 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
   function draw_item(cur:pointer;level,position:sw_integer;
                      lines:longint;flags:word):boolean;
 
-  var c,i:byte;
+  var c:byte;
+      i:sw_integer;
 {$ifdef FV_UNICODE}
       s,t:UnicodeString;
 {$else FV_UNICODE}

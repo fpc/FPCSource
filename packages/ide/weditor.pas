@@ -4064,7 +4064,11 @@ var SelectColor,
     Color: word;
     ColorTab: array[coFirstColor..coLastColor] of word;
     ErrorLine: integer;
+{$if MaxViewWidth < 256}
     ErrorMsg: string[MaxViewWidth];
+{$else}
+    ErrorMsg: string[255];
+{$endif}
 function CombineColors(Orig,Modifier: byte): byte;
 var Color: byte;
 begin
@@ -4232,7 +4236,7 @@ begin
                 FreeFormat[X]:=false;
               end;
 
-            { redundant check, for loop condition is taking care of correct range
+            { redundant check, for loop condition is taking care of coorect range
             if (0<=LSX+X-1-Delta.X) and (LSX+X-1-Delta.X<MaxViewWidth) then  }
               MoveChar(B[LSX+X-1-Delta.X],C,Color,1);
           end; { for X:=1 to ... }

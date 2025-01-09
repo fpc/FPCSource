@@ -281,8 +281,15 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    wnNoNumber = 0;                                    { Window has no num }
-   MaxViewWidth = 255;                                { Max view width }
-
+{$ifdef unix}
+   MaxViewWidth = 1024;                                  { Max view width }
+{$else}
+{$ifdef windows}
+   MaxViewWidth = 255;                                  { Max view width }
+{$else}
+   MaxViewWidth = 255;                                   { Max view width }
+{$endif}
+{$endif}
 
 {***************************************************************************}
 {                          PUBLIC TYPE DEFINITIONS                          }
@@ -1829,6 +1836,8 @@ begin
   Origin := Bounds.A;                                { Get first corner }
   Size := Bounds.B;                                 { Get second corner }
   Dec(Size.X,Origin.X);
+                         { in case MaxViewWidth is smaller than ScreenWidth }
+  Size.X:=Min(Size.X,MaxViewWidth); { adjust to be in bounds of TDrawBuffer }
   Dec(Size.Y,Origin.Y);
 end;
 
@@ -4397,7 +4406,9 @@ begin
        G:=p^.Owner;
        if (G^.buffer<>Nil) then
         begin
-          BufPos:=G^.size.x * staticVar2.y + x1;
+          { find view position on global screen, }
+          { use ScreenWidth for that             }
+          BufPos:={G^.size.x} ScreenWidth * staticVar2.y + x1;
           SrcPos:=x1 - staticVar2.offset;
           l:=x2-x1;
           if (shadowCounter=0) then
