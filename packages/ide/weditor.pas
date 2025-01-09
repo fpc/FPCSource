@@ -3748,7 +3748,7 @@ begin
            LocalMenu(P);
            ClearEvent(Event);
          end else
-       if Event.Buttons=mbLeftButton then
+       if (Event.Buttons=mbLeftButton) and not(Event.Double or Event.Triple) then
         begin
           GetMousePos(P);
           StartP:=P;
@@ -3762,6 +3762,17 @@ begin
             DrawView;
           until not MouseEvent(Event, evMouseMove+evMouseAuto);
           DrawView;
+          ClearEvent(Event);
+        end else
+      if (Event.Buttons=mbLeftButton) and (Event.Double) then
+        begin
+          SelectWord;
+          ClearEvent(Event);
+        end else
+      if (Event.Buttons=mbLeftButton) and (Event.Triple) then
+        begin
+          SelectLine;
+          ClearEvent(Event);
         end;
     evKeyDown :
       begin
