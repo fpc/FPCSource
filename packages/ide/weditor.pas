@@ -3583,10 +3583,10 @@ end;
 
 procedure TCustomCodeEditor.ScrollTo(X, Y: sw_Integer);
 begin
-  inherited ScrollTo(X,Y);
-  if (HScrollBar=nil) or (VScrollBar=nil) then
-     begin Delta.X:=X; Delta.Y:=Y; end;
-  DrawView;
+   inherited ScrollTo(X,Y);
+   if (HScrollBar=nil) then Delta.X:=Max(X,0);
+   if (VScrollBar=nil) then Delta.Y:=Max(Min(Y,GetLineCount-1),0);
+   if (HScrollBar=nil) or (VScrollBar=nil) then DrawView;
 end;
 
 function TCustomCodeEditor.IsModal: boolean;
