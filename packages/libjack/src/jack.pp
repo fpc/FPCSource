@@ -34,7 +34,13 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
+{$if defined(win32)}
+  libjack = 'libjack';
+{$else if defined(win64)}
+  libjack = 'libjack64';
+{$else}
   libjack = 'jack';
+{$endif}
 
 type
   uint64_t = System.UInt64;

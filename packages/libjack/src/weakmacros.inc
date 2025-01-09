@@ -40,7 +40,7 @@
 {$define JACK_NET_OPTIONAL_WEAK_EXPORT := external libjacknet}
 {$define JACK_NET_OPTIONAL_WEAK_DEPRECATED_EXPORT := external libjacknet; deprecated}
 
-{$if defined(haiku) or defined(aix)}
+{$if defined(haiku) or defined(aix) or defined(win32) or defined(win64)}
   // target does not support weakexternal
   {$define JACK_WEAK_EXPORT := external libjack}
 {$else}

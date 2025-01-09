@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Headers for the JACK Audio Connection Kit library';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
-    P.OSes := AllUnixOSes-[qnx];
+    P.OSes := AllUnixOSes+[win32,win64]-[qnx];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
