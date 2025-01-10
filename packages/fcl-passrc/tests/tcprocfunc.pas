@@ -104,6 +104,7 @@ type
     Procedure TestFunctionArrayOfConstArg;
     procedure TestProcedureConstArrayOfConstArg;
     Procedure TestFunctionConstArrayOfConstArg;
+    Procedure TestProcedureArgFile;
 
     Procedure TestProcedureCdecl;
     Procedure TestFunctionCdecl;
@@ -830,6 +831,12 @@ begin
   ParseFunction('(Const B : Array of Const)');
   AssertFunc([],[],ccDefault,1);
   AssertArrayArg(FuncType,0,'B',argConst,'');
+end;
+
+procedure TTestProcedureFunction.TestProcedureArgFile;
+begin
+  ParseProcedure('(Const B : File)');
+  AssertProc([],[],ccDefault,1);
 end;
 
 procedure TTestProcedureFunction.TestCallingConventionSysV_ABI_Default;

@@ -2159,7 +2159,7 @@ Const
   NoHintTokens = [tkProcedure,tkFunction];
   InterfaceKindTypes : Array[Boolean] of TPasObjKind = (okInterface,okObjcProtocol);
   ClassKindTypes : Array[TLocalClassType] of TPasObjKind = (okClass,okObjCClass,okObjcCategory,okClassHelper);
-  FuncArgResultTypeTokens = [tkIdentifier,tkarray,tkSpecialize];
+  FuncArgResultTypeTokens = [tkIdentifier,tkarray,tkSpecialize,tkfile];
 
 var
   PM: TPackMode;
