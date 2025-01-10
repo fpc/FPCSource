@@ -27,6 +27,7 @@ interface
 
     uses
       node,nmat, ncgmat,
+      nrvmat,
       cgbase;
 
     type
