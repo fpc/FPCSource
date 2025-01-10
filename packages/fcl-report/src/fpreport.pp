@@ -12197,11 +12197,11 @@ begin
         {$endif}
         // DumpData(aPageData);
         PrepareRecord(aData);
-        Report.UpdateAggregates(aPage,aData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
+        Report.UpdateAggregates(aPage,aData);
         ShowDataBand;
         aData.Next;
         end;
