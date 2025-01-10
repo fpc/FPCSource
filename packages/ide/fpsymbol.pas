@@ -169,7 +169,7 @@ type
 
         PSymbolInheritanceView = ^TSymbolInheritanceView;
 {$ifdef HASOUTLINE}
-    TSymbolInheritanceView = object(TLocalMenuOutlieViewer)
+    TSymbolInheritanceView = object(TLocalMenuOutlineViewer)
 {$else notHASOUTLINE}
     TSymbolInheritanceView = object(TLocalMenuListBox)
 {$endif HASOUTLINE}
