@@ -1548,6 +1548,7 @@ end;
 
     procedure InitFileUtils;
       begin
+        CachedCurrentDir:='';
         DirCache:=TDirectoryCache.Create;
       end;
 
