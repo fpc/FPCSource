@@ -208,7 +208,6 @@ begin
       Raise HTTPError.CreateFmt(SErrInvalidDirectory,[D]);
     SetFileLocationPath(ALocation,IncludeTrailingPathDelimiter(D));
     end;
-  Writeln('Location ',aLocation,' handled by ',C.ClassName);
   RegisterHTTPModule(ALocation,C,true);
   ModuleFactory.MoveModuleBeforeDefault(ALocation);
 end;
@@ -249,7 +248,6 @@ begin
   aClass:=DefaultSimpleFileModuleClass;
   if aClass=Nil then
     aClass:=TSimpleFileModule;
-  Writeln('Creating ',aClass.ClassName);
   With aClass.CreateNew(Nil) do
     try
       HandleRequest(ARequest,AResponse);
@@ -420,11 +418,8 @@ procedure TFPCustomFileModule.HandleRequest(ARequest: TRequest; AResponse: TResp
 
 Var
   RFN,FN : String;
-  S : String;
 
 begin
-  WriteStr(S,'Class ',ClassName,' mapping request ',aRequest.ScriptName);
-  Writeln(S);
   FScriptName:=ARequest.ScriptName;
   If CompareText(ARequest.Method,'GET')<>0 then
     begin
