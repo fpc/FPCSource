@@ -104,7 +104,7 @@ type
       LastLocalCmd: word;
     end;
 
-    TLocalMenuOutlieViewer = object(TOutlineViewer)
+    TLocalMenuOutlineViewer = object(TOutlineViewer)
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   LocalMenu(P: TPoint); virtual;
       function    GetLocalMenu: PMenu; virtual;
@@ -1569,7 +1569,7 @@ begin
   inherited HandleEvent(Event);
 end;
 
-procedure TLocalMenuOutlieViewer.LocalMenu(P: TPoint);
+procedure TLocalMenuOutlineViewer.LocalMenu(P: TPoint);
 var M: PMenu;
     MV: PAdvancedMenuPopUp;
     R: TRect;
@@ -1590,18 +1590,18 @@ begin
     Message(GetCommandTarget,evCommand,Re,@Self);
 end;
 
-function TLocalMenuOutlieViewer.GetLocalMenu: PMenu;
+function TLocalMenuOutlineViewer.GetLocalMenu: PMenu;
 begin
   GetLocalMenu:=nil;
 {  Abstract;}
 end;
 
-function TLocalMenuOutlieViewer.GetCommandTarget: PView;
+function TLocalMenuOutlineViewer.GetCommandTarget: PView;
 begin
   GetCommandTarget:=@Self;
 end;
 
-procedure TLocalMenuOutlieViewer.HandleEvent(var Event: TEvent);
+procedure TLocalMenuOutlineViewer.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     P: TPoint;
 begin
