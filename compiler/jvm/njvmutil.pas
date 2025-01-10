@@ -390,35 +390,33 @@ implementation
   class procedure tjvmnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
 
     var
-      hp : tused_unit;
       unitinits : TAsmList;
       unitclassname: string;
       mainpsym: tsym;
       mainpd: tprocdef;
-      m : tmodule;
       i : integer;
+      entry : pinitfinalentry;
 
     begin
       unitinits:=TAsmList.Create;
       for I:=0 to entries.Count-1 do
         begin
-          hp:=tused_unit(entries[i]);
-          m:=hp.u;
+          entry:=pinitfinalentry(entries[i]);
           { class constructors are automatically handled by the JVM }
 
           { for non-main module, call the unit init code and make it external }
-          if (m<>main) and ((m.moduleflags*[mf_init,mf_finalize])<>[]) then
+          if (entry^.module<>main) and ((entry^.initfunc<>'') or (entry^.finifunc<>'')) then
             begin
               { trigger init code by referencing the class representing the
                 unit; if necessary, it will register the fini code to run on
                 exit}
               unitclassname:='';
-              if assigned(hp.u.namespace) then
+              if assigned(entry^.module.namespace) then
                 begin
-                  unitclassname:=hp.u.namespace^+'/';
+                  unitclassname:=entry^.module.namespace^+'/';
                   replace(unitclassname,'.','/');
                 end;
-              unitclassname:=unitclassname+hp.u.realmodulename^;
+              unitclassname:=unitclassname+entry^.module.realmodulename^;
               unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname,AT_METADATA)));
               unitinits.concat(taicpu.op_none(a_pop));
             end;
