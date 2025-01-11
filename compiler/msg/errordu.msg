@@ -34,7 +34,7 @@
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #   package_  package handling
-#   sym_      symbol handling 
+#   sym_      symbol handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -3932,7 +3932,7 @@ package_u_ppl_filename=13029_U_PPL Dateiname $1
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2024 Florian Klämpfl und andere
+Copyright (c) 1993-2025 Florian Klämpfl und andere
 ]
 
 #
@@ -4088,7 +4088,7 @@ A*2Aas-darwin_Assembliere mit Hilfe von GNU AS für Darwin Zielsysteme
 A*2Aclang_Assembliere mit Hilfe von clang
 A*2Aelf_Assembliere mit Hilfe des internen ELF-Schreibers
 a*2Aas_Assembliere mit Hilfe von GNU AS
-a*2Aas-clang_AAssembliere mit Hilfe von clang für andere Zielsysteme 
+a*2Aas-clang_AAssembliere mit Hilfe von clang für andere Zielsysteme
 a*2Aclang_Assembliere mit Hilfe von clang für Darwin/iOS Zielsysteme
 P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
@@ -4458,7 +4458,7 @@ W*2Tembedded_Embedded
 W*2Twasi_Das WebAssembly System Interface (WASI)
 # end of targets section
 **1t<x>_Zielsystem-Architektur
-**2*_ * Definiert FPC_SUBTARGET_<x> 
+**2*_ * Definiert FPC_SUBTARGET_<x>
 **2*_ * Definiert FPC_SUBTARGET als <arg>
 **2*_ * Liest zusätzlich die Konfigurationsdatei fpc-<subtarget>.cfg
 **1u<x>_Entferne die Definition für das Symbol <x>
@@ -4481,7 +4481,7 @@ W*2Twasi_Das WebAssembly System Interface (WASI)
 **2*_k : (ungenutzt)
 **2*_l : Zeilennummern
 **2*_m<x>,<y> : Keine Meldungen mit den Nummern <x> und <y>
-**2*_n : Anmerkungen                   
+**2*_n : Anmerkungen
 **2*_o : (ungenutzt)
 **2*_p : Schreibe tree.log mit Analysenbaum (parse tree)
 **2*_q : Nummer der Meldung
@@ -4490,7 +4490,7 @@ W*2Twasi_Das WebAssembly System Interface (WASI)
 **2*_t : Angesprochene/benutzte Dateien
 **2*_u : Unit-Informationen
 **2*_v : Schreibe fpcdebug.txt mit ganz viel Informationen
-**2*_w : Warnungen 
+**2*_w : Warnungen
 **2*_x : Informationen über aufgerufene Werkzeuge
 **2*_y : (ungenutzt)
 **2*_z : Schreibe die Ausgabe nach stderr
