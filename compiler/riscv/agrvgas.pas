@@ -126,7 +126,7 @@ unit agrvgas;
                if (offset=0) then
                  s:=s+gas_regname(base)+','+gas_regname(index)
                else
-                 internalerror(2006052502);
+                 internalerror(2025011102);
              end
            else
              Internalerror(2021030602);

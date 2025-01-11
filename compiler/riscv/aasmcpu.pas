@@ -63,6 +63,7 @@ uses
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: aint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
+         constructor op_reg_ref_reg(op : tasmop;_op1: tregister; const _op2: treference;_op3 : tregister);
          constructor op_const_reg_reg(op : tasmop;_op1 : aint;_op2, _op3 : tregister);
          constructor op_const_reg_const(op : tasmop;_op1 : aint;_op2 : tregister;_op3 : aint);
          constructor op_const_const_const(op : tasmop;_op1 : aint;_op2 : aint;_op3 : aint);
@@ -259,6 +260,15 @@ uses cutils, cclasses;
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadref(2,_op3);
+      end;
+
+     constructor taicpu.op_reg_ref_reg(op : tasmop;_op1: tregister; const _op2: treference;_op3 : tregister);
+       begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadref(1,_op2);
+         loadreg(2,_op3);
       end;
 
     constructor taicpu.op_const_reg_reg(op : tasmop;_op1 : aint;_op2, _op3 : tregister);

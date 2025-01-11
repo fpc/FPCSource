@@ -148,6 +148,7 @@ unit itcpugas;
 {$endif RISCV64}
 
         { q-extension }
+        'flq','fsq',
         'fmax.q','fmax.q',
 
         { Machine mode }

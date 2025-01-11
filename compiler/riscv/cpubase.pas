@@ -157,7 +157,7 @@ uses
 {$endif RISCV64}
 
         { Q-extension }
-//        A_FLD,A_FSD,
+        A_FLQ,A_FSQ,
 //        A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D,
 //        A_FADD_D,A_FSUB_D,A_FMUL_D,A_FDIV_D,
 //        A_FSQRT_D,A_FSGNJ_D,A_FSGNJN_D,A_FSGNJX_D,
