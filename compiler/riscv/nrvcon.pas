@@ -40,13 +40,10 @@ implementation
 
     uses
       verbose,
-      globtype,globals,
-      cpuinfo,
-      aasmbase,aasmtai,aasmcpu,aasmdata,
-      symdef,
+      globals,
+      aasmcpu,aasmdata,
       defutil,
       cgbase,cgobj,cgutils,
-      procinfo,
       ncon;
 
 {*****************************************************************************
@@ -70,15 +67,6 @@ implementation
 
 
     procedure trvrealconstnode.pass_generate_code;
-      { I suppose the parser/pass_1 must make sure the generated real  }
-      { constants are actually supported by the target processor? (JM) }
-      const
-        floattype2ait:array[tfloattype] of tairealconsttype=
-          (aitrealconst_s32bit,aitrealconst_s64bit,aitrealconst_s80bit,aitrealconst_s80bit,aitrealconst_s64comp,aitrealconst_s64comp,aitrealconst_s128bit);
-      var
-         lastlabel : tasmlabel;
-         realait : tairealconsttype;
-
       begin
         if is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
           (
