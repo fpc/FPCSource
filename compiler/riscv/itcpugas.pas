@@ -119,9 +119,10 @@ unit itcpugas;
         'fadd.s','fsub.s','fmul.s','fdiv.s',
         'fsqrt.s','fsgnj.s','fsgnjn.s','fsgnjx.s',
         'fmin.s','fmax.s',
-        'fmv.x.s','feq.s','flt.s','fle.s','fclass.s',
+        'fmv.x.s','fmv.x.w',
+        'feq.s','flt.s','fle.s','fclass.s',
         'fcvt.w.s','fcvt.wu.s','fcvt.s.w','fcvt.s.wu',
-        'fmv.s.x',
+        'fmv.s.x','fmv.w.x',
         'frcsr','frrm','frflags','fscsr','fsrm',
         'fsflags','fsrmi','fsflagsi',
 
