@@ -43,6 +43,7 @@ uses
         A_FMV_S,A_FABS_S,A_FNEG_S,A_FMV_D,A_FABS_D,A_FNEG_D,A_FNEG_Q,
         A_BEQZ,A_BNEZ,A_BLEZ,A_BGEZ,A_BLTZ,A_BGTZ,A_BGT,A_BLE,
         A_BGTU,A_BLEU,A_J,A_JR,A_RET,A_TAIL,
+
         { normal opcodes }
         A_LUI,A_AUIPC,A_JAL,A_JALR,
         A_Bxx,A_LB,A_LH,A_LW,A_LBU,A_LHU,

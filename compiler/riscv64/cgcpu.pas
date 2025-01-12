@@ -122,8 +122,6 @@ implementation
           ((tcgsize2unsigned[fromsize]<>fromsize) and ((tcgsize2unsigned[tosize]=tosize)) and
             (tcgsize2size[fromsize] < tcgsize2size[tosize]) and (tcgsize2size[tosize] <> sizeof(pint)) ) then
           begin
-            if 8*(8-tcgsize2size[tosize])=64 then
-              writeln;
             if tcgsize2size[fromsize]<tcgsize2size[tosize] then
               begin
                 list.Concat(taicpu.op_reg_reg_const(A_SLLI,reg2,reg1,8*(8-tcgsize2size[fromsize])));

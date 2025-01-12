@@ -37,7 +37,6 @@ uses
   aasmtai, aasmcpu;
 
 type
-
   TRVCpuAsmOptimizer = class(TAsmOptimizer)
     function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean; override;
     function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean; override;
