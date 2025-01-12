@@ -52,6 +52,7 @@ type
     function OptPass1FSGNJ(var p: tai;mvop: tasmop): boolean;
 
     function OptPass1Add(var p: tai): boolean;
+    function OptPass1Sub(var p: tai): boolean;
     procedure RemoveInstr(var orig: tai; moveback: boolean=true);
   end;
 
@@ -467,6 +468,44 @@ implementation
     end;
 
 
+  function TRVCpuAsmOptimizer.OptPass1Sub(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result:=false;
+      {
+        Turn
+          sub x,y,z
+          bgeu X0,x,...
+          dealloc x
+        Into
+          bne y,x,...
+      }
+      if (taicpu(p).ops=3) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1,A_Bxx,[C_GEU,C_EQ]) and
+         (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(hp1).oper[0]^,NR_X0) and
+         MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+          taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+          taicpu(hp1).condition:=C_EQ;
+
+          DebugMsg('Peephole SubBxx2Beq performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      else
+        result:=OptPass1OP(p);
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1: tai;
@@ -479,38 +518,7 @@ implementation
               A_ADDI:
                 result:=OptPass1Add(p);
               A_SUB:
-                begin
-                  {
-                    Turn
-                      sub x,y,z
-                      bgeu X0,x,...
-                      dealloc x
-                    Into
-                      bne y,x,...
-                  }
-                  if (taicpu(p).ops=3) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1,A_Bxx,[C_GEU,C_EQ]) and
-                     (taicpu(hp1).ops=3) and
-                     MatchOperand(taicpu(hp1).oper[0]^,NR_X0) and
-                     MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
-                      taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
-                      taicpu(hp1).condition:=C_EQ;
-
-                      DebugMsg('Peephole SubBxx2Beq performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  else
-                    result:=OptPass1OP(p);
-                end;
+                result:=OptPass1Sub(p);
               A_ANDI:
                 begin
                   {
