@@ -43,6 +43,7 @@ implementation
       globals,
       aasmcpu,aasmdata,
       defutil,
+      cpuinfo,
       cgbase,cgobj,cgutils,
       ncon;
 
@@ -55,9 +56,9 @@ implementation
         result:=nil;
         if is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
           (
-            is_single(resultdef)
+            ((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and is_single(resultdef))
 {$ifdef RISCV64}
-            or is_double(resultdef)
+            or ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and is_double(resultdef))
 {$endif RISCV64}
           ) then
            expectloc:=LOC_FPUREGISTER
@@ -70,9 +71,9 @@ implementation
       begin
         if is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
           (
-            is_single(resultdef)
+            ((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and is_single(resultdef))
 {$ifdef RISCV64}
-            or is_double(resultdef)
+            or ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and is_double(resultdef))
 {$endif RISCV64}
           ) then
           begin
