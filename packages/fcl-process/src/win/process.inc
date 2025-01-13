@@ -384,7 +384,7 @@ end;
 
 function TIODescriptor.SysNullFileName: string;
 begin
-  result:='NULL';
+  result:='NUL';
 end;
 
 function TIODescriptor.SysIsTypeSupported(AValue: TIOType): Boolean;
