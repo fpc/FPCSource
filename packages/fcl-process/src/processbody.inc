@@ -201,7 +201,7 @@ Type
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
-    Property ThreadHandle : THandle Read FProcessHandle;
+    Property ThreadHandle : THandle Read FThreadHandle;
     Property ProcessID : Integer Read FProcessID;
     Property ThreadID : Integer Read FThreadID;
     Property Input  : TOutputPipeStream Read GetInputStream;
