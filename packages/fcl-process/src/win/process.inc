@@ -336,8 +336,6 @@ begin
       begin
         Result:=CreateFileW(PWideChar(WideString(aFileName)), GENERIC_WRITE,
           FILE_SHARE_READ, @sec, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-        if not(Result=INVALID_HANDLE_VALUE) then
-          FileSeek(Result, 0, 2);
       end;
   end;
   if (Result=INVALID_HANDLE_VALUE) then
