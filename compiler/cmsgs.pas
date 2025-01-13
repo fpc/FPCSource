@@ -461,8 +461,12 @@ begin
 end;
 
 function TMessage.Valid(nr:longint):boolean;
+var
+  i,j : longint;
 begin
-  result:=(nr div 1000<msgparts) and (nr mod 1000<msgidxmax[nr div 1000]) and assigned(msgidx[nr div 1000]^[nr mod 1000]);
+  i:=nr div 1000;
+  j:=nr mod 1000;
+  result:=(i>=low(msgstates)) and (i<msgparts) and (j<msgidxmax[i]) and assigned(msgidx[i]^[j]);
 end;
 
 procedure TMessage.ResetStates;
