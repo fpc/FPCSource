@@ -6227,7 +6227,7 @@ implementation
              cmpn:=cmpn.getcopy;
              inserttypeconv_internal(cmpn,resultdef);
              addstatement(stmt,
-               cassignmentnode.create(tcallparanode(succn),
+               cassignmentnode.create(succn,
                  caddnode.create(equaln,cmpn,
                    ctemprefnode.create(tmp))));
              addstatement(stmt,ctempdeletenode.create_normal_temp(tmp));
