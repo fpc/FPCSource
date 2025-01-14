@@ -1624,7 +1624,8 @@ implementation
         hpi:=tcgprocinfo(get_first_nestedproc);
         while assigned(hpi) do
           begin
-            hpi.generate_code_tree;
+            if not (df_generic in hpi.procdef.defoptions) then
+              hpi.generate_code_tree;
             hpi:=tcgprocinfo(hpi.next);
           end;
         resetprocdef;
