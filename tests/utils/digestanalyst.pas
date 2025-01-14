@@ -8,143 +8,105 @@ uses
   Classes, SysUtils, teststr, testu, tresults, dbtests;
 
 Type
+  // Program configuration
   TDigestConfig = record
     databasename: string;
     host: string;
     username: string;
     password: string;
-    port: string;
-    logfile: string;
-    longlogfile : string;
-    os: string;
-    cpu: string;
-    category: string;
-    version: string;
-    date: string;
-    submitter: string;
-    machine: string;
-    config : string;
-    description : string;
+    port: integer;
     testsrcdir: string;
     relsrcdir: string;
     verbose: string;
     sql: string;
   end;
 
-  TTestRunData = Record
-    Date : TDateTime;
-    CompilerDate,
-    CompilerFullVersion,
-    SvnCompilerRevision,
-    SvnTestsRevision,
-    SvnRTLRevision,
-    SvnPackagesRevision : String;
-    CPUID : Integer;
-    OSID  : Integer;
-    VersionID  : Integer;
-    CategoryID : Integer;
-    RunID : Integer;
-    ConfigID : Integer;
-  end;
 
   { TDBDigestAnalyzer }
 
   TDBDigestAnalyzer = Class(TObject)
-    FDB : TTestDB;
+  private
+    FDB : TTestSQL;
     LongLogFile : TStrings;
-    StatusCount : Array[TTestStatus] of Integer;
     UnknownLines : integer;
     UseLongLog : Boolean;
     FCurLongLogLine : Integer;
-    constructor Create(aDB : TTestDB);
-    function CheckIDs(aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
+    function CheckIDs(var aData: TTestRunData): Boolean;
     function GetExecuteLog(Line, FN: String): String;
     function GetIDs(const aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
-    procedure Processfile(const aFileName: String; const aData: TTestRunData);
+    procedure Processfile(const aFileName: String; var aData: TTestRunData);
+    function SaveTestResult(aResult: TTestResultData): Boolean;
     procedure UpdateTestRun(const aData: TTestRunData);
-    procedure UpdateTestRunBefore(const aConfig: TDigestConfig; const aData: TTestRunData);
-    procedure Analyse(aConfig : TDigestConfig);
-  private
     function GetContentsFromLongLog(Line: String): String;
     function GetLog(Line, FN: String): String;
+  public
+    constructor Create(aDB : TTestSQL);
+    class function AnalyseLine(var Line: string; var Status: TTestStatus): Boolean;
+    class procedure ExtractTestFileName(var Line: string);
+    procedure Analyse(aConfig : TDigestConfig; aData : TTestRunData);
   end;
 
 
 implementation
 
-constructor TDBDigestAnalyzer.Create(aDB: TTestDB);
+constructor TDBDigestAnalyzer.Create(aDB: TTestSQL);
 begin
   FDB:=aDB;
 end;
 
-function TDBDigestAnalyzer.CheckIDs(aConfig : TDigestConfig; var aData : TTestRunData): Boolean;
+function TDBDigestAnalyzer.CheckIDs(var aData : TTestRunData): Boolean;
 
 begin
   If aData.CategoryID=-1 then
     aData.CategoryID:=1;
-  // Checks
+  Result:=(aData.CPUID<>-1) and (aData.OSID<>-1) and (aData.VersionID<>-1);
+  if Result then
+    exit;
   If aData.CPUID=-1 then
-    Verbose(V_Error,'NO ID for CPU "'+aConfig.CPU+'" found.');
+    Verbose(V_Error,'NO ID for CPU "'+aData.CPU+'" found.');
   If aData.OSID=-1 then
-    Verbose(V_Error,'NO ID for OS "'+aConfig.OS+'" found.');
+    Verbose(V_Error,'NO ID for OS "'+aData.OS+'" found.');
   If aData.VersionID=-1 then
-    Verbose(V_Error,'NO ID for version "'+aConfig.Version+'" found.');
+    Verbose(V_Error,'NO ID for version "'+aData.Version+'" found.');
 end;
 
-
-procedure TDBDigestAnalyzer.UpdateTestRunBefore(const aConfig : TDigestConfig; const aData : TTestRunData);
-
-var
-  qry : string;
+procedure TDBDigestAnalyzer.Analyse(aConfig: TDigestConfig; aData : TTestRunData);
 
 begin
-  { Add known infomration at start }
-  qry:=format('UPDATE TESTRUN SET TU_SUBMITTER=''%s'', TU_MACHINE=''%s'', TU_COMMENT=''%s'', TU_DATE=''%s''',[aConfig.Submitter,aConfig.Machine,aConfig.Comment,TTestDB.SqlDate(aData.Date)]);
-  qry:=qry+' WHERE TU_ID='+format('%d',[aData.RunID]);
-  FDB.ExecuteQuery(Qry,False);
-end;
-
-procedure TDBDigestAnalyzer.Analyse(aConfig: TDigestConfig);
-
-var
-  lData : TTestRunData;
-
-begin
-  lData:=Default(TTestRunData);
-  if (aConfig.longlogfile<>'') and FileExists(aConfig.longlogfile) then
+  FDB.RelSrcDir:=aConfig.relsrcdir;
+  FDB.TestSrcDir:=aConfig.testsrcdir;
+  if (aData.longlogfile<>'') and FileExists(aData.longlogfile) then
     begin
     LongLogFile:=TStringList.Create;
-    LongLogFile.LoadFromFile(aConfig.longlogfile);
+    LongLogFile.LoadFromFile(aData.longlogfile);
     end;
-  if not GetIDS(aConfig,lData) then
+  if not GetIDS(aConfig,aData) then
     exit;
-  UpdateTestRunBefore(aConfig,lData);
-  ProcessFile(aConfig.logfile,lData);
-  UpdateTestRun(lData);
+  ProcessFile(aData.logfile,aData);
+  UpdateTestRun(aData);
 end;
 
 function TDBDigestAnalyzer.GetIDs(const aConfig : TDigestConfig; var aData : TTestRunData): Boolean;
 
 
 begin
-  Result:=False;
-  aData:=Default(TTestRunData);
-  aData.CPUID := FDB.GetCPUID(aConfig.CPU);
-  aData.OSID  := FDB.GetOSID(aConfig.OS);
-  aData.VersionID  := FDB.GetVersionID(aConfig.Version);
-  aData.CategoryID := FDB.GetCategoryID(aConfig.Category);
-  aData.PlatformID := FDB.GetCategoryID(aConfig.Category);
+  Result := False;
+  aData.CPUID := FDB.GetCPUID(aData.CPU);
+  aData.OSID := FDB.GetOSID(aData.OS);
+  aData.VersionID := FDB.GetVersionID(aData.Version);
+  aData.CategoryID := FDB.GetCategoryID(aData.Category);
+  aData.PlatformID := FDB.GetPlatformID(aData,True);
   If (Round(aData.Date)=0) then
-    aData.Date:=Now;
-  Result:=CheckIDS(aConfig,aData);
+    aData.Date:=Date;
+  Result:=CheckIDS(aData);
   if not Result then
     Exit;
-  aData.RunID:=FDB.GetRunID(aData.OSID,aData.CPUID,aData.VersionID,aData.Date);
+  aData.RunID:=FDB.GetRunID(aData);
   If (aData.RunID<>-1) then
     FDB.CleanTestRun(aData.RunID)
   else
     begin
-    aData.RunID:=FDB.AddRun(aData.OSID,aData.CPUID,aData.VersionID,aData.CategoryID,aData.Date);
+    aData.RunID:=FDB.AddRun(aData);
     Result:=aData.RunID<>-1;
     if not Result then
       begin
@@ -154,7 +116,7 @@ begin
     end;
 end;
 
-Procedure ExtractTestFileName(Var Line : string);
+class procedure TDBDigestAnalyzer.ExtractTestFileName(var Line: string);
 
 Var I : integer;
 
@@ -164,7 +126,7 @@ begin
     Line:=Copy(Line,1,I-1);
 end;
 
-Function AnalyseLine(Var Line : string; Var Status : TTestStatus) : Boolean;
+class function TDBDigestAnalyzer.AnalyseLine(var Line: string; var Status: TTestStatus): Boolean;
 
 Var
   TS : TTestStatus;
@@ -211,7 +173,7 @@ ConfigAddCols : Array [TConfigAddOpt] of string = (
 const
    SeparationLine = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
-Function TDBDigestAnalyzer.GetContentsFromLongLog(Line : String) : String;
+function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
 
   Function GetLongLogLine : String;
   begin
@@ -269,7 +231,7 @@ begin
     end;
 end;
 
-Function TDBDigestAnalyzer.GetLog(Line, FN : String) : String;
+function TDBDigestAnalyzer.GetLog(Line, FN: String): String;
 
 begin
   if UseLongLog then
@@ -311,119 +273,111 @@ begin
     end;
 end;
 
-procedure TDBDigestAnalyzer.Processfile(const aFileName: String; const aData: TTestRunData);
+function TDBDigestAnalyzer.SaveTestResult(aResult : TTestResultData) : Boolean;
 
 var
-  logfile : text;
+  lLast : TTestResultData;
+  lNewID : Int64;
+
+begin
+  lLast:=FDB.GetLastTestResult(aResult.TestID,aResult.PlatformID);
+  if aResult.Differs(lLast) then
+    begin
+    // Need to save
+    lNewID:=FDB.AddTestResult(aResult)
+    end
+  else
+    // Update status, testrun & log
+    FDB.UpdateTestResult(aResult);
+end;
+
+procedure TDBDigestAnalyzer.Processfile(const aFileName: String; var aData: TTestRunData);
+
+var
+  logfile : TStrings;
   fullline,line,prevLine : string;
-  TS,PrevTS : TTestStatus;
-  ID,PrevID : integer;
+  TS : TTestStatus;
   Testlog : string;
   count_test : boolean;
+  lPrev,lResult : TTestResultData;
+
 begin
-  AssignFile(logfile,aFileName);
-  PrevId:=-1;
+  lPrev:=Default(TTestResultData);
+  // init data common to the whole testrun
+  lResult.RunID:=aData.RunID;
+  lResult.PlatFormID:=aData.PlatFormID;
+  lPrev.RunID:=aData.RunID;
+  lPrev.PlatformID:=aData.PlatformID;
+  lPrev.TestID:=-1; // Init no test
   PrevLine:='';
-  count_test:=false;
-  PrevTS:=low(TTestStatus);
-{$i-}
-  reset(logfile);
-  if ioresult<>0 then
-    begin
-    Verbose(V_Error,'Unable to open log file'+aFileName);
-    exit;
-    end;
-{$i+}
-  while not eof(logfile) do
-    begin
-    readln(logfile,line);
-    fullline:=line;
-    ts:=stFailedToCompile;
-    If AnalyseLine(line,TS) then
+  logfile:=TStringList.Create;
+  try
+    LogFile.Capacity:=20000;
+    LogFile.LoadFromFile(aFileName);
+    For FullLine in LogFile do
       begin
-      Verbose(V_NORMAL,'Analysing result for test '+Line);
-      If Not ExpectRun[TS] then
-        begin
-        ID:=FDB.RequireTestID(Line);
-        if (PrevID<>-1) and (PrevID<>ID) then
+        lResult:=Default(TTestResultData);
+        line:=fullline;
+        lResult.TestResult:=stFailedToCompile;
+        If not AnalyseLine(line,TS) then
           begin
-            { This can only happen if a Successfully compiled message
-              is not followed by any other line about the same test }
-            TestLog:='';
-            FDB.AddTestResult(PrevID,aData.RunId,ord(PrevTS),
-              TestOK[PrevTS],TestSkipped[PrevTS],TestLog,count_test);
-            Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
-          end;
-        PrevID:=-1;
-        If (ID<>-1) then
+          Inc(UnknownLines);
+          Verbose(V_Warning,'Unknown line: "'+line+'"');
+          end
+        else
           begin
-          If Not (TestOK[TS] or TestSkipped[TS]) then
+          Verbose(V_NORMAL,'Analysing result for test '+Line);
+          lResult.TestID:=FDB.RequireTestID(line);
+          if lResult.TestID=-1 then
             begin
-              TestLog:=GetExecuteLog(Fullline,Line);
-              if pos(failed_to_compile,TestLog)=1 then
-                TestLog:=GetLog(Fullline,Line);
-            end
-          else
-            TestLog:='';
-          { AddTestResult can fail for test that contain %recompile
-            as the same }
-          if FDB.AddTestResult(ID,aData.RunID,Ord(TS),TestOK[TS],
-               TestSkipped[TS],TestLog,count_test) <> -1 then
-            begin
-              if count_test then
-                Inc(StatusCount[TS])
-              else
-                Verbose(V_Debug,'Test: "'+line+'" was updated');
-            end
-          else
-            begin
-              Verbose(V_Warning,'Test: "'+line+'" already registered');
+            Verbose(V_Warning,'No test ID: "'+line+'", skipping');
+            Continue;
             end;
-
-          end;
-        end
-      else
-        begin
-          Inc(StatusCount[TS]);
-          PrevTS:=TS;
-          PrevID:=FDB.RequireTestID(line);
-          PrevLine:=line;
-        end;
-
-      end
-    else
-      begin
-        Inc(UnknownLines);
-        Verbose(V_Warning,'Unknown line: "'+line+'"');
+          If ExpectRun[TS] then
+            begin
+            // We expect a log line with log result, save
+            Inc(aData.StatusCount[TS]);
+            lPrev.TestResult:=TS;
+            lPrev.TestID:=lResult.TestID;
+            PrevLine:=line;
+            end
+          else
+            begin
+            // New test, insert previous result
+            if (lPrev.TestID<>-1) and (lPrev.TestID<>lResult.TestID) then
+              begin
+              { This can only happen if a Successfully compiled message
+                is not followed by any other line about the same test }
+              SaveTestResult(lPrev);
+              Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
+              end;
+            // same test, so now we have run result
+            lPrev.TestID:=-1;
+            lResult.TestResult:=TS;
+            If (lResult.TestID<>-1) then
+              begin
+              If Not (TestOK[TS] or TestSkipped[TS]) then
+                begin
+                  lResult.Log:=GetExecuteLog(Fullline,Line);
+                  if pos(failed_to_compile,lResult.Log)=1 then
+                    lResult.Log:=GetLog(Fullline,Line);
+                end
+              else
+                lResult.Log:='';
+              SaveTestResult(lResult);
+              end;
+            end
+          end
       end;
-    end;
-  close(logfile);
+  finally
+    Logfile.Free;
+  end;
 end;
 
 procedure TDBDigestAnalyzer.UpdateTestRun(const aData : TTestRunData);
 
-var
-   i : TTestStatus;
-   qry : string;
-
 begin
-  qry:='UPDATE TESTRUN SET ';
-  for i:=low(TTestStatus) to high(TTestStatus) do
-    qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
-  if aData.CompilerDate<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_COMPILERDATE',TTestDB.EscapeSQL(aData.CompilerDate)]);
-  if aData.CompilerFullVersion<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_COMPILERFULLVERSION',TTestDB.EscapeSQL(aData.CompilerFullVersion)]);
-  if aData.SvnCompilerRevision<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_SVNCOMPILERREVISION',TTestDB.EscapeSQL(aData.SvnCompilerRevision)]);
-  if aData.SvnTestsRevision<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_SVNTESTSREVISION',TTestDB.EscapeSQL(aData.SvnTestsRevision)]);
-  if aData.SvnRTLRevision<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_SVNRTLREVISION',TTestDB.EscapeSQL(aData.SvnRTLRevision)]);
-  if aData.SvnPackagesRevision<>'' then
-    qry:=qry+format('%s=''%s'', ',['TU_SVNPACKAGESREVISION',TTestDB.EscapeSQL(aData.SvnPackagesRevision)]);
-  qry:=qry+' WHERE TU_ID='+format('%d',[aData.RunID]);
-  FDB.ExecuteQuery(Qry,False);
+  FDB.UpdateTestRun(aData);
 end;
 
 

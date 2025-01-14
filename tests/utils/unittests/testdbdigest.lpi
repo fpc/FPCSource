@@ -3,12 +3,8 @@
   <ProjectOptions>
     <Version Value="12"/>
     <General>
-      <Flags>
-        <MainUnitHasCreateFormStatements Value="False"/>
-        <MainUnitHasScaledStatement Value="False"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="FPC Digest Application"/>
+      <Title Value="testdbdigest"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -22,13 +18,30 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
+    <RequiredPackages>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="dbdigest.pp"/>
+        <Filename Value="testdbdigest.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="digestanalyst.pas"/>
+        <Filename Value="tctestsql.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../dbtests.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tcsetup.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../digestanalyst.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -36,9 +49,11 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="dbdigest"/>
+      <Filename Value="testdbdigest"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value=".."/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
