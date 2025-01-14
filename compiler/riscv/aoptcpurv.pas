@@ -49,6 +49,7 @@ type
     function OptPass1OP(var p: tai): boolean;
     function OptPass1FOP(var p: tai;mvop: tasmop): boolean;
     function OptPass1FSGNJ(var p: tai;mvop: tasmop): boolean;
+    function OptPass1SLTx(var p: tai): boolean;
 
     function OptPass1Add(var p: tai): boolean;
     function OptPass1Sub(var p: tai): boolean;
@@ -505,6 +506,100 @@ implementation
     end;
 
 
+  function TRVCpuAsmOptimizer.OptPass1SLTx(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result:=false;
+      {
+        Turn
+          sltu x,X0,y
+          beq/bne x, X0, ...
+          dealloc x
+        Into
+          bltu/geu X0, y, ...
+      }
+      if (taicpu(p).ops=3) and
+         MatchOperand(taicpu(p).oper[1]^,NR_X0) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
+         (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+         MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
+         (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(0,NR_X0);
+          taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+
+          if taicpu(p).opcode=A_SLTU then
+            begin
+              if taicpu(hp1).condition=C_NE then
+                taicpu(hp1).condition:=C_LTU
+              else
+                taicpu(hp1).condition:=C_GEU;
+            end
+          else
+            begin
+              if taicpu(hp1).condition=C_NE then
+                taicpu(hp1).condition:=C_LT
+              else
+                taicpu(hp1).condition:=C_GE;
+            end;
+
+          DebugMsg('Peephole SltuB2B performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      {
+        Turn
+          sltu x,y,z
+          beq/bne x, X0, ...
+          dealloc x
+        Into
+          bltu/geu y, z, ...
+      }
+      else if (taicpu(p).ops=3) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
+         (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+         MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+          taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+
+          if taicpu(p).opcode=A_SLTU then
+            begin
+              if taicpu(hp1).condition=C_NE then
+                taicpu(hp1).condition:=C_LTU
+              else
+                taicpu(hp1).condition:=C_GEU;
+            end
+          else
+            begin
+              if taicpu(hp1).condition=C_NE then
+                taicpu(hp1).condition:=C_LT
+              else
+                taicpu(hp1).condition:=C_GE;
+            end;
+
+          DebugMsg('Peephole SltuB2B performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end
+      else
+        result:=OptPass1OP(p);
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1: tai;
@@ -576,94 +671,7 @@ implementation
                 end;
               A_SLT,
               A_SLTU:
-                begin
-                  {
-                    Turn
-                      sltu x,X0,y
-                      beq/bne x, X0, ...
-                      dealloc x
-                    Into
-                      bltu/geu X0, y, ...
-                  }
-                  if (taicpu(p).ops=3) and
-                     MatchOperand(taicpu(p).oper[1]^,NR_X0) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
-                     (taicpu(hp1).ops=3) and
-                     MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
-                     MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
-                     (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadreg(0,NR_X0);
-                      taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
-
-                      if taicpu(p).opcode=A_SLTU then
-                        begin
-                          if taicpu(hp1).condition=C_NE then
-                            taicpu(hp1).condition:=C_LTU
-                          else
-                            taicpu(hp1).condition:=C_GEU;
-                        end
-                      else
-                        begin    
-                          if taicpu(hp1).condition=C_NE then
-                            taicpu(hp1).condition:=C_LT
-                          else
-                            taicpu(hp1).condition:=C_GE;
-                        end;
-
-                      DebugMsg('Peephole SltuB2B performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  {
-                    Turn
-                      sltu x,y,z
-                      beq/bne x, X0, ...
-                      dealloc x
-                    Into
-                      bltu/geu y, z, ...
-                  }
-                  else if (taicpu(p).ops=3) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
-                     (taicpu(hp1).ops=3) and
-                     MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
-                     MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
-                      taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
-
-                      if taicpu(p).opcode=A_SLTU then
-                        begin
-                          if taicpu(hp1).condition=C_NE then
-                            taicpu(hp1).condition:=C_LTU
-                          else
-                            taicpu(hp1).condition:=C_GEU;
-                        end
-                      else
-                        begin
-                          if taicpu(hp1).condition=C_NE then
-                            taicpu(hp1).condition:=C_LT
-                          else
-                            taicpu(hp1).condition:=C_GE;
-                        end;
-
-                      DebugMsg('Peephole SltuB2B performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end
-                  else
-                    result:=OptPass1OP(p);
-                end;
+                result:=OptPass1SLTx(p);
               A_SLTIU:
                 begin
                   {
