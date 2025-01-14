@@ -21129,11 +21129,14 @@ var
   ResultTypeInfo: TJSElement;
   Call: TJSCallExpression;
   Flags: Integer;
-  ExtVis: word;
+  ExtVis: Integer;
 
   procedure AddExtRTTIVisibility;
   begin
-    Call.AddArg(CreateLiteralNumber(Proc,ExtVis));
+    if ExtVis > -1 then
+      Call.AddArg(CreateLiteralNumber(Proc,ExtVis));
+
+    ExtVis := -1;
   end;
 
   procedure AddOption(const aName: String; JS: TJSElement);
@@ -21143,8 +21146,7 @@ var
     if JS=nil then exit;
     if OptionsEl=nil then
       begin
-      if ExtVis=ExtRTTIVisDefaultMethod then
-        AddExtRTTIVisibility;
+      AddExtRTTIVisibility;
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Proc));
       Call.AddArg(OptionsEl);
       end;
@@ -21238,10 +21240,19 @@ begin
       ResultEl:=TPasFunction(Proc).FuncType.ResultEl;
       ResultTypeInfo:=CreateTypeInfoRef(ResultEl.ResultType,AContext,ResultEl);
       if ResultTypeInfo<>nil then
+        begin
+        AddExtRTTIVisibility;
+
         Call.AddArg(ResultTypeInfo);
+        end;
       end;
+
     if (ResultTypeInfo=nil) and ((Flags>0) or (length(Attr)>0)) then
+    begin
+      AddExtRTTIVisibility;
+
       Call.AddArg(CreateLiteralNull(Proc));
+    end;
 
     // flags if needed
     if (Flags>0) or (length(Attr)>0) then
