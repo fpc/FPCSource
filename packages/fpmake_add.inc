@@ -165,3 +165,4 @@
   add_ptckvm(ADirectory+IncludeTrailingPathDelimiter('ptckvm'));
   add_fcl_fpterm(ADirectory+IncludeTrailingPathDelimiter('fcl-fpterm'));
   add_libjack(ADirectory+IncludeTrailingPathDelimiter('libjack'));
+  add_libsndfile(ADirectory+IncludeTrailingPathDelimiter('libsndfile'));

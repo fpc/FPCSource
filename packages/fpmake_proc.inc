@@ -935,3 +935,9 @@ begin
   with Installer do
 {$include libjack/fpmake.pp}
 end;
+
+procedure add_libsndfile(const ADirectory: string);
+begin
+  with Installer do
+{$include libsndfile/fpmake.pp}
+end;
